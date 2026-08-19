@@ -42,56 +42,52 @@ async function recordQuoteBatches(page: Page) {
   return batches;
 }
 
-// The seeded list must be a NON-DEFAULT named list. W1b migrates only non-`Default` lists from
-// `mm.wls` into the server store behind /api/watchlist, so seeding `Default` races the fixture
-// store's own seeded Default and the rows may never arrive. The first version of this spec did
-// exactly that: it passed locally against a warm reused dev server carrying an earlier run's state,
-// and failed on CI's cold server. Mirrors e2e/watchlist-bulk-actions.spec.ts.
+// Seed the list through the REAL /api/watchlist route, then reload — the pattern
+// e2e/watchlist-server-migration.spec.ts uses. Seeding `mm.wls` and relying on the W1b
+// localStorage->server migration proved unreproducible on CI: the rows sometimes never reached the
+// server, so the list never appeared in the picker at all. Creating it server-side removes that
+// race entirely; the shell then restores it on mount the way it does for any real account.
 const LIST = "Bulk Quotes";
-const rowsFor = (symbols: string[]) => symbols.map((symbol) => ({ symbol, section: "EQUITIES" }));
 
 async function openWithWatchlist(
-  page: Page, testInfo: TestInfo, baseURL: string | undefined,
-  rows: { symbol: string; section: string }[],
+  page: Page, testInfo: TestInfo, baseURL: string | undefined, symbols: string[],
 ) {
   await isolateWatchlistStore(page, testInfo, baseURL);
-  await page.addInitScript(({ list, rows }) => {
-    localStorage.setItem("mm.wls", JSON.stringify({
-      lists: { Default: [], [list as string]: rows },
-      active: list,
-      meta: {
-        Default: { sections: [], collapsed: [] },
-        [list as string]: { sections: ["EQUITIES"], collapsed: [] },
-      },
-    }));
-  }, { list: LIST, rows });
   await page.goto("/terminal?symbol=NVDA");
   await expect(page.locator(".mm-ptag")).toBeVisible({ timeout: 60_000 });
 
-  // Select the list through the REAL UI rather than trusting the seeded `active`. A signed-in mount
-  // restores the active list from the SERVER inventory, which knows only `Default`, so the seeded
-  // selection loses the race — CI reported `.wl-select` = "Default " even though the ROWS had
-  // migrated across fine. Waiting for the list to appear in the picker and clicking it is the
-  // user's own path, and is immune to whichever side wins that race.
+  await page.evaluate(async ({ list, symbols }) => {
+    const created = await (await fetch("/api/watchlist", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "createList", name: list }),
+    })).json();
+    await fetch("/api/watchlist", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "add", listId: created.list.id, symbols, section: "EQUITIES" }),
+    });
+  }, { list: LIST, symbols });
+
+  await page.reload();
+  await expect(page.locator(".mm-ptag")).toBeVisible({ timeout: 60_000 });
+
+  // Make it the ACTIVE list through the picker — the user's own path, and immune to whatever the
+  // mount restores as active.
   const listRow = page.locator(".wl-list-row").filter({ hasText: LIST });
   await expect(async () => {
-    const current = await page.locator(".wl-select").innerText();
-    if (current.includes(LIST)) return;
+    if ((await page.locator(".wl-select").innerText()).includes(LIST)) return;
     if (!(await listRow.isVisible().catch(() => false))) {
       await page.locator(".wl-select").click();
-      // Wait for the menu to actually RENDER before clicking into it. Clicking straight after the
-      // toggle raced the render and timed out at 5s — a flake inside this helper that reads exactly
-      // like a product failure. A 300-row list makes that menu slow enough for it to matter.
       await expect(listRow).toBeVisible({ timeout: 10_000 });
     }
     await listRow.locator(".wl-list-nm").click({ timeout: 10_000 });
     await expect(page.locator(".wl-select")).toContainText(LIST, { timeout: 10_000 });
   }).toPass({ timeout: 90_000 });
 
-  // PRECONDITION, asserted rather than assumed. Without it the spec starts counting quote batches
-  // before the rail holds the list, and a seed that never landed surfaces as
-  // "symbol #1 must be covered" — a message that blames the demand planner for a fixture problem.
-  await expect(page.locator(".wl-row")).toHaveCount(rows.length, { timeout: 30_000 });
+  // PRECONDITION, asserted rather than assumed: a fixture that never landed must report as a
+  // fixture problem, not as "symbol #1 was not covered".
+  await expect(page.locator(".wl-row")).toHaveCount(symbols.length, { timeout: 30_000 });
 }
 
 /** Discard polls issued while the rail was still on `Default`; only the steady state is the subject. */
@@ -101,7 +97,7 @@ test("a 300-symbol watchlist reaches every row, without a bigger request", async
   test.skip(testInfo.project.name !== "desktop", "Demand planning is viewport-independent; one viewport proves the wiring.");
 
   const batches = await recordQuoteBatches(page);
-  await openWithWatchlist(page, testInfo, baseURL, rowsFor(SYMBOLS));
+  await openWithWatchlist(page, testInfo, baseURL, SYMBOLS);
   measureFrom(batches);
 
   // The shell polls every 6s. Wait for enough polls that a full rotation must have completed
@@ -138,9 +134,9 @@ test("a composite row past the boundary gets all of its legs in the same poll", 
   // A composite sitting deep in a long list — the case where naive flat rotation would split its
   // legs across two polls and leave the row summing a fresh leg against a stale one.
   const composite = "AAPL+MSFT";
-  const rows = rowsFor(SYMBOLS);
-  rows.splice(250, 0, { symbol: composite, section: "EQUITIES" });
-  await openWithWatchlist(page, testInfo, baseURL, rows);
+  const symbols = [...SYMBOLS];
+  symbols.splice(250, 0, composite);
+  await openWithWatchlist(page, testInfo, baseURL, symbols);
   measureFrom(batches);
 
   await expect.poll(() => batches.length, { timeout: 60_000 }).toBeGreaterThanOrEqual(3);
