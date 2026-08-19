@@ -14,6 +14,12 @@ import { isolateWatchlistStore } from "./watchlistStore";
  * keeping request size (and therefore provider fan-out) exactly where it was.
  */
 
+// This spec is inherently slower than the 30s default: it seeds 300 rows, drives the list picker,
+// and then has to OBSERVE several 6-second poll cycles to see a full rotation. The default cap
+// silently truncates the observation window — the poll for "3 batches" died at 2 with
+// "Test timeout of 30000ms exceeded", which reads like a demand-planner failure and is not one.
+test.setTimeout(150_000);
+
 const WATCHLIST_SIZE = 300;
 const SYM = (i: number) => `ZTEST${String(i).padStart(4, "0")}`;
 const SYMBOLS = Array.from({ length: WATCHLIST_SIZE }, (_, i) => SYM(i));
@@ -61,18 +67,42 @@ async function openWithWatchlist(
   }, { list: LIST, rows });
   await page.goto("/terminal?symbol=NVDA");
   await expect(page.locator(".mm-ptag")).toBeVisible({ timeout: 60_000 });
+
+  // Select the list through the REAL UI rather than trusting the seeded `active`. A signed-in mount
+  // restores the active list from the SERVER inventory, which knows only `Default`, so the seeded
+  // selection loses the race — CI reported `.wl-select` = "Default " even though the ROWS had
+  // migrated across fine. Waiting for the list to appear in the picker and clicking it is the
+  // user's own path, and is immune to whichever side wins that race.
+  const listRow = page.locator(".wl-list-row").filter({ hasText: LIST });
+  await expect(async () => {
+    const current = await page.locator(".wl-select").innerText();
+    if (current.includes(LIST)) return;
+    if (!(await listRow.isVisible().catch(() => false))) {
+      await page.locator(".wl-select").click();
+      // Wait for the menu to actually RENDER before clicking into it. Clicking straight after the
+      // toggle raced the render and timed out at 5s — a flake inside this helper that reads exactly
+      // like a product failure. A 300-row list makes that menu slow enough for it to matter.
+      await expect(listRow).toBeVisible({ timeout: 10_000 });
+    }
+    await listRow.locator(".wl-list-nm").click({ timeout: 10_000 });
+    await expect(page.locator(".wl-select")).toContainText(LIST, { timeout: 10_000 });
+  }).toPass({ timeout: 90_000 });
+
   // PRECONDITION, asserted rather than assumed. Without it the spec starts counting quote batches
   // before the rail holds the list, and a seed that never landed surfaces as
   // "symbol #1 must be covered" — a message that blames the demand planner for a fixture problem.
-  await expect(page.locator(".wl-select")).toContainText(LIST, { timeout: 30_000 });
   await expect(page.locator(".wl-row")).toHaveCount(rows.length, { timeout: 30_000 });
 }
+
+/** Discard polls issued while the rail was still on `Default`; only the steady state is the subject. */
+function measureFrom(batches: string[][]) { batches.length = 0; }
 
 test("a 300-symbol watchlist reaches every row, without a bigger request", async ({ page, baseURL }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "Demand planning is viewport-independent; one viewport proves the wiring.");
 
   const batches = await recordQuoteBatches(page);
   await openWithWatchlist(page, testInfo, baseURL, rowsFor(SYMBOLS));
+  measureFrom(batches);
 
   // The shell polls every 6s. Wait for enough polls that a full rotation must have completed
   // (300 rotating symbols against ~183 free slots per poll = 2 polls).
@@ -111,6 +141,7 @@ test("a composite row past the boundary gets all of its legs in the same poll", 
   const rows = rowsFor(SYMBOLS);
   rows.splice(250, 0, { symbol: composite, section: "EQUITIES" });
   await openWithWatchlist(page, testInfo, baseURL, rows);
+  measureFrom(batches);
 
   await expect.poll(() => batches.length, { timeout: 60_000 }).toBeGreaterThanOrEqual(3);
 
