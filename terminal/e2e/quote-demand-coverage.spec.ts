@@ -36,24 +36,43 @@ async function recordQuoteBatches(page: Page) {
   return batches;
 }
 
-async function openWithLongWatchlist(page: Page, testInfo: TestInfo, baseURL?: string) {
+// The seeded list must be a NON-DEFAULT named list. W1b migrates only non-`Default` lists from
+// `mm.wls` into the server store behind /api/watchlist, so seeding `Default` races the fixture
+// store's own seeded Default and the rows may never arrive. The first version of this spec did
+// exactly that: it passed locally against a warm reused dev server carrying an earlier run's state,
+// and failed on CI's cold server. Mirrors e2e/watchlist-bulk-actions.spec.ts.
+const LIST = "Bulk Quotes";
+const rowsFor = (symbols: string[]) => symbols.map((symbol) => ({ symbol, section: "EQUITIES" }));
+
+async function openWithWatchlist(
+  page: Page, testInfo: TestInfo, baseURL: string | undefined,
+  rows: { symbol: string; section: string }[],
+) {
   await isolateWatchlistStore(page, testInfo, baseURL);
-  await page.addInitScript(({ symbols }) => {
+  await page.addInitScript(({ list, rows }) => {
     localStorage.setItem("mm.wls", JSON.stringify({
-      lists: { Default: (symbols as string[]).map((symbol) => ({ symbol, section: "EQUITIES" })) },
-      active: "Default",
-      meta: {},
+      lists: { Default: [], [list as string]: rows },
+      active: list,
+      meta: {
+        Default: { sections: [], collapsed: [] },
+        [list as string]: { sections: ["EQUITIES"], collapsed: [] },
+      },
     }));
-  }, { symbols: SYMBOLS });
+  }, { list: LIST, rows });
   await page.goto("/terminal?symbol=NVDA");
   await expect(page.locator(".mm-ptag")).toBeVisible({ timeout: 60_000 });
+  // PRECONDITION, asserted rather than assumed. Without it the spec starts counting quote batches
+  // before the rail holds the list, and a seed that never landed surfaces as
+  // "symbol #1 must be covered" — a message that blames the demand planner for a fixture problem.
+  await expect(page.locator(".wl-select")).toContainText(LIST, { timeout: 30_000 });
+  await expect(page.locator(".wl-row")).toHaveCount(rows.length, { timeout: 30_000 });
 }
 
 test("a 300-symbol watchlist reaches every row, without a bigger request", async ({ page, baseURL }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "Demand planning is viewport-independent; one viewport proves the wiring.");
 
   const batches = await recordQuoteBatches(page);
-  await openWithLongWatchlist(page, testInfo, baseURL);
+  await openWithWatchlist(page, testInfo, baseURL, rowsFor(SYMBOLS));
 
   // The shell polls every 6s. Wait for enough polls that a full rotation must have completed
   // (300 rotating symbols against ~183 free slots per poll = 2 polls).
@@ -86,17 +105,12 @@ test("a composite row past the boundary gets all of its legs in the same poll", 
   test.skip(testInfo.project.name !== "desktop", "Demand planning is viewport-independent.");
 
   const batches = await recordQuoteBatches(page);
-  await isolateWatchlistStore(page, testInfo, baseURL);
   // A composite sitting deep in a long list — the case where naive flat rotation would split its
   // legs across two polls and leave the row summing a fresh leg against a stale one.
   const composite = "AAPL+MSFT";
-  await page.addInitScript(({ symbols, composite }) => {
-    const rows = (symbols as string[]).map((symbol) => ({ symbol, section: "EQUITIES" }));
-    rows.splice(250, 0, { symbol: composite as string, section: "EQUITIES" });
-    localStorage.setItem("mm.wls", JSON.stringify({ lists: { Default: rows }, active: "Default", meta: {} }));
-  }, { symbols: SYMBOLS, composite });
-  await page.goto("/terminal?symbol=NVDA");
-  await expect(page.locator(".mm-ptag")).toBeVisible({ timeout: 60_000 });
+  const rows = rowsFor(SYMBOLS);
+  rows.splice(250, 0, { symbol: composite, section: "EQUITIES" });
+  await openWithWatchlist(page, testInfo, baseURL, rows);
 
   await expect.poll(() => batches.length, { timeout: 60_000 }).toBeGreaterThanOrEqual(3);
 
