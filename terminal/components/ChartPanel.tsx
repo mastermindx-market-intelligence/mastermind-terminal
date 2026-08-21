@@ -2987,30 +2987,49 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           }
           const date = `${now.getFullYear()}${pad2(now.getMonth() + 1)}${pad2(now.getDate())}`;
           const fname = `${snapSym}_${tf}_${date}.png`;
+          // textContent, not innerHTML. This interpolated `msg` into markup, and one caller passed
+          // the SERVER's error string straight through — so an upstream provider's response text
+          // became live HTML in the page. The message is data; it is written as data.
           const statusFeedback = (msg: string) => {
             const sEl = statusRef.current;
-            if (sEl) { const prev = sEl.innerHTML; sEl.innerHTML = `<b class="up">${msg}</b>`; setTimeout(() => { if (statusRef.current === sEl) paintStatus(barsRef.current, sliceRef.current); else sEl.innerHTML = prev; }, 2500); }
+            if (!sEl) return;
+            const prev = sEl.innerHTML;
+            const b = document.createElement("b");
+            b.className = "up";
+            b.textContent = msg;
+            sEl.replaceChildren(b);
+            setTimeout(() => {
+              if (statusRef.current === sEl) paintStatus(barsRef.current, sliceRef.current);
+              else sEl.innerHTML = prev;
+            }, 2500);
           };
+          // The upload route answers with a stable `code`, never provider text. Each maps to a
+          // localised string here; an unrecognised code degrades to the generic failure rather
+          // than rendering whatever arrived.
+          const uploadFailure = (code: unknown): string =>
+            code === "too_large" ? tPlain("snapTooLarge", "Snapshot too large to share")
+            : code === "invalid_png" ? tPlain("snapInvalid", "Snapshot could not be shared")
+            : tPlain("snapUploadFailed", "Sharing unavailable — try again shortly");
           const blob: Blob | null = await new Promise((res) => out.toBlob(res, "image/png"));
           if (!blob) return;
           if (action === "download") {
             const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = fname; a.click();
             try { URL.revokeObjectURL(a.href); } catch {}
-            statusFeedback("Snapshot downloaded");
+            statusFeedback(tPlain("snapDownloaded", "Snapshot downloaded"));
           } else if (action === "copy") {
-            try { await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]); statusFeedback("Snapshot copied to clipboard"); }
-            catch { statusFeedback("Clipboard copy failed (needs HTTPS/focus)"); }
+            try { await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]); statusFeedback(tPlain("snapCopied", "Snapshot copied to clipboard")); }
+            catch { statusFeedback(tPlain("snapClipboardFailed", "Clipboard copy failed (needs HTTPS/focus)")); }
           } else if (action === "share") {
             // Upload to R2 via /api/snapshot, copy the share URL
             try {
               const form = new FormData(); form.append("file", blob, fname);
               const r = await fetch("/api/snapshot", { method: "POST", body: form });
-              if (!r.ok) { const e = await r.json().catch(() => ({})); statusFeedback(e.error || "Upload failed"); return; }
+              if (!r.ok) { const e = await r.json().catch(() => ({})); statusFeedback(uploadFailure(e?.code)); return; }
               const { url } = await r.json();
               const abs = `${window.location.origin}${url}`;
-              try { await navigator.clipboard.writeText(abs); statusFeedback("Link copied to clipboard"); }
-              catch { statusFeedback(`Share link: ${abs}`); }
-            } catch { statusFeedback("Upload failed"); }
+              try { await navigator.clipboard.writeText(abs); statusFeedback(tPlain("snapLinkCopied", "Link copied to clipboard")); }
+              catch { statusFeedback(`${tPlain("snapShareLink", "Share link")}: ${abs}`); }
+            } catch { statusFeedback(tPlain("snapUploadFailed", "Sharing unavailable — try again shortly")); }
           } else if (action === "tab") {
             const url = URL.createObjectURL(blob);
             window.open(url, "_blank");

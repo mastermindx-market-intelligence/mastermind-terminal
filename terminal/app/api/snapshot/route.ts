@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { rateLimit, tooMany } from "@/lib/rateLimit";
+import { validatePng } from "@/lib/pngValidate";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -70,8 +71,13 @@ async function uploadToR2(body: ArrayBuffer, key: string): Promise<void> {
     body,
   });
   if (!res.ok) {
+    // Log the provider's own words server-side; never put them in the throw. This message used to
+    // carry 200 chars of R2's response straight back to the browser via `e?.message`, which on an
+    // InvalidAccessKeyId / SignatureDoesNotMatch response means the bucket name, the endpoint host
+    // and the access key id — handed to whoever POSTed a file.
     const txt = await res.text().catch(() => "");
-    throw new Error(`R2 upload failed: ${res.status} ${txt.slice(0, 200)}`);
+    console.error(`[snapshot] R2 upload failed: ${res.status} ${txt.slice(0, 500)}`);
+    throw new Error("upload_unavailable");
   }
 }
 
@@ -102,40 +108,85 @@ async function deriveSigningKey(secret: string, date: string, region: string, se
 }
 
 // ── POST /api/snapshot ──
-// Accepts multipart/form-data with a "file" field (PNG, max 4 MB).
-// Returns { url: "/x/<slug>" } on success.
-// When R2 env vars are absent, returns 503 with a clear error.
+//
+// This is an INGRESS BOUNDARY: it takes anonymous bytes from the internet and stores them under our
+// own bucket domain, served as an image. It previously accepted whatever arrived — the only check
+// was a length, and it ran AFTER the whole body had been materialised. A JS file, a ZIP, an HTML
+// document or 4 MB of zeros all became a "chart snapshot" on our CDN.
+//
+// The order below is the security property, not a style preference. Each step is cheaper than the
+// one after it, and every rejection happens before the expense it would have caused:
+//
+//   1. rate limit                        — before any body read
+//   2. R2 config                         — 503 before reading a body we could not store anyway
+//   3. Content-Length                    — reject an oversized body from its header, before parsing
+//   4. parse multipart
+//   5. File.size                         — BEFORE arrayBuffer(), so an oversized file never gets a
+//                                          second full-size copy made of it
+//   6. declared MIME                     — advisory only; the client writes it, so it is a courtesy
+//                                          check that produces a better error, never evidence
+//   7. PNG structure                     — the actual proof, read from the bytes
+//   8. R2                                — only now
+//
+// No R2 call is made for any rejected body.
+const MAX_BYTES = 4 * 1024 * 1024;
+// multipart framing (boundaries, headers, CRLFs) around a single part. Small and bounded — it
+// exists so a legitimate 4 MB file is not rejected by its own envelope.
+const MULTIPART_OVERHEAD = 8 * 1024;
+
+// Stable public error codes. The client gets these; diagnostics go to the server log.
+const fail = (code: string, status: number) =>
+  NextResponse.json({ code }, { status, headers: { "cache-control": "no-store" } });
+
 export async function POST(req: Request) {
   // Rate limit by IP — the shared limiter keys on the real visitor behind the CDN
   // (CF-/EO-Connecting-IP), not the CDN edge PoP IP that a raw X-Forwarded-For read returns.
   const rate = rateLimit(req, { name: "snapshot", max: 10 });
   if (!rate.ok) return tooMany(rate);
 
-  // Check R2 config early — 503 before we read the body
+  // R2 config — 503 before we read the body. The env var NAMES used to be in the response; that is
+  // infrastructure detail and it is now log-only.
   if (!process.env.R2_ENDPOINT || !process.env.R2_ACCESS_KEY_ID || !process.env.R2_SECRET_ACCESS_KEY || !process.env.R2_BUCKET) {
-    return NextResponse.json({ error: "R2 not configured (R2_ENDPOINT/R2_ACCESS_KEY_ID/R2_SECRET_ACCESS_KEY/R2_BUCKET missing)" }, { status: 503 });
+    console.error("[snapshot] R2 not configured (R2_ENDPOINT/R2_ACCESS_KEY_ID/R2_SECRET_ACCESS_KEY/R2_BUCKET)");
+    return fail("upload_unavailable", 503);
   }
+
+  // Reject on the declared length before parsing anything. Absent or unparseable Content-Length is
+  // NOT a rejection — it is normal for chunked encoding — the size checks below still bound it.
+  const declared = Number(req.headers.get("content-length"));
+  if (Number.isFinite(declared) && declared > MAX_BYTES + MULTIPART_OVERHEAD) return fail("too_large", 413);
 
   let formData: FormData;
   try { formData = await req.formData(); }
-  catch { return NextResponse.json({ error: "Invalid multipart body" }, { status: 400 }); }
+  catch { return fail("invalid_body", 400); }
 
   const file = formData.get("file");
-  if (!file || typeof file === "string") return NextResponse.json({ error: "Missing file field" }, { status: 400 });
+  if (!file || typeof file === "string") return fail("invalid_body", 400);
 
-  // Size cap 4 MB
-  const MAX_BYTES = 4 * 1024 * 1024;
+  // BEFORE arrayBuffer(). Reading a 4 MB+ file into an ArrayBuffer just to measure it doubles the
+  // peak allocation of the exact request we are about to refuse.
+  if ((file as File).size > MAX_BYTES) return fail("too_large", 413);
+
+  // Advisory only. The client writes this header, so a wrong value earns a clearer error while a
+  // right one proves nothing — validatePng below is what actually decides.
+  const declaredType = (file as File).type;
+  if (declaredType && declaredType !== "image/png") return fail("invalid_png", 415);
+
   const buf = await (file as File).arrayBuffer();
-  if (buf.byteLength > MAX_BYTES) return NextResponse.json({ error: "Image too large (max 4 MB)" }, { status: 413 });
+  if (buf.byteLength > MAX_BYTES) return fail("too_large", 413); // re-check: `size` is client metadata
+
+  const png = validatePng(new Uint8Array(buf));
+  if (!png.ok) return fail(png.code === "not_png" ? "invalid_png" : png.code, 415);
 
   const id = slug();
   const key = `snapshots/${id}.png`;
 
   try {
     await uploadToR2(buf, key);
-  } catch (e: any) {
-    return NextResponse.json({ error: e?.message || "Upload failed" }, { status: 502 });
+  } catch {
+    // uploadToR2 logs the provider's response; the public answer stays stable and generic.
+    return fail("upload_unavailable", 502);
   }
 
-  return NextResponse.json({ url: `/x/${id}` });
+  return NextResponse.json({ url: `/x/${id}` }, { headers: { "cache-control": "no-store" } });
 }

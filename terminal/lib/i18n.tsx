@@ -158,6 +158,18 @@ export const LEX: Record<string, [string, string]> = {
   snapCopy: ["Copy image", "复制图片"],
   snapCopyLink: ["Copy link", "复制链接"],
   snapTab: ["Open in new tab", "在新标签页中打开"],
+  // Snapshot OUTCOMES. The menu that triggers these has been bilingual all along, so a zh user
+  // opened 下载图片 and got "Snapshot downloaded" back — the confirmation contradicting the control
+  // that produced it. Failure strings are derived from the route's stable `code`, never from
+  // server-supplied text.
+  snapDownloaded: ["Snapshot downloaded", "截图已下载"],
+  snapCopied: ["Snapshot copied to clipboard", "截图已复制到剪贴板"],
+  snapClipboardFailed: ["Clipboard copy failed (needs HTTPS/focus)", "复制到剪贴板失败（需要 HTTPS 且窗口处于活动状态）"],
+  snapLinkCopied: ["Link copied to clipboard", "链接已复制到剪贴板"],
+  snapShareLink: ["Share link", "分享链接"],
+  snapUploadFailed: ["Sharing unavailable — try again shortly", "分享暂不可用 — 请稍后再试"],
+  snapTooLarge: ["Snapshot too large to share", "截图过大，无法分享"],
+  snapInvalid: ["Snapshot could not be shared", "无法分享该截图"],
   splitLayout: ["Split layout", "分屏布局"],
   mtfTip: ["Multi-timeframe — the active symbol at D / 3D / W / 1M", "多周期 — 当前标的的 日/3日/周/月 图"],
   syncTip: ["Sync crosshair & time-axis across panes", "跨窗格同步十字光标与时间轴"],
