@@ -20,6 +20,7 @@ math server-side. What can't be prevented is called out at the bottom.
 | **Auth defence-in-depth** — explicit `.eq("user_id", …)` on every RLS-only read/delete | `app/api/{drawings,layouts,alerts,watchlist}/route.ts` | Cross-user data access if Supabase RLS is ever misconfigured (a single-boundary failure becomes a two-boundary failure). |
 | **`drawings` table RLS migration** (table existed with no tracked migration / no guaranteed RLS) | `supabase/migrations/0002_drawings.sql` | Any user reading/writing every user's drawings via the public anon key. |
 | **`/data/*` static headers** — `Cross-Origin-Resource-Policy: same-origin` + `nosniff` | `app/deploy/Caddyfile` (macro repo) | Other origins' pages reading the per-symbol JSON via `fetch`/XHR (browser hotlinking/embedding of the dataset). |
+| **`flow_score_v1` is server-side, and the boundary is ENFORCED** — the model runs in `flowSource` and only its result (`score`/`tier`/component labels) is serialised to the client; `import "server-only"` in the scorer itself makes a client import a build error, and a static import-graph fence catches it earlier with the offending chain | `terminal/lib/flowScore.ts`, `terminal/lib/flowSource.ts`, `terminal/lib/__tests__/flowScoreBoundary.test.ts` | The full weight table and curve constants shipping in the browser bundle. Moving the model server-side removed it; the marker is what stops a future client import from silently putting it back. |
 
 **Verified:** `tsc --noEmit` clean, 143 tests pass, all 7 headers emitted, the Terminal renders fully
 under the CSP with zero console violations, and the limiter returns `300×200 → 429` with `Retry-After`.
@@ -76,11 +77,8 @@ ship, protected by RLS). No `service_role` key is tracked anywhere.
 
 ## Open code follow-up (tracked separately)
 
-- **Move `flow_score_v1` server-side.** `terminal/lib/flowScore.ts` ships the full scoring model
-  (weights + curve constants) to the browser. Moving `computeFlowScore` into `/api/flow` (client reads
-  the server-attached score) removes the ~150 lines of curve math from the bundle. Deferred here
-  because it's a refactor of a live feature that needs verification against the real flow backend, not
-  just the fixture — spun off as its own task.
+_Nothing outstanding._ The one item that lived here — "move `flow_score_v1` server-side" — is done;
+see the `flow_score_v1` row in the shipped table above for what closed it and what now enforces it.
 
 ## What cannot be prevented (set expectations)
 

@@ -1,3 +1,20 @@
+// ── PROPRIETARY MODEL — SERVER ONLY, ENFORCED ──────────────────────────────────────────────────
+// This marker is the enforcement, not a convention. Next.js resolves `server-only` to a throwing
+// module under any non-`react-server` condition, so importing this file from a Client Component is
+// a BUILD ERROR rather than a silent leak of the weights below into the browser bundle.
+//
+// It lives HERE, in the implementation, rather than in `lib/flowSource.ts` which consumes it.
+// flowSource carried a "SERVER-ONLY" comment, but a comment binds only the file it is written in:
+// nothing stopped a future client component from importing `@/lib/flowScore` directly and pulling
+// the whole weight table across the wire. The guarantee has to sit on the asset being protected.
+//
+// Client components receive the RESULT (`ev.flowScore`: score, tier, component labels) attached by
+// `attachFlowScores` — never this module. See SECURITY.md.
+//
+// vitest runs in Node without the `react-server` condition, so `vitest.config.ts` aliases this
+// specifier to a no-op; the fence that matters at build time is unaffected.
+import "server-only";
+
 /**
  * flowScore.ts — transparent flow_score_v1
  *
