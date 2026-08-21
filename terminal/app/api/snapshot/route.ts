@@ -1,22 +1,14 @@
 import { NextResponse } from "next/server";
-import { clientIp } from "@/lib/rateLimit";
+import { rateLimit, tooMany } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// ── In-memory rate limit: max 10 uploads per IP per minute ──
-const RATE_WINDOW_MS = 60_000;
-const RATE_MAX = 10;
-const rateMap = new Map<string, { count: number; reset: number }>();
-
-function checkRate(ip: string): boolean {
-  const now = Date.now();
-  let entry = rateMap.get(ip);
-  if (!entry || now > entry.reset) { entry = { count: 0, reset: now + RATE_WINDOW_MS }; rateMap.set(ip, entry); }
-  if (entry.count >= RATE_MAX) return false;
-  entry.count++;
-  return true;
-}
+// Rate limiting is the shared limiter's job, not this route's. The private `rateMap` that used to
+// live here was a second, worse implementation of it: it never swept, so every distinct source IP
+// it ever saw stayed resident for the process lifetime, and it answered a bare 429 with no
+// `retry-after` for a well-behaved client to honour. The canonical limiter sweeps, caps live
+// buckets, and `tooMany()` carries the header.
 
 // ── base36 random slug (10 chars) ──
 function slug(): string {
@@ -114,10 +106,10 @@ async function deriveSigningKey(secret: string, date: string, region: string, se
 // Returns { url: "/x/<slug>" } on success.
 // When R2 env vars are absent, returns 503 with a clear error.
 export async function POST(req: Request) {
-  // Rate limit by IP — use the shared helper so we key on the real visitor behind the CDN
+  // Rate limit by IP — the shared limiter keys on the real visitor behind the CDN
   // (CF-/EO-Connecting-IP), not the CDN edge PoP IP that a raw X-Forwarded-For read returns.
-  const ip = clientIp(req);
-  if (!checkRate(ip)) return NextResponse.json({ error: "Rate limit exceeded (10/min)" }, { status: 429 });
+  const rate = rateLimit(req, { name: "snapshot", max: 10 });
+  if (!rate.ok) return tooMany(rate);
 
   // Check R2 config early — 503 before we read the body
   if (!process.env.R2_ENDPOINT || !process.env.R2_ACCESS_KEY_ID || !process.env.R2_SECRET_ACCESS_KEY || !process.env.R2_BUCKET) {
