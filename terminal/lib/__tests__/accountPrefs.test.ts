@@ -10,8 +10,8 @@
  */
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import {
-  metaObject, readTerminalMeta, readMetaPrefs, readUpDown, readLang, applyUpDown,
-  isLangId, isThemeId, isUpDown, isStartTf, DEFAULT_UPDOWN, UPDOWN_KEY,
+  metaObject, readTerminalMeta, readMetaPrefs, readSharedPrefs, readUpDown, readLang, applyUpDown,
+  sharedPrefsPatch, isLangId, isThemeId, isUpDown, isStartTf, DEFAULT_UPDOWN, UPDOWN_KEY,
 } from "@/lib/accountPrefs";
 
 describe("metaObject — the merge base", () => {
@@ -149,5 +149,80 @@ describe("readUpDown / applyUpDown", () => {
     expect(readLang()).toBe("zh");
     attrs["data-lang"] = "fr";
     expect(readLang()).toBe("en");
+  });
+});
+
+// ── shared preferences v2 — the cross-product lost-update fix (E6) ───────────────────────
+//
+// The nested `prefs` blob is written by BOTH products, and `updateUser` REPLACES a nested object
+// wholesale, so serializing one product's own writes cannot make it safe:
+//
+//   1. Terminal reads  { theme: dark, lang: en }
+//   2. Macro changes theme → Light, writing the whole object
+//   3. Terminal, still holding its snapshot, changes language → Chinese
+//   4. Terminal sends { theme: dark, lang: zh }
+//   5. Macro's newer Light choice is gone.
+//
+// The repair removes the shared container: each field is its own top-level key, and top-level
+// keys MERGE. These cases pin both halves — the per-field read precedence, and the restraint of
+// the writer.
+
+describe("readSharedPrefs — v2 atomics with a PER-FIELD legacy fallback", () => {
+  it("prefers the atomic over the legacy sibling", () => {
+    expect(readSharedPrefs({
+      theme: "light", theme_auto: "1", lang: "zh",
+      prefs: { theme: "dark", themeAuto: "0", lang: "en" },
+    })).toEqual({ theme: "light", themeAuto: "1", lang: "zh" });
+  });
+
+  it("falls back FIELD BY FIELD — a half-migrated account is the normal rollout state", () => {
+    expect(readSharedPrefs({ lang: "zh", prefs: { theme: "light", themeAuto: "1", lang: "en" } }))
+      .toEqual({ theme: "light", themeAuto: "1", lang: "zh" });
+  });
+
+  it("reads an account that has only ever had the legacy blob", () => {
+    expect(readSharedPrefs({ prefs: { theme: "dark", lang: "en" } }))
+      .toEqual({ theme: "dark", lang: "en" });
+  });
+
+  it("reads an account that has only the atomics", () => {
+    expect(readSharedPrefs({ theme: "dark", lang: "en" })).toEqual({ theme: "dark", lang: "en" });
+  });
+
+  it("ignores a junk atomic and uses the legacy value rather than dropping the preference", () => {
+    expect(readSharedPrefs({ theme: "midnight", lang: "fr", prefs: { theme: "light", lang: "zh" } }))
+      .toEqual({ theme: "light", lang: "zh" });
+  });
+
+  it("leaves an unexpressed field ABSENT", () => {
+    expect(readSharedPrefs({})).toEqual({});
+    expect(readSharedPrefs(null)).toEqual({});
+    expect(readSharedPrefs({ prefs: "nonsense" })).toEqual({});
+  });
+});
+
+describe("sharedPrefsPatch — write ONLY what changed", () => {
+  it("emits just the field the user touched, so a language change carries no theme", () => {
+    expect(sharedPrefsPatch({ lang: "zh" })).toEqual({ lang: "zh" });
+    expect(sharedPrefsPatch({ theme: "light", themeAuto: "0" }))
+      .toEqual({ theme: "light", theme_auto: "0" });
+  });
+
+  it("never emits the nested blob — that container is the bug", () => {
+    expect(Object.keys(sharedPrefsPatch({ theme: "dark", lang: "en" }))).not.toContain("prefs");
+  });
+
+  it("drops invalid values rather than writing them to the shared account", () => {
+    expect(sharedPrefsPatch({ theme: "midnight" as never, lang: "fr" as never })).toEqual({});
+    expect(sharedPrefsPatch({ themeAuto: "yes" as never })).toEqual({});
+  });
+
+  it("survives the exact sequence that used to lose Macro's update", () => {
+    // Terminal holds a stale snapshot and changes ONLY the language.
+    const terminalWrite = sharedPrefsPatch({ lang: "zh" });
+    // Macro's newer theme is a SEPARATE top-level key, so `updateUser`'s top-level merge keeps it.
+    const account = { theme: "light", lang: "en", prefs: { theme: "dark", lang: "en" } };
+    const merged = { ...account, ...terminalWrite };
+    expect(readSharedPrefs(merged)).toEqual({ theme: "light", lang: "zh" });
   });
 });
