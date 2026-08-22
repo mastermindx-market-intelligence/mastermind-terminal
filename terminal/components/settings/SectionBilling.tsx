@@ -13,7 +13,12 @@ import {
 
 export interface BillingProps extends SectionProps {
   plan: AcsPlan | null;
+  /** The authority could not be reached AND this owner has nothing verified to fall back on. */
   planErr: boolean;
+  /** `plan` is a SAME-OWNER last-good, not a fresh verification. Say so; never pass it off as
+   *  current, and never quietly downgrade the customer to Free instead of showing it. */
+  planStale: boolean;
+  onRefreshPlan: () => void;
 }
 
 /** Status chip — ported verbatim from `_sdPlanChip`. */
@@ -44,7 +49,7 @@ function PlanChip({ plan, t, lang, now }: { plan: AcsPlan; t: SectionProps["t"];
   return null;
 }
 
-export default function SectionBilling({ t, lang, onClose, plan, planErr }: BillingProps) {
+export default function SectionBilling({ t, lang, onClose, plan, planErr, planStale, onRefreshPlan }: BillingProps) {
   const onboarding = useOnboarding();
   // Captured once when the section mounts rather than read during render:
   // Date.now() is impure, and the chip does not need to tick.
@@ -133,6 +138,16 @@ export default function SectionBilling({ t, lang, onClose, plan, planErr }: Bill
                 <div className="acs-ph-price">{t("acsFreePitch")}</div>
               )}
             </div>
+
+            {/* A last-good plan is shown rather than withheld — a paying customer must not read
+                "Free" because the billing gateway had a bad minute — but it is LABELLED, so the
+                pane never passes an unverified answer off as current. */}
+            {planStale && (
+              <div className="acs-msg show wait" role="status">
+                {t("acsPlanStale")}
+                <button type="button" className="acs-msg-retry" onClick={onRefreshPlan}>{t("acsPrefRetry")}</button>
+              </div>
+            )}
 
             {upgradeKey && (
               <div className="acs-plan-cta">

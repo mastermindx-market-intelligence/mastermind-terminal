@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useLang, useT } from "@/lib/i18n";
 import { identityEmail, identityOwnerKey, isAccountOwner, type AccountIdentity } from "@/lib/accountIdentity";
+import { useDisplayEntitlement } from "@/lib/entitlementStore";
 import type { AcsUser, SettingsSection } from "./SettingsProvider";
 import { SETTINGS_SECTIONS } from "./SettingsProvider";
 import type { AcsPlan, AcsUsage, SectionProps } from "./types";
@@ -145,33 +146,17 @@ export default function SettingsPanel(props: SettingsPanelProps) {
     else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
   }, []);
 
-  // ── shared entitlement payload (Billing hero + Usage fallback) ────────────
-  // GET /api/me is piped through verbatim by app/api/me/route.ts, so tier,
-  // status, current_period_end, source, interval and chat_budget all arrive.
-  const [fetchedPlan, setPlan] = useState<AcsPlan | null>(null);
-  const [planErr, setPlanErr] = useState(false);
-  const planFor = useRef<string | null>(null);
-  const plan = props.devPlan ?? fetchedPlan;
-  // Keyed on the OWNER, and reset on an owner change: an email-keyed cache both re-fetched a
-  // plan that had not changed (same account, new address) and — worse — could serve one
-  // account's plan under another that happened to arrive at the same address.
-  if (planFor.current !== null && planFor.current !== owner) {
-    planFor.current = null;
-    if (fetchedPlan) setPlan(null);
-    if (planErr) setPlanErr(false);
-  }
-  useEffect(() => {
-    if (props.devPlan) return;
-    if (!visible || !isAccountOwner(owner)) return;
-    if (planFor.current === owner) return;
-    planFor.current = owner;
-    let alive = true;
-    fetch("/api/me", { cache: "no-store" })
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
-      .then((j) => { if (alive) { setPlan(j || {}); setPlanErr(false); } })
-      .catch(() => { if (alive) { planFor.current = null; setPlanErr(true); } });
-    return () => { alive = false; };
-  }, [visible, owner, props.devPlan]);
+  // ── entitlement: the ONE canonical reader ─────────────────────────────────
+  // This pane used to run its OWN `/api/me` fetch and cache, in parallel with
+  // lib/useEntitlement's, with different lifetimes and opposite failure
+  // semantics. Both are now lib/entitlementStore.ts, which is owner-scoped,
+  // keeps "could not verify" distinct from "free", and can serve a SAME-OWNER
+  // last-good plan flagged stale rather than blanking a paying customer's tier
+  // because billing had a bad minute.
+  const entitlement = useDisplayEntitlement(identity);
+  const plan: AcsPlan | null = props.devPlan ?? entitlement.plan;
+  const planErr = !props.devPlan && entitlement.unavailable;
+  const planStale = !props.devPlan && entitlement.stale;
 
   // ── usage payload, fetched lazily the first time Usage is shown ───────────
   const [fetchedUsage, setUsage] = useState<AcsUsage | null>(null);
@@ -276,7 +261,9 @@ export default function SettingsPanel(props: SettingsPanelProps) {
               are cached above, so switching back is free. */}
           <div className="acs-sect on" key={section}>
             {section === "account" && <SectionAccount {...shared} />}
-            {section === "billing" && <SectionBilling {...shared} plan={plan} planErr={planErr} />}
+            {section === "billing" && (
+              <SectionBilling {...shared} plan={plan} planErr={planErr} planStale={planStale} onRefreshPlan={entitlement.refresh} />
+            )}
             {section === "usage" && <SectionUsage {...shared} plan={plan} usage={usage} usageErr={usageErr} />}
             {section === "prefs" && <SectionPreferences {...shared} />}
             {section === "terminal" && <SectionTerminal {...shared} />}

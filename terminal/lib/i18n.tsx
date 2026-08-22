@@ -1904,6 +1904,8 @@ export const LEX: Record<string, [string, string]> = {
   acsPrefSyncing: ["Saving…", "保存中…"],
   acsPrefSyncFail: ["Couldn't reach your account — retrying.", "无法连接到你的账户——正在重试。"],
   acsPrefRetry: ["Retry", "重试"],
+  // E3 — a same-owner last-good plan, shown rather than withheld, but never passed off as fresh.
+  acsPlanStale: ["Couldn't refresh your plan — showing the last confirmed one.", "无法刷新你的订阅信息——显示上次确认的结果。"],
   acsThemeLang: ["Theme & language", "主题与语言"],
   acsAppearance: ["Appearance", "外观"],
   // NEW — deliberately NOT macro's appearNote ("Auto follows your local time of
