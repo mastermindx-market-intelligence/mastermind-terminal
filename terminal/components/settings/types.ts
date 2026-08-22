@@ -3,38 +3,16 @@
 // cycle (the panel imports the sections).
 
 import type { AccountIdentity } from "@/lib/accountIdentity";
+import type { AccountLane, AccountPlan, AccountQuotas, AccountUsage } from "@/lib/accountPlan";
 import type { AcsUser } from "./SettingsProvider";
 
-/** One metered lane as reported by the Brain gateway / `chat_budget`. */
-export interface AcsLane {
-  remaining?: number;
-  /** < 0 = uncapped · 0 = not included on this tier · > 0 = a real cap. */
-  limit?: number;
-  period?: string;
-}
-
-export interface AcsQuotas {
-  fast?: AcsLane;
-  pro?: AcsLane;
-}
-
-/** GET /api/me — the billing gateway's entitlement payload, piped through
- *  verbatim by app/api/me/route.ts (it narrows nothing). */
-export interface AcsPlan {
-  tier?: string;
-  status?: string;
-  current_period_end?: string | null;
-  /** 'stripe' | 'comp' | … — a non-Stripe source has no portal to open. */
-  source?: string | null;
-  interval?: string | null;
-  chat_budget?: AcsQuotas | null;
-}
-
-/** GET /api/brain/me — the canonical usage view. */
-export interface AcsUsage {
-  tier?: string;
-  quotas?: AcsQuotas;
-}
+// The payload shapes live in lib/accountPlan.ts — ONE description of what the billing and brain
+// authorities send, shared with lib/entitlementStore.ts. These aliases keep the panel's existing
+// `Acs*` vocabulary without a second, drifting copy of the contract.
+export type AcsLane = AccountLane;
+export type AcsQuotas = AccountQuotas;
+export type AcsPlan = AccountPlan;
+export type AcsUsage = AccountUsage;
 
 /** What every section receives from the panel. */
 export interface SectionProps {

@@ -20,7 +20,8 @@ import {
   type SuiteSequenceCondition,
 } from "@/lib/suiteAlerts";
 import { SUITE_DEFS } from "@/lib/suites/registry";
-import { useEntitlement } from "@/lib/useEntitlement";
+import { useGateEntitlement } from "@/lib/entitlementStore";
+import { useShellIdentity } from "@/components/chrome/AppShell";
 
 type Alert = { id: string; symbol: string; condition: any; active: boolean; created_at: string };
 
@@ -199,11 +200,12 @@ export default function AlertsView({ email }: { email: string }) {
     near_pct: 5,
   });
   // ── suite-event sub-form state ──────────────────────────────────────────────
-  // Entitlement drives which catalog events are selectable. useEntitlement returns the free
-  // default for a guest AND on any read failure, so the picker fails CLOSED by construction;
-  // the route re-checks server-side against the billing authority (this is display only).
-  const ent = useEntitlement(email);
-  // ent.tier is already normalized by useEntitlement (legacy `insider` → `essential`).
+  // Entitlement drives which catalog events are selectable, and this is the GATE selector of the
+  // canonical store (lib/entitlementStore.ts): a guest, an unreachable authority and an
+  // unverified same-owner last-good all read as free, so the picker fails CLOSED by
+  // construction. The route re-checks server-side against the billing authority.
+  const ent = useGateEntitlement(useShellIdentity());
+  // ent.tier is already normalized by the store (legacy `insider` → `essential`).
   const userTier: Tier = ent.tier === "essential" || ent.tier === "pro" ? ent.tier : "free";
   const isLockedEvt = (e: CatalogEvt) => TIER_RANK[userTier] < TIER_RANK[evtTier(e)];
   const [suiteKey, setSuiteKey] = useState<string>(SUITE_KEYS[0] ?? "");

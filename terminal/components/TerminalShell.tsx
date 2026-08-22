@@ -81,7 +81,7 @@ import {
   WL_FLAGS_KEY,
   WL_NOTES_KEY,
 } from "@/lib/watchlistOwner";
-import { useEntitlement } from "@/lib/useEntitlement";
+import { useGateEntitlement } from "@/lib/entitlementStore";
 import { normalizeDevTierOverride } from "@/lib/subscriptionTier";
 import { useChartBus } from "@/lib/useChartBus";
 import { isV2Envelope, type IndicatorSpec } from "@/lib/chartBus";
@@ -1062,8 +1062,11 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
   // Read-only here: the editing controls live in the settings panel's Terminal section, which subscribes to the same
   // module store, so both always see identical state.
   const { prefs: marketPrefs, ready: prefsReady, enableAll: showAllMarkets } = useMarketPrefs(identity);
-  // premium-suite UI gate — client hint only, fail-closed to "free" (server authority stays macro-api)
-  const ent = useEntitlement(email);
+  // premium-suite UI gate — client hint only, fail-closed to "free" (server authority stays
+  // macro-api). The GATE selector of the canonical /api/me store: an unverified answer — an
+  // unreachable authority, or a same-owner last-good nobody re-checked — never unlocks a paid
+  // surface, however good the cached news was.
+  const ent = useGateEntitlement(identity);
   // dev-only tier override (localStorage mm.devTier = "essential" | "pro") — read post-mount to
   // avoid a hydration mismatch; the whole branch constant-folds away in production builds.
   // `insider` is the pre-rename name and is still ACCEPTED on read: a dev machine's localStorage
@@ -1074,7 +1077,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
     if (process.env.NODE_ENV === "production") return;
     setDevTier(normalizeDevTierOverride(localStorage.getItem("mm.devTier")));
   }, []);
-  // ent.tier is already normalized by useEntitlement (legacy `insider` → `essential`).
+  // ent.tier is already normalized by the store (legacy `insider` → `essential`).
   const userTier: "free" | "essential" | "pro" = devTier ?? (ent.tier === "essential" || ent.tier === "pro" ? ent.tier : "free");
 
   // A4/A5: ONE landing-symbol rule, shared with the server route (lib/terminalBoot.ts). The route
