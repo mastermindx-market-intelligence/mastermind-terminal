@@ -38,6 +38,17 @@
 -- Out of band, by an operator — there is no migration runner in this estate and no
 -- `supabase_migrations` ledger. See `supabase/migrations/README.md`.
 --
+-- APPLIED to production 2026-08-21, on operator instruction. Verified at the time:
+--   * `prosecdef = false`             — INVOKER, as intended (a DEFINER here would hand every
+--                                       signed-in user a read-through onto the whole visitor log);
+--   * `has_function_privilege`        — anon false, authenticated false, service_role true;
+--   * through PostgREST, which is how the app actually calls it — 200 with the service key,
+--     `401 42501 permission denied for function search_event_stats` with the anon key;
+--   * output cross-checked against an INDEPENDENT SQL formulation of the same three aggregates:
+--     total 686 = 686, today 10 = 10, visitors7d 1 = 1.
+-- PostgREST's schema cache picked the function up immediately, so the exact path went live with
+-- the next deploy and the fallback below is now insurance rather than the working route.
+--
 -- The application does NOT require this to be applied. `searchStats` calls the RPC and falls back
 -- to the capped in-process path when PostgREST answers PGRST202 ("function not found"), so BOTH
 -- deploy orders are safe. What it will not do is call the fallback exact: when the fallback runs
