@@ -1,6 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useOnboarding } from "@/components/onboarding/OnboardingProvider";
+import { invalidateEntitlement } from "@/lib/entitlementStore";
 import { Group, IconCheck, IconExtLink, Msg, Row, SectionHead } from "./icons";
 import {
   ACS_PLAN_FEATURES, ACS_PRICE, ACS_UPGRADE_URL, acsDate, acsNormalizeTier,
@@ -13,7 +14,12 @@ import {
 
 export interface BillingProps extends SectionProps {
   plan: AcsPlan | null;
+  /** The authority could not be reached AND this owner has nothing verified to fall back on. */
   planErr: boolean;
+  /** `plan` is a SAME-OWNER last-good, not a fresh verification. Say so; never pass it off as
+   *  current, and never quietly downgrade the customer to Free instead of showing it. */
+  planStale: boolean;
+  onRefreshPlan: () => void;
 }
 
 /** Status chip — ported verbatim from `_sdPlanChip`. */
@@ -44,7 +50,7 @@ function PlanChip({ plan, t, lang, now }: { plan: AcsPlan; t: SectionProps["t"];
   return null;
 }
 
-export default function SectionBilling({ t, lang, onClose, plan, planErr }: BillingProps) {
+export default function SectionBilling({ t, lang, onClose, plan, planErr, planStale, onRefreshPlan }: BillingProps) {
   const onboarding = useOnboarding();
   // Captured once when the section mounts rather than read during render:
   // Date.now() is impure, and the chip does not need to tick.
@@ -69,8 +75,24 @@ export default function SectionBilling({ t, lang, onClose, plan, planErr }: Bill
     }
     // Essential → Pro, or monthly → annual: a change to a LIVE subscription with
     // proration. The Terminal's sheet has no lane for that; the landing does.
+    leftForBilling.current = true;
     window.open(ACS_UPGRADE_URL, "_blank", "noopener");
   }
+
+  // A plan change made in ANOTHER tab — the Stripe portal, or the landing's upgrade flow — is
+  // invisible here until we ask again. Coming back to this tab is the moment we know something
+  // may have happened, so the return from a billing action invalidates rather than waiting out
+  // a TTL. Armed only after the user actually left for one.
+  const leftForBilling = useRef(false);
+  useEffect(() => {
+    const onFocus = () => {
+      if (!leftForBilling.current) return;
+      leftForBilling.current = false;
+      invalidateEntitlement();
+    };
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, []);
 
   async function openPortal() {
     setPortalBusy(true);
@@ -79,7 +101,7 @@ export default function SectionBilling({ t, lang, onClose, plan, planErr }: Bill
       const r = await fetch("/api/billing/portal", { cache: "no-store" });
       if (r.ok) {
         const j = await r.json();
-        if (j?.url) { window.open(j.url as string, "_blank", "noopener"); return; }
+        if (j?.url) { leftForBilling.current = true; window.open(j.url as string, "_blank", "noopener"); return; }
         setPortalMsg(t("acsPortalErr"));
         return;
       }
@@ -133,6 +155,16 @@ export default function SectionBilling({ t, lang, onClose, plan, planErr }: Bill
                 <div className="acs-ph-price">{t("acsFreePitch")}</div>
               )}
             </div>
+
+            {/* A last-good plan is shown rather than withheld — a paying customer must not read
+                "Free" because the billing gateway had a bad minute — but it is LABELLED, so the
+                pane never passes an unverified answer off as current. */}
+            {planStale && (
+              <div className="acs-msg show wait" role="status">
+                {t("acsPlanStale")}
+                <button type="button" className="acs-msg-retry" onClick={onRefreshPlan}>{t("acsPrefRetry")}</button>
+              </div>
+            )}
 
             {upgradeKey && (
               <div className="acs-plan-cta">
