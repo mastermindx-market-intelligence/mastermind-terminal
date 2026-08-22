@@ -99,9 +99,13 @@ test("measured one-second packets reshape and roll the live candle at every supp
   await expect(chart.locator("canvas").first()).toBeVisible();
   for (let index = 0; index < ticks.length; index++) {
     liveTickIndex = index;
+    // Each packet is picked up by the NEXT /api/quote poll, so this waits on a polling interval,
+    // not on render work. 15s left barely two polls of headroom and this went red on three
+    // unrelated PRs in one afternoon — including one whose entire diff was a CI YAML comment.
+    // Give it enough slack that a single skipped poll on a loaded runner is not a failure.
     await expect.poll(async () => Number(await chart.getAttribute("data-live-revision") || 0), {
       message: `A.* packet ${index + 1} should repaint the developing candle`,
-      timeout: 15_000,
+      timeout: 45_000,
     }).toBeGreaterThanOrEqual(index + 1);
     await expect(chart).toHaveAttribute("data-live-close", String(ticks[index].close));
   }

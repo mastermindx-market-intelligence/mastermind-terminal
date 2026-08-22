@@ -50,7 +50,22 @@ jobs:
       - run: npx next typegen
       - run: npx tsc --noEmit
       - run: npm test
-      - run: npx playwright install --with-deps chromium
+      # `--with-deps` shells out to apt, and the runner's Ubuntu mirror stalls often enough to
+      # matter: five times in one afternoon a job sat on this step for 12 minutes to 2 HOURS,
+      # reporting `pending` the whole while, so a required check never reported and nothing could
+      # merge. The logs show `Ign:` timeouts against azure.archive.ubuntu.com followed by a hang
+      # fetching noble-security.
+      #
+      # Bound it, then fall back to a browser-only install. The system libraries Chromium needs are
+      # already present on the ubuntu-latest image; `--with-deps` is belt-and-braces, and when the
+      # mirror is down that belt is what strangles the run. A genuinely missing library would fail
+      # the e2e step loudly rather than silently, which is the trade this makes.
+      - name: Install Playwright browsers (apt bounded, browser-only fallback)
+        timeout-minutes: 12
+        run: |
+          timeout 480 npx playwright install --with-deps chromium \
+            || { echo "::warning::apt/--with-deps stalled or failed — installing the browser only"; \
+                 npx playwright install chromium; }
       - run: npm run test:e2e:responsive
       - name: Upload responsive QA screenshots
         if: always()
