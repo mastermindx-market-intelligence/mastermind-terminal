@@ -10,6 +10,8 @@ type Bucket = { count: number; reset: number };
 
 // One bucket-map per limiter name so routes don't share a budget.
 const buckets = new Map<string, Map<string, Bucket>>();
+// Last opportunistic sweep per limiter name — see the throttle in `rateLimit`.
+const lastSweep = new Map<string, number>();
 
 function mapFor(name: string): Map<string, Bucket> {
   let m = buckets.get(name);
@@ -54,6 +56,32 @@ const DEFAULT_WINDOW = 60_000;
 // deployment with RATE_LIMIT_MAX without a code change.
 const DEFAULT_MAX = Number(process.env.RATE_LIMIT_MAX) || 300;
 
+// ── Cardinality bound ───────────────────────────────────────────────────────────────────────────
+// The sweep below only removes EXPIRED buckets, so it does nothing about buckets that are all
+// still live. Inside a single 60s window a spoofed-header or botnet flood presents an unbounded
+// number of distinct source IPs, every one of them unexpired, and the map grew for every one:
+// the brake was itself a memory sink, which is the resource the flood was after.
+//
+// MAX_BUCKETS is the ceiling on LIVE buckets per limiter name. At the ceiling a request from an
+// IP we are not already tracking is refused (429) rather than allocated.
+//
+// It is deliberately NOT an LRU. Evicting a live bucket to make room for a new IP is precisely
+// what an attacker rotating IPs wants: each new address would push out a tracked one, and the
+// quota it had accumulated would be forgotten. Tracked buckets therefore keep their slot for the
+// remainder of their window, and the newcomer is the one turned away.
+const MAX_BUCKETS = Number(process.env.RATE_LIMIT_MAX_BUCKETS) || 20_000;
+// Start reclaiming well before the ceiling so ordinary IP churn never reaches it.
+const SWEEP_AT = Math.min(10_000, Math.floor(MAX_BUCKETS / 2));
+// The sweep is O(size). Running it on every request once the map is large turns a flood into
+// quadratic work — the same denial it exists to blunt. Once per second per limiter is plenty:
+// buckets live for a whole window (60s by default).
+const SWEEP_MIN_INTERVAL_MS = 1_000;
+
+function sweep(name: string, m: Map<string, Bucket>, now: number): void {
+  for (const [k, v] of m) if (now > v.reset) m.delete(k);
+  lastSweep.set(name, now);
+}
+
 export function rateLimit(req: Request, opts: RateOptions): RateResult {
   const windowMs = opts.windowMs ?? DEFAULT_WINDOW;
   const max = opts.max ?? DEFAULT_MAX;
@@ -61,13 +89,26 @@ export function rateLimit(req: Request, opts: RateOptions): RateResult {
   const m = mapFor(opts.name);
   const now = Date.now();
 
-  // Bound memory under a wide IP spread (e.g. a distributed scrape): sweep expired buckets.
-  if (m.size > 10_000) {
-    for (const [k, v] of m) if (now > v.reset) m.delete(k);
+  if (m.size >= SWEEP_AT && now - (lastSweep.get(opts.name) ?? 0) >= SWEEP_MIN_INTERVAL_MS) {
+    sweep(opts.name, m, now);
   }
 
   let b = m.get(ip);
-  if (!b || now > b.reset) {
+  const expired = b != null && now > b.reset;
+  if (!b || expired) {
+    // Admitting this IP means allocating a slot. An IP whose bucket EXPIRED already owns one, so
+    // it is not a newcomer and is never refused for cardinality — it just gets a fresh window.
+    if (!b && m.size >= MAX_BUCKETS) {
+      // Force a sweep even if throttled: this is the decision point, and reclaiming here is what
+      // lets the ceiling breathe as windows expire.
+      sweep(opts.name, m, now);
+      if (m.size >= MAX_BUCKETS) {
+        // Fail CLOSED. Under a cardinality flood an unknown IP is refused rather than admitted at
+        // the cost of unbounded memory. Legitimate new visitors are collateral for the duration of
+        // the flood — the alternative is the process dying, which refuses them anyway.
+        return { ok: false, remaining: 0, retryAfterSec: Math.max(1, Math.ceil(windowMs / 1000)) };
+      }
+    }
     b = { count: 0, reset: now + windowMs };
     m.set(ip, b);
   }
@@ -76,6 +117,11 @@ export function rateLimit(req: Request, opts: RateOptions): RateResult {
   }
   b.count++;
   return { ok: true, remaining: max - b.count, retryAfterSec: 0 };
+}
+
+/** Live bucket count for a limiter name. Test seam for the cardinality bound. */
+export function __bucketCount(name: string): number {
+  return buckets.get(name)?.size ?? 0;
 }
 
 /** Standard 429 response for a tripped limiter. */
