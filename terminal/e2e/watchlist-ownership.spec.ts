@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./fixtures";
 import { E2E_WLS_KEY, e2eWatchlistOwner, seedOwnerWatchlists } from "./watchlistStore";
 
 // A1 + A3 acceptance, in a real browser.

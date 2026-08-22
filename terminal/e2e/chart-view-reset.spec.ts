@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./fixtures";
 import {
   DEFAULT_CHART_RIGHT_OFFSET,
   DEFAULT_CHART_VIEW_BARS,

@@ -1,4 +1,4 @@
-import { expect, test, type Locator, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "./fixtures";
 import { DRAWING_TOOL_REGISTRY } from "../lib/drawingTools";
 import { PHONE_MAX } from "./phoneChrome";
 import { chooseToolbarSplit, runToolbarDetector, toggleToolbarReplay } from "./terminalToolbar";

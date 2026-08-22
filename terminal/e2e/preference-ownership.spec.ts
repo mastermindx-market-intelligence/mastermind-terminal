@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./fixtures";
 import { e2eAccountOwner, LEGACY_MARKET_PREFS_KEY, MARKET_PREFS_KEY } from "./accountOwner";
 
 /**

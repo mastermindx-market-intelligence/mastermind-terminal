@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./fixtures";
 
 /**
  * B5 — a newly published artifact must become visible to an ALREADY-OPEN tab.

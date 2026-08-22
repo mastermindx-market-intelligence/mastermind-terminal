@@ -1,4 +1,4 @@
-import { expect, test, type Locator, type Page, type TestInfo } from "@playwright/test";
+import { expect, test, type Locator, type Page, type TestInfo } from "./fixtures";
 import { E2E_WL_FLAGS_KEY, E2E_WL_NOTES_KEY, E2E_WLS_KEY, e2eWatchlistOwner, isolateWatchlistStore, seedOwnerWatchlists } from "./watchlistStore";
 
 const SEED = {

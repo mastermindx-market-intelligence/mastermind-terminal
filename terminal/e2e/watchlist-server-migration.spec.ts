@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./fixtures";
 import {
   E2E_WLS_KEY,
   E2E_WLS_MIGRATED_KEY,

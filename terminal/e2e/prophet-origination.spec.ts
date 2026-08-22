@@ -14,7 +14,7 @@
  * docs/pr-crops/prophet-origination-disclosure/.
  */
 
-import { expect, test, type Locator, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "./fixtures";
 import { mkdirSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import path from "node:path";

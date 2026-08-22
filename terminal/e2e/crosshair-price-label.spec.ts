@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./fixtures";
 import { PRICE_TAG_MIN_VALUE_WIDTH, PRICE_TAG_ROW_HEIGHT, PRICE_TAG_TIME_HEIGHT } from "@/lib/priceTagPlacement";
 import { settled } from "./settle";
 

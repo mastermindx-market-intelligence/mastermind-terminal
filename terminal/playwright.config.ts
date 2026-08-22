@@ -5,6 +5,7 @@ import { defineConfig } from "@playwright/test";
 // dev server (3108 remains the local/CI default).
 const port = Number(process.env.TERMINAL_E2E_PORT || 3108);
 const baseURL = `http://127.0.0.1:${port}`;
+const warmupSpec = /warmup\.setup\.ts/;
 const companyIntelligenceSpec = /company-intelligence\.spec\.ts/;
 const terminalChromeIntermediateSpec = /terminal-chrome-responsive\.spec\.ts/;
 
@@ -25,16 +26,22 @@ export default defineConfig({
     trace: "retain-on-failure",
   },
   projects: [
+    // `next dev` compiles on demand, and every compile is broadcast to every open page — which
+    // re-renders whatever another worker is mid-gesture on. Building the suite's surfaces here,
+    // before any assertion depends on them, is what makes the matrix below deterministic; the
+    // evidence and the measurements are in e2e/warmup.setup.ts.
+    { name: "warmup", testMatch: warmupSpec, use: { viewport: { width: 1440, height: 900 } } },
     // Keep the broad responsive suite fully parallel. The Company Intelligence
     // workspace has a cold Next route plus source fixtures and is intentionally
     // isolated below: twelve simultaneous cold starts have timed out locally
     // and in CI, while one viewport at a time is deterministic.
-    { name: "desktop", testIgnore: [companyIntelligenceSpec, terminalChromeIntermediateSpec], use: { viewport: { width: 1440, height: 900 } } },
-    { name: "tablet", testIgnore: [companyIntelligenceSpec, terminalChromeIntermediateSpec], use: { viewport: { width: 820, height: 1180 }, hasTouch: true } },
-    { name: "mobile", testIgnore: [companyIntelligenceSpec, terminalChromeIntermediateSpec], use: { viewport: { width: 390, height: 844 }, hasTouch: true } },
+    { name: "desktop", dependencies: ["warmup"], testIgnore: [companyIntelligenceSpec, terminalChromeIntermediateSpec], use: { viewport: { width: 1440, height: 900 } } },
+    { name: "tablet", dependencies: ["warmup"], testIgnore: [companyIntelligenceSpec, terminalChromeIntermediateSpec], use: { viewport: { width: 820, height: 1180 }, hasTouch: true } },
+    { name: "mobile", dependencies: ["warmup"], testIgnore: [companyIntelligenceSpec, terminalChromeIntermediateSpec], use: { viewport: { width: 390, height: 844 }, hasTouch: true } },
     {
       name: "company-intelligence-desktop",
       testMatch: companyIntelligenceSpec,
+      dependencies: ["warmup"],
       workers: 1,
       use: { viewport: { width: 1440, height: 900 } },
     },
@@ -55,6 +62,7 @@ export default defineConfig({
     {
       name: "terminal-chrome-intermediate",
       testMatch: terminalChromeIntermediateSpec,
+      dependencies: ["warmup"],
       workers: 1,
       use: { viewport: { width: 1180, height: 820 } },
     },

@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 
 test("Flow Desk separates Connected transport from measured source freshness", async ({ page }, testInfo) => {
   const zh = testInfo.project.name === "tablet";

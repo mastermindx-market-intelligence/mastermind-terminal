@@ -1,4 +1,4 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page } from "./fixtures";
 // The marker hover is bilingual since the marker-tooltip repair, and its wording is owned by the
 // copy module — imported rather than transcribed so this suite cannot drift from what the product
 // says, in either language (same reason washout-retro.spec.ts imports `retroLegendCopy`).

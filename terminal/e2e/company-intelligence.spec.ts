@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./fixtures";
 import { gzipSync } from "node:zlib";
 import { expectTapTarget } from "./tapTarget";
 import aaplWorkspace from "../lib/__tests__/fixtures/aapl-event-workspace.json";

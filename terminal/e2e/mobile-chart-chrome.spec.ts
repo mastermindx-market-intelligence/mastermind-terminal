@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./fixtures";
 import { DRAWING_TOOL_REGISTRY } from "../lib/drawingTools";
 import { settled } from "./settle";
 

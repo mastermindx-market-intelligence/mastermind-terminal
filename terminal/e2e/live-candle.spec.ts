@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./fixtures";
 
 const DISPLAY_DAY = Date.UTC(2026, 7, 7) / 1000;
 const TRUE_DAY = Date.UTC(2026, 7, 7, 4) / 1000; // midnight ET during EDT

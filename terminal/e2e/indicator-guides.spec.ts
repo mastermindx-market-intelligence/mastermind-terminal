@@ -1,4 +1,4 @@
-import { expect, test, type Locator, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "./fixtures";
 import { openIndicatorLibrary as openLibraryEntryPoint } from "./phoneChrome";
 import { expectTapTarget } from "./tapTarget";
 

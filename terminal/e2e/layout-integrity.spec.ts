@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./fixtures";
 import { injectLayoutFault, isolateLayoutStore, renderAsGuest, useLang } from "./layoutStore";
 import { isPhoneViewport } from "./phoneChrome";
 import { chooseToolbarSplit, openLayoutMenu, toggleToolbarSync } from "./terminalToolbar";

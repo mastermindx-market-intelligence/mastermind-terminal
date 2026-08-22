@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 
 async function activeWorkspaceTabFits(page: import("@playwright/test").Page) {
   return page.locator(".wtabs").first().evaluate((nav) => {

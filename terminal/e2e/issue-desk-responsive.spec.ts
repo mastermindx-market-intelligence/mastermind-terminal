@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 
 const issueFixture = async () => JSON.parse(await readFile(path.join(process.cwd(), "test-fixtures/options_issue_desk_fixture.json"), "utf8"));
 

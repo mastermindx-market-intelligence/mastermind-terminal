@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./fixtures";
 
 // Native shell mode (?shell=app): the WebView surface the installable apps load.
 // Chrome (topbar, mobile bar, nav rail, watchlist rail, movers ticker) must be gone,

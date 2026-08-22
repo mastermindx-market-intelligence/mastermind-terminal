@@ -1,4 +1,4 @@
-import { expect, test, type Page, type TestInfo } from "@playwright/test";
+import { expect, test, type Page, type TestInfo } from "./fixtures";
 // The tooltip wording is owned by the copy module and imported, never transcribed — the same
 // reason washout-retro.spec.ts imports `retroLegendCopy`. Sentence-level copy contracts live in
 // lib/__tests__/markerTooltipCopy.test.ts; this suite pins that they RENDER, and render wired.

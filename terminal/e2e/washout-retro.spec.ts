@@ -1,4 +1,4 @@
-import { test, expect, type Page, type TestInfo } from "@playwright/test";
+import { test, expect, type Page, type TestInfo } from "./fixtures";
 // The legend copy is imported, not transcribed: it is the single disclosure that carries the
 // counterfactual, so an assertion that could drift away from it is worse than no assertion.
 import { markerTooltipCopy, retroLegendCopy, washoutOverrideCopy } from "../lib/signalVerdict";

@@ -1,4 +1,4 @@
-import { expect, test, type Page, type TestInfo } from "@playwright/test";
+import { expect, test, type Page, type TestInfo } from "./fixtures";
 
 // ── THE PRIMS THAT DELETED THE CHART'S GESTURES ─────────────────────────────────────────────
 //

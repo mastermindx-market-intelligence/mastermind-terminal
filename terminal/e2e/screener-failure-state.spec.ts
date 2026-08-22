@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./fixtures";
 
 /**
  * B1 — a Screener manifest failure must be a STATE, not a permanent skeleton.

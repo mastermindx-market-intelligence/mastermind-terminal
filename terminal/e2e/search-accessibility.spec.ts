@@ -1,4 +1,4 @@
-import { expect, test, type Page, type TestInfo } from "@playwright/test";
+import { expect, test, type Page, type TestInfo } from "./fixtures";
 
 /**
  * D6 — the search field's keyboard mechanics were fine; its SEMANTICS were missing.

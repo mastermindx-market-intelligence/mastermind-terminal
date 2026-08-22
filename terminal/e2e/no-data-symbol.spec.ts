@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./fixtures";
 
 // Operator report (2026-08-05, 000001.SS): switching to a symbol with no daily history left the
 // PREVIOUS symbol's candles, volume and studies on the chart under the new symbol's badge — and the

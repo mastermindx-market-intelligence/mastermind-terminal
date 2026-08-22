@@ -1,4 +1,4 @@
-import { expect, test, type Page, type Route } from "@playwright/test";
+import { expect, test, type Page, type Route } from "./fixtures";
 
 /**
  * B2 + B3 — the /api/alerts truth boundary, from the user's side.

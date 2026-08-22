@@ -1,4 +1,4 @@
-import { expect, test, type Locator, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "./fixtures";
 import { chooseToolbarSplit, runToolbarDetector, toggleToolbarReplay } from "./terminalToolbar";
 
 type SavePayload = { drawings?: Array<{ id?: string; kind?: string; locked?: boolean; color?: string; meta?: Record<string, unknown> }> };

@@ -1,4 +1,4 @@
-import { expect, test, type Download, type Page, type TestInfo } from "@playwright/test";
+import { expect, test, type Download, type Page, type TestInfo } from "./fixtures";
 
 type SnapshotDiff = {
   changedPixels: number;

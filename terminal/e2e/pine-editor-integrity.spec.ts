@@ -1,4 +1,4 @@
-import { expect, test, type Page, type TestInfo } from "@playwright/test";
+import { expect, test, type Page, type TestInfo } from "./fixtures";
 
 /**
  * D3 + D4 — the Pine editor must not lose user-authored content, and must say which script it is
