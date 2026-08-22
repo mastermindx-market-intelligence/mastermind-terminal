@@ -1745,6 +1745,13 @@ export const LEX: Record<string, [string, string]> = {
   obBillLoading: ["Preparing secure checkout…", "正在准备安全结账…"],
   obBillRetry: ["Try again", "重试"],
   obBillErr: ["We couldn't set up checkout. Please try again.", "无法准备结账，请重试。"],
+  // D7 — the gateway answered 2xx with a body that does not prove a subscription started. On a
+  // money surface that is a FAILURE, not a success: the user stays on Billing with a retry, and is
+  // told plainly that nothing was charged.
+  obBillErrIncomplete: [
+    "We couldn't confirm your subscription started. You have not been charged — please try again.",
+    "我们无法确认订阅是否已开始。尚未向你扣款——请重试。",
+  ],
   obBillAlready: ["You already have an active plan", "你已有一个有效方案"],
   obBillAlreadySub: ["Nothing more to do here — jump into the Terminal.", "这里无需其他操作——直接进入终端。"],
   obBillAlreadyGo: ["Continue", "继续"],
@@ -1756,6 +1763,13 @@ export const LEX: Record<string, [string, string]> = {
   obBillConfirmGo: ["Continue", "继续"],
   // step done — trial live
   obDoneTrial: ["Your {tier} trial is live — first charge {date}; cancel before then and you pay nothing.", "你的 {tier} 试用已开始——首次扣款 {date}；在此之前取消，不会产生任何费用。"],
+  // D7 — the trial is confirmed but the authority supplied no date (only reachable from a stale
+  // pre-D7 wizard stash, since StepBilling now refuses an unverified receipt). Saying the date is
+  // unknown is TRUE; the old behaviour invented `now + 7 days` and printed it as fact.
+  obDoneTrialNoDate: [
+    "Your {tier} trial is live — we'll email you the first charge date before it lands; cancel before then and you pay nothing.",
+    "你的 {tier} 试用已开始——首次扣款日期我们会在扣款前邮件通知你；在此之前取消，不会产生任何费用。",
+  ],
   // rail account card trial chip
   obTrialChip: ["trial", "试用"],
   // settings menu tier line
