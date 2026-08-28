@@ -123,6 +123,8 @@ test.describe("D3b — a successful save becomes the editor's baseline", () => {
     });
 
     await sideRow(page, A).click();
+    await expect(editor(page)).toHaveValue(A_SRC);
+    await expect(page.getByRole("dialog")).toBeHidden();
     await setSource(page, "//@version=6\nindicator(\"My Momentum\")\nplot(hlc3) // FIRST\n");
     await page.getByRole("button", { name: /Save/ }).first().click();
     await expect.poll(() => sent.length, { timeout: 15_000 }).toBe(1);
@@ -261,6 +263,33 @@ test.describe("D4 — the visible script and the ?id= deep link agree", () => {
     await expect.poll(() => new URL(page.url()).searchParams.get("id")).toBeTruthy();
     const url = new URL(page.url());
     expect(url.searchParams.get("keep")).toBe("yes");
+  });
+
+  test("an external id change still guards a dirty buffer", async ({ page, baseURL }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "Editor state is viewport-independent.");
+    await openScripts(page, testInfo, baseURL);
+
+    await sideRow(page, B).click();
+    await expect(editor(page)).toHaveValue(B_SRC);
+    await expect.poll(() => new URL(page.url()).searchParams.get("id")).toBeTruthy();
+    const bId = new URL(page.url()).searchParams.get("id")!;
+
+    await sideRow(page, A).click();
+    await expect(editor(page)).toHaveValue(A_SRC);
+    await setSource(page, "//@version=6\nindicator(\"My Momentum\")\nplot(low) // URL-GUARD\n");
+
+    // Model a back/forward or fresh client-side deep-link update. It must not be confused with the
+    // single stale URL echo suppressed during an ordinary local selection.
+    await page.evaluate((id) => {
+      const url = new URL(window.location.href);
+      url.searchParams.set("id", id);
+      window.history.pushState(null, "", url);
+    }, bId);
+
+    const dialog = page.getByRole("dialog");
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toContainText(A);
+    await expect(editor(page)).toHaveValue(/URL-GUARD/);
   });
 
   test("an unknown ?id= falls back predictably instead of blanking the editor", async ({ page, baseURL }, testInfo) => {

@@ -1,17 +1,35 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { useLang } from "@/lib/i18n";
-import { createClient } from "@/lib/supabase/client";
-import { useAccountPrefs } from "@/lib/useMarketPrefs";
-import { persistMetaPrefs } from "@/lib/useMarketPrefs";
+import { isAccountOwner } from "@/lib/accountIdentity";
+import {
+  currentOwnerToken, ownerTokenIsCurrent, persistMetaPrefs, persistTradeTypes, useAccountPrefs,
+  type OwnerToken,
+} from "@/lib/useMarketPrefs";
 import { FOLLOW_IDS, FOLLOW_TKEY, type FollowId } from "@/lib/markets";
-import { Group, IconCheck, Msg, Row, SectionHead } from "./icons";
+import { DeliveryNote, Group, IconCheck, Row, SectionHead } from "./icons";
 import type { SectionProps } from "./types";
 
 // ── Preferences ──────────────────────────────────────────────────────────────
 // Ported from the macro dashboard's desk-prefs + `_renderSDPrefs`. These are the
 // two questions signup asks (markets you follow / what you trade), editable ever
 // after, plus appearance and language.
+//
+// Every edit here is delivered by ONE owner-bound serialized pump (E2, see
+// lib/prefDelivery.ts). This section used to run its own `auth.updateUser()`
+// alongside the store's, which meant two concurrent writes to one authority and
+// two different notions of "saved":
+//
+//   * `toggleFollow` flashed "Saved" the instant `setFollowed()` returned — a
+//     synchronous call whose network half had not even been attempted, let alone
+//     acknowledged. A failure was invisible.
+//   * `toggleTrade` fired its own debounced `updateUser` and read `{ error }`
+//     correctly, but the 500 ms timer resolved the ACCOUNT at execution time, so
+//     a sign-out or account switch inside the window wrote one user's answer into
+//     whatever session existed when it fired.
+//
+// Now: the change applies locally at once, the note says `Saving…`, and it says
+// `Saved` only when the authority acknowledged it.
 
 const TRADES: [string, string][] = [
   ["stocks", "acsTrStocks"],
@@ -38,12 +56,15 @@ function Chip({
   );
 }
 
-export default function SectionPreferences({ t, email, user, onClose, onPatchMeta }: SectionProps) {
+export default function SectionPreferences({ t, identity, user, onClose, onPatchMeta }: SectionProps) {
   const { lang, setLang } = useLang();
-  const { prefs, metaPrefs, setFollowed, setLangPref } = useAccountPrefs(email);
+  const { prefs, metaPrefs, setFollowed, setLangPref, sync, owner, retrySync } = useAccountPrefs(identity);
+  const guest = !isAccountOwner(owner);
 
-  const [followMsg, setFollowMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
-  const [tradeMsg, setTradeMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
+  // Which rows have been edited THIS session, per owner. A control the user has not touched says
+  // nothing — a shared lane status pinned under every row would report one row's write as if it
+  // were another's.
+  const [touched, setTouched] = useState({ follow: false, trades: false, theme: false });
 
   // `trade_types` is a TOP-LEVEL user_metadata array — a safe whole-value replace
   // (unlike the nested `terminal`/`prefs` blobs, which lib/useMarketPrefs merges).
@@ -57,44 +78,48 @@ export default function SectionPreferences({ t, email, user, onClose, onPatchMet
   const trades = pendingTrades ?? metaTrades;
 
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const msgTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(() => () => {
-    if (saveTimer.current) clearTimeout(saveTimer.current);
-    if (msgTimer.current) clearTimeout(msgTimer.current);
-  }, []);
+  useEffect(() => () => { if (saveTimer.current) clearTimeout(saveTimer.current); }, []);
 
-  function flash(set: (v: { kind: "ok" | "err"; text: string } | null) => void, kind: "ok" | "err", text: string) {
-    set({ kind, text });
-    if (msgTimer.current) clearTimeout(msgTimer.current);
-    if (kind !== "err") msgTimer.current = setTimeout(() => set(null), 2600);
+  // An owner change cancels this section's outstanding deferred mutation and drops the previous
+  // owner's un-committed answer. Done DURING RENDER, not in an effect: an effect runs after
+  // paint, so the outgoing owner's chips would render for a frame under the incoming owner and
+  // the timer would still be live while they did.
+  const renderedFor = useRef(owner);
+  if (renderedFor.current !== owner) {
+    renderedFor.current = owner;
+    if (saveTimer.current) { clearTimeout(saveTimer.current); saveTimer.current = null; }
+    if (pendingTrades) setPendingTrades(null);
+    if (touched.follow || touched.trades || touched.theme) {
+      setTouched({ follow: false, trades: false, theme: false });
+    }
   }
 
   function toggleFollow(id: FollowId) {
     const next = prefs.followed.includes(id)
       ? prefs.followed.filter((f) => f !== id)
       : [...prefs.followed, id];
-    try {
-      setFollowed(next);
-      flash(setFollowMsg, "ok", email ? t("acsPrefSaved") : t("acsPrefLocal"));
-    } catch {
-      flash(setFollowMsg, "err", t("acsPrefErr"));
-    }
+    setTouched((s) => ({ ...s, follow: true }));
+    setFollowed(next);
   }
 
-  // Debounced like macro's `_sdSaveDesk` — a burst of chip taps is one write.
+  // Debounced like macro's `_sdSaveDesk` — a burst of chip taps is one write. The pump would
+  // coalesce them anyway; the debounce keeps the request count down for a fast tapper.
   function toggleTrade(id: string) {
     const next = trades.includes(id) ? trades.filter((v) => v !== id) : [...trades, id];
     setPendingTrades(next);
+    setTouched((s) => ({ ...s, trades: true }));
     if (saveTimer.current) clearTimeout(saveTimer.current);
-    if (!email) { flash(setTradeMsg, "ok", t("acsPrefLocal")); return; }
+    if (guest) { saveTimer.current = null; return; }
+    // E5: the owner is captured HERE, when the user expressed the intent — not read at
+    // execution time, when it may name a different account entirely.
+    const token: OwnerToken = currentOwnerToken();
     saveTimer.current = setTimeout(() => {
-      createClient().auth.updateUser({ data: { trade_types: next } })
-        .then(({ error }) => {
-          if (error) { flash(setTradeMsg, "err", t("acsPrefErr")); return; }
-          onPatchMeta({ trade_types: next });
-          flash(setTradeMsg, "ok", t("acsPrefSaved"));
-        })
-        .catch(() => flash(setTradeMsg, "err", t("acsPrefErr")));
+      saveTimer.current = null;
+      if (!ownerTokenIsCurrent(token)) return;   // the intent outlived its owner — discard it
+      persistTradeTypes(next);
+      // Mirror it into the cached profile so the ID card repaints without a second read. This is
+      // a LOCAL cache update, not a claim about the authority — that is what the note reports.
+      onPatchMeta({ trade_types: next });
     }, 500);
   }
 
@@ -106,14 +131,20 @@ export default function SectionPreferences({ t, email, user, onClose, onPatchMet
     // Matches the macro semantics: `auto` records the flag and lets the dashboard
     // compute the theme from local time; an explicit pick records the theme and
     // clears the flag. Nothing is applied to the Terminal — it has no light mode.
+    setTouched((s) => ({ ...s, theme: true }));
     if (choice === "auto") persistMetaPrefs({ themeAuto: "1" });
     else persistMetaPrefs({ theme: choice, themeAuto: "0" });
   }
 
   function pickLang(l: "en" | "zh") {
+    setTouched((s) => ({ ...s, theme: true }));
     setLang(l);       // live UI switch (writes localStorage + <html data-lang>)
     setLangPref(l);   // and the account record the macro dashboard reads
   }
+
+  const note = (show: boolean) => (
+    <DeliveryNote phase={sync.phase} guest={guest} show={show} t={t} onRetry={retrySync} />
+  );
 
   return (
     <>
@@ -132,7 +163,7 @@ export default function SectionPreferences({ t, email, user, onClose, onPatchMet
                 />
               ))}
             </div>
-            <Msg text={followMsg?.text || ""} kind={followMsg?.kind || "ok"} />
+            {note(touched.follow)}
           </Row>
 
           <Row label={t("acsTrades")} desc={t("acsTradesNote")}>
@@ -147,7 +178,7 @@ export default function SectionPreferences({ t, email, user, onClose, onPatchMet
                 />
               ))}
             </div>
-            <Msg text={tradeMsg?.text || ""} kind={tradeMsg?.kind || "ok"} />
+            {note(touched.trades)}
           </Row>
         </Group>
 
@@ -191,6 +222,7 @@ export default function SectionPreferences({ t, email, user, onClose, onPatchMet
               </span>
             }
           />
+          {note(touched.theme)}
         </Group>
       </div>
     </>

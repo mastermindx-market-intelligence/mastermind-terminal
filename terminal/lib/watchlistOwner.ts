@@ -47,7 +47,13 @@
  * while the intent stands, and the delete is retried until it converges.
  */
 
-export const GUEST_OWNER = "guest";
+import { GUEST_OWNER, ownerKeyFor } from "@/lib/accountIdentity";
+import {
+  isPlainObject, readOwnerSlot, writeOwnerSlot, type StoragePort,
+} from "@/lib/ownerStorage";
+
+export { GUEST_OWNER };
+export type { StoragePort };
 
 /** `mm.wls` — lists + active list + section metadata, per owner. */
 export const WLS_KEY = "mm.wls.v2";
@@ -75,8 +81,6 @@ export const TOMBSTONE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 /** Hard cap per owner. A pathological loop must not grow localStorage without bound. */
 export const MAX_TOMBSTONES = 500;
 
-export type StoragePort = Pick<Storage, "getItem" | "setItem" | "removeItem">;
-
 export type LocalWatchlistState = {
   lists: Record<string, { symbol: string; section: string }[]>;
   active: string;
@@ -85,42 +89,19 @@ export type LocalWatchlistState = {
 
 /**
  * The owner key for a session. `guest` for a signed-out browser; `account:<auth uuid>` otherwise.
- * The prefix keeps the two spaces disjoint even if an id ever equalled the literal "guest".
+ *
+ * Thin alias for `ownerKeyFor` in `lib/accountIdentity.ts`, which is now the ONE definition of
+ * the owner namespace — shared by watchlists, preferences and entitlement, so the three cannot
+ * drift into different answers about who is asking.
  */
 export function watchlistOwnerKey(userId: string | null | undefined): string {
-  const id = typeof userId === "string" ? userId.trim() : "";
-  return id ? `account:${id}` : GUEST_OWNER;
+  return ownerKeyFor(userId);
 }
 
-const isPlainObject = (value: unknown): value is Record<string, unknown> =>
-  !!value && typeof value === "object" && !Array.isArray(value);
-
-function readEnvelope(storage: StoragePort, key: string): Record<string, unknown> {
-  try {
-    const parsed = JSON.parse(storage.getItem(key) || "{}");
-    return isPlainObject(parsed) ? parsed : {};
-  } catch {
-    return {};
-  }
-}
-
-/** Read one owner's slot. Never falls back to another owner's payload, or to an unscoped one. */
-function readSlot(storage: StoragePort, key: string, owner: string): unknown {
-  return readEnvelope(storage, key)[owner];
-}
-
-/** Replace one owner's slot, leaving every other owner's payload byte-identical. */
-function writeSlot(storage: StoragePort, key: string, owner: string, value: unknown): void {
-  try {
-    const envelope = readEnvelope(storage, key);
-    if (value === undefined) delete envelope[owner];
-    else envelope[owner] = value;
-    if (Object.keys(envelope).length) storage.setItem(key, JSON.stringify(envelope));
-    else storage.removeItem(key);
-  } catch {
-    // A full/blocked store degrades to in-memory state for the session, exactly as before.
-  }
-}
+// Envelope primitives now live in `lib/ownerStorage.ts` — one implementation, shared with the
+// preference lane, so the two cannot drift into subtly different notions of "my slot".
+const readSlot = readOwnerSlot;
+const writeSlot = writeOwnerSlot;
 
 // ───────────────────────────── lists ─────────────────────────────
 

@@ -15,7 +15,8 @@ export const dynamic = "force-dynamic";
 //   ?sym=SYM      → { sym, quote }                (single — the detail/header pane)
 //   ?syms=A,B,C   → { quotes: { SYM: quote|null } } (batch — the whole watchlist, ONE source)
 //   China A-share + Hong Kong → free Tencent snapshot (real-time A-share; ~15-min-delayed HK).
-//   US + crypto               → localhost Quote Hub (live crypto via Coinbase; delayed-15m US via
+//   US + crypto               → localhost Quote Hub (live crypto via OKX UTC-0, Coinbase rolling-24h
+//                               fallback; delayed-15m US via
 //                               Polygon). Hub/Tencent down/timeout → quote:null → manifest EOD,
 //                               but a transient miss serves the last good quote (≤ KEEP_GOOD_MS).
 // `quote.basis` (LIVE | DELAYED_15M | EOD) flows through transparently for the frontend badge.

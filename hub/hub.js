@@ -7,7 +7,8 @@
 // Never public; Next routes proxy it.
 //
 // Feeds v1:
-//   (a) crypto: Coinbase exchange ws-feed (keyless) primary, OKX fallback (one writer at a time)
+//   (a) crypto: OKX UTC-0 spot/perpetual ws-feed primary, Coinbase rolling-24h fallback
+//       (one writer at a time; both sockets stay warm for fast failover)
 //   (b) US: Polygon aggregate dynamic per-symbol subs — delayed AM.* by default, live A.*
 //       when HUB_POLYGON_CLUSTER=live and RT-entitled (auto-demotes on denial), LRU 500,
 //       chg vs session anchor
@@ -84,8 +85,8 @@ const snapshotFeed = new SnapshotFeed({
 });
 
 const MAX_SYMS_PER_REQUEST = 200;
-const FAILOVER_MS = 60 * 1000; // Coinbase down/backoff > 60s → OKX
-const RECOVERY_SUSTAIN_MS = 60 * 1000; // Coinbase clean ack held 60s → drop OKX
+const FAILOVER_MS = 60 * 1000; // OKX unhealthy for 60s → Coinbase rolling-24h fallback
+const OKX_WARMUP_MS = 5 * 1000; // require a short clean OKX window before switching primary
 
 // ── Feed coordinator: exactly one crypto feed writes at a time ──
 const coordinator = { cryptoPrimary: "coinbase" };
@@ -109,30 +110,32 @@ let polygon = null;
 // classify() / isMacroSymbol() / buildQuotesResponse() live in lib/quotes.js so the
 // response contract can be unit-tested (this file boots servers at require time).
 
-// ── Crypto failover supervisor ──
-// Watches Coinbase health; promotes OKX when Coinbase is unhealthy past FAILOVER_MS, demotes it
-// once Coinbase sustains a clean subscription for RECOVERY_SUSTAIN_MS.
-let coinbaseUnhealthySince = 0;
+// ── Crypto primary supervisor ──
+// Start on Coinbase so a cold boot has a useful quote immediately. Once OKX has a clean,
+// sustained connection it becomes primary and supplies the UTC-0 basis. If OKX goes quiet,
+// Coinbase remains warm and takes over only after a bounded outage window.
+let okxUnhealthySince = 0;
+let okxHealthySince = 0;
 function superviseCrypto() {
   if (DISABLE_CRYPTO || !coinbase || !okx) return;
   const now = Date.now();
-  const cbHealthy = coinbase.isHealthy();
+  const okxHealthy = okx.isHealthy();
 
-  if (!cbHealthy) {
-    if (coinbaseUnhealthySince === 0) coinbaseUnhealthySince = now;
-    if (now - coinbaseUnhealthySince >= FAILOVER_MS && coordinator.cryptoPrimary !== "okx") {
+  if (okxHealthy) {
+    okxUnhealthySince = 0;
+    if (okxHealthySince === 0) okxHealthySince = now;
+    if (now - okxHealthySince >= OKX_WARMUP_MS && coordinator.cryptoPrimary !== "okx") {
       coordinator.cryptoPrimary = "okx";
-      log.warn("crypto failover → OKX primary (coinbase unhealthy >60s)");
-      okx.start();
+      log.info("crypto primary → OKX spot/UTC-0; perpetual lane attached");
     }
-  } else {
-    coinbaseUnhealthySince = 0;
-    // Coinbase healthy: if OKX is primary, only hand back once Coinbase is sustained-clean.
-    if (coordinator.cryptoPrimary === "okx" && coinbase.recoveredFor(RECOVERY_SUSTAIN_MS)) {
-      coordinator.cryptoPrimary = "coinbase";
-      log.info("crypto recovered → coinbase primary; stopping OKX");
-      okx.stop();
-    }
+    return;
+  }
+
+  okxHealthySince = 0;
+  if (okxUnhealthySince === 0) okxUnhealthySince = now;
+  if (now - okxUnhealthySince >= FAILOVER_MS && coinbase.isHealthy() && coordinator.cryptoPrimary !== "coinbase") {
+    coordinator.cryptoPrimary = "coinbase";
+    log.warn("crypto failover → Coinbase rolling-24h (OKX unhealthy >60s)");
   }
 }
 
@@ -246,7 +249,8 @@ function boot() {
   if (!DISABLE_CRYPTO) {
     coinbase = new Coinbase(store, coordinator);
     okx = new OKX(store, coordinator);
-    coinbase.start(); // OKX stays dormant until the supervisor promotes it
+    coinbase.start();
+    okx.start(); // warm the UTC-0 primary and its perpetual companion lane
   } else {
     log.warn("HUB_DISABLE_CRYPTO=1 — crypto feeds off");
   }

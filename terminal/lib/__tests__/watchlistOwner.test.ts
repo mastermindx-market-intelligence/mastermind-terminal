@@ -203,7 +203,7 @@ describe("A3 — a deletion survives a failed write", () => {
 
 describe("A2 — membership uniqueness is enforced by the database, not by application code", () => {
   const sql = readFileSync(
-    path.resolve(process.cwd(), "..", "supabase", "migrations", "0008_watchlist_symbol_unique.sql"),
+    path.resolve(process.cwd(), "..", "supabase", "migrations", "0009_watchlist_symbol_unique.sql"),
     "utf8",
   );
 

@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { isPhoneViewport, openIndicatorLibrary } from "./phoneChrome";
+import { expectTapTarget } from "./tapTarget";
 
 async function armTerminalVisualReady(page: Page) {
   await page.addInitScript(() => {
@@ -75,9 +76,7 @@ test("Indicator Library search is ranked, responsive, and keyboard complete", as
   const clear = modal.getByRole("button", { name: "Clear search" });
   await expect(clear).toBeVisible();
   if (touchFirst) {
-    const clearBox = await clear.boundingBox();
-    expect(clearBox?.width ?? 0).toBeGreaterThanOrEqual(40);
-    expect(clearBox?.height ?? 0).toBeGreaterThanOrEqual(40);
+    await expectTapTarget(clear, { width: 40, height: 40 });
   }
 
   await modal.screenshot({

@@ -339,7 +339,7 @@ async function writeMembership(db: WatchlistDb, inserts: DbRow[]): Promise<boole
   if (!MISSING_CONFLICT_TARGET.test(upserted.error.message ?? "")) return false;
   console.error(
     "[watchlists] unique (watchlist_id, symbol) is MISSING from this database — "
-    + "supabase/migrations/0008_watchlist_symbol_unique.sql has not been applied. "
+    + "supabase/migrations/0009_watchlist_symbol_unique.sql has not been applied. "
     + "Falling back to a plain insert; concurrent adds can duplicate until it lands.",
   );
   const inserted = await db.from("watchlist_symbols").insert(inserts);
@@ -513,7 +513,7 @@ export function planWatchlistMigration(
  *
  * ── STATUS UPDATE (bug sweep A, 2026-08-19): THE SCHEMA HALF OF THAT PRECONDITION IS NOW MET ──
  *
- * `supabase/migrations/0008_watchlist_symbol_unique.sql` created
+ * `supabase/migrations/0009_watchlist_symbol_unique.sql` created
  * `unique (watchlist_id, symbol)` — for A2 (concurrent adds were duplicating membership), not for
  * ordering, but the index is the index. It is APPLIED to production: the pre-flight census found
  * 269 rows / 269 distinct pairs / 0 duplicates, so the "duplicates may exist and would have to be

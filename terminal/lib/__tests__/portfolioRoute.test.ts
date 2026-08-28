@@ -12,6 +12,7 @@ import type { DbResult, WatchlistDb, WatchlistQuery } from "@/lib/watchlists";
 const H = vi.hoisted(() => ({
   user: { id: "e2e-user-pfroute" } as { id: string } | null,
   failTable: null as string | null,
+  noopPortfolioMutations: false,
 }));
 
 vi.mock("next/headers", () => ({ cookies: vi.fn(async () => ({ get: () => undefined })) }));
@@ -20,7 +21,10 @@ vi.mock("@/lib/supabase/server", async () => {
   const { createFixtureDb } = await import("@/lib/watchlistsFixtureDb");
   return {
     createClient: vi.fn(async () => {
-      const db: WatchlistDb = createFixtureDb("pfroute");
+      const db: WatchlistDb = createFixtureDb(
+        "pfroute",
+        H.noopPortfolioMutations ? ["positions_mutation_noop"] : [],
+      );
       const failing: DbResult = { data: null, error: { message: "database unavailable" } };
       const failedQuery = (): WatchlistQuery => {
         const query = Object.assign(Promise.resolve(failing), {
@@ -87,6 +91,7 @@ beforeEach(() => {
   resetFixtureStores();
   H.user = { id: owner };
   H.failTable = null;
+  H.noopPortfolioMutations = false;
   vi.clearAllMocks();
 });
 
@@ -188,6 +193,34 @@ describe("POST /api/portfolio — update / close / reopen / delete", () => {
     const drop = await create({ ticker: "NVDA" });
     expect((await post({ action: "delete", id: drop.id })).status).toBe(200);
     expect((await book()).map((p) => p.id)).toEqual([keep.id]);
+  });
+
+  it("returns an explicit non-2xx invariant error for success-shaped zero-effect mutations", async () => {
+    const position = await create({
+      ticker: "NVDA", shares: 10, entryPrice: 100, entryDate: "2026-01-05", notes: "core",
+    });
+    const original = await book();
+    H.noopPortfolioMutations = true;
+
+    for (const body of [
+      { action: "update", id: position.id, shares: 25 },
+      { action: "close", id: position.id },
+      { action: "delete", id: position.id },
+    ]) {
+      const response = await post(body);
+      expect(response.status).toBe(500);
+      expect(await response.json()).toEqual({ error: "position mutation not confirmed" });
+      expect(await book()).toEqual(original);
+    }
+
+    H.noopPortfolioMutations = false;
+    expect((await post({ action: "close", id: position.id })).status).toBe(200);
+    const closed = await book();
+    H.noopPortfolioMutations = true;
+    const reopen = await post({ action: "reopen", id: position.id });
+    expect(reopen.status).toBe(500);
+    expect(await reopen.json()).toEqual({ error: "position mutation not confirmed" });
+    expect(await book()).toEqual(closed);
   });
 
   it("400s a request that names no position, and 404s one that names an unknown position", async () => {

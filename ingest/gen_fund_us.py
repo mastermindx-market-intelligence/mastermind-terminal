@@ -33,6 +33,9 @@ import datetime as dt
 from pathlib import Path
 
 CA_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(CA_ROOT))
+from ingest.earnings_calendar import select_next_earnings_date  # noqa: E402
+
 MACRO = Path(os.environ.get("MACRO_ROOT", "/Users/chriswong/Documents/Cluade/Macro Dashboard"))
 CACHE = MACRO / "data" / "us_fund"
 SITE = MACRO / "site" / "stockdata"
@@ -327,12 +330,7 @@ def build_earnings(cache: dict, fy_end_m: int, tx_ids: set[str] | None) -> dict:
     cal = cache.get("calendar") or {}
     ed = build_frame(cache, "earnings_dates")
 
-    next_date = None
-    edates = cal.get("Earnings Date")
-    if isinstance(edates, list) and edates:
-        next_date = edates[0]
-    elif isinstance(edates, str):
-        next_date = edates
+    next_date = select_next_earnings_date(cal.get("Earnings Date"))
 
     q_rows = []
     fy_rows = []
@@ -496,12 +494,7 @@ def build_estimates(cache: dict, fy_end_m: int) -> dict | None:
     rev_fy_periods = list(eps_fy_periods)
 
     # Q period labels for eps_q (0q,+1q). next_date's quarter is 0q; next is +1q.
-    next_date = None
-    edates = cal.get("Earnings Date")
-    if isinstance(edates, list) and edates:
-        next_date = edates[0]
-    elif isinstance(edates, str):
-        next_date = edates
+    next_date = select_next_earnings_date(cal.get("Earnings Date"))
     q0 = q1 = None
     if next_date:
         try:

@@ -31,14 +31,19 @@ export const FIXTURE_STORE_COOKIE = "mm_e2e_wl";
  * read and the route agree about what a broken store is. This flips the transport underneath all
  * three at once, exactly where Supabase would fail.
  *
- * Tokens: `positions_read` — every read of `portfolio_positions` answers the supabase-js failure
- * shape `{data:null, error}`.
+ * Tokens:
+ *   - `positions_read` — every read of `portfolio_positions` answers the supabase-js failure
+ *     shape `{data:null, error}`.
+ *   - `positions_mutation_noop` — UPDATE/DELETE answers `{data:[], error:null}` and changes no
+ *     rows. This is intentionally different from a hard error: it proves that lack of an error is
+ *     not accepted as proof of an affected canonical row.
  *
  * Test-only by construction: like the rest of this module it is reachable only from the
  * `TERMINAL_E2E_FIXTURE=1` branches.
  */
 export const FIXTURE_FAULT_COOKIE = "mm_e2e_fault";
 export const FAULT_POSITIONS_READ = "positions_read";
+export const FAULT_POSITIONS_MUTATION_NOOP = "positions_mutation_noop";
 
 export function fixtureFaults(raw: string | undefined | null): Set<string> {
   return new Set((raw || "").split(",").map((token) => token.trim()).filter(Boolean));
@@ -201,6 +206,11 @@ class FixtureQuery implements WatchlistQuery {
     if (this.table === "portfolio_positions" && this.mode === "read" && this.faults.has(FAULT_POSITIONS_READ)) {
       return { data: null, error: { message: "fixture: positions store unavailable" } };
     }
+    if (this.table === "portfolio_positions"
+      && (this.mode === "update" || this.mode === "delete")
+      && this.faults.has(FAULT_POSITIONS_MUTATION_NOOP)) {
+      return { data: [], error: null };
+    }
     if (this.mode === "insert" || this.mode === "upsert") {
       const incoming: DbRow[] = this.payload.map((row) => ({
         id: `${this.table}-${++this.store.seq}`,
@@ -248,7 +258,8 @@ class FixtureQuery implements WatchlistQuery {
       return { data: this.project(targets), error: null };
     }
     if (this.mode === "delete") {
-      const targets = new Set(this.matched());
+      const matched = this.matched();
+      const targets = new Set(matched);
       const kept = this.rows.filter((row) => !targets.has(row));
       if (this.table === "watchlists") {
         const removed = new Set([...targets].map((row) => row.id));
@@ -262,7 +273,10 @@ class FixtureQuery implements WatchlistQuery {
       } else {
         this.store.symbols = kept;
       }
-      return { data: null, error: null };
+      // Supabase returns deleted rows only when the caller chained `.select(...)`; otherwise its
+      // ordinary delete response carries `data:null`. The mutation-receipt service deliberately
+      // selects the id, so the fixture must model that representation rather than invent success.
+      return { data: this.projection ? this.project(matched) : null, error: null };
     }
     return { data: this.project(this.matched()), error: null };
   }

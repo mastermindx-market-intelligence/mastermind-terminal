@@ -1520,9 +1520,98 @@ table.scr2 tbody tr.empty-row:hover,table.scr2 tbody tr.scr2-skel-row:hover,tabl
 .menu-row.layout-gate{white-space:normal;color:var(--text-2)}
 .menu-row.layout-gate .layout-gate-cta{margin-left:auto;color:var(--brand-2);font-weight:700;white-space:nowrap}
 
+/* ── W2-A workspace menu. Extends .pop (globals.css:1043) and the .menu-row family above. ── */
+
+/* Section label: promotes the inline style at TerminalShell.tsx (.menu-hd) to a real class. */
+.ws-hd{padding:7px 12px 5px;font:700 var(--fs-micro)/1.2 var(--font-ui);letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim)}
+.ws-sep{height:1px;background:var(--line);margin:4px 7px}
+
+/* The library scrolls; header and footer stay put. Desktop ONLY: .toolbar-overflow-pop already
+   scrolls itself (globals.css:246), and a scroller inside a scroller is worse than a long menu. */
+.ws-list{display:flex;flex-direction:column}
+.pop:not(.toolbar-overflow-pop) .ws-list{max-height:min(56dvh,420px);overflow-y:auto;overscroll-behavior:contain}
+
+.ws-item{display:flex;flex-direction:column}
+.ws-item.open{background:color-mix(in srgb,var(--brand) 6%,transparent);border-radius:var(--r)}
+.ws-item.stale{box-shadow:inset 3px 0 0 var(--warn);border-radius:var(--r)}
+.ws-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.ws-more{margin-left:auto;flex:none;width:26px;height:26px;display:grid;place-items:center;border-radius:var(--r);color:var(--text-dim);cursor:pointer}
+.ws-more:hover{background:var(--panel-3);color:var(--text)}
+.ws-more:focus-visible{outline:2px solid var(--brand-2);outline-offset:-2px}
+.ws-more svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;transition:transform var(--t-fast) var(--ease-out)}
+.ws-item.open .ws-more svg{transform:rotate(90deg)}
+
+.ws-subs{display:flex;flex-direction:column;margin:0 7px 4px 20px;padding-left:6px;box-shadow:inset 2px 0 0 var(--line-3)}
+.ws-subs .menu-row{width:100%;border:0;background:none;text-align:left;font-size:var(--fs-label);padding:7px 9px;gap:8px}
+.ws-subs .menu-row svg{width:13px;height:13px}
+
+.ws-badge{flex:none;display:inline-flex;align-items:center;padding:2px 7px;border:1px solid var(--line);border-radius:var(--r-pill);font:600 var(--fs-micro)/1.4 var(--font-ui);letter-spacing:.05em;text-transform:uppercase;color:var(--text-dim);white-space:nowrap}
+.ws-badge.warn{color:var(--warn);border-color:color-mix(in srgb,var(--warn) 42%,transparent)}
+/* CJK never wants tracking; uppercase is a no-op there but the letter-spacing is not. */
+[data-lang="zh"] .ws-hd,[data-lang="zh"] .ws-badge{letter-spacing:0}
+
+.ws-item.blocked .menu-row{color:var(--text-dim);cursor:default}
+.ws-item.blocked .menu-row:hover{background:none;color:var(--text-dim)}
+.ws-hint{margin:0 7px 5px 26px;font:400 var(--fs-label)/1.4 var(--font-ui);color:var(--muted);white-space:normal}
+
+/* THE FORK. --warn, not --danger: nothing failed and nothing was lost — two valid versions exist. */
+.ws-conflict{margin:1px 7px 4px;padding:8px 10px;border-left:3px solid var(--warn);border-radius:0 var(--r) var(--r) 0;background:rgba(232,163,61,.09);white-space:normal}
+.ws-conflict b{display:block;font:650 var(--fs-ui)/1.35 var(--font-ui);color:var(--text)}
+.ws-conflict p{margin:3px 0 8px;font:400 var(--fs-label)/1.4 var(--font-ui);color:var(--text-2)}
+.ws-fork{display:flex;gap:6px;flex-wrap:wrap}
+/* Peers by construction: same height, same border, same weight, no filled button. */
+.ws-fork button{height:28px;padding:0 11px;border:1px solid color-mix(in srgb,var(--warn) 45%,transparent);border-radius:var(--r-pill);background:none;color:var(--warn);font:600 var(--fs-label)/1 var(--font-ui);white-space:nowrap;cursor:pointer}
+.ws-fork button:hover{background:color-mix(in srgb,var(--warn) 14%,transparent)}
+
+.ws-rename{display:flex;gap:6px;align-items:center;padding:4px 7px}
+.ws-rename input{min-width:0;flex:1;height:32px;padding:0 9px;border:1px solid var(--brand);border-radius:var(--r);outline:0;background:var(--panel-2);color:var(--text);font:var(--fs-ui)/1 var(--font-ui);box-shadow:0 0 0 3px color-mix(in srgb,var(--brand) 13%,transparent)}
+.ws-rename button{flex:none;width:30px;height:30px;display:grid;place-items:center;border-radius:var(--r);color:var(--muted);cursor:pointer}
+.ws-rename button:hover{background:var(--panel-3);color:var(--text)}
+.ws-rename button svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2}
+
+/* name_conflict: --danger, consistent with .menu-note.bad — the write did not happen. */
+.ws-suggest{display:flex;align-items:center;gap:8px;margin:1px 7px 4px;padding:6px 9px;border-radius:var(--r);background:color-mix(in srgb,var(--danger) 12%,transparent);color:var(--danger);font:400 var(--fs-label)/1.35 var(--font-ui);white-space:normal}
+.ws-suggest button{margin-left:auto;flex:none;padding:2px 9px;border:1px solid currentColor;border-radius:var(--r-pill);color:inherit;background:none;font:600 var(--fs-label)/1.5 var(--font-ui);white-space:nowrap;cursor:pointer}
+
+.ws-dock{display:flex;align-items:center;gap:10px;width:100%;padding:6px 11px 8px;color:var(--text-2);font:var(--fs-ui)/1.3 var(--font-ui);text-align:left;background:none;border:0;cursor:pointer;white-space:normal}
+.ws-dock:hover{color:var(--text)}
+.ws-dock:disabled{opacity:.45;cursor:not-allowed}
+.ws-dock-copy{display:flex;flex-direction:column;gap:2px;min-width:0}
+.ws-dock small{font:400 var(--fs-label)/1.3 var(--font-ui);color:var(--muted)}
+
+/* Touch floors. Precedent: @media (pointer:coarse){.pf-act{min-height:44px}} — globals.css:1281. */
+@media (pointer:coarse){
+  .ws-list .menu-row,.ws-subs .menu-row,.menu-row.ws-import{min-height:44px}
+  .ws-more{width:44px;height:44px}
+  .ws-fork button{height:44px;padding:0 14px}
+  .ws-rename input{height:44px}
+  .ws-rename button{width:44px;height:44px}
+  .ws-suggest button{min-height:36px;padding:0 12px}
+  .ws-dock{min-height:44px}
+}
+@media (prefers-reduced-motion:reduce){.ws-more svg{transition:none}}
+
+/* Unsupported-widget tile (spec §6) — the ONE deterministic fallback for a widget this build has no
+   specialized renderer for. Dashed, never --danger: nothing failed, the workspace opened fine. */
+.ws-tile-missing{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:120px;height:100%;padding:18px 16px;border:1px dashed var(--line-3);border-radius:var(--r-lg);background:var(--panel);text-align:center}
+.ws-tile-missing svg{width:22px;height:22px;stroke:var(--text-dim);fill:none;stroke-width:1.6}
+.ws-tile-missing b{font:650 var(--fs-body)/1.35 var(--font-ui);color:var(--text-2);max-width:34ch}
+.ws-tile-missing p{margin:0;font:400 var(--fs-label)/1.4 var(--font-ui);color:var(--muted);max-width:38ch}
+.ws-tile-type{display:inline-flex;align-items:center;gap:6px;max-width:100%;padding:3px 9px;border:1px solid var(--line);border-radius:var(--r-pill);background:var(--panel-3);font:500 var(--fs-label)/1.4 var(--font-code);color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ws-tile-type>span{flex:none;font:600 var(--fs-micro)/1.4 var(--font-ui);letter-spacing:.06em;text-transform:uppercase;color:var(--text-dim)}
+[data-lang="zh"] .ws-tile-type>span{letter-spacing:0}
+@media (max-width:860px){.ws-tile-missing{min-height:96px;padding:14px 12px}}
+/* Wrapper for one or more tiles rendered after the chart body (TerminalShell.tsx). */
+.ws-extra-widgets{display:flex;flex-wrap:wrap;gap:10px;padding:10px 14px}
+.ws-extra-widgets .ws-tile-missing{flex:1 1 220px;min-width:200px}
+
 /* live badge */
 .livebadge{display:inline-flex;align-items:center;gap:5px;font:600 9.5px/1 var(--font-ui);letter-spacing:.06em;text-transform:uppercase;color:var(--text-dim);padding:3px 7px;border:1px solid var(--line);border-radius:var(--r-pill)}
 .livebadge.live{color:var(--up);border-color:rgba(38,194,129,.35)} .livebadge i{width:5px;height:5px;border-radius:50%;background:currentColor}
+.livebadge.suspended,.quote-suspended,.pane-suspended{color:var(--warn)}
+.livebadge.suspended{border-color:color-mix(in srgb,var(--warn) 38%,transparent)}
+.quote-suspended,.pane-suspended{font-family:var(--font-ui);font-weight:650;letter-spacing:.03em;text-transform:uppercase;white-space:nowrap}
 
 /* ── Neural Web macro strip (market_plane.json — display-only context, links to the Macro Dashboard) ── */
 .nw-strip{display:inline-flex;align-items:center;gap:6px;margin-right:12px;flex:none;cursor:pointer}
@@ -2778,11 +2867,21 @@ body.col-resizing .wl-rz::after{background:var(--brand)}
 /* Fixed layout so an attacker-controlled 128-char query can't blow out the table width and clip
    the Visitor/IP columns. Only the Query column flexes (auto) + ellipsises; the rest are sized. */
 .adm-log{table-layout:fixed;width:100%}
-.adm-log th,.adm-log td{text-align:left}
-.adm-log td{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* The HEADER is clipped exactly like the body. `table-layout:fixed` gives every cell its column's
+   width and lets longer content spill out of it; with only `td` carrying the clamp, a squeezed
+   table ellipsised its rows cleanly while printing "QUERY" on top of "SOURCE" in the header. */
+.adm-log th,.adm-log td{text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* …except the full-width state rows. Loading / empty / unavailable are sentences, and an outage
+   notice truncated to "The search log could not be…" — with its Retry button pushed out of the
+   panel — is the failure state itself failing. They wrap. */
+.adm-log tr.empty-row td{white-space:normal;overflow:visible;text-overflow:clip}
 .adm-log col.c-time{width:192px}
-.adm-log col.c-sym{width:80px}
-.adm-log col.c-src{width:130px}
+/* 80px ellipsised the tickers themselves — "BTC-…", "0700…" — and a truncated symbol is a wrong
+   symbol. The width comes out of Query, which still has ~435px at 1440. */
+.adm-log col.c-sym{width:92px}
+/* Likewise 130px cut the longest source the app actually writes ("positioning-tab", from
+   components/msc/PositioningView.tsx) mid-word inside its pill. */
+.adm-log col.c-src{width:160px}
 .adm-log col.c-vis{width:140px}
 .adm-log col.c-ip{width:120px}
 .adm-log tbody tr{cursor:default}
@@ -2790,6 +2889,41 @@ body.col-resizing .wl-rz::after{background:var(--brand)}
 .adm-top-row:last-child{border-bottom:0}
 .adm-top-row .bar{width:100%;max-width:240px;margin-left:0}
 @media(max-width:860px){.adm-body{flex-direction:column}.adm-side{width:100%;flex-direction:row;overflow-x:auto;border-right:0;border-bottom:1px solid var(--line)}.adm-body .kpis{grid-template-columns:repeat(2,1fr)}}
+
+/* ── The Search Log stops being a table before it gets squeezed ───────────────────────────────
+   A six-column `table-layout:fixed` has no honest narrow form: the five sized columns claim
+   704px before the flexible Query column gets a single pixel. Below that, Query collapsed to 0,
+   its header printed on top of SOURCE (the clamp above now prevents the collision, but a 0px
+   column is still no column), and Visitor and IP were pushed past the panel's `overflow:hidden`
+   — invisible, with no scrollbar to reveal them.
+
+   1120 is that arithmetic, not a device: 48px shell rail + 190px console rail + 42px page padding
+   + 704px of sized columns, which leaves Query ~136px — about the narrowest it can be and still
+   show a query rather than an ellipsis. It sits well above the shell's own 860 breakpoint because
+   both rails come back at 861 and re-squeeze the table for another 250px; the e2e sweep in
+   e2e/admin-log-responsive.spec.ts walks the whole band and fails on a 0px column.
+
+   Each event becomes a record instead: symbol + time, the query on its own wrapping line (it is
+   the payload, not a detail), then source · visitor · ip. Nothing is dropped, nothing is
+   truncated to fit. The `role` attributes in components/AdminView.tsx preserve the table
+   semantics that changing `display` would otherwise drop from the a11y tree, and `data-col`
+   keys these rules to meaning rather than to column position. */
+@media(max-width:1120px){
+  .adm-log,.adm-log tbody,.adm-log tr,.adm-log td{display:block;width:auto}
+  .adm-log colgroup,.adm-log thead{display:none}
+  .adm-log tbody tr{display:flex;flex-wrap:wrap;align-items:baseline;gap:3px 8px;padding:9px 12px;border-bottom:1px solid var(--line-2)}
+  .adm-log tbody tr:last-child{border-bottom:0}
+  .adm-log td{padding:0;border:0;max-width:100%}
+  /* Reading order is the record's, not the column order's: identity first, timestamp trailing. */
+  .adm-log td[data-col="sym"]{order:1;font-size:13.5px}
+  .adm-log td[data-col="time"]{order:2;margin-left:auto}
+  .adm-log td[data-col="query"]{order:3;flex-basis:100%;white-space:normal;overflow-wrap:anywhere}
+  .adm-log td[data-col="src"]{order:4}
+  .adm-log td[data-col="vis"]{order:5}
+  .adm-log td[data-col="ip"]{order:6;margin-left:auto}
+  /* The state rows own their whole card — their own padding is already generous. */
+  .adm-log tbody tr.empty-row{display:block;padding:0}
+}
 
 /* ═══════════════════════════════════════════════════════════════════════════
    v6 — Tip primitive (the ONE tooltip). Portalled to <body> by components/ui/Tip.tsx,

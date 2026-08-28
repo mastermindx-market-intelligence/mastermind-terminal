@@ -118,7 +118,7 @@ export async function POST(req: Request) {
   if (action === "delete") {
     const result = await deletePosition(db, userId, positionId);
     if (!result.ok) return fail(result.error || "position delete failed", result.status || 500);
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, deletedId: result.deletedId });
   }
 
   return fail("unsupported action", 400);

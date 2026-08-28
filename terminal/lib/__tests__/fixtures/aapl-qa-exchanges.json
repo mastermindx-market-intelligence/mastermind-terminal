@@ -1,0 +1,2543 @@
+[
+  {
+    "schema": "qa_exchange.v1",
+    "exchange_id": "qx_evt_cik0000320193_2026q3_results_a8ff5d03e875_00",
+    "event_id": "evt_cik0000320193_2026q3_results",
+    "ordinal": 0,
+    "document_id": "tx:AAPL/2026Q3",
+    "document_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+    "question_spans": [
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_e2d8bcedbf3118fac38b",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 32,
+          "span_start_byte": 0,
+          "span_end_byte": 107,
+          "speaker": "Operator",
+          "role": "Operator"
+        },
+        "text_sha256": "225ace80daabd3e742b9a5bd06b965caa73b7b0b1a6cba6ea5448414c1453720",
+        "display_excerpt": "Certainly. We will go ahead and take our first question from Amit Daryanani from Evercore. Please go ahead.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 32,
+          "segment_sha256": "225ace80daabd3e742b9a5bd06b965caa73b7b0b1a6cba6ea5448414c1453720",
+          "segment_bytes": 107,
+          "span_start_byte": 0,
+          "span_end_byte": 107,
+          "text_sha256": "225ace80daabd3e742b9a5bd06b965caa73b7b0b1a6cba6ea5448414c1453720"
+        },
+        "unreplayable_reason": null
+      },
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_2535242bc93023214552",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 33,
+          "span_start_byte": 0,
+          "span_end_byte": 586,
+          "speaker": "Amit Daryanani"
+        },
+        "text_sha256": "947fec8b7554911f27474260b881a3d386a0f5a12bb68b83823d94b2f729fc71",
+        "display_excerpt": "Yep. Thanks. I'll take my question. Tim, best of luck. It's been a pleasure working with you over the years. Maybe to start with, if I think about the 9%-11% sort of growth that's guided for September, it's about a 500 basis point or so deceleration versus what we've seen really in June quarter, even through this year, I would say. Can you just talk about how much of this decel is really supply constraint versus other factors like FX? If you could just flesh out what these supply constraints are that are broadening beyond these advanced SOCs you talked about last quarter as well.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 33,
+          "segment_sha256": "947fec8b7554911f27474260b881a3d386a0f5a12bb68b83823d94b2f729fc71",
+          "segment_bytes": 586,
+          "span_start_byte": 0,
+          "span_end_byte": 586,
+          "text_sha256": "947fec8b7554911f27474260b881a3d386a0f5a12bb68b83823d94b2f729fc71"
+        },
+        "unreplayable_reason": null
+      },
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_9e4291c19d5770c6aea9",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 38,
+          "span_start_byte": 0,
+          "span_end_byte": 720,
+          "speaker": "Amit Daryanani"
+        },
+        "text_sha256": "05a74525b018373a7d191a8d6a15bb5f30af41a935340e72bcf1c4ecd08db65f",
+        "display_excerpt": "Got it. That's really helpful. Thanks a lot for that. Tim, I just have a memory question for you. Apple has historically, I think, done a really excellent job about delivering capability and utility to customers without really making them pay disproportionately more. The stagnant memory inflation seems to challenge that equation for you folks right now. There are reports that suggest that you're seeking greater sourcing flexibility for memory. Can you just talk about, is this sourcing options really about ensuring that you have supply and it's a way to mitigate memory inflation? Or is it more to preserve the value proposition for your customers? Just any light you could shed on this would be helpful. Thank you.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 38,
+          "segment_sha256": "05a74525b018373a7d191a8d6a15bb5f30af41a935340e72bcf1c4ecd08db65f",
+          "segment_bytes": 720,
+          "span_start_byte": 0,
+          "span_end_byte": 720,
+          "text_sha256": "05a74525b018373a7d191a8d6a15bb5f30af41a935340e72bcf1c4ecd08db65f"
+        },
+        "unreplayable_reason": null
+      }
+    ],
+    "answer_spans": [
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_7b7d9aa8661c35840d79",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 34,
+          "span_start_byte": 0,
+          "span_end_byte": 739,
+          "speaker": "Kevan Parekh",
+          "role": "CFO"
+        },
+        "text_sha256": "75efda87f9ee8da9d08faf500536969eaa32eca9777e74c81b2be0f4bc5d7e5e",
+        "display_excerpt": "Yeah, Amit, this is Kevan. How are you doing? Why don't I start with just kind of describing the sequential change, then I'll let Tim jump into a bit more color on the supply constraints. I think, as I mentioned in my prepared remarks, we expect the September quarter total revenue to grow by 9%-11% year-over-year. We expect that to be impacted by two main factors. First, when we look at going from the June quarter to September quarter, we expect foreign exchange to be a sequential headwind of around two and a half percentage points to the year-over-year total company growth rate. The second impact is that the impact from supply constraints is we expect that to increase significantly when we go sequentially from June to September.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 34,
+          "segment_sha256": "75efda87f9ee8da9d08faf500536969eaa32eca9777e74c81b2be0f4bc5d7e5e",
+          "segment_bytes": 739,
+          "span_start_byte": 0,
+          "span_end_byte": 739,
+          "text_sha256": "75efda87f9ee8da9d08faf500536969eaa32eca9777e74c81b2be0f4bc5d7e5e"
+        },
+        "unreplayable_reason": null
+      },
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_bd29316cea3616576f2b",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 35,
+          "span_start_byte": 0,
+          "span_end_byte": 211,
+          "speaker": "Kevan Parekh",
+          "role": "CFO"
+        },
+        "text_sha256": "cb9b49e4003fc1613018fae5b186621c8b06bc852fbe90c4d147f43b87cd9993",
+        "display_excerpt": "That projected supply constraint in the September quarter will affect the iPhone, Mac, and the iPad. Really, when you combine those two factors, we get pretty close to the June overall total company growth rate.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 35,
+          "segment_sha256": "cb9b49e4003fc1613018fae5b186621c8b06bc852fbe90c4d147f43b87cd9993",
+          "segment_bytes": 211,
+          "span_start_byte": 0,
+          "span_end_byte": 211,
+          "text_sha256": "cb9b49e4003fc1613018fae5b186621c8b06bc852fbe90c4d147f43b87cd9993"
+        },
+        "unreplayable_reason": null
+      },
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_405fdba29ccb73c1581b",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 36,
+          "span_start_byte": 0,
+          "span_end_byte": 794,
+          "speaker": "Tim Cook",
+          "role": "CEO"
+        },
+        "text_sha256": "14d91a9b5c08b80ad6db2be54c82ed3dd06a2e8249c2f027c6c4afc4cd9d4af5",
+        "display_excerpt": "Yeah, Amit, it's Tim. First of all, thank you for your comments. During the June quarter, we did experience supply constraints, primarily on the Mac, and to a lesser extent, on iPhone and iPad. These were driven by very high levels of demand. As we've said before, we are seeing less flexibility in the supply chain than normal. The constraints were primarily driven by the availability of the advanced nodes that our SoCs are produced on. If you look forward into the current quarter, the September quarter, we continue to expect high levels of demand. However, with less flexibility in supply chain, we expect the impact from the supply constraints to increase significantly sequentially. The projected supply constraints in the September quarter, as Kevan said, affect iPhone, Mac, and iPad.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 36,
+          "segment_sha256": "14d91a9b5c08b80ad6db2be54c82ed3dd06a2e8249c2f027c6c4afc4cd9d4af5",
+          "segment_bytes": 794,
+          "span_start_byte": 0,
+          "span_end_byte": 794,
+          "text_sha256": "14d91a9b5c08b80ad6db2be54c82ed3dd06a2e8249c2f027c6c4afc4cd9d4af5"
+        },
+        "unreplayable_reason": null
+      },
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_beec10ff7de5b24199dc",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 37,
+          "span_start_byte": 0,
+          "span_end_byte": 116,
+          "speaker": "Tim Cook",
+          "role": "CEO"
+        },
+        "text_sha256": "a320bed4ca8d475ce5b2f6fbdf7abca5f2598fd36e4b0a002236a9d879fa4a93",
+        "display_excerpt": "We're seeing some very significant constraints currently, with limited flexibility in the supply chain to remedy it.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 37,
+          "segment_sha256": "a320bed4ca8d475ce5b2f6fbdf7abca5f2598fd36e4b0a002236a9d879fa4a93",
+          "segment_bytes": 116,
+          "span_start_byte": 0,
+          "span_end_byte": 116,
+          "text_sha256": "a320bed4ca8d475ce5b2f6fbdf7abca5f2598fd36e4b0a002236a9d879fa4a93"
+        },
+        "unreplayable_reason": null
+      },
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_bfbe9d6633b3bd677752",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 39,
+          "span_start_byte": 0,
+          "span_end_byte": 791,
+          "speaker": "Tim Cook",
+          "role": "CEO"
+        },
+        "text_sha256": "a7444a1ada6f3799cb926b20c4407755a52e814c5c287c3f28b9353c78ed1a06",
+        "display_excerpt": "Yeah. Let me back up and talk about memory in general, because I know this is a subject on many of your minds. If you look at, as I'd said on the last call, we paid more for memory in the March quarter than the December quarter. As I alluded to last quarter, we expected to pay significantly more in the June quarter than the March quarter, and that is what happened. It was partially offset by the benefit of carry-in inventory. For September, we expect to pay even higher memory costs, and we're able to offset partly by a few factors, and let me walk through kind of what they are. The first is, as you would expect, we have a benefit from some carry-in inventory in the September quarter. However, we believe we'll see decreasing benefit from this over time beyond the September quarter.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 39,
+          "segment_sha256": "a7444a1ada6f3799cb926b20c4407755a52e814c5c287c3f28b9353c78ed1a06",
+          "segment_bytes": 791,
+          "span_start_byte": 0,
+          "span_end_byte": 791,
+          "text_sha256": "a7444a1ada6f3799cb926b20c4407755a52e814c5c287c3f28b9353c78ed1a06"
+        },
+        "unreplayable_reason": null
+      },
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_5dd13f8a935db9c23483",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 40,
+          "span_start_byte": 0,
+          "span_end_byte": 592,
+          "speaker": "Tim Cook",
+          "role": "CEO"
+        },
+        "text_sha256": "fcde5a9cbc3556767ea11729bd2ccfe01f20adca61f9b2ae82c1849fd0f99402",
+        "display_excerpt": "The second is, we're expecting lower costs on certain non-memory components that are in our BOM. If you look beyond September, we see the market pricing for memory continuing to increase, which could drive an increasing impact on our business, and we're continuing to evaluate this. In terms of the sources of supply, primarily the DRAM market has three suppliers. Obviously if there were more suppliers, that would be good, and it would help us on the supply side and perhaps the pricing side. It's unclear on the pricing side, it could help on the supply side. We're evaluating all options.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 40,
+          "segment_sha256": "fcde5a9cbc3556767ea11729bd2ccfe01f20adca61f9b2ae82c1849fd0f99402",
+          "segment_bytes": 592,
+          "span_start_byte": 0,
+          "span_end_byte": 592,
+          "text_sha256": "fcde5a9cbc3556767ea11729bd2ccfe01f20adca61f9b2ae82c1849fd0f99402"
+        },
+        "unreplayable_reason": null
+      }
+    ],
+    "questioner": {
+      "name": "Amit Daryanani",
+      "affiliation": "Evercore",
+      "name_state": "source_supported",
+      "affiliation_state": "source_supported"
+    },
+    "respondents": [
+      {
+        "name": "Kevan Parekh",
+        "role": "CFO",
+        "identity_state": "source_supported",
+        "span_indexes": [
+          0,
+          1
+        ]
+      },
+      {
+        "name": "Tim Cook",
+        "role": "CEO",
+        "identity_state": "source_supported",
+        "span_indexes": [
+          2,
+          3
+        ]
+      },
+      {
+        "name": "Tim Cook",
+        "role": "CEO",
+        "identity_state": "source_supported",
+        "span_indexes": [
+          4,
+          5
+        ]
+      }
+    ],
+    "topics": [
+      "unavailable"
+    ],
+    "taxonomy_version": "qa_topic.v1",
+    "taxonomy_hash": "a928ca72ab2e91bda74bd1e69021e08a5234e501f095610e623655db7e323b5e",
+    "provenance": {
+      "extractor_id": "qa_reconstruction.v1",
+      "provider": null,
+      "model": null,
+      "prompt_version": null,
+      "validator_id": "qa_exchange_validator.v1",
+      "run_id": "e3b_746ebf57e211e13d",
+      "validation_state": "accepted",
+      "source_available_at": null,
+      "clock_state": "unknown",
+      "rights_profile": "rp_public_primary_v1"
+    },
+    "validation": {
+      "replayed": true,
+      "unique_span": true,
+      "event_match": true,
+      "revision_match": true,
+      "rights_ok": true
+    }
+  },
+  {
+    "schema": "qa_exchange.v1",
+    "exchange_id": "qx_evt_cik0000320193_2026q3_results_a8ff5d03e875_01",
+    "event_id": "evt_cik0000320193_2026q3_results",
+    "ordinal": 1,
+    "document_id": "tx:AAPL/2026Q3",
+    "document_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+    "question_spans": [
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_932ced484c78b62e1996",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 42,
+          "span_start_byte": 0,
+          "span_end_byte": 71,
+          "speaker": "Operator",
+          "role": "Operator"
+        },
+        "text_sha256": "1ee8ee9e6a179a18ef3f08bf56738003036b51c8084d369900b0a1b78599e95e",
+        "display_excerpt": "Our next question is from Michael Ng of Goldman Sachs. Please go ahead.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 42,
+          "segment_sha256": "1ee8ee9e6a179a18ef3f08bf56738003036b51c8084d369900b0a1b78599e95e",
+          "segment_bytes": 71,
+          "span_start_byte": 0,
+          "span_end_byte": 71,
+          "text_sha256": "1ee8ee9e6a179a18ef3f08bf56738003036b51c8084d369900b0a1b78599e95e"
+        },
+        "unreplayable_reason": null
+      },
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_640f4d6fecf82c15a862",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 43,
+          "span_start_byte": 0,
+          "span_end_byte": 524,
+          "speaker": "Michael Ng"
+        },
+        "text_sha256": "c55f038cf522a2aaca9c630a74c5632a8db453ca51e78e2aa049b219f0e67267",
+        "display_excerpt": "Good afternoon. First, Tim, congratulations on the extraordinary run you on these earnings calls. In terms of my questions, I have two as well. First, on the Apple Upgrade Program, could you talk a little bit about the expected adoption rates across your two and a half billion device install base in success? Do you see it shortening the replacement cycle for iPhone or also having an equal impact to Mac and iPad, which may have not have benefited from device subsidies in the U.S. like iPhone has historically? Thank you.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 43,
+          "segment_sha256": "c55f038cf522a2aaca9c630a74c5632a8db453ca51e78e2aa049b219f0e67267",
+          "segment_bytes": 524,
+          "span_start_byte": 0,
+          "span_end_byte": 524,
+          "text_sha256": "c55f038cf522a2aaca9c630a74c5632a8db453ca51e78e2aa049b219f0e67267"
+        },
+        "unreplayable_reason": null
+      },
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_8eaa1b0f5a3ff646894f",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 46,
+          "span_start_byte": 0,
+          "span_end_byte": 443,
+          "speaker": "Michael Ng"
+        },
+        "text_sha256": "54369179feac9eb4ae91558801807150cbd1f2a1d8407d4b9048d94cd4ca5288",
+        "display_excerpt": "Great. Thank you. That's very helpful. My second question, just on iOS 27 and Apple Intelligence, went into public beta earlier this month. Could you talk about learnings from the public beta? Will the new Siri AI be a demand driver for iPhones this holiday? How does the Apple Intelligence usage to date in the open beta inform how you're thinking about compute costs and the ability to recover some of those costs through iCloud+? Thank you.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 46,
+          "segment_sha256": "54369179feac9eb4ae91558801807150cbd1f2a1d8407d4b9048d94cd4ca5288",
+          "segment_bytes": 443,
+          "span_start_byte": 0,
+          "span_end_byte": 443,
+          "text_sha256": "54369179feac9eb4ae91558801807150cbd1f2a1d8407d4b9048d94cd4ca5288"
+        },
+        "unreplayable_reason": null
+      },
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_a42f10957d70c1b8180a",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 49,
+          "span_start_byte": 0,
+          "span_end_byte": 47,
+          "speaker": "Michael Ng"
+        },
+        "text_sha256": "e3c894a774dd6be02cc7b4626e20e390514814575330200252bf0b4bf20a1ce9",
+        "display_excerpt": "Wonderful. Thank you for all the thoughts, Tim.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 49,
+          "segment_sha256": "e3c894a774dd6be02cc7b4626e20e390514814575330200252bf0b4bf20a1ce9",
+          "segment_bytes": 47,
+          "span_start_byte": 0,
+          "span_end_byte": 47,
+          "text_sha256": "e3c894a774dd6be02cc7b4626e20e390514814575330200252bf0b4bf20a1ce9"
+        },
+        "unreplayable_reason": null
+      }
+    ],
+    "answer_spans": [
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_aa36813b65dd5ac52061",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 44,
+          "span_start_byte": 0,
+          "span_end_byte": 728,
+          "speaker": "Tim Cook",
+          "role": "CEO"
+        },
+        "text_sha256": "bbea01e1f88036458d8479269c36b45c45135ae36d965b83aaa1738b468b4186",
+        "display_excerpt": "Michael, first of all, thank you for your comments. I really appreciate that. If you look at the Apple Upgrade, what it's all about is making it easier for customers to get their hands on our latest products with a leasing plan that's right for them. Of course, as you know, the residual values on Apple products are generally much higher than the residual value on several of our competition. It's a way to get into a product on a fairly affordable basis, particularly for those customers who want to upgrade on some kind of schedule. We're very excited about it. It is offered in our retail stores, it's not widely offered in all channels. We'll see what the customer uptake is, but the early feedback on it is quite positive.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 44,
+          "segment_sha256": "bbea01e1f88036458d8479269c36b45c45135ae36d965b83aaa1738b468b4186",
+          "segment_bytes": 728,
+          "span_start_byte": 0,
+          "span_end_byte": 728,
+          "text_sha256": "bbea01e1f88036458d8479269c36b45c45135ae36d965b83aaa1738b468b4186"
+        },
+        "unreplayable_reason": null
+      },
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_15d283607e72f3b3e13c",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 45,
+          "span_start_byte": 0,
+          "span_end_byte": 82,
+          "speaker": "Kevan Parekh",
+          "role": "CFO"
+        },
+        "text_sha256": "564d3632404d5dc0ec8839b31bf8dc5751afa508ae3698fb99a5f67eeed05bba",
+        "display_excerpt": "Michael, I'll just mention that it's only available in the U.S. right now as well.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 45,
+          "segment_sha256": "564d3632404d5dc0ec8839b31bf8dc5751afa508ae3698fb99a5f67eeed05bba",
+          "segment_bytes": 82,
+          "span_start_byte": 0,
+          "span_end_byte": 82,
+          "text_sha256": "564d3632404d5dc0ec8839b31bf8dc5751afa508ae3698fb99a5f67eeed05bba"
+        },
+        "unreplayable_reason": null
+      },
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_129e38a29695baeb8518",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 47,
+          "span_start_byte": 0,
+          "span_end_byte": 755,
+          "speaker": "Tim Cook",
+          "role": "CEO"
+        },
+        "text_sha256": "ef4dc21619ad2052657398424b9e047d4357482ad50e32a57efbf8ea43579264",
+        "display_excerpt": "Thank you for that. First of all, we are off the charts excited about Siri AI. We had a great reception from WWDC. We released the developer beta immediately after the keynote. The developer feedback has been overwhelmingly positive. The feedback from reviewers and so forth have been overwhelmingly positive. We released it to the public for a public beta a few weeks ago, the continued feedback is really, really great. I think it's a very big idea to have AI that's private, that's based on your personal context, and that's integrated across the operating system. We couldn't be happier with how things are going. In terms of what it means for compute cost, it's obviously early going for us. I don't want to say that we have a complete plan for that.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 47,
+          "segment_sha256": "ef4dc21619ad2052657398424b9e047d4357482ad50e32a57efbf8ea43579264",
+          "segment_bytes": 755,
+          "span_start_byte": 0,
+          "span_end_byte": 755,
+          "text_sha256": "ef4dc21619ad2052657398424b9e047d4357482ad50e32a57efbf8ea43579264"
+        },
+        "unreplayable_reason": null
+      },
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_e54b8b1fc72a881f7826",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 48,
+          "span_start_byte": 0,
+          "span_end_byte": 261,
+          "speaker": "Tim Cook",
+          "role": "CEO"
+        },
+        "text_sha256": "45c0ab79ed9c3cfefaf8fcf216770a0669d5e59f3abef1dfa97e656f1e0c35da",
+        "display_excerpt": "We do believe there will be people that want to use it a lot. We will have some kind of upgrade possibilities on iCloud+ where people can buy up the stack on iCloud+. We'll see how the pickup for that is. We could not be more excited about where the product is.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 48,
+          "segment_sha256": "45c0ab79ed9c3cfefaf8fcf216770a0669d5e59f3abef1dfa97e656f1e0c35da",
+          "segment_bytes": 261,
+          "span_start_byte": 0,
+          "span_end_byte": 261,
+          "text_sha256": "45c0ab79ed9c3cfefaf8fcf216770a0669d5e59f3abef1dfa97e656f1e0c35da"
+        },
+        "unreplayable_reason": null
+      },
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_6ec8abe30c095307f49a",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 50,
+          "span_start_byte": 0,
+          "span_end_byte": 10,
+          "speaker": "Tim Cook",
+          "role": "CEO"
+        },
+        "text_sha256": "8569efc4ed5a6273140c2b6ec0ab8d99f4398210808fbb7c0cbbae4fbcc21350",
+        "display_excerpt": "Thank you.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 50,
+          "segment_sha256": "8569efc4ed5a6273140c2b6ec0ab8d99f4398210808fbb7c0cbbae4fbcc21350",
+          "segment_bytes": 10,
+          "span_start_byte": 0,
+          "span_end_byte": 10,
+          "text_sha256": "8569efc4ed5a6273140c2b6ec0ab8d99f4398210808fbb7c0cbbae4fbcc21350"
+        },
+        "unreplayable_reason": null
+      }
+    ],
+    "questioner": {
+      "name": "Michael Ng",
+      "affiliation": "Goldman Sachs",
+      "name_state": "source_supported",
+      "affiliation_state": "source_supported"
+    },
+    "respondents": [
+      {
+        "name": "Tim Cook",
+        "role": "CEO",
+        "identity_state": "source_supported",
+        "span_indexes": [
+          0
+        ]
+      },
+      {
+        "name": "Kevan Parekh",
+        "role": "CFO",
+        "identity_state": "source_supported",
+        "span_indexes": [
+          1
+        ]
+      },
+      {
+        "name": "Tim Cook",
+        "role": "CEO",
+        "identity_state": "source_supported",
+        "span_indexes": [
+          2,
+          3
+        ]
+      },
+      {
+        "name": "Tim Cook",
+        "role": "CEO",
+        "identity_state": "source_supported",
+        "span_indexes": [
+          4
+        ]
+      }
+    ],
+    "topics": [
+      "unavailable"
+    ],
+    "taxonomy_version": "qa_topic.v1",
+    "taxonomy_hash": "a928ca72ab2e91bda74bd1e69021e08a5234e501f095610e623655db7e323b5e",
+    "provenance": {
+      "extractor_id": "qa_reconstruction.v1",
+      "provider": null,
+      "model": null,
+      "prompt_version": null,
+      "validator_id": "qa_exchange_validator.v1",
+      "run_id": "e3b_746ebf57e211e13d",
+      "validation_state": "accepted",
+      "source_available_at": null,
+      "clock_state": "unknown",
+      "rights_profile": "rp_public_primary_v1"
+    },
+    "validation": {
+      "replayed": true,
+      "unique_span": true,
+      "event_match": true,
+      "revision_match": true,
+      "rights_ok": true
+    }
+  },
+  {
+    "schema": "qa_exchange.v1",
+    "exchange_id": "qx_evt_cik0000320193_2026q3_results_a8ff5d03e875_02",
+    "event_id": "evt_cik0000320193_2026q3_results",
+    "ordinal": 2,
+    "document_id": "tx:AAPL/2026Q3",
+    "document_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+    "question_spans": [
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_5233b8cee234cc023e94",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 52,
+          "span_start_byte": 0,
+          "span_end_byte": 76,
+          "speaker": "Operator",
+          "role": "Operator"
+        },
+        "text_sha256": "8a9a005d67aa0008143d04f6dddf6f839dad6b2ac1e72c0a95bae624a145b5e5",
+        "display_excerpt": "Our next question is from Ben Reitzes from Melius Research. Please go ahead.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 52,
+          "segment_sha256": "8a9a005d67aa0008143d04f6dddf6f839dad6b2ac1e72c0a95bae624a145b5e5",
+          "segment_bytes": 76,
+          "span_start_byte": 0,
+          "span_end_byte": 76,
+          "text_sha256": "8a9a005d67aa0008143d04f6dddf6f839dad6b2ac1e72c0a95bae624a145b5e5"
+        },
+        "unreplayable_reason": null
+      },
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_c473dc2fff6ccc2fc9e3",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 53,
+          "span_start_byte": 0,
+          "span_end_byte": 702,
+          "speaker": "Ben Reitzes"
+        },
+        "text_sha256": "6c31fec22c0f9df16ace6bfdc3cb5353b147df90056c0aeb2a0b70220ff8df35",
+        "display_excerpt": "Yeah. Hey, guys. Thanks a lot for the question and, obviously, Tim, known you a long time. I'll really miss you. I wanted to ask about the supply constraints again. I think people are just trying to make sense of it a little bit this way, is that the Street had you at 12% growth for the quarter, September. You could argue that to get to the 10% you guided, that's just the FX. In the 1st quarter, which is December, Street has you decelerating quite a bit, to like 8%-9%. I think what we're struggling with after hours here is how much do these supply constraints really hit you in December and impact that because the Street did a pretty good job of taking that number into the higher single digits.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 53,
+          "segment_sha256": "6c31fec22c0f9df16ace6bfdc3cb5353b147df90056c0aeb2a0b70220ff8df35",
+          "segment_bytes": 702,
+          "span_start_byte": 0,
+          "span_end_byte": 702,
+          "text_sha256": "6c31fec22c0f9df16ace6bfdc3cb5353b147df90056c0aeb2a0b70220ff8df35"
+        },
+        "unreplayable_reason": null
+      },
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_3a6d9e22783474593cc8",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 54,
+          "span_start_byte": 0,
+          "span_end_byte": 102,
+          "speaker": "Ben Reitzes"
+        },
+        "text_sha256": "eb375dbb0c0fadb62f2121d635799908c01fbbacc8d40fecfa3a444aa3123ce7",
+        "display_excerpt": "Is there any guidance you can give us there as you see it, Tim, and we'd really appreciate it. Thanks.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 54,
+          "segment_sha256": "eb375dbb0c0fadb62f2121d635799908c01fbbacc8d40fecfa3a444aa3123ce7",
+          "segment_bytes": 102,
+          "span_start_byte": 0,
+          "span_end_byte": 102,
+          "text_sha256": "eb375dbb0c0fadb62f2121d635799908c01fbbacc8d40fecfa3a444aa3123ce7"
+        },
+        "unreplayable_reason": null
+      },
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_7904cc2d5c4e35ddf8fb",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 58,
+          "span_start_byte": 0,
+          "span_end_byte": 431,
+          "speaker": "Ben Reitzes"
+        },
+        "text_sha256": "0901277fed1f20cb0203cd232d51d748d0fcafebab1816d45fbe5afc42031ca7",
+        "display_excerpt": "Okay. If I could just ask, you guys know what's in the press all the time, but there's this little company that is also building a fab in Arizona that you guys have been speculated you guys could work with that could potentially alleviate some, at least your silicon constraints. Is there any possibility that you guys broaden out your silicon providers in a reasonable time frame to alleviate these so we feel better about supply?",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 58,
+          "segment_sha256": "0901277fed1f20cb0203cd232d51d748d0fcafebab1816d45fbe5afc42031ca7",
+          "segment_bytes": 431,
+          "span_start_byte": 0,
+          "span_end_byte": 431,
+          "text_sha256": "0901277fed1f20cb0203cd232d51d748d0fcafebab1816d45fbe5afc42031ca7"
+        },
+        "unreplayable_reason": null
+      },
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_1d4cb4958766ee11db49",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 60,
+          "span_start_byte": 0,
+          "span_end_byte": 12,
+          "speaker": "Ben Reitzes"
+        },
+        "text_sha256": "d2a9cb2189373b8bca57c70c1a09c28d14edc53f3c42c861c402126a4bd9b3f6",
+        "display_excerpt": "Thanks, Tim.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 60,
+          "segment_sha256": "d2a9cb2189373b8bca57c70c1a09c28d14edc53f3c42c861c402126a4bd9b3f6",
+          "segment_bytes": 12,
+          "span_start_byte": 0,
+          "span_end_byte": 12,
+          "text_sha256": "d2a9cb2189373b8bca57c70c1a09c28d14edc53f3c42c861c402126a4bd9b3f6"
+        },
+        "unreplayable_reason": null
+      }
+    ],
+    "answer_spans": [
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_b5f1c7153cb414f82a0a",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 55,
+          "span_start_byte": 0,
+          "span_end_byte": 781,
+          "speaker": "Tim Cook",
+          "role": "CEO"
+        },
+        "text_sha256": "669a0b46cf1f36579b01d6313300c80d2fed7d2193b43f4a1de40d0efc203d14",
+        "display_excerpt": "Let me talk about the constraints a little more, and then Kevan can weigh in on the guidance for revenue. As I'd mentioned before, the primary issue is advanced nodes that we run our SoCs on. That's the primary supply constraint now. The root cause of it is not a regular supply issue. It's a demand forecast issue, to be candid, where the iPhone and the Mac are both doing remarkably better than we thought they would do. We had high expectations, so it wasn't that our expectations were low. As you can see from iPhone's growth being 22% and Mac's growth at 29%, and the iPhone is 22% year-to-date as well, that these are extraordinary numbers. The supply chain just has less flexibility in it than normal. We've been pulling supply ahead. At some point, there's a limit to that.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 55,
+          "segment_sha256": "669a0b46cf1f36579b01d6313300c80d2fed7d2193b43f4a1de40d0efc203d14",
+          "segment_bytes": 781,
+          "span_start_byte": 0,
+          "span_end_byte": 781,
+          "text_sha256": "669a0b46cf1f36579b01d6313300c80d2fed7d2193b43f4a1de40d0efc203d14"
+        },
+        "unreplayable_reason": null
+      },
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_43889b0e80e7fd76d4c6",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 56,
+          "span_start_byte": 0,
+          "span_end_byte": 134,
+          "speaker": "Tim Cook",
+          "role": "CEO"
+        },
+        "text_sha256": "719bbc307346e31f490d859d435b6a51faa43e5f312f61f3be011d9c1edf4506",
+        "display_excerpt": "We've got a quarter that we're going to be scrambling on the supply side, essentially. Kevan, you want to add on the revenue guidance?",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 56,
+          "segment_sha256": "719bbc307346e31f490d859d435b6a51faa43e5f312f61f3be011d9c1edf4506",
+          "segment_bytes": 134,
+          "span_start_byte": 0,
+          "span_end_byte": 134,
+          "text_sha256": "719bbc307346e31f490d859d435b6a51faa43e5f312f61f3be011d9c1edf4506"
+        },
+        "unreplayable_reason": null
+      },
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_20b8bd95a05713782108",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 57,
+          "span_start_byte": 0,
+          "span_end_byte": 455,
+          "speaker": "Kevan Parekh",
+          "role": "CFO"
+        },
+        "text_sha256": "f1f399229d92e49febb95bc8ff95940e8f02f07aa7c95d87ea82381d7860360d",
+        "display_excerpt": "Yeah. Thanks, Tim. Ben, let me jump in here. The dynamics Tim mentioned, combined with the foreign exchange impact I mentioned earlier sequentially, is really what's built into the 9%-11% guidance we're giving for the September total company revenue year-over-year growth rate. Beyond September, we're not providing any color at this point. I think you mentioned December, so we're not providing any kind of color or guidance beyond the September quarter.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 57,
+          "segment_sha256": "f1f399229d92e49febb95bc8ff95940e8f02f07aa7c95d87ea82381d7860360d",
+          "segment_bytes": 455,
+          "span_start_byte": 0,
+          "span_end_byte": 455,
+          "text_sha256": "f1f399229d92e49febb95bc8ff95940e8f02f07aa7c95d87ea82381d7860360d"
+        },
+        "unreplayable_reason": null
+      },
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_e58182fdb01cf3822948",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 59,
+          "span_start_byte": 0,
+          "span_end_byte": 466,
+          "speaker": "Tim Cook",
+          "role": "CEO"
+        },
+        "text_sha256": "9133872d480de92605127a3d2c3447d1b513086e608801ce23313c562c1cb4f4",
+        "display_excerpt": "Yeah. Let me stress again, this isn't a partner or supplier issue. This issue is an incredibly strong, it's a great issue in some ways. It's an incredibly strong iPhone and Mac product cycle that has really yielded demand beyond our expectation. In Arizona, we do source over 100 million components this year out of Arizona, it is part of our $600 billion commitment to the U.S., and we could not be more pleased with how that fab has ramped and is producing for us.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 59,
+          "segment_sha256": "9133872d480de92605127a3d2c3447d1b513086e608801ce23313c562c1cb4f4",
+          "segment_bytes": 466,
+          "span_start_byte": 0,
+          "span_end_byte": 466,
+          "text_sha256": "9133872d480de92605127a3d2c3447d1b513086e608801ce23313c562c1cb4f4"
+        },
+        "unreplayable_reason": null
+      },
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_1b2857da67905de4bf91",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 61,
+          "span_start_byte": 0,
+          "span_end_byte": 15,
+          "speaker": "Tim Cook",
+          "role": "CEO"
+        },
+        "text_sha256": "d25f296a8cd3d4780f84ad236683a189af0eaff18011abbac8575a182f497780",
+        "display_excerpt": "Yep. Thank you.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 61,
+          "segment_sha256": "d25f296a8cd3d4780f84ad236683a189af0eaff18011abbac8575a182f497780",
+          "segment_bytes": 15,
+          "span_start_byte": 0,
+          "span_end_byte": 15,
+          "text_sha256": "d25f296a8cd3d4780f84ad236683a189af0eaff18011abbac8575a182f497780"
+        },
+        "unreplayable_reason": null
+      }
+    ],
+    "questioner": {
+      "name": "Ben Reitzes",
+      "affiliation": "Melius Research",
+      "name_state": "source_supported",
+      "affiliation_state": "source_supported"
+    },
+    "respondents": [
+      {
+        "name": "Tim Cook",
+        "role": "CEO",
+        "identity_state": "source_supported",
+        "span_indexes": [
+          0,
+          1
+        ]
+      },
+      {
+        "name": "Kevan Parekh",
+        "role": "CFO",
+        "identity_state": "source_supported",
+        "span_indexes": [
+          2
+        ]
+      },
+      {
+        "name": "Tim Cook",
+        "role": "CEO",
+        "identity_state": "source_supported",
+        "span_indexes": [
+          3
+        ]
+      },
+      {
+        "name": "Tim Cook",
+        "role": "CEO",
+        "identity_state": "source_supported",
+        "span_indexes": [
+          4
+        ]
+      }
+    ],
+    "topics": [
+      "unavailable"
+    ],
+    "taxonomy_version": "qa_topic.v1",
+    "taxonomy_hash": "a928ca72ab2e91bda74bd1e69021e08a5234e501f095610e623655db7e323b5e",
+    "provenance": {
+      "extractor_id": "qa_reconstruction.v1",
+      "provider": null,
+      "model": null,
+      "prompt_version": null,
+      "validator_id": "qa_exchange_validator.v1",
+      "run_id": "e3b_746ebf57e211e13d",
+      "validation_state": "accepted",
+      "source_available_at": null,
+      "clock_state": "unknown",
+      "rights_profile": "rp_public_primary_v1"
+    },
+    "validation": {
+      "replayed": true,
+      "unique_span": true,
+      "event_match": true,
+      "revision_match": true,
+      "rights_ok": true
+    }
+  },
+  {
+    "schema": "qa_exchange.v1",
+    "exchange_id": "qx_evt_cik0000320193_2026q3_results_a8ff5d03e875_03",
+    "event_id": "evt_cik0000320193_2026q3_results",
+    "ordinal": 3,
+    "document_id": "tx:AAPL/2026Q3",
+    "document_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+    "question_spans": [
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_d30244146569252b250b",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 63,
+          "span_start_byte": 0,
+          "span_end_byte": 75,
+          "speaker": "Operator",
+          "role": "Operator"
+        },
+        "text_sha256": "d3f20bf73445ddd4c74399a2efaa655677a7289ef490971bcc6dd3be5b98f19b",
+        "display_excerpt": "Our next question is from Erik Woodring of Morgan Stanley. Please go ahead.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 63,
+          "segment_sha256": "d3f20bf73445ddd4c74399a2efaa655677a7289ef490971bcc6dd3be5b98f19b",
+          "segment_bytes": 75,
+          "span_start_byte": 0,
+          "span_end_byte": 75,
+          "text_sha256": "d3f20bf73445ddd4c74399a2efaa655677a7289ef490971bcc6dd3be5b98f19b"
+        },
+        "unreplayable_reason": null
+      },
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_8f385e25f6affac13411",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 64,
+          "span_start_byte": 0,
+          "span_end_byte": 746,
+          "speaker": "Erik Woodring"
+        },
+        "text_sha256": "c629146f0d41068dca6d0f2827463fcfebf62b643ea9b7d3130560e10eb7eecf",
+        "display_excerpt": "Great. Thanks so much for taking my questions, guys. Tim, just echo what everyone is saying, it's been a pleasure working with you. Hope to still talk to you in the future. I want to maybe focus on pricing here, Tim, and kind of unprecedented for you to take pricing in the ways that you have. I guess two related questions is just, is it your intention to pursue some of these multi-year LTAs with your suppliers just to ensure access to supply at pre-agreed prices? When you approach product pricing in this environment, is it your intention to protect product gross profit dollars? Is it your intention to protect product gross margins? Would just love the kind of thought process behind the pricing. Then a quick follow-up, please. Thank you.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 64,
+          "segment_sha256": "c629146f0d41068dca6d0f2827463fcfebf62b643ea9b7d3130560e10eb7eecf",
+          "segment_bytes": 746,
+          "span_start_byte": 0,
+          "span_end_byte": 746,
+          "text_sha256": "c629146f0d41068dca6d0f2827463fcfebf62b643ea9b7d3130560e10eb7eecf"
+        },
+        "unreplayable_reason": null
+      },
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_406a120b16a932729b2f",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 66,
+          "span_start_byte": 0,
+          "span_end_byte": 24,
+          "speaker": "Erik Woodring"
+        },
+        "text_sha256": "19b7268133dbe9bb2bf82e8fbf2eb3282a283be569cb52daead07c5c7bfc4ce0",
+        "display_excerpt": "Okay. I appreciate that.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 66,
+          "segment_sha256": "19b7268133dbe9bb2bf82e8fbf2eb3282a283be569cb52daead07c5c7bfc4ce0",
+          "segment_bytes": 24,
+          "span_start_byte": 0,
+          "span_end_byte": 24,
+          "text_sha256": "19b7268133dbe9bb2bf82e8fbf2eb3282a283be569cb52daead07c5c7bfc4ce0"
+        },
+        "unreplayable_reason": null
+      },
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_f3f91f2d13a462fa919c",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 68,
+          "span_start_byte": 0,
+          "span_end_byte": 680,
+          "speaker": "Erik Woodring"
+        },
+        "text_sha256": "3b65477b61ed56187763017fcedbd0dadcdb7c4df65467d9b5b413163553a637",
+        "display_excerpt": "Yeah. No, that does help. Thank you, Tim. Just maybe a quick follow-up, I guess, Tim or Kevan, just 12% services growth was just a bit below your guidance. I imagine FX maybe played a role there. I think the fiscal 4Q guidance assumes another deceleration. I think the math would imply below 10% year-over-year as reported. Can you maybe just help us understand the kind of function factors underlying that deceleration? If that's App Store, which I think some third-party data sources would suggest, is that a function of AI maybe reprioritizing time away from parts of the App Store? Just want to make sure we understand the moving pieces on services, please. Thank you so much.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 68,
+          "segment_sha256": "3b65477b61ed56187763017fcedbd0dadcdb7c4df65467d9b5b413163553a637",
+          "segment_bytes": 680,
+          "span_start_byte": 0,
+          "span_end_byte": 680,
+          "text_sha256": "3b65477b61ed56187763017fcedbd0dadcdb7c4df65467d9b5b413163553a637"
+        },
+        "unreplayable_reason": null
+      },
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_1989c41a328cf0b9ecd6",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 73,
+          "span_start_byte": 0,
+          "span_end_byte": 63,
+          "speaker": "Erik Woodring"
+        },
+        "text_sha256": "8e1c6f4e7b77e661fdfaf830ed31aee918e11e0287054714ea66b9ebc33204be",
+        "display_excerpt": "Great. Thank you so much, Kevan. I appreciate the detail there.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 73,
+          "segment_sha256": "8e1c6f4e7b77e661fdfaf830ed31aee918e11e0287054714ea66b9ebc33204be",
+          "segment_bytes": 63,
+          "span_start_byte": 0,
+          "span_end_byte": 63,
+          "text_sha256": "8e1c6f4e7b77e661fdfaf830ed31aee918e11e0287054714ea66b9ebc33204be"
+        },
+        "unreplayable_reason": null
+      }
+    ],
+    "answer_spans": [
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_2439c9a17c0bc1cd10c7",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 65,
+          "span_start_byte": 0,
+          "span_end_byte": 622,
+          "speaker": "Tim Cook",
+          "role": "CEO"
+        },
+        "text_sha256": "966ef70c32345c453895d93b64a3cafc1640e030ab3ec3e46960a85290134833",
+        "display_excerpt": "Yeah. On the pricing front, we reluctantly raised prices, I would say. We did it because we're in what I would characterize as a 100-year flood on the memory pricing, with exponential increases in memory prices. That was the rationale for it. In terms of our philosophy on dollars or percentages, we look at units, revenue, and margin, then come to a business judgment as to how to handle that. It's not a mathematical formula that gets us to a specific result or just looking at one dimension of that. We look at all three dimensions and think about it over the long term, instead of a 90-day clock. Hopefully that helps.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 65,
+          "segment_sha256": "966ef70c32345c453895d93b64a3cafc1640e030ab3ec3e46960a85290134833",
+          "segment_bytes": 622,
+          "span_start_byte": 0,
+          "span_end_byte": 622,
+          "text_sha256": "966ef70c32345c453895d93b64a3cafc1640e030ab3ec3e46960a85290134833"
+        },
+        "unreplayable_reason": null
+      },
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_07c44fbc3d2cfc5f16aa",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 67,
+          "span_start_byte": 0,
+          "span_end_byte": 5,
+          "speaker": "Tim Cook",
+          "role": "CEO"
+        },
+        "text_sha256": "85fec70372b092bb42d021a6d1b373081dde8bcf90feb49e0725e285043fb0ad",
+        "display_excerpt": "Yeah.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 67,
+          "segment_sha256": "85fec70372b092bb42d021a6d1b373081dde8bcf90feb49e0725e285043fb0ad",
+          "segment_bytes": 5,
+          "span_start_byte": 0,
+          "span_end_byte": 5,
+          "text_sha256": "85fec70372b092bb42d021a6d1b373081dde8bcf90feb49e0725e285043fb0ad"
+        },
+        "unreplayable_reason": null
+      },
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_69d77741968c1d64d176",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 69,
+          "span_start_byte": 0,
+          "span_end_byte": 760,
+          "speaker": "Kevan Parekh",
+          "role": "CFO"
+        },
+        "text_sha256": "ebec68797ef6c95bf7c60bb4ae1e0e388937106a8251f5c4b0cdfa1f9e0af25e",
+        "display_excerpt": "Hey, Erik, this is Kevan. I'll take that one. Let's walk from kind of the 16% in our fiscal second quarter to kind of the 12% that we just talked about in the June quarter that you referenced. We look at that, relative to the March quarter. Foreign exchange was the main driver for the change in the year-over-year growth rate sequentially. Also a couple other factors to keep in mind. One is we had the theatrical release of F1, which is one of the highest grossing sports films in history, and this year we didn't have a theatrical release. That had a favorable impact on both the June quarter and also the September quarter in the year ago. We also had some factors that impacted the performance of the App Store. We did see some headwinds in mobile gaming.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 69,
+          "segment_sha256": "ebec68797ef6c95bf7c60bb4ae1e0e388937106a8251f5c4b0cdfa1f9e0af25e",
+          "segment_bytes": 760,
+          "span_start_byte": 0,
+          "span_end_byte": 760,
+          "text_sha256": "ebec68797ef6c95bf7c60bb4ae1e0e388937106a8251f5c4b0cdfa1f9e0af25e"
+        },
+        "unreplayable_reason": null
+      },
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_54e88acc957b71bc5956",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 70,
+          "span_start_byte": 0,
+          "span_end_byte": 723,
+          "speaker": "Kevan Parekh",
+          "role": "CFO"
+        },
+        "text_sha256": "83153f05fa321a60cd4e4548c8fea4c5bcdb2d9074a871e6ac12909a99438769",
+        "display_excerpt": "Keep in mind, we also made some changes to the App Store business model in certain countries. In the U.S., we do continue to operate under a court ruling impacting the link-out transactions. We're pleased the Supreme Court will hear our appeal. Despite this, the App Store did set a June quarter revenue record. We take a step back. There are several positive trends in the services business. During the June quarter, we saw strong double-digit growth in categories like cloud services, video, payment services, and advertising. We set revenue records in every category with June quarter records in advertising, the App Store, AppleCare, music, and video, where Apple TV+ viewership reached an all-time high in the quarter.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 70,
+          "segment_sha256": "83153f05fa321a60cd4e4548c8fea4c5bcdb2d9074a871e6ac12909a99438769",
+          "segment_bytes": 723,
+          "span_start_byte": 0,
+          "span_end_byte": 723,
+          "text_sha256": "83153f05fa321a60cd4e4548c8fea4c5bcdb2d9074a871e6ac12909a99438769"
+        },
+        "unreplayable_reason": null
+      },
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_7958e7ff8db649808b44",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 71,
+          "span_start_byte": 0,
+          "span_end_byte": 754,
+          "speaker": "Kevan Parekh",
+          "role": "CFO"
+        },
+        "text_sha256": "772e51acdcfa81532c2a7333e63e4635defa36bda95ccd8072936fb3e95f8dbc",
+        "display_excerpt": "We also set all-time records in cloud services and payment services, where Apple Pay saw a record level of users in both developed and emerging markets. Services also had a June quarter record in emerging markets. As we outlined in the prepared remarks, our services continue to attract more customers, and we now have surpassed one and a half billion in paid subscriptions. Our transacting and paid accounts hit an all-time high with double-digit growth in both those two in emerging markets. I think when I step back, if I look at how we landed versus our expectations that we had outlined in the March quarter for the June quarter, I would say that we roughly met our expectations, but we did see a bit more softness on mobile gaming in the App Store.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 71,
+          "segment_sha256": "772e51acdcfa81532c2a7333e63e4635defa36bda95ccd8072936fb3e95f8dbc",
+          "segment_bytes": 754,
+          "span_start_byte": 0,
+          "span_end_byte": 754,
+          "text_sha256": "772e51acdcfa81532c2a7333e63e4635defa36bda95ccd8072936fb3e95f8dbc"
+        },
+        "unreplayable_reason": null
+      },
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_1317e59224005cdf4bfe",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 72,
+          "span_start_byte": 0,
+          "span_end_byte": 561,
+          "speaker": "Kevan Parekh",
+          "role": "CFO"
+        },
+        "text_sha256": "6e73a9072fc730e6be7adf124d56dc9ab9fa3d4738c5985b86fb8e07384d505a",
+        "display_excerpt": "As we go into the September quarter, what I would say is we expect foreign exchange will continue to be a headwind. In fact, this is a theme that's impacting the services business more so than the total company. We expect foreign exchange to drive about a 5 percentage point headwind to the year-over-year growth rate from the March to September quarter. If we look at the sequential change from the June quarter, the 12% services we reported to what we're guiding for the September quarter, we are going to see another two and a half point sequential headwind.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 72,
+          "segment_sha256": "6e73a9072fc730e6be7adf124d56dc9ab9fa3d4738c5985b86fb8e07384d505a",
+          "segment_bytes": 561,
+          "span_start_byte": 0,
+          "span_end_byte": 561,
+          "text_sha256": "6e73a9072fc730e6be7adf124d56dc9ab9fa3d4738c5985b86fb8e07384d505a"
+        },
+        "unreplayable_reason": null
+      },
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_3a1a1e03a660f317cc5d",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 74,
+          "span_start_byte": 0,
+          "span_end_byte": 31,
+          "speaker": "Kevan Parekh",
+          "role": "CFO"
+        },
+        "text_sha256": "6d5c7eb7cd25730d2bb5bf354a893ad00e901fc3decee539dbc2592f2a633516",
+        "display_excerpt": "Sure. No problem, Erik. Thanks.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 74,
+          "segment_sha256": "6d5c7eb7cd25730d2bb5bf354a893ad00e901fc3decee539dbc2592f2a633516",
+          "segment_bytes": 31,
+          "span_start_byte": 0,
+          "span_end_byte": 31,
+          "text_sha256": "6d5c7eb7cd25730d2bb5bf354a893ad00e901fc3decee539dbc2592f2a633516"
+        },
+        "unreplayable_reason": null
+      }
+    ],
+    "questioner": {
+      "name": "Erik Woodring",
+      "affiliation": "Morgan Stanley",
+      "name_state": "source_supported",
+      "affiliation_state": "source_supported"
+    },
+    "respondents": [
+      {
+        "name": "Tim Cook",
+        "role": "CEO",
+        "identity_state": "source_supported",
+        "span_indexes": [
+          0
+        ]
+      },
+      {
+        "name": "Tim Cook",
+        "role": "CEO",
+        "identity_state": "source_supported",
+        "span_indexes": [
+          1
+        ]
+      },
+      {
+        "name": "Kevan Parekh",
+        "role": "CFO",
+        "identity_state": "source_supported",
+        "span_indexes": [
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      {
+        "name": "Kevan Parekh",
+        "role": "CFO",
+        "identity_state": "source_supported",
+        "span_indexes": [
+          6
+        ]
+      }
+    ],
+    "topics": [
+      "unavailable"
+    ],
+    "taxonomy_version": "qa_topic.v1",
+    "taxonomy_hash": "a928ca72ab2e91bda74bd1e69021e08a5234e501f095610e623655db7e323b5e",
+    "provenance": {
+      "extractor_id": "qa_reconstruction.v1",
+      "provider": null,
+      "model": null,
+      "prompt_version": null,
+      "validator_id": "qa_exchange_validator.v1",
+      "run_id": "e3b_746ebf57e211e13d",
+      "validation_state": "accepted",
+      "source_available_at": null,
+      "clock_state": "unknown",
+      "rights_profile": "rp_public_primary_v1"
+    },
+    "validation": {
+      "replayed": true,
+      "unique_span": true,
+      "event_match": true,
+      "revision_match": true,
+      "rights_ok": true
+    }
+  },
+  {
+    "schema": "qa_exchange.v1",
+    "exchange_id": "qx_evt_cik0000320193_2026q3_results_a8ff5d03e875_04",
+    "event_id": "evt_cik0000320193_2026q3_results",
+    "ordinal": 4,
+    "document_id": "tx:AAPL/2026Q3",
+    "document_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+    "question_spans": [
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_f3e44013b2929679eec7",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 76,
+          "span_start_byte": 0,
+          "span_end_byte": 71,
+          "speaker": "Operator",
+          "role": "Operator"
+        },
+        "text_sha256": "ed1d5943bd16ca32bba7c5d76dcbb25097ffa36f26a50f03fcd6671f66c63d5a",
+        "display_excerpt": "Our next question is from Aaron Rakers of Wells Fargo. Please go ahead.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 76,
+          "segment_sha256": "ed1d5943bd16ca32bba7c5d76dcbb25097ffa36f26a50f03fcd6671f66c63d5a",
+          "segment_bytes": 71,
+          "span_start_byte": 0,
+          "span_end_byte": 71,
+          "text_sha256": "ed1d5943bd16ca32bba7c5d76dcbb25097ffa36f26a50f03fcd6671f66c63d5a"
+        },
+        "unreplayable_reason": null
+      },
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_aa1554fe98a13a8dd744",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 77,
+          "span_start_byte": 0,
+          "span_end_byte": 416,
+          "speaker": "Aaron Rakers"
+        },
+        "text_sha256": "0fd798b40d16275852c232cae31a9b1358bce8bff6c4fbdac0509702624e23c9",
+        "display_excerpt": "Thanks for taking the questions, also best wishes, Tim. I guess I want to, maybe it tethers with the memory pricing dynamic, as you look at the demand that you're seeing right now, I'm curious of how you assess whether or not you've seen any pull forward of demand, either from the consumer or even the enterprise and education markets. Whether or not you're factoring that into your views as we look forward at all.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 77,
+          "segment_sha256": "0fd798b40d16275852c232cae31a9b1358bce8bff6c4fbdac0509702624e23c9",
+          "segment_bytes": 416,
+          "span_start_byte": 0,
+          "span_end_byte": 416,
+          "text_sha256": "0fd798b40d16275852c232cae31a9b1358bce8bff6c4fbdac0509702624e23c9"
+        },
+        "unreplayable_reason": null
+      },
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_91c4e563d2998943ba1c",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 79,
+          "span_start_byte": 0,
+          "span_end_byte": 347,
+          "speaker": "Aaron Rakers"
+        },
+        "text_sha256": "2b82d1b1f08da276f67f2c8aace93cca094ac0244ccdef200b29062921804aad",
+        "display_excerpt": "Very helpful. Then as a quick follow-up, maybe more longer term thematically, as AI proliferates towards the edge and more consumers utilize AI, I'm curious, Tim, if you see AI opening up additional opportunities. I can appreciate that you're not going to give us specifics, do you see other kind of addressable markets evolving from AI over time?",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 79,
+          "segment_sha256": "2b82d1b1f08da276f67f2c8aace93cca094ac0244ccdef200b29062921804aad",
+          "segment_bytes": 347,
+          "span_start_byte": 0,
+          "span_end_byte": 347,
+          "text_sha256": "2b82d1b1f08da276f67f2c8aace93cca094ac0244ccdef200b29062921804aad"
+        },
+        "unreplayable_reason": null
+      },
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_2d40f30ea4379d865b05",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 81,
+          "span_start_byte": 0,
+          "span_end_byte": 10,
+          "speaker": "Aaron Rakers"
+        },
+        "text_sha256": "8569efc4ed5a6273140c2b6ec0ab8d99f4398210808fbb7c0cbbae4fbcc21350",
+        "display_excerpt": "Thank you.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 81,
+          "segment_sha256": "8569efc4ed5a6273140c2b6ec0ab8d99f4398210808fbb7c0cbbae4fbcc21350",
+          "segment_bytes": 10,
+          "span_start_byte": 0,
+          "span_end_byte": 10,
+          "text_sha256": "8569efc4ed5a6273140c2b6ec0ab8d99f4398210808fbb7c0cbbae4fbcc21350"
+        },
+        "unreplayable_reason": null
+      }
+    ],
+    "answer_spans": [
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_c0895ee33d2b5790a82a",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 78,
+          "span_start_byte": 0,
+          "span_end_byte": 614,
+          "speaker": "Tim Cook",
+          "role": "CEO"
+        },
+        "text_sha256": "1a55215605e4ff04addc32fdf1d83a8a4f14eedd741b3ed20ad64c6a64f87a6c",
+        "display_excerpt": "You're talking about on iPhone, I assume, in general. We've been running at this 22% growth rate for the last while. For this cycle has been a 22% increase year to date. It's not obvious, I would say. It's not obvious in the data that what you're asking is true. Obviously, we've now had to increase prices on iPad and Mac, the price elasticity there, it's just too early to come to a definitive conclusion of what happens there. Because it takes a little while for the channels to adjust since there's channel inventory, it takes a while for the consumer to respond. We'll understand that more in the weeks ahead.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 78,
+          "segment_sha256": "1a55215605e4ff04addc32fdf1d83a8a4f14eedd741b3ed20ad64c6a64f87a6c",
+          "segment_bytes": 614,
+          "span_start_byte": 0,
+          "span_end_byte": 614,
+          "text_sha256": "1a55215605e4ff04addc32fdf1d83a8a4f14eedd741b3ed20ad64c6a64f87a6c"
+        },
+        "unreplayable_reason": null
+      },
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_88f7bf10ac3a6dec9e3f",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 80,
+          "span_start_byte": 0,
+          "span_end_byte": 392,
+          "speaker": "Tim Cook",
+          "role": "CEO"
+        },
+        "text_sha256": "ece97aa11874f3e0f5a71feb31fed572f3c2d9f869ec6f479858ceb2bcb74d50",
+        "display_excerpt": "I think there are enormous opportunities for Apple moving forward in AI. I'm so excited about Siri AI and where it is and where it's going. I'm excited about the feedback that we're getting there. Of course, the ability to run some percentage of request on device is also very strategic and sort of a competitive weapon, if you will. I could not be more excited about the opportunities there.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 80,
+          "segment_sha256": "ece97aa11874f3e0f5a71feb31fed572f3c2d9f869ec6f479858ceb2bcb74d50",
+          "segment_bytes": 392,
+          "span_start_byte": 0,
+          "span_end_byte": 392,
+          "text_sha256": "ece97aa11874f3e0f5a71feb31fed572f3c2d9f869ec6f479858ceb2bcb74d50"
+        },
+        "unreplayable_reason": null
+      },
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_c3031aeecfebc5e744a7",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 82,
+          "span_start_byte": 0,
+          "span_end_byte": 5,
+          "speaker": "Tim Cook",
+          "role": "CEO"
+        },
+        "text_sha256": "85fec70372b092bb42d021a6d1b373081dde8bcf90feb49e0725e285043fb0ad",
+        "display_excerpt": "Yeah.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 82,
+          "segment_sha256": "85fec70372b092bb42d021a6d1b373081dde8bcf90feb49e0725e285043fb0ad",
+          "segment_bytes": 5,
+          "span_start_byte": 0,
+          "span_end_byte": 5,
+          "text_sha256": "85fec70372b092bb42d021a6d1b373081dde8bcf90feb49e0725e285043fb0ad"
+        },
+        "unreplayable_reason": null
+      }
+    ],
+    "questioner": {
+      "name": "Aaron Rakers",
+      "affiliation": "Wells Fargo",
+      "name_state": "source_supported",
+      "affiliation_state": "source_supported"
+    },
+    "respondents": [
+      {
+        "name": "Tim Cook",
+        "role": "CEO",
+        "identity_state": "source_supported",
+        "span_indexes": [
+          0
+        ]
+      },
+      {
+        "name": "Tim Cook",
+        "role": "CEO",
+        "identity_state": "source_supported",
+        "span_indexes": [
+          1
+        ]
+      },
+      {
+        "name": "Tim Cook",
+        "role": "CEO",
+        "identity_state": "source_supported",
+        "span_indexes": [
+          2
+        ]
+      }
+    ],
+    "topics": [
+      "unavailable"
+    ],
+    "taxonomy_version": "qa_topic.v1",
+    "taxonomy_hash": "a928ca72ab2e91bda74bd1e69021e08a5234e501f095610e623655db7e323b5e",
+    "provenance": {
+      "extractor_id": "qa_reconstruction.v1",
+      "provider": null,
+      "model": null,
+      "prompt_version": null,
+      "validator_id": "qa_exchange_validator.v1",
+      "run_id": "e3b_746ebf57e211e13d",
+      "validation_state": "accepted",
+      "source_available_at": null,
+      "clock_state": "unknown",
+      "rights_profile": "rp_public_primary_v1"
+    },
+    "validation": {
+      "replayed": true,
+      "unique_span": true,
+      "event_match": true,
+      "revision_match": true,
+      "rights_ok": true
+    }
+  },
+  {
+    "schema": "qa_exchange.v1",
+    "exchange_id": "qx_evt_cik0000320193_2026q3_results_a8ff5d03e875_05",
+    "event_id": "evt_cik0000320193_2026q3_results",
+    "ordinal": 5,
+    "document_id": "tx:AAPL/2026Q3",
+    "document_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+    "question_spans": [
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_3fb75e50597a7d7be14d",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 84,
+          "span_start_byte": 0,
+          "span_end_byte": 74,
+          "speaker": "Operator",
+          "role": "Operator"
+        },
+        "text_sha256": "bd291042c652a24d573fdf69437970bc2bb410df58b929c96dcc510520512ee2",
+        "display_excerpt": "Our next question is from Wamsi Mohan of Bank of America. Please go ahead.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 84,
+          "segment_sha256": "bd291042c652a24d573fdf69437970bc2bb410df58b929c96dcc510520512ee2",
+          "segment_bytes": 74,
+          "span_start_byte": 0,
+          "span_end_byte": 74,
+          "text_sha256": "bd291042c652a24d573fdf69437970bc2bb410df58b929c96dcc510520512ee2"
+        },
+        "unreplayable_reason": null
+      },
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_884e567441936d9ca190",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 85,
+          "span_start_byte": 0,
+          "span_end_byte": 203,
+          "speaker": "Wamsi Mohan"
+        },
+        "text_sha256": "4649601a01e3de9555db1b04cb9de2e4d9189b29208adbdce0462d7a65838f0d",
+        "display_excerpt": "Yes. Thank you. Tim, first, congrats on your tenure as CEO. You joined back in 2011 when Apple reported $108 billion in revenue, and you just delivered a quarter of $109 billion. Just an amazing journey.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 85,
+          "segment_sha256": "4649601a01e3de9555db1b04cb9de2e4d9189b29208adbdce0462d7a65838f0d",
+          "segment_bytes": 203,
+          "span_start_byte": 0,
+          "span_end_byte": 203,
+          "text_sha256": "4649601a01e3de9555db1b04cb9de2e4d9189b29208adbdce0462d7a65838f0d"
+        },
+        "unreplayable_reason": null
+      },
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_fe82d4d6661c9c7e23a1",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 87,
+          "span_start_byte": 0,
+          "span_end_byte": 16,
+          "speaker": "Wamsi Mohan"
+        },
+        "text_sha256": "97890584b31c13af390ce01bd1b42ac8a70ac0b79860ed67ef5d728577625d47",
+        "display_excerpt": "For my question.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 87,
+          "segment_sha256": "97890584b31c13af390ce01bd1b42ac8a70ac0b79860ed67ef5d728577625d47",
+          "segment_bytes": 16,
+          "span_start_byte": 0,
+          "span_end_byte": 16,
+          "text_sha256": "97890584b31c13af390ce01bd1b42ac8a70ac0b79860ed67ef5d728577625d47"
+        },
+        "unreplayable_reason": null
+      },
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_40c9a46a05e75c198248",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 89,
+          "span_start_byte": 0,
+          "span_end_byte": 512,
+          "speaker": "Wamsi Mohan"
+        },
+        "text_sha256": "b413bd2fc925e01256000d6ea54dbe19e05b60be0c7452244f5f3b044fd8c9ee",
+        "display_excerpt": "Yeah, sure, Tim. It's been a pleasure. For my question, first on Siri AI, do you expect that Siri AI would change the capital intensity of Apple, despite the fact that you have the ability to do so much differentiated workloads on device, and you have this distributed compute. You do have some requests that go into the back end, both in your own first-party cloud as well as third party. Is it right to think that the capital intensity of Apple will change in the future because of Siri AI? I have a follow-up.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 89,
+          "segment_sha256": "b413bd2fc925e01256000d6ea54dbe19e05b60be0c7452244f5f3b044fd8c9ee",
+          "segment_bytes": 512,
+          "span_start_byte": 0,
+          "span_end_byte": 512,
+          "text_sha256": "b413bd2fc925e01256000d6ea54dbe19e05b60be0c7452244f5f3b044fd8c9ee"
+        },
+        "unreplayable_reason": null
+      },
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_c1ae0d98a630a2a1470f",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 91,
+          "span_start_byte": 0,
+          "span_end_byte": 18,
+          "speaker": "Wamsi Mohan"
+        },
+        "text_sha256": "956e5c6279cc4c74a2c344bee7a1eb643d2b8511a871568bfe0d3d8596d59ba7",
+        "display_excerpt": "Okay. Thanks, Tim.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 91,
+          "segment_sha256": "956e5c6279cc4c74a2c344bee7a1eb643d2b8511a871568bfe0d3d8596d59ba7",
+          "segment_bytes": 18,
+          "span_start_byte": 0,
+          "span_end_byte": 18,
+          "text_sha256": "956e5c6279cc4c74a2c344bee7a1eb643d2b8511a871568bfe0d3d8596d59ba7"
+        },
+        "unreplayable_reason": null
+      },
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_bc1108b1ec30557d1cf3",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 93,
+          "span_start_byte": 0,
+          "span_end_byte": 494,
+          "speaker": "Wamsi Mohan"
+        },
+        "text_sha256": "87c168dcb065036270403a84f8c629cc31af1200e892beb07a084bae7223f9ef",
+        "display_excerpt": "John, since you're on the call, congrats on the new role. I'd love to get maybe a just a high-level take from you if you think that the competitive landscape here is changing, especially as you hear about potentially companies like OpenAI building an AI-enabled competitive device or SpaceX AI potentially having a phone that could bypass some of the typical carrier attacks. Just would love your high-level thoughts on how you see the competitive landscape evolving and Apple's position there.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 93,
+          "segment_sha256": "87c168dcb065036270403a84f8c629cc31af1200e892beb07a084bae7223f9ef",
+          "segment_bytes": 494,
+          "span_start_byte": 0,
+          "span_end_byte": 494,
+          "text_sha256": "87c168dcb065036270403a84f8c629cc31af1200e892beb07a084bae7223f9ef"
+        },
+        "unreplayable_reason": null
+      },
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_ec3858c22fcdfb462dc1",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 95,
+          "span_start_byte": 0,
+          "span_end_byte": 10,
+          "speaker": "Wamsi Mohan"
+        },
+        "text_sha256": "8569efc4ed5a6273140c2b6ec0ab8d99f4398210808fbb7c0cbbae4fbcc21350",
+        "display_excerpt": "Thank you.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 95,
+          "segment_sha256": "8569efc4ed5a6273140c2b6ec0ab8d99f4398210808fbb7c0cbbae4fbcc21350",
+          "segment_bytes": 10,
+          "span_start_byte": 0,
+          "span_end_byte": 10,
+          "text_sha256": "8569efc4ed5a6273140c2b6ec0ab8d99f4398210808fbb7c0cbbae4fbcc21350"
+        },
+        "unreplayable_reason": null
+      }
+    ],
+    "answer_spans": [
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_18e8a5fa0483bee8dbdd",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 86,
+          "span_start_byte": 0,
+          "span_end_byte": 19,
+          "speaker": "Tim Cook",
+          "role": "CEO"
+        },
+        "text_sha256": "439d8da114ab91629b5b8c97b51958ca070e7cb68ac2f9a3d61a8a7dcb065e7b",
+        "display_excerpt": "Thank you for that.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 86,
+          "segment_sha256": "439d8da114ab91629b5b8c97b51958ca070e7cb68ac2f9a3d61a8a7dcb065e7b",
+          "segment_bytes": 19,
+          "span_start_byte": 0,
+          "span_end_byte": 19,
+          "text_sha256": "439d8da114ab91629b5b8c97b51958ca070e7cb68ac2f9a3d61a8a7dcb065e7b"
+        },
+        "unreplayable_reason": null
+      },
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_7b832ef693a4181d05a9",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 88,
+          "span_start_byte": 0,
+          "span_end_byte": 23,
+          "speaker": "Tim Cook",
+          "role": "CEO"
+        },
+        "text_sha256": "2f4de3eba5116968701b0d75d9c32edd80d771366d5c4f03b98e73e5287dfa67",
+        "display_excerpt": "I really appreciate it.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 88,
+          "segment_sha256": "2f4de3eba5116968701b0d75d9c32edd80d771366d5c4f03b98e73e5287dfa67",
+          "segment_bytes": 23,
+          "span_start_byte": 0,
+          "span_end_byte": 23,
+          "text_sha256": "2f4de3eba5116968701b0d75d9c32edd80d771366d5c4f03b98e73e5287dfa67"
+        },
+        "unreplayable_reason": null
+      },
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_e54012397207f680305e",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 90,
+          "span_start_byte": 0,
+          "span_end_byte": 585,
+          "speaker": "Tim Cook",
+          "role": "CEO"
+        },
+        "text_sha256": "3414372d70da92ce0e968c02612c0168acbd0e9f342747424dccb16e9928369d",
+        "display_excerpt": "We use a hybrid model, as I know Kevan has reviewed with you earlier. We use some third-party cloud, and we do our own data centers. There will be a mix. Generally speaking, as you know, we have been growing our OpEx and spending more in AI in general and quite a bit more. There are other locations on the P&L other than OpEx, like COGS etc., that also have AI expenditures. We'll see what Siri AI does from the cost side of it. There's also the ability when people use it a lot for them to move up on an iCloud Plan as well. What the balance of that is a bit uncertain at the moment.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 90,
+          "segment_sha256": "3414372d70da92ce0e968c02612c0168acbd0e9f342747424dccb16e9928369d",
+          "segment_bytes": 585,
+          "span_start_byte": 0,
+          "span_end_byte": 585,
+          "text_sha256": "3414372d70da92ce0e968c02612c0168acbd0e9f342747424dccb16e9928369d"
+        },
+        "unreplayable_reason": null
+      },
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_035a3526643bcc39ab95",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 92,
+          "span_start_byte": 0,
+          "span_end_byte": 5,
+          "speaker": "Tim Cook",
+          "role": "CEO"
+        },
+        "text_sha256": "85fec70372b092bb42d021a6d1b373081dde8bcf90feb49e0725e285043fb0ad",
+        "display_excerpt": "Yeah.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 92,
+          "segment_sha256": "85fec70372b092bb42d021a6d1b373081dde8bcf90feb49e0725e285043fb0ad",
+          "segment_bytes": 5,
+          "span_start_byte": 0,
+          "span_end_byte": 5,
+          "text_sha256": "85fec70372b092bb42d021a6d1b373081dde8bcf90feb49e0725e285043fb0ad"
+        },
+        "unreplayable_reason": null
+      },
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_f0cae823936ec8b9b316",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 94,
+          "span_start_byte": 0,
+          "span_end_byte": 223,
+          "speaker": "John Ternus",
+          "role": "CEO"
+        },
+        "text_sha256": "69952d413aead2ac98fee878d71f1cc50b9b6833184c42f902d999e8919482dc",
+        "display_excerpt": "Well, thank you for asking. I guess I would just reiterate what Tim said, there is so much opportunity for us with everything that's happening in this space. We're just really focused on our plans and very excited about it.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 94,
+          "segment_sha256": "69952d413aead2ac98fee878d71f1cc50b9b6833184c42f902d999e8919482dc",
+          "segment_bytes": 223,
+          "span_start_byte": 0,
+          "span_end_byte": 223,
+          "text_sha256": "69952d413aead2ac98fee878d71f1cc50b9b6833184c42f902d999e8919482dc"
+        },
+        "unreplayable_reason": null
+      }
+    ],
+    "questioner": {
+      "name": "Wamsi Mohan",
+      "affiliation": "Bank of America",
+      "name_state": "source_supported",
+      "affiliation_state": "source_supported"
+    },
+    "respondents": [
+      {
+        "name": "Tim Cook",
+        "role": "CEO",
+        "identity_state": "source_supported",
+        "span_indexes": [
+          0
+        ]
+      },
+      {
+        "name": "Tim Cook",
+        "role": "CEO",
+        "identity_state": "source_supported",
+        "span_indexes": [
+          1
+        ]
+      },
+      {
+        "name": "Tim Cook",
+        "role": "CEO",
+        "identity_state": "source_supported",
+        "span_indexes": [
+          2
+        ]
+      },
+      {
+        "name": "Tim Cook",
+        "role": "CEO",
+        "identity_state": "source_supported",
+        "span_indexes": [
+          3
+        ]
+      },
+      {
+        "name": "John Ternus",
+        "role": "CEO",
+        "identity_state": "source_supported",
+        "span_indexes": [
+          4
+        ]
+      }
+    ],
+    "topics": [
+      "unavailable"
+    ],
+    "taxonomy_version": "qa_topic.v1",
+    "taxonomy_hash": "a928ca72ab2e91bda74bd1e69021e08a5234e501f095610e623655db7e323b5e",
+    "provenance": {
+      "extractor_id": "qa_reconstruction.v1",
+      "provider": null,
+      "model": null,
+      "prompt_version": null,
+      "validator_id": "qa_exchange_validator.v1",
+      "run_id": "e3b_746ebf57e211e13d",
+      "validation_state": "accepted",
+      "source_available_at": null,
+      "clock_state": "unknown",
+      "rights_profile": "rp_public_primary_v1"
+    },
+    "validation": {
+      "replayed": true,
+      "unique_span": true,
+      "event_match": true,
+      "revision_match": true,
+      "rights_ok": true
+    }
+  },
+  {
+    "schema": "qa_exchange.v1",
+    "exchange_id": "qx_evt_cik0000320193_2026q3_results_a8ff5d03e875_06",
+    "event_id": "evt_cik0000320193_2026q3_results",
+    "ordinal": 6,
+    "document_id": "tx:AAPL/2026Q3",
+    "document_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+    "question_spans": [
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_2e1f5641dbe5ea5f716a",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 97,
+          "span_start_byte": 0,
+          "span_end_byte": 64,
+          "speaker": "Operator",
+          "role": "Operator"
+        },
+        "text_sha256": "3a79628c62edc56729d9d0971a9cb0ee4b2a9d093b0d2fea132262663596376b",
+        "display_excerpt": "We will now go to Samik Chatterjee of JPMorgan. Please go ahead.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 97,
+          "segment_sha256": "3a79628c62edc56729d9d0971a9cb0ee4b2a9d093b0d2fea132262663596376b",
+          "segment_bytes": 64,
+          "span_start_byte": 0,
+          "span_end_byte": 64,
+          "text_sha256": "3a79628c62edc56729d9d0971a9cb0ee4b2a9d093b0d2fea132262663596376b"
+        },
+        "unreplayable_reason": null
+      },
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_c4b573cd847e11e3de03",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 98,
+          "span_start_byte": 0,
+          "span_end_byte": 459,
+          "speaker": "Samik Chatterjee"
+        },
+        "text_sha256": "c676bbd39b0658053cf84b5ff62a1b193395c455103e7dfd16339ba39f2dcf35",
+        "display_excerpt": "Hi, thanks for squeezing me in here. Tim, best wishes from my side as well. Maybe just for my first one, if I go back to WWDC, when you announced Siri AI, you also did mention, along with the rollout, that probably we won't have the initial rollout in China and Europe. Just wanted to get your updated thoughts on that front and any more color in terms of what hurdles you need to cross to be able to launch it in those regions. I have a follow-up. Thank you.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 98,
+          "segment_sha256": "c676bbd39b0658053cf84b5ff62a1b193395c455103e7dfd16339ba39f2dcf35",
+          "segment_bytes": 459,
+          "span_start_byte": 0,
+          "span_end_byte": 459,
+          "text_sha256": "c676bbd39b0658053cf84b5ff62a1b193395c455103e7dfd16339ba39f2dcf35"
+        },
+        "unreplayable_reason": null
+      },
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_154476c76dc02668e298",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 101,
+          "span_start_byte": 0,
+          "span_end_byte": 486,
+          "speaker": "Samik Chatterjee"
+        },
+        "text_sha256": "e67635edc3818367a713fcd2112199476ac7faffe8d263ee1c823ee74933a339",
+        "display_excerpt": "Okay. Got it. Great. For my follow-up, Kevan, just not to beat sort of this FX thing to death here, but if I look at the gross margin, you delivered 48% in the quarter without the tariff refund benefit. You're guiding to like 46.5%. Any way to walk us through the sequential driver there and how much of that is FX impacting it versus maybe increased commodity costs, et cetera, that's driving that sequential moderation? It does seem a bit more atypical than your normal sort of years.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 101,
+          "segment_sha256": "e67635edc3818367a713fcd2112199476ac7faffe8d263ee1c823ee74933a339",
+          "segment_bytes": 486,
+          "span_start_byte": 0,
+          "span_end_byte": 486,
+          "text_sha256": "e67635edc3818367a713fcd2112199476ac7faffe8d263ee1c823ee74933a339"
+        },
+        "unreplayable_reason": null
+      },
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_86e719cb8b3f22bbabf9",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 104,
+          "span_start_byte": 0,
+          "span_end_byte": 78,
+          "speaker": "Samik Chatterjee"
+        },
+        "text_sha256": "d41162e7ecf8917e3e19f9da8c259765afa769069845b521ae8a47f5b9535666",
+        "display_excerpt": "Great. Thank you both for taking my questions. Congrats again, Tim. Thank you.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 104,
+          "segment_sha256": "d41162e7ecf8917e3e19f9da8c259765afa769069845b521ae8a47f5b9535666",
+          "segment_bytes": 78,
+          "span_start_byte": 0,
+          "span_end_byte": 78,
+          "text_sha256": "d41162e7ecf8917e3e19f9da8c259765afa769069845b521ae8a47f5b9535666"
+        },
+        "unreplayable_reason": null
+      }
+    ],
+    "answer_spans": [
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_c9e4abb9379475fabbaa",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 99,
+          "span_start_byte": 0,
+          "span_end_byte": 762,
+          "speaker": "Tim Cook",
+          "role": "CEO"
+        },
+        "text_sha256": "56198e84920ae8a6dd4500ced184574592600398e8b8ee3cb6b7b9abea7870c0",
+        "display_excerpt": "Thanks for the question. Let me take them individually. You look at the EU, we're working closely with the commission. Obviously, our complete desire is to launch everything everywhere at the same time. That's always the philosophy that we have. We have not been able to do that in the European Union, but we're working closely with them to try to get to something that would allow us to offer Siri AI there. It is offered or will be offered for the Mac there, because the Mac is not covered by the same regulations as the iPhone and the iPad. Net-net, we're working with them and hope to reach some sort of solution. You look at China, last week we received approval to ship sort of the original features of Apple Intelligence, things like cleanup and so forth.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 99,
+          "segment_sha256": "56198e84920ae8a6dd4500ced184574592600398e8b8ee3cb6b7b9abea7870c0",
+          "segment_bytes": 762,
+          "span_start_byte": 0,
+          "span_end_byte": 762,
+          "text_sha256": "56198e84920ae8a6dd4500ced184574592600398e8b8ee3cb6b7b9abea7870c0"
+        },
+        "unreplayable_reason": null
+      },
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_710c378f7647bb9ebeeb",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 100,
+          "span_start_byte": 0,
+          "span_end_byte": 143,
+          "speaker": "Tim Cook",
+          "role": "CEO"
+        },
+        "text_sha256": "5e8785fc7a6afe3856e420af276115ef0e95fb86cf4ccb271563eb5aa116553d",
+        "display_excerpt": "We're working now through the rollout of those, and there will be more work required down the road for Siri AI. We're at the front end of that.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 100,
+          "segment_sha256": "5e8785fc7a6afe3856e420af276115ef0e95fb86cf4ccb271563eb5aa116553d",
+          "segment_bytes": 143,
+          "span_start_byte": 0,
+          "span_end_byte": 143,
+          "text_sha256": "5e8785fc7a6afe3856e420af276115ef0e95fb86cf4ccb271563eb5aa116553d"
+        },
+        "unreplayable_reason": null
+      },
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_3ca0b5241cf17038e5f7",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 102,
+          "span_start_byte": 0,
+          "span_end_byte": 761,
+          "speaker": "Kevan Parekh",
+          "role": "CFO"
+        },
+        "text_sha256": "f53d3523fb20e51bae8e8dce16ac32a5c9c59fd4b1adc32c74db2f8c0b08ef3d",
+        "display_excerpt": "Yeah, Samik, that's a good question. Let me walk through kind of what's impacting our gross margins. We look at our gross margin change from the 49.3% we had at the total company level for the March quarter, and as you mentioned, the 48.1% adjusted for the tariff refund in the June quarter, that 120 basis point change. You look at the drivers of that, more than 100% of that can be explained by the memory cost change that Tim outlined. While FX was a factor, really the main driver was really the memory cost impact. As Tim outlined earlier when we talked a bit about the dynamics around the memory costs, is we did see some partial offsets from things like the benefit of carry and inventory, reduction in non-memory component costs, and some favorable mix.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 102,
+          "segment_sha256": "f53d3523fb20e51bae8e8dce16ac32a5c9c59fd4b1adc32c74db2f8c0b08ef3d",
+          "segment_bytes": 761,
+          "span_start_byte": 0,
+          "span_end_byte": 761,
+          "text_sha256": "f53d3523fb20e51bae8e8dce16ac32a5c9c59fd4b1adc32c74db2f8c0b08ef3d"
+        },
+        "unreplayable_reason": null
+      },
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_7ba5adf6c81e93500109",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 103,
+          "span_start_byte": 0,
+          "span_end_byte": 621,
+          "speaker": "Kevan Parekh",
+          "role": "CFO"
+        },
+        "text_sha256": "398c5404164466d6c6fae28cde53c1d1c3a9cfeb5de0b69e2a9a9352af3f95a4",
+        "display_excerpt": "We are seeing the same dynamics when you go from the 48.1% that we printed in the June quarter to the 46.5% midpoint you referenced of our range without the tariff refund impact. That 160 basis point change is also more than that is explained by the change in memory cost. We had some partial offsets again from things like the benefit of carry and inventory, lower cost of non-memory components, and as well, favorable mix. I think that FX was a pretty minimal impact when you look at that versus the memory. Generally, the sequential change from the March quarter to the 46.5% you referenced is really driven by memory.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 103,
+          "segment_sha256": "398c5404164466d6c6fae28cde53c1d1c3a9cfeb5de0b69e2a9a9352af3f95a4",
+          "segment_bytes": 621,
+          "span_start_byte": 0,
+          "span_end_byte": 621,
+          "text_sha256": "398c5404164466d6c6fae28cde53c1d1c3a9cfeb5de0b69e2a9a9352af3f95a4"
+        },
+        "unreplayable_reason": null
+      },
+      {
+        "schema": "source_span.v1",
+        "authority": "context_only",
+        "span_id": "span_c3ae1717371a7730213b",
+        "document_id": "tx:AAPL/2026Q3",
+        "document_version": 1,
+        "locator": {
+          "kind": "text_span",
+          "sub_kind": "transcript_segment",
+          "segment_index": 105,
+          "span_start_byte": 0,
+          "span_end_byte": 51,
+          "speaker": "Tim Cook",
+          "role": "CEO"
+        },
+        "text_sha256": "cc8f2e2ab59458ad6595209254da0fdf9927b66549c50c0cc519a08a5821c34f",
+        "display_excerpt": "Thank you so much for saying that. I appreciate it.",
+        "rights_profile": "rp_public_primary_v1",
+        "receipt_state": "byte_replayed",
+        "receipt": {
+          "source_sha256": "a8ff5d03e875fef5604791edbf625186c447af049e6e02f55bb89c68c7cc9f9f",
+          "segment_index": 105,
+          "segment_sha256": "cc8f2e2ab59458ad6595209254da0fdf9927b66549c50c0cc519a08a5821c34f",
+          "segment_bytes": 51,
+          "span_start_byte": 0,
+          "span_end_byte": 51,
+          "text_sha256": "cc8f2e2ab59458ad6595209254da0fdf9927b66549c50c0cc519a08a5821c34f"
+        },
+        "unreplayable_reason": null
+      }
+    ],
+    "questioner": {
+      "name": "Samik Chatterjee",
+      "affiliation": "JPMorgan",
+      "name_state": "source_supported",
+      "affiliation_state": "source_supported"
+    },
+    "respondents": [
+      {
+        "name": "Tim Cook",
+        "role": "CEO",
+        "identity_state": "source_supported",
+        "span_indexes": [
+          0,
+          1
+        ]
+      },
+      {
+        "name": "Kevan Parekh",
+        "role": "CFO",
+        "identity_state": "source_supported",
+        "span_indexes": [
+          2,
+          3
+        ]
+      },
+      {
+        "name": "Tim Cook",
+        "role": "CEO",
+        "identity_state": "source_supported",
+        "span_indexes": [
+          4
+        ]
+      }
+    ],
+    "topics": [
+      "unavailable"
+    ],
+    "taxonomy_version": "qa_topic.v1",
+    "taxonomy_hash": "a928ca72ab2e91bda74bd1e69021e08a5234e501f095610e623655db7e323b5e",
+    "provenance": {
+      "extractor_id": "qa_reconstruction.v1",
+      "provider": null,
+      "model": null,
+      "prompt_version": null,
+      "validator_id": "qa_exchange_validator.v1",
+      "run_id": "e3b_746ebf57e211e13d",
+      "validation_state": "accepted",
+      "source_available_at": null,
+      "clock_state": "unknown",
+      "rights_profile": "rp_public_primary_v1"
+    },
+    "validation": {
+      "replayed": true,
+      "unique_span": true,
+      "event_match": true,
+      "revision_match": true,
+      "rights_ok": true
+    }
+  }
+]

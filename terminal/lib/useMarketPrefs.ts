@@ -4,6 +4,12 @@ import { createClient } from "@/lib/supabase/client";
 import { applyLang } from "@/lib/i18n";
 import { readStartTf, writeStartTf } from "@/lib/startTf";
 import {
+  GUEST_IDENTITY, GUEST_OWNER, identityOwnerKey, isAccountOwner, ownerUserId,
+  type AccountIdentity,
+} from "@/lib/accountIdentity";
+import { adoptLegacySlotIntoGuest, browserStorage, readOwnerSlot, writeOwnerSlot } from "@/lib/ownerStorage";
+import { LOCAL_STATUS, PreferencePump, type DeliveryStatus } from "@/lib/prefDelivery";
+import {
   readMarketPrefs, serializeMarketPrefs, toggleMarket, setFollowedMarkets,
   ALL_MARKETS, DEFAULT_PREFS, type FollowId, type MarketId, type MarketPrefs,
 } from "@/lib/markets";
@@ -30,10 +36,53 @@ import {
 // useState copies would drift the moment one of them toggled a market — the pane would show a
 // market off while search still returned its symbols. One store, many subscribers.
 //
-// Guests get a localStorage copy so everything works before signup; on first authed load the
-// account wins, because the account is the source of truth and the local keys are a holding pen.
+// ── The owner boundary (E1) ───────────────────────────────────────────────────────────────
+//
+// A module-level store outlives the sign-in it was loaded for, so "who does this state belong
+// to" has to be an explicit, immutable answer rather than an implicit one. It is the OWNER KEY
+// from lib/accountIdentity.ts — `guest` or `account:<auth uuid>` — never the email. An address
+// is mutable and reassignable: keyed on it, changing your email silently forks your preferences
+// into a second owner, and inheriting a released address inherits its preferences.
+//
+// The invariant this file must satisfy, stated so a test can falsify it:
+//
+//   At the instant owner identity changes, no outgoing-owner ACCOUNT state may still be
+//   renderable or writable under the incoming owner.
+//
+// which is enforced by a strict sequence — see `load()`:
+//
+//   1. detect the owner-generation change SYNCHRONOUSLY;
+//   2. invalidate every outgoing-owner write (the generation guard on `pushMeta`);
+//   3. publish the incoming owner's not-ready snapshot IMMEDIATELY — an owner change that only
+//      set `ready = false` without publishing left subscribers rendering the OUTGOING owner's
+//      last `ready: true` snapshot for the whole duration of the incoming account's request;
+//   4. load only the incoming owner's durable (account) or local (guest) slot;
+//   5. ignore any late answer tagged with the old generation;
+//   6. publish incoming authority only after its owner token still matches.
+//
+// ── Durable owner vs effective device cache ───────────────────────────────────────────────
+//
+// Not everything here is account state, and namespacing the device caches would be wrong:
+//
+//   * `terminal.start_tf` / `terminal.updown` and the macro `prefs` blob are DURABLE ACCOUNT
+//     preferences. Their owner is the uuid; they reset on an owner change and are re-read from
+//     the incoming account.
+//   * `mm.startTf` / `mm.updown` / `mm.lang` (and `<html data-updown|data-lang>`) are EFFECTIVE
+//     DEVICE CACHES: what this browser is doing right now, reconciled pre-paint before any of
+//     this runs. They are not reset by an owner change — a browser does not forget its rendering
+//     convention because a session ended — and they are never written INTO an account. The flow
+//     is one-way, account → device, and only on a load that answered.
+//   * `mm.marketPrefs` was neither: an UNSCOPED slot that a signed-in account wrote to and any
+//     later owner read back. It is now an owner-scoped envelope (`mm.marketPrefs.v2`), and the
+//     legacy unscoped payload is adopted ONCE into GUEST — never into "the first account that
+//     signs in", which is exactly the ownership bug.
 
-const LS_KEY = "mm.marketPrefs";
+/** Pre-boundary, unscoped. Read once by the guest sweep, then removed. */
+const LS_KEY_LEGACY = "mm.marketPrefs";
+/** Owner-scoped envelope: `{ "<owner>": <market prefs payload> }`. */
+const LS_KEY = "mm.marketPrefs.v2";
+/** Set once the legacy sweep has run, so a later guest edit is never re-overwritten by it. */
+const LS_LEGACY_RECEIPT = "mm.marketPrefs.legacy.v1";
 
 let state: MarketPrefs = DEFAULT_PREFS;
 let terminal: TerminalPrefs = DEFAULT_TERMINAL_PREFS;
@@ -43,13 +92,39 @@ let metaPrefs: MetaPrefs = {};
 // would delete `terminal.start_tf`. Every write goes through the spread of these.
 let rawTerminal: Record<string, unknown> = {};
 let rawPrefs: Record<string, unknown> = {};
-// Edits made while the auth read is still in flight. They cannot be pushed yet — the merge base
-// is not loaded, so a push now would write `{ terminal: { start_tf } }` over an account that also
-// held `updown` and silently delete it. Held here, folded into the loaded blob, then flushed.
+// Edits made before a usable merge base exists — while the auth read is in flight, or after one
+// that FAILED. They cannot be pushed yet: a push now would write `{ terminal: { start_tf } }`
+// over an account that also held `updown` and silently delete it. Held here until a load that
+// actually answered folds them in.
 let pendingTerminal: Record<string, unknown> | null = null;
 let pendingPrefs: Record<string, unknown> | null = null;
+/** Markets edited before the account answered. The answer must not clobber a NEWER local
+ *  choice — the read started first, the edit is what the user just did. */
+let marketsDirty = false;
 let ready = false;
-let loadedFor: string | null = null;        // the email whose prefs the store holds ("" = guest)
+// `ready` says "the UI may render and filter". `baseLoaded` says something stricter and
+// separate: "we know what this account's nested blobs contain, so a merge-and-push is safe".
+// They diverge on a FAILED account read, where the UI must stop showing a skeleton but a write
+// must NOT go out — with an empty merge base it would delete every sibling key on the account.
+let baseLoaded = false;
+/** The owner the store currently holds (`guest` | `account:<uuid>`). Never an email. */
+let owner: string = GUEST_OWNER;
+/** null = nothing loaded yet. Otherwise the owner key `load()` last accepted. */
+let loadedFor: string | null = null;
+/** Bumped on every owner change. Every async continuation and every write is tagged with it. */
+let generation = 0;
+/**
+ * The serialized delivery pump for THIS owner (null for a guest, who has no authority to reach).
+ * One pump per owner: `dispose()` on an owner change makes every outstanding ack and every
+ * scheduled retry inert, so a write decided for the outgoing owner can never land under the
+ * incoming one. See lib/prefDelivery.ts for the revision/coalescing contract.
+ */
+let pump: PreferencePump | null = null;
+let sync: DeliveryStatus = LOCAL_STATUS;
+/** Backoff timer for re-attempting a FAILED hydrate, so a held intent is not held forever. */
+let hydrateTimer: ReturnType<typeof setTimeout> | null = null;
+let hydrateAttempts = 0;
+const HYDRATE_BACKOFF_MS = [3_000, 8_000, 20_000, 45_000];
 const subs = new Set<() => void>();
 
 /** The value every subscriber sees. Stable by identity between changes — useSyncExternalStore
@@ -64,11 +139,17 @@ export type AccountPrefsSnapshot = {
   /** false until the account (or the local fallback) has answered. Callers must not filter the
    *  universe while this is false, or the first paint would hide enabled symbols. */
   ready: boolean;
+  /** The owner this snapshot belongs to — `guest` or `account:<uuid>`. Exposed so a consumer
+   *  can prove which identity it is rendering rather than inferring it from an email prop. */
+  owner: string;
+  /** Delivery state of the account write lane. `saved` means the AUTHORITY acknowledged it —
+   *  not that the local change applied. A guest reads `local`. */
+  sync: DeliveryStatus;
 };
 
-let snapshot: AccountPrefsSnapshot = { prefs: state, terminal, metaPrefs, ready };
+let snapshot: AccountPrefsSnapshot = { prefs: state, terminal, metaPrefs, ready, owner, sync };
 function publish() {
-  snapshot = { prefs: state, terminal, metaPrefs, ready };
+  snapshot = { prefs: state, terminal, metaPrefs, ready, owner, sync };
   for (const fn of subs) fn();
 }
 function subscribe(fn: () => void) { subs.add(fn); return () => { subs.delete(fn); }; }
@@ -78,25 +159,41 @@ function getSnapshot() { return snapshot; }
 // disagrees with what the pre-paint script is about to put on the document.
 const SERVER_SNAPSHOT: AccountPrefsSnapshot = {
   prefs: DEFAULT_PREFS, terminal: DEFAULT_TERMINAL_PREFS, metaPrefs: {}, ready: false,
+  owner: GUEST_OWNER, sync: LOCAL_STATUS,
 };
 function getServerSnapshot() { return SERVER_SNAPSHOT; }
 
-// ── local (guest) persistence ────────────────────────────────────────────────────────────
-// One blob: the `markets` object plus the follow list, so a guest keeps both halves. Read back
-// through readMarketPrefs, which is the same sanitizer the account path uses.
+// ── local persistence, per owner ──────────────────────────────────────────────────────────
+// One blob per owner: the `markets` object plus the follow list. Read back through
+// readMarketPrefs, which is the same sanitizer the account path uses.
+//
+// An ACCOUNT writes its slot too, as a same-owner cache: it is what that account falls back to
+// when its own auth read fails, which beats resetting a China-only trader's universe to "all
+// markets" because Supabase was briefly unreachable. Because the slot is namespaced, that cache
+// is unreadable from any other owner — the property the unscoped `mm.marketPrefs` lacked.
 
-function readLocal(): MarketPrefs | null {
-  try {
-    const raw = localStorage.getItem(LS_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    return readMarketPrefs({ markets: parsed, market_focus: parsed?.followed });
-  } catch { return null; }
+/** Adopt the pre-boundary unscoped payload into GUEST once. Idempotent; safe to call per load. */
+function sweepLegacyLocal() {
+  const storage = browserStorage();
+  if (!storage) return;
+  adoptLegacySlotIntoGuest(storage, {
+    legacyKey: LS_KEY_LEGACY, scopedKey: LS_KEY, receiptKey: LS_LEGACY_RECEIPT,
+  });
 }
-function writeLocal(p: MarketPrefs) {
-  try {
-    localStorage.setItem(LS_KEY, JSON.stringify({ ...serializeMarketPrefs(p).markets, followed: p.followed }));
-  } catch { /* storage blocked */ }
+
+function readLocal(who: string): MarketPrefs | null {
+  const storage = browserStorage();
+  if (!storage) return null;
+  const parsed = readOwnerSlot(storage, LS_KEY, who);
+  if (!parsed || typeof parsed !== "object") return null;
+  const blob = parsed as Record<string, unknown>;
+  return readMarketPrefs({ markets: blob, market_focus: blob.followed } as never);
+}
+
+function writeLocal(who: string, p: MarketPrefs) {
+  const storage = browserStorage();
+  if (!storage) return;
+  writeOwnerSlot(storage, LS_KEY, who, { ...serializeMarketPrefs(p).markets, followed: p.followed });
 }
 
 /** The chart prefs as they currently stand locally (post pre-paint script, post any account
@@ -105,38 +202,104 @@ function localTerminal(): TerminalPrefs {
   return { startTf: readStartTf(), updown: readUpDown() };
 }
 
-function load(email: string) {
-  if (loadedFor === email) return;
-  loadedFor = email;
+/**
+ * Step 1–3 of the owner transition, performed SYNCHRONOUSLY so no subscriber can observe the
+ * outgoing owner's account state under the incoming owner — not even for one frame.
+ *
+ * Account-derived state (markets, the macro prefs blob, both raw merge bases, any held edit)
+ * resets to "unknown". Device-effective chart prefs are re-read from the device, not carried
+ * over from the outgoing account's snapshot — see the durable-vs-device note at the top.
+ */
+function beginOwner(next: string) {
+  owner = next;
+  loadedFor = next;
+  generation += 1;          // every in-flight continuation and every queued write is now stale
+  // Step 2: cancel the outgoing owner's writes and timers BEFORE anything of the incoming
+  // owner's is published. A disposed pump ignores its own in-flight ack and its own scheduled
+  // retry, so nothing the previous account queued can reach the authority under this one.
+  pump?.dispose();
+  pump = null;
+  if (hydrateTimer) { clearTimeout(hydrateTimer); hydrateTimer = null; }
+  hydrateAttempts = 0;
+  state = DEFAULT_PREFS;
+  metaPrefs = {};
+  rawTerminal = {};
+  rawPrefs = {};
+  pendingTerminal = null;
+  pendingPrefs = null;
+  marketsDirty = false;
+  terminal = localTerminal();
   ready = false;
+  baseLoaded = false;
+  if (isAccountOwner(next)) {
+    const gen = generation;
+    pump = new PreferencePump({
+      send: (data) => createClient().auth.updateUser({ data }),
+      onStatus: (status) => {
+        if (gen !== generation) return;   // a pump for an owner nobody is looking at any more
+        sync = status;
+        publish();
+      },
+    });
+    sync = pump.getStatus();
+  } else {
+    sync = LOCAL_STATUS;                  // a guest has no authority to be out of sync with
+  }
+  publish();                // step 3: the incoming owner's loading snapshot, immediately
+}
 
-  if (!email) {
-    state = readLocal() ?? { ...DEFAULT_PREFS, enabled: [...ALL_MARKETS] };
+function load(next: string) {
+  if (loadedFor === next) return;
+  sweepLegacyLocal();
+  beginOwner(next);
+
+  if (!isAccountOwner(next)) {
+    state = readLocal(next) ?? { ...DEFAULT_PREFS, enabled: [...ALL_MARKETS] };
     terminal = localTerminal();
-    metaPrefs = {};
-    rawTerminal = {};
-    rawPrefs = {};
-    pendingTerminal = null;
-    pendingPrefs = null;
     ready = true;
+    baseLoaded = true;      // a guest's merge base is the local slot, and it is loaded
     publish();
     return;
   }
 
+  hydrate(next);
+}
+
+/**
+ * Read the incoming owner's account state, and fold in anything the user did while the read was
+ * in flight. Retried on failure — the merge base is a PREREQUISITE for delivering a nested-blob
+ * edit, so abandoning the read abandons the user's intent with it.
+ */
+function hydrate(next: string) {
+  const gen = generation;
   createClient().auth.getUser()
-    .then(({ data }) => {
-      if (loadedFor !== email) return;             // a newer load won the race
-      const meta = data.user?.user_metadata as Record<string, unknown> | undefined;
+    .then(({ data, error }) => {
+      if (generation !== gen) return;              // a newer owner won the race
+      // A read that did not land is NOT an empty account (failure-state-truth-law). Supabase
+      // resolves `{ data: { user: null }, error }` on an auth failure rather than rejecting, so
+      // treating this as "no metadata" would hand every write an EMPTY merge base and delete
+      // the account's sibling keys on the next preference edit.
+      if (error || !data?.user) throw error || new Error("no user");
+      // The shell resolved this owner from the server session; the client library resolved its
+      // own. If they disagree, the browser is not holding the session the page was rendered for
+      // — adopt nothing and write nothing, rather than merging one account's blob into another.
+      if (data.user.id !== ownerUserId(next)) throw new Error("owner mismatch");
+
+      const meta = data.user.user_metadata as Record<string, unknown> | undefined;
+      hydrateAttempts = 0;
       // readMarketPrefs migrates the legacy `market_focus`-only shape, so a user who onboarded
       // before `markets` existed gets their signup choice honoured on this very load.
-      state = readMarketPrefs(meta as never);
+      // A market edit made WHILE this read was in flight is newer than the answer, so the answer
+      // must not overwrite it — the read started first; the edit is what the user just did.
+      if (!marketsDirty) state = readMarketPrefs(meta as never);
       // An edit the user made while this read was in flight is NEWER than what came back, so it
       // layers on top — and only now, with the account's own keys underneath it, is it safe to
       // push. Nothing was lost by waiting: the local half already applied when they clicked.
       rawTerminal = { ...metaObject(meta, "terminal"), ...(pendingTerminal || {}) };
       rawPrefs = { ...metaObject(meta, "prefs"), ...(pendingPrefs || {}) };
-      if (pendingTerminal) { pushMeta({ terminal: rawTerminal }, email); pendingTerminal = null; }
-      if (pendingPrefs) { pushMeta({ prefs: rawPrefs }, email); pendingPrefs = null; }
+      baseLoaded = true;
+      if (pendingTerminal) { pump?.queue({ terminal: rawTerminal }); pendingTerminal = null; }
+      if (pendingPrefs) { pump?.queue({ prefs: rawPrefs }); pendingPrefs = null; }
 
       // Apply the account's chart prefs to this device. The account wins over the local copy:
       // that is the entire point of syncing them, and the local copy is only ever a cache of the
@@ -153,70 +316,93 @@ function load(email: string) {
 
       terminal = localTerminal();
       ready = true;
+      writeLocal(next, state);   // same-owner cache for the next failed read
       publish();
     })
     .catch(() => {
-      if (loadedFor !== email) return;
-      state = { ...DEFAULT_PREFS, enabled: [...ALL_MARKETS] };
+      if (generation !== gen) return;
+      // Same-owner last good, or the permissive default. NOT another owner's payload: readLocal
+      // reads this owner's slot only.
+      if (!marketsDirty) state = readLocal(next) ?? { ...DEFAULT_PREFS, enabled: [...ALL_MARKETS] };
       terminal = localTerminal();
       metaPrefs = {};
       rawTerminal = {};
       rawPrefs = {};
-      // The held edits are dropped, not flushed: we never learned what they were merging into, so
-      // pushing them now is exactly the sibling-deleting write the hold exists to prevent. They
-      // already applied locally, and the next deliberate edit re-sends them.
-      pendingTerminal = null;
-      pendingPrefs = null;
+      // The UI stops waiting, but the merge base is still unknown, so `baseLoaded` stays false
+      // and a nested-blob write keeps holding as an intent. Held edits are NOT discarded: an
+      // intent to change a preference does not stop being the user's intent because one read
+      // failed — the retry below is what eventually delivers it.
       ready = true;
+      baseLoaded = false;
       publish();
+      scheduleHydrateRetry(next, gen);
     });
 }
 
-// ── writes ───────────────────────────────────────────────────────────────────────────────
-// Every write is optimistic + fire-and-forget: a failed round-trip must not block the UI, and the
-// local copy already holds the change, so a reload before it lands still shows what the user
-// picked. A guest takes the same paths minus the network call.
-
-/** "" when signed out or not yet loaded. A helper called before the first load treats the user as
- *  a guest, which is the safe direction — it writes locally and skips the network. */
-function authedEmail(): string { return loadedFor || ""; }
-
-function pushMeta(data: Record<string, unknown>, email = authedEmail()) {
-  if (!email) return;
-  createClient().auth.updateUser({ data }).catch(() => {});
+/**
+ * Re-attempt a failed hydrate with backoff. Bounded by the backoff table's last entry, cancelled
+ * by an owner change, and skipped entirely once the merge base is known.
+ */
+function scheduleHydrateRetry(next: string, gen: number) {
+  if (hydrateTimer || gen !== generation) return;
+  const wait = HYDRATE_BACKOFF_MS[Math.min(hydrateAttempts, HYDRATE_BACKOFF_MS.length - 1)];
+  hydrateAttempts += 1;
+  hydrateTimer = setTimeout(() => {
+    hydrateTimer = null;
+    if (gen !== generation || baseLoaded) return;
+    hydrate(next);
+  }, wait);
 }
 
+// ── writes ───────────────────────────────────────────────────────────────────────────────
+// The local half of every change applies immediately — a failed round trip must not block the
+// UI, and a reload before delivery still shows what the user picked. What is NOT optimistic any
+// more is the REPORT: `sync.phase` says `saved` only once the authority acknowledged it.
+//
+// Delivery itself is the serialized pump (lib/prefDelivery.ts): one write in flight per owner,
+// intermediate edits coalesced into the newest complete desired state, `{ error }` counted as a
+// failure, and a bounded retry. A guest has no pump at all.
+
 /**
- * Merge a patch into one of the two nested blobs and push the WHOLE blob — `updateUser` replaces
- * a nested object rather than merging into it, so the push must carry every sibling key.
+ * Merge a patch into one of the two nested blobs and deliver the WHOLE blob — `updateUser`
+ * replaces a nested object rather than merging into it, so the write must carry every sibling
+ * key. The pump keeps the newest complete value, so two edits in one tick deliver once.
  *
- * Before the account has answered we have no merge base, so the patch is held instead of pushed;
- * load() folds it in and flushes it. Guests stop at the authed check — local only.
+ * Without a loaded merge base the patch is HELD instead of queued (queueing a partial blob is
+ * exactly the sibling-deleting write the hold exists to prevent); `hydrate()` folds it in and
+ * queues it, and retries until it can. Guests stop at the account check — local only.
  */
 function mergeBlob(key: "terminal" | "prefs", patch: Record<string, unknown>) {
   if (key === "terminal") rawTerminal = { ...rawTerminal, ...patch };
   else rawPrefs = { ...rawPrefs, ...patch };
-  if (!authedEmail()) return;
-  if (!ready) {
+  if (!isAccountOwner(owner)) return;
+  if (!baseLoaded) {
     if (key === "terminal") pendingTerminal = { ...(pendingTerminal || {}), ...patch };
     else pendingPrefs = { ...(pendingPrefs || {}), ...patch };
+    // The merge base is a prerequisite for this write, so make sure something is still trying
+    // to fetch it. Without this a held intent after a failed hydrate waits forever.
+    scheduleHydrateRetry(owner, generation);
     return;
   }
-  pushMeta({ [key]: key === "terminal" ? rawTerminal : rawPrefs });
+  pump?.queue({ [key]: key === "terminal" ? rawTerminal : rawPrefs });
 }
 
 /**
  * Commit a market-prefs change. `withFollows` also writes `market_focus` and the re-derived
  * `markets.home` — the two halves of the shared contract that a follow edit owns. A visibility
  * edit (toggle / enableAll) writes only `markets`, never the follow list.
+ *
+ * `market_focus` and `markets` are TOP-LEVEL user_metadata keys, which `updateUser` merges
+ * rather than replaces, so these do not need the nested-blob merge base.
  */
-function persistMarkets(next: MarketPrefs, email: string, withFollows: boolean) {
+function persistMarkets(next: MarketPrefs, withFollows: boolean) {
   state = next;
+  marketsDirty = true;      // an in-flight hydrate must not answer over this
   publish();
-  writeLocal(next);
-  pushMeta(withFollows
+  writeLocal(owner, next);
+  pump?.queue(withFollows
     ? { market_focus: next.followed, ...serializeMarketPrefs(next) }
-    : serializeMarketPrefs(next), email);
+    : serializeMarketPrefs(next));
 }
 
 /** Startup timeframe: remember it locally and on the account. Deliberately does NOT retime an
@@ -264,33 +450,75 @@ export type AccountPrefsApi = AccountPrefsSnapshot & {
   setUpDown: (v: UpDown) => void;
   /** Records the account language ONLY — pair it with i18n's setLang to switch the live UI. */
   setLangPref: (l: LangId) => void;
+  /** Deliver the outstanding desired state now, jumping the retry backoff. Wired to the UI's
+   *  "Retry" affordance; a no-op for a guest or when nothing is outstanding. */
+  retrySync: () => void;
 };
 
-export function useAccountPrefs(email?: string): AccountPrefsApi {
-  const who = email || "";
+/** Deliver the outstanding desired state now. Safe to call when there is nothing outstanding. */
+export function retryPrefSync() { pump?.retryNow(); }
+
+/**
+ * "What you trade" — a TOP-LEVEL `user_metadata` key, so `updateUser` merges it and it needs no
+ * nested merge base. Routed through the SAME pump as everything else on purpose: two concurrent
+ * writes to one authority is the race E2 exists to remove, and a component firing its own
+ * `updateUser` alongside the store's would reintroduce it.
+ */
+export function persistTradeTypes(next: readonly string[]) {
+  pump?.queue({ trade_types: [...next] });
+}
+
+/**
+ * The owner token a DEFERRED mutation must capture when it is SCHEDULED and re-check immediately
+ * before it EXECUTES (E5).
+ *
+ * A debounced write that resolves the account at execution time writes to whichever session
+ * exists then — which, after a sign-out or an account switch inside the debounce window, is
+ * somebody else's. Capturing the token makes "which account did the user mean" a property of the
+ * intent rather than of the clock.
+ */
+export type OwnerToken = { owner: string; generation: number };
+
+export function currentOwnerToken(): OwnerToken { return { owner, generation }; }
+
+export function ownerTokenIsCurrent(token: OwnerToken | null | undefined): boolean {
+  return !!token && token.owner === owner && token.generation === generation;
+}
+
+/**
+ * @param identity the shell's resolved AccountIdentity. Keyed on the immutable uuid, so a user
+ *        who changes their email keeps the same preferences instead of forking a second owner.
+ */
+export function useAccountPrefs(identity?: AccountIdentity | null): AccountPrefsApi {
+  const who = identityOwnerKey(identity ?? GUEST_IDENTITY);
   const snap = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
+  // Depends on the owner KEY, not the identity object: a re-render that rebuilds an equal
+  // identity must not re-run the load, and an email change on the same uuid is not an owner
+  // change at all.
   useEffect(() => { load(who); }, [who]);
 
   const toggle = useCallback((m: MarketId) => {
     const next = toggleMarket(state, m);
-    if (next !== state) persistMarkets(next, who, false);
-  }, [who]);
+    if (next !== state) persistMarkets(next, false);
+  }, []);
 
   // Bulk enable. NOT a loop over toggle(): each toggle derives from the current state, and N calls
   // batched into one tick would each start from the same snapshot, so only the last would survive.
   const enableAll = useCallback(() => {
-    persistMarkets({ ...state, enabled: [...ALL_MARKETS], autoNarrowed: false }, who, false);
-  }, [who]);
+    persistMarkets({ ...state, enabled: [...ALL_MARKETS], autoNarrowed: false }, false);
+  }, []);
 
   const setFollowed = useCallback((next: readonly FollowId[]) => {
-    persistMarkets(setFollowedMarkets(state, next), who, true);
-  }, [who]);
+    persistMarkets(setFollowedMarkets(state, next), true);
+  }, []);
 
   return {
     prefs: snap.prefs, terminal: snap.terminal, metaPrefs: snap.metaPrefs, ready: snap.ready,
+    owner: snap.owner, sync: snap.sync,
     toggle, enableAll, setFollowed,
     setStartTf: persistStartTf, setUpDown: persistUpDown, setLangPref: persistLang,
+    retrySync: retryPrefSync,
   };
 }
 
@@ -308,6 +536,39 @@ export function __resetMarketPrefsStore() {
   pendingTerminal = null;
   pendingPrefs = null;
   ready = false;
+  baseLoaded = false;
+  owner = GUEST_OWNER;
   loadedFor = null;
-  snapshot = { prefs: state, terminal, metaPrefs, ready };
+  generation = 0;
+  marketsDirty = false;
+  pump?.dispose();
+  pump = null;
+  if (hydrateTimer) { clearTimeout(hydrateTimer); hydrateTimer = null; }
+  hydrateAttempts = 0;
+  sync = LOCAL_STATUS;
+  snapshot = { prefs: state, terminal, metaPrefs, ready, owner, sync };
+}
+
+/** Test seam — drives the owner transition directly, exactly as the hook's effect would. */
+export function __loadOwner(who: string) { load(who); }
+
+/** Test seam — the same subscription useSyncExternalStore takes, without a React renderer. */
+export function __subscribeMarketPrefs(fn: (s: AccountPrefsSnapshot) => void) {
+  return subscribe(() => fn(snapshot));
+}
+
+/** Test seam — a market-prefs commit, exactly as the hook's callbacks make it. */
+export function __persistMarketsForTest(next: MarketPrefs, withFollows = true) {
+  persistMarkets(next, withFollows);
+}
+
+/** Test seam — the currently published snapshot. */
+export function __marketPrefsSnapshot(): AccountPrefsSnapshot { return snapshot; }
+
+/** Test seam — the store's private bookkeeping, for assertions the snapshot cannot express. */
+export function __marketPrefsInternals() {
+  return {
+    owner, generation, ready, baseLoaded, rawTerminal, rawPrefs, pendingTerminal, pendingPrefs,
+    marketsDirty, sync, hydrateAttempts, undelivered: pump?.hasUndelivered() ?? false,
+  };
 }

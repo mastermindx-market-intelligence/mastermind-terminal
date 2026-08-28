@@ -57,5 +57,28 @@
 -- begins working on the very next save after this statement runs — no deploy, no restart.
 -- =====================================================================================
 
+-- ============================ APPLICATION STATUS (2026-08-21) ============================
+-- APPLIED to production on 2026-08-21, on operator instruction, through the Management API.
+--
+-- The census in the header above was RE-RUN immediately before applying, because that header's
+-- whole "nothing to reconcile" argument rests on the table being empty and the point of #427 was
+-- to make it stop being empty:
+--
+--     select count(*), count(distinct (user_id, name)) from public.chart_layouts   -> 0, 0
+--     select user_id, name, count(*) ... having count(*) > 1                       -> []
+--
+-- Still zero rows, so the index could not reject anything and no user configuration could be lost.
+-- Verified after: `pg_indexes` reports
+--     CREATE UNIQUE INDEX chart_layouts_user_name ON public.chart_layouts USING btree (user_id, name)
+--
+-- CONSEQUENCE FOR THE CODE: `lib/layouts.ts` probes on every save and does not cache the result, so
+-- its atomic `ON CONFLICT (user_id, name)` upsert began working on the very next save — no deploy,
+-- no restart. The 42P10 fallback is now dead code in this environment and stays only as insurance
+-- for a fresh one.
+--
+-- If this file is ever applied to a DIFFERENT environment, re-run the census there first. A
+-- non-empty duplicate set is an operator decision, not a silent DELETE.
+-- =========================================================================================
+
 create unique index if not exists chart_layouts_user_name
   on public.chart_layouts (user_id, name);

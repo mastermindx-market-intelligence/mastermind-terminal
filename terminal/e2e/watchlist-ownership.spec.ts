@@ -105,7 +105,7 @@ test.describe("A1 — one browser, two accounts", () => {
 });
 
 test.describe("saved lists survive the mount window", () => {
-  test("the mount pass never writes its seed over the owner's saved payload", async ({ page, baseURL }, testInfo) => {
+  test("the mount pass never writes its seed over the owner's saved payload, nor leaves it on the rail", async ({ page, baseURL }, testInfo) => {
     test.setTimeout(120_000);
     const storeKey = `own-mount-${testInfo.project.name}-${testInfo.retry}`;
     await signInAs(page, storeKey, baseURL);
@@ -137,7 +137,27 @@ test.describe("saved lists survive the mount window", () => {
     }
     expect(samples.filter((names) => names.length === 1 && names[0] === "Default")).toEqual([]);
 
-    await expect(page.locator(".mm-ptag")).toBeVisible({ timeout: 60_000 });
+    // …and the SECOND thing the mount window owes this owner: their list has to be the one on
+    // screen once the workspace is running. The rail's FIRST render is always the server's
+    // `symbols` prop under the name `Default` — localStorage is not readable during render — but
+    // a signed-in user still looking at that afterwards is looking at somebody else's watchlist.
+    //
+    // They used to, for a long time. The restore was a passive effect, so its update sat in a
+    // lower-priority lane than the re-renders the shell takes all through boot and React committed
+    // base state ahead of it — measured at +2.1s unthrottled, and at 4x CPU throttle the right list
+    // never appeared inside a 300s budget at all. It is a layout effect now (see the comment on it
+    // in TerminalShell), flushed before paint, so it cannot be outrun.
+    //
+    // Deliberately NOT a "settles within N ms" bound, which would only re-time the race on
+    // whichever machine runs it. The assertion is ORDERING, read in ONE evaluate so no gap can
+    // open between the two halves: at the first instant the chart has painted its price tag, the
+    // rail must ALREADY name this owner's active list. That holds at any CPU speed, because the
+    // chart mounts from effects that run after the layout effect this guards.
+    const railAtFirstPaint = await page.waitForFunction(() => {
+      if (!document.querySelector(".mm-ptag")) return null;
+      return document.querySelector(".wl-select")?.textContent?.trim() || null;
+    }, undefined, { timeout: 90_000 });
+    expect(await railAtFirstPaint.jsonValue()).toContain("Gold Miners");
     expect(await savedListNames()).toEqual(expect.arrayContaining(["Default", "Gold Miners", "Space"]));
   });
 });

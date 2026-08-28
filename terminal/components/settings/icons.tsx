@@ -185,10 +185,52 @@ export function Row({
 }
 
 /** Inline status line under a control. `kind` drives the colour; empty hides it. */
-export function Msg({ text, kind }: { text: string; kind: "ok" | "err" }) {
+export function Msg({ text, kind }: { text: string; kind: MsgKind }) {
   return (
     <div className={`acs-msg${text ? ` show ${kind}` : ""}`} role="alert">
       {text}
     </div>
   );
+}
+
+export type MsgKind = "ok" | "err" | "wait";
+
+/**
+ * The delivery state of an account preference, reported honestly (E2).
+ *
+ * The distinction this component exists to draw: the LOCAL change already applied when the user
+ * clicked — that is why the control repaints instantly — but "Saved" is a claim about the
+ * AUTHORITY. The pane used to make that claim the moment it fired an un-awaited `updateUser`,
+ * which meant a rejected request, and the Supabase shape that RESOLVES with `{ error }`, both
+ * read as success.
+ *
+ *   guest    → saved on this device (there is no authority to be out of sync with)
+ *   syncing  → in flight, or queued behind a write that is
+ *   saved    → the authority acknowledged every edit made so far
+ *   failed   → the pump is retrying on its own; the button jumps the backoff
+ *
+ * `show` is per-row: a control the user has not touched this session says nothing at all.
+ */
+export function DeliveryNote({
+  phase, guest, show, t, onRetry,
+}: {
+  phase: "idle" | "local" | "syncing" | "saved" | "failed";
+  guest: boolean;
+  show: boolean;
+  t: (key: string, fallback?: string) => string;
+  onRetry: () => void;
+}) {
+  if (!show) return <Msg text="" kind="ok" />;
+  if (guest) return <Msg text={t("acsPrefLocal")} kind="ok" />;
+  if (phase === "failed") {
+    return (
+      <div className="acs-msg show err" role="alert">
+        {t("acsPrefSyncFail")}
+        <button type="button" className="acs-msg-retry" onClick={onRetry}>{t("acsPrefRetry")}</button>
+      </div>
+    );
+  }
+  if (phase === "syncing") return <Msg text={t("acsPrefSyncing")} kind="wait" />;
+  if (phase === "saved") return <Msg text={t("acsPrefSaved")} kind="ok" />;
+  return <Msg text="" kind="ok" />;
 }

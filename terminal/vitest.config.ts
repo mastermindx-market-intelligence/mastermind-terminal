@@ -11,6 +11,13 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "."),
+      // `server-only` ships a module that THROWS unless the bundler applies the `react-server`
+      // export condition. That throw is exactly the protection we want from `next build`, but
+      // vitest resolves plain Node conditions, so without this alias every suite that
+      // transitively reaches lib/flowScore.ts (14 of them, via lib/flowSource.ts) would die on
+      // import. Node IS a server, so satisfying the marker here is honest rather than a bypass —
+      // and the build-time fence is untouched.
+      "server-only": path.resolve(__dirname, "lib/__tests__/stubs/serverOnly.ts"),
     },
   },
 });

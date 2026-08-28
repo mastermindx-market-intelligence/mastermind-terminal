@@ -1,11 +1,12 @@
 "use strict";
-// Coinbase exchange ws-feed (keyless) — PRIMARY crypto feed.
+// Coinbase exchange ws-feed (keyless) — rolling-24h crypto fallback.
 //
 // Verified live fields on wss://ws-feed.exchange.coinbase.com `ticker`:
 //   type=ticker, product_id, price, open_24h, high_24h, low_24h, volume_24h, time (ISO).
 // Crypto set is derived from the manifest (sym.endsWith("-USD")); products are literally BTC-USD.
 //
-// §0.6: crypto chg/prevClose are rolling-24h (open_24h), NOT a session close. Ratified.
+// §0.6: Coinbase crypto chg/prevClose are rolling-24h (open_24h), NOT a session close. This is
+// retained as a degraded fallback; OKX is the preferred UTC-0 comparison basis when healthy.
 //
 // Failure modes: exponential backoff min(30s,2^attempt) ±20% jitter; app-level ping every 20s
 // with a 10s pong deadline (terminate → reconnect); an idle watchdog (>30s no message) forces a
@@ -69,7 +70,7 @@ class Coinbase {
   isHealthy() {
     return this.connected && (Date.now() - this.lastMsgAt) < IDLE_WATCHDOG_MS;
   }
-  // Sustained-recovery signal for OKX handoff: clean subscribe held for ≥ ms.
+  // Sustained-connection signal retained for feed health callers.
   recoveredFor(ms) {
     return this.connected && this.subscribedAt > 0 && (Date.now() - this.subscribedAt) >= ms;
   }
@@ -200,6 +201,7 @@ class Coinbase {
       source: "coinbase",
       market: "crypto",
       basis: "LIVE",
+      changeBasis: "ROLLING_24H",
     });
   }
 

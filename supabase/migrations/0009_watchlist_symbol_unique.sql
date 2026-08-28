@@ -1,5 +1,20 @@
 -- Watchlist membership becomes UNIQUE at the database boundary.
 --
+-- ── RENUMBERED 0008 -> 0009 (2026-08-20) ──────────────────────────────────────────────────────
+-- This file shipped as `0008_watchlist_symbol_unique.sql` in PR #426 while
+-- `0008_chart_layouts_unique_name.sql` shipped in PR #427. The two PRs were authored in parallel
+-- off the same base, so neither could see the other's number, and both landed. A version prefix is
+-- the migration's IDENTITY, so "has 0008 been applied?" then had two different and both-true
+-- answers. The later-merged file (this one, 18:02Z vs #427's 13:43Z) was renumbered; merge time is
+-- an immutable fact recoverable from git, unlike application status, which changes underfoot.
+-- `tests/test_migration_ledger.py` now fails CI on any repeat.
+--
+-- APPLIED TO PRODUCTION: yes. Censused read-only through the Management API on 2026-08-20 —
+-- `wls_watchlist_symbol` is present on `public.watchlist_symbols (watchlist_id, symbol)`. Note that
+-- `0008` is NOT applied, so production carries this file but not its predecessor; there is no
+-- migration ledger to be inconsistent with (`supabase_migrations` does not exist). See
+-- `supabase/migrations/README.md`.
+--
 -- `public.watchlists` has carried `unique (user_id, name)` since 0001, which is what makes the
 -- Default-list provisioning converge instead of duplicating under a race. `watchlist_symbols`
 -- never had the equivalent: `id` was its only unique key, with a plain index on `watchlist_id`.

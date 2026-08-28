@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useLang, useT } from "@/lib/i18n";
+import { identityEmail, identityOwnerKey, isAccountOwner, type AccountIdentity } from "@/lib/accountIdentity";
 import type { AcsUser, SettingsSection } from "./SettingsProvider";
 import { SETTINGS_SECTIONS } from "./SettingsProvider";
 import type { AcsPlan, AcsUsage, SectionProps } from "./types";
@@ -51,7 +52,8 @@ export interface SettingsPanelProps {
   section: SettingsSection;
   onSection: (s: SettingsSection) => void;
   onClose: () => void;
-  email: string;
+  /** The shell's resolved identity. Every owner-scoped read below keys on it, not on the email. */
+  identity: AccountIdentity;
   user: AcsUser | null;
   onPatchMeta: (patch: Record<string, unknown>) => void;
   onRefreshUser: () => Promise<void>;
@@ -65,7 +67,11 @@ export interface SettingsPanelProps {
 export default function SettingsPanel(props: SettingsPanelProps) {
   const t = useT();
   const { lang } = useLang();
-  const { visible, openSeq, section, onSection, onClose, email, user } = props;
+  const { visible, openSeq, section, onSection, onClose, identity, user } = props;
+  // Derived, never independently sourced: one identity in, an address out. Sections that only
+  // display or route on the address take `email`; anything that OWNS state takes `identity`.
+  const email = identityEmail(identity);
+  const owner = identityOwnerKey(identity);
 
   // No SSR mount gate is needed: SettingsProvider loads this module with
   // `dynamic(..., { ssr: false })`, so it only ever renders on the client.
@@ -146,40 +152,54 @@ export default function SettingsPanel(props: SettingsPanelProps) {
   const [planErr, setPlanErr] = useState(false);
   const planFor = useRef<string | null>(null);
   const plan = props.devPlan ?? fetchedPlan;
+  // Keyed on the OWNER, and reset on an owner change: an email-keyed cache both re-fetched a
+  // plan that had not changed (same account, new address) and — worse — could serve one
+  // account's plan under another that happened to arrive at the same address.
+  if (planFor.current !== null && planFor.current !== owner) {
+    planFor.current = null;
+    if (fetchedPlan) setPlan(null);
+    if (planErr) setPlanErr(false);
+  }
   useEffect(() => {
     if (props.devPlan) return;
-    if (!visible || !email) return;
-    if (planFor.current === email) return;
-    planFor.current = email;
+    if (!visible || !isAccountOwner(owner)) return;
+    if (planFor.current === owner) return;
+    planFor.current = owner;
     let alive = true;
     fetch("/api/me", { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
       .then((j) => { if (alive) { setPlan(j || {}); setPlanErr(false); } })
       .catch(() => { if (alive) { planFor.current = null; setPlanErr(true); } });
     return () => { alive = false; };
-  }, [visible, email, props.devPlan]);
+  }, [visible, owner, props.devPlan]);
 
   // ── usage payload, fetched lazily the first time Usage is shown ───────────
   const [fetchedUsage, setUsage] = useState<AcsUsage | null>(null);
   const [usageErr, setUsageErr] = useState(false);
   const usageFor = useRef<string | null>(null);
   const usage = props.devUsage ?? fetchedUsage;
+  if (usageFor.current !== null && usageFor.current !== owner) {
+    usageFor.current = null;
+    if (fetchedUsage) setUsage(null);
+    if (usageErr) setUsageErr(false);
+  }
   useEffect(() => {
     if (props.devUsage) return;
-    if (!visible || section !== "usage" || !email) return;
-    if (usageFor.current === email) return;
-    usageFor.current = email;
+    if (!visible || section !== "usage" || !isAccountOwner(owner)) return;
+    if (usageFor.current === owner) return;
+    usageFor.current = owner;
     let alive = true;
     fetch("/api/brain/me", { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
       .then((j) => { if (alive) { setUsage(j || {}); setUsageErr(false); } })
       .catch(() => { if (alive) { usageFor.current = null; setUsageErr(true); } });
     return () => { alive = false; };
-  }, [visible, section, email, props.devUsage]);
+  }, [visible, section, owner, props.devUsage]);
 
   const shared: SectionProps = {
     t,
     lang,
+    identity,
     email,
     user,
     onClose,

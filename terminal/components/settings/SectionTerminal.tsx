@@ -1,8 +1,10 @@
 "use client";
+import { useState } from "react";
 import { useAccountPrefs } from "@/lib/useMarketPrefs";
+import { isAccountOwner } from "@/lib/accountIdentity";
 import { ALL_MARKETS, MARKET_TKEY } from "@/lib/markets";
 import { TF_CANONICAL_ORDER } from "@/lib/startTf";
-import { Group, IconCheck, Row, SectionHead } from "./icons";
+import { DeliveryNote, Group, IconCheck, Row, SectionHead } from "./icons";
 import type { SectionProps } from "./types";
 
 // ── Terminal ─────────────────────────────────────────────────────────────────
@@ -14,8 +16,22 @@ import type { SectionProps } from "./types";
 // user_metadata), so there is no save button and nothing to wire beyond the
 // store calls.
 
-export default function SectionTerminal({ t, email, onClose }: SectionProps) {
-  const { prefs, terminal, toggle, setStartTf, setUpDown } = useAccountPrefs(email);
+export default function SectionTerminal({ t, identity, onClose }: SectionProps) {
+  const { prefs, terminal, toggle, setStartTf, setUpDown, sync, owner, retrySync } = useAccountPrefs(identity);
+  const guest = !isAccountOwner(owner);
+  // E2: these controls apply locally the moment they are clicked, but "Saved" is a claim about
+  // the ACCOUNT — reported from the delivery pump's acknowledgement, not from having fired a
+  // request. Shown only once the user has actually changed something in this section.
+  // Per GROUP, not per section: the two groups sit side by side in the desktop grid, so one
+  // shared note under the right-hand column would report a left-hand column edit.
+  const [touched, setTouched] = useState({ markets: false, chart: false });
+  const mark = <T,>(group: "markets" | "chart", fn: (v: T) => void) => (v: T) => {
+    setTouched((s) => (s[group] ? s : { ...s, [group]: true }));
+    fn(v);
+  };
+  const note = (show: boolean) => (
+    <DeliveryNote phase={sync.phase} guest={guest} show={show} t={t} onRetry={retrySync} />
+  );
 
   return (
     <>
@@ -41,7 +57,7 @@ export default function SectionTerminal({ t, email, onClose }: SectionProps) {
                     aria-pressed={on}
                     aria-disabled={isHome || undefined}
                     title={isHome ? t("mktHomeNote") : undefined}
-                    onClick={() => { if (!isHome) toggle(m); }}
+                    onClick={() => { if (!isHome) mark("markets", toggle)(m); }}
                   >
                     <span className="box"><IconCheck /></span>
                     {t(MARKET_TKEY[m])}
@@ -50,6 +66,7 @@ export default function SectionTerminal({ t, email, onClose }: SectionProps) {
                 </div>
               );
             })}
+            {note(touched.markets)}
           </Group>
 
           <Group title={t("acsChartGroup")}>
@@ -65,7 +82,7 @@ export default function SectionTerminal({ t, email, onClose }: SectionProps) {
                     type="button"
                     className={terminal.startTf === tf ? "on" : ""}
                     aria-pressed={terminal.startTf === tf}
-                    onClick={() => setStartTf(tf)}
+                    onClick={() => mark("chart", setStartTf)(tf)}
                   >
                     {tf}
                   </button>
@@ -81,7 +98,7 @@ export default function SectionTerminal({ t, email, onClose }: SectionProps) {
                     type="button"
                     className={`acs-seg-b${terminal.updown === "west" ? " active" : ""}`}
                     aria-pressed={terminal.updown === "west"}
-                    onClick={() => setUpDown("west")}
+                    onClick={() => mark("chart", setUpDown)("west")}
                   >
                     <i style={{ background: "#26c281" }} />{t("greenUp")}
                   </button>
@@ -89,13 +106,14 @@ export default function SectionTerminal({ t, email, onClose }: SectionProps) {
                     type="button"
                     className={`acs-seg-b${terminal.updown === "east" ? " active" : ""}`}
                     aria-pressed={terminal.updown === "east"}
-                    onClick={() => setUpDown("east")}
+                    onClick={() => mark("chart", setUpDown)("east")}
                   >
                     <i style={{ background: "#f0566b" }} />{t("redUp")}
                   </button>
                 </span>
               }
             />
+            {note(touched.chart)}
           </Group>
         </div>
       </div>

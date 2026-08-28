@@ -3,27 +3,38 @@ import type { Metadata } from "next";
 // Public R2 base URL for snapshots (CDN-backed, no auth required) — shared constant,
 // see lib/upstreams.ts
 import { R2_BASE } from "@/lib/upstreams";
+import { BrandLockup } from "@/components/BrandMark";
+import { isSnapshotSlug } from "@/lib/snapshotSlug";
 
 function imgUrl(slug: string): string {
   return `${R2_BASE}/snapshots/${slug}.png`;
 }
 
+const TITLE = "Chart Snapshot — Mastermind Terminal";
+const DESCRIPTION = "Shared chart snapshot from Mastermind Terminal";
+
 // ── Next.js generateMetadata — produces OG tags for Discord/Twitter/Slack unfurls ──
+// This runs BEFORE the page, and its output is what third-party unfurlers fetch. It used to build
+// the image URL from the raw path segment with no validation at all, so an arbitrary string reached
+// external services in our markup while the page's own check sat further down, unreached.
+// Same predicate as the page now, from one module.
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
+  if (!isSnapshotSlug(slug)) return { title: TITLE, description: DESCRIPTION };
+
   const image = imgUrl(slug);
   return {
-    title: "Chart Snapshot — Mastermind Terminal",
-    description: "Shared chart snapshot from Mastermind Terminal",
+    title: TITLE,
+    description: DESCRIPTION,
     openGraph: {
-      title: "Chart Snapshot — Mastermind Terminal",
-      description: "Shared chart snapshot from Mastermind Terminal",
+      title: TITLE,
+      description: DESCRIPTION,
       images: [{ url: image, width: 1400, height: 900 }],
       type: "website",
     },
     twitter: {
       card: "summary_large_image",
-      title: "Chart Snapshot — Mastermind Terminal",
+      title: TITLE,
       images: [image],
     },
   };
@@ -41,8 +52,7 @@ async function imageExists(url: string): Promise<boolean> {
 
 export default async function SnapshotPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  // basic slug validation (10 lowercase alphanumeric chars)
-  if (!/^[0-9a-z]{10}$/.test(slug)) notFound();
+  if (!isSnapshotSlug(slug)) notFound();
 
   const image = imgUrl(slug);
   const exists = await imageExists(image);
@@ -59,21 +69,11 @@ export default async function SnapshotPage({ params }: { params: Promise<{ slug:
       padding: "24px",
       fontFamily: "system-ui, sans-serif",
     }}>
-      <div style={{ marginBottom: 16, display: "flex", alignItems: "center", gap: 10 }}>
-        {/* BrandMark inline SVG */}
-        <svg width="28" height="28" viewBox="0 0 40 40" aria-hidden="true">
-          <defs>
-            <linearGradient id="mbSnap" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0" stopColor="#4d82ff" />
-              <stop offset="1" stopColor="#2962ff" />
-            </linearGradient>
-          </defs>
-          <rect x="3" y="3" width="34" height="34" rx="8" fill="url(#mbSnap)" />
-          <rect x="3.6" y="3.6" width="32.8" height="32.8" rx="7.4" fill="none" stroke="#fff" strokeOpacity=".22" />
-          <path d="M13 28 L13 14.5 L20 22 L27 12.5 L27 28" fill="none" stroke="#fff" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-        <span style={{ color: "#d6dae3", fontWeight: 700, letterSpacing: "0.04em", fontSize: 14 }}>MASTERMIND</span>
-        <span style={{ color: "#5a616f", fontWeight: 500, letterSpacing: "0.06em", fontSize: 11 }}>TERMINAL</span>
+      {/* The canonical lockup. This page used to hand-copy BrandMark's geometry and re-implement
+          the wordmark inline, with the gradient id changed to dodge a collision — a third copy of
+          the same M-path in the codebase, and one nobody would remember to update. */}
+      <div style={{ marginBottom: 16 }}>
+        <BrandLockup />
       </div>
       <div style={{
         maxWidth: "min(1400px, calc(100vw - 32px))",

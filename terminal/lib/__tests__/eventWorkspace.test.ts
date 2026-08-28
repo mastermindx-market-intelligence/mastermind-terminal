@@ -5,6 +5,9 @@ import path from "node:path";
 import {
   __expireEventWorkspaceCacheForTests,
   __resetEventWorkspaceCacheForTests,
+  EVENT_WORKSPACE_MANIFEST_SCHEMA,
+  EVENT_WORKSPACE_MANIFEST_SCHEMA_V2,
+  QA_UNAVAILABLE_TOPIC,
   normalizeEventWorkspace,
   normalizeEventWorkspaceManifest,
   resolveCurrentEventWorkspaceFromR2,
@@ -17,6 +20,9 @@ import { presentEventWorkspace, eventWorkspaceGlanceTitle, eventWorkspaceHasBeat
 const GOLDEN = JSON.parse(
   readFileSync(path.join(__dirname, "fixtures/aapl-event-workspace.json"), "utf8"),
 ) as Record<string, unknown>;
+const QA_FIXTURE = JSON.parse(
+  readFileSync(path.join(__dirname, "fixtures/aapl-qa-exchanges.json"), "utf8"),
+) as unknown[];
 
 const FLAGSHIP = "evt_cik0000320193_2026q3_results";
 const PRIOR = "evt_cik0000320193_2026q2_results";
@@ -440,6 +446,198 @@ describe("resolveCurrentEventWorkspaceFromR2", () => {
     expect(second.workspace.generation_id).toBe(GEN);
   });
 });
+
+describe("E3-B manifest v2 and canonical Q&A", () => {
+  it("still accepts a v1 manifest", () => {
+    const q3 = workspaceBody();
+    const manifest = manifestFor([{ eventId: FLAGSHIP, body: q3, aliases: ["AAPL/2026Q3"] }]);
+    const normalized = normalizeEventWorkspaceManifest(manifest);
+    expect(normalized?.schema).toBe(EVENT_WORKSPACE_MANIFEST_SCHEMA);
+    expect(normalized?.previous_generation_id).toBeUndefined();
+  });
+
+  it("accepts a v2 manifest with predecessor fields", () => {
+    const q3 = workspaceBody();
+    const manifest = {
+      ...manifestFor([{ eventId: FLAGSHIP, body: q3, aliases: ["AAPL/2026Q3"] }]),
+      schema: EVENT_WORKSPACE_MANIFEST_SCHEMA_V2,
+      previous_generation_id: "aa".repeat(12),
+      previous_manifest_sha256: "bb".repeat(32),
+    };
+    const normalized = normalizeEventWorkspaceManifest(manifest);
+    expect(normalized?.schema).toBe(EVENT_WORKSPACE_MANIFEST_SCHEMA_V2);
+    expect(normalized?.previous_generation_id).toBe("aa".repeat(12));
+  });
+
+  it("rejects a v2 manifest with only one predecessor field", () => {
+    const q3 = workspaceBody();
+    const manifest = {
+      ...manifestFor([{ eventId: FLAGSHIP, body: q3, aliases: ["AAPL/2026Q3"] }]),
+      schema: EVENT_WORKSPACE_MANIFEST_SCHEMA_V2,
+      previous_generation_id: "aa".repeat(12),
+      previous_manifest_sha256: null,
+    };
+    expect(normalizeEventWorkspaceManifest(manifest)).toBeNull();
+  });
+
+  it("rejects unknown manifest keys", () => {
+    const q3 = workspaceBody();
+    const manifest = {
+      ...manifestFor([{ eventId: FLAGSHIP, body: q3, aliases: ["AAPL/2026Q3"] }]),
+      extra: true,
+    };
+    expect(normalizeEventWorkspaceManifest(manifest)).toBeNull();
+  });
+
+  it("accepts the seven-exchange AAPL fixture and preserves respondent turns", () => {
+    const payload = cloneGolden();
+    payload.qa_exchanges = JSON.parse(JSON.stringify(QA_FIXTURE));
+    const workspace = normalizeEventWorkspace(payload, FLAGSHIP, GEN);
+    expect(workspace).not.toBeNull();
+    expect(workspace?.qa_exchanges).toHaveLength(7);
+    expect(workspace?.qa_exchanges.reduce((n, item) => n + item.question_spans.length, 0)).toBe(32);
+    expect(workspace?.qa_exchanges.reduce((n, item) => n + item.answer_spans.length, 0)).toBe(36);
+    expect(workspace?.qa_exchanges.reduce((n, item) => n + item.respondents.length, 0)).toBe(26);
+    expect(workspace?.qa_exchanges.every((item) => item.topics[0] === QA_UNAVAILABLE_TOPIC)).toBe(true);
+    expect(workspace?.qa_exchanges[0]?.respondents.map((row) => row.name)).toEqual([
+      "Kevan Parekh",
+      "Tim Cook",
+      "Tim Cook",
+    ]);
+  });
+
+  it("drops malformed Q&A without failing the workspace", () => {
+    const payload = cloneGolden();
+    const exchanges = JSON.parse(JSON.stringify(QA_FIXTURE)) as Array<Record<string, unknown>>;
+    exchanges[0].extra = "nope";
+    payload.qa_exchanges = exchanges;
+    const workspace = normalizeEventWorkspace(payload, FLAGSHIP, GEN);
+    expect(workspace).not.toBeNull();
+    expect(workspace?.qa_exchanges).toEqual([]);
+    expect(workspace?.facts.length).toBeGreaterThan(0);
+  });
+
+  it("drops Q&A bound to the wrong event without failing E2", () => {
+    const payload = cloneGolden();
+    const exchanges = JSON.parse(JSON.stringify(QA_FIXTURE)) as Array<Record<string, unknown>>;
+    exchanges[0].event_id = PRIOR;
+    payload.qa_exchanges = exchanges;
+    const workspace = normalizeEventWorkspace(payload, FLAGSHIP, GEN);
+    expect(workspace?.qa_exchanges).toEqual([]);
+  });
+
+  it("drops a substantive topic without failing the workspace", () => {
+    const payload = cloneGolden();
+    const exchanges = JSON.parse(JSON.stringify(QA_FIXTURE)) as Array<Record<string, unknown>>;
+    exchanges[0].topics = ["demand"];
+    payload.qa_exchanges = exchanges;
+    expect(normalizeEventWorkspace(payload, FLAGSHIP, GEN)?.qa_exchanges).toEqual([]);
+  });
+
+  it("rejects a present malformed source clock instead of omitting it", () => {
+    const payload = cloneGolden();
+    const sources = payload.sources as Array<Record<string, unknown>>;
+    const transcript = sources.find((row) => row.kind === "transcript")!;
+    transcript.source_clock = {
+      schema: "event_source_clock.v1",
+      document_id: transcript.document_id ?? "tx:AAPL/2026Q3",
+      source_sha256: transcript.source_sha256,
+      source_available_at: null,
+      system_recorded_at: "2026-08-16T18:00:00Z",
+      clock_state: "unknown",
+      rights_profile: "rp_public_primary_v1",
+      session_phase: "unknown",
+    };
+    const kept = normalizeEventWorkspace(payload, FLAGSHIP, GEN);
+    expect(kept?.sources.find((row) => row.kind === "transcript")?.source_clock?.clock_state).toBe("unknown");
+    transcript.source_clock = { ...transcript.source_clock as object, extra: true };
+    expect(normalizeEventWorkspace(payload, FLAGSHIP, GEN)).toBeNull();
+  });
+
+  it("still accepts a clockless transcript source", () => {
+    const payload = cloneGolden();
+    const sources = payload.sources as Array<Record<string, unknown>>;
+    const transcript = sources.find((row) => row.kind === "transcript")!;
+    expect(transcript.source_clock).toBeUndefined();
+    expect(normalizeEventWorkspace(payload, FLAGSHIP, GEN)).not.toBeNull();
+  });
+
+  it("drops Q&A whose document SHA does not match the transcript revision", () => {
+    const payload = cloneGolden();
+    const exchanges = JSON.parse(JSON.stringify(QA_FIXTURE)) as Array<Record<string, unknown>>;
+    exchanges[0].document_sha256 = "cd".repeat(32);
+    exchanges[0].exchange_id = `qx_${FLAGSHIP}_${"cd".repeat(6)}_00`;
+    payload.qa_exchanges = exchanges;
+    const workspace = normalizeEventWorkspace(payload, FLAGSHIP, GEN);
+    expect(workspace).not.toBeNull();
+    expect(workspace?.qa_exchanges).toEqual([]);
+  });
+
+  it("drops Q&A when unknown provenance carries an availability timestamp", () => {
+    const payload = cloneGolden();
+    const exchanges = JSON.parse(JSON.stringify(QA_FIXTURE)) as Array<Record<string, unknown>>;
+    const provenance = exchanges[0].provenance as Record<string, unknown>;
+    provenance.source_available_at = "2026-07-30T20:30:28Z";
+    payload.qa_exchanges = exchanges;
+    expect(normalizeEventWorkspace(payload, FLAGSHIP, GEN)?.qa_exchanges).toEqual([]);
+  });
+
+  it("drops Q&A when a span receipt SHA does not match the exchange document SHA", () => {
+    const payload = cloneGolden();
+    const exchanges = JSON.parse(JSON.stringify(QA_FIXTURE)) as Array<Record<string, unknown>>;
+    const spans = exchanges[0].question_spans as Array<Record<string, unknown>>;
+    const receipt = spans[1].receipt as Record<string, unknown>;
+    receipt.source_sha256 = "cd".repeat(32);
+    payload.qa_exchanges = exchanges;
+    expect(normalizeEventWorkspace(payload, FLAGSHIP, GEN)?.qa_exchanges).toEqual([]);
+  });
+
+  it("binds accepted Q&A to a present transcript clock", () => {
+    const payload = cloneGolden();
+    const exchanges = JSON.parse(JSON.stringify(QA_FIXTURE)) as Array<Record<string, unknown>>;
+    const sources = payload.sources as Array<Record<string, unknown>>;
+    const transcript = sources.find((row) => row.kind === "transcript")!;
+    transcript.source_clock = {
+      schema: "event_source_clock.v1",
+      document_id: transcript.document_id,
+      source_sha256: transcript.source_sha256,
+      source_available_at: "2026-07-30T20:30:28Z",
+      system_recorded_at: "2026-08-16T18:00:00Z",
+      clock_state: "known",
+      rights_profile: "rp_public_primary_v1",
+      session_phase: "unknown",
+    };
+    payload.qa_exchanges = exchanges;
+    expect(normalizeEventWorkspace(payload, FLAGSHIP, GEN)?.qa_exchanges).toEqual([]);
+    for (const item of exchanges) {
+      const provenance = item.provenance as Record<string, unknown>;
+      provenance.clock_state = "known";
+      provenance.source_available_at = "2026-07-30T20:30:28Z";
+    }
+    payload.qa_exchanges = exchanges;
+    const matched = normalizeEventWorkspace(payload, FLAGSHIP, GEN);
+    expect(matched?.qa_exchanges).toHaveLength(7);
+    expect(matched?.qa_exchanges[0]?.provenance.clock_state).toBe("known");
+  });
+
+  it("presents seven exchanges without operator speech or unavailable topic chips", () => {
+    const payload = cloneGolden();
+    payload.qa_exchanges = JSON.parse(JSON.stringify(QA_FIXTURE));
+    const workspace = normalizeEventWorkspace(payload, FLAGSHIP, GEN)!;
+    const presented = presentEventWorkspace(workspace);
+    expect(presented.honest.questions_count_unavailable).toBe(false);
+    expect(presented.facts.find((item) => item.id === "fact_questions_count")).toBeUndefined();
+    const first = workspace.qa_exchanges[0]!;
+    const visible = first.question_spans
+      .filter((span) => span.locator.speaker?.toLowerCase() !== "operator")
+      .map((span) => span.display_excerpt ?? "")
+      .join(" ");
+    expect(visible.toLowerCase()).not.toContain("we will go ahead and take our first question");
+    expect(first.respondents.filter((row) => row.name === "Tim Cook")).toHaveLength(2);
+    expect(presented.completeness.some((item) => item.id === "fact_questions_count")).toBe(false);
+  });
+});
+
 
 function jsonResponse(body: unknown): Response {
   const wire = JSON.stringify(body);

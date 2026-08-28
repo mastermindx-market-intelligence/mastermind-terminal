@@ -63,7 +63,7 @@ export function formatLag(ms: number | null | undefined, t: T): string | null {
  * The badge's three-way verdict.
  *
  * REALTIME  → the green "Live" badge, tip carries the measured age.
- * LIVE      → the pre-existing non-US live lane (Coinbase crypto, Tencent A-share). Unchanged.
+ * LIVE      → the pre-existing non-US live lane (OKX/Coinbase crypto, Tencent A-share). Unchanged.
  * DELAYED   → the delayed wording; tip carries the measured age when one exists, so a user sees
  *             the actual number rather than an adjective the app chose for them.
  * EOD/other → historical. No freshness claim of any kind.
