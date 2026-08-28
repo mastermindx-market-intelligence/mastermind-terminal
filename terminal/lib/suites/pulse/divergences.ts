@@ -41,6 +41,7 @@ import type {
 } from "@/lib/indicator-canvas/types";
 import { computePulseWave, pulseProfileOf } from "./pulseWave";
 import { findDivergences } from "@/lib/suites/shared/divergence";
+import { PULSE_DIVERGENCE_META } from "./divergences.meta";
 
 // ------------------------------------------------------------------------------------ constants
 
@@ -57,35 +58,6 @@ const MAX_EVENTS = 300;
 
 // ------------------------------------------------------------------------------------- settings
 
-const FIELDS: SuiteField[] = [
-  {
-    key: "hidden",
-    label: "Hidden Divergences",
-    type: "bool",
-    tip: "Also detect continuation (hidden) divergences — drawn dashed and softer than reversal ones.",
-  },
-  {
-    key: "multi",
-    label: "Stack Multiples",
-    type: "bool",
-    tip: "Collapse several divergences confirming on the same swing into one bold ×N label.",
-  },
-  {
-    key: "showLast",
-    label: "Show Last",
-    type: "number",
-    min: 2,
-    max: 16,
-    step: 1,
-    tip: "How many divergences stay on the chart. Alerts still fire for every one.",
-  },
-];
-
-const DEFAULTS: Record<string, any> = {
-  hidden: true,
-  multi: true,
-  showLast: 8,
-};
 
 // -------------------------------------------------------------------------------------- helpers
 
@@ -343,15 +315,6 @@ function compute(ctx: ModuleCtx): ModuleResult {
 
 // --------------------------------------------------------------------------------- module def
 
-export const PULSE_DIVERGENCE_MODULE: SuiteModuleDef = {
-  key: "div",
-  label: "Divergences",
-  tag: "DV",
-  tier: "pro",
-  defaultOn: true,
-  fields: FIELDS,
-  defaults: DEFAULTS,
-  compute,
-};
+export const PULSE_DIVERGENCE_MODULE: SuiteModuleDef = { ...PULSE_DIVERGENCE_META, compute };
 
 export default PULSE_DIVERGENCE_MODULE;

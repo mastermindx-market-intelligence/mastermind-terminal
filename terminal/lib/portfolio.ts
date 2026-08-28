@@ -28,6 +28,7 @@ export type PortfolioDb = WatchlistDb;
 export type { WatchlistQuery as PortfolioQuery };
 
 export const POSITIONS_TABLE = "portfolio_positions";
+const POSITION_FIELDS = "id,ticker,shares,entry_price,entry_date,notes,status,created_at";
 
 export type PositionStatus = "open" | "closed";
 
@@ -55,7 +56,6 @@ const CONTROL_CHARS = /[\u0000-\u001f\u007f]/;
 const CONTROL_CHARS_EXCEPT_BREAKS = /[\u0000-\u0008\u000b-\u001f\u007f]/;
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
-const rows = (result: DbResult): DbRow[] => (Array.isArray(result?.data) ? result.data : []);
 const one = (result: DbResult): DbRow | null => {
   const data = result?.data;
   if (Array.isArray(data)) return data[0] ?? null;
@@ -172,18 +172,72 @@ export function rowToPosition(row: DbRow): Position | null {
 
 /** The owner's whole book, oldest first — the order every read in the estate already uses
  *  (`order by created_at`, migration 0007's header). Open and closed both; the UI separates them. */
-export async function listPositions(db: PortfolioDb, userId: string): Promise<Position[]> {
-  const result = await db.from(POSITIONS_TABLE)
-    .select("id,ticker,shares,entry_price,entry_date,notes,status,created_at")
-    .eq("user_id", userId)
-    .order("created_at")
-    .limit(MAX_POSITIONS);
+/**
+ * The book, or the fact that it could not be read. These are DIFFERENT, and on a holdings
+ * surface the difference is the whole point: "you hold nothing" and "we could not read what you
+ * hold" must never render as each other.
+ *
+ * The bug this replaces: `listPositions` fed the query result through `rows()`, which answers
+ * `[]` for any non-array `data` — so a Supabase error, an RLS refusal or a dropped connection
+ * came back as an empty book with the error dropped on the floor. `/api/portfolio` then had no
+ * way to tell an outage from a genuinely empty portfolio, and the page's own try/catch could not
+ * help: the error was already swallowed one layer below it.
+ */
+export type PositionsRead =
+  | { ok: true; positions: Position[] }
+  | { ok: false; error: string };
+
+/** Thrown by `listPositions` when the store did not answer. Never caught-and-emptied. */
+export class PortfolioReadError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "PortfolioReadError";
+  }
+}
+
+/**
+ * readPositions — the CANONICAL owner-scoped read. Both `/api/portfolio` and the server page
+ * consume this one contract, so the two surfaces cannot disagree about what happened.
+ *
+ * Three ways this reports failure, all of them explicit:
+ *   - the driver returned an `error` (the normal supabase-js failure shape);
+ *   - the query threw (transport died mid-flight);
+ *   - `data` is not an array, i.e. the result is not a row set at all — the exact case the old
+ *     `rows()` helper silently turned into zero positions.
+ *
+ * A row that fails `rowToPosition` is still skipped rather than failing the whole read: a single
+ * corrupt row must not blank a book the user can otherwise see. That is a per-row judgement about
+ * DATA, not a claim that the store answered when it did not.
+ */
+export async function readPositions(db: PortfolioDb, userId: string): Promise<PositionsRead> {
+  let result: DbResult;
+  try {
+    result = await db.from(POSITIONS_TABLE)
+      .select(POSITION_FIELDS)
+      .eq("user_id", userId)
+      .order("created_at")
+      .limit(MAX_POSITIONS);
+  } catch (cause) {
+    return { ok: false, error: cause instanceof Error ? cause.message : "portfolio read failed" };
+  }
+  if (result?.error) return { ok: false, error: result.error.message || "portfolio read failed" };
+  if (!Array.isArray(result?.data)) return { ok: false, error: "portfolio read returned no row set" };
   const positions: Position[] = [];
-  for (const row of rows(result)) {
+  for (const row of result.data) {
     const position = rowToPosition(row);
     if (position) positions.push(position);
   }
-  return positions;
+  return { ok: true, positions };
+}
+
+/**
+ * listPositions — `readPositions` for callers that want the array. It THROWS on failure by
+ * design: the one thing this module must never do again is hand back `[]` for "we don't know".
+ */
+export async function listPositions(db: PortfolioDb, userId: string): Promise<Position[]> {
+  const read = await readPositions(db, userId);
+  if (!read.ok) throw new PortfolioReadError(read.error);
+  return read.positions;
 }
 
 /** Resolve one owned position. `null` when it does not exist or is not this user's — the check
@@ -196,7 +250,7 @@ export async function getOwnedPosition(
   const id = typeof positionId === "string" ? positionId.trim() : "";
   if (!id) return null;
   const row = one(await db.from(POSITIONS_TABLE)
-    .select("id,ticker,shares,entry_price,entry_date,notes,status,created_at")
+    .select(POSITION_FIELDS)
     .eq("user_id", userId).eq("id", id).maybeSingle());
   return row ? rowToPosition(row) : null;
 }
@@ -212,7 +266,13 @@ export type PositionInput = {
   status?: unknown;
 };
 
-export type WriteResult = { ok: boolean; error?: string; status?: number; position?: Position };
+export type WriteResult = {
+  ok: boolean;
+  error?: string;
+  status?: number;
+  position?: Position;
+  deletedId?: string;
+};
 
 /**
  * Create one position. Only `ticker` is required — an unsized position (a name you hold but have
@@ -248,7 +308,7 @@ export async function createPosition(
     notes: notes.kind === "value" ? notes.value : null,
     status: normalizeStatus(input.status),
     updated_at: now,
-  }).select("id,ticker,shares,entry_price,entry_date,notes,status,created_at").maybeSingle();
+  }).select(POSITION_FIELDS).maybeSingle();
 
   const row = one(inserted);
   const position = row ? rowToPosition(row) : null;
@@ -300,23 +360,23 @@ export async function updatePosition(
   if (!Object.keys(values).length) return { ok: true, position: owned };
   values.updated_at = new Date().toISOString();
 
-  const { error } = await db.from(POSITIONS_TABLE)
-    .update(values).eq("user_id", userId).eq("id", owned.id);
-  if (error) return { ok: false, error: "position update failed", status: 500 };
-  return { ok: true, position: { ...owned, ...projectPatch(values) } };
-}
-
-/** Fold a written row-patch back onto the position we already hold, so the caller can answer with
- *  post-write state without a second round trip. */
-function projectPatch(values: DbRow): Partial<Position> {
-  const next: Partial<Position> = {};
-  if (typeof values.ticker === "string") next.ticker = values.ticker;
-  if ("shares" in values) next.shares = values.shares as number | null;
-  if ("entry_price" in values) next.entryPrice = values.entry_price as number | null;
-  if ("entry_date" in values) next.entryDate = values.entry_date as string | null;
-  if ("notes" in values) next.notes = values.notes as string | null;
-  if (typeof values.status === "string") next.status = normalizeStatus(values.status);
-  return next;
+  // PostgREST can legitimately answer `{ error: null, data: null }` when an owner pre-read
+  // succeeded but the write affected zero rows (for example, an RLS/policy race). Absence of an
+  // exception is not mutation authority. Require the database to return the exact owner-scoped
+  // row it changed; anything else is an invariant failure and must never become a 2xx response.
+  const updated = await db.from(POSITIONS_TABLE)
+    .update(values)
+    .eq("user_id", userId)
+    .eq("id", owned.id)
+    .select(POSITION_FIELDS)
+    .maybeSingle();
+  if (updated.error) return { ok: false, error: "position update failed", status: 500 };
+  const row = one(updated);
+  const position = row ? rowToPosition(row) : null;
+  if (!position || position.id !== owned.id) {
+    return { ok: false, error: "position mutation not confirmed", status: 500 };
+  }
+  return { ok: true, position };
 }
 
 export async function deletePosition(
@@ -326,10 +386,20 @@ export async function deletePosition(
 ): Promise<WriteResult> {
   const owned = await getOwnedPosition(db, userId, positionId);
   if (!owned) return { ok: false, error: "position not found", status: 404 };
-  const { error } = await db.from(POSITIONS_TABLE)
-    .delete().eq("user_id", userId).eq("id", owned.id);
-  if (error) return { ok: false, error: "position delete failed", status: 500 };
-  return { ok: true };
+  // DELETE follows the same receipt law as UPDATE: the database must return the exact id it
+  // deleted. A success-shaped zero-row result is not success and is never retried silently.
+  const deleted = await db.from(POSITIONS_TABLE)
+    .delete()
+    .eq("user_id", userId)
+    .eq("id", owned.id)
+    .select("id")
+    .maybeSingle();
+  if (deleted.error) return { ok: false, error: "position delete failed", status: 500 };
+  const deletedId = text(one(deleted)?.id);
+  if (!deletedId || deletedId !== owned.id) {
+    return { ok: false, error: "position mutation not confirmed", status: 500 };
+  }
+  return { ok: true, deletedId };
 }
 
 // ───────────────────────────── display math (pure) ─────────────────────────────

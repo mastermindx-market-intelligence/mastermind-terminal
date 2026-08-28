@@ -1,5 +1,5 @@
 import type { Bar, Fund } from "./fund";
-import { daysUntil, fmtCur, fmtPct } from "./finFormat";
+import { fmtCur, fmtPct, nextDateCountdown } from "./finFormat";
 
 export type KeyStatsPick = (en?: string | null, cn?: string | null) => string;
 
@@ -45,7 +45,7 @@ export function buildKeyStatRows(
   pick: KeyStatsPick,
 ): KeyStatRow[] {
   const rows: KeyStatRow[] = [];
-  const nextEarningsDays = daysUntil(fund?.earnings?.next_date);
+  const nextEarningsDays = nextDateCountdown(fund?.earnings?.next_date);
   const stats = fund?.stats;
   const ratios = fund?.ratios?.current;
   const dividendYield = fund?.dividends?.yield_ttm ?? ratios?.div_yield ?? null;
@@ -62,9 +62,7 @@ export function buildKeyStatRows(
     rows.push({
       id: "next-earnings",
       label: pick("Next earnings report", "下次财报"),
-      value: nextEarningsDays >= 0
-        ? pick(`In ${nextEarningsDays} days`, `${nextEarningsDays} 天后`)
-        : pick(`${-nextEarningsDays} days ago`, `${-nextEarningsDays} 天前`),
+      value: pick(`In ${nextEarningsDays} days`, `${nextEarningsDays} 天后`),
     });
   }
   if (finitePositive(stats?.mktcap)) {

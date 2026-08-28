@@ -29,13 +29,14 @@ import {
   type AxisMargins,
   type AxisRange,
 } from "@/lib/chart-engine/axisZoom";
-import { DEFAULT_CHART_RIGHT_OFFSET, normalizedChartLogicalRange } from "@/lib/chart-engine/viewReset";
+import { DEFAULT_CHART_RIGHT_OFFSET, fullHistoryLogicalRange, futureAxisBarCount, normalizedChartLogicalRange } from "@/lib/chart-engine/viewReset";
+import { FUTURE_ANCHOR_BARS, futureBarTimes, futureCadence, futureSlotOf, type FutureCadence } from "@/lib/chart-engine/futureTime";
 import { keepIndicatorPaneAxisLabelsOnly } from "@/lib/indicatorPaneSeries";
 import { runPine, type RunResult } from "@/lib/pine-engine";
 import { createPineHost, type PineHost, type PineResult } from "@/lib/pine-engine/host";
 import { ORACLE_V1_PINE } from "@/lib/pine";
 import { DRAWING_SCHEMA_VERSION, MAX_DRAWING_PAYLOAD_BYTES, type Drawing, type DrawKind, type Bar as DBar, uid, autoTrendlines, autoFib, srDrawings, mtfaDrawings } from "@/lib/drawings";
-import { drawingToolFromShortcut, getDrawingTool, type DrawingToolCapability } from "@/lib/drawingTools";
+import { drawingToolFromShortcut, getDrawingTool, FREEHAND_DRAWING_KINDS, type DrawingToolCapability } from "@/lib/drawingTools";
 import { DRAWING_RENDERER_FAMILY, materializeSemanticPoints } from "@/lib/drawing-engine/geometry";
 import { calculateAnchoredVwap, calculateFixedRangeVolumeProfile, calculateRegressionChannel, generateGhostFeed } from "@/lib/drawing-engine/analytics";
 import { cloneDrawing, constrainScreenAngle, translateDrawingAnchors } from "@/lib/drawing-engine/interaction";
@@ -70,6 +71,7 @@ import {
 import { paintCandleData } from "@/lib/indicator-canvas/candlePaint";
 import { paintSnapshotTables } from "@/lib/chartSnapshotTables";
 import { SUITE_DEFS, getSuiteDef, isSuiteKey as isSuiteKeyReg, paneSuiteKeys } from "@/lib/suites/registry";
+import { ensureSuiteRuntime, peekSuiteRuntime } from "@/lib/suites/compute";
 import {
   enabledModulesForSuite,
   parseSuiteModuleId,
@@ -182,6 +184,7 @@ export type LiveQuote = {
   extSource?: string;
   extBasis?: string;
   live?: boolean;
+  suspended?: boolean;
   lagMs?: number | null;
   asOfMs?: number | null;
   // Latest one-second aggregate from the live Massive WebSocket lane. Kept distinct from
@@ -467,8 +470,12 @@ const SPLICE_BASES = new Set(["REALTIME", "LIVE", "DELAYED_15M"]);
 
 export default function ChartPanel({ symbol, chartType = "candles", indicators, timeframe = "D", replayIdx = null, onMeta, tool = null, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, drawings = [], onDrawingsChange, detectCmd = null, magnet = "off", compare = [], compareCfg = EMPTY_OBJ, isActive = true, syncId = null, liveQuote = null,
   indParams = EMPTY_OBJ, hidden = EMPTY_SET, onToggleHidden, onRemoveInd, onOpenSettings, onOpenSource, pineScripts = EMPTY_PINE, chartSettings, onChartApi, extHours = false,
-  instrumentName, instrumentMarket, instrumentColor, onAddAlert, onTableView, onObjectTree, onOpenSettingsModal, lockedVLine = null, onSetLockedVLine, onIndRowsAt, dayMode = false, onPaneCount, companyName = "", userTier = "free" }:
+  instrumentName, instrumentMarket, instrumentColor, onAddAlert, onTableView, onObjectTree, onOpenSettingsModal, lockedVLine = null, onSetLockedVLine, onIndRowsAt, dayMode = false, onPaneCount, companyName = "", userTier = "free", dataReady = true, initialTimeframe = null }:
   { symbol: string; companyName?: string; chartType?: string; indicators: Set<string>; timeframe?: string; replayIdx?: number | null; onMeta?: (m: { total: number }) => void;
+    /** False until the shell has COMMITTED its persisted prefs. See `effectiveTimeframe`. */
+    dataReady?: boolean;
+    /** The shell's already-resolved startup timeframe, handed over before it can be rendered. */
+    initialTimeframe?: string | null;
     tool?: DrawKind | null; toolActivation?: number; drawingSticky?: boolean; drawingCreationDisabled?: boolean; drawStyle?: { color: string; width: number; dash: "solid" | "dashed" | "dotted" }; drawings?: Drawing[]; onDrawingsChange?: (d: Drawing[]) => void; detectCmd?: DetectCmd; magnet?: "off" | "weak" | "strong" | boolean; compare?: string[]; compareCfg?: Record<string, CmpCfg>; isActive?: boolean; syncId?: number | null; liveQuote?: LiveQuote;
     indParams?: Record<string, any>; hidden?: Set<string>; onToggleHidden?: (key: string) => void; onRemoveInd?: (key: string) => void; onOpenSettings?: (key: string) => void; onOpenSource?: (key: string) => void; pineScripts?: PineScript[];
     chartSettings?: Partial<ChartSettings>;
@@ -547,6 +554,71 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   // per frame). Rebuilt lazily on `barsRef.current` array-identity change (every data/replay/splice
   // reassigns barsRef to a NEW array), so it's always in step without touching the 6 assignment sites.
   const barIdxRef = useRef<{ src: Bar[] | null; map: Map<string | number, number> }>({ src: null, map: new Map() });
+  // Addressable bar slots PAST the newest candle, so anchors can be placed in the
+  // blank future area instead of collapsing onto the last bar. Memoized on the
+  // same array-identity trigger as barIdxMap.
+  const futureRef = useRef<{
+    src: Bar[] | null;
+    times: (string | number)[];
+    index: Map<string | number, number>;
+    cadence: FutureCadence | null;
+  }>({ src: null, times: [], index: new Map(), cadence: null });
+  const futureGrid = () => {
+    const b = barsRef.current;
+    if (futureRef.current.src !== b) {
+      const barTimes = b.map((row) => row.time as string | number);
+      const times = futureBarTimes(barTimes, FUTURE_ANCHOR_BARS);
+      const index = new Map<string | number, number>();
+      times.forEach((time, offset) => { index.set(String(time), offset); index.set(time, offset); });
+      futureRef.current = { src: b, times, index, cadence: futureCadence(barTimes) };
+    }
+    return futureRef.current;
+  };
+  /** Offset into the future grid, or -1 when the time is a real (or unknown) bar. */
+  const futureOffset = (tm: string | number): number => {
+    const grid = futureGrid();
+    const exact = grid.index.get(tm as any) ?? grid.index.get(String(tm));
+    if (exact != null) return exact;
+    // Every new bar regenerates the grid, so a stored anchor's exact slot can
+    // stop existing. Derive its offset from the cadence instead — otherwise the
+    // nearest-bar fallback would yank it back to the live edge, which is the
+    // "drawings get cut off by the wall" defect this feature removes.
+    return futureSlotOf(grid.cadence, tm, FUTURE_ANCHOR_BARS);
+  };
+  // ── future dates on the time axis ─────────────────────────────────────────
+  // lightweight-charts only labels times it holds a data point for, so the blank
+  // gutter past the newest candle carried no dates at all. A dedicated
+  // WHITESPACE series (no values, so it cannot touch any price scale) extends
+  // the time scale forward and gives that region real labels.
+  //
+  // Deliberately NOT the price series: that one is driven by update() on every
+  // live tick, and update() rejects a point older than the series' last one — a
+  // future tail there would reject every subsequent tick.
+  const futureAxisRef = useRef<ISeriesApi<any> | null>(null);
+  const applyFutureAxis = () => {
+    const chartApi = chartRef.current; if (!chartApi) return;
+    // Cover as much of the anchor grid as the loaded history justifies, so every
+    // ordinarily reachable anchor sits on a labelled slot without turning a
+    // short history into mostly blank canvas. Replay is a closed historical lens
+    // and gets no future tail at all.
+    const tail = futureAxisBarCount(barsRef.current.length, FUTURE_ANCHOR_BARS);
+    const times = replayIdxRef.current != null ? [] : futureGrid().times.slice(0, tail);
+    let series = futureAxisRef.current;
+    if (!series) {
+      if (!times.length) return;
+      try {
+        series = chartApi.addSeries(LineSeries, {
+          lastValueVisible: false,
+          priceLineVisible: false,
+          crosshairMarkerVisible: false,
+          // Never let an axis-only helper participate in price autoscaling.
+          autoscaleInfoProvider: () => null,
+        }, 0);
+      } catch { return; }
+      futureAxisRef.current = series;
+    }
+    try { series.setData(times.map((time) => ({ time: time as any }))); } catch { /* stale chart */ }
+  };
   const barIdxMap = (): Map<string | number, number> => {
     const b = barsRef.current;
     if (barIdxRef.current.src !== b) {
@@ -630,6 +702,39 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   const symbolRef = useRef(symbol);                          // current symbol (Effect 1 mounts once; symbol changes in Effect 2)
   const companyNameRef = useRef(companyName);                 // proper name for the snapshot header (zh preferred over English)
   const renderSignalsRef = useRef<() => void>(() => {});
+  // B7: the suite-runtime loader repaints through this, so it can live above the definition it
+  // calls without capturing a stale closure.
+  const applySuitePaintRef = useRef<(() => void) | null>(null);
+  // ── B7: suite COMPUTATION is fetched per suite, on first use ───────────────────────────────
+  //
+  // The registry used to import all 31 module implementations eagerly, so /terminal shipped the
+  // whole premium-suite compute before one was switched on. Metadata still comes from the static
+  // graph; only the computation is deferred.
+  //
+  // The trigger is the RENDER PASS, not an effect keyed on the active set. That is deliberate:
+  // an effect can resolve before the chart has mounted, and `rerenderOverlays` calls render
+  // functions that are no-ops until then — the repaint would land on nothing and the suite would
+  // stay invisible until the next unrelated pan or zoom. A render pass, by definition, only runs
+  // once the chart is alive, so hanging the load off it removes that race entirely.
+  //
+  // Hooked ONCE per suite, not once per frame: `ensureSuiteRuntime` dedupes the fetch, but the
+  // repaint callback would otherwise be re-attached on every frame while the chunk is in flight.
+  const suiteRuntimeHookedRef = useRef<Set<string>>(new Set());
+  // The chart's own frame scheduler, captured on mount. It is what re-runs renderIndOverlays —
+  // the pass that draws SUITE prims. `rerenderOverlays` covers signals/drawings/tag only, so
+  // repainting through that alone left a just-loaded suite invisible until the next pan or zoom.
+  const scheduleRenderRef = useRef<(() => void) | null>(null);
+  const requestSuiteRuntime = (key: string) => {
+    if (suiteRuntimeHookedRef.current.has(key)) return;
+    suiteRuntimeHookedRef.current.add(key);
+    void ensureSuiteRuntime(key).then(() => {
+      suiteRuntimeHookedRef.current.delete(key);
+      // Both layers: the SVG prims/tables AND the candle paint, which is key-guarded and would
+      // otherwise not notice that a suite it skipped now has something to say.
+      scheduleRenderRef.current?.();      // suite prims + tables
+      applySuitePaintRef.current?.();     // candle paint (key-guarded, so it needs its own kick)
+    });
+  };
   const syncCleanupRef = useRef<(() => void) | null>(null);
   // D3 table-view: stable lookup of per-key indicator values by bar time (built after each data load).
   const indDataMapRef = useRef<Map<string, Record<string, number | null>>>(new Map());
@@ -890,7 +995,20 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   if (!drawingTransactionRef.current) drawRef.current = drawings;
   toolRef.current = tool; toolActivationRef.current = toolActivation; drawingStickyRef.current = drawingSticky; drawingCreationDisabledRef.current = drawingCreationDisabled; onChangeRef.current = onDrawingsChange; magnetRef.current = magnet; styleRef.current = drawStyle;
   // keep the data-effect's non-trigger props readable from the mount closures without re-subscribing
-  chartTypeRef.current = chartType; timeframeRef.current = timeframe; compareRef.current = compare || []; compareCfgRef.current = compareCfg; indicatorsRef.current = indicators; syncIdRef.current = syncId; replayIdxRef.current = replayIdx; liveQuoteRef.current = liveQuote; extHoursRef.current = extHours; symbolRef.current = symbol; companyNameRef.current = companyName;
+  // ── Which timeframe this pane's DATA belongs to ────────────────────────────────────────────
+  // The shell resolves the user's persisted startup timeframe synchronously on the client, but
+  // cannot render it until its mount effect commits — measured at ~1.05s after mount, while this
+  // component's data effect runs at ~130ms. Reading only the `timeframe` PROP therefore loads the
+  // server-rendered default and throws the entire result away (fetch + setData + indicator build
+  // + paint) for every user whose startup timeframe is not the SSR one: p50 1.14s of the cold path
+  // to the first live candle, 2.7-3.1s under CI-shaped CPU load.
+  //
+  // So until the shell says its prefs are COMMITTED, prefer the value it handed over out-of-band.
+  // Once `dataReady` flips, the prop is authoritative and equals it, so the dep below does not
+  // change and no second load is issued. Standalone callers (embed, dev theater, ChartConductor)
+  // pass neither prop and are unaffected.
+  const effectiveTimeframe = dataReady ? timeframe : (initialTimeframe ?? timeframe);
+  chartTypeRef.current = chartType; timeframeRef.current = effectiveTimeframe; compareRef.current = compare || []; compareCfgRef.current = compareCfg; indicatorsRef.current = indicators; syncIdRef.current = syncId; replayIdxRef.current = replayIdx; liveQuoteRef.current = liveQuote; extHoursRef.current = extHours; symbolRef.current = symbol; companyNameRef.current = companyName;
   lastValueVisibleRef.current = chartSettings?.lastValueVisible !== false;
   countdownVisibleRef.current = chartSettings?.countdownVisible !== false;
   chartSettingsRef.current = chartSettings ?? {};
@@ -1324,7 +1442,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       if (!suiteColorsRef.current) suiteColorsRef.current = resolveSuiteColors();
       const lang = typeof document !== "undefined" && document.documentElement.getAttribute("data-lang") === "zh" ? "zh" as const : "en" as const;
       for (const k of active) {
-        const def = SUITE_DEFS[k]; if (!def) continue;
+        const def = peekSuiteRuntime(k); if (!def) { requestSuiteRuntime(k); continue; }   // fetch + repaint when it lands
         try {
           const b = computeSuite(def, suiteRenderParams(k), { bars: rows as any, tf: timeframeRef.current, symbol: symbolRef.current, isIntraday: isIntradayRef.current, lang }, userTierRef.current, suiteColorsRef.current!);
           if (b.candlePaint.length) paint = paint.concat(b.candlePaint);
@@ -1349,6 +1467,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     if (!paint.length) { if (hadPaint) restoreNormalCandleColors(rows); return; }
     try { priceS.setData(paintCandleData(rows as any, paint, chartTyp === "bars" ? "bars" : "candles") as any); } catch {}
   };
+  applySuitePaintRef.current = applySuitePaint;
 
   // SuperTrend: two line series (up/down rails with null gaps at flips).
   const buildSupertrend = (chart: IChartApi, rows: Bar[]): ISeriesApi<any>[] => {
@@ -2010,6 +2129,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   // ind fills, price tag) — they gate themselves off while a sub-pane is maximized and must clear/
   // restore NOW, not on the next pan/zoom.
   const rerenderOverlays = () => { try { renderSignalsRef.current(); renderRef.current(); renderTagRef.current?.(); } catch {} };
+
   const doMaximize = (pi: number) => { const key = keyOfPaneIndex(pi); if (!key) return; const ctl = paneCtl.current; if (ctl.maximized === key) ctl.maximized = null; else { if (panesMeta.current.length <= 1) return; ctl.maximized = key; ctl.collapsed.delete(key); } applyStretch(); rerenderOverlays(); requestAnimationFrame(() => { measure(); rerenderOverlays(); }); };
   const doCollapse = (pi: number) => { const key = keyOfPaneIndex(pi); if (!key) return; const ctl = paneCtl.current; ctl.maximized = null; if (ctl.collapsed.has(key)) ctl.collapsed.delete(key); else ctl.collapsed.add(key); applyStretch(); rerenderOverlays(); requestAnimationFrame(() => { measure(); rerenderOverlays(); }); };
   // applyStretch() after the swap re-runs applyMaximizeDom so the row-hiding tracks the panes'
@@ -2674,7 +2794,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     const chart = chartRef.current; if (!chart) return;
     let plotWidth: number | undefined;
     try { plotWidth = chart.timeScale().width(); } catch {}
-    const range = normalizedChartLogicalRange(rows.length, replay != null, plotWidth);
+    const range = normalizedChartLogicalRange(rows.length, replay != null, plotWidth)
+      ?? fullHistoryLogicalRange(rows.length, plotWidth);
     try { if (range) chart.timeScale().setVisibleLogicalRange(range); else chart.timeScale().fitContent(); } catch {}
   };
 
@@ -2951,30 +3072,49 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           }
           const date = `${now.getFullYear()}${pad2(now.getMonth() + 1)}${pad2(now.getDate())}`;
           const fname = `${snapSym}_${tf}_${date}.png`;
+          // textContent, not innerHTML. This interpolated `msg` into markup, and one caller passed
+          // the SERVER's error string straight through — so an upstream provider's response text
+          // became live HTML in the page. The message is data; it is written as data.
           const statusFeedback = (msg: string) => {
             const sEl = statusRef.current;
-            if (sEl) { const prev = sEl.innerHTML; sEl.innerHTML = `<b class="up">${msg}</b>`; setTimeout(() => { if (statusRef.current === sEl) paintStatus(barsRef.current, sliceRef.current); else sEl.innerHTML = prev; }, 2500); }
+            if (!sEl) return;
+            const prev = sEl.innerHTML;
+            const b = document.createElement("b");
+            b.className = "up";
+            b.textContent = msg;
+            sEl.replaceChildren(b);
+            setTimeout(() => {
+              if (statusRef.current === sEl) paintStatus(barsRef.current, sliceRef.current);
+              else sEl.innerHTML = prev;
+            }, 2500);
           };
+          // The upload route answers with a stable `code`, never provider text. Each maps to a
+          // localised string here; an unrecognised code degrades to the generic failure rather
+          // than rendering whatever arrived.
+          const uploadFailure = (code: unknown): string =>
+            code === "too_large" ? tPlain("snapTooLarge", "Snapshot too large to share")
+            : code === "invalid_png" ? tPlain("snapInvalid", "Snapshot could not be shared")
+            : tPlain("snapUploadFailed", "Sharing unavailable — try again shortly");
           const blob: Blob | null = await new Promise((res) => out.toBlob(res, "image/png"));
           if (!blob) return;
           if (action === "download") {
             const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = fname; a.click();
             try { URL.revokeObjectURL(a.href); } catch {}
-            statusFeedback("Snapshot downloaded");
+            statusFeedback(tPlain("snapDownloaded", "Snapshot downloaded"));
           } else if (action === "copy") {
-            try { await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]); statusFeedback("Snapshot copied to clipboard"); }
-            catch { statusFeedback("Clipboard copy failed (needs HTTPS/focus)"); }
+            try { await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]); statusFeedback(tPlain("snapCopied", "Snapshot copied to clipboard")); }
+            catch { statusFeedback(tPlain("snapClipboardFailed", "Clipboard copy failed (needs HTTPS/focus)")); }
           } else if (action === "share") {
             // Upload to R2 via /api/snapshot, copy the share URL
             try {
               const form = new FormData(); form.append("file", blob, fname);
               const r = await fetch("/api/snapshot", { method: "POST", body: form });
-              if (!r.ok) { const e = await r.json().catch(() => ({})); statusFeedback(e.error || "Upload failed"); return; }
+              if (!r.ok) { const e = await r.json().catch(() => ({})); statusFeedback(uploadFailure(e?.code)); return; }
               const { url } = await r.json();
               const abs = `${window.location.origin}${url}`;
-              try { await navigator.clipboard.writeText(abs); statusFeedback("Link copied to clipboard"); }
-              catch { statusFeedback(`Share link: ${abs}`); }
-            } catch { statusFeedback("Upload failed"); }
+              try { await navigator.clipboard.writeText(abs); statusFeedback(tPlain("snapLinkCopied", "Link copied to clipboard")); }
+              catch { statusFeedback(`${tPlain("snapShareLink", "Share link")}: ${abs}`); }
+            } catch { statusFeedback(tPlain("snapUploadFailed", "Sharing unavailable — try again shortly")); }
           } else if (action === "tab") {
             const url = URL.createObjectURL(blob);
             window.open(url, "_blank");
@@ -3515,12 +3655,58 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       const b = barsRef.current; if (!b.length) return tm;
       const idx = barIdxMap().get(tm as any) ?? barIdxMap().get(String(tm));
       if (idx != null) return b[idx].time as any;
+      // A future-grid slot is a deliberate anchor, not an off-grid time: clamping
+      // it to the nearest bar is what pinned every drawing to the live edge.
+      if (futureOffset(tm) >= 0) return tm as any;
       const x = toMs(tm); if (!Number.isFinite(x)) return b[0].time;
       let best = b[0].time, bd = Infinity; for (const r of b) { const dd = Math.abs(toMs(r.time) - x); if (dd < bd) { bd = dd; best = r.time; } } return best;
     };
-    const xOf = (tm: string) => chart.timeScale().timeToCoordinate(snapT(tm) as any) as number | null;
-    const yOf = (p: number) => { const s = priceSeriesRef.current; return s ? (s.priceToCoordinate(p) as number | null) : null; };
-    const barIndex = (tm: string) => { const idx = barIdxMap().get(tm as any) ?? barIdxMap().get(String(tm)); if (idx != null) return idx; const tt = snapT(tm); const j = barIdxMap().get(tt as any); return j == null ? -1 : j; };
+    const xOf = (tm: string) => {
+      // The series has no data point past the newest candle, so a future anchor
+      // is projected from its logical index instead of from its timestamp.
+      const offset = futureOffset(tm);
+      if (offset >= 0) {
+        const logical = barsRef.current.length + offset;
+        return chart.timeScale().logicalToCoordinate(logical as any) as number | null;
+      }
+      return chart.timeScale().timeToCoordinate(snapT(tm) as any) as number | null;
+    };
+    // ── pane-scoped price projection ────────────────────────────────────────
+    // A drawing placed over an indicator sub-pane used to store the price the
+    // MAIN series reads at that y — a value far outside its scale. Because the
+    // price scale autoscales to the visible bars, every zoom/pan re-extrapolated
+    // that value and slid the object vertically (the "my brush circles move when
+    // I scroll" report), until it eventually drifted off screen. Anchors now
+    // record the pane they were drawn in and project through THAT pane's series.
+    const PRICE_PANE_KEY = "__price__";
+    const seriesForPane = (key: string | null | undefined): ISeriesApi<any> | null => {
+      if (!key || key === PRICE_PANE_KEY) return priceSeriesRef.current ?? null;
+      const info = paneLayoutRef.current.find((pane) => pane.key === key);
+      if (!info) return null;
+      try { return chartRef.current?.panes()[info.paneIndex]?.getSeries()?.[0] ?? null; } catch { return null; }
+    };
+    /** Pane key under a pane-space y, or null while the layout is unmeasured. */
+    const paneKeyAt = (py: number): string | null =>
+      paneLayoutRef.current.find((pane) => py >= pane.top && py <= pane.top + pane.height)?.key ?? null;
+    /** The pane an existing drawing belongs to; absent meta means the price pane. */
+    const drawingPaneKey = (d: Pick<Drawing, "meta">): string | null =>
+      typeof d.meta?.pane === "string" ? d.meta.pane : null;
+    const yOfIn = (p: number, paneKey?: string | null) => {
+      const s = seriesForPane(paneKey);
+      return s ? (s.priceToCoordinate(p) as number | null) : null;
+    };
+    const priceAtIn = (py: number, paneKey?: string | null) => {
+      const s = seriesForPane(paneKey);
+      return s ? (s.coordinateToPrice(py) as number | null) : null;
+    };
+    const yOf = (p: number) => yOfIn(p, null);
+    const barIndex = (tm: string) => {
+      const idx = barIdxMap().get(tm as any) ?? barIdxMap().get(String(tm));
+      if (idx != null) return idx;
+      const offset = futureOffset(tm);
+      if (offset >= 0) return barsRef.current.length + offset;
+      const tt = snapT(tm); const j = barIdxMap().get(tt as any); return j == null ? -1 : j;
+    };
 
     // ── signal badges: BUY/SELL (★) + RE-BUY pill; GC v2 keeper quality/tier styling + CUT caution ──
     const renderSignals = () => {
@@ -3869,6 +4055,9 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     renderSignalsRef.current = renderSignals;
 
     let snapTarget: { x: number; y: number } | null = null;
+    // Pane key resolved by the most recent snap(); null means the price pane.
+    // Read immediately after a snap call, in the same idiom as snapTarget.
+    let snapPaneKey: string | null = null;
     type PaneAnchor = { x: number; y: number };
     const clampUnit = (value: number) => Math.max(0, Math.min(1, value));
     const paneAnchorOf = (meta: Drawing["meta"]): PaneAnchor | null => {
@@ -3886,26 +4075,42 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         y: clampUnit(y / Math.max(1, el!.clientHeight)),
       },
     });
-    const snap = (px: number, py: number, modifier?: { ctrlKey?: boolean; metaKey?: boolean }) => {
+    const snap = (
+      px: number,
+      py: number,
+      modifier?: { ctrlKey?: boolean; metaKey?: boolean },
+      forceMagnet?: "off",
+    ) => {
       const prec = precRef.current;
       const bars = barsRef.current;
       // LWC logical coordinates map directly to the loaded bar array. This replaces the
       // former O(bars) scan on every pointer event with one projection + clamp.
       const logical = chart.timeScale().coordinateToLogical(px);
-      const bi = Math.max(0, Math.min(bars.length - 1, Math.round(logical == null ? bars.length - 1 : logical)));
-      const bar = bars[bi];
-      const bt = bar?.time ?? bars[bars.length - 1]?.time;
-      const ps = priceSeriesRef.current;
-      let p = ps ? (ps.coordinateToPrice(py) as number | null) : null;
-      if (p == null) p = bars[bars.length - 1]?.c ?? 0;
+      const future = futureGrid().times;
+      const bi = Math.max(0, Math.min(bars.length - 1 + future.length, Math.round(logical == null ? bars.length - 1 : logical)));
+      // Past the newest candle the anchor takes a future-grid slot, which is a
+      // real forward timestamp rather than a repeat of the last bar.
+      const inFuture = bi >= bars.length && future.length > 0;
+      const bar = inFuture ? undefined : bars[bi];
+      const bt = inFuture ? future[Math.min(future.length - 1, bi - bars.length)] : (bar?.time ?? bars[bars.length - 1]?.time);
+      // Resolve the value in the pane under the cursor. Outside the price pane
+      // the number is an indicator reading, not a price, so it must be read and
+      // later re-projected through that pane's own scale.
+      const hitPane = paneKeyAt(py);
+      const inPricePane = !hitPane || hitPane === PRICE_PANE_KEY;
+      snapPaneKey = inPricePane ? null : hitPane;
+      let p = priceAtIn(py, snapPaneKey);
+      if (p == null) p = inPricePane ? (bars[bars.length - 1]?.c ?? 0) : 0;
       const configuredMode = magnetRef.current === true ? "strong" : magnetRef.current === false ? "off" : magnetRef.current;
       // OpenMarket's precision modifier is deliberately reversible: Ctrl/Cmd
       // supplies Strong magnet while Off is configured, but temporarily frees
       // the cursor when Weak/Strong is already active.
       const modifierDown = Boolean(modifier?.ctrlKey || modifier?.metaKey);
-      const mode = modifierDown ? (configuredMode === "off" ? "strong" : "off") : configuredMode;
+      const mode = forceMagnet
+        ?? (modifierDown ? (configuredMode === "off" ? "strong" : "off") : configuredMode);
       snapTarget = null;
-      if (bar && mode !== "off") {
+      // The magnet targets OHLC, which only exists on the price pane.
+      if (bar && inPricePane && mode !== "off") {
         const candidates = [bar.o, bar.h, bar.l, bar.c];
         const best = candidates.reduce((a, v) => Math.abs(v - (p as number)) < Math.abs(a - (p as number)) ? v : a, candidates[0]);
         const bestY = yOf(best);
@@ -3918,19 +4123,48 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           if (sx != null && bestY != null) snapTarget = { x: sx, y: bestY };
         }
       }
-      return { t: String(bt), p: +(p as number).toFixed(prec) };
+      // Indicator readings span far smaller magnitudes than a price (a Stoch
+      // value, a MACD histogram), so the price precision would quantize them
+      // into a visibly wrong anchor.
+      return { t: String(bt), p: +(p as number).toFixed(inPricePane ? prec : Math.max(prec, 6)) };
     };
     const constrainedSnap = (
       origin: Drawing["points"][number] | undefined,
       px: number,
       py: number,
       modifier?: { ctrlKey?: boolean; metaKey?: boolean; shiftKey?: boolean },
+      options: { forceMagnet?: "off"; paneKey?: string | null } = {},
     ) => {
-      if (!origin || !modifier?.shiftKey) return snap(px, py, modifier);
-      const ox = xOf(origin.t), oy = yOf(origin.p);
-      if (ox == null || oy == null) return snap(px, py, modifier);
+      const { forceMagnet, paneKey } = options;
+      if (!origin || !modifier?.shiftKey) return snap(px, py, modifier, forceMagnet);
+      const ox = xOf(origin.t), oy = yOfIn(origin.p, paneKey);
+      if (ox == null || oy == null) return snap(px, py, modifier, forceMagnet);
       const constrained = constrainScreenAngle({ x: ox, y: oy }, { x: px, y: py });
-      return snap(constrained.x, constrained.y, modifier);
+      return snap(constrained.x, constrained.y, modifier, forceMagnet);
+    };
+    /**
+     * Do two anchors land on the same spot on screen? An unprojectable anchor
+     * compares by VALUE rather than by a shared `?? 0` fallback — coercing two
+     * nulls to the same coordinate reported unrelated anchors as identical.
+     */
+    const samePlacement = (first: Drawing["points"][number], second: Drawing["points"][number], paneKey?: string | null) => {
+      const x1 = xOf(first.t), x2 = xOf(second.t), y1 = yOfIn(first.p, paneKey), y2 = yOfIn(second.p, paneKey);
+      if (x1 == null || x2 == null || y1 == null || y2 == null) {
+        return String(first.t) === String(second.t) && first.p === second.p;
+      }
+      return Math.abs(x1 - x2) < 3 && Math.abs(y1 - y2) < 3;
+    };
+    /** Screen-space extent of a sampled stroke; a closed brush loop is NOT degenerate. */
+    const strokeExtentPx = (points: readonly Drawing["points"][number][], paneKey?: string | null) => {
+      let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+      for (const point of points) {
+        const px = xOf(point.t), py = yOfIn(point.p, paneKey);
+        if (px == null || py == null) continue;
+        minX = Math.min(minX, px); maxX = Math.max(maxX, px);
+        minY = Math.min(minY, py); maxY = Math.max(maxY, py);
+      }
+      if (!Number.isFinite(minX) || !Number.isFinite(minY)) return 0;
+      return Math.max(maxX - minX, maxY - minY);
     };
     type PendingDrawing = {
       kind: Drawing["kind"];
@@ -3945,6 +4179,15 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       candidate?: Drawing["points"][number];
       awaitingSecond?: boolean;
       meta?: Drawing["meta"];
+      // Raw pane-space press position. Creation intent (click vs drag) is read
+      // from the POINTER, never from the post-snap anchors: a magnet that pulls
+      // both ends onto one bar/OHLC, or a gesture in the blank future gutter,
+      // used to collapse a real drag into a "stationary click" and leave the
+      // rubber band stuck to the cursor after release.
+      downX?: number;
+      downY?: number;
+      // Pane the gesture started in; null/absent = the price pane.
+      paneKey?: string | null;
     };
     let pending: PendingDrawing | null = null;
     cancelPendingDrawingRef.current = () => {
@@ -4014,6 +4257,31 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       };
       const grip = (pts: XY[]) => {
         if (!on || d.locked) return;
+        // A sampled freehand stroke carries up to 64 anchors. A handle on every
+        // one buried the stroke under a chain of circles and destroyed the shape
+        // the user drew, so selection shows the stroke's extent plus the two
+        // endpoints — the only anchors that are meaningful to drag.
+        const sampled = FREEHAND_DRAWING_KINDS.has(d.kind) && pts.length > 4;
+        if (sampled) {
+          const xs = pts.map((point) => point.x), ys = pts.map((point) => point.y);
+          const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+          g.appendChild(mk("rect", {
+            x: x0 - 6, y: y0 - 6, width: (x1 - x0) + 12, height: (y1 - y0) + 12,
+            fill: "none", stroke: col, "stroke-width": 1, "stroke-dasharray": "4 4",
+            opacity: .55, "pointer-events": "none", "data-selection-bounds": "1",
+          }));
+          // Endpoint handles are only offered when every anchor projected, so a
+          // dropped point can never shift a handle onto the wrong index.
+          if (pts.length !== d.points.length) return;
+          const ends: [XY, number][] = [[pts[0], 0], [pts[pts.length - 1], d.points.length - 1]];
+          for (const [point, index] of ends) {
+            g.appendChild(mk("circle", {
+              cx: point.x, cy: point.y, r: 5, fill: "var(--panel)", stroke: col, "stroke-width": 2,
+              "data-handle": index, "data-drawing-handle": index, style: "cursor:grab",
+            }));
+          }
+          return;
+        }
         pts.forEach((point, i) => g.appendChild(mk("circle", {
           cx: point.x, cy: point.y, r: 5, fill: "var(--panel)", stroke: col, "stroke-width": 2,
           "data-handle": i, "data-drawing-handle": i, style: "cursor:grab",
@@ -4658,18 +4926,46 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     creationPalette.setAttribute("aria-label", "Drawing color");
     creationPalette.style.cssText = "position:absolute;z-index:9;display:none;align-items:center;gap:5px;padding:6px 7px 5px;border:1px solid rgba(148,163,184,.22);border-radius:10px;background:rgba(14,18,27,.9);box-shadow:0 10px 28px rgba(0,0,0,.32);backdrop-filter:blur(14px);pointer-events:auto;transform:translateZ(0)";
     const creationSwatches = document.createElement("div"); creationSwatches.style.cssText = "display:flex;align-items:center;gap:4px";
-    for (const color of COLORS) {
-      const swatch = document.createElement("button"); swatch.type = "button"; swatch.dataset.creationColor = color; swatch.setAttribute("aria-label", color);
-      swatch.style.cssText = `width:17px;height:17px;padding:0;border:1px solid rgba(255,255,255,.18);border-radius:4px;background:${color};cursor:pointer;box-sizing:border-box`;
-      creationSwatches.appendChild(swatch);
-    }
+    /**
+     * Swatch row = the armed colour, then recently used/custom colours, then the
+     * fixed palette. A colour mixed in the custom picker used to vanish from
+     * every creation surface, so it could never be reused without re-mixing it.
+     */
+    const creationPaletteColors = () => {
+      const selected = normalizeHexColor(styleRef.current?.color)
+        ?? normalizeHexColor(getDrawingTool(toolRef.current)?.defaults.color);
+      const candidates = [
+        ...(selected ? [selected] : []),
+        ...recentColors,
+        ...COLORS.map((color) => color.toLowerCase()),
+      ];
+      return candidates.filter((color, index) => candidates.indexOf(color) === index).slice(0, 6);
+    };
+    let creationSwatchSignature = "";
+    const buildCreationSwatches = () => {
+      const colors = creationPaletteColors();
+      const signature = colors.join("|");
+      if (signature === creationSwatchSignature) return;
+      creationSwatchSignature = signature;
+      creationSwatches.replaceChildren();
+      for (const color of colors) {
+        const swatch = document.createElement("button"); swatch.type = "button"; swatch.dataset.creationColor = color; swatch.setAttribute("aria-label", color);
+        swatch.style.cssText = `width:17px;height:17px;padding:0;border:1px solid rgba(255,255,255,.18);border-radius:4px;background:${color};cursor:pointer;box-sizing:border-box`;
+        creationSwatches.appendChild(swatch);
+      }
+    };
+    buildCreationSwatches();
     const creationCaption = document.createElement("span");
     creationCaption.className = "drawing-creation-palette-caption";
     creationCaption.textContent = document.documentElement.lang.toLowerCase().startsWith("zh") ? "滚动切换" : "Scroll to Change";
     creationCaption.style.cssText = "display:block;margin-top:3px;color:rgba(226,232,240,.68);font:600 8px/1.1 var(--font-ui,system-ui);text-align:center;white-space:nowrap";
     const creationInner = document.createElement("div"); creationInner.append(creationSwatches, creationCaption); creationPalette.appendChild(creationInner); wrap.appendChild(creationPalette); creationPaletteRef.current = creationPalette;
     const updateCreationPaletteSelection = () => {
-      const selected = styleRef.current?.color || getDrawingTool(toolRef.current)?.defaults.color || COLORS[0];
+      buildCreationSwatches();
+      const selected = normalizeHexColor(styleRef.current?.color)
+        ?? styleRef.current?.color
+        ?? getDrawingTool(toolRef.current)?.defaults.color
+        ?? COLORS[0];
       creationSwatches.querySelectorAll<HTMLElement>("[data-creation-color]").forEach((swatch) => {
         const active = swatch.dataset.creationColor === selected;
         swatch.setAttribute("aria-pressed", active ? "true" : "false");
@@ -4679,6 +4975,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     };
     const setCreationColor = (color: string) => {
       const current = styleRef.current ?? { color: COLORS[0], width: 1.5, dash: "solid" as const };
+      rememberRecentColor(color, current.color);
       styleRef.current = { ...current, color }; updateCreationPaletteSelection();
       try { window.dispatchEvent(new CustomEvent("mm:drawing-style", { detail: { color } })); } catch {}
       renderDraw();
@@ -4967,6 +5264,14 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         if (input.hasAttribute("data-custom-color")) {
           rememberRecentColor(input.value, (input as HTMLInputElement).dataset.previousColor);
           (input as HTMLInputElement).dataset.previousColor = input.value;
+          // The quick swatches already promote their colour to the tool family's
+          // next-drawing default; the custom picker did not, so a hand-picked
+          // colour was lost the moment the next object was created.
+          const edited = drawRef.current.find((drawing) => drawing.id === sel);
+          if (edited) {
+            const patchColor = { color: patch.color, ...(patch.fillColor ? { fillColor: patch.fillColor } : {}) };
+            try { window.dispatchEvent(new CustomEvent("mm:drawing-style", { detail: { kind: edited.kind, ...patchColor } })); } catch {}
+          }
         }
         drawingTransactionRef.current = false;
         barSig = "";
@@ -4984,7 +5289,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       if (sel && d && d.points[0]) {
         const paneAnchor = getDrawingTool(d.kind)?.creation.anchorSpace === "pane" ? paneAnchorOf(d.meta) : null;
         const ax = paneAnchor ? paneAnchor.x * el!.clientWidth : xOf(d.points[0].t);
-        const ay = paneAnchor ? paneAnchor.y * el!.clientHeight : yOf(d.points[0].p);
+        const ay = paneAnchor ? paneAnchor.y * el!.clientHeight : yOfIn(d.points[0].p, drawingPaneKey(d));
         if (ax != null && ay != null) {
           const sig = barSignature(d);
           if (sig !== barSig) { buildBar(d); barSig = sig; }
@@ -5270,7 +5575,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           const wrapRect = wrapElRef.current?.getBoundingClientRect();
           const langP = typeof document !== "undefined" && document.documentElement.getAttribute("data-lang") === "zh" ? "zh" as const : "en" as const;
           for (const k of paneKeys) {
-            const def = SUITE_DEFS[k]; if (!def) continue;
+            const def = peekSuiteRuntime(k); if (!def) { requestSuiteRuntime(k); continue; }   // fetch + repaint when it lands
             const anchor = indSeriesRef.current.get(k)?.[0]; if (!anchor || !wrapRect) continue;
             let paneTop = 0, paneH = 0;
             try { const paneEl = anchor.getPane().getHTMLElement(); if (!paneEl) continue; const rct = paneEl.getBoundingClientRect(); paneTop = rct.top - wrapRect.top; paneH = rct.height; } catch { continue; }
@@ -5309,7 +5614,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           if (!suiteColorsRef.current) suiteColorsRef.current = resolveSuiteColors();
           const lang = typeof document !== "undefined" && document.documentElement.getAttribute("data-lang") === "zh" ? "zh" as const : "en" as const;
           for (const k of tableOnlyKeys) {
-            const def = SUITE_DEFS[k]; if (!def) continue;
+            const def = peekSuiteRuntime(k); if (!def) { requestSuiteRuntime(k); continue; }   // fetch + repaint when it lands
             try {
               const bundle = computeSuite(def, suiteRenderParams(k), {
                 bars: barsRef.current as any,
@@ -5603,7 +5908,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           };
           const lang = typeof document !== "undefined" && document.documentElement.getAttribute("data-lang") === "zh" ? "zh" as const : "en" as const;
           for (const k of activeSuites) {
-            const def = SUITE_DEFS[k]; if (!def) continue;
+            const def = peekSuiteRuntime(k); if (!def) { requestSuiteRuntime(k); continue; }   // fetch + repaint when it lands
             try {
               const bundle = computeSuite(def, suiteRenderParams(k), {
                 bars: barsRef.current as any, tf: timeframeRef.current, symbol: symbolRef.current,
@@ -5653,7 +5958,15 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         if (yCache.has(price)) return yCache.get(price)!;
         const coordinate = yOf(price); yCache.set(price, coordinate); return coordinate;
       };
-      for (const d of [...drawRef.current].sort((a, b) => (a.z ?? 0) - (b.z ?? 0))) svgEl.appendChild(shape(d, false, projectX, projectY));
+      const paneProjectors = new Map<string, (price: number) => number | null>();
+      const projectYFor = (d: Drawing) => {
+        const key = drawingPaneKey(d);
+        if (!key || key === PRICE_PANE_KEY) return projectY;
+        let fn = paneProjectors.get(key);
+        if (!fn) { fn = (price: number) => yOfIn(price, key); paneProjectors.set(key, fn); }
+        return fn;
+      };
+      for (const d of [...drawRef.current].sort((a, b) => (a.z ?? 0) - (b.z ?? 0))) svgEl.appendChild(shape(d, false, projectX, projectYFor(d)));
       // ── D2 locked vertical line overlay ──
       const lvt = lockedVLineRef.current;
       if (lvt) {
@@ -5697,6 +6010,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     if (activeRef.current) setActivePaneCoords(cmxCoordResolverRef.current);
     // coalesce the overlay rebuild to one paint per frame on the hot pan/zoom path
     const scheduleRender = () => { if (rafId != null) return; rafId = requestAnimationFrame(() => { rafId = null; if (!dead) { renderSignals(); renderIndOverlays(); renderDraw(); } }); };
+    scheduleRenderRef.current = scheduleRender;
     // Draw-only rAF coalescer for the drawing drag / shape-creation pointermove paths: those fire on
     // every raw pointer event and previously called renderDraw() (→ full SVG clear + renderIndOverlays
     // re-projecting every ichimoku/ribbon/vwap point) synchronously per event. Batching to one rebuild
@@ -5971,6 +6285,10 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // 350ms and <40px of each other → trigger the same pane maximize-toggle as dblclick.
     const onTouchDown = (e: PointerEvent) => {
       if (e.pointerType !== "touch") return;
+      // A one-shot drawing can disarm on pointerup before this gesture's
+      // wrapper-level onUp runs. Preserve its pointerdown ownership so the
+      // finishing tap cannot also become a pane-maximize double tap.
+      const startedWithTool = Boolean(toolRef.current);
       lastTouchTsRef.current = performance.now();   // for synthetic-hover suppression
       const now = performance.now();
       const x = e.clientX, y = e.clientY;
@@ -5992,7 +6310,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           // double-tap confirmed
           lastTapRef.current = null;
           if ((e.target as Element)?.closest?.(".chart-overlays")) return;
-          if (toolRef.current) return;
+          if (startedWithTool || toolRef.current) return;
           const w = wrapElRef.current; if (!w) return;
           const wr = w.getBoundingClientRect(); const py = eu.clientY - wr.top;
           if (inAxisBand(eu.clientX, wr)) return;
@@ -6168,17 +6486,32 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       try { window.dispatchEvent(new CustomEvent("mm:drawing-committed", { detail: { kind, activation } })); } catch {}
     };
     let semanticTimesCache: { signature: string; times: string[] } = { signature: "", times: [] };
+    /** Every addressable slot, real bars first then the future grid. */
     const semanticTimes = () => {
       const rows = barsRef.current, signature = `${rows.length}|${rows[0]?.time ?? ""}|${rows[rows.length - 1]?.time ?? ""}`;
-      if (semanticTimesCache.signature !== signature) semanticTimesCache = { signature, times: rows.map((row) => String(row.time)) };
+      if (semanticTimesCache.signature !== signature) {
+        semanticTimesCache = {
+          signature,
+          times: [...rows.map((row) => String(row.time)), ...futureGrid().times.map((time) => String(time))],
+        };
+      }
       return semanticTimesCache.times;
     };
     const materializePoints = (kind: Drawing["kind"], points: Drawing["points"]) =>
       getDrawingTool(kind)?.creation.semanticPointCount
         ? materializeSemanticPoints(kind, points, semanticTimes(), precRef.current)
         : points;
-    const commitDrawing = (kind: Drawing["kind"], points: Drawing["points"], meta: Drawing["meta"] | undefined, activation: number) => {
-      const next: Drawing = { id: uid(), kind, points: materializePoints(kind, points), ...applyStyle(kind), ...(meta ? { meta } : {}) };
+    const commitDrawing = (
+      kind: Drawing["kind"],
+      points: Drawing["points"],
+      meta: Drawing["meta"] | undefined,
+      activation: number,
+      paneKey?: string | null,
+    ) => {
+      // Only a non-price pane is recorded, so existing price-pane documents keep
+      // their exact persisted shape and need no migration.
+      const withPane = paneKey && paneKey !== PRICE_PANE_KEY ? { ...(meta ?? {}), pane: paneKey } : meta;
+      const next: Drawing = { id: uid(), kind, points: materializePoints(kind, points), ...applyStyle(kind), ...(withPane ? { meta: withPane } : {}) };
       sel = drawingStickyRef.current ? null : next.id; drawRef.current = [...drawRef.current, next]; onChangeRef.current?.([...drawRef.current]); announceCommit(kind, activation);
     };
 
@@ -6471,6 +6804,10 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       sel = id; renderDraw();
       if (d0.locked) return;
       const prec = precRef.current;
+      // Editing an indicator-pane object works in that pane's value space, which
+      // needs finer rounding than the instrument's price precision.
+      const editPane = drawingPaneKey(d0);
+      const editPrec = editPane ? Math.max(prec, 6) : prec;
       if (handleAttr != null) {
         const handleIndex = Number(handleAttr);
         if (Number.isInteger(handleIndex) && d0.points[handleIndex]) {
@@ -6482,7 +6819,11 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
             const angleOrigin = d0.points.length === 2
               ? d0.points[handleIndex === 0 ? 1 : 0]
               : handleIndex > 0 ? d0.points[0] : undefined;
-            const pt = constrainedSnap(angleOrigin, m0.x, m0.y, e);
+            // A sub-pane object keeps reading its own scale even if the cursor
+            // strays into a neighbouring pane mid-drag.
+            const snapped = constrainedSnap(angleOrigin, m0.x, m0.y, e, { paneKey: editPane });
+            const paneValue = editPane ? priceAtIn(m0.y, editPane) : null;
+            const pt = paneValue == null ? snapped : { t: snapped.t, p: +paneValue.toFixed(editPrec) };
             const paneAnchored = getDrawingTool(d0.kind)?.creation.anchorSpace === "pane" && handleIndex === 0;
             drawRef.current = drawRef.current.map((x) => x.id !== id ? x : {
               ...x,
@@ -6533,12 +6874,18 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           scheduleDraw();
           return;
         }
-        const dp = cur.p - start.p;
+        // Vertical translation is measured in the object's OWN pane, so a drag
+        // that crosses a pane boundary cannot rewrite the anchors with a value
+        // sampled from a different scale.
+        const startValue = editPane ? (priceAtIn(s0.y, editPane) ?? start.p) : start.p;
+        const currentValue = editPane ? (priceAtIn(m0.y, editPane) ?? cur.p) : cur.p;
+        const dp = currentValue - startValue;
         const requestedDi = barIndex(cur.t!) - barIndex(start.t!);
         // Clamp one shared translation delta so every anchor moves rigidly at
         // the data boundary instead of independently collapsing the geometry.
-        const di = Math.max(-minOrigIndex, Math.min(bars.length - 1 - maxOrigIndex, requestedDi));
-        drawRef.current = drawRef.current.map((x) => x.id !== id ? x : { ...x, points: orig.map((pt, index) => { const ni = origIndices[index] + di; return { t: bars[ni]?.time || pt.t, p: +(pt.p + dp).toFixed(prec) }; }) });
+        const slots = semanticTimes();
+        const di = Math.max(-minOrigIndex, Math.min(slots.length - 1 - maxOrigIndex, requestedDi));
+        drawRef.current = drawRef.current.map((x) => x.id !== id ? x : { ...x, points: orig.map((pt, index) => { const ni = origIndices[index] + di; return { t: slots[ni] ?? bars[ni]?.time ?? pt.t, p: +(pt.p + dp).toFixed(editPrec) }; }) });
         scheduleDraw();   // rAF-coalesced: one renderDraw() per frame instead of per raw pointermove
       };
       const cleanupMove = () => { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); window.removeEventListener("pointercancel", cancelMove); setInspectorMoving(false); };
@@ -6593,7 +6940,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       const tl = toolRef.current; if (drawingCreationDisabledRef.current || replayIdxRef.current != null || !tl || !ev.isPrimary || ev.button !== 0) return;
       const activation = toolActivationRef.current;
       positionCreationPalette(ev.clientX, ev.clientY);
-      const { x, y } = rectXY(ev); const a = snap(x, y, ev);
+      const { x, y } = rectXY(ev); const a = snap(x, y, ev); const gesturePane = snapPaneKey;
       const spec = getDrawingTool(tl); if (!spec) return;
       // The palette follows the pointer by a small offset. During a paced
       // diagonal drag its previous frame can otherwise move underneath the
@@ -6609,6 +6956,9 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           mode: spec.capabilities.includes("textInput") ? "text" : "point",
           pointerId: ev.pointerId,
           candidate: a,
+          downX: x,
+          downY: y,
+          paneKey: gesturePane,
           ...(spec.creation.anchorSpace === "pane" ? { meta: paneMetaAt(x, y) } : {}),
         };
         try { svg.setPointerCapture(ev.pointerId); } catch {}
@@ -6617,15 +6967,16 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       if (spec.creation.mode === "two-point") {
         if (pending?.kind === spec.id && pending.mode === "drag" && pending.awaitingSecond && pending.activation === activation) {
           pending.pointerId = ev.pointerId;
-          pending.candidate = constrainedSnap(pending.points[0], x, y, ev);
+          pending.candidate = constrainedSnap(pending.points[0], x, y, ev, { paneKey: pending.paneKey });
+          pending.downX = x; pending.downY = y;
         } else {
-          pending = { kind: spec.id, activation, points: [a], mode: "drag", pointerId: ev.pointerId, awaitingSecond: false };
+          pending = { kind: spec.id, activation, points: [a], mode: "drag", pointerId: ev.pointerId, awaitingSecond: false, downX: x, downY: y, paneKey: gesturePane };
         }
         try { svg.setPointerCapture(ev.pointerId); } catch {}
         return;
       }
       if (spec.creation.mode === "freehand") {
-        pending = { kind: spec.id, activation, points: [a], mode: "freehand", pointerId: ev.pointerId };
+        pending = { kind: spec.id, activation, points: [a], mode: "freehand", pointerId: ev.pointerId, downX: x, downY: y, paneKey: gesturePane };
         try { svg.setPointerCapture(ev.pointerId); } catch {}
         return;
       }
@@ -6637,6 +6988,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       }
       if (pending.pointerId != null) return;
       pending.pointerId = ev.pointerId; pending.candidate = a;
+      pending.downX = x; pending.downY = y;
+      if (!pending.points.length) pending.paneKey = gesturePane;
       try { svg.setPointerCapture(ev.pointerId); } catch {}
       renderDraw();
     });
@@ -6656,7 +7009,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           if (lx == null || ly == null || px == null || py == null || Math.hypot(lx - px, ly - py) > 3) break;
           points.pop();
         }
-        if (points.length >= spec.creation.minPoints) { pending = null; commitDrawing(activeTool, points.slice(0, spec.creation.maxPoints), undefined, activation); renderDraw(); }
+        if (points.length >= spec.creation.minPoints) { const paneKey = pending.paneKey; pending = null; commitDrawing(activeTool, points.slice(0, spec.creation.maxPoints), undefined, activation, paneKey); renderDraw(); }
         return;
       }
       const id = idAt(ev); const d = drawRef.current.find((x) => x.id === id);
@@ -6673,11 +7026,11 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       const angleOrigin = pending.mode === "drag"
         ? pending.points[0]
         : pending.mode === "multi" ? pending.points[pending.points.length - 1] : undefined;
-      const b = constrainedSnap(angleOrigin, x, y, ev);
+      const b = constrainedSnap(angleOrigin, x, y, ev, { paneKey: pending.paneKey });
       if (pending.mode === "multi" || pending.mode === "point" || pending.mode === "text") pending.candidate = b;
       if (getDrawingTool(pending.kind)?.creation.anchorSpace === "pane") pending.meta = paneMetaAt(x, y, pending.meta);
       if (pending.mode === "freehand") {
-        const last = pending.points[pending.points.length - 1], lx = xOf(last.t), ly = yOf(last.p);
+        const last = pending.points[pending.points.length - 1], lx = xOf(last.t), ly = yOfIn(last.p, pending.paneKey);
         if (lx == null || ly == null || Math.hypot(x - lx, y - ly) >= 3.5) pending.points.push(b);
         if (pending.points.length > 64) pending.points.splice(1, 1);
       }
@@ -6698,7 +7051,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           guides.appendChild(mk("circle", { cx: snapTarget.x, cy: snapTarget.y, r: 2.5, fill: "var(--brand-2)" }));
         }
         svgEl.appendChild(guides);
-        svgEl.appendChild(shape({ id: "_p", kind: p0.kind, points: previewPoints, ...applyStyle(p0.kind), ...(p0.meta ? { meta: p0.meta } : {}) }, true));
+        svgEl.appendChild(shape({ id: "_p", kind: p0.kind, points: previewPoints, ...applyStyle(p0.kind), ...(p0.meta ? { meta: p0.meta } : {}) }, true, xOf, (price) => yOfIn(price, p0.paneKey)));
       });
     });
     svg.addEventListener("pointerup", (ev) => {
@@ -6709,10 +7062,10 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       const angleOrigin = current.mode === "drag"
         ? current.points[0]
         : current.mode === "multi" ? current.points[current.points.length - 1] : undefined;
-      const b = constrainedSnap(angleOrigin, x, y, ev);
+      const b = constrainedSnap(angleOrigin, x, y, ev, { paneKey: current.paneKey });
       try { if (svg.hasPointerCapture(ev.pointerId)) svg.releasePointerCapture(ev.pointerId); } catch {}
       if (current.mode === "multi") {
-        const previous = current.points[current.points.length - 1], px = previous ? xOf(previous.t) : null, py = previous ? yOf(previous.p) : null;
+        const previous = current.points[current.points.length - 1], px = previous ? xOf(previous.t) : null, py = previous ? yOfIn(previous.p, current.paneKey) : null;
         const repeatRadius = ev.pointerType === "touch" || matchMedia("(pointer:coarse)").matches ? 16 : 3;
         const repeatedAnchor = Boolean(previous && px != null && py != null && Math.hypot(x - px, y - py) <= repeatRadius);
         if (!repeatedAnchor) current.points.push(b);
@@ -6721,7 +7074,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         const required = spec?.creation.mode === "fixed-multi" && typeof spec.creation.pointCount === "number" ? spec.creation.pointCount : Infinity;
         const repeatedFinish = repeatedAnchor && spec?.creation.mode === "variable-multi" && current.points.length >= spec.creation.minPoints;
         if (current.points.length >= required || repeatedFinish || (spec?.creation.mode === "variable-multi" && current.points.length >= spec.creation.maxPoints)) {
-          const points = [...current.points]; pending = null; commitDrawing(current.kind, points, undefined, current.activation);
+          const points = [...current.points]; pending = null; commitDrawing(current.kind, points, undefined, current.activation, current.paneKey);
         } else renderDraw();
         return;
       }
@@ -6730,23 +7083,47 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       if (current.mode === "point") {
         pending = null;
         if (current.kind === "emoji" || current.kind === "icon") openMediaChoicePicker(current.kind, b, x, y, current.activation);
-        else commitDrawing(current.kind, [b], currentMeta, current.activation);
+        else commitDrawing(current.kind, [b], currentMeta, current.activation, current.paneKey);
         renderDraw(); return;
       }
       const maxPoints = getDrawingTool(current.kind)?.creation.maxPoints ?? 64;
-      const points = current.mode === "freehand" ? [...current.points, b].slice(0, maxPoints) : [current.points[0], b];
-      const a = points[0], last = points[points.length - 1];
-      const isTiny = !a || !last || (Math.abs((xOf(a.t) ?? 0) - (xOf(last.t) ?? 0)) < 3 && Math.abs((yOf(a.p) ?? 0) - (yOf(last.p) ?? 0)) < 3);
+      // Click-vs-drag is decided by the RAW pointer travel. Deriving it from the
+      // projected anchors made a real drag read as a stationary click whenever
+      // snapping collapsed both ends onto one point — inside the blank future
+      // gutter (every anchor clamped to the last bar) or with the magnet holding
+      // both ends on the same bar's OHLC. The gesture then armed click-then-click
+      // placement instead of committing, which is the "line keeps following the
+      // cursor after I let go" report.
+      const clickSlop = ev.pointerType === "touch" || matchMedia("(pointer:coarse)").matches ? 8 : 3;
+      const clicked = current.downX == null || current.downY == null
+        ? false
+        : Math.hypot(x - current.downX, y - current.downY) < clickSlop;
       // A stationary first click arms the documented click-then-click placement
       // mode. A normal drag continues to commit on the first pointerup.
-      if (current.mode === "drag" && isTiny && !current.awaitingSecond) {
+      if (current.mode === "drag" && clicked && !current.awaitingSecond) {
         current.pointerId = undefined;
         current.candidate = b;
         current.awaitingSecond = true;
         renderDraw();
         return;
       }
-      if (isTiny) { current.pointerId = undefined; current.candidate = b; renderDraw(); return; }
+      // The click that closes a click-then-click placement is stationary by
+      // definition, so only a repeat press ON the first anchor stays pending.
+      let end = b;
+      if (current.mode === "drag" && !current.awaitingSecond) {
+        // The pointer travelled but the anchors did not: let the endpoint escape
+        // the magnet rather than commit an invisible zero-length object.
+        const origin = current.points[0];
+        if (origin && samePlacement(origin, end, current.paneKey)) end = constrainedSnap(origin, x, y, ev, { forceMagnet: "off", paneKey: current.paneKey });
+      }
+      const points = current.mode === "freehand" ? [...current.points, end].slice(0, maxPoints) : [current.points[0], end];
+      const a = points[0], last = points[points.length - 1];
+      // A brush loop legitimately ends where it started, so a freehand stroke is
+      // judged by its whole extent instead of by its two endpoints.
+      const degenerate = !a || !last || (current.mode === "freehand"
+        ? points.length < 2 || strokeExtentPx(points, current.paneKey) < 3
+        : samePlacement(a, last, current.paneKey));
+      if (degenerate) { current.pointerId = undefined; current.candidate = end; renderDraw(); return; }
       pending = null;
       if (current.kind === "image") { openImageUpload(points, x, y, current.activation); renderDraw(); return; }
       if (getDrawingTool(current.kind)?.capabilities.includes("textInput")) {
@@ -6754,7 +7131,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         renderDraw();
         return;
       }
-      commitDrawing(current.kind, points, currentMeta, current.activation); renderDraw();
+      commitDrawing(current.kind, points, currentMeta, current.activation, current.paneKey); renderDraw();
     });
     svg.addEventListener("pointercancel", (ev) => {
       if (!pending || (pending.pointerId != null && pending.pointerId !== ev.pointerId)) return;
@@ -6771,14 +7148,14 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // intentionally has pointer-events:none while no tool is armed.
     const onShiftMeasure = (ev: PointerEvent) => {
       if (drawingCreationDisabledRef.current || replayIdxRef.current != null || !ev.shiftKey || toolRef.current || !activeRef.current || ev.button !== 0) return;
-      const startXY = rectXY(ev), a = snap(startXY.x, startXY.y, ev);
+      const startXY = rectXY(ev), a = snap(startXY.x, startXY.y, ev), measurePane = snapPaneKey;
       const activation = toolActivationRef.current;
       ev.preventDefault(); ev.stopPropagation();
       const move = (e: PointerEvent) => {
         const xy = rectXY(e), b = snap(xy.x, xy.y, e);
         scheduleDraw(() => {
           const svgEl = svgRef.current; if (!svgEl) return;
-          svgEl.appendChild(shape({ id: "_measure", kind: "measure", points: [a, b], ...applyStyle("measure") }, true));
+          svgEl.appendChild(shape({ id: "_measure", kind: "measure", points: [a, b], ...applyStyle("measure") }, true, xOf, (price) => yOfIn(price, measurePane)));
         });
       };
       const cleanupMeasure = () => {
@@ -6789,7 +7166,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       const end = (e: PointerEvent) => {
         cleanupMeasure();
         const xy = rectXY(e), b = snap(xy.x, xy.y, e);
-        if (Math.hypot((xOf(a.t) ?? 0) - (xOf(b.t) ?? 0), (yOf(a.p) ?? 0) - (yOf(b.p) ?? 0)) >= 3) commitDrawing("measure", [a, b], undefined, activation);
+        if (!samePlacement(a, b, measurePane)) commitDrawing("measure", [a, b], undefined, activation, measurePane);
         else renderDraw();
       };
       const cancel = () => { cleanupMeasure(); renderDraw(); };
@@ -6989,6 +7366,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       indSeriesRef.current.clear(); cmpSeriesRef.current.clear(); paneMapRef.current.clear();
       pineSeriesRef.current.clear(); pineMarkersRef.current.clear(); pinePaneMapRef.current.clear(); pineErrRef.current.clear(); pineCacheRef.current.clear(); pineAstRef.current.clear();
       priceSeriesRef.current = null; priceFamilyRef.current = null;
+      futureAxisRef.current = null;   // the engine disposes every series with the chart
       watermarkPluginRef.current = null;   // plugin is attached to a pane; engine.destroy() tears it down
       // The engine owns disposal (its destroy() is the one chart.remove() call); chartRef
       // was only ever the unwrap bridge, so it just drops.
@@ -6998,11 +7376,11 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   }, []); // eslint-disable-line
 
   // ────────────────────────────────────────────────────────────────────────────
-  // EFFECT 2 — data [symbol, timeframe, chartType]. Fetch + full series + indicators + sync.
+  // EFFECT 2 — data [symbol, effectiveTimeframe, chartType]. Fetch + full series + indicators + sync.
   // ────────────────────────────────────────────────────────────────────────────
   useEffect(() => {
     const chart = chartRef.current; if (!chart) return;
-    cpMark(`chart-effect2-start[${symbol}]`);
+    cpMark(`chart-effect2-start[${symbol}@${effectiveTimeframe}]`);
     liveTickKeyRef.current = "";
     const liveWrap = wrapElRef.current;
     if (liveWrap) {
@@ -7021,7 +7399,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     }
     const epoch = ++epochRef.current;
     let cancelled = false;
-    const intraday = isIntradayTf(timeframe);
+    const intraday = isIntradayTf(effectiveTimeframe);
     // crossing the intraday↔daily boundary changes the TIME TYPE of every series (numeric epoch vs
     // 'YYYY-MM-DD') — in-place setData updates across it are unsound (LWC one-time-type law) and the
     // DT intraday-only indicators + legend notes need a full rebuild. Force the rebuild path then.
@@ -7037,7 +7415,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         let bars: any[] = [];
         let feedErr: string | null = null;       // the route's j.error (route returns {bars:[],error} on an upstream/config failure)
         try {
-          const r = await fetch(`/api/intraday?sym=${encodeURIComponent(symbol)}&tf=${encodeURIComponent(timeframe)}&ext=${extHours ? "1" : "0"}`, { cache: "no-store" });
+          const r = await fetch(`/api/intraday?sym=${encodeURIComponent(symbol)}&tf=${encodeURIComponent(effectiveTimeframe)}&ext=${extHours ? "1" : "0"}`, { cache: "no-store" });
           const j = await r.json().catch(() => null);
           bars = Array.isArray(j?.bars) ? j.bars : [];
           if (!r.ok || j?.error) feedErr = String(j?.error || `HTTP ${r.status}`);
@@ -7055,13 +7433,13 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           const unavailable = feedErr != null;
           if (statusRef.current) statusRef.current.textContent = unavailable ? "Intraday feed unavailable." : "No intraday data for this symbol.";
           showEmptyRef.current(unavailable
-            ? `Intraday feed unavailable for ${symbol} on ${timeframe}. Switch back to the daily timeframe to keep charting.`
-            : `No intraday data for ${symbol} on ${timeframe}. Switch back to the daily timeframe to keep charting.`);
+            ? `Intraday feed unavailable for ${symbol} on ${effectiveTimeframe}. Switch back to the daily timeframe to keep charting.`
+            : `No intraday data for ${symbol} on ${effectiveTimeframe}. Switch back to the daily timeframe to keep charting.`);
           announceTerminalVisualReady(symbol, "empty");
           return;
         }
         hideEmptyRef.current();                   // data arrived → clear any prior dead-end overlay
-        chart.applyOptions({ timeScale: { timeVisible: true, secondsVisible: isSecondTf(timeframe) } });
+        chart.applyOptions({ timeScale: { timeVisible: true, secondsVisible: isSecondTf(effectiveTimeframe) } });
         // epoch-second Bar6 [t,o,h,l,c,v] → Bar with a NUMERIC time (lightweight-charts accepts UTCTimestamp)
         const rows: Bar[] = bars.map((b: any[]) => ({ time: b[0] as any, o: b[1], h: b[2], l: b[3], c: b[4], v: b[5] }));
         if (onMeta) onMeta({ total: rows.length });
@@ -7107,7 +7485,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         } else { priceS.applyOptions({ priceFormat: priceFmt() }); }
         if (chartType === "baseline" && onChart.length) priceS!.applyOptions({ baseValue: { type: "price", price: onChart[0].c } });
         priceS!.setData(priceData(onChart) as any);
-        cpMark(`chart-painted[${symbol}]`);
+        applyFutureAxis();   // future dates on the time axis follow the loaded bars
+        cpMark(`chart-painted[${symbol}@${effectiveTimeframe}:intraday]`);
         chartDataSymRef.current = symbol;
         announceTerminalVisualReady(symbol);
         clearAllIndicators();
@@ -7176,7 +7555,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       }
       dailyBarsRef.current = daily;         // raw daily source — the R11 splice operates on THIS
       // ── PERF-FIX (b): use cached resample; same-symbol TF switches skip the O(N) bucketing pass ──
-      let rows: Bar[] = resampleTfCached(daily, timeframe, symbol);
+      let rows: Bar[] = resampleTfCached(daily, effectiveTimeframe, symbol);
       if (onMeta) onMeta({ total: rows.length });
       fullBarsRef.current = rows;
       // Read the LIVE replayIdx (not the effect's closure): if the user started replay while this
@@ -7236,7 +7615,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       }
       if (chartType === "baseline" && onChart.length) priceS!.applyOptions({ baseValue: { type: "price", price: onChart[0].c } });
       priceS!.setData(priceData(onChart) as any);
-      cpMark(`chart-painted[${symbol}]`);   // first candle on canvas
+      applyFutureAxis();   // future dates on the time axis follow the loaded bars
+      cpMark(`chart-painted[${symbol}@${effectiveTimeframe}:daily]`);   // first candle on canvas
       chartDataSymRef.current = symbol;
       announceTerminalVisualReady(symbol);
 
@@ -7286,7 +7666,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     })();
     return () => { cancelled = true; };
     // eslint-disable-next-line
-  }, [symbol, timeframe, chartType, extHours]);
+  }, [symbol, effectiveTimeframe, chartType, extHours]);
 
   // Register (or re-register) this pane with paneSync. Cleans up any prior registration first.
   const reRegisterSync = () => {
@@ -7681,7 +8061,11 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       sigMarksRef.current = resolveSigMarks(sliceRef.current, rows);
       { const sc = resolveSideChannels(sliceRef.current, rows); earlyDotsRef.current = sc.dots; warnMarksRef.current = sc.warns; }
       paintStatus(rows, sliceRef.current);
-      try { chart.timeScale().fitContent(); } catch {}
+      try {
+        const fitRange = fullHistoryLogicalRange(barsRef.current.length);
+        if (fitRange) chart.timeScale().setVisibleLogicalRange(fitRange);
+        else chart.timeScale().fitContent();
+      } catch {}
     }
     normalizeStretch();
     renderSignalsRef.current(); renderRef.current();

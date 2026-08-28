@@ -22,10 +22,10 @@ const load = (d: ChartSettings): ChartSettings => { try { const v = localStorage
 // store) so multiple panes on the same symbol (an MTF layout) share one set. Auto-DETECTED drawings,
 // by contrast, are computed against THIS pane's timeframe and are transient (never persisted), so they
 // stay pane-local and are merged in only for this pane's own render.
-export default function ChartPane({ idx, symbol, drawingOwnerKey, isActive, onActivate, row, tf, chartType, inds, tool, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, detectCmd, compare, compareCfg, magnet, replayIdx, onMeta, drawings, drawingsVisible = true, onDrawingsChange, liveQuote, indParams, hidden, onToggleHidden, onRemoveInd, onOpenSettings, onOpenSource, pineScripts,
+export default function ChartPane({ idx, symbol, drawingOwnerKey, isActive, onActivate, row, tf, chartType, dataReady = true, initialTimeframe = null, inds, tool, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, detectCmd, compare, compareCfg, magnet, replayIdx, onMeta, drawings, drawingsVisible = true, onDrawingsChange, liveQuote, indParams, hidden, onToggleHidden, onRemoveInd, onOpenSettings, onOpenSource, pineScripts,
   onDetectedDrawingCount,
   onAddAlert, onTableView, onObjectTree, lockedVLine, onSetLockedVLine, onIndRowsAt, dayMode: _dayMode, onPaneCount, userTier }:
-  { idx: number; symbol: string; drawingOwnerKey: string; isActive: boolean; onActivate: (i: number) => void; row?: { name?: string; zh?: string; sec?: string; mkt?: string; col?: string; last?: number; chg?: number } | null; tf: string; chartType: string; inds: Set<string>; tool: DrawKind | null; toolActivation?: number; drawingSticky?: boolean; drawingCreationDisabled?: boolean; drawStyle?: { color: string; width: number; dash: "solid" | "dashed" | "dotted" }; detectCmd: DetectCmd; compare: string[]; compareCfg?: Record<string, CmpCfg>; magnet: "off" | "weak" | "strong"; replayIdx: number | null; onMeta: (m: { total: number }) => void; drawings: Drawing[]; drawingsVisible?: boolean; onDrawingsChange: (d: Drawing[]) => void; onDetectedDrawingCount?: (count: number) => void; liveQuote?: LiveQuote;
+  { idx: number; symbol: string; drawingOwnerKey: string; isActive: boolean; onActivate: (i: number) => void; dataReady?: boolean; initialTimeframe?: string | null; row?: { name?: string; zh?: string; sec?: string; mkt?: string; col?: string; last?: number; chg?: number } | null; tf: string; chartType: string; inds: Set<string>; tool: DrawKind | null; toolActivation?: number; drawingSticky?: boolean; drawingCreationDisabled?: boolean; drawStyle?: { color: string; width: number; dash: "solid" | "dashed" | "dotted" }; detectCmd: DetectCmd; compare: string[]; compareCfg?: Record<string, CmpCfg>; magnet: "off" | "weak" | "strong"; replayIdx: number | null; onMeta: (m: { total: number }) => void; drawings: Drawing[]; drawingsVisible?: boolean; onDrawingsChange: (d: Drawing[]) => void; onDetectedDrawingCount?: (count: number) => void; liveQuote?: LiveQuote;
     indParams?: Record<string, any>; hidden?: Set<string>; onToggleHidden?: (key: string) => void; onRemoveInd?: (key: string) => void; onOpenSettings?: (key: string) => void; onOpenSource?: (key: string) => void; pineScripts?: PineScript[];
     onAddAlert?: (price: number) => void; onTableView?: () => void; onObjectTree?: () => void;
     lockedVLine?: string | null; onSetLockedVLine?: (t: string | null) => void;
@@ -123,24 +123,28 @@ export default function ChartPane({ idx, symbol, drawingOwnerKey, isActive, onAc
     if (!sameHand) onDrawingsChange(hand);
   }, [drawings, onDrawingsChange]);
   const up = (row?.chg ?? 0) >= 0;
+  const suspended = liveQuote?.suspended === true;
   const marketLabel = row?.mkt || row?.sec || "";
 
   const extendedEligible = classify(symbol) === "us" && !isMacroSymbol(symbol);
   const panelSettings = useMemo(() => ({ ...chartSettings }), [chartSettings]);
+  const displayLabel = displayName(row, lang) || symbol;
   const title = chartSettings.titleMode === "ticker"
     ? symbol
     : chartSettings.titleMode === "both"
-      ? `${row?.zh || row?.name || symbol} · ${symbol}`
-      : row?.zh || row?.name || symbol;
+      ? `${displayLabel} · ${symbol}`
+      : displayLabel;
 
   return (
     <div className={`pane${isActive ? " on" : ""}${swapping ? " is-swapping" : ""}`} data-swapping={swapping ? "1" : undefined} onPointerDownCapture={() => { if (!isActive) onActivate(idx); }}>
       <div className="pane-hd">
-        {chartSettings.showLogo && <AssetLogo className="pic" symbol={symbol} name={row?.zh || row?.name} market={marketLabel} color={row?.col} size={18} />}
+        {chartSettings.showLogo && <AssetLogo className="pic" symbol={symbol} name={displayLabel} market={marketLabel} color={row?.col} size={18} />}
         {chartSettings.showSymbolName && <b>{title}</b>}
         <span className="pane-tf">{tf}</span>
         <span className="px num">{f(row?.last, (row?.last ?? 99) < 10 ? 4 : 2)}</span>
-        <span className={`cg num ${up ? "up" : "down"}`}>{up ? "+" : ""}{f(row?.chg)}%</span>
+        {suspended
+          ? <span className="cg pane-suspended">{lang === "zh" ? "停牌" : "Suspended"}</span>
+          : <span className={`cg num ${up ? "up" : "down"}`}>{up ? "+" : ""}{f(row?.chg)}%</span>}
       </div>
       {/* Authentication is a hard renderer boundary. Remounting tears down
           native pointer listeners, captures, pending creators, and inspector
@@ -148,14 +152,14 @@ export default function ChartPane({ idx, symbol, drawingOwnerKey, isActive, onAc
           The SYMBOL is deliberately not part of that identity — see
           lib/drawingOwnership.ts and the swap state above. */}
       <ChartPanel
-        symbol={symbol} companyName={displayName(row, lang)} chartType={chartType} indicators={inds} timeframe={tf}
+        symbol={symbol} companyName={displayName(row, lang)} chartType={chartType} indicators={inds} timeframe={tf} dataReady={dataReady} initialTimeframe={initialTimeframe}
         replayIdx={isActive ? replayIdx : null} onMeta={isActive ? onMeta : undefined}
         tool={isActive ? tool : null} toolActivation={toolActivation} drawingSticky={isActive && drawingSticky} drawingCreationDisabled={drawingCreationDisabled} drawStyle={drawStyle} drawings={merged}
         onDrawingsChange={handleChange} detectCmd={detectCmd?.targetPane === idx ? detectCmd : null}
         compare={isActive ? compare.filter((c) => c !== symbol) : []} compareCfg={compareCfg}
         magnet={isActive ? magnet : "off"} isActive={isActive} syncId={idx}
         liveQuote={liveQuote} indParams={indParams} hidden={hidden}
-        instrumentName={row?.zh || row?.name}
+        instrumentName={displayLabel}
         instrumentMarket={marketLabel}
         instrumentColor={row?.col}
         onToggleHidden={onToggleHidden} onRemoveInd={onRemoveInd}

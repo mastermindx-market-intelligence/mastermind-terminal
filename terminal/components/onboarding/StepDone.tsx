@@ -12,6 +12,9 @@ export interface StepDoneProps {
   trialEnd: number | null;
   /** The paid tier the trial is on (only meaningful when trialActive). */
   plan: PlanKey;
+  /** D5: the preference write has not been acknowledged yet. Onboarding still completes — the
+   *  outbox retries in the background — but the screen may not imply the choice is stored. */
+  prefsPending?: boolean;
 }
 
 // Localized "Month Day" from an epoch-seconds trial_end.
@@ -20,7 +23,7 @@ function fmtTrialDate(trialEnd: number | null, lang: string): string {
   return d.toLocaleDateString(lang === "zh" ? "zh-CN" : "en-US", { month: "long", day: "numeric" });
 }
 
-export default function StepDone({ firstName, email, confirmPending, trialActive, trialEnd, plan }: StepDoneProps) {
+export default function StepDone({ firstName, email, confirmPending, trialActive, trialEnd, plan, prefsPending }: StepDoneProps) {
   const t = useT();
   const { lang } = useLang();
   const name = firstName.trim();
@@ -52,6 +55,12 @@ export default function StepDone({ firstName, email, confirmPending, trialActive
           )}
           {!confirmPending && !trialActive && (
             <p className="ob-done-line">{t("obDoneReady")}</p>
+          )}
+          {/* D5 — quiet, honest, and not a blocker: the account is ready either way, but the flow
+              does not get to imply the preferences landed when the authority hasn't confirmed it.
+              The outbox keeps retrying, so this is a status, not an error the user must act on. */}
+          {prefsPending && (
+            <p className="ob-done-line ob-done-pending" data-testid="prefs-pending">{t("obDonePrefsSyncing")}</p>
           )}
         </div>
       </div>

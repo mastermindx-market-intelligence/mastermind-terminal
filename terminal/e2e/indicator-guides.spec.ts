@@ -1,5 +1,6 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { openIndicatorLibrary as openLibraryEntryPoint } from "./phoneChrome";
+import { expectTapTarget } from "./tapTarget";
 
 async function armTerminalVisualReady(page: Page) {
   await page.addInitScript(() => {
@@ -104,8 +105,7 @@ test("module switches and the 31-module Guide Center are accessible and responsi
     moduleSwitch.locator(".im-state-switch").evaluate((element) => element.classList.contains("on")),
   ).toBe(nextState === "true");
 
-  const touchTarget = await moduleSwitch.boundingBox();
-  expect(touchTarget?.height ?? 0).toBeGreaterThanOrEqual(44);
+  await expectTapTarget(moduleSwitch, { height: 44 });
 
   // Restore the initial chart state so this test leaves persistence deterministic.
   await moduleSwitch.press("Space");
@@ -163,9 +163,7 @@ test("module switches and the 31-module Guide Center are accessible and responsi
   await guideSearch.fill("Flow Band");
   const clearGuideSearch = guide.getByRole("button", { name: "Clear guide search" });
   if (testInfo.project.name !== "desktop") {
-    const clearBox = await clearGuideSearch.boundingBox();
-    expect(Math.round(clearBox?.width ?? 0)).toBeGreaterThanOrEqual(44);
-    expect(Math.round(clearBox?.height ?? 0)).toBeGreaterThanOrEqual(44);
+    await expectTapTarget(clearGuideSearch, { width: 44, height: 44 });
   }
   await expect(guide.locator(".gp-library-modules").getByRole("button", { name: /Flow Band/ })).toBeVisible();
   await guide.locator(".gp-library-modules").getByRole("button", { name: /Flow Band/ }).click();

@@ -1,7 +1,22 @@
-// Premium suite runtime registry — parallel to lib/indicators.ts IND_DEFS (which stays untouched
-// for the classic built-ins). Suites remain the shared compute/pane containers and preset units;
-// their modules are independently discoverable through lib/suites/catalog.ts.
-// Contract: lib/indicator-canvas/types.ts. Program docs: docs/PREMIUM_INDICATOR_SUITE_MASTERPLAN_*.
+// Premium suite registry — the METADATA façade every consumer already imports.
+//
+// This file used to import all 31 module implementations and expose identity AND computation
+// through one graph. Reading a suite's label therefore pulled its compute, and TerminalShell —
+// which needs nothing but suite keys, defaults and labels to boot — dragged ~562 KB of premium
+// suite computation into /terminal before any suite was switched on.
+//
+// The graph is now split in two, with ONE canonical identity:
+//
+//   lib/suites/meta.ts        identity, tiers, settings schemas, defaults, pane shapes.
+//                             Nothing reachable from it can compute anything.
+//   lib/suites/compute.ts     the runtime SuiteDefs (metadata + every module's `compute`),
+//                             behind a per-suite dynamic import.
+//
+// The names below keep their old meanings for metadata purposes, so the picker, the legend, the
+// settings dialog, the catalog, presets and the alerts form are unchanged. What changed is the
+// TYPE: `SUITE_DEFS` is now `Record<string, SuiteMetaDef>`, so anything that actually needs to
+// RUN a module no longer compiles against it and must go through `peekSuiteRuntime` /
+// `ensureSuiteRuntime`. That is deliberate — it is what stops the eager graph growing back.
 //
 // mm.inds carries suite keys alongside classic IndKeys (TerminalShell's Set<string> is already
 // generic); per-suite params live in indParams[suiteKey] as flat "<moduleKey>.<field>" entries
@@ -10,133 +25,24 @@
 // Guides: every module has bilingual docs at public/guides/<suiteKey>/<moduleKey>.<lang>.md,
 // rendered by components/GuidePanel.tsx via the "?" button in the module's Settings header.
 
-import type { SuiteDef } from "@/lib/indicator-canvas/types";
-import { MARKET_STRUCTURE_MODULE } from "./structure/marketStructure";
-import { ORDER_BLOCKS_MODULE } from "./structure/orderBlocks";
-import { FVG_MODULE } from "./structure/fvg";
-import { PREMIUM_DISCOUNT_MODULE } from "./structure/premiumDiscount";
-import { LIQUIDITY_MODULE } from "./structure/liquidity";
-import { SFP_MODULE } from "./structure/sfp";
-import { SMART_SR_MODULE } from "./structure/smartSR";
-import { MONEY_FLOW_PROFILE_MODULE } from "./structure/moneyFlowProfile";
-import { AUTO_PATTERNS_MODULE } from "./structure/autoPatterns";
-import { TREND_ENGINE_MODULE } from "./trend/trendEngine";
-import { PULSE_WAVE_MODULE } from "./pulse/pulseWave";
-import { PULSE_SIGNALS_MODULE } from "./pulse/pulseSignals";
-import { PULSE_DIVERGENCE_MODULE } from "./pulse/divergences";
-import { VOLUME_MAPPING_MODULE } from "./pulse/volumeMapping";
-import { FLOWS_MODULE } from "./pulse/flows";
-import { RSI_ENGINE_MODULE } from "./rsix/rsiEngine";
-import { RSI_SIGNALS_MODULE } from "./rsix/rsiSignals";
-import { RSI_DIVERGENCE_MODULE } from "./rsix/rsiDivergence";
-import { RSI_CHANNELS_MODULE } from "./rsix/rsiChannels";
-import { MACD_ENGINE_MODULE } from "./macdx/macdEngine";
-import { MACD_SIGNALS_MODULE } from "./macdx/macdSignals";
-import { MACD_DIVERGENCE_MODULE } from "./macdx/macdDivergence";
-import { MACD_HISTOGRAM_MODULE } from "./macdx/macdHistogram";
-import { MACD_TREND_MODULE } from "./macdx/macdTrend";
-import { VOLT_BANDS_MODULE } from "./trend/voltixBands";
-import { MARKET_DASHBOARD_MODULE } from "./trend/marketDashboard";
-import { PULSE_MTF_MODULE } from "./pulse/mtfDash";
-import { RSIX_MTF_MODULE } from "./rsix/mtfDash";
-import { MACDX_MTF_MODULE } from "./macdx/mtfDash";
-import { CANDLE_PAINTER_MODULE } from "./trend/candlePainter";
-import { FLOW_BAND_MODULE } from "./trend/flowBand";
+export {
+  STRUCTURE_SUITE_META as STRUCTURE_SUITE,
+  TREND_SUITE_META as TREND_SUITE,
+  PULSE_SUITE_META as PULSE_SUITE,
+  RSIX_SUITE_META as RSIX_SUITE,
+  MACDX_SUITE_META as MACDX_SUITE,
+  SUITE_META as SUITE_DEFS,
+  SUITE_ORDER,
+  paneSuiteKeys,
+  isSuiteKey,
+  getSuiteMeta as getSuiteDef,
+  suiteDefaults,
+} from "./meta";
 
-export const STRUCTURE_SUITE: SuiteDef = {
-  key: "structure",
-  label: "Structure Core",
-  tag: "SC",
-  tkey: "suiteStructure",
-  kind: "overlay",
-  modules: [
-    MARKET_STRUCTURE_MODULE,
-    ORDER_BLOCKS_MODULE,
-    FVG_MODULE,
-    PREMIUM_DISCOUNT_MODULE,
-    LIQUIDITY_MODULE,
-    SFP_MODULE,
-    SMART_SR_MODULE,
-    MONEY_FLOW_PROFILE_MODULE,
-    AUTO_PATTERNS_MODULE,
-  ],
-};
-
-export const TREND_SUITE: SuiteDef = {
-  key: "trend",
-  label: "Trend Waves",
-  tag: "TW",
-  tkey: "suiteTrend",
-  kind: "overlay",
-  modules: [
-    TREND_ENGINE_MODULE,
-    FLOW_BAND_MODULE,
-    VOLT_BANDS_MODULE,
-    CANDLE_PAINTER_MODULE,
-    MARKET_DASHBOARD_MODULE,
-  ],
-};
-
-export const PULSE_SUITE: SuiteDef = {
-  key: "pulse",
-  label: "Pulse Oscillator",
-  tag: "PO",
-  tkey: "suitePulse",
-  kind: "pane",
-  pane: { min: -110, max: 110, lines: [{ p: 0 }, { p: 60, dashed: true }, { p: -60, dashed: true }] },
-  modules: [PULSE_WAVE_MODULE, PULSE_SIGNALS_MODULE, PULSE_DIVERGENCE_MODULE, VOLUME_MAPPING_MODULE, FLOWS_MODULE, PULSE_MTF_MODULE],
-};
-
-export const RSIX_SUITE: SuiteDef = {
-  key: "rsix",
-  label: "RSI Ultimate",
-  tag: "RU",
-  tkey: "suiteRsix",
-  kind: "pane",
-  pane: { min: 0, max: 100, lines: [{ p: 30, dashed: true }, { p: 50 }, { p: 70, dashed: true }] },
-  modules: [RSI_ENGINE_MODULE, RSI_SIGNALS_MODULE, RSI_DIVERGENCE_MODULE, RSI_CHANNELS_MODULE, RSIX_MTF_MODULE],
-};
-
-export const MACDX_SUITE: SuiteDef = {
-  key: "macdx",
-  label: "MACD Ultimate",
-  tag: "MU",
-  tkey: "suiteMacdx",
-  kind: "pane",
-  pane: { min: -120, max: 120, lines: [{ p: 0 }, { p: 100, dashed: true }, { p: -100, dashed: true }] },
-  modules: [MACD_ENGINE_MODULE, MACD_SIGNALS_MODULE, MACD_HISTOGRAM_MODULE, MACD_DIVERGENCE_MODULE, MACD_TREND_MODULE, MACDX_MTF_MODULE],
-};
-
-export const SUITE_DEFS: Record<string, SuiteDef> = {
-  structure: STRUCTURE_SUITE,
-  trend: TREND_SUITE,
-  pulse: PULSE_SUITE,
-  rsix: RSIX_SUITE,
-  macdx: MACDX_SUITE,
-};
-
-export const SUITE_ORDER = ["structure", "trend", "pulse", "rsix", "macdx"] as const;
-
-/** Pane-suite keys in canonical order (sub-pane creation + legend follow this). */
-export function paneSuiteKeys(): string[] {
-  return SUITE_ORDER.filter((k) => SUITE_DEFS[k]?.kind === "pane");
-}
-
-export function isSuiteKey(k: string): boolean {
-  return Object.prototype.hasOwnProperty.call(SUITE_DEFS, k);
-}
-export function getSuiteDef(k: string): SuiteDef | null {
-  return SUITE_DEFS[k] ?? null;
-}
-
-/** Flat defaults blob for a suite (module-prefixed), used to seed/backfill indParams[suiteKey]. */
-export function suiteDefaults(k: string): Record<string, any> {
-  const def = SUITE_DEFS[k];
-  if (!def) return {};
-  const out: Record<string, any> = {};
-  for (const m of def.modules) {
-    out[`${m.key}.on`] = m.defaultOn;
-    for (const [fk, fv] of Object.entries(m.defaults)) out[`${m.key}.${fk}`] = fv;
-  }
-  return out;
-}
+export {
+  ensureSuiteRuntime,
+  ensureSuiteRuntimes,
+  isSuiteRuntimeLoaded,
+  loadAllSuiteRuntimes,
+  peekSuiteRuntime,
+} from "./compute";

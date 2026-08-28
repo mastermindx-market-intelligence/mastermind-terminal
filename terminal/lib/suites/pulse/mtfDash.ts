@@ -63,6 +63,7 @@ import {
 } from "@/lib/suites/shared/mtfTable";
 import type { MtfCell, MtfRow } from "@/lib/suites/shared/mtfTable";
 import { WAVE_STATE, computePulseWave, pulseProfileOf } from "./pulseWave";
+import { PULSE_MTF_META } from "./mtfDash.meta";
 
 // ------------------------------------------------------------------------------------ constants
 
@@ -77,8 +78,6 @@ const MIN_BARS = 12;
 
 // ------------------------------------------------------------------------------------- settings
 
-const FIELDS: SuiteField[] = mtfFields();
-const DEFAULTS: Record<string, any> = mtfDefaults("br", false);
 
 // -------------------------------------------------------------------------------------- helpers
 
@@ -290,15 +289,6 @@ function compute(ctx: ModuleCtx): ModuleResult {
 
 // ---------------------------------------------------------------------------------- module def
 
-export const PULSE_MTF_MODULE: SuiteModuleDef = {
-  key: "mtf",
-  label: "MTF Dashboard",
-  tag: "MTF",
-  tier: "pro",
-  defaultOn: false,
-  fields: FIELDS,
-  defaults: DEFAULTS,
-  compute,
-};
+export const PULSE_MTF_MODULE: SuiteModuleDef = { ...PULSE_MTF_META, compute };
 
 export default PULSE_MTF_MODULE;

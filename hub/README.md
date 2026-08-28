@@ -1,7 +1,8 @@
 # Mastermind Quote Hub
 
 Localhost-only (127.0.0.1:3100) WebSocket fan-out + REST quote server for the
-Mastermind Terminal. Serves crypto (Coinbase/OKX), delayed-US (Polygon AM.*) or entitled
+Mastermind Terminal. Serves crypto (OKX UTC-0 spot plus USDT perpetual companion, Coinbase
+rolling-24h fallback), delayed-US (Polygon AM.*) or entitled
 real-time US (Polygon A.* per-second aggregates), and
 macro (futures / indices / FX, near-live via Sina) quotes to the Next.js frontend via
 loopback proxy.
@@ -222,6 +223,14 @@ a populated `extSource` with a missing `extPrice` is worse than no ext block at 
 the terminal fetched them itself from Yahoo spark at `DELAYED_15M`; the hub now serves the
 liquid contracts near-live.
 
+**Crypto change basis.** OKX is the preferred crypto writer. Its `sodUtc0` anchor is used for
+`prevClose`/`chg` on the canonical `-USD` spot rows, and the matching `-USDT-SWAP` ticker is
+carried as `perpLast`, `perpPrevClose`, `perpChg`, `perpOpen`, `perpHigh`, `perpLow`, `perpVol`,
+`perpTs`, `perpChangeBasis`, and `perpSource`. If OKX is unavailable for 60 seconds, the warm
+Coinbase socket becomes the fallback; its `changeBasis: "ROLLING_24H"` is explicit so a degraded
+quote is not mistaken for the UTC-day basis. Both sockets are kept warm and only the coordinator's
+primary may write canonical fields.
+
 **Routing.** `isMacroSymbol()` claims a symbol before the `us`/`crypto` classifier ever sees it:
 literal `DX-Y.NYB`, `^INDEX` (caret), `*=F` (futures), `*=X` (FX). Macro symbols bypass the
 Store, Polygon and the AnchorCache entirely — they carry their own `prevClose`/`chg` and have no
@@ -303,7 +312,9 @@ GET /health
 GET /quotes?syms=NVDA,AAPL,BTC-USD,CL=F,^GSPC
 → { NVDA: { sym, last, chg, prevClose, close?, afterHours?, open, high, low, vol,
              ts, live, source, market, basis, anchor_source, stale_anchor?,
-             extPrice?, extChg?, extTs?, extSession?, extSource? }, ... }
+             extPrice?, extChg?, extTs?, extSession?, extSource?, changeBasis?,
+             perpLast?, perpPrevClose?, perpChg?, perpOpen?, perpHigh?, perpLow?, perpVol?,
+             perpTs?, perpChangeBasis?, perpSource? }, ... }
 ```
 
 The response is always a **flat `{ SYM: quote }` object carrying present entries only** —

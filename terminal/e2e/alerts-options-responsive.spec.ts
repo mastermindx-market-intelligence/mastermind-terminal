@@ -43,9 +43,16 @@ test("covered-tape options alerts stay honest and contained", async ({ page }, t
   });
 
   await page.goto("/alerts");
-  await page.locator(".alert-form > select").first().selectOption("options");
+  // The category select exists in the server-rendered markup before React attaches its handler, so
+  // a fast `selectOption` can change the DOM value while `cat` state never moves — the options
+  // sub-form then never renders and the failure reads as "element not found". /alerts hydrates
+  // through a lazy boundary since #431, which widens that window enough for a cold route compile
+  // to lose the race. Retry the USER ACTION until the app responds to it.
   const kind = page.locator('select:has(option[value="opt_premium_burst"])');
-  await expect(kind).toBeVisible();
+  await expect(async () => {
+    await page.locator(".alert-form > select").first().selectOption("options");
+    await expect(kind).toBeVisible({ timeout: 1_000 });
+  }).toPass({ timeout: 30_000 });
   await expect(page.locator('.alert-form select:has(option[value="SPY"])')).toHaveCount(1);
 
   await kind.selectOption("opt_premium_burst");

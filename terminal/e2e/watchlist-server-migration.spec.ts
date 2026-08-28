@@ -1,5 +1,11 @@
 import { expect, test, type Page } from "@playwright/test";
-import { isolateWatchlistStore } from "./watchlistStore";
+import {
+  E2E_WLS_KEY,
+  E2E_WLS_MIGRATED_KEY,
+  e2eWatchlistOwner,
+  isolateWatchlistStore,
+  seedOwnerWatchlists,
+} from "./watchlistStore";
 
 // W1b acceptance: `mm.wls` named lists become SERVER-BACKED for a signed-in user, via a one-time
 // additive migration that is safe to run twice and never touches `Default`.
@@ -9,7 +15,11 @@ import { isolateWatchlistStore } from "./watchlistStore";
 // `mm_e2e_wl` store (e2e/watchlistStore.ts), so the parallel viewport projects cannot see each
 // other's writes.
 
-const MIGRATED_KEY = "mm.wls.migrated.v1";
+// A1: both the lists cache and the migration receipt are owner-scoped envelopes now, so this spec
+// reads and writes the SIGNED-IN owner's slot rather than a browser-global key.
+const MIGRATED_KEY = E2E_WLS_MIGRATED_KEY;
+let owner = e2eWatchlistOwner();
+let storeKey = "default";
 
 // Local Default is a REORDERED SUBSET of the server's seeded six. That makes the TRAP-1 assertion
 // exact: the reconcile has no local-only row to heal, so any change to the server's Default would
@@ -44,9 +54,14 @@ const inventory = (page: Page): Promise<ServerList[]> => page.evaluate(async () 
   return payload.lists as ServerList[];
 });
 
-const marker = (page: Page) => page.evaluate((key) => {
-  try { return JSON.parse(localStorage.getItem(key) || "null"); } catch { return null; }
-}, MIGRATED_KEY);
+const marker = (page: Page) => page.evaluate(([key, slot]) => {
+  try { return JSON.parse(localStorage.getItem(key) || "{}")[slot] ?? null; } catch { return null; }
+}, [MIGRATED_KEY, owner] as const);
+
+/** This owner's saved local lists, from the owner-scoped envelope. */
+const savedLists = (page: Page) => page.evaluate(([key, slot]) => {
+  try { return JSON.parse(localStorage.getItem(key) || "{}")[slot]?.lists ?? {}; } catch { return {}; }
+}, [E2E_WLS_KEY, owner] as const);
 
 const named = (lists: ServerList[], name: string) => lists.find((list) => list.name === name);
 const symbolsOf = (lists: ServerList[], name: string) => named(lists, name)?.symbols.map((row) => row.symbol) ?? null;
@@ -59,8 +74,9 @@ async function boot(page: Page) {
 }
 
 test.beforeEach(async ({ page, baseURL }, testInfo) => {
-  await isolateWatchlistStore(page, testInfo, baseURL);
-  await page.addInitScript((seed) => localStorage.setItem("mm.wls", JSON.stringify(seed)), SEED);
+  storeKey = await isolateWatchlistStore(page, testInfo, baseURL);
+  owner = e2eWatchlistOwner(storeKey);
+  await seedOwnerWatchlists(page, storeKey, SEED);
 });
 
 test("one-time migration is additive, per-list, and run-twice identical", async ({ page }) => {
@@ -86,10 +102,8 @@ test("one-time migration is additive, per-list, and run-twice identical", async 
   expect(symbolsOf(first, "Default")).toEqual(SERVER_DEFAULT);
   // ...and the local cache still holds the user's own Default order (their two rows first, then
   // the server rows they did not have) — the TRAP-1 reconcile, unchanged by W1b.
-  await expect.poll(async () => page.evaluate(() => {
-    const saved = JSON.parse(localStorage.getItem("mm.wls") || "{}");
-    return (saved.lists?.Default ?? []).map((row: { symbol: string }) => row.symbol);
-  })).toEqual(["MSFT", "AAPL", "BTC-USD", "ETH-USD", "NVDA", "QQQ"]);
+  await expect.poll(async () => (await savedLists(page)).Default?.map((row: { symbol: string }) => row.symbol))
+    .toEqual(["MSFT", "AAPL", "BTC-USD", "ETH-USD", "NVDA", "QQQ"]);
 
   // RUN TWICE: reload re-runs the whole effect against the same local state.
   await page.reload();
@@ -98,7 +112,11 @@ test("one-time migration is additive, per-list, and run-twice identical", async 
 
   // ...and a THIRD time with the marker wiped, proving idempotency comes from merge-by-name +
   // insert-missing rather than from the marker alone.
-  await page.evaluate((key) => localStorage.removeItem(key), MIGRATED_KEY);
+  await page.evaluate(([key, slot]) => {
+    const envelope = JSON.parse(localStorage.getItem(key) || "{}");
+    delete envelope[slot];
+    localStorage.setItem(key, JSON.stringify(envelope));
+  }, [MIGRATED_KEY, owner] as const);
   await page.reload();
   await expect(page.locator(".mm-ptag")).toBeVisible({ timeout: 60_000 });
   await expect.poll(() => marker(page), { timeout: 30_000 }).toEqual({ "Gold Miners": true, Space: true });
@@ -113,14 +131,14 @@ test("a partially-recorded marker retries only the lists it does not name", asyn
   // entry, keep "Gold Miners" recorded. The next mount must re-create Space and leave Gold Miners
   // exactly as it is.
   const spaceId = named(complete, "Space")!.id;
-  await page.evaluate(async ({ key, listId }) => {
-    localStorage.setItem(key, JSON.stringify({ "Gold Miners": true }));
+  await page.evaluate(async ({ key, slot, listId }) => {
+    localStorage.setItem(key, JSON.stringify({ [slot]: { "Gold Miners": true } }));
     await fetch("/api/watchlist", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "deleteList", listId }),
     });
-  }, { key: MIGRATED_KEY, listId: spaceId });
+  }, { key: MIGRATED_KEY, slot: owner, listId: spaceId });
   expect(await inventory(page)).toHaveLength(2);
 
   await page.reload();
@@ -192,10 +210,7 @@ test("F1 probe: an inventory read parked mid-flight cannot revert a live local d
   // The rail DOM never gets AEM back...
   await expect(page.locator('[data-watchlist-symbol="AEM"]')).toHaveCount(0);
   // ...nor does the localStorage cache...
-  expect(await page.evaluate(() => {
-    const saved = JSON.parse(localStorage.getItem("mm.wls") || "{}");
-    return (saved.lists?.["Gold Miners"] ?? []).map((row: { symbol: string }) => row.symbol);
-  })).toEqual(["NEM"]);
+  expect((await savedLists(page))["Gold Miners"]?.map((row: { symbol: string }) => row.symbol)).toEqual(["NEM"]);
   // ...and F2 means the delete reached the server during the window (by exact NAME — no id was
   // known yet, because the very read that registers ids was the one parked).
   expect(symbolsOf(await inventory(page), "Gold Miners")).toEqual(["NEM"]);
@@ -218,7 +233,11 @@ test("a server-only list is kept, and a symbol edit on a NAMED list now reaches 
       body: JSON.stringify({ action: "add", listId: created.list.id, symbols: ["ASTS"], section: "Growth" }),
     });
   });
-  await page.evaluate((key) => localStorage.removeItem(key), MIGRATED_KEY);
+  await page.evaluate(([key, slot]) => {
+    const envelope = JSON.parse(localStorage.getItem(key) || "{}");
+    delete envelope[slot];
+    localStorage.setItem(key, JSON.stringify(envelope));
+  }, [MIGRATED_KEY, owner] as const);
   await page.reload();
   await expect(page.locator(".mm-ptag")).toBeVisible({ timeout: 60_000 });
   await expect.poll(() => marker(page), { timeout: 30_000 }).toEqual({ "Gold Miners": true, Space: true });

@@ -192,4 +192,25 @@ export function daysUntil(target?: string | number | null): number | null {
   return Math.round((utcTgt - utcNow) / 86400000);
 }
 
+function isExactUtcCalendarDay(value: string): boolean {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) return false;
+  const [year, month, day] = match.slice(1).map(Number);
+  const parsed = new Date(Date.UTC(year, month - 1, day));
+  return parsed.getUTCFullYear() === year
+    && parsed.getUTCMonth() === month - 1
+    && parsed.getUTCDate() === day;
+}
+
+/**
+ * Countdown for a date that may be presented as "Next". Past and malformed
+ * values fail closed so cached legacy artifacts cannot make an impossible claim.
+ */
+export function nextDateCountdown(target: unknown): number | null {
+  if (typeof target !== "string" && typeof target !== "number") return null;
+  if (typeof target === "string" && !isExactUtcCalendarDay(target)) return null;
+  const days = daysUntil(target);
+  return days != null && days >= 0 ? days : null;
+}
+
 export { MINUS };

@@ -38,10 +38,14 @@ import type {
   ZonePrim,
 } from "@/lib/indicator-canvas/types";
 import { emaArr, normalizeSigned } from "@/lib/suites/shared/oscUtils";
+import { MACD_ENGINE_META, MACDX_ENGINE_DEFAULTS, type MacdMaType } from "./macdEngine.meta";
+// The engine's shared parameter data moved to the metadata file (a settings dialog must be
+// able to read it without this file's computation). Re-exported so every satellite and test
+// that imports it from here keeps working.
+export { MACDX_ENGINE_DEFAULTS, MACDX_MA_OPTIONS, type MacdMaType } from "./macdEngine.meta";
 
 // ------------------------------------------------------------------------------------ constants
 
-export type MacdMaType = "ema" | "sma";
 
 /** Trailing window (bars) the ±100 normalization is measured against. */
 export const MACDX_NORM_WINDOW = 250;
@@ -57,26 +61,6 @@ const SIGNAL_W = 1;
 const SIGNAL_ALPHA = 0.85;
 const HEAT_MID = 40; // |v| under this = noise (muted)
 const ZONE_ALPHA = 0.1;
-
-export const MACDX_MA_OPTIONS: Array<{ v: string; label: string }> = [
-  { v: "ema", label: "EMA" },
-  { v: "sma", label: "SMA" },
-];
-
-/**
- * Engine parameter DEFAULTS for the whole suite.
- *
- * `ModuleCtx.s` is scoped to ONE module, so the Signals / Divergence / Histogram / Trend modules
- * read the Engine's LIVE fast/slow/signalLen/oscMa/sigMa out of `ctx.suite` (the suite's flat,
- * module-prefixed params) via `sharedMacd(bars, ctx.suite)`. These values are the fallback only.
- */
-export const MACDX_ENGINE_DEFAULTS = {
-  fast: 10,
-  slow: 20,
-  signalLen: 9,
-  oscMa: "ema" as MacdMaType,
-  sigMa: "ema" as MacdMaType,
-};
 
 // -------------------------------------------------------------------------------------- helpers
 
@@ -308,68 +292,6 @@ export function tape(events: SuiteEvent[]): SuiteEvent[] {
 
 // ------------------------------------------------------------------------------------- settings
 
-const FIELDS: SuiteField[] = [
-  {
-    key: "fast",
-    label: "Fast Length",
-    type: "number",
-    min: 2,
-    max: 50,
-    step: 1,
-    tip: "Bars in the fast moving average of the MACD difference.",
-  },
-  {
-    key: "slow",
-    label: "Slow Length",
-    type: "number",
-    min: 5,
-    max: 100,
-    step: 1,
-    tip: "Bars in the slow moving average. Keep it above the fast length or the curve inverts.",
-  },
-  {
-    key: "signalLen",
-    label: "Signal Length",
-    type: "number",
-    min: 2,
-    max: 50,
-    step: 1,
-    tip: "Smoothing applied to the normalized MACD to draw the signal line.",
-  },
-  {
-    key: "oscMa",
-    label: "MACD MA Type",
-    type: "select",
-    options: MACDX_MA_OPTIONS,
-    tip: "Average used for the fast and slow legs.",
-  },
-  {
-    key: "sigMa",
-    label: "Signal MA Type",
-    type: "select",
-    options: MACDX_MA_OPTIONS,
-    tip: "Average used for the signal line.",
-  },
-  {
-    key: "colorMode",
-    label: "Color Mode",
-    type: "select",
-    options: [
-      { v: "heatmap", label: "HeatMap" },
-      { v: "slope", label: "Rising / Falling" },
-    ],
-    tip: "HeatMap colors the curve by how extreme the value is; Rising/Falling colors it by slope.",
-  },
-];
-
-const DEFAULTS: Record<string, any> = {
-  fast: MACDX_ENGINE_DEFAULTS.fast,
-  slow: MACDX_ENGINE_DEFAULTS.slow,
-  signalLen: MACDX_ENGINE_DEFAULTS.signalLen,
-  oscMa: MACDX_ENGINE_DEFAULTS.oscMa,
-  sigMa: MACDX_ENGINE_DEFAULTS.sigMa,
-  colorMode: "heatmap",
-};
 
 // -------------------------------------------------------------------------------------- compute
 
@@ -500,15 +422,6 @@ function compute(ctx: ModuleCtx): ModuleResult {
 
 // ----------------------------------------------------------------------------------- module def
 
-export const MACD_ENGINE_MODULE: SuiteModuleDef = {
-  key: "eng",
-  label: "MACD Engine",
-  tag: "ME",
-  tier: "essential",
-  defaultOn: true,
-  fields: FIELDS,
-  defaults: DEFAULTS,
-  compute,
-};
+export const MACD_ENGINE_MODULE: SuiteModuleDef = { ...MACD_ENGINE_META, compute };
 
 export default MACD_ENGINE_MODULE;

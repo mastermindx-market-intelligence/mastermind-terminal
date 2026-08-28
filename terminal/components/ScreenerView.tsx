@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useT, useLang } from "@/lib/i18n";
 import { displayName, marketOf, isSymbolVisible, ALL_MARKETS, type MarketId } from "@/lib/markets";
 import { useMarketPrefs } from "@/lib/useMarketPrefs";
+import type { AccountIdentity } from "@/lib/accountIdentity";
 import { MARKET_TKEY } from "@/lib/markets";
 import { getJSONResult, invalidate } from "@/lib/dataCache";
 import { trackSearch } from "@/lib/searchTrack";
@@ -239,11 +240,13 @@ const EmptyIcon = () => (
   </svg>
 );
 
-export default function ScreenerView({ email }: { email: string }) {
+export default function ScreenerView({ identity }: { identity: AccountIdentity }) {
   const router = useRouter();
   const t = useT();
   const { lang } = useLang();
-  const { prefs, ready: prefsReady } = useMarketPrefs(email);
+  // The market universe this user sees is OWNER state, so it is keyed on the identity's uuid,
+  // not on an address the account can change out from under it.
+  const { prefs, ready: prefsReady } = useMarketPrefs(identity);
 
   // ── data state ─────────────────────────────────────────────────────────
   const [rows, setRows] = useState<Row[]>([]);

@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
-import { createFixtureDb, fixtureUserId, FIXTURE_STORE_COOKIE } from "@/lib/watchlistsFixtureDb";
+import { createFixtureDb, fixtureFaults, fixtureUserId, FIXTURE_FAULT_COOKIE, FIXTURE_STORE_COOKIE } from "@/lib/watchlistsFixtureDb";
 import {
   createPosition,
   deletePosition,
-  listPositions,
+  readPositions,
   updatePosition,
   type PortfolioDb,
 } from "@/lib/portfolio";
@@ -33,8 +33,12 @@ const isE2eFixture = () => process.env.TERMINAL_E2E_FIXTURE === "1";
  *  holds both tables and the watchlist/portfolio isolation invariants are actually testable. */
 async function resolveDb(): Promise<{ db: PortfolioDb; userId: string } | null> {
   if (isE2eFixture()) {
-    const key = (await cookies()).get(FIXTURE_STORE_COOKIE)?.value || "default";
-    return { db: createFixtureDb(key), userId: fixtureUserId(key) };
+    const jar = await cookies();
+    const key = jar.get(FIXTURE_STORE_COOKIE)?.value || "default";
+    return {
+      db: createFixtureDb(key, fixtureFaults(jar.get(FIXTURE_FAULT_COOKIE)?.value)),
+      userId: fixtureUserId(key),
+    };
   }
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -45,12 +49,23 @@ async function resolveDb(): Promise<{ db: PortfolioDb; userId: string } | null> 
 const unauthenticated = () => NextResponse.json({ error: "unauthenticated" }, { status: 401 });
 const fail = (error: string, status: number) => NextResponse.json({ error }, { status });
 
-/** Every position the signed-in user holds, open and closed, oldest first. */
+/**
+ * Every position the signed-in user holds, open and closed, oldest first.
+ *
+ * FOUR facts, four responses — 401 signed out · 200 with zero positions · 200 with positions ·
+ * 503 store unreadable. The last one used to be indistinguishable from the second: the read
+ * collapsed a Supabase error into `[]` one layer down, so this route answered "you hold nothing"
+ * for an outage. On a holdings surface that is the worst available lie.
+ */
 export async function GET() {
   const session = await resolveDb();
   if (!session) return unauthenticated();
-  const positions = await listPositions(session.db, session.userId);
-  return NextResponse.json({ positions });
+  const read = await readPositions(session.db, session.userId);
+  if (!read.ok) {
+    console.error("portfolio GET failed:", read.error);
+    return fail("portfolio unavailable", 503);
+  }
+  return NextResponse.json({ positions: read.positions });
 }
 
 export async function POST(req: Request) {
@@ -103,7 +118,7 @@ export async function POST(req: Request) {
   if (action === "delete") {
     const result = await deletePosition(db, userId, positionId);
     if (!result.ok) return fail(result.error || "position delete failed", result.status || 500);
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, deletedId: result.deletedId });
   }
 
   return fail("unsupported action", 400);

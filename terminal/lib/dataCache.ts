@@ -28,8 +28,9 @@
  *     via a cheap array-length heuristic (NO double JSON.stringify — see
  *     idbJsonStore.estimatePersistBytes; non-array values persist unconditionally
  *     and rely on the record cap).
- *   - neg404 stays SESSION-ONLY and is never persisted. invalidate(url?) also
- *     deletes from IDB (fire-and-forget).
+ *   - The absence cache stays SESSION-ONLY, is never persisted, and every entry expires
+ *     (see the ABSENCE_TTL note below). invalidate(url?) also deletes from IDB
+ *     (fire-and-forget).
  *   - SAFETY: every IDB path is behind `isAvailable()` (typeof indexedDB) and is
  *     individually try/caught; a broken/blocked/absent IDB (SSR, private
  *     browsing) leaves behaviour byte-identical to the memory-only cache. In the
@@ -50,17 +51,52 @@ import {
   idbClear,
   isAvailable as idbAvailable,
 } from "./idbJsonStore";
+import { canonicalChartSymbol } from "./terminalBoot";
 
 type Entry = { data: any; ts: number; inflight: Promise<CacheOutcome> | null };
 
 const store = new Map<string, Entry>();
 
-// In-session 404 negative cache: a URL that 404'd is never re-fetched in the same
-// session (across ALL call sites). This eliminates the "KRUS.intel.json fetched
-// dozens of times" pattern where dataCache evicts the null entry on each !r.ok
-// response so the next symbol switch or watchlist hover re-requests it.
-// TTL = session lifetime (never evicted while the tab is open).
-const neg404 = new Set<string>();
+/**
+ * Negative cache — a URL that answered 404/410 is not re-fetched for a while. This is what
+ * eliminates the "KRUS.intel.json fetched dozens of times" pattern, where dataCache evicts the
+ * null entry on each !r.ok response so the next symbol switch or watchlist hover re-requests it.
+ *
+ * ABSENCE IS NOW BOUNDED, not permanent. It used to be a `Set` with a session lifetime, and
+ * that turned a temporary fact into a permanent one:
+ *
+ *   1. the client asks for XYZ.intel.json; it does not exist yet -> 404, remembered;
+ *   2. the nightly publisher writes XYZ.intel.json;
+ *   3. the user revisits XYZ in the SAME TAB and the client refuses to make the request.
+ *
+ * The only cure was closing the tab. A finite TTL keeps 404s cheap (one request per URL per
+ * window, not one per hover) while making newly published data discoverable without a reload.
+ *
+ * Two windows, because the two absences have different authority:
+ *   ABSENCE_TTL           we personally observed one 404/410.
+ *   COVERAGE_ABSENCE_TTL  the published coverage index asserts the artifact does not exist.
+ *                         Stronger evidence, and re-checking it costs N requests rather than
+ *                         one, so it holds longer — but it still expires.
+ */
+const ABSENCE_TTL = 10 * 60_000;           // 10 minutes
+const COVERAGE_ABSENCE_TTL = 30 * 60_000;  // 30 minutes
+
+/** url -> epoch ms at which the remembered absence stops being trusted. */
+const absent = new Map<string, number>();
+
+function absenceActive(url: string): boolean {
+  const until = absent.get(url);
+  if (until === undefined) return false;
+  if (Date.now() >= until) {
+    absent.delete(url);   // expired: let the next call go to the network
+    return false;
+  }
+  return true;
+}
+
+function rememberAbsence(url: string, ttl: number = ABSENCE_TTL): void {
+  absent.set(url, Date.now() + ttl);
+}
 
 export interface GetOpts {
   ttl?: number;   // milliseconds; default 60_000
@@ -161,13 +197,13 @@ function doFetch(url: string, entry: Entry, onRevalidate?: (data: any) => void):
   const inflight: Promise<CacheOutcome> = fetchOutcome(url).then((outcome) => {
     // Only permanently suppress on true 404/410 (resource does not exist).
     // 5xx / 429 / network errors are transient — the entry evicts so the next call retries.
-    if (outcome.status === "absent") neg404.add(url);
+    if (outcome.status === "absent") rememberAbsence(url);
     // Only commit if this specific inflight is still the one registered.
     const current = store.get(url);
     if (current && current.inflight === inflight) {
       if (outcome.status !== "data") {
         // Never pin null — clear the key so the next call retries.
-        // (neg404 prevents a 404/410 URL from being refetched in-session.)
+        // (the bounded absence cache prevents a 404/410 URL from being refetched for a while.)
         store.delete(url);
       } else {
         const committed: Entry = { data: outcome.data, ts: Date.now(), inflight: null };
@@ -236,7 +272,7 @@ export function _seedDecision(ts: number, now: number, ttl: number, swr: boolean
  */
 export async function getJSONResult(url: string, opts?: GetOpts): Promise<CacheOutcome> {
   // 0. In-session 404 negative cache — never re-request a URL that answered 404/410.
-  if (neg404.has(url)) return { status: "absent" };
+  if (absenceActive(url)) return { status: "absent" };
 
   const ttl = opts?.ttl ?? DEFAULT_TTL;
   const swr = opts?.swr ?? true;
@@ -284,7 +320,7 @@ export async function getJSONResult(url: string, opts?: GetOpts): Promise<CacheO
         return { status: "data", data: raced.data };
       }
       // raced entry is stale — fall through to the normal miss fetch below.
-    } else if (rec && !neg404.has(url)) {
+    } else if (rec && !absenceActive(url)) {
       // Seed memory with the PERSISTED ts (never `now`), then apply normal rules.
       const decision = _seedDecision(rec.ts, Date.now(), ttl, swr);
       if (decision === "fresh") {
@@ -336,7 +372,7 @@ export async function getJSON(url: string, opts?: GetOpts): Promise<any> {
 export function prefetch(url: string, opts?: GetOpts): void {
   if (typeof window === "undefined") return;
   // Don't prefetch URLs that already 404'd this session.
-  if (neg404.has(url)) return;
+  if (absenceActive(url)) return;
 
   const ttl = opts?.ttl ?? DEFAULT_TTL;
   const now = Date.now();
@@ -359,8 +395,8 @@ export function prefetch(url: string, opts?: GetOpts): void {
     void (async () => {
       try {
         const rec = await idbGet(url);
-        // Bail if another call populated memory or the url got neg404'd meanwhile.
-        if (store.get(url) || neg404.has(url)) return;
+        // Bail if another call populated memory or the url was marked absent meanwhile.
+        if (store.get(url) || absenceActive(url)) return;
         if (rec) {
           // prefetch has no swr flag; treat as swr=true (revalidate if stale).
           const decision = _seedDecision(rec.ts, Date.now(), ttl, true);
@@ -377,7 +413,7 @@ export function prefetch(url: string, opts?: GetOpts): void {
         doFetch(url, fresh);
       } catch {
         // Any failure → fall back to a plain network prefetch.
-        if (!store.get(url) && !neg404.has(url)) {
+        if (!store.get(url) && !absenceActive(url)) {
           const fresh: Entry = { data: null, ts: 0, inflight: null };
           doFetch(url, fresh);
         }
@@ -402,51 +438,68 @@ export function peek(url: string): any | undefined {
  * invalidate — remove one key (or all keys if url is omitted).
  * Also clears the 404 negative-cache entry so the URL can be re-requested, and
  * removes the corresponding IndexedDB record(s) (fire-and-forget; guarded so it
- * is a no-op when IDB is unavailable). neg404 itself is never persisted.
+ * is a no-op when IDB is unavailable). The absence cache itself is never persisted.
  */
 export function invalidate(url?: string): void {
   if (url === undefined) {
     store.clear();
-    neg404.clear();
+    absent.clear();
     if (idbAvailable()) void idbClear();
   } else {
     store.delete(url);
-    neg404.delete(url);
+    absent.delete(url);
     if (idbAvailable()) void idbDelete(url);
   }
 }
 
-/** Test/HMR hook — expose the 404 negative cache for test assertions. */
+/** Test/HMR hook — is a bounded absence currently held for this url? */
 export function _neg404Has(url: string): boolean {
-  return neg404.has(url);
+  return absenceActive(url);
+}
+
+/** Test hook — the epoch ms at which a remembered absence expires (undefined if not held). */
+export function _absenceExpiry(url: string): number | undefined {
+  return absent.get(url);
 }
 
 export function _clearNeg404(): void {
-  neg404.clear();
+  absent.clear();
 }
 
 // ── Convenience helpers ──
 
 // ── Coverage index ──────────────────────────────────────────────────────────
 //
-// coverage.json is written by scripts/build_data_coverage.py after each ingest
-// run. When present the client uses it to pre-seed the neg404 cache so a symbol
-// outside the deep-coverage universe never generates a network request at all.
+// coverage.json is written by scripts/build_data_coverage.py. When present the client uses it to
+// pre-seed the absence cache, so a symbol outside the deep-coverage universe costs no request at
+// all rather than one 404 per surface.
 //
-// Shape: { intel: string[], fund: string[], opts: string[], ohlc: string[] }
+// Shape: { as_of, generation, intel[], fund[], opts[], ohlc[] }
 //
-// When absent (local dev before the first ingest, or the script hasn't run yet)
-// we fall back gracefully — the runtime neg404 cache still prevents repeat 404s
-// within a session.
+// PRODUCER TIMING — the half of this bug that lives outside the browser. coverage.json used to be
+// regenerated ONLY by the Next package's `prebuild`, i.e. during a deploy. The nightly
+// `terminal-data` publisher writes and refreshes per-symbol artifacts on its own schedule and did
+// NOT regenerate coverage after its writers, so between a nightly publish and the next deploy the
+// index asserted absences that were no longer true — and the client believed them before it ever
+// made a request. `ops/terminal-data` now regenerates coverage as its final publish step, and
+// `tests/test_nightly_wiring.py` pins that (an unwired producer is invisible from inside the app).
+//
+// When absent (local dev before the first ingest) we degrade gracefully — the runtime absence
+// cache still prevents repeat 404s within its window.
 let coverageLoaded = false;
 
 /**
- * loadCoverage — fetch coverage.json once per session and pre-seed neg404 for
- * any symbol×suffix combination NOT listed as covered.  Call from a useEffect
- * in TerminalShell with the current manifest symbol list.
+ * loadCoverage — fetch coverage.json once per session and pre-seed the absence cache for any
+ * symbol×suffix combination NOT listed as covered. Call from a useEffect in TerminalShell with
+ * the current manifest symbol list.
  *
- * Idempotent: subsequent calls before the first resolves are no-ops; calls after
- * it resolves are also no-ops (coverageLoaded flag).
+ * Idempotent: subsequent calls before the first resolves are no-ops; calls after it resolves are
+ * also no-ops (coverageLoaded flag).
+ *
+ * Every absence it seeds is BOUNDED by COVERAGE_ABSENCE_TTL. That is what stops a coverage
+ * document — deploy-generated or nightly-generated — from silently outliving the state it
+ * describes: after the window the client asks the network again, and a newly published artifact
+ * is found without a tab restart.
  */
 let coverageInflight: Promise<void> | null = null;
 export function loadCoverage(manifestSymbols: string[]): void {
@@ -459,9 +512,15 @@ export function loadCoverage(manifestSymbols: string[]): void {
     opts:  ".opts.json",
   };
 
-  // Maximum age (ms) we trust coverage.json for pre-seeding.
-  // If coverage is stale we fall back to runtime-only neg404, which is safe.
-  const COVERAGE_MAX_AGE_MS = 24 * 60 * 60 * 1000; // 24 hours
+  // Maximum age we trust coverage.json for pre-seeding at all. Beyond it we fall back to
+  // runtime-only absence, which is always safe (it costs requests, it never hides data).
+  //
+  // 36h, not 24h: the nightly starts at 21:30 UTC and its marathon runs 3-4 hours, so a
+  // 24h window put the daily regeneration uncomfortably close to its own expiry and a single
+  // missed run disabled pre-seeding entirely. The per-entry TTL above now bounds how long any
+  // individual absence can be wrong, so the document-level gate does not have to be the only
+  // protection — it is the backstop for a publisher that has stopped running.
+  const COVERAGE_MAX_AGE_MS = 36 * 60 * 60 * 1000;
 
   coverageInflight = fetch("/data/coverage.json")
     .then((r) => (r.ok ? r.json() : null))
@@ -470,20 +529,19 @@ export function loadCoverage(manifestSymbols: string[]): void {
       coverageLoaded = true;
       if (!cov || typeof cov !== "object") return;   // absent or malformed → no-op
 
-      // Freshness gate (MAJOR-2): stale coverage.json can permanently suppress URLs
-      // whose files were added after the last ingest run.  Only pre-seed neg404 when
-      // coverage.as_of is recent enough to be trusted.
+      // Freshness gate (MAJOR-2): a stale coverage.json asserts absences for files written after
+      // it was generated. Only pre-seed when the document is recent enough to be trusted.
       if (typeof cov.as_of === "string") {
         const covAge = Date.now() - new Date(cov.as_of).getTime();
-        if (covAge > COVERAGE_MAX_AGE_MS) return;  // stale → skip pre-seeding; runtime neg404 still works
+        if (covAge > COVERAGE_MAX_AGE_MS) return;  // stale → skip pre-seeding; runtime absence still works
       }
 
       for (const [key, suffix] of Object.entries(SUFFIXES)) {
         const covered = new Set<string>(Array.isArray(cov[key]) ? cov[key] : []);
-        // Pre-seed neg404 for every manifest symbol NOT in this coverage list.
+        // Pre-seed a BOUNDED absence for every manifest symbol NOT in this coverage list.
         for (const sym of manifestSymbols) {
           if (!covered.has(sym)) {
-            neg404.add(`/data/${sym}${suffix}`);
+            rememberAbsence(`/data/${sym}${suffix}`, COVERAGE_ABSENCE_TTL);
           }
         }
       }
@@ -496,14 +554,30 @@ export function _resetCoverage(): void {
   coverageInflight = null;
 }
 
-/** Fetch a symbol's OHLC file: /data/<sym>.json */
-export function getOhlc(sym: string): Promise<any> {
-  return getJSON("/data/" + sym + ".json");
+/**
+ * The `/data` file URL for one symbol, or `null` when the value is not a usable symbol.
+ *
+ * `canonicalChartSymbol` is THE boundary (lib/terminalBoot.ts) and the same one the server route's
+ * preload uses. Concatenating the caller's string straight into the path — what this module did
+ * before — let `?sym=nvda` fetch `/data/nvda.json` while the route had already preloaded
+ * `/data/NVDA.json`: the preload missed and the fetch 404'd. It also meant a user-controlled query
+ * value reached the URL space verbatim.
+ */
+function dataFileUrl(sym: string, suffix: ".json" | ".slice.json"): string | null {
+  const symbol = canonicalChartSymbol(sym);
+  return symbol ? `/data/${encodeURIComponent(symbol)}${suffix}` : null;
 }
 
-/** Fetch a symbol's slice file: /data/<sym>.slice.json */
+/** Fetch a symbol's OHLC file: /data/<SYM>.json */
+export function getOhlc(sym: string): Promise<any> {
+  const url = dataFileUrl(sym, ".json");
+  return url ? getJSON(url) : Promise.resolve(null);
+}
+
+/** Fetch a symbol's slice file: /data/<SYM>.slice.json */
 export function getSlice(sym: string): Promise<any> {
-  return getJSON("/data/" + sym + ".slice.json");
+  const url = dataFileUrl(sym, ".slice.json");
+  return url ? getJSON(url) : Promise.resolve(null);
 }
 
 /**

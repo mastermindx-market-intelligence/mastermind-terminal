@@ -29,6 +29,7 @@ import type {
   TooltipDef,
 } from "@/lib/indicator-canvas/types";
 import { sharedMacd, tape } from "./macdEngine";
+import { MACD_TREND_META } from "./macdTrend.meta";
 
 // ------------------------------------------------------------------------------------ constants
 
@@ -42,8 +43,6 @@ const STREAK = 3; // consecutive bars of momentum required to commit a phase
 
 // ------------------------------------------------------------------------------------- settings
 
-const FIELDS: SuiteField[] = [];
-const DEFAULTS: Record<string, any> = {};
 
 // -------------------------------------------------------------------------------------- compute
 
@@ -183,15 +182,6 @@ function compute(ctx: ModuleCtx): ModuleResult {
 
 // ----------------------------------------------------------------------------------- module def
 
-export const MACD_TREND_MODULE: SuiteModuleDef = {
-  key: "trend",
-  label: "Phase Trend",
-  tag: "MT",
-  tier: "pro",
-  defaultOn: false,
-  fields: FIELDS,
-  defaults: DEFAULTS,
-  compute,
-};
+export const MACD_TREND_MODULE: SuiteModuleDef = { ...MACD_TREND_META, compute };
 
 export default MACD_TREND_MODULE;

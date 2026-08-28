@@ -36,6 +36,10 @@ import type {
   SuiteModuleDef,
 } from "@/lib/indicator-canvas/types";
 import { emaArr, rsiArr } from "@/lib/suites/shared/oscUtils";
+import { RSI_DEFAULTS, RSI_ENGINE_META, type RsiSmoothType, type RsiSource } from "./rsiEngine.meta";
+// Moved to the metadata file (the settings schema is built from it); re-exported so every
+// satellite and test that imports it from here keeps working.
+export { RSI_DEFAULTS, type RsiSmoothType, type RsiSource } from "./rsiEngine.meta";
 
 // ------------------------------------------------------------------------- suite-wide constants
 
@@ -54,21 +58,7 @@ export const MAX_EVENTS = 80;
 
 // ------------------------------------------------------------------------------ shared settings
 
-export type RsiSource = "close" | "hl2" | "hlc3";
-export type RsiSmoothType = "ema" | "sma" | "wma";
 
-/**
- * Engine parameter DEFAULTS. `ctx.s` is per-module, so a satellite (Signals / Divergence /
- * Channels) reads the user's live Engine settings from `ctx.suite` (the whole suite's flat,
- * module-prefixed params) via `sharedRsi()` and falls back to these only when a key is absent.
- */
-export const RSI_DEFAULTS = {
-  len: 14,
-  source: "close" as RsiSource,
-  smooth: true,
-  smoothLen: 14,
-  smoothType: "ema" as RsiSmoothType,
-};
 
 /** The Engine module's key inside this suite — the prefix satellites read out of `ctx.suite`. */
 export const RSI_ENGINE_KEY = "eng";
@@ -269,58 +259,6 @@ const MAX_FILL_RUNS = 60;
 /** |rsi - 50| below this reads as "nothing happening" -> muted; above it the wave takes the accent. */
 const DEAD_ZONE = 8;
 
-const FIELDS: SuiteField[] = [
-  {
-    key: "len",
-    label: "RSI Length",
-    type: "number",
-    min: 2,
-    max: 50,
-    step: 1,
-    tip: "Wilder RSI period. Shorter reacts faster and spends more time beyond 65/35.",
-  },
-  {
-    key: "source",
-    label: "Source",
-    type: "select",
-    options: [
-      { v: "close", label: "Close" },
-      { v: "hl2", label: "HL2" },
-      { v: "hlc3", label: "HLC3" },
-    ],
-    tip: "Price series the RSI is computed on.",
-  },
-  {
-    key: "smooth",
-    label: "Smoothing MA",
-    type: "bool",
-    tip: "Signal line over the RSI — crosses of the two drive the Signals module's dots.",
-  },
-  {
-    key: "smoothLen",
-    label: "Smoothing Length",
-    type: "number",
-    min: 1,
-    max: 50,
-    step: 1,
-    tip: "Length of the smoothing MA. 1 = no smoothing (the line sits on the wave).",
-    showIf: { key: "smooth", eq: true },
-  },
-  {
-    key: "smoothType",
-    label: "Smoothing Type",
-    type: "select",
-    options: [
-      { v: "ema", label: "EMA" },
-      { v: "sma", label: "SMA" },
-      { v: "wma", label: "WMA" },
-    ],
-    tip: "WMA turns fastest, SMA slowest; EMA sits between them.",
-    showIf: { key: "smooth", eq: true },
-  },
-];
-
-const DEFAULTS: Record<string, any> = { ...RSI_DEFAULTS };
 
 // -------------------------------------------------------------------------------------- compute
 
@@ -484,15 +422,6 @@ function compute(ctx: ModuleCtx): ModuleResult {
 
 // ---------------------------------------------------------------------------------- module def
 
-export const RSI_ENGINE_MODULE: SuiteModuleDef = {
-  key: "eng",
-  label: "RSI Engine",
-  tag: "RE",
-  tier: "essential",
-  defaultOn: true,
-  fields: FIELDS,
-  defaults: DEFAULTS,
-  compute,
-};
+export const RSI_ENGINE_MODULE: SuiteModuleDef = { ...RSI_ENGINE_META, compute };
 
 export default RSI_ENGINE_MODULE;

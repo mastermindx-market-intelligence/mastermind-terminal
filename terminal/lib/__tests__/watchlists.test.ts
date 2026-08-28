@@ -17,7 +17,7 @@ import {
   type LocalWatchlist,
   type ServerWatchlist,
 } from "@/lib/watchlists";
-import { createFixtureDb, fixtureUserId, resetFixtureStores } from "@/lib/watchlistsFixtureDb";
+import { createFixtureDb, fixtureStore, fixtureUserId, resetFixtureStores } from "@/lib/watchlistsFixtureDb";
 
 // The fixture transport is the same in-memory store the Playwright dev server uses, so these unit
 // tests and the e2e migration spec exercise ONE implementation of the service.
@@ -259,15 +259,148 @@ describe("adoptServerSymbols — the ORDER-SEMANTICS RULING", () => {
     ]);
   });
 
-  it("ACCEPTED TRADEOFF: a delete made BEFORE the read can still resurrect", () => {
-    // Absent from the pre-read snapshot => indistinguishable from a row another device added.
-    // Documented in the PR body; write-through sync makes the window rare.
-    expect(adoptServerSymbols([{ symbol: "GOLD", section: "P" }], server, new Set(["GOLD"])))
+  it("A3: a delete made BEFORE the read no longer resurrects — the intent outranks stale state", () => {
+    // W1b accepted this as a tradeoff ("a delete made BEFORE the read can still resurrect"):
+    // absent from the pre-read snapshot, AEM was indistinguishable from a row another device
+    // added, so an offline delete reversed itself on the next mount. A durable deletion intent
+    // (lib/watchlistOwner.ts) is what tells the two apart, and it is passed in here.
+    const afterOfflineDelete = [{ symbol: "GOLD", section: "P" }];
+    const deletedLocally = new Set(["AEM"]);
+    expect(adoptServerSymbols(afterOfflineDelete, server, new Set(["GOLD"]), deletedLocally))
+      .toEqual([
+        { symbol: "GOLD", section: "P" },
+        { symbol: "NEM", section: "Miners" },   // a genuine other-device add still arrives
+      ]);
+  });
+
+  it("A3: once the delete converges the tombstone clears and the symbol can return", () => {
+    // "server addition after the deletion has truly completed" must read as a NEW addition.
+    expect(adoptServerSymbols([{ symbol: "GOLD", section: "P" }], server, new Set(["GOLD"]), new Set()))
       .toEqual([
         { symbol: "GOLD", section: "P" },
         { symbol: "NEM", section: "Miners" },
         { symbol: "AEM", section: "Miners" },
       ]);
+  });
+});
+
+describe("A2 — concurrent adds converge on ONE row per symbol", () => {
+  const listId = async () => (await listWatchlists(db(), owner))[0].id;
+  // Counted from the RAW table, never through `listWatchlists`. That read de-dupes by symbol as it
+  // builds its result (see its loop), which is exactly what hid this defect: the rail looked
+  // correct while the table held two rows, and every later remove/move fanned out across rows the
+  // user could not see. An assertion routed through the read would have passed on the bug.
+  const rawRows = (ticker: string) =>
+    fixtureStore("unit").symbols.filter((row) => row.symbol === ticker);
+
+  it("two writers that both read 'NVDA absent' still produce a single NVDA row", async () => {
+    const id = await listId();
+    await removeSymbols(db(), id, ["NVDA"]);
+    // Interleaved exactly as two tabs do it: BOTH read before EITHER writes. Before migration
+    // 0008 the dedupe lived only in `addSymbols`'s in-memory `present` set, so both inserted.
+    const [first, second] = await Promise.all([
+      addSymbols(db(), id, ["NVDA"], "Equities"),
+      addSymbols(db(), id, ["NVDA"], "Equities"),
+    ]);
+    expect(first.ok && second.ok).toBe(true);
+    expect(rawRows("NVDA")).toHaveLength(1);
+  });
+
+  it("two concurrent initial provisions leave exactly six unique Default members", async () => {
+    // The post-signup race `app/terminal/page.tsx` documents: `router.refresh` and the page load
+    // both find the list empty and both seed it. Twelve rows, six of them duplicates.
+    const id = await listId();
+    const seed = ["BTC-USD", "ETH-USD", "NVDA", "AAPL", "MSFT", "QQQ"];
+    await removeSymbols(db(), id, seed);
+    await Promise.all([
+      addSymbols(db(), id, seed, "Watchlist"),
+      addSymbols(db(), id, seed, "Watchlist"),
+    ]);
+    expect(fixtureStore("unit").symbols.filter((row) => row.watchlist_id === id)).toHaveLength(6);
+    for (const ticker of seed) expect(rawRows(ticker)).toHaveLength(1);
+  });
+
+  it("overlapping batches leave one row per ticker and keep each row's section", async () => {
+    const id = await listId();
+    await Promise.all([
+      addSymbols(db(), id, ["PLTR", "SMCI"], "Growth"),
+      addSymbols(db(), id, ["SMCI", "ARM"], "Semis"),
+      addSymbols(db(), id, ["PLTR", "ARM"], "Growth"),
+    ]);
+    for (const ticker of ["PLTR", "SMCI", "ARM"]) expect(rawRows(ticker)).toHaveLength(1);
+    // The first writer's section is the one that survives; the losers are no-ops, not overwrites.
+    expect(rawRows("PLTR")[0].section).toBe("Growth");
+    expect(rawRows("SMCI")[0].section).toBe("Growth");
+  });
+
+  it("a retried add is idempotent rather than duplicating", async () => {
+    const id = await listId();
+    await addSymbols(db(), id, ["TSLA"], "Equities");
+    const retry = await addSymbols(db(), id, ["TSLA"], "Equities");
+    expect(retry).toEqual({ ok: true, added: [] });
+    expect(rawRows("TSLA")).toHaveLength(1);
+  });
+
+  it("leaves an existing non-duplicate list exactly as it was", async () => {
+    const id = await listId();
+    const before = fixtureStore("unit").symbols.map((row) => ({ ...row }));
+    await addSymbols(db(), id, ["NVDA", "AAPL"], "Equities");
+    expect(fixtureStore("unit").symbols).toEqual(before);
+  });
+
+  // `supabase/` is explicitly NOT deployed (DEPLOY.md), so the schema change and the code deploy
+  // are separate operations. An upsert whose conflict target has no matching unique index does not
+  // degrade — Postgres refuses the statement (42P10) — so without a fallback, shipping this code
+  // to a database that has not had 0008 applied would break EVERY watchlist add.
+  it("still adds the symbol on a database where migration 0008 has not landed yet", async () => {
+    const id = await listId();
+    const real = createFixtureDb("unit");
+    let upsertAttempts = 0;
+    let insertFallbacks = 0;
+    const preMigration = {
+      from: (table: string) => {
+        const query = real.from(table);
+        return {
+          ...query,
+          select: (...args: [string?]) => query.select(...args),
+          eq: (...args: [string, unknown]) => query.eq(...args),
+          insert: (values: unknown) => { insertFallbacks += 1; return query.insert(values as never); },
+          upsert: () => {
+            upsertAttempts += 1;
+            return Object.assign(Promise.resolve({
+              data: null,
+              error: { message: 'there is no unique or exclusion constraint matching the ON CONFLICT specification' },
+            }), query);
+          },
+        } as unknown as ReturnType<typeof real.from>;
+      },
+    };
+    const result = await addSymbols(preMigration, id, ["RBLX"], "Growth");
+    expect(result).toEqual({ ok: true, added: ["RBLX"] });
+    expect(upsertAttempts).toBe(1);
+    expect(insertFallbacks).toBe(1);
+    expect(fixtureStore("unit").symbols.filter((row) => row.symbol === "RBLX")).toHaveLength(1);
+  });
+
+  it("does NOT fall back when the write failed for any other reason", async () => {
+    const id = await listId();
+    const real = createFixtureDb("unit");
+    let insertFallbacks = 0;
+    const brokenDb = {
+      from: (table: string) => {
+        const query = real.from(table);
+        return {
+          ...query,
+          select: (...args: [string?]) => query.select(...args),
+          eq: (...args: [string, unknown]) => query.eq(...args),
+          insert: (values: unknown) => { insertFallbacks += 1; return query.insert(values as never); },
+          upsert: () => Object.assign(Promise.resolve({ data: null, error: { message: "permission denied for table watchlist_symbols" } }), query),
+        } as unknown as ReturnType<typeof real.from>;
+      },
+    };
+    const result = await addSymbols(brokenDb, id, ["RBLX"], "Growth");
+    expect(result.ok).toBe(false);
+    expect(insertFallbacks).toBe(0);
   });
 });
 

@@ -194,4 +194,21 @@ else
   echo "[$(ts)] GUARD: staged $NEW < min $MIN (live $LIVEN) — keeping live, discarding staging"
   rm -f "$STAGE"
 fi
+
+# ── COVERAGE INDEX (must be LAST: it describes what is published) ──
+# coverage.json tells the client which per-symbol artifacts exist, and the client trusts it
+# BEFORE making any request — an absence listed here costs zero network calls.
+#
+# It used to be regenerated only by the Next package's `prebuild`, i.e. during a DEPLOY. This
+# script publishes artifacts on its own schedule and never touched it, so every night between a
+# publish and the next deploy the index asserted absences that had just stopped being true, and a
+# browser that had read it would not even ask for the new file. Regenerating here — after every
+# writer above and after the manifest swap — is what closes the producer half of that gap.
+# (The consumer half is a bounded TTL on the client's absence cache, lib/dataCache.ts.)
+#
+# Runs unconditionally, including when the swap was guarded: the per-symbol artifacts were still
+# written to the live dir, so the index must describe them either way. The script writes
+# atomically (tmp + os.replace), so a concurrent reader never sees a partial index.
+# ⚠️ TWO-COPIES LAW (see the block above): pinned by tests/test_nightly_wiring.py.
+run "$PY" scripts/build_data_coverage.py --data-dir "$D"
 echo "[$(ts)] === terminal refresh done ==="

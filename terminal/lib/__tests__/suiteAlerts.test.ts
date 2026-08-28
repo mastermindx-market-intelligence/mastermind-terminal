@@ -82,15 +82,24 @@ const SUITES_DIR = join(__dirname, "..", "suites");
  * suite directories for the `SuiteModuleDef` literal. Nothing is hardcoded: a module that moves
  * files keeps working, a module that disappears fails loudly.
  */
+/**
+ * `<suite>/<moduleKey>` → the IMPLEMENTATION file that emits that module's events.
+ *
+ * Since B7 a module's identity lives in `<name>.meta.ts` (that is the file declaring `key`) while
+ * its computation — and therefore every event string it emits — stays in `<name>.ts`. So the key
+ * is read from the meta file and the path resolved to its sibling implementation, which keeps
+ * this check asserting exactly what it always asserted: the catalog names an event the owning
+ * module actually emits.
+ */
 function moduleSourceMap(): Map<string, string> {
   const out = new Map<string, string>();
   for (const suite of readdirSync(SUITES_DIR)) {
-    if (suite === "shared" || suite.endsWith(".ts")) continue;
+    if (suite === "shared" || suite === "runtime" || suite.endsWith(".ts")) continue;
     for (const f of readdirSync(join(SUITES_DIR, suite))) {
-      if (!f.endsWith(".ts")) continue;
-      const path = join(SUITES_DIR, suite, f);
-      const m = readFileSync(path, "utf8").match(/export const \w+: SuiteModuleDef = \{\s*key: "(\w+)"/);
-      if (m) out.set(`${suite}/${m[1]}`, path);
+      if (!f.endsWith(".meta.ts")) continue;
+      const metaPath = join(SUITES_DIR, suite, f);
+      const m = readFileSync(metaPath, "utf8").match(/export const \w+: SuiteModuleMeta = \{\s*key: "(\w+)"/);
+      if (m) out.set(`${suite}/${m[1]}`, join(SUITES_DIR, suite, f.replace(/\.meta\.ts$/, ".ts")));
     }
   }
   return out;

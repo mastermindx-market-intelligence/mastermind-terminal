@@ -1,5 +1,5 @@
 "use client";
-import { createContext, useCallback, useContext } from "react";
+import { createContext, useCallback, useContext, useMemo } from "react";
 import { usePathname } from "next/navigation";
 import { BrandLockup } from "@/components/BrandMark";
 import DashboardBackButton from "@/components/DashboardBackButton";
@@ -10,6 +10,7 @@ import { SettingsProvider } from "@/components/settings/SettingsProvider";
 import { OnboardingProvider } from "@/components/onboarding/OnboardingProvider";
 import { useT } from "@/lib/i18n";
 import { backToMacro, useFromMacro } from "@/lib/originNav";
+import { accountIdentity, GUEST_IDENTITY, identityEmail, type AccountIdentity } from "@/lib/accountIdentity";
 
 /**
  * AppShell — the ONE shared chrome for every non-chart workspace (Wave-2 IA).
@@ -31,11 +32,24 @@ import { backToMacro, useFromMacro } from "@/lib/originNav";
  * to the workspace label so it renders even before the NAV lane lands the new keys.
  */
 
-// email flows from the server (shell) layout (resolved once) down to any client
-// child that needs it (e.g. a view's sign-out affordance) without prop-drilling.
-const AppShellEmailCtx = createContext<string>("");
-export function useShellEmail() {
-  return useContext(AppShellEmailCtx);
+// Identity flows from the server (shell) layout (resolved once) down to any client
+// child that needs it — a view's sign-out affordance, an owner-scoped store —
+// without prop-drilling and without a second auth.getUser() per component.
+//
+// ONE context carries the whole AccountIdentity rather than a bare email string:
+// `userId` is the ownership key every owner-scoped store must use, and `email` is
+// display/routing information. Handing children only the email is what forced the
+// preference store to key ownership on a mutable address — see lib/accountIdentity.ts.
+const AppShellIdentityCtx = createContext<AccountIdentity>(GUEST_IDENTITY);
+
+/** The shell's resolved identity. Guest until the layout says otherwise. */
+export function useShellIdentity(): AccountIdentity {
+  return useContext(AppShellIdentityCtx);
+}
+
+/** The signed-in address, or "" for a guest. Display/routing only — NEVER an owner key. */
+export function useShellEmail(): string {
+  return identityEmail(useContext(AppShellIdentityCtx));
 }
 
 // pathname prefix → [i18n key, english fallback]. Order matters: first match wins.
@@ -52,9 +66,12 @@ const TITLE_MAP: Array<[string, string, string]> = [
 
 export default function AppShell({
   email = "",
+  userId = "",
   children,
 }: {
   email?: string;
+  /** The immutable auth uuid (`claims.sub`). "" renders a guest shell. */
+  userId?: string;
   children: React.ReactNode;
 }) {
   const t = useT();
@@ -63,14 +80,18 @@ export default function AppShell({
   const title = hit ? t(hit[1], hit[2]) : t("flow", "Options");
   const { fromMacro, macroHref } = useFromMacro();
   const onBack = useCallback(() => backToMacro(macroHref), [macroHref]);
+  // Memoized on the two primitives, so a shell re-render hands children the SAME identity
+  // object — an owner-scoped store keys on the owner string either way, but a stable identity
+  // keeps it out of every consumer's dependency arrays.
+  const identity = useMemo(() => accountIdentity(userId, email), [userId, email]);
 
   return (
-    <AppShellEmailCtx.Provider value={email}>
+    <AppShellIdentityCtx.Provider value={identity}>
       <OnboardingProvider email={email}>
       {/* Inside OnboardingProvider so the settings panel (and the avatar button)
           can call useOnboarding() directly — Billing's "choose a plan" and the
           guest path both hand off to the signup sheet. */}
-      <SettingsProvider email={email}>
+      <SettingsProvider identity={identity}>
       <div className="app2 obs obs-ambient">
         <MobileNav email={email} fromMacro={fromMacro} onBack={onBack} />
         <header className="topbar">
@@ -88,6 +109,6 @@ export default function AppShell({
       </div>
       </SettingsProvider>
       </OnboardingProvider>
-    </AppShellEmailCtx.Provider>
+    </AppShellIdentityCtx.Provider>
   );
 }

@@ -60,6 +60,7 @@ import {
 } from "@/lib/suites/shared/mtfTable";
 import type { MtfCell, MtfRow } from "@/lib/suites/shared/mtfTable";
 import { intOpt, sharedMacd } from "./macdEngine";
+import { MACDX_MTF_META } from "./mtfDash.meta";
 
 // ------------------------------------------------------------------------------------ constants
 
@@ -73,8 +74,6 @@ const MIN_BARS = 12;
 
 // ------------------------------------------------------------------------------------- settings
 
-const FIELDS: SuiteField[] = mtfFields();
-const DEFAULTS: Record<string, any> = mtfDefaults("br", false);
 
 // -------------------------------------------------------------------------------------- helpers
 
@@ -271,15 +270,6 @@ function compute(ctx: ModuleCtx): ModuleResult {
 
 // ---------------------------------------------------------------------------------- module def
 
-export const MACDX_MTF_MODULE: SuiteModuleDef = {
-  key: "mtf",
-  label: "MTF Dashboard",
-  tag: "MTF",
-  tier: "pro",
-  defaultOn: false,
-  fields: FIELDS,
-  defaults: DEFAULTS,
-  compute,
-};
+export const MACDX_MTF_MODULE: SuiteModuleDef = { ...MACDX_MTF_META, compute };
 
 export default MACDX_MTF_MODULE;

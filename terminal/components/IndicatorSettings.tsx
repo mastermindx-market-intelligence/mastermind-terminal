@@ -9,7 +9,7 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { IND_DEFS, withDefaults, isIndKey, defaultVis, VIS_UNITS, type IndField, type VisUnit, type VisRange } from "@/lib/indicators";
 import { isSuiteKey, getSuiteDef, suiteDefaults } from "@/lib/suites/registry";
 import { getSuiteModuleCatalogEntry, type SuiteModuleCatalogEntry } from "@/lib/suites/catalog";
-import type { SuiteField, SuiteModuleDef, SuiteTier } from "@/lib/indicator-canvas/types";
+import type { SuiteField, SuiteModuleMeta, SuiteTier } from "@/lib/indicator-canvas/types";
 import { useT } from "@/lib/i18n";
 
 const SWATCHES = ["#4d82ff", "#26c281", "#f0566b", "#e8b339", "#e8a33d", "#9d86ff", "#19c2c2", "#d6dae3", "#868d9c", "#ff8a3d"];
@@ -112,7 +112,7 @@ export function resolveIndicatorSettingsModule(
 
 /** Only values owned by one module. Used by direct-mode Cancel so sibling edits survive. */
 export function moduleScopedSnapshot(
-  module: SuiteModuleDef,
+  module: SuiteModuleMeta,
   suiteValues: Record<string, unknown>,
 ): Record<string, unknown> {
   const out: Record<string, unknown> = {};
@@ -126,7 +126,7 @@ export function moduleScopedSnapshot(
 }
 
 /** Registry defaults for one module, deliberately excluding `<module>.on`. */
-export function moduleScopedReset(module: SuiteModuleDef): Record<string, unknown> {
+export function moduleScopedReset(module: SuiteModuleMeta): Record<string, unknown> {
   const out: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(module.defaults)) out[`${module.key}.${key}`] = value;
   return out;
@@ -178,7 +178,7 @@ function SuiteRow({ f, val, onChange }: { f: SuiteField; val: any; onChange: (v:
 }
 
 function ModuleSection({ m, values, locked, expanded, onToggle, onChange, onGuide, t }:
-  { m: SuiteModuleDef; values: Record<string, any>; locked: boolean; expanded: boolean;
+  { m: SuiteModuleMeta; values: Record<string, any>; locked: boolean; expanded: boolean;
     onToggle: () => void; onChange: (patch: Record<string, any>) => void; onGuide?: () => void; t: (k: string, f?: string) => string }) {
   const on = !!values[`${m.key}.on`] && !locked;
   const setOn = () => { if (!locked) onChange({ [`${m.key}.on`]: !on }); };
@@ -266,7 +266,7 @@ export default function IndicatorSettings({ indKey, moduleTarget, params, onChan
     : isPine ? (pine?.name || "Custom script") : def?.label || indKey;
 
   const rank = TIER_RANK[userTier] ?? 0;
-  const isLocked = (m: SuiteModuleDef) => rank < (TIER_RANK[m.tier] ?? 0);
+  const isLocked = (m: SuiteModuleMeta) => rank < (TIER_RANK[m.tier] ?? 0);
   const directLocked = directModule ? isLocked(directModule) : false;
   const directFields = directModule
     ? directModule.fields.filter((f) => !f.showIf || sameVal(SV[`${directModule.key}.${f.showIf.key}`], f.showIf.eq))

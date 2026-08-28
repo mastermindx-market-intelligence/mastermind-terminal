@@ -69,6 +69,7 @@ import {
   finiteIdx,
   rsiEngineParams,
 } from "./rsiEngine";
+import { RSIX_MTF_META } from "./mtfDash.meta";
 
 // ------------------------------------------------------------------------------------ constants
 
@@ -81,8 +82,6 @@ const MIN_BARS = 12;
 
 // ------------------------------------------------------------------------------------- settings
 
-const FIELDS: SuiteField[] = mtfFields();
-const DEFAULTS: Record<string, any> = mtfDefaults("br", false);
 
 // -------------------------------------------------------------------------------------- helpers
 
@@ -281,15 +280,6 @@ function compute(ctx: ModuleCtx): ModuleResult {
 
 // ---------------------------------------------------------------------------------- module def
 
-export const RSIX_MTF_MODULE: SuiteModuleDef = {
-  key: "mtf",
-  label: "MTF Dashboard",
-  tag: "MTF",
-  tier: "pro",
-  defaultOn: false,
-  fields: FIELDS,
-  defaults: DEFAULTS,
-  compute,
-};
+export const RSIX_MTF_MODULE: SuiteModuleDef = { ...RSIX_MTF_META, compute };
 
 export default RSIX_MTF_MODULE;

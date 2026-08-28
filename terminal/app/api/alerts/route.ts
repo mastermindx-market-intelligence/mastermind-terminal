@@ -46,10 +46,27 @@ function eventTier(suite: unknown, event: unknown): "free" | "essential" | "pro"
   return hit.tier === "free" || hit.tier === "essential" ? hit.tier : "pro";
 }
 
+/**
+ * The four facts this endpoint can report, and the wire shape of each:
+ *
+ *   signed out              401 { error: "unauthenticated" }
+ *   read OK, zero rows      200 { alerts: [] }
+ *   read OK, rows           200 { alerts: [...] }
+ *   store did not answer    503 { error: "alerts unavailable" }
+ *
+ * The last one used to be the second one. `select()` was destructured as `{ data }` with the
+ * `error` dropped on the floor, so a failed query answered `200 {alerts: []}` and the client
+ * rendered "No alerts yet" — telling a user their alert inventory is empty on the strength of
+ * a query that never ran. 503 (not 500) because the correct client response is to retry.
+ */
 export async function GET() {
   const { supabase, user } = await uid();
   if (!user) return NextResponse.json({ error: "unauthenticated" }, { status: 401 });
-  const { data } = await supabase.from("alerts").select("*").eq("user_id", user.id).order("created_at", { ascending: false });
+  const { data, error } = await supabase.from("alerts").select("*").eq("user_id", user.id).order("created_at", { ascending: false });
+  if (error) {
+    console.error("alerts GET failed:", error);
+    return NextResponse.json({ error: "alerts unavailable" }, { status: 503 });
+  }
   // Legacy rows predate the MARKET sentinel and the single-root identity law. Normalize
   // them at the read boundary so stored SPY/QQQ labels cannot misdescribe what the
   // evaluator actually reads. No historical trigger evidence is rewritten.
@@ -139,10 +156,36 @@ export async function PATCH(req: Request) {
   return NextResponse.json({ alert: normalizeStoredAlert(data) });
 }
 
+/**
+ * Delete one owned alert.
+ *
+ * A delete is successful only when the AUTHORITATIVE store says so. This route used to issue
+ * `.delete()`, never look at what came back, and answer `{ok:true}` unconditionally — so an RLS
+ * refusal, a dropped connection or a constraint error all read as success to the optimistic
+ * client, and the row silently reappeared on the next load.
+ *
+ * IDEMPOTENCY RULING (deliberate, tested): a delete that matches NO row is a SUCCESS with
+ * `deleted:false`, not a 404. The user asked for "this row gone" and that post-condition already
+ * holds — the common cause is the same alert deleted in another tab, and answering 404 would make
+ * the optimistic UI resurrect a row that does not exist. It also keeps the endpoint from becoming
+ * an existence oracle: an id belonging to another account is owner-scoped out and reports exactly
+ * what a never-existed id reports.
+ *
+ * Owner scoping is unchanged and doubled: RLS is the authority, and `.eq("user_id", user.id)` is
+ * carried explicitly so a policy regression cannot become a cross-tenant delete.
+ */
 export async function DELETE(req: Request) {
   const { supabase, user } = await uid();
   if (!user) return NextResponse.json({ error: "unauthenticated" }, { status: 401 });
   const id = new URL(req.url).searchParams.get("id");
-  if (id) await supabase.from("alerts").delete().eq("user_id", user.id).eq("id", id);
-  return NextResponse.json({ ok: true });
+  if (!id) return NextResponse.json({ error: "bad request" }, { status: 400 });
+  // `.select("id")` is what makes the outcome observable — without it the store's answer is
+  // discarded and there is nothing to check.
+  const { data, error } = await supabase.from("alerts").delete()
+    .eq("user_id", user.id).eq("id", id).select("id");
+  if (error) {
+    console.error("alerts DELETE failed:", error);
+    return NextResponse.json({ error: "Could not delete alert" }, { status: 503 });
+  }
+  return NextResponse.json({ ok: true, deleted: Array.isArray(data) ? data.length > 0 : true });
 }

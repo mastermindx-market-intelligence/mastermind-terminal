@@ -10,7 +10,7 @@ import {
   type EventWorkspacePresented,
   type EventWorkspacePresentedItem,
 } from "../../lib/eventWorkspacePresent";
-import type { EventWorkspaceResult } from "../../lib/eventWorkspace";
+import type { EventWorkspaceQaExchange, EventWorkspaceResult } from "../../lib/eventWorkspace";
 import { tickerPeriodAliasFromWorkspace } from "../../lib/eventWorkspace";
 import CompanySourceManifest from "./CompanySourceManifest";
 import EvidenceRail, { type CompanyEvidenceSelection } from "./EvidenceRail";
@@ -132,6 +132,93 @@ function GlanceRow({
             <i style={{ "--c": receiptColor(item.evidence.receipt_state) } as React.CSSProperties} aria-hidden />
           </button>
         ))}
+      </div>
+    </section>
+  );
+}
+
+
+function isOperatorSpan(exchange: EventWorkspaceQaExchange, kind: "question" | "answer", index: number): boolean {
+  const span = (kind === "question" ? exchange.question_spans : exchange.answer_spans)[index];
+  const speaker = span?.locator.speaker?.trim().toLowerCase() ?? "";
+  const role = span?.locator.role?.trim().toLowerCase() ?? "";
+  return speaker === "operator" || role === "operator";
+}
+
+function analystQuestionText(exchange: EventWorkspaceQaExchange): string {
+  return exchange.question_spans
+    .filter((_, index) => !isOperatorSpan(exchange, "question", index))
+    .map((span) => span.display_excerpt?.trim())
+    .filter((text): text is string => Boolean(text))
+    .join("\n\n");
+}
+
+function firstAnalystSegment(exchange: EventWorkspaceQaExchange): number | undefined {
+  const span = exchange.question_spans.find((_, index) => !isOperatorSpan(exchange, "question", index));
+  return span?.locator.segment_index;
+}
+
+function AnalystQaBlock({
+  exchanges,
+  txId,
+  txSha,
+  zh,
+  onOpen,
+}: {
+  exchanges: EventWorkspaceQaExchange[];
+  txId: string | null;
+  txSha: string | undefined;
+  zh: boolean;
+  onOpen: (target: TranscriptOpenTarget) => void;
+}) {
+  if (!exchanges.length) return null;
+  return (
+    <section className="ci-qa" data-ci-results-region="analyst-qa" aria-label={zh ? "分析师问答" : "Analyst Q&A"}>
+      <header className="ci-qa-head">
+        <span className="fin-eyebrow">{zh ? `分析师问答 · ${exchanges.length} 轮` : `ANALYST Q&A · ${exchanges.length} exchanges`}</span>
+        <p>{zh ? "结构已验证 · 主题增强暂不可用" : "Structure verified · topic enrichment unavailable"}</p>
+      </header>
+      <div className="ci-qa-list">
+        {exchanges.map((exchange) => {
+          const question = analystQuestionText(exchange);
+          const segment = firstAnalystSegment(exchange);
+          const affiliation = exchange.questioner.affiliation?.trim();
+          return (
+            <details key={exchange.exchange_id} className="ci-qa-row">
+              <summary>
+                <strong>Q{exchange.ordinal + 1}</strong>
+                <span>
+                  {exchange.questioner.name}
+                  {affiliation ? ` · ${affiliation}` : ""}
+                </span>
+              </summary>
+              <div className="ci-qa-body">
+                {question ? <p className="ci-qa-question">{question}</p> : null}
+                {exchange.respondents.map((respondent, index) => {
+                  const answer = respondent.span_indexes
+                    .map((spanIndex) => exchange.answer_spans[spanIndex]?.display_excerpt?.trim())
+                    .filter((text): text is string => Boolean(text))
+                    .join("\n\n");
+                  return (
+                    <div key={`${exchange.exchange_id}:${index}`} className="ci-qa-turn">
+                      <span>{respondent.name}{respondent.role ? ` · ${respondent.role}` : ""}</span>
+                      {answer ? <p>{answer}</p> : null}
+                    </div>
+                  );
+                })}
+                {txId && segment != null ? (
+                  <button
+                    type="button"
+                    className="ci-qa-open"
+                    onClick={() => onOpen({ id: txId, segment_index: segment, expected_document_sha256: txSha })}
+                  >
+                    {zh ? "在电话会中查看" : "Open in transcript"}
+                  </button>
+                ) : null}
+              </div>
+            </details>
+          );
+        })}
       </div>
     </section>
   );
@@ -371,7 +458,7 @@ export default function CompanyIntelligenceV2Current({
                     item.id === "completeness:slides"
                     || item.id === "completeness:consensus"
                     || item.id === "completeness:reaction"
-                    || item.id === "fact_questions_count"
+                    || (item.id === "fact_questions_count" && result.workspace.qa_exchanges.length === 0)
                   )).map((item) => (
                     <button key={item.id} className={`ci-honest-chip${evidence?.id === item.id ? " selected" : ""}`} onClick={() => chooseItem(item)} aria-pressed={evidence?.id === item.id}>
                       <span>{item.label}</span>
@@ -402,6 +489,13 @@ export default function CompanyIntelligenceV2Current({
               <GlanceRow kicker={pick(zh, "REPORTED FACTS", "已报告事实")} items={presented.facts.filter((item) => item.id !== "fact_questions_count")} selectedId={evidence?.id} onChoose={chooseItem} />
               <GlanceRow kicker={pick(zh, "DELTAS", "变动")} items={presented.deltas} selectedId={evidence?.id} onChoose={chooseItem} />
               <GlanceRow kicker={pick(zh, "GUIDANCE", "指引")} items={presented.guidance} selectedId={evidence?.id} onChoose={chooseItem} />
+              <AnalystQaBlock
+                exchanges={result.workspace.qa_exchanges}
+                txId={txId}
+                txSha={txSha}
+                zh={zh}
+                onOpen={onOpenTx}
+              />
               <GlanceRow
                 kicker={pick(zh, "TYPED ABSENCES", "类型化缺项")}
                 region="typed-absences"

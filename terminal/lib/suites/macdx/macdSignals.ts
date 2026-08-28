@@ -36,6 +36,7 @@ import {
   sharedMacd,
   tape,
 } from "./macdEngine";
+import { MACD_SIGNALS_META } from "./macdSignals.meta";
 
 // ------------------------------------------------------------------------------------ constants
 
@@ -45,31 +46,6 @@ const MARKER_ALPHA = 0.95;
 
 // ------------------------------------------------------------------------------------- settings
 
-const FIELDS: SuiteField[] = [
-  {
-    key: "threshold",
-    label: "Extreme Zone",
-    type: "number",
-    min: 60,
-    max: 95,
-    step: 1,
-    tip: "How deep into the ±100 range a cross must happen to count. Higher = fewer, stronger signals.",
-  },
-  {
-    key: "showLast",
-    label: "Show Last",
-    type: "number",
-    min: 4,
-    max: 24,
-    step: 1,
-    tip: "How many triangles stay on the chart. Alerts still fire on every signal.",
-  },
-];
-
-const DEFAULTS: Record<string, any> = {
-  threshold: 80,
-  showLast: 12,
-};
 
 // -------------------------------------------------------------------------------------- compute
 
@@ -177,15 +153,6 @@ function compute(ctx: ModuleCtx): ModuleResult {
 
 // ----------------------------------------------------------------------------------- module def
 
-export const MACD_SIGNALS_MODULE: SuiteModuleDef = {
-  key: "sig",
-  label: "MACD Signals",
-  tag: "MS",
-  tier: "essential",
-  defaultOn: true,
-  fields: FIELDS,
-  defaults: DEFAULTS,
-  compute,
-};
+export const MACD_SIGNALS_MODULE: SuiteModuleDef = { ...MACD_SIGNALS_META, compute };
 
 export default MACD_SIGNALS_MODULE;

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
-import AnalysisWorkspace from "@/components/workspaces/AnalysisWorkspace";
+import AnalysisWorkspaceMount from "@/components/mounts/AnalysisWorkspaceMount";
 import SignupGate from "@/components/gates/SignupGate";
 
 // Analysis workspace (Wave-2 IA) — the in-chart Fundamentals dashboard (MegaPane)
@@ -29,7 +29,7 @@ function firstParam(value: string | string[] | undefined): string | undefined {
 export default async function AnalysisPage({ searchParams }: AnalysisPageProps) {
   const query = await searchParams;
   const workspace = (
-    <AnalysisWorkspace
+    <AnalysisWorkspaceMount
       initialSymbol={firstParam(query.symbol)}
       initialPage={firstParam(query.page) ?? firstParam(query.pane)}
     />

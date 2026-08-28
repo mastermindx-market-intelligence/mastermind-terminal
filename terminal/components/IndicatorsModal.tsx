@@ -17,6 +17,7 @@ import {
   type IndicatorSearchDocument,
 } from "@/lib/indicatorSearch";
 import { type UserScript } from "@/lib/userScripts";
+import StateSwitch, { LockMark } from "@/components/StateSwitch";
 import {
   MODULE_CATALOG,
   MODULE_CATEGORIES,
@@ -112,33 +113,6 @@ const moduleCountByCategory = MODULE_CATALOG.reduce<Record<string, number>>((cou
   return counts;
 }, {});
 
-function LockMark() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <rect x="5" y="11" width="14" height="9" rx="2" />
-      <path d="M8 11V8a4 4 0 0 1 8 0v3" />
-    </svg>
-  );
-}
-
-function StateSwitch({ on, locked = false }: { on: boolean; locked?: boolean }) {
-  if (locked) {
-    return (
-      <span className="im-state-lock" aria-hidden="true">
-        <LockMark />
-      </span>
-    );
-  }
-  return (
-    <span className={`im-state-switch${on ? " on" : ""}`} aria-hidden="true">
-      <span className="im-state-switch-glow" />
-      <span className="im-state-switch-knob">
-        <span />
-      </span>
-    </span>
-  );
-}
-
 function SettingsMark() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -182,6 +156,9 @@ export interface IndicatorsModalProps {
   onOpenModuleSettings?: (id: string) => void;
   onOpenGuide?: (id: string) => void;
   scripts?: UserScript[];
+  /** The personal-library read failed. `scripts` then holds the last GOOD list, not the truth. */
+  scriptsUnavailable?: boolean;
+  onRetryScripts?: () => void | Promise<unknown>;
   enabled?: Set<string>;
   onToggleScript?: (id: string) => void;
   onRenameScript?: (id: string, name: string) => void;
@@ -202,6 +179,8 @@ export default function IndicatorsModal({
   onOpenModuleSettings,
   onOpenGuide,
   scripts = [],
+  scriptsUnavailable = false,
+  onRetryScripts,
   enabled,
   onToggleScript,
   onRenameScript,
@@ -577,15 +556,26 @@ export default function IndicatorsModal({
   };
 
   const renderScripts = (items: UserScript[]) => {
+    // "No scripts yet" is an ANSWER about the user's library, so it may only be shown when the
+    // library was actually read. A failed read used to arrive here as `[]` and wear that sentence,
+    // which tells a user with saved scripts that their work is gone. When the read fails the notice
+    // sits ABOVE whatever was last read successfully — the stale list is more useful than nothing,
+    // as long as the user is told it may be stale.
+    const outage = scriptsUnavailable ? (
+      <div key="outage" className="li-empty" role="alert" data-scripts-status="unavailable">
+        {t("scriptsUnavailable")}{" "}
+        <button type="button" className="li-link" data-scripts-retry onClick={() => void onRetryScripts?.()}>{t("layoutRetry")}</button>
+      </div>
+    ) : null;
     if (items.length === 0) {
-      return (
-        <div className="li-empty">
+      return outage ?? (
+        <div className="li-empty" data-scripts-status="empty">
           {t("noScriptsYet")}{" "}
           <Link href="/scripts" className="li-link" onClick={() => closeModal(false)}>{t("openPineEditor")}</Link>
         </div>
       );
     }
-    return items.map((script) => {
+    return [outage, ...items.map((script) => {
       const on = !!enabled?.has(script.id);
       return (
         <div key={script.id} className={`li li-script${on ? " on" : ""}`}>
@@ -671,7 +661,7 @@ export default function IndicatorsModal({
           </span>
         </div>
       );
-    });
+    })];
   };
 
   const navButton = (id: string, label: string, count?: number, mastermind = false) => (

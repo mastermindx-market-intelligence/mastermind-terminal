@@ -42,6 +42,7 @@ import type {
   SuiteField,
   SuiteModuleDef,
 } from "@/lib/indicator-canvas/types";
+import { CANDLE_PAINTER_META } from "./candlePainter.meta";
 
 // ------------------------------------------------------------------------------------ constants
 
@@ -60,24 +61,6 @@ const MODES = ["trend", "momentum", "trendVolume", "momentumVolume"] as const;
 
 // ------------------------------------------------------------------------------------- settings
 
-const FIELDS: SuiteField[] = [
-  {
-    key: "mode",
-    label: "Mode",
-    type: "select",
-    options: [
-      { v: "trend", label: "Trend" },
-      { v: "momentum", label: "Momentum" },
-      { v: "trendVolume", label: "Trend + Volume" },
-      { v: "momentumVolume", label: "Momentum + Volume" },
-    ],
-    tip: "Trend = EMA20/50 regime. Momentum = RSI(14) bands with a weakening shade. The +Volume variants keep the same hue but paint less of the candle on quiet bars.",
-  },
-];
-
-const DEFAULTS: Record<string, any> = {
-  mode: "momentum",
-};
 
 // -------------------------------------------------------------------------------------- helpers
 
@@ -255,15 +238,6 @@ function compute(ctx: ModuleCtx): ModuleResult {
 
 // --------------------------------------------------------------------------------- module def
 
-export const CANDLE_PAINTER_MODULE: SuiteModuleDef = {
-  key: "cp",
-  label: "Candle Painter",
-  tag: "CP",
-  tier: "free",
-  defaultOn: true,
-  fields: FIELDS,
-  defaults: DEFAULTS,
-  compute,
-};
+export const CANDLE_PAINTER_MODULE: SuiteModuleDef = { ...CANDLE_PAINTER_META, compute };
 
 export default CANDLE_PAINTER_MODULE;

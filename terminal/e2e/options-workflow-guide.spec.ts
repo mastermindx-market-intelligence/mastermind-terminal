@@ -140,3 +140,39 @@ test("options query prefill rejects a non-canonical root and never leaks across 
   await expect(page.locator('.alert-form select:has(option[value="SPY"])')).toHaveValue("SPY");
   expect(alertPosts).toBe(0);
 });
+
+/**
+ * The hand-over must survive an EXTRA MOUNT of the alerts view.
+ *
+ * `/alerts` renders through a lazy boundary, so the view can mount more than once around the
+ * chunk resolving. The old prefill read the params in the mount effect, scheduled the state writes
+ * in a `queueMicrotask` guarded by an `alive` flag, and stripped the params in the same pass — so
+ * an unmount between the two cancelled the writes while the params were already gone, and the next
+ * mount found nothing. The form then sat on its defaults with the URL looking perfectly correct,
+ * which is what made it read as a flake rather than a bug.
+ *
+ * A direct navigation to the hand-over URL is the same contract the guide's button produces, and
+ * re-entering /alerts a second time proves the capture is per-navigation, not once per page load.
+ */
+test("an options hand-over prefills the alert form, and a second hand-over still does", async ({ page }) => {
+  await page.route("**/data/manifest.json", (route) => route.fulfill({ json: MANIFEST }));
+  await page.route("**/api/alerts", (route) => route.fulfill({ json: { alerts: [] } }));
+
+  await page.goto("/alerts?cat=options&root=SPY&kind=opt_gamma_flip");
+  await expect(page.locator(".alert-form > select").first()).toHaveValue("options", { timeout: 30_000 });
+  await expect(page.locator('select:has(option[value="opt_gamma_flip"])')).toHaveValue("opt_gamma_flip");
+  await expect(page).toHaveURL(/\/alerts$/);              // the params are cleaned up after capture
+
+  // Leave and come back with a DIFFERENT hand-over: the module is already evaluated, so a
+  // one-shot capture flag would silently drop this one.
+  await page.goto("/terminal?symbol=NVDA");
+  await expect(page.locator(".chart-wrap canvas").first()).toBeVisible({ timeout: 60_000 });
+  await page.goto("/alerts?cat=options&root=QQQ&kind=opt_wall_touch");
+  await expect(page.locator(".alert-form > select").first()).toHaveValue("options", { timeout: 30_000 });
+  await expect(page.locator('select:has(option[value="opt_wall_touch"])')).toHaveValue("opt_wall_touch");
+  await expect(page.locator('.alert-form select:has(option[value="QQQ"])')).toHaveValue("QQQ");
+
+  // …and a plain visit afterwards is NOT re-prefilled from a stale capture.
+  await page.goto("/alerts");
+  await expect(page.locator(".alert-form > select").first()).toHaveValue("signal", { timeout: 30_000 });
+});

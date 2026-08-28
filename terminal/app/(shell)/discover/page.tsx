@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
-import DiscoverWorkspace from "@/components/workspaces/DiscoverWorkspace";
+import DiscoverWorkspaceMount from "@/components/mounts/DiscoverWorkspaceMount";
 import SignupGate from "@/components/gates/SignupGate";
 
 // Discover workspace (Wave-2 IA) — find setups. Serves /discover under the (shell)
@@ -17,10 +17,10 @@ import SignupGate from "@/components/gates/SignupGate";
 export const metadata: Metadata = { title: "Discover · Mastermind Terminal" };
 
 export default async function DiscoverPage() {
-  if (process.env.TERMINAL_E2E_FIXTURE === "1") return <DiscoverWorkspace />;
+  if (process.env.TERMINAL_E2E_FIXTURE === "1") return <DiscoverWorkspaceMount />;
 
   const supabase = await createClient();
   const { data } = await supabase.auth.getClaims();
   if (typeof data?.claims?.sub !== "string") return <SignupGate surface="discover" />;
-  return <DiscoverWorkspace />;
+  return <DiscoverWorkspaceMount />;
 }

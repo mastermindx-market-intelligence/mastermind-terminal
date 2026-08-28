@@ -68,6 +68,10 @@ from pathlib import Path
 
 import pandas as pd
 
+CA_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(CA_ROOT))
+from ingest.earnings_calendar import select_next_earnings_date  # noqa: E402
+
 MACRO = Path(os.environ.get("MACRO_REPO") or "/Users/chriswong/Documents/Cluade/Macro Dashboard")
 OUT = MACRO / "data" / "tushare"
 HK_OUT = MACRO / "data" / "hk_fund"
@@ -477,7 +481,9 @@ def _hk_yf(sym: str) -> dict:
         cal = t.calendar or {}
         eds = cal.get("Earnings Date")
         if eds:
-            out["next_earnings"] = str(eds[0])[:10] if isinstance(eds, (list, tuple)) else str(eds)[:10]
+            # Keep the whole vendor candidate set in play: truncating to eds[0] here meant a
+            # stale first entry hid a real later date from the emitter (mastermind-terminal#474).
+            out["next_earnings"] = select_next_earnings_date(eds)
         out["eps_next_avg"] = _f(cal.get("Earnings Average"))
         out["rev_next_avg"] = _f(cal.get("Revenue Average"))
     except Exception:

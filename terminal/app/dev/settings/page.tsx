@@ -17,6 +17,7 @@ import type { SettingsSection } from "@/components/settings/SettingsProvider";
 import type { AcsUser } from "@/components/settings/SettingsProvider";
 import type { AcsPlan, AcsUsage } from "@/components/settings/types";
 import { applyLang } from "@/lib/i18n";
+import { accountIdentity, GUEST_IDENTITY } from "@/lib/accountIdentity";
 
 const MOCK_USER: AcsUser = {
   id: "8f2c41ba-7d19-4e6a-9c03-5b71ee0a4d22",
@@ -142,7 +143,7 @@ function Harness() {
         section={section}
         onSection={setSection}
         onClose={() => setOpen(false)}
-        email={signedIn ? MOCK_USER.email : ""}
+        identity={signedIn ? accountIdentity(MOCK_USER.id, MOCK_USER.email) : GUEST_IDENTITY}
         user={signedIn ? MOCK_USER : null}
         onPatchMeta={() => {}}
         onRefreshUser={async () => {}}

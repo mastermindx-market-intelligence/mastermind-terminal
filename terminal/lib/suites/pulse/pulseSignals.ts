@@ -30,6 +30,7 @@ import type {
   TooltipDef,
 } from "@/lib/indicator-canvas/types";
 import { computePulseWave, pulseProfileOf } from "./pulseWave";
+import { PULSE_SIGNALS_META } from "./pulseSignals.meta";
 
 // ------------------------------------------------------------------------------------ constants
 
@@ -48,49 +49,6 @@ const MAX_EVENTS = 80;
 
 // ------------------------------------------------------------------------------------- settings
 
-const FIELDS: SuiteField[] = [
-  {
-    key: "buySell",
-    label: "Buy / Sell Markers",
-    type: "bool",
-    tip: "Triple-line marker when the wave turns up from oversold or rolls over from overbought.",
-  },
-  {
-    key: "dipDiamonds",
-    label: "Dip Diamonds",
-    type: "bool",
-    tip: "Small diamond on an in-trend dip that holds its side of zero — pullback cue.",
-  },
-  {
-    key: "peaks",
-    label: "Peak Dots",
-    type: "bool",
-    tip: "Dot on the wave at local extremes beyond ±80.",
-  },
-  {
-    key: "gappedCross",
-    label: "Gapped Crosses",
-    type: "bool",
-    tip: "Diamond when the wave crosses its gapped line inside the extreme zone.",
-  },
-  {
-    key: "showLast",
-    label: "Show Last",
-    type: "number",
-    min: 4,
-    max: 40,
-    step: 1,
-    tip: "How many glyphs of each family stay on the chart.",
-  },
-];
-
-const DEFAULTS: Record<string, any> = {
-  buySell: true,
-  dipDiamonds: true,
-  peaks: false,
-  gappedCross: false,
-  showLast: 16,
-};
 
 // -------------------------------------------------------------------------------------- helpers
 
@@ -310,15 +268,6 @@ function compute(ctx: ModuleCtx): ModuleResult {
 
 // --------------------------------------------------------------------------------- module def
 
-export const PULSE_SIGNALS_MODULE: SuiteModuleDef = {
-  key: "sig",
-  label: "Pulse Signals",
-  tag: "PS",
-  tier: "essential",
-  defaultOn: true,
-  fields: FIELDS,
-  defaults: DEFAULTS,
-  compute,
-};
+export const PULSE_SIGNALS_MODULE: SuiteModuleDef = { ...PULSE_SIGNALS_META, compute };
 
 export default PULSE_SIGNALS_MODULE;

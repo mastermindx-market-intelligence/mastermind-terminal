@@ -7,19 +7,21 @@ const display = (hour: number, minute: number, second: number) =>
 const trueMs = (hour: number, minute: number, second: number) =>
   (TRUE_DAY + hour * 3600 + minute * 60 + second) * 1000;
 
-async function armVisualReady(page: Page) {
+async function seedLiveCandleWorkspace(page: Page) {
   await page.addInitScript(() => {
     localStorage.setItem("mm.startTf", JSON.stringify("1s"));
+    // This contract measures the quote-to-candle handoff, not indicator construction. Keeping
+    // the default two subpanes enabled can monopolize a saturated CI page after visual-ready and
+    // starve the liveQuote effect even though the mocked packet has already reached the header.
+    localStorage.setItem("mm.inds", JSON.stringify([]));
     localStorage.removeItem("mm.ws");
-    (window as Window & { __mmLiveCandleReady?: boolean }).__mmLiveCandleReady = false;
-    window.addEventListener("mm:terminal-visual-ready", () => {
-      (window as Window & { __mmLiveCandleReady?: boolean }).__mmLiveCandleReady = true;
-    }, { once: true });
   });
 }
 
 test("measured one-second packets reshape and roll the live candle at every supported width", async ({ page }, testInfo) => {
+  test.slow();
   let liveTickIndex = -1;
+  let intradayFixtureServed = false;
   const ticks = [
     { second: 1, open: 100, high: 100.6, low: 99.9, close: 100.4, vol: 18 },
     { second: 2, open: 100.4, high: 100.5, low: 99.5, close: 99.7, vol: 24 },
@@ -45,6 +47,7 @@ test("measured one-second packets reshape and roll the live candle at every supp
         ],
       },
     });
+    intradayFixtureServed = true;
   });
 
   await page.route("**/api/quote?**", async (route) => {
@@ -89,11 +92,16 @@ test("measured one-second packets reshape and roll the live candle at every supp
     await route.fulfill({ json: { quotes } });
   });
 
-  await armVisualReady(page);
+  await seedLiveCandleWorkspace(page);
   await page.goto("/terminal?symbol=NVDA");
-  await expect.poll(() => page.evaluate(() =>
-    Boolean((window as Window & { __mmLiveCandleReady?: boolean }).__mmLiveCandleReady),
-  ), { timeout: 15_000 }).toBe(true);
+  // The shell first paints its SSR-safe 3D default, then hydrates the saved 1s preference. The
+  // global visual-ready event can therefore describe that INITIAL daily paint while a saturated
+  // CI page is still waiting to start the real 1s request. Do not release the synthetic quote
+  // packets until the intercepted intraday payload itself has crossed the route boundary.
+  await expect.poll(() => intradayFixtureServed, {
+    message: "the 1s REST fixture should reach the chart before quote packets start",
+    timeout: 45_000,
+  }).toBe(true);
 
   const chart = page.locator(".chart-wrap").first();
   await expect(chart.locator("canvas").first()).toBeVisible();

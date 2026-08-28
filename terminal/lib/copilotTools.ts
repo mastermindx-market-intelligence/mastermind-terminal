@@ -20,6 +20,7 @@ import { computeRatings, type Row as RatingRow } from "@/lib/techRating";
 import { ema, atr, supertrend, bollingerBands, type Bar } from "@/lib/indicatorMath";
 import { verdictIsStale, ORACLE_STALE_DAYS, anchorSignal, signalKnownTs, isBlockedSignal, sliceSignalBasis } from "@/lib/signalVerdict";
 import { isStalePlane, type MarketPlane } from "@/lib/nwPlane";
+import { nextDateCountdown } from "@/lib/finFormat";
 // Same upstream topology as app/api/flow/route.ts (Python hub first, R2 mirror second) and
 // app/api/nw/route.ts — the shared endpoint constants live in lib/upstreams (the routes
 // themselves must not be imported from a lib).
@@ -533,6 +534,7 @@ export function curateFundamentals(fund: unknown): Record<string, unknown> {
 
   const profileBits = [profile.sector, profile.industry, profile.hq, num(profile.employees) != null ? `${profile.employees} employees` : null].filter(Boolean);
   const q = Array.isArray(earn.q) ? (earn.q as Record<string, unknown>[]) : [];
+  const nextEarnings = nextDateCountdown(earn.next_date) == null ? null : earn.next_date;
 
   return {
     asof: f.asof ?? null,
@@ -544,7 +546,7 @@ export function curateFundamentals(fund: unknown): Record<string, unknown> {
     margins: { gross: fracToPct(cur.gross_margin), net: fracToPct(cur.net_margin), roe: fracToPct(cur.roe), roa: fracToPct(cur.roa) },
     debt_to_equity: num(cur.debt_to_equity) != null ? `${rnd(cur.debt_to_equity)} (raw ratio, not %)` : null,
     div_yield: fracToPct(num(divs.yield_ttm) ?? cur.div_yield, 2),
-    next_earnings: earn.next_date ?? null,
+    next_earnings: nextEarnings,
     last_earnings: q.slice(-4).map((r) => ({
       period: r.period ?? null,
       eps_est: rnd(r.eps_e, 3),

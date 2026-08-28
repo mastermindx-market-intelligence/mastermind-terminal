@@ -108,7 +108,23 @@ import {
   mtfPos,
   mtfSlope,
 } from "../suites/shared/mtfTable";
-import { SUITE_DEFS, SUITE_ORDER } from "../suites/registry";
+import { SUITE_ORDER } from "../suites/registry";
+// B7: `SUITE_DEFS` is the METADATA graph now, so its module objects are not the ones this file
+// imports and computes with. These tests are about COMPUTATION, so they read the runtime defs —
+// the same objects, statically imported because a node test has no bundle to protect.
+import { STRUCTURE_SUITE } from "../suites/runtime/structure";
+import { TREND_SUITE } from "../suites/runtime/trend";
+import { PULSE_SUITE } from "../suites/runtime/pulse";
+import { RSIX_SUITE } from "../suites/runtime/rsix";
+import { MACDX_SUITE } from "../suites/runtime/macdx";
+
+const SUITE_DEFS: Record<string, SuiteDef> = {
+  structure: STRUCTURE_SUITE,
+  trend: TREND_SUITE,
+  pulse: PULSE_SUITE,
+  rsix: RSIX_SUITE,
+  macdx: MACDX_SUITE,
+};
 import {
   MAX_PRIMS_PER_MODULE,
   type ModuleCtx,

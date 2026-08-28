@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useT } from "@/lib/i18n";
+import { nextDateCountdown } from "@/lib/finFormat";
 
 type Pane = "overview" | "statements" | "statistics" | "dividends" | "earnings" | "revenue" | "seasonals" | "analyst";
 type Row = { name?: string; sec?: string; col?: string; mkt?: string; last?: number; chg?: number };
@@ -162,7 +163,7 @@ function MetricBlock(props: { title: string; period: "quarterly" | "annual"; set
 
 function FundamentalHeader({ ae }: { ae: any }) {
   const t = useT();
-  return <div className="fd-kpis"><div><span>{t("fdNextReport")}</span><b>{ae?.next_date || "-"}</b></div><div><span>{t("fdReportPeriod")}</span><b>Q2 2027</b></div><div><span>{t("fdEpsEstimate")}</span><b>{fmt(ae?.eps_forecast, 2)}</b></div><div><span>{t("fdRevEstimate")}</span><b>{ae?.revenue_forecast ? money(ae.revenue_forecast) : "-"}</b></div></div>;
+  return <div className="fd-kpis"><div><span>{t("fdNextReport")}</span><b>{nextDateCountdown(ae?.next_date) == null ? "-" : ae!.next_date}</b></div><div><span>{t("fdReportPeriod")}</span><b>Q2 2027</b></div><div><span>{t("fdEpsEstimate")}</span><b>{fmt(ae?.eps_forecast, 2)}</b></div><div><span>{t("fdRevEstimate")}</span><b>{ae?.revenue_forecast ? money(ae.revenue_forecast) : "-"}</b></div></div>;
 }
 
 function OverviewPane({ pane, row, intel }: { pane: Pane; row?: Row; intel: any }) {

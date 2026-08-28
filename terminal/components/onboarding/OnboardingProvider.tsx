@@ -2,7 +2,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { createClient } from "@/lib/supabase/client";
-import { LS_PENDING_PREFS, SS_OPEN, normalizePlanKey, type OnboardMode, type PlanKey, type Period, type OnboardingSheetProps } from "./types";
+import { SS_OPEN, normalizePlanKey, type OnboardMode, type PlanKey, type Period, type OnboardingSheetProps } from "./types";
+import { deliverPendingPrefs, readPendingPrefs } from "@/lib/onboardingPrefsOutbox";
 
 // The wizard itself is code-split (ssr:false) so it never bloats first paint — it only loads
 // when the user actually opens onboarding. Generic pinned to the shared contract so the JSX
@@ -134,21 +135,33 @@ export function OnboardingProvider({ email, children }: { email: string; childre
     if (was === "" && email !== "" && isOpen && mode === "signin") setIsOpen(false);
   }, [email, isOpen, mode]);
 
-  // ── Pending prefs: on first authed mount, if a stash exists, push it into user_metadata and
-  //    clear it. Fire-and-forget (the sheet may not even be open). Guarded to run once. ──
-  const prefsApplied = useRef(false);
+  // ── Pending prefs: on first authed mount, deliver whatever the outbox holds. ──
+  //
+  // D5: this used to burn a one-shot latch, fire an UN-AWAITED updateUser(...).catch(console.warn),
+  // and remove the localStorage copy immediately. If that write failed, both retry mechanisms were
+  // already destroyed — the latch said "done" and the durable record was gone — so an explicitly
+  // chosen preference was lost forever to one transient Supabase hiccup, with the user having
+  // watched onboarding complete normally.
+  //
+  // Acknowledge before delete: the record is cleared only by deliverPendingPrefs, and only after
+  // the authority confirms the write. The latch below guards against CONCURRENT delivery (React
+  // StrictMode double-invocation, a re-render mid-flight), not against ever trying again — a
+  // failure releases it, so the next authed mount retries.
+  const prefsInFlight = useRef(false);
   useEffect(() => {
-    if (prefsApplied.current || email === "") return;
-    let raw: string | null = null;
-    try { raw = localStorage.getItem(LS_PENDING_PREFS); } catch { /* storage blocked */ }
-    if (!raw) return;
-    prefsApplied.current = true;
-    let data: unknown;
-    try { data = JSON.parse(raw); } catch { data = null; }
-    if (data && typeof data === "object") {
-      createClient().auth.updateUser({ data: data as Record<string, unknown> }).catch(console.warn);
-    }
-    try { localStorage.removeItem(LS_PENDING_PREFS); } catch { /* ignore */ }
+    if (prefsInFlight.current || email === "") return;
+    if (!readPendingPrefs()) return;
+    prefsInFlight.current = true;
+    const supabase = createClient();
+    void deliverPendingPrefs((data) => supabase.auth.updateUser({ data }))
+      .then((outcome) => {
+        if (outcome.status !== "delivered") {
+          // Keep the record AND re-arm, so a later mount (or a later `email` transition) tries again.
+          prefsInFlight.current = false;
+          console.warn("[onboarding] preferences still pending delivery", outcome);
+        }
+      })
+      .catch((e) => { prefsInFlight.current = false; console.warn("[onboarding] preference delivery threw:", e); });
   }, [email]);
 
   return (

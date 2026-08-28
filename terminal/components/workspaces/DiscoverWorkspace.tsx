@@ -4,7 +4,7 @@ import WorkspaceTabs, { type WorkspaceTab } from "@/components/chrome/WorkspaceT
 import ScreenerView from "@/components/ScreenerView";
 import HeatmapPageRoot from "@/components/heatmap/HeatmapPageRoot";
 import { DiscoverLeadersMount, DiscoverRadarMount } from "@/components/workspaces/DiscoverFlowMounts";
-import { useShellEmail } from "@/components/chrome/AppShell";
+import { useShellIdentity } from "@/components/chrome/AppShell";
 import { useLang } from "@/lib/i18n";
 
 /**
@@ -40,7 +40,7 @@ const DEFAULT_TAB = "screener";
 
 export default function DiscoverWorkspace() {
   const { lang } = useLang();
-  const email = useShellEmail(); // resolved once by the (shell) layout → AppShell context
+  const identity = useShellIdentity(); // resolved once by the (shell) layout → AppShell context
   const [tab, setTab] = useState<string>(DEFAULT_TAB);
   // Bumped on every tab click so re-selecting the active Leaders/Radar tab
   // remounts its hub engine — the only way back after a row drills into the hub's
@@ -76,7 +76,7 @@ export default function DiscoverWorkspace() {
       </div>
 
       <div className="ws-body">
-        {tab === "screener" && <ScreenerView email={email} />}
+        {tab === "screener" && <ScreenerView identity={identity} />}
         {tab === "heatmap" && <HeatmapPageRoot />}
         {tab === "leaders" && <DiscoverLeadersMount key={`leaders-${nonce}`} />}
         {tab === "radar" && <DiscoverRadarMount key={`radar-${nonce}`} />}

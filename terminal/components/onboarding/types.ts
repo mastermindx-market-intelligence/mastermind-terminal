@@ -54,11 +54,20 @@ export interface OnboardingSheetProps {
 //                      redirect; the SHEET restores + clears it in its resume
 //                      effect (the provider only signals resume via the
 //                      ?onboard=resume deep-link). Shape: OnboardResumeStash.
-//  mm.pendingPrefs   — JSON preferences captured while confirmPending (no session
-//                      yet); the PROVIDER applies + clears it on the first authed
-//                      mount. Shape: PendingPrefs.
+//  mm.pendingPrefs   — the preference DELIVERY OUTBOX (lib/onboardingPrefsOutbox.ts).
+//                      Written on every path before the authoritative write is
+//                      attempted; the provider delivers it on the first authed mount.
+//                      Stored shape: { prefs: PendingPrefs, attempts: number }, with
+//                      read-tolerance for the pre-outbox bare PendingPrefs payload a
+//                      tab may still hold from an older deploy.
 //
-// Both are one-shot: the writer sets, the reader reads-then-removes.
+// mm.onboardResume is one-shot: the writer sets, the reader reads-then-removes.
+//
+// mm.pendingPrefs is NOT. It used to be, and that was D5: the reader removed it
+// BEFORE the un-awaited updateUser() was acknowledged, so one transient failure
+// destroyed both retry mechanisms at once (the in-memory latch said "done" and the
+// durable copy was gone) and an explicitly chosen preference was lost for good. The
+// rule is now ACKNOWLEDGE BEFORE DELETE: cleared only after the authority confirms.
 
 export interface OnboardPrefs {
   market_focus: string[];       // e.g. ["us","cn","hk","ca","global"]

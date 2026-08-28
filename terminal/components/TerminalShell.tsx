@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useIsMobile, useIsPhone } from "@/lib/useMediaQuery";
 import MobileSheet from "@/components/ui/MobileSheet";
 import { DndContext, DragOverlay, PointerSensor, KeyboardSensor, useDroppable, useSensor, useSensors, closestCenter, type CollisionDetection, type DragEndEvent, type DragStartEvent, type Modifier } from "@dnd-kit/core";
@@ -33,6 +33,7 @@ import { flowGet } from "@/lib/flowClientCache";
 import { parseGlanceState } from "@/lib/mscGlance";
 import { DEFAULT_START_TF, TF_CANONICAL_ORDER, mobileTimeframeOptions, readStartTf, resolveStartTf } from "@/lib/startTf";
 import { useMarketPrefs } from "@/lib/useMarketPrefs";
+import { accountIdentity } from "@/lib/accountIdentity";
 // Import the page ids from the import-free leaf, NOT from MegaPane: MegaPane is mounted
 // through next/dynamic below, and a value import out of it here would statically pull its
 // entire graph (14 fundamentals pages + statement/intelligence/transcript libs, ~709 KB of
@@ -62,6 +63,24 @@ import {
   planWatchlistMigration,
   type ServerWatchlist,
 } from "@/lib/watchlists";
+import {
+  adoptLegacyWatchlistState,
+  clearWatchlistTombstones,
+  forgetListTombstones,
+  GUEST_OWNER,
+  readOwnerMigrationMarker,
+  readOwnerStringMap,
+  readOwnerWatchlists,
+  readWatchlistTombstones,
+  recordWatchlistTombstones,
+  tombstonedSymbols,
+  watchlistOwnerKey,
+  writeOwnerMigrationMarker,
+  writeOwnerStringMap,
+  writeOwnerWatchlists,
+  WL_FLAGS_KEY,
+  WL_NOTES_KEY,
+} from "@/lib/watchlistOwner";
 import { useEntitlement } from "@/lib/useEntitlement";
 import { normalizeDevTierOverride } from "@/lib/subscriptionTier";
 import { useChartBus } from "@/lib/useChartBus";
@@ -87,6 +106,9 @@ const AnalysisHubSheet = dynamic(() => import("@/components/mobile/AnalysisHubSh
 // BrainWidget mounts the production Mastermind Brain widget (mm_brain.js) — it renders null
 // and only injects a cross-origin <script>, so ssr:false / dynamic isn't needed.
 import BrainWidget from "@/components/BrainWidget";
+// DeepVue W1-C: typed ai-context provider (observe-only — derives active/ambient context from
+// the same active-pane symbol/tf the Chart Bus already owns; never writes back into chart state).
+import { createAiContextProvider } from "@/lib/aiContext";
 import StockAnalysis from "@/components/StockAnalysis";
 import SignalButton from "@/components/SignalButton";
 import TrendRow from "@/components/TrendRow";
@@ -121,6 +143,13 @@ import { type CmpCfg, type CmpMode, defaultCmpCfg, cmpKey, isCmpKey, cmpSymOf } 
 import { isComposite, parseComposite, compositeQuote as calcCompositeQuote } from "@/lib/composite";
 import { pushRecentlyViewed } from "@/lib/recentlyViewed";
 import { listScripts, deleteScript as delScript, renameScript as renScript, enabledScriptIds, setEnabledScriptIds, pineParamStore, setPineParamStore, mergedParams, type UserScript } from "@/lib/userScripts";
+import LayoutMenu, { type LayoutFeedback, type LayoutStatus, type SavedWorkspace } from "@/components/LayoutMenu";
+import WorkspaceTile from "@/components/WorkspaceTile";
+import { nextLayoutName, type SavedLayout } from "@/lib/layouts";
+import { applyLayoutConfig, captureLayoutConfig, type LayoutWorkspace } from "@/lib/layoutConfig";
+import { migrateLegacy, workspaceToLayout, captureWorkspace } from "@/lib/workspaceMigrate";
+import { SCHEMA as WORKSPACE_SCHEMA, validateEnvelope, type WorkspaceEnvelope, type Widget as WorkspaceWidget } from "@/lib/workspaceLayout";
+import { workspaceRowState, migrationUnclaimed, migrationUnsupportedWidgets, parseWorkspaceOutcome, absoluteLocalTime, safeWorkspaceFilename, importFailureKey, brainIncludedFromEnvelope, openBrainReincluding, type WorkspaceOpOutcome } from "@/lib/workspaceMenuOps";
 import { type PineScript } from "@/components/ChartPanel";
 
 type ShellDrawingStyle = { color: string; width: number; dash: Dash };
@@ -128,7 +157,7 @@ import ChartTableView from "@/components/ChartTableView";
 import { type OTEntry } from "@/components/ChartObjectTree";
 import { listTemplates, saveTemplate } from "@/lib/chartTemplates";
 import { FLAG_DEFAULT, FLAG_COLORS } from "@/lib/flagPalette";
-import { TERMINAL_VISUAL_READY_EVENT } from "@/lib/terminalBoot";
+import { resolveTerminalLandingSymbol, TERMINAL_VISUAL_READY_EVENT } from "@/lib/terminalBoot";
 import AssetLogo from "@/components/AssetLogo";
 import {
   DEFAULT_WATCHLIST_SETTINGS,
@@ -156,7 +185,7 @@ import {
   watchlistVisualOrder,
 } from "@/lib/watchlistSections";
 
-type Row ={ name: string; sec: string; col: string; mkt?: string; zh?: string; last: number; chg: number; open: number; high: number; low: number; vol: number; hi52: number; lo52: number; verdict: string | null; wr: number | null; pf: number | null; cagr: number | null; regimeBull: boolean | null };
+type Row ={ name: string; sec: string; col: string; mkt?: string; zh?: string; last: number; chg: number; open: number; high: number; low: number; vol: number; hi52: number; lo52: number; verdict: string | null; wr: number | null; pf: number | null; cagr: number | null; regimeBull: boolean | null; suspended?: boolean };
 type Manifest = { as_of: string | null; symbols: Record<string, Row> };
 // /api/ext-quote entry. extSession mirrors the Quote Hub's own window classification.
 type ExtSession = "pre" | "post" | "overnight";
@@ -202,6 +231,7 @@ function mergeLive(r: Row | undefined, q: any): Row | undefined {
   const regular = resolveRegularSessionDisplay(q);
   if (regular.regularPrice != null) base.last = regular.regularPrice;
   if (regular.regularChg != null) base.chg = regular.regularChg;
+  if (q.suspended === true) base.suspended = true;
   return base;
 }
 
@@ -844,7 +874,10 @@ const sameRows = (a: { symbol: string; section: string }[], b?: { symbol: string
 // W1b: the one-time `mm.wls` -> `watchlists` migration marker. Deliberately a PER-LIST success
 // map (`{ "Gold Miners": true }`), not a single boolean: a run where two lists migrate and a
 // third 500s must retry only the third on the next mount. Absent/false = still to do.
-const WLS_MIGRATED_KEY = "mm.wls.migrated.v1";
+//
+// A1: the marker is OWNER-SCOPED now (lib/watchlistOwner.ts). While it was browser-global, one
+// account's "already migrated" receipt suppressed another account's real migration in the same
+// browser — the same unscoped-state failure as `mm.wls` itself, one layer down.
 
 // Guest drawings tier: login is disabled site-wide, so /api/drawings is a no-op for
 // everyone and chart drawings were destroyed on symbol switch / reload. Persist them
@@ -889,8 +922,20 @@ function btMark(name: string) {
   console.log(`[boottrace] ${name} +${(now - _btStart).toFixed(1)}ms`);
 }
 
-export default function TerminalShell({ symbols, email, initialSymbol, shellMode = false, shellTray = false, shellDossier = false, secondBarsEnabled = false }: { symbols: { symbol: string; section: string }[]; email: string; initialSymbol?: string; shellMode?: boolean; shellTray?: boolean; shellDossier?: boolean; secondBarsEnabled?: boolean }) {
+export default function TerminalShell({ symbols, email, userId, initialSymbol, shellMode = false, shellTray = false, shellDossier = false, secondBarsEnabled = false }: { symbols: { symbol: string; section: string }[]; email: string; userId?: string; initialSymbol?: string; shellMode?: boolean; shellTray?: boolean; shellDossier?: boolean; secondBarsEnabled?: boolean }) {
   const [man, setMan] = useState<Manifest | null>(null);
+  // A1: which identity the LOCAL watchlist state on this browser belongs to. `guest` when signed
+  // out, `account:<auth uuid>` otherwise — the immutable id, never the email (see
+  // lib/watchlistOwner.ts). Every read and write of lists/flags/notes/receipts/tombstones below is
+  // scoped by it, so a second user in the same browser can neither see nor re-POST the first
+  // user's rows.
+  // ONE identity object for the whole shell, built from the two props the route resolves. It
+  // feeds the preference store, the settings panel and (via wlOwner) the watchlist boundary, so
+  // every owner-scoped lane on this page answers "who is this?" identically.
+  const identity = useMemo(() => accountIdentity(userId, email), [userId, email]);
+  const wlOwner = watchlistOwnerKey(userId);
+  const wlOwnerRef = useRef(wlOwner);
+  wlOwnerRef.current = wlOwner;
   // named watchlists — client-side + localStorage-backed so switching / creating lists works for guests
   // (no auth needed). The server-provided `symbols` seed becomes the "Default" list.
   const [lists, setLists] = useState<Record<string, { symbol: string; section: string }[]>>({ Default: normalizeWatchlistRows(symbols) });
@@ -935,6 +980,9 @@ export default function TerminalShell({ symbols, email, initialSymbol, shellMode
   // mid-interaction, and broke master #409's context-menu tests (the flag row measured as not
   // visible). Ids are plumbing, not rendered state.
   const serverListIdsRef = useRef<Record<string, string>>({});
+  /** `wlTarget` is declared far below the migration effect that needs it (A3's delete retry), so
+   *  it is reached through a ref rather than duplicated into a second copy of the targeting rule. */
+  const wlTargetRef = useRef<(listName: string) => Record<string, string>>(() => ({}));
   /** F5: fold an inventory's ids INTO the map, never over it. */
   const registerServerListIds = useCallback((rows: readonly { id: string; name: string }[]) => {
     const merged = { ...serverListIdsRef.current };
@@ -943,14 +991,15 @@ export default function TerminalShell({ symbols, email, initialSymbol, shellMode
     serverListIdsRef.current = merged;
   }, []);
 
-  /** Drop one name from the per-list migration marker. */
+  /** Drop one name from THIS owner's per-list migration marker. */
   const forgetListMigrated = useCallback((name: string) => {
-    try {
-      const marker = load(WLS_MIGRATED_KEY, {}) as Record<string, unknown>;
-      if (!marker || typeof marker !== "object" || !(name in marker)) return;
-      delete marker[name];
-      localStorage.setItem(WLS_MIGRATED_KEY, JSON.stringify(marker));
-    } catch {}
+    const owner = wlOwnerRef.current;
+    const marker = readOwnerMigrationMarker(localStorage, owner);
+    if (!(name in marker)) return;
+    delete marker[name];
+    writeOwnerMigrationMarker(localStorage, owner, marker);
+    // The list is gone; its unconfirmed deletions have nothing left to protect.
+    forgetListTombstones(localStorage, owner, name);
   }, []);
   const wlMigrationRef = useRef(false);
   // Set by the mount-restore effect. The migration must not read `lists` until the saved `mm.wls`
@@ -993,15 +1042,6 @@ export default function TerminalShell({ symbols, email, initialSymbol, shellMode
   // on `loggedIn` alone, so a symbol edit mid-migration cannot restart the whole run.
   const listsRef = useRef(lists);
   listsRef.current = lists;
-  // F7: sign-out -> sign-in (especially as a DIFFERENT user) must not inherit the previous
-  // session's list ids or its "already migrated" latch.
-  const wlMigrationEmailRef = useRef(email);
-  useEffect(() => {
-    if (wlMigrationEmailRef.current === email) return;
-    wlMigrationEmailRef.current = email;
-    wlMigrationRef.current = false;
-    serverListIdsRef.current = {};
-  }, [email]);
   // Memoized so its identity is stable: `lists[activeList] || []` allocated a fresh [] on every
   // render whenever the list was missing, which re-ran every useMemo downstream of `wl`.
   const wl = useMemo(() => lists[activeList] || [], [lists, activeList]);
@@ -1029,7 +1069,7 @@ export default function TerminalShell({ symbols, email, initialSymbol, shellMode
   // is the same store the macro site's onboarding writes, on the same Supabase project.
   // Read-only here: the editing controls live in the settings panel's Terminal section, which subscribes to the same
   // module store, so both always see identical state.
-  const { prefs: marketPrefs, ready: prefsReady, enableAll: showAllMarkets } = useMarketPrefs(email);
+  const { prefs: marketPrefs, ready: prefsReady, enableAll: showAllMarkets } = useMarketPrefs(identity);
   // premium-suite UI gate — client hint only, fail-closed to "free" (server authority stays macro-api)
   const ent = useEntitlement(email);
   // dev-only tier override (localStorage mm.devTier = "essential" | "pro") — read post-mount to
@@ -1045,7 +1085,11 @@ export default function TerminalShell({ symbols, email, initialSymbol, shellMode
   // ent.tier is already normalized by useEntitlement (legacy `insider` → `essential`).
   const userTier: "free" | "essential" | "pro" = devTier ?? (ent.tier === "essential" || ent.tier === "pro" ? ent.tier : "free");
 
-  const seed0 = initialSymbol || symbols.find((s) => s.symbol === "NVDA")?.symbol || symbols[0]?.symbol || "NVDA";
+  // A4/A5: ONE landing-symbol rule, shared with the server route (lib/terminalBoot.ts). The route
+  // preloads exactly this symbol's OHLC + slice; a second copy of the rule here is how a plain
+  // `/terminal` boot ended up preloading nothing while the shell went on to fetch NVDA, and how a
+  // `?sym=nvda` deep link preloaded `/data/NVDA.json` and then fetched `/data/nvda.json`.
+  const seed0 = resolveTerminalLandingSymbol(initialSymbol, symbols);
   const [panes, setPanes] = useState<string[]>([seed0]);
   const [activePane, setActivePane] = useState(0);
   const [sync, setSync] = useState(true);
@@ -1055,6 +1099,23 @@ export default function TerminalShell({ symbols, email, initialSymbol, shellMode
   // workspace later in the mount pass, so wait for that restore before counting the chart view;
   // otherwise the brief fallback seed would pollute Recent ahead of the actual restored ticker.
   const [workspaceRestored, setWorkspaceRestored] = useState(!!initialSymbol);
+  // Whether the mount effect below has applied this browser's PERSISTED prefs — specifically the
+  // startup timeframe. Distinct from `workspaceRestored`, which starts TRUE on any deep link and
+  // therefore cannot answer "is paneTfs the user's timeframe yet?".
+  const [prefsHydrated, setPrefsHydrated] = useState(false);
+  // THE startup timeframe, resolved once, synchronously, on the client's first render.
+  //
+  // It cannot be RENDERED before the mount effect commits (the server always emits the default,
+  // so seeding `paneTfs` with it would be a hydration mismatch), but the chart does not need it
+  // rendered — it needs it for an imperative data fetch. Measured: that commit lands ~1.05s after
+  // mount, and ChartPanel's data effect runs at ~130ms, so without this the chart loads the
+  // SSR-default timeframe and throws the whole result away. Handing the value over out-of-band
+  // costs no markup and keeps ONE resolution: the mount effect below seeds `paneTfs` from this
+  // same ref, so the prop and the state can never disagree.
+  const startTfRef = useRef<string | null>(null);
+  if (startTfRef.current === null && typeof window !== "undefined") {
+    startTfRef.current = resolveStartTf(readStartTf(), functionalSet(seed0, secondBarsEnabled));
+  }
   // The active chart is the source of truth for Recently viewed. Recording here (instead of only
   // inside the search picker) includes direct Macro Dashboard links, the warm iframe bridge,
   // watchlists, movers, and search results. Composite expressions are not standalone ticker rows.
@@ -1095,6 +1156,7 @@ export default function TerminalShell({ symbols, email, initialSymbol, shellMode
   );
   // ── custom scripts (Pine): the user's saved scripts + which are ENABLED on the chart + param overrides ──
   const [scripts, setScripts] = useState<UserScript[]>([]);
+  const [scriptsUnavailable, setScriptsUnavailable] = useState(false);
   const [enabledIds, setEnabledIds] = useState<string[]>([]);                           // enabled script ids (persisted 'mm.pineOn')
   const [pineParams, setPineParamsState] = useState<Record<string, Record<string, any>>>({}); // per-script overrides ('mm.pineParams')
   const loggedIn = !!email;
@@ -1113,6 +1175,53 @@ export default function TerminalShell({ symbols, email, initialSymbol, shellMode
   const [lastFlagColor, setLastFlagColor] = useState<string>(FLAG_DEFAULT);
   // Symbol notes are symbol-scoped, not chart-coordinate drawings.
   const [symbolNotes, setSymbolNotes] = useState<Record<string, string>>({});
+
+  // ── A1: the owner boundary, adjusted DURING RENDER ──────────────────────────────────────────
+  // Same idiom as `pfEmail` further down, and for the same reason: an effect runs AFTER paint, so
+  // for one frame the rail would render the OUTGOING owner's watchlists under the INCOMING
+  // owner's session — and the persist effects, keyed on the state itself, could write them into
+  // the incoming owner's namespace. React re-invokes this component before committing, so
+  // adjusting here makes the identity swap atomic with the state it owns.
+  //
+  // This replaces W1b's F7 (`email`-keyed ref reset, which cleared list ids but left the LISTS
+  // themselves in place) and TRAP-1's `prevEmailRef` effect, folding both into one authority.
+  const [wlOwnerState, setWlOwnerState] = useState(wlOwner);
+  if (wlOwnerState !== wlOwner) {
+    const previous = wlOwnerState;
+    setWlOwnerState(wlOwner);
+    // A different identity owns the workspace now: none of the previous owner's server list ids
+    // may be reused, and its "already migrated" latch must not suppress this owner's migration.
+    wlMigrationRef.current = false;
+    serverListIdsRef.current = {};
+    const serverDefault = normalizeWatchlistRows(symbols);
+    if (previous === GUEST_OWNER && wlOwner !== GUEST_OWNER) {
+      // The ONE promotion the product keeps (TRAP-1): a guest signed in IN THIS TAB, so the lists
+      // they just built follow them into their new account and the server's Default wins. That is
+      // a live, user-initiated edge. It is NOT the ambient adoption A1 closes — that one happens
+      // across a page load, where the incoming owner now reads its own namespace and nothing else.
+      setLists((current) => ({ ...current, [DEFAULT_LIST]: serverDefault }));
+      setActiveList(DEFAULT_LIST);
+    } else {
+      // Sign-out, or a straight account→account switch: load the INCOMING owner's own state.
+      // Nothing carries over — a signed-out browser must not inherit the account's cache, and
+      // account B must not inherit account A's.
+      const restored = readOwnerWatchlists(localStorage, wlOwner);
+      const deleted = tombstonedSymbols(readWatchlistTombstones(localStorage, wlOwner), DEFAULT_LIST);
+      const savedDefault = restored?.lists?.[DEFAULT_LIST];
+      const nextLists = { ...(restored?.lists ?? {}) };
+      // For an account the server row is authoritative for MEMBERSHIP but not for ORDER, so the
+      // saved list is reconciled additively rather than clobbered. A guest has no server row at
+      // all — the `symbols` prop is just the seed — so their own saved Default wins outright.
+      nextLists[DEFAULT_LIST] = wlOwner === GUEST_OWNER
+        ? (savedDefault ?? serverDefault)
+        : adoptServerSymbols(savedDefault ?? [], serverDefault, undefined, deleted);
+      setLists(nextLists);
+      setListMeta(restored?.meta ?? {});
+      setActiveList(restored?.active && nextLists[restored.active] ? restored.active : DEFAULT_LIST);
+      setFlags(readOwnerStringMap(localStorage, WL_FLAGS_KEY, wlOwner));
+      setSymbolNotes(readOwnerStringMap(localStorage, WL_NOTES_KEY, wlOwner));
+    }
+  }
   // ── F3 add-symbol dialog mode (distinct from "go" search) ──
   const [addSymOpen, setAddSymOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false); const [seed, setSeed] = useState("");
@@ -1140,7 +1249,53 @@ export default function TerminalShell({ symbols, email, initialSymbol, shellMode
   const [intel, setIntel] = useState<any>(null);
   // R3.2: the ticker page's dealer-positioning block (raw gexstate:{ROOT}; StockAnalysis parses)
   const [railGex, setRailGex] = useState<unknown>(null);
-  const [layouts, setLayouts] = useState<any[]>([]); const [layoutOpen, setLayoutOpen] = useState(false); const [layoutName, setLayoutName] = useState("");
+  // ── saved layouts (S6) ──
+  // `layouts` is the last AUTHORITATIVE answer and is never replaced by [] on a failure; the store
+  // state lives beside it in `layoutStatus` so "unavailable" and "you have none" stay distinct.
+  const [layouts, setLayouts] = useState<SavedWorkspace[]>([]); const [layoutOpen, setLayoutOpen] = useState(false); const [layoutName, setLayoutName] = useState("");
+  const [layoutStatus, setLayoutStatus] = useState<LayoutStatus>("loading");
+  const [layoutSaving, setLayoutSaving] = useState(false);
+  const [layoutFeedback, setLayoutFeedback] = useState<LayoutFeedback>({ kind: "idle" });
+  const [layoutDeleteError, setLayoutDeleteError] = useState<string | null>(null);
+  // ── W2-A workspace identity + graph (freeze §4/§5/§7) ──
+  // `workspaceName`/`workspaceRevision` track the CURRENTLY OPEN named workspace, not the Zone-1
+  // name box (that box is "save as", independent of what is loaded). `workspaceRevision === null`
+  // means either nothing is loaded yet, or a legacy row is loaded but has never been saved in
+  // workspace_layout.v1 format (migrate-on-write, freeze §6) — its first save fences on "not yet
+  // workspace format" rather than on a revision number.
+  const [workspaceName, setWorkspaceName] = useState<string | null>(null);
+  const [workspaceRevision, setWorkspaceRevision] = useState<number | null>(null);
+  // The loaded row's stable uuid (Amendment A3 ruling 5 / M10 ABA fence): threaded through the
+  // save/rename/duplicate-source op bodies so a delete-recreate of the same name under a NEW row
+  // can never be silently matched by a write this session believes still targets the OLD one. A
+  // brand-new name (nothing loaded) has none — `undefined` there is not a bug, it is the CREATE case.
+  const [workspaceId, setWorkspaceId] = useState<string | null>(null);
+  // Reviewer ruling B2: field names the tolerant READ migration could not claim from the loaded
+  // row (empty when the load was clean). Persists while THIS workspace stays loaded — a durable
+  // disclosure, not a transient toast — and clears the moment a different workspace is loaded (or
+  // nothing is loaded at all).
+  const [unclaimedFields, setUnclaimedFields] = useState<string[]>([]);
+  // Reviewer ruling M5b: ids of widgets the tolerant READ opened this row around because their
+  // `type` this build does not recognize (empty when nothing was dropped). Same lifecycle as
+  // `unclaimedFields` — a save re-captures only widgets this build knows how to render, so a
+  // non-empty list here means that save would silently remove the named panel (contract §11: the
+  // drop must be disclosed, never silent).
+  const [unsupportedWidgets, setUnsupportedWidgets] = useState<string[]>([]);
+  const [loadedEnvelope, setLoadedEnvelope] = useState<WorkspaceEnvelope | null>(null);
+  // Whether the assistant dock is part of the workspace about to be saved. Default TRUE: byte-for-
+  // byte today's product (freeze §7) — every guest/no-saved-workspace session already mounts Brain.
+  const [brainIncluded, setBrainIncluded] = useState(true);
+  // The row currently carrying the `stale_revision` rail (spec §3.5), if any.
+  const [staleWorkspaceName, setStaleWorkspaceName] = useState<string | null>(null);
+  // What a `{kind:"conflict"}` feedback should retry with the suggested name — the conflict UI only
+  // carries a name string, so the op that produced it is tracked here for "Use <suggested>".
+  const [pendingConflict, setPendingConflict] = useState<
+    | { op: "save"; envelope: WorkspaceEnvelope }
+    | { op: "rename"; oldName: string; revision: number; id?: string }
+    | { op: "duplicate"; sourceName: string; sourceId?: string }
+    | { op: "import"; envelope: WorkspaceEnvelope }
+    | null
+  >(null);
   const [livePx, setLivePx] = useState<number | null>(null);
   // symbol-keyed live top-of-book — ONE source for the header AND every watchlist row (via a single
   // batched /api/quote?syms= poll), so the detail pane and the watchlist can't disagree on a price.
@@ -1247,15 +1402,24 @@ export default function TerminalShell({ symbols, email, initialSymbol, shellMode
   const [drawStyleOverrides, setDrawStyleOverrides] = useState<
     Partial<Record<DrawKind, Partial<ShellDrawingStyle>>>
   >({});
+  // The colour the user last chose anywhere. Width and dash stay strictly
+  // per-tool (Highlighter is 8px, Fib is dashed), but a colour is a global
+  // intent: picking one and then reaching for another tool used to silently
+  // fall back to blue, so a custom colour could never actually be kept.
+  const [lastDrawingColor, setLastDrawingColor] = useState<string | null>(null);
   const drawStyle = useMemo<ShellDrawingStyle>(() => {
     const defaults = tool ? getDrawingTool(tool)?.defaults : undefined;
     const override = tool ? drawStyleOverrides[tool] : undefined;
+    // Tools whose default encodes MEANING rather than taste (Long Position is
+    // var(--up), Short Position var(--down)) keep their own colour.
+    const semanticDefault = typeof defaults?.color === "string" && defaults.color.startsWith("var(");
+    const inherited = semanticDefault ? undefined : lastDrawingColor ?? undefined;
     return {
-      color: override?.color ?? defaults?.color ?? "#4d82ff",
+      color: override?.color ?? inherited ?? defaults?.color ?? "#4d82ff",
       width: override?.width ?? defaults?.width ?? 1.5,
       dash: override?.dash ?? defaults?.dash ?? "solid",
     };
-  }, [drawStyleOverrides, tool]);
+  }, [drawStyleOverrides, lastDrawingColor, tool]);
   const patchDrawStyle = useCallback((patch: Partial<ShellDrawingStyle>, explicitKind?: DrawKind) => {
     const targetKind = explicitKind ?? tool;
     if (!targetKind) return;
@@ -1264,6 +1428,7 @@ export default function TerminalShell({ symbols, email, initialSymbol, shellMode
       ...(typeof patch.width === "number" && Number.isFinite(patch.width) ? { width: patch.width } : {}),
       ...(patch.dash === "solid" || patch.dash === "dashed" || patch.dash === "dotted" ? { dash: patch.dash } : {}),
     };
+    if (safePatch.color) setLastDrawingColor(safePatch.color);
     setDrawStyleOverrides((current) => ({
       ...current,
       [targetKind]: { ...current[targetKind], ...safePatch },
@@ -1303,6 +1468,17 @@ export default function TerminalShell({ symbols, email, initialSymbol, shellMode
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [toolbarMoreOpen]);
+  // The desktop Workspaces `.pop` had no Escape-to-close at all before W2-A (only an outside click
+  // closed it). Spec §4's two-stage Escape needs a SECOND stage here: `LayoutMenu`'s own row/rename
+  // handlers consume the FIRST Escape (stopPropagation), so this window listener — which only ever
+  // sees an Escape nothing inside the menu already handled — is exactly the "closes the popover"
+  // stage. Scoped to `layoutOpen` only; the other toolbar `.pop`s are unchanged (out of scope).
+  useEffect(() => {
+    if (!layoutOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => { if (event.key === "Escape") setLayoutOpen(false); };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [layoutOpen]);
   const isMobile = useIsMobile();
   // Narrower than isMobile on purpose — the tablet contract viewport keeps the desktop-era chrome.
   const isPhone = useIsPhone();
@@ -1530,8 +1706,15 @@ export default function TerminalShell({ symbols, email, initialSymbol, shellMode
     // Settings → Terminal → Default timeframe (3D unless changed). Resolved against the landing
     // symbol's functional set, since the workspace restore below can land on a symbol other than seed0.
     const savedStartTf = readStartTf();
-    const startTf = resolveStartTf(savedStartTf, functionalSet(seed0, secondBarsEnabled));
-    { const si = load("mm.inds", ["ema", "vol", "macd", "stochrsi"]) as string[]; setInds(new Set(si)); } setChartType(load("mm.ct", "candles")); setHidden(new Set(load("mm.indHidden", []))); { const savedP = load("mm.indParams", {}); const base = allDefaults(); for (const k of IND_ORDER) base[k] = withDefaults(k, savedP[k]); for (const k of Object.keys(savedP)) if (isSuiteKey(k)) base[k] = { ...suiteDefaults(k), ...savedP[k] }; setIndParams(base); } setPaneTfs([startTf]); setFavTF(load("mm.favtf", ["D", "3D", "W", "1M"])); {
+    const startTf = startTfRef.current ?? resolveStartTf(savedStartTf, functionalSet(seed0, secondBarsEnabled));
+    btMark(`startup-tf=${startTf}`);
+    // Publish the resolved timeframe and release the chart BEFORE the rest of this effect: every
+    // read below is a persisted-state read, and one throwing on corrupt localStorage must never
+    // strand the chart unloaded. A multi-pane workspace restore further down may still overwrite
+    // paneTfs — same effect, same React batch, so the chart sees one commit either way.
+    setPaneTfs([startTf]);
+    setPrefsHydrated(true);
+    { const si = load("mm.inds", ["ema", "vol", "macd", "stochrsi"]) as string[]; setInds(new Set(si)); } setChartType(load("mm.ct", "candles")); setHidden(new Set(load("mm.indHidden", []))); { const savedP = load("mm.indParams", {}); const base = allDefaults(); for (const k of IND_ORDER) base[k] = withDefaults(k, savedP[k]); for (const k of Object.keys(savedP)) if (isSuiteKey(k)) base[k] = { ...suiteDefaults(k), ...savedP[k] }; setIndParams(base); } setFavTF(load("mm.favtf", ["D", "3D", "W", "1M"])); {
       const savedSet = load(WATCHLIST_SETTINGS_KEY, {});
       const savedVersion = Number(localStorage.getItem(WATCHLIST_SETTINGS_VERSION_KEY) || 0);
       const resolvedSet = resolveWatchlistSettings(savedSet, savedVersion);
@@ -1635,13 +1818,56 @@ export default function TerminalShell({ symbols, email, initialSymbol, shellMode
   useEffect(() => { if (!favTFMounted.current) { favTFMounted.current = true; return; } localStorage.setItem("mm.favtf", JSON.stringify(favTF)); }, [favTF]);
   useEffect(() => { if (!setMounted.current) { setMounted.current = true; return; } localStorage.setItem(WATCHLIST_SETTINGS_KEY, JSON.stringify(set)); }, [set]);
   useEffect(() => { if (!dtmMounted.current) { dtmMounted.current = true; return; } localStorage.setItem("mm.dtm", JSON.stringify(dtm)); }, [dtm]);
-  // restore saved named watchlists (falls back to the server-seeded Default list)
-  useEffect(() => {
-    const saved = load("mm.wls", null);
-    if (saved && saved.lists && typeof saved.lists === "object" && Object.keys(saved.lists).length) {
-      const savedLists = Object.fromEntries(Object.entries(saved.lists as Record<string, unknown>)
-        .filter(([, rows]) => Array.isArray(rows))
-        .map(([name, rows]) => [name, normalizeWatchlistRows(rows as { symbol: string; section?: unknown }[])]));
+  // Restore THIS OWNER's saved named watchlists (falls back to the server-seeded Default list).
+  //
+  // ── Why a LAYOUT effect, and not the passive effect this used to be ─────────────────────────
+  // Until the restore commits, the rail renders the `symbols` prop under the name `Default` — for
+  // a signed-in user that is the server's Default membership, in guest row order, with none of
+  // their named lists. That is the wrong answer, so the window in which it is on screen has to be
+  // zero, not "usually short".
+  //
+  // As a passive effect it was neither, and the reason is scheduling, not slowness. Traced with a
+  // per-render/per-commit probe: the effect itself ran at +700ms, right after hydration, with the
+  // owner resolved and the saved payload found — but its `setLists`/`setActiveList` sat in a
+  // lower-priority lane than the re-renders this shell takes all through boot, so React rendered
+  // the restored state, THREW THAT WORK AWAY, and committed base state instead. Five base-state
+  // commits went out in front of it; the restore did not reach the DOM until +1.9s, 1.2s after the
+  // effect that produced it.
+  //
+  // That starvation is superlinear in how loaded the machine is, because every restart costs a
+  // full render of this shell while the interrupting sources keep their own cadence. Measured
+  // against one seeded owner (`E2E_CPU_THROTTLE`, desktop project): the rail was still showing the
+  // wrong list at +2.1s unthrottled, and at 4x CPU throttle it never showed the right one inside a
+  // 300s budget at all. On a loaded machine a signed-in user therefore sits in front of the guest
+  // list for the whole session. It is also the window `e2e/watchlist-bulk-actions.spec.ts`'s shared
+  // `boot()` has to clear — it allows the default 5s after the chart paints for `.wl-select` to
+  // name the seeded list — which is how the defect shows up as watchlist specs going red on a
+  // loaded CI runner rather than as a bug report.
+  //
+  // A layout effect cannot be starved: React flushes updates scheduled here synchronously, before
+  // the browser paints. The restore now rides the hydration commit, so the wrong list is never
+  // presented — at 1x, 4x and 8x alike the rail is correct from the first frame the shell paints.
+  //
+  // Only the read-and-apply belongs here. It is localStorage plus pure functions — no layout
+  // measurement, no network in the critical path (the heal POSTs below are fire-and-forget) — so
+  // this costs one synchronous re-render of the shell at mount and nothing per frame afterwards.
+  //
+  // No isomorphic `useEffect`-on-the-server wrapper: this shell is server-rendered, and on React 19
+  // a layout effect in a prerendered client component is simply skipped there, silently (the old
+  // "useLayoutEffect does nothing on the server" warning is gone — verified against this app's
+  // dev-server output). Wrapping it would only cost the `react-hooks` lint rules their view of it.
+  useLayoutEffect(() => {
+    // A1: fold the pre-boundary browser-global payloads into the guest namespace exactly once,
+    // before the first owner-scoped read. See the policy note in lib/watchlistOwner.ts — they are
+    // never adopted into an account, because nothing in them says whose they were.
+    adoptLegacyWatchlistState(localStorage);
+    const owner = wlOwnerRef.current;
+    const saved = readOwnerWatchlists(localStorage, owner);
+    // A3: deletions this owner made that the server has not confirmed. A stale server row named
+    // here is one the user already deleted, so it must not be re-adopted as an other-device add.
+    const tombstones = readWatchlistTombstones(localStorage, owner);
+    if (saved) {
+      const savedLists = saved.lists;
       // TRAP 1 (mount side): when signed in, RECONCILE the local Default against the server's
       // Default membership — do NOT wholesale-replace it. The server row only carries add/remove
       // (it knows MEMBERSHIP, not ORDER), and the /api/watchlist adds are fire-and-forget (they can
@@ -1654,62 +1880,67 @@ export default function TerminalShell({ symbols, email, initialSymbol, shellMode
       //      each by firing the idempotent POST {action:"add"} (fire-and-forget, matching the sync
       //      idiom at addSymbol/addToList) so the server catches up;
       //   4. APPEND server rows missing locally (adds from other devices) at the end, with their
-      //      server section.
+      //      server section — EXCEPT rows with an outstanding deletion intent.
+      // Every row read here now belongs to the signed-in owner, so step 3 can no longer copy one
+      // user's symbols into another user's account: that heal POST is what made A1 a write bug and
+      // not just a display bug.
       let restored: Record<string, { symbol: string; section: string }[]>;
       if (loggedIn) {
         const serverRows = normalizeWatchlistRows(symbols);
-        const localDefault = savedLists.Default ?? [];
+        const localDefault = savedLists[DEFAULT_LIST] ?? [];
         const serverSyms = new Set(serverRows.map((s) => s.symbol));
-        const localSyms = new Set(localDefault.map((r) => r.symbol));
-        // 2+3: keep every local row (present-on-server or local-only), local order + section intact.
-        const reconciledDefault = [...localDefault];
+        const deletedDefault = tombstonedSymbols(tombstones, DEFAULT_LIST);
         // heal local-only rows: fire the idempotent add so the server converges (fire-and-forget).
         for (const r of localDefault) {
           if (!serverSyms.has(r.symbol)) {
             fetch("/api/watchlist", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "add", symbol: r.symbol, section: r.section }) }).catch(() => {});
           }
         }
-        // 4: append server rows missing locally (other-device adds), with their server section.
-        for (const s of serverRows) {
-          if (!localSyms.has(s.symbol)) reconciledDefault.push(s);
-        }
-        restored = { ...savedLists, Default: reconciledDefault };
+        // 2+3+4 in one pass, through the same additive reconcile the inventory adopt uses.
+        restored = { ...savedLists, [DEFAULT_LIST]: adoptServerSymbols(localDefault, serverRows, undefined, deletedDefault) };
       } else {
         restored = savedLists;
       }
       setLists(restored);
-      setActiveList(saved.active && restored[saved.active] ? saved.active : (loggedIn ? "Default" : Object.keys(restored)[0]));
+      setActiveList(saved.active && restored[saved.active] ? saved.active : (loggedIn ? DEFAULT_LIST : Object.keys(restored)[0]));
       // Section metadata is additive: saves written before sections existed simply have no
       // `meta` key and fall back to derived first-appearance order.
-      if (saved.meta && typeof saved.meta === "object") {
-        const clean: Record<string, { sections: string[]; collapsed: string[] }> = {};
-        for (const [k, v] of Object.entries(saved.meta as Record<string, unknown>)) {
-          const m = v as { sections?: unknown; collapsed?: unknown };
-          clean[k] = {
-            sections: Array.isArray(m?.sections) ? m.sections.filter((x): x is string => typeof x === "string").map((x) => x.trim()).filter(Boolean) : [],
-            collapsed: Array.isArray(m?.collapsed) ? m.collapsed.filter((x): x is string => typeof x === "string").map((x) => x.trim()).filter(Boolean) : [],
-          };
-        }
-        setListMeta(clean);
-      }
+      if (Object.keys(saved.meta).length) setListMeta(saved.meta);
     }
-    // F1 flags: stored alongside wls (additive — old saves without flags load fine)
-    const savedFlags = load("mm.flags", {});
-    if (savedFlags && typeof savedFlags === "object") setFlags(savedFlags);
+    // F1 flags: owner-scoped alongside the lists.
+    setFlags(readOwnerStringMap(localStorage, WL_FLAGS_KEY, owner));
     const savedLastColor = load("mm.lastFlagColor", FLAG_DEFAULT);
     if (typeof savedLastColor === "string") setLastFlagColor(savedLastColor);
     setWlsRestored(true);
-    const savedNotes = load("mm.symbolNotes", {});
-    if (savedNotes && typeof savedNotes === "object" && !Array.isArray(savedNotes)) {
-      setSymbolNotes(Object.fromEntries(Object.entries(savedNotes).filter(([symbol, note]) =>
-        !!symbol && typeof note === "string" && !!note.trim()).map(([symbol, note]) => [symbol, (note as string).slice(0, 500)])));
-    }
+    setSymbolNotes(Object.fromEntries(Object.entries(readOwnerStringMap(localStorage, WL_NOTES_KEY, owner))
+      .filter(([symbol, note]) => !!symbol && !!note.trim())
+      .map(([symbol, note]) => [symbol, note.slice(0, 500)])));
     // Mount-only restore: loggedIn/symbols are read for the signed-in Default override but must NOT
-    // re-trigger this (re-reading localStorage mid-session would clobber live edits; the guest→signin
-    // transition is handled by the prevEmailRef effect below).
+    // re-trigger this (re-reading localStorage mid-session would clobber live edits; a live
+    // sign-in/sign-out is handled by the render-time owner transition above).
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  useEffect(() => { if (Object.keys(lists).length) localStorage.setItem("mm.wls", JSON.stringify({ lists, active: activeList, meta: listMeta })); }, [lists, activeList, listMeta]);
+  // Persist under the CURRENT owner. `wlOwner` is a dependency so the swap itself re-persists,
+  // which is what carries a guest's promoted lists into the account they just signed into.
+  //
+  // MOUNT-SKIP, for the reason every other persist effect in this file already carries one: on the
+  // mount pass `lists` still holds the useState seed (`{ Default: <server rows> }`) and the restore
+  // effect above has not committed yet, so writing here CLOBBERS the saved payload with a
+  // single-list default for the width of the mount→restore window. Measured directly, not
+  // theorised: sampling the owner slot straight after navigation shows
+  // ["Default","Gold Miners","Space"] → ["Default"] → ["Default","Gold Miners","Space"]. A reload
+  // or a closed tab inside that window permanently destroyed a guest's named lists, and it is what
+  // made `watchlist-server-migration` fail on CI once the e2e seed stopped being re-applied on
+  // every navigation and could no longer mask it.
+  //
+  // Nothing is lost by skipping: the restore effect's `setLists` is itself a change, so the first
+  // real write happens right after it commits. A session where `lists` never changes has nothing
+  // new to save.
+  const wlsMounted = useRef(false);
+  useEffect(() => {
+    if (!wlsMounted.current) { wlsMounted.current = true; return; }
+    if (Object.keys(lists).length) writeOwnerWatchlists(localStorage, wlOwner, { lists, active: activeList, meta: listMeta });
+  }, [lists, activeList, listMeta, wlOwner]);
   // ── W1b: signed-in named lists become SERVER-BACKED; `mm.wls` demotes to an optimistic cache.
   //    1. read the owner's inventory (RLS-scoped) and register its ids BEFORE any write (F2);
   //    2. run the one-time ADDITIVE migration for every non-`Default` local list the marker does
@@ -1729,13 +1960,30 @@ export default function TerminalShell({ symbols, email, initialSymbol, shellMode
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
-    const inventory = async (): Promise<ServerWatchlist[] | null> => {
+    const readInventory = async (): Promise<ServerWatchlist[] | null> => {
       try {
         const response = await fetch("/api/watchlist", { headers: { Accept: "application/json" } });
         if (!response.ok) return null;
         const payload = await response.json();
         return Array.isArray(payload?.lists) ? payload.lists as ServerWatchlist[] : null;
       } catch { return null; }
+    };
+    /**
+     * Bounded retry, because a null read here does not just skip a step — it abandons the WHOLE
+     * migration for this mount. `wlMigrationRef.current = false` lets it run again, but the effect
+     * is keyed on `[loggedIn, wlsRestored, registerServerListIds]`, none of which change again, so
+     * nothing re-fires it until the next page load. One slow response therefore meant no server
+     * adopt and no marker written for the entire session (reproduced on a loaded CI runner, where
+     * the receipt this wave's spec polls for simply never appeared).
+     */
+    const inventory = async (attempts = 3): Promise<ServerWatchlist[] | null> => {
+      for (let attempt = 0; attempt < attempts; attempt++) {
+        if (cancelled) return null;
+        const lists = await readInventory();
+        if (lists) return lists;
+        if (attempt < attempts - 1) await new Promise((resolve) => setTimeout(resolve, 400 * (attempt + 1)));
+      }
+      return null;
     };
 
     // F1: membership snapshot taken BEFORE the read goes out, per list. Anything the user removes
@@ -1744,6 +1992,11 @@ export default function TerminalShell({ symbols, email, initialSymbol, shellMode
     for (const [name, rows] of Object.entries(listsRef.current)) {
       if (Array.isArray(rows)) beforeRead[name] = new Set(rows.map((row) => row.symbol));
     }
+    // A3: the same protection for deletes that happened BEFORE this mount and never reached the
+    // server. `beforeRead` cannot see those — the row is already gone from local state — which is
+    // exactly why W1b had to accept them resurrecting.
+    const owner = wlOwnerRef.current;
+    const tombstones = readWatchlistTombstones(localStorage, owner);
 
     // DEFERRED to idle. The migration is one-time BACKGROUND reconciliation — nothing on screen
     // waits for it — but before this it started during mount, adding an inventory GET (plus a
@@ -1768,10 +2021,7 @@ export default function TerminalShell({ symbols, email, initialSymbol, shellMode
       const localLists = Object.entries(listsRef.current)
         .filter(([, rows]) => Array.isArray(rows))
         .map(([name, rows]) => ({ name, rows }));
-      const marker = (() => {
-        const raw = load(WLS_MIGRATED_KEY, {});
-        return raw && typeof raw === "object" && !Array.isArray(raw) ? raw as Record<string, boolean> : {};
-      })();
+      const marker = readOwnerMigrationMarker(localStorage, owner);
       const plan = planWatchlistMigration(localLists, server, marker);
       const nextMarker: Record<string, boolean> = { ...marker };
 
@@ -1805,10 +2055,38 @@ export default function TerminalShell({ symbols, email, initialSymbol, shellMode
       // Written even if the component has since unmounted (StrictMode's double mount): the work
       // reached the server, so the receipt must reflect it. `cancelled` gates React writes only.
       if (JSON.stringify(nextMarker) !== JSON.stringify(marker)) {
-        try { localStorage.setItem(WLS_MIGRATED_KEY, JSON.stringify(nextMarker)); } catch {}
+        writeOwnerMigrationMarker(localStorage, owner, nextMarker);
       }
 
-      const fresh = plan.lists.length ? ((await inventory()) ?? server) : server;
+      // A3: retry every deletion the server never confirmed, BEFORE re-reading the inventory, so
+      // the response this mount adopts from is one the retry has already corrected. A failure just
+      // leaves the tombstone standing — the row stays hidden and the next mount tries again.
+      let retried = false;
+      for (const [listName, entry] of Object.entries(tombstones)) {
+        const symbols = Object.keys(entry);
+        if (!symbols.length) continue;
+        try {
+          const response = await post({ action: "remove", symbols, ...wlTargetRef.current(listName) });
+          // The intent is SATISFIED, and so cleared, when the server confirms the rows are gone —
+          // and equally when it says the target does not exist (404 "list not found", 400 "no
+          // watchlist"): the rows cannot be in a list that is not there, and re-sending a request
+          // the route rejects on its face would just retry forever.
+          //
+          // 401/403 (session lapsed), 429 and 5xx are the opposite: the delete has NOT been
+          // decided, so the intent stands, the row stays hidden, and the next mount tries again.
+          // TTL bounds the pathological case where a target is permanently unresolvable.
+          const settled = response.ok || response.status === 404 || response.status === 400;
+          if (settled) {
+            clearWatchlistTombstones(localStorage, owner, listName, symbols);
+            delete tombstones[listName];
+            retried = response.ok;
+          }
+        } catch {
+          // Still offline. The tombstone stands and the rows stay deleted locally.
+        }
+      }
+
+      const fresh = (plan.lists.length || retried) ? ((await inventory()) ?? server) : server;
       if (cancelled) return true;
       registerServerListIds(fresh);
       // W5, residual (a) from the W1b review — the list `Default`'s writes ACTUALLY land in.
@@ -1840,11 +2118,14 @@ export default function TerminalShell({ symbols, email, initialSymbol, shellMode
             if (beforeRead[list.name]) continue;
             // …or unless it is the row Default is already being rendered from (residual (a)).
             if (list.name === defaultMirrorName) continue;
-            next[list.name] = serverRows;
+            // A wholesale adopt still honours outstanding deletions: a list the user cleared and
+            // then dropped locally must not come back row by row from a stale inventory.
+            const deleted = tombstonedSymbols(tombstones, list.name);
+            next[list.name] = deleted.size ? serverRows.filter((row) => !deleted.has(row.symbol)) : serverRows;
             changed = true;
             continue;
           }
-          const adopted = adoptServerSymbols(localRows, serverRows, beforeRead[list.name]);
+          const adopted = adoptServerSymbols(localRows, serverRows, beforeRead[list.name], tombstonedSymbols(tombstones, list.name));
           if (sameRows(adopted, localRows)) continue;
           next[list.name] = adopted;
           changed = true;
@@ -1900,26 +2181,16 @@ export default function TerminalShell({ symbols, email, initialSymbol, shellMode
     setPfLoaded(false);
   }
 
-  // ── TRAP 1: guest → signed-in reconciliation (AuthSheet router.refresh delivers a real `email`
-  //    + the server's Default symbols, but client `lists` was seeded from the guest state in the
-  //    useState initializer and never re-seeds on its own; stale mm.wls also shadows the server list).
-  //    Reconciliation: the SERVER wins for "Default" (overwrite with the fresh `symbols` prop);
-  //    any extra lists the guest built are KEPT as local lists so nothing they made vanishes. Runs
-  //    only on the "" → non-empty email edge, and only once (prevEmailRef guards re-refreshes). ──
-  const prevEmailRef = useRef(email);
-  useEffect(() => {
-    const was = prevEmailRef.current;
-    prevEmailRef.current = email;
-    if (was === "" && email !== "") {
-      setLists((l) => ({ ...l, Default: normalizeWatchlistRows(symbols) }));   // server Default authoritative; guest extras preserved
-      setActiveList("Default");
-    }
-  }, [email, symbols]);
-  // persist flags separately (not inside mm.wls to avoid shape-breaking old saves)
+  // ── TRAP 1 (guest → signed-in reconciliation) now lives in the render-time owner transition
+  //    above, together with sign-out and account→account. It used to be an `email`-keyed effect
+  //    here, which could only ever handle ONE of the four edges and ran a frame after paint. ──
+  // persist flags separately (not inside the lists payload to avoid shape-breaking old saves).
+  // `wlOwner` is a dependency for the same reason the lists effect carries it: the write must
+  // follow the identity, and the swap itself must re-persist under the new owner.
   const flagsMounted = useRef(false);
-  useEffect(() => { if (!flagsMounted.current) { flagsMounted.current = true; return; } localStorage.setItem("mm.flags", JSON.stringify(flags)); }, [flags]);
+  useEffect(() => { if (!flagsMounted.current) { flagsMounted.current = true; return; } writeOwnerStringMap(localStorage, WL_FLAGS_KEY, wlOwner, flags); }, [flags, wlOwner]);
   const notesMounted = useRef(false);
-  useEffect(() => { if (!notesMounted.current) { notesMounted.current = true; return; } localStorage.setItem("mm.symbolNotes", JSON.stringify(symbolNotes)); }, [symbolNotes]);
+  useEffect(() => { if (!notesMounted.current) { notesMounted.current = true; return; } writeOwnerStringMap(localStorage, WL_NOTES_KEY, wlOwner, symbolNotes); }, [symbolNotes, wlOwner]);
   // paneSync mirrors same-timeframe peers only — disable it entirely when the panes carry mixed timeframes
   // (the Sync button is rendered disabled in that case), so a stale sync=true can't silently half-work.
   useEffect(() => { setPaneSync(sync && panes.length > 1 && new Set(paneTfs.slice(0, panes.length)).size <= 1); }, [sync, panes.length, paneTfs]);
@@ -1930,6 +2201,7 @@ export default function TerminalShell({ symbols, email, initialSymbol, shellMode
         if (value.magnet === "off" || value.magnet === "weak" || value.magnet === "strong") setMagnet(value.magnet);
         if (typeof value.sticky === "boolean") setDrawingSticky(value.sticky);
         if (typeof value.visible === "boolean") setDrawingsVisible(value.visible);
+        if (typeof value.lastColor === "string" && value.lastColor.trim()) setLastDrawingColor(value.lastColor.trim());
         if (value.styles && typeof value.styles === "object" && !Array.isArray(value.styles)) {
           const styles: Partial<Record<DrawKind, Partial<ShellDrawingStyle>>> = {};
           for (const [id, candidate] of Object.entries(value.styles as Record<string, unknown>)) {
@@ -1951,8 +2223,8 @@ export default function TerminalShell({ symbols, email, initialSymbol, shellMode
   }, []);
   useEffect(() => {
     if (!drawingPrefsHydrated) return;
-    try { localStorage.setItem("mm.drawing.preferences", JSON.stringify({ magnet, sticky: drawingSticky, visible: drawingsVisible, styles: drawStyleOverrides })); } catch {}
-  }, [drawStyleOverrides, drawingPrefsHydrated, drawingSticky, drawingsVisible, magnet]);
+    try { localStorage.setItem("mm.drawing.preferences", JSON.stringify({ magnet, sticky: drawingSticky, visible: drawingsVisible, styles: drawStyleOverrides, ...(lastDrawingColor ? { lastColor: lastDrawingColor } : {}) })); } catch {}
+  }, [drawStyleOverrides, drawingPrefsHydrated, drawingSticky, drawingsVisible, lastDrawingColor, magnet]);
   // Drawing ownership is a hard cache boundary. Guest drawings remain in the
   // guest collection; an account always reloads its authoritative server copy.
   // This also handles sign-out and direct account-to-account session changes.
@@ -2311,14 +2583,47 @@ export default function TerminalShell({ symbols, email, initialSymbol, shellMode
     return () => clearTimeout(id);
   }, [extSymsKey, pollExtQuotes]);
 
-  useEffect(() => { fetch("/api/layouts").then((r) => r.json()).then((d) => setLayouts(d.layouts || [])).catch(() => {}); }, []);
+  // Read the saved-workspace library. Returns the rows on an authoritative read (so a caller that
+  // needs the FRESH list right away — e.g. resolving a stale_revision fork — never has to wait on a
+  // state update it just triggered) and also updates `layouts`/`layoutStatus` as a side effect. A
+  // failure keeps the last-good list on screen (replacing it with [] is the "outage looks like an
+  // empty library" bug) and only moves the state.
+  //
+  // `rowState` is computed HERE via `workspaceRowState` (→ `migrateLegacy`), never trusted from the
+  // server's own `rowStateFor` field: that field answers "is this row valid AS workspace_layout.v1
+  // right now", which would mark every pre-W2-A legacy layout unopenable. The reader (this shell)
+  // is what decides real openability, per the migrate-on-write law (freeze §6).
+  const fetchWorkspaceRows = useCallback(async (): Promise<{ ok: true; rows: SavedWorkspace[] } | { ok: false }> => {
+    try {
+      const r = await fetch("/api/layouts", { headers: { Accept: "application/json" } });
+      if (r.status === 401) { setLayouts([]); setLayoutStatus("auth"); return { ok: false }; }
+      if (!r.ok) { setLayoutStatus("unavailable"); return { ok: false }; }
+      const d = await r.json();
+      // A 200 whose body is not a list is a BROKEN read, not an empty library — the same rule the
+      // status codes above encode, applied one level down. Coercing it to [] here would reintroduce
+      // the exact confusion this wave removes, just past the point where the status looked fine.
+      if (!Array.isArray(d?.layouts)) { setLayoutStatus("unavailable"); return { ok: false }; }
+      const rows: SavedWorkspace[] = (d.layouts as SavedLayout[]).map((l) => ({ ...l, rowState: workspaceRowState(l.config) }));
+      setLayouts(rows);
+      setLayoutStatus("ready");
+      return { ok: true, rows };
+    } catch { setLayoutStatus("unavailable"); return { ok: false }; }
+  }, []);
+  const refreshLayouts = useCallback(async (): Promise<boolean> => (await fetchWorkspaceRows()).ok, [fetchWorkspaceRows]);
+  useEffect(() => { void refreshLayouts(); }, [refreshLayouts]);
   useEffect(() => {
     // Open the Brain widget. The script is deferred + cross-origin, so on early ?ai=1 deep-links
     // window.MMBrain may not exist yet — retry once after 800ms before giving up.
+    // Reviewer ruling M6(b): opening the assistant is itself the user asking for it — every entry
+    // point RE-INCLUDES the dock in the live workspace graph when it was toggled off, rather than
+    // opening a widget the workspace no longer declares (freeze §7's own membership rule flows both
+    // ways: a workspace can drop the dock, and asking for the assistant brings it back).
     const openBrain = () => {
-      const b = (window as any).MMBrain;
-      if (b?.open) { b.open(); return; }
-      window.setTimeout(() => (window as any).MMBrain?.open?.(), 800);
+      openBrainReincluding(setBrainIncluded, () => {
+        const b = (window as any).MMBrain;
+        if (b?.open) { b.open(); return; }
+        window.setTimeout(() => (window as any).MMBrain?.open?.(), 800);
+      });
     };
     window.addEventListener("mm:copilot", openBrain);
     try { if (new URLSearchParams(window.location.search).get("ai") === "1") openBrain(); } catch {}
@@ -2539,7 +2844,15 @@ export default function TerminalShell({ symbols, email, initialSymbol, shellMode
     return () => clearInterval(playRef.current);
   }, [replayOn, playing, total, speed]);
 
-  const closeAll = () => { setWlSetOpen(false); setTfOpen(false); setCtOpen(false); setDetectOpen(false); setLayoutOpen(false); setWlMenuOpen(false); setSnapOpen(false); setToolbarMoreOpen(false); setToolbarMoreView("main"); setWlContext(null); setWlSectionContext(null); };
+  const closeAll = () => {
+    setWlSetOpen(false); setTfOpen(false); setCtOpen(false); setDetectOpen(false); setLayoutOpen(false); setWlMenuOpen(false); setSnapOpen(false); setToolbarMoreOpen(false); setToolbarMoreView("main"); setWlContext(null); setWlSectionContext(null);
+    // spec §4: "menu closes | ... a stale/conflict block does not persist across a close" — the
+    // fork/suggestion blocks are unresolved DECISIONS, not toasts, so closing the popover drops
+    // them (an ordinary saved/renamed/error toast is left alone, same as before this wave).
+    setStaleWorkspaceName(null);
+    setPendingConflict(null);
+    setLayoutFeedback((f) => (f.kind === "stale" || f.kind === "conflict" ? { kind: "idle" } : f));
+  };
   useEffect(() => {
     const h = (event: MouseEvent) => { if (event.button !== 2) closeAll(); };
     window.addEventListener("click", h);
@@ -2647,6 +2960,7 @@ export default function TerminalShell({ symbols, email, initialSymbol, shellMode
     if (listId) return { listId };
     return listName === DEFAULT_LIST ? {} : { listName };
   }, []);
+  wlTargetRef.current = wlTarget;
 
   // One serialized request, preserving master's `wlServerChainRef` ordering guarantee: watchlist
   // writes must not race each other, or a move can land before the add it depends on.
@@ -2679,19 +2993,30 @@ export default function TerminalShell({ symbols, email, initialSymbol, shellMode
     if (!loggedIn || !symbolsToSync.length) return Promise.resolve(true);
     const target = wlTarget(listName);
     const chunks = chunkSymbols(symbolsToSync);
+    // A3: a REMOVE records its intent BEFORE the request leaves, and the intent is cleared only
+    // once the server confirms. The order matters — a crash, a closed tab, or a dead network
+    // between the two leaves the tombstone standing, which is the safe direction: the row stays
+    // deleted on screen and the next mount retries. Written the other way round, the failure mode
+    // is the bug this fixes (the row silently returns).
+    const owner = wlOwnerRef.current;
+    if (action === "remove") recordWatchlistTombstones(localStorage, owner, listName, symbolsToSync);
+    const settle = (ok: boolean) => {
+      if (action === "remove" && ok) clearWatchlistTombstones(localStorage, owner, listName, symbolsToSync);
+      return ok;
+    };
     if (chunks.length <= 1) {
       return wlPost({
         action, symbols: symbolsToSync, ...target,
         ...(section !== undefined ? { section } : {}),
         ...(sections ? { sections } : {}),
-      });
+      }).then(settle);
     }
     // One failed chunk must read as a failed sync, not a partial success.
     return chunks.reduce<Promise<boolean>>((carry, chunk) => carry.then((okSoFar) => wlPost({
       action, symbols: chunk, ...target,
       ...(section !== undefined ? { section } : {}),
       ...(sections ? { sections: Object.fromEntries(chunk.map((symbol) => [symbol, sections[symbol]]).filter(([, v]) => v !== undefined)) } : {}),
-    }).then((ok) => ok && okSoFar)), Promise.resolve(true));
+    }).then((ok) => ok && okSoFar)), Promise.resolve(true)).then(settle);
   }, [loggedIn, wlPost, wlTarget]);
 
   // Kept as thin wrappers so master's call sites read unchanged; the NAME is now a parameter
@@ -2876,6 +3201,7 @@ export default function TerminalShell({ symbols, email, initialSymbol, shellMode
   // Regular and extended prices are independent lanes. `last`/`close` stay
   // regular-session values; the hub's ext* namespace drives the secondary line.
   const regularQuote = resolveRegularSessionDisplay(liveQuote);
+  const isSuspended = liveQuote?.suspended === true;
   const hubExtPrice = liveQuote?.extPrice as number | undefined;
   const hubExtChg = liveQuote?.extChg as number | undefined;
   const hubExtTs = liveQuote?.extTs as number | undefined;
@@ -2887,6 +3213,9 @@ export default function TerminalShell({ symbols, email, initialSymbol, shellMode
   const chgNow: number | null | undefined = activeIsComposite
     ? (compositeQ?.chg ?? null)
     : (regularQuote.regularChg ?? m?.chg);
+  const changeLabel = m?.sec === "Crypto" || active.endsWith("-USD") || isMacroSymbol(active)
+    ? t("change1d")
+    : t("change24h");
 
   // ── market-closed chip ──────────────────────────────────────────────────────
   // Recomputes every minute via setInterval (no holiday calendar — see risks).
@@ -3616,13 +3945,26 @@ export default function TerminalShell({ symbols, email, initialSymbol, shellMode
   // ── custom-script wiring ──────────────────────────────────────────────────────────────────────
   // load scripts + enable-state + param overrides on mount (dual-tier: API for members, LS for guests)
   const scriptsLoadedRef = useRef(false);
+  // C7: a failed read must not overwrite the last-good library with []. `listScripts` now reports
+  // `unavailable` separately; on that answer we keep whatever is on screen and raise a flag the
+  // Indicator Library renders as "unavailable · Retry" instead of "No scripts yet".
+  //
+  // ONE loader serves both the mount read and the Retry button, so the two cannot disagree about
+  // what an outage does. `scriptsLoadedRef` is still set on failure: it gates the ?addScript= retry,
+  // which asks only "has the list settled", not "did it succeed".
+  const loadScripts = useCallback(async () => {
+    const result = await listScripts(loggedIn).catch(() => ({ status: "unavailable" as const }));
+    scriptsLoadedRef.current = true;
+    if (result.status === "unavailable") { setScriptsUnavailable(true); return false; }
+    setScripts(result.scripts);
+    setScriptsUnavailable(false);
+    return true;
+  }, [loggedIn]);
   useEffect(() => {
     setEnabledIds(enabledScriptIds());
     setPineParamsState(pineParamStore());
-    let alive = true;
-    listScripts(loggedIn).then((list) => { if (alive) { setScripts(list); scriptsLoadedRef.current = true; } }).catch(() => { if (alive) scriptsLoadedRef.current = true; });
-    return () => { alive = false; };
-  }, [loggedIn]);
+    void loadScripts();
+  }, [loadScripts]);
   // persist enable-state + overrides (both tiers use localStorage — mirrors mm.inds / mm.indParams).
   // skip the mount write so the pre-load default can't clobber the saved value.
   const pineOnMounted = useRef(false); const pinePMounted = useRef(false);
@@ -3820,6 +4162,18 @@ export default function TerminalShell({ symbols, email, initialSymbol, shellMode
     setRange: (from) => { try { window.dispatchEvent(new CustomEvent("mm:chart-jump", { detail: { ts: from } })); } catch {} },
   });
 
+  // ── DeepVue W1-C: typed ai-context provider ────────────────────────────────────────────────
+  // One provider instance per TerminalShell mount (mints origin_id once). Observe-only: the
+  // effect below is the ONLY writer into it, keyed on the exact same [active, tf] values fed to
+  // useChartBus above, so one symbol/timeframe transition produces exactly one
+  // noteContextChange call. Nothing from the widget (acks, receipts) may call it — that would
+  // create a context loop, which the contract forbids.
+  const aiContextProviderRef = useRef<ReturnType<typeof createAiContextProvider> | null>(null);
+  if (!aiContextProviderRef.current) aiContextProviderRef.current = createAiContextProvider();
+  useEffect(() => {
+    aiContextProviderRef.current?.noteContextChange({ symbol: active, timeframe: tf });
+  }, [active, tf]);
+
   // Brain widget → chart command executor. Mirrors the retired CopilotPanel's FLAT single-command
   // contract EXACTLY ({action, symbol|tf|indicator+on|kind} at top level): every field is
   // type-guarded, toggle_indicator adds ONLY on an explicit on===true (a missing flag never
@@ -3842,14 +4196,465 @@ export default function TerminalShell({ symbols, email, initialSymbol, shellMode
     }
   };
 
-  function saveLayout() { const name = layoutName.trim() || `Layout ${layouts.length + 1}`; const config = { panes, paneTfs, activePane, tf, chartType, inds: [...inds], favTF, compare, compareCfg, lockedVLine }; fetch("/api/layouts", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, config }) }).then(() => fetch("/api/layouts").then((r) => r.json()).then((d) => setLayouts(d.layouts || []))); setLayoutName(""); }
-  function loadLayout(l: any) { const c = l.config || {}; if (c.chartType) setChartType(c.chartType); if (c.inds) setInds(new Set(c.inds)); if (c.favTF) setFavTF(c.favTF); if (Array.isArray(c.compare)) setCompare(c.compare); if (c.compareCfg) setCompareCfg(c.compareCfg); if (typeof c.lockedVLine === "string" || c.lockedVLine === null) setLockedVLine(c.lockedVLine);
-    if (Array.isArray(c.panes) && c.panes.length) {
-      setPanes(c.panes); setActivePane(Math.min(c.activePane || 0, c.panes.length - 1)); setSplit(c.panes.length >= 4 ? 4 : c.panes.length >= 2 ? 2 : 1);
-      setPaneTfs(Array.isArray(c.paneTfs) && c.paneTfs.length === c.panes.length ? c.paneTfs : c.panes.map(() => c.tf || "D"));   // back-compat: older layouts have a single tf
-    } else if (c.active) { setPanes([c.active]); setActivePane(0); setSplit(1); setPaneTfs([c.tf || "D"]); }
-    setLayoutOpen(false); }
-  function delLayout(id: string) { fetch(`/api/layouts?id=${id}`, { method: "DELETE" }).then(() => setLayouts((ls) => ls.filter((x) => x.id !== id))); }
+  // ── saved-layout writes ───────────────────────────────────────────────────────────────────────
+  // Three rules, each replacing a specific defect:
+  //   1. A guest never fires a POST that is guaranteed to 401 — Save is disabled and the sign-up
+  //      path is offered instead (the old menu let a guest configure, name and "save" into nothing).
+  //   2. A blank name is auto-generated as the first FREE `Layout N`, sent in create-only mode, and
+  //      retried on 409. `layouts.length + 1` was a counter, not a name: with 1/2/3 saved and 2
+  //      deleted it generated "Layout 3" and the server's upsert-by-name overwrote the real one.
+  //   3. Success is only claimed when the authoritative write said so. The old path resolved on any
+  //      response — 401, 400, 503 — cleared the name box and refetched, so a failed save was
+  //      indistinguishable from a good one.
+  // The single place that says what "the current workspace" IS, for both save and load. Keeping one
+  // definition is what makes the round trip provable: the same shape is captured and re-applied.
+  const currentWorkspace = (): LayoutWorkspace => ({
+    panes, paneTfs, split, activePane, sync, chartType,
+    inds: [...inds], indParams, hidden: [...hidden],
+    compare, compareCfg, lockedVLine,
+  });
+
+  const isRecordLike = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
+  /** A row's own revision, IF it is already stored as `workspace_layout.v1` — `null` for a legacy
+   *  row that has never been saved in that format (migrate-on-write, freeze §6). */
+  const rowWorkspaceRevision = (config: unknown): number | null =>
+    isRecordLike(config) && config.schema === WORKSPACE_SCHEMA && typeof config.revision === "number" ? config.revision : null;
+
+  async function postWorkspaceOp(body: Record<string, unknown>): Promise<{ status: number; json: unknown }> {
+    const r = await fetch("/api/layouts", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    let json: unknown = null;
+    try { json = await r.json(); } catch { /* a 204/empty body is not malformed — status alone still decides */ }
+    return { status: r.status, json };
+  }
+  const saveWorkspaceEnvelope = async (name: string, envelope: WorkspaceEnvelope, expectedRevision: number | null, expectedId?: string): Promise<WorkspaceOpOutcome> => {
+    const { status, json } = await postWorkspaceOp({ op: "save_workspace", name, envelope, expectedRevision, id: expectedId });
+    return parseWorkspaceOutcome(status, json);
+  };
+  const renameWorkspaceRow = async (oldName: string, newName: string, expectedRevision: number, expectedId?: string): Promise<WorkspaceOpOutcome> => {
+    const { status, json } = await postWorkspaceOp({ op: "rename", oldName, newName, expectedRevision, id: expectedId });
+    return parseWorkspaceOutcome(status, json);
+  };
+
+  // ── saved-workspace writes (W2A_WORKSPACE_UX_SPEC.md; freeze §4/§5/§6/§7) ───────────────────────
+  // Rules carried forward, now over the workspace-aware `save_workspace` op:
+  //   1. A guest never fires a POST that is guaranteed to 401 — Save is disabled and the sign-up
+  //      path is offered instead.
+  //   2. A blank name is auto-generated as the first FREE `Layout N`, retried on a genuine 409 race.
+  //   3. Success is only claimed when the authoritative write said so.
+  // NEW: typing the currently-open workspace's own name fences on ITS revision (an ordinary
+  // save-over); any other name (new, or someone else's existing workspace) fences on nothing
+  // (`expectedRevision: null`) — which the server resolves as CREATE, migrate-on-write, or
+  // `stale_revision` (never last-writer-wins over a workspace it never read — freeze §4).
+  async function saveLayout() {
+    if (layoutSaving) return;                       // busy guard: a double-click is one save
+    if (!loggedIn) { promptLayoutSignup(); return; }
+    const typed = layoutName.trim();
+    setLayoutSaving(true); setLayoutFeedback({ kind: "saving" }); setLayoutDeleteError(null); setStaleWorkspaceName(null);
+    try {
+      let targetName = typed;
+      let expectedRevision: number | null = null;
+      let expectedId: string | undefined;
+      let autoNaming = false;
+      // Reviewer ruling N14: provenance (widget ids, migration.source) is carried over ONLY when
+      // this save targets the SAME loaded workspace identity — an ordinary save-over. A brand-new
+      // name from the current live state (blank auto-name, or typing a name that is not the one
+      // loaded) mints a genuinely NEW identity (`migration = {source:"none", source_revision:null}`,
+      // never the OLD workspace's provenance smuggled onto an object that never earned it).
+      let priorForCapture: WorkspaceEnvelope | undefined;
+      if (!typed) {
+        autoNaming = true;
+        targetName = nextLayoutName(layouts.map((l) => l.name));
+      } else if (typed === workspaceName) {
+        expectedRevision = workspaceRevision;
+        expectedId = workspaceId ?? undefined;
+        priorForCapture = loadedEnvelope ?? undefined;
+      }
+      const captured = captureWorkspace({ layout: captureLayoutConfig(currentWorkspace()), brainIncluded, prior: priorForCapture });
+      // Reviewer ruling M4: capture never silently narrows the workspace. A field the live state
+      // held but that failed its own frozen validator (hostile/corrupted in-memory state) refuses
+      // the WRITE outright rather than persisting a quietly-smaller envelope.
+      if (captured.dropped.length > 0) {
+        setLayoutFeedback({ kind: "error", message: t("wsSaveUnreadable") });
+        return;
+      }
+      const envelope = captured.envelope;
+      const taken = layouts.map((l) => l.name);
+      let outcome: WorkspaceOpOutcome = { kind: "error" };
+      for (let attempt = 0; attempt < 5; attempt++) {
+        outcome = await saveWorkspaceEnvelope(targetName, envelope, expectedRevision, expectedId);
+        if (autoNaming && outcome.kind === "name_conflict") { taken.push(targetName); targetName = nextLayoutName(taken); continue; }
+        break;
+      }
+      if (outcome.kind === "ok") {
+        setWorkspaceName(targetName);
+        setWorkspaceRevision(outcome.revision);
+        setWorkspaceId(outcome.id ?? workspaceId);
+        setUnclaimedFields([]);                     // a fresh capture-then-save is clean by construction
+        setUnsupportedWidgets([]);                  // a fresh capture only ever includes widgets this build renders
+        setLoadedEnvelope({ ...envelope, name: null, revision: outcome.revision });
+        setLayoutFeedback({ kind: "saved", name: targetName });
+        setLayoutName("");                          // only cleared once the name is really stored
+        await refreshLayouts();
+        return;
+      }
+      if (outcome.kind === "stale_revision") {
+        const fresh = await fetchWorkspaceRows();
+        const row = fresh.ok ? fresh.rows.find((l) => l.name === targetName) : undefined;
+        setStaleWorkspaceName(targetName);
+        setLayoutFeedback({ kind: "stale", name: targetName, savedAgo: absoluteLocalTime(row?.updated_at) });
+        return;
+      }
+      if (outcome.kind === "name_conflict") {
+        setPendingConflict({ op: "save", envelope });
+        setLayoutFeedback({ kind: "conflict", name: targetName, suggested: nextLayoutName(taken), op: "save" });
+        return;
+      }
+      if (outcome.kind === "unauthenticated") { setLayoutStatus("auth"); setLayoutFeedback({ kind: "error", message: t("layoutSignInToSave") }); return; }
+      setLayoutFeedback({ kind: "error", message: t("layoutSaveFailed") });
+    } catch {
+      setLayoutFeedback({ kind: "error", message: t("layoutSaveFailed") });
+    } finally { setLayoutSaving(false); }
+  }
+
+  // Load = migrate (legacy) or validate (native), then fold the resulting claims onto the live
+  // workspace and apply. `migrateLegacy(config, false)` (Amendment A3 READ/RENDER form, reviewer
+  // ruling B1) covers BOTH branches mission §1 describes: for an already `workspace_layout.v1` row
+  // it IS `validateEnvelope` (tolerant only of an unrecognized widget TYPE, contract §2's own
+  // documented fallback); for a legacy row it is the deterministic migration (freeze §6), per-field
+  // tolerant — in memory only, the ROW is never rewritten here (migrate-on-write is a SAVE-time act,
+  // and stays STRICT there). A row this build genuinely cannot open (`rowState !== "ok"`) is never
+  // clickable in the menu, so `!ok` here is defensive, not a real path.
+  function loadLayout(l: SavedWorkspace) {
+    const migrated = migrateLegacy(l.config, false);
+    if (!migrated.ok) return;
+    const envelope = migrated.envelope;
+    const next = applyLayoutConfig(workspaceToLayout(envelope), currentWorkspace());
+    setPanes(next.panes);
+    setPaneTfs(next.paneTfs);
+    setSplit(next.split);
+    setActivePane(next.activePane);
+    setSync(next.sync);
+    setChartType(next.chartType);
+    setInds(new Set(next.inds));
+    setIndParams(next.indParams);
+    setHidden(new Set(next.hidden));
+    setCompare(next.compare);
+    setCompareCfg(next.compareCfg as Record<string, CmpCfg>);
+    setLockedVLine(next.lockedVLine);
+    setLayoutOpen(false);
+    setWorkspaceName(l.name);
+    setWorkspaceRevision(rowWorkspaceRevision(l.config));
+    setWorkspaceId(l.id);
+    setUnclaimedFields(migrationUnclaimed(migrated));
+    setUnsupportedWidgets(migrationUnsupportedWidgets(migrated));
+    setLoadedEnvelope(envelope);
+    setBrainIncluded(brainIncludedFromEnvelope(envelope));
+    setLayoutName("");
+    setLayoutFeedback({ kind: "idle" });
+    setStaleWorkspaceName(null);
+    setPendingConflict(null);
+  }
+
+  // stale_revision fork (spec §3.5): two peers, no primary.
+  async function reloadLatestWorkspace() {
+    const target = staleWorkspaceName;
+    if (!target) return;
+    const fresh = await fetchWorkspaceRows();
+    const row = fresh.ok ? fresh.rows.find((l) => l.name === target) : undefined;
+    setStaleWorkspaceName(null);
+    setLayoutFeedback({ kind: "idle" });
+    if (row) loadLayout(row);
+  }
+  async function saveWorkspaceAsCopy() {
+    const target = staleWorkspaceName;
+    setLayoutSaving(true);
+    try {
+      // N14: a copy of the workspace the user was just looking at preserves ITS provenance
+      // (widget ids, migration.source) — this is a fork of an existing identity, not a new one.
+      const captured = captureWorkspace({ layout: captureLayoutConfig(currentWorkspace()), brainIncluded, prior: loadedEnvelope ?? undefined });
+      if (captured.dropped.length > 0) {
+        setLayoutFeedback({ kind: "error", message: t("wsSaveUnreadable") });
+        return;
+      }
+      const envelope = captured.envelope;
+      const candidate = nextLayoutName(layouts.map((l) => l.name));
+      const outcome = await saveWorkspaceEnvelope(candidate, envelope, null);
+      if (outcome.kind === "ok") {
+        setWorkspaceName(candidate);
+        setWorkspaceRevision(outcome.revision);
+        setWorkspaceId(outcome.id ?? null);
+        setUnclaimedFields([]);
+        setUnsupportedWidgets([]);
+        setLoadedEnvelope({ ...envelope, name: null, revision: outcome.revision });
+        setLayoutFeedback({ kind: "saved", name: candidate });
+        setStaleWorkspaceName(null);
+        await refreshLayouts();
+      } else {
+        setLayoutFeedback({ kind: "error", message: t("layoutSaveFailed") });
+      }
+    } finally { setLayoutSaving(false); }
+    void target; // the fork's rail belonged to the OLD name; a fresh save clears it above regardless
+  }
+
+  // Rename (spec §3.1). A legacy row (no numeric revision yet) is migrated-on-write IN PLACE under
+  // its OLD name first — the only lever the already-shipped `renameWorkspace` op exposes for
+  // fencing a rename is a numeric revision, and a legacy row has none — then the rename proper runs
+  // against the revision that migration produced. Both steps are individually atomic and safe; a
+  // crash between them leaves the row migrated-but-not-renamed, which is simply the pre-rename state
+  // with a real revision, retryable exactly like any other rename.
+  async function renameWorkspaceAction(l: SavedWorkspace, newName: string) {
+    setLayoutFeedback({ kind: "saving" });
+    let revision = rowWorkspaceRevision(l.config);
+    // The row's own uuid never changes across a migrate-on-write conversion (same row, updated in
+    // place) — carried through so the ACTUAL rename call below is id-fenced too (A3 ruling 5).
+    const rowId = l.id;
+    if (revision === null) {
+      const migrated = migrateLegacy(l.config);
+      if (!migrated.ok) { setLayoutFeedback({ kind: "error", message: t("wsRenameFailed") }); return; }
+      const migrateOutcome = await saveWorkspaceEnvelope(l.name, migrated.envelope, null, rowId);
+      if (migrateOutcome.kind === "ok") revision = migrateOutcome.revision;
+      else if (migrateOutcome.kind === "stale_revision") {
+        const fresh = await fetchWorkspaceRows();
+        const row = fresh.ok ? fresh.rows.find((x) => x.name === l.name) : undefined;
+        revision = row ? rowWorkspaceRevision(row.config) : null;
+      }
+      if (revision === null) { setLayoutFeedback({ kind: "error", message: t("wsRenameFailed") }); return; }
+    }
+    const outcome = await renameWorkspaceRow(l.name, newName, revision, rowId);
+    if (outcome.kind === "ok") {
+      if (workspaceName === l.name) {
+        setWorkspaceName(newName);
+        setWorkspaceRevision(outcome.revision);
+        setWorkspaceId(rowId);
+        setLoadedEnvelope((prev) => (prev ? { ...prev, revision: outcome.revision } : prev));
+      }
+      setLayoutFeedback({ kind: "renamed" });
+      await refreshLayouts();
+      return;
+    }
+    if (outcome.kind === "name_conflict") {
+      setPendingConflict({ op: "rename", oldName: l.name, revision, id: rowId });
+      setLayoutFeedback({ kind: "conflict", name: newName, suggested: nextLayoutName(layouts.map((x) => x.name)), op: "rename" });
+      return;
+    }
+    if (outcome.kind === "stale_revision") {
+      const fresh = await fetchWorkspaceRows();
+      const row = fresh.ok ? fresh.rows.find((x) => x.name === l.name) : undefined;
+      setStaleWorkspaceName(l.name);
+      setLayoutFeedback({ kind: "stale", name: l.name, savedAgo: absoluteLocalTime(row?.updated_at) });
+      return;
+    }
+    if (outcome.kind === "unauthenticated") { setLayoutStatus("auth"); setLayoutFeedback({ kind: "error", message: t("layoutSignInToSave") }); return; }
+    setLayoutFeedback({ kind: "error", message: t("wsRenameFailed") });
+  }
+
+  // Duplicate (spec §3.2). One click, no naming step — the store mints the free name.
+  async function duplicateWorkspaceAction(l: SavedWorkspace) {
+    setLayoutFeedback({ kind: "saving" });
+    const { status, json } = await postWorkspaceOp({ op: "duplicate", sourceName: l.name, sourceId: l.id });
+    const outcome = parseWorkspaceOutcome(status, json);
+    if (status === 200 && isRecordLike(json) && json.ok) {
+      setLayoutFeedback({ kind: "duplicated" });
+      await refreshLayouts();
+      return;
+    }
+    if (outcome.kind === "name_conflict") {
+      setPendingConflict({ op: "duplicate", sourceName: l.name, sourceId: l.id });
+      setLayoutFeedback({ kind: "conflict", name: l.name, suggested: nextLayoutName(layouts.map((x) => x.name)), op: "duplicate" });
+      return;
+    }
+    if (outcome.kind === "stale_revision") {
+      setLayoutFeedback({ kind: "error", message: t("wsDuplicateFailed") });
+      return;
+    }
+    if (outcome.kind === "unauthenticated") { setLayoutStatus("auth"); setLayoutFeedback({ kind: "error", message: t("layoutSignInToSave") }); return; }
+    setLayoutFeedback({ kind: "error", message: t("wsDuplicateFailed") });
+  }
+
+  // Export (spec §3.3): the canonical (tolerant-migrated) envelope, name filled from the row — for
+  // a BLOCKED row, or an "ok" row the tolerant READ still had to drop a field from (reviewer ruling
+  // B1: "clean when clean, raw bytes when not"), the untouched stored bytes instead, so an
+  // unreadable/degraded payload can still be rescued (freeze §6: "left exactly as it was saved").
+  function exportWorkspaceAction(l: SavedWorkspace) {
+    try {
+      let body: unknown;
+      if (l.rowState === "ok") {
+        const migrated = migrateLegacy(l.config, false);
+        const clean = migrated.ok && migrationUnclaimed(migrated).length === 0;
+        body = clean && migrated.ok ? { ...migrated.envelope, name: l.name } : l.config;
+      } else {
+        body = l.config;
+      }
+      const blob = new Blob([JSON.stringify(body, null, 2)], { type: "application/json;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = safeWorkspaceFilename(l.name);
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
+    } catch {
+      setLayoutFeedback({ kind: "error", message: t("wsExportFailed") });
+    }
+  }
+
+  // Import (spec §3.4): file pick → validate client-side (freeze §11 — the client is not trusted
+  // either, but a client-side reject means one less round trip for an obviously bad file) → POST as
+  // a NEW workspace (revision 1, `migration.source = "import"`) → server re-validates regardless.
+  function importWorkspaceAction() {
+    if (isGuest) return;
+    const trigger = document.activeElement as HTMLElement | null;
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".json,application/json";
+    const refocus = () => { window.removeEventListener("focus", refocus); trigger?.focus(); };
+    window.addEventListener("focus", refocus);
+    input.onchange = async () => {
+      const file = input.files?.[0];
+      if (!file) return;                              // picker cancelled — no note, no state change
+      try {
+        const text = await file.text();
+        let parsed: unknown;
+        try { parsed = JSON.parse(text); } catch { setLayoutFeedback({ kind: "error", message: t(importFailureKey(undefined)) }); return; }
+        // Wire mode (Amendment A2 ruling 5): an exported file's `name` is FILLED (contract §11), so
+        // stored-mode validation (which requires `name === null`) would reject every genuine export.
+        const validation = validateEnvelope(parsed, true);
+        if (!validation.ok) { setLayoutFeedback({ kind: "error", message: t(importFailureKey(validation.errors[0]?.code)) }); return; }
+        const envelope: WorkspaceEnvelope = { ...(parsed as WorkspaceEnvelope), name: null, revision: 1, migration: { source: "import", source_revision: null } };
+        const candidate = nextLayoutName(layouts.map((l) => l.name));
+        const outcome = await saveWorkspaceEnvelope(candidate, envelope, null);
+        if (outcome.kind === "ok") {
+          setLayoutFeedback({ kind: "imported" });
+          await refreshLayouts();
+        } else if (outcome.kind === "name_conflict") {
+          setPendingConflict({ op: "import", envelope });
+          setLayoutFeedback({ kind: "conflict", name: candidate, suggested: nextLayoutName(layouts.map((l) => l.name).concat(candidate)), op: "import" });
+        } else {
+          setLayoutFeedback({ kind: "error", message: t(importFailureKey(undefined)) });
+        }
+      } catch {
+        setLayoutFeedback({ kind: "error", message: t(importFailureKey(undefined)) });
+      }
+    };
+    input.click();
+  }
+
+  // "Use <suggested>" (spec §1.1 `.ws-suggest`) retries whichever op produced the name_conflict.
+  async function useSuggestedWorkspaceName(suggested: string) {
+    const pending = pendingConflict;
+    if (!pending) return;
+    setPendingConflict(null);
+    if (pending.op === "save") {
+      setLayoutName(suggested);
+      const outcome = await saveWorkspaceEnvelope(suggested, pending.envelope, null);
+      if (outcome.kind === "ok") {
+        setWorkspaceName(suggested);
+        setWorkspaceRevision(outcome.revision);
+        setWorkspaceId(outcome.id ?? null);
+        setUnclaimedFields([]);
+        setUnsupportedWidgets([]);
+        setLoadedEnvelope({ ...pending.envelope, name: null, revision: outcome.revision });
+        setLayoutFeedback({ kind: "saved", name: suggested });
+        setLayoutName("");
+        await refreshLayouts();
+      } else {
+        setLayoutFeedback({ kind: "error", message: t("layoutSaveFailed") });
+      }
+    } else if (pending.op === "rename") {
+      const outcome = await renameWorkspaceRow(pending.oldName, suggested, pending.revision, pending.id);
+      if (outcome.kind === "ok") {
+        if (workspaceName === pending.oldName) {
+          setWorkspaceName(suggested);
+          setWorkspaceRevision(outcome.revision);
+          if (pending.id) setWorkspaceId(pending.id);
+        }
+        setLayoutFeedback({ kind: "renamed" });
+        await refreshLayouts();
+      } else {
+        setLayoutFeedback({ kind: "error", message: t("wsRenameFailed") });
+      }
+    } else if (pending.op === "duplicate") {
+      const { status, json } = await postWorkspaceOp({ op: "duplicate", sourceName: pending.sourceName, sourceId: pending.sourceId, newName: suggested });
+      if (status === 200 && isRecordLike(json) && json.ok) { setLayoutFeedback({ kind: "duplicated" }); await refreshLayouts(); }
+      else setLayoutFeedback({ kind: "error", message: t("wsDuplicateFailed") });
+    } else if (pending.op === "import") {
+      const outcome = await saveWorkspaceEnvelope(suggested, pending.envelope, null);
+      if (outcome.kind === "ok") { setLayoutFeedback({ kind: "imported" }); await refreshLayouts(); }
+      else setLayoutFeedback({ kind: "error", message: t("wsImportBad") });
+    }
+  }
+
+  // Optimistic removal WITH rollback. The old version dropped the row when the request merely
+  // resolved — a 401/503 delete vanished from the menu and came back on the next load, which is the
+  // worst of both worlds: the user believes it is gone and the account still holds it.
+  // A 404 is not an error to roll back: the row is genuinely absent, so the removal already agrees
+  // with the store. It is still not reported as a successful delete.
+  async function delLayout(id: string) {
+    const snapshot = layouts;
+    const deleted = layouts.find((x) => x.id === id);
+    setLayoutDeleteError(null);
+    setLayouts((ls) => ls.filter((x) => x.id !== id));
+    const restore = () => { setLayouts(snapshot); setLayoutDeleteError(t("layoutDeleteFailed")); };
+    try {
+      const r = await fetch(`/api/layouts?id=${encodeURIComponent(id)}`, { method: "DELETE" });
+      if (r.ok || r.status === 404) {
+        if (deleted && deleted.name === workspaceName) { setWorkspaceName(null); setWorkspaceRevision(null); setWorkspaceId(null); setUnclaimedFields([]); setUnsupportedWidgets([]); setLoadedEnvelope(null); }
+        return;
+      }
+      if (r.status === 401) { setLayouts([]); setLayoutStatus("auth"); return; }
+      restore();
+    } catch { restore(); }
+  }
+  // A guest's Save is disabled, so this is reached from the menu's own sign-up row: the same nudge
+  // + onboarding path the watchlist gate uses, not a silent no-op.
+  function promptLayoutSignup() {
+    showGateNudge(t("gateLayouts"));
+    window.dispatchEvent(new CustomEvent("mm:onboard", { detail: { mode: "signup" } }));
+  }
+  // One props object for both render sites (toolbar popover + responsive overflow menu) so the two
+  // menus cannot drift. `loggedIn` short-circuits the status: a guest must see the honest gate from
+  // the first paint, not for however long the mount GET takes to come back 401.
+  const isGuest = !loggedIn;
+  const layoutMenuProps = {
+    status: (loggedIn ? layoutStatus : "auth") as LayoutStatus,
+    layouts,
+    name: layoutName,
+    onNameChange: setLayoutName,
+    onSave: saveLayout,
+    saving: layoutSaving,
+    feedback: layoutFeedback,
+    deleteError: layoutDeleteError,
+    onLoad: loadLayout,
+    onDelete: delLayout,
+    onRetry: () => { setLayoutStatus("loading"); void refreshLayouts(); },
+    onSignUp: promptLayoutSignup,
+    brainInWorkspace: brainIncluded,
+    onToggleBrainDock: () => setBrainIncluded((b) => !b),
+    onRename: renameWorkspaceAction,
+    onDuplicate: duplicateWorkspaceAction,
+    onExport: exportWorkspaceAction,
+    onImport: importWorkspaceAction,
+    staleName: staleWorkspaceName,
+    onUseSuggested: useSuggestedWorkspaceName,
+    onReloadLatest: reloadLatestWorkspace,
+    onSaveAsCopy: saveWorkspaceAsCopy,
+    unclaimedFields,
+    unsupportedWidgets,
+  };
+
+  // Generic-widget-graph fallback data (see the `.ws-extra-widgets` render site below): every
+  // widget in the loaded envelope beyond the one primary chart + one dock Brain this build
+  // specifically renders. Structurally near-always empty today — `captureWorkspace` only ever
+  // produces exactly those two widgets, and a write/import of a truly unknown `type` is rejected
+  // outright (freeze §2) — but a legitimately-imported extra widget in an unconsumed lane
+  // (`secondary`/`rail`, freeze §9) reaches this, and it is real, reachable code, not dead code.
+  const extraWorkspaceWidgets: WorkspaceWidget[] = loadedEnvelope
+    ? (() => {
+        const chartWidget = loadedEnvelope.widgets.find((w) => w.type === "chart" && w.semantic_lane === "primary")
+          ?? loadedEnvelope.widgets.find((w) => w.type === "chart");
+        const brainWidget = brainIncluded ? loadedEnvelope.widgets.find((w) => w.type === "brain") : undefined;
+        return loadedEnvelope.widgets.filter((w) => w !== chartWidget && w !== brainWidget);
+      })()
+    : [];
 
   const colList = (): [string, string][] => { const a: [string, string][] = [["last", t("colLast")]]; if (set.cols.change) a.push(["change", t("colChgShort")]); if (set.cols.changePct) a.push(["changePct", t("colChgPctShort")]); if (set.cols.volume) a.push(["volume", t("colVolShort")]); if (set.cols.ext) a.push(["ext", t("colExtShort")]); if (set.cols.extPct) a.push(["extPct", t("colExtPctShort")]); return a; };
   // Plain-word label for an ext window. The hub's classification when it has one; "Overnight"
@@ -3886,6 +4691,7 @@ export default function TerminalShell({ symbols, email, initialSymbol, shellMode
   // item-26: ext column reads from extQuotes (separate poll); dash when closed or no ext print.
   const colVal = (sym: string, r: Row | undefined, key: string) => {
     if (!r) return "—";
+    if (r.suspended && (key === "change" || key === "changePct")) return t("suspended");
     const u = r.chg >= 0;
     if (key === "last") return fmt(r.last, r.last < 10 ? 4 : 2);
     // $ change = last − prevClose. prevClose = last / (1 + chg%). The old
@@ -4039,7 +4845,7 @@ export default function TerminalShell({ symbols, email, initialSymbol, shellMode
         can call useOnboarding() directly. Note this provider is a DESCENDANT of
         TerminalShell, so useSettings() *here* would be the no-op — the buttons
         below are children of it, which is what matters. */}
-    <SettingsProvider email={email} defaultSection="terminal">
+    <SettingsProvider identity={identity} defaultSection="terminal">
     <div className={`app${fullChart ? " fs" : ""}${shellMode ? " shell-app" : ""}`} data-shell={shellMode ? "app" : undefined} data-tray={shellMode && shellTray ? "1" : undefined} data-dossier={dossierMode ? "1" : undefined} style={{ ["--rail-w" as any]: `${railW}px` }}>
       {!shellMode && (
       <header className="topbar">
@@ -4054,7 +4860,9 @@ export default function TerminalShell({ symbols, email, initialSymbol, shellMode
         </button>
         <div className="stats">
           <div className="stat stat-last"><span className="l">{t("lastPrice")}</span><span className="v big num">{fmt(lastPx, m && lastPx != null && lastPx < 10 ? 4 : 2)}</span></div>
-          <div className="stat stat-change"><span className="l">{t("change24h")}</span><span className={`v num ${(chgNow ?? 0) >= 0 ? "up" : "down"}`}>{chgStr(chgNow)}</span></div>
+          <div className="stat stat-change"><span className="l">{changeLabel}</span>{isSuspended
+            ? <span className="v quote-suspended">{t("suspended")}</span>
+            : <span className={`v num ${(chgNow ?? 0) >= 0 ? "up" : "down"}`}>{chgStr(chgNow)}</span>}</div>
           {/* Live-first, exactly like DayRange below. Reading the manifest row alone put
               TODAY's price beside YESTERDAY's volume in the same strip — the manifest is a
               nightly artifact, so its vol is a full session behind whenever a live quote exists. */}
@@ -4064,6 +4872,7 @@ export default function TerminalShell({ symbols, email, initialSymbol, shellMode
         {(() => {
           // The verdict lives in lib/feedFreshness so the rule is unit-testable and so a
           // "real-time" label can only ever come from the hub's MEASURED lag (see that file).
+          if (isSuspended) return <span className="livebadge suspended topbar-livebadge" title={t("suspensionTip")}><i />{t("suspended")}</span>;
           const basis = liveQuote?.basis ?? (liveStatus === "live" ? "LIVE" : "EOD");
           const { cls, label, tip } = freshnessLabel(
             { basis, lagMs: liveQuote?.lagMs, asOfMs: liveQuote?.asOfMs, marketSession: liveQuote?.marketSession }, t);
@@ -4072,7 +4881,7 @@ export default function TerminalShell({ symbols, email, initialSymbol, shellMode
           return <span className={`${cls} topbar-livebadge`} title={tip}><i />{label}</span>;
         })()}
         <div className="spacer" />
-        <button className="ai" onClick={() => (window as any).MMBrain?.toggle()}><svg viewBox="0 0 24 24"><path d="M12 2l2.2 5.8L20 10l-5.8 2.2L12 18l-2.2-5.8L4 10l5.8-2.2z" /></svg>Mastermind AI</button>
+        <button className="ai" onClick={() => openBrainReincluding(setBrainIncluded, () => (window as any).MMBrain?.toggle())}><svg viewBox="0 0 24 24"><path d="M12 2l2.2 5.8L20 10l-5.8 2.2L12 18l-2.2-5.8L4 10l5.8-2.2z" /></svg>Mastermind AI</button>
         <SettingsButton email={email} />
       </header>
       )}
@@ -4083,7 +4892,7 @@ export default function TerminalShell({ symbols, email, initialSymbol, shellMode
         email={email}
         fromMacro={fromMacro}
         onBack={onBack}
-        onOpenCopilot={() => (window as any).MMBrain?.open()}
+        onOpenCopilot={() => openBrainReincluding(setBrainIncluded, () => (window as any).MMBrain?.open())}
         isTerminal
         activeKey={(() => {
           const pane = new URLSearchParams(urlSearch).get("pane");
@@ -4094,7 +4903,9 @@ export default function TerminalShell({ symbols, email, initialSymbol, shellMode
       <div className={`m-symbar${activeExtData ? " has-ext" : ""}`} onClick={() => { setSeed(""); setSearchOpen(true); }}>
         <span className="m-sym"><span className="ic" style={{ background: m?.col || "#76b900" }}>{active[0]}</span><b>{active}</b><svg className="car" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" /></svg></span>
         <span className="m-quote-stack">
-          <span className="m-px" data-quote-lane="regular"><b className="num">{fmt(lastPx, m && lastPx != null && lastPx < 10 ? 4 : 2)}</b><span className={`cg num ${(chgNow ?? 0) >= 0 ? "up" : "down"}`}>{chgStr(chgNow)}</span></span>
+          <span className="m-px" data-quote-lane="regular"><b className="num">{fmt(lastPx, m && lastPx != null && lastPx < 10 ? 4 : 2)}</b>{isSuspended
+            ? <span className="cg quote-suspended">{t("suspended")}</span>
+            : <span className={`cg num ${(chgNow ?? 0) >= 0 ? "up" : "down"}`}>{chgStr(chgNow)}</span>}</span>
           {activeExtData && (
             <span className="m-ext" data-quote-lane="extended">
               <span className="m-ext-label">{extSessionLabel(activeExtData.session)}</span>
@@ -4197,7 +5008,7 @@ export default function TerminalShell({ symbols, email, initialSymbol, shellMode
             <div className="seg tool-adv toolbar-overflow-item" data-toolbar-item data-toolbar-action="split" title={t("splitLayout")}>{[1, 2, 4].map((n) => <button key={n} className={split === n ? "on" : ""} onClick={() => setGrid(n)}>{n}</button>)}</div>
             <button className={`tbtn tool-adv toolbar-overflow-item${isMtf ? " on" : ""}`} data-toolbar-item title={t("mtfTip")} onClick={mtfLayout}><svg viewBox="0 0 24 24"><path d="M3 13h4v8H3zM10 8h4v13h-4zM17 3h4v18h-4z" /></svg>{t("mtf")}</button>
             <button className={`tbtn dtm toolbar-overflow-item${dtm ? " on" : ""}`} data-toolbar-item title={t("dtmTip")} onClick={toggleDtm}><svg viewBox="0 0 24 24" style={{ width: 13, height: 13 }} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" /></svg>{t("dtmBtn")}</button>
-            {panes.length > 1 && <button className={`tbtn tool-adv toolbar-overflow-item${sync && !mixedTfs ? " on" : ""}`} data-toolbar-item disabled={mixedTfs} title={mixedTfs ? t("syncMixedTip") : t("syncTip")} onClick={() => setSync((s) => !s)}><svg viewBox="0 0 24 24"><path d="M4 7h11M4 7l3-3M4 7l3 3M20 17H9M20 17l-3-3M20 17l-3 3" /></svg>{t("sync")}</button>}
+            {panes.length > 1 && <button className={`tbtn tool-adv toolbar-overflow-item${sync && !mixedTfs ? " on" : ""}`} data-toolbar-item data-toolbar-action="sync" data-sync-on={sync && !mixedTfs ? "1" : "0"} disabled={mixedTfs} title={mixedTfs ? t("syncMixedTip") : t("syncTip")} onClick={() => setSync((s) => !s)}><svg viewBox="0 0 24 24"><path d="M4 7h11M4 7l3-3M4 7l3 3M20 17H9M20 17l-3-3M20 17l-3 3" /></svg>{t("sync")}</button>}
             <button
               className={`tbtn tool-adv toolbar-overflow-item${replayOn ? " on" : ""}`}
               data-toolbar-item
@@ -4212,12 +5023,10 @@ export default function TerminalShell({ symbols, email, initialSymbol, shellMode
                 {DETECTORS.map(([k]) => <div key={k} className="menu-row" onClick={() => detect(k)}><svg viewBox="0 0 24 24"><path d="M3 17l5-5 4 4 8-8" /></svg>{t(DET_TKEY[k])}</div>)}
               </div>
             </div>
-            <div className="pophost tool-adv toolbar-overflow-item" data-toolbar-item>
+            <div className="pophost tool-adv toolbar-overflow-item" data-toolbar-item data-toolbar-action="layouts">
               <button className="tbtn" onClick={(e) => { e.stopPropagation(); const willOpen = !layoutOpen; closeAll(); setLayoutOpen(willOpen); }}><svg viewBox="0 0 24 24"><path d="M4 5h16v14H4zM4 9h16M9 9v10" /></svg>{t("layouts")}<span style={{ color: "var(--muted)" }}>▾</span></button>
-              <div className={`pop${layoutOpen ? " show" : ""}`} style={{ top: 32, right: 0, minWidth: 230 }} onClick={(e) => e.stopPropagation()}>
-                <div className="menu-save"><input placeholder={t("saveCurrentAs")} value={layoutName} onChange={(e) => setLayoutName(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") saveLayout(); }} /><button onClick={saveLayout}>{t("save")}</button></div>
-                {layouts.length === 0 && <div className="menu-row" style={{ color: "var(--text-dim)" }}>{t("noSavedLayouts")}</div>}
-                {layouts.map((l) => <div key={l.id} className="menu-row" onClick={() => loadLayout(l)}>{l.name}<span className="rm" onClick={(e) => { e.stopPropagation(); delLayout(l.id); }}><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" /></svg></span></div>)}
+              <div className={`pop${layoutOpen ? " show" : ""}`} style={{ top: 32, right: 0, minWidth: 300 }} onClick={(e) => e.stopPropagation()}>
+                <LayoutMenu {...layoutMenuProps} isOpen={layoutOpen} />
               </div>
             </div>
             <div className="pophost tool-adv toolbar-overflow-item" data-toolbar-item>
@@ -4322,9 +5131,7 @@ export default function TerminalShell({ symbols, email, initialSymbol, shellMode
                 ))}
 
                 {toolbarMoreView === "layouts" && (<>
-                  <div className="menu-save"><input placeholder={t("saveCurrentAs")} value={layoutName} onChange={(e) => setLayoutName(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") saveLayout(); }} /><button onClick={saveLayout}>{t("save")}</button></div>
-                  {layouts.length === 0 && <div className="menu-row empty">{t("noSavedLayouts")}</div>}
-                  {layouts.map((l) => <button type="button" role="menuitem" key={l.id} className="menu-row" onClick={() => { loadLayout(l); setToolbarMoreOpen(false); }}>{l.name}<span className="rm" onClick={(e) => { e.stopPropagation(); delLayout(l.id); }}><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" /></svg></span></button>)}
+                  <LayoutMenu {...layoutMenuProps} rowAs="button" onPicked={() => setToolbarMoreOpen(false)} isOpen={toolbarMoreOpen && toolbarMoreView === "layouts"} />
                 </>)}
 
                 {toolbarMoreView === "snapshot" && (<>
@@ -4433,7 +5240,7 @@ export default function TerminalShell({ symbols, email, initialSymbol, shellMode
             />
             <div className="pane-grid" data-n={panes.length}>
               {panes.map((sym, i) => (
-                <ChartPane key={i} idx={i} symbol={sym} drawingOwnerKey={currentDrawingOwnerKey} isActive={i === activePane} onActivate={setActivePane} row={paneRows[i]} tf={paneTfs[i] ?? "D"} chartType={chartType} inds={inds} tool={drawingsReadyFor(sym) ? activeDrawingTool : null} toolActivation={toolState.activation} drawingSticky={drawingCreationDisabledReason ? false : drawingKeepsActive} drawingCreationDisabled={drawingCreationDisabledReason !== null} drawStyle={drawStyle} detectCmd={detectCmd} compare={compare} compareCfg={compareCfg} magnet={magnet} replayIdx={replayOn ? replayIdx : null} onMeta={(mm) => setTotal(mm.total)} drawings={[...(drawingOwnerMatches ? (drawStore[sym] ?? []) : []), ...chartBus.aiDrawingsFor(sym)]} drawingsVisible={drawingsVisible} onDrawingsChange={(d) => setSymbolDrawings(sym, d)} onDetectedDrawingCount={i === activePane ? setActivePaneDetectedDrawingCount : undefined} liveQuote={quotes[sym] ?? null} indParams={indParams} hidden={hidden} onToggleHidden={toggleHidden} onRemoveInd={removeInd} onOpenSettings={openSettings} onOpenSource={openSource} pineScripts={pineScripts} dayMode={dtm} userTier={userTier}
+                <ChartPane key={i} idx={i} symbol={sym} drawingOwnerKey={currentDrawingOwnerKey} isActive={i === activePane} onActivate={setActivePane} row={paneRows[i]} tf={paneTfs[i] ?? "D"} chartType={chartType} inds={inds} tool={drawingsReadyFor(sym) ? activeDrawingTool : null} toolActivation={toolState.activation} drawingSticky={drawingCreationDisabledReason ? false : drawingKeepsActive} drawingCreationDisabled={drawingCreationDisabledReason !== null} drawStyle={drawStyle} detectCmd={detectCmd} compare={compare} compareCfg={compareCfg} magnet={magnet} replayIdx={replayOn ? replayIdx : null} onMeta={(mm) => setTotal(mm.total)} drawings={[...(drawingOwnerMatches ? (drawStore[sym] ?? []) : []), ...chartBus.aiDrawingsFor(sym)]} drawingsVisible={drawingsVisible} onDrawingsChange={(d) => setSymbolDrawings(sym, d)} onDetectedDrawingCount={i === activePane ? setActivePaneDetectedDrawingCount : undefined} liveQuote={quotes[sym] ?? null} dataReady={prefsHydrated} initialTimeframe={startTfRef.current} indParams={indParams} hidden={hidden} onToggleHidden={toggleHidden} onRemoveInd={removeInd} onOpenSettings={openSettings} onOpenSource={openSource} pineScripts={pineScripts} dayMode={dtm} userTier={userTier}
                   onAddAlert={(price) => { window.location.href = `/alerts?sym=${encodeURIComponent(active)}&price=${encodeURIComponent(price.toFixed(4))}&type=price_above`; }}
                   onTableView={() => setTableViewOpen(true)}
                   onObjectTree={() => setObjectTreeOpen((o) => !o)}
@@ -4505,6 +5312,15 @@ export default function TerminalShell({ symbols, email, initialSymbol, shellMode
                 onClose={() => setObjectTreeOpen(false)}
               />
             )}
+          </div>
+        )}
+        {/* Generic-widget-graph fallback (spec §6; freeze §2/§9) — every widget in the loaded
+            workspace beyond the one primary chart + one dock Brain this build specifically
+            renders. Placed in the primary flow AFTER the chart body: the claim being proved is
+            "the workspace still opened", so it sits beside a working chart, never instead of one. */}
+        {!paneOpen && !tableViewOpen && extraWorkspaceWidgets.length > 0 && (
+          <div className="ws-extra-widgets" data-ws-extra-widgets>
+            {extraWorkspaceWidgets.map((w) => <WorkspaceTile key={w.id} type={w.type} />)}
           </div>
         )}
         {/* The strip is the foot of the chart column, directly under the canvas and in place of
@@ -4797,7 +5613,7 @@ export default function TerminalShell({ symbols, email, initialSymbol, shellMode
                             const isExt = k === "ext" || k === "extPct";
                             const eq = isExt ? extQuotes[sym] : null;
                             const extUp = eq && eq.extChg != null ? eq.extChg >= 0 : null;
-                            const cls = isChg ? (u ? "up" : "down") : isExt && extUp != null ? (extUp ? "up" : "down") : "";
+                            const cls = r?.suspended && isChg ? "quote-suspended" : isChg ? (u ? "up" : "down") : isExt && extUp != null ? (extUp ? "up" : "down") : "";
                             return <span key={k} data-watchlist-column={k} className={`c num ${cls}`} title={isExt ? extTitle(sym) : undefined}>{colVal(sym, r, k)}</span>;
                           })}
                           <span className="rm" title={t("remove")} onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); removeSymbol(sym); }}><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" /></svg></span>
@@ -4895,8 +5711,10 @@ export default function TerminalShell({ symbols, email, initialSymbol, shellMode
               {/* price row: order:2 → wraps below name row (width:100% in CSS) */}
               <div className="px">
                 <b className="num">{fmt(lastPx, m && lastPx != null && lastPx < 10 ? 4 : 2)}</b>
-                <span className={`cg num ${(chgNow ?? 0) >= 0 ? "up" : "down"}`}>{chgStr(chgNow)}</span>
-                {mktClosed && <span className="mkt-closed">{t("marketClosed")}</span>}
+                {isSuspended
+                  ? <span className="cg quote-suspended">{t("suspended")}</span>
+                  : <span className={`cg num ${(chgNow ?? 0) >= 0 ? "up" : "down"}`}>{chgStr(chgNow)}</span>}
+                {mktClosed && !isSuspended && <span className="mkt-closed">{t("marketClosed")}</span>}
               </div>
               {/* Overnight / extended-hours secondary price block.
                   Shown only while the backend exposes an out-of-session ext print.
@@ -4944,7 +5762,7 @@ export default function TerminalShell({ symbols, email, initialSymbol, shellMode
               {/* ── bottom button group (after Seasonality): full analysis + Ask AI ── */}
               <div className="sa-btn-group">
                 <button className="btn btn-primary" style={{ width: "100%", height: 38 }} onClick={() => setPaneOpen("overview")}>{t("openFullAnalysis")}</button>
-                <button className="btn btn-ghost" style={{ width: "100%", height: 36 }} onClick={() => (window as any).MMBrain?.open()}>{t("askAIabout")} {active} →</button>
+                <button className="btn btn-ghost" style={{ width: "100%", height: 36 }} onClick={() => openBrainReincluding(setBrainIncluded, () => (window as any).MMBrain?.open())}>{t("askAIabout")} {active} →</button>
               </div>
             </div>
           </div>
@@ -4981,7 +5799,9 @@ export default function TerminalShell({ symbols, email, initialSymbol, shellMode
             {[0, 1].map((dup) => (
               <div className="tk-run" key={dup} aria-hidden={dup === 1 || undefined}>
                 {Object.entries(man?.symbols || {}).slice(0, 16).map(([s, r0]) => { const r = mergeLive(r0, quotes[s])!; const u = r.chg >= 0; return (
-                  <span key={s} className="tk" style={{ cursor: "pointer" }} onClick={() => pick(s)}><span className="s">{s.replace("-USD", "")}</span><span className="p num">{fmt(r.last, r.last < 10 ? 3 : 2)}</span><span className={`c num ${u ? "up" : "down"}`}>{u ? "+" : ""}{fmt(r.chg)}%</span></span>
+                  <span key={s} className="tk" style={{ cursor: "pointer" }} onClick={() => pick(s)}><span className="s">{s.replace("-USD", "")}</span><span className="p num">{fmt(r.last, r.last < 10 ? 3 : 2)}</span>{r.suspended
+                    ? <span className="c quote-suspended">{t("suspended")}</span>
+                    : <span className={`c num ${u ? "up" : "down"}`}>{u ? "+" : ""}{fmt(r.chg)}%</span>}</span>
                 ); })}
               </div>
             ))}
@@ -5048,7 +5868,8 @@ export default function TerminalShell({ symbols, email, initialSymbol, shellMode
             const entry = getSuiteModuleCatalogEntry(id);
             if (entry) setGuide({ suite: entry.suiteKey, mod: entry.moduleKey, label: entry.label });
           }}
-          scripts={scripts} enabled={enabledSet} onToggleScript={toggleScript} onRenameScript={handleRenameScript} onDeleteScript={handleDeleteScript} />
+          scripts={scripts} scriptsUnavailable={scriptsUnavailable} onRetryScripts={loadScripts}
+          enabled={enabledSet} onToggleScript={toggleScript} onRenameScript={handleRenameScript} onDeleteScript={handleDeleteScript} />
       )}
       {settingsKey && (isCmpKey(settingsKey)
         ? <CompareSettings sym={cmpSymOf(settingsKey)} cfg={compareCfg[cmpSymOf(settingsKey)] || defaultCmpCfg(0)} onChange={(patch) => setCompareCfg((c) => ({ ...c, [cmpSymOf(settingsKey)]: { ...(c[cmpSymOf(settingsKey)] || defaultCmpCfg(0)), ...patch } }))} onClose={() => setSettingsKey(null)} />
@@ -5078,12 +5899,19 @@ export default function TerminalShell({ symbols, email, initialSymbol, shellMode
           onClose={() => setGuide(null)}
         />
       )}
-      <BrainWidget
-        active={active}
-        onCommand={handleBrainCommand}
-        onAnnotate={(j) => annotateChart(j.symbol || active, j.annotations || [])}
-        onAuthRequired={() => window.location.assign("/login")}
-      />
+      {/* W2-A: the assistant dock is now workspace membership (freeze §7), not a hardcoded mount —
+          `brainIncluded` defaults true (byte-for-byte today's product for guests / no saved
+          workspace) and is set from a loaded workspace's own widget list. Every prop below is
+          UNCHANGED from before this wave — W1-C's context flow (`getAiContext`) is not touched. */}
+      {brainIncluded && (
+        <BrainWidget
+          active={active}
+          onCommand={handleBrainCommand}
+          onAnnotate={(j) => annotateChart(j.symbol || active, j.annotations || [])}
+          onAuthRequired={() => window.location.assign("/login")}
+          getAiContext={() => aiContextProviderRef.current!.getAiContext()}
+        />
+      )}
 
       {/* ── Signals dashboard overlay (Golden Oracle scorecard · research read · signal history) ── */}
       {signalsOpen && (

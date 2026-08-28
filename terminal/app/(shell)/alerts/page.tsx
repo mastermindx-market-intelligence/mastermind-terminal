@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
-import AlertsView from "@/components/AlertsView";
+import AlertsViewMount from "@/components/mounts/AlertsViewMount";
 import SignupGate from "@/components/gates/SignupGate";
 
 // Alerts (Wave-3 IA) — split back out of the former Automate page into its own
@@ -16,10 +16,10 @@ export const metadata: Metadata = { title: "Alerts · Mastermind Terminal" };
 
 export default async function AlertsPage() {
   if (process.env.TERMINAL_E2E_FIXTURE === "1") {
-    return <AlertsView email={process.env.TERMINAL_E2E_EMAIL || "responsive@example.com"} />;
+    return <AlertsViewMount email={process.env.TERMINAL_E2E_EMAIL || "responsive@example.com"} />;
   }
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return <SignupGate surface="alerts" />;
-  return <AlertsView email={user.email || ""} />;
+  return <AlertsViewMount email={user.email || ""} />;
 }

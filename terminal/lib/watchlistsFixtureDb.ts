@@ -23,6 +23,32 @@ import type { DbResult, DbRow, WatchlistDb, WatchlistQuery } from "@/lib/watchli
 
 export const FIXTURE_STORE_COOKIE = "mm_e2e_wl";
 
+/**
+ * Fault-injection cookie — comma-separated tokens naming a transport failure to simulate.
+ *
+ * A failure state is only proven if the REAL code path produces it. Mocking `/api/portfolio` from
+ * the browser proves the client renders a 503; it does not prove the server page, the canonical
+ * read and the route agree about what a broken store is. This flips the transport underneath all
+ * three at once, exactly where Supabase would fail.
+ *
+ * Tokens:
+ *   - `positions_read` — every read of `portfolio_positions` answers the supabase-js failure
+ *     shape `{data:null, error}`.
+ *   - `positions_mutation_noop` — UPDATE/DELETE answers `{data:[], error:null}` and changes no
+ *     rows. This is intentionally different from a hard error: it proves that lack of an error is
+ *     not accepted as proof of an affected canonical row.
+ *
+ * Test-only by construction: like the rest of this module it is reachable only from the
+ * `TERMINAL_E2E_FIXTURE=1` branches.
+ */
+export const FIXTURE_FAULT_COOKIE = "mm_e2e_fault";
+export const FAULT_POSITIONS_READ = "positions_read";
+export const FAULT_POSITIONS_MUTATION_NOOP = "positions_mutation_noop";
+
+export function fixtureFaults(raw: string | undefined | null): Set<string> {
+  return new Set((raw || "").split(",").map((token) => token.trim()).filter(Boolean));
+}
+
 type Store = { lists: DbRow[]; symbols: DbRow[]; positions: DbRow[]; seq: number };
 
 const SEED_SYMBOLS: [string, string][] = [
@@ -91,10 +117,11 @@ class FixtureQuery implements WatchlistQuery {
   private orderAsc = true;
   private limitTo: number | null = null;
   private projection: string[] | null = null;
-  private mode: "read" | "insert" | "update" | "delete" = "read";
+  private mode: "read" | "insert" | "upsert" | "update" | "delete" = "read";
   private payload: DbRow[] = [];
+  private ignoreDuplicates = false;
 
-  constructor(private store: Store, private table: Table) {}
+  constructor(private store: Store, private table: Table, private faults: Set<string>) {}
 
   private get rows(): DbRow[] {
     if (this.table === "watchlists") return this.store.lists;
@@ -156,6 +183,13 @@ class FixtureQuery implements WatchlistQuery {
     return this;
   }
 
+  upsert(values: DbRow | DbRow[], options?: { onConflict?: string; ignoreDuplicates?: boolean }): WatchlistQuery {
+    this.mode = "upsert";
+    this.payload = Array.isArray(values) ? values : [values];
+    this.ignoreDuplicates = options?.ignoreDuplicates === true;
+    return this;
+  }
+
   update(values: DbRow): WatchlistQuery {
     this.mode = "update";
     this.payload = [values];
@@ -168,7 +202,16 @@ class FixtureQuery implements WatchlistQuery {
   }
 
   private run(): DbResult {
-    if (this.mode === "insert") {
+    // Injected transport failure — the supabase-js shape, at the same place a real read fails.
+    if (this.table === "portfolio_positions" && this.mode === "read" && this.faults.has(FAULT_POSITIONS_READ)) {
+      return { data: null, error: { message: "fixture: positions store unavailable" } };
+    }
+    if (this.table === "portfolio_positions"
+      && (this.mode === "update" || this.mode === "delete")
+      && this.faults.has(FAULT_POSITIONS_MUTATION_NOOP)) {
+      return { data: [], error: null };
+    }
+    if (this.mode === "insert" || this.mode === "upsert") {
       const incoming: DbRow[] = this.payload.map((row) => ({
         id: `${this.table}-${++this.store.seq}`,
         // Server-side column DEFAULTS the writer never supplies (migration 0007): `created_at`
@@ -184,12 +227,30 @@ class FixtureQuery implements WatchlistQuery {
       if (this.table === "watchlists") {
         for (const row of incoming) {
           if (this.store.lists.some((list) => list.user_id === row.user_id && list.name === row.name)) {
+            if (this.mode === "upsert" && this.ignoreDuplicates) continue;
             return { data: null, error: { message: "duplicate key value violates unique constraint" } };
           }
         }
       }
-      this.rows.push(...incoming);
-      return { data: this.project(incoming), error: null };
+      // …and unique (watchlist_id, symbol) since migration 0008. Modelling it here is what lets
+      // the browser suite prove that concurrent adds converge on ONE row: without it the fixture
+      // would happily hold the duplicates the real table now refuses, and an e2e "proof" of
+      // uniqueness would be proving a property the product does not have.
+      const accepted: DbRow[] = [];
+      for (const row of incoming) {
+        if (this.table === "watchlist_symbols") {
+          const clash = this.store.symbols.some((existing) =>
+            existing.watchlist_id === row.watchlist_id && existing.symbol === row.symbol)
+            || accepted.some((queued) => queued.watchlist_id === row.watchlist_id && queued.symbol === row.symbol);
+          if (clash) {
+            if (this.mode === "upsert" && this.ignoreDuplicates) continue;
+            return { data: null, error: { message: "duplicate key value violates unique constraint" } };
+          }
+        }
+        accepted.push(row);
+      }
+      this.rows.push(...accepted);
+      return { data: this.project(accepted), error: null };
     }
     if (this.mode === "update") {
       const targets = this.matched();
@@ -197,7 +258,8 @@ class FixtureQuery implements WatchlistQuery {
       return { data: this.project(targets), error: null };
     }
     if (this.mode === "delete") {
-      const targets = new Set(this.matched());
+      const matched = this.matched();
+      const targets = new Set(matched);
       const kept = this.rows.filter((row) => !targets.has(row));
       if (this.table === "watchlists") {
         const removed = new Set([...targets].map((row) => row.id));
@@ -211,7 +273,10 @@ class FixtureQuery implements WatchlistQuery {
       } else {
         this.store.symbols = kept;
       }
-      return { data: null, error: null };
+      // Supabase returns deleted rows only when the caller chained `.select(...)`; otherwise its
+      // ordinary delete response carries `data:null`. The mutation-receipt service deliberately
+      // selects the id, so the fixture must model that representation rather than invent success.
+      return { data: this.projection ? this.project(matched) : null, error: null };
     }
     return { data: this.project(this.matched()), error: null };
   }
@@ -230,7 +295,8 @@ class FixtureQuery implements WatchlistQuery {
   }
 }
 
-export function createFixtureDb(key: string): WatchlistDb {
+export function createFixtureDb(key: string, faults?: Iterable<string>): WatchlistDb {
   const store = fixtureStore(key);
-  return { from: (table: string) => new FixtureQuery(store, table as Table) };
+  const faultSet = faults instanceof Set ? faults : new Set(faults ?? []);
+  return { from: (table: string) => new FixtureQuery(store, table as Table, faultSet) };
 }

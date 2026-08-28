@@ -33,6 +33,7 @@ export type WatchlistQuery = PromiseLike<DbResult> & {
   order: (column: string, options?: { ascending?: boolean }) => WatchlistQuery;
   limit: (count: number) => WatchlistQuery;
   insert: (values: DbRow | DbRow[]) => WatchlistQuery;
+  upsert: (values: DbRow | DbRow[], options?: { onConflict?: string; ignoreDuplicates?: boolean }) => WatchlistQuery;
   update: (values: DbRow) => WatchlistQuery;
   delete: () => WatchlistQuery;
   maybeSingle: () => Promise<DbResult>;
@@ -273,6 +274,13 @@ export async function deleteList(
  * and continues numbering from the list's current tail so `position` never collides.
  * A batch whose symbols all exist is a successful no-op — this is what makes the migration
  * safe to re-run.
+ *
+ * The read below is an OPTIMISATION (it skips work and picks the append position); it is NOT what
+ * makes membership unique. `unique (watchlist_id, symbol)` (migration 0008) is, and the write is an
+ * UPSERT against that conflict target. Before the index existed, two writers that both read "NVDA
+ * absent" both inserted it and the list held the same symbol twice — a read-then-write with no
+ * lock and nothing behind it. `ignoreDuplicates` makes the loser of that race a silent no-op
+ * rather than an error, which is the correct outcome: the row the user asked for exists.
  */
 export async function addSymbols(
   db: WatchlistDb,
@@ -299,9 +307,49 @@ export async function addSymbols(
     section: sectionBySymbol?.[symbol] ?? section,
     position: tail + 1 + index,
   }));
-  const { error } = await db.from("watchlist_symbols").insert(inserts);
-  if (error) return { ok: false, added: [], error: "watchlist update failed" };
+  if (!await writeMembership(db, inserts)) return { ok: false, added: [], error: "watchlist update failed" };
+  // `added` means "absent when this call read, and present now" — the caller's contract is that
+  // the symbols are in the list, not that this particular request wrote the row.
   return { ok: true, added: missing };
+}
+
+/** Postgres 42P10: "there is no unique or exclusion constraint matching the ON CONFLICT
+ *  specification" — i.e. this database has not had migration 0008 applied yet. */
+const MISSING_CONFLICT_TARGET = /no unique or exclusion constraint/i;
+
+/**
+ * Write membership rows through the `(watchlist_id, symbol)` conflict target, falling back to a
+ * plain insert on a database where that index does not exist yet.
+ *
+ * The fallback exists because the schema change and the code deploy are SEPARATE operations here:
+ * `supabase/` is explicitly not deployed (DEPLOY.md), so migrations are applied out of band. An
+ * upsert whose conflict target has no matching unique index does not degrade — Postgres refuses
+ * the statement outright — so without this, shipping the code before the migration would break
+ * every watchlist add in production, and shipping the migration first would be the only safe
+ * order. This makes either order safe.
+ *
+ * It is deliberately LOUD, not silent: while the fallback is in use A2's guarantee does not hold
+ * (concurrent adds can still duplicate, exactly as they did before), so the missing migration has
+ * to be visible in the server log rather than absorbed.
+ */
+async function writeMembership(db: WatchlistDb, inserts: DbRow[]): Promise<boolean> {
+  const upserted = await db.from("watchlist_symbols")
+    .upsert(inserts, { onConflict: "watchlist_id,symbol", ignoreDuplicates: true });
+  if (!upserted.error) return true;
+  if (!MISSING_CONFLICT_TARGET.test(upserted.error.message ?? "")) return false;
+  console.error(
+    "[watchlists] unique (watchlist_id, symbol) is MISSING from this database — "
+    + "supabase/migrations/0009_watchlist_symbol_unique.sql has not been applied. "
+    + "Falling back to a plain insert; concurrent adds can duplicate until it lands.",
+  );
+  const inserted = await db.from("watchlist_symbols").insert(inserts);
+  return !inserted.error;
+}
+
+/** Seed a brand-new Default list. Same conflict target, same fallback — the two concurrent
+ *  post-signup requests `app/terminal/page.tsx` handles both run through here. */
+export function seedMembership(db: WatchlistDb, inserts: DbRow[]): Promise<boolean> {
+  return writeMembership(db, inserts);
 }
 
 export async function removeSymbols(
@@ -431,9 +479,15 @@ export function planWatchlistMigration(
  *
  * `alreadyLocal` is the local membership snapshot taken BEFORE the inventory request went out. A
  * server row named there is one the user removed while the request was in flight, so the response
- * is simply stale about it and it must not be re-appended. (An offline-window delete made BEFORE
- * mount is absent from that snapshot and CAN still resurrect — an accepted, documented W1b
- * tradeoff.)
+ * is simply stale about it and it must not be re-appended.
+ *
+ * `deletedLocally` closes the other half — the half W1b accepted as a tradeoff ("an offline-window
+ * delete made BEFORE the read can still resurrect"). It is the set of symbols this owner has
+ * DELETED without the server confirming it (lib/watchlistOwner.ts tombstones). Additive adoption
+ * cannot otherwise tell "another device added AAPL" from "this device deleted AAPL and the DELETE
+ * never landed", so it re-appended the row and silently reversed the user's action on the next
+ * reload. A tombstoned symbol is never re-adopted; once the delete converges the tombstone clears
+ * and a genuinely new server row is adopted normally.
  *
  * ── W5 DISPOSITION OF THE ORDER-SYNC LINE ITEM (third refusal; read this before the fourth) ──
  *
@@ -457,22 +511,30 @@ export function planWatchlistMigration(
  *   > Visual row order remains the established local watchlist preference until the backend has
  *   > an atomic ordered-list RPC.
  *
- * The commissioning packet forbids silent schema additions riding this program (section 4), so
- * that work belongs to a deliberate schema wave with the duplicate-reconciliation question
- * answered, not to a portfolio wave.
+ * ── STATUS UPDATE (bug sweep A, 2026-08-19): THE SCHEMA HALF OF THAT PRECONDITION IS NOW MET ──
  *
- * The READ side would not be safe even if the write existed: making server `position` authoritative
- * on adopt is exactly the construction W1b round 1 was BLOCKED for — a stale inventory response
- * replaying a user's pre-drag order (and their just-deleted rows) over live local state. That fix
- * is what this function is.
+ * `supabase/migrations/0009_watchlist_symbol_unique.sql` created
+ * `unique (watchlist_id, symbol)` — for A2 (concurrent adds were duplicating membership), not for
+ * ordering, but the index is the index. It is APPLIED to production: the pre-flight census found
+ * 269 rows / 269 distinct pairs / 0 duplicates, so the "duplicates may exist and would have to be
+ * reconciled first" question above is ANSWERED for that database — there were none, the reconcile
+ * deleted nothing, and no survivor had to be chosen. A batched `on_conflict` upsert of a whole
+ * list's positions is therefore now expressible in one request.
  *
- * So: three independent refusals now (W1b's reviewer, master #409, and this wave), one named
- * precondition, and one open schema question. A fourth lane should ship the RPC or ship nothing.
+ * That removes the schema blocker. It does NOT by itself make order-sync correct, and the READ
+ * side is still the harder half: making server `position` authoritative on adopt is exactly the
+ * construction W1b round 1 was BLOCKED for — a stale inventory response replaying a user's
+ * pre-drag order (and their just-deleted rows) over live local state. That fix is what this
+ * function is, and a fifth lane still has to answer it before treating server order as truth.
+ *
+ * So: three independent refusals (W1b's reviewer, master #409, W5), one precondition now HALF
+ * satisfied, and the read-side staleness question still open.
  */
 export function adoptServerSymbols(
   local: readonly { symbol: string; section: string }[],
   server: readonly { symbol: string; section: string }[],
   alreadyLocal?: ReadonlySet<string>,
+  deletedLocally?: ReadonlySet<string>,
 ): { symbol: string; section: string }[] {
   const adopted: { symbol: string; section: string }[] = [];
   const seen = new Set<string>();
@@ -488,6 +550,7 @@ export function adoptServerSymbols(
   for (const row of server) {
     if (!row?.symbol || seen.has(row.symbol)) continue;
     if (alreadyLocal?.has(row.symbol)) continue;   // removed locally while the read was in flight
+    if (deletedLocally?.has(row.symbol)) continue; // deleted locally; the server has not caught up
     seen.add(row.symbol);
     adopted.push({ symbol: row.symbol, section: row.section ?? DEFAULT_SECTION });
   }

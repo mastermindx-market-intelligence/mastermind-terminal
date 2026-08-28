@@ -7,10 +7,11 @@ import type {
   OnboardMode, OnboardingSheetProps, OnboardPrefs, PlanKey, Period, PendingPrefs, WizardStash,
 } from "./types";
 import {
-  LS_PENDING_PREFS, LS_ONBOARD_RESUME, SS_WIZARD, normalizePlanKey, normalizeOnboardPrefs,
+  LS_ONBOARD_RESUME, SS_WIZARD, normalizePlanKey, normalizeOnboardPrefs,
   normalizeWizardStash, type OnboardResumeStash,
   STEP_ACCOUNT, STEP_PREFS, STEP_PLAN, STEP_BILLING, STEP_DONE,
 } from "./types";
+import { deliverPendingPrefs, writePendingPrefs } from "@/lib/onboardingPrefsOutbox";
 import RailCard, { MobileStepper, type WizardSnapshot } from "./RailCard";
 import StepAccount from "./StepAccount";
 import StepPreferences, { StepPreferencesFooter } from "./StepPreferences";
@@ -59,6 +60,10 @@ export default function OnboardingSheet(props: OnboardingSheetProps) {
   // W2: an in-sheet Stripe trial has started (drives the Done "trial live" copy + rail chip).
   const [trialActive, setTrialActive] = useState(stash?.trialActive ?? false);
   const [trialEnd, setTrialEnd] = useState<number | null>(stash?.trialEnd ?? null);
+  // D5: the authoritative preference write has not been acknowledged yet. The flow still moves
+  // forward (one slow metadata request must not make onboarding feel stuck), but the UI does not
+  // get to imply the choice was saved when it wasn't — the outbox keeps retrying behind this.
+  const [prefsPending, setPrefsPending] = useState(false);
   const [drag, setDrag] = useState({ x: 0, y: 0 }); // header-drag translate
 
   const paid = plan === "essential" || plan === "pro";
@@ -167,8 +172,17 @@ export default function OnboardingSheet(props: OnboardingSheetProps) {
   function resetDrag() { setDrag({ x: 0, y: 0 }); } // double-click header resets
 
   // ── Preferences persistence on Continue ───────────────────────────────────────
+  //
+  // D5: the authenticated path used to call updateUser() and only console.warn a failure, so a
+  // transient error meant the user's explicit market/trade-type/theme choice was silently gone —
+  // they watched onboarding reach Done and found their personalization missing next session.
+  //
+  // The pending record is now written FIRST, on both paths, and is only cleared once the authority
+  // acknowledges the write (deliverPendingPrefs). Forward progress is still immediate — one slow
+  // metadata request must not make onboarding feel stuck — but "moved on" no longer means
+  // "persisted": an undelivered choice stays in the outbox and the next authed mount retries it.
   const persistPrefs = useCallback(async () => {
-    const payload = {
+    const payload: PendingPrefs = {
       first_name: firstName,
       last_name: lastName,
       market_focus: prefs.market_focus,
@@ -176,20 +190,14 @@ export default function OnboardingSheet(props: OnboardingSheetProps) {
       theme_pref: prefs.theme_pref,
       onboarded_at: new Date().toISOString(),
     };
-    if (confirmPending || !effEmail) {
-      // No session yet — stash for the provider to apply on first authed mount.
-      try {
-        const pending: PendingPrefs = { ...payload };
-        localStorage.setItem(LS_PENDING_PREFS, JSON.stringify(pending));
-      } catch { /* non-fatal */ }
-      return;
-    }
-    // Session exists — write to user_metadata (non-blocking, errors logged not shown).
-    try {
-      const supabase = createClient();
-      const { error } = await supabase.auth.updateUser({ data: payload });
-      if (error) console.warn("[onboarding] updateUser failed:", error.message);
-    } catch (e) { console.warn("[onboarding] updateUser threw:", e); }
+    // Durable intent first — before any network call, so a failure (or the tab closing mid-flight)
+    // cannot destroy the choice.
+    writePendingPrefs(payload);
+    // No session yet: the provider delivers it on the first authed mount.
+    if (confirmPending || !effEmail) return;
+    const supabase = createClient();
+    const outcome = await deliverPendingPrefs((data) => supabase.auth.updateUser({ data }));
+    setPrefsPending(outcome.status !== "delivered");
   }, [firstName, lastName, prefs, confirmPending, effEmail]);
 
   // ── Step transitions ──────────────────────────────────────────────────────────
@@ -316,7 +324,7 @@ export default function OnboardingSheet(props: OnboardingSheetProps) {
                 {step === STEP_DONE && (
                   <StepDone firstName={firstName} email={effEmail}
                     confirmPending={confirmPending} trialActive={trialActive}
-                    trialEnd={trialEnd} plan={plan} />
+                    trialEnd={trialEnd} plan={plan} prefsPending={prefsPending} />
                 )}
               </div>
 

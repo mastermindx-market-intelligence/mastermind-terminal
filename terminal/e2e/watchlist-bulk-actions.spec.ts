@@ -1,5 +1,5 @@
 import { expect, test, type Locator, type Page, type TestInfo } from "@playwright/test";
-import { isolateWatchlistStore } from "./watchlistStore";
+import { E2E_WL_FLAGS_KEY, E2E_WL_NOTES_KEY, E2E_WLS_KEY, e2eWatchlistOwner, isolateWatchlistStore, seedOwnerWatchlists } from "./watchlistStore";
 
 const SEED = {
   lists: {
@@ -20,14 +20,23 @@ const SEED = {
   },
 };
 
+let owner = e2eWatchlistOwner();
+/** This owner's saved payload, read out of the owner-scoped envelope. */
+const savedState = (page: Page) => page.evaluate(([key, slot]) => {
+  try { return JSON.parse(localStorage.getItem(key) || "{}")[slot] ?? {}; } catch { return {}; }
+}, [E2E_WLS_KEY, owner] as const);
+const savedMap = (page: Page, key: string) => page.evaluate(([storageKey, slot]) => {
+  try { return JSON.parse(localStorage.getItem(storageKey) || "{}")[slot] ?? {}; } catch { return {}; }
+}, [key, owner] as const);
+
 async function boot(page: Page, testInfo: TestInfo, baseURL?: string) {
   // W1b: "Bulk Test" and "Other" are non-Default lists, so a signed-in mount now migrates them
   // into the server store behind /api/watchlist. Give each test its own store or the parallel
   // matrix's deletes and re-inserts reorder this rail (see e2e/watchlistStore.ts).
-  await isolateWatchlistStore(page, testInfo, baseURL);
-  await page.addInitScript((seed) => {
-    if (!localStorage.getItem("mm.wls")) localStorage.setItem("mm.wls", JSON.stringify(seed));
-  }, SEED);
+  const storeKey = await isolateWatchlistStore(page, testInfo, baseURL);
+  owner = e2eWatchlistOwner(storeKey);
+  // A1: local watchlist state is owner-scoped, so the seed goes into the SIGNED-IN owner's slot.
+  await seedOwnerWatchlists(page, storeKey, SEED);
   await page.goto("/terminal?symbol=AAPL");
   await expect(page.locator(".mm-ptag")).toBeVisible({ timeout: 60_000 });
   await expect(page.locator(".wl-select")).toContainText("Bulk Test");
@@ -137,6 +146,11 @@ test("right-click moves, deletes, and creates a watchlist from the selected symb
 
   await row(page, "AAPL").click();
   await row(page, "NVDA").click({ modifiers: ["Shift"] });
+  // Commit the range-selection render before the following contextmenu gesture. Under a saturated
+  // shared dev server, issuing both gestures back-to-back can let the right-click resolve against
+  // the prior empty selection even though the range update is already queued.
+  await expect(page.locator("[data-testid='watchlist-selection-count']")).toHaveText("3 tickers selected");
+  await expect(page.locator(".wl-row[aria-selected='true']")).toHaveCount(3);
   await row(page, "NVDA").click({ button: "right" });
   const menu = page.getByRole("menu", { name: "Selected ticker actions" });
   await expect(menu).toBeVisible();
@@ -148,10 +162,8 @@ test("right-click moves, deletes, and creates a watchlist from the selected symb
   for (const symbol of ["AAPL", "MSFT", "NVDA"]) {
     await expect(row(page, symbol)).toHaveAttribute("data-watchlist-section", "Archive");
   }
-  await expect.poll(() => page.evaluate(() => {
-    const saved = JSON.parse(localStorage.getItem("mm.wls") || "{}");
-    return saved.lists["Bulk Test"].filter((item: { section: string }) => item.section === "Archive").length;
-  })).toBe(3);
+  await expect.poll(async () => (await savedState(page)).lists["Bulk Test"]
+    .filter((item: { section: string }) => item.section === "Archive").length).toBe(3);
 
   await row(page, "AAPL").click({ modifiers: ["ControlOrMeta"] });
   await row(page, "NVDA").click({ modifiers: ["ControlOrMeta"] });
@@ -164,10 +176,8 @@ test("right-click moves, deletes, and creates a watchlist from the selected symb
   await expect(row(page, "AAPL")).toBeVisible();
   await expect(row(page, "NVDA")).toBeVisible();
   await expect(row(page, "MSFT")).toHaveCount(0);
-  await expect.poll(() => page.evaluate(() => {
-    const saved = JSON.parse(localStorage.getItem("mm.wls") || "{}");
-    return saved.lists.Winners?.map((item: { symbol: string }) => item.symbol) ?? [];
-  })).toEqual(["AAPL", "NVDA"]);
+  await expect.poll(async () => (await savedState(page)).lists.Winners?.map((item: { symbol: string }) => item.symbol) ?? [])
+    .toEqual(["AAPL", "NVDA"]);
 
   await row(page, "AAPL").click({ modifiers: ["ControlOrMeta"] });
   await row(page, "NVDA").click({ modifiers: ["ControlOrMeta"] });
@@ -192,19 +202,19 @@ test("a single ticker has TradingView-style actions plus our move and new-list a
   await expect(page.locator("[data-testid='watchlist-selection-count']")).toHaveCount(0);
 
   await menu.getByRole("button", { name: "Flag color 1" }).click();
-  await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("mm.flags") || "{}").MSFT)).toBe("#f23645");
+  await expect.poll(async () => (await savedMap(page, E2E_WL_FLAGS_KEY)).MSFT).toBe("#f23645");
 
   await row(page, "MSFT").click({ button: "right" });
   await menu.getByRole("menuitem", { name: "Add note for MSFT" }).click();
   await page.locator("#wl-symbol-note").fill("Wait for the earnings retest");
   await menu.getByRole("button", { name: "Save" }).click();
   await expect(row(page, "MSFT").locator(".wl-note-mark")).toBeVisible();
-  await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("mm.symbolNotes") || "{}").MSFT)).toBe("Wait for the earnings retest");
+  await expect.poll(async () => (await savedMap(page, E2E_WL_NOTES_KEY)).MSFT).toBe("Wait for the earnings retest");
 
   await row(page, "MSFT").click({ button: "right" });
   await menu.getByRole("menuitem", { name: "Add MSFT to watchlist" }).click();
   await menu.getByRole("menuitem", { name: "Other" }).click();
-  await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("mm.wls") || "{}").lists.Other?.map((item: { symbol: string }) => item.symbol))).toEqual(["MSFT"]);
+  await expect.poll(async () => (await savedState(page)).lists.Other?.map((item: { symbol: string }) => item.symbol)).toEqual(["MSFT"]);
 
   await row(page, "MSFT").click({ button: "right" });
   await page.getByRole("menu", { name: "Selected ticker actions" }).getByRole("menuitem", { name: "Add MSFT to compare" }).click();
@@ -311,7 +321,7 @@ test("renaming a watchlist preserves its empty and collapsed section dividers", 
   await expect(page.locator(".wl-select")).toContainText("Renamed List");
   await expect(page.locator('[data-watchlist-section-header="Archive"]')).toBeVisible();
   await expect(row(page, "NVDA")).toBeHidden();
-  await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("mm.wls") || "{}").meta["Renamed List"])).toEqual({
+  await expect.poll(async () => (await savedState(page)).meta["Renamed List"]).toEqual({
     sections: ["Core", "Growth", "Archive"],
     collapsed: ["Growth"],
   });
@@ -358,10 +368,7 @@ test("the full ticker row freely reorders and crosses sections without selecting
   await expect(row(page, "NVDA")).toHaveAttribute("data-watchlist-section", "");
   await expect(page.locator(".mm-ptag-sym")).toHaveText("MSFT");
   expect(await page.evaluate(() => window.getSelection()?.toString() ?? "")).toBe("");
-  await expect.poll(() => page.evaluate(() => {
-    const saved = JSON.parse(localStorage.getItem("mm.wls") || "{}");
-    return saved.lists["Bulk Test"];
-  })).toEqual([
+  await expect.poll(async () => (await savedState(page)).lists["Bulk Test"]).toEqual([
     { symbol: "NVDA", section: "" },
     { symbol: "MSFT", section: "Core" },
     { symbol: "AAPL", section: "Growth" },

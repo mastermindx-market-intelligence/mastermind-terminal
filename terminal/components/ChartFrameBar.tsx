@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { type IChartApi, PriceScaleMode } from "lightweight-charts";
-import { DEFAULT_CHART_RIGHT_OFFSET } from "@/lib/chart-engine/viewReset";
+import { DEFAULT_CHART_RIGHT_OFFSET, withChartFutureOffset } from "@/lib/chart-engine/viewReset";
 import { isIntradayTf } from "@/lib/intradaySources";
 import { useT } from "@/lib/i18n";
 
@@ -134,9 +134,20 @@ function addMonths(base: Date, n: number): Date { const d = new Date(base); d.se
 function addYears(base: Date, n: number): Date { const d = new Date(base); d.setFullYear(d.getFullYear() + n); return d; }
 
 // Navigate the chart to a given range key using the lightweight-charts time scale API.
-function applyRange(key: RangeKey, chartApi: IChartApi, isIntraday: boolean): void {
+// Every preset keeps the future gutter: setVisibleRange/setVisibleLogicalRange are
+// EXPLICIT bounds and ignore timeScale.rightOffset, so a preset that ended at the
+// newest candle pinned it to the right edge with nothing to draw into.
+function applyRange(
+  key: RangeKey,
+  chartApi: IChartApi,
+  isIntraday: boolean,
+  rightOffsetBars = DEFAULT_CHART_RIGHT_OFFSET,
+): void {
   const ts = chartApi.timeScale();
+  const gutter = Number.isFinite(rightOffsetBars) ? Math.max(0, rightOffsetBars) : DEFAULT_CHART_RIGHT_OFFSET;
   try {
+    // "All" fits every time point, which now includes the future gutter — that
+    // blank tail is bounded against the loaded history, so it stays a gutter.
     if (key === "All") { ts.fitContent(); return; }
     const now = new Date();
     // For intraday charts: use logical range (bar counts approximate; intraday has hundreds of bars/day).
@@ -144,6 +155,10 @@ function applyRange(key: RangeKey, chartApi: IChartApi, isIntraday: boolean): vo
     if (isIntraday) {
       // approximate bar counts for intraday: 390 bars/day for 1m US equity
       const barsPerDay = 390;
+      // Re-anchor at the newest bar even when the user had panned away, then let
+      // the configured rightOffset supply the future-time gutter.
+      ts.applyOptions({ rightOffset: gutter });
+      ts.scrollToRealTime();
       const logRange = ts.getVisibleLogicalRange();
       const to = (logRange?.to ?? 0) as number;
       const barCount = key === "1D" ? barsPerDay : key === "5D" ? barsPerDay * 5 : barsPerDay * 20;
@@ -159,9 +174,11 @@ function applyRange(key: RangeKey, chartApi: IChartApi, isIntraday: boolean): vo
         case "YTD": fromDate = new Date(now.getFullYear(), 0, 1); break;
         case "1Y": fromDate = addYears(now, -1); break;
         case "5Y": fromDate = addYears(now, -5); break;
-        default: ts.fitContent(); return;
+        default: return;
       }
       ts.setVisibleRange({ from: isoDate(fromDate) as any, to: isoDate(now) as any });
+      const range = withChartFutureOffset(ts.getVisibleLogicalRange(), gutter);
+      if (range) ts.setVisibleLogicalRange(range);
     }
   } catch {}
 }
@@ -381,7 +398,7 @@ export default function ChartFrameBar({
           <button
             key={rk}
             className="cfb-range"
-            onClick={() => chartApi && applyRange(rk, chartApi, isIntraday)}
+            onClick={() => chartApi && applyRange(rk, chartApi, isIntraday, s.rightOffsetBars)}
           >{rk}</button>
         ))}
         <div style={{ position: "relative" }}>

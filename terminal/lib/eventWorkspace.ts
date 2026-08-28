@@ -14,6 +14,14 @@ export { normalizeCompanyIntelligenceSymbol };
 
 export const EVENT_WORKSPACE_SCHEMA = "event_workspace.v1" as const;
 export const EVENT_WORKSPACE_MANIFEST_SCHEMA = "event_workspace_manifest.v1" as const;
+export const EVENT_WORKSPACE_MANIFEST_SCHEMA_V2 = "event_workspace_manifest.v2" as const;
+export const QA_EXCHANGE_SCHEMA = "qa_exchange.v1" as const;
+export const QA_TOPIC_VERSION = "qa_topic.v1" as const;
+export const QA_TOPIC_HASH = "a928ca72ab2e91bda74bd1e69021e08a5234e501f095610e623655db7e323b5e" as const;
+export const QA_UNAVAILABLE_TOPIC = "unavailable" as const;
+export const QA_EXTRACTOR_ID = "qa_reconstruction.v1" as const;
+export const QA_VALIDATOR_ID = "qa_exchange_validator.v1" as const;
+export const SOURCE_CLOCK_SCHEMA = "event_source_clock.v1" as const;
 export const EVENT_WORKSPACE_NEST = "event_workspaces";
 
 export type EventWorkspaceAuthority = "context_only";
@@ -160,6 +168,71 @@ export interface EventWorkspaceSource {
   join_status: string | null;
   filing_key: { cik: string; accession: string } | null;
   typed_absence: EventWorkspaceTypedAbsence | null;
+  source_clock?: EventWorkspaceSourceClock | null;
+}
+
+export interface EventWorkspaceSourceClock {
+  schema: typeof SOURCE_CLOCK_SCHEMA;
+  document_id: string;
+  source_sha256: string;
+  source_available_at: string | null;
+  system_recorded_at: string;
+  clock_state: "known" | "unknown";
+  rights_profile: string;
+  session_phase: string;
+}
+
+export interface EventWorkspaceQaQuestioner {
+  name: string;
+  affiliation: string;
+  name_state: string;
+  affiliation_state: string;
+}
+
+export interface EventWorkspaceQaRespondent {
+  name: string;
+  role: string;
+  identity_state: string;
+  span_indexes: number[];
+}
+
+export interface EventWorkspaceQaProvenance {
+  extractor_id: string;
+  provider: null;
+  model: null;
+  prompt_version: null;
+  validator_id: string;
+  run_id: string;
+  validation_state: "accepted";
+  source_available_at: string | null;
+  clock_state: "known" | "unknown";
+  rights_profile: string;
+}
+
+export interface EventWorkspaceQaValidation {
+  replayed: true;
+  unique_span: true;
+  event_match: true;
+  revision_match: true;
+  rights_ok: true;
+}
+
+export interface EventWorkspaceQaExchange {
+  schema: typeof QA_EXCHANGE_SCHEMA;
+  exchange_id: string;
+  event_id: string;
+  ordinal: number;
+  document_id: string;
+  document_sha256: string;
+  question_spans: EventWorkspaceSourceSpan[];
+  answer_spans: EventWorkspaceSourceSpan[];
+  questioner: EventWorkspaceQaQuestioner;
+  respondents: EventWorkspaceQaRespondent[];
+  topics: [typeof QA_UNAVAILABLE_TOPIC];
+  taxonomy_version: typeof QA_TOPIC_VERSION;
+  taxonomy_hash: typeof QA_TOPIC_HASH;
+  provenance: EventWorkspaceQaProvenance;
+  validation: EventWorkspaceQaValidation;
 }
 
 export interface EventWorkspaceCompletenessBlock {
@@ -217,11 +290,11 @@ export interface EventWorkspace {
     prophet_authority: false;
   };
   claim_citations_pending: boolean;
-  qa_exchanges: unknown[];
+  qa_exchanges: EventWorkspaceQaExchange[];
 }
 
 export interface EventWorkspaceManifest {
-  schema: typeof EVENT_WORKSPACE_MANIFEST_SCHEMA;
+  schema: typeof EVENT_WORKSPACE_MANIFEST_SCHEMA | typeof EVENT_WORKSPACE_MANIFEST_SCHEMA_V2;
   generation_id: string;
   generated_at: string;
   status: EventWorkspaceManifestStatus;
@@ -230,6 +303,8 @@ export interface EventWorkspaceManifest {
   aliases: Record<string, string>;
   authority: EventWorkspaceAuthority;
   warnings: string[];
+  previous_generation_id?: string | null;
+  previous_manifest_sha256?: string | null;
 }
 
 export interface EventWorkspaceVerifiedReceipt {
@@ -276,6 +351,36 @@ const MANIFEST_KEYS = [
   "schema", "generation_id", "generated_at", "status", "event_count", "files",
   "aliases", "authority", "warnings",
 ] as const;
+
+const MANIFEST_KEYS_V2 = [
+  ...MANIFEST_KEYS,
+  "previous_generation_id",
+  "previous_manifest_sha256",
+] as const;
+
+const QA_EXCHANGE_KEYS = [
+  "schema", "exchange_id", "event_id", "ordinal", "document_id", "document_sha256",
+  "question_spans", "answer_spans", "questioner", "respondents", "topics",
+  "taxonomy_version", "taxonomy_hash", "provenance", "validation",
+] as const;
+const QA_QUESTIONER_KEYS = ["name", "affiliation", "name_state", "affiliation_state"] as const;
+const QA_RESPONDENT_KEYS = ["name", "role", "identity_state", "span_indexes"] as const;
+const QA_NAME_STATE_SOURCE_SUPPORTED = "source_supported";
+const QA_AFFILIATION_STATES = new Set(["source_supported", "unresolved"]);
+const QA_IDENTITY_STATE_SOURCE_SUPPORTED = "source_supported";
+const QA_PROVENANCE_KEYS = [
+  "extractor_id", "provider", "model", "prompt_version", "validator_id", "run_id",
+  "validation_state", "source_available_at", "clock_state", "rights_profile",
+] as const;
+const QA_VALIDATION_KEYS = ["replayed", "unique_span", "event_match", "revision_match", "rights_ok"] as const;
+const SOURCE_CLOCK_KEYS = [
+  "schema", "document_id", "source_sha256", "source_available_at", "system_recorded_at",
+  "clock_state", "rights_profile", "session_phase",
+] as const;
+const QA_FORBIDDEN = new Set([
+  "rank", "gate", "trade", "prophet", "evasiveness", "sentiment", "deflection",
+  "beat", "miss", "candidate_id",
+]);
 
 const WORKSPACE_WARNINGS = new Set([
   "wire_record_not_found",
@@ -842,6 +947,251 @@ function isSafeHttpsUrl(value: unknown): value is string {
   }
 }
 
+
+function normalizeSourceClock(
+  raw: unknown,
+  documentId: string | null,
+  sourceSha256: string | null,
+): EventWorkspaceSourceClock | null {
+  const obj = object(raw);
+  if (!obj || !exactKeys(obj, SOURCE_CLOCK_KEYS) || obj.schema !== SOURCE_CLOCK_SCHEMA) return null;
+  if (obj.clock_state !== "known" && obj.clock_state !== "unknown") return null;
+  const clockDocument = requiredString(obj.document_id, MAX_ID);
+  const clockSha = validSha(obj.source_sha256) ? obj.source_sha256 : null;
+  const recorded = requiredString(obj.system_recorded_at, 64);
+  const rights = requiredString(obj.rights_profile, 80);
+  const phase = requiredString(obj.session_phase, 40);
+  if (!clockDocument || !clockSha || !recorded || !rights || !phase) return null;
+  if (documentId && clockDocument !== documentId) return null;
+  if (sourceSha256 && clockSha !== sourceSha256) return null;
+  if (obj.clock_state === "unknown" && obj.source_available_at != null) return null;
+  if (obj.clock_state === "known") {
+    const available = requiredString(obj.source_available_at, 64);
+    if (!available) return null;
+    return {
+      schema: SOURCE_CLOCK_SCHEMA,
+      document_id: clockDocument,
+      source_sha256: clockSha,
+      source_available_at: available,
+      system_recorded_at: recorded,
+      clock_state: "known",
+      rights_profile: rights,
+      session_phase: phase,
+    };
+  }
+  return {
+    schema: SOURCE_CLOCK_SCHEMA,
+    document_id: clockDocument,
+    source_sha256: clockSha,
+    source_available_at: null,
+    system_recorded_at: recorded,
+    clock_state: "unknown",
+    rights_profile: rights,
+    session_phase: phase,
+  };
+}
+
+function normalizeQaQuestioner(raw: unknown): EventWorkspaceQaQuestioner | null {
+  const obj = object(raw);
+  if (!obj || !exactKeys(obj, QA_QUESTIONER_KEYS)) return null;
+  const name = requiredString(obj.name, 160);
+  if (!name) return null;
+  const affiliation = obj.affiliation == null ? "" : requiredString(obj.affiliation, 160);
+  if (obj.affiliation != null && affiliation == null) return null;
+  const nameState = requiredString(obj.name_state, 40);
+  const affiliationState = requiredString(obj.affiliation_state, 40);
+  if (nameState !== QA_NAME_STATE_SOURCE_SUPPORTED || !affiliationState || !QA_AFFILIATION_STATES.has(affiliationState)) return null;
+  if (affiliationState === QA_NAME_STATE_SOURCE_SUPPORTED && !affiliation?.trim()) return null;
+  if (affiliationState === "unresolved" && affiliation?.trim()) return null;
+  return { name, affiliation: affiliation ?? "", name_state: nameState, affiliation_state: affiliationState };
+}
+
+function normalizeQaRespondent(raw: unknown, answerCount: number): EventWorkspaceQaRespondent | null {
+  const obj = object(raw);
+  if (!obj || !exactKeys(obj, QA_RESPONDENT_KEYS)) return null;
+  const name = requiredString(obj.name, 160);
+  const role = requiredString(obj.role, 80);
+  const identity = requiredString(obj.identity_state, 40);
+  if (!name || !role || !identity || identity !== QA_IDENTITY_STATE_SOURCE_SUPPORTED || !Array.isArray(obj.span_indexes) || obj.span_indexes.length === 0) return null;
+  const indexes: number[] = [];
+  for (const value of obj.span_indexes) {
+    if (typeof value !== "number" || !Number.isInteger(value) || value < 0 || value >= answerCount) return null;
+    indexes.push(value);
+  }
+  if (indexes.join(",") !== [...new Set(indexes)].sort((a, b) => a - b).join(",")) return null;
+  return { name, role, identity_state: identity, span_indexes: indexes };
+}
+
+function normalizeQaExchange(raw: unknown, eventId: string): EventWorkspaceQaExchange | null {
+  const obj = object(raw);
+  if (!obj || !exactKeys(obj, QA_EXCHANGE_KEYS) || obj.schema !== QA_EXCHANGE_SCHEMA) return null;
+  for (const key of Object.keys(obj)) {
+    if (QA_FORBIDDEN.has(key.toLowerCase())) return null;
+  }
+  if (obj.event_id !== eventId) return null;
+  const ordinal = typeof obj.ordinal === "number" && Number.isInteger(obj.ordinal) && obj.ordinal >= 0 ? obj.ordinal : null;
+  const documentId = requiredString(obj.document_id, MAX_ID);
+  const documentSha = validSha(obj.document_sha256) ? obj.document_sha256 : null;
+  if (ordinal == null || !documentId || !documentSha) return null;
+  const expectedId = `qx_${eventId}_${documentSha.slice(0, 12)}_${String(ordinal).padStart(2, "0")}`;
+  if (obj.exchange_id !== expectedId) return null;
+  if (!Array.isArray(obj.topics) || obj.topics.length !== 1 || obj.topics[0] !== QA_UNAVAILABLE_TOPIC) return null;
+  if (obj.taxonomy_version !== QA_TOPIC_VERSION || obj.taxonomy_hash !== QA_TOPIC_HASH) return null;
+  if (!Array.isArray(obj.question_spans) || !obj.question_spans.length || !Array.isArray(obj.answer_spans) || !obj.answer_spans.length) return null;
+  const questionSpans: EventWorkspaceSourceSpan[] = [];
+  for (const span of obj.question_spans) {
+    const normalized = normalizeSpan(span);
+    if (!normalized || normalized.document_id !== documentId) return null;
+    if (normalized.receipt_state === "byte_replayed" && normalized.receipt?.source_sha256 !== documentSha) return null;
+    questionSpans.push(normalized);
+  }
+  const answerSpans: EventWorkspaceSourceSpan[] = [];
+  for (const span of obj.answer_spans) {
+    const normalized = normalizeSpan(span);
+    if (!normalized || normalized.document_id !== documentId) return null;
+    if (normalized.receipt_state === "byte_replayed" && normalized.receipt?.source_sha256 !== documentSha) return null;
+    answerSpans.push(normalized);
+  }
+  if (!qaSpansUniqueAndDisjoint(questionSpans, answerSpans)) return null;
+  const questioner = normalizeQaQuestioner(obj.questioner);
+  if (!questioner) return null;
+  if (!Array.isArray(obj.respondents) || !obj.respondents.length) return null;
+  const respondents: EventWorkspaceQaRespondent[] = [];
+  const owned: number[] = [];
+  for (const row of obj.respondents) {
+    const respondent = normalizeQaRespondent(row, answerSpans.length);
+    if (!respondent) return null;
+    owned.push(...respondent.span_indexes);
+    respondents.push(respondent);
+  }
+  if (owned.join(",") !== [...Array(answerSpans.length).keys()].join(",")) return null;
+  const provenance = object(obj.provenance);
+  if (!provenance || !exactKeys(provenance, QA_PROVENANCE_KEYS)) return null;
+  if (provenance.extractor_id !== QA_EXTRACTOR_ID || provenance.validator_id !== QA_VALIDATOR_ID) return null;
+  if (provenance.provider != null || provenance.model != null || provenance.prompt_version != null) return null;
+  if (provenance.validation_state !== "accepted") return null;
+  if (provenance.clock_state !== "known" && provenance.clock_state !== "unknown") return null;
+  const runId = requiredString(provenance.run_id, 80);
+  const rights = requiredString(provenance.rights_profile, 80);
+  if (!runId || !rights) return null;
+  const available = provenance.source_available_at == null ? null : requiredString(provenance.source_available_at, 64);
+  if (provenance.source_available_at != null && !available) return null;
+  if (provenance.clock_state === "unknown" && available != null) return null;
+  if (provenance.clock_state === "known" && !available) return null;
+  const validation = object(obj.validation);
+  if (!validation || !exactKeys(validation, QA_VALIDATION_KEYS)) return null;
+  if (validation.replayed !== true || validation.unique_span !== true || validation.event_match !== true || validation.revision_match !== true || validation.rights_ok !== true) return null;
+  return {
+    schema: QA_EXCHANGE_SCHEMA,
+    exchange_id: expectedId,
+    event_id: eventId,
+    ordinal,
+    document_id: documentId,
+    document_sha256: documentSha,
+    question_spans: questionSpans,
+    answer_spans: answerSpans,
+    questioner,
+    respondents,
+    topics: [QA_UNAVAILABLE_TOPIC],
+    taxonomy_version: QA_TOPIC_VERSION,
+    taxonomy_hash: QA_TOPIC_HASH,
+    provenance: {
+      extractor_id: QA_EXTRACTOR_ID,
+      provider: null,
+      model: null,
+      prompt_version: null,
+      validator_id: QA_VALIDATOR_ID,
+      run_id: runId,
+      validation_state: "accepted",
+      source_available_at: available,
+      clock_state: provenance.clock_state,
+      rights_profile: rights,
+    },
+    validation: {
+      replayed: true,
+      unique_span: true,
+      event_match: true,
+      revision_match: true,
+      rights_ok: true,
+    },
+  };
+}
+
+function normalizeQaExchanges(raw: unknown, eventId: string): EventWorkspaceQaExchange[] {
+  if (!Array.isArray(raw) || raw.length > MAX_CLAIMS) return [];
+  if (raw.length === 0) return [];
+  const exchanges: EventWorkspaceQaExchange[] = [];
+  for (const [index, item] of raw.entries()) {
+    const exchange = normalizeQaExchange(item, eventId);
+    if (!exchange || exchange.ordinal !== index) return [];
+    exchanges.push(exchange);
+  }
+  const ids = exchanges.map((item) => item.exchange_id);
+  if (new Set(ids).size !== ids.length) return [];
+  const documents = new Set(exchanges.map((item) => `${item.document_id}:${item.document_sha256}`));
+  if (documents.size !== 1) return [];
+  return exchanges;
+}
+
+function qaSpanIdentity(span: EventWorkspaceSourceSpan): string | null {
+  const start = span.locator.span_start_byte;
+  const end = span.locator.span_end_byte;
+  const segment = span.locator.segment_index;
+  const sha = span.receipt?.source_sha256 ?? "";
+  if (segment == null || start == null || end == null || start >= end) return null;
+  return `${span.document_id}:${sha}:${segment}:${start}:${end}`;
+}
+
+function qaSpansUniqueAndDisjoint(
+  questionSpans: EventWorkspaceSourceSpan[],
+  answerSpans: EventWorkspaceSourceSpan[],
+): boolean {
+  const all = [...questionSpans, ...answerSpans];
+  const keys = all.map(qaSpanIdentity);
+  if (keys.some((key) => !key)) return false;
+  if (new Set(keys).size !== keys.length) return false;
+  for (let i = 0; i < all.length; i += 1) {
+    const left = all[i]!;
+    for (let j = i + 1; j < all.length; j += 1) {
+      const right = all[j]!;
+      if (left.document_id !== right.document_id) continue;
+      if (left.locator.segment_index !== right.locator.segment_index) continue;
+      const leftStart = left.locator.span_start_byte ?? 0;
+      const leftEnd = left.locator.span_end_byte ?? 0;
+      const rightStart = right.locator.span_start_byte ?? 0;
+      const rightEnd = right.locator.span_end_byte ?? 0;
+      if (leftStart < rightEnd && rightStart < leftEnd) return false;
+    }
+  }
+  return true;
+}
+
+function bindQaExchangesToTranscript(
+  exchanges: EventWorkspaceQaExchange[],
+  sources: EventWorkspaceSource[],
+): EventWorkspaceQaExchange[] {
+  if (exchanges.length === 0) return [];
+  const transcript = sources.find((source) => source.kind === "transcript" && source.receipt_state === "byte_replayed");
+  if (!transcript?.document_id || !transcript.source_sha256) return [];
+  const clock = transcript.source_clock;
+  for (const exchange of exchanges) {
+    if (exchange.document_id !== transcript.document_id || exchange.document_sha256 !== transcript.source_sha256) {
+      return [];
+    }
+    for (const span of [...exchange.question_spans, ...exchange.answer_spans]) {
+      if (span.document_id !== transcript.document_id) return [];
+      if (span.receipt?.source_sha256 !== transcript.source_sha256) return [];
+    }
+    if (clock) {
+      if (exchange.provenance.clock_state !== clock.clock_state) return [];
+      if (exchange.provenance.source_available_at !== clock.source_available_at) return [];
+    } else if (exchange.provenance.clock_state !== "unknown" || exchange.provenance.source_available_at != null) {
+      return [];
+    }
+  }
+  return exchanges;
+}
+
 function normalizeSource(raw: unknown, eventId: string): EventWorkspaceSource | null {
   const obj = object(raw);
   if (!obj) return null;
@@ -857,16 +1207,27 @@ function normalizeSource(raw: unknown, eventId: string): EventWorkspaceSource | 
   if (key === undefined) return null;
   const url = obj.url == null ? null : isSafeHttpsUrl(obj.url) ? obj.url : undefined;
   if (url === undefined) return null;
+  const documentId = obj.document_id == null ? null : requiredString(obj.document_id, MAX_ID);
+  const sourceSha = obj.source_sha256 == null ? null : validSha(obj.source_sha256) ? obj.source_sha256 : null;
+  const clockPresent = Object.prototype.hasOwnProperty.call(obj, "source_clock") && obj.source_clock != null;
+  let clock: EventWorkspaceSourceClock | undefined;
+  if (clockPresent) {
+    if (obj.receipt_state === "typed_absence") return null;
+    const normalizedClock = normalizeSourceClock(obj.source_clock, documentId, sourceSha);
+    if (!normalizedClock) return null;
+    clock = normalizedClock;
+  }
   return {
     kind,
     receipt_state: obj.receipt_state,
-    document_id: obj.document_id == null ? null : requiredString(obj.document_id, MAX_ID),
-    source_sha256: obj.source_sha256 == null ? null : validSha(obj.source_sha256) ? obj.source_sha256 : null,
+    document_id: documentId,
+    source_sha256: sourceSha,
     url,
     slug: obj.slug == null ? null : requiredString(obj.slug, 120),
     join_status: obj.join_status == null ? null : requiredString(obj.join_status, 40),
     filing_key: key,
     typed_absence: absence,
+    ...(clock ? { source_clock: clock } : {}),
   };
 }
 
@@ -977,7 +1338,7 @@ export function normalizeEventWorkspace(
     warnings.push(warning);
   }
   if (warnings.join("\0") !== [...new Set(warnings)].sort().join("\0")) return null;
-  if (!Array.isArray(obj.qa_exchanges) || obj.qa_exchanges.length > MAX_CLAIMS) return null;
+  const qaExchanges = bindQaExchangesToTranscript(normalizeQaExchanges(obj.qa_exchanges, eventId), sources);
   return {
     schema: EVENT_WORKSPACE_SCHEMA,
     event_id: eventId,
@@ -1005,15 +1366,16 @@ export function normalizeEventWorkspace(
     authority: "context_only",
     prophet_flags: { may_rank: false, may_size: false, may_gate: false, prophet_authority: false },
     claim_citations_pending: obj.claim_citations_pending,
-    qa_exchanges: obj.qa_exchanges,
+    qa_exchanges: qaExchanges,
   };
 }
 
 export function normalizeEventWorkspaceManifest(raw: unknown): EventWorkspaceManifest | null {
   const obj = object(raw);
-  if (!obj || !exactKeys(obj, MANIFEST_KEYS) || obj.schema !== EVENT_WORKSPACE_MANIFEST_SCHEMA || obj.authority !== "context_only") {
-    return null;
-  }
+  if (!obj || obj.authority !== "context_only") return null;
+  const isV1 = obj.schema === EVENT_WORKSPACE_MANIFEST_SCHEMA && exactKeys(obj, MANIFEST_KEYS);
+  const isV2 = obj.schema === EVENT_WORKSPACE_MANIFEST_SCHEMA_V2 && exactKeys(obj, MANIFEST_KEYS_V2);
+  if (!isV1 && !isV2) return null;
   const generationId = typeof obj.generation_id === "string" ? obj.generation_id : "";
   if (!isEventWorkspaceGenerationId(generationId) || !validTimestamp(obj.generated_at)) return null;
   if (obj.status !== "ready" && obj.status !== "degraded" && obj.status !== "partial" && obj.status !== "empty") return null;
@@ -1047,8 +1409,21 @@ export function normalizeEventWorkspaceManifest(raw: unknown): EventWorkspaceMan
     warnings.push(warning);
   }
   if (warnings.join("\0") !== [...new Set(warnings)].sort().join("\0")) return null;
+  let previousGenerationId: string | null | undefined;
+  let previousManifestSha: string | null | undefined;
+  if (isV2) {
+    const previousId = obj.previous_generation_id;
+    const previousSha = obj.previous_manifest_sha256;
+    const idOk = previousId === null || (typeof previousId === "string" && isEventWorkspaceGenerationId(previousId));
+    const shaOk = previousSha === null || (typeof previousSha === "string" && validSha(previousSha));
+    if (!idOk || !shaOk) return null;
+    if ((previousId == null) !== (previousSha == null)) return null;
+    if (typeof previousId === "string" && previousId === generationId) return null;
+    previousGenerationId = previousId;
+    previousManifestSha = previousSha;
+  }
   return {
-    schema: EVENT_WORKSPACE_MANIFEST_SCHEMA,
+    schema: isV2 ? EVENT_WORKSPACE_MANIFEST_SCHEMA_V2 : EVENT_WORKSPACE_MANIFEST_SCHEMA,
     generation_id: generationId,
     generated_at: obj.generated_at,
     status: obj.status,
@@ -1057,6 +1432,7 @@ export function normalizeEventWorkspaceManifest(raw: unknown): EventWorkspaceMan
     aliases,
     authority: "context_only",
     warnings,
+    ...(isV2 ? { previous_generation_id: previousGenerationId ?? null, previous_manifest_sha256: previousManifestSha ?? null } : {}),
   };
 }
 

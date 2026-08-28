@@ -3,19 +3,34 @@
 build_data_coverage.py — generate public/data/coverage.json listing which
 per-symbol data files exist in public/data/.
 
-Run after any ingest job that writes .fund.json / .intel.json / .opts.json
-files, or on a cron schedule. The client consults coverage.json before the
-first fetch so it never 404s on a symbol that simply isn't in the
-deep-coverage universe.
+The client consults coverage.json before its first fetch so a symbol outside the
+deep-coverage universe costs no request at all.
+
+WHEN THIS MUST RUN — this file is a claim about the CURRENT contents of the data
+directory, and it is only true for as long as nothing has been published since.
+It used to be generated ONLY by the Next package's `prebuild`, i.e. during a
+deploy, while the nightly `terminal-data` publisher writes per-symbol artifacts
+on a completely independent schedule. Between a nightly publish and the next
+deploy the index therefore asserted absences that were no longer true, and the
+client believed them before making any request. `ops/terminal-data` now runs
+this as its final publish step (pinned by tests/test_nightly_wiring.py).
 
 Output shape:
   {
-    "as_of": "2026-07-09T12:00:00Z",
+    "as_of": "2026-07-09T12:00:00Z",   # ISO-8601 UTC, the client's freshness gate
+    "generation": 1783771200,          # same instant, epoch seconds — the publish
+                                       # epoch a consumer can compare cheaply
     "intel": ["AAPL", "NVDA", ...],
     "fund":  ["AAPL", "NVDA", ...],
     "opts":  ["AAPL", ...],
-    "ohlc":  ["AAPL", "BTC-USD", ...]    // .json (OHLC bars)
+    "ohlc":  ["AAPL", "BTC-USD", ...]    # .json (OHLC bars)
   }
+
+The write is ATOMIC (tmp file + os.replace in the same directory). Two reasons,
+both real: a reader must never see a half-written index, and the deploy stages
+public/data as a HARDLINK farm (`cp -al` in ops/terminal-build.sh) — an in-place
+truncating write from the staged build would have written through the shared
+inode into the LIVE coverage.json. os.replace leaves the other link untouched.
 
 Usage:
   python scripts/build_data_coverage.py [--data-dir terminal/public/data]
@@ -25,7 +40,6 @@ import argparse
 import datetime
 import json
 import os
-import re
 import sys
 from pathlib import Path
 
@@ -58,6 +72,21 @@ NON_SYMBOL_FILES = {
     "vol_fixture.json",
     "seed.js",
 }
+
+
+def write_atomic(out_path: Path, text: str) -> None:
+    """Write via a sibling temp file + os.replace — never in place.
+
+    In place would (a) let a reader see a truncated index and (b) write THROUGH the
+    deploy's `cp -al` hardlink into the live public/data. os.replace creates a new
+    inode in the same directory and swaps it in with a single rename.
+    """
+    tmp_path = out_path.with_name(out_path.name + ".tmp")
+    with open(tmp_path, "w") as handle:
+        handle.write(text)
+        handle.flush()
+        os.fsync(handle.fileno())
+    os.replace(tmp_path, out_path)
 
 
 def collect(data_dir: Path) -> dict:
@@ -105,17 +134,32 @@ def main():
     args = parser.parse_args()
 
     data_dir = Path(args.data_dir).resolve()
-    coverage = collect(data_dir)
-    coverage["as_of"] = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+    if not data_dir.is_dir():
+        # Nothing to describe, so write NOTHING. The old behaviour emitted an index with every
+        # list empty and a fresh `as_of` — i.e. a freshly-stamped claim that no symbol has any
+        # artifact — which the client trusts and pre-seeds from. `terminal/public/data` is not
+        # tracked in git, so that is exactly what a clean clone produced. Skipping is safe: with
+        # no index the client falls back to runtime absence, which costs requests but hides
+        # nothing. Exit 0 so `npm run build` still works on a fresh checkout.
+        print(f"[coverage] data directory not found: {data_dir} — nothing written", file=sys.stderr)
+        return 0
 
-    out_path = data_dir / "coverage.json"
-    out_path.write_text(json.dumps(coverage, indent=2))
+    coverage = collect(data_dir)
+    now = datetime.datetime.now(datetime.timezone.utc)
+    coverage["as_of"] = now.strftime("%Y-%m-%dT%H:%M:%SZ")
+    # The publish epoch, as an integer. `as_of` is what the client's freshness gate parses;
+    # `generation` is the cheap equality check for "is this the same index I already read".
+    coverage["generation"] = int(now.timestamp())
+
+    write_atomic(data_dir / "coverage.json", json.dumps(coverage, indent=2))
     print(
-        f"[coverage] wrote {out_path} — "
+        f"[coverage] wrote {data_dir / 'coverage.json'} — "
         f"intel:{len(coverage['intel'])} fund:{len(coverage['fund'])} "
-        f"opts:{len(coverage['opts'])} ohlc:{len(coverage['ohlc'])}"
+        f"opts:{len(coverage['opts'])} ohlc:{len(coverage['ohlc'])} "
+        f"generation:{coverage['generation']}"
     )
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

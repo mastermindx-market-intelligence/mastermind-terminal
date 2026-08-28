@@ -45,14 +45,28 @@ function writeGuest(list: UserScript[]) { writeLS(GUEST_KEY, list); }
 // `loggedIn` is passed by the caller (the shell already knows the auth state via `email`), so this
 // module never needs its own Supabase client — it just picks the API vs the localStorage path.
 
-export async function listScripts(loggedIn: boolean): Promise<UserScript[]> {
-  if (!loggedIn) return readGuest();
+/**
+ * The result of reading the personal library. A DISCRIMINATED result, not an array, because the
+ * caller has to be able to tell "you have no custom scripts" from "we could not read them":
+ * `listScripts` used to answer `[]` for a non-OK response AND for a thrown fetch, so a storage
+ * outage rendered as an empty library — the Indicator Library said "No scripts yet", and the
+ * /scripts page showed only the built-in flagship, which reads as *your scripts are gone*.
+ */
+export type ScriptLibrary =
+  | { status: "ok"; scripts: UserScript[] }
+  | { status: "unavailable" };
+
+export async function listScripts(loggedIn: boolean): Promise<ScriptLibrary> {
+  // A guest's library IS localStorage; reading it cannot fail in a way the user can act on.
+  if (!loggedIn) return { status: "ok", scripts: readGuest() };
   try {
-    const r = await fetch("/api/scripts/list");
-    if (!r.ok) return [];
+    const r = await fetch("/api/scripts/list", { headers: { Accept: "application/json" } });
+    if (!r.ok) return { status: "unavailable" };
     const d = await r.json();
-    return Array.isArray(d.scripts) ? (d.scripts as UserScript[]) : [];
-  } catch { return []; }
+    // A malformed body is a broken read, not an empty library.
+    if (!Array.isArray(d?.scripts)) return { status: "unavailable" };
+    return { status: "ok", scripts: d.scripts as UserScript[] };
+  } catch { return { status: "unavailable" }; }
 }
 
 // Insert (id omitted) or update (id present) name+source+params. Returns the saved id, or null on

@@ -530,6 +530,9 @@
 .ob-done-mark svg { width: 26px; height: 26px; stroke: var(--brand-2); fill: none; stroke-width: 2.2; }
 .ob-done-body { display: flex; flex-direction: column; gap: 9px; }
 .ob-done-line { font: 400 13px/1.55 var(--font-ui); color: var(--text-2); margin: 0; max-width: 52ch; }
+/* D5 — a status, not an alarm: quieter than the body copy, no error colour. The account IS ready;
+   only the preference write is still outstanding, and the outbox is handling it. */
+.ob-done-pending { color: var(--muted); font-size: 12px; }
 
 /* ══ Step 4: Billing (W2) — in-sheet Stripe Elements ═══════════════════════════ */
 

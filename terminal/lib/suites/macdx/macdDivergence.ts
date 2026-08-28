@@ -44,6 +44,7 @@ import type {
 import { divergenceStrength, findDivergences } from "@/lib/suites/shared/divergence";
 import type { DivergenceEvent } from "@/lib/suites/shared/divergence";
 import { boolOpt, clamp, intOpt, sharedMacd, tape } from "./macdEngine";
+import { MACD_DIVERGENCE_META } from "./macdDivergence.meta";
 
 // ------------------------------------------------------------------------------------ constants
 
@@ -59,25 +60,6 @@ const LABEL_MIN_PX = 2; // density gate: 8px text folds away on a zoomed-out cha
 
 // ------------------------------------------------------------------------------------- settings
 
-const FIELDS: SuiteField[] = [
-  {
-    key: "hidden",
-    label: "Hidden Divergences",
-    type: "bool",
-    tip: "Also detect continuation (hidden) divergences — drawn dashed and softer than reversal ones.",
-  },
-  {
-    key: "showLast",
-    label: "Show Last",
-    type: "number",
-    min: 2,
-    max: 16,
-    step: 1,
-    tip: "How many divergences stay on the pane. Alerts still fire for every one.",
-  },
-];
-
-const DEFAULTS: Record<string, any> = { hidden: true, showLast: 8 };
 
 // ----------------------------------------------------------------------------- divergence rows
 
@@ -277,15 +259,6 @@ function compute(ctx: ModuleCtx): ModuleResult {
 
 // ----------------------------------------------------------------------------------- module def
 
-export const MACD_DIVERGENCE_MODULE: SuiteModuleDef = {
-  key: "div",
-  label: "MACD Divergence",
-  tag: "MD",
-  tier: "pro",
-  defaultOn: true,
-  fields: FIELDS,
-  defaults: DEFAULTS,
-  compute,
-};
+export const MACD_DIVERGENCE_MODULE: SuiteModuleDef = { ...MACD_DIVERGENCE_META, compute };
 
 export default MACD_DIVERGENCE_MODULE;

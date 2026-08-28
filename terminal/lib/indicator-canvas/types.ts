@@ -270,6 +270,26 @@ export interface SuiteModuleDef {
   compute: ModuleCompute;
 }
 
+/**
+ * A module's IDENTITY and settings schema, with no computation attached.
+ *
+ * This is the half of `SuiteModuleDef` that the picker, the legend, the settings dialog and
+ * TerminalShell's boot path actually need. It exists because the other half — `compute` — is
+ * hundreds of lines per module, and declaring both in one file meant reading a module's label
+ * dragged its entire implementation into the eager bundle (~562 KB into /terminal before a
+ * single premium suite was active).
+ *
+ * The metadata literal lives in `<module>.meta.ts` and is the SINGLE canonical definition of a
+ * module's identity, tier, fields and defaults. The implementation spreads it and adds `compute`,
+ * so there is exactly one truth and the two can never drift.
+ */
+export type SuiteModuleMeta = Omit<SuiteModuleDef, "compute">;
+
+/** A suite's identity and module metadata, with no computation reachable from it. */
+export interface SuiteMetaDef extends Omit<SuiteDef, "modules"> {
+  modules: SuiteModuleMeta[];
+}
+
 export interface SuiteDef {
   key: string;      // e.g. "structure" — also the mm.inds key and indParams key
   label: string;    // "Structure Core"

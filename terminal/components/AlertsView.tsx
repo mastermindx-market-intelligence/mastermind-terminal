@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useLang, useT } from "@/lib/i18n";
 import { getJSON } from "@/lib/dataCache";
 import {
@@ -59,6 +59,88 @@ const OPT_TYPES: { v: OptKind; tkey: string }[] = [
 // manifest symbols). SPY default.
 const OPT_ROOTS = ["SPY", "QQQ", "IWM"];
 
+/**
+ * ?sym= ?price= ?type= (terminal "Add alert" context menu) and the separate ?cat=/?root=/?kind=
+ * contract the Options workflow guide hands over, parsed ONCE per navigation.
+ *
+ * Why capture and apply are split. The old version read the params in the mount effect, scheduled
+ * the state writes in a `queueMicrotask` guarded by an `alive` flag, and stripped the params in the
+ * same pass. That is only correct if the component mounts exactly once: if it unmounts before the
+ * microtask runs, the flag cancels the writes — and the params are already gone, so the next mount
+ * finds nothing and the form silently sits on its defaults. `/alerts` renders through a lazy
+ * boundary, which is exactly the shape that produces an extra mount, and the Options guide's
+ * hand-over lands on an unprefilled form when it happens (reproduced on a cold route compile).
+ *
+ * So: the URL is read and cleaned exactly once (a reload must not re-prefill), the parsed intent is
+ * held here, and every mount tries to apply it until one succeeds.
+ */
+type PendingPrefill = {
+  sym: string | null;
+  ctype: string | null;
+  value: string | null;
+  options: { root: string; kind: OptKind | null } | null;
+};
+
+/**
+ * The search string this module has already dealt with. Keyed on the URL rather than a one-shot
+ * flag because /alerts is reached by client-side navigation: the module is evaluated once and then
+ * serves every subsequent hand-over from the Options guide. After a capture this holds the STRIPPED
+ * search, so extra mounts of the same navigation short-circuit (and still get the pending prefill),
+ * while a fresh hand-over presents a different search and is parsed again.
+ */
+let parsedSearch: string | null = null;
+let pendingPrefill: PendingPrefill | null = null;
+
+function takePendingPrefill(): PendingPrefill | null {
+  if (typeof window === "undefined") return null;
+  if (window.location.search === parsedSearch) return pendingPrefill;
+  try {
+    const sp = new URLSearchParams(window.location.search);
+    const qSym = sp.get("sym"); const qPrice = sp.get("price"); const qType = sp.get("type");
+    const qCat = sp.get("cat"); const qRoot = sp.get("root"); const qKind = sp.get("kind");
+    if (!qSym && !qPrice && !qType && !qCat && !qRoot && !qKind) {
+      parsedSearch = window.location.search;
+      pendingPrefill = null;
+      return null;
+    }
+
+    const normalizedRoot = qRoot === null ? "SPY" : normalizeOptAlertRoot(qRoot);
+    const normalizedKind = qKind && OPT_TYPES.some((c) => c.v === qKind) ? qKind as OptKind : null;
+    // Treat cat/root/kind as ONE contract. A malformed root or kind must not leak into the hidden
+    // options form while another category is visible, nor turn into a row the POST boundary later
+    // rejects. Missing root/kind use the form's canonical SPY/gamma defaults.
+    const validOptions = qCat === "options" && normalizedRoot !== null && (qKind === null || normalizedKind !== null);
+    const price = qPrice && parseFloat(qPrice) > 0 ? parseFloat(qPrice).toString() : null;
+
+    pendingPrefill = {
+      sym: qSym,
+      ctype: qType && COND_TYPES.some((c) => c.v === qType) ? qType : null,
+      value: price,
+      options: validOptions ? { root: normalizedRoot as string, kind: normalizedKind } : null,
+    };
+
+    // Strip now, while we still hold the parsed copy: a reload must not re-prefill.
+    const u = new URL(window.location.href);
+    ["sym", "price", "type", "cat", "root", "kind"].forEach((k) => u.searchParams.delete(k));
+    window.history.replaceState({}, "", u.toString());
+    // Key on the POST-strip search, so the extra mounts of this same navigation short-circuit
+    // above and still receive `pendingPrefill`.
+    parsedSearch = window.location.search;
+  } catch { parsedSearch = window.location.search; pendingPrefill = null; }
+  return pendingPrefill;
+}
+
+/** Applied — a later mount must not re-prefill over the user's edits. */
+function consumePendingPrefill(): void {
+  pendingPrefill = null;
+}
+
+/** Test hook — a spec drives more than one navigation per module instance. */
+export function _resetAlertPrefill(): void {
+  parsedSearch = null;
+  pendingPrefill = null;
+}
+
 export default function AlertsView({ email }: { email: string }) {
   const t = useT();
   const { lang } = useLang();
@@ -87,6 +169,12 @@ export default function AlertsView({ email }: { email: string }) {
   // Coercing it to {alerts:[]} showed anon visitors the signed-in "no alerts yet" copy, which
   // reads as "you have none" when the truth is "we can't see yours".
   const [signedOut, setSignedOut] = useState(false);
+  // ...and the same distinction one level down: the store failing to answer is NOT an empty
+  // inventory. The route now says 503 for that; this flag is what keeps the view from
+  // rendering "No alerts yet" over an unread list. It never clears `alerts`, so a failed
+  // REFRESH leaves the last good list on screen, labelled.
+  const [unavailable, setUnavailable] = useState(false);
+  const [reloading, setReloading] = useState(false);
   // two-step delete: first click arms the row, second confirms (touch + keyboard safe)
   const [confirmDel, setConfirmDel] = useState<string | null>(null);
   const [syms, setSyms] = useState<string[]>([]);
@@ -141,20 +229,44 @@ export default function AlertsView({ email }: { email: string }) {
     gateTimer.current = setTimeout(() => setGateNudge(null), 5000);
   };
 
+  /**
+   * Read the inventory. FOUR outcomes, none of them allowed to wear another's clothes:
+   * 401 → signed out · non-2xx or unusable body → unavailable (existing rows kept) ·
+   * 2xx with rows → data · 2xx with zero rows → a real empty book.
+   *
+   * `response.ok` is the gate. Parsing the body first and trusting `d.alerts || []` is exactly
+   * how a 503 would have become an empty list again.
+   */
+  const loadAlerts = useCallback(async (aliveRef?: { alive: boolean }) => {
+    const alive = () => aliveRef?.alive !== false;
+    try {
+      const r = await fetch("/api/alerts");
+      if (r.status === 401) {
+        if (alive()) { setSignedOut(true); setUnavailable(false); }
+        return;
+      }
+      if (!r.ok) { if (alive()) setUnavailable(true); return; }
+      const d = await r.json().catch(() => null);
+      if (!d || !Array.isArray(d.alerts)) { if (alive()) setUnavailable(true); return; }
+      if (alive()) { setAlerts(d.alerts); setUnavailable(false); setSignedOut(false); }
+    } catch {
+      // Transport failure. Say nothing about the inventory — and above all do not empty it.
+      if (alive()) setUnavailable(true);
+    } finally {
+      if (alive()) setLoaded(true);
+    }
+  }, []);
+
+  const retryLoad = useCallback(async () => {
+    setReloading(true);
+    await loadAlerts();
+    setReloading(false);
+  }, [loadAlerts]);
+
   useEffect(() => {
     let alive = true;
-    // 401 = no session → render the signed-out state, never a fake empty list.
-    fetch("/api/alerts")
-      .then((r) => {
-        if (r.status === 401) {
-          if (alive) setSignedOut(true);
-          return { alerts: [] };
-        }
-        return r.json();
-      })
-      .then((d) => { if (alive) setAlerts(d.alerts || []); })
-      .catch(() => {})
-      .finally(() => { if (alive) setLoaded(true); });
+    const guard = { alive: true };
+    void loadAlerts(guard);
     // manifest via dataCache (dedup + SWR) + mounted guard — mirrors ScreenerView (batch 1).
     // onRevalidate so a symbol added by the latest ingest is selectable on the first load
     // after it lands, rather than only after this browser's cached manifest expires.
@@ -163,39 +275,23 @@ export default function AlertsView({ email }: { email: string }) {
     // D1: prefill from ?sym= ?price= ?type= query params (set by terminal "Add alert" context menu).
     // The Options workflow guide uses the separate cat/root/kind contract so it can land directly
     // on a truthful, source-gated options condition without overloading the legacy signal fields.
-    try {
-      const sp = new URLSearchParams(window.location.search);
-      const qSym = sp.get("sym"); const qPrice = sp.get("price"); const qType = sp.get("type");
-      const qCat = sp.get("cat"); const qRoot = sp.get("root"); const qKind = sp.get("kind");
-      const wantsOptionsPrefill = qCat === "options";
-      const normalizedRoot = qRoot === null ? "SPY" : normalizeOptAlertRoot(qRoot);
-      const normalizedKind = qKind && OPT_TYPES.some((c) => c.v === qKind) ? qKind as OptKind : null;
-      // Treat cat/root/kind as one contract. A malformed root or kind must not leak into the
-      // hidden options form while another category is visible, nor turn into a row the POST
-      // boundary later rejects. Missing root/kind use the form's canonical SPY/gamma defaults.
-      const validOptionsPrefill = wantsOptionsPrefill
-        && normalizedRoot !== null
-        && (qKind === null || normalizedKind !== null);
-      queueMicrotask(() => {
-        if (!alive) return;
-        if (qSym) setSym(qSym);
-        if (qType && COND_TYPES.some((c) => c.v === qType)) setCtype(qType);
-        if (qPrice && parseFloat(qPrice) > 0) setVal(parseFloat(qPrice).toString());
-        if (validOptionsPrefill) {
-          setCat("options");
-          setOptRoot(normalizedRoot);
-          if (normalizedKind) setOptKind(normalizedKind);
-        }
-      });
-      // strip the params so a reload doesn't re-prefill
-      if (qSym || qPrice || qType || qCat || qRoot || qKind) {
-        const u = new URL(window.location.href);
-        ["sym", "price", "type", "cat", "root", "kind"].forEach((k) => u.searchParams.delete(k));
-        window.history.replaceState({}, "", u.toString());
+    // Capture is separate from APPLY on purpose — see takePendingPrefill(). The params are read
+    // and stripped exactly once per navigation; applying them is retried on every mount until it
+    // sticks, so a remount between the two cannot lose the prefill.
+    const pre = takePendingPrefill();
+    if (pre) {
+      if (pre.sym) setSym(pre.sym);
+      if (pre.ctype) setCtype(pre.ctype);
+      if (pre.value) setVal(pre.value);
+      if (pre.options) {
+        setCat("options");
+        setOptRoot(pre.options.root);
+        if (pre.options.kind) setOptKind(pre.options.kind);
       }
-    } catch {}
-    return () => { alive = false; clearTimeout(gateTimer.current); };
-  }, []);
+      consumePendingPrefill();
+    }
+    return () => { alive = false; guard.alive = false; clearTimeout(gateTimer.current); };
+  }, [loadAlerts]);
 
   // The condition the CURRENT form would POST (drives the preview + create()).
   const optCondition = buildOptCondition(optKind, optRoot, optParams);
@@ -466,7 +562,7 @@ export default function AlertsView({ email }: { email: string }) {
             )}
 
             <button className="btn btn-primary" style={{ height: 34 }} onClick={create} disabled={busy}>{busy ? t("creating") : t("createAlert")}</button>
-            {err && <span style={{ color: "var(--danger)", fontSize: 12.5 }}>{err}</span>}
+            {err && <span className="alert-err" style={{ color: "var(--danger)", fontSize: 12.5 }}>{err}</span>}
           </div>
           {/* plain-word "what will fire" preview — options + suite events */}
           {cat === "options" && (
@@ -487,7 +583,24 @@ export default function AlertsView({ email }: { email: string }) {
           )}
         </div>
         <div className="panel">
-          <div className="ph">{t("activeAlerts")}{!signedOut && <span className="sub">{alerts.length} {t("total")}</span>}</div>
+          {/* The count is a claim about the inventory — it must not print "0 total" over a
+              read that never landed. The re-read control is always present when signed in: a
+              retry path that only exists once a failure is already on screen cannot recover a
+              refresh that failed over rows the user can still see. */}
+          <div className="ph">
+            {t("activeAlerts")}
+            {!signedOut && !(unavailable && alerts.length === 0) && <span className="sub">{alerts.length} {t("total")}</span>}
+            {!signedOut && loaded && (
+              <button
+                type="button"
+                className="alerts-refresh"
+                onClick={retryLoad}
+                disabled={reloading}
+                aria-label={t("alertsRefresh")}
+                title={t("alertsRefresh")}
+              >{reloading ? "…" : "↻"}</button>
+            )}
+          </div>
           {!loaded && <div style={{ padding: "26px 15px", color: "var(--muted)", fontSize: 13 }}>{t("loadingAlerts")}</div>}
           {/* Signed out: say so plainly. "No alerts yet" would be a lie — we cannot see theirs. */}
           {loaded && signedOut && (
@@ -497,7 +610,28 @@ export default function AlertsView({ email }: { email: string }) {
               <a className="btn btn-primary" href="/login">{t("gateSignupCta")}</a>
             </div>
           )}
-          {loaded && !signedOut && alerts.length === 0 && <div style={{ padding: "26px 15px", color: "var(--muted)", fontSize: 13 }}>{t("noAlertsYet")}</div>}
+          {/* Store unavailable with nothing loaded: the read failed, so we know NOTHING about
+              the inventory. Distinct copy, distinct marker, and a retry that actually re-reads. */}
+          {loaded && !signedOut && unavailable && alerts.length === 0 && (
+            <div className="alerts-unavailable" data-alerts-state="unavailable">
+              <div className="alerts-signedout-h">{t("alertsUnavailTitle")}</div>
+              <p className="alerts-signedout-p">{t("alertsUnavailBody")}</p>
+              <button type="button" className="btn" onClick={retryLoad} disabled={reloading}>
+                {reloading ? t("loadingAlerts") : t("alertsRetry")}
+              </button>
+            </div>
+          )}
+          {/* A failed REFRESH over a list we already have: keep the rows, label them, offer the
+              retry. Silently swapping in [] here is the same lie one beat later. */}
+          {loaded && !signedOut && unavailable && alerts.length > 0 && (
+            <div className="alerts-stale" role="status" data-alerts-state="stale">
+              <span>{t("alertsStaleNote")}</span>
+              <button type="button" className="btn" onClick={retryLoad} disabled={reloading}>
+                {reloading ? t("loadingAlerts") : t("alertsRetry")}
+              </button>
+            </div>
+          )}
+          {loaded && !signedOut && !unavailable && alerts.length === 0 && <div data-alerts-state="empty" style={{ padding: "26px 15px", color: "var(--muted)", fontSize: 13 }}>{t("noAlertsYet")}</div>}
           {!signedOut && alerts.map((a) => {
             const trig = !a.active && a.condition?.triggered; // engine one-shot: fired -> disarmed + stamped
             const note = trig ? String(a.condition.triggered.note ?? "") : "";

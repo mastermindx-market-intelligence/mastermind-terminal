@@ -7,7 +7,7 @@
  * must never be persisted or looked up without their suite namespace.
  */
 
-import type { SuiteDef, SuiteModuleDef, SuiteTier } from "@/lib/indicator-canvas/types";
+import type { SuiteDef, SuiteModuleMeta, SuiteTier } from "@/lib/indicator-canvas/types";
 import { SUITE_DEFS, SUITE_ORDER, suiteDefaults } from "./registry";
 
 export type SuiteModuleId = `suite:${string}/${string}`;
@@ -51,8 +51,9 @@ export interface SuiteModuleCatalogEntry {
    * an enablement dependency: satellites can still compute while the source's drawing is off.
    */
   source?: SuiteModuleId;
-  /** The canonical runtime definition. Consumers must not mutate it. */
-  module: SuiteModuleDef;
+  /** The canonical module METADATA. Consumers must not mutate it, and must not expect
+   *  `compute` here — computation is loaded separately (lib/suites/compute.ts). */
+  module: SuiteModuleMeta;
   /** Pre-normalized English search corpus for simple picker filtering. */
   searchText: string;
   /** Pre-normalized Chinese search corpus for simple picker filtering. */

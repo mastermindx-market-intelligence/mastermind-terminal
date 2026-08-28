@@ -1,0 +1,10 @@
+# Source is source, even when it embeds a control character.
+#
+# components/AdminView.tsx built its filter key with two literal NUL bytes as separators, and git
+# detects NUL in the first 8000 bytes as "binary": the file diffed as `Bin 17674 -> 18834 bytes`
+# in every PR that touched it, so no reviewer could see what changed. Those two bytes are now
+# written as escape sequences, but the rule belongs here rather than in one file's history: a
+# readable diff should never depend on which bytes a string literal happens to contain.
+*.ts diff
+*.tsx diff
+*.css diff

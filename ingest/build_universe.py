@@ -119,10 +119,30 @@ def _round(x, nd=4):
     return None if x is None or pd.isna(x) else round(float(x), nd)
 
 
+def _drop_non_trading_placeholders(df: pd.DataFrame) -> pd.DataFrame:
+    """Exclude explicit zero-volume flat OHLC rows before publication.
+
+    Yahoo emits this shape for suspended equities. Missing volume is deliberately
+    retained because absence is not proof of no trading, and a positive-volume flat
+    session is a genuine candle.
+    """
+    required = {"close", "high", "low", "volume"}
+    if not required.issubset(df.columns):
+        return df
+    price_cols = [c for c in ("open", "close", "high", "low") if c in df.columns]
+    prices = df[price_cols]
+    finite_prices = prices.notna().all(axis=1)
+    close = df["close"]
+    tolerance = close.abs() * 1e-10 + 1e-8
+    flat = prices.sub(close, axis=0).abs().le(tolerance, axis=0).all(axis=1)
+    explicit_zero_volume = df["volume"].notna() & df["volume"].le(0)
+    return df.loc[~(finite_prices & flat & explicit_zero_volume)]
+
+
 def build_ohlc_json(ticker: str, df: pd.DataFrame) -> dict:
     """Candle contract; reconstruct open = prior close and clamp h/l to include it
     (verbatim with the macro build_chart_data.py / sample_from_macro.py)."""
-    df = df.dropna(subset=["close"]).sort_index().tail(MAX_BARS)
+    df = _drop_non_trading_placeholders(df.dropna(subset=["close"])).sort_index().tail(MAX_BARS)
     closes = df["close"].astype(float)
     prev = closes.shift(1).fillna(closes)
     bars = []

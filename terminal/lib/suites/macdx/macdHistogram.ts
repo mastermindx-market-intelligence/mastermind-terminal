@@ -31,6 +31,7 @@ import type {
   TooltipDef,
 } from "@/lib/indicator-canvas/types";
 import { MACDX_EXTREME, boolOpt, clamp, paneVal, sharedMacd, tape } from "./macdEngine";
+import { MACD_HISTOGRAM_META } from "./macdHistogram.meta";
 
 // ------------------------------------------------------------------------------------ constants
 
@@ -44,18 +45,6 @@ const CONFIRM_BARS = 2; // the flip bar + one more bar on the same side
 
 // ------------------------------------------------------------------------------------- settings
 
-const FIELDS: SuiteField[] = [
-  {
-    key: "flips",
-    label: "Flip Markers",
-    type: "bool",
-    tip: 'Print a "+" where the histogram changes side and the new side holds for a second bar.',
-  },
-];
-
-const DEFAULTS: Record<string, any> = {
-  flips: true,
-};
 
 // -------------------------------------------------------------------------------------- compute
 
@@ -206,15 +195,6 @@ function compute(ctx: ModuleCtx): ModuleResult {
 
 // ----------------------------------------------------------------------------------- module def
 
-export const MACD_HISTOGRAM_MODULE: SuiteModuleDef = {
-  key: "hist",
-  label: "Histogram",
-  tag: "MH",
-  tier: "essential",
-  defaultOn: true,
-  fields: FIELDS,
-  defaults: DEFAULTS,
-  compute,
-};
+export const MACD_HISTOGRAM_MODULE: SuiteModuleDef = { ...MACD_HISTOGRAM_META, compute };
 
 export default MACD_HISTOGRAM_MODULE;

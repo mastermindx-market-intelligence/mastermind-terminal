@@ -1,9 +1,9 @@
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
-import PortfolioView from "@/components/PortfolioView";
+import PortfolioViewMount from "@/components/mounts/PortfolioViewMount";
 import SignupGate from "@/components/gates/SignupGate";
-import { listPositions, type Position } from "@/lib/portfolio";
-import { createFixtureDb, fixtureUserId, FIXTURE_STORE_COOKIE } from "@/lib/watchlistsFixtureDb";
+import { readPositions } from "@/lib/portfolio";
+import { createFixtureDb, fixtureFaults, fixtureUserId, FIXTURE_FAULT_COOKIE, FIXTURE_STORE_COOKIE } from "@/lib/watchlistsFixtureDb";
 
 // W5: this page is the user's REAL portfolio.
 //
@@ -29,11 +29,14 @@ export default async function PortfolioPage() {
   // SAME service against the SAME account-shaped store `POST /api/portfolio` writes, so what a
   // spec creates is what this page renders — there is no parallel fixture truth to drift from.
   if (process.env.TERMINAL_E2E_FIXTURE === "1") {
-    const key = (await cookies()).get(FIXTURE_STORE_COOKIE)?.value || "default";
-    const positions = await listPositions(createFixtureDb(key), fixtureUserId(key));
+    const jar = await cookies();
+    const key = jar.get(FIXTURE_STORE_COOKIE)?.value || "default";
+    const faults = fixtureFaults(jar.get(FIXTURE_FAULT_COOKIE)?.value);
+    const read = await readPositions(createFixtureDb(key, faults), fixtureUserId(key));
     return (
-      <PortfolioView
-        positions={positions}
+      <PortfolioViewMount
+        positions={read.ok ? read.positions : []}
+        unreadable={!read.ok}
         email={process.env.TERMINAL_E2E_EMAIL || "responsive@example.com"}
       />
     );
@@ -44,15 +47,19 @@ export default async function PortfolioPage() {
   if (!user) return <SignupGate surface="portfolio" />;
 
   // RLS (`portfolio_select_own`) is the authority; the explicit `user_id` filter inside
-  // `listPositions` is the same belt-and-braces the watchlist reads carry.
-  let positions: Position[] = [];
-  try {
-    positions = await listPositions(supabase as never, user.id);
-  } catch {
-    // UWP-R6: the page never breaks because the store is unreachable. An unreadable book renders
-    // its honest empty state rather than a 500 — and the client re-reads through /api/portfolio on
-    // its first mutation, so a transient failure heals without a reload.
-    positions = [];
-  }
-  return <PortfolioView positions={positions} email={user.email || ""} />;
+  // `readPositions` is the same belt-and-braces the watchlist reads carry.
+  //
+  // An unreachable store still does not 500 the page — but it no longer renders the empty book
+  // either. The previous version described `[]` as "the honest empty state"; it is the opposite
+  // of honest on a holdings surface, and in practice the service had already swallowed the error
+  // before this try/catch could observe it. The view now receives the FACT that the read failed
+  // and says so, with a retry that re-reads through the same /api/portfolio contract.
+  const read = await readPositions(supabase as never, user.id);
+  return (
+    <PortfolioViewMount
+      positions={read.ok ? read.positions : []}
+      unreadable={!read.ok}
+      email={user.email || ""}
+    />
+  );
 }

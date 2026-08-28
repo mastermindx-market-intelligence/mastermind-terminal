@@ -34,6 +34,7 @@ import type {
   SuiteField,
   SuiteModuleDef,
 } from "@/lib/indicator-canvas/types";
+import { VOLUME_MAPPING_META } from "./volumeMapping.meta";
 
 // ------------------------------------------------------------------------------------ constants
 
@@ -52,21 +53,6 @@ const MAX_EVENTS = 80;
 
 // ------------------------------------------------------------------------------------- settings
 
-const FIELDS: SuiteField[] = [
-  {
-    key: "window",
-    label: "Volume Window",
-    type: "number",
-    min: 50,
-    max: 400,
-    step: 10,
-    tip: "Bars in the trailing volume maximum that scales column height. Shorter = more local; longer = the rail keeps its memory of past volume peaks.",
-  },
-];
-
-const DEFAULTS: Record<string, any> = {
-  window: 100,
-};
 
 // -------------------------------------------------------------------------------------- helpers
 
@@ -220,15 +206,6 @@ function compute(ctx: ModuleCtx): ModuleResult {
 
 // ---------------------------------------------------------------------------------- module def
 
-export const VOLUME_MAPPING_MODULE: SuiteModuleDef = {
-  key: "vmap",
-  label: "Volume Mapping",
-  tag: "VM",
-  tier: "pro",
-  defaultOn: false,
-  fields: FIELDS,
-  defaults: DEFAULTS,
-  compute,
-};
+export const VOLUME_MAPPING_MODULE: SuiteModuleDef = { ...VOLUME_MAPPING_META, compute };
 
 export default VOLUME_MAPPING_MODULE;

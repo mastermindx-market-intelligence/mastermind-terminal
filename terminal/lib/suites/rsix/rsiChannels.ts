@@ -48,6 +48,7 @@ import {
   sharedRsi,
   smaArr,
 } from "./rsiEngine";
+import { RSI_CHANNELS_META } from "./rsiChannels.meta";
 
 // ------------------------------------------------------------------------------------ constants
 
@@ -68,39 +69,6 @@ const MODELS: readonly ChannelModel[] = ["bollinger", "keltner", "donchian"];
 
 // ------------------------------------------------------------------------------------- settings
 
-const FIELDS: SuiteField[] = [
-  {
-    key: "model",
-    label: "Channel Model",
-    type: "select",
-    options: [
-      { v: "bollinger", label: "Bollinger" },
-      { v: "keltner", label: "Keltner" },
-      { v: "donchian", label: "Donchian" },
-    ],
-    tip: "Bollinger breathes with RSI volatility, Keltner is smoother, Donchian steps between RSI extremes.",
-  },
-  {
-    key: "length",
-    label: "Length",
-    type: "number",
-    min: 10,
-    max: 60,
-    step: 1,
-    tip: "Window of the channel statistics, in bars.",
-  },
-  {
-    key: "mult",
-    label: "Width (×)",
-    type: "number",
-    min: 1,
-    max: 3,
-    step: 0.1,
-    tip: "Half-width multiplier — stdev for Bollinger, mean RSI range for Keltner. Unused by Donchian.",
-  },
-];
-
-const DEFAULTS: Record<string, any> = { model: "bollinger", length: 20, mult: 2 };
 
 // ---------------------------------------------------------------------------------- channel math
 
@@ -385,15 +353,6 @@ function compute(ctx: ModuleCtx): ModuleResult {
 
 // ---------------------------------------------------------------------------------- module def
 
-export const RSI_CHANNELS_MODULE: SuiteModuleDef = {
-  key: "chan",
-  label: "RSI Channels",
-  tag: "RC",
-  tier: "pro",
-  defaultOn: false,
-  fields: FIELDS,
-  defaults: DEFAULTS,
-  compute,
-};
+export const RSI_CHANNELS_MODULE: SuiteModuleDef = { ...RSI_CHANNELS_META, compute };
 
 export default RSI_CHANNELS_MODULE;

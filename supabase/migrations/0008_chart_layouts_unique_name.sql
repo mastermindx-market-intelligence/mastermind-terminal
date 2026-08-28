@@ -1,0 +1,84 @@
+-- Mastermind Terminal — make "one named layout per user" a DATABASE invariant
+--
+-- ============================== WHAT THIS CHANGES ==============================
+-- `app/api/layouts/route.ts` has claimed "Upsert by name (one named layout per user)" since
+-- 0001_init.sql, but nothing enforced it. The write path was a read-then-insert pseudo-upsert:
+--
+--     SELECT id FROM chart_layouts WHERE user_id = $1 AND name = $2   -- both tabs miss
+--     INSERT INTO chart_layouts ...                                   -- both tabs insert
+--
+-- Two tabs, two devices, or one double-click on Save could both pass the SELECT before either
+-- INSERT committed, leaving two rows with the same (user_id, name) and no way for the UI — which
+-- addresses layouts BY NAME — to say which one it is loading or overwriting.
+--
+-- This migration adds the missing constraint so the race is closed in the database, and
+-- `lib/layouts.ts` upgrades the write to a single atomic
+-- `INSERT ... ON CONFLICT (user_id, name) DO UPDATE`.
+--
+-- EXACT-NAME, deliberately. Every lookup in the estate has always been exact-name
+-- (`.eq("name", name)`); a case-insensitive constraint would be a different product ruling AND
+-- would fail to apply wherever a user already holds names differing only in case.
+--
+-- ========================= PRODUCTION CENSUS BEFORE APPLYING =========================
+-- Required by the delivery packet: never add a unique constraint without first counting what it
+-- would reject. Run read-only against the shared project (`fsldfzlxyavsuwqbceod`) on 2026-08-19
+-- with the service key, from the VPS (`/opt/terminal/terminal/.env.local`):
+--
+--     GET /rest/v1/chart_layouts?select=id,user_id,name,updated_at,created_at
+--       -> HTTP 200, body `[]`
+--     GET /rest/v1/chart_layouts?select=id  (Range: 0-0, Prefer: count=exact)
+--       -> HTTP 200, `content-range: */0`
+--
+-- RESULT: **`public.chart_layouts` holds ZERO rows estate-wide.** Not "zero duplicates" — zero
+-- rows. No user has ever successfully saved a chart layout in production, which is consistent with
+-- the product defects this wave fixes (a guest Save button wired to a guaranteed 401, and a client
+-- that never checked whether the POST succeeded).
+--
+-- The same census read, for context on the neighbouring user-plane tables that DO carry rows:
+--   profiles 31 · watchlists 24 · portfolio_positions 9 · saved_scripts 4 · chart_layouts 0.
+--
+-- CONSEQUENCE: there is nothing to reconcile. The constraint cannot reject an existing row, no
+-- user configuration can be lost by applying it, and the loss-preserving reconciliation policy the
+-- packet asks for (keep a canonical row, re-home differing configs under collision-free names) has
+-- no input to run on. It is therefore NOT implemented here — writing a merge routine for an empty
+-- table would be untested speculation shipped as a migration. Should this file ever be applied to a
+-- non-empty environment, run the census first; a non-empty duplicate set is an operator decision,
+-- not a silent DELETE.
+--
+-- ============================== HOW IT GETS APPLIED ==============================
+-- Same posture as 0007: `terminal-build.sh` does NOT run migrations, and no DDL credential exists
+-- anywhere in the estate (verified 2026-08-19 — no psql, no connection string on the box or the
+-- Mac, no `supabase` CLI, and no SQL-exec RPC: `exec_sql`/`execute_sql`/`sql`/`run_sql` all answer
+-- PGRST202). Applying this is an OPERATOR action in the Supabase SQL editor.
+--
+-- Until it is applied, nothing breaks. `lib/layouts.ts` tries the atomic upsert first and falls
+-- back to the legacy select-then-write when PostgREST answers 42P10 ("no unique or exclusion
+-- constraint matching the ON CONFLICT specification"). The probe is not cached, so the atomic path
+-- begins working on the very next save after this statement runs — no deploy, no restart.
+-- =====================================================================================
+
+-- ============================ APPLICATION STATUS (2026-08-21) ============================
+-- APPLIED to production on 2026-08-21, on operator instruction, through the Management API.
+--
+-- The census in the header above was RE-RUN immediately before applying, because that header's
+-- whole "nothing to reconcile" argument rests on the table being empty and the point of #427 was
+-- to make it stop being empty:
+--
+--     select count(*), count(distinct (user_id, name)) from public.chart_layouts   -> 0, 0
+--     select user_id, name, count(*) ... having count(*) > 1                       -> []
+--
+-- Still zero rows, so the index could not reject anything and no user configuration could be lost.
+-- Verified after: `pg_indexes` reports
+--     CREATE UNIQUE INDEX chart_layouts_user_name ON public.chart_layouts USING btree (user_id, name)
+--
+-- CONSEQUENCE FOR THE CODE: `lib/layouts.ts` probes on every save and does not cache the result, so
+-- its atomic `ON CONFLICT (user_id, name)` upsert began working on the very next save — no deploy,
+-- no restart. The 42P10 fallback is now dead code in this environment and stays only as insurance
+-- for a fresh one.
+--
+-- If this file is ever applied to a DIFFERENT environment, re-run the census there first. A
+-- non-empty duplicate set is an operator decision, not a silent DELETE.
+-- =========================================================================================
+
+create unique index if not exists chart_layouts_user_name
+  on public.chart_layouts (user_id, name);

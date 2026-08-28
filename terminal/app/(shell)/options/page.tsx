@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import OptionsWorkspace from "@/components/workspaces/OptionsWorkspace";
+import OptionsWorkspaceMount from "@/components/mounts/OptionsWorkspaceMount";
 import OptionsPaywall from "@/components/OptionsPaywall";
 import { hasLiveOptions } from "@/lib/entitlement";
 
@@ -31,7 +31,7 @@ export default async function OptionsPage() {
   // degrades to a CSR bailout here instead of a build error.
   return (
     <Suspense fallback={null}>
-      <OptionsWorkspace />
+      <OptionsWorkspaceMount />
     </Suspense>
   );
 }

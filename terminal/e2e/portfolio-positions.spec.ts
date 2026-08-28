@@ -1,5 +1,6 @@
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
 import { isolateWatchlistStore } from "./watchlistStore";
+import { expectTapTarget } from "./tapTarget";
 
 // W5 — `/portfolio` is the user's REAL portfolio (`portfolio_positions`).
 //
@@ -81,6 +82,14 @@ async function prepare(page: Page, testInfo: TestInfo, baseURL: string | undefin
   await page.route("**/api/portfolio-brief", (route) => (opts.brief
     ? route.fulfill({ json: BRIEF })
     : route.fulfill({ status: 403, contentType: "application/json", body: JSON.stringify({ tier: "free" }) })));
+}
+
+async function setMutationNoop(page: Page, on: boolean, baseURL: string | undefined) {
+  await page.context().addCookies([{
+    name: "mm_e2e_fault",
+    value: on ? "positions_mutation_noop" : "",
+    url: baseURL ?? "http://127.0.0.1:3108",
+  }]);
 }
 
 // The OPEN table specifically. `.panel .pf-table` alone also matches the closed section's
@@ -270,6 +279,72 @@ test("add · edit · close · delete, all browser-driven, none of it touching th
   expect(await readBook(page)).toEqual(bookBefore);
 });
 
+test("success-shaped zero-row mutations stay visibly failed and never reduce the authoritative book", async ({ page, baseURL }, testInfo) => {
+  await prepare(page, testInfo, baseURL);
+  await seedPosition(page, { ticker: "NVDA", shares: "10", entryPrice: "150", notes: "core" });
+  const canonical = await readBook(page);
+  const watchlists = await readWatchlists(page);
+  await page.goto("/portfolio");
+  await expect(row(page, "NVDA")).toBeVisible();
+
+  // This is a low-level `{data:[], error:null}` fault in the fixture DB, not a mocked hard error.
+  // The service must turn it into a non-2xx response and the client must leave the proven row put.
+  await setMutationNoop(page, true, baseURL);
+
+  // UPDATE — the modal remains open with the user's typing and an explicit failure.
+  await row(page, "NVDA").getByRole("button", { name: /^(Edit|编辑) NVDA$/ }).click();
+  const modal = page.getByRole("dialog");
+  await modal.locator("input[name='shares']").fill("25");
+  await modal.getByRole("button", { name: /Save position|保存持仓/ }).click();
+  await expect(modal).toBeVisible();
+  await expect(modal.getByRole("alert")).toContainText("didn't save");
+  expect(await readBook(page)).toEqual(canonical);
+  await modal.getByRole("button", { name: /^(Cancel|取消)$/ }).first().click();
+  await expect(row(page, "NVDA").locator("td").nth(1)).toHaveText("10");
+
+  // CLOSE — the row remains open; the failure is disclosed at the surface.
+  await row(page, "NVDA").getByRole("button", { name: /^(Close|平仓) NVDA$/ }).click();
+  await expect(page.locator(".pf-failure")).toHaveText("position mutation not confirmed");
+  await expect(row(page, "NVDA")).toHaveAttribute("data-status", "open");
+  expect(await readBook(page)).toEqual(canonical);
+
+  // DELETE — confirm the destructive intent, then prove the population never transiently falls.
+  await row(page, "NVDA").getByRole("button", { name: /^(Delete|删除) NVDA$/ }).click();
+  await row(page, "NVDA").locator(".pf-confirm").getByRole("button", { name: /^(Delete|删除)$/ }).click();
+  await expect(page.locator(".pf-failure")).toHaveText("position mutation not confirmed");
+  await expect(table(page).locator("tr[data-ticker]")).toHaveCount(1);
+  await expect(row(page, "NVDA")).toBeVisible();
+  expect(await readBook(page)).toEqual(canonical);
+  expect(await readWatchlists(page)).toEqual(watchlists);
+
+  // A full server render agrees: this is durable canonical state, not a client-held rollback.
+  await page.reload();
+  await expect(table(page).locator("tr[data-ticker]")).toHaveCount(1);
+  await expect(row(page, "NVDA")).toBeVisible();
+});
+
+test("a 2xx receipt with an absent authoritative postcondition is still a visible failure", async ({ page, baseURL }, testInfo) => {
+  await prepare(page, testInfo, baseURL);
+  const seeded = await seedPosition(page, { ticker: "NVDA", shares: "10", entryPrice: "150" });
+  await page.goto("/portfolio");
+
+  // Lie only at the HTTP boundary: claim the delete succeeded without touching the fixture DB.
+  // The client must distrust the 2xx once the authoritative GET still contains the intended id.
+  await page.route("**/api/portfolio", async (route) => {
+    if (route.request().method() === "POST") {
+      await route.fulfill({ json: { ok: true, deletedId: seeded.id } });
+      return;
+    }
+    await route.continue();
+  });
+  await row(page, "NVDA").getByRole("button", { name: /^(Delete|删除) NVDA$/ }).click();
+  await row(page, "NVDA").locator(".pf-confirm").getByRole("button", { name: /^(Delete|删除)$/ }).click();
+
+  await expect(page.locator(".pf-failure")).toContainText("didn't save");
+  await expect(row(page, "NVDA")).toBeVisible();
+  expect((await readBook(page)).map((position) => position.id)).toEqual([seeded.id]);
+});
+
 test("the brief states which names it is reading, and flags a population it did not read", async ({ page, baseURL }, testInfo) => {
   await prepare(page, testInfo, baseURL, { brief: true });
   // BRIEF.book.n is 2 — seed exactly two so the disclosure agrees first.
@@ -324,22 +399,21 @@ test("the page holds its shape at this viewport, in zh", async ({ page, baseURL 
   // applied by position, hid the actions column at 390px — a phone user could see their book and
   // change nothing in it. Asserted here so it cannot come back silently.
   //
-  // The bar is the CSS floor with NO slack: 44px wherever the input is a finger, 28px on
-  // pointer-precise desktop where the compact row is what makes a long book readable. Delete is
-  // the rightmost of three controls in one cell, so an undersized target there mis-taps into a
-  // destructive action.
+  // The bar is the CSS floor itself — 44px wherever the input is a finger, 28px on
+  // pointer-precise desktop where the compact row is what makes a long book readable — measured
+  // in whole CSS pixels by expectTapTarget, which absorbs sub-pixel layout noise and nothing
+  // more. Delete is the rightmost of three controls in one cell, so an undersized target there
+  // mis-taps into a destructive action.
   const touch = testInfo.project.name !== "desktop";
   const floor = touch ? 44 : 28;
   for (const name of [/^编辑 NVDA$/, /^平仓 NVDA$/, /^删除 NVDA$/]) {
     const control = row(page, "NVDA").getByRole("button", { name });
     await expect(control).toBeVisible();
-    const box = await control.boundingBox();
-    expect(box?.width ?? 0).toBeGreaterThan(0);
-    expect(box?.height ?? 0).toBeGreaterThanOrEqual(floor);
+    expect((await control.boundingBox())?.width ?? 0).toBeGreaterThan(0);
+    await expectTapTarget(control, { height: floor });
   }
   // The add-position button and the modal's own buttons take the same floor.
-  const addBox = await page.locator(".pf-add-btn").first().boundingBox();
-  expect(addBox?.height ?? 0).toBeGreaterThanOrEqual(touch ? 44 : 34);
+  await expectTapTarget(page.locator(".pf-add-btn").first(), { height: touch ? 44 : 34 });
   // …and the symbol stays legible next to them, never squeezed out by the controls.
   await expect(row(page, "NVDA").locator(".pf-tk")).toBeVisible();
 

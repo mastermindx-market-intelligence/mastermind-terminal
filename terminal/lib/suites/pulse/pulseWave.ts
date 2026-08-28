@@ -38,6 +38,7 @@ import type {
   SuiteModuleDef,
 } from "@/lib/indicator-canvas/types";
 import { emaArr, normalizeSigned } from "@/lib/suites/shared/oscUtils";
+import { PULSE_WAVE_META } from "./pulseWave.meta";
 
 // ------------------------------------------------------------------------------------ constants
 
@@ -79,38 +80,6 @@ export const WAVE_STATE = {
 
 // ------------------------------------------------------------------------------------- settings
 
-const FIELDS: SuiteField[] = [
-  {
-    key: "profile",
-    label: "Profile",
-    type: "select",
-    options: [
-      { v: "scalper", label: "Scalper" },
-      { v: "day", label: "Day Trader" },
-      { v: "swing", label: "Swing Trader" },
-    ],
-    tip: "Smoothing preset for the WHOLE pane — Signals and Divergences follow it. Scalper reacts fastest, Swing is the calmest.",
-  },
-  {
-    key: "gapped",
-    label: "Gapped Line",
-    type: "bool",
-    tip: "Slower companion line lagging the wave — the spread between them shows thrust.",
-  },
-  {
-    key: "fillGaps",
-    label: "Fill Gaps",
-    type: "bool",
-    showIf: { key: "gapped", eq: true },
-    tip: "Shade the spread between the wave and the gapped line, colored by the wave state.",
-  },
-];
-
-const DEFAULTS: Record<string, any> = {
-  profile: "day",
-  gapped: true,
-  fillGaps: true,
-};
 
 // -------------------------------------------------------------------------------------- helpers
 
@@ -361,15 +330,6 @@ function compute(ctx: ModuleCtx): ModuleResult {
 
 // --------------------------------------------------------------------------------- module def
 
-export const PULSE_WAVE_MODULE: SuiteModuleDef = {
-  key: "wave",
-  label: "Pulse Wave",
-  tag: "PW",
-  tier: "essential",
-  defaultOn: true,
-  fields: FIELDS,
-  defaults: DEFAULTS,
-  compute,
-};
+export const PULSE_WAVE_MODULE: SuiteModuleDef = { ...PULSE_WAVE_META, compute };
 
 export default PULSE_WAVE_MODULE;

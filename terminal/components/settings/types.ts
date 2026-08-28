@@ -2,6 +2,7 @@
 // Lives apart from SettingsPanel so the sections can import types without a
 // cycle (the panel imports the sections).
 
+import type { AccountIdentity } from "@/lib/accountIdentity";
 import type { AcsUser } from "./SettingsProvider";
 
 /** One metered lane as reported by the Brain gateway / `chat_budget`. */
@@ -39,6 +40,9 @@ export interface AcsUsage {
 export interface SectionProps {
   t: (key: string, fallback?: string) => string;
   lang: "en" | "zh";
+  /** The shell's resolved identity. This — not `email` — is what an owner-scoped store keys on. */
+  identity: AccountIdentity;
+  /** Display / routing address, derived from `identity`. "" for a guest. Never an owner key. */
   email: string;
   user: AcsUser | null;
   onClose: () => void;

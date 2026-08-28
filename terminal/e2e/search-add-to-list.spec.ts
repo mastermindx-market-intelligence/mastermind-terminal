@@ -1,11 +1,18 @@
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
-import { isolateWatchlistStore } from "./watchlistStore";
+import { E2E_WLS_KEY, e2eWatchlistOwner, isolateWatchlistStore, seedOwnerWatchlists } from "./watchlistStore";
 
 // Operator report (2026-08-05): a one-hit search for 明阳电气 showed a sliver of a panel behind the
 // result row and the + button appeared to do nothing. With two or more watchlists, + opens the
 // add-to-list picker — which was an absolute child of the row, so it sat inside BOTH `.sres`
 // (overflow:auto, barely taller than the single row) and `.smodal` (overflow:hidden). 8px of a
 // 123px popover showed; the list menu the add depends on was invisible, so nothing could be added.
+// A1: local watchlist state is owner-scoped, so both the seed and every read below go through
+// the signed-in owner's slot rather than a browser-global `mm.wls`.
+let owner = e2eWatchlistOwner();
+const savedLists = (page: Page) => page.evaluate(([key, slot]) => {
+  try { return JSON.parse(localStorage.getItem(key) || "{}")[slot]?.lists ?? {}; } catch { return {}; }
+}, [E2E_WLS_KEY, owner] as const);
+
 const LISTS = {
   lists: {
     Default: [{ symbol: "NVDA", section: "EQUITIES" }],
@@ -18,10 +25,11 @@ const LISTS = {
 async function openSearchWithTwoLists(page: Page, query: string, testInfo: TestInfo, baseURL?: string) {
   // Since W1b the seeded "China" list migrates to the server on mount, so this spec needs its own
   // fixture store (see e2e/watchlistStore.ts) to stay deterministic under the parallel matrix.
-  await isolateWatchlistStore(page, testInfo, baseURL);
+  const storeKey = await isolateWatchlistStore(page, testInfo, baseURL);
+  owner = e2eWatchlistOwner(storeKey);
   // Seeded before any app code runs: TerminalShell persists its own list state on mount, so a seed
   // written after the first load races that write and loses.
-  await page.addInitScript((seed) => localStorage.setItem("mm.wls", JSON.stringify(seed)), LISTS);
+  await seedOwnerWatchlists(page, storeKey, LISTS);
   await page.goto("/terminal?symbol=NVDA");
   await expect(page.locator(".mm-ptag")).toBeVisible({ timeout: 60_000 });
   // W5 CHANGED THE RULE this poll was originally written for, and the poll is still required —
@@ -36,10 +44,7 @@ async function openSearchWithTwoLists(page: Page, query: string, testInfo: TestI
   // click could beat it and open a picker with one list in it (that is how this spec failed on CI
   // at 26 minutes' runtime). The persist effect re-writes `mm.wls` from the restored state, so two
   // keys there is the precondition itself, observed rather than assumed.
-  await expect.poll(() => page.evaluate(() => {
-    try { return Object.keys(JSON.parse(localStorage.getItem("mm.wls") || "{}").lists ?? {}).length; }
-    catch { return 0; }
-  }), { timeout: 30_000 }).toBeGreaterThan(1);
+  await expect.poll(async () => Object.keys(await savedLists(page)).length, { timeout: 30_000 }).toBeGreaterThan(1);
   await page.locator(".pair").first().click();
   await page.locator(".sh input").click();
   await page.keyboard.type(query);
@@ -74,10 +79,8 @@ test("the add-to-list picker is fully visible on a one-result search", async ({ 
 
   // …and picking a list actually adds the symbol to it.
   await page.locator(".s-pick-row", { hasText: "China" }).click();
-  await expect.poll(async () => page.evaluate(() => {
-    const saved = JSON.parse(localStorage.getItem("mm.wls") || "{}");
-    return (saved.lists?.China ?? []).map((r: { symbol: string }) => r.symbol);
-  }), { timeout: 10_000 }).toContain("AMD");
+  await expect.poll(async () => (await savedLists(page)).China?.map((r: { symbol: string }) => r.symbol) ?? [],
+    { timeout: 10_000 }).toContain("AMD");
 });
 
 test("scrolling the result list closes the picker instead of stranding it", async ({ page, baseURL }, testInfo) => {
@@ -101,9 +104,10 @@ test("scrolling the result list closes the picker instead of stranding it", asyn
 test("a signed-in user with ONE list still gets the picker, because Portfolio is a destination", async ({ page, baseURL }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "Pointer affordance; desktop is where the popover lives.");
 
-  await isolateWatchlistStore(page, testInfo, baseURL);
+  const oneListKey = await isolateWatchlistStore(page, testInfo, baseURL);
+  owner = e2eWatchlistOwner(oneListKey);
   // ONE list — the exact case that used to skip the picker entirely.
-  await page.addInitScript((seed) => localStorage.setItem("mm.wls", JSON.stringify(seed)), {
+  await seedOwnerWatchlists(page, oneListKey, {
     lists: { Default: [{ symbol: "NVDA", section: "EQUITIES" }] },
     active: "Default",
     meta: {},
@@ -114,10 +118,7 @@ test("a signed-in user with ONE list still gets the picker, because Portfolio is
   // of the initial state too. The discriminator is ORDER: TRAP-1's mount reconcile puts the LOCAL
   // Default first and appends the server's own members after it, so `Default[0]` is "BTC-USD"
   // before the restore lands and the seeded "NVDA" after it.
-  await expect.poll(() => page.evaluate(() => {
-    try { return (JSON.parse(localStorage.getItem("mm.wls") || "{}").lists?.Default ?? [])[0]?.symbol ?? ""; }
-    catch { return ""; }
-  }), { timeout: 30_000 }).toBe("NVDA");
+  await expect.poll(async () => (await savedLists(page)).Default?.[0]?.symbol ?? "", { timeout: 30_000 }).toBe("NVDA");
 
   await page.locator(".pair").first().click();
   await page.locator(".sh input").click();
@@ -131,26 +132,21 @@ test("a signed-in user with ONE list still gets the picker, because Portfolio is
   await expect(pick.getByTestId("add-to-portfolio")).toBeVisible();
   await expect(pick.locator(".s-pick-row", { hasText: "Default" })).toHaveCount(1);
   // AMD reached neither destination just by opening the menu.
-  await expect.poll(() => page.evaluate(() => {
-    try { return (JSON.parse(localStorage.getItem("mm.wls") || "{}").lists?.Default ?? []).map((r: { symbol: string }) => r.symbol); }
-    catch { return []; }
-  })).not.toContain("AMD");
+  await expect.poll(async () => (await savedLists(page)).Default?.map((r: { symbol: string }) => r.symbol) ?? []).not.toContain("AMD");
 });
 
 test("with no Portfolio destination the one-click add survives — the rail's Add Symbol dialog", async ({ page, baseURL }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "Pointer affordance; desktop is where the rail lives.");
 
-  await isolateWatchlistStore(page, testInfo, baseURL);
-  await page.addInitScript((seed) => localStorage.setItem("mm.wls", JSON.stringify(seed)), LISTS);
+  const railKey = await isolateWatchlistStore(page, testInfo, baseURL);
+  owner = e2eWatchlistOwner(railKey);
+  await seedOwnerWatchlists(page, railKey, LISTS);
   await page.goto("/terminal?symbol=NVDA");
   await expect(page.locator(".mm-ptag")).toBeVisible({ timeout: 60_000 });
   // Same observed precondition as above: this test asserts what `mm.wls` holds AFTER the add, so a
   // click that beats the restore would be measuring the pre-restore list. `.mm-ptag` proves the
   // shell painted, not that the restore committed.
-  await expect.poll(() => page.evaluate(() => {
-    try { return Object.keys(JSON.parse(localStorage.getItem("mm.wls") || "{}").lists ?? {}).length; }
-    catch { return 0; }
-  }), { timeout: 30_000 }).toBeGreaterThan(1);
+  await expect.poll(async () => Object.keys(await savedLists(page)).length, { timeout: 30_000 }).toBeGreaterThan(1);
 
   // This dialog is mounted WITHOUT `lists` and without `onAddToPortfolio` — structurally the same
   // branch a signed-out visitor takes, and the only way to exercise it here (the fixture server's
@@ -164,8 +160,6 @@ test("with no Portfolio destination the one-click add survives — the rail's Ad
 
   // No picker, and the symbol landed in the active list directly.
   await expect(page.locator(".s-pick")).toHaveCount(0);
-  await expect.poll(() => page.evaluate(() => {
-    try { return (JSON.parse(localStorage.getItem("mm.wls") || "{}").lists?.Default ?? []).map((r: { symbol: string }) => r.symbol); }
-    catch { return []; }
-  }), { timeout: 10_000 }).toContain("AMD");
+  await expect.poll(async () => (await savedLists(page)).Default?.map((r: { symbol: string }) => r.symbol) ?? [],
+    { timeout: 10_000 }).toContain("AMD");
 });

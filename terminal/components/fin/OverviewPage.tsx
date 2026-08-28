@@ -19,6 +19,7 @@ import {
   fmtNum,
   fmtPct,
   fmtDate,
+  nextDateCountdown,
   currencySymbol,
   statementCurrencyCode,
   statementCurrencyLabel,
@@ -114,6 +115,8 @@ function SecH({
 export default function OverviewPage({ sym, fund, name, onNavigate }: OverviewPageProps) {
   const { lang } = useLang();
   const zh = lang === "zh";
+  const nextEarningsDate = fund?.earnings?.next_date ?? null;
+  const nextEarningsCountdown = nextDateCountdown(nextEarningsDate);
   const [showMore, setShowMore] = useState(false);
   const [requestedValAQ, setValAQ] = useState<AQ>("annual");
   const [requestedPerfAQ, setPerfAQ] = useState<AQ>("annual");
@@ -630,9 +633,9 @@ export default function OverviewPage({ sym, fund, name, onNavigate }: OverviewPa
           <div className="fin-card">
             <div className="fin-card-h">
               {pick(zh, "Earnings", "盈利")}
-              {fund.earnings?.next_date && (
+              {nextEarningsCountdown != null && (
                 <span className="fin-tag fin-next-lbl" style={{ "--c": "var(--brand-2)" } as React.CSSProperties}>
-                  {pick(zh, "Next:", "下次:")} {fmtDate(fund.earnings.next_date)}
+                  {pick(zh, "Next:", "下次:")} {fmtDate(nextEarningsDate)}
                 </span>
               )}
             </div>

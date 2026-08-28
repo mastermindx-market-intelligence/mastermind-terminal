@@ -61,7 +61,10 @@ export const LEX: Record<string, [string, string]> = {
   guideEnFallback: ["English guide — no Chinese version yet.", "英文指南 — 暂无中文版。"],
   compare: ["Compare", "对比"],
   detect: ["Detect", "智能识别"],
-  layouts: ["Layouts", "布局"],
+  // W2-A (2026-08-26): "Layouts" → "Workspaces" — after this wave the object declares assistant-dock
+  // membership (freeze §7), so "layout" under-describes it. Key id unchanged (i18n.tsx:11-15 — a key
+  // name is an id, never copy); see W2A_WORKSPACE_UX_SPEC.md §2.1/DEVIATIONS #1.
+  layouts: ["Workspaces", "工作区"],
   sync: ["Sync", "同步"],
   mtf: ["MTF", "多周期"],
   // chart types
@@ -122,10 +125,79 @@ export const LEX: Record<string, [string, string]> = {
   srHeatmap: ["S/R strength heatmap", "支撑阻力强度热图"],
   mtfSR: ["Multi-timeframe S/R", "多周期支撑阻力"],
   clearDetected: ["Clear detected", "清除识别"],
-  // layouts popover
-  saveCurrentAs: ["Save current as…", "保存当前为…"],
+  // workspace menu (W2A_WORKSPACE_UX_SPEC.md §2.1/§2.2) — values revalued for the Layouts→Workspaces
+  // rename; key ids unchanged.
+  saveCurrentAs: ["Save this workspace as…", "将此工作区另存为…"],
   save: ["Save", "保存"],
-  noSavedLayouts: ["No saved layouts", "暂无已存布局"],
+  noSavedLayouts: ["No saved workspaces yet. Save the current one to start.", "还没有已保存的工作区。先保存当前的工作区。"],
+  // Saved-workspace store states. "No saved workspaces" is an ANSWER, so it may only be shown after
+  // an authoritative read — these cover the states that used to be flattened into it.
+  layoutsLoading: ["Loading your workspaces…", "正在加载您的工作区…"],
+  layoutsUnavailable: ["Your workspaces can't be reached right now. What's listed below was loaded earlier.", "暂时无法读取您的工作区。下方列出的是此前加载的内容。"],
+  layoutRetry: ["Retry", "重试"],
+  layoutSaving: ["Saving…", "保存中…"],
+  layoutSaved: ["Workspace saved", "工作区已保存"],
+  layoutSaveFailed: ["Couldn't save — nothing was stored.", "保存失败 —— 未写入任何内容。"],
+  // Reviewer ruling N15: revalued to the "workspace" copy family (matches wsNameTaken verbatim) —
+  // "layout" undersells the object post-W2-A, same reasoning as the wsSectionSaved/etc. rename.
+  layoutNameTaken: ["That name is already used.", "该名称已被使用。"],
+  layoutDeleteFailed: ["Couldn't delete — it's still in your account.", "删除失败 —— 仍保留在您的账户中。"],
+  layoutSignInToSave: ["Sign in to save workspaces", "登录后可保存工作区"],
+  // W2-A new keys (spec §2.2)
+  wsSectionSaved: ["Saved workspaces", "已保存的工作区"],
+  wsIncludeBrain: ["Include the assistant dock", "包含助手面板"],
+  wsIncludeBrainSub: ["Saved as part of this workspace.", "将作为此工作区的一部分保存。"],
+  wsRowActions: ["More actions", "更多操作"],
+  wsOpen: ["Open", "打开"],
+  wsDuplicate: ["Duplicate", "创建副本"],
+  wsExport: ["Export to a file", "导出为文件"],
+  wsImport: ["Import from a file…", "从文件导入…"],
+  wsRenameSave: ["Save name", "保存名称"],
+  wsCancel: ["Cancel", "取消"],
+  wsRenamed: ["Name changed", "名称已更改"],
+  wsDuplicated: ["Copy created", "副本已创建"],
+  wsImported: ["Workspace imported", "工作区已导入"],
+  // Failures — every frozen §8 code mapped to plain words. No code ever reaches the screen.
+  wsNameTaken: ["That name is already used.", "该名称已被使用。"],
+  wsUseSuggested: ["Use", "改用"],
+  wsChangedElsewhere: ["This workspace was changed on another device.", "此工作区已在其他设备上被修改。"],
+  wsChangedElsewhereSub: ["Nothing was overwritten. Pick which one to keep — saved", "没有覆盖任何内容。请选择保留哪一个 —— 保存于"],
+  wsReloadLatest: ["Open the saved one", "打开已保存的版本"],
+  wsSaveAsCopy: ["Keep mine as a copy", "将我的另存为副本"],
+  wsBadgeNewer: ["Newer version", "更新版本"],
+  wsNeedsNewer: ["Saved by a newer version of the Terminal. Update to open it.", "由更新版本的终端保存。更新后即可打开。"],
+  wsBadgeUnreadable: ["Can't open", "无法打开"],
+  wsCantOpen: ["This Terminal doesn't recognise this format. It's left exactly as it was saved — export keeps a copy.", "此终端无法识别该格式。内容保持保存时的原样 —— 导出可保留一份副本。"],
+  wsImportBad: ["That file isn't a workspace this Terminal can open. Nothing was imported.", "该文件不是此终端可以打开的工作区。未导入任何内容。"],
+  wsImportTooBig: ["That workspace file is too large to open. Nothing was imported.", "该工作区文件过大，无法打开。未导入任何内容。"],
+  wsImportTooManyPanels: ["That workspace holds more panels than one workspace can. Nothing was imported.", "该工作区包含的面板数量超出上限。未导入任何内容。"],
+  wsImportUnknownPanel: ["That workspace uses a panel this Terminal doesn't have. Nothing was imported.", "该工作区使用了此终端没有的面板。未导入任何内容。"],
+  wsRenameFailed: ["Couldn't rename — the old name is still in use.", "重命名失败 —— 仍在使用原名称。"],
+  wsDuplicateFailed: ["Couldn't make a copy — nothing was added.", "创建副本失败 —— 未添加任何内容。"],
+  wsExportFailed: ["Couldn't export this workspace.", "导出此工作区失败。"],
+  // Reviewer ruling B2: a durable (not transient) disclosure for a workspace the tolerant READ
+  // migration could not fully claim — persists while that workspace stays loaded, spec §3.7.
+  wsUnclaimedNote: [
+    "Some settings in this workspace couldn't be read. They'll be left out if you save it.",
+    "此工作区的部分设置无法读取。保存时这些设置将不会保留。",
+  ],
+  // Reviewer ruling M4: capture refuses to persist a workspace with a dropped field rather than
+  // silently narrowing it.
+  wsSaveUnreadable: [
+    "Part of the current workspace couldn't be saved. Nothing was stored.",
+    "当前工作区的部分内容无法保存。未写入任何内容。",
+  ],
+  // Reviewer ruling M5b: a durable disclosure for a workspace holding a panel (widget) this build
+  // does not recognize — a save re-captures only widgets it can render, so it must warn the drop
+  // BEFORE it happens, spec §3.7.
+  wsUnclaimedPanels: [
+    "This workspace holds a panel this version can't open. Saving will remove that panel.",
+    "此工作区包含当前版本无法打开的面板。保存将移除该面板。",
+  ],
+  // Unsupported-widget tile (spec §6)
+  wsPanelUnavailable: ["This panel isn't available in this version", "此面板在当前版本中不可用"],
+  wsPanelUnavailableSub: ["The rest of this workspace opened normally.", "此工作区的其余部分已正常打开。"],
+  wsPanelType: ["Panel type", "面板类型"],
   // Chart Bus v2 — AI drawing-layer legend chip
   aiLayer: ["AI layer", "AI 图层"],
   aiLayerTip: ["Drawings placed by Mastermind AI", "由 Mastermind AI 绘制的图形"],
@@ -147,6 +219,18 @@ export const LEX: Record<string, [string, string]> = {
   snapCopy: ["Copy image", "复制图片"],
   snapCopyLink: ["Copy link", "复制链接"],
   snapTab: ["Open in new tab", "在新标签页中打开"],
+  // Snapshot OUTCOMES. The menu that triggers these has been bilingual all along, so a zh user
+  // opened 下载图片 and got "Snapshot downloaded" back — the confirmation contradicting the control
+  // that produced it. Failure strings are derived from the route's stable `code`, never from
+  // server-supplied text.
+  snapDownloaded: ["Snapshot downloaded", "截图已下载"],
+  snapCopied: ["Snapshot copied to clipboard", "截图已复制到剪贴板"],
+  snapClipboardFailed: ["Clipboard copy failed (needs HTTPS/focus)", "复制到剪贴板失败（需要 HTTPS 且窗口处于活动状态）"],
+  snapLinkCopied: ["Link copied to clipboard", "链接已复制到剪贴板"],
+  snapShareLink: ["Share link", "分享链接"],
+  snapUploadFailed: ["Sharing unavailable — try again shortly", "分享暂不可用 — 请稍后再试"],
+  snapTooLarge: ["Snapshot too large to share", "截图过大，无法分享"],
+  snapInvalid: ["Snapshot could not be shared", "无法分享该截图"],
   splitLayout: ["Split layout", "分屏布局"],
   mtfTip: ["Multi-timeframe — the active symbol at D / 3D / W / 1M", "多周期 — 当前标的的 日/3日/周/月 图"],
   syncTip: ["Sync crosshair & time-axis across panes", "跨窗格同步十字光标与时间轴"],
@@ -397,12 +481,15 @@ export const LEX: Record<string, [string, string]> = {
   // topbar stats
   lastPrice: ["Last Price", "最新价"],
   change24h: ["24h Change", "24h涨跌"],
+  change1d: ["1D Change", "1D涨跌"],
   volume: ["Volume", "成交量"],
   dayHigh: ["Day High", "当日最高"],
   dayLow: ["Day Low", "当日最低"],
   dayRange: ["Day Range", "当日区间"],
   live: ["Live", "实时"],
   historical: ["Historical", "历史"],
+  suspended: ["Suspended", "停牌"],
+  suspensionTip: ["Trading suspended — showing last traded price", "停牌中 — 显示最后成交价"],
   delayed15m: ["15-min delayed", "延迟15分钟"],
   delayed15mShort: ["15-min", "延迟15分"],
   liveTip: ["Live feed activates with a real-time Polygon key (NEXT_PUBLIC_LIVE=1)", "配置实时 Polygon 密钥后启用实时行情 (NEXT_PUBLIC_LIVE=1)"],
@@ -583,6 +670,9 @@ export const LEX: Record<string, [string, string]> = {
   myScripts: ["My Scripts", "我的脚本"],
   noScriptsYet: ["No custom scripts yet.", "还没有自定义脚本。"],
   openPineEditor: ["Open the Pine editor", "打开 Pine 编辑器"],
+  // A failed read of the personal script library. Distinct from noScriptsYet on purpose: telling a
+  // user with saved scripts that they have none reads as "your work is gone".
+  scriptsUnavailable: ["Couldn't load your scripts.", "无法加载你的脚本。"],
   editScript: ["Edit in Pine editor", "在 Pine 编辑器中编辑"],
   rename: ["Rename", "重命名"],
   delete: ["Delete", "删除"],
@@ -639,6 +729,7 @@ export const LEX: Record<string, [string, string]> = {
   // Free-tier gate nudges (anonymous → free-account conversion)
   gateIndCap: ["Free plan: 3 indicators max.", "免费版最多 3 个指标"],
   gateWatchlist: ["Create a free account to build a watchlist.", "注册免费账户即可创建自选列表"],
+  gateLayouts: ["Create a free account to save workspaces.", "注册免费账户即可保存工作区"],
   gateSignupCta: ["Sign up free →", "免费注册 →"],
   // Options paywall (/options — the terminal_live_options entitlement gate)
   opwTitle: ["Unlock the Options desk", "解锁期权终端"],
@@ -892,6 +983,15 @@ export const LEX: Record<string, [string, string]> = {
   positionSaveFailed: ["That didn't save. Check the values and try again.", "未能保存。请检查填写内容后重试。"],
   emptyPortfolioTitle: ["Nothing in your portfolio yet", "投资组合暂无持仓"],
   emptyPortfolioBody: ["Add what you hold and this page prices it live. Watchlists stay on the chart — this page is holdings only.", "添加你的持仓，本页会实时计价。自选列表仍在图表侧栏 —— 本页只放真实持仓。"],
+  // The state that used to render as the empty book: the store did not answer, so NOTHING is
+  // known about the holdings. "Nothing in your portfolio yet" would be a fabrication here.
+  portfolioUnreadableTitle: ["Could not read your portfolio", "无法读取你的投资组合"],
+  portfolioUnreadableBody: [
+    "The positions store did not answer, so we cannot show your book. Nothing has changed — your positions are exactly as you left them.",
+    "持仓存储未响应，因此无法显示你的持仓。持仓本身没有任何变化 —— 一切保持原样。",
+  ],
+  portfolioUnreadableRetry: ["Try again", "重试"],
+  portfolioUnreadableRetrying: ["Reading…", "读取中…"],
   bookCoverageUnpriced: ["Valued {valued} of {total} — no live price yet for {names}.", "已计价 {valued}/{total} —— {names} 暂无实时价格。"],
   bookCoverageUnsized: ["Valued {valued} of {total} — the rest have no share count yet.", "已计价 {valued}/{total} —— 其余持仓尚未填写股数。"],
   // A missing PRICE and a missing ENTRY PRICE are different silences: the first keeps a name out of
@@ -1034,6 +1134,19 @@ export const LEX: Record<string, [string, string]> = {
   alertsSignedOutBody: [
     "Your alerts live with your account — sign in to see and manage them. Alerts keep running server-side while you're away.",
     "提醒与您的账户绑定 —— 登录后即可查看和管理。您离开期间，提醒仍在服务器端持续运行。",
+  ],
+  // ...and the state one level down from signed-out: signed in, but the alert store did not
+  // answer. "No alerts yet" would claim an empty inventory off a read that never landed.
+  alertsUnavailTitle: ["Could not load your alerts", "无法加载您的提醒"],
+  alertsUnavailBody: [
+    "The alert store did not answer, so we cannot show what you have. Your alerts are unaffected — they keep running server-side.",
+    "提醒存储未响应，因此无法显示您的提醒。您的提醒不受影响 —— 它们仍在服务器端持续运行。",
+  ],
+  alertsRetry: ["Retry", "重试"],
+  alertsRefresh: ["Refresh alerts", "刷新提醒"],
+  alertsStaleNote: [
+    "Showing the list from the last successful load — the refresh failed.",
+    "显示的是上次成功加载的列表 —— 本次刷新失败。",
   ],
   deleteAlertQ: ["Delete this alert?", "删除此提醒？"],
   deleteConfirm: ["Delete", "删除"],
@@ -1675,6 +1788,13 @@ export const LEX: Record<string, [string, string]> = {
   obDoneTitle: ["You're in", "欢迎加入"],
   obDoneConfirm: ["Confirm your email to activate your account — we sent a link to {email}. Your preferences are saved and apply on first sign-in.", "请查收 {email} 的确认邮件以激活账户——你的偏好已保存，首次登录时自动生效。"],
   obDoneReady: ["Your desk is set. Jump in whenever you're ready.", "你的工作台已就绪。准备好就随时进入。"],
+  // D5 — an unacknowledged preference write. Stated as a status, not an error: the account is
+  // usable, the outbox keeps retrying, and there is nothing for the user to do. The one thing this
+  // line must NOT do is let the screen imply the choice was saved when it was not.
+  obDonePrefsSyncing: [
+    "Your preferences are still syncing — we'll keep trying in the background.",
+    "你的偏好设置仍在同步中 —— 我们会在后台继续尝试。",
+  ],
   obOpenTerminal: ["Open the Terminal", "进入终端"],
   // onboarding wiring (W1)
   obwCreateAccount: ["Create account", "创建账户"],
@@ -1855,6 +1975,11 @@ export const LEX: Record<string, [string, string]> = {
   acsPrefSaved: ["Saved", "已保存"],
   acsPrefLocal: ["Saved on this device — sign in to sync.", "已保存在本设备——登录后同步。"],
   acsPrefErr: ["Couldn't save — please try again.", "保存失败，请重试。"],
+  // E2 — delivery state, reported from the authority's acknowledgement rather than from the
+  // moment a request was fired. "Saved" is a claim about the account, not about this browser.
+  acsPrefSyncing: ["Saving…", "保存中…"],
+  acsPrefSyncFail: ["Couldn't reach your account — retrying.", "无法连接到你的账户——正在重试。"],
+  acsPrefRetry: ["Retry", "重试"],
   acsThemeLang: ["Theme & language", "主题与语言"],
   acsAppearance: ["Appearance", "外观"],
   // NEW — deliberately NOT macro's appearNote ("Auto follows your local time of
@@ -1998,6 +2123,17 @@ export const LEX: Record<string, [string, string]> = {
     "Free accounts can read & experiment with scripts; saving custom indicators & adding the proprietary Mastermind suite to charts requires",
     "免费账户可以阅读和试写脚本；保存自定义指标、以及把自研的 Mastermind 套件加到图表上，需要",
   ],
+  // D3a — switching scripts used to reset the editable buffers with no decision, so an unsaved
+  // edit vanished on a single click. Leaving one script for another is now an explicit choice.
+  peUnsavedTitle: ["Unsaved changes", "有未保存的修改"],
+  peUnsavedBody: [
+    "“{name}” has edits you haven't saved. Switching scripts will replace the editor's contents.",
+    "“{name}” 有尚未保存的修改。切换脚本会替换编辑器中的内容。",
+  ],
+  peUnsavedSave: ["Save and switch", "保存并切换"],
+  peUnsavedDiscard: ["Discard changes", "放弃修改"],
+  peUnsavedCancel: ["Keep editing", "继续编辑"],
+  peUnsavedSaveFailed: ["Couldn't save — you're still on “{name}”, nothing was lost.", "保存失败 —— 仍停留在 “{name}”，没有丢失任何内容。"],
 
   // ---- fundamentals ----
   fdBackToChart: ["Back to chart", "返回图表"],
@@ -2056,6 +2192,17 @@ export const LEX: Record<string, [string, string]> = {
   admLoading: ["Loading…", "加载中…"],
   admNoSearches: ["No searches logged yet.", "还没有搜索记录。"],
   admLoadMore: ["Load more", "加载更多"],
+  // Failure states. "Unavailable" is deliberately worded as an outage, never as emptiness or as a
+  // denial — the whole point of the state split is that the operator can tell the three apart.
+  admRetry: ["Retry", "重试"],
+  admCheckAgain: ["Check again", "重新检查"],
+  admStatsPartial: ["Approximate — more history than this view can count. Oldest days are understated.", "近似值 — 历史数据超出此视图的统计上限，最早几日的数据偏低。"],
+  admStale: ["Refresh failed — showing the last rows that loaded successfully.", "刷新失败 — 显示最近一次成功加载的记录。"],
+  admEventsUnavailable: ["The search log could not be read. This is an outage, not an empty log.", "无法读取搜索日志。这是服务故障，不是日志为空。"],
+  admStatsUnavailable: ["Aggregates unavailable — the log below is unaffected.", "汇总数据不可用 — 下方日志不受影响。"],
+  admStatsUnavailableHint: ["The aggregate could not be read. The log below is unaffected.", "无法读取汇总数据。下方日志不受影响。"],
+  admUnavailableShort: ["n/a", "不可用"],
+  admAuthorityUnavailable: ["Couldn't verify admin access — this is an outage, not a denial.", "无法验证管理员权限 — 这是服务故障，不是拒绝访问。"],
   isModuleCalculationSource: ["Calculation source", "计算来源"],
 
   // ---- landing ----

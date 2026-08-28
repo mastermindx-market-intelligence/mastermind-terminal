@@ -1,9 +1,9 @@
 "use strict";
-// OKX public ws — FALLBACK crypto feed. Only ONE crypto feed writes at a time (the coordinator's
-// cryptoPrimary flag). Triggered when Coinbase is down / backoff exceeds FAILOVER_MS (60s) or on
-// 3 consecutive Coinbase auth/sub errors. instId maps BTC-USD → BTC-USDT (USDT proxy; honest
-// source label "okx"). chg derived from OKX open24h. Stops when Coinbase recovers (clean ack
-// sustained ≥60s), handoff owned by the coordinator.
+// OKX public ws — UTC-0 crypto feed and perpetual companion lane. Only ONE crypto feed writes at
+// a time (the coordinator's cryptoPrimary flag). The canonical -USD rows use OKX spot tickers;
+// each row also carries the matching USDT perpetual ticker when OKX offers it. `sodUtc0` is the
+// exchange's UTC-day open, so canonical chg is comparable with a TradingView-style 1D bar. The
+// coordinator keeps Coinbase as a rolling-24h failover when OKX is unavailable.
 
 const WebSocket = require("ws");
 const log = require("./log");
@@ -14,15 +14,92 @@ const PONG_DEADLINE_MS = 10 * 1000;
 const IDLE_WATCHDOG_MS = 30 * 1000;
 const MAX_BACKOFF_MS = 30 * 1000;
 
-// BTC-USD → BTC-USDT ; keep a reverse map so we can restamp product_id back to the -USD symbol.
-function toInst(sym) {
-  // sym is like BTC-USD ; OKX instId is BTC-USDT
-  const base = sym.replace(/-USD$/i, "");
+// BTC-USD → BTC-USDT / BTC-USDT-SWAP. Keep a reverse map so OKX instrument IDs are restamped
+// back to the manifest's canonical -USD symbol.
+function toSpotInst(sym) {
+  const base = String(sym).replace(/-USD$/i, "");
   return `${base}-USDT`;
 }
-function fromInst(instId) {
-  const base = instId.replace(/-USDT$/i, "");
-  return `${base}-USD`;
+function toSwapInst(sym) {
+  const base = String(sym).replace(/-USD$/i, "");
+  return `${base}-USDT-SWAP`;
+}
+function parseInst(instId) {
+  const s = String(instId || "").toUpperCase();
+  if (s.endsWith("-USDT-SWAP")) {
+    return { sym: `${s.slice(0, -"-USDT-SWAP".length)}-USD`, lane: "perp" };
+  }
+  if (s.endsWith("-USDT")) {
+    return { sym: `${s.slice(0, -"-USDT".length)}-USD`, lane: "spot" };
+  }
+  return null;
+}
+
+function num(value) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+
+/**
+ * Parse one OKX tickers row without touching the store. This is deliberately pure so the
+ * UTC-day anchor and the spot/perpetual mapping remain unit-testable without a websocket.
+ */
+function parseOkxTicker(row) {
+  const parsed = parseInst(row && row.instId);
+  if (!parsed) return null;
+
+  const last = num(row.last);
+  if (last == null || last <= 0) return null;
+
+  const sodUtc0 = num(row.sodUtc0);
+  const open24h = num(row.open24h);
+  const prevClose = sodUtc0 != null && sodUtc0 > 0
+    ? sodUtc0
+    : open24h != null && open24h > 0 ? open24h : null;
+  const changeBasis = sodUtc0 != null && sodUtc0 > 0 ? "UTC_0" : "ROLLING_24H";
+  const open = sodUtc0 != null && sodUtc0 > 0 ? sodUtc0 : open24h;
+  const high = num(row.high24h);
+  const low = num(row.low24h);
+  const vol = num(row.vol24h);
+  const ts = num(row.ts) != null ? Math.floor(num(row.ts) / 1000) : Math.floor(Date.now() / 1000);
+  const chg = prevClose != null && prevClose !== 0 ? ((last - prevClose) / prevClose) * 100 : null;
+
+  if (parsed.lane === "spot") {
+    return {
+      lane: "spot",
+      sym: parsed.sym,
+      last,
+      prevClose,
+      chg,
+      open,
+      high,
+      low,
+      vol,
+      ts,
+      live: true,
+      source: "okx-spot",
+      market: "crypto",
+      basis: "LIVE",
+      changeBasis,
+    };
+  }
+
+  // Perpetuals are supplemental fields on the canonical spot row. Do not let a swap tick
+  // overwrite the displayed spot price or its session anchor.
+  return {
+    lane: "perp",
+    sym: parsed.sym,
+    perpLast: last,
+    perpPrevClose: prevClose,
+    perpChg: chg,
+    perpOpen: open,
+    perpHigh: high,
+    perpLow: low,
+    perpVol: vol,
+    perpTs: ts,
+    perpChangeBasis: changeBasis,
+    perpSource: "okx-swap",
+  };
 }
 
 class OKX {
@@ -32,9 +109,10 @@ class OKX {
     this.ws = null;
     this.instIds = [];
     this.attempt = 0;
-    this.stopped = true; // OKX starts stopped; coordinator turns it on for failover
+    this.stopped = true;
     this.connected = false;
     this.lastMsgAt = 0;
+    this.subscribedAt = 0;
 
     this.pingTimer = null;
     this.pongTimer = null;
@@ -45,7 +123,10 @@ class OKX {
   _instIds() {
     const out = [];
     for (const sym of this.store.manifest.syms) {
-      if (sym.endsWith("-USD")) out.push(toInst(sym));
+      if (sym.endsWith("-USD")) {
+        out.push(toSpotInst(sym));
+        out.push(toSwapInst(sym));
+      }
     }
     return out;
   }
@@ -53,20 +134,28 @@ class OKX {
   start() {
     if (!this.stopped) return;
     this.stopped = false;
-    log.warn("okx fallback ACTIVATED");
+    log.info("okx UTC-0 spot/perpetual feed ACTIVATED");
     this._connect();
   }
 
   stop() {
     if (this.stopped) return;
     this.stopped = true;
-    log.info("okx fallback stopped");
+    log.info("okx UTC-0 spot/perpetual feed stopped");
     this._clearTimers();
     if (this.ws) { try { this.ws.terminate(); } catch {} this.ws = null; }
     this.connected = false;
   }
 
   isConnected() { return this.connected; }
+
+  isHealthy() {
+    return this.connected && (Date.now() - this.lastMsgAt) < IDLE_WATCHDOG_MS;
+  }
+
+  recoveredFor(ms) {
+    return this.connected && this.subscribedAt > 0 && (Date.now() - this.subscribedAt) >= ms;
+  }
 
   _clearTimers() {
     for (const t of [this.pingTimer, this.pongTimer, this.watchdogTimer, this.reconnectTimer]) {
@@ -106,7 +195,8 @@ class OKX {
       this.connected = true;
       this.attempt = 0;
       this.lastMsgAt = Date.now();
-      log.info("okx connected", `insts=${this.instIds.length}`);
+      this.subscribedAt = Date.now();
+      log.info("okx connected", `insts=${this.instIds.length}`, "spot+perpetual");
       log.resetEvery("okx-reconnect");
       this._subscribe();
       this._startHeartbeat();
@@ -145,25 +235,10 @@ class OKX {
     if (this.coord && this.coord.cryptoPrimary !== "okx") return; // only primary writes
 
     for (const d of msg.data) {
-      if (!d.instId) continue;
-      const sym = fromInst(d.instId);
-      const last = Number(d.last);
-      if (!Number.isFinite(last)) continue;
-      const open24h = Number(d.open24h);
-      const prevClose = Number.isFinite(open24h) && open24h !== 0 ? open24h : null;
-      this.store.setQuote(sym, {
-        last,
-        prevClose,
-        open: Number.isFinite(open24h) ? open24h : null,
-        high: Number.isFinite(Number(d.high24h)) ? Number(d.high24h) : null,
-        low: Number.isFinite(Number(d.low24h)) ? Number(d.low24h) : null,
-        vol: Number.isFinite(Number(d.vol24h)) ? Number(d.vol24h) : null,
-        ts: d.ts ? Math.floor(Number(d.ts) / 1000) : Math.floor(Date.now() / 1000),
-        live: true,
-        source: "okx",
-        market: "crypto",
-        basis: "LIVE",
-      });
+      const quote = parseOkxTicker(d);
+      if (!quote) continue;
+      const { lane, ...partial } = quote;
+      this.store.setQuote(quote.sym, partial);
     }
   }
 
@@ -194,10 +269,12 @@ class OKX {
     return {
       active: !this.stopped,
       connected: this.connected,
+      healthy: this.isHealthy(),
       insts: this.instIds.length,
       lastMsgAt: this.lastMsgAt ? new Date(this.lastMsgAt).toISOString() : null,
+      subscribedAt: this.subscribedAt ? new Date(this.subscribedAt).toISOString() : null,
     };
   }
 }
 
-module.exports = { OKX };
+module.exports = { OKX, parseOkxTicker, parseInst, toSpotInst, toSwapInst };
