@@ -45,6 +45,12 @@ class GitCommandError(RuntimeError):
         self.stderr = stderr
 
 
+class UnsupportedLiveFileType(RuntimeError):
+    def __init__(self, live_type: str) -> None:
+        super().__init__(f"unsupported live file type: {live_type}")
+        self.live_type = live_type
+
+
 def finding(
     code: str,
     message: str,
