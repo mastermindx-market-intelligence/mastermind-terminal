@@ -15,7 +15,8 @@ It does **not** deploy, fetch, checkout, reset, clean, delete, restart, or chang
 - The canonical checkout must be clean and have `HEAD` at that exact SHA. A later deployment controller may satisfy this with an isolated read-only worktree or equivalent immutable source staging.
 - Runtime data, generated artifacts, dependencies, host-local configuration, secrets, and deployment markers are allowed only through explicit policy entries.
 - An ignored path is not automatically safe. A host-only path ignored by Git is reported as `IGNORED_IMPLEMENTATION_CANDIDATE` unless the policy explicitly classifies it.
-- Missing, unreadable, modified, unaccepted, unexplained, or type-divergent state returns `UNKNOWN_STOP`.
+- Missing, unreadable, modified, unaccepted, unexplained, special-file, or type-divergent state returns `UNKNOWN_STOP`.
+- Git inspection disables replacement refs, optional index locks, configured fsmonitor commands, the untracked cache, and global/system Git configuration so local Git machinery cannot rewrite or distort the evidence.
 
 This command is not yet a production deploy authorization by itself. A production policy must be derived from the read-only host archaeology, reviewed, committed, and then integrated as a mandatory preflight before any source mutation.
 
@@ -30,7 +31,7 @@ python ops/terminal_source_audit.py \
   --pretty
 ```
 
-Without `--output`, the receipt is written to standard output.
+Without `--output`, the receipt is written to standard output. A receipt file must be outside the canonical checkout and every configured live source root, and it cannot replace the policy or deployment marker.
 
 Exit codes:
 
@@ -100,7 +101,7 @@ The receipt schema is `mastermind.terminal.source_audit_receipt.v1`. It includes
 - sorted blocking findings;
 - deterministic receipt ID (excluding timestamp and the ID itself).
 
-For tracked content, evidence is limited to Git blob identities, modes, sizes, and paths. For ordinary host-only files, the receipt may include a SHA-256 and size. Git-ignored candidates are deliberately not hashed because they may be secret-bearing; they remain blocking until classified.
+For tracked content, evidence is limited to Git blob identities, modes, sizes, and paths. For ordinary host-only regular files, the receipt may include a streamed SHA-256 and size. Git-ignored candidates are deliberately not hashed because they may be secret-bearing; they remain blocking until classified. FIFOs, sockets, devices, and other special files are never opened or hashed; they block with an explicit special-file finding. Regular files are opened without following symlinks and must remain stable while hashed.
 
 ## Blocking findings
 
@@ -122,6 +123,8 @@ Representative codes include:
 - `TRACKED_MODE_MISMATCH`
 - `TRACKED_UNREADABLE`
 - `HOST_ONLY_UNTRACKED`
+- `HOST_ONLY_SPECIAL_FILE`
+- `TRACKED_SPECIAL_FILE`
 - `IGNORED_IMPLEMENTATION_CANDIDATE`
 - `IGNORE_CLASSIFICATION_FAILED`
 
@@ -135,5 +138,5 @@ Local focused proof:
 
 ```bash
 python -m pytest tests/test_terminal_source_audit.py -q
-python -m compileall -q ops/terminal_source_audit.py tests/test_terminal_source_audit.py
+python -m compileall -q ops tests/test_terminal_source_audit.py
 ```
