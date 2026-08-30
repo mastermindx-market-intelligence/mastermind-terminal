@@ -5,7 +5,13 @@ from pathlib import Path
 from typing import Any, Sequence
 
 from .git_ops import ignored_by_git, live_blob, sha256_file_or_link, tree_entries
-from .model import Allowance, GitCommandError, SourceMapping, finding
+from .model import (
+    Allowance,
+    GitCommandError,
+    SourceMapping,
+    UnsupportedLiveFileType,
+    finding,
+)
 
 
 def _allowance_for(
@@ -46,6 +52,14 @@ def _host_only_finding(
         )
     try:
         digest, size, kind = sha256_file_or_link(candidate)
+    except UnsupportedLiveFileType as exc:
+        return finding(
+            "HOST_ONLY_SPECIAL_FILE",
+            "Host-only path is a special file and was not opened or hashed.",
+            mapping=mapping.name,
+            path=relative,
+            live_type=exc.live_type,
+        )
     except OSError as exc:
         return finding(
             "HOST_ONLY_UNREADABLE",
@@ -96,6 +110,16 @@ def _compare_tracked_entry(
         ]
     try:
         live_sha, live_mode, live_size = live_blob(live_path)
+    except UnsupportedLiveFileType as exc:
+        return [
+            finding(
+                "TRACKED_SPECIAL_FILE",
+                "Live tracked path is a special file and was not opened or hashed.",
+                mapping=mapping.name,
+                path=relative_path,
+                live_type=exc.live_type,
+            )
+        ]
     except OSError as exc:
         return [
             finding(
