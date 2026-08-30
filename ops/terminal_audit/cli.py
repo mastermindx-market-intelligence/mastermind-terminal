@@ -9,7 +9,9 @@ from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 from .audit import audit_source
+from .compare import path_is_within
 from .model import EXIT_INPUT_ERROR, EXIT_INTERNAL_ERROR, GitCommandError
+from .policy import parse_policy
 
 
 def _atomic_write_json(
@@ -42,6 +44,29 @@ def _atomic_write_json(
         raise
 
 
+def _validate_output_path(
+    output: Path,
+    *,
+    canonical_repo: Path,
+    policy_path: Path,
+    policy: Mapping[str, Any],
+) -> None:
+    _, deployment_id_file, mappings = parse_policy(policy)
+    resolved_output = output.resolve(strict=False)
+    protected_roots = [canonical_repo, *(mapping.live_path for mapping in mappings)]
+    if any(path_is_within(resolved_output, root) for root in protected_roots):
+        raise ValueError(
+            "receipt output must remain outside canonical and live source roots"
+        )
+    if resolved_output in {
+        policy_path.resolve(strict=False),
+        deployment_id_file.resolve(strict=False),
+    }:
+        raise ValueError(
+            "receipt output must not replace the policy or deployment marker"
+        )
+
+
 def build_parser(description: str) -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument("--canonical-repo", required=True, type=Path)
@@ -62,6 +87,13 @@ def main(
         policy = json.loads(args.policy.read_text(encoding="utf-8"))
         if not isinstance(policy, Mapping):
             raise ValueError("policy JSON root must be an object")
+        if args.output:
+            _validate_output_path(
+                args.output,
+                canonical_repo=args.canonical_repo,
+                policy_path=args.policy,
+                policy=policy,
+            )
         receipt, exit_code = audit_source(
             canonical_repo=args.canonical_repo,
             accepted_sha=args.accepted_sha,
