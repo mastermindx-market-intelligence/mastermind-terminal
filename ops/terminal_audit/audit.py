@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import errno
 import hashlib
 import json
 import os
@@ -9,18 +10,20 @@ from pathlib import Path
 from typing import Any, Callable, Mapping
 
 from .compare import audit_mapping, path_is_within
-from .git_ops import run_git
+from .git_ops import read_stable_regular_bytes, run_git
 from .model import (
     EXIT_CLEAN,
     EXIT_UNKNOWN_STOP,
     RECEIPT_SCHEMA,
     GitCommandError,
+    UnsupportedLiveFileType,
     finding,
     receipt_id,
 )
 from .policy import parse_policy
 
 _FULL_SHA_RE = re.compile(r"^[0-9a-fA-F]{40}$")
+_MARKER_MAX_BYTES = 128
 
 
 def audit_source(
@@ -217,35 +220,52 @@ def _audit_marker(
                 )
             ],
         )
-    if marker.is_dir():
+    try:
+        marker_bytes = read_stable_regular_bytes(
+            marker, max_bytes=_MARKER_MAX_BYTES
+        )
+    except UnsupportedLiveFileType as exc:
         return (
             "INVALID_TYPE",
             None,
             [
                 finding(
                     "DEPLOYMENT_MARKER_INVALID_TYPE",
-                    "Deployment marker path is a directory rather than a file.",
+                    "Deployment marker must be a real regular file and is never followed as a link or opened as a special file.",
                     path=str(marker),
+                    live_type=exc.live_type,
                 )
             ],
         )
-    try:
-        marker_value = marker.read_text(
-            encoding="utf-8", errors="replace"
-        ).strip()
     except OSError as exc:
+        if exc.errno == errno.EFBIG:
+            return (
+                "INVALID",
+                None,
+                [
+                    finding(
+                        "DEPLOYMENT_MARKER_INVALID",
+                        "Deployment marker exceeds the bounded full-SHA receipt size.",
+                        path=str(marker),
+                    )
+                ],
+            )
         return (
             "UNREADABLE",
             None,
             [
                 finding(
                     "DEPLOYMENT_MARKER_UNREADABLE",
-                    "Deployment marker could not be read.",
+                    "Deployment marker could not be read as one stable regular file.",
                     path=str(marker),
                     errno=exc.errno,
                 )
             ],
         )
+    try:
+        marker_value = marker_bytes.decode("ascii").strip()
+    except UnicodeDecodeError:
+        marker_value = ""
     if not _FULL_SHA_RE.fullmatch(marker_value):
         return (
             "INVALID",
