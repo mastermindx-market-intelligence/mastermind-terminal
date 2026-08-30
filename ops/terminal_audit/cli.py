@@ -99,6 +99,16 @@ def main(
             accepted_sha=args.accepted_sha,
             policy=policy,
         )
+        if args.output:
+            _atomic_write_json(args.output, receipt, pretty=args.pretty)
+        else:
+            print(
+                json.dumps(
+                    receipt,
+                    sort_keys=True,
+                    indent=2 if args.pretty else None,
+                )
+            )
     except (OSError, ValueError, GitCommandError, json.JSONDecodeError) as exc:
         print(f"terminal-source-audit: input/audit error: {exc}", file=sys.stderr)
         return EXIT_INPUT_ERROR
@@ -106,14 +116,4 @@ def main(
         print(f"terminal-source-audit: internal error: {exc}", file=sys.stderr)
         return EXIT_INTERNAL_ERROR
 
-    if args.output:
-        _atomic_write_json(args.output, receipt, pretty=args.pretty)
-    else:
-        print(
-            json.dumps(
-                receipt,
-                sort_keys=True,
-                indent=2 if args.pretty else None,
-            )
-        )
     return exit_code
