@@ -4,7 +4,7 @@
 
 It answers one bounded question:
 
-> Does the inspected live implementation exactly match one full Git commit that is accepted on the configured canonical ref, with every host-only path explicitly classified?
+> Do the configured live source mappings exactly match one full Git commit that is contained by the configured accepted ref, with every host-only path explicitly classified?
 
 It does **not** deploy, fetch, checkout, reset, clean, delete, restart, or change a service. The only optional write is an atomic JSON receipt at a caller-supplied output path.
 
@@ -16,9 +16,12 @@ It does **not** deploy, fetch, checkout, reset, clean, delete, restart, or chang
 - Runtime data, generated artifacts, dependencies, host-local configuration, secrets, and deployment markers are allowed only through explicit policy entries.
 - An ignored path is not automatically safe. A host-only path ignored by Git is reported as `IGNORED_IMPLEMENTATION_CANDIDATE` unless the policy explicitly classifies it.
 - Missing, unreadable, modified, unaccepted, unexplained, special-file, or type-divergent state returns `UNKNOWN_STOP`.
-- Git inspection disables replacement refs, optional index locks, configured fsmonitor commands, the untracked cache, and global/system Git configuration so local Git machinery cannot rewrite or distort the evidence.
+- Git inspection removes the entire ambient `GIT_*` namespace, then reinstates only the audit's controlled no-global-config, no-system-config, no-replacement, no-optional-lock and no-prompt settings. Configured fsmonitor execution and the untracked cache are also disabled. A caller cannot redirect the repository, worktree, index, object store, refs or config used as evidence.
+- The deployment marker must be one stable, bounded, real regular file. The audit never follows a marker symlink and never opens a FIFO, socket, device or other special file as a marker.
 
 This command is not yet a production deploy authorization by itself. A production policy must be derived from the read-only host archaeology, reviewed, committed, and then integrated as a mandatory preflight before any source mutation.
+
+`CLEAN` is intentionally narrower than production proof: it proves the configured source mappings and marker relationship only. A policy may classify `.next` or another generated artifact without validating that artifact's build provenance. The actually served build, service identity, health and browser behavior remain unproven until the later exact-build, deploy-receipt and production-proof waves complete.
 
 ## Usage
 
@@ -37,7 +40,7 @@ Exit codes:
 
 | Code | Meaning |
 |---:|---|
-| `0` | `CLEAN`: all source mappings match and no blocking finding exists |
+| `0` | `CLEAN`: all configured source mappings match and no blocking finding exists |
 | `2` | `UNKNOWN_STOP`: the audit completed, but at least one blocking finding exists |
 | `64` | invalid input, policy, Git object/ref, or audit I/O prerequisite |
 | `70` | unexpected internal failure |
@@ -97,11 +100,13 @@ The receipt schema is `mastermind.terminal.source_audit_receipt.v1`. It includes
 - canonical checkout HEAD;
 - accepted-ref SHA and ancestry result;
 - deployment marker state and SHA;
-- each repository-to-live mapping and tracked/allowed counts;
+- each repository-to-live source mapping and tracked/allowed counts;
 - sorted blocking findings;
 - deterministic receipt ID (excluding timestamp and the ID itself).
 
-For tracked content, evidence is limited to Git blob identities, modes, sizes, and paths. For ordinary host-only regular files, the receipt may include a streamed SHA-256 and size. Git-ignored candidates are deliberately not hashed because they may be secret-bearing; they remain blocking until classified. FIFOs, sockets, devices, and other special files are never opened or hashed; they block with an explicit special-file finding. Regular files are opened without following symlinks and must remain stable while hashed.
+For tracked content, evidence is limited to Git blob identities, modes, sizes, and paths. For ordinary host-only regular files, the receipt may include a streamed SHA-256 and size. Git-ignored candidates are deliberately not hashed because they may be secret-bearing; they remain blocking until classified. FIFOs, sockets, devices, and other special files are never opened or hashed; they block with an explicit special-file finding. Regular files are opened without following symlinks and must remain stable while read or hashed.
+
+The receipt does not assert that an allowed generated build artifact was produced from the accepted SHA. That requires the later build/deployment provenance receipt.
 
 ## Blocking findings
 
@@ -113,6 +118,8 @@ Representative codes include:
 - `ACCEPTED_REF_UNKNOWN`
 - `DEPLOYMENT_MARKER_MISSING`
 - `DEPLOYMENT_MARKER_INVALID`
+- `DEPLOYMENT_MARKER_INVALID_TYPE`
+- `DEPLOYMENT_MARKER_UNREADABLE`
 - `DEPLOYMENT_SHA_MISMATCH`
 - `LIVE_PATH_MISSING`
 - `LIVE_PATH_TYPE_MISMATCH`
@@ -132,11 +139,17 @@ Finding codes are evidence states, not cleanup instructions. Reconciliation belo
 
 ## Tests
 
-The root Python CI automatically runs `tests/test_terminal_source_audit.py` through the existing `Ingest + signal-layer tests` required check.
+The root Python CI automatically runs both source-audit suites through the existing `Ingest + signal-layer tests` required check.
 
 Local focused proof:
 
 ```bash
-python -m pytest tests/test_terminal_source_audit.py -q
-python -m compileall -q ops tests/test_terminal_source_audit.py
+python -m pytest \
+  tests/test_terminal_source_audit.py \
+  tests/test_terminal_source_audit_trust_boundary.py \
+  -q
+python -m compileall -q \
+  ops \
+  tests/test_terminal_source_audit.py \
+  tests/test_terminal_source_audit_trust_boundary.py
 ```
