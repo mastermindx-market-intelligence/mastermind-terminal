@@ -3,11 +3,14 @@ from __future__ import annotations
 import json
 import os
 import shutil
+import socket
 import subprocess
 from pathlib import Path
 
 import pytest
 
+from ops.terminal_audit.cli import main as audit_cli_main
+from ops.terminal_audit.model import EXIT_INPUT_ERROR
 from ops.terminal_source_audit import EXIT_CLEAN, EXIT_UNKNOWN_STOP, audit_source
 
 
@@ -219,3 +222,101 @@ def test_canonical_checkout_head_and_worktree_must_match_target(source_fixture: 
     assert "CANONICAL_WORKTREE_DIRTY" in finding_codes(receipt)
     assert receipt["canonical_repo_head"] != accepted_sha
     assert len(receipt["policy_digest"]) == 64
+
+
+def test_git_replace_refs_cannot_rewrite_canonical_evidence(
+    source_fixture: dict[str, object],
+) -> None:
+    repo = source_fixture["repo"]
+    accepted_sha = source_fixture["sha"]
+    assert isinstance(repo, Path)
+    assert isinstance(accepted_sha, str)
+
+    git(repo, "switch", "-qc", "replacement")
+    (repo / "terminal" / "app.py").write_text("print('replacement')\n", encoding="utf-8")
+    git(repo, "add", ".")
+    git(repo, "commit", "-qm", "replacement commit")
+    replacement_sha = git(repo, "rev-parse", "HEAD")
+    git(repo, "switch", "--detach", accepted_sha)
+    git(repo, "update-ref", "refs/remotes/origin/master", accepted_sha)
+    git(repo, "replace", accepted_sha, replacement_sha)
+
+    receipt, exit_code = run(source_fixture)
+
+    assert exit_code == EXIT_CLEAN
+    assert receipt["status"] == "CLEAN"
+    assert receipt["canonical_repo_head"] == accepted_sha
+
+
+def test_special_host_file_fails_closed_without_content_read(
+    source_fixture: dict[str, object],
+) -> None:
+    live = source_fixture["live"]
+    assert isinstance(live, Path)
+    socket_path = live / "runtime.sock"
+    server = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    server.bind(str(socket_path))
+    try:
+        receipt, exit_code = run(source_fixture)
+    finally:
+        server.close()
+
+    assert exit_code == EXIT_UNKNOWN_STOP
+    assert finding_codes(receipt) == ["HOST_ONLY_SPECIAL_FILE"]
+    assert receipt["findings"][0]["live_type"] == "socket"
+    assert "sha256" not in receipt["findings"][0]
+
+
+def test_cli_refuses_receipt_output_inside_canonical_or_live_source(
+    source_fixture: dict[str, object], capsys: pytest.CaptureFixture[str]
+) -> None:
+    repo = source_fixture["repo"]
+    live = source_fixture["live"]
+    accepted_sha = source_fixture["sha"]
+    policy = source_fixture["policy"]
+    assert isinstance(repo, Path)
+    assert isinstance(live, Path)
+    assert isinstance(accepted_sha, str)
+    assert isinstance(policy, dict)
+
+    policy_path = repo.parent / "policy.json"
+    policy_path.write_text(json.dumps(policy), encoding="utf-8")
+
+    for output_path in (repo / "receipt.json", live / "receipt.json"):
+        exit_code = audit_cli_main(
+            [
+                "--canonical-repo",
+                str(repo),
+                "--accepted-sha",
+                accepted_sha,
+                "--policy",
+                str(policy_path),
+                "--output",
+                str(output_path),
+            ]
+        )
+        assert exit_code == EXIT_INPUT_ERROR
+        assert not output_path.exists()
+
+    assert "outside canonical and live source roots" in capsys.readouterr().err
+
+
+def test_repository_fsmonitor_command_is_disabled_during_audit(
+    source_fixture: dict[str, object],
+) -> None:
+    repo = source_fixture["repo"]
+    assert isinstance(repo, Path)
+    sentinel = repo.parent / "fsmonitor-ran"
+    hook = repo.parent / "fsmonitor.sh"
+    hook.write_text(
+        "#!/bin/sh\nprintf ran > " + repr(str(sentinel)) + "\nprintf '0\\n'\n",
+        encoding="utf-8",
+    )
+    hook.chmod(0o755)
+    git(repo, "config", "core.fsmonitor", str(hook))
+
+    receipt, exit_code = run(source_fixture)
+
+    assert exit_code == EXIT_CLEAN
+    assert receipt["status"] == "CLEAN"
+    assert not sentinel.exists()
