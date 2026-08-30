@@ -42,7 +42,7 @@ Exit codes:
 |---:|---|
 | `0` | `CLEAN`: all configured source mappings match and no blocking finding exists |
 | `2` | `UNKNOWN_STOP`: the audit completed, but at least one blocking finding exists |
-| `64` | invalid input, policy, Git object/ref, or audit I/O prerequisite |
+| `64` | invalid input, policy, Git object/ref, audit I/O prerequisite, or receipt-write failure |
 | `70` | unexpected internal failure |
 
 A deploy controller must treat every nonzero code as a hard stop. It must never normalize the host and retry automatically.
@@ -139,7 +139,7 @@ Finding codes are evidence states, not cleanup instructions. Reconciliation belo
 
 ## Tests
 
-The root Python CI automatically runs both source-audit suites through the existing `Ingest + signal-layer tests` required check.
+The root Python CI automatically runs the source-audit suites through the existing `Ingest + signal-layer tests` required check.
 
 Local focused proof:
 
@@ -147,9 +147,11 @@ Local focused proof:
 python -m pytest \
   tests/test_terminal_source_audit.py \
   tests/test_terminal_source_audit_trust_boundary.py \
+  tests/test_terminal_source_audit_cli_failures.py \
   -q
 python -m compileall -q \
   ops \
   tests/test_terminal_source_audit.py \
-  tests/test_terminal_source_audit_trust_boundary.py
+  tests/test_terminal_source_audit_trust_boundary.py \
+  tests/test_terminal_source_audit_cli_failures.py
 ```
