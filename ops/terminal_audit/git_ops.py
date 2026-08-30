@@ -17,8 +17,20 @@ from .model import (
 _READ_CHUNK = 1024 * 1024
 
 
-def run_git(repo: Path, *args: str, check: bool = True) -> subprocess.CompletedProcess[bytes]:
-    environment = os.environ.copy()
+def _sanitized_git_environment() -> dict[str, str]:
+    """Return a deterministic Git environment with no ambient Git authority.
+
+    `git -C <repo>` changes the process working directory but does not override
+    repository/worktree/index/object/ref selectors such as GIT_DIR,
+    GIT_WORK_TREE, or GIT_INDEX_FILE.  Inheriting any caller-provided GIT_*
+    variable would therefore let ambient process state redirect or distort the
+    evidence source.  Remove the entire namespace, then add back only the
+    controls this audit owns.
+    """
+
+    environment = {
+        key: value for key, value in os.environ.items() if not key.startswith("GIT_")
+    }
     environment.update(
         {
             "GIT_CONFIG_GLOBAL": os.devnull,
@@ -28,6 +40,10 @@ def run_git(repo: Path, *args: str, check: bool = True) -> subprocess.CompletedP
             "GIT_TERMINAL_PROMPT": "0",
         }
     )
+    return environment
+
+
+def run_git(repo: Path, *args: str, check: bool = True) -> subprocess.CompletedProcess[bytes]:
     completed = subprocess.run(
         [
             "git",
@@ -42,7 +58,7 @@ def run_git(repo: Path, *args: str, check: bool = True) -> subprocess.CompletedP
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         check=False,
-        env=environment,
+        env=_sanitized_git_environment(),
     )
     if check and completed.returncode != 0:
         raise GitCommandError(args, completed.returncode, completed.stderr.decode("utf-8", "replace"))
@@ -102,6 +118,8 @@ def tree_entries(
 
 
 def _file_type(mode: int) -> str:
+    if stat.S_ISLNK(mode):
+        return "symlink"
     if stat.S_ISFIFO(mode):
         return "fifo"
     if stat.S_ISSOCK(mode):
@@ -134,6 +152,38 @@ def _open_stable_regular(path: Path) -> tuple[int, os.stat_result]:
     except BaseException:
         os.close(descriptor)
         raise
+
+
+def read_stable_regular_bytes(path: Path, *, max_bytes: int) -> bytes:
+    """Read one bounded regular file without following links or special files."""
+
+    if max_bytes < 1:
+        raise ValueError("max_bytes must be positive")
+    descriptor, opened = _open_stable_regular(path)
+    try:
+        if opened.st_size > max_bytes:
+            raise OSError(errno.EFBIG, "regular file exceeds the read bound", str(path))
+        chunks: list[bytes] = []
+        total = 0
+        while True:
+            chunk = os.read(descriptor, min(_READ_CHUNK, max_bytes + 1 - total))
+            if not chunk:
+                break
+            chunks.append(chunk)
+            total += len(chunk)
+            if total > max_bytes:
+                raise OSError(errno.EFBIG, "regular file exceeds the read bound", str(path))
+        after = os.fstat(descriptor)
+        if (
+            total != opened.st_size
+            or after.st_size != opened.st_size
+            or after.st_mtime_ns != opened.st_mtime_ns
+            or after.st_ctime_ns != opened.st_ctime_ns
+        ):
+            raise OSError(errno.EAGAIN, "live file changed while it was read", str(path))
+        return b"".join(chunks)
+    finally:
+        os.close(descriptor)
 
 
 def _hash_regular(path: Path, algorithm: str, *, git_blob: bool) -> tuple[str, int, int]:
