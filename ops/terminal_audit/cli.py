@@ -102,13 +102,22 @@ def main(
         if args.output:
             _atomic_write_json(args.output, receipt, pretty=args.pretty)
         else:
-            print(
-                json.dumps(
-                    receipt,
-                    sort_keys=True,
-                    indent=2 if args.pretty else None,
+            try:
+                print(
+                    json.dumps(
+                        receipt,
+                        sort_keys=True,
+                        indent=2 if args.pretty else None,
+                    )
                 )
-            )
+                sys.stdout.flush()
+            except OSError:
+                devnull_fd = os.open(os.devnull, os.O_WRONLY)
+                try:
+                    os.dup2(devnull_fd, 1)
+                finally:
+                    os.close(devnull_fd)
+                raise
     except (OSError, ValueError, GitCommandError, json.JSONDecodeError) as exc:
         print(f"terminal-source-audit: input/audit error: {exc}", file=sys.stderr)
         return EXIT_INPUT_ERROR
