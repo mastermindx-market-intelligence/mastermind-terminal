@@ -1,19 +1,48 @@
 from __future__ import annotations
 
+import errno
 import hashlib
 import os
+import stat
 import subprocess
 from pathlib import Path
 
-from .model import GitCommandError, SourceMapping, TreeEntry
+from .model import (
+    GitCommandError,
+    SourceMapping,
+    TreeEntry,
+    UnsupportedLiveFileType,
+)
+
+_READ_CHUNK = 1024 * 1024
 
 
 def run_git(repo: Path, *args: str, check: bool = True) -> subprocess.CompletedProcess[bytes]:
+    environment = os.environ.copy()
+    environment.update(
+        {
+            "GIT_CONFIG_GLOBAL": os.devnull,
+            "GIT_CONFIG_NOSYSTEM": "1",
+            "GIT_NO_REPLACE_OBJECTS": "1",
+            "GIT_OPTIONAL_LOCKS": "0",
+            "GIT_TERMINAL_PROMPT": "0",
+        }
+    )
     completed = subprocess.run(
-        ["git", "-C", str(repo), *args],
+        [
+            "git",
+            "-c",
+            "core.fsmonitor=false",
+            "-c",
+            "core.untrackedCache=false",
+            "-C",
+            str(repo),
+            *args,
+        ],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         check=False,
+        env=environment,
     )
     if check and completed.returncode != 0:
         raise GitCommandError(args, completed.returncode, completed.stderr.decode("utf-8", "replace"))
@@ -72,28 +101,89 @@ def tree_entries(
     return "tree", sorted(entries, key=lambda entry: entry.relative_path)
 
 
-def _git_blob_sha(data: bytes) -> str:
-    header = f"blob {len(data)}\0".encode("ascii")
-    return hashlib.sha1(header + data).hexdigest()  # nosec: Git identity, not security
+def _file_type(mode: int) -> str:
+    if stat.S_ISFIFO(mode):
+        return "fifo"
+    if stat.S_ISSOCK(mode):
+        return "socket"
+    if stat.S_ISCHR(mode):
+        return "character_device"
+    if stat.S_ISBLK(mode):
+        return "block_device"
+    if stat.S_ISDIR(mode):
+        return "directory"
+    return "special"
+
+
+def _open_stable_regular(path: Path) -> tuple[int, os.stat_result]:
+    before = os.lstat(path)
+    if not stat.S_ISREG(before.st_mode):
+        raise UnsupportedLiveFileType(_file_type(before.st_mode))
+
+    flags = os.O_RDONLY
+    flags |= getattr(os, "O_CLOEXEC", 0)
+    flags |= getattr(os, "O_NOFOLLOW", 0)
+    descriptor = os.open(path, flags)
+    try:
+        opened = os.fstat(descriptor)
+        if not stat.S_ISREG(opened.st_mode):
+            raise UnsupportedLiveFileType(_file_type(opened.st_mode))
+        if (before.st_dev, before.st_ino) != (opened.st_dev, opened.st_ino):
+            raise OSError(errno.EAGAIN, "live file changed while it was opened", str(path))
+        return descriptor, opened
+    except BaseException:
+        os.close(descriptor)
+        raise
+
+
+def _hash_regular(path: Path, algorithm: str, *, git_blob: bool) -> tuple[str, int, int]:
+    descriptor, opened = _open_stable_regular(path)
+    try:
+        digest = hashlib.new(algorithm)
+        if git_blob:
+            digest.update(f"blob {opened.st_size}\0".encode("ascii"))
+        total = 0
+        while True:
+            chunk = os.read(descriptor, _READ_CHUNK)
+            if not chunk:
+                break
+            total += len(chunk)
+            digest.update(chunk)
+        after = os.fstat(descriptor)
+        if (
+            total != opened.st_size
+            or after.st_size != opened.st_size
+            or after.st_mtime_ns != opened.st_mtime_ns
+            or after.st_ctime_ns != opened.st_ctime_ns
+        ):
+            raise OSError(errno.EAGAIN, "live file changed while it was hashed", str(path))
+        return digest.hexdigest(), total, opened.st_mode
+    finally:
+        os.close(descriptor)
 
 
 def live_blob(path: Path) -> tuple[str, str, int]:
-    if path.is_symlink():
+    metadata = os.lstat(path)
+    if stat.S_ISLNK(metadata.st_mode):
         data = os.readlink(path).encode("utf-8", "surrogateescape")
-        return _git_blob_sha(data), "120000", len(data)
-    data = path.read_bytes()
-    mode = "100755" if path.stat().st_mode & 0o111 else "100644"
-    return _git_blob_sha(data), mode, len(data)
+        header = f"blob {len(data)}\0".encode("ascii")
+        return hashlib.sha1(header + data).hexdigest(), "120000", len(data)  # nosec: Git ID
+    if not stat.S_ISREG(metadata.st_mode):
+        raise UnsupportedLiveFileType(_file_type(metadata.st_mode))
+    digest, size, opened_mode = _hash_regular(path, "sha1", git_blob=True)
+    mode = "100755" if opened_mode & 0o111 else "100644"
+    return digest, mode, size
 
 
 def sha256_file_or_link(path: Path) -> tuple[str, int, str]:
-    if path.is_symlink():
+    metadata = os.lstat(path)
+    if stat.S_ISLNK(metadata.st_mode):
         data = os.readlink(path).encode("utf-8", "surrogateescape")
-        kind = "symlink"
-    else:
-        data = path.read_bytes()
-        kind = "file"
-    return hashlib.sha256(data).hexdigest(), len(data), kind
+        return hashlib.sha256(data).hexdigest(), len(data), "symlink"
+    if not stat.S_ISREG(metadata.st_mode):
+        raise UnsupportedLiveFileType(_file_type(metadata.st_mode))
+    digest, size, _ = _hash_regular(path, "sha256", git_blob=False)
+    return digest, size, "file"
 
 
 def ignored_by_git(repo: Path, repo_relative_path: str) -> bool:
