@@ -15,10 +15,18 @@ type SnapshotFrame = {
   pixels: Uint8ClampedArray;
 };
 
+type VisualReadyDetail = {
+  symbol: string;
+  timeframe: string;
+  generation: number;
+  state: "data" | "empty";
+};
+
 declare global {
   interface Window {
     __mmSnapshotFrames: SnapshotFrame[];
-    __mmTerminalReady: boolean;
+    __mmTerminalReady: VisualReadyDetail | null;
+    __mmTerminalReadyEvents: VisualReadyDetail[];
   }
 }
 
@@ -103,10 +111,21 @@ test("snapshot export includes custom SVG and dashboard indicator layers", async
 
   await page.addInitScript(() => {
     const nativeToBlob = HTMLCanvasElement.prototype.toBlob;
+    localStorage.setItem("mm.inds", "[]");
+    localStorage.setItem("mm.startTf", JSON.stringify("D"));
     window.__mmSnapshotFrames = [];
-    window.__mmTerminalReady = false;
-    window.addEventListener("mm:terminal-visual-ready", () => {
-      window.__mmTerminalReady = true;
+    window.__mmTerminalReady = null;
+    window.__mmTerminalReadyEvents = [];
+    window.addEventListener("mm:terminal-visual-ready", (event) => {
+      const detail = (event as CustomEvent<VisualReadyDetail>).detail;
+      window.__mmTerminalReadyEvents.push(detail);
+      if (detail?.symbol === "NVDA"
+        && detail.timeframe === "D"
+        && detail.state === "data"
+        && Number.isInteger(detail.generation)
+        && detail.generation > 0) {
+        window.__mmTerminalReady = detail;
+      }
     });
 
     HTMLCanvasElement.prototype.toBlob = function patchedToBlob(callback, type, quality) {
@@ -131,9 +150,27 @@ test("snapshot export includes custom SVG and dashboard indicator layers", async
   await expect(page.locator(".workspace")).toBeVisible();
   await expect(page.locator(".chart-wrap canvas").first()).toBeVisible();
   await expect.poll(
-    () => page.evaluate(() => window.__mmTerminalReady),
+    () => page.evaluate(() => {
+      const signalLayer = document.querySelector("[data-sig-layer]");
+      return {
+        ready: window.__mmTerminalReady !== null,
+        detail: window.__mmTerminalReady,
+        events: window.__mmTerminalReadyEvents,
+        requestedIndicators: localStorage.getItem("mm.inds"),
+        canvasCount: document.querySelectorAll(".chart-wrap canvas").length,
+        signalLayerAttached: signalLayer !== null,
+        signalChildren: signalLayer?.childElementCount ?? -1,
+        indicatorNames: [...document.querySelectorAll(".ind-name")]
+          .map((node) => node.textContent?.trim() ?? ""),
+      };
+    }),
     { message: "fixture OHLC should finish rendering before the baseline export" },
-  ).toBe(true);
+  ).toMatchObject({ ready: true });
+  expect(await page.evaluate(() => window.__mmTerminalReady)).toMatchObject({
+    symbol: "NVDA",
+    timeframe: "D",
+    state: "data",
+  });
 
   const baseline = await captureDownloadedSnapshot(page, testInfo, "baseline-indicator-snapshot.png");
 

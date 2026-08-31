@@ -43,22 +43,63 @@ import { markerTooltipCopy, retroLegendCopy, washoutOverrideCopy } from "../lib/
 test.use({ deviceScaleFactor: 3 });
 
 // Hydration gate, same shape as washout-override.spec.ts (the helpers are per-spec there).
-async function armTerminalVisualReady(page: Page) {
-  await page.addInitScript(() => {
-    const readyWindow = window as Window & { __mmResponsiveVisualReady?: boolean };
-    readyWindow.__mmResponsiveVisualReady = false;
-    window.addEventListener("mm:terminal-visual-ready", () => {
-      readyWindow.__mmResponsiveVisualReady = true;
-    }, { once: true });
-  });
+type VisualReadyDetail = { symbol: string; timeframe: string; generation: number; state: "data" | "empty" };
+type ReadyReceipt = {
+  detail: VisualReadyDetail;
+  refusalAttached: boolean;
+  signalLayerAttached: boolean;
+  signalChildren: number;
+  oracleLegendAttached: boolean;
+};
+
+async function armTerminalVisualReady(page: Page, expected = { symbol: "COST", timeframe: "D" }) {
+  await page.addInitScript(({ symbol, timeframe }) => {
+    type Detail = { symbol?: unknown; timeframe?: unknown; generation?: unknown; state?: unknown };
+    type Receipt = {
+      detail: Detail;
+      refusalAttached: boolean;
+      signalLayerAttached: boolean;
+      signalChildren: number;
+      oracleLegendAttached: boolean;
+    };
+    const readyWindow = window as Window & {
+      __mmResponsiveVisualReady?: Receipt | null;
+      __mmVisualReadyEvents?: Detail[];
+    };
+    readyWindow.__mmResponsiveVisualReady = null;
+    readyWindow.__mmVisualReadyEvents = [];
+    window.addEventListener("mm:terminal-visual-ready", (event) => {
+      const detail = (event as CustomEvent<Detail>).detail;
+      readyWindow.__mmVisualReadyEvents!.push(detail);
+      if (detail?.state !== "data" || detail.symbol !== symbol || detail.timeframe !== timeframe
+          || !Number.isInteger(detail.generation) || Number(detail.generation) <= 0) return;
+      const signalLayer = document.querySelector("[data-sig-layer]");
+      readyWindow.__mmResponsiveVisualReady = {
+        detail,
+        refusalAttached: document.querySelector('[data-sig-layer] circle[fill="none"]') !== null,
+        signalLayerAttached: signalLayer !== null,
+        signalChildren: signalLayer?.childElementCount ?? -1,
+        oracleLegendAttached: [...document.querySelectorAll(".ind-name")]
+          .some((node) => node.textContent?.includes("Golden Oracle Confluence")),
+      };
+    });
+  }, expected);
 }
 
-async function waitForTerminalVisualReady(page: Page) {
+async function waitForTerminalVisualReady(page: Page, refusalExpected = true) {
   await expect.poll(
     () => page.evaluate(() =>
       Boolean((window as Window & { __mmResponsiveVisualReady?: boolean }).__mmResponsiveVisualReady)),
     { message: "the interactive Terminal should finish hydrating", timeout: 15_000 },
   ).toBe(true);
+  const receipt = await page.evaluate(() =>
+    (window as Window & { __mmResponsiveVisualReady?: ReadyReceipt | null }).__mmResponsiveVisualReady);
+  expect(receipt?.refusalAttached,
+    refusalExpected
+      ? `visual-ready must not release while the seeded Oracle refusal is absent; receipt=${JSON.stringify(receipt)}`
+      : "an ordinary no-signal generation must not invent an Oracle refusal",
+  ).toBe(refusalExpected);
+  return receipt!;
 }
 
 /** A synthetic daily OHLC series ending on the most recent weekday.
@@ -197,6 +238,7 @@ async function openTerminal(page: Page, opts: { zh: boolean; zhPreseed?: boolean
   // indicator set so the marker geometry actually renders on the price series.
   await page.addInitScript(() => {
     localStorage.setItem("mm.inds", JSON.stringify(["_oracle"]));
+    localStorage.setItem("mm.startTf", JSON.stringify("D"));
   });
   await armTerminalVisualReady(page);
   await page.goto("/terminal?symbol=COST");
@@ -528,6 +570,49 @@ async function assertThreeStates(page: Page, zh: boolean, tag: string, testInfo:
   await page.keyboard.press("Escape");
   await expect(dialog).toBeHidden();
 }
+
+test("empty readiness stays explicit and cannot release a completed-data consumer", async ({ page }) => {
+  await page.route(/\/data\/COST\.json(?:\?.*)?$/, async (route) => {
+    await route.fulfill({ contentType: "application/json", body: JSON.stringify({ ...OHLC, bars: [] }) });
+  });
+  await page.route(/\/data\/COST\.slice\.json(?:\?.*)?$/, async (route) => {
+    await route.fulfill({ contentType: "application/json", body: "{}" });
+  });
+  await page.addInitScript(() => {
+    localStorage.setItem("mm.inds", JSON.stringify(["_oracle"]));
+    localStorage.setItem("mm.startTf", JSON.stringify("D"));
+  });
+  await armTerminalVisualReady(page);
+
+  await page.goto("/terminal?symbol=COST");
+  await expect.poll(() => page.evaluate(() =>
+    (window as Window & { __mmVisualReadyEvents?: VisualReadyDetail[] }).__mmVisualReadyEvents
+      ?.some((detail) => detail.symbol === "COST" && detail.timeframe === "D" && detail.state === "empty") ?? false,
+  ), { message: "the no-data generation should publish its explicit empty receipt" }).toBe(true);
+  expect(await page.evaluate(() =>
+    (window as Window & { __mmResponsiveVisualReady?: ReadyReceipt | null }).__mmResponsiveVisualReady,
+  )).toBeNull();
+  await expect(page.getByText("No daily history for COST yet.")).toBeVisible();
+});
+
+test("an ordinary no-indicator no-signal generation still publishes truthful data readiness", async ({ page }) => {
+  await page.route(/\/data\/COST\.json(?:\?.*)?$/, async (route) => {
+    await route.fulfill({ contentType: "application/json", body: JSON.stringify(OHLC) });
+  });
+  await page.route(/\/data\/COST\.slice\.json(?:\?.*)?$/, async (route) => {
+    await route.fulfill({ contentType: "application/json", body: "{}" });
+  });
+  await page.addInitScript(() => {
+    localStorage.setItem("mm.inds", "[]");
+    localStorage.setItem("mm.startTf", JSON.stringify("D"));
+  });
+  await armTerminalVisualReady(page);
+
+  await page.goto("/terminal?symbol=COST");
+  const receipt = await waitForTerminalVisualReady(page, false);
+  expect(receipt.detail).toMatchObject({ symbol: "COST", timeframe: "D", state: "data" });
+  expect(receipt.detail.generation).toBeGreaterThan(0);
+});
 
 test("a retro projection, a refusal and a waived entry read as three different things", async ({ page }, testInfo) => {
   const desktop = testInfo.project.name === "desktop";
