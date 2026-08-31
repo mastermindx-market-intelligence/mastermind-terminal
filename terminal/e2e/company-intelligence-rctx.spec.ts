@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 const SHA = "a".repeat(64);
+const BRAIN_SCRIPT_SRC = "https://www.mastermind-x.com/mm_brain.js";
 const METRICS = {
   sentiment: null, performance: null, confidence: null, combined: null,
   call_positivity: null, management_confidence: null, analyst_criticism: null,
@@ -94,19 +95,30 @@ const sourceSpan = {
   },
 };
 
-test("an exact source span is consumed by only the next Brain turn until explicitly re-attached", async ({ page }) => {
-  await page.addInitScript(() => {
-    const host = window as Window & {
-      MMBrain?: { open: () => void };
-      MM_BRAIN_CFG?: { symbol?: () => string; getCompanySourceSpan?: () => unknown };
-    };
-    host.MM_BRAIN_CFG = { symbol: () => "AAPL" };
-    host.MMBrain = {
-      open: () => {
-        document.documentElement.dataset.rctxOpened = "true";
-      },
-    };
-  });
+test("the real Analysis shell hosts one-turn exact source sends in the existing Brain", async ({ page }) => {
+  await page.route(BRAIN_SCRIPT_SRC, async (route) => route.fulfill({
+    contentType: "application/javascript",
+    body: `(() => {
+      const cfg = window.MM_BRAIN_CFG;
+      window.__MM_BRAIN_TEST_SENDS__ = [];
+      window.MMBrain = {
+        mounted: true,
+        open() {
+          document.documentElement.dataset.rctxOpenCount = String(
+            Number(document.documentElement.dataset.rctxOpenCount || "0") + 1
+          );
+        },
+        testSend() {
+          const source = typeof cfg?.getCompanySourceSpan === "function"
+            ? cfg.getCompanySourceSpan() ?? null
+            : null;
+          window.__MM_BRAIN_TEST_SENDS__.push(source);
+          return source;
+        },
+      };
+      document.documentElement.dataset.rctxHost = "mounted";
+    })();`,
+  }));
   await page.route("**/api/event-workspace/**", async (route) => route.fulfill({
     status: 404,
     json: { ok: false, state: "error", available: false, error: { code: "not_found", message: "No event workspace", retryable: false } },
@@ -136,6 +148,12 @@ test("an exact source span is consumed by only the next Brain turn until explici
   }));
 
   await page.goto("/analysis?symbol=NVDA&page=intelligence");
+  await expect.poll(() => page.locator(`script[src="${BRAIN_SCRIPT_SRC}"]`).count()).toBe(1);
+  await expect.poll(() => page.evaluate(() => document.documentElement.dataset.rctxHost)).toBe("mounted");
+  expect(await page.evaluate(() => {
+    const host = window as Window & { MMBrain?: { testSend?: () => unknown } };
+    return host.MMBrain?.testSend?.() ?? null;
+  })).toBeNull();
   await page.locator(".ci-lenses").getByRole("tab").nth(1).click();
   const search = page.locator(".ci-ts-search");
   await search.locator("input").fill("Exact source");
@@ -146,11 +164,11 @@ test("an exact source span is consumed by only the next Brain turn until explici
   const attachment = page.getByTestId("company-source-context-attachment");
   await expect(attachment).toContainText("Exact source attached");
   await attachment.getByRole("button", { name: "Ask Mastermind with source" }).click();
-  await expect.poll(() => page.evaluate(() => document.documentElement.dataset.rctxOpened)).toBe("true");
+  await expect.poll(() => page.evaluate(() => document.documentElement.dataset.rctxOpenCount)).toBe("1");
 
   const firstTurnSource = await page.evaluate(() => {
-    const host = window as Window & { MM_BRAIN_CFG?: { getCompanySourceSpan?: () => unknown } };
-    return host.MM_BRAIN_CFG?.getCompanySourceSpan?.() ?? null;
+    const host = window as Window & { MMBrain?: { testSend?: () => unknown } };
+    return host.MMBrain?.testSend?.() ?? null;
   });
   expect(firstTurnSource).toEqual({
     schema: "mastermind.research-context-ref/v1",
@@ -169,16 +187,44 @@ test("an exact source span is consumed by only the next Brain turn until explici
   });
   await expect(attachment).toHaveCount(0);
   expect(await page.evaluate(() => {
-    const host = window as Window & { MM_BRAIN_CFG?: { getCompanySourceSpan?: () => unknown } };
-    return host.MM_BRAIN_CFG?.getCompanySourceSpan?.() ?? null;
+    const host = window as Window & { MMBrain?: { testSend?: () => unknown } };
+    return host.MMBrain?.testSend?.() ?? null;
   })).toBeNull();
 
   await page.getByRole("button", { name: "Attach to Mastermind" }).click();
   await expect(attachment).toContainText("Exact source attached");
   await attachment.getByRole("button", { name: "Ask Mastermind with source" }).click();
+  await expect.poll(() => page.evaluate(() => document.documentElement.dataset.rctxOpenCount)).toBe("2");
   expect(await page.evaluate(() => {
-    const host = window as Window & { MM_BRAIN_CFG?: { getCompanySourceSpan?: () => unknown } };
-    return host.MM_BRAIN_CFG?.getCompanySourceSpan?.() ?? null;
+    const host = window as Window & { MMBrain?: { testSend?: () => unknown } };
+    return host.MMBrain?.testSend?.() ?? null;
   })).toEqual(firstTurnSource);
   await expect(attachment).toHaveCount(0);
+
+  await page.goto("/terminal?symbol=NVDA");
+  await expect.poll(() => page.locator(`script[src="${BRAIN_SCRIPT_SRC}"]`).count()).toBe(1);
+});
+
+test("Analysis adopts an existing document Brain host without racing a second widget script", async ({ page }) => {
+  await page.addInitScript(() => {
+    const host = window as Window & {
+      MMBrain?: { open: () => void };
+      MM_BRAIN_CFG?: { symbol?: () => string };
+    };
+    host.MM_BRAIN_CFG = { symbol: () => "stale-preseed" };
+    host.MMBrain = { open: () => undefined };
+  });
+  await page.route(BRAIN_SCRIPT_SRC, async (route) => route.fulfill({
+    contentType: "application/javascript",
+    body: "document.documentElement.dataset.unexpectedSecondBrain = 'true';",
+  }));
+
+  await page.goto("/analysis?symbol=NVDA&page=intelligence");
+
+  expect(await page.evaluate(() => {
+    const host = window as Window & { MM_BRAIN_CFG?: { symbol?: () => string } };
+    return host.MM_BRAIN_CFG?.symbol?.();
+  })).toBe("stale-preseed");
+  await expect(page.locator(`script[src="${BRAIN_SCRIPT_SRC}"]`)).toHaveCount(0);
+  expect(await page.evaluate(() => document.documentElement.dataset.unexpectedSecondBrain)).toBeUndefined();
 });
