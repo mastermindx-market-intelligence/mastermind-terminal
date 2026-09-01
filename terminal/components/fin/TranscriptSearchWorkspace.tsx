@@ -13,6 +13,11 @@ import {
   type CompanySourceSearchResult,
   type CompanySourceSpan,
 } from "../../lib/companySourceSearch";
+import { toCompanySourceContextRef, type CompanySourceContextRef } from "../../lib/companySourceContext";
+import {
+  bindMastermindBrainCompanySource,
+  openMastermindBrainForCompanySource,
+} from "../../lib/mastermindBrain";
 import type { TranscriptOpenTarget } from "../../lib/transcriptSearch";
 
 type RequestPhase = "idle" | "loading" | "settled";
@@ -130,12 +135,14 @@ function SpanCard({
   zh,
   onOpenTranscript,
   onReceipt,
+  onAttach,
 }: {
   span: CompanySourceSpan;
   phrase: string;
   zh: boolean;
   onOpenTranscript: (target: TranscriptOpenTarget) => void;
   onReceipt: (span: CompanySourceSpan, trigger: HTMLButtonElement) => void;
+  onAttach: (span: CompanySourceSpan) => void;
 }) {
   return (
     <article className="ci-ts-span" data-span-id={span.span_id}>
@@ -147,6 +154,7 @@ function SpanCard({
         <div className="ci-ts-span-actions">
           <button className="ci-ts-link" onClick={() => onOpenTranscript({ id: span.transcript_id, segment_index: span.segment_index, expected_document_sha256: span.document_sha256, query: phrase })}>{localized(zh, "打开原文", "Open source")}</button>
           <button className="ci-ts-link" onClick={(event) => onReceipt(span, event.currentTarget)}>{localized(zh, "凭证", "Receipt")}</button>
+          <button className="ci-ts-link" type="button" onClick={() => onAttach(span)} disabled={span.receipt.verification !== "verified"}>{localized(zh, "附加给 Mastermind", "Attach to Mastermind")}</button>
         </div>
       </header>
       <div className="ci-ts-speaker">
@@ -299,6 +307,9 @@ export default function TranscriptSearchWorkspace({
   const [leftEventId, setLeftEventId] = useState(initialSourceEventId);
   const [rightEventId, setRightEventId] = useState(sourceEvents.find((event) => event.event_id !== initialSourceEventId)?.event_id ?? "");
   const [receiptSpan, setReceiptSpan] = useState<CompanySourceSpan | null>(null);
+  const [attachedSource, setAttachedSource] = useState<CompanySourceContextRef | null>(null);
+  const [brainError, setBrainError] = useState<string | null>(null);
+  const attachedSourceRef = useRef<CompanySourceContextRef | null>(null);
   const receiptTriggerRef = useRef<HTMLButtonElement | null>(null);
   const searchRequestIdRef = useRef(0);
   const compareRequestIdRef = useRef(0);
@@ -320,6 +331,8 @@ export default function TranscriptSearchWorkspace({
       setSearch({ phase: "idle", result: null });
       setCompare({ phase: "idle", result: null });
       setReceiptSpan(null);
+      setAttachedSource(null);
+      setBrainError(null);
     });
     return () => window.cancelAnimationFrame(frame);
   }, [ticker, initialSourceEventId, sourceEvents]);
@@ -328,6 +341,19 @@ export default function TranscriptSearchWorkspace({
     searchAbortRef.current?.abort();
     compareAbortRef.current?.abort();
   }, []);
+
+  useEffect(() => {
+    attachedSourceRef.current = attachedSource;
+    return bindMastermindBrainCompanySource(
+      () => attachedSourceRef.current,
+      undefined,
+      () => {
+        attachedSourceRef.current = null;
+        setAttachedSource(null);
+        setBrainError(null);
+      },
+    ) ?? undefined;
+  }, [attachedSource]);
 
   const invalidateSearch = useCallback(() => {
     searchAbortRef.current?.abort();
@@ -416,6 +442,24 @@ export default function TranscriptSearchWorkspace({
     window.requestAnimationFrame(() => receiptTriggerRef.current?.focus({ preventScroll: true }));
   }, []);
 
+  const attachSource = useCallback((span: CompanySourceSpan) => {
+    const reference = toCompanySourceContextRef(span);
+    if (!reference) {
+      setBrainError(localized(zh, "该来源凭证不再有效，未附加任何上下文。", "This source receipt is no longer valid; no context was attached."));
+      return;
+    }
+    setAttachedSource(reference);
+    setBrainError(null);
+  }, [zh]);
+
+  const askWithAttachedSource = useCallback(() => {
+    if (!attachedSource || !openMastermindBrainForCompanySource(ticker)) {
+      setBrainError(localized(zh, "无法将此精确来源交给当前页面中的 Mastermind；未改用仅代码导航。", "This exact source cannot be handed to the in-document Mastermind; no ticker-only fallback was used."));
+      return;
+    }
+    setBrainError(null);
+  }, [attachedSource, ticker, zh]);
+
   const [leftSpans, rightSpans] = compareColumns(compare.result, leftEventId, rightEventId);
 
   return (
@@ -464,9 +508,24 @@ export default function TranscriptSearchWorkspace({
 
       {search.result && search.result.state === "ready" && search.result.spans.length > 0 && (
         <div className="ci-ts-results" aria-label={localized(zh, "准确文本命中", "Exact text matches")}>
-          {search.result.spans.map((span) => <SpanCard key={span.span_id} span={span} phrase={search.result!.query} zh={zh} onOpenTranscript={onOpenTranscript} onReceipt={openReceipt} />)}
+          {search.result.spans.map((span) => <SpanCard key={span.span_id} span={span} phrase={search.result!.query} zh={zh} onOpenTranscript={onOpenTranscript} onReceipt={openReceipt} onAttach={attachSource} />)}
         </div>
       )}
+
+      {attachedSource && (
+        <aside className="ci-ts-state ready" data-testid="company-source-context-attachment" aria-label={localized(zh, "已附加的精确来源", "Attached exact source")}>
+          <span className="ci-ts-state-mark" aria-hidden>✓</span>
+          <div>
+            <strong>{localized(zh, "已附加精确来源", "Exact source attached")}</strong>
+            <p><code>{attachedSource.transcript_id}</code> · {localized(zh, "段", "segment")} {attachedSource.segment_index + 1} · <code>{attachedSource.revision_id}</code></p>
+          </div>
+          <div className="ci-ts-attachment-actions">
+            <button className="btn btn-primary" type="button" onClick={askWithAttachedSource}>{localized(zh, "带来源询问 Mastermind", "Ask Mastermind with source")}</button>
+            <button className="btn btn-ghost" type="button" onClick={() => { setAttachedSource(null); setBrainError(null); }}>{localized(zh, "移除", "Remove")}</button>
+          </div>
+        </aside>
+      )}
+      {brainError && <p className="ci-ts-state error" role="alert">{brainError}</p>}
 
       <section className="ci-ts-compare" aria-labelledby="ci-ts-compare-title">
         <div className="ci-ts-compare-head">
@@ -492,7 +551,7 @@ export default function TranscriptSearchWorkspace({
               const countCapped = compare.result?.state === "ready" && compare.result.count_capped_event_ids.includes(eventId);
               return <div className="ci-ts-compare-col" key={eventId}>
                 <header><div><strong>{event?.label ?? eventId}</strong><small>{event?.call_date}</small></div><span className="num" title={countCapped ? localized(zh, `显示 ${spans.length} 个；至少 ${total} 个命中`, `${spans.length} shown; at least ${total} matches`) : total > spans.length ? localized(zh, `显示 ${spans.length} / 共 ${total} 个`, `${spans.length} of ${total} shown`) : undefined}>{countCapped ? `≥${total}` : total}</span></header>
-                {total > 0 ? spans.map((span) => <SpanCard key={span.span_id} span={span} phrase={compare.result!.query} zh={zh} onOpenTranscript={onOpenTranscript} onReceipt={openReceipt} />) : <div className="ci-ts-compare-empty">{localized(zh, "该事件没有此精确短语。", "This event contains no exact phrase match.")}</div>}
+                {total > 0 ? spans.map((span) => <SpanCard key={span.span_id} span={span} phrase={compare.result!.query} zh={zh} onOpenTranscript={onOpenTranscript} onReceipt={openReceipt} onAttach={attachSource} />) : <div className="ci-ts-compare-empty">{localized(zh, "该事件没有此精确短语。", "This event contains no exact phrase match.")}</div>}
               </div>;
             })}
           </div>

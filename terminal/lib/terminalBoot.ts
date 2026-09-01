@@ -70,7 +70,45 @@ export function criticalTerminalDataUrls(value: unknown): string[] {
 
 export type TerminalVisualReadyDetail = {
   symbol: string;
+  timeframe: string;
+  generation: number;
   state: "data" | "empty";
+};
+
+export type TerminalVisualReadyIdentity = {
+  timeframe: string;
+  generation: number;
+  /** Rechecked at emit time so a delayed frame from a superseded load cannot announce. */
+  isCurrent: () => boolean;
+  /** React/data ownership gate. A false value waits for an explicit owner reevaluation. */
+  isReady?: () => boolean;
+  /** Re-projects SVG/DOM visuals after the chart canvas has painted its new generation. */
+  renderVisuals?: () => void;
+  /** Validates chart coordinates on the frame after visual projection had a chance to paint. */
+  isRendered?: () => boolean;
+};
+
+export type TerminalIndicatorBuildReceipt = {
+  generation: number;
+  key: string;
+};
+
+export function isTerminalIndicatorSetBuilt(
+  authorityReady: boolean,
+  generation: number,
+  requestedKey: string,
+  built: TerminalIndicatorBuildReceipt | null,
+): boolean {
+  return authorityReady
+    && built?.generation === generation
+    && built.key === requestedKey;
+}
+
+export type TerminalVisualReadyAnnouncement = {
+  /** Re-attempt after a semantic owner commits a readiness dependency. */
+  reevaluate: () => void;
+  /** Permanently suppress this generation and any already-scheduled frame. */
+  cancel: () => void;
 };
 
 /**
@@ -81,19 +119,68 @@ export type TerminalVisualReadyDetail = {
 export function announceTerminalVisualReady(
   symbol: string,
   state: TerminalVisualReadyDetail["state"] = "data",
-): void {
-  if (typeof window === "undefined") return;
-  const detail: TerminalVisualReadyDetail = { symbol, state };
+  identity: TerminalVisualReadyIdentity,
+): TerminalVisualReadyAnnouncement {
+  let cancelled = false;
+  let emitted = false;
+  let scheduled = false;
+  const cancel = () => { cancelled = true; };
+  const unavailable: TerminalVisualReadyAnnouncement = { reevaluate: () => {}, cancel };
+  if (typeof window === "undefined") return unavailable;
+  const detail: TerminalVisualReadyDetail = {
+    symbol,
+    timeframe: identity.timeframe,
+    generation: identity.generation,
+    state,
+  };
+  const isCurrent = () => {
+    if (cancelled || emitted) return false;
+    if (identity.isCurrent()) return true;
+    cancelled = true;
+    return false;
+  };
   const emit = () => {
+    scheduled = false;
+    if (!isCurrent()) return;
+    if (identity.isReady && !identity.isReady()) return;
+    if (identity.isRendered && !identity.isRendered()) return;
+    emitted = true;
     window.dispatchEvent(new CustomEvent<TerminalVisualReadyDetail>(
       TERMINAL_VISUAL_READY_EVENT,
       { detail },
     ));
   };
+  const renderThenEmit = () => {
+    if (!isCurrent()) { scheduled = false; return; }
+    if (identity.isReady && !identity.isReady()) {
+      // React/data/indicator ownership, not elapsed frames, makes this true.
+      // Stop here; that owner calls reevaluate() when its state commits.
+      scheduled = false;
+      return;
+    }
+    identity.renderVisuals?.();
+    window.requestAnimationFrame(emit);
+  };
+  const reevaluate = () => {
+    if (scheduled || !isCurrent()) return;
+    if (identity.isReady && !identity.isReady()) return;
+    scheduled = true;
+    if (typeof window.requestAnimationFrame === "function") {
+      window.requestAnimationFrame(renderThenEmit);
+      return;
+    }
+    window.setTimeout(() => {
+      if (!isCurrent()) { scheduled = false; return; }
+      if (identity.isReady && !identity.isReady()) {
+        scheduled = false;
+        return;
+      }
+      identity.renderVisuals?.();
+      emit();
+    }, 0);
+  };
 
-  if (typeof window.requestAnimationFrame !== "function") {
-    window.setTimeout(emit, 0);
-    return;
-  }
-  window.requestAnimationFrame(() => window.requestAnimationFrame(emit));
+  const announcement = { reevaluate, cancel };
+  reevaluate();
+  return announcement;
 }
