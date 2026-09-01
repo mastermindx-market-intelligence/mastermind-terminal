@@ -81,7 +81,7 @@ export type TerminalVisualReadyDiagnosticDetail = {
   timeframe: string;
   generation: number;
   state: "data";
-  code: "render_not_ready";
+  code: "semantic_not_ready" | "render_not_ready";
   attempts: number;
 };
 
@@ -125,11 +125,16 @@ export type TerminalVisualReadyAnnouncement = {
  * The chart model and our SVG/DOM projection can each require a browser frame before coordinates
  * exist. One fixed two-frame assumption lost valid generations under a loaded runner. After the
  * semantic owners are current, permit a small finite continuation: each failed coordinate check
- * re-projects the dependent visuals and yields another paint opportunity. Eight checks cover the
- * normal chart/model + overlay paint handoff while remaining bounded well inside the existing
- * five-second consumer gate. Exhaustion emits a typed diagnostic and never claims ready.
+ * re-projects the dependent visuals and yields another paint opportunity.
+ *
+ * Initial shell hydration can commit its semantic authority just after ChartPanel has finished its
+ * synchronous model build. An explicit owner reevaluation remains the fast path, while one bounded
+ * timer bridge prevents that narrow handoff from losing the generation forever. Both semantic and
+ * render exhaustion emit typed terminal diagnostics and never claim ready.
  */
 const TERMINAL_RENDER_MAX_ATTEMPTS = 8;
+const TERMINAL_SEMANTIC_READY_TIMEOUT_MS = 3_500;
+const TERMINAL_SEMANTIC_RECHECK_MS = 25;
 
 export function announceTerminalVisualReady(
   symbol: string,
@@ -141,10 +146,19 @@ export function announceTerminalVisualReady(
   let diagnosed = false;
   let scheduled = false;
   let renderAttempts = 0;
+  let semanticTimer: number | null = null;
+  let semanticDeadline = 0;
+  let semanticAttempts = 0;
 
   const cancel = () => {
     cancelled = true;
     scheduled = false;
+    if (typeof window !== "undefined"
+      && semanticTimer !== null
+      && typeof window.clearTimeout === "function") {
+      window.clearTimeout(semanticTimer);
+    }
+    semanticTimer = null;
   };
   const unavailable: TerminalVisualReadyAnnouncement = { reevaluate: () => {}, cancel };
   if (typeof window === "undefined") return unavailable;
@@ -156,6 +170,17 @@ export function announceTerminalVisualReady(
     state,
   };
 
+  function clearSemanticWait(resetBudget = true) {
+    if (semanticTimer !== null && typeof window.clearTimeout === "function") {
+      window.clearTimeout(semanticTimer);
+    }
+    semanticTimer = null;
+    if (resetBudget) {
+      semanticDeadline = 0;
+      semanticAttempts = 0;
+    }
+  }
+
   const isCurrent = () => {
     if (cancelled || emitted || diagnosed) return false;
     try {
@@ -165,6 +190,7 @@ export function announceTerminalVisualReady(
     }
     cancelled = true;
     scheduled = false;
+    clearSemanticWait();
     return false;
   };
 
@@ -190,40 +216,102 @@ export function announceTerminalVisualReady(
     window.setTimeout(() => callback(0), 0);
   };
 
-  const emitReady = () => {
-    scheduled = false;
-    if (!isCurrent() || !isSemanticallyReady()) return;
-    emitted = true;
-    window.dispatchEvent(new CustomEvent<TerminalVisualReadyDetail>(
-      TERMINAL_VISUAL_READY_EVENT,
-      { detail },
-    ));
-  };
-
-  const diagnoseRenderNotReady = () => {
-    scheduled = false;
-    if (!isCurrent() || !isSemanticallyReady() || state !== "data") return;
+  function dispatchDiagnostic(
+    code: TerminalVisualReadyDiagnosticDetail["code"],
+    attempts: number,
+  ) {
     diagnosed = true;
+    scheduled = false;
+    clearSemanticWait();
     const diagnostic: TerminalVisualReadyDiagnosticDetail = {
       symbol,
       timeframe: identity.timeframe,
       generation: identity.generation,
       state: "data",
-      code: "render_not_ready",
-      attempts: renderAttempts,
+      code,
+      attempts,
     };
     window.dispatchEvent(new CustomEvent<TerminalVisualReadyDiagnosticDetail>(
       TERMINAL_VISUAL_READY_DIAGNOSTIC_EVENT,
       { detail: diagnostic },
     ));
-  };
+  }
 
-  const checkRendered = () => {
+  function diagnoseSemanticNotReady() {
+    scheduled = false;
+    if (!isCurrent() || state !== "data") {
+      clearSemanticWait();
+      return;
+    }
+    dispatchDiagnostic("semantic_not_ready", semanticAttempts);
+  }
+
+  function diagnoseRenderNotReady() {
+    scheduled = false;
+    if (!isCurrent() || state !== "data") return;
+    if (!isSemanticallyReady()) {
+      renderAttempts = 0;
+      scheduleSemanticWait();
+      return;
+    }
+    dispatchDiagnostic("render_not_ready", renderAttempts);
+  }
+
+  function scheduleSemanticWait() {
+    if (semanticTimer !== null || cancelled || emitted || diagnosed) return;
+    if (!isCurrent()) return;
+    if (isSemanticallyReady()) {
+      beginRenderFrames();
+      return;
+    }
+
+    if (semanticDeadline === 0) {
+      semanticDeadline = Date.now() + TERMINAL_SEMANTIC_READY_TIMEOUT_MS;
+    }
+    const remaining = semanticDeadline - Date.now();
+    if (remaining <= 0) {
+      diagnoseSemanticNotReady();
+      return;
+    }
+
+    semanticTimer = window.setTimeout(() => {
+      semanticTimer = null;
+      if (!isCurrent()) return;
+      if (isSemanticallyReady()) {
+        clearSemanticWait();
+        beginRenderFrames();
+        return;
+      }
+      semanticAttempts += 1;
+      if (Date.now() >= semanticDeadline) {
+        diagnoseSemanticNotReady();
+        return;
+      }
+      scheduleSemanticWait();
+    }, Math.min(TERMINAL_SEMANTIC_RECHECK_MS, remaining));
+  }
+
+  function emitReady() {
+    scheduled = false;
+    if (!isCurrent()) return;
+    if (!isSemanticallyReady()) {
+      scheduleSemanticWait();
+      return;
+    }
+    emitted = true;
+    clearSemanticWait();
+    window.dispatchEvent(new CustomEvent<TerminalVisualReadyDetail>(
+      TERMINAL_VISUAL_READY_EVENT,
+      { detail },
+    ));
+  }
+
+  function checkRendered() {
     if (!isCurrent()) { scheduled = false; return; }
     if (!isSemanticallyReady()) {
-      // Semantic readiness remains owner-driven. Stop without frame polling; that owner re-enters.
       scheduled = false;
       renderAttempts = 0;
+      scheduleSemanticWait();
       return;
     }
     if (hasRendered()) {
@@ -242,16 +330,18 @@ export function announceTerminalVisualReady(
     if (!isSemanticallyReady()) {
       scheduled = false;
       renderAttempts = 0;
+      scheduleSemanticWait();
       return;
     }
     scheduleFrame(checkRendered);
-  };
+  }
 
-  const renderThenCheck = () => {
+  function renderThenCheck() {
     if (!isCurrent()) { scheduled = false; return; }
     if (!isSemanticallyReady()) {
       scheduled = false;
       renderAttempts = 0;
+      scheduleSemanticWait();
       return;
     }
     projectVisuals();
@@ -259,16 +349,31 @@ export function announceTerminalVisualReady(
     if (!isSemanticallyReady()) {
       scheduled = false;
       renderAttempts = 0;
+      scheduleSemanticWait();
       return;
     }
     scheduleFrame(checkRendered);
-  };
+  }
 
-  const reevaluate = () => {
-    if (scheduled || !isCurrent() || !isSemanticallyReady()) return;
+  function beginRenderFrames() {
+    if (scheduled || !isCurrent()) return;
+    if (!isSemanticallyReady()) {
+      scheduleSemanticWait();
+      return;
+    }
+    clearSemanticWait();
     scheduled = true;
     renderAttempts = 0;
     scheduleFrame(renderThenCheck);
+  }
+
+  const reevaluate = () => {
+    if (!isCurrent()) return;
+    if (!isSemanticallyReady()) {
+      scheduleSemanticWait();
+      return;
+    }
+    beginRenderFrames();
   };
 
   const announcement = { reevaluate, cancel };
