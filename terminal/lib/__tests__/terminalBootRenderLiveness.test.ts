@@ -6,6 +6,7 @@ import {
 } from "../terminalBoot";
 
 afterEach(() => {
+  vi.useRealTimers();
   vi.unstubAllGlobals();
 });
 
@@ -23,6 +24,7 @@ function installWindow() {
       return frames.length;
     },
     setTimeout,
+    clearTimeout,
     dispatchEvent: (event: { type: string; detail: unknown }) => {
       emitted.push({ type: event.type, detail: event.detail });
       return true;
@@ -119,17 +121,19 @@ describe("Terminal visual-ready bounded render completion", () => {
     expect(detailsFor(emitted, TERMINAL_VISUAL_READY_DIAGNOSTIC_EVENT)).toHaveLength(1);
   });
 
-  it("does not poll render completion while the semantic owner is false", () => {
+  it("keeps render checks paused while a late semantic owner commits, then continues automatically", () => {
+    vi.useFakeTimers();
     const { frames, emitted } = installWindow();
     let semanticReady = false;
     let renderChecks = 0;
+    let projections = 0;
 
-    const pending = announceTerminalVisualReady("COST", "data", {
+    announceTerminalVisualReady("COST", "data", {
       timeframe: "D",
       generation: 35,
       isCurrent: () => true,
       isReady: () => semanticReady,
-      renderVisuals: () => {},
+      renderVisuals: () => { projections += 1; },
       isRendered: () => {
         renderChecks += 1;
         return true;
@@ -137,15 +141,59 @@ describe("Terminal visual-ready bounded render completion", () => {
     });
 
     expect(frames).toHaveLength(0);
+    vi.advanceTimersByTime(75);
+    expect(frames).toHaveLength(0);
     expect(renderChecks).toBe(0);
+    expect(projections).toBe(0);
+    expect(detailsFor(emitted, TERMINAL_VISUAL_READY_EVENT)).toEqual([]);
 
     semanticReady = true;
-    pending.reevaluate();
+    vi.advanceTimersByTime(25);
+    expect(frames).toHaveLength(1);
     drainFrames(frames);
 
     expect(renderChecks).toBe(1);
+    expect(projections).toBe(1);
     expect(detailsFor(emitted, TERMINAL_VISUAL_READY_EVENT)).toHaveLength(1);
     expect(detailsFor(emitted, TERMINAL_VISUAL_READY_DIAGNOSTIC_EVENT)).toEqual([]);
+  });
+
+  it("diagnoses and stops a semantic owner that never becomes authoritative", () => {
+    vi.useFakeTimers();
+    const { frames, emitted } = installWindow();
+    let renderChecks = 0;
+
+    const pending = announceTerminalVisualReady("COST", "data", {
+      timeframe: "D",
+      generation: 36,
+      isCurrent: () => true,
+      isReady: () => false,
+      renderVisuals: () => {},
+      isRendered: () => {
+        renderChecks += 1;
+        return true;
+      },
+    });
+
+    vi.advanceTimersByTime(3_600);
+
+    expect(frames).toHaveLength(0);
+    expect(renderChecks).toBe(0);
+    expect(detailsFor(emitted, TERMINAL_VISUAL_READY_EVENT)).toEqual([]);
+    const diagnostics = detailsFor(emitted, TERMINAL_VISUAL_READY_DIAGNOSTIC_EVENT) as Array<Record<string, unknown>>;
+    expect(diagnostics).toHaveLength(1);
+    expect(diagnostics[0]).toMatchObject({
+      symbol: "COST",
+      timeframe: "D",
+      generation: 36,
+      state: "data",
+      code: "semantic_not_ready",
+    });
+    expect(Number(diagnostics[0]?.attempts)).toBeGreaterThan(0);
+
+    pending.reevaluate();
+    vi.advanceTimersByTime(100);
+    expect(detailsFor(emitted, TERMINAL_VISUAL_READY_DIAGNOSTIC_EVENT)).toHaveLength(1);
   });
 
   it("suppresses every later ready or diagnostic edge after cancellation or supersession", () => {
