@@ -4,6 +4,7 @@
  */
 
 export const TERMINAL_VISUAL_READY_EVENT = "mm:terminal-visual-ready";
+export const TERMINAL_VISUAL_READY_DIAGNOSTIC_EVENT = "mm:terminal-visual-ready-diagnostic";
 
 const DATA_FILE_SYMBOL_RE = /^[A-Z0-9^][A-Z0-9._=^+\-]{0,63}$/;
 
@@ -75,6 +76,15 @@ export type TerminalVisualReadyDetail = {
   state: "data" | "empty";
 };
 
+export type TerminalVisualReadyDiagnosticDetail = {
+  symbol: string;
+  timeframe: string;
+  generation: number;
+  state: "data";
+  code: "render_not_ready";
+  attempts: number;
+};
+
 export type TerminalVisualReadyIdentity = {
   timeframe: string;
   generation: number;
@@ -112,10 +122,15 @@ export type TerminalVisualReadyAnnouncement = {
 };
 
 /**
- * `setData()` updates the chart model synchronously, but the canvas is painted
- * later. Two animation frames make the dashboard reveal follow a real visual
- * frame instead of the earlier React-shell mount.
+ * The chart model and our SVG/DOM projection can each require a browser frame before coordinates
+ * exist. One fixed two-frame assumption lost valid generations under a loaded runner. After the
+ * semantic owners are current, permit a small finite continuation: each failed coordinate check
+ * re-projects the dependent visuals and yields another paint opportunity. Eight checks cover the
+ * normal chart/model + overlay paint handoff while remaining bounded well inside the existing
+ * five-second consumer gate. Exhaustion emits a typed diagnostic and never claims ready.
  */
+const TERMINAL_RENDER_MAX_ATTEMPTS = 8;
+
 export function announceTerminalVisualReady(
   symbol: string,
   state: TerminalVisualReadyDetail["state"] = "data",
@@ -123,61 +138,125 @@ export function announceTerminalVisualReady(
 ): TerminalVisualReadyAnnouncement {
   let cancelled = false;
   let emitted = false;
+  let diagnosed = false;
   let scheduled = false;
-  const cancel = () => { cancelled = true; };
+  let renderAttempts = 0;
+
+  const cancel = () => {
+    cancelled = true;
+    scheduled = false;
+  };
   const unavailable: TerminalVisualReadyAnnouncement = { reevaluate: () => {}, cancel };
   if (typeof window === "undefined") return unavailable;
+
   const detail: TerminalVisualReadyDetail = {
     symbol,
     timeframe: identity.timeframe,
     generation: identity.generation,
     state,
   };
+
   const isCurrent = () => {
-    if (cancelled || emitted) return false;
-    if (identity.isCurrent()) return true;
+    if (cancelled || emitted || diagnosed) return false;
+    try {
+      if (identity.isCurrent()) return true;
+    } catch {
+      // An unreadable identity cannot authorize a ready or diagnostic edge.
+    }
     cancelled = true;
+    scheduled = false;
     return false;
   };
-  const emit = () => {
+
+  const isSemanticallyReady = () => {
+    if (!identity.isReady) return true;
+    try { return identity.isReady(); } catch { return false; }
+  };
+
+  const projectVisuals = () => {
+    try { identity.renderVisuals?.(); } catch { /* bounded checks diagnose persistent failure */ }
+  };
+
+  const hasRendered = () => {
+    if (!identity.isRendered) return true;
+    try { return identity.isRendered(); } catch { return false; }
+  };
+
+  const scheduleFrame = (callback: FrameRequestCallback) => {
+    if (typeof window.requestAnimationFrame === "function") {
+      window.requestAnimationFrame(callback);
+      return;
+    }
+    window.setTimeout(() => callback(0), 0);
+  };
+
+  const emitReady = () => {
     scheduled = false;
-    if (!isCurrent()) return;
-    if (identity.isReady && !identity.isReady()) return;
-    if (identity.isRendered && !identity.isRendered()) return;
+    if (!isCurrent() || !isSemanticallyReady()) return;
     emitted = true;
     window.dispatchEvent(new CustomEvent<TerminalVisualReadyDetail>(
       TERMINAL_VISUAL_READY_EVENT,
       { detail },
     ));
   };
-  const renderThenEmit = () => {
-    if (!isCurrent()) { scheduled = false; return; }
-    if (identity.isReady && !identity.isReady()) {
-      // React/data/indicator ownership, not elapsed frames, makes this true.
-      // Stop here; that owner calls reevaluate() when its state commits.
-      scheduled = false;
-      return;
-    }
-    identity.renderVisuals?.();
-    window.requestAnimationFrame(emit);
+
+  const diagnoseRenderNotReady = () => {
+    scheduled = false;
+    if (!isCurrent() || !isSemanticallyReady() || state !== "data") return;
+    diagnosed = true;
+    const diagnostic: TerminalVisualReadyDiagnosticDetail = {
+      symbol,
+      timeframe: identity.timeframe,
+      generation: identity.generation,
+      state: "data",
+      code: "render_not_ready",
+      attempts: renderAttempts,
+    };
+    window.dispatchEvent(new CustomEvent<TerminalVisualReadyDiagnosticDetail>(
+      TERMINAL_VISUAL_READY_DIAGNOSTIC_EVENT,
+      { detail: diagnostic },
+    ));
   };
-  const reevaluate = () => {
-    if (scheduled || !isCurrent()) return;
-    if (identity.isReady && !identity.isReady()) return;
-    scheduled = true;
-    if (typeof window.requestAnimationFrame === "function") {
-      window.requestAnimationFrame(renderThenEmit);
+
+  const checkRendered = () => {
+    if (!isCurrent()) { scheduled = false; return; }
+    if (!isSemanticallyReady()) {
+      // Semantic readiness remains owner-driven. Stop without frame polling; that owner re-enters.
+      scheduled = false;
+      renderAttempts = 0;
       return;
     }
-    window.setTimeout(() => {
-      if (!isCurrent()) { scheduled = false; return; }
-      if (identity.isReady && !identity.isReady()) {
-        scheduled = false;
-        return;
-      }
-      identity.renderVisuals?.();
-      emit();
-    }, 0);
+    if (hasRendered()) {
+      emitReady();
+      return;
+    }
+
+    renderAttempts += 1;
+    if (renderAttempts >= TERMINAL_RENDER_MAX_ATTEMPTS) {
+      diagnoseRenderNotReady();
+      return;
+    }
+
+    projectVisuals();
+    scheduleFrame(checkRendered);
+  };
+
+  const renderThenCheck = () => {
+    if (!isCurrent()) { scheduled = false; return; }
+    if (!isSemanticallyReady()) {
+      scheduled = false;
+      renderAttempts = 0;
+      return;
+    }
+    projectVisuals();
+    scheduleFrame(checkRendered);
+  };
+
+  const reevaluate = () => {
+    if (scheduled || !isCurrent() || !isSemanticallyReady()) return;
+    scheduled = true;
+    renderAttempts = 0;
+    scheduleFrame(renderThenCheck);
   };
 
   const announcement = { reevaluate, cancel };
