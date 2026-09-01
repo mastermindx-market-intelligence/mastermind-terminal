@@ -238,6 +238,12 @@ export function announceTerminalVisualReady(
     }
 
     projectVisuals();
+    if (!isCurrent()) { scheduled = false; return; }
+    if (!isSemanticallyReady()) {
+      scheduled = false;
+      renderAttempts = 0;
+      return;
+    }
     scheduleFrame(checkRendered);
   };
 
@@ -249,6 +255,12 @@ export function announceTerminalVisualReady(
       return;
     }
     projectVisuals();
+    if (!isCurrent()) { scheduled = false; return; }
+    if (!isSemanticallyReady()) {
+      scheduled = false;
+      renderAttempts = 0;
+      return;
+    }
     scheduleFrame(checkRendered);
   };
 
