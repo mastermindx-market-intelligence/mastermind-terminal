@@ -112,10 +112,13 @@ export default function AppShell({
           <SettingsButton email={email} />
         </header>
         <AppNav />
-        {children}
         {/* /analysis owns exact-source attachment UI but previously had no Brain host.
             Reuse the existing document singleton here; chart routes do not compose
-            AppShell and keep their sole TerminalShell -> BrainWidget mount. */}
+            AppShell and keep their sole TerminalShell -> BrainWidget mount.
+            Rendered BEFORE {children}: BrainWidget returns null (no DOM/layout effect),
+            but mounting it first means MM_BRAIN_CFG exists on window before any sibling
+            child's effects run, so a child that reads the singleton on mount never races
+            its own creation. */}
         {path.startsWith("/analysis") && (
           <BrainWidget
             active=""
@@ -124,6 +127,7 @@ export default function AppShell({
             onAuthRequired={requireBrainShellAuth}
           />
         )}
+        {children}
       </div>
       </SettingsProvider>
       </OnboardingProvider>

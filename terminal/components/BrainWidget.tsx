@@ -123,6 +123,10 @@ export default function BrainWidget({
     if (document.querySelector(`script[src="${SCRIPT_SRC}"]`)) return;
 
     w.MM_BRAIN_CFG = {
+      // Load-bearing invariant: the anchor:'top' build renders no launcher chrome of its
+      // own, so on /analysis (which mounts this widget with no visible dock) the ONLY
+      // panel entry point is a host-driven window.MMBrain.open()/.toggle() call from an
+      // attach/open affordance elsewhere in the page — there is no fallback UI here.
       anchor: "top", // no built-in launcher; host calls window.MMBrain.open()/.toggle()
       api: "", // same-origin — /api/brain/* with credentials:'include'
       symbol: () => w.__MM_BRAIN_ACTIVE_SYMBOL__ || symRef.current,
