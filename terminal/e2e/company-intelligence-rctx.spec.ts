@@ -95,7 +95,7 @@ const sourceSpan = {
   },
 };
 
-test("the real Analysis shell hosts one-turn exact source sends in the existing Brain", async ({ page }, testInfo) => {
+test("the real Analysis shell hosts one-turn exact source sends in the existing Brain", async ({ page }) => {
   await page.route(BRAIN_SCRIPT_SRC, async (route) => route.fulfill({
     contentType: "application/javascript",
     body: `(() => {
@@ -213,51 +213,39 @@ test("the real Analysis shell hosts one-turn exact source sends in the existing 
   expect(await page.evaluate(() => (window as unknown as { __MM_BRAIN_TEST_SENDS__?: unknown[] }).__MM_BRAIN_TEST_SENDS__))
     .toEqual([null, firstTurnSource, null, secondTurnSource]);
 
-  // Hosted-load mitigation (2026-09-02): the in-app-nav leg below is gated to the desktop
-  // project only. Hosted CI went 4/4 red at this head with a growing/shifting set of
-  // chart-render timeouts (crosshair-price-label:216 now failing on all three projects) while
-  // the same suite proved 574/0 locally cold and was green at the parent head. This leg mounts
-  // a full /terminal chart on top of the already-mounted /analysis page, on all three projects
-  // — three extra concurrent heavy chart renders that plausibly tip marginal hosted runners.
-  // The singleton/rebind semantics this leg exists to gate are viewport-independent, so a
-  // desktop-only run preserves the review-required discriminator while cutting two of the
-  // three added chart loads. This is a hypothesis-testing mitigation for hosted capacity, not
-  // a coverage retreat — the leg's assertions are unchanged and still run in full on desktop.
-  if (testInfo.project.name === "desktop") {
-    // Review repair 2a: a client-side navigation away from /analysis (via the real nav "Chart"
-    // link, NOT page.goto — this is a genuine App Router transition, not a fresh document load)
-    // must reuse the SAME document-level Brain script rather than spawning a second one, and must
-    // re-bind the singleton's symbol getter to the chart's own active symbol rather than leaving it
-    // on the Analysis mount's "" stub (AppShell mounts BrainWidget with active=""). Below 860px
-    // (tablet/mobile projects) AppNav itself is `display:none` (globals.css) and MobileNav's
-    // hamburger + drawer is the real entry point instead — same TOP list (AppNav.tsx), same href.
-    const appNavChart = page.getByRole("navigation", { name: "Primary" }).getByRole("link", { name: "Chart" });
-    if (await appNavChart.isVisible()) {
-      await appNavChart.click();
-    } else {
-      // PRODUCT FINDING (pre-existing, not caused by this repair or by BrainWidget/AppShell —
-      // see the review-repair report): on THIS page, `.fin-pane--workspace` (the Company
-      // Intelligence workspace pane) is `position:fixed; top:0` covering the full viewport,
-      // which visually and pointer-wise overlaps AppShell's `.mobilebar` hamburger at <=860px
-      // (globals.css breakpoint) even though the hamburger is later in paint order. A plain
-      // click on the real "Menu" button times out here with "<div class='fin-head'>...
-      // intercepts pointer events". Reaching the real MobileNav drawer link therefore needs a
-      // programmatic .click() on the actual button element (bypasses hit-testing, still fires
-      // the real React onClick -> setDrawer(true) -> the real <Link href="/terminal">), not a
-      // synthetic navigation of our own.
-      await page.getByRole("button", { name: "Menu" }).evaluate((el: HTMLElement) => el.click());
-      await page.locator(".m-nav").getByRole("link", { name: "Chart" }).click();
-    }
-    await expect(page).toHaveURL(/\/terminal(?:\?.*)?$/);
-    await expect(page.locator(`script[src="${BRAIN_SCRIPT_SRC}"]`)).toHaveCount(1);
-    await expect.poll(() =>
-      page.evaluate(() => (window as unknown as { MM_BRAIN_CFG?: { symbol?: () => string } }).MM_BRAIN_CFG?.symbol?.())
-    ).toBe("NVDA");
-
-    // Review repair 2b: final re-assertion of the script-count invariant, at the very end of the
-    // journey (analysis mount -> two turns -> in-app nav to the chart).
-    await expect(page.locator(`script[src="${BRAIN_SCRIPT_SRC}"]`)).toHaveCount(1);
+  // Review repair 2a: a client-side navigation away from /analysis (via the real nav "Chart"
+  // link, NOT page.goto — this is a genuine App Router transition, not a fresh document load)
+  // must reuse the SAME document-level Brain script rather than spawning a second one, and must
+  // re-bind the singleton's symbol getter to the chart's own active symbol rather than leaving it
+  // on the Analysis mount's "" stub (AppShell mounts BrainWidget with active=""). Below 860px
+  // (tablet/mobile projects) AppNav itself is `display:none` (globals.css) and MobileNav's
+  // hamburger + drawer is the real entry point instead — same TOP list (AppNav.tsx), same href.
+  const appNavChart = page.getByRole("navigation", { name: "Primary" }).getByRole("link", { name: "Chart" });
+  if (await appNavChart.isVisible()) {
+    await appNavChart.click();
+  } else {
+    // PRODUCT FINDING (pre-existing, not caused by this repair or by BrainWidget/AppShell —
+    // see the review-repair report): on THIS page, `.fin-pane--workspace` (the Company
+    // Intelligence workspace pane) is `position:fixed; top:0` covering the full viewport,
+    // which visually and pointer-wise overlaps AppShell's `.mobilebar` hamburger at <=860px
+    // (globals.css breakpoint) even though the hamburger is later in paint order. A plain
+    // click on the real "Menu" button times out here with "<div class='fin-head'>...
+    // intercepts pointer events". Reaching the real MobileNav drawer link therefore needs a
+    // programmatic .click() on the actual button element (bypasses hit-testing, still fires
+    // the real React onClick -> setDrawer(true) -> the real <Link href="/terminal">), not a
+    // synthetic navigation of our own.
+    await page.getByRole("button", { name: "Menu" }).evaluate((el: HTMLElement) => el.click());
+    await page.locator(".m-nav").getByRole("link", { name: "Chart" }).click();
   }
+  await expect(page).toHaveURL(/\/terminal(?:\?.*)?$/);
+  await expect(page.locator(`script[src="${BRAIN_SCRIPT_SRC}"]`)).toHaveCount(1);
+  await expect.poll(() =>
+    page.evaluate(() => (window as unknown as { MM_BRAIN_CFG?: { symbol?: () => string } }).MM_BRAIN_CFG?.symbol?.())
+  ).toBe("NVDA");
+
+  // Review repair 2b: final re-assertion of the script-count invariant, at the very end of the
+  // journey (analysis mount -> two turns -> in-app nav to the chart).
+  await expect(page.locator(`script[src="${BRAIN_SCRIPT_SRC}"]`)).toHaveCount(1);
 });
 
 test("Analysis adopts an existing document Brain host without racing a second widget script", async ({ page }) => {
