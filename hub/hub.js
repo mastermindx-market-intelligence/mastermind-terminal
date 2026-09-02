@@ -3,7 +3,12 @@
 //
 // Contract §2: 127.0.0.1:3100 only, own systemd unit, auto-restart.
 //   GET /health  → feed states + map size + manifest mtime
-//   GET /quotes?syms=CSV → {SYM:{...quote…}} (present entries only)
+//   GET /quotes?syms=CSV[&view=full|regular] → {SYM:{...quote…}} (present entries only)
+//     view is a CLOSED vocabulary (Reactive Projection R1A-T): missing view is exactly
+//     full; view=regular preserves SnapshotFeed/Polygon/AnchorCache demand but spends
+//     zero ExtFeed demand and strips every ext* field from every row; unknown, blank,
+//     repeated or conflicting view is HTTP 400. See lib/quotes.js::parseQuoteView /
+//     handleQuotesRequest.
 // Never public; Next routes proxy it.
 //
 // Feeds v1:
@@ -40,8 +45,10 @@ const {
   classify,
   isMacroSymbol,
   isDailyOnlySymbol,
+  parseQuoteView,
   applyDemand,
   buildQuotesResponse,
+  handleQuotesRequest,
 } = require("./lib/quotes");
 
 const HOST = "127.0.0.1";
@@ -56,6 +63,10 @@ const DATA_DIR =
 
 const DISABLE_US = process.env.HUB_DISABLE_US === "1";
 const DISABLE_CRYPTO = process.env.HUB_DISABLE_CRYPTO === "1";
+// Optional deployment-identity marker for /health (R1A-T Task T3's running-commit proof).
+// Unset in every environment today; the deploy path may later export it. Defaults to null
+// so /health's shape is additive-only until that lands.
+const HUB_GIT_SHA = process.env.HUB_GIT_SHA || null;
 // Extended-hours feed (ext fields on US quotes outside RTH).
 // Kill-switch: EXT_FEED_DISABLE=1. Requires ALPACA_API_KEY + ALPACA_API_SECRET for ws leg;
 // falls back to Yahoo unofficial REST polling if keys absent.
@@ -153,6 +164,10 @@ function handleHealth(res) {
   sendJSON(res, 200, {
     ok: !!ok,
     port: PORT,
+    // Deployment-identity seam for R1A-T Task T3's post-deploy proof (verify the running
+    // commit before/after the ExtFeed-LRU no-effect canary). Read once at boot from the env;
+    // null when unset so this stays a no-op until the deploy path is updated to export it.
+    build: HUB_GIT_SHA,
     quotes: store.quotes.size,
     manifest: {
       path: MANIFEST_PATH,
@@ -175,31 +190,32 @@ function handleHealth(res) {
 }
 
 function handleQuotes(res, url) {
-  const raw = url.searchParams.get("syms") || "";
-  let syms = raw.split(",").map((s) => s.trim()).filter(Boolean);
-  if (syms.length === 0) return sendJSON(res, 200, {});
-  if (syms.length > MAX_SYMS_PER_REQUEST) syms = syms.slice(0, MAX_SYMS_PER_REQUEST);
-
   // Lazily refresh manifest (rate-limited internally).
   store.loadManifestIfStale(false);
 
   const now = Date.now();
 
-  // Demand pass (routing lives in lib/quotes.js so it can be unit-tested).
+  // Routing (daily-only/macro/us — see lib/quotes.js), the closed view=full|regular
+  // vocabulary, the demand pass, and response assembly all live in
+  // lib/quotes.js::handleQuotesRequest so the whole endpoint contract — including the
+  // view-parse-before-empty-syms ordering and the includeExtended wiring — is
+  // unit-testable without booting this HTTP server / feed timers. This IS the real
+  // wiring, not a parallel implementation: hub.js calls it and nothing else.
   //   daily-only → nothing at all. A FRED series id must never reach polygon.ensureSubscribed /
   //                anchorCache.resolve / extFeed.demand / macroFeed.demand: no leg carries it,
   //                and each one would spend a globally-shared LRU slot on a once-a-day print.
   //   macro      → MacroFeed only (Polygon has no futures/index/FX entitlement here, and the
   //                AnchorCache has no daily file for them).
-  //   us         → Polygon sub + warm the anchor cache + ext LRU tracking.
-  applyDemand(syms, now, {
-    polygon, anchorCache, extFeed, macroFeed, snapshotFeed, disableUS: DISABLE_US,
-  });
-
-  // macro → served from MacroFeed; crypto/us → served from the Store; cn/hk/ca → absent.
-  // Response contract is unchanged: a flat { SYM: quote } object, present entries only.
-  const out = buildQuotesResponse(syms, now, { store, macroFeed, extFeed, snapshotFeed });
-  sendJSON(res, 200, out);
+  //   us         → Polygon sub + warm the anchor cache + ext LRU tracking (view=full only —
+  //                view=regular never spends an ExtFeed demand slot, and its response never
+  //                carries an ext* field, even from a legacy Store row).
+  const { status, body } = handleQuotesRequest(
+    url.searchParams,
+    now,
+    { store, polygon, anchorCache, extFeed, macroFeed, snapshotFeed, disableUS: DISABLE_US },
+    MAX_SYMS_PER_REQUEST
+  );
+  sendJSON(res, status, body);
 }
 
 const server = http.createServer((req, res) => {
@@ -296,4 +312,12 @@ boot();
 
 // Re-exported for test harnesses; the implementations live in lib/quotes.js because
 // requiring this file boots the HTTP server and every feed timer.
-module.exports = { classify, isMacroSymbol, isDailyOnlySymbol, applyDemand, buildQuotesResponse };
+module.exports = {
+  classify,
+  isMacroSymbol,
+  isDailyOnlySymbol,
+  parseQuoteView,
+  applyDemand,
+  buildQuotesResponse,
+  handleQuotesRequest,
+};

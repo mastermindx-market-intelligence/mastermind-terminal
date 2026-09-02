@@ -63,6 +63,27 @@ function classify(sym) {
 }
 
 /**
+ * Parse the closed `view` query vocabulary (spec §5.2/§5.4, R1A-T).
+ *
+ * `full` is the ONLY default — an absent value is exactly `full`. Anything else that is
+ * not the single literal "full" or "regular" (unknown, blank, repeated, conflicting, or a
+ * non-array caller) is refused with `null` so hub.js can answer HTTP 400 with an opaque
+ * error. This must run — and be validated — before syms are parsed, so a request with an
+ * invalid view is rejected even when `syms` is empty.
+ *
+ * @param {unknown} rawValues  `url.searchParams.getAll("view")` — an array of every
+ *                              repeated `view=` value on the query string.
+ * @returns {"full"|"regular"|null}
+ */
+function parseQuoteView(rawValues) {
+  if (!Array.isArray(rawValues)) return null;
+  if (rawValues.length === 0) return "full";
+  if (rawValues.length !== 1) return null;
+  const value = String(rawValues[0] || "").trim().toLowerCase();
+  return value === "full" || value === "regular" ? value : null;
+}
+
+/**
  * Run the per-request DEMAND pass: subscribe/warm every leg that will be asked to answer.
  *
  * Lives here rather than in hub.js so the routing it encodes is unit-testable — requiring
@@ -76,9 +97,14 @@ function classify(sym) {
  * @param {object} [deps.extFeed]      ExtFeed (US only)
  * @param {object} [deps.macroFeed]    MacroFeed (macro only)
  * @param {boolean} [deps.disableUS]   HUB_DISABLE_US
+ * @param {object} [options]
+ * @param {boolean} [options.includeExtended]  Default true (existing `full` behavior).
+ *   `false` (`view=regular`) skips `extFeed.demand()` entirely, in every session — this
+ *   branch is NOT clock-gated. SnapshotFeed/Polygon/AnchorCache demand is unaffected.
  */
-function applyDemand(syms, nowMs, deps = {}) {
+function applyDemand(syms, nowMs, deps = {}, options = {}) {
   const { polygon, anchorCache, extFeed, macroFeed, snapshotFeed, disableUS } = deps;
+  const includeExtended = options.includeExtended !== false;
   if (!Array.isArray(syms)) return;
   for (const sym of syms) {
     // Daily-only FRED series have NO leg here: not Polygon (no such ticker), not the ext feed
@@ -95,14 +121,18 @@ function applyDemand(syms, nowMs, deps = {}) {
     // The REST snapshot leg is demanded for EVERY US symbol, independent of the Polygon
     // WebSocket's health and of `disableUS`: it is precisely the symbols the stream is not
     // carrying — idle-swept, LRU-evicted, or never yet delivered a bar — that would
-    // otherwise fall back to the nightly manifest and show the previous session.
+    // otherwise fall back to the nightly manifest and show the previous session. It also
+    // runs unconditionally of `includeExtended` — view=regular still needs a regular-session
+    // print.
     if (snapshotFeed) snapshotFeed.demand(sym, nowMs);
     if (disableUS || !polygon || !polygon.isHealthy()) continue;
     polygon.ensureSubscribed(sym);
     // Fire-and-forget: resolve the anchor so the cache is warm for the next request.
     if (anchorCache) anchorCache.resolve(sym, nowMs).catch(() => {});
-    // Demand ext subscription (LRU tracking, no-op when the feed is disabled or in RTH).
-    if (extFeed) extFeed.demand(sym);
+    // Demand ext subscription (LRU tracking, no-op when the feed is disabled or in RTH) —
+    // but NEVER for view=regular: this is the first of the two closure boundaries. A public
+    // 60s regular-view poll over up to 58 names must not churn the shared 30-slot ExtFeed LRU.
+    if (includeExtended && extFeed) extFeed.demand(sym);
   }
 }
 
@@ -115,10 +145,19 @@ function applyDemand(syms, nowMs, deps = {}) {
  * @param {object} [deps.store]      Store instance (crypto + us)
  * @param {object} [deps.macroFeed]  MacroFeed instance
  * @param {object} [deps.extFeed]    ExtFeed instance, forwarded to store.getQuotes
+ * @param {object} [options]
+ * @param {boolean} [options.includeExtended]  Default true (existing `full` behavior).
+ *   `false` (`view=regular`) is the SECOND closure boundary: `extFeed` is never forwarded
+ *   to `store.getQuotes` (so the Store cannot merge a fresh ext read), AND every `ext*` key
+ *   is stripped from every row of the assembled response in one final pass — including a
+ *   legacy/poisoned Store row that already carried ext* keys from an earlier full-view
+ *   request. The strip runs AFTER both the Store and macroFeed legs have joined `out`, and
+ *   copies rather than mutates rows the Store may hold shared references to.
  * @returns {Object<string,object>} flat { SYM: quote }
  */
-function buildQuotesResponse(syms, nowMs, deps = {}) {
+function buildQuotesResponse(syms, nowMs, deps = {}, options = {}) {
   const { store, macroFeed, extFeed, snapshotFeed } = deps;
+  const includeExtended = options.includeExtended !== false;
   const out = {};
   if (!Array.isArray(syms) || syms.length === 0) return out;
 
@@ -137,7 +176,10 @@ function buildQuotesResponse(syms, nowMs, deps = {}) {
   }
 
   if (store && storeSyms.length) {
-    const served = store.getQuotes(storeSyms, nowMs, extFeed, snapshotFeed);
+    // view=regular passes `null` in place of extFeed: the Store never attempts an ext
+    // read/merge for this request (closure boundary 1 on the response side — boundary 1
+    // on the demand side is applyDemand's `includeExtended && extFeed` guard above).
+    const served = store.getQuotes(storeSyms, nowMs, includeExtended ? extFeed : null, snapshotFeed);
     for (const sym of Object.keys(served)) out[sym] = served[sym];
   }
 
@@ -148,7 +190,62 @@ function buildQuotesResponse(syms, nowMs, deps = {}) {
     for (const sym of Object.keys(served)) out[sym] = served[sym];
   }
 
+  if (!includeExtended) {
+    // Closure boundary 2: strip every ext* key from every row, unconditionally — this is
+    // the FINAL pass over `out`, after every leg (Store + macroFeed) has joined, so it
+    // catches a legacy Store row that already carries ext* keys even though no ExtFeed was
+    // ever consulted for this request. Copy rather than mutate: `out[sym]` may be a
+    // reference the Store persists internally (store.quotes.set(sym, fresh)).
+    for (const sym of Object.keys(out)) {
+      const row = out[sym];
+      const clean = {};
+      for (const key of Object.keys(row)) {
+        if (!key.startsWith("ext")) clean[key] = row[key];
+      }
+      out[sym] = clean;
+    }
+  }
+
   return out;
+}
+
+const MAX_SYMS_PER_REQUEST_DEFAULT = Infinity;
+
+/**
+ * Route + assemble one GET /quotes request end-to-end — the endpoint-level seam.
+ *
+ * Lives here rather than in hub.js for exactly the same reason applyDemand/
+ * buildQuotesResponse do: requiring hub.js boots an HTTP server and every feed timer, so
+ * hub.js can never be required by a test. hub.js's handleQuotes() is a thin wrapper that
+ * extracts the raw URLSearchParams and calls this — nothing else — so this IS the real
+ * wiring a production request runs, not a parallel test-only reimplementation. That is
+ * what lets a mutation to the view-vocabulary dispatch (e.g. "unknown view silently
+ * becomes full", "default view becomes regular") be caught by a test that never boots a
+ * server or opens a socket (spec §5.5's mandatory endpoint-level coverage).
+ *
+ * View is parsed and validated BEFORE the empty-syms early return, so
+ * `?syms=&view=bogus` is HTTP 400, never an empty 200.
+ *
+ * @param {URLSearchParams} searchParams
+ * @param {number} nowMs
+ * @param {object} deps    forwarded verbatim to applyDemand/buildQuotesResponse
+ * @param {number} [maxSyms]  symbol-count cap (hub.js's MAX_SYMS_PER_REQUEST); requests
+ *   over the cap are truncated, matching the pre-existing hub.js behavior.
+ * @returns {{status:number, body:object}}
+ */
+function handleQuotesRequest(searchParams, nowMs, deps = {}, maxSyms = MAX_SYMS_PER_REQUEST_DEFAULT) {
+  const view = parseQuoteView(searchParams.getAll("view"));
+  if (view == null) return { status: 400, body: { error: "invalid view" } };
+  const options = { includeExtended: view === "full" };
+
+  const raw = searchParams.get("syms") || "";
+  let syms = raw.split(",").map((s) => s.trim()).filter(Boolean);
+  if (syms.length === 0) return { status: 200, body: {} };
+  if (syms.length > maxSyms) syms = syms.slice(0, maxSyms);
+
+  applyDemand(syms, nowMs, deps, options);
+  const out = buildQuotesResponse(syms, nowMs, deps, options);
+  return { status: 200, body: out };
 }
 
 module.exports = {
@@ -156,6 +253,8 @@ module.exports = {
   isMacroSymbol,
   isDailyOnlySymbol,
   DAILY_ONLY,
+  parseQuoteView,
   applyDemand,
   buildQuotesResponse,
+  handleQuotesRequest,
 };

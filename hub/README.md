@@ -43,6 +43,7 @@ Env vars come from `/opt/terminal/.env` (EnvironmentFile in the unit):
 | `WEBULL_DISABLE` | optional | set to `1` to disable **only** the Webull ext leg (Alpaca + Yahoo legs unaffected) |
 | `MACRO_FEED_DISABLE` | optional | set to `1` to disable the macro feed — futures/indices/FX drop out of `/quotes` entirely |
 | `HUB_DISABLE_SNAPSHOT` | optional | set to `1` to disable the REST snapshot leg (reverts to exactly the pre-2026-08-07 behaviour — symbols the stream is not carrying fall back to the nightly manifest) |
+| `HUB_GIT_SHA` | optional | commit/build identity, read once at boot and echoed on `GET /health` as `build`. `null` when unset (every environment today). Deployment-identity seam for the R1A-T Task T3 post-deploy running-commit proof — the deploy path may later export it; nothing else consumes it |
 | `HUB_REALTIME_QUOTES` | optional | set to `1` to put the snapshot leg in **real-time mode**: 8s poll (vs 60s) and a `lastTrade` parse. Requires the Massive "Stocks Advanced" plan; **US STOCKS ONLY** — no index/futures/FX/crypto entitlement. **Also gates the Terminal's second-resolution bar band** (`/api/intraday` refuses `1s/5s/15s/30s` unless this is set, and the timeframe picker renders the Seconds group disabled to match) — one lever for everything real-time-derived, so the pending anonymous-vs-sign-in ruling has a single switch to land on. Set `HUB_POLYGON_CLUSTER=live` as well to feed each open chart the official `A.*` per-second OHLC stream; otherwise the snapshot lane remains the freshest source. See below |
 
 Both new feeds are **keyless**: no credentials are required for the Sina, Yahoo-spark or
@@ -306,10 +307,10 @@ ts, live, source, market: "macro", basis
 
 ```
 GET /health
-→ { ok, port, quotes, manifest:{path,mtime,symbols}, anchorCache:{size,dataDir},
+→ { ok, port, build, quotes, manifest:{path,mtime,symbols}, anchorCache:{size,dataDir},
     cryptoPrimary, coinbase, okx, polygon, extFeed, macroFeed, ts }
 
-GET /quotes?syms=NVDA,AAPL,BTC-USD,CL=F,^GSPC
+GET /quotes?syms=NVDA,AAPL,BTC-USD,CL=F,^GSPC[&view=full|regular]
 → { NVDA: { sym, last, chg, prevClose, close?, afterHours?, open, high, low, vol,
              ts, live, source, market, basis, anchor_source, stale_anchor?,
              extPrice?, extChg?, extTs?, extSession?, extSource?, changeBasis?,
@@ -320,6 +321,48 @@ GET /quotes?syms=NVDA,AAPL,BTC-USD,CL=F,^GSPC
 The response is always a **flat `{ SYM: quote }` object carrying present entries only** —
 merging the macro feed did not change that contract. Symbols with no quote are simply absent
 (never `null`), and `cn`/`hk`/`ca` listings are still never served.
+
+`build` is the deployment-identity marker for the running commit — `HUB_GIT_SHA` read once
+at boot, `null` when the env var is unset (every environment today; see the deploy path
+before relying on it).
+
+### `view` — closed vocabulary (Reactive Projection R1A-T)
+
+`view` is a **closed** query parameter, not a free-form flag:
+
+```
+missing view          → exactly `full` (today's unchanged default behavior)
+view=full             → unchanged: SnapshotFeed + Polygon + AnchorCache + ExtFeed demand;
+                         response rows may carry ext* fields
+view=regular          → SnapshotFeed + Polygon + AnchorCache demand still run; ExtFeed.demand()
+                         is called ZERO times; the response never receives/uses ExtFeed and
+                         never carries an ext* field on any row, even when the Store holds a
+                         legacy row that already has one (e.g. from an earlier view=full
+                         request against the same symbol)
+anything else          → HTTP 400 with an opaque `{ error }` body — unknown, blank, repeated
+                         or conflicting `view=` values (`?view=all`, `?view=full&view=regular`,
+                         `?view=regular&view=regular`) are all refused, never silently
+                         defaulted
+```
+
+`view` is parsed and validated **before** the empty-`syms` early return, so
+`?syms=&view=bogus` is `400`, not an empty `200`.
+
+Regular view is closed at two boundaries, both load-bearing: (1) demand — `extFeed.demand()`
+is never called, so a public poll over the view never spends a slot in the shared 30-symbol
+ExtFeed LRU; (2) response — `extFeed` is never forwarded into `store.getQuotes`, AND a final
+pass strips every `ext*` key from every row immediately before the response is returned,
+independent of (1), so a Store row already poisoned with ext fields from a prior full-view
+request can never leak them back out under `view=regular`. See
+`lib/quotes.js::parseQuoteView` / `applyDemand` / `buildQuotesResponse` /
+`handleQuotesRequest`, and `tests/quotes.test.js` / `tests/quotes_http.test.js`.
+
+This closes the endpoint that Macro's Reactive Projection R1A-M batch route
+(`app/intelligence-hub-market-pulse`, macro repo) consumes — a 60-second poll over up to 58
+Intelligence Hub names must not churn extended-hours demand that belongs to interactive
+Terminal users. No second endpoint, feed, store, cache, scheduler, service or credential was
+added; `view=full` and a missing `view` remain byte-for-semantic compatible with every
+existing caller.
 
 `extFeed.health()` gained a `webull` block, and `/health` gained a top-level `macroFeed` block:
 
