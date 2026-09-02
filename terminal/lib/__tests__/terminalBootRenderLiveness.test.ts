@@ -1,4 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import {
   announceTerminalVisualReady,
   TERMINAL_VISUAL_READY_DIAGNOSTIC_EVENT,
@@ -39,7 +41,7 @@ function installWindow() {
   return { frames, emitted };
 }
 
-function drainFrames(frames: FrameRequestCallback[], limit = 64): void {
+function drainFrames(frames: FrameRequestCallback[], limit = 128): void {
   let frame = 0;
   while (frames.length && frame < limit) {
     frames.shift()!(frame * 16);
@@ -53,38 +55,38 @@ function detailsFor(emitted: EmittedEvent[], type: string): unknown[] {
 }
 
 describe("Terminal visual-ready bounded render completion", () => {
-  it("continues the current generation until delayed coordinates become valid, then emits once", () => {
+  it("continues a current multi-pane generation beyond the former eight-frame ceiling, then emits once", () => {
     const { frames, emitted } = installWindow();
     let renderChecks = 0;
     let projections = 0;
 
     const pending = announceTerminalVisualReady("COST", "data", {
-      timeframe: "D",
+      timeframe: "3D",
       generation: 31,
       isCurrent: () => true,
       isReady: () => true,
       renderVisuals: () => { projections += 1; },
       isRendered: () => {
         renderChecks += 1;
-        return renderChecks >= 4;
+        return renderChecks >= 24;
       },
     });
 
     drainFrames(frames);
 
     expect(detailsFor(emitted, TERMINAL_VISUAL_READY_EVENT)).toEqual([
-      { symbol: "COST", timeframe: "D", generation: 31, state: "data" },
+      { symbol: "COST", timeframe: "3D", generation: 31, state: "data" },
     ]);
     expect(detailsFor(emitted, TERMINAL_VISUAL_READY_DIAGNOSTIC_EVENT)).toEqual([]);
-    expect(renderChecks).toBe(4);
-    expect(projections).toBeGreaterThanOrEqual(1);
+    expect(renderChecks).toBe(24);
+    expect(projections).toBeGreaterThanOrEqual(24);
 
     pending.reevaluate();
     expect(frames).toHaveLength(0);
     expect(detailsFor(emitted, TERMINAL_VISUAL_READY_EVENT)).toHaveLength(1);
   });
 
-  it("emits one typed terminal diagnostic and stops when render completion never becomes true", () => {
+  it("emits one typed diagnostic after exactly the closed 64-check render budget", () => {
     const { frames, emitted } = installWindow();
     let renderChecks = 0;
 
@@ -111,9 +113,9 @@ describe("Terminal visual-ready bounded render completion", () => {
       generation: 33,
       state: "data",
       code: "render_not_ready",
-      attempts: renderChecks,
+      attempts: 64,
     });
-    expect(renderChecks).toBeGreaterThan(2);
+    expect(renderChecks).toBe(64);
     expect(frames).toHaveLength(0);
 
     pending.reevaluate();
@@ -121,14 +123,14 @@ describe("Terminal visual-ready bounded render completion", () => {
     expect(detailsFor(emitted, TERMINAL_VISUAL_READY_DIAGNOSTIC_EVENT)).toHaveLength(1);
   });
 
-  it("keeps render checks paused while a late semantic owner commits, then continues automatically", () => {
+  it("keeps semantic waiting completely owner-driven regardless of elapsed time", () => {
     vi.useFakeTimers();
     const { frames, emitted } = installWindow();
     let semanticReady = false;
     let renderChecks = 0;
     let projections = 0;
 
-    announceTerminalVisualReady("COST", "data", {
+    const pending = announceTerminalVisualReady("COST", "data", {
       timeframe: "D",
       generation: 35,
       isCurrent: () => true,
@@ -141,15 +143,16 @@ describe("Terminal visual-ready bounded render completion", () => {
     });
 
     expect(frames).toHaveLength(0);
-    vi.advanceTimersByTime(75);
+    vi.advanceTimersByTime(60_000);
+    pending.reevaluate();
     expect(frames).toHaveLength(0);
     expect(renderChecks).toBe(0);
     expect(projections).toBe(0);
     expect(detailsFor(emitted, TERMINAL_VISUAL_READY_EVENT)).toEqual([]);
+    expect(detailsFor(emitted, TERMINAL_VISUAL_READY_DIAGNOSTIC_EVENT)).toEqual([]);
 
     semanticReady = true;
-    vi.advanceTimersByTime(25);
-    expect(frames).toHaveLength(1);
+    pending.reevaluate();
     drainFrames(frames);
 
     expect(renderChecks).toBe(1);
@@ -158,42 +161,34 @@ describe("Terminal visual-ready bounded render completion", () => {
     expect(detailsFor(emitted, TERMINAL_VISUAL_READY_DIAGNOSTIC_EVENT)).toEqual([]);
   });
 
-  it("diagnoses and stops a semantic owner that never becomes authoritative", () => {
-    vi.useFakeTimers();
+  it("pauses a render chain when semantic authority is withdrawn and resumes only on owner reevaluation", () => {
     const { frames, emitted } = installWindow();
+    let semanticReady = true;
     let renderChecks = 0;
 
     const pending = announceTerminalVisualReady("COST", "data", {
       timeframe: "D",
       generation: 36,
       isCurrent: () => true,
-      isReady: () => false,
+      isReady: () => semanticReady,
       renderVisuals: () => {},
       isRendered: () => {
         renderChecks += 1;
-        return true;
+        return renderChecks >= 2;
       },
     });
 
-    vi.advanceTimersByTime(3_600);
-
+    frames.shift()!(0);
+    semanticReady = false;
+    frames.shift()!(16);
     expect(frames).toHaveLength(0);
-    expect(renderChecks).toBe(0);
     expect(detailsFor(emitted, TERMINAL_VISUAL_READY_EVENT)).toEqual([]);
-    const diagnostics = detailsFor(emitted, TERMINAL_VISUAL_READY_DIAGNOSTIC_EVENT) as Array<Record<string, unknown>>;
-    expect(diagnostics).toHaveLength(1);
-    expect(diagnostics[0]).toMatchObject({
-      symbol: "COST",
-      timeframe: "D",
-      generation: 36,
-      state: "data",
-      code: "semantic_not_ready",
-    });
-    expect(Number(diagnostics[0]?.attempts)).toBeGreaterThan(0);
+    expect(detailsFor(emitted, TERMINAL_VISUAL_READY_DIAGNOSTIC_EVENT)).toEqual([]);
 
+    semanticReady = true;
     pending.reevaluate();
-    vi.advanceTimersByTime(100);
-    expect(detailsFor(emitted, TERMINAL_VISUAL_READY_DIAGNOSTIC_EVENT)).toHaveLength(1);
+    drainFrames(frames);
+    expect(detailsFor(emitted, TERMINAL_VISUAL_READY_EVENT)).toHaveLength(1);
   });
 
   it("suppresses every later ready or diagnostic edge after cancellation or supersession", () => {
@@ -221,5 +216,16 @@ describe("Terminal visual-ready bounded render completion", () => {
     expect(detailsFor(emitted, TERMINAL_VISUAL_READY_DIAGNOSTIC_EVENT)).toEqual([]);
     pending.reevaluate();
     expect(frames).toHaveLength(0);
+  });
+
+  it("rejects elapsed-time semantic authority and pins the finite render budget", () => {
+    const source = readFileSync(path.resolve(process.cwd(), "lib", "terminalBoot.ts"), "utf8");
+
+    expect(source).toContain("TERMINAL_RENDER_MAX_ATTEMPTS = 64");
+    expect(source).not.toContain("TERMINAL_SEMANTIC_READY_TIMEOUT_MS");
+    expect(source).not.toContain("TERMINAL_SEMANTIC_RECHECK_MS");
+    expect(source).not.toContain("scheduleSemanticWait");
+    expect(source).not.toContain("semantic_not_ready");
+    expect(source).not.toContain("setInterval");
   });
 });
