@@ -109,7 +109,7 @@ describe("GET /api/theses", () => {
     const created = await made.json();
     const store = fixtureStore(H.key);
     store.theses[0].created_at = "2026-07-15T16:34:56+00:00";
-    store.theses[0].updated_at = "2026-07-15T12:34:56.120-04:00";
+    store.theses[0].updated_at = "2026-07-15T12:34:56.120456-04:00";
     store.thesisVersions[0].system_recorded_at = "2026-07-15T16:34:56.120456+00:00";
     store.thesisVersions[0].effective_at = "2026-07-15T12:34:56.789000-04:00";
 
@@ -118,7 +118,7 @@ describe("GET /api/theses", () => {
     expect((await response.json()).thesis).toMatchObject({
       id: created.thesisId,
       createdAt: "2026-07-15T16:34:56.000Z",
-      updatedAt: "2026-07-15T16:34:56.120Z",
+      updatedAt: "2026-07-15T16:34:56.120456Z",
       current: {
         effectiveAt: "2026-07-15T16:34:56.789Z",
         systemRecordedAt: "2026-07-15T16:34:56.120456Z",

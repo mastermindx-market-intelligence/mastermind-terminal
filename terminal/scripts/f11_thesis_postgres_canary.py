@@ -19,9 +19,10 @@ USER_A = "10000000-0000-4000-8000-000000000001"
 USER_B = "10000000-0000-4000-8000-000000000002"
 MISSING_THESIS = "20000000-0000-4000-8000-000000000099"
 FUNCTION_SIGNATURE = (
-    "public.apply_thesis_version_v1(uuid,integer,text,jsonb,jsonb,uuid,timestamptz)"
+    "public.apply_thesis_version_v1(uuid,integer,text,jsonb,jsonb,uuid,text)"
 )
 READ_FUNCTION_SIGNATURE = "public.read_current_thesis_versions_v1(uuid[],integer[])"
+EFFECTIVE_AT_FROM_CONTENT = object()
 
 
 class Proof:
@@ -87,12 +88,16 @@ def rpc_on_connection(
     thesis_subject: dict[str, Any],
     thesis_content: Any,
     request_id: str,
+    effective_at_argument: str | None | object = EFFECTIVE_AT_FROM_CONTENT,
 ) -> dict[str, Any]:
+    effective_at = (
+        thesis_content.get("effective_at") if isinstance(thesis_content, dict) else None
+    ) if effective_at_argument is EFFECTIVE_AT_FROM_CONTENT else effective_at_argument
     row = connection.execute(
         """
         select status, thesis_id, version, current_version, lifecycle_state, replayed
         from public.apply_thesis_version_v1(
-          %s::uuid, %s::integer, %s::text, %s::jsonb, %s::jsonb, %s::uuid, %s::timestamptz
+          %s::uuid, %s::integer, %s::text, %s::jsonb, %s::jsonb, %s::uuid, %s::text
         )
         """,
         (
@@ -102,7 +107,7 @@ def rpc_on_connection(
             json.dumps(thesis_subject, separators=(",", ":")),
             json.dumps(thesis_content, separators=(",", ":")),
             request_id,
-            thesis_content.get("effective_at") if isinstance(thesis_content, dict) else None,
+            effective_at,
         ),
     ).fetchone()
     if row is None:
@@ -453,6 +458,131 @@ def prove_exact_pair_read(
         [],
         "read_rpc_input_bound",
     )
+    original_clock = admin_value(database_url, "select updated_at from public.theses where id = %s", (cas_id,))
+    with psycopg.connect(database_url, autocommit=True) as connection:
+        connection.execute(
+            "update public.theses set updated_at = updated_at + interval '1 microsecond' where id = %s",
+            (cas_id,),
+        )
+    proof.equal(read_current_versions(database_url, USER_A, [cas_id], [2]), [], "read_rpc_clock_mismatch_excluded")
+    with psycopg.connect(database_url, autocommit=True) as connection:
+        connection.execute("update public.theses set updated_at = %s where id = %s", (original_clock, cas_id))
+
+
+def prove_repair_boundaries(database_url: str, proof: Proof) -> dict[str, Any]:
+    before = admin_value(database_url, "select count(*) from public.thesis_versions")
+    for index, statement in enumerate(("\n", "\t", " \n\t  "), start=1):
+        rejected = rpc(
+            database_url,
+            USER_A,
+            thesis_id=None,
+            expected_version=0,
+            transition="create",
+            thesis_subject=subject("NVDA"),
+            thesis_content={**content(f"invisible-{index}"), "statement": statement},
+            request_id=f"71000000-0000-4000-8000-{index:012d}",
+        )
+        proof.equal(rejected["status"], "invalid_transition", f"invisible_statement_{index}_rejected")
+    proof.equal(admin_value(database_url, "select count(*) from public.thesis_versions"), before, "invisible_statements_write_nothing")
+
+    visible_content = {**content("visible-prose"), "statement": "第一行\n\tSecond visible line"}
+    visible = rpc(
+        database_url,
+        USER_A,
+        thesis_id=None,
+        expected_version=0,
+        transition="create",
+        thesis_subject=subject("NVDA"),
+        thesis_content=visible_content,
+        request_id="71000000-0000-4000-8000-000000000010",
+    )
+    proof.equal(visible["status"], "created", "visible_multiline_non_ascii_accepted")
+    visible_id = str(visible["thesis_id"])
+
+    optional_note = rpc(
+        database_url,
+        USER_A,
+        thesis_id=visible_id,
+        expected_version=1,
+        transition="revise",
+        thesis_subject=subject("NVDA"),
+        thesis_content={**visible_content, "title": "title visible prose revised", "revision_note": " \n\t "},
+        request_id="71000000-0000-4000-8000-000000000011",
+    )
+    proof.equal(optional_note["status"], "advanced", "optional_invisible_note_accepted_as_null")
+    proof.equal(
+        admin_value(database_url, "select content->'revision_note' from public.thesis_versions where thesis_id = %s and version = 2", (visible_id,)),
+        None,
+        "optional_invisible_note_stored_null",
+    )
+
+    invisible_reason = {**visible_content, "title": "title visible prose revised", "revision_note": " \n\t "}
+    denied_invalidate = rpc(
+        database_url,
+        USER_A,
+        thesis_id=visible_id,
+        expected_version=2,
+        transition="invalidate",
+        thesis_subject=subject("NVDA"),
+        thesis_content=invisible_reason,
+        request_id="71000000-0000-4000-8000-000000000012",
+    )
+    proof.equal(denied_invalidate["status"], "invalid_transition", "invisible_invalidation_reason_rejected")
+    invalidated = rpc(
+        database_url,
+        USER_A,
+        thesis_id=visible_id,
+        expected_version=2,
+        transition="invalidate",
+        thesis_subject=subject("NVDA"),
+        thesis_content={**invisible_reason, "revision_note": "Audited falsifier observed"},
+        request_id="71000000-0000-4000-8000-000000000013",
+    )
+    proof.equal(invalidated["status"], "advanced", "visible_invalidation_reason_accepted")
+    denied_reopen = rpc(
+        database_url,
+        USER_A,
+        thesis_id=visible_id,
+        expected_version=3,
+        transition="reopen",
+        thesis_subject=subject("NVDA"),
+        thesis_content={**invisible_reason, "revision_note": "\t\n"},
+        request_id="71000000-0000-4000-8000-000000000014",
+    )
+    proof.equal(denied_reopen["status"], "invalid_transition", "invisible_reopen_reason_rejected")
+
+    canonical_effective = "2026-07-15T16:34:56.789Z"
+    timestamp_cases = (
+        ("negative_zero", "2026-07-15T16:34:56.789-00:00", "invalid_transition"),
+        ("positive_zero", "2026-07-15T16:34:56.789000+00:00", "created"),
+        ("known_offset", "2026-07-15T12:34:56.789-04:00", "created"),
+        ("zulu", canonical_effective, "created"),
+        ("impossible_date", "2026-02-30T16:34:56.789Z", "invalid_transition"),
+    )
+    timestamp_outcomes: dict[str, str] = {}
+    for index, (label, argument, expected_status) in enumerate(timestamp_cases, start=20):
+        timestamp_content = {**content(label), "effective_at": canonical_effective}
+        result = rpc(
+            database_url,
+            USER_A,
+            thesis_id=None,
+            expected_version=0,
+            transition="create",
+            thesis_subject=subject("AAPL"),
+            thesis_content=timestamp_content,
+            request_id=f"71000000-0000-4000-8000-{index:012d}",
+            effective_at_argument=argument,
+        )
+        timestamp_outcomes[label] = str(result["status"])
+        proof.equal(result["status"], expected_status, f"timestamp_{label}")
+
+    return {
+        "visible_prose": "pass",
+        "optional_note_null": "pass",
+        "required_reasons": "pass",
+        "timestamp_outcomes": timestamp_outcomes,
+        "summary_clock_join": "pass",
+    }
 
 
 def prove_bounded_summary_projection(database_url: str, proof: Proof) -> dict[str, Any]:
@@ -691,6 +821,7 @@ def main() -> None:
     prove_access_boundaries(database_url, proof)
     concurrency, cas_id, replay_thesis = prove_concurrency(database_url, proof)
     prove_exact_pair_read(database_url, proof, replay_thesis, cas_id)
+    repair_boundaries = prove_repair_boundaries(database_url, proof)
     summary_projection = prove_bounded_summary_projection(database_url, proof)
     prove_owner_isolation(database_url, proof, cas_id)
     prove_lifecycle_and_lineage(database_url, proof, cas_id)
@@ -716,6 +847,7 @@ def main() -> None:
         "catalog_verdicts": catalog,
         "concurrency_outcomes": concurrency,
         "summary_projection": summary_projection,
+        "repair_boundaries": repair_boundaries,
         "owner_isolation": "pass",
         "lifecycle_substance": "pass",
         "atomic_failure": "pass",

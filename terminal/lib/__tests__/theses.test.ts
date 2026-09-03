@@ -195,6 +195,51 @@ describe("the atomic thesis mutation boundary", () => {
     }
   });
 
+  it("requires exactly one canonical six-field mutation result row", async () => {
+    const thesisId = "21100000-0000-4000-8000-000000000001";
+    const input = {
+      action: "create" as const,
+      id: null,
+      expectedVersion: 0,
+      clientRequestId: "21100000-0000-4000-8000-000000000002",
+      subject,
+      content: content("Strict mutation envelope."),
+    };
+    const canonical = {
+      status: "created",
+      thesis_id: thesisId,
+      version: 1,
+      current_version: 1,
+      lifecycle_state: "active",
+      replayed: false,
+    };
+    const malformedResults = [
+      canonical,
+      [],
+      [canonical, canonical],
+      [{ ...canonical, extra: "not canonical" }],
+      [{ ...canonical, status: "CREATED" }],
+      [{ ...canonical, replayed: "false" }],
+      [{
+        status: "created",
+        thesis_id: thesisId,
+        version: 1,
+        current_version: 1,
+        lifecycle_state: "active",
+      }],
+    ];
+
+    for (const data of malformedResults) {
+      const malformedRpc = {
+        from: db().from,
+        rpc: async () => ({ data, error: null }),
+      } as ThesisDb;
+      const result = await applyThesisVersion(malformedRpc, owner, input);
+      expect(result.ok).toBe(false);
+      expect(result.ok ? null : result.status).toBe("unavailable");
+    }
+  });
+
   it("enforces lifecycle transitions without writing rejected attempts", async () => {
     const created = await create("thesis-race", "30000000-0000-4000-8000-000000000001");
     if (!created.ok) throw new Error("fixture create failed");
@@ -428,14 +473,14 @@ describe("privacy and failure honesty", () => {
       store.thesisVersions[0].effective_at = typed;
       store.thesisVersions[0].system_recorded_at = "2026-09-03T08:34:56.120456-04:00";
       store.theses[0].created_at = "2026-09-03T12:34:56+00:00";
-      store.theses[0].updated_at = "2026-09-03T08:34:56.12-04:00";
+      store.theses[0].updated_at = "2026-09-03T08:34:56.120456-04:00";
 
       const detail = await readThesis(createFixtureDb(key) as ThesisDb, fixtureUserId(key), created.thesisId);
       expect(detail, key).toMatchObject({
         ok: true,
         thesis: {
           createdAt: "2026-09-03T12:34:56.000Z",
-          updatedAt: "2026-09-03T12:34:56.120Z",
+          updatedAt: "2026-09-03T12:34:56.120456Z",
           current: {
             effectiveAt: "2026-09-03T12:34:56.789Z",
             systemRecordedAt: "2026-09-03T12:34:56.120456Z",
@@ -462,6 +507,9 @@ describe("privacy and failure honesty", () => {
         fixtureStore(key).thesisVersions[0].effective_at = "2026-09-03T12:34:56.789123+00:00";
       }],
       ["wire-version-id", (key) => { fixtureStore(key).thesisVersions[0].id = "not-a-uuid"; }],
+      ["wire-uppercase-version-id", (key) => {
+        fixtureStore(key).thesisVersions[0].id = String(fixtureStore(key).thesisVersions[0].id).toUpperCase();
+      }],
       ["wire-version-thesis-id", (key) => { fixtureStore(key).thesisVersions[0].thesis_id = "not-a-uuid"; }],
       ["wire-client-request-id", (key) => { fixtureStore(key).thesisVersions[0].client_request_id = "not-a-uuid"; }],
       ["wire-system-clock", (key) => { fixtureStore(key).thesisVersions[0].system_recorded_at = "infinity"; }],
@@ -513,6 +561,105 @@ describe("privacy and failure honesty", () => {
     )).toEqual({ ok: false, status: "unavailable", error: "thesis head and lineage disagree" });
   });
 
+  it("rejects normalizable but noncanonical immutable JSON storage", async () => {
+    const cases: Array<[string, (key: string) => void]> = [
+      ["wire-missing-company-id", (key) => {
+        const storedSubject = fixtureStore(key).thesisVersions[0].subject_ref as Record<string, unknown>;
+        const headSubject = fixtureStore(key).theses[0].subject_ref as Record<string, unknown>;
+        delete storedSubject.company_id;
+        delete headSubject.company_id;
+      }],
+      ["wire-normalized-subject", (key) => {
+        const rewrite = (row: Record<string, unknown>) => {
+          const storedSubject = row.subject_ref as Record<string, unknown>;
+          const storedListing = storedSubject.listing as Record<string, unknown>;
+          storedSubject.key = " nvda ";
+          storedSubject.display = " NVDA · listing scoped ";
+          storedListing.symbol = "nvda";
+        };
+        rewrite(fixtureStore(key).thesisVersions[0]);
+        rewrite(fixtureStore(key).theses[0]);
+      }],
+      ["wire-crlf-content", (key) => {
+        const storedContent = fixtureStore(key).thesisVersions[0].content as Record<string, unknown>;
+        storedContent.statement = "Line one\r\nLine two";
+      }],
+    ];
+
+    for (const [index, [key, corrupt]] of cases.entries()) {
+      const created = await applyThesisVersion(
+        createFixtureDb(key) as ThesisDb,
+        fixtureUserId(key),
+        {
+          action: "create",
+          id: null,
+          expectedVersion: 0,
+          clientRequestId: `55300000-0000-4000-8000-${String(index + 1).padStart(12, "0")}`,
+          subject,
+          content: content("Line one\nLine two"),
+        },
+      );
+      if (!created.ok) throw new Error("fixture create failed");
+      corrupt(key);
+      const result = await readThesis(createFixtureDb(key) as ThesisDb, fixtureUserId(key), created.thesisId);
+      expect(result.ok, key).toBe(false);
+      expect(result.ok ? null : result.status, key).toBe("unavailable");
+    }
+  });
+
+  it("rejects duplicate immutable IDs and unequal head/current clocks", async () => {
+    const duplicate = await create("duplicate-version-uuid", "55400000-0000-4000-8000-000000000001");
+    if (!duplicate.ok) throw new Error("fixture create failed");
+    const revised = await applyThesisVersion(
+      createFixtureDb("duplicate-version-uuid") as ThesisDb,
+      fixtureUserId("duplicate-version-uuid"),
+      {
+        action: "revise",
+        id: duplicate.thesisId,
+        expectedVersion: 1,
+        clientRequestId: "55400000-0000-4000-8000-000000000002",
+        subject,
+        content: content("Second immutable version."),
+      },
+    );
+    if (!revised.ok) throw new Error("fixture revise failed");
+    const duplicateRows = fixtureStore("duplicate-version-uuid").thesisVersions;
+    duplicateRows[0].id = duplicateRows[1].id;
+    expect(await readThesis(
+      createFixtureDb("duplicate-version-uuid") as ThesisDb,
+      fixtureUserId("duplicate-version-uuid"),
+      duplicate.thesisId,
+    )).toEqual({ ok: false, status: "unavailable", error: "thesis history is malformed" });
+
+    const clock = await create("head-clock-mismatch", "55400000-0000-4000-8000-000000000003");
+    if (!clock.ok) throw new Error("fixture create failed");
+    fixtureStore("head-clock-mismatch").theses[0].updated_at = "2026-09-03T12:34:56.789+00:00";
+    fixtureStore("head-clock-mismatch").thesisVersions[0].system_recorded_at = "2026-09-03T12:34:56.788+00:00";
+    expect(await readThesis(
+      createFixtureDb("head-clock-mismatch") as ThesisDb,
+      fixtureUserId("head-clock-mismatch"),
+      clock.thesisId,
+    )).toEqual({ ok: false, status: "unavailable", error: "thesis head and lineage disagree" });
+    expect(await listTheses(
+      createFixtureDb("head-clock-mismatch") as ThesisDb,
+      fixtureUserId("head-clock-mismatch"),
+    )).toEqual({ ok: false, status: "unavailable", error: "thesis head and lineage disagree" });
+  });
+
+  it("rejects RFC3339 negative-zero offsets while accepting asserted positive zero", async () => {
+    for (const [index, [key, clock, accepted]] of ([
+      ["wire-negative-zero", "2026-09-03T12:34:56.789-00:00", false],
+      ["wire-positive-zero", "2026-09-03T12:34:56.789+00:00", true],
+    ] as const).entries()) {
+      const created = await create(key, `55500000-0000-4000-8000-${String(index + 1).padStart(12, "0")}`);
+      if (!created.ok) throw new Error("fixture create failed");
+      fixtureStore(key).theses[0].updated_at = clock;
+      fixtureStore(key).thesisVersions[0].system_recorded_at = clock;
+      const result = await readThesis(createFixtureDb(key) as ThesisDb, fixtureUserId(key), created.thesisId);
+      expect(result.ok, key).toBe(accepted);
+    }
+  });
+
   it("lists the most recently updated thesis first with a deterministic id tie-break", async () => {
     const first = await create("ordered", "51000000-0000-4000-8000-000000000001");
     const second = await create("ordered", "51000000-0000-4000-8000-000000000002");
@@ -522,6 +669,8 @@ describe("privacy and failure honesty", () => {
     const earlierId = laterId === first.thesisId ? second.thesisId : first.thesisId;
     for (const row of fixtureStore("ordered").theses) {
       row.updated_at = row.id === laterId ? "2026-09-02T12:00:00.000Z" : "2026-09-01T12:00:00.000Z";
+      const current = fixtureStore("ordered").thesisVersions.find((version) => version.thesis_id === row.id);
+      if (current) current.system_recorded_at = row.updated_at;
     }
 
     const result = await listTheses(createFixtureDb("ordered") as ThesisDb, fixtureUserId("ordered"));
@@ -674,6 +823,16 @@ describe("closed thesis payloads", () => {
       owner: "data_os.security_master",
       identityState: "resolved",
     })).toMatchObject({ owner: "data_os.security_master", identityState: "resolved" });
+  });
+
+  it("requires visible statement prose and canonicalizes ignorable-only optional notes to null", () => {
+    for (const statement of ["\n", "\t", " \n\t  "]) {
+      expect(normalizeThesisContent(content(statement)), JSON.stringify(statement)).toBeNull();
+    }
+    expect(normalizeThesisContent(content("Line one\n\tIndented line two"))?.statement)
+      .toBe("Line one\n\tIndented line two");
+    expect(normalizeThesisContent(content("非ASCII论点"))?.statement).toBe("非ASCII论点");
+    expect(normalizeThesisContent(content("Visible", { revisionNote: " \n\t " }))?.revisionNote).toBeNull();
   });
 
   it("uses the database's explicit space/line-ending contract and canonical UTC timestamps", () => {

@@ -110,6 +110,7 @@ as $$
     on t.id = requested.thesis_id
    and t.user_id = tv.user_id
    and t.current_version = requested.version
+   and t.updated_at = tv.system_recorded_at
   where cardinality(p_thesis_ids) = cardinality(p_versions)
     and cardinality(p_thesis_ids) between 1 and 500
     and requested.version > 0
@@ -124,6 +125,10 @@ revoke all on function public.read_current_thesis_versions_v1(uuid[], integer[])
 grant execute on function public.read_current_thesis_versions_v1(uuid[], integer[])
   to authenticated;
 
+-- The earlier signature accepted timestamptz, which erased RFC 3339's unknown-offset spelling
+-- before the function could reject it. This migration is idempotent both before and after F11.
+drop function if exists public.apply_thesis_version_v1(uuid, integer, text, jsonb, jsonb, uuid, timestamptz);
+
 create or replace function public.apply_thesis_version_v1(
   p_thesis_id uuid,
   p_expected_version integer,
@@ -131,7 +136,7 @@ create or replace function public.apply_thesis_version_v1(
   p_subject_ref jsonb,
   p_content jsonb,
   p_client_request_id uuid,
-  p_effective_at timestamptz default null
+  p_effective_at text default null
 )
 returns table (
   status text,
@@ -160,6 +165,7 @@ declare
   v_title text;
   v_statement text;
   v_revision_note text;
+  v_effective_at timestamptz;
 begin
   status := null;
   thesis_id := null;
@@ -373,6 +379,14 @@ begin
     btrim(replace(replace(p_content->>'revision_note', E'\r\n', E'\n'), E'\r', E'\n'), ' '),
     ''
   );
+  if v_statement !~ E'[^ \n\t]' then
+    status := 'invalid_transition';
+    return next;
+    return;
+  end if;
+  if v_revision_note is not null and not (v_revision_note ~ E'[^ \n\t]') then
+    v_revision_note := null;
+  end if;
   if length(coalesce(v_revision_note, '')) > 1000
      or regexp_replace(coalesce(v_revision_note, ''), E'[\n\r\t]', '', 'g') ~ '[[:cntrl:]]'
      or (p_transition = 'invalidate' and v_revision_note is null) then
@@ -384,16 +398,25 @@ begin
   -- The canonical content timestamp and typed column must agree. A malformed direct-RPC timestamp
   -- is caught below and becomes a closed invalid result, never a partial write.
   begin
+    if p_effective_at is not null and (
+         p_effective_at !~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}([.][0-9]{1,6})?(Z|[+-][0-9]{2}:[0-9]{2})$'
+         or (p_effective_at !~ '.*-00:00$') is false
+       ) then
+      status := 'invalid_transition';
+      return next;
+      return;
+    end if;
     if (p_content->>'effective_at') is not null
        and (p_content->>'effective_at') !~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}[.][0-9]{3}Z$' then
       status := 'invalid_transition';
       return next;
       return;
     end if;
-    if (p_content->>'effective_at')::timestamptz is distinct from p_effective_at
-       or p_effective_at in ('infinity'::timestamptz, '-infinity'::timestamptz)
+    v_effective_at := p_effective_at::timestamptz;
+    if (p_content->>'effective_at')::timestamptz is distinct from v_effective_at
+       or v_effective_at in ('infinity'::timestamptz, '-infinity'::timestamptz)
        or ((p_content->>'effective_at') is not null and to_char(
-         p_effective_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'
+         v_effective_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'
        ) is distinct from (p_content->>'effective_at')) then
       status := 'invalid_transition';
       return next;
@@ -472,7 +495,7 @@ begin
       subject_ref, content, client_request_id, request_fingerprint, system_recorded_at, effective_at
     ) values (
       thesis_id, v_actor, 1, null, 'create', 'active',
-      v_subject_ref, v_content, p_client_request_id, v_fingerprint, v_now, p_effective_at
+      v_subject_ref, v_content, p_client_request_id, v_fingerprint, v_now, v_effective_at
     );
     status := 'created';
     version := 1;
@@ -547,7 +570,7 @@ begin
     subject_ref, content, client_request_id, request_fingerprint, system_recorded_at, effective_at
   ) values (
     v_head.id, v_actor, v_next_version, v_head.current_version, p_transition, v_next_state,
-    v_subject_ref, v_content, p_client_request_id, v_fingerprint, v_now, p_effective_at
+    v_subject_ref, v_content, p_client_request_id, v_fingerprint, v_now, v_effective_at
   );
 
   update public.theses
@@ -568,11 +591,11 @@ begin
 end;
 $$;
 
-alter function public.apply_thesis_version_v1(uuid, integer, text, jsonb, jsonb, uuid, timestamptz)
+alter function public.apply_thesis_version_v1(uuid, integer, text, jsonb, jsonb, uuid, text)
   owner to postgres;
-revoke all on function public.apply_thesis_version_v1(uuid, integer, text, jsonb, jsonb, uuid, timestamptz)
+revoke all on function public.apply_thesis_version_v1(uuid, integer, text, jsonb, jsonb, uuid, text)
   from public, anon, authenticated;
-grant execute on function public.apply_thesis_version_v1(uuid, integer, text, jsonb, jsonb, uuid, timestamptz)
+grant execute on function public.apply_thesis_version_v1(uuid, integer, text, jsonb, jsonb, uuid, text)
   to authenticated;
 
 commit;

@@ -355,7 +355,18 @@ function canonical(value: unknown): string {
 }
 
 function thesisRpcResult(row: DbRow): Promise<DbResult> {
-  return Promise.resolve({ data: [row], error: null });
+  return Promise.resolve({
+    data: [{
+      status: null,
+      thesis_id: null,
+      version: null,
+      current_version: null,
+      lifecycle_state: null,
+      replayed: false,
+      ...row,
+    }],
+    error: null,
+  });
 }
 
 function thesisSubstance(value: unknown): unknown {
@@ -506,20 +517,23 @@ function readCurrentThesisVersionsFixture(store: Store, args: Record<string, unk
     if (!head) return [];
     const row = store.thesisVersions.find((candidate) => candidate.user_id === userId
       && candidate.thesis_id === thesisId && candidate.version === version);
+    if (!row || new Date(String(head.updated_at)).getTime() !== new Date(String(row.system_recorded_at)).getTime()) {
+      return [];
+    }
     const rawTitle = row?.content && typeof row.content === "object"
       ? (row.content as Record<string, unknown>).title
       : null;
     const title = typeof rawTitle === "string" && [...rawTitle].length >= 1 && [...rawTitle].length <= 160
       ? rawTitle
       : null;
-    return row ? [{
+    return [{
       id: row.id,
       thesis_id: row.thesis_id,
       version: row.version,
       lifecycle_state: row.lifecycle_state,
       subject_ref: row.subject_ref,
       title,
-    }] : [];
+    }];
   });
   return Promise.resolve({ data, error: null });
 }

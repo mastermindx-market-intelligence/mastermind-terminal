@@ -441,7 +441,7 @@ test("an ambiguous accepted write locks New, list selection, and mobile Back unt
   await expect(page.getByRole("button", { name: "Back to list", includeHidden: true })).toBeDisabled();
   await expect(page.getByLabel("Title")).toHaveValue("NVDA operating leverage");
 
-  await expect.poll(() => page.evaluate(() => Object.keys(sessionStorage).some((key) => key.startsWith("mm.thesis.pending.v1:"))))
+  await expect.poll(() => page.evaluate(() => Object.keys(localStorage).some((key) => key.startsWith("mm.thesis.pending.v2:"))))
     .toBe(true);
   await page.goto("/analysis?view=theses");
   await page.reload();
@@ -559,12 +559,277 @@ test.describe("timezone-safe effective-at editing", () => {
   });
 });
 
+test("canonical UTC survives a NY to LA timezone switch until the effective field is deliberately edited", async ({ page, baseURL }, testInfo) => {
+  await prepare(page, testInfo, baseURL);
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send("Emulation.setTimezoneOverride", { timezoneId: "America/New_York" });
+  const thesisId = await createThesis(page, "Timezone movement", "c2100000-0000-4000-8000-000000000001");
+  const detail = await page.request.get(`/api/theses?id=${thesisId}`);
+  const thesis = (await detail.json()).thesis;
+  const baselineUtc = "2026-07-15T16:34:56.789Z";
+  const seeded = await page.request.post("/api/theses", { data: {
+    action: "revise", id: thesisId, expectedVersion: 1,
+    clientRequestId: "c2100000-0000-4000-8000-000000000002",
+    subject: thesis.subject,
+    content: { ...thesis.current.content, effectiveAt: baselineUtc },
+  } });
+  expect(seeded.status()).toBe(200);
+
+  const serializedWrites: string[] = [];
+  page.on("request", (request) => {
+    if (request.method() === "POST" && request.url().includes("/api/theses")) {
+      serializedWrites.push(request.postData() ?? "");
+    }
+  });
+  await page.goto(`/analysis?view=theses&thesis=${thesisId}`);
+  await expect(page.getByLabel("Effective as of (optional)")).toHaveValue("2026-07-15T12:34:56.789");
+
+  await cdp.send("Emulation.setTimezoneOverride", { timezoneId: "America/Los_Angeles" });
+  await page.getByLabel("Title").fill("Timezone movement title only");
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(page.getByText("Version 3 · Current")).toBeVisible();
+  expect((JSON.parse(serializedWrites.at(-1)!) as { content: { effectiveAt: string } }).content.effectiveAt).toBe(baselineUtc);
+
+  await page.reload();
+  await expect(page.getByLabel("Effective as of (optional)")).toHaveValue("2026-07-15T09:34:56.789");
+  await page.getByLabel("Effective as of (optional)").fill("2026-07-15T10:34:56.789");
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(page.getByText("Version 4 · Current")).toBeVisible();
+  expect((JSON.parse(serializedWrites.at(-1)!) as { content: { effectiveAt: string } }).content.effectiveAt)
+    .toBe("2026-07-15T17:34:56.789Z");
+});
+
+test("visually empty prose and lifecycle reasons never produce a mutation", async ({ page, baseURL }, testInfo) => {
+  await prepare(page, testInfo, baseURL);
+  const writes: string[] = [];
+  page.on("request", (request) => {
+    if (request.method() === "POST" && request.url().includes("/api/theses")) writes.push(request.postData() ?? "");
+  });
+  await page.goto("/analysis?view=theses&symbol=NVDA");
+  await fillNew(page, false, "Visible prose boundary");
+  for (const blank of ["\n", "\t", " \n\t  "]) {
+    await page.getByLabel("Thesis statement").fill(blank);
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await expect(page.getByText("Check the required fields. Nothing was saved.")).toBeVisible();
+    expect(writes).toHaveLength(0);
+  }
+  await page.getByLabel("Thesis statement").fill("第一行\n\tSecond visible line");
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(page.getByText("Version 1 · Current")).toBeVisible();
+  expect(writes).toHaveLength(1);
+
+  await page.getByLabel("Revision note").fill(" \n\t ");
+  await page.getByRole("button", { name: "Invalidate", exact: true }).click();
+  await expect(page.getByText("Check the required fields. Nothing was saved.")).toBeVisible();
+  expect(writes).toHaveLength(1);
+  await page.getByLabel("Revision note").fill("审计证据\n\tinvalidated the thesis");
+  await page.getByRole("button", { name: "Invalidate", exact: true }).click();
+  await expect(page.getByText("Version 2 · Current")).toBeVisible();
+  expect(writes).toHaveLength(2);
+});
+
+test("an effect-unknown request survives actual page close and reopens with exact retry bytes", async ({ page, context, baseURL }, testInfo) => {
+  await prepare(page, testInfo, baseURL);
+  const requestBytes: string[] = [];
+  let maskFirstAcceptedResponse = true;
+  await context.route("**/api/theses", async (route) => {
+    if (route.request().method() !== "POST") return route.continue();
+    requestBytes.push(route.request().postData() ?? "");
+    if (maskFirstAcceptedResponse) {
+      maskFirstAcceptedResponse = false;
+      await route.fetch({ maxRetries: 1 });
+      return route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ error: "thesis_store_unavailable" }) });
+    }
+    return route.continue();
+  });
+
+  await page.goto("/analysis?view=theses&symbol=NVDA");
+  await fillNew(page, false, "Close-surviving request");
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(page.getByText("response was interrupted")).toBeVisible();
+  await expect.poll(() => page.evaluate(() => Object.keys(localStorage).filter((key) => key.startsWith("mm.thesis.pending.v2:")).length))
+    .toBe(1);
+
+  await page.close();
+  const reopened = await context.newPage();
+  await reopened.goto("/analysis?view=theses");
+  await expect(reopened.getByTestId("thesis-pending-recovery")).toContainText("1");
+  await reopened.getByRole("button", { name: "Retry same request" }).click();
+  await expect(reopened.getByText("Version 1 · Current")).toBeVisible();
+  expect(requestBytes).toHaveLength(2);
+  expect(requestBytes[1]).toBe(requestBytes[0]);
+  await expect.poll(() => reopened.evaluate(() => Object.keys(localStorage).filter((key) => key.startsWith("mm.thesis.pending.v2:")).length))
+    .toBe(0);
+});
+
+test("session expiry, timeout, throttling, and unknown responses all keep the same request sticky", async ({ page, context, baseURL }, testInfo) => {
+  await prepare(page, testInfo, baseURL);
+  const requestBytes: string[] = [];
+  const failures = [
+    { status: 401, body: { error: "unauthenticated" } },
+    { status: 408, body: { error: "request_timeout" } },
+    { status: 429, body: { error: "rate_limited" } },
+    { status: 418, body: { error: "unknown_response" } },
+  ];
+  await context.route("**/api/theses", async (route) => {
+    if (route.request().method() !== "POST") return route.continue();
+    requestBytes.push(route.request().postData() ?? "");
+    const failure = failures.shift();
+    if (!failure) return route.continue();
+    return route.fulfill({ status: failure.status, contentType: "application/json", body: JSON.stringify(failure.body) });
+  });
+
+  await page.goto("/analysis?view=theses&symbol=NVDA");
+  await fillNew(page, false, "Sticky response matrix");
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(page.getByText("Your session expired")).toBeVisible();
+  await expect.poll(() => page.evaluate(() => Object.keys(localStorage).filter((key) => key.startsWith("mm.thesis.pending.v2:")).length))
+    .toBe(1);
+
+  for (let index = 0; index < 3; index += 1) {
+    await page.reload();
+    await expect(page.getByRole("button", { name: "Retry same request" })).toBeVisible();
+    await page.getByRole("button", { name: "Retry same request" }).click();
+    await expect(page.getByText("response was interrupted")).toBeVisible();
+    await expect.poll(() => page.evaluate(() => Object.keys(localStorage).filter((key) => key.startsWith("mm.thesis.pending.v2:")).length))
+      .toBe(1);
+  }
+
+  await page.getByRole("button", { name: "Retry same request" }).click();
+  await expect(page.getByText("Version 1 · Current")).toBeVisible();
+  expect(requestBytes).toHaveLength(5);
+  expect(new Set(requestBytes)).toEqual(new Set([requestBytes[0]]));
+  await expect.poll(() => page.evaluate(() => Object.keys(localStorage).filter((key) => key.startsWith("mm.thesis.pending.v2:")).length))
+    .toBe(0);
+});
+
+test("two tabs retain distinct effect-unknown request envelopes without last-writer-wins", async ({ page, context, baseURL }, testInfo) => {
+  await prepare(page, testInfo, baseURL);
+  const seen = new Set<string>();
+  await context.route("**/api/theses", async (route) => {
+    if (route.request().method() !== "POST") return route.continue();
+    const requestId = (route.request().postDataJSON() as { clientRequestId: string }).clientRequestId;
+    if (!seen.has(requestId)) {
+      seen.add(requestId);
+      await route.fetch({ maxRetries: 1 });
+      return route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ error: "thesis_store_unavailable" }) });
+    }
+    return route.continue();
+  });
+
+  await page.goto("/analysis?view=theses&symbol=NVDA");
+  await fillNew(page, false, "First tab request");
+  const second = await context.newPage();
+  await second.goto("/analysis?view=theses&symbol=AAPL");
+  await fillNew(second, false, "Second tab request");
+  await Promise.all([
+    page.getByRole("button", { name: "Save", exact: true }).click(),
+    second.getByRole("button", { name: "Save", exact: true }).click(),
+  ]);
+  await expect(page.getByText("response was interrupted")).toBeVisible();
+  await expect(second.getByText("response was interrupted")).toBeVisible();
+  await expect.poll(() => page.evaluate(() => Object.keys(localStorage).filter((key) => key.startsWith("mm.thesis.pending.v2:")).length))
+    .toBe(2);
+
+  await page.close();
+  await second.close();
+  const recovery = await context.newPage();
+  await recovery.goto("/analysis?view=theses");
+  await expect(recovery.getByTestId("thesis-pending-recovery-item")).toHaveCount(2);
+  await recovery.getByTestId("thesis-pending-recovery-item").first().getByRole("button").click();
+  await expect(recovery.getByTestId("thesis-pending-recovery-item")).toHaveCount(1);
+  await recovery.getByTestId("thesis-pending-recovery-item").first().getByRole("button").click();
+  await expect(recovery.getByTestId("thesis-pending-recovery-item")).toHaveCount(0);
+});
+
+test("a bounded legacy session envelope migrates once to the exact v2 request key", async ({ page, context, baseURL }, testInfo) => {
+  await prepare(page, testInfo, baseURL);
+  const requestBytes: string[] = [];
+  let maskFirstResponse = true;
+  await context.route("**/api/theses", async (route) => {
+    if (route.request().method() !== "POST") return route.continue();
+    requestBytes.push(route.request().postData() ?? "");
+    if (maskFirstResponse) {
+      maskFirstResponse = false;
+      await route.fetch({ maxRetries: 1 });
+      return route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ error: "thesis_store_unavailable" }) });
+    }
+    return route.continue();
+  });
+
+  await page.goto("/analysis?view=theses&symbol=NVDA");
+  await fillNew(page, false, "Legacy migration");
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(page.getByText("response was interrupted")).toBeVisible();
+  await page.evaluate(() => {
+    const key = Object.keys(localStorage).find((candidate) => candidate.startsWith("mm.thesis.pending.v2:"));
+    if (!key) throw new Error("missing v2 envelope");
+    const envelope = JSON.parse(localStorage.getItem(key)!) as { action: string; serializedBody: string };
+    sessionStorage.setItem("mm.thesis.pending.v1:local-preview", JSON.stringify({
+      action: envelope.action,
+      body: JSON.parse(envelope.serializedBody),
+    }));
+    localStorage.removeItem(key);
+  });
+
+  await page.reload();
+  await expect(page.getByTestId("thesis-pending-recovery-item")).toHaveCount(1);
+  expect(await page.evaluate(() => sessionStorage.getItem("mm.thesis.pending.v1:local-preview"))).toBeNull();
+  await expect.poll(() => page.evaluate(() => Object.keys(localStorage).filter((key) => key.startsWith("mm.thesis.pending.v2:")).length))
+    .toBe(1);
+  await page.getByRole("button", { name: "Retry same request" }).click();
+  await expect(page.getByText("Version 1 · Current")).toBeVisible();
+  expect(requestBytes).toHaveLength(2);
+  expect(requestBytes[1]).toBe(requestBytes[0]);
+});
+
+test("an envelope belonging to the prior account stays isolated after an account switch", async ({ page, context, baseURL }, testInfo) => {
+  await prepare(page, testInfo, baseURL);
+  await context.route("**/api/theses", async (route) => {
+    if (route.request().method() !== "POST") return route.continue();
+    return route.abort("failed");
+  });
+  await page.goto("/analysis?view=theses&symbol=NVDA");
+  await fillNew(page, false, "Prior account request");
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(page.getByText("response was interrupted")).toBeVisible();
+  const foreignKey = await page.evaluate(() => {
+    const currentKey = Object.keys(localStorage).find((key) => key.startsWith("mm.thesis.pending.v2:"));
+    if (!currentKey) throw new Error("missing current-owner envelope");
+    const envelope = JSON.parse(localStorage.getItem(currentKey)!) as { ownerKey: string; clientRequestId: string };
+    envelope.ownerKey = "account:prior-user";
+    const nextKey = `mm.thesis.pending.v2:${encodeURIComponent(envelope.ownerKey)}:${envelope.clientRequestId}`;
+    localStorage.setItem(nextKey, JSON.stringify(envelope));
+    localStorage.removeItem(currentKey);
+    return nextKey;
+  });
+
+  await page.reload();
+  await expect(page.getByTestId("thesis-pending-recovery")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Save", exact: true })).toBeEnabled();
+  expect(await page.evaluate((key) => localStorage.getItem(key), foreignKey)).not.toBeNull();
+});
+
+test("corrupt owner-bound recovery storage fails closed without deleting or sending", async ({ page, baseURL }, testInfo) => {
+  await prepare(page, testInfo, baseURL);
+  await page.addInitScript(() => localStorage.setItem("mm.thesis.pending.v2:local-preview:corrupt", "{"));
+  const writes: string[] = [];
+  page.on("request", (request) => {
+    if (request.method() === "POST" && request.url().includes("/api/theses")) writes.push(request.postData() ?? "");
+  });
+  await page.goto("/analysis?view=theses&symbol=NVDA");
+  await expect(page.getByText("browser could not safely preserve the request")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Save", exact: true })).toBeDisabled();
+  expect(await page.evaluate(() => localStorage.getItem("mm.thesis.pending.v2:local-preview:corrupt"))).toBe("{");
+  expect(writes).toEqual([]);
+});
+
 test("browser storage refusal preserves the draft and sends no mutation", async ({ page, baseURL }, testInfo) => {
   await prepare(page, testInfo, baseURL);
   await page.addInitScript(() => {
     const original = Storage.prototype.setItem;
     Storage.prototype.setItem = function setItem(key: string, value: string) {
-      if (this === window.sessionStorage && key.startsWith("mm.thesis.pending.v1:")) {
+      if (this === window.localStorage && key.startsWith("mm.thesis.pending.v2:")) {
         throw new DOMException("storage denied", "SecurityError");
       }
       return original.call(this, key, value);

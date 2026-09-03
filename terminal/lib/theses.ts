@@ -119,6 +119,7 @@ const CANONICAL_UTC_TIMESTAMP = /^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[
 const POSTGREST_TIMESTAMP = /^([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2}):([0-9]{2}):([0-9]{2})(?:[.]([0-9]{1,6}))?(Z|([+-])([0-9]{2}):([0-9]{2}))$/;
 const CONTROL_EXCEPT_BREAKS = /[\u0000-\u0008\u000b-\u001f\u007f]/;
 const CONTROL_ALL = /[\u0000-\u001f\u007f]/;
+const VISIBLE_PROSE = /[^ \n\t]/u;
 const HORIZONS = new Set<ThesisHorizon>(["unspecified", "days", "weeks", "months", "quarters", "years"]);
 const LIFECYCLES = new Set<ThesisLifecycle>(["active", "archived", "invalidated"]);
 const ACTIONS = new Set<ThesisAction>(["create", "revise", "archive", "invalidate", "reopen"]);
@@ -129,6 +130,27 @@ const SUBJECT_OWNERS = new Set<ThesisSubjectRef["owner"]>([
 function exactKeys(value: Record<string, unknown>, allowed: readonly string[]): boolean {
   const permitted = new Set(allowed);
   return Object.keys(value).every((key) => permitted.has(key));
+}
+
+function exactKeySet(value: Record<string, unknown>, expected: readonly string[]): boolean {
+  return Object.keys(value).length === expected.length && exactKeys(value, expected);
+}
+
+function sameJsonValue(left: unknown, right: unknown): boolean {
+  if (left === right) return true;
+  if (Array.isArray(left) || Array.isArray(right)) {
+    return Array.isArray(left) && Array.isArray(right)
+      && left.length === right.length
+      && left.every((item, index) => sameJsonValue(item, right[index]));
+  }
+  const leftRecord = record(left);
+  const rightRecord = record(right);
+  if (!leftRecord || !rightRecord) return false;
+  const leftKeys = Object.keys(leftRecord).sort();
+  const rightKeys = Object.keys(rightRecord).sort();
+  return leftKeys.length === rightKeys.length
+    && leftKeys.every((key, index) => key === rightKeys[index]
+      && sameJsonValue(leftRecord[key], rightRecord[key]));
 }
 
 function record(value: unknown): Record<string, unknown> | null {
@@ -147,14 +169,15 @@ function boundedText(value: unknown, max: number, required: boolean): string | n
   // This is deliberately PostgreSQL btrim(text, ' '), not ECMAScript trim(). Keeping the
   // character set explicit makes direct-RPC and application canonicalization byte-identical.
   const normalized = canonicalText(value);
-  if ((required && !normalized) || [...normalized].length > max || CONTROL_EXCEPT_BREAKS.test(normalized)) return null;
+  if ((required && !VISIBLE_PROSE.test(normalized))
+    || [...normalized].length > max || CONTROL_EXCEPT_BREAKS.test(normalized)) return null;
   return normalized || null;
 }
 
 function nullableBoundedText(value: unknown, max: number): { ok: boolean; value: string | null } {
   if (value === null || value === "") return { ok: true, value: null };
   if (typeof value !== "string") return { ok: false, value: null };
-  if (!canonicalText(value)) return { ok: true, value: null };
+  if (!VISIBLE_PROSE.test(canonicalText(value))) return { ok: true, value: null };
   const normalized = boundedText(value, max, false);
   return normalized === null ? { ok: false, value: null } : { ok: true, value: normalized };
 }
@@ -228,6 +251,7 @@ function postgrestTimestamp(value: unknown): string | undefined {
   const match = value.match(POSTGREST_TIMESTAMP);
   if (!match) return undefined;
   const [, yearText, monthText, dayText, hourText, minuteText, secondText, fraction = "", zone, sign, offsetHourText, offsetMinuteText] = match;
+  if (zone === "-00:00") return undefined;
   const [year, month, day, hour, minute, second] = [yearText, monthText, dayText, hourText, minuteText, secondText].map(Number);
   const microseconds = fraction.padEnd(6, "0");
   const milliseconds = Number(microseconds.slice(0, 3) || "0");
@@ -256,6 +280,10 @@ function postgrestTimestamp(value: unknown): string | undefined {
 
 export function isUuid(value: unknown): value is string {
   return typeof value === "string" && UUID.test(value);
+}
+
+function isCanonicalUuid(value: unknown): value is string {
+  return isUuid(value) && value === value.toLowerCase();
 }
 
 export function normalizeThesisSubject(value: unknown): ThesisSubjectRef | null {
@@ -370,10 +398,6 @@ function one(result: DbResult): Record<string, unknown> | null {
   return data && typeof data === "object" ? data as Record<string, unknown> : null;
 }
 
-function text(value: unknown): string | null {
-  return typeof value === "string" && value ? value : null;
-}
-
 function positiveInteger(value: unknown): number | null {
   return typeof value === "number" && Number.isInteger(value) && value > 0 ? value : null;
 }
@@ -384,10 +408,14 @@ function lifecycle(value: unknown): ThesisLifecycle | null {
 
 function wireSubject(value: unknown): ThesisSubjectRef | null {
   const raw = record(value);
-  if (!raw || !exactKeys(raw, ["schema", "kind", "owner", "key", "identity_state", "listing", "company_id", "display"])) return null;
+  if (!raw) return null;
+  const subjectKeys = raw.listing === undefined
+    ? ["schema", "kind", "owner", "key", "identity_state", "company_id", "display"]
+    : ["schema", "kind", "owner", "key", "identity_state", "listing", "company_id", "display"];
+  if (!exactKeySet(raw, subjectKeys)) return null;
   const listingRaw = record(raw.listing);
-  if (raw.listing !== undefined && (!listingRaw || !exactKeys(listingRaw, ["symbol", "mic", "security_id"]))) return null;
-  return normalizeThesisSubject({
+  if (raw.listing !== undefined && (!listingRaw || !exactKeySet(listingRaw, ["symbol", "mic", "security_id"]))) return null;
+  const normalized = normalizeThesisSubject({
     schema: raw.schema,
     kind: raw.kind,
     owner: raw.owner,
@@ -401,14 +429,15 @@ function wireSubject(value: unknown): ThesisSubjectRef | null {
     companyId: raw.company_id,
     display: raw.display,
   });
+  return normalized && sameJsonValue(raw, subjectToWire(normalized)) ? normalized : null;
 }
 
 function wireContent(value: unknown): ThesisContent | null {
   const raw = record(value);
-  if (!raw || !exactKeys(raw, [
+  if (!raw || !exactKeySet(raw, [
     "schema", "title", "statement", "catalysts", "falsifiers", "risks", "horizon", "effective_at", "revision_note",
   ])) return null;
-  return normalizeThesisContent({
+  const normalized = normalizeThesisContent({
     schema: raw.schema,
     title: raw.title,
     statement: raw.statement,
@@ -419,22 +448,23 @@ function wireContent(value: unknown): ThesisContent | null {
     effectiveAt: raw.effective_at,
     revisionNote: raw.revision_note,
   });
+  return normalized && sameJsonValue(raw, contentToWire(normalized)) ? normalized : null;
 }
 
 function rowToVersion(row: Record<string, unknown>): ThesisVersion | null {
-  if (!exactKeys(row, [
+  if (!exactKeySet(row, [
     "id", "thesis_id", "version", "previous_version", "transition", "lifecycle_state", "subject_ref", "content",
     "client_request_id", "system_recorded_at", "effective_at",
   ])) return null;
-  const id = isUuid(row.id) ? row.id : null;
-  const thesisId = isUuid(row.thesis_id) ? row.thesis_id : null;
+  const id = isCanonicalUuid(row.id) ? row.id : null;
+  const thesisId = isCanonicalUuid(row.thesis_id) ? row.thesis_id : null;
   const version = positiveInteger(row.version);
   const transition = typeof row.transition === "string" && ACTIONS.has(row.transition as ThesisAction)
     ? row.transition as ThesisAction : null;
   const lifecycleState = lifecycle(row.lifecycle_state);
   const subject = wireSubject(row.subject_ref);
   const content = wireContent(row.content);
-  const clientRequestId = isUuid(row.client_request_id) ? row.client_request_id : null;
+  const clientRequestId = isCanonicalUuid(row.client_request_id) ? row.client_request_id : null;
   const systemRecordedAt = postgrestTimestamp(row.system_recorded_at);
   if (!id || !thesisId || !version || !transition || !lifecycleState || !subject || !content || !clientRequestId || !systemRecordedAt) return null;
   const effectiveAt = row.effective_at === null ? null : postgrestTimestamp(row.effective_at);
@@ -468,9 +498,9 @@ type ThesisSummaryVersion = {
 };
 
 function rowToSummaryVersion(row: Record<string, unknown>): ThesisSummaryVersion | null {
-  if (!exactKeys(row, ["id", "thesis_id", "version", "lifecycle_state", "subject_ref", "title"])) return null;
-  const versionId = isUuid(row.id) ? row.id : null;
-  const thesisId = isUuid(row.thesis_id) ? row.thesis_id : null;
+  if (!exactKeySet(row, ["id", "thesis_id", "version", "lifecycle_state", "subject_ref", "title"])) return null;
+  const versionId = isCanonicalUuid(row.id) ? row.id : null;
+  const thesisId = isCanonicalUuid(row.thesis_id) ? row.thesis_id : null;
   const version = positiveInteger(row.version);
   const lifecycleState = lifecycle(row.lifecycle_state);
   const subject = wireSubject(row.subject_ref);
@@ -487,7 +517,8 @@ function isValidReturnedHistory(
 ): boolean {
   if (!history.length || history.length > MAX_THESIS_HISTORY + 1
     || history[0].version !== currentVersion
-    || history.some((version) => version.thesisId !== thesisId)) return false;
+    || history.some((version) => version.thesisId !== thesisId)
+    || new Set(history.map((version) => version.id)).size !== history.length) return false;
   for (let index = 0; index < history.length - 1; index += 1) {
     const newer = history[index];
     const older = history[index + 1];
@@ -538,11 +569,19 @@ export async function applyThesisVersion(
     return { ok: false, status: "unavailable", error: cause instanceof Error ? cause.message : "thesis store unavailable" };
   }
   if (result?.error) return { ok: false, status: "unavailable", error: result.error.message || "thesis store unavailable" };
-  const row = one(result);
-  const status = text(row?.status)?.toLowerCase();
-  if (!row || !status) return { ok: false, status: "unavailable", error: "thesis mutation returned no canonical result" };
+  const mutationFields = ["status", "thesis_id", "version", "current_version", "lifecycle_state", "replayed"];
+  const row = Array.isArray(result?.data) && result.data.length === 1
+    ? record(result.data[0])
+    : null;
+  const status = typeof row?.status === "string" ? row.status : null;
+  if (row && !exactKeySet(row, mutationFields)) {
+    return { ok: false, status: "unavailable", error: "thesis mutation returned no canonical result" };
+  }
+  if (!row || !status || typeof row.replayed !== "boolean") {
+    return { ok: false, status: "unavailable", error: "thesis mutation returned no canonical result" };
+  }
   if (status === "created" || status === "advanced" || status === "replayed") {
-    const thesisId = text(row.thesis_id);
+    const thesisId = isCanonicalUuid(row.thesis_id) ? row.thesis_id : null;
     const version = positiveInteger(row.version);
     const currentVersion = positiveInteger(row.current_version);
     const lifecycleState = lifecycle(row.lifecycle_state);
@@ -550,7 +589,7 @@ export async function applyThesisVersion(
     const expectedStatus = input.action === "create" ? "created" : "advanced";
     const expectedLifecycle: ThesisLifecycle = input.action === "archive" ? "archived"
       : input.action === "invalidate" ? "invalidated" : "active";
-    if (!isUuid(thesisId) || !version || currentVersion !== version || !lifecycleState
+    if (!thesisId || !version || currentVersion !== version || !lifecycleState
       || (status !== "replayed" && status !== expectedStatus)
       || replayed !== (status === "replayed")
       || (input.action !== "create" && thesisId !== input.id)
@@ -563,10 +602,18 @@ export async function applyThesisVersion(
   if (status === "version_conflict") {
     const currentVersion = positiveInteger(row.current_version);
     const lifecycleState = lifecycle(row.lifecycle_state);
-    if (!currentVersion || !lifecycleState) return { ok: false, status: "unavailable", error: "invalid conflict result" };
+    if (input.action === "create" || !currentVersion || !lifecycleState
+      || row.thesis_id !== null || row.version !== null || row.replayed !== false) {
+      return { ok: false, status: "unavailable", error: "invalid conflict result" };
+    }
     return { ok: false, status, currentVersion, lifecycleState, error: "version conflict" };
   }
   if (status === "idempotency_conflict" || status === "not_found" || status === "invalid_transition") {
+    if ((status === "not_found" && input.action === "create")
+      || row.thesis_id !== null || row.version !== null || row.current_version !== null
+      || row.lifecycle_state !== null || row.replayed !== false) {
+      return { ok: false, status: "unavailable", error: "thesis mutation returned an invalid result" };
+    }
     return { ok: false, status, error: status.replaceAll("_", " ") };
   }
   return { ok: false, status: "unavailable", error: "unknown thesis mutation result" };
@@ -584,7 +631,7 @@ export async function readThesis(db: ThesisDb, userId: string, thesisId: string)
     if (headResult?.error) return { ok: false, status: "unavailable", error: headResult.error.message || "thesis store unavailable" };
     const head = one(headResult);
     if (!head) return { ok: false, status: "not_found", error: "thesis not found" };
-    if (!exactKeys(head, ["id", "current_version", "lifecycle_state", "subject_ref", "created_at", "updated_at"])) {
+    if (!exactKeySet(head, ["id", "current_version", "lifecycle_state", "subject_ref", "created_at", "updated_at"])) {
       return { ok: false, status: "unavailable", error: "thesis head and lineage disagree" };
     }
     const versionResult = await db.from("thesis_versions").select(VERSION_FIELDS)
@@ -601,7 +648,7 @@ export async function readThesis(db: ThesisDb, userId: string, thesisId: string)
     const currentVersion = positiveInteger(head.current_version);
     const lifecycleState = lifecycle(head.lifecycle_state);
     const subject = wireSubject(head.subject_ref);
-    const headId = isUuid(head.id) ? head.id : null;
+    const headId = isCanonicalUuid(head.id) ? head.id : null;
     const createdAt = postgrestTimestamp(head.created_at);
     const updatedAt = postgrestTimestamp(head.updated_at);
     const current = history.find((item) => item.version === currentVersion);
@@ -613,6 +660,7 @@ export async function readThesis(db: ThesisDb, userId: string, thesisId: string)
       return { ok: false, status: "unavailable", error: "thesis history is malformed" };
     }
     if (current.thesisId !== thesisId || current.lifecycleState !== lifecycleState
+      || updatedAt !== current.systemRecordedAt
       || JSON.stringify(current.subject) !== JSON.stringify(subject)) {
       return { ok: false, status: "unavailable", error: "thesis head and lineage disagree" };
     }
@@ -663,10 +711,10 @@ export async function listTheses(
     }> = [];
     const requestedPairs = new Set<string>();
     for (const row of result.data.slice(0, boundedLimit)) {
-      if (!exactKeys(row, ["id", "current_version", "lifecycle_state", "subject_ref", "updated_at"])) {
+      if (!exactKeySet(row, ["id", "current_version", "lifecycle_state", "subject_ref", "updated_at"])) {
         return { ok: false, status: "unavailable", error: "thesis head and lineage disagree" };
       }
-      const id = isUuid(row.id) ? row.id : null;
+      const id = isCanonicalUuid(row.id) ? row.id : null;
       const currentVersion = positiveInteger(row.current_version);
       const lifecycleState = lifecycle(row.lifecycle_state);
       const subject = wireSubject(row.subject_ref);
@@ -696,10 +744,9 @@ export async function listTheses(
     const currentByPair = new Map<string, ThesisSummaryVersion>();
     const returnedVersionIds = new Set<string>();
     for (const row of versionResult.data) {
-      const pair = `${text(row.thesis_id)}:${positiveInteger(row.version)}`;
-      if (!requestedPairs.has(pair)) continue;
       const parsed = rowToSummaryVersion(row);
-      if (!parsed || currentByPair.has(pair) || returnedVersionIds.has(parsed.versionId)) {
+      const pair = parsed ? `${parsed.thesisId}:${parsed.version}` : "";
+      if (!parsed || !requestedPairs.has(pair) || currentByPair.has(pair) || returnedVersionIds.has(parsed.versionId)) {
         return { ok: false, status: "unavailable", error: "thesis head and lineage disagree" };
       }
       returnedVersionIds.add(parsed.versionId);

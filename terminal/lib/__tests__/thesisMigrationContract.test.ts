@@ -50,6 +50,7 @@ describe("0011 thesis persistence contract", () => {
     expect(flat).toContain("cardinality(p_thesis_ids) = cardinality(p_versions)");
     expect(flat).toContain("cardinality(p_thesis_ids) between 1 and 500");
     expect(flat).toMatch(/join public\.theses as t[\s\S]*t\.current_version\s*=\s*requested\.version/);
+    expect(flat).toMatch(/t\.updated_at\s*=\s*tv\.system_recorded_at/);
     expect(flat).toMatch(/t\.user_id\s*=\s*auth\.uid\(\)/);
     expect(flat).toMatch(/tv\.user_id\s*=\s*auth\.uid\(\)/);
     expect(flat).toContain("revoke all on function public.read_current_thesis_versions_v1");
@@ -94,8 +95,12 @@ describe("0011 thesis persistence contract", () => {
     expect(flat).toMatch(/v_subject_ref,\s*v_content,\s*p_client_request_id/);
     expect(flat).not.toMatch(/v_subject_ref,\s*p_content,\s*p_client_request_id/);
     expect(flat).toContain("replace(replace(p_content->>'statement', e'\\r\\n', e'\\n'), e'\\r', e'\\n')");
+    expect(flat).toMatch(/v_statement\s*!~\s*e'\[\^ \\n\\t\]'/);
+    expect(flat).toMatch(/v_revision_note\s*~\s*e'\[\^ \\n\\t\]'/);
     expect(flat).toContain("^[0-9]{4}-[0-9]{2}-[0-9]{2}t[0-9]{2}:[0-9]{2}:[0-9]{2}[.][0-9]{3}z$");
-    expect(flat).toMatch(/to_char\(\s*p_effective_at at time zone 'utc', 'yyyy-mm-dd"t"hh24:mi:ss\.ms"z"'\s*\)/);
+    expect(flat).toMatch(/p_effective_at\s+text\s+default\s+null/);
+    expect(flat).toContain("p_effective_at !~ '.*-00:00$'");
+    expect(flat).toMatch(/to_char\(\s*v_effective_at at time zone 'utc', 'yyyy-mm-dd"t"hh24:mi:ss\.ms"z"'\s*\)/);
   });
 
   it("stages JSON type guards before object and array operators", () => {

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLang } from "@/lib/i18n";
 import { parseAnalysisSearchParams } from "@/lib/analysisRoute";
 import { normalizeAnalysisSymbol } from "@/lib/analysisSymbol";
-import { isUuid, normalizeThesisContent } from "@/lib/theses";
+import { isUuid, normalizeThesisContent, normalizeThesisSubject } from "@/lib/theses";
 import type {
   ThesisAction,
   ThesisContent,
@@ -35,7 +35,13 @@ type Draft = {
   revisionNote: string;
 };
 type Conflict = { currentVersion: number; lifecycleState: ThesisLifecycle };
-type Pending = { action: ThesisAction; body: Record<string, unknown> };
+type Pending = {
+  schema: "mastermind.thesis-pending/v2";
+  ownerKey: string;
+  action: ThesisAction;
+  clientRequestId: string;
+  serializedBody: string;
+};
 type LoadState = "loading" | "ready" | "unavailable" | "session_expired";
 type DetailState = "idle" | "loading" | "ready" | "not_found" | "unavailable";
 type MobilePane = "list" | "detail";
@@ -44,7 +50,9 @@ const EMPTY_DRAFT: Draft = {
   title: "", statement: "", catalysts: "", falsifiers: "", risks: "",
   horizon: "unspecified", effectiveAt: "", revisionNote: "",
 };
-const PENDING_STORAGE_PREFIX = "mm.thesis.pending.v1:";
+const PENDING_SCHEMA = "mastermind.thesis-pending/v2" as const;
+const PENDING_STORAGE_PREFIX = "mm.thesis.pending.v2:";
+const LEGACY_PENDING_STORAGE_PREFIX = "mm.thesis.pending.v1:";
 const HISTORY_POSITION_KEY = "__mmThesisHistoryPosition";
 const PENDING_ACTIONS = new Set<ThesisAction>(["create", "revise", "archive", "invalidate", "reopen"]);
 
@@ -69,6 +77,7 @@ const COPY = {
     invalid: "Check the required fields. Nothing was saved.", transition: "That lifecycle change is not allowed.",
     ambiguous: "The response was interrupted. Retry sends the exact same request ID and payload.",
     retrySame: "Retry same request", saved: "Saved as version", replayed: "replayed", lines: "Complete snapshot",
+    pendingRecoveries: "Pending recovery requests",
     moreTheses: "More theses exist; refine this workspace before continuing.",
     historyTruncated: "History is truncated; no versions were silently discarded.", backToList: "Back to list",
     carrierUnavailable: "This browser could not safely preserve the request. Nothing was sent.",
@@ -100,6 +109,7 @@ const COPY = {
     invalid: "请检查必填字段。没有保存任何内容。", transition: "不允许执行该生命周期变更。",
     ambiguous: "响应中断。重试会发送完全相同的请求 ID 和内容。",
     retrySame: "重试同一请求", saved: "已保存为版本", replayed: "已重放", lines: "完整快照",
+    pendingRecoveries: "待恢复请求",
     moreTheses: "还有更多论点；请先缩小工作区范围。", historyTruncated: "历史记录已截断；没有静默丢弃任何版本。",
     backToList: "返回列表",
     carrierUnavailable: "此浏览器无法安全保留该请求。请求尚未发送。",
@@ -179,8 +189,10 @@ function statusLabel(state: ThesisLifecycle, copy: typeof COPY.en | typeof COPY.
   return state === "active" ? copy.active : state === "archived" ? copy.archived : copy.invalidated;
 }
 
-function buildContent(draft: Draft): ThesisContent | null {
-  const effectiveAt = draft.effectiveAt ? localInputToUtcInstant(draft.effectiveAt) : null;
+function buildContent(draft: Draft, baselineEffectiveAt: string | null, effectiveEdited: boolean): ThesisContent | null {
+  const effectiveAt = effectiveEdited
+    ? (draft.effectiveAt ? localInputToUtcInstant(draft.effectiveAt) : null)
+    : baselineEffectiveAt;
   if (effectiveAt === undefined) return null;
   return {
     schema: "mastermind.thesis-content/v1",
@@ -226,27 +238,123 @@ function listingSubject(symbol: string): ThesisSubjectRef {
   };
 }
 
-function decodePending(value: string | null): Pending | null {
+function exactObjectKeys(value: Record<string, unknown>, expected: readonly string[]): boolean {
+  const actual = Object.keys(value);
+  const keys = new Set(expected);
+  return actual.length === expected.length && actual.every((key) => keys.has(key));
+}
+
+function sameJsonValue(left: unknown, right: unknown): boolean {
+  if (left === right) return true;
+  if (Array.isArray(left) || Array.isArray(right)) {
+    return Array.isArray(left) && Array.isArray(right)
+      && left.length === right.length
+      && left.every((item, index) => sameJsonValue(item, right[index]));
+  }
+  if (!left || !right || typeof left !== "object" || typeof right !== "object") return false;
+  const leftRecord = left as Record<string, unknown>;
+  const rightRecord = right as Record<string, unknown>;
+  const leftKeys = Object.keys(leftRecord).sort();
+  const rightKeys = Object.keys(rightRecord).sort();
+  return leftKeys.length === rightKeys.length
+    && leftKeys.every((key, index) => key === rightKeys[index]
+      && sameJsonValue(leftRecord[key], rightRecord[key]));
+}
+
+function pendingKey(ownerKey: string, clientRequestId: string): string {
+  return `${PENDING_STORAGE_PREFIX}${encodeURIComponent(ownerKey)}:${clientRequestId}`;
+}
+
+function validSerializedMutation(serializedBody: string, action: ThesisAction, clientRequestId: string): boolean {
+  try {
+    const parsed = JSON.parse(serializedBody);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return false;
+    const body = parsed as Record<string, unknown>;
+    const expected = action === "create"
+      ? ["action", "clientRequestId", "subject", "content"]
+      : ["action", "id", "expectedVersion", "clientRequestId", "subject", "content"];
+    if (!exactObjectKeys(body, expected) || body.action !== action || body.clientRequestId !== clientRequestId
+      || !isUuid(clientRequestId) || clientRequestId !== clientRequestId.toLowerCase()) return false;
+    if (action !== "create" && (!isUuid(body.id) || body.id !== body.id.toLowerCase()
+      || typeof body.expectedVersion !== "number" || !Number.isInteger(body.expectedVersion) || body.expectedVersion < 1)) return false;
+    const subject = normalizeThesisSubject(body.subject);
+    const content = normalizeThesisContent(body.content);
+    return !!subject && !!content && sameJsonValue(body.subject, subject) && sameJsonValue(body.content, content)
+      && JSON.stringify(body) === serializedBody;
+  } catch {
+    return false;
+  }
+}
+
+function decodePending(value: string | null, expectedOwner: string, expectedKey: string): Pending | null {
   if (!value) return null;
   try {
-    const candidate = JSON.parse(value) as { action?: unknown; body?: unknown };
-    if (typeof candidate.action !== "string" || !PENDING_ACTIONS.has(candidate.action as ThesisAction)
-      || candidate.body === null || typeof candidate.body !== "object" || Array.isArray(candidate.body)) return null;
-    const body = candidate.body as Record<string, unknown>;
-    if (body.action !== candidate.action || !isUuid(body.clientRequestId)) return null;
-    return { action: candidate.action as ThesisAction, body };
+    const candidate = JSON.parse(value);
+    if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) return null;
+    const envelope = candidate as Record<string, unknown>;
+    if (!exactObjectKeys(envelope, ["schema", "ownerKey", "action", "clientRequestId", "serializedBody"])
+      || envelope.schema !== PENDING_SCHEMA || envelope.ownerKey !== expectedOwner
+      || typeof envelope.action !== "string" || !PENDING_ACTIONS.has(envelope.action as ThesisAction)
+      || typeof envelope.clientRequestId !== "string" || typeof envelope.serializedBody !== "string") return null;
+    const pending = envelope as Pending;
+    if (pendingKey(expectedOwner, pending.clientRequestId) !== expectedKey
+      || !validSerializedMutation(pending.serializedBody, pending.action, pending.clientRequestId)) return null;
+    return pending;
   } catch {
     return null;
   }
 }
 
-function storePending(key: string, pending: Pending): boolean {
+function encodePending(pending: Pending): string {
+  return JSON.stringify(pending);
+}
+
+function storePending(pending: Pending): boolean {
   try {
-    const encoded = JSON.stringify(pending);
-    window.sessionStorage.setItem(key, encoded);
-    return window.sessionStorage.getItem(key) === encoded;
+    const key = pendingKey(pending.ownerKey, pending.clientRequestId);
+    const encoded = encodePending(pending);
+    const existing = window.localStorage.getItem(key);
+    if (existing !== null && existing !== encoded) return false;
+    window.localStorage.setItem(key, encoded);
+    return window.localStorage.getItem(key) === encoded;
   } catch {
     return false;
+  }
+}
+
+function clearPending(pending: Pending): boolean {
+  try {
+    const key = pendingKey(pending.ownerKey, pending.clientRequestId);
+    if (window.localStorage.getItem(key) !== encodePending(pending)) return false;
+    window.localStorage.removeItem(key);
+    return window.localStorage.getItem(key) === null;
+  } catch {
+    return false;
+  }
+}
+
+function legacyPending(value: string | null, ownerKey: string): Pending | null {
+  if (!value) return null;
+  try {
+    const parsed = JSON.parse(value);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return null;
+    const candidate = parsed as Record<string, unknown>;
+    if (!exactObjectKeys(candidate, ["action", "body"])
+      || typeof candidate.action !== "string" || !PENDING_ACTIONS.has(candidate.action as ThesisAction)
+      || !candidate.body || typeof candidate.body !== "object" || Array.isArray(candidate.body)) return null;
+    const body = candidate.body as Record<string, unknown>;
+    if (typeof body.clientRequestId !== "string") return null;
+    const serializedBody = JSON.stringify(body);
+    if (!validSerializedMutation(serializedBody, candidate.action as ThesisAction, body.clientRequestId)) return null;
+    return {
+      schema: PENDING_SCHEMA,
+      ownerKey,
+      action: candidate.action as ThesisAction,
+      clientRequestId: body.clientRequestId,
+      serializedBody,
+    };
+  } catch {
+    return null;
   }
 }
 
@@ -280,10 +388,13 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     subject: seededSymbol,
     draft: EMPTY_DRAFT,
   }));
+  const [effectiveBaselineUtc, setEffectiveBaselineUtc] = useState<string | null>(null);
+  const [effectiveEdited, setEffectiveEdited] = useState(false);
   const [saving, setSaving] = useState(false);
   const [conflict, setConflict] = useState<Conflict | null>(null);
-  const [pending, setPending] = useState<Pending | null>(null);
+  const [pendingQueue, setPendingQueue] = useState<Pending[]>([]);
   const [pendingHydrated, setPendingHydrated] = useState(false);
+  const [carrierBlocked, setCarrierBlocked] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [inspectedVersion, setInspectedVersion] = useState<number | null>(null);
   const [routeInvalid, setRouteInvalid] = useState(invalidLink);
@@ -292,7 +403,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   const routeDiscardAuthorized = useRef(false);
   const historyPositionRef = useRef(0);
   const restoringPop = useRef(false);
-  const pendingStorageKey = `${PENDING_STORAGE_PREFIX}${ownerKey}`;
+  const pending = pendingQueue[0] ?? null;
   const isDirty = useMemo(
     () => subjectDraft !== baseline.subject || !draftEquals(draft, baseline.draft),
     [baseline, draft, subjectDraft],
@@ -318,33 +429,43 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     let active = true;
     void Promise.resolve().then(() => {
       if (!active) return;
+      const restored: Pending[] = [];
+      let blocked = false;
       try {
-        const restored = decodePending(window.sessionStorage.getItem(pendingStorageKey));
-        if (restored) {
-          setPending(restored);
-          setMessage(copy.ambiguous);
-          setMobilePane("detail");
-        } else {
-          window.sessionStorage.removeItem(pendingStorageKey);
+        const ownerPrefix = `${PENDING_STORAGE_PREFIX}${encodeURIComponent(ownerKey)}:`;
+        for (const key of Object.keys(window.localStorage).filter((candidate) => candidate.startsWith(ownerPrefix)).sort()) {
+          const decoded = decodePending(window.localStorage.getItem(key), ownerKey, key);
+          if (!decoded) blocked = true;
+          else restored.push(decoded);
+        }
+
+        // Bounded one-key migration from the pre-F11 session-only envelope. It is deleted only
+        // after the v2 owner/request key has passed the same synchronous write/read fence.
+        const legacyKey = `${LEGACY_PENDING_STORAGE_PREFIX}${ownerKey}`;
+        const legacyRaw = window.sessionStorage.getItem(legacyKey);
+        if (legacyRaw !== null) {
+          const migrated = legacyPending(legacyRaw, ownerKey);
+          if (!migrated || !storePending(migrated)) blocked = true;
+          else {
+            window.sessionStorage.removeItem(legacyKey);
+            if (!restored.some((candidate) => candidate.clientRequestId === migrated.clientRequestId)) restored.push(migrated);
+          }
         }
       } catch {
-        // A later submit proves durable storage synchronously before any mutation is sent.
-      } finally {
-        setPendingHydrated(true);
+        blocked = true;
       }
+      if (!active) return;
+      setPendingQueue(restored);
+      setCarrierBlocked(blocked);
+      if (blocked) setMessage(copy.carrierUnavailable);
+      else if (restored.length) {
+        setMessage(copy.ambiguous);
+        setMobilePane("detail");
+      }
+      setPendingHydrated(true);
     });
     return () => { active = false; };
-  }, [copy.ambiguous, pendingStorageKey]);
-
-  useEffect(() => {
-    if (!pendingHydrated) return;
-    try {
-      if (pending) window.sessionStorage.setItem(pendingStorageKey, JSON.stringify(pending));
-      else window.sessionStorage.removeItem(pendingStorageKey);
-    } catch {
-      // Every POST has its own synchronous write/read fence; this effect never sends a mutation.
-    }
-  }, [pending, pendingHydrated, pendingStorageKey]);
+  }, [copy.ambiguous, copy.carrierUnavailable, ownerKey]);
 
   useEffect(() => {
     if (!isDirty && !pending) return;
@@ -423,6 +544,8 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       setDraft(loadedDraft);
       setSubjectDraft(payload.thesis.subject.key);
       setBaseline({ subject: payload.thesis.subject.key, draft: loadedDraft });
+      setEffectiveBaselineUtc(payload.thesis.current.content.effectiveAt);
+      setEffectiveEdited(false);
       setInspectedVersion(null);
       setDetailState("ready");
     } catch {
@@ -450,8 +573,9 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     setSubjectDraft("");
     setDraft(EMPTY_DRAFT);
     setBaseline({ subject: "", draft: EMPTY_DRAFT });
+    setEffectiveBaselineUtc(null);
+    setEffectiveEdited(false);
     setConflict(null);
-    setPending(null);
     setMessage(null);
     setInspectedVersion(null);
     setDetailState("loading");
@@ -491,8 +615,9 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     setSubjectDraft(symbol);
     setDraft(EMPTY_DRAFT);
     setBaseline({ subject: symbol, draft: EMPTY_DRAFT });
+    setEffectiveBaselineUtc(null);
+    setEffectiveEdited(false);
     setConflict(null);
-    setPending(null);
     setMessage(null);
     setInspectedVersion(null);
     setMobilePane("detail");
@@ -520,8 +645,9 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     setSubjectDraft("");
     setDraft(EMPTY_DRAFT);
     setBaseline({ subject: "", draft: EMPTY_DRAFT });
+    setEffectiveBaselineUtc(null);
+    setEffectiveEdited(false);
     setConflict(null);
-    setPending(null);
     setMessage(null);
     setInspectedVersion(null);
     setMobilePane("list");
@@ -582,7 +708,6 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
 
   const changeDraft = useCallback(<K extends keyof Draft>(key: K, value: Draft[K]) => {
     setDraft((current) => ({ ...current, [key]: value }));
-    setPending(null);
     setMessage(null);
   }, []);
 
@@ -590,10 +715,12 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     const symbol = detail?.subject.key ?? normalizeAnalysisSymbol(subjectDraft);
     const content = normalizeThesisContent(
       action === "create" || action === "revise" || !detail
-        ? buildContent(draft)
+        ? buildContent(draft, effectiveBaselineUtc, effectiveEdited)
         : transitionContent(detail.current.content, draft.revisionNote),
     );
-    if (!symbol || !content) return null;
+    if (!symbol || !content
+      || ((action === "invalidate" || (action === "reopen" && detail?.lifecycleState === "invalidated"))
+        && !content.revisionNote)) return null;
     return {
       action,
       ...(selectedId ? { id: selectedId, expectedVersion: detail?.currentVersion ?? 0 } : {}),
@@ -601,48 +728,84 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       subject: detail?.subject ?? listingSubject(symbol),
       content,
     };
-  }, [detail, draft, selectedId, subjectDraft]);
+  }, [detail, draft, effectiveBaselineUtc, effectiveEdited, selectedId, subjectDraft]);
+
+  const removeTerminalPending = useCallback((pendingMutation: Pending): boolean => {
+    if (!clearPending(pendingMutation)) {
+      setCarrierBlocked(true);
+      setMessage(copy.carrierUnavailable);
+      return false;
+    }
+    setPendingQueue((current) => current.filter((candidate) =>
+      candidate.clientRequestId !== pendingMutation.clientRequestId));
+    return true;
+  }, [copy.carrierUnavailable]);
 
   const consumeResponse = useCallback(async (response: Response, pendingMutation: Pending) => {
     let payload: Record<string, unknown>;
     try {
-      payload = await response.json() as Record<string, unknown>;
+      const decoded = await response.json();
+      if (!decoded || typeof decoded !== "object" || Array.isArray(decoded)) throw new Error("non-object response");
+      payload = decoded as Record<string, unknown>;
     } catch {
       setSaving(false);
-      setPending(pendingMutation);
       setMessage(copy.ambiguous);
       return;
     }
     setSaving(false);
     if (response.status >= 500 || response.status === 408 || response.status === 429) {
-      setPending(pendingMutation);
       setMessage(copy.ambiguous);
       return;
     }
-    setPending(null);
-    if (response.status === 401) return setListState("session_expired");
-    if (response.status === 409 && payload.error === "version_conflict") {
+    if (response.status === 401) {
+      if (exactObjectKeys(payload, ["error"]) && payload.error === "unauthenticated") {
+        setListState("session_expired");
+      } else {
+        setMessage(copy.ambiguous);
+      }
+      return;
+    }
+    if (response.status === 409 && exactObjectKeys(payload, ["error", "currentVersion", "lifecycleState"])
+      && payload.error === "version_conflict") {
       const currentVersion = payload.currentVersion;
       const lifecycleState = payload.lifecycleState;
       if (typeof currentVersion !== "number" || !Number.isInteger(currentVersion) || currentVersion < 1
         || (lifecycleState !== "active" && lifecycleState !== "archived" && lifecycleState !== "invalidated")) {
-        setMessage(copy.invalid);
+        setMessage(copy.ambiguous);
         return;
       }
+      if (!removeTerminalPending(pendingMutation)) return;
       setConflict({ currentVersion, lifecycleState });
       return;
     }
     if (!response.ok) {
+      const expectedErrors = response.status === 409 ? new Set(["idempotency_conflict"])
+        : response.status === 404 ? new Set(["thesis_not_found"])
+          : response.status === 422 ? new Set(["invalid_transition"])
+            : response.status === 413 ? new Set(["request_too_large"])
+              : response.status === 400
+                ? new Set(["invalid_payload", "invalid_json", "unsupported_action"])
+                : new Set<string>();
+      if (!exactObjectKeys(payload, ["error"]) || typeof payload.error !== "string" || !expectedErrors.has(payload.error)) {
+        setMessage(copy.ambiguous);
+        return;
+      }
+      if (!removeTerminalPending(pendingMutation)) return;
       setMessage(payload.error === "invalid_transition" ? copy.transition : copy.invalid);
       return;
     }
     const id = payload.thesisId;
     const version = payload.version;
-    if (!isUuid(id) || typeof version !== "number" || !Number.isInteger(version) || version < 1) {
-      setPending(pendingMutation);
+    const lifecycleState = payload.lifecycleState;
+    if (!exactObjectKeys(payload, ["thesisId", "version", "lifecycleState", "replayed"])
+      || !isUuid(id) || id !== id.toLowerCase()
+      || typeof version !== "number" || !Number.isInteger(version) || version < 1
+      || (lifecycleState !== "active" && lifecycleState !== "archived" && lifecycleState !== "invalidated")
+      || typeof payload.replayed !== "boolean") {
       setMessage(copy.ambiguous);
       return;
     }
+    if (!removeTerminalPending(pendingMutation)) return;
     const url = new URL(window.location.href);
     url.searchParams.set("view", "theses");
     url.searchParams.set("thesis", id);
@@ -653,12 +816,12 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     setMessage(`${copy.saved} ${version}${payload.replayed ? ` · ${copy.replayed}` : ""}`);
     await loadList();
     await loadDetail(id);
-  }, [copy.ambiguous, copy.invalid, copy.replayed, copy.saved, copy.transition, loadDetail, loadList, writeRoute]);
+  }, [copy.ambiguous, copy.invalid, copy.replayed, copy.saved, copy.transition, loadDetail, loadList, removeTerminalPending, writeRoute]);
 
   const send = useCallback(async (pendingMutation: Pending) => {
-    if (!storePending(pendingStorageKey, pendingMutation)) {
+    if (!storePending(pendingMutation)) {
       setSaving(false);
-      setPending(pendingMutation);
+      setCarrierBlocked(true);
       setMessage(copy.carrierUnavailable);
       return;
     }
@@ -668,31 +831,39 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       const response = await fetch("/api/theses", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify(pendingMutation.body),
+        body: pendingMutation.serializedBody,
       });
       await consumeResponse(response, pendingMutation);
     } catch {
       setSaving(false);
-      setPending(pendingMutation);
       setMessage(copy.ambiguous);
     }
-  }, [consumeResponse, copy.ambiguous, copy.carrierUnavailable, pendingStorageKey]);
+  }, [consumeResponse, copy.ambiguous, copy.carrierUnavailable]);
 
   const submit = useCallback((action: ThesisAction) => {
     if (action !== "create" && action !== "revise" && substantiveDirty) {
       setMessage(copy.saveBeforeTransition);
       return;
     }
-    const body = mutationBody(action, crypto.randomUUID());
+    const clientRequestId = crypto.randomUUID();
+    const body = mutationBody(action, clientRequestId);
     if (!body) return setMessage(copy.invalid);
-    const next = { action, body };
-    if (!storePending(pendingStorageKey, next)) {
+    const next: Pending = {
+      schema: PENDING_SCHEMA,
+      ownerKey,
+      action,
+      clientRequestId,
+      serializedBody: JSON.stringify(body),
+    };
+    if (!storePending(next)) {
+      setCarrierBlocked(true);
       setMessage(copy.carrierUnavailable);
       return;
     }
-    setPending(next);
+    setPendingQueue((current) => current.some((candidate) => candidate.clientRequestId === clientRequestId)
+      ? current : [...current, next]);
     void send(next);
-  }, [copy.carrierUnavailable, copy.invalid, copy.saveBeforeTransition, mutationBody, pendingStorageKey, send, substantiveDirty]);
+  }, [copy.carrierUnavailable, copy.invalid, copy.saveBeforeTransition, mutationBody, ownerKey, send, substantiveDirty]);
 
   const copyDraft = useCallback(async () => {
     await navigator.clipboard.writeText(JSON.stringify({ subject: detail?.subject ?? subjectDraft, ...draft }, null, 2));
@@ -712,8 +883,8 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
 
   const lifecycle = detail?.lifecycleState ?? "active";
   const editable = !detail || lifecycle === "active";
-  const ambiguous = !!pending && !saving;
-  const carrierLocked = !pendingHydrated || pending !== null;
+  const ambiguous = pendingQueue.length > 0 && !saving;
+  const carrierLocked = !pendingHydrated || carrierBlocked || pendingQueue.length > 0;
   const history = useMemo(() => detail?.history ?? [], [detail?.history]);
   const inspected = useMemo<ThesisVersion | null>(
     () => history.find((entry) => entry.version === inspectedVersion) ?? null,
@@ -774,20 +945,26 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
                     {conflict && <div className={styles.conflict} role="alert" data-testid="thesis-conflict"><div><strong>{copy.conflict}</strong><p>{copy.conflictBody} {copy.current}: {copy.version} {conflict.currentVersion} · {statusLabel(conflict.lifecycleState, copy)}</p></div><div><button onClick={reloadAfterConflict}>{copy.reload}</button><button onClick={() => void copyDraft()}>{copy.copyDraft}</button></div></div>}
                     {message && <p className={styles.message} role="status">{message}</p>}
                     {isDirty && !pending && <div className={styles.dirtyDraft} role="status" data-testid="thesis-dirty-draft"><div><strong>{copy.unsaved}</strong><p>{copy.unsavedBody}</p></div><button type="button" onClick={() => void copyDraft()}>{copy.copyDraft}</button></div>}
-                    {pending && !saving && <button className={styles.retrySame} onClick={() => void send(pending)}>{copy.retrySame}</button>}
+                    {pendingQueue.length > 0 && <section className={styles.dirtyDraft} data-testid="thesis-pending-recovery">
+                      <div><strong>{copy.pendingRecoveries}: {pendingQueue.length}</strong></div>
+                      {pendingQueue.map((pendingMutation) => <div key={pendingMutation.clientRequestId} data-testid="thesis-pending-recovery-item">
+                        <code>{pendingMutation.action} · {pendingMutation.clientRequestId}</code>
+                        <button type="button" className={styles.retrySame} disabled={saving || carrierBlocked} onClick={() => void send(pendingMutation)}>{copy.retrySame}</button>
+                      </div>)}
+                    </section>}
 
                     <form className={styles.form} onSubmit={(event) => { event.preventDefault(); submit(selectedId ? "revise" : "create"); }}>
-                      <label>{copy.subject}<input aria-label={copy.subject} value={detail?.subject.key ?? subjectDraft} disabled={!!detail || carrierLocked} onChange={(event) => { setSubjectDraft(event.target.value.toUpperCase()); setPending(null); }} placeholder="NVDA" /></label>
+                      <label>{copy.subject}<input aria-label={copy.subject} value={detail?.subject.key ?? subjectDraft} disabled={!!detail || carrierLocked} onChange={(event) => { setSubjectDraft(event.target.value.toUpperCase()); setMessage(null); }} placeholder="NVDA" /></label>
                       <label>{copy.titleLabel}<input aria-label={copy.titleLabel} value={draft.title} disabled={!editable || carrierLocked} maxLength={160} onChange={(event) => changeDraft("title", event.target.value)} /></label>
                       <label className={styles.full}>{copy.statement}<textarea aria-label={copy.statement} value={draft.statement} disabled={!editable || carrierLocked} maxLength={12000} rows={8} onChange={(event) => changeDraft("statement", event.target.value)} /></label>
                       {(["catalysts", "falsifiers", "risks"] as const).map((field) => <label key={field}>{copy[field]}<small>{copy.onePerLine}</small><textarea aria-label={copy[field]} value={draft[field]} disabled={!editable || carrierLocked} rows={5} onChange={(event) => changeDraft(field, event.target.value)} /></label>)}
                       <label>{copy.horizon}<select aria-label={copy.horizon} value={draft.horizon} disabled={!editable || carrierLocked} onChange={(event) => changeDraft("horizon", event.target.value as ThesisHorizon)}>{(["unspecified", "days", "weeks", "months", "quarters", "years"] as ThesisHorizon[]).map((value) => <option key={value} value={value}>{HORIZON_LABELS[lang][value]}</option>)}</select></label>
-                      <label>{copy.effective}<input aria-label={copy.effective} type="datetime-local" step="0.001" value={draft.effectiveAt} disabled={!editable || carrierLocked} onChange={(event) => changeDraft("effectiveAt", event.target.value)} /></label>
+                      <label>{copy.effective}<input aria-label={copy.effective} type="datetime-local" step="0.001" value={draft.effectiveAt} disabled={!editable || carrierLocked} onChange={(event) => { setEffectiveEdited(true); changeDraft("effectiveAt", event.target.value); }} /></label>
                       <label className={styles.full}>{copy.revision}<textarea aria-label={copy.revision} value={draft.revisionNote} disabled={carrierLocked} maxLength={1000} rows={3} onChange={(event) => changeDraft("revisionNote", event.target.value)} /></label>
                       <div className={`${styles.actions} ${styles.full}`}>
-                        {editable && <button className={styles.primaryButton} type="submit" disabled={saving || ambiguous}>{saving ? copy.saving : copy.save}</button>}
-                        {detail && lifecycle === "active" && <><button type="button" disabled={saving || ambiguous} onClick={() => submit("archive")}>{copy.archive}</button><button type="button" className={styles.dangerButton} disabled={saving || ambiguous} onClick={() => submit("invalidate")}>{copy.invalidate}</button></>}
-                        {detail && lifecycle !== "active" && <button type="button" className={styles.primaryButton} disabled={saving || ambiguous} onClick={() => submit("reopen")}>{copy.reopen}</button>}
+                        {editable && <button className={styles.primaryButton} type="submit" disabled={saving || ambiguous || carrierLocked}>{saving ? copy.saving : copy.save}</button>}
+                        {detail && lifecycle === "active" && <><button type="button" disabled={saving || ambiguous || carrierLocked} onClick={() => submit("archive")}>{copy.archive}</button><button type="button" className={styles.dangerButton} disabled={saving || ambiguous || carrierLocked} onClick={() => submit("invalidate")}>{copy.invalidate}</button></>}
+                        {detail && lifecycle !== "active" && <button type="button" className={styles.primaryButton} disabled={saving || ambiguous || carrierLocked} onClick={() => submit("reopen")}>{copy.reopen}</button>}
                       </div>
                     </form>
 
