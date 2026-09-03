@@ -345,6 +345,13 @@ function thesisRpcResult(row: DbRow): Promise<DbResult> {
   return Promise.resolve({ data: [row], error: null });
 }
 
+function thesisSubstance(value: unknown): unknown {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return value;
+  const substance = { ...value as Record<string, unknown> };
+  delete substance.revision_note;
+  return substance;
+}
+
 /**
  * Account-shaped implementation of `apply_thesis_version_v1` for route and browser tests.
  *
@@ -428,6 +435,13 @@ function applyThesisVersionFixture(store: Store, args: Record<string, unknown>):
     });
   }
   if (canonical(head.subject_ref) !== canonical(subjectRef)) return thesisRpcResult({ status: "invalid_transition" });
+  const current = store.thesisVersions.find((row) =>
+    row.thesis_id === thesisId && row.user_id === userId && row.version === head.current_version);
+  if (!current) return thesisRpcResult({ status: "invalid_transition" });
+  if (transition !== "revise"
+    && canonical(thesisSubstance(current.content)) !== canonical(thesisSubstance(content))) {
+    return thesisRpcResult({ status: "invalid_transition" });
+  }
 
   const currentState = head.lifecycle_state;
   let nextState: "active" | "archived" | "invalidated" | null = null;

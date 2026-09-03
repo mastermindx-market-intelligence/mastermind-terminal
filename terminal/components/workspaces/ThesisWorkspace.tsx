@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLang } from "@/lib/i18n";
+import { parseAnalysisSearchParams } from "@/lib/analysisRoute";
 import { normalizeAnalysisSymbol } from "@/lib/analysisSymbol";
 import { isUuid, normalizeThesisContent } from "@/lib/theses";
 import type {
@@ -12,6 +13,7 @@ import type {
   ThesisLifecycle,
   ThesisSubjectRef,
   ThesisSummary,
+  ThesisVersion,
 } from "@/lib/theses";
 import styles from "./ThesisWorkspace.module.css";
 
@@ -43,6 +45,7 @@ const EMPTY_DRAFT: Draft = {
   horizon: "unspecified", effectiveAt: "", revisionNote: "",
 };
 const PENDING_STORAGE_PREFIX = "mm.thesis.pending.v1:";
+const HISTORY_POSITION_KEY = "__mmThesisHistoryPosition";
 const PENDING_ACTIONS = new Set<ThesisAction>(["create", "revise", "archive", "invalidate", "reopen"]);
 
 const COPY = {
@@ -69,6 +72,13 @@ const COPY = {
     moreTheses: "More theses exist; refine this workspace before continuing.",
     historyTruncated: "History is truncated; no versions were silently discarded.", backToList: "Back to list",
     carrierUnavailable: "This browser could not safely preserve the request. Nothing was sent.",
+    unsaved: "Unsaved changes", unsavedBody: "This draft has not been sent. Copy it or confirm before leaving or switching.",
+    confirmDiscard: "Discard this unsaved draft? This cannot be undone.",
+    saveBeforeTransition: "Save or discard substantive edits before changing lifecycle.",
+    inspectVersion: "Inspect version", historicalSnapshot: "Historical snapshot", currentSnapshot: "Current snapshot",
+    previousVersion: "Previous version", origin: "Origin", recordedBy: "Recorded by", you: "You",
+    subjectOwner: "Subject owner", subjectKind: "Subject kind", listing: "Listing", transitionLabel: "Transition",
+    systemRecorded: "System recorded", none: "None",
   },
   zh: {
     eyebrow: "研究工作区", title: "研究论点工作区", newThesis: "新建论点", list: "你的论点",
@@ -93,6 +103,13 @@ const COPY = {
     moreTheses: "还有更多论点；请先缩小工作区范围。", historyTruncated: "历史记录已截断；没有静默丢弃任何版本。",
     backToList: "返回列表",
     carrierUnavailable: "此浏览器无法安全保留该请求。请求尚未发送。",
+    unsaved: "有未保存的更改", unsavedBody: "此草稿尚未发送。请先复制，或在离开和切换前确认放弃。",
+    confirmDiscard: "放弃这份未保存的草稿？此操作无法撤销。",
+    saveBeforeTransition: "更改生命周期前，请先保存或放弃内容修改。",
+    inspectVersion: "查看版本", historicalSnapshot: "历史快照", currentSnapshot: "当前快照",
+    previousVersion: "上一版本", origin: "起始版本", recordedBy: "记录者", you: "你",
+    subjectOwner: "标的所有者", subjectKind: "标的类型", listing: "上市代码", transitionLabel: "变更类型",
+    systemRecorded: "系统记录时间", none: "无",
   },
 } as const;
 
@@ -141,6 +158,24 @@ function buildContent(draft: Draft): ThesisContent {
   };
 }
 
+function transitionContent(current: ThesisContent, revisionNote: string): ThesisContent {
+  return {
+    ...current,
+    revisionNote: trimCanonicalSpaces(revisionNote) || null,
+  };
+}
+
+function draftEquals(left: Draft, right: Draft, includeRevisionNote = true): boolean {
+  return left.title === right.title
+    && left.statement === right.statement
+    && left.catalysts === right.catalysts
+    && left.falsifiers === right.falsifiers
+    && left.risks === right.risks
+    && left.horizon === right.horizon
+    && left.effectiveAt === right.effectiveAt
+    && (!includeRevisionNote || left.revisionNote === right.revisionNote);
+}
+
 function listingSubject(symbol: string): ThesisSubjectRef {
   return {
     schema: "mastermind.thesis-subject-ref/v1",
@@ -178,6 +213,20 @@ function storePending(key: string, pending: Pending): boolean {
   }
 }
 
+function historyPosition(state: unknown): number | null {
+  if (!state || typeof state !== "object" || Array.isArray(state)) return null;
+  const value = (state as Record<string, unknown>)[HISTORY_POSITION_KEY];
+  return typeof value === "number" && Number.isSafeInteger(value) && value >= 0 ? value : null;
+}
+
+function historyState(position: number): Record<string, unknown> {
+  const current = window.history.state;
+  return {
+    ...(current && typeof current === "object" && !Array.isArray(current) ? current : {}),
+    [HISTORY_POSITION_KEY]: position,
+  };
+}
+
 export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesisId, invalidLink = false }: ThesisWorkspaceProps) {
   const { lang } = useLang();
   const copy = COPY[lang];
@@ -190,14 +239,43 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   const [detail, setDetail] = useState<ThesisDetail | null>(null);
   const [subjectDraft, setSubjectDraft] = useState(seededSymbol);
   const [draft, setDraft] = useState<Draft>(EMPTY_DRAFT);
+  const [baseline, setBaseline] = useState<{ subject: string; draft: Draft }>(() => ({
+    subject: seededSymbol,
+    draft: EMPTY_DRAFT,
+  }));
   const [saving, setSaving] = useState(false);
   const [conflict, setConflict] = useState<Conflict | null>(null);
   const [pending, setPending] = useState<Pending | null>(null);
   const [pendingHydrated, setPendingHydrated] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [inspectedVersion, setInspectedVersion] = useState<number | null>(null);
+  const [routeInvalid, setRouteInvalid] = useState(invalidLink);
   const [mobilePane, setMobilePane] = useState<MobilePane>(initialThesisId || seededSymbol ? "detail" : "list");
   const detailRequest = useRef(0);
+  const routeDiscardAuthorized = useRef(false);
+  const historyPositionRef = useRef(0);
+  const restoringPop = useRef(false);
   const pendingStorageKey = `${PENDING_STORAGE_PREFIX}${ownerKey}`;
+  const isDirty = useMemo(
+    () => subjectDraft !== baseline.subject || !draftEquals(draft, baseline.draft),
+    [baseline, draft, subjectDraft],
+  );
+  const substantiveDirty = useMemo(
+    () => subjectDraft !== baseline.subject || !draftEquals(draft, baseline.draft, false),
+    [baseline, draft, subjectDraft],
+  );
+  const confirmDiscard = useCallback(
+    () => !isDirty || window.confirm(copy.confirmDiscard),
+    [copy.confirmDiscard, isDirty],
+  );
+
+  useEffect(() => {
+    const existing = historyPosition(window.history.state);
+    historyPositionRef.current = existing ?? 0;
+    if (existing === null) {
+      window.history.replaceState(historyState(0), "", window.location.href);
+    }
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -230,6 +308,35 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       // Every POST has its own synchronous write/read fence; this effect never sends a mutation.
     }
   }, [pending, pendingHydrated, pendingStorageKey]);
+
+  useEffect(() => {
+    if (!isDirty) return;
+    const beforeUnload = (event: BeforeUnloadEvent) => {
+      if (routeDiscardAuthorized.current) return;
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    const protectRouteClick = (event: MouseEvent) => {
+      if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const target = event.target instanceof Element ? event.target.closest<HTMLAnchorElement>("a[href]") : null;
+      if (!target || target.target === "_blank" || target.hasAttribute("download")) return;
+      const destination = new URL(target.href, window.location.href);
+      if (destination.href === window.location.href) return;
+      if (window.confirm(copy.confirmDiscard)) {
+        routeDiscardAuthorized.current = true;
+        window.setTimeout(() => { routeDiscardAuthorized.current = false; }, 1000);
+        return;
+      }
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    };
+    window.addEventListener("beforeunload", beforeUnload);
+    document.addEventListener("click", protectRouteClick, true);
+    return () => {
+      window.removeEventListener("beforeunload", beforeUnload);
+      document.removeEventListener("click", protectRouteClick, true);
+    };
+  }, [copy.confirmDiscard, isDirty]);
 
   const loadList = useCallback(async () => {
     try {
@@ -269,9 +376,12 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       const payload = await response.json();
       if (token !== detailRequest.current) return;
       if (!payload.thesis) return setDetailState("unavailable");
+      const loadedDraft = draftFromDetail(payload.thesis);
       setDetail(payload.thesis);
-      setDraft(draftFromDetail(payload.thesis));
+      setDraft(loadedDraft);
       setSubjectDraft(payload.thesis.subject.key);
+      setBaseline({ subject: payload.thesis.subject.key, draft: loadedDraft });
+      setInspectedVersion(null);
       setDetailState("ready");
     } catch {
       if (token !== detailRequest.current) return;
@@ -279,24 +389,45 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     }
   }, []);
 
-  const beginDetailLoad = useCallback((id: string) => {
-    if (pending) return;
+  const writeRoute = useCallback((url: URL, mode: "push" | "replace") => {
+    if (url.href === window.location.href) return;
+    if (mode === "push") {
+      const next = historyPositionRef.current + 1;
+      window.history.pushState(historyState(next), "", url.toString());
+      historyPositionRef.current = next;
+      return;
+    }
+    window.history.replaceState(historyState(historyPositionRef.current), "", url.toString());
+  }, []);
+
+  const openDetail = useCallback((id: string, historyMode: "push" | "none" = "push") => {
     const token = ++detailRequest.current;
+    setRouteInvalid(false);
     setSelectedId(id);
     setDetail(null);
+    setSubjectDraft("");
     setDraft(EMPTY_DRAFT);
+    setBaseline({ subject: "", draft: EMPTY_DRAFT });
     setConflict(null);
     setPending(null);
     setMessage(null);
+    setInspectedVersion(null);
     setDetailState("loading");
     setMobilePane("detail");
-    const url = new URL(window.location.href);
-    url.searchParams.set("view", "theses");
-    url.searchParams.set("thesis", id);
-    url.searchParams.delete("symbol");
-    window.history.replaceState(null, "", url.toString());
+    if (historyMode === "push") {
+      const url = new URL(window.location.href);
+      url.searchParams.set("view", "theses");
+      url.searchParams.set("thesis", id);
+      url.searchParams.delete("symbol");
+      writeRoute(url, "push");
+    }
     void loadDetail(id, token);
-  }, [loadDetail, pending]);
+  }, [loadDetail, writeRoute]);
+
+  const beginDetailLoad = useCallback((id: string, discardConfirmed = false) => {
+    if (pending || (!discardConfirmed && !confirmDiscard())) return;
+    openDetail(id);
+  }, [confirmDiscard, openDetail, pending]);
 
   useEffect(() => {
     if (invalidLink) return;
@@ -309,53 +440,117 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     }
   }, [initialThesisId, invalidLink, loadDetail, loadList, ownerKey]);
 
-  const startNew = useCallback(() => {
-    if (pending) return;
+  const resetToNew = useCallback((symbol: string, historyMode: "push" | "none" = "push") => {
     detailRequest.current += 1;
+    setRouteInvalid(false);
     setSelectedId(null);
     setDetail(null);
     setDetailState("idle");
-    setSubjectDraft(seededSymbol);
+    setSubjectDraft(symbol);
     setDraft(EMPTY_DRAFT);
+    setBaseline({ subject: symbol, draft: EMPTY_DRAFT });
     setConflict(null);
     setPending(null);
     setMessage(null);
+    setInspectedVersion(null);
     setMobilePane("detail");
-    const url = new URL(window.location.href);
-    url.searchParams.set("view", "theses");
-    url.searchParams.delete("thesis");
-    window.history.replaceState(null, "", url.toString());
-  }, [pending, seededSymbol]);
+    if (historyMode === "push") {
+      const url = new URL(window.location.href);
+      url.searchParams.set("view", "theses");
+      url.searchParams.delete("thesis");
+      if (symbol) url.searchParams.set("symbol", symbol);
+      else url.searchParams.delete("symbol");
+      writeRoute(url, "push");
+    }
+  }, [writeRoute]);
 
-  const backToList = useCallback(() => {
-    if (pending) return;
+  const startNew = useCallback(() => {
+    if (pending || !confirmDiscard()) return;
+    resetToNew(seededSymbol);
+  }, [confirmDiscard, pending, resetToNew, seededSymbol]);
+
+  const resetToList = useCallback((historyMode: "push" | "none" = "push") => {
     detailRequest.current += 1;
+    setRouteInvalid(false);
     setSelectedId(null);
     setDetail(null);
     setDetailState("idle");
     setSubjectDraft("");
     setDraft(EMPTY_DRAFT);
+    setBaseline({ subject: "", draft: EMPTY_DRAFT });
     setConflict(null);
     setPending(null);
     setMessage(null);
+    setInspectedVersion(null);
     setMobilePane("list");
-    const url = new URL(window.location.href);
-    url.searchParams.set("view", "theses");
-    url.searchParams.delete("thesis");
-    url.searchParams.delete("symbol");
-    window.history.replaceState(null, "", url.toString());
-  }, [pending]);
+    if (historyMode === "push") {
+      const url = new URL(window.location.href);
+      url.searchParams.set("view", "theses");
+      url.searchParams.delete("thesis");
+      url.searchParams.delete("symbol");
+      writeRoute(url, "push");
+    }
+  }, [writeRoute]);
+
+  const backToList = useCallback(() => {
+    if (pending || !confirmDiscard()) return;
+    resetToList();
+  }, [confirmDiscard, pending, resetToList]);
+
+  useEffect(() => {
+    const handlePop = (event: PopStateEvent) => {
+      if (restoringPop.current) {
+        restoringPop.current = false;
+        return;
+      }
+      const priorPosition = historyPositionRef.current;
+      const nextPosition = historyPosition(event.state);
+      const restore = () => {
+        event.stopImmediatePropagation();
+        restoringPop.current = true;
+        if (nextPosition === null) window.history.forward();
+        else window.history.go(priorPosition - nextPosition);
+      };
+      if (pending) return restore();
+      if (isDirty && !window.confirm(copy.confirmDiscard)) return restore();
+      if (isDirty) {
+        routeDiscardAuthorized.current = true;
+        window.setTimeout(() => { routeDiscardAuthorized.current = false; }, 1000);
+      }
+      if (nextPosition !== null) historyPositionRef.current = nextPosition;
+      if (window.location.pathname !== "/analysis") return;
+      const route = parseAnalysisSearchParams(new URLSearchParams(window.location.search));
+      if (route.kind === "invalid_thesis") {
+        detailRequest.current += 1;
+        setRouteInvalid(true);
+        setSelectedId(null);
+        setDetail(null);
+        setDetailState("idle");
+        return;
+      }
+      if (route.kind !== "theses") return;
+      if (route.thesisId) return openDetail(route.thesisId, "none");
+      const symbol = normalizeAnalysisSymbol(route.symbol) ?? "";
+      if (symbol) return resetToNew(symbol, "none");
+      resetToList("none");
+    };
+    window.addEventListener("popstate", handlePop);
+    return () => window.removeEventListener("popstate", handlePop);
+  }, [copy.confirmDiscard, isDirty, openDetail, pending, resetToList, resetToNew]);
 
   const changeDraft = useCallback(<K extends keyof Draft>(key: K, value: Draft[K]) => {
     setDraft((current) => ({ ...current, [key]: value }));
     setPending(null);
-    setConflict(null);
     setMessage(null);
   }, []);
 
   const mutationBody = useCallback((action: ThesisAction, requestId: string): Record<string, unknown> | null => {
     const symbol = detail?.subject.key ?? normalizeAnalysisSymbol(subjectDraft);
-    const content = normalizeThesisContent(buildContent(draft));
+    const content = normalizeThesisContent(
+      action === "create" || action === "revise" || !detail
+        ? buildContent(draft)
+        : transitionContent(detail.current.content, draft.revisionNote),
+    );
     if (!symbol || !content) return null;
     return {
       action,
@@ -410,13 +605,13 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     url.searchParams.set("view", "theses");
     url.searchParams.set("thesis", id);
     url.searchParams.delete("symbol");
-    window.history.replaceState(null, "", url.toString());
+    writeRoute(url, "replace");
     setSelectedId(id);
     setMobilePane("detail");
     setMessage(`${copy.saved} ${version}${payload.replayed ? ` · ${copy.replayed}` : ""}`);
     await loadList();
     await loadDetail(id);
-  }, [copy.ambiguous, copy.invalid, copy.replayed, copy.saved, copy.transition, loadDetail, loadList]);
+  }, [copy.ambiguous, copy.invalid, copy.replayed, copy.saved, copy.transition, loadDetail, loadList, writeRoute]);
 
   const send = useCallback(async (pendingMutation: Pending) => {
     if (!storePending(pendingStorageKey, pendingMutation)) {
@@ -442,6 +637,10 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   }, [consumeResponse, copy.ambiguous, copy.carrierUnavailable, pendingStorageKey]);
 
   const submit = useCallback((action: ThesisAction) => {
+    if (action !== "create" && action !== "revise" && substantiveDirty) {
+      setMessage(copy.saveBeforeTransition);
+      return;
+    }
     const body = mutationBody(action, crypto.randomUUID());
     if (!body) return setMessage(copy.invalid);
     const next = { action, body };
@@ -451,7 +650,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     }
     setPending(next);
     void send(next);
-  }, [copy.carrierUnavailable, copy.invalid, mutationBody, pendingStorageKey, send]);
+  }, [copy.carrierUnavailable, copy.invalid, copy.saveBeforeTransition, mutationBody, pendingStorageKey, send, substantiveDirty]);
 
   const copyDraft = useCallback(async () => {
     await navigator.clipboard.writeText(JSON.stringify({ subject: detail?.subject ?? subjectDraft, ...draft }, null, 2));
@@ -460,9 +659,9 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
 
   const reloadAfterConflict = useCallback(() => {
     if (!selectedId || !window.confirm(copy.confirmReload)) return;
-    beginDetailLoad(selectedId);
+    openDetail(selectedId, "none");
     void loadList();
-  }, [beginDetailLoad, copy.confirmReload, loadList, selectedId]);
+  }, [copy.confirmReload, loadList, openDetail, selectedId]);
 
   const copyLink = useCallback(async () => {
     await navigator.clipboard.writeText(window.location.href);
@@ -474,8 +673,12 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   const ambiguous = !!pending && !saving;
   const carrierLocked = !pendingHydrated || pending !== null;
   const history = useMemo(() => detail?.history ?? [], [detail?.history]);
+  const inspected = useMemo<ThesisVersion | null>(
+    () => history.find((entry) => entry.version === inspectedVersion) ?? null,
+    [history, inspectedVersion],
+  );
 
-  if (invalidLink) {
+  if (routeInvalid) {
     return (
       <main className={`main2 ws-shell ${styles.root}`} data-testid="thesis-workspace">
         <section className={styles.centerState} role="status" data-testid="thesis-invalid-link">
@@ -528,6 +731,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
                     </div>
                     {conflict && <div className={styles.conflict} role="alert" data-testid="thesis-conflict"><div><strong>{copy.conflict}</strong><p>{copy.conflictBody} {copy.current}: {copy.version} {conflict.currentVersion} · {statusLabel(conflict.lifecycleState, copy)}</p></div><div><button onClick={reloadAfterConflict}>{copy.reload}</button><button onClick={() => void copyDraft()}>{copy.copyDraft}</button></div></div>}
                     {message && <p className={styles.message} role="status">{message}</p>}
+                    {isDirty && !pending && <div className={styles.dirtyDraft} role="status" data-testid="thesis-dirty-draft"><div><strong>{copy.unsaved}</strong><p>{copy.unsavedBody}</p></div><button type="button" onClick={() => void copyDraft()}>{copy.copyDraft}</button></div>}
                     {pending && !saving && <button className={styles.retrySame} onClick={() => void send(pending)}>{copy.retrySame}</button>}
 
                     <form className={styles.form} onSubmit={(event) => { event.preventDefault(); submit(selectedId ? "revise" : "create"); }}>
@@ -545,7 +749,44 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
                       </div>
                     </form>
 
-                    {detail && <section className={styles.history} aria-label={copy.history}><div className={styles.historyHeading}><h2>{copy.history}</h2><span>{detail.history.length}</span></div>{history.map((entry) => <article key={entry.id} data-version={entry.version}><div><b>v{entry.version}</b><span>{TRANSITION_LABELS[lang][entry.transition]}</span><i data-state={entry.lifecycleState}>{statusLabel(entry.lifecycleState, copy)}</i></div><time dateTime={entry.systemRecordedAt}>{new Date(entry.systemRecordedAt).toLocaleString(lang === "zh" ? "zh-CN" : "en-CA")}</time><strong>{entry.content.title}</strong><p>{entry.content.revisionNote || copy.lines}{entry.effectiveAt && <span className={styles.effectiveAt}>{copy.effectiveHistory}: <time dateTime={entry.effectiveAt}>{new Date(entry.effectiveAt).toLocaleString(lang === "zh" ? "zh-CN" : "en-CA")}</time></span>}</p></article>)}{detail.historyTruncated && <p className={styles.muted}>{copy.historyTruncated}</p>}</section>}
+                    {detail && <section className={styles.history} aria-label={copy.history}>
+                      <div className={styles.historyHeading}><h2>{copy.history}</h2><span>{detail.history.length}</span></div>
+                      {history.map((entry) => {
+                        const currentEntry = entry.version === detail.currentVersion;
+                        const open = inspected?.id === entry.id;
+                        return <article key={entry.id} data-version={entry.version} data-current={currentEntry}>
+                          <div className={styles.historySummary}>
+                            <div><b>v{entry.version}</b><span>{TRANSITION_LABELS[lang][entry.transition]}</span><i data-state={entry.lifecycleState}>{statusLabel(entry.lifecycleState, copy)}</i></div>
+                            <time dateTime={entry.systemRecordedAt}>{new Date(entry.systemRecordedAt).toLocaleString(lang === "zh" ? "zh-CN" : "en-CA")}</time>
+                            <strong>{entry.content.title}</strong>
+                            <p>{entry.content.revisionNote || copy.lines}{entry.effectiveAt && <span className={styles.effectiveAt}>{copy.effectiveHistory}: <time dateTime={entry.effectiveAt}>{new Date(entry.effectiveAt).toLocaleString(lang === "zh" ? "zh-CN" : "en-CA")}</time></span>}</p>
+                            <button type="button" aria-label={`${copy.inspectVersion} ${entry.version}`} aria-expanded={open} onClick={() => setInspectedVersion(open ? null : entry.version)}>{copy.inspectVersion}</button>
+                          </div>
+                          {open && <div className={styles.versionInspector} data-testid="thesis-version-inspector" data-posture={currentEntry ? "current" : "historical"}>
+                            <header><div><small>{copy.version} {entry.version}</small><h3>{currentEntry ? copy.currentSnapshot : copy.historicalSnapshot}</h3></div><span data-state={entry.lifecycleState}>{statusLabel(entry.lifecycleState, copy)}</span></header>
+                            <dl className={styles.versionMeta}>
+                              <div><dt>{copy.previousVersion}</dt><dd>{entry.previousVersion === null ? copy.origin : `${copy.version} ${entry.previousVersion}`}</dd></div>
+                              <div><dt>{copy.recordedBy}</dt><dd>{copy.you}</dd></div>
+                              <div><dt>{copy.transitionLabel}</dt><dd>{TRANSITION_LABELS[lang][entry.transition]}</dd></div>
+                              <div><dt>{copy.systemRecorded}</dt><dd><time dateTime={entry.systemRecordedAt}>{new Date(entry.systemRecordedAt).toLocaleString(lang === "zh" ? "zh-CN" : "en-CA")}</time></dd></div>
+                              <div><dt>{copy.subject}</dt><dd>{entry.subject.key}</dd></div>
+                              <div><dt>{copy.subjectOwner}</dt><dd>{entry.subject.owner}</dd></div>
+                              <div><dt>{copy.subjectKind}</dt><dd>{entry.subject.kind}</dd></div>
+                              <div><dt>{copy.listing}</dt><dd>{entry.subject.listing?.symbol ?? copy.none}</dd></div>
+                            </dl>
+                            <div className={styles.snapshotGrid}>
+                              <section><h4>{copy.titleLabel}</h4><p>{entry.content.title}</p></section>
+                              <section className={styles.snapshotFull}><h4>{copy.statement}</h4><p>{entry.content.statement}</p></section>
+                              {(["catalysts", "falsifiers", "risks"] as const).map((field) => <section key={field}><h4>{copy[field]}</h4>{entry.content[field].length ? <ul>{entry.content[field].map((item) => <li key={item}>{item}</li>)}</ul> : <p>{copy.none}</p>}</section>)}
+                              <section><h4>{copy.horizon}</h4><p>{HORIZON_LABELS[lang][entry.content.horizon]}</p></section>
+                              <section><h4>{copy.effectiveHistory}</h4><p>{entry.content.effectiveAt ? new Date(entry.content.effectiveAt).toLocaleString(lang === "zh" ? "zh-CN" : "en-CA") : copy.none}</p></section>
+                              <section className={styles.snapshotFull}><h4>{copy.revision}</h4><p>{entry.content.revisionNote ?? copy.none}</p></section>
+                            </div>
+                          </div>}
+                        </article>;
+                      })}
+                      {detail.historyTruncated && <p className={styles.muted}>{copy.historyTruncated}</p>}
+                    </section>}
                   </>}
           </section>
         </div>

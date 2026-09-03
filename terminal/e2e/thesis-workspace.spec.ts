@@ -24,6 +24,23 @@ async function fillNew(page: Page, zh = false, title = "NVDA operating leverage"
   await page.getByLabel(zh ? "时间范围" : "Horizon").selectOption("quarters");
 }
 
+async function createThesis(page: Page, title: string, requestId: string, symbol = "NVDA") {
+  const response = await page.request.post("/api/theses", { data: {
+    action: "create", clientRequestId: requestId,
+    subject: {
+      schema: "mastermind.thesis-subject-ref/v1", kind: "issuer", owner: "terminal.analysis_symbol",
+      key: symbol, identityState: "listing_scoped", listing: { symbol, mic: null, securityId: null },
+      companyId: null, display: `${symbol} · listing scoped`,
+    },
+    content: {
+      schema: "mastermind.thesis-content/v1", title, statement: `${title} statement`,
+      catalysts: [], falsifiers: [], risks: [], horizon: "unspecified", effectiveAt: null, revisionNote: null,
+    },
+  } });
+  expect(response.status()).toBe(201);
+  return (await response.json()).thesisId as string;
+}
+
 test("create → deep link → reload → revise → conflict → archive/invalidate/reopen keeps immutable history", async ({ page, baseURL }, testInfo) => {
   await prepare(page, testInfo, baseURL);
   const proofDir = path.join(process.cwd(), "e2e/proof/f11-theses");
@@ -69,6 +86,14 @@ test("create → deep link → reload → revise → conflict → archive/invali
   await expect(stale.getByTestId("thesis-conflict")).toContainText("newer version");
   await expect(stale.getByTestId("thesis-conflict")).toContainText("Version 3");
   await expect(stale.getByLabel("Thesis statement")).toHaveValue(preserved);
+  expect(await stale.evaluate(() => {
+    const event = new Event("beforeunload", { cancelable: true });
+    window.dispatchEvent(event);
+    return event.defaultPrevented;
+  })).toBe(true);
+  stale.once("dialog", (dialog) => void dialog.dismiss());
+  await stale.getByRole("button", { name: "New thesis" }).click();
+  await expect(stale.getByLabel("Thesis statement")).toHaveValue(preserved);
   await stale.getByTestId("thesis-conflict").evaluate((element) => element.scrollIntoView({ block: "start" }));
   await stale.screenshot({ path: path.join(proofDir, `${testInfo.project.name}-conflict.png`), fullPage: true });
   await stale.close();
@@ -86,6 +111,20 @@ test("create → deep link → reload → revise → conflict → archive/invali
   await page.getByRole("button", { name: "Reopen", exact: true }).click();
   await expect(page.getByText("Version 7 · Current")).toBeVisible();
   await expect(page.locator("[aria-label='Version history'] article")).toHaveCount(7);
+  await page.getByRole("button", { name: "Inspect version 2" }).click();
+  const historical = page.getByTestId("thesis-version-inspector");
+  await expect(historical).toHaveAttribute("data-posture", "historical");
+  await expect(historical).toContainText("Historical snapshot");
+  await expect(historical).toContainText("Previous version");
+  await expect(historical).toContainText("Version 1");
+  await expect(historical).toContainText("Recorded by");
+  await expect(historical).toContainText("You");
+  await expect(historical).toContainText("Software mix expands pricing power through the next platform cycle.");
+  await expect(historical).toContainText("Data-center revenue compounds");
+  await page.getByRole("button", { name: "Inspect version 7" }).click();
+  await expect(historical).toHaveAttribute("data-posture", "current");
+  await expect(historical).toContainText("Current snapshot");
+  await expect(historical).toContainText("The winning tab advances the canonical head.");
 
   const rail = page.getByTestId("thesis-list-pane");
   const editor = page.getByTestId("thesis-detail-pane");
@@ -100,6 +139,8 @@ test("create → deep link → reload → revise → conflict → archive/invali
     await expect(page).toHaveURL(new RegExp(`thesis=${thesisId}`));
     await expect(editor).toBeVisible();
     await expect(page.getByText("Version 7 · Current")).toBeVisible();
+    await page.getByRole("button", { name: "Inspect version 7" }).click();
+    await expect(page.getByTestId("thesis-version-inspector")).toHaveAttribute("data-posture", "current");
   } else {
     const [railBox, editorBox] = await Promise.all([rail.boundingBox(), editor.boundingBox()]);
     expect(railBox).not.toBeNull();
@@ -117,6 +158,144 @@ test("create → deep link → reload → revise → conflict → archive/invali
   await page.locator("[aria-label='Version history']").evaluate((element) => element.scrollIntoView({ block: "start" }));
   await page.screenshot({ path: path.join(proofDir, `${testInfo.project.name}-lineage.png`), fullPage: true });
   expect(browserErrors).toEqual([]);
+});
+
+test("ordinary dirty drafts require deliberate discard and remain recoverable", async ({ page, baseURL }, testInfo) => {
+  await prepare(page, testInfo, baseURL);
+  await page.goto("/analysis?view=theses&symbol=NVDA");
+  if (testInfo.project.name === "mobile") {
+    await page.getByRole("button", { name: "Back to list" }).click();
+    await page.getByRole("button", { name: "New thesis" }).click();
+  }
+  await fillNew(page);
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(page.getByText("Version 1 · Current")).toBeVisible();
+
+  const dirtyStatement = "An ordinary unsaved draft must survive a cancelled discard.";
+  await page.getByLabel("Thesis statement").fill(dirtyStatement);
+  await expect(page.getByTestId("thesis-dirty-draft")).toContainText("Unsaved changes");
+  await page.getByRole("button", { name: "Archive", exact: true }).click();
+  await expect(page.getByText("Save or discard substantive edits before changing lifecycle.", { exact: true })).toBeVisible();
+  await expect(page.getByText("Version 1 · Current")).toBeVisible();
+  expect(await page.evaluate(() => {
+    const event = new Event("beforeunload", { cancelable: true });
+    window.dispatchEvent(event);
+    return event.defaultPrevented;
+  })).toBe(true);
+
+  page.once("dialog", (dialog) => void dialog.dismiss());
+  await page.getByRole("button", { name: "New thesis" }).click();
+  await expect(page.getByLabel("Thesis statement")).toHaveValue(dirtyStatement);
+
+  page.once("dialog", (dialog) => void dialog.accept());
+  await page.getByRole("button", { name: "New thesis" }).click();
+  await expect(page.getByLabel("Title")).toHaveValue("");
+  await page.getByLabel("Title").fill("Recoverable local draft");
+  await page.getByLabel("Thesis statement").fill("This draft has not been sent anywhere.");
+
+  page.once("dialog", (dialog) => void dialog.dismiss());
+  if (testInfo.project.name === "mobile") {
+    await page.getByRole("button", { name: "Back to list" }).click();
+  } else {
+    await page.getByRole("button", { name: /NVDA operating leverage/ }).click();
+  }
+  await expect(page.getByLabel("Title")).toHaveValue("Recoverable local draft");
+
+  page.once("dialog", (dialog) => void dialog.accept());
+  if (testInfo.project.name === "mobile") {
+    await page.getByRole("button", { name: "Back to list" }).click();
+    await expect(page.getByTestId("thesis-list-pane")).toBeVisible();
+  } else {
+    await page.getByRole("button", { name: /NVDA operating leverage/ }).click();
+    await expect(page.getByLabel("Title")).toHaveValue("NVDA operating leverage");
+  }
+});
+
+test("clean thesis routes traverse Back, Forward, and reload without identity drift", async ({ page, baseURL }, testInfo) => {
+  await prepare(page, testInfo, baseURL);
+  const firstId = await createThesis(page, "History A", "d0000000-0000-4000-8000-000000000001");
+  const secondId = await createThesis(page, "History B", "d0000000-0000-4000-8000-000000000002", "AAPL");
+  await page.goto("/analysis?view=theses");
+
+  await page.getByRole("button", { name: /History A/ }).click();
+  await expect(page).toHaveURL(new RegExp(`thesis=${firstId}`));
+  await expect(page.getByLabel("Title")).toHaveValue("History A");
+
+  if (testInfo.project.name === "mobile") {
+    await page.getByRole("button", { name: "Back to list" }).click();
+  }
+  await page.getByRole("button", { name: /History B/ }).click();
+  await expect(page).toHaveURL(new RegExp(`thesis=${secondId}`));
+  await expect(page.getByLabel("Title")).toHaveValue("History B");
+
+  await page.goBack();
+  if (testInfo.project.name === "mobile") {
+    await expect(page).toHaveURL(/\/analysis\?view=theses$/);
+    await expect(page.getByTestId("thesis-list-pane")).toBeVisible();
+  } else {
+    await expect(page).toHaveURL(new RegExp(`thesis=${firstId}`));
+    await expect(page.getByLabel("Title")).toHaveValue("History A");
+  }
+
+  await page.goForward();
+  await expect(page).toHaveURL(new RegExp(`thesis=${secondId}`));
+  await expect(page.getByLabel("Title")).toHaveValue("History B");
+  await page.reload();
+  await expect(page.getByLabel("Title")).toHaveValue("History B");
+});
+
+test("dirty browser Back requires a decision and a cancelled traversal preserves the draft", async ({ page, baseURL }, testInfo) => {
+  await prepare(page, testInfo, baseURL);
+  const thesisId = await createThesis(page, "Dirty history", "e0000000-0000-4000-8000-000000000001");
+  await page.goto("/analysis?view=theses");
+  await page.getByRole("button", { name: /Dirty history/ }).click();
+  await expect(page).toHaveURL(new RegExp(`thesis=${thesisId}`));
+  const draft = "Browser Back must never erase this losing draft.";
+  await page.getByLabel("Thesis statement").fill(draft);
+
+  page.once("dialog", (dialog) => void dialog.dismiss());
+  await page.goBack();
+  await expect(page).toHaveURL(new RegExp(`thesis=${thesisId}`));
+  await expect(page.getByLabel("Thesis statement")).toHaveValue(draft);
+
+  page.once("dialog", (dialog) => void dialog.accept());
+  await page.goBack();
+  await expect(page).toHaveURL(/\/analysis\?view=theses$/);
+  if (testInfo.project.name === "mobile") {
+    await expect(page.getByTestId("thesis-list-pane")).toBeVisible();
+  } else {
+    await expect(page.getByTestId("thesis-detail-pane")).toBeVisible();
+    await expect(page.getByLabel("Title")).toHaveValue("");
+    await expect(page.getByText("Version 1 · Current")).toHaveCount(0);
+  }
+});
+
+test("a Chinese direct link keeps the same finite list/detail history journey", async ({ page, baseURL }, testInfo) => {
+  await prepare(page, testInfo, baseURL, true);
+  const firstId = await createThesis(page, "历史甲", "f0000000-0000-4000-8000-000000000001");
+  const secondId = await createThesis(page, "历史乙", "f0000000-0000-4000-8000-000000000002", "AAPL");
+  await page.goto(`/analysis?view=theses&thesis=${firstId}`);
+  await expect(page.getByLabel("标题")).toHaveValue("历史甲");
+
+  if (testInfo.project.name === "mobile") {
+    await page.getByRole("button", { name: "返回列表" }).click();
+  }
+  await page.getByRole("button", { name: /历史乙/ }).click();
+  await expect(page).toHaveURL(new RegExp(`thesis=${secondId}`));
+  await expect(page.getByLabel("标题")).toHaveValue("历史乙");
+
+  await page.goBack();
+  if (testInfo.project.name === "mobile") {
+    await expect(page).toHaveURL(/\/analysis\?view=theses$/);
+    await expect(page.getByTestId("thesis-list-pane")).toBeVisible();
+  } else {
+    await expect(page).toHaveURL(new RegExp(`thesis=${firstId}`));
+    await expect(page.getByLabel("标题")).toHaveValue("历史甲");
+  }
+  await page.goForward();
+  await expect(page).toHaveURL(new RegExp(`thesis=${secondId}`));
+  await page.reload();
+  await expect(page.getByLabel("标题")).toHaveValue("历史乙");
 });
 
 test("malformed links make no store request; co-resident foreign and missing IDs share one response", async ({ page, baseURL }, testInfo) => {

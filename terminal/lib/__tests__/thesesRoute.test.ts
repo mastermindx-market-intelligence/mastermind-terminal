@@ -105,6 +105,12 @@ describe("GET /api/theses", () => {
     expect(matched.status).toBe(200);
     expect((await matched.json()).theses).toHaveLength(1);
 
+    for (const terminalKey of ["nvda", "NvDa"]) {
+      const canonicalMatch = await GET(new Request(`https://x.test/api/theses?subjectOwner=terminal.analysis_symbol&subjectKind=issuer&subjectKey=${terminalKey}`));
+      expect(canonicalMatch.status).toBe(200);
+      expect((await canonicalMatch.json()).theses).toHaveLength(1);
+    }
+
     const unmatched = await GET(new Request("https://x.test/api/theses?subjectOwner=terminal.analysis_symbol&subjectKind=issuer&subjectKey=AAPL"));
     expect(unmatched.status).toBe(200);
     expect((await unmatched.json()).theses).toEqual([]);

@@ -205,11 +205,20 @@ describe("the atomic thesis mutation boundary", () => {
         expectedVersion: version,
         clientRequestId: request,
         subject,
-        content: content(`${action} snapshot`, { revisionNote: note }),
+        content: content("Demand will outrun supply.", { revisionNote: note }),
       });
 
     expect(await mutate("reopen", 1, "30000000-0000-4000-8000-000000000002"))
       .toMatchObject({ ok: false, status: "invalid_transition" });
+    expect(await applyThesisVersion(db(), owner, {
+      action: "archive",
+      id: created.thesisId,
+      expectedVersion: 1,
+      clientRequestId: "30000000-0000-4000-8000-000000000010",
+      subject,
+      content: content("A lifecycle label must not conceal a substantive rewrite."),
+    })).toMatchObject({ ok: false, status: "invalid_transition" });
+    expect(fixtureStore("thesis-race").thesisVersions).toHaveLength(1);
     expect(await mutate("archive", 1, "30000000-0000-4000-8000-000000000003"))
       .toMatchObject({ ok: true, version: 2, lifecycleState: "archived" });
     expect(await mutate("revise", 2, "30000000-0000-4000-8000-000000000004"))

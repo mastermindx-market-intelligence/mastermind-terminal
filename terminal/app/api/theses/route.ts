@@ -12,7 +12,7 @@ import {
   applyThesisVersion,
   isUuid,
   listTheses,
-  normalizeThesisSubjectKey,
+  normalizeThesisSubjectFilter,
   readThesis,
   type ThesisAction,
   type ThesisDb,
@@ -21,9 +21,6 @@ import {
 
 const MAX_REQUEST_BYTES = 64 * 1024;
 const ACTIONS = new Set<ThesisAction>(["create", "revise", "archive", "invalidate", "reopen"]);
-const SUBJECT_OWNERS = new Set<ThesisSubjectFilter["owner"]>([
-  "data_os.security_master", "terminal.analysis_symbol", "macro.theme_registry",
-]);
 const isE2eFixture = () => process.env.TERMINAL_E2E_FIXTURE === "1";
 
 async function resolveDb(): Promise<{ db: ThesisDb; userId: string } | null> {
@@ -65,19 +62,12 @@ export async function GET(request: Request) {
   const hasFilter = owner.length + kind.length + key.length > 0;
   let filter: ThesisSubjectFilter | undefined;
   if (hasFilter) {
-    const normalizedKey = key.length === 1 ? normalizeThesisSubjectKey(key[0]) : null;
-    const valid = owner.length === 1 && kind.length === 1 && key.length === 1
-      && SUBJECT_OWNERS.has(owner[0] as ThesisSubjectFilter["owner"])
-      && (kind[0] === "issuer" || kind[0] === "theme")
-      && ((owner[0] === "macro.theme_registry" && kind[0] === "theme")
-        || (owner[0] !== "macro.theme_registry" && kind[0] === "issuer"))
-      && normalizedKey !== null;
-    if (!valid || normalizedKey === null) return jsonError("invalid_subject_filter", 400);
-    filter = {
-      owner: owner[0] as ThesisSubjectFilter["owner"],
-      kind: kind[0] as ThesisSubjectFilter["kind"],
-      key: normalizedKey,
-    };
+    if (owner.length !== 1 || kind.length !== 1 || key.length !== 1) {
+      return jsonError("invalid_subject_filter", 400);
+    }
+    const normalized = normalizeThesisSubjectFilter(owner[0], kind[0], key[0]);
+    if (!normalized) return jsonError("invalid_subject_filter", 400);
+    filter = normalized;
   }
   const result = await listTheses(session.db, session.userId, 200, filter);
   if (!result.ok) {

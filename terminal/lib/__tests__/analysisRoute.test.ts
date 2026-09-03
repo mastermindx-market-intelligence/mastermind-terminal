@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseAnalysisRoute } from "@/lib/analysisRoute";
+import { parseAnalysisRoute, parseAnalysisSearchParams } from "@/lib/analysisRoute";
 
 describe("the closed /analysis route vocabulary", () => {
   it("preserves the existing company route when view is absent or explicitly company", () => {
@@ -38,5 +38,16 @@ describe("the closed /analysis route vocabulary", () => {
       "123e4567-e89b-42d3-a456-426614174000",
       "123e4567-e89b-42d3-a456-426614174000",
     ] })).toEqual({ kind: "invalid_thesis" });
+  });
+
+  it("parses browser search params through the same closed vocabulary", () => {
+    const id = "123e4567-e89b-42d3-a456-426614174000";
+    expect(parseAnalysisSearchParams(new URLSearchParams(`view=theses&thesis=${id}`))).toEqual({
+      kind: "theses", thesisId: id,
+    });
+    expect(parseAnalysisSearchParams(new URLSearchParams("view=theses&thesis=bad"))).toEqual({ kind: "invalid_thesis" });
+    expect(parseAnalysisSearchParams(new URLSearchParams("view=theses&view=company"))).toEqual({
+      kind: "unsupported", reason: "invalid_view",
+    });
   });
 });

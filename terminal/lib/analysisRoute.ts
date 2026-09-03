@@ -52,3 +52,13 @@ export function parseAnalysisRoute(query: SearchParams): AnalysisRoute {
       : {}),
   };
 }
+
+/** Browser history must use the identical closed vocabulary as the server entry point. */
+export function parseAnalysisSearchParams(searchParams: URLSearchParams): AnalysisRoute {
+  const query: SearchParams = {};
+  searchParams.forEach((value, key) => {
+    const prior = query[key];
+    query[key] = prior === undefined ? value : Array.isArray(prior) ? [...prior, value] : [prior, value];
+  });
+  return parseAnalysisRoute(query);
+}

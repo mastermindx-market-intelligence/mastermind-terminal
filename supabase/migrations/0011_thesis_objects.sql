@@ -97,6 +97,7 @@ as $$
 declare
   v_actor uuid := auth.uid();
   v_head public.theses%rowtype;
+  v_current public.thesis_versions%rowtype;
   v_prior public.thesis_versions%rowtype;
   v_fingerprint bytea;
   v_subject_digest bytea;
@@ -451,6 +452,25 @@ begin
   -- Subject correction/rebinding is not a v1 transition. Equality is on the exact canonical JSONB
   -- snapshot digest, so a URL symbol or client guess cannot silently retarget an existing thesis.
   if v_head.subject_digest <> v_subject_digest then
+    status := 'invalid_transition';
+    return next;
+    return;
+  end if;
+
+  select tv.* into v_current
+  from public.thesis_versions as tv
+  where tv.thesis_id = v_head.id
+    and tv.user_id = v_actor
+    and tv.version = v_head.current_version;
+  if not found then
+    raise exception 'thesis current version missing after row lock';
+  end if;
+
+  -- Archive, invalidate and reopen are lifecycle-only transitions. They may carry a new
+  -- revision note, but they cannot rewrite substance while the lineage labels the change only
+  -- as a lifecycle event. This transaction fence also governs hostile direct-RPC callers.
+  if p_transition <> 'revise'
+     and (v_current.content - 'revision_note') <> (v_content - 'revision_note') then
     status := 'invalid_transition';
     return next;
     return;

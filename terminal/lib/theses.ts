@@ -167,6 +167,28 @@ export function normalizeThesisSubjectKey(value: unknown): string | null {
   return boundedSingleLineText(value, 256, true);
 }
 
+export function normalizeThesisSubjectFilter(
+  owner: unknown,
+  kind: unknown,
+  key: unknown,
+): ThesisSubjectFilter | null {
+  if (typeof owner !== "string" || !SUBJECT_OWNERS.has(owner as ThesisSubjectRef["owner"])
+    || (kind !== "issuer" && kind !== "theme")
+    || (owner === "macro.theme_registry" && kind !== "theme")
+    || (owner !== "macro.theme_registry" && kind !== "issuer")) return null;
+  let normalizedKey = normalizeThesisSubjectKey(key);
+  if (!normalizedKey) return null;
+  if (owner === "terminal.analysis_symbol") {
+    normalizedKey = normalizedKey.toUpperCase();
+    if (normalizedKey.length > 24 || !ANALYSIS_SYMBOL.test(normalizedKey)) return null;
+  }
+  return {
+    owner: owner as ThesisSubjectRef["owner"],
+    kind,
+    key: normalizedKey,
+  };
+}
+
 function nullableSingleLineText(value: unknown, max: number): { ok: boolean; value: string | null } {
   if (value === null || value === "") return { ok: true, value: null };
   if (typeof value !== "string") return { ok: false, value: null };
@@ -200,12 +222,11 @@ export function isUuid(value: unknown): value is string {
 export function normalizeThesisSubject(value: unknown): ThesisSubjectRef | null {
   const raw = record(value);
   if (!raw || !exactKeys(raw, ["schema", "kind", "owner", "key", "identityState", "listing", "companyId", "display"])) return null;
-  if (raw.schema !== THESIS_SUBJECT_SCHEMA || (raw.kind !== "issuer" && raw.kind !== "theme")) return null;
-  if (typeof raw.owner !== "string" || !SUBJECT_OWNERS.has(raw.owner as ThesisSubjectRef["owner"])) return null;
-  if ((raw.owner === "macro.theme_registry" && raw.kind !== "theme")
-    || (raw.owner !== "macro.theme_registry" && raw.kind !== "issuer")) return null;
+  if (raw.schema !== THESIS_SUBJECT_SCHEMA) return null;
+  const filter = normalizeThesisSubjectFilter(raw.owner, raw.kind, raw.key);
+  if (!filter) return null;
   if (raw.identityState !== "resolved" && raw.identityState !== "listing_scoped") return null;
-  let key = normalizeThesisSubjectKey(raw.key);
+  let key = filter.key;
   const display = boundedSingleLineText(raw.display, 256, true);
   if (!key || !display) return null;
 
@@ -234,8 +255,8 @@ export function normalizeThesisSubject(value: unknown): ThesisSubjectRef | null 
   if (!company.ok) return null;
   return {
     schema: THESIS_SUBJECT_SCHEMA,
-    kind: raw.kind,
-    owner: raw.owner as ThesisSubjectRef["owner"],
+    kind: filter.kind,
+    owner: filter.owner,
     key,
     identityState: raw.identityState,
     ...(listing ? { listing } : {}),

@@ -105,4 +105,16 @@ describe("0011 thesis persistence contract", () => {
     expect(flat).toContain("upper(btrim(p_subject_ref->>'key', ' ')) <> upper(btrim(p_subject_ref->'listing'->>'symbol', ' '))");
     expect(flat).toContain("'key', case when p_subject_ref->>'owner' = 'terminal.analysis_symbol'");
   });
+
+  it("refuses substantive rewrites disguised as lifecycle-only transitions", () => {
+    const currentRead = flat.indexOf("select tv.* into v_current");
+    const lifecycleFence = flat.indexOf("p_transition <> 'revise'");
+    const versionInsert = flat.lastIndexOf("insert into public.thesis_versions");
+
+    expect(currentRead).toBeGreaterThan(-1);
+    expect(flat).toContain("v_current.content - 'revision_note'");
+    expect(flat).toContain("v_content - 'revision_note'");
+    expect(lifecycleFence).toBeGreaterThan(currentRead);
+    expect(lifecycleFence).toBeLessThan(versionInsert);
+  });
 });
