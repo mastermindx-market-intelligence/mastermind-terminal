@@ -307,6 +307,7 @@ export function presentEventWorkspace(workspace: EventWorkspace, options: { zh?:
   const revenue = workspace.facts.find((fact) => fact.metric === "revenue" && fact.value != null);
   const revenueClaim = workspace.claims.find((claim) => claim.claim_id === "claim_revenue_lede" || claim.metric === "revenue");
   const questions = workspace.facts.find((fact) => fact.metric === "questions_count");
+  const qaCount = workspace.qa_exchanges.length;
   const reported: EventWorkspacePresentedItem[] = [];
   if (revenue && revenue.value != null) {
     const growth = yoyFromRevenueClaim(revenueClaim);
@@ -354,6 +355,7 @@ export function presentEventWorkspace(workspace: EventWorkspace, options: { zh?:
     const evidence = evidenceForFact(fact, workspace);
     if (!evidence) continue;
     if (fact.metric === "questions_count") {
+      if (qaCount > 0) continue;
       facts.push({
         id: fact.fact_id,
         label: zh ? "分析师提问" : "Analyst questions",
@@ -406,7 +408,7 @@ export function presentEventWorkspace(workspace: EventWorkspace, options: { zh?:
     completenessItem("consensus", zh ? "共识" : "Consensus", workspace.completeness.consensus, workspace),
     completenessItem("reaction", zh ? "市场反应" : "Market reaction", workspace.completeness.reaction, workspace),
   ].filter((item): item is EventWorkspacePresentedItem => item != null);
-  if (questions) {
+  if (questions && qaCount === 0) {
     const evidence = evidenceForFact(questions, workspace);
     if (evidence) {
       completeness.push({
@@ -451,7 +453,7 @@ export function presentEventWorkspace(workspace: EventWorkspace, options: { zh?:
     completeness,
     sources,
     honest: {
-      questions_count_unavailable: questions?.typed_absence != null || questions?.value == null,
+      questions_count_unavailable: qaCount > 0 ? false : (questions?.typed_absence != null || questions?.value == null),
       consensus_unlicensed: workspace.completeness.consensus.status === "unlicensed" || workspace.warnings.includes("consensus_unlicensed"),
       slides_absent: workspace.completeness.slides.status === "absent" || workspace.warnings.includes("slides_absent"),
       reaction_not_joined: workspace.completeness.reaction.status === "not_joined" || workspace.warnings.includes("reaction_not_joined"),

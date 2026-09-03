@@ -22,7 +22,12 @@ import {
   type Position,
 } from "@/lib/portfolio";
 import { addSymbols, listWatchlists } from "@/lib/watchlists";
-import { createFixtureDb, fixtureUserId, resetFixtureStores } from "@/lib/watchlistsFixtureDb";
+import {
+  createFixtureDb,
+  FAULT_POSITIONS_MUTATION_NOOP,
+  fixtureUserId,
+  resetFixtureStores,
+} from "@/lib/watchlistsFixtureDb";
 
 // The service is exercised against the same in-memory transport the Playwright dev server and the
 // route tests use, so these assertions are about RESULTING STATE rather than call shapes.
@@ -146,6 +151,41 @@ describe("CRUD", () => {
     const result = await updatePosition(db(), owner, created.position!.id, {});
     expect(result.ok).toBe(true);
     expect((await book())[0]).toEqual(before);
+  });
+
+  it("fails closed when UPDATE/DELETE returns no affected row and preserves canonical state", async () => {
+    const created = await createPosition(db(), owner, {
+      ticker: "NVDA", shares: 10, entryPrice: 100, entryDate: "2026-01-05", notes: "core",
+    });
+    const id = created.position!.id;
+    const noopDb = createFixtureDb("portfolio-unit", [FAULT_POSITIONS_MUTATION_NOOP]);
+    const original = await book();
+
+    for (const patch of [{ shares: 25 }, { status: "closed" }] as const) {
+      expect(await updatePosition(noopDb, owner, id, patch)).toEqual({
+        ok: false,
+        error: "position mutation not confirmed",
+        status: 500,
+      });
+      expect(await book()).toEqual(original);
+    }
+
+    expect(await deletePosition(noopDb, owner, id)).toEqual({
+      ok: false,
+      error: "position mutation not confirmed",
+      status: 500,
+    });
+    expect(await book()).toEqual(original);
+
+    // Reopen is the same repaired update mechanism, exercised from a genuinely closed baseline.
+    expect((await updatePosition(db(), owner, id, { status: "closed" })).ok).toBe(true);
+    const closed = await book();
+    expect(await updatePosition(noopDb, owner, id, { status: "open" })).toEqual({
+      ok: false,
+      error: "position mutation not confirmed",
+      status: 500,
+    });
+    expect(await book()).toEqual(closed);
   });
 
   it("deletes only the named position", async () => {

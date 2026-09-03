@@ -3,11 +3,17 @@
 //
 // Contract §2: 127.0.0.1:3100 only, own systemd unit, auto-restart.
 //   GET /health  → feed states + map size + manifest mtime
-//   GET /quotes?syms=CSV → {SYM:{...quote…}} (present entries only)
+//   GET /quotes?syms=CSV[&view=full|regular] → {SYM:{...quote…}} (present entries only)
+//     view is a CLOSED vocabulary (Reactive Projection R1A-T): missing view is exactly
+//     full; view=regular preserves SnapshotFeed/Polygon/AnchorCache demand but spends
+//     zero ExtFeed demand and strips every ext* field from every row; unknown, blank,
+//     repeated or conflicting view is HTTP 400. See lib/quotes.js::parseQuoteView /
+//     handleQuotesRequest.
 // Never public; Next routes proxy it.
 //
 // Feeds v1:
-//   (a) crypto: Coinbase exchange ws-feed (keyless) primary, OKX fallback (one writer at a time)
+//   (a) crypto: OKX UTC-0 spot/perpetual ws-feed primary, Coinbase rolling-24h fallback
+//       (one writer at a time; both sockets stay warm for fast failover)
 //   (b) US: Polygon aggregate dynamic per-symbol subs — delayed AM.* by default, live A.*
 //       when HUB_POLYGON_CLUSTER=live and RT-entitled (auto-demotes on denial), LRU 500,
 //       chg vs session anchor
@@ -39,8 +45,10 @@ const {
   classify,
   isMacroSymbol,
   isDailyOnlySymbol,
+  parseQuoteView,
   applyDemand,
   buildQuotesResponse,
+  handleQuotesRequest,
 } = require("./lib/quotes");
 
 const HOST = "127.0.0.1";
@@ -55,6 +63,10 @@ const DATA_DIR =
 
 const DISABLE_US = process.env.HUB_DISABLE_US === "1";
 const DISABLE_CRYPTO = process.env.HUB_DISABLE_CRYPTO === "1";
+// Optional deployment-identity marker for /health (R1A-T Task T3's running-commit proof).
+// Unset in every environment today; the deploy path may later export it. Defaults to null
+// so /health's shape is additive-only until that lands.
+const HUB_GIT_SHA = process.env.HUB_GIT_SHA || null;
 // Extended-hours feed (ext fields on US quotes outside RTH).
 // Kill-switch: EXT_FEED_DISABLE=1. Requires ALPACA_API_KEY + ALPACA_API_SECRET for ws leg;
 // falls back to Yahoo unofficial REST polling if keys absent.
@@ -84,8 +96,8 @@ const snapshotFeed = new SnapshotFeed({
 });
 
 const MAX_SYMS_PER_REQUEST = 200;
-const FAILOVER_MS = 60 * 1000; // Coinbase down/backoff > 60s → OKX
-const RECOVERY_SUSTAIN_MS = 60 * 1000; // Coinbase clean ack held 60s → drop OKX
+const FAILOVER_MS = 60 * 1000; // OKX unhealthy for 60s → Coinbase rolling-24h fallback
+const OKX_WARMUP_MS = 5 * 1000; // require a short clean OKX window before switching primary
 
 // ── Feed coordinator: exactly one crypto feed writes at a time ──
 const coordinator = { cryptoPrimary: "coinbase" };
@@ -109,30 +121,32 @@ let polygon = null;
 // classify() / isMacroSymbol() / buildQuotesResponse() live in lib/quotes.js so the
 // response contract can be unit-tested (this file boots servers at require time).
 
-// ── Crypto failover supervisor ──
-// Watches Coinbase health; promotes OKX when Coinbase is unhealthy past FAILOVER_MS, demotes it
-// once Coinbase sustains a clean subscription for RECOVERY_SUSTAIN_MS.
-let coinbaseUnhealthySince = 0;
+// ── Crypto primary supervisor ──
+// Start on Coinbase so a cold boot has a useful quote immediately. Once OKX has a clean,
+// sustained connection it becomes primary and supplies the UTC-0 basis. If OKX goes quiet,
+// Coinbase remains warm and takes over only after a bounded outage window.
+let okxUnhealthySince = 0;
+let okxHealthySince = 0;
 function superviseCrypto() {
   if (DISABLE_CRYPTO || !coinbase || !okx) return;
   const now = Date.now();
-  const cbHealthy = coinbase.isHealthy();
+  const okxHealthy = okx.isHealthy();
 
-  if (!cbHealthy) {
-    if (coinbaseUnhealthySince === 0) coinbaseUnhealthySince = now;
-    if (now - coinbaseUnhealthySince >= FAILOVER_MS && coordinator.cryptoPrimary !== "okx") {
+  if (okxHealthy) {
+    okxUnhealthySince = 0;
+    if (okxHealthySince === 0) okxHealthySince = now;
+    if (now - okxHealthySince >= OKX_WARMUP_MS && coordinator.cryptoPrimary !== "okx") {
       coordinator.cryptoPrimary = "okx";
-      log.warn("crypto failover → OKX primary (coinbase unhealthy >60s)");
-      okx.start();
+      log.info("crypto primary → OKX spot/UTC-0; perpetual lane attached");
     }
-  } else {
-    coinbaseUnhealthySince = 0;
-    // Coinbase healthy: if OKX is primary, only hand back once Coinbase is sustained-clean.
-    if (coordinator.cryptoPrimary === "okx" && coinbase.recoveredFor(RECOVERY_SUSTAIN_MS)) {
-      coordinator.cryptoPrimary = "coinbase";
-      log.info("crypto recovered → coinbase primary; stopping OKX");
-      okx.stop();
-    }
+    return;
+  }
+
+  okxHealthySince = 0;
+  if (okxUnhealthySince === 0) okxUnhealthySince = now;
+  if (now - okxUnhealthySince >= FAILOVER_MS && coinbase.isHealthy() && coordinator.cryptoPrimary !== "coinbase") {
+    coordinator.cryptoPrimary = "coinbase";
+    log.warn("crypto failover → Coinbase rolling-24h (OKX unhealthy >60s)");
   }
 }
 
@@ -150,6 +164,10 @@ function handleHealth(res) {
   sendJSON(res, 200, {
     ok: !!ok,
     port: PORT,
+    // Deployment-identity seam for R1A-T Task T3's post-deploy proof (verify the running
+    // commit before/after the ExtFeed-LRU no-effect canary). Read once at boot from the env;
+    // null when unset so this stays a no-op until the deploy path is updated to export it.
+    build: HUB_GIT_SHA,
     quotes: store.quotes.size,
     manifest: {
       path: MANIFEST_PATH,
@@ -172,31 +190,32 @@ function handleHealth(res) {
 }
 
 function handleQuotes(res, url) {
-  const raw = url.searchParams.get("syms") || "";
-  let syms = raw.split(",").map((s) => s.trim()).filter(Boolean);
-  if (syms.length === 0) return sendJSON(res, 200, {});
-  if (syms.length > MAX_SYMS_PER_REQUEST) syms = syms.slice(0, MAX_SYMS_PER_REQUEST);
-
   // Lazily refresh manifest (rate-limited internally).
   store.loadManifestIfStale(false);
 
   const now = Date.now();
 
-  // Demand pass (routing lives in lib/quotes.js so it can be unit-tested).
+  // Routing (daily-only/macro/us — see lib/quotes.js), the closed view=full|regular
+  // vocabulary, the demand pass, and response assembly all live in
+  // lib/quotes.js::handleQuotesRequest so the whole endpoint contract — including the
+  // view-parse-before-empty-syms ordering and the includeExtended wiring — is
+  // unit-testable without booting this HTTP server / feed timers. This IS the real
+  // wiring, not a parallel implementation: hub.js calls it and nothing else.
   //   daily-only → nothing at all. A FRED series id must never reach polygon.ensureSubscribed /
   //                anchorCache.resolve / extFeed.demand / macroFeed.demand: no leg carries it,
   //                and each one would spend a globally-shared LRU slot on a once-a-day print.
   //   macro      → MacroFeed only (Polygon has no futures/index/FX entitlement here, and the
   //                AnchorCache has no daily file for them).
-  //   us         → Polygon sub + warm the anchor cache + ext LRU tracking.
-  applyDemand(syms, now, {
-    polygon, anchorCache, extFeed, macroFeed, snapshotFeed, disableUS: DISABLE_US,
-  });
-
-  // macro → served from MacroFeed; crypto/us → served from the Store; cn/hk/ca → absent.
-  // Response contract is unchanged: a flat { SYM: quote } object, present entries only.
-  const out = buildQuotesResponse(syms, now, { store, macroFeed, extFeed, snapshotFeed });
-  sendJSON(res, 200, out);
+  //   us         → Polygon sub + warm the anchor cache + ext LRU tracking (view=full only —
+  //                view=regular never spends an ExtFeed demand slot, and its response never
+  //                carries an ext* field, even from a legacy Store row).
+  const { status, body } = handleQuotesRequest(
+    url.searchParams,
+    now,
+    { store, polygon, anchorCache, extFeed, macroFeed, snapshotFeed, disableUS: DISABLE_US },
+    MAX_SYMS_PER_REQUEST
+  );
+  sendJSON(res, status, body);
 }
 
 const server = http.createServer((req, res) => {
@@ -246,7 +265,8 @@ function boot() {
   if (!DISABLE_CRYPTO) {
     coinbase = new Coinbase(store, coordinator);
     okx = new OKX(store, coordinator);
-    coinbase.start(); // OKX stays dormant until the supervisor promotes it
+    coinbase.start();
+    okx.start(); // warm the UTC-0 primary and its perpetual companion lane
   } else {
     log.warn("HUB_DISABLE_CRYPTO=1 — crypto feeds off");
   }
@@ -292,4 +312,12 @@ boot();
 
 // Re-exported for test harnesses; the implementations live in lib/quotes.js because
 // requiring this file boots the HTTP server and every feed timer.
-module.exports = { classify, isMacroSymbol, isDailyOnlySymbol, applyDemand, buildQuotesResponse };
+module.exports = {
+  classify,
+  isMacroSymbol,
+  isDailyOnlySymbol,
+  parseQuoteView,
+  applyDemand,
+  buildQuotesResponse,
+  handleQuotesRequest,
+};

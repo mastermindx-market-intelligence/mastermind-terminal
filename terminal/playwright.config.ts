@@ -7,6 +7,11 @@ const port = Number(process.env.TERMINAL_E2E_PORT || 3108);
 const baseURL = `http://127.0.0.1:${port}`;
 const companyIntelligenceSpec = /company-intelligence\.spec\.ts/;
 const terminalChromeIntermediateSpec = /terminal-chrome-responsive\.spec\.ts/;
+// W2-A workspace-menu screenshots manage their own viewport per case (1440/820/390 in one file,
+// spec §7) — same reason as terminalChromeIntermediateSpec: it must run ONCE, not once per default
+// project, or every named screenshot gets clobbered three times over by parallel projects racing
+// the same file paths.
+const w2aWorkspacesSpec = /w2a-workspaces\.spec\.ts/;
 
 export default defineConfig({
   testDir: "./e2e",
@@ -29,9 +34,9 @@ export default defineConfig({
     // workspace has a cold Next route plus source fixtures and is intentionally
     // isolated below: twelve simultaneous cold starts have timed out locally
     // and in CI, while one viewport at a time is deterministic.
-    { name: "desktop", testIgnore: [companyIntelligenceSpec, terminalChromeIntermediateSpec], use: { viewport: { width: 1440, height: 900 } } },
-    { name: "tablet", testIgnore: [companyIntelligenceSpec, terminalChromeIntermediateSpec], use: { viewport: { width: 820, height: 1180 }, hasTouch: true } },
-    { name: "mobile", testIgnore: [companyIntelligenceSpec, terminalChromeIntermediateSpec], use: { viewport: { width: 390, height: 844 }, hasTouch: true } },
+    { name: "desktop", testIgnore: [companyIntelligenceSpec, terminalChromeIntermediateSpec, w2aWorkspacesSpec], use: { viewport: { width: 1440, height: 900 } } },
+    { name: "tablet", testIgnore: [companyIntelligenceSpec, terminalChromeIntermediateSpec, w2aWorkspacesSpec], use: { viewport: { width: 820, height: 1180 }, hasTouch: true } },
+    { name: "mobile", testIgnore: [companyIntelligenceSpec, terminalChromeIntermediateSpec, w2aWorkspacesSpec], use: { viewport: { width: 390, height: 844 }, hasTouch: true } },
     {
       name: "company-intelligence-desktop",
       testMatch: companyIntelligenceSpec,
@@ -57,6 +62,14 @@ export default defineConfig({
       testMatch: terminalChromeIntermediateSpec,
       workers: 1,
       use: { viewport: { width: 1180, height: 820 } },
+    },
+    {
+      name: "w2a-workspaces",
+      testMatch: w2aWorkspacesSpec,
+      workers: 1,
+      // hasTouch:true so the pointer:coarse 44px tap-target floor (globals.css) actually applies
+      // when a case switches to the 820/390 breakpoints mid-test via page.setViewportSize.
+      use: { viewport: { width: 1440, height: 900 }, hasTouch: true },
     },
   ],
   webServer: {

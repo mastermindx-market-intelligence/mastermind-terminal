@@ -17,6 +17,7 @@ import {
   type IndicatorSearchDocument,
 } from "@/lib/indicatorSearch";
 import { type UserScript } from "@/lib/userScripts";
+import StateSwitch, { LockMark } from "@/components/StateSwitch";
 import {
   MODULE_CATALOG,
   MODULE_CATEGORIES,
@@ -111,33 +112,6 @@ const moduleCountByCategory = MODULE_CATALOG.reduce<Record<string, number>>((cou
   counts[item.category] = (counts[item.category] ?? 0) + 1;
   return counts;
 }, {});
-
-function LockMark() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <rect x="5" y="11" width="14" height="9" rx="2" />
-      <path d="M8 11V8a4 4 0 0 1 8 0v3" />
-    </svg>
-  );
-}
-
-function StateSwitch({ on, locked = false }: { on: boolean; locked?: boolean }) {
-  if (locked) {
-    return (
-      <span className="im-state-lock" aria-hidden="true">
-        <LockMark />
-      </span>
-    );
-  }
-  return (
-    <span className={`im-state-switch${on ? " on" : ""}`} aria-hidden="true">
-      <span className="im-state-switch-glow" />
-      <span className="im-state-switch-knob">
-        <span />
-      </span>
-    </span>
-  );
-}
 
 function SettingsMark() {
   return (

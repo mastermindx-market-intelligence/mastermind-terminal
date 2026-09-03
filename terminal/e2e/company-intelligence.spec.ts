@@ -1,7 +1,22 @@
 import { expect, test, type Page } from "@playwright/test";
-import { gzipSync } from "node:zlib";
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { gzipSync, gunzipSync } from "node:zlib";
 import { expectTapTarget } from "./tapTarget";
+import { canonicalTranscriptBodySha256 } from "../lib/transcriptSearch";
 import aaplWorkspace from "../lib/__tests__/fixtures/aapl-event-workspace.json";
+import aaplQaExchanges from "../lib/__tests__/fixtures/aapl-qa-exchanges.json";
+
+const AAPL_TX_GZ = readFileSync(path.join(__dirname, "../lib/__tests__/fixtures/aapl-2026q3-transcript.json.gz"));
+const AAPL_TX = JSON.parse(gunzipSync(AAPL_TX_GZ).toString("utf8")) as {
+  schema: string;
+  ticker: string;
+  id: string;
+  period: string;
+  date: string | null;
+  title: string;
+  segments: Array<{ speaker: string; role: string; text: string }>;
+};
 
 const SHA = "a".repeat(64);
 const drawerFixtureBody = {
@@ -927,7 +942,10 @@ test("AAPL intelligence opens the verified FY2026 Q3 event workspace", async ({ 
   await expect(coverageStates).toContainText("not joined");
   await expect(coverageStates).not.toContainText("TYPED ABSENCES");
   await expect(coverageStates).not.toContainText("0000320193-26-000018");
+  await closeEvidenceOverlay(page);
+  await expect(page.locator('[data-ci-results-region="analyst-qa"]')).toHaveCount(0);
   await page.screenshot({ path: testInfo.outputPath(`${testInfo.project.name}-aapl-results.png`), fullPage: false });
+  await page.screenshot({ path: testInfo.outputPath(`${testInfo.project.name}-aapl-qa-empty.png`), fullPage: false });
 
   await closeEvidenceOverlay(page);
   await page.locator(".ci-lenses").getByRole("tab", { name: "Sources" }).click();
@@ -1037,5 +1055,109 @@ test("AAPL v1 score overlay cannot populate current Brief, Results, or Sources",
   await expect(page.locator("#ci-panel-sources")).toContainText("8-K / Exhibit 99.1");
   await expect(page.locator("#ci-panel-sources")).not.toContainText("14");
   await expect(page.locator("#ci-panel-sources")).not.toContainText(/score overlay/i);
+});
+
+function alignTranscriptRevisionSha<T extends { workspace: Record<string, unknown> }>(payload: T, sha: string): T {
+  const next = structuredClone(payload);
+  for (const source of next.workspace.sources as Array<Record<string, unknown>>) {
+    if (source.kind === "transcript") source.source_sha256 = sha;
+  }
+  for (const exchange of next.workspace.qa_exchanges as Array<Record<string, unknown>>) {
+    exchange.document_sha256 = sha;
+    const questionSpans = exchange.question_spans as Array<{ receipt?: { source_sha256?: string } }>;
+    const answerSpans = exchange.answer_spans as Array<{ receipt?: { source_sha256?: string } }>;
+    for (const span of [...questionSpans, ...answerSpans]) {
+      if (span.receipt) span.receipt.source_sha256 = sha;
+    }
+  }
+  return next;
+}
+
+function aaplTranscriptFixture() {
+  return {
+    schema: AAPL_TX.schema,
+    ticker: AAPL_TX.ticker,
+    id: AAPL_TX.id,
+    period: AAPL_TX.period.trim(),
+    date: AAPL_TX.date,
+    title: AAPL_TX.title.trim(),
+    segments: AAPL_TX.segments.map((segment) => ({
+      speaker: segment.speaker,
+      role: segment.role,
+      text: segment.text,
+    })),
+  };
+}
+
+async function aaplQaWorkspacePayload() {
+  const transcriptSha = await canonicalTranscriptBodySha256(aaplTranscriptFixture());
+  if (!transcriptSha) throw new Error("AAPL e2e transcript canonical SHA was unavailable");
+  return alignTranscriptRevisionSha(
+    aaplWorkspacePayload({ qa_exchanges: aaplQaExchanges }),
+    transcriptSha,
+  );
+}
+
+async function openAaplQaResults(page: Page, lang: "en" | "zh" = "en") {
+  if (lang === "zh") {
+    await page.addInitScript(() => window.localStorage.setItem("mm.lang", "zh"));
+  }
+  await page.route("**/data/tx/AAPL/2026Q3.json.gz", async (route) => {
+    await route.fulfill({
+      body: AAPL_TX_GZ,
+      headers: { "content-type": "application/gzip" },
+    });
+  });
+  await openAaplWorkspace(page, await aaplQaWorkspacePayload());
+  const resultsTab = page.locator(".ci-lenses").getByRole("tab", { name: lang === "zh" ? "业绩" : "Results" });
+  await resultsTab.click();
+  await closeEvidenceOverlay(page);
+  const qa = page.locator('[data-ci-results-region="analyst-qa"]');
+  await expect(qa).toBeVisible();
+  return qa;
+}
+
+test("AAPL Results shows seven verified exchanges and opens the exact transcript segment", async ({ page }, testInfo) => {
+  const qa = await openAaplQaResults(page);
+  await expect(qa).toContainText("ANALYST Q&A · 7 exchanges");
+  await expect(qa).toContainText("Structure verified · topic enrichment unavailable");
+  await expect(qa).toContainText("Amit Daryanani · Evercore");
+  await expect(qa.locator(".ci-qa-row")).toHaveCount(7);
+  await expect(page.locator('[data-ci-results-region="typed-absences"]')).not.toContainText("Analyst questions");
+  const first = qa.locator(".ci-qa-row").first();
+  await first.locator("summary").click();
+  await expect(first.locator(".ci-qa-question")).toContainText("September");
+  await expect(first.locator(".ci-qa-question")).not.toContainText("We will go ahead and take our first question");
+  await expect(first).toContainText("Kevan Parekh");
+  await expect(first).toContainText("Tim Cook");
+  await expectNoDocumentOverflow(page);
+  await page.screenshot({ path: testInfo.outputPath(`${testInfo.project.name}-aapl-qa-expanded.png`), fullPage: false });
+
+  await first.getByRole("button", { name: "Open in transcript" }).click();
+  await expect(page.locator(".fin-tx-drawer")).toBeVisible();
+  const target = page.locator('.fin-tx-seg[data-segment="34"]');
+  await expect(target).toContainText("Amit Daryanani");
+  await expect(target).toBeInViewport();
+  await expect(target).toBeFocused();
+  await page.screenshot({ path: testInfo.outputPath(`${testInfo.project.name}-aapl-qa-transcript.png`), fullPage: false });
+});
+
+test("AAPL Results Q&A remains usable in Chinese at desktop and mobile", async ({ page }, testInfo) => {
+  const project = testInfo.project.name;
+  test.skip(!project.endsWith("desktop") && !project.endsWith("mobile"), "ZH proof is desktop + mobile");
+  const qa = await openAaplQaResults(page, "zh");
+  await expect(qa).toContainText("分析师问答 · 7 轮");
+  await expect(qa).toContainText("结构已验证 · 主题增强暂不可用");
+  const first = qa.locator(".ci-qa-row").first();
+  await first.locator("summary").click();
+  await expect(first.getByRole("button", { name: "在电话会中查看" })).toBeVisible();
+  await expectNoDocumentOverflow(page);
+  await page.screenshot({ path: testInfo.outputPath(`${project}-aapl-qa-zh.png`), fullPage: false });
+  await first.getByRole("button", { name: "在电话会中查看" }).click();
+  await expect(page.locator(".fin-tx-drawer")).toBeVisible();
+  const target = page.locator('.fin-tx-seg[data-segment="34"]');
+  await expect(target).toContainText("Amit Daryanani");
+  await expect(target).toBeInViewport();
+  await expect(target).toBeFocused();
 });
 

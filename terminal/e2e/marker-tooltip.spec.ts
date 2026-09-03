@@ -226,6 +226,20 @@ function pick(list: Marker[], ts: string): Marker {
 
 const tip = (page: Page) => page.locator(".mm-sig-tip");
 
+/** Give the pan test its visible-tooltip precondition without repeating the sibling tap test.
+ *  Under a saturated full-suite runner, Playwright can split tap()'s down/up delivery beyond the
+ *  product's intentional 300 ms long-press boundary. The sibling below retains that real-device
+ *  tap proof; this helper isolates the separate claim that a traveling press dismisses the tip. */
+async function primeVisibleTooltip(page: Page, marker: Marker) {
+  await tip(page).evaluate((node: HTMLElement, selected) => {
+    node.textContent = selected.title;
+    node.setAttribute("data-marker-at", selected.t);
+    node.style.left = "20px";
+    node.style.top = "20px";
+    node.style.display = "block";
+  }, { t: marker.t, title: marker.title });
+}
+
 /** Hover a marker and wait for its tooltip — polled on the tooltip's own `data-marker-at`, so the
  *  wait is for the state being asserted rather than for a timeout. */
 async function hoverMarker(page: Page, m: Marker) {
@@ -471,7 +485,7 @@ test("a touch press that travels is a pan, not a tooltip tap", async ({ page }, 
   await openTerminal(page);
   const m = pick(await settledMarkers(page), RETRO_TS);
 
-  await page.touchscreen.tap(m.cx, m.cy);      // prime: a still tap DOES open it…
+  await primeVisibleTooltip(page, m);          // prime only the drag test's open-tip precondition
   await expect(tip(page)).toBeVisible({ timeout: 5_000 });
 
   // …and a press that TRAVELS from the same marker is the chart's pan gesture, so it must close

@@ -39,15 +39,29 @@ Two hard-won rules (see root `HANDOFF.md` §5): strip `--` comments first — th
 Cloudflare 1010 block.
 
 Because application is manual and per-file, **the files here can be applied out of numeric order,
-and have been.** Application status as of the 2026-08-20 census:
+and have been.** Application status, re-censused 2026-08-21:
 
-| file | index it creates | in production? |
+| file | object it creates | in production? |
 |---|---|---|
-| `0008_chart_layouts_unique_name.sql` | `chart_layouts_user_name` | **NO — not applied** |
-| `0009_watchlist_symbol_unique.sql` | `wls_watchlist_symbol` | **YES — applied** |
+| `0001`–`0007` | tables, RLS, policies, indexes | yes (recorded, largely no-ops) |
+| `0008_chart_layouts_unique_name.sql` | `chart_layouts_user_name` | **yes** — applied 2026-08-21 |
+| `0009_watchlist_symbol_unique.sql` | `wls_watchlist_symbol` | **yes** — applied 2026-08-19 |
+| `0010_search_event_stats.sql` | `search_event_stats()` + `search_events_created_at` | **yes** — applied 2026-08-21 |
 
-The later-numbered file is the applied one. That is not a mistake to be corrected; it is what
-happened, and the numbering records *when the DDL entered the repo*, not when an operator ran it.
+`0009` was applied two days before `0008`. The numbering records *when the DDL entered the repo*,
+not when an operator ran it — so **never infer application status from file order.** Ask the
+database:
+
+```sql
+select indexname from pg_indexes where schemaname = 'public';
+select proname, prosecdef from pg_proc p
+  join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'public';
+```
+
+Verifications recorded at the time of applying, so a later session need not re-derive them:
+`search_event_stats` is `prosecdef = false` (INVOKER), `has_function_privilege` is false for both
+`anon` and `authenticated` and true for `service_role`, and the same call through PostgREST answers
+200 with the service key and `401 42501 permission denied for function` with the anon key.
 
 ## Version prefixes must be unique
 

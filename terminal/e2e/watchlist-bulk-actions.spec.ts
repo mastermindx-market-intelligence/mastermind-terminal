@@ -146,6 +146,11 @@ test("right-click moves, deletes, and creates a watchlist from the selected symb
 
   await row(page, "AAPL").click();
   await row(page, "NVDA").click({ modifiers: ["Shift"] });
+  // Commit the range-selection render before the following contextmenu gesture. Under a saturated
+  // shared dev server, issuing both gestures back-to-back can let the right-click resolve against
+  // the prior empty selection even though the range update is already queued.
+  await expect(page.locator("[data-testid='watchlist-selection-count']")).toHaveText("3 tickers selected");
+  await expect(page.locator(".wl-row[aria-selected='true']")).toHaveCount(3);
   await row(page, "NVDA").click({ button: "right" });
   const menu = page.getByRole("menu", { name: "Selected ticker actions" });
   await expect(menu).toBeVisible();

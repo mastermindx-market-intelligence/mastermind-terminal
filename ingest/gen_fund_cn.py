@@ -47,6 +47,8 @@ from pathlib import Path
 import pandas as pd
 
 CA_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(CA_ROOT))
+from ingest.earnings_calendar import select_next_earnings_date  # noqa: E402
 MACRO = Path(os.environ.get("MACRO_REPO") or "/Users/chriswong/Documents/Cluade/Macro Dashboard")
 CA = Path(__file__).resolve().parents[1]  # charting-app root (worktree-safe)
 TU = MACRO / "data" / "tushare"
@@ -791,7 +793,10 @@ def _next_earnings_info(ts_code: str, disclosure_map: dict) -> tuple[str | None,
         yr, mmdd = end_date[:4], end_date[4:8]
         q = {"0331": 1, "0630": 2, "0930": 3, "1231": 4}.get(mmdd)
         period = f"Q{q} {yr}" if q else yr
-    return date_fmt, period
+    # `actual_date` is the day a report was actually filed, i.e. necessarily in the past;
+    # `pre_date` is a forecast. Neither is a "next" date until proven present-or-future.
+    upcoming = select_next_earnings_date(date_fmt)
+    return (upcoming, period) if upcoming else (None, None)
 
 
 def _compute_beta(sym: str, ohlc_dir: "Path") -> float | None:
@@ -1097,8 +1102,9 @@ def _earnings_from_existing_stmts(existing: dict, disclosure_map: dict, ts_code:
     next_date, next_period = _next_earnings_info(ts_code, disclosure_map)
     if not next_date:
         existing_earn = (existing or {}).get("earnings") or {}
-        next_date = existing_earn.get("next_date")
-        next_period = existing_earn.get("next_period")
+        # Re-prove the preserved date against today; never inherit a stale "next".
+        next_date = select_next_earnings_date(existing_earn.get("next_date"))
+        next_period = existing_earn.get("next_period") if next_date else None
 
     return q_rows, fy_rows, next_date, next_period
 

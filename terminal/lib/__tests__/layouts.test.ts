@@ -66,7 +66,23 @@ describe("normalizeLayoutName", () => {
     expect(normalizeLayoutName("  Swing  ")).toBe("Swing");
     expect(normalizeLayoutName("   ")).toBeNull();
     expect(normalizeLayoutName(42)).toBeNull();
-    expect(normalizeLayoutName("x".repeat(200))).toHaveLength(80);
+    expect(normalizeLayoutName("x".repeat(200))).toHaveLength(60);
+  });
+
+  it("collapses internal whitespace runs to a single space (reviewer ruling M8)", () => {
+    expect(normalizeLayoutName("My   Workspace")).toBe("My Workspace");
+    expect(normalizeLayoutName("  My   Workspace  ")).toBe("My Workspace");
+    expect(normalizeLayoutName("a\t\tb\n\nc")).toBe("a b c");
+  });
+
+  it("a 75-char name normalizes to 60 and round-trips export->import cleanly", () => {
+    const raw = "x".repeat(75);
+    const normalized = normalizeLayoutName(raw);
+    expect(normalized).toHaveLength(60);
+    // "export" = the wire-mode projection a workspace envelope's name would carry; "import" = the
+    // SAME normalization applied again. A name already normalized is a fixed point — re-normalizing
+    // an already-normalized name must reproduce it byte-for-byte, never drift further.
+    expect(normalizeLayoutName(normalized)).toBe(normalized);
   });
 });
 

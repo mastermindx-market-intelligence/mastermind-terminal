@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import type { Bar, Fund } from "@/lib/fund";
 import { buildKeyStatRows } from "@/lib/keyStats";
 
@@ -52,5 +52,91 @@ describe("HK-compatible Key Stats", () => {
   it("keeps unavailable fundamentals hidden instead of rendering fake dashes", () => {
     const rows = buildKeyStatRows(null, [{ v: 2_500_000 }] as Bar[], pick);
     expect(rows.map((row) => row.id)).toEqual(["volume", "average-volume"]);
+  });
+});
+
+describe("next earnings temporal invariant", () => {
+  afterEach(() => vi.useRealTimers());
+
+  it("hides a KRUS-shaped past next earnings report instead of calling it next", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-08-26T12:00:00.000Z"));
+    const fund = fundFixture();
+    fund.earnings!.next_date = "2026-08-25";
+
+    const rows = buildKeyStatRows(fund, [], pick);
+
+    expect(rows.find((row) => row.id === "next-earnings")).toBeUndefined();
+  });
+
+  it("keeps a future next earnings report and its positive countdown", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-08-26T12:00:00.000Z"));
+    const fund = fundFixture();
+    fund.earnings!.next_date = "2026-09-15";
+
+    const rows = buildKeyStatRows(fund, [], pick);
+
+    expect(rows.find((row) => row.id === "next-earnings")).toEqual({
+      id: "next-earnings",
+      label: "Next earnings report",
+      value: "In 20 days",
+    });
+  });
+
+  it("hides an impossible ISO-shaped legacy next earnings date", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-08-26T12:00:00.000Z"));
+    const fund = fundFixture();
+    fund.earnings!.next_date = "2026-09-31";
+
+    const rows = buildKeyStatRows(fund, [], pick);
+
+    expect(rows.find((row) => row.id === "next-earnings")).toBeUndefined();
+  });
+
+  // The Chairman-visible production state, reproduced from the real served artifact:
+  // app.mastermind-x.com/data/KRUS.fund.json carried next_date "2026-07-07" on 2026-08-26.
+  it("never renders the exact production KRUS state: Next earnings report - 50 days ago", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-08-26T12:00:00.000Z"));
+    const fund = fundFixture();
+    fund.earnings!.next_date = "2026-07-07";
+
+    const rows = buildKeyStatRows(fund, [], pick);
+
+    const next = rows.find((row) => row.id === "next-earnings");
+    expect(next).toBeUndefined();
+    expect(JSON.stringify(rows)).not.toContain("50 days ago");
+    expect(JSON.stringify(rows)).not.toContain("days ago");
+  });
+
+  // NVDA and CRM both served next_date === today on 2026-08-26. An exclusive "> today"
+  // boundary would silently delete two real upcoming events, so today must still render.
+  it("keeps a report dated today, because a date-only source cannot prove it already happened", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-08-26T12:00:00.000Z"));
+    const fund = fundFixture();
+    fund.earnings!.next_date = "2026-08-26";
+
+    const rows = buildKeyStatRows(fund, [], pick);
+
+    expect(rows.find((row) => row.id === "next-earnings")).toEqual({
+      id: "next-earnings",
+      label: "Next earnings report",
+      value: "In 0 days",
+    });
+  });
+
+  // A viewer east of UTC is already on the next calendar day locally; the contract is UTC.
+  it("uses the UTC calendar day, not the viewer's local midnight", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-08-26T23:30:00.000Z"));
+    const fund = fundFixture();
+    fund.earnings!.next_date = "2026-08-26";
+
+    const rows = buildKeyStatRows(fund, [], pick);
+
+    expect(rows.find((row) => row.id === "next-earnings")?.value).toBe("In 0 days");
   });
 });

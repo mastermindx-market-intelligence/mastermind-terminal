@@ -57,19 +57,27 @@
 -- begins working on the very next save after this statement runs — no deploy, no restart.
 -- =====================================================================================
 
--- ============================ APPLICATION STATUS (2026-08-20) ============================
--- STILL NOT APPLIED. Censused read-only through the Management API: `chart_layouts_user_name` is
--- absent from `pg_indexes`. `lib/layouts.ts` therefore remains on its 42P10 fallback path, exactly
--- as the header above describes — nothing is broken, the atomic upsert simply has not switched on.
+-- ============================ APPLICATION STATUS (2026-08-21) ============================
+-- APPLIED to production on 2026-08-21, on operator instruction, through the Management API.
 --
--- The sibling index from the same wave, `wls_watchlist_symbol`
--- (`0009_watchlist_symbol_unique.sql`), IS applied. A higher-numbered file being live while this
--- one is not is expected here, not a mistake: each file is applied by hand, independently, and
--- there is no `supabase_migrations` ledger recording either. See `supabase/migrations/README.md`.
+-- The census in the header above was RE-RUN immediately before applying, because that header's
+-- whole "nothing to reconcile" argument rests on the table being empty and the point of #427 was
+-- to make it stop being empty:
 --
--- Re-run the census before applying this to any environment whose `chart_layouts` is non-empty:
--- the "nothing to reconcile" reasoning above rests on the table being empty, and that is exactly
--- what #427's fixed Save path is meant to change.
+--     select count(*), count(distinct (user_id, name)) from public.chart_layouts   -> 0, 0
+--     select user_id, name, count(*) ... having count(*) > 1                       -> []
+--
+-- Still zero rows, so the index could not reject anything and no user configuration could be lost.
+-- Verified after: `pg_indexes` reports
+--     CREATE UNIQUE INDEX chart_layouts_user_name ON public.chart_layouts USING btree (user_id, name)
+--
+-- CONSEQUENCE FOR THE CODE: `lib/layouts.ts` probes on every save and does not cache the result, so
+-- its atomic `ON CONFLICT (user_id, name)` upsert began working on the very next save — no deploy,
+-- no restart. The 42P10 fallback is now dead code in this environment and stays only as insurance
+-- for a fresh one.
+--
+-- If this file is ever applied to a DIFFERENT environment, re-run the census there first. A
+-- non-empty duplicate set is an operator decision, not a silent DELETE.
 -- =========================================================================================
 
 create unique index if not exists chart_layouts_user_name
