@@ -42,6 +42,20 @@ describe("0011 thesis persistence contract", () => {
     expect(flat).not.toMatch(/grant\s+(insert|update|delete|all)[^;]*to\s+authenticated/);
   });
 
+  it("exposes one bounded owner-scoped exact-pair read function without a definer bypass", () => {
+    expect([...flat.matchAll(/create or replace function public\.read_current_thesis_versions_v1/g)]).toHaveLength(1);
+    expect(flat).toMatch(/read_current_thesis_versions_v1\s*\(\s*p_thesis_ids uuid\[\],\s*p_versions integer\[\]/);
+    expect(flat).toContain("security invoker");
+    expect(flat).toMatch(/unnest\(p_thesis_ids,\s*p_versions\)/);
+    expect(flat).toContain("cardinality(p_thesis_ids) = cardinality(p_versions)");
+    expect(flat).toContain("cardinality(p_thesis_ids) between 1 and 500");
+    expect(flat).toMatch(/join public\.theses as t[\s\S]*t\.current_version\s*=\s*requested\.version/);
+    expect(flat).toMatch(/t\.user_id\s*=\s*auth\.uid\(\)/);
+    expect(flat).toMatch(/tv\.user_id\s*=\s*auth\.uid\(\)/);
+    expect(flat).toContain("revoke all on function public.read_current_thesis_versions_v1");
+    expect(flat).toContain("grant execute on function public.read_current_thesis_versions_v1");
+  });
+
   it("contains the write fences that prevent split lineage and false replay", () => {
     expect(flat).toContain("idempotency_conflict");
     expect(flat).toContain("version_conflict");

@@ -128,6 +128,12 @@ export function resetFixtureStores(): void {
 
 type Table = "watchlists" | "watchlist_symbols" | "portfolio_positions" | "theses" | "thesis_versions";
 
+export type FixtureDatabaseEvent = {
+  source: "table" | "rpc";
+  name: string;
+  rowCount: number;
+};
+
 class FixtureQuery implements WatchlistQuery {
   private predicates: ((row: DbRow) => boolean)[] = [];
   private orderClauses: Array<{ key: string; ascending: boolean }> = [];
@@ -137,7 +143,12 @@ class FixtureQuery implements WatchlistQuery {
   private payload: DbRow[] = [];
   private ignoreDuplicates = false;
 
-  constructor(private store: Store, private table: Table, private faults: Set<string>) {}
+  constructor(
+    private store: Store,
+    private table: Table,
+    private faults: Set<string>,
+    private observe?: (event: FixtureDatabaseEvent) => void,
+  ) {}
 
   private get rows(): DbRow[] {
     if (this.table === "watchlists") return this.store.lists;
@@ -315,7 +326,9 @@ class FixtureQuery implements WatchlistQuery {
       // selects the id, so the fixture must model that representation rather than invent success.
       return { data: this.projection ? this.project(matched) : null, error: null };
     }
-    return { data: this.project(this.matched()), error: null };
+    const data = this.project(this.matched());
+    this.observe?.({ source: "table", name: this.table, rowCount: data.length });
+    return { data, error: null };
   }
 
   async maybeSingle(): Promise<DbResult> {
@@ -478,17 +491,52 @@ function applyThesisVersionFixture(store: Store, args: Record<string, unknown>):
   return thesisRpcResult({ status: "advanced", thesis_id: thesisId, version, current_version: version, lifecycle_state: nextState, replayed: false });
 }
 
+function readCurrentThesisVersionsFixture(store: Store, args: Record<string, unknown>): Promise<DbResult> {
+  const userId = typeof args.__fixture_user_id === "string" ? args.__fixture_user_id : "";
+  const thesisIds = args.p_thesis_ids;
+  const versions = args.p_versions;
+  if (!userId || !Array.isArray(thesisIds) || !Array.isArray(versions)
+    || thesisIds.length < 1 || thesisIds.length > 500 || thesisIds.length !== versions.length) {
+    return Promise.resolve({ data: [], error: null });
+  }
+  const data = thesisIds.flatMap((thesisId, index) => {
+    const version = versions[index];
+    const head = store.theses.find((candidate) => candidate.user_id === userId
+      && candidate.id === thesisId && candidate.current_version === version);
+    if (!head) return [];
+    const row = store.thesisVersions.find((candidate) => candidate.user_id === userId
+      && candidate.thesis_id === thesisId && candidate.version === version);
+    return row ? [{ ...row }] : [];
+  });
+  return Promise.resolve({ data, error: null });
+}
+
 export type FixtureDb = WatchlistDb & {
   rpc: (name: string, args: Record<string, unknown>) => Promise<DbResult>;
 };
 
-export function createFixtureDb(key: string, faults?: Iterable<string>): FixtureDb {
+export function createFixtureDb(
+  key: string,
+  faults?: Iterable<string>,
+  observe?: (event: FixtureDatabaseEvent) => void,
+): FixtureDb {
   const store = fixtureStore(key);
   const faultSet = faults instanceof Set ? faults : new Set(faults ?? []);
   return {
-    from: (table: string) => new FixtureQuery(store, table as Table, faultSet),
-    rpc: (name: string, args: Record<string, unknown>) => name === "apply_thesis_version_v1"
-      ? applyThesisVersionFixture(store, { ...args, __fixture_user_id: fixtureUserId(key) })
-      : Promise.resolve({ data: null, error: { message: `fixture: unknown rpc ${name}` } }),
+    from: (table: string) => new FixtureQuery(store, table as Table, faultSet, observe),
+    rpc: async (name: string, args: Record<string, unknown>) => {
+      const fixtureArgs = { ...args, __fixture_user_id: fixtureUserId(key) };
+      const result = await (name === "apply_thesis_version_v1"
+        ? applyThesisVersionFixture(store, fixtureArgs)
+        : name === "read_current_thesis_versions_v1"
+          ? readCurrentThesisVersionsFixture(store, fixtureArgs)
+          : Promise.resolve({ data: null, error: { message: `fixture: unknown rpc ${name}` } }));
+      observe?.({
+        source: "rpc",
+        name,
+        rowCount: Array.isArray(result.data) ? result.data.length : result.data ? 1 : 0,
+      });
+      return result;
+    },
   };
 }

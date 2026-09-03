@@ -21,6 +21,7 @@ MISSING_THESIS = "20000000-0000-4000-8000-000000000099"
 FUNCTION_SIGNATURE = (
     "public.apply_thesis_version_v1(uuid,integer,text,jsonb,jsonb,uuid,timestamptz)"
 )
+READ_FUNCTION_SIGNATURE = "public.read_current_thesis_versions_v1(uuid[],integer[])"
 
 
 class Proof:
@@ -218,7 +219,23 @@ def inspect_catalog(database_url: str, proof: Proof) -> dict[str, bool]:
         and "search_path=pg_catalog, public, auth, extensions" in configuration,
         "catalog_fixed_search_path",
     )
+    read_owner, read_security_definer, read_configuration = admin_row(
+        database_url,
+        """
+        select p.proowner::regrole::text, p.prosecdef, p.proconfig
+        from pg_proc p where p.oid = to_regprocedure(%s)
+        """,
+        (READ_FUNCTION_SIGNATURE,),
+    )
+    proof.equal(read_owner, "postgres", "catalog_read_function_owner")
+    proof.check(read_security_definer is False, "catalog_read_security_invoker")
+    proof.check(
+        read_configuration is not None
+        and "search_path=pg_catalog, public, auth" in read_configuration,
+        "catalog_read_fixed_search_path",
+    )
     verdicts["security_definer"] = True
+    verdicts["security_invoker_read"] = True
     verdicts["fixed_search_path"] = True
 
     policies = admin_value(
@@ -268,23 +285,27 @@ def inspect_catalog(database_url: str, proof: Proof) -> dict[str, bool]:
         for privilege in ("INSERT", "UPDATE", "DELETE"):
             proof.check(not bool(admin_value(database_url, "select has_table_privilege('authenticated', %s, %s)", (table, privilege))), f"grant_{table}_{privilege}")
         proof.check(not bool(admin_value(database_url, "select has_table_privilege('anon', %s, 'SELECT')", (table,))), f"grant_{table}_anon")
-    proof.check(bool(admin_value(database_url, "select has_function_privilege('authenticated', %s, 'EXECUTE')", (FUNCTION_SIGNATURE,))), "grant_rpc_authenticated")
-    proof.check(not bool(admin_value(database_url, "select has_function_privilege('anon', %s, 'EXECUTE')", (FUNCTION_SIGNATURE,))), "grant_rpc_anon")
-    public_execute = admin_value(
-        database_url,
-        """
-        select exists (
-          select 1
-          from pg_proc p,
-               aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) acl
-          where p.oid = to_regprocedure(%s)
-            and acl.grantee = 0
-            and acl.privilege_type = 'EXECUTE'
+    for signature, label in (
+        (FUNCTION_SIGNATURE, "mutation_rpc"),
+        (READ_FUNCTION_SIGNATURE, "read_rpc"),
+    ):
+        proof.check(bool(admin_value(database_url, "select has_function_privilege('authenticated', %s, 'EXECUTE')", (signature,))), f"grant_{label}_authenticated")
+        proof.check(not bool(admin_value(database_url, "select has_function_privilege('anon', %s, 'EXECUTE')", (signature,))), f"grant_{label}_anon")
+        public_execute = admin_value(
+            database_url,
+            """
+            select exists (
+              select 1
+              from pg_proc p,
+                   aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) acl
+              where p.oid = to_regprocedure(%s)
+                and acl.grantee = 0
+                and acl.privilege_type = 'EXECUTE'
+            )
+            """,
+            (signature,),
         )
-        """,
-        (FUNCTION_SIGNATURE,),
-    )
-    proof.check(not bool(public_execute), "grant_rpc_public")
+        proof.check(not bool(public_execute), f"grant_{label}_public")
     verdicts["grants"] = True
     return verdicts
 
@@ -296,6 +317,16 @@ def prove_access_boundaries(database_url: str, proof: Proof) -> None:
             connection.execute("select count(*) from public.theses").fetchone()
 
     expect_database_error(anon_read, proof, "anon_table_read_denied")
+
+    def anon_read_rpc() -> None:
+        with psycopg.connect(database_url) as connection:
+            connection.execute("set role anon")
+            connection.execute(
+                "select * from public.read_current_thesis_versions_v1(%s::uuid[], %s::integer[])",
+                ([MISSING_THESIS], [1]),
+            ).fetchall()
+
+    expect_database_error(anon_read_rpc, proof, "anon_read_rpc_denied")
 
     for verb, statement in (
         ("insert", "insert into public.theses default values"),
@@ -325,7 +356,7 @@ def concurrent_rpc(
         return [future.result(timeout=30) for future in futures]
 
 
-def prove_concurrency(database_url: str, proof: Proof) -> tuple[dict[str, Any], str]:
+def prove_concurrency(database_url: str, proof: Proof) -> tuple[dict[str, Any], str, str]:
     identical = {
         "thesis_id": None,
         "expected_version": 0,
@@ -375,7 +406,43 @@ def prove_concurrency(database_url: str, proof: Proof) -> tuple[dict[str, Any], 
         "different_payload": [first["status"], collision["status"]],
         "competing_expected_version": sorted(row["status"] for row in cas_rows),
     }
-    return outcomes, cas_id
+    return outcomes, cas_id, replay_thesis
+
+
+def read_current_versions(
+    database_url: str,
+    actor: str,
+    thesis_ids: list[str],
+    versions: list[int],
+) -> list[tuple[str, int]]:
+    with actor_connection(database_url, actor) as connection:
+        rows = connection.execute(
+            """
+            select thesis_id::text, version
+            from public.read_current_thesis_versions_v1(%s::uuid[], %s::integer[])
+            """,
+            (thesis_ids, versions),
+        ).fetchall()
+    return [(str(row[0]), int(row[1])) for row in rows]
+
+
+def prove_exact_pair_read(
+    database_url: str,
+    proof: Proof,
+    replay_thesis: str,
+    cas_id: str,
+) -> None:
+    requested = read_current_versions(database_url, USER_A, [replay_thesis, cas_id], [1, 2])
+    proof.equal(len(requested), 2, "read_rpc_one_row_per_pair")
+    proof.equal(set(requested), {(replay_thesis, 1), (cas_id, 2)}, "read_rpc_exact_pairs")
+    proof.equal(read_current_versions(database_url, USER_A, [cas_id], [1]), [], "read_rpc_stale_pair_excluded")
+    proof.equal(read_current_versions(database_url, USER_B, [replay_thesis, cas_id], [1, 2]), [], "read_rpc_owner_isolation")
+    proof.equal(read_current_versions(database_url, USER_A, [cas_id, replay_thesis], [2]), [], "read_rpc_parallel_array_mismatch")
+    proof.equal(
+        read_current_versions(database_url, USER_A, [cas_id] * 501, [2] * 501),
+        [],
+        "read_rpc_input_bound",
+    )
 
 
 def prove_owner_isolation(database_url: str, proof: Proof, thesis_id: str) -> None:
@@ -550,7 +617,8 @@ def main() -> None:
 
     catalog = inspect_catalog(database_url, proof)
     prove_access_boundaries(database_url, proof)
-    concurrency, cas_id = prove_concurrency(database_url, proof)
+    concurrency, cas_id, replay_thesis = prove_concurrency(database_url, proof)
+    prove_exact_pair_read(database_url, proof, replay_thesis, cas_id)
     prove_owner_isolation(database_url, proof, cas_id)
     prove_lifecycle_and_lineage(database_url, proof, cas_id)
     prove_atomic_failure(database_url, proof)

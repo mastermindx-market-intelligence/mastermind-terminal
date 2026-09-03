@@ -3,7 +3,7 @@
 -- Source of record only. This repository does not run migrations automatically; production
 -- application is a separate privileged, reconciled effect. The file is idempotent for the known
 -- empty pre-F11 catalog and deliberately creates only one head table, one immutable version table,
--- and one authenticated transactional mutation boundary.
+-- one authenticated transactional mutation boundary, and one bounded owner-scoped read boundary.
 
 begin;
 
@@ -72,6 +72,62 @@ revoke all on table public.theses from anon, authenticated;
 revoke all on table public.thesis_versions from anon, authenticated;
 grant select on table public.theses to authenticated;
 grant select on table public.thesis_versions to authenticated;
+
+create or replace function public.read_current_thesis_versions_v1(
+  p_thesis_ids uuid[],
+  p_versions integer[]
+)
+returns table (
+  id uuid,
+  thesis_id uuid,
+  version integer,
+  previous_version integer,
+  transition text,
+  lifecycle_state text,
+  subject_ref jsonb,
+  content jsonb,
+  client_request_id uuid,
+  system_recorded_at timestamptz,
+  effective_at timestamptz
+)
+language sql
+stable
+security invoker
+set search_path = pg_catalog, public, auth
+as $$
+  select
+    tv.id,
+    tv.thesis_id,
+    tv.version,
+    tv.previous_version,
+    tv.transition,
+    tv.lifecycle_state,
+    tv.subject_ref,
+    tv.content,
+    tv.client_request_id,
+    tv.system_recorded_at,
+    tv.effective_at
+  from unnest(p_thesis_ids, p_versions) as requested(thesis_id, version)
+  join public.thesis_versions as tv
+    on tv.thesis_id = requested.thesis_id
+   and tv.version = requested.version
+  join public.theses as t
+    on t.id = requested.thesis_id
+   and t.user_id = tv.user_id
+   and t.current_version = requested.version
+  where cardinality(p_thesis_ids) = cardinality(p_versions)
+    and cardinality(p_thesis_ids) between 1 and 500
+    and requested.version > 0
+    and t.user_id = auth.uid()
+    and tv.user_id = auth.uid()
+$$;
+
+alter function public.read_current_thesis_versions_v1(uuid[], integer[])
+  owner to postgres;
+revoke all on function public.read_current_thesis_versions_v1(uuid[], integer[])
+  from public, anon, authenticated;
+grant execute on function public.read_current_thesis_versions_v1(uuid[], integer[])
+  to authenticated;
 
 create or replace function public.apply_thesis_version_v1(
   p_thesis_id uuid,

@@ -611,12 +611,15 @@ export async function listTheses(
     }
 
     if (!heads.length) return { ok: true, theses: [], truncated: false };
-    const versionResult = await db.from("thesis_versions").select(VERSION_FIELDS)
-      .eq("user_id", userId)
-      .in("thesis_id", heads.map((head) => head.id))
-      .in("version", [...new Set(heads.map((head) => head.currentVersion))]);
+    const versionResult = await db.rpc("read_current_thesis_versions_v1", {
+      p_thesis_ids: heads.map((head) => head.id),
+      p_versions: heads.map((head) => head.currentVersion),
+    });
     if (versionResult?.error || !Array.isArray(versionResult?.data)) {
       return { ok: false, status: "unavailable", error: versionResult?.error?.message || "thesis store unavailable" };
+    }
+    if (versionResult.data.length !== heads.length) {
+      return { ok: false, status: "unavailable", error: "thesis head and lineage disagree" };
     }
     const currentByPair = new Map<string, ThesisVersion>();
     for (const row of versionResult.data) {

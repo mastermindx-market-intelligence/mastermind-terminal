@@ -459,7 +459,10 @@ describe("privacy and failure honesty", () => {
 
     let queryCount = 0;
     const countedDb = {
-      rpc: fixture.rpc,
+      rpc: async (name: string, args: Record<string, unknown>) => {
+        queryCount += 1;
+        return fixture.rpc(name, args);
+      },
       from: (table: string) => {
         queryCount += 1;
         return fixture.from(table);
@@ -477,6 +480,53 @@ describe("privacy and failure honesty", () => {
       error: "thesis head and lineage disagree",
     });
     expect(queryCount).toBe(2);
+  });
+
+  it("returns exactly one current row per varied-version head in two database requests", async () => {
+    const key = "bounded-varied-version-list";
+    const seedDb = createFixtureDb(key) as ThesisDb;
+    const userId = fixtureUserId(key);
+    let requestSequence = 0;
+    const requestId = () => `57000000-0000-4000-8000-${String(++requestSequence).padStart(12, "0")}`;
+
+    for (let index = 0; index < 60; index += 1) {
+      const created = await applyThesisVersion(seedDb, userId, {
+        action: "create",
+        id: null,
+        expectedVersion: 0,
+        clientRequestId: requestId(),
+        subject,
+        content: content(`Thesis ${index} version 1.`, { title: `Thesis ${index}` }),
+      });
+      if (!created.ok) throw new Error("fixture create failed");
+      const targetVersion = (index % 20) + 1;
+      for (let version = 2; version <= targetVersion; version += 1) {
+        const revised = await applyThesisVersion(seedDb, userId, {
+          action: "revise",
+          id: created.thesisId,
+          expectedVersion: version - 1,
+          clientRequestId: requestId(),
+          subject,
+          content: content(`Thesis ${index} version ${version}.`, { title: `Thesis ${index}` }),
+        });
+        if (!revised.ok) throw new Error("fixture revise failed");
+      }
+    }
+
+    let databaseRequests = 0;
+    let returnedCurrentRows = 0;
+    const observedDb = createFixtureDb(key, undefined, (event) => {
+      databaseRequests += 1;
+      if (event.name === "thesis_versions" || event.name === "read_current_thesis_versions_v1") {
+        returnedCurrentRows += event.rowCount;
+      }
+    }) as ThesisDb;
+    const listed = await listTheses(observedDb, userId, 60);
+
+    expect(listed.ok && listed.theses).toHaveLength(60);
+    expect(listed.ok && new Set(listed.theses.map((thesis) => thesis.currentVersion)).size).toBe(20);
+    expect(databaseRequests).toBe(2);
+    expect(returnedCurrentRows).toBe(60);
   });
 
   it("denies direct authenticated writes to both thesis tables", async () => {
