@@ -394,6 +394,9 @@ function rowToVersion(row: Record<string, unknown>): ThesisVersion | null {
   const clientRequestId = text(row.client_request_id);
   const systemRecordedAt = text(row.system_recorded_at);
   if (!id || !thesisId || !version || !transition || !lifecycleState || !subject || !content || !clientRequestId || !systemRecordedAt) return null;
+  const effectiveAt = row.effective_at === null ? null : isoTimestamp(row.effective_at);
+  if (effectiveAt === undefined || (row.effective_at !== null && effectiveAt === null)
+    || effectiveAt !== content.effectiveAt) return null;
   const previousVersion = row.previous_version === null ? null : positiveInteger(row.previous_version);
   if ((row.previous_version !== null && previousVersion === null)
     || (version === 1 && (previousVersion !== null || transition !== "create"))
@@ -409,8 +412,26 @@ function rowToVersion(row: Record<string, unknown>): ThesisVersion | null {
     content,
     clientRequestId,
     systemRecordedAt,
-    effectiveAt: text(row.effective_at),
+    effectiveAt,
   };
+}
+
+function isValidReturnedHistory(
+  history: readonly ThesisVersion[],
+  thesisId: string,
+  currentVersion: number,
+): boolean {
+  if (!history.length || history.length > MAX_THESIS_HISTORY + 1
+    || history[0].version !== currentVersion
+    || history.some((version) => version.thesisId !== thesisId)) return false;
+  for (let index = 0; index < history.length - 1; index += 1) {
+    const newer = history[index];
+    const older = history[index + 1];
+    if (newer.version !== older.version + 1 || newer.previousVersion !== older.version) return false;
+  }
+  if (history.length > MAX_THESIS_HISTORY) return true;
+  const oldest = history.at(-1);
+  return history.length === currentVersion && oldest?.version === 1 && oldest.previousVersion === null;
 }
 
 export async function applyThesisVersion(
@@ -516,8 +537,13 @@ export async function readThesis(db: ThesisDb, userId: string, thesisId: string)
     const updatedAt = text(head.updated_at);
     const current = history.find((item) => item.version === currentVersion);
     if (!currentVersion || !lifecycleState || !subject || !createdAt || !updatedAt || !current
-      || history[0]?.version !== currentVersion
-      || current.thesisId !== thesisId || current.lifecycleState !== lifecycleState
+      || history[0]?.version !== currentVersion) {
+      return { ok: false, status: "unavailable", error: "thesis head and lineage disagree" };
+    }
+    if (!isValidReturnedHistory(history, thesisId, currentVersion)) {
+      return { ok: false, status: "unavailable", error: "thesis history is malformed" };
+    }
+    if (current.thesisId !== thesisId || current.lifecycleState !== lifecycleState
       || JSON.stringify(current.subject) !== JSON.stringify(subject)) {
       return { ok: false, status: "unavailable", error: "thesis head and lineage disagree" };
     }
@@ -559,7 +585,14 @@ export async function listTheses(
     if (result?.error || !Array.isArray(result?.data)) {
       return { ok: false, status: "unavailable", error: result?.error?.message || "thesis store unavailable" };
     }
-    const summaries: ThesisSummary[] = [];
+    const heads: Array<{
+      id: string;
+      currentVersion: number;
+      lifecycleState: ThesisLifecycle;
+      subject: ThesisSubjectRef;
+      updatedAt: string;
+    }> = [];
+    const requestedPairs = new Set<string>();
     for (const row of result.data.slice(0, boundedLimit)) {
       const id = text(row.id);
       const currentVersion = positiveInteger(row.current_version);
@@ -569,11 +602,36 @@ export async function listTheses(
       if (!id || !currentVersion || !lifecycleState || !subject || !updatedAt) {
         return { ok: false, status: "unavailable", error: "thesis head and lineage disagree" };
       }
-      const version = await db.from("thesis_versions").select(VERSION_FIELDS)
-        .eq("user_id", userId).eq("thesis_id", id).eq("version", currentVersion).maybeSingle();
-      if (version?.error) return { ok: false, status: "unavailable", error: version.error.message || "thesis store unavailable" };
-      const current = one(version);
-      const parsed = current ? rowToVersion(current) : null;
+      const pair = `${id}:${currentVersion}`;
+      if (requestedPairs.has(pair)) {
+        return { ok: false, status: "unavailable", error: "thesis head and lineage disagree" };
+      }
+      requestedPairs.add(pair);
+      heads.push({ id, currentVersion, lifecycleState, subject, updatedAt });
+    }
+
+    if (!heads.length) return { ok: true, theses: [], truncated: false };
+    const versionResult = await db.from("thesis_versions").select(VERSION_FIELDS)
+      .eq("user_id", userId)
+      .in("thesis_id", heads.map((head) => head.id))
+      .in("version", [...new Set(heads.map((head) => head.currentVersion))]);
+    if (versionResult?.error || !Array.isArray(versionResult?.data)) {
+      return { ok: false, status: "unavailable", error: versionResult?.error?.message || "thesis store unavailable" };
+    }
+    const currentByPair = new Map<string, ThesisVersion>();
+    for (const row of versionResult.data) {
+      const pair = `${text(row.thesis_id)}:${positiveInteger(row.version)}`;
+      if (!requestedPairs.has(pair)) continue;
+      const parsed = rowToVersion(row);
+      if (!parsed || currentByPair.has(pair)) {
+        return { ok: false, status: "unavailable", error: "thesis head and lineage disagree" };
+      }
+      currentByPair.set(pair, parsed);
+    }
+
+    const summaries: ThesisSummary[] = [];
+    for (const { id, currentVersion, lifecycleState, subject, updatedAt } of heads) {
+      const parsed = currentByPair.get(`${id}:${currentVersion}`);
       if (!parsed || parsed.thesisId !== id || parsed.version !== currentVersion
         || parsed.lifecycleState !== lifecycleState || JSON.stringify(parsed.subject) !== JSON.stringify(subject)) {
         return { ok: false, status: "unavailable", error: "thesis head and lineage disagree" };

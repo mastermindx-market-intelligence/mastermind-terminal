@@ -315,6 +315,94 @@ describe("privacy and failure honesty", () => {
     )).toEqual({ ok: false, status: "unavailable", error: "thesis history is malformed" });
   });
 
+  it("rejects missing, duplicate, reordered, and incomplete returned lineage", async () => {
+    const seedHistory = async (key: string, requestGroup: string) => {
+      const requestId = (suffix: number) => `54000000-0000-4000-${requestGroup}-${String(suffix).padStart(12, "0")}`;
+      const created = await create(key, requestId(1));
+      if (!created.ok) throw new Error("fixture create failed");
+      for (const expectedVersion of [1, 2] as const) {
+        const revised = await applyThesisVersion(
+          createFixtureDb(key) as ThesisDb,
+          fixtureUserId(key),
+          {
+            action: "revise",
+            id: created.thesisId,
+            expectedVersion,
+            clientRequestId: requestId(expectedVersion + 1),
+            subject,
+            content: content(`Version ${expectedVersion + 1}.`),
+          },
+        );
+        if (!revised.ok) throw new Error("fixture revise failed");
+      }
+      return created.thesisId;
+    };
+
+    const cases = [
+      {
+        key: "missing-middle",
+        prefix: "8000",
+        corrupt: (rows: Record<string, unknown>[]) => rows.splice(rows.findIndex((row) => row.version === 2), 1),
+      },
+      {
+        key: "duplicate-version",
+        prefix: "8001",
+        corrupt: (rows: Record<string, unknown>[]) => {
+          const version2 = rows.find((row) => row.version === 2)!;
+          rows.push({ ...version2, id: "54000000-0000-4000-9000-000000000099" });
+        },
+      },
+      {
+        key: "reordered-version",
+        prefix: "8002",
+        corrupt: (rows: Record<string, unknown>[]) => {
+          const version2 = rows.find((row) => row.version === 2)!;
+          version2.version = 4;
+          version2.previous_version = 3;
+          fixtureStore("reordered-version").theses[0].current_version = 4;
+        },
+      },
+      {
+        key: "incomplete-history",
+        prefix: "8003",
+        corrupt: (rows: Record<string, unknown>[]) => rows.splice(rows.findIndex((row) => row.version === 1), 1),
+      },
+    ];
+
+    for (const { key, prefix, corrupt } of cases) {
+      const thesisId = await seedHistory(key, prefix);
+      corrupt(fixtureStore(key).thesisVersions);
+      expect(await readThesis(
+        createFixtureDb(key) as ThesisDb,
+        fixtureUserId(key),
+        thesisId,
+      ), key).toEqual({ ok: false, status: "unavailable", error: "thesis history is malformed" });
+    }
+  });
+
+  it("requires the typed and content effective timestamps to have exact canonical/null parity", async () => {
+    for (const [key, typed, embedded] of [
+      ["effective-null-mismatch", "2026-09-03T12:34:56.789Z", null],
+      ["effective-value-mismatch", "2026-09-03T12:34:56.789Z", "2026-09-03T12:34:56.788Z"],
+      ["effective-noncanonical", "", null],
+    ] as const) {
+      const created = await create(key, key === "effective-null-mismatch"
+        ? "55000000-0000-4000-8000-000000000001"
+        : key === "effective-value-mismatch"
+          ? "55000000-0000-4000-8000-000000000002"
+          : "55000000-0000-4000-8000-000000000003");
+      if (!created.ok) throw new Error("fixture create failed");
+      const row = fixtureStore(key).thesisVersions[0];
+      row.effective_at = typed;
+      row.content = { ...(row.content as Record<string, unknown>), effective_at: embedded };
+      expect(await readThesis(
+        createFixtureDb(key) as ThesisDb,
+        fixtureUserId(key),
+        created.thesisId,
+      )).toEqual({ ok: false, status: "unavailable", error: "thesis history is malformed" });
+    }
+  });
+
   it("refuses a mixed head/history snapshot instead of returning a future version", async () => {
     const created = await create("mixed-snapshot", "53000000-0000-4000-8000-000000000001");
     if (!created.ok) throw new Error("fixture create failed");
@@ -351,6 +439,44 @@ describe("privacy and failure honesty", () => {
 
     const result = await listTheses(createFixtureDb("ordered") as ThesisDb, fixtureUserId("ordered"));
     expect(result.ok && result.theses.map((thesis) => thesis.id)).toEqual([laterId, earlierId]);
+  });
+
+  it("reads 200 current projections in two queries and fails closed on one corrupt projection", async () => {
+    const key = "bounded-list-read";
+    const fixture = createFixtureDb(key) as ThesisDb;
+    const userId = fixtureUserId(key);
+    for (let index = 1; index <= 200; index += 1) {
+      const created = await applyThesisVersion(fixture, userId, {
+        action: "create",
+        id: null,
+        expectedVersion: 0,
+        clientRequestId: `56000000-0000-4000-8000-${String(index).padStart(12, "0")}`,
+        subject,
+        content: content(`Thesis ${index}.`, { title: `Thesis ${index}` }),
+      });
+      if (!created.ok) throw new Error("fixture create failed");
+    }
+
+    let queryCount = 0;
+    const countedDb = {
+      rpc: fixture.rpc,
+      from: (table: string) => {
+        queryCount += 1;
+        return fixture.from(table);
+      },
+    } as ThesisDb;
+    const listed = await listTheses(countedDb, userId, 200);
+    expect(listed.ok && listed.theses).toHaveLength(200);
+    expect(queryCount).toBe(2);
+
+    fixtureStore(key).thesisVersions[73].lifecycle_state = "archived";
+    queryCount = 0;
+    expect(await listTheses(countedDb, userId, 200)).toEqual({
+      ok: false,
+      status: "unavailable",
+      error: "thesis head and lineage disagree",
+    });
+    expect(queryCount).toBe(2);
   });
 
   it("denies direct authenticated writes to both thesis tables", async () => {
