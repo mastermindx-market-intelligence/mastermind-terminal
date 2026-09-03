@@ -1079,7 +1079,12 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   const addPriceSeries = (chart: IChartApi, t: Tokens) => {
     const pf = priceFmt();
     const settings = chartSettingsRef.current;
-    const common = { priceFormat: pf, lastValueVisible: false, priceLineVisible: settings.priceLineVisible !== false };
+    const common = {
+      priceFormat: pf,
+      priceScaleId: chartSettingsRef.current.scaleLeft ? "left" : "right",
+      lastValueVisible: false,
+      priceLineVisible: settings.priceLineVisible !== false,
+    };
     if (chartTypeRef.current === "line") return chart.addSeries(LineSeries, { ...common, color: t.brand2, lineWidth: 2 }, 0);
     if (chartTypeRef.current === "line-markers") return chart.addSeries(LineSeries, { ...common, color: t.brand2, lineWidth: 2, pointMarkersVisible: true, pointMarkersRadius: 2.5 }, 0);
     if (chartTypeRef.current === "step") return chart.addSeries(LineSeries, { ...common, color: t.brand2, lineWidth: 2, lineType: LineType.WithSteps }, 0);
