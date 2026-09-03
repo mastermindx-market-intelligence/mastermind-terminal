@@ -403,6 +403,93 @@ describe("privacy and failure honesty", () => {
     }
   });
 
+  it("normalizes lossless PostgREST timestamptz wire values before checking exact effective instants", async () => {
+    const accepted = [
+      ["wire-utc-offset", "2026-09-03T12:34:56.789+00:00"],
+      ["wire-nonzero-offset", "2026-09-03T08:34:56.789-04:00"],
+      ["wire-postgres-precision", "2026-09-03T12:34:56.789000+00:00"],
+    ] as const;
+    for (const [index, [key, typed]] of accepted.entries()) {
+      const requestId = `55100000-0000-4000-8000-${String(index + 1).padStart(12, "0")}`;
+      const created = await applyThesisVersion(
+        createFixtureDb(key) as ThesisDb,
+        fixtureUserId(key),
+        {
+          action: "create",
+          id: null,
+          expectedVersion: 0,
+          clientRequestId: requestId,
+          subject,
+          content: content("Wire-normalized timestamp.", { effectiveAt: "2026-09-03T12:34:56.789Z" }),
+        },
+      );
+      if (!created.ok) throw new Error("fixture create failed");
+      const store = fixtureStore(key);
+      store.thesisVersions[0].effective_at = typed;
+      store.thesisVersions[0].system_recorded_at = "2026-09-03T08:34:56.120456-04:00";
+      store.theses[0].created_at = "2026-09-03T12:34:56+00:00";
+      store.theses[0].updated_at = "2026-09-03T08:34:56.12-04:00";
+
+      const detail = await readThesis(createFixtureDb(key) as ThesisDb, fixtureUserId(key), created.thesisId);
+      expect(detail, key).toMatchObject({
+        ok: true,
+        thesis: {
+          createdAt: "2026-09-03T12:34:56.000Z",
+          updatedAt: "2026-09-03T12:34:56.120Z",
+          current: {
+            effectiveAt: "2026-09-03T12:34:56.789Z",
+            systemRecordedAt: "2026-09-03T12:34:56.120456Z",
+          },
+        },
+      });
+    }
+
+    const nullable = await create("wire-null-parity", "55100000-0000-4000-8000-000000000004");
+    if (!nullable.ok) throw new Error("fixture create failed");
+    expect(await readThesis(
+      createFixtureDb("wire-null-parity") as ThesisDb,
+      fixtureUserId("wire-null-parity"),
+      nullable.thesisId,
+    )).toMatchObject({ ok: true, thesis: { current: { effectiveAt: null } } });
+  });
+
+  it("rejects precision-losing instants, one-millisecond drift, malformed UUIDs, and invalid wire clocks", async () => {
+    const cases: Array<[string, (key: string) => void]> = [
+      ["wire-effective-drift", (key) => {
+        fixtureStore(key).thesisVersions[0].effective_at = "2026-09-03T12:34:56.790+00:00";
+      }],
+      ["wire-effective-precision-loss", (key) => {
+        fixtureStore(key).thesisVersions[0].effective_at = "2026-09-03T12:34:56.789123+00:00";
+      }],
+      ["wire-version-id", (key) => { fixtureStore(key).thesisVersions[0].id = "not-a-uuid"; }],
+      ["wire-version-thesis-id", (key) => { fixtureStore(key).thesisVersions[0].thesis_id = "not-a-uuid"; }],
+      ["wire-client-request-id", (key) => { fixtureStore(key).thesisVersions[0].client_request_id = "not-a-uuid"; }],
+      ["wire-system-clock", (key) => { fixtureStore(key).thesisVersions[0].system_recorded_at = "infinity"; }],
+      ["wire-head-created-clock", (key) => { fixtureStore(key).theses[0].created_at = "infinity"; }],
+      ["wire-head-updated-clock", (key) => { fixtureStore(key).theses[0].updated_at = "2026-02-30T12:00:00+00:00"; }],
+    ];
+    for (const [index, [key, corrupt]] of cases.entries()) {
+      const created = await applyThesisVersion(
+        createFixtureDb(key) as ThesisDb,
+        fixtureUserId(key),
+        {
+          action: "create",
+          id: null,
+          expectedVersion: 0,
+          clientRequestId: `55200000-0000-4000-8000-${String(index + 1).padStart(12, "0")}`,
+          subject,
+          content: content("Closed wire boundary.", { effectiveAt: "2026-09-03T12:34:56.789Z" }),
+        },
+      );
+      if (!created.ok) throw new Error("fixture create failed");
+      fixtureStore(key).thesisVersions[0].effective_at = "2026-09-03T12:34:56.789+00:00";
+      corrupt(key);
+      const result = await readThesis(createFixtureDb(key) as ThesisDb, fixtureUserId(key), created.thesisId);
+      expect(result.ok, key).toBe(false);
+      expect(result.ok ? null : result.status, key).toBe("unavailable");
+    }
+  });
+
   it("refuses a mixed head/history snapshot instead of returning a future version", async () => {
     const created = await create("mixed-snapshot", "53000000-0000-4000-8000-000000000001");
     if (!created.ok) throw new Error("fixture create failed");
@@ -441,7 +528,7 @@ describe("privacy and failure honesty", () => {
     expect(result.ok && result.theses.map((thesis) => thesis.id)).toEqual([laterId, earlierId]);
   });
 
-  it("reads 200 current projections in two queries and fails closed on one corrupt projection", async () => {
+  it("reads 200 near-max theses through a bounded minimal projection and fails closed on one corrupt summary", async () => {
     const key = "bounded-list-read";
     const fixture = createFixtureDb(key) as ThesisDb;
     const userId = fixtureUserId(key);
@@ -452,16 +539,24 @@ describe("privacy and failure honesty", () => {
         expectedVersion: 0,
         clientRequestId: `56000000-0000-4000-8000-${String(index).padStart(12, "0")}`,
         subject,
-        content: content(`Thesis ${index}.`, { title: `Thesis ${index}` }),
+        content: content("S".repeat(12_000), {
+          title: `Thesis ${String(index).padStart(3, "0")} ${"T".repeat(148)}`,
+          catalysts: Array(20).fill("C".repeat(500)),
+          falsifiers: Array(20).fill("F".repeat(500)),
+          risks: Array(20).fill("R".repeat(500)),
+        }),
       });
       if (!created.ok) throw new Error("fixture create failed");
     }
 
     let queryCount = 0;
+    let summaryWire: unknown = null;
     const countedDb = {
       rpc: async (name: string, args: Record<string, unknown>) => {
         queryCount += 1;
-        return fixture.rpc(name, args);
+        const response = await fixture.rpc(name, args);
+        if (name === "read_current_thesis_versions_v1") summaryWire = response.data;
+        return response;
       },
       from: (table: string) => {
         queryCount += 1;
@@ -472,7 +567,18 @@ describe("privacy and failure honesty", () => {
     expect(listed.ok && listed.theses).toHaveLength(200);
     expect(queryCount).toBe(2);
 
-    fixtureStore(key).thesisVersions[73].lifecycle_state = "archived";
+    expect(Array.isArray(summaryWire)).toBe(true);
+    const rows = summaryWire as Array<Record<string, unknown>>;
+    expect(rows).toHaveLength(200);
+    expect(rows.every((row) => !("content" in row))).toBe(true);
+    expect(rows.every((row) => Object.keys(row).sort().join(",")
+      === "id,lifecycle_state,subject_ref,thesis_id,title,version")).toBe(true);
+    expect(new TextEncoder().encode(JSON.stringify(rows)).byteLength).toBeLessThan(200_000);
+
+    fixtureStore(key).thesisVersions[73].content = {
+      ...(fixtureStore(key).thesisVersions[73].content as Record<string, unknown>),
+      title: "",
+    };
     queryCount = 0;
     expect(await listTheses(countedDb, userId, 200)).toEqual({
       ok: false,

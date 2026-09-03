@@ -234,6 +234,16 @@ def inspect_catalog(database_url: str, proof: Proof) -> dict[str, bool]:
         and "search_path=pg_catalog, public, auth" in read_configuration,
         "catalog_read_fixed_search_path",
     )
+    read_result = admin_value(
+        database_url,
+        "select pg_get_function_result(to_regprocedure(%s))",
+        (READ_FUNCTION_SIGNATURE,),
+    )
+    proof.equal(
+        read_result,
+        "TABLE(id uuid, thesis_id uuid, version integer, lifecycle_state text, subject_ref jsonb, title text)",
+        "catalog_read_minimal_result",
+    )
     verdicts["security_definer"] = True
     verdicts["security_invoker_read"] = True
     verdicts["fixed_search_path"] = True
@@ -445,6 +455,68 @@ def prove_exact_pair_read(
     )
 
 
+def prove_bounded_summary_projection(database_url: str, proof: Proof) -> dict[str, Any]:
+    expected: dict[str, str] = {}
+    thesis_ids: list[str] = []
+    versions: list[int] = []
+    near_max = {
+        **content("bounded-summary"),
+        "statement": "S" * 12_000,
+        "catalysts": ["C" * 500] * 20,
+        "falsifiers": ["F" * 500] * 20,
+        "risks": ["R" * 500] * 20,
+    }
+    with actor_connection(database_url, USER_A) as connection:
+        for index in range(1, 201):
+            label = f"{index:03d}-"
+            title = label + "T" * (160 - len(label))
+            row = rpc_on_connection(
+                connection,
+                thesis_id=None,
+                expected_version=0,
+                transition="create",
+                thesis_subject=subject("NVDA"),
+                thesis_content={**near_max, "title": title},
+                request_id=f"70000000-0000-4000-8000-{index:012d}",
+            )
+            proof.equal(row["status"], "created", f"summary_seed_{index}")
+            thesis_id = str(row["thesis_id"])
+            thesis_ids.append(thesis_id)
+            versions.append(1)
+            expected[thesis_id] = title
+
+        cursor = connection.execute(
+            "select * from public.read_current_thesis_versions_v1(%s::uuid[], %s::integer[])",
+            (thesis_ids, versions),
+        )
+        columns = [column.name for column in cursor.description]
+        rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+    expected_columns = ["id", "thesis_id", "version", "lifecycle_state", "subject_ref", "title"]
+    proof.equal(columns, expected_columns, "summary_exact_columns")
+    proof.equal(len(rows), 200, "summary_exact_row_count")
+    proof.check(all("content" not in row for row in rows), "summary_omits_full_content")
+    proof.check(all(str(row["id"]) and str(row["thesis_id"]) in expected for row in rows), "summary_uuid_identity")
+    proof.check(all(row["version"] == 1 and row["lifecycle_state"] == "active" for row in rows), "summary_head_agreement")
+    proof.check(all(row["title"] == expected[str(row["thesis_id"])] for row in rows), "summary_exact_titles")
+    payload_bytes = len(json.dumps(rows, default=str, separators=(",", ":")).encode("utf-8"))
+    proof.check(payload_bytes < 200_000, "summary_wire_byte_bound")
+
+    corrupt_id = thesis_ids[73]
+    with psycopg.connect(database_url, autocommit=True) as connection:
+        connection.execute(
+            "update public.thesis_versions set content = jsonb_set(content, '{title}', to_jsonb(''::text)) where thesis_id = %s",
+            (corrupt_id,),
+        )
+    with actor_connection(database_url, USER_A) as connection:
+        corrupt_title = connection.execute(
+            "select title from public.read_current_thesis_versions_v1(%s::uuid[], %s::integer[])",
+            ([corrupt_id], [1]),
+        ).fetchone()
+    proof.equal(corrupt_title, (None,), "summary_corrupt_title_fails_closed")
+    return {"rows": len(rows), "columns": columns, "serialized_bytes": payload_bytes, "byte_limit": 200_000}
+
+
 def prove_owner_isolation(database_url: str, proof: Proof, thesis_id: str) -> None:
     with actor_connection(database_url, USER_B) as connection:
         proof.equal(connection.execute("select count(*) from public.theses").fetchone()[0], 0, "owner_b_head_list_empty")
@@ -619,6 +691,7 @@ def main() -> None:
     prove_access_boundaries(database_url, proof)
     concurrency, cas_id, replay_thesis = prove_concurrency(database_url, proof)
     prove_exact_pair_read(database_url, proof, replay_thesis, cas_id)
+    summary_projection = prove_bounded_summary_projection(database_url, proof)
     prove_owner_isolation(database_url, proof, cas_id)
     prove_lifecycle_and_lineage(database_url, proof, cas_id)
     prove_atomic_failure(database_url, proof)
@@ -642,6 +715,7 @@ def main() -> None:
         "test_counts": {"assertions": proof.assertions, "failures": 0},
         "catalog_verdicts": catalog,
         "concurrency_outcomes": concurrency,
+        "summary_projection": summary_projection,
         "owner_isolation": "pass",
         "lifecycle_substance": "pass",
         "atomic_failure": "pass",

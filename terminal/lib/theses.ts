@@ -116,6 +116,7 @@ export type ThesisSubjectFilter = Pick<ThesisSubjectRef, "owner" | "kind" | "key
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const CANONICAL_UTC_TIMESTAMP = /^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}[.][0-9]{3}Z$/;
+const POSTGREST_TIMESTAMP = /^([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2}):([0-9]{2}):([0-9]{2})(?:[.]([0-9]{1,6}))?(Z|([+-])([0-9]{2}):([0-9]{2}))$/;
 const CONTROL_EXCEPT_BREAKS = /[\u0000-\u0008\u000b-\u001f\u007f]/;
 const CONTROL_ALL = /[\u0000-\u001f\u007f]/;
 const HORIZONS = new Set<ThesisHorizon>(["unspecified", "days", "weeks", "months", "quarters", "years"]);
@@ -213,6 +214,44 @@ function isoTimestamp(value: unknown): string | null | undefined {
   if (typeof value !== "string" || !CANONICAL_UTC_TIMESTAMP.test(value)) return undefined;
   const parsed = Date.parse(value);
   return Number.isFinite(parsed) && new Date(parsed).toISOString() === value ? value : undefined;
+}
+
+/**
+ * PostgREST serializes PostgreSQL timestamptz values with an explicit offset and variable
+ * fractional precision. Canonical thesis content stays stricter (UTC with milliseconds), but
+ * typed database columns cross a different wire boundary: accept only an exact RFC3339 subset,
+ * preserve PostgreSQL microseconds that JavaScript Date would otherwise truncate, and return one
+ * offset-independent UTC instant string.
+ */
+function postgrestTimestamp(value: unknown): string | undefined {
+  if (typeof value !== "string") return undefined;
+  const match = value.match(POSTGREST_TIMESTAMP);
+  if (!match) return undefined;
+  const [, yearText, monthText, dayText, hourText, minuteText, secondText, fraction = "", zone, sign, offsetHourText, offsetMinuteText] = match;
+  const [year, month, day, hour, minute, second] = [yearText, monthText, dayText, hourText, minuteText, secondText].map(Number);
+  const microseconds = fraction.padEnd(6, "0");
+  const milliseconds = Number(microseconds.slice(0, 3) || "0");
+  const offsetHours = zone === "Z" ? 0 : Number(offsetHourText);
+  const offsetMinutesPart = zone === "Z" ? 0 : Number(offsetMinuteText);
+  if (month < 1 || month > 12 || day < 1 || day > 31 || hour > 23 || minute > 59 || second > 59
+    || offsetHours > 14 || offsetMinutesPart > 59 || (offsetHours === 14 && offsetMinutesPart !== 0)) return undefined;
+
+  const wall = new Date(0);
+  wall.setUTCFullYear(year, month - 1, day);
+  wall.setUTCHours(hour, minute, second, milliseconds);
+  if (wall.getUTCFullYear() !== year || wall.getUTCMonth() !== month - 1 || wall.getUTCDate() !== day
+    || wall.getUTCHours() !== hour || wall.getUTCMinutes() !== minute || wall.getUTCSeconds() !== second
+    || wall.getUTCMilliseconds() !== milliseconds) return undefined;
+  const signedOffsetMinutes = zone === "Z" ? 0 : (sign === "+" ? 1 : -1) * (offsetHours * 60 + offsetMinutesPart);
+  const epoch = wall.getTime() - signedOffsetMinutes * 60_000;
+  if (!Number.isFinite(epoch)) return undefined;
+  try {
+    const millisecondsUtc = new Date(epoch).toISOString();
+    const subMillisecond = microseconds.slice(3).replace(/0+$/, "");
+    return subMillisecond ? `${millisecondsUtc.slice(0, -1)}${subMillisecond}Z` : millisecondsUtc;
+  } catch {
+    return undefined;
+  }
 }
 
 export function isUuid(value: unknown): value is string {
@@ -383,20 +422,23 @@ function wireContent(value: unknown): ThesisContent | null {
 }
 
 function rowToVersion(row: Record<string, unknown>): ThesisVersion | null {
-  const id = text(row.id);
-  const thesisId = text(row.thesis_id);
+  if (!exactKeys(row, [
+    "id", "thesis_id", "version", "previous_version", "transition", "lifecycle_state", "subject_ref", "content",
+    "client_request_id", "system_recorded_at", "effective_at",
+  ])) return null;
+  const id = isUuid(row.id) ? row.id : null;
+  const thesisId = isUuid(row.thesis_id) ? row.thesis_id : null;
   const version = positiveInteger(row.version);
   const transition = typeof row.transition === "string" && ACTIONS.has(row.transition as ThesisAction)
     ? row.transition as ThesisAction : null;
   const lifecycleState = lifecycle(row.lifecycle_state);
   const subject = wireSubject(row.subject_ref);
   const content = wireContent(row.content);
-  const clientRequestId = text(row.client_request_id);
-  const systemRecordedAt = text(row.system_recorded_at);
+  const clientRequestId = isUuid(row.client_request_id) ? row.client_request_id : null;
+  const systemRecordedAt = postgrestTimestamp(row.system_recorded_at);
   if (!id || !thesisId || !version || !transition || !lifecycleState || !subject || !content || !clientRequestId || !systemRecordedAt) return null;
-  const effectiveAt = row.effective_at === null ? null : isoTimestamp(row.effective_at);
-  if (effectiveAt === undefined || (row.effective_at !== null && effectiveAt === null)
-    || effectiveAt !== content.effectiveAt) return null;
+  const effectiveAt = row.effective_at === null ? null : postgrestTimestamp(row.effective_at);
+  if (effectiveAt === undefined || effectiveAt !== content.effectiveAt) return null;
   const previousVersion = row.previous_version === null ? null : positiveInteger(row.previous_version);
   if ((row.previous_version !== null && previousVersion === null)
     || (version === 1 && (previousVersion !== null || transition !== "create"))
@@ -414,6 +456,28 @@ function rowToVersion(row: Record<string, unknown>): ThesisVersion | null {
     systemRecordedAt,
     effectiveAt,
   };
+}
+
+type ThesisSummaryVersion = {
+  versionId: string;
+  thesisId: string;
+  version: number;
+  lifecycleState: ThesisLifecycle;
+  subject: ThesisSubjectRef;
+  title: string;
+};
+
+function rowToSummaryVersion(row: Record<string, unknown>): ThesisSummaryVersion | null {
+  if (!exactKeys(row, ["id", "thesis_id", "version", "lifecycle_state", "subject_ref", "title"])) return null;
+  const versionId = isUuid(row.id) ? row.id : null;
+  const thesisId = isUuid(row.thesis_id) ? row.thesis_id : null;
+  const version = positiveInteger(row.version);
+  const lifecycleState = lifecycle(row.lifecycle_state);
+  const subject = wireSubject(row.subject_ref);
+  const title = boundedSingleLineText(row.title, MAX_THESIS_TITLE, true);
+  return versionId && thesisId && version && lifecycleState && subject && title
+    ? { versionId, thesisId, version, lifecycleState, subject, title }
+    : null;
 }
 
 function isValidReturnedHistory(
@@ -508,17 +572,21 @@ export async function applyThesisVersion(
   return { ok: false, status: "unavailable", error: "unknown thesis mutation result" };
 }
 
-const HEAD_FIELDS = "id,current_version,lifecycle_state,subject_ref,created_at,updated_at";
+const DETAIL_HEAD_FIELDS = "id,current_version,lifecycle_state,subject_ref,created_at,updated_at";
+const LIST_HEAD_FIELDS = "id,current_version,lifecycle_state,subject_ref,updated_at";
 const VERSION_FIELDS = "id,thesis_id,version,previous_version,transition,lifecycle_state,subject_ref,content,client_request_id,system_recorded_at,effective_at";
 
 export async function readThesis(db: ThesisDb, userId: string, thesisId: string): Promise<ThesisRead> {
   if (!isUuid(thesisId)) return { ok: false, status: "not_found", error: "thesis not found" };
   try {
-    const headResult = await db.from("theses").select(HEAD_FIELDS)
+    const headResult = await db.from("theses").select(DETAIL_HEAD_FIELDS)
       .eq("user_id", userId).eq("id", thesisId).maybeSingle();
     if (headResult?.error) return { ok: false, status: "unavailable", error: headResult.error.message || "thesis store unavailable" };
     const head = one(headResult);
     if (!head) return { ok: false, status: "not_found", error: "thesis not found" };
+    if (!exactKeys(head, ["id", "current_version", "lifecycle_state", "subject_ref", "created_at", "updated_at"])) {
+      return { ok: false, status: "unavailable", error: "thesis head and lineage disagree" };
+    }
     const versionResult = await db.from("thesis_versions").select(VERSION_FIELDS)
       .eq("user_id", userId).eq("thesis_id", thesisId)
       .order("version", { ascending: false }).limit(MAX_THESIS_HISTORY + 1);
@@ -533,10 +601,11 @@ export async function readThesis(db: ThesisDb, userId: string, thesisId: string)
     const currentVersion = positiveInteger(head.current_version);
     const lifecycleState = lifecycle(head.lifecycle_state);
     const subject = wireSubject(head.subject_ref);
-    const createdAt = text(head.created_at);
-    const updatedAt = text(head.updated_at);
+    const headId = isUuid(head.id) ? head.id : null;
+    const createdAt = postgrestTimestamp(head.created_at);
+    const updatedAt = postgrestTimestamp(head.updated_at);
     const current = history.find((item) => item.version === currentVersion);
-    if (!currentVersion || !lifecycleState || !subject || !createdAt || !updatedAt || !current
+    if (headId !== thesisId || !currentVersion || !lifecycleState || !subject || !createdAt || !updatedAt || !current
       || history[0]?.version !== currentVersion) {
       return { ok: false, status: "unavailable", error: "thesis head and lineage disagree" };
     }
@@ -575,7 +644,7 @@ export async function listTheses(
 ): Promise<ThesisListRead> {
   const boundedLimit = Math.min(Math.max(Math.trunc(limit), 1), 500);
   try {
-    let query = db.from("theses").select(HEAD_FIELDS).eq("user_id", userId);
+    let query = db.from("theses").select(LIST_HEAD_FIELDS).eq("user_id", userId);
     if (filter) {
       query = query.eq("subject_ref->>owner", filter.owner)
         .eq("subject_ref->>kind", filter.kind)
@@ -594,11 +663,14 @@ export async function listTheses(
     }> = [];
     const requestedPairs = new Set<string>();
     for (const row of result.data.slice(0, boundedLimit)) {
-      const id = text(row.id);
+      if (!exactKeys(row, ["id", "current_version", "lifecycle_state", "subject_ref", "updated_at"])) {
+        return { ok: false, status: "unavailable", error: "thesis head and lineage disagree" };
+      }
+      const id = isUuid(row.id) ? row.id : null;
       const currentVersion = positiveInteger(row.current_version);
       const lifecycleState = lifecycle(row.lifecycle_state);
       const subject = wireSubject(row.subject_ref);
-      const updatedAt = text(row.updated_at);
+      const updatedAt = postgrestTimestamp(row.updated_at);
       if (!id || !currentVersion || !lifecycleState || !subject || !updatedAt) {
         return { ok: false, status: "unavailable", error: "thesis head and lineage disagree" };
       }
@@ -621,14 +693,16 @@ export async function listTheses(
     if (versionResult.data.length !== heads.length) {
       return { ok: false, status: "unavailable", error: "thesis head and lineage disagree" };
     }
-    const currentByPair = new Map<string, ThesisVersion>();
+    const currentByPair = new Map<string, ThesisSummaryVersion>();
+    const returnedVersionIds = new Set<string>();
     for (const row of versionResult.data) {
       const pair = `${text(row.thesis_id)}:${positiveInteger(row.version)}`;
       if (!requestedPairs.has(pair)) continue;
-      const parsed = rowToVersion(row);
-      if (!parsed || currentByPair.has(pair)) {
+      const parsed = rowToSummaryVersion(row);
+      if (!parsed || currentByPair.has(pair) || returnedVersionIds.has(parsed.versionId)) {
         return { ok: false, status: "unavailable", error: "thesis head and lineage disagree" };
       }
+      returnedVersionIds.add(parsed.versionId);
       currentByPair.set(pair, parsed);
     }
 
@@ -639,7 +713,7 @@ export async function listTheses(
         || parsed.lifecycleState !== lifecycleState || JSON.stringify(parsed.subject) !== JSON.stringify(subject)) {
         return { ok: false, status: "unavailable", error: "thesis head and lineage disagree" };
       }
-      summaries.push({ id, currentVersion, lifecycleState, subject, title: parsed.content.title, updatedAt });
+      summaries.push({ id, currentVersion, lifecycleState, subject, title: parsed.title, updatedAt });
     }
     return { ok: true, theses: summaries, truncated: result.data.length > boundedLimit };
   } catch (cause) {

@@ -506,7 +506,20 @@ function readCurrentThesisVersionsFixture(store: Store, args: Record<string, unk
     if (!head) return [];
     const row = store.thesisVersions.find((candidate) => candidate.user_id === userId
       && candidate.thesis_id === thesisId && candidate.version === version);
-    return row ? [{ ...row }] : [];
+    const rawTitle = row?.content && typeof row.content === "object"
+      ? (row.content as Record<string, unknown>).title
+      : null;
+    const title = typeof rawTitle === "string" && [...rawTitle].length >= 1 && [...rawTitle].length <= 160
+      ? rawTitle
+      : null;
+    return row ? [{
+      id: row.id,
+      thesis_id: row.thesis_id,
+      version: row.version,
+      lifecycle_state: row.lifecycle_state,
+      subject_ref: row.subject_ref,
+      title,
+    }] : [];
   });
   return Promise.resolve({ data, error: null });
 }

@@ -19,7 +19,7 @@ vi.mock("@/lib/supabase/server", async () => {
 });
 
 import { GET, POST } from "@/app/api/theses/route";
-import { FAULT_THESES_READ, fixtureUserId, resetFixtureStores } from "@/lib/watchlistsFixtureDb";
+import { FAULT_THESES_READ, fixtureStore, fixtureUserId, resetFixtureStores } from "@/lib/watchlistsFixtureDb";
 
 const subject: ThesisSubjectRef = {
   schema: "mastermind.thesis-subject-ref/v1",
@@ -97,6 +97,33 @@ describe("GET /api/theses", () => {
     expect(detail.status).toBe(200);
     expect(payload.thesis).toMatchObject({ id: created.thesisId, currentVersion: 2 });
     expect(payload.thesis.history.map((item: { version: number }) => item.version)).toEqual([2, 1]);
+  });
+
+  it("accepts the real PostgREST UUID and timestamptz response shape at the API read boundary", async () => {
+    const made = await post({
+      action: "create",
+      clientRequestId: "60100000-0000-4000-8000-000000000001",
+      subject,
+      content: { ...content(), effectiveAt: "2026-07-15T16:34:56.789Z" },
+    });
+    const created = await made.json();
+    const store = fixtureStore(H.key);
+    store.theses[0].created_at = "2026-07-15T16:34:56+00:00";
+    store.theses[0].updated_at = "2026-07-15T12:34:56.120-04:00";
+    store.thesisVersions[0].system_recorded_at = "2026-07-15T16:34:56.120456+00:00";
+    store.thesisVersions[0].effective_at = "2026-07-15T12:34:56.789000-04:00";
+
+    const response = await GET(new Request(`https://x.test/api/theses?id=${created.thesisId}`));
+    expect(response.status).toBe(200);
+    expect((await response.json()).thesis).toMatchObject({
+      id: created.thesisId,
+      createdAt: "2026-07-15T16:34:56.000Z",
+      updatedAt: "2026-07-15T16:34:56.120Z",
+      current: {
+        effectiveAt: "2026-07-15T16:34:56.789Z",
+        systemRecordedAt: "2026-07-15T16:34:56.120456Z",
+      },
+    });
   });
 
   it("accepts only a complete validated subject filter", async () => {

@@ -54,6 +54,11 @@ describe("0011 thesis persistence contract", () => {
     expect(flat).toMatch(/tv\.user_id\s*=\s*auth\.uid\(\)/);
     expect(flat).toContain("revoke all on function public.read_current_thesis_versions_v1");
     expect(flat).toContain("grant execute on function public.read_current_thesis_versions_v1");
+    const readBoundary = flat.match(/create or replace function public\.read_current_thesis_versions_v1[\s\S]*?\$\$;/)?.[0] ?? "";
+    expect(readBoundary).toMatch(/returns table \( id uuid, thesis_id uuid, version integer, lifecycle_state text, subject_ref jsonb, title text \)/);
+    expect(readBoundary).toContain("tv.content ->> 'title'");
+    expect(readBoundary).not.toContain("content jsonb");
+    expect(readBoundary).not.toContain("tv.content,");
   });
 
   it("contains the write fences that prevent split lineage and false replay", () => {

@@ -81,14 +81,9 @@ returns table (
   id uuid,
   thesis_id uuid,
   version integer,
-  previous_version integer,
-  transition text,
   lifecycle_state text,
   subject_ref jsonb,
-  content jsonb,
-  client_request_id uuid,
-  system_recorded_at timestamptz,
-  effective_at timestamptz
+  title text
 )
 language sql
 stable
@@ -99,14 +94,14 @@ as $$
     tv.id,
     tv.thesis_id,
     tv.version,
-    tv.previous_version,
-    tv.transition,
     tv.lifecycle_state,
     tv.subject_ref,
-    tv.content,
-    tv.client_request_id,
-    tv.system_recorded_at,
-    tv.effective_at
+    case
+      when jsonb_typeof(tv.content -> 'title') = 'string'
+       and char_length(tv.content ->> 'title') between 1 and 160
+      then tv.content ->> 'title'
+      else null
+    end as title
   from unnest(p_thesis_ids, p_versions) as requested(thesis_id, version)
   join public.thesis_versions as tv
     on tv.thesis_id = requested.thesis_id

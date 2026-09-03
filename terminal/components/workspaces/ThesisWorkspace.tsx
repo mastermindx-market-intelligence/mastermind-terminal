@@ -132,19 +132,56 @@ function draftFromDetail(detail: ThesisDetail): Draft {
     falsifiers: content.falsifiers.join("\n"),
     risks: content.risks.join("\n"),
     horizon: content.horizon,
-    effectiveAt: content.effectiveAt ? content.effectiveAt.slice(0, 16) : "",
+    effectiveAt: content.effectiveAt ? utcInstantToLocalInput(content.effectiveAt) : "",
     revisionNote: "",
   };
 }
 
 const trimCanonicalSpaces = (value: string) => value.replace(/\r\n?/g, "\n").replace(/^ +| +$/g, "");
 const lines = (value: string) => value.split("\n").map(trimCanonicalSpaces).filter(Boolean);
+const pad2 = (value: number) => String(value).padStart(2, "0");
+const pad3 = (value: number) => String(value).padStart(3, "0");
+const LOCAL_DATE_TIME = /^([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2}):([0-9]{2})(?::([0-9]{2})(?:[.]([0-9]{1,3}))?)?$/;
+
+function utcInstantToLocalInput(value: string): string {
+  const instant = new Date(value);
+  return `${String(instant.getFullYear()).padStart(4, "0")}-${pad2(instant.getMonth() + 1)}-${pad2(instant.getDate())}`
+    + `T${pad2(instant.getHours())}:${pad2(instant.getMinutes())}:${pad2(instant.getSeconds())}.${pad3(instant.getMilliseconds())}`;
+}
+
+function localInputToUtcInstant(value: string): string | undefined {
+  const match = value.match(LOCAL_DATE_TIME);
+  if (!match) return undefined;
+  const [, yearText, monthText, dayText, hourText, minuteText, secondText = "0", fraction = ""] = match;
+  const [year, month, day, hour, minute, second] = [yearText, monthText, dayText, hourText, minuteText, secondText].map(Number);
+  const milliseconds = Number(fraction.padEnd(3, "0") || "0");
+  if (year < 1000 || month < 1 || month > 12 || day < 1 || day > 31 || hour > 23 || minute > 59 || second > 59) return undefined;
+  const candidate = new Date(year, month - 1, day, hour, minute, second, milliseconds);
+  const sameWallClock = (instant: Date) => instant.getFullYear() === year
+    && instant.getMonth() === month - 1
+    && instant.getDate() === day
+    && instant.getHours() === hour
+    && instant.getMinutes() === minute
+    && instant.getSeconds() === second
+    && instant.getMilliseconds() === milliseconds;
+  // A nonexistent spring-forward wall clock is normalized by Date; reject that normalization.
+  if (!sameWallClock(candidate)) return undefined;
+  // Date chooses one side of a repeated fall-back clock. Search the full practical DST window and
+  // reject if another instant renders as the same local control value.
+  for (let deltaMinutes = 1; deltaMinutes <= 180; deltaMinutes += 1) {
+    if (sameWallClock(new Date(candidate.getTime() - deltaMinutes * 60_000))
+      || sameWallClock(new Date(candidate.getTime() + deltaMinutes * 60_000))) return undefined;
+  }
+  return candidate.toISOString();
+}
 
 function statusLabel(state: ThesisLifecycle, copy: typeof COPY.en | typeof COPY.zh): string {
   return state === "active" ? copy.active : state === "archived" ? copy.archived : copy.invalidated;
 }
 
-function buildContent(draft: Draft): ThesisContent {
+function buildContent(draft: Draft): ThesisContent | null {
+  const effectiveAt = draft.effectiveAt ? localInputToUtcInstant(draft.effectiveAt) : null;
+  if (effectiveAt === undefined) return null;
   return {
     schema: "mastermind.thesis-content/v1",
     title: draft.title,
@@ -153,7 +190,7 @@ function buildContent(draft: Draft): ThesisContent {
     falsifiers: lines(draft.falsifiers),
     risks: lines(draft.risks),
     horizon: draft.horizon,
-    effectiveAt: draft.effectiveAt ? new Date(draft.effectiveAt).toISOString() : null,
+    effectiveAt,
     revisionNote: trimCanonicalSpaces(draft.revisionNote) || null,
   };
 }
@@ -310,9 +347,9 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   }, [pending, pendingHydrated, pendingStorageKey]);
 
   useEffect(() => {
-    if (!isDirty) return;
+    if (!isDirty && !pending) return;
     const beforeUnload = (event: BeforeUnloadEvent) => {
-      if (routeDiscardAuthorized.current) return;
+      if (!pending && routeDiscardAuthorized.current) return;
       event.preventDefault();
       event.returnValue = "";
     };
@@ -322,6 +359,11 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       if (!target || target.target === "_blank" || target.hasAttribute("download")) return;
       const destination = new URL(target.href, window.location.href);
       if (destination.href === window.location.href) return;
+      if (pending) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        return;
+      }
       if (window.confirm(copy.confirmDiscard)) {
         routeDiscardAuthorized.current = true;
         window.setTimeout(() => { routeDiscardAuthorized.current = false; }, 1000);
@@ -336,7 +378,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       window.removeEventListener("beforeunload", beforeUnload);
       document.removeEventListener("click", protectRouteClick, true);
     };
-  }, [copy.confirmDiscard, isDirty]);
+  }, [copy.confirmDiscard, isDirty, pending]);
 
   const loadList = useCallback(async () => {
     try {
@@ -740,7 +782,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
                       <label className={styles.full}>{copy.statement}<textarea aria-label={copy.statement} value={draft.statement} disabled={!editable || carrierLocked} maxLength={12000} rows={8} onChange={(event) => changeDraft("statement", event.target.value)} /></label>
                       {(["catalysts", "falsifiers", "risks"] as const).map((field) => <label key={field}>{copy[field]}<small>{copy.onePerLine}</small><textarea aria-label={copy[field]} value={draft[field]} disabled={!editable || carrierLocked} rows={5} onChange={(event) => changeDraft(field, event.target.value)} /></label>)}
                       <label>{copy.horizon}<select aria-label={copy.horizon} value={draft.horizon} disabled={!editable || carrierLocked} onChange={(event) => changeDraft("horizon", event.target.value as ThesisHorizon)}>{(["unspecified", "days", "weeks", "months", "quarters", "years"] as ThesisHorizon[]).map((value) => <option key={value} value={value}>{HORIZON_LABELS[lang][value]}</option>)}</select></label>
-                      <label>{copy.effective}<input aria-label={copy.effective} type="datetime-local" value={draft.effectiveAt} disabled={!editable || carrierLocked} onChange={(event) => changeDraft("effectiveAt", event.target.value)} /></label>
+                      <label>{copy.effective}<input aria-label={copy.effective} type="datetime-local" step="0.001" value={draft.effectiveAt} disabled={!editable || carrierLocked} onChange={(event) => changeDraft("effectiveAt", event.target.value)} /></label>
                       <label className={styles.full}>{copy.revision}<textarea aria-label={copy.revision} value={draft.revisionNote} disabled={carrierLocked} maxLength={1000} rows={3} onChange={(event) => changeDraft("revisionNote", event.target.value)} /></label>
                       <div className={`${styles.actions} ${styles.full}`}>
                         {editable && <button className={styles.primaryButton} type="submit" disabled={saving || ambiguous}>{saving ? copy.saving : copy.save}</button>}

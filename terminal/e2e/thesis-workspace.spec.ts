@@ -461,6 +461,104 @@ test("an ambiguous accepted write locks New, list selection, and mobile Back unt
   await expect(page.getByRole("button", { name: "New thesis" })).toBeEnabled();
 });
 
+test("a clean pending lifecycle carrier blocks shell navigation and unload until byte-exact retry", async ({ page, baseURL }, testInfo) => {
+  await prepare(page, testInfo, baseURL);
+  const thesisId = await createThesis(page, "Clean pending archive", "c1000000-0000-4000-8000-000000000001");
+  const requests: Array<Record<string, unknown>> = [];
+  let maskFirstAcceptedResponse = true;
+  await page.route("**/api/theses", async (route) => {
+    if (route.request().method() !== "POST") return route.continue();
+    requests.push(route.request().postDataJSON());
+    if (maskFirstAcceptedResponse) {
+      maskFirstAcceptedResponse = false;
+      await route.fetch({ maxRetries: 1 });
+      return route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ error: "thesis_store_unavailable" }) });
+    }
+    return route.continue();
+  });
+
+  await page.goto(`/analysis?view=theses&thesis=${thesisId}`);
+  await expect(page.getByTestId("thesis-dirty-draft")).toHaveCount(0);
+  await page.getByRole("button", { name: "Archive", exact: true }).click();
+  await expect(page.getByText("response was interrupted")).toBeVisible();
+  await expect(page.getByTestId("thesis-dirty-draft")).toHaveCount(0);
+
+  const menu = page.getByRole("button", { name: "Menu" });
+  if (await menu.isVisible()) {
+    await menu.click();
+    await page.locator(".m-drawer a[href='/terminal']").click();
+  } else {
+    await page.locator(".appnav a[aria-label='Chart']").click();
+  }
+  await expect(page).toHaveURL(new RegExp(`thesis=${thesisId}`));
+  expect(await page.evaluate(() => {
+    const event = new Event("beforeunload", { cancelable: true });
+    window.dispatchEvent(event);
+    return event.defaultPrevented;
+  })).toBe(true);
+
+  page.once("dialog", (dialog) => void dialog.accept());
+  await page.reload();
+  await expect(page.getByRole("button", { name: "Retry same request" })).toBeVisible();
+  await page.getByRole("button", { name: "Retry same request" }).click();
+  await expect(page.getByText("Version 2 · Current")).toBeVisible();
+  expect(requests).toHaveLength(2);
+  expect(requests[0]).toEqual(requests[1]);
+  expect(requests[0]).toMatchObject({ action: "archive", id: thesisId, expectedVersion: 1 });
+});
+
+test.describe("timezone-safe effective-at editing", () => {
+  test.use({ timezoneId: "America/New_York" });
+
+  test("round-trips DST and standard instants and rejects ambiguous or nonexistent wall clocks", async ({ page, baseURL }, testInfo) => {
+    await prepare(page, testInfo, baseURL);
+    const dst = "2026-07-15T16:34:56.789Z";
+    const standard = "2026-01-15T17:34:56.789Z";
+    const dstId = await createThesis(page, "DST instant", "c2000000-0000-4000-8000-000000000001");
+    const standardId = await createThesis(page, "Standard instant", "c2000000-0000-4000-8000-000000000002");
+    const patchEffectiveAt = async (id: string, effectiveAt: string, requestId: string) => {
+      const detail = await page.request.get(`/api/theses?id=${id}`);
+      const thesis = (await detail.json()).thesis;
+      const response = await page.request.post("/api/theses", { data: {
+        action: "revise", id, expectedVersion: 1, clientRequestId: requestId,
+        subject: thesis.subject, content: { ...thesis.current.content, effectiveAt },
+      } });
+      expect(response.status()).toBe(200);
+    };
+    await patchEffectiveAt(dstId, dst, "c2000000-0000-4000-8000-000000000003");
+    await patchEffectiveAt(standardId, standard, "c2000000-0000-4000-8000-000000000004");
+
+    const writes: Array<Record<string, unknown>> = [];
+    page.on("request", (request) => {
+      if (request.method() === "POST" && request.url().includes("/api/theses")) writes.push(request.postDataJSON());
+    });
+    await page.goto(`/analysis?view=theses&thesis=${dstId}`);
+    await expect(page.getByLabel("Effective as of (optional)")).toHaveValue("2026-07-15T12:34:56.789");
+    await page.getByLabel("Title").fill("DST instant revised");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await expect(page.getByText("Version 3 · Current")).toBeVisible();
+    expect((writes.at(-1)?.content as Record<string, unknown>).effectiveAt).toBe(dst);
+
+    await page.getByRole("button", { name: "Archive", exact: true }).click();
+    await expect(page.getByText("Version 4 · Current")).toBeVisible();
+    expect((writes.at(-1)?.content as Record<string, unknown>).effectiveAt).toBe(dst);
+
+    await page.goto(`/analysis?view=theses&thesis=${standardId}`);
+    await expect(page.getByLabel("Effective as of (optional)")).toHaveValue("2026-01-15T12:34:56.789");
+
+    await page.goto("/analysis?view=theses&symbol=NVDA");
+    await fillNew(page, false, "Rejected wall clock");
+    const writesBeforeInvalid = writes.length;
+    await page.getByLabel("Effective as of (optional)").fill("2026-03-08T02:30");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await expect(page.getByText("Check the required fields. Nothing was saved.")).toBeVisible();
+    expect(writes).toHaveLength(writesBeforeInvalid);
+    await page.getByLabel("Effective as of (optional)").fill("2026-11-01T01:30");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    expect(writes).toHaveLength(writesBeforeInvalid);
+  });
+});
+
 test("browser storage refusal preserves the draft and sends no mutation", async ({ page, baseURL }, testInfo) => {
   await prepare(page, testInfo, baseURL);
   await page.addInitScript(() => {
