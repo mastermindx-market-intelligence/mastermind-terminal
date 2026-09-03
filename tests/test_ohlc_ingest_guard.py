@@ -1,9 +1,13 @@
-"""The ticker-reuse guard on the non-Polygon ingest paths.
+"""The ticker-reuse guard and market-owner boundaries on non-Polygon ingest paths.
 
 PR #92 guarded the Polygon fetch used by build_polygon_universe (flagships). The two
 remaining contaminated series on the box (0300.HK via the yfinance/Tencent backfill,
 SPCX via grouped-daily appends) arrived through backfill_ohlc.write_json and the
 refresh_ohlc/refresh_ohlc_intl append loops — these tests pin the guard onto those.
+
+China A-share daily history is owned by Macro's canonical ``china_stocks`` deep store
+and copied into Terminal by ``build_universe.py --ohlc all``.  The generic non-US Yahoo
+refresher must never independently append .SS/.SZ rows over that canonical plane.
 """
 from __future__ import annotations
 
@@ -12,7 +16,7 @@ import json
 
 import ingest.backfill_ohlc as backfill_ohlc
 import ingest.refresh_ohlc  # noqa: F401  — import-safe: no polygon key at module level
-import ingest.refresh_ohlc_intl  # noqa: F401  — import-safe: yfinance deferred to main()
+import ingest.refresh_ohlc_intl as refresh_ohlc_intl  # yfinance deferred to main()
 
 
 def bar(date: str, close: float) -> list:
@@ -54,3 +58,23 @@ def test_write_json_clean_series_unchanged(tmp_path, monkeypatch):
     doc = json.loads((tmp_path / "AAPL.json").read_text())
     assert doc["bars"][0][0] == "2024-01-01"
     assert doc["src"] == "yahoo" and doc["bar_quality"] == "real_ohlc"
+
+
+def test_intl_refresh_excludes_china_by_suffix(tmp_path):
+    (tmp_path / "600118.SS.json").write_text("{}")
+    (tmp_path / "000001.SZ.json").write_text("{}")
+    assert refresh_ohlc_intl.should_refresh("600118.SS", {"mkt": "SSE"}, str(tmp_path)) is False
+    assert refresh_ohlc_intl.should_refresh("000001.SZ", {"mkt": "SZSE"}, str(tmp_path)) is False
+
+
+def test_intl_refresh_excludes_china_by_market_even_if_suffix_is_bad(tmp_path):
+    # Defense in depth: a malformed/imported China symbol cannot sneak into the generic
+    # Yahoo append lane merely because it lacks the canonical suffix.
+    (tmp_path / "600118.json").write_text("{}")
+    assert refresh_ohlc_intl.should_refresh("600118", {"mkt": "SSE"}, str(tmp_path)) is False
+
+
+def test_intl_refresh_keeps_hk_and_other_non_us_names(tmp_path):
+    for sym in ("0700.HK", "SHOP.TO", "7203.T"):
+        (tmp_path / f"{sym}.json").write_text("{}")
+        assert refresh_ohlc_intl.should_refresh(sym, {"mkt": "HKEX"}, str(tmp_path)) is True

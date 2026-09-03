@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useT } from "@/lib/i18n";
 
 type Ev = { id: number; created_at: string; symbol: string; query: string | null; source: string; user_id: string | null; anon_id: string | null; ip: string | null; ua: string | null };
-type Stats = { total: number; today: number; visitors7d: number; topSymbols7d: { symbol: string; count: number }[]; perDay14d: { day: string; count: number }[] };
+type Stats = { total: number; today: number; visitors7d: number; topSymbols7d: { symbol: string; count: number }[]; perDay14d: { day: string; count: number }[]; partial?: boolean };
 
 // visitor identity precedence mirrors the storage plane: user_id > anon_id > ip
 const visitorId = (e: Ev) => e.user_id || e.anon_id || e.ip || "";
@@ -205,6 +205,15 @@ export default function AdminView({ email, authorityUnavailable = false }: { ema
               {authorityUnavailable && (
                 <div className="panel" style={{ marginBottom: 12 }}>
                   <div style={noticeStyle}>{t("admAuthorityUnavailable", "Couldn't verify admin access — this is an outage, not a denial.")}</div>
+                </div>
+              )}
+
+              {statsState === "data" && stats?.partial && (
+                <div className="panel" style={{ marginBottom: 12 }}>
+                  {/* The aggregate fell back to the capped in-process path AND the window actually
+                      hit the cap, so the oldest days are understated. Saying so is the whole point:
+                      the truncated chart is otherwise indistinguishable from a real decline. */}
+                  <div style={noticeStyle}>{t("admStatsPartial", "Approximate — more history than this view can count. Oldest days are understated.")}</div>
                 </div>
               )}
 

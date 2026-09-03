@@ -348,6 +348,105 @@ test("regular-session performance stays primary while extended pricing is separa
   }
 });
 
+test("a suspended A-share keeps its last real close and replaces zero percent at every width", async ({ page }, testInfo) => {
+  const symbol = "002155.SZ";
+  const lastRealClose = 24.56;
+  const bars = Array.from({ length: 80 }, (_, index) => {
+    const date = new Date(Date.UTC(2026, 3, 22 + index));
+    const close = index === 79 ? lastRealClose : 20 + index * 0.05;
+    return [
+      date.toISOString().slice(0, 10),
+      Number((close - 0.12).toFixed(2)),
+      Number((close + 0.21).toFixed(2)),
+      Number((close - 0.25).toFixed(2)),
+      Number(close.toFixed(2)),
+      10_000_000 + index,
+    ];
+  });
+  bars[79][0] = "2026-08-19";
+
+  await page.route("**/data/manifest.json**", (route) => route.fulfill({
+    json: {
+      as_of: "2026-08-19",
+      source: "suspension-e2e",
+      symbols: {
+        [symbol]: {
+          name: "Hunan Gold Corporation Limited",
+          sec: "Equities",
+          mkt: "SZSE",
+          col: "#d8ad32",
+          last: lastRealClose,
+          chg: 0,
+          open: 24.34,
+          high: 25.39,
+          low: 24.20,
+          vol: 47_735_572,
+          hi52: 28.10,
+          lo52: 12.20,
+          verdict: "HOLD",
+          wr: null,
+          pf: null,
+          cagr: null,
+          regimeBull: null,
+        },
+      },
+    },
+  }));
+  await page.route(`**/data/${symbol}.json**`, (route) => route.fulfill({
+    json: { t: symbol, o: 1, src: "yfinance", bar_quality: "real_ohlc", bars },
+  }));
+  await page.route("**/api/quote?**", async (route) => {
+    const url = new URL(route.request().url());
+    const syms = (url.searchParams.get("syms") || symbol).split(",").filter(Boolean);
+    const quotes = Object.fromEntries(syms.map((sym) => [sym, sym === symbol ? {
+      sym,
+      last: null,
+      prevClose: lastRealClose,
+      chg: null,
+      open: null,
+      high: null,
+      low: null,
+      vol: null,
+      amount: null,
+      live: false,
+      source: "tencent",
+      basis: "EOD",
+      market: "cn",
+      marketSession: "closed",
+      suspended: true,
+      regularPrice: null,
+      regularChg: null,
+    } : null]));
+    await route.fulfill({ json: { quotes } });
+  });
+
+  await armTerminalVisualReady(page);
+  await page.goto(`/terminal?symbol=${symbol}`);
+  await waitForTerminalVisualReady(page);
+
+  if (testInfo.project.name === "desktop") {
+    await expect(page.locator(".topbar .stat-last")).toContainText("24.56");
+    await expect(page.locator(".topbar .stat-change")).toContainText("Suspended");
+    await expect(page.locator(".topbar-livebadge")).toContainText("Suspended");
+    await expect(page.locator(".detail-hd .px")).toContainText("24.56");
+    await expect(page.locator(".detail-hd .px")).toContainText("Suspended");
+  } else {
+    const primary = page.locator('[data-quote-lane="regular"]');
+    await expect(primary).toContainText("24.56");
+    await expect(primary).toContainText("Suspended");
+  }
+  await expect(page.locator(".pane-hd").first()).toContainText("Suspended");
+  await expect(page.getByText("+0.00%", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("0.00%", { exact: true })).toHaveCount(0);
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth))
+    .toBeLessThanOrEqual(1);
+
+  await page.screenshot({
+    path: testInfo.outputPath(`${testInfo.project.name}-hunan-gold-suspended.png`),
+    fullPage: false,
+  });
+});
+
 test("Prophet fills its Options workspace at every supported width", async ({ page }, testInfo) => {
   const zh = testInfo.project.name === "tablet";
   if (zh) {

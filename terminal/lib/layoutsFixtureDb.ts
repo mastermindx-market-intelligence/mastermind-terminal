@@ -62,15 +62,48 @@ type Op =
 /** Which fault class an operation belongs to, so one cookie can target reads or writes. */
 const faultClassOf = (op: Op): LayoutFault => (op.kind === "select" ? "list" : op.kind === "delete" ? "delete" : "save");
 
+/** `column` is either a plain row column ("user_id", "name", "id") or a PostgREST JSON-path
+ *  reference ("config->>revision"). The `->>` operator always yields TEXT, so a path read is
+ *  stringified (never a raw number/boolean) and a missing key or non-object base reads as `null` —
+ *  the same "NULL never satisfies eq/neq" semantics real Postgres gives a still-legacy row that has
+ *  no `config.schema` key at all (see the `LayoutQuery` doc-comment in `lib/layouts.ts`). */
+function readPath(row: LayoutRow, column: string): unknown {
+  const idx = column.indexOf("->>");
+  if (idx === -1) return row[column];
+  const base = row[column.slice(0, idx)];
+  if (typeof base !== "object" || base === null || Array.isArray(base)) return null;
+  const val = (base as Record<string, unknown>)[column.slice(idx + 3)];
+  return val === undefined || val === null ? null : String(val);
+}
+
+type Filter = { column: string; op: "eq" | "neq" | "is"; value: unknown };
+
+function filterMatches(row: LayoutRow, filter: Filter): boolean {
+  const actual = readPath(row, filter.column);
+  switch (filter.op) {
+    case "eq": return actual !== null && actual === filter.value;
+    // SQL `<>` semantics: NULL is never distinct-or-equal to anything under `neq`/`eq` — it simply
+    // never satisfies either. Callers that need "no value OR a different value" use `is`+`neq` as
+    // two disjoint attempts (see `saveWorkspace`'s migrate-on-write guard).
+    case "neq": return actual !== null && actual !== filter.value;
+    case "is": return filter.value === null ? actual === null : actual === filter.value;
+  }
+}
+
 export function createLayoutFixtureDb(key: string, fault: LayoutFault = ""): LayoutDb {
   const store = storeFor(key);
 
   const build = (): LayoutQuery => {
     let op: Op = { kind: "select" };
-    const filters: [string, unknown][] = [];
+    const filters: Filter[] = [];
     let sort: { column: string; ascending: boolean } | null = null;
 
-    const matches = (row: LayoutRow) => filters.every(([column, value]) => row[column] === value);
+    const matches = (row: LayoutRow) => filters.every((f) => filterMatches(row, f));
+
+    /** A statement-level unique-constraint check for an UPDATE that changes `name`: real Postgres
+     *  enforces `unique(user_id, name)` on the UPDATE itself, not just on INSERT. */
+    const nameCollision = (row: LayoutRow, newName: unknown): boolean =>
+      store.rows.some((r) => r !== row && r.user_id === row.user_id && r.name === newName);
 
     const run = (): LayoutDbResult => {
       if (fault === "all" || (fault && fault === faultClassOf(op))) return transportFault();
@@ -94,7 +127,12 @@ export function createLayoutFixtureDb(key: string, fault: LayoutFault = ""): Lay
         }
         case "update": {
           const hit = store.rows.filter(matches);
-          for (const row of hit) Object.assign(row, op.values);
+          const updateValues = op.values;
+          const newName = updateValues.name;
+          if (typeof newName === "string" && hit.some((row) => nameCollision(row, newName))) {
+            return { error: { code: "23505", message: "duplicate key value violates unique constraint chart_layouts_user_name" } };
+          }
+          for (const row of hit) Object.assign(row, updateValues);
           return { data: hit.map((r) => ({ ...r })) };
         }
         case "upsert": {
@@ -115,7 +153,9 @@ export function createLayoutFixtureDb(key: string, fault: LayoutFault = ""): Lay
 
     const query = {
       select: () => query,
-      eq: (column: string, value: unknown) => { filters.push([column, value]); return query; },
+      eq: (column: string, value: unknown) => { filters.push({ column, op: "eq", value }); return query; },
+      neq: (column: string, value: unknown) => { filters.push({ column, op: "neq", value }); return query; },
+      is: (column: string, value: null | boolean) => { filters.push({ column, op: "is", value }); return query; },
       order: (column: string, options?: { ascending?: boolean }) => { sort = { column, ascending: options?.ascending !== false }; return query; },
       insert: (values: LayoutRow) => { op = { kind: "insert", values }; return query; },
       update: (values: LayoutRow) => { op = { kind: "update", values }; return query; },
@@ -128,4 +168,14 @@ export function createLayoutFixtureDb(key: string, fault: LayoutFault = ""): Lay
   };
 
   return { from: () => build() };
+}
+
+/** Direct, synchronous store access for tests that need to simulate a concurrent write landing
+ *  BETWEEN a caller's read and its own conditional write (the CAS-refusal proof in
+ *  `workspacePersistence.test.ts`) — a real race is not reproducible in single-threaded Node, so the
+ *  test manufactures the interleaving explicitly instead. Never used by production code. */
+export function pokeLayoutFixtureRow(key: string, userId: string, name: string, patch: LayoutRow): void {
+  const store = storeFor(key);
+  const row = store.rows.find((r) => r.user_id === userId && r.name === name);
+  if (row) Object.assign(row, patch);
 }

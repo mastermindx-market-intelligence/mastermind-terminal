@@ -14,7 +14,7 @@
  * FE3 wires the click trigger on the trust badge; FE2d owns this file.
  */
 import { useEffect, useRef } from "react"
-import { pick, daysUntil, fmtDate } from "../../lib/finFormat"
+import { pick, nextDateCountdown, fmtDate } from "../../lib/finFormat"
 
 /* ── types ────────────────────────────────────────────────────────────── */
 
@@ -117,8 +117,9 @@ export default function EventEdgePop({ anchor, intel, zh = false, onClose }: Eve
   if (top + POP_H_EST > vh - 8) top = Math.max(8, anchor.top - POP_H_EST - 8)
 
   // earnings context
-  const nextDate = ae?.next_date ?? null
-  const daysAway = daysUntil(nextDate)
+  const rawNextDate = ae?.next_date ?? null
+  const daysAway = nextDateCountdown(rawNextDate)
+  const nextDate = daysAway == null ? null : rawNextDate
   const beats = ae?.beats ?? null
   const total = ae?.total ?? null
   const avgSurp = ae?.avg_surprise ?? null

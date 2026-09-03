@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { spliceDaily, canSpliceRegularBar } from "@/components/ChartPanel";
 import { parseTencentFields } from "@/lib/intradaySources";
+import { withRegularSessionDisplay } from "@/lib/quoteDisplay";
 
 // Regression: at the China market open, Tencent's premarket call-auction snapshot reports
 // open/high/low = 0 (the session hasn't resolved yet). The live-bar splice used to accept the 0
@@ -10,7 +11,7 @@ import { parseTencentFields } from "@/lib/intradaySources";
 // Build a Tencent "~"-delimited field record with the offsets the parser reads
 // (3=last 4=prevClose 5=open 6=vol 30=ts 32=chg% 33=high 34=low 37=amount).
 function tencentRecord(o: Partial<Record<number, string>>): string[] {
-  const f = new Array(40).fill("0");
+  const f = new Array(41).fill("0");
   f[0] = "1"; f[1] = "TestCo"; f[2] = "000729";
   for (const k of Object.keys(o)) f[+k] = o[+k as unknown as number]!;
   return f;
@@ -47,6 +48,21 @@ describe("parseTencentFields — premarket zero open/high/low", () => {
     expect(q.marketSession).toBeUndefined();
     expect(q.auctionPrice).toBeUndefined();
   });
+
+  it("carries Tencent's explicit suspension status without inferring it from price", () => {
+    const suspended = parseTencentFields("002155.SZ", "cn", tencentRecord({
+      3: "24.56", 4: "24.56", 5: "0.00", 6: "0", 30: "20260826110000",
+      32: "0.00", 33: "0.00", 34: "0.00", 37: "0", 40: "S",
+    }))!;
+    const traded = parseTencentFields("000729.SZ", "cn", tencentRecord({
+      3: "12.20", 4: "11.74", 5: "11.90", 6: "500", 30: "20260826110000",
+      32: "3.92", 33: "12.35", 34: "11.85", 37: "6000000", 40: "",
+    }))!;
+
+    expect(suspended.suspended).toBe(true);
+    expect(withRegularSessionDisplay(suspended).suspended).toBe(true);
+    expect(traded.suspended).toBeUndefined();
+  });
 });
 
 describe("spliceDaily — no $0 spike from a zero-open premarket quote", () => {
@@ -77,6 +93,40 @@ describe("spliceDaily — no $0 spike from a zero-open premarket quote", () => {
 
   it("a 0 (or missing) last is not spliceable at all", () => {
     expect(spliceDaily(daily, { last: 0, open: 11.9 }, "2026-07-21")).toBe(daily);
+  });
+
+  it("the real Tencent no-trade shape for 002155.SZ cannot synthesize a flat candle", () => {
+    const raw = parseTencentFields("002155.SZ", "cn", tencentRecord({
+      3: "24.56", 4: "24.56", 5: "0.00", 6: "0", 30: "20260824110000",
+      32: "0.00", 33: "0.00", 34: "0.00", 37: "0", 40: "S",
+    }))!;
+    expect(raw).toMatchObject({
+      last: 24.56,
+      prevClose: 24.56,
+      chg: 0,
+      open: null,
+      high: null,
+      low: null,
+      vol: 0,
+      amount: 0,
+      live: true,
+      source: "tencent",
+      market: "cn",
+      basis: "LIVE",
+      suspended: true,
+    });
+
+    const exposed = withRegularSessionDisplay(raw);
+    expect(exposed.last).toBeNull();
+    expect(exposed.regularChg).toBeNull();
+    const spliceQuote = {
+      last: exposed.last ?? undefined,
+      open: exposed.open ?? undefined,
+      high: exposed.high ?? undefined,
+      low: exposed.low ?? undefined,
+      vol: exposed.vol ?? undefined,
+    };
+    expect(spliceDaily(daily, spliceQuote, "2026-08-24")).toBe(daily);
   });
 
   it("valid quotes still splice exactly as before", () => {

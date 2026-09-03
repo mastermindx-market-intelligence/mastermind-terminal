@@ -42,6 +42,20 @@ export async function GET(req: Request): Promise<Response> {
   const rl = rateLimit(req, { name: "flow-stream" });
   if (!rl.ok) return tooMany(rl);
 
+  const requestedFeed = new URL(req.url).searchParams.get("f") ?? "feed";
+
+  // The full US Prophet plan book is request/response only. It must never
+  // enter a long-lived or process-shared SSE producer.
+  if (requestedFeed === "prophet_idx") {
+    return new Response("bad f param", {
+      status: 400,
+      headers: {
+        "Cache-Control": "no-store",
+        "Content-Type": "text/plain; charset=utf-8",
+      },
+    });
+  }
+
   // Options data is a PAID feature — gate the stream at connection open against
   // the macro-api entitlement (terminal_live_options via /api/me), not
   // profiles.is_pro. Fixture mode (dev/CI) is exempt.
@@ -49,6 +63,8 @@ export async function GET(req: Request): Promise<Response> {
     return new Response("pro_required", { status: 403 });
   }
 
+  // Keep the existing post-entitlement parse/validation flow for every
+  // stream that is actually admissible.
   const url = new URL(req.url);
   const f = url.searchParams.get("f") ?? "feed";
   if (!isValidF(f)) {

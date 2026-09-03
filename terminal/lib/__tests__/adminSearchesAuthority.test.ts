@@ -55,6 +55,10 @@ vi.mock("@/lib/supabase/service", () => ({
   createServiceClient: vi.fn(() => {
     if (!H.serviceAvailable) return null;
     return {
+      // These cases exercise the CAPPED in-process aggregate path, so the stub answers the exact
+      // aggregate RPC as "not applied yet" (PGRST202) — which is also the real production state
+      // until an operator applies 0010. The RPC's own behaviour is covered in searchStatsExact.
+      rpc: vi.fn(async () => ({ data: null, error: { code: "PGRST202", message: "Could not find the function" } })),
       from: vi.fn(() => {
         const chain: Record<string, unknown> = {};
         let isWindow = false;

@@ -166,10 +166,15 @@ test("persistent and hover labels follow the price pane when a study moves above
 
   const rsiLegend = page.locator(".lg-block").filter({ hasText: "RSI" }).first();
   await expect(rsiLegend).toBeVisible({ timeout: 20_000 });
-  await rsiLegend.hover();
-  const moveUp = page.getByRole("button", { name: "Move pane up" });
-  await expect(moveUp).toBeVisible();
-  await moveUp.click();
+  // The top-right pane strip is owned by React hover state and can unmount between Playwright's
+  // actionability check and click on a saturated runner. The legend row's More button is always
+  // mounted (native CSS reveals it), and its opened menu remains stable after the pointer moves.
+  const rsiRow = rsiLegend.locator(".lg-row").filter({ hasText: "RSI" }).first();
+  await rsiRow.hover();
+  await rsiRow.getByRole("button", { name: "More" }).click();
+  const paneMenu = page.locator(".lg-more");
+  await expect(paneMenu).toBeVisible({ timeout: 20_000 });
+  await paneMenu.getByText("Move pane up", { exact: true }).click();
 
   await expect.poll(async () => (await labels(page)).pricePaneTop, { timeout: 10_000 }).toBeGreaterThan(20);
   const state = await labels(page);

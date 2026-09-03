@@ -10,7 +10,8 @@
 // prevClose derivation (session-keyed, not manifest-derived):
 //   US:     prevClose comes from AnchorCache — daily file → Polygon REST → manifest fallback.
 //           chg = (hubLast - prevClose) / prevClose * 100.
-//   crypto: prevClose = open_24h (carried on the quote, not the manifest); chg vs open_24h.
+//   crypto: the active feed carries its own prevClose; OKX uses the UTC-0 day open while the
+//           Coinbase fallback uses rolling open_24h. `changeBasis` makes that distinction explicit.
 //
 // Extended-session semantics:
 //   `last`/`chg` remain regular-session values. Pre/post/overnight prints are
@@ -75,7 +76,7 @@ class Store {
 
     // ── prevClose resolution ──
     // Priority: (1) AnchorCache session-keyed entry, (2) partial carries its own prevClose
-    // (crypto open_24h path), (3) manifest-derived legacy fallback.
+    // (crypto feed path), (3) manifest-derived legacy fallback.
     let prevClose = null;
     let anchorSource = null;
     let staleAnchor = false;

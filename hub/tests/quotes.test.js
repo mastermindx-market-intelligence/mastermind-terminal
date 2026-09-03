@@ -15,6 +15,7 @@ const {
   isMacroSymbol,
   isDailyOnlySymbol,
   DAILY_ONLY,
+  parseQuoteView,
   applyDemand,
   buildQuotesResponse,
 } = require("../lib/quotes");
@@ -370,5 +371,131 @@ describe("lib/quotes re-exports isMacroSymbol", () => {
     assert.equal(isMacroSymbol("SOFI"), false);
     assert.equal(isMacroSymbol, require("../lib/macrofeed").isMacroSymbol,
       "one predicate, one source of truth — hub.js and macrofeed must not drift");
+  });
+});
+
+// ── R1A-T: closed view=regular quote read (zero ExtFeed demand) ────────────
+//
+// Reactive Projection R1A-T (spec §5, plan Task T1/T2). `view=regular` closes the
+// endpoint at TWO boundaries: zero ExtFeed.demand() calls on the demand pass, and
+// no ext* key survives in any emitted row on the response pass — even when the
+// Store hands back a legacy row that already carries ext* keys from an earlier
+// full-view request. Missing view stays exactly `full`; the vocabulary is CLOSED,
+// so anything else (unknown/blank/repeated/conflicting) is null and the caller
+// (hub.js) must answer 400.
+
+function demandSpies() {
+  const seen = { snapshot: [], polygon: [], anchor: [], ext: [], macro: [] };
+  return {
+    seen,
+    deps: {
+      snapshotFeed: { demand: (s) => seen.snapshot.push(s) },
+      polygon: {
+        isHealthy: () => true,
+        ensureSubscribed: (s) => seen.polygon.push(s),
+      },
+      anchorCache: { resolve: async (s) => { seen.anchor.push(s); } },
+      extFeed: { demand: (s) => seen.ext.push(s) },
+      macroFeed: { demand: (s) => seen.macro.push(s) },
+    },
+  };
+}
+
+describe("parseQuoteView — closed endpoint vocabulary", () => {
+  it("defaults only an absent value to full", () => {
+    assert.equal(parseQuoteView([]), "full");
+  });
+
+  it("accepts exactly one full or regular value", () => {
+    assert.equal(parseQuoteView(["full"]), "full");
+    assert.equal(parseQuoteView(["regular"]), "regular");
+  });
+
+  it("rejects unknown, blank and repeated values", () => {
+    for (const raw of [[""], ["all"], ["regular", "regular"], ["full", "regular"], null]) {
+      assert.equal(parseQuoteView(raw), null);
+    }
+  });
+});
+
+describe("applyDemand — view=regular spends zero ext slots", () => {
+  it("regular view preserves regular demand and spends zero ext slots", () => {
+    const { seen, deps } = demandSpies();
+    applyDemand(["AAPL", "NVDA"], NOW, deps, { includeExtended: false });
+    assert.deepEqual(seen.snapshot, ["AAPL", "NVDA"]);
+    assert.deepEqual(seen.polygon, ["AAPL", "NVDA"]);
+    assert.deepEqual(seen.anchor, ["AAPL", "NVDA"]);
+    assert.deepEqual(seen.ext, []);
+  });
+
+  it("default/full view keeps existing ext demand", () => {
+    for (const options of [undefined, { includeExtended: true }]) {
+      const { seen, deps } = demandSpies();
+      applyDemand(["AAPL"], NOW, deps, options);
+      assert.deepEqual(seen.snapshot, ["AAPL"]);
+      assert.deepEqual(seen.polygon, ["AAPL"]);
+      assert.deepEqual(seen.anchor, ["AAPL"]);
+      assert.deepEqual(seen.ext, ["AAPL"]);
+    }
+  });
+});
+
+describe("buildQuotesResponse — view=regular is closed at the response boundary", () => {
+  it("regular response passes no ext feed into Store and strips legacy ext keys", () => {
+    let seenExt = "unset";
+    const store = {
+      getQuotes(_syms, _now, extFeed) {
+        seenExt = extFeed;
+        return {
+          AAPL: {
+            sym: "AAPL",
+            last: 200,
+            prevClose: 198,
+            chg: 1.0101,
+            ts: TS,
+            live: true,
+            source: "polygon-live",
+            basis: "LIVE",
+            // legacy/poisoned row: the regular view must strip these at the
+            // response boundary even though no ExtFeed was consulted
+            extPrice: 201,
+            extChg: 1.5,
+            extTs: TS,
+            extSession: "post",
+            extSource: "webull",
+            extBasis: "EXT",
+          },
+        };
+      },
+    };
+    const out = buildQuotesResponse(
+      ["AAPL"], NOW, { store, extFeed: { getExt() { throw new Error("must not run"); } } },
+      { includeExtended: false }
+    );
+    assert.equal(seenExt, null);
+    for (const key of ["extPrice", "extChg", "extTs", "extSession", "extSource", "extBasis"]) {
+      assert.equal(key in out.AAPL, false);
+    }
+  });
+
+  it("default full view remains unchanged", () => {
+    const store = {
+      getQuotes(_syms, _now, extFeed) {
+        assert.notEqual(extFeed, null, "full view must still forward extFeed to the Store");
+        return {
+          AAPL: {
+            sym: "AAPL", last: 200, prevClose: 198, chg: 1.0101, ts: TS,
+            live: true, source: "polygon-live", basis: "LIVE",
+            extPrice: 201, extChg: 1.5, extTs: TS, extSession: "post", extSource: "webull",
+          },
+        };
+      },
+    };
+    const extFeedSentinel = { getExt: () => null };
+    for (const options of [undefined, { includeExtended: true }]) {
+      const out = buildQuotesResponse(["AAPL"], NOW, { store, extFeed: extFeedSentinel }, options);
+      assert.equal(out.AAPL.extPrice, 201, "full view must not strip ext fields");
+      assert.equal(out.AAPL.extSource, "webull");
+    }
   });
 });

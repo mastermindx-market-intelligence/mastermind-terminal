@@ -18,7 +18,7 @@ import type { Fund, EarningsQuarter, EarningsFY } from "../../lib/fund"
 import {
   fmtNum,
   fmtDate,
-  daysUntil,
+  nextDateCountdown,
   periodLabel,
   pick,
   statementCurrencyCode,
@@ -397,8 +397,9 @@ export default function EarningsPage({ fund, zh, sym }: EarningsPageProps) {
   }
 
   // ── Summary strip ──
-  const nextDate = earn?.next_date
-  const daysAway = daysUntil(nextDate)
+  const rawNextDate = earn?.next_date
+  const daysAway = nextDateCountdown(rawNextDate)
+  const nextDate = daysAway == null ? null : rawNextDate
   const nextPeriod = earn?.next_period
   const nextEps = earn?.next_eps_est
   const nextRev = earn?.next_rev_est

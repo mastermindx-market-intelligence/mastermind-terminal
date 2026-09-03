@@ -37,6 +37,17 @@ async function saveLayout(page: Page, name = "") {
   return menu;
 }
 
+/**
+ * Delete moves from a one-click hover ✕ on the row to a labelled action behind the row's unfold
+ * (W2A_WORKSPACE_UX_SPEC.md §1.1/DEVIATIONS #5 — strictly safer, two deliberate steps instead of
+ * one hover-target click). `[data-layout-delete="<name>"]` no longer exists; unfold via `.ws-more`,
+ * then click the row's own `[data-ws-act="delete"]`.
+ */
+async function deleteLayout(menu: import("@playwright/test").Locator, name: string) {
+  await menu.locator(`[data-ws-more="${name}"]`).click();
+  await menu.locator(`[data-layout-row="${name}"] [data-ws-act="delete"]`).click();
+}
+
 /** The owner's layouts, read through the page so the request carries the store cookie. */
 const inventory = (page: Page): Promise<{ id: string; name: string; config: Record<string, unknown> }[]> =>
   page.evaluate(async () => {
@@ -83,7 +94,7 @@ test.describe("saved layouts", () => {
     // `layouts.length + 1` generator this regenerated "Layout 3" and overwrote it.
     const beforeConfig = JSON.stringify((await inventory(page)).find((l) => l.name === "Layout 3")!.config);
     const menu = await openLayoutMenu(page);
-    await menu.locator('[data-layout-delete="Layout 2"]').click();
+    await deleteLayout(menu, "Layout 2");
     await expect(menu.locator('[data-layout-row="Layout 2"]')).toHaveCount(0);
 
     await saveLayout(page);
@@ -141,7 +152,7 @@ test.describe("saved layouts", () => {
 
     await injectLayoutFault(page, "delete", baseURL);
     const menu = await openLayoutMenu(page);
-    await menu.locator('[data-layout-delete="Keeper"]').click();
+    await deleteLayout(menu, "Keeper");
 
     await expect(menu.locator("[data-layout-delete-error]")).toBeVisible();
     await expect(menu.locator('[data-layout-row="Keeper"]')).toBeVisible();   // rolled back, not vanished
@@ -161,14 +172,45 @@ test.describe("saved layouts", () => {
     await saveLayout(page, "Workspace A");
     await expect((await openLayoutMenu(page)).locator('[data-layout-feedback="saved"]')).toBeVisible();
 
-    const configA = (await inventory(page)).find((l) => l.name === "Workspace A")!.config;
-    expect(configA.schemaVersion).toBe(2);
-    expect(configA.split).toBe(4);
-    expect(configA.panes).toHaveLength(4);
-    // The four fields the shipped v1 config silently dropped are now part of the contract…
-    for (const owned of ["sync", "split", "indParams", "hidden"]) expect(configA).toHaveProperty(owned);
-    // …and the device preference it used to overwrite is not.
+    // W2-A: every save now stores a `workspace_layout.v1` ENVELOPE (freeze §1/§7), not a flat v2
+    // config — the chart's own fields live under `widgets[0].config` (the "chart-main" primary
+    // widget), one-for-one with the old `LayoutConfigV2` shape (contract §7: "a workspace hosts
+    // widgets... the chart pane grid keeps its current owner").
+    const configA = (await inventory(page)).find((l) => l.name === "Workspace A")!.config as any;
+    expect(configA.schema).toBe("workspace_layout.v1");
+    const chartA = configA.widgets.find((w: any) => w.type === "chart").config;
+    expect(chartA.split).toBe(4);
+    expect(chartA.panes).toHaveLength(4);
+    // All four fields the shipped v1 config silently dropped are now part of the contract…
+    for (const owned of ["sync", "split", "hidden"]) expect(chartA).toHaveProperty(owned);
+    // …INCLUDING `indParams`, restored to a TRUE lossless round trip by Amendment A2 ruling 1 (the
+    // depth-3 nested-object law): every indicator's default/live param bag carries a `_vis` key
+    // (lib/indicators.ts defaultVis(), a nested object of {on,min,max} ranges) which the ORIGINAL
+    // frozen validator's shallow-primitives-only `indParams` law rejected outright, silently
+    // dropping `indParams` WHOLESALE for every real save with any indicator enabled — the exact
+    // regression `lib/layoutConfig.ts`'s own header names as the reason this contract exists
+    // ("indParams — NOT saved... an EMA(20) layout loaded as EMA(50)"). This worker found the defect
+    // and the reviewer independently confirmed it; the commissioning session ruled it a real
+    // contract defect (not a Terminal bug) and fixed the Macro-owned validator to allow bounded
+    // nesting up to depth 3 below the per-indicator object — `workspaceLayout.ts`'s TS mirror now
+    // matches. `indParams` therefore survives here whenever any indicator is enabled.
+    expect(chartA).toHaveProperty("indParams");
+    const indParams = chartA.indParams as Record<string, Record<string, unknown>>;
+    expect(Object.keys(indParams).length).toBeGreaterThan(0);
+    // Reviewer ruling N12: every indicator's param bag carries `_vis` (lib/indicators.ts
+    // `defaultVis()` seeds it unconditionally for every enabled indicator — see the comment
+    // above), so this is a guaranteed property of the seed, never a maybe. The old
+    // `if ("_vis" in params) { ...; break; }` shape would pass silently even if `_vis` were
+    // dropped from every entry but one — an unconditional assertion over every entry is what
+    // actually proves the round trip.
+    for (const params of Object.values(indParams)) {
+      expect(params).toHaveProperty("_vis");
+      expect(typeof params._vis).toBe("object");
+    }
+    // …and the device preference it used to overwrite is still never part of the contract, at
+    // either level (the anti-duplication law is unaffected by the nesting-depth fix).
     expect(configA).not.toHaveProperty("favTF");
+    expect(chartA).not.toHaveProperty("favTF");
 
     // Mutate: flip Sync away from what was saved, then collapse the grid.
     await toggleToolbarSync(page);
@@ -195,9 +237,11 @@ test.describe("saved layouts", () => {
     await renderAsGuest(page, baseURL);
     await gotoTerminal(page);
 
+    // W2-A (Layouts -> Workspaces, spec §2.1) revalued these two strings; the DOM/selectors are
+    // unchanged, only the golden copy is.
     const guestMenu = await openLayoutMenu(page);
-    await expect(guestMenu.locator("[data-layout-gate]")).toContainText("注册免费账户即可保存图表布局");
-    await expect(guestMenu.locator("[data-layout-save] input")).toHaveAttribute("placeholder", "登录后可保存布局");
+    await expect(guestMenu.locator("[data-layout-gate]")).toContainText("注册免费账户即可保存工作区");
+    await expect(guestMenu.locator("[data-layout-save] input")).toHaveAttribute("placeholder", "登录后可保存工作区");
     await expect(guestMenu.locator("[data-layout-gate]")).not.toContainText(/[A-Za-z]{4,}/);
 
     // The outage line and its Retry, in zh — the states C2 added.
@@ -205,7 +249,7 @@ test.describe("saved layouts", () => {
     await injectLayoutFault(page, "list", baseURL);
     await gotoTerminal(page);
     const menu = await openLayoutMenu(page);
-    await expect(menu.locator('[data-layout-status="unavailable"]')).toContainText("已存布局暂时不可用");
+    await expect(menu.locator('[data-layout-status="unavailable"]')).toContainText("暂时无法读取您的工作区");
     await expect(menu.locator("[data-layout-retry]")).toHaveText("重试");
     await expect(menu.locator('[data-layout-status="unavailable"]')).not.toContainText("unavailable");
   });

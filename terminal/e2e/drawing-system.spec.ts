@@ -990,6 +990,10 @@ test("drawing lifecycle supports one-shot, sticky, history, visibility, and scop
 });
 
 test("flagship geometry, editing, and path limits survive adversarial interaction", async ({ page }) => {
+  // This intentionally monolithic contract performs several independent real
+  // pointer transactions; saturated shared runners can exceed the default
+  // budget while still advancing normally through every assertion.
+  test.slow();
   test.skip(
     (page.viewportSize()?.width ?? 1440) <= 860,
     "Dense pointer geometry is exercised once on the stable desktop canvas.",
@@ -1527,4 +1531,129 @@ test("a symbol change keeps the renderer alive and never leaks the old symbol's 
   expect(await page.evaluate(() => Boolean(
     (document.querySelector(".chart-wrap canvas") as HTMLCanvasElement & { __mmSurvivor?: number })?.__mmSurvivor,
   ))).toBe(true);
+});
+
+// ── release, future time, and freehand selection ──────────────────────────────
+// Three defects the operator hit in one session: a drag that never finished on
+// mouse-up, drawings pinned at the live edge, and a brush stroke that turned
+// into a chain of circles the moment it was selected.
+
+const DESKTOP_ONLY = "Pointer-geometry contracts run once on the stable desktop canvas.";
+
+/** Plot box EXCLUDING the price-axis band, so gutter maths is viewport-independent. */
+async function plotBox(page: Page) {
+  const box = await page.locator(".pane.on .chart-wrap canvas").first().boundingBox();
+  expect(box).not.toBeNull();
+  return box!;
+}
+
+test("a drag released in the future gutter finishes instead of following the cursor", async ({ page }) => {
+  test.skip((page.viewportSize()?.width ?? 1440) <= 860, DESKTOP_ONLY);
+  await openTerminal(page);
+
+  const layer = page.locator(".pane.on .drawing-layer");
+  const trendlines = layer.locator('g[data-drawing-kind="trendline"]:not([data-id="_p"])');
+  await expect(trendlines).toHaveCount(0);
+
+  await page.getByTestId("drawing-group-lines-main").click();
+  await expect(page.getByTestId("drawing-group-lines-main")).toHaveAttribute("data-tool-id", "trendline");
+
+  // Entirely inside the blank area past the newest candle, and near-horizontal —
+  // the exact gesture whose two anchors used to collapse onto the last bar and
+  // be misread as a stationary click.
+  const plot = await plotBox(page);
+  const y = plot.y + plot.height * 0.4;
+  const from = plot.x + plot.width - 46;
+  const to = plot.x + plot.width - 8;
+  await page.mouse.move(from, y);
+  await page.mouse.down();
+  await page.mouse.move((from + to) / 2, y + 1);
+  await page.mouse.move(to, y + 1);
+  await page.mouse.up();
+
+  await expect(trendlines).toHaveCount(1);
+  // Nothing is left armed and tracking the pointer.
+  await expect(layer.locator('g[data-id="_p"]')).toHaveCount(0);
+  await expect(page.getByTestId("drawing-tool-cursor")).toHaveAttribute("aria-pressed", "true");
+
+  // The object spans real future bars rather than collapsing to zero width.
+  const stroke = trendlines.first().locator('line:not([stroke="transparent"])').first();
+  const width = await stroke.evaluate((el) =>
+    Math.abs(Number(el.getAttribute("x2")) - Number(el.getAttribute("x1"))));
+  expect(width).toBeGreaterThan(8);
+});
+
+test("an indicator-pane drawing holds its place when the price scale rescales", async ({ page }) => {
+  test.skip((page.viewportSize()?.width ?? 1440) <= 860, DESKTOP_ONLY);
+  await openTerminal(page);
+
+  const layer = page.locator(".pane.on .drawing-layer");
+  const strokes = layer.locator('g[data-drawing-kind="trendline"]:not([data-id="_p"])');
+
+  // Lowest tall canvas = the bottom indicator pane (the short one is the time axis).
+  const subPane = await page.evaluate(() => {
+    const boxes = [...document.querySelectorAll(".pane.on .chart-wrap canvas")]
+      .map((canvas) => canvas.getBoundingClientRect())
+      .filter((rect) => rect.width > 100 && rect.height > 40)
+      .sort((a, b) => a.top - b.top);
+    const last = boxes[boxes.length - 1];
+    return boxes.length > 1 ? { top: last.top, height: last.height, left: last.left, width: last.width } : null;
+  });
+  test.skip(!subPane, "This chart mounted no indicator sub-pane.");
+
+  const y = subPane!.top + subPane!.height * 0.5;
+  await page.getByTestId("drawing-group-lines-main").click();
+  await page.mouse.move(subPane!.left + subPane!.width * 0.3, y);
+  await page.mouse.down();
+  await page.mouse.move(subPane!.left + subPane!.width * 0.5, y + 6);
+  await page.mouse.up();
+  await expect(strokes).toHaveCount(1);
+
+  const before = await strokes.first().evaluate((el) => (el as SVGGElement).getBBox().y);
+
+  // Zoom the MAIN price axis. The sub-pane object is anchored to its own scale,
+  // so this must not move it — it used to be re-extrapolated and slide away.
+  const plot = await plotBox(page);
+  await page.mouse.move(plot.x + plot.width + 20, plot.y + plot.height * 0.4);
+  for (let notch = 0; notch < 6; notch += 1) await page.mouse.wheel(0, 120);
+
+  await expect.poll(async () => strokes.first().evaluate((el) => (el as SVGGElement).getBBox().y))
+    .toBeCloseTo(before, 0);
+});
+
+test("selecting a brush stroke shows its bounds, not a handle per sample", async ({ page }) => {
+  test.skip((page.viewportSize()?.width ?? 1440) <= 860, DESKTOP_ONLY);
+  await openTerminal(page);
+
+  const layer = page.locator(".pane.on .drawing-layer");
+  const brush = layer.locator('g[data-drawing-kind="brush"]:not([data-id="_p"])');
+
+  const freehand = page.getByTestId("drawing-group-freehand-main");
+  await freehand.click();
+  await expect(freehand).toHaveAttribute("data-tool-id", "brush");
+  await expect(freehand).toHaveAttribute("aria-pressed", "true");
+  await dragDrawing(page, layer, { x: 0.3, y: 0.3 }, { x: 0.55, y: 0.45 }, 12);
+  await expect(brush).toHaveCount(1);
+
+  // The stroke is sampled into many anchors, so a handle per anchor would bury
+  // it; selection shows the extent plus the two endpoints instead.
+  const sampled = await brush.first().locator("[data-geometry]").first()
+    .evaluate((el) => (el.getAttribute("points") ?? el.getAttribute("d") ?? "").split(/[ ,]+/).length);
+  expect(sampled).toBeGreaterThan(8);
+
+  // Back to the cursor, then select the stroke by clicking a point that is
+  // genuinely ON it — a curved path's bounding-box centre sits in empty space.
+  await page.getByTestId("drawing-tool-cursor").click();
+  await expect(page.getByTestId("drawing-tool-cursor")).toHaveAttribute("aria-pressed", "true");
+  const onStroke = await brush.first().locator("[data-geometry]").first().evaluate((el) => {
+    const parts = (el.getAttribute("points") ?? "").trim().split(/\s+/);
+    const [x, y] = (parts[Math.floor(parts.length / 2)] ?? parts[0]).split(",").map(Number);
+    const box = (el as SVGElement).ownerSVGElement!.getBoundingClientRect();
+    return { x: box.left + x, y: box.top + y };
+  });
+  await page.mouse.click(onStroke.x, onStroke.y);
+
+  // Selected: the extent plus two endpoint grips, NOT a handle per sample.
+  await expect(brush.first().locator("[data-selection-bounds]")).toHaveCount(1);
+  await expect(brush.first().locator("circle[data-handle]")).toHaveCount(2);
 });

@@ -28,6 +28,7 @@ export type PortfolioDb = WatchlistDb;
 export type { WatchlistQuery as PortfolioQuery };
 
 export const POSITIONS_TABLE = "portfolio_positions";
+const POSITION_FIELDS = "id,ticker,shares,entry_price,entry_date,notes,status,created_at";
 
 export type PositionStatus = "open" | "closed";
 
@@ -55,7 +56,6 @@ const CONTROL_CHARS = /[\u0000-\u001f\u007f]/;
 const CONTROL_CHARS_EXCEPT_BREAKS = /[\u0000-\u0008\u000b-\u001f\u007f]/;
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
-const rows = (result: DbResult): DbRow[] => (Array.isArray(result?.data) ? result.data : []);
 const one = (result: DbResult): DbRow | null => {
   const data = result?.data;
   if (Array.isArray(data)) return data[0] ?? null;
@@ -213,7 +213,7 @@ export async function readPositions(db: PortfolioDb, userId: string): Promise<Po
   let result: DbResult;
   try {
     result = await db.from(POSITIONS_TABLE)
-      .select("id,ticker,shares,entry_price,entry_date,notes,status,created_at")
+      .select(POSITION_FIELDS)
       .eq("user_id", userId)
       .order("created_at")
       .limit(MAX_POSITIONS);
@@ -250,7 +250,7 @@ export async function getOwnedPosition(
   const id = typeof positionId === "string" ? positionId.trim() : "";
   if (!id) return null;
   const row = one(await db.from(POSITIONS_TABLE)
-    .select("id,ticker,shares,entry_price,entry_date,notes,status,created_at")
+    .select(POSITION_FIELDS)
     .eq("user_id", userId).eq("id", id).maybeSingle());
   return row ? rowToPosition(row) : null;
 }
@@ -266,7 +266,13 @@ export type PositionInput = {
   status?: unknown;
 };
 
-export type WriteResult = { ok: boolean; error?: string; status?: number; position?: Position };
+export type WriteResult = {
+  ok: boolean;
+  error?: string;
+  status?: number;
+  position?: Position;
+  deletedId?: string;
+};
 
 /**
  * Create one position. Only `ticker` is required — an unsized position (a name you hold but have
@@ -302,7 +308,7 @@ export async function createPosition(
     notes: notes.kind === "value" ? notes.value : null,
     status: normalizeStatus(input.status),
     updated_at: now,
-  }).select("id,ticker,shares,entry_price,entry_date,notes,status,created_at").maybeSingle();
+  }).select(POSITION_FIELDS).maybeSingle();
 
   const row = one(inserted);
   const position = row ? rowToPosition(row) : null;
@@ -354,23 +360,23 @@ export async function updatePosition(
   if (!Object.keys(values).length) return { ok: true, position: owned };
   values.updated_at = new Date().toISOString();
 
-  const { error } = await db.from(POSITIONS_TABLE)
-    .update(values).eq("user_id", userId).eq("id", owned.id);
-  if (error) return { ok: false, error: "position update failed", status: 500 };
-  return { ok: true, position: { ...owned, ...projectPatch(values) } };
-}
-
-/** Fold a written row-patch back onto the position we already hold, so the caller can answer with
- *  post-write state without a second round trip. */
-function projectPatch(values: DbRow): Partial<Position> {
-  const next: Partial<Position> = {};
-  if (typeof values.ticker === "string") next.ticker = values.ticker;
-  if ("shares" in values) next.shares = values.shares as number | null;
-  if ("entry_price" in values) next.entryPrice = values.entry_price as number | null;
-  if ("entry_date" in values) next.entryDate = values.entry_date as string | null;
-  if ("notes" in values) next.notes = values.notes as string | null;
-  if (typeof values.status === "string") next.status = normalizeStatus(values.status);
-  return next;
+  // PostgREST can legitimately answer `{ error: null, data: null }` when an owner pre-read
+  // succeeded but the write affected zero rows (for example, an RLS/policy race). Absence of an
+  // exception is not mutation authority. Require the database to return the exact owner-scoped
+  // row it changed; anything else is an invariant failure and must never become a 2xx response.
+  const updated = await db.from(POSITIONS_TABLE)
+    .update(values)
+    .eq("user_id", userId)
+    .eq("id", owned.id)
+    .select(POSITION_FIELDS)
+    .maybeSingle();
+  if (updated.error) return { ok: false, error: "position update failed", status: 500 };
+  const row = one(updated);
+  const position = row ? rowToPosition(row) : null;
+  if (!position || position.id !== owned.id) {
+    return { ok: false, error: "position mutation not confirmed", status: 500 };
+  }
+  return { ok: true, position };
 }
 
 export async function deletePosition(
@@ -380,10 +386,20 @@ export async function deletePosition(
 ): Promise<WriteResult> {
   const owned = await getOwnedPosition(db, userId, positionId);
   if (!owned) return { ok: false, error: "position not found", status: 404 };
-  const { error } = await db.from(POSITIONS_TABLE)
-    .delete().eq("user_id", userId).eq("id", owned.id);
-  if (error) return { ok: false, error: "position delete failed", status: 500 };
-  return { ok: true };
+  // DELETE follows the same receipt law as UPDATE: the database must return the exact id it
+  // deleted. A success-shaped zero-row result is not success and is never retried silently.
+  const deleted = await db.from(POSITIONS_TABLE)
+    .delete()
+    .eq("user_id", userId)
+    .eq("id", owned.id)
+    .select("id")
+    .maybeSingle();
+  if (deleted.error) return { ok: false, error: "position delete failed", status: 500 };
+  const deletedId = text(one(deleted)?.id);
+  if (!deletedId || deletedId !== owned.id) {
+    return { ok: false, error: "position mutation not confirmed", status: 500 };
+  }
+  return { ok: true, deletedId };
 }
 
 // ───────────────────────────── display math (pure) ─────────────────────────────

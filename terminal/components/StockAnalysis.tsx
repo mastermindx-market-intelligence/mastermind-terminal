@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import { useLang } from "@/lib/i18n";
-import { daysUntil, pick as pickI18n, fmtPct } from "@/lib/finFormat";
+import { nextDateCountdown, pick as pickI18n, fmtPct } from "@/lib/finFormat";
 import type { Fund, Opts, Bar } from "@/lib/fund";
 import { buildKeyStatRows, formatCompactStat } from "@/lib/keyStats";
 // Income series are normalized ONCE, in the shared statement math — never read off `set.income`
@@ -152,9 +152,9 @@ function EarningsMini({ fund, pick, onOpen }: { fund: Fund | null; pick: Pick; o
   if (fund?.earnings?.next_eps_est != null)
     points.push({ label: periodShort(fund.earnings.next_period), actual: null, estimate: fund.earnings.next_eps_est });
   if (points.every((p) => p.actual == null && p.estimate == null)) return null;
-  const nDays = daysUntil(fund?.earnings?.next_date);
+  const nDays = nextDateCountdown(fund?.earnings?.next_date);
   return (
-    <Section title={pick("Earnings", "盈利")} sub={nDays != null && nDays >= 0 ? `${nDays}${pick("d", "天")}` : undefined}>
+    <Section title={pick("Earnings", "盈利")} sub={nDays != null ? `${nDays}${pick("d", "天")}` : undefined}>
       <Dumbbell points={points} vw={300} vh={150} zh={undefined} noWindow />
       {onOpen && <button className="sa-more-btn" onClick={onOpen}>{pick("More info", "更多")} ›</button>}
     </Section>

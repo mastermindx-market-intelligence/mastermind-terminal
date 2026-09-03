@@ -1,13 +1,22 @@
 #!/usr/bin/env python3
 """refresh_ohlc_intl.py — append recent daily bars to EXISTING non-US OHLC files via
-yfinance bulk download. Non-US manifest symbols carry Yahoo suffixes (.HK/.SS/.SZ/.T/.L/
-.TO/.NS/...), so the manifest key IS the yfinance ticker. Companion to refresh_ohlc.py
-(US via Polygon grouped-daily). Batched + memory-light (one batch in RAM at a time);
-appends only dates newer than each file's last bar (idempotent). Skips US + flagship.
+yfinance bulk download.
+
+This lane owns non-US Terminal-local tails such as HK/Canada/international names.  China
+A-share daily history (.SS/.SZ, SSE/SZSE) is deliberately EXCLUDED: the nightly already
+runs ``build_universe.py --ohlc all`` from Macro's canonical ``data/china_stocks`` store,
+and Macro owns China freshness, adjustment-basis correction, and fallback behavior.
+Appending China independently here would create a second provider/publication truth and
+can splice a different adjusted basis over the canonical deep store.
+
+Non-US manifest symbols otherwise carry Yahoo suffixes (.HK/.T/.L/.TO/.NS/...), so the
+manifest key IS the yfinance ticker. Companion to refresh_ohlc.py (US via Polygon
+grouped-daily). Batched + memory-light (one batch in RAM at a time); appends only dates
+newer than each file's last bar (idempotent).
 
 Appends go through append_recent_bars, which re-runs the ticker-reuse guard on the
 stitched series: Yahoo series are keyed by ticker string, and exchanges reissue codes
-(HKEX 0300 → Midea Group 2024-09), so a reused ticker would otherwise stitch the new
+(HKEX 0300 -> Midea Group 2024-09), so a reused ticker would otherwise stitch the new
 holder's bars onto the old holder's file.
 
 Usage: refresh_ohlc_intl.py [--batch N] [--limit N] [--days N] [--write]
@@ -22,6 +31,7 @@ except ImportError:  # run as `python ingest/refresh_ohlc_intl.py` — same-dir 
 D = os.environ.get("TERMINAL_DATA_DIR", "/opt/terminal/terminal/public/data")
 MAN = os.environ.get("TERMINAL_MANIFEST") or os.path.join(D, "manifest.json")
 US_MKTS = {"NASDAQ", "NYSE", "US", "AMEX", "NYSEAMERICAN", "NYSE American", "NYSE Arca", "BATS", "Crypto"}
+CN_MKTS = {"SSE", "SZSE", "CN"}
 
 
 def _r(x):
@@ -30,6 +40,21 @@ def _r(x):
         return round(x, 4) if x == x else None
     except Exception:
         return None
+
+
+def is_canonical_china(sym: str, rec: dict) -> bool:
+    """True when Macro's china_stocks store, not this Yahoo lane, owns the daily file."""
+    return sym.endswith((".SS", ".SZ")) or rec.get("mkt") in CN_MKTS
+
+
+def should_refresh(sym: str, rec: dict, data_dir: str = D) -> bool:
+    """Routing boundary for the generic non-US yfinance refresher."""
+    return (
+        rec.get("mkt") not in US_MKTS
+        and not is_canonical_china(sym, rec)
+        and "verdict" not in rec
+        and os.path.exists(os.path.join(data_dir, f"{sym}.json"))
+    )
 
 
 def main():
@@ -41,12 +66,16 @@ def main():
 
     man = json.load(open(MAN))
     syms = man["symbols"]
-    todo = [s for s, r in syms.items()
-            if r.get("mkt") not in US_MKTS and "verdict" not in r
-            and os.path.exists(os.path.join(D, f"{s}.json"))]
+    todo = [s for s, r in syms.items() if should_refresh(s, r)]
+    china_owned = sum(1 for s, r in syms.items()
+                      if is_canonical_china(s, r) and os.path.exists(os.path.join(D, f"{s}.json")))
     if limit:
         todo = todo[:limit]
-    print(f"non-US OHLC files to refresh: {len(todo)} (batch={batch_n}, write={write})", flush=True)
+    print(
+        f"non-US OHLC files to refresh: {len(todo)} (batch={batch_n}, write={write}); "
+        f"China canonical files excluded={china_owned}",
+        flush=True,
+    )
 
     updated = appended = failed = 0
     sample = {}

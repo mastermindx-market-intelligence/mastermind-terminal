@@ -51,6 +51,19 @@ promises or “memory” recorded only inside one chat do not carry to another s
   `.claude/worktrees/<task>/` using a `claude/<task>` branch.
 - Never reuse a squash/merge-completed branch and never use the repo-global stash.
 
+## `ingest/` runs as scripts, not modules
+
+- `ingest/refresh_fund.sh` and `ops/nightly_fund.sh` invoke the emitters as
+  `$PY ingest/gen_fund_us.py`, so `sys.path[0]` is `ingest/` — **not** the repo root.
+  A bare `from ingest.<mod> import ...` therefore **passes pytest** (which puts the root
+  on `sys.path`) and raises `ModuleNotFoundError` in the nightly, aborting the run before
+  deploy. Factoring a shared helper out of an emitter needs the house bootstrap:
+  `CA_ROOT = Path(__file__).resolve().parents[1]`, `sys.path.insert(0, str(CA_ROOT))`,
+  then the import with `# noqa: E402` (see `gen_slices_all.py`).
+- Verify with `cd ingest && python3 -c "import gen_fund_us"`, never with pytest alone.
+- `gen_fund_*.py` write to `CA_ROOT/terminal/public/data`, so running an emitter from a
+  worktree is a safe dry run that cannot touch production.
+
 ## One responsive Terminal
 
 - `terminal/` is the only product implementation for desktop, tablet, and mobile. Do not create
