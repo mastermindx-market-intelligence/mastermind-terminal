@@ -7,6 +7,7 @@
 .contextBar > div:first-child { display: grid; gap: 2px; }
 .contextBar small, .editorHeader small { font: 700 10px/1.2 var(--font-mono, monospace); letter-spacing: .12em; color: var(--muted, #8e97a8); }
 .contextBar h1 { margin: 0; font-size: 19px; }
+.contextSubject { color: var(--muted, #9aa3b3); font: 700 10px/1.2 var(--font-mono, monospace); }
 .contextActions, .actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
 .contextActions button, .actions button, .railState button, .centerState button, .conflict button, .retrySame, .primaryButton { min-height: 38px; border: 1px solid var(--border, #343b49); border-radius: 8px; padding: 7px 12px; color: inherit; background: var(--panel2, #171c26); font: 700 12px/1.2 var(--font-sans, sans-serif); cursor: pointer; }
 .primaryButton { border-color: color-mix(in srgb, var(--accent, #6e8bff) 60%, #fff 8%) !important; background: var(--accent, #596ff0) !important; color: #fff !important; text-decoration: none; display: inline-grid; place-items: center; }
@@ -33,6 +34,7 @@
 .editorHeader { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
 .editorHeader h1 { margin: 4px 0; font-size: clamp(22px, 3vw, 34px); letter-spacing: -.03em; }
 .editorHeader p { margin: 0; color: var(--muted, #9aa3b3); font-size: 12px; }
+.mobileBack { display: none; margin: 0 0 12px; }
 .conflict { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin: 0 0 16px; padding: 14px; border: 1px solid #ad8039; border-radius: 10px; background: color-mix(in srgb, #ad8039 13%, transparent); }
 .conflict p { margin: 5px 0 0; color: var(--muted, #b6bdc9); font-size: 12px; }
 .conflict > div:last-child { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -55,26 +57,29 @@
 .history article span, .history time, .history p { color: var(--muted, #9aa3b3); font-size: 11px; }
 .history article strong { font-size: 12px; }
 .history article p { margin: 0; grid-column: 3; }
+.effectiveAt { display: block; margin-top: 5px; }
 .centerState { min-height: 45vh; display: grid; place-items: center; align-content: center; gap: 10px; padding: 28px; text-align: center; }
 .centerState h1, .centerState p { margin: 0; }
 .centerState p { max-width: 520px; color: var(--muted, #9aa3b3); line-height: 1.55; }
 .stateMark { width: 42px; height: 42px; display: grid; place-items: center; border: 1px solid var(--border, #343b49); border-radius: 50%; color: var(--accent, #8293ff); font: 700 20px/1 var(--font-mono, monospace); }
 @media (max-width: 860px) {
-  .root { height: auto; min-height: 100%; overflow: visible; }
-  .contextBar { position: sticky; top: 0; z-index: 3; align-items: flex-start; }
-  .workspaceGrid { display: block; }
-  .rail { max-height: 250px; border-right: 0; border-bottom: 1px solid var(--border, #242935); }
-  .editorPane { overflow: visible; }
+  .workspaceGrid { grid-template-columns: minmax(210px, 240px) minmax(0, 1fr); }
   .form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .form label:first-child, .form label:nth-child(2) { grid-column: span 1; }
   .history article { grid-template-columns: 1fr 1fr; }
   .history article strong, .history article p { grid-column: 1 / -1; }
 }
-@media (max-width: 520px) {
+@media (max-width: 600px) {
+  .root { height: auto; min-height: 100%; overflow: visible; }
   .contextBar { min-height: 58px; padding: 8px 10px; }
-  .contextActions button:first-child:not(:last-child) { display: none; }
-  .rail { max-height: 220px; padding: 12px 10px; }
+  .contextActions { justify-content: flex-end; }
+  .contextActions button { padding-inline: 9px; }
+  .workspaceGrid { display: block; }
+  .root[data-mobile-pane="detail"] .rail { display: none; }
+  .root[data-mobile-pane="list"] .editorPane { display: none; }
+  .rail { max-height: none; min-height: calc(100dvh - 130px); padding: 12px 10px; border-right: 0; }
   .editorPane { padding: 16px 10px 40px; }
+  .mobileBack { display: inline-flex; }
   .editorHeader, .conflict { align-items: stretch; flex-direction: column; }
   .form { display: block; }
   .form label { margin-bottom: 13px; }

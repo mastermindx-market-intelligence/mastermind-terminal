@@ -63,5 +63,11 @@ describe("0011 thesis persistence contract", () => {
     expect(flat).toContain("[[:cntrl:]]");
     expect(flat).toContain("regexp_replace");
     expect(flat).toMatch(/owner' = 'macro\.theme_registry'[\s\S]*kind' <> 'theme'/);
+    expect(flat).toContain("v_subject_ref := jsonb_build_object");
+    expect(flat).toContain("'key', btrim(p_subject_ref->>'key')");
+    expect(flat).toContain("'display', btrim(p_subject_ref->>'display')");
+    expect(flat).toMatch(/p_subject_ref \? 'listing'[\s\S]*length\(p_subject_ref->'listing'->>'symbol'\) not between 1 and 128/);
+    expect(flat).toContain("'symbol', upper(btrim(p_subject_ref->'listing'->>'symbol'))");
+    expect(flat).toContain("convert_to(v_subject_ref::text, 'utf8')");
   });
 });

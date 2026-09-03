@@ -133,3 +133,11 @@ describe("the mounts are real boundaries, not decorative wrappers", () => {
     });
   }
 });
+
+describe("thesis member identity boundary", () => {
+  it("keys the thesis mount by authenticated owner and route identity", () => {
+    const source = readFileSync(path.join(ROOT, "app/(shell)/analysis/page.tsx"), "utf8");
+    expect(source).toContain('key={`${ownerKey}:${route.thesisId ?? "new"}`}');
+    expect(source).toContain("workspace(data.claims.sub)");
+  });
+});

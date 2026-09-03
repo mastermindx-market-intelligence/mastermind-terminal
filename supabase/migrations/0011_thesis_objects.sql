@@ -100,6 +100,7 @@ declare
   v_prior public.thesis_versions%rowtype;
   v_fingerprint bytea;
   v_subject_digest bytea;
+  v_subject_ref jsonb;
   v_next_state text;
   v_next_version integer;
   v_now timestamptz := clock_timestamp();
@@ -172,6 +173,7 @@ begin
        or jsonb_typeof(p_subject_ref->'listing'->'symbol') <> 'string'
        or jsonb_typeof(p_subject_ref->'listing'->'mic') not in ('string','null')
        or jsonb_typeof(p_subject_ref->'listing'->'security_id') not in ('string','null')
+       or length(p_subject_ref->'listing'->>'symbol') not between 1 and 128
        or length(coalesce(p_subject_ref->'listing'->>'mic', '')) > 32
        or length(coalesce(p_subject_ref->'listing'->>'security_id', '')) > 256
        or (p_subject_ref->'listing'->>'symbol') ~ '[[:cntrl:]]'
@@ -192,6 +194,26 @@ begin
     status := 'invalid_transition';
     return next;
     return;
+  end if;
+
+  -- Normalize at the authenticated database boundary before hashing or storing. The application
+  -- performs the same trim/uppercase/null folding, so direct RPC callers cannot create an immutable
+  -- subject whose next application mutation has different identity bytes.
+  v_subject_ref := jsonb_build_object(
+    'schema', p_subject_ref->>'schema',
+    'kind', p_subject_ref->>'kind',
+    'owner', p_subject_ref->>'owner',
+    'key', btrim(p_subject_ref->>'key'),
+    'identity_state', p_subject_ref->>'identity_state',
+    'company_id', nullif(btrim(p_subject_ref->>'company_id'), ''),
+    'display', btrim(p_subject_ref->>'display')
+  );
+  if p_subject_ref ? 'listing' then
+    v_subject_ref := v_subject_ref || jsonb_build_object('listing', jsonb_build_object(
+      'symbol', upper(btrim(p_subject_ref->'listing'->>'symbol')),
+      'mic', nullif(btrim(p_subject_ref->'listing'->>'mic'), ''),
+      'security_id', nullif(btrim(p_subject_ref->'listing'->>'security_id'), '')
+    ));
   end if;
 
   -- Complete version snapshots only. No conviction/score/rank/model fields can pass the exact-key
@@ -264,12 +286,12 @@ begin
     return;
   end;
 
-  v_subject_digest := extensions.digest(convert_to(p_subject_ref::text, 'UTF8'), 'sha256');
+  v_subject_digest := extensions.digest(convert_to(v_subject_ref::text, 'UTF8'), 'sha256');
   v_fingerprint := extensions.digest(convert_to(jsonb_build_object(
     'thesis_id', p_thesis_id,
     'expected_version', p_expected_version,
     'transition', p_transition,
-    'subject_ref', p_subject_ref,
+    'subject_ref', v_subject_ref,
     'content', p_content,
     'effective_at', p_effective_at
   )::text, 'UTF8'), 'sha256');
@@ -301,14 +323,14 @@ begin
     insert into public.theses (
       id, user_id, current_version, lifecycle_state, subject_ref, subject_digest, created_at, updated_at
     ) values (
-      thesis_id, v_actor, 1, 'active', p_subject_ref, v_subject_digest, v_now, v_now
+      thesis_id, v_actor, 1, 'active', v_subject_ref, v_subject_digest, v_now, v_now
     );
     insert into public.thesis_versions (
       thesis_id, user_id, version, previous_version, transition, lifecycle_state,
       subject_ref, content, client_request_id, request_fingerprint, system_recorded_at, effective_at
     ) values (
       thesis_id, v_actor, 1, null, 'create', 'active',
-      p_subject_ref, p_content, p_client_request_id, v_fingerprint, v_now, p_effective_at
+      v_subject_ref, p_content, p_client_request_id, v_fingerprint, v_now, p_effective_at
     );
     status := 'created';
     version := 1;
@@ -364,7 +386,7 @@ begin
     subject_ref, content, client_request_id, request_fingerprint, system_recorded_at, effective_at
   ) values (
     v_head.id, v_actor, v_next_version, v_head.current_version, p_transition, v_next_state,
-    p_subject_ref, p_content, p_client_request_id, v_fingerprint, v_now, p_effective_at
+    v_subject_ref, p_content, p_client_request_id, v_fingerprint, v_now, p_effective_at
   );
 
   update public.theses

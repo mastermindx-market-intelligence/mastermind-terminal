@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import AnalysisWorkspaceMount from "@/components/mounts/AnalysisWorkspaceMount";
 import ThesisWorkspaceMount from "@/components/mounts/ThesisWorkspaceMount";
+import UnsupportedAnalysisRoute from "@/components/workspaces/UnsupportedAnalysisRoute";
 import SignupGate from "@/components/gates/SignupGate";
 import { parseAnalysisRoute } from "@/lib/analysisRoute";
 
@@ -24,40 +25,25 @@ interface AnalysisPageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
-function UnsupportedAnalysisRoute({ reason }: { reason: string }) {
-  return (
-    <main className="main2 ws-shell" style={{ display: "grid", placeItems: "center", padding: "24px" }}>
-      <section role="status" style={{ maxWidth: 560, padding: 28, border: "1px solid var(--border)", borderRadius: 12 }}>
-        <p style={{ color: "var(--text-muted)", margin: "0 0 8px" }}>ANALYSIS LINK</p>
-        <h1 style={{ fontSize: 24, margin: "0 0 10px" }}>This analysis view is not supported</h1>
-        <p style={{ color: "var(--text-muted)", margin: 0 }}>
-          Nothing else was opened. Return to <a href="/analysis">company research</a> or use a valid Thesis workspace link.
-        </p>
-        <span hidden>{reason}</span>
-      </section>
-    </main>
-  );
-}
-
 export default async function AnalysisPage({ searchParams }: AnalysisPageProps) {
   const query = await searchParams;
   const route = parseAnalysisRoute(query);
-  const workspace = route.kind === "company" ? (
+  const workspace = (ownerKey: string) => route.kind === "company" ? (
     <AnalysisWorkspaceMount initialSymbol={route.symbol} initialPage={route.page} />
   ) : route.kind === "theses" ? (
-    <ThesisWorkspaceMount initialSymbol={route.symbol} initialThesisId={route.thesisId} />
+    <ThesisWorkspaceMount key={`${ownerKey}:${route.thesisId ?? "new"}`} ownerKey={ownerKey} initialSymbol={route.symbol} initialThesisId={route.thesisId} />
   ) : route.kind === "invalid_thesis" ? (
-    <ThesisWorkspaceMount invalidLink />
+    <ThesisWorkspaceMount key={`${ownerKey}:invalid`} ownerKey={ownerKey} invalidLink />
   ) : (
     <UnsupportedAnalysisRoute reason={route.reason} />
   );
   // Local visual QA needs the real workspace without manufacturing a Supabase
   // session. The production build can never activate this escape hatch.
   if (process.env.NODE_ENV !== "production" && process.env.ANALYSIS_LOCAL_PREVIEW === "1") {
-    return workspace;
+    return workspace("local-preview");
   }
   const supabase = await createClient();
   const { data } = await supabase.auth.getClaims();
   if (typeof data?.claims?.sub !== "string") return <SignupGate surface="analysis" />;
-  return workspace;
+  return workspace(data.claims.sub);
 }

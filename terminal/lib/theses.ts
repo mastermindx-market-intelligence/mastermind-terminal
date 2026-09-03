@@ -413,8 +413,9 @@ export async function applyThesisVersion(
   if (status === "created" || status === "advanced" || status === "replayed") {
     const thesisId = text(row.thesis_id);
     const version = positiveInteger(row.version);
+    const currentVersion = positiveInteger(row.current_version);
     const lifecycleState = lifecycle(row.lifecycle_state);
-    if (!thesisId || !version || !lifecycleState) {
+    if (!isUuid(thesisId) || !version || currentVersion !== version || !lifecycleState) {
       return { ok: false, status: "unavailable", error: "thesis mutation returned an invalid result" };
     }
     return { ok: true, status, thesisId, version, lifecycleState, replayed: status === "replayed" || row.replayed === true };
@@ -460,6 +461,7 @@ export async function readThesis(db: ThesisDb, userId: string, thesisId: string)
     const updatedAt = text(head.updated_at);
     const current = history.find((item) => item.version === currentVersion);
     if (!currentVersion || !lifecycleState || !subject || !createdAt || !updatedAt || !current
+      || history[0]?.version !== currentVersion
       || current.thesisId !== thesisId || current.lifecycleState !== lifecycleState
       || JSON.stringify(current.subject) !== JSON.stringify(subject)) {
       return { ok: false, status: "unavailable", error: "thesis head and lineage disagree" };

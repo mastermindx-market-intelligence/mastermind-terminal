@@ -82,9 +82,15 @@ const GLOBAL_KEY = Symbol.for("mm.e2e.watchlistFixtureStores");
 type FixtureGlobal = typeof globalThis & { [GLOBAL_KEY]?: Map<string, Store> };
 const stores: Map<string, Store> = ((globalThis as FixtureGlobal)[GLOBAL_KEY] ??= new Map<string, Store>());
 
-/** Stable synthetic owner id per store key — the service still filters on it everywhere. */
+/** Stable synthetic owner id per actor key — the service still filters on it everywhere. */
 export function fixtureUserId(key: string): string {
   return `e2e-user-${key}`;
+}
+
+// `database::actor` gives privacy tests two actors over one physical row set. Ordinary fixture
+// keys contain no delimiter and therefore retain the historical one-key/one-world behavior.
+function fixtureDatabaseKey(key: string): string {
+  return key.split("::", 1)[0];
 }
 
 function seedStore(key: string): Store {
@@ -106,10 +112,11 @@ function seedStore(key: string): Store {
 }
 
 export function fixtureStore(key: string): Store {
-  let store = stores.get(key);
+  const databaseKey = fixtureDatabaseKey(key);
+  let store = stores.get(databaseKey);
   if (!store) {
-    store = seedStore(key);
-    stores.set(key, store);
+    store = seedStore(databaseKey);
+    stores.set(databaseKey, store);
   }
   return store;
 }
@@ -370,6 +377,7 @@ function applyThesisVersionFixture(store: Store, args: Record<string, unknown>):
       status: "replayed",
       thesis_id: prior.thesis_id,
       version: prior.version,
+      current_version: prior.version,
       lifecycle_state: prior.lifecycle_state,
       replayed: true,
     });
@@ -407,7 +415,7 @@ function applyThesisVersionFixture(store: Store, args: Record<string, unknown>):
     };
     store.theses.push(head);
     store.thesisVersions.push(version);
-    return thesisRpcResult({ status: "created", thesis_id: id, version: 1, lifecycle_state: "active", replayed: false });
+    return thesisRpcResult({ status: "created", thesis_id: id, version: 1, current_version: 1, lifecycle_state: "active", replayed: false });
   }
 
   const head = store.theses.find((row) => row.id === thesisId && row.user_id === userId);
@@ -453,7 +461,7 @@ function applyThesisVersionFixture(store: Store, args: Record<string, unknown>):
   head.current_version = version;
   head.lifecycle_state = nextState;
   head.updated_at = now;
-  return thesisRpcResult({ status: "advanced", thesis_id: thesisId, version, lifecycle_state: nextState, replayed: false });
+  return thesisRpcResult({ status: "advanced", thesis_id: thesisId, version, current_version: version, lifecycle_state: nextState, replayed: false });
 }
 
 export type FixtureDb = WatchlistDb & {

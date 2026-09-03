@@ -124,6 +124,31 @@ describe("the atomic thesis mutation boundary", () => {
     expect(detail.ok && detail.thesis.history).toHaveLength(1);
   });
 
+  it("fails closed when the RPC success row does not prove the exact head identity", async () => {
+    const malformedRpc = {
+      from: db().from,
+      rpc: async () => ({
+        data: [{
+          status: "created",
+          thesis_id: "not-a-uuid",
+          version: 1,
+          current_version: 2,
+          lifecycle_state: "active",
+          replayed: false,
+        }],
+        error: null,
+      }),
+    } as ThesisDb;
+    expect(await applyThesisVersion(malformedRpc, owner, {
+      action: "create",
+      id: null,
+      expectedVersion: 0,
+      clientRequestId: "20000000-0000-4000-8000-000000000099",
+      subject,
+      content: content("No malformed success may escape."),
+    })).toEqual({ ok: false, status: "unavailable", error: "thesis mutation returned an invalid result" });
+  });
+
   it("enforces lifecycle transitions without writing rejected attempts", async () => {
     const created = await create("thesis-race", "30000000-0000-4000-8000-000000000001");
     if (!created.ok) throw new Error("fixture create failed");
@@ -180,11 +205,16 @@ describe("the atomic thesis mutation boundary", () => {
 
 describe("privacy and failure honesty", () => {
   it("makes a foreign thesis indistinguishable from a nonexistent thesis", async () => {
-    const created = await create("owner-a", "50000000-0000-4000-8000-000000000001");
+    const database = "tenant-proof";
+    const accountAKey = `${database}::owner-a`;
+    const accountBKey = `${database}::owner-b`;
+    const created = await create(accountAKey, "50000000-0000-4000-8000-000000000001");
     if (!created.ok) throw new Error("fixture create failed");
-    const accountB = createFixtureDb("owner-b") as ThesisDb;
-    const foreign = await readThesis(accountB, fixtureUserId("owner-b"), created.thesisId);
-    const missing = await readThesis(accountB, fixtureUserId("owner-b"), "50000000-0000-4000-8000-000000000099");
+    const accountB = createFixtureDb(accountBKey) as ThesisDb;
+    const coResident = await accountB.from("theses").select("id,user_id");
+    expect(coResident.data).toMatchObject([{ id: created.thesisId, user_id: fixtureUserId(accountAKey) }]);
+    const foreign = await readThesis(accountB, fixtureUserId(accountBKey), created.thesisId);
+    const missing = await readThesis(accountB, fixtureUserId(accountBKey), "50000000-0000-4000-8000-000000000099");
     expect(foreign).toEqual(missing);
     expect(foreign).toEqual({ ok: false, status: "not_found", error: "thesis not found" });
   });
@@ -228,6 +258,29 @@ describe("privacy and failure honesty", () => {
       fixtureUserId("malformed-history"),
       malformedHistory.thesisId,
     )).toEqual({ ok: false, status: "unavailable", error: "thesis history is malformed" });
+  });
+
+  it("refuses a mixed head/history snapshot instead of returning a future version", async () => {
+    const created = await create("mixed-snapshot", "53000000-0000-4000-8000-000000000001");
+    if (!created.ok) throw new Error("fixture create failed");
+    await applyThesisVersion(
+      createFixtureDb("mixed-snapshot") as ThesisDb,
+      fixtureUserId("mixed-snapshot"),
+      {
+        action: "revise",
+        id: created.thesisId,
+        expectedVersion: 1,
+        clientRequestId: "53000000-0000-4000-8000-000000000002",
+        subject,
+        content: content("This version committed after the stale head read."),
+      },
+    );
+    fixtureStore("mixed-snapshot").theses[0].current_version = 1;
+    expect(await readThesis(
+      createFixtureDb("mixed-snapshot") as ThesisDb,
+      fixtureUserId("mixed-snapshot"),
+      created.thesisId,
+    )).toEqual({ ok: false, status: "unavailable", error: "thesis head and lineage disagree" });
   });
 
   it("lists the most recently updated thesis first with a deterministic id tie-break", async () => {
