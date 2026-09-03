@@ -26,6 +26,7 @@ const ROOT = path.resolve(__dirname, "../..");
 /** route page → the workspace implementation that must stay out of its guest graph. */
 const GATED_ROUTES: Array<{ page: string; workspace: string; mount: string }> = [
   { page: "app/(shell)/analysis/page.tsx", workspace: "components/workspaces/AnalysisWorkspace.tsx", mount: "components/mounts/AnalysisWorkspaceMount.tsx" },
+  { page: "app/(shell)/analysis/page.tsx", workspace: "components/workspaces/ThesisWorkspace.tsx", mount: "components/mounts/ThesisWorkspaceMount.tsx" },
   { page: "app/(shell)/discover/page.tsx", workspace: "components/workspaces/DiscoverWorkspace.tsx", mount: "components/mounts/DiscoverWorkspaceMount.tsx" },
   { page: "app/(shell)/options/page.tsx", workspace: "components/workspaces/OptionsWorkspace.tsx", mount: "components/mounts/OptionsWorkspaceMount.tsx" },
   { page: "app/(shell)/alerts/page.tsx", workspace: "components/AlertsView.tsx", mount: "components/mounts/AlertsViewMount.tsx" },
