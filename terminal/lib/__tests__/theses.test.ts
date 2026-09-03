@@ -149,6 +149,51 @@ describe("the atomic thesis mutation boundary", () => {
     })).toEqual({ ok: false, status: "unavailable", error: "thesis mutation returned an invalid result" });
   });
 
+  it("cross-checks successful RPC status, target, lifecycle, and replay metadata", async () => {
+    const createdId = "21000000-0000-4000-8000-000000000001";
+    const otherId = "21000000-0000-4000-8000-000000000002";
+    const createInput = {
+      action: "create" as const,
+      id: null,
+      expectedVersion: 0,
+      clientRequestId: "21000000-0000-4000-8000-000000000003",
+      subject,
+      content: content("Strict create result."),
+    };
+    const reviseInput = {
+      ...createInput,
+      action: "revise" as const,
+      id: createdId,
+      expectedVersion: 1,
+      clientRequestId: "21000000-0000-4000-8000-000000000004",
+    };
+    const canonical = {
+      status: "created",
+      thesis_id: createdId,
+      version: 1,
+      current_version: 1,
+      lifecycle_state: "active",
+      replayed: false,
+    };
+    const cases = [
+      { input: createInput, row: { ...canonical, status: "advanced" } },
+      { input: createInput, row: { ...canonical, replayed: true } },
+      { input: createInput, row: { ...canonical, status: "replayed", replayed: false } },
+      { input: reviseInput, row: { ...canonical, status: "advanced", thesis_id: otherId, version: 2, current_version: 2 } },
+      { input: reviseInput, row: { ...canonical, version: 2, current_version: 2 } },
+      { input: reviseInput, row: { ...canonical, status: "advanced", version: 2, current_version: 2, lifecycle_state: "archived" } },
+    ];
+
+    for (const { input, row } of cases) {
+      const malformedRpc = {
+        from: db().from,
+        rpc: async () => ({ data: [row], error: null }),
+      } as ThesisDb;
+      expect(await applyThesisVersion(malformedRpc, owner, input))
+        .toEqual({ ok: false, status: "unavailable", error: "thesis mutation returned an invalid result" });
+    }
+  });
+
   it("enforces lifecycle transitions without writing rejected attempts", async () => {
     const created = await create("thesis-race", "30000000-0000-4000-8000-000000000001");
     if (!created.ok) throw new Error("fixture create failed");
@@ -330,5 +375,27 @@ describe("closed thesis payloads", () => {
     expect(normalizeThesisSubject({ ...subject, listing: { ...subject.listing!, surprise: true } })).toBeNull();
     expect(normalizeThesisSubject({ ...subject, listing: { ...subject.listing!, mic: "XN\nAS" } })).toBeNull();
     expect(normalizeThesisSubject({ ...subject, companyId: "company\talias" })).toBeNull();
+  });
+
+  it("uses the database's explicit space/line-ending contract and canonical UTC timestamps", () => {
+    const nbsp = "\u00a0";
+    expect(normalizeThesisSubject({
+      ...subject,
+      key: ` ${nbsp}NVDA${nbsp} `,
+      display: ` ${nbsp}NVIDIA${nbsp} `,
+    })).toMatchObject({ key: `${nbsp}NVDA${nbsp}`, display: `${nbsp}NVIDIA${nbsp}` });
+    expect(normalizeThesisContent({
+      ...content(` Line one\r\nLine two `),
+      title: ` ${nbsp}Title${nbsp} `,
+      effectiveAt: "2026-09-03T12:34:56.789Z",
+    })).toMatchObject({
+      title: `${nbsp}Title${nbsp}`,
+      statement: "Line one\nLine two",
+      effectiveAt: "2026-09-03T12:34:56.789Z",
+    });
+    expect(normalizeThesisContent({
+      ...content("valid"),
+      effectiveAt: "2026-09-03 12:34:56+00",
+    })).toBeNull();
   });
 });

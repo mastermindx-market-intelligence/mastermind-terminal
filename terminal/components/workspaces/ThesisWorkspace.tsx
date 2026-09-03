@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLang } from "@/lib/i18n";
 import { normalizeAnalysisSymbol } from "@/lib/analysisSymbol";
-import { isUuid } from "@/lib/theses";
+import { isUuid, normalizeThesisContent } from "@/lib/theses";
 import type {
   ThesisAction,
   ThesisContent,
@@ -42,6 +42,8 @@ const EMPTY_DRAFT: Draft = {
   title: "", statement: "", catalysts: "", falsifiers: "", risks: "",
   horizon: "unspecified", effectiveAt: "", revisionNote: "",
 };
+const PENDING_STORAGE_PREFIX = "mm.thesis.pending.v1:";
+const PENDING_ACTIONS = new Set<ThesisAction>(["create", "revise", "archive", "invalidate", "reopen"]);
 
 const COPY = {
   en: {
@@ -116,7 +118,8 @@ function draftFromDetail(detail: ThesisDetail): Draft {
   };
 }
 
-const lines = (value: string) => value.split("\n").map((item) => item.trim()).filter(Boolean);
+const trimCanonicalSpaces = (value: string) => value.replace(/\r\n?/g, "\n").replace(/^ +| +$/g, "");
+const lines = (value: string) => value.split("\n").map(trimCanonicalSpaces).filter(Boolean);
 
 function statusLabel(state: ThesisLifecycle, copy: typeof COPY.en | typeof COPY.zh): string {
   return state === "active" ? copy.active : state === "archived" ? copy.archived : copy.invalidated;
@@ -132,7 +135,7 @@ function buildContent(draft: Draft): ThesisContent {
     risks: lines(draft.risks),
     horizon: draft.horizon,
     effectiveAt: draft.effectiveAt ? new Date(draft.effectiveAt).toISOString() : null,
-    revisionNote: draft.revisionNote.trim() || null,
+    revisionNote: trimCanonicalSpaces(draft.revisionNote) || null,
   };
 }
 
@@ -147,6 +150,20 @@ function listingSubject(symbol: string): ThesisSubjectRef {
     companyId: null,
     display: `${symbol} · listing scoped`,
   };
+}
+
+function decodePending(value: string | null): Pending | null {
+  if (!value) return null;
+  try {
+    const candidate = JSON.parse(value) as { action?: unknown; body?: unknown };
+    if (typeof candidate.action !== "string" || !PENDING_ACTIONS.has(candidate.action as ThesisAction)
+      || candidate.body === null || typeof candidate.body !== "object" || Array.isArray(candidate.body)) return null;
+    const body = candidate.body as Record<string, unknown>;
+    if (body.action !== candidate.action || !isUuid(body.clientRequestId)) return null;
+    return { action: candidate.action as ThesisAction, body };
+  } catch {
+    return null;
+  }
 }
 
 export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesisId, invalidLink = false }: ThesisWorkspaceProps) {
@@ -164,9 +181,42 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   const [saving, setSaving] = useState(false);
   const [conflict, setConflict] = useState<Conflict | null>(null);
   const [pending, setPending] = useState<Pending | null>(null);
+  const [pendingHydrated, setPendingHydrated] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [mobilePane, setMobilePane] = useState<MobilePane>(initialThesisId || seededSymbol ? "detail" : "list");
   const detailRequest = useRef(0);
+  const pendingStorageKey = `${PENDING_STORAGE_PREFIX}${ownerKey}`;
+
+  useEffect(() => {
+    let active = true;
+    void Promise.resolve().then(() => {
+      if (!active) return;
+      try {
+        const restored = decodePending(window.sessionStorage.getItem(pendingStorageKey));
+        if (restored) {
+          setPending(restored);
+          setMessage(copy.ambiguous);
+        } else {
+          window.sessionStorage.removeItem(pendingStorageKey);
+        }
+      } catch {
+        // Continue with the in-memory carrier only when browser storage is unavailable.
+      } finally {
+        setPendingHydrated(true);
+      }
+    });
+    return () => { active = false; };
+  }, [copy.ambiguous, pendingStorageKey]);
+
+  useEffect(() => {
+    if (!pendingHydrated) return;
+    try {
+      if (pending) window.sessionStorage.setItem(pendingStorageKey, JSON.stringify(pending));
+      else window.sessionStorage.removeItem(pendingStorageKey);
+    } catch {
+      // The in-memory carrier remains authoritative when browser storage is unavailable.
+    }
+  }, [pending, pendingHydrated, pendingStorageKey]);
 
   const loadList = useCallback(async () => {
     try {
@@ -217,6 +267,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   }, []);
 
   const beginDetailLoad = useCallback((id: string) => {
+    if (pending) return;
     const token = ++detailRequest.current;
     setSelectedId(id);
     setDetail(null);
@@ -232,7 +283,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     url.searchParams.delete("symbol");
     window.history.replaceState(null, "", url.toString());
     void loadDetail(id, token);
-  }, [loadDetail]);
+  }, [loadDetail, pending]);
 
   useEffect(() => {
     if (invalidLink) return;
@@ -246,6 +297,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   }, [initialThesisId, invalidLink, loadDetail, loadList, ownerKey]);
 
   const startNew = useCallback(() => {
+    if (pending) return;
     detailRequest.current += 1;
     setSelectedId(null);
     setDetail(null);
@@ -260,9 +312,10 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     url.searchParams.set("view", "theses");
     url.searchParams.delete("thesis");
     window.history.replaceState(null, "", url.toString());
-  }, [seededSymbol]);
+  }, [pending, seededSymbol]);
 
   const backToList = useCallback(() => {
+    if (pending) return;
     detailRequest.current += 1;
     setSelectedId(null);
     setDetail(null);
@@ -278,7 +331,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     url.searchParams.delete("thesis");
     url.searchParams.delete("symbol");
     window.history.replaceState(null, "", url.toString());
-  }, []);
+  }, [pending]);
 
   const changeDraft = useCallback(<K extends keyof Draft>(key: K, value: Draft[K]) => {
     setDraft((current) => ({ ...current, [key]: value }));
@@ -289,13 +342,14 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
 
   const mutationBody = useCallback((action: ThesisAction, requestId: string): Record<string, unknown> | null => {
     const symbol = detail?.subject.key ?? normalizeAnalysisSymbol(subjectDraft);
-    if (!symbol || !draft.title.trim() || !draft.statement.trim()) return null;
+    const content = normalizeThesisContent(buildContent(draft));
+    if (!symbol || !content) return null;
     return {
       action,
       ...(selectedId ? { id: selectedId, expectedVersion: detail?.currentVersion ?? 0 } : {}),
       clientRequestId: requestId,
       subject: detail?.subject ?? listingSubject(symbol),
-      content: buildContent(draft),
+      content,
     };
   }, [detail, draft, selectedId, subjectDraft]);
 
@@ -395,6 +449,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   const lifecycle = detail?.lifecycleState ?? "active";
   const editable = !detail || lifecycle === "active";
   const ambiguous = !!pending && !saving;
+  const carrierLocked = !pendingHydrated || pending !== null;
   const history = useMemo(() => detail?.history ?? [], [detail?.history]);
 
   if (invalidLink) {
@@ -414,7 +469,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
         <div><small>{copy.eyebrow}</small><h1>{copy.title}</h1><span className={styles.contextSubject}>{(detail?.subject.key ?? subjectDraft) || "—"}</span></div>
         <div className={styles.contextActions}>
           {detail && <button type="button" onClick={() => void copyLink()}>{copy.copyLink}</button>}
-          <button type="button" className={styles.primaryButton} onClick={startNew}>{copy.newThesis}</button>
+          <button type="button" className={styles.primaryButton} disabled={carrierLocked} onClick={startNew}>{copy.newThesis}</button>
         </div>
       </header>
 
@@ -429,7 +484,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
             {listState === "ready" && theses.length === 0 && <div className={styles.railState} data-testid="thesis-empty"><strong>{copy.empty}</strong><p>{copy.emptyBody}</p></div>}
             <div className={styles.thesisList}>
               {theses.map((thesis) => (
-                <button key={thesis.id} type="button" className={selectedId === thesis.id ? styles.selected : ""} onClick={() => beginDetailLoad(thesis.id)}>
+                <button key={thesis.id} type="button" disabled={carrierLocked} className={selectedId === thesis.id ? styles.selected : ""} onClick={() => beginDetailLoad(thesis.id)}>
                   <span><b>{thesis.subject.key}</b><i data-state={thesis.lifecycleState}>{statusLabel(thesis.lifecycleState, copy)}</i></span>
                   <strong>{thesis.title}</strong><small>{copy.version} {thesis.currentVersion}</small>
                 </button>
@@ -439,7 +494,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
           </aside>
 
           <section className={styles.editorPane} data-testid="thesis-detail-pane">
-            <button type="button" className={styles.mobileBack} onClick={backToList}>{copy.backToList}</button>
+            <button type="button" className={styles.mobileBack} disabled={carrierLocked} onClick={backToList}>{copy.backToList}</button>
             {detailState === "loading" ? <div className={styles.centerState} role="status"><p>{copy.loading}</p></div>
               : detailState === "not_found" ? <div className={styles.centerState} role="status" data-testid="thesis-not-found"><span className={styles.stateMark}>?</span><h1>{copy.notFound}</h1><p>{copy.notFoundBody}</p></div>
                 : detailState === "unavailable" ? <div className={styles.centerState} role="status"><span className={styles.stateMark}>!</span><h1>{copy.unavailable}</h1><p>{copy.unavailableBody}</p>{selectedId && <button onClick={() => beginDetailLoad(selectedId)}>{copy.retry}</button>}</div>
@@ -453,13 +508,13 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
                     {pending && !saving && <button className={styles.retrySame} onClick={() => void send(pending)}>{copy.retrySame}</button>}
 
                     <form className={styles.form} onSubmit={(event) => { event.preventDefault(); submit(selectedId ? "revise" : "create"); }}>
-                      <label>{copy.subject}<input aria-label={copy.subject} value={detail?.subject.key ?? subjectDraft} disabled={!!detail || ambiguous} onChange={(event) => { setSubjectDraft(event.target.value.toUpperCase()); setPending(null); }} placeholder="NVDA" /></label>
-                      <label>{copy.titleLabel}<input aria-label={copy.titleLabel} value={draft.title} disabled={!editable || ambiguous} maxLength={160} onChange={(event) => changeDraft("title", event.target.value)} /></label>
-                      <label className={styles.full}>{copy.statement}<textarea aria-label={copy.statement} value={draft.statement} disabled={!editable || ambiguous} maxLength={12000} rows={8} onChange={(event) => changeDraft("statement", event.target.value)} /></label>
-                      {(["catalysts", "falsifiers", "risks"] as const).map((field) => <label key={field}>{copy[field]}<small>{copy.onePerLine}</small><textarea aria-label={copy[field]} value={draft[field]} disabled={!editable || ambiguous} rows={5} onChange={(event) => changeDraft(field, event.target.value)} /></label>)}
-                      <label>{copy.horizon}<select aria-label={copy.horizon} value={draft.horizon} disabled={!editable || ambiguous} onChange={(event) => changeDraft("horizon", event.target.value as ThesisHorizon)}>{(["unspecified", "days", "weeks", "months", "quarters", "years"] as ThesisHorizon[]).map((value) => <option key={value} value={value}>{HORIZON_LABELS[lang][value]}</option>)}</select></label>
-                      <label>{copy.effective}<input aria-label={copy.effective} type="datetime-local" value={draft.effectiveAt} disabled={!editable || ambiguous} onChange={(event) => changeDraft("effectiveAt", event.target.value)} /></label>
-                      <label className={styles.full}>{copy.revision}<textarea aria-label={copy.revision} value={draft.revisionNote} disabled={ambiguous} maxLength={1000} rows={3} onChange={(event) => changeDraft("revisionNote", event.target.value)} /></label>
+                      <label>{copy.subject}<input aria-label={copy.subject} value={detail?.subject.key ?? subjectDraft} disabled={!!detail || carrierLocked} onChange={(event) => { setSubjectDraft(event.target.value.toUpperCase()); setPending(null); }} placeholder="NVDA" /></label>
+                      <label>{copy.titleLabel}<input aria-label={copy.titleLabel} value={draft.title} disabled={!editable || carrierLocked} maxLength={160} onChange={(event) => changeDraft("title", event.target.value)} /></label>
+                      <label className={styles.full}>{copy.statement}<textarea aria-label={copy.statement} value={draft.statement} disabled={!editable || carrierLocked} maxLength={12000} rows={8} onChange={(event) => changeDraft("statement", event.target.value)} /></label>
+                      {(["catalysts", "falsifiers", "risks"] as const).map((field) => <label key={field}>{copy[field]}<small>{copy.onePerLine}</small><textarea aria-label={copy[field]} value={draft[field]} disabled={!editable || carrierLocked} rows={5} onChange={(event) => changeDraft(field, event.target.value)} /></label>)}
+                      <label>{copy.horizon}<select aria-label={copy.horizon} value={draft.horizon} disabled={!editable || carrierLocked} onChange={(event) => changeDraft("horizon", event.target.value as ThesisHorizon)}>{(["unspecified", "days", "weeks", "months", "quarters", "years"] as ThesisHorizon[]).map((value) => <option key={value} value={value}>{HORIZON_LABELS[lang][value]}</option>)}</select></label>
+                      <label>{copy.effective}<input aria-label={copy.effective} type="datetime-local" value={draft.effectiveAt} disabled={!editable || carrierLocked} onChange={(event) => changeDraft("effectiveAt", event.target.value)} /></label>
+                      <label className={styles.full}>{copy.revision}<textarea aria-label={copy.revision} value={draft.revisionNote} disabled={carrierLocked} maxLength={1000} rows={3} onChange={(event) => changeDraft("revisionNote", event.target.value)} /></label>
                       <div className={`${styles.actions} ${styles.full}`}>
                         {editable && <button className={styles.primaryButton} type="submit" disabled={saving || ambiguous}>{saving ? copy.saving : copy.save}</button>}
                         {detail && lifecycle === "active" && <><button type="button" disabled={saving || ambiguous} onClick={() => submit("archive")}>{copy.archive}</button><button type="button" className={styles.dangerButton} disabled={saving || ambiguous} onClick={() => submit("invalidate")}>{copy.invalidate}</button></>}

@@ -101,6 +101,7 @@ declare
   v_fingerprint bytea;
   v_subject_digest bytea;
   v_subject_ref jsonb;
+  v_content jsonb;
   v_next_state text;
   v_next_version integer;
   v_now timestamptz := clock_timestamp();
@@ -156,8 +157,8 @@ begin
      or (p_subject_ref->>'owner' in ('data_os.security_master','terminal.analysis_symbol')
          and p_subject_ref->>'kind' <> 'issuer')
      or p_subject_ref->>'identity_state' not in ('resolved','listing_scoped')
-     or length(btrim(p_subject_ref->>'key')) not between 1 and 256
-     or length(btrim(p_subject_ref->>'display')) not between 1 and 256
+     or length(btrim(p_subject_ref->>'key', ' ')) not between 1 and 256
+     or length(btrim(p_subject_ref->>'display', ' ')) not between 1 and 256
      or (p_subject_ref->>'key') ~ '[[:cntrl:]]'
      or (p_subject_ref->>'display') ~ '[[:cntrl:]]'
      or case
@@ -173,22 +174,23 @@ begin
        or jsonb_typeof(p_subject_ref->'listing'->'symbol') <> 'string'
        or jsonb_typeof(p_subject_ref->'listing'->'mic') not in ('string','null')
        or jsonb_typeof(p_subject_ref->'listing'->'security_id') not in ('string','null')
-       or length(p_subject_ref->'listing'->>'symbol') not between 1 and 128
-       or length(coalesce(p_subject_ref->'listing'->>'mic', '')) > 32
-       or length(coalesce(p_subject_ref->'listing'->>'security_id', '')) > 256
+       or length(btrim(p_subject_ref->'listing'->>'symbol', ' ')) not between 1 and 24
+       or upper(btrim(p_subject_ref->'listing'->>'symbol', ' ')) !~ '^(\^[A-Z0-9]+|[A-Z0-9]+([.-][A-Z0-9]+)*)$'
+       or length(coalesce(btrim(p_subject_ref->'listing'->>'mic', ' '), '')) > 32
+       or length(coalesce(btrim(p_subject_ref->'listing'->>'security_id', ' '), '')) > 256
        or (p_subject_ref->'listing'->>'symbol') ~ '[[:cntrl:]]'
        or coalesce((p_subject_ref->'listing'->>'mic') ~ '[[:cntrl:]]', false)
        or coalesce((p_subject_ref->'listing'->>'security_id') ~ '[[:cntrl:]]', false)
      ))
      or (p_subject_ref ? 'company_id' and jsonb_typeof(p_subject_ref->'company_id') not in ('string','null'))
-     or length(coalesce(p_subject_ref->>'company_id', '')) > 256
+     or length(coalesce(btrim(p_subject_ref->>'company_id', ' '), '')) > 256
      or coalesce((p_subject_ref->>'company_id') ~ '[[:cntrl:]]', false)
      or (p_subject_ref->>'identity_state' = 'listing_scoped' and (
        not (p_subject_ref ? 'listing')
        or p_subject_ref->>'owner' <> 'terminal.analysis_symbol'
        or p_subject_ref->>'kind' <> 'issuer'
        or jsonb_typeof(p_subject_ref->'listing') <> 'object'
-       or length(btrim(p_subject_ref->'listing'->>'symbol')) not between 1 and 128
+       or length(btrim(p_subject_ref->'listing'->>'symbol', ' ')) not between 1 and 24
      ))
      or (p_subject_ref->>'kind' = 'theme' and p_subject_ref ? 'listing') then
     status := 'invalid_transition';
@@ -196,23 +198,23 @@ begin
     return;
   end if;
 
-  -- Normalize at the authenticated database boundary before hashing or storing. The application
-  -- performs the same trim/uppercase/null folding, so direct RPC callers cannot create an immutable
-  -- subject whose next application mutation has different identity bytes.
+  -- The canonical string contract deliberately trims U+0020 only. The application uses the same
+  -- explicit rule instead of ECMAScript trim(), normalizes prose line endings separately, and counts
+  -- Unicode code points just as PostgreSQL length(text) does.
   v_subject_ref := jsonb_build_object(
     'schema', p_subject_ref->>'schema',
     'kind', p_subject_ref->>'kind',
     'owner', p_subject_ref->>'owner',
-    'key', btrim(p_subject_ref->>'key'),
+    'key', btrim(p_subject_ref->>'key', ' '),
     'identity_state', p_subject_ref->>'identity_state',
-    'company_id', nullif(btrim(p_subject_ref->>'company_id'), ''),
-    'display', btrim(p_subject_ref->>'display')
+    'company_id', nullif(btrim(p_subject_ref->>'company_id', ' '), ''),
+    'display', btrim(p_subject_ref->>'display', ' ')
   );
   if p_subject_ref ? 'listing' then
     v_subject_ref := v_subject_ref || jsonb_build_object('listing', jsonb_build_object(
-      'symbol', upper(btrim(p_subject_ref->'listing'->>'symbol')),
-      'mic', nullif(btrim(p_subject_ref->'listing'->>'mic'), ''),
-      'security_id', nullif(btrim(p_subject_ref->'listing'->>'security_id'), '')
+      'symbol', upper(btrim(p_subject_ref->'listing'->>'symbol', ' ')),
+      'mic', nullif(btrim(p_subject_ref->'listing'->>'mic', ' '), ''),
+      'security_id', nullif(btrim(p_subject_ref->'listing'->>'security_id', ' '), '')
     ));
   end if;
 
@@ -240,8 +242,8 @@ begin
      or jsonb_typeof(p_content->'effective_at') not in ('string','null')
      or jsonb_typeof(p_content->'revision_note') not in ('string','null')
      or p_content->>'horizon' not in ('unspecified','days','weeks','months','quarters','years')
-     or length(btrim(p_content->>'title')) not between 1 and 160
-     or length(btrim(p_content->>'statement')) not between 1 and 12000
+     or length(btrim(p_content->>'title', ' ')) not between 1 and 160
+     or length(btrim(replace(replace(p_content->>'statement', E'\r\n', E'\n'), E'\r', E'\n'), ' ')) not between 1 and 12000
      or (p_content->>'title') ~ '[[:cntrl:]]'
      or regexp_replace(p_content->>'statement', E'[\n\r\t]', '', 'g') ~ '[[:cntrl:]]'
      or jsonb_array_length(p_content->'catalysts') > 20
@@ -253,7 +255,7 @@ begin
          (p_content->'catalysts') || (p_content->'falsifiers') || (p_content->'risks')
        ) as item(value)
        where jsonb_typeof(item.value) <> 'string'
-          or length(btrim(item.value #>> '{}')) not between 1 and 500
+          or length(btrim(item.value #>> '{}', ' ')) not between 1 and 500
           or (item.value #>> '{}') ~ '[[:cntrl:]]'
      ) then
     status := 'invalid_transition';
@@ -261,9 +263,12 @@ begin
     return;
   end if;
 
-  v_title := btrim(p_content->>'title');
-  v_statement := btrim(p_content->>'statement');
-  v_revision_note := nullif(btrim(p_content->>'revision_note'), '');
+  v_title := btrim(p_content->>'title', ' ');
+  v_statement := btrim(replace(replace(p_content->>'statement', E'\r\n', E'\n'), E'\r', E'\n'), ' ');
+  v_revision_note := nullif(
+    btrim(replace(replace(p_content->>'revision_note', E'\r\n', E'\n'), E'\r', E'\n'), ' '),
+    ''
+  );
   if length(coalesce(v_revision_note, '')) > 1000
      or regexp_replace(coalesce(v_revision_note, ''), E'[\n\r\t]', '', 'g') ~ '[[:cntrl:]]'
      or (p_transition = 'invalidate' and v_revision_note is null) then
@@ -275,7 +280,14 @@ begin
   -- The canonical content timestamp and typed column must agree. A malformed direct-RPC timestamp
   -- is caught below and becomes a closed invalid result, never a partial write.
   begin
-    if (p_content->>'effective_at')::timestamptz is distinct from p_effective_at then
+    if (p_content->>'effective_at') is not null
+       and (p_content->>'effective_at') !~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}[.][0-9]{3}Z$' then
+      status := 'invalid_transition';
+      return next;
+      return;
+    end if;
+    if (p_content->>'effective_at')::timestamptz is distinct from p_effective_at
+       or p_effective_at in ('infinity'::timestamptz, '-infinity'::timestamptz) then
       status := 'invalid_transition';
       return next;
       return;
@@ -286,14 +298,37 @@ begin
     return;
   end;
 
+  -- Fingerprint and persist only this canonical full snapshot. Array ordinality preserves the
+  -- user's semantic ordering while U+0020 trimming and prose line endings match the application.
+  v_content := jsonb_build_object(
+    'schema', p_content->>'schema',
+    'title', v_title,
+    'statement', v_statement,
+    'catalysts', (
+      select coalesce(jsonb_agg(btrim(item.value #>> '{}', ' ') order by item.ordinality), '[]'::jsonb)
+      from jsonb_array_elements(p_content->'catalysts') with ordinality as item(value, ordinality)
+    ),
+    'falsifiers', (
+      select coalesce(jsonb_agg(btrim(item.value #>> '{}', ' ') order by item.ordinality), '[]'::jsonb)
+      from jsonb_array_elements(p_content->'falsifiers') with ordinality as item(value, ordinality)
+    ),
+    'risks', (
+      select coalesce(jsonb_agg(btrim(item.value #>> '{}', ' ') order by item.ordinality), '[]'::jsonb)
+      from jsonb_array_elements(p_content->'risks') with ordinality as item(value, ordinality)
+    ),
+    'horizon', p_content->>'horizon',
+    'effective_at', p_content->>'effective_at',
+    'revision_note', v_revision_note
+  );
+
   v_subject_digest := extensions.digest(convert_to(v_subject_ref::text, 'UTF8'), 'sha256');
   v_fingerprint := extensions.digest(convert_to(jsonb_build_object(
     'thesis_id', p_thesis_id,
     'expected_version', p_expected_version,
     'transition', p_transition,
     'subject_ref', v_subject_ref,
-    'content', p_content,
-    'effective_at', p_effective_at
+    'content', v_content,
+    'effective_at', p_content->>'effective_at'
   )::text, 'UTF8'), 'sha256');
 
   -- Serialize equal request IDs before reading their unique row. This closes the concurrent-create
@@ -330,7 +365,7 @@ begin
       subject_ref, content, client_request_id, request_fingerprint, system_recorded_at, effective_at
     ) values (
       thesis_id, v_actor, 1, null, 'create', 'active',
-      v_subject_ref, p_content, p_client_request_id, v_fingerprint, v_now, p_effective_at
+      v_subject_ref, v_content, p_client_request_id, v_fingerprint, v_now, p_effective_at
     );
     status := 'created';
     version := 1;
@@ -386,7 +421,7 @@ begin
     subject_ref, content, client_request_id, request_fingerprint, system_recorded_at, effective_at
   ) values (
     v_head.id, v_actor, v_next_version, v_head.current_version, p_transition, v_next_state,
-    v_subject_ref, p_content, p_client_request_id, v_fingerprint, v_now, p_effective_at
+    v_subject_ref, v_content, p_client_request_id, v_fingerprint, v_now, p_effective_at
   );
 
   update public.theses

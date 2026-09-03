@@ -1,4 +1,5 @@
 import type { DbResult, WatchlistDb } from "@/lib/watchlists";
+import { ANALYSIS_SYMBOL } from "@/lib/analysisSymbol";
 
 export const THESIS_CONTENT_SCHEMA = "mastermind.thesis-content/v1" as const;
 export const THESIS_SUBJECT_SCHEMA = "mastermind.thesis-subject-ref/v1" as const;
@@ -114,6 +115,7 @@ export type ThesisListRead =
 export type ThesisSubjectFilter = Pick<ThesisSubjectRef, "owner" | "kind" | "key">;
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const CANONICAL_UTC_TIMESTAMP = /^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}[.][0-9]{3}Z$/;
 const CONTROL_EXCEPT_BREAKS = /[\u0000-\u0008\u000b-\u001f\u007f]/;
 const CONTROL_ALL = /[\u0000-\u001f\u007f]/;
 const HORIZONS = new Set<ThesisHorizon>(["unspecified", "days", "weeks", "months", "quarters", "years"]);
@@ -137,8 +139,10 @@ function record(value: unknown): Record<string, unknown> | null {
 function boundedText(value: unknown, max: number, required: boolean): string | null {
   if (value === null && !required) return null;
   if (typeof value !== "string") return null;
-  const normalized = value.replace(/\r\n?/g, "\n").trim();
-  if ((required && !normalized) || normalized.length > max || CONTROL_EXCEPT_BREAKS.test(normalized)) return null;
+  // This is deliberately PostgreSQL btrim(text, ' '), not ECMAScript trim(). Keeping the
+  // character set explicit makes direct-RPC and application canonicalization byte-identical.
+  const normalized = value.replace(/\r\n?/g, "\n").replace(/^ +| +$/g, "");
+  if ((required && !normalized) || [...normalized].length > max || CONTROL_EXCEPT_BREAKS.test(normalized)) return null;
   return normalized || null;
 }
 
@@ -172,9 +176,9 @@ function stringList(value: unknown): string[] | null {
 
 function isoTimestamp(value: unknown): string | null | undefined {
   if (value === null || value === "") return null;
-  if (typeof value !== "string") return undefined;
+  if (typeof value !== "string" || !CANONICAL_UTC_TIMESTAMP.test(value)) return undefined;
   const parsed = Date.parse(value);
-  return Number.isFinite(parsed) ? new Date(parsed).toISOString() : undefined;
+  return Number.isFinite(parsed) && new Date(parsed).toISOString() === value ? value : undefined;
 }
 
 export function isUuid(value: unknown): value is string {
@@ -200,8 +204,9 @@ export function normalizeThesisSubject(value: unknown): ThesisSubjectRef | null 
     const symbol = boundedSingleLineText(candidate.symbol, 128, true);
     const mic = nullableSingleLineText(candidate.mic, 32);
     const securityId = nullableSingleLineText(candidate.securityId, 256);
-    if (!symbol || !mic.ok || !securityId.ok) return null;
-    listing = { symbol: symbol.toUpperCase(), mic: mic.value, securityId: securityId.value };
+    const canonicalSymbol = symbol?.toUpperCase();
+    if (!canonicalSymbol || canonicalSymbol.length > 24 || !ANALYSIS_SYMBOL.test(canonicalSymbol) || !mic.ok || !securityId.ok) return null;
+    listing = { symbol: canonicalSymbol, mic: mic.value, securityId: securityId.value };
   }
   if (raw.identityState === "listing_scoped" && (!listing || raw.owner !== "terminal.analysis_symbol")) return null;
   if (raw.kind === "theme" && listing) return null;
@@ -415,10 +420,19 @@ export async function applyThesisVersion(
     const version = positiveInteger(row.version);
     const currentVersion = positiveInteger(row.current_version);
     const lifecycleState = lifecycle(row.lifecycle_state);
-    if (!isUuid(thesisId) || !version || currentVersion !== version || !lifecycleState) {
+    const replayed = row.replayed === true;
+    const expectedStatus = input.action === "create" ? "created" : "advanced";
+    const expectedLifecycle: ThesisLifecycle = input.action === "archive" ? "archived"
+      : input.action === "invalidate" ? "invalidated" : "active";
+    if (!isUuid(thesisId) || !version || currentVersion !== version || !lifecycleState
+      || (status !== "replayed" && status !== expectedStatus)
+      || replayed !== (status === "replayed")
+      || (input.action !== "create" && thesisId !== input.id)
+      || version !== input.expectedVersion + 1
+      || lifecycleState !== expectedLifecycle) {
       return { ok: false, status: "unavailable", error: "thesis mutation returned an invalid result" };
     }
-    return { ok: true, status, thesisId, version, lifecycleState, replayed: status === "replayed" || row.replayed === true };
+    return { ok: true, status, thesisId, version, lifecycleState, replayed };
   }
   if (status === "version_conflict") {
     const currentVersion = positiveInteger(row.current_version);

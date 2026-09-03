@@ -179,7 +179,7 @@ test("an ambiguous create retries the exact request and replays one version", as
     requests.push(route.request().postDataJSON());
     if (interruptFirst) {
       interruptFirst = false;
-      await route.fetch();
+      await route.fetch({ maxRetries: 1 });
       return route.abort("failed");
     }
     return route.continue();
@@ -205,7 +205,7 @@ test("a server-side 503 after commit retains the exact create carrier", async ({
     requests.push(route.request().postDataJSON());
     if (maskFirstAcceptedResponse) {
       maskFirstAcceptedResponse = false;
-      await route.fetch();
+      await route.fetch({ maxRetries: 1 });
       return route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ error: "thesis_store_unavailable" }) });
     }
     return route.continue();
@@ -221,6 +221,58 @@ test("a server-side 503 after commit retains the exact create carrier", async ({
   await expect(page.locator("[aria-label='Version history'] article")).toHaveCount(1);
 });
 
+test("an ambiguous accepted write locks New, list selection, and mobile Back until exact retry", async ({ page, baseURL }, testInfo) => {
+  await prepare(page, testInfo, baseURL);
+  const existing = await page.request.post("/api/theses", { data: {
+    action: "create", clientRequestId: "c0000000-0000-4000-8000-000000000001",
+    subject: {
+      schema: "mastermind.thesis-subject-ref/v1", kind: "issuer", owner: "terminal.analysis_symbol",
+      key: "AAPL", identityState: "listing_scoped", listing: { symbol: "AAPL", mic: null, securityId: null },
+      companyId: null, display: "AAPL · listing scoped",
+    },
+    content: {
+      schema: "mastermind.thesis-content/v1", title: "Existing thesis", statement: "Existing statement",
+      catalysts: [], falsifiers: [], risks: [], horizon: "unspecified", effectiveAt: null, revisionNote: null,
+    },
+  } });
+  expect(existing.status()).toBe(201);
+
+  const requests: Array<Record<string, unknown>> = [];
+  let maskFirstAcceptedResponse = true;
+  await page.route("**/api/theses", async (route) => {
+    if (route.request().method() !== "POST") return route.continue();
+    requests.push(route.request().postDataJSON());
+    if (maskFirstAcceptedResponse) {
+      maskFirstAcceptedResponse = false;
+      await route.fetch({ maxRetries: 1 });
+      return route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ error: "thesis_store_unavailable" }) });
+    }
+    return route.continue();
+  });
+
+  await page.goto("/analysis?view=theses&symbol=NVDA");
+  await fillNew(page);
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(page.getByText("response was interrupted")).toBeVisible();
+  await expect(page.getByRole("button", { name: "New thesis" })).toBeDisabled();
+  await expect(page.getByRole("button", { name: /Existing thesis/, includeHidden: true })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Back to list", includeHidden: true })).toBeDisabled();
+  await expect(page.getByLabel("Title")).toHaveValue("NVDA operating leverage");
+
+  await expect.poll(() => page.evaluate(() => Object.keys(sessionStorage).some((key) => key.startsWith("mm.thesis.pending.v1:"))))
+    .toBe(true);
+  await page.reload();
+  await expect(page.getByText("response was interrupted")).toBeVisible();
+  await expect(page.getByRole("button", { name: "New thesis" })).toBeDisabled();
+
+  await page.getByRole("button", { name: "Retry same request" }).click();
+  await expect(page.getByText("Version 1 · Current")).toBeVisible();
+  expect(requests).toHaveLength(2);
+  expect(requests[0]).toEqual(requests[1]);
+  await expect(page.locator("[aria-label='Version history'] article")).toHaveCount(1);
+  await expect(page.getByRole("button", { name: "New thesis" })).toBeEnabled();
+});
+
 test("an unreadable accepted response retains the exact create carrier", async ({ page, baseURL }, testInfo) => {
   await prepare(page, testInfo, baseURL);
   const requests: Array<Record<string, unknown>> = [];
@@ -230,7 +282,7 @@ test("an unreadable accepted response retains the exact create carrier", async (
     requests.push(route.request().postDataJSON());
     if (maskFirstAcceptedResponse) {
       maskFirstAcceptedResponse = false;
-      await route.fetch();
+      await route.fetch({ maxRetries: 1 });
       return route.fulfill({ status: 201, contentType: "application/json", body: "{" });
     }
     return route.continue();
