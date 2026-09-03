@@ -68,6 +68,7 @@ const COPY = {
     retrySame: "Retry same request", saved: "Saved as version", replayed: "replayed", lines: "Complete snapshot",
     moreTheses: "More theses exist; refine this workspace before continuing.",
     historyTruncated: "History is truncated; no versions were silently discarded.", backToList: "Back to list",
+    carrierUnavailable: "This browser could not safely preserve the request. Nothing was sent.",
   },
   zh: {
     eyebrow: "研究工作区", title: "研究论点工作区", newThesis: "新建论点", list: "你的论点",
@@ -91,6 +92,7 @@ const COPY = {
     retrySame: "重试同一请求", saved: "已保存为版本", replayed: "已重放", lines: "完整快照",
     moreTheses: "还有更多论点；请先缩小工作区范围。", historyTruncated: "历史记录已截断；没有静默丢弃任何版本。",
     backToList: "返回列表",
+    carrierUnavailable: "此浏览器无法安全保留该请求。请求尚未发送。",
   },
 } as const;
 
@@ -166,6 +168,16 @@ function decodePending(value: string | null): Pending | null {
   }
 }
 
+function storePending(key: string, pending: Pending): boolean {
+  try {
+    const encoded = JSON.stringify(pending);
+    window.sessionStorage.setItem(key, encoded);
+    return window.sessionStorage.getItem(key) === encoded;
+  } catch {
+    return false;
+  }
+}
+
 export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesisId, invalidLink = false }: ThesisWorkspaceProps) {
   const { lang } = useLang();
   const copy = COPY[lang];
@@ -196,11 +208,12 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
         if (restored) {
           setPending(restored);
           setMessage(copy.ambiguous);
+          setMobilePane("detail");
         } else {
           window.sessionStorage.removeItem(pendingStorageKey);
         }
       } catch {
-        // Continue with the in-memory carrier only when browser storage is unavailable.
+        // A later submit proves durable storage synchronously before any mutation is sent.
       } finally {
         setPendingHydrated(true);
       }
@@ -214,7 +227,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       if (pending) window.sessionStorage.setItem(pendingStorageKey, JSON.stringify(pending));
       else window.sessionStorage.removeItem(pendingStorageKey);
     } catch {
-      // The in-memory carrier remains authoritative when browser storage is unavailable.
+      // Every POST has its own synchronous write/read fence; this effect never sends a mutation.
     }
   }, [pending, pendingHydrated, pendingStorageKey]);
 
@@ -406,6 +419,12 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   }, [copy.ambiguous, copy.invalid, copy.replayed, copy.saved, copy.transition, loadDetail, loadList]);
 
   const send = useCallback(async (pendingMutation: Pending) => {
+    if (!storePending(pendingStorageKey, pendingMutation)) {
+      setSaving(false);
+      setPending(pendingMutation);
+      setMessage(copy.carrierUnavailable);
+      return;
+    }
     setSaving(true);
     setMessage(null);
     try {
@@ -420,15 +439,19 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       setPending(pendingMutation);
       setMessage(copy.ambiguous);
     }
-  }, [consumeResponse, copy.ambiguous]);
+  }, [consumeResponse, copy.ambiguous, copy.carrierUnavailable, pendingStorageKey]);
 
   const submit = useCallback((action: ThesisAction) => {
     const body = mutationBody(action, crypto.randomUUID());
     if (!body) return setMessage(copy.invalid);
     const next = { action, body };
+    if (!storePending(pendingStorageKey, next)) {
+      setMessage(copy.carrierUnavailable);
+      return;
+    }
     setPending(next);
     void send(next);
-  }, [copy.invalid, mutationBody, send]);
+  }, [copy.carrierUnavailable, copy.invalid, mutationBody, pendingStorageKey, send]);
 
   const copyDraft = useCallback(async () => {
     await navigator.clipboard.writeText(JSON.stringify({ subject: detail?.subject ?? subjectDraft, ...draft }, null, 2));

@@ -137,9 +137,13 @@ begin
 
   -- The SECURITY DEFINER function must not trust the Next.js normalizer. Validate the complete
   -- closed subject object again: exact keys, bounded identities, and truthful listing scope.
-  if p_subject_ref is null
-     or jsonb_typeof(p_subject_ref) <> 'object'
-     or not (p_subject_ref ?& array['schema','kind','owner','key','identity_state','display'])
+  if p_subject_ref is null or jsonb_typeof(p_subject_ref) <> 'object' then
+    status := 'invalid_transition';
+    return next;
+    return;
+  end if;
+
+  if not (p_subject_ref ?& array['schema','kind','owner','key','identity_state','display'])
      or exists (
        select 1 from jsonb_object_keys(p_subject_ref) as k(key)
        where k.key not in ('schema','kind','owner','key','identity_state','listing','company_id','display')
@@ -161,16 +165,26 @@ begin
      or length(btrim(p_subject_ref->>'display', ' ')) not between 1 and 256
      or (p_subject_ref->>'key') ~ '[[:cntrl:]]'
      or (p_subject_ref->>'display') ~ '[[:cntrl:]]'
-     or case
-       when p_subject_ref ? 'listing' and jsonb_typeof(p_subject_ref->'listing') = 'object' then exists (
+     or (p_subject_ref ? 'company_id' and jsonb_typeof(p_subject_ref->'company_id') not in ('string','null'))
+     or length(coalesce(btrim(p_subject_ref->>'company_id', ' '), '')) > 256
+     or coalesce((p_subject_ref->>'company_id') ~ '[[:cntrl:]]', false) then
+    status := 'invalid_transition';
+    return next;
+    return;
+  end if;
+
+  if p_subject_ref ? 'listing' then
+    if jsonb_typeof(p_subject_ref->'listing') <> 'object' then
+      status := 'invalid_transition';
+      return next;
+      return;
+    end if;
+
+    if not ((p_subject_ref->'listing') ?& array['symbol','mic','security_id'])
+       or exists (
          select 1 from jsonb_object_keys(p_subject_ref->'listing') as lk(key)
          where lk.key not in ('symbol','mic','security_id')
        )
-       else false
-     end
-     or (p_subject_ref ? 'listing' and (
-       jsonb_typeof(p_subject_ref->'listing') <> 'object'
-       or not ((p_subject_ref->'listing') ?& array['symbol','mic','security_id'])
        or jsonb_typeof(p_subject_ref->'listing'->'symbol') <> 'string'
        or jsonb_typeof(p_subject_ref->'listing'->'mic') not in ('string','null')
        or jsonb_typeof(p_subject_ref->'listing'->'security_id') not in ('string','null')
@@ -180,19 +194,40 @@ begin
        or length(coalesce(btrim(p_subject_ref->'listing'->>'security_id', ' '), '')) > 256
        or (p_subject_ref->'listing'->>'symbol') ~ '[[:cntrl:]]'
        or coalesce((p_subject_ref->'listing'->>'mic') ~ '[[:cntrl:]]', false)
-       or coalesce((p_subject_ref->'listing'->>'security_id') ~ '[[:cntrl:]]', false)
-     ))
-     or (p_subject_ref ? 'company_id' and jsonb_typeof(p_subject_ref->'company_id') not in ('string','null'))
-     or length(coalesce(btrim(p_subject_ref->>'company_id', ' '), '')) > 256
-     or coalesce((p_subject_ref->>'company_id') ~ '[[:cntrl:]]', false)
-     or (p_subject_ref->>'identity_state' = 'listing_scoped' and (
-       not (p_subject_ref ? 'listing')
-       or p_subject_ref->>'owner' <> 'terminal.analysis_symbol'
-       or p_subject_ref->>'kind' <> 'issuer'
-       or jsonb_typeof(p_subject_ref->'listing') <> 'object'
-       or length(btrim(p_subject_ref->'listing'->>'symbol', ' ')) not between 1 and 24
-     ))
-     or (p_subject_ref->>'kind' = 'theme' and p_subject_ref ? 'listing') then
+       or coalesce((p_subject_ref->'listing'->>'security_id') ~ '[[:cntrl:]]', false) then
+      status := 'invalid_transition';
+      return next;
+      return;
+    end if;
+  end if;
+
+  if p_subject_ref->>'owner' = 'terminal.analysis_symbol' and (
+       p_subject_ref->>'identity_state' <> 'listing_scoped'
+       or not (p_subject_ref ? 'listing')
+     ) then
+    status := 'invalid_transition';
+    return next;
+    return;
+  end if;
+
+  if p_subject_ref->>'owner' = 'terminal.analysis_symbol' and (
+       length(upper(btrim(p_subject_ref->>'key', ' '))) not between 1 and 24
+       or upper(btrim(p_subject_ref->>'key', ' ')) !~ '^(\^[A-Z0-9]+|[A-Z0-9]+([.-][A-Z0-9]+)*)$'
+       or upper(btrim(p_subject_ref->>'key', ' ')) <> upper(btrim(p_subject_ref->'listing'->>'symbol', ' '))
+     ) then
+    status := 'invalid_transition';
+    return next;
+    return;
+  end if;
+
+  if p_subject_ref->>'owner' <> 'terminal.analysis_symbol'
+     and p_subject_ref->>'identity_state' <> 'resolved' then
+    status := 'invalid_transition';
+    return next;
+    return;
+  end if;
+
+  if p_subject_ref->>'kind' = 'theme' and p_subject_ref ? 'listing' then
     status := 'invalid_transition';
     return next;
     return;
@@ -205,7 +240,10 @@ begin
     'schema', p_subject_ref->>'schema',
     'kind', p_subject_ref->>'kind',
     'owner', p_subject_ref->>'owner',
-    'key', btrim(p_subject_ref->>'key', ' '),
+    'key', case when p_subject_ref->>'owner' = 'terminal.analysis_symbol'
+      then upper(btrim(p_subject_ref->>'key', ' '))
+      else btrim(p_subject_ref->>'key', ' ')
+    end,
     'identity_state', p_subject_ref->>'identity_state',
     'company_id', nullif(btrim(p_subject_ref->>'company_id', ' '), ''),
     'display', btrim(p_subject_ref->>'display', ' ')
@@ -220,9 +258,13 @@ begin
 
   -- Complete version snapshots only. No conviction/score/rank/model fields can pass the exact-key
   -- fence, and every list item is independently bounded before it reaches the immutable ledger.
-  if p_content is null
-     or jsonb_typeof(p_content) <> 'object'
-     or not (p_content ?& array[
+  if p_content is null or jsonb_typeof(p_content) <> 'object' then
+    status := 'invalid_transition';
+    return next;
+    return;
+  end if;
+
+  if not (p_content ?& array[
        'schema','title','statement','catalysts','falsifiers','risks','horizon','effective_at','revision_note'
      ])
      or exists (
@@ -235,9 +277,6 @@ begin
      or p_content->>'schema' <> 'mastermind.thesis-content/v1'
      or jsonb_typeof(p_content->'title') <> 'string'
      or jsonb_typeof(p_content->'statement') <> 'string'
-     or jsonb_typeof(p_content->'catalysts') <> 'array'
-     or jsonb_typeof(p_content->'falsifiers') <> 'array'
-     or jsonb_typeof(p_content->'risks') <> 'array'
      or jsonb_typeof(p_content->'horizon') <> 'string'
      or jsonb_typeof(p_content->'effective_at') not in ('string','null')
      or jsonb_typeof(p_content->'revision_note') not in ('string','null')
@@ -245,8 +284,21 @@ begin
      or length(btrim(p_content->>'title', ' ')) not between 1 and 160
      or length(btrim(replace(replace(p_content->>'statement', E'\r\n', E'\n'), E'\r', E'\n'), ' ')) not between 1 and 12000
      or (p_content->>'title') ~ '[[:cntrl:]]'
-     or regexp_replace(p_content->>'statement', E'[\n\r\t]', '', 'g') ~ '[[:cntrl:]]'
-     or jsonb_array_length(p_content->'catalysts') > 20
+     or regexp_replace(p_content->>'statement', E'[\n\r\t]', '', 'g') ~ '[[:cntrl:]]' then
+    status := 'invalid_transition';
+    return next;
+    return;
+  end if;
+
+  if jsonb_typeof(p_content->'catalysts') <> 'array'
+     or jsonb_typeof(p_content->'falsifiers') <> 'array'
+     or jsonb_typeof(p_content->'risks') <> 'array' then
+    status := 'invalid_transition';
+    return next;
+    return;
+  end if;
+
+  if jsonb_array_length(p_content->'catalysts') > 20
      or jsonb_array_length(p_content->'falsifiers') > 20
      or jsonb_array_length(p_content->'risks') > 20
      or exists (
@@ -287,7 +339,10 @@ begin
       return;
     end if;
     if (p_content->>'effective_at')::timestamptz is distinct from p_effective_at
-       or p_effective_at in ('infinity'::timestamptz, '-infinity'::timestamptz) then
+       or p_effective_at in ('infinity'::timestamptz, '-infinity'::timestamptz)
+       or ((p_content->>'effective_at') is not null and to_char(
+         p_effective_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'
+       ) is distinct from (p_content->>'effective_at')) then
       status := 'invalid_transition';
       return next;
       return;

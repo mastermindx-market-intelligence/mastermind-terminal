@@ -54,7 +54,7 @@ describe("0011 thesis persistence contract", () => {
 
   it("revalidates nested shape and forbidden controls inside the definer boundary", () => {
     expect(flat).toContain("jsonb_object_keys(p_subject_ref->'listing')");
-    expect(flat).toMatch(/identity_state' = 'listing_scoped'[\s\S]*not \(p_subject_ref \? 'listing'\)/);
+    expect(flat).toMatch(/owner' = 'terminal\.analysis_symbol'[\s\S]*identity_state' <> 'listing_scoped'[\s\S]*not \(p_subject_ref \? 'listing'\)/);
     expect(flat).toMatch(/listing'->>'mic'[\s\S]*\[\[:cntrl:\]\]/);
     expect(flat).toMatch(/listing'->>'security_id'[\s\S]*\[\[:cntrl:\]\]/);
     expect(flat).toMatch(/subject_ref->>'company_id'[\s\S]*\[\[:cntrl:\]\]/);
@@ -64,7 +64,7 @@ describe("0011 thesis persistence contract", () => {
     expect(flat).toContain("regexp_replace");
     expect(flat).toMatch(/owner' = 'macro\.theme_registry'[\s\S]*kind' <> 'theme'/);
     expect(flat).toContain("v_subject_ref := jsonb_build_object");
-    expect(flat).toContain("'key', btrim(p_subject_ref->>'key', ' ')");
+    expect(flat).toContain("'key', case when p_subject_ref->>'owner' = 'terminal.analysis_symbol'");
     expect(flat).toContain("'display', btrim(p_subject_ref->>'display', ' ')");
     expect(flat).toMatch(/p_subject_ref \? 'listing'[\s\S]*length\(btrim\(p_subject_ref->'listing'->>'symbol', ' '\)\) not between 1 and 24/);
     expect(flat).toContain("!~ '^(\\^[a-z0-9]+|[a-z0-9]+([.-][a-z0-9]+)*)$'");
@@ -76,5 +76,33 @@ describe("0011 thesis persistence contract", () => {
     expect(flat).not.toMatch(/v_subject_ref,\s*p_content,\s*p_client_request_id/);
     expect(flat).toContain("replace(replace(p_content->>'statement', e'\\r\\n', e'\\n'), e'\\r', e'\\n')");
     expect(flat).toContain("^[0-9]{4}-[0-9]{2}-[0-9]{2}t[0-9]{2}:[0-9]{2}:[0-9]{2}[.][0-9]{3}z$");
+    expect(flat).toMatch(/to_char\(\s*p_effective_at at time zone 'utc', 'yyyy-mm-dd"t"hh24:mi:ss\.ms"z"'\s*\)/);
+  });
+
+  it("stages JSON type guards before object and array operators", () => {
+    const subjectRootGuard = flat.indexOf("if p_subject_ref is null or jsonb_typeof(p_subject_ref) <> 'object' then");
+    const subjectKeys = flat.indexOf("jsonb_object_keys(p_subject_ref)");
+    const listingGuard = flat.indexOf("if jsonb_typeof(p_subject_ref->'listing') <> 'object' then");
+    const listingKeys = flat.indexOf("jsonb_object_keys(p_subject_ref->'listing')");
+    const contentRootGuard = flat.indexOf("if p_content is null or jsonb_typeof(p_content) <> 'object' then");
+    const contentKeys = flat.indexOf("jsonb_object_keys(p_content)");
+    const contentArrayGuard = flat.indexOf("if jsonb_typeof(p_content->'catalysts') <> 'array'");
+    const contentArrayLength = flat.indexOf("jsonb_array_length(p_content->'catalysts')");
+
+    expect(subjectRootGuard).toBeGreaterThan(-1);
+    expect(subjectRootGuard).toBeLessThan(subjectKeys);
+    expect(listingGuard).toBeGreaterThan(subjectKeys);
+    expect(listingGuard).toBeLessThan(listingKeys);
+    expect(contentRootGuard).toBeGreaterThan(-1);
+    expect(contentRootGuard).toBeLessThan(contentKeys);
+    expect(contentArrayGuard).toBeGreaterThan(contentKeys);
+    expect(contentArrayGuard).toBeLessThan(contentArrayLength);
+  });
+
+  it("requires Terminal subjects to be listing-scoped and keyed by their canonical symbol", () => {
+    expect(flat).toContain("p_subject_ref->>'owner' = 'terminal.analysis_symbol' and (");
+    expect(flat).toContain("p_subject_ref->>'identity_state' <> 'listing_scoped'");
+    expect(flat).toContain("upper(btrim(p_subject_ref->>'key', ' ')) <> upper(btrim(p_subject_ref->'listing'->>'symbol', ' '))");
+    expect(flat).toContain("'key', case when p_subject_ref->>'owner' = 'terminal.analysis_symbol'");
   });
 });

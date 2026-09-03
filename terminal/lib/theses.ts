@@ -136,18 +136,24 @@ function record(value: unknown): Record<string, unknown> | null {
     : null;
 }
 
+function canonicalText(value: string): string {
+  return value.replace(/\r\n?/g, "\n").replace(/^ +| +$/g, "");
+}
+
 function boundedText(value: unknown, max: number, required: boolean): string | null {
   if (value === null && !required) return null;
   if (typeof value !== "string") return null;
   // This is deliberately PostgreSQL btrim(text, ' '), not ECMAScript trim(). Keeping the
   // character set explicit makes direct-RPC and application canonicalization byte-identical.
-  const normalized = value.replace(/\r\n?/g, "\n").replace(/^ +| +$/g, "");
+  const normalized = canonicalText(value);
   if ((required && !normalized) || [...normalized].length > max || CONTROL_EXCEPT_BREAKS.test(normalized)) return null;
   return normalized || null;
 }
 
 function nullableBoundedText(value: unknown, max: number): { ok: boolean; value: string | null } {
   if (value === null || value === "") return { ok: true, value: null };
+  if (typeof value !== "string") return { ok: false, value: null };
+  if (!canonicalText(value)) return { ok: true, value: null };
   const normalized = boundedText(value, max, false);
   return normalized === null ? { ok: false, value: null } : { ok: true, value: normalized };
 }
@@ -157,8 +163,14 @@ function boundedSingleLineText(value: unknown, max: number, required: boolean): 
   return normalized === null || CONTROL_ALL.test(normalized) ? null : normalized;
 }
 
+export function normalizeThesisSubjectKey(value: unknown): string | null {
+  return boundedSingleLineText(value, 256, true);
+}
+
 function nullableSingleLineText(value: unknown, max: number): { ok: boolean; value: string | null } {
   if (value === null || value === "") return { ok: true, value: null };
+  if (typeof value !== "string") return { ok: false, value: null };
+  if (!canonicalText(value)) return { ok: true, value: null };
   const normalized = boundedSingleLineText(value, max, false);
   return normalized === null ? { ok: false, value: null } : { ok: true, value: normalized };
 }
@@ -193,7 +205,7 @@ export function normalizeThesisSubject(value: unknown): ThesisSubjectRef | null 
   if ((raw.owner === "macro.theme_registry" && raw.kind !== "theme")
     || (raw.owner !== "macro.theme_registry" && raw.kind !== "issuer")) return null;
   if (raw.identityState !== "resolved" && raw.identityState !== "listing_scoped") return null;
-  const key = boundedSingleLineText(raw.key, 256, true);
+  let key = normalizeThesisSubjectKey(raw.key);
   const display = boundedSingleLineText(raw.display, 256, true);
   if (!key || !display) return null;
 
@@ -208,7 +220,15 @@ export function normalizeThesisSubject(value: unknown): ThesisSubjectRef | null 
     if (!canonicalSymbol || canonicalSymbol.length > 24 || !ANALYSIS_SYMBOL.test(canonicalSymbol) || !mic.ok || !securityId.ok) return null;
     listing = { symbol: canonicalSymbol, mic: mic.value, securityId: securityId.value };
   }
-  if (raw.identityState === "listing_scoped" && (!listing || raw.owner !== "terminal.analysis_symbol")) return null;
+  if (raw.owner === "terminal.analysis_symbol") {
+    const canonicalKey = key.toUpperCase();
+    if (raw.identityState !== "listing_scoped" || !listing
+      || canonicalKey.length > 24 || !ANALYSIS_SYMBOL.test(canonicalKey)
+      || canonicalKey !== listing.symbol) return null;
+    key = listing.symbol;
+  } else if (raw.identityState === "listing_scoped") {
+    return null;
+  }
   if (raw.kind === "theme" && listing) return null;
   const company = nullableSingleLineText(raw.companyId ?? null, 256);
   if (!company.ok) return null;

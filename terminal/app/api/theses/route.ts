@@ -12,6 +12,7 @@ import {
   applyThesisVersion,
   isUuid,
   listTheses,
+  normalizeThesisSubjectKey,
   readThesis,
   type ThesisAction,
   type ThesisDb,
@@ -64,18 +65,18 @@ export async function GET(request: Request) {
   const hasFilter = owner.length + kind.length + key.length > 0;
   let filter: ThesisSubjectFilter | undefined;
   if (hasFilter) {
+    const normalizedKey = key.length === 1 ? normalizeThesisSubjectKey(key[0]) : null;
     const valid = owner.length === 1 && kind.length === 1 && key.length === 1
       && SUBJECT_OWNERS.has(owner[0] as ThesisSubjectFilter["owner"])
       && (kind[0] === "issuer" || kind[0] === "theme")
       && ((owner[0] === "macro.theme_registry" && kind[0] === "theme")
         || (owner[0] !== "macro.theme_registry" && kind[0] === "issuer"))
-      && !!key[0].trim() && key[0].trim().length <= 256
-      && !/[\u0000-\u001f\u007f]/.test(key[0]);
-    if (!valid) return jsonError("invalid_subject_filter", 400);
+      && normalizedKey !== null;
+    if (!valid || normalizedKey === null) return jsonError("invalid_subject_filter", 400);
     filter = {
       owner: owner[0] as ThesisSubjectFilter["owner"],
       kind: kind[0] as ThesisSubjectFilter["kind"],
-      key: key[0].trim(),
+      key: normalizedKey,
     };
   }
   const result = await listTheses(session.db, session.userId, 200, filter);

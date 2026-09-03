@@ -4,6 +4,7 @@ import {
   listTheses,
   normalizeThesisContent,
   normalizeThesisSubject,
+  normalizeThesisSubjectKey,
   readThesis,
   type ThesisContent,
   type ThesisDb,
@@ -375,27 +376,53 @@ describe("closed thesis payloads", () => {
     expect(normalizeThesisSubject({ ...subject, listing: { ...subject.listing!, surprise: true } })).toBeNull();
     expect(normalizeThesisSubject({ ...subject, listing: { ...subject.listing!, mic: "XN\nAS" } })).toBeNull();
     expect(normalizeThesisSubject({ ...subject, companyId: "company\talias" })).toBeNull();
+    expect(normalizeThesisSubject({ ...subject, key: "AAPL" })).toBeNull();
+    expect(normalizeThesisSubject({ ...subject, identityState: "resolved" })).toBeNull();
+    expect(normalizeThesisSubject({
+      ...subject,
+      owner: "data_os.security_master",
+      identityState: "resolved",
+    })).toMatchObject({ owner: "data_os.security_master", identityState: "resolved" });
   });
 
   it("uses the database's explicit space/line-ending contract and canonical UTC timestamps", () => {
     const nbsp = "\u00a0";
     expect(normalizeThesisSubject({
       ...subject,
+      owner: "data_os.security_master",
       key: ` ${nbsp}NVDA${nbsp} `,
+      identityState: "resolved",
+      listing: undefined,
       display: ` ${nbsp}NVIDIA${nbsp} `,
     })).toMatchObject({ key: `${nbsp}NVDA${nbsp}`, display: `${nbsp}NVIDIA${nbsp}` });
+    expect(normalizeThesisSubject({
+      ...subject,
+      listing: { ...subject.listing!, mic: "   ", securityId: "   " },
+      companyId: "   ",
+    })).toMatchObject({ listing: { mic: null, securityId: null }, companyId: null });
     expect(normalizeThesisContent({
       ...content(` Line one\r\nLine two `),
       title: ` ${nbsp}Title${nbsp} `,
       effectiveAt: "2026-09-03T12:34:56.789Z",
+      revisionNote: "   ",
     })).toMatchObject({
       title: `${nbsp}Title${nbsp}`,
       statement: "Line one\nLine two",
       effectiveAt: "2026-09-03T12:34:56.789Z",
+      revisionNote: null,
     });
     expect(normalizeThesisContent({
       ...content("valid"),
       effectiveAt: "2026-09-03 12:34:56+00",
     })).toBeNull();
+    expect(normalizeThesisContent({ ...content("valid"), effectiveAt: "2026-09-03T12:34:60.000Z" })).toBeNull();
+  });
+
+  it("exports the exact U+0020 and Unicode-code-point subject-key contract for filters", () => {
+    const nbsp = "\u00a0";
+    expect(normalizeThesisSubjectKey(` ${nbsp}opaque${nbsp} `)).toBe(`${nbsp}opaque${nbsp}`);
+    expect(normalizeThesisSubjectKey("😀".repeat(256))).toBe("😀".repeat(256));
+    expect(normalizeThesisSubjectKey("😀".repeat(257))).toBeNull();
+    expect(normalizeThesisSubjectKey("bad\nkey")).toBeNull();
   });
 });

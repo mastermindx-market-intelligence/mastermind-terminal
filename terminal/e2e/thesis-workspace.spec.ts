@@ -69,6 +69,7 @@ test("create → deep link → reload → revise → conflict → archive/invali
   await expect(stale.getByTestId("thesis-conflict")).toContainText("newer version");
   await expect(stale.getByTestId("thesis-conflict")).toContainText("Version 3");
   await expect(stale.getByLabel("Thesis statement")).toHaveValue(preserved);
+  await stale.getByTestId("thesis-conflict").evaluate((element) => element.scrollIntoView({ block: "start" }));
   await stale.screenshot({ path: path.join(proofDir, `${testInfo.project.name}-conflict.png`), fullPage: true });
   await stale.close();
 
@@ -98,6 +99,7 @@ test("create → deep link → reload → revise → conflict → archive/invali
     await page.getByRole("button", { name: /NVDA operating leverage/ }).click();
     await expect(page).toHaveURL(new RegExp(`thesis=${thesisId}`));
     await expect(editor).toBeVisible();
+    await expect(page.getByText("Version 7 · Current")).toBeVisible();
   } else {
     const [railBox, editorBox] = await Promise.all([rail.boundingBox(), editor.boundingBox()]);
     expect(railBox).not.toBeNull();
@@ -112,6 +114,7 @@ test("create → deep link → reload → revise → conflict → archive/invali
   expect(overflow.root).toBeLessThanOrEqual(1);
   expect(overflow.document).toBeLessThanOrEqual(1);
 
+  await page.locator("[aria-label='Version history']").evaluate((element) => element.scrollIntoView({ block: "start" }));
   await page.screenshot({ path: path.join(proofDir, `${testInfo.project.name}-lineage.png`), fullPage: true });
   expect(browserErrors).toEqual([]);
 });
@@ -261,9 +264,15 @@ test("an ambiguous accepted write locks New, list selection, and mobile Back unt
 
   await expect.poll(() => page.evaluate(() => Object.keys(sessionStorage).some((key) => key.startsWith("mm.thesis.pending.v1:"))))
     .toBe(true);
+  await page.goto("/analysis?view=theses");
   await page.reload();
   await expect(page.getByText("response was interrupted")).toBeVisible();
   await expect(page.getByRole("button", { name: "New thesis" })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Retry same request" })).toBeVisible();
+  if (testInfo.project.name === "mobile") {
+    await expect(page.getByTestId("thesis-detail-pane")).toBeVisible();
+    await expect(page.getByTestId("thesis-list-pane")).toBeHidden();
+  }
 
   await page.getByRole("button", { name: "Retry same request" }).click();
   await expect(page.getByText("Version 1 · Current")).toBeVisible();
@@ -271,6 +280,32 @@ test("an ambiguous accepted write locks New, list selection, and mobile Back unt
   expect(requests[0]).toEqual(requests[1]);
   await expect(page.locator("[aria-label='Version history'] article")).toHaveCount(1);
   await expect(page.getByRole("button", { name: "New thesis" })).toBeEnabled();
+});
+
+test("browser storage refusal preserves the draft and sends no mutation", async ({ page, baseURL }, testInfo) => {
+  await prepare(page, testInfo, baseURL);
+  await page.addInitScript(() => {
+    const original = Storage.prototype.setItem;
+    Storage.prototype.setItem = function setItem(key: string, value: string) {
+      if (this === window.sessionStorage && key.startsWith("mm.thesis.pending.v1:")) {
+        throw new DOMException("storage denied", "SecurityError");
+      }
+      return original.call(this, key, value);
+    };
+  });
+  const mutations: Array<Record<string, unknown>> = [];
+  page.on("request", (request) => {
+    if (request.method() === "POST" && request.url().includes("/api/theses")) {
+      mutations.push(request.postDataJSON());
+    }
+  });
+
+  await page.goto("/analysis?view=theses&symbol=NVDA");
+  await fillNew(page);
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(page.getByText("browser could not safely preserve the request")).toBeVisible();
+  await expect(page.getByLabel("Thesis statement")).toHaveValue("Demand will outrun supply through the next platform cycle.");
+  expect(mutations).toEqual([]);
 });
 
 test("an unreadable accepted response retains the exact create carrier", async ({ page, baseURL }, testInfo) => {

@@ -122,6 +122,34 @@ describe("GET /api/theses", () => {
     }
   });
 
+  it("filters with the canonical U+0020 boundary and Unicode code-point length", async () => {
+    const nbsp = "\u00a0";
+    const opaque = `${nbsp}issuer-key${nbsp}`;
+    const made = await post({
+      action: "create",
+      clientRequestId: "61000000-0000-4000-8000-000000000001",
+      subject: {
+        ...subject,
+        owner: "data_os.security_master",
+        key: ` ${opaque} `,
+        identityState: "resolved",
+        listing: undefined,
+        display: "Opaque issuer",
+      },
+      content: content(),
+    });
+    expect(made.status).toBe(201);
+
+    const matched = await GET(new Request(`https://x.test/api/theses?subjectOwner=data_os.security_master&subjectKind=issuer&subjectKey=${encodeURIComponent(` ${opaque} `)}`));
+    expect(matched.status).toBe(200);
+    expect((await matched.json()).theses).toHaveLength(1);
+
+    const maxCodePoints = await GET(new Request(`https://x.test/api/theses?subjectOwner=data_os.security_master&subjectKind=issuer&subjectKey=${encodeURIComponent("😀".repeat(256))}`));
+    expect(maxCodePoints.status).toBe(200);
+    const tooManyCodePoints = await GET(new Request(`https://x.test/api/theses?subjectOwner=data_os.security_master&subjectKind=issuer&subjectKey=${encodeURIComponent("😀".repeat(257))}`));
+    expect(tooManyCodePoints.status).toBe(400);
+  });
+
   it("uses one response for foreign and missing IDs and refuses malformed IDs", async () => {
     const made = await create();
     const { thesisId } = await made.json();
