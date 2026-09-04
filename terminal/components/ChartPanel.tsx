@@ -472,6 +472,20 @@ const SUBPANE_ORDER = ["rsi", "stochrsi", "macd", "rsistack", "accum", "rvol", "
 // Bases that carry a fresher-than-EOD price we can splice onto the last daily bar.
 const SPLICE_BASES = new Set(["REALTIME", "LIVE", "DELAYED_15M"]);
 
+type PriceScaleOwnerReader = {
+  options: () => { priceScaleId?: string };
+};
+
+/** The readiness owner is the live LWC series, not merely the requested React setting. */
+export function isRequestedPriceScaleApplied(
+  settings: Partial<ChartSettings>,
+  series: PriceScaleOwnerReader | null,
+): boolean {
+  if (!series) return false;
+  const requested = settings.scaleLeft ? "left" : "right";
+  try { return series.options().priceScaleId === requested; } catch { return false; }
+}
+
 export default function ChartPanel({ symbol, chartType = "candles", indicators, timeframe = "D", replayIdx = null, onMeta, tool = null, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, drawings = [], onDrawingsChange, detectCmd = null, magnet = "off", compare = [], compareCfg = EMPTY_OBJ, isActive = true, syncId = null, liveQuote = null,
   indParams = EMPTY_OBJ, hidden = EMPTY_SET, onToggleHidden, onRemoveInd, onOpenSettings, onOpenSource, pineScripts = EMPTY_PINE, chartSettings, onChartApi, extHours = false,
   instrumentName, instrumentMarket, instrumentColor, onAddAlert, onTableView, onObjectTree, onOpenSettingsModal, lockedVLine = null, onSetLockedVLine, onIndRowsAt, dayMode = false, onPaneCount, companyName = "", userTier = "free", dataReady = true, initialTimeframe = null }:
@@ -1079,7 +1093,12 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   const addPriceSeries = (chart: IChartApi, t: Tokens) => {
     const pf = priceFmt();
     const settings = chartSettingsRef.current;
-    const common = { priceFormat: pf, lastValueVisible: false, priceLineVisible: settings.priceLineVisible !== false };
+    const common = {
+      priceFormat: pf,
+      priceScaleId: chartSettingsRef.current.scaleLeft ? "left" : "right",
+      lastValueVisible: false,
+      priceLineVisible: settings.priceLineVisible !== false,
+    };
     if (chartTypeRef.current === "line") return chart.addSeries(LineSeries, { ...common, color: t.brand2, lineWidth: 2 }, 0);
     if (chartTypeRef.current === "line-markers") return chart.addSeries(LineSeries, { ...common, color: t.brand2, lineWidth: 2, pointMarkersVisible: true, pointMarkersRadius: 2.5 }, 0);
     if (chartTypeRef.current === "step") return chart.addSeries(LineSeries, { ...common, color: t.brand2, lineWidth: 2, lineType: LineType.WithSteps }, 0);
@@ -7418,13 +7437,15 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         timeframe: effectiveTimeframe,
         generation: epoch,
         isCurrent: () => !cancelled && epochRef.current === epoch,
-        ...(state === "data" ? {
-          isReady: () => isTerminalIndicatorSetBuilt(
+        isReady: () => state === "empty"
+          ? dataReadyRef.current
+          : isTerminalIndicatorSetBuilt(
             dataReadyRef.current,
             epoch,
             indicatorSetKey(indicatorsRef.current),
             builtIndicatorRef.current,
-          ),
+          ) && isRequestedPriceScaleApplied(chartSettingsRef.current, priceSeriesRef.current),
+        ...(state === "data" ? {
           // LWC's setData/build calls update its model synchronously, but the first coordinate map is
           // established by its next canvas frame. Re-project the dependent SVG/DOM layers in that
           // frame, then terminalBoot releases consumers only on the following frame.
@@ -8402,6 +8423,9 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       if (barsRef.current.length) paintStatus(barsRef.current, sliceRef.current);
       applyExtendedPriceLine();
     } catch {}
+    // A pending fast-data generation may have reached this effect with the persisted owner still
+    // fenced. Re-evaluate only after the live series has accepted the requested scale identity.
+    visualReadyRef.current?.reevaluate();
     // eslint-disable-next-line
   }, [JSON.stringify(chartSettings)]);
 
