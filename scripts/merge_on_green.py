@@ -5,15 +5,15 @@ Terminal protects master with the same three required checks and supports native
 auto-merge as the fastest server-side path. This controller is the fallback for a
 ready pull request that was labelled but never natively armed. It only considers
 same-repository, non-draft pull requests carrying the
-``merge-on-green`` label; requires the latest instance of all three CI jobs to have
-completed successfully; refreshes a stale branch onto current master before merge;
-and pins the squash merge to the head SHA it evaluated.
+``merge-on-green`` label; requires the latest trusted instance of all three CI jobs
+to have completed successfully; refreshes a stale branch onto current master before
+merge; and pins the squash merge to the head SHA it evaluated.
 
 The controller is deliberately label-gated. ``hold`` and ``do-not-merge`` are hard
-vetoes. A genuine red or conflict is labelled ``merge-blocked`` with one comment;
-pending or missing evidence simply waits. One sweep may merge a green pull request
-and then update the next stale one, but it never merges two pull requests against the
-same base snapshot.
+vetoes. A genuine trusted red or conflict is labelled ``merge-blocked`` with one
+comment; pending, missing, or wrong-App evidence simply waits. One sweep may merge
+a green pull request and then update the next stale one, but it never merges two
+pull requests against the same base snapshot.
 """
 from __future__ import annotations
 
@@ -35,6 +35,10 @@ REQUIRED_CHECKS = (
     "Terminal typecheck + tests",
     "Ingest + signal-layer tests",
 )
+# Native master protection binds every required context to the GitHub Actions App.
+# The fallback must mirror that authority rather than accepting same-named checks
+# from another App.
+REQUIRED_CHECK_APP_ID = 15368
 BLOCK_MARKER = "<!-- mastermind-terminal-merge-sweeper -->"
 
 
@@ -157,11 +161,22 @@ def label_names(pull: dict[str, Any]) -> set[str]:
     return {str(label.get("name", "")) for label in pull.get("labels", [])}
 
 
+def trusted_check_app_id(run: dict[str, Any]) -> int | None:
+    app = run.get("app")
+    if not isinstance(app, dict):
+        return None
+    app_id = app.get("id")
+    # bool is an int subclass, so require the exact response type GitHub emits.
+    return app_id if type(app_id) is int else None
+
+
 def latest_named_checks(check_runs: Iterable[dict[str, Any]]) -> dict[str, dict[str, Any]]:
     latest: dict[str, dict[str, Any]] = {}
     for run in check_runs:
         name = str(run.get("name", ""))
         if name not in REQUIRED_CHECKS:
+            continue
+        if trusted_check_app_id(run) != REQUIRED_CHECK_APP_ID:
             continue
         prior = latest.get(name)
         if prior is None or int(run.get("id", 0)) > int(prior.get("id", 0)):
@@ -173,7 +188,10 @@ def check_verdict(check_runs: Iterable[dict[str, Any]]) -> CheckVerdict:
     latest = latest_named_checks(check_runs)
     missing = [name for name in REQUIRED_CHECKS if name not in latest]
     if missing:
-        return CheckVerdict("pending", f"missing: {', '.join(missing)}")
+        return CheckVerdict(
+            "pending",
+            f"missing trusted App {REQUIRED_CHECK_APP_ID} checks: {', '.join(missing)}",
+        )
 
     waiting = [name for name, run in latest.items() if run.get("status") != "completed"]
     if waiting:

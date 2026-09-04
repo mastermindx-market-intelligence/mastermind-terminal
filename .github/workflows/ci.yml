@@ -7,6 +7,11 @@ on:
   # this same proof explicitly on the refreshed branch.
   workflow_dispatch:
 
+# Candidate code receives only the repository read authority needed by checkout.
+# Privileged merge reconciliation remains isolated in merge-on-green.yml.
+permissions:
+  contents: read
+
 # A newer head makes every queued/running proof for the older head unusable. Drop
 # it immediately instead of spending the account-wide hosted-runner quota on a
 # SHA that can no longer merge.

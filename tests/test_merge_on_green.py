@@ -1,21 +1,39 @@
 from __future__ import annotations
 
+import re
 from copy import deepcopy
+from pathlib import Path
 
 from scripts.merge_on_green import (
     ARM_LABEL,
     BLOCK_LABEL,
+    REQUIRED_CHECK_APP_ID,
     REQUIRED_CHECKS,
     check_verdict,
     sweep,
 )
 
 
-def checks(*, conclusion: str = "success", status: str = "completed", start_id: int = 10):
-    return [
-        {"id": start_id + index, "name": name, "status": status, "conclusion": conclusion}
-        for index, name in enumerate(REQUIRED_CHECKS)
-    ]
+def checks(
+    *,
+    conclusion: str = "success",
+    status: str = "completed",
+    start_id: int = 10,
+    app_id: int | str | bool | None = REQUIRED_CHECK_APP_ID,
+    include_app: bool = True,
+):
+    result = []
+    for index, name in enumerate(REQUIRED_CHECKS):
+        run = {
+            "id": start_id + index,
+            "name": name,
+            "status": status,
+            "conclusion": conclusion,
+        }
+        if include_app:
+            run["app"] = {"id": app_id}
+        result.append(run)
+    return result
 
 
 def pull(number: int = 7, *, labels=None, mergeable=True, draft=False, fork=False):
@@ -91,12 +109,15 @@ class FakeApi:
 
 def test_latest_rerun_wins_over_an_older_green_check():
     runs = checks()
-    runs.append({
-        "id": 999,
-        "name": REQUIRED_CHECKS[0],
-        "status": "queued",
-        "conclusion": None,
-    })
+    runs.append(
+        {
+            "id": 999,
+            "name": REQUIRED_CHECKS[0],
+            "status": "queued",
+            "conclusion": None,
+            "app": {"id": REQUIRED_CHECK_APP_ID},
+        }
+    )
     verdict = check_verdict(runs)
     assert verdict.state == "pending"
     assert REQUIRED_CHECKS[0] in verdict.detail
@@ -108,12 +129,143 @@ def test_missing_check_is_pending_not_a_pass():
     assert REQUIRED_CHECKS[-1] in verdict.detail
 
 
+def test_wrong_app_cannot_satisfy_required_checks():
+    verdict = check_verdict(checks(app_id=999999))
+    assert verdict.state == "pending"
+    assert f"trusted App {REQUIRED_CHECK_APP_ID}" in verdict.detail
+    assert all(name in verdict.detail for name in REQUIRED_CHECKS)
+
+
+def test_missing_or_malformed_app_metadata_cannot_satisfy_required_checks():
+    runs = checks()
+    runs[0].pop("app")
+    runs[1]["app"] = {"id": "not-an-integer"}
+    runs[2]["app"] = {"id": True}
+
+    verdict = check_verdict(runs)
+
+    assert verdict.state == "pending"
+    assert f"trusted App {REQUIRED_CHECK_APP_ID}" in verdict.detail
+    assert all(name in verdict.detail for name in REQUIRED_CHECKS)
+
+
+def test_later_wrong_app_duplicate_does_not_erase_trusted_green():
+    runs = checks()
+    runs.append(
+        {
+            "id": 999,
+            "name": REQUIRED_CHECKS[0],
+            "status": "completed",
+            "conclusion": "failure",
+            "app": {"id": 999999},
+        }
+    )
+
+    verdict = check_verdict(runs)
+
+    assert verdict.state == "green"
+
+
+def test_newer_wrong_app_duplicate_does_not_erase_trusted_red():
+    runs = checks()
+    runs[0]["conclusion"] = "failure"
+    runs.append(
+        {
+            "id": 999,
+            "name": REQUIRED_CHECKS[0],
+            "status": "completed",
+            "conclusion": "success",
+            "app": {"id": 999999},
+        }
+    )
+
+    verdict = check_verdict(runs)
+
+    assert verdict.state == "red"
+    assert f"{REQUIRED_CHECKS[0]}=failure" in verdict.detail
+
+
+def test_newer_trusted_pending_supersedes_green_even_when_wrong_app_is_newest():
+    runs = checks()
+    runs.extend(
+        [
+            {
+                "id": 998,
+                "name": REQUIRED_CHECKS[0],
+                "status": "queued",
+                "conclusion": None,
+                "app": {"id": REQUIRED_CHECK_APP_ID},
+            },
+            {
+                "id": 999,
+                "name": REQUIRED_CHECKS[0],
+                "status": "completed",
+                "conclusion": "success",
+                "app": {"id": 999999},
+            },
+        ]
+    )
+
+    verdict = check_verdict(runs)
+
+    assert verdict.state == "pending"
+    assert REQUIRED_CHECKS[0] in verdict.detail
+
+
+JOB_LEVEL_PERMISSIONS = re.compile(r"(?m)^[ \t]+permissions:")
+
+
+def ci_workflow_text() -> str:
+    return (
+        Path(__file__).resolve().parents[1] / ".github" / "workflows" / "ci.yml"
+    ).read_text(encoding="utf-8")
+
+
+def test_candidate_ci_explicitly_pins_read_only_contents_permission():
+    workflow = ci_workflow_text()
+    pre_jobs, separator, _ = workflow.partition("\njobs:\n")
+
+    assert separator, "ci.yml must retain one top-level jobs mapping"
+    assert "\npermissions:\n  contents: read\n" in pre_jobs
+    assert workflow.count("\npermissions:\n") == 1
+    # That count only matches a column-0 key, so an indented job-level block is
+    # invisible to it. No candidate job may widen the top-level read-only grant.
+    assert JOB_LEVEL_PERMISSIONS.search(workflow) is None
+
+
+def test_job_level_permission_elevation_is_rejected_by_the_candidate_ci_guard():
+    # The guard must kill the forbidden mutation, not merely pass on today's file.
+    head, separator, jobs = ci_workflow_text().partition("\njobs:\n")
+    assert separator, "ci.yml must retain one top-level jobs mapping"
+    elevated = f"{head}{separator}  probe:\n    permissions:\n      contents: write\n{jobs}"
+
+    # The pre-existing column-0 count is blind to the elevation ...
+    assert elevated.count("\npermissions:\n") == 1
+    # ... the indent-aware guard is not.
+    assert JOB_LEVEL_PERMISSIONS.search(elevated) is not None
+
+
 def test_green_current_head_is_sha_pinned_merged_and_deleted():
     api = FakeApi([pull()])
     result = sweep(api)
     assert ("merge", 7, "head-7") in api.actions
     assert ("delete", "claude/pr-7") in api.actions
     assert result[0] == "#7: merged and deleted claude/pr-7"
+
+
+def test_wrong_app_green_never_reaches_merge_or_quarantine():
+    api = FakeApi([pull()], runs={"head-7": checks(app_id=999999)})
+
+    result = sweep(api)
+
+    assert result == [
+        f"#7: missing trusted App {REQUIRED_CHECK_APP_ID} checks: "
+        + ", ".join(REQUIRED_CHECKS)
+    ]
+    assert not any(action[0] == "merge" for action in api.actions)
+    assert not any(action[0] == "delete" for action in api.actions)
+    assert not any(action[0] == "add_labels" for action in api.actions)
+    assert not any(action[0] == "comment" for action in api.actions)
 
 
 def test_green_stale_head_is_updated_then_waits_for_fresh_ci():
