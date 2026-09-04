@@ -23,6 +23,29 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
+  // Every worker below shares ONE dev server process (`webServer`, not one per worker) — that
+  // server is the actual bottleneck, not the CPU count Playwright defaults to. Locally this
+  // config auto-detects up to a dozen workers and still passes because the machine has cores to
+  // spare; the CI runner does not, and every one of the specs that has recently gone red in CI
+  // (crosshair-price-label, drawing-system, indicator-snapshot, marker-tooltip, layout-integrity,
+  // watchlist-bulk-actions) reproduced 100% clean locally against this exact commit with no code
+  // change — the failures are timing budgets (an `expect.poll`, a `toBeVisible`, a toolbar
+  // remeasurement retry) losing a race against a saturated shared server, not a broken assertion.
+  // Capping CI concurrency trades wall-clock time for headroom on those budgets, the same trade
+  // #438 (bounded Playwright install) and #452 (route pre-warming) already made for this suite.
+  // ONE worker, not two: at 2 workers on the 2-vCPU hosted runner the suite livelocks rather
+  // than lags — run 33878617300 shows a click on a VISIBLE menu item unable to complete within
+  // a 90s test clock on both attempts (Playwright's actionability stability check never sees a
+  // quiet frame while the sibling worker mounts charts), so no finite budget fixes it. The job
+  // has no timeout-minutes (6h default) and the required check reports late but honestly.
+  workers: process.env.CI ? 1 : undefined,
+  // The same saturated-runner arithmetic applies to each test's own clock: several specs
+  // legitimately spend a 15-25s poll or two 20s visibility budgets before their last
+  // assertion, which cannot fit the 30s default once the shared server adds measured
+  // multi-second stalls (run 33873537063: every "flaky" retry-pass hit "Test timeout of
+  // 30000ms exceeded" mid-poll, not a poll's own budget). CI-only, like the worker cap;
+  // locally the default stands.
+  timeout: process.env.CI ? 60_000 : undefined,
   reporter: process.env.CI ? "github" : "list",
   use: {
     baseURL,
