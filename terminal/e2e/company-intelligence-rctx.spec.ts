@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 const SHA = "a".repeat(64);
+const BRAIN_SCRIPT_SRC = "https://www.mastermind-x.com/mm_brain.js";
 const METRICS = {
   sentiment: null, performance: null, confidence: null, combined: null,
   call_positivity: null, management_confidence: null, analyst_criticism: null,
@@ -94,19 +95,30 @@ const sourceSpan = {
   },
 };
 
-test("an exact source span is consumed by only the next Brain turn until explicitly re-attached", async ({ page }) => {
-  await page.addInitScript(() => {
-    const host = window as Window & {
-      MMBrain?: { open: () => void };
-      MM_BRAIN_CFG?: { symbol?: () => string; getCompanySourceSpan?: () => unknown };
-    };
-    host.MM_BRAIN_CFG = { symbol: () => "AAPL" };
-    host.MMBrain = {
-      open: () => {
-        document.documentElement.dataset.rctxOpened = "true";
-      },
-    };
-  });
+test("the real Analysis shell hosts one-turn exact source sends in the existing Brain", async ({ page }) => {
+  await page.route(BRAIN_SCRIPT_SRC, async (route) => route.fulfill({
+    contentType: "application/javascript",
+    body: `(() => {
+      const cfg = window.MM_BRAIN_CFG;
+      window.__MM_BRAIN_TEST_SENDS__ = [];
+      window.MMBrain = {
+        mounted: true,
+        open() {
+          document.documentElement.dataset.rctxOpenCount = String(
+            Number(document.documentElement.dataset.rctxOpenCount || "0") + 1
+          );
+        },
+        testSend() {
+          const source = typeof cfg?.getCompanySourceSpan === "function"
+            ? cfg.getCompanySourceSpan() ?? null
+            : null;
+          window.__MM_BRAIN_TEST_SENDS__.push(source);
+          return source;
+        },
+      };
+      document.documentElement.dataset.rctxHost = "mounted";
+    })();`,
+  }));
   await page.route("**/api/event-workspace/**", async (route) => route.fulfill({
     status: 404,
     json: { ok: false, state: "error", available: false, error: { code: "not_found", message: "No event workspace", retryable: false } },
@@ -136,6 +148,15 @@ test("an exact source span is consumed by only the next Brain turn until explici
   }));
 
   await page.goto("/analysis?symbol=NVDA&page=intelligence");
+  await expect.poll(() => page.locator(`script[src="${BRAIN_SCRIPT_SRC}"]`).count()).toBe(1);
+  await expect.poll(() => page.evaluate(() => document.documentElement.dataset.rctxHost)).toBe("mounted");
+  // Review repair 2b: a locator-based assertion (auto-retrying, no manual poll loop) right after
+  // the mounted settle, reinforcing the poll above.
+  await expect(page.locator(`script[src="${BRAIN_SCRIPT_SRC}"]`)).toHaveCount(1);
+  expect(await page.evaluate(() => {
+    const host = window as Window & { MMBrain?: { testSend?: () => unknown } };
+    return host.MMBrain?.testSend?.() ?? null;
+  })).toBeNull();
   await page.locator(".ci-lenses").getByRole("tab").nth(1).click();
   const search = page.locator(".ci-ts-search");
   await search.locator("input").fill("Exact source");
@@ -146,11 +167,11 @@ test("an exact source span is consumed by only the next Brain turn until explici
   const attachment = page.getByTestId("company-source-context-attachment");
   await expect(attachment).toContainText("Exact source attached");
   await attachment.getByRole("button", { name: "Ask Mastermind with source" }).click();
-  await expect.poll(() => page.evaluate(() => document.documentElement.dataset.rctxOpened)).toBe("true");
+  await expect.poll(() => page.evaluate(() => document.documentElement.dataset.rctxOpenCount)).toBe("1");
 
   const firstTurnSource = await page.evaluate(() => {
-    const host = window as Window & { MM_BRAIN_CFG?: { getCompanySourceSpan?: () => unknown } };
-    return host.MM_BRAIN_CFG?.getCompanySourceSpan?.() ?? null;
+    const host = window as Window & { MMBrain?: { testSend?: () => unknown } };
+    return host.MMBrain?.testSend?.() ?? null;
   });
   expect(firstTurnSource).toEqual({
     schema: "mastermind.research-context-ref/v1",
@@ -169,16 +190,84 @@ test("an exact source span is consumed by only the next Brain turn until explici
   });
   await expect(attachment).toHaveCount(0);
   expect(await page.evaluate(() => {
-    const host = window as Window & { MM_BRAIN_CFG?: { getCompanySourceSpan?: () => unknown } };
-    return host.MM_BRAIN_CFG?.getCompanySourceSpan?.() ?? null;
+    const host = window as Window & { MMBrain?: { testSend?: () => unknown } };
+    return host.MMBrain?.testSend?.() ?? null;
   })).toBeNull();
 
   await page.getByRole("button", { name: "Attach to Mastermind" }).click();
   await expect(attachment).toContainText("Exact source attached");
   await attachment.getByRole("button", { name: "Ask Mastermind with source" }).click();
-  expect(await page.evaluate(() => {
-    const host = window as Window & { MM_BRAIN_CFG?: { getCompanySourceSpan?: () => unknown } };
-    return host.MM_BRAIN_CFG?.getCompanySourceSpan?.() ?? null;
-  })).toEqual(firstTurnSource);
+  await expect.poll(() => page.evaluate(() => document.documentElement.dataset.rctxOpenCount)).toBe("2");
+  const secondTurnSource = await page.evaluate(() => {
+    const host = window as Window & { MMBrain?: { testSend?: () => unknown } };
+    return host.MMBrain?.testSend?.() ?? null;
+  });
+  expect(secondTurnSource).toEqual(firstTurnSource);
   await expect(attachment).toHaveCount(0);
+
+  // Review repair 2c: the exact sequence of getCompanySourceSpan() reads the widget made across
+  // this whole journey — cleared to null before each attach (the two `toBeNull()` testSend()
+  // calls above), then the attached source on each "Ask Mastermind with source" send (the two
+  // `toEqual(firstTurnSource)` testSend() calls above). Four calls total; this pins the exact
+  // sequence rather than re-checking each call in isolation.
+  expect(await page.evaluate(() => (window as unknown as { __MM_BRAIN_TEST_SENDS__?: unknown[] }).__MM_BRAIN_TEST_SENDS__))
+    .toEqual([null, firstTurnSource, null, secondTurnSource]);
+
+  // Review repair 2a: a client-side navigation away from /analysis (via the real nav "Chart"
+  // link, NOT page.goto — this is a genuine App Router transition, not a fresh document load)
+  // must reuse the SAME document-level Brain script rather than spawning a second one, and must
+  // re-bind the singleton's symbol getter to the chart's own active symbol rather than leaving it
+  // on the Analysis mount's "" stub (AppShell mounts BrainWidget with active=""). Below 860px
+  // (tablet/mobile projects) AppNav itself is `display:none` (globals.css) and MobileNav's
+  // hamburger + drawer is the real entry point instead — same TOP list (AppNav.tsx), same href.
+  const appNavChart = page.getByRole("navigation", { name: "Primary" }).getByRole("link", { name: "Chart" });
+  if (await appNavChart.isVisible()) {
+    await appNavChart.click();
+  } else {
+    // PRODUCT FINDING (pre-existing, not caused by this repair or by BrainWidget/AppShell —
+    // see the review-repair report): on THIS page, `.fin-pane--workspace` (the Company
+    // Intelligence workspace pane) is `position:fixed; top:0` covering the full viewport,
+    // which visually and pointer-wise overlaps AppShell's `.mobilebar` hamburger at <=860px
+    // (globals.css breakpoint) even though the hamburger is later in paint order. A plain
+    // click on the real "Menu" button times out here with "<div class='fin-head'>...
+    // intercepts pointer events". Reaching the real MobileNav drawer link therefore needs a
+    // programmatic .click() on the actual button element (bypasses hit-testing, still fires
+    // the real React onClick -> setDrawer(true) -> the real <Link href="/terminal">), not a
+    // synthetic navigation of our own.
+    await page.getByRole("button", { name: "Menu" }).evaluate((el: HTMLElement) => el.click());
+    await page.locator(".m-nav").getByRole("link", { name: "Chart" }).click();
+  }
+  await expect(page).toHaveURL(/\/terminal(?:\?.*)?$/);
+  await expect(page.locator(`script[src="${BRAIN_SCRIPT_SRC}"]`)).toHaveCount(1);
+  await expect.poll(() =>
+    page.evaluate(() => (window as unknown as { MM_BRAIN_CFG?: { symbol?: () => string } }).MM_BRAIN_CFG?.symbol?.())
+  ).toBe("NVDA");
+
+  // Review repair 2b: final re-assertion of the script-count invariant, at the very end of the
+  // journey (analysis mount -> two turns -> in-app nav to the chart).
+  await expect(page.locator(`script[src="${BRAIN_SCRIPT_SRC}"]`)).toHaveCount(1);
+});
+
+test("Analysis adopts an existing document Brain host without racing a second widget script", async ({ page }) => {
+  await page.addInitScript(() => {
+    const host = window as Window & {
+      MMBrain?: { open: () => void };
+      MM_BRAIN_CFG?: { symbol?: () => string };
+    };
+    host.MM_BRAIN_CFG = { symbol: () => "stale-preseed" };
+    host.MMBrain = { open: () => undefined };
+  });
+  await page.route(BRAIN_SCRIPT_SRC, async (route) => route.fulfill({
+    contentType: "application/javascript",
+    body: "document.documentElement.dataset.unexpectedSecondBrain = 'true';",
+  }));
+
+  await page.goto("/analysis?symbol=NVDA&page=intelligence");
+
+  expect(await page.evaluate(() => {
+    const host = window as Window & { MM_BRAIN_CFG?: { symbol?: () => string } };
+    return host.MM_BRAIN_CFG?.symbol?.();
+  })).toBe("stale-preseed");
+  await expect(page.locator(`script[src="${BRAIN_SCRIPT_SRC}"]`)).toHaveCount(0);
+  expect(await page.evaluate(() => document.documentElement.dataset.unexpectedSecondBrain)).toBeUndefined();
 });

@@ -6,6 +6,7 @@ import DashboardBackButton from "@/components/DashboardBackButton";
 import { AppNav } from "@/components/AppNav";
 import MobileNav from "@/components/MobileNav";
 import SettingsButton from "@/components/settings/SettingsButton";
+import BrainWidget from "@/components/BrainWidget";
 import { SettingsProvider } from "@/components/settings/SettingsProvider";
 import { OnboardingProvider } from "@/components/onboarding/OnboardingProvider";
 import { useT } from "@/lib/i18n";
@@ -64,6 +65,12 @@ const TITLE_MAP: Array<[string, string, string]> = [
   ["/admin", "pageAdmin", "Admin"],
 ];
 
+// The non-chart shell must never originate chart effects. These stable no-ops let
+// /analysis mount the existing document-level Brain singleton without inventing
+// a second command/annotation owner or rebinding its callbacks on every render.
+const ignoreBrainShellEvent = () => undefined;
+const requireBrainShellAuth = () => window.location.assign("/login");
+
 export default function AppShell({
   email = "",
   userId = "",
@@ -105,6 +112,21 @@ export default function AppShell({
           <SettingsButton email={email} />
         </header>
         <AppNav />
+        {/* /analysis owns exact-source attachment UI but previously had no Brain host.
+            Reuse the existing document singleton here; chart routes do not compose
+            AppShell and keep their sole TerminalShell -> BrainWidget mount.
+            Rendered BEFORE {children}: BrainWidget returns null (no DOM/layout effect),
+            but mounting it first means MM_BRAIN_CFG exists on window before any sibling
+            child's effects run, so a child that reads the singleton on mount never races
+            its own creation. */}
+        {path.startsWith("/analysis") && (
+          <BrainWidget
+            active=""
+            onCommand={ignoreBrainShellEvent}
+            onAnnotate={ignoreBrainShellEvent}
+            onAuthRequired={requireBrainShellAuth}
+          />
+        )}
         {children}
       </div>
       </SettingsProvider>

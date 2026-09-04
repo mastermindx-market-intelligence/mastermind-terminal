@@ -46,7 +46,9 @@ const DEPLOYMENT_ID =
 // does not create a general-purpose rehosting surface.
 // In dev, Turbopack HMR needs 'unsafe-eval'; production stays strict.
 //   - Mastermind Brain widget bundle: components/BrainWidget.tsx loads
-//     https://www.mastermind-x.com/mm_brain.js on the Terminal, so that origin is allowed in script-src.
+//     https://www.mastermind-x.com/mm_brain.js on the Terminal — and, since AppShell also
+//     mounts BrainWidget on /analysis, on the Analysis workspace too — so that origin is
+//     allowed in script-src.
 const scriptSrc = ["'self'", "'unsafe-inline'", "https://www.mastermind-x.com", ...(isProd ? [] : ["'unsafe-eval'"])].join(" ");
 const dashboardFrameAncestors =
   "'self' https://mastermind-x.com https://www.mastermind-x.com" +

@@ -113,14 +113,20 @@ export default function BrainWidget({
   }, [getAiContext]);
 
   // Load the widget exactly once per document. StrictMode double-invokes effects in dev,
-  // and the widget itself is a singleton — guard on both the mounted flag and an existing tag.
+  // and the widget itself is a singleton — any existing host owns this document already,
+  // even when a test/older bundle does not expose the newer `mounted` marker. Appending a
+  // second script in that state races and can replace the live host after consumers bind it.
   useEffect(() => {
     if (typeof window === "undefined") return;
     const w = window as unknown as MastermindBrainHost;
-    if (w.MMBrain?.mounted) return;
+    if (w.MMBrain) return;
     if (document.querySelector(`script[src="${SCRIPT_SRC}"]`)) return;
 
     w.MM_BRAIN_CFG = {
+      // Load-bearing invariant: the anchor:'top' build renders no launcher chrome of its
+      // own, so on /analysis (which mounts this widget with no visible dock) the ONLY
+      // panel entry point is a host-driven window.MMBrain.open()/.toggle() call from an
+      // attach/open affordance elsewhere in the page — there is no fallback UI here.
       anchor: "top", // no built-in launcher; host calls window.MMBrain.open()/.toggle()
       api: "", // same-origin — /api/brain/* with credentials:'include'
       symbol: () => w.__MM_BRAIN_ACTIVE_SYMBOL__ || symRef.current,
