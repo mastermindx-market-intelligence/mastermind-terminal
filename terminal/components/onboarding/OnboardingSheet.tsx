@@ -212,7 +212,9 @@ export default function OnboardingSheet(props: OnboardingSheetProps) {
   // Paid → advance to the in-sheet Billing step (Stripe Elements). No external link.
   function planPaid() { setStep(STEP_BILLING); }
   // Billing outcomes.
-  function billingTrialStarted(end: number | null) { setTrialActive(true); setTrialEnd(end); setStep(STEP_DONE); }
+  // D7: `end` is a VERIFIED epoch from the gateway's receipt (StepBilling refuses anything less),
+  // so reaching Done with trialActive now always carries a real first-charge date.
+  function billingTrialStarted(end: number) { setTrialActive(true); setTrialEnd(end); setStep(STEP_DONE); }
   function billingAlreadyActive() { setStep(STEP_DONE); }       // 409 — plan already active, no in-sheet trial
   function billingContinueToDone() { setStep(STEP_DONE); }       // confirm-first blocker escape
 

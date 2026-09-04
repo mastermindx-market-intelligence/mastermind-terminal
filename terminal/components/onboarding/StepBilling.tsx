@@ -5,6 +5,7 @@ import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-
 import { useLang, useT } from "@/lib/i18n";
 import type { PlanKey, Period } from "./types";
 import { perMonth, annualBilled, firstInvoiceTotal, TRIAL_DAYS } from "./plans";
+import { parseTrialReceipt } from "@/lib/billingReceipt";
 
 // Tier hue CSS var per plan key — mirrors onboarding.css tokens.
 const HUE: Record<PlanKey, string> = {
@@ -54,8 +55,9 @@ type Phase =
 export interface StepBillingProps {
   tier: Exclude<PlanKey, "free">;
   period: Period;
-  /** Advance to Done carrying the trial outcome. */
-  onTrialStarted: (trialEnd: number | null) => void;
+  /** Advance to Done carrying the VERIFIED trial outcome. Never null: an unverifiable
+   *  receipt keeps the user on Billing rather than claiming a trial started (D7). */
+  onTrialStarted: (trialEnd: number) => void;
   /** Skip straight to Done for an already-active plan (no trial started here). */
   onAlreadyActive: () => void;
   /** The quiet "or continue with Free" escape — flips plan to free and skips to Done. */
@@ -234,7 +236,7 @@ function PaymentForm({
 }: {
   tier: Exclude<PlanKey, "free">;
   period: Period;
-  onTrialStarted: (trialEnd: number | null) => void;
+  onTrialStarted: (trialEnd: number) => void;
   onFree: () => void;
 }) {
   const t = useT();
@@ -274,9 +276,14 @@ function PaymentForm({
         body: JSON.stringify({ setup_intent_id: setupIntent.id, tier, interval: period }),
       });
       if (!res.ok) { setErr(t("obBillErr")); setBusy(false); return; }
-      const data = await res.json().catch(() => ({}));
-      const trialEnd = typeof data?.trial_end === "number" ? data.trial_end : null;
-      onTrialStarted(trialEnd);
+      // D7 — fail closed. This used to accept ANY 2xx: it parsed whatever arrived, took trial_end
+      // if it happened to be a number, and called onTrialStarted() unconditionally, so
+      // `HTTP 200 {}` was enough to tell a user their paid trial had started (and StepDone then
+      // invented a first-charge date). On a money surface a malformed success is a failure.
+      const data = await res.json().catch(() => null);
+      const receipt = parseTrialReceipt(data);
+      if (!receipt) { setErr(t("obBillErrIncomplete")); setBusy(false); return; }
+      onTrialStarted(receipt.trialEnd);
     } catch {
       setErr(t("obBillErr"));
       setBusy(false);

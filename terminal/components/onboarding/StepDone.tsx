@@ -18,9 +18,15 @@ export interface StepDoneProps {
 }
 
 // Localized "Month Day" from an epoch-seconds trial_end.
-function fmtTrialDate(trialEnd: number | null, lang: string): string {
-  const d = trialEnd != null ? new Date(trialEnd * 1000) : (() => { const x = new Date(); x.setDate(x.getDate() + 7); return x; })();
-  return d.toLocaleDateString(lang === "zh" ? "zh-CN" : "en-US", { month: "long", day: "numeric" });
+//
+// D7: this used to fall back to `now + 7 days` when trial_end was null — a locally INVENTED billing
+// date, printed with the same confidence as a real one, on a screen whose entire job is to tell the
+// user when they will first be charged. The date now comes only from the authority. Since
+// StepBilling refuses to declare a trial without a verified receipt, a null here means a stale
+// pre-D7 wizard stash, and the honest answer is a line that does not name a date at all.
+function fmtTrialDate(trialEnd: number, lang: string): string {
+  return new Date(trialEnd * 1000)
+    .toLocaleDateString(lang === "zh" ? "zh-CN" : "en-US", { month: "long", day: "numeric" });
 }
 
 export default function StepDone({ firstName, email, confirmPending, trialActive, trialEnd, plan, prefsPending }: StepDoneProps) {
@@ -48,9 +54,14 @@ export default function StepDone({ firstName, email, confirmPending, trialActive
           )}
           {trialActive && (
             <p className="ob-done-line">
-              {t("obDoneTrial")
-                .replace("{tier}", tierName)
-                .replace("{date}", fmtTrialDate(trialEnd, lang))}
+              {trialEnd != null
+                ? t("obDoneTrial")
+                    .replace("{tier}", tierName)
+                    .replace("{date}", fmtTrialDate(trialEnd, lang))
+                // No authority-supplied date: say the trial is live and that we will confirm the
+                // date, rather than manufacturing one. "Unknown" is a true statement; an invented
+                // billing date is not.
+                : t("obDoneTrialNoDate").replace("{tier}", tierName)}
             </p>
           )}
           {!confirmPending && !trialActive && (
