@@ -171,6 +171,7 @@ function adopt(who: string): void {
   if (isAccountOwner(who) && worthAsking) refreshEntitlement();
 }
 
+
 // ── selectors ────────────────────────────────────────────────────────────────────────────
 
 export type DisplayEntitlement = {

@@ -275,6 +275,7 @@ describe("an UNAVAILABLE answer is re-asked when someone arrives", () => {
   });
 });
 
+
 describe("the gate and the display are not the same answer", () => {
   it("disagree exactly where they should: stale paid shows Pro but gates Free", async () => {
     respond = async () => json(PRO);

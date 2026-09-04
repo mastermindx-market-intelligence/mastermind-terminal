@@ -159,6 +159,10 @@ test("a diverged premarket label remains on its true projected price", async ({ 
 
 test("persistent and hover labels follow the price pane when a study moves above it", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "Pane move controls are a desktop interaction.");
+  // This walk alone spends two 20s visibility budgets plus a menu interaction before its
+  // first assertion — it cannot fit even the raised CI default when the runner stalls
+  // React commits, so it gets the same 90s clock as the other multi-stage walks.
+  test.setTimeout(90_000);
   await page.addInitScript(() => localStorage.setItem("mm.inds", JSON.stringify(["rsi"])));
   await routePremarket(page, 192.53);
   await page.goto("/terminal?symbol=NVDA");
@@ -176,7 +180,7 @@ test("persistent and hover labels follow the price pane when a study moves above
   await expect(paneMenu).toBeVisible({ timeout: 20_000 });
   await paneMenu.getByText("Move pane up", { exact: true }).click();
 
-  await expect.poll(async () => (await labels(page)).pricePaneTop, { timeout: 10_000 }).toBeGreaterThan(20);
+  await expect.poll(async () => (await labels(page)).pricePaneTop, { timeout: 20_000 }).toBeGreaterThan(20);
   const state = await labels(page);
   expect(state.pricePaneTop).toBeGreaterThan(20);
   expect(state.primaryTop).toBeCloseTo(state.pricePaneTop + Math.round(state.primaryAnchorY! - 8), 0);
@@ -214,6 +218,32 @@ test("a four-digit premarket quote expands the compact numeric lane instead of c
 });
 
 test("left-side and percentage scales keep the foreground label on the active axis with correct units", async ({ page }) => {
+  // chartReady() only waits for the chart's OWN data-driven readiness (canvas + tags visible + a
+  // resolved anchor Y) — it says nothing about whether the persisted chart settings this test just
+  // wrote to localStorage have been APPLIED yet. That read is deliberately deferred to a mount
+  // effect (ChartPane.tsx `useEffect(() => setChartSettings(load(...)), [])`) so SSR/hydration
+  // never sees a value the server couldn't have rendered; once the resulting setState is actually
+  // committed, ChartPanel.tsx's settings effect flips the scale side and repaints the tag in the
+  // same commit (`renderTagRef.current?.()`). Both readiness signals are real but independently
+  // async, and they race: on an unloaded machine the settings commit reliably wins before
+  // chartReady() resolves, so a single boundingBox() read looked safe for years.
+  //
+  // This is not test noise, and it is not a Linux/headless rendering difference either (verified:
+  // byte-for-byte identical wrong-axis value, box.x ~965 instead of ~113, reproduces on macOS with
+  // zero code changes purely by CPU-throttling an otherwise-passing run). Instrumented tracing
+  // through that repro (console-logged every ChartPane render + effect fire, since deleted) showed
+  // the mount effect firing and calling setChartSettings within ~300ms of first paint every time —
+  // the delay is NOT the effect being late. What's late is React actually getting a scheduler slot
+  // to commit that state update: ChartPanel is simultaneously doing its own CPU-heavy mount work
+  // (chart creation, data load, indicator build — see the `effectiveTimeframe` comment above EFFECT
+  // 7 in ChartPanel.tsx, which measured a sibling instance of this exact shell-mount-effect-commit
+  // pattern at "2.7-3.1s under CI-shaped CPU load"). Under artificial 4x CPU throttling the commit
+  // was observed taking up to ~12s to land; it always landed eventually and stayed correct once it
+  // did, which rules out a permanent ordering bug (e.g. Effect 7 firing before the chart exists) —
+  // this is contention, not staleness. Poll for the side the test asked for, the same way the rest
+  // of this file waits out every other async chart transition, instead of reading it once — with a
+  // timeout generous enough to clear the observed contention tail, and a test-level budget to match.
+  test.setTimeout(60_000);
   await page.addInitScript(() => localStorage.setItem("mm.chartSettings", JSON.stringify({ scaleLeft: true, mode: 2, scaleFontSize: 16 })));
   await routePremarket(page, 192.53);
   await page.goto("/terminal?symbol=NVDA");
@@ -223,9 +253,10 @@ test("left-side and percentage scales keep the foreground label on the active ax
   const wrap = await page.locator(".chart-wrap").boundingBox();
   expect(wrap).not.toBeNull();
   for (const selector of [".mm-ptag", ".mm-exttag"]) {
-    const box = await page.locator(selector).boundingBox();
-    expect(box).not.toBeNull();
-    expect(box!.x).toBeCloseTo(wrap!.x + 1, 0);
+    await expect.poll(
+      async () => (await page.locator(selector).boundingBox())?.x ?? null,
+      { message: `${selector} should settle onto the persisted left-side scale`, timeout: 20_000 },
+    ).toBeCloseTo(wrap!.x + 1, 0);
   }
 
   const x = wrap!.x + wrap!.width * 0.55;

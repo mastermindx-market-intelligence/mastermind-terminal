@@ -160,6 +160,13 @@ test.describe("saved layouts", () => {
   });
 
   test("a loaded layout restores the workspace it saved, through the real UI", async ({ page, baseURL }, testInfo) => {
+    // The only test in this describe block that does two full save/load round trips plus a toolbar
+    // grid-split mutation (chooseToolbarSplit tears down and rebuilds chart panes, the same class of
+    // CPU-bound mount work implicated in crosshair-price-label.spec.ts's documented settle race).
+    // CI observed a bare "Test timeout of 30000ms exceeded" with no single broken assertion — this
+    // test simply does more real work than the unset (30s) default budget reliably covers under
+    // CI-shaped contention, even with the shared dev-server's workers already capped at 2.
+    test.setTimeout(90_000);
     skipWithoutLayoutMenu(page);
     await isolateLayoutStore(page, testInfo, baseURL);
     await gotoTerminal(page);
