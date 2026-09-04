@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { createClient } from "@/lib/supabase/client";
+import { invalidateEntitlement } from "@/lib/entitlementStore";
 import { useT } from "@/lib/i18n";
 import type {
   OnboardMode, OnboardingSheetProps, OnboardPrefs, PlanKey, Period, PendingPrefs, WizardStash,
@@ -212,8 +213,15 @@ export default function OnboardingSheet(props: OnboardingSheetProps) {
   // Paid → advance to the in-sheet Billing step (Stripe Elements). No external link.
   function planPaid() { setStep(STEP_BILLING); }
   // Billing outcomes.
-  function billingTrialStarted(end: number | null) { setTrialActive(true); setTrialEnd(end); setStep(STEP_DONE); }
-  function billingAlreadyActive() { setStep(STEP_DONE); }       // 409 — plan already active, no in-sheet trial
+  // E4: the entitlement just CHANGED. The settings panel is mounted for the whole session and
+  // would otherwise keep serving the plan it verified before this purchase — the user upgrades
+  // here, reopens Settings, and is told they are still on Free. An explicit invalidation is the
+  // only honest signal: no TTL is short enough to cover "it changed one second ago".
+  function billingTrialStarted(end: number | null) {
+    invalidateEntitlement();
+    setTrialActive(true); setTrialEnd(end); setStep(STEP_DONE);
+  }
+  function billingAlreadyActive() { invalidateEntitlement(); setStep(STEP_DONE); }   // 409 — already active
   function billingContinueToDone() { setStep(STEP_DONE); }       // confirm-first blocker escape
 
   // ── Snapshot for the rail account card ────────────────────────────────────────

@@ -1982,6 +1982,8 @@ export const LEX: Record<string, [string, string]> = {
   acsPrefRetry: ["Retry", "重试"],
   // E3 — a same-owner last-good plan, shown rather than withheld, but never passed off as fresh.
   acsPlanStale: ["Couldn't refresh your plan — showing the last confirmed one.", "无法刷新你的订阅信息——显示上次确认的结果。"],
+  // E4 — the same honesty for the metered lanes, which move far faster than the plan does.
+  acsUsageStale: ["Couldn't refresh these counts — showing the last confirmed ones.", "无法刷新这些用量——显示上次确认的结果。"],
   acsThemeLang: ["Theme & language", "主题与语言"],
   acsAppearance: ["Appearance", "外观"],
   // NEW — deliberately NOT macro's appearNote ("Auto follows your local time of

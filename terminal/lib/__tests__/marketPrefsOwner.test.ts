@@ -163,7 +163,7 @@ describe("the transition publishes the incoming owner's not-ready snapshot IMMED
     expect(mid.ready).toBe(false);
     // …and none of A's account state is still readable or writable under B.
     expect(mid.rawTerminal).toEqual({});
-    expect(mid.rawPrefs).toEqual({});
+    expect(__marketPrefsSnapshot().metaPrefs).toEqual({});
 
     releaseB(userWith(UUID_B, {}));
     await settle();
@@ -254,11 +254,21 @@ describe("a read that did not land is not an empty account", () => {
     await settle();
 
     persistUpDown("east");
-    persistMetaPrefs({ lang: "zh" });
     const held = __marketPrefsInternals();
     expect(held.pendingTerminal).toEqual({ updown: "east" });
-    expect(held.pendingPrefs).toEqual({ lang: "zh" });
     expect(updates).toEqual([]);
+  });
+
+  it("delivers a SHARED preference immediately — an atomic needs no merge base at all", async () => {
+    getUser = async () => { throw new Error("offline"); };
+    __loadOwner(OWNER_A);
+    await settle();
+
+    // The nested `terminal` blob is held (above); `lang` is a top-level atomic that
+    // `updateUser` MERGES, so there is nothing it could clobber and nothing to wait for.
+    persistMetaPrefs({ lang: "zh" });
+    await settle();
+    expect(updates).toEqual([{ lang: "zh" }]);
   });
 
   it("refuses an answer for a DIFFERENT account than the shell resolved", async () => {
@@ -356,11 +366,12 @@ describe("delivery is serialized, acknowledged, and retryable", () => {
     release({ error: null });
     await settle();
 
-    // One follow-up carrying the CURRENT value of both blobs — never an older, smaller one.
+    // One follow-up carrying the CURRENT value of everything edited — never an older, smaller
+    // blob. The shared language is a top-level ATOMIC (E6), not a nested sibling.
     expect(updates).toHaveLength(2);
     expect(updates[1]).toEqual({
       terminal: { start_tf: "D", updown: "east" },
-      prefs: { lang: "zh" },
+      lang: "zh",
     });
     expect(__marketPrefsSnapshot().sync.phase).toBe("saved");
   });

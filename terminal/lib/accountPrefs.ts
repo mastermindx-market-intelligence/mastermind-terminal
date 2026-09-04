@@ -69,6 +69,78 @@ export function readMetaPrefs(blob: unknown): MetaPrefs {
   return out;
 }
 
+// ── shared preferences v2 — independently mergeable atomics (E6) ──────────────────────────
+//
+// `user_metadata.prefs` is a NESTED object, and `auth.updateUser` REPLACES a nested object
+// wholesale. Both products write it, so serializing one product's own writes cannot make it
+// safe — the race is between the two products:
+//
+//   1. Terminal reads  { theme: dark, lang: en }
+//   2. Macro changes theme → Light, writing the whole object
+//   3. Terminal, still holding its snapshot, changes language → Chinese
+//   4. Terminal sends { theme: dark, lang: zh }
+//   5. Macro's newer Light choice is GONE.
+//
+// A fresh-read-before-write does not fix this: read and write are not atomic, and the window
+// only shrinks. What fixes it is removing the shared mutable container. Each field becomes its
+// own TOP-LEVEL key, and `updateUser` MERGES top-level keys — so a writer that touches only the
+// field it changed cannot clobber a sibling it never looked at.
+//
+//     prefs.theme     → theme
+//     prefs.themeAuto → theme_auto
+//     prefs.lang      → lang
+//
+// `theme` and `lang` are NOT new names: they are the top-level keys the macro API's own
+// preference writer already treats as canonical (`lib/user_prefs.py` there — "the ONE
+// reader/writer for a signed-in user\'s stored preferences", with the same closed value sets).
+// Minting a parallel `ui_*` namespace would have made three representations of one preference
+// instead of one; the browsers now join the representation that already exists. `theme_auto` is
+// the one field with no existing home — it is a browser-side presentation flag (macro computes
+// the theme from local time when it is set) and no server route writes it.
+//
+// Readers prefer the atomic and fall back to the legacy nested value PER FIELD (not per blob),
+// so an account that has only ever had `prefs` still reads correctly, and one where a single
+// field has been migrated reads the new value for that field and the legacy value for the rest.
+// Neither product writes the nested blob any more; it survives as a read-only fallback.
+
+/** Top-level, independently mergeable. Written by BOTH products; read with a legacy fallback. */
+export const SHARED_THEME_KEY = "theme";
+export const SHARED_THEME_AUTO_KEY = "theme_auto";
+export const SHARED_LANG_KEY = "lang";
+
+/**
+ * The effective shared preferences: the v2 atomic where present, else the legacy `prefs.*`
+ * sibling. Resolved field by field — a half-migrated account is the normal state during the
+ * cross-product rollout, not an edge case.
+ */
+export function readSharedPrefs(meta: unknown): MetaPrefs {
+  const m = (meta && typeof meta === "object" && !Array.isArray(meta) ? meta : {}) as Record<string, unknown>;
+  const legacy = readMetaPrefs(m.prefs);
+  const out: MetaPrefs = {};
+  const theme = isThemeId(m[SHARED_THEME_KEY]) ? (m[SHARED_THEME_KEY] as ThemeId) : legacy.theme;
+  const themeAuto = m[SHARED_THEME_AUTO_KEY] === "1" || m[SHARED_THEME_AUTO_KEY] === "0"
+    ? (m[SHARED_THEME_AUTO_KEY] as "1" | "0")
+    : legacy.themeAuto;
+  const lang = isLangId(m[SHARED_LANG_KEY]) ? (m[SHARED_LANG_KEY] as LangId) : legacy.lang;
+  if (theme) out.theme = theme;
+  if (themeAuto) out.themeAuto = themeAuto;
+  if (lang) out.lang = lang;
+  return out;
+}
+
+/**
+ * A shared-preference patch, as the ATOMIC top-level keys to write. ONLY the fields the caller
+ * actually changed appear — that restraint is the whole point, so a language change cannot carry
+ * a stale theme along with it.
+ */
+export function sharedPrefsPatch(patch: MetaPrefs): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  if (patch.theme !== undefined && isThemeId(patch.theme)) out[SHARED_THEME_KEY] = patch.theme;
+  if (patch.themeAuto === "1" || patch.themeAuto === "0") out[SHARED_THEME_AUTO_KEY] = patch.themeAuto;
+  if (patch.lang !== undefined && isLangId(patch.lang)) out[SHARED_LANG_KEY] = patch.lang;
+  return out;
+}
+
 // ── local application ────────────────────────────────────────────────────────────────────
 // The <html> attributes are the live source of truth for the current session — the pre-paint
 // script in app/layout.tsx has already reconciled localStorage against the browser locale by the

@@ -3,7 +3,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useLang, useT } from "@/lib/i18n";
 import { identityEmail, identityOwnerKey, isAccountOwner, type AccountIdentity } from "@/lib/accountIdentity";
-import { useDisplayEntitlement } from "@/lib/entitlementStore";
+import { entitlementAgeMs, useDisplayEntitlement } from "@/lib/entitlementStore";
+import { useUsage } from "@/lib/usageStore";
 import type { AcsUser, SettingsSection } from "./SettingsProvider";
 import { SETTINGS_SECTIONS } from "./SettingsProvider";
 import type { AcsPlan, AcsUsage, SectionProps } from "./types";
@@ -158,28 +159,34 @@ export default function SettingsPanel(props: SettingsPanelProps) {
   const planErr = !props.devPlan && entitlement.unavailable;
   const planStale = !props.devPlan && entitlement.stale;
 
-  // ── usage payload, fetched lazily the first time Usage is shown ───────────
-  const [fetchedUsage, setUsage] = useState<AcsUsage | null>(null);
-  const [usageErr, setUsageErr] = useState(false);
-  const usageFor = useRef<string | null>(null);
-  const usage = props.devUsage ?? fetchedUsage;
-  if (usageFor.current !== null && usageFor.current !== owner) {
-    usageFor.current = null;
-    if (fetchedUsage) setUsage(null);
-    if (usageErr) setUsageErr(false);
-  }
+  // ── usage: a SEPARATE authority on a much shorter clock ───────────────────
+  // `/api/brain/me` reports what is LEFT, which the user spends from inside this
+  // very page — so it is verified on Usage entry and re-entry, not cached for the
+  // life of the shell the way the old email-keyed fetch was. See lib/usageStore.ts.
+  const usageLive = useUsage(identity, !props.devUsage && visible && section === "usage");
+  const usage: AcsUsage | null = props.devUsage
+    ?? (usageLive.quotas ? { tier: usageLive.tier, quotas: usageLive.quotas } : null);
+  const usageErr = !props.devUsage && usageLive.unavailable;
+  const usageStale = !props.devUsage && usageLive.stale;
+
+  // ── freshness on RE-OPEN and on focus ─────────────────────────────────────
+  // The panel is mounted once and hidden between uses, so "open it again" is not a
+  // remount and used to revalidate nothing: a user could upgrade through onboarding
+  // and reopen Settings to be told they were still on Free. Bounded by a TTL so
+  // reopening twice in a row is one request, not two.
+  const PLAN_TTL_MS = 60_000;
   useEffect(() => {
-    if (props.devUsage) return;
-    if (!visible || section !== "usage" || !isAccountOwner(owner)) return;
-    if (usageFor.current === owner) return;
-    usageFor.current = owner;
-    let alive = true;
-    fetch("/api/brain/me", { cache: "no-store" })
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
-      .then((j) => { if (alive) { setUsage(j || {}); setUsageErr(false); } })
-      .catch(() => { if (alive) { usageFor.current = null; setUsageErr(true); } });
-    return () => { alive = false; };
-  }, [visible, section, owner, props.devUsage]);
+    if (props.devPlan || !visible || !isAccountOwner(owner)) return;
+    if (entitlementAgeMs() > PLAN_TTL_MS) entitlement.refresh();
+    // A billing change usually happens in ANOTHER tab (the Stripe portal, the
+    // landing's upgrade flow), so coming back to this one is the moment to re-ask.
+    const onFocus = () => { if (entitlementAgeMs() > PLAN_TTL_MS) entitlement.refresh(); };
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+    // `openSeq` is the re-open signal: it advances on every open() even when
+    // `visible` was already true (a second avatar click on an open panel).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible, openSeq, owner, props.devPlan]);
 
   const shared: SectionProps = {
     t,
@@ -264,7 +271,9 @@ export default function SettingsPanel(props: SettingsPanelProps) {
             {section === "billing" && (
               <SectionBilling {...shared} plan={plan} planErr={planErr} planStale={planStale} onRefreshPlan={entitlement.refresh} />
             )}
-            {section === "usage" && <SectionUsage {...shared} plan={plan} usage={usage} usageErr={usageErr} />}
+            {section === "usage" && (
+              <SectionUsage {...shared} plan={plan} usage={usage} usageErr={usageErr} usageStale={usageStale} />
+            )}
             {section === "prefs" && <SectionPreferences {...shared} />}
             {section === "terminal" && <SectionTerminal {...shared} />}
             {section === "sync" && <SectionSync {...shared} />}
