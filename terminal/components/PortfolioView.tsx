@@ -23,6 +23,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useT, useLang } from "@/lib/i18n";
 import { getJSON } from "@/lib/dataCache";
+import { groupsFromSymbols, planQuoteBatch } from "@/lib/quoteDemand";
 import PortfolioBriefPanel from "@/components/PortfolioBriefPanel";
 import PositionModal, { type PositionDraft } from "@/components/PositionModal";
 import {
@@ -190,7 +191,17 @@ export default function PortfolioView(
     return () => { alive = false; };
   }, []);
 
-  const symbolKey = useMemo(() => quoteSymbols(positions).sort().join(","), [positions]);
+  // D2: a book can hold more names than one /api/quote request may carry, and the route used to
+  // enforce that cap with a silent slice — so past the boundary a position priced from the manifest
+  // forever, with nothing saying its POSITION in the book was the reason. Positions are all equally
+  // consequential (there is no "active" holding), so the whole book rotates: each poll takes the
+  // next window under the cap, one request per tick exactly as before, and every holding refreshes
+  // within ceil(book / cap) polls. A book that fits is `complete` and refreshes wholly every poll.
+  const quoteGroups = useMemo(() => groupsFromSymbols(quoteSymbols(positions).sort()), [positions]);
+  const symbolKey = useMemo(() => quoteGroups.map((g) => g.key).join(","), [quoteGroups]);
+  const quoteCursorRef = useRef(0);
+  const quoteGroupsRef = useRef(quoteGroups);
+  quoteGroupsRef.current = quoteGroups;
   useEffect(() => {
     // Nothing to price. The quote map is deliberately NOT cleared here: `resolveLast` is only ever
     // called for a position that is currently in the book, so an entry for a removed ticker is
@@ -200,7 +211,10 @@ export default function PortfolioView(
     let alive = true;
     const poll = () => {
       if (typeof document !== "undefined" && document.hidden) return;
-      fetch(`/api/quote?syms=${encodeURIComponent(symbolKey)}`)
+      const plan = planQuoteBatch({ rotating: quoteGroupsRef.current, cursor: quoteCursorRef.current });
+      quoteCursorRef.current = plan.nextCursor;
+      if (!plan.symbols.length) return;
+      fetch(`/api/quote?syms=${encodeURIComponent(plan.symbols.join(","))}`)
         .then((r) => (r.ok ? r.json() : null))
         .then((payload) => {
           if (!alive || !payload?.quotes) return;
