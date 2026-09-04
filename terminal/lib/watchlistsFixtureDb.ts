@@ -44,12 +44,20 @@ export const FIXTURE_STORE_COOKIE = "mm_e2e_wl";
 export const FIXTURE_FAULT_COOKIE = "mm_e2e_fault";
 export const FAULT_POSITIONS_READ = "positions_read";
 export const FAULT_POSITIONS_MUTATION_NOOP = "positions_mutation_noop";
+export const FAULT_THESES_READ = "theses_read";
 
 export function fixtureFaults(raw: string | undefined | null): Set<string> {
   return new Set((raw || "").split(",").map((token) => token.trim()).filter(Boolean));
 }
 
-type Store = { lists: DbRow[]; symbols: DbRow[]; positions: DbRow[]; seq: number };
+type Store = {
+  lists: DbRow[];
+  symbols: DbRow[];
+  positions: DbRow[];
+  theses: DbRow[];
+  thesisVersions: DbRow[];
+  seq: number;
+};
 
 const SEED_SYMBOLS: [string, string][] = [
   ["Crypto", "BTC-USD"], ["Crypto", "ETH-USD"], ["Equities", "NVDA"],
@@ -74,9 +82,15 @@ const GLOBAL_KEY = Symbol.for("mm.e2e.watchlistFixtureStores");
 type FixtureGlobal = typeof globalThis & { [GLOBAL_KEY]?: Map<string, Store> };
 const stores: Map<string, Store> = ((globalThis as FixtureGlobal)[GLOBAL_KEY] ??= new Map<string, Store>());
 
-/** Stable synthetic owner id per store key — the service still filters on it everywhere. */
+/** Stable synthetic owner id per actor key — the service still filters on it everywhere. */
 export function fixtureUserId(key: string): string {
   return `e2e-user-${key}`;
+}
+
+// `database::actor` gives privacy tests two actors over one physical row set. Ordinary fixture
+// keys contain no delimiter and therefore retain the historical one-key/one-world behavior.
+function fixtureDatabaseKey(key: string): string {
+  return key.split("::", 1)[0];
 }
 
 function seedStore(key: string): Store {
@@ -91,15 +105,18 @@ function seedStore(key: string): Store {
       position: index,
     })),
     positions: [],
+    theses: [],
+    thesisVersions: [],
     seq: 0,
   };
 }
 
 export function fixtureStore(key: string): Store {
-  let store = stores.get(key);
+  const databaseKey = fixtureDatabaseKey(key);
+  let store = stores.get(databaseKey);
   if (!store) {
-    store = seedStore(key);
-    stores.set(key, store);
+    store = seedStore(databaseKey);
+    stores.set(databaseKey, store);
   }
   return store;
 }
@@ -109,35 +126,49 @@ export function resetFixtureStores(): void {
   stores.clear();
 }
 
-type Table = "watchlists" | "watchlist_symbols" | "portfolio_positions";
+type Table = "watchlists" | "watchlist_symbols" | "portfolio_positions" | "theses" | "thesis_versions";
+
+export type FixtureDatabaseEvent = {
+  source: "table" | "rpc";
+  name: string;
+  rowCount: number;
+};
 
 class FixtureQuery implements WatchlistQuery {
   private predicates: ((row: DbRow) => boolean)[] = [];
-  private orderKey: string | null = null;
-  private orderAsc = true;
+  private orderClauses: Array<{ key: string; ascending: boolean }> = [];
   private limitTo: number | null = null;
   private projection: string[] | null = null;
   private mode: "read" | "insert" | "upsert" | "update" | "delete" = "read";
   private payload: DbRow[] = [];
   private ignoreDuplicates = false;
 
-  constructor(private store: Store, private table: Table, private faults: Set<string>) {}
+  constructor(
+    private store: Store,
+    private table: Table,
+    private faults: Set<string>,
+    private observe?: (event: FixtureDatabaseEvent) => void,
+  ) {}
 
   private get rows(): DbRow[] {
     if (this.table === "watchlists") return this.store.lists;
     if (this.table === "portfolio_positions") return this.store.positions;
+    if (this.table === "theses") return this.store.theses;
+    if (this.table === "thesis_versions") return this.store.thesisVersions;
     return this.store.symbols;
   }
 
   private matched(): DbRow[] {
     let matched = this.rows.filter((row) => this.predicates.every((predicate) => predicate(row)));
-    const key = this.orderKey;
-    if (key) {
-      const direction = this.orderAsc ? 1 : -1;
+    if (this.orderClauses.length) {
       matched = [...matched].sort((a, b) => {
-        const left = a[key] as string | number;
-        const right = b[key] as string | number;
-        return (left > right ? 1 : left < right ? -1 : 0) * direction;
+        for (const { key, ascending } of this.orderClauses) {
+          const left = a[key] as string | number;
+          const right = b[key] as string | number;
+          const comparison = left > right ? 1 : left < right ? -1 : 0;
+          if (comparison) return comparison * (ascending ? 1 : -1);
+        }
+        return 0;
       });
     }
     if (this.limitTo !== null) matched = matched.slice(0, this.limitTo);
@@ -156,7 +187,15 @@ class FixtureQuery implements WatchlistQuery {
   }
 
   eq(column: string, value: unknown): WatchlistQuery {
-    this.predicates.push((row) => row[column] === value);
+    this.predicates.push((row) => {
+      const jsonPath = column.match(/^subject_ref->>(owner|kind|key)$/);
+      if (jsonPath) {
+        const subject = row.subject_ref;
+        return !!subject && typeof subject === "object"
+          && (subject as Record<string, unknown>)[jsonPath[1]] === value;
+      }
+      return row[column] === value;
+    });
     return this;
   }
 
@@ -167,8 +206,7 @@ class FixtureQuery implements WatchlistQuery {
   }
 
   order(column: string, options?: { ascending?: boolean }): WatchlistQuery {
-    this.orderKey = column;
-    this.orderAsc = options?.ascending !== false;
+    this.orderClauses.push({ key: column, ascending: options?.ascending !== false });
     return this;
   }
 
@@ -206,10 +244,20 @@ class FixtureQuery implements WatchlistQuery {
     if (this.table === "portfolio_positions" && this.mode === "read" && this.faults.has(FAULT_POSITIONS_READ)) {
       return { data: null, error: { message: "fixture: positions store unavailable" } };
     }
+    if ((this.table === "theses" || this.table === "thesis_versions")
+      && this.mode === "read" && this.faults.has(FAULT_THESES_READ)) {
+      return { data: null, error: { message: "fixture: thesis store unavailable" } };
+    }
     if (this.table === "portfolio_positions"
       && (this.mode === "update" || this.mode === "delete")
       && this.faults.has(FAULT_POSITIONS_MUTATION_NOOP)) {
       return { data: [], error: null };
+    }
+    // F11's authenticated transport can read its own rows but can never mutate either table
+    // directly. All accepted writes go through the one atomic RPC below, matching the production
+    // grant/RLS posture instead of giving browser tests a more privileged database than users.
+    if ((this.table === "theses" || this.table === "thesis_versions") && this.mode !== "read") {
+      return { data: null, error: { message: `permission denied for table ${this.table}` } };
     }
     if (this.mode === "insert" || this.mode === "upsert") {
       const incoming: DbRow[] = this.payload.map((row) => ({
@@ -278,7 +326,9 @@ class FixtureQuery implements WatchlistQuery {
       // selects the id, so the fixture must model that representation rather than invent success.
       return { data: this.projection ? this.project(matched) : null, error: null };
     }
-    return { data: this.project(this.matched()), error: null };
+    const data = this.project(this.matched());
+    this.observe?.({ source: "table", name: this.table, rowCount: data.length });
+    return { data, error: null };
   }
 
   async maybeSingle(): Promise<DbResult> {
@@ -295,8 +345,225 @@ class FixtureQuery implements WatchlistQuery {
   }
 }
 
-export function createFixtureDb(key: string, faults?: Iterable<string>): WatchlistDb {
+function canonical(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(canonical).join(",")}]`;
+  if (value && typeof value === "object") {
+    const object = value as Record<string, unknown>;
+    return `{${Object.keys(object).sort().map((key) => `${JSON.stringify(key)}:${canonical(object[key])}`).join(",")}}`;
+  }
+  return JSON.stringify(value);
+}
+
+function thesisRpcResult(row: DbRow): Promise<DbResult> {
+  return Promise.resolve({
+    data: [{
+      status: null,
+      thesis_id: null,
+      version: null,
+      current_version: null,
+      lifecycle_state: null,
+      replayed: false,
+      ...row,
+    }],
+    error: null,
+  });
+}
+
+function thesisSubstance(value: unknown): unknown {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return value;
+  const substance = { ...value as Record<string, unknown> };
+  delete substance.revision_note;
+  return substance;
+}
+
+/**
+ * Account-shaped implementation of `apply_thesis_version_v1` for route and browser tests.
+ *
+ * There is deliberately no `await` between the read, compare, append and head advance. JavaScript
+ * runs this critical section to completion before another caller can enter it, modelling the
+ * database row lock/transaction at the transport boundary. The disposable Postgres canary remains
+ * the authority for PL/pgSQL behavior; this fixture proves the application consumes that contract
+ * without replacing it with two client-side statements.
+ */
+function applyThesisVersionFixture(store: Store, args: Record<string, unknown>): Promise<DbResult> {
+  const userId = typeof args.__fixture_user_id === "string" ? args.__fixture_user_id : "";
+  const thesisId = typeof args.p_thesis_id === "string" ? args.p_thesis_id : null;
+  const expectedVersion = args.p_expected_version;
+  const transition = args.p_transition;
+  const subjectRef = args.p_subject_ref;
+  const content = args.p_content;
+  const requestId = args.p_client_request_id;
+  const effectiveAt = typeof args.p_effective_at === "string" ? args.p_effective_at : null;
+  if (!userId || typeof expectedVersion !== "number" || typeof transition !== "string"
+    || !subjectRef || typeof subjectRef !== "object" || !content || typeof content !== "object"
+    || typeof requestId !== "string") {
+    return thesisRpcResult({ status: "invalid_transition" });
+  }
+
+  const fingerprint = canonical({ thesisId, expectedVersion, transition, subjectRef, content, effectiveAt });
+  const prior = store.thesisVersions.find((row) => row.user_id === userId && row.client_request_id === requestId);
+  if (prior) {
+    if (prior.request_fingerprint !== fingerprint) return thesisRpcResult({ status: "idempotency_conflict" });
+    return thesisRpcResult({
+      status: "replayed",
+      thesis_id: prior.thesis_id,
+      version: prior.version,
+      current_version: prior.version,
+      lifecycle_state: prior.lifecycle_state,
+      replayed: true,
+    });
+  }
+
+  const now = new Date().toISOString();
+  if (transition === "create") {
+    if (thesisId !== null || expectedVersion !== 0) return thesisRpcResult({ status: "invalid_transition" });
+    const id = crypto.randomUUID();
+    const versionId = crypto.randomUUID();
+    const head: DbRow = {
+      id,
+      user_id: userId,
+      current_version: 1,
+      lifecycle_state: "active",
+      subject_ref: subjectRef,
+      subject_digest: canonical(subjectRef),
+      created_at: now,
+      updated_at: now,
+    };
+    const version: DbRow = {
+      id: versionId,
+      thesis_id: id,
+      user_id: userId,
+      version: 1,
+      previous_version: null,
+      transition: "create",
+      lifecycle_state: "active",
+      subject_ref: subjectRef,
+      content,
+      client_request_id: requestId,
+      request_fingerprint: fingerprint,
+      system_recorded_at: now,
+      effective_at: effectiveAt,
+    };
+    store.theses.push(head);
+    store.thesisVersions.push(version);
+    return thesisRpcResult({ status: "created", thesis_id: id, version: 1, current_version: 1, lifecycle_state: "active", replayed: false });
+  }
+
+  const head = store.theses.find((row) => row.id === thesisId && row.user_id === userId);
+  if (!head) return thesisRpcResult({ status: "not_found" });
+  if (head.current_version !== expectedVersion) {
+    return thesisRpcResult({
+      status: "version_conflict",
+      current_version: head.current_version,
+      lifecycle_state: head.lifecycle_state,
+    });
+  }
+  if (canonical(head.subject_ref) !== canonical(subjectRef)) return thesisRpcResult({ status: "invalid_transition" });
+  const current = store.thesisVersions.find((row) =>
+    row.thesis_id === thesisId && row.user_id === userId && row.version === head.current_version);
+  if (!current) return thesisRpcResult({ status: "invalid_transition" });
+  if (transition !== "revise"
+    && canonical(thesisSubstance(current.content)) !== canonical(thesisSubstance(content))) {
+    return thesisRpcResult({ status: "invalid_transition" });
+  }
+
+  const currentState = head.lifecycle_state;
+  let nextState: "active" | "archived" | "invalidated" | null = null;
+  if (transition === "revise" && currentState === "active") nextState = "active";
+  if (transition === "archive" && currentState === "active") nextState = "archived";
+  if (transition === "invalidate" && currentState === "active") nextState = "invalidated";
+  if (transition === "reopen" && (currentState === "archived" || currentState === "invalidated")) nextState = "active";
+  if (!nextState) return thesisRpcResult({ status: "invalid_transition" });
+  const contentRecord = content as Record<string, unknown>;
+  if ((transition === "invalidate" || (transition === "reopen" && currentState === "invalidated"))
+    && (typeof contentRecord.revision_note !== "string" || !contentRecord.revision_note.trim())) {
+    return thesisRpcResult({ status: "invalid_transition" });
+  }
+
+  const version = Number(head.current_version) + 1;
+  store.thesisVersions.push({
+    id: crypto.randomUUID(),
+    thesis_id: thesisId,
+    user_id: userId,
+    version,
+    previous_version: head.current_version,
+    transition,
+    lifecycle_state: nextState,
+    subject_ref: subjectRef,
+    content,
+    client_request_id: requestId,
+    request_fingerprint: fingerprint,
+    system_recorded_at: now,
+    effective_at: effectiveAt,
+  });
+  head.current_version = version;
+  head.lifecycle_state = nextState;
+  head.updated_at = now;
+  return thesisRpcResult({ status: "advanced", thesis_id: thesisId, version, current_version: version, lifecycle_state: nextState, replayed: false });
+}
+
+function readCurrentThesisVersionsFixture(store: Store, args: Record<string, unknown>): Promise<DbResult> {
+  const userId = typeof args.__fixture_user_id === "string" ? args.__fixture_user_id : "";
+  const thesisIds = args.p_thesis_ids;
+  const versions = args.p_versions;
+  if (!userId || !Array.isArray(thesisIds) || !Array.isArray(versions)
+    || thesisIds.length < 1 || thesisIds.length > 500 || thesisIds.length !== versions.length) {
+    return Promise.resolve({ data: [], error: null });
+  }
+  const data = thesisIds.flatMap((thesisId, index) => {
+    const version = versions[index];
+    const head = store.theses.find((candidate) => candidate.user_id === userId
+      && candidate.id === thesisId && candidate.current_version === version);
+    if (!head) return [];
+    const row = store.thesisVersions.find((candidate) => candidate.user_id === userId
+      && candidate.thesis_id === thesisId && candidate.version === version);
+    if (!row || new Date(String(head.updated_at)).getTime() !== new Date(String(row.system_recorded_at)).getTime()) {
+      return [];
+    }
+    const rawTitle = row?.content && typeof row.content === "object"
+      ? (row.content as Record<string, unknown>).title
+      : null;
+    const title = typeof rawTitle === "string" && [...rawTitle].length >= 1 && [...rawTitle].length <= 160
+      ? rawTitle
+      : null;
+    return [{
+      id: row.id,
+      thesis_id: row.thesis_id,
+      version: row.version,
+      lifecycle_state: row.lifecycle_state,
+      subject_ref: row.subject_ref,
+      title,
+    }];
+  });
+  return Promise.resolve({ data, error: null });
+}
+
+export type FixtureDb = WatchlistDb & {
+  rpc: (name: string, args: Record<string, unknown>) => Promise<DbResult>;
+};
+
+export function createFixtureDb(
+  key: string,
+  faults?: Iterable<string>,
+  observe?: (event: FixtureDatabaseEvent) => void,
+): FixtureDb {
   const store = fixtureStore(key);
   const faultSet = faults instanceof Set ? faults : new Set(faults ?? []);
-  return { from: (table: string) => new FixtureQuery(store, table as Table, faultSet) };
+  return {
+    from: (table: string) => new FixtureQuery(store, table as Table, faultSet, observe),
+    rpc: async (name: string, args: Record<string, unknown>) => {
+      const fixtureArgs = { ...args, __fixture_user_id: fixtureUserId(key) };
+      const result = await (name === "apply_thesis_version_v1"
+        ? applyThesisVersionFixture(store, fixtureArgs)
+        : name === "read_current_thesis_versions_v1"
+          ? readCurrentThesisVersionsFixture(store, fixtureArgs)
+          : Promise.resolve({ data: null, error: { message: `fixture: unknown rpc ${name}` } }));
+      observe?.({
+        source: "rpc",
+        name,
+        rowCount: Array.isArray(result.data) ? result.data.length : result.data ? 1 : 0,
+      });
+      return result;
+    },
+  };
 }
