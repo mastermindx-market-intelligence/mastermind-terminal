@@ -26,8 +26,11 @@ export default defineConfig({
   // attempts each from runner contention alone (2026-09-04, runs 33900983026 ×2 —
   // rotating victims, every one green in the same tree's off-peak runs), and attempts
   // within one run share the same saturated VM so a single retry is a correlated
-  // sample, not a fresh one. A consistent regression still fails 3/3 and reds the run.
+  // sample, not a fresh one. Retries remain diagnostic attempts only: a test that
+  // passes after an earlier failure must keep the required CI check red until a
+  // separately reviewed infrastructure-transient classifier exists.
   retries: process.env.CI ? 2 : 0,
+  failOnFlakyTests: !!process.env.CI,
   // Every worker below shares ONE dev server process (`webServer`, not one per worker) — that
   // server is the actual bottleneck, not the CPU count Playwright defaults to. Locally this
   // config auto-detects up to a dozen workers and still passes because the machine has cores to
