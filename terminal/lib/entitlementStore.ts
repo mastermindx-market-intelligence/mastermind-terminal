@@ -152,6 +152,25 @@ export function entitlementAgeMs(now = Date.now()): number {
   return snapshot.verifiedAt ? now - snapshot.verifiedAt : Infinity;
 }
 
+/**
+ * Take `who` as the owner and verify if it is worth asking.
+ *
+ * A guest needs no request at all: the server answers Free for an unauthenticated caller by
+ * design, so spending a round trip to learn it only slows the public UI down.
+ *
+ * UNAVAILABLE is re-asked on every adoption. The store it replaced was a per-mount hook that
+ * re-asked on each mount; this one is module-level and outlives navigation, so without the
+ * retry ONE failed verification would gate a paid account as Free for the rest of the SPA
+ * session however many times they returned to a gated surface. A VERIFIED answer is not
+ * re-asked (that is what the panel's TTL and explicit invalidation are for), and neither is a
+ * STALE_LAST_GOOD — there is something same-owner to show and the gate is already closed.
+ */
+function adopt(who: string): void {
+  const changed = setOwner(who);
+  const worthAsking = changed || snapshot.state === "LOADING" || snapshot.state === "UNAVAILABLE";
+  if (isAccountOwner(who) && worthAsking) refreshEntitlement();
+}
+
 // ── selectors ────────────────────────────────────────────────────────────────────────────
 
 export type DisplayEntitlement = {
@@ -215,13 +234,7 @@ export function useEntitlementSnapshot(identity?: AccountIdentity | null): Entit
   const who = identityOwnerKey(identity ?? GUEST_IDENTITY);
   const snap = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
-  useEffect(() => {
-    const changed = setOwner(who);
-    // Verify on adoption, and on every owner change. A guest needs no request at all: the server
-    // answers Free for an unauthenticated caller by design, so spending a round trip to learn it
-    // only slows the public UI down.
-    if (isAccountOwner(who) && (changed || snapshot.state === "LOADING")) refreshEntitlement();
-  }, [who]);
+  useEffect(() => { adopt(who); }, [who]);
 
   return snap;
 }
@@ -250,11 +263,8 @@ export function __resetEntitlementStore() {
   inflight = false;
 }
 
-/** Test seam — drives owner adoption + verification exactly as the hook's effect would. */
-export function __adoptEntitlementOwner(who: string) {
-  const changed = setOwner(who);
-  if (isAccountOwner(who) && (changed || snapshot.state === "LOADING")) refreshEntitlement();
-}
+/** Test seam — the same `adopt` the hook's effect calls, so the two cannot drift apart. */
+export function __adoptEntitlementOwner(who: string) { adopt(who); }
 
 /** Test seam — the currently published snapshot. */
 export function __entitlementSnapshot(): EntitlementSnapshot { return snapshot; }
