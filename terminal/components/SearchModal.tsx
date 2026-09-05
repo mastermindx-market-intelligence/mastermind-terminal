@@ -64,16 +64,25 @@ const CATS: { id: string; key: string }[] = [
 //             its geometry never moves. Supports composites + recently viewed symbols.
 // "compare" = Compare overlay picker.
 // "add"     = Add Symbol dialog (per S5): has remove-from-watchlist + go-to-symbol instead of +.
+// "pick"    = Symbol picker for a workspace that owns a company but not a watchlist (/analysis).
+//             The full search machinery — name/ticker/zh scoring, category browse, Recently
+//             viewed, market prefs — with the watchlist vocabulary removed rather than faked: no
+//             list rail, no `+`, no composites (a composite is a chart subject, and no workspace
+//             that picks a COMPANY has a page for one). A `+` wired to nothing would be worse
+//             than no `+`, which is why this is a mode and not a pile of undefined callbacks.
 export default function SearchModal({
   open, seed, manifest, inWatchlist, mode = "go", compare = [], active = "",
   quotes = {},
   flags = {}, lastFlagColor = FLAG_DEFAULT,
   email, lists = [], activeList = "", onSwitchList, onCreateList, onAddToList, onAddToPortfolio,
   marketPrefs = DEFAULT_PREFS, prefsReady = false, onShowAllMarkets,
-  onClose, onPick, onAdd, onRemove, onToggleCompare, compareCfg,
+  onClose, onPick, onAdd, onRemove, onToggleCompare, compareCfg, trackSource,
+  universeState = "ready", onRetryUniverse,
 }: {
-  open: boolean; seed: string; manifest: Record<string, Row>; inWatchlist: Set<string>;
-  mode?: "go" | "compare" | "add"; compare?: string[]; active?: string;
+  open: boolean; seed: string; manifest: Record<string, Row>;
+  /** Read-only: this dialog only ever tests membership. A host with no watchlist passes an empty set. */
+  inWatchlist: ReadonlySet<string>;
+  mode?: "go" | "compare" | "add" | "pick"; compare?: string[]; active?: string;
   quotes?: Record<string, WatchlistLiveQuote | null>;
   flags?: Record<string, string>;       // sym → flag color (empty = no flag)
   lastFlagColor?: string;
@@ -92,10 +101,23 @@ export default function SearchModal({
   prefsReady?: boolean;
   onShowAllMarkets?: () => void;         // one-click undo from the filter notice
   onClose: () => void; onPick: (s: string) => void;
-  onAdd: (s: string) => void;
+  /** Watchlist add. Optional: `pick` mode has no watchlist and shows no add control. */
+  onAdd?: (s: string) => void;
   onRemove?: (s: string) => void;
   onToggleCompare?: (s: string, mode?: CmpMode) => void;
   compareCfg?: Record<string, CmpCfg>;
+  /** Names the desk this search came from in the /admin Search Log. Defaults per mode. */
+  trackSource?: string;
+  /**
+   * Whether `manifest` is the real symbol universe yet. A host that fetches it lazily must say
+   * so: an empty manifest is INDISTINGUISHABLE from a universe with no matches, and rendering
+   * "No supported symbol matches" over a list that simply has not arrived tells the user their
+   * company does not exist. Defaults to "ready" so hosts that hand over a settled manifest are
+   * unchanged.
+   */
+  universeState?: "ready" | "loading" | "unavailable";
+  /** Re-request the universe after a failed read. Required for the "unavailable" state to recover. */
+  onRetryUniverse?: () => void;
 }) {
   const t = useT();
   const { lang } = useLang();
@@ -134,13 +156,14 @@ export default function SearchModal({
       setRailCreating(false); setRailName("");
       setPicker(null); setPickerPos(null); setPickerNew(false); setPickerNewName("");
       setJustAdded(null);
-      // Opening the mobile ticker picker is a navigation action, so it must land on the active
-      // watchlist without also summoning the keyboard. Desktop symbol search, seeded type-ahead,
-      // Compare, and Add Symbol retain their established autofocus behavior.
-      const mobileWatchlistEntry = mode === "go"
+      // Opening the mobile ticker picker is a navigation action, so it must land on its list
+      // (the active watchlist in "go", Recently viewed in "pick") without also summoning the
+      // keyboard. Desktop symbol search, seeded type-ahead, Compare, and Add Symbol retain their
+      // established autofocus behavior.
+      const mobileHubEntry = (mode === "go" || mode === "pick")
         && !seed
         && window.matchMedia("(max-width: 860px)").matches;
-      const focusTimer = mobileWatchlistEntry
+      const focusTimer = mobileHubEntry
         ? null
         : setTimeout(() => inputRef.current?.focus(), 10);
       return () => { if (focusTimer) clearTimeout(focusTimer); };
@@ -164,8 +187,12 @@ export default function SearchModal({
   const deferredQ = useDeferredValue(q);
   const cmp = mode === "compare";
   const isAdd = mode === "add";
+  // Picking a company for a workspace is primary navigation, exactly like the chart hub — same
+  // drawer on the phone, same hub geometry on desktop, minus the watchlist vocabulary.
+  const isPick = mode === "pick";
+  const isHub = mode === "go" || isPick;
   const signedIn = !!email;
-  const phoneDrawer = useIsPhone() && mode === "go";
+  const phoneDrawer = useIsPhone() && isHub;
 
   // Only "go" mode has a watchlist home. Focusing the field or using the mobile Recent action
   // moves to search explicitly; it stays there until navigation completes or Watchlist is chosen.
@@ -299,10 +326,14 @@ export default function SearchModal({
   const added = compare.filter((c) => c !== active);
 
   // Composite first-row candidate (F2): valid composite → synthetic row shown first.
-  const showCompositeRow = !cmp && !isAdd && compositeLegs !== null && compositeLegs.valid;
+  const showCompositeRow = !cmp && !isAdd && !isPick && compositeLegs !== null && compositeLegs.valid;
   const compositeExprStr = compositeLegs ? compositeExpr(compositeLegs.legs) : null;
 
-  const track = (sym: string) => trackSearch(sym, cmp ? "chart-compare" : isAdd ? "watchlist-add" : "chart-search", q.trim() || undefined);
+  const track = (sym: string) => trackSearch(
+    sym,
+    trackSource || (cmp ? "chart-compare" : isAdd ? "watchlist-add" : isPick ? "workspace-search" : "chart-search"),
+    q.trim() || undefined,
+  );
 
   // Fire the transient "Added to {list}" inline confirmation on a result row.
   function flashAdded(sym: string, list: string) {
@@ -324,7 +355,7 @@ export default function SearchModal({
   function handleAdd(sym: string, rowEl?: HTMLElement | null) {
     track(sym);
     if (lists.length <= 1 && !onAddToPortfolio) {
-      onAdd(sym);
+      onAdd?.(sym);
       flashAdded(sym, lists[0]?.name || activeList || "Watchlist");
       return;
     }
@@ -367,14 +398,14 @@ export default function SearchModal({
         onPick(sym);
         onClose();
       } else {
-        onAdd(sym);
+        onAdd?.(sym);
         if (shiftKey) onClose();
       }
     } else {
       // "go" mode: navigate + optionally add.
       onPick(sym);
       if (shiftKey) {
-        onAdd(sym);
+        onAdd?.(sym);
       }
       onClose();
     }
@@ -397,7 +428,7 @@ export default function SearchModal({
         if (row) choose(row[0], shift);
         else if (isAdd && !inWatchlist.has(active)) {
           track(active);
-          onAdd(active);
+          onAdd?.(active);
           if (shift) onClose();
         }
       }
@@ -748,7 +779,7 @@ export default function SearchModal({
                     ? <WlMemberActions sym={compositeExprStr} t={t} onRemove={onRemove} onGo={() => { onPick(compositeExprStr); onClose(); }} />
                     : !isAdd && <button className={`add${inWatchlist.has(compositeExprStr) ? " added" : ""}`}
                         title={inWatchlist.has(compositeExprStr) ? t("inWatchlist") : t("addToWatchlist")}
-                        onClick={(e) => { e.stopPropagation(); track(compositeExprStr); onAdd(compositeExprStr); }}>
+                        onClick={(e) => { e.stopPropagation(); track(compositeExprStr); onAdd?.(compositeExprStr); }}>
                         {inWatchlist.has(compositeExprStr)
                           ? <svg viewBox="0 0 24 24"><path d="M4 12l5 5L20 6" /></svg>
                           : <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg>}
@@ -770,14 +801,27 @@ export default function SearchModal({
               <div className="sres-section-hd" role="presentation">{t("searchRecentHeader")}</div>
             )}
 
+            {/* The universe is a separate read from this dialog. Until it lands, NEITHER empty
+                state below is a true statement about the market — see `universeState`. */}
+            {universeState !== "ready" && displayRows.length === 0 && (
+              universeState === "loading"
+                ? <div className="s-type-hint" role="presentation">{t("searchUniverseLoading")}</div>
+                : <div className="s-universe-failed" role="presentation">
+                    <span>{t("searchUniverseFailed")}</span>
+                    {onRetryUniverse && (
+                      <button type="button" className="s-mkt-show" onClick={onRetryUniverse}>{t("searchUniverseRetry")}</button>
+                    )}
+                  </div>
+            )}
+
             {/* Recent is navigation history, so an empty list says that plainly. Category browse
                 content replaces this state whenever a category tab has rows. */}
-            {!cmp && !isAdd && showRecentRows && displayRows.length === 0 && (
+            {universeState === "ready" && !cmp && !isAdd && showRecentRows && displayRows.length === 0 && (
               <div className="s-type-hint" role="presentation">{t("searchRecentEmpty")}</div>
             )}
 
             {/* Empty state */}
-            {!showCompositeRow && displayRows.length === 0 && !showRecentRows && (
+            {universeState === "ready" && !showCompositeRow && displayRows.length === 0 && !showRecentRows && (
               <div className="empty" role="presentation">{t("noSymbolMatch")} "{q}".</div>
             )}
 
@@ -795,7 +839,7 @@ export default function SearchModal({
                 )}
               </div>
             )}
-            {(cmp || isAdd) && showRecentRows && displayRows.length === 0 && (
+            {universeState === "ready" && (cmp || isAdd) && showRecentRows && displayRows.length === 0 && (
               <div className="empty" role="presentation">{t("searchRecentEmpty")}</div>
             )}
 
@@ -810,8 +854,8 @@ export default function SearchModal({
               // compare/add modes keep their bespoke row actions; go mode uses the shared symRow w/ add.
               if (!cmp && !isAdd) {
                 return seamHd
-                  ? <Fragment key={`seam-${s}`}>{seamHd}{symRow(s, r, rowSel, true, false, optionDomId(rowSel))}</Fragment>
-                  : symRow(s, r, rowSel, true, false, optionDomId(rowSel));
+                  ? <Fragment key={`seam-${s}`}>{seamHd}{symRow(s, r, rowSel, !isPick, false, optionDomId(rowSel))}</Fragment>
+                  : symRow(s, r, rowSel, !isPick, false, optionDomId(rowSel));
               }
               const buy = isBuy(r.verdict);
               const inCmp = cmp && compare.includes(s);
@@ -867,7 +911,7 @@ export default function SearchModal({
                         </div>
                       : inWl
                         ? <WlMemberActions sym={s} t={t} onRemove={onRemove} onGo={() => { onPick(s); onClose(); }} />
-                        : <button className="add" title={t("addToWatchlist")} onClick={(e) => { e.stopPropagation(); track(s); onAdd(s); if (e.shiftKey) onClose(); }}>
+                        : <button className="add" title={t("addToWatchlist")} onClick={(e) => { e.stopPropagation(); track(s); onAdd?.(s); if (e.shiftKey) onClose(); }}>
                             <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg>
                           </button>
                     }
@@ -909,7 +953,7 @@ export default function SearchModal({
 
   return (
     <div className="scrim" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className={`smodal${cmp ? " smodal-cmp" : ""}${isAdd ? " smodal-add" : ""}${mode === "go" ? " smodal-hub" : ""}`} onClick={(e) => e.stopPropagation()}>
+      <div className={`smodal${cmp ? " smodal-cmp" : ""}${isAdd ? " smodal-add" : ""}${isHub ? " smodal-hub" : ""}`} onClick={(e) => e.stopPropagation()}>
         {/* Header with title */}
         <div className="smodal-title-bar">
           <span className="smodal-title">{t(titleKey)}</span>

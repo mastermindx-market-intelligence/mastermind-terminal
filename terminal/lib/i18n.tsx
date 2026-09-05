@@ -1497,6 +1497,12 @@ export const LEX: Record<string, [string, string]> = {
   searchInputPlaceholder: ["Symbol or company name", "代码或公司名称"],
   searchRecentEmpty: ["No symbols viewed yet", "暂无最近浏览的标的"],
   searchRecentHeader: ["Recently viewed", "最近浏览"],
+  // The symbol universe is a separate read from the dialog that presents it. "Nothing matches"
+  // and "the list has not arrived" are different facts, and saying the first while the second is
+  // true tells a user their symbol does not exist.
+  searchUniverseLoading: ["Loading symbols…", "正在加载代码列表…"],
+  searchUniverseFailed: ["The symbol list could not be loaded.", "无法加载代码列表。"],
+  searchUniverseRetry: ["Try again", "重试"],
   searchShowRecent: ["Recent", "最近"],
   searchShowWatchlist: ["Watchlist", "自选"],
   removeFromWatchlist: ["Remove from Watchlist", "从自选移除"],

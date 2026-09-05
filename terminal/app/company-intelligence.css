@@ -1,18 +1,22 @@
 /* Company Intelligence workspace. Scoped to .ci-* and composed from Terminal tokens. */
 .analysis-shell{display:flex;flex-direction:column;overflow:hidden}
 .analysis-context-bar{display:flex;align-items:center;gap:var(--sp-4);min-height:58px;padding:8px 14px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,color-mix(in srgb,var(--panel) 96%,var(--brand) 2%),var(--bg));flex:none}
-.analysis-context-identity{display:flex;align-items:center;gap:9px;min-width:150px}
-.analysis-context-mark{width:31px;height:31px;display:grid;place-items:center;border:1px solid color-mix(in srgb,var(--brand) 34%,var(--line));border-radius:9px;background:color-mix(in srgb,var(--brand) 12%,var(--panel-2));color:var(--brand-2);font:720 12px/1 var(--font-ui)}
-.analysis-context-identity>span:last-child{display:grid;gap:3px}.analysis-context-identity small{color:var(--muted);font:700 8.5px/1 var(--font-ui);letter-spacing:.11em}.analysis-context-identity strong{font:670 13px/1 var(--font-num);font-variant-numeric:tabular-nums}
-.analysis-symbol-form{display:flex;align-items:center;gap:9px;min-width:0}
-.analysis-symbol-form>label{color:var(--muted);font:620 10px/1 var(--font-ui)}
-.analysis-symbol-form>div{display:flex;align-items:center;width:240px;height:36px;border:1px solid var(--line-3);border-radius:var(--r-md);background:var(--panel-2);color:var(--muted);overflow:hidden;transition:border-color var(--t-fast),box-shadow var(--t-fast)}
-.analysis-symbol-form>div:focus-within{border-color:var(--brand-2);box-shadow:0 0 0 3px color-mix(in srgb,var(--brand) 13%,transparent)}
-.analysis-symbol-form svg{margin-left:10px;fill:none;stroke:currentColor;stroke-width:1.7}
-.analysis-symbol-form input{min-width:0;flex:1;height:100%;padding:0 8px;border:0;outline:0;background:transparent;color:var(--text);font:620 11.5px/1 var(--font-num);font-variant-numeric:tabular-nums;text-transform:uppercase}
-.analysis-symbol-form input::placeholder{color:var(--text-dim);text-transform:none}
-.analysis-symbol-form button{align-self:stretch;min-height:0;padding:0 11px;border-left:1px solid var(--line);color:var(--brand-2);font:650 10px/1 var(--font-ui)}
-.analysis-symbol-form button:hover:not(:disabled){background:color-mix(in srgb,var(--brand) 10%,transparent)}.analysis-symbol-form button:disabled{color:var(--text-dim);cursor:default}
+/* components/SymbolPicker's trigger. It replaced a read-only identity chip sitting beside a
+   "switch company" text field — two controls naming one company. This is the chart's `.pair`
+   idiom (globals.css:186): the ticker you are on IS the button that changes it. */
+.sym-pick{display:flex;align-items:center;gap:9px;min-width:150px;min-height:0;padding:5px 10px 5px 6px;border:1px solid transparent;border-radius:var(--r-md);background:transparent;color:inherit;cursor:pointer;text-align:left;transition:border-color var(--t-fast),background var(--t-fast)}
+.sym-pick:hover{border-color:var(--line-3);background:var(--panel-2)}
+.sym-pick:focus-visible{border-color:var(--brand-2);box-shadow:0 0 0 3px color-mix(in srgb,var(--brand) 13%,transparent);outline:0}
+.sym-pick-mark{width:31px;height:31px;display:grid;place-items:center;flex:none;border:1px solid color-mix(in srgb,var(--brand) 34%,var(--line));border-radius:9px;background:color-mix(in srgb,var(--brand) 12%,var(--panel-2));color:var(--brand-2);font:720 12px/1 var(--font-ui)}
+.sym-pick-id{display:grid;gap:3px;min-width:0}
+.sym-pick-id small{color:var(--muted);font:700 8.5px/1 var(--font-ui);letter-spacing:.11em}
+.sym-pick-id strong{overflow:hidden;font:670 13px/1 var(--font-num);font-variant-numeric:tabular-nums;text-overflow:ellipsis;white-space:nowrap}
+.sym-pick-car{width:12px;height:12px;flex:none;fill:none;stroke:var(--muted);stroke-width:2.2}
+.sym-pick:hover .sym-pick-car{stroke:var(--text-2)}
+.sym-pick--invalid .sym-pick-mark{border-color:color-mix(in srgb,var(--warn) 48%,var(--line));background:color-mix(in srgb,var(--warn) 13%,var(--panel-2));color:var(--warn)}
+/* Touch floor. Precedent: @media (pointer:coarse){.pf-act{min-height:44px}} — globals.css:1284.
+   Tablet keeps the chip width but must still clear the 44px target the phone rule gives it. */
+@media (pointer:coarse){.sym-pick{min-height:44px}}
 .analysis-context-freshness{display:flex;align-items:center;gap:7px;margin-left:auto;color:var(--muted);font:560 10px/1 var(--font-ui)}
 .analysis-context-freshness i{width:6px;height:6px;border-radius:50%;background:var(--brand-2);box-shadow:0 0 0 3px color-mix(in srgb,var(--brand) 12%,transparent)}
 .analysis-invalid-state{display:flex;align-items:center;gap:var(--sp-4);width:min(760px,calc(100% - 32px));min-height:320px;margin:auto;padding:var(--sp-5);border:1px solid color-mix(in srgb,var(--warn) 32%,var(--line));border-radius:var(--r-card);background:linear-gradient(135deg,color-mix(in srgb,var(--warn) 8%,var(--panel)),var(--panel));box-shadow:var(--shadow-card)}
@@ -270,7 +274,13 @@
 }
 
 @media (max-width:640px){
-  .analysis-context-bar{min-height:52px;padding:7px 10px;gap:8px}.analysis-context-identity{min-width:auto}.analysis-context-mark{width:34px;height:34px}.analysis-context-identity small,.analysis-context-freshness{display:none}.analysis-symbol-form{flex:1}.analysis-symbol-form>label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}.analysis-symbol-form>div{width:100%;height:38px}
+  /* One full-width tap target, ≥44px tall: on the phone this bar IS the symbol switcher. */
+  .analysis-context-bar{min-height:52px;padding:7px 10px;gap:8px}.analysis-context-freshness{display:none}
+  .sym-pick{flex:1;min-width:0;min-height:44px;border-color:var(--line-3);background:var(--panel-2)}
+  .sym-pick-mark{width:34px;height:34px}
+  .sym-pick-id small{display:none}
+  .sym-pick-id strong{font-size:15px}
+  .sym-pick-car{width:14px;height:14px;margin-left:auto}
   .analysis-invalid-state{align-items:flex-start;width:calc(100% - 20px);min-height:280px;margin:10px;padding:var(--sp-4);border-radius:var(--r-tile)}.analysis-invalid-state h1{font-size:18px}.analysis-invalid-mark{width:38px;height:38px;border-radius:11px;font-size:18px}
   .ci-page{width:100%}
   .ci-hero{border-radius:var(--r-tile);margin-bottom:8px}

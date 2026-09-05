@@ -593,17 +593,13 @@ test("Analysis symbol URLs preserve valid market identifiers and refuse malforme
   });
 
   await page.goto("/analysis?symbol=BRK.B&page=intelligence");
-  await expect(page.locator(".analysis-context-identity strong")).toHaveText("BRK.B");
+  await expect(page.locator(".sym-pick strong")).toHaveText("BRK.B");
   await expect.poll(() => requested.some((path) => path.endsWith("/BRK.B"))).toBe(true);
 
+  // The free-text field this used to type into is gone: the switcher is components/SymbolPicker,
+  // which can only yield manifest symbols. A malformed value now reaches the workspace only
+  // through the URL, which is the case below — and it must still refuse to become NVDA.
   requested.length = 0;
-  await page.getByLabel("Change symbol").fill("../NVDA");
-  await page.getByLabel("Change symbol").press("Enter");
-  await expect(page.locator(".analysis-invalid-state")).toBeVisible();
-  await expect(page.locator(".analysis-invalid-state")).toContainText("not substituted with NVDA");
-  await page.waitForTimeout(200);
-  expect(requested).toEqual([]);
-
   await page.goto(`/analysis?symbol=${encodeURIComponent("../NVDA")}&page=intelligence`);
   await expect(page.locator(".analysis-invalid-state")).toBeVisible();
   await expect(page.locator(".analysis-invalid-state")).toContainText("not substituted with NVDA");

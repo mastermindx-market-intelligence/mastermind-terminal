@@ -142,6 +142,7 @@ import { getJSON, prefetch, loadCoverage } from "@/lib/dataCache";
 import { type CmpCfg, type CmpMode, defaultCmpCfg, cmpKey, isCmpKey, cmpSymOf } from "@/lib/compare";
 import { isComposite, parseComposite, compositeQuote as calcCompositeQuote } from "@/lib/composite";
 import { pushRecentlyViewed } from "@/lib/recentlyViewed";
+import { writeActiveSymbol } from "@/lib/activeSymbol";
 import { listScripts, deleteScript as delScript, renameScript as renScript, enabledScriptIds, setEnabledScriptIds, pineParamStore, setPineParamStore, mergedParams, type UserScript } from "@/lib/userScripts";
 import LayoutMenu, { type LayoutFeedback, type LayoutStatus, type SavedWorkspace } from "@/components/LayoutMenu";
 import WorkspaceTile from "@/components/WorkspaceTile";
@@ -1122,10 +1123,31 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
   // The active chart is the source of truth for Recently viewed. Recording here (instead of only
   // inside the search picker) includes direct Macro Dashboard links, the warm iframe bridge,
   // watchlists, movers, and search results. Composite expressions are not standalone ticker rows.
+  //
+  // `workspaceRestored` gates HISTORY on purpose: the boot seed is a transient the restore may
+  // replace a beat later, and Recently viewed is append-only — a symbol logged there wrongly
+  // cannot be taken back.
   useEffect(() => {
     if (!active || !workspaceRestored) return;
     if (!isComposite(active)) pushRecentlyViewed(active);
   }, [active, workspaceRestored]);
+  // The cross-route cursor (lib/activeSymbol) — the chart telling every other workspace which
+  // company is on screen. Until it said so, they each opened on their own default, which is how
+  // a user charting SMR got a full NVDA intelligence read from the mobile drawer.
+  //
+  // Deliberately NOT gated on `workspaceRestored`, unlike Recently viewed above. The restore can
+  // land far behind first paint (it is starvable — see the layout-effect note in
+  // watchlist-restore), and CI caught the consequence: the top bar read MSFT while the cursor was
+  // still unpublished, so leaving for Analysis in that window landed on the default all over
+  // again. The cursor is last-write-wins state, not history: publishing "what the chart is
+  // showing right now" is accurate at every instant, including the seed's brief turn, and the
+  // restore simply publishes over it. `writeActiveSymbol` refuses composites itself, so a
+  // composite chart leaves the cursor on the last real company rather than on something
+  // /analysis has no page for.
+  useEffect(() => {
+    if (!active) return;
+    writeActiveSymbol(active);
+  }, [active]);
   // Analytics: emit a ticker_view whenever the active chart symbol changes. The symbol is client
   // state (not a route), so the route tracker never sees it — fire a decoupled window event that
   // components/Tracker.tsx picks up. Fire-and-forget; never blocks the UI.

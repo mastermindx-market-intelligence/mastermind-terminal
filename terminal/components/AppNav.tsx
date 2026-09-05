@@ -3,6 +3,10 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useT } from "@/lib/i18n";
+import { useActiveSymbol } from "@/lib/activeSymbol";
+// The nav-decoration policy is a leaf module so both nav surfaces share one rule and it can be
+// unit-tested without mounting a nav.
+import { navHref } from "@/lib/navSymbol";
 import { Tip } from "@/components/ui/Tip";
 
 // Line glyphs — all share the 24-box, 1.7-stroke, fill:none house style (.navbtn svg).
@@ -67,6 +71,7 @@ function AppNavInner() {
   const path = usePathname();
   const router = useRouter();
   const t = useT();
+  const activeSymbol = useActiveSymbol();
   // Active key = path prefix per workspace. Chart is the default/center. Fundamentals now
   // owns its own top-level Analysis highlight (/analysis); the chart's in-shell fundamentals
   // pane still exists but no longer drives the nav.
@@ -85,7 +90,7 @@ function AppNavInner() {
         return (
           <Tip key={it.k} label={t(it.k, it.label)} side="right" size="mini">
             <Link
-              href={it.href}
+              href={navHref(it, activeSymbol, path)}
               onClick={path.startsWith("/terminal") && it.k === "chart" ? () => window.dispatchEvent(new CustomEvent("mm:close-pane")) : undefined}
               className={`navbtn${on ? " on" : ""}`}
               aria-current={on ? "page" : undefined}
