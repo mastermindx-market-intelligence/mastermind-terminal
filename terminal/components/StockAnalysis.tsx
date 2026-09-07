@@ -37,6 +37,14 @@ import { REGIME_COLORS, type GlanceRow } from "@/lib/mscGlance";
 import { isBlockedSignal, isStructureStop, sliceSignalBasis } from "@/lib/signalVerdict";
 import { makeGexT } from "@/components/gexdesk/gexStrings";
 import { sessionsOldEt } from "@/lib/optionsLevels";
+import {
+  MACRO_DURATION_ZH,
+  MACRO_INFLATION_ZH,
+  MACRO_REGIME_ZH,
+  macroChipLabel,
+  regimeLabel as plainRegime,
+  trustTierLabel,
+} from "@/lib/plainLabels";
 
 /* ── value formatting ───────────────────────────────────────────────── */
 const fnum = (n: number | null | undefined, d = 2) =>
@@ -670,7 +678,7 @@ export default function StockAnalysis({
           onFocus={(e) => { if (!edgePop) showTrust(e.currentTarget); }} onBlur={() => setTrustPop(null)}
           onClick={(e) => { setTrustPop(null); setEdgePop(e.currentTarget.getBoundingClientRect()); }}
           onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setTrustPop(null); setEdgePop((e.currentTarget as HTMLElement).getBoundingClientRect()); } }}>
-          <span className="sa-trust-tier">{cap(dec?.trust_tier)}</span>
+          <span className="sa-trust-tier">{trustTierLabel(dec?.trust_tier, lang)}</span>
           <svg className="sa-trust-i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 7.6h.01" /></svg>
           {trustPop && !edgePop && <div className="sa-trust-pop" role="tooltip" style={{ left: trustPop.x, top: trustPop.y }}>{pick(dec?.trust_en, dec?.trust_zh)}</div>}
         </div>
@@ -869,7 +877,7 @@ export default function StockAnalysis({
           {/* regime-dynamics law: the state word never stands alone — stability and
               dist-to-flip ride in the same chip row */}
           <div className="sa-chips">
-            <span className="sa-chip" style={{ color: REGIME_COLORS[glance.regime] }}>{gexT(`regime${glance.regime}`) || glance.regime}</span>
+            <span className="sa-chip" style={{ color: REGIME_COLORS[glance.regime] }}>{plainRegime(gexT, glance.regime, lang)}</span>
             {glance.stabilityPct != null && <span className="sa-chip">{pick("stability", "稳定度")} {fpct(glance.stabilityPct, 0, false)}</span>}
             {glance.distToFlipPct != null && <span className="sa-chip">{pick("to flip", "距翻转")} {fpct(glance.distToFlipPct, 1)}</span>}
           </div>
@@ -890,9 +898,9 @@ export default function StockAnalysis({
         <Section title={pick("Macro sensitivity", "宏观敏感度")}>
           <div className="sa-chips">
             {macro.tier_en && <span className="sa-chip">{pick("Rate: ", "利率：")}{pick(macro.tier_en, macro.tier_zh)}</span>}
-            {macro.duration_en && <span className="sa-chip">{macro.duration_en}</span>}
-            {macro.regime_en && <span className="sa-chip">{macro.regime_en}</span>}
-            {macro.inflation_en && <span className="sa-chip">{macro.inflation_en}</span>}
+            {macro.duration_en && <span className="sa-chip">{macroChipLabel(macro.duration_en, MACRO_DURATION_ZH, lang)}</span>}
+            {macro.regime_en && <span className="sa-chip">{macroChipLabel(macro.regime_en, MACRO_REGIME_ZH, lang)}</span>}
+            {macro.inflation_en && <span className="sa-chip">{macroChipLabel(macro.inflation_en, MACRO_INFLATION_ZH, lang)}</span>}
           </div>
           {pick(macro.headline_en, macro.headline_zh) && <div className="sa-macro-head">{pick(macro.headline_en, macro.headline_zh)}</div>}
         </Section>
