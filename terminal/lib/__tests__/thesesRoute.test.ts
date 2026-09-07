@@ -274,3 +274,81 @@ describe("POST /api/theses", () => {
     expect((await create("90000000-0000-4000-8000-000000000001")).status).toBe(401);
   });
 });
+
+describe("GET /api/theses?ids=", () => {
+  it("returns batch details in requested order with an empty missing list", async () => {
+    const a = await create("60000000-0000-4000-8000-0000000000a1");
+    const aId = (await a.json()).thesisId;
+    const b = await create("60000000-0000-4000-8000-0000000000b1");
+    const bId = (await b.json()).thesisId;
+
+    const res = await GET(new Request(`https://x.test/api/theses?ids=${bId}&ids=${aId}`));
+    expect(res.status).toBe(200);
+    const payload = await res.json();
+    expect(payload.missing).toEqual([]);
+    // Distinct response key `batch` (not `theses`, which the list branch uses for a
+    // different shape — ThesisSummary[] vs ThesisDetail[]; m4, round-2 review).
+    expect(payload.batch.map((t: { id: string }) => t.id)).toEqual([bId, aId]);
+    expect(payload.theses).toBeUndefined();
+  });
+
+  it("rejects more than 10 ids, a non-uuid id, and a duplicate id", async () => {
+    const uuids = Array.from({ length: 11 }, (_, i) => `70000000-0000-4000-8000-${String(i).padStart(12, "0")}`);
+    const tooMany = await GET(new Request(`https://x.test/api/theses?${uuids.map((u) => `ids=${u}`).join("&")}`));
+    expect(tooMany.status).toBe(400);
+    expect(await tooMany.json()).toEqual({ error: "invalid_thesis_ids" });
+
+    const badUuid = await GET(new Request("https://x.test/api/theses?ids=not-a-uuid"));
+    expect(badUuid.status).toBe(400);
+    expect(await badUuid.json()).toEqual({ error: "invalid_thesis_ids" });
+
+    const dup = "60000000-0000-4000-8000-000000000001";
+    const duplicate = await GET(new Request(`https://x.test/api/theses?ids=${dup}&ids=${dup}`));
+    expect(duplicate.status).toBe(400);
+    expect(await duplicate.json()).toEqual({ error: "invalid_thesis_ids" });
+  });
+
+  it("rejects ids combined with a subject filter", async () => {
+    const one = "60000000-0000-4000-8000-000000000001";
+    const withSubject = await GET(new Request(`https://x.test/api/theses?ids=${one}&subjectOwner=terminal.analysis_symbol&subjectKind=issuer&subjectKey=NVDA`));
+    expect(withSubject.status).toBe(400);
+    expect(await withSubject.json()).toEqual({ error: "invalid_query" });
+
+    // A single `id` param takes the pre-existing detail branch before the batch
+    // branch is ever reached (frozen route.ts places the batch code after it),
+    // so `id` + `ids` together resolve as a single-id detail lookup, not invalid_query.
+    const withId = await GET(new Request(`https://x.test/api/theses?ids=${one}&id=${one}`));
+    expect(withId.status).toBe(404);
+  });
+
+  it("returns 503 with no partial theses array when one id in the batch faults", async () => {
+    const made = await create("60000000-0000-4000-8000-000000000009");
+    const id = (await made.json()).thesisId;
+    H.faults = [FAULT_THESES_READ];
+    const res = await GET(new Request(`https://x.test/api/theses?ids=${id}`));
+    expect(res.status).toBe(503);
+    const body = await res.json();
+    expect(body).toEqual({ error: "thesis_store_unavailable" });
+    expect(body.batch).toBeUndefined();
+  });
+
+  it("is unauthenticated without a session", async () => {
+    H.user = null;
+    const res = await GET(new Request("https://x.test/api/theses?ids=60000000-0000-4000-8000-000000000001"));
+    expect(res.status).toBe(401);
+  });
+
+  it("puts another user's id in missing and leaks no field of it", async () => {
+    const made = await create("60000000-0000-4000-8000-000000000005");
+    const id = (await made.json()).thesisId;
+
+    H.key = "thesis-route-other";
+    H.user = { id: fixtureUserId(H.key) };
+    const res = await GET(new Request(`https://x.test/api/theses?ids=${id}`));
+    expect(res.status).toBe(200);
+    const payload = await res.json();
+    expect(payload.batch).toEqual([]);
+    expect(payload.missing).toEqual([id]);
+    expect(JSON.stringify(payload)).not.toMatch(/NVDA/);
+  });
+});

@@ -202,11 +202,11 @@ export default function ChartOverlays(props: {
                           no separate pill, no geometry change. Eye is the fixed first slot. */}
                       {coarse && isArmed ? (
                         <span className="lg-menu">
-                          <button className="lg-ic eye" aria-label={e.hidden ? "Show" : "Hide"} onClick={stop(() => { props.onEye(e.key); setArmedKey(null); })}><EyeIcon off={e.hidden} /></button>
-                          {!e.noParams && <button className="lg-ic" aria-label="Settings" onClick={stop(() => { props.onSettings(e.key); setArmedKey(null); })}>{I(ICONS.settings, 1.6)}</button>}
-                          <button className="lg-ic" aria-label="Remove" onClick={stop(() => { props.onRemove(e.key); setArmedKey(null); })}>{I(ICONS.remove)}</button>
+                          <button className="lg-ic eye" aria-label={e.hidden ? t("lgShow") : t("lgHide")} onClick={stop(() => { props.onEye(e.key); setArmedKey(null); })}><EyeIcon off={e.hidden} /></button>
+                          {!e.noParams && <button className="lg-ic" aria-label={t("lgSettings")} onClick={stop(() => { props.onSettings(e.key); setArmedKey(null); })}>{I(ICONS.settings, 1.6)}</button>}
+                          <button className="lg-ic" aria-label={t("lgRemove")} onClick={stop(() => { props.onRemove(e.key); setArmedKey(null); })}>{I(ICONS.remove)}</button>
                           {/* More → dropdown anchored under the armed row's left edge (conforms on coarse too) */}
-                          <button className="lg-ic" aria-label="More" onClick={(ev) => {
+                          <button className="lg-ic" aria-label={t("lgMore")} onClick={(ev) => {
                             ev.stopPropagation(); ev.preventDefault();
                             const rowEl = (ev.currentTarget as HTMLElement).closest(".lg-row") as HTMLElement | null;
                             const r = (rowEl ?? (ev.currentTarget as HTMLElement)).getBoundingClientRect();
@@ -219,7 +219,7 @@ export default function ChartOverlays(props: {
                           {!e.noParams && <button className="lg-ic" data-tip={t("lgSettings")} onClick={stop(() => props.onSettings(e.key))} aria-label={t("lgSettings")}>{I(ICONS.settings, 1.6)}</button>}
                           {!e.isCompare && !e.noParams && !e.noSource && <button className="lg-ic" data-tip={t("pmSourceCode")} onClick={stop(() => props.onSource(e.key))} aria-label={t("pmSourceCode")}>{I(ICONS.source)}</button>}
                           <button className="lg-ic" data-tip={t("lgRemove")} onClick={stop(() => props.onRemove(e.key))} aria-label={t("lgRemove")}>{I(ICONS.remove)}</button>
-                          <button className="lg-ic" data-tip={t("lgMore")} onClick={(ev) => { ev.stopPropagation(); ev.preventDefault(); openMore(e, p.paneIndex, (ev.currentTarget as HTMLElement).getBoundingClientRect()); }} aria-label="More">{I(ICONS.more, 2.4)}</button>
+                          <button className="lg-ic" data-tip={t("lgMore")} onClick={(ev) => { ev.stopPropagation(); ev.preventDefault(); openMore(e, p.paneIndex, (ev.currentTarget as HTMLElement).getBoundingClientRect()); }} aria-label={t("lgMore")}>{I(ICONS.more, 2.4)}</button>
                         </span>
                       ) : e.hidden ? (
                         // C1 coarse: hidden indicator keeps a persistent crossed-eye in the pill's eye
@@ -245,12 +245,12 @@ export default function ChartOverlays(props: {
               <div className="pane-ops" style={{ top: p.top + 3, right: 10 }}>
                 {/* on coarse, hide move/remove — only restore affordance (collapse/maximize) */}
                 {!coarse && !priceRestoreOnly && <>
-                  <button className="po-ic" data-tip={t("pmMovePaneUp")} disabled={!props.canMoveUp(p.paneIndex)} onClick={stop(() => { props.onMoveUp(p.paneIndex); doFlip(p.paneIndex + ":up"); })} aria-label="Move pane up">{flip?.key === p.paneIndex + ":up" ? <span key={flip.n} className="po-flip">{I(ICONS.up)}</span> : I(ICONS.up)}</button>
-                  <button className="po-ic" data-tip={t("pmMovePaneDown")} disabled={!props.canMoveDown(p.paneIndex)} onClick={stop(() => { props.onMoveDown(p.paneIndex); doFlip(p.paneIndex + ":down"); })} aria-label="Move pane down">{flip?.key === p.paneIndex + ":down" ? <span key={flip.n} className="po-flip">{I(ICONS.down)}</span> : I(ICONS.down)}</button>
+                  <button className="po-ic" data-tip={t("pmMovePaneUp")} disabled={!props.canMoveUp(p.paneIndex)} onClick={stop(() => { props.onMoveUp(p.paneIndex); doFlip(p.paneIndex + ":up"); })} aria-label={t("pmMovePaneUp")}>{flip?.key === p.paneIndex + ":up" ? <span key={flip.n} className="po-flip">{I(ICONS.up)}</span> : I(ICONS.up)}</button>
+                  <button className="po-ic" data-tip={t("pmMovePaneDown")} disabled={!props.canMoveDown(p.paneIndex)} onClick={stop(() => { props.onMoveDown(p.paneIndex); doFlip(p.paneIndex + ":down"); })} aria-label={t("pmMovePaneDown")}>{flip?.key === p.paneIndex + ":down" ? <span key={flip.n} className="po-flip">{I(ICONS.down)}</span> : I(ICONS.down)}</button>
                   <button className="po-ic" data-tip={t("pmRemovePane")} onClick={stop(() => props.onRemove(paneRemoveKey!))} aria-label={t("pmRemovePane")}>{I(ICONS.remove)}</button>
                 </>}
-                {!priceRestoreOnly && <button className={`po-ic${p.collapsed ? " on" : ""}`} data-tip={p.collapsed ? t("pmRestorePane") : t("pmCollapsePane")} onClick={stop(() => props.onCollapse(p.paneIndex))} aria-label="Collapse pane">{I(ICONS.collapse)}</button>}
-                <button className={`po-ic${p.maximized ? " on" : ""}`} data-tip={p.maximized ? t("pmRestorePane") : t("pmMaximizePane")} onClick={stop(() => props.onMaximize(p.paneIndex))} aria-label="Maximize pane">{I(ICONS.maximize)}</button>
+                {!priceRestoreOnly && <button className={`po-ic${p.collapsed ? " on" : ""}`} data-tip={p.collapsed ? t("pmRestorePane") : t("pmCollapsePane")} onClick={stop(() => props.onCollapse(p.paneIndex))} aria-label={p.collapsed ? t("pmRestorePane") : t("pmCollapsePane")}>{I(ICONS.collapse)}</button>}
+                <button className={`po-ic${p.maximized ? " on" : ""}`} data-tip={p.maximized ? t("pmRestorePane") : t("pmMaximizePane")} onClick={stop(() => props.onMaximize(p.paneIndex))} aria-label={p.maximized ? t("pmRestorePane") : t("pmMaximizePane")}>{I(ICONS.maximize)}</button>
               </div>
             )}
           </div>
@@ -272,7 +272,7 @@ export default function ChartOverlays(props: {
             <div className="lg-more-row" onClick={stop(() => { props.onMaximize(more.paneIndex); done(); })}><span className="mi">{I(ICONS.maximize)}</span>{t("pmMaximizePane")}</div>
           </>}
           <div className="lg-more-sep" />
-          <div className="lg-more-row danger" onClick={stop(() => { props.onRemove(more.key); done(); })}><span className="mi">{I(ICONS.remove)}</span>Remove</div>
+          <div className="lg-more-row danger" onClick={stop(() => { props.onRemove(more.key); done(); })}><span className="mi">{I(ICONS.remove)}</span>{t("lgRemove")}</div>
         </div>
       ); })()}
     </div>

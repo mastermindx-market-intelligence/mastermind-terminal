@@ -1497,6 +1497,12 @@ export const LEX: Record<string, [string, string]> = {
   searchInputPlaceholder: ["Symbol or company name", "代码或公司名称"],
   searchRecentEmpty: ["No symbols viewed yet", "暂无最近浏览的标的"],
   searchRecentHeader: ["Recently viewed", "最近浏览"],
+  // The symbol universe is a separate read from the dialog that presents it. "Nothing matches"
+  // and "the list has not arrived" are different facts, and saying the first while the second is
+  // true tells a user their symbol does not exist.
+  searchUniverseLoading: ["Loading symbols…", "正在加载代码列表…"],
+  searchUniverseFailed: ["The symbol list could not be loaded.", "无法加载代码列表。"],
+  searchUniverseRetry: ["Try again", "重试"],
   searchShowRecent: ["Recent", "最近"],
   searchShowWatchlist: ["Watchlist", "自选"],
   removeFromWatchlist: ["Remove from Watchlist", "从自选移除"],
@@ -1821,6 +1827,18 @@ export const LEX: Record<string, [string, string]> = {
   obBillLoading: ["Preparing secure checkout…", "正在准备安全结账…"],
   obBillRetry: ["Try again", "重试"],
   obBillErr: ["We couldn't set up checkout. Please try again.", "无法准备结账，请重试。"],
+  // Round 2 review (MAJOR-1 + MINOR-1) — a 2xx response that doesn't prove a subscription started
+  // (unparseable body, or a body matching neither successful receipt shape), and a network/timeout
+  // exception AFTER the POST to /complete was dispatched, both land here rather than on a copy that
+  // asserts "you have not been charged" — this consumer genuinely cannot prove that either way.
+  // Fix round 1 (MAJOR-2) — the card was already attached and /complete answered a non-2xx that is
+  // NOT the explicit "already subscribed" 409 (that gets onAlreadyActive() + no error string
+  // instead). We genuinely do not know whether the charge landed, so this names the real
+  // uncertainty rather than guessing either way.
+  obBillErrUnknown: [
+    "We couldn't confirm the result of that payment — check Settings → Billing before trying again.",
+    "我们无法确认这笔付款的结果——请在重试前查看设置 → 账单。",
+  ],
   obBillAlready: ["You already have an active plan", "你已有一个有效方案"],
   obBillAlreadySub: ["Nothing more to do here — jump into the Terminal.", "这里无需其他操作——直接进入终端。"],
   obBillAlreadyGo: ["Continue", "继续"],
@@ -1832,6 +1850,28 @@ export const LEX: Record<string, [string, string]> = {
   obBillConfirmGo: ["Continue", "继续"],
   // step done — trial live
   obDoneTrial: ["Your {tier} trial is live — first charge {date}; cancel before then and you pay nothing.", "你的 {tier} 试用已开始——首次扣款 {date}；在此之前取消，不会产生任何费用。"],
+  // Fix round 1 (MINOR-1 + MINOR-3) — shown when the trial is confirmed but there is no date to
+  // print as an UPCOMING charge: either the authority supplied none, or the date it supplied has
+  // already passed (a stale value must never print as fact). The old copy promised an email the
+  // Terminal never sends (MINOR-3); this points at a surface the product actually controls.
+  obDoneTrialNoDate: [
+    "Your {tier} trial is live — see Settings → Billing for your first charge date; cancel before then and you pay nothing.",
+    "你的 {tier} 试用已开始——具体扣款日期请查看 设置 → 账单；在此之前取消，不会产生任何费用。",
+  ],
+  // Fix round 1 (BLOCKER-1) — a genuine no-trial purchase (e.g. essential, plans.yml trial_days:
+  // 0) completed: charged, plan active, no trial to mention. Distinct from obDoneReady so the
+  // screen names the plan and confirms it is live, without implying a trial exists.
+  //
+  // Round 2 review (MAJOR-1, round 2 of round 2) — this line renders regardless of
+  // confirmPending (selectDoneBillingLine, MINOR-2), including stacked directly under
+  // obDoneConfirm ("confirm your email to activate your account"). It must never say "you're all
+  // set" / "一切就绪" in that state — the account is emphatically NOT all set until the email is
+  // confirmed, and the two lines would otherwise contradict each other in adjacent paragraphs. The
+  // plan-is-active fact stands alone; it does not imply the account overall is ready.
+  obDonePlanActive: [
+    "Your {tier} plan is now active.",
+    "你的 {tier} 方案现已生效。",
+  ],
   // rail account card trial chip
   obTrialChip: ["trial", "试用"],
   // settings menu tier line
@@ -1982,6 +2022,8 @@ export const LEX: Record<string, [string, string]> = {
   acsPrefRetry: ["Retry", "重试"],
   // E3 — a same-owner last-good plan, shown rather than withheld, but never passed off as fresh.
   acsPlanStale: ["Couldn't refresh your plan — showing the last confirmed one.", "无法刷新你的订阅信息——显示上次确认的结果。"],
+  // E4 — the same honesty for the metered lanes, which move far faster than the plan does.
+  acsUsageStale: ["Couldn't refresh these counts — showing the last confirmed ones.", "无法刷新这些用量——显示上次确认的结果。"],
   acsThemeLang: ["Theme & language", "主题与语言"],
   acsAppearance: ["Appearance", "外观"],
   // NEW — deliberately NOT macro's appearNote ("Auto follows your local time of

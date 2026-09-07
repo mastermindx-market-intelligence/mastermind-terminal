@@ -1,0 +1,163 @@
+{
+  "$schema_note": "Forward reservation ledger for supabase/migrations prefixes. Claim a prefix HERE, in its own commit or in the PR that writes the .sql, BEFORE you write the file. Enforced by scripts/check_supabase_migration_namespace.py via tests/test_supabase_migration_namespace.py.",
+  "version": 1,
+  "project_ref": "fsldfzlxyavsuwqbceod",
+  "prefix_width": 4,
+  "header_required_from": "0015",
+  "header_required_note": "Migrations numbered 0015 and above must carry two header lines: '-- Ledger row: <row id or NONE: <reason>>' and '-- Rollback: <sql or NONE: <reason>>'. 0001-0014 predate this law and are exempt by number, not by exception: 0013 (PR #513) and 0014 (PR #514) were already authored in open pull requests when the law landed, and retro-failing them would have reddened two sibling lanes. This is a disclosed gap, not a silent pass.",
+  "claim_before_you_write": "A prefix listed as free is unclaimed. Add your entry here (state=reserved or taken, with your packet id) in the same pull request that creates the .sql file. Two pull requests authored off the same base cannot see each other's filenames -- that is how 0008 collided (README.md lines 67-75) and how 0012, 0013, 0014 were claimed in parallel unmerged branches. This file is the only place that collision is visible before merge.",
+  "prefixes": {
+    "0001": {
+      "state": "historical",
+      "file": "0001_init.sql",
+      "packet": null,
+      "pr": null,
+      "pr_state": null,
+      "note": "predates the reservation law; creating PR not recorded in-repo (null, not unknown-and-guessed)"
+    },
+    "0002": {
+      "state": "historical",
+      "file": "0002_drawings.sql",
+      "packet": null,
+      "pr": null,
+      "pr_state": null,
+      "note": "predates the reservation law; creating PR not recorded in-repo (null, not unknown-and-guessed)"
+    },
+    "0003": {
+      "state": "historical",
+      "file": "0003_search_events.sql",
+      "packet": null,
+      "pr": null,
+      "pr_state": null,
+      "note": "predates the reservation law; creating PR not recorded in-repo (null, not unknown-and-guessed)"
+    },
+    "0004": {
+      "state": "historical",
+      "file": "0004_analytics.sql",
+      "packet": null,
+      "pr": null,
+      "pr_state": null,
+      "note": "predates the reservation law; creating PR not recorded in-repo (null, not unknown-and-guessed); analytics_events.id is a bigint identity here (see 0011)"
+    },
+    "0005": {
+      "state": "historical",
+      "file": "0005_brain_threads.sql",
+      "packet": null,
+      "pr": null,
+      "pr_state": null,
+      "note": "predates the reservation law; creating PR not recorded in-repo (null, not unknown-and-guessed)"
+    },
+    "0006": {
+      "state": "historical",
+      "file": "0006_lock_is_pro.sql",
+      "packet": null,
+      "pr": null,
+      "pr_state": null,
+      "note": "predates the reservation law; creating PR not recorded in-repo (null, not unknown-and-guessed)"
+    },
+    "0007": {
+      "state": "historical",
+      "file": "0007_portfolio_positions.sql",
+      "packet": null,
+      "pr": null,
+      "pr_state": null,
+      "note": "predates the reservation law; creating PR not recorded in-repo (null, not unknown-and-guessed)"
+    },
+    "0008": {
+      "state": "historical",
+      "file": "0008_chart_layouts_unique_name.sql",
+      "packet": null,
+      "pr": 427,
+      "pr_state": "merged",
+      "note": "the original collision: PR #427 and PR #426 both landed a 0008_ file; README.md:69-73"
+    },
+    "0009": {
+      "state": "historical",
+      "file": "0009_watchlist_symbol_unique.sql",
+      "packet": null,
+      "pr": 426,
+      "pr_state": "merged",
+      "note": "renamed from 0008_watchlist_symbol_unique.sql at merge time; README.md:69-73"
+    },
+    "0010": {
+      "state": "historical",
+      "file": "0010_search_event_stats.sql",
+      "packet": null,
+      "pr": null,
+      "pr_state": null,
+      "note": "applied 2026-08-21 (README.md:49); creating PR not recorded (null)"
+    },
+    "0011": {
+      "state": "historical",
+      "file": "0011_analytics_eid.sql",
+      "packet": "CA1A",
+      "pr": 507,
+      "pr_state": "merged",
+      "note": "packet id read from the file header 0011_analytics_eid.sql:1 (WS:COMMERCIAL-ACTIVATION CA1A)"
+    },
+    "0012": {
+      "state": "taken",
+      "file": "0012_thesis_objects.sql",
+      "packet": "F11-1",
+      "pr": 502,
+      "pr_state": "merged",
+      "note": "present on master via PR #502; open PR #520 (B-F11-2) does not touch supabase/migrations at all (verified against #520's file list) -- no collision, and the earlier claim that #520 edits this path was stale and is corrected here"
+    },
+    "0013": {
+      "state": "taken",
+      "file": "0013_alert_runs_outbox.sql",
+      "packet": "B-F08-2",
+      "pr": 513,
+      "pr_state": "merged",
+      "note": "present on master via PR #513 (merged 2026-09-06); the reservation premise that this file was absent from the checkout is stale and is corrected here -- present-file and absent-file are now both provable on the real tree (0013 present, 0014 still absent)"
+    },
+    "0014": {
+      "state": "taken",
+      "file": "0014_tenancy_foundation.sql",
+      "packet": "B-F12-1",
+      "pr": 514,
+      "pr_state": "open",
+      "note": "file lives in an unmerged PR; absent from this checkout by design"
+    },
+    "0015": {
+      "state": "reserved",
+      "file": null,
+      "packet": "B-F12-3",
+      "pr": null,
+      "pr_state": null,
+      "note": "claimed by packet B-F12-3; no pull request opened yet (null = not yet opened, not unknown). Packet id sourced from the B4 commission only."
+    },
+    "0016": {
+      "state": "reserved",
+      "file": null,
+      "packet": "B-F12-4",
+      "pr": null,
+      "pr_state": null,
+      "note": "claimed by packet B-F12-4; no pull request opened yet (null = not yet opened, not unknown). Packet id sourced from the B4 commission only."
+    },
+    "0017": {
+      "state": "free",
+      "file": null,
+      "packet": null,
+      "pr": null,
+      "pr_state": null,
+      "note": "free -- claim before you write"
+    },
+    "0018": {
+      "state": "free",
+      "file": null,
+      "packet": null,
+      "pr": null,
+      "pr_state": null,
+      "note": "free -- claim before you write"
+    },
+    "0019": {
+      "state": "free",
+      "file": null,
+      "packet": null,
+      "pr": null,
+      "pr_state": null,
+      "note": "free -- claim before you write"
+    }
+  }
+}
