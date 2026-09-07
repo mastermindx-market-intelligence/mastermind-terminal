@@ -7,6 +7,7 @@ import {
 import dynamic from "next/dynamic";
 import { useLang, useT } from "@/lib/i18n";
 import type { Lang } from "@/lib/i18n";
+import { daysHeld, daysToExpiry, volAboveOi } from "@/lib/plainAbbrev";
 import { CoachProvider, useCoach } from "@/lib/tutorial/coach";
 import { getTutStr } from "@/lib/tutorial/tutorialStrings";
 import { abbrevSector } from "@/lib/sectorAbbrev";
@@ -1046,7 +1047,7 @@ const TermStructureChart = memo(function TermStructureChart({ term }: { term: Vo
           return (
             <g key={p.exp}>
               <circle cx={x} cy={y} r={3} fill="var(--brand-2)">
-                <title>{`${p.exp} · ${p.dte}d · ${p.atm_iv.toFixed(1)}%`}</title>
+                <title>{`${p.exp} · ${daysToExpiry(p.dte, lang)} · ${p.atm_iv.toFixed(1)}%`}</title>
               </circle>
               {labelled.has(p.exp) && (
                 <text x={x} y={H - 12} textAnchor="middle" fill="var(--text-dim)" fontSize={10} style={SVG_NUM}>
@@ -2645,9 +2646,9 @@ export default function OptionsHubView({
                               <td style={{ fontVariantNumeric: "tabular-nums" }}>{e.size.toLocaleString("en-US")}</td>
                               <td style={{ fontVariantNumeric: "tabular-nums" }}>{fmtPremium(e.premium)}</td>
                               <td>
-                                <span style={{ display: "flex", gap: 4, justifyContent: "flex-end", flexWrap: "wrap" }}>
+                                <span style={{ display: "flex", gap: 4, justifyContent: "flex-end", flexWrap: "wrap", alignItems: "flex-start" }}>
                                   {e.zerodte && <span className="flow-flag-chip">{lang === "zh" ? "当日" : "0DTE"}</span>}
-                                  {e.vol_gt_oi && <span className="flow-flag-chip">{lang === "zh" ? "量超持仓" : "vol>OI"}</span>}
+                                  {e.vol_gt_oi && <span className="flow-flag-chip is-long">{volAboveOi(lang)}</span>}
                                   {e.repeated && <span className="flow-flag-chip">{lang === "zh" ? "重复" : "repeat"}</span>}
                                   {e.swept && <span className="flow-flag-chip" style={{ color: "var(--warn)", borderColor: "color-mix(in srgb, var(--warn) 40%, transparent)" }}>{lang === "zh" ? "扫单" : "swept"}</span>}
                                   {oiConfSet.has(`${e.root}|${e.right}|${e.exp}|${e.strike}`) && (
@@ -4494,7 +4495,7 @@ export default function OptionsHubView({
                                       {/* Days in state */}
                                       <td style={{ textAlign: "center", minWidth: 52, color: "var(--text-dim)", fontSize: 11 }}>
                                         {row.days_in_state !== null && row.days_in_state !== undefined
-                                          ? `${row.days_in_state}d`
+                                          ? daysHeld(row.days_in_state, lang)
                                           : <span style={{ fontStyle: "italic", color: "var(--muted)" }}>{t("radarSeeding", "seeding")}</span>}
                                       </td>
 
