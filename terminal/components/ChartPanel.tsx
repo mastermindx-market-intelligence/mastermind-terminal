@@ -50,6 +50,7 @@ import {
   priceScaleDisplayValue,
   secondaryPriceTagTop,
 } from "@/lib/priceTagPlacement";
+import { hoverTagPaint } from "@/lib/hoverTagPaint";
 import { setActivePaneCoords, getActivePaneCoords } from "@/lib/paneCoords";
 import { getJSON, getSliceAndOhlc, getCompositeOhlc, getOhlc } from "@/lib/dataCache";
 import { parseComposite, alignAndSum } from "@/lib/composite";
@@ -3588,15 +3589,25 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     };
     refreshHoverTag = () => {
       const tag = hoverTagRef.current;
-      if (!tag || !hoverState || priceProjHidden()) { if (tag) tag.style.display = "none"; return; }
+      if (!tag) return;
       const s = priceSeriesRef.current;
-      if (!s) { tag.style.display = "none"; return; }
-      const y = hoverState.snappedPrice == null
-        ? hoverState.pointerY
-        : (s.priceToCoordinate(hoverState.snappedPrice) as number | null);
-      if (y == null || !Number.isFinite(y)) { tag.style.display = "none"; return; }
-      const value = hoverState.snappedPrice ?? (s.coordinateToPrice(y) as number | null);
-      if (value == null || !Number.isFinite(value)) { tag.style.display = "none"; return; }
+      const y = hoverState == null || !s
+        ? null
+        : hoverState.snappedPrice == null
+          ? hoverState.pointerY
+          : (s.priceToCoordinate(hoverState.snappedPrice) as number | null);
+      const value = hoverState == null || !s
+        ? null
+        : hoverState.snappedPrice ?? (y == null || !Number.isFinite(y) ? null : (s.coordinateToPrice(y) as number | null));
+      const paint = hoverTagPaint({
+        hoverActive: hoverState != null,
+        priceProjectedHidden: priceProjHidden(),
+        hasSeries: !!s,
+        y: y == null || !Number.isFinite(y) ? null : y,
+        value: value == null || !Number.isFinite(value) ? null : value,
+      });
+      if (paint === "hide") { tag.style.display = "none"; return; }
+      if (paint === "keep" || y == null || value == null || !s) return;
       tag.textContent = scalePriceText(s, value);
       tag.style.background = tokensRef.current.p3;
       const axisFontSize = (() => { try { return Number((chart.options() as any).layout?.fontSize) || 12; } catch { return 12; } })();
