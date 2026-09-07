@@ -2,9 +2,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { createClient } from "@/lib/supabase/client";
+import { invalidateEntitlement } from "@/lib/entitlementStore";
 import { useT } from "@/lib/i18n";
 import { sanitizeStashTrial } from "@/lib/billingReceipt";
-import { invalidateEntitlement } from "@/lib/entitlementStore";
 import type {
   OnboardMode, OnboardingSheetProps, OnboardPrefs, PlanKey, Period, PendingPrefs, WizardStash,
 } from "./types";
@@ -229,6 +229,9 @@ export default function OnboardingSheet(props: OnboardingSheetProps) {
   // and the 409 "already active" landing means an entitlement already exists that the Terminal's
   // cached /api/me snapshot may predate — both must invalidate the same as a fresh purchase does,
   // so no surface of the Terminal is left reading a stale pre-onboarding snapshot.
+  // E4 (master): the settings panel is mounted for the whole session and would otherwise keep
+  // serving the plan it verified before this purchase — invalidateEntitlement() below is that
+  // fix, merged in unchanged from master (this branch already carried it for the same reason).
   function billingTrialStarted(end: number) {
     invalidateEntitlement();
     setTrialActive(true); setTrialEnd(end); setStep(STEP_DONE);
