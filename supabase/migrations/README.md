@@ -34,6 +34,8 @@ curl -X POST "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/databas
   -H "Content-Type: application/json" --data '{"query":"<sql>"}'
 ```
 
+A reviewed wrapper around this call, with pre/post catalog receipts, is `scripts/supabase_apply.py` (see `scripts/README_supabase_apply.md`).
+
 Two hard-won rules (see root `HANDOFF.md` §5): strip `--` comments first — the endpoint splits on
 `;` and chokes on a `;` inside a comment — and use `curl`, not python-urllib, which gets a
 Cloudflare 1010 block.
@@ -47,8 +49,22 @@ and have been.** Application status, re-censused 2026-08-21:
 | `0008_chart_layouts_unique_name.sql` | `chart_layouts_user_name` | **yes** — applied 2026-08-21 |
 | `0009_watchlist_symbol_unique.sql` | `wls_watchlist_symbol` | **yes** — applied 2026-08-19 |
 | `0010_search_event_stats.sql` | `search_event_stats()` + `search_events_created_at` | **yes** — applied 2026-08-21 |
-| `0012_thesis_objects.sql` | `theses`, `thesis_versions` + `apply_thesis_version_v1()`/`read_current_thesis_versions_v1()` | no — not yet applied |
+| `0011_analytics_eid.sql` | `analytics_events.eid` + `analytics_events_eid_uniq` (WS:COMMERCIAL-ACTIVATION CA1A) | **yes** — applied 2026-09-05 UTC via the Management API (see the file's own header) |
+| `0012_thesis_objects.sql` | `theses`, `thesis_versions` + `apply_thesis_version_v1()`/`read_current_thesis_versions_v1()` | **yes** — applied 2026-09-06 (raw fallback, see note below) |
 | `0013_alert_runs_outbox.sql` | `alert_runs`, `alert_outbox` tables + RLS (Market Ontology F08 packet B-F08-2) | reserved -> merged; **not applied — awaiting readback receipt** |
+
+**Raw-fallback note (terminal PR #516):** `scripts/supabase_apply.py` only
+becomes the reviewed applier for files in this directory once that PR merges
+— until then, an apply is still the bare curl call in "How DDL actually
+lands" above, run directly by Meta-CEO B out of band. The `0012` apply
+recorded above used that raw fallback, not `--apply`, because at the time it
+ran the tool's own readback-block parser had a bug that aborted the strict
+`--apply` path for that exact file (`HTTP 400 … syntax error at or near
+"Post"` — see PR #516's Round-4 section for the incident and its fix). Any
+`0012`/`0013` apply Meta-CEO B runs before PR #516 merges is, by the same
+reasoning, a raw-fallback apply and not a `--apply` run through this tool;
+`0013`'s row above is not changed by this note — it still awaits its own
+readback receipt.
 
 `0009` was applied two days before `0008`. The numbering records *when the DDL entered the repo*,
 not when an operator ran it — so **never infer application status from file order.** Ask the
