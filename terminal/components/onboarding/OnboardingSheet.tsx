@@ -232,6 +232,10 @@ export default function OnboardingSheet(props: OnboardingSheetProps) {
   // E4 (master): the settings panel is mounted for the whole session and would otherwise keep
   // serving the plan it verified before this purchase — invalidateEntitlement() below is that
   // fix, merged in unchanged from master (this branch already carried it for the same reason).
+  // E4: the entitlement just CHANGED. The settings panel is mounted for the whole session and
+  // would otherwise keep serving the plan it verified before this purchase — the user upgrades
+  // here, reopens Settings, and is told they are still on Free. An explicit invalidation is the
+  // only honest signal: no TTL is short enough to cover "it changed one second ago".
   function billingTrialStarted(end: number) {
     invalidateEntitlement();
     setTrialActive(true); setTrialEnd(end); setStep(STEP_DONE);
