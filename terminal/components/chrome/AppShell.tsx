@@ -108,9 +108,9 @@ export default function AppShell({
           can call useOnboarding() directly — Billing's "choose a plan" and the
           guest path both hand off to the signup sheet. */}
       <SettingsProvider identity={identity}>
-      {/* `analysis-route` scopes the .mobilebar z-index override in globals.css to this one
-          route: only /analysis can show the fixed full-screen Company Intelligence overlay
-          (.fin-pane--workspace) that would otherwise cover the hamburger below 861px. Every
+      {/* `analysis-route` scopes the analysis-only pane offset in globals.css to this one
+          route. Do not raise .mobilebar z-index here: on /analysis the workspace pane is
+          in-flow (fin.css), and a raised bar paints over .ci-evidence-close. Every
           other AppShell route keeps the shared chrome's historical z-index unchanged.
           Deliberately NOT named `analysis-shell`: AnalysisWorkspace's own inner wrapper
           already carries that exact class (`main2 ws-shell analysis-shell`, scoped by
@@ -119,7 +119,7 @@ export default function AppShell({
           shared name here would let that inner-only rule also match THIS div (same
           specificity, source order decides), replacing .app2's own `display:grid` grid
           template with a flex column. The rename removes that real naming tie (see
-          app/globals.css's comment above `.analysis-route .mobilebar` and
+          app/globals.css's comment above `.analysis-route .fin-pane--workspace` and
           lib/__tests__/appShellAnalysisZIndex.test.ts, which reproduces the tie against
           the real stylesheets); this PR's own committed evidence never isolated whether that
           tie was actually causing a specific observed layout break, so treat the rename as a

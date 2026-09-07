@@ -2354,15 +2354,11 @@ table.scr2 tbody tr.empty-row:hover,table.scr2 tbody tr.scr2-skel-row:hover,tabl
 
 /* ===== mobile top bar + symbol bar + drawer (hidden on desktop) ===== */
 .mobilebar{display:none;position:relative;align-items:center;height:52px;padding:0 8px;border-bottom:1px solid var(--line);background:var(--bg);gap:2px;flex:none;z-index:30}
-/* Analysis-route-only override (scope, don't move the shared chrome rule). Only the Analysis
- * workspace's `.fin-pane--workspace` (Company Intelligence, app/fin.css) falls back to the
- * fixed full-screen `.fin-pane{z-index:90}` at <=860px, covering the shared `.mobilebar`
- * (z-index:30) and making the hamburger unclickable — see terminal/e2e/
- * company-intelligence-rctx.spec.ts "Menu" click. `.analysis-route` is the app2 root class
- * AppShell applies only on /analysis (components/chrome/AppShell.tsx), so every other
- * workspace (Discover/Options/Scripts/Alerts/Portfolio/Admin) keeps the historical z-index:30
- * chrome — this does not change shared nav geometry, only raises it where the one colliding
- * overlay exists. Still below every app-modal scrim (100+).
+/* Analysis-route-only notes (scope, don't move the shared chrome rule).
+ * `.analysis-route` is the app2 root class AppShell applies only on /analysis
+ * (components/chrome/AppShell.tsx). On this route at ≤860px the workspace pane
+ * is already in-flow (`app/fin.css` `.analysis-shell .fin-pane--workspace`), so
+ * the hamburger is not under a `z-index:90` overlay and must not be raised.
  *
  * Deliberately named `analysis-route`, NOT `analysis-shell`: AnalysisWorkspace's own inner
  * content wrapper already carries the class `analysis-shell` (components/workspaces/
@@ -2374,48 +2370,16 @@ table.scr2 tbody tr.empty-row:hover,table.scr2 tbody tr.scr2-skel-row:hover,tabl
  * flex;...}` could win the tie against .app2's own `display:grid` (declared above, `.app2{
  * display:grid;grid-template-columns:60px minmax(0,1fr);...}`) — see
  * lib/__tests__/appShellAnalysisZIndex.test.ts, which reproduces that exact swap against the
- * real stylesheets. Renaming the outer route class removes that naming tie, so the two rules
- * can no longer match the same element. Honest scope of this claim: the rename removes a real
- * naming tie; whether that tie was actually producing any specific layout break
- * observed in this PR's own captured evidence was never isolated by the committed receipts
- * (the before/after measurement runs held AppShell.tsx's class name constant, varying only
- * this file), so no receipt here proves the rename changed any rendered page. The rename is
- * kept because the naming tie itself is real and worth removing regardless; the
- * measured, receipt-backed fix for the mobilebar/fin-pane stacking problem is the z-index/top
- * rules below, not this rename.
+ * real stylesheets. The rename removes that naming tie.
  *
- * The mechanism above is asserted by `terminal/e2e/company-intelligence-rctx.spec.ts` itself:
- * at <=860px it performs a REAL `page.getByRole("button", { name: "Menu" }).click()` while the
- * Company Intelligence pane is open (not a hit-test bypass), which only succeeds once
- * `.mobilebar` outranks `.fin-pane`'s `z-index:90` overlay. That spec's CI result on this PR's
- * head is evidence for this rule too. A real headless-browser measurement also exists —
- * terminal/e2e/tools/measure-analysis-mobilebar-stacking.mjs, artifacts committed under
- * terminal/e2e/proof/mobilebar-stacking/. One thing that measurement had to explain, for
- * anyone reading it: on origin/master (BEFORE) the browser's OWN computed `z-index` for
- * `.mobilebar` is `1`, not the `30` this rule's own base declaration above states. That is not
- * this file lying about itself — `.mobilebar`'s `z-index:30` never wins the cascade on
- * origin/master in the first place. `app/observatory.css`'s `.obs-ambient > *{position:relative;
- * z-index:1}` resets every direct child of the ambient-background wrapper to `z-index:1`, ties
- * `.mobilebar`'s specificity exactly (one class each; `>` and the universal selector add
- * nothing), and wins on source order because it is declared later in the sheet. `.mobilebar`'s
- * own `z-index:30` was already dead code for stacking purposes before this PR; nothing here
- * relied on it. `.analysis-route .mobilebar{z-index:95}` below has two classes' worth of
- * specificity, which beats `.obs-ambient > *` outright regardless of source order — that is the
- * real reason this fix works, not the jump from 30. Verified directly against the browser's own
- * cascade resolution (Chrome DevTools Protocol `CSS.getMatchedStylesForNode`), not inferred from
- * a source grep — a plain-text search for "mobilebar" cannot find `.obs-ambient > *`, since that
- * selector never contains the string. */
-.analysis-route .mobilebar{z-index:95}
-/* Raising `.mobilebar` above `.fin-pane` (the rule right above) stops the bar from being
- * covered, but introduced the opposite stacking conflict — at <=860px `.fin-pane--workspace` still
- * falls back to `.fin-pane`'s base `inset:0` (app/fin.css:1160-1174), so the now-higher
- * `.mobilebar` paints directly OVER the pane's OWN header (`.fin-head`, including the "Back to
- * chart" exit affordance — components/fin/MegaPane.tsx) instead of being covered by it. Fix:
- * push the pane down by exactly the mobilebar's own height (`.mobilebar{height:52px}` above)
- * so the two never occupy the same 52px of the viewport at all — both the hamburger and the
- * pane's own back button stay reachable, independent of z-index order. Scoped identically to
- * the rule above: only `.analysis-route` can render `.fin-pane--workspace`, so no other
- * AppShell route is affected. */
+ * Do NOT raise `.analysis-route .mobilebar` above the in-flow workspace stacking
+ * context. `.ci-evidence` is `z-index:104` but lives inside the pane's `z-index:1`
+ * stacking context, so a sibling `.mobilebar{z-index:95}` paints over
+ * `.ci-evidence-close` (CI job 101649876144: `.m-right` intercepts the pointer).
+ * Leaving the bar at the ambient computed `z-index:1` (same as the pane; pane
+ * comes later in tree order) keeps the close button clickable. The `top:52px`
+ * offset below is scoped to `.analysis-route` so no other AppShell route is
+ * affected if a future overlay reappears. */
 @media (max-width:860px){
   .analysis-route .fin-pane--workspace{top:52px}
 }

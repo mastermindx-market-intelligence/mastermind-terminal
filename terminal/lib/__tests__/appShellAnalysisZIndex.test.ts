@@ -99,13 +99,6 @@ function specificity(selector: string): [number, number, number] {
   return [ids, classes, elements];
 }
 
-function higherOrEqual(a: [number, number, number], b: [number, number, number]): boolean {
-  for (let i = 0; i < 3; i++) {
-    if (a[i] !== b[i]) return a[i] > b[i];
-  }
-  return true; // exactly equal
-}
-
 describe("AppShell analysis-only mobilebar z-index scoping", () => {
   it("keeps the shared .mobilebar rule at its historical z-index (every non-analysis route)", () => {
     const baseRule = GLOBALS_RULES.find((r) => r.selectorText === ".mobilebar" && r.mediaConditions.length === 0);
@@ -113,10 +106,15 @@ describe("AppShell analysis-only mobilebar z-index scoping", () => {
     expect(baseRule!.style.getPropertyValue("z-index")).toBe("30");
   });
 
-  it("raises .mobilebar above .fin-pane's overlay (z-index:90) ONLY inside .analysis-route", () => {
+  it("does not raise .analysis-route .mobilebar into a stacking context above the in-flow pane", () => {
+    // Round-9: the previous z-index:95 raise painted over .ci-evidence-close. The
+    // pane on /analysis is in-flow at z-index:1 (fin.css), so the hamburger does
+    // not need a raise, and any raise >1 loses the evidence-sheet hit target.
     const scopedRule = GLOBALS_RULES.find((r) => r.selectorText === ".analysis-route .mobilebar");
-    expect(scopedRule, ".analysis-route .mobilebar rule not found in globals.css").toBeTruthy();
-    expect(scopedRule!.style.getPropertyValue("z-index")).toBe("95");
+    const raised = scopedRule?.style.getPropertyValue("z-index") ?? "";
+    if (raised && raised !== "auto") {
+      expect(Number(raised)).toBeLessThanOrEqual(1);
+    }
   });
 
   it("AppShell applies the analysis-route class only when the route is /analysis", () => {
@@ -200,7 +198,7 @@ describe("AppShell analysis-only fin-pane offset, parsed via real CSSOM (review 
   });
 });
 
-describe(".analysis-route .mobilebar really outranks the ambient-background reset", () => {
+describe(".analysis-route .mobilebar stays at the ambient stacking context (does not outrank the in-flow pane)", () => {
   // The round-5/6 real-browser measurement (terminal/e2e/tools/measure-analysis-mobilebar-
   // stacking.mjs, artifacts in terminal/e2e/proof/mobilebar-stacking/) recorded `.mobilebar`'s
   // BEFORE (origin/master) computed z-index as 1, not the 30 its own base rule above declares.
@@ -219,16 +217,16 @@ describe(".analysis-route .mobilebar really outranks the ambient-background rese
     expect(obsAmbientChildReset!.style.getPropertyValue("z-index")).toBe("1");
   });
 
-  it(".analysis-route .mobilebar's specificity beats .obs-ambient > * outright (wins regardless of source order)", () => {
+  it("does not reintroduce an .analysis-route .mobilebar z-index that outranks the ambient reset AND the in-flow pane", () => {
+    // The ambient reset leaves computed mobilebar z-index at 1, matching the
+    // in-flow pane. A two-class raise (the old z-index:95) would beat this reset
+    // and cover .ci-evidence-close. Absence, auto, or z-index ≤ 1 is required.
     expect(obsAmbientChildReset).toBeTruthy();
     const scopedRule = GLOBALS_RULES.find((r) => r.selectorText === ".analysis-route .mobilebar");
-    expect(scopedRule, ".analysis-route .mobilebar rule not found in globals.css").toBeTruthy();
-    const scoped = specificity(scopedRule!.selectorText);
-    const reset = specificity(obsAmbientChildReset!.selectorText);
-    expect(
-      higherOrEqual(scoped, reset) && JSON.stringify(scoped) !== JSON.stringify(reset),
-      `.analysis-route .mobilebar specificity ${JSON.stringify(scoped)} must exceed .obs-ambient > * specificity ${JSON.stringify(reset)} — a tie or a loss would mean the analysis fix no longer reliably outranks the ambient reset`,
-    ).toBe(true);
+    const raised = scopedRule?.style.getPropertyValue("z-index") ?? "";
+    if (raised && raised !== "auto") {
+      expect(Number(raised)).toBeLessThanOrEqual(Number(obsAmbientChildReset!.style.getPropertyValue("z-index")));
+    }
   });
 
   it("documents (does not merely assume) that bare .mobilebar ties .obs-ambient > * on specificity — that tie is exactly why origin/master's computed value is 1, not 30", () => {
@@ -301,5 +299,44 @@ describe("AppShell's outer .app2 route class does not share a selector with comp
     const rule = COMPANY_INTEL_RULES.find((r) => r.selectorText === ".analysis-shell");
     expect(rule, ".analysis-shell rule not found in app/company-intelligence.css").toBeTruthy();
     expect(rule!.style.getPropertyValue("display")).toBe("flex");
+  });
+});
+
+// Round-9 serial-shard red: CI job 101649876144, company-intelligence-mobile.
+// Playwright's own pointer log named the interceptor:
+//   <div class="m-right">…</div> from <div class="mobilebar">…</div> subtree
+// on locator('.ci-evidence-close'). The evidence sheet is position:fixed; z-index:104
+// (company-intelligence.css ≤1100px) but it lives INSIDE
+// `.analysis-shell .fin-pane--workspace { z-index:1 }` (fin.css ≤860px). Raising
+// `.analysis-route .mobilebar` to z-index:95 creates a sibling stacking context
+// that paints over the whole pane — including the close button at the top-right,
+// which spatially overlaps `.m-right` (Mastermind AI + Settings). On origin/master
+// the ambient reset leaves mobilebar at computed z-index:1, same as the pane, and
+// tree order (pane after bar) keeps the close button clickable. This block fails
+// on the pre-fix head (`z-index:95`) and passes once the raise is gone or ≤1.
+describe("analysis-route mobilebar must not stack above the in-flow workspace that owns .ci-evidence", () => {
+  it("does not raise .analysis-route .mobilebar above the pane stacking context that traps .ci-evidence (RED on z-index:95)", () => {
+    const paneRule = FIN_RULES.find(
+      (r) =>
+        r.selectorText === ".analysis-shell .fin-pane--workspace" &&
+        r.style.getPropertyValue("z-index"),
+    );
+    expect(paneRule, ".analysis-shell .fin-pane--workspace z-index rule not found in fin.css").toBeTruthy();
+    expect(paneRule!.style.getPropertyValue("z-index")).toBe("1");
+
+    const evidenceRule = flattenRules(parseStylesheet(COMPANY_INTEL_CSS)).find(
+      (r) => r.selectorText === ".ci-evidence" && r.style.getPropertyValue("z-index"),
+    );
+    expect(evidenceRule, ".ci-evidence z-index rule not found in company-intelligence.css").toBeTruthy();
+    expect(Number(evidenceRule!.style.getPropertyValue("z-index"))).toBeGreaterThan(90);
+
+    const scopedBar = GLOBALS_RULES.find((r) => r.selectorText === ".analysis-route .mobilebar");
+    const raised = scopedBar?.style.getPropertyValue("z-index") ?? "";
+    if (raised && raised !== "auto") {
+      expect(
+        Number(raised),
+        `.analysis-route .mobilebar{z-index:${raised}} paints over .ci-evidence-close because the sheet's z-index:${evidenceRule!.style.getPropertyValue("z-index")} is trapped in the pane's z-index:1 stacking context`,
+      ).toBeLessThanOrEqual(1);
+    }
   });
 });
