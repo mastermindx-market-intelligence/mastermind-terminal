@@ -184,7 +184,11 @@ describe("check_plain_language.mjs", () => {
     expect(res.status).toBe(0);
     const parsed = parseJson(res);
     expect(parsed.scannedFiles).toBeGreaterThanOrEqual(2);
-    const legacyHit = parsed.findings.find(
+    // Legacy (pre-existing, non-blocking) findings live in the separate
+    // `legacy` bucket, never mixed into `findings` — see minor 1 of the
+    // PR #530 round-3 review.
+    expect(parsed.findings.some((f: any) => f.path === untouchedRelPath)).toBe(false);
+    const legacyHit = parsed.legacy.find(
       (f: any) => f.path === untouchedRelPath && f.rule === "raw_state_enum" && !f.blocking
     );
     expect(legacyHit).toBeTruthy();
@@ -384,7 +388,7 @@ describe("check_plain_language.mjs", () => {
     const res = run(["--root", root, "--diff-file", diffFile, "--json"]);
     const parsed = parseJson(res);
     expect(Object.keys(parsed).sort()).toEqual(
-      ["version", "mode", "base", "baseResolved", "vocabulary", "scannedFiles", "findings", "counts", "nulls"].sort()
+      ["version", "mode", "base", "baseResolved", "vocabulary", "scannedFiles", "findings", "legacy", "counts", "nulls"].sort()
     );
     expect(typeof parsed.vocabulary.overlayPresent).toBe("boolean");
     expect(Array.isArray(parsed.nulls)).toBe(true);
@@ -683,6 +687,140 @@ describe("check_plain_language.mjs", () => {
     // make this throw.
     expect(() => JSON.parse(res.stdout.trim())).not.toThrow();
     expect(res.stderr).toContain("vocabulary overlay ABSENT");
+    rmSync(root, { recursive: true, force: true });
+  });
+
+  it("25. R3 fires on the interpolation's OWN span, never on a sibling span sharing the line (PR #530 round-3 review MAJOR)", () => {
+    // Three RED-first fixtures named by the binding round-3 ruling. Before
+    // this fix, R3 gated on `lineIsVisible` — true whenever ANY span (text
+    // OR expr) overlapped the physical line — so fixture (a) below wrongly
+    // fired: `bar` is not a VISIBLE_ATTR_NAMES member, so `{cfg.type}` gets
+    // no span of its own, but the sibling `title="Hello"` literal's span
+    // shares the line and used to be enough to flip `visible` true. The
+    // fix requires the interpolation match's OWN [start,end) range to be
+    // CONTAINED in a span (span-range containment, not line overlap).
+
+    // (a) NOT flagged: `{cfg.type}` sits in a non-visible attribute (`bar`)
+    // even though a genuinely visible `title="Hello"` attribute is on the
+    // same physical line.
+    const rootA = makeFixtureRoot();
+    const relPathA = "terminal/components/SiblingSpan.tsx";
+    const contentA = [
+      "export function SiblingSpan({ cfg }: any) {",
+      '  return <Foo bar={cfg.type} title="Hello" />;',
+      "}",
+      "",
+    ].join("\n");
+    writeFileSync(join(rootA, relPathA), contentA);
+    const diffA = unifiedDiffFor(relPathA, contentA, [2]);
+    const diffFileA = join(rootA, "diff.patch");
+    writeFileSync(diffFileA, diffA);
+    const resA = run(["--mode", "enforce-added", "--root", rootA, "--diff-file", diffFileA, "--json"]);
+    expect(resA.status).toBe(0);
+    const parsedA = parseJson(resA);
+    expect(parsedA.findings.some((f: any) => f.rule === "raw_slug_interpolation")).toBe(false);
+    rmSync(rootA, { recursive: true, force: true });
+
+    // (b) Flagged: `{cfg.type}` IS the value of a visible attribute
+    // (`title`), so its own range lies inside that attribute's expr span.
+    const rootB = makeFixtureRoot();
+    const relPathB = "terminal/components/VisibleAttrInterp.tsx";
+    const contentB = [
+      "export function VisibleAttrInterp({ cfg }: any) {",
+      "  return <Foo title={cfg.type} />;",
+      "}",
+      "",
+    ].join("\n");
+    writeFileSync(join(rootB, relPathB), contentB);
+    const diffB = unifiedDiffFor(relPathB, contentB, [2]);
+    const diffFileB = join(rootB, "diff.patch");
+    writeFileSync(diffFileB, diffB);
+    const resB = run(["--mode", "enforce-added", "--root", rootB, "--diff-file", diffFileB, "--json"]);
+    expect(resB.status).toBe(1);
+    const parsedB = parseJson(resB);
+    expect(
+      parsedB.findings.some(
+        (f: any) => f.rule === "raw_slug_interpolation" && f.token === "type" && f.blocking
+      )
+    ).toBe(true);
+    rmSync(rootB, { recursive: true, force: true });
+
+    // (c) Flagged: `{cfg.type}` is a direct JSX child, so its own range
+    // lies inside that JsxExpression's expr span.
+    const rootC = makeFixtureRoot();
+    const relPathC = "terminal/components/JsxChildInterp.tsx";
+    const contentC = [
+      "export function JsxChildInterp({ cfg }: any) {",
+      "  return <p>{cfg.type}</p>;",
+      "}",
+      "",
+    ].join("\n");
+    writeFileSync(join(rootC, relPathC), contentC);
+    const diffC = unifiedDiffFor(relPathC, contentC, [2]);
+    const diffFileC = join(rootC, "diff.patch");
+    writeFileSync(diffFileC, diffC);
+    const resC = run(["--mode", "enforce-added", "--root", rootC, "--diff-file", diffFileC, "--json"]);
+    expect(resC.status).toBe(1);
+    const parsedC = parseJson(resC);
+    expect(
+      parsedC.findings.some(
+        (f: any) => f.rule === "raw_slug_interpolation" && f.token === "type" && f.blocking
+      )
+    ).toBe(true);
+    rmSync(rootC, { recursive: true, force: true });
+  });
+
+  it("26. dedup: two occurrences of the same token on one line produce ONE finding (PR #530 round-3 review minor 2)", () => {
+    // MEASURED pre-fix on OptionsHubView.tsx: `:3676 tok=oi` x3, `:3646
+    // tok=oi` x2 — R4 walks every regex match per visible span with no
+    // dedup, so a repeated token inside one JsxText span produced one
+    // finding PER OCCURRENCE instead of one per (path, line, rule, token).
+    const root = makeFixtureRoot();
+    const relPath = "terminal/components/RepeatedToken.tsx";
+    const content = [
+      "export function RepeatedToken() {",
+      "  return <span>oi versus oi contracts</span>;",
+      "}",
+      "",
+    ].join("\n");
+    writeFileSync(join(root, relPath), content);
+    const diff = unifiedDiffFor(relPath, content, [2]);
+    const diffFile = join(root, "diff.patch");
+    writeFileSync(diffFile, diff);
+    const res = run(["--mode", "enforce-added", "--root", root, "--diff-file", diffFile, "--json"]);
+    expect(res.status).toBe(1);
+    const parsed = parseJson(res);
+    const oiHits = parsed.findings.filter(
+      (f: any) => f.rule === "untranslated_stat_token" && f.token === "oi"
+    );
+    expect(oiHits.length).toBe(1);
+    expect(oiHits[0].blocking).toBe(true);
+    rmSync(root, { recursive: true, force: true });
+  });
+
+  it("27. terminal/app/dev/** dev-only harness pages are excluded from scanning (PR #530 round-3 review minor 3)", () => {
+    // 9 of the first 10 `missing_zh` hits on the real repo were
+    // terminal/app/dev/settings/page.tsx / terminal/app/dev/theater/page.tsx
+    // — both self-described "Production-gated" (NODE_ENV === "production"
+    // -> notFound()) developer harnesses no real user ever sees.
+    const root = makeFixtureRoot();
+    const relPath = "terminal/app/dev/settings/page.tsx";
+    mkdirSync(join(root, "terminal/app/dev/settings"), { recursive: true });
+    const content = [
+      "export default function DevSettingsPage() {",
+      "  return <div><b>BOTTOM_WATCH</b></div>;",
+      "}",
+      "",
+    ].join("\n");
+    writeFileSync(join(root, relPath), content);
+    const diff = unifiedDiffFor(relPath, content, [2]);
+    const diffFile = join(root, "diff.patch");
+    writeFileSync(diffFile, diff);
+    const res = run(["--mode", "enforce-added", "--root", root, "--diff-file", diffFile, "--json"]);
+    expect(res.status).toBe(0);
+    const parsed = parseJson(res);
+    expect(parsed.findings.some((f: any) => f.path === relPath)).toBe(false);
+    expect(parsed.legacy.some((f: any) => f.path === relPath)).toBe(false);
     rmSync(root, { recursive: true, force: true });
   });
 });

@@ -1,6 +1,6 @@
 # Terminal plain-language guard
 
-Packet `B-PL-5` (lane `marketontology-b4-plain-language-guard`, wave B4). Owns
+Packet `B-PL-5` (wave B4). Owns
 `terminal/scripts/check_plain_language.mjs`,
 `terminal/lib/__tests__/plainLanguageGuard.test.ts`, and this doc.
 
@@ -99,12 +99,14 @@ regression fixtures: false positives on `=>`/`<=`/an enum comparison in
 code no longer fire, and a true JsxText positive still does).
 
 R2 (`internal_study_slug`), R4 (`untranslated_stat_token`), and R5b
-(`missing_zh` on a bare English literal) still reason at line granularity —
-a line "is visible" iff at least one AST-derived span overlaps it
-(`lineIsVisible`) — but that gate itself is now AST-driven rather than
-regex-driven, so those rules also no longer flip "visible" on for a line
-just because it contains an unrelated `=>`/`<=`. R3
-(`raw_slug_interpolation`) never used the visibility gate and is unchanged.
+(`missing_zh` on a bare English literal) are span-precise like R1 (see §11):
+each iterates only the narrow `textSpans` subset and tests each span's own
+sliced text, never a whole raw line. R3 (`raw_slug_interpolation`) is the one
+rule whose target — a bare property-access interpolation like `{row.regime}`
+— is never itself string-literal text, so it cannot be made span-precise the
+same way; per §12 it instead requires the specific `{...field}` match's OWN
+character range to be CONTAINED in a span (necessarily a `kind: "expr"`
+span), never a whole-line visibility test.
 
 ## 4. CLI, exit codes, JSON contract
 
@@ -122,9 +124,16 @@ node terminal/scripts/check_plain_language.mjs --json          # machine contrac
 | 2 | infrastructure fault: `--diff-file` supplied but unreadable, or `--root` unreadable (fails CLOSED, loud `::error`) |
 
 `--json` prints `{version, mode, base, baseResolved, vocabulary, scannedFiles,
-findings[], counts, nulls[]}`. Keys are the contract; additive changes only.
-Each finding carries `path`, `line`, `rule`, `token`, `blocking`, `waived`,
-`waiverReason`, `detail`, and a `suggestion` — never a bare boolean.
+findings[], legacy[], counts, nulls[]}`. Keys are the contract; additive
+changes only. `findings[]` carries only entries that count for the CURRENT
+run — blocking + explicitly waived; `legacy[]` is the separate bucket for
+pre-existing, non-blocking defects, which never counts toward `counts.blocking`
+and must never be read as something this diff introduced (see §12). Each
+finding (in either array) carries `path`, `line`, `rule`, `token`, `blocking`,
+`waived`, `waiverReason`, `detail`, and a `suggestion` — never a bare boolean
+— and is deduplicated at the `(path, line, rule, token)` key, so a token
+repeated multiple times inside one visible span produces one finding, not
+one per occurrence.
 
 ## 5. Waiver
 
@@ -490,4 +499,96 @@ this packet, which owns the checker/tests/doc only, not app copy:
   not authorize a new helper-recognition carve-out.
 
 Full suite: 25/25 passing (`npx vitest run
+lib/__tests__/plainLanguageGuard.test.ts`); `npx tsc --noEmit` clean.
+
+## 12. Review fixes (round 3, PR #530) — META-CEO B ruling 2026-09-07 05:20Z
+
+Binding MAJOR ruling text: *"a raw_slug_interpolation finding fires only
+when the interpolation token's own column range lies inside a visible span
+(visible attribute value or JSX text), never because an unrelated visible
+span shares the physical line; implement span-range containment, not line
+overlap."*
+
+- **MAJOR fixed — R3 gated on whole-LINE visibility, not the interpolation's
+  own span.** Round 4's fix (§11) gave R3 a visibility gate for the first
+  time, but that gate was `lineIsVisible(spans, sourceFile, lineNo)` — true
+  whenever ANY span (text or expr) overlapped the physical line. MEASURED,
+  the reviewer's exact repro: `<Foo bar={cfg.type} title="Hello there
+  friend" />` fired `raw_slug_interpolation tok=type` even though `bar` is
+  not in `VISIBLE_ATTR_NAMES`, so `{cfg.type}` gets no span of its own — the
+  finding existed only because the sibling `title="..."` literal's span
+  shares the physical line. Fixed: R3 now computes the ABSOLUTE character
+  offsets of its own `interpRe` match (`lineStart + m.index` through
+  `+ m[0].length`) and requires that specific range to be CONTAINED in a
+  span (`span.start <= absStart && absEnd <= span.end`) — necessarily a
+  `kind: "expr"` span, the only kind `computeVisibleSpans` emits for a bare
+  `{...}` interpolation. Test 25 locks in all three fixtures the ruling
+  named: `<Foo bar={cfg.type} title="Hello" />` (not flagged — `bar` is
+  non-visible, no sibling span can rescue it), `<Foo title={cfg.type} />`
+  (flagged — `{cfg.type}` IS the visible attribute's own expr span), and
+  `<p>{cfg.type}</p>` (flagged — `{cfg.type}` is a direct JSX-child expr
+  span). Confirmed RED-first: reverting only this fix reproduces the exact
+  false positive on fixture (a) while (b)/(c) still pass.
+- **Minor fixed — no separate `legacy` bucket.** The `--json` contract
+  previously mixed blocking, waived, and legacy findings into one
+  `findings[]` array, distinguished only by each entry's own `blocking`
+  field — materially equivalent to a separate bucket, but not what earlier
+  ruling text names. Fixed: `findings[]` now carries only entries that count
+  for the current run (`blocking` + `waived`); `legacy[]` is a new top-level
+  array carrying the non-blocking, pre-existing entries. `counts` is
+  unchanged (`legacyReported` still counts the `legacy[]` array's length).
+  Test 3b and test 9 (`--json` contract shape) updated for the new key; test
+  27 covers a case that must appear in neither array (see below).
+- **Minor fixed — duplicate findings for one `path:line:rule:token`.**
+  MEASURED (pre-fix, real tree): `terminal/components/OptionsHubView.tsx:3676
+  tok=oi` fired 3 times, `:3646 tok=oi` fired 2 times — R2/R4 walk every
+  regex match per visible span with no dedup of their own, so a token
+  repeated inside one span (or across two spans sharing a line) produced one
+  finding PER OCCURRENCE. Fixed: `scanLines` now dedups its own findings at
+  the `(path, line, rule, token)` key before returning — every duplicate on
+  that key carries the same `blocking`/`detail`/`suggestion` (both are pure
+  functions of `relPath`/`lineNo`/rule/token), so keeping the first
+  occurrence loses no information. Test 26 locks this in
+  (`<span>oi versus oi contracts</span>` produces exactly one
+  `untranslated_stat_token` finding, not two).
+- **Minor fixed — dev-only harness pages were in scope.** `EXCLUDE_RE`
+  excluded `__tests__`/`.test.`/`/e2e/`/`.d.ts`/`terminal/scripts/` but not
+  `terminal/app/dev/**`. MEASURED: 9 of the real tree's `missing_zh` hits
+  were `terminal/app/dev/settings/page.tsx` / `terminal/app/dev/theater/
+  page.tsx` — both self-described "Production-gated" (`NODE_ENV ===
+  "production"` → `notFound()`) developer harnesses no real user ever sees.
+  Fixed: `EXCLUDE_RE` now also excludes `terminal/app/dev/`. Test 27 locks
+  this in (`terminal/app/dev/settings/page.tsx` never appears in `findings`
+  or `legacy`, even with a genuine `raw_state_enum` violation on an added
+  line).
+- **Minor fixed — internal lane slug shipped into the Terminal repo.** The
+  Macro-internal lane identifier `marketontology-b4-plain-language-guard`
+  appeared in this doc's header and in a `check_plain_language.mjs` comment.
+  Removed from both; the packet id `B-PL-5` (not itself a lane slug) is kept
+  as the only cross-reference.
+
+### Real-tree measurement (this round)
+
+Same invocation shape as prior rounds (`--root . --diff-file <empty patch>
+--json`; this PR's own diff gives the identical count, since it touches only
+`terminal/scripts/`, `terminal/lib/__tests__/`, and `docs/`, none of which
+fall under `SCAN_GLOBS`):
+
+```
+scannedFiles: 229   (was 231 — the 2 terminal/app/dev/** files are now excluded)
+counts: { blocking: 0, legacyReported: 247, waived: 0 }
+nulls: []
+byRule (legacy[]): { missing_zh: 215, raw_slug_interpolation: 22, untranslated_stat_token: 10 }
+```
+
+`blocking: 0` (this PR's own diff still touches no scanned surface).
+`legacyReported` fell from 264 to 247 — `missing_zh` 224→215 (the 9
+dev-harness lines, now excluded), `untranslated_stat_token` 18→10 (dedup
+removing the measured `OptionsHubView.tsx` duplicates plus other repeated
+tokens), `raw_slug_interpolation` unchanged at 22 (the real pre-existing
+instances of this rule were never sitting on a line with a rescuing sibling
+span — the false positive the MAJOR fixed was reproduced only by the
+review's synthetic fixture, not present in the current tree).
+
+Full suite: 28/28 passing (`npx vitest run
 lib/__tests__/plainLanguageGuard.test.ts`); `npx tsc --noEmit` clean.

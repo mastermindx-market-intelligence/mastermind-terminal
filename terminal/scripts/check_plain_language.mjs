@@ -9,7 +9,7 @@
 // (--mode enforce-added forward-only mechanic, ANNOTATION_CAP, disclosed
 // fail-open/fail-closed semantics) — read at
 // /Users/chriswong/Documents/Cluade/macro-main/scripts/check_design_system.py.
-// Packet B-PL-5 (lane marketontology-b4-plain-language-guard).
+// Packet B-PL-5.
 //
 // Node 20 ESM. Uses the repo's existing `typescript` devDependency
 // (terminal/package.json) for AST-based user-visible-position detection —
@@ -68,7 +68,11 @@ export const PLAIN_VOCABULARY = {
 
 const SCAN_GLOBS = ["terminal/app", "terminal/components"];
 const EXTRA_FILES = ["terminal/lib/i18n.tsx"];
-const EXCLUDE_RE = /(__tests__|\.test\.|\/e2e\/|\.d\.ts$|terminal\/scripts\/)/;
+// terminal/app/dev/** is a self-described "Production-gated" developer
+// harness (settings/theater debug pages) — no real user ever sees its
+// copy, so it is excluded the same way tests/e2e/scripts are: a future PR
+// touching those files must not block on copy nobody ships.
+const EXCLUDE_RE = /(__tests__|\.test\.|\/e2e\/|\.d\.ts$|terminal\/scripts\/|terminal\/app\/dev\/)/;
 
 // Attribute names whose string-literal value is a genuine user-visible
 // position (title text / accessible name / placeholder copy / alt text).
@@ -554,20 +558,36 @@ function scanLines(relPath, text, addedLines, overlayTerms) {
 
   // R3: raw_slug_interpolation — the one rule whose target (a bare
   // property-access interpolation like `{row.regime}`) is never itself
-  // string-literal text, so it cannot be made span-precise the way
-  // R1/R2/R4/R5b are. It still decides visibility from the SAME AST span
-  // set computed by computeVisibleSpans (the full set, "expr" spans
-  // included — see lineIsVisible) rather than from a rawLine regex; the
-  // `interpRe` regex below identifies WHAT the finding is (a `.field`
-  // interpolation), never WHETHER the line is visible.
+  // string-literal text, so it cannot be made span-precise via a text-span
+  // scan the way R1/R2/R4/R5b are. Per the binding round-3 ruling on
+  // Terminal #530 ("a raw_slug_interpolation finding fires only when the
+  // interpolation token's OWN column range lies inside a visible span
+  // ... never because an unrelated visible span shares the physical
+  // line"), this is SPAN-RANGE CONTAINMENT on the specific `{...field}`
+  // match's own [start,end) offsets, never a whole-line visibility test.
+  // A line-level `lineIsVisible` check (the round-2 shape) was wrong: it
+  // returned true whenever ANY span — text or expr — overlapped the
+  // physical line, so a non-visible attribute's interpolation
+  // (`bar={cfg.type}`, `bar` not in VISIBLE_ATTR_NAMES, so `{cfg.type}`
+  // gets no span of its own) was still flagged purely because a sibling
+  // `title="..."` literal happened to sit on the same line. Requiring the
+  // match's own range to be CONTAINED in a span (necessarily an "expr"
+  // span — the only kind computeVisibleSpans emits for a bare `{...}`
+  // interpolation, from a JSX-child expression or a title/aria-label/
+  // placeholder/alt attribute expression) fixes that without touching
+  // R1/R2/R4/R5b's already-correct span-precise text scans.
   lines.forEach((rawLine, idx) => {
     const lineNo = idx + 1;
-    const visible = lineIsVisible(spans, sourceFile, lineNo);
-    if (!visible) return;
+    const lineStart = sourceFile.getLineStarts()[idx];
     const waiverReason = parseWaiver(rawLine);
     for (const field of PLAIN_VOCABULARY.slugFields) {
       const interpRe = new RegExp(`\\{[^}]*\\.${field}\\}`);
-      if (interpRe.test(rawLine) && !hasPlainHelperOnLine(rawLine, overlayTerms)) {
+      const m = interpRe.exec(rawLine);
+      if (!m) continue;
+      const absStart = lineStart + m.index;
+      const absEnd = absStart + m[0].length;
+      const contained = spans.some((s) => s.start <= absStart && absEnd <= s.end);
+      if (contained && !hasPlainHelperOnLine(rawLine, overlayTerms)) {
         findings.push(mkFinding(relPath, lineNo, "raw_slug_interpolation", field,
           `raw "${field}" field interpolated with no plain-language helper on the same line`,
           `route through a plainLabels helper (e.g. regimeLabel/classicCategoryLabel) or lib/i18n t()`,
@@ -638,7 +658,27 @@ function scanLines(relPath, text, addedLines, overlayTerms) {
     }
   }
 
-  return { findings, visibleAddedCount, touched: added.size > 0 };
+  // Dedup at (path, line, rule, token) — R2/R4 walk every regex match per
+  // visible span with no dedup of their own, so a repeated token inside one
+  // span (or across two spans sharing a line, e.g. `<span>oi</span>{" "}
+  // <span>oi</span>`) previously produced one finding PER OCCURRENCE
+  // (MEASURED: `OptionsHubView.tsx:3676 tok=oi` x3, `:3646 tok=oi` x2),
+  // inflating `legacyReported` and burning the annotation cap on repeats of
+  // a single already-reported line/token rather than distinct defects.
+  // Every duplicate on the same (path, line, rule, token) key carries the
+  // same `blocking`/`detail`/`suggestion` (both are derived only from
+  // `relPath`, `lineNo`, the rule, and the token), so keeping the first
+  // occurrence loses no information.
+  const seenKeys = new Set();
+  const dedupedFindings = [];
+  for (const f of findings) {
+    const key = `${f.path}:${f.line}:${f.rule}:${f.token}`;
+    if (seenKeys.has(key)) continue;
+    seenKeys.add(key);
+    dedupedFindings.push(f);
+  }
+
+  return { findings: dedupedFindings, visibleAddedCount, touched: added.size > 0 };
 }
 
 // Split a LEX tuple's inner text (e.g. `"Hello, world", "..."`) on commas
@@ -895,6 +935,14 @@ function main() {
   const waived = allFindings.filter((f) => f.waived);
 
   if (opts.json) {
+    // `findings` carries only the entries that count for THIS run (blocking
+    // + explicitly waived — a waiver still names a finding that fired on an
+    // added line, just non-fatal). Pre-existing, non-blocking defects live
+    // in the separate `legacy` bucket: they are real, disclosed debt (the
+    // per-rule doc breakdown reads from this array) but must never be
+    // mistaken for something this PR's own diff introduced, and a consumer
+    // scanning `findings` for "what does this PR need to fix" no longer has
+    // to filter `blocking` out of a mixed array by hand.
     console.log(JSON.stringify({
       version: 1,
       mode: opts.mode,
@@ -902,7 +950,8 @@ function main() {
       baseResolved: true,
       vocabulary: { declaredTerms, overlaySource: "terminal/lib/plainLabels.ts", overlayPresent: overlay.present, overlayTerms: overlay.terms.length },
       scannedFiles: scanFiles.length,
-      findings: allFindings,
+      findings: blocking.concat(waived),
+      legacy,
       counts: { blocking: blocking.length, legacyReported: legacy.length, waived: waived.length },
       nulls,
     }));
