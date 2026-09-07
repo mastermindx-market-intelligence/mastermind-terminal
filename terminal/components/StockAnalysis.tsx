@@ -854,7 +854,7 @@ export default function StockAnalysis({
                 {fl.fin_balance_yi != null && <span className="sa-chip">{pick("Margin bal", "融资余额")} ¥{fnum(fl.fin_balance_yi, 1)}亿</span>}
                 {fl.chg_pct != null && <span className={`sa-chip ${fl.chg_pct >= 0 ? "up" : "down"}`}>{fpct(fl.chg_pct, 1)}</span>}
                 {fl.pct_mcap != null && <span className="sa-chip">{fpct(fl.pct_mcap, 1, false)} {pick("of mkt cap", "占市值")}</span>}
-                {fl.lhb_count != null && <span className={`sa-chip ${(fl.lhb_net_yi ?? 0) >= 0 ? "up" : "down"}`}>{pick("龙虎榜", "龙虎榜")} ×{fl.lhb_count}{fl.lhb_net_yi != null ? ` · ${fl.lhb_net_yi >= 0 ? "+" : ""}¥${fnum(fl.lhb_net_yi, 1)}亿` : ""}</span>}
+                {fl.lhb_count != null && <span className={`sa-chip ${(fl.lhb_net_yi ?? 0) >= 0 ? "up" : "down"}`}>{pick("龙虎榜 (Dragon-Tiger list, top-trader board)", "龙虎榜")} ×{fl.lhb_count}{fl.lhb_net_yi != null ? ` · ${fl.lhb_net_yi >= 0 ? "+" : ""}¥${fnum(fl.lhb_net_yi, 1)}亿` : ""}</span>}
                 {fl.block_count != null && <span className="sa-chip">{pick("Block", "大宗")} ×{fl.block_count}{fl.block_amount_yi != null ? ` · ¥${fnum(fl.block_amount_yi, 1)}亿` : ""}</span>}
               </>
             )}
