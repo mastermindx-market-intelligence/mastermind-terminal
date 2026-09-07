@@ -170,14 +170,26 @@ test("persistent and hover labels follow the price pane when a study moves above
 
   const rsiLegend = page.locator(".lg-block").filter({ hasText: "RSI" }).first();
   await expect(rsiLegend).toBeVisible({ timeout: 20_000 });
-  // The top-right pane strip is owned by React hover state and can unmount between Playwright's
-  // actionability check and click on a saturated runner. The legend row's More button is always
-  // mounted (native CSS reveals it), and its opened menu remains stable after the pointer moves.
   const rsiRow = rsiLegend.locator(".lg-row").filter({ hasText: "RSI" }).first();
-  await rsiRow.hover();
-  await rsiRow.getByRole("button", { name: "More" }).click();
   const paneMenu = page.locator(".lg-more");
-  await expect(paneMenu).toBeVisible({ timeout: 20_000 });
+  // .lg-ic is display:none until .lg-row:hover (globals.css). A one-shot hover+click lets
+  // Playwright scroll, lose :hover, then retry the detached node without re-hovering.
+  await settled({
+    drive: async (last) => {
+      if (last?.open) return;
+      if (await paneMenu.isVisible().catch(() => false)) return;
+      await rsiRow.hover();
+      try {
+        await rsiRow.getByRole("button", { name: "More" }).click({ timeout: 3_000 });
+      } catch {
+        // Remount or lost hover — the next drive re-hovers and clicks a fresh node.
+      }
+    },
+    read: async () => ({ open: await paneMenu.isVisible().catch(() => false) }),
+    ok: (value) => value.open,
+    same: (prev, next) => prev.open && next.open,
+    message: "the RSI pane menu should stay open after More is clicked",
+  });
   await paneMenu.getByText("Move pane up", { exact: true }).click();
 
   await expect.poll(async () => (await labels(page)).pricePaneTop, { timeout: 20_000 }).toBeGreaterThan(20);
@@ -193,9 +205,10 @@ test("persistent and hover labels follow the price pane when a study moves above
   await page.mouse.move(pointerX, pointerY - 35);
   await page.mouse.move(pointerX, pointerY);
   await expect(page.locator(".mm-hovertag")).toBeVisible();
-  const hover = await page.locator(".mm-hovertag").boundingBox();
-  expect(hover).not.toBeNull();
-  expect(hover!.y).toBeGreaterThan(wrap!.y + state.pricePaneTop);
+  await expect.poll(
+    async () => (await page.locator(".mm-hovertag").boundingBox())?.y ?? null,
+    { message: "the hover label should have a laid-out box after the pane move", timeout: 20_000 },
+  ).toBeGreaterThan(wrap!.y + state.pricePaneTop);
 });
 
 test("a four-digit premarket quote expands the compact numeric lane instead of clipping", async ({ page }) => {
@@ -332,10 +345,16 @@ test("a stationary foreground label refreshes when the price scale changes under
     same: (a, b) => a.crossY === b.crossY && a.hover === b.hover,
     message: "the stationary crosshair should settle before the scale changes",
   });
-  const hover = page.locator(".mm-hovertag");
-  await expect(hover).toBeVisible();
-  const before = await hover.textContent();
-  const topBefore = (await hover.boundingBox())!.y;
+  await expect(page.locator(".mm-hovertag")).toBeVisible();
+  const before = await page.locator(".mm-hovertag").textContent();
+  const topBefore = await settled({
+    read: async () => (await page.locator(".mm-hovertag").boundingBox())?.y ?? null,
+    ok: (y) => y != null,
+    same: (prev, next) => prev != null && next != null && prev === next,
+    message: "the stationary hover label should have a laid-out box before the scale changes",
+  });
+  expect(topBefore).not.toBeNull();
+  const hoverTopBefore = topBefore as number;
 
   // Dispatch a scale-wheel frame at another y without moving the real pointer. The price at the
   // stationary crosshair changes, so the foreground value must update in the same render frame.
@@ -347,6 +366,10 @@ test("a stationary foreground label refreshes when the price scale changes under
     bubbles: true,
     cancelable: true,
   });
-  await expect.poll(() => hover.textContent()).not.toBe(before);
-  expect((await hover.boundingBox())!.y).toBeCloseTo(topBefore, 0);
+  await expect.poll(() => page.locator(".mm-hovertag").textContent()).not.toBe(before);
+  await expect(page.locator(".mm-hovertag")).toBeVisible();
+  await expect.poll(
+    async () => (await page.locator(".mm-hovertag").boundingBox())?.y ?? null,
+    { message: "the stationary hover label should keep a laid-out box after the scale change", timeout: 20_000 },
+  ).toBeCloseTo(hoverTopBefore, 0);
 });
