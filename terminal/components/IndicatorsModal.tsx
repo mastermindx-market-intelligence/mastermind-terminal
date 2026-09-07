@@ -32,6 +32,7 @@ import {
 } from "@/lib/suites/presets";
 import { SUITE_DEFS, SUITE_ORDER } from "@/lib/suites/registry";
 import { SUITE_TIER_LABEL } from "@/lib/indicator-canvas/types";
+import { classicCategoryLabel, planTierLabel } from "@/lib/plainLabels";
 
 type ClassicIndicator = { key: string; label: string; mm?: boolean; tkey?: string };
 
@@ -70,15 +71,6 @@ const CATS: Record<string, ClassicIndicator[]> = {
     { key: "adx", label: "ADX", tkey: "indAdx" },
     { key: "cvd", label: "Est. CVD (approx)", tkey: "indCvd" },
   ],
-};
-
-const CAT_TKEY: Record<string, string> = {
-  Mastermind: "catMastermind",
-  Trend: "catTrend",
-  Momentum: "catMomentum",
-  "Price Action": "catPriceAction",
-  Volume: "catVolume",
-  daytrade: "catDaytrade",
 };
 
 const ALL_INDICATORS = "__all__";
@@ -274,7 +266,7 @@ export default function IndicatorsModal({
         aliases: [item.label, item.key, item.tkey ?? ""],
         metadata: [
           category,
-          t(CAT_TKEY[category] || category, category),
+          classicCategoryLabel(category, t, lang),
           lang === "zh" ? "内置图表指标" : "Built-in chart indicator",
         ],
         order: order++,
@@ -455,7 +447,7 @@ export default function IndicatorsModal({
         </span>
         <span className="li-main-copy">
           <span className="li-nm">{label}</span>
-          <span className="li-sub">{t(CAT_TKEY[category] || category, category)}</span>
+          <span className="li-sub">{classicCategoryLabel(category, t, lang)}</span>
         </span>
         <StateSwitch on={on} />
       </button>
@@ -492,7 +484,7 @@ export default function IndicatorsModal({
           <span className="imod-copy">
             <span className="imod-titleline">
               <strong>{entry.label}</strong>
-              <span className={`im-tier im-tier-${SUITE_TIER_LABEL[entry.tier]}`}>{SUITE_TIER_LABEL[entry.tier]}</span>
+              <span className={`im-tier im-tier-${SUITE_TIER_LABEL[entry.tier]}`}>{planTierLabel(entry.tier, t, lang)}</span>
             </span>
             <span className="imod-crumb">
               {suiteLabel}<span aria-hidden="true"> / </span>{surfaceLabel}
@@ -742,7 +734,7 @@ export default function IndicatorsModal({
                 <span className="ipreset-copy">
                   <span className="ipreset-title">
                     <strong>{label}</strong>
-                    <span className={`im-tier im-tier-${SUITE_TIER_LABEL[top]}`}>{SUITE_TIER_LABEL[top]}</span>
+                    <span className={`im-tier im-tier-${SUITE_TIER_LABEL[top]}`}>{planTierLabel(top, t, lang)}</span>
                     {added && (
                       <small className={`ipreset-status${current ? "" : " custom"}`}>
                         {current
@@ -766,7 +758,7 @@ export default function IndicatorsModal({
                     >
                       <div className="ipreset-profile-top">
                         <span>{String(index + 1).padStart(2, "0")}</span>
-                        <small className={`im-tier im-tier-${SUITE_TIER_LABEL[preset.minTier]}`}>{SUITE_TIER_LABEL[preset.minTier]}</small>
+                        <small className={`im-tier im-tier-${SUITE_TIER_LABEL[preset.minTier]}`}>{planTierLabel(preset.minTier, t, lang)}</small>
                       </div>
                       <strong>{lang === "zh" ? preset.name.zh : preset.name.en}</strong>
                       <p>{lang === "zh" ? preset.description.zh : preset.description.en}</p>
@@ -878,7 +870,7 @@ export default function IndicatorsModal({
       <>
         <div className="im-list-title">
           <span>
-            <strong>{t(CAT_TKEY[cat] || cat, cat)}</strong>
+            <strong>{classicCategoryLabel(cat, t, lang)}</strong>
             <small>{copy("Built-in chart indicators", "内置图表指标")}</small>
           </span>
           <span className="im-result-count">{classic.length}</span>
@@ -981,7 +973,7 @@ export default function IndicatorsModal({
               {Object.keys(CATS).map((category) =>
                 navButton(
                   category,
-                  t(CAT_TKEY[category] || category, category),
+                  classicCategoryLabel(category, t, lang),
                   CATS[category].length,
                   category === "Mastermind",
                 ),
