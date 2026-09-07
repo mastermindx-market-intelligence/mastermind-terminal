@@ -129,31 +129,41 @@ export default function BrainWidget({
     if (typeof window === "undefined") return;
     const w = window as unknown as MastermindBrainHost;
     const hostAlreadyMounted = Boolean(w.MMBrain);
-    if (w.MM_BRAIN_CFG) return; // CFG already seeded by an earlier mount — nothing to do here
 
-    w.MM_BRAIN_CFG = {
-      // This config's anchor:'top' asks the production mm_brain.js bundle for no docked
-      // launcher; this repo renders no launcher chrome of its own either way (confirmed:
-      // no "launcher" or MMBrain.toggle call exists outside this file and the external
-      // script). The /analysis proof screenshots (e2e/proof/rctx-analysis/*) show a
-      // floating circular launcher anyway — that element is drawn by the external
-      // mm_brain.js script itself, which does not honor this anchor
-      // setting the way TerminalShell's usage assumed. The intended entry point is a
-      // host-driven window.MMBrain.open()/.toggle() call from an attach/open affordance
-      // elsewhere in the page, but the external script also renders its own floating
-      // launcher regardless — see PR body "Release status" for the disposition.
-      anchor: "top", // no built-in launcher; host calls window.MMBrain.open()/.toggle()
-      api: "", // same-origin — /api/brain/* with credentials:'include'
-      symbol: () => w.__MM_BRAIN_ACTIVE_SYMBOL__ || symRef.current,
-      onCommand: (j: any) => onCommandRef.current?.(j),
-      onAnnotate: (j: any) => onAnnotateRef.current?.(j),
-      onAuthRequired: () => onAuthRequiredRef.current?.(),
-      // DeepVue W1-C: built fresh on every call — never captured once at mount — so the
-      // widget always reads the current context_revision/active/ambient at send time.
-      // Safely ignorable: production mm_brain.js that doesn't know this key simply never
-      // calls it.
-      getAiContext: () => getAiContextRef.current?.(),
-    };
+    // Meta-CEO B ruling r6, MINOR-1 (promoted to a required fix): this used to be
+    // `if (w.MM_BRAIN_CFG) return;`, which exited the WHOLE effect — including the separate
+    // script-append gate below — whenever an earlier mount had already seeded CFG. On a
+    // document where MM_BRAIN_CFG exists but window.MMBrain and the <script> tag do not (a
+    // fast route remount that re-ran this effect before the external script finished
+    // loading, or any other seed-without-host state), the effect returned here and
+    // mm_brain.js was NEVER appended — the Brain never loaded for that document at all. Only
+    // SKIP the CFG object creation when it already exists; always fall through to the
+    // independent append gate below.
+    if (!w.MM_BRAIN_CFG) {
+      w.MM_BRAIN_CFG = {
+        // This config's anchor:'top' asks the production mm_brain.js bundle for no docked
+        // launcher; this repo renders no launcher chrome of its own either way (confirmed:
+        // no "launcher" or MMBrain.toggle call exists outside this file and the external
+        // script). The /analysis proof screenshots (e2e/proof/rctx-analysis/*) show a
+        // floating circular launcher anyway — that element is drawn by the external
+        // mm_brain.js script itself, which does not honor this anchor
+        // setting the way TerminalShell's usage assumed. The intended entry point is a
+        // host-driven window.MMBrain.open()/.toggle() call from an attach/open affordance
+        // elsewhere in the page, but the external script also renders its own floating
+        // launcher regardless — see PR body "Release status" for the disposition.
+        anchor: "top", // no built-in launcher; host calls window.MMBrain.open()/.toggle()
+        api: "", // same-origin — /api/brain/* with credentials:'include'
+        symbol: () => w.__MM_BRAIN_ACTIVE_SYMBOL__ || symRef.current,
+        onCommand: (j: any) => onCommandRef.current?.(j),
+        onAnnotate: (j: any) => onAnnotateRef.current?.(j),
+        onAuthRequired: () => onAuthRequiredRef.current?.(),
+        // DeepVue W1-C: built fresh on every call — never captured once at mount — so the
+        // widget always reads the current context_revision/active/ambient at send time.
+        // Safely ignorable: production mm_brain.js that doesn't know this key simply never
+        // calls it.
+        getAiContext: () => getAiContextRef.current?.(),
+      };
+    }
 
     // CFG is seeded either way (above); only the <script> append is gated on an existing
     // host — a second script tag in that state races and can replace the live one.
