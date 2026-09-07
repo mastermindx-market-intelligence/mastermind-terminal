@@ -3,6 +3,7 @@ import {
   computePortfolioRisk,
   riskCopy,
   riskAvailability,
+  failedRereadDisposition,
   type ArtifactState,
   type PortfolioRisk,
   type RiskInputPosition,
@@ -260,5 +261,15 @@ describe("riskAvailability", () => {
 
   it("open positions + null risk + attempted -> unavailable (the degrade/timeout path)", () => {
     expect(riskAvailability(true, null, true)).toBe("unavailable");
+  });
+});
+
+describe("failedRereadDisposition", () => {
+  it("keeps a book already on screen and leaves the risk section to print unreadable", () => {
+    expect(failedRereadDisposition(true)).toBe("keep-book-risk-unavailable");
+  });
+
+  it("marks the page unreadable only when there was no proven book to keep", () => {
+    expect(failedRereadDisposition(false)).toBe("mark-book-unreadable");
   });
 });

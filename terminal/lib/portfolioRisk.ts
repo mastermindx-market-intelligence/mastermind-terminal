@@ -337,6 +337,18 @@ export function riskAvailability(
   return attempted ? "unavailable" : "hidden";
 }
 
+/** What a failed client re-read may do to a book already painted.
+ *
+ *  A 503 (or a thrown fetch) is "we could not re-read", not "the user holds nothing". If a book
+ *  is already on screen, keep those rows and print the cannot-read state only on the risk
+ *  section. Raise the page-level unreadable flag only when there was no proven book to keep
+ *  (the initial-read path the B4 spec already covers). */
+export type FailedRereadDisposition = "keep-book-risk-unavailable" | "mark-book-unreadable";
+
+export function failedRereadDisposition(hadDisplayedBook: boolean): FailedRereadDisposition {
+  return hadDisplayedBook ? "keep-book-risk-unavailable" : "mark-book-unreadable";
+}
+
 const T_C1_LABEL: Bilingual = { en: "Biggest holding", zh: "最大的一笔持仓" };
 const T_C1_Q: Bilingual = { en: "How much of your money sits in one name", zh: "有多少钱押在同一只股票上" };
 const T_C1_VALUE: Bilingual = { en: "{pct}%", zh: "{pct}%" };

@@ -34,7 +34,7 @@ import {
   sinceEntryValue,
   type Position,
 } from "@/lib/portfolio";
-import { riskCopy, riskAvailability, T_RISK_UNAVAILABLE, type PortfolioRisk, type Lang } from "@/lib/portfolioRisk";
+import { riskCopy, riskAvailability, failedRereadDisposition, T_RISK_UNAVAILABLE, type PortfolioRisk, type Lang } from "@/lib/portfolioRisk";
 import s from "@/components/PortfolioRisk.module.css";
 
 type Quote = { last?: number; chg?: number } | null | undefined;
@@ -127,25 +127,39 @@ export default function PortfolioView(
   const open = useMemo(() => positions.filter((p) => p.status === "open"), [positions]);
   const closed = useMemo(() => positions.filter((p) => p.status === "closed"), [positions]);
 
+  // reload() is a stable callback; it reads "is a book already on screen?" through this ref so a
+  // failed re-read can keep those rows instead of raising the page-level unreadable flag.
+  const displayedBookRef = useRef(seed.length > 0 && !unreadable);
+  displayedBookRef.current = positions.length > 0 && !unread;
+
   // The re-read every mutation and the retry share. A NON-OK response (503 = the store did not
-  // answer) leaves `positions` untouched and raises the unreadable flag: it must never overwrite
-  // a book the user can see, and it must never be reported as a successful empty read.
+  // answer) leaves `positions` untouched: it must never overwrite a book the user can see, and it
+  // must never be reported as a successful empty read. If a book is already painted, only the
+  // risk section prints its cannot-read state — raising `unread` here unmounts the table
+  // (`{!unread && <>…</>}`) and is what blanked the B4 "failed re-read" spec at tablet width.
   const reload = useCallback(async (): Promise<Position[] | null> => {
     // finally, not one setter per branch: MAJOR 2 needs `riskAttempted` set on EVERY exit path
     // (ok, non-ok, malformed payload, thrown) so a degrade (`risk: null` in an otherwise-ok
     // response) and an outright failed read both let `riskAvailability` render its notice
     // instead of silently staying "hidden" forever.
+    const onFailedReread = () => {
+      if (failedRereadDisposition(displayedBookRef.current) === "keep-book-risk-unavailable") {
+        setRisk(null);
+      } else {
+        setUnread(true);
+      }
+    };
     try {
       const response = await fetch("/api/portfolio", { headers: { Accept: "application/json" } });
-      if (!response.ok) { setUnread(true); return null; }
+      if (!response.ok) { onFailedReread(); return null; }
       const payload = await response.json();
-      if (!Array.isArray(payload?.positions)) { setUnread(true); return null; }
+      if (!Array.isArray(payload?.positions)) { onFailedReread(); return null; }
       const authoritative = payload.positions as Position[];
       setPositions(authoritative);
       setRisk((payload?.risk ?? null) as PortfolioRisk | null);
       setUnread(false);
       return authoritative;
-    } catch { setUnread(true); return null; }
+    } catch { onFailedReread(); return null; }
     finally { setRiskAttempted(true); }
   }, []);
 
