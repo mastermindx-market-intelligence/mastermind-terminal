@@ -518,17 +518,20 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   const lensListRef = useRef<HTMLUListElement | null>(null);
   const [railOverflowing, setRailOverflowing] = useState(false);
   const [railOverflowLeft, setRailOverflowLeft] = useState(false);
+  const measureRailOverflow = useRef<() => void>(() => {});
   useEffect(() => {
     const el = lensListRef.current;
     if (!narrowRail || !el) {
       setRailOverflowing(false);
       setRailOverflowLeft(false);
+      measureRailOverflow.current = () => {};
       return;
     }
     const check = () => {
       setRailOverflowing(el.scrollWidth > el.clientWidth + 1);
       setRailOverflowLeft(el.scrollLeft > 0);
     };
+    measureRailOverflow.current = check;
     check();
     el.addEventListener("scroll", check, { passive: true });
     if (typeof ResizeObserver === "undefined") {
@@ -561,6 +564,12 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     // jsdom (the unit-test environment) has no `scrollIntoView` implementation —
     // real browsers all do, but guard the call rather than crash a test render.
     lensRefs.current[view]?.scrollIntoView?.({ block: "nearest", inline: "nearest" });
+    // scrollIntoView does not reliably fire a `scroll` event (or a ResizeObserver
+    // entry) in every engine — re-run the same overflow check so `data-overflow-left`
+    // tracks the post-scroll scrollLeft.
+    measureRailOverflow.current();
+    const frame = window.requestAnimationFrame(() => measureRailOverflow.current());
+    return () => window.cancelAnimationFrame(frame);
   }, [narrowRail, view]);
   // Round-2 review r3 minor 6: `reviewRows` reads a 90-day staleness window off `now`
   // — frozen at the last time `theses`/`conditions` changed, a thesis crossed into

@@ -133,8 +133,8 @@
   .historySummary > button { grid-column: 2; grid-row: 1 / span 4; align-self: stretch; }
   .versionMeta, .snapshotGrid { grid-template-columns: 1fr; }
   .snapshotFull { grid-column: auto; }
-  .lensRail { position: relative; margin: 0 -10px 12px; padding: 0 10px; }
-  .lensRail ul { grid-auto-flow: column; grid-auto-columns: max-content; overflow-x: auto; gap: 6px; padding-bottom: 4px; scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; }
+  .lensRail { position: relative; z-index: 0; isolation: isolate; margin: 0 -10px 12px; padding: 0 10px; }
+  .lensRail ul { position: relative; z-index: 0; grid-auto-flow: column; grid-auto-columns: max-content; overflow-x: auto; gap: 6px; padding-bottom: 4px; scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; }
   .lens { min-height: 38px; border-left: 0; border-bottom: 2px solid transparent; border-radius: var(--r-md); padding: 8px 12px; scroll-snap-align: start; }
   .lens[data-selected] { border-bottom-color: var(--brand); }
   .lensPanel { gap: 8px; }
@@ -159,7 +159,7 @@
     bottom: 4px;
     width: 28px;
     pointer-events: none;
-    z-index: 1;
+    z-index: 2;
   }
   .lensRail[data-overflow]::after {
     right: 10px;
