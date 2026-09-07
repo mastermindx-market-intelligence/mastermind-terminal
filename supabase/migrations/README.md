@@ -54,8 +54,8 @@ rows each record their own date — `0011`'s DDL was applied 2026-09-05
 | `0008_chart_layouts_unique_name.sql` | `chart_layouts_user_name` | **yes** — applied 2026-08-21 |
 | `0009_watchlist_symbol_unique.sql` | `wls_watchlist_symbol` | **yes** — applied 2026-08-19 |
 | `0010_search_event_stats.sql` | `search_event_stats()` + `search_events_created_at` | **yes** — applied 2026-08-21 |
-| `0011_analytics_eid.sql` | `analytics_events.eid` (nullable unique UUID column) + `analytics_events_eid_uniq` unique index | yes — DDL applied 2026-09-05; readback receipt posted 2026-09-06 (PR #507 comment `5557754941`) |
-| `0012_thesis_objects.sql` | `theses`, `thesis_versions` | yes — applied 2026-09-06 (Meta-CEO B; project fsldfzlxyavsuwqbceod; post-apply readback: both tables relrowsecurity=true, policies theses_select_own + thesis_versions_select_own, SELECT-only grant to authenticated, functions apply_thesis_version_v1 (security definer) + read_current_thesis_versions_v1 (security invoker), indexes theses_owner_updated_idx/theses_owner_subject_idx/thesis_versions_owner_thesis_idx) |
+| `0011_analytics_eid.sql` | `analytics_events.eid` (nullable unique UUID column) + `analytics_events_eid_uniq` unique index (WS:COMMERCIAL-ACTIVATION CA1A) | yes — DDL applied 2026-09-05; readback receipt posted 2026-09-06 (PR #507 comment `5557754941`) |
+| `0012_thesis_objects.sql` | `theses`, `thesis_versions` + `apply_thesis_version_v1()`/`read_current_thesis_versions_v1()` | yes — applied 2026-09-06 (Meta-CEO B; project fsldfzlxyavsuwqbceod; post-apply readback: both tables relrowsecurity=true, policies theses_select_own + thesis_versions_select_own, SELECT-only grant to authenticated, functions apply_thesis_version_v1 (security definer) + read_current_thesis_versions_v1 (security invoker), indexes theses_owner_updated_idx/theses_owner_subject_idx/thesis_versions_owner_thesis_idx) |
 | `0013_alert_runs_outbox.sql` | `alert_runs`, `alert_outbox` tables + RLS (Market Ontology F08 packet B-F08-2) | yes — applied 2026-09-07 via a direct Management API query (curl method above); readback receipt on PR #513 comment `5563321750` |
 
 **Raw-fallback note (terminal PR #516):** `scripts/supabase_apply.py` only
@@ -176,6 +176,8 @@ amendment, only a README edit.
 | `0012` | `thesis_objects` | PR #502 (merged as `d4556962`; DDL applied 2026-09-06, readback receipt) | merged + applied 2026-09-06 |
 | `0013` | `alert_runs_outbox` | PR #513 (merged as `be898be5` on 2026-09-06, packet B-F08-2) | applied 2026-09-07 via a direct Management API query (the curl method described above in "How DDL actually lands"), used instead of the apply script `scripts/supabase_apply.py` (PR #516) because of a readback-parser bug in that script; readback receipt posted on PR #513 (Meta-CEO B comment https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/513#issuecomment-5563321750) |
 | `0014` | `tenancy_foundation` | PR #514 (open PR, packet B-F12-1) | open PR |
+| `0015` | `team_roles_invitations` | PR #514 (open PR, packet B-F12-1) | open PR |
+| `0016` | `account_lifecycle_requests` | PR #527 (open PR) | open PR |
 
 What the statuses mean: **reserved** — the number is claimed (for example, by a Meta-CEO B
 pre-reservation) but no pull request carrying its file is open yet; **open PR** — a pull
@@ -195,10 +197,10 @@ readback receipt), and `0013` (PR #513) merged to `master` as `be898be5` on 2026
 DDL applied out of band on 2026-09-07 via a direct Management API query (the method described
 above in "How DDL actually lands"), used instead of the apply script `scripts/supabase_apply.py`
 (PR #516) because of a readback-parser bug in that script (readback receipt posted on PR #513,
-comment `5563321750`) — merged = yes, applied = yes. `0014` (PR #514) remains an open pull
-request (merged = no, applied = no). The "in production?" table and the Reservations table
-above now agree on `0013`: both read applied 2026-09-07 (round-13 Meta-CEO B ruling,
-resolving the round-11/round-12 wording split between the two tables).
+comment `5563321750`) — merged = yes, applied = yes. `0014` and `0015` (both PR #514) and `0016`
+(PR #527) remain open pull requests (merged = no, applied = no). The "in production?" table and
+the Reservations table above now agree on `0013`: both read applied 2026-09-07 (round-13
+Meta-CEO B ruling, resolving the round-11/round-12 wording split between the two tables).
 
 This table is re-verified at merge time, not just at the moment this pull request opened. A later
 reader should re-run the same open-pull-request query rather than trust these owner cells past
