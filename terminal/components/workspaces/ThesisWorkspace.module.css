@@ -142,16 +142,15 @@
      lens rail holds more tabs than fit — shown only while `railOverflowing` is
      actually true (JS-measured scrollWidth > clientWidth), never as a permanent
      decoration. A right-edge fade into the panel background, not a hard cutoff.
-     This round's review (MAJOR 1): the previous gradient ended at a TRANSLUCENT
-     color-mix (alpha ~.86) of the same hue `.rail`'s own background already paints
-     underneath — tinting an already-tinted surface with more of the same tint barely
-     changes its resolved color, so a bright tab label sitting on top of that surface
-     stayed at full contrast right up to the edge. An edge fade has to occlude, not
-     tint: it must reach a fully OPAQUE color by the end of the gradient so it can
-     actually paint over whatever content is under it. `--panel`/`--bg` are both
-     opaque hex tokens, so pre-mixing them (rather than mixing panel with
-     `transparent`) yields an opaque stop that matches the same visual tone the
-     translucent `.rail` background reads as against the workspace's own backdrop. */
+     A prior pass (this round's review MAJOR 1, since reverted) changed the
+     gradient's end stop from a translucent color-mix to a fully opaque one, on the
+     theory that the translucent stop barely moved the resolved color over `.rail`'s
+     own background. Meta-CEO B ruling (this round): measured against the committed
+     proof crops, the fade already occluded the rail's end zone before that change —
+     the opaque variant was a no-op (end-zone brightness essentially unchanged), not
+     a fix — so it is reverted to the simpler rule below, which matches `.rail`'s own
+     background (`color-mix(in srgb, var(--panel) 86%, transparent)`) so the fade
+     reads as an edge of the panel, not a mismatched tint. */
   .lensRail[data-overflow]::after {
     content: "";
     position: absolute;
@@ -159,7 +158,7 @@
     right: 10px;
     bottom: 4px;
     width: 28px;
-    background: linear-gradient(to right, transparent, color-mix(in srgb, var(--panel) 86%, var(--bg) 14%) 75%);
+    background: linear-gradient(to right, transparent, color-mix(in srgb, var(--panel) 86%, transparent) 75%);
     pointer-events: none;
   }
 }

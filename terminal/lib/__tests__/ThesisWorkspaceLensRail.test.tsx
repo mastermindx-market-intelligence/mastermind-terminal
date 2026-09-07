@@ -1191,4 +1191,135 @@ describe("ThesisWorkspace lens rail (B-F11-2, M2)", () => {
     expect(faultNotice, "expected the inline fault notice alongside the lens's own empty state").not.toBeNull();
     expect(faultNotice!.textContent).toContain("1 more could not be loaded. Try again.");
   });
+
+  it("mobile lens rail: `data-overflow` reflects the ResizeObserver-measured scrollWidth vs clientWidth — set when it overflows, cleared when it does not (this round's review MAJOR-1/minor-1)", async () => {
+    const t1: ThesisSummary = {
+      id: "overflow-t1", currentVersion: 1, lifecycleState: "active",
+      subject: subject("AAA", "Alpha Co"), title: "Alpha", updatedAt: "2026-09-01T00:00:00.000Z",
+    };
+    installFetch([t1], new Map());
+
+    type ROCallback = (entries: unknown[], observer: unknown) => void;
+    class MockResizeObserver {
+      static instances: MockResizeObserver[] = [];
+      callback: ROCallback;
+      constructor(cb: ROCallback) {
+        this.callback = cb;
+        MockResizeObserver.instances.push(this);
+      }
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    }
+    MockResizeObserver.instances = [];
+    const originalRO = (globalThis as unknown as { ResizeObserver?: unknown }).ResizeObserver;
+    (globalThis as unknown as { ResizeObserver: unknown }).ResizeObserver = MockResizeObserver;
+    const originalMatchMedia = window.matchMedia;
+    window.matchMedia = ((query: string) =>
+      ({
+        matches: query === "(max-width: 600px)",
+        media: query,
+        addListener() {},
+        removeListener() {},
+        addEventListener() {},
+        removeEventListener() {},
+        dispatchEvent() {
+          return false;
+        },
+      }) as unknown as MediaQueryList) as typeof window.matchMedia;
+
+    try {
+      const el = await mount({ ownerKey: "owner-overflow" });
+      const rail = el.querySelector('[data-testid="thesis-lens-rail"]') as HTMLElement;
+      const list = rail.querySelector('[role="tablist"]') as HTMLElement;
+      expect(MockResizeObserver.instances.length).toBe(1);
+      const observer = MockResizeObserver.instances[0];
+
+      // Not overflowing: scrollWidth <= clientWidth -> no attribute.
+      Object.defineProperty(list, "scrollWidth", { value: 300, configurable: true });
+      Object.defineProperty(list, "clientWidth", { value: 300, configurable: true });
+      await act(async () => { observer.callback([], observer); });
+      expect(rail.hasAttribute("data-overflow")).toBe(false);
+
+      // Overflowing: scrollWidth > clientWidth -> attribute set.
+      Object.defineProperty(list, "scrollWidth", { value: 900, configurable: true });
+      Object.defineProperty(list, "clientWidth", { value: 300, configurable: true });
+      await act(async () => { observer.callback([], observer); });
+      expect(rail.hasAttribute("data-overflow")).toBe(true);
+
+      // Back to not overflowing — the attribute is not sticky, it clears again.
+      Object.defineProperty(list, "scrollWidth", { value: 300, configurable: true });
+      Object.defineProperty(list, "clientWidth", { value: 300, configurable: true });
+      await act(async () => { observer.callback([], observer); });
+      expect(rail.hasAttribute("data-overflow")).toBe(false);
+    } finally {
+      window.matchMedia = originalMatchMedia;
+      if (originalRO === undefined) delete (globalThis as unknown as { ResizeObserver?: unknown }).ResizeObserver;
+      else (globalThis as unknown as { ResizeObserver: unknown }).ResizeObserver = originalRO;
+    }
+  });
+
+  it("an invalidLink transition alone (same ownerKey) never resets per-owner state — the per-owner reset is keyed on ownerKey ONLY (this round's review minor 2)", async () => {
+    const ownerAThesis: ThesisSummary = {
+      id: "sym2-a1", currentVersion: 1, lifecycleState: "active",
+      subject: subject("AAA", "Alpha Co"), title: "Alpha thesis", updatedAt: "2026-09-01T00:00:00.000Z",
+    };
+    installFetch([ownerAThesis], new Map());
+    const el = await mount({ ownerKey: "sym2-owner-a" });
+    await flush();
+
+    await act(async () => { tabs(el).find((b) => b.dataset.view === "coverage")!.click(); });
+    const alphaRow = Array.from(el.querySelectorAll('[data-testid="thesis-list-pane"] button')).find((b) =>
+      b.textContent?.includes("Alpha Co"),
+    ) as HTMLButtonElement;
+    await act(async () => alphaRow.click());
+    expect(el.querySelector('[data-testid="rms-subject-chip"]')?.textContent).toBe("Alpha Co · Show everything");
+
+    // SAME owner, invalidLink false -> true: an independent invalidLink transition,
+    // with no ownerKey change, must never wipe the per-owner state above.
+    await act(async () => { root!.render(<ThesisWorkspace ownerKey="sym2-owner-a" invalidLink />); });
+    await flush();
+    expect(el.querySelector('[data-testid="rms-subject-chip"]')?.textContent).toBe("Alpha Co · Show everything");
+  });
+
+  it("an ownerKey change resets `theses` and `listState` together — never `theses` alone while `listState` carries the PREVIOUS owner's stale value (this round's review minor 3)", async () => {
+    const ownerAThesis: ThesisSummary = {
+      id: "sym3-a1", currentVersion: 1, lifecycleState: "active",
+      subject: subject("AAA", "Alpha Co"), title: "Alpha thesis", updatedAt: "2026-09-01T00:00:00.000Z",
+    };
+    let listCallCount = 0;
+    const fetchMock = vi.fn(async (input: string | URL | Request) => {
+      const raw = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
+      const url = new URL(raw, "https://x.test");
+      if (url.pathname !== "/api/theses") return jsonResponse({ error: "not_found" }, 404);
+      const ids = url.searchParams.getAll("ids");
+      if (ids.length > 0) return jsonResponse({ batch: [], missing: ids });
+      listCallCount += 1;
+      if (listCallCount === 1) {
+        // Owner A's own list fetch genuinely fails — `listState` lands on
+        // "unavailable", the exact stale value the fixed reset must not leak into
+        // Owner B below.
+        return jsonResponse({ error: "boom" }, 500);
+      }
+      return jsonResponse({ theses: [ownerAThesis], truncated: false });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const el = await mount({ ownerKey: "sym3-owner-a" });
+    await flush();
+    expect(el.querySelector('[data-testid="rms-unavailable"]')).not.toBeNull();
+
+    // Swap to a DIFFERENT owner under an invalid link — nothing is ever fetched for
+    // Owner B (the data-loading effect returns early while `invalidLink` is true),
+    // so the only thing that can move `listState` off Owner A's stale "unavailable"
+    // is the per-owner reset itself.
+    await act(async () => { root!.render(<ThesisWorkspace ownerKey="sym3-owner-b" invalidLink />); });
+    await flush();
+
+    expect(el.querySelector('[data-testid="rms-unavailable"]')).toBeNull();
+    expect(el.querySelector('[data-testid="thesis-empty"]')).not.toBeNull();
+    // No second list fetch was ever issued for Owner B — the "ready" state above
+    // comes from the reset itself, not from a fetch that happened to succeed.
+    expect(listCallCount).toBe(1);
+  });
 });

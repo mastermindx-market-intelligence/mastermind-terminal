@@ -75,20 +75,15 @@ async function shoot(zh) {
     await page.getByRole("tab", { name: zh ? "催化因素" : "Catalysts" }).click();
     await page.waitForTimeout(400);
     if (viewport.w < 700) {
-      // Meta-CEO B ruling r4 minor 6: the crop must show the rail starting at scroll
-      // position 0 — Playwright's own actionability check scrolls the just-clicked
-      // "Catalysts" tab into view before clicking it, which (on the narrow horizontal
-      // scroller) can leave `scrollLeft` away from 0 by the time we screenshot. Reset
-      // it explicitly so the crop reflects the rail's real starting position, with the
-      // CSS edge-fade affordance visible for the tabs that overflow past it.
-      await page.evaluate(() => {
-        const list = document.querySelector('[data-testid="thesis-lens-rail"] [role="tablist"]');
-        if (list) list.scrollLeft = 0;
-      });
-      // The scroll reset moves the rail's tabs under wherever the mouse pointer was
-      // left after the earlier click — a stale `:hover` state on a DIFFERENT tab than
-      // the one actually selected is a capture-script artifact, not real product
-      // behavior, so park the pointer well away from the rail before screenshotting.
+      // This round's review MAJOR 2 (Meta-CEO B ruling): the rail no longer forces
+      // scroll position 0 on every narrow-mode render — it scrolls the SELECTED lens
+      // into view instead (component effect, on mount and on every lens change), so
+      // the crop shows whichever tab is actually active rather than always the
+      // leftmost few. Nothing to force here any more; the click above already
+      // triggers that effect and `waitForTimeout(400)` above gives it time to settle.
+      // The earlier click can still leave a stale `:hover` state on a tab the
+      // pointer happens to be resting over — park the pointer well away from the
+      // rail before screenshotting so that isn't a capture-script artifact.
       await page.mouse.move(0, 0);
       await page.waitForTimeout(100);
     }

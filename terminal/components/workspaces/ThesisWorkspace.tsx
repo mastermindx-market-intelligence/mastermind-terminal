@@ -439,6 +439,21 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
    *  empty) kept re-firing the effect because `missingIds` grew and was in its deps.
    *  Reset per-owner (round-2 review minor): otherwise switching `ownerKey` within one
    *  mount permanently skips the automatic batch for the new owner. */
+  // This round's review minor 2 (Meta-CEO B ruling): the per-owner reset below must
+  // be keyed on `ownerKey` ALONE. With `invalidLink` also in its dependency array,
+  // any `invalidLink` transition (true<->false) with NO owner change re-ran the
+  // whole per-owner reset, wiping hydration state, subject filters, etc. that
+  // belonged to the CURRENT, unchanged owner — a false-to-false (or true-to-true)
+  // re-render never reaches the effect at all now, but neither does a genuine
+  // false<->true flip on its own. `invalidLink` is still read below (via this ref,
+  // so reading it never re-adds it to the effect's dependency array) purely to
+  // decide what `listState` should become for the owner the reset just landed on;
+  // the effect that actually PERFORMS the fetch (`if (invalidLink) return; ...
+  // loadList()`, further down) is invalidLink's own effect and is unchanged.
+  const invalidLinkRef = useRef(invalidLink);
+  useEffect(() => {
+    invalidLinkRef.current = invalidLink;
+  }, [invalidLink]);
   const autoHydrationAttempted = useRef(false);
   useEffect(() => {
     autoHydrationAttempted.current = false;
@@ -467,9 +482,17 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     // by the time any hydration response for either owner can resolve, `theses` is
     // already empty for the new owner, so nothing can match by membership until the
     // new owner's own rows actually arrive.
+    //
+    // This round's review (minor 3): `theses` and `listState` must reset TOGETHER,
+    // never one without the other. The previous code cleared `theses`
+    // unconditionally but set `listState` to "loading" only when `!invalidLink` —
+    // under an invalid link, `listState` was left holding whatever the PREVIOUS
+    // owner's value happened to be (e.g. a stale "unavailable" or "ready"), a state
+    // that was never actually true for the new owner, since nothing is ever fetched
+    // for an invalid link. Both are now derived together, in the same tick.
     setTheses([]);
-    if (!invalidLink) setListState("loading");
-  }, [invalidLink, ownerKey]);
+    setListState(invalidLinkRef.current ? "ready" : "loading");
+  }, [ownerKey]);
   // Round-2 review r3 minor 1/2: the rail's ARIA orientation must track the same
   // 600px breakpoint the CSS switches the tablist to a horizontal scroller at — read
   // via `matchMedia` state, not recomputed ad hoc only inside the keydown handler.
@@ -487,12 +510,11 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     };
   }, []);
   // Meta-CEO B ruling r4 minor 6: at the narrow (<=600px) breakpoint the tablist
-  // becomes a horizontal scroller (CSS above) — it must always START at scroll
-  // position 0 (never wherever a browser's own scroll-into-view for a focused/clicked
-  // tab happened to leave it), and it must carry a visible edge-fade affordance
-  // whenever its content actually overflows the visible width, so a user knows there
-  // is more to scroll to. `narrowRail` flipping true is the one signal that the rail
-  // just became (or already is) the horizontal layout, so re-check and reset then.
+  // becomes a horizontal scroller (CSS above), and it must carry a visible edge-fade
+  // affordance whenever its content actually overflows the visible width, so a user
+  // knows there is more to scroll to. `narrowRail` flipping true is the one signal
+  // that the rail just became (or already is) the horizontal layout, so re-check
+  // then.
   const lensListRef = useRef<HTMLUListElement | null>(null);
   const [railOverflowing, setRailOverflowing] = useState(false);
   useEffect(() => {
@@ -501,7 +523,6 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       setRailOverflowing(false);
       return;
     }
-    el.scrollLeft = 0;
     const check = () => setRailOverflowing(el.scrollWidth > el.clientWidth + 1);
     check();
     if (typeof ResizeObserver === "undefined") {
@@ -512,6 +533,23 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     observer.observe(el);
     return () => observer.disconnect();
   }, [narrowRail]);
+  // This round's review MAJOR 2 (Meta-CEO B ruling): the previous hard
+  // `el.scrollLeft = 0` reset always left the rail showing its first few tabs
+  // regardless of which lens was actually selected — at 390 with a non-first lens
+  // selected (e.g. a page reload restoring a lens from
+  // `mm.thesis.lens.v1:<ownerKey>`), the active lens had no on-screen representation
+  // at all. Ruling r4 minor 6's literal "start at scroll 0 in the crop" applies only
+  // to the case where the FIRST lens is selected; for every other lens, the rail
+  // must instead scroll the SELECTED tab into view — on mount and on every lens
+  // change. `scrollIntoView` on the first lens is a no-op that leaves the rail at
+  // scroll 0 anyway (nothing precedes it in the list), so both requirements hold at
+  // once: "start at 0" for the first lens, "selected lens visible" for every lens.
+  useEffect(() => {
+    if (!narrowRail) return;
+    // jsdom (the unit-test environment) has no `scrollIntoView` implementation —
+    // real browsers all do, but guard the call rather than crash a test render.
+    lensRefs.current[view]?.scrollIntoView?.({ block: "nearest", inline: "nearest" });
+  }, [narrowRail, view]);
   // Round-2 review r3 minor 6: `reviewRows` reads a 90-day staleness window off `now`
   // — frozen at the last time `theses`/`conditions` changed, a thesis crossed into
   // "stale" only when something ELSE happened to reload the list, sometimes days
