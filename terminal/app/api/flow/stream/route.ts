@@ -12,31 +12,13 @@
  * subscription params beyond the query string, revisit WebSocket.
  */
 import { rateLimit, tooMany } from "@/lib/rateLimit";
-import { isValidF, loadFlowFresh } from "@/lib/flowSource";
+import { isValidF } from "@/lib/flowSource";
+import { subscribe } from "@/lib/flowBroadcast";
 import { hasLiveOptions } from "@/lib/entitlement";
 
 // SSE must never be statically cached, and flowSource reads fixtures via fs → node runtime.
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
-
-// Server-side watch cadence. The underlying feed refreshes on the order of 30s–minutes,
-// so a 15s poll surfaces changes promptly without hammering the upstream. Heartbeat keeps
-// intermediaries from closing an idle connection.
-const POLL_MS = 15_000;
-const HEARTBEAT_MS = 20_000;
-
-/**
- * Cheap change signature: prefer a timestamp field, fall back to serialized size.
- * Avoids a deep-equality walk of large feed payloads every poll — we only need to know
- * "did it change", and asof + byte-length flips whenever the producer republishes.
- */
-function signature(data: Record<string, unknown> | null): string {
-  if (!data) return "null";
-  const asof = String(data.asof ?? data.asof_utc ?? data.session_date ?? data.ts ?? "");
-  let sz = 0;
-  try { sz = JSON.stringify(data).length; } catch { /* non-serializable — size 0 */ }
-  return `${asof}:${sz}`;
-}
 
 export async function GET(req: Request): Promise<Response> {
   const rl = rateLimit(req, { name: "flow-stream" });
@@ -71,60 +53,57 @@ export async function GET(req: Request): Promise<Response> {
     return new Response("bad f param", { status: 400 });
   }
 
+  // This connection owns no timer and no upstream read. It attaches to the process-level
+  // producer for `f` (lib/flowBroadcast), which polls once per cadence and serializes each
+  // changed frame once, however many clients are attached. Frames arrive here already
+  // formatted as SSE text; the only per-connection work left is UTF-8 encoding them into
+  // this stream. (Encoding stays per-connection deliberately: sharing one Uint8Array across
+  // independent ReadableStreams risks buffer aliasing, and the expensive part — serializing
+  // a ~2 MB object graph — is already shared.)
   const encoder = new TextEncoder();
-  let poll: ReturnType<typeof setInterval> | null = null;
-  let beat: ReturnType<typeof setInterval> | null = null;
-  let lastSig = "";
   let closed = false;
+  let detach: (() => void) | null = null;
+
+  const teardown = () => {
+    if (closed) return;
+    closed = true;
+    detach?.();
+    detach = null;
+  };
 
   const stream = new ReadableStream<Uint8Array>({
-    async start(controller) {
+    start(controller) {
       const send = (payload: string) => {
         if (closed) return;
         try { controller.enqueue(encoder.encode(payload)); } catch { /* stream torn down */ }
       };
-      const sendData = (data: Record<string, unknown> | null) => {
-        if (data) send(`data: ${JSON.stringify(data)}\n\n`);
-      };
-      const cleanup = () => {
-        if (closed) return;
-        closed = true;
-        if (poll) clearInterval(poll);
-        if (beat) clearInterval(beat);
-        try { controller.close(); } catch { /* already closed */ }
-      };
 
       // Client navigated away / closed the tab.
-      req.signal.addEventListener("abort", cleanup);
+      req.signal.addEventListener("abort", () => {
+        teardown();
+        try { controller.close(); } catch { /* already closed */ }
+      });
+
+      // A signal that is ALREADY aborted never fires its listener, and start() runs after the
+      // `await hasLiveOptions()` above — so a client that gives up during that entitlement
+      // round-trip would otherwise subscribe here and never detach, stranding a producer and
+      // its timers with no connection behind them. Bail before attaching.
+      if (req.signal.aborted) {
+        closed = true;
+        try { controller.close(); } catch { /* already closed */ }
+        return;
+      }
 
       // Tell EventSource to wait 10s before reconnecting after a drop.
       send("retry: 10000\n\n");
 
-      // Initial snapshot so the consumer renders immediately (no first-paint wait).
-      const first = await loadFlowFresh(f);
-      lastSig = signature(first);
-      sendData(first);
-
-      // Watch for change and push.
-      poll = setInterval(async () => {
-        if (closed) return;
-        try {
-          const data = await loadFlowFresh(f);
-          const sig = signature(data);
-          if (data && sig !== lastSig) {
-            lastSig = sig;
-            sendData(data);
-          }
-        } catch { /* transient upstream error — keep the connection, retry next tick */ }
-      }, POLL_MS);
-
-      // Comment-line heartbeat (ignored by EventSource) keeps proxies from idling us out.
-      beat = setInterval(() => send(": keepalive\n\n"), HEARTBEAT_MS);
+      // Attach. If the producer already holds a frame, subscribe() delivers it synchronously
+      // here, so a client joining a warm feed still renders with no first-paint wait — and
+      // without the upstream read every connection used to perform for itself.
+      detach = subscribe(f, send);
     },
     cancel() {
-      closed = true;
-      if (poll) clearInterval(poll);
-      if (beat) clearInterval(beat);
+      teardown();
     },
   });
 
