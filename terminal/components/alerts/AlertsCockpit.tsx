@@ -91,7 +91,13 @@ export default function AlertsCockpit({ email, children }: { email: string; chil
       // never the content-free literal "Condition"/"条件" this used to render for every row
       // lacking a payload. Minor 4 (round-6 review): the EN-only payload must never leak
       // straight into a ZH page — verdictText gates it on `L`.
-      verdict: verdictText(r.outboxRow?.payload?.condition_plain, alert?.condition, alert?.symbol, L),
+      // MAJOR-2 (r10 review, META-CEO B ruling): `verdictText`'s ZH branch (`conditionText`)
+      // prefixes its OWN symbol onto the price-condition phrasing ("NVDA 价格低于 150") — and
+      // this row's own `.subject` cell (above) already shows the ticker, so passing `alert?.
+      // symbol` here doubled it on the row ("NVDA" + "NVDA 价格低于 150"), the same defect
+      // minor-4 (r9 review) fixed in WatchingList but not here. `undefined` symbol: the ticker
+      // now appears exactly once per row, in `.subject`.
+      verdict: verdictText(r.outboxRow?.payload?.condition_plain, alert?.condition, undefined, L),
       delivery: r.delivery, foldedRows: r.foldedRows,
     };
   });
@@ -123,7 +129,14 @@ export default function AlertsCockpit({ email, children }: { email: string; chil
     return {
       // Minor 4 (round-6 review): same lang-aware gate as the timeline verdict above — the
       // EN-only fired-event payload never renders straight into the ZH drillback dialog.
-      conditionText: verdictText(row.outboxRow?.payload?.condition_plain, alert.condition, alert.symbol, L),
+      // MAJOR-2 (r10 review, META-CEO B ruling): AlertDetail DOES render a separate "代码"/
+      // "Symbol" fact of its own (`data.holdingSymbol` below, rendered by AlertDetail.tsx) —
+      // the minor-1 (r9) comment claiming otherwise was false (r10 minor-1). Passing `alert.
+      // symbol` into this call therefore printed the ticker twice on the drillback dialog: once
+      // here as the Condition fact's own prefix ("NVDA 价格低于 150"), once again in the Symbol
+      // fact right below. `undefined` symbol: the Condition fact now states only the condition,
+      // and the Symbol fact is the single place the ticker appears.
+      conditionText: verdictText(row.outboxRow?.payload?.condition_plain, alert.condition, undefined, L),
       // Holding resolution is by ticker only — there is no portfolio/position join yet (F08 V2
       // owns true holding-coverage mapping). `null` means the ticker itself could not be
       // established, in which case the honest answer is "not covered", never a guess.
@@ -291,9 +304,13 @@ export default function AlertsCockpit({ email, children }: { email: string; chil
         // phrasing ("NVDA 价格高于 200"), and WatchingList already renders `r.symbol` as its own
         // leading `.subject` cell — passing `a.symbol` here doubled the ticker on every ZH row
         // ("NVDA  NVDA 价格低于 150"). `undefined` symbol: conditionText only prefixes a symbol
-        // when one is passed, so this removes the duplicate without touching the drillback's
-        // own `conditionText(..., alert.symbol, ...)` call (AlertDetail has no separate symbol
-        // cell of its own — that call's prefix is the only place the ticker appears there).
+        // when one is passed, so this removes the duplicate. Minor-1 (r10 review): this comment
+        // used to claim "AlertDetail has no separate symbol cell of its own" as the reason the
+        // drillback's own `conditionText` call was left prefixed — false: AlertDetail.tsx DOES
+        // render a dedicated "代码"/"Symbol" fact from `data.holdingSymbol`, so that call had the
+        // identical doubled-ticker defect (MAJOR-2, r10 ruling) and is now also passed
+        // `undefined` (see the `detail` builder above) — the ticker appears exactly once on
+        // every surface: `.subject`/Symbol-fact, never re-prefixed onto the condition text.
         rows={(alerts || []).filter((a) => a.active).map((a) => ({ id: a.id, symbol: a.symbol || "—", label: conditionText(a.condition, undefined, L), state: "armed" as const }))}
         unavailable={listUnavailable}
         lang={L}

@@ -382,10 +382,17 @@ export function conditionText(
  * uses it — it always renders the house per-condition-kind template via `conditionText`, which
  * carries a Chinese line for every condition kind this cockpit can display (never a raw EN
  * fallback, and never the generic "条件" unless the condition type itself is truly unrecognized).
+ *
+ * Minor-3 (r10 review): `condition.value` was typed `number` here while `conditionText` itself
+ * accepts `number | string` and normalizes both via `normalizeTriggeredValue` — so the
+ * numeric-string path that normalization exists for was type-unreachable through this, the
+ * only exported entry point every real caller (AlertsCockpit.tsx) actually uses. Widened to
+ * match `conditionText`'s own signature; behavior was already correct at runtime (callers pass
+ * loosely-typed `condition` objects), this makes the guarantee type-checked too.
  */
 export function verdictText(
   conditionPlain: string | null | undefined,
-  condition: { type?: string; op?: string; value?: number } | null | undefined,
+  condition: { type?: string; op?: string; value?: number | string } | null | undefined,
   symbol: string | undefined,
   lang: "en" | "zh",
 ): string {

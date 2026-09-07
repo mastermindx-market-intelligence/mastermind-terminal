@@ -271,6 +271,51 @@ describe("AlertsCockpit — full composed ZH page never leaks English and never 
     assertNoDuplicatedConditionTitleAndNote(container, "fired + drillback (full composed page)");
   });
 
+  // MAJOR-2 (r10 review, META-CEO B ruling): the ticker must appear EXACTLY ONCE per row on
+  // every surface — the Recent-activity timeline row and the drillback dialog both used to
+  // print it twice (once as its own dedicated cell/fact, once again as `conditionText`'s own
+  // leading symbol prefix on the SAME row/dialog). Before r10's fix, `AlertsCockpit.tsx` passed
+  // `alert?.symbol`/`alert.symbol` into both `verdictText(...)` calls; minor-4 (r9 review) fixed
+  // only the sibling `WatchingList` call, leaving these two doubled — the exact regression
+  // `alertsCockpitZhParity`'s ASCII-letter-run guard cannot catch (two 4-letter tickers pass).
+  it("RED-first: the Recent-activity timeline row prints the ticker exactly once — never re-prefixed onto the verdict cell (MAJOR-2, r10 ruling)", async () => {
+    mockFetch([FIRED_ALERT], {
+      run: FRESH_RUN, runs_state: "READ_OK", last_success_at: FRESH_RUN.concluded_at,
+      last_success_state: "READ_OK", outbox: SENT_OUTBOX, outbox_state: "READ_OK",
+    });
+    await mount();
+    // The `[data-delivery="sent"]` row IS the timeline row (AlertTimeline.tsx stamps
+    // `data-delivery={r.delivery}` on the same element that renders `.subject` + `.verdict`).
+    const row = container.querySelector('[data-delivery="sent"]') as HTMLElement | null;
+    expect(row, "expected the Recent-activity timeline row for the FIRED_ALERT fixture").not.toBeNull();
+    const rowText = row!.textContent ?? "";
+    const occurrences = rowText.split("NVDA").length - 1;
+    expect(
+      occurrences,
+      `expected the ticker "NVDA" to appear exactly once in the timeline row, found ${occurrences}: "${rowText}"`,
+    ).toBe(1);
+  });
+
+  it("RED-first: the drillback dialog prints the ticker exactly once — the Condition fact drops its own symbol prefix because the Symbol fact already carries it (MAJOR-2, r10 ruling)", async () => {
+    mockFetch([FIRED_ALERT], {
+      run: FRESH_RUN, runs_state: "READ_OK", last_success_at: FRESH_RUN.concluded_at,
+      last_success_state: "READ_OK", outbox: SENT_OUTBOX, outbox_state: "READ_OK",
+    });
+    await mount();
+    const deliveryRow = container.querySelector('[data-delivery="sent"]') as HTMLElement | null;
+    expect(deliveryRow).not.toBeNull();
+    await act(async () => { deliveryRow!.dispatchEvent(new MouseEvent("click", { bubbles: true })); });
+
+    const dialog = container.querySelector('[data-cockpit-state="drillback"]');
+    expect(dialog, "expected the drillback dialog to open").not.toBeNull();
+    const dialogText = dialog!.textContent ?? "";
+    const occurrences = dialogText.split("NVDA").length - 1;
+    expect(
+      occurrences,
+      `expected the ticker "NVDA" to appear exactly once in the drillback dialog (Symbol fact only), found ${occurrences}: "${dialogText}"`,
+    ).toBe(1);
+  });
+
   it("RED-first: a non-price fired alert (RSI) must never render \"价格\" (price) for its stamped value, on either the row note or the drillback dialog (round-9 review of f352b961, major)", async () => {
     mockFetch([FIRED_RSI_ALERT], {
       run: FRESH_RUN, runs_state: "READ_OK", last_success_at: FRESH_RUN.concluded_at,
