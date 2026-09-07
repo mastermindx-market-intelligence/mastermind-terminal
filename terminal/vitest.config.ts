@@ -6,7 +6,10 @@ export default defineConfig({
     // Only include files using the vitest describe/it API.
     // The .mjs files in components/__tests__/ and tests/ use a custom console runner
     // and are not vitest suites — exclude them to avoid "no test suite found" failures.
-    include: ["lib/__tests__/**/*.test.ts"],
+    // .tsx is included alongside .ts for component tests that render JSX (each such file
+    // opts into a DOM with a `// @vitest-environment jsdom` pragma — the suite default
+    // stays plain Node, unchanged for every existing .ts test).
+    include: ["lib/__tests__/**/*.test.ts", "lib/__tests__/**/*.test.tsx"],
   },
   resolve: {
     alias: {

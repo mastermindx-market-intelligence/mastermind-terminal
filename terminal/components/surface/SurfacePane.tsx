@@ -84,6 +84,7 @@ import { EodReplayTag } from "./EodReplayTag";
 import { deriveOptLevels, sessionsOldEt, type OptLevelKey, type OptLevelsResult } from "@/lib/optionsLevels";
 import { parseGlanceState, REGIME_COLORS } from "@/lib/mscGlance";
 import { makeGexT } from "@/components/gexdesk/gexStrings";
+import { regimeLabel as plainRegime } from "@/lib/plainLabels";
 
 /** Shared empty OptLevelsResult — used when a derive-memo's store isn't for the current
  *  root/session yet (F8 stale-root gate), so the pane reads "no coverage" rather than
@@ -1296,7 +1297,7 @@ export function SurfacePane({
   // dot and ticker page already use (lib/mscGlance REGIME_COLORS + gexStrings `regime*`).
   // REGIME-DYNAMICS LAW: the state word never stands alone — stability and dist-to-flip
   // ride with it, same as MarketStateCard / StockAnalysis.
-  const regimeLabel = glanceRow ? gexT(`regime${glanceRow.regime}` as Parameters<typeof gexT>[0]) || glanceRow.regime : null;
+  const regimeLabel = glanceRow ? plainRegime(gexT, glanceRow.regime, lang) : null;
   const regimeNote = glanceRow ? nightlyDateNote(glanceRow.asofDate, true) : "";
   // R3: the ≤460px compact-slot text — whichever of dist-to-flip/stability the payload
   // actually carries, preferring dist-to-flip when both are present (it is more directly

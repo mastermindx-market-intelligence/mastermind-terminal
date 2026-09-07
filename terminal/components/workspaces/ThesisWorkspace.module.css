@@ -1,0 +1,203 @@
+.root {
+  min-width: 0; min-height: 0; height: 100%; display: flex; flex-direction: column; overflow: hidden;
+  color: var(--text);
+  background: radial-gradient(circle at 72% -10%, color-mix(in srgb, var(--brand) 13%, transparent), transparent 32%), var(--bg);
+}
+.contextBar { min-height: 66px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 10px 18px; border-bottom: 1px solid var(--line); background: color-mix(in srgb, var(--panel) 92%, transparent); }
+.contextBar > div:first-child { display: grid; gap: 2px; }
+.contextBar small, .editorHeader small { font: 700 10px/1.2 var(--font-num); letter-spacing: .12em; color: var(--muted); }
+.contextBar h1 { margin: 0; font-size: 19px; }
+.contextSubject { color: var(--muted); font: 700 10px/1.2 var(--font-num); }
+.contextActions, .actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.contextActions button, .actions button, .railState button, .centerState button, .conflict button, .retrySame, .primaryButton { min-height: 38px; border: 1px solid var(--line); border-radius: 8px; padding: 7px 12px; color: inherit; background: var(--panel-2); font: 700 12px/1.2 var(--font-ui); cursor: pointer; }
+.primaryButton { border-color: color-mix(in srgb, var(--brand) 60%, #fff 8%); background: var(--brand); color: #fff; text-decoration: none; display: inline-grid; place-items: center; }
+.dangerButton { border-color: var(--danger); color: var(--danger); }
+.root button:disabled { opacity: .5; cursor: not-allowed; }
+.workspaceGrid { min-height: 0; flex: 1; display: grid; grid-template-columns: minmax(220px, 290px) minmax(0, 1fr); }
+.rail { min-height: 0; overflow: auto; border-right: 1px solid var(--line); padding: 16px 12px; background: color-mix(in srgb, var(--panel) 86%, transparent); }
+.railHeading, .historyHeading { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.railHeading h2, .historyHeading h2 { margin: 0; font-size: 13px; letter-spacing: .04em; }
+.railHeading span, .historyHeading span, .versionBadge { border: 1px solid var(--line); border-radius: 999px; padding: 3px 8px; color: var(--muted); font: 700 11px/1.2 var(--font-num); }
+.railState { margin-top: 18px; padding: 14px; border: 1px dashed var(--line); border-radius: 10px; }
+.railState p, .muted { color: var(--muted); font-size: 12px; line-height: 1.5; }
+.thesisList { display: grid; gap: 7px; margin-top: 12px; }
+.thesisList > button { width: 100%; display: grid; gap: 7px; padding: 11px; text-align: left; color: inherit; border: 1px solid transparent; border-radius: 9px; background: transparent; cursor: pointer; }
+.thesisList > button:hover, .thesisList > button.selected { border-color: var(--line); background: var(--panel-2); }
+.thesisList > button > span { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.thesisList b { font: 700 11px/1 var(--font-num); color: var(--brand-2); }
+.thesisList strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
+.thesisList small { color: var(--muted); }
+.thesisList i, .history i { font-style: normal; font-size: 10px; color: var(--regime-up); }
+.thesisList i[data-state="archived"], .history i[data-state="archived"] { color: var(--warn); }
+.thesisList i[data-state="invalidated"], .history i[data-state="invalidated"] { color: var(--danger); }
+.editorPane { min-width: 0; min-height: 0; overflow: auto; padding: clamp(16px, 2.4vw, 32px); }
+.editorHeader { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+.editorHeader h1 { margin: 4px 0; font-size: clamp(22px, 3vw, 34px); letter-spacing: -.03em; }
+.editorHeader p { margin: 0; color: var(--muted); font-size: 12px; }
+.mobileBack { display: none; margin: 0 0 12px; }
+.conflict { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin: 0 0 16px; padding: 14px; border: 1px solid var(--warn); border-radius: 10px; background: color-mix(in srgb, var(--warn) 13%, transparent); }
+.conflict p { margin: 5px 0 0; color: var(--muted); font-size: 12px; }
+.conflict > div:last-child { display: flex; flex-wrap: wrap; gap: 8px; }
+.dirtyDraft { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin: 0 0 16px; padding: 12px 14px; border: 1px solid color-mix(in srgb, var(--brand) 58%, var(--line)); border-radius: 10px; background: color-mix(in srgb, var(--brand) 9%, transparent); }
+.dirtyDraft p { margin: 4px 0 0; color: var(--muted); font-size: 12px; }
+.dirtyDraft button { flex: 0 0 auto; min-height: 36px; border: 1px solid var(--line); border-radius: 8px; padding: 7px 12px; color: inherit; background: var(--panel-2); font-weight: 700; cursor: pointer; }
+.message { margin: 0 0 12px; padding: 10px 12px; border-left: 3px solid var(--brand); background: var(--panel-2); font-size: 12px; }
+.retrySame { margin: 0 0 14px; }
+.form { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.form label { display: grid; align-content: start; gap: 6px; color: var(--muted); font-size: 11px; font-weight: 700; }
+.form label:first-child { grid-column: span 1; }
+.form label:nth-child(2) { grid-column: span 2; }
+.form label small { font-weight: 400; color: var(--muted); }
+.form input, .form textarea, .form select { width: 100%; min-width: 0; border: 1px solid var(--line); border-radius: 8px; padding: 10px 11px; color: var(--text); background: var(--panel); font: 13px/1.45 var(--font-ui); resize: vertical; }
+.form input:focus, .form textarea:focus, .form select:focus { outline: 2px solid color-mix(in srgb, var(--brand) 55%, transparent); outline-offset: 1px; }
+.form input:disabled, .form textarea:disabled, .form select:disabled { opacity: .72; background: color-mix(in srgb, var(--panel) 55%, transparent); }
+.full { grid-column: 1 / -1 !important; }
+.history { margin-top: 26px; padding-top: 20px; border-top: 1px solid var(--line); }
+.historyHeading { margin-bottom: 10px; }
+.history article { padding: 12px 4px; border-bottom: 1px solid color-mix(in srgb, var(--line) 72%, transparent); }
+.historySummary { display: grid; grid-template-columns: minmax(170px, .7fr) minmax(150px, .6fr) minmax(190px, 1fr) auto; gap: 10px 16px; align-items: center; }
+.historySummary > div { display: flex; align-items: center; gap: 9px; }
+.historySummary b { font: 700 12px/1 var(--font-num); }
+.historySummary span, .historySummary time, .historySummary p { color: var(--muted); font-size: 11px; }
+.historySummary strong { font-size: 12px; }
+.historySummary p { margin: 0; grid-column: 3; }
+.historySummary > button { grid-column: 4; grid-row: 1 / span 2; min-height: 34px; border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; color: inherit; background: var(--panel-2); font-size: 11px; font-weight: 700; cursor: pointer; }
+.effectiveAt { display: block; margin-top: 5px; }
+.versionInspector { margin-top: 12px; padding: 16px; border: 1px solid var(--line); border-radius: 10px; background: color-mix(in srgb, var(--panel-2) 84%, transparent); }
+.versionInspector[data-posture="historical"] { border-color: color-mix(in srgb, var(--warn) 58%, var(--line)); }
+.versionInspector > header { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; margin-bottom: 14px; }
+.versionInspector > header small { color: var(--muted); font: 700 10px/1.2 var(--font-num); text-transform: uppercase; letter-spacing: .1em; }
+.versionInspector > header h3 { margin: 4px 0 0; font-size: 18px; }
+.versionInspector > header > span { color: var(--regime-up); font-size: 11px; font-weight: 700; }
+.versionInspector > header > span[data-state="archived"] { color: var(--warn); }
+.versionInspector > header > span[data-state="invalidated"] { color: var(--danger); }
+.versionMeta { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 0 0 16px; }
+.versionMeta div { min-width: 0; }
+.versionMeta dt, .snapshotGrid h4 { margin: 0 0 4px; color: var(--muted); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+.versionMeta dd { margin: 0; overflow-wrap: anywhere; font-size: 12px; }
+.snapshotGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.snapshotGrid section { min-width: 0; padding: 11px; border: 1px solid color-mix(in srgb, var(--line) 72%, transparent); border-radius: 8px; background: color-mix(in srgb, var(--panel) 66%, transparent); }
+.snapshotGrid p, .snapshotGrid ul { margin: 0; color: var(--text); font-size: 12px; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; }
+.snapshotGrid ul { padding-left: 18px; }
+.snapshotFull { grid-column: 1 / -1; }
+.centerState { min-height: 45vh; display: grid; place-items: center; align-content: center; gap: 10px; padding: 28px; text-align: center; }
+.centerState h1, .centerState p { margin: 0; }
+.centerState p { max-width: 520px; color: var(--muted); line-height: 1.55; }
+.stateMark { width: 42px; height: 42px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 50%; color: var(--brand-2); font: 700 20px/1 var(--font-num); }
+@media (max-width: 860px) {
+  .workspaceGrid { grid-template-columns: minmax(210px, 240px) minmax(0, 1fr); }
+  .form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .form label:first-child, .form label:nth-child(2) { grid-column: span 1; }
+  .historySummary { grid-template-columns: 1fr 1fr auto; }
+  .historySummary strong, .historySummary p { grid-column: 1 / -1; }
+  .historySummary > button { grid-column: 3; }
+  .versionMeta { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.lensRail { margin: 0 0 14px; }
+.lensRail ul { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.lens { width: 100%; min-height: 30px; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 6px 9px 6px 8px; border: 0; border-left: 2px solid transparent; border-radius: 0 var(--r-md) var(--r-md) 0; background: transparent; color: var(--muted); font: 700 12px/1.2 var(--font-ui); text-align: left; cursor: pointer; transition: color var(--t-fast) var(--ease), background var(--t-fast) var(--ease); }
+.lens:hover:not(:disabled) { color: var(--text-2); background: color-mix(in srgb, var(--panel-2) 60%, transparent); }
+.lens[data-selected] { border-left-color: var(--brand); background: var(--panel-2); color: var(--text); }
+.lens:focus-visible { outline: 2px solid color-mix(in srgb, var(--brand) 55%, transparent); outline-offset: -2px; }
+.lensCount { color: var(--text-dim); font: 700 11px/1 var(--font-num); font-variant-numeric: tabular-nums; }
+.lens[data-selected] .lensCount { color: var(--text-2); }
+/* Round-2 review r3 minor 7: the Theses lens badge shows the FILTERED count while a
+   Coverage subject filter is active — this marks it so it never reads as the total. */
+.lensCount[data-filtered]::after { content: "•"; margin-left: 4px; color: var(--brand); }
+.srOnly { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.lensHead { display: grid; gap: 4px; padding: 12px 2px 0; border-top: 1px solid var(--line-2); }
+.lensHead h2 { margin: 0; font-size: 13px; letter-spacing: .04em; }
+.lensWhat { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
+.subjectChip { justify-self: start; margin-top: 2px; display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--line-2); border-radius: var(--r-pill); padding: 3px 10px; color: var(--text-2); background: color-mix(in srgb, var(--brand-2) 10%, transparent); font: 700 11px/1.3 var(--font-ui); cursor: pointer; transition: background var(--t-fast) var(--ease); }
+.subjectChip:hover { background: color-mix(in srgb, var(--brand-2) 18%, transparent); }
+.scopeNote { margin: 0; color: var(--text-dim); font-size: 11px; line-height: 1.5; }
+.lensPanel { display: grid; gap: 7px; margin-top: 12px; }
+@media (max-width: 600px) {
+  .root { height: auto; min-height: 100%; overflow: visible; }
+  .contextBar { min-height: 58px; padding: 8px 10px; }
+  .contextActions { justify-content: flex-end; }
+  .contextActions button { padding-inline: 9px; }
+  .workspaceGrid { display: block; }
+  .root[data-mobile-pane="detail"] .rail { display: none; }
+  .root[data-mobile-pane="list"] .editorPane { display: none; }
+  .rail { max-height: none; min-height: calc(100dvh - 130px); padding: 12px 10px; border-right: 0; }
+  .editorPane { padding: 16px 10px 40px; }
+  .mobileBack { display: inline-flex; }
+  .editorHeader, .conflict, .dirtyDraft { align-items: stretch; flex-direction: column; }
+  .form { display: block; }
+  .form label { margin-bottom: 13px; }
+  .actions { display: grid; grid-template-columns: 1fr 1fr; }
+  .actions button:first-child:last-child { grid-column: 1 / -1; }
+  .historySummary { grid-template-columns: 1fr auto; }
+  .historySummary > div, .historySummary time, .historySummary strong, .historySummary p { grid-column: 1; }
+  .historySummary > button { grid-column: 2; grid-row: 1 / span 4; align-self: stretch; }
+  .versionMeta, .snapshotGrid { grid-template-columns: 1fr; }
+  .snapshotFull { grid-column: auto; }
+  .lensRail { position: relative; z-index: 0; isolation: isolate; margin: 0 -10px 12px; padding: 0 10px; }
+  .lensRail ul { position: relative; z-index: 0; grid-auto-flow: column; grid-auto-columns: max-content; overflow-x: auto; gap: 6px; padding-bottom: 4px; scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; }
+  .lens { min-height: 38px; border-left: 0; border-bottom: 2px solid transparent; border-radius: var(--r-md); padding: 8px 12px; scroll-snap-align: start; }
+  .lens[data-selected] { border-bottom-color: var(--brand); }
+  .lensPanel { gap: 8px; }
+  /* Meta-CEO B ruling r4 minor 6: a visible affordance that the horizontally scrolling
+     lens rail holds more tabs than fit — shown only while `railOverflowing` is
+     actually true (JS-measured scrollWidth > clientWidth), never as a permanent
+     decoration. A right-edge fade into the panel background, not a hard cutoff.
+     A prior pass (this round's review MAJOR 1, since reverted) changed the
+     gradient's end stop from a translucent color-mix to a fully opaque one, on the
+     theory that the translucent stop barely moved the resolved color over `.rail`'s
+     own background. Meta-CEO B ruling (this round): measured against the committed
+     proof crops, the fade already occluded the rail's end zone before that change —
+     the opaque variant was a no-op (end-zone brightness essentially unchanged), not
+     a fix — so it is reverted to the simpler rule below, which matches `.rail`'s own
+     background (`color-mix(in srgb, var(--panel) 86%, transparent)`) so the fade
+     reads as an edge of the panel, not a mismatched tint. */
+  .lensRail[data-overflow]::after,
+  .lensRail[data-overflow-left]::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 4px;
+    width: 28px;
+    pointer-events: none;
+    z-index: 2;
+  }
+  .lensRail[data-overflow]::after {
+    right: 10px;
+    background: linear-gradient(to right, transparent, color-mix(in srgb, var(--panel) 86%, transparent) 75%);
+  }
+  /* Meta-CEO B ruling r6 minor-1: the left edge needs the same fade whenever
+     the rail is scrolled away from 0 — otherwise a glyph that has left the
+     visible start is hard-cut with no affordance. Symmetric to ::after. */
+  .lensRail[data-overflow-left]::before {
+    left: 10px;
+    background: linear-gradient(to left, transparent, color-mix(in srgb, var(--panel) 86%, transparent) 75%);
+  }
+}
+.subjectRow { width: 100%; display: grid; gap: 6px; padding: 11px; text-align: left; color: inherit; border: 1px solid transparent; border-radius: 9px; background: transparent; cursor: pointer; }
+.subjectRow:hover { border-color: var(--line); background: var(--panel-2); }
+.subjectRow > span { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.subjectRow strong { font-size: 13px; }
+.subjectRow small { color: var(--muted); font-size: 11px; }
+/* --brand-2 (not --regime-up, the market up/down token): a sibling repair on this
+   branch found --regime-up flips to a "down"/red-adjacent hue under the ZH-locale
+   up/down convention, which is wrong for a plain active/idle coverage dot. */
+.subjectRow i { width: 6px; height: 6px; border-radius: 50%; background: var(--brand-2); }
+.subjectRow i[data-state="idle"] { background: var(--line-3); }
+.lineRow { display: grid; gap: 6px; padding: 10px 11px 10px 12px; border-left: 1px solid var(--line-3); border-radius: 0 9px 9px 0; background: color-mix(in srgb, var(--panel-2) 55%, transparent); }
+.lineText { margin: 0; color: var(--text); font-size: 12.5px; line-height: 1.5; overflow-wrap: anywhere; }
+.lineOwner { display: flex; align-items: center; gap: 8px; padding: 0; border: 0; background: transparent; color: var(--muted); font: 11px/1.2 var(--font-ui); text-align: left; cursor: pointer; }
+.lineOwner b { flex: 0 0 auto; color: var(--brand-2); font: 700 11px/1 var(--font-num); }
+.lineOwner span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Round-2 review r3 minor 3: without an explicit flex-basis, the date shrank along
+   with the title at 1440 and its digits wrapped onto a second line — the title (which
+   already truncates with an ellipsis) is the one that should give up space, never the
+   date. */
+.lineOwner time { flex: 0 0 auto; white-space: nowrap; }
+.lineOwner:hover { color: var(--text-2); }
+.rowReason { font-style: normal; color: var(--muted); font-size: 11px; }
+.emptyLens { margin-top: 4px; padding: 14px; border: 1px dashed var(--line); border-radius: 10px; }
+.emptyLens p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+.showMore { min-height: 34px; margin-top: 4px; border: 1px solid var(--line); border-radius: var(--r-lg); padding: 6px 10px; color: inherit; background: var(--panel-2); font: 700 11px/1.2 var(--font-ui); cursor: pointer; }
+.conditionLine { margin: -8px 0 16px; padding-left: 10px; border-left: 2px solid var(--line-3); color: var(--muted); font-size: 12px; line-height: 1.5; }
+.conditionLine[data-state="window_closed"] { border-left-color: var(--warn); color: var(--text-2); }
+@media (prefers-reduced-motion: reduce) { .lens { transition: none; } }

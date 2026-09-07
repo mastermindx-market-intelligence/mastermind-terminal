@@ -7,6 +7,8 @@ import DashboardBackButton from "@/components/DashboardBackButton";
 import { TOP, Glyph as NavGlyph } from "@/components/AppNav";
 import SettingsButton from "@/components/settings/SettingsButton";
 import { useT } from "@/lib/i18n";
+import { useActiveSymbol } from "@/lib/activeSymbol";
+import { navHref } from "@/lib/navSymbol";
 
 /**
  * Shared mobile top-bar + slide-in drawer used by both the /terminal shell and
@@ -49,6 +51,9 @@ export default function MobileNav({
   const [drawer, setDrawer] = useState(false);
   const navPath = usePathname();
   const t = useT();
+  // Carries the company you are looking at through the drawer — see lib/navSymbol. This drawer
+  // is the surface the gap was reported on: tapping Analysis while charting SMR opened NVDA.
+  const activeSymbol = useActiveSymbol();
 
   // Active key = path prefix per workspace, mirroring AppNav. Chart is the default/center.
   const derivedKey = activeKeyProp ?? (
@@ -112,7 +117,7 @@ export default function MobileNav({
             return (
               <Link
                 key={it.k}
-                href={it.href}
+                href={navHref(it, activeSymbol, navPath)}
                 className={on ? "on" : ""}
                 onClick={() => setDrawer(false)}
               >
