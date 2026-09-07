@@ -1322,4 +1322,92 @@ describe("ThesisWorkspace lens rail (B-F11-2, M2)", () => {
     // comes from the reset itself, not from a fetch that happened to succeed.
     expect(listCallCount).toBe(1);
   });
+
+  it("mobile lens rail: the SELECTED lens is scrolled into view on mount and again on every lens change (this round's review MAJOR-2 — the behaviour itself, not just data-overflow)", async () => {
+    const t1: ThesisSummary = {
+      id: "scroll-t1", currentVersion: 1, lifecycleState: "active",
+      subject: subject("AAA", "Alpha Co"), title: "Alpha", updatedAt: "2026-09-01T00:00:00.000Z",
+    };
+    installFetch([t1], new Map());
+
+    // jsdom implements no scrollIntoView at all (the component guards the call with
+    // `?.` for exactly that reason) — stub it on the prototype so every call, no
+    // matter which button element it is invoked on, lands in one spy.
+    const originalScrollIntoView = (HTMLElement.prototype as unknown as { scrollIntoView?: unknown })
+      .scrollIntoView;
+    const scrollIntoViewSpy = vi.fn();
+    (HTMLElement.prototype as unknown as { scrollIntoView: unknown }).scrollIntoView = scrollIntoViewSpy;
+    const originalMatchMedia = window.matchMedia;
+    window.matchMedia = ((query: string) =>
+      ({
+        matches: query === "(max-width: 600px)",
+        media: query,
+        addListener() {},
+        removeListener() {},
+        addEventListener() {},
+        removeEventListener() {},
+        dispatchEvent() {
+          return false;
+        },
+      }) as unknown as MediaQueryList) as typeof window.matchMedia;
+
+    try {
+      const el = await mount({ ownerKey: "owner-scrollintoview" });
+      const rows = tabs(el);
+      const initiallySelected = rows.find((b) => b.getAttribute("aria-selected") === "true")!;
+
+      // Mount: the initially-selected lens (the default view, "coverage" — first in
+      // the list) was scrolled into view once, with the ruling's exact args.
+      expect(scrollIntoViewSpy).toHaveBeenCalledTimes(1);
+      expect(scrollIntoViewSpy.mock.instances[0]).toBe(initiallySelected);
+      expect(scrollIntoViewSpy.mock.calls[0][0]).toEqual({ block: "nearest", inline: "nearest" });
+
+      // Lens change: selecting a different tab scrolls THAT tab into view too — not
+      // just the first one, and not only on mount.
+      scrollIntoViewSpy.mockClear();
+      const catalystsTab = rows.find((b) => b.dataset.view === "catalysts")!;
+      await act(async () => catalystsTab.click());
+
+      expect(scrollIntoViewSpy).toHaveBeenCalledTimes(1);
+      expect(scrollIntoViewSpy.mock.instances[0]).toBe(catalystsTab);
+      expect(scrollIntoViewSpy.mock.calls[0][0]).toEqual({ block: "nearest", inline: "nearest" });
+    } finally {
+      window.matchMedia = originalMatchMedia;
+      if (originalScrollIntoView === undefined) {
+        delete (HTMLElement.prototype as unknown as { scrollIntoView?: unknown }).scrollIntoView;
+      } else {
+        (HTMLElement.prototype as unknown as { scrollIntoView: unknown }).scrollIntoView = originalScrollIntoView;
+      }
+    }
+  });
+
+  it("mobile lens rail: on a wide viewport (narrowRail false) no scrollIntoView call is made — the mechanism is scoped to the narrow breakpoint only", async () => {
+    const t1: ThesisSummary = {
+      id: "scroll-wide-t1", currentVersion: 1, lifecycleState: "active",
+      subject: subject("AAA", "Alpha Co"), title: "Alpha", updatedAt: "2026-09-01T00:00:00.000Z",
+    };
+    installFetch([t1], new Map());
+
+    const originalScrollIntoView = (HTMLElement.prototype as unknown as { scrollIntoView?: unknown })
+      .scrollIntoView;
+    const scrollIntoViewSpy = vi.fn();
+    (HTMLElement.prototype as unknown as { scrollIntoView: unknown }).scrollIntoView = scrollIntoViewSpy;
+    // beforeEach already installs a matchMedia stub whose `.matches` is always
+    // false (wide viewport) when one is not already present.
+
+    try {
+      const el = await mount({ ownerKey: "owner-scrollintoview-wide" });
+      const rows = tabs(el);
+      const catalystsTab = rows.find((b) => b.dataset.view === "catalysts")!;
+      await act(async () => catalystsTab.click());
+
+      expect(scrollIntoViewSpy).not.toHaveBeenCalled();
+    } finally {
+      if (originalScrollIntoView === undefined) {
+        delete (HTMLElement.prototype as unknown as { scrollIntoView?: unknown }).scrollIntoView;
+      } else {
+        (HTMLElement.prototype as unknown as { scrollIntoView: unknown }).scrollIntoView = originalScrollIntoView;
+      }
+    }
+  });
 });
