@@ -369,6 +369,51 @@ export const INVITE_MESSAGES: Record<InviteCode, [string, string]> = {
   failed: ["We could not complete that action just now.", "我们暂时无法完成该操作。"],
 };
 
+export type TeamRouteCode =
+  | "not_signed_in"
+  | "unavailable"
+  | "read_failed"
+  | "write_failed"
+  | "send_json"
+  | "unrecognised_action"
+  | "team_name_required"
+  | "team_id_required"
+  | "not_member"
+  | "not_admin_add"
+  | "team_not_found"
+  | "already_on_team"
+  | "invalid_role"
+  | "invalid_user_id"
+  | "user_not_found"
+  | "email_not_supported"
+  | "missing_target"
+  | "invalid_request";
+
+// Same [en, zh] shape as INVITE_MESSAGES. Used by /api/teams and /api/teams/[id]/members.
+export const TEAM_ROUTE_MESSAGES: Record<TeamRouteCode, [string, string]> = {
+  not_signed_in: ["You are not signed in.", "您尚未登录。"],
+  unavailable: INVITE_MESSAGES.unavailable,
+  read_failed: ["We could not read the team directory just now.", "我们暂时无法读取团队目录。"],
+  write_failed: ["We could not save that change.", "我们无法保存该更改。"],
+  send_json: ["Send a JSON body.", "请发送 JSON 正文。"],
+  unrecognised_action: ["We do not recognise that action.", "我们无法识别该操作。"],
+  team_name_required: ["A team needs a name of 1 to 120 characters.", "团队名称需要为 1 到 120 个字符。"],
+  team_id_required: ["A team id is required.", "必须提供团队编号。"],
+  not_member: ["You are not a member of this team.", "您不是该团队的成员。"],
+  not_admin_add: ["Only a team owner or admin can add people.", "只有团队所有者或管理员才能添加成员。"],
+  team_not_found: INVITE_MESSAGES.team_not_found,
+  already_on_team: ["That person is already on this team.", "该成员已在此团队中。"],
+  invalid_role: ["Choose a role: admin or member.", "请选择角色：管理员或成员。"],
+  invalid_user_id: ["That user id is not valid.", "该用户标识无效。"],
+  user_not_found: ["We could not find that person. Ask them to sign in to Mastermind first.", "找不到该用户。请先让对方登录 Mastermind。"],
+  email_not_supported: [
+    "Invitations by email are not available yet. Ask them to sign in to Mastermind first, then add them by their account.",
+    "目前还不能通过电子邮件发送邀请。请先让对方登录 Mastermind，然后用其账户添加。",
+  ],
+  missing_target: ["Provide a user id or an email address.", "请提供用户标识或电子邮件地址。"],
+  invalid_request: ["That request is not valid.", "该请求无效。"],
+};
+
 export const SETTING_MESSAGES: Record<"saved" | "not_admin" | "invalid_key" | "invalid_value" | "unavailable", [string, string]> = {
   saved: ["Your setting was saved.", "您的设置已保存。"],
   not_admin: ["Only a team owner or an administrator can change this workspace setting.", "只有团队所有者或管理员才能更改此工作区设置。"],

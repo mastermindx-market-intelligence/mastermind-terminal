@@ -1,3 +1,5 @@
+-- Ledger row: 0015_team_roles_invitations / PR #514 (open, packet B-F12-3); not applied
+-- Rollback: drop function if exists public.accept_team_invite(text); drop table if exists public.workspace_settings;
 -- 0015_team_roles_invitations.sql
 --
 -- Packet B-F12-3 (MO-PAID-081/082/083). Builds on 0014_tenancy_foundation.sql's `teams` /

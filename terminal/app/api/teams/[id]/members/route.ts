@@ -1,21 +1,27 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { addMember, listMembers, type InvalidCode, type TenancyDb } from "@/lib/teams";
+import {
+  addMember,
+  listMembers,
+  TEAM_ROUTE_MESSAGES,
+  type InvalidCode,
+  type TeamRouteCode,
+  type TenancyDb,
+} from "@/lib/teams";
 
 export const runtime = "nodejs";
 
 // Plain-language law (Chairman ruling, M3): lib/teams.ts returns a stable internal `code`, never
 // a raw Postgres/lib message, as the response `message` — every string below is a complete
-// sentence, never a lowercase fragment or an internal identifier.
-const INVALID_MESSAGES: Record<InvalidCode, string> = {
-  invalid_role: "Choose a role: admin or member.",
-  invalid_user_id: "That user id is not valid.",
-  user_not_found: "We could not find that person. Ask them to sign in to Mastermind first.",
-  email_not_supported:
-    "Invitations by email are not available yet. Ask them to sign in to Mastermind first, then add them by their account.",
-  missing_target: "Provide a user id or an email address.",
+// sentence, never a lowercase fragment or an internal identifier. Each body also carries
+// messageZh from TEAM_ROUTE_MESSAGES.
+const INVALID_CODES: Record<InvalidCode, TeamRouteCode> = {
+  invalid_role: "invalid_role",
+  invalid_user_id: "invalid_user_id",
+  user_not_found: "user_not_found",
+  email_not_supported: "email_not_supported",
+  missing_target: "missing_target",
 };
-const FALLBACK_INVALID_MESSAGE = "That request is not valid.";
 
 async function resolveDb(): Promise<{ db: TenancyDb; userId: string } | null> {
   const supabase = await createClient();
@@ -24,33 +30,37 @@ async function resolveDb(): Promise<{ db: TenancyDb; userId: string } | null> {
   return { db: supabase as unknown as TenancyDb, userId: user.id };
 }
 
+function errorBody(error: string, code: TeamRouteCode) {
+  const [message, messageZh] = TEAM_ROUTE_MESSAGES[code];
+  return { error, message, messageZh };
+}
+
 const unauthenticated = () =>
-  NextResponse.json({ error: "UNAUTHENTICATED", message: "You are not signed in." }, { status: 401 });
-const invalid = (message: string, status = 400) => NextResponse.json({ error: "INVALID", message }, { status });
-const forbidden = (message: string) => NextResponse.json({ error: "FORBIDDEN", message }, { status: 403 });
+  NextResponse.json(errorBody("UNAUTHENTICATED", "not_signed_in"), { status: 401 });
+const invalid = (code: TeamRouteCode, status = 400) =>
+  NextResponse.json(errorBody("INVALID", code), { status });
+const forbidden = (code: TeamRouteCode) =>
+  NextResponse.json(errorBody("FORBIDDEN", code), { status: 403 });
 const notFound = () =>
-  NextResponse.json({ error: "NOT_FOUND", message: "We could not find that team." }, { status: 404 });
+  NextResponse.json(errorBody("NOT_FOUND", "team_not_found"), { status: 404 });
 const duplicate = () =>
-  NextResponse.json({ error: "DUPLICATE", message: "That person is already on this team." }, { status: 409 });
+  NextResponse.json(errorBody("DUPLICATE", "already_on_team"), { status: 409 });
 const readFail = (reason: "unavailable" | "failed", error: string) =>
   reason === "unavailable"
-    ? NextResponse.json(
-        { error: "READ_UNAVAILABLE", message: "Team accounts are not set up on this server yet, so we cannot answer. Nothing was changed." },
-        { status: 503 },
-      )
-    : NextResponse.json({ error: "READ_FAILED", message: "We could not read the team directory just now." }, { status: 503 });
+    ? NextResponse.json(errorBody("READ_UNAVAILABLE", "unavailable"), { status: 503 })
+    : NextResponse.json(errorBody("READ_FAILED", "read_failed"), { status: 503 });
 const writeFail = () =>
-  NextResponse.json({ error: "WRITE_FAILED", message: "We could not save that change." }, { status: 500 });
+  NextResponse.json(errorBody("WRITE_FAILED", "write_failed"), { status: 500 });
 
 export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> }) {
   const session = await resolveDb();
   if (!session) return unauthenticated();
   const { id } = await ctx.params;
-  if (!id) return invalid("A team id is required.");
+  if (!id) return invalid("team_id_required");
 
   const result = await listMembers(session.db, session.userId, id);
   if (!result.ok) {
-    if (result.reason === "forbidden") return forbidden("You are not a member of this team.");
+    if (result.reason === "forbidden") return forbidden("not_member");
     if (result.reason === "not_found") return notFound();
     console.error("team members GET failed:", result.error);
     return readFail(result.reason, result.error);
@@ -62,10 +72,10 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   const session = await resolveDb();
   if (!session) return unauthenticated();
   const { id } = await ctx.params;
-  if (!id) return invalid("A team id is required.");
+  if (!id) return invalid("team_id_required");
 
   const body = (await req.json().catch(() => null)) as Record<string, unknown> | null;
-  if (!body) return invalid("Send a JSON body.");
+  if (!body) return invalid("send_json");
 
   const result = await addMember(session.db, session.userId, id, {
     userId: body.userId,
@@ -73,11 +83,11 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     role: body.role,
   });
   if (!result.ok) {
-    if (result.reason === "forbidden") return forbidden("Only a team owner or admin can add people.");
+    if (result.reason === "forbidden") return forbidden("not_admin_add");
     if (result.reason === "not_found") return notFound();
     if (result.reason === "duplicate") return duplicate();
     if (result.reason === "invalid") {
-      return invalid(result.code ? INVALID_MESSAGES[result.code] : FALLBACK_INVALID_MESSAGE, result.status);
+      return invalid(result.code ? INVALID_CODES[result.code] : "invalid_request", result.status);
     }
     if (result.reason === "unavailable") return readFail("unavailable", result.error);
     console.error("team members POST failed:", result.error);

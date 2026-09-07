@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { TEAM_ROUTE_MESSAGES } from "@/lib/teams";
 
 // vi.hoisted + vi.mock("@/lib/supabase/server") mirrors PR #502's thesesRoute.test.ts idiom.
 const H = vi.hoisted(() => ({ user: null as { id: string } | null }));
@@ -134,9 +135,15 @@ describe("/api/teams and /api/teams/[id]/members", () => {
   it("401 UNAUTHENTICATED when signed out", async () => {
     const r1 = await GET();
     expect(r1.status).toBe(401);
-    expect((await r1.json()).error).toBe("UNAUTHENTICATED");
+    const body1 = await r1.json();
+    expect(body1.error).toBe("UNAUTHENTICATED");
+    expect(body1.message).toBe(TEAM_ROUTE_MESSAGES.not_signed_in[0]);
+    expect(body1.messageZh).toBe(TEAM_ROUTE_MESSAGES.not_signed_in[1]);
     const r2 = await MGET(new Request("http://x"), ctx("t1"));
     expect(r2.status).toBe(401);
+    const body2 = await r2.json();
+    expect(body2.message).toBe(TEAM_ROUTE_MESSAGES.not_signed_in[0]);
+    expect(body2.messageZh).toBe(TEAM_ROUTE_MESSAGES.not_signed_in[1]);
   });
 
   it("signed in, no teams -> 200 {teams: []}", async () => {
@@ -234,9 +241,8 @@ describe("/api/teams and /api/teams/[id]/members", () => {
     expect(r.status).toBe(422);
     const body = await r.json();
     expect(body.error).toBe("INVALID");
-    expect(body.message).toBe(
-      "Invitations by email are not available yet. Ask them to sign in to Mastermind first, then add them by their account.",
-    );
+    expect(body.message).toBe(TEAM_ROUTE_MESSAGES.email_not_supported[0]);
+    expect(body.messageZh).toBe(TEAM_ROUTE_MESSAGES.email_not_supported[1]);
     expect(transport.state.team_invites).toHaveLength(0);
   });
 
@@ -245,7 +251,9 @@ describe("/api/teams and /api/teams/[id]/members", () => {
     const created = await (await POST(req({ name: "A-desk" }))).json();
     const r = await MPOST(new Request("http://x", { method: "POST", body: JSON.stringify({}) }), ctx(created.team.id));
     expect(r.status).toBe(400);
-    expect((await r.json()).message).toBe("Provide a user id or an email address.");
+    const missing = await r.json();
+    expect(missing.message).toBe(TEAM_ROUTE_MESSAGES.missing_target[0]);
+    expect(missing.messageZh).toBe(TEAM_ROUTE_MESSAGES.missing_target[1]);
   });
 
   it("invalid role -> 400 with a plain sentence", async () => {
@@ -256,7 +264,9 @@ describe("/api/teams and /api/teams/[id]/members", () => {
       ctx(created.team.id),
     );
     expect(r.status).toBe(400);
-    expect((await r.json()).message).toBe("Choose a role: admin or member.");
+    const invalidRole = await r.json();
+    expect(invalidRole.message).toBe(TEAM_ROUTE_MESSAGES.invalid_role[0]);
+    expect(invalidRole.messageZh).toBe(TEAM_ROUTE_MESSAGES.invalid_role[1]);
   });
 
   it("malformed uuid (22P02) -> 400 'That user id is not valid.'", async () => {
@@ -265,7 +275,9 @@ describe("/api/teams and /api/teams/[id]/members", () => {
     transport.state.insertFault = { code: "22P02" };
     const r = await MPOST(new Request("http://x", { method: "POST", body: JSON.stringify({ userId: "not-a-uuid" }) }), ctx(created.team.id));
     expect(r.status).toBe(400);
-    expect((await r.json()).message).toBe("That user id is not valid.");
+    const malformed = await r.json();
+    expect(malformed.message).toBe(TEAM_ROUTE_MESSAGES.invalid_user_id[0]);
+    expect(malformed.messageZh).toBe(TEAM_ROUTE_MESSAGES.invalid_user_id[1]);
   });
 
   it("well-formed but nonexistent userId (23503 FK) -> 400 'We could not find that person...'", async () => {
@@ -274,7 +286,9 @@ describe("/api/teams and /api/teams/[id]/members", () => {
     transport.state.insertFault = { code: "23503" };
     const r = await MPOST(new Request("http://x", { method: "POST", body: JSON.stringify({ userId: "ghost" }) }), ctx(created.team.id));
     expect(r.status).toBe(400);
-    expect((await r.json()).message).toBe("We could not find that person. Ask them to sign in to Mastermind first.");
+    const missingUser = await r.json();
+    expect(missingUser.message).toBe(TEAM_ROUTE_MESSAGES.user_not_found[0]);
+    expect(missingUser.messageZh).toBe(TEAM_ROUTE_MESSAGES.user_not_found[1]);
   });
 
   it("fault: absent tables -> 503 READ_UNAVAILABLE everywhere, never 500, never empty 200", async () => {

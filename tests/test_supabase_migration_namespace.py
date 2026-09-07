@@ -325,9 +325,11 @@ def test_reservations_records_the_known_collision_surface():
     assert prefixes["0014"]["pr"] == 514
     assert prefixes["0014"]["pr_state"] == "open"
 
-    assert prefixes["0015"]["state"] == "reserved"
+    assert prefixes["0015"]["state"] == "taken"
+    assert prefixes["0015"]["file"] == "0015_team_roles_invitations.sql"
     assert prefixes["0015"]["packet"] == "B-F12-3"
-    assert prefixes["0015"]["pr"] is None
+    assert prefixes["0015"]["pr"] == 514
+    assert prefixes["0015"]["pr_state"] == "open"
 
     assert prefixes["0016"]["state"] == "reserved"
     assert prefixes["0016"]["packet"] == "B-F12-4"
