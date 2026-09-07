@@ -192,10 +192,14 @@ test("persistent and hover labels follow the price pane when a study moves above
   const pointerY = wrap!.y + state.pricePaneTop + state.primaryAnchorY!;
   await page.mouse.move(pointerX, pointerY - 35);
   await page.mouse.move(pointerX, pointerY);
+  // Re-query after the pane move. toBeVisible can pass on a frame whose box is about to
+  // unmount while the label re-anchors to the new price-pane top; a one-shot boundingBox()
+  // then returns null (CI :160 on #520 / job 101649650159).
   await expect(page.locator(".mm-hovertag")).toBeVisible();
-  const hover = await page.locator(".mm-hovertag").boundingBox();
-  expect(hover).not.toBeNull();
-  expect(hover!.y).toBeGreaterThan(wrap!.y + state.pricePaneTop);
+  await expect.poll(
+    async () => (await page.locator(".mm-hovertag").boundingBox())?.y ?? null,
+    { message: "the hover label should have a laid-out box after the pane move", timeout: 20_000 },
+  ).toBeGreaterThan(wrap!.y + state.pricePaneTop);
 });
 
 test("a four-digit premarket quote expands the compact numeric lane instead of clipping", async ({ page }) => {
@@ -332,10 +336,13 @@ test("a stationary foreground label refreshes when the price scale changes under
     same: (a, b) => a.crossY === b.crossY && a.hover === b.hover,
     message: "the stationary crosshair should settle before the scale changes",
   });
-  const hover = page.locator(".mm-hovertag");
-  await expect(hover).toBeVisible();
-  const before = await hover.textContent();
-  const topBefore = (await hover.boundingBox())!.y;
+  await expect(page.locator(".mm-hovertag")).toBeVisible();
+  const before = await page.locator(".mm-hovertag").textContent();
+  await expect.poll(
+    async () => (await page.locator(".mm-hovertag").boundingBox())?.y ?? null,
+    { message: "the stationary hover label should have a laid-out box before the scale changes", timeout: 20_000 },
+  ).not.toBeNull();
+  const topBefore = (await page.locator(".mm-hovertag").boundingBox())!.y;
 
   // Dispatch a scale-wheel frame at another y without moving the real pointer. The price at the
   // stationary crosshair changes, so the foreground value must update in the same render frame.
@@ -347,6 +354,14 @@ test("a stationary foreground label refreshes when the price scale changes under
     bubbles: true,
     cancelable: true,
   });
-  await expect.poll(() => hover.textContent()).not.toBe(before);
-  expect((await hover.boundingBox())!.y).toBeCloseTo(topBefore, 0);
+  // refreshHoverTag hides the node (`display:none`) when priceToCoordinate is null mid-scale
+  // (ChartPanel.tsx:3578). Polling only the new text can resolve on a frame whose box is still
+  // null — `(await hover.boundingBox())!.y` then throws (CI :310 on #435 / job 101637264050
+  // and #514 / run 34090984805). Re-query after the wheel and wait for a laid-out box.
+  await expect.poll(() => page.locator(".mm-hovertag").textContent()).not.toBe(before);
+  await expect(page.locator(".mm-hovertag")).toBeVisible();
+  await expect.poll(
+    async () => (await page.locator(".mm-hovertag").boundingBox())?.y ?? null,
+    { message: "the stationary hover label should keep a laid-out box after the scale change", timeout: 20_000 },
+  ).toBeCloseTo(topBefore, 0);
 });
