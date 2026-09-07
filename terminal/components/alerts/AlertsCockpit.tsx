@@ -106,7 +106,16 @@ export default function AlertsCockpit({ email, children }: { email: string; chil
     // "what happened" field below can describe an event instead of repeating the definition.
     // Absent (re-armed since, or the stamp never carried one) is an honest null, never a guess.
     const triggered = alert.condition?.triggered;
-    const triggeredValue = typeof triggered === "object" && triggered !== null && typeof triggered.value === "number" ? triggered.value : null;
+    // Minor-1 (r9 review): the old `typeof triggered.value === "number"` gate discarded a
+    // numeric-STRING stamp to `null` right here, before it could ever reach
+    // firedEventTextZh's own string-normalizing logic (lib/alertsView.ts) — so the drillback's
+    // ZH "发生了什么" field said "已触发，未记录触发价" (fired, no value recorded) for an alert
+    // whose value WAS on the record, just not typed as a `number`. Pass the raw stamped value
+    // through (number | string | null); firedEventTextZh is the single point that normalizes it.
+    const triggeredValue: number | string | null =
+      typeof triggered === "object" && triggered !== null && triggered.value !== undefined
+        ? triggered.value
+        : null;
     // Major (round-9 review of f352b961): the only thing that makes `triggeredValue` a PRICE
     // rather than an RSI reading, a gamma-flip level, etc. — passed through so the ZH "发生了
     // 什么" sentence (firedEventTextZh) never claims "价格" (price) for a non-price condition.
@@ -278,7 +287,14 @@ export default function AlertsCockpit({ email, children }: { email: string; chil
         </div>
       )}
       <WatchingList
-        rows={(alerts || []).filter((a) => a.active).map((a) => ({ id: a.id, symbol: a.symbol || "—", label: conditionText(a.condition, a.symbol, L), state: "armed" as const }))}
+        // Minor-4 (r9 review): `conditionText` prefixes its OWN symbol onto the price-condition
+        // phrasing ("NVDA 价格高于 200"), and WatchingList already renders `r.symbol` as its own
+        // leading `.subject` cell — passing `a.symbol` here doubled the ticker on every ZH row
+        // ("NVDA  NVDA 价格低于 150"). `undefined` symbol: conditionText only prefixes a symbol
+        // when one is passed, so this removes the duplicate without touching the drillback's
+        // own `conditionText(..., alert.symbol, ...)` call (AlertDetail has no separate symbol
+        // cell of its own — that call's prefix is the only place the ticker appears there).
+        rows={(alerts || []).filter((a) => a.active).map((a) => ({ id: a.id, symbol: a.symbol || "—", label: conditionText(a.condition, undefined, L), state: "armed" as const }))}
         unavailable={listUnavailable}
         lang={L}
       />

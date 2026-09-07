@@ -54,7 +54,11 @@ export interface OutboxRow {
 // The evaluator (ingest/alerts_engine.py Supa.fire) stamps `triggered` as an OBJECT — {at, value,
 // note} — never a bare boolean. `true` is kept as an accepted shape too (fixtures/back-compat),
 // but the object shape is the one production alerts actually carry; see deliveryFor's `fired` gate.
-export type TriggeredEvidence = { at: string; value?: number; note?: string };
+// `value` is typed `number | string` (minor-1, r9 review): the engine's own stamp type is
+// untrusted here on purpose — a numeric-STRING crossing value must normalize the same as a
+// number everywhere this field is read, never be dropped to `null` by an upstream `typeof ===
+// "number"` filter before it reaches firedEventTextZh's own normalization.
+export type TriggeredEvidence = { at: string; value?: number | string; note?: string };
 
 export interface Alert {
   id: string;

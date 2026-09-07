@@ -138,6 +138,22 @@ const WATCHING_ALERT = {
   id: "a0", symbol: "NVDA", active: true, created_at: "2026-08-01T00:00:00Z",
   condition: { type: "price", op: "above", value: 200 },
 };
+// Minor-1 (r9 review): the drillback's own `triggeredValue` extraction (AlertsCockpit.tsx)
+// used to discard a numeric-STRING stamp to `null` via `typeof triggered.value === "number"`,
+// so this exercises the whole path, not just firedEventTextZh's own unit tests.
+const FIRED_ALERT_STRING_VALUE = {
+  id: "a3", symbol: "NVDA", active: false, created_at: "2026-08-01T00:00:00Z",
+  condition: { type: "price", op: "below", value: 150, triggered: { at: "2026-09-05T09:41:00Z", value: "100", note: "crossed" } },
+};
+const SENT_OUTBOX_STRING_VALUE = [{
+  alert_id: "a3", fire_event_id: "f3", status: "sent", attempts: 1, last_error: null,
+  deliver_after: null, delivered_at: "2026-09-05T09:41:00Z", created_at: "2026-08-01T00:00:00Z",
+  payload: {
+    subject: "NVDA crossed your price line", summary_plain: "NVDA crossed your price line.",
+    ticker: "NVDA", condition_plain: "Crossed your price line",
+    evidence_url: "https://example.com/evidence/f3", fired_at: "2026-09-05T09:41:00Z",
+  },
+}];
 const NOW_ISO = new Date().toISOString();
 const FRESH_RUN = {
   lane: "alerts_engine", run_id: "r1", started_at: NOW_ISO, concluded_at: NOW_ISO,
@@ -273,6 +289,84 @@ describe("AlertsCockpit — full composed ZH page never leaks English and never 
     assertNoLeakedEnglish(watchingList!, "watching-list module");
     assertNoLeakedEnglish(container, "watching-only (full composed page)");
     assertNoDuplicatedConditionTitleAndNote(container, "watching-only (full composed page)");
+  });
+
+  it("RED-first: WatchingList never doubles the ticker onto its own verdict cell for a price condition (minor-4, r9 review)", async () => {
+    // Before this round's fix, AlertsCockpit.tsx passed `a.symbol` into `conditionText`, which
+    // ALSO prefixes the symbol for a price condition — doubling "NVDA" onto the row: the
+    // `.subject` cell already renders "NVDA", and the `.verdict` cell rendered "NVDA 价格高于
+    // 200" right next to it ("NVDA  NVDA 价格高于 200").
+    mockFetch([WATCHING_ALERT], {
+      run: FRESH_RUN, runs_state: "READ_OK", last_success_at: FRESH_RUN.concluded_at,
+      last_success_state: "READ_OK", outbox: [], outbox_state: "READ_OK_ZERO",
+    });
+    await mount();
+    const watchingList = container.querySelector('[data-alerts-module="watching-list"]');
+    expect(watchingList).not.toBeNull();
+    // Class names come from a CSS module (hashed at build time) — select structurally by the
+    // module's own known DOM shape (WatchingList.tsx: subject cell, then verdict cell) rather
+    // than by a class name this test cannot predict.
+    const subject = watchingList!.querySelector('[class*="subject"]');
+    const verdict = watchingList!.querySelector('[class*="verdict"]');
+    expect(subject, "expected the watching-list row's own ticker cell").not.toBeNull();
+    expect(verdict, "expected the watching-list row's own verdict cell").not.toBeNull();
+    expect(subject!.textContent).toBe("NVDA");
+    // The verdict cell must describe ONLY the condition — never re-prefix the ticker the
+    // adjacent subject cell already shows.
+    expect(verdict!.textContent).not.toContain("NVDA");
+    expect(verdict!.textContent).toBe("价格高于 200");
+  });
+
+  it("RED-first: the existing-alerts row (.cond) and the drillback dialog (\"条件\") use the SAME ZH phrasing for one price threshold — never 上穿/下穿 in one place and 高于/低于 in the other (minor-4, r9 review)", async () => {
+    mockFetch([FIRED_ALERT], {
+      run: FRESH_RUN, runs_state: "READ_OK", last_success_at: FRESH_RUN.concluded_at,
+      last_success_state: "READ_OK", outbox: SENT_OUTBOX, outbox_state: "READ_OK",
+    });
+    await mount();
+
+    const condEl = container.querySelector(".arow .cond");
+    expect(condEl, "expected the existing-alerts row's condition span").not.toBeNull();
+    const condRowText = condEl!.textContent ?? "";
+    expect(condRowText).toContain("价格低于");
+    expect(condRowText).not.toContain("下穿");
+    expect(condRowText).not.toContain("上穿");
+
+    const deliveryRow = container.querySelector('[data-delivery="sent"]') as HTMLElement | null;
+    expect(deliveryRow).not.toBeNull();
+    await act(async () => { deliveryRow!.dispatchEvent(new MouseEvent("click", { bubbles: true })); });
+
+    const dialog = container.querySelector('[data-cockpit-state="drillback"]');
+    expect(dialog).not.toBeNull();
+    const leafWithText = (text: string) =>
+      Array.from(dialog!.querySelectorAll("*")).find((el) => el.textContent === text && el.children.length === 0);
+    const conditionLabel = leafWithText("条件");
+    expect(conditionLabel, 'expected a "条件" label in the drillback dialog').not.toBeUndefined();
+    const conditionValue = conditionLabel!.nextElementSibling?.textContent ?? "";
+    expect(conditionValue).toContain("价格低于");
+    expect(conditionValue).not.toContain("下穿");
+    expect(conditionValue).not.toContain("上穿");
+  });
+
+  it("RED-first: a numeric-STRING triggered value must still render the ZH price sentence, on both the row note and the drillback dialog — never the false 'no value recorded' disclosure (minor-1, r9 review)", async () => {
+    mockFetch([FIRED_ALERT_STRING_VALUE], {
+      run: FRESH_RUN, runs_state: "READ_OK", last_success_at: FRESH_RUN.concluded_at,
+      last_success_state: "READ_OK", outbox: SENT_OUTBOX_STRING_VALUE, outbox_state: "READ_OK",
+    });
+    await mount();
+
+    const note = container.querySelector(".arow-note");
+    expect(note).not.toBeNull();
+    expect(note!.textContent ?? "").toBe("触发时价格 100");
+    expect(note!.textContent ?? "").not.toContain("未记录触发价");
+
+    const deliveryRow = container.querySelector('[data-delivery="sent"]') as HTMLElement | null;
+    expect(deliveryRow).not.toBeNull();
+    await act(async () => { deliveryRow!.dispatchEvent(new MouseEvent("click", { bubbles: true })); });
+
+    const dialog = container.querySelector('[data-cockpit-state="drillback"]');
+    expect(dialog).not.toBeNull();
+    expect(dialog!.textContent ?? "").toContain("触发时价格 100");
+    expect(dialog!.textContent ?? "").not.toContain("未记录触发价");
   });
 
   it("no-coverage + zero-rows fixture: CouldNotWatch and the new recent-activity module are English-free on the full composed page, and the new module carries the same moduleHead label treatment as its siblings (minor 3)", async () => {

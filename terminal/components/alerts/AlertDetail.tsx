@@ -14,7 +14,10 @@ export interface AlertDetailData {
   // stamp (`condition.triggered.value`) — never the condition's THRESHOLD (already shown in
   // conditionText above). `null` when the alert has since been re-armed and lost its stamp, or
   // never carried a numeric value to begin with (an honest unknown, never a fabricated one).
-  triggeredValue: number | null;
+  // `number | string` (minor-1, r9 review): the engine's own stamp is untrusted here on
+  // purpose — a numeric-string value must reach firedEventTextZh's own normalization rather
+  // than being discarded to `null` before this point.
+  triggeredValue: number | string | null;
   // Major (round-9 review of f352b961): which condition kind fired — the ONLY thing that makes
   // a stamped value a "price" rather than an RSI reading, a gamma-flip level, etc. `null` when
   // the alert's own condition object is unavailable; firedEventTextZh treats that the same as

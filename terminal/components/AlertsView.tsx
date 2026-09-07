@@ -22,7 +22,7 @@ import {
 import { SUITE_DEFS } from "@/lib/suites/registry";
 import { useGateEntitlement } from "@/lib/entitlementStore";
 import { useShellIdentity } from "@/components/chrome/AppShell";
-import { ALERTS_CHANGED_EVENT, firedEventTextZh } from "@/lib/alertsView";
+import { ALERTS_CHANGED_EVENT, conditionText, firedEventTextZh } from "@/lib/alertsView";
 
 type Alert = { id: string; symbol: string; condition: any; active: boolean; created_at: string };
 
@@ -156,7 +156,19 @@ export default function AlertsView({ email, panelOnly, listOnly }: { email: stri
   const condText = (c: any) => {
     if (c?.type === "signal") return c.target === "BUY" ? t("condSignalBuy") : t("condSignalSell");
     if (c?.type === "regime") return t("condRegimeUp");
-    if (c?.type === "price") return `${c.op === "above" ? t("condPriceAbove") : t("condPriceBelow")} ${c.value}`;
+    if (c?.type === "price") {
+      // Minor-4 (META-CEO B ruling r9): this row and the drillback's "条件" field describe the
+      // SAME fact — a price threshold — and must use one ZH phrasing. The drillback field
+      // (AlertDetail.tsx, via verdictText -> conditionText) says "价格高于/低于 {value}"; this
+      // row used its own i18n pair (condPriceAbove/condPriceBelow, "价格上穿/下穿") for the
+      // identical fact, so the same alert read two different ZH verbs on the same page (r9
+      // review, minor-4). Route ZH through conditionText too; the New Alert dropdown a few
+      // lines up (COND_TYPES) is a distinct UI context this ruling does not touch and keeps
+      // condPriceAbove/condPriceBelow. `undefined` symbol — the row already shows the ticker
+      // in the adjacent `.tk` span; conditionText only prefixes a symbol when one is passed.
+      if (lang === "zh") return conditionText(c, undefined, "zh");
+      return `${c.op === "above" ? t("condPriceAbove") : t("condPriceBelow")} ${c.value}`;
+    }
     if (c?.type === "rsi") return `${t("condRsiBelow")} ${c.value}`;
     // options-flow types: reuse the plain-word preview (already display-tier + bilingual)
     if (typeof c?.type === "string" && c.type.startsWith("opt_")) return optAlertPreview(c, lang === "zh" ? "zh" : "en");

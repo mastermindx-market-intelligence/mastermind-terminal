@@ -1381,18 +1381,26 @@ table.scr2 tbody tr.empty-row:hover,table.scr2 tbody tr.scr2-skel-row:hover,tabl
      where it overruns the state cell next to it ("7/5/20Triggered"). Every cell is
      therefore placed explicitly:
        row 1  dot | symbol + condition | delete
-       row 2      | created date       | armed/triggered state
-       row 3      | re-arm (only when the engine has fired)
-       row 4+     | trigger note, delete confirm (full width) */
+       row 2      | trigger note (full width, only when the alert has fired) — directly
+                    beneath the condition it explains, pinned ABOVE the meta row and the
+                    re-arm action (minor-3, META-CEO B ruling r9: the note used to have no
+                    explicit grid-row here, so grid auto-placement pushed it to row 4+,
+                    orphaned below the created-date/state row AND the re-arm button — visibly
+                    detached from the condition line at 390px even though it sat right
+                    beneath it at 1440px)
+       row 3      | created date       | armed/triggered state
+       row 4      | re-arm (only when the engine has fired)
+       row 5+     | delete confirm (full width) */
   .arow{grid-template-columns:22px minmax(0,1fr) auto;gap:6px 10px;padding:11px 12px}
   .arow>:nth-child(1){grid-column:1;grid-row:1;align-self:start;margin-top:6px}
   .arow>:nth-child(2){grid-column:2;grid-row:1;min-width:0}
   .arow>:nth-child(6){grid-column:3;grid-row:1;justify-self:end;align-self:start}
-  .arow>:nth-child(4){grid-column:2;grid-row:2}
-  .arow>:nth-child(5){grid-column:3;grid-row:2;justify-self:end;white-space:nowrap}
-  .arow>:nth-child(3){grid-column:2/-1;grid-row:3}   /* the button pins its own justify-self */
+  .arow-note{grid-column:2/-1;grid-row:2;margin-left:0}
+  .arow>:nth-child(4){grid-column:2;grid-row:3}
+  .arow>:nth-child(5){grid-column:3;grid-row:3;justify-self:end;white-space:nowrap}
+  .arow>:nth-child(3){grid-column:2/-1;grid-row:4}   /* the button pins its own justify-self */
   .arow>:nth-child(3):empty{display:none}     /* the spacer span when nothing has fired */
-  .arow-note,.arow-confirm{grid-column:2/-1;margin-left:0}
+  .arow-confirm{grid-column:2/-1;margin-left:0}
 }
 /* options-flow alert params: inline label+input; preview strip under the form */
 .opt-field{display:inline-flex;align-items:center;gap:7px;font:600 10.5px/1 var(--font-ui);letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
