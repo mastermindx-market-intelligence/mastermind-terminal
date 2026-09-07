@@ -234,6 +234,47 @@ describe("verification and revalidation", () => {
   });
 });
 
+describe("an UNAVAILABLE answer is re-asked when someone arrives", () => {
+  it("re-verifies on a later adoption, so one bad minute does not gate a paid account all session", async () => {
+    respond = async () => json({ error: "gateway" }, 503);
+    __adoptEntitlementOwner(OWNER_A);
+    await settle();
+    expect(__entitlementSnapshot().state).toBe("UNAVAILABLE");
+    expect(calls).toBe(1);
+
+    // A second surface adopts the SAME owner — a route change inside the SPA, where the module
+    // store survives. The old per-mount hook re-asked here; this store must too.
+    respond = async () => json(PRO);
+    __adoptEntitlementOwner(OWNER_A);
+    await settle();
+    expect(calls).toBe(2);
+    expect(gateEntitlement().tier).toBe("pro");
+  });
+
+  it("does NOT re-ask when the held answer was verified", async () => {
+    respond = async () => json(PRO);
+    __adoptEntitlementOwner(OWNER_A);
+    await settle();
+    __adoptEntitlementOwner(OWNER_A);
+    await settle();
+    expect(calls).toBe(1);
+  });
+
+  it("does not re-ask a STALE_LAST_GOOD — there is something same-owner to show, and the gate is already closed", async () => {
+    respond = async () => json(PRO);
+    __adoptEntitlementOwner(OWNER_A);
+    await settle();
+    respond = async () => { throw new Error("offline"); };
+    refreshEntitlement(true);
+    await settle();
+    expect(__entitlementSnapshot().state).toBe("STALE_LAST_GOOD");
+    const before = calls;
+    __adoptEntitlementOwner(OWNER_A);
+    await settle();
+    expect(calls).toBe(before);
+  });
+});
+
 describe("the gate and the display are not the same answer", () => {
   it("disagree exactly where they should: stale paid shows Pro but gates Free", async () => {
     respond = async () => json(PRO);
