@@ -12,10 +12,10 @@ export function regimeLabel<K extends string>(
   lang: PlainLang,
 ): string {
   if (value == null || value === "") return notClassified(lang);
-  // Same escape hatch every call site used inline before this helper existed
-  // (`` `regime${state}` as Parameters<typeof t>[0] ``) — kept generic over K so a
-  // caller still has to pass an actual `(key: K) => string` translator (not `any`),
-  // and passing the wrong desk's `t` still fails to type-check.
+  // K is inferred from the argument: a non-function or a wrong-arity translator
+  // fails to type-check. The generic does not detect "the wrong desk's translator"
+  // — any `(key: string-ish) => string` is accepted. The interpolated key still
+  // uses the same `as K` escape hatch the call sites used inline before.
   return t(`regime${value}` as K) || notClassified(lang);
 }
 
