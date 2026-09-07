@@ -6,13 +6,17 @@ export function notClassified(lang: PlainLang): string {
   return lang === "zh" ? "未分类" : "Not classified";
 }
 
-export function regimeLabel(
-  t: (key: any) => string,
+export function regimeLabel<K extends string>(
+  t: (key: K) => string,
   value: string | null | undefined,
   lang: PlainLang,
 ): string {
   if (value == null || value === "") return notClassified(lang);
-  return t(`regime${value}`) || notClassified(lang);
+  // Same escape hatch every call site used inline before this helper existed
+  // (`` `regime${state}` as Parameters<typeof t>[0] ``) — kept generic over K so a
+  // caller still has to pass an actual `(key: K) => string` translator (not `any`),
+  // and passing the wrong desk's `t` still fails to type-check.
+  return t(`regime${value}` as K) || notClassified(lang);
 }
 
 export const TRUST_TIER_LABEL = {
