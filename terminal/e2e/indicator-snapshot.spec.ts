@@ -22,11 +22,21 @@ type VisualReadyDetail = {
   state: "data" | "empty";
 };
 
+type VisualReadyDiagnosticDetail = {
+  symbol: string;
+  timeframe: string;
+  generation: number;
+  state: "data";
+  code: "render_not_ready";
+  attempts: number;
+};
+
 declare global {
   interface Window {
     __mmSnapshotFrames: SnapshotFrame[];
     __mmTerminalReady: VisualReadyDetail | null;
     __mmTerminalReadyEvents: VisualReadyDetail[];
+    __mmTerminalReadyDiagnostics: VisualReadyDiagnosticDetail[];
   }
 }
 
@@ -126,6 +136,7 @@ test("snapshot export includes custom SVG and dashboard indicator layers", async
     window.__mmSnapshotFrames = [];
     window.__mmTerminalReady = null;
     window.__mmTerminalReadyEvents = [];
+    window.__mmTerminalReadyDiagnostics = [];
     window.addEventListener("mm:terminal-visual-ready", (event) => {
       const detail = (event as CustomEvent<VisualReadyDetail>).detail;
       window.__mmTerminalReadyEvents.push(detail);
@@ -136,6 +147,10 @@ test("snapshot export includes custom SVG and dashboard indicator layers", async
         && detail.generation > 0) {
         window.__mmTerminalReady = detail;
       }
+    });
+    window.addEventListener("mm:terminal-visual-ready-diagnostic", (event) => {
+      const detail = (event as CustomEvent<VisualReadyDiagnosticDetail>).detail;
+      window.__mmTerminalReadyDiagnostics.push(detail);
     });
 
     HTMLCanvasElement.prototype.toBlob = function patchedToBlob(callback, type, quality) {
@@ -166,6 +181,7 @@ test("snapshot export includes custom SVG and dashboard indicator layers", async
         ready: window.__mmTerminalReady !== null,
         detail: window.__mmTerminalReady,
         events: window.__mmTerminalReadyEvents,
+        diagnostics: window.__mmTerminalReadyDiagnostics,
         requestedIndicators: localStorage.getItem("mm.inds"),
         canvasCount: document.querySelectorAll(".chart-wrap canvas").length,
         signalLayerAttached: signalLayer !== null,
