@@ -19,6 +19,62 @@ function isBox(value: Box | null): value is Box {
   return value != null && value.width > 0 && value.height > 0;
 }
 
+export type HoverLabelSample = {
+  visible: boolean;
+  text: string;
+  box: Box | null;
+};
+
+/**
+ * Hosted Shape A (job 101689653547 retry 1): `.mm-hovertag` exists with leftover
+ * price text (`192.74`) but `display:none`. The previous settle accepted
+ * `!!textContent` and then `toBeVisible()` / boundingBox failed. Leftover text
+ * on a hidden tag is not a laid-out label.
+ */
+export function hoverLabelOk(sample: HoverLabelSample): boolean {
+  return sample.visible && sample.text.trim() !== "" && isBox(sample.box);
+}
+
+export function hoverLabelSame(prev: HoverLabelSample, next: HoverLabelSample): boolean {
+  if (!hoverLabelOk(prev) || !hoverLabelOk(next) || prev.box == null || next.box == null) return false;
+  return Math.round(prev.box.x) === Math.round(next.box.x)
+    && Math.round(prev.box.y) === Math.round(next.box.y)
+    && Math.round(prev.box.width) === Math.round(next.box.width)
+    && Math.round(prev.box.height) === Math.round(next.box.height)
+    && prev.text === next.text;
+}
+
+/**
+ * Re-issue a pointer move until `.mm-hovertag` is visible with a stable box.
+ * Always drives — a late crosshair-leave can hide the tag after leftover text
+ * was written (ChartPanel.tsx refreshHoverTag keeps textContent on display:none).
+ */
+export async function settledHoverLabel(
+  page: Page,
+  opts: {
+    move: () => Promise<void>;
+    locator?: Locator;
+    message?: string;
+  },
+): Promise<HoverLabelSample> {
+  const locator = opts.locator ?? page.locator(".mm-hovertag");
+  return settled({
+    // Do not poke a label that already passed — a two-step or late move can
+    // hide it again before the next `same` sample (local 4× throttle).
+    drive: async (last) => { if (last && hoverLabelOk(last)) return; await opts.move(); },
+    read: async () => {
+      const visible = await locator.isVisible().catch(() => false);
+      const text = (await locator.textContent().catch(() => "")) ?? "";
+      if (!visible) return { visible: false, text, box: null };
+      return { visible, text, box: await locator.boundingBox() };
+    },
+    ok: hoverLabelOk,
+    same: hoverLabelSame,
+    timeout: 45_000,
+    message: opts.message ?? "the hover label should stay visible with a stable box",
+  });
+}
+
 /** Re-resolve a locator and wait until it is attached with a box that repeats. */
 export async function waitForAttachedStableBox(
   locator: Locator,
