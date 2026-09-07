@@ -565,6 +565,62 @@ svg{display:block}
 
 /* ===== screener / scripts shared 2-col layout ===== */
 .app2{display:grid;grid-template-columns:60px minmax(0,1fr);grid-template-rows:54px 1fr 28px;height:100vh}
+
+/* ── launcher safe area ──────────────────────────────────────────────────────
+   The assistant launcher is the one control that floats over ARBITRARY workspace
+   content, so the shell reserves its footprint ONCE, here, and every workspace
+   scroll body spends it. Pages never pad for the launcher; a page that does is a
+   bug, because it cannot know the launcher's size, its phone dock, or the home
+   indicator underneath it.
+   The reservation resolves to 0px until a shell root says a launcher is mounted,
+   so a route with no launcher renders byte-identically to today (CLS 0).
+   env() is only ever ADDED inside calc() here — never subtracted. */
+:root{
+  --mm-launcher-size:48px;
+  --mm-launcher-gap:16px;
+  --mm-launcher-edge:16px;
+  --mm-launcher-inset:0px;
+  --mm-z-launcher:59;
+}
+.app2[data-launcher="on"],
+.app[data-launcher="on"]{
+  --mm-launcher-inset:calc(
+    var(--mm-launcher-edge) + var(--mm-launcher-size) + var(--mm-launcher-gap)
+    + env(safe-area-inset-bottom,0px));
+}
+@media (max-width:480px){
+  :root{--mm-launcher-size:44px;--mm-launcher-gap:12px;--mm-launcher-edge:12px}
+}
+.mm-launcher{
+  position:fixed;
+  right:var(--mm-launcher-edge);
+  bottom:calc(var(--mm-launcher-edge) + env(safe-area-inset-bottom,0px));
+  z-index:var(--mm-z-launcher);
+  width:var(--mm-launcher-size);height:var(--mm-launcher-size);
+  display:grid;place-items:center;
+  border-radius:var(--r-pill);
+  border:1px solid var(--line-3);
+  background:
+    radial-gradient(circle at 34% 28%,color-mix(in srgb,var(--brand-2) 62%,#fff) 0,var(--brand) 58%,var(--panel-3) 100%);
+  box-shadow:var(--pop-shadow),0 0 0 1px color-mix(in srgb,var(--brand) 22%,transparent);
+  color:var(--text);cursor:pointer;
+  transition:transform .18s var(--ease),box-shadow .18s var(--ease),
+             opacity .16s var(--ease),visibility .16s var(--ease);
+}
+.mm-launcher svg{width:20px;height:20px;fill:none;stroke:#fff;stroke-width:1.8;
+                 stroke-linecap:round;stroke-linejoin:round;opacity:.96}
+.mm-launcher:hover{transform:translateY(-2px);
+                   box-shadow:var(--pop-shadow),0 0 0 1px color-mix(in srgb,var(--brand-2) 40%,transparent)}
+.mm-launcher:focus-visible{outline:2px solid var(--brand-2);outline-offset:2px}
+.app2[data-overlay="on"] .mm-launcher,
+.app[data-overlay="on"] .mm-launcher{
+  opacity:0;visibility:hidden;pointer-events:none;transform:translateY(8px)
+}
+@media (prefers-reduced-motion:reduce){
+  .mm-launcher{transition:opacity .16s ease,visibility .16s ease}
+  .mm-launcher:hover{transform:none}
+}
+
 .app2 .topbar,.app2 .ticker{grid-column:1/3}
 .page-title{font:650 15px/1 var(--font-ui);margin-left:6px}
 .main2{grid-column:2;grid-row:2;display:flex;flex-direction:column;min-width:0;overflow:hidden}
@@ -1248,7 +1304,8 @@ table.scr2 tbody tr.empty-row:hover,table.scr2 tbody tr.scr2-skel-row:hover,tabl
 .s-pick-ok svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.4}
 
 /* ===== alerts + portfolio pages ===== */
-.pg{flex:1;overflow-y:auto;min-height:0;padding:18px 20px}
+.pg{flex:1;overflow-y:auto;min-height:0;
+    padding:18px 20px calc(18px + var(--mm-launcher-inset))}
 .pg-head{display:flex;align-items:center;gap:12px;margin-bottom:16px}.pg-head h2{font:650 17px/1 var(--font-ui)}.pg-head .sub{color:var(--muted);font-size:12.5px}
 /* ── /portfolio (W5) — the real book. The watchlist pill switcher that used to live here went
    with the Conviction Book; watchlist selection is the charting rail's job now. Everything below
@@ -4952,7 +5009,7 @@ html[data-shell="app"] .mm-brandbug{
   .app:not(.shell-app) .ds-favorites{display:none}
   /* R2c — the strip rides at the foot of the chart column rather than pinned to the
      viewport, so the page itself only owes the home indicator its inset. */
-  .app:not(.shell-app){padding-bottom:env(safe-area-inset-bottom,0px)}
+  .app:not(.shell-app){padding-bottom:max(env(safe-area-inset-bottom,0px),var(--mm-launcher-inset))}
   /* R2c — the strip REPLACES the in-chart range row on the phone: one interval control
      (the strip's wheel), not two. Tablet and desktop keep the row. */
   .app:not(.shell-app) .chart-frame-bar{display:none}

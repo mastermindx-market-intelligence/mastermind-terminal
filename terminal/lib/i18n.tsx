@@ -579,6 +579,8 @@ export const LEX: Record<string, [string, string]> = {
     "神谕给出 {v}（已回测的交易信号）。高信心读数是对该标的质量的研究评分 —— 并非买入触发。请等待神谕转向后再加仓。",
   ],
   askAIabout: ["Ask Mastermind AI about", "向 Mastermind AI 提问"],
+  launcherAsk: ["Ask the assistant", "问问助手"],
+  launcherAskHint: ["Ask about anything on this screen", "这个页面上的任何内容都可以问"],
   openFullAnalysis: ["Open full analysis", "打开完整分析"],
   signalHistory: ["Signal history", "信号历史"],
   moreSeasonals: ["More seasonals", "更多季节性"],

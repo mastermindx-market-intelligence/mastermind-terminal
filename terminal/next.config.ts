@@ -115,6 +115,10 @@ const nextConfig: NextConfig = {
   // Never ship client source maps to the browser (this is Next's default; pinned here as a
   // guardrail so proprietary chart/indicator/Pine logic can't be trivially de-minified).
   productionBrowserSourceMaps: false,
+  // B-PLAT-7 §0 branch (a): the 390 crops in terminal#490/#524 showed the Next.js dev
+  // indicator (the dark 'N' pill), not a production launcher — BrainWidget mounts with
+  // anchor:"top" (no built-in launcher). Disable the indicator so e2e crops stop lying.
+  devIndicators: false,
   // tsc --noEmit is clean as of 2026-07-11, so builds enforce types again — the
   // 2026-07-07 `typescript.ignoreBuildErrors` escape hatch (FinPage union nits)
   // is removed; CI (.github/workflows/ci.yml) also gates PRs on tsc + vitest.
