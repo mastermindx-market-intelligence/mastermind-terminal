@@ -26,6 +26,7 @@ const ROOT = path.resolve(__dirname, "../..");
 /** route page → the workspace implementation that must stay out of its guest graph. */
 const GATED_ROUTES: Array<{ page: string; workspace: string; mount: string }> = [
   { page: "app/(shell)/analysis/page.tsx", workspace: "components/workspaces/AnalysisWorkspace.tsx", mount: "components/mounts/AnalysisWorkspaceMount.tsx" },
+  { page: "app/(shell)/analysis/page.tsx", workspace: "components/workspaces/ThesisWorkspace.tsx", mount: "components/mounts/ThesisWorkspaceMount.tsx" },
   { page: "app/(shell)/discover/page.tsx", workspace: "components/workspaces/DiscoverWorkspace.tsx", mount: "components/mounts/DiscoverWorkspaceMount.tsx" },
   { page: "app/(shell)/options/page.tsx", workspace: "components/workspaces/OptionsWorkspace.tsx", mount: "components/mounts/OptionsWorkspaceMount.tsx" },
   { page: "app/(shell)/alerts/page.tsx", workspace: "components/AlertsView.tsx", mount: "components/mounts/AlertsViewMount.tsx" },
@@ -131,4 +132,12 @@ describe("the mounts are real boundaries, not decorative wrappers", () => {
       expect(/ssr\s*:\s*false/.test(source)).toBe(false);
     });
   }
+});
+
+describe("thesis member identity boundary", () => {
+  it("keys the thesis mount by authenticated owner and route identity", () => {
+    const source = readFileSync(path.join(ROOT, "app/(shell)/analysis/page.tsx"), "utf8");
+    expect(source).toContain('key={`${ownerKey}:${route.thesisId ?? "new"}`}');
+    expect(source).toContain("workspace(data.claims.sub)");
+  });
 });
