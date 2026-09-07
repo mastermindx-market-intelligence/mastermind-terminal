@@ -1,4 +1,5 @@
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
+import { settledChartDrag, settledPanSample } from "./helpers/settled";
 // The tooltip wording is owned by the copy module and imported, never transcribed — the same
 // reason washout-retro.spec.ts imports `retroLegendCopy`. Sentence-level copy contracts live in
 // lib/__tests__/markerTooltipCopy.test.ts; this suite pins that they RENDER, and render wired.
@@ -368,27 +369,31 @@ test("a drag that starts on a marker pans the chart", async ({ page }, testInfo)
   await openTerminal(page);
   const before = await settledMarkers(page);
   const m = pick(before, RETRO_TS);
+  const chart = page.locator(".chart-wrap canvas").first();
 
   // Rightward: it scrolls BACK into history, which the fixture has 420 bars of, so the pan can
   // never be swallowed by the right-edge clamp instead of by a bug.
   const dx = 180;
-  await page.mouse.move(m.cx, m.cy);
-  await page.mouse.down();
-  await page.mouse.move(m.cx + dx, m.cy, { steps: 15 });
-  await page.mouse.up();
+  await settledChartDrag(page, {
+    locator: chart,
+    from: { x: m.cx, y: m.cy },
+    to: { x: m.cx + dx, y: m.cy },
+    readOffset: async () => pick(await markers(page), RETRO_TS).cx,
+    message: "the chart should acknowledge the first move of a drag that starts on a marker",
+  });
 
-  await expect.poll(async () => Math.round(pick(await markers(page), RETRO_TS).cx),
-    { message: "the marker should travel with the chart it sits on", timeout: 5_000 },
-  ).toBeGreaterThan(Math.round(m.cx) + dx * 0.5);
-
-  // …and it travelled by the drag distance, not merely somewhere. A marker that moved a few px
-  // would mean the chart took part of the gesture and dropped the rest.
-  const after = await markers(page);
-  const moved = pick(after, RETRO_TS).cx - m.cx;
-  expect(Math.abs(moved - dx)).toBeLessThan(dx * 0.35);
-  // the whole marker field moved together — the chart panned, one marker did not wander
-  const movedOther = pick(after, OVR_TS).cx - pick(before, OVR_TS).cx;
-  expect(Math.abs(movedOther - moved)).toBeLessThan(4);
+  // `|moved - dx|` is Playwright's Received (job 101657271576: 115.85). A poll that only
+  // clears `dx * 0.5` then one-shots `after` is the settle.ts anti-pattern — the next read
+  // can be a mid-pan ~91px undershoot or a ~296px overshoot. Wait for one repeated sample
+  // whose travel error is inside slack and whose sibling marker moved with it.
+  const sample = await settledPanSample(async () => {
+    const after = await markers(page);
+    return {
+      moved: pick(after, RETRO_TS).cx - m.cx,
+      lockstep: pick(after, OVR_TS).cx - pick(before, OVR_TS).cx,
+    };
+  }, dx, "the marker field should finish the drag at the requested distance");
+  expect(sample.moved).toBeGreaterThan(dx * 0.5);
 });
 
 test("the pointer-events repair would have broken that drag", async ({ page }, testInfo) => {
