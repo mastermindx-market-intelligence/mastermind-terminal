@@ -517,21 +517,33 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   // then.
   const lensListRef = useRef<HTMLUListElement | null>(null);
   const [railOverflowing, setRailOverflowing] = useState(false);
+  const [railOverflowLeft, setRailOverflowLeft] = useState(false);
   useEffect(() => {
     const el = lensListRef.current;
     if (!narrowRail || !el) {
       setRailOverflowing(false);
+      setRailOverflowLeft(false);
       return;
     }
-    const check = () => setRailOverflowing(el.scrollWidth > el.clientWidth + 1);
+    const check = () => {
+      setRailOverflowing(el.scrollWidth > el.clientWidth + 1);
+      setRailOverflowLeft(el.scrollLeft > 0);
+    };
     check();
+    el.addEventListener("scroll", check, { passive: true });
     if (typeof ResizeObserver === "undefined") {
       window.addEventListener("resize", check);
-      return () => window.removeEventListener("resize", check);
+      return () => {
+        el.removeEventListener("scroll", check);
+        window.removeEventListener("resize", check);
+      };
     }
     const observer = new ResizeObserver(check);
     observer.observe(el);
-    return () => observer.disconnect();
+    return () => {
+      el.removeEventListener("scroll", check);
+      observer.disconnect();
+    };
   }, [narrowRail]);
   // This round's review MAJOR 2 (Meta-CEO B ruling): the previous hard
   // `el.scrollLeft = 0` reset always left the rail showing its first few tabs
@@ -1285,7 +1297,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       ) : (
         <div className={styles.workspaceGrid}>
           <aside className={styles.rail} aria-label={copy.list} data-testid="thesis-list-pane">
-            <nav className={styles.lensRail} aria-label={rms.lensRailLabel} data-testid="thesis-lens-rail" data-overflow={railOverflowing || undefined}>
+            <nav className={styles.lensRail} aria-label={rms.lensRailLabel} data-testid="thesis-lens-rail" data-overflow={railOverflowing || undefined} data-overflow-left={railOverflowLeft || undefined}>
               <ul ref={lensListRef} role="tablist" aria-orientation={narrowRail ? "horizontal" : "vertical"} onKeyDown={onLensKeyDown}>
                 {RMS_VIEWS.map((v) => {
                   // Round-2 review r3 minor 7: the Theses lens badge already shows the

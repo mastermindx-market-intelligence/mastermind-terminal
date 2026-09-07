@@ -315,7 +315,7 @@ export const RMS_COPY: { en: RmsCopy; zh: RmsCopy } = {
       reviews: "Worth a look",
       catalysts: "Catalysts",
       risks: "Risks",
-      notes: "Notes",
+      notes: "Revision notes",
     },
     what: {
       coverage: "What you have a view on.",

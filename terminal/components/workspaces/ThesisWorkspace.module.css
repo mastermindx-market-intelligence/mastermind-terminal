@@ -151,15 +151,26 @@
      a fix — so it is reverted to the simpler rule below, which matches `.rail`'s own
      background (`color-mix(in srgb, var(--panel) 86%, transparent)`) so the fade
      reads as an edge of the panel, not a mismatched tint. */
-  .lensRail[data-overflow]::after {
+  .lensRail[data-overflow]::after,
+  .lensRail[data-overflow-left]::before {
     content: "";
     position: absolute;
     top: 0;
-    right: 10px;
     bottom: 4px;
     width: 28px;
-    background: linear-gradient(to right, transparent, color-mix(in srgb, var(--panel) 86%, transparent) 75%);
     pointer-events: none;
+    z-index: 1;
+  }
+  .lensRail[data-overflow]::after {
+    right: 10px;
+    background: linear-gradient(to right, transparent, color-mix(in srgb, var(--panel) 86%, transparent) 75%);
+  }
+  /* Meta-CEO B ruling r6 minor-1: the left edge needs the same fade whenever
+     the rail is scrolled away from 0 — otherwise a glyph that has left the
+     visible start is hard-cut with no affordance. Symmetric to ::after. */
+  .lensRail[data-overflow-left]::before {
+    left: 10px;
+    background: linear-gradient(to left, transparent, color-mix(in srgb, var(--panel) 86%, transparent) 75%);
   }
 }
 .subjectRow { width: 100%; display: grid; gap: 6px; padding: 11px; text-align: left; color: inherit; border: 1px solid transparent; border-radius: 9px; background: transparent; cursor: pointer; }

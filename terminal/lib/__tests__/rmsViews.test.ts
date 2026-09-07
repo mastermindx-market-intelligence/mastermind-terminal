@@ -187,6 +187,11 @@ describe("rmsViews copy", () => {
     walk(RMS_COPY.en, RMS_COPY.zh, "");
   });
 
+  it("EN notes lens label is 'Revision notes', matching ZH 修订记录 (this round's review minor-3)", () => {
+    expect(RMS_COPY.en.name.notes).toBe("Revision notes");
+    expect(RMS_COPY.zh.name.notes).toBe("修订记录");
+  });
+
   it("contains no banned falsifier/refuted vocabulary", () => {
     const blob = JSON.stringify(RMS_COPY);
     expect(blob).not.toMatch(/falsifier|falsified|refuted|证伪/i);

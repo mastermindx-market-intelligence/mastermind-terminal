@@ -1259,6 +1259,74 @@ describe("ThesisWorkspace lens rail (B-F11-2, M2)", () => {
     }
   });
 
+  it("mobile lens rail: `data-overflow-left` toggles with scrollLeft — set when scrollLeft > 0, cleared at 0 (this round's review minor-1)", async () => {
+    const t1: ThesisSummary = {
+      id: "overflow-left-t1", currentVersion: 1, lifecycleState: "active",
+      subject: subject("AAA", "Alpha Co"), title: "Alpha", updatedAt: "2026-09-01T00:00:00.000Z",
+    };
+    installFetch([t1], new Map());
+
+    type ROCallback = (entries: unknown[], observer: unknown) => void;
+    class MockResizeObserver {
+      static instances: MockResizeObserver[] = [];
+      callback: ROCallback;
+      constructor(cb: ROCallback) {
+        this.callback = cb;
+        MockResizeObserver.instances.push(this);
+      }
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    }
+    MockResizeObserver.instances = [];
+    const originalRO = (globalThis as unknown as { ResizeObserver?: unknown }).ResizeObserver;
+    (globalThis as unknown as { ResizeObserver: unknown }).ResizeObserver = MockResizeObserver;
+    const originalMatchMedia = window.matchMedia;
+    window.matchMedia = ((query: string) =>
+      ({
+        matches: query === "(max-width: 600px)",
+        media: query,
+        addListener() {},
+        removeListener() {},
+        addEventListener() {},
+        removeEventListener() {},
+        dispatchEvent() {
+          return false;
+        },
+      }) as unknown as MediaQueryList) as typeof window.matchMedia;
+
+    try {
+      const el = await mount({ ownerKey: "owner-overflow-left" });
+      const rail = el.querySelector('[data-testid="thesis-lens-rail"]') as HTMLElement;
+      const list = rail.querySelector('[role="tablist"]') as HTMLElement;
+      expect(MockResizeObserver.instances.length).toBe(1);
+      const observer = MockResizeObserver.instances[0];
+
+      Object.defineProperty(list, "scrollWidth", { value: 900, configurable: true });
+      Object.defineProperty(list, "clientWidth", { value: 300, configurable: true });
+      Object.defineProperty(list, "scrollLeft", { value: 0, configurable: true, writable: true });
+      await act(async () => { observer.callback([], observer); });
+      expect(rail.hasAttribute("data-overflow")).toBe(true);
+      expect(rail.hasAttribute("data-overflow-left")).toBe(false);
+
+      Object.defineProperty(list, "scrollLeft", { value: 80, configurable: true, writable: true });
+      await act(async () => { observer.callback([], observer); });
+      expect(rail.hasAttribute("data-overflow-left")).toBe(true);
+
+      Object.defineProperty(list, "scrollLeft", { value: 0, configurable: true, writable: true });
+      await act(async () => { observer.callback([], observer); });
+      expect(rail.hasAttribute("data-overflow-left")).toBe(false);
+
+      Object.defineProperty(list, "scrollLeft", { value: 40, configurable: true, writable: true });
+      await act(async () => { list.dispatchEvent(new Event("scroll")); });
+      expect(rail.hasAttribute("data-overflow-left")).toBe(true);
+    } finally {
+      window.matchMedia = originalMatchMedia;
+      if (originalRO === undefined) delete (globalThis as unknown as { ResizeObserver?: unknown }).ResizeObserver;
+      else (globalThis as unknown as { ResizeObserver: unknown }).ResizeObserver = originalRO;
+    }
+  });
+
   it("an invalidLink transition alone (same ownerKey) never resets per-owner state — the per-owner reset is keyed on ownerKey ONLY (this round's review minor 2)", async () => {
     const ownerAThesis: ThesisSummary = {
       id: "sym2-a1", currentVersion: 1, lifecycleState: "active",
