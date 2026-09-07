@@ -115,6 +115,13 @@ const nextConfig: NextConfig = {
   // Never ship client source maps to the browser (this is Next's default; pinned here as a
   // guardrail so proprietary chart/indicator/Pine logic can't be trivially de-minified).
   productionBrowserSourceMaps: false,
+  // B-PLAT-7 §0 (re-scoped 2026-09-07): the 390 crops in terminal#490/#524 showed the
+  // Next.js dev indicator (the dark 'N' pill) — there is no production launcher on any
+  // route (BrainWidget mounts anchor:"top"). Suppress the indicator ONLY for evidence
+  // captures, gated on TERMINAL_E2E_FIXTURE — the one flag playwright.config.ts already
+  // sets on its dev server's env for every e2e project (the sole place any capture
+  // script runs from), so local `npm run dev` keeps the indicator by default.
+  devIndicators: process.env.TERMINAL_E2E_FIXTURE ? false : undefined,
   // tsc --noEmit is clean as of 2026-07-11, so builds enforce types again — the
   // 2026-07-07 `typescript.ignoreBuildErrors` escape hatch (FinPage union nits)
   // is removed; CI (.github/workflows/ci.yml) also gates PRs on tsc + vitest.
