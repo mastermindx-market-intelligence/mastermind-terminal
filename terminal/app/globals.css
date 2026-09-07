@@ -1306,6 +1306,10 @@ table.scr2 tbody tr.empty-row:hover,table.scr2 tbody tr.scr2-skel-row:hover,tabl
 /* ===== alerts + portfolio pages ===== */
 .pg{flex:1;overflow-y:auto;min-height:0;
     padding:18px 20px calc(18px + var(--mm-launcher-inset))}
+/* B-PLAT-7 M1: .pg only exists on some shell routes (alerts/portfolio/admin); reserve the
+   same safe area at the shared .main2 host so every (shell) route (discover/options/scripts/
+   analysis included) gets the launcher safe area, not just pages that happen to use .pg. */
+.app2 > .main2{padding-bottom:var(--mm-launcher-inset)}
 .pg-head{display:flex;align-items:center;gap:12px;margin-bottom:16px}.pg-head h2{font:650 17px/1 var(--font-ui)}.pg-head .sub{color:var(--muted);font-size:12.5px}
 /* ── /portfolio (W5) — the real book. The watchlist pill switcher that used to live here went
    with the Conviction Book; watchlist selection is the charting rail's job now. Everything below
