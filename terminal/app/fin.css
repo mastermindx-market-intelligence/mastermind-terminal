@@ -1174,6 +1174,26 @@
   .fin-pane--workspace{position:relative;inset:auto;z-index:1;flex:1;min-height:0;overflow:hidden}
   /* suppress the body-level scrim entirely on desktop (no scrim element rendered in workspace mode) */
 }
+/* ── /analysis on phone + tablet: a desk, not an overlay ──────────────────────────────────
+ * ≤860px the workspace override above stops applying and the pane falls back to the .fin-pane
+ * base — position:fixed; inset:0; z-index:90. Inside the CHART that is right: the pane is an
+ * overlay over the chart. On the /analysis ROUTE it is not an overlay at all, it IS the page,
+ * and covering the viewport buried the route's own chrome underneath it. Measured at 390×844
+ * and 820×1180 before this rule: `.mobilebar` (the hamburger — the ONLY way to reach another
+ * workspace) laid out at y=0 and `.analysis-context-bar` (the symbol switcher) at y=52, both
+ * fully painted over by a pane spanning 0-844. The desk had no nav and no way to change company.
+ *
+ * So the pane keeps its in-flow workspace behaviour at every width HERE, scoped to
+ * .analysis-shell so the chart's own overlay is untouched. `flex:1;min-height:0` needs a
+ * definite ancestor height — under globals.css's ≤860px page-scroll mode (.app2 height:auto)
+ * it would resolve to 0px, the collapse that PR #347 documents — so this shell opts back into
+ * a viewport-locked column. The pane's own .fin-body carries the scroll, which is why the desk
+ * does not need the page to scroll. */
+@media (max-width:860px){
+  .app2:has(> .main2.analysis-shell){height:100dvh;min-height:0}
+  .app2 > .main2.analysis-shell{min-height:0}
+  .analysis-shell .fin-pane--workspace{position:relative;inset:auto;z-index:1;flex:1;min-height:0;overflow:hidden}
+}
 /* mobile tab bar: ensure tabs scroll horizontally rather than overflowing on narrow viewports */
 @media (max-width:860px){
   .fin-tabs{-webkit-overflow-scrolling:touch;padding-right:24px}
