@@ -1,0 +1,12 @@
+capturedAtHead=137bd8e5791b7466451a875d977310bbde432c1f
+langStorageKey=mm.lang
+langStorageKeySource=terminal/lib/i18n.tsx localStorage.setItem("mm.lang", l)
+script=terminal/e2e/tools/capture-rctx-analysis-crops.mjs
+capturedAt=2026-09-07T06:51:30.771Z
+committed=
+  390x844-en-analysis-brain-panel-open-source-attached.png workspaceTop=113 mobilebarBottom=52
+  390x844-zh-analysis-brain-panel-open-source-attached.png workspaceTop=113 mobilebarBottom=52
+unchanged=
+  1440x900-en-analysis-brain-panel-open-source-attached.png (still 1d961eed8b1db61a5a97467c80bb9f7367c54978; change is inside max-width:860px)
+  1440x900-zh-analysis-brain-panel-open-source-attached.png (still 1d961eed8b1db61a5a97467c80bb9f7367c54978; change is inside max-width:860px)
+note=390 workspace pane is in-flow after origin/master's .analysis-shell .fin-pane--workspace{position:relative;inset:auto}; mobilebar ends at 52px and the pane starts at 113px (context bar between them). No overlap with the mobile bar.
