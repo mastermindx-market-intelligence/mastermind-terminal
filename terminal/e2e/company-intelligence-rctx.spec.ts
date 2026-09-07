@@ -253,9 +253,12 @@ test("the real Analysis shell hosts one-turn exact source sends in the existing 
     // Intelligence workspace pane) is `position:fixed; top:0; z-index:90` covering the full
     // viewport at <=860px, which used to outrank AppShell's `.mobilebar` (z-index:30) despite
     // the hamburger being later in paint order, so a real click on "Menu" intercepted pointer
-    // events on `.fin-pane`'s own content instead. `.mobilebar` is now `z-index:95`
-    // (globals.css) so it outranks the workspace overlay; the click below is the real user
-    // gesture, not a hit-test bypass.
+    // events on `.fin-pane`'s own content instead. Fixed by geometry, not stacking: at
+    // <=860px `.analysis-route .fin-pane--workspace` now starts at `top:52px` (globals.css),
+    // below the mobile bar, so no z-index raise is needed. The round-8 raise
+    // (`.analysis-route .mobilebar{z-index:95}`) was REMOVED in round 9 because it sat over
+    // `.ci-evidence-close` and broke the company-intelligence mobile shard. The click below
+    // is the real user gesture, not a hit-test bypass.
     await page.getByRole("button", { name: "Menu" }).click();
     await page.locator(".m-nav").getByRole("link", { name: "Chart" }).click();
   }

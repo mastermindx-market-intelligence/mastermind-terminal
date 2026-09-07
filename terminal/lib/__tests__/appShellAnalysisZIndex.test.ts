@@ -1,9 +1,11 @@
-// appShellAnalysisZIndex.test.ts — review ruling (PR #490, MAJOR item 3): the raised
-// `.mobilebar` z-index that keeps the mobile "Menu" hamburger hit-testable above the
-// Company Intelligence full-screen overlay must be SCOPED to the Analysis workspace, not a
-// global chrome change — `.mobilebar` is the shared top bar for every AppShell route
-// (Discover/Options/Scripts/Alerts/Portfolio/Admin), and only /analysis can render the
-// colliding `.fin-pane--workspace` overlay (components/workspaces/AnalysisWorkspace.tsx).
+// appShellAnalysisZIndex.test.ts — review rulings (PR #490, MAJOR item 3 then round 9): NO
+// raised `.mobilebar` z-index may exist, globally or scoped. The mobile "Menu" hamburger is
+// kept hit-testable above the Company Intelligence full-screen overlay by geometry — at
+// <=860px `.analysis-route .fin-pane--workspace` starts at `top:52px`, below the bar — and
+// the round-8 raise (`.analysis-route .mobilebar{z-index:95}`) was removed in round 9 because
+// it covered `.ci-evidence-close` on the company-intelligence mobile shard. `.mobilebar` is
+// the shared top bar for every AppShell route (Discover/Options/Scripts/Alerts/Portfolio/
+// Admin); only /analysis renders the colliding overlay (components/workspaces/AnalysisWorkspace.tsx).
 //
 // Source-scan style (matches lib/__tests__/suiteAlerts.test.ts): this repo has no React
 // render-test harness for components/, so markup contracts are pinned by reading the real
