@@ -42,15 +42,64 @@ const shot = (page: Page, name: string, testInfo: TestInfo, lang = "en") =>
 // (a fixed-position element, pinned to the bottom of the viewport — a SHELL defect tracked
 // separately as B-PLAT-7, never a defect in this component) can sit directly over the legend
 // row of the last visible card. A fixed element cannot be scrolled out of the way itself, but
-// scrolling the PAGE so the legend row sits higher in the viewport — clear of the region the
-// bubble occupies — gives an honest, unobstructed crop of what this component actually renders.
+// scrolling the PAGE so every card sits higher in the viewport — clear of the region the bubble
+// occupies — gives an honest, unobstructed crop of what this component actually renders.
+//
+// Round-2 re-review MAJOR 1 (follow-up): the first version of this helper queried a `<ul>` —
+// but `Legend` (PortfolioView.tsx) renders `<div className={s.legend}>` / `<div
+// className={s.legendRow}>`, never a `<ul>`. The ONLY `<ul>` in this section is `s.gapList`
+// inside the "shape-gaps" `<details>`, which does not render at all for a fully-covered book —
+// so `legend.count()` was 0 and the function returned immediately, doing NOTHING, which is
+// exactly why the crop it produced still showed the "Industries" card's first legend row cut off
+// by the bubble (RED before this fix — see the test below that proves it). The fix scrolls the
+// LAST `[data-card]` article (a plain, unhashed attribute, not a CSS-module class name) to the
+// bottom of the viewport: since every other card sits above it in document order, this clears
+// the bubble's fixed footprint for every legend row on the page, not just one hard-coded target.
+// Round-3 re-review Minor-3 (follow-up): block:"end" alone places the last card's BOTTOM edge
+// flush with the viewport's bottom edge — exactly the screen region the shell's fixed launcher
+// occupies, so the card that most needs clearing (whichever is last: "thickness"/liquidity in
+// this component's card order) landed right back under it. The page has real content below the
+// readout (the open-positions table), so there is room to scroll further; the extra wheel
+// scroll pushes the card's bottom clear of the launcher's fixed footprint instead of flush
+// against it.
 async function scrollLegendClear(page: Page) {
-  const legend = page.locator('[data-testid="portfolio-shape"] ul').first();
-  if (!(await legend.count())) return;
-  await legend.evaluate((el) => el.scrollIntoView({ block: "center" }));
-  // A little extra headroom past "centered" so the row clears the bubble's fixed footprint
-  // even on the shortest (390x844) viewport.
-  await page.mouse.wheel(0, 160);
+  const shape = page.locator('[data-testid="portfolio-shape"]');
+  if (!(await shape.count())) return;
+  const lastCard = shape.locator("[data-card]").last();
+  if (!(await lastCard.count())) return;
+  await lastCard.evaluate((el) => el.scrollIntoView({ block: "end" }));
+  await page.mouse.wheel(0, 96);
+}
+
+// Round-2 re-review MAJOR 1 (follow-up) — "a committed frame proving it": rather than trust a
+// screenshot a human might not scrutinize closely enough to notice a one-line clip, this asserts
+// it in the DOM. `document.elementFromPoint` at a point near the BOTTOM of the given card — its
+// trailing content, the specific spot the prior crop showed cut off by the shell's fixed floating
+// launcher — must resolve to an element the card itself contains — if a fixed-position element
+// from elsewhere in the page were still on top of it, `elementFromPoint` would return THAT
+// element instead, and this fails. Ticker-agnostic, book-agnostic: only requires the card to
+// exist. Round-3 re-review Minor-3: this now checks BOTH the "industries" card (the round-2
+// repro case) and the "thickness"/liquidity card (the one the round-3 crop actually showed still
+// obstructed — the permanent structural null this packet promises to print, per acceptance #2).
+async function assertLegendUnobstructed(page: Page, cardName: "industries" | "thickness") {
+  const selector = `[data-testid="portfolio-shape"] [data-card="${cardName}"]`;
+  const card = page.locator(selector);
+  if (!(await card.count())) return;
+  const box = await card.boundingBox();
+  if (!box) return;
+  // Near the BOTTOM of the card (its last legend row / null sentence), not the top — the card's
+  // header/bar sit safely above the fold; it is the trailing content that a bottom-anchored
+  // fixed element can sit on top of.
+  const point = { x: box.x + box.width / 2, y: box.y + box.height - 12 };
+  const obstructed = await page.evaluate(({ x, y, sel }) => {
+    const top = document.elementFromPoint(x, y);
+    const card = document.querySelector(sel);
+    return !(top && card && card.contains(top));
+  }, { ...point, sel: selector });
+  expect(
+    obstructed,
+    `a fixed-position element (e.g. the shell's floating assistant launcher, B-PLAT-7) sits on top of the ${cardName} card`,
+  ).toBe(false);
 }
 
 // Meta-CEO B ruling (BLOCKER-1) + review MAJOR 3: `route.ts` now forwards the CALLER's own
@@ -110,7 +159,11 @@ test("risk readout — mixed/outage book, EN", async ({ page, baseURL }, testInf
   // also non-zero in the SAME frame, so the credentialed claim is backed by an actual read.
   await expect(shape).toHaveAttribute("data-coverage-source", "credentialed");
   await expect(shape).not.toHaveAttribute("data-shape-read", "0");
-  if (testInfo.project.name === "mobile") await scrollLegendClear(page);
+  if (testInfo.project.name === "mobile") {
+    await scrollLegendClear(page);
+    await assertLegendUnobstructed(page, "industries");
+    await assertLegendUnobstructed(page, "thickness");
+  }
   await shot(page, "risk-book", testInfo, "en");
   if (MODE === "mixed") {
     const gaps = page.getByTestId("shape-gaps");
@@ -129,7 +182,11 @@ test("risk readout — mixed/outage book, ZH", async ({ page, baseURL }, testInf
   await expect(shape).toBeVisible({ timeout: 20_000 });
   await expect(shape).toHaveAttribute("data-coverage-source", "credentialed");
   await expect(shape).not.toHaveAttribute("data-shape-read", "0");
-  if (testInfo.project.name === "mobile") await scrollLegendClear(page);
+  if (testInfo.project.name === "mobile") {
+    await scrollLegendClear(page);
+    await assertLegendUnobstructed(page, "industries");
+    await assertLegendUnobstructed(page, "thickness");
+  }
   await shot(page, "risk-book", testInfo, "zh");
 });
 

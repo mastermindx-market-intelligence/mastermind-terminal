@@ -308,7 +308,7 @@ export function computePortfolioRisk(
 
 const T_TITLE: Bilingual = { en: "What your holdings look like", zh: "你的持仓是什么样子" };
 const T_STANDING: Bilingual = { en: "Research view of your holdings, not advice.", zh: "这是对你持仓的研究性说明，不是投资建议。" };
-const T_BASIS: Bilingual = { en: "Weighed by what you paid.", zh: "按你的买入成本加权。" };
+const T_BASIS: Bilingual = { en: "Weighted by what you paid.", zh: "按你的买入成本加权。" };
 const T_COVERAGE: Bilingual = { en: "Read {read} of {total} holdings.", zh: "{total} 个持仓中读到 {read} 个。" };
 
 // MAJOR 2 (review repair): `risk` degrades to `null` on a real, honest path (route.ts's
