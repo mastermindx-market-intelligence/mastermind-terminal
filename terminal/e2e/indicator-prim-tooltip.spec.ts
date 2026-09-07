@@ -1,4 +1,5 @@
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
+import { settledChartDrag } from "./helpers/settled";
 
 // ── THE PRIMS THAT DELETED THE CHART'S GESTURES ─────────────────────────────────────────────
 //
@@ -290,14 +291,18 @@ test("a drag that starts on a premium prim pans the chart", async ({ page }, tes
   const before = await targets(page);
   const target = before[Math.floor(before.length / 2)];
   const other = before.find((p) => p.tid !== target.tid)!;
+  const chart = page.locator(".chart-wrap canvas").first();
 
   // Rightward: it scrolls BACK into history, which the fixture has 300 bars of, so the pan can
   // never be swallowed by the right-edge clamp instead of by a bug.
   const dx = 180;
-  await page.mouse.move(target.cx, target.cy);
-  await page.mouse.down();
-  await page.mouse.move(target.cx + dx, target.cy, { steps: 15 });
-  await page.mouse.up();
+  await settledChartDrag(page, {
+    locator: chart,
+    from: { x: target.cx, y: target.cy },
+    to: { x: target.cx + dx, y: target.cy },
+    readOffset: async () => byTid(await prims(page), target.tid).cx,
+    message: "the chart should acknowledge the first move of a drag that starts on a prim",
+  });
 
   await expect.poll(async () => Math.round(byTid(await prims(page), target.tid).cx),
     { message: "the prim should travel with the chart it sits on", timeout: 5_000 },
