@@ -31,19 +31,16 @@ import React, {
 import { flowGet } from "@/lib/flowClientCache";
 import { useLang } from "@/lib/i18n";
 import { trackSearch } from "@/lib/searchTrack";
+import {
+  ROLE_GLYPH,
+  STACK_GLYPH,
+  notPresentLabel,
+  roleLabel,
+  stackLabel,
+  type Role,
+} from "./levelsLabels";
 
 // ─── levels.v1 schema (pinned to engine/levels_engine.py origin/main) ──────────
-
-type Role =
-  | "anchor"
-  | "call_wall"
-  | "put_wall"
-  | "flip"
-  | "cluster"
-  | "counter"
-  | "void"
-  | "trapdoor"
-  | "launchpad";
 
 interface LevelNode {
   role: Role;
@@ -90,21 +87,6 @@ interface LevelsPayload {
     note?: string;
   } | null;
 }
-
-// ─── Display-name map (role → label + glyph) ──────────────────────────────────
-
-const ROLE_META: Record<Role, { label: string; glyph: string }> = {
-  anchor:    { label: "Keystone",  glyph: "★" },
-  call_wall: { label: "Ceiling",   glyph: "▔" },
-  put_wall:  { label: "Floor",     glyph: "▁" },
-  flip:      { label: "Flip",      glyph: "⚡" },
-  cluster:   { label: "Cluster",   glyph: "◆" },
-  counter:   { label: "Backstop",  glyph: "↘" },
-  void:      { label: "Void",      glyph: "≋" },
-  trapdoor:  { label: "Trapdoor",  glyph: "⚠" },
-  launchpad: { label: "Launchpad", glyph: "⤴" },
-};
-const STACK_META = { label: "Stack", glyph: "⊕" };
 
 // The order named nodes sit in the side rail (matches the engine emission order,
 // most-magnetic first). Voids are ranges and get their own band overlay.
@@ -435,10 +417,10 @@ export function LevelsView() {
                       top: `${yTop}%`,
                       height: `${Math.max(yBot - yTop, 1.5)}%`,
                     }}
-                    onClick={() => setSelected({ key: `void-${i}`, label: `${ROLE_META.void.label} ${ROLE_META.void.glyph}`, note: v.note })}
+                    onClick={() => setSelected({ key: `void-${i}`, label: `${roleLabel("void", lang)} ${ROLE_GLYPH.void}`, note: v.note })}
                     title={v.note}
                   >
-                    <span style={VOID_LABEL}>{ROLE_META.void.glyph} Void</span>
+                    <span style={VOID_LABEL}>{ROLE_GLYPH.void} {roleLabel("void", lang)}</span>
                   </button>
                 );
               })}
@@ -463,17 +445,17 @@ export function LevelsView() {
                     }}
                     onClick={() => setSelected({
                       key: `rung-${i}`,
-                      label: `${ROLE_META[n.role].label} ${ROLE_META[n.role].glyph}`,
+                      label: `${roleLabel(n.role, lang)} ${ROLE_GLYPH[n.role]}`,
                       note: n.note,
                     })}
                     title={n.note}
                   >
                     <span style={{ ...RUNG_GLYPH, color: roleColor(n) }}>
-                      {ROLE_META[n.role].glyph}
+                      {ROLE_GLYPH[n.role]}
                     </span>
                     <span style={RUNG_STRIKE}>{fmtStrike(n.strike)}</span>
                     <span style={{ ...RUNG_ROLE, color: roleColor(n) }}>
-                      {ROLE_META[n.role].label}
+                      {roleLabel(n.role, lang)}
                     </span>
                   </button>
                 );
@@ -483,10 +465,10 @@ export function LevelsView() {
               {band && flipNode && (
                 <button
                   style={{ ...FLIP_LINE, top: `${projY(flipNode.strike as number) * 100}%` }}
-                  onClick={() => setSelected({ key: "flip", label: `${ROLE_META.flip.label} ${ROLE_META.flip.glyph}`, note: flipNode.note })}
+                  onClick={() => setSelected({ key: "flip", label: `${roleLabel("flip", lang)} ${ROLE_GLYPH.flip}`, note: flipNode.note })}
                   title={flipNode.note}
                 >
-                  <span style={FLIP_TAG}>{ROLE_META.flip.glyph} Flip {fmtStrike(flipNode.strike)}</span>
+                  <span style={FLIP_TAG}>{ROLE_GLYPH.flip} {roleLabel("flip", lang)} {fmtStrike(flipNode.strike)}</span>
                 </button>
               )}
 
@@ -519,19 +501,18 @@ export function LevelsView() {
           <div style={RAIL_SCROLL} className="obs-scroll levels-rail-scroll">
             <div style={RAIL_TITLE}>Named levels</div>
             {railEntries.map(({ role, node }) => {
-              const meta = ROLE_META[role];
               const present = node != null && node.strike != null;
               const c = node ? roleColor(node) : "var(--text-dim)";
               return (
                 <button
                   key={role}
                   style={{ ...RAIL_ROW, opacity: present ? 1 : 0.55 }}
-                  onClick={() => node && setSelected({ key: role, label: `${meta.label} ${meta.glyph}`, note: node.note })}
+                  onClick={() => node && setSelected({ key: role, label: `${roleLabel(role, lang)} ${ROLE_GLYPH[role]}`, note: node.note })}
                 >
-                  <span style={{ ...RAIL_GLYPH, color: c }}>{meta.glyph}</span>
-                  <span style={RAIL_LABEL}>{meta.label}</span>
+                  <span style={{ ...RAIL_GLYPH, color: c }}>{ROLE_GLYPH[role]}</span>
+                  <span style={RAIL_LABEL}>{roleLabel(role, lang)}</span>
                   <span style={{ ...RAIL_STRIKE, color: present ? "var(--text)" : "var(--text-dim)" }}>
-                    {present ? fmtStrike(node!.strike) : "not present"}
+                    {present ? fmtStrike(node!.strike) : notPresentLabel(lang)}
                   </span>
                 </button>
               );
@@ -545,10 +526,10 @@ export function LevelsView() {
                   <button
                     key={`stack-${i}`}
                     style={RAIL_ROW}
-                    onClick={() => setSelected({ key: `stack-${i}`, label: `${STACK_META.label} ${STACK_META.glyph}`, note: s.note })}
+                    onClick={() => setSelected({ key: `stack-${i}`, label: `${stackLabel(lang)} ${STACK_GLYPH}`, note: s.note })}
                   >
-                    <span style={{ ...RAIL_GLYPH, color: "var(--signal)" }}>{STACK_META.glyph}</span>
-                    <span style={RAIL_LABEL}>{STACK_META.label}</span>
+                    <span style={{ ...RAIL_GLYPH, color: "var(--signal)" }}>{STACK_GLYPH}</span>
+                    <span style={RAIL_LABEL}>{stackLabel(lang)}</span>
                     <span style={{ ...RAIL_STRIKE, color: "var(--text)" }}>{fmtStrike(s.strike)}</span>
                   </button>
                 ))}
