@@ -37,6 +37,7 @@ import { Tip } from "@/components/ui/Tip";
 // R3.2: the regime colour table lives in lib/mscGlance.ts so the desk and every
 // glance surface (screener columns, watchlist dot, ticker block) read ONE table.
 import { REGIME_COLORS } from "@/lib/mscGlance";
+import { regimeLabel as plainRegime } from "@/lib/plainLabels";
 
 // ─── Schema (gexstate/v1) ────────────────────────────────────────────────────
 
@@ -426,7 +427,7 @@ export function MarketStateCard({
   const regimeColor = REGIME_COLORS[state] ?? "var(--muted)";
   const thesisKey = (`thesis${state}` as Parameters<typeof t>[0]);
   const thesisText = t(thesisKey) || t("thesisUNKNOWN");
-  const regimeLabel = t(`regime${state}` as Parameters<typeof t>[0]) || state;
+  const regimeLabel = plainRegime(t, state, lang);
 
   const stabilityPct = Math.round(statePayload.stability_pct ?? 0);
 
