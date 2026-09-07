@@ -7,8 +7,8 @@
 //
 // Direct port of the macro precedent `scripts/check_design_system.py`
 // (--mode enforce-added forward-only mechanic, ANNOTATION_CAP, disclosed
-// fail-open/fail-closed semantics) — read at
-// /Users/chriswong/Documents/Cluade/macro-main/scripts/check_design_system.py.
+// fail-open/fail-closed semantics) in the sibling Macro Dashboard repo's
+// `scripts/` directory.
 // Packet B-PL-5.
 //
 // Node 20 ESM. Uses the repo's existing `typescript` devDependency
@@ -384,15 +384,20 @@ function computeVisibleSpans(sourceFile, relPath) {
   return spans;
 }
 
-// Line-level visibility check used ONLY by R3 (raw_slug_interpolation),
-// the one rule whose target — a bare property-access interpolation like
-// `{row.regime}` — is never itself string-literal text and so can never be
-// tested span-precisely the way R1/R2/R4/R5b are (see textSpans in
-// scanLines). A line "is visible" iff at least one AST-derived span (text
-// OR expr — the full set from computeVisibleSpans) overlaps its character
-// range. Strictly AST-driven, never a rawLine regex: no more `>...<`
-// substring matching, so `=>`/`<=` and bare identifiers on an otherwise-JSX
-// line no longer flip this true on their own.
+// Line-level visibility check. NOT used by R3 (raw_slug_interpolation) —
+// per the binding round-3 ruling, R3 tests span-RANGE containment on its
+// own interpolation match (see the R3 loop in scanLines), because a
+// line-level test is exactly the shape that wrongly fired on an unrelated
+// visible span sharing the physical line. The only remaining caller is the
+// `visibleAddedCount` heuristic below, which decides whether an added line
+// had ANY user-visible content at all (used to gate the "not evaluable"
+// null) — coarser than any individual rule's own precision, and
+// deliberately so: it never decides whether a specific finding fires. A
+// line "is visible" iff at least one AST-derived span (text OR expr — the
+// full set from computeVisibleSpans) overlaps its character range.
+// Strictly AST-driven, never a rawLine regex: no more `>...<` substring
+// matching, so `=>`/`<=` and bare identifiers on an otherwise-JSX line no
+// longer flip this true on their own.
 function lineIsVisible(spans, sourceFile, lineNo) {
   const lineStarts = sourceFile.getLineStarts();
   const idx = lineNo - 1;
@@ -581,17 +586,35 @@ function scanLines(relPath, text, addedLines, overlayTerms) {
     const lineStart = sourceFile.getLineStarts()[idx];
     const waiverReason = parseWaiver(rawLine);
     for (const field of PLAIN_VOCABULARY.slugFields) {
-      const interpRe = new RegExp(`\\{[^}]*\\.${field}\\}`);
-      const m = interpRe.exec(rawLine);
-      if (!m) continue;
-      const absStart = lineStart + m.index;
-      const absEnd = absStart + m[0].length;
-      const contained = spans.some((s) => s.start <= absStart && absEnd <= s.end);
-      if (contained && !hasPlainHelperOnLine(rawLine, overlayTerms)) {
-        findings.push(mkFinding(relPath, lineNo, "raw_slug_interpolation", field,
-          `raw "${field}" field interpolated with no plain-language helper on the same line`,
-          `route through a plainLabels helper (e.g. regimeLabel/classicCategoryLabel) or lib/i18n t()`,
-          added.has(lineNo), waiverReason));
+      // Global + looped, NOT a single `.exec()` call: a line can carry more
+      // than one `{...field}` interpolation for the SAME field — e.g.
+      // `<Foo bar={cfg.type} title={row.type} />` — and each match's own
+      // containment is independent of every other match on the line. A
+      // non-global regex (the round-3 shape) returns only the FIRST match,
+      // so once that first match failed containment the rest of the line
+      // was never examined: MEASURED, that exact fixture and
+      // `<div style={cfg.kind}>{row.kind}</div>` both produced ZERO
+      // findings even though the second interpolation in each (a visible
+      // `title={...}` attribute; a bare JSX-child `{row.kind}`) is exactly
+      // the position this rule exists to block (PR #530 round-4 review
+      // MAJOR — a true-positive regression the round-3 containment fix
+      // introduced). Looping every match on the line and testing each
+      // one's own [start,end) range independently fixes that without
+      // reintroducing the round-3 line-overlap false positive: a match
+      // that fails containment simply produces no finding of its own, and
+      // does not gate whether a LATER match on the same line is tested.
+      const interpRe = new RegExp(`\\{[^}]*\\.${field}\\}`, "g");
+      let m;
+      while ((m = interpRe.exec(rawLine))) {
+        const absStart = lineStart + m.index;
+        const absEnd = absStart + m[0].length;
+        const contained = spans.some((s) => s.start <= absStart && absEnd <= s.end);
+        if (contained && !hasPlainHelperOnLine(rawLine, overlayTerms)) {
+          findings.push(mkFinding(relPath, lineNo, "raw_slug_interpolation", field,
+            `raw "${field}" field interpolated with no plain-language helper on the same line`,
+            `route through a plainLabels helper (e.g. regimeLabel/classicCategoryLabel) or lib/i18n t()`,
+            added.has(lineNo), waiverReason));
+        }
       }
     }
   });
@@ -856,7 +879,8 @@ function main() {
   const root = opts.root ? opts.root : findRepoRoot();
   if (opts.root && !existsSync(opts.root)) {
     notice(`::error title=plain-language::--root supplied but unreadable: ${opts.root}\n`);
-    process.exit(2);
+    process.exitCode = 2;
+    return;
   }
 
   if (opts.selfCheck) {
@@ -864,7 +888,8 @@ function main() {
     for (const [rule, ok] of Object.entries(results)) {
       process.stdout.write(`${rule} ${ok ? "detected" : "NOT detected"}\n`);
     }
-    process.exit(0);
+    process.exitCode = 0;
+    return;
   }
 
   const overlay = loadOverlay(root);
@@ -885,20 +910,27 @@ function main() {
   const diffResult = resolveDiff({ diffFile: opts.diffFile, since: opts.since, root });
   if (diffResult.error) {
     notice(`::error title=plain-language::${diffResult.error}\n`);
-    process.exit(2);
+    process.exitCode = 2;
+    return;
   }
   if (!diffResult.baseResolved) {
     notice(
       `::warning title=plain-language::base ref '${opts.since}' is not resolvable in this checkout (shallow clone?) — no line counts as added, so nothing can block. Pass --diff-file with the PR's own diff.\n`
     );
     if (opts.json) {
-      console.log(JSON.stringify({
+      // `legacy: []` mirrors the shape of the success branch below — a
+      // consumer reading `d.legacy` on THIS branch (an unresolvable base,
+      // not a hard error) must not throw for a missing key just because
+      // this is the early-exit path (PR #530 round-4 review minor 2).
+      process.stdout.write(JSON.stringify({
         version: 1, mode: opts.mode, base: opts.since, baseResolved: false,
         vocabulary: { declaredTerms, overlaySource: "terminal/lib/plainLabels.ts", overlayPresent: overlay.present, overlayTerms: overlay.terms.length },
-        scannedFiles: 0, findings: [], counts: { blocking: 0, legacyReported: 0, waived: 0 }, nulls: [],
+        scannedFiles: 0, findings: [], legacy: [], counts: { blocking: 0, legacyReported: 0, waived: 0 }, nulls: [],
       }));
+      process.stdout.write("\n");
     }
-    process.exit(0);
+    process.exitCode = 0;
+    return;
   }
 
   const addedLines = parseAddedLineNumbers(diffResult.text);
@@ -943,7 +975,19 @@ function main() {
     // mistaken for something this PR's own diff introduced, and a consumer
     // scanning `findings` for "what does this PR need to fix" no longer has
     // to filter `blocking` out of a mixed array by hand.
-    console.log(JSON.stringify({
+    // process.stdout.write + process.exitCode (never console.log followed
+    // by process.exit): Node's stdout is a NON-BLOCKING pipe when the
+    // parent redirects it (any CI step, `| jq`, this suite's own
+    // spawnSync), so a write larger than the OS pipe buffer (64 KiB) is
+    // queued rather than completed synchronously — process.exit() tears
+    // the process down immediately and drops whatever was still queued.
+    // MEASURED on this PR's own tree: a real `--json` run's stdout was
+    // 94339 bytes written to a file (valid) but exactly 65536 bytes
+    // (`JSONDecodeError: Unterminated string`) piped through `wc -c`, with
+    // the identical command and arguments (PR #530 round-4 review MAJOR).
+    // Setting `process.exitCode` and letting `main()` return lets the
+    // event loop drain the pending write before Node exits naturally.
+    process.stdout.write(JSON.stringify({
       version: 1,
       mode: opts.mode,
       base: opts.since,
@@ -955,13 +999,16 @@ function main() {
       counts: { blocking: blocking.length, legacyReported: legacy.length, waived: waived.length },
       nulls,
     }));
-    process.exit(blocking.length > 0 ? 1 : 0);
+    process.stdout.write("\n");
+    process.exitCode = blocking.length > 0 ? 1 : 0;
+    return;
   }
 
   if (opts.mode === "report") {
     process.stdout.write(formatHuman(allFindings, "plain-language guard — full census (report mode)"));
     process.stdout.write("\n");
-    process.exit(0);
+    process.exitCode = 0;
+    return;
   }
 
   // enforce-added mode
@@ -987,7 +1034,10 @@ function main() {
   for (const n of nulls) {
     process.stdout.write(`null: ${n.axis} @ ${n.path}: ${n.value}\n`);
   }
-  process.exit(blocking.length > 0 ? 1 : 0);
+  // Same write-then-exit truncation risk as the --json branch above
+  // (PR #530 round-4 review MAJOR) — set exitCode and let main() return
+  // rather than force-killing the process mid-flush.
+  process.exitCode = blocking.length > 0 ? 1 : 0;
 }
 
 main();

@@ -823,4 +823,110 @@ describe("check_plain_language.mjs", () => {
     expect(parsed.legacy.some((f: any) => f.path === relPath)).toBe(false);
     rmSync(root, { recursive: true, force: true });
   });
+
+  it("28. R3 examines EVERY `{...field}` match on a line, not just the first (PR #530 round-4 review MAJOR)", () => {
+    // RED-first regression from the round-3 containment fix: a non-global
+    // `interpRe.exec(rawLine)` returns only the FIRST match on the line —
+    // once that first match failed containment, a LATER match on the same
+    // line (for the same field) was never even examined, silently dropping
+    // a true positive. Both fixtures below carry a first match that is
+    // NOT contained (a non-visible attribute / a non-visible style prop)
+    // followed by a second match that IS contained (a visible `title={...}`
+    // attribute; a bare JSX-child interpolation).
+
+    // (a) `bar={cfg.type}` (bar is not VISIBLE_ATTR_NAMES, no span) is
+    // followed on the SAME line by `title={row.type}` (title IS visible) —
+    // must still be flagged for field "type".
+    const rootA = makeFixtureRoot();
+    const relPathA = "terminal/components/TwoInterpAttr.tsx";
+    const contentA = [
+      "export function TwoInterpAttr({ cfg, row }: any) {",
+      "  return <Foo bar={cfg.type} title={row.type} />;",
+      "}",
+      "",
+    ].join("\n");
+    writeFileSync(join(rootA, relPathA), contentA);
+    const diffA = unifiedDiffFor(relPathA, contentA, [2]);
+    const diffFileA = join(rootA, "diff.patch");
+    writeFileSync(diffFileA, diffA);
+    const resA = run(["--mode", "enforce-added", "--root", rootA, "--diff-file", diffFileA, "--json"]);
+    expect(resA.status).toBe(1);
+    const parsedA = parseJson(resA);
+    expect(
+      parsedA.findings.some(
+        (f: any) => f.rule === "raw_slug_interpolation" && f.token === "type" && f.blocking
+      )
+    ).toBe(true);
+    rmSync(rootA, { recursive: true, force: true });
+
+    // (b) `style={cfg.kind}` (style is not VISIBLE_ATTR_NAMES, no span) is
+    // followed on the SAME line by a bare JSX-child `{row.kind}` — must
+    // still be flagged for field "kind".
+    const rootB = makeFixtureRoot();
+    const relPathB = "terminal/components/TwoInterpChild.tsx";
+    const contentB = [
+      "export function TwoInterpChild({ cfg, row }: any) {",
+      "  return <div style={cfg.kind}>{row.kind}</div>;",
+      "}",
+      "",
+    ].join("\n");
+    writeFileSync(join(rootB, relPathB), contentB);
+    const diffB = unifiedDiffFor(relPathB, contentB, [2]);
+    const diffFileB = join(rootB, "diff.patch");
+    writeFileSync(diffFileB, diffB);
+    const resB = run(["--mode", "enforce-added", "--root", rootB, "--diff-file", diffFileB, "--json"]);
+    expect(resB.status).toBe(1);
+    const parsedB = parseJson(resB);
+    expect(
+      parsedB.findings.some(
+        (f: any) => f.rule === "raw_slug_interpolation" && f.token === "kind" && f.blocking
+      )
+    ).toBe(true);
+    rmSync(rootB, { recursive: true, force: true });
+  });
+
+  it("29. --json output survives a piped read past the 64 KiB pipe-buffer boundary (PR #530 round-4 review MAJOR)", () => {
+    // RED-first: MEASURED pre-fix, a real `--json` run's stdout was 94339
+    // bytes written to a FILE (valid) but exactly 65536 bytes
+    // (JSONDecodeError: Unterminated string) when the SAME command's
+    // stdout was a PIPE instead — `console.log(...)` immediately followed
+    // by `process.exit(n)` tore the process down before Node's async pipe
+    // write finished draining. `spawnSync` (what `run()` uses) reads the
+    // child's stdout as a pipe, so this test reproduces the exact failure
+    // mode: a large enough `legacy[]` array must come back as COMPLETE,
+    // valid JSON, not truncated at any fixed byte boundary.
+    const root = makeFixtureRoot();
+    const relPath = "terminal/components/HugeLegacy.tsx";
+    const N = 400;
+    const lines = ["export function HugeLegacy() {", "  return (", "    <div>"];
+    for (let i = 0; i < N; i++) {
+      const token = `TOKEN_${String(i).padStart(4, "0")}`;
+      lines.push(`      <span>${token}</span>`);
+    }
+    lines.push("    </div>", "  );", "}", "");
+    const content = lines.join("\n");
+    writeFileSync(join(root, relPath), content);
+
+    // The diff touches a DIFFERENT, harmless file — HugeLegacy.tsx is never
+    // marked as touched, so every one of its N violations reports as
+    // `legacy`, not `blocking` (full census still scans it regardless).
+    const otherRelPath = "terminal/components/HugeOther.tsx";
+    const otherContent = ["export function HugeOther() {", "  return <div />;", "}", ""].join("\n");
+    writeFileSync(join(root, otherRelPath), otherContent);
+    const diff = unifiedDiffFor(otherRelPath, otherContent, [1]);
+    const diffFile = join(root, "diff.patch");
+    writeFileSync(diffFile, diff);
+
+    const res = run(["--mode", "enforce-added", "--root", root, "--diff-file", diffFile, "--json"]);
+    expect(res.status).toBe(0); // legacy only, nothing blocking
+    expect(res.stdout.length).toBeGreaterThan(65536);
+    // Must parse as ONE complete, valid JSON document — this throws on the
+    // pre-fix truncated tail ("Unterminated string ...").
+    const parsed = parseJson(res);
+    const legacyHits = parsed.legacy.filter(
+      (f: any) => f.rule === "raw_state_enum" && f.path === relPath
+    );
+    expect(legacyHits.length).toBe(N);
+    rmSync(root, { recursive: true, force: true });
+  });
 });

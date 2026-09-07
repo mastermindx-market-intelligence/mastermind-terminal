@@ -381,14 +381,22 @@ never property/identifier names."*
   !hasPlainHelperOnLine(...)` — it could fire on a `.regime`/`.state`/etc.
   interpolation pattern anywhere in the file, including inside a comment, a
   type definition, or ordinary non-JSX code, since the `visible` AST check
-  was simply never consulted. Fixed: R3 now requires `lineIsVisible(spans,
-  ...)` too, using the FULL span set (not just text spans) — because its
-  target, a bare property access like `{row.regime}`, is never itself
-  string-literal text, `computeVisibleSpans` also tags the outer range of
-  ANY JSX-child/visible-attribute expression as a `kind: "expr"` span
-  regardless of its inner node type, and R3 is the only rule that consults
-  those. R1/R2/R4/R5b never do (see next bullet), so this widening cannot
-  reintroduce a property-access false positive into any of them.
+  was simply never consulted. Fixed (this round): R3 now requires
+  `lineIsVisible(spans, ...)` too, using the FULL span set (not just text
+  spans) — because its target, a bare property access like `{row.regime}`,
+  is never itself string-literal text, `computeVisibleSpans` also tags the
+  outer range of ANY JSX-child/visible-attribute expression as a
+  `kind: "expr"` span regardless of its inner node type, and R3 is the only
+  rule that consults those. R1/R2/R4/R5b never do (see next bullet), so
+  this widening cannot reintroduce a property-access false positive into
+  any of them.
+  **SUPERSEDED by §12 below**: `lineIsVisible` (whole-line overlap) turned
+  out to be too coarse for R3 specifically — a sibling visible span sharing
+  the physical line could flip it true for an interpolation that had no
+  span of its own. §12 replaces R3's visibility test with span-RANGE
+  containment on the interpolation's own match; `lineIsVisible` itself
+  remains, narrowed to the `visibleAddedCount` null-gating heuristic only
+  (see the function's own doc comment in the source).
 - **R4 (`untranslated_stat_token`) matched the whole raw line, not the
   visible text itself.** `tokRe.test(line) && visible && ...` could match a
   stat token appearing ANYWHERE on a visible line — including inside a
@@ -592,3 +600,64 @@ review's synthetic fixture, not present in the current tree).
 
 Full suite: 28/28 passing (`npx vitest run
 lib/__tests__/plainLanguageGuard.test.ts`); `npx tsc --noEmit` clean.
+
+## 13. Review fixes (round 4, PR #530)
+
+Review of the §12 head found that the §12 containment fix itself introduced
+a real regression, plus a pre-existing correctness bug and three doc/leak
+minors. Fixed as written, per the standing rule that the RULING wins over a
+reviewer finding only where they conflict — none did this round.
+
+- **MAJOR fixed — R3 tested only the FIRST `{...field}` match per line per
+  field, silently dropping every later match on that line.** §12's fix used
+  a non-global `interpRe.exec(rawLine)` and moved on once it had a match
+  (or none). MEASURED: `<Foo bar={cfg.type} title={row.type} />` and
+  `<div style={cfg.kind}>{row.kind}</div>` both produced ZERO findings —
+  the first match on each line (`bar={cfg.type}`, `style={cfg.kind}`) is
+  not contained in any span, and the SECOND match on the same line
+  (`title={row.type}`, a visible-attribute expression; `{row.kind}`, a bare
+  JSX child) was never even examined. This is not merely "the false
+  positive count changed" — it is a true positive silently lost, and it
+  contradicts the ruling's own instruction to confirm the finding count
+  moved only for the false positives. Fixed: the regex is now global
+  (`g` flag) and the match loop runs to exhaustion (`while ((m =
+  interpRe.exec(rawLine)))`), testing each match's own [start,end) range
+  for containment independently — a match that fails containment no longer
+  suppresses examination of a later match on the same line. Test 28
+  (RED-first) locks in both fixtures.
+- **MAJOR fixed — `--json` output silently truncated at 65536 bytes when
+  stdout is a pipe.** Every exit path did `console.log(...)` /
+  `process.stdout.write(...)` immediately followed by `process.exit(n)`.
+  Node's stdout is a non-blocking pipe whenever the parent redirects it (CI,
+  `| jq`, a test harness's `spawnSync`); a write larger than the OS pipe
+  buffer (64 KiB) is queued rather than completed synchronously, and
+  `process.exit()` tears the process down before that queued write drains.
+  MEASURED on this PR's own tree: the same `--json` invocation wrote a full
+  94339-byte, valid JSON document to a file, but was cut to exactly 65536
+  bytes (`JSONDecodeError: Unterminated string`) when piped through `wc -c`.
+  Fixed: every exit path now sets `process.exitCode` and returns from
+  `main()` instead of calling `process.exit()`, letting Node's event loop
+  drain the pending write before the process exits naturally. Test 29
+  (RED-first) reproduces the truncation on a synthetic large-output fixture
+  and asserts the full byte count and valid JSON survive a piped read.
+- **Minor fixed — stale contract comment on `lineIsVisible`.** The comment
+  still described it as "used ONLY by R3", which stopped being true the
+  moment §12 moved R3 to span-range containment; the sole remaining caller
+  is the `visibleAddedCount` null-gating heuristic. Comment rewritten in
+  place (see the function's own doc comment in the source) — no behavior
+  change.
+- **Minor fixed — `--json` contract inconsistency on the `baseResolved:
+  false` early-exit branch.** The success branch emits a top-level
+  `legacy` key (per §12); the unresolvable-base branch did not, so a
+  consumer reading `d.legacy` unconditionally would throw on that one path.
+  Fixed: the early-exit branch's JSON now also carries `legacy: []`.
+- **Minor fixed — operator-local absolute path shipped into the Terminal
+  repo.** `check_plain_language.mjs`'s header comment cited
+  `/Users/chriswong/Documents/Cluade/macro-main/scripts/
+  check_design_system.py` — the same leak class as the internal lane slug
+  §12 already removed. Replaced with a repo-relative description ("the
+  sibling Macro Dashboard repo's `scripts/` directory") carrying the same
+  information with no operator-local path.
+- **NIT fixed — §11's R3 bullet still read as present-tense current
+  behavior.** Marked superseded, pointing at §12 (the containment fix) and
+  the source's own updated `lineIsVisible` doc comment, per the minor above.
