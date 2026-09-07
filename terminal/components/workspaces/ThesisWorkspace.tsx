@@ -456,7 +456,20 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     setMissingIds(new Set());
     setSubjectFilterKey(null);
     setSubjectFilterLabel(null);
-  }, [ownerKey]);
+    // This round's review (minor 5): the MAJOR fix above resets every per-owner
+    // HYDRATION field, but `theses` itself (the id set the defensive membership
+    // filter in `detailListRows` checks against) and `listState` were left holding
+    // the PREVIOUS owner's values until the new owner's own `loadList()` fetch
+    // resolves. A stale Owner-A response landing inside that window — before Owner
+    // B's list request completes — would still pass the membership check, because
+    // Owner A's ids were still sitting in `theses`. Clearing both synchronously here
+    // (same effect, same tick as the `ownerKey` swap) closes that window entirely:
+    // by the time any hydration response for either owner can resolve, `theses` is
+    // already empty for the new owner, so nothing can match by membership until the
+    // new owner's own rows actually arrive.
+    setTheses([]);
+    if (!invalidLink) setListState("loading");
+  }, [invalidLink, ownerKey]);
   // Round-2 review r3 minor 1/2: the rail's ARIA orientation must track the same
   // 600px breakpoint the CSS switches the tablist to a horizontal scroller at — read
   // via `matchMedia` state, not recomputed ad hoc only inside the keydown handler.

@@ -1047,6 +1047,96 @@ describe("ThesisWorkspace lens rail (B-F11-2, M2)", () => {
     expect(el.querySelector('[data-testid="rms-scope"]')?.textContent).toBe("Showing lines from all 1 active thesis.");
   });
 
+  it("an ownerKey swap clears `theses` synchronously — a stale response cannot render even inside the window BEFORE the new owner's own list fetch resolves (this round's review minor 5: the MAJOR fix reset hydration state but left `theses` itself, and `listState`, holding the PREVIOUS owner's values until loadList() completed)", async () => {
+    const ownerAThesis: ThesisSummary = {
+      id: "race2-a1", currentVersion: 1, lifecycleState: "active",
+      subject: subject("CCC", "Gamma Co"), title: "Gamma thesis", updatedAt: "2026-09-01T00:00:00.000Z",
+    };
+    const ownerBThesis: ThesisSummary = {
+      id: "race2-b1", currentVersion: 1, lifecycleState: "active",
+      subject: subject("DDD", "Delta Co"), title: "Delta thesis", updatedAt: "2026-09-01T00:00:00.000Z",
+    };
+    const detailA = detailFor(ownerAThesis, { catalysts: ["catalyst-RACE2-A"] });
+    const detailB = detailFor(ownerBThesis, { catalysts: ["catalyst-RACE2-B"] });
+    let resolveAResponse: ((value: Response) => void) | null = null;
+    let resolveBList: ((value: Response) => void) | null = null;
+    let listCallCount = 0;
+    let ownerAIdsRequestCount = 0;
+    const fetchMock = vi.fn(async (input: string | URL | Request) => {
+      const raw = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
+      const url = new URL(raw, "https://x.test");
+      if (url.pathname !== "/api/theses") return jsonResponse({ error: "not_found" }, 404);
+      const ids = url.searchParams.getAll("ids");
+      if (ids.length > 0) {
+        if (ids.includes(ownerAThesis.id)) {
+          ownerAIdsRequestCount += 1;
+          if (ownerAIdsRequestCount === 1) {
+            // The ORIGINAL automatic batch for Owner A, triggered while Owner A was
+            // still the active owner — held open so it resolves LATE, after the swap.
+            return new Promise<Response>((resolve) => { resolveAResponse = resolve; });
+          }
+          // A SECOND request naming Owner A's id (only reachable on the unfixed code
+          // path, fired by the auto-hydration effect reading a stale `theses` under
+          // Owner B's own `ownerKey`) — the real API has no notion of "the caller's
+          // owner" and would serve it exactly like this.
+        }
+        const batch = ids
+          .map((id) => (id === ownerAThesis.id ? detailA : id === ownerBThesis.id ? detailB : undefined))
+          .filter((d): d is ThesisDetail => !!d);
+        return jsonResponse({ batch, missing: [] });
+      }
+      listCallCount += 1;
+      if (listCallCount === 1) return jsonResponse({ theses: [ownerAThesis], truncated: false });
+      // Owner B's own `loadList()` call — held open so `theses` (absent the fix) would
+      // still be sitting at Owner A's rows for everything that happens before this
+      // resolves.
+      return new Promise<Response>((resolve) => { resolveBList = resolve; });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const el = await mount({ ownerKey: "owner-race2-a" });
+
+    await act(async () => { tabs(el).find((b) => b.dataset.view === "catalysts")!.click(); });
+    await flush();
+    expect(ownerAIdsRequestCount).toBe(1);
+    expect(resolveAResponse).not.toBeNull();
+
+    // Swap owner WITHOUT remounting and WITHOUT resolving either Owner A's held batch
+    // or Owner B's own (also held) list fetch.
+    await act(async () => { root!.render(<ThesisWorkspace ownerKey="owner-race2-b" />); });
+    await flush();
+    expect(listCallCount).toBe(2);
+    expect(resolveBList).not.toBeNull();
+
+    // Re-select Catalysts for the new owner while its own list request is still
+    // in flight — the same lens-reselection an operator does every time they open a
+    // content lens on a freshly switched owner.
+    await act(async () => { tabs(el).find((b) => b.dataset.view === "catalysts")!.click(); });
+    await flush();
+    // Fixed code: `theses` was already cleared at swap time, so `activeTheses` is
+    // empty and the automatic-hydration effect never re-fires for Owner A's id under
+    // Owner B's session. Unfixed code: `theses` still held Owner A's row, so this
+    // click re-triggers `hydrateBatch(['race2-a1'])` — a second same-id request — and
+    // renders Owner A's line immediately, before Owner B's own list has loaded at all.
+    expect(el.textContent).not.toContain("catalyst-RACE2-A");
+
+    // The ORIGINAL held batch (queued back when Owner A was still active) now lands,
+    // later still — must never render either.
+    await act(async () => { resolveAResponse!(jsonResponse({ batch: [detailA], missing: [] })); });
+    await flush();
+    expect(el.textContent).not.toContain("catalyst-RACE2-A");
+
+    // Only now does Owner B's own list arrive — the automatic-hydration effect
+    // re-fires against Owner B's real (now non-empty) `activeTheses` and Owner B's
+    // genuine content renders.
+    await act(async () => { resolveBList!(jsonResponse({ theses: [ownerBThesis], truncated: false })); });
+    await flush();
+    expect(el.textContent).toContain("catalyst-RACE2-B");
+    expect(el.textContent).not.toContain("catalyst-RACE2-A");
+    expect(
+      Array.from(el.querySelectorAll('[data-testid="rms-line-row"]')).every((row) => !row.textContent?.includes("Gamma")),
+    ).toBe(true);
+  });
+
   it("a fault while THIS lens has zero of its OWN rows still shows the lens's own empty state, not the terminal panel, when other theses are already hydrated (Meta-CEO B ruling r4 minor 1)", async () => {
     const active = Array.from({ length: 11 }, (_, i) =>
       ({
