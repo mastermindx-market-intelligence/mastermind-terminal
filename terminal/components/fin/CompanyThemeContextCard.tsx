@@ -9,6 +9,7 @@ import {
   type CompanyThemeExposureItem,
   type CompanyThemeExposureResult,
 } from "../../lib/companyThemeExposure";
+import { TECHNICAL_DETAILS_SUMMARY } from "../../lib/companyIntelligenceLabels";
 
 export interface CompanyThemeContextCardProps {
   ticker: string;
@@ -123,7 +124,16 @@ function ContextCard({ context, state }: { context: CompanyThemeExposure; state:
           {context.exposures.map((item) => (
             <li key={`${item.theme_id}-${item.basket_id}`}>
               <span className={`ci-theme-qualifier ${item.mapping_qualifier}`} aria-hidden>{item.mapping_qualifier === "direct" ? "D" : item.mapping_qualifier === "proxy" ? "P" : "C"}</span>
-              <div><strong>{pick(zh, item.name_en, item.name_zh)}</strong><small>{item.basket_id} · {qualifier(item, zh)}</small></div>
+              <div>
+                <strong>{pick(zh, item.name_en, item.name_zh)}</strong>
+                <span className="ci-theme-meta-row">
+                  <small>{qualifier(item, zh)}</small>
+                  <details>
+                    <summary>{pick(zh, TECHNICAL_DETAILS_SUMMARY.en, TECHNICAL_DETAILS_SUMMARY.zh)}</summary>
+                    <code>{item.basket_id}</code>
+                  </details>
+                </span>
+              </div>
             </li>
           ))}
         </ul>

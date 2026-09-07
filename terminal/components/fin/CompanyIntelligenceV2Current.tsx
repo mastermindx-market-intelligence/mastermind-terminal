@@ -17,6 +17,7 @@ import EvidenceRail, { type CompanyEvidenceSelection } from "./EvidenceRail";
 import TranscriptSearchWorkspace from "./TranscriptSearchWorkspace";
 import { openMastermindBrainForSymbol } from "../../lib/mastermindBrain";
 import type { TranscriptOpenTarget } from "../../lib/transcriptSearch";
+import { EVENT_WORKSPACE_ATTRIBUTION, topicTagLabel } from "../../lib/companyIntelligenceLabels";
 
 type Lens = "brief" | "results" | "transcript" | "history" | "topics" | "sources";
 
@@ -398,9 +399,8 @@ export default function CompanyIntelligenceV2Current({
             {" "}
             <time className="num" dateTime={presented.event_date}>{fmtDate(presented.event_date)}</time>
           </span>
-          <span>{pick(zh, "Generation", "版本")} <code>{presented.generation_id.slice(0, 12)}</code></span>
           <span>{pick(zh, "Authority", "权限")} <b>{pick(zh, "Context only", "仅供背景参考")}</b></span>
-          <span>{pick(zh, "Plane", "平面")} <code>event_workspace.v1</code></span>
+          <span>{pick(zh, EVENT_WORKSPACE_ATTRIBUTION.en, EVENT_WORKSPACE_ATTRIBUTION.zh)}</span>
         </div>
         {freshness === "stale" && (
           <p className="ci-stale-banner" role="status" data-ci-stale-banner="">
@@ -608,7 +608,7 @@ export default function CompanyIntelligenceV2Current({
                   {v1.topics.timeline.map((topic) => (
                     <li key={topic.tag}>
                       <span className={`ci-topic-status ${topic.status}`} aria-hidden />
-                      <div><strong>{topic.tag}</strong><small>{topic.first_event_id} → {topic.last_event_id}</small></div>
+                      <div><strong>{topicTagLabel(topic.tag, zh)}</strong></div>
                       <span className="fin-tag" style={{ "--c": "var(--rcpt-exact)" } as React.CSSProperties}>{topicStateLabel(topic.status, zh)}</span>
                       <b className="num">{topic.event_count}</b>
                     </li>
@@ -627,7 +627,7 @@ export default function CompanyIntelligenceV2Current({
                   <span className="fin-eyebrow">{pick(zh, "SOURCE MANIFEST", "来源清单")}</span>
                   <h3>{pick(zh, "Workspace completeness and receipts", "工作区完整性与凭证")}</h3>
                 </div>
-                <span>{pick(zh, "event_workspace.v1", "event_workspace.v1")}</span>
+                <span>{pick(zh, EVENT_WORKSPACE_ATTRIBUTION.en, EVENT_WORKSPACE_ATTRIBUTION.zh)}</span>
               </div>
               <CompanySourceManifest event={stubEvent} v2Sources={presented.sources} onOpenTranscript={(id) => onOpenTx({ id, expected_document_sha256: txSha })} />
             </section>
