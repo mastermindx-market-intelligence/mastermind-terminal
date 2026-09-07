@@ -239,19 +239,21 @@ export interface SuiteField {
 export type SuiteTier = "free" | "essential" | "pro";
 
 /**
- * Tier → the badge/chip TEXT and the CSS modifier suffix.
+ * Tier → the CSS modifier suffix (`im-tier-${label}` / `gp-tier-${label}`) — NOT the visible
+ * chip text. T2 flipped the internal VALUE to `essential` and deliberately held the display
+ * copy at "Insider"; T3 completed the user-visible rename to "Essential", matching the macro
+ * site and Stripe.
  *
- * The internal value and the user-facing label stay separate concerns even though they now
- * spell the same word. T2 flipped the VALUE to `essential` and deliberately held the display
- * copy at "Insider"; T3 (this map's `essential` entry, the i18n LEX, and the `.im-tier-*` /
- * `.gp-tier-*` rules keyed off these strings) completed the user-visible rename to "Essential",
- * matching the macro site and Stripe. Chips must keep routing through here rather than
- * interpolating the raw tier: that is what made the copy change reviewable instead of a silent
- * side effect of a value rename, and it is what keeps the next display rename one edit.
- *
- * Whatever label lands here also becomes a CSS modifier suffix (`im-tier-${label}`), so a new
- * value needs a matching rule in app/globals.css — pinned in both directions by
- * lib/__tests__/suiteAlerts.test.ts.
+ * As of the B-PL-1 plain-language pass (2026-09), the VISIBLE label on IndicatorsModal's chips
+ * comes from `planTierLabel()` (`lib/plainLabels.ts`), which reads the i18n LEX keys
+ * `obPlanFree` / `obPlanInsider` / `obPlanPro` in `lib/i18n.tsx` — this map is no longer that
+ * chip's text source there. `GuidePanel.tsx` still renders this map's raw lowercase value as
+ * its own chip text (`SUITE_TIER_LABEL[entry.tier]`), a disclosed follow-up, not yet migrated.
+ * A display-copy rename is therefore now TWO sync points, not one: the i18n LEX entry (for
+ * IndicatorsModal) and this map's value (for the CSS suffix and GuidePanel's raw text) — nothing
+ * pins them together, so update both by hand. An internal VALUE rename still needs this map's
+ * key, a matching `app/globals.css` rule, and the PLAN_TIER_TKEY key in `lib/plainLabels.ts`
+ * kept in sync — pinned in both directions by lib/__tests__/suiteAlerts.test.ts.
  */
 export const SUITE_TIER_LABEL: Record<SuiteTier, string> = {
   free: "free",
