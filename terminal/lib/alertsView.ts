@@ -389,15 +389,26 @@ export function conditionText(
  * only exported entry point every real caller (AlertsCockpit.tsx) actually uses. Widened to
  * match `conditionText`'s own signature; behavior was already correct at runtime (callers pass
  * loosely-typed `condition` objects), this makes the guarantee type-checked too.
+ *
+ * Minor-2 (r11 review): `verdictText` used to forward a `symbol` parameter straight through to
+ * `conditionText`, and that parameter was dead at every production call site (both
+ * `AlertsCockpit.tsx` call sites and the doubled-ticker defects MAJOR-2/r10 fixed all passed
+ * `undefined` for it) — a live footgun a future caller could still trip by passing a real
+ * symbol here, since `verdictText` is always used next to a cell that already shows the ticker
+ * (the timeline row's `.subject`, the drillback's Symbol fact). Removed the parameter entirely:
+ * `verdictText` now always renders the bare condition, with no symbol prefix, so the doubling
+ * this function's own two call sites were fixed for cannot be reintroduced through it — a
+ * caller wanting a symbol-prefixed condition string must call `conditionText` directly (its
+ * `symbol` parameter is a real, independently-tested feature; only `verdictText`'s forwarding of
+ * it was dead code).
  */
 export function verdictText(
   conditionPlain: string | null | undefined,
   condition: { type?: string; op?: string; value?: number | string } | null | undefined,
-  symbol: string | undefined,
   lang: "en" | "zh",
 ): string {
-  if (lang === "zh") return conditionText(condition, symbol, lang);
-  return conditionPlain || conditionText(condition, symbol, lang);
+  if (lang === "zh") return conditionText(condition, undefined, lang);
+  return conditionPlain || conditionText(condition, undefined, lang);
 }
 
 /**

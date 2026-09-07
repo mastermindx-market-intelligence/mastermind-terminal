@@ -376,9 +376,9 @@ describe("verdictText — lang-aware condition_plain gate (minor 4, round-6 revi
     const payload = "Crossed your price line";
     // The pre-fix line, verbatim: `r.outboxRow?.payload?.condition_plain || conditionText(...)`,
     // used identically for EN and ZH — no lang gate at all.
-    const oldBuggyExpression = payload || conditionText(priceCondition, "NVDA", "zh");
+    const oldBuggyExpression = payload || conditionText(priceCondition, undefined, "zh");
     expect(oldBuggyExpression).toBe("Crossed your price line"); // confirms: a ZH render got raw EN
-    expect(verdictText(payload, priceCondition, "NVDA", "zh")).not.toBe(oldBuggyExpression);
+    expect(verdictText(payload, priceCondition, "zh")).not.toBe(oldBuggyExpression);
   });
 
   it("ZH NEVER uses the EN-only fired-event payload, even when present", () => {
@@ -386,27 +386,36 @@ describe("verdictText — lang-aware condition_plain gate (minor 4, round-6 revi
     // BOTH languages, so a ZH page showed the evaluator's raw English sentence
     // ("Crossed your price line") whenever the fired-event payload carried one. verdictText must
     // ignore conditionPlain entirely on zh and always render the house ZH template.
-    const result = verdictText("Crossed your price line", priceCondition, "NVDA", "zh");
+    const result = verdictText("Crossed your price line", priceCondition, "zh");
     expect(result).not.toContain("Crossed");
-    expect(result).toBe(conditionText(priceCondition, "NVDA", "zh"));
-    expect(result).toBe("NVDA 价格低于 150");
+    expect(result).toBe(conditionText(priceCondition, undefined, "zh"));
+    expect(result).toBe("价格低于 150");
   });
 
   it("EN keeps the payload's own richer sentence when present", () => {
-    expect(verdictText("Crossed your price line", priceCondition, "NVDA", "en")).toBe("Crossed your price line");
+    expect(verdictText("Crossed your price line", priceCondition, "en")).toBe("Crossed your price line");
   });
 
   it("EN falls back to conditionText when the payload has no condition_plain", () => {
-    expect(verdictText(null, priceCondition, "NVDA", "en")).toBe(conditionText(priceCondition, "NVDA", "en"));
-    expect(verdictText(undefined, priceCondition, "NVDA", "en")).toBe("NVDA price below 150");
+    expect(verdictText(null, priceCondition, "en")).toBe(conditionText(priceCondition, undefined, "en"));
+    expect(verdictText(undefined, priceCondition, "en")).toBe("price below 150");
   });
 
   it("ZH renders the house template for every condition kind the cockpit can display, never a raw EN fallback", () => {
     const engineTypes = ["signal", "regime", "price", "rsi", "opt_gamma_flip", "opt_wall_touch", "opt_premium_burst", "opt_0dte_spike", "opt_surface_pocket", "opt_wall_migration", "opt_sign_fragile", "opt_opex_concentration"];
     for (const t of engineTypes) {
-      const zh = verdictText("some english fired-event sentence", { type: t }, "NVDA", "zh");
+      const zh = verdictText("some english fired-event sentence", { type: t }, "zh");
       expect(zh, `condition.${t}`).not.toMatch(/[A-Za-z]{3,}/);
     }
+  });
+
+  it("Minor-2 (r11 review): has no symbol parameter — a caller cannot pass one through to double a ticker already shown elsewhere on the row", () => {
+    // verdictText was dead-parameter-only-forwarding a `symbol` to conditionText at every
+    // production call site (both always passed `undefined`); the parameter is removed rather
+    // than merely left unused, so TypeScript itself (not just convention) rejects a future
+    // 4-argument call. `verdictText.length` is the function's declared arity (3: conditionPlain,
+    // condition, lang) — a regression that re-adds the parameter would also change this.
+    expect(verdictText.length).toBe(3);
   });
 });
 
