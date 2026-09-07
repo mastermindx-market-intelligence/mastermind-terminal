@@ -127,6 +127,32 @@ async function waitVisible(page, selector, timeout = 45_000) {
   return loc;
 }
 
+/** Fail the crop if #532's TERMINAL_E2E_FIXTURE gate did not hide the Next.js N overlay. */
+async function assertNoNextIndicator(page, file) {
+  await page.waitForTimeout(400);
+  const n = await page.locator("[data-nextjs-dev-tools-button]").count();
+  if (n > 0) {
+    throw new Error(`${file}: Next.js N overlay still mounted (${n}); TERMINAL_E2E_FIXTURE gate failed`);
+  }
+}
+
+/** Scroll a horizontal shelf so `locator` is fully inside the scroller, not clipped at the edge. */
+async function scrollFullyIntoScroller(locator) {
+  const el = locator.first();
+  if (!(await el.count())) return;
+  await el.evaluate((node) => {
+    const scroller = node.closest(".inav") || node.parentElement;
+    if (!scroller) {
+      node.scrollIntoView({ block: "nearest", inline: "nearest" });
+      return;
+    }
+    const nr = node.getBoundingClientRect();
+    const sr = scroller.getBoundingClientRect();
+    if (nr.right > sr.right - 2) scroller.scrollLeft += (nr.right - sr.right) + 10;
+    if (nr.left < sr.left + 2) scroller.scrollLeft -= (sr.left - nr.left) + 10;
+  });
+}
+
 async function cropBox(page, box, outPath, pad) {
   const vp = page.viewportSize();
   if (!box || !vp) throw new Error(`no box for ${outPath}`);
@@ -223,10 +249,14 @@ async function captureIndicatorsModal(page, width, lang, outPath) {
   await gotoReady(page, "/terminal?symbol=SPY", lang);
   await openIndicatorLibrary(page, width);
   const classicNav = page.locator(".im-nav-item").filter({ hasText: lang === "zh" ? "趋势" : "Trend" }).first();
+  const priceAction = page.locator(".im-nav-item").filter({ hasText: lang === "zh" ? "价格行为" : "Price Action" }).first();
   const proNav = page.locator(".im-nav-item").filter({ hasText: /Structure Core|结构核心/ }).first();
   if (await proNav.count()) await proNav.click();
   await page.locator(".im-tier").first().waitFor({ state: "visible", timeout: 20_000 });
   if (await classicNav.count()) await classicNav.scrollIntoViewIfNeeded();
+  // 390 shelf: Price Action sat at the crop edge as "Pri". Scroll it fully into the
+  // visible inav before the union crop so the classic-category label can be judged.
+  if (await priceAction.count()) await scrollFullyIntoScroller(priceAction);
   const nav = page.locator(".imodal .inav");
   const list = page.locator(".imodal .ilist");
   const firstChip = page.locator(".im-tier").first();
@@ -235,6 +265,7 @@ async function captureIndicatorsModal(page, width, lang, outPath) {
   return [
     await judgeEl(page.locator(".im-tier").first(), "planChip"),
     await judgeEl(classicNav, "classicNav"),
+    await judgeEl(priceAction, "priceActionNav"),
     await judgeEl(page.locator(".im-list-title strong").first(), "classicLabel"),
   ];
 }
@@ -336,6 +367,7 @@ async function main() {
             const { context, page } = await newPage(browser, width, lang);
             try {
               const judges = await surface.run(page, width, lang, outPath);
+              await assertNoNextIndicator(page, file);
               report.push({ file, width, lang, judges });
               const clip = (judges || []).some((j) => j && j.clip);
               console.log(clip ? "CLIP" : "ok");
