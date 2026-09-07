@@ -45,6 +45,7 @@ vi.mock("@/lib/supabase/client", () => ({
 vi.mock("@/lib/i18n", () => ({ applyLang: vi.fn() }));
 
 import { ownerKeyFor, GUEST_OWNER, accountIdentity } from "@/lib/accountIdentity";
+import type { MetaPrefs } from "@/lib/accountPrefs";
 import {
   __loadOwner, __marketPrefsInternals, __marketPrefsSnapshot, __resetMarketPrefsStore,
   __subscribeMarketPrefs, currentOwnerToken, ownerTokenIsCurrent, persistStartTf, persistUpDown,
@@ -163,7 +164,7 @@ describe("the transition publishes the incoming owner's not-ready snapshot IMMED
     expect(mid.ready).toBe(false);
     // …and none of A's account state is still readable or writable under B.
     expect(mid.rawTerminal).toEqual({});
-    expect(mid.rawPrefs).toEqual({});
+    expect(__marketPrefsSnapshot().metaPrefs).toEqual({});
 
     releaseB(userWith(UUID_B, {}));
     await settle();
@@ -254,11 +255,23 @@ describe("a read that did not land is not an empty account", () => {
     await settle();
 
     persistUpDown("east");
-    persistMetaPrefs({ lang: "zh" });
     const held = __marketPrefsInternals();
     expect(held.pendingTerminal).toEqual({ updown: "east" });
-    expect(held.pendingPrefs).toEqual({ lang: "zh" });
     expect(updates).toEqual([]);
+  });
+
+  it("delivers a SHARED preference's atomic half immediately even with no merge base", async () => {
+    getUser = async () => { throw new Error("offline"); };
+    __loadOwner(OWNER_A);
+    await settle();
+
+    // The nested `terminal` blob is held (above), and so is the legacy `prefs` half of this
+    // dual write (below) — both need a merge base. `lang`'s ATOMIC half is a top-level key that
+    // `updateUser` MERGES, so there is nothing it could clobber and nothing to wait for.
+    persistMetaPrefs({ lang: "zh" });
+    await settle();
+    expect(updates).toEqual([{ lang: "zh" }]);
+    expect(__marketPrefsInternals().pendingMetaPrefs).toEqual({ lang: "zh" });
   });
 
   it("refuses an answer for a DIFFERENT account than the shell resolved", async () => {
@@ -356,13 +369,74 @@ describe("delivery is serialized, acknowledged, and retryable", () => {
     release({ error: null });
     await settle();
 
-    // One follow-up carrying the CURRENT value of both blobs — never an older, smaller one.
+    // One follow-up carrying the CURRENT value of everything edited — never an older, smaller
+    // blob. The shared language is a top-level ATOMIC (E6) AND is dual-written into the legacy
+    // `prefs` nested blob (harmless — macro's own reader/writer has already migrated to the
+    // atomics; see accountPrefs.ts's FLIP CONDITION note).
     expect(updates).toHaveLength(2);
     expect(updates[1]).toEqual({
       terminal: { start_tf: "D", updown: "east" },
+      lang: "zh",
       prefs: { lang: "zh" },
     });
     expect(__marketPrefsSnapshot().sync.phase).toBe("saved");
+  });
+
+  it("evicts an acknowledged shared atomic AND the legacy prefs blob — a LATER unrelated edit re-sends neither (M3)", async () => {
+    getUser = async () => userWith(UUID_A, { terminal: { start_tf: "W", updown: "west" } });
+    __loadOwner(OWNER_A);
+    await settle();
+    updates.length = 0;
+
+    updateResult = async () => ({ error: null });
+    persistMetaPrefs({ lang: "zh" });
+    await settle();
+    expect(updates).toEqual([{ lang: "zh", prefs: { lang: "zh" } }]);
+
+    persistUpDown("east");
+    await settle();
+
+    // Round-2 review MAJOR (M3, now fixed): the shared ATOMIC and the legacy `prefs` blob were
+    // BOTH already acknowledged, so an edit that touches neither must not re-send either one.
+    // `prefs` is queued one-shot in `persistMetaPrefs` precisely so it does not ride along on
+    // every later unrelated write forever — the failure mode this test used to pin as correct.
+    expect(updates).toHaveLength(2);
+    expect(updates[1]).toEqual({ terminal: { start_tf: "W", updown: "east" } });
+  });
+
+  it("evicts the legacy prefs blob delivered through the PENDING-hydrate path too — a LATER unrelated edit re-sends nothing (round-3 review MAJOR 1)", async () => {
+    vi.useFakeTimers();
+    try {
+      getUser = async () => { throw new Error("offline"); };
+      __loadOwner(OWNER_A);
+      await vi.advanceTimersByTimeAsync(0);   // the initial read fails; a retry is scheduled
+
+      // Edited BEFORE the account read ever answered — held in `pendingMetaPrefs`, a different
+      // code path than the M3 test above, which only covers an edit made AFTER hydrate already
+      // answered once. The atomic half needs no merge base and ships immediately.
+      persistMetaPrefs({ theme: "dark", lang: "zh" });
+      await vi.advanceTimersByTimeAsync(0);
+      expect(updates).toEqual([{ theme: "dark", lang: "zh" }]);
+
+      // The retried read now answers. `hydrate()` itself flushes the held legacy half
+      // (`pendingMetaPrefs`) as `{ prefs: ... }` — THAT delivery must also be queued one-shot,
+      // or `prefs` never leaves `desired` once acked and rides along on every later unrelated
+      // write forever, exactly the bug M3 fixed for the already-acknowledged path.
+      getUser = async () => userWith(UUID_A, { terminal: { start_tf: "W" } });
+      await vi.advanceTimersByTimeAsync(5_000);
+      expect(updates).toEqual([
+        { theme: "dark", lang: "zh" },
+        { prefs: { theme: "dark", lang: "zh" } },
+      ]);
+
+      persistUpDown("east");
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(updates).toHaveLength(3);
+      expect(updates[2]).toEqual({ terminal: { start_tf: "W", updown: "east" } });
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("delivers an intent held through a FAILED hydrate once a retried read answers", async () => {
@@ -490,5 +564,106 @@ describe("an in-flight hydrate cannot answer over a newer local edit", () => {
     await settle();
 
     expect(__marketPrefsSnapshot().prefs.enabled).toEqual(["cn", "crypto"]);
+  });
+});
+
+// ── E6 dual-write: a shared preference edit lands in BOTH representations (M1) ───────────
+//
+// Macro's own preference writer (templates/theme.js) has ALREADY migrated to the v2 atomics —
+// it writes only the top-level keys and never touches the legacy nested `prefs` blob any more
+// (round-2 BLOCKER, resolved by flipping the read priority to atomic-first — see
+// lib/accountPrefs.ts's FLIP CONDITION note). Terminal still WRITES both representations (the
+// legacy write is harmless and keeps any remaining legacy-only reader fed, and it is queued
+// one-shot so it never rides along on a later unrelated write — M3), but reads now prefer the
+// atomic, matching macro's own priority exactly.
+
+describe("a shared preference edit dual-writes into the legacy `prefs` blob too (E6 flip condition)", () => {
+  it("merges the change into the account's OWN nested blob rather than replacing it", async () => {
+    getUser = async () => userWith(UUID_A, { prefs: { theme: "dark", themeAuto: "1" } });
+    __loadOwner(OWNER_A);
+    await settle();
+    updates.length = 0;
+
+    persistMetaPrefs({ lang: "zh" });
+    await settle();
+
+    // theme / themeAuto are macro's own siblings on the nested blob — a write that forgot them
+    // would delete them the moment `updateUser` replaced the object wholesale.
+    expect(updates).toEqual([{ lang: "zh", prefs: { theme: "dark", themeAuto: "1", lang: "zh" } }]);
+  });
+
+  it("holds the legacy half until the merge base loads, then delivers it merged — never as a partial blob", async () => {
+    vi.useFakeTimers();
+    try {
+      getUser = async () => { throw new Error("offline"); };
+      __loadOwner(OWNER_A);
+      await vi.advanceTimersByTimeAsync(0);
+
+      persistMetaPrefs({ lang: "zh" });                      // atomic ships now; legacy half held
+      expect(updates).toEqual([{ lang: "zh" }]);
+      expect(__marketPrefsInternals().pendingMetaPrefs).toEqual({ lang: "zh" });
+
+      // The account comes back holding a sibling field the held edit must not delete.
+      getUser = async () => userWith(UUID_A, { prefs: { theme: "dark" } });
+      await vi.advanceTimersByTimeAsync(5_000);
+
+      expect(updates).toEqual([{ lang: "zh" }, { prefs: { theme: "dark", lang: "zh" } }]);
+      expect(__marketPrefsInternals().pendingMetaPrefs).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("reads back ATOMIC-first once hydrated — mirrors macro's own atomic-first priority (round-2 BLOCKER, M1)", async () => {
+    // The account has a fresher top-level atomic theme (macro's own writer is atomic-only now)
+    // and a stale legacy nested sibling. metaPrefs must reflect the atomic, not the stale nested
+    // blob — that is the whole round-2 fix: a legacy-first reader would show "light" forever.
+    getUser = async () => userWith(UUID_A, { theme: "dark", prefs: { theme: "light", lang: "en" } });
+    __loadOwner(OWNER_A);
+    await settle();
+
+    expect(__marketPrefsSnapshot().metaPrefs).toEqual({ theme: "dark", lang: "en" });
+  });
+
+  it("never dual-writes for a guest, same as the atomic half", async () => {
+    __loadOwner(GUEST_OWNER);
+    await settle();
+    persistMetaPrefs({ lang: "zh" });
+    expect(updates).toEqual([]);
+  });
+});
+
+describe("persistMetaPrefs sanitizes what it PUBLISHES, not just what it sends (round-2 review minor)", () => {
+  it("never publishes an invalid value even when the caller's patch is a junk cast", async () => {
+    getUser = async () => userWith(UUID_A, { prefs: { theme: "dark" } });
+    __loadOwner(OWNER_A);
+    await settle();
+
+    // `theme` is invalid, `lang` is valid — the previous code (`{ ...metaPrefs, ...patch }`,
+    // no sanitizer) published BOTH, including the junk one, even though only `lang` made it
+    // into either written representation. Published state must never claim a value that was
+    // never actually persisted.
+    persistMetaPrefs({ theme: "purple", lang: "zh" } as unknown as MetaPrefs);
+    await settle();
+
+    expect(__marketPrefsSnapshot().metaPrefs).toEqual({ theme: "dark", lang: "zh" });
+    expect(updates).toEqual([{ lang: "zh", prefs: { theme: "dark", lang: "zh" } }]);
+  });
+});
+
+describe("a failed hydrate resets BOTH merge bases, not just rawTerminal (round-2 review nit)", () => {
+  it("clears rawMetaPrefs alongside rawTerminal, even after an in-flight edit populated it", async () => {
+    getUser = async () => { throw new Error("offline"); };
+    __loadOwner(OWNER_A);
+    // An edit made WHILE the read is still out mutates rawMetaPrefs unconditionally (it merges
+    // the patch in before checking baseLoaded), so this is the reachable non-empty case — not
+    // merely the module's already-empty initial value.
+    persistMetaPrefs({ lang: "zh" });
+    expect(__marketPrefsInternals().rawMetaPrefs).toEqual({ lang: "zh" });
+
+    await settle();   // the read now resolves — as a failure
+
+    expect(__marketPrefsInternals().rawTerminal).toEqual({});
+    expect(__marketPrefsInternals().rawMetaPrefs).toEqual({});
   });
 });
