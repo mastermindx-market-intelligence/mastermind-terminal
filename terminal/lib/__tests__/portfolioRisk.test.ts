@@ -208,6 +208,33 @@ describe("computePortfolioRisk", () => {
     const copy = riskCopy(risk);
     expect(copy.legend[1][0].label).toEqual({ en: "Some Made-Up Sector", zh: "Some Made-Up Sector" });
   });
+
+  // Minor-3 (round-2 review, follow-up): the sector-alias and GICS-zh lookups used to be plain
+  // object literals indexed by an artifact-supplied string. `{}["constructor"]` resolves to the
+  // inherited `Object.prototype.constructor` (the `Function` constructor) rather than `undefined`,
+  // which `??` does not catch — RED before the `Map` fix, since the grouping key and rendered
+  // label would have silently become a non-string value instead of falling back like any other
+  // unrecognized sector.
+  it("15: a sector value equal to a prototype property name ('constructor') is treated as an ordinary unrecognized string, never resolved via the prototype chain", () => {
+    const poison: RiskInputPosition[] = [pos("XXX", 1, 1000)];
+    const risk = computePortfolioRisk(poison, {
+      XXX: read({ sector: "constructor" }, "XXX"),
+    });
+    expect(risk.sectors[0]?.key).toBe("constructor");
+    const copy = riskCopy(risk);
+    expect(copy.legend[1][0].label).toEqual({ en: "constructor", zh: "constructor" });
+  });
+
+  it("16: '__proto__' and 'toString' sector values are likewise ordinary unrecognized strings", () => {
+    for (const raw of ["__proto__", "toString", "hasOwnProperty"]) {
+      const risk = computePortfolioRisk([pos("YYY", 1, 1000)], {
+        YYY: read({ sector: raw }, "YYY"),
+      });
+      expect(risk.sectors[0]?.key).toBe(raw);
+      const copy = riskCopy(risk);
+      expect(copy.legend[1][0].label).toEqual({ en: raw, zh: raw });
+    }
+  });
 });
 
 // MAJOR 2 (review repair): `risk: null` must never simply delete the readout. This is the pure

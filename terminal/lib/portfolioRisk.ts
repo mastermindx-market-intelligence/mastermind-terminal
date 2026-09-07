@@ -69,19 +69,25 @@ export interface PortfolioRisk {
 }
 
 // ── frozen 11-entry GICS EN/ZH map (section 3.4) ──
-const GICS_ZH: Record<string, string> = {
-  "Information Technology": "信息技术",
-  "Health Care": "医疗保健",
-  "Financials": "金融",
-  "Consumer Discretionary": "非必需消费",
-  "Communication Services": "通信服务",
-  "Industrials": "工业",
-  "Consumer Staples": "必需消费",
-  "Energy": "能源",
-  "Utilities": "公用事业",
-  "Real Estate": "房地产",
-  "Materials": "材料",
-};
+// MINOR (round-2 review, follow-up): both maps below used to be plain object literals indexed by
+// an artifact-supplied string (`GICS_ZH[sector]`, `SECTOR_ALIAS_TO_GICS[facts.sector]`). A sector
+// value of e.g. "constructor" or "__proto__" returns an INHERITED Object.prototype member for a
+// plain `{}`, which `??` does not catch (the lookup succeeds — it just isn't the string it looks
+// like), corrupting the grouping key. `Map` has no prototype chain to leak through: `.get()` on an
+// absent key is always `undefined` — the plain own-property semantics of a real dictionary.
+const GICS_ZH = new Map<string, string>([
+  ["Information Technology", "信息技术"],
+  ["Health Care", "医疗保健"],
+  ["Financials", "金融"],
+  ["Consumer Discretionary", "非必需消费"],
+  ["Communication Services", "通信服务"],
+  ["Industrials", "工业"],
+  ["Consumer Staples", "必需消费"],
+  ["Energy", "能源"],
+  ["Utilities", "公用事业"],
+  ["Real Estate", "房地产"],
+  ["Materials", "材料"],
+]);
 
 // Same SPDR->GICS bridge macro-main/scripts/build_stock_library.py already applies to
 // basket-derived rows (its `_SPDR_TO_GICS`): a sector string can arrive under a display-name
@@ -92,17 +98,17 @@ const GICS_ZH: Record<string, string> = {
 // itself bridges, means an alias is grouped and labelled exactly as its canonical GICS name would
 // be, in both languages; a truly unrecognized string (neither a GICS name nor a known alias)
 // still falls back to the same EN string in both languages rather than a blocked render.
-const SECTOR_ALIAS_TO_GICS: Record<string, string> = {
-  "Technology": "Information Technology",
-  "Communications": "Communication Services",
-};
+const SECTOR_ALIAS_TO_GICS = new Map<string, string>([
+  ["Technology", "Information Technology"],
+  ["Communications", "Communication Services"],
+]);
 
 function sectorLabel(sector: string): Bilingual {
   // Grouping identity (the `key` callers use to bucket cost by sector) stays the artifact's own
   // raw string — only the ZH translation lookup normalizes through the alias bridge, so an
   // alias and its canonical spelling still translate to the same Chinese label without changing
   // which raw strings group together or what the EN card has always shown.
-  const zh = GICS_ZH[sector] ?? GICS_ZH[SECTOR_ALIAS_TO_GICS[sector] ?? sector];
+  const zh = GICS_ZH.get(sector) ?? GICS_ZH.get(SECTOR_ALIAS_TO_GICS.get(sector) ?? sector);
   // Unmapped value: fall back to the artifact's own EN string in BOTH languages — never a raw
   // slug, and never a blocked render.
   return zh ? { en: sector, zh } : { en: sector, zh: sector };
@@ -229,7 +235,7 @@ export function computePortfolioRisk(
       // GROUPING key through the same bridge so an alias and its canonical name merge into one
       // row, with the canonical bilingual label; a truly unrecognized string still groups (and
       // renders) under its own raw value exactly as before.
-      const key = SECTOR_ALIAS_TO_GICS[facts.sector] ?? facts.sector;
+      const key = SECTOR_ALIAS_TO_GICS.get(facts.sector) ?? facts.sector;
       sectorCostByKey.set(key, (sectorCostByKey.get(key) ?? 0) + s.cost);
       if (!sectorLabelByKey.has(key)) sectorLabelByKey.set(key, sectorLabel(key));
     }

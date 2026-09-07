@@ -26,7 +26,7 @@ afterAll(async () => {
 
 describe("fixture stockdata server", () => {
   it("answers 401 locked (real regwall shape) without the session cookie", async () => {
-    const res = await fetch(`${baseUrl}/stockdata/NVDA.json`);
+    const res = await fetch(`${baseUrl}/stockdata/ZZTA.json`);
     expect(res.status).toBe(401);
     expect(res.headers.get("x-regwall")).toBe("deny");
     const body = await res.json();
@@ -34,17 +34,17 @@ describe("fixture stockdata server", () => {
   });
 
   it("answers 200 with the fixture facts once the session cookie is present", async () => {
-    const res = await fetch(`${baseUrl}/stockdata/NVDA.json`, {
+    const res = await fetch(`${baseUrl}/stockdata/ZZTA.json`, {
       headers: { Cookie: `${SESSION_COOKIE_NAME}=${SESSION_COOKIE_VALUE}` },
     });
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.sector).toBe(FIXTURE_TICKERS.NVDA.sector);
-    expect(body.personality.market_cap).toBe(FIXTURE_TICKERS.NVDA.marketCap);
+    expect(body.sector).toBe(FIXTURE_TICKERS.ZZTA.sector);
+    expect(body.personality.market_cap).toBe(FIXTURE_TICKERS.ZZTA.marketCap);
   });
 
   it("an unrelated cookie alongside the session cookie still reads through (only presence is checked)", async () => {
-    const res = await fetch(`${baseUrl}/stockdata/AAPL.json`, {
+    const res = await fetch(`${baseUrl}/stockdata/ZZTB.json`, {
       headers: { Cookie: `unrelated=1; ${SESSION_COOKIE_NAME}=${SESSION_COOKIE_VALUE}` },
     });
     expect(res.status).toBe(200);

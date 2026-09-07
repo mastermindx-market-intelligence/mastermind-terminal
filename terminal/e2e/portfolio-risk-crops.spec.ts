@@ -21,15 +21,18 @@ test.setTimeout(120_000);
 const OUT = join(process.cwd(), "docs", "pr-crops", "b-f08-4-risk");
 const MODE = process.env.CROPS_MODE || "mixed";
 
+// Minor-2 (round-2 re-review): synthetic tickers + fictional company names throughout, matching
+// e2e/fixtureStockdataServer.mjs's FIXTURE_TICKERS — the crops this spec generates must never
+// make a false sector/size statement about a real, recognizable company.
 const MANIFEST = { symbols: {
-  NVDA: { name: "NVIDIA", zh: "英伟达", col: "#76b900", last: 175, chg: 1.2 },
-  AAPL: { name: "Apple", zh: "苹果", col: "#8e8e93", last: 228.1, chg: -0.4 },
-  GLD: { name: "SPDR Gold Shares", zh: "SPDR黄金ETF", col: "#e8b339", last: 318.4, chg: 0.6 },
-  TLT: { name: "iShares 20+ Treasury", zh: "20年期以上美债ETF", col: "#4d82ff", last: 89.2, chg: -0.3 },
+  ZZTA: { name: "Zeta Tech Alpha", zh: "泽塔科技阿尔法", col: "#76b900", last: 175, chg: 1.2 },
+  ZZTB: { name: "Zeta Comm Beta", zh: "泽塔通讯贝塔", col: "#8e8e93", last: 228.1, chg: -0.4 },
+  ZZTC: { name: "Zeta Materials Gamma", zh: "泽塔材料伽马", col: "#e8b339", last: 318.4, chg: 0.6 },
+  ZZTD: { name: "Zeta Financial Delta", zh: "泽塔金融德尔塔", col: "#4d82ff", last: 89.2, chg: -0.3 },
 }};
 const QUOTES = { quotes: {
-  NVDA: { last: 180.2, chg: 2.5 }, AAPL: { last: 231.4, chg: -0.9 },
-  GLD: { last: 320.1, chg: 0.7 }, TLT: { last: 89.5, chg: 0.1 },
+  ZZTA: { last: 180.2, chg: 2.5 }, ZZTB: { last: 231.4, chg: -0.9 },
+  ZZTC: { last: 320.1, chg: 0.7 }, ZZTD: { last: 89.5, chg: 0.1 },
 }};
 
 const shot = (page: Page, name: string, testInfo: TestInfo, lang = "en") =>
@@ -82,10 +85,10 @@ async function prepare(page: Page, testInfo: TestInfo, baseURL: string | undefin
 
 async function seedBook(page: Page) {
   const rows = [
-    { ticker: "NVDA", shares: "120", entryPrice: "138.40", entryDate: "2026-01-05" },
-    { ticker: "AAPL", shares: "60", entryPrice: "244.10", entryDate: "2026-03-18" },
-    { ticker: "GLD", shares: "40", entryPrice: "296.00", entryDate: "2025-11-02" },
-    { ticker: "TLT", shares: "150", entryPrice: "94.30", entryDate: "2026-02-11" },
+    { ticker: "ZZTA", shares: "120", entryPrice: "138.40", entryDate: "2026-01-05" },
+    { ticker: "ZZTB", shares: "60", entryPrice: "244.10", entryDate: "2026-03-18" },
+    { ticker: "ZZTC", shares: "40", entryPrice: "296.00", entryDate: "2025-11-02" },
+    { ticker: "ZZTD", shares: "150", entryPrice: "94.30", entryDate: "2026-02-11" },
   ];
   for (const row of rows) {
     const r = await page.request.post("/api/portfolio", { data: { action: "create", ...row } });
@@ -102,7 +105,11 @@ test("risk readout — mixed/outage book, EN", async ({ page, baseURL }, testInf
   // MAJOR 2 (round-2 review): the ONLY DOM proof this crop actually exercised the credentialed
   // fan-out path (this spec sets the session cookie above via `prepare(..., isSignedIn)`) rather
   // than the anonymous one, which an unauthenticated caller can equally reach.
+  // Minor-4 (round-2 re-review): `data-coverage-source="credentialed"` on its own only proves the
+  // cookie was PRESENT, not that the regwall actually opened for it — assert `data-shape-read` is
+  // also non-zero in the SAME frame, so the credentialed claim is backed by an actual read.
   await expect(shape).toHaveAttribute("data-coverage-source", "credentialed");
+  await expect(shape).not.toHaveAttribute("data-shape-read", "0");
   if (testInfo.project.name === "mobile") await scrollLegendClear(page);
   await shot(page, "risk-book", testInfo, "en");
   if (MODE === "mixed") {
@@ -121,6 +128,7 @@ test("risk readout — mixed/outage book, ZH", async ({ page, baseURL }, testInf
   const shape = page.getByTestId("portfolio-shape");
   await expect(shape).toBeVisible({ timeout: 20_000 });
   await expect(shape).toHaveAttribute("data-coverage-source", "credentialed");
+  await expect(shape).not.toHaveAttribute("data-shape-read", "0");
   if (testInfo.project.name === "mobile") await scrollLegendClear(page);
   await shot(page, "risk-book", testInfo, "zh");
 });

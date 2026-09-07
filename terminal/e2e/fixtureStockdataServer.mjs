@@ -29,11 +29,15 @@ import { createServer } from "node:http";
 export const SESSION_COOKIE_NAME = "sb-testref-auth-token";
 export const SESSION_COOKIE_VALUE = "base64-eyJhY2Nlc3NfdG9rZW4iOiJmYWtlIn0";
 
+// Minor-2 (round-2 re-review): these MUST be synthetic tickers, never real symbols wearing
+// counterfactual sector/size facts — the round-1 book paired AAPL/GLD/TLT with sector and
+// market-cap values that do not describe the real companies, which would make every crop a
+// false statement about a real, recognizable company. "ZZT*" is not a real listed ticker.
 export const FIXTURE_TICKERS = {
-  NVDA: { sector: "Information Technology", marketCap: 3.2e12 }, // very_large
-  AAPL: { sector: "Communication Services", marketCap: 1.4e9 }, // small
-  GLD: { sector: "Materials", marketCap: 8e9 }, // medium
-  TLT: { sector: "Financials", marketCap: 55e9 }, // large
+  ZZTA: { sector: "Information Technology", marketCap: 3.2e12 }, // very_large
+  ZZTB: { sector: "Communication Services", marketCap: 1.4e9 }, // small
+  ZZTC: { sector: "Materials", marketCap: 8e9 }, // medium
+  ZZTD: { sector: "Financials", marketCap: 55e9 }, // large
 };
 
 function hasSessionCookie(cookieHeader) {
