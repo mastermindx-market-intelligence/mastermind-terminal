@@ -34,6 +34,8 @@ import {
   sinceEntryValue,
   type Position,
 } from "@/lib/portfolio";
+import { riskCopy, riskAvailability, failedRereadDisposition, T_RISK_UNAVAILABLE, type PortfolioRisk, type Lang } from "@/lib/portfolioRisk";
+import s from "@/components/PortfolioRisk.module.css";
 
 type Quote = { last?: number; chg?: number } | null | undefined;
 type ManifestRow = { name?: string; zh?: string; col?: string; last?: number; chg?: number };
@@ -88,6 +90,13 @@ export default function PortfolioView(
   const t = useT();
   const { lang } = useLang();
   const [positions, setPositions] = useState<Position[]>(seed);
+  const [risk, setRisk] = useState<PortfolioRisk | null>(null);
+  // MAJOR 2 (review repair): distinguishes "the risk GET hasn't resolved yet" (render nothing)
+  // from "it resolved and came back degraded" (render the plain-word notice) — see
+  // `riskAvailability` in lib/portfolioRisk.ts. Set true once, in `reload()`, regardless of
+  // whether that read succeeded or failed; never reset, since a later successful reload simply
+  // replaces `risk` with a real value and `riskAvailability` reads that first.
+  const [riskAttempted, setRiskAttempted] = useState(false);
   // The server could not read the book. `positions` is [] here because there is nothing to show
   // — NOT because the user holds nothing. Everything that would assert a count or a total is
   // suppressed while this is true, and it clears the moment a read lands.
@@ -118,20 +127,40 @@ export default function PortfolioView(
   const open = useMemo(() => positions.filter((p) => p.status === "open"), [positions]);
   const closed = useMemo(() => positions.filter((p) => p.status === "closed"), [positions]);
 
+  // reload() is a stable callback; it reads "is a book already on screen?" through this ref so a
+  // failed re-read can keep those rows instead of raising the page-level unreadable flag.
+  const displayedBookRef = useRef(seed.length > 0 && !unreadable);
+  displayedBookRef.current = positions.length > 0 && !unread;
+
   // The re-read every mutation and the retry share. A NON-OK response (503 = the store did not
-  // answer) leaves `positions` untouched and raises the unreadable flag: it must never overwrite
-  // a book the user can see, and it must never be reported as a successful empty read.
+  // answer) leaves `positions` untouched: it must never overwrite a book the user can see, and it
+  // must never be reported as a successful empty read. If a book is already painted, only the
+  // risk section prints its cannot-read state — raising `unread` here unmounts the table
+  // (`{!unread && <>…</>}`) and is what blanked the B4 "failed re-read" spec at tablet width.
   const reload = useCallback(async (): Promise<Position[] | null> => {
+    // finally, not one setter per branch: MAJOR 2 needs `riskAttempted` set on EVERY exit path
+    // (ok, non-ok, malformed payload, thrown) so a degrade (`risk: null` in an otherwise-ok
+    // response) and an outright failed read both let `riskAvailability` render its notice
+    // instead of silently staying "hidden" forever.
+    const onFailedReread = () => {
+      if (failedRereadDisposition(displayedBookRef.current) === "keep-book-risk-unavailable") {
+        setRisk(null);
+      } else {
+        setUnread(true);
+      }
+    };
     try {
       const response = await fetch("/api/portfolio", { headers: { Accept: "application/json" } });
-      if (!response.ok) { setUnread(true); return null; }
+      if (!response.ok) { onFailedReread(); return null; }
       const payload = await response.json();
-      if (!Array.isArray(payload?.positions)) { setUnread(true); return null; }
+      if (!Array.isArray(payload?.positions)) { onFailedReread(); return null; }
       const authoritative = payload.positions as Position[];
       setPositions(authoritative);
+      setRisk((payload?.risk ?? null) as PortfolioRisk | null);
       setUnread(false);
       return authoritative;
-    } catch { setUnread(true); return null; }
+    } catch { onFailedReread(); return null; }
+    finally { setRiskAttempted(true); }
   }, []);
 
   const retryRead = useCallback(async () => {
@@ -139,6 +168,11 @@ export default function PortfolioView(
     await reload();
     setRetrying(false);
   }, [reload]);
+
+  // Initial risk read: the SSR seed carries `positions` but never `risk` (the readout is
+  // sourced only from the client GET, per B-F08-4 section 5), so without this the shape
+  // readout would silently stay absent until the user's first mutation of the session.
+  useEffect(() => { reload(); }, [reload]);
 
   /** One serialized write + re-read. Serialization matters for the same reason the rail's watchlist
    *  chain is serialized: two mutations in flight can land out of order, and the second re-read
@@ -376,6 +410,14 @@ export default function PortfolioView(
           </div>
         )}
 
+        {(() => {
+          switch (riskAvailability(!!open.length, risk, riskAttempted)) {
+            case "ready": return <PortfolioRiskReadout risk={risk!} lang={lang as Lang} />;
+            case "unavailable": return <RiskUnavailableNotice lang={lang as Lang} />;
+            default: return null;
+          }
+        })()}
+
         <div className="panel" data-testid="portfolio-open">
           <div className="ph">
             {t("openPositions")}
@@ -435,6 +477,155 @@ export default function PortfolioView(
         />
       )}
     </main>
+  );
+}
+
+/** One shared-scale stacked bar. Not an SVG data chart (terminal/AGENTS.md's chart law does not
+ *  apply) — each segment is a plain div with a genuinely data-dependent inline `width`, the only
+ *  inline style this surface uses. Uncovered segments render as a hatched neutral material, never
+ *  a color with direction semantics (never --up/--down/--warn). */
+type LegendRow = { key: string; label: { en: string; zh: string }; weightPct: number; covered: boolean; muted?: boolean };
+
+function Bar({ rows, lang }: { rows: LegendRow[]; lang: Lang }) {
+  const ariaLabel = rows.map((r) => `${lang === "zh" ? r.label.zh : r.label.en} ${r.weightPct}%`).join(", ");
+  return (
+    <div className={s.bar} role="img" aria-label={ariaLabel}>
+      {rows.map((r, i) => (
+        <div
+          key={r.key}
+          aria-hidden="true"
+          data-covered={r.covered ? "true" : "false"}
+          data-slot={r.covered && !r.muted ? i % 5 : undefined}
+          className={`${s.seg} ${r.covered ? "" : s.segUncovered} ${r.muted ? s.segMuted : ""}`}
+          style={{ width: `${r.weightPct}%` }}
+        />
+      ))}
+    </div>
+  );
+}
+
+/* Color is a MATERIAL decision and lives in governed CSS (PortfolioRisk.module.css), keyed off
+   the `data-slot` index cycled here — never a categorical color literal authored in JS, and
+   never a direction/signal token (never --up/--down/--warn/--flow-buy/--flow-sell/--signal):
+   this readout describes portfolio SHAPE, never a call. */
+function Legend({ rows, lang }: { rows: LegendRow[]; lang: Lang }) {
+  return (
+    <div className={s.legend}>
+      {rows.map((r, i) => (
+        <div key={r.key} className={s.legendRow}>
+          <span
+            className={`${s.legendSwatch} ${r.muted ? s.legendSwatchMuted : ""}`}
+            data-slot={r.covered && !r.muted ? i % 5 : undefined}
+            aria-hidden="true"
+          />
+          <span className={s.legendLabel}>{lang === "zh" ? r.label.zh : r.label.en}</span>
+          <span className={s.legendPct}>{r.weightPct}%</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** MAJOR 2 (review repair): the plain-word state for a degraded `risk: null` — never a silent
+ *  disappearance of the whole readout. Reuses the readout's own section/notice styling rather
+ *  than a new CSS block for a one-line message. */
+function RiskUnavailableNotice({ lang }: { lang: Lang }) {
+  return (
+    <section className={s.shape} data-testid="portfolio-shape-unavailable">
+      <p className={s.unread}>{lang === "zh" ? T_RISK_UNAVAILABLE.zh : T_RISK_UNAVAILABLE.en}</p>
+    </section>
+  );
+}
+
+function PortfolioRiskReadout({ risk, lang }: { risk: PortfolioRisk; lang: Lang }) {
+  const c = riskCopy(risk);
+  const pick = (b: { en: string; zh: string } | null) => (b ? (lang === "zh" ? b.zh : b.en) : null);
+  return (
+    <section
+      className={s.shape}
+      data-testid="portfolio-shape"
+      data-shape-read={risk.counts.read}
+      data-shape-total={risk.counts.total}
+      // MAJOR 2 (round-2 review): the only DOM signal that proves the credentialed fan-out
+      // path actually ran, rather than the anonymous one — never rendered as "credentialed"
+      // unless the caller's own session cookie was present for this GET.
+      data-coverage-source={risk.coverageSource}
+      aria-labelledby="pf-shape-h"
+    >
+      <header className={s.head}>
+        <h3 id="pf-shape-h" className={s.title}>{pick(c.title)}</h3>
+        <p className={s.standing}>{pick(c.standing)}</p>
+        <p className={s.meta}>
+          <span className={s.basis}>{pick(c.basis)}</span>
+          <span className={s.dot} aria-hidden="true" />
+          <span className={s.coverage} data-testid="shape-coverage">{pick(c.coverage)}</span>
+        </p>
+      </header>
+
+      <div className={s.grid}>
+        <article className={`${s.card} ${s.wide}`} data-card="concentration">
+          <span className={s.lbl}>{pick(c.cards[0].label)}</span>
+          <p className={s.q}>{pick(c.cards[0].question)}</p>
+          {c.cards[0].value
+            ? <>
+              <b className={s.hero}>{pick(c.cards[0].value)}</b>
+              <p className={s.sub}>{pick(c.cards[0].sub)}</p>
+              <Bar rows={c.legend[0]} lang={lang} />
+              <Legend rows={c.legend[0]} lang={lang} />
+            </>
+            : <p className={s.unread}>{pick(c.cards[0].unread)}</p>}
+        </article>
+
+        <article className={s.card} data-card="industries">
+          <span className={s.lbl}>{pick(c.cards[1].label)}</span>
+          <p className={s.q}>{pick(c.cards[1].question)}</p>
+          {c.legend[1].length
+            ? <>
+              <Bar rows={c.legend[1]} lang={lang} />
+              <Legend rows={c.legend[1]} lang={lang} />
+            </>
+            : <p className={s.unread}>{pick(c.cards[1].unread)}</p>}
+        </article>
+
+        <article className={s.card} data-card="size">
+          <span className={s.lbl}>{pick(c.cards[2].label)}</span>
+          <p className={s.q}>{pick(c.cards[2].question)}</p>
+          {c.legend[2].length
+            ? <>
+              <Bar rows={c.legend[2]} lang={lang} />
+              <Legend rows={c.legend[2]} lang={lang} />
+            </>
+            : <p className={s.unread}>{pick(c.cards[2].unread)}</p>}
+        </article>
+
+        <article className={`${s.card} ${s.wide} ${s.short}`} data-card="thickness">
+          <span className={s.lbl}>{pick(c.cards[3].label)}</span>
+          <p className={s.q}>{pick(c.cards[3].question)}</p>
+          {c.cards[3].value
+            ? <b className={s.hero}>{pick(c.cards[3].value)}</b>
+            : <p className={s.unread}>{pick(c.cards[3].unread)}</p>}
+        </article>
+      </div>
+
+      {!!c.gapLines.length && (
+        <details className={s.gaps} data-testid="shape-gaps" open={c.gapLines.length <= 8}>
+          <summary className={s.gapsSummary}>{pick(c.gapsSummary)}</summary>
+          <ul className={s.gapList}>
+            {c.gapLines.map((g) => (
+              <li key={`${g.ticker}-${g.text.en}`} className={s.gapRow}>
+                <span className={s.gapTk}>{g.ticker}</span>
+                <span className={s.gapWhy}>{pick(g.text)}</span>
+              </li>
+            ))}
+          </ul>
+          {c.gapLinesOverflow > 0 && (
+            <p className={s.gapWhy} data-testid="shape-gaps-overflow">
+              {lang === "zh" ? `还有 ${c.gapLinesOverflow} 项未显示` : `+${c.gapLinesOverflow} more not shown`}
+            </p>
+          )}
+        </details>
+      )}
+    </section>
   );
 }
 
