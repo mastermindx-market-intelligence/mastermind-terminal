@@ -5,7 +5,12 @@ const mocks = vi.hoisted(() => ({
   tooMany: vi.fn(() => new Response("rate limited", { status: 429 })),
   hasLiveOptions: vi.fn(async () => true),
   isValidF: vi.fn(() => true),
-  loadFlowFresh: vi.fn(async () => ({ schema: "must-never-be-read" })),
+  // Typed to the real `loadFlowFresh` signature (Promise<Record<string, unknown> | null>)
+  // so each test can hand back whatever fixture shape it needs — the default payload
+  // below is a sentinel that must never actually be read.
+  loadFlowFresh: vi.fn<() => Promise<Record<string, unknown> | null>>(async () => ({
+    schema: "must-never-be-read",
+  })),
 }));
 
 vi.mock("@/lib/rateLimit", () => ({
@@ -23,6 +28,7 @@ vi.mock("@/lib/flowSource", () => ({
 }));
 
 import { GET } from "@/app/api/flow/stream/route";
+import { activeProducerCount } from "@/lib/flowBroadcast";
 
 const savedFixture = process.env.FLOW_FIXTURE;
 
@@ -34,6 +40,54 @@ afterEach(() => {
   if (savedFixture === undefined) delete process.env.FLOW_FIXTURE;
   else process.env.FLOW_FIXTURE = savedFixture;
   vi.unstubAllGlobals();
+});
+
+describe("SSE route — producer lifecycle under disconnect (no leak)", () => {
+  afterEach(() => {
+    // A stranded producer here would poison every later test's counts too.
+    expect(activeProducerCount()).toBe(0);
+  });
+
+  it("never attaches a producer for a request whose signal is already aborted", async () => {
+    mocks.loadFlowFresh.mockImplementation(async () => ({ asof: "T1" }));
+    const controller = new AbortController();
+    controller.abort();
+
+    const res = await GET(
+      new Request("https://terminal.test/api/flow/stream?f=feed", { signal: controller.signal }),
+    );
+    // Drain the stream body so start()/cancel() run to completion under vitest's runtime.
+    await res.body?.cancel().catch(() => {});
+
+    expect(mocks.loadFlowFresh).not.toHaveBeenCalled();
+    expect(activeProducerCount()).toBe(0);
+  });
+
+  it("tears the producer down when the client cancels an established connection", async () => {
+    mocks.loadFlowFresh.mockImplementation(async () => ({ asof: "T1" }));
+
+    const res = await GET(new Request("https://terminal.test/api/flow/stream?f=feed"));
+    expect(activeProducerCount()).toBe(1);
+
+    await res.body?.cancel();
+    expect(activeProducerCount()).toBe(0);
+  });
+
+  it("tears the producer down when the client aborts an established connection", async () => {
+    mocks.loadFlowFresh.mockImplementation(async () => ({ asof: "T1" }));
+    const controller = new AbortController();
+
+    const res = await GET(
+      new Request("https://terminal.test/api/flow/stream?f=feed", { signal: controller.signal }),
+    );
+    expect(activeProducerCount()).toBe(1);
+
+    controller.abort();
+    // The abort event fires teardown() synchronously; drain the reader so the stream
+    // finishes settling under vitest.
+    await res.body?.cancel().catch(() => {});
+    expect(activeProducerCount()).toBe(0);
+  });
 });
 
 describe("Prophet full-plan transport boundary", () => {
