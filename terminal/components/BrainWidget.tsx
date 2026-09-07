@@ -132,13 +132,18 @@ export default function BrainWidget({
 
     // Meta-CEO B ruling r6, MINOR-1 (promoted to a required fix): this used to be
     // `if (w.MM_BRAIN_CFG) return;`, which exited the WHOLE effect — including the separate
-    // script-append gate below — whenever an earlier mount had already seeded CFG. On a
-    // document where MM_BRAIN_CFG exists but window.MMBrain and the <script> tag do not (a
-    // fast route remount that re-ran this effect before the external script finished
-    // loading, or any other seed-without-host state), the effect returned here and
-    // mm_brain.js was NEVER appended — the Brain never loaded for that document at all. Only
-    // SKIP the CFG object creation when it already exists; always fall through to the
-    // independent append gate below.
+    // script-append gate below — whenever CFG already existed on `window`. This component's
+    // own mount always creates CFG and appends the script together in one synchronous pass,
+    // so CFG-without-host/script cannot arise from this component's own remounts (the
+    // script tag is intentionally never removed on unmount — see the append gate below —
+    // so a later remount finds it and skips, which is correct). The state this guards
+    // against is CFG seeded by something OTHER than this component's own paired
+    // create-and-append: a test harness preseeding `window.MM_BRAIN_CFG` directly (as the
+    // sibling test below does), a hot-reload that preserves `window` but clears the
+    // document, or any other actor that sets the key without also loading the script. In
+    // that state the old code returned here and mm_brain.js was NEVER appended — the Brain
+    // never loaded for that document at all. Only SKIP the CFG object creation when it
+    // already exists; always fall through to the independent append gate below.
     if (!w.MM_BRAIN_CFG) {
       w.MM_BRAIN_CFG = {
         // This config's anchor:'top' asks the production mm_brain.js bundle for no docked

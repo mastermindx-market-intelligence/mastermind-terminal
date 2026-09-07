@@ -6,15 +6,19 @@
 // (`if (hostAlreadyMounted || document.querySelector(...)) return;`). The in-tree comment
 // above that effect already claimed "Seed CFG whenever it is missing; only the
 // script-append is gated on an existing host" — but the code did the opposite: on a document
-// where `MM_BRAIN_CFG` exists (a prior mount already seeded it, e.g. a fast route remount)
-// while `window.MMBrain` and the `<script src="mm_brain.js">` tag do NOT exist yet, the whole
-// effect returned at the CFG check and `mm_brain.js` was never appended — the Brain never
-// loads for that document at all.
+// where `window.MM_BRAIN_CFG` exists but `window.MMBrain` and the `<script src="mm_brain.js">`
+// tag do NOT, the whole effect returned at the CFG check and `mm_brain.js` was never
+// appended — the Brain never loads for that document at all.
 //
-// This test preseeds `window.MM_BRAIN_CFG` ONLY (no `window.MMBrain`, no existing script tag)
-// before mounting BrainWidget, mirroring exactly that document state, and asserts the script
-// IS appended. Before the fix (early return moved after the append gate) this is RED: the
-// query below finds no such <script> element. Same no-@testing-library harness as
+// This CFG-without-host/script state cannot arise from BrainWidget's own remounts (its
+// install effect creates CFG and appends the script together in one synchronous pass, and
+// the script tag is intentionally never removed on unmount, so a later remount finds it and
+// skips correctly) — it requires CFG to be seeded by something other than that paired
+// create-and-append, e.g. a test harness preseeding `window.MM_BRAIN_CFG` directly, as this
+// test does. This test preseeds `window.MM_BRAIN_CFG` ONLY (no `window.MMBrain`, no existing
+// script tag) before mounting BrainWidget, mirroring exactly that document state, and asserts
+// the script IS appended. Before the fix (early return moved after the append gate) this is
+// RED: the query below finds no such <script> element. Same no-@testing-library harness as
 // brainWidgetColdSymbol.test.ts / brainWidgetRebinding.test.ts (react-dom/client createRoot +
 // react act).
 import { describe, expect, it, beforeEach, afterEach } from "vitest";
