@@ -966,7 +966,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
                       {glance && (
                         <>
                           {/* γ regime — the desk's word + colour (one table, lib/mscGlance) */}
-                          <td>{r.mscRegime ? <span style={{ color: REGIME_COLORS[r.mscRegime] }}>{gexT(`regime${r.mscRegime}`) || r.mscRegime}</span> : "—"}</td>
+                          <td>{r.mscRegime ? <span style={{ color: REGIME_COLORS[r.mscRegime] }}>{gexT(`regime${r.mscRegime}`) || (lang === "zh" ? "未分类" : "Not classified")}</span> : "—"}</td>
                           {/* net dealer gamma — polarity tone (the desk's POSITIVE/NEGATIVE pairing) */}
                           <td className={r.mscNetGex != null ? (r.mscNetGex >= 0 ? "up" : "down") : ""}>{r.mscNetGex != null ? `${r.mscNetGex >= 0 ? "+" : ""}${r.mscNetGex.toFixed(1)}B` : "—"}</td>
                           {/* distance to flip — position, not day direction (offHi precedent) */}
