@@ -104,6 +104,13 @@ export const LOCAL_STATUS: DeliveryStatus = { phase: "local", attempts: 0, revis
 export class PreferencePump {
   /** The newest complete value of every key that has ever been queued on this pump. */
   private desired: Record<string, unknown> = {};
+  /**
+   * Keys that need no merge base (E6 shared atomics): once the revision that queued them is
+   * acknowledged, the key is evicted from `desired` so a LATER edit to an unrelated field never
+   * re-sends a value the caller has not touched again. Maps key -> revision it was queued at
+   * (the newest one, if queued more than once before ack).
+   */
+  private oneShotKeys: Map<string, number> = new Map();
   private revision = 0;
   private acked = 0;
   /** The revision the in-flight request carries. 0 when nothing is in flight. */
@@ -138,10 +145,11 @@ export class PreferencePump {
    * advances, and delivery is kicked. Coalescing is implicit: a second edit before the first
    * lands simply overwrites the desired value and raises the revision.
    */
-  queue(patch: Record<string, unknown>): number {
+  queue(patch: Record<string, unknown>, opts?: { oneShot?: readonly string[] }): number {
     if (this.dead) return this.revision;
     this.desired = { ...this.desired, ...patch };
     this.revision += 1;
+    for (const key of opts?.oneShot ?? []) this.oneShotKeys.set(key, this.revision);
     this.kick();
     return this.revision;
   }
@@ -202,6 +210,14 @@ export class PreferencePump {
         }
         this.attempts = 0;
         if (revision > this.acked) this.acked = revision;
+        // A one-shot key needs no merge base — once its queuing revision is acknowledged it is
+        // evicted, so it rides along only until it is actually delivered, never forever.
+        for (const [key, atRev] of Array.from(this.oneShotKeys)) {
+          if (atRev <= this.acked) {
+            delete this.desired[key];
+            this.oneShotKeys.delete(key);
+          }
+        }
         this.publish(this.revision > this.acked ? "syncing" : "saved");
         this.kick();          // a newer desired state may have arrived while this was in flight
       },
