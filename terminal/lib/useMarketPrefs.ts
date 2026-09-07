@@ -14,8 +14,9 @@ import {
   ALL_MARKETS, DEFAULT_PREFS, type FollowId, type MarketId, type MarketPrefs,
 } from "@/lib/markets";
 import {
-  applyUpDown, isStartTf, metaObject, readLang, readMetaPrefs, readTerminalMeta, readUpDown,
-  DEFAULT_TERMINAL_PREFS, type LangId, type MetaPrefs, type TerminalPrefs, type UpDown,
+  applyUpDown, isStartTf, legacyPrefsPatch, metaObject, readLang, readMetaPrefs, readSharedPrefs,
+  readTerminalMeta, readUpDown, sharedPrefsPatch, DEFAULT_TERMINAL_PREFS, type LangId,
+  type MetaPrefs, type TerminalPrefs, type UpDown,
 } from "@/lib/accountPrefs";
 
 // Client-side read/write of EVERY account preference, stored in Supabase `user_metadata` — the
@@ -26,10 +27,21 @@ import {
 //   market_focus : FollowId[]                      — "markets you follow" (macro owns the UI too)
 //   markets      : { home, enabled, autoNarrowed }  — search visibility (Terminal owns the UI)
 //   terminal     : { start_tf, updown }             — Terminal chart prefs (Terminal only)
-//   prefs        : { theme, themeAuto, lang }       — macro's theme/language sync blob
+//   theme / theme_auto / lang                      — the SHARED appearance/language prefs, as
+//                                                     independently mergeable TOP-LEVEL atomics.
+//                                                     DUAL-WRITTEN into the legacy nested `prefs`
+//                                                     blob too, but macro's OWN reader/writer has
+//                                                     ALREADY migrated to the atomics (macro
+//                                                     `origin/main` — `templates/theme.js`,
+//                                                     `_savePrefToServer` writes only the top-
+//                                                     level keys; `_sharedPref` reads atomic-first
+//                                                     with the nested blob as a read-only
+//                                                     fallback). The atomic is therefore the
+//                                                     PREFERRED value per field — see
+//                                                     lib/accountPrefs.ts's FLIP CONDITION note.
 //
-// ONE `auth.getUser()` hydrates all four. Adding a second read for a second field would double
-// the auth round-trip on every page load, and the two answers could disagree mid-flight.
+// ONE `auth.getUser()` hydrates all of them. Adding a second read for a second field would
+// double the auth round-trip on every page load, and the two answers could disagree mid-flight.
 //
 // This is a module-level store rather than per-component state on purpose: the preference is read
 // in at least two places at once (the search dialog and the settings pane), and two independent
@@ -91,13 +103,19 @@ let metaPrefs: MetaPrefs = {};
 // TOP-LEVEL keys but REPLACES a nested object wholesale, so writing `{ terminal: { updown } }`
 // would delete `terminal.start_tf`. Every write goes through the spread of these.
 let rawTerminal: Record<string, unknown> = {};
-let rawPrefs: Record<string, unknown> = {};
 // Edits made before a usable merge base exists — while the auth read is in flight, or after one
 // that FAILED. They cannot be pushed yet: a push now would write `{ terminal: { start_tf } }`
 // over an account that also held `updown` and silently delete it. Held here until a load that
 // actually answered folds them in.
 let pendingTerminal: Record<string, unknown> | null = null;
-let pendingPrefs: Record<string, unknown> | null = null;
+// The legacy nested `prefs` blob's merge base — same shape of problem as `rawTerminal` above,
+// now that persistMetaPrefs dual-writes into it (E6 flip condition, lib/accountPrefs.ts). Kept
+// verbatim so a patch can be spread over it without deleting a sibling field macro wrote.
+let rawMetaPrefs: Record<string, unknown> = {};
+/** A legacy-blob edit made before a usable merge base exists. Same reasoning as
+ *  `pendingTerminal`: pushing now would send a partial `prefs` object and delete whatever
+ *  sibling field the account already held. */
+let pendingMetaPrefs: Record<string, unknown> | null = null;
 /** Markets edited before the account answered. The answer must not clobber a NEWER local
  *  choice — the read started first, the edit is what the user just did. */
 let marketsDirty = false;
@@ -224,9 +242,9 @@ function beginOwner(next: string) {
   state = DEFAULT_PREFS;
   metaPrefs = {};
   rawTerminal = {};
-  rawPrefs = {};
   pendingTerminal = null;
-  pendingPrefs = null;
+  rawMetaPrefs = {};
+  pendingMetaPrefs = null;
   marketsDirty = false;
   terminal = localTerminal();
   ready = false;
@@ -296,10 +314,19 @@ function hydrate(next: string) {
       // layers on top — and only now, with the account's own keys underneath it, is it safe to
       // push. Nothing was lost by waiting: the local half already applied when they clicked.
       rawTerminal = { ...metaObject(meta, "terminal"), ...(pendingTerminal || {}) };
-      rawPrefs = { ...metaObject(meta, "prefs"), ...(pendingPrefs || {}) };
+      // Same fold-in for the legacy `prefs` blob's merge base (E6 dual-write) — an edit made
+      // while this read was in flight is newer than the answer, so it lands on top rather than
+      // being lost, and now that the base is known it can finally be delivered.
+      rawMetaPrefs = { ...metaObject(meta, "prefs"), ...(pendingMetaPrefs || {}) };
       baseLoaded = true;
       if (pendingTerminal) { pump?.queue({ terminal: rawTerminal }); pendingTerminal = null; }
-      if (pendingPrefs) { pump?.queue({ prefs: rawPrefs }); pendingPrefs = null; }
+      // "prefs" must be one-shot HERE too, not just in persistMetaPrefs's own already-loaded
+      // send path (M3) — this is the OTHER place a legacy `prefs` delivery can originate (an
+      // edit made before the account read ever answered, held in `pendingMetaPrefs`, flushed by
+      // hydrate() itself once the retried read comes back). Without it, `prefs` never leaves
+      // the pump's `desired` map once acked and rides along on every later unrelated write
+      // forever — the exact M3 bug, reachable through this second path (round-3 review MAJOR 1).
+      if (pendingMetaPrefs) { pump?.queue({ prefs: rawMetaPrefs }, { oneShot: ["prefs"] }); pendingMetaPrefs = null; }
 
       // Apply the account's chart prefs to this device. The account wins over the local copy:
       // that is the entire point of syncing them, and the local copy is only ever a cache of the
@@ -308,7 +335,11 @@ function hydrate(next: string) {
       if (tm.start_tf) writeStartTf(tm.start_tf);
       if (tm.updown && tm.updown !== readUpDown()) applyUpDown(tm.updown);
 
-      metaPrefs = readMetaPrefs(rawPrefs);
+      // v2 atomics win per field, legacy `prefs.*` fills in only where the atomic is absent or
+      // invalid (readSharedPrefs; see the FLIP CONDITION note in lib/accountPrefs.ts — macro's
+      // own reader/writer is already atomic-first). An edit made while this read was in flight
+      // is newer than the answer, so it stays on top rather than being reverted.
+      metaPrefs = { ...readSharedPrefs(meta), ...metaPrefs };
       // Language is the macro dashboard's field; applying it here is what makes a language picked
       // over there arrive here. Only when it actually differs — applyLang dispatches an event
       // every mounted LangProvider listens to, and a no-op re-render on every load is waste.
@@ -325,9 +356,8 @@ function hydrate(next: string) {
       // reads this owner's slot only.
       if (!marketsDirty) state = readLocal(next) ?? { ...DEFAULT_PREFS, enabled: [...ALL_MARKETS] };
       terminal = localTerminal();
-      metaPrefs = {};
       rawTerminal = {};
-      rawPrefs = {};
+      rawMetaPrefs = {};   // symmetric with rawTerminal above — both merge bases are unknown again
       // The UI stops waiting, but the merge base is still unknown, so `baseLoaded` stays false
       // and a nested-blob write keeps holding as an intent. Held edits are NOT discarded: an
       // intent to change a preference does not stop being the user's intent because one read
@@ -372,19 +402,17 @@ function scheduleHydrateRetry(next: string, gen: number) {
  * exactly the sibling-deleting write the hold exists to prevent); `hydrate()` folds it in and
  * queues it, and retries until it can. Guests stop at the account check — local only.
  */
-function mergeBlob(key: "terminal" | "prefs", patch: Record<string, unknown>) {
-  if (key === "terminal") rawTerminal = { ...rawTerminal, ...patch };
-  else rawPrefs = { ...rawPrefs, ...patch };
+function mergeTerminalBlob(patch: Record<string, unknown>) {
+  rawTerminal = { ...rawTerminal, ...patch };
   if (!isAccountOwner(owner)) return;
   if (!baseLoaded) {
-    if (key === "terminal") pendingTerminal = { ...(pendingTerminal || {}), ...patch };
-    else pendingPrefs = { ...(pendingPrefs || {}), ...patch };
+    pendingTerminal = { ...(pendingTerminal || {}), ...patch };
     // The merge base is a prerequisite for this write, so make sure something is still trying
     // to fetch it. Without this a held intent after a failed hydrate waits forever.
     scheduleHydrateRetry(owner, generation);
     return;
   }
-  pump?.queue({ [key]: key === "terminal" ? rawTerminal : rawPrefs });
+  pump?.queue({ terminal: rawTerminal });
 }
 
 /**
@@ -412,7 +440,7 @@ export function persistStartTf(tf: string) {
   writeStartTf(tf);
   terminal = { ...terminal, startTf: tf };
   publish();
-  mergeBlob("terminal", { start_tf: tf });
+  mergeTerminalBlob({ start_tf: tf });
 }
 
 /** Up/down color convention: apply it to the live document AND remember it on the account. */
@@ -420,18 +448,60 @@ export function persistUpDown(v: UpDown) {
   applyUpDown(v);
   terminal = { ...terminal, updown: v };
   publish();
-  mergeBlob("terminal", { updown: v });
+  mergeTerminalBlob({ updown: v });
 }
 
 /**
- * Merge a patch into the macro `prefs` blob (theme / themeAuto / lang). Records the preference
- * only — it applies nothing to the UI, because each of those has its own local applier that the
- * caller already owns (i18n's setLang, the theme toggle).
+ * Record a shared appearance/language preference (theme / themeAuto / lang). Applies nothing to
+ * the UI — each of those has its own local applier the caller already owns (i18n's setLang, the
+ * theme toggle).
+ *
+ * DUAL-WRITES (E6 flip condition, lib/accountPrefs.ts): the atomics go out as top-level keys with
+ * no merge base to wait for — a language pick delivers immediately. The SAME patch also merges
+ * into the legacy nested `prefs` blob — macro's own writer has already migrated off it
+ * (readSharedPrefs's FLIP CONDITION note), so this half is no longer load-bearing for macro, but
+ * it costs nothing and keeps any remaining legacy-only reader fed. The nested half DOES need a
+ * merge base, exactly like `terminal` above: before one is loaded the patch is HELD
+ * (`pendingMetaPrefs`) rather than sent as a partial blob that would delete a sibling field macro
+ * already wrote — `hydrate()` folds it in once the account read answers.
+ *
+ * The `prefs` key is queued ONE-SHOT (`prefDelivery.ts`'s `oneShot` option): once the pump's
+ * authority acknowledges it, it is evicted from `desired` so a later UNRELATED write (e.g.
+ * `persistUpDown`) never re-sends this stale nested snapshot forever. Without this, `prefs` would
+ * ride along on every subsequent write and could re-clobber a sibling field macro wrote in the
+ * meantime — the atomics are read-priority now, so a stale re-sent `prefs` cannot hide a macro
+ * edit from Terminal's OWN reads, but it would still be a wasted, ever-growing payload and a
+ * needless legacy-blob write racing macro's other writers.
  */
 export function persistMetaPrefs(patch: MetaPrefs) {
-  mergeBlob("prefs", patch as Record<string, unknown>);
-  metaPrefs = readMetaPrefs(rawPrefs);
+  const atoms = sharedPrefsPatch(patch);
+  const legacy = legacyPrefsPatch(patch);
+  if (!Object.keys(atoms).length && !Object.keys(legacy).length) return;
+  // Sanitize before publishing: `atoms`/`legacy` above already dropped anything invalid, but an
+  // untyped/cast caller can still hand `patch` a junk value alongside a valid one, and that junk
+  // must not reach subscribers just because ONE field in the same call was legitimate — published
+  // state must never diverge from what was actually persisted.
+  metaPrefs = { ...metaPrefs, ...readMetaPrefs(patch) };
   publish();
+  if (!isAccountOwner(owner)) return;
+  const oneShot = Object.keys(atoms);
+
+  // `atoms` and `legacy` are built from the SAME per-field validity predicates
+  // (sharedPrefsPatch / legacyPrefsPatch in accountPrefs.ts), so they are always populated for
+  // exactly the same set of fields — either both empty (already returned above) or both
+  // non-empty. There is no reachable "atomic-only" case to special-case here.
+  rawMetaPrefs = { ...rawMetaPrefs, ...legacy };
+  if (!baseLoaded) {
+    pendingMetaPrefs = { ...(pendingMetaPrefs || {}), ...legacy };
+    scheduleHydrateRetry(owner, generation);
+    // The atomic half needs no merge base at all — deliver it now even though the nested blob's
+    // half must wait for the account read to answer.
+    if (oneShot.length) pump?.queue(atoms, { oneShot });
+    return;
+  }
+  // "prefs" itself must be one-shot too (not just the atomics) — otherwise it never leaves
+  // `desired` once acknowledged and rides along on every later unrelated write forever (M3).
+  pump?.queue({ ...atoms, prefs: rawMetaPrefs }, { oneShot: [...oneShot, "prefs"] });
 }
 
 /** Record the account language. Call i18n's `setLang` (or `applyLang`) separately to switch the UI. */
@@ -532,9 +602,9 @@ export function __resetMarketPrefsStore() {
   terminal = DEFAULT_TERMINAL_PREFS;
   metaPrefs = {};
   rawTerminal = {};
-  rawPrefs = {};
   pendingTerminal = null;
-  pendingPrefs = null;
+  rawMetaPrefs = {};
+  pendingMetaPrefs = null;
   ready = false;
   baseLoaded = false;
   owner = GUEST_OWNER;
@@ -568,7 +638,8 @@ export function __marketPrefsSnapshot(): AccountPrefsSnapshot { return snapshot;
 /** Test seam — the store's private bookkeeping, for assertions the snapshot cannot express. */
 export function __marketPrefsInternals() {
   return {
-    owner, generation, ready, baseLoaded, rawTerminal, rawPrefs, pendingTerminal, pendingPrefs,
+    owner, generation, ready, baseLoaded, rawTerminal, pendingTerminal,
+    rawMetaPrefs, pendingMetaPrefs,
     marketsDirty, sync, hydrateAttempts, undelivered: pump?.hasUndelivered() ?? false,
   };
 }
