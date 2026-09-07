@@ -7,6 +7,11 @@ on:
   # this same proof explicitly on the refreshed branch.
   workflow_dispatch:
 
+# Candidate code receives only the repository read authority needed by checkout.
+# Privileged merge reconciliation remains isolated in merge-on-green.yml.
+permissions:
+  contents: read
+
 # A newer head makes every queued/running proof for the older head unusable. Drop
 # it immediately instead of spending the account-wide hosted-runner quota on a
 # SHA that can no longer merge.
@@ -31,9 +36,10 @@ jobs:
       - run: npm ci
       - run: npm test
 
-  terminal:
-    name: Terminal typecheck + tests
+  terminal-unit:
+    name: Terminal unit + typecheck (shard)
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: terminal
@@ -50,22 +56,6 @@ jobs:
       - run: npx next typegen
       - run: npx tsc --noEmit
       - run: npm test
-      # `--with-deps` shells out to apt, and the runner's Ubuntu mirror stalls often enough to
-      # matter: five times in one afternoon a job sat on this step for 12 minutes to 2 HOURS,
-      # reporting `pending` the whole while, so a required check never reported and nothing could
-      # merge. The logs show `Ign:` timeouts against azure.archive.ubuntu.com followed by a hang
-      # fetching noble-security.
-      #
-      # Bound it, then fall back to a browser-only install. The system libraries Chromium needs are
-      # already present on the ubuntu-latest image; `--with-deps` is belt-and-braces, and when the
-      # mirror is down that belt is what strangles the run. A genuinely missing library would fail
-      # the e2e step loudly rather than silently, which is the trade this makes.
-      - name: Install Playwright browsers (apt bounded, browser-only fallback)
-        timeout-minutes: 12
-        run: |
-          timeout 480 npx playwright install --with-deps chromium \
-            || { echo "::warning::apt/--with-deps stalled or failed — installing the browser only"; \
-                 npx playwright install chromium; }
       # Quarantined journeys are disclosed on EVERY run: a green matrix must never be read as
       # full coverage. Bare `echo`, never a logger — a logger prefix pushes `::warning` off the
       # start of the line and GitHub silently drops the annotation.
@@ -88,14 +78,108 @@ jobs:
             echo "::error title=e2e-quarantine::terminal/e2e has $fixme_count test.fixme( occurrence(s) but QUARANTINE.md's quarantine table has $row_count row(s) — every quarantined test needs a disclosed row, and every row needs a live test.fixme"
             exit 1
           fi
-      - run: npm run test:e2e:responsive
+
+  terminal-e2e:
+    name: Terminal e2e ${{ matrix.shard }} (shard)
+    runs-on: ubuntu-latest
+    # 6h default masked a 70-min job. Bound it: the slowest shard measured ~24 min.
+    timeout-minutes: 60
+    strategy:
+      # NEVER fail-fast. One red shard must not delete the other shards' evidence — the
+      # aggregator below already turns any red into a red required check.
+      fail-fast: false
+      matrix:
+        include:
+          - shard: desktop
+            projects: "--project=desktop"
+          - shard: tablet
+            projects: "--project=tablet"
+          - shard: mobile
+            projects: "--project=mobile"
+          # The company-intelligence chain uses Playwright `dependencies`
+          # (playwright.config.ts:69-87) and MUST stay whole inside one shard, or the
+          # dependency projects re-run in every shard that touches them.
+          - shard: serial
+            projects: >-
+              --project=company-intelligence-desktop
+              --project=company-intelligence-tablet
+              --project=company-intelligence-mobile
+              --project=terminal-chrome-intermediate
+              --project=w2a-workspaces
+    defaults:
+      run:
+        working-directory: terminal
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: terminal/package-lock.json
+      - run: npm ci
+      - run: npx next typegen
+      # Resolve the exact Playwright version so the browser cache key can never serve a
+      # binary that does not match the client. A miss just reinstalls (23s) — never a false green.
+      - name: Resolve Playwright version
+        id: pw
+        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+      - name: Cache Playwright browsers
+        id: pwcache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: pw-${{ runner.os }}-${{ steps.pw.outputs.version }}
+      # `--with-deps` shells out to apt, and the runner's Ubuntu mirror stalls often enough to
+      # matter (see #438). Bound it, then fall back to a browser-only install.
+      - name: Install Playwright browsers (apt bounded, browser-only fallback)
+        if: steps.pwcache.outputs.cache-hit != 'true'
+        timeout-minutes: 12
+        run: |
+          timeout 480 npx playwright install --with-deps chromium \
+            || { echo "::warning::apt/--with-deps stalled or failed — installing the browser only"; \
+                 npx playwright install chromium; }
+      # A cache hit still needs the system libs check to be cheap and non-fatal.
+      - name: Ensure browser present on cache hit
+        if: steps.pwcache.outputs.cache-hit == 'true'
+        run: npx playwright install chromium
+      - run: npm run test:e2e:responsive -- ${{ matrix.projects }}
       - name: Upload responsive QA screenshots
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: responsive-qa-${{ github.run_id }}
+          # upload-artifact@v4 HARD-FAILS on duplicate names across a matrix. The shard
+          # suffix is mandatory, not cosmetic.
+          name: responsive-qa-${{ github.run_id }}-${{ matrix.shard }}
           path: terminal/test-results
           if-no-files-found: ignore
+
+  terminal:
+    # FROZEN NAME. master's branch protection keys on this exact string. Do not edit it,
+    # do not add a matrix to this job, do not let it become a `${{ }}` expression.
+    name: Terminal typecheck + tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [terminal-unit, terminal-e2e]
+    # `always()` so a failed/cancelled/skipped dependency still REPORTS this check as red
+    # rather than leaving it "expected — waiting" forever and wedging every armed PR.
+    if: always()
+    steps:
+      - name: Assert every terminal shard succeeded
+        env:
+          UNIT: ${{ needs.terminal-unit.result }}
+          E2E: ${{ needs.terminal-e2e.result }}
+        run: |
+          echo "terminal-unit=$UNIT terminal-e2e=$E2E"
+          fail=0
+          for pair in "terminal-unit:$UNIT" "terminal-e2e:$E2E"; do
+            job=${pair%%:*}; res=${pair#*:}
+            if [ "$res" != "success" ]; then
+              echo "::error title=terminal-ci::$job concluded '$res' (expected 'success')"
+              fail=1
+            fi
+          done
+          [ "$fail" -eq 0 ] || exit 1
+          echo "All terminal shards green."
 
   python:
     name: Ingest + signal-layer tests
@@ -114,9 +198,12 @@ jobs:
       #   jsonschema     — tests/test_seasonal_regime.py. NOT optional: it is guarded by an
       #                    importorskip, so omitting it turns a real assertion into a silent
       #                    SKIP and the job goes green having tested nothing there.
-      # requirements.txt additionally carries fastapi/uvicorn/pyyaml, which nothing under
-      # tests/ imports — installing them would only slow the job down.
-      - run: pip install numpy pandas pyarrow jsonschema pytest
+      #   pyyaml         — tests/test_merge_on_green.py parses this very file's own YAML to
+      #                    check the candidate-CI permission guard, so a raw text/regex match
+      #                    can't misread a comment or a `run:` shell block as a real job key.
+      # requirements.txt additionally carries fastapi/uvicorn, which nothing under tests/
+      # imports — installing them would only slow the job down.
+      - run: pip install numpy pandas pyarrow jsonschema pyyaml pytest
       # Run as `python -m pytest` from the repo root: that is what puts the root on sys.path,
       # which is how `import ingest.…` / `import signal_layer.…` resolve (there is no
       # conftest.py and no installed package).
