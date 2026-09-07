@@ -65,8 +65,9 @@ ran the tool's own readback-block parser had a bug that aborted the strict
 "Post"` — see PR #516's Round-4 section for the incident and its fix). Any
 `0012`/`0013` apply Meta-CEO B runs before PR #516 merges is, by the same
 reasoning, a raw-fallback apply and not a `--apply` run through this tool;
-`0013`'s row above is not changed by this note — it still awaits its own
-readback receipt.
+`0013`'s row above is not changed by this note — it was applied via that same
+raw fallback, and its own readback receipt is now recorded on PR #513
+(Meta-CEO B comment 5563321750), matching the row above.
 
 `0009` was applied two days before `0008`. The numbering records *when the DDL entered the repo*,
 not when an operator ran it — so **never infer application status from file order.** Ask the
@@ -104,4 +105,4 @@ to apply **everything** from `0001`. That is survivable only because every file 
 **Keep it that way.** A migration that is not safe to re-run is a migration that cannot be applied
 in this estate, because nothing here records that it already was.
 
-`0011`–`0013` were reserved/contested by pull requests that had not merged when `0014` was reserved, so this packet took `0014` rather than a contested prefix. By the time this packet rebased onto `master`, one of those contenders (#502) had actually merged as `0012_thesis_objects.sql` (see the table above) — not `0011` as first assumed — and `0013_alert_runs_outbox.sql` also landed from that same contested set, via PR #513 (merge `be898be5`), matching both rows' **yes** status in the table above. `tests/test_migration_ledger.py` is the only enforcement of prefix uniqueness (§ Version prefixes must be unique).
+`0011`–`0013` were reserved/contested by pull requests that had not merged when `0014` was reserved, so this packet took `0014` rather than a contested prefix. By the time this packet rebased onto `master`, `0011_analytics_eid.sql` had already applied on its own (2026-09-05 UTC, a day before `0014` was reserved — see the table above), one of the remaining contenders (#502) had actually merged as `0012_thesis_objects.sql` (see the table above) — not `0011` as first assumed — and `0013_alert_runs_outbox.sql` also landed from that same contested set, via PR #513 (merge `be898be5`), matching all three rows' **yes** status in the table above. `tests/test_migration_ledger.py` is the only enforcement of prefix uniqueness (§ Version prefixes must be unique).
