@@ -24,6 +24,7 @@ import Link from "next/link";
 import { useT, useLang } from "@/lib/i18n";
 import { getJSON } from "@/lib/dataCache";
 import PortfolioBriefPanel from "@/components/PortfolioBriefPanel";
+import EventImpactPanel from "@/components/EventImpactPanel";
 import PositionModal, { type PositionDraft } from "@/components/PositionModal";
 import {
   bookTotals,
@@ -466,6 +467,16 @@ export default function PortfolioView(
           </details>
         )}
         </>}
+
+        {/* BEGIN event-impact mount (B-F08-5) — one block; no other change to this file.
+            Deliberately OUTSIDE the `{!unread && <>...</>}` fragment above: `holdingsUnreadable`
+            must be able to be true at this call site, and the panel owns its own unreadable
+            rendering (it does not depend on the rest of the page's book-derived KPIs/table).
+            Moved here after MAJOR (review r2): the panel used to sit inside that fragment, which
+            made `holdingsUnreadable` structurally always false and its unreadable branch dead
+            code. Alerts-cockpit mount is a follow-up after PR #517 lands. */}
+        <EventImpactPanel positions={open} holdingsUnreadable={unread} />
+        {/* END event-impact mount (B-F08-5) */}
       </div>
 
       {editing && (
