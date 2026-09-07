@@ -347,17 +347,27 @@ export function conditionsWord(n: number, lang: "en" | "zh"): string {
  * raw condition slugs) — an unrecognized type falls back to the honest generic "Condition".
  * For a price condition with a known operator/threshold, describes it in words: symbol + plain
  * operator + threshold (e.g. "NVDA price above 200" / "NVDA 价格高于 200").
+ *
+ * Minor-2 (round-9 review round 2 of a32b8fd4): the strict `typeof condition.value ===
+ * "number"` gate is the same untrusted-engine-stamp hazard `firedEventTextZh` was hardened
+ * against (minor-1, first r9 pass) — a numeric-STRING threshold fell through to the generic
+ * "condition.price" fallback ("价格触及设定水平" / "Price crosses a level"), silently
+ * DROPPING the threshold number rather than showing it. `normalizeTriggeredValue` is reused
+ * here (same untrusted-input contract: a number or a numeric string normalizes, anything else
+ * does not) so the value survives regardless of which primitive type the caller's own
+ * `condition: any` narrowing happened to preserve.
  */
 export function conditionText(
-  condition: { type?: string; op?: string; value?: number } | null | undefined,
+  condition: { type?: string; op?: string; value?: number | string } | null | undefined,
   symbol: string | undefined,
   lang: "en" | "zh",
 ): string {
   if (!condition || typeof condition.type !== "string") return copy("condition.unknown", lang);
-  if (condition.type === "price" && (condition.op === "above" || condition.op === "below") && typeof condition.value === "number") {
+  const value = normalizeTriggeredValue(condition.value);
+  if (condition.type === "price" && (condition.op === "above" || condition.op === "below") && value !== null) {
     const sym = symbol ? `${symbol} ` : "";
-    if (lang === "zh") return `${sym}价格${condition.op === "above" ? "高于" : "低于"} ${condition.value}`;
-    return `${sym}price ${condition.op} ${condition.value}`;
+    if (lang === "zh") return `${sym}价格${condition.op === "above" ? "高于" : "低于"} ${value}`;
+    return `${sym}price ${condition.op} ${value}`;
   }
   const key = `condition.${condition.type}`;
   return ALERTS_COPY[key] ? copy(key, lang) : copy("condition.unknown", lang);

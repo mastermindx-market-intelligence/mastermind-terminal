@@ -117,6 +117,24 @@ const SENT_OUTBOX = [{
     evidence_url: "https://example.com/evidence/f1", fired_at: "2026-09-05T09:41:00Z",
   },
 }];
+// Minor-2 (round-9 review round 2): `verdictText`'s EN branch prefers the engine's own
+// `condition_plain` payload when present, falling back to `conditionText` only when it is
+// absent — so a fixture that DOES carry `condition_plain` (FIRED_ALERT/SENT_OUTBOX above) never
+// exercises the EN row-vs-drillback phrasing path at all. This fixture omits it, matching the
+// real production shape whenever the engine has not stamped a plain-language note for this
+// fire event, so the EN drillback field actually falls through to `conditionText` — the exact
+// path the round-9-round-1 fix (ZH-only) left divergent from the row's own phrasing.
+const FIRED_ALERT_NO_PLAIN = {
+  id: "a4", symbol: "NVDA", active: false, created_at: "2026-08-01T00:00:00Z",
+  condition: { type: "price", op: "below", value: 150, triggered: { at: "2026-09-05T09:41:00Z", value: 100, note: "crossed" } },
+};
+const SENT_OUTBOX_NO_PLAIN = [{
+  alert_id: "a4", fire_event_id: "f4", status: "sent", attempts: 1, last_error: null,
+  deliver_after: null, delivered_at: "2026-09-05T09:41:00Z", created_at: "2026-08-01T00:00:00Z",
+  payload: {
+    ticker: "NVDA", evidence_url: "https://example.com/evidence/f4", fired_at: "2026-09-05T09:41:00Z",
+  },
+}];
 // Round-9 review of f352b961 (major): a non-price condition kind whose stamped `triggered.value`
 // must NEVER be rendered as if it were a price ("触发时价格 72" for an RSI reading is a
 // fabricated data claim). condition_plain is deliberately EN-only prose the ZH branch never
@@ -367,6 +385,67 @@ describe("AlertsCockpit — full composed ZH page never leaks English and never 
     expect(dialog).not.toBeNull();
     expect(dialog!.textContent ?? "").toContain("触发时价格 100");
     expect(dialog!.textContent ?? "").not.toContain("未记录触发价");
+  });
+
+  it("RED-first: the EN existing-alerts row (.cond) and the EN drillback dialog (\"Condition\") use the SAME phrasing for one price threshold — round-9's ZH-only fix (minor-4) left EN reading \"crosses below\" on the row and \"below\" in the drillback for the identical fact (r9 review round 2, minor-2)", async () => {
+    // Every other test in this file mounts ZH (beforeEach sets data-lang="zh"); this is the one
+    // EN case — the exact language the round-9-round-1 fix left untouched.
+    document.documentElement.setAttribute("data-lang", "en");
+    mockFetch([FIRED_ALERT_NO_PLAIN], {
+      run: FRESH_RUN, runs_state: "READ_OK", last_success_at: FRESH_RUN.concluded_at,
+      last_success_state: "READ_OK", outbox: SENT_OUTBOX_NO_PLAIN, outbox_state: "READ_OK",
+    });
+    await mount();
+
+    const condEl = container.querySelector(".arow .cond");
+    expect(condEl, "expected the existing-alerts row's condition span").not.toBeNull();
+    // `.cond`'s own textContent is "· <condition text>" — the leading bullet is decoration.
+    const condRowText = (condEl!.textContent ?? "").replace(/^\s*·\s*/, "");
+    expect(condRowText).toContain("below 150");
+    // The pre-fix i18n pair said "Price crosses below {value}" — a different verb from the
+    // drillback's "price below {value}" for the identical fact.
+    expect(condRowText).not.toContain("crosses");
+
+    const deliveryRow = container.querySelector('[data-delivery="sent"]') as HTMLElement | null;
+    expect(deliveryRow).not.toBeNull();
+    await act(async () => { deliveryRow!.dispatchEvent(new MouseEvent("click", { bubbles: true })); });
+
+    const dialog = container.querySelector('[data-cockpit-state="drillback"]');
+    expect(dialog).not.toBeNull();
+    const leafWithText = (text: string) =>
+      Array.from(dialog!.querySelectorAll("*")).find((el) => el.textContent === text && el.children.length === 0);
+    const conditionLabel = leafWithText("Condition");
+    expect(conditionLabel, 'expected a "Condition" label in the EN drillback dialog').not.toBeUndefined();
+    const conditionValue = conditionLabel!.nextElementSibling?.textContent ?? "";
+    // The drillback field carries its own symbol prefix ("NVDA price below 150") — the row
+    // deliberately omits it (its adjacent `.tk` span already shows the ticker) — so the
+    // parity check is on the VERB, not exact string equality between the two fields.
+    expect(conditionValue).toContain("below 150");
+    expect(conditionValue).not.toContain("crosses");
+  });
+
+  it("RED-first: an armed (never fired) row never carries `has-note` — the 390px grid must not reserve an always-empty note row for it (minor-1, r9 review round 2)", async () => {
+    mockFetch([WATCHING_ALERT], {
+      run: FRESH_RUN, runs_state: "READ_OK", last_success_at: FRESH_RUN.concluded_at,
+      last_success_state: "READ_OK", outbox: [], outbox_state: "READ_OK_ZERO",
+    });
+    await mount();
+    const row = container.querySelector(".arow");
+    expect(row, "expected the existing-alerts management panel to render a row").not.toBeNull();
+    expect(row!.classList.contains("has-note")).toBe(false);
+    expect(row!.querySelector(".arow-note")).toBeNull();
+  });
+
+  it("RED-first: a fired row whose note actually renders carries `has-note` (minor-1, r9 review round 2)", async () => {
+    mockFetch([FIRED_ALERT], {
+      run: FRESH_RUN, runs_state: "READ_OK", last_success_at: FRESH_RUN.concluded_at,
+      last_success_state: "READ_OK", outbox: SENT_OUTBOX, outbox_state: "READ_OK",
+    });
+    await mount();
+    const row = container.querySelector(".arow");
+    expect(row).not.toBeNull();
+    expect(row!.classList.contains("has-note")).toBe(true);
+    expect(row!.querySelector(".arow-note")).not.toBeNull();
   });
 
   it("no-coverage + zero-rows fixture: CouldNotWatch and the new recent-activity module are English-free on the full composed page, and the new module carries the same moduleHead label treatment as its siblings (minor 3)", async () => {

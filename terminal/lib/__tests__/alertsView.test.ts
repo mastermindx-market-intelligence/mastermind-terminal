@@ -298,6 +298,26 @@ describe("conditionText — no raw condition slugs (major 3)", () => {
     expect(conditionText(null, undefined, "en")).toBe("Condition");
     expect(conditionText({}, undefined, "zh")).toBe("条件");
   });
+  // Minor-2 (round-9 review round 2 of a32b8fd4): a numeric-STRING `condition.value` — the
+  // same untrusted engine-stamp shape `firedEventTextZh`'s own `normalizeTriggeredValue` was
+  // hardened against — used to fail the strict `typeof condition.value === "number"` gate and
+  // fall all the way through to the generic "condition.price" fallback ("Price crosses a
+  // level" / "价格触及设定水平"), silently DROPPING the threshold number in both languages.
+  it("RED-first: a numeric-STRING price threshold still renders the value, never the generic no-value fallback", () => {
+    const stringValueCondition = { type: "price", op: "below", value: "150" as unknown as number };
+    const en = conditionText(stringValueCondition, "NVDA", "en");
+    const zh = conditionText(stringValueCondition, undefined, "zh");
+    expect(en).toContain("150");
+    expect(en).not.toBe(ALERTS_COPY["condition.price"][0]);
+    expect(zh).toContain("150");
+    expect(zh).not.toBe(ALERTS_COPY["condition.price"][1]);
+  });
+  // A non-numeric string (or any other unparseable shape) must still fall back honestly —
+  // normalization must never fabricate a value that was never on the record.
+  it("a non-numeric condition.value still falls back to the honest generic label", () => {
+    const garbage = { type: "price", op: "below", value: "not-a-number" as unknown as number };
+    expect(conditionText(garbage, "NVDA", "en")).toBe(ALERTS_COPY["condition.price"][0]);
+  });
 });
 
 describe("conditionsWord — EN singular/plural agreement (minor 2, round-3 review)", () => {

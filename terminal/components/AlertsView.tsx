@@ -157,17 +157,22 @@ export default function AlertsView({ email, panelOnly, listOnly }: { email: stri
     if (c?.type === "signal") return c.target === "BUY" ? t("condSignalBuy") : t("condSignalSell");
     if (c?.type === "regime") return t("condRegimeUp");
     if (c?.type === "price") {
-      // Minor-4 (META-CEO B ruling r9): this row and the drillback's "条件" field describe the
-      // SAME fact — a price threshold — and must use one ZH phrasing. The drillback field
-      // (AlertDetail.tsx, via verdictText -> conditionText) says "价格高于/低于 {value}"; this
-      // row used its own i18n pair (condPriceAbove/condPriceBelow, "价格上穿/下穿") for the
-      // identical fact, so the same alert read two different ZH verbs on the same page (r9
-      // review, minor-4). Route ZH through conditionText too; the New Alert dropdown a few
-      // lines up (COND_TYPES) is a distinct UI context this ruling does not touch and keeps
-      // condPriceAbove/condPriceBelow. `undefined` symbol — the row already shows the ticker
-      // in the adjacent `.tk` span; conditionText only prefixes a symbol when one is passed.
-      if (lang === "zh") return conditionText(c, undefined, "zh");
-      return `${c.op === "above" ? t("condPriceAbove") : t("condPriceBelow")} ${c.value}`;
+      // Minor-4 (META-CEO B ruling r9): this row and the drillback's "条件"/"Condition" field
+      // describe the SAME fact — a price threshold — and must use one phrasing PER LANGUAGE
+      // on the page. The drillback field (AlertDetail.tsx, via verdictText -> conditionText)
+      // says "价格高于/低于 {value}" / "price above/below {value}"; this row used its own i18n
+      // pairs (condPriceAbove/condPriceBelow: "价格上穿/下穿" ZH, "Price crosses above/below"
+      // EN) for the identical fact, so the same alert read two different verbs on the same
+      // page (r9 review, minor-4). Round-9's first pass routed ZH alone through
+      // conditionText, which closed the ZH divergence but — because it left EN on the old
+      // condPriceAbove/condPriceBelow pair — left EN divergent in exactly the same way
+      // (row: "Price crosses below 150", drillback: "price below 150") the ruling exists to
+      // stop (r9 review round 2, minor-2). Route BOTH languages through conditionText: the
+      // New Alert dropdown a few lines up (COND_TYPES) is a distinct UI context this ruling
+      // does not touch and keeps condPriceAbove/condPriceBelow. `undefined` symbol — the row
+      // already shows the ticker in the adjacent `.tk` span; conditionText only prefixes a
+      // symbol when one is passed.
+      return conditionText(c, undefined, lang === "zh" ? "zh" : "en");
     }
     if (c?.type === "rsi") return `${t("condRsiBelow")} ${c.value}`;
     // options-flow types: reuse the plain-word preview (already display-tier + bilingual)
@@ -679,8 +684,14 @@ export default function AlertsView({ email, panelOnly, listOnly }: { email: stri
             const trig = !a.active && a.condition?.triggered; // engine one-shot: fired -> disarmed + stamped
             const note = trig ? String(a.condition.triggered.note ?? "") : "";
             const tval = trig ? a.condition.triggered.value : null;
+            // Minor-1 (round-9 review of a32b8fd4): mirrors the exact render gate of the
+            // `.arow-note` span below (zh = `trig` alone, en = `trig && note`) so the 390px
+            // grid (globals.css `.arow.has-note`) only reserves a note row when a note is
+            // actually about to render — an unconditional row reference was allocating an
+            // always-empty row-2 track (and its row-gap on both edges) on every unfired row.
+            const hasNote = lang === "zh" ? !!trig : !!(trig && note);
             return (
-              <div key={a.id} className="arow">
+              <div key={a.id} className={`arow${hasNote ? " has-note" : ""}`}>
                 <span className={`dot${a.active ? "" : " off"}`} style={trig ? { background: "var(--signal)" } : undefined} />
                 <span><span className="tk">{a.symbol}</span> <span className="cond">· {condText(a.condition)}</span></span>
                 {trig ? <button className="btn" style={{ height: 26, fontSize: 11.5, justifySelf: "end" }} onClick={() => rearm(a.id)}>{t("rearm")}</button> : <span />}
