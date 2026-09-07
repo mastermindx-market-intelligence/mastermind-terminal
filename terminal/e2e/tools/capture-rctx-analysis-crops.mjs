@@ -13,10 +13,22 @@
 // one-off script, same class as e2e/tools/measure-analysis-mobilebar-stacking.mjs.
 //
 // Usage: node e2e/tools/capture-rctx-analysis-crops.mjs <port> <outDir>
+// Starts its own `next dev` on <port> (ANALYSIS_LOCAL_PREVIEW=1, same env as
+// playwright.config.ts webServer) so /analysis is not member-gated, then exits
+// the server when the crops are written.
 import { chromium } from "@playwright/test";
-import { mkdirSync, writeFileSync } from "fs";
+import { mkdirSync, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
-import { execFileSync } from "child_process";
+import { execFileSync, spawn } from "child_process";
+
+/** Language key is read from the app, not assumed — terminal/lib/i18n.tsx writes it. */
+function languageStorageKeyFromI18n() {
+  const src = readFileSync(join(import.meta.dirname, "../../lib/i18n.tsx"), "utf8");
+  const m = src.match(/localStorage\.setItem\("([^"]+)",\s*l\)/);
+  if (!m) throw new Error("could not read language storage key from terminal/lib/i18n.tsx");
+  return m[1];
+}
+const LANG_STORAGE_KEY = languageStorageKeyFromI18n();
 
 const [port, outDir] = process.argv.slice(2);
 if (!port || !outDir) {
@@ -105,29 +117,84 @@ async function captureOne(browser, { width, height, lang, label }) {
   const page = await context.newPage();
   await mockRoutes(page);
   if (lang === "zh") {
-    await page.addInitScript(() => { try { localStorage.setItem("mm.lang", "zh"); } catch {} });
+    const key = LANG_STORAGE_KEY;
+    await page.addInitScript((storageKey) => { try { localStorage.setItem(storageKey, "zh"); } catch {} }, key);
   }
   await page.goto(`http://127.0.0.1:${port}/analysis?symbol=NVDA&page=intelligence`, { waitUntil: "domcontentloaded" });
-  // Real production mm_brain.js appends its own <script> tag; wait for that + the host mount
-  // flag BrainWidget.tsx sets, not a fixed sleep.
+  // components/BrainWidget.tsx appends the <script src="…/mm_brain.js"> tag
+  // (document.body.appendChild); wait for that tag, not a fixed sleep.
   await page.waitForSelector('script[src="https://www.mastermind-x.com/mm_brain.js"]', { state: "attached", timeout: 20_000 });
   await page.locator(".ci-lenses").getByRole("tab").nth(1).click();
   const search = page.locator(".ci-ts-search");
   await search.locator("input").fill("Exact source");
   await search.locator(".btn").click();
   await page.locator(".ci-ts-results .ci-ts-span").first().waitFor({ timeout: 10_000 });
-  await page.getByRole("button", { name: "Attach to Mastermind" }).click();
+  const attachName = lang === "zh" ? "附加给 Mastermind" : "Attach to Mastermind";
+  const askName = lang === "zh" ? "带来源询问 Mastermind" : "Ask Mastermind with source";
+  await page.getByRole("button", { name: attachName }).click();
   const attachment = page.getByTestId("company-source-context-attachment");
   await attachment.waitFor({ timeout: 10_000 });
-  await page.getByRole("button", { name: "Ask Mastermind with source" }).click();
+  await page.getByRole("button", { name: askName }).click();
   // Give the real widget's own panel-open animation a moment to settle before the crop.
   await page.waitForTimeout(1500);
+  const geometry = await page.evaluate(() => {
+    const bar = document.querySelector(".mobilebar");
+    const pane = document.querySelector(".fin-pane--workspace");
+    const barRect = bar ? bar.getBoundingClientRect() : null;
+    const paneRect = pane ? pane.getBoundingClientRect() : null;
+    return {
+      mobilebarHeight: barRect ? barRect.height : null,
+      mobilebarBottom: barRect ? barRect.bottom : null,
+      workspaceTop: paneRect ? paneRect.top : null,
+    };
+  });
   const fileBase = `${width}x${height}-${lang}-analysis-brain-panel-open-source-attached`;
   const pngPath = join(outDir, `${fileBase}.png`);
   await page.screenshot({ path: pngPath, fullPage: false });
   await context.close();
-  console.log(`[${label}] wrote ${pngPath}`);
-  return fileBase;
+  console.log(`[${label}] wrote ${pngPath} workspaceTop=${geometry.workspaceTop} mobilebarBottom=${geometry.mobilebarBottom}`);
+  return { fileBase, geometry };
+}
+
+function startDevServer(devPort) {
+  const child = spawn("npm", ["run", "dev", "--", "--hostname", "127.0.0.1", "--port", String(devPort)], {
+    cwd: join(import.meta.dirname, "../.."),
+    env: {
+      ...process.env,
+      ANALYSIS_LOCAL_PREVIEW: "1",
+      ADMIN_DEV: "1",
+      TERMINAL_E2E_FIXTURE: "1",
+      TERMINAL_E2E_EMAIL: "responsive@example.com",
+      TERMINAL_E2E_ENTITLEMENT: "unlimited",
+      RATE_LIMIT_MAX: "100000",
+      FLOW_FIXTURE: "1",
+      NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: "fixture-anon-key",
+    },
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+  return child;
+}
+
+async function waitForDevServer(devPort, timeoutMs = 120_000) {
+  const url = `http://127.0.0.1:${devPort}/analysis?symbol=NVDA`;
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    try {
+      const res = await fetch(url, { signal: AbortSignal.timeout(3000) });
+      if (res.status > 0) return;
+    } catch { /* still booting */ }
+    await new Promise((r) => setTimeout(r, 500));
+  }
+  throw new Error(`dev server on ${devPort} did not become ready`);
+}
+
+const server = startDevServer(port);
+try {
+  await waitForDevServer(port);
+} catch (err) {
+  server.kill("SIGTERM");
+  throw err;
 }
 
 const browser = await chromium.launch();
@@ -141,8 +208,10 @@ try {
   }
 } finally {
   await browser.close();
+  server.kill("SIGTERM");
 }
 
 writeFileSync(join(outDir, `capture-log-${capturedAtHead.slice(0, 8)}.txt`),
-  `capturedAtHead=${capturedAtHead}\ncapturedAt=${new Date().toISOString()}\nfiles=\n${results.map((r) => `  ${r}.png`).join("\n")}\n`);
+  `capturedAtHead=${capturedAtHead}\nlangStorageKey=${LANG_STORAGE_KEY}\ncapturedAt=${new Date().toISOString()}\nfiles=\n${results.map((r) => `  ${r.fileBase}.png workspaceTop=${r.geometry.workspaceTop} mobilebarBottom=${r.geometry.mobilebarBottom}`).join("\n")}\n`);
 console.log("capturedAtHead", capturedAtHead);
+console.log("langStorageKey", LANG_STORAGE_KEY);
