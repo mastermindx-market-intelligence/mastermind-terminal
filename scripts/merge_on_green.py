@@ -5,15 +5,15 @@ Terminal protects master with the same three required checks and supports native
 auto-merge as the fastest server-side path. This controller is the fallback for a
 ready pull request that was labelled but never natively armed. It only considers
 same-repository, non-draft pull requests carrying the
-``merge-on-green`` label; requires the latest instance of all three CI jobs to have
-completed successfully; refreshes a stale branch onto current master before merge;
-and pins the squash merge to the head SHA it evaluated.
+``merge-on-green`` label; requires the latest trusted instance of all three CI jobs
+to have completed successfully; refreshes a stale branch onto current master before
+merge; and pins the squash merge to the head SHA it evaluated.
 
 The controller is deliberately label-gated. ``hold`` and ``do-not-merge`` are hard
-vetoes. A genuine red or conflict is labelled ``merge-blocked`` with one comment;
-pending or missing evidence simply waits. One sweep may merge a green pull request
-and then update the next stale one, but it never merges two pull requests against the
-same base snapshot.
+vetoes. A genuine trusted red or conflict is labelled ``merge-blocked`` with one
+comment; pending, missing, or wrong-App evidence simply waits. One sweep may merge
+a green pull request and then update the next stale one, but it never merges two
+pull requests against the same base snapshot.
 """
 from __future__ import annotations
 
@@ -35,6 +35,10 @@ REQUIRED_CHECKS = (
     "Terminal typecheck + tests",
     "Ingest + signal-layer tests",
 )
+# Native master protection binds every required context to the GitHub Actions App.
+# The fallback must mirror that authority rather than accepting same-named checks
+# from another App.
+REQUIRED_CHECK_APP_ID = 15368
 BLOCK_MARKER = "<!-- mastermind-terminal-merge-sweeper -->"
 
 
@@ -87,11 +91,6 @@ class GitHubApi:
         data = self.request("GET", f"/commits/{quoted}/check-runs?per_page=100")
         return data.get("check_runs", [])
 
-    def compare(self, base_sha: str, head_sha: str) -> str:
-        base = urllib.parse.quote(base_sha, safe="")
-        head = urllib.parse.quote(head_sha, safe="")
-        return str(self.request("GET", f"/compare/{base}...{head}").get("status", "unknown"))
-
     def update_branch(self, number: int, head_sha: str) -> None:
         self.request("PUT", f"/pulls/{number}/update-branch", {"expected_head_sha": head_sha})
 
@@ -137,7 +136,6 @@ class MergeApi(Protocol):
     def list_pulls(self) -> list[dict[str, Any]]: ...
     def pull(self, number: int) -> dict[str, Any]: ...
     def check_runs(self, sha: str) -> list[dict[str, Any]]: ...
-    def compare(self, base_sha: str, head_sha: str) -> str: ...
     def update_branch(self, number: int, head_sha: str) -> None: ...
     def dispatch_ci(self, branch: str) -> None: ...
     def merge(self, number: int, head_sha: str) -> dict[str, Any]: ...
@@ -157,11 +155,22 @@ def label_names(pull: dict[str, Any]) -> set[str]:
     return {str(label.get("name", "")) for label in pull.get("labels", [])}
 
 
+def trusted_check_app_id(run: dict[str, Any]) -> int | None:
+    app = run.get("app")
+    if not isinstance(app, dict):
+        return None
+    app_id = app.get("id")
+    # bool is an int subclass, so require the exact response type GitHub emits.
+    return app_id if type(app_id) is int else None
+
+
 def latest_named_checks(check_runs: Iterable[dict[str, Any]]) -> dict[str, dict[str, Any]]:
     latest: dict[str, dict[str, Any]] = {}
     for run in check_runs:
         name = str(run.get("name", ""))
         if name not in REQUIRED_CHECKS:
+            continue
+        if trusted_check_app_id(run) != REQUIRED_CHECK_APP_ID:
             continue
         prior = latest.get(name)
         if prior is None or int(run.get("id", 0)) > int(prior.get("id", 0)):
@@ -173,7 +182,10 @@ def check_verdict(check_runs: Iterable[dict[str, Any]]) -> CheckVerdict:
     latest = latest_named_checks(check_runs)
     missing = [name for name in REQUIRED_CHECKS if name not in latest]
     if missing:
-        return CheckVerdict("pending", f"missing: {', '.join(missing)}")
+        return CheckVerdict(
+            "pending",
+            f"missing trusted App {REQUIRED_CHECK_APP_ID} checks: {', '.join(missing)}",
+        )
 
     waiting = [name for name, run in latest.items() if run.get("status") != "completed"]
     if waiting:
@@ -248,9 +260,14 @@ def sweep(api: MergeApi, trigger_number: int | None = None) -> list[str]:
         if BLOCK_LABEL in label_names(pull):
             api.remove_label(number, BLOCK_LABEL)
 
-        base_sha = str(pull["base"]["sha"])
-        relation = api.compare(base_sha, head_sha)
-        if relation not in {"ahead", "identical"}:
+        # `pull["base"]["sha"]` on this same payload is the base ref position at
+        # the moment the PR was last synced by GitHub and can sit many commits
+        # behind the live branch tip (measured on #422: base.sha was stale while
+        # master had moved on). `mergeable_state` is GitHub's own live relation to
+        # the CURRENT base branch, so the refresh-vs-merge decision reads that
+        # field instead of comparing against the stale sha.
+        mergeable_state = str(pull.get("mergeable_state") or "unknown")
+        if mergeable_state == "behind":
             branch = str(pull["head"]["ref"])
             api.update_branch(number, head_sha)
             api.dispatch_ci(branch)
@@ -258,8 +275,29 @@ def sweep(api: MergeApi, trigger_number: int | None = None) -> list[str]:
             # An update creates the next safe wake-up. Stop so no other green is
             # judged against a base snapshot this mutation just invalidated.
             break
+        if mergeable_state != "clean":
+            # blocked/unstable/unknown/has_hooks: GitHub has not (yet) confirmed a
+            # clean merge against the current base. Wait for the next sweep
+            # rather than attempting a merge GitHub has not settled on, or that a
+            # strict-protection 405 would only refuse anyway.
+            actions.append(f"#{number}: waiting (mergeable_state={mergeable_state})")
+            continue
 
-        result = api.merge(number, head_sha)
+        try:
+            result = api.merge(number, head_sha)
+        except ApiError as error:
+            # GitHub itself refusing the merge call (405 under strict
+            # required-status protection when its own view of the PR is still
+            # settling, or any other 4xx) is this PR's own wait, never a reason
+            # to stop evaluating the rest of the sweep. A 5xx/429/other
+            # non-4xx is NOT GitHub declining the merge on the merits -- it is
+            # the API itself failing -- so it is reraised and still aborts the
+            # sweep via main()'s existing handler rather than being recorded as
+            # a per-PR "declined" outcome that word does not honestly describe.
+            if not (400 <= error.status < 500):
+                raise
+            actions.append(f"#{number}: declined: {error}")
+            continue
         if not result.get("merged"):
             # The head/base may have moved between proof and the SHA-pinned write.
             # That is a wait, not permission to force an admin merge.
@@ -297,6 +335,17 @@ def main() -> int:
     else:
         for action in actions:
             print(f"::notice::{action}")
+    # A declined merge (e.g. GitHub 405s a merge attempt) is reported only after
+    # every armed pull request has been evaluated (never mid-sweep, unlike the
+    # unhandled-exception path above that aborted the whole sweep on the first
+    # such PR); exiting non-zero here still surfaces it to the workflow run
+    # without having skipped any other armed pull request.
+    if any(": declined:" in action for action in actions):
+        print(
+            "::error::one or more armed pull requests were declined by GitHub this sweep; see notices above",
+            file=sys.stderr,
+        )
+        return 1
     return 0
 
 

@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import AnalysisWorkspaceMount from "@/components/mounts/AnalysisWorkspaceMount";
+import ThesisWorkspaceMount from "@/components/mounts/ThesisWorkspaceMount";
+import UnsupportedAnalysisRoute from "@/components/workspaces/UnsupportedAnalysisRoute";
 import SignupGate from "@/components/gates/SignupGate";
+import { parseAnalysisRoute } from "@/lib/analysisRoute";
 
 // Analysis workspace (Wave-2 IA) — the in-chart Fundamentals dashboard (MegaPane)
 // promoted to its own route at /analysis, under the (shell) route group (route
@@ -22,25 +25,25 @@ interface AnalysisPageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
-function firstParam(value: string | string[] | undefined): string | undefined {
-  return Array.isArray(value) ? value[0] : value;
-}
-
 export default async function AnalysisPage({ searchParams }: AnalysisPageProps) {
   const query = await searchParams;
-  const workspace = (
-    <AnalysisWorkspaceMount
-      initialSymbol={firstParam(query.symbol)}
-      initialPage={firstParam(query.page) ?? firstParam(query.pane)}
-    />
+  const route = parseAnalysisRoute(query);
+  const workspace = (ownerKey: string) => route.kind === "company" ? (
+    <AnalysisWorkspaceMount initialSymbol={route.symbol} initialPage={route.page} />
+  ) : route.kind === "theses" ? (
+    <ThesisWorkspaceMount key={`${ownerKey}:${route.thesisId ?? "new"}`} ownerKey={ownerKey} initialSymbol={route.symbol} initialThesisId={route.thesisId} />
+  ) : route.kind === "invalid_thesis" ? (
+    <ThesisWorkspaceMount key={`${ownerKey}:invalid`} ownerKey={ownerKey} invalidLink />
+  ) : (
+    <UnsupportedAnalysisRoute reason={route.reason} />
   );
   // Local visual QA needs the real workspace without manufacturing a Supabase
   // session. The production build can never activate this escape hatch.
   if (process.env.NODE_ENV !== "production" && process.env.ANALYSIS_LOCAL_PREVIEW === "1") {
-    return workspace;
+    return workspace("local-preview");
   }
   const supabase = await createClient();
   const { data } = await supabase.auth.getClaims();
   if (typeof data?.claims?.sub !== "string") return <SignupGate surface="analysis" />;
-  return workspace;
+  return workspace(data.claims.sub);
 }

@@ -77,10 +77,13 @@ import argparse
 import json
 import math
 import os
+import hashlib
 import re
 import sys
+import urllib.error
 import urllib.parse
 import urllib.request
+import uuid
 from datetime import date, datetime, time, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -89,6 +92,12 @@ DEFAULT_ENV = "/opt/terminal/terminal/.env.local"
 DEFAULT_DATA = "/opt/terminal/terminal/public/data"
 DEFAULT_FLOW_BACKEND = "http://127.0.0.1:8000"
 DEFAULT_FLOW_R2 = "https://pub-f7ffb4441c5f4ad983ca56ec7c651c61.r2.dev"
+# Meta-CEO ruling (PR #513 review round 5, MINOR-1): the one real lane this file runs, and the
+# real cadence it runs on (see the module docstring: "Runs every 5 minutes"). main() passes both
+# explicitly to run_once() rather than relying on the function's own defaults, so the receipt's
+# lane_cadence_budget_s is plumbed from a named, documented source instead of an implicit match.
+ALERTS_LANE = "alerts_engine"
+ALERTS_LANE_CADENCE_S = 300
 FLOW_USER_AGENT = "mastermind-alerts/1.0"
 FLOW_ROOT_RE = re.compile(r"^[A-Z0-9]{1,10}(?:[.-][A-Z0-9]{1,4})?$")
 FLOW_STAMP_RE = re.compile(r"^[A-Za-z0-9_-]{1,32}$")
@@ -132,6 +141,206 @@ def http_json(url: str, headers: dict | None = None, method: str = "GET", body: 
         return json.loads(raw) if raw.strip() else None
 
 
+def http_json_status(url: str, headers: dict | None = None, method: str = "GET", body: dict | None = None, timeout: int = 15):
+    """Like http_json but never raises on an HTTPError — returns (status, parsed_body_or_None,
+    raw_text). Used by the receipt/outbox paths, which must classify a 404/42P01 (table absent —
+    typed READ_UNAVAILABLE) instead of crashing the run."""
+    req = urllib.request.Request(url, method=method, headers=headers or {})
+    data = None
+    if body is not None:
+        data = json.dumps(body).encode()
+        req.add_header("Content-Type", "application/json")
+    try:
+        with urllib.request.urlopen(req, data=data, timeout=timeout) as r:
+            raw = r.read()
+            return r.status, (json.loads(raw) if raw.strip() else None), raw.decode(errors="replace")
+    except urllib.error.HTTPError as e:
+        raw = e.read()
+        text = raw.decode(errors="replace")
+        try:
+            parsed = json.loads(raw) if raw.strip() else None
+        except json.JSONDecodeError:
+            parsed = None
+        return e.code, parsed, text
+    except (urllib.error.URLError, TimeoutError, OSError) as e:
+        # DNS failure / connection reset / socket timeout — a transport blip, not an HTTP
+        # response. Must never propagate: the caller (start_run/conclude_run/insert_outbox) is
+        # receipts-only, and letting this raise would abort fire() BEFORE the disarm PATCH runs
+        # (MAJOR 8). Synthetic 599 classifies as READ_UNAVAILABLE, same as a 503.
+        log(f"transport error contacting {url}: {e}")
+        return 599, None, str(e)
+
+
+# Transient state riding the condition jsonb — hysteresis flags the stateful options
+# evaluators persist between runs, plus the trigger stamp itself. None of these are part of
+# what the alert IS; excluding them keeps condition_version stable across the runs that lead
+# up to a fire. _CONDITION_TRANSIENT_KEYS itself is assigned further down, DERIVED from
+# _OPT_EVALUATORS' own state keys (Meta-CEO ruling, PR #513 review round 4, MAJOR-2) — never
+# hand-duplicated here, so a new stateful evaluator can never forget to exclude its own
+# hysteresis key. Module-level names resolve at call time, so referencing the name here (before
+# its later assignment) is safe: nothing calls condition_version() before the whole module has
+# finished loading.
+
+
+def condition_version(condition: dict) -> str:
+    """A short, deterministic fingerprint of the alert's condition, excluding transient/hysteresis
+    keys, so it changes only when the user actually edits the condition."""
+    stable = {k: v for k, v in (condition or {}).items() if k not in _CONDITION_TRANSIENT_KEYS}
+    raw = json.dumps(stable, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(raw.encode()).hexdigest()[:16]
+
+
+def mint_fire_event_id(alert: dict, vintage: str) -> str:
+    """Deterministic fire_event_id = f(alert id, condition version, evaluation vintage). Same
+    alert + same condition + same data vintage => same id, so a replayed run (crash-and-retry, or
+    a second engine invocation racing the first) inserts the SAME outbox row instead of a second
+    one — the unique index on alert_outbox.fire_event_id is the enforcement point, this is just
+    the deterministic input to it.
+
+    Identity is ONLY this triple (Meta-CEO ruling, F08 id contract frozen with macro's B-F08-1b
+    drain) — never the outbox row's own status. A same-vintage replay (crash-and-retry reading
+    the same on-disk data) collapses onto the same id by construction; a genuine re-fire after a
+    re-arm has a NEW vintage (the data moved on) and therefore mints a new id. There is
+    deliberately no other identity signal (no lookup of a prior row) because a crash-retry and a
+    genuine re-fire are indistinguishable from any state the outbox itself could offer."""
+    raw = f"{alert.get('id')}:{condition_version(alert.get('condition') or {})}:{vintage}"
+    return hashlib.sha256(raw.encode()).hexdigest()
+
+
+def _minute_vintage(value: str | None) -> str | None:
+    """Best-effort truncation of an ISO-8601 timestamp to minute-granularity UTC — the id
+    contract's evaluation_vintage is deliberately coarse so a fast crash-and-retry (same
+    underlying data, a few seconds apart) collapses onto the same vintage. A bare date (no time
+    component, e.g. an EOD build stamp) parses to that date's midnight and stays stable for the
+    whole build day, which is all a daily-cadence EOD read needs."""
+    if not isinstance(value, str) or not value:
+        return None
+    try:
+        dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return value  # not parseable as a timestamp — pass through as an opaque-but-stable token
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%MZ")
+
+
+# Meta-CEO ruling (PR #513 review round 6, MINOR-2): the bare generic TA terms "resistance
+# level"/"support level" collide with the chart resistance/support the user already has —
+# precision loss without a qualifier. The wall side must always carry the "options" qualifier
+# (DEC-CHAIRMAN-FRONTEND-PLAIN-LANGUAGE-LAW-2026-09-06 binds every user-facing string, and this
+# dict feeds the delivered outbox payload).
+_OPT_WALL_SIDE_EN = {
+    "call": "an options level that tends to act as resistance",
+    "put": "an options level that tends to act as support",
+}
+_OPT_WALL_SIDE_ZH = {
+    "call": "一个通常起阻力作用的期权关键价位",
+    "put": "一个通常起支撑作用的期权关键价位",
+}
+
+
+def _plain_root(cond: dict, symbol: str) -> str:
+    return str(cond.get("root") or symbol or "the underlying")
+
+
+def _condition_plain_en(cond: dict, symbol: str) -> str:
+    """Plain-English description of what the alert WATCHES FOR — the condition, never the
+    fired result (Meta-CEO ruling, PR #513 review round 4, MAJOR-3). Built from the STRUCTURED
+    condition dict alone: no basis tags, no raw ISO timestamps, no internal slugs — those stay
+    in the engine's own log lines and never reach a delivered payload.
+
+    Meta-CEO ruling (PR #513 review round 5, MAJOR-1): every branch — including the opt_* ones
+    — uses plain everyday words, never an internal study/indicator name (no "RSI(14)"), a raw
+    Greek-letter options term (no "gamma"), or an internal leg/slug abbreviation (no
+    "net-put"/"net-call"). "bullish"/"bearish" and the options-wall phrase above are the plain
+    vocabulary this file already uses elsewhere (the regime branch below) — every reader already
+    recognizes them, unlike the internal names they replace
+    (DEC-CHAIRMAN-FRONTEND-PLAIN-LANGUAGE-LAW-2026-09-06 binds every user-facing string).
+
+    Meta-CEO ruling (PR #513 review round 6, MAJOR-1/MAJOR-2/MINOR-3): plain wording must
+    describe the MEASURED quantity, never a different claim. opt_0dte_spike measures a SHARE of
+    the options money traded (never an absolute "surge in trading" — the share can cross while
+    0DTE activity is flat or falling); opt_sign_fragile measures how BALANCED the call/put gamma
+    split is (never a trader-sentiment/conviction claim — the evaluator observes no trader
+    behavior); opt_opex_concentration measures a share of OPEN options positions concentrated in
+    the front expiry (never generic "options activity")."""
+    ctype = cond.get("type")
+    sym = symbol or "the symbol"
+    if ctype == "price":
+        op_word = "rises above" if cond.get("op") == "above" else "falls below"
+        return f"{sym} {op_word} {cond.get('value')}"
+    if ctype == "rsi":
+        return f"{sym} drops into oversold territory, below {cond.get('value')}"
+    if ctype == "regime":
+        return f"{sym} turns bullish"
+    if ctype == "signal":
+        return f"{sym} gets a buy signal" if cond.get("target") == "BUY" else f"{sym} gets a sell signal"
+    root = _plain_root(cond, sym)
+    if ctype == "opt_gamma_flip":
+        return f"{root} crosses a key options level that can amplify its price swings"
+    if ctype == "opt_wall_touch":
+        wall = _OPT_WALL_SIDE_EN["put" if cond.get("wall") == "put" else "call"]
+        return f"{root} nears {wall}"
+    if ctype == "opt_premium_burst":
+        bias = "bearish" if cond.get("leg") == "npp" else "bullish"
+        return f"{root} sees an unusually large burst of {bias} options bets"
+    if ctype == "opt_0dte_spike":
+        return (f"same-day options now make up an unusually large share of the options money "
+                 f"being traded in {root}")
+    if ctype == "opt_wall_migration":
+        role = "support" if cond.get("wall") == "put" else "resistance"
+        return f"the options level that tends to act as {role} for {root} shifts to a new price"
+    if ctype == "opt_sign_fragile":
+        return f"the options positioning picture for {root} is finely balanced and could flip either way"
+    if ctype == "opt_opex_concentration":
+        return f"a large share of {root}'s open options positions is concentrated in the nearest expiration date"
+    if ctype == "opt_surface_pocket":
+        return f"{root} shows an unusual cluster of options activity at one price level"
+    return f"{sym} condition is met"
+
+
+def _condition_plain_zh(cond: dict, symbol: str) -> str:
+    """Simplified-Chinese sibling of _condition_plain_en — same rule: describes the condition,
+    built from the structured dict, never the fired result or internal jargon.
+
+    Meta-CEO ruling (PR #513 review round 5, MAJOR-1): every internal term is TRANSLATED into
+    plain Chinese, never left as a bare Latin/English fragment inside the Chinese sentence (no
+    untranslated "gamma", no untranslated "RSI(14)") — a mixed-language sentence fails the plain-
+    language law exactly as an untranslated jargon term does in English."""
+    ctype = cond.get("type")
+    sym = symbol or "该标的"
+    if ctype == "price":
+        op_word = "涨破" if cond.get("op") == "above" else "跌破"
+        return f"{sym}{op_word}{cond.get('value')}"
+    if ctype == "rsi":
+        return f"{sym}跌入超卖区间，低于{cond.get('value')}"
+    if ctype == "regime":
+        return f"{sym}转为多头"
+    if ctype == "signal":
+        return f"{sym}出现买入信号" if cond.get("target") == "BUY" else f"{sym}出现卖出信号"
+    root = _plain_root(cond, sym)
+    if ctype == "opt_gamma_flip":
+        return f"{root}突破一个可能放大其价格波动的关键期权水平"
+    if ctype == "opt_wall_touch":
+        wall = _OPT_WALL_SIDE_ZH["put" if cond.get("wall") == "put" else "call"]
+        return f"{root}接近{wall}"
+    if ctype == "opt_premium_burst":
+        bias = "看跌" if cond.get("leg") == "npp" else "看涨"
+        return f"{root}出现异常大量的{bias}期权押注"
+    if ctype == "opt_0dte_spike":
+        return f"{root}当日到期期权在期权成交金额中的占比异常偏高"
+    if ctype == "opt_wall_migration":
+        role = "支撑" if cond.get("wall") == "put" else "阻力"
+        return f"{root}那个通常起{role}作用的关键期权价位变为新的价位"
+    if ctype == "opt_sign_fragile":
+        return f"{root}的期权持仓格局非常接近平衡，读数可能翻转"
+    if ctype == "opt_opex_concentration":
+        return f"{root}的未平仓期权头寸高度集中在最近的到期日"
+    if ctype == "opt_surface_pocket":
+        return f"{root}在某一价位出现异常集中的期权交易"
+    return f"{sym}条件已触发"
+
+
 class Supa:
     def __init__(self, url: str, key: str):
         self.base = url.rstrip("/") + "/rest/v1"
@@ -140,11 +349,78 @@ class Supa:
     def active_alerts(self) -> list[dict]:
         return http_json(f"{self.base}/alerts?active=eq.true&select=*", self.h) or []
 
-    def fire(self, alert: dict, value, note: str) -> bool:
+    def fire(self, alert: dict, value, note: str, *, vintage: str) -> bool:
         """Disarm + stamp trigger evidence. The active=eq.true guard makes double-fires a no-op
-        even if two engine runs overlap."""
-        cond = dict(alert.get("condition") or {})
-        cond["triggered"] = {"at": datetime.now(timezone.utc).isoformat(timespec="seconds"), "value": value, "note": note}
+        even if two engine runs overlap — this PATCH filter and its disarm semantics are FROZEN,
+        never replaced. Before the disarm, mint a deterministic fire_event_id from (alert id,
+        condition version, evaluation vintage) alone — see mint_fire_event_id — and insert (or,
+        on replay over the same vintage, no-op into) the alert_outbox row so delivery has a
+        durable, replay-safe queue entry. The outbox insert happens BEFORE the disarm PATCH so a
+        crash between the two leaves a pending outbox row (never lost, never marked delivered)
+        rather than a fire with no delivery trace.
+
+        `vintage` is REQUIRED — the caller (run_once()) always supplies the data vintage the
+        evaluator actually used for this alert this run (Data.evaluation_vintage() — no
+        wall-clock rung anywhere in that ladder; Meta-CEO ruling, PR #513 review round 6,
+        MINOR-1). There is deliberately no fallback identity here: a prior-
+        row lookup cannot tell a crash-retry from a genuine re-fire (that heuristic swallowed a
+        genuine second fire and, separately, double-enqueued a deferred one — Meta-CEO ruling on
+        PR #513 review round 1), so identity comes ONLY from the deterministic triple.
+
+        Returns True when the alert was disarmed (insert succeeded, replayed as a no-op duplicate,
+        or the outbox table is not applied yet — the legacy pre-outbox disarm path). Returns False
+        when the outbox insert hard-errored (5xx/401/400/network) — the alert is left ARMED so the
+        next run re-evaluates and retries it: never lost, never duplicated, never delivered on a
+        stale payload."""
+        fired_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
+        raw_cond = alert.get("condition") or {}
+        cond = dict(raw_cond)
+        cond["triggered"] = {"at": fired_at, "value": value, "note": note}
+        fire_event_id = mint_fire_event_id(alert, vintage)
+        ticker = str(alert.get("symbol") or "").upper()
+        # Meta-CEO ruling (PR #513 review round 4, MAJOR-3): the outbox payload IS the
+        # user-facing delivery text, so it is built from the STRUCTURED condition here — plain
+        # operator words, plain signal names, no basis tags, no raw slugs, no ISO timestamps.
+        # `note` (which carries all of that formatting for the engine's OWN log lines) never
+        # reaches this payload. condition_plain describes the CONDITION the alert watches for,
+        # never the fired result. subject_zh/summary_plain_zh/condition_plain_zh are additive
+        # jsonb keys — the 0013 DDL contract is unchanged; macro's drain reads the EN keys
+        # today and may read the ZH keys additively later.
+        condition_plain = _condition_plain_en(raw_cond, ticker)
+        condition_plain_zh = _condition_plain_zh(raw_cond, ticker)
+        subject = f"{ticker} alert: {condition_plain}" if ticker else condition_plain
+        subject_zh = f"{ticker}提醒：{condition_plain_zh}" if ticker else condition_plain_zh
+        summary_plain = f"Your alert fired: {condition_plain}."
+        summary_plain_zh = f"您的提醒已触发：{condition_plain_zh}。"
+        payload = {
+            "subject": subject,
+            "subject_zh": subject_zh,
+            "summary_plain": summary_plain,
+            "summary_plain_zh": summary_plain_zh,
+            "ticker": ticker,
+            "condition_plain": condition_plain,
+            "condition_plain_zh": condition_plain_zh,
+            # Meta-CEO ruling (PR #513 review round 5, MAJOR-2): condition_plain/summary_plain
+            # deliberately describe the CONDITION, never the fired result, so two fires of the
+            # same condition at different observed readings share the same plain text (see
+            # test_h1_genuine_refire_after_rearm_mints_two_distinct_events). But the observed
+            # reading must still reach the delivery queue SOMEWHERE, or a delivered alert can
+            # never say what actually printed — `value` is that raw observed reading, additive
+            # to the payload dict, so a consumer (macro's drain today, this file's own log lines
+            # already) can render it without it ever leaking into condition_plain's wording.
+            "value": value,
+            # /alerts is a real route (app/(shell)/alerts/page.tsx) — the query string was
+            # removed because AlertsView does not read an "id" param yet, so it deep-linked
+            # nowhere; this still lands the user on the page that lists their fired alert.
+            "evidence_url": "/alerts",
+            "fired_at": fired_at,
+        }
+        insert_outcome = self.insert_outbox(alert.get("user_id"), alert.get("id"), fire_event_id, payload)
+        if insert_outcome == "error":
+            # A genuine hard failure on the insert (not a schema-cache miss) must never disarm —
+            # the fire would otherwise be unrecoverable (Meta-CEO ruling item 2).
+            return False
+
         url = f"{self.base}/alerts?id=eq.{urllib.parse.quote(str(alert['id']))}&active=eq.true"
         http_json(url, {**self.h, "Prefer": "return=minimal"}, method="PATCH",
                   body={"active": False, "condition": cond})
@@ -157,6 +433,128 @@ class Supa:
         fire(), so it never resurrects an already-disarmed alert."""
         url = f"{self.base}/alerts?id=eq.{urllib.parse.quote(str(alert['id']))}&active=eq.true"
         http_json(url, {**self.h, "Prefer": "return=minimal"}, method="PATCH", body={"condition": cond})
+
+    @staticmethod
+    def _classify(status: int) -> str:
+        """§5 read vocabulary: map a non-2xx PostgREST status to a typed label instead of the
+        single catch-all READ_UNAVAILABLE this file used to apply to everything (MAJOR 2). Table-
+        absent (404/42P01) is handled separately by _table_missing before this is ever consulted.
+        """
+        if status in (401, 403):
+            return "READ_DENIED"          # signed-out / RLS refusing the write — not "not applied yet"
+        if status == 409:
+            return "READ_CONFLICT"        # a real uniqueness/constraint conflict, not a duplicate no-op
+        if status in (503, 599):
+            return "READ_UNAVAILABLE"     # substrate genuinely unreachable (incl. transport blips)
+        return "READ_ERROR"               # anything else is a real error and must not be swallowed
+
+    @staticmethod
+    def _table_missing(status: int, parsed) -> bool:
+        """A receipt/outbox table that has not been applied yet (migration 0013 is a RESERVATION,
+        not an application — see supabase/migrations/README.md) answers 404 from PostgREST's
+        schema-cache lookup, or occasionally 400 with Postgres code 42P01 (undefined_table).
+        Anything else is a real error and must not be swallowed."""
+        if status == 404:
+            return True
+        if isinstance(parsed, dict) and parsed.get("code") == "42P01":
+            return True
+        return False
+
+    def start_run(self, lane: str, run_id: str, started_at: str, source_asof: str | None,
+                   lane_cadence_budget_s: int | None) -> bool:
+        """Insert the 'started' half of the two-phase alert_runs receipt. Returns False (and logs
+        a typed READ_UNAVAILABLE line) when alert_runs has not been applied yet — the fire path is
+        unaffected either way, this is receipts-only."""
+        url = f"{self.base}/alert_runs"
+        body = {
+            "lane": lane, "run_id": run_id, "started_at": started_at,
+            "source_asof": source_asof, "lane_cadence_budget_s": lane_cadence_budget_s,
+        }
+        status, parsed, text = http_json_status(url, {**self.h, "Prefer": "return=minimal"},
+                                                 method="POST", body=body)
+        if self._table_missing(status, parsed):
+            log("READ_UNAVAILABLE alert_runs (start) — table not applied yet; run proceeds without a receipt")
+            return False
+        if status >= 300:
+            log(f"{self._classify(status)} alert_runs (start) — {status}: {text[:200]}")
+            return False
+        return True
+
+    def conclude_run(self, lane: str, run_id: str, concluded_at: str, outcome: str,
+                      evaluated_n: int | None, fired_n: int | None, unevaluable_n: int | None,
+                      error_class: str | None, source_asof: str | None = None) -> bool:
+        """Patch the terminal half of the receipt by (lane, run_id). No-ops quietly if the start
+        row was never written (table absent) — the guard mirrors start_run's classification.
+        evaluated_n/fired_n/unevaluable_n are nullable: a crash before the counters are known must
+        write null ('we don't know'), never 0 ('nothing happened') — see F08 run-receipt law.
+        source_asof re-stamps the receipt to the fallback vintage when any price read this run
+        fell back from the live hub to a previously-persisted manifest EOD last."""
+        url = (f"{self.base}/alert_runs?lane=eq.{urllib.parse.quote(lane)}"
+               f"&run_id=eq.{urllib.parse.quote(run_id)}")
+        body = {
+            "concluded_at": concluded_at, "outcome": outcome, "evaluated_n": evaluated_n,
+            "fired_n": fired_n, "unevaluable_n": unevaluable_n, "error_class": error_class,
+            "source_asof": source_asof,
+        }
+        status, parsed, text = http_json_status(url, {**self.h, "Prefer": "return=minimal"},
+                                                 method="PATCH", body=body)
+        if self._table_missing(status, parsed):
+            log("READ_UNAVAILABLE alert_runs (conclude) — table not applied yet")
+            return False
+        if status >= 300:
+            log(f"{self._classify(status)} alert_runs (conclude) — {status}: {text[:200]}")
+            return False
+        return True
+
+    def insert_outbox(self, user_id, alert_id, fire_event_id: str, payload: dict) -> str:
+        """Insert one alert_outbox row keyed by fire_event_id. Idempotent by construction
+        (Prefer: resolution=ignore-duplicates against the unique fire_event_id index): a
+        replayed run computing the SAME fire_event_id (same alert, same condition version, same
+        evaluation vintage) inserts nothing new and is reported 'duplicate', never raises, and
+        never double-enqueues delivery. The outbox row's own status (pending/deferred/sent/
+        failed/suppressed) never matters here — identity is the id alone.
+
+        Returns one of:
+          'inserted'    — a new row was written.
+          'duplicate'   — the unique index (or, defensively, a raw 409) said this exact event
+                          already exists; the caller proceeds to disarm exactly as on 'inserted'.
+          'unavailable' — the table is not applied yet (404/42P01 — migration 0013 is still a
+                          reservation); the caller proceeds with the LEGACY disarm, unchanged.
+          'error'       — a genuine failure (5xx/401/400/network) that is NOT a schema-cache
+                          miss; the caller must NOT disarm (Meta-CEO ruling item 2 — an
+                          unrecoverable insert must never look like a successful fire)."""
+        # PostgREST's ignore-duplicates upsert targets the PRIMARY KEY unless the request names
+        # the conflict target explicitly — this table's unique key is fire_event_id, not the pk
+        # id column, so ?on_conflict=fire_event_id is load-bearing: without it a real duplicate
+        # raises 23505/409 instead of no-op'ing.
+        url = f"{self.base}/alert_outbox?on_conflict=fire_event_id"
+        headers = {**self.h, "Prefer": "return=representation,resolution=ignore-duplicates"}
+        body = {
+            "user_id": user_id, "alert_id": alert_id, "fire_event_id": fire_event_id,
+            "channel": "email", "status": "pending", "payload": payload,
+        }
+        status, parsed, text = http_json_status(url, headers, method="POST", body=body)
+        if self._table_missing(status, parsed):
+            log("READ_UNAVAILABLE alert_outbox (insert) — table not applied yet; disarm proceeds without an outbox row")
+            return "unavailable"
+        if status == 409:
+            # Meta-CEO ruling (PR #513 review round 4, MINOR-2): this is the expected,
+            # idempotent duplicate-of-record disposition, not a genuine conflict/error — label
+            # it ALREADY_ENQUEUED, not READ_CONFLICT, so it never reads like a failure.
+            log("ALREADY_ENQUEUED alert_outbox (insert) — proceeding to disarm")
+            return "duplicate"
+        if status >= 300:
+            # Any other non-2xx here (5xx/401/400/network — the transport-blip synthetic 599
+            # included) is neither a schema-cache miss nor a duplicate-of-record. It must never
+            # print as READ_UNAVAILABLE: that label means "table not applied yet, disarm
+            # proceeds anyway" — the OPPOSITE disposition from this branch, which returns
+            # 'error' so fire() leaves the alert armed. _classify()'s 503/599->READ_UNAVAILABLE
+            # mapping is for the receipt tables (start_run/conclude_run), where no disarm
+            # decision rides on the label; reusing it here made the two opposite outcomes share
+            # one prefix (MAJOR 5, PR #513 review round 2). Always READ_ERROR.
+            log(f"READ_ERROR alert_outbox (insert) — {status}: {text[:200]}")
+            return "error"
+        return "inserted" if parsed else "duplicate"
 
 
 def rsi14(closes: list[float], period: int = 14) -> float | None:
@@ -190,6 +588,19 @@ class Data:
         self.quotes: dict[str, dict] = {}
         manifest = json.loads((self.dir / "manifest.json").read_text())
         self.symbols: dict[str, dict] = manifest.get("symbols") or {}
+        # The typed live/eod signal data.last() already computes was being discarded. Track it
+        # here so run_once() can force outcome='partial' and re-stamp source_asof to the fallback
+        # vintage whenever ANY price read this run fell back to the persisted manifest EOD last
+        # instead of a live hub quote.
+        self.used_eod_fallback = False
+        self.eod_fallback_asof: str | None = None
+        # Meta-CEO ruling (PR #513 review round 4, BLOCKER): evaluation_vintage()'s rung (b)
+        # falls back to the manifest's own build as_of when neither a live quote nor a
+        # per-symbol manifest asof exists for the symbol/root an evaluator read. Captured once
+        # at load time — never re-read per call.
+        self.manifest_as_of: str | None = (
+            manifest.get("as_of") if isinstance(manifest.get("as_of"), str) else None
+        )
 
     def prime_quotes(self, syms: list[str]) -> None:
         if not self.hub_port or not syms:
@@ -207,8 +618,59 @@ class Data:
             return float(q["last"]), "live"
         m = self.symbols.get(sym) or {}
         if isinstance(m.get("last"), (int, float)):
+            self.used_eod_fallback = True
+            if self.eod_fallback_asof is None and isinstance(m.get("asof"), str):
+                self.eod_fallback_asof = m["asof"]
             return float(m["last"]), "eod"
         return None, None
+
+    def evaluation_vintage(self, sym: str) -> str | None:
+        """The data vintage backing this symbol/root's read, ISO-8601 UTC at minute granularity
+        — the F08 id contract's third input (frozen with macro's B-F08-1b drain).
+
+        Meta-CEO ruling on PR #513 review round 4 (BLOCKER): there is NO wall-clock rung
+        anywhere in this ladder — evaluation_vintage is the vintage of the DATA the evaluator
+        actually read for this alert, never the time the engine happened to run. Exactly two
+        data-backed rungs, in order:
+
+          (a) a freshness-vetted live quote's own tick timestamp (live_quote()'s existing
+              session/date/age/lag gates — see below);
+          (b) otherwise the EOD/manifest as-of for the symbol or option root the evaluator
+              read: the manifest's PER-SYMBOL `asof` if the symbol carries one, else the
+              manifest's own build-level `as_of` (Data.manifest_as_of).
+
+        If neither rung produces a value, this returns None — the caller (run_once()) MUST
+        treat that alert as UNEVALUABLE this run (no fire, no disarm, counted in the receipt):
+        a fire without any data vintage has no identity to key on.
+
+        Round-3 removed the manifest fallback entirely and substituted the run's own wall clock
+        (`_minute_vintage(run_started_at)`) instead — that traded round-1 BLOCKER 1 (a
+        day-stable manifest vintage silently swallowing a genuine re-fire) for a NEW pair of
+        bugs the round-4 review measured: a second genuine fire on unrefreshed data mints a
+        fresh id every run (never collapsing a real crash-retry), and once the macro drain
+        marks a row 'deferred' a crash-retry of the SAME fire double-enqueues it. The ruling
+        deletes the wall-clock rung outright: identity keys on the DATA vintage alone. A
+        crash-retry over byte-identical on-disk data (rung b unchanged) collapses onto the same
+        id by construction; a condition with no discoverable data vintage at all — the
+        genuinely unevaluable case — no longer fires on a synthetic wall-clock stand-in.
+
+        The live-quote rung reuses live_quote() rather than reading `asOfMs`/`ts` straight off
+        the raw quote object (round-1 BLOCKER 2): the Quote Hub seeds a manifest/EOD
+        PLACEHOLDER with `ts=Date.now()` and `regularSession="closed"` while waiting for a
+        first current-session print — a fresh transport timestamp there is not evidence of a
+        fresh quote — and live_quote()'s session/date/age/lag gates are what make its `asof` a
+        genuine data-content vintage instead of wall-clock noise.
+        """
+        receipt = self.live_quote(sym)
+        if receipt is not None:
+            return _minute_vintage(receipt["asof"])
+        m = self.symbols.get(sym) or {}
+        per_symbol_asof = m.get("asof") if isinstance(m.get("asof"), str) else None
+        if per_symbol_asof:
+            return _minute_vintage(per_symbol_asof)
+        if self.manifest_as_of:
+            return _minute_vintage(self.manifest_as_of)
+        return None
 
     def live_quote(self, sym: str) -> dict | None:
         """Return a current-session Quote-Hub spot receipt or fail closed.
@@ -1003,6 +1465,10 @@ _OPT_EVALUATORS = {
     "opt_opex_concentration": ("_oc", _eval_opex_concentration, lambda cond, flow: flow.gex(cond.get("root") or "")),
 }
 
+# Meta-CEO ruling (PR #513 review round 4, MAJOR-2): derived from _OPT_EVALUATORS' own state
+# keys plus "triggered", never hand-duplicated — see the comment above condition_version().
+_CONDITION_TRANSIENT_KEYS = {"triggered"} | {state_key for state_key, _fn, _getter in _OPT_EVALUATORS.values()}
+
 
 def evaluate(alert: dict, data: Data, flow: "Flow | None" = None):
     """Returns (fired, value, note, nextState) — fired=None means 'cannot evaluate' (missing data),
@@ -1068,6 +1534,195 @@ def evaluate(alert: dict, data: Data, flow: "Flow | None" = None):
     return None, None, f"unknown condition type {ctype!r}", None
 
 
+def run_once(
+    supa: "Supa",
+    data: "Data",
+    now: datetime,
+    run_id: str,
+    *,
+    lane: str = "alerts_engine",
+    flow_backend: str = DEFAULT_FLOW_BACKEND,
+    flow_r2: str = DEFAULT_FLOW_R2,
+    flow_fixtures: bool = False,
+    dry_run: bool = False,
+    lane_cadence_budget_s: int = 300,
+) -> dict:
+    """The real per-run body, extracted out of main() so tests drive production code directly
+    (Meta-CEO ruling item 3) instead of re-deriving its arithmetic inline. Owns the two-phase
+    alert_runs receipt (a 'started' row at run open, a terminal row with concluded_at/outcome
+    once outputs are committed — the crash path below writes the terminal row with null counters
+    + the exception's class name, then re-raises), evaluates every armed alert, fires the ones
+    that hit (minting each fire_event_id from the REAL evaluation vintage, never a random one —
+    id contract frozen with macro's B-F08-1b drain), and returns the receipt dict so a caller
+    (main() or a test) can inspect exactly what happened.
+
+    An alert whose outbox insert hard-errors is left ARMED (never disarmed) and counted as
+    unevaluable so the next run re-evaluates and retries it — see Supa.fire()/insert_outbox. So
+    is an alert whose condition hit but which has NO discoverable data vintage at all (Meta-CEO
+    ruling, PR #513 review round 4, BLOCKER rung (c)) — a fire without a vintage has no identity
+    to key on, so it is neither fired nor disarmed; the next run retries it once real data
+    exists.
+
+    `lane_cadence_budget_s` (MINOR-4, round 4) is the real cadence this lane runs on — passed
+    through to start_run's receipt rather than a literal baked into this function body.
+
+    dry_run (MAJOR-1, round 4): when true, this function makes NO writes to Supabase at all —
+    start_run/conclude_run are skipped (the receipt is logged instead) and the per-alert
+    fire/update_condition writes were already gated on `not dry_run`; only the read-only
+    active_alerts() GET still runs, so a dry-run can still report what it WOULD have done.
+
+    MINOR 6 (PR #513 review round 2): the try/except that writes the failure receipt wraps the
+    active_alerts() fetch too, not just the evaluate/fire loop — a crash on THAT read (arguably
+    the single most likely crash source: it is the first live network call the run makes) used
+    to leave a 'started' row with every terminal field null forever, indistinguishable from a
+    run that is still in progress.
+    """
+    run_started_at = now.isoformat(timespec="seconds")
+    if dry_run:
+        log(f"[dry-run] start_run lane={lane} run_id={run_id} started_at={run_started_at} (no write)")
+        run_receipted = False
+    else:
+        run_receipted = supa.start_run(lane, run_id, run_started_at, None, lane_cadence_budget_s)
+
+    try:
+        alerts = supa.active_alerts()
+        if not alerts:
+            log("no armed alerts — nothing to do")
+            if run_receipted:
+                supa.conclude_run(lane, run_id, datetime.now(timezone.utc).isoformat(timespec="seconds"),
+                                   "success", 0, 0, 0, None)
+            elif dry_run:
+                # MINOR-3, Meta-CEO ruling (round 5): dry_run gates the WRITE, never the receipt
+                # itself becoming unobservable — log what conclude_run would have recorded.
+                log("[dry-run] conclude_run lane=%s run_id=%s outcome=success evaluated_n=0 "
+                    "fired_n=0 unevaluable_n=0 (no write)" % (lane, run_id))
+            return {"outcome": "success", "evaluated_n": 0, "fired_n": 0, "unevaluable_n": 0,
+                    "error_class": None, "source_asof": None}
+
+        price_syms = {
+            str(a.get("symbol") or "").upper()
+            for a in alerts
+            if (a.get("condition") or {}).get("type") == "price"
+        }
+        option_syms = {
+            str((a.get("condition") or {}).get("root") or "").upper()
+            for a in alerts
+            if str((a.get("condition") or {}).get("type") or "").startswith("opt_")
+        }
+        quote_syms = sorted({
+            sym for sym in price_syms | option_syms
+            if sym != "MARKET" and len(sym) <= 12 and FLOW_ROOT_RE.fullmatch(sym)
+        })
+        data.prime_quotes(quote_syms)
+        flow = Flow(
+            str(data.dir),
+            backend_base=flow_backend,
+            r2_base=flow_r2,
+            fixture_mode=flow_fixtures,
+            spot_getter=data.live_quote,
+        )
+
+        fired = skipped = errored = deferred = no_vintage = 0
+        for a in alerts:
+            try:
+                hit, value, note, nxt = evaluate(a, data, flow)
+            except Exception as e:
+                errored += 1
+                log(f"EVAL ERROR {a.get('symbol')} {a.get('id')}: {e}")
+                continue
+            tag = f"{a.get('symbol')} {json.dumps((a.get('condition') or {}), separators=(',', ':'))[:80]}"
+            if hit is None:
+                skipped += 1
+                log(f"SKIP  {tag} — {note}")
+            elif hit:
+                if dry_run:
+                    fired += 1
+                    log(f"FIRE  {tag} — {note} [dry-run]")
+                else:
+                    ctype = (a.get("condition") or {}).get("type")
+                    # MINOR-5 (round 4): an opt_* alert's data vintage is keyed on the
+                    # CONDITION's root — the underlying the evaluator actually read — never the
+                    # alert row's own `symbol` field, which can differ from it.
+                    vintage_sym = (
+                        str((a.get("condition") or {}).get("root") or "").upper()
+                        if ctype in _OPT_EVALUATORS
+                        else str(a.get("symbol") or "").upper()
+                    )
+                    vintage = data.evaluation_vintage(vintage_sym)
+                    if vintage is None:
+                        # BLOCKER rung (c): a condition that hit but has NO discoverable data
+                        # vintage anywhere has no identity to key a fire on. Never fire, never
+                        # disarm — count it unevaluable so a later run (once real vintage data
+                        # exists) retries it.
+                        no_vintage += 1
+                        log(f"NO_VINTAGE {tag} — condition met but no data vintage available; alert left armed")
+                    elif supa.fire(a, value, note, vintage=vintage):
+                        fired += 1
+                        log(f"FIRE  {tag} — {note}")
+                    else:
+                        # Outbox insert hard-errored (Supa.fire returned False): the alert was
+                        # deliberately left armed. Count it as unevaluable so this run's receipt
+                        # never claims a clean success while a fire silently failed to enqueue.
+                        deferred += 1
+                        log(f"DEFER {tag} — outbox insert failed; alert remains armed for re-evaluation")
+            else:
+                log(f"idle  {tag}")
+                # Stateful options types: persist the confirmed flip-side / wall-inside flag between
+                # runs (active stays true) so the hysteresis machine survives the 5-min cron. Only
+                # when it actually changed — avoid a needless PATCH every run.
+                ctype = (a.get("condition") or {}).get("type")
+                if isinstance(nxt, dict) and ctype in _OPT_EVALUATORS:
+                    state_key = _OPT_EVALUATORS[ctype][0]
+                    cur = (a.get("condition") or {}).get(state_key)
+                    if cur != nxt:
+                        cond = dict(a.get("condition") or {})
+                        cond[state_key] = nxt
+                        if not dry_run:
+                            supa.update_condition(a, cond)
+    except Exception as e:
+        if run_receipted:
+            # A crash mid-run means the counters are UNKNOWN, not zero — null is the honest "we
+            # don't know", 0 would be indistinguishable from "nothing happened" in the one table
+            # whose purpose is proof-of-run.
+            supa.conclude_run(lane, run_id, datetime.now(timezone.utc).isoformat(timespec="seconds"),
+                               "failure", None, None, None, type(e).__name__)
+        elif dry_run:
+            log("[dry-run] conclude_run lane=%s run_id=%s outcome=failure evaluated_n=None "
+                "fired_n=None unevaluable_n=None error_class=%s (no write)" % (lane, run_id, type(e).__name__))
+        log(f"FATAL: run crashed before completion: {e}")
+        raise
+    # evaluated_n and unevaluable_n must reconcile against len(alerts): a SKIP (hit is None), a
+    # deferred fire (outbox insert error), and a no-vintage hit (BLOCKER rung (c)) are all
+    # unevaluable, never counted as evaluated too.
+    unevaluable_n = skipped + errored + deferred + no_vintage
+    evaluated_n = len(alerts) - errored - skipped - deferred - no_vintage
+    # A live-hub outage falls back to the persisted manifest EOD last and alerts still FIRE on
+    # it — that must never be reported as a clean 'success' with no fallback trace. Force
+    # 'partial' and re-stamp source_asof to the fallback vintage whenever any price read this run
+    # used the eod fallback, or a deferred/no-vintage fire needs a later retry.
+    fallback_asof = data.eod_fallback_asof if data.used_eod_fallback else None
+    outcome = ("success" if (errored == 0 and skipped == 0 and deferred == 0 and no_vintage == 0
+                              and not data.used_eod_fallback)
+               else "partial")
+    error_class = None if errored == 0 else "eval_error"
+    if run_receipted:
+        supa.conclude_run(lane, run_id, datetime.now(timezone.utc).isoformat(timespec="seconds"),
+                           outcome, evaluated_n, fired, unevaluable_n,
+                           error_class, source_asof=fallback_asof)
+    elif dry_run:
+        # MINOR-3, Meta-CEO ruling (round 5): the dry-run receipt is logged, never silently
+        # dropped — this is the same outcome/evaluated_n/fired_n/unevaluable_n a real conclude_run
+        # write would have recorded.
+        log("[dry-run] conclude_run lane=%s run_id=%s outcome=%s evaluated_n=%s fired_n=%s "
+            "unevaluable_n=%s error_class=%s (no write)"
+            % (lane, run_id, outcome, evaluated_n, fired, unevaluable_n, error_class))
+    # MINOR-3 (round 4): log the receipt's own unevaluable_n, not the skipped-only subcount —
+    # unevaluable_n is what the receipt table actually records as "could not be evaluated".
+    log(f"done: {len(alerts)} armed, {fired} fired, {unevaluable_n} unevaluable")
+    return {"outcome": outcome, "evaluated_n": evaluated_n, "fired_n": fired,
+            "unevaluable_n": unevaluable_n, "error_class": error_class, "source_asof": fallback_asof}
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry-run", action="store_true", help="evaluate + log, but never write to Supabase")
@@ -1087,66 +1742,16 @@ def main() -> int:
         return 2
 
     supa = Supa(url, key)
-    alerts = supa.active_alerts()
-    if not alerts:
-        log("no armed alerts — nothing to do")
-        return 0
-
     data = Data(args.data_dir, env.get("HUB_PORT", "3100"))
-    price_syms = {
-        str(a.get("symbol") or "").upper()
-        for a in alerts
-        if (a.get("condition") or {}).get("type") == "price"
-    }
-    option_syms = {
-        str((a.get("condition") or {}).get("root") or "").upper()
-        for a in alerts
-        if str((a.get("condition") or {}).get("type") or "").startswith("opt_")
-    }
-    quote_syms = sorted({
-        sym for sym in price_syms | option_syms
-        if sym != "MARKET" and len(sym) <= 12 and FLOW_ROOT_RE.fullmatch(sym)
-    })
-    data.prime_quotes(quote_syms)
-    flow = Flow(
-        args.data_dir,
-        backend_base=env.get("FLOW_API_BASE") or DEFAULT_FLOW_BACKEND,
-        r2_base=env.get("FLOW_R2_BASE") or DEFAULT_FLOW_R2,
-        fixture_mode=args.flow_fixtures,
-        spot_getter=data.live_quote,
+    run_once(
+        supa, data, datetime.now(timezone.utc), uuid.uuid4().hex,
+        lane=ALERTS_LANE,
+        flow_backend=env.get("FLOW_API_BASE") or DEFAULT_FLOW_BACKEND,
+        flow_r2=env.get("FLOW_R2_BASE") or DEFAULT_FLOW_R2,
+        flow_fixtures=args.flow_fixtures,
+        dry_run=args.dry_run,
+        lane_cadence_budget_s=ALERTS_LANE_CADENCE_S,
     )
-
-    fired = skipped = 0
-    for a in alerts:
-        try:
-            hit, value, note, nxt = evaluate(a, data, flow)
-        except Exception as e:
-            log(f"EVAL ERROR {a.get('symbol')} {a.get('id')}: {e}")
-            continue
-        tag = f"{a.get('symbol')} {json.dumps((a.get('condition') or {}), separators=(',', ':'))[:80]}"
-        if hit is None:
-            skipped += 1
-            log(f"SKIP  {tag} — {note}")
-        elif hit:
-            fired += 1
-            log(f"FIRE  {tag} — {note}" + (" [dry-run]" if args.dry_run else ""))
-            if not args.dry_run:
-                supa.fire(a, value, note)  # disarm + stamp; the fired cond need not carry state
-        else:
-            log(f"idle  {tag}")
-            # Stateful options types: persist the confirmed flip-side / wall-inside flag between
-            # runs (active stays true) so the hysteresis machine survives the 5-min cron. Only
-            # when it actually changed — avoid a needless PATCH every run.
-            ctype = (a.get("condition") or {}).get("type")
-            if isinstance(nxt, dict) and ctype in _OPT_EVALUATORS:
-                state_key = _OPT_EVALUATORS[ctype][0]
-                cur = (a.get("condition") or {}).get(state_key)
-                if cur != nxt:
-                    cond = dict(a.get("condition") or {})
-                    cond[state_key] = nxt
-                    if not args.dry_run:
-                        supa.update_condition(a, cond)
-    log(f"done: {len(alerts)} armed, {fired} fired, {skipped} unevaluable")
     return 0
 
 

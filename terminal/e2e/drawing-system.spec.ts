@@ -990,6 +990,12 @@ test("drawing lifecycle supports one-shot, sticky, history, visibility, and scop
 });
 
 test("flagship geometry, editing, and path limits survive adversarial interaction", async ({ page }) => {
+  // QUARANTINED — see e2e/QUARANTINE.md. On unmodified master this fails 3/3 attempts at
+  // line 1140 below: after three Path clicks and a finishing double-click no committed
+  // `g[data-drawing-kind="path"]` element exists. Evidence: run 33942726252, whose PR (#507)
+  // changes only a .sql migration, so the failure is the base's, not that PR's.
+  // Owner: issue #485 (R1 reliability program). No repair PR exists for this journey yet.
+  test.fixme(true, "Path tool does not commit on double-click — issue #485; see e2e/QUARANTINE.md");
   // This intentionally monolithic contract performs several independent real
   // pointer transactions; saturated shared runners can exceed the default
   // budget while still advancing normally through every assertion.

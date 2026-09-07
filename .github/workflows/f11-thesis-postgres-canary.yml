@@ -1,0 +1,65 @@
+name: F11 thesis PostgreSQL canary
+
+on:
+  pull_request:
+    paths:
+      - supabase/migrations/0012_thesis_objects.sql
+      - terminal/scripts/f11_thesis_postgres_canary.py
+      - .github/workflows/f11-thesis-postgres-canary.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: f11-thesis-postgres-canary-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  postgres-canary:
+    name: PostgreSQL 16.10 RLS + transaction canary
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16.10@sha256:21f6013073bc6b92830a2129570e2f5ec42a6c734b5a985a41e83aa58f54c3c1
+        env:
+          POSTGRES_DB: postgres
+          POSTGRES_PASSWORD: f11_canary_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - name: Check out the immutable pull-request head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install exact ephemeral PostgreSQL client
+        run: python -m pip install --disable-pip-version-check "psycopg[binary]==3.2.10"
+      - name: Execute exact migration and adversarial database canary
+        env:
+          F11_DATABASE_URL: postgresql://postgres:f11_canary_only@127.0.0.1:5432/postgres
+          F11_EXPECTED_COMMIT: ${{ github.event.pull_request.head.sha }}
+          F11_EXPECTED_IMAGE: postgres:16.10@sha256:21f6013073bc6b92830a2129570e2f5ec42a6c734b5a985a41e83aa58f54c3c1
+          F11_EXPECTED_POSTGRES: "16.10"
+          F11_GITHUB_RUN_ID: ${{ github.run_id }}
+          F11_GITHUB_RUN_ATTEMPT: ${{ github.run_attempt }}
+          F11_GITHUB_JOB: ${{ github.job }}
+        run: >-
+          python terminal/scripts/f11_thesis_postgres_canary.py
+          --migration supabase/migrations/0012_thesis_objects.sql
+          --receipt f11-thesis-postgres-canary-receipt.json
+      - name: Upload sanitized canary receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: f11-thesis-postgres-canary-${{ github.event.pull_request.head.sha }}
+          path: f11-thesis-postgres-canary-receipt.json
+          if-no-files-found: error
+          retention-days: 14
