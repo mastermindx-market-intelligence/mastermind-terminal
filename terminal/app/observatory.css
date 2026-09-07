@@ -38,7 +38,6 @@
  * disappeared" on /flow). Restore the fixed pieces and pin the chrome cells explicitly. */
 .obs-ambient > .m-drawer-scrim { position: fixed; z-index: 70; }
 .obs-ambient > .m-drawer { position: fixed; z-index: 71; }
-.obs-ambient > .mm-launcher { position: fixed; z-index: 95; }
 .app2 > .topbar {
   grid-row: 1;
   grid-column: 1 / 3;

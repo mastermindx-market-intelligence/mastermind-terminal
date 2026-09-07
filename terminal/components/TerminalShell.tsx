@@ -106,23 +106,6 @@ const AnalysisHubSheet = dynamic(() => import("@/components/mobile/AnalysisHubSh
 // BrainWidget mounts the production Mastermind Brain widget (mm_brain.js) — it renders null
 // and only injects a cross-origin <script>, so ssr:false / dynamic isn't needed.
 import BrainWidget from "@/components/BrainWidget";
-
-// B-PLAT-7: chart workspace has no floating launcher today (BrainWidget mounts
-// anchor:"top"), so data-launcher stays unset here (reservation = 0px, CLS 0).
-// data-overlay reuses the same overlay selector AppShell's useOverlayOpen checks,
-// so a sheet/dialog/drawer over the chart workspace is recognized identically.
-const TS_OVERLAY_SELECTOR = ".msheet,.sm-backdrop,.gp-scrim,.scrim,.m-drawer.open";
-function useTsOverlayOpen(): boolean {
-  const [open, setOpen] = useState(false);
-  useEffect(() => {
-    const check = () => setOpen(!!document.querySelector(TS_OVERLAY_SELECTOR));
-    check();
-    const mo = new MutationObserver(check);
-    mo.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["class"] });
-    return () => mo.disconnect();
-  }, []);
-  return open;
-}
 // DeepVue W1-C: typed ai-context provider (observe-only — derives active/ambient context from
 // the same active-pane symbol/tf the Chart Bus already owns; never writes back into chart state).
 import { createAiContextProvider } from "@/lib/aiContext";
@@ -941,7 +924,6 @@ function btMark(name: string) {
 }
 
 export default function TerminalShell({ symbols, email, userId, initialSymbol, shellMode = false, shellTray = false, shellDossier = false, secondBarsEnabled = false }: { symbols: { symbol: string; section: string }[]; email: string; userId?: string; initialSymbol?: string; shellMode?: boolean; shellTray?: boolean; shellDossier?: boolean; secondBarsEnabled?: boolean }) {
-  const tsOverlayOpen = useTsOverlayOpen();
   const [man, setMan] = useState<Manifest | null>(null);
   // A1: which identity the LOCAL watchlist state on this browser belongs to. `guest` when signed
   // out, `account:<auth uuid>` otherwise — the immutable id, never the email (see
@@ -4889,7 +4871,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
         TerminalShell, so useSettings() *here* would be the no-op — the buttons
         below are children of it, which is what matters. */}
     <SettingsProvider identity={identity} defaultSection="terminal">
-    <div className={`app${fullChart ? " fs" : ""}${shellMode ? " shell-app" : ""}`} data-shell={shellMode ? "app" : undefined} data-tray={shellMode && shellTray ? "1" : undefined} data-dossier={dossierMode ? "1" : undefined} data-overlay={tsOverlayOpen ? "on" : undefined} style={{ ["--rail-w" as any]: `${railW}px` }}>
+    <div className={`app${fullChart ? " fs" : ""}${shellMode ? " shell-app" : ""}`} data-shell={shellMode ? "app" : undefined} data-tray={shellMode && shellTray ? "1" : undefined} data-dossier={dossierMode ? "1" : undefined} style={{ ["--rail-w" as any]: `${railW}px` }}>
       {!shellMode && (
       <header className="topbar">
         {fromMacro ? <DashboardBackButton onClick={onBack} /> : <BrandLockup />}

@@ -1,12 +1,11 @@
 "use client";
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useMemo } from "react";
 import { usePathname } from "next/navigation";
 import { BrandLockup } from "@/components/BrandMark";
 import DashboardBackButton from "@/components/DashboardBackButton";
 import { AppNav } from "@/components/AppNav";
 import MobileNav from "@/components/MobileNav";
 import SettingsButton from "@/components/settings/SettingsButton";
-import AssistantLauncher from "@/components/chrome/AssistantLauncher";
 import { SettingsProvider } from "@/components/settings/SettingsProvider";
 import { OnboardingProvider } from "@/components/onboarding/OnboardingProvider";
 import { useT } from "@/lib/i18n";
@@ -65,24 +64,6 @@ const TITLE_MAP: Array<[string, string, string]> = [
   ["/admin", "pageAdmin", "Admin"],
 ];
 
-
-// B-PLAT-7: true while a sheet/dialog/drawer sits above the launcher, so the
-// launcher yields rather than intercepting the overlay's primary action.
-// Polls via MutationObserver rather than inventing a new global store — the
-// overlay selectors are the ones the sheet/dialog/drawer components already use.
-const OVERLAY_SELECTOR = ".msheet,.sm-backdrop,.gp-scrim,.scrim,.m-drawer.open";
-function useOverlayOpen(): boolean {
-  const [open, setOpen] = useState(false);
-  useEffect(() => {
-    const check = () => setOpen(!!document.querySelector(OVERLAY_SELECTOR));
-    check();
-    const mo = new MutationObserver(check);
-    mo.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["class"] });
-    return () => mo.disconnect();
-  }, []);
-  return open;
-}
-
 export default function AppShell({
   email = "",
   userId = "",
@@ -103,8 +84,6 @@ export default function AppShell({
   // object — an owner-scoped store keys on the owner string either way, but a stable identity
   // keeps it out of every consumer's dependency arrays.
   const identity = useMemo(() => accountIdentity(userId, email), [userId, email]);
-  const overlayOpen = useOverlayOpen();
-  const openAssistant = useCallback(() => (window as any).MMBrain?.toggle?.(), []);
 
   return (
     <AppShellIdentityCtx.Provider value={identity}>
@@ -113,7 +92,7 @@ export default function AppShell({
           can call useOnboarding() directly — Billing's "choose a plan" and the
           guest path both hand off to the signup sheet. */}
       <SettingsProvider identity={identity}>
-      <div className="app2 obs obs-ambient" data-launcher="on" data-overlay={overlayOpen ? "on" : undefined}>
+      <div className="app2 obs obs-ambient">
         <MobileNav email={email} fromMacro={fromMacro} onBack={onBack} />
         <header className="topbar">
           {fromMacro ? <DashboardBackButton onClick={onBack} /> : <BrandLockup />}
@@ -127,7 +106,6 @@ export default function AppShell({
         </header>
         <AppNav />
         {children}
-        <AssistantLauncher onOpen={openAssistant} />
       </div>
       </SettingsProvider>
       </OnboardingProvider>
