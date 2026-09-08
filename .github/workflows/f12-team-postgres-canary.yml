@@ -12,6 +12,9 @@ on:
       - ".github/workflows/f12-team-postgres-canary.yml"
   workflow_dispatch: {}
 
+permissions:
+  contents: read
+
 jobs:
   canary:
     runs-on: ubuntu-latest
