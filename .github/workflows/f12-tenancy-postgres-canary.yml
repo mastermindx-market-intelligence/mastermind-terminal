@@ -1,0 +1,66 @@
+name: f12-tenancy-postgres-canary
+
+on:
+  pull_request:
+    paths:
+      - "supabase/migrations/0014_tenancy_foundation.sql"
+      - ".github/workflows/f12-tenancy-postgres-canary.yml"
+      - "terminal/scripts/f12_tenancy_postgres_canary.py"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: f12-tenancy-postgres-canary-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  canary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16.10@sha256:21f6013073bc6b92830a2129570e2f5ec42a6c734b5a985a41e83aa58f54c3c1
+        env:
+          POSTGRES_PASSWORD: f12_canary_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install psycopg
+        run: pip install "psycopg[binary]==3.2.10"
+
+      - name: Run F12 tenancy RLS canary
+        env:
+          F12_DATABASE_URL: postgresql://postgres:f12_canary_only@localhost:5432/postgres
+          F12_EXPECTED_COMMIT: ${{ github.event.pull_request.head.sha }}
+          F12_EXPECTED_IMAGE: postgres:16.10@sha256:21f6013073bc6b92830a2129570e2f5ec42a6c734b5a985a41e83aa58f54c3c1
+          F12_EXPECTED_POSTGRES: "16.10"
+          F12_GITHUB_RUN_ID: ${{ github.run_id }}
+          F12_GITHUB_RUN_ATTEMPT: ${{ github.run_attempt }}
+          F12_GITHUB_JOB: canary
+        run: |
+          python terminal/scripts/f12_tenancy_postgres_canary.py \
+            --migrations supabase/migrations \
+            --receipt f12-tenancy-postgres-canary-receipt.json
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: f12-tenancy-postgres-canary-receipt
+          path: f12-tenancy-postgres-canary-receipt.json
+          if-no-files-found: error
+          retention-days: 14
