@@ -117,15 +117,15 @@
       "packet": "B-F12-1",
       "pr": 514,
       "pr_state": "open",
-      "note": "file lives in an unmerged PR; absent from this checkout by design"
+      "note": "file is in open PR #514 (packet B-F12-1); not applied"
     },
     "0015": {
-      "state": "reserved",
-      "file": null,
+      "state": "taken",
+      "file": "0015_team_roles_invitations.sql",
       "packet": "B-F12-3",
-      "pr": null,
-      "pr_state": null,
-      "note": "claimed by packet B-F12-3; no pull request opened yet (null = not yet opened, not unknown). Packet id sourced from the B4 commission only."
+      "pr": 514,
+      "pr_state": "open",
+      "note": "file landed in open PR #514; not applied. Packet id kept as B-F12-3 (the original claim)."
     },
     "0016": {
       "state": "reserved",

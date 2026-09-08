@@ -1,0 +1,47 @@
+name: f12-team-postgres-canary
+
+on:
+  pull_request:
+    paths:
+      # 0015's accept_team_invite/workspace_settings build on 0014's teams/team_members/
+      # team_invites, and the canary applies 0001..0015 in order against a real Postgres --
+      # 0014 is included so a change there also re-runs this canary (round-3 review minor).
+      - "supabase/migrations/0014_tenancy_foundation.sql"
+      - "supabase/migrations/0015_team_roles_invitations.sql"
+      - "terminal/scripts/f12_team_postgres_canary.py"
+      - ".github/workflows/f12-team-postgres-canary.yml"
+  workflow_dispatch: {}
+
+jobs:
+  canary:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install psycopg[binary]
+      - run: python3 terminal/scripts/f12_team_postgres_canary.py --migrations supabase/migrations --receipt f12-team-postgres-canary-receipt.json
+        env:
+          F12_TEAM_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+          F12_TEAM_EXPECTED_COMMIT: ${{ github.sha }}
+          F12_TEAM_GITHUB_RUN_ID: ${{ github.run_id }}
+          F12_TEAM_GITHUB_RUN_ATTEMPT: ${{ github.run_attempt }}
+          F12_TEAM_GITHUB_JOB: ${{ github.job }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: f12-team-postgres-canary-receipt
+          path: f12-team-postgres-canary-receipt.json
