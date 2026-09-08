@@ -19,6 +19,12 @@ const AAPL_TX = JSON.parse(gunzipSync(AAPL_TX_GZ).toString("utf8")) as {
 };
 
 const SHA = "a".repeat(64);
+// AppShell mounts BrainWidget on every /analysis route (PR #490), which requests this
+// production script. This spec's assertions are about Company Intelligence, not the Brain
+// widget, so stub the script to a no-op instead of letting a real cross-origin network
+// request race the page's own timing-sensitive assertions (CI has no route to the live
+// script, so an un-stubbed request either hangs or errors mid-test).
+const BRAIN_SCRIPT_SRC = "https://www.mastermind-x.com/mm_brain.js";
 const drawerFixtureBody = {
   schema: "mastermind.tx/v1",
   ticker: "NVDA",
@@ -278,6 +284,10 @@ async function openCompanyIntelligence(page: Page, intelligenceLabel = "Intellig
 }
 
 test.beforeEach(async ({ page }) => {
+  await page.route(BRAIN_SCRIPT_SRC, async (route) => route.fulfill({
+    contentType: "application/javascript",
+    body: "",
+  }));
   await routeInstitutionalContext(page);
   await page.route("**/api/event-workspace/**", async (route) => {
     await route.fulfill({
