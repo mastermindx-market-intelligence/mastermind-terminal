@@ -2378,6 +2378,35 @@ table.scr2 tbody tr.empty-row:hover,table.scr2 tbody tr.scr2-skel-row:hover,tabl
 
 /* ===== mobile top bar + symbol bar + drawer (hidden on desktop) ===== */
 .mobilebar{display:none;position:relative;align-items:center;height:52px;padding:0 8px;border-bottom:1px solid var(--line);background:var(--bg);gap:2px;flex:none;z-index:30}
+/* Analysis-route-only notes (scope, don't move the shared chrome rule).
+ * `.analysis-route` is the app2 root class AppShell applies only on /analysis
+ * (components/chrome/AppShell.tsx). On this route at ≤860px the workspace pane
+ * is already in-flow (`app/fin.css` `.analysis-shell .fin-pane--workspace`), so
+ * the hamburger is not under a `z-index:90` overlay and must not be raised.
+ *
+ * Deliberately named `analysis-route`, NOT `analysis-shell`: AnalysisWorkspace's own inner
+ * content wrapper already carries the class `analysis-shell` (components/workspaces/
+ * AnalysisWorkspace.tsx, `main2 ws-shell analysis-shell`), scoped by app/company-
+ * intelligence.css's `.analysis-shell{display:flex;flex-direction:column;overflow:hidden}` —
+ * a rule meant for that one inner element. AppShell's .app2 root (a different element
+ * entirely) once reused that same class name; both selectors have equal (one-class)
+ * specificity, so on that shared name company-intelligence.css's `.analysis-shell{display:
+ * flex;...}` could win the tie against .app2's own `display:grid` (declared above, `.app2{
+ * display:grid;grid-template-columns:60px minmax(0,1fr);...}`) — see
+ * lib/__tests__/appShellAnalysisZIndex.test.ts, which reproduces that exact swap against the
+ * real stylesheets. The rename removes that naming tie.
+ *
+ * Do NOT raise `.analysis-route .mobilebar` above the in-flow workspace stacking
+ * context. `.ci-evidence` is `z-index:104` but lives inside the pane's `z-index:1`
+ * stacking context, so a sibling `.mobilebar{z-index:95}` paints over
+ * `.ci-evidence-close` (CI job 101649876144: `.m-right` intercepts the pointer).
+ * Leaving the bar at the ambient computed `z-index:1` (same as the pane; pane
+ * comes later in tree order) keeps the close button clickable. The `top:52px`
+ * offset below is scoped to `.analysis-route` so no other AppShell route is
+ * affected if a future overlay reappears. */
+@media (max-width:860px){
+  .analysis-route .fin-pane--workspace{top:52px}
+}
 .m-ic{width:38px;height:38px;border-radius:var(--r-md);display:grid;place-items:center;color:var(--text-2)}
 .m-ic:active,.m-ic:hover{background:var(--panel-2);color:var(--text)}.m-ic svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:1.9}
 /* prominent mobile "back to dashboard" pill (left slot when the user came from macro) */
