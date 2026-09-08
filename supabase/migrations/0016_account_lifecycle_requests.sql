@@ -1,3 +1,5 @@
+-- Ledger row: 0016_account_lifecycle_requests / PR #527 (open, packet B-F12-4); not applied
+-- Rollback: drop table if exists public.account_lifecycle_requests;
 -- 0016: account_lifecycle_requests — the user-visible intake + receipt for
 -- "download my data" and "delete my account" (packet B-F12-4, lane F12).
 --
