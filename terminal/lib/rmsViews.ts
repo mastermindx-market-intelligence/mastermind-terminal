@@ -358,11 +358,25 @@ export function formatScopeSentence(
   total: number,
   complete: boolean,
   copy: RmsCopy,
+  /** Round-3 review (Meta-CEO B ruling R1): true while a built-in preset or a saved
+   *  view is narrowing the list, so the counted set is the view's own active theses
+   *  and the sentence must say so instead of naming the whole workspace. */
+  filtered: boolean = false,
 ): string {
   if (complete) {
+    if (filtered) {
+      return total === 1
+        ? copy.scopeViewCompleteSingular
+        : copy.scopeViewComplete.replace("{total}", String(total));
+    }
     return total === 1
       ? copy.scopeCompleteSingular
       : copy.scopeComplete.replace("{total}", String(total));
+  }
+  if (filtered) {
+    return total === 1
+      ? copy.scopeViewSingular.replace("{loaded}", String(loaded))
+      : copy.scopeView.replace("{loaded}", String(loaded)).replace("{total}", String(total));
   }
   return total === 1
     ? copy.scopeSingular.replace("{loaded}", String(loaded))
@@ -392,6 +406,17 @@ export type RmsCopy = {
   scopeComplete: string;
   /** total === 1. */
   scopeCompleteSingular: string;
+  /** Round-3 review (Meta-CEO B ruling R1): under an active built-in preset or saved
+   *  view the counted set is the VIEW's active theses, not the workspace's — so the
+   *  sentence may never say "all {total} active theses" / "of your {total} active
+   *  theses" while a view is narrowing the list. {loaded}/{total}; total > 1. */
+  scopeView: string;
+  /** {loaded} placeholder only; total === 1, under an active view. */
+  scopeViewSingular: string;
+  /** {total} placeholder; total > 1, under an active view, fully loaded. */
+  scopeViewComplete: string;
+  /** total === 1, under an active view, fully loaded. */
+  scopeViewCompleteSingular: string;
   /** {n} placeholder — the actual pending increment (`min(RMS_HYDRATION_BATCH,
    *  remaining)`), never a hardcoded "10" (Meta-CEO B ruling r4 minor 2: a fixed "10"
    *  read false whenever fewer than 10 theses remained). */
@@ -412,6 +437,13 @@ export type RmsCopy = {
   coverageRatio: string;
   /** {subject} placeholder. */
   filteredBySubject: string;
+  /** {view} placeholder — the lens-head sentence while a built-in preset or a saved
+   *  view is narrowing the list. Round-3 review (Meta-CEO B ruling R1): the head used
+   *  to print `what[view]` ("Everything you have written.") over a filtered slice,
+   *  which is the same false claim the subject-filter repair already closed. */
+  filteredByView: string;
+  /** {view} and {subject} placeholders — both filters at once. */
+  filteredByViewAndSubject: string;
   clearFilter: string;
   /** {subject} placeholder — shown instead of `empty.theses` when a Coverage subject
    *  filter is active and resolves to zero rows; never claims "No theses yet." while
@@ -429,6 +461,14 @@ export type RmsCopy = {
   "savedViews.delete": string;
   "savedViews.confirmDelete": string;
   "savedViews.limitReached": string;
+  /** Round-3 review (Meta-CEO B ruling R4): holding MORE than the cap is not the same
+   *  statement as having reached it — "Delete one to save another" also pointed at a
+   *  visible set that excluded the hidden rows. */
+  "savedViews.truncated": string;
+  /** Round-3 review (Meta-CEO B ruling R4): a name the route rejects is not a failed
+   *  read. `savedViews.unavailable` is for a failed fetch/save/delete only (spec 2.8);
+   *  this names the actual problem. */
+  "savedViews.nameRequired": string;
   "savedViews.empty": string;
   "savedViews.unavailable": string;
   /** Shown when a SAVED view resolves to zero rows. Round-2 review BLOCKER 3: this
@@ -489,6 +529,10 @@ export const RMS_COPY: { en: RmsCopy; zh: RmsCopy } = {
     scopeSingular: "Showing lines from {loaded} of your 1 active thesis.",
     scopeComplete: "Showing lines from all {total} active theses.",
     scopeCompleteSingular: "Showing lines from all 1 active thesis.",
+    scopeView: "Showing lines from {loaded} of the {total} active theses in this view.",
+    scopeViewSingular: "Showing lines from {loaded} of the 1 active thesis in this view.",
+    scopeViewComplete: "Showing lines from all {total} active theses in this view.",
+    scopeViewCompleteSingular: "Showing lines from the 1 active thesis in this view.",
     showMore: "Show {n} more",
     // Not "Your thesis store did not answer..." — the strong heading right above this
     // paragraph already says exactly that; repeating it read as a stutter (sibling
@@ -501,6 +545,8 @@ export const RMS_COPY: { en: RmsCopy; zh: RmsCopy } = {
     countUnknown: "—",
     coverageRatio: "{active} active of {theses} written",
     filteredBySubject: "Only what you have written about {subject}.",
+    filteredByView: "Only what matches the \u201c{view}\u201d view.",
+    filteredByViewAndSubject: "Only what matches the \u201c{view}\u201d view, and only about {subject}.",
     clearFilter: "Show everything",
     filteredEmpty: "Nothing written about {subject} right now. Clear the filter to see every thesis.",
     filteredMarker: "filtered",
@@ -512,6 +558,8 @@ export const RMS_COPY: { en: RmsCopy; zh: RmsCopy } = {
     "savedViews.delete": "Delete this view",
     "savedViews.confirmDelete": "Delete this saved view? This cannot be undone.",
     "savedViews.limitReached": "You have reached the limit of 50 saved views. Delete one to save another.",
+    "savedViews.truncated": "You have more than 50 saved views. The oldest are hidden until you delete some.",
+    "savedViews.nameRequired": "Give this view a name before you save it.",
     "savedViews.empty": "No saved views yet. Filter the list, then save it with a name.",
     "savedViews.unavailable": "Your saved views did not load. Nothing has been changed.",
     "savedViews.viewEmpty": "No theses match this view.",
@@ -564,6 +612,10 @@ export const RMS_COPY: { en: RmsCopy; zh: RmsCopy } = {
     scopeSingular: "正在显示 1 条活跃论点中 {loaded} 条的内容。",
     scopeComplete: "正在显示全部 {total} 条活跃论点的内容。",
     scopeCompleteSingular: "正在显示这 1 条活跃论点的全部内容。",
+    scopeView: "正在显示这个视图中 {total} 条活跃论点里 {loaded} 条的内容。",
+    scopeViewSingular: "正在显示这个视图中 1 条活跃论点里 {loaded} 条的内容。",
+    scopeViewComplete: "正在显示这个视图中全部 {total} 条活跃论点的内容。",
+    scopeViewCompleteSingular: "正在显示这个视图中这 1 条活跃论点的全部内容。",
     showMore: "再载入 {n} 条",
     unavailableLens: "此视角暂时没有内容可显示。没有任何内容被更改。",
     hydrationFault: "接下来的 {n} 条未能载入。请重试。",
@@ -573,6 +625,8 @@ export const RMS_COPY: { en: RmsCopy; zh: RmsCopy } = {
     countUnknown: "—",
     coverageRatio: "共写了 {theses} 条，其中 {active} 条活跃",
     filteredBySubject: "仅显示关于 {subject} 的内容。",
+    filteredByView: "仅显示符合「{view}」视图的内容。",
+    filteredByViewAndSubject: "仅显示符合「{view}」视图、并且关于 {subject} 的内容。",
     clearFilter: "显示全部",
     filteredEmpty: "目前没有关于 {subject} 的论点。清除筛选可查看全部论点。",
     filteredMarker: "已筛选",
@@ -584,6 +638,8 @@ export const RMS_COPY: { en: RmsCopy; zh: RmsCopy } = {
     "savedViews.delete": "删除此视图",
     "savedViews.confirmDelete": "删除这个已保存的视图？此操作无法撤销。",
     "savedViews.limitReached": "已达到 50 个已保存视图的上限。请先删除一个再保存新的。",
+    "savedViews.truncated": "你保存的视图超过 50 个。最早的那些暂时不显示，删除一些之后才会出现。",
+    "savedViews.nameRequired": "保存前请先为这个视图命名。",
     "savedViews.empty": "还没有保存任何视图。先筛选列表，再为其保存命名。",
     "savedViews.unavailable": "无法加载已保存的视图。没有任何内容被更改。",
     "savedViews.viewEmpty": "没有符合这个视图的论点。",

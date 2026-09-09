@@ -82,14 +82,28 @@ function userSettingsQuery(db: WatchlistDb, userId: string) {
   return db.from("workspace_settings").select("key,value,updated_at").eq("scope", "user").eq("user_id", userId);
 }
 
-export async function listSavedViews(db: WatchlistDb, userId: string): Promise<SavedViewsRead> {
+/** Every saved view this owner holds, newest first — including the rows past the cap
+ *  that `listSavedViews` hides. Round-3 review (Meta-CEO B ruling R4): rename and
+ *  delete resolve membership against THIS list, never against the sliced read, so the
+ *  51st row — precisely the row the disclosed single-writer race creates — stays
+ *  repairable instead of answering not_found forever. */
+async function readAllSavedViews(
+  db: WatchlistDb,
+  userId: string,
+): Promise<{ ok: true; views: SavedView[] } | { ok: false; error: string }> {
   const result = await userSettingsQuery(db, userId);
-  if (result.error) return { ok: false, status: "unavailable", error: result.error.message ?? "unavailable" };
+  if (result.error) return { ok: false, error: result.error.message ?? "unavailable" };
   const views = rowsOf(result)
     .map(parseSavedView)
     .filter((view): view is SavedView => !!view)
     .sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : a.updatedAt > b.updatedAt ? -1 : a.id.localeCompare(b.id)));
-  return { ok: true, views: views.slice(0, MAX_SAVED_VIEWS), truncated: views.length > MAX_SAVED_VIEWS };
+  return { ok: true, views };
+}
+
+export async function listSavedViews(db: WatchlistDb, userId: string): Promise<SavedViewsRead> {
+  const all = await readAllSavedViews(db, userId);
+  if (!all.ok) return { ok: false, status: "unavailable", error: all.error };
+  return { ok: true, views: all.views.slice(0, MAX_SAVED_VIEWS), truncated: all.views.length > MAX_SAVED_VIEWS };
 }
 
 export async function createSavedView(
@@ -132,7 +146,9 @@ export async function renameSavedView(
   if (!isUuid(id)) return { ok: false, status: "invalid_id", error: "invalid_id" };
   const name = normalizeSavedViewName(nameValue);
   if (!name) return { ok: false, status: "invalid_name", error: "invalid_name" };
-  const listed = await listSavedViews(db, userId);
+  // Round-3 review (Meta-CEO B ruling R4): the FULL set, not the capped read — a row
+  // past the cap is reported as existing (`truncated`) and must stay repairable.
+  const listed = await readAllSavedViews(db, userId);
   if (!listed.ok) return { ok: false, status: "unavailable", error: listed.error };
   const current = listed.views.find((view) => view.id === id);
   if (!current) return { ok: false, status: "not_found", error: "not_found" };
@@ -153,7 +169,10 @@ export async function deleteSavedView(db: WatchlistDb, userId: string, id: strin
   // count was, so the route's 404 branch was unreachable and deleting an id that never
   // existed reported success. Same read-then-write shape `renameSavedView` already
   // uses; the window between the two is the disclosed single-writer race, not a new one.
-  const listed = await listSavedViews(db, userId);
+  // Round-3 review (Meta-CEO B ruling R4): membership against the FULL set — the 51st
+  // row could be neither renamed nor deleted while the read that hides it still
+  // reported it through `truncated`.
+  const listed = await readAllSavedViews(db, userId);
   if (!listed.ok) return { ok: false, status: "unavailable", error: listed.error };
   if (!listed.views.some((view) => view.id === id)) {
     return { ok: false, status: "not_found", error: "not_found" };

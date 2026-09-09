@@ -1558,6 +1558,10 @@ type WorkspaceStub = {
   theses: ThesisSummary[];
   details?: Map<string, ThesisDetail>;
   savedViews?: unknown[];
+  /** What the saved-views route reports when the owner holds more rows than the cap shows. */
+  savedViewsTruncated?: boolean;
+  /** HTTP status the saved-views PUT answers with (400 = the route's name validation). */
+  savedViewsPutStatus?: number;
   fireStates?: Record<string, unknown>;
   fireStatusHttpStatus?: number;
 };
@@ -1566,10 +1570,20 @@ type WorkspaceStub = {
 function installWorkspaceFetch(stub: WorkspaceStub) {
   const fireCalls: string[][] = [];
   const details = stub.details ?? new Map<string, ThesisDetail>();
-  const fetchMock = vi.fn(async (input: string | URL | Request) => {
+  const savedViewPuts: unknown[] = [];
+  const fetchMock = vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
     const raw = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
     const url = new URL(raw, "https://x.test");
-    if (url.pathname === "/api/thesis-saved-views") return jsonResponse({ views: stub.savedViews ?? [] });
+    if (url.pathname === "/api/thesis-saved-views") {
+      if ((init?.method ?? "GET").toUpperCase() === "PUT") {
+        const body = JSON.parse(String(init?.body ?? "{}"));
+        savedViewPuts.push(body);
+        const status = stub.savedViewsPutStatus ?? 200;
+        if (status >= 400) return jsonResponse({ error: status === 400 ? "invalid_name" : "saved_views_unavailable" }, status);
+        return jsonResponse({ view: { ...(body.view ?? {}), id: body.id ?? "new", name: body.name, filter: body.filter ?? { lifecycle: "active" }, createdAt: "2026-09-01T00:00:00.000Z", updatedAt: "2026-09-02T00:00:00.000Z" } });
+      }
+      return jsonResponse({ views: stub.savedViews ?? [], truncated: stub.savedViewsTruncated === true });
+    }
     if (url.pathname === "/api/thesis-fire-status") {
       const ids = url.searchParams.getAll("id");
       fireCalls.push(ids);
@@ -1600,7 +1614,7 @@ function installWorkspaceFetch(stub: WorkspaceStub) {
     return jsonResponse({ theses: stub.theses, truncated: false });
   });
   vi.stubGlobal("fetch", fetchMock);
-  return { fetchMock, fireCalls };
+  return { fetchMock, fireCalls, savedViewPuts };
 }
 
 const FRESH = new Date(Date.now() - 60_000).toISOString();
@@ -1765,5 +1779,301 @@ describe("ThesisWorkspace saved views — round-2 repairs (B-F11-4, PR #546)", (
     const rows = Array.from(el.querySelectorAll('[data-testid="rms-lens-panel"] button'));
     expect(rows).toHaveLength(1);
     expect(rows[0].textContent).toContain("AAA");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Round-3 review of PR #546 (B-F11-4), Meta-CEO B seat rulings R1-R4. Every test
+// below was RED at head 39e49fd8 and names the ruling it closes.
+// ---------------------------------------------------------------------------
+
+const STALE = "2026-01-01T00:00:00.000Z";
+
+function lensWhat(el: HTMLElement): string {
+  return el.querySelector("[class*='lensWhat']")?.textContent ?? "";
+}
+
+function thesesBadge(el: HTMLElement): string {
+  return tabs(el).find((b) => b.dataset.view === "theses")?.textContent ?? "";
+}
+
+function scopeText(el: HTMLElement): string {
+  return el.querySelector('[data-testid="rms-scope"]')?.textContent ?? "";
+}
+
+/** React-controlled inputs ignore a plain `.value =` assignment in jsdom. */
+function typeInto(input: HTMLInputElement, value: string) {
+  const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")!.set!;
+  setter.call(input, value);
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+}
+
+async function filterToSubject(el: HTMLElement, display: string) {
+  await act(async () => tabs(el).find((b) => b.dataset.view === "coverage")!.click());
+  await flush();
+  const row = Array.from(el.querySelectorAll<HTMLButtonElement>('[data-testid="rms-lens-panel"] button'))
+    .find((b) => b.textContent?.includes(display));
+  expect(row, `expected a Coverage row for ${display}`).toBeTruthy();
+  await act(async () => row!.click());
+  await flush();
+}
+
+describe("ThesisWorkspace research views — round-3 repairs (B-F11-4, PR #546)", () => {
+  // R1: the lens head, the rail's filtered marker and the scope sentence all follow
+  // the ACTIVE VIEW. Under a preset the head used to print "Everything you have
+  // written." over a filtered slice, the badges showed filtered numbers unmarked,
+  // and the scope sentence claimed "all {total} active theses" of the workspace.
+  it("R1 preset-only: the head names the view, the badges are marked filtered, and the scope sentence counts the view", async () => {
+    installWorkspaceFetch({
+      theses: [
+        activeThesis("r3-stale-1", "AAA", "Alpha old", STALE),
+        activeThesis("r3-stale-2", "BBB", "Beta old", STALE),
+        activeThesis("r3-fresh-1", "CCC", "Gamma new"),
+      ],
+    });
+    const el = await mount({ ownerKey: "owner-r3-preset-only" });
+    await flush();
+    expect(lensWhat(el)).toBe("Everything you have written.");
+
+    await act(async () => chip(el, "stale_30").click());
+    await flush();
+
+    expect(lensWhat(el)).toBe("Only what matches the “Stale” view.");
+    expect(lensWhat(el)).not.toBe("Everything you have written.");
+    expect(thesesBadge(el)).toContain("(filtered)");
+    expect(tabs(el).find((b) => b.dataset.view === "coverage")!.textContent).toContain("(filtered)");
+
+    await act(async () => tabs(el).find((b) => b.dataset.view === "catalysts")!.click());
+    await flush();
+    expect(scopeText(el)).toBe("Showing lines from all 2 active theses in this view.");
+    expect(scopeText(el)).not.toContain("all 3");
+    expect(lensWhat(el)).toBe("Only what matches the “Stale” view.");
+  });
+
+  // R1: the already-correct subject-only path must keep behaving, and the marker
+  // must stay on the Theses badge alone (a subject filter narrows no other lens).
+  it("R1 subject-only: the head names the subject and only the Theses badge is marked filtered", async () => {
+    installWorkspaceFetch({
+      theses: [
+        activeThesis("r3-sub-a", "AAA", "Alpha one"),
+        activeThesis("r3-sub-b", "BBB", "Beta one"),
+      ],
+    });
+    const el = await mount({ ownerKey: "owner-r3-subject-only" });
+    await flush();
+    await filterToSubject(el, "AAA Co");
+
+    expect(lensWhat(el)).toBe("Only what you have written about AAA Co.");
+    expect(thesesBadge(el)).toContain("(filtered)");
+    expect(tabs(el).find((b) => b.dataset.view === "coverage")!.textContent).not.toContain("(filtered)");
+  });
+
+  // R1: both filters at once — the head names both, and neither is dropped.
+  it("R1 preset + subject: the head names the view and the subject together", async () => {
+    installWorkspaceFetch({
+      theses: [
+        activeThesis("r3-both-a", "AAA", "Alpha one"),
+        activeThesis("r3-both-b", "BBB", "Beta one"),
+      ],
+    });
+    const el = await mount({ ownerKey: "owner-r3-both" });
+    await flush();
+    await filterToSubject(el, "AAA Co");
+    await act(async () => chip(el, "mine").click());
+    await flush();
+
+    expect(lensWhat(el)).toBe("Only what matches the “Yours” view, and only about AAA Co.");
+    expect(lensWhat(el)).not.toBe("Everything you have written.");
+    expect(el.querySelector('[data-testid="rms-subject-chip"]')).not.toBeNull();
+    expect(thesesBadge(el)).toContain("(filtered)");
+  });
+
+  // R2: one precedence. A preset that empties the list names ITSELF, even when a
+  // subject filter is also on — and the frozen condition.unavailable fallback that
+  // spec 2.8 requires for a failed fire-status read is no longer swallowed.
+  it("R2 preset + subject + failed fire-status read: the preset's unavailable sentence wins over the subject sentence", async () => {
+    installWorkspaceFetch({
+      theses: [
+        activeThesis("aaaaaaaa-aaaa-4aaa-8aaa-000000000101", "AAA", "Alpha one"),
+        activeThesis("aaaaaaaa-aaaa-4aaa-8aaa-000000000102", "BBB", "Beta one"),
+      ],
+      fireStatusHttpStatus: 503,
+    });
+    const el = await mount({ ownerKey: "owner-r3-r2-unavailable" });
+    await flush();
+    await filterToSubject(el, "AAA Co");
+    await act(async () => chip(el, "window_closed").click());
+    await flush();
+
+    const text = emptyText(el);
+    expect(text).toContain("Condition checks are not connected yet.");
+    expect(text).not.toContain("Clear the filter to see every thesis.");
+    expect(text).not.toContain("Nothing has a closed window right now.");
+  });
+
+  it("R2 preset + subject + a fresh subject: the Stale preset's own empty sentence wins over the subject sentence", async () => {
+    installWorkspaceFetch({
+      theses: [
+        activeThesis("r3-r2-fresh-a", "AAA", "Alpha one"),
+        activeThesis("r3-r2-fresh-b", "BBB", "Beta one"),
+      ],
+    });
+    const el = await mount({ ownerKey: "owner-r3-r2-fresh" });
+    await flush();
+    await filterToSubject(el, "AAA Co");
+    await act(async () => chip(el, "stale_30").click());
+    await flush();
+
+    const text = emptyText(el);
+    expect(text).toMatch(/last 30 days/i);
+    expect(text).not.toContain("Clear the filter to see every thesis.");
+    expect(text).not.toContain("No theses yet");
+  });
+
+  // R3: "Nothing has a closed window right now." may render only when the read
+  // succeeded AND covered every requested id. A 200 whose every state is
+  // `unavailable` is the production reality until macro #6918's job runs, and it
+  // is treated exactly like transport failure.
+  it("R3 a 200 fire-status answer that knows nothing reads as not connected, never as 'nothing has a closed window'", async () => {
+    installWorkspaceFetch({
+      theses: [activeThesis("aaaaaaaa-aaaa-4aaa-8aaa-000000000201", "AAA", "Alpha one")],
+    });
+    const el = await mount({ ownerKey: "owner-r3-unknown-200" });
+    await flush();
+    await act(async () => chip(el, "window_closed").click());
+    await flush();
+
+    const text = emptyText(el);
+    expect(text).toContain("Condition checks are not connected yet.");
+    expect(text).not.toContain("Nothing has a closed window right now.");
+  });
+
+  it("R3 a 200 fire-status answer that covers every thesis with a real monitor read may say nothing has a closed window", async () => {
+    const id = "aaaaaaaa-aaaa-4aaa-8aaa-000000000202";
+    installWorkspaceFetch({
+      theses: [activeThesis(id, "AAA", "Alpha one")],
+      fireStates: { [id]: { source: "monitor", state: "open", at: "2026-09-05T00:00:00.000Z" } },
+    });
+    const el = await mount({ ownerKey: "owner-r3-known-200" });
+    await flush();
+    await act(async () => chip(el, "window_closed").click());
+    await flush();
+
+    expect(emptyText(el)).toContain("Nothing has a closed window right now.");
+  });
+
+  it("R3 partial coverage — one thesis answered, one not — is treated as not connected", async () => {
+    const known = "aaaaaaaa-aaaa-4aaa-8aaa-000000000203";
+    const unknown = "aaaaaaaa-aaaa-4aaa-8aaa-000000000204";
+    installWorkspaceFetch({
+      theses: [activeThesis(known, "AAA", "Alpha one"), activeThesis(unknown, "BBB", "Beta one")],
+      fireStates: { [known]: { source: "monitor", state: "open", at: "2026-09-05T00:00:00.000Z" } },
+    });
+    const el = await mount({ ownerKey: "owner-r3-partial-200" });
+    await flush();
+    await act(async () => chip(el, "window_closed").click());
+    await flush();
+
+    const text = emptyText(el);
+    expect(text).toContain("Condition checks are not connected yet.");
+    expect(text).not.toContain("Nothing has a closed window right now.");
+  });
+
+  // R4: the rename form carried no trim guard, so a blank name reached the route and
+  // came back as "Your saved views did not load." — which they had.
+  it("R4 rename: a blank name cannot be submitted, and a rejected name says what is wrong", async () => {
+    const viewId = "99999999-9999-4999-8999-999999999999";
+    installWorkspaceFetch({
+      theses: [activeThesis("r3-rename-a", "AAA", "Alpha one")],
+      savedViews: [{
+        id: viewId,
+        name: "Only Alpha",
+        filter: { lifecycle: "active", subjectGroupKey: "data_os.security_master|issuer|AAA" },
+        createdAt: "2026-09-01T00:00:00.000Z",
+        updatedAt: "2026-09-01T00:00:00.000Z",
+      }],
+      savedViewsPutStatus: 400,
+    });
+    const el = await mount({ ownerKey: "owner-r3-rename" });
+    await flush();
+    const item = el.querySelector(`[data-saved-view="${viewId}"]`)!;
+    const renameButton = Array.from(item.querySelectorAll("button")).find((b) => b.textContent === "Rename")!;
+    await act(async () => renameButton.click());
+    await flush();
+
+    const input = el.querySelector<HTMLInputElement>(`[data-saved-view="${viewId}"] input`)!;
+    await act(async () => typeInto(input, "   "));
+    await flush();
+    const submit = el.querySelector<HTMLButtonElement>(`[data-saved-view="${viewId}"] button[type="submit"]`)!;
+    expect(submit.disabled).toBe(true);
+
+    // A name the client cannot pre-check (the route's own rule) still must not be
+    // reported as a broken saved-views read.
+    await act(async () => typeInto(input, "A new name"));
+    await flush();
+    expect(submit.disabled).toBe(false);
+    await act(async () => { submit.closest("form")!.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })); });
+    await flush();
+
+    const strip = el.querySelector('[data-testid="rms-saved-views"]')!;
+    expect(strip.textContent).toContain("Give this view a name before you save it.");
+    expect(strip.textContent).not.toContain("Your saved views did not load.");
+  });
+
+  // R4: more than 50 saved views is not the same statement as "you have reached 50".
+  it("R4 a truncated saved-view set says the extra views are hidden, never the limit sentence", async () => {
+    installWorkspaceFetch({
+      theses: [activeThesis("r3-trunc-a", "AAA", "Alpha one")],
+      savedViews: Array.from({ length: 50 }, (_, i) => ({
+        id: `44444444-4444-4444-8444-${String(i).padStart(12, "0")}`,
+        name: `View ${i}`,
+        filter: { lifecycle: "active", staleDays: 30 },
+        createdAt: "2026-09-01T00:00:00.000Z",
+        updatedAt: `2026-09-01T00:00:${String(i).padStart(2, "0")}.000Z`,
+      })),
+      savedViewsTruncated: true,
+    });
+    const el = await mount({ ownerKey: "owner-r3-truncated" });
+    await flush();
+    const strip = el.querySelector('[data-testid="rms-saved-views"]')!;
+    expect(strip.textContent).toContain("You have more than 50 saved views.");
+    expect(strip.textContent).not.toContain("You have reached the limit of 50 saved views.");
+  });
+
+  // R4: builtin.staleWhat rendered only as a `title` attribute — unreachable on
+  // touch, which is exactly the 390 crop viewport.
+  it("R4 the Stale preset explains itself in visible text, not only in a tooltip", async () => {
+    installWorkspaceFetch({ theses: [activeThesis("r3-stale-what", "AAA", "Alpha one", STALE)] });
+    const el = await mount({ ownerKey: "owner-r3-stale-what" });
+    await flush();
+    expect(el.querySelector('[data-testid="rms-builtin-what"]')).toBeNull();
+    await act(async () => chip(el, "stale_30").click());
+    await flush();
+    const note = el.querySelector('[data-testid="rms-builtin-what"]');
+    expect(note).not.toBeNull();
+    expect(note!.textContent).toBe("No changes in 30 days.");
+  });
+
+  // R4 (hygiene): the owner-change reset clears every other per-owner flag; a stale
+  // fire-status fault must not survive the swap either.
+  it("R4 an owner change clears the preset and its fire-status fault together", async () => {
+    installWorkspaceFetch({
+      theses: [activeThesis("aaaaaaaa-aaaa-4aaa-8aaa-000000000301", "AAA", "Alpha one")],
+      fireStatusHttpStatus: 503,
+    });
+    const el = await mount({ ownerKey: "owner-r3-reset-a" });
+    await flush();
+    await act(async () => chip(el, "window_closed").click());
+    await flush();
+    expect(emptyText(el)).toContain("Condition checks are not connected yet.");
+
+    installWorkspaceFetch({
+      theses: [activeThesis("aaaaaaaa-aaaa-4aaa-8aaa-000000000302", "BBB", "Beta one")],
+    });
+    await act(async () => { root!.render(<ThesisWorkspace ownerKey="owner-r3-reset-b" />); });
+    await flush();
+
+    expect(el.querySelector('[data-builtin="window_closed"]')!.getAttribute("data-selected")).toBeNull();
+    expect(el.textContent).not.toContain("Condition checks are not connected yet.");
   });
 });

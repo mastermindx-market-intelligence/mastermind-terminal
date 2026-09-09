@@ -288,6 +288,44 @@ describe("savedViews CRUD — round-2 repairs", () => {
     expect(result.truncated).toBe(true);
   });
 
+  // Round-3 review (Meta-CEO B ruling R4): rename and delete resolved membership
+  // against the ALREADY-SLICED list, so the 51st row — precisely the row the
+  // disclosed single-writer race creates — answered not_found and could never be
+  // repaired through the UI. Membership is now resolved against the full set.
+  it("a saved view past the cap can still be renamed and deleted", async () => {
+    const { db, rows } = makeDb();
+    const owner2 = owner;
+    for (let i = 0; i < MAX_SAVED_VIEWS + 1; i += 1) {
+      const id = `77777777-7777-4777-8777-${String(i).padStart(12, "0")}`;
+      const view: SavedView = {
+        id,
+        name: `View ${i}`,
+        filter: FILTER,
+        createdAt: "2026-09-01T00:00:00.000Z",
+        updatedAt: `2026-09-01T00:00:${String(i).padStart(2, "0")}.000Z`,
+      };
+      rows.push({ scope: "user", user_id: owner2, key: savedViewSettingsKey(id), value: view });
+    }
+    // Sorted updatedAt desc and sliced at the cap, index 0 is the one row the read
+    // hides — it must still be reachable for repair.
+    const hidden = "77777777-7777-4777-8777-000000000000";
+    const listed = await listSavedViews(db, owner2);
+    expect(listed.ok).toBe(true);
+    if (!listed.ok) return;
+    expect(listed.truncated).toBe(true);
+    expect(listed.views.some((view) => view.id === hidden)).toBe(false);
+
+    const renamed = await renameSavedView(db, owner2, hidden, "Rescued");
+    expect(renamed.ok, "the hidden row must be renameable").toBe(true);
+    const deleted = await deleteSavedView(db, owner2, hidden);
+    expect(deleted.ok, "the hidden row must be deletable").toBe(true);
+    const after = await listSavedViews(db, owner2);
+    expect(after.ok).toBe(true);
+    if (!after.ok) return;
+    expect(after.truncated).toBe(false);
+    expect(after.views).toHaveLength(MAX_SAVED_VIEWS);
+  });
+
   it("list reports no truncation under the cap", async () => {
     const { db } = makeDb();
     const made = await createSavedView(db, owner, {

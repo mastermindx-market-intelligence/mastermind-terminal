@@ -233,6 +233,21 @@ describe("rmsViews copy", () => {
     expect(formatScopeSentence(1, 1, true, RMS_COPY.en)).not.toMatch(/1 active theses/);
   });
 
+  // Round-3 review (Meta-CEO B ruling R1): under an active view the counted set is
+  // the VIEW's active theses, so the sentence may not claim "all {total} active
+  // theses" / "of your {total} active theses" of the whole workspace.
+  it("formatScopeSentence: the filtered variants scope themselves to the view, EN and ZH", () => {
+    expect(formatScopeSentence(1, 2, false, RMS_COPY.en, true)).toBe("Showing lines from 1 of the 2 active theses in this view.");
+    expect(formatScopeSentence(2, 2, true, RMS_COPY.en, true)).toBe("Showing lines from all 2 active theses in this view.");
+    expect(formatScopeSentence(0, 1, false, RMS_COPY.en, true)).toBe("Showing lines from 0 of the 1 active thesis in this view.");
+    expect(formatScopeSentence(1, 1, true, RMS_COPY.en, true)).toBe("Showing lines from the 1 active thesis in this view.");
+    expect(formatScopeSentence(2, 2, true, RMS_COPY.en, true)).not.toContain("of your");
+    expect(formatScopeSentence(1, 2, false, RMS_COPY.zh, true)).toBe("正在显示这个视图中 2 条活跃论点里 1 条的内容。");
+    expect(formatScopeSentence(2, 2, true, RMS_COPY.zh, true)).toBe("正在显示这个视图中全部 2 条活跃论点的内容。");
+    expect(formatScopeSentence(0, 1, false, RMS_COPY.zh, true)).toBe("正在显示这个视图中 1 条活跃论点里 0 条的内容。");
+    expect(formatScopeSentence(1, 1, true, RMS_COPY.zh, true)).toBe("正在显示这个视图中这 1 条活跃论点的全部内容。");
+  });
+
   it("formatScopeSentence: ZH plural/singular x partial/complete (round-2 review r3 minor 4 — ZH was asserted only via /活跃/ on the raw templates, never through a rendered sentence)", () => {
     expect(formatScopeSentence(10, 12, false, RMS_COPY.zh)).toBe("正在显示 12 条活跃论点中 10 条的内容。");
     expect(formatScopeSentence(12, 12, true, RMS_COPY.zh)).toBe("正在显示全部 12 条活跃论点的内容。");

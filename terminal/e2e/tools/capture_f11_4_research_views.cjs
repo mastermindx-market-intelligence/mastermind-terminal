@@ -24,6 +24,11 @@ const REPO = join(ROOT, "..");
 const OUT = join(ROOT, "docs", "pr-crops", "b-f11-4-research-views");
 const LAYOUT_FILES = [
   "terminal/components/workspaces/ThesisWorkspace.tsx",
+  // Round-3 review (Meta-CEO B ruling R4): this packet changes the workspace stylesheet,
+  // and the lock is what tells a later reader whether the pixels still depict the code.
+  // Without it, an edit to the layout of this very surface would leave the lock green
+  // over stale crops.
+  "terminal/components/workspaces/ThesisWorkspace.module.css",
   "terminal/lib/rmsViews.ts",
   "terminal/lib/savedViews.ts",
   "terminal/lib/plainLabels.ts",
@@ -352,6 +357,14 @@ async function main() {
     "  - { name: desktop, width: 1440, height: 900 }",
     "  - { name: mobile, width: 390, height: 844 }",
     "surfaces: [empty, named-views, save-flow, window-closed]",
+    // Carried disclosure (named in the PR body since round 1, restated here so the
+    // manifest itself cannot be read as claiming full-width frames): `viewports` above
+    // describes the BROWSER viewport the page was rendered at, not the PNG's own width.
+    "crop_surface: |",
+    "  Every PNG is the thesis list pane only — cropPane() clips to",
+    "  [data-testid=\"thesis-list-pane\"], the surface spec 2.10 asks for. At the 1440",
+    "  viewport that pane is about 290px wide, so a \"1440\" crop is a ~290px image taken",
+    "  from a 1440x900 render, not a 1440-wide frame.",
     "capture_flag: TERMINAL_E2E_FIXTURE",
     "window_closed_data: |",
     "  A real alert_outbox row in the e2e fixture database, seeded by the fixture",
