@@ -158,6 +158,14 @@
       "pr": null,
       "pr_state": null,
       "note": "free -- claim before you write"
+    },
+    "0021": {
+      "state": "taken",
+      "file": "0021_resource_grants.sql",
+      "packet": "B-F12-B5-1",
+      "pr": 0,
+      "pr_state": "open",
+      "note": "packet B-F12-B5-1 explicit grants; prefix ruled by the seat 2026-09-09 (0017-0020 reserved for B-F13-5 / B-F12-7 / B-F12-8 / B-F12-9). pr filled after the draft pull request opens."
     }
   }
 }

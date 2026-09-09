@@ -181,6 +181,7 @@ amendment, only a README edit.
 | `0014` | `tenancy_foundation` | PR #514 (merged as `cff58ee8` on 2026-09-08, packet B-F12-1) | merged + applied 2026-09-08 |
 | `0015` | `team_roles_invitations` | PR #514 (merged as `cff58ee8` on 2026-09-08, packet B-F12-3; authored on stacked PR #526 squash `83424c63`) | merged + applied 2026-09-08 |
 | `0016` | `account_lifecycle_requests` | PR #527 (merged as `68bbe8ea` on 2026-09-09, packet B-F12-4) | merged + applied 2026-09-09 |
+| `0021` | `resource_grants` | packet B-F12-B5-1 (explicit grants; prefix ruled by the seat 2026-09-09; 0017–0020 reserved for B-F13-5 / B-F12-7 / B-F12-8 / B-F12-9) | open PR |
 
 What the statuses mean: **reserved** — the number is claimed (for example, by a Meta-CEO B
 pre-reservation) but no pull request carrying its file is open yet; **open PR** — a pull
