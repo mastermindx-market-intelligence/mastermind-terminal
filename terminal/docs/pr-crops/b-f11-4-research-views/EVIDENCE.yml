@@ -1,13 +1,14 @@
 # B-F11-4 research management views — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 12dae0c38b3ea0af015331a0d06341fe25b45e64
-# capturedAt: 2026-09-09T11:10:17.468Z
+# capturedAtHead: 4c3a1f5594bcf8e6ade51887d89cf516cfb96b99
+# capturedAt: 2026-09-09T13:06:40.337Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/workspaces/ThesisWorkspace.tsx: "331ed58ba129720b8746b5751e4ba40ef99138cbd6ecf683c096818657507927"
-  terminal/lib/rmsViews.ts: "b2cb60424344489e6bd1e937c142f559f374bc5666e63f524e949aa29da77255"
-  terminal/lib/savedViews.ts: "6dee40966e47fe76dd0568e1d79d618883dd509ef36a37051b53dcd22f97cbef"
+  terminal/components/workspaces/ThesisWorkspace.tsx: "1e77e46b577e5e06ad455e3a5752d74f8a5b587a64f85dbb200312663b43c0cd"
+  terminal/components/workspaces/ThesisWorkspace.module.css: "e2654fd1b179dd3bd1573f2a19cb3d93b248928394afd491b2ba8207b25f8fc9"
+  terminal/lib/rmsViews.ts: "ff170471d42a688a1f18f516baa42846be01ac92ce875bb898c977a1f891b4f3"
+  terminal/lib/savedViews.ts: "16e2914a032cba50cce999d1802c53e51098ce76dd82931925ef41b8e0f7af54"
   terminal/lib/plainLabels.ts: "718526665dd6899a3b726540a775645d37ab512cc603b77c5b37d966663a0e58"
   terminal/lib/i18n.tsx: "a307932230d62a4553c3f73a00b3689a7b431d43ff64c2723c312e7d0be1577f"
 theme: dark
@@ -16,6 +17,11 @@ viewports:
   - { name: desktop, width: 1440, height: 900 }
   - { name: mobile, width: 390, height: 844 }
 surfaces: [empty, named-views, save-flow, window-closed]
+crop_surface: |
+  Every PNG is the thesis list pane only — cropPane() clips to
+  [data-testid="thesis-list-pane"], the surface spec 2.10 asks for. At the 1440
+  viewport that pane is about 290px wide, so a "1440" crop is a ~290px image taken
+  from a 1440x900 render, not a 1440-wide frame.
 capture_flag: TERMINAL_E2E_FIXTURE
 window_closed_data: |
   A real alert_outbox row in the e2e fixture database, seeded by the fixture
