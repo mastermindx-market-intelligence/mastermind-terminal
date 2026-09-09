@@ -1,0 +1,40 @@
+# B-F11-4 research management views — capture evidence
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
+# capturedAtHead: 4025413437626d90906976e48f134a3c26b9461c
+# capturedAt: 2026-09-09T10:12:05.687Z
+# capturedAtHead is informational. The lock is layoutFiles.
+layoutFiles:
+  terminal/components/workspaces/ThesisWorkspace.tsx: "6dd42bbac927a6d935855f2aa3773fe9cecca38bf28637793582c9a4fcbb91ca"
+  terminal/lib/rmsViews.ts: "d35646bcd3303461426f59f58e6ea278c0f9ef324538771f3c319d253a744b46"
+  terminal/lib/savedViews.ts: "04592a795a72b54e626f1d1c15ca905bd2daff3b0a63862c99ea59b80583ae5f"
+  terminal/lib/plainLabels.ts: "718526665dd6899a3b726540a775645d37ab512cc603b77c5b37d966663a0e58"
+  terminal/lib/i18n.tsx: "a307932230d62a4553c3f73a00b3689a7b431d43ff64c2723c312e7d0be1577f"
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: mobile, width: 390, height: 844 }
+surfaces: [empty, named-views, save-flow, window-closed]
+capture_flag: TERMINAL_E2E_FIXTURE
+capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
+command: |
+  cd terminal
+  node e2e/tools/capture_f11_4_research_views.cjs
+files:
+  - empty-1440-zh.png
+  - empty-1440.png
+  - empty-390-zh.png
+  - empty-390.png
+  - named-views-1440-zh.png
+  - named-views-1440.png
+  - named-views-390-zh.png
+  - named-views-390.png
+  - save-flow-1440-zh.png
+  - save-flow-1440.png
+  - save-flow-390-zh.png
+  - save-flow-390.png
+  - window-closed-1440-zh.png
+  - window-closed-1440.png
+  - window-closed-390-zh.png
+  - window-closed-390.png
