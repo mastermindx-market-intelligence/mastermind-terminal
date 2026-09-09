@@ -195,16 +195,37 @@ describe("D5 — read tolerance", () => {
   });
 });
 
-describe("B-F08-7b — a foreign-only patch is not an acknowledgement", () => {
-  it("the outbox keeps the record when the fence scopes to empty", async () => {
+describe("B-F08-7b — a patch that scopes to empty is nothing the Terminal may write", () => {
+  it("strips foreign keys and clears the record when nothing owned remains (no retry loop)", async () => {
     const foreign = { alert_email_optin: true, tz: "UTC" };
     localStorage.setItem(LS_PENDING_PREFS, JSON.stringify({ prefs: foreign, attempts: 0 }));
     const send = vi.fn(async () => ({ error: null }));
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const outcome = await deliverPendingPrefs((data) => sendScopedAccountWrite(send, data));
     expect(send).not.toHaveBeenCalled();
+    expect(outcome.status).toBe("delivered");
+    expect(readPendingPrefs()).toBeNull();
+    expect(warn).toHaveBeenCalled();
+    warn.mockRestore();
+  });
+
+  it("strips foreign keys from the durable record, delivers what remains, and does not retry the foreign keys", async () => {
+    const mixed = { first_name: "Ada", alert_email_optin: true, tz: "UTC" };
+    localStorage.setItem(LS_PENDING_PREFS, JSON.stringify({ prefs: mixed, attempts: 0 }));
+    const send = vi.fn(async () => ({ error: { message: "network" } }));
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const outcome = await deliverPendingPrefs((data) => sendScopedAccountWrite(send, data));
     expect(outcome.status).toBe("failed");
-    expect(readPendingPrefs()?.prefs).toEqual(foreign);
+    expect(send).toHaveBeenCalled();
+    for (const payload of send.mock.calls.map((c) => c[0] as Record<string, unknown>)) {
+      expect(payload).toEqual({ first_name: "Ada" });
+      expect(payload).not.toHaveProperty("alert_email_optin");
+      expect(payload).not.toHaveProperty("tz");
+    }
+    const kept = readPendingPrefs();
+    expect(kept).not.toBeNull();
+    expect(kept!.prefs).toEqual({ first_name: "Ada" });
+    expect(kept!.prefs).not.toHaveProperty("alert_email_optin");
     warn.mockRestore();
   });
 });

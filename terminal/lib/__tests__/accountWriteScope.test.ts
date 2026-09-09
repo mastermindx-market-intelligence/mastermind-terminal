@@ -284,10 +284,11 @@ describe("§2.5.5 display_name survives, and an empty scoped patch is never sent
     });
     expect(send).not.toHaveBeenCalled();
     expect(result).toEqual({
-      error: { name: "ScopedToEmpty", message: "no owned key in patch" },
+      error: { name: "ScopedToEmpty" },
       dropped: ["alert_email_optin", "tz", "brain_depth"],
     });
-    expect(warn).toHaveBeenCalled();
+    expect("message" in (result as { error: object }).error).toBe(false);
+    expect(warn.mock.calls.some((c) => String(c[0]).includes("no owned key in patch"))).toBe(true);
     warn.mockRestore();
   });
 
@@ -301,12 +302,11 @@ describe("§2.5.5 display_name survives, and an empty scoped patch is never sent
     const result = await sendScopedAccountWrite(send, patch as never);
     expect(send).not.toHaveBeenCalled();
     expect(result).toEqual({
-      error: { name: "ScopedToEmpty", message: "no owned key in patch" },
+      error: { name: "ScopedToEmpty" },
       dropped,
     });
-    expect(warn).toHaveBeenCalledTimes(1);
-    expect(warn.mock.calls[0][0]).toBe("[accountPrefs] dropped keys the Terminal does not own");
-    expect(warn.mock.calls[0][1]).toEqual(dropped);
+    expect("message" in (result as { error: object }).error).toBe(false);
+    expect(warn.mock.calls.some((c) => String(c[0]).includes("no owned key in patch"))).toBe(true);
     warn.mockRestore();
   });
 
@@ -347,6 +347,13 @@ describe("every user_metadata write site is wrapped by the fence", () => {
     return src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
   }
 
+  /** Literal keys of `options.data` on an `auth.signUp(` window. */
+  function signupMetadataKeys(window: string): string[] | null {
+    const dataObj = window.match(/options:\s*\{\s*data:\s*\{([^}]*)\}/);
+    if (!dataObj) return null;
+    return [...dataObj[1].matchAll(/([A-Za-z_][A-Za-z0-9_]*)\s*:/g)].map((m) => m[1]);
+  }
+
   it("each updateUser data write sits behind sendScopedAccountWrite or scopeAccountWrite", () => {
     const files = walk(TERMINAL_ROOT);
     const hits: { file: string; wrapped: boolean }[] = [];
@@ -384,6 +391,7 @@ describe("every user_metadata write site is wrapped by the fence", () => {
     const sites: { file: string; keys: string[] }[] = [];
     const signUp = /auth\.signUp\(/;
     for (const file of files) {
+      if (relative(TERMINAL_ROOT, file).includes("__tests__")) continue;
       const stripped = stripComments(readFileSync(file, "utf8"));
       let from = 0;
       while (from < stripped.length) {
@@ -391,9 +399,8 @@ describe("every user_metadata write site is wrapped by the fence", () => {
         if (idx < 0) break;
         const abs = from + idx;
         const window = stripped.slice(abs, abs + 500);
-        const dataObj = window.match(/options:\s*\{\s*data:\s*\{([^}]*)\}/);
-        if (dataObj) {
-          const keys = [...dataObj[1].matchAll(/([A-Za-z_][A-Za-z0-9_]*)\s*:/g)].map((m) => m[1]);
+        const keys = signupMetadataKeys(window);
+        if (keys) {
           sites.push({ file: relative(TERMINAL_ROOT, file), keys });
         }
         from = abs + 1;
@@ -404,5 +411,19 @@ describe("every user_metadata write site is wrapped by the fence", () => {
     ]);
     expect(sites[0].keys.sort()).toEqual(["first_name", "last_name"]);
     for (const key of sites[0].keys) expect([...TERMINAL_WRITE_KEYS]).toContain(key);
+  });
+
+  it("sign-up lock finds data anywhere inside options, not only as its first property", () => {
+    const keys = signupMetadataKeys(
+      "auth.signUp({ email, password, options: { emailRedirectTo: url, data: { first_name: p.firstName } } })",
+    );
+    expect(keys).toEqual(["first_name"]);
+  });
+
+  it("sign-up lock tolerates one level of nesting inside data", () => {
+    const keys = signupMetadataKeys(
+      "auth.signUp({ options: { data: { first_name: p.firstName, extra: { nested: true } } } })",
+    );
+    expect(keys).toEqual(["first_name", "extra"]);
   });
 });

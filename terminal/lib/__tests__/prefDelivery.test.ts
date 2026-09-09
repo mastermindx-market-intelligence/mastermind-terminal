@@ -245,25 +245,26 @@ describe("dispose() is the owner boundary", () => {
   });
 });
 
-describe("B-F08-7b — a foreign-only patch is not an acknowledgement", () => {
-  it("does not ack or publish saved when the fence scopes to empty", async () => {
+describe("B-F08-7b — a patch that scopes to empty is nothing the Terminal may write", () => {
+  it("evicts the foreign keys from desired, does not retry, and does not leave a backoff loop", async () => {
     const a = authority();
     const c = clock();
-    const seen: string[] = [];
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const pump = new PreferencePump({
       send: (data) => sendScopedAccountWrite(a.send, data),
-      onStatus: (s) => seen.push(s.phase),
       setTimer: c.setTimer,
       clearTimer: c.clearTimer,
     });
-    expect(pump.getStatus().acked).toBe(0);
     pump.queue({ alert_email_optin: true, tz: "UTC" });
     await tick();
     expect(a.sent).toEqual([]);
-    expect(pump.getStatus().acked).toBe(0);
-    expect(pump.getStatus().phase).not.toBe("saved");
-    expect(seen).not.toContain("saved");
+    expect(pump.getStatus().acked).toBe(pump.getStatus().revision);
+    expect(pump.hasUndelivered()).toBe(false);
+    expect(c.pending()).toBe(0);
+    c.fire();
+    await tick();
+    expect(a.sent).toEqual([]);
+    expect(pump.getStatus().phase).not.toBe("failed");
     warn.mockRestore();
   });
 });
