@@ -56,7 +56,19 @@ jobs:
       run:
         working-directory: terminal
     steps:
+      # fetch-depth 2, not the default 1, exists for the plain-language guard's
+      # enforce step at the end of this job. On a pull_request run HEAD is the
+      # merge commit GitHub computed, and that step takes its base from HEAD^1
+      # -- the merge commit's first parent -- which depth 1 does not fetch.
+      # actions/checkout does the deepening itself, against the exact ref it
+      # checks out (refs/pull/N/merge), so the parents come down with it. A
+      # later `git fetch --deepen=1 origin` would not reliably do the same:
+      # checkout leaves remote.origin.fetch pointing at refs/heads/*, and the
+      # merge commit sits on no branch, so there is nothing there to deepen
+      # along. Only this job pays for the extra commit.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -90,6 +102,95 @@ jobs:
             echo "::error title=e2e-quarantine::terminal/e2e has $fixme_count test.fixme( occurrence(s) but QUARANTINE.md's quarantine table has $row_count row(s) — every quarantined test needs a disclosed row, and every row needs a live test.fixme"
             exit 1
           fi
+      # The Chairman's plain-language law gets a Terminal-side enforcer here.
+      # terminal/scripts/check_plain_language.mjs (packet B-PL-5) is a
+      # forward-only guard, but until packet B-PLAT-B5-1 no job ran it: a PR
+      # could put a raw state enum or an untranslated stat token in front of a
+      # user and every required check still went green.
+      #
+      # These two steps run LAST in the job. The packet census permits this
+      # placement -- "after npm test" -- and landing them after the
+      # quarantine disclosure above specifically. That disclosure's comment
+      # promises it runs on EVERY run, but it carries no `if: always()`; on
+      # any run where the disclosure step itself executes, a guard step
+      # placed before it would, the first time it found a blocking line, skip
+      # the disclosure outright. Placing the guard last instead keeps that
+      # promise intact wherever it already holds, rather than giving it a new
+      # way to break.
+      #
+      # Step 1 proves the guard still works before anyone trusts its verdict.
+      # Each rule is fed a fixture that violates it, through the same
+      # scanLines() the real scan uses; a rule that no longer fires exits 2 and
+      # turns this job red. A dead guard must never read as a clean tree.
+      - name: Plain-language guard self-check
+        run: node scripts/check_plain_language.mjs --self-check
+      # Step 2 enforces, forward-only: a finding on a line THIS pull request
+      # ADDED is blocking and fails the step, while the same finding on a
+      # pre-existing line is printed as the legacy census and never turns a PR
+      # red. An untouched legacy file cannot fail this step.
+      #
+      # WHICH COMMIT IS THE BASE is what makes that last sentence true or false.
+      #
+      # On `pull_request`, HEAD is the merge commit M that GitHub built when
+      # this run was triggered: the branch merged into the base tip AS IT WAS
+      # THEN. So the base must be M's FIRST PARENT, which is exactly that tip.
+      # Re-fetching refs/heads/master at STEP time instead reads master AS IT
+      # IS NOW, and master can advance while this job runs. Every line those
+      # newer commits changed still stands in M in its older form, so
+      # `git diff master@now M` emits it as an ADDED line -- and a legacy
+      # finding in a file this PR never opened turns the check red. That is the
+      # precise false red the forward-only promise exists to prevent. HEAD^1
+      # cannot drift, because M is fixed; it resolves because this job's
+      # checkout asks for fetch-depth 2.
+      #
+      # Off `pull_request` (the workflow_dispatch re-run merge-on-green fires
+      # on a refreshed branch) there is no merge commit, so the base branch tip
+      # is fetched explicitly -- a shallow checkout does not contain it, and
+      # without the fetch $BASE cannot resolve at all. This step always passes
+      # --diff-file (never --since), so an unresolved $BASE does not fail
+      # open: `git diff --unified=0 "$BASE" HEAD` fails under
+      # `set -euo pipefail` and the step dies loudly, having invoked the guard
+      # on nothing. The fetch exists so $BASE resolves, not to avoid a silent
+      # pass. Once it resolves, the diff is base tip vs HEAD, so the branch's
+      # OWN changes count as added and can block, which is the point of
+      # re-running the proof. A pre-existing line can only surface as added on
+      # that path if the branch is BEHIND the base (git reads the branch's
+      # older copy of a line the base has since changed as an addition). That
+      # window is not hand-dispatch-only: merge-on-green issues
+      # `PUT /pulls/{n}/update-branch` (async, 202) and dispatches this
+      # workflow right after, without polling that update to completion or
+      # pinning the dispatch to the post-refresh sha -- so a merge-on-green
+      # dispatch can race the same behind-branch window a hand dispatch can.
+      # Failure direction stays false-red only. Making the refresh actually
+      # land before dispatch (poll update-branch, or dispatch on the observed
+      # post-refresh sha) is a change to scripts/merge_on_green.py, outside
+      # this job's four files.
+      #
+      # `set -euo pipefail` so the step fails CLOSED: an unresolvable HEAD^1
+      # kills it loudly instead of leaving BASE empty and passing green.
+      #
+      # The diff is deliberately taken with TWO dots: `git diff A B` compares
+      # two trees and needs no merge base, whereas a three-dot `A...B` needs
+      # one, and two shallow histories give git nothing to find it in.
+      #
+      # BASE_REF is read from the environment rather than interpolated into
+      # the shell text: a branch name is attacker-controllable. The pathspec is
+      # written `:/terminal` (relative to the repo root) because this job's
+      # steps run inside terminal/, and it is a superset of every path the
+      # guard scans, so it cannot go stale against the guard's own globs.
+      - name: Plain-language guard (forward-only, added lines block)
+        env:
+          BASE_REF: ${{ github.base_ref || 'master' }}
+        run: |
+          set -euo pipefail
+          if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
+            BASE=$(git rev-parse HEAD^1)
+          else
+            git fetch --no-tags --depth=1 origin "+refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}"
+            BASE="refs/remotes/origin/${BASE_REF}"
+          fi
+          git diff --unified=0 "$BASE" HEAD -- ':/terminal' > "${RUNNER_TEMP}/plain-language.diff"
+          node scripts/check_plain_language.mjs --mode enforce-added --diff-file "${RUNNER_TEMP}/plain-language.diff"
 
   terminal-e2e:
     name: Terminal e2e ${{ matrix.shard }} (shard)
