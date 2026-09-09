@@ -19,6 +19,18 @@ export function failurePatch(
 
 const STALE_LEASE_MS = 10 * 60_000;
 
+/**
+ * True when `next_retry_at` holds something no Date can read. The only writer
+ * is failurePatch's `toISOString()`, so this should never happen — but a value
+ * that cannot be compared must not silently park the row forever on the one
+ * column that gates the whole retry loop. isDueDelivery treats it as due NOW
+ * and the worker records `bad_retry_timestamp` so the stall is visible.
+ */
+export function hasBadRetryTimestamp(row: { next_retry_at: string | null }): boolean {
+  if (!row.next_retry_at) return false;
+  return !Number.isFinite(Date.parse(row.next_retry_at));
+}
+
 export function isDueDelivery(
   row: { status: string; claimed_at: string | null; next_retry_at: string | null },
   nowMs: number,
@@ -26,7 +38,8 @@ export function isDueDelivery(
   if (row.status === "pending" || row.status === "retrying") {
     if (!row.next_retry_at) return true;
     const at = Date.parse(row.next_retry_at);
-    return Number.isFinite(at) && at <= nowMs;
+    if (!Number.isFinite(at)) return true;
+    return at <= nowMs;
   }
   if (row.status === "delivering" && row.claimed_at) {
     const claimed = Date.parse(row.claimed_at);

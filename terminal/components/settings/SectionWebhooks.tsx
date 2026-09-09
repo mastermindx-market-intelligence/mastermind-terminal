@@ -3,9 +3,11 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Group, IconCheck, Msg, Row, SectionHead } from "./icons";
 import type { SectionProps } from "./types";
 import {
+  webhookCauseLabel,
   webhookCopy,
   webhookDeliveryStatusLabel,
   webhookEnabledLabel,
+  webhookEventTypeLabel,
   webhookRelativeTime,
 } from "@/lib/webhookLabels";
 import { validateWebhookUrl } from "@/lib/webhookUrl";
@@ -22,6 +24,7 @@ type Delivery = {
   id: string;
   eventType: string;
   status: string;
+  lastError: string | null;
   createdAt: string | null;
 };
 
@@ -38,6 +41,7 @@ export default function SectionWebhooks({ t, lang, onClose }: SectionProps) {
   const [callerRole, setCallerRole] = useState<"owner" | "admin" | "member" | null>(null);
   const [loadErr, setLoadErr] = useState<string>("");
   const [urlIn, setUrlIn] = useState("");
+  const [teamNameIn, setTeamNameIn] = useState("");
   const [wantTest, setWantTest] = useState(true);
   const [busy, setBusy] = useState(false);
   const [formMsg, setFormMsg] = useState<{ text: string; kind: "ok" | "err" | "wait" } | null>(null);
@@ -140,7 +144,9 @@ export default function SectionWebhooks({ t, lang, onClose }: SectionProps) {
       });
       const body = await r.json().catch(() => ({}));
       if (!r.ok) {
-        setFormMsg({ text: lang === "zh" ? body.messageZh || webhookCopy("ssrf", lang) : body.message || webhookCopy("ssrf", lang), kind: "err" });
+        // The route names the cause when it can. When it answers without one,
+        // say only that the save failed — never invent the ssrf sentence.
+        setFormMsg({ text: lang === "zh" ? body.messageZh || webhookCopy("saveFailed", lang) : body.message || webhookCopy("saveFailed", lang), kind: "err" });
         return;
       }
       if (typeof body.secret === "string") setSecret(body.secret);
@@ -172,8 +178,9 @@ export default function SectionWebhooks({ t, lang, onClose }: SectionProps) {
       const r = await fetch(`/api/webhooks/${encodeURIComponent(ep.id)}/test`, { method: "POST" });
       const body = await r.json().catch(() => ({}));
       if (!r.ok) {
+        // Same rule as addEndpoint: only the route may say "turned off".
         setFormMsg({
-          text: lang === "zh" ? body.messageZh || webhookCopy("testDisabled", lang) : body.message || webhookCopy("testDisabled", lang),
+          text: lang === "zh" ? body.messageZh || webhookCopy("testFailed", lang) : body.message || webhookCopy("testFailed", lang),
           kind: "err",
         });
         return;
@@ -186,12 +193,17 @@ export default function SectionWebhooks({ t, lang, onClose }: SectionProps) {
   }
 
   async function createTeam() {
+    // The user names their own team. No creation page exists to link to, so the
+    // section creates it in place — but it never picks the name for them, and
+    // that name is what the multi-team select shows later.
+    const name = teamNameIn.trim();
+    if (!name) return;
     setBusy(true);
     try {
       const r = await fetch("/api/teams", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: lang === "zh" ? "我的团队" : "My team" }),
+        body: JSON.stringify({ name }),
       });
       const body = await r.json().catch(() => ({}));
       if (!r.ok) {
@@ -237,8 +249,24 @@ export default function SectionWebhooks({ t, lang, onClose }: SectionProps) {
         {emptyTeam ? (
           <Group>
             <Row label={webhookCopy("emptyTeam", lang)} desc={webhookCopy("emptyTeamHelp", lang)} />
+            <label className="acs-row-lbl" htmlFor="wh-team-name">{webhookCopy("teamNameLabel", lang)}</label>
+            <input
+              id="wh-team-name"
+              className="acs-in"
+              type="text"
+              maxLength={80}
+              value={teamNameIn}
+              placeholder={webhookCopy("teamNamePlaceholder", lang)}
+              aria-label={webhookCopy("teamNameLabel", lang)}
+              onChange={(e) => setTeamNameIn(e.target.value)}
+            />
             <div className="acs-btns" style={{ justifyContent: "flex-start" }}>
-              <button type="button" className="acs-btn primary" onClick={() => void createTeam()} disabled={busy}>
+              <button
+                type="button"
+                className="acs-btn primary"
+                onClick={() => void createTeam()}
+                disabled={busy || !teamNameIn.trim()}
+              >
                 {webhookCopy("createTeam", lang)}
               </button>
             </div>
@@ -348,14 +376,19 @@ export default function SectionWebhooks({ t, lang, onClose }: SectionProps) {
                     {(deliveriesByEp[ep.id] ?? []).length === 0 ? (
                       <Row desc={webhookCopy("noDeliveries", lang)} />
                     ) : (
-                      (deliveriesByEp[ep.id] ?? []).map((d) => (
-                        <Row
-                          key={d.id}
-                          label={webhookCopy("testEvent", lang)}
-                          desc={webhookRelativeTime(d.createdAt, lang)}
-                          value={webhookDeliveryStatusLabel(d.status, lang)}
-                        />
-                      ))
+                      (deliveriesByEp[ep.id] ?? []).map((d) => {
+                        const cause = webhookCauseLabel(d.lastError, lang);
+                        return (
+                          <Row
+                            key={d.id}
+                            label={webhookEventTypeLabel(d.eventType, lang)}
+                            desc={webhookRelativeTime(d.createdAt, lang)}
+                            value={webhookDeliveryStatusLabel(d.status, lang)}
+                          >
+                            {cause ? <span className="acs-row-desc">{cause}</span> : null}
+                          </Row>
+                        );
+                      })
                     )}
                   </Group>
                 </div>

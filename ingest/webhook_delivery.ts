@@ -17,7 +17,7 @@ import https from "node:https";
 import { isIP } from "node:net";
 import { lookup } from "node:dns/promises";
 import { signWebhookPayload } from "../terminal/lib/webhookSigning";
-import { failurePatch, isDueDelivery } from "../terminal/lib/webhookRetry";
+import { failurePatch, hasBadRetryTimestamp, isDueDelivery } from "../terminal/lib/webhookRetry";
 import { decodeHostToIp, isPrivateIp, validateWebhookUrl } from "../terminal/lib/webhookUrl";
 
 const DEFAULT_ENV = "/opt/terminal/terminal/.env.local";
@@ -198,6 +198,34 @@ function postPinned(
   });
 }
 
+export const DUE_PAGE_LIMIT = 100;
+const DUE_SELECT =
+  "id,endpoint_id,team_id,event_id,event_type,payload,attempt,status,claimed_at,next_retry_at";
+
+/**
+ * The due-row page, with §2.2 step 1's `next_retry_at IS NULL OR next_retry_at
+ * <= now()` carried SERVER-side. Filtering in JS after the page was already
+ * truncated let 100 not-yet-due rows (the oldest by created_at, sitting on a
+ * 4-hour backoff) fill every page and starve rows that really were due.
+ */
+export function dueDeliveriesPath(now: Date): string {
+  const cutoff = encodeURIComponent(now.toISOString());
+  return (
+    "webhook_deliveries?status=in.(pending,retrying,delivering)" +
+    `&or=(next_retry_at.is.null,next_retry_at.lte.${cutoff})` +
+    `&select=${DUE_SELECT}&order=created_at.asc&limit=${DUE_PAGE_LIMIT}`
+  );
+}
+
+type GetClient = { get: (path: string) => Promise<unknown> };
+
+/** Fetch the due page, then re-check each row in JS (belt-and-braces). */
+export async function fetchDueDeliveries(supa: GetClient, now: Date): Promise<DeliveryRow[]> {
+  const data = await supa.get(dueDeliveriesPath(now));
+  const rows = Array.isArray(data) ? (data as DeliveryRow[]) : [];
+  return rows.filter((r) => isDueDelivery(r, now.getTime()));
+}
+
 export async function deliverOne(
   supa: PatchClient,
   row: DeliveryRow,
@@ -206,11 +234,14 @@ export async function deliverOne(
   hooks: DeliverHooks = {},
 ): Promise<void> {
   const tag = `delivery=${row.id}`;
+  // Neither of the next two branches exhausted the retry table, so neither may
+  // write `failed` — that status renders as "Gave up after 5 tries" and would
+  // be a false statement of fact about a delivery tried zero times.
   if (!endpoint.enabled) {
     if (!dryRun) {
       await supa.patch(
         `webhook_deliveries?id=eq.${encodeURIComponent(row.id)}`,
-        { status: "failed", last_error: "endpoint_disabled" },
+        { status: "not_sent_disabled", last_error: "endpoint_disabled", next_retry_at: null },
       );
     }
     log(`${tag} SKIP endpoint disabled`);
@@ -222,7 +253,11 @@ export async function deliverOne(
     if (!dryRun) {
       await supa.patch(
         `webhook_deliveries?id=eq.${encodeURIComponent(row.id)}`,
-        { status: "failed", last_error: truncateError(urlCheck.code) },
+        {
+          status: "not_sent_invalid_url",
+          last_error: truncateError(urlCheck.code),
+          next_retry_at: null,
+        },
       );
     }
     log(`${tag} SKIP ${urlCheck.code}`);
@@ -235,9 +270,20 @@ export async function deliverOne(
     return;
   }
 
+  // A next_retry_at no Date can read means the row was due NOW (isDueDelivery)
+  // rather than parked forever; say so on the row instead of stalling silently.
+  const claimPatch: Record<string, unknown> = {
+    status: "delivering",
+    claimed_at: new Date().toISOString(),
+    attempt,
+  };
+  if (hasBadRetryTimestamp(row)) {
+    claimPatch.last_error = "bad_retry_timestamp";
+    log(`${tag} bad next_retry_at — treated as due now`);
+  }
   const claimed = await supa.patch(
     `webhook_deliveries?id=eq.${encodeURIComponent(row.id)}&status=in.(pending,retrying,delivering)`,
-    { status: "delivering", claimed_at: new Date().toISOString(), attempt },
+    claimPatch,
   );
   if (!claimed.length) {
     log(`${tag} SKIP already claimed`);
@@ -320,19 +366,15 @@ async function main(): Promise<number> {
   }
 
   const supa = new Supa(url, key);
-  let rows: DeliveryRow[] = [];
+  const now = new Date();
+  let due: DeliveryRow[] = [];
   try {
-    const data = await supa.get(
-      "webhook_deliveries?status=in.(pending,retrying,delivering)&select=id,endpoint_id,team_id,event_id,event_type,payload,attempt,status,claimed_at,next_retry_at&order=created_at.asc&limit=100",
-    );
-    rows = Array.isArray(data) ? (data as DeliveryRow[]) : [];
+    due = await fetchDueDeliveries(supa, now);
   } catch (e) {
     log(`FETCH ERROR listing deliveries: ${e instanceof Error ? e.message : e}`);
     return 1;
   }
 
-  const now = Date.now();
-  const due = rows.filter((r) => isDueDelivery(r, now));
   if (due.length === 0) {
     log("no due webhook deliveries — nothing to do");
     return 0;

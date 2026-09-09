@@ -69,6 +69,39 @@ describe("0018 webhook delivery migration contract", () => {
     expect(insertStmt).not.toContain("p_endpoint_id");
   });
 
+  it("allows the two not-sent statuses, added as a separate idempotent statement", () => {
+    // The inline column check is left exactly as first written; the widening is
+    // its own drop-if-exists / add pair, so re-running the file is a no-op.
+    expect(flat).toContain(
+      "alter table public.webhook_deliveries drop constraint if exists webhook_deliveries_status_check",
+    );
+    const add = /alter table public\.webhook_deliveries add constraint webhook_deliveries_status_check check \(status in \(([^)]*)\)\)/.exec(flat);
+    expect(add, "0018 no longer re-creates the status check constraint").toBeTruthy();
+    const statuses = [...(add?.[1] ?? "").matchAll(/'([^']+)'/g)].map((m) => m[1]);
+    expect(statuses.sort()).toEqual(
+      [
+        "delivered",
+        "delivering",
+        "failed",
+        "not_sent_disabled",
+        "not_sent_invalid_url",
+        "pending",
+        "retrying",
+      ].sort(),
+    );
+    const dropAt = flat.indexOf("drop constraint if exists webhook_deliveries_status_check");
+    const addAt = flat.indexOf("add constraint webhook_deliveries_status_check");
+    expect(addAt).toBeGreaterThan(dropAt);
+  });
+
+  it("keeps the widening inside the same transaction", () => {
+    const beginAt = raw.indexOf("\nbegin;");
+    const commitAt = raw.indexOf("\ncommit;");
+    const addAt = raw.indexOf("add constraint webhook_deliveries_status_check");
+    expect(addAt).toBeGreaterThan(beginAt);
+    expect(addAt).toBeLessThan(commitAt);
+  });
+
   it("carries both required header lines for 0018", () => {
     const head = raw.split("\n").slice(0, 5).join("\n");
     expect(head).toMatch(/^-- Ledger row: 0018_webhook_delivery /m);

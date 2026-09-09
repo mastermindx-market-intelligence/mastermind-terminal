@@ -53,6 +53,19 @@ create table if not exists public.webhook_deliveries (
     references public.webhook_endpoints (id, team_id) on delete cascade
 );
 
+-- Two more terminal statuses, added as a separate idempotent statement rather
+-- than by rewriting the inline check above (this file is unapplied; the
+-- constraint is re-created to the same auto-generated name either way).
+-- `failed` renders as "Gave up after 5 tries" and is written by exactly one
+-- code path — failurePatch at attempt >= 5. A delivery abandoned because the
+-- endpoint was turned off, or because its saved address stopped being a public
+-- https address, made 0 attempts; it gets its own status so the deliveries list
+-- never states an attempt count that never happened.
+alter table public.webhook_deliveries drop constraint if exists webhook_deliveries_status_check;
+alter table public.webhook_deliveries add constraint webhook_deliveries_status_check
+  check (status in ('pending','delivering','retrying','delivered','failed',
+                    'not_sent_disabled','not_sent_invalid_url'));
+
 create unique index if not exists webhook_deliveries_dedupe_key on public.webhook_deliveries(dedupe_key);
 create index if not exists webhook_deliveries_due on public.webhook_deliveries(status, next_retry_at);
 create index if not exists webhook_deliveries_team on public.webhook_deliveries(team_id, created_at desc);
