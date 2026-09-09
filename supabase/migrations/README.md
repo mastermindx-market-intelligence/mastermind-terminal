@@ -171,18 +171,34 @@ amendment, only a README edit.
   `max()` like any other row — `released` marks the claim as abandoned, it does not free the
   number for reissue. `released` is a status this README defines to implement the release path
   above; it is not one of the ruling's enumerated statuses. No number below has been released.
+  `RESERVATIONS.json` and `scripts/check_supabase_migration_namespace.py` now both know the word:
+  `released` is a valid ledger `state`, it must carry no `file`, the guard fails loudly if a `.sql`
+  ever appears at a released prefix (`RELEASED_PREFIX_OCCUPIED`), and the contiguity walk counts a
+  released number as occupied. Until Terminal PR #543 the script's `VALID_STATES` had no
+  `released` at all, so following this very paragraph would have turned the ledger permanently red
+  (`RESERVATION_SCHEMA` on the word, `RESERVATION_GAP` on the number) with no honest way out.
 
 ### Reservations
 
 | number | name | owner (PR / packet) | status |
 |---|---|---|---|
 | `0011` | `analytics_eid` | PR #507 (DDL applied 2026-09-05; readback receipt posted 2026-09-06: https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/507#issuecomment-5557754941) | applied |
-| `0012` | `thesis_objects` | PR #502 (merged as `d4556962`; DDL applied 2026-09-06, readback receipt) | merged + applied 2026-09-06 |
+| `0012` | `thesis_objects` | PR #502 (merged as `d4556962`; DDL applied 2026-09-06, readback receipt taken at apply time but **no receipt comment found on the owning PR** — searched #502's comments 2026-09-09) | merged + applied 2026-09-06 |
 | `0013` | `alert_runs_outbox` | PR #513 (merged as `be898be5` on 2026-09-06, packet B-F08-2) | applied 2026-09-07 via a direct Management API query (the curl method described above in "How DDL actually lands"), used instead of the apply script `scripts/supabase_apply.py` (PR #516) because of a readback-parser bug in that script; readback receipt posted on PR #513 (Meta-CEO B comment https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/513#issuecomment-5563321750) |
 | `0014` | `tenancy_foundation` | PR #514 (merged as `cff58ee8` on 2026-09-08, packet B-F12-1) | merged + applied 2026-09-08 |
 | `0015` | `team_roles_invitations` | PR #514 (merged as `cff58ee8` on 2026-09-08, packet B-F12-3; authored on stacked PR #526 squash `83424c63`) | merged + applied 2026-09-08 |
 | `0016` | `account_lifecycle_requests` | PR #527 (merged as `68bbe8ea` on 2026-09-09, packet B-F12-4) | merged + applied 2026-09-09 |
 | `0017` | `personal_accuracy_ledger` | PR #547 (packet B-F13-5) | open PR |
+| `0018` | (pre-reservation) | Meta-CEO B ruling 2026-09-09, packet B-F12-7 — the seat's **re-scoped Terminal signed-webhooks** packet of 2026-09-09 (branch `claude/mo-b-f12-7-signed-webhooks`), **not** the refused public-API packet recorded against macro #6925 under the same id; no pull request open yet | reserved |
+| `0019` | (pre-reservation) | Meta-CEO B ruling 2026-09-09, packet B-F12-8 (team roles); no pull request open yet | reserved |
+| `0020` | (pre-reservation) | Meta-CEO B ruling 2026-09-09, packet B-F12-9 (ownership transfer); no pull request open yet | reserved |
+
+`0001`–`0007` and `0010` are **historical**: they predate this ledger, their creating pull
+requests were never recorded in-repo, and so their `pr` and `pr_state` fields in
+`RESERVATIONS.json` are `null` **by design** — null meaning "not recorded", never
+unknown-and-guessed. Do not backfill them with inferred pull-request numbers; the guard and
+`tests/test_supabase_migration_namespace.py` both pin that nullity so a later tidy-up cannot
+invent provenance for them.
 
 What the statuses mean: **reserved** — the number is claimed (for example, by a Meta-CEO B
 pre-reservation) but no pull request carrying its file is open yet; **open PR** — a pull
@@ -193,6 +209,18 @@ the same "applied" meaning, spelled out with the merge fact alongside it because
 history (merged first, applied later) is otherwise lost. (**released** is an operating-note-only
 status — see "Release path" above — for a claim that was stood down; it is not one of the
 ruling's own status words and no row currently carries it.)
+
+`0017` (personal accuracy ledger, packet B-F13-5) is **taken** in open PR #547: the `.sql` ships
+in that pull request and is **not applied**. `0018`–`0020` (signed webhooks, team roles, ownership
+transfer) remain **reserved** by the Meta-CEO B ruling dated 2026-09-09: the numbers are claimed
+and owned by a named packet, exactly as rule (b) and the "Meta-CEO B pre-reservation channel"
+operating note above describe, but no pull request carrying those files is open yet on this
+branch. That is what separates `reserved` from `taken` — `taken` means a real file exists (in this
+checkout or in an open PR); `reserved` means only the number and the owner are settled. As with
+every prefix in this ledger, the seat applies DDL **in ledger order** — never ahead of a lower,
+still-unapplied number — and never without a pre/post catalog-readback receipt posted on the
+owning pull request first (rule (d) above); `0014` and `0015` applying strictly in that order on
+2026-09-08, and `0016` only after both, on 2026-09-09, is the worked example on the real tree.
 
 `0001`–`0016` have reached production (DDL applied): `0001`–`0010` per the application-status
 table above, `0011` via its corrective DDL applied live on 2026-09-05 via the management API
@@ -219,3 +247,54 @@ that point:
 $ gh pr list --repo mastermindx-market-intelligence/mastermind-terminal --state open --limit 60 \
     --json number,createdAt,files --jq '.[] | . as $p | ($p.files[].path | select(startswith("supabase/migrations/"))) as $f | [$p.number,$p.createdAt,$f] | @tsv'
 ```
+
+### What the namespace guard enforces, and in which run
+
+`scripts/check_supabase_migration_namespace.py` (driven by
+`tests/test_supabase_migration_namespace.py`, which is what CI actually runs) joins the `.sql`
+files present in a checkout against this ledger. Its central rule — *a prefix whose file is
+present cannot still be recorded `pr_state: "open"`* — is scope-dependent, so the guard picks one
+of three modes from what the environment **proves**, and prints which one it used:
+
+| mode | earned when | a present file whose row says `open` is… |
+|---|---|---|
+| **STRICT** | `GITHUB_EVENT_NAME=push` **and** `GITHUB_REF_NAME=master` (or `--strict` locally) | always stale — the file being on `master` proves its pull request merged (`OPEN_PR_STATE_WITH_FILE_PRESENT`) |
+| **PULL_REQUEST** | `GITHUB_EVENT_NAME=pull_request` **or** `workflow_dispatch`, **and** `PR_NUMBER` carrying a positive pull-request number | legitimate **only** for that pull request; any other is stale (`OPEN_PR_STATE_STALE`) |
+| **LENIENT** | anything else — a local run, or a `workflow_dispatch` ordered without a `pr_number` input | required only to be `state: "taken"` with a pull-request number (`OPEN_PR_STATE_WITHOUT_OWNING_PR`) |
+
+The PULL_REQUEST mode exists because no workflow in this repository has an `on: push` trigger:
+`.github/workflows/ci.yml` runs on `pull_request` and `workflow_dispatch` only. Without it the
+strict rule was correct and unreachable — it fired in no configuration CI could run, so replaying
+the exact staleness this ledger was corrected for produced no finding at all (Terminal PR #543,
+review round 3). `PR_NUMBER` is wired into the `python` job's pytest step in that workflow; it is
+a pull-request number, not a credential, and it comes with no change in workflow authority. The
+converse rule — `pr_state: "merged"` while the file is absent — needs no scope and runs in all
+three modes.
+
+`workflow_dispatch` earns the same PULL_REQUEST mode because of one specific run.
+`scripts/merge_on_green.py` refreshes a stale branch with `GITHUB_TOKEN` and then dispatches this
+workflow, since a token-authored branch update fires no recursive `pull_request` workflow — so on
+a refreshed head the dispatched run is the **only** CI run for the sha that then merges, and it is
+the run that gates the merge. `github.event.pull_request.number` is empty on a dispatch, so that
+gating run used to fall to LENIENT and this ledger's one enforcement rule was inert on exactly the
+head being merged (Terminal PR #543, review round 4). `ci.yml` now declares an optional
+`workflow_dispatch` input `pr_number`, the pytest step reads
+`${{ github.event.pull_request.number || inputs.pr_number }}`, and the controller passes the
+number it already knows. A dispatch ordered by hand without the input is **not** broken — it stays
+LENIENT, and the printed mode line names that case specifically rather than reading like an
+ordinary local run.
+
+Every prefix whose `.sql` is in the checkout must also carry both `applied_in_production` and
+`applied_date` **keys** (`APPLIED_FIELDS_MISSING`). What is required is that the row *answers* the
+question, not that the answer is yes: where nothing in this repository records the fact, the
+correct entry is an explicit `null` with a note saying it was not recorded. `0001`–`0007` carry
+`applied_in_production: true` with `applied_date: null` for exactly that reason — the application
+table above records that they are in production but records no date, and a guessed date would be
+worse than the gap it fills.
+
+The two keys must also agree with **each other** (`APPLIED_FIELDS_HALF_FILLED`). Two shapes are
+half-filled: `applied_in_production: true` beside `applied_date: null` **with no note** — the
+combination is legitimate, which is why `0001`–`0007` pass, but only when the row says *why* the
+date is unknown, since an unexplained null is indistinguishable from a forgotten one; and an
+`applied_date` carried while `applied_in_production` is anything but `true`, which is a row that
+contradicts itself and that no note reconciles.
