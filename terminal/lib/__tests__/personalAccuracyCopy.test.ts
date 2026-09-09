@@ -233,4 +233,24 @@ describe("B-F13-5 authored extras stay sentences and stay out of the glance body
     expect(LEX.accCalibWithheld[0]).not.toContain("{n}");
     expect(LEX.accCalibWithheld[0]).not.toContain("of 30");
   });
+
+  it("each M3 cause line has an n = 1 English twin, like accUnscorable1", () => {
+    expect(LEX.accUnscorableIncomplete1[0]).toBe("1 call could not be checked because it did not say what to check.");
+    expect(LEX.accUnscorableIncomplete1[1]).toBe("1 条判断无法核对，因为没有写明要核对什么。");
+    expect(LEX.accUnscorableWithdrawn1[0]).toBe("1 call you withdrew.");
+    expect(LEX.accUnscorableWithdrawn1[1]).toBe("你撤回了 1 条判断。");
+    expect(LEX.accUnscorableNotBinary1[0]).toBe("1 call could not be checked — the result was not a clear yes or no.");
+    expect(LEX.accUnscorableNotBinary1[1]).toBe("1 条判断无法核对——结果不是明确的是或否。");
+    expect(LEX.accUnscorableBadDate1[0]).toBe("1 call could not be checked because its date could not be read.");
+    expect(LEX.accUnscorableBadDate1[1]).toBe("1 条判断无法核对，因为日期无法读取。");
+    expect(LEX.accUnscorableOther1[0]).toBe("1 call could not be checked; the reason was not recorded.");
+    expect(LEX.accUnscorableOther1[1]).toBe("1 条判断无法核对，原因未记录。");
+    expect(LEX.accUnscorableBadKind1[0]).toBe("1 call could not be checked because the subject it names is not one we score.");
+    expect(LEX.accUnscorableBadKind1[1]).toBe("1 条判断无法核对，因为所写的标的类型不在可计分范围内。");
+    expect(LEX.accUnscorableBadStatus1[0]).toBe("1 call could not be checked because its recorded state is not one we score.");
+    expect(LEX.accUnscorableBadStatus1[1]).toBe("1 条判断无法核对，因为所写的状态不在可计分范围内。");
+    expect(LEX.accUnscorableIncompleteN[0]).toBe("{n} calls could not be checked because they did not say what to check.");
+    expect(LEX.accUnscorableBadKindN[0]).toBe("{n} calls could not be checked because the subject they name is not one we score.");
+    expect(LEX.accUnscorableBadStatusN[0]).toBe("{n} calls could not be checked because the recorded state is not one we score.");
+  });
 });

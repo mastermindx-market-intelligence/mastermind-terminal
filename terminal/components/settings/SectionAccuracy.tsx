@@ -76,11 +76,21 @@ function resolverKey(row: AccuracyClaimRow): string | null {
   return "accDetResolverKnown";
 }
 
-type UnscorableCause = "data_absent" | "incomplete" | "withdrawn" | "not_binary" | "bad_date" | "other";
+type UnscorableCause =
+  | "data_absent"
+  | "incomplete"
+  | "withdrawn"
+  | "not_binary"
+  | "bad_date"
+  | "bad_kind"
+  | "bad_status"
+  | "other";
 
 function unscorableCause(row: AccuracyClaimRow): UnscorableCause | null {
   if (row.unscorableReason === "malformed_timestamp") return "bad_date";
   if (row.unscorableReason === "condition_incomplete") return "incomplete";
+  if (row.unscorableReason === "unrecognised_kind") return "bad_kind";
+  if (row.unscorableReason === "unrecognised_status") return "bad_status";
   if (row.status === "withdrawn") return "withdrawn";
   const note = row.resolution?.note || "";
   const resolver = row.resolution?.resolver || "";
@@ -117,6 +127,8 @@ function tallyUnscorable(readout: AccuracyReadout): Record<UnscorableCause, numb
     withdrawn: 0,
     not_binary: 0,
     bad_date: 0,
+    bad_kind: 0,
+    bad_status: 0,
     other: 0,
   };
   for (const row of readout.claims) {
@@ -126,17 +138,21 @@ function tallyUnscorable(readout: AccuracyReadout): Record<UnscorableCause, numb
   return counts;
 }
 
+function countPhrase(t: (key: string) => string, n: number, keyN: string, key1: string): string {
+  return n === 1 ? t(key1) : interpolate(t(keyN), { n });
+}
+
 function unscorableGlancePhrases(t: (key: string) => string, readout: AccuracyReadout): string[] {
   const c = tallyUnscorable(readout);
   const lines: string[] = [];
-  if (c.data_absent > 0) {
-    lines.push(c.data_absent === 1 ? t("accUnscorable1") : interpolate(t("accUnscorableN"), { n: c.data_absent }));
-  }
-  if (c.incomplete > 0) lines.push(interpolate(t("accUnscorableIncompleteN"), { n: c.incomplete }));
-  if (c.withdrawn > 0) lines.push(interpolate(t("accUnscorableWithdrawnN"), { n: c.withdrawn }));
-  if (c.not_binary > 0) lines.push(interpolate(t("accUnscorableNotBinaryN"), { n: c.not_binary }));
-  if (c.bad_date > 0) lines.push(interpolate(t("accUnscorableBadDateN"), { n: c.bad_date }));
-  if (c.other > 0) lines.push(interpolate(t("accUnscorableOtherN"), { n: c.other }));
+  if (c.data_absent > 0) lines.push(countPhrase(t, c.data_absent, "accUnscorableN", "accUnscorable1"));
+  if (c.incomplete > 0) lines.push(countPhrase(t, c.incomplete, "accUnscorableIncompleteN", "accUnscorableIncomplete1"));
+  if (c.withdrawn > 0) lines.push(countPhrase(t, c.withdrawn, "accUnscorableWithdrawnN", "accUnscorableWithdrawn1"));
+  if (c.not_binary > 0) lines.push(countPhrase(t, c.not_binary, "accUnscorableNotBinaryN", "accUnscorableNotBinary1"));
+  if (c.bad_date > 0) lines.push(countPhrase(t, c.bad_date, "accUnscorableBadDateN", "accUnscorableBadDate1"));
+  if (c.bad_kind > 0) lines.push(countPhrase(t, c.bad_kind, "accUnscorableBadKindN", "accUnscorableBadKind1"));
+  if (c.bad_status > 0) lines.push(countPhrase(t, c.bad_status, "accUnscorableBadStatusN", "accUnscorableBadStatus1"));
+  if (c.other > 0) lines.push(countPhrase(t, c.other, "accUnscorableOtherN", "accUnscorableOther1"));
   return lines;
 }
 

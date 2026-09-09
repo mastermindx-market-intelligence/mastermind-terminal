@@ -553,7 +553,8 @@ describe("SectionAccuracy unscorable cause split (META-CEO B round 7 M3)", () =>
     expect(readout.claims[0].unscorableReason).toBe("condition_incomplete");
     mount({ readout, loadErr: false });
     const text = glance();
-    expect(text).toContain("1 calls could not be checked because they did not say what to check.");
+    expect(text).toContain(LEX.accUnscorableIncomplete1[0]);
+    expect(text).not.toContain("1 calls could not be checked because they did not say what to check.");
     expect(text).not.toContain(LEX.accUnscorable1[0]);
   });
 
@@ -565,7 +566,8 @@ describe("SectionAccuracy unscorable cause split (META-CEO B round 7 M3)", () =>
     })]);
     mount({ readout, loadErr: false });
     const text = glance();
-    expect(text).toContain("1 calls you withdrew.");
+    expect(text).toContain(LEX.accUnscorableWithdrawn1[0]);
+    expect(text).not.toContain("1 calls you withdrew.");
     expect(text).not.toContain(LEX.accUnscorable1[0]);
   });
 
@@ -583,7 +585,8 @@ describe("SectionAccuracy unscorable cause split (META-CEO B round 7 M3)", () =>
     })]);
     mount({ readout, loadErr: false });
     const text = glance();
-    expect(text).toContain("1 calls could not be checked — the result was not a clear yes or no.");
+    expect(text).toContain(LEX.accUnscorableNotBinary1[0]);
+    expect(text).not.toContain("1 calls could not be checked — the result was not a clear yes or no.");
     expect(text).not.toContain(LEX.accUnscorable1[0]);
   });
 
@@ -596,19 +599,59 @@ describe("SectionAccuracy unscorable cause split (META-CEO B round 7 M3)", () =>
     expect(readout.claims[0].unscorableReason).toBe("malformed_timestamp");
     mount({ readout, loadErr: false });
     const text = glance();
-    expect(text).toContain("1 calls could not be checked because their dates could not be read.");
+    expect(text).toContain(LEX.accUnscorableBadDate1[0]);
+    expect(text).not.toContain("1 calls could not be checked because their dates could not be read.");
     expect(text).not.toContain(LEX.accUnscorable1[0]);
   });
 
-  it("(f) any other or unrecorded reason uses the unrecorded-reason sentence", () => {
+  it("(f) a void call with no recorded reason uses the unrecorded-reason sentence", () => {
+    const readout = scorePersonalAccuracy([rowClaim({
+      claim_id: "voidnoreason00001",
+      status: "void_unscorable",
+    })]);
+    expect(readout.claims[0].unscorableReason).toBeNull();
+    mount({ readout, loadErr: false });
+    const text = glance();
+    expect(text).toContain(LEX.accUnscorableOther1[0]);
+    expect(text).not.toContain("1 calls could not be checked; the reason was not recorded.");
+    expect(text).not.toContain(LEX.accUnscorable1[0]);
+  });
+
+  it("unrecognised_kind glance names the same cause the detail names", () => {
     const readout = scorePersonalAccuracy([{
       ...rowClaim({ claim_id: "unknownkind00001" }),
       ingestUnscorable: "unrecognised_kind",
     }]);
+    expect(readout.claims[0].unscorableReason).toBe("unrecognised_kind");
     mount({ readout, loadErr: false });
     const text = glance();
-    expect(text).toContain("1 calls could not be checked; the reason was not recorded.");
+    expect(text).toContain(LEX.accUnscorableBadKind1[0]);
+    expect(text).not.toContain("the reason was not recorded");
     expect(text).not.toContain(LEX.accUnscorable1[0]);
+    const toggle = container.querySelector("[data-acc='toggle']") as HTMLButtonElement;
+    act(() => {
+      toggle.click();
+    });
+    const detail = container.querySelector("[data-acc='detail']")?.textContent || "";
+    expect(detail).toContain(LEX.accDetReasonBadKind[0]);
+  });
+
+  it("unrecognised_status glance names the same cause the detail names", () => {
+    const readout = scorePersonalAccuracy([{
+      ...rowClaim({ claim_id: "unknownstatus0001" }),
+      ingestUnscorable: "unrecognised_status",
+    }]);
+    expect(readout.claims[0].unscorableReason).toBe("unrecognised_status");
+    mount({ readout, loadErr: false });
+    const text = glance();
+    expect(text).toContain(LEX.accUnscorableBadStatus1[0]);
+    expect(text).not.toContain("the reason was not recorded");
+    const toggle = container.querySelector("[data-acc='toggle']") as HTMLButtonElement;
+    act(() => {
+      toggle.click();
+    });
+    const detail = container.querySelector("[data-acc='detail']")?.textContent || "";
+    expect(detail).toContain(LEX.accDetReasonBadStatus[0]);
   });
 });
 
