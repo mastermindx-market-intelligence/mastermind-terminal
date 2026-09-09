@@ -23,7 +23,12 @@ const jsonError = (error: string, status: number) => NextResponse.json({ error }
 
 export async function GET(request: Request) {
   void request;
-  const session = await resolveDb();
+  let session: Awaited<ReturnType<typeof resolveDb>>;
+  try {
+    session = await resolveDb();
+  } catch {
+    return jsonError("accuracy_store_unavailable", 503);
+  }
   if (!session) return jsonError("unauthenticated", 401);
 
   if (session.db === "fixture") {

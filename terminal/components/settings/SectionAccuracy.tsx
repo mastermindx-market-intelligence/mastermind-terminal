@@ -2,12 +2,22 @@
 import { useState } from "react";
 import { SectionHead } from "./icons";
 import { acsDate, type SectionProps } from "./types";
-import type { AccuracyClaimRow, AccuracyReadout, ClaimStatus, Stance } from "@/lib/personalAccuracy";
+import {
+  BRIER_MIN_PAIRS,
+  HIT_RATE_MIN_EPISODES,
+  type AccuracyClaimRow,
+  type AccuracyReadout,
+  type ClaimStatus,
+  type Stance,
+} from "@/lib/personalAccuracy";
+import s from "./SectionAccuracy.module.css";
 
 export interface AccuracyProps extends SectionProps {
   readout: AccuracyReadout | null;
   loadErr: boolean;
 }
+
+export type AccuracyGlanceState = "empty" | "unscorable" | "readout";
 
 const STANCE_KEY: Record<Stance, string> = {
   "Too early to say": "accStanceEarly",
@@ -31,9 +41,9 @@ const KIND_KEY = {
 } as const;
 
 function stanceClass(stance: Stance): string {
-  if (stance === "Mostly landing so far") return " landing";
-  if (stance === "Mixed so far") return " mixed";
-  if (stance === "Not landing yet") return " miss";
+  if (stance === "Mostly landing so far") return s.landing;
+  if (stance === "Mixed so far") return s.mixed;
+  if (stance === "Not landing yet") return s.miss;
   return "";
 }
 
@@ -64,48 +74,56 @@ function resolverKey(row: AccuracyClaimRow): string | null {
   return "accDetResolverKnown";
 }
 
+export function accuracyGlanceState(readout: AccuracyReadout | null): AccuracyGlanceState {
+  if (!readout || readout.claimCount === 0) return "empty";
+  if (readout.resolvedEpisodes === 0) {
+    return readout.unscorableCount > 0 ? "unscorable" : "empty";
+  }
+  return "readout";
+}
+
 export default function SectionAccuracy({ t, lang, onClose, readout, loadErr }: AccuracyProps) {
   const [open, setOpen] = useState(false);
   const nResolved = readout?.resolvedEpisodes ?? 0;
   const nUnscorable = readout?.unscorableCount ?? 0;
-  const empty = !readout || (nResolved === 0 && nUnscorable === 0 && (readout.openEpisodes ?? 0) === 0 && readout.claimCount === 0);
+  const nPairs = readout?.brierPairs ?? 0;
+  const state = loadErr ? null : accuracyGlanceState(readout);
+  const colon = lang === "zh" ? "：" : ": ";
 
   return (
     <>
       <SectionHead title={t("accTitle")} sub={t("accSub")} closeLabel={t("acsClose")} onClose={onClose} />
       <div className="acs-body">
-        {loadErr ? null : empty ? (
-          <p className="acs-acc-empty">{t("accEmpty")}</p>
-        ) : (
-          <>
-            {nResolved === 0 ? (
-              <p className="acs-acc-empty">{t("accEmpty")}</p>
-            ) : (
-              <>
-                <p className={`acs-acc-stance${stanceClass(readout!.stance)}`}>{t(STANCE_KEY[readout!.stance])}</p>
-                <p className="acs-acc-line">
-                  {nResolved < 10
-                    ? interpolate(t("accEarlyN"), { n: nResolved })
-                    : interpolate(t("accCheckedN"), { n: nResolved })}
-                </p>
-              </>
-            )}
-            {(readout?.brierPairs ?? 0) < 30 && nResolved > 0 ? (
-              <p className="acs-acc-line">{t("accCalibWithheld")}</p>
+        {state === "empty" ? (
+          <p className={s.empty} data-acc-state="empty">{t("accEmpty")}</p>
+        ) : null}
+        {state === "unscorable" ? (
+          <p className={`${s.line} ${s.unscorable}`} data-acc-state="unscorable">
+            {interpolate(t("accUnscorableN"), { n: nUnscorable })}
+          </p>
+        ) : null}
+        {state === "readout" && readout ? (
+          <div data-acc-state="readout">
+            <p className={`${s.stance} ${stanceClass(readout.stance)}`}>{t(STANCE_KEY[readout.stance])}</p>
+            <p className={s.line}>
+              {nResolved < HIT_RATE_MIN_EPISODES
+                ? interpolate(t("accEarlyN"), { n: nResolved })
+                : interpolate(t("accCheckedN"), { n: nResolved })}
+              {" "}
+              {interpolate(t("accClaimCountN"), { n: readout.claimCount })}
+            </p>
+            {nPairs < BRIER_MIN_PAIRS ? (
+              <p className={s.line}>{t("accCalibWithheld")}</p>
             ) : null}
-            {nUnscorable > 0 ? (
-              <p className="acs-acc-line acs-acc-unscorable">
-                {interpolate(t("accUnscorableN"), { n: nUnscorable })}
-              </p>
-            ) : null}
-          </>
-        )}
+          </div>
+        ) : null}
 
-        <p className="acs-acc-ceiling">{t("accCeiling")}</p>
+        <p className={s.ceiling}>{t("accCeiling")}</p>
 
         <button
           type="button"
-          className="acs-acc-toggle"
+          className={s.toggle}
+          data-acc="toggle"
           aria-expanded={open}
           onClick={() => setOpen((v) => !v)}
         >
@@ -113,14 +131,14 @@ export default function SectionAccuracy({ t, lang, onClose, readout, loadErr }: 
         </button>
 
         {open ? (
-          <div className="acs-acc-detail">
+          <div className={s.detail} data-acc="detail">
             {loadErr ? (
-              <p className="acs-acc-line">{t("accDetLoadErr")}</p>
+              <p className={s.line}>{t("accDetLoadErr")}</p>
             ) : null}
             {readout ? (
               <>
-            <p className="acs-acc-note">{t("accDetAttributionNull")}</p>
-            <dl className="acs-acc-stats">
+            <p className={s.note}>{t("accDetAttributionNull")}</p>
+            <dl className={s.stats}>
               <div>
                 <dt>{t("accDetEpisodes")}</dt>
                 <dd>{readout.episodeCount}</dd>
@@ -139,7 +157,14 @@ export default function SectionAccuracy({ t, lang, onClose, readout, loadErr }: 
               </div>
               <div>
                 <dt>{t("accDetBrier")}</dt>
-                <dd>{readout.brierMean === null ? t("accCalibWithheld") : readout.brierMean.toFixed(3)}</dd>
+                <dd>
+                  {readout.brierMean === null
+                    ? t("accCalibWithheld")
+                    : interpolate(t("accDetBrierN"), {
+                        value: readout.brierMean.toFixed(3),
+                        n: readout.brierPairs,
+                      })}
+                </dd>
               </div>
               <div>
                 <dt>{t("accDetUnscorable")}</dt>
@@ -147,25 +172,26 @@ export default function SectionAccuracy({ t, lang, onClose, readout, loadErr }: 
               </div>
             </dl>
             {readout.claims.length > 0 ? (
-              <ul className="acs-acc-rows">
+              <ul className={s.rows}>
                 {readout.claims.map((row) => {
                   const happened = outcomeKey(row);
                   const how = resolverKey(row);
                   return (
-                    <li key={row.claimId} className="acs-acc-row">
-                      <p className="acs-acc-call">{row.claimText}</p>
-                      <p className="acs-acc-meta">
+                    <li key={row.claimId} className={s.row}>
+                      <p className={s.call}>{row.claimText}</p>
+                      <p className={s.meta}>
                         {t(KIND_KEY[row.subjectKind])}
-                        {" · "}
-                        {row.subjectId}
                         {" · "}
                         {t(STATUS_KEY[row.status])}
                       </p>
-                      {happened ? <p className="acs-acc-meta">{t("accDetWhatHappened")}: {t(happened)}</p> : null}
-                      {row.resolution?.resolvedAt ? (
-                        <p className="acs-acc-meta">{t("accDetCheckedOn")}: {acsDate(row.resolution.resolvedAt, lang)}</p>
+                      {row.unscorableReason === "malformed_timestamp" ? (
+                        <p className={s.meta}>{t("accDetReasonBadDate")}</p>
                       ) : null}
-                      {how ? <p className="acs-acc-meta">{t("accDetHowChecked")}: {t(how)}</p> : null}
+                      {happened ? <p className={s.meta}>{t("accDetWhatHappened")}{colon}{t(happened)}</p> : null}
+                      {row.resolution?.resolvedAt ? (
+                        <p className={s.meta}>{t("accDetCheckedOn")}{colon}{acsDate(row.resolution.resolvedAt, lang)}</p>
+                      ) : null}
+                      {how ? <p className={s.meta}>{t("accDetHowChecked")}{colon}{t(how)}</p> : null}
                     </li>
                   );
                 })}

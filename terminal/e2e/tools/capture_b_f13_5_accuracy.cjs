@@ -25,8 +25,11 @@ const REPO = join(ROOT, "..");
 const OUT = join(ROOT, "docs", "pr-crops", "b-f13-5-personal-accuracy");
 const LAYOUT_FILES = [
   "terminal/components/settings/SectionAccuracy.tsx",
-  "terminal/app/settings.css",
+  "terminal/components/settings/SectionAccuracy.module.css",
+  "terminal/components/settings/SettingsPanel.tsx",
+  "terminal/lib/i18n.tsx",
   "terminal/lib/personalAccuracy.ts",
+  "terminal/app/dev/settings/accuracyFixtures.ts",
 ];
 const PORT = Number(process.env.TERMINAL_CROP_PORT || 3547);
 const BASE = `http://127.0.0.1:${PORT}`;
@@ -142,9 +145,9 @@ async function openAccuracy(page, lang, viewport, acc) {
 
 async function openDetail(page, lang) {
   const label = lang === "zh" ? "查看完整记录" : "Show the full record";
-  const btn = page.locator("button.acs-acc-toggle", { hasText: label });
+  const btn = page.locator("[data-acc='toggle']", { hasText: label });
   await btn.click();
-  await page.locator(".acs-acc-detail").waitFor({ state: "visible", timeout: 10_000 });
+  await page.locator("[data-acc='detail']").waitFor({ state: "visible", timeout: 10_000 });
 }
 
 async function shoot(page, file) {
@@ -187,10 +190,10 @@ async function main() {
           await openAccuracy(page, shot.lang, VIEWPORTS[shot.viewport], shot.acc);
           if (shot.detail) {
             await openDetail(page, shot.lang);
-            await page.locator(".acs-acc-detail").scrollIntoViewIfNeeded();
+            await page.locator("[data-acc='detail']").scrollIntoViewIfNeeded();
             await page.waitForTimeout(200);
           } else {
-            await page.locator(".acs-acc-empty").waitFor({ state: "visible", timeout: 10_000 });
+            await page.locator("[data-acc-state='empty']").waitFor({ state: "visible", timeout: 10_000 });
           }
           await shoot(page, shot.file);
           files.push(shot.file);

@@ -59,29 +59,33 @@ describe("scorePersonalAccuracy", () => {
   });
 
   it("takes the outcome and the stated probability from the same earliest still-live member", () => {
-    const readout = scorePersonalAccuracy([
-      claim({
-        claim_id: "cccccccccccccccc",
+    // Thirty independent episodes, each with an earliest member (p=0.2, miss)
+    // and a later member (p=0.9, hit). Earliest ⇒ brierMean 0.04; latest ⇒ 0.01.
+    const claims: UserClaim[] = [];
+    for (let i = 0; i < 30; i++) {
+      const tag = i.toString(16).padStart(2, "0");
+      claims.push(claim({
+        claim_id: `c0${tag}000000000000`.slice(0, 16),
+        subject: { kind: "security", id: `E${i}` },
         stated_at: "2026-01-01T00:00:00.000Z",
         resolves_at: "2026-03-01T00:00:00.000Z",
         stated_probability: 0.2,
         resolution: { outcome: 0, observed: 5900, resolved_at: "2026-03-01T00:00:00.000Z", resolver: "quotes.last_close", note: "" },
-      }),
-      claim({
-        claim_id: "dddddddddddddddd",
+      }));
+      claims.push(claim({
+        claim_id: `c1${tag}000000000000`.slice(0, 16),
+        subject: { kind: "security", id: `E${i}` },
         stated_at: "2026-01-15T00:00:00.000Z",
         resolves_at: "2026-03-01T00:00:00.000Z",
         stated_probability: 0.9,
         resolution: { outcome: 1, observed: 6100, resolved_at: "2026-03-01T00:00:00.000Z", resolver: "quotes.last_close", note: "" },
-      }),
-    ]);
-    expect(readout.episodeCount).toBe(1);
+      }));
+    }
+    const readout = scorePersonalAccuracy(claims);
+    expect(readout.episodeCount).toBe(30);
     expect(readout.resolvedHits).toBe(0);
-    expect(readout.brierPairs).toBe(1);
-    // (0.2 - 0)^2 = 0.04 — would be (0.9-1)^2 = 0.01 if it took the later member's probability
-    expect(readout.brierMean).toBeNull();
-    const rows = readout.claims.filter((row) => row.claimId === "cccccccccccccccc");
-    expect(rows).toHaveLength(1);
+    expect(readout.brierPairs).toBe(30);
+    expect(readout.brierMean).toBeCloseTo(0.04, 10);
   });
 
   it("skips a withdrawn earliest member and carries from the next still-live one", () => {
@@ -292,5 +296,48 @@ describe("score_personal_accuracy worker registry source", () => {
     );
     expect(src).toMatch(/personalAccuracyStore\.ts/);
     expect(src).not.toMatch(/const RESOLVER_REGISTRY = Object\.freeze\(\{\}\)/);
+  });
+
+  it("looks up resolvers with Object.hasOwn so prototype names cannot abort the run", () => {
+    const src = readFileSync(
+      join(__dirname, "../../scripts/score_personal_accuracy.mjs"),
+      "utf8",
+    );
+    expect(src).toMatch(/Object\.hasOwn\(RESOLVER_REGISTRY,\s*owner\)/);
+    expect(src).not.toMatch(/const resolver = RESOLVER_REGISTRY\[owner\]/);
+  });
+});
+
+describe("malformed timestamps are unscorable, never epoch 0", () => {
+  it("marks an unparseable stated_at as unscorable with a stated reason and does not merge two bad rows", () => {
+    const readout = scorePersonalAccuracy([
+      claim({
+        claim_id: "badbadbadbadbad1",
+        stated_at: "not-a-date",
+        resolves_at: "2026-02-01T00:00:00.000Z",
+      }),
+      claim({
+        claim_id: "badbadbadbadbad2",
+        stated_at: "also-not-a-date",
+        resolves_at: "2026-03-01T00:00:00.000Z",
+      }),
+    ]);
+    expect(readout.episodeCount).toBe(2);
+    expect(readout.unscorableCount).toBe(2);
+    expect(readout.resolvedEpisodes).toBe(0);
+    expect(readout.brierPairs).toBe(0);
+    expect(readout.claims.every((row) => row.unscorableReason === "malformed_timestamp")).toBe(true);
+    expect(readout.claims.every((row) => row.status === "void_unscorable")).toBe(true);
+  });
+});
+
+describe("production scorer does not ship fabricated fixture rows", () => {
+  it("personalAccuracy.ts does not export populatedAccuracyFixture", () => {
+    const src = readFileSync(
+      join(__dirname, "../personalAccuracy.ts"),
+      "utf8",
+    );
+    expect(src).not.toMatch(/populatedAccuracyFixture/);
+    expect(src).not.toMatch(/8f2c41ba-7d19-4e6a-9c03-5b71ee0a4d22/);
   });
 });

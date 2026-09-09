@@ -2067,7 +2067,10 @@ export const LEX: Record<string, [string, string]> = {
 
   // B-F13-5 personal accuracy ledger — glance block pasted VERBATIM from the F13 docket §6
   // (macro research/.../MARKET_ONTOLOGY_F13_PERSONAL_ACCURACY_LEDGER_SPEC_2026-09-06.md,
-  // cited via refs/remotes/origin/pr-6997). accDetail* / accDet* are the only authored extras.
+  // cited via refs/remotes/origin/pr-6997). accNav is the sidebar noun; accTitle stays
+  // the glance sentence inside the section. accDetail* / accDet* / accClaimCountN
+  // are authored extras.
+  accNav: ["Accuracy", "准确度"],
   accTitle: ["Your calls, checked.", "你的判断，逐条核对。"],
   accSub: ["We only check what you wrote down first: the call, the day it settles, and what would prove it wrong.", "只核对你事先写下的：判断本身、结算日期，以及什么情况算判断错了。"],
   accStanceEarly: ["Too early to say", "还看不出来"],
@@ -2079,6 +2082,7 @@ export const LEX: Record<string, [string, string]> = {
   accCheckedN: ["Checked so far: {n} of your calls.", "已核对：你的 {n} 条判断。"],
   accCalibWithheld: ["Not enough settled calls yet to check how well your odds match reality.", "还没有足够的已结算判断来核对你的把握是否准确。"],
   accUnscorableN: ["{n} calls could not be checked — the data they named wasn't there.", "有 {n} 条判断无法核对——所引用的数据不存在。"],
+  accClaimCountN: ["{n} calls written down.", "共写下 {n} 条判断。"],
   accCeiling: ["This is a learning record. It never changes what we show you, what we rank, or what you can do here.", "这只是学习记录。它不会改变我们展示什么、如何排序，也不会改变你能做什么。"],
   accDetailOpen: ["Show the full record", "查看完整记录"],
   accDetailClose: ["Hide the full record", "收起完整记录"],
@@ -2092,6 +2096,8 @@ export const LEX: Record<string, [string, string]> = {
   accDetCheckedOn: ["Checked on", "核对日期"],
   accDetHowChecked: ["How it was checked", "核对方式"],
   accDetHitsOf: ["{hits} of {n} checked calls landed.", "已核对的 {n} 条判断中，有 {hits} 条落在正确一边。"],
+  accDetBrierN: ["Brier {value} over {n} resolved calls.", "Brier {value}，按 {n} 条已核对判断计算。"],
+  accDetReasonBadDate: ["This call could not be checked because its date was not a real date.", "这条判断无法核对，因为日期不是有效日期。"],
   accDetStatusOpen: ["Not yet due", "尚未到期"],
   accDetStatusMatured: ["Due, waiting to be checked", "已到期，等待核对"],
   accDetStatusResolved: ["Checked", "已核对"],

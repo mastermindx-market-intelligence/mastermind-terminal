@@ -42,7 +42,7 @@ function IconAccuracy() {
 
 const NAV: { id: SettingsSection; icon: React.ReactNode; key: string }[] = [
   { id: "account", icon: <IconAccount />, key: "acsAccount" },
-  { id: "accuracy", icon: <IconAccuracy />, key: "accTitle" },
+  { id: "accuracy", icon: <IconAccuracy />, key: "accNav" },
   { id: "billing", icon: <IconBilling />, key: "acsBilling" },
   { id: "usage", icon: <IconUsage />, key: "acsUsage" },
   { id: "prefs", icon: <IconPrefs />, key: "acsPrefs" },
@@ -52,7 +52,7 @@ const NAV: { id: SettingsSection; icon: React.ReactNode; key: string }[] = [
 
 const HEAD_KEY: Record<SettingsSection, string> = {
   account: "acsAccount",
-  accuracy: "accTitle",
+  accuracy: "accNav",
   billing: "acsBilling",
   usage: "acsUsage",
   prefs: "acsPrefs",

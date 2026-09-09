@@ -43,6 +43,8 @@ export type UserClaim = {
   supersedes: string | null;
 };
 
+export type UnscorableReason = "malformed_timestamp";
+
 export type AccuracyClaimRow = {
   claimId: string;
   claimText: string;
@@ -53,6 +55,7 @@ export type AccuracyClaimRow = {
   subjectId: string;
   subjectKind: SubjectKind;
   carrier: boolean;
+  unscorableReason: UnscorableReason | null;
   resolution: {
     outcome: 0 | 1 | null;
     observed: number | null;
@@ -93,9 +96,22 @@ export const ACCURACY_READOUT_KEYS = [
 const LIVE: ReadonlySet<ClaimStatus> = new Set(["open", "matured", "resolved"]);
 const COMPARATORS: ReadonlySet<string> = new Set([">=", "<=", ">", "<"]);
 
-function ts(iso: string): number {
+function parseTs(iso: string): number | null {
+  if (typeof iso !== "string" || iso.length === 0) return null;
   const n = Date.parse(iso);
-  return Number.isFinite(n) ? n : 0;
+  return Number.isFinite(n) ? n : null;
+}
+
+function hasValidWindow(claim: UserClaim): boolean {
+  return parseTs(claim.stated_at) !== null && parseTs(claim.resolves_at) !== null;
+}
+
+function ts(iso: string): number {
+  const n = parseTs(iso);
+  if (n === null) {
+    throw new Error("malformed timestamp reached the scorer window");
+  }
+  return n;
 }
 
 export function conditionIsComplete(condition: ClaimCondition | null | undefined): boolean {
@@ -107,7 +123,7 @@ export function conditionIsComplete(condition: ClaimCondition | null | undefined
 }
 
 export function isStillLive(claim: UserClaim): boolean {
-  return LIVE.has(claim.status) && conditionIsComplete(claim.condition);
+  return LIVE.has(claim.status) && conditionIsComplete(claim.condition) && hasValidWindow(claim);
 }
 
 function episodeKey(claim: UserClaim): string {
@@ -133,17 +149,23 @@ function stanceFor(resolvedEpisodes: number, hitRate: number | null): Stance {
   return "Not landing yet";
 }
 
-function toRow(claim: UserClaim, carrierId: string | null): AccuracyClaimRow {
+function toRow(
+  claim: UserClaim,
+  carrierId: string | null,
+  reason: UnscorableReason | null,
+): AccuracyClaimRow {
+  const voided = reason !== null || !conditionIsComplete(claim.condition);
   return {
     claimId: claim.claim_id,
     claimText: claim.claim_text,
-    status: conditionIsComplete(claim.condition) ? claim.status : "void_unscorable",
+    status: voided ? "void_unscorable" : claim.status,
     statedAt: claim.stated_at,
     resolvesAt: claim.resolves_at,
     statedProbability: claim.stated_probability,
     subjectId: claim.subject?.id ?? "",
     subjectKind: claim.subject?.kind ?? "security",
     carrier: carrierId !== null && claim.claim_id === carrierId,
+    unscorableReason: reason,
     resolution: claim.resolution
       ? {
           outcome: claim.resolution.outcome,
@@ -202,8 +224,15 @@ export function compareObserved(comparator: string, observed: number, threshold:
 }
 
 export function scorePersonalAccuracy(claims: UserClaim[]): AccuracyReadout {
-  const groups = new Map<string, UserClaim[]>();
+  const usable: UserClaim[] = [];
+  const malformedIds = new Set<string>();
   for (const claim of claims) {
+    if (hasValidWindow(claim)) usable.push(claim);
+    else malformedIds.add(claim.claim_id);
+  }
+
+  const groups = new Map<string, UserClaim[]>();
+  for (const claim of usable) {
     const key = episodeKey(claim);
     const list = groups.get(key);
     if (list) list.push(claim);
@@ -218,6 +247,9 @@ export function scorePersonalAccuracy(claims: UserClaim[]): AccuracyReadout {
   let unscorableCount = 0;
   let openEpisodes = 0;
   const carrierIds = new Set<string>();
+
+  episodeCount += malformedIds.size;
+  unscorableCount += malformedIds.size;
 
   for (const members of groups.values()) {
     for (const episode of collapseGroup(members)) {
@@ -265,41 +297,16 @@ export function scorePersonalAccuracy(claims: UserClaim[]): AccuracyReadout {
     unscorableCount,
     stance: stanceFor(resolvedEpisodes, hitRate),
     openEpisodes,
-    claims: claims.map((c) => toRow(c, carrierIds.has(c.claim_id) ? c.claim_id : null)),
+    claims: claims.map((c) =>
+      toRow(
+        c,
+        carrierIds.has(c.claim_id) ? c.claim_id : null,
+        malformedIds.has(c.claim_id) ? "malformed_timestamp" : null,
+      ),
+    ),
   };
 }
 
 export function emptyAccuracyReadout(): AccuracyReadout {
   return scorePersonalAccuracy([]);
-}
-
-export function populatedAccuracyFixture(): AccuracyReadout {
-  const claims: UserClaim[] = [];
-  for (let i = 0; i < 10; i++) {
-    const hit = i < 7;
-    const id = `c${i.toString(16).padStart(15, "0")}`;
-    claims.push({
-      claim_id: id.slice(0, 16),
-      user_id: "8f2c41ba-7d19-4e6a-9c03-5b71ee0a4d22",
-      subject: { kind: "security", id: `N${i}` },
-      stated_at: `2026-01-${String(i + 1).padStart(2, "0")}T12:00:00.000Z`,
-      resolves_at: `2026-04-${String(i + 1).padStart(2, "0")}T12:00:00.000Z`,
-      claim_text: hit
-        ? `Name ${i} finishes at or above the line I wrote down.`
-        : `Name ${i} stays at or above the line I wrote down.`,
-      condition: { metric: "last_close", comparator: ">=", threshold: 100 + i, owner: "quotes.last_close" },
-      stated_probability: 0.65,
-      evidence: [],
-      status: "resolved",
-      resolution: {
-        outcome: hit ? 1 : 0,
-        observed: hit ? 110 + i : 90,
-        resolved_at: `2026-04-${String(i + 1).padStart(2, "0")}T12:00:00.000Z`,
-        resolver: "quotes.last_close",
-        note: "",
-      },
-      supersedes: null,
-    });
-  }
-  return scorePersonalAccuracy(claims);
 }

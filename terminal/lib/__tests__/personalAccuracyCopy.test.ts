@@ -142,7 +142,7 @@ describe("B-F13-5 authored extras stay sentences and stay out of the glance body
       "utf8",
     );
     const loadAt = src.indexOf('t("accDetLoadErr")');
-    const detailAt = src.indexOf("acs-acc-detail");
+    const detailAt = src.indexOf('data-acc="detail"');
     const toggleAt = src.indexOf("accDetailOpen");
     expect(loadAt, "accDetLoadErr must be rendered").toBeGreaterThan(0);
     expect(detailAt, "detail pane must exist").toBeGreaterThan(0);
@@ -151,5 +151,29 @@ describe("B-F13-5 authored extras stay sentences and stay out of the glance body
     expect(loadAt).toBeGreaterThan(toggleAt);
     const glance = src.slice(src.indexOf("acs-body"), detailAt);
     expect(glance).not.toContain('t("accDetLoadErr")');
+  });
+
+  it("the settings sidebar tab is the noun Accuracy / 准确度, not the glance sentence", () => {
+    expect(LEX.accNav[0]).toBe("Accuracy");
+    expect(LEX.accNav[1]).toBe("准确度");
+    const panel = readFileSync(
+      join(__dirname, "../../components/settings/SettingsPanel.tsx"),
+      "utf8",
+    );
+    expect(panel).toMatch(/id: "accuracy"[\s\S]{0,80}key: "accNav"/);
+    expect(panel).toMatch(/accuracy: "accNav"/);
+    expect(panel).not.toMatch(/id: "accuracy"[\s\S]{0,80}key: "accTitle"/);
+  });
+
+  it("accDetBrierN is a sentence that names the pair count in both languages", () => {
+    const [en, zh] = LEX.accDetBrierN;
+    expect(en).toContain("{value}");
+    expect(en).toContain("{n}");
+    expect(zh).toContain("{value}");
+    expect(zh).toContain("{n}");
+    expect(en).toMatch(/resolved calls/);
+    expect(zh).toMatch(/已核对判断/);
+    expect(en).toMatch(/[.!?]$/);
+    expect(zh).toMatch(/[。！？]$/);
   });
 });

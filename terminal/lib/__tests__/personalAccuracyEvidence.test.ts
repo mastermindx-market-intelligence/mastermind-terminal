@@ -13,8 +13,11 @@ const CROP_DIR = join(__dirname, "../../docs/pr-crops/b-f13-5-personal-accuracy"
 const EVIDENCE = join(CROP_DIR, "EVIDENCE.yml");
 const LAYOUT_FILES = [
   "terminal/components/settings/SectionAccuracy.tsx",
-  "terminal/app/settings.css",
+  "terminal/components/settings/SectionAccuracy.module.css",
+  "terminal/components/settings/SettingsPanel.tsx",
+  "terminal/lib/i18n.tsx",
   "terminal/lib/personalAccuracy.ts",
+  "terminal/app/dev/settings/accuracyFixtures.ts",
 ];
 const CROPS = [
   "desktop-en-empty.png",

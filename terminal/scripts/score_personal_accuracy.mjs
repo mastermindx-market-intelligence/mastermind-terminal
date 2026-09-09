@@ -147,7 +147,7 @@ async function main() {
     }
     const condition = row.condition && typeof row.condition === "object" ? row.condition : {};
     const owner = typeof condition.owner === "string" ? condition.owner : "";
-    const resolver = RESOLVER_REGISTRY[owner];
+    const resolver = Object.hasOwn(RESOLVER_REGISTRY, owner) ? RESOLVER_REGISTRY[owner] : undefined;
     let outcome = null;
     let observed = null;
     let note = UNDETERMINED_NOTE;

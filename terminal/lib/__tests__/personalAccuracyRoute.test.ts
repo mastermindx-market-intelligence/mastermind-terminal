@@ -6,12 +6,15 @@ const H = vi.hoisted(() => ({
   rows: [] as UserClaim[],
   error: null as { message: string } | null,
   eqCalls: [] as Array<[string, unknown]>,
+  throwCreate: false,
 }));
 
 vi.mock("next/headers", () => ({ cookies: vi.fn(async () => ({ get: () => undefined })) }));
 
 vi.mock("@/lib/supabase/server", () => ({
-  createClient: vi.fn(async () => ({
+  createClient: vi.fn(async () => {
+    if (H.throwCreate) throw new Error("supabase env missing");
+    return {
     auth: { getUser: vi.fn(async () => ({ data: { user: H.user } })) },
     from: vi.fn((table: string) => {
       const q: Record<string, unknown> = {};
@@ -33,7 +36,8 @@ vi.mock("@/lib/supabase/server", () => ({
       };
       return q;
     }),
-  })),
+    };
+  }),
 }));
 
 import * as route from "@/app/api/accuracy/route";
@@ -74,6 +78,7 @@ beforeEach(() => {
   H.rows = [own, other];
   H.error = null;
   H.eqCalls = [];
+  H.throwCreate = false;
   delete process.env.TERMINAL_E2E_FIXTURE;
   vi.clearAllMocks();
 });
@@ -105,6 +110,13 @@ describe("GET /api/accuracy", () => {
     expect(body).toEqual({ error: "accuracy_store_unavailable" });
     expect(body).not.toHaveProperty("claims");
     expect(body).not.toHaveProperty("episodeCount");
+  });
+
+  it("returns 503 when the store faults before the query", async () => {
+    H.throwCreate = true;
+    const res = await route.GET(new Request("https://x.test/api/accuracy"));
+    expect(res.status).toBe(503);
+    expect(await res.json()).toEqual({ error: "accuracy_store_unavailable" });
   });
 
   it("response carries no rank, percentile, leaderboard, team or cohort field", async () => {

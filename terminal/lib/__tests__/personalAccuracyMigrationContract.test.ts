@@ -91,7 +91,7 @@ describe("0017 personal accuracy ledger migration contract", () => {
     expect(row.file).toBe("0017_personal_accuracy_ledger.sql");
     expect(row.packet).toBe("B-F13-5");
     expect(row.pr_state).toBe("open");
-    expect(typeof row.pr).toBe("number");
+    expect(row.pr).toBe(547);
 
     expect(doc.prefixes["0011"]).toMatchObject({ state: "historical", file: "0011_analytics_eid.sql", packet: "CA1A", pr: 507, pr_state: "merged" });
     expect(doc.prefixes["0012"]).toMatchObject({ state: "taken", file: "0012_thesis_objects.sql", packet: "F11-1", pr: 502 });
