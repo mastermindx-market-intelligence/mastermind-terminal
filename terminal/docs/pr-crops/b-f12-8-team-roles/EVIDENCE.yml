@@ -1,13 +1,14 @@
 # B-F12-8 Team roles v1 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 9180becf48b66b478d0943ae7c15b2fe2b3d0b51
-# capturedAt: 2026-09-09T12:03:09.762Z
+# capturedAtHead: eb5569d9541333d70abc44c9482cd70f0485700b
+# capturedAt: 2026-09-09T13:14:05.971Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/settings/SectionTeam.tsx: "e6e07092a3803ec0e01e01910ebb1117fb26a1d5750c5c0a1158541a037af663"
+  terminal/components/settings/SectionTeam.tsx: "e63e1d7d7c7c01b4327346dd57755e4e0d6f3674d2e0743a5c830096dfe1b6b2"
+  terminal/components/settings/SectionTeam.module.css: "0064d75a9ba2ea8e90b91da9bebda903487de433c7e9cd2168f554d08e251cef"
   terminal/components/settings/SettingsPanel.tsx: "954825616c2c3d02b7ec5e3a82011e236f78219e91474e3483de1e317a9dc7d6"
-  terminal/app/settings.css: "ee53952f5abb2ecaa4d2f0134f0525529b52b537b295fb2d1c5688df167b356d"
+  terminal/app/settings.css: "3189163136d943431cbf52e4b5d241c105b695ba5af94c4c2e29151d537b5ef5"
   terminal/lib/i18n.tsx: "d01e1459b95b17444723209257ce7e9a02e5ea4dd9319aa04c823b0c1cdc32eb"
 theme: dark
 languages: [en, zh]
@@ -30,11 +31,11 @@ files:
   - mobile-en-change-role.png
   - mobile-zh-change-role.png
 measurements:
-  desktop-en-team.png: { roleBadgeText: "Member | Owner | Administrator | Member", changeRolePresent: true, removeClass: "acs-btn btn-danger acs-btn-sm" }
-  desktop-zh-team.png: { roleBadgeText: "成员 | 所有者 | 管理员 | 成员", changeRolePresent: true, removeClass: "acs-btn btn-danger acs-btn-sm" }
-  desktop-en-change-role.png: { roleBadgeText: "Member | Owner | Administrator | Member", changeRolePresent: true, removeClass: "acs-btn btn-danger acs-btn-sm" }
-  desktop-zh-change-role.png: { roleBadgeText: "成员 | 所有者 | 管理员 | 成员", changeRolePresent: true, removeClass: "acs-btn btn-danger acs-btn-sm" }
-  mobile-en-team.png: { roleBadgeText: "Member | Owner | Administrator | Member", changeRolePresent: true, removeClass: "acs-btn btn-danger acs-btn-sm" }
-  mobile-zh-team.png: { roleBadgeText: "成员 | 所有者 | 管理员 | 成员", changeRolePresent: true, removeClass: "acs-btn btn-danger acs-btn-sm" }
-  mobile-en-change-role.png: { roleBadgeText: "Member | Owner | Administrator | Member", changeRolePresent: true, removeClass: "acs-btn btn-danger acs-btn-sm" }
-  mobile-zh-change-role.png: { roleBadgeText: "成员 | 所有者 | 管理员 | 成员", changeRolePresent: true, removeClass: "acs-btn btn-danger acs-btn-sm" }
+  desktop-en-team.png: { roleBadgeText: "Member | Owner | Administrator | Member", changeRolePresent: true, removeClass: "acs-btn btn-danger SectionTeam-module__okp4Qq__btnSm" }
+  desktop-zh-team.png: { roleBadgeText: "成员 | 所有者 | 管理员 | 成员", changeRolePresent: true, removeClass: "acs-btn btn-danger SectionTeam-module__okp4Qq__btnSm" }
+  desktop-en-change-role.png: { roleBadgeText: "Member | Owner | Administrator | Member", changeRolePresent: true, removeClass: "acs-btn btn-danger SectionTeam-module__okp4Qq__btnSm" }
+  desktop-zh-change-role.png: { roleBadgeText: "成员 | 所有者 | 管理员 | 成员", changeRolePresent: true, removeClass: "acs-btn btn-danger SectionTeam-module__okp4Qq__btnSm" }
+  mobile-en-team.png: { roleBadgeText: "Member | Owner | Administrator | Member", changeRolePresent: true, removeClass: "acs-btn btn-danger SectionTeam-module__okp4Qq__btnSm" }
+  mobile-zh-team.png: { roleBadgeText: "成员 | 所有者 | 管理员 | 成员", changeRolePresent: true, removeClass: "acs-btn btn-danger SectionTeam-module__okp4Qq__btnSm" }
+  mobile-en-change-role.png: { roleBadgeText: "Member | Owner | Administrator | Member", changeRolePresent: true, removeClass: "acs-btn btn-danger SectionTeam-module__okp4Qq__btnSm" }
+  mobile-zh-change-role.png: { roleBadgeText: "成员 | 所有者 | 管理员 | 成员", changeRolePresent: true, removeClass: "acs-btn btn-danger SectionTeam-module__okp4Qq__btnSm" }
