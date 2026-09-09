@@ -1,4 +1,4 @@
--- Ledger row: 0018_webhook_delivery / PR #pending (open, packet B-F12-7); not applied
+-- Ledger row: 0018_webhook_delivery / PR #549 (open, packet B-F12-7); not applied
 -- Rollback: drop function if exists public.enqueue_test_webhook_delivery(uuid); drop table if exists public.webhook_deliveries; drop table if exists public.webhook_endpoints;
 -- 0018: outbound signed webhook endpoints + deliveries (packet B-F12-7).
 -- Shipped as a file only. Not applied by this PR — see supabase/migrations/README.md
