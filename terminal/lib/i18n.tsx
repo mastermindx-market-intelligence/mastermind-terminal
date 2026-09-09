@@ -2200,20 +2200,23 @@ export const LEX: Record<string, [string, string]> = {
   peSaveChanges: ["Save changes", "保存修改"],
   peSaving: ["Saving…", "保存中…"],
   peSaved: ["Saved", "已保存"],
-  peError: ["Error", "出错"],
+  peError: ["Couldn’t save", "保存失败"],
   peSave: ["Save", "保存"],
   peCompiledWith: ["Compiled with {n} warnings", "编译完成，有 {n} 条警告"],
   peCompiledWithOne: ["Compiled with 1 warning", "编译完成，有 1 条警告"],
   peCompiledOk: ["Compiled successfully", "编译成功"],
-  peUnsavedChanges: ["unsaved changes", "有未保存的修改"],
-  peReadyToAdd: ["ready to add to chart", "可以添加到图表"],
+  peUnsavedChanges: ["Unsaved changes", "有未保存的修改"],
+  peReadyToAdd: ["Ready to add to the chart", "可以添加到图表"],
   peLineCount: ["{n} lines", "{n} 行"],
-  peZeroErrors: ["0 errors", "0 个错误"],
+  peZeroErrors: ["No errors", "没有错误"],
   peInputCount: ["{n} inputs", "{n} 个参数"],
   peInputCountOne: ["1 input", "1 个参数"],
 
   xChartSnapshot: ["Chart snapshot", "图表快照"],
-  xCreatedWith: ["Created with", "创建自"],
+  xCreatedWith: ["Created with", "使用以下工具制作"],
+
+  ciQaStructure: ["Structure is verified. Topic labels are not available yet.", "结构已验证。主题标签暂不可用。"],
+  ciOpenInTranscript: ["Open in the earnings call", "在电话会中查看"],
 
   // ---- fundamentals ----
   fdBackToChart: ["Back to chart", "返回图表"],

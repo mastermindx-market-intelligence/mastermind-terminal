@@ -185,6 +185,8 @@ describe("plain-language call sites — batch 3", () => {
     expect(src).not.toContain('lang === "zh" ? "资金流 · 仅供展示" : "Flow · display only"');
     expect(src).not.toContain("vol&gt;OI");
     expect(src).not.toContain("{event.side}");
+    expect(src).not.toContain("~side remains heuristic");
+    expect(src).not.toContain("~方向仍为启发式推断");
     expect(src).toMatch(/from ["']@\/lib\/plainLabels["']/);
     expect(src).toContain("pick(");
     expect(src).toContain("volAboveOiLabel(");
@@ -236,6 +238,7 @@ describe("plain-language call sites — batch 3", () => {
     expect(src).not.toContain('lang === "zh" ? "发生了什么" : "What changed"');
     expect(src).not.toContain('lang === "zh" ? "查看证据" : "View evidence"');
     expect(src).not.toContain('lang === "zh" ? "无证据链接" : "no evidence link"');
+    expect(src).not.toContain('"no evidence link"');
     expect(src).toContain("pick(");
   });
 
@@ -267,6 +270,10 @@ describe("plain-language call sites — batch 3", () => {
     const src = readOwned("fin/CompanyIntelligenceV2Current.tsx");
     expect(src).not.toContain('zh ? "结构已验证 · 主题增强暂不可用" : "Structure verified · topic enrichment unavailable"');
     expect(src).not.toContain('zh ? "在电话会中查看" : "Open in transcript"');
+    expect(src).not.toContain("topic enrichment");
+    expect(src).not.toContain("Open in transcript");
+    expect(src).toContain("LEX.ciQaStructure");
+    expect(src).toContain("LEX.ciOpenInTranscript");
     expect(src).toContain("topicStatusLabel(");
     expect(src).toContain("pick(");
   });

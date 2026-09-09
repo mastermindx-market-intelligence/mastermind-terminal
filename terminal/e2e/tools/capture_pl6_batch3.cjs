@@ -198,13 +198,18 @@ async function captureFlowDesk(page, width, lang, outPath) {
   await gotoReady(page, "/options?tab=desk", lang);
   const desk = page.locator('[data-options-ia="seven-category-stage-a"]').first();
   await desk.waitFor({ state: "visible", timeout: 60_000 });
+  const card = page.locator("[data-tut='flow-card']").first();
+  await card.waitFor({ state: "visible", timeout: 45_000 });
+  const filtersBtn = page.getByRole("button", { name: lang === "zh" ? /^筛选$/ : /^Filters$/ }).first();
+  await filtersBtn.waitFor({ state: "visible", timeout: 20_000 });
+  if ((await page.locator("[data-tut='flow-filter-panel']").count()) === 0) {
+    await filtersBtn.click();
+  }
   const filters = page.locator("[data-tut='flow-filter-panel']").first();
   await filters.waitFor({ state: "visible", timeout: 20_000 });
-  const card = page.locator("[data-tut='flow-card']").first();
-  await card.waitFor({ state: "visible", timeout: 20_000 });
   const needle = lang === "zh" ? "重置筛选" : "Reset filters";
   // Reset only appears when dirty; the caveat lines are always present.
-  const caveat = lang === "zh" ? "方向由成交价变动规则推断" : "Direction is tick-rule heuristic";
+  const caveat = lang === "zh" ? "方向由成交价变动规则推断" : "inferred from the last trade";
   await filters.getByText(caveat).first().waitFor({ state: "visible", timeout: 15_000 });
   const filterBox = await filters.boundingBox();
   const cardBox = await card.boundingBox();
@@ -279,7 +284,7 @@ async function captureHeatmap(page, width, lang, outPath) {
   const flowBtn = page.getByRole("button", { name: lang === "zh" ? "资金流" : "FLOW" }).first();
   await flowBtn.waitFor({ state: "visible", timeout: 20_000 });
   await flowBtn.click();
-  const needle = lang === "zh" ? "净认沽" : "net put";
+  const needle = lang === "zh" ? "净认沽" : "Net puts";
   await page.getByText(needle).first().waitFor({ state: "visible", timeout: 20_000 });
   await cropLocator(page, map, outPath, width === 390 ? 4 : 8);
 }

@@ -247,7 +247,7 @@ export function OptionsFlowBoardView({
                 <thead>
                   <tr>
                     <th>{lang === "zh" ? "序号" : "#"}</th>
-                    <th>{pick(lang === "zh", "Time ET", "时间 ET")}</th>
+                    <th>{pick(lang === "zh", "Eastern time", "美东时间")}</th>
                     <th>{lang === "zh" ? "代码" : "Ticker"}</th>
                     <th>{lang === "zh" ? "合约" : "Contract"}</th>
                     <th>{lang === "zh" ? "方向" : "Side"}</th>
@@ -314,8 +314,8 @@ export function OptionsFlowBoardView({
         <span>
           {pick(
             lang === "zh",
-            "Display only · each row is one contract aggregate within a poll batch · premium = summed price × contracts × 100 · ~side remains heuristic",
-            "仅供展示 · 每行是单轮询批次内单一合约的聚合事件 · 权利金 = 成交价 × 张数 × 100 的总和 · ~方向仍为启发式推断",
+            "Display only · each row is one contract aggregate within a poll batch · premium = summed price × contracts × 100 · inferred side is still an estimate",
+            "仅供展示 · 每行是单轮询批次内单一合约的聚合事件 · 权利金 = 成交价 × 张数 × 100 的总和 · 推断方向仍为估计",
           )}
         </span>
         <span>

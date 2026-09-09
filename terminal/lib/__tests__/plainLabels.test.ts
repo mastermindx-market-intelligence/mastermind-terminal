@@ -1,6 +1,9 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { FD } from "@/lib/flowdeskStrings";
+import { getHeatmapStr } from "@/lib/heatmapStrings";
+import { LEX } from "@/lib/i18n";
 import {
   CLASSIC_CATEGORY_TKEY,
   CLASSIC_INDICATOR_CATEGORIES,
@@ -465,6 +468,8 @@ describe("sourceKindLabel", () => {
     expect(sourceKindLabel("transcript", "zh")).toBe("电话会记录");
     expect(sourceKindLabel("issuer_release", "en")).toBe("Company filing");
     expect(sourceKindLabel("score_overlay", "zh")).toBe("结构化事件分析");
+    expect(sourceKindLabel("edgar_collector", "en")).toBe("SEC filing feed");
+    expect(sourceKindLabel("edgar_collector", "zh")).toBe("监管申报来源");
     expect(sourceKindLabel("transcript", "en")).not.toBe("transcript");
   });
 
@@ -485,11 +490,12 @@ describe("sourceStatusLabel", () => {
   it("known statuses are retail words, never the slug", () => {
     expect(sourceStatusLabel("present", "en")).toBe("Present");
     expect(sourceStatusLabel("present", "zh")).toBe("可用");
-    expect(sourceStatusLabel("metadata_only", "en")).toBe("Metadata only");
-    expect(sourceStatusLabel("metadata_only", "zh")).toBe("仅元数据");
+    expect(sourceStatusLabel("metadata_only", "en")).toBe("Recorded, file missing");
+    expect(sourceStatusLabel("metadata_only", "zh")).toBe("有记录，无正文");
     expect(sourceStatusLabel("address_only", "en")).toBe("Address only");
     expect(sourceStatusLabel("address_only", "zh")).toBe("仅有地址");
     expect(sourceStatusLabel("present", "en")).not.toBe("present");
+    expect(sourceStatusLabel("metadata_only", "zh")).not.toContain("元数据");
   });
 
   it("unknown status never returns the raw value", () => {
@@ -522,5 +528,44 @@ describe("deltaOiPutCallLabel", () => {
     expect(deltaOiPutCallLabel("zh")).toBe("未平仓量变化（认沽/认购）");
     expect(deltaOiPutCallLabel("en").toLowerCase()).not.toMatch(/\boi\b/);
     expect(deltaOiPutCallLabel("zh")).not.toMatch(/OI/i);
+  });
+});
+
+describe("batch 3 retail register", () => {
+  it("carried copy lines from #541 are in place", () => {
+    expect(subjectKindLabel("issuer", "zh")).toBe("上市公司");
+    expect(LEX.gpGuardrail[0]).toBe("When not to trust it");
+    expect(LEX.gpGuardrail[1]).toBe("使用边界");
+  });
+
+  it("flow-desk caveats never mention NBBO, v1, tick-rule, or enrich artifact", () => {
+    const joined = [
+      FD.leanHeuristic.en, FD.leanHeuristic.zh,
+      FD.sweepHeuristic.en, FD.sweepHeuristic.zh,
+      FD.detectionsCaveat.en, FD.detectionsCaveat.zh,
+    ].join("\n");
+    expect(joined).not.toMatch(/\bNBBO\b/);
+    expect(joined).not.toMatch(/tick-rule/i);
+    expect(joined).not.toContain("v1");
+    expect(joined).not.toContain("enrich artifact");
+    expect(joined).not.toContain("启发式");
+  });
+
+  it("heatmap legend words are spelled out, never the old lowercase tokens", () => {
+    expect(getHeatmapStr("en", "netPut")).toBe("Net puts");
+    expect(getHeatmapStr("zh", "netPut")).toBe("净认沽");
+    expect(getHeatmapStr("en", "netCall")).toBe("Net calls");
+    expect(getHeatmapStr("en", "magnitudeOnly")).toBe("Size only");
+    expect(getHeatmapStr("en", "directionIsSoft")).toBe("Direction is a soft read");
+    expect(getHeatmapStr("en", "netPut")).not.toBe("net put");
+  });
+
+  it("pine status and company Q&A copy are sentences, not machine fragments", () => {
+    expect(LEX.peUnsavedChanges[0]).toBe("Unsaved changes");
+    expect(LEX.peReadyToAdd[0]).toBe("Ready to add to the chart");
+    expect(LEX.peError[0]).toBe("Couldn’t save");
+    expect(LEX.ciQaStructure[0]).not.toContain("enrichment");
+    expect(LEX.ciOpenInTranscript[0]).toBe("Open in the earnings call");
+    expect(LEX.ciOpenInTranscript[1]).toBe("在电话会中查看");
   });
 });

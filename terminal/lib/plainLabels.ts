@@ -248,7 +248,7 @@ export const SOURCE_KIND_LABEL = {
   filing: ["Company filing", "公司公告"],
   release: ["Company filing", "公司公告"],
   public_wire: ["Public wire record", "公开快讯"],
-  edgar_collector: ["Filing collector row", "申报采集行"],
+  edgar_collector: ["SEC filing feed", "监管申报来源"],
   presentation: ["Slides", "演示文稿"],
 } as const;
 
@@ -265,7 +265,7 @@ export function sourceKindLabel(value: string | null | undefined, lang: PlainLan
 export const SOURCE_STATUS_LABEL = {
   present: ["Present", "可用"],
   Present: ["Present", "可用"],
-  metadata_only: ["Metadata only", "仅元数据"],
+  metadata_only: ["Recorded, file missing", "有记录，无正文"],
   missing: ["Missing", "缺失"],
   Unavailable: ["Unavailable", "不可用"],
   unavailable: ["Unavailable", "不可用"],

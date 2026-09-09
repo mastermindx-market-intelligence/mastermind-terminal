@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useLang } from "../../lib/i18n";
+import { LEX, useLang } from "../../lib/i18n";
 import { fmtDate, pick } from "../../lib/finFormat";
 import type { CompanyIntelligenceContext, CompanyIntelligenceEvent } from "../../lib/companyIntelligence";
 import {
@@ -172,7 +172,7 @@ function AnalystQaBlock({
     <section className="ci-qa" data-ci-results-region="analyst-qa" aria-label={zh ? "分析师问答" : "Analyst Q&A"}>
       <header className="ci-qa-head">
         <span className="fin-eyebrow">{zh ? `分析师问答 · ${exchanges.length} 轮` : `ANALYST Q&A · ${exchanges.length} exchanges`}</span>
-        <p>{pick(zh, "Structure verified · topic enrichment unavailable", "结构已验证 · 主题增强暂不可用")}</p>
+        <p>{pick(zh, LEX.ciQaStructure[0], LEX.ciQaStructure[1])}</p>
       </header>
       <div className="ci-qa-list">
         {exchanges.map((exchange) => {
@@ -208,7 +208,7 @@ function AnalystQaBlock({
                     className="ci-qa-open"
                     onClick={() => onOpen({ id: txId, segment_index: segment, expected_document_sha256: txSha })}
                   >
-                    {pick(zh, "Open in transcript", "在电话会中查看")}
+                    {pick(zh, LEX.ciOpenInTranscript[0], LEX.ciOpenInTranscript[1])}
                   </button>
                 ) : null}
               </div>

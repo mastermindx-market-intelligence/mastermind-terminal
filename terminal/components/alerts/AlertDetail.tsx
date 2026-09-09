@@ -87,7 +87,7 @@ export default function AlertDetail({ data, lang, onClose }: { data: AlertDetail
       <div className={s.detailFact}><span className={s.detailLabel}>{lang === "zh" ? "时间线" : "Timeframe"}</span><span>{data.firedAt ? (lang === "zh" ? `触发于 ${fmt(data.firedAt)}` : `Fired ${fmt(data.firedAt)}`) : copy("null.notRecorded", lang)}{lang === "zh" ? `，建立于 ${fmt(data.armedAt)}` : `, armed ${fmt(data.armedAt)}`}</span></div>
       <div className={s.detailFact}>
         <span className={s.detailLabel}>{lang === "zh" ? "证据" : "Evidence"}</span>
-        <span>{data.evidenceUrl ? <a href={data.evidenceUrl}>{pick(lang === "zh", "View evidence", "查看证据")}</a> : pick(lang === "zh", "no evidence link", "无证据链接")}</span>
+        <span>{data.evidenceUrl ? <a href={data.evidenceUrl}>{pick(lang === "zh", "View evidence", "查看证据")}</a> : pick(lang === "zh", "No evidence link", "无证据链接")}</span>
       </div>
       <div className={s.detailFact}><span className={s.detailLabel}>{copy("fact.lastAttempt", lang)}</span><span>{fmtState(data.lastAttemptAt, data.lastAttemptState)}</span></div>
       <div className={s.detailFact}><span className={s.detailLabel}>{copy("fact.lastSuccess", lang)}</span><span>{fmtState(data.lastSuccessAt, data.lastSuccessState)}</span></div>
