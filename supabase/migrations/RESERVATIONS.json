@@ -178,7 +178,7 @@
       "pr_state": "open",
       "applied_in_production": false,
       "applied_date": null,
-      "note": "claimed by packet B-F13-5 in PR #547; DDL shipped, not applied"
+      "note": "claimed by packet B-F13-5 in PR #547; DDL shipped, not applied; applied_date not recorded because the pull request has not merged"
     },
     "0018": {
       "state": "reserved",
