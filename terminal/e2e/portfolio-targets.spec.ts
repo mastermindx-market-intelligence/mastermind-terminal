@@ -113,3 +113,29 @@ test("EN/ZH toggle renders the section title and status labels in the selected l
   await expect(section(page)).not.toContainText("Your targets vs. what you hold");
   await expect(card(page, "NVDA")).not.toContainText("Outside your band");
 });
+
+// Round 2, ruling R1 (BLOCKER): the round-1 case seeded NVDA *and* AAPL and closed only NVDA, so
+// the open book was never actually empty. Closing the LAST holding is the case that used to hide
+// the whole section and make a saved target vanish with no disclosure.
+test("closing the LAST holding keeps its target on screen as orphaned, with the empty-book sentence", async ({ page, baseURL }, testInfo) => {
+  await prepare(page, testInfo, baseURL);
+  const nvda = await seedPosition(page, { ticker: "NVDA", shares: "100", entryPrice: "200" });
+  await page.goto("/portfolio");
+  await expect(section(page)).toBeVisible({ timeout: 20_000 });
+  await page.getByLabel("Target weight for NVDA, percent").fill("80");
+  await expect(card(page, "NVDA")).toHaveAttribute("data-status", "outside_band", { timeout: 15_000 });
+
+  const closed = await page.request.post("/api/portfolio", { data: { action: "close", id: nvda.id } });
+  expect(closed.ok()).toBe(true);
+  await page.reload();
+
+  // The whole section must still be mounted with ZERO open positions.
+  await expect(section(page)).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByTestId("targets-orphaned")).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByTestId("targets-orphaned")).toContainText("NVDA");
+  await expect(page.getByTestId("targets-orphaned")).toContainText("Targets on positions you no longer hold");
+  await expect(page.getByTestId("targets-orphaned")).toContainText("The target is kept, not deleted");
+  await expect(page.getByTestId("targets-orphaned")).toContainText("±5 pts");
+  await expect(page.getByTestId("targets-empty"))
+    .toContainText("Add a position with a share count and entry price to start setting targets.");
+});

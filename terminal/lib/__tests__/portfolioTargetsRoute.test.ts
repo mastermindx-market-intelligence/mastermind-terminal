@@ -3,9 +3,14 @@ import type { DbResult, WatchlistDb, WatchlistQuery } from "@/lib/watchlists";
 
 const H = vi.hoisted(() => ({
   user: { id: "e2e-user-pftargets" } as { id: string } | null,
-  failTable: null as string | null,
   failReadTable: null as string | null,
+  // R6 (i): a driver that THROWS, not one that returns an error row — the GET path wraps its
+  // select in try/catch and the POST path's maybeSingle must do the same.
+  throwOnMaybeSingle: false,
   positionWrites: [] as { table: string; op: string }[],
+  // R6 (h): every `from(table)` the route reaches, so "store never read" is an assertion and not
+  // a dangling `expect(...)` with no matcher.
+  reads: [] as string[],
 }));
 
 vi.mock("next/headers", () => ({ cookies: vi.fn(async () => ({ get: () => undefined })) }));
@@ -33,8 +38,20 @@ vi.mock("@/lib/supabase/server", async () => {
       return {
         auth: { getUser: vi.fn(async () => ({ data: { user: H.user } })) },
         from: (table: string) => {
-          if (H.failReadTable === table || H.failTable === table) return failedQuery();
+          H.reads.push(table);
+          if (H.failReadTable === table) return failedQuery();
           const query = db.from(table);
+          if (H.throwOnMaybeSingle) {
+            return new Proxy(query, {
+              get(target, prop, receiver) {
+                if (prop === "maybeSingle") {
+                  return async () => { throw new Error("driver exploded"); };
+                }
+                const inner = Reflect.get(target, prop, receiver);
+                return typeof inner === "function" ? inner.bind(target) : inner;
+              },
+            });
+          }
           return new Proxy(query, {
             get(target, prop, receiver) {
               if (prop === "insert" || prop === "update" || prop === "delete") {
@@ -56,7 +73,7 @@ vi.mock("@/lib/supabase/server", async () => {
 
 import { GET, POST } from "@/app/api/portfolio/targets/route";
 import { POST as PORTFOLIO_POST } from "@/app/api/portfolio/route";
-import { createFixtureDb, fixtureUserId, resetFixtureStores } from "@/lib/watchlistsFixtureDb";
+import { fixtureUserId, resetFixtureStores } from "@/lib/watchlistsFixtureDb";
 import type { PortfolioTargetsSummary } from "@/lib/portfolioTargets";
 
 const postTargets = (body: Record<string, unknown>) => POST(new Request("https://x.test/api/portfolio/targets", {
@@ -81,9 +98,10 @@ async function seedHolding(ticker: string, shares = 10, entryPrice = 100) {
 beforeEach(() => {
   resetFixtureStores();
   H.user = { id: owner };
-  H.failTable = null;
   H.failReadTable = null;
+  H.throwOnMaybeSingle = false;
   H.positionWrites = [];
+  H.reads = [];
   vi.clearAllMocks();
 });
 
@@ -94,7 +112,7 @@ describe("GET /api/portfolio/targets", () => {
     expect(response.status).toBe(401);
     expect(await response.json()).toEqual({ error: "unauthenticated" });
     expect(H.positionWrites).toEqual([]);
-    expect(createFixtureDb("pftargets"));
+    expect(H.reads).toEqual([]);
   });
 
   it("is 200 with an empty summary and no untargeted entries when the book itself is empty", async () => {
@@ -273,5 +291,36 @@ describe("POST /api/portfolio/targets — unsupported", () => {
     const other = await postTargets({ action: "rebalance", ticker: "AAA" });
     expect(other.status).toBe(400);
     expect(await other.json()).toEqual({ error: "unsupported action" });
+  });
+});
+
+// ── Round 2, ruling R6 (i) — dispatch on `action` before validating the ticker ─────────────────
+describe("POST /api/portfolio/targets — error ordering and driver faults (R6 i)", () => {
+  it("answers 'unsupported action', not 'invalid ticker', for an unknown action with no ticker", async () => {
+    const response = await postTargets({ action: "bogus" });
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: "unsupported action" });
+    expect(H.positionWrites).toEqual([]);
+  });
+
+  it("answers 'unsupported action' for a missing action even when the ticker is absent", async () => {
+    const response = await postTargets({});
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: "unsupported action" });
+  });
+
+  it("still answers 'invalid ticker' for a supported action with a bad ticker", async () => {
+    const response = await postTargets({ action: "set", ticker: "", targetWeightPct: 10 });
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: "invalid ticker" });
+  });
+
+  it("is 503, never a 500, when the targets driver THROWS on the set path's read", async () => {
+    await seedHolding("NVDA", 100, 200);
+    H.throwOnMaybeSingle = true;
+    const response = await postTargets({ action: "set", ticker: "NVDA", targetWeightPct: 80, bandPct: 5 });
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({ error: "targets unavailable" });
+    expect(H.positionWrites.filter((w) => w.table === "portfolio_targets")).toEqual([]);
   });
 });
