@@ -94,10 +94,36 @@ class GitHubApi:
     def update_branch(self, number: int, head_sha: str) -> None:
         self.request("PUT", f"/pulls/{number}/update-branch", {"expected_head_sha": head_sha})
 
-    def dispatch_ci(self, branch: str) -> None:
+    def dispatch_ci(self, branch: str, pr_number: int | None = None) -> None:
         # GITHUB_TOKEN-authored branch updates do not recursively fire pull_request
         # workflows. workflow_dispatch is the documented exception, so the sweeper
         # explicitly orders the fresh proof it just made necessary.
+        #
+        # That dispatched run is therefore the ONLY CI run for the sha that then
+        # merges, and on a workflow_dispatch `github.event.pull_request.number` is
+        # empty -- so the migration-namespace guard fell to its LENIENT rule set on
+        # exactly the gating run (round 4, MAJOR 2). ci.yml now takes a `pr_number`
+        # input and the number is passed here.
+        payload: dict[str, Any] = {"ref": branch}
+        if pr_number is not None:
+            payload["inputs"] = {"pr_number": str(pr_number)}
+        try:
+            self.request("POST", "/actions/workflows/ci.yml/dispatches", payload)
+            return
+        except ApiError as error:
+            # A branch whose ci.yml predates the input answers 422 ("Unexpected
+            # inputs provided"). Ordering the proof matters more than proving it
+            # in the stricter mode, so retry once without inputs -- and say out
+            # loud that the run will be LENIENT rather than let a reader assume
+            # the pull-request rule ran.
+            if error.status != 422 or "inputs" not in payload:
+                raise
+        print(
+            f"::warning::ci.yml on {branch} does not accept the pr_number input (422); "
+            "re-dispatched without it. That run resolves to LENIENT mode, so the "
+            "migration-namespace open-while-present rule is not asserted on it.",
+            flush=True,
+        )
         self.request("POST", "/actions/workflows/ci.yml/dispatches", {"ref": branch})
 
     def merge(self, number: int, head_sha: str) -> dict[str, Any]:
@@ -137,7 +163,7 @@ class MergeApi(Protocol):
     def pull(self, number: int) -> dict[str, Any]: ...
     def check_runs(self, sha: str) -> list[dict[str, Any]]: ...
     def update_branch(self, number: int, head_sha: str) -> None: ...
-    def dispatch_ci(self, branch: str) -> None: ...
+    def dispatch_ci(self, branch: str, pr_number: int | None = None) -> None: ...
     def merge(self, number: int, head_sha: str) -> dict[str, Any]: ...
     def add_labels(self, number: int, labels: list[str]) -> None: ...
     def remove_label(self, number: int, label: str) -> None: ...
@@ -270,7 +296,9 @@ def sweep(api: MergeApi, trigger_number: int | None = None) -> list[str]:
         if mergeable_state == "behind":
             branch = str(pull["head"]["ref"])
             api.update_branch(number, head_sha)
-            api.dispatch_ci(branch)
+            # The number is known here; hand it to the dispatched run so the
+            # namespace guard can earn PULL_REQUEST mode on the refreshed head.
+            api.dispatch_ci(branch, number)
             actions.append(f"#{number}: updated onto current master; awaiting fresh CI")
             # An update creates the next safe wake-up. Stop so no other green is
             # judged against a base snapshot this mutation just invalidated.
