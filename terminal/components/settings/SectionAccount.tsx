@@ -43,18 +43,19 @@ function ProviderIcon({ p }: { p: string }) {
  *  call so the save handlers (which touch timer refs) are only ever passed as
  *  props — never invoked during render. */
 function FormBtns({
-  busy, t, onCancel, onSave, saveKey,
+  busy, t, onCancel, onSave, saveKey, saveClass = "primary",
 }: {
   busy: boolean;
   t: SectionProps["t"];
   onCancel: () => void;
   onSave: () => void;
   saveKey: string;
+  saveClass?: string;
 }) {
   return (
     <div className="acs-btns">
       <button type="button" className="acs-btn ghost" onClick={onCancel} disabled={busy}>{t("acsCancel")}</button>
-      <button type="button" className="acs-btn primary" onClick={onSave} disabled={busy}>
+      <button type="button" className={`acs-btn ${saveClass}`} onClick={onSave} disabled={busy}>
         {busy ? t("acsSaving") : t(saveKey)}
       </button>
     </div>
@@ -399,7 +400,8 @@ export default function SectionAccount({ t, lang, email, user, onClose, onPatchM
             />
           </Group>
 
-          <Group title={t("acsData")}>
+          <div className="acs-span2">
+            <Group title={t("acsData")}>
             <Row
               label={t("acsDownload")}
               desc={t("acsDownloadDesc")}
@@ -450,16 +452,17 @@ export default function SectionAccount({ t, lang, email, user, onClose, onPatchM
                     onChange={(e) => setDelIn(e.target.value)}
                   />
                   <Msg text={msg && editing === "del" ? msg.text : ""} kind={msg?.kind || "err"} />
-                  <FormBtns busy={busy} t={t} onCancel={cancelEdit} onSave={saveDeletion} saveKey="acsDelete" />
+                  <FormBtns busy={busy} t={t} onCancel={cancelEdit} onSave={saveDeletion} saveKey="acsDelete" saveClass="btn-danger" />
                 </div>
               </Row>
             )}
-          </Group>
+            </Group>
+          </div>
         </div>
 
         {/* mobile sign-out row (the rail's is hidden ≤640px) */}
         <form action="/auth/signout" method="post">
-          <button type="submit" className="acs-signout-m">
+          <button type="submit" className="acs-signout-m acs-btn ghost">
             <IconSignOut />
             {t("signOut")}
           </button>

@@ -737,19 +737,17 @@ html.acs-lock, html.acs-lock body { overflow: hidden; }
   .acs-nav-b.active::before { display: none; }
   .acs-rail-spacer, .acs-signout { display: none; }
   .acs-rail form { display: none; }
+  /* Layout only: colour comes from the shared `.acs-btn.ghost` secondary style
+     (B-F12-5 — reversible Sign out is not the danger colour). */
   .acs-signout-m {
     display: flex; align-items: center; justify-content: center; gap: 8px;
     width: 100%; box-sizing: border-box;
     margin-top: 14px;
     padding: 11px;
     border-radius: 11px;
-    border: 1px solid color-mix(in srgb, var(--down) 40%, var(--line));
-    background: transparent;
-    color: var(--down);
     font: 700 13px/1 var(--font-ui);
     cursor: pointer;
   }
-  .acs-signout-m:hover { background: color-mix(in srgb, var(--down) 10%, transparent); }
   .acs-signout-m svg { width: 15px; height: 15px; flex: none; }
   .acs-head { padding: 14px 14px 10px 16px; }
   .acs-head .acs-x { display: none; }
