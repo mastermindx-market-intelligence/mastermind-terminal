@@ -1,18 +1,19 @@
 # B-PL-6 batch 3 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 8081928e17016272558cb4d5d61998d5489b3621
-# capturedAt: 2026-09-09T11:16:45.465Z
+# capturedAtHead: 8039f513337980bca8f23a1d947f9bfe606d70e7
+# capturedAt: 2026-09-09T13:58:24.464Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/options/OptionsFlowBoardView.tsx: "1a6f63c7a794299879e17e37eb6d325bbe66ff2322b989c323374f8660d9dadd"
-  terminal/components/flowdesk/FiltersPanel.tsx: "4a3c08fd9f43e9f6e1dda4a68bcf5ab50728513cec675a18f138a7ba66bace8d"
+  terminal/components/options/OptionsFlowBoardView.tsx: "7d6edee96f29cbefb8fcae85aa534e6046c9b556f97dda4fb5202e130c16b382"
+  terminal/components/flowdesk/FiltersPanel.tsx: "57ac663475b95a569f62d4c08e83a111f6137c920c78f13f1c9dfad1aa61708b"
   terminal/components/flowdesk/FlowCard.tsx: "155aff67c1f2ec50fd396d2e7c2739d6400bad5ed37387df8a1b1d450f1b118d"
   terminal/components/alerts/AlertDetail.tsx: "74bbdd5f0f5106b97fa56d67b6966caa86f32e65649eaef0d811f6ae6ef2485f"
   terminal/components/heatmap/HeatmapView.tsx: "2d5a27c95c6ddaf0d804b3b39b974d3da9760882ffbe3a39a0725d984bfb1eec"
   terminal/components/heatmap/Treemap.tsx: "33b7d0a69b13b8baf2a66c235d37ce5878d8803814a0b7696d26dc0fbb6e1ea6"
   terminal/lib/heatmapStrings.ts: "301bc087b30d4830d0d374cc92816b46b76838f24c6a13a6222e1090bc05e272"
-  terminal/lib/plainLabels.ts: "74ab1a77bedb849d01a0c9422774bcda43d6b33916fbe21b063116bceba87ad0"
+  terminal/lib/flowdeskStrings.ts: "244db1096bc0797a5197635fc6b4bf3157f74144640cb952ea94648a4c9be76a"
+  terminal/lib/plainLabels.ts: "69b5f2ad47a04e8010ba002308ce82fdf44731df2c44bd617da6a4728b17ca5b"
   terminal/lib/i18n.tsx: "35b7ad9679a593882c6e2bee939a6683adb537e33fc9fd19285822bb97b853b5"
 theme: dark
 languages: [en, zh]
