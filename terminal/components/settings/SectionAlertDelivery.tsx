@@ -1,7 +1,7 @@
 "use client";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { identityOwnerKey, isAccountOwner } from "@/lib/accountIdentity";
-import { timeZoneLabel } from "@/lib/plainLabels";
+import { curatedTimeZones, timeZoneLabel } from "@/lib/plainLabels";
 import { DeliveryNote, Group, IconCheck, Msg, Row, SectionHead } from "./icons";
 import type { SectionProps } from "./types";
 
@@ -56,14 +56,25 @@ const IDLE_ROWS: Rows = {
   quiet_hours: IDLE_ROW,
 };
 
-function ianaZones(): string[] {
-  const intl = Intl as typeof Intl & { supportedValuesOf?: (key: string) => string[] };
-  const list = typeof intl.supportedValuesOf === "function" ? intl.supportedValuesOf("timeZone") : [];
-  const set = new Set(list);
-  set.add("UTC");
-  set.add("Asia/Shanghai");
-  return Array.from(set).sort();
-}
+// An empty <input type="time"> paints the browser's own "--:-- --" — machine
+// text, and untranslated on the Chinese surface. While the field is empty and
+// unfocused, plain words cover it; focusing to type reveals the control
+// unchanged. These live here rather than in app/settings.css because that sheet
+// is pinned by another packet's evidence lock (b-f12-5-account-polish).
+const TIME_SLOT: CSSProperties = { position: "relative", display: "block" };
+const TIME_EMPTY: CSSProperties = {
+  position: "absolute",
+  inset: 1,
+  display: "flex",
+  alignItems: "center",
+  padding: "0 11px",
+  borderRadius: 8,
+  background: "var(--inset)",
+  color: "var(--text-2)",
+  fontSize: "13.5px",
+  fontFamily: "var(--font-ui)",
+  pointerEvents: "none",
+};
 
 function asKnownCats(raw: unknown): KnownCat[] {
   if (!Array.isArray(raw)) return [];
@@ -138,7 +149,7 @@ export default function SectionAlertDelivery({ t, lang, identity, onClose }: Sec
   const [state, setState] = useState<AlertState>(EMPTY);
   const [rows, setRows] = useState<Rows>(IDLE_ROWS);
   const [fieldErr, setFieldErr] = useState<FieldErr | null>(null);
-  const [zones] = useState<string[]>(() => ianaZones());
+  const [qhFocus, setQhFocus] = useState<"start" | "end" | null>(null);
 
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const qhDraft = useRef<QuietHours>({ start: "", end: "" });
@@ -339,11 +350,22 @@ export default function SectionAlertDelivery({ t, lang, identity, onClose }: Sec
     return <Msg text={lang === "zh" ? fieldErr.zh : fieldErr.en} kind="err" />;
   };
 
+  // The picker offers the curated list and nothing else, so no option can be an
+  // identifier. When the account is already set to a zone the list does not
+  // carry, exactly one extra option holds that value — labelled in words, so
+  // the setting is neither lost nor rendered raw.
   const tzOptions = useMemo(() => {
     const now = new Date();
-    const list = state.tz && !zones.includes(state.tz) ? [state.tz, ...zones] : zones;
+    const curated = curatedTimeZones(lang);
+    const list = state.tz && !curated.includes(state.tz) ? [state.tz, ...curated] : curated;
     return list.map((z) => ({ value: z, label: timeZoneLabel(z, lang, now) }));
-  }, [zones, lang, state.tz]);
+  }, [lang, state.tz]);
+
+  // A window with one half filled is not a window the server can hold. The row
+  // says so rather than showing a value that quietly differs from the stored one.
+  const qhStart = state.quiet_hours?.start ?? "";
+  const qhEnd = state.quiet_hours?.end ?? "";
+  const qhPartial = (qhStart === "") !== (qhEnd === "");
 
   return (
     <>
@@ -421,35 +443,50 @@ export default function SectionAlertDelivery({ t, lang, identity, onClose }: Sec
 
             <Row label={t("acsAlertQh")} desc={t("acsAlertQhHint")}>
               <div>
-                <p className="acs-row-desc" data-alert-hint="clock">{t("acsAlertQh24h")}</p>
+                <p className="acs-row-desc" data-alert-hint="clock">{t("acsAlertQhClock")}</p>
                 <label>
                   {t("acsAlertQhStart")}
-                  <input
-                    type="time"
-                    lang={htmlLang}
-                    className="acs-in"
-                    data-alert-field="qh-start"
-                    value={state.quiet_hours?.start ?? ""}
-                    onChange={(e) => onQuietPart("start", e.target.value)}
-                    onInput={(e) => onQuietPart("start", (e.target as HTMLInputElement).value)}
-                  />
+                  <span style={TIME_SLOT}>
+                    <input
+                      type="time"
+                      lang={htmlLang}
+                      className="acs-in"
+                      data-alert-field="qh-start"
+                      value={qhStart}
+                      onFocus={() => setQhFocus("start")}
+                      onBlur={() => setQhFocus(null)}
+                      onChange={(e) => onQuietPart("start", e.target.value)}
+                      onInput={(e) => onQuietPart("start", (e.target as HTMLInputElement).value)}
+                    />
+                    {qhStart || qhFocus === "start" ? null : (
+                      <span style={TIME_EMPTY} data-alert-empty="qh-start">{t("acsAlertQhNotSet")}</span>
+                    )}
+                  </span>
                 </label>
                 <label>
                   {t("acsAlertQhEnd")}
-                  <input
-                    type="time"
-                    lang={htmlLang}
-                    className="acs-in"
-                    data-alert-field="qh-end"
-                    value={state.quiet_hours?.end ?? ""}
-                    onChange={(e) => onQuietPart("end", e.target.value)}
-                    onInput={(e) => onQuietPart("end", (e.target as HTMLInputElement).value)}
-                  />
+                  <span style={TIME_SLOT}>
+                    <input
+                      type="time"
+                      lang={htmlLang}
+                      className="acs-in"
+                      data-alert-field="qh-end"
+                      value={qhEnd}
+                      onFocus={() => setQhFocus("end")}
+                      onBlur={() => setQhFocus(null)}
+                      onChange={(e) => onQuietPart("end", e.target.value)}
+                      onInput={(e) => onQuietPart("end", (e.target as HTMLInputElement).value)}
+                    />
+                    {qhEnd || qhFocus === "end" ? null : (
+                      <span style={TIME_EMPTY} data-alert-empty="qh-end">{t("acsAlertQhNotSet")}</span>
+                    )}
+                  </span>
                 </label>
                 <button type="button" className="acs-mini" onClick={clearQuiet}>
                   {t("acsAlertQhClear")}
                 </button>
               </div>
+              {qhPartial ? <Msg text={t("acsAlertQhPartial")} kind="wait" /> : null}
               {fieldMsg("quiet_hours")}
               {rowNote("quiet_hours")}
             </Row>

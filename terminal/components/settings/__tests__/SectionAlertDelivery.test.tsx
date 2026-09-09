@@ -101,6 +101,14 @@ async function flush() {
   });
 }
 
+/** Drive a controlled <input type="time"> the way a browser does. */
+function typeTime(node: HTMLInputElement, value: string) {
+  const desc = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value");
+  desc?.set?.call(node, value);
+  node.dispatchEvent(new Event("input", { bubbles: true }));
+  node.dispatchEvent(new Event("change", { bubbles: true }));
+}
+
 async function mount(props: SectionProps) {
   container = document.createElement("div");
   document.body.appendChild(container);
@@ -409,17 +417,17 @@ describe("time zone options read as a place plus its UTC offset, in both languag
     expect(ny.textContent).not.toContain("America/New_York");
   });
 
-  it("a zone with no curated name still gets an offset rather than a bare id", async () => {
+  // Inverted in round 3 (seat ruling R1): a zone the curated list does not carry
+  // is not offered at all, so no option can be a bare identifier.
+  it("a zone with no curated name is not offered as an option", async () => {
     getImpl = async () => jsonRes(200, READY);
     const el = await mount(accountProps("zh"));
-    const odd = el.querySelector<HTMLOptionElement>('option[value="America/Port_of_Spain"]');
-    if (odd) {
-      expect(odd.textContent).toMatch(/^America\/Port_of_Spain（UTC[+−]/);
-    }
+    expect(el.querySelector('option[value="America/Port_of_Spain"]')).toBeNull();
+    expect(el.textContent).not.toContain("America/Port_of_Spain");
   });
 });
 
-describe("quiet-hours time inputs follow the app language and say the clock is 24-hour", () => {
+describe("quiet-hours time inputs follow the app language", () => {
   const READY = {
     ok: true,
     prefs: { alert_email_optin: true, tz: "Asia/Shanghai", quiet_hours: { start: "22:00", end: "07:00" } },
@@ -427,22 +435,20 @@ describe("quiet-hours time inputs follow the app language and say the clock is 2
     categories_available: ["holdings_material_change", "thesis_window"],
   };
 
-  it("ZH binds lang on both inputs and shows the 24-hour hint", async () => {
+  it("ZH binds lang on both inputs", async () => {
     getImpl = async () => jsonRes(200, READY);
     const el = await mount(accountProps("zh"));
     const start = el.querySelector<HTMLInputElement>('input[data-alert-field="qh-start"]')!;
     const end = el.querySelector<HTMLInputElement>('input[data-alert-field="qh-end"]')!;
     expect(start.getAttribute("lang")).toBe("zh-CN");
     expect(end.getAttribute("lang")).toBe("zh-CN");
-    expect(el.textContent).toContain(LEX.acsAlertQh24h[1]);
   });
 
-  it("EN binds lang on both inputs and shows the 24-hour hint", async () => {
+  it("EN binds lang on both inputs", async () => {
     getImpl = async () => jsonRes(200, READY);
     const el = await mount(accountProps("en"));
     const start = el.querySelector<HTMLInputElement>('input[data-alert-field="qh-start"]')!;
     expect(start.getAttribute("lang")).toBe("en");
-    expect(el.textContent).toContain(LEX.acsAlertQh24h[0]);
   });
 });
 
@@ -591,9 +597,204 @@ describe("a 400 naming a field this section does not render still explains itsel
   });
 });
 
-describe("the quiet-hours hint says the same thing in both languages", () => {
-  it("the Chinese hint mirrors the English one and ends in a full stop", () => {
-    expect(LEX.acsAlertQhHint[1].endsWith("。")).toBe(true);
-    expect(LEX.acsAlertQhHint[1]).not.toContain("这段时间不会发送任何邮件");
+// ---------------------------------------------------------------------------
+// Round 3 — seat rulings R1–R3 on the Opus review at b66e9325.
+// ---------------------------------------------------------------------------
+
+const CURATED_READY = {
+  ok: true,
+  prefs: {
+    alert_email_optin: true,
+    tz: "Asia/Shanghai",
+    quiet_hours: { start: "22:00", end: "07:00" },
+  },
+  unset: [],
+  categories_available: ["holdings_material_change", "thesis_window"],
+};
+
+const EMPTY_QH_READY = {
+  ok: true,
+  prefs: { alert_email_optin: true, tz: "Asia/Shanghai" },
+  unset: ["quiet_hours"],
+  categories_available: ["holdings_material_change", "thesis_window"],
+};
+
+// Port of Spain sits outside the curated list and holds UTC−4 all year, so the
+// label this fixture pins does not move with daylight saving.
+const UNCURATED_READY = {
+  ok: true,
+  prefs: { alert_email_optin: true, tz: "America/Port_of_Spain" },
+  unset: ["quiet_hours"],
+  categories_available: ["holdings_material_change", "thesis_window"],
+};
+
+function optionLabels(el: HTMLElement): string[] {
+  return Array.from(
+    el.querySelectorAll<HTMLOptionElement>('select[data-alert-field="tz"] option'),
+  ).map((o) => o.textContent || "");
+}
+
+/** Everything a Chinese reader may see in Latin script here is the offset token. */
+function withoutOffset(label: string): string {
+  return label.replace(/UTC[+−]\d{1,2}(:\d{2})?/g, "");
+}
+
+describe("R1 — every time-zone option reads as words, never as an identifier", () => {
+  it("EN: no option label contains a path separator or an underscore", async () => {
+    getImpl = async () => jsonRes(200, CURATED_READY);
+    const el = await mount(accountProps("en"));
+    const labels = optionLabels(el);
+    expect(labels.length).toBeGreaterThan(50);
+    for (const label of labels) {
+      expect(label).not.toContain("/");
+      expect(label).not.toContain("_");
+    }
+  });
+
+  it("ZH: no option label contains a separator, an underscore, or a Latin place name", async () => {
+    getImpl = async () => jsonRes(200, CURATED_READY);
+    const el = await mount(accountProps("zh"));
+    const labels = optionLabels(el);
+    expect(labels.length).toBeGreaterThan(50);
+    for (const label of labels) {
+      expect(label).not.toContain("/");
+      expect(label).not.toContain("_");
+      expect(withoutOffset(label)).not.toMatch(/[A-Za-z]/);
+    }
+  });
+
+  it("each place is offered exactly once", async () => {
+    getImpl = async () => jsonRes(200, CURATED_READY);
+    const el = await mount(accountProps("en"));
+    const labels = optionLabels(el);
+    expect(new Set(labels).size).toBe(labels.length);
+  });
+
+  it("a stored zone outside the list becomes exactly one 'Current setting' option that keeps its value", async () => {
+    getImpl = async () => jsonRes(200, UNCURATED_READY);
+    const el = await mount(accountProps("en"));
+    const select = el.querySelector<HTMLSelectElement>('select[data-alert-field="tz"]')!;
+    expect(select.value).toBe("America/Port_of_Spain");
+    const kept = el.querySelector<HTMLOptionElement>('option[value="America/Port_of_Spain"]')!;
+    expect(kept).not.toBeNull();
+    expect(kept.textContent).toBe("Current setting (UTC−4)");
+    expect(el.textContent).not.toContain("America/Port_of_Spain");
+    expect(optionLabels(el).filter((l) => l.startsWith("Current setting"))).toHaveLength(1);
+  });
+
+  it("the same stored zone reads in Chinese, with no Latin place name anywhere in the list", async () => {
+    getImpl = async () => jsonRes(200, UNCURATED_READY);
+    const el = await mount(accountProps("zh"));
+    const kept = el.querySelector<HTMLOptionElement>('option[value="America/Port_of_Spain"]')!;
+    expect(kept.textContent).toBe("当前设置（UTC−4）");
+    for (const label of optionLabels(el)) {
+      expect(label).not.toContain("/");
+      expect(label).not.toContain("_");
+      expect(withoutOffset(label)).not.toMatch(/[A-Za-z]/);
+    }
+  });
+});
+
+describe("R2 — the clock note is true, and an empty time says so in words", () => {
+  it("ZH shows the device-clock sentence and never claims a 24-hour clock", async () => {
+    getImpl = async () => jsonRes(200, CURATED_READY);
+    const el = await mount(accountProps("zh"));
+    expect(el.textContent).toContain("时间显示跟随你设备的时钟格式。");
+    expect(el.textContent).not.toContain("24 小时制");
+  });
+
+  it("EN shows the device-clock sentence and never claims a 24-hour clock", async () => {
+    getImpl = async () => jsonRes(200, CURATED_READY);
+    const el = await mount(accountProps("en"));
+    expect(el.textContent).toContain("Times follow your device's clock format.");
+    expect(el.textContent).not.toContain("24-hour clock");
+  });
+
+  it("ZH: an unset window shows 未设置 on both halves instead of the browser placeholder", async () => {
+    getImpl = async () => jsonRes(200, EMPTY_QH_READY);
+    const el = await mount(accountProps("zh"));
+    expect(el.querySelector<HTMLInputElement>('input[data-alert-field="qh-start"]')!.value).toBe("");
+    const notes = Array.from(el.querySelectorAll("[data-alert-empty]"));
+    expect(notes.map((n) => n.getAttribute("data-alert-empty"))).toEqual(["qh-start", "qh-end"]);
+    expect(notes.map((n) => n.textContent)).toEqual(["未设置", "未设置"]);
+    expect(el.textContent).not.toContain("--:--");
+  });
+
+  it("EN: an unset window shows Not set on both halves", async () => {
+    getImpl = async () => jsonRes(200, EMPTY_QH_READY);
+    const el = await mount(accountProps("en"));
+    const notes = Array.from(el.querySelectorAll("[data-alert-empty]"));
+    expect(notes.map((n) => n.textContent)).toEqual(["Not set", "Not set"]);
+  });
+
+  it("a stored window shows no Not set label at all", async () => {
+    getImpl = async () => jsonRes(200, CURATED_READY);
+    const el = await mount(accountProps("en"));
+    expect(el.querySelectorAll("[data-alert-empty]")).toHaveLength(0);
+  });
+
+  it("clearing one half puts the label back on that half only", async () => {
+    getImpl = async () => jsonRes(200, CURATED_READY);
+    const el = await mount(accountProps("en"));
+    const end = el.querySelector<HTMLInputElement>('input[data-alert-field="qh-end"]')!;
+    await act(async () => { typeTime(end, ""); });
+    await flush();
+    const notes = Array.from(el.querySelectorAll("[data-alert-empty]"));
+    expect(notes.map((n) => n.getAttribute("data-alert-empty"))).toEqual(["qh-end"]);
+  });
+});
+
+describe("R3 — a half-filled quiet-hours window says it is not saved", () => {
+  it("EN: clearing End shows the row note and posts nothing", async () => {
+    getImpl = async () => jsonRes(200, CURATED_READY);
+    const el = await mount(accountProps("en"));
+    const before = fetchCalls.filter((c) => c.method === "POST").length;
+    const end = el.querySelector<HTMLInputElement>('input[data-alert-field="qh-end"]')!;
+    await act(async () => { typeTime(end, ""); });
+    await flush();
+    expect(fetchCalls.filter((c) => c.method === "POST")).toHaveLength(before);
+    expect(el.textContent).toContain("Not saved yet. Both times are needed.");
+  });
+
+  it("ZH: clearing Start shows the row note", async () => {
+    getImpl = async () => jsonRes(200, CURATED_READY);
+    const el = await mount(accountProps("zh"));
+    const start = el.querySelector<HTMLInputElement>('input[data-alert-field="qh-start"]')!;
+    await act(async () => { typeTime(start, ""); });
+    await flush();
+    expect(el.textContent).toContain("尚未保存，需要填写开始和结束时间。");
+  });
+
+  it("the note is gone once both halves are filled again", async () => {
+    getImpl = async () => jsonRes(200, CURATED_READY);
+    postImpl = async () => jsonRes(200, {
+      ok: true,
+      prefs: { quiet_hours: { start: "22:00", end: "08:00" } },
+      metadata: true,
+      email_prefs: false,
+    });
+    const el = await mount(accountProps("en"));
+    const end = el.querySelector<HTMLInputElement>('input[data-alert-field="qh-end"]')!;
+    await act(async () => { typeTime(end, ""); });
+    await flush();
+    expect(el.textContent).toContain("Not saved yet. Both times are needed.");
+    await act(async () => { typeTime(end, "08:00"); });
+    await flush();
+    expect(el.textContent).not.toContain("Not saved yet. Both times are needed.");
+  });
+
+  it("a fully cleared window is not half-filled, so the note stays away", async () => {
+    getImpl = async () => jsonRes(200, EMPTY_QH_READY);
+    const el = await mount(accountProps("en"));
+    expect(el.textContent).not.toContain("Not saved yet. Both times are needed.");
+  });
+});
+
+describe("R3 — the quiet-hours hint keeps macro's two sentences in both languages", () => {
+  it("ZH keeps the no-email sentence and EN gains its parallel", () => {
+    expect(LEX.acsAlertQhHint[1]).toBe("这段时间不会发送任何邮件。提醒会等待，在时段结束后发送。");
+    expect(LEX.acsAlertQhHint[0]).toBe(
+      "No emails are sent during this window. Alerts wait and are sent when the window ends.",
+    );
   });
 });

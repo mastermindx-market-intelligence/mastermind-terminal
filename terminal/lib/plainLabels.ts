@@ -227,9 +227,13 @@ export function subjectKindLabel(value: string | null | undefined, lang: PlainLa
  * The stored value is always the IANA id — macro validates against the full
  * IANA database and that is what goes on the wire. Only the text a person
  * reads changes: a place name in their own language plus the zone's current
- * offset from UTC, e.g. "New York (UTC−4)" / "纽约（UTC−4）". A zone with no
- * curated name still gets its offset, so no option is ever a bare identifier
- * with nothing to read.
+ * offset from UTC, e.g. "New York (UTC−4)" / "纽约（UTC−4）".
+ *
+ * This map is the WHOLE of what a picker may offer (see curatedTimeZones).
+ * A zone with no entry here is never rendered as an identifier: it reads as
+ * "Current setting (UTC±X)" / "当前设置（UTC±X）", which keeps the account's
+ * stored value without putting a slug path or a snake_case segment on screen,
+ * and without putting an English place name on the Chinese surface.
  *
  * The offset is computed at render time from the real clock, so a zone that
  * observes daylight saving shows the offset in force today, not a frozen one.
@@ -422,6 +426,43 @@ export const TIME_ZONE_CITY: Record<string, readonly [string, string]> = {
   "Pacific/Tahiti": ["Tahiti", "塔希提"],
 };
 
+/**
+ * Curated ids that name a zone the picker already offers under another id.
+ * IANA keeps both spellings alive and macro accepts either, so the label map
+ * above keeps them — a value stored under the older spelling still reads as a
+ * place. The picker itself offers each place exactly once.
+ */
+const TIME_ZONE_ALIASES: ReadonlySet<string> = new Set([
+  "Etc/UTC", // UTC
+  "Asia/Saigon", // Asia/Ho_Chi_Minh
+  "Asia/Rangoon", // Asia/Yangon
+  "Asia/Katmandu", // Asia/Kathmandu
+  "Asia/Calcutta", // Asia/Kolkata
+  "Europe/Kiev", // Europe/Kyiv
+  "Europe/Reykjavik", // Atlantic/Reykjavik
+  "America/Buenos_Aires", // America/Argentina/Buenos_Aires
+]);
+
+/** Words for a zone this file carries no name for, so the reader is never shown
+ *  the identifier and a Chinese reader is never shown an English place name. */
+const CURRENT_ZONE_WORDS: readonly [string, string] = ["Current setting", "当前设置"];
+
+/**
+ * The zones a picker may offer, each place exactly once, ordered by the name
+ * the reader actually sees. Nothing outside this list is ever an option.
+ */
+export function curatedTimeZones(lang: PlainLang): string[] {
+  const name = (id: string) => TIME_ZONE_CITY[id][lang === "zh" ? 1 : 0];
+  return Object.keys(TIME_ZONE_CITY)
+    .filter((id) => !TIME_ZONE_ALIASES.has(id))
+    .sort((a, b) => name(a).localeCompare(name(b), lang === "zh" ? "zh-Hans-CN" : "en"));
+}
+
+/** True when the picker carries this zone under its own name. */
+export function isCuratedTimeZone(zone: string): boolean {
+  return Object.prototype.hasOwnProperty.call(TIME_ZONE_CITY, zone) && !TIME_ZONE_ALIASES.has(zone);
+}
+
 /** The zone's offset from UTC right now, e.g. "UTC+8", "UTC−4", "UTC+5:30".
  *  Empty when the runtime cannot resolve the zone, so the caller drops it. */
 function utcOffsetLabel(zone: string, at: Date): string {
@@ -442,10 +483,16 @@ function utcOffsetLabel(zone: string, at: Date): string {
   }
 }
 
-/** Reader-facing label for one IANA time zone. The value stored stays the id. */
+/**
+ * Reader-facing label for one IANA time zone. The value stored stays the id.
+ *
+ * There is no path here that returns the identifier. A zone this file carries
+ * no name for reads as "Current setting (UTC−4)" / "当前设置（UTC−4）" — the
+ * account keeps the value it has, and the screen keeps its words.
+ */
 export function timeZoneLabel(zone: string, lang: PlainLang, at: Date = new Date()): string {
-  const pair = TIME_ZONE_CITY[zone];
-  const name = pair ? (lang === "zh" ? pair[1] : pair[0]) : zone;
+  const pair = TIME_ZONE_CITY[zone] ?? CURRENT_ZONE_WORDS;
+  const name = lang === "zh" ? pair[1] : pair[0];
   const offset = utcOffsetLabel(zone, at);
   if (!offset) return name;
   return lang === "zh" ? `${name}（${offset}）` : `${name} (${offset})`;

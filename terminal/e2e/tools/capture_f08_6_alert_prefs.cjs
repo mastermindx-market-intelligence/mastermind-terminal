@@ -84,9 +84,14 @@ const QUIET_HOURS = {
   categories_available: ["holdings_material_change", "thesis_window"],
 };
 
+// The stored zone here is deliberately one the curated picker does not carry
+// (Port of Spain, UTC−4 all year). The crop therefore shows the single extra
+// "Current setting (UTC−4)" / "当前设置（UTC−4）" option holding the account's
+// value, and quiet hours left unset show the "Not set" / "未设置" label rather
+// than the browser's "--:-- --".
 const FIELD_GET = {
   ok: true,
-  prefs: { alert_email_optin: true, tz: "UTC" },
+  prefs: { alert_email_optin: true, tz: "America/Port_of_Spain" },
   unset: ["quiet_hours", "alert_categories"],
   categories_available: ["holdings_material_change", "thesis_window"],
 };
