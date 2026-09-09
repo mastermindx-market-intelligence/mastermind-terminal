@@ -96,7 +96,8 @@ let container: HTMLDivElement | null = null;
 
 async function flush() {
   await act(async () => {
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    await Promise.resolve();
+    await Promise.resolve();
   });
 }
 
@@ -108,7 +109,8 @@ async function mount(props: SectionProps) {
     root!.render(<SectionAlertDelivery {...props} />);
   });
   await flush();
-  return container;
+  await flush();
+  return container!;
 }
 
 beforeEach(() => {
@@ -116,6 +118,7 @@ beforeEach(() => {
 });
 
 afterEach(async () => {
+  vi.useRealTimers();
   await act(async () => {
     root?.unmount();
   });
@@ -123,7 +126,6 @@ afterEach(async () => {
   container?.remove();
   container = null;
   vi.unstubAllGlobals();
-  vi.useRealTimers();
   vi.clearAllMocks();
 });
 
@@ -301,7 +303,6 @@ describe("optimistic toggle → 502/503/throw rollback + generic copy, both lang
 
 describe("quiet-hours debounce: two edits inside 500 ms produce exactly one POST", () => {
   it("collapses two time edits into one save", async () => {
-    vi.useFakeTimers();
     getImpl = async () => jsonRes(200, {
       ok: true,
       prefs: { alert_email_optin: true, tz: "UTC" },
@@ -315,18 +316,19 @@ describe("quiet-hours debounce: two edits inside 500 ms produce exactly one POST
       email_prefs: false,
     });
     const el = await mount(accountProps("en"));
+    vi.useFakeTimers();
     const start = el.querySelector<HTMLInputElement>('input[data-alert-field="qh-start"]')!;
     const end = el.querySelector<HTMLInputElement>('input[data-alert-field="qh-end"]')!;
-    await act(async () => {
-      start.value = "22:00";
-      start.dispatchEvent(new Event("input", { bubbles: true }));
-      start.dispatchEvent(new Event("change", { bubbles: true }));
-    });
-    await act(async () => {
-      end.value = "07:00";
-      end.dispatchEvent(new Event("input", { bubbles: true }));
-      end.dispatchEvent(new Event("change", { bubbles: true }));
-    });
+    expect(start).not.toBeNull();
+    expect(end).not.toBeNull();
+    const setInput = (el: HTMLInputElement, value: string) => {
+      const desc = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value");
+      desc?.set?.call(el, value);
+      el.dispatchEvent(new Event("input", { bubbles: true }));
+      el.dispatchEvent(new Event("change", { bubbles: true }));
+    };
+    await act(async () => { setInput(start, "22:00"); });
+    await act(async () => { setInput(end, "07:00"); });
     expect(fetchCalls.filter((c) => c.method === "POST")).toHaveLength(0);
     await act(async () => { vi.advanceTimersByTime(500); });
     await flush();
