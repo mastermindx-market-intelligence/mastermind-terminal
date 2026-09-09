@@ -1,4 +1,4 @@
--- Ledger row: 0022_chart_layouts_team_sharing / PR #pending (open, packet B-F12-B5-2); not applied
+-- Ledger row: 0022_chart_layouts_team_sharing / PR #555 (open, packet B-F12-B5-2); not applied
 -- Rollback: begin; drop policy if exists chart_layouts_team_read on public.chart_layouts; drop policy if exists chart_layouts_team_update on public.chart_layouts; drop policy if exists chart_layouts_team_delete on public.chart_layouts; drop policy if exists chart_layouts_share_insert_guard on public.chart_layouts; drop policy if exists chart_layouts_share_update_guard on public.chart_layouts; drop policy if exists chart_layouts_share_delete_guard on public.chart_layouts; drop index if exists public.chart_layouts_team_name; drop index if exists public.chart_layouts_team; alter table public.chart_layouts drop constraint if exists chart_layouts_visibility_ck, drop constraint if exists chart_layouts_share_shape_ck, drop column if exists visibility, drop column if exists team_id; commit;
 -- 0022_chart_layouts_team_sharing.sql
 --
