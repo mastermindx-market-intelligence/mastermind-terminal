@@ -889,7 +889,21 @@ function main() {
     for (const [rule, ok] of Object.entries(results)) {
       process.stdout.write(`${rule} ${ok ? "detected" : "NOT detected"}\n`);
     }
-    process.exitCode = 0;
+    // A self-check that always exits 0 is a decoration, not a gate: the CI
+    // step that runs it would stay green with every rule dead, and the
+    // enforce run right after it would then report a clean tree for a PR
+    // full of violations. A rule that no longer detects its own violation is
+    // a fault in the guard itself, not a finding about the diff — so it exits
+    // 2 (the fail-CLOSED "infrastructure fault" code an unreadable --root or
+    // --diff-file already uses) and never 1, which means "this diff added a
+    // blocking finding".
+    const dead = Object.entries(results).filter(([, ok]) => !ok).map(([rule]) => rule);
+    if (dead.length > 0) {
+      process.stdout.write(
+        `::error title=plain-language::self-check FAILED: ${dead.join(", ")} no longer detect their own violation — the guard cannot be trusted to block anything until this is fixed\n`
+      );
+    }
+    process.exitCode = dead.length > 0 ? 2 : 0;
     return;
   }
 
