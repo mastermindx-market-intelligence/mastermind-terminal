@@ -2,23 +2,38 @@
 import { useCallback, useEffect, useState } from "react";
 import { Group, Msg, Row, SectionHead } from "./icons";
 import { acsDate, type DevTeamFixture, type DevTeamMember, type SectionProps } from "./types";
-import { INVITE_MESSAGES, TEAM_ROUTE_MESSAGES, type TeamRole } from "@/lib/teams";
+import { TEAM_ROUTE_MESSAGES, type TeamRole } from "@/lib/teams";
 import s from "./SectionTeam.module.css";
 
 type RosterMember = DevTeamMember;
 type PendingInvite = DevTeamFixture["invites"][number];
 
-function roleKey(role: TeamRole): string {
+function isKnownRole(role: string | null | undefined): role is TeamRole {
+  return role === "owner" || role === "admin" || role === "member";
+}
+
+function roleKey(role: string | null | undefined): string {
   if (role === "owner") return "acsRoleOwner";
   if (role === "admin") return "acsRoleAdmin";
-  return "acsRoleMember";
+  if (role === "member") return "acsRoleMember";
+  return "acsRoleUnknown";
+}
+
+function fill(template: string, vars: Record<string, string>): string {
+  let out = template;
+  for (const [key, value] of Object.entries(vars)) {
+    out = out.replaceAll(`{${key}}`, value);
+  }
+  return out;
+}
+
+function shortUserId(userId: string): string {
+  return userId.slice(0, 8);
 }
 
 /**
- * Round-4 ruling R4(k): profiles.display_name is unset for most accounts, so the previous
- * eight-character user-id fallback would routinely paint machine text where a person's name
- * belongs. An unnamed teammate is described in words instead. No name is invented: the row still
- * says only that someone is on the team.
+ * Round-6 ruling R8: an unnamed teammate is described as "Name not set" / "未设置名称",
+ * then a muted eight-character discriminator of the account id. No name is invented.
  */
 function displayLabel(member: RosterMember, t: (key: string, fallback?: string) => string): string {
   const name = (member.displayName || "").trim();
@@ -68,6 +83,7 @@ export default function SectionTeam({
   const [callerRole, setCallerRole] = useState<TeamRole | null>(devTeam?.callerRole ?? null);
   const [members, setMembers] = useState<RosterMember[]>(devTeam?.members ?? []);
   const [invites, setInvites] = useState<PendingInvite[]>(devTeam?.invites ?? []);
+  const [truncated, setTruncated] = useState(Boolean(devTeam?.truncated));
   const [rosterFail, setRosterFail] = useState<[string, string] | null>(null);
   const [msg, setMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -84,6 +100,7 @@ export default function SectionTeam({
     const fail = (status: number, body: { message?: unknown; messageZh?: unknown }) => {
       setRosterFail(rosterFailPair(status, body));
       setMembers([]);
+      setTruncated(false);
     };
     try {
       const teamsRes = await fetch("/api/teams");
@@ -103,6 +120,7 @@ export default function SectionTeam({
         setCallerRole(null);
         setMembers([]);
         setInvites([]);
+        setTruncated(false);
         return;
       }
       const team = teams[0];
@@ -119,13 +137,12 @@ export default function SectionTeam({
         return;
       }
       setRosterFail(null);
-      setCallerRole(membersBody.callerRole === "owner" || membersBody.callerRole === "admin" || membersBody.callerRole === "member"
-        ? membersBody.callerRole
-        : null);
+      setCallerRole(isKnownRole(membersBody.callerRole) ? membersBody.callerRole : null);
+      setTruncated(membersBody.truncated === true);
       setMembers(
         rows.map((row: Record<string, unknown>) => ({
           userId: String(row.userId || ""),
-          role: row.role === "owner" || row.role === "admin" || row.role === "member" ? row.role : "member",
+          role: isKnownRole(typeof row.role === "string" ? row.role : null) ? row.role : null,
           displayName: typeof row.displayName === "string" ? row.displayName : "",
           createdAt: typeof row.createdAt === "string" ? row.createdAt : null,
         })),
@@ -151,6 +168,7 @@ export default function SectionTeam({
       // A network failure is not an absent team schema either.
       setRosterFail(TEAM_ROUTE_MESSAGES.read_failed);
       setMembers([]);
+      setTruncated(false);
     } finally {
       setLoaded(true);
     }
@@ -212,7 +230,13 @@ export default function SectionTeam({
         setMsg({ kind: "err", text: routeMessage(body, lang) || TEAM_ROUTE_MESSAGES.remove_failed[lang === "zh" ? 1 : 0] });
         return;
       }
-      setMembers((rows) => rows.filter((row) => row.userId !== userId));
+      // Round-6 ruling R6: a successful self-leave must reload, the same way createTeam
+      // does, so the zero-team state renders with acsTeamLeft as the notice.
+      if (kind === "leave") {
+        await loadLive();
+      } else {
+        setMembers((rows) => rows.filter((row) => row.userId !== userId));
+      }
       setConfirm(null);
       setMsg({ kind: "ok", text: t(kind === "leave" ? "acsTeamLeft" : "acsTeamRemoved") });
     } catch {
@@ -334,13 +358,16 @@ export default function SectionTeam({
   // shown to everyone and nothing else in the Terminal creates a team — so this state gets a
   // sentence and a way out, never a titled box with nothing in it.
   const noTeam = loaded && !rosterFail && !teamId && members.length === 0;
-  const showInvites = (callerRole === "owner" || callerRole === "admin") && (invites.length > 0 || Boolean(devTeam));
-  const [deliveryEn, deliveryZh] = INVITE_MESSAGES.no_email_delivery;
-  const delivery = lang === "zh" ? deliveryZh : deliveryEn;
+  const showInvites = (callerRole === "owner" || callerRole === "admin") && invites.length > 0;
 
   return (
     <>
-      <SectionHead title={t("acsTeam")} sub={t("acsTeamSub")} closeLabel={t("acsClose")} onClose={onClose} />
+      <SectionHead
+        title={t("acsTeam")}
+        sub={noTeam ? undefined : t("acsTeamSub")}
+        closeLabel={t("acsClose")}
+        onClose={onClose}
+      />
       <div className="acs-body">
         <Group title={t("acsTeamWhatEach")}>
           <Row label={t("acsRoleOwner")} desc={t("acsRoleOwnerWhat")} />
@@ -349,19 +376,19 @@ export default function SectionTeam({
         </Group>
 
         {showInvites ? (
-          <Group>
-            <p className={`acs-note ${s.delivery}`} data-testid="team-delivery">{delivery}</p>
+          <Group title={t("acsTeamInvites")}>
             {invites.map((invite) => (
               <Row
                 key={invite.id || invite.email}
                 label={invite.email}
+                desc={
+                  invite.expiresAt
+                    ? fill(t("acsTeamInviteExpires"), { date: acsDate(invite.expiresAt, lang) })
+                    : undefined
+                }
                 value={
-                  <span
-                    className={s.roleBadge}
-                    data-role={invite.role}
-                    data-testid="team-role-badge"
-                  >
-                    {t(roleKey(invite.role))}
+                  <span className={s.inviteBadge} data-testid="team-invite-badge">
+                    {t("acsTeamInviteBadge")}
                   </span>
                 }
               />
@@ -374,7 +401,7 @@ export default function SectionTeam({
           {noTeam ? (
             <div className={s.noTeam} data-testid="team-none">
               <p className="acs-note">{t("acsTeamNone")}</p>
-              <label className={s.createLabel} htmlFor="acs-team-name">
+              <label className={s.createLabel} htmlFor="acs-team-name" data-testid="team-name-label">
                 {t("acsTeamName")}
               </label>
               <input
@@ -404,21 +431,32 @@ export default function SectionTeam({
           {!rosterFail &&
             members.map((member) => {
               const isYou = member.userId === callerUserId;
+              const known = isKnownRole(member.role);
               const isOwnerRow = member.role === "owner";
-              const canChangeRole = callerRole === "owner" && !isOwnerRow && !isYou;
+              const unnamed = !(member.displayName || "").trim();
+              const short = shortUserId(member.userId);
+              // Round-6 ruling R9(3): an unrecognised role withholds every control.
+              const canChangeRole = known && callerRole === "owner" && !isOwnerRow && !isYou;
               const canRemove =
+                known &&
                 !isOwnerRow &&
                 ((callerRole === "owner" && !isYou) || (callerRole === "admin" && member.role === "member" && !isYou));
-              const canLeave = isYou && (callerRole === "admin" || callerRole === "member");
+              const canLeave = known && isYou && (callerRole === "admin" || callerRole === "member");
               const canTransfer = callerRole === "owner" && isYou && isOwnerRow && hasAdmin;
               const confirming = confirm?.userId === member.userId;
               return (
                 <Row
                   key={member.userId}
+                  userId={member.userId}
                   editing={confirming}
                   label={
                     <span className={s.teamName}>
                       {displayLabel(member, t)}
+                      {unnamed && short ? (
+                        <span className={s.accountId} aria-label={fill(t("acsTeamAccount"), { short })}>
+                          {short}
+                        </span>
+                      ) : null}
                       {isYou ? <span className={s.you}>{t("acsTeamYou")}</span> : null}
                     </span>
                   }
@@ -430,7 +468,7 @@ export default function SectionTeam({
                   value={
                     <span
                       className={`${s.roleBadge}${member.role === "owner" ? ` ${s.roleOwner}` : ""}`}
-                      data-role={member.role}
+                      data-role={known ? member.role : "unknown"}
                       data-testid="team-role-badge"
                     >
                       {t(roleKey(member.role))}
@@ -520,6 +558,11 @@ export default function SectionTeam({
                 </Row>
               );
             })}
+          {!rosterFail && truncated ? (
+            <p className={`acs-note ${s.truncated}`} data-testid="team-truncated">
+              {fill(t("acsTeamTruncated"), { n: String(members.length) })}
+            </p>
+          ) : null}
         </Group>
 
         {transfer ? (

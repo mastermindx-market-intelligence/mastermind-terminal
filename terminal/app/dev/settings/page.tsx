@@ -64,7 +64,7 @@ const USAGE: Record<string, AcsUsage> = {
   unlimited: { tier: "pro", quotas: { fast: { remaining: 0, limit: -1 }, pro: { remaining: 96, limit: 150, period: "month" } } },
 };
 
-const SECTIONS: SettingsSection[] = ["account", "team", "billing", "usage", "prefs", "terminal", "sync"];
+const SECTIONS: SettingsSection[] = ["account", "team", "billing", "usage", "prefs", "alertDelivery", "terminal", "sync"];
 
 const DEV_TEAM: DevTeamFixture = {
   team: { id: "team-desk", name: "Desk" },
@@ -89,6 +89,18 @@ const DEV_TEAM: DevTeamFixture = {
       displayName: "Jordan Lee",
       createdAt: "2026-04-02T15:30:00.000Z",
     },
+    {
+      userId: "c3d4e5f6-3333-4e6a-9c03-5b71ee0a4d22",
+      role: "member",
+      displayName: "",
+      createdAt: null,
+    },
+    {
+      userId: "d4e5f6a7-4444-4e6a-9c03-5b71ee0a4d22",
+      role: "member",
+      displayName: "",
+      createdAt: null,
+    },
   ],
   invites: [
     {
@@ -108,6 +120,12 @@ const DEV_TEAM_NONE: DevTeamFixture = {
   callerUserId: MOCK_USER.id,
   members: [],
   invites: [],
+};
+
+// Truncated roster (round-6 ruling R7): same people, with the cap named.
+const DEV_TEAM_TRUNCATED: DevTeamFixture = {
+  ...DEV_TEAM,
+  truncated: true,
 };
 
 const btn = (on: boolean): React.CSSProperties => ({
@@ -140,7 +158,9 @@ function Harness() {
     USAGE[q.get("usage") || ""] ? (q.get("usage") as string) : "free",
   );
   const [signedIn, setSignedIn] = useState(q.get("out") !== "1");
-  const teamFixture = q.get("team") === "none" ? DEV_TEAM_NONE : DEV_TEAM;
+  const teamParam = q.get("team");
+  const teamFixture =
+    teamParam === "none" ? DEV_TEAM_NONE : teamParam === "truncated" ? DEV_TEAM_TRUNCATED : DEV_TEAM;
   const [seq, setSeq] = useState(1);
   // Real open/close, so Escape / backdrop / the header X can be exercised here.
   const [open, setOpen] = useState(true);

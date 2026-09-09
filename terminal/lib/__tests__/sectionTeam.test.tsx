@@ -10,9 +10,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import SectionTeam from "@/components/settings/SectionTeam";
-import type { DevTeamFixture } from "@/components/settings/types";
+import { acsDate, type DevTeamFixture } from "@/components/settings/types";
 import { LEX } from "@/lib/i18n";
-import { TEAM_ROUTE_MESSAGES } from "@/lib/teams";
+import { INVITE_MESSAGES, TEAM_ROUTE_MESSAGES } from "@/lib/teams";
 import { accountIdentity } from "@/lib/accountIdentity";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -118,13 +118,37 @@ describe("R4(a): the change-role control never offers the role a row already hol
   });
 });
 
-describe("R4(k): an unnamed teammate is described in words, never as a user id", () => {
-  it.each(["en", "zh"] as const)("%s: the row with no display name reads as a person, and no id fragment is painted", async (lang) => {
-    await mount(lang, ROSTER_FIXTURE);
+describe("R8: unnamed teammates get a shared fallback plus a distinct account discriminator", () => {
+  const UNNAMED_A = "b2c3d4e5-2222-4e6a-9c03-5b71ee0a4d22";
+  const UNNAMED_B = "c3d4e5f6-3333-4e6a-9c03-5b71ee0a4d22";
+  const unnamedFixture: DevTeamFixture = {
+    ...ROSTER_FIXTURE,
+    members: [
+      ROSTER_FIXTURE.members[0],
+      { userId: UNNAMED_A, role: "member", displayName: "", createdAt: null },
+      { userId: UNNAMED_B, role: "member", displayName: "", createdAt: null },
+    ],
+  };
+
+  it.each(["en", "zh"] as const)("%s: two unnamed members render distinct rows with Name not set and the first 8 id characters", async (lang) => {
+    await mount(lang, unnamedFixture);
     const idx = lang === "zh" ? 1 : 0;
     expect(text()).toContain(LEX.acsTeamNoName[idx]);
-    expect(text()).not.toContain("b2c3d4e5");
-    expect(text()).not.toContain("a1b2c3d4");
+    expect(text()).not.toContain("A teammate");
+    expect(text()).not.toContain("未命名成员");
+    const rowA = container.querySelector(`[data-user-id="${UNNAMED_A}"]`);
+    const rowB = container.querySelector(`[data-user-id="${UNNAMED_B}"]`);
+    expect(rowA).toBeTruthy();
+    expect(rowB).toBeTruthy();
+    expect(rowA).not.toBe(rowB);
+    expect(rowA!.textContent).toContain("b2c3d4e5");
+    expect(rowB!.textContent).toContain("c3d4e5f6");
+    expect(rowA!.querySelector("[aria-label]")?.getAttribute("aria-label")).toBe(
+      LEX.acsTeamAccount[idx].replace("{short}", "b2c3d4e5"),
+    );
+    expect(rowB!.querySelector("[aria-label]")?.getAttribute("aria-label")).toBe(
+      LEX.acsTeamAccount[idx].replace("{short}", "c3d4e5f6"),
+    );
   });
 });
 
@@ -136,6 +160,9 @@ describe("R3: the zero-team default state says so and offers a way out", () => {
     expect(text()).toContain(LEX.acsTeamNone[idx]);
     expect(container.querySelector('[data-testid="team-create"]')?.textContent).toBe(LEX.acsTeamCreate[idx]);
     expect(container.querySelector("#acs-team-name")).toBeTruthy();
+    expect(container.querySelector('[data-testid="team-name-label"]')?.textContent).toBe(LEX.acsTeamName[idx]);
+    // Round-6 ruling R9(4): the zero-team state does not render acsTeamSub.
+    expect(text()).not.toContain(LEX.acsTeamSub[idx]);
     // The heading is no longer painted over nothing.
     expect(text()).not.toContain(TEAM_ROUTE_MESSAGES.unavailable[idx]);
   });
@@ -255,6 +282,167 @@ describe("R4(h): a failed roster read says what actually happened", () => {
     expect(text()).not.toContain(TEAM_ROUTE_MESSAGES.unavailable[0]);
   });
 });
+
+describe("R3: the no-email-delivery sentence never appears in the Team section", () => {
+  it.each(["en", "zh"] as const)("%s: zero-team, roster, and invitations states omit the copy-the-link sentence", async (lang) => {
+    const idx = lang === "zh" ? 1 : 0;
+    const delivery = INVITE_MESSAGES.no_email_delivery[idx];
+    stubFetch({ "/api/teams": { status: 200, body: { teams: [] } } });
+    await mount(lang);
+    expect(text()).not.toContain(delivery);
+    await act(async () => {
+      root.unmount();
+    });
+    container.remove();
+
+    const withInvites: DevTeamFixture = {
+      ...ROSTER_FIXTURE,
+      invites: [{ id: "inv-1", email: "pending@example.com", role: "member", expiresAt: "2026-09-23T00:00:00.000Z" }],
+    };
+    await mount(lang, withInvites);
+    expect(text()).not.toContain(delivery);
+    expect(container.querySelector('[data-testid="team-delivery"]')).toBeNull();
+  });
+});
+
+describe("R4: pending invitations are a titled group, never roster badges", () => {
+  const withInvites: DevTeamFixture = {
+    ...ROSTER_FIXTURE,
+    invites: [{ id: "inv-1", email: "pending@example.com", role: "member", expiresAt: "2026-09-23T00:00:00.000Z" }],
+  };
+
+  it.each(["en", "zh"] as const)("%s: the invitation sits in its own group with the invite badge and expiry sentence", async (lang) => {
+    await mount(lang, withInvites);
+    const idx = lang === "zh" ? 1 : 0;
+    expect(text()).toContain(LEX.acsTeamInvites[idx]);
+    expect(text()).toContain("pending@example.com");
+    const inviteBadge = container.querySelector('[data-testid="team-invite-badge"]');
+    expect(inviteBadge?.textContent).toBe(LEX.acsTeamInviteBadge[idx]);
+    expect(container.querySelectorAll('[data-testid="team-invite-badge"]').length).toBe(1);
+    const rosterBadges = Array.from(container.querySelectorAll('[data-testid="team-role-badge"]')).map(
+      (el) => (el.textContent || "").trim(),
+    );
+    expect(rosterBadges).not.toContain(LEX.acsTeamInviteBadge[idx]);
+    expect(rosterBadges).toEqual([LEX.acsRoleOwner[idx], LEX.acsRoleAdmin[idx], LEX.acsRoleMember[idx]]);
+    const date = acsDate("2026-09-23T00:00:00.000Z", lang);
+    expect(text()).toContain(LEX.acsTeamInviteExpires[idx].replace("{date}", date));
+  });
+});
+
+describe("R6: a successful self-leave reloads into the zero-team state", () => {
+  it("clears teamId and callerRole, removes the roster, and shows the left notice", async () => {
+    let left = false;
+    const calls: { url: string; method: string }[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input);
+        const method = init?.method || "GET";
+        calls.push({ url, method });
+        if (url.startsWith("/api/teams/team-1/members") && method === "DELETE") {
+          left = true;
+          return { ok: true, status: 200, json: async () => ({ ok: true, userId: CALLER }) } as unknown as Response;
+        }
+        if (url === "/api/teams") {
+          return {
+            ok: true,
+            status: 200,
+            json: async () => ({ teams: left ? [] : [{ id: "team-1", name: "Desk" }] }),
+          } as unknown as Response;
+        }
+        if (url.startsWith("/api/teams/team-1/members")) {
+          return {
+            ok: true,
+            status: 200,
+            json: async () => ({
+              members: [
+                { userId: CALLER, role: "member", displayName: "Chris Wong", createdAt: null },
+                { userId: "a1b2c3d4-1111-4e6a-9c03-5b71ee0a4d22", role: "owner", displayName: "Alex Chen", createdAt: null },
+              ],
+              callerRole: "member",
+            }),
+          } as unknown as Response;
+        }
+        throw new Error(`unstubbed fetch: ${url}`);
+      }),
+    );
+
+    await mount("en");
+    expect(container.querySelector('[data-testid="team-none"]')).toBeNull();
+    expect(text()).toContain("Chris Wong");
+    const leave = Array.from(container.querySelectorAll("button")).find((b) => (b.textContent || "").trim() === LEX.acsTeamLeave[0]) as HTMLButtonElement | undefined;
+    expect(leave).toBeTruthy();
+    await act(async () => {
+      leave!.click();
+    });
+    const confirm = Array.from(container.querySelectorAll(".acs-form button.btn-danger")).find(
+      (b) => (b.textContent || "").trim() === LEX.acsTeamLeave[0],
+    ) as HTMLButtonElement | undefined;
+    expect(confirm).toBeTruthy();
+    await act(async () => {
+      confirm!.click();
+    });
+    expect(container.querySelector('[data-testid="team-none"]')).toBeTruthy();
+    expect(container.querySelector('[data-testid="team-role-badge"]')).toBeNull();
+    expect(text()).toContain(LEX.acsTeamLeft[0]);
+    expect(text()).toContain(LEX.acsTeamNone[0]);
+    expect(calls.some((c) => c.method === "DELETE")).toBe(true);
+  });
+});
+
+describe("R7: a truncated roster names the cap", () => {
+  it.each(["en", "zh"] as const)("%s: the roster group ends with the truncated sentence using the shown count", async (lang) => {
+    await mount(lang, { ...ROSTER_FIXTURE, truncated: true });
+    const idx = lang === "zh" ? 1 : 0;
+    const expected = LEX.acsTeamTruncated[idx].replace("{n}", String(ROSTER_FIXTURE.members.length));
+    expect(container.querySelector('[data-testid="team-truncated"]')?.textContent).toBe(expected);
+  });
+});
+
+describe("R9(3): an unrecognised role falls to the unknown badge and withholds controls", () => {
+  it.each(["en", "zh"] as const)("%s: a viewer-shaped role paints Role not recognised and offers no buttons", async (lang) => {
+    const fixture: DevTeamFixture = {
+      ...ROSTER_FIXTURE,
+      members: [
+        ROSTER_FIXTURE.members[0],
+        { userId: "a1b2c3d4-1111-4e6a-9c03-5b71ee0a4d22", role: "viewer", displayName: "Alex Chen", createdAt: null },
+      ],
+    };
+    await mount(lang, fixture);
+    const idx = lang === "zh" ? 1 : 0;
+    const row = container.querySelector('[data-user-id="a1b2c3d4-1111-4e6a-9c03-5b71ee0a4d22"]');
+    expect(row).toBeTruthy();
+    expect(row!.querySelector('[data-testid="team-role-badge"]')?.textContent).toBe(LEX.acsRoleUnknown[idx]);
+    expect(row!.querySelectorAll("button").length).toBe(0);
+  });
+
+  it("a live roster maps an unrecognised role to the unknown badge, matching callerRole's null fall-through", async () => {
+    stubFetch({
+      "/api/teams/team-1/members": {
+        status: 200,
+        body: {
+          members: [
+            { userId: CALLER, role: "owner", displayName: "Chris Wong", createdAt: null },
+            { userId: "aaaa1111-2222-4333-8444-555555555555", role: "viewer", displayName: "Alex Chen", createdAt: null },
+          ],
+          callerRole: "owner",
+        },
+      },
+      "/api/teams/invitations": { status: 200, body: { invites: [] } },
+      "/api/teams": { status: 200, body: { teams: [{ id: "team-1", name: "Desk" }] } },
+    });
+    await mount("en");
+    const row = container.querySelector('[data-user-id="aaaa1111-2222-4333-8444-555555555555"]');
+    expect(row).toBeTruthy();
+    expect(row!.querySelector('[data-testid="team-role-badge"]')?.textContent).toBe(LEX.acsRoleUnknown[0]);
+    expect(row!.querySelectorAll("button").length).toBe(0);
+  });
+});
+
+function pair(code: keyof typeof TEAM_ROUTE_MESSAGES) {
+  const [message, messageZh] = TEAM_ROUTE_MESSAGES[code];
+  return { message, messageZh };
+}
 
 describe("B-F12-9: ownership transfer control", () => {
   it("the owner sees Transfer ownership when an administrator exists", async () => {
@@ -425,8 +613,3 @@ describe("B-F12-9: ownership transfer control", () => {
     }
   });
 });
-
-function pair(code: keyof typeof TEAM_ROUTE_MESSAGES) {
-  const [message, messageZh] = TEAM_ROUTE_MESSAGES[code];
-  return { message, messageZh };
-}

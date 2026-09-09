@@ -5,11 +5,11 @@
 capturedAtHead: 144fbbd74fbc75472d4d82185114c0d74fa51981
 capturedAt: 2026-09-09T19:11:17.325Z
 layoutFiles:
-  terminal/components/settings/SectionTeam.tsx: "f76271c5fce18d8417b3e5c9d24a90ee64cd783d5f0fd123295dee7477e8f5fa"
-  terminal/components/settings/SectionTeam.module.css: "d1c5ca5d1da53906e0bb21c06e2f9ae1e25956c2d973ee2c9ea3a7201629af5f"
-  terminal/components/settings/SettingsPanel.tsx: "954825616c2c3d02b7ec5e3a82011e236f78219e91474e3483de1e317a9dc7d6"
+  terminal/components/settings/SectionTeam.tsx: "d75f731aab620a6a7f965d8ef74689551dbb1a7b3ae3efa78d7a92df9a24fce5"
+  terminal/components/settings/SectionTeam.module.css: "924ab5b81d4f0e11ef2138557e92c43a0d1fa21b78622567fb6ccddcf6c146a8"
+  terminal/components/settings/SettingsPanel.tsx: "ad86b6deaad20ef3eabd07818433ffec84c6893dadf5dcb4f232204a181d1467"
   terminal/app/settings.css: "3189163136d943431cbf52e4b5d241c105b695ba5af94c4c2e29151d537b5ef5"
-  terminal/lib/i18n.tsx: "d20c18eec584a5b59f0154ec2d0deb213985c19854dd4ddfcd6afa3c90bc22aa"
+  terminal/lib/i18n.tsx: "c1d387d68d7a95df4995e51d50f71ff0f7fda4649c7c6c48af99b65b405c118c"
 theme: dark
 languages: [en, zh]
 viewports:

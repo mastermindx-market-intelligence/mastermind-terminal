@@ -704,7 +704,7 @@ export const TEAM_ROUTE_MESSAGES: Record<TeamRouteCode, [string, string]> = {
     "Only the team owner or an administrator can remove someone from this team.",
     "只有团队所有者或管理员才能将成员移出团队。",
   ],
-  not_admin_add: ["Only a team owner or admin can add people.", "只有团队所有者或管理员才能添加成员。"],
+  not_admin_add: ["Only a team owner or administrator can add people.", "只有团队所有者或管理员才能添加成员。"],
   team_not_found: INVITE_MESSAGES.team_not_found,
   already_on_team: ["That person is already on this team.", "该成员已在此团队中。"],
   // Round-4 ruling R4(j): every label this packet ships says "Administrator", so the sentence a
