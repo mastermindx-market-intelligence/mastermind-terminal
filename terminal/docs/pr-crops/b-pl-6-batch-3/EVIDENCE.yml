@@ -1,8 +1,8 @@
 # B-PL-6 batch 3 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: e5de2261aa024a5f5ca624a8d7b0c9c48f5cce50
-# capturedAt: 2026-09-09T19:35:52.396Z
+# capturedAtHead: c79208a01c2bbad0b4e39469fe976c11faf9d980
+# capturedAt: 2026-09-09T20:17:12.930Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/components/options/OptionsFlowBoardView.tsx: "96e0d1d0a4e7eaed7f2d2bbec6722725afacc093e205defa280a483bc6e14b8e"
@@ -24,9 +24,15 @@ viewports:
 surfaces: [OptionsFlowBoard, FlowDesk, AlertDetail, HeatmapTreemap, PineLibrary]
 capture_flag: TERMINAL_E2E_FIXTURE
 capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
+heatmap_price_only_fixture: terminal/e2e/fixtures/heatmap-price-only-tile.json
+heatmap_crops:
+  - HeatmapTreemap-1440.png
+  - HeatmapTreemap-1440-zh.png
+  - HeatmapTreemap-390.png
+  - HeatmapTreemap-390-zh.png
 command: |
   cd terminal
-  node e2e/tools/capture_pl6_batch3.cjs
+  CAPTURE_ONLY=HeatmapTreemap node e2e/tools/capture_pl6_batch3.cjs
 files:
   - AlertDetail-1440-zh.png
   - AlertDetail-1440.png
