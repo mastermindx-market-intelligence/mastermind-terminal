@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
 import {
+  BUILTIN_VIEWS,
   RMS_COPY,
   RMS_VIEWS,
   catalystRows,
@@ -403,5 +404,36 @@ describe("bounded hydration", () => {
     expect(hydrationScope(all, new Set(all.slice(0, 10).map((s) => s.id)))).toEqual({ loaded: 10, total: 15, complete: false });
     expect(hydrationScope(all, new Set(all.map((s) => s.id)))).toEqual({ loaded: 15, total: 15, complete: true });
     expect(hydrationScope([], new Set())).toEqual({ loaded: 0, total: 0, complete: true });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Round-4 review of PR #546 (B-F11-4), Meta-CEO B seat rulings R3 and R7.
+// Both tests below were RED at head 5ecf748f.
+// ---------------------------------------------------------------------------
+describe("rmsViews copy — round-4 repairs (B-F11-4, PR #546)", () => {
+  // R7: the chip ships `lifecycle: "active"`, so clicking it removes archived and
+  // invalidated theses — but the label promised only ownership, and under owner-only
+  // RLS ownership filters nothing. The head sentence then named the wrong cause
+  // ("Only what matches the “Yours” view.") for a lifecycle narrowing. The label now
+  // says what the predicate does, in both languages.
+  it("R7 the 'mine' chip label names the lifecycle it actually filters, EN and ZH", () => {
+    const preset = BUILTIN_VIEWS.find((v) => v.id === "mine")!;
+    expect(preset.filter.lifecycle).toBe("active");
+    expect(RMS_COPY.en["builtin.mine"]).toBe("Your active theses");
+    expect(RMS_COPY.zh["builtin.mine"]).toBe("你的进行中论点");
+    // The bare ownership words are what round 3 shipped and what this ruling withdrew.
+    expect(RMS_COPY.en["builtin.mine"]).not.toBe("Yours");
+    expect(RMS_COPY.zh["builtin.mine"]).not.toBe("你的");
+  });
+
+  // R3: deleting a row that is already gone is not a failed READ of a list that is
+  // visibly on screen. `savedViews.unavailable` is reserved by spec 2.8 for a failed
+  // fetch/save/delete; a resolved-but-absent row gets its own plain sentence.
+  it("R3 an already-removed saved view has its own sentence, EN and ZH", () => {
+    expect(RMS_COPY.en["savedViews.alreadyRemoved"]).toBe("That view was already removed.");
+    expect(RMS_COPY.zh["savedViews.alreadyRemoved"]).toBe("该视图已被删除。");
+    expect(RMS_COPY.en["savedViews.alreadyRemoved"]).not.toBe(RMS_COPY.en["savedViews.unavailable"]);
+    expect(RMS_COPY.zh["savedViews.alreadyRemoved"]).not.toBe(RMS_COPY.zh["savedViews.unavailable"]);
   });
 });

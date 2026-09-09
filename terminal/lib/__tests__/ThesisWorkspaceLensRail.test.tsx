@@ -1562,6 +1562,10 @@ type WorkspaceStub = {
   savedViewsTruncated?: boolean;
   /** HTTP status the saved-views PUT answers with (400 = the route's name validation). */
   savedViewsPutStatus?: number;
+  /** Round-4 review (ruling R3): the status the DELETE action answers with, on its own
+   *  knob — 404 is `saved_view_not_found` (the row is already gone), 400 is `invalid_id`.
+   *  Neither is a failed read of the list, which is on screen at that moment. */
+  savedViewsDeleteStatus?: number;
   fireStates?: Record<string, unknown>;
   fireStatusHttpStatus?: number;
 };
@@ -1571,6 +1575,11 @@ function installWorkspaceFetch(stub: WorkspaceStub) {
   const fireCalls: string[][] = [];
   const details = stub.details ?? new Map<string, ThesisDetail>();
   const savedViewPuts: unknown[] = [];
+  // Round-4 review (ruling R2): the saved-view list is STATE here, not a constant, so a
+  // GET after a delete answers the way the route does — the deleted row is gone and the
+  // owner is no longer over the cap. A client that never re-reads the list cannot pass.
+  let views = [...((stub.savedViews ?? []) as Array<Record<string, unknown>>)];
+  let truncated = stub.savedViewsTruncated === true;
   const fetchMock = vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
     const raw = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
     const url = new URL(raw, "https://x.test");
@@ -1578,11 +1587,24 @@ function installWorkspaceFetch(stub: WorkspaceStub) {
       if ((init?.method ?? "GET").toUpperCase() === "PUT") {
         const body = JSON.parse(String(init?.body ?? "{}"));
         savedViewPuts.push(body);
+        if (body.action === "delete") {
+          const deleteStatus = stub.savedViewsDeleteStatus ?? 200;
+          // A 404 means the row was ALREADY gone server-side — so it is gone from the
+          // next read too, which is the whole point of re-reading after one.
+          if (deleteStatus === 404) {
+            views = views.filter((v) => v.id !== body.id);
+            return jsonResponse({ error: "saved_view_not_found" }, 404);
+          }
+          if (deleteStatus >= 400) return jsonResponse({ error: deleteStatus === 400 ? "invalid_id" : "saved_views_unavailable" }, deleteStatus);
+          views = views.filter((v) => v.id !== body.id);
+          truncated = false;
+          return jsonResponse({ ok: true });
+        }
         const status = stub.savedViewsPutStatus ?? 200;
         if (status >= 400) return jsonResponse({ error: status === 400 ? "invalid_name" : "saved_views_unavailable" }, status);
         return jsonResponse({ view: { ...(body.view ?? {}), id: body.id ?? "new", name: body.name, filter: body.filter ?? { lifecycle: "active" }, createdAt: "2026-09-01T00:00:00.000Z", updatedAt: "2026-09-02T00:00:00.000Z" } });
       }
-      return jsonResponse({ views: stub.savedViews ?? [], truncated: stub.savedViewsTruncated === true });
+      return jsonResponse({ views, truncated });
     }
     if (url.pathname === "/api/thesis-fire-status") {
       const ids = url.searchParams.getAll("id");
@@ -1882,7 +1904,8 @@ describe("ThesisWorkspace research views — round-3 repairs (B-F11-4, PR #546)"
     await act(async () => chip(el, "mine").click());
     await flush();
 
-    expect(lensWhat(el)).toBe("Only what matches the “Yours” view, and only about AAA Co.");
+    // Round-4 review (ruling R7): the chip is labelled for the lifecycle it filters.
+    expect(lensWhat(el)).toBe("Only what matches the “Your active theses” view, and only about AAA Co.");
     expect(lensWhat(el)).not.toBe("Everything you have written.");
     expect(el.querySelector('[data-testid="rms-subject-chip"]')).not.toBeNull();
     expect(thesesBadge(el)).toContain("(filtered)");
@@ -1948,7 +1971,12 @@ describe("ThesisWorkspace research views — round-3 repairs (B-F11-4, PR #546)"
     expect(text).not.toContain("Nothing has a closed window right now.");
   });
 
-  it("R3 a 200 fire-status answer that covers every thesis with a real monitor read may say nothing has a closed window", async () => {
+  // Round-4 review (ruling R5): the {source:"monitor", state:"open"} fixture below is a
+  // FUTURE-ROUTE shape. The shipped GET /api/thesis-fire-status + mapOutboxToConditionStates()
+  // can only answer {source:"monitor", state:"window_closed"} or {source:"unavailable"},
+  // so today this coverage-gate branch is exercised only by this fixture. The test is kept
+  // as the green guard on the gate itself (it must not treat a covered read as a fault).
+  it("R3 a 200 fire-status answer that covers every thesis with a real monitor read may say nothing has a closed window (fixture uses a future-route monitor/open shape)", async () => {
     const id = "aaaaaaaa-aaaa-4aaa-8aaa-000000000202";
     installWorkspaceFetch({
       theses: [activeThesis(id, "AAA", "Alpha one")],
@@ -2075,5 +2103,213 @@ describe("ThesisWorkspace research views — round-3 repairs (B-F11-4, PR #546)"
 
     expect(el.querySelector('[data-builtin="window_closed"]')!.getAttribute("data-selected")).toBeNull();
     expect(el.textContent).not.toContain("Condition checks are not connected yet.");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Round-4 review of PR #546 (B-F11-4), Meta-CEO B seat rulings R1-R3. Every test
+// below was RED at head 5ecf748f and names the ruling it closes.
+// ---------------------------------------------------------------------------
+
+function savedViewsStrip(el: HTMLElement): string {
+  return el.querySelector('[data-testid="rms-saved-views"]')?.textContent ?? "";
+}
+
+function deleteButton(el: HTMLElement, viewId: string): HTMLButtonElement {
+  const item = el.querySelector(`[data-saved-view="${viewId}"]`);
+  expect(item, `expected the saved-view row ${viewId}`).not.toBeNull();
+  const found = Array.from(item!.querySelectorAll("button")).find((b) => b.textContent === "Delete this view");
+  expect(found, `expected a Delete control on ${viewId}`).toBeTruthy();
+  return found as HTMLButtonElement;
+}
+
+describe("ThesisWorkspace research views — round-4 repairs (B-F11-4, PR #546)", () => {
+  // R1 (MAJOR): the Coverage lens's zero-row branch never consulted `presetEmptyCopy`,
+  // so a preset or a saved view that emptied the view printed the workspace-wide
+  // "Nothing is covered yet. Write a thesis and its subject appears here." at a user
+  // who owns theses — and instructed them to write one. The Window-closed preset over
+  // an all-unavailable fire-status read is the production path today.
+  it("R1 Coverage under the Window-closed preset names the preset, never 'write a thesis'", async () => {
+    installWorkspaceFetch({
+      theses: [
+        activeThesis("aaaaaaaa-aaaa-4aaa-8aaa-000000000401", "AAA", "Alpha one"),
+        activeThesis("aaaaaaaa-aaaa-4aaa-8aaa-000000000402", "BBB", "Beta one"),
+      ],
+    });
+    const el = await mount({ ownerKey: "owner-r4-coverage-window-closed" });
+    await flush();
+    await act(async () => chip(el, "window_closed").click());
+    await flush();
+    await act(async () => tabs(el).find((b) => b.dataset.view === "coverage")!.click());
+    await flush();
+
+    const text = emptyText(el);
+    expect(text).toContain("Condition checks are not connected yet.");
+    expect(text).not.toContain("Nothing is covered yet.");
+    expect(text).not.toContain("Write a thesis");
+  });
+
+  // R1: the same fall-through under a SAVED view that matches nothing.
+  it("R1 Coverage under a saved view that matches nothing says the view is empty", async () => {
+    const viewId = "77777777-7777-4777-8777-777777777777";
+    installWorkspaceFetch({
+      theses: [activeThesis("r4-cov-a", "AAA", "Alpha one")],
+      savedViews: [{
+        id: viewId,
+        name: "Nothing matches",
+        filter: { lifecycle: "active", subjectGroupKey: "data_os.security_master|issuer|ZZZ" },
+        createdAt: "2026-09-01T00:00:00.000Z",
+        updatedAt: "2026-09-01T00:00:00.000Z",
+      }],
+    });
+    const el = await mount({ ownerKey: "owner-r4-coverage-saved-view" });
+    await flush();
+    const savedChip = el.querySelector<HTMLButtonElement>(`[data-saved-view="${viewId}"] button`)!;
+    await act(async () => savedChip.click());
+    await flush();
+    await act(async () => tabs(el).find((b) => b.dataset.view === "coverage")!.click());
+    await flush();
+
+    const text = emptyText(el);
+    expect(text).toBe("No theses match this view.");
+    expect(text).not.toContain("Nothing is covered yet.");
+  });
+
+  // R1 (green guard): with no view narrowing anything, the workspace-wide Coverage
+  // sentence is the true one and must stay.
+  it("R1 Coverage with no preset and no theses still says nothing is covered yet", async () => {
+    installWorkspaceFetch({ theses: [] });
+    const el = await mount({ ownerKey: "owner-r4-coverage-unfiltered" });
+    await flush();
+    await act(async () => tabs(el).find((b) => b.dataset.view === "coverage")!.click());
+    await flush();
+    expect(emptyText(el)).toContain("Nothing is covered yet.");
+  });
+
+  // R2: `deleteView` cleared `savedViewsLimit` but never `savedViewsTruncated`, and
+  // re-read nothing — so a user holding more than the cap who deleted rows kept the
+  // truncation sentence and a disabled Save control until a page reload.
+  it("R2 deleting a saved view clears the truncation sentence and re-enables Save, with no reload", async () => {
+    const views = Array.from({ length: 50 }, (_, i) => ({
+      id: `55555555-5555-4555-8555-${String(i).padStart(12, "0")}`,
+      name: `View ${i}`,
+      filter: { lifecycle: "active", staleDays: 30 },
+      createdAt: "2026-09-01T00:00:00.000Z",
+      updatedAt: `2026-09-01T00:00:${String(i).padStart(2, "0")}.000Z`,
+    }));
+    installWorkspaceFetch({
+      theses: [activeThesis("r4-del-a", "AAA", "Alpha one", STALE)],
+      savedViews: views,
+      savedViewsTruncated: true,
+    });
+    vi.stubGlobal("confirm", () => true);
+    const el = await mount({ ownerKey: "owner-r4-delete-truncated" });
+    await flush();
+    await act(async () => chip(el, "stale_30").click());
+    await flush();
+
+    expect(savedViewsStrip(el)).toContain("You have more than 50 saved views.");
+    expect(el.querySelector<HTMLButtonElement>('[data-testid="rms-save-view"]')!.disabled).toBe(true);
+
+    await act(async () => deleteButton(el, views[0].id).click());
+    await flush();
+
+    expect(savedViewsStrip(el)).not.toContain("You have more than 50 saved views.");
+    expect(el.querySelector(`[data-saved-view="${views[0].id}"]`)).toBeNull();
+    expect(el.querySelector<HTMLButtonElement>('[data-testid="rms-save-view"]')!.disabled).toBe(false);
+  });
+
+  // R3: every non-ok delete response collapsed into "Your saved views did not load."
+  // — reported over views that were on screen at that moment, and the phantom row
+  // stayed under that sentence.
+  it("R3 deleting a view that is already gone says so and re-reads the list, never 'did not load'", async () => {
+    const viewId = "88888888-8888-4888-8888-888888888888";
+    installWorkspaceFetch({
+      theses: [activeThesis("r4-gone-a", "AAA", "Alpha one")],
+      savedViews: [{
+        id: viewId,
+        name: "Deleted elsewhere",
+        filter: { lifecycle: "active", staleDays: 30 },
+        createdAt: "2026-09-01T00:00:00.000Z",
+        updatedAt: "2026-09-01T00:00:00.000Z",
+      }],
+      savedViewsDeleteStatus: 404,
+    });
+    vi.stubGlobal("confirm", () => true);
+    const el = await mount({ ownerKey: "owner-r4-delete-404" });
+    await flush();
+
+    await act(async () => deleteButton(el, viewId).click());
+    await flush();
+
+    const strip = savedViewsStrip(el);
+    expect(strip).toContain("That view was already removed.");
+    expect(strip).not.toContain("Your saved views did not load.");
+    // The stale row does not survive under the sentence that explains it.
+    expect(el.querySelector(`[data-saved-view="${viewId}"]`)).toBeNull();
+  });
+
+  // R3: a 400 on delete is `invalid_id` — a reference problem, not a failed read of a
+  // list that is on screen (and not a NAME problem: delete carries no name).
+  it("R3 a 400 from delete is not reported as a failed saved-views read", async () => {
+    const viewId = "88888888-8888-4888-8888-888888888889";
+    installWorkspaceFetch({
+      theses: [activeThesis("r4-bad-a", "AAA", "Alpha one")],
+      savedViews: [{
+        id: viewId,
+        name: "Bad reference",
+        filter: { lifecycle: "active", staleDays: 30 },
+        createdAt: "2026-09-01T00:00:00.000Z",
+        updatedAt: "2026-09-01T00:00:00.000Z",
+      }],
+      savedViewsDeleteStatus: 400,
+    });
+    vi.stubGlobal("confirm", () => true);
+    const el = await mount({ ownerKey: "owner-r4-delete-400" });
+    await flush();
+
+    await act(async () => deleteButton(el, viewId).click());
+    await flush();
+
+    const strip = savedViewsStrip(el);
+    expect(strip).not.toContain("Your saved views did not load.");
+    expect(strip).toContain("That view was already removed.");
+  });
+
+  // R3 (green guard): a real transport failure on delete still reports a failed read.
+  it("R3 a 503 from delete still reports the saved views as unavailable", async () => {
+    const viewId = "88888888-8888-4888-8888-888888888890";
+    installWorkspaceFetch({
+      theses: [activeThesis("r4-503-a", "AAA", "Alpha one")],
+      savedViews: [{
+        id: viewId,
+        name: "Store is down",
+        filter: { lifecycle: "active", staleDays: 30 },
+        createdAt: "2026-09-01T00:00:00.000Z",
+        updatedAt: "2026-09-01T00:00:00.000Z",
+      }],
+      savedViewsDeleteStatus: 503,
+    });
+    vi.stubGlobal("confirm", () => true);
+    const el = await mount({ ownerKey: "owner-r4-delete-503" });
+    await flush();
+
+    await act(async () => deleteButton(el, viewId).click());
+    await flush();
+
+    const strip = savedViewsStrip(el);
+    expect(strip).toContain("Your saved views did not load.");
+    expect(strip).not.toContain("That view was already removed.");
+  });
+
+  // R7: the chip's rendered label is the one the head sentence quotes.
+  it("R7 the first built-in chip is labelled for the lifecycle it filters", async () => {
+    installWorkspaceFetch({ theses: [activeThesis("r4-mine-a", "AAA", "Alpha one")] });
+    const el = await mount({ ownerKey: "owner-r4-mine-label" });
+    await flush();
+    expect(chip(el, "mine").textContent).toBe("Your active theses");
+    await act(async () => chip(el, "mine").click());
+    await flush();
+    expect(lensWhat(el)).toBe("Only what matches the “Your active theses” view.");
   });
 });

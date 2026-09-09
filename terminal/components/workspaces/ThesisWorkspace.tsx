@@ -468,6 +468,12 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   // 2.8); a 400 now names the actual problem instead of claiming the views — visibly on
   // screen at that moment — did not load.
   const [savedViewNameError, setSavedViewNameError] = useState(false);
+  // Round-4 review (Meta-CEO B ruling R3): a delete the route answers "that row is not
+  // here" (404 saved_view_not_found, live since round 3, or a 400 on the id) used to
+  // report `savedViews.unavailable` — a failed READ — over views that were on screen at
+  // that moment, with the phantom row still under the sentence. Its own state, its own
+  // sentence, and a re-read of the list behind it.
+  const [savedViewGone, setSavedViewGone] = useState(false);
   const [fireStates, setFireStates] = useState<Map<string, ConditionState>>(new Map());
   // Round-2 review (Opus MAJOR 1): a failed fire-status read used to collapse into an
   // empty map, which the Window closed preset then reported as the positive claim
@@ -534,6 +540,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     setFireStatusUnavailable(false);
     setSavedViewsTruncated(false);
     setSavedViewNameError(false);
+    setSavedViewGone(false);
     // This round's review (minor 5): the MAJOR fix above resets every per-owner
     // HYDRATION field, but `theses` itself (the id set the defensive membership
     // filter in `detailListRows` checks against) and `listState` were left holding
@@ -957,6 +964,37 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     return null;
   }, [activePreset, rms, fireStatusUnavailable]);
 
+  // Round-4 review (Meta-CEO B ruling R2): this used to be declared BELOW the
+  // mutations. `deleteView` now re-reads the list through it (a delete can resolve
+  // the truncation state and the save controls with it), so it has to exist before
+  // that callback's dependency array is evaluated during render.
+  const loadSavedViews = useCallback(async () => {
+    try {
+      const response = await fetch("/api/thesis-saved-views", { cache: "no-store" });
+      if (!response.ok) {
+        setSavedViewsUnavailable(true);
+        return;
+      }
+      const payload = await response.json();
+      if (!Array.isArray(payload.views)) {
+        setSavedViewsUnavailable(true);
+        return;
+      }
+      setSavedViews(payload.views);
+      setSavedViewsUnavailable(false);
+      // `truncated` (round-2 review, Opus minor 3): more rows exist than this answer
+      // carries, so say so in words instead of dropping them silently. Round-3 review
+      // (ruling R4): in ITS OWN sentence — reusing the limit sentence told a user who
+      // holds more than 50 that they had reached 50, and pointed "delete one" at a set
+      // that excluded the hidden rows. The two states are mutually exclusive on screen.
+      const truncated = payload.truncated === true;
+      setSavedViewsTruncated(truncated);
+      setSavedViewsLimit(!truncated && payload.views.length >= MAX_SAVED_VIEWS);
+    } catch {
+      setSavedViewsUnavailable(true);
+    }
+  }, []);
+
   const saveCurrentView = useCallback(async () => {
     if (savedViews.length >= MAX_SAVED_VIEWS) {
       setSavedViewsLimit(true);
@@ -1038,12 +1076,29 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
 
   const deleteView = useCallback(async (id: string) => {
     if (!window.confirm(rms["savedViews.confirmDelete"])) return;
+    setSavedViewGone(false);
     try {
       const response = await fetch("/api/thesis-saved-views", {
         method: "PUT",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ action: "delete", id }),
       });
+      // Round-4 review (Meta-CEO B ruling R3): this used to have ONE branch —
+      // `if (!response.ok) setSavedViewsUnavailable(true)` — so the 404
+      // `saved_view_not_found` that round 3 deliberately made reachable (a row deleted
+      // in another tab) reported "Your saved views did not load." over views that were
+      // visibly loaded, and left the phantom row on screen under that sentence. The two
+      // reference answers the route can give — 404 (the row is gone) and 400 (the id
+      // does not resolve; delete carries no name, so `invalid_id` is its only 400) —
+      // say what actually happened and re-read the list. Everything else is still a
+      // failed delete, which is what spec 2.8 reserves `savedViews.unavailable` for.
+      if (response.status === 404 || response.status === 400) {
+        setSavedViewGone(true);
+        setSavedViews((current) => current.filter((view) => view.id !== id));
+        setActivePreset((current) => (current?.kind === "saved" && current.id === id ? null : current));
+        await loadSavedViews();
+        return;
+      }
       if (!response.ok) {
         setSavedViewsUnavailable(true);
         return;
@@ -1051,10 +1106,17 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       setSavedViews((current) => current.filter((view) => view.id !== id));
       setActivePreset((current) => (current?.kind === "saved" && current.id === id ? null : current));
       setSavedViewsLimit(false);
+      // Round-4 review (Meta-CEO B ruling R2): the delete used to clear `savedViewsLimit`
+      // alone and re-read nothing, so an owner holding more than the cap kept the
+      // truncation sentence AND a disabled "Save this view" for the rest of the session,
+      // however many rows they deleted. `savedViewsTruncated` has exactly one writer —
+      // this read — so the list is re-read, which also brings the previously hidden rows
+      // into the strip the sentence promised.
+      await loadSavedViews();
     } catch {
       setSavedViewsUnavailable(true);
     }
-  }, [rms]);
+  }, [rms, loadSavedViews]);
   const reviewViewRows = useMemo(() => reviewRows(filteredSummaries, reviewNow, conditions), [filteredSummaries, conditions, reviewNow]);
   // Grok minor 2 (round-2 review): the three content lenses used to read every hydrated
   // thesis, so their rows and rail counts ignored the active view. `detailListRows`
@@ -1138,33 +1200,6 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       document.removeEventListener("click", protectRouteClick, true);
     };
   }, [copy.confirmDiscard, isDirty, pending]);
-
-  const loadSavedViews = useCallback(async () => {
-    try {
-      const response = await fetch("/api/thesis-saved-views", { cache: "no-store" });
-      if (!response.ok) {
-        setSavedViewsUnavailable(true);
-        return;
-      }
-      const payload = await response.json();
-      if (!Array.isArray(payload.views)) {
-        setSavedViewsUnavailable(true);
-        return;
-      }
-      setSavedViews(payload.views);
-      setSavedViewsUnavailable(false);
-      // `truncated` (round-2 review, Opus minor 3): more rows exist than this answer
-      // carries, so say so in words instead of dropping them silently. Round-3 review
-      // (ruling R4): in ITS OWN sentence — reusing the limit sentence told a user who
-      // holds more than 50 that they had reached 50, and pointed "delete one" at a set
-      // that excluded the hidden rows. The two states are mutually exclusive on screen.
-      const truncated = payload.truncated === true;
-      setSavedViewsTruncated(truncated);
-      setSavedViewsLimit(!truncated && payload.views.length >= MAX_SAVED_VIEWS);
-    } catch {
-      setSavedViewsUnavailable(true);
-    }
-  }, []);
 
   const loadList = useCallback(async () => {
     try {
@@ -1747,6 +1782,9 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
                 <p className={styles.savedViewsNote} data-testid="rms-saved-views-empty">{rms["savedViews.empty"]}</p>
               )}
               {savedViewNameError && <p className={styles.savedViewsNote} role="status">{rms["savedViews.nameRequired"]}</p>}
+              {/* Round-4 review (ruling R3): a row the route can no longer resolve is
+                  not a failed read of the list beside it. */}
+              {savedViewGone && <p className={styles.savedViewsNote} role="status" data-testid="rms-saved-view-gone">{rms["savedViews.alreadyRemoved"]}</p>}
               {/* Round-3 review (ruling R4): more than the cap is not the same statement
                   as having reached it, and the two never render together. */}
               {savedViewsTruncated && <p className={styles.savedViewsNote} role="status">{rms["savedViews.truncated"]}</p>}
@@ -1831,9 +1869,21 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
                   <button type="button" onClick={hydrateMore} disabled={hydrating}>{copy.retry}</button>
                 </div>
               )}
+              {/* Round-4 review (Meta-CEO B ruling R1, the round-3 MAJOR): this branch was
+                  the fourth lens the round-2 BLOCKER-3 repair never reached. Coverage
+                  rows are derived from the view-narrowed set (`coverageRows(filteredSummaries)`),
+                  so a preset or a saved view empties them — and this printed the
+                  workspace-wide "Nothing is covered yet. Write a thesis and its subject
+                  appears here." at a user who owns theses, instructing them to write one.
+                  Reachable on the ordinary path: with no thesis row in `alert_outbox`
+                  (production today, disclosed under Gaps), the Window-closed chip empties
+                  every lens. Same `presetEmptyCopy` decision the ideas/theses/reviews
+                  branch below uses, so whatever emptied the list is what the sentence
+                  names; with no preset active the workspace-wide sentence is the true one
+                  and still renders. */}
               {listState === "ready" && view === "coverage" && (
                 coverageViewRows.length === 0
-                  ? <div className={styles.emptyLens} data-testid="rms-empty"><p>{rms.empty.coverage}</p></div>
+                  ? <div className={styles.emptyLens} data-testid="rms-empty"><p>{presetEmptyCopy ?? rms.empty.coverage}</p></div>
                   : coverageViewRows.map((row) => (
                     <button key={row.key} type="button" className={styles.subjectRow} onClick={() => filterBySubject(row)}>
                       <span><strong>{row.display}</strong><i data-state={row.active > 0 ? "active" : "idle"} /></span>

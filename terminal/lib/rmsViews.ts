@@ -471,6 +471,11 @@ export type RmsCopy = {
   "savedViews.nameRequired": string;
   "savedViews.empty": string;
   "savedViews.unavailable": string;
+  /** Round-4 review (Meta-CEO B ruling R3): a delete the route resolves as "that row
+   *  is not here" is not a failed READ of a list the user is looking at. Spec 2.8
+   *  reserves `savedViews.unavailable` for a failed fetch/save/delete; this names the
+   *  actual outcome, and the workspace re-reads the list behind it. */
+  "savedViews.alreadyRemoved": string;
   /** Shown when a SAVED view resolves to zero rows. Round-2 review BLOCKER 3: this
    *  slice used to fall through to `empty.theses` ("No theses yet."), which is false
    *  while the workspace holds theses — the spec names that exact misreport. */
@@ -562,8 +567,15 @@ export const RMS_COPY: { en: RmsCopy; zh: RmsCopy } = {
     "savedViews.nameRequired": "Give this view a name before you save it.",
     "savedViews.empty": "No saved views yet. Filter the list, then save it with a name.",
     "savedViews.unavailable": "Your saved views did not load. Nothing has been changed.",
+    "savedViews.alreadyRemoved": "That view was already removed.",
     "savedViews.viewEmpty": "No theses match this view.",
-    "builtin.mine": "Yours",
+    // Round-4 review (Meta-CEO B ruling R7): this chip ships `lifecycle: "active"`, so
+    // clicking it drops archived and invalidated theses — which the unfiltered Theses
+    // lens does show. "Yours" named ownership as the cause of a lifecycle narrowing, and
+    // under owner-only RLS ownership filters nothing at all. The label now says what the
+    // predicate does, so the head sentence quoting it ("Only what matches the “…” view.")
+    // is true.
+    "builtin.mine": "Your active theses",
     "builtin.stale30": "Stale",
     "builtin.staleWhat": "No changes in 30 days.",
     "builtin.windowClosed": "Window closed",
@@ -642,8 +654,9 @@ export const RMS_COPY: { en: RmsCopy; zh: RmsCopy } = {
     "savedViews.nameRequired": "保存前请先为这个视图命名。",
     "savedViews.empty": "还没有保存任何视图。先筛选列表，再为其保存命名。",
     "savedViews.unavailable": "无法加载已保存的视图。没有任何内容被更改。",
+    "savedViews.alreadyRemoved": "该视图已被删除。",
     "savedViews.viewEmpty": "没有符合这个视图的论点。",
-    "builtin.mine": "你的",
+    "builtin.mine": "你的进行中论点",
     "builtin.stale30": "长期未更新",
     "builtin.staleWhat": "30 天没有改动。",
     "builtin.windowClosed": "观察窗口已结束",
