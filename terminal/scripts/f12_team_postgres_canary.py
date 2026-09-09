@@ -541,6 +541,56 @@ def main() -> int:
         "a member DELETE of another row must raise 42501",
     )
 
+    # Round-6 ruling R9(8): owner-row DELETE is refused. tm_delete_admin's first
+    # CASE arm (`role = 'owner' then false`) is a USING miss, so this is a silent
+    # 0-row result, not 42501; the owner row must still be there afterwards.
+    owner_row_delete_raised = False
+    owner_row_deleted = None
+    try:
+        with a_conn.cursor() as cur:
+            cur.execute("delete from public.team_members where team_id=%s and user_id=%s", (team_a, a_owner))
+            owner_row_deleted = cur.rowcount
+    except psycopg.Error as exc:  # type: ignore[attr-defined]
+        owner_row_delete_raised = True
+        owner_row_deleted = getattr(exc.diag, "sqlstate", None) if hasattr(exc, "diag") else "error"
+    with admin.cursor() as cur:
+        cur.execute(
+            "select count(*) from public.team_members where team_id=%s and user_id=%s and role='owner'",
+            (team_a, a_owner),
+        )
+        owner_row_still = cur.fetchone()[0] == 1
+    proof.check(
+        "rls:owner_row_delete_is_refused",
+        (not owner_row_delete_raised) and owner_row_deleted == 0 and owner_row_still,
+        f"raised={owner_row_delete_raised} rowcount_or_sqlstate={owner_row_deleted!r}"
+        f" owner_row_still={owner_row_still} (the owner row must survive; a USING miss is a"
+        " silent 0-row, not 42501)",
+    )
+
+    # Round-6 ruling R9(8): a user_id-only UPDATE is refused. Round-4's
+    # rls:owner_cannot_move_row_across_teams covers team_id; this covers the
+    # other column deny_team_member_move pins.
+    def owner_rewrites_user_id():
+        with a_conn.cursor() as cur:
+            cur.execute(
+                "update public.team_members set user_id=%s where team_id=%s and user_id=%s",
+                (g_stranger, team_a, g_promote),
+            )
+
+    uid_move_raised = expect_database_error(owner_rewrites_user_id, "42501")
+    with admin.cursor() as cur:
+        cur.execute(
+            "select user_id::text, role from public.team_members where team_id=%s and user_id=%s",
+            (team_a, g_promote),
+        )
+        promote_rows = cur.fetchall()
+    proof.check(
+        "rls:user_id_only_move_is_refused",
+        uid_move_raised and promote_rows == [(g_promote, "admin")],
+        f"raised42501={uid_move_raised} rows={promote_rows!r} (expected the row still on"
+        " g_promote as admin; rewriting user_id would move a membership between people)",
+    )
+
     with g_member_conn.cursor() as cur:
         cur.execute("delete from public.team_members where team_id=%s and user_id=%s", (team_a, g_member))
         deleted = cur.rowcount
@@ -568,6 +618,49 @@ def main() -> int:
         cur.execute("select user_id::text, display_name from public.team_member_names(%s)", (team_a,))
         owner_names = cur.fetchall()
     proof.check("rpc:team_member_names_for_member", len(owner_names) >= 1, str(owner_names))
+
+    # Round-6 ruling R2: deleting a team creator's auth.users row must complete.
+    # Creator + one other living member; after the delete, the team, its
+    # memberships and its role-change rows are gone and no error was raised.
+    # Against 0019 before the team-FK guard this raised:
+    #   insert or update on table "team_role_changes" violates foreign key
+    #   constraint "team_role_changes_team_id_fkey"
+    c_creator = str(uuid.uuid4())
+    c_living = str(uuid.uuid4())
+    creator_delete_error = None
+    with admin.cursor() as cur:
+        cur.execute(
+            "insert into auth.users (id, email) values (%s, 'creator@c.example'), (%s, 'living@c.example')",
+            (c_creator, c_living),
+        )
+        cur.execute(
+            "insert into public.teams (id, name, created_by) values (gen_random_uuid(), 'Team C', %s) returning id",
+            (c_creator,),
+        )
+        team_c = cur.fetchone()[0]
+        cur.execute(
+            "insert into public.team_members (team_id, user_id, role, invited_by) values (%s,%s,'member',%s)",
+            (team_c, c_living, c_creator),
+        )
+        try:
+            cur.execute("delete from auth.users where id=%s", (c_creator,))
+        except psycopg.Error as exc:  # type: ignore[attr-defined]
+            diag = getattr(exc, "diag", None)
+            creator_delete_error = (getattr(diag, "message_primary", None) if diag else None) or str(exc)
+        cur.execute("select count(*) from public.teams where id=%s", (team_c,))
+        team_c_gone = cur.fetchone()[0] == 0
+        cur.execute("select count(*) from public.team_members where team_id=%s", (team_c,))
+        memberships_gone = cur.fetchone()[0] == 0
+        cur.execute("select count(*) from public.team_role_changes where team_id=%s", (team_c,))
+        role_change_rows_gone = cur.fetchone()[0] == 0
+        cur.execute("select count(*) from auth.users where id=%s", (c_creator,))
+        creator_gone = cur.fetchone()[0] == 0
+    proof.check(
+        "rls:creator_account_deletion_completes",
+        creator_delete_error is None and team_c_gone and memberships_gone and role_change_rows_gone and creator_gone,
+        f"error={creator_delete_error!r} team_gone={team_c_gone} memberships_gone={memberships_gone}"
+        f" role_change_rows_gone={role_change_rows_gone} creator_gone={creator_gone}",
+    )
 
     Path(args.receipt).write_text(json.dumps(_receipt(proof.failed), indent=2))
     print(f"::notice title=f12-team-canary::receipt written to {args.receipt}", flush=True)

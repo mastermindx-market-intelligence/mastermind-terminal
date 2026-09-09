@@ -194,7 +194,7 @@
       "pr_state": "open",
       "applied_in_production": false,
       "applied_date": null,
-      "note": "shipped unapplied; the seat applies with a receipt"
+      "note": "shipped unapplied; applied_date is not recorded because the seat has not applied it; the seat applies with a receipt"
     },
     "0020": {
       "state": "reserved",

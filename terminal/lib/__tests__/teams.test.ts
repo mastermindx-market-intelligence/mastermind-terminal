@@ -538,6 +538,12 @@ const NEW_LEX_KEYS = [
   "acsTeamCreate",
   "acsTeamCreated",
   "acsTeamNoName",
+  "acsRoleUnknown",
+  "acsTeamAccount",
+  "acsTeamInvites",
+  "acsTeamInviteBadge",
+  "acsTeamInviteExpires",
+  "acsTeamTruncated",
 ] as const;
 
 const SENTENCE_LEX_KEYS = new Set([
@@ -554,6 +560,8 @@ const SENTENCE_LEX_KEYS = new Set([
   "acsTeamEmpty",
   "acsTeamNone",
   "acsTeamCreated",
+  "acsTeamInviteExpires",
+  "acsTeamTruncated",
 ]);
 
 const BANNED = ["falsifier", "refuted", "证伪", "team_members", "team_role_changes", "team_member_names", "RLS", "42501", "23505"];
@@ -567,6 +575,18 @@ describe("TEAM_ROUTE_MESSAGES and LEX plain-word completeness (B-F12-8)", () => 
     expect(en).not.toMatch(/\badmin\b/);
     expect(zh).toContain("管理员");
     expect(LEX.acsRoleAdmin[0]).toBe("Administrator");
+  });
+
+  it("not_admin_add says administrator, matching the rest of the catalogue (round-6 ruling R9(1))", () => {
+    const [en, zh] = TEAM_ROUTE_MESSAGES.not_admin_add;
+    expect(en).toBe("Only a team owner or administrator can add people.");
+    expect(en).not.toMatch(/\badmin\b/);
+    expect(zh).toBe("只有团队所有者或管理员才能添加成员。");
+  });
+
+  it("acsRoleOwnerWhat names leave and removal (round-6 ruling R9(2))", () => {
+    expect(LEX.acsRoleOwnerWhat[0]).toBe("Created this team. Can do everything. Cannot leave or be removed.");
+    expect(LEX.acsRoleOwnerWhat[1]).toBe("创建了该团队。拥有全部权限，不能退出，也不能被移除。");
   });
 
   it("every new TEAM_ROUTE_MESSAGES entry is a distinct EN/ZH sentence with no banned vocabulary", () => {

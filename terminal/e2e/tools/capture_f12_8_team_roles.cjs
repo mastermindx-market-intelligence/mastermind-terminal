@@ -162,10 +162,28 @@ async function openNoTeam(page, lang, viewport) {
   });
   await page.locator(".acs-overlay.open .acs-card").waitFor({ state: "visible", timeout: 45_000 });
   const sentence = lang === "zh"
-    ? "您还没有加入任何团队。创建一个团队后即可邀请成员。"
-    : "You are not on a team yet. Create one to invite people.";
+    ? "你还没有加入任何团队。可以在这里创建一个。"
+    : "You are not on a team yet. You can create one here.";
   await page.getByText(sentence, { exact: true }).waitFor({ state: "visible", timeout: 15_000 });
   await page.locator("[data-testid=\"team-create\"]").waitFor({ state: "visible", timeout: 15_000 });
+  await stripDevOverlay(page);
+}
+
+async function openTruncated(page, lang, viewport) {
+  await page.setViewportSize(viewport);
+  await page.addInitScript((l) => {
+    localStorage.setItem("mm.lang", l);
+    localStorage.setItem("theme", "dark");
+    localStorage.setItem("theme_auto", "0");
+    document.documentElement.setAttribute("data-theme", "dark");
+    document.documentElement.setAttribute("lang", l === "zh" ? "zh-CN" : "en");
+  }, lang);
+  await page.goto(`${BASE}/dev/settings?s=team&team=truncated&lang=${lang}`, {
+    waitUntil: "domcontentloaded",
+    timeout: 90_000,
+  });
+  await page.locator(".acs-overlay.open .acs-card").waitFor({ state: "visible", timeout: 45_000 });
+  await page.locator("[data-testid=\"team-truncated\"]").waitFor({ state: "visible", timeout: 15_000 });
   await stripDevOverlay(page);
 }
 
@@ -188,33 +206,31 @@ async function openConfirm(page, file) {
   return text;
 }
 
-async function assertDeliveryInView(page, file) {
-  const delivery = page.locator("[data-testid=\"team-delivery\"]");
-  await delivery.waitFor({ state: "visible", timeout: 10_000 });
+async function assertInvitesInView(page, file) {
+  const badge = page.locator("[data-testid=\"team-invite-badge\"]");
+  await badge.waitFor({ state: "visible", timeout: 10_000 });
   await page.getByText("pending@example.com").waitFor({ state: "visible", timeout: 10_000 });
   const inView = await page.evaluate(() => {
     const body = document.querySelector(".acs-overlay.open .acs-body");
-    const note = document.querySelector("[data-testid=\"team-delivery\"]");
+    const badgeEl = document.querySelector("[data-testid=\"team-invite-badge\"]");
     const row = Array.from(document.querySelectorAll(".acs-row")).find((el) =>
       (el.textContent || "").includes("pending@example.com"),
     );
-    if (!body || !note || !row) return { ok: false, reason: "missing" };
+    if (!body || !badgeEl || !row) return { ok: false, reason: "missing" };
     const br = body.getBoundingClientRect();
     const visible = (r) => r.bottom > br.top + 4 && r.top < br.bottom - 4;
-    const nr = note.getBoundingClientRect();
+    const nr = badgeEl.getBoundingClientRect();
     const rr = row.getBoundingClientRect();
     return {
       ok: visible(nr) && visible(rr),
-      noteTop: nr.top,
-      noteBottom: nr.bottom,
+      badgeTop: nr.top,
       rowTop: rr.top,
-      rowBottom: rr.bottom,
       bodyTop: br.top,
       bodyBottom: br.bottom,
     };
   });
   if (!inView.ok) {
-    throw new Error(`${file}: pending invitation or no_email_delivery sentence is clipped (${JSON.stringify(inView)})`);
+    throw new Error(`${file}: pending invitation is clipped (${JSON.stringify(inView)})`);
   }
 }
 
@@ -227,16 +243,33 @@ async function measureLayout(page) {
       .map((el) => (el.textContent || "").trim());
     const none = document.querySelector("[data-testid=\"team-none\"]");
     const create = document.querySelector("[data-testid=\"team-create\"]");
+    const nameLabel = document.querySelector("[data-testid=\"team-name-label\"]");
     const asking = document.querySelector(".acs-row.editing .acs-form .acs-note");
+    const truncated = document.querySelector("[data-testid=\"team-truncated\"]");
+    const inviteBadge = document.querySelector("[data-testid=\"team-invite-badge\"]");
+    const unnamed = Array.from(document.querySelectorAll("[data-user-id]")).filter((el) => {
+      const name = (el.textContent || "");
+      return name.includes("Name not set") || name.includes("未设置名称");
+    }).length;
+    const ownerWhat = Array.from(document.querySelectorAll(".acs-row-desc")).map((el) => (el.textContent || "").trim())
+      .find((t) => t.includes("Created this team") || t.includes("创建了该团队"));
+    const perRowCounts = Array.from(document.querySelectorAll("[data-testid=\"team-change-role\"]"))
+      .map((el) => el.querySelectorAll("button").length);
     return {
       roleBadgeText: badges.join(" | "),
       changeRolePresent: !!change,
       removeClass: remove ? remove.className : "",
       // Round-4 ruling R4(a): one option per row, never the role the row already holds.
       changeRoleLabels: changeLabels.join(" | "),
+      changeRolePerRow: perRowCounts.join(" | "),
       confirmText: asking ? (asking.textContent || "").trim() : "",
       noTeamPresent: !!none,
       createLabel: create ? (create.textContent || "").trim() : "",
+      nameLabel: nameLabel ? (nameLabel.textContent || "").trim() : "",
+      truncatedText: truncated ? (truncated.textContent || "").trim() : "",
+      inviteBadgeText: inviteBadge ? (inviteBadge.textContent || "").trim() : "",
+      unnamedRows: unnamed,
+      ownerWhat: ownerWhat || "",
     };
   });
 }
@@ -265,12 +298,16 @@ async function main() {
         { viewport: "desktop", lang: "zh", kind: "change", file: "desktop-zh-change-role.png" },
         { viewport: "desktop", lang: "en", kind: "none", file: "desktop-en-no-team.png" },
         { viewport: "desktop", lang: "zh", kind: "none", file: "desktop-zh-no-team.png" },
+        { viewport: "desktop", lang: "en", kind: "truncated", file: "desktop-en-truncated.png" },
+        { viewport: "desktop", lang: "zh", kind: "truncated", file: "desktop-zh-truncated.png" },
         { viewport: "mobile", lang: "en", kind: "team", file: "mobile-en-team.png" },
         { viewport: "mobile", lang: "zh", kind: "team", file: "mobile-zh-team.png" },
         { viewport: "mobile", lang: "en", kind: "change", file: "mobile-en-change-role.png" },
         { viewport: "mobile", lang: "zh", kind: "change", file: "mobile-zh-change-role.png" },
         { viewport: "mobile", lang: "en", kind: "none", file: "mobile-en-no-team.png" },
         { viewport: "mobile", lang: "zh", kind: "none", file: "mobile-zh-no-team.png" },
+        { viewport: "mobile", lang: "en", kind: "truncated", file: "mobile-en-truncated.png" },
+        { viewport: "mobile", lang: "zh", kind: "truncated", file: "mobile-zh-truncated.png" },
       ];
       for (const shot of shots) {
         process.stdout.write(`capture ${shot.file} … `);
@@ -285,9 +322,11 @@ async function main() {
         try {
           if (shot.kind === "none") {
             await openNoTeam(page, shot.lang, VIEWPORTS[shot.viewport]);
+          } else if (shot.kind === "truncated") {
+            await openTruncated(page, shot.lang, VIEWPORTS[shot.viewport]);
           } else {
             await openTeam(page, shot.lang, VIEWPORTS[shot.viewport]);
-            await assertDeliveryInView(page, shot.file);
+            await assertInvitesInView(page, shot.file);
             if (shot.kind === "change") await openConfirm(page, shot.file);
           }
           const m = await measureLayout(page);
@@ -295,6 +334,7 @@ async function main() {
           if (shot.kind === "none") {
             if (!m.noTeamPresent) throw new Error(`${shot.file}: zero-team block missing`);
             if (!m.createLabel) throw new Error(`${shot.file}: create-team control missing`);
+            if (!m.nameLabel) throw new Error(`${shot.file}: team-name label missing`);
             if (m.roleBadgeText) throw new Error(`${shot.file}: a roster row is showing in the zero-team state`);
           } else {
             if (!m.roleBadgeText) {
@@ -304,12 +344,24 @@ async function main() {
               throw new Error(`${shot.file}: change-role control missing`);
             }
             // Ruling R4(a): a changeable row offers exactly one option, never the one it holds.
-            const perRow = m.changeRoleLabels.split(" | ").filter(Boolean);
-            if (perRow.length !== 2) {
-              throw new Error(`${shot.file}: expected one option on each of the two changeable rows, got ${m.changeRoleLabels}`);
+            const perRow = (m.changeRolePerRow || "").split(" | ").filter(Boolean);
+            if (perRow.length < 2 || perRow.some((n) => n !== "1")) {
+              throw new Error(`${shot.file}: each changeable row must offer exactly one option, got ${m.changeRolePerRow} labels=${m.changeRoleLabels}`);
+            }
+            if (new Set(m.changeRoleLabels.split(" | ").filter(Boolean)).size !== 2) {
+              throw new Error(`${shot.file}: expected both role options across rows, got ${m.changeRoleLabels}`);
             }
             if (shot.kind === "change" && !m.confirmText) {
               throw new Error(`${shot.file}: confirm prompt is not on screen`);
+            }
+            if (shot.kind === "truncated" && !m.truncatedText) {
+              throw new Error(`${shot.file}: truncated sentence missing`);
+            }
+            if ((shot.kind === "team" || shot.kind === "truncated") && m.unnamedRows < 2) {
+              throw new Error(`${shot.file}: expected two unnamed rows, got ${m.unnamedRows}`);
+            }
+            if (!m.ownerWhat) {
+              throw new Error(`${shot.file}: owner sentence missing`);
             }
           }
           if (m.removeClass && !/\bbtn-danger\b/.test(m.removeClass)) {
@@ -349,7 +401,7 @@ async function main() {
     "viewports:",
     "  - { name: desktop, width: 1440, height: 900 }",
     "  - { name: mobile, width: 390, height: 844 }",
-    "harness: /dev/settings?s=team&lang=<en|zh> (roster and confirm crops); /dev/settings?s=team&team=none&lang=<en|zh> (zero-team crops)",
+    "harness: /dev/settings?s=team&lang=<en|zh> (roster and confirm crops); /dev/settings?s=team&team=none&lang=<en|zh> (zero-team crops); /dev/settings?s=team&team=truncated&lang=<en|zh> (truncated crops)",
     "capture_flag: TERMINAL_E2E_FIXTURE",
     "capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.",
     "command: |",
@@ -362,6 +414,9 @@ async function main() {
       `  ${file}: { roleBadgeText: ${JSON.stringify(m.roleBadgeText)}, changeRolePresent: ${m.changeRolePresent},`
       + ` changeRoleLabels: ${JSON.stringify(m.changeRoleLabels)}, confirmText: ${JSON.stringify(m.confirmText)},`
       + ` noTeamPresent: ${m.noTeamPresent}, createLabel: ${JSON.stringify(m.createLabel)},`
+      + ` nameLabel: ${JSON.stringify(m.nameLabel)}, truncatedText: ${JSON.stringify(m.truncatedText)},`
+      + ` inviteBadgeText: ${JSON.stringify(m.inviteBadgeText)}, unnamedRows: ${m.unnamedRows},`
+      + ` ownerWhatPresent: ${Boolean(m.ownerWhat)},`
       + ` removeClass: ${JSON.stringify(m.removeClass)} }`),
     "",
   ].join("\n");

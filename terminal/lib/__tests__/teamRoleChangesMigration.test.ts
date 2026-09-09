@@ -140,6 +140,12 @@ describe("0019 team role changes migration contract", () => {
     );
   });
 
+  it("the audit trigger skips the insert when the team is already gone (round-6 ruling R2)", () => {
+    expect(flat).toMatch(
+      /if tg_op = 'DELETE' and not exists \(\s*select 1 from public\.teams where id = coalesce\(new\.team_id, old\.team_id\)\s*\) then\s+return old;/,
+    );
+  });
+
   it("carries -- Ledger row: and -- Rollback: header lines", () => {
     expect(raw).toMatch(/^-- Ledger row: /m);
     expect(raw).toMatch(/^-- Rollback: /m);

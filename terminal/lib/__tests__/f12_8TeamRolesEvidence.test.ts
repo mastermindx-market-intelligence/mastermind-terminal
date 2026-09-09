@@ -47,6 +47,12 @@ const NONE_FILES = [
   "mobile-en-no-team.png",
   "mobile-zh-no-team.png",
 ];
+const TRUNCATED_FILES = [
+  "desktop-en-truncated.png",
+  "desktop-zh-truncated.png",
+  "mobile-en-truncated.png",
+  "mobile-zh-truncated.png",
+];
 
 function evidenceText(): string {
   return readFileSync(EVIDENCE, "utf8");
@@ -113,7 +119,7 @@ describe("B-F12-8 evidence lock is the sha256 of the layout sources", () => {
 
   it("change-role crops record a visible change-role control; every roster crop records a role badge", () => {
     const yml = evidenceText();
-    for (const file of [...TEAM_FILES, ...CHANGE_FILES]) {
+    for (const file of [...TEAM_FILES, ...CHANGE_FILES, ...TRUNCATED_FILES]) {
       const row = measurement(yml, file);
       expect(row.roleBadgeText, file).toBeTruthy();
       expect(row.roleBadgeText, file).not.toBe("");
@@ -145,19 +151,19 @@ describe("B-F12-8 evidence lock is the sha256 of the layout sources", () => {
   });
 
   it("a changeable row offers exactly one role option, never the one it already holds", () => {
-    // Round-4 ruling R4(a). The fixture roster has two changeable rows — one administrator and
-    // one member — so two labels in total, one per row.
+    // Round-4 ruling R4(a). Each changeable row offers one option; the set across rows is both
+    // options. Round-6 added unnamed member rows, so the label count is no longer two.
     const yml = evidenceText();
-    for (const file of [...TEAM_FILES, ...CHANGE_FILES]) {
+    for (const file of [...TEAM_FILES, ...CHANGE_FILES, ...TRUNCATED_FILES]) {
       const labels = measurement(yml, file).changeRoleLabels.split(" | ").filter(Boolean);
-      expect(labels.length, `${file}: ${labels.join(" | ")}`).toBe(2);
+      expect(labels.length, `${file}: ${labels.join(" | ")}`).toBeGreaterThanOrEqual(2);
       expect(new Set(labels).size, `${file} offers the same option twice`).toBe(2);
     }
   });
 
   it("the zero-team default state is depicted in both languages at both widths", () => {
     // Round-4 ruling R3. The state has no roster row at all, so its evidence is the block and the
-    // create-team control rather than a role badge.
+    // create-team control rather than a role badge. Round-6 ruling R9(7) adds the name label.
     const yml = evidenceText();
     for (const file of NONE_FILES) {
       expect(existsSync(join(CROP_DIR, file)), file).toBe(true);
@@ -167,14 +173,43 @@ describe("B-F12-8 evidence lock is the sha256 of the layout sources", () => {
       expect(row.roleBadgeText, file).toBe("");
       if (file.includes("-zh-")) {
         expect(row.createLabel, file).toBe("创建团队");
+        expect(row.nameLabel, file).toBe("团队名称");
       } else {
         expect(row.createLabel, file).toBe("Create team");
+        expect(row.nameLabel, file).toBe("Team name");
+      }
+    }
+  });
+
+  it("roster crops measure role badges on the roster only, and name the invitations group separately", () => {
+    // Round-6 ruling R4 / minor 6: pending invitations used to share team-role-badge, so
+    // roleBadgeText started with Member. It now starts with Owner.
+    const yml = evidenceText();
+    for (const file of [...TEAM_FILES, ...CHANGE_FILES, ...TRUNCATED_FILES]) {
+      const row = measurement(yml, file);
+      expect(row.roleBadgeText, file).toMatch(/^(Owner|所有者) \|/);
+      expect(row.inviteBadgeText, file).toBeTruthy();
+      expect(row.unnamedRows, file).toBe("2");
+      expect(row.ownerWhatPresent, file).toBe("true");
+    }
+  });
+
+  it("the truncated roster names the cap in both languages at both widths", () => {
+    const yml = evidenceText();
+    for (const file of TRUNCATED_FILES) {
+      expect(existsSync(join(CROP_DIR, file)), file).toBe(true);
+      const row = measurement(yml, file);
+      expect(row.truncatedText, file).toBeTruthy();
+      if (file.includes("-zh-")) {
+        expect(row.truncatedText, file).toMatch(/仅显示前 \d+ 位成员/);
+      } else {
+        expect(row.truncatedText, file).toMatch(/^Showing the first \d+ people/);
       }
     }
   });
 
   it("EN/ZH twins are present for every crop both in the lock and on disk", () => {
-    const listed = [...TEAM_FILES, ...CHANGE_FILES, ...NONE_FILES];
+    const listed = [...TEAM_FILES, ...CHANGE_FILES, ...NONE_FILES, ...TRUNCATED_FILES];
     for (const file of listed) {
       expect(existsSync(join(CROP_DIR, file)), file).toBe(true);
       if (file.includes("-en-")) {

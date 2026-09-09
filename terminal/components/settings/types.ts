@@ -16,7 +16,7 @@ export type AcsUsage = AccountUsage;
 
 export type DevTeamMember = {
   userId: string;
-  role: "owner" | "admin" | "member";
+  role: "owner" | "admin" | "member" | string | null;
   displayName: string;
   createdAt: string | null;
 };
@@ -34,6 +34,7 @@ export type DevTeamFixture = {
   callerUserId: string;
   members: DevTeamMember[];
   invites: DevTeamInvite[];
+  truncated?: boolean;
 };
 
 /** What every section receives from the panel. */

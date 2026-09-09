@@ -140,7 +140,7 @@ export function SectionHead({
   onClose,
 }: {
   title: string;
-  sub: string;
+  sub?: string;
   closeLabel: string;
   onClose: () => void;
 }) {
@@ -148,7 +148,7 @@ export function SectionHead({
     <header className="acs-head">
       <div className="acs-head-main">
         <h2>{title}</h2>
-        <p className="acs-sub">{sub}</p>
+        {sub ? <p className="acs-sub">{sub}</p> : null}
       </div>
       <button type="button" className="acs-x" aria-label={closeLabel} onClick={onClose}>
         <IconX />
@@ -177,6 +177,7 @@ export function Row({
   control,
   editing,
   children,
+  userId,
 }: {
   label?: ReactNode;
   desc?: ReactNode;
@@ -185,9 +186,10 @@ export function Row({
   control?: ReactNode;
   editing?: boolean;
   children?: ReactNode;
+  userId?: string;
 }) {
   return (
-    <div className={`acs-row${editing ? " editing" : ""}`}>
+    <div className={`acs-row${editing ? " editing" : ""}`} data-user-id={userId || undefined}>
       <div className="acs-row-line">
         <span className="acs-row-main">
           {label != null ? <span className="acs-row-lbl">{label}</span> : null}

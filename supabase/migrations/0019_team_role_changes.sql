@@ -69,6 +69,19 @@ begin
   if tg_op = 'DELETE' and not exists (select 1 from auth.users where id = old.user_id) then
     return old;
   end if;
+  -- Round-6 ruling R2: mirror the subject-account guard for the team FK.
+  -- 0014 cascades a team creator's account deletion into the teams row
+  -- (created_by ON DELETE CASCADE), which then cascade-deletes every remaining
+  -- membership. This AFTER DELETE trigger would otherwise insert a log row
+  -- whose team_id is already gone, which raises a foreign-key violation and
+  -- aborts the account deletion. Skip the insert when the team no longer
+  -- exists. Direct leave/remove still writes a row because the team is still
+  -- in public.teams.
+  if tg_op = 'DELETE' and not exists (
+    select 1 from public.teams where id = coalesce(new.team_id, old.team_id)
+  ) then
+    return old;
+  end if;
   insert into public.team_role_changes (team_id, subject_id, actor_id, old_role, new_role)
   values (
     coalesce(new.team_id, old.team_id),
