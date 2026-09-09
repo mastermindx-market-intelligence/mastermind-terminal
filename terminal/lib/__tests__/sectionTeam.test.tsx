@@ -370,6 +370,9 @@ describe("R6: a successful self-leave reloads into the zero-team state", () => {
     await mount("en");
     expect(container.querySelector('[data-testid="team-none"]')).toBeNull();
     expect(text()).toContain("Chris Wong");
+    const live = () => container.querySelector('[data-testid="team-live"]');
+    expect(live()?.getAttribute("data-team-id")).toBe("team-1");
+    expect(live()?.getAttribute("data-caller-role")).toBe("member");
     const leave = Array.from(container.querySelectorAll("button")).find((b) => (b.textContent || "").trim() === LEX.acsTeamLeave[0]) as HTMLButtonElement | undefined;
     expect(leave).toBeTruthy();
     await act(async () => {
@@ -384,6 +387,9 @@ describe("R6: a successful self-leave reloads into the zero-team state", () => {
     });
     expect(container.querySelector('[data-testid="team-none"]')).toBeTruthy();
     expect(container.querySelector('[data-testid="team-role-badge"]')).toBeNull();
+    expect(container.querySelector("[data-user-id]")).toBeNull();
+    expect(live()?.getAttribute("data-team-id")).toBe("");
+    expect(live()?.getAttribute("data-caller-role")).toBe("");
     expect(text()).toContain(LEX.acsTeamLeft[0]);
     expect(text()).toContain(LEX.acsTeamNone[0]);
     expect(calls.some((c) => c.method === "DELETE")).toBe(true);

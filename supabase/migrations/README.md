@@ -193,6 +193,7 @@ amendment, only a README edit.
 | `0018` | (pre-reservation) | Meta-CEO B ruling 2026-09-09, packet B-F12-7 — the seat's **re-scoped Terminal signed-webhooks** packet of 2026-09-09 (branch `claude/mo-b-f12-7-signed-webhooks`), **not** the refused public-API packet recorded against macro #6925 under the same id; no pull request open yet | reserved |
 | `0019` | `team_role_changes` | PR #550 (packet B-F12-8; owner / administrator / member roles v1) | open PR; not applied |
 | `0020` | `team_ownership_transfer` | PR #557 (packet B-F12-9; atomic ownership transfer v1). Seat ruled 0020; the spec's claim of 0019 is superseded because 0019 is B-F12-8. | open PR; not applied |
+| `0022` | `chart_layouts_team_sharing` | PR #555 (open, packet B-F12-B5-2) | open PR — shipped unapplied |
 
 `0001`–`0007` and `0010` are **historical**: they predate this ledger, their creating pull
 requests were never recorded in-repo, and so their `pr` and `pr_state` fields in

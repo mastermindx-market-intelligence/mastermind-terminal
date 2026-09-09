@@ -200,6 +200,9 @@ describe("B-F12-8 evidence lock is the sha256 of the layout sources", () => {
       expect(existsSync(join(CROP_DIR, file)), file).toBe(true);
       const row = measurement(yml, file);
       expect(row.truncatedText, file).toBeTruthy();
+      // Round-7 review MAJOR: truncatedText from the DOM stayed green while the
+      // sentence sat below the fold. truncatedInView is the body's visible rect.
+      expect(row.truncatedInView, file).toBe("true");
       if (file.includes("-zh-")) {
         expect(row.truncatedText, file).toMatch(/仅显示前 \d+ 位成员/);
       } else {

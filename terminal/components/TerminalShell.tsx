@@ -1283,6 +1283,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
   const [layoutSaving, setLayoutSaving] = useState(false);
   const [layoutFeedback, setLayoutFeedback] = useState<LayoutFeedback>({ kind: "idle" });
   const [layoutDeleteError, setLayoutDeleteError] = useState<string | null>(null);
+  const [layoutTeams, setLayoutTeams] = useState<Array<{ id: string; name: string; role: "owner" | "admin" | "member" }>>([]);
+  const [layoutTeamRead, setLayoutTeamRead] = useState<{ ok: true } | { ok: false; message: string }>({ ok: true });
+  const [pendingShare, setPendingShare] = useState<{ id: string; to: "team" | "private"; teamName: string; teamId?: string } | null>(null);
   // ── W2-A workspace identity + graph (freeze §4/§5/§7) ──
   // `workspaceName`/`workspaceRevision` track the CURRENTLY OPEN named workspace, not the Zone-1
   // name box (that box is "save as", independent of what is loaded). `workspaceRevision === null`
@@ -2677,12 +2680,21 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
       // status codes above encode, applied one level down. Coercing it to [] here would reintroduce
       // the exact confusion this wave removes, just past the point where the status looked fine.
       if (!Array.isArray(d?.layouts)) { setLayoutStatus("unavailable"); return { ok: false }; }
-      const rows: SavedWorkspace[] = (d.layouts as SavedLayout[]).map((l) => ({ ...l, rowState: workspaceRowState(l.config) }));
+      const rows: SavedWorkspace[] = (d.layouts as SavedLayout[]).map((l) => ({
+        ...l,
+        teamId: l.teamId ?? null,
+        visibility: l.visibility ?? null,
+        rowState: workspaceRowState(l.config),
+      }));
       setLayouts(rows);
+      setLayoutTeams(Array.isArray(d.teams) ? d.teams : []);
+      setLayoutTeamRead(d.teamRead && d.teamRead.ok === false
+        ? { ok: false, message: String((lang === "zh" ? d.teamRead.messageZh : d.teamRead.message) || d.teamRead.message || "") }
+        : { ok: true });
       setLayoutStatus("ready");
       return { ok: true, rows };
     } catch { setLayoutStatus("unavailable"); return { ok: false }; }
-  }, []);
+  }, [lang]);
   const refreshLayouts = useCallback(async (): Promise<boolean> => (await fetchWorkspaceRows()).ok, [fetchWorkspaceRows]);
   useEffect(() => { void refreshLayouts(); }, [refreshLayouts]);
   useEffect(() => {
@@ -4680,6 +4692,28 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
   }
   // A guest's Save is disabled, so this is reached from the menu's own sign-up row: the same nudge
   // + onboarding path the watchlist gate uses, not a silent no-op.
+  async function confirmWorkspaceShare() {
+    if (!pendingShare) return;
+    const body = pendingShare.to === "team"
+      ? { op: "set_sharing", id: pendingShare.id, sharing: "team", teamId: pendingShare.teamId }
+      : { op: "set_sharing", id: pendingShare.id, sharing: "private", teamId: null };
+    try {
+      const r = await fetch("/api/layouts", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        const message = typeof d.message === "string" ? d.message : t("layoutSaveFailed");
+        setLayoutFeedback({ kind: "error", message });
+        setPendingShare(null);
+        return;
+      }
+      setLayoutFeedback({ kind: "info", message: typeof d.message === "string" ? d.message : "" });
+      setPendingShare(null);
+      await refreshLayouts();
+    } catch {
+      setLayoutFeedback({ kind: "error", message: t("layoutSaveFailed") });
+      setPendingShare(null);
+    }
+  }
   function promptLayoutSignup() {
     showGateNudge(t("gateLayouts"));
     window.dispatchEvent(new CustomEvent("mm:onboard", { detail: { mode: "signup" } }));
@@ -4713,6 +4747,19 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
     onSaveAsCopy: saveWorkspaceAsCopy,
     unclaimedFields,
     unsupportedWidgets,
+    teams: layoutTeams,
+    teamRead: layoutTeamRead,
+    pendingShare,
+    onShare: (layout: SavedWorkspace, teamId: string) => {
+      const team = layoutTeams.find((x) => x.id === teamId) ?? layoutTeams[0];
+      if (!team) return;
+      setPendingShare({ id: layout.id, to: "team", teamName: team.name, teamId: team.id });
+    },
+    onUnshare: (layout: SavedWorkspace) => {
+      setPendingShare({ id: layout.id, to: "private", teamName: layout.teamName || "", teamId: layout.teamId ?? undefined });
+    },
+    onConfirmShare: () => { void confirmWorkspaceShare(); },
+    onCancelShare: () => setPendingShare(null),
   };
 
   // Generic-widget-graph fallback data (see the `.ws-extra-widgets` render site below): every
