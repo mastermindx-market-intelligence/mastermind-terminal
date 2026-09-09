@@ -200,6 +200,23 @@ export default function SectionTeam({
           <Row label={t("acsRoleMember")} desc={t("acsRoleMemberWhat")} />
         </Group>
 
+        {showInvites ? (
+          <Group>
+            <p className="acs-note acs-team-delivery">{delivery}</p>
+            {invites.map((invite) => (
+              <Row
+                key={invite.id || invite.email}
+                label={invite.email}
+                value={
+                  <span className={`acs-role-badge acs-role-${invite.role}`} data-role={invite.role}>
+                    {t(roleKey(invite.role))}
+                  </span>
+                }
+              />
+            ))}
+          </Group>
+        ) : null}
+
         <Group title={t("acsTeamPeople")}>
           {unavailable ? (
             <Msg text={TEAM_ROUTE_MESSAGES.unavailable[lang === "zh" ? 1 : 0]} kind="err" />
@@ -303,23 +320,6 @@ export default function SectionTeam({
               );
             })}
         </Group>
-
-        {showInvites ? (
-          <Group>
-            <p className="acs-note acs-team-delivery">{delivery}</p>
-            {invites.map((invite) => (
-              <Row
-                key={invite.id || invite.email}
-                label={invite.email}
-                value={
-                  <span className={`acs-role-badge acs-role-${invite.role}`} data-role={invite.role}>
-                    {t(roleKey(invite.role))}
-                  </span>
-                }
-              />
-            ))}
-          </Group>
-        ) : null}
 
         <Msg text={msg?.text || ""} kind={msg?.kind || "ok"} />
       </div>

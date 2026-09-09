@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { TEAM_ROUTE_MESSAGES } from "@/lib/teams";
+import { TEAM_ROUTE_MESSAGES, writeSetting } from "@/lib/teams";
 
 // vi.hoisted + vi.resetModules + vi.doMock + await import: same idiom as teamsRoute.test.ts.
 const H = vi.hoisted(() => ({ user: null as { id: string } | null }));
@@ -16,6 +16,7 @@ function makeFakeTransport() {
     teams: [] as Row[],
     team_members: [] as Row[],
     team_invites: [] as Row[],
+    workspace_settings: [] as Row[],
     fault: null as { code: string } | null,
     insertFault: null as { code: string } | null,
     rlsEmptyWrite: false,
@@ -23,13 +24,14 @@ function makeFakeTransport() {
   };
   const nextId = (prefix: string) => `${prefix}-${++state.seq}`;
 
-  function rowsFor(table: "teams" | "team_members" | "team_invites") {
+  type Table = "teams" | "team_members" | "team_invites" | "workspace_settings";
+  function rowsFor(table: Table) {
     return state[table];
   }
 
   const db = {
     rpc: async () => ({ data: [], error: null }),
-    from(table: "teams" | "team_members" | "team_invites") {
+    from(table: Table) {
       const filters: Array<[string, unknown]> = [];
       let inFilter: { col: string; values: unknown[] } | null = null;
       let orderCol: string | null = null;
@@ -45,6 +47,15 @@ function makeFakeTransport() {
         if (pendingInsert) {
           if (state.insertFault) return { data: null, error: { code: state.insertFault.code, message: "fault" } };
           const values = Array.isArray(pendingInsert) ? pendingInsert : [pendingInsert];
+          if (table === "workspace_settings") {
+            const v = values[0] || {};
+            if (v.scope === "workspace" && v.team_id) {
+              const role = rowsFor("team_members").find((r) => r.team_id === v.team_id && r.user_id === v.user_id)?.role;
+              if (role === "member" || role == null) {
+                return { data: null, error: { code: "42501", message: "rls" } };
+              }
+            }
+          }
           const inserted: Row[] = [];
           for (const v of values) {
             if (table === "team_members") {
@@ -105,6 +116,10 @@ function makeFakeTransport() {
         },
         limit: () => q,
         insert: (values: Row | Row[]) => {
+          pendingInsert = values;
+          return q;
+        },
+        upsert: (values: Row | Row[]) => {
           pendingInsert = values;
           return q;
         },
@@ -398,5 +413,212 @@ describe("B-F12-8 policy matrix (§2.1)", () => {
     const removed = await jsonOf(await MDELETE(membersReq("DELETE", undefined, "?userId=member"), ctx(teamId)));
     expect(removed.status).toBe(404);
     expectCode(removed.body, "team_not_found");
+  });
+
+  it("PATCH nextRole omitted, empty, or owner is 400 invalid_role, not a silent demotion", async () => {
+    const teamId = await seedRoster();
+    H.user = { id: "owner" };
+    const omitted = await jsonOf(await MPATCH(membersReq("PATCH", { userId: "admin" }), ctx(teamId)));
+    expect(omitted.status).toBe(400);
+    expectCode(omitted.body, "invalid_role");
+    const empty = await jsonOf(await MPATCH(membersReq("PATCH", { userId: "admin", role: "" }), ctx(teamId)));
+    expect(empty.status).toBe(400);
+    expectCode(empty.body, "invalid_role");
+    const asOwner = await jsonOf(await MPATCH(membersReq("PATCH", { userId: "admin", role: "owner" }), ctx(teamId)));
+    expect(asOwner.status).toBe(400);
+    expectCode(asOwner.body, "invalid_role");
+    H.user = { id: "admin" };
+    const stillAdmin = await jsonOf(await MGET(membersReq("GET"), ctx(teamId)));
+    expect(stillAdmin.body.members.find((m: { userId: string }) => m.userId === "admin").role).toBe("admin");
+  });
+});
+
+describe("B-F12-8 §2.1 matrix (caller × action)", () => {
+  let POST: any, MGET: any, MPOST: any, MPATCH: any, MDELETE: any, IGET: any, IPOST: any, teamsMod: any;
+  let transport: ReturnType<typeof makeFakeTransport>;
+
+  beforeEach(async () => {
+    vi.resetModules();
+    H.user = null;
+    transport = makeFakeTransport();
+    vi.doMock("@/lib/supabase/server", () => ({
+      createClient: async () => ({ auth: { getUser: async () => ({ data: { user: H.user } }) }, ...transport.db }),
+    }));
+    ({ POST } = await import("@/app/api/teams/route"));
+    teamsMod = await import("@/app/api/teams/route");
+    ({ GET: MGET, POST: MPOST, PATCH: MPATCH, DELETE: MDELETE } = await import("@/app/api/teams/[id]/members/route"));
+    ({ GET: IGET, POST: IPOST } = await import("@/app/api/teams/invitations/route"));
+  });
+
+  function req(body: unknown) {
+    return new Request("http://localhost/api/teams", { method: "POST", body: JSON.stringify(body) });
+  }
+  function ctx(id: string) {
+    return { params: Promise.resolve({ id }) };
+  }
+  function membersReq(method: string, body?: unknown, query = "") {
+    return new Request(`http://localhost/api/teams/t/members${query}`, {
+      method,
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
+  }
+
+  async function seedRoster() {
+    H.user = { id: "owner" };
+    const created = await (await POST(req({ name: "Desk" }))).json();
+    const teamId = created.team.id as string;
+    await MPOST(membersReq("POST", { userId: "admin", role: "admin" }), ctx(teamId));
+    await MPOST(membersReq("POST", { userId: "member", role: "member" }), ctx(teamId));
+    await MPOST(membersReq("POST", { userId: "peer", role: "member" }), ctx(teamId));
+    return teamId;
+  }
+
+  const callers = ["owner", "admin", "member"] as const;
+
+  it.each(callers)("see the team and the list of people on it: %s → 200", async (caller) => {
+    const teamId = await seedRoster();
+    H.user = { id: caller };
+    expect((await MGET(membersReq("GET"), ctx(teamId))).status).toBe(200);
+  });
+
+  it.each([
+    ["owner", 201],
+    ["admin", 201],
+    ["member", 403],
+  ] as const)("invite someone by email link: %s → %s", async (caller, status) => {
+    const teamId = await seedRoster();
+    H.user = { id: caller };
+    const res = await IPOST(
+      new Request("http://x", {
+        method: "POST",
+        body: JSON.stringify({ action: "create", teamId, email: `${caller}@example.com`, role: "member" }),
+      }),
+    );
+    expect(res.status).toBe(status);
+  });
+
+  it.each([
+    ["owner", 200],
+    ["admin", 200],
+    ["member", 403],
+  ] as const)("see pending invitations: %s → %s", async (caller, status) => {
+    const teamId = await seedRoster();
+    H.user = { id: caller };
+    expect((await IGET(new Request(`http://x/api/teams/invitations?teamId=${teamId}`))).status).toBe(status);
+  });
+
+  it.each([
+    ["owner", 201],
+    ["admin", 201],
+    ["member", 403],
+  ] as const)("add an existing account as a member: %s → %s", async (caller, status) => {
+    const teamId = await seedRoster();
+    H.user = { id: caller };
+    expect((await MPOST(membersReq("POST", { userId: `added-by-${caller}`, role: "member" }), ctx(teamId))).status).toBe(status);
+  });
+
+  it.each([
+    ["owner", 201],
+    ["admin", 403],
+    ["member", 403],
+  ] as const)("add an existing account as an administrator: %s → %s", async (caller, status) => {
+    const teamId = await seedRoster();
+    H.user = { id: caller };
+    expect((await MPOST(membersReq("POST", { userId: `admin-by-${caller}`, role: "admin" }), ctx(teamId))).status).toBe(status);
+  });
+
+  it.each([
+    ["owner", 200],
+    ["admin", 403],
+    ["member", 403],
+  ] as const)("make a member an administrator: %s → %s", async (caller, status) => {
+    const teamId = await seedRoster();
+    H.user = { id: caller };
+    expect((await MPATCH(membersReq("PATCH", { userId: "peer", role: "admin" }), ctx(teamId))).status).toBe(status);
+  });
+
+  it.each([
+    ["owner", 200],
+    ["admin", 403],
+    ["member", 403],
+  ] as const)("make an administrator a member: %s → %s", async (caller, status) => {
+    const teamId = await seedRoster();
+    H.user = { id: caller };
+    expect((await MPATCH(membersReq("PATCH", { userId: "admin", role: "member" }), ctx(teamId))).status).toBe(status);
+  });
+
+  it.each([
+    ["owner", 200],
+    ["admin", 200],
+    ["member", 403],
+  ] as const)("remove a member from the team: %s → %s", async (caller, status) => {
+    const teamId = await seedRoster();
+    H.user = { id: caller };
+    expect((await MDELETE(membersReq("DELETE", undefined, "?userId=peer"), ctx(teamId))).status).toBe(status);
+  });
+
+  it.each([
+    ["owner", 200],
+    ["admin", 403],
+    ["member", 403],
+  ] as const)("remove an administrator from the team: %s → %s", async (caller, status) => {
+    const teamId = await seedRoster();
+    H.user = { id: "owner" };
+    await MPOST(membersReq("POST", { userId: "admin2", role: "admin" }), ctx(teamId));
+    H.user = { id: caller };
+    expect((await MDELETE(membersReq("DELETE", undefined, "?userId=admin2"), ctx(teamId))).status).toBe(status);
+  });
+
+  it.each([
+    ["owner", 403],
+    ["admin", 403],
+    ["member", 403],
+  ] as const)("change their own role: %s → %s", async (caller, status) => {
+    const teamId = await seedRoster();
+    H.user = { id: caller };
+    const next = caller === "member" ? "admin" : "member";
+    expect((await MPATCH(membersReq("PATCH", { userId: caller, role: next }), ctx(teamId))).status).toBe(status);
+  });
+
+  it.each([
+    ["owner", 403],
+    ["admin", 200],
+    ["member", 200],
+  ] as const)("leave the team themselves: %s → %s", async (caller, status) => {
+    const teamId = await seedRoster();
+    H.user = { id: caller };
+    expect((await MDELETE(membersReq("DELETE", undefined, `?userId=${caller}`), ctx(teamId))).status).toBe(status);
+  });
+
+  it.each([
+    ["owner", true],
+    ["admin", true],
+    ["member", false],
+  ] as const)("write a team-scoped setting: %s allowed=%s", async (caller, allowed) => {
+    const teamId = await seedRoster();
+    const result = await writeSetting(transport.db as any, caller, {
+      scope: "workspace",
+      teamId,
+      key: "chart.density",
+      value: "compact",
+    });
+    if (allowed) {
+      expect(result.ok).toBe(true);
+    } else {
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.reason).toBe("forbidden");
+        expect(result.status).toBe(403);
+      }
+    }
+  });
+
+  it.each(callers)("change who the owner is / delete the team: %s cannot", async (caller) => {
+    const teamId = await seedRoster();
+    H.user = { id: caller };
+    expect((await MPATCH(membersReq("PATCH", { userId: "owner", role: "member" }), ctx(teamId))).status).toBe(403);
+    expect((await MDELETE(membersReq("DELETE", undefined, "?userId=owner"), ctx(teamId))).status).toBe(403);
+    expect(teamsMod.DELETE).toBeUndefined();
+    expect(teamsMod.PATCH).toBeUndefined();
   });
 });

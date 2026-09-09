@@ -61,11 +61,25 @@ describe("0019 team role changes migration contract", () => {
     expect(flat).not.toContain("is_admin");
   });
 
-  it("the three replaced 0014 policies are each dropped and recreated", () => {
+  it("the three replaced 0014 team_members policies are each dropped and recreated", () => {
     for (const name of ["tm_insert_admin", "tm_update_admin", "tm_delete_admin"]) {
       expect(flat).toContain(`drop policy if exists ${name} on public.team_members`);
       expect(flat).toContain(`create policy ${name} on public.team_members`);
     }
+  });
+
+  it("ti_insert_admin is replaced so an administrator cannot invite an administrator (T1)", () => {
+    expect(flat).toContain("drop policy if exists ti_insert_admin on public.team_invites");
+    expect(flat).toContain("create policy ti_insert_admin on public.team_invites");
+    expect(flat).toMatch(
+      /create policy ti_insert_admin on public\.team_invites\s+for insert to authenticated\s+with check \(\s*invited_by = auth\.uid\(\)\s+and \(\s*\(public\.team_role\(team_id\) = 'owner' and role in \('admin','member'\)\)\s+or \(public\.team_role\(team_id\) = 'admin' and role = 'member'\)/,
+    );
+  });
+
+  it("the audit trigger skips the insert when the subject account is already gone", () => {
+    expect(flat).toMatch(
+      /if tg_op = 'DELETE' and not exists \(select 1 from auth\.users where id = old\.user_id\) then\s+return old;/,
+    );
   });
 
   it("carries -- Ledger row: and -- Rollback: header lines", () => {

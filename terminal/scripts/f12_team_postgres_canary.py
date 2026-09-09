@@ -366,6 +366,43 @@ def main() -> int:
     g_member_conn = actor_connection(dsn, g_member)
     g_stranger_conn = actor_connection(dsn, g_stranger)
 
+    def member_writes_workspace_setting():
+        with g_member_conn.cursor() as cur:
+            cur.execute(
+                "insert into public.workspace_settings (scope, team_id, user_id, key, value)"
+                " values ('workspace', %s, %s, 'member_k', '\"x\"'::jsonb)",
+                (team_a, g_member),
+            )
+
+    proof.check(
+        "rls:member_cannot_write_workspace_setting",
+        expect_database_error(member_writes_workspace_setting, "42501"),
+        "a member INSERT into workspace_settings must raise 42501",
+    )
+
+    def admin_invites_admin():
+        with g_admin_conn.cursor() as cur:
+            cur.execute(
+                "insert into public.team_invites (team_id, email, role, token_hash, invited_by, expires_at)"
+                " values (%s,'peer-admin@a.example','admin',%s,%s, now() + interval '14 days')",
+                (team_a, hashlib.sha256(b"admininvite").hexdigest(), g_admin),
+            )
+
+    proof.check(
+        "rls:admin_cannot_invite_admin",
+        expect_database_error(admin_invites_admin, "42501"),
+        "an administrator INSERT of an admin-role invite must raise 42501",
+    )
+
+    with a_conn.cursor() as cur:
+        cur.execute(
+            "insert into public.team_invites (team_id, email, role, token_hash, invited_by, expires_at)"
+            " values (%s,'ok-admin@a.example','admin',%s,%s, now() + interval '14 days')",
+            (team_a, hashlib.sha256(b"owneradmininvite").hexdigest(), a_owner),
+        )
+        owner_invite_count = cur.rowcount
+    proof.check("rls:owner_can_invite_admin", owner_invite_count == 1, f"rowcount={owner_invite_count}")
+
     with admin.cursor() as cur:
         cur.execute(
             "select count(*) from public.team_role_changes where team_id=%s and subject_id=%s",

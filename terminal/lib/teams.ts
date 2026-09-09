@@ -69,6 +69,14 @@ function normalizeAddRole(value: unknown): TeamRole | null {
   return (ADD_ROLES as readonly string[]).includes(lowered) ? (lowered as TeamRole) : null;
 }
 
+/** PATCH nextRole: omitted, empty, or anything outside admin/member is invalid. Never default. */
+function normalizeChangeRole(value: unknown): TeamRole | null {
+  if (typeof value !== "string") return null;
+  const lowered = value.trim().toLowerCase();
+  if (!lowered) return null;
+  return (ADD_ROLES as readonly string[]).includes(lowered) ? (lowered as TeamRole) : null;
+}
+
 export function normalizeEmail(value: unknown): string | null {
   if (typeof value !== "string") return null;
   const trimmed = value.trim().toLowerCase();
@@ -405,7 +413,7 @@ export async function changeMemberRole(
   if (!roleResult.role) return failWrite("not_found", "team not found", 404, "team_not_found");
   if (roleResult.role === "member") return failWrite("forbidden", "not a member who can change roles", 403, "not_member");
 
-  const addRole = normalizeAddRole(nextRole);
+  const addRole = normalizeChangeRole(nextRole);
   if (!addRole) return failWrite("invalid", "invalid role", 400, "invalid_role");
 
   const target = await getCallerRole(db, targetUserId, teamId);

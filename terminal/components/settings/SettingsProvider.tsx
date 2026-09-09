@@ -71,7 +71,7 @@ function toAcsUser(u: {
   };
 }
 
-// Code-split: the panel and its six sections never load until the user opens
+// Code-split: the panel and its seven sections never load until the user opens
 // settings for the first time (mirrors OnboardingProvider's sheet).
 const SettingsPanel = dynamic(() => import("./SettingsPanel"), { ssr: false });
 

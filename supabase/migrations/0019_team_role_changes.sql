@@ -1,5 +1,5 @@
 -- Ledger row: 0019_team_role_changes / PR #550 (open, packet B-F12-8); not applied
--- Rollback: drop trigger if exists team_role_changes_log on public.team_members; drop function if exists public.log_team_role_change(); drop function if exists public.team_member_names(uuid); drop table if exists public.team_role_changes; -- then recreate tm_insert_admin / tm_update_admin / tm_delete_admin from 0014_tenancy_foundation.sql
+-- Rollback: drop trigger if exists team_role_changes_log on public.team_members; drop function if exists public.log_team_role_change(); drop function if exists public.team_member_names(uuid); drop table if exists public.team_role_changes; -- then recreate tm_insert_admin / tm_update_admin / tm_delete_admin / ti_insert_admin from 0014_tenancy_foundation.sql
 -- 0019: team role changes — audit log, tighter administrator grants, self-leave (packet B-F12-8).
 --
 -- ============================ MUST NOT BE APPLIED BY THIS PACKET ============================
@@ -59,6 +59,15 @@ create or replace function public.log_team_role_change() returns trigger
 begin
   if tg_op = 'UPDATE' and new.role is not distinct from old.role then
     return new;
+  end if;
+  -- 0014 cascades auth.users deletion into team_members. This AFTER DELETE trigger
+  -- would otherwise insert a log row whose subject_id is already gone, which raises
+  -- a foreign-key violation and aborts the account deletion (canary run 34346186331).
+  -- Skip the insert when the subject account no longer exists. Direct leave/remove
+  -- still writes a row because the subject is still in auth.users. Existing log rows
+  -- for that subject are dropped by subject_id ON DELETE CASCADE, per the table DDL.
+  if tg_op = 'DELETE' and not exists (select 1 from auth.users where id = old.user_id) then
+    return old;
   end if;
   insert into public.team_role_changes (team_id, subject_id, actor_id, old_role, new_role)
   values (
@@ -131,6 +140,20 @@ create policy tm_delete_admin on public.team_members
     )
   );
 
+-- Supersedes 0014_tenancy_foundation.sql ti_insert_admin.
+-- T1: only the owner may invite an administrator; an administrator may invite a member.
+-- invited_by must still be the caller. Still never 'owner' (column CHECK already forbids it).
+drop policy if exists ti_insert_admin on public.team_invites;
+create policy ti_insert_admin on public.team_invites
+  for insert to authenticated
+  with check (
+    invited_by = auth.uid()
+    and (
+      (public.team_role(team_id) = 'owner' and role in ('admin','member'))
+      or (public.team_role(team_id) = 'admin' and role = 'member')
+    )
+  );
+
 -- readback: run against the live project to confirm this migration is applied.
 --   select table_name from information_schema.tables
 --     where table_schema = 'public' and table_name = 'team_role_changes';
@@ -149,6 +172,11 @@ create policy tm_delete_admin on public.team_members
 --    where n.nspname = 'public' and c.relname = 'team_members'
 --      and polname in ('tm_insert_admin','tm_update_admin','tm_delete_admin')
 --    order by 1;
+--   select polname, polcmd, pg_get_expr(p.polwithcheck, p.polrelid)
+--     from pg_policy p
+--     join pg_class c on c.oid = p.polrelid
+--     join pg_namespace n on n.oid = c.relnamespace
+--    where n.nspname = 'public' and c.relname = 'team_invites' and polname = 'ti_insert_admin';
 --   select proname, prosecdef, pg_get_function_identity_arguments(oid)
 --     from pg_proc
 --    where pronamespace = 'public'::regnamespace
@@ -172,4 +200,7 @@ create policy tm_delete_admin on public.team_members
 --   drop policy if exists tm_delete_admin on public.team_members;
 --   create policy tm_delete_admin on public.team_members for delete to authenticated
 --     using (public.team_role(team_id) in ('owner','admin') and role <> 'owner');
+--   drop policy if exists ti_insert_admin on public.team_invites;
+--   create policy ti_insert_admin on public.team_invites for insert to authenticated
+--     with check (public.team_role(team_id) in ('owner','admin') and invited_by = auth.uid());
 --   -- WARNING: dropping team_role_changes destroys the audit log. Prefer leaving the table in place.

@@ -139,6 +139,36 @@ async function openTeam(page, lang, viewport) {
   await stripDevOverlay(page);
 }
 
+async function assertDeliveryInView(page, file) {
+  const delivery = page.locator(".acs-team-delivery");
+  await delivery.waitFor({ state: "visible", timeout: 10_000 });
+  await page.getByText("pending@example.com").waitFor({ state: "visible", timeout: 10_000 });
+  const inView = await page.evaluate(() => {
+    const body = document.querySelector(".acs-overlay.open .acs-body");
+    const note = document.querySelector(".acs-team-delivery");
+    const row = Array.from(document.querySelectorAll(".acs-row")).find((el) =>
+      (el.textContent || "").includes("pending@example.com"),
+    );
+    if (!body || !note || !row) return { ok: false, reason: "missing" };
+    const br = body.getBoundingClientRect();
+    const visible = (r) => r.bottom > br.top + 4 && r.top < br.bottom - 4;
+    const nr = note.getBoundingClientRect();
+    const rr = row.getBoundingClientRect();
+    return {
+      ok: visible(nr) && visible(rr),
+      noteTop: nr.top,
+      noteBottom: nr.bottom,
+      rowTop: rr.top,
+      rowBottom: rr.bottom,
+      bodyTop: br.top,
+      bodyBottom: br.bottom,
+    };
+  });
+  if (!inView.ok) {
+    throw new Error(`${file}: pending invitation or no_email_delivery sentence is clipped (${JSON.stringify(inView)})`);
+  }
+}
+
 async function measureLayout(page) {
   return page.evaluate(() => {
     const badges = Array.from(document.querySelectorAll(".acs-role-badge")).map((el) => (el.textContent || "").trim());
@@ -191,11 +221,13 @@ async function main() {
         page.setDefaultTimeout(45_000);
         try {
           await openTeam(page, shot.lang, VIEWPORTS[shot.viewport]);
+          await assertDeliveryInView(page, shot.file);
           if (shot.change) {
             const control = page.locator(".acs-team-change-role").first();
             await control.waitFor({ state: "visible", timeout: 10_000 });
-            await control.scrollIntoViewIfNeeded();
+            await control.evaluate((el) => el.scrollIntoView({ block: "nearest", inline: "nearest" }));
             await page.waitForTimeout(200);
+            await assertDeliveryInView(page, shot.file);
           }
           const m = await measureLayout(page);
           measurements[shot.file] = m;

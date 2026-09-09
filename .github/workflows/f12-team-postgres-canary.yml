@@ -4,8 +4,9 @@ on:
   pull_request:
     paths:
       # 0015's accept_team_invite/workspace_settings build on 0014's teams/team_members/
-      # team_invites, and the canary applies 0001..0015 in order against a real Postgres --
-      # 0014 is included so a change there also re-runs this canary (round-3 review minor).
+      # team_invites, and the canary applies 0001..0019 in order against a real Postgres
+      # (0017 is applied when present; 0018 is reserved for F12-7). 0014 is included so a
+      # change there also re-runs this canary (round-3 review minor).
       - "supabase/migrations/0014_tenancy_foundation.sql"
       - "supabase/migrations/0015_team_roles_invitations.sql"
       - "supabase/migrations/0016_account_lifecycle_requests.sql"
