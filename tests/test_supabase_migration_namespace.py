@@ -1360,15 +1360,34 @@ def test_ci_wires_the_pull_request_number_into_the_pytest_step():
     assert pytest_steps, "the python job must still run the whole tests/ suite"
 
     for step in pytest_steps:
-        assert step.get("env", {}).get("PR_NUMBER") == "${{ github.event.pull_request.number }}", (
-            "the pytest step must pass the running pull request's number through as PR_NUMBER, "
-            "or the pull-request mode of the namespace guard can never engage"
+        assert step.get("env", {}).get("PR_NUMBER") == (
+            "${{ github.event.pull_request.number || inputs.pr_number }}"
+        ), (
+            "the pytest step must pass the running pull request's number through as PR_NUMBER -- "
+            "from the pull_request event, or from the workflow_dispatch input merge-on-green "
+            "fills in -- or the pull-request mode of the namespace guard can never engage"
         )
         # Nothing else, and no new authority: the guard needs one number, not a token.
         assert set(step["env"]) == {"PR_NUMBER"}, step["env"]
 
+    # `on:` parses to the YAML boolean True under safe_load (the "Norway problem"
+    # for `on`), so read it that way rather than by the string key.
+    triggers = workflow.get(True, workflow.get("on"))
+    dispatch = triggers["workflow_dispatch"]
+    assert isinstance(dispatch, dict), (
+        "workflow_dispatch must declare the pr_number input, or the run merge-on-green orders "
+        "for a refreshed head has no way to learn which pull request it is proving "
+        "(round 4, MAJOR 2)"
+    )
+    pr_input = dispatch["inputs"]["pr_number"]
+    assert pr_input.get("type") == "string", pr_input
+    assert pr_input.get("required") is not True, (
+        "the input must stay optional -- a hand-run dispatch that omits it is LENIENT, not broken"
+    )
+    assert pr_input.get("default", "") == "", pr_input
+
     assert workflow.get("permissions") == {"contents": "read"}, (
-        "round 3 must not widen candidate-CI authority"
+        "rounds 3 and 4 must not widen candidate-CI authority"
     )
 
 
@@ -1519,3 +1538,207 @@ def test_every_present_prefix_records_its_application_status_on_the_real_tree():
         # A null is only honest when the row says why it is null.
         if entry["applied_in_production"] is None or entry["applied_date"] is None:
             assert "not recorded" in entry["note"], prefix
+
+
+# --- 30 (review round 4, MAJOR 1: the applied fields must agree with each other)
+#
+# Round 3 required the two `applied_*` keys to be PRESENT. The body then claimed
+# more than the code carried -- "a half-filled entry (flag without date, or the
+# reverse) is also a finding" -- which was true only when a key was absent
+# entirely. `applied_in_production: true` beside `applied_date: null` passed
+# unexamined, which is the exact shape 0001-0007 ship in. The rule the body
+# claimed now exists, and it is the rule that keeps 0001-0007 legitimate: the
+# combination is fine when the row SAYS why the date is missing.
+
+
+def test_applied_true_with_a_null_date_and_no_note_is_half_filled():
+    doc = _applied_doc(applied_in_production=True, applied_date=None, note="")
+    findings = check_applied_fields_for_present_files(["0013_alert_runs_outbox.sql"], doc)
+    assert any(
+        f.code == "APPLIED_FIELDS_HALF_FILLED" and f.prefix == "0013" for f in findings
+    ), format_report(findings, [])
+
+    # A missing note field, not merely a blank one, is the same defect.
+    doc = _applied_doc(applied_in_production=True, applied_date=None)
+    del doc["prefixes"]["0013"]["note"]
+    findings = check_applied_fields_for_present_files(["0013_alert_runs_outbox.sql"], doc)
+    assert any(f.code == "APPLIED_FIELDS_HALF_FILLED" for f in findings), format_report(findings, [])
+
+
+def test_an_applied_date_without_a_true_flag_is_half_filled():
+    """The other direction: a date is the record of an application that happened.
+    Carrying one while the flag says false, or says nothing, is a row that
+    contradicts itself, and no note reconciles it.
+    """
+    for flag in (False, None):
+        doc = _applied_doc(
+            applied_in_production=flag,
+            applied_date="2026-09-07",
+            note="a note cannot make a date and a not-applied flag agree",
+        )
+        findings = check_applied_fields_for_present_files(["0013_alert_runs_outbox.sql"], doc)
+        assert any(
+            f.code == "APPLIED_FIELDS_HALF_FILLED" for f in findings
+        ), f"{flag!r}: {format_report(findings, [])}"
+
+
+def test_the_0001_0007_shape_true_date_null_with_a_note_stays_clean():
+    """The legitimate half-filled row, which the new rule must NOT break:
+    README.md's application table records 0001-0007 as in production and records
+    no date, so the honest entry is true + null + a note saying why. Guessing a
+    date to satisfy the rule would be strictly worse than the gap it fills.
+    """
+    doc = _applied_doc(
+        applied_in_production=True,
+        applied_date=None,
+        note=(
+            "predates the reservation law; applied in production per README.md's application "
+            "table, which records no date (null, not recorded, never guessed)"
+        ),
+    )
+    assert check_applied_fields_for_present_files(["0013_alert_runs_outbox.sql"], doc) == []
+
+
+def test_check_all_wires_the_half_filled_rule():
+    doc = _applied_doc(applied_in_production=True, applied_date=None, note="")
+    texts = {"0013_alert_runs_outbox.sql": "-- fixture\n"}
+    findings = check_all(["0013_alert_runs_outbox.sql"], texts, doc)
+    assert any(f.code == "APPLIED_FIELDS_HALF_FILLED" for f in findings), format_report(findings, [])
+
+
+def test_the_real_0001_0007_rows_are_clean_under_the_half_filled_rule():
+    """The acceptance on the real ledger: the seven rows the body points at as the
+    legitimate shape produce no finding, and every other present prefix is clean
+    too.
+    """
+    doc = load_reservations(RESERVATIONS_PATH)
+    on_disk = sorted(p.name for p in MIGRATIONS_DIR.glob("*.sql"))
+
+    historical = [n for n in on_disk if (parse_prefix(n) or "") in
+                  {"0001", "0002", "0003", "0004", "0005", "0006", "0007"}]
+    assert historical, "0001-0007 must be present in this checkout for this test to mean anything"
+    for name in historical:
+        entry = doc["prefixes"][parse_prefix(name)]
+        assert entry["applied_in_production"] is True and entry["applied_date"] is None, name
+        assert isinstance(entry["note"], str) and entry["note"].strip(), name
+
+    findings = check_applied_fields_for_present_files(on_disk, doc)
+    assert [f for f in findings if f.code == "APPLIED_FIELDS_HALF_FILLED"] == [], format_report(
+        findings, []
+    )
+
+
+# --- 31 (review round 4, MAJOR 2: the dispatched run that actually gates a
+#         refreshed head must be able to earn PULL_REQUEST mode) ---------------
+#
+# scripts/merge_on_green.py refreshes a stale branch with GITHUB_TOKEN and then
+# dispatches ci.yml, because a token-authored branch update fires no recursive
+# pull_request workflow. That dispatched run is therefore the ONLY CI run for the
+# sha that then merges -- and on a workflow_dispatch
+# `github.event.pull_request.number` is empty, so the guard fell to LENIENT on
+# exactly the gating run. ci.yml now carries a `pr_number` input, merge-on-green
+# passes it, and the resolver accepts it.
+
+
+def test_workflow_dispatch_with_a_pr_number_earns_pull_request_mode():
+    strict, pr, mode = resolve_run_mode(
+        {"GITHUB_EVENT_NAME": "workflow_dispatch", "PR_NUMBER": "543"}
+    )
+    assert (strict, pr) == (False, 543)
+    assert "PULL_REQUEST" in mode and "543" in mode
+    assert pull_request_number({"GITHUB_EVENT_NAME": "workflow_dispatch", "PR_NUMBER": "543"}) == 543
+
+
+def test_workflow_dispatch_without_a_pr_number_stays_lenient_and_says_so():
+    """A hand-run dispatch is not broken, it is unproven -- and the mode line has
+    to name that case specifically, so a reader of a CI log is never left thinking
+    the pull-request rule ran when it did not.
+    """
+    for env in (
+        {"GITHUB_EVENT_NAME": "workflow_dispatch"},
+        {"GITHUB_EVENT_NAME": "workflow_dispatch", "PR_NUMBER": ""},
+        {"GITHUB_EVENT_NAME": "workflow_dispatch", "PR_NUMBER": "   "},
+        {"GITHUB_EVENT_NAME": "workflow_dispatch", "PR_NUMBER": "not-a-number"},
+    ):
+        strict, pr, mode = resolve_run_mode(env)
+        assert (strict, pr) == (False, None), env
+        assert "LENIENT" in mode and "workflow_dispatch" in mode and "PR_NUMBER" in mode, mode
+        assert pull_request_number(env) is None, env
+
+
+def test_pr_number_zero_is_not_a_pull_request():
+    """`${{ github.event.pull_request.number || inputs.pr_number }}` renders an
+    unset number as an empty string, but a hand-typed 0 must not be mistaken for a
+    pull request either: no pull request is #0.
+    """
+    for event in ("pull_request", "workflow_dispatch"):
+        env = {"GITHUB_EVENT_NAME": event, "PR_NUMBER": "0"}
+        assert pull_request_number(env) is None, event
+        strict, pr, mode = resolve_run_mode(env)
+        assert (strict, pr) == (False, None) and "LENIENT" in mode, event
+
+
+def test_a_dispatch_number_still_cannot_forge_master_scope():
+    """PULL_REQUEST is not STRICT. The dispatch path widens which runs can assert
+    the rule; it must not widen WHICH rule they assert.
+    """
+    strict, pr, mode = resolve_run_mode(
+        {"GITHUB_EVENT_NAME": "workflow_dispatch", "PR_NUMBER": "543", "GITHUB_REF_NAME": "master"}
+    )
+    assert strict is False and pr == 543 and "STRICT" not in mode
+
+
+# --- 32 (review round 4, MAJOR 3: the redaction scan must see .sql bodies) ----
+#
+# The exact-value scan was handed only the sibling *.md texts, so the one file
+# class this very pull request had to hand-redact -- the migration .sql bodies --
+# was the surface the new control could not see. `texts` was already in hand at
+# the call site.
+
+
+def test_sql_bodies_are_scanned_for_the_literal_ref():
+    doc = reservations_doc()  # project_ref is SYNTHETIC_PROJECT_REF
+    leaky = {"0099_leaky.sql": f"-- project {SYNTHETIC_PROJECT_REF}\nSELECT 1;\n"}
+    findings = check_no_literal_project_ref(doc, None, leaky)
+    assert any(f.code == "LITERAL_PROJECT_REF_IN_DOC" for f in findings), format_report(findings, [])
+    detail = next(f.detail for f in findings if f.code == "LITERAL_PROJECT_REF_IN_DOC")
+    assert "0099_leaky.sql" in detail
+    assert SYNTHETIC_PROJECT_REF not in detail  # names the file, never the token
+
+    clean = {"0099_leaky.sql": "-- project {ref}\nSELECT 1;\n"}
+    assert check_no_literal_project_ref(doc, None, clean) == []
+
+
+def test_collect_catches_the_real_ref_planted_in_a_sql_body(tmp_path):
+    """The wiring, end to end, against the value that actually matters.
+
+    The ref is read from the real ledger at runtime, written into a throwaway .sql
+    under pytest's tmp_path, and compared programmatically. It is never printed:
+    no assertion message, no finding detail and no report line carries it, which
+    this test also checks.
+    """
+    real = load_reservations(RESERVATIONS_PATH)["project_ref"]
+    (tmp_path / "0099_leaky_fixture.sql").write_text(
+        f"-- Ledger row: 0099\n-- project {real}\nSELECT 1;\n", encoding="utf-8"
+    )
+
+    findings, notes = collect(migrations_dir=tmp_path, reservations=RESERVATIONS_PATH)
+    leaks = [f for f in findings if f.code == "LITERAL_PROJECT_REF_IN_DOC"]
+    assert leaks, "a .sql spelling the project ref out in full must be a finding"
+    assert any("0099_leaky_fixture.sql" in f.detail for f in leaks)
+    assert all(real not in f.detail for f in findings)
+    assert real not in format_report(findings, notes)
+
+
+def test_real_migration_sql_bodies_carry_no_literal_ref():
+    """Same rule, run against the real supabase/migrations/*.sql on this tree --
+    the two files this pull request hand-redacted included.
+    """
+    doc = load_reservations(RESERVATIONS_PATH)
+    sql_texts = {
+        p.name: p.read_text(encoding="utf-8", errors="replace")
+        for p in sorted(MIGRATIONS_DIR.glob("*.sql"))
+    }
+    assert sql_texts, "no .sql files found -- a wrong path would make this vacuously pass"
+    findings = check_no_literal_project_ref(doc, None, sql_texts)
+    assert findings == [], sorted({f.prefix for f in findings})

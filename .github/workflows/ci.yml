@@ -6,6 +6,18 @@ on:
   # not recursively emit pull_request workflows, so the controller dispatches
   # this same proof explicitly on the refreshed branch.
   workflow_dispatch:
+    inputs:
+      # That dispatched run is the ONLY CI run for the sha that then merges, so
+      # the migration-namespace guard has to be able to earn PULL_REQUEST mode in
+      # it. github.event.pull_request.number does not exist on a dispatch, so the
+      # controller passes the number it already knows (scripts/merge_on_green.py,
+      # dispatch_ci). Optional: a hand-run dispatch that omits it stays LENIENT
+      # and the guard's printed mode line says exactly that.
+      pr_number:
+        description: "Pull request number this run is proving (blank for a plain branch run)"
+        type: string
+        required: false
+        default: ''
 
 # Candidate code receives only the repository read authority needed by checkout.
 # Privileged merge reconciliation remains isolated in merge-on-green.yml.
@@ -215,6 +227,10 @@ jobs:
       # only from a push to master, which no workflow here triggers. It is a
       # number, not a credential, and it widens no authority: this step gains
       # exactly one environment variable and nothing else.
+      # The `|| inputs.pr_number` half covers the workflow_dispatch path
+      # merge-on-green takes after refreshing a stale branch (round 4, MAJOR 2):
+      # on that trigger github.event.pull_request.number is empty, and that
+      # dispatched run is the only CI run for the sha that merges.
       - run: python -m pytest tests/ -q
         env:
-          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}

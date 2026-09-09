@@ -99,6 +99,11 @@ PROJECT_REF_RE = re.compile(r"(?<![a-z0-9])[a-z0-9]{20}(?![a-z0-9])")
 
 REQUIRED_KEYS = {"state", "file", "packet", "pr", "pr_state", "note"}
 
+# Event names that can PROVE pull-request scope when a number comes with them.
+# `workflow_dispatch` is here because it is the trigger merge-on-green uses for the
+# refreshed head that actually merges (see pull_request_number).
+PR_SCOPED_EVENTS = ("pull_request", "workflow_dispatch")
+
 # Keys that answer "is this migration applied in production?". Required to be
 # PRESENT on every entry whose .sql is in the checkout; an explicit null is a
 # legitimate value (see check_applied_fields_for_present_files).
@@ -287,8 +292,9 @@ def is_master_push(env: "Mapping[str, str] | None" = None) -> bool:
     The open-while-present rule (see `check_open_pr_state_for_present_files`) is a
     master-scope property, so it must not be asserted on a pull-request checkout.
     GitHub Actions sets both of these; anything else -- a local run, a
-    `pull_request` event, a `workflow_dispatch` on a branch -- reads as False and
-    gets the lenient rule set.
+    `pull_request` event, a `workflow_dispatch` on a branch -- reads as False here
+    and never earns STRICT. Which of the two remaining modes it then earns is
+    `resolve_run_mode`'s question, not this one's.
     """
     env = os.environ if env is None else env
     return env.get("GITHUB_EVENT_NAME") == "push" and env.get("GITHUB_REF_NAME") == "master"
@@ -297,15 +303,27 @@ def is_master_push(env: "Mapping[str, str] | None" = None) -> bool:
 def pull_request_number(env: "Mapping[str, str] | None" = None) -> "int | None":
     """The number of the pull request this run belongs to, or None.
 
-    Both halves must be present: `GITHUB_EVENT_NAME=pull_request` proves the event,
-    and `PR_NUMBER` (wired to `github.event.pull_request.number` in the pytest step
-    of `.github/workflows/ci.yml`) carries the number. An event name with no usable
-    number proves the scope but not WHICH pull request owns the branch, which is the
-    whole content of the rule -- so it reads as None and the run falls back to the
-    lenient default rather than inventing an owner.
+    Both halves must be present: the event name proves the SCOPE and `PR_NUMBER`
+    carries the NUMBER. Two event names can prove pull-request scope:
+
+      * `pull_request` -- `PR_NUMBER` is wired to `github.event.pull_request.number`
+        in the pytest step of `.github/workflows/ci.yml`;
+      * `workflow_dispatch` -- `PR_NUMBER` comes from the workflow's own
+        `pr_number` input. This is the path `scripts/merge_on_green.py` takes after
+        it refreshes a stale branch: a GITHUB_TOKEN-authored branch update fires no
+        recursive `pull_request` workflow, so the dispatched run is the ONLY run for
+        the sha that then merges. Without the number that gating run fell to
+        LENIENT and the packet's one enforcement rule was inert on exactly the head
+        that merges (review round 4, MAJOR 2).
+
+    An event name with no usable number proves the scope but not WHICH pull request
+    owns the branch, which is the whole content of the rule -- so it reads as None
+    and the run falls back to the lenient default rather than inventing an owner.
+    The number must be a POSITIVE integer: `PR_NUMBER: 0` is what an unset
+    `github.event.pull_request.number` renders as, and no pull request is #0.
     """
     env = os.environ if env is None else env
-    if env.get("GITHUB_EVENT_NAME") != "pull_request":
+    if env.get("GITHUB_EVENT_NAME") not in PR_SCOPED_EVENTS:
         return None
     raw = env.get("PR_NUMBER")
     if not isinstance(raw, str):
@@ -313,7 +331,8 @@ def pull_request_number(env: "Mapping[str, str] | None" = None) -> "int | None":
     raw = raw.strip()
     if not raw.isdigit():
         return None
-    return int(raw)
+    number = int(raw)
+    return number if number > 0 else None
 
 
 def resolve_run_mode(
@@ -341,6 +360,15 @@ def resolve_run_mode(
             None,
             "LENIENT (pull_request event with no usable PR_NUMBER -- the ci.yml step env "
             "is missing or empty, so which pull request owns this branch is unproven)",
+        )
+
+    if env.get("GITHUB_EVENT_NAME") == "workflow_dispatch":
+        return (
+            False,
+            None,
+            "LENIENT (workflow_dispatch with no usable PR_NUMBER -- the run was ordered "
+            "without the 'pr_number' input, so which pull request owns this branch is "
+            "unproven; scripts/merge_on_green.py passes it, a hand-run dispatch may not)",
         )
 
     return False, None, "LENIENT (no proven master push or pull request)"
@@ -590,7 +618,22 @@ def check_applied_fields_for_present_files(
     an explicit `null` plus a note saying it was not recorded -- the same
     honest-nulls law the rest of this ledger runs on. Inventing a date to satisfy
     a required key would be strictly worse than the gap it closes, so the check
-    deliberately does not judge the values.
+    never demands a particular value.
+
+    It does, however, judge the two keys AGAINST EACH OTHER, because a row that
+    answers one half and silently drops the other has not recorded the fact
+    either (`APPLIED_FIELDS_HALF_FILLED`, review round 4, MAJOR 1 -- the body
+    claimed this rule before the code carried it). Two shapes are half-filled:
+
+      * `applied_in_production: true` with `applied_date: null` and NO note. The
+        combination is legitimate -- `0001`-`0007` are in production per
+        README.md's application table, which records no date for them -- but only
+        when the row SAYS why the date is missing. An unexplained null is
+        indistinguishable from a forgotten one.
+      * an `applied_date` set while `applied_in_production` is anything but true.
+        A date is the record of an application that happened; carrying one while
+        the flag says otherwise (or says nothing) is a contradiction inside one
+        row, and no note makes it consistent.
 
     Join direction is the module's usual one, on-disk file -> ledger entry: a
     `reserved` prefix, or a `taken` one whose pull request has not merged, has
@@ -617,6 +660,31 @@ def check_applied_fields_for_present_files(
                     f"{missing} -- every present migration must record whether it is applied in "
                     "production. Copy the fact from README.md's application table, or write an "
                     "explicit null with a note saying it was not recorded; never guess a date",
+                )
+            )
+            continue  # the combination rule below has nothing to read yet
+
+        applied = entry.get("applied_in_production")
+        date = entry.get("applied_date")
+        if applied is True and date is None and not _non_empty_str(entry.get("note")):
+            findings.append(
+                Finding(
+                    "APPLIED_FIELDS_HALF_FILLED",
+                    prefix,
+                    f"'{name}' records applied_in_production=true with applied_date=null and no "
+                    "note -- an undated application is legitimate only when the row says why the "
+                    "date is unknown (0001-0007 do). Add the note, or the date; never guess one",
+                )
+            )
+        elif date is not None and applied is not True:
+            findings.append(
+                Finding(
+                    "APPLIED_FIELDS_HALF_FILLED",
+                    prefix,
+                    f"'{name}' carries an applied_date while applied_in_production is "
+                    f"{applied!r} -- a date is the record of an application that happened, so the "
+                    "two halves of this row contradict each other. Set the flag true, or drop the "
+                    "date",
                 )
             )
 
@@ -681,6 +749,7 @@ def check_reservation_contiguity(doc: dict) -> list[Finding]:
 def check_no_literal_project_ref(
     doc: dict,
     sibling_texts: "Mapping[str, str] | None" = None,
+    migration_texts: "Mapping[str, str] | None" = None,
 ) -> list[Finding]:
     """The literal Supabase project ref belongs in exactly one place.
 
@@ -690,14 +759,22 @@ def check_no_literal_project_ref(
       * every field of every entry under `prefixes`, against the ref SHAPE
         (`PROJECT_REF_RE`), so a note repeating any ref-looking token is caught
         even if it is not this project's ref;
-      * every sibling document handed in via `sibling_texts` -- README.md and any
-        other `*.md` beside the ledger -- against the ledger's OWN `project_ref`
-        value. Prose cannot be matched on shape without false positives, and the
-        exact-value comparison has none. Before this, README.md could spell the
-        ref out in full and this guard stayed green (review round 2, FIX-1).
+      * every document body handed in -- the `*.md` beside the ledger via
+        `sibling_texts`, and every migration `.sql` via `migration_texts` --
+        against the ledger's OWN `project_ref` value. Prose cannot be matched on
+        shape without false positives, and the exact-value comparison has none.
+        Before this, README.md could spell the ref out in full and this guard
+        stayed green (review round 2, FIX-1).
 
-    Neither branch ever puts the value into a Finding: the detail names the file
-    and the field, never the token, because these findings are printed into CI logs.
+    The `.sql` half was added in review round 4 (MAJOR 3). It is the empirically
+    demonstrated leak vector: the very pull request that introduced this guard had
+    to hand-redact the ref out of `0007_portfolio_positions.sql` and
+    `0008_chart_layouts_unique_name.sql`, and until now that one file class was the
+    surface the control could not see -- the next migration could have spelled the
+    reference out in full with CI green.
+
+    No branch ever puts the value into a Finding: the detail names the file and the
+    field, never the token, because these findings are printed into CI logs.
     """
     findings: list[Finding] = []
     prefixes = doc.get("prefixes", {}) if isinstance(doc, dict) else {}
@@ -718,13 +795,16 @@ def check_no_literal_project_ref(
 
     real_ref = doc.get("project_ref") if isinstance(doc, dict) else None
     if _non_empty_str(real_ref):
-        for name, text in sorted((sibling_texts or {}).items()):
+        scanned: dict[str, str] = {}
+        scanned.update(sibling_texts or {})
+        scanned.update(migration_texts or {})
+        for name, text in sorted(scanned.items()):
             if isinstance(text, str) and real_ref in text:
                 findings.append(
                     Finding(
                         "LITERAL_PROJECT_REF_IN_DOC",
-                        None,
-                        f"'{name}' (beside RESERVATIONS.json) spells out the literal Supabase "
+                        parse_prefix(name),
+                        f"'{name}' (under supabase/migrations/) spells out the literal Supabase "
                         "project ref -- write '{ref}' instead; the ledger's top-level "
                         "'project_ref' field is the only sanctioned copy",
                     )
@@ -748,7 +828,9 @@ def check_all(
     # violation stays invisible (minor finding, review round 2).
     findings.extend(validate_reservations(doc))
     findings.extend(check_reservation_contiguity(doc))
-    findings.extend(check_no_literal_project_ref(doc, sibling_texts))
+    # `texts` (the migration .sql bodies) is already in hand here, and .sql is
+    # where the leak actually happened -- so it is scanned too (round 4, MAJOR 3).
+    findings.extend(check_no_literal_project_ref(doc, sibling_texts, texts))
 
     if not filenames:
         findings.append(Finding("MIGRATIONS_DIR_EMPTY", None, "no .sql migrations found -- a wrong path would make every other check vacuously pass"))
