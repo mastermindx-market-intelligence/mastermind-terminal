@@ -1917,7 +1917,7 @@ export const LEX: Record<string, [string, string]> = {
   acsAlertQhHint: ["No emails are sent during this window. Alerts wait and are sent when the window ends.", "这段时间不会发送任何邮件。提醒会等待，在时段结束后发送。"],
   acsAlertQhStart: ["Start", "开始"],
   acsAlertQhEnd: ["End", "结束"],
-  acsAlertQhClock: ["Times follow your device's clock format.", "时间显示跟随你设备的时钟格式。"],
+  acsAlertQhClock: ["Times are shown on a 24-hour clock. While you edit, the control follows your device's clock format.", "时间以 24 小时制显示；编辑时，控件会跟随你设备的时钟格式。"],
   acsAlertQhNotSet: ["Not set", "未设置"],
   acsAlertQhPartial: ["Not saved yet. Both times are needed.", "尚未保存，需要填写开始和结束时间。"],
   acsAlertQhClear: ["Turn quiet hours off", "关闭免打扰时段"],

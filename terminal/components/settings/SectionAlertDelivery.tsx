@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { identityOwnerKey, isAccountOwner } from "@/lib/accountIdentity";
-import { curatedTimeZones, timeZoneLabel } from "@/lib/plainLabels";
+import { canonicalTimeZone, curatedTimeZones, timeZoneLabel } from "@/lib/plainLabels";
 import { DeliveryNote, Group, IconCheck, Msg, Row, SectionHead } from "./icons";
 import type { SectionProps } from "./types";
 
@@ -56,13 +56,18 @@ const IDLE_ROWS: Rows = {
   quiet_hours: IDLE_ROW,
 };
 
-// An empty <input type="time"> paints the browser's own "--:-- --" — machine
-// text, and untranslated on the Chinese surface. While the field is empty and
-// unfocused, plain words cover it; focusing to type reveals the control
-// unchanged. These live here rather than in app/settings.css because that sheet
-// is pinned by another packet's evidence lock (b-f12-5-account-polish).
+// A native <input type="time"> paints the device's own clock format: "--:-- --"
+// when it is empty, and "10:00 PM" for a stored "22:00" wherever the device is
+// set to a 12-hour clock — machine text in the first case, an English meridiem
+// token on the Chinese surface in the second. While the half is NOT being
+// edited, plain text covers the control: the stored 24-hour value when there is
+// one, "Not set" / "未设置" when there is not. Focusing to type reveals the
+// native control unchanged, which is the one moment the device's own format is
+// the right answer (the reader is using their own keyboard and clock). These
+// live here rather than in app/settings.css because that sheet is pinned by
+// another packet's evidence lock (b-f12-5-account-polish).
 const TIME_SLOT: CSSProperties = { position: "relative", display: "block" };
-const TIME_EMPTY: CSSProperties = {
+const TIME_COVER: CSSProperties = {
   position: "absolute",
   inset: 1,
   display: "flex",
@@ -70,11 +75,12 @@ const TIME_EMPTY: CSSProperties = {
   padding: "0 11px",
   borderRadius: 8,
   background: "var(--inset)",
-  color: "var(--text-2)",
   fontSize: "13.5px",
   fontFamily: "var(--font-ui)",
   pointerEvents: "none",
 };
+const TIME_VALUE: CSSProperties = { ...TIME_COVER, color: "var(--text)" };
+const TIME_EMPTY: CSSProperties = { ...TIME_COVER, color: "var(--text-2)" };
 
 function asKnownCats(raw: unknown): KnownCat[] {
   if (!Array.isArray(raw)) return [];
@@ -152,6 +158,17 @@ export default function SectionAlertDelivery({ t, lang, identity, onClose }: Sec
   const [qhFocus, setQhFocus] = useState<"start" | "end" | null>(null);
 
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // One counter per field. A save takes the counter's next number for each key
+  // it writes; when its response lands, a key whose counter has since moved on
+  // belongs to an overtaken request. Such a response never rolls a control back,
+  // never paints a status and never leaves a note — the newer save owns the
+  // field, and the account holds what that newer save stored.
+  const seq = useRef<Record<FieldKey, number>>({
+    alert_email_optin: 0,
+    alert_categories: 0,
+    tz: 0,
+    quiet_hours: 0,
+  });
   const qhDraft = useRef<QuietHours>({ start: "", end: "" });
   // The quiet-hours last-known-good is captured when an editing session opens,
   // not on each keystroke, so a debounced pair of edits rolls back to the value
@@ -235,6 +252,13 @@ export default function SectionAlertDelivery({ t, lang, identity, onClose }: Sec
   async function post(patch: Partial<Record<FieldKey, unknown>>, snap: Partial<AlertState>) {
     const keys = (Object.keys(patch) as FieldKey[]).filter(isFieldKey);
     if (keys.includes("quiet_hours")) qhSnap.current = null;
+    const mine: Partial<Record<FieldKey, number>> = {};
+    for (const k of keys) {
+      seq.current[k] += 1;
+      mine[k] = seq.current[k];
+    }
+    /** True once a later save for any of these keys has been fired. */
+    const overtaken = () => keys.some((k) => seq.current[k] !== mine[k]);
     markRows(keys, { phase: "syncing", touched: true, failed: false });
     setFieldErr(null);
     try {
@@ -252,8 +276,14 @@ export default function SectionAlertDelivery({ t, lang, identity, onClose }: Sec
         setRows(IDLE_ROWS);
         return;
       }
+      // A 401 is about the session, not about this field, so it is handled
+      // above whatever else has happened since. Everything below repaints a
+      // control the reader may have changed again; an overtaken save says
+      // nothing at all.
+      if (overtaken()) return;
       let body: { ok?: boolean; prefs?: Record<string, unknown>; detail?: unknown } | null = null;
       try { body = await res.json(); } catch { body = null; }
+      if (overtaken()) return;
       if (res.status === 200 && body?.ok) {
         const prefs = body.prefs && typeof body.prefs === "object" ? body.prefs : {};
         let quiet: QuietHours | null | undefined;
@@ -289,7 +319,7 @@ export default function SectionAlertDelivery({ t, lang, identity, onClose }: Sec
       rollback(keys, snap);
       markRows(keys, { phase: "idle", failed: true });
     } catch {
-      if (!alive.current) return;
+      if (!alive.current || overtaken()) return;
       rollback(keys, snap);
       markRows(keys, { phase: "idle", failed: true });
     }
@@ -351,13 +381,19 @@ export default function SectionAlertDelivery({ t, lang, identity, onClose }: Sec
   };
 
   // The picker offers the curated list and nothing else, so no option can be an
-  // identifier. When the account is already set to a zone the list does not
-  // carry, exactly one extra option holds that value — labelled in words, so
-  // the setting is neither lost nor rendered raw.
+  // identifier. A stored zone that is an older IANA spelling of a curated one
+  // (Asia/Calcutta for Asia/Kolkata, Etc/UTC for UTC) shows as its curated twin
+  // — one option per place, and the one the account holds is the one selected.
+  // The stored value is left exactly as macro has it until the reader picks
+  // something; nothing here rewrites the account. Only a zone that is neither
+  // curated nor an alias of one gets an extra option, labelled in words, so the
+  // setting is neither lost nor rendered raw.
+  const tzShown = state.tz ? canonicalTimeZone(state.tz) : "";
   const tzOptions = useMemo(() => {
     const now = new Date();
     const curated = curatedTimeZones(lang);
-    const list = state.tz && !curated.includes(state.tz) ? [state.tz, ...curated] : curated;
+    const shown = state.tz ? canonicalTimeZone(state.tz) : "";
+    const list = shown && !curated.includes(shown) ? [shown, ...curated] : curated;
     return list.map((z) => ({ value: z, label: timeZoneLabel(z, lang, now) }));
   }, [lang, state.tz]);
 
@@ -429,10 +465,14 @@ export default function SectionAlertDelivery({ t, lang, identity, onClose }: Sec
                 className="acs-in"
                 data-alert-field="tz"
                 aria-label={t("acsAlertTz")}
-                value={state.tz}
+                value={tzShown}
                 onChange={(e) => pickTz(e.target.value)}
               >
-                <option value="">{t("acsAlertTzUnset")}</option>
+                {/* The "nothing chosen yet" line is a disclosure, not a choice:
+                    once a zone is set there is no way to unset it (macro has no
+                    clear path for tz), so the option goes rather than sitting
+                    there refusing in silence. */}
+                {state.tz ? null : <option value="">{t("acsAlertTzUnset")}</option>}
                 {tzOptions.map((z) => (
                   <option key={z.value} value={z.value}>{z.label}</option>
                 ))}
@@ -458,8 +498,12 @@ export default function SectionAlertDelivery({ t, lang, identity, onClose }: Sec
                       onChange={(e) => onQuietPart("start", e.target.value)}
                       onInput={(e) => onQuietPart("start", (e.target as HTMLInputElement).value)}
                     />
-                    {qhStart || qhFocus === "start" ? null : (
-                      <span style={TIME_EMPTY} data-alert-empty="qh-start">{t("acsAlertQhNotSet")}</span>
+                    {qhFocus === "start" ? null : (
+                      <span
+                        style={qhStart ? TIME_VALUE : TIME_EMPTY}
+                        data-alert-time="qh-start"
+                        data-alert-empty={qhStart ? undefined : "qh-start"}
+                      >{qhStart || t("acsAlertQhNotSet")}</span>
                     )}
                   </span>
                 </label>
@@ -477,8 +521,12 @@ export default function SectionAlertDelivery({ t, lang, identity, onClose }: Sec
                       onChange={(e) => onQuietPart("end", e.target.value)}
                       onInput={(e) => onQuietPart("end", (e.target as HTMLInputElement).value)}
                     />
-                    {qhEnd || qhFocus === "end" ? null : (
-                      <span style={TIME_EMPTY} data-alert-empty="qh-end">{t("acsAlertQhNotSet")}</span>
+                    {qhFocus === "end" ? null : (
+                      <span
+                        style={qhEnd ? TIME_VALUE : TIME_EMPTY}
+                        data-alert-time="qh-end"
+                        data-alert-empty={qhEnd ? undefined : "qh-end"}
+                      >{qhEnd || t("acsAlertQhNotSet")}</span>
                     )}
                   </span>
                 </label>

@@ -404,7 +404,7 @@ describe("time zone options read as a place plus its UTC offset, in both languag
     expect(opt).not.toBeNull();
     expect(opt.textContent).toBe("Shanghai (UTC+8)");
     const utc = el.querySelector<HTMLOptionElement>('option[value="UTC"]')!;
-    expect(utc.textContent).toBe("Coordinated Universal Time (UTC+0)");
+    expect(utc.textContent).toBe("UTC (UTC+0)");
   });
 
   it("ZH renders the Chinese place name; no option is a bare IANA id for a known zone", async () => {
@@ -696,18 +696,22 @@ describe("R1 — every time-zone option reads as words, never as an identifier",
 });
 
 describe("R2 — the clock note is true, and an empty time says so in words", () => {
-  it("ZH shows the device-clock sentence and never claims a 24-hour clock", async () => {
+  // Round 4 (seat ruling R1) supersedes the round-3 sentence: the cover now
+  // holds the filled state too, so the screen really does show 24-hour times,
+  // and the device's own format is what the reader sees only while editing.
+  it("ZH says the times are shown on a 24-hour clock and names the editing case", async () => {
     getImpl = async () => jsonRes(200, CURATED_READY);
     const el = await mount(accountProps("zh"));
-    expect(el.textContent).toContain("时间显示跟随你设备的时钟格式。");
-    expect(el.textContent).not.toContain("24 小时制");
+    expect(el.textContent).toContain("时间以 24 小时制显示；编辑时，控件会跟随你设备的时钟格式。");
+    expect(el.textContent).not.toContain("时间显示跟随你设备的时钟格式。");
   });
 
-  it("EN shows the device-clock sentence and never claims a 24-hour clock", async () => {
+  it("EN says the times are shown on a 24-hour clock and names the editing case", async () => {
     getImpl = async () => jsonRes(200, CURATED_READY);
     const el = await mount(accountProps("en"));
-    expect(el.textContent).toContain("Times follow your device's clock format.");
-    expect(el.textContent).not.toContain("24-hour clock");
+    expect(el.textContent).toContain(
+      "Times are shown on a 24-hour clock. While you edit, the control follows your device's clock format.",
+    );
   });
 
   it("ZH: an unset window shows 未设置 on both halves instead of the browser placeholder", async () => {
@@ -717,7 +721,11 @@ describe("R2 — the clock note is true, and an empty time says so in words", ()
     const notes = Array.from(el.querySelectorAll("[data-alert-empty]"));
     expect(notes.map((n) => n.getAttribute("data-alert-empty"))).toEqual(["qh-start", "qh-end"]);
     expect(notes.map((n) => n.textContent)).toEqual(["未设置", "未设置"]);
-    expect(el.textContent).not.toContain("--:--");
+    // The browser's own "--:-- --" is chrome and never reaches textContent, so
+    // asserting its absence proves nothing (round 3 shipped that assertion and
+    // it could not fail). What is checkable is that a cover is mounted over
+    // each half: while one is there, the native placeholder is not on screen.
+    expect(el.querySelectorAll("[data-alert-time]")).toHaveLength(2);
   });
 
   it("EN: an unset window shows Not set on both halves", async () => {
@@ -796,5 +804,211 @@ describe("R3 — the quiet-hours hint keeps macro's two sentences in both langua
     expect(LEX.acsAlertQhHint[0]).toBe(
       "No emails are sent during this window. Alerts wait and are sent when the window ends.",
     );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Round 4 — seat rulings R1, R2 and R4 on the Opus review at 3dce8f23.
+// ---------------------------------------------------------------------------
+
+const ALIAS_READY = {
+  ok: true,
+  prefs: { alert_email_optin: true, tz: "Asia/Calcutta" },
+  unset: ["quiet_hours"],
+  categories_available: ["holdings_material_change", "thesis_window"],
+};
+
+const UTC_READY = {
+  ok: true,
+  prefs: { alert_email_optin: true, tz: "UTC" },
+  unset: ["quiet_hours"],
+  categories_available: ["holdings_material_change", "thesis_window"],
+};
+
+function timeCover(el: HTMLElement, half: "qh-start" | "qh-end"): HTMLElement | null {
+  return el.querySelector<HTMLElement>(`[data-alert-time="${half}"]`);
+}
+
+describe("R1 — a filled quiet-hours window reads as the stored 24-hour time", () => {
+  it("ZH: the two halves read 22:00 and 07:00, with no meridiem token on screen", async () => {
+    getImpl = async () => jsonRes(200, CURATED_READY);
+    const el = await mount(accountProps("zh"));
+    expect(timeCover(el, "qh-start")!.textContent).toBe("22:00");
+    expect(timeCover(el, "qh-end")!.textContent).toBe("07:00");
+    expect(el.textContent).not.toContain("AM");
+    expect(el.textContent).not.toContain("PM");
+    expect(el.textContent).not.toContain("--:--");
+  });
+
+  it("EN: the two halves read 22:00 and 07:00", async () => {
+    getImpl = async () => jsonRes(200, CURATED_READY);
+    const el = await mount(accountProps("en"));
+    expect(timeCover(el, "qh-start")!.textContent).toBe("22:00");
+    expect(timeCover(el, "qh-end")!.textContent).toBe("07:00");
+    expect(el.textContent).not.toContain("AM");
+    expect(el.textContent).not.toContain("PM");
+  });
+
+  it("focusing a half hands it back to the native control; the other half keeps its cover", async () => {
+    getImpl = async () => jsonRes(200, CURATED_READY);
+    const el = await mount(accountProps("zh"));
+    const start = el.querySelector<HTMLInputElement>('input[data-alert-field="qh-start"]')!;
+    await act(async () => { start.focus(); });
+    await flush();
+    expect(timeCover(el, "qh-start")).toBeNull();
+    expect(timeCover(el, "qh-end")!.textContent).toBe("07:00");
+    await act(async () => { start.blur(); });
+    await flush();
+    expect(timeCover(el, "qh-start")!.textContent).toBe("22:00");
+  });
+
+  it("the cover follows the value the server stored, not the one that was typed", async () => {
+    getImpl = async () => jsonRes(200, CURATED_READY);
+    postImpl = async () => jsonRes(200, {
+      ok: true,
+      prefs: { quiet_hours: { start: "22:00", end: "08:00" } },
+      metadata: true,
+      email_prefs: false,
+    });
+    vi.useFakeTimers();
+    const el = await mount(accountProps("en"));
+    const end = el.querySelector<HTMLInputElement>('input[data-alert-field="qh-end"]')!;
+    await act(async () => { typeTime(end, "08:30"); });
+    await act(async () => { vi.advanceTimersByTime(600); });
+    vi.useRealTimers();
+    await flush();
+    expect(timeCover(el, "qh-end")!.textContent).toBe("08:00");
+  });
+});
+
+describe("R2 — one option per place, and UTC is one of them", () => {
+  it("a stored alias shows its curated twin, selected, with no duplicate and no rewrite", async () => {
+    getImpl = async () => jsonRes(200, ALIAS_READY);
+    const el = await mount(accountProps("zh"));
+    const select = el.querySelector<HTMLSelectElement>('select[data-alert-field="tz"]')!;
+    expect(select.value).toBe("Asia/Kolkata");
+    expect(el.querySelector('option[value="Asia/Calcutta"]')).toBeNull();
+    const kolkata = optionLabels(el).filter((l) => l.startsWith("加尔各答"));
+    expect(kolkata).toHaveLength(1);
+    expect(kolkata[0]).toBe("加尔各答（UTC+5:30）");
+    expect(optionLabels(el).some((l) => l.startsWith("当前设置"))).toBe(false);
+    // Reading the account never writes to it: the stored spelling stands until
+    // the reader picks something.
+    expect(fetchCalls.filter((c) => c.method === "POST")).toHaveLength(0);
+  });
+
+  it("EN: the same alias reads as one Kolkata option", async () => {
+    getImpl = async () => jsonRes(200, ALIAS_READY);
+    const el = await mount(accountProps("en"));
+    const select = el.querySelector<HTMLSelectElement>('select[data-alert-field="tz"]')!;
+    expect(select.value).toBe("Asia/Kolkata");
+    expect(optionLabels(el).filter((l) => l.startsWith("Kolkata"))).toHaveLength(1);
+    expect(optionLabels(el).some((l) => l.startsWith("Current setting"))).toBe(false);
+  });
+
+  it("macro's default zone reads as UTC in both languages, never as 'Current setting'", async () => {
+    getImpl = async () => jsonRes(200, UTC_READY);
+    const en = await mount(accountProps("en"));
+    const enSelect = en.querySelector<HTMLSelectElement>('select[data-alert-field="tz"]')!;
+    expect(enSelect.value).toBe("UTC");
+    expect(en.querySelector<HTMLOptionElement>('option[value="UTC"]')!.textContent).toBe("UTC (UTC+0)");
+    expect(optionLabels(en).some((l) => l.startsWith("Current setting"))).toBe(false);
+    await act(async () => { root?.unmount(); });
+    root = null;
+    container?.remove();
+    container = null;
+    const zh = await mount(accountProps("zh"));
+    expect(zh.querySelector<HTMLOptionElement>('option[value="UTC"]')!.textContent).toBe("协调世界时（UTC+0）");
+    expect(optionLabels(zh).some((l) => l.startsWith("当前设置"))).toBe(false);
+  });
+
+  it("every option label is still offered exactly once with an alias stored", async () => {
+    getImpl = async () => jsonRes(200, ALIAS_READY);
+    const el = await mount(accountProps("zh"));
+    const labels = optionLabels(el);
+    expect(new Set(labels).size).toBe(labels.length);
+  });
+});
+
+describe("R4 — an overtaken save never repaints the field a newer save owns", () => {
+  it("a 502 that lands after a newer save succeeded neither rolls back nor says it failed", async () => {
+    getImpl = async () => jsonRes(200, {
+      ok: true,
+      prefs: { alert_email_optin: true, tz: "UTC" },
+      unset: ["alert_categories", "quiet_hours"],
+      categories_available: ["holdings_material_change", "thesis_window"],
+    });
+    const answer: Array<(res: Response) => void> = [];
+    postImpl = () => new Promise<Response>((resolve) => { answer.push(resolve); });
+    const el = await mount(accountProps("en"));
+    const hold = el.querySelector<HTMLButtonElement>('button[data-alert-cat="holdings_material_change"]')!;
+    const thes = el.querySelector<HTMLButtonElement>('button[data-alert-cat="thesis_window"]')!;
+    await act(async () => { hold.click(); });
+    await flush();
+    await act(async () => { thes.click(); });
+    await flush();
+    expect(answer).toHaveLength(2);
+    // The second save is the one the account ends up holding.
+    await act(async () => {
+      answer[1](jsonRes(200, {
+        ok: true,
+        prefs: { alert_categories: ["holdings_material_change", "thesis_window"] },
+        metadata: true,
+        email_prefs: false,
+      }));
+    });
+    await flush();
+    // The first save now fails, long after it stopped being the truth.
+    await act(async () => { answer[0](jsonRes(502, { detail: "auth check failed, please try again" })); });
+    await flush();
+    expect(
+      el.querySelector<HTMLButtonElement>('button[data-alert-cat="holdings_material_change"]')!.getAttribute("aria-pressed"),
+    ).toBe("true");
+    expect(
+      el.querySelector<HTMLButtonElement>('button[data-alert-cat="thesis_window"]')!.getAttribute("aria-pressed"),
+    ).toBe("true");
+    expect(el.textContent).not.toContain(SAVE_FAIL_EN);
+    expect(el.textContent).toContain(LEX.acsPrefSaved[0]);
+    expect(fetchCalls.filter((c) => c.method === "POST")).toHaveLength(2);
+  });
+
+  it("a save that is still the latest for its field still reports its failure", async () => {
+    getImpl = async () => jsonRes(200, {
+      ok: true,
+      prefs: { alert_email_optin: true, tz: "UTC" },
+      unset: ["alert_categories", "quiet_hours"],
+      categories_available: ["holdings_material_change", "thesis_window"],
+    });
+    postImpl = async () => jsonRes(502, { detail: "auth check failed, please try again" });
+    const el = await mount(accountProps("en"));
+    const hold = el.querySelector<HTMLButtonElement>('button[data-alert-cat="holdings_material_change"]')!;
+    await act(async () => { hold.click(); });
+    await flush();
+    expect(el.textContent).toContain(SAVE_FAIL_EN);
+    expect(
+      el.querySelector<HTMLButtonElement>('button[data-alert-cat="holdings_material_change"]')!.getAttribute("aria-pressed"),
+    ).toBe("false");
+  });
+});
+
+describe("R4 — the 'no time zone chosen yet' line goes once a zone is set", () => {
+  it("it is there while nothing is stored", async () => {
+    getImpl = async () => jsonRes(200, {
+      ok: true,
+      prefs: { alert_email_optin: true },
+      unset: ["tz", "quiet_hours", "alert_categories"],
+      categories_available: ["holdings_material_change", "thesis_window"],
+    });
+    const el = await mount(accountProps("en"));
+    const blank = el.querySelector<HTMLOptionElement>('select[data-alert-field="tz"] option[value=""]');
+    expect(blank).not.toBeNull();
+    expect(blank!.textContent).toBe(LEX.acsAlertTzUnset[0]);
+  });
+
+  it("it is gone once a zone is stored, so no option can refuse in silence", async () => {
+    getImpl = async () => jsonRes(200, CURATED_READY);
+    const el = await mount(accountProps("en"));
+    expect(el.querySelector('select[data-alert-field="tz"] option[value=""]')).toBeNull();
+    expect(el.textContent).not.toContain(LEX.acsAlertTzUnset[0]);
   });
 });

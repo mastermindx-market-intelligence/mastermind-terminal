@@ -239,9 +239,9 @@ export function subjectKindLabel(value: string | null | undefined, lang: PlainLa
  * observes daylight saving shows the offset in force today, not a frozen one.
  */
 export const TIME_ZONE_CITY: Record<string, readonly [string, string]> = {
-  UTC: ["Coordinated Universal Time", "协调世界时"],
-  "Etc/UTC": ["Coordinated Universal Time", "协调世界时"],
-  "Etc/GMT": ["Greenwich Mean Time", "格林尼治标准时间"],
+  UTC: ["UTC", "协调世界时"],
+  "Etc/UTC": ["UTC", "协调世界时"],
+  "Etc/GMT": ["UTC", "协调世界时"],
   // Asia
   "Asia/Shanghai": ["Shanghai", "上海"],
   "Asia/Urumqi": ["Urumqi", "乌鲁木齐"],
@@ -427,21 +427,33 @@ export const TIME_ZONE_CITY: Record<string, readonly [string, string]> = {
 };
 
 /**
- * Curated ids that name a zone the picker already offers under another id.
- * IANA keeps both spellings alive and macro accepts either, so the label map
- * above keeps them — a value stored under the older spelling still reads as a
- * place. The picker itself offers each place exactly once.
+ * Curated ids that name a zone the picker already offers under another id,
+ * each mapped to the id the picker actually carries. IANA keeps both spellings
+ * alive and macro accepts either, so the label map above keeps them — a value
+ * stored under the older spelling still reads as a place, and it reads as the
+ * SAME place, on the one option the picker offers for it. Two options with the
+ * same words and different values would give the reader nothing to choose by.
  */
-const TIME_ZONE_ALIASES: ReadonlySet<string> = new Set([
-  "Etc/UTC", // UTC
-  "Asia/Saigon", // Asia/Ho_Chi_Minh
-  "Asia/Rangoon", // Asia/Yangon
-  "Asia/Katmandu", // Asia/Kathmandu
-  "Asia/Calcutta", // Asia/Kolkata
-  "Europe/Kiev", // Europe/Kyiv
-  "Europe/Reykjavik", // Atlantic/Reykjavik
-  "America/Buenos_Aires", // America/Argentina/Buenos_Aires
+const TIME_ZONE_ALIASES: ReadonlyMap<string, string> = new Map([
+  ["Etc/UTC", "UTC"],
+  ["Etc/GMT", "UTC"],
+  ["Asia/Saigon", "Asia/Ho_Chi_Minh"],
+  ["Asia/Rangoon", "Asia/Yangon"],
+  ["Asia/Katmandu", "Asia/Kathmandu"],
+  ["Asia/Calcutta", "Asia/Kolkata"],
+  ["Europe/Kiev", "Europe/Kyiv"],
+  ["Europe/Reykjavik", "Atlantic/Reykjavik"],
+  ["America/Buenos_Aires", "America/Argentina/Buenos_Aires"],
 ]);
+
+/**
+ * The id the picker carries for this zone: an alias resolves to its curated
+ * twin, everything else is itself. Display only — the stored value stays what
+ * the account holds until the reader picks something new.
+ */
+export function canonicalTimeZone(zone: string): string {
+  return TIME_ZONE_ALIASES.get(zone) ?? zone;
+}
 
 /** Words for a zone this file carries no name for, so the reader is never shown
  *  the identifier and a Chinese reader is never shown an English place name. */

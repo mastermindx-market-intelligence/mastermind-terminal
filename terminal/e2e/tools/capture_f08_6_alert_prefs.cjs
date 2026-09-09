@@ -32,6 +32,14 @@ const LAYOUT_FILES = [
   // The time-zone option text is rendered from this overlay, so the crops
   // depend on it exactly as they depend on the section and the lexicon.
   "terminal/lib/plainLabels.ts",
+  // Every pixel of the captured card is styled by this sheet — the sibling
+  // packet locks it for the same reason (docs/pr-crops/b-f12-5-account-polish).
+  "terminal/app/settings.css",
+  // Without these two the section does not exist to mount: the provider carries
+  // "alertDelivery" in SettingsSection/SETTINGS_SECTIONS and the dev harness
+  // lists it among the sections the capture opens.
+  "terminal/components/settings/SettingsProvider.tsx",
+  "terminal/app/dev/settings/page.tsx",
 ];
 const PORT = Number(process.env.TERMINAL_CROP_PORT || 3538);
 const BASE = `http://127.0.0.1:${PORT}`;
