@@ -136,12 +136,12 @@
       "note": "file landed in open PR #527; not applied"
     },
     "0017": {
-      "state": "free",
-      "file": null,
-      "packet": null,
-      "pr": null,
-      "pr_state": null,
-      "note": "free -- claim before you write"
+      "state": "taken",
+      "file": "0017_personal_accuracy_ledger.sql",
+      "packet": "B-F13-5",
+      "pr": 0,
+      "pr_state": "open",
+      "note": "claimed by packet B-F13-5 in this PR; DDL shipped, not applied"
     },
     "0018": {
       "state": "free",

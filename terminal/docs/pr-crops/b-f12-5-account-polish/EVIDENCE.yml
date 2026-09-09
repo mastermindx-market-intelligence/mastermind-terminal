@@ -6,7 +6,7 @@
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/components/settings/SectionAccount.tsx: "c52efebbd06b1bc924c9d94c6ac22dab777b3416bc17e55c5ea0179d9ae51e62"
-  terminal/app/settings.css: "3189163136d943431cbf52e4b5d241c105b695ba5af94c4c2e29151d537b5ef5"
+  terminal/app/settings.css: "9af8217fdfaf2a1977b2f7b84246edfaf708ab5d27fcfb016bdd681ea309d0fb"
 theme: dark
 languages: [en, zh]
 viewports:
