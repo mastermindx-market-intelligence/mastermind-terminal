@@ -81,10 +81,14 @@ export default function AlertsCockpit({ email, children }: { email: string; chil
     const engineLane = {
       run: receipts?.run ?? null,
       runsState: (receipts?.runs_state ?? "READ_UNAVAILABLE") as ReadState,
+      lastSuccessAt: receipts?.last_success_at ?? null,
+      lastSuccessState: (receipts?.last_success_state ?? "READ_UNAVAILABLE") as ReadState,
     };
     const suiteLane = {
       run: receipts?.suite_run ?? null,
       runsState: (receipts?.suite_runs_state ?? "READ_UNAVAILABLE") as ReadState,
+      lastSuccessAt: receipts?.suite_last_success_at ?? null,
+      lastSuccessState: (receipts?.suite_last_success_state ?? "READ_UNAVAILABLE") as ReadState,
     };
     const monitorLanes = lanesForArmedAlerts(alerts, engineLane, suiteLane);
     const view = buildAlertsView({
@@ -108,9 +112,7 @@ export default function AlertsCockpit({ email, children }: { email: string; chil
         id: l.id ?? "engine",
         text: copy("monitor.lane.degraded", L, {
           lane: copy(l.id === "suite" ? "monitor.lane.suite" : "monitor.lane.engine", L),
-          t: l.id === "suite"
-            ? fmtLaneTime(receipts?.suite_last_success_at ?? null, receipts?.suite_last_success_state)
-            : fmtLaneTime(receipts?.last_success_at ?? null, receipts?.last_success_state),
+          t: fmtLaneTime(l.lastSuccessAt ?? null, l.lastSuccessState),
         }),
       }));
     return { view, degradedLaneLines };

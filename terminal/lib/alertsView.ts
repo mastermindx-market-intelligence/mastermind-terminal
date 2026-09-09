@@ -96,7 +96,13 @@ function isFresh(run: RunReceipt, now: number): boolean {
   return now - concluded <= budget * 1000;
 }
 
-export type LaneMonitor = { run: RunReceipt | null; runsState: ReadState; id?: "engine" | "suite" };
+export type LaneMonitor = {
+  run: RunReceipt | null;
+  runsState: ReadState;
+  id?: "engine" | "suite";
+  lastSuccessAt?: string | null;
+  lastSuccessState?: ReadState;
+};
 
 const MONITOR_RANK: Record<MonitorState, number> = {
   unknown: 0,
@@ -144,6 +150,70 @@ export function lanesForArmedAlerts(
   if (hasEngine) lanes.push({ ...engine, id: "engine" });
   if (hasSuite) lanes.push({ ...suite, id: "suite" });
   return lanes;
+}
+
+function newestIso(times: string[]): string | null {
+  if (times.length === 0) return null;
+  return times.slice().sort()[times.length - 1];
+}
+
+function laneLastSuccess(lane: LaneMonitor): { at: string | null; state: ReadState } {
+  if (lane.lastSuccessState !== undefined || lane.lastSuccessAt !== undefined) {
+    const at = lane.lastSuccessAt ?? null;
+    const state = lane.lastSuccessState ?? (at ? "READ_OK" : "READ_OK_ZERO");
+    return { at, state };
+  }
+  if (lane.runsState === "READ_UNAVAILABLE") return { at: null, state: "READ_UNAVAILABLE" };
+  if (lane.run?.outcome === "success" && lane.run.concluded_at) {
+    return { at: lane.run.concluded_at, state: "READ_OK" };
+  }
+  return { at: null, state: lane.runsState === "READ_OK" ? "READ_OK_ZERO" : lane.runsState };
+}
+
+function worstLanes(lanes: LaneMonitor[], now: number): LaneMonitor[] {
+  if (lanes.length === 0) return [];
+  const ranked = lanes.map((lane) => ({ lane, state: monitorForOne(lane.run, lane.runsState, now) }));
+  const worst = ranked.reduce((acc, cur) => (MONITOR_RANK[cur.state] < MONITOR_RANK[acc] ? cur.state : acc), ranked[0].state);
+  return ranked.filter((r) => r.state === worst).map((r) => r.lane);
+}
+
+/** Attempt and last-success for the worst-ranked lanes in a monitorLanes list.
+ *  Honest null when those lanes have no attempt / no success — never a sibling
+ *  lane's receipt. Freeze §4: a last-success time is a proof-of-run claim. */
+export function attemptAndSuccessForLanes(
+  lanes: LaneMonitor[],
+  now: number,
+): {
+  lastAttemptAt: string | null;
+  lastAttemptState: ReadState;
+  lastSuccessAt: string | null;
+  lastSuccessState: ReadState;
+} {
+  const focus = worstLanes(lanes, now);
+  if (focus.length === 0) {
+    return {
+      lastAttemptAt: null, lastAttemptState: "READ_UNAVAILABLE",
+      lastSuccessAt: null, lastSuccessState: "READ_UNAVAILABLE",
+    };
+  }
+  const attempts = focus.map((l) => l.run?.started_at).filter((t): t is string => typeof t === "string");
+  const lastAttemptAt = newestIso(attempts);
+  const lastAttemptState: ReadState = lastAttemptAt
+    ? "READ_OK"
+    : focus.some((l) => l.runsState === "READ_UNAVAILABLE") ? "READ_UNAVAILABLE" : "READ_OK_ZERO";
+
+  const successes = focus.map(laneLastSuccess);
+  if (successes.some((s) => s.state === "READ_UNAVAILABLE")) {
+    return { lastAttemptAt, lastAttemptState, lastSuccessAt: null, lastSuccessState: "READ_UNAVAILABLE" };
+  }
+  if (successes.some((s) => !s.at)) {
+    return { lastAttemptAt, lastAttemptState, lastSuccessAt: null, lastSuccessState: "READ_OK_ZERO" };
+  }
+  return {
+    lastAttemptAt, lastAttemptState,
+    lastSuccessAt: newestIso(successes.map((s) => s.at as string)),
+    lastSuccessState: "READ_OK",
+  };
 }
 
 export function noCoverageAcross(runs: Array<RunReceipt | null>): number | null {
@@ -259,12 +329,20 @@ export function buildAlertsView(input: {
   // reports what the caller determined. `unevaluable_n` on the run receipt is the AUTHORITATIVE
   // upstream signal callers should use to decide READ_NO_COVERAGE (never a client quote probe).
   const emptyAction = input.alertsState === "READ_OK_ZERO" ? "add_watch" : monitor === "degraded" ? "check_again" : null;
+  const attemptSuccess = input.monitorLanes
+    ? attemptAndSuccessForLanes(input.monitorLanes, input.now)
+    : {
+      lastAttemptAt: input.run?.started_at ?? null,
+      lastAttemptState: input.runsState,
+      lastSuccessAt: input.lastSuccessAt,
+      lastSuccessState: input.lastSuccessState ?? "READ_UNAVAILABLE",
+    };
   return {
     monitor,
-    lastAttemptAt: input.run?.started_at ?? null,
-    lastAttemptState: input.runsState,
-    lastSuccessAt: input.lastSuccessAt,
-    lastSuccessState: input.lastSuccessState ?? "READ_UNAVAILABLE",
+    lastAttemptAt: attemptSuccess.lastAttemptAt,
+    lastAttemptState: attemptSuccess.lastAttemptState,
+    lastSuccessAt: attemptSuccess.lastSuccessAt,
+    lastSuccessState: attemptSuccess.lastSuccessState,
     coverage: {
       state: input.alertsState,
       // A successful read with zero rows IS a count of 0, not an unknown — READ_OK_ZERO is
