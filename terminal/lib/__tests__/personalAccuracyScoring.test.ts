@@ -237,6 +237,7 @@ describe("scorePersonalAccuracy", () => {
     expect(readout.unscorableCount).toBe(1);
     expect(readout.resolvedEpisodes).toBe(0);
     expect(readout.openEpisodes).toBe(0);
+    expect(readout.claims[0].unscorableReason).toBe("condition_incomplete");
   });
 
   it("returns no composite, score, rating, grade or index field", () => {

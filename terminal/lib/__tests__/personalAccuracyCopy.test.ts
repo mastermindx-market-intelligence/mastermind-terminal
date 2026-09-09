@@ -18,7 +18,7 @@ const FROZEN_GLANCE_KEYS = [
   "accCeiling",
 ] as const;
 
-const GLANCE_KEYS = [...FROZEN_GLANCE_KEYS, "accClaimCountN", "accUnread", "accDetLoadErr"] as const;
+const GLANCE_KEYS = [...FROZEN_GLANCE_KEYS, "accClaimCountN", "accUnread", "accDetLoadErr", "accCalibProgress"] as const;
 
 const FROZEN_EN = [
   "Your calls, checked.",
@@ -28,10 +28,11 @@ const FROZEN_EN = [
   "Mixed so far",
   "Not landing yet",
   "Nothing has settled yet. Your first call gets checked on the day you set.",
-  "Too early to say — checked {n} of your calls so far.",
-  "Checked so far: {n} of your calls.",
-  // seat ruling R5(c) round 3, corrected R1 round 4
-  "Not enough settled calls yet to check how well your odds match reality ({n} of 30).",
+  // META-CEO B round 7 seat amendment of frozen §6 lines (session d640f3ef, 2026-09-09 20:35Z)
+  "Too early to say — checked {n} groups of your calls so far.",
+  "Checked so far: {n} groups of your calls.",
+  // same ruling: noun is groups of calls; ({n} of 30) tail removed
+  "Not enough settled groups of calls yet to check how well your odds match reality.",
   "{n} calls could not be checked — the data they named wasn't there.",
   "This is a learning record. It never changes what we show you, what we rank, or what you can do here.",
 ];
@@ -44,10 +45,11 @@ const FROZEN_ZH = [
   "目前好坏参半",
   "目前还没落在正确一边",
   "还没有到期的判断。第一条会在你设定的那天核对。",
-  "还看不出来——目前核对了你的 {n} 条判断。",
-  "已核对：你的 {n} 条判断。",
-  // seat ruling R5(c) round 3, corrected R1 round 4
-  "还没有足够的已结算判断来核对你的把握是否准确（{n}／30）。",
+  // META-CEO B round 7 seat amendment of frozen §6 lines (session d640f3ef, 2026-09-09 20:35Z)
+  "现在下结论还太早——目前已核对你的 {n} 组判断。",
+  "目前已核对：你的 {n} 组判断。",
+  // same ruling: 条 → 组 for the same noun; （{n}／30） tail removed
+  "还没有足够的已结算判断组来核对你的把握是否准确。",
   "有 {n} 条判断无法核对——所引用的数据不存在。",
   "这只是学习记录。它不会改变我们展示什么、如何排序，也不会改变你能做什么。",
 ];
@@ -121,9 +123,12 @@ describe("B-F13-5 glance copy", () => {
     }
   });
 
-  it("the {n} placeholder appears in the frozen n-sentences plus accCalibWithheld and accClaimCountN", () => {
+  it("the {n} placeholder appears in exactly the frozen sentences that carry it", () => {
+    // META-CEO B round 7: accCalibWithheld no longer carries {n}; accCalibProgress does.
+    const frozenWithN = FROZEN_GLANCE_KEYS.filter((key) => LEX[key][0].includes("{n}"));
+    expect(frozenWithN).toEqual(["accEarlyN", "accCheckedN", "accUnscorableN"]);
     const withN = GLANCE_KEYS.filter((key) => LEX[key][0].includes("{n}"));
-    expect(withN).toEqual(["accEarlyN", "accCheckedN", "accCalibWithheld", "accUnscorableN", "accClaimCountN"]);
+    expect(withN).toEqual(["accEarlyN", "accCheckedN", "accUnscorableN", "accClaimCountN", "accCalibProgress"]);
     for (const key of withN) {
       expect(LEX[key][1]).toContain("{n}");
     }
@@ -215,5 +220,17 @@ describe("B-F13-5 authored extras stay sentences and stay out of the glance body
     // label must use the same unit word, not bare "calls" / "判断".
     expect(LEX.accDetHitRate[0]).toBe("Hits among checked groups of calls");
     expect(LEX.accDetHitRate[1]).toBe("已核对判断组中的命中");
+  });
+
+  it("accSignInToSee names this feature, not Sync", () => {
+    expect(LEX.accSignInToSee[0]).toBe("Sign in to see how your calls have turned out.");
+    expect(LEX.accSignInToSee[1]).toBe("登录后即可查看你的判断结果。");
+  });
+
+  it("accCalibProgress is a separate sentence from the withheld line", () => {
+    expect(LEX.accCalibProgress[0]).toBe("Settled so far: {n} of the 30 groups needed.");
+    expect(LEX.accCalibProgress[1]).toBe("目前已结清 {n} 组，需要 30 组。");
+    expect(LEX.accCalibWithheld[0]).not.toContain("{n}");
+    expect(LEX.accCalibWithheld[0]).not.toContain("of 30");
   });
 });

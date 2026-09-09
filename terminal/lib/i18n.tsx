@@ -2102,13 +2102,21 @@ export const LEX: Record<string, [string, string]> = {
   accStanceNot: ["Not landing yet", "目前还没落在正确一边"],
   accEmpty: ["Nothing has settled yet. Your first call gets checked on the day you set.", "还没有到期的判断。第一条会在你设定的那天核对。"],
   accUnread: ["Reading your record.", "正在读取你的记录。"],
-  accEarlyN: ["Too early to say — checked {n} of your calls so far.", "还看不出来——目前核对了你的 {n} 条判断。"],
-  accCheckedN: ["Checked so far: {n} of your calls.", "已核对：你的 {n} 条判断。"],
-  // accCalibWithheld: seat ruling R5(c) round 3, corrected R1 round 4 — frozen clause restored, count appended.
-  accCalibWithheld: ["Not enough settled calls yet to check how well your odds match reality ({n} of 30).", "还没有足够的已结算判断来核对你的把握是否准确（{n}／30）。"],
+  accSignInToSee: ["Sign in to see how your calls have turned out.", "登录后即可查看你的判断结果。"],
+  // accEarlyN / accCheckedN / accCalibWithheld: META-CEO B round 7 seat amendment of frozen §6 lines (session d640f3ef, 2026-09-09 20:35Z).
+  accEarlyN: ["Too early to say — checked {n} groups of your calls so far.", "现在下结论还太早——目前已核对你的 {n} 组判断。"],
+  accCheckedN: ["Checked so far: {n} groups of your calls.", "目前已核对：你的 {n} 组判断。"],
+  // accCalibWithheld: same ruling — noun is groups of calls / 判断组; ({n} of 30) tail removed.
+  accCalibWithheld: ["Not enough settled groups of calls yet to check how well your odds match reality.", "还没有足够的已结算判断组来核对你的把握是否准确。"],
+  accCalibProgress: ["Settled so far: {n} of the 30 groups needed.", "目前已结清 {n} 组，需要 30 组。"],
   accUnscorableN: ["{n} calls could not be checked — the data they named wasn't there.", "有 {n} 条判断无法核对——所引用的数据不存在。"],
   // accUnscorable1: seat-ordered R5(a) variant of a frozen line (round 4 R3(a)).
   accUnscorable1: ["1 call could not be checked — the data they named wasn't there.", "有 1 条判断无法核对——所引用的数据不存在。"],
+  accUnscorableIncompleteN: ["{n} calls could not be checked because they did not say what to check.", "{n} 条判断无法核对，因为没有写明要核对什么。"],
+  accUnscorableWithdrawnN: ["{n} calls you withdrew.", "你撤回了 {n} 条判断。"],
+  accUnscorableNotBinaryN: ["{n} calls could not be checked — the result was not a clear yes or no.", "{n} 条判断无法核对——结果不是明确的是或否。"],
+  accUnscorableBadDateN: ["{n} calls could not be checked because their dates could not be read.", "{n} 条判断无法核对，因为日期无法读取。"],
+  accUnscorableOtherN: ["{n} calls could not be checked; the reason was not recorded.", "{n} 条判断无法核对，原因未记录。"],
   accClaimCountN: ["{n} calls written down.", "共写下 {n} 条判断。"],
   accClaimCount1: ["1 call written down.", "共写下 1 条判断。"],
   accCeiling: ["This is a learning record. It never changes what we show you, what we rank, or what you can do here.", "这只是学习记录。它不会改变我们展示什么、如何排序，也不会改变你能做什么。"],

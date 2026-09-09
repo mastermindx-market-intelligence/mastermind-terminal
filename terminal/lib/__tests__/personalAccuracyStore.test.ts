@@ -64,4 +64,23 @@ describe("parseKind and parseStatus never coerce", () => {
     expect(readout.claims[0].unscorableReason).toBe("unrecognised_status");
     expect(readout.claims[0].status).toBe("void_unscorable");
   });
+
+  it("diverts a garbage resolved_at to malformed-date handling", () => {
+    const parsed = parseUserClaim({
+      ...ROW,
+      status: "resolved",
+      resolution: {
+        outcome: 1,
+        observed: 6100,
+        resolved_at: "garbage",
+        resolver: "quotes.last_close",
+        note: "",
+      },
+    });
+    expect(parsed).toBeTruthy();
+    expect(parsed!.ingestUnscorable).toBe("malformed_timestamp");
+    const readout = scorePersonalAccuracy([parsed!]);
+    expect(readout.claims[0].unscorableReason).toBe("malformed_timestamp");
+    expect(readout.claims[0].status).toBe("void_unscorable");
+  });
 });

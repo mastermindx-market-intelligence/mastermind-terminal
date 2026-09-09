@@ -69,10 +69,32 @@ function outcomeKey(row: AccuracyClaimRow): string | null {
 function resolverKey(row: AccuracyClaimRow): string | null {
   if (!row.resolution) return null;
   const name = row.resolution.resolver || "";
+  if (!name) return null;
   if (name.includes("RESOLVER_REGISTRY") || /was not available/i.test(row.resolution.note || "")) {
     return "accDetResolverMissing";
   }
   return "accDetResolverKnown";
+}
+
+type UnscorableCause = "data_absent" | "incomplete" | "withdrawn" | "not_binary" | "bad_date" | "other";
+
+function unscorableCause(row: AccuracyClaimRow): UnscorableCause | null {
+  if (row.unscorableReason === "malformed_timestamp") return "bad_date";
+  if (row.unscorableReason === "condition_incomplete") return "incomplete";
+  if (row.status === "withdrawn") return "withdrawn";
+  const note = row.resolution?.note || "";
+  const resolver = row.resolution?.resolver || "";
+  if (/was not available/i.test(note) || resolver.includes("RESOLVER_REGISTRY")) return "data_absent";
+  if (
+    (row.status === "resolved" || row.status === "matured")
+    && row.resolution?.outcome !== 0
+    && row.resolution?.outcome !== 1
+  ) {
+    return "not_binary";
+  }
+  if (row.unscorableReason) return "other";
+  if (row.status === "void_unscorable") return "other";
+  return null;
 }
 
 export function accuracyGlanceState(readout: AccuracyReadout | null): AccuracyGlanceState {
@@ -85,26 +107,41 @@ export function accuracyGlanceState(readout: AccuracyReadout | null): AccuracyGl
 }
 
 function unscorableCallCount(readout: AccuracyReadout): number {
-  return readout.claims.filter((row) => {
-    if (row.unscorableReason) return true;
-    if (row.status === "void_unscorable" || row.status === "withdrawn") return true;
-    if (
-      (row.status === "resolved" || row.status === "matured")
-      && row.resolution?.outcome !== 0
-      && row.resolution?.outcome !== 1
-    ) {
-      return true;
-    }
-    return false;
-  }).length;
+  return readout.claims.filter((row) => unscorableCause(row) !== null).length;
+}
+
+function tallyUnscorable(readout: AccuracyReadout): Record<UnscorableCause, number> {
+  const counts: Record<UnscorableCause, number> = {
+    data_absent: 0,
+    incomplete: 0,
+    withdrawn: 0,
+    not_binary: 0,
+    bad_date: 0,
+    other: 0,
+  };
+  for (const row of readout.claims) {
+    const cause = unscorableCause(row);
+    if (cause) counts[cause] += 1;
+  }
+  return counts;
+}
+
+function unscorableGlancePhrases(t: (key: string) => string, readout: AccuracyReadout): string[] {
+  const c = tallyUnscorable(readout);
+  const lines: string[] = [];
+  if (c.data_absent > 0) {
+    lines.push(c.data_absent === 1 ? t("accUnscorable1") : interpolate(t("accUnscorableN"), { n: c.data_absent }));
+  }
+  if (c.incomplete > 0) lines.push(interpolate(t("accUnscorableIncompleteN"), { n: c.incomplete }));
+  if (c.withdrawn > 0) lines.push(interpolate(t("accUnscorableWithdrawnN"), { n: c.withdrawn }));
+  if (c.not_binary > 0) lines.push(interpolate(t("accUnscorableNotBinaryN"), { n: c.not_binary }));
+  if (c.bad_date > 0) lines.push(interpolate(t("accUnscorableBadDateN"), { n: c.bad_date }));
+  if (c.other > 0) lines.push(interpolate(t("accUnscorableOtherN"), { n: c.other }));
+  return lines;
 }
 
 function claimCountPhrase(t: (key: string) => string, n: number): string {
   return n === 1 ? t("accClaimCount1") : interpolate(t("accClaimCountN"), { n });
-}
-
-function unscorablePhrase(t: (key: string) => string, n: number): string {
-  return n === 1 ? t("accUnscorable1") : interpolate(t("accUnscorableN"), { n });
 }
 
 function hitsOfPhrase(t: (key: string) => string, hits: number, n: number): string {
@@ -144,8 +181,7 @@ export default function SectionAccuracy({ t, lang, onClose, readout, loadErr, id
           <div className="acs-sync off" data-acc-state="signed-out">
             <span className="dot" />
             <span className="acs-sync-main">
-              <span className="acs-sync-t">{t("acsSyncOff")}</span>
-              <span className="acs-sync-s">{t("acsSignInToOn")}</span>
+              <span className="acs-sync-s">{t("accSignInToSee")}</span>
             </span>
           </div>
         ) : null}
@@ -159,11 +195,12 @@ export default function SectionAccuracy({ t, lang, onClose, readout, loadErr, id
           <p className={s.empty} data-acc-state="empty">{t("accEmpty")}</p>
         ) : null}
         {owner && state === "unscorable" && readout ? (
-          <p className={`${s.line} ${s.unscorable}`} data-acc-state="unscorable">
-            {unscorablePhrase(t, nUnscorableCalls)}
-            {" "}
-            {claimCountPhrase(t, readout.claimCount)}
-          </p>
+          <div data-acc-state="unscorable">
+            {unscorableGlancePhrases(t, readout).map((line) => (
+              <p key={line} className={`${s.line} ${s.unscorable}`}>{line}</p>
+            ))}
+            <p className={s.line}>{claimCountPhrase(t, readout.claimCount)}</p>
+          </div>
         ) : null}
         {owner && state === "readout" && readout ? (
           <div data-acc-state="readout">
@@ -178,7 +215,10 @@ export default function SectionAccuracy({ t, lang, onClose, readout, loadErr, id
               {claimCountPhrase(t, readout.claimCount)}
             </p>
             {nPairs < BRIER_MIN_PAIRS ? (
-              <p className={s.line}>{interpolate(t("accCalibWithheld"), { n: nPairs })}</p>
+              <>
+                <p className={s.line}>{t("accCalibWithheld")}</p>
+                <p className={s.line}>{interpolate(t("accCalibProgress"), { n: nPairs })}</p>
+              </>
             ) : null}
           </div>
         ) : null}
@@ -226,7 +266,7 @@ export default function SectionAccuracy({ t, lang, onClose, readout, loadErr, id
                 <dt>{t("accDetBrier")}</dt>
                 <dd>
                   {readout.brierMean === null
-                    ? interpolate(t("accCalibWithheld"), { n: readout.brierPairs })
+                    ? `${t("accCalibWithheld")} ${interpolate(t("accCalibProgress"), { n: readout.brierPairs })}`
                     : brierPhrase(t, readout.brierMean.toFixed(3), readout.brierPairs)}
                 </dd>
               </div>
@@ -240,6 +280,7 @@ export default function SectionAccuracy({ t, lang, onClose, readout, loadErr, id
                 {readout.claims.map((row) => {
                   const happened = outcomeKey(row);
                   const how = resolverKey(row);
+                  const checkedOn = acsDate(row.resolution?.resolvedAt, lang);
                   return (
                     <li key={row.claimId} className={s.row}>
                       <p className={s.call}>{row.claimText}</p>
@@ -254,8 +295,8 @@ export default function SectionAccuracy({ t, lang, onClose, readout, loadErr, id
                         <p className={s.meta}>{reasonCopy(t, row.unscorableReason)}</p>
                       ) : null}
                       {happened ? <p className={s.meta}>{t("accDetWhatHappened")}{colon}{t(happened)}</p> : null}
-                      {row.resolution?.resolvedAt ? (
-                        <p className={s.meta}>{t("accDetCheckedOn")}{colon}{acsDate(row.resolution.resolvedAt, lang)}</p>
+                      {checkedOn ? (
+                        <p className={s.meta}>{t("accDetCheckedOn")}{colon}{checkedOn}</p>
                       ) : null}
                       {how ? <p className={s.meta}>{t("accDetHowChecked")}{colon}{t(how)}</p> : null}
                     </li>

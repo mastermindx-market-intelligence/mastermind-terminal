@@ -276,9 +276,11 @@ describe("SectionAccuracy glance state machine (exactly one state sentence)", ()
   it("a non-account-owner sees the signed-out card, never Reading your record forever", () => {
     mount("en", { identity: GUEST_IDENTITY, readout: null, loadErr: false });
     const text = container.textContent || "";
-    expect(text).toContain(LEX.acsSignInToOn[0]);
+    const card = container.querySelector("[data-acc-state='signed-out']");
+    expect(card).toBeTruthy();
+    expect(card!.textContent).toContain("Sign in to see how your calls have turned out.");
+    expect(card!.textContent).not.toContain(LEX.acsSyncOff[0]);
     expect(text).not.toContain(LEX.accUnread[0]);
-    expect(container.querySelector("[data-acc-state='signed-out']")).toBeTruthy();
     expect(container.querySelector("[data-acc-state='unread']")).toBeNull();
   });
 
@@ -349,10 +351,14 @@ describe("SectionAccuracy detail honesty", () => {
     expect(readout.brierPairs).toBeGreaterThan(0);
     expect(readout.brierPairs).toBeLessThan(30);
     mount("en", { readout, loadErr: false });
-    const expected = interpolate(LEX.accCalibWithheld[0], { n: readout.brierPairs });
-    expect(container.textContent).toContain(expected);
+    const withheld = "Not enough settled groups of calls yet to check how well your odds match reality.";
+    const progress = interpolate("Settled so far: {n} of the 30 groups needed.", { n: readout.brierPairs });
+    expect(container.textContent).toContain(withheld);
+    expect(container.textContent).toContain(progress);
+    expect(container.textContent).not.toMatch(/\(\d+ of 30\)/);
     const detail = openDetail();
-    expect(detail).toContain(expected);
+    expect(detail).toContain(withheld);
+    expect(detail).toContain(progress);
   });
 
   it("never prints a bare Brier number; the denominator is the pair count", () => {
@@ -449,8 +455,9 @@ describe("SectionAccuracy detail honesty", () => {
     expect(readout.stance).toBe("Too early to say");
     mount("en", { readout, loadErr: false });
     const text = container.textContent || "";
-    const early = interpolate(LEX.accEarlyN[0], { n: 5 });
+    const early = "Too early to say — checked 5 groups of your calls so far.";
     expect(text).toContain(early);
+    expect(text).not.toContain("Too early to say — checked 5 of your calls so far.");
     const stanceHits = (text.match(/Too early to say/g) || []).length;
     expect(stanceHits).toBe(1);
   });
@@ -474,6 +481,195 @@ describe("SectionAccuracy detail honesty", () => {
     expect(src).toMatch(/BRIER_MIN_PAIRS/);
     expect(src).not.toMatch(/nResolved < 10/);
     expect(src).not.toMatch(/brierPairs.{0,40}< 30/);
+  });
+});
+
+function rowClaim(partial: Partial<UserClaim> & Pick<UserClaim, "claim_id">): UserClaim {
+  return {
+    user_id: "11111111-1111-4111-8111-111111111111",
+    subject: { kind: "security", id: "SPX" },
+    stated_at: "2026-01-01T00:00:00.000Z",
+    resolves_at: "2026-02-01T00:00:00.000Z",
+    claim_text: "SPX finishes at or above 6000",
+    condition: { metric: "last_close", comparator: ">=", threshold: 6000, owner: "quotes.last_close" },
+    stated_probability: 0.7,
+    evidence: [],
+    status: "resolved",
+    resolution: {
+      outcome: 1,
+      observed: 6100,
+      resolved_at: "2026-02-01T00:00:00.000Z",
+      resolver: "quotes.last_close",
+      note: "",
+    },
+    supersedes: null,
+    ...partial,
+  };
+}
+
+describe("SectionAccuracy unscorable cause split (META-CEO B round 7 M3)", () => {
+  let container: HTMLDivElement;
+  let root: Root | undefined;
+
+  beforeEach(() => {
+    container = document.createElement("div");
+    document.body.appendChild(container);
+  });
+
+  afterEach(() => {
+    act(() => {
+      root?.unmount();
+    });
+    root = undefined;
+    container.remove();
+  });
+
+  function mount(extra: Partial<AccuracyProps> = {}) {
+    act(() => {
+      root = createRoot(container);
+      root!.render(React.createElement(SectionAccuracy, baseProps("en", extra)));
+    });
+  }
+
+  function glance(): string {
+    return container.querySelector("[data-acc-state='unscorable']")?.textContent || "";
+  }
+
+  it("(a) named-data-absent rows keep the existing missing-data sentence", () => {
+    const readout = unscorableAccuracyFixture();
+    mount({ readout, loadErr: false });
+    const text = glance();
+    expect(text).toContain(LEX.accUnscorable1[0]);
+    expect(text).not.toContain("the reason was not recorded");
+  });
+
+  it("(b) an incomplete condition is its own sentence, not the missing-data sentence", () => {
+    const readout = scorePersonalAccuracy([rowClaim({
+      claim_id: "incomplete000001",
+      condition: { metric: "last_close", comparator: ">=", threshold: 6000 },
+      status: "open",
+      resolution: null,
+    })]);
+    expect(readout.claims[0].unscorableReason).toBe("condition_incomplete");
+    mount({ readout, loadErr: false });
+    const text = glance();
+    expect(text).toContain("1 calls could not be checked because they did not say what to check.");
+    expect(text).not.toContain(LEX.accUnscorable1[0]);
+  });
+
+  it("(c) a withdrawn call is counted as withdrawn", () => {
+    const readout = scorePersonalAccuracy([rowClaim({
+      claim_id: "withdrawn0000001",
+      status: "withdrawn",
+      resolution: null,
+    })]);
+    mount({ readout, loadErr: false });
+    const text = glance();
+    expect(text).toContain("1 calls you withdrew.");
+    expect(text).not.toContain(LEX.accUnscorable1[0]);
+  });
+
+  it("(d) a checked call whose result is not yes or no is its own sentence", () => {
+    const readout = scorePersonalAccuracy([rowClaim({
+      claim_id: "notbinary0000001",
+      status: "resolved",
+      resolution: {
+        outcome: null,
+        observed: null,
+        resolved_at: "2026-02-01T00:00:00.000Z",
+        resolver: "quotes.last_close",
+        note: "",
+      },
+    })]);
+    mount({ readout, loadErr: false });
+    const text = glance();
+    expect(text).toContain("1 calls could not be checked — the result was not a clear yes or no.");
+    expect(text).not.toContain(LEX.accUnscorable1[0]);
+  });
+
+  it("(e) a malformed date is its own sentence, not the missing-data sentence", () => {
+    const readout = scorePersonalAccuracy([rowClaim({
+      claim_id: "baddate000000001",
+      stated_at: "not-a-date",
+      resolves_at: "2026-02-01T00:00:00.000Z",
+    })]);
+    expect(readout.claims[0].unscorableReason).toBe("malformed_timestamp");
+    mount({ readout, loadErr: false });
+    const text = glance();
+    expect(text).toContain("1 calls could not be checked because their dates could not be read.");
+    expect(text).not.toContain(LEX.accUnscorable1[0]);
+  });
+
+  it("(f) any other or unrecorded reason uses the unrecorded-reason sentence", () => {
+    const readout = scorePersonalAccuracy([{
+      ...rowClaim({ claim_id: "unknownkind00001" }),
+      ingestUnscorable: "unrecognised_kind",
+    }]);
+    mount({ readout, loadErr: false });
+    const text = glance();
+    expect(text).toContain("1 calls could not be checked; the reason was not recorded.");
+    expect(text).not.toContain(LEX.accUnscorable1[0]);
+  });
+});
+
+describe("SectionAccuracy date and resolver honesty (META-CEO B round 7 R9)", () => {
+  let container: HTMLDivElement;
+  let root: Root | undefined;
+
+  beforeEach(() => {
+    container = document.createElement("div");
+    document.body.appendChild(container);
+  });
+
+  afterEach(() => {
+    act(() => {
+      root?.unmount();
+    });
+    root = undefined;
+    container.remove();
+  });
+
+  function mount(extra: Partial<AccuracyProps> = {}) {
+    act(() => {
+      root = createRoot(container);
+      root!.render(React.createElement(SectionAccuracy, baseProps("en", extra)));
+    });
+  }
+
+  function openDetail(): string {
+    const toggle = container.querySelector("[data-acc='toggle']") as HTMLButtonElement;
+    act(() => {
+      toggle.click();
+    });
+    return container.querySelector("[data-acc='detail']")?.textContent || "";
+  }
+
+  it("omits Checked on when resolvedAt is garbage so Invalid Date never prints", () => {
+    const readout = scorePersonalAccuracy([rowClaim({
+      claim_id: "garbagedate00001",
+      resolution: {
+        outcome: 1,
+        observed: 6100,
+        resolved_at: "garbage",
+        resolver: "quotes.last_close",
+        note: "",
+      },
+    })]);
+    mount({ readout, loadErr: false });
+    const detail = openDetail();
+    expect(detail).not.toContain("Invalid Date");
+    expect(detail).not.toContain(LEX.accDetCheckedOn[0]);
+  });
+
+  it("renders no How it was checked line when resolution is {}", () => {
+    const readout = scorePersonalAccuracy([rowClaim({
+      claim_id: "emptyresolver0001",
+      resolution: {} as UserClaim["resolution"],
+    })]);
+    mount({ readout, loadErr: false });
+    const detail = openDetail();
+    expect(detail).not.toContain(LEX.accDetResolverKnown[0]);
+    expect(detail).not.toContain(LEX.accDetHowChecked[0]);
   });
 });
 
