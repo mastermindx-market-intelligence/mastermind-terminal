@@ -7,7 +7,8 @@
  *
  * HONESTY DOCTRINE: "lean" is a soft tick-rule derivation; we do NOT offer a
  * directional green/red filter gate labeled "buy" / "sell" — the lean filter
- * uses flowSideLabel ("Likely buying" / "偏买入"), never the raw ~buy token.
+ * uses flowSideLabel ("Leans buy (approximate)" / "偏买入（近似）"), never the
+ * raw ~buy token and never an affirmative likelihood claim.
  */
 
 import { pick } from "@/lib/finFormat";

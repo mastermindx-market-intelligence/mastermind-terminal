@@ -152,7 +152,7 @@ export function OptionsFlowBoardView({
         </div>
         <div className="options-flow-board-source" aria-label={pick(lang === "zh", "Data source", "数据来源")}>
           <span className={stale || unavailable ? "is-stale" : !events ? "is-pending" : ""}>{sourceStatus}</span>
-          <code title={feedSchema || "live_flow.feed/v1"}>{pick(lang === "zh", "Flow feed", "资金流数据源")}</code>
+          <code>{pick(lang === "zh", "Flow feed", "资金流数据源")}</code>
           {sessionDate && <small>{sessionDate}</small>}
         </div>
       </div>

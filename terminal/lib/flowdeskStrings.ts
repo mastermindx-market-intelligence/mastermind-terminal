@@ -173,7 +173,7 @@ const FLOW_LEX = {
   spreadUnreliable: ["Spread — direction is unreliable", "价差 — 方向不可靠"],
   scoreHonesty:     [
     "The score reflects size, activity, and how unusual the print is — not a predicted win rate. The tiers describe the print; they do not claim a historical edge until a live track record exists.",
-    "评分反映规模、活跃度和新鲜程度，不是胜率预测。等级只是描述；在有实盘记录之前，不代表历史预测效力。",
+    "评分反映规模、活跃度和异常程度，不是胜率预测。等级只是描述；在有实盘记录之前，不代表历史预测效力。",
   ],
   directionLean:    ["Direction lean", "方向倾向"],
   tickRuleInferred: ["inferred from the last trade’s price change, not confirmed by the official bid and ask", "由成交价变动规则推断，未经官方买卖报价确认"],

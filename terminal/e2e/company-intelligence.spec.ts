@@ -956,9 +956,12 @@ test("AAPL intelligence opens the verified FY2026 Q3 event workspace", async ({ 
 
   await closeEvidenceOverlay(page);
   await page.locator(".ci-lenses").getByRole("tab", { name: "Sources" }).click();
-  await expect(page.locator("[data-ci-source-kind='issuer_release']")).toContainText("8-K / Exhibit 99.1");
-  await expect(page.locator("[data-ci-source-kind='transcript']")).toContainText("2026Q3");
-  await expect(page.locator("[data-ci-source-kind='issuer_release']")).toContainText("0000320193-26-000018");
+  await expect(page.locator("[data-ci-source-kind='issuer_release']")).toContainText("Company 8-K filing, exhibit 99.1");
+  await expect(page.locator("[data-ci-source-kind='issuer_release']")).not.toContainText("8-K / Exhibit 99.1");
+  await expect(page.locator("[data-ci-source-kind='issuer_release']")).not.toContainText("0000320193-26-000018");
+  await expect(page.locator("[data-ci-source-kind='issuer_release']")).toHaveAttribute("data-ci-accession", "0000320193-26-000018");
+  await expect(page.locator("[data-ci-source-kind='transcript']")).toHaveAttribute("data-ci-transcript-id", "2026Q3");
+  await expect(page.locator("[data-ci-source-kind='transcript']")).not.toContainText("2026Q3");
   await page.screenshot({ path: testInfo.outputPath(`${testInfo.project.name}-aapl-sources.png`), fullPage: false });
 
   await closeEvidenceOverlay(page);
@@ -1059,7 +1062,8 @@ test("AAPL v1 score overlay cannot populate current Brief, Results, or Sources",
   await expect(page.locator("#ci-panel-results")).toContainText("$109.4B");
   await expect(page.locator("#ci-panel-results")).not.toContainText("14");
   await page.locator(".ci-lenses").getByRole("tab", { name: "Sources" }).click();
-  await expect(page.locator("#ci-panel-sources")).toContainText("8-K / Exhibit 99.1");
+  await expect(page.locator("#ci-panel-sources")).toContainText("Company 8-K filing, exhibit 99.1");
+  await expect(page.locator("#ci-panel-sources")).not.toContainText("8-K / Exhibit 99.1");
   await expect(page.locator("#ci-panel-sources")).not.toContainText("14");
   await expect(page.locator("#ci-panel-sources")).not.toContainText(/score overlay/i);
 });

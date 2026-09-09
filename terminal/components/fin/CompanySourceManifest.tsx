@@ -2,7 +2,7 @@
 
 import { useLang } from "../../lib/i18n";
 import { pick } from "../../lib/finFormat";
-import { sourceKindLabel, sourceStatusLabel } from "../../lib/plainLabels";
+import { sourceKindLabel, sourceStatusLabel, sourceVisibleKindLabel } from "../../lib/plainLabels";
 import type {
   CompanyIntelligenceEvent,
   CompanyIntelligenceSource,
@@ -38,11 +38,10 @@ function v2Color(state: EventWorkspacePresentedSource["receipt_state"]): string 
 
 function v2Note(source: EventWorkspacePresentedSource, zh: boolean): string {
   if (source.typed_absence) return source.typed_absence.detail;
-  if (source.filing_key) return `${source.filing_key.cik} · ${source.filing_key.accession}`;
   if (source.receipt_state === "address_only") {
     return pick(zh, "The document address is known but the bytes cannot be replayed.", "文档地址已知，但无法回放其字节。");
   }
-  return source.document_id ?? sourceStatusLabel(source.status, zh ? "zh" : "en");
+  return sourceVisibleKindLabel(source.kind, zh ? "zh" : "en");
 }
 
 function v2Glyph(kind: string): string {
@@ -63,12 +62,12 @@ export default function CompanySourceManifest({ event, onOpenTranscript, compact
         const color = v2Color(source.receipt_state);
         const id = source.transcript_id;
         return (
-          <li key={`${source.kind}:${source.document_id ?? index}`} data-ci-source-kind={source.kind} data-ci-receipt-state={source.receipt_state} data-plain-kind={sourceKindLabel(source.kind, zh ? "zh" : "en")}>
+          <li key={`${source.kind}:${source.document_id ?? index}`} data-ci-source-kind={source.kind} data-ci-receipt-state={source.receipt_state} data-plain-kind={sourceKindLabel(source.kind, zh ? "zh" : "en")} data-ci-document-id={source.document_id ?? undefined} data-ci-cik={source.filing_key?.cik} data-ci-accession={source.filing_key?.accession} data-ci-transcript-id={id ?? undefined}>
             <span className="ci-source-icon" style={{ "--ci-source": color } as React.CSSProperties} aria-hidden>
               {v2Glyph(source.kind)}
             </span>
             <span className="ci-source-copy">
-              <strong>{source.label}</strong>
+              <strong>{sourceVisibleKindLabel(source.kind, zh ? "zh" : "en")}</strong>
               <small>{v2Note(source, zh)}</small>
             </span>
             <span className="ci-source-state">

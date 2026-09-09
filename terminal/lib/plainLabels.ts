@@ -224,10 +224,10 @@ export function subjectKindLabel(value: string | null | undefined, lang: PlainLa
 
 /** Inferred tape lean shown on the 0DTE board and flow cards — never the raw ~buy token. */
 export const FLOW_SIDE_LABEL = {
-  "~buy": ["Likely buying", "偏买入"],
-  buy: ["Likely buying", "偏买入"],
-  "~sell": ["Likely selling", "偏卖出"],
-  sell: ["Likely selling", "偏卖出"],
+  "~buy": ["Leans buy (approximate)", "偏买入（近似）"],
+  buy: ["Leans buy (approximate)", "偏买入（近似）"],
+  "~sell": ["Leans sell (approximate)", "偏卖出（近似）"],
+  sell: ["Leans sell (approximate)", "偏卖出（近似）"],
   mixed: ["Mixed", "混合"],
 } as const;
 
@@ -262,14 +262,14 @@ export function flowSideLabel(value: string | null | undefined, lang: PlainLang)
 
 /** Company-intelligence source kind shown on the manifest. */
 export const SOURCE_KIND_LABEL = {
-  transcript: ["Earnings call transcript", "电话会记录"],
+  transcript: ["Earnings call transcript", "财报电话会记录"],
   earnings_history: ["Historical earnings record", "历史财报记录"],
   score_overlay: ["Structured event analysis", "结构化事件分析"],
-  issuer_release: ["Company filing", "公司公告"],
-  filing: ["Company filing", "公司公告"],
-  release: ["Company filing", "公司公告"],
+  issuer_release: ["Company 8-K filing, exhibit 99.1", "公司 8-K 披露文件，附件 99.1"],
+  filing: ["Company 8-K filing, exhibit 99.1", "公司 8-K 披露文件，附件 99.1"],
+  release: ["Company 8-K filing, exhibit 99.1", "公司 8-K 披露文件，附件 99.1"],
   public_wire: ["Public wire record", "公开快讯"],
-  edgar_collector: ["SEC filing feed", "监管申报来源"],
+  edgar_collector: ["SEC filing feed", "监管披露来源"],
   presentation: ["Slides", "演示文稿"],
 } as const;
 
@@ -280,6 +280,13 @@ export function sourceKindLabel(value: string | null | undefined, lang: PlainLan
   const pair = SOURCE_KIND_LABEL[value as SourceKindKey];
   if (!pair) return notClassified(lang);
   return lang === "zh" ? pair[1] : pair[0];
+}
+
+/** Visible kind when no plainer label exists — never a document id, CIK, or accession. */
+export function sourceVisibleKindLabel(value: string | null | undefined, lang: PlainLang): string {
+  const mapped = sourceKindLabel(value, lang);
+  if (mapped !== notClassified(lang)) return mapped;
+  return lang === "zh" ? "监管披露文件" : "SEC filing";
 }
 
 /** Source completeness shown on the company-intelligence manifest. */

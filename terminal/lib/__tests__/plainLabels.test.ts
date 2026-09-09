@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { FD } from "@/lib/flowdeskStrings";
+import { FD, getFlowStr } from "@/lib/flowdeskStrings";
 import { getHeatmapStr, sectorChipLabel } from "@/lib/heatmapStrings";
 import { LEX } from "@/lib/i18n";
 import {
@@ -33,6 +33,7 @@ import {
   flowSideLabel,
   sourceKindLabel,
   sourceStatusLabel,
+  sourceVisibleKindLabel,
   statTokenLabel,
   subjectKindLabel,
   topicStatusLabel,
@@ -442,13 +443,15 @@ describe("flowSideLabel", () => {
   });
 
   it("spells out inferred lean and never echoes the token", () => {
-    expect(flowSideLabel("~buy", "en")).toBe("Likely buying");
-    expect(flowSideLabel("~buy", "zh")).toBe("偏买入");
-    expect(flowSideLabel("~sell", "en")).toBe("Likely selling");
-    expect(flowSideLabel("~sell", "zh")).toBe("偏卖出");
+    expect(flowSideLabel("~buy", "en")).toBe("Leans buy (approximate)");
+    expect(flowSideLabel("~buy", "zh")).toBe("偏买入（近似）");
+    expect(flowSideLabel("~sell", "en")).toBe("Leans sell (approximate)");
+    expect(flowSideLabel("~sell", "zh")).toBe("偏卖出（近似）");
     expect(flowSideLabel("mixed", "en")).toBe("Mixed");
     expect(flowSideLabel("mixed", "zh")).toBe("混合");
     expect(flowSideLabel("~buy", "en")).not.toBe("~buy");
+    expect(flowSideLabel("~buy", "en")).not.toContain("Likely");
+    expect(flowSideLabel("~sell", "en")).not.toContain("Likely");
   });
 
   it("every side in live flow fixture data has a pair in EN and ZH", () => {
@@ -474,18 +477,32 @@ describe("sourceKindLabel", () => {
 
   it("known kinds are retail words, never the slug", () => {
     expect(sourceKindLabel("transcript", "en")).toBe("Earnings call transcript");
-    expect(sourceKindLabel("transcript", "zh")).toBe("电话会记录");
-    expect(sourceKindLabel("issuer_release", "en")).toBe("Company filing");
+    expect(sourceKindLabel("transcript", "zh")).toBe("财报电话会记录");
+    expect(sourceKindLabel("issuer_release", "en")).toBe("Company 8-K filing, exhibit 99.1");
+    expect(sourceKindLabel("issuer_release", "zh")).toBe("公司 8-K 披露文件，附件 99.1");
+    expect(sourceKindLabel("filing", "en")).toBe("Company 8-K filing, exhibit 99.1");
+    expect(sourceKindLabel("release", "zh")).toBe("公司 8-K 披露文件，附件 99.1");
     expect(sourceKindLabel("score_overlay", "zh")).toBe("结构化事件分析");
     expect(sourceKindLabel("edgar_collector", "en")).toBe("SEC filing feed");
-    expect(sourceKindLabel("edgar_collector", "zh")).toBe("监管申报来源");
+    expect(sourceKindLabel("edgar_collector", "zh")).toBe("监管披露来源");
     expect(sourceKindLabel("transcript", "en")).not.toBe("transcript");
+    expect(sourceKindLabel("edgar_collector", "zh")).not.toContain("申报");
+    expect(sourceKindLabel("issuer_release", "zh")).toContain("披露");
   });
 
   it("unknown kind never returns the raw value", () => {
     expect(sourceKindLabel("mystery_kind", "en")).toBe(notClassified("en"));
     expect(sourceKindLabel("mystery_kind", "zh")).toBe(notClassified("zh"));
     expect(sourceKindLabel("mystery_kind", "en")).not.toBe("mystery_kind");
+  });
+
+  it("when no mapped kind exists the visible label is the filing kind, never the id", () => {
+    expect(sourceVisibleKindLabel("mystery_kind", "en")).toBe("SEC filing");
+    expect(sourceVisibleKindLabel("mystery_kind", "zh")).toBe("监管披露文件");
+    expect(sourceVisibleKindLabel(null, "en")).toBe("SEC filing");
+    expect(sourceVisibleKindLabel("", "zh")).toBe("监管披露文件");
+    expect(sourceVisibleKindLabel("transcript", "zh")).toBe("财报电话会记录");
+    expect(sourceVisibleKindLabel("mystery_kind", "en")).not.toBe("mystery_kind");
   });
 });
 
@@ -647,5 +664,31 @@ describe("plain-language — batch 3 round 3", () => {
     expect(LEX.peErrorCountOne[1]).toBe("1 个错误");
     expect(LEX.peInputsHeading[0]).toBe("Inputs");
     expect(LEX.peInputsHeading[1]).toBe("可调参数");
+  });
+});
+
+describe("plain-language — batch 3 round 4", () => {
+  it("tick-rule side never claims a likelihood", () => {
+    for (const pair of Object.values(FLOW_SIDE_LABEL)) {
+      expect(pair[0]).not.toMatch(/likely/i);
+    }
+    expect(flowSideLabel("~buy", "en")).toBe("Leans buy (approximate)");
+    expect(flowSideLabel("~buy", "zh")).toBe("偏买入（近似）");
+    expect(flowSideLabel("~sell", "en")).toBe("Leans sell (approximate)");
+    expect(flowSideLabel("~sell", "zh")).toBe("偏卖出（近似）");
+  });
+
+  it("the score-ceiling disclaimer names unusualness in both languages", () => {
+    expect(getFlowStr("en", "scoreHonesty")).toContain("how unusual the print is");
+    expect(getFlowStr("zh", "scoreHonesty")).toContain("异常程度");
+    expect(getFlowStr("zh", "scoreHonesty")).not.toContain("新鲜程度");
+  });
+
+  it("regulatory-filing Chinese uses 披露, never 申报", () => {
+    expect(sourceKindLabel("edgar_collector", "zh")).toBe("监管披露来源");
+    expect(sourceKindLabel("issuer_release", "zh")).toContain("披露");
+    for (const pair of Object.values(SOURCE_KIND_LABEL)) {
+      expect(pair[1]).not.toContain("申报");
+    }
   });
 });

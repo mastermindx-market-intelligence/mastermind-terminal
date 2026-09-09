@@ -296,6 +296,21 @@ describe("plain-language call sites — batch 3", () => {
     expect(src).toContain("sourceStatusLabel(");
   });
 
+  it("CompanySourceManifest.tsx: ids stay on data attributes; the visible label is house vocabulary", () => {
+    const src = readOwned("fin/CompanySourceManifest.tsx");
+    expect(src).not.toContain("return source.document_id");
+    expect(src).not.toContain("${source.filing_key.cik}");
+    expect(src).not.toContain("${source.filing_key.accession}");
+    expect(src).not.toContain("{source.label}");
+    expect(src).toContain("data-ci-document-id={source.document_id ?? undefined}");
+    expect(src).toContain("data-ci-cik={source.filing_key?.cik}");
+    expect(src).toContain("data-ci-accession={source.filing_key?.accession}");
+    expect(src).toContain("sourceVisibleKindLabel(");
+    expect(lineContaining(src, "<strong>", "v2 visible label")).toContain("sourceVisibleKindLabel(");
+    expect(src).not.toContain("8-K / Exhibit 99.1");
+    expect(src).not.toContain("EDGAR 采集行");
+  });
+
   it("OptionCard.tsx: live/EOD quote chrome routes through t()", () => {
     const src = readOwned("prophet/OptionCard.tsx");
     expect(src).not.toContain('"Intraday live quote"');
@@ -345,14 +360,15 @@ describe("plain-language call sites — batch 3", () => {
 describe("plain-language call sites — batch 3 round 3", () => {
   const readLib = (rel: string) => readFileSync(join(__dirname, "..", rel), "utf8");
 
-  it("OptionsFlowBoardView.tsx: the schema slug leaves the visible chrome but stays machine-readable", () => {
+  it("OptionsFlowBoardView.tsx: the schema slug leaves every user-visible position", () => {
     const src = readOwned("options/OptionsFlowBoardView.tsx");
     expect(src).not.toContain('<code>{feedSchema');
     expect(src).toContain("data-options-flow-contract=");
     const codeLine = lineContaining(src, "<code", "feed chip");
-    expect(codeLine).toContain("title=");
+    expect(codeLine).not.toContain("title=");
     expect(codeLine).toContain("pick(");
     expect(codeLine).not.toMatch(/>\{feedSchema/);
+    expect(src).not.toMatch(/title=\{feedSchema/);
   });
 
   it("OptionsFlowBoardView.tsx: the call/put chips and the card clock read as words", () => {
@@ -422,5 +438,16 @@ describe("plain-language call sites — batch 3 round 3", () => {
     const src = readLib("i18n.tsx");
     expect(src).not.toContain('["PROPRIETARY", "自研"]');
     expect(src).not.toContain("Proprietary — protected source, editing disabled");
+  });
+
+  it("FiltersPanel.tsx: honesty doctrine does not promote lean to a likelihood claim", () => {
+    const src = readOwned("flowdesk/FiltersPanel.tsx");
+    expect(src).not.toContain("Likely buying");
+    expect(src).not.toContain("Likely selling");
+    expect(src).toContain("Leans buy (approximate)");
+    expect(src).toContain("偏买入（近似）");
+    expect(src).toContain("we do NOT offer a");
+    expect(src).toContain("directional green/red filter gate");
+    expect(src).toContain("never an affirmative likelihood claim");
   });
 });
