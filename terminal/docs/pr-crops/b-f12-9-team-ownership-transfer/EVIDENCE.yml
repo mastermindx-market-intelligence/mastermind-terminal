@@ -1,0 +1,39 @@
+# Ledger row: 0020_team_ownership_transfer / PR pending (open, packet B-F12-9); not applied
+# layoutFiles carry sha256 hashes of the files they name; proof of which code generated each crop.
+# Rebuild any crop and recompute its layoutFiles, or the test will fail and the PR will not land.
+# capturedAtHead: 144fbbd74fbc75472d4d82185114c0d74fa51981
+capturedAtHead: 144fbbd74fbc75472d4d82185114c0d74fa51981
+capturedAt: 2026-09-09T19:11:17.325Z
+layoutFiles:
+  terminal/components/settings/SectionTeam.tsx: "f76271c5fce18d8417b3e5c9d24a90ee64cd783d5f0fd123295dee7477e8f5fa"
+  terminal/components/settings/SectionTeam.module.css: "d1c5ca5d1da53906e0bb21c06e2f9ae1e25956c2d973ee2c9ea3a7201629af5f"
+  terminal/components/settings/SettingsPanel.tsx: "954825616c2c3d02b7ec5e3a82011e236f78219e91474e3483de1e317a9dc7d6"
+  terminal/app/settings.css: "3189163136d943431cbf52e4b5d241c105b695ba5af94c4c2e29151d537b5ef5"
+  terminal/lib/i18n.tsx: "d20c18eec584a5b59f0154ec2d0deb213985c19854dd4ddfcd6afa3c90bc22aa"
+theme: dark
+languages: [en, zh]
+viewports:
+  - 1440x900
+  - 390x844
+harness: /dev/settings?s=team&lang=<en|zh>
+capture_flag: TERMINAL_E2E_FIXTURE
+capture_flag_law: Set TERMINAL_E2E_FIXTURE=1 and next.config.ts sets devIndicators false, hiding Next.js dev button overlay from crops.
+command: node terminal/e2e/tools/capture_f12_9_team_ownership_transfer.cjs
+files:
+  - desktop-en-transfer-button.png
+  - desktop-zh-transfer-button.png
+  - desktop-en-transfer-confirm.png
+  - desktop-zh-transfer-confirm.png
+  - mobile-en-transfer-button.png
+  - mobile-zh-transfer-button.png
+  - mobile-en-transfer-confirm.png
+  - mobile-zh-transfer-confirm.png
+measurements:
+  desktop-en-transfer-button.png: { transferButtonText: "Transfer ownership", dialogPresent: false, confirmTitle: "", consequenceText: "", roleBadgeText: "Member | Owner | Administrator | Member" }
+  desktop-zh-transfer-button.png: { transferButtonText: "转移所有权", dialogPresent: false, confirmTitle: "", consequenceText: "", roleBadgeText: "成员 | 所有者 | 管理员 | 成员" }
+  desktop-en-transfer-confirm.png: { transferButtonText: "Transfer ownership", dialogPresent: true, confirmTitle: "Transfer ownership to Alex Chen?", consequenceText: "You will become an administrator. They will become the team owner. You can always transfer back later.", roleBadgeText: "Member | Owner | Administrator | Member" }
+  desktop-zh-transfer-confirm.png: { transferButtonText: "转移所有权", dialogPresent: true, confirmTitle: "将所有权转移给 Alex Chen？", consequenceText: "你将成为管理员，对方将成为团队所有者。之后你随时可以转回。", roleBadgeText: "成员 | 所有者 | 管理员 | 成员" }
+  mobile-en-transfer-button.png: { transferButtonText: "Transfer ownership", dialogPresent: false, confirmTitle: "", consequenceText: "", roleBadgeText: "Member | Owner | Administrator | Member" }
+  mobile-zh-transfer-button.png: { transferButtonText: "转移所有权", dialogPresent: false, confirmTitle: "", consequenceText: "", roleBadgeText: "成员 | 所有者 | 管理员 | 成员" }
+  mobile-en-transfer-confirm.png: { transferButtonText: "Transfer ownership", dialogPresent: true, confirmTitle: "Transfer ownership to Alex Chen?", consequenceText: "You will become an administrator. They will become the team owner. You can always transfer back later.", roleBadgeText: "Member | Owner | Administrator | Member" }
+  mobile-zh-transfer-confirm.png: { transferButtonText: "转移所有权", dialogPresent: true, confirmTitle: "将所有权转移给 Alex Chen？", consequenceText: "你将成为管理员，对方将成为团队所有者。之后你随时可以转回。", roleBadgeText: "成员 | 所有者 | 管理员 | 成员" }
