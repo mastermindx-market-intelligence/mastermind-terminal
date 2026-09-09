@@ -11,8 +11,10 @@
 // token mapping regresses, this page shows it.
 
 import { Suspense, useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import { notFound, useSearchParams } from "next/navigation";
-import SettingsPanel from "@/components/settings/SettingsPanel";
+
+const SettingsPanel = dynamic(() => import("@/components/settings/SettingsPanel"), { ssr: false });
 import type { SettingsSection } from "@/components/settings/SettingsProvider";
 import type { AcsUser } from "@/components/settings/SettingsProvider";
 import type { AcsPlan, AcsUsage } from "@/components/settings/types";

@@ -135,6 +135,9 @@ async function openAccuracy(page, lang, viewport, acc) {
   const title = lang === "zh" ? "你的判断，逐条核对。" : "Your calls, checked.";
   await page.getByRole("heading", { name: title, exact: true }).waitFor({ state: "visible", timeout: 15_000 });
   await stripDevOverlay(page);
+  // Laser sweep is 0.9s; wait it out so crops are not a mid-animation smear.
+  await page.waitForTimeout(1100);
+  await stripDevOverlay(page);
 }
 
 async function openDetail(page, lang) {
@@ -147,7 +150,7 @@ async function openDetail(page, lang) {
 async function shoot(page, file) {
   await assertNoNextIndicator(page, file);
   await page.mouse.move(0, 0);
-  await page.waitForTimeout(120);
+  await page.waitForTimeout(200);
   const overlay = page.locator(".acs-overlay.open");
   await overlay.screenshot({ path: join(OUT, file) });
 }
