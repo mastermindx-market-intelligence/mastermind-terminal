@@ -1,15 +1,15 @@
 # B-F08-6 Alert delivery — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 4df668068c4870d5e4c81e7c22817a06543252f2
-# capturedAt: 2026-09-09T11:27:32.686Z
+# capturedAtHead: b3311c07ed3c19e90178c9c76c5386f4a7dfe740
+# capturedAt: 2026-09-09T14:01:53.952Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/settings/SectionAlertDelivery.tsx: "460c36bc197ec4b63fa90628d6b9e3d3102c22763a9755307a2ea17d58e87f6b"
+  terminal/components/settings/SectionAlertDelivery.tsx: "d287c200caa4e4ac41e181a8d77402cf58a944475a638d7116435f682075f01a"
   terminal/components/settings/SettingsPanel.tsx: "a85d87b53f3982131744af3e6fe3d3c165818e4a787790d918e6d84eac279f5a"
   terminal/components/settings/icons.tsx: "5c809c869e036d48a09f0586f954b2855a06c8302c99267a3c6dda94424c8adb"
-  terminal/lib/i18n.tsx: "0a6aea493165d016b35b7647b0661c2612fc00fa3c3d169446e1dc0038b921e6"
-  terminal/lib/plainLabels.ts: "f67e0d17f434e5472b7bd524c6f32f1f7ec5ac94d2c2fafc5876c2dbf36d0bcb"
+  terminal/lib/i18n.tsx: "af5bb6c558d6ac7fc43836c2e0fa1d34da82590e3fa9315a8922ecbfef666cb5"
+  terminal/lib/plainLabels.ts: "fe33c4b10a0e6f91044b96413c1df04b241cfbd69db29d52dd8ff2694bd622e9"
 theme: dark
 languages: [en, zh]
 viewports:
