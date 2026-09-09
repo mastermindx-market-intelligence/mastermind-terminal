@@ -158,6 +158,14 @@
       "pr": null,
       "pr_state": null,
       "note": "free -- claim before you write"
+    },
+    "0022": {
+      "state": "taken",
+      "file": "0022_chart_layouts_team_sharing.sql",
+      "packet": "B-F12-B5-2",
+      "pr": 0,
+      "pr_state": "open",
+      "note": "packet B-F12-B5-2 team-shared saved workspaces; shipped unapplied. Seat ruling R1 owns prefix 0022 (0021 is B-F12-B5-1 explicit grants). pr filled once the draft pull request opens."
     }
   }
 }

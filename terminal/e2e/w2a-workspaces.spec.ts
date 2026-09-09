@@ -1,6 +1,6 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import {
-  injectLayoutFault, isolateLayoutStore, renderAsGuest, useLang,
+  injectLayoutFault, isolateLayoutStore, joinLayoutTeam, renderAsGuest, useLang,
   forceStaleRevision, seedNameConflict, seedUnreadableWorkspace, seedFutureFloorWorkspace,
   seedUnknownWidgetTypeWorkspace, seedTolerantDefectWorkspace,
 } from "./layoutStore";
@@ -638,5 +638,66 @@ test.describe("W2-A workspace menu — non-screenshot assertions (spec §7)", ()
     page.on("request", (r) => { if (r.url().includes("/api/layouts") && r.method() !== "GET") writes.push(r.url()); });
     await button.click({ force: true }).catch(() => {}); // disabled — Playwright will refuse a real click; force just proves no handler fires
     expect(writes).toEqual([]);
+  });
+});
+
+test.describe("W2-A workspace menu — team sharing", () => {
+  test("1440 EN/ZH grouped library, share confirm, and member read-only", async ({ page, baseURL }, testInfo) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    const teamId = `team-${testInfo.testId}`.slice(0, 40);
+    await isolateLayoutStore(page, testInfo, baseURL);
+    await joinLayoutTeam(page, teamId, "owner", baseURL);
+    await gotoTerminal(page);
+
+    let menu = await saveWorkspace(page, "Open");
+    await expect(menu.locator('[data-ws-group-hd="team"]')).toBeVisible();
+    await expect(menu.locator('[data-ws-group-hd="mine"]')).toBeVisible();
+    await expect(menu.locator('[data-ws-team-empty]')).toBeVisible();
+    await shot(page, "1440-en-team-grouped");
+
+    const mine = await openRow(menu, "Open");
+    await mine.locator('[data-ws-act="share"]').click();
+    await expect(menu.locator("[data-ws-share-confirm=team]")).toBeVisible();
+    await expect(menu.locator("[data-ws-share-confirm=team]")).toContainText("Everyone on");
+    await shot(page, "1440-en-share-confirm");
+    await menu.locator("[data-ws-share-yes]").click();
+    await expect(menu.locator('[data-ws-sharing="team"]')).toBeVisible();
+
+    await useLang(page, "zh");
+    await page.reload();
+    await expect(page.locator(".chart-wrap, .chart-host, canvas").first()).toBeVisible({ timeout: 45_000 });
+    menu = await openLayoutMenu(page);
+    await expect(menu.locator('[data-ws-group-hd="team"]')).toBeVisible();
+    await shot(page, "1440-zh-team-grouped");
+    const sharedZh = menu.locator('[data-ws-sharing="team"] [data-ws-more]').first();
+    await sharedZh.click();
+    await menu.locator('[data-ws-act="unshare"]').click();
+    await expect(menu.locator("[data-ws-share-confirm=private]")).toBeVisible();
+    await shot(page, "1440-zh-share-confirm");
+    await menu.locator("[data-ws-share-no]").click();
+
+    await joinLayoutTeam(page, teamId, "member", baseURL);
+    await page.reload();
+    await expect(page.locator(".chart-wrap, .chart-host, canvas").first()).toBeVisible({ timeout: 45_000 });
+    await useLang(page, "en");
+    menu = await openLayoutMenu(page);
+    const shared = await openRow(menu, "Open");
+    await expect(shared.locator('[data-ws-act="rename"]')).toHaveCount(0);
+    await expect(shared.locator('[data-ws-act="delete"]')).toHaveCount(0);
+    await expect(shared.locator('[data-ws-act="share"]')).toHaveCount(0);
+    await expect(shared.locator("[data-ws-readonly-note]")).toBeVisible();
+    await shot(page, "1440-en-member-read-only");
+    await assertNoRawCodes(page);
+  });
+
+  test("820 EN grouped library tap targets", async ({ page, baseURL }, testInfo) => {
+    await page.setViewportSize({ width: 820, height: 1180 });
+    const teamId = `team-${testInfo.testId}`.slice(0, 40);
+    await isolateLayoutStore(page, testInfo, baseURL);
+    await joinLayoutTeam(page, teamId, "owner", baseURL);
+    await gotoTerminal(page);
+    const menu = await saveWorkspace(page, "Open");
+    await expect(menu.locator('[data-ws-group-hd="team"]')).toBeVisible();
+    await shot(page, "820-en-team-grouped");
   });
 });

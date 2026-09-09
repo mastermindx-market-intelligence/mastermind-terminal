@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useT } from "@/lib/i18n";
 import type { SavedLayout } from "@/lib/layouts";
+import { interpolateTeam } from "@/lib/teamSharedWorkflow";
 import StateSwitch from "@/components/StateSwitch";
 
 // The Saved-Workspaces popover body (W2A_WORKSPACE_UX_SPEC.md), extracted so the toolbar popover
@@ -24,12 +25,24 @@ export type LayoutFeedback =
   | { kind: "duplicated" }
   | { kind: "imported" }
   | { kind: "error"; message: string }
+  | { kind: "info"; message: string }
   | { kind: "conflict"; name: string; suggested: string; op: "save" | "rename" | "duplicate" | "import" }
   | { kind: "stale"; name: string; savedAgo: string };
 
 /** Per-row read state derived by the reader, NEVER by the menu. */
 export type RowState = "ok" | "unsupported_floor" | "unsupported_schema";
-export type SavedWorkspace = SavedLayout & { rowState: RowState };
+export type SavedWorkspace = SavedLayout & {
+  rowState: RowState;
+  sharing?: "private" | "team";
+  teamId?: string | null;
+  teamName?: string | null;
+  mine?: boolean;
+  canEdit?: boolean;
+};
+
+export type LayoutTeam = { id: string; name: string; role: "owner" | "admin" | "member" };
+export type LayoutTeamRead = { ok: true } | { ok: false; message: string };
+export type PendingShare = { id: string; to: "team" | "private"; teamName: string; teamId?: string } | null;
 
 export type LayoutMenuProps = {
   status: LayoutStatus;
@@ -74,6 +87,13 @@ export type LayoutMenuProps = {
    *  durable-disclosure treatment as `unclaimedFields`: a save re-captures only widgets this build
    *  knows how to render, so this list warns that saving will remove those panels. */
   unsupportedWidgets: string[];
+  teams?: LayoutTeam[];
+  teamRead?: LayoutTeamRead;
+  onShare?: (layout: SavedWorkspace, teamId: string) => void;
+  onUnshare?: (layout: SavedWorkspace) => void;
+  pendingShare?: PendingShare;
+  onConfirmShare?: () => void;
+  onCancelShare?: () => void;
 };
 
 export default function LayoutMenu({
@@ -81,8 +101,16 @@ export default function LayoutMenu({
   onLoad, onDelete, onRetry, onSignUp, rowAs = "div", onPicked,
   brainInWorkspace, onToggleBrainDock, onRename, onDuplicate, onExport, onImport,
   staleName, onUseSuggested, onReloadLatest, onSaveAsCopy, isOpen, unclaimedFields, unsupportedWidgets,
+  teams = [], teamRead = { ok: true }, onShare, onUnshare, pendingShare = null, onConfirmShare, onCancelShare,
 }: LayoutMenuProps) {
   const t = useT();
+  const writableTeams = teams.filter((team) => team.role === "owner" || team.role === "admin");
+  const canShare = writableTeams.length > 0;
+  const onTeam = teams.length > 0;
+  const [shareTeamId, setShareTeamId] = useState(writableTeams[0]?.id ?? "");
+  useEffect(() => {
+    if (!shareTeamId && writableTeams[0]) setShareTeamId(writableTeams[0].id);
+  }, [shareTeamId, writableTeams]);
   const isGuest = status === "auth";
   const nameInputRef = useRef<HTMLInputElement | null>(null);
   const gateRowRef = useRef<HTMLButtonElement | null>(null);
@@ -138,6 +166,118 @@ export default function LayoutMenu({
     const trimmed = draft.trim();
     if (!trimmed || trimmed === l.name) { cancelRename(); return; }
     onRename(l, trimmed);
+  }
+
+  function renderRow(l: SavedWorkspace) {
+    const blocked = l.rowState !== "ok";
+    const open = openRow === l.id;
+    const shared = l.sharing === "team";
+    const editable = shared ? l.canEdit === true : l.canEdit !== false;
+    const defaultTeamId = shareTeamId || writableTeams[0]?.id || teams[0]?.id || "";
+    return (
+      <div key={l.id}
+           className={`ws-item${open ? " open" : ""}${blocked ? " blocked" : ""}${staleName === l.name ? " stale" : ""}`}
+           data-layout-row={l.name} data-ws-state={l.rowState} data-ws-sharing={shared ? "team" : "private"}>
+
+        {renamingId === l.id ? (
+          <div className="ws-rename">
+            <input autoFocus value={draft} aria-label={t("rename")} data-ws-rename-input
+                   onFocus={(e) => e.currentTarget.select()}
+                   onChange={(e) => setDraft(e.target.value)}
+                   onKeyDown={(e) => {
+                     if (e.key === "Enter") { e.preventDefault(); commitRename(l); }
+                     else if (e.key === "Escape") { e.stopPropagation(); cancelRename(); }
+                   }}
+                   onBlur={cancelRename} />
+            <button type="button" aria-label={t("wsRenameSave")} data-ws-rename-commit
+                    onMouseDown={(e) => e.preventDefault()} onClick={() => commitRename(l)}>
+              <svg viewBox="0 0 24 24"><path d="M4 12l5 5L20 6" /></svg>
+            </button>
+            <button type="button" aria-label={t("wsCancel")} data-ws-rename-cancel
+                    onMouseDown={(e) => e.preventDefault()} onClick={cancelRename}>
+              <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" /></svg>
+            </button>
+          </div>
+        ) : (
+          <Row type="button" {...(rowAs === "button" ? { role: "menuitem" } : {})}
+               className="menu-row" disabled={blocked}
+               onClick={blocked ? undefined : () => { onLoad(l); onPicked?.(); }}>
+            <span className="ws-name">{l.name}</span>
+            {shared && <span className="ws-badge" data-ws-badge="team">{t("wsSharedBadge")}</span>}
+            {l.rowState === "unsupported_floor" && <span className="ws-badge warn">{t("wsBadgeNewer")}</span>}
+            {l.rowState === "unsupported_schema" && <span className="ws-badge">{t("wsBadgeUnreadable")}</span>}
+            <span className="ws-more" role="button" tabIndex={0}
+                  ref={(el) => { moreRefs.current[l.id] = el; }}
+                  aria-label={`${t("wsRowActions")}: ${l.name}`}
+                  aria-expanded={open} aria-controls={`ws-subs-${l.id}`}
+                  data-ws-more={l.name}
+                  onClick={(e) => { e.stopPropagation(); toggleRow(l.id); }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); toggleRow(l.id); }
+                    else if (e.key === "Escape" && open) { e.stopPropagation(); closeRow(l.id); }
+                  }}>
+              <svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" /></svg>
+            </span>
+          </Row>
+        )}
+
+        {blocked && (
+          <div className="ws-hint" data-ws-hint>
+            {l.rowState === "unsupported_floor" ? t("wsNeedsNewer") : t("wsCantOpen")}
+          </div>
+        )}
+
+        {open && (
+          <div className="ws-subs" id={`ws-subs-${l.id}`} role="group" aria-label={l.name}
+               onKeyDown={(e) => { if (e.key === "Escape") { e.stopPropagation(); closeRow(l.id); } }}>
+            {!blocked && <>
+              <button type="button" role="menuitem" className="menu-row" data-ws-act="open"
+                      ref={(el) => { firstActionRefs.current[l.id] = el; }}
+                      onClick={() => { onLoad(l); onPicked?.(); }}>
+                <svg viewBox="0 0 24 24"><path d="M4 5h16v14H4zM4 9h16M9 9v10" /></svg>{t("wsOpen")}
+              </button>
+              {canShare && !shared && (
+                <button type="button" role="menuitem" className="menu-row" data-ws-act="share"
+                        onClick={() => onShare?.(l, defaultTeamId)}>
+                  {t("wsShareAction")}
+                </button>
+              )}
+              {shared && editable && (
+                <button type="button" role="menuitem" className="menu-row" data-ws-act="unshare"
+                        onClick={() => onUnshare?.(l)}>
+                  {t("wsUnshareAction")}
+                </button>
+              )}
+              {editable && (
+                <button type="button" role="menuitem" className="menu-row" data-ws-act="rename"
+                        onClick={() => { setDraft(l.name); setRenamingId(l.id); }}>
+                  <svg viewBox="0 0 24 24"><path d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3M13.5 6.5l3 3" /></svg>{t("rename")}
+                </button>
+              )}
+              <button type="button" role="menuitem" className="menu-row" data-ws-act="duplicate"
+                      onClick={() => onDuplicate(l)}>
+                <svg viewBox="0 0 24 24"><path d="M8 17H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v3M11 21h8a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-8a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2z" /></svg>
+                {shared ? t("wsTakeCopy") : t("wsDuplicate")}
+              </button>
+            </>}
+            <button type="button" role="menuitem" className="menu-row" data-ws-act="export"
+                    ref={blocked ? (el) => { firstActionRefs.current[l.id] = el; } : undefined}
+                    onClick={() => onExport(l)}>
+              <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" /></svg>{t("wsExport")}
+            </button>
+            {editable && (
+              <button type="button" role="menuitem" className="menu-row danger" data-ws-act="delete"
+                      onClick={() => onDelete(l.id)}>
+                <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" /></svg>{t("delete")}
+              </button>
+            )}
+            {shared && !editable && (
+              <div className="ws-hint" data-ws-readonly-note>{t("wsTeamReadOnly")}</div>
+            )}
+          </div>
+        )}
+      </div>
+    );
   }
 
   return (
@@ -199,6 +339,7 @@ export default function LayoutMenu({
       {feedback.kind === "duplicated" && <div className="menu-note ok" role="status" data-layout-feedback="duplicated">{t("wsDuplicated")}</div>}
       {feedback.kind === "imported" && <div className="menu-note ok" role="status" data-layout-feedback="imported">{t("wsImported")}</div>}
       {feedback.kind === "error" && <div className="menu-note bad" role="alert" data-layout-feedback="error">{feedback.message}</div>}
+      {feedback.kind === "info" && <div className="menu-note ok" role="status" data-layout-feedback="info">{feedback.message}</div>}
 
       {/* name_conflict — inline error + the suggested free name as a one-tap action (freeze §11). */}
       {feedback.kind === "conflict" && (
@@ -232,106 +373,55 @@ export default function LayoutMenu({
           <button type="button" className="menu-note-retry" data-layout-retry onClick={onRetry}>{t("layoutRetry")}</button>
         </div>
       )}
-      {status === "ready" && layouts.length === 0 && (
+      {status === "ready" && layouts.length === 0 && !onTeam && (
         <div className="menu-row empty" data-layout-status="empty">{t("noSavedLayouts")}</div>
       )}
 
-      {/* ── ZONE 2 · LIBRARY ── */}
-      {layouts.length > 0 && <div className="ws-hd">{t("wsSectionSaved")}</div>}
-      <div className="ws-list" data-ws-list>
-        {layouts.map((l) => {
-          const blocked = l.rowState !== "ok";
-          const open = openRow === l.id;
-          return (
-            <div key={l.id}
-                 className={`ws-item${open ? " open" : ""}${blocked ? " blocked" : ""}${staleName === l.name ? " stale" : ""}`}
-                 data-layout-row={l.name} data-ws-state={l.rowState}>
-
-              {renamingId === l.id ? (
-                <div className="ws-rename">
-                  <input autoFocus value={draft} aria-label={t("rename")} data-ws-rename-input
-                         onFocus={(e) => e.currentTarget.select()}
-                         onChange={(e) => setDraft(e.target.value)}
-                         onKeyDown={(e) => {
-                           if (e.key === "Enter") { e.preventDefault(); commitRename(l); }
-                           else if (e.key === "Escape") { e.stopPropagation(); cancelRename(); }
-                         }}
-                         onBlur={cancelRename} />
-                  {/* mousedown-preventDefault is LOAD-BEARING: without it the input blurs (→ cancel)
-                      before click fires, and the commit button can never be reached with a mouse. */}
-                  <button type="button" aria-label={t("wsRenameSave")} data-ws-rename-commit
-                          onMouseDown={(e) => e.preventDefault()} onClick={() => commitRename(l)}>
-                    <svg viewBox="0 0 24 24"><path d="M4 12l5 5L20 6" /></svg>
-                  </button>
-                  <button type="button" aria-label={t("wsCancel")} data-ws-rename-cancel
-                          onMouseDown={(e) => e.preventDefault()} onClick={cancelRename}>
-                    <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" /></svg>
-                  </button>
-                </div>
-              ) : (
-                <Row type="button" {...(rowAs === "button" ? { role: "menuitem" } : {})}
-                     className="menu-row" disabled={blocked}
-                     onClick={blocked ? undefined : () => { onLoad(l); onPicked?.(); }}>
-                  <span className="ws-name">{l.name}</span>
-                  {l.rowState === "unsupported_floor" && <span className="ws-badge warn">{t("wsBadgeNewer")}</span>}
-                  {l.rowState === "unsupported_schema" && <span className="ws-badge">{t("wsBadgeUnreadable")}</span>}
-                  <span className="ws-more" role="button" tabIndex={0}
-                        ref={(el) => { moreRefs.current[l.id] = el; }}
-                        aria-label={`${t("wsRowActions")}: ${l.name}`}
-                        aria-expanded={open} aria-controls={`ws-subs-${l.id}`}
-                        data-ws-more={l.name}
-                        onClick={(e) => { e.stopPropagation(); toggleRow(l.id); }}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); toggleRow(l.id); }
-                          else if (e.key === "Escape" && open) { e.stopPropagation(); closeRow(l.id); }
-                        }}>
-                    <svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" /></svg>
-                  </span>
-                </Row>
-              )}
-
-              {/* Why a row is not openable — plain words, never hidden, never a code. */}
-              {blocked && (
-                <div className="ws-hint" data-ws-hint>
-                  {l.rowState === "unsupported_floor" ? t("wsNeedsNewer") : t("wsCantOpen")}
-                </div>
-              )}
-
-              {/* ── ACTIONS — an indented stack of ordinary .menu-row children. ── */}
-              {open && (
-                <div className="ws-subs" id={`ws-subs-${l.id}`} role="group" aria-label={l.name}
-                     onKeyDown={(e) => { if (e.key === "Escape") { e.stopPropagation(); closeRow(l.id); } }}>
-                  {!blocked && <>
-                    <button type="button" role="menuitem" className="menu-row" data-ws-act="open"
-                            ref={(el) => { firstActionRefs.current[l.id] = el; }}
-                            onClick={() => { onLoad(l); onPicked?.(); }}>
-                      <svg viewBox="0 0 24 24"><path d="M4 5h16v14H4zM4 9h16M9 9v10" /></svg>{t("wsOpen")}
-                    </button>
-                    <button type="button" role="menuitem" className="menu-row" data-ws-act="rename"
-                            onClick={() => { setDraft(l.name); setRenamingId(l.id); }}>
-                      <svg viewBox="0 0 24 24"><path d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3M13.5 6.5l3 3" /></svg>{t("rename")}
-                    </button>
-                    <button type="button" role="menuitem" className="menu-row" data-ws-act="duplicate"
-                            onClick={() => onDuplicate(l)}>
-                      <svg viewBox="0 0 24 24"><path d="M8 17H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v3M11 21h8a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-8a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2z" /></svg>{t("wsDuplicate")}
-                    </button>
-                  </>}
-                  {/* Export survives on a blocked row: it is how the user rescues a payload this
-                      build cannot open. The bytes are untouched (freeze §6). */}
-                  <button type="button" role="menuitem" className="menu-row" data-ws-act="export"
-                          ref={blocked ? (el) => { firstActionRefs.current[l.id] = el; } : undefined}
-                          onClick={() => onExport(l)}>
-                    <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" /></svg>{t("wsExport")}
-                  </button>
-                  <button type="button" role="menuitem" className="menu-row danger" data-ws-act="delete"
-                          onClick={() => onDelete(l.id)}>
-                    <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" /></svg>{t("delete")}
-                  </button>
-                </div>
-              )}
+      {pendingShare && (
+        <div className="ws-conflict" role="group" data-ws-share-confirm={pendingShare.to}>
+          <b>{pendingShare.to === "team" ? t("wsShareTitle") : t("wsUnshareTitle")}</b>
+          <p>{pendingShare.to === "team" ? interpolateTeam(t("wsShareBody"), pendingShare.teamName) : t("wsUnshareBody")}</p>
+          {pendingShare.to === "team" && writableTeams.length > 1 && (
+            <div className="ws-fork" data-ws-pick-team>
+              <span>{t("wsPickTeam")}</span>
+              {writableTeams.map((team) => (
+                <button key={team.id} type="button" data-ws-team={team.id}
+                        onClick={() => { setShareTeamId(team.id); onShare?.(layouts.find((x) => x.id === pendingShare.id) ?? layouts[0], team.id); }}>
+                  {team.name}
+                </button>
+              ))}
             </div>
-          );
-        })}
+          )}
+          <div className="ws-fork">
+            <button type="button" data-ws-share-yes onClick={onConfirmShare}>
+              {pendingShare.to === "team" ? t("wsShareYes") : t("wsUnshareYes")}
+            </button>
+            <button type="button" data-ws-share-no onClick={onCancelShare}>
+              {pendingShare.to === "team" ? t("wsShareNo") : t("wsCancel")}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── ZONE 2 · LIBRARY ── */}
+      {onTeam && (
+        <>
+          <div className="ws-hd" data-ws-group-hd="team">{t("wsGroupTeam")}</div>
+          {!teamRead.ok && (
+            <div className="menu-note bad" role="alert" data-ws-team-read-fail>{teamRead.message}</div>
+          )}
+        </>
+      )}
+      {layouts.length > 0 && !onTeam && <div className="ws-hd">{t("wsSectionSaved")}</div>}
+      <div className="ws-list" data-ws-list>
+        {onTeam && layouts.filter((l) => l.sharing === "team").length === 0 && (
+          <div className="menu-row empty" data-ws-team-empty>{t("wsTeamEmpty")}</div>
+        )}
+        {onTeam && layouts.filter((l) => l.sharing === "team").map((l) => renderRow(l))}
+        {onTeam && (
+          <div className="ws-hd" data-ws-group-hd="mine">{t("wsGroupMine")}</div>
+        )}
+        {(onTeam ? layouts.filter((l) => l.sharing !== "team") : layouts).map((l) => renderRow(l))}
       </div>
 
       {/* ── ZONE 3 · BRING ONE IN ── */}
