@@ -24,10 +24,15 @@ const { chromium } = require("@playwright/test");
 const ROOT = join(__dirname, "..", "..");
 const REPO = join(ROOT, "..");
 const OUT = join(ROOT, "docs", "pr-crops", "b-f12-8-team-roles");
+// Round-4 ruling R4(f): icons.tsx is in the lock. This packet edited it (IconTeam), and
+// SectionTeam.tsx imports Group / Msg / Row / SectionHead from it — the markup that structures
+// every line of these crops. Without it, an edit there moves these pixels without turning the
+// lock red, which is the failure mode ruling R2 named.
 const LAYOUT_FILES = [
   "terminal/components/settings/SectionTeam.tsx",
   "terminal/components/settings/SectionTeam.module.css",
   "terminal/components/settings/SettingsPanel.tsx",
+  "terminal/components/settings/icons.tsx",
   "terminal/app/settings.css",
   "terminal/lib/i18n.tsx",
 ];
@@ -140,6 +145,49 @@ async function openTeam(page, lang, viewport) {
   await stripDevOverlay(page);
 }
 
+// Round-4 ruling R3: the zero-team default state, which no crop depicted. Its own address on the
+// harness so the shot is reproducible: /dev/settings?s=team&team=none.
+async function openNoTeam(page, lang, viewport) {
+  await page.setViewportSize(viewport);
+  await page.addInitScript((l) => {
+    localStorage.setItem("mm.lang", l);
+    localStorage.setItem("theme", "dark");
+    localStorage.setItem("theme_auto", "0");
+    document.documentElement.setAttribute("data-theme", "dark");
+    document.documentElement.setAttribute("lang", l === "zh" ? "zh-CN" : "en");
+  }, lang);
+  await page.goto(`${BASE}/dev/settings?s=team&team=none&lang=${lang}`, {
+    waitUntil: "domcontentloaded",
+    timeout: 90_000,
+  });
+  await page.locator(".acs-overlay.open .acs-card").waitFor({ state: "visible", timeout: 45_000 });
+  const sentence = lang === "zh"
+    ? "您还没有加入任何团队。创建一个团队后即可邀请成员。"
+    : "You are not on a team yet. Create one to invite people.";
+  await page.getByText(sentence, { exact: true }).waitFor({ state: "visible", timeout: 15_000 });
+  await page.locator("[data-testid=\"team-create\"]").waitFor({ state: "visible", timeout: 15_000 });
+  await stripDevOverlay(page);
+}
+
+// Round-4 ruling R4(b): the four change-role crops carried no evidence the four team crops did not
+// — a scrollIntoView on an element already in view. They now open the confirm state, so
+// acsTeamRemoveAsk is on screen in both languages and at both widths.
+async function openConfirm(page, file) {
+  const row = page.locator(".acs-row", { has: page.locator("[data-testid=\"team-change-role\"]") }).first();
+  await row.waitFor({ state: "visible", timeout: 10_000 });
+  await row.evaluate((el) => el.scrollIntoView({ block: "nearest", inline: "nearest" }));
+  const remove = row.locator("[data-testid=\"team-actions\"] button.btn-danger").first();
+  await remove.waitFor({ state: "visible", timeout: 10_000 });
+  await remove.click();
+  const asking = page.locator(".acs-row.editing .acs-form .acs-note").first();
+  await asking.waitFor({ state: "visible", timeout: 10_000 });
+  await asking.evaluate((el) => el.scrollIntoView({ block: "nearest", inline: "nearest" }));
+  await page.waitForTimeout(200);
+  const text = (await asking.textContent() || "").trim();
+  if (!text) throw new Error(`${file}: confirm prompt is empty`);
+  return text;
+}
+
 async function assertDeliveryInView(page, file) {
   const delivery = page.locator("[data-testid=\"team-delivery\"]");
   await delivery.waitFor({ state: "visible", timeout: 10_000 });
@@ -175,10 +223,20 @@ async function measureLayout(page) {
     const badges = Array.from(document.querySelectorAll("[data-testid=\"team-role-badge\"]")).map((el) => (el.textContent || "").trim());
     const change = document.querySelector("[data-testid=\"team-change-role\"]");
     const remove = document.querySelector("[data-testid=\"team-actions\"] button.btn-danger");
+    const changeLabels = Array.from(document.querySelectorAll("[data-testid=\"team-change-role\"] button"))
+      .map((el) => (el.textContent || "").trim());
+    const none = document.querySelector("[data-testid=\"team-none\"]");
+    const create = document.querySelector("[data-testid=\"team-create\"]");
+    const asking = document.querySelector(".acs-row.editing .acs-form .acs-note");
     return {
       roleBadgeText: badges.join(" | "),
       changeRolePresent: !!change,
       removeClass: remove ? remove.className : "",
+      // Round-4 ruling R4(a): one option per row, never the role the row already holds.
+      changeRoleLabels: changeLabels.join(" | "),
+      confirmText: asking ? (asking.textContent || "").trim() : "",
+      noTeamPresent: !!none,
+      createLabel: create ? (create.textContent || "").trim() : "",
     };
   });
 }
@@ -201,14 +259,18 @@ async function main() {
     const browser = await chromium.launch({ headless: true });
     try {
       const shots = [
-        { viewport: "desktop", lang: "en", change: false, file: "desktop-en-team.png" },
-        { viewport: "desktop", lang: "zh", change: false, file: "desktop-zh-team.png" },
-        { viewport: "desktop", lang: "en", change: true, file: "desktop-en-change-role.png" },
-        { viewport: "desktop", lang: "zh", change: true, file: "desktop-zh-change-role.png" },
-        { viewport: "mobile", lang: "en", change: false, file: "mobile-en-team.png" },
-        { viewport: "mobile", lang: "zh", change: false, file: "mobile-zh-team.png" },
-        { viewport: "mobile", lang: "en", change: true, file: "mobile-en-change-role.png" },
-        { viewport: "mobile", lang: "zh", change: true, file: "mobile-zh-change-role.png" },
+        { viewport: "desktop", lang: "en", kind: "team", file: "desktop-en-team.png" },
+        { viewport: "desktop", lang: "zh", kind: "team", file: "desktop-zh-team.png" },
+        { viewport: "desktop", lang: "en", kind: "change", file: "desktop-en-change-role.png" },
+        { viewport: "desktop", lang: "zh", kind: "change", file: "desktop-zh-change-role.png" },
+        { viewport: "desktop", lang: "en", kind: "none", file: "desktop-en-no-team.png" },
+        { viewport: "desktop", lang: "zh", kind: "none", file: "desktop-zh-no-team.png" },
+        { viewport: "mobile", lang: "en", kind: "team", file: "mobile-en-team.png" },
+        { viewport: "mobile", lang: "zh", kind: "team", file: "mobile-zh-team.png" },
+        { viewport: "mobile", lang: "en", kind: "change", file: "mobile-en-change-role.png" },
+        { viewport: "mobile", lang: "zh", kind: "change", file: "mobile-zh-change-role.png" },
+        { viewport: "mobile", lang: "en", kind: "none", file: "mobile-en-no-team.png" },
+        { viewport: "mobile", lang: "zh", kind: "none", file: "mobile-zh-no-team.png" },
       ];
       for (const shot of shots) {
         process.stdout.write(`capture ${shot.file} … `);
@@ -221,22 +283,34 @@ async function main() {
         const page = await context.newPage();
         page.setDefaultTimeout(45_000);
         try {
-          await openTeam(page, shot.lang, VIEWPORTS[shot.viewport]);
-          await assertDeliveryInView(page, shot.file);
-          if (shot.change) {
-            const control = page.locator("[data-testid=\"team-change-role\"]").first();
-            await control.waitFor({ state: "visible", timeout: 10_000 });
-            await control.evaluate((el) => el.scrollIntoView({ block: "nearest", inline: "nearest" }));
-            await page.waitForTimeout(200);
+          if (shot.kind === "none") {
+            await openNoTeam(page, shot.lang, VIEWPORTS[shot.viewport]);
+          } else {
+            await openTeam(page, shot.lang, VIEWPORTS[shot.viewport]);
             await assertDeliveryInView(page, shot.file);
+            if (shot.kind === "change") await openConfirm(page, shot.file);
           }
           const m = await measureLayout(page);
           measurements[shot.file] = m;
-          if (!m.roleBadgeText) {
-            throw new Error(`${shot.file}: role badge text is empty`);
-          }
-          if (shot.change && !m.changeRolePresent) {
-            throw new Error(`${shot.file}: change-role control missing`);
+          if (shot.kind === "none") {
+            if (!m.noTeamPresent) throw new Error(`${shot.file}: zero-team block missing`);
+            if (!m.createLabel) throw new Error(`${shot.file}: create-team control missing`);
+            if (m.roleBadgeText) throw new Error(`${shot.file}: a roster row is showing in the zero-team state`);
+          } else {
+            if (!m.roleBadgeText) {
+              throw new Error(`${shot.file}: role badge text is empty`);
+            }
+            if (!m.changeRolePresent) {
+              throw new Error(`${shot.file}: change-role control missing`);
+            }
+            // Ruling R4(a): a changeable row offers exactly one option, never the one it holds.
+            const perRow = m.changeRoleLabels.split(" | ").filter(Boolean);
+            if (perRow.length !== 2) {
+              throw new Error(`${shot.file}: expected one option on each of the two changeable rows, got ${m.changeRoleLabels}`);
+            }
+            if (shot.kind === "change" && !m.confirmText) {
+              throw new Error(`${shot.file}: confirm prompt is not on screen`);
+            }
           }
           if (m.removeClass && !/\bbtn-danger\b/.test(m.removeClass)) {
             throw new Error(`${shot.file}: remove class is ${m.removeClass}, expected btn-danger`);
@@ -285,7 +359,10 @@ async function main() {
     ...files.map((f) => `  - ${f}`),
     "measurements:",
     ...Object.entries(measurements).map(([file, m]) =>
-      `  ${file}: { roleBadgeText: ${JSON.stringify(m.roleBadgeText)}, changeRolePresent: ${m.changeRolePresent}, removeClass: ${JSON.stringify(m.removeClass)} }`),
+      `  ${file}: { roleBadgeText: ${JSON.stringify(m.roleBadgeText)}, changeRolePresent: ${m.changeRolePresent},`
+      + ` changeRoleLabels: ${JSON.stringify(m.changeRoleLabels)}, confirmText: ${JSON.stringify(m.confirmText)},`
+      + ` noTeamPresent: ${m.noTeamPresent}, createLabel: ${JSON.stringify(m.createLabel)},`
+      + ` removeClass: ${JSON.stringify(m.removeClass)} }`),
     "",
   ].join("\n");
   writeFileSync(join(OUT, "EVIDENCE.yml"), evidence);

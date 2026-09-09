@@ -16,10 +16,15 @@ import { join } from "node:path";
 const REPO = join(__dirname, "../../..");
 const CROP_DIR = join(__dirname, "../../docs/pr-crops/b-f12-8-team-roles");
 const EVIDENCE = join(CROP_DIR, "EVIDENCE.yml");
+// Round-4 ruling R4(f): icons.tsx belongs in the lock. This packet edited it (IconTeam), and
+// SectionTeam.tsx imports Group / Msg / Row / SectionHead from it — the markup that structures
+// every line of these crops — so an edit there moves these pixels. Without this row the lock
+// would stay green through exactly the failure ruling R2 named.
 const LAYOUT_FILES = [
   "terminal/components/settings/SectionTeam.tsx",
   "terminal/components/settings/SectionTeam.module.css",
   "terminal/components/settings/SettingsPanel.tsx",
+  "terminal/components/settings/icons.tsx",
   "terminal/app/settings.css",
   "terminal/lib/i18n.tsx",
 ];
@@ -34,6 +39,13 @@ const CHANGE_FILES = [
   "desktop-zh-change-role.png",
   "mobile-en-change-role.png",
   "mobile-zh-change-role.png",
+];
+// Round-4 ruling R3: the zero-team default state, which no crop depicted.
+const NONE_FILES = [
+  "desktop-en-no-team.png",
+  "desktop-zh-no-team.png",
+  "mobile-en-no-team.png",
+  "mobile-zh-no-team.png",
 ];
 
 function evidenceText(): string {
@@ -99,7 +111,7 @@ describe("B-F12-8 evidence lock is the sha256 of the layout sources", () => {
     }
   });
 
-  it("change-role crops record a visible change-role control; every crop records a role badge", () => {
+  it("change-role crops record a visible change-role control; every roster crop records a role badge", () => {
     const yml = evidenceText();
     for (const file of [...TEAM_FILES, ...CHANGE_FILES]) {
       const row = measurement(yml, file);
@@ -113,8 +125,56 @@ describe("B-F12-8 evidence lock is the sha256 of the layout sources", () => {
     }
   });
 
+  it("the change-role crops depict the confirm state, not a second copy of the roster crops", () => {
+    // Round-4 ruling R4(b): these four used to differ from the four roster crops by a
+    // scrollIntoView on an element already in view, so they carried no evidence the others did
+    // not. They now open acsTeamRemoveAsk, in the crop's own language.
+    const yml = evidenceText();
+    for (const file of CHANGE_FILES) {
+      const row = measurement(yml, file);
+      expect(row.confirmText, file).toBeTruthy();
+      if (file.includes("-zh-")) {
+        expect(row.confirmText, file).toMatch(/[一-鿿]/);
+      } else {
+        expect(row.confirmText, file).toMatch(/^Remove this person from the team\?/);
+      }
+    }
+    for (const file of TEAM_FILES) {
+      expect(measurement(yml, file).confirmText, file).toBe("");
+    }
+  });
+
+  it("a changeable row offers exactly one role option, never the one it already holds", () => {
+    // Round-4 ruling R4(a). The fixture roster has two changeable rows — one administrator and
+    // one member — so two labels in total, one per row.
+    const yml = evidenceText();
+    for (const file of [...TEAM_FILES, ...CHANGE_FILES]) {
+      const labels = measurement(yml, file).changeRoleLabels.split(" | ").filter(Boolean);
+      expect(labels.length, `${file}: ${labels.join(" | ")}`).toBe(2);
+      expect(new Set(labels).size, `${file} offers the same option twice`).toBe(2);
+    }
+  });
+
+  it("the zero-team default state is depicted in both languages at both widths", () => {
+    // Round-4 ruling R3. The state has no roster row at all, so its evidence is the block and the
+    // create-team control rather than a role badge.
+    const yml = evidenceText();
+    for (const file of NONE_FILES) {
+      expect(existsSync(join(CROP_DIR, file)), file).toBe(true);
+      const row = measurement(yml, file);
+      expect(row.noTeamPresent, file).toBe("true");
+      expect(row.createLabel, file).toBeTruthy();
+      expect(row.roleBadgeText, file).toBe("");
+      if (file.includes("-zh-")) {
+        expect(row.createLabel, file).toBe("创建团队");
+      } else {
+        expect(row.createLabel, file).toBe("Create team");
+      }
+    }
+  });
+
   it("EN/ZH twins are present for every crop both in the lock and on disk", () => {
-    const listed = [...TEAM_FILES, ...CHANGE_FILES];
+    const listed = [...TEAM_FILES, ...CHANGE_FILES, ...NONE_FILES];
     for (const file of listed) {
       expect(existsSync(join(CROP_DIR, file)), file).toBe(true);
       if (file.includes("-en-")) {
