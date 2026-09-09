@@ -207,4 +207,14 @@ jobs:
       # Run as `python -m pytest` from the repo root: that is what puts the root on sys.path,
       # which is how `import ingest.…` / `import signal_layer.…` resolve (there is no
       # conftest.py and no installed package).
+      # PR_NUMBER is what lets the supabase/migrations namespace guard run its
+      # pull-request rule (scripts/check_supabase_migration_namespace.py,
+      # resolve_run_mode): on a PR branch a present .sql may carry an "open"
+      # ledger row only for THIS pull request, and any other present+open row is
+      # a stale ledger. Without it the guard's one enforcement rule is reachable
+      # only from a push to master, which no workflow here triggers. It is a
+      # number, not a credential, and it widens no authority: this step gains
+      # exactly one environment variable and nothing else.
       - run: python -m pytest tests/ -q
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}

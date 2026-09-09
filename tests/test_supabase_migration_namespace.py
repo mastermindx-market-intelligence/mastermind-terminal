@@ -19,6 +19,7 @@ from scripts.check_supabase_migration_namespace import (
     MIGRATIONS_DIR,
     RESERVATIONS_PATH,
     check_all,
+    check_applied_fields_for_present_files,
     check_files_are_reserved,
     check_migration_header,
     check_no_literal_project_ref,
@@ -30,6 +31,8 @@ from scripts.check_supabase_migration_namespace import (
     format_report,
     load_reservations,
     parse_prefix,
+    pull_request_number,
+    resolve_run_mode,
     validate_reservations,
 )
 
@@ -38,9 +41,13 @@ from scripts.check_supabase_migration_namespace import (
 # ever carries the estate's real Supabase project reference. Three fixtures below
 # used to spell the real value out verbatim (review round 2, FIX-1) -- a test file
 # is a published artefact and a ref-shaped secret in one is a leak whether or not
-# the guard would have caught it. `test_the_real_project_ref_is_not_duplicated_
-# anywhere` proves at runtime that this constant is not the real value and that
-# the real value survives in exactly one place: the ledger's own field.
+# the guard would have caught it. `test_synthetic_project_ref_is_not_the_real_one`
+# proves at runtime that this constant is not the real value, and
+# `test_the_real_project_ref_appears_only_in_the_ledger_field` proves the real
+# value survives in exactly one place: the ledger's own field. (Both names were
+# stale here -- they named a test that has never existed under that name; review
+# round 3, FIX-5, which asked that every test named in a receipt be a test that
+# exists.)
 SYNTHETIC_PROJECT_REF = "zzzzsyntheticref0000"
 
 
@@ -359,9 +366,18 @@ def test_reservations_records_the_known_collision_surface():
     assert prefixes["0016"]["pr_state"] == "merged"
     assert prefixes["0016"]["applied_in_production"] is True
 
-    # 0017-0020 reserved by Meta-CEO B ruling 2026-09-09 (packet id, not yet a
-    # pull request) -- updated from the stale state="free" this test used to
-    # assert.
+    # 0017-0020 claimed by Meta-CEO B ruling 2026-09-09 -- updated from the
+    # stale state="free" this test used to assert.
+    #
+    # Round 3, FIX-6: the OWNER is pinned hard (that is the ruling, and a
+    # later tidy-up must not reassign a claimed number); the STATE is pinned
+    # only to the claim being live. Pinning it to exactly "reserved" coupled
+    # this assertion to the next migration PR: PR 0017 (B-F13-5) would have had
+    # to edit this line in the same commit that flips its ledger row to
+    # "taken". Both words mean "this number is claimed and occupied"
+    # (OCCUPYING_STATES in the guard), so accepting either removes the coupling
+    # without weakening what the ruling actually asserts. `file` is checked
+    # only in the state that requires it to be null.
     ruling_owners = {
         "0017": "B-F13-5",
         "0018": "B-F12-7",
@@ -369,9 +385,10 @@ def test_reservations_records_the_known_collision_surface():
         "0020": "B-F12-9",
     }
     for prefix, packet in ruling_owners.items():
-        assert prefixes[prefix]["state"] == "reserved"
-        assert prefixes[prefix]["file"] is None
-        assert prefixes[prefix]["packet"] == packet
+        assert prefixes[prefix]["state"] in ("reserved", "taken"), prefix
+        assert prefixes[prefix]["packet"] == packet, prefix
+        if prefixes[prefix]["state"] == "reserved":
+            assert prefixes[prefix]["file"] is None, prefix
 
     assert doc["claim_before_you_write"].strip() != ""
 
@@ -470,7 +487,13 @@ def test_collect_end_to_end_over_a_synthetic_tree(tmp_path):
                 "packet": "TEST",
                 "pr": 1,
                 "pr_state": "open",
-                "note": "fixture",
+                # Explicit nulls, not absent keys (review round 3, FIX-3): a
+                # migration still riding an open pull request has not been
+                # applied to anything, and the ledger has to say so rather than
+                # stay silent.
+                "applied_in_production": None,
+                "applied_date": None,
+                "note": "fixture; not recorded because the pull request has not merged",
             },
         }
     )
@@ -621,23 +644,30 @@ def test_open_pr_state_is_fine_when_the_file_is_genuinely_absent():
 
 
 def test_pr_state_matches_file_presence_on_the_real_tree():
-    """Rule (a) against the real checkout, in whichever mode this run earns.
+    """Rule (a) against the real checkout, in whichever of the THREE modes this
+    run earns from its own environment.
 
     "A present .sql file cannot belong to a pull request the ledger still calls
     open" is only true of `master`. CI runs this suite `on: pull_request`, on a
     tree where the PR's own migration IS present and its ledger entry honestly
     says pr_state="open" -- so asserting the strict rule unconditionally would
     make the next migration pull request (0017, packet B-F13-5) unmergeable with
-    a truthful ledger (review round 2, FIX-2). So: strict only when the
-    environment PROVES this is a master run, lenient otherwise -- and the
-    assertion runs either way (never a skip), naming the mode it ran in.
+    a truthful ledger (review round 2, FIX-2).
+
+    Round 3, FIX-1: lenient is no longer the whole answer for a pull request.
+    When the environment proves a `pull_request` run AND carries the PR number
+    (`PR_NUMBER`, wired in ci.yml), the rule that DOES hold on a PR branch is
+    asserted: a present file whose row says "open" must be carried by THIS pull
+    request. The mode is taken from the environment, the assertion runs in every
+    one of the three modes (never a skip), and the failure message names the mode.
     """
-    strict = os.environ.get("GITHUB_EVENT_NAME") == "push" and os.environ.get("GITHUB_REF_NAME") == "master"
-    mode = "strict (master push)" if strict else "lenient (not a master push)"
+    strict, pr_number, mode = resolve_run_mode()
 
     doc = load_reservations(RESERVATIONS_PATH)
     on_disk = sorted(p.name for p in MIGRATIONS_DIR.glob("*.sql"))
-    findings = check_open_pr_state_for_present_files(on_disk, doc, strict_master=strict)
+    findings = check_open_pr_state_for_present_files(
+        on_disk, doc, strict_master=strict, pr_number=pr_number
+    )
     assert findings == [], f"ran in {mode} mode\n" + format_report(findings, [])
 
 
@@ -1145,3 +1175,347 @@ def test_historical_prefixes_carry_no_pr_state_by_design():
         assert prefixes[prefix]["state"] == "historical", prefix
         assert prefixes[prefix]["pr"] is None, prefix
         assert prefixes[prefix]["pr_state"] is None, prefix
+
+
+# --- 26 (review round 3, FIX-1: the acceptance must fire in a configuration CI
+#          actually reaches) ------------------------------------------------------
+#
+# Round 2 left the one enforcement rule this packet exists for -- "a prefix whose
+# .sql is present cannot still be recorded pr_state='open'" -- reachable only from
+# `strict_master`, which is earned only from a push to master. No workflow in this
+# repository has an `on: push` trigger (.github/workflows/ci.yml is pull_request +
+# workflow_dispatch), so the rule fired in NO configuration CI can reach, and
+# replaying the exact 0014-shaped staleness this packet corrected produced zero
+# findings under the mode that actually runs.
+#
+# The fix is a third mode. On a proven `pull_request` run the branch legitimately
+# carries its OWN migration with an open row -- but only its own. Any other
+# present file whose row says "open" is stale: the file is here, so either that PR
+# merged (and the row was never flipped, which is exactly how 0014/0015/0016 lied)
+# or this branch is carrying a file it does not own.
+
+
+def _pr_branch_doc(entry_pr=514):
+    """A present 0017 whose row claims an open pull request numbered `entry_pr`."""
+    return reservations_doc(
+        prefixes={
+            "0017": {
+                "state": "taken",
+                "file": "0017_personal_accuracy_ledger.sql",
+                "packet": "B-F13-5",
+                "pr": entry_pr,
+                "pr_state": "open",
+                "note": "fixture: the .sql is on this branch and the row claims an open PR",
+                "applied_in_production": None,
+                "applied_date": None,
+            }
+        }
+    )
+
+
+PR_BRANCH_FILES = ["0017_personal_accuracy_ledger.sql"]
+
+
+def test_pull_request_mode_flags_a_present_open_entry_owned_by_another_pr():
+    """The staleness this packet exists to prevent, caught in the mode CI runs.
+
+    0017's .sql is present on this branch and its row says "open, pr 514" while
+    the run is pull request 9999. The file being here means #514 merged (row
+    never flipped) or this branch carries a file it does not own -- both are the
+    ledger lying, and both were invisible to round 2's lenient rule, which asked
+    only for state='taken' and an integer pr.
+    """
+    findings = check_open_pr_state_for_present_files(
+        PR_BRANCH_FILES, _pr_branch_doc(entry_pr=514), strict_master=False, pr_number=9999
+    )
+    assert any(
+        f.code == "OPEN_PR_STATE_STALE" and f.prefix == "0017" for f in findings
+    ), format_report(findings, [])
+    # The PR numbers are the evidence; the detail must carry both so the CI log
+    # says which claim is stale without the reader opening the ledger.
+    detail = next(f.detail for f in findings if f.code == "OPEN_PR_STATE_STALE")
+    assert "514" in detail and "9999" in detail
+
+
+def test_pull_request_mode_clears_the_entry_that_names_this_pull_request():
+    """The converse, and the reason the mode cannot simply be strict: the PR that
+    INTRODUCES a migration carries its own .sql with an honest "open" row, and
+    must stay mergeable. Same fixture, same file, same rule -- only the number of
+    the running pull request differs.
+    """
+    findings = check_open_pr_state_for_present_files(
+        PR_BRANCH_FILES, _pr_branch_doc(entry_pr=514), strict_master=False, pr_number=514
+    )
+    assert findings == [], format_report(findings, [])
+
+
+def test_strict_still_fires_on_the_same_pull_request_fixture():
+    """Master scope is unchanged by round 3: on master a present file with an
+    "open" row is stale no matter which PR number is passed, because on master
+    there is no running pull request that could legitimately own it.
+    """
+    for pr_number in (None, 514, 9999):
+        findings = check_open_pr_state_for_present_files(
+            PR_BRANCH_FILES, _pr_branch_doc(entry_pr=514), strict_master=True, pr_number=pr_number
+        )
+        assert any(
+            f.code == "OPEN_PR_STATE_WITH_FILE_PRESENT" and f.prefix == "0017" for f in findings
+        ), f"strict must fire regardless of pr_number={pr_number!r}"
+
+
+def test_no_env_default_keeps_the_round_two_lenient_behaviour():
+    """A local run with no CI environment proves nothing about scope, so it keeps
+    round 2's rule set exactly: a present "open" row is accepted when it is
+    state='taken' with a real PR number, and rejected otherwise. Round 3 adds a
+    mode; it does not change this one.
+    """
+    clean = check_open_pr_state_for_present_files(
+        PR_BRANCH_FILES, _pr_branch_doc(entry_pr=514), strict_master=False, pr_number=None
+    )
+    assert clean == [], format_report(clean, [])
+
+    no_pr = check_open_pr_state_for_present_files(
+        PR_BRANCH_FILES, _pr_branch_doc(entry_pr=None), strict_master=False, pr_number=None
+    )
+    assert any(f.code == "OPEN_PR_STATE_WITHOUT_OWNING_PR" and f.prefix == "0017" for f in no_pr)
+
+
+def test_pull_request_number_is_read_only_from_a_proven_pull_request_event():
+    """Both halves of the proof are required. An event name alone, a bare
+    PR_NUMBER alone, or an unparseable number all read as "not proven" and fall
+    back to the lenient default rather than inventing a scope.
+    """
+    assert pull_request_number({"GITHUB_EVENT_NAME": "pull_request", "PR_NUMBER": "543"}) == 543
+    assert pull_request_number({"GITHUB_EVENT_NAME": "pull_request", "PR_NUMBER": " 543 "}) == 543
+    assert pull_request_number({"GITHUB_EVENT_NAME": "pull_request"}) is None
+    assert pull_request_number({"GITHUB_EVENT_NAME": "pull_request", "PR_NUMBER": ""}) is None
+    assert pull_request_number({"GITHUB_EVENT_NAME": "pull_request", "PR_NUMBER": "abc"}) is None
+    assert pull_request_number({"PR_NUMBER": "543"}) is None
+    assert pull_request_number({"GITHUB_EVENT_NAME": "push", "PR_NUMBER": "543"}) is None
+    assert pull_request_number({}) is None
+
+
+def test_resolve_run_mode_names_each_of_the_three_modes():
+    """Whichever mode a run earns, it must be printable -- the reader of a CI log
+    must never have to guess which rule set produced the report.
+    """
+    strict, pr, mode = resolve_run_mode({"GITHUB_EVENT_NAME": "push", "GITHUB_REF_NAME": "master"})
+    assert (strict, pr) == (True, None)
+    assert "STRICT" in mode
+
+    strict, pr, mode = resolve_run_mode({"GITHUB_EVENT_NAME": "pull_request", "PR_NUMBER": "543"})
+    assert (strict, pr) == (False, 543)
+    assert "PULL_REQUEST" in mode and "543" in mode
+
+    strict, pr, mode = resolve_run_mode({})
+    assert (strict, pr) == (False, None)
+    assert "LENIENT" in mode
+
+    # A pull_request event whose PR_NUMBER never arrived is lenient, but says so
+    # rather than passing itself off as an ordinary local run.
+    strict, pr, mode = resolve_run_mode({"GITHUB_EVENT_NAME": "pull_request"})
+    assert (strict, pr) == (False, None)
+    assert "LENIENT" in mode and "PR_NUMBER" in mode
+
+    # --strict forces master scope for a local dry run.
+    strict, pr, mode = resolve_run_mode({}, force_strict=True)
+    assert (strict, pr) == (True, None)
+    assert "STRICT" in mode
+
+
+def test_check_all_carries_the_pull_request_number_through():
+    """The mode has to survive the call path CI actually drives (check_all), not
+    just the leaf function -- the round-2 finding was precisely that a rule can
+    be correct in isolation and unreachable in practice.
+    """
+    doc = _pr_branch_doc(entry_pr=514)
+    texts = {"0017_personal_accuracy_ledger.sql": "-- Ledger row: 0017\n-- Rollback: NONE: fixture\n"}
+
+    stale = check_all(PR_BRANCH_FILES, texts, doc, pr_number=9999)
+    assert any(f.code == "OPEN_PR_STATE_STALE" for f in stale), format_report(stale, [])
+
+    owned = check_all(PR_BRANCH_FILES, texts, doc, pr_number=514)
+    assert [f.code for f in owned if f.code.startswith("OPEN_PR_STATE")] == [], format_report(owned, [])
+
+
+def test_ci_wires_the_pull_request_number_into_the_pytest_step():
+    """The mode is only reachable if the workflow hands the number to pytest.
+
+    Parsed as YAML rather than grepped so a commented-out or heredoc `env:` block
+    cannot be misread as the real thing (the same reasoning as
+    tests/test_merge_on_green.py's permission guard).
+    """
+    # Imported here rather than at module scope so this module keeps its lean
+    # stdlib-only import set, and imported HARD rather than via importorskip:
+    # ci.yml installs pyyaml explicitly (tests/test_merge_on_green.py hard-imports
+    # it too), and a silent skip here would be a wiring test that quietly stopped
+    # testing the wiring -- the exact failure mode this round is fixing.
+    import yaml
+
+    workflow_path = Path(__file__).resolve().parents[1] / ".github" / "workflows" / "ci.yml"
+    workflow = yaml.safe_load(workflow_path.read_text(encoding="utf-8"))
+
+    steps = workflow["jobs"]["python"]["steps"]
+    pytest_steps = [s for s in steps if isinstance(s.get("run"), str) and "pytest tests/" in s["run"]]
+    assert pytest_steps, "the python job must still run the whole tests/ suite"
+
+    for step in pytest_steps:
+        assert step.get("env", {}).get("PR_NUMBER") == "${{ github.event.pull_request.number }}", (
+            "the pytest step must pass the running pull request's number through as PR_NUMBER, "
+            "or the pull-request mode of the namespace guard can never engage"
+        )
+        # Nothing else, and no new authority: the guard needs one number, not a token.
+        assert set(step["env"]) == {"PR_NUMBER"}, step["env"]
+
+    assert workflow.get("permissions") == {"contents": "read"}, (
+        "round 3 must not widen candidate-CI authority"
+    )
+
+
+# --- 27 (review round 3, FIX-2: project_ref is a validated top-level key) -----
+#
+# `check_no_literal_project_ref` gates the whole sibling-*.md redaction scan on
+# `if _non_empty_str(real_ref):` with no else. Delete or blank the key and that
+# scan silently disables itself while the guard still prints "0 findings" -- the
+# identical silent-disable that was a MAJOR for `header_required_from` in round 2
+# and is recorded in this module's own comments. So the key is validated.
+
+
+def test_missing_project_ref_is_detected():
+    doc = reservations_doc()
+    del doc["project_ref"]
+    findings = validate_reservations(doc)
+    assert any(f.code == "PROJECT_REF_MISSING" for f in findings), format_report(findings, [])
+
+
+def test_blank_project_ref_is_detected():
+    for blank in ("", "   ", None):
+        findings = validate_reservations(reservations_doc(project_ref=blank))
+        assert any(f.code == "PROJECT_REF_MISSING" for f in findings), repr(blank)
+
+
+def test_malformed_project_ref_is_detected():
+    """A mangled ref disables the sibling scan as thoroughly as a deleted one --
+    it just compares against a value nothing will ever match. The shape is fixed
+    (20 lowercase alphanumerics), so it can be checked without knowing the value.
+    """
+    for bad in ("TOOSHORT", "ZZZZSYNTHETICREF0000", "zzzzsyntheticref0000x", "{ref}"):
+        findings = validate_reservations(reservations_doc(project_ref=bad))
+        assert any(f.code == "PROJECT_REF_MALFORMED" for f in findings), bad
+
+
+def test_no_finding_ever_prints_the_project_ref_value():
+    """The details go straight into CI logs, so they name the field, never the
+    token -- including the malformed case, where the bad value is right there.
+    """
+    bad = "zzzzsyntheticref0000x"
+    for finding in validate_reservations(reservations_doc(project_ref=bad)):
+        assert bad not in finding.detail
+        assert SYNTHETIC_PROJECT_REF not in finding.detail
+
+
+def test_the_real_ledger_declares_a_well_formed_project_ref():
+    """Proved on the real ledger without ever printing the value: the validator
+    is silent about project_ref, which it can only be if the key is present,
+    non-empty and correctly shaped.
+    """
+    doc = load_reservations(RESERVATIONS_PATH)
+    codes = {f.code for f in validate_reservations(doc)}
+    assert "PROJECT_REF_MISSING" not in codes
+    assert "PROJECT_REF_MALFORMED" not in codes
+
+
+# --- 28 (review round 3, FIX-3: "records whether it is applied in production") ---
+#
+# The frozen acceptance has two halves. The second one -- the ledger records
+# whether each migration is applied in production -- was true of 0012-0016 and of
+# nothing else: 0001-0011 carried no applied_* keys at all, and the only
+# assertions were hardcoded pins over 0012-0016, so 0017+ could merge recording
+# nothing. Presence is now required for every prefix whose .sql is on the tree.
+# Presence, not truth: an honest `null` with a note is a legitimate value, and is
+# the only legitimate value where the README records no fact to copy.
+
+
+def _applied_doc(**entry_overrides):
+    entry = {
+        "state": "taken",
+        "file": "0013_alert_runs_outbox.sql",
+        "packet": "B-F08-2",
+        "pr": 513,
+        "pr_state": "merged",
+        "note": "fixture",
+    }
+    entry.update(entry_overrides)
+    return reservations_doc(prefixes={"0013": entry})
+
+
+def test_present_entry_without_applied_fields_is_detected():
+    findings = check_applied_fields_for_present_files(["0013_alert_runs_outbox.sql"], _applied_doc())
+    assert any(
+        f.code == "APPLIED_FIELDS_MISSING" and f.prefix == "0013" for f in findings
+    ), format_report(findings, [])
+    detail = next(f.detail for f in findings if f.code == "APPLIED_FIELDS_MISSING")
+    assert "applied_in_production" in detail and "applied_date" in detail
+
+
+def test_a_half_filled_entry_is_still_detected():
+    """Recording the flag without the date (or the reverse) is a partial record,
+    which is what "records whether it is applied" is not.
+    """
+    for partial in ({"applied_in_production": True}, {"applied_date": "2026-09-07"}):
+        findings = check_applied_fields_for_present_files(
+            ["0013_alert_runs_outbox.sql"], _applied_doc(**partial)
+        )
+        assert any(f.code == "APPLIED_FIELDS_MISSING" for f in findings), partial
+
+
+def test_explicit_null_applied_fields_are_clean():
+    """The honest-nulls law: where the README records no application fact, an
+    explicit null plus a note is the correct entry, and must pass. Guessing a
+    date to satisfy a required key would be the worse failure.
+    """
+    doc = _applied_doc(
+        applied_in_production=None,
+        applied_date=None,
+        note="not recorded before the ledger; null, never guessed",
+    )
+    assert check_applied_fields_for_present_files(["0013_alert_runs_outbox.sql"], doc) == []
+
+
+def test_recorded_applied_fields_are_clean():
+    doc = _applied_doc(applied_in_production=True, applied_date="2026-09-07")
+    assert check_applied_fields_for_present_files(["0013_alert_runs_outbox.sql"], doc) == []
+
+
+def test_an_absent_file_needs_no_applied_fields():
+    """The join direction is unchanged: on-disk file -> ledger entry. A reserved
+    or unmerged prefix has nothing applied and must not be asked to say so.
+    """
+    assert check_applied_fields_for_present_files([], _applied_doc()) == []
+
+
+def test_check_all_wires_the_applied_fields_check():
+    doc = _applied_doc()
+    texts = {"0013_alert_runs_outbox.sql": "-- fixture\n"}
+    findings = check_all(["0013_alert_runs_outbox.sql"], texts, doc)
+    assert any(f.code == "APPLIED_FIELDS_MISSING" for f in findings), format_report(findings, [])
+
+
+def test_every_present_prefix_records_its_application_status_on_the_real_tree():
+    """The acceptance, on the real ledger: every .sql in this checkout has a row
+    that answers "applied in production?" one way or the other.
+    """
+    doc = load_reservations(RESERVATIONS_PATH)
+    on_disk = sorted(p.name for p in MIGRATIONS_DIR.glob("*.sql"))
+    findings = check_applied_fields_for_present_files(on_disk, doc)
+    assert findings == [], format_report(findings, [])
+
+    prefixes = doc["prefixes"]
+    for name in on_disk:
+        prefix = parse_prefix(name)
+        entry = prefixes[prefix]
+        assert entry["applied_in_production"] in (True, False, None), prefix
+        assert entry["applied_date"] is None or isinstance(entry["applied_date"], str), prefix
+        # A null is only honest when the row says why it is null.
+        if entry["applied_in_production"] is None or entry["applied_date"] is None:
+            assert "not recorded" in entry["note"], prefix

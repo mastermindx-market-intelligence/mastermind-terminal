@@ -18,14 +18,22 @@ in full:
     has not written the .sql), or at a `released` prefix (the claim was stood down and
     the number is retired, never reissued) is a Finding. `released` keeps its number and
     counts toward `max()` exactly like an active claim -- see README.md's "Release path".
-  * present file x `pr_state: "open"` is scope-dependent, which is why this guard takes
-    a `strict_master` flag. On `master` the file being here proves its pull request
-    merged, so `open` is a stale ledger (that is how 0014/0015/0016 lied) and it is a
-    Finding. On a pull-request branch the same shape is the honest, normal state of the
-    PR that INTRODUCES the file: CI checks out the branch with its own .sql present
-    while the PR really is open. Firing there would make every future migration PR
-    unmergeable with a truthful ledger, so lenient mode instead requires only that the
-    entry is `state: "taken"` with a pull-request number.
+  * present file x `pr_state: "open"` is scope-dependent, so this guard runs it in one
+    of THREE modes (see `resolve_run_mode`). On `master` (STRICT) the file being here
+    proves its pull request merged, so `open` is a stale ledger (that is how
+    0014/0015/0016 lied) and it is a Finding. On a proven `pull_request` run
+    (PULL_REQUEST) the branch legitimately carries its OWN migration with an open row --
+    but only its own: a present file whose row names any OTHER pull request is stale
+    (`OPEN_PR_STATE_STALE`), because the file being on this branch means that PR merged
+    without its row being flipped, or this branch is carrying a file it does not own.
+    With no CI environment at all (LENIENT) nothing about scope is proven, so the rule
+    relaxes to the attributable minimum: the entry must be `state: "taken"` with a
+    pull-request number.
+  * every prefix whose `.sql` is in this checkout must carry both `applied_in_production`
+    and `applied_date` KEYS -- the second half of the ledger's purpose is recording
+    whether a migration is applied in production. Presence is required, truth is not
+    invented: where no application fact is recorded anywhere, the honest entry is an
+    explicit `null` with a note saying so, never a guessed date.
   * absent file x `pr_state: "merged"` is a Finding in BOTH modes -- the converse is
     valid on every ref, because a merged file is on `master` and therefore in any
     checkout descended from it.
@@ -39,8 +47,14 @@ in full:
     beside the ledger must write `{ref}` instead (Terminal #538's redaction law).
 
 `main()` selects strict mode only when the environment proves a `master` push
-(`GITHUB_EVENT_NAME=push` and `GITHUB_REF_NAME=master`); every other invocation, local
-or pull-request CI, is lenient.
+(`GITHUB_EVENT_NAME=push` and `GITHUB_REF_NAME=master`), and pull-request mode only when
+the environment proves a pull-request run (`GITHUB_EVENT_NAME=pull_request` plus the
+running number in `PR_NUMBER`, wired into the pytest step in `.github/workflows/ci.yml`).
+Anything else -- a local run, a `workflow_dispatch` -- is lenient. Every run prints which
+of the three modes produced its report. This matters because no workflow in this
+repository has an `on: push` trigger: before the pull-request mode existed, the strict
+rule was reachable from no configuration CI could actually run, and the staleness this
+packet corrected would have replayed unseen (review round 3, FIX-1).
 """
 from __future__ import annotations
 
@@ -84,6 +98,16 @@ HEADER_SCAN_LINES = 40  # header lines only; a buried '-- Rollback:' mid-file do
 PROJECT_REF_RE = re.compile(r"(?<![a-z0-9])[a-z0-9]{20}(?![a-z0-9])")
 
 REQUIRED_KEYS = {"state", "file", "packet", "pr", "pr_state", "note"}
+
+# Keys that answer "is this migration applied in production?". Required to be
+# PRESENT on every entry whose .sql is in the checkout; an explicit null is a
+# legitimate value (see check_applied_fields_for_present_files).
+APPLIED_KEYS = ("applied_in_production", "applied_date")
+
+# The top-level `project_ref` must match the ref SHAPE exactly. Validating the
+# shape rather than the value keeps the check sayable out loud: no test, log line
+# or finding has to carry the token to prove the key is intact.
+PROJECT_REF_EXACT_RE = re.compile(r"^[a-z0-9]{20}$")
 
 # Pinned expected value (MAJOR 2 fix): header_required_from used to be read
 # unvalidated -- removing or mangling the key silently switched the header-law
@@ -145,6 +169,37 @@ def validate_reservations(doc: dict) -> list[Finding]:
                 None,
                 f"top-level 'header_required_from' is {floor!r}, expected "
                 f"{EXPECTED_HEADER_REQUIRED_FROM!r}",
+            )
+        )
+
+    # `check_no_literal_project_ref` compares every sibling *.md against THIS value
+    # and does nothing at all when it is missing or blank -- so deleting the key
+    # would switch the redaction scan off while the guard still printed "0
+    # findings". That is the identical silent-disable that made
+    # `header_required_from` a MAJOR in round 2 (see the comment above
+    # EXPECTED_HEADER_REQUIRED_FROM); the key is load-bearing, so it is validated
+    # (review round 3, FIX-2). A mangled value disables the scan just as
+    # completely -- it simply compares against something nothing matches -- so the
+    # shape is checked too. Neither branch ever puts the value in the detail.
+    project_ref = doc.get("project_ref")
+    if not _non_empty_str(project_ref):
+        findings.append(
+            Finding(
+                "PROJECT_REF_MISSING",
+                None,
+                "top-level 'project_ref' must be a non-empty string -- it is the only "
+                "sanctioned copy of the reference and the value every sibling '*.md' is "
+                "scanned against; without it that redaction scan silently disables itself",
+            )
+        )
+    elif not PROJECT_REF_EXACT_RE.fullmatch(project_ref.strip()):
+        findings.append(
+            Finding(
+                "PROJECT_REF_MALFORMED",
+                None,
+                "top-level 'project_ref' must be exactly 20 lowercase alphanumeric "
+                "characters -- a mangled value matches nothing in the sibling '*.md' scan "
+                "and disables it as completely as deleting the key (value not printed)",
             )
         )
 
@@ -237,6 +292,58 @@ def is_master_push(env: "Mapping[str, str] | None" = None) -> bool:
     """
     env = os.environ if env is None else env
     return env.get("GITHUB_EVENT_NAME") == "push" and env.get("GITHUB_REF_NAME") == "master"
+
+
+def pull_request_number(env: "Mapping[str, str] | None" = None) -> "int | None":
+    """The number of the pull request this run belongs to, or None.
+
+    Both halves must be present: `GITHUB_EVENT_NAME=pull_request` proves the event,
+    and `PR_NUMBER` (wired to `github.event.pull_request.number` in the pytest step
+    of `.github/workflows/ci.yml`) carries the number. An event name with no usable
+    number proves the scope but not WHICH pull request owns the branch, which is the
+    whole content of the rule -- so it reads as None and the run falls back to the
+    lenient default rather than inventing an owner.
+    """
+    env = os.environ if env is None else env
+    if env.get("GITHUB_EVENT_NAME") != "pull_request":
+        return None
+    raw = env.get("PR_NUMBER")
+    if not isinstance(raw, str):
+        return None
+    raw = raw.strip()
+    if not raw.isdigit():
+        return None
+    return int(raw)
+
+
+def resolve_run_mode(
+    env: "Mapping[str, str] | None" = None,
+    force_strict: bool = False,
+) -> "tuple[bool, int | None, str]":
+    """Pick the open-while-present rule set from what the environment PROVES.
+
+    Returns `(strict_master, pr_number, printable_mode)`. Exactly one of the three
+    modes applies, and the printable name goes into the report so no reader of a CI
+    log has to guess which rule set produced it.
+    """
+    env = os.environ if env is None else env
+
+    if force_strict or is_master_push(env):
+        return True, None, "STRICT (master push)"
+
+    number = pull_request_number(env)
+    if number is not None:
+        return False, number, f"PULL_REQUEST (#{number})"
+
+    if env.get("GITHUB_EVENT_NAME") == "pull_request":
+        return (
+            False,
+            None,
+            "LENIENT (pull_request event with no usable PR_NUMBER -- the ci.yml step env "
+            "is missing or empty, so which pull request owns this branch is unproven)",
+        )
+
+    return False, None, "LENIENT (no proven master push or pull request)"
 
 
 def check_prefix_collisions(filenames: Sequence[str]) -> list[Finding]:
@@ -362,10 +469,12 @@ def check_open_pr_state_for_present_files(
     filenames: Sequence[str],
     doc: dict,
     strict_master: bool = False,
+    pr_number: "int | None" = None,
 ) -> list[Finding]:
     """Cross-check `pr_state` against what is actually on disk.
 
-    Two rules with different scopes, which is why this takes `strict_master`:
+    Two rules with different scopes, which is why this takes `strict_master` and,
+    for the pull-request scope, `pr_number`:
 
     **present x open -- MASTER-scope only.** On `master`, a `.sql` file being
     here proves its pull request merged, so `pr_state: "open"` beside it is a
@@ -376,10 +485,20 @@ def check_open_pr_state_for_present_files(
     honestly says 'open'. Asserting the master rule there would leave the next
     migration PR no truthful ledger that passes -- `reserved` trips
     RESERVED_PREFIX_OCCUPIED, `taken`+`open` would trip this, and only a false
-    `taken`+`merged` gets through (review round 2, FIX-2). So in lenient mode a
-    present file with `pr_state: "open"` is legitimate, and the rule that still
-    holds is checked instead: it must be recorded `state: "taken"` with a real
-    pull-request number, so the claim is attributable either way.
+    `taken`+`merged` gets through (review round 2, FIX-2). So outside master a
+    present file with `pr_state: "open"` can be legitimate -- but how far it is
+    trusted depends on what the environment proves:
+
+      * `pr_number` given (a proven `pull_request` run): the branch may carry the
+        migration of THIS pull request and no other. A present file whose row names
+        a different pull request is `OPEN_PR_STATE_STALE` -- the file is here, so
+        either that pull request merged and its row was never flipped (0014's exact
+        shape) or this branch is carrying a file it does not own. This is the mode
+        that makes the master rule's acceptance reachable from a CI with no
+        `on: push` trigger (review round 3, FIX-1).
+      * no `pr_number` (a local run, a `workflow_dispatch`): nothing about ownership
+        is proven, so the rule relaxes to the attributable minimum -- the entry must
+        be `state: "taken"` with a real pull-request number.
 
     **absent x merged -- valid on every ref.** A merged file is on `master`, so
     it is in any checkout descended from `master`. Absent while claiming merged
@@ -396,6 +515,13 @@ def check_open_pr_state_for_present_files(
         is_present = prefix in present
 
         if is_present and pr_state == "open":
+            entry_pr = entry.get("pr")
+            owned_by_this_pr = (
+                pr_number is not None
+                and isinstance(entry_pr, int)
+                and not isinstance(entry_pr, bool)
+                and entry_pr == pr_number
+            )
             if strict_master:
                 findings.append(
                     Finding(
@@ -407,6 +533,20 @@ def check_open_pr_state_for_present_files(
                         "to 'merged' (and record the merge sha) or the ledger is stale",
                     )
                 )
+            elif pr_number is not None:
+                if not owned_by_this_pr:
+                    findings.append(
+                        Finding(
+                            "OPEN_PR_STATE_STALE",
+                            prefix,
+                            f"prefix {prefix}'s file is present on the branch of pull request "
+                            f"#{pr_number}, but RESERVATIONS.json records it as pr_state 'open' "
+                            f"on pull request {entry_pr!r} -- a pull request branch legitimately "
+                            "carries its OWN migration with an open row and no other, so either "
+                            "that pull request merged and this row was never flipped to 'merged', "
+                            "or this branch is carrying a file it does not own",
+                        )
+                    )
             elif entry.get("state") != "taken" or not isinstance(entry.get("pr"), int):
                 findings.append(
                     Finding(
@@ -429,6 +569,57 @@ def check_open_pr_state_for_present_files(
                     "ledger, the filename, or the merge claim is wrong",
                 )
             )
+    return findings
+
+
+def check_applied_fields_for_present_files(
+    filenames: Sequence[str],
+    doc: dict,
+) -> list[Finding]:
+    """Every prefix whose `.sql` is in this checkout must SAY whether it is applied.
+
+    The ruling this ledger implements has two halves -- it records who owns a
+    prefix, and it records whether that migration is applied in production. The
+    second half was carried by 0012-0016 and by nothing else: 0001-0011 had no
+    `applied_*` keys at all, the only assertions were hardcoded pins over five
+    prefixes, and nothing stopped 0017+ merging while recording nothing (review
+    round 3, FIX-3).
+
+    What is required is PRESENCE of both keys, not a true value. Where no
+    application fact is recorded anywhere in this repository, the honest entry is
+    an explicit `null` plus a note saying it was not recorded -- the same
+    honest-nulls law the rest of this ledger runs on. Inventing a date to satisfy
+    a required key would be strictly worse than the gap it closes, so the check
+    deliberately does not judge the values.
+
+    Join direction is the module's usual one, on-disk file -> ledger entry: a
+    `reserved` prefix, or a `taken` one whose pull request has not merged, has
+    nothing applied and is never asked to say so.
+    """
+    findings: list[Finding] = []
+    prefixes = doc.get("prefixes", {}) if isinstance(doc, dict) else {}
+
+    for name in sorted(filenames):
+        prefix = parse_prefix(name)
+        if prefix is None:
+            continue
+        entry = prefixes.get(prefix)
+        if not isinstance(entry, dict):
+            continue  # UNRESERVED_PREFIX / RESERVATION_SCHEMA already own this case
+
+        missing = [key for key in APPLIED_KEYS if key not in entry]
+        if missing:
+            findings.append(
+                Finding(
+                    "APPLIED_FIELDS_MISSING",
+                    prefix,
+                    f"'{name}' is in this checkout but its RESERVATIONS.json entry is missing "
+                    f"{missing} -- every present migration must record whether it is applied in "
+                    "production. Copy the fact from README.md's application table, or write an "
+                    "explicit null with a note saying it was not recorded; never guess a date",
+                )
+            )
+
     return findings
 
 
@@ -547,6 +738,7 @@ def check_all(
     doc: dict,
     sibling_texts: "Mapping[str, str] | None" = None,
     strict_master: bool = False,
+    pr_number: "int | None" = None,
 ) -> list[Finding]:
     findings: list[Finding] = []
 
@@ -564,7 +756,12 @@ def check_all(
 
     findings.extend(check_prefix_collisions(filenames))
     findings.extend(check_files_are_reserved(filenames, doc))
-    findings.extend(check_open_pr_state_for_present_files(filenames, doc, strict_master=strict_master))
+    findings.extend(
+        check_open_pr_state_for_present_files(
+            filenames, doc, strict_master=strict_master, pr_number=pr_number
+        )
+    )
+    findings.extend(check_applied_fields_for_present_files(filenames, doc))
     for name in filenames:
         text = texts.get(name, "")
         findings.extend(check_migration_header(name, text, doc))
@@ -666,6 +863,7 @@ def collect(
     migrations_dir: Path = MIGRATIONS_DIR,
     reservations: Path = RESERVATIONS_PATH,
     strict_master: bool = False,
+    pr_number: "int | None" = None,
 ) -> "tuple[list[Finding], list[Disclosure]]":
     try:
         doc = load_reservations(reservations)
@@ -689,7 +887,9 @@ def collect(
             except OSError:
                 sibling_texts[path.name] = ""
 
-    findings = check_all(sql_files, texts, doc, sibling_texts, strict_master=strict_master)
+    findings = check_all(
+        sql_files, texts, doc, sibling_texts, strict_master=strict_master, pr_number=pr_number
+    )
     notes = disclosures(sql_files, doc)
     return findings, notes
 
@@ -702,12 +902,14 @@ def main(argv: "Sequence[str] | None" = None) -> int:
         print(f"::error title=migration-namespace::RESERVATION_SCHEMA missing file — {RESERVATIONS_PATH} does not exist", flush=True)
         return 2
 
-    # The open-while-present rule is master-scope; `--strict` forces it on for a
-    # local dry run, but otherwise only a proven master push earns it.
-    strict = "--strict" in argv or is_master_push()
+    # The open-while-present rule is scope-dependent: master push -> strict,
+    # proven pull request -> that pull request may carry its own migration and no
+    # other, anything else -> lenient. `--strict` forces master scope for a local
+    # dry run.
+    strict, pr_number, mode = resolve_run_mode(force_strict="--strict" in argv)
 
     try:
-        findings, notes = collect(strict_master=strict)
+        findings, notes = collect(strict_master=strict, pr_number=pr_number)
     except Exception as exc:  # defensive: usage error, not a finding
         print(f"::error title=migration-namespace::usage error — {exc}", flush=True)
         return 2
@@ -718,11 +920,13 @@ def main(argv: "Sequence[str] | None" = None) -> int:
             prefix="*",
             state="note",
             text=(
-                "open-while-present rule ran in "
-                + ("STRICT (master) mode" if strict else "LENIENT (not a proven master push) mode")
-                + " — in lenient mode a present .sql whose ledger row says pr_state 'open' is the "
-                "pull request that carries it, and is required only to be state 'taken' with a "
-                "pull-request number. The absent-while-merged converse runs in both modes."
+                f"open-while-present rule ran in {mode} mode — STRICT: a present .sql whose "
+                "ledger row says pr_state 'open' is stale, because the file being on master "
+                "proves its pull request merged. PULL_REQUEST: it is legitimate only for the "
+                "pull request named in this mode line; a present file whose row names any other "
+                "open pull request is stale. LENIENT: nothing about scope is proven, so it is "
+                "required only to be state 'taken' with a pull-request number. The "
+                "absent-while-merged converse runs in all three modes."
             ),
         )
     ]

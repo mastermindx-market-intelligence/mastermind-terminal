@@ -245,3 +245,34 @@ that point:
 $ gh pr list --repo mastermindx-market-intelligence/mastermind-terminal --state open --limit 60 \
     --json number,createdAt,files --jq '.[] | . as $p | ($p.files[].path | select(startswith("supabase/migrations/"))) as $f | [$p.number,$p.createdAt,$f] | @tsv'
 ```
+
+### What the namespace guard enforces, and in which run
+
+`scripts/check_supabase_migration_namespace.py` (driven by
+`tests/test_supabase_migration_namespace.py`, which is what CI actually runs) joins the `.sql`
+files present in a checkout against this ledger. Its central rule — *a prefix whose file is
+present cannot still be recorded `pr_state: "open"`* — is scope-dependent, so the guard picks one
+of three modes from what the environment **proves**, and prints which one it used:
+
+| mode | earned when | a present file whose row says `open` is… |
+|---|---|---|
+| **STRICT** | `GITHUB_EVENT_NAME=push` **and** `GITHUB_REF_NAME=master` (or `--strict` locally) | always stale — the file being on `master` proves its pull request merged (`OPEN_PR_STATE_WITH_FILE_PRESENT`) |
+| **PULL_REQUEST** | `GITHUB_EVENT_NAME=pull_request` **and** `PR_NUMBER` carrying the running number | legitimate **only** for that pull request; any other is stale (`OPEN_PR_STATE_STALE`) |
+| **LENIENT** | anything else — a local run, a `workflow_dispatch` | required only to be `state: "taken"` with a pull-request number (`OPEN_PR_STATE_WITHOUT_OWNING_PR`) |
+
+The PULL_REQUEST mode exists because no workflow in this repository has an `on: push` trigger:
+`.github/workflows/ci.yml` runs on `pull_request` and `workflow_dispatch` only. Without it the
+strict rule was correct and unreachable — it fired in no configuration CI could run, so replaying
+the exact staleness this ledger was corrected for produced no finding at all (Terminal PR #543,
+review round 3). `PR_NUMBER` is wired into the `python` job's pytest step in that workflow; it is
+a pull-request number, not a credential, and it comes with no change in workflow authority. The
+converse rule — `pr_state: "merged"` while the file is absent — needs no scope and runs in all
+three modes.
+
+Every prefix whose `.sql` is in the checkout must also carry both `applied_in_production` and
+`applied_date` **keys** (`APPLIED_FIELDS_MISSING`). What is required is that the row *answers* the
+question, not that the answer is yes: where nothing in this repository records the fact, the
+correct entry is an explicit `null` with a note saying it was not recorded. `0001`–`0007` carry
+`applied_in_production: true` with `applied_date: null` for exactly that reason — the application
+table above records that they are in production but records no date, and a guessed date would be
+worse than the gap it fills.

@@ -13,7 +13,9 @@
       "packet": null,
       "pr": null,
       "pr_state": null,
-      "note": "predates the reservation law; creating PR not recorded in-repo (null, not unknown-and-guessed)"
+      "applied_in_production": true,
+      "applied_date": null,
+      "note": "predates the reservation law; creating PR not recorded in-repo (null, not unknown-and-guessed); applied in production per README.md's application table (\"yes (recorded, largely no-ops)\"), which records no date for 0001-0007 -- applied_date is therefore null, not recorded before the ledger and never guessed"
     },
     "0002": {
       "state": "historical",
@@ -21,7 +23,9 @@
       "packet": null,
       "pr": null,
       "pr_state": null,
-      "note": "predates the reservation law; creating PR not recorded in-repo (null, not unknown-and-guessed)"
+      "applied_in_production": true,
+      "applied_date": null,
+      "note": "predates the reservation law; creating PR not recorded in-repo (null, not unknown-and-guessed); applied in production per README.md's application table (\"yes (recorded, largely no-ops)\"), which records no date for 0001-0007 -- applied_date is therefore null, not recorded before the ledger and never guessed"
     },
     "0003": {
       "state": "historical",
@@ -29,7 +33,9 @@
       "packet": null,
       "pr": null,
       "pr_state": null,
-      "note": "predates the reservation law; creating PR not recorded in-repo (null, not unknown-and-guessed)"
+      "applied_in_production": true,
+      "applied_date": null,
+      "note": "predates the reservation law; creating PR not recorded in-repo (null, not unknown-and-guessed); applied in production per README.md's application table (\"yes (recorded, largely no-ops)\"), which records no date for 0001-0007 -- applied_date is therefore null, not recorded before the ledger and never guessed"
     },
     "0004": {
       "state": "historical",
@@ -37,7 +43,9 @@
       "packet": null,
       "pr": null,
       "pr_state": null,
-      "note": "predates the reservation law; creating PR not recorded in-repo (null, not unknown-and-guessed); analytics_events.id is a bigint identity here (see 0011)"
+      "applied_in_production": true,
+      "applied_date": null,
+      "note": "predates the reservation law; creating PR not recorded in-repo (null, not unknown-and-guessed); analytics_events.id is a bigint identity here (see 0011); applied in production per README.md's application table (\"yes (recorded, largely no-ops)\"), which records no date for 0001-0007 -- applied_date is therefore null, not recorded before the ledger and never guessed"
     },
     "0005": {
       "state": "historical",
@@ -45,7 +53,9 @@
       "packet": null,
       "pr": null,
       "pr_state": null,
-      "note": "predates the reservation law; creating PR not recorded in-repo (null, not unknown-and-guessed)"
+      "applied_in_production": true,
+      "applied_date": null,
+      "note": "predates the reservation law; creating PR not recorded in-repo (null, not unknown-and-guessed); applied in production per README.md's application table (\"yes (recorded, largely no-ops)\"), which records no date for 0001-0007 -- applied_date is therefore null, not recorded before the ledger and never guessed"
     },
     "0006": {
       "state": "historical",
@@ -53,7 +63,9 @@
       "packet": null,
       "pr": null,
       "pr_state": null,
-      "note": "predates the reservation law; creating PR not recorded in-repo (null, not unknown-and-guessed)"
+      "applied_in_production": true,
+      "applied_date": null,
+      "note": "predates the reservation law; creating PR not recorded in-repo (null, not unknown-and-guessed); applied in production per README.md's application table (\"yes (recorded, largely no-ops)\"), which records no date for 0001-0007 -- applied_date is therefore null, not recorded before the ledger and never guessed"
     },
     "0007": {
       "state": "historical",
@@ -61,7 +73,9 @@
       "packet": null,
       "pr": null,
       "pr_state": null,
-      "note": "predates the reservation law; creating PR not recorded in-repo (null, not unknown-and-guessed)"
+      "applied_in_production": true,
+      "applied_date": null,
+      "note": "predates the reservation law; creating PR not recorded in-repo (null, not unknown-and-guessed); applied in production per README.md's application table (\"yes (recorded, largely no-ops)\"), which records no date for 0001-0007 -- applied_date is therefore null, not recorded before the ledger and never guessed"
     },
     "0008": {
       "state": "historical",
@@ -69,7 +83,9 @@
       "packet": null,
       "pr": 427,
       "pr_state": "merged",
-      "note": "the original collision: PR #427 and PR #426 both landed a 0008_ file; README.md:69-73"
+      "applied_in_production": true,
+      "applied_date": "2026-08-21",
+      "note": "the original collision: PR #427 and PR #426 both landed a 0008_ file; README.md:69-73; applied in production 2026-08-21 (README.md application table)"
     },
     "0009": {
       "state": "historical",
@@ -77,7 +93,9 @@
       "packet": null,
       "pr": 426,
       "pr_state": "merged",
-      "note": "renamed from 0008_watchlist_symbol_unique.sql at merge time; README.md:69-73"
+      "applied_in_production": true,
+      "applied_date": "2026-08-19",
+      "note": "renamed from 0008_watchlist_symbol_unique.sql at merge time; README.md:69-73; applied in production 2026-08-19 (README.md application table); applied two days BEFORE 0008 -- application order is not numeric order"
     },
     "0010": {
       "state": "historical",
@@ -85,7 +103,9 @@
       "packet": null,
       "pr": null,
       "pr_state": null,
-      "note": "applied 2026-08-21 (README.md:49); creating PR not recorded (null)"
+      "applied_in_production": true,
+      "applied_date": "2026-08-21",
+      "note": "applied 2026-08-21 (README.md:49); creating PR not recorded (null); applied in production 2026-08-21 (README.md application table)"
     },
     "0011": {
       "state": "historical",
@@ -93,7 +113,9 @@
       "packet": "CA1A",
       "pr": 507,
       "pr_state": "merged",
-      "note": "packet id read from the file header 0011_analytics_eid.sql:1 (WS:COMMERCIAL-ACTIVATION CA1A)"
+      "applied_in_production": true,
+      "applied_date": "2026-09-05",
+      "note": "packet id read from the file header 0011_analytics_eid.sql:1 (WS:COMMERCIAL-ACTIVATION CA1A); applied in production 2026-09-05, readback receipt posted 2026-09-06 on PR #507 comment 5557754941 (README.md application table)"
     },
     "0012": {
       "state": "taken",
