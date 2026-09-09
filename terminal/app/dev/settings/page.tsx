@@ -100,6 +100,16 @@ const DEV_TEAM: DevTeamFixture = {
   ],
 };
 
+// The zero-team default state (round-4 ruling R3): a signed-in account that belongs to no team.
+// Reached at /dev/settings?s=team&team=none so the crop has one reproducible address.
+const DEV_TEAM_NONE: DevTeamFixture = {
+  team: null,
+  callerRole: null,
+  callerUserId: MOCK_USER.id,
+  members: [],
+  invites: [],
+};
+
 const btn = (on: boolean): React.CSSProperties => ({
   font: "600 12px var(--font-ui)",
   color: on ? "#fff" : "var(--text-2)",
@@ -130,6 +140,7 @@ function Harness() {
     USAGE[q.get("usage") || ""] ? (q.get("usage") as string) : "free",
   );
   const [signedIn, setSignedIn] = useState(q.get("out") !== "1");
+  const teamFixture = q.get("team") === "none" ? DEV_TEAM_NONE : DEV_TEAM;
   const [seq, setSeq] = useState(1);
   // Real open/close, so Escape / backdrop / the header X can be exercised here.
   const [open, setOpen] = useState(true);
@@ -183,7 +194,7 @@ function Harness() {
         onRefreshUser={async () => {}}
         devPlan={PLANS[planKey]}
         devUsage={USAGE[usageKey]}
-        devTeam={DEV_TEAM}
+        devTeam={teamFixture}
       />
     </div>
   );

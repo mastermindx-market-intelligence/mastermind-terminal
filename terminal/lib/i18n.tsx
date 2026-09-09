@@ -1928,6 +1928,11 @@ export const LEX: Record<string, [string, string]> = {
   acsTeamRemoved: ["That person is no longer on this team.", "该成员已不在此团队中。"],
   acsTeamLeft: ["You have left this team.", "您已退出该团队。"],
   acsTeamEmpty: ["You are the only person on this team.", "目前团队中只有您一人。"],
+  acsTeamNone: ["You are not on a team yet. Create one to invite people.", "您还没有加入任何团队。创建一个团队后即可邀请成员。"],
+  acsTeamName: ["Team name", "团队名称"],
+  acsTeamCreate: ["Create team", "创建团队"],
+  acsTeamCreated: ["Your team was created.", "您的团队已创建。"],
+  acsTeamNoName: ["A teammate", "未命名成员"],
   // rail
   acsRailSub: ["Synced across devices", "已在各设备同步"],
   acsSections: ["Settings sections", "设置分区"],

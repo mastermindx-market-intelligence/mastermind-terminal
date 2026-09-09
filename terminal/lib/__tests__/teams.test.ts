@@ -533,6 +533,11 @@ const NEW_LEX_KEYS = [
   "acsTeamRemoved",
   "acsTeamLeft",
   "acsTeamEmpty",
+  "acsTeamNone",
+  "acsTeamName",
+  "acsTeamCreate",
+  "acsTeamCreated",
+  "acsTeamNoName",
 ] as const;
 
 const SENTENCE_LEX_KEYS = new Set([
@@ -547,6 +552,8 @@ const SENTENCE_LEX_KEYS = new Set([
   "acsTeamRemoved",
   "acsTeamLeft",
   "acsTeamEmpty",
+  "acsTeamNone",
+  "acsTeamCreated",
 ]);
 
 const BANNED = ["falsifier", "refuted", "证伪", "team_members", "team_role_changes", "team_member_names", "RLS", "42501", "23505"];

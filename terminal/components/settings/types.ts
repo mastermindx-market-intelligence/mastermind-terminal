@@ -26,10 +26,11 @@ export type DevTeamInvite = {
   role: "admin" | "member";
   expiresAt: string | null;
 };
-/** Dev-harness roster (app/dev/settings). The harness has no Supabase session. */
+/** Dev-harness roster (app/dev/settings). The harness has no Supabase session.
+ *  `team`/`callerRole` are null for the zero-team default state, which the crops depict. */
 export type DevTeamFixture = {
-  team: { id: string; name: string };
-  callerRole: "owner" | "admin" | "member";
+  team: { id: string; name: string } | null;
+  callerRole: "owner" | "admin" | "member" | null;
   callerUserId: string;
   members: DevTeamMember[];
   invites: DevTeamInvite[];

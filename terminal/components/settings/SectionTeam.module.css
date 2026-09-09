@@ -33,6 +33,17 @@
   color: var(--text-2);
 }
 .delivery { margin: 0 0 8px; }
+/* Zero-team default state (round-4 ruling R3): a sentence and a way out, inside the same group
+   the roster uses, so the section never paints a titled box with nothing in it. */
+.noTeam { display: block; }
+.noTeam .acsIn { width: 100%; }
+.createLabel {
+  display: block;
+  margin: 10px 0 5px;
+  font: 600 11.5px/1 var(--font-ui);
+  color: var(--text-2);
+}
+.createBtns { display: flex; gap: 7px; margin-top: 9px; justify-content: flex-end; }
 @media (max-width: 640px) {
   :global(.acs-row):has(.actions) :global(.acs-row-line),
   :global(.acs-row):has(.roleBadge) :global(.acs-row-line) {
