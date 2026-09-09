@@ -24,6 +24,7 @@ const { chromium } = require("@playwright/test");
 const ROOT = join(__dirname, "..", "..");
 const REPO = join(ROOT, "..");
 const OUT = join(ROOT, "docs", "pr-crops", "b-pl-6-batch-3");
+const HEATMAP_PRICE_ONLY_FIXTURE = join(ROOT, "e2e", "fixtures", "heatmap-price-only-tile.json");
 const LAYOUT_FILES = [
   "terminal/components/options/OptionsFlowBoardView.tsx",
   "terminal/components/flowdesk/FiltersPanel.tsx",
@@ -353,15 +354,35 @@ async function captureAlertDetail(page, width, lang, outPath) {
   await cropLocator(page, detail, outPath, 10);
 }
 
+async function installHeatmapPriceOnlyFixture(page) {
+  const fixture = JSON.parse(readFileSync(HEATMAP_PRICE_ONLY_FIXTURE, "utf8"));
+  await page.route("**/api/flow*", (route) => {
+    let f = "";
+    try { f = new URL(route.request().url()).searchParams.get("f") || ""; } catch { /* ignore */ }
+    if (f === "manifest") return route.fulfill({ json: fixture.manifest });
+    if (f === "flow_idx") return route.fulfill({ json: fixture.flow_idx });
+    return route.continue();
+  });
+  await page.route("**/data/manifest.json**", (route) => route.fulfill({ json: fixture.manifest }));
+  await page.route("**/data/flow_idx.json**", (route) => route.fulfill({ json: fixture.flow_idx }));
+}
+
 async function captureHeatmap(page, width, lang, outPath) {
+  await installHeatmapPriceOnlyFixture(page);
   await gotoReady(page, "/discover?tab=heatmap", lang);
   const map = page.locator(".obs.obs-ambient").first();
   await map.waitFor({ state: "visible", timeout: 60_000 });
   const flowBtn = page.getByRole("button", { name: lang === "zh" ? "资金流" : "FLOW" }).first();
   await flowBtn.waitFor({ state: "visible", timeout: 20_000 });
   await flowBtn.click();
+  const equalBtn = page.getByRole("button", { name: lang === "zh" ? "等面积" : "EQUAL" }).first();
+  await equalBtn.waitFor({ state: "visible", timeout: 20_000 });
+  await equalBtn.click();
   const needle = lang === "zh" ? "净认沽" : "Net puts";
   await page.getByText(needle).first().waitFor({ state: "visible", timeout: 20_000 });
+  await page.getByText("INTC", { exact: true }).first().waitFor({ state: "visible", timeout: 20_000 });
+  const badge = lang === "zh" ? "价格" : "price";
+  await page.locator("svg").getByText(badge, { exact: true }).first().waitFor({ state: "visible", timeout: 20_000 });
   await cropLocator(page, map, outPath, width === 390 ? 4 : 8);
 }
 
@@ -444,9 +465,15 @@ async function main() {
     "surfaces: [OptionsFlowBoard, FlowDesk, AlertDetail, HeatmapTreemap, PineLibrary]",
     "capture_flag: TERMINAL_E2E_FIXTURE",
     "capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.",
+    "heatmap_price_only_fixture: terminal/e2e/fixtures/heatmap-price-only-tile.json",
+    "heatmap_crops:",
+    "  - HeatmapTreemap-1440.png",
+    "  - HeatmapTreemap-1440-zh.png",
+    "  - HeatmapTreemap-390.png",
+    "  - HeatmapTreemap-390-zh.png",
     "command: |",
     "  cd terminal",
-    "  node e2e/tools/capture_pl6_batch3.cjs",
+    "  CAPTURE_ONLY=HeatmapTreemap node e2e/tools/capture_pl6_batch3.cjs",
     "files:",
     ...[...new Set([
       ...readdirSync(OUT).filter((f) => f.endsWith(".png") && !f.startsWith("FAIL-")).sort(),
