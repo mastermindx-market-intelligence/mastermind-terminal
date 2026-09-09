@@ -1,18 +1,19 @@
 # B-PL-6 batch 3 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 6c9ad4ba5488d540fb89a9a2374b161a4554c426
-# capturedAt: 2026-09-09T10:33:00.114Z
+# capturedAtHead: 8081928e17016272558cb4d5d61998d5489b3621
+# capturedAt: 2026-09-09T11:16:45.465Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/options/OptionsFlowBoardView.tsx: "a06a705f74e87efb7a29be33a7f39d91db9af03470872ba3ee0971391f3af2c9"
-  terminal/components/flowdesk/FiltersPanel.tsx: "d4f0d5d36c17a155612e27588a2d79bd59f0b011f0acf1b2fa4dc307ca2104a1"
+  terminal/components/options/OptionsFlowBoardView.tsx: "1a6f63c7a794299879e17e37eb6d325bbe66ff2322b989c323374f8660d9dadd"
+  terminal/components/flowdesk/FiltersPanel.tsx: "4a3c08fd9f43e9f6e1dda4a68bcf5ab50728513cec675a18f138a7ba66bace8d"
   terminal/components/flowdesk/FlowCard.tsx: "155aff67c1f2ec50fd396d2e7c2739d6400bad5ed37387df8a1b1d450f1b118d"
   terminal/components/alerts/AlertDetail.tsx: "74bbdd5f0f5106b97fa56d67b6966caa86f32e65649eaef0d811f6ae6ef2485f"
-  terminal/components/heatmap/HeatmapView.tsx: "950f45b4b1869abc1fadca02eb39136242a8087bb1d4a15e074116cbd7ebc6de"
-  terminal/components/heatmap/Treemap.tsx: "6fab5263f6aefc7e15a88f9f15e2e5fddec470b7a64f1282706ab709c0e045fb"
-  terminal/lib/plainLabels.ts: "95c8141e2759abee822f3835eb9d48cf587f4cc760dc27e578662b923f6760d6"
-  terminal/lib/i18n.tsx: "acdb88d59ad93e9cc1c2f1b67d58e28c0e8f7408b443578987423fcd4ad1e172"
+  terminal/components/heatmap/HeatmapView.tsx: "2d5a27c95c6ddaf0d804b3b39b974d3da9760882ffbe3a39a0725d984bfb1eec"
+  terminal/components/heatmap/Treemap.tsx: "33b7d0a69b13b8baf2a66c235d37ce5878d8803814a0b7696d26dc0fbb6e1ea6"
+  terminal/lib/heatmapStrings.ts: "301bc087b30d4830d0d374cc92816b46b76838f24c6a13a6222e1090bc05e272"
+  terminal/lib/plainLabels.ts: "74ab1a77bedb849d01a0c9422774bcda43d6b33916fbe21b063116bceba87ad0"
+  terminal/lib/i18n.tsx: "35b7ad9679a593882c6e2bee939a6683adb537e33fc9fd19285822bb97b853b5"
 theme: dark
 languages: [en, zh]
 viewports:
