@@ -23,6 +23,8 @@ function makeFakeTransport() {
     watchlist_symbols: [] as Row[],
     resource_grants: [] as Row[],
     fault: null as { code: string } | null,
+    watchlistsFault: null as { code: string } | null,
+    symbolsFault: null as { code: string } | null,
     grantsMissing: false,
     seq: 0,
   };
@@ -48,6 +50,12 @@ function makeFakeTransport() {
       const result = () => {
         if (table === "resource_grants" && state.grantsMissing) {
           return { data: null, error: { code: "42P01", message: "relation does not exist" } };
+        }
+        if (table === "watchlists" && state.watchlistsFault) {
+          return { data: null, error: { code: state.watchlistsFault.code, message: "watchlists fault" } };
+        }
+        if (table === "watchlist_symbols" && state.symbolsFault) {
+          return { data: null, error: { code: state.symbolsFault.code, message: "symbols fault" } };
         }
         if (state.fault) return { data: null, error: { code: state.fault.code, message: "fault" } };
         if (pendingInsert) {
@@ -270,15 +278,17 @@ describe("/api/grants — explicit watchlist shares", () => {
   });
 
   it("a withdrawn share cannot be reinstated", async () => {
+    // Database-level guarantee that a withdrawn share cannot be un-revoked is
+    // proved by the canary `ddl:revoke_is_terminal`. This test exercises the
+    // product path: a second revokeGrant through the real module answers 404
+    // grant_not_found.
+    const { revokeGrant } = await import("@/lib/resourceGrants");
     H.user = { id: OWNER };
     const created = await (await post(shareBody)).json();
-    await del({ grantId: created.grant.id });
-    const r = await transport.db
-      .from("resource_grants")
-      .update({ revoked_at: null })
-      .eq("id", created.grant.id)
-      .maybeSingle();
-    expect(r.error?.code).toBe("42501");
+    const first = await revokeGrant(transport.db as never, OWNER, { grantId: created.grant.id });
+    expect(first).toEqual({ ok: true });
+    const second = await revokeGrant(transport.db as never, OWNER, { grantId: created.grant.id });
+    expect(second).toMatchObject({ ok: false, status: 404, code: "grant_not_found" });
     expect(transport.state.resource_grants[0].revoked_at).toBeTruthy();
   });
 
@@ -300,6 +310,10 @@ describe("/api/grants — explicit watchlist shares", () => {
       expect(pair[0]).not.toMatch(/_/);
       expect(pair[1]).not.toContain(code);
       expect(pair[0]).not.toContain(code);
+      expect(pair[1]).toMatch(/[一-鿿]/);
+      if (/[.!?]$/.test(pair[0].trim())) {
+        expect(pair[1].trim(), `${code} ZH must end a sentence`).toMatch(/[。！？]$/);
+      }
     }
     H.user = { id: OWNER };
     const r = await post({ ...shareBody, granteeUserId: OWNER });
@@ -336,5 +350,45 @@ describe("/api/grants — explicit watchlist shares", () => {
     const body = await r.json();
     expect(body.message).toBe(GRANT_ROUTE_MESSAGES.unavailable[0]);
     expect(body.messageZh).toBe(GRANT_ROUTE_MESSAGES.unavailable[1]);
+  });
+
+  it("a failed watchlists read is unavailable, not an empty share list", async () => {
+    H.user = { id: OWNER };
+    const created = await post(shareBody);
+    expect(created.status).toBe(201);
+    transport.state.watchlistsFault = { code: "42P01" };
+    const r = await GET();
+    expect(r.status).toBe(503);
+    const body = await r.json();
+    expect(body.shared).toBeUndefined();
+    expect(body.sharedWithMe).toBeUndefined();
+    expect(body.message).toBe(GRANT_ROUTE_MESSAGES.unavailable[0]);
+  });
+
+  it("a failed watchlists read is failed, not an empty share list", async () => {
+    H.user = { id: OWNER };
+    const created = await post(shareBody);
+    expect(created.status).toBe(201);
+    transport.state.watchlistsFault = { code: "08000" };
+    const r = await GET();
+    expect(r.status).toBe(500);
+    const body = await r.json();
+    expect(body.shared).toBeUndefined();
+    expect(body.sharedWithMe).toBeUndefined();
+    expect(body.message).toBe(GRANT_ROUTE_MESSAGES.read_failed[0]);
+  });
+
+  it("a failed symbols read is failed, not a fabricated zero-symbol share", async () => {
+    H.user = { id: OWNER };
+    const created = await post(shareBody);
+    expect(created.status).toBe(201);
+    H.user = { id: GRANTEE };
+    transport.state.symbolsFault = { code: "08000" };
+    const r = await GET();
+    expect(r.status).toBe(500);
+    const body = await r.json();
+    expect(body.shared).toBeUndefined();
+    expect(body.sharedWithMe).toBeUndefined();
+    expect(body.message).toBe(GRANT_ROUTE_MESSAGES.read_failed[0]);
   });
 });

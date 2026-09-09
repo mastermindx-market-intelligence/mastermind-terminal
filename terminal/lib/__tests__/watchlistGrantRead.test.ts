@@ -24,6 +24,9 @@ function makeFakeTransport() {
     watchlist_symbols: [] as Row[],
     resource_grants: [] as Row[],
     team_members: [] as Row[],
+    watchlistsFault: null as { code: string } | null,
+    symbolsFault: null as { code: string } | null,
+    grantsMissing: false,
     seq: 0,
   };
   const nextId = (prefix: string) => {
@@ -63,6 +66,15 @@ function makeFakeTransport() {
       };
 
       const result = () => {
+        if (table === "resource_grants" && state.grantsMissing) {
+          return { data: null, error: { code: "42P01", message: "relation does not exist" } };
+        }
+        if (table === "watchlists" && state.watchlistsFault) {
+          return { data: null, error: { code: state.watchlistsFault.code, message: "watchlists fault" } };
+        }
+        if (table === "watchlist_symbols" && state.symbolsFault) {
+          return { data: null, error: { code: state.symbolsFault.code, message: "symbols fault" } };
+        }
         if (pendingInsert) {
           const values = Array.isArray(pendingInsert) ? pendingInsert : [pendingInsert];
           if (table === "watchlist_symbols" || table === "watchlists") {
@@ -331,5 +343,26 @@ describe("GET /api/watchlist — grant-fed sharedWithMe", () => {
     const body = await (await GET()).json();
     expect(body.lists.map((l: { name: string }) => l.name)).toEqual(["Gold Miners", "Keep Private"]);
     expect(body.sharedWithMe).toEqual([]);
+  });
+
+  it("a failed grant-fed read reports sharedWithMe null and the failed state, not an empty array", async () => {
+    H.user = { id: GRANTEE };
+    transport.state.symbolsFault = { code: "08000" };
+    const r = await GET();
+    expect(r.status).toBe(200);
+    const body = await r.json();
+    expect(body.sharedWithMe).toBeNull();
+    expect(body.sharedWithMeState).toBe("failed");
+    expect(Array.isArray(body.lists)).toBe(true);
+  });
+
+  it("an unavailable grant-fed read reports sharedWithMe null and the unavailable state", async () => {
+    H.user = { id: GRANTEE };
+    transport.state.grantsMissing = true;
+    const r = await GET();
+    expect(r.status).toBe(200);
+    const body = await r.json();
+    expect(body.sharedWithMe).toBeNull();
+    expect(body.sharedWithMeState).toBe("unavailable");
   });
 });

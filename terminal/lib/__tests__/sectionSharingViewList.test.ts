@@ -199,4 +199,112 @@ describe("SectionSharing View list re-reads before claiming a share has ended", 
       expect(container.textContent).toContain(NO_LONGER);
     });
   });
+
+  it("a failed grants read shows the read-failed sentence, not the empty-share sentence", async () => {
+    fetchSpy.mockImplementation(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("/api/grants")) {
+        return jsonRes(500, { message: LEX.shrReadFailed[0], messageZh: LEX.shrReadFailed[1] });
+      }
+      if (url.includes("/api/watchlist")) {
+        return jsonRes(200, { lists: [], sharedWithMe: [] });
+      }
+      throw new Error(`unexpected fetch ${url}`);
+    });
+    await act(async () => {
+      root = createRoot(container);
+      root.render(React.createElement(SectionSharing, baseProps("en")));
+    });
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain(LEX.shrReadFailed[0]);
+    });
+    expect(container.textContent).not.toContain(LEX.shrMineEmpty[0]);
+    expect(container.textContent).not.toContain(LEX.shrTheirsEmpty[0]);
+  });
+
+  it("a failed View-list re-read shows the read-failed sentence and keeps the row", async () => {
+    const READ_FAILED = LEX.shrReadFailed[0];
+    let watchlistCalls = 0;
+    fetchSpy.mockImplementation(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("/api/grants")) {
+        return jsonRes(200, { shared: [], sharedWithMe: [] });
+      }
+      if (url.includes("/api/watchlist")) {
+        watchlistCalls += 1;
+        if (watchlistCalls === 1) {
+          return jsonRes(200, { lists: [], sharedWithMe: [populatedShared()] });
+        }
+        return jsonRes(200, { lists: [], sharedWithMe: null, sharedWithMeState: "failed" });
+      }
+      throw new Error(`unexpected fetch ${url}`);
+    });
+    await mountAndWaitForView();
+    expect(container.textContent).toContain("Copper Names");
+    await act(async () => {
+      viewButton().click();
+    });
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain(READ_FAILED);
+    });
+    expect(container.textContent).toContain("Copper Names");
+    expect(container.textContent).not.toContain(NO_LONGER);
+    expect(viewButton().getAttribute("aria-label")).toBe("View list");
+  });
+
+  it("View list on a still-shared empty list shows the empty-list sentence", async () => {
+    watchlistBodies = [{ lists: [], sharedWithMe: [emptyShared()] }];
+    await mountAndWaitForView();
+    await act(async () => {
+      viewButton().click();
+    });
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("This list has no symbols yet.");
+    });
+    expect(container.textContent).not.toContain(NO_LONGER);
+  });
+
+  it("one symbol uses the singular word; two symbols use the plural", async () => {
+    const one: Received = {
+      ...emptyShared(),
+      id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+      name: "One Name",
+      symbols: [{ symbol: "NEM", section: "Miners", position: 0 }],
+    };
+    fetchSpy.mockImplementation(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("/api/grants")) {
+        return jsonRes(200, { shared: [], sharedWithMe: [] });
+      }
+      if (url.includes("/api/watchlist")) {
+        return jsonRes(200, { lists: [], sharedWithMe: [one, populatedShared()] });
+      }
+      throw new Error(`unexpected fetch ${url}`);
+    });
+    await act(async () => {
+      root = createRoot(container);
+      root.render(React.createElement(SectionSharing, baseProps("en")));
+    });
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("One Name");
+      expect(container.textContent).toContain("Copper Names");
+    });
+    expect(container.textContent).toContain("1 symbol");
+    expect(container.textContent).toContain("2 symbols");
+    expect(container.textContent).not.toContain("1 symbols");
+  });
+
+  it("ZH shared-row copy addresses the customer as 你, not 您", () => {
+    const shrKeys = Object.keys(LEX).filter((k) => k.startsWith("shr"));
+    expect(shrKeys.length).toBeGreaterThan(10);
+    for (const key of shrKeys) {
+      const zh = LEX[key][1];
+      expect(zh, key).not.toContain("您");
+    }
+    expect(LEX.shrYouShared[0]).toBe("You shared this list.");
+    expect(LEX.shrYouShared[1]).toBe("你已共享此清单。");
+    const emptyList = (LEX as Record<string, [string, string] | undefined>).shrListEmpty;
+    expect(emptyList?.[0]).toBe("This list has no symbols yet.");
+    expect(emptyList?.[1]).toBe("这个清单还没有标的。");
+  });
 });

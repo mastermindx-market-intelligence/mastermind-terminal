@@ -67,11 +67,15 @@ export async function GET() {
   if (!session) return unauthenticated();
   const lists = await listWatchlists(session.db, session.userId);
   const shared = await listSharedWatchlistsForCaller(session.db as unknown as GrantsDb, session.userId);
-  const sharedWithMe = shared.ok ? shared.lists : [];
   if (!shared.ok) {
     console.error("watchlist GET grant-fed read failed:", shared.error);
+    return NextResponse.json({
+      lists,
+      sharedWithMe: null,
+      sharedWithMeState: shared.reason,
+    });
   }
-  return NextResponse.json({ lists, sharedWithMe });
+  return NextResponse.json({ lists, sharedWithMe: shared.lists });
 }
 
 export async function POST(req: Request) {

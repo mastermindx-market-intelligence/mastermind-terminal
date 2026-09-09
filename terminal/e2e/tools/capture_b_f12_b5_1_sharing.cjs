@@ -120,7 +120,7 @@ async function assertNoNextIndicator(page, file) {
   }
 }
 
-async function mockApis(page, populated) {
+async function mockApis(page, populated, emptyReceived) {
   await page.route("**/api/grants", async (route) => {
     if (route.request().method() !== "GET") {
       await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true }) });
@@ -162,10 +162,12 @@ async function mockApis(page, populated) {
             id: RECEIVED_LIST,
             name: "Copper Names",
             sharedBy: "11111111-1111-4111-8111-111111111111",
-            symbols: [
-              { symbol: "FCX", section: "Miners", position: 0 },
-              { symbol: "SCCO", section: "Miners", position: 1 },
-            ],
+            symbols: emptyReceived
+              ? []
+              : [
+                  { symbol: "FCX", section: "Miners", position: 0 },
+                  { symbol: "SCCO", section: "Miners", position: 1 },
+                ],
           }],
         }
       : { lists: [{ id: OWNER_LIST, name: "Gold Miners", position: 0, symbols: [] }], sharedWithMe: [] };
@@ -173,7 +175,7 @@ async function mockApis(page, populated) {
   });
 }
 
-async function openSharing(page, lang, viewport, populated) {
+async function openSharing(page, lang, viewport, populated, emptyReceived) {
   await page.setViewportSize(viewport);
   await page.addInitScript((l) => {
     localStorage.setItem("mm.lang", l);
@@ -183,7 +185,7 @@ async function openSharing(page, lang, viewport, populated) {
     document.documentElement.setAttribute("data-lang", l);
     document.documentElement.setAttribute("lang", l === "zh" ? "zh-CN" : "en");
   }, lang);
-  await mockApis(page, populated);
+  await mockApis(page, populated, emptyReceived);
   await page.goto(`${BASE}/dev/settings?s=sharing&lang=${lang}`, {
     waitUntil: "domcontentloaded",
     timeout: 90_000,
@@ -192,11 +194,18 @@ async function openSharing(page, lang, viewport, populated) {
   const heading = lang === "zh" ? "共享" : "Sharing";
   await page.getByRole("heading", { name: heading }).waitFor({ state: "visible", timeout: 15_000 });
   if (populated) {
+    const sharedRow = lang === "zh" ? "你已共享此清单。" : "You shared this list.";
+    await page.getByText(sharedRow).waitFor({ state: "visible", timeout: 10_000 });
     const view = lang === "zh" ? "查看清单" : "View list";
     await page.getByRole("button", { name: view }).click();
-    await page.getByText("FCX").waitFor({ state: "visible", timeout: 10_000 });
+    if (emptyReceived) {
+      const emptyList = lang === "zh" ? "这个清单还没有标的。" : "This list has no symbols yet.";
+      await page.getByText(emptyList, { exact: true }).waitFor({ state: "visible", timeout: 10_000 });
+    } else {
+      await page.getByText("FCX").waitFor({ state: "visible", timeout: 10_000 });
+    }
   } else {
-    const emptyMine = lang === "zh" ? "您还没有向任何人共享清单。" : "You have not shared a list with anyone yet.";
+    const emptyMine = lang === "zh" ? "你还没有向任何人共享清单。" : "You have not shared a list with anyone yet.";
     await page.getByText(emptyMine, { exact: true }).waitFor({ state: "visible", timeout: 10_000 });
   }
   await stripDevOverlay(page);
@@ -236,14 +245,18 @@ async function main() {
     const browser = await chromium.launch({ headless: true });
     try {
       const shots = [
-        { viewport: "desktop", lang: "en", populated: true, file: "desktop-en-shared.png" },
-        { viewport: "desktop", lang: "zh", populated: true, file: "desktop-zh-shared.png" },
-        { viewport: "desktop", lang: "en", populated: false, file: "desktop-en-empty.png" },
-        { viewport: "desktop", lang: "zh", populated: false, file: "desktop-zh-empty.png" },
-        { viewport: "mobile", lang: "en", populated: true, file: "mobile-en-shared.png" },
-        { viewport: "mobile", lang: "zh", populated: true, file: "mobile-zh-shared.png" },
-        { viewport: "mobile", lang: "en", populated: false, file: "mobile-en-empty.png" },
-        { viewport: "mobile", lang: "zh", populated: false, file: "mobile-zh-empty.png" },
+        { viewport: "desktop", lang: "en", populated: true, emptyReceived: false, file: "desktop-en-shared.png" },
+        { viewport: "desktop", lang: "zh", populated: true, emptyReceived: false, file: "desktop-zh-shared.png" },
+        { viewport: "desktop", lang: "en", populated: true, emptyReceived: true, file: "desktop-en-empty-list.png" },
+        { viewport: "desktop", lang: "zh", populated: true, emptyReceived: true, file: "desktop-zh-empty-list.png" },
+        { viewport: "desktop", lang: "en", populated: false, emptyReceived: false, file: "desktop-en-empty.png" },
+        { viewport: "desktop", lang: "zh", populated: false, emptyReceived: false, file: "desktop-zh-empty.png" },
+        { viewport: "mobile", lang: "en", populated: true, emptyReceived: false, file: "mobile-en-shared.png" },
+        { viewport: "mobile", lang: "zh", populated: true, emptyReceived: false, file: "mobile-zh-shared.png" },
+        { viewport: "mobile", lang: "en", populated: true, emptyReceived: true, file: "mobile-en-empty-list.png" },
+        { viewport: "mobile", lang: "zh", populated: true, emptyReceived: true, file: "mobile-zh-empty-list.png" },
+        { viewport: "mobile", lang: "en", populated: false, emptyReceived: false, file: "mobile-en-empty.png" },
+        { viewport: "mobile", lang: "zh", populated: false, emptyReceived: false, file: "mobile-zh-empty.png" },
       ];
       for (const shot of shots) {
         process.stdout.write(`capture ${shot.file} … `);
@@ -256,7 +269,7 @@ async function main() {
         const page = await context.newPage();
         page.setDefaultTimeout(45_000);
         try {
-          await openSharing(page, shot.lang, VIEWPORTS[shot.viewport], shot.populated);
+          await openSharing(page, shot.lang, VIEWPORTS[shot.viewport], shot.populated, shot.emptyReceived);
           const m = await measureLayout(page);
           measurements[shot.file] = m;
           await shoot(page, shot.file);

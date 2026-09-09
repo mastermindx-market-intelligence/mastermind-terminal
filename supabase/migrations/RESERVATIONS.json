@@ -210,7 +210,7 @@
       "pr_state": "open",
       "applied_in_production": false,
       "applied_date": null,
-      "note": "packet B-F12-B5-1 explicit grants; prefix ruled by the seat 2026-09-09 (0017-0020 reserved for B-F13-5 / B-F12-7 / B-F12-8 / B-F12-9); draft PR #548; DDL unapplied."
+      "note": "packet B-F12-B5-1 explicit grants; prefix ruled by the seat 2026-09-09 (0017-0020 reserved for B-F13-5 / B-F12-7 / B-F12-8 / B-F12-9); draft PR #548; DDL unapplied; applied_date is not recorded because the seat has not applied it."
     }
   }
 }

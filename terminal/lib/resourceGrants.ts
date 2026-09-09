@@ -32,16 +32,16 @@ export type GrantRouteCode =
   | "write_failed";
 
 export const GRANT_ROUTE_MESSAGES: Record<GrantRouteCode, [string, string]> = {
-  not_signed_in: ["You are not signed in.", "您尚未登录。"],
+  not_signed_in: ["You are not signed in.", "你尚未登录。"],
   send_json: ["Send a JSON body.", "请发送 JSON 正文。"],
   unrecognised_action: ["We do not recognise that action.", "我们无法识别该操作。"],
   list_required: ["Choose a list to share.", "请选择要共享的清单。"],
-  list_not_found: ["We could not find that list in your account.", "在您的账户中找不到该清单。"],
+  list_not_found: ["We could not find that list in your account.", "在你的账户中找不到该清单。"],
   account_required: ["Enter the account ID of the person you want to share with.", "请输入要共享给的对方账户 ID。"],
   invalid_account: ["That account ID is not valid.", "该账户 ID 无效。"],
   cannot_share_with_self: [
     "This list is already yours, so there is nothing to share with yourself.",
-    "此清单本就属于您，无需共享给自己。",
+    "此清单本就属于你，无需共享给自己。",
   ],
   email_not_supported: [
     "Sharing by email is not available yet. Ask them to sign in to Mastermind first, then share with their account ID.",
@@ -54,7 +54,7 @@ export const GRANT_ROUTE_MESSAGES: Record<GrantRouteCode, [string, string]> = {
     "Sharing is not set up on this server yet, so we cannot answer. Nothing was changed.",
     "此服务器尚未启用共享功能，因此我们无法作答。未更改任何内容。",
   ],
-  read_failed: ["We could not read your shared lists just now.", "我们暂时无法读取您的共享清单。"],
+  read_failed: ["We could not read your shared lists just now.", "我们暂时无法读取你的共享清单。"],
   write_failed: ["We could not save that change.", "我们无法保存该更改。"],
 };
 
@@ -194,12 +194,15 @@ function toSharedGrant(row: DbRow, resourceName: string): SharedGrant | null {
   };
 }
 
-async function watchlistNamesById(db: GrantsDb, ids: string[]): Promise<Map<string, { name: string; userId: string | null }>> {
+async function watchlistNamesById(
+  db: GrantsDb,
+  ids: string[],
+): Promise<Map<string, { name: string; userId: string | null }> | ReadFail> {
   const names = new Map<string, { name: string; userId: string | null }>();
   if (ids.length === 0) return names;
   const result = await db.from("watchlists").select("id,name,user_id").in("id", ids);
   const fail = classifyReadError(result);
-  if (fail) return names;
+  if (fail) return fail;
   for (const row of asRows(result)) {
     const id = typeof row.id === "string" ? row.id : null;
     const name = typeof row.name === "string" ? row.name : null;
@@ -209,7 +212,10 @@ async function watchlistNamesById(db: GrantsDb, ids: string[]): Promise<Map<stri
   return names;
 }
 
-async function symbolsByListId(db: GrantsDb, ids: string[]): Promise<Map<string, SharedWatchlist["symbols"]>> {
+async function symbolsByListId(
+  db: GrantsDb,
+  ids: string[],
+): Promise<Map<string, SharedWatchlist["symbols"]> | ReadFail> {
   const byList = new Map<string, SharedWatchlist["symbols"]>();
   if (ids.length === 0) return byList;
   const result = await db
@@ -217,7 +223,8 @@ async function symbolsByListId(db: GrantsDb, ids: string[]): Promise<Map<string,
     .select("watchlist_id,symbol,section,position")
     .in("watchlist_id", ids)
     .order("position");
-  if (classifyReadError(result)) return byList;
+  const fail = classifyReadError(result);
+  if (fail) return fail;
   for (const row of asRows(result)) {
     const listId = typeof row.watchlist_id === "string" ? row.watchlist_id : null;
     const symbol = typeof row.symbol === "string" ? row.symbol : null;
@@ -257,7 +264,9 @@ export async function listGrants(db: GrantsDb, callerId: string): Promise<Grants
     ),
   ];
   const names = await watchlistNamesById(db, ids);
+  if (!(names instanceof Map)) return names;
   const symbols = await symbolsByListId(db, receivedRows.map((row) => (typeof row.resource_id === "string" ? row.resource_id : "")).filter(Boolean));
+  if (!(symbols instanceof Map)) return symbols;
 
   const shared: SharedGrant[] = [];
   for (const row of madeRows) {
@@ -315,7 +324,9 @@ export async function listSharedWatchlistsForCaller(db: GrantsDb, callerId: stri
   const receivedRows = asRows(receivedResult);
   const ids = receivedRows.map((row) => (typeof row.resource_id === "string" ? row.resource_id : null)).filter((id): id is string => !!id);
   const names = await watchlistNamesById(db, ids);
+  if (!(names instanceof Map)) return names;
   const symbols = await symbolsByListId(db, ids);
+  if (!(symbols instanceof Map)) return symbols;
   const tenantGrants = toTenantGrants(
     receivedRows.map((row) => ({
       resource_id: row.resource_id,
