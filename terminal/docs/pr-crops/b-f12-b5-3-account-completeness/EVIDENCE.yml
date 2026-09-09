@@ -1,0 +1,39 @@
+# B-F12-B5-3b Account completeness — capture evidence
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
+# capturedAtHead: ae304de50ec422760e6ad257b5e541cd4678c761
+# capturedAt: 2026-09-09T15:06:09.020Z
+# capturedAtHead is the code commit the pixels depict. The lock is layoutFiles.
+layoutFiles:
+  terminal/components/settings/SectionAccount.tsx: "b9ac1909c964af78ff4903263102e908d41116fe9e4bed88b9d259f7b5255336"
+  terminal/lib/teamSummary.ts: "dac2277632bce064913efd4ddc76f19edf93b7d6c3dce9d96110a4c36481ddcd"
+  terminal/lib/i18n.tsx: "9c417784b9653a07bf90459b235eb3bfd8a5a86d64a2f1171a2eef2cd47c0829"
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: mobile, width: 390, height: 844 }
+harness: /dev/settings?s=account&lang=<en|zh>&provider=<google|email>
+capture_flag: TERMINAL_E2E_FIXTURE
+capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.
+command: |
+  cd terminal
+  node e2e/tools/capture_b_f12_b5_3_account_completeness.cjs
+files:
+  - desktop-en-overview.png
+  - desktop-zh-overview.png
+  - desktop-en-password.png
+  - desktop-zh-password.png
+  - mobile-en-overview.png
+  - mobile-zh-overview.png
+  - mobile-en-password.png
+  - mobile-zh-password.png
+measurements:
+  desktop-en-overview.png: { teamLine: "You are the owner of Acme.", currentPasswordField: false, passwordEditVisible: false, noPasswordLine: "You signed in without a password, so there is nothing to change here." }
+  desktop-zh-overview.png: { teamLine: "您是“Acme”团队的所有者。", currentPasswordField: false, passwordEditVisible: false, noPasswordLine: "您登录时未设置密码，因此这里没有可更改的内容。" }
+  desktop-en-password.png: { teamLine: "You are the owner of Acme.", currentPasswordField: true, passwordEditVisible: false, noPasswordLine: "" }
+  desktop-zh-password.png: { teamLine: "您是“Acme”团队的所有者。", currentPasswordField: true, passwordEditVisible: false, noPasswordLine: "" }
+  mobile-en-overview.png: { teamLine: "You are the owner of Acme.", currentPasswordField: false, passwordEditVisible: false, noPasswordLine: "You signed in without a password, so there is nothing to change here." }
+  mobile-zh-overview.png: { teamLine: "您是“Acme”团队的所有者。", currentPasswordField: false, passwordEditVisible: false, noPasswordLine: "您登录时未设置密码，因此这里没有可更改的内容。" }
+  mobile-en-password.png: { teamLine: "You are the owner of Acme.", currentPasswordField: true, passwordEditVisible: false, noPasswordLine: "" }
+  mobile-zh-password.png: { teamLine: "您是“Acme”团队的所有者。", currentPasswordField: true, passwordEditVisible: false, noPasswordLine: "" }
