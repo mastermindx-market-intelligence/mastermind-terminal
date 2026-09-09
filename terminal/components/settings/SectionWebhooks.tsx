@@ -321,18 +321,18 @@ export default function SectionWebhooks({ t, lang, onClose }: SectionProps) {
                 <div key={ep.id}>
                   <Row
                     label={truncateUrl(ep.url)}
-                    value={webhookEnabledLabel(ep.enabled, lang)}
+                    value={canWrite ? undefined : webhookEnabledLabel(ep.enabled, lang)}
                     control={
                       canWrite ? (
                         <button
                           type="button"
-                          className="acs-check"
+                          className="acs-btn ghost"
                           aria-pressed={ep.enabled}
                           aria-label={webhookEnabledLabel(ep.enabled, lang)}
                           onClick={() => void toggleEnabled(ep)}
                           disabled={busy}
                         >
-                          <span className="box"><IconCheck /></span>
+                          {webhookEnabledLabel(ep.enabled, lang)}
                         </button>
                       ) : undefined
                     }

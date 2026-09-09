@@ -150,41 +150,23 @@ async function mockApis(page, state) {
     }
     await route.fulfill({ status: 201, contentType: "application/json", body: JSON.stringify({ team: TEAM }) });
   });
-  await page.route("**/api/webhooks/**/deliveries", async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({ deliveries: state === "populated" ? DELIVERIES : [] }),
-    });
-  });
-  await page.route("**/api/webhooks/**/test", async (route) => {
-    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, eventId: "evt-test" }) });
-  });
-  await page.route("**/api/webhooks/**", async (route) => {
+  await page.route("**/api/webhooks**", async (route) => {
     const method = route.request().method();
     const url = route.request().url();
-    if (url.includes("/deliveries") || url.includes("/test")) {
-      await route.fallback();
+    if (url.includes("/deliveries")) {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ deliveries: state === "populated" ? DELIVERIES : [] }),
+      });
+      return;
+    }
+    if (url.includes("/test")) {
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, eventId: "evt-test" }) });
       return;
     }
     if (method === "PATCH") {
       await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ endpoint: { ...ENDPOINT, enabled: false } }) });
-      return;
-    }
-    await route.fallback();
-  });
-  await page.route("**/api/webhooks", async (route) => {
-    const method = route.request().method();
-    if (method === "GET") {
-      await route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({
-          endpoints: state === "empty" || state === "ssrf" ? [] : [ENDPOINT],
-          callerRole: "owner",
-          truncated: false,
-        }),
-      });
       return;
     }
     if (method === "POST") {
@@ -198,7 +180,15 @@ async function mockApis(page, state) {
       });
       return;
     }
-    await route.fulfill({ status: 404, body: "{}" });
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        endpoints: state === "empty" || state === "ssrf" ? [] : [ENDPOINT],
+        callerRole: "owner",
+        truncated: false,
+      }),
+    });
   });
 }
 
