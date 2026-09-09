@@ -1,0 +1,213 @@
+// terminal/lib/__tests__/plainLanguageGuardCi.test.ts
+//
+// Locks the CI WIRING of the plain-language guard (packet B-PLAT-B5-1).
+//
+// The guard itself (terminal/scripts/check_plain_language.mjs, packet B-PL-5)
+// is covered by plainLanguageGuard.test.ts. Until this packet it was advisory:
+// nothing in .github/workflows/ci.yml, no npm script and no job ran it, so a
+// PR could add a raw state enum to a user-visible position and every required
+// check stayed green. This suite is the enforcer's own enforcer — it asserts
+// that the two guard steps really are in the `terminal-unit` job (the job that
+// feeds the required "Terminal typecheck + tests" aggregate check), that they
+// run with the forward-only semantics, and that the guard's exit codes still
+// say "red" for a violation this diff ADDED and "green" for a pre-existing one.
+//
+// The workflow is read as TEXT, not parsed: terminal/package.json declares no
+// YAML dependency, and the only js-yaml on this tree is a transitive hoist of
+// eslint's own dependency, which would make this suite break the day eslint
+// changed its tree. The repo's YAML-semantic checks live in
+// tests/test_merge_on_green.py, which has PyYAML for real.
+
+import { describe, it, expect } from "vitest";
+import { spawnSync } from "node:child_process";
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+
+const repoRoot = join(__dirname, "../../..");
+const scriptPath = join(repoRoot, "terminal/scripts/check_plain_language.mjs");
+const workflowPath = join(repoRoot, ".github/workflows/ci.yml");
+
+function run(scriptFile: string, args: string[]) {
+  const r = spawnSync(process.execPath, [scriptFile, ...args], { encoding: "utf8" });
+  return { status: r.status ?? 1, stdout: r.stdout ?? "", stderr: r.stderr ?? "" };
+}
+
+// Returns the text of ONE top-level job block (`  <name>:` at exactly two
+// spaces of indent, up to the next key at that same indent). Slicing the job
+// out first is what makes "the guard runs in terminal-unit" a real assertion:
+// a bare substring search over the whole file would also be satisfied by the
+// guard sitting in some other job that no required check depends on.
+function jobBlock(text: string, name: string): string {
+  const start = text.indexOf(`\n  ${name}:\n`);
+  expect(start, `job '${name}' not found in ci.yml`).toBeGreaterThan(-1);
+  const rest = text.slice(start + 1);
+  const next = rest.slice(1).search(/\n {2}[A-Za-z0-9_-]+:\n/);
+  return next === -1 ? rest : rest.slice(0, next + 1);
+}
+
+function fixtureRoot(): string {
+  const root = mkdtempSync(join(tmpdir(), "plg-ci-"));
+  mkdirSync(join(root, "terminal/components"), { recursive: true });
+  mkdirSync(join(root, "terminal/lib"), { recursive: true });
+  return root;
+}
+
+// Minimal unified diff marking `addedLineNumbers` (1-based) as added lines.
+function unifiedDiffFor(relPath: string, content: string, addedLineNumbers: number[]) {
+  const lines = content.split("\n");
+  let body = "";
+  lines.forEach((l, i) => {
+    body += (addedLineNumbers.includes(i + 1) ? "+" : " ") + l + "\n";
+  });
+  return `diff --git a/${relPath} b/${relPath}\n--- a/${relPath}\n+++ b/${relPath}\n@@ -1,0 +1,${lines.length} @@\n${body}`;
+}
+
+describe("plain-language guard — CI wiring", () => {
+  it("A1. the terminal-unit job runs the guard's self-check", () => {
+    const unit = jobBlock(readFileSync(workflowPath, "utf8"), "terminal-unit");
+    expect(unit).toContain("scripts/check_plain_language.mjs --self-check");
+  });
+
+  it("A2. the terminal-unit job fetches the PR base and enforces on added lines", () => {
+    const unit = jobBlock(readFileSync(workflowPath, "utf8"), "terminal-unit");
+    // The base commit is NOT in a depth-1 checkout: without this fetch the
+    // guard cannot resolve a base, reports "nothing can block", and exits 0 —
+    // a step that is green because it checked nothing.
+    expect(unit).toContain("git fetch --no-tags --depth=1 origin");
+    // Read through an env var, never interpolated straight into the shell:
+    // a branch name is attacker-controllable text.
+    expect(unit).toContain("BASE_REF: ${{ github.base_ref || 'master' }}");
+    expect(unit).toContain('"+refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}"');
+    // Forward-only mode, fed the diff that fetch just made possible.
+    expect(unit).toContain("--mode enforce-added");
+    expect(unit).toMatch(/check_plain_language\.mjs --mode enforce-added --diff-file/);
+  });
+
+  it("A3. both guard steps run AFTER the unit tests, and inside the job that feeds the required check", () => {
+    const text = readFileSync(workflowPath, "utf8");
+    const unit = jobBlock(text, "terminal-unit");
+    const testStep = unit.indexOf("- run: npm test");
+    const selfCheck = unit.indexOf("--self-check");
+    const enforce = unit.indexOf("--mode enforce-added");
+    expect(testStep).toBeGreaterThan(-1);
+    expect(selfCheck).toBeGreaterThan(testStep);
+    expect(enforce).toBeGreaterThan(selfCheck);
+
+    // The aggregate job's name is what master's branch protection keys on, and
+    // it must still depend on terminal-unit — otherwise a red guard step would
+    // never reach the required check.
+    const aggregate = jobBlock(text, "terminal");
+    expect(aggregate).toContain("name: Terminal typecheck + tests");
+    expect(aggregate).toContain("needs: [terminal-unit, terminal-e2e]");
+  });
+
+  it("A4. the guard is not wired anywhere else in the workflow", () => {
+    // Exactly two INVOCATIONS (self-check, then enforce), both in the job
+    // above. A third copy in e.g. terminal-e2e would double the cost and
+    // could disagree with this one. Counting `node scripts/...` rather than
+    // the bare filename keeps prose mentions of the script in the comments
+    // out of the count.
+    const text = readFileSync(workflowPath, "utf8");
+    const invocations = text.split("node scripts/check_plain_language.mjs").length - 1;
+    expect(invocations).toBe(2);
+    const unit = jobBlock(text, "terminal-unit");
+    expect(unit.split("node scripts/check_plain_language.mjs").length - 1).toBe(2);
+  });
+});
+
+describe("plain-language guard — self-check is a real gate", () => {
+  it("B1. --self-check exits 0 and reports every rule as detected on an intact guard", () => {
+    const res = run(scriptPath, ["--self-check"]);
+    expect(res.status).toBe(0);
+    for (const rule of ["R1", "R2", "R3", "R4", "R5a", "R5b"]) {
+      expect(res.stdout).toContain(`${rule} detected`);
+    }
+    expect(res.stdout).not.toContain("NOT detected");
+  });
+
+  it("B2. --self-check exits NON-ZERO when a rule stops detecting its own violation", () => {
+    // Mutation test: a self-check that always exits 0 is a decoration, not a
+    // gate — the CI step would stay green with every rule dead. Run a copy of
+    // the real script whose R1 fixture expects a rule name that can never
+    // fire, and require the process to fail.
+    //
+    // The copy lives under terminal/ so that its `import ts from "typescript"`
+    // still resolves against terminal/node_modules.
+    const dir = mkdtempSync(join(repoRoot, "terminal", ".plg-selfcheck-"));
+    try {
+      const source = readFileSync(scriptPath, "utf8");
+      const intact = 'R1: { relPath: "fixture.tsx", code: "const x = <span>BOTTOM_WATCH</span>;", rule: "raw_state_enum" }';
+      // Fails loudly if the fixture table is ever refactored, rather than
+      // silently mutating nothing and "passing".
+      expect(source).toContain(intact);
+      const broken = source.replace(intact, intact.replace('"raw_state_enum"', '"rule_that_can_never_fire"'));
+      const brokenPath = join(dir, "broken.mjs");
+      writeFileSync(brokenPath, broken);
+
+      const res = run(brokenPath, ["--self-check"]);
+      expect(res.stdout).toContain("R1 NOT detected");
+      expect(res.status).not.toBe(0);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+});
+
+describe("plain-language guard — exit codes the CI step depends on", () => {
+  it("C1. a raw state enum added on an added line exits 1", () => {
+    const root = fixtureRoot();
+    try {
+      const relPath = "terminal/components/CiAdded.tsx";
+      const content = ["export function CiAdded() {", "  return <b>BOTTOM_WATCH</b>;", "}", ""].join("\n");
+      writeFileSync(join(root, relPath), content);
+      const diffFile = join(root, "diff.patch");
+      writeFileSync(diffFile, unifiedDiffFor(relPath, content, [2]));
+      const res = run(scriptPath, ["--mode", "enforce-added", "--root", root, "--diff-file", diffFile]);
+      expect(res.status).toBe(1);
+      expect(res.stdout).toContain("::error title=plain-language::");
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("C2. an untranslated stat token added on an added line exits 1", () => {
+    const root = fixtureRoot();
+    try {
+      const relPath = "terminal/components/CiStat.tsx";
+      const content = ["export function CiStat() {", "  return <span>iv_rank</span>;", "}", ""].join("\n");
+      writeFileSync(join(root, relPath), content);
+      const diffFile = join(root, "diff.patch");
+      writeFileSync(diffFile, unifiedDiffFor(relPath, content, [2]));
+      const res = run(scriptPath, ["--mode", "enforce-added", "--root", root, "--diff-file", diffFile]);
+      expect(res.status).toBe(1);
+      expect(res.stdout).toContain("untranslated_stat_token");
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("C3. the SAME violation on a pre-existing line exits 0 and prints the legacy census", () => {
+    // The forward-only promise the CI step has to keep: an untouched legacy
+    // file is reported, never red.
+    const root = fixtureRoot();
+    try {
+      const legacyPath = "terminal/components/CiLegacy.tsx";
+      const legacy = ["export function CiLegacy() {", "  return <b>BOTTOM_WATCH</b>;", "}", ""].join("\n");
+      writeFileSync(join(root, legacyPath), legacy);
+      // The diff touches a different, clean file: nothing in CiLegacy.tsx is
+      // an added line, so its finding can only be legacy.
+      const touchedPath = "terminal/components/CiTouched.tsx";
+      const touched = ["export function CiTouched() {", "  return <div />;", "}", ""].join("\n");
+      writeFileSync(join(root, touchedPath), touched);
+      const diffFile = join(root, "diff.patch");
+      writeFileSync(diffFile, unifiedDiffFor(touchedPath, touched, [2]));
+      const res = run(scriptPath, ["--mode", "enforce-added", "--root", root, "--diff-file", diffFile]);
+      expect(res.status).toBe(0);
+      expect(res.stdout).toContain("legacy (pre-existing, not blocking)");
+      expect(res.stdout).toContain(legacyPath);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+});

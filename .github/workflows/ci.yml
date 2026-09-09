@@ -56,6 +56,48 @@ jobs:
       - run: npx next typegen
       - run: npx tsc --noEmit
       - run: npm test
+      # The Chairman's plain-language law gets a Terminal-side enforcer here.
+      # terminal/scripts/check_plain_language.mjs (packet B-PL-5) is a
+      # forward-only guard, but until packet B-PLAT-B5-1 no job ran it: a PR
+      # could put a raw state enum or an untranslated stat token in front of a
+      # user and every required check still went green.
+      #
+      # Step 1 proves the guard still works before anyone trusts its verdict.
+      # Each rule is fed a fixture that violates it, through the same
+      # scanLines() the real scan uses; a rule that no longer fires exits 2 and
+      # turns this job red. A dead guard must never read as a clean tree.
+      - name: Plain-language guard self-check
+        run: node scripts/check_plain_language.mjs --self-check
+      # Step 2 enforces, forward-only: a finding on a line THIS pull request
+      # ADDED is blocking and fails the step, while the same finding on a
+      # pre-existing line is printed as the legacy census and never turns a PR
+      # red. An untouched legacy file cannot fail this step.
+      #
+      # actions/checkout fetches depth 1, so the base commit is not in this
+      # clone at all. Fetch it explicitly, or the guard finds no base, says
+      # nothing can block, and the step passes green having checked nothing.
+      # The diff is deliberately taken with TWO dots: `git diff A B` compares
+      # two trees and needs no merge base, whereas a three-dot `A...B` needs
+      # one and a depth-1 base and a depth-1 HEAD share no history for git to
+      # find it. On a pull_request run HEAD is GitHub's merge commit -- this
+      # PR already merged into the base tip -- so the two-dot diff is exactly
+      # the changes this PR makes. With no base_ref (a workflow_dispatch re-run
+      # on a branch merge-on-green has just refreshed from master) the base is
+      # master, and a HEAD that IS master diffs to nothing, so no line counts
+      # as added and the legacy census alone can never fail the step.
+      #
+      # BASE_REF is read from the environment rather than interpolated into
+      # the shell text: a branch name is attacker-controllable. The pathspec is
+      # written `:/terminal` (relative to the repo root) because this job's
+      # steps run inside terminal/, and it is a superset of every path the
+      # guard scans, so it cannot go stale against the guard's own globs.
+      - name: Plain-language guard (forward-only, added lines block)
+        env:
+          BASE_REF: ${{ github.base_ref || 'master' }}
+        run: |
+          git fetch --no-tags --depth=1 origin "+refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}"
+          git diff --unified=0 "refs/remotes/origin/${BASE_REF}" HEAD -- ':/terminal' > "${RUNNER_TEMP}/plain-language.diff"
+          node scripts/check_plain_language.mjs --mode enforce-added --diff-file "${RUNNER_TEMP}/plain-language.diff"
       # Quarantined journeys are disclosed on EVERY run: a green matrix must never be read as
       # full coverage. Bare `echo`, never a logger — a logger prefix pushes `::warning` off the
       # start of the line and GitHub silently drops the annotation.
