@@ -1933,6 +1933,20 @@ export const LEX: Record<string, [string, string]> = {
   acsTeamCreate: ["Create team", "创建团队"],
   acsTeamCreated: ["Your team was created.", "您的团队已创建。"],
   acsTeamNoName: ["A teammate", "未命名成员"],
+  acsTeamTransferButton: ["Transfer ownership", "转移所有权"],
+  acsTeamTransferTitle: ["Transfer ownership to whom?", "将所有权转移给谁？"],
+  acsTeamTransferNote: ["They will need to be made an administrator first.", "他们需要先成为管理员。"],
+  acsTeamTransferAdminNeed: [
+    "The recipient must be an administrator. Make them an administrator first, then transfer.",
+    "接收人必须是管理员。请先将其设为管理员，再进行转移。",
+  ],
+  acsTeamTransferConfirm: ["Transfer ownership to {name}?", "将所有权转移给 {name}？"],
+  acsTeamTransferConsequence: [
+    "You will become an administrator. They will become the team owner. You can always transfer back later.",
+    "你将成为管理员，对方将成为团队所有者。之后你随时可以转回。",
+  ],
+  acsTeamTransferSuccess: ["Ownership transferred to {name}.", "所有权已转移给 {name}。"],
+  acsTeamTransferRetry: ["Try again", "重试"],
   // rail
   acsRailSub: ["Synced across devices", "已在各设备同步"],
   acsSections: ["Settings sections", "设置分区"],

@@ -256,6 +256,105 @@ describe("R4(h): a failed roster read says what actually happened", () => {
   });
 });
 
+describe("B-F12-9: ownership transfer control", () => {
+  it("the owner sees Transfer ownership when an administrator exists", async () => {
+    await mount("en", ROSTER_FIXTURE);
+    const button = container.querySelector('[data-testid="team-transfer-ownership"]');
+    expect(button?.textContent).toBe(LEX.acsTeamTransferButton[0]);
+  });
+
+  it("a member or administrator does not see the transfer control, and the locked-owner sentence remains", async () => {
+    const asAdmin: DevTeamFixture = { ...ROSTER_FIXTURE, callerRole: "admin", callerUserId: ROSTER_FIXTURE.members[1].userId };
+    await mount("en", asAdmin);
+    expect(container.querySelector('[data-testid="team-transfer-ownership"]')).toBeNull();
+    expect(text()).toContain(LEX.acsOwnerLocked[0]);
+  });
+
+  it("the owner does not see the transfer control when nobody is an administrator", async () => {
+    const noAdmin: DevTeamFixture = {
+      ...ROSTER_FIXTURE,
+      members: ROSTER_FIXTURE.members.map((m) => (m.role === "admin" ? { ...m, role: "member" } : m)),
+    };
+    await mount("en", noAdmin);
+    expect(container.querySelector('[data-testid="team-transfer-ownership"]')).toBeNull();
+  });
+
+  it.each(["en", "zh"] as const)("%s: the two-step dialog shows the consequence sentence and never a machine word", async (lang) => {
+    await mount(lang, ROSTER_FIXTURE);
+    const idx = lang === "zh" ? 1 : 0;
+    await act(async () => {
+      (container.querySelector('[data-testid="team-transfer-ownership"]') as HTMLButtonElement).click();
+    });
+    expect(text()).toContain(LEX.acsTeamTransferTitle[idx]);
+    expect(text()).toContain(LEX.acsTeamTransferAdminNeed[idx]);
+    const adminChoice = Array.from(container.querySelectorAll("[data-testid=\"team-transfer-recipients\"] button")).find((b) =>
+      (b.textContent || "").includes("Alex Chen"),
+    ) as HTMLButtonElement;
+    await act(async () => {
+      adminChoice.click();
+    });
+    await act(async () => {
+      (container.querySelector('[data-testid="team-transfer-next"]') as HTMLButtonElement).click();
+    });
+    expect(text()).toContain(LEX.acsTeamTransferConsequence[idx]);
+    expect(text()).toContain(LEX.acsTeamTransferConfirm[idx].replaceAll("{name}", "Alex Chen"));
+    expect(text()).not.toContain("transfer_team_ownership");
+    expect(text()).not.toContain("team_members");
+  });
+
+  it("a 409 shows the conflict sentence and a Try again control", async () => {
+    stubFetch({});
+    (globalThis.fetch as unknown as { mockImplementation: (fn: unknown) => void }).mockImplementation(
+      async (input: RequestInfo | URL) => {
+        const url = String(input);
+        if (url === "/api/teams") {
+          return { ok: true, status: 200, json: async () => ({ teams: [{ id: "team-1", name: "Desk" }] }) } as unknown as Response;
+        }
+        if (url.startsWith("/api/teams/team-1/members")) {
+          return {
+            ok: true,
+            status: 200,
+            json: async () => ({
+              members: ROSTER_FIXTURE.members.map((m) => ({ ...m })),
+              callerRole: "owner",
+            }),
+          } as unknown as Response;
+        }
+        if (url.startsWith("/api/teams/team-1/transfer-ownership")) {
+          return {
+            ok: false,
+            status: 409,
+            json: async () => ({
+              error: "CONFLICT",
+              message: TEAM_ROUTE_MESSAGES.conflict[0],
+              messageZh: TEAM_ROUTE_MESSAGES.conflict[1],
+            }),
+          } as unknown as Response;
+        }
+        return { ok: true, status: 200, json: async () => ({ invites: [] }) } as unknown as Response;
+      },
+    );
+    await mount("en");
+    await act(async () => {
+      (container.querySelector('[data-testid="team-transfer-ownership"]') as HTMLButtonElement).click();
+    });
+    const adminChoice = Array.from(container.querySelectorAll("[data-testid=\"team-transfer-recipients\"] button")).find((b) =>
+      (b.textContent || "").includes("Alex Chen"),
+    ) as HTMLButtonElement;
+    await act(async () => {
+      adminChoice.click();
+    });
+    await act(async () => {
+      (container.querySelector('[data-testid="team-transfer-next"]') as HTMLButtonElement).click();
+    });
+    await act(async () => {
+      (container.querySelector('[data-testid="team-transfer-confirm"]') as HTMLButtonElement).click();
+    });
+    expect(text()).toContain(TEAM_ROUTE_MESSAGES.conflict[0]);
+    expect(container.querySelector('[data-testid="team-transfer-retry"]')?.textContent).toBe(LEX.acsTeamTransferRetry[0]);
+  });
+});
+
 function pair(code: keyof typeof TEAM_ROUTE_MESSAGES) {
   const [message, messageZh] = TEAM_ROUTE_MESSAGES[code];
   return { message, messageZh };

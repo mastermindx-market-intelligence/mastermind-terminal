@@ -545,6 +545,75 @@ import type { DbResult as _DbResult } from "@/lib/watchlists";
 export type TenancyRpcDb = TenancyDb & { rpc: (fn: string, args: Record<string, unknown>) => Promise<_DbResult> };
 
 export const ACCEPT_INVITE_FN = "accept_team_invite";
+export const TRANSFER_OWNERSHIP_FN = "transfer_team_ownership";
+
+/** RFC 4122-shaped UUID. The route validates both path and body ids before calling the function. */
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+export function isUuid(value: unknown): value is string {
+  return typeof value === "string" && UUID_RE.test(value);
+}
+
+export type TransferOwnershipResult =
+  | { success: true; message: "transfer_success"; newOwnerId: string }
+  | { success: false; message: TeamRouteCode; status: number };
+
+const TRANSFER_FAIL_STATUS: Record<string, number> = {
+  not_signed_in: 401,
+  team_not_found: 404,
+  not_on_team: 404,
+  owner_only: 403,
+  transfer_requires_admin: 403,
+  same_owner: 400,
+  conflict: 409,
+  unavailable: 403,
+  invalid_user_id: 400,
+};
+
+function transferFail(message: TeamRouteCode): TransferOwnershipResult {
+  return { success: false, message, status: TRANSFER_FAIL_STATUS[message] ?? 500 };
+}
+
+/**
+ * Call public.transfer_team_ownership. The function is the source of truth — this helper
+ * does not re-gate. A zero-row result (RLS refusal or an empty update) is never a success.
+ */
+export async function transferOwnership(
+  db: TenancyRpcDb,
+  teamId: string,
+  newOwnerId: string,
+): Promise<TransferOwnershipResult> {
+  if (!isUuid(teamId) || !isUuid(newOwnerId)) {
+    return transferFail("invalid_user_id");
+  }
+  const result = await db.rpc(TRANSFER_OWNERSHIP_FN, {
+    p_team: teamId,
+    p_new_owner_user_id: newOwnerId,
+  });
+  if (result.error) {
+    if (isAbsentTableError(result.error)) return transferFail("unavailable");
+    if (isPermissionDeniedError(result.error)) return transferFail("unavailable");
+    return {
+      success: false,
+      message: "write_failed",
+      status: 500,
+    };
+  }
+  const rows = (Array.isArray(result.data) ? result.data : result.data ? [result.data] : []) as DbRow[];
+  // Load-bearing: a zero-row result means RLS refused. Never a silent 200.
+  if (rows.length === 0) {
+    return transferFail("unavailable");
+  }
+  const row = rows[0];
+  const code = typeof row.message === "string" ? row.message : "";
+  if (row.success === true && code === "transfer_success") {
+    return { success: true, message: "transfer_success", newOwnerId };
+  }
+  if (code && code in TEAM_ROUTE_MESSAGES) {
+    return transferFail(code as TeamRouteCode);
+  }
+  return transferFail("unavailable");
+}
 export const WORKSPACE_SETTINGS_TABLE = "workspace_settings";
 export const MAX_INVITES = 200;
 export const MAX_SETTING_BYTES = 4096;
@@ -606,7 +675,11 @@ export type TeamRouteCode =
   | "not_on_team"
   | "same_role"
   | "role_change_failed"
-  | "remove_failed";
+  | "remove_failed"
+  | "transfer_requires_admin"
+  | "same_owner"
+  | "transfer_success"
+  | "conflict";
 
 // Same [en, zh] shape as INVITE_MESSAGES. Used by /api/teams and /api/teams/[id]/members.
 export const TEAM_ROUTE_MESSAGES: Record<TeamRouteCode, [string, string]> = {
@@ -651,6 +724,16 @@ export const TEAM_ROUTE_MESSAGES: Record<TeamRouteCode, [string, string]> = {
   same_role: ["That person already has that role.", "该成员已经是该角色。"],
   role_change_failed: ["We could not change that role just now. Nothing was changed.", "我们暂时无法更改该角色。未更改任何内容。"],
   remove_failed: ["We could not remove that person just now. Nothing was changed.", "我们暂时无法移除该成员。未更改任何内容。"],
+  transfer_requires_admin: [
+    "They must be an administrator before they can become the owner.",
+    "他们必须是管理员才能成为所有者。",
+  ],
+  same_owner: ["You are already the owner.", "您已经是所有者。"],
+  transfer_success: ["Ownership transferred successfully.", "所有权已成功转移。"],
+  conflict: [
+    "The transfer failed due to a concurrent change. Please try again.",
+    "由于并发更改，转移失败。请重试。",
+  ],
 };
 
 export const SETTING_MESSAGES: Record<"saved" | "not_admin" | "invalid_key" | "invalid_value" | "unavailable", [string, string]> = {

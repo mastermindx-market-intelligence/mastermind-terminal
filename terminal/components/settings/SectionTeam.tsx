@@ -25,6 +25,12 @@ function displayLabel(member: RosterMember, t: (key: string, fallback?: string) 
   return name || t("acsTeamNoName");
 }
 
+function fillName(template: string, name: string): string {
+  return template.replaceAll("{name}", name);
+}
+
+type TransferPhase = "pick" | "confirm" | "conflict";
+
 function routeMessage(body: { message?: unknown; messageZh?: unknown }, lang: "en" | "zh"): string | null {
   const en = typeof body.message === "string" ? body.message : "";
   const zh = typeof body.messageZh === "string" ? body.messageZh : "";
@@ -66,6 +72,8 @@ export default function SectionTeam({
   const [msg, setMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [confirm, setConfirm] = useState<{ userId: string; kind: "remove" | "leave" } | null>(null);
+  const [transfer, setTransfer] = useState<{ phase: TransferPhase; recipientId: string | null } | null>(null);
+  const [transferBusy, setTransferBusy] = useState(false);
   // The zero-team sentence must not flash before the first answer arrives, so it waits on this.
   const [loaded, setLoaded] = useState(Boolean(devTeam));
   const [newName, setNewName] = useState("");
@@ -214,6 +222,80 @@ export default function SectionTeam({
     }
   }
 
+  function applyLocalTransfer(recipientId: string) {
+    setMembers((rows) =>
+      rows.map((row) => {
+        if (row.userId === callerUserId && row.role === "owner") return { ...row, role: "admin" };
+        if (row.userId === recipientId) return { ...row, role: "owner" };
+        return row;
+      }),
+    );
+    setCallerRole("admin");
+  }
+
+  async function postTransfer(recipientId: string) {
+    if (!teamId) return;
+    const previousMembers = members;
+    const previousRole = callerRole;
+    applyLocalTransfer(recipientId);
+    setTransferBusy(true);
+    setMsg(null);
+    try {
+      if (devTeam) {
+        const name = displayLabel(members.find((m) => m.userId === recipientId) || { userId: recipientId, role: "admin", displayName: "", createdAt: null }, t);
+        setTransfer(null);
+        setMsg({ kind: "ok", text: fillName(t("acsTeamTransferSuccess"), name) });
+        return;
+      }
+      const res = await fetch(`/api/teams/${encodeURIComponent(teamId)}/transfer-ownership`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ newOwnerUserId: recipientId }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (res.status === 409) {
+        setMembers(previousMembers);
+        setCallerRole(previousRole);
+        setTransfer({ phase: "conflict", recipientId });
+        setMsg({ kind: "err", text: routeMessage(body, lang) || TEAM_ROUTE_MESSAGES.conflict[lang === "zh" ? 1 : 0] });
+        return;
+      }
+      if (!res.ok) {
+        setMembers(previousMembers);
+        setCallerRole(previousRole);
+        setMsg({
+          kind: "err",
+          text: routeMessage(body, lang) || TEAM_ROUTE_MESSAGES.write_failed[lang === "zh" ? 1 : 0],
+        });
+        return;
+      }
+      const name = displayLabel(
+        previousMembers.find((m) => m.userId === recipientId) || {
+          userId: recipientId,
+          role: "admin",
+          displayName: "",
+          createdAt: null,
+        },
+        t,
+      );
+      setTransfer(null);
+      setMsg({ kind: "ok", text: fillName(t("acsTeamTransferSuccess"), name) });
+    } catch {
+      setMembers(previousMembers);
+      setCallerRole(previousRole);
+      setMsg({ kind: "err", text: TEAM_ROUTE_MESSAGES.write_failed[lang === "zh" ? 1 : 0] });
+    } finally {
+      setTransferBusy(false);
+    }
+  }
+
+  async function retryTransfer() {
+    if (!transfer || transfer.phase !== "conflict" || !transfer.recipientId) return;
+    setTransferBusy(true);
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await postTransfer(transfer.recipientId);
+  }
+
   async function createTeam() {
     if (devTeam) return;
     const name = newName.trim();
@@ -242,6 +324,12 @@ export default function SectionTeam({
   }
 
   const emptyTeam = members.length === 1 && members[0]?.userId === callerUserId;
+  const hasAdmin = members.some((row) => row.role === "admin");
+  const transferRecipients = members.filter((row) => row.role !== "owner" && row.userId !== callerUserId);
+  const transferRecipient = transfer?.recipientId
+    ? members.find((row) => row.userId === transfer.recipientId) || null
+    : null;
+  const transferRecipientIsAdmin = transferRecipient?.role === "admin";
   // Round-4 ruling R3: a signed-in account on no team is the population default — the Team item is
   // shown to everyone and nothing else in the Terminal creates a team — so this state gets a
   // sentence and a way out, never a titled box with nothing in it.
@@ -322,6 +410,7 @@ export default function SectionTeam({
                 !isOwnerRow &&
                 ((callerRole === "owner" && !isYou) || (callerRole === "admin" && member.role === "member" && !isYou));
               const canLeave = isYou && (callerRole === "admin" || callerRole === "member");
+              const canTransfer = callerRole === "owner" && isYou && isOwnerRow && hasAdmin;
               const confirming = confirm?.userId === member.userId;
               return (
                 <Row
@@ -395,10 +484,21 @@ export default function SectionTeam({
                           {t("acsTeamLeave")}
                         </button>
                       ) : null}
+                      {canTransfer ? (
+                        <button
+                          type="button"
+                          className={`acs-btn ghost ${s.btnSm}`}
+                          data-testid="team-transfer-ownership"
+                          disabled={transferBusy}
+                          onClick={() => setTransfer({ phase: "pick", recipientId: null })}
+                        >
+                          {t("acsTeamTransferButton")}
+                        </button>
+                      ) : null}
                     </span>
                   }
                 >
-                  {isOwnerRow ? <p className={s.ownerLocked}>{t("acsOwnerLocked")}</p> : null}
+                  {isOwnerRow && !canTransfer ? <p className={s.ownerLocked}>{t("acsOwnerLocked")}</p> : null}
                   {confirming ? (
                     <div className="acs-form">
                       <p className="acs-note">{t(confirm.kind === "leave" ? "acsTeamLeaveAsk" : "acsTeamRemoveAsk")}</p>
@@ -421,6 +521,122 @@ export default function SectionTeam({
               );
             })}
         </Group>
+
+        {transfer ? (
+          <div className={s.transferDialog} role="dialog" aria-modal="true" data-testid="team-transfer-dialog">
+            {transfer.phase === "pick" ? (
+              <>
+                <p className={s.transferTitle}>{t("acsTeamTransferTitle")}</p>
+                <p className="acs-note">{t("acsTeamTransferAdminNeed")}</p>
+                <div className={s.transferList} data-testid="team-transfer-recipients">
+                  {transferRecipients.map((row) => {
+                    const selected = transfer.recipientId === row.userId;
+                    return (
+                      <button
+                        key={row.userId}
+                        type="button"
+                        className={`${s.transferChoice}${selected ? ` ${s.transferChoiceOn}` : ""}`}
+                        aria-pressed={selected}
+                        disabled={transferBusy}
+                        onClick={() => setTransfer({ phase: "pick", recipientId: row.userId })}
+                      >
+                        <span>{displayLabel(row, t)}</span>
+                        <span className={s.roleBadge} data-role={row.role}>
+                          {t(roleKey(row.role))}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+                {transferRecipient && !transferRecipientIsAdmin ? (
+                  <p className="acs-note">{t("acsTeamTransferNote")}</p>
+                ) : null}
+                <div className="acs-btns">
+                  <button
+                    type="button"
+                    className="acs-btn ghost"
+                    disabled={transferBusy}
+                    onClick={() => setTransfer(null)}
+                  >
+                    {t("acsCancel")}
+                  </button>
+                  <button
+                    type="button"
+                    className="acs-btn"
+                    data-testid="team-transfer-next"
+                    disabled={transferBusy || !transferRecipientIsAdmin}
+                    onClick={() => {
+                      if (!transfer.recipientId || !transferRecipientIsAdmin) return;
+                      setTransfer({ phase: "confirm", recipientId: transfer.recipientId });
+                    }}
+                  >
+                    {t("acsTeamTransferButton")}
+                  </button>
+                </div>
+              </>
+            ) : null}
+            {transfer.phase === "confirm" && transfer.recipientId ? (
+              <>
+                <p className={s.transferTitle} data-testid="team-transfer-confirm-title">
+                  {fillName(t("acsTeamTransferConfirm"), displayLabel(transferRecipient || {
+                    userId: transfer.recipientId,
+                    role: "admin",
+                    displayName: "",
+                    createdAt: null,
+                  }, t))}
+                </p>
+                <p className="acs-note" data-testid="team-transfer-consequence">
+                  {t("acsTeamTransferConsequence")}
+                </p>
+                <div className="acs-btns">
+                  <button
+                    type="button"
+                    className="acs-btn ghost"
+                    disabled={transferBusy}
+                    onClick={() => setTransfer({ phase: "pick", recipientId: transfer.recipientId })}
+                  >
+                    {t("acsCancel")}
+                  </button>
+                  <button
+                    type="button"
+                    className="acs-btn"
+                    data-testid="team-transfer-confirm"
+                    disabled={transferBusy}
+                    onClick={() => void postTransfer(transfer.recipientId as string)}
+                  >
+                    {t("acsTeamTransferButton")}
+                  </button>
+                </div>
+              </>
+            ) : null}
+            {transfer.phase === "conflict" && transfer.recipientId ? (
+              <>
+                <p className="acs-note" data-testid="team-transfer-conflict">
+                  {TEAM_ROUTE_MESSAGES.conflict[lang === "zh" ? 1 : 0]}
+                </p>
+                <div className="acs-btns">
+                  <button
+                    type="button"
+                    className="acs-btn ghost"
+                    disabled={transferBusy}
+                    onClick={() => setTransfer(null)}
+                  >
+                    {t("acsCancel")}
+                  </button>
+                  <button
+                    type="button"
+                    className="acs-btn"
+                    data-testid="team-transfer-retry"
+                    disabled={transferBusy}
+                    onClick={() => void retryTransfer()}
+                  >
+                    {t("acsTeamTransferRetry")}
+                  </button>
+                </div>
+              </>
+            ) : null}
+          </div>
+        ) : null}
 
         <Msg text={msg?.text || ""} kind={msg?.kind || "ok"} />
       </div>

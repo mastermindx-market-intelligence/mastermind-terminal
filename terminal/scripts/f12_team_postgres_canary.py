@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Real-Postgres RLS + isolation canary for packets B-F12-3 and B-F12-8.
+"""Real-Postgres RLS + isolation canary for packets B-F12-3, B-F12-8 and B-F12-9.
 
 Same shape as f12_tenancy_postgres_canary.py: bootstrap a minimal `auth` schema + roles, apply
-every migration 0001..0019 in sorted order (0017 is applied when present), then exercise
-accept_team_invite, workspace_settings, team_role_changes and team_member_names under real
-actor-scoped connections (RLS is the authority under test, never application filtering). Emits
-GitHub annotations at line start with flush=True (fleet law) and writes a JSON receipt.
+every migration 0001..0020 in sorted order (0017 is applied when present), then exercise
+accept_team_invite, workspace_settings, team_role_changes, team_member_names and
+transfer_team_ownership under real actor-scoped connections (RLS is the authority under test,
+never application filtering). Emits GitHub annotations at line start with flush=True (fleet law)
+and writes a JSON receipt.
 
 Env: F12_TEAM_DATABASE_URL (required), F12_TEAM_EXPECTED_COMMIT/IMAGE/POSTGRES (optional, recorded
 only), F12_TEAM_GITHUB_RUN_ID/RUN_ATTEMPT/JOB (optional, recorded only).
@@ -16,6 +17,8 @@ import hashlib
 import json
 import os
 import sys
+import threading
+import time
 import uuid
 from pathlib import Path
 
@@ -569,7 +572,180 @@ def main() -> int:
         owner_names = cur.fetchall()
     proof.check("rpc:team_member_names_for_member", len(owner_names) >= 1, str(owner_names))
 
-    Path(args.receipt).write_text(json.dumps(_receipt(proof.failed), indent=2))
+    # --- B-F12-9: transfer_team_ownership (atomic demote-then-promote) ---
+    with admin.cursor() as cur:
+        cur.execute(
+            "select prosecdef, pg_get_function_identity_arguments(oid) from pg_proc "
+            "where pronamespace='public'::regnamespace and proname='transfer_team_ownership'"
+        )
+        row = cur.fetchone()
+    proof.check(
+        "helper:transfer_team_ownership",
+        bool(row) and row[0] is True and row[1] == "p_team uuid, p_new_owner_user_id uuid",
+        str(row),
+    )
+
+    t_owner = str(uuid.uuid4())
+    t_admin = str(uuid.uuid4())
+    t_member = str(uuid.uuid4())
+    t_stranger = str(uuid.uuid4())
+    with admin.cursor() as cur:
+        cur.execute(
+            "insert into auth.users (id, email) values "
+            "(%s, 't-owner@a.example'), (%s, 't-admin@a.example'), (%s, 't-member@a.example'), (%s, 't-stranger@a.example')",
+            (t_owner, t_admin, t_member, t_stranger),
+        )
+        cur.execute(
+            "insert into public.teams (id, name, created_by) values (gen_random_uuid(), 'Team Transfer', %s) returning id",
+            (t_owner,),
+        )
+        team_t = cur.fetchone()[0]
+        cur.execute(
+            "insert into public.team_members (team_id, user_id, role, invited_by) values (%s,%s,'admin',%s), (%s,%s,'member',%s)",
+            (team_t, t_admin, t_owner, team_t, t_member, t_owner),
+        )
+        cur.execute("select count(*) from public.team_role_changes where team_id=%s", (team_t,))
+        audit_before = cur.fetchone()[0]
+
+    t_owner_conn = actor_connection(dsn, t_owner)
+    t_admin_conn = actor_connection(dsn, t_admin)
+    t_member_conn = actor_connection(dsn, t_member)
+
+    t0 = time.perf_counter()
+    with t_owner_conn.cursor() as cur:
+        cur.execute("select success, message from public.transfer_team_ownership(%s, %s)", (team_t, t_admin))
+        xfer = cur.fetchone()
+    lock_hold_ms = (time.perf_counter() - t0) * 1000
+    proof.check("rpc:transfer_success", bool(xfer) and xfer[0] is True and xfer[1] == "transfer_success", str(xfer))
+
+    with admin.cursor() as cur:
+        cur.execute("select user_id::text, role from public.team_members where team_id=%s order by role, user_id::text", (team_t,))
+        roles = cur.fetchall()
+        cur.execute(
+            "select old_role, new_role, actor_id::text from public.team_role_changes "
+            "where team_id=%s and old_role is not null order by changed_at, id",
+            (team_t,),
+        )
+        audit_rows = cur.fetchall()
+        cur.execute("select count(*) from public.team_members where team_id=%s and role='owner'", (team_t,))
+        owner_n = cur.fetchone()[0]
+    proof.check(
+        "rpc:transfer_roles_swapped",
+        owner_n == 1
+        and (str(t_admin), "owner") in roles
+        and (str(t_owner), "admin") in roles,
+        str(roles),
+    )
+    demote = ("owner", "admin", t_owner)
+    promote = ("admin", "owner", t_owner)
+    proof.check(
+        "audit:transfer_writes_two_rows",
+        audit_rows.count(demote) >= 1 and audit_rows.count(promote) >= 1 and len(audit_rows) >= audit_before + 2,
+        f"audit={audit_rows!r} before={audit_before}",
+    )
+    proof.check("rpc:transfer_lock_hold_ms", lock_hold_ms >= 0, f"lock_hold_ms={lock_hold_ms:.3f}")
+
+    t_admin_conn.close()
+    t_admin_conn = actor_connection(dsn, t_admin)
+    with t_admin_conn.cursor() as cur:
+        cur.execute("select success, message from public.transfer_team_ownership(%s, %s)", (team_t, t_owner))
+        back = cur.fetchone()
+    proof.check("rpc:transfer_reversible", bool(back) and back[0] is True and back[1] == "transfer_success", str(back))
+
+    with t_owner_conn.cursor() as cur:
+        cur.execute("select success, message from public.transfer_team_ownership(%s, %s)", (team_t, t_member))
+        member_jump = cur.fetchone()
+    proof.check(
+        "rpc:transfer_member_refused",
+        bool(member_jump) and member_jump[0] is False and member_jump[1] == "transfer_requires_admin",
+        str(member_jump),
+    )
+
+    with t_admin_conn.cursor() as cur:
+        cur.execute("select success, message from public.transfer_team_ownership(%s, %s)", (team_t, t_owner))
+        admin_call = cur.fetchone()
+    proof.check(
+        "rpc:transfer_admin_owner_only",
+        bool(admin_call) and admin_call[0] is False and admin_call[1] == "owner_only",
+        str(admin_call),
+    )
+
+    with t_owner_conn.cursor() as cur:
+        cur.execute("select success, message from public.transfer_team_ownership(%s, %s)", (team_t, t_owner))
+        self_call = cur.fetchone()
+        cur.execute("select success, message from public.transfer_team_ownership(%s, %s)", (team_t, t_stranger))
+        missing = cur.fetchone()
+        missing_team = str(uuid.uuid4())
+        cur.execute("select success, message from public.transfer_team_ownership(%s, %s)", (missing_team, t_admin))
+        no_team = cur.fetchone()
+    proof.check("rpc:transfer_same_owner", bool(self_call) and self_call[1] == "same_owner", str(self_call))
+    proof.check("rpc:transfer_not_on_team", bool(missing) and missing[1] == "not_on_team", str(missing))
+    proof.check("rpc:transfer_team_not_found", bool(no_team) and no_team[1] == "team_not_found", str(no_team))
+
+    c_owner = str(uuid.uuid4())
+    c_admin = str(uuid.uuid4())
+    with admin.cursor() as cur:
+        cur.execute(
+            "insert into auth.users (id, email) values (%s, 'c-owner@a.example'), (%s, 'c-admin@a.example')",
+            (c_owner, c_admin),
+        )
+        cur.execute(
+            "insert into public.teams (id, name, created_by) values (gen_random_uuid(), 'Team Concurrent', %s) returning id",
+            (c_owner,),
+        )
+        team_c = cur.fetchone()[0]
+        cur.execute(
+            "insert into public.team_members (team_id, user_id, role, invited_by) values (%s,%s,'admin',%s)",
+            (team_c, c_admin, c_owner),
+        )
+
+    barrier = threading.Barrier(3)
+    boxes: list[dict] = [{}, {}]
+
+    def _xfer_thread(idx: int) -> None:
+        conn = actor_connection(dsn, c_owner)
+        barrier.wait()
+        t_start = time.perf_counter()
+        try:
+            with conn.cursor() as cur:
+                cur.execute("select success, message from public.transfer_team_ownership(%s, %s)", (team_c, c_admin))
+                boxes[idx] = {"row": cur.fetchone(), "ms": (time.perf_counter() - t_start) * 1000}
+        except Exception as exc:  # noqa: BLE001 - canary records the exception
+            boxes[idx] = {"error": str(exc), "ms": (time.perf_counter() - t_start) * 1000}
+        finally:
+            conn.close()
+
+    threads = [threading.Thread(target=_xfer_thread, args=(0,)), threading.Thread(target=_xfer_thread, args=(1,))]
+    blocker = psycopg.connect(dsn, autocommit=False)
+    with blocker.cursor() as cur:
+        cur.execute("select pg_advisory_xact_lock(hashtext(%s::text))", (str(team_c),))
+    for thread in threads:
+        thread.start()
+    barrier.wait()
+    time.sleep(0.15)
+    blocker.commit()
+    blocker.close()
+    for thread in threads:
+        thread.join(timeout=15)
+
+    outcomes = [b.get("row") for b in boxes]
+    successes = [r for r in outcomes if r and r[0] is True]
+    conflicts = [r for r in outcomes if r and r[0] is False and r[1] == "conflict"]
+    with admin.cursor() as cur:
+        cur.execute("select count(*) from public.team_members where team_id=%s and role='owner'", (team_c,))
+        concurrent_owners = cur.fetchone()[0]
+        cur.execute("select user_id::text from public.team_members where team_id=%s and role='owner'", (team_c,))
+        concurrent_owner_id = cur.fetchone()[0]
+    proof.check(
+        "rpc:transfer_concurrent_serializes",
+        len(successes) == 1 and len(conflicts) == 1 and concurrent_owners == 1 and concurrent_owner_id == c_admin,
+        f"outcomes={outcomes!r} owners={concurrent_owners} owner_id={concurrent_owner_id} boxes={boxes!r}",
+    )
+
+    receipt = _receipt(proof.failed)
+    receipt["lock_hold_ms"] = round(lock_hold_ms, 3)
+    Path(args.receipt).write_text(json.dumps(receipt, indent=2))
+    print(f"::notice title=f12-team-canary::lock_hold_ms={lock_hold_ms:.3f}", flush=True)
     print(f"::notice title=f12-team-canary::receipt written to {args.receipt}", flush=True)
     return 1 if proof.failed else 0
 
