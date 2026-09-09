@@ -1,13 +1,13 @@
 # B-F11-4 research management views — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 4025413437626d90906976e48f134a3c26b9461c
-# capturedAt: 2026-09-09T10:12:05.687Z
+# capturedAtHead: 12dae0c38b3ea0af015331a0d06341fe25b45e64
+# capturedAt: 2026-09-09T11:10:17.468Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/workspaces/ThesisWorkspace.tsx: "6dd42bbac927a6d935855f2aa3773fe9cecca38bf28637793582c9a4fcbb91ca"
-  terminal/lib/rmsViews.ts: "d35646bcd3303461426f59f58e6ea278c0f9ef324538771f3c319d253a744b46"
-  terminal/lib/savedViews.ts: "04592a795a72b54e626f1d1c15ca905bd2daff3b0a63862c99ea59b80583ae5f"
+  terminal/components/workspaces/ThesisWorkspace.tsx: "331ed58ba129720b8746b5751e4ba40ef99138cbd6ecf683c096818657507927"
+  terminal/lib/rmsViews.ts: "b2cb60424344489e6bd1e937c142f559f374bc5666e63f524e949aa29da77255"
+  terminal/lib/savedViews.ts: "6dee40966e47fe76dd0568e1d79d618883dd509ef36a37051b53dcd22f97cbef"
   terminal/lib/plainLabels.ts: "718526665dd6899a3b726540a775645d37ab512cc603b77c5b37d966663a0e58"
   terminal/lib/i18n.tsx: "a307932230d62a4553c3f73a00b3689a7b431d43ff64c2723c312e7d0be1577f"
 theme: dark
@@ -17,6 +17,12 @@ viewports:
   - { name: mobile, width: 390, height: 844 }
 surfaces: [empty, named-views, save-flow, window-closed]
 capture_flag: TERMINAL_E2E_FIXTURE
+window_closed_data: |
+  A real alert_outbox row in the e2e fixture database, seeded by the fixture
+  transport for the first thesis created in a store whose key carries
+  FIXTURE_MONITOR_FIRED_TOKEN (terminal/lib/watchlistsFixtureDb.ts). The shipped
+  GET /api/thesis-fire-status route and mapOutboxToConditionStates() run for real
+  against it; nothing in this capture stubs a network response.
 capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
 command: |
   cd terminal
