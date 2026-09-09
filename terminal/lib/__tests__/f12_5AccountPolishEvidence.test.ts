@@ -66,8 +66,12 @@ function sha256Of(abs: string): string {
   return createHash("sha256").update(readFileSync(abs)).digest("hex");
 }
 
+function escapeRegExp(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 function measurement(yml: string, file: string): Record<string, string> {
-  const re = new RegExp(`^  ${file.replace(/[.]/g, "\\.")}: \\{(.+)\\}$`, "m");
+  const re = new RegExp(`^  ${escapeRegExp(file)}: \\{(.+)\\}$`, "m");
   const m = yml.match(re);
   if (!m) throw new Error(`EVIDENCE.yml is missing measurements for ${file}`);
   const fields: Record<string, string> = {};
@@ -129,5 +133,13 @@ describe("B-F12-5 evidence lock is the sha256 of the layout sources", () => {
         expect(existsSync(join(CROP_DIR, zh)), zh).toBe(true);
       }
     }
+  });
+
+  it("measurement finds a row whose file key contains regex metacharacters", () => {
+    const file = "a+b (1).png";
+    const yml = `measurements:\n  ${file}: {confirmClass: "found", confirmBg: ""}\n`;
+    const row = measurement(yml, file);
+    expect(row.confirmClass).toBe("found");
+    expect(row.confirmBg).toBe("");
   });
 });
