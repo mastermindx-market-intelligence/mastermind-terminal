@@ -23,13 +23,17 @@ const { chromium } = require("@playwright/test");
 const ROOT = join(__dirname, "..", "..");
 const REPO = join(ROOT, "..");
 const OUT = join(ROOT, "docs", "pr-crops", "b-f12-7-webhooks");
+// Asserted lock: packet-local files only (see f12_7WebhooksEvidence.test.ts).
 const LAYOUT_FILES = [
   "terminal/components/settings/SectionWebhooks.tsx",
   "terminal/lib/webhookLabels.ts",
+  "terminal/lib/webhookUrl.ts",
   "terminal/components/settings/SettingsPanel.tsx",
   "terminal/components/settings/icons.tsx",
-  "terminal/lib/i18n.tsx",
 ];
+// Recorded for provenance, never asserted: the repo-wide bilingual lexicon
+// every UI packet extends.
+const INFORMATIONAL_FILES = ["terminal/lib/i18n.tsx"];
 const PORT = Number(process.env.TERMINAL_CROP_PORT || 3537);
 const BASE = `http://127.0.0.1:${PORT}`;
 const VIEWPORTS = {
@@ -47,12 +51,16 @@ const ENDPOINT = {
   createdBy: "8f2c41ba-7d19-4e6a-9c03-5b71ee0a4d22",
   createdAt: "2026-09-09T10:00:00.000Z",
 };
+// All seven statuses, and the two cause labels the deliveries list renders
+// under a status (last_error is a machine class; the row shows the sentence).
 const DELIVERIES = [
-  { id: "d1", endpointId: "ep-1", teamId: "team-1", eventId: "e1", eventType: "webhook.test", attempt: 0, status: "pending", createdAt: new Date(Date.now() - 30_000).toISOString() },
-  { id: "d2", endpointId: "ep-1", teamId: "team-1", eventId: "e2", eventType: "webhook.test", attempt: 1, status: "delivering", createdAt: new Date(Date.now() - 120_000).toISOString() },
-  { id: "d3", endpointId: "ep-1", teamId: "team-1", eventId: "e3", eventType: "webhook.test", attempt: 2, status: "retrying", createdAt: new Date(Date.now() - 3600_000).toISOString() },
-  { id: "d4", endpointId: "ep-1", teamId: "team-1", eventId: "e4", eventType: "webhook.test", attempt: 1, status: "delivered", createdAt: new Date(Date.now() - 7200_000).toISOString() },
-  { id: "d5", endpointId: "ep-1", teamId: "team-1", eventId: "e5", eventType: "webhook.test", attempt: 5, status: "failed", createdAt: new Date(Date.now() - 86400_000).toISOString() },
+  { id: "d1", endpointId: "ep-1", teamId: "team-1", eventId: "e1", eventType: "webhook.test", attempt: 0, status: "pending", lastError: null, createdAt: new Date(Date.now() - 30_000).toISOString() },
+  { id: "d2", endpointId: "ep-1", teamId: "team-1", eventId: "e2", eventType: "webhook.test", attempt: 1, status: "delivering", lastError: null, createdAt: new Date(Date.now() - 120_000).toISOString() },
+  { id: "d3", endpointId: "ep-1", teamId: "team-1", eventId: "e3", eventType: "webhook.test", attempt: 2, status: "retrying", lastError: "timeout", createdAt: new Date(Date.now() - 3600_000).toISOString() },
+  { id: "d4", endpointId: "ep-1", teamId: "team-1", eventId: "e4", eventType: "webhook.test", attempt: 1, status: "delivered", lastError: null, createdAt: new Date(Date.now() - 7200_000).toISOString() },
+  { id: "d5", endpointId: "ep-1", teamId: "team-1", eventId: "e5", eventType: "webhook.test", attempt: 5, status: "failed", lastError: "http 500", createdAt: new Date(Date.now() - 86400_000).toISOString() },
+  { id: "d6", endpointId: "ep-1", teamId: "team-1", eventId: "e6", eventType: "webhook.test", attempt: 0, status: "not_sent_disabled", lastError: "endpoint_disabled", createdAt: new Date(Date.now() - 90000_000).toISOString() },
+  { id: "d7", endpointId: "ep-1", teamId: "team-1", eventId: "e7", eventType: "webhook.test", attempt: 0, status: "not_sent_invalid_url", lastError: "private_address", createdAt: new Date(Date.now() - 95000_000).toISOString() },
 ];
 
 mkdirSync(OUT, { recursive: true });
@@ -67,6 +75,10 @@ function sha256File(rel) {
 
 function layoutFilesBlock() {
   return LAYOUT_FILES.map((rel) => `  ${rel}: "${sha256File(rel)}"`);
+}
+
+function informationalFilesBlock() {
+  return ["  asserted: false", ...INFORMATIONAL_FILES.map((rel) => `  ${rel}: "${sha256File(rel)}"`)];
 }
 
 function startServer() {
@@ -306,8 +318,15 @@ async function main() {
     `# capturedAtHead: ${capturedAtHead}`,
     `# capturedAt: ${new Date().toISOString()}`,
     "# capturedAtHead is informational. The lock is layoutFiles.",
+    "# layoutFiles are packet-local and ARE asserted by",
+    "# terminal/lib/__tests__/f12_7WebhooksEvidence.test.ts. informationalFiles",
+    "# are recorded for provenance only: terminal/lib/i18n.tsx is the repo-wide",
+    "# bilingual lexicon every UI packet extends, and asserting it here would",
+    "# redden master for unrelated LEX-adding work.",
     "layoutFiles:",
     ...layoutFilesBlock(),
+    "informationalFiles:",
+    ...informationalFilesBlock(),
     "theme: dark",
     "languages: [en, zh]",
     "viewports:",
