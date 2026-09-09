@@ -149,7 +149,9 @@
       "packet": "B-F12-7",
       "pr": 549,
       "pr_state": "open",
-      "note": "file landed in open PR #549 (packet B-F12-7, seat ruling R2); not applied. Open-PR query at authoring: #547 holds 0017 (B-F13-5); #543 reserves 0017-0020 in the ledger only; 0019 remains for B-F12-8."
+      "applied_in_production": false,
+      "applied_date": null,
+      "note": "shipped unapplied; the seat applies with a receipt. File landed in open PR #549 (packet B-F12-7, seat ruling R2). Open-PR query at authoring: #547 holds 0017 (B-F13-5); #543 reserves 0017-0020 in the ledger only; 0019 remains for B-F12-8."
     },
     "0019": {
       "state": "free",
