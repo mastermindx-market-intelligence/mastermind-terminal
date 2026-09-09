@@ -25,7 +25,20 @@ async function mockWebhookApis(page: Page) {
   });
 }
 
-test("settings Webhooks section is reachable in EN and ZH", async ({ page }) => {
+// This spec matches no project's testIgnore, so it runs in the desktop (1440),
+// tablet (820) and mobile (390) shards. Every assertion below must therefore
+// hold at all three widths: the Settings panel keeps its full nav at 390 (it
+// becomes a horizontal scroller, it is not collapsed), so the seventh tab is
+// present and selectable everywhere. The guard is explicit rather than
+// implied — a project with no fixed viewport would otherwise pass vacuously.
+test("settings Webhooks section is reachable in EN and ZH", async ({ page }, testInfo) => {
+  const viewport = page.viewportSize();
+  if (!viewport) {
+    throw new Error("webhooks-settings.spec.ts requires a project with a fixed viewport");
+  }
+  expect(["desktop", "tablet", "mobile"], `unexpected project ${testInfo.project.name}`).toContain(
+    testInfo.project.name,
+  );
   await mockWebhookApis(page);
   await page.addInitScript(() => {
     localStorage.setItem("mm.lang", "en");
@@ -35,6 +48,10 @@ test("settings Webhooks section is reachable in EN and ZH", async ({ page }) => 
   await page.goto("/dev/settings?s=webhooks&lang=en");
   const dialog = page.locator(".acs-overlay.open .acs-card");
   await expect(dialog).toBeVisible({ timeout: 45_000 });
+  const tabs = dialog.getByRole("tab");
+  // Seven sections, Webhooks last — at 1440, 820 AND 390.
+  await expect(tabs).toHaveCount(7);
+  await expect(tabs.nth(6)).toHaveText("Webhooks");
   await expect(dialog.getByRole("tab", { name: "Webhooks" })).toHaveAttribute("aria-selected", "true");
   await expect(page.getByRole("heading", { name: "Webhooks" })).toBeVisible();
   await expect(page.getByText("You don't have a team yet")).toHaveCount(0);
@@ -48,6 +65,8 @@ test("settings Webhooks section is reachable in EN and ZH", async ({ page }) => 
   await page.goto("/dev/settings?s=webhooks&lang=zh");
   const zhDialog = page.locator(".acs-overlay.open .acs-card");
   await expect(zhDialog).toBeVisible({ timeout: 45_000 });
+  await expect(zhDialog.getByRole("tab")).toHaveCount(7);
+  await expect(zhDialog.getByRole("tab").nth(6)).toHaveText("Webhook 回调");
   await expect(zhDialog.getByRole("tab", { name: "Webhook 回调" })).toHaveAttribute("aria-selected", "true");
   await expect(page.getByRole("heading", { name: "Webhook 回调" })).toBeVisible();
   await expect(page.getByText("您还没有团队")).toHaveCount(0);
