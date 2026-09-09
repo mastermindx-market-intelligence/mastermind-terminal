@@ -1,7 +1,7 @@
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
-import { LEX } from "@/lib/i18n";
 
-const UNSAVED = LEX.peUnsavedChanges[0];
+// A LITERAL, deliberately: this spec must fail if the editor's copy changes under it.
+const UNSAVED = "Unsaved changes";
 
 /**
  * D3 + D4 — the Pine editor must not lose user-authored content, and must say which script it is

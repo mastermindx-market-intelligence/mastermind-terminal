@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import { FD, getFlowStr } from "@/lib/flowdeskStrings";
 import { getHeatmapStr, sectorChipLabel } from "@/lib/heatmapStrings";
 import { LEX } from "@/lib/i18n";
+import { TYPED_ABSENCE_REASON_LABELS, typedAbsenceReasonLabel } from "@/lib/companyIntelligenceLabels";
 import {
   CLASSIC_CATEGORY_TKEY,
   CLASSIC_INDICATOR_CATEGORIES,
@@ -496,13 +497,24 @@ describe("sourceKindLabel", () => {
     expect(sourceKindLabel("mystery_kind", "en")).not.toBe("mystery_kind");
   });
 
-  it("when no mapped kind exists the visible label is the filing kind, never the id", () => {
-    expect(sourceVisibleKindLabel("mystery_kind", "en")).toBe("SEC filing");
-    expect(sourceVisibleKindLabel("mystery_kind", "zh")).toBe("监管披露文件");
-    expect(sourceVisibleKindLabel(null, "en")).toBe("SEC filing");
-    expect(sourceVisibleKindLabel("", "zh")).toBe("监管披露文件");
-    expect(sourceVisibleKindLabel("transcript", "zh")).toBe("财报电话会记录");
+  it("an unknown or absent kind is never given a regulatory provenance", () => {
+    expect(sourceVisibleKindLabel("mystery_kind", "en")).toBe("Source not classified");
+    expect(sourceVisibleKindLabel("mystery_kind", "zh")).toBe("来源未分类");
+    expect(sourceVisibleKindLabel(null, "en")).toBe("Source not classified");
+    expect(sourceVisibleKindLabel("", "zh")).toBe("来源未分类");
+    expect(sourceVisibleKindLabel(undefined, "zh")).toBe("来源未分类");
     expect(sourceVisibleKindLabel("mystery_kind", "en")).not.toBe("mystery_kind");
+    expect(sourceVisibleKindLabel("mystery_kind", "en")).not.toContain("SEC");
+    expect(sourceVisibleKindLabel("mystery_kind", "zh")).not.toContain("披露");
+  });
+
+  it("the filing wording is reserved for an unmapped filing-family kind", () => {
+    expect(sourceVisibleKindLabel("filing_amendment", "en")).toBe("SEC filing");
+    expect(sourceVisibleKindLabel("filing_amendment", "zh")).toBe("监管披露文件");
+    expect(sourceVisibleKindLabel("edgar_index", "en")).toBe("SEC filing");
+    expect(sourceVisibleKindLabel("sec_exhibit", "zh")).toBe("监管披露文件");
+    expect(sourceVisibleKindLabel("transcript", "zh")).toBe("财报电话会记录");
+    expect(sourceVisibleKindLabel("issuer_release", "en")).toBe("Company 8-K filing, exhibit 99.1");
   });
 });
 
@@ -646,10 +658,14 @@ describe("plain-language — batch 3 round 3", () => {
   });
 
   it("the protected-script tooltip and badge are plain fintech words, not ALL CAPS jargon", () => {
-    expect(LEX.peProtected[0]).toBe("Protected script — source not shown");
-    expect(LEX.peProtected[1]).toBe("受保护脚本，不显示源代码");
+    expect(LEX.peProtected[0]).toBe("Protected script — you can view and run it, not edit it");
+    expect(LEX.peProtected[1]).toBe("受保护脚本：可查看和运行，不可编辑");
     expect(LEX.peProtected[0].toLowerCase()).not.toContain("proprietary");
     expect(LEX.peProtected[1]).not.toContain("自研");
+    // The editor renders the source read-only (PineEditor.tsx textarea, readOnly when locked),
+    // so the tooltip must not claim the source is hidden.
+    expect(LEX.peProtected[0]).not.toContain("source not shown");
+    expect(LEX.peProtected[1]).not.toContain("不显示源代码");
     expect(LEX.peProprietaryBadge[0]).toBe("Protected");
     expect(LEX.peProprietaryBadge[1]).toBe("受保护");
     expect(LEX.peProprietaryBadge[0]).not.toBe(LEX.peProprietaryBadge[0].toUpperCase());
@@ -689,6 +705,29 @@ describe("plain-language — batch 3 round 4", () => {
     expect(sourceKindLabel("issuer_release", "zh")).toContain("披露");
     for (const pair of Object.values(SOURCE_KIND_LABEL)) {
       expect(pair[1]).not.toContain("申报");
+    }
+  });
+});
+
+describe("plain-language — batch 3 round 5", () => {
+  it("the lean tooltip's Chinese is the house sentence, with no English market tokens", () => {
+    const zh = getFlowStr("zh", "leanTooltip");
+    expect(zh).toContain("由成交价变动规则推断，未经官方买卖报价确认");
+    expect(zh).not.toMatch(/tick/i);
+    expect(zh).not.toContain("NBBO");
+    expect(getFlowStr("en", "leanTooltip")).not.toBe(zh);
+    expect(zh).not.toMatch(/[A-Za-z]{3,}/);
+  });
+
+  it("the typed-absence reason for an unjoinable filing uses 披露, never 申报", () => {
+    expect(typedAbsenceReasonLabel("unjoinable_filing_identity", true)).toBe("无法匹配该披露文件。");
+    expect(typedAbsenceReasonLabel("unjoinable_filing_identity", false)).toBe("The filing identity cannot be joined.");
+    expect(typedAbsenceReasonLabel("no_source_document", true)).toBe("没有可用的原始文件。");
+    expect(typedAbsenceReasonLabel("no_source_document", false)).toBe("No source document is available.");
+    for (const [key, pair] of Object.entries(TYPED_ABSENCE_REASON_LABELS)) {
+      expect(pair.zh, key).not.toContain("申报");
+      expect(pair.en.length, key).toBeGreaterThan(0);
+      expect(pair.zh.length, key).toBeGreaterThan(0);
     }
   });
 });

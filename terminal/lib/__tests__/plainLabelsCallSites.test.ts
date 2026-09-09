@@ -306,7 +306,9 @@ describe("plain-language call sites — batch 3", () => {
     expect(src).toContain("data-ci-cik={source.filing_key?.cik}");
     expect(src).toContain("data-ci-accession={source.filing_key?.accession}");
     expect(src).toContain("sourceVisibleKindLabel(");
-    expect(lineContaining(src, "<strong>", "v2 visible label")).toContain("sourceVisibleKindLabel(");
+    // Round 5 R3a moved the label into a const so the note can be compared against it.
+    expect(lineContaining(src, "const kindLabel =", "v2 visible label")).toContain("sourceVisibleKindLabel(");
+    expect(lineContaining(src, "<strong>", "v2 visible label render")).toContain("{kindLabel}");
     expect(src).not.toContain("8-K / Exhibit 99.1");
     expect(src).not.toContain("EDGAR 采集行");
   });
@@ -438,6 +440,10 @@ describe("plain-language call sites — batch 3 round 3", () => {
     const src = readLib("i18n.tsx");
     expect(src).not.toContain('["PROPRIETARY", "自研"]');
     expect(src).not.toContain("Proprietary — protected source, editing disabled");
+    // Round 5 R2: the replacement must also be TRUE of what the editor renders.
+    expect(src).not.toContain("Protected script — source not shown");
+    expect(src).toContain("Protected script — you can view and run it, not edit it");
+    expect(src).toContain("受保护脚本：可查看和运行，不可编辑");
   });
 
   it("FiltersPanel.tsx: honesty doctrine does not promote lean to a likelihood claim", () => {
@@ -449,5 +455,67 @@ describe("plain-language call sites — batch 3 round 3", () => {
     expect(src).toContain("we do NOT offer a");
     expect(src).toContain("directional green/red filter gate");
     expect(src).toContain("never an affirmative likelihood claim");
+  });
+});
+
+describe("plain-language call sites — batch 3 round 5", () => {
+  const readLib = (rel: string) => readFileSync(join(__dirname, "..", rel), "utf8");
+  const readE2E = (rel: string) => readFileSync(join(__dirname, "../../e2e", rel), "utf8");
+
+  it("CompanySourceManifest.tsx: the typed-absence note is a plain reason, never the upstream detail", () => {
+    const src = readOwned("fin/CompanySourceManifest.tsx");
+    expect(src).not.toContain("typed_absence.detail");
+    expect(src).toContain("typedAbsenceReasonLabel(source.typed_absence.reason, zh)");
+    expect(src).toMatch(/from ["']\.\.\/\.\.\/lib\/companyIntelligenceLabels["']/);
+    const branch = lineContaining(src, "source.typed_absence)", "typed absence branch");
+    expect(branch).toContain("typedAbsenceReasonLabel(");
+  });
+
+  it("CompanySourceManifest.tsx: the note is dropped when it would only repeat the kind label", () => {
+    const src = readOwned("fin/CompanySourceManifest.tsx");
+    expect(src).not.toContain("<small>{v2Note(source, zh)}</small>");
+    expect(src).toContain("v2NoteText !== kindLabel");
+  });
+
+  it("PineEditor.tsx: the protected badge and lock chip still route through t(\"peProtected\")", () => {
+    const src = readOwned("PineEditor.tsx");
+    expect(src).toContain('title={t("peProtected")}');
+    expect(src).toContain("readOnly={isLocked}");
+  });
+
+  it("companyIntelligenceLabels.ts: regulatory Chinese uses 披露, never 申报", () => {
+    const src = readLib("companyIntelligenceLabels.ts");
+    expect(src).not.toContain("申报");
+    expect(src).toContain("无法匹配该披露文件。");
+  });
+
+  it("plainLabels.ts: an unclassified source kind is not labelled as a filing", () => {
+    const src = readLib("plainLabels.ts");
+    expect(src).toContain("Source not classified");
+    expect(src).toContain("来源未分类");
+    expect(src).toContain("isFilingFamilyKind(");
+  });
+
+  it("the e2e pins on user-visible copy are literals, not the constants the app renders from", () => {
+    const ci = readE2E("company-intelligence.spec.ts");
+    expect(ci).not.toContain("LEX.ciQaStructure");
+    expect(ci).not.toContain("LEX.ciOpenInTranscript");
+    expect(ci).not.toMatch(/import \{ LEX \}/);
+    expect(ci).toContain("Structure is verified. Topic labels are not available yet.");
+    expect(ci).toContain("结构已验证。主题标签暂不可用。");
+    expect(ci).toContain("Open in the earnings call");
+    expect(ci).toContain("在电话会中查看");
+    const pine = readE2E("pine-editor-integrity.spec.ts");
+    expect(pine).not.toContain("LEX.peUnsavedChanges");
+    expect(pine).not.toMatch(/import \{ LEX \}/);
+    expect(pine).toContain('"Unsaved changes"');
+  });
+
+  it("flowdeskStrings.ts: the lean tooltip's Chinese carries no English market tokens", () => {
+    const src = readLib("flowdeskStrings.ts");
+    const table = src.slice(src.indexOf("leanTooltip:"), src.indexOf("leanTooltip:") + 600);
+    expect(table).toContain("由成交价变动规则推断，未经官方买卖报价确认");
+    expect(table).not.toContain("倾向基于tick规则推算");
+    expect(table).not.toContain("无NBBO时方向为近似值（约0.41正确率）");
   });
 });

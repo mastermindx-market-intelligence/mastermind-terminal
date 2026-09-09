@@ -2168,7 +2168,7 @@ export const LEX: Record<string, [string, string]> = {
   peLangPine: ["Pine", "Pine 脚本"],
   peLangScript: ["Script", "脚本"],
   peLastEdited: ["Last edited {date}", "上次修改 {date}"],
-  peProtected: ["Protected script — source not shown", "受保护脚本，不显示源代码"],
+  peProtected: ["Protected script — you can view and run it, not edit it", "受保护脚本：可查看和运行，不可编辑"],
   peAddToChart: ["Add to chart", "添加到图表"],
   peRun: ["Run / compile", "运行 / 编译"],
   peNoScripts: ["No scripts yet.", "还没有脚本。"],

@@ -3,6 +3,7 @@
 import { useLang } from "../../lib/i18n";
 import { pick } from "../../lib/finFormat";
 import { sourceKindLabel, sourceStatusLabel, sourceVisibleKindLabel } from "../../lib/plainLabels";
+import { typedAbsenceReasonLabel } from "../../lib/companyIntelligenceLabels";
 import type {
   CompanyIntelligenceEvent,
   CompanyIntelligenceSource,
@@ -36,8 +37,16 @@ function v2Color(state: EventWorkspacePresentedSource["receipt_state"]): string 
   return "var(--rcpt-absent)";
 }
 
+/**
+ * The secondary line under the source's kind label.
+ *
+ * A typed absence carries an upstream `detail` written for operators — on the AAPL
+ * workspace that is a record slug plus a bare HTTP status, identical in both languages.
+ * The manifest shows the KEYED REASON instead, which is bilingual and reads as a
+ * sentence; the raw detail never reaches a user-visible position.
+ */
 function v2Note(source: EventWorkspacePresentedSource, zh: boolean): string {
-  if (source.typed_absence) return source.typed_absence.detail;
+  if (source.typed_absence) return typedAbsenceReasonLabel(source.typed_absence.reason, zh);
   if (source.receipt_state === "address_only") {
     return pick(zh, "The document address is known but the bytes cannot be replayed.", "文档地址已知，但无法回放其字节。");
   }
@@ -61,14 +70,17 @@ export default function CompanySourceManifest({ event, onOpenTranscript, compact
       {v2Sources ? v2Sources.map((source, index) => {
         const color = v2Color(source.receipt_state);
         const id = source.transcript_id;
+        // When the note would only echo the kind label, the row says it once.
+        const kindLabel = sourceVisibleKindLabel(source.kind, zh ? "zh" : "en");
+        const v2NoteText = v2Note(source, zh);
         return (
           <li key={`${source.kind}:${source.document_id ?? index}`} data-ci-source-kind={source.kind} data-ci-receipt-state={source.receipt_state} data-plain-kind={sourceKindLabel(source.kind, zh ? "zh" : "en")} data-ci-document-id={source.document_id ?? undefined} data-ci-cik={source.filing_key?.cik} data-ci-accession={source.filing_key?.accession} data-ci-transcript-id={id ?? undefined}>
             <span className="ci-source-icon" style={{ "--ci-source": color } as React.CSSProperties} aria-hidden>
               {v2Glyph(source.kind)}
             </span>
             <span className="ci-source-copy">
-              <strong>{sourceVisibleKindLabel(source.kind, zh ? "zh" : "en")}</strong>
-              <small>{v2Note(source, zh)}</small>
+              <strong>{kindLabel}</strong>
+              {v2NoteText !== kindLabel && <small>{v2NoteText}</small>}
             </span>
             <span className="ci-source-state">
               <span className="fin-tag" style={{ "--c": color } as React.CSSProperties}>{sourceStatusLabel(source.status, zh ? "zh" : "en")}</span>

@@ -4,7 +4,6 @@ import path from "node:path";
 import { gzipSync, gunzipSync } from "node:zlib";
 import { expectTapTarget } from "./tapTarget";
 import { canonicalTranscriptBodySha256 } from "../lib/transcriptSearch";
-import { LEX } from "../lib/i18n";
 import aaplWorkspace from "../lib/__tests__/fixtures/aapl-event-workspace.json";
 import aaplQaExchanges from "../lib/__tests__/fixtures/aapl-qa-exchanges.json";
 
@@ -1131,7 +1130,7 @@ async function openAaplQaResults(page: Page, lang: "en" | "zh" = "en") {
 test("AAPL Results shows seven verified exchanges and opens the exact transcript segment", async ({ page }, testInfo) => {
   const qa = await openAaplQaResults(page);
   await expect(qa).toContainText("ANALYST Q&A · 7 exchanges");
-  await expect(qa).toContainText(LEX.ciQaStructure[0]);
+  await expect(qa).toContainText("Structure is verified. Topic labels are not available yet.");
   await expect(qa).toContainText("Amit Daryanani · Evercore");
   await expect(qa.locator(".ci-qa-row")).toHaveCount(7);
   await expect(page.locator('[data-ci-results-region="typed-absences"]')).not.toContainText("Analyst questions");
@@ -1144,7 +1143,7 @@ test("AAPL Results shows seven verified exchanges and opens the exact transcript
   await expectNoDocumentOverflow(page);
   await page.screenshot({ path: testInfo.outputPath(`${testInfo.project.name}-aapl-qa-expanded.png`), fullPage: false });
 
-  await first.getByRole("button", { name: LEX.ciOpenInTranscript[0] }).click();
+  await first.getByRole("button", { name: "Open in the earnings call" }).click();
   await expect(page.locator(".fin-tx-drawer")).toBeVisible();
   const target = page.locator('.fin-tx-seg[data-segment="34"]');
   await expect(target).toContainText("Amit Daryanani");
@@ -1158,10 +1157,10 @@ test("AAPL Results Q&A remains usable in Chinese at desktop and mobile", async (
   test.skip(!project.endsWith("desktop") && !project.endsWith("mobile"), "ZH proof is desktop + mobile");
   const qa = await openAaplQaResults(page, "zh");
   await expect(qa).toContainText("分析师问答 · 7 轮");
-  await expect(qa).toContainText(LEX.ciQaStructure[1]);
+  await expect(qa).toContainText("结构已验证。主题标签暂不可用。");
   const first = qa.locator(".ci-qa-row").first();
   await first.locator("summary").click();
-  await expect(first.getByRole("button", { name: LEX.ciOpenInTranscript[1] })).toBeVisible();
+  await expect(first.getByRole("button", { name: "在电话会中查看" })).toBeVisible();
   await expectNoDocumentOverflow(page);
   await page.screenshot({ path: testInfo.outputPath(`${project}-aapl-qa-zh.png`), fullPage: false });
   await first.getByRole("button", { name: "在电话会中查看" }).click();

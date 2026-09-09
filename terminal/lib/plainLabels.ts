@@ -282,11 +282,27 @@ export function sourceKindLabel(value: string | null | undefined, lang: PlainLan
   return lang === "zh" ? pair[1] : pair[0];
 }
 
+/**
+ * A kind that names a regulatory filing family. Only these may fall back to the
+ * filing wording: asserting a regulatory provenance for a source whose kind is
+ * unknown or absent would state more than the data supports.
+ */
+function isFilingFamilyKind(value: string): boolean {
+  return /(^|[_-])(filing|filings|edgar|sec)([_-]|$)/.test(value.trim().toLowerCase());
+}
+
+/** The unclassified source line — never a document id, CIK, or accession. */
+function sourceNotClassified(lang: PlainLang): string {
+  return lang === "zh" ? "来源未分类" : "Source not classified";
+}
+
 /** Visible kind when no plainer label exists — never a document id, CIK, or accession. */
 export function sourceVisibleKindLabel(value: string | null | undefined, lang: PlainLang): string {
+  if (value == null || value.trim() === "") return sourceNotClassified(lang);
   const mapped = sourceKindLabel(value, lang);
   if (mapped !== notClassified(lang)) return mapped;
-  return lang === "zh" ? "监管披露文件" : "SEC filing";
+  if (isFilingFamilyKind(value)) return lang === "zh" ? "监管披露文件" : "SEC filing";
+  return sourceNotClassified(lang);
 }
 
 /** Source completeness shown on the company-intelligence manifest. */
