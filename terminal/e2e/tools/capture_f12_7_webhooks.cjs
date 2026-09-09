@@ -52,18 +52,35 @@ const ENDPOINT = {
   createdAt: "2026-09-09T10:00:00.000Z",
 };
 // All seven statuses, newest first (the route orders created_at desc). The
-// three TERMINAL states lead, so the crop shows the distinction the labels
-// exist to draw: `failed` alone claims five attempts, and the two not-sent
-// states each carry the plain cause sentence under the status.
+// five §2.4 delivery labels lead so a list-element screenshot contains
+// Delivered/Queued as well as the two not-sent states and failed — round-5's
+// overlay screenshot dropped Delivered and Queued below the fold.
 const DELIVERIES = [
   { id: "d6", endpointId: "ep-1", teamId: "team-1", eventId: "e6", eventType: "webhook.test", attempt: 0, status: "not_sent_disabled", lastError: "endpoint_disabled", createdAt: new Date(Date.now() - 60_000).toISOString() },
   { id: "d7", endpointId: "ep-1", teamId: "team-1", eventId: "e7", eventType: "webhook.test", attempt: 0, status: "not_sent_invalid_url", lastError: "private_address", createdAt: new Date(Date.now() - 120_000).toISOString() },
   { id: "d5", endpointId: "ep-1", teamId: "team-1", eventId: "e5", eventType: "webhook.test", attempt: 5, status: "failed", lastError: "http 500", createdAt: new Date(Date.now() - 600_000).toISOString() },
+  { id: "d4", endpointId: "ep-1", teamId: "team-1", eventId: "e4", eventType: "webhook.test", attempt: 1, status: "delivered", lastError: null, createdAt: new Date(Date.now() - 180_000).toISOString() },
+  { id: "d1", endpointId: "ep-1", teamId: "team-1", eventId: "e1", eventType: "webhook.test", attempt: 0, status: "pending", lastError: null, createdAt: new Date(Date.now() - 240_000).toISOString() },
   { id: "d3", endpointId: "ep-1", teamId: "team-1", eventId: "e3", eventType: "webhook.test", attempt: 2, status: "retrying", lastError: "timeout", createdAt: new Date(Date.now() - 3600_000).toISOString() },
   { id: "d2", endpointId: "ep-1", teamId: "team-1", eventId: "e2", eventType: "webhook.test", attempt: 1, status: "delivering", lastError: null, createdAt: new Date(Date.now() - 7200_000).toISOString() },
-  { id: "d4", endpointId: "ep-1", teamId: "team-1", eventId: "e4", eventType: "webhook.test", attempt: 1, status: "delivered", lastError: null, createdAt: new Date(Date.now() - 10800_000).toISOString() },
-  { id: "d1", endpointId: "ep-1", teamId: "team-1", eventId: "e1", eventType: "webhook.test", attempt: 0, status: "pending", lastError: null, createdAt: new Date(Date.now() - 14400_000).toISOString() },
 ];
+
+const FIVE_DELIVERY_LABELS = {
+  en: [
+    "Not sent — endpoint turned off",
+    "Not sent — address no longer valid",
+    "Gave up after 5 tries",
+    "Delivered",
+    "Queued",
+  ],
+  zh: [
+    "未发送：端点已关闭",
+    "未发送：地址已失效",
+    "已重试 5 次后放弃",
+    "已送达",
+    "已排队",
+  ],
+};
 
 mkdirSync(OUT, { recursive: true });
 
@@ -227,10 +244,44 @@ async function openWebhooks(page, lang, viewport, state) {
   await stripDevOverlay(page);
 }
 
-async function shoot(page, file) {
+function boxContains(outer, inner) {
+  return (
+    inner.x >= outer.x - 1 &&
+    inner.y >= outer.y - 1 &&
+    inner.x + inner.width <= outer.x + outer.width + 1 &&
+    inner.y + inner.height <= outer.y + outer.height + 1
+  );
+}
+
+async function assertFiveLabelsInList(page, lang, file) {
+  const list = page.locator("#wh-deliveries");
+  await list.waitFor({ state: "visible", timeout: 10_000 });
+  const listBox = await list.boundingBox();
+  if (!listBox) throw new Error(`${file}: #wh-deliveries has no bounding box`);
+  for (const label of FIVE_DELIVERY_LABELS[lang]) {
+    const loc = list.getByText(label, { exact: true }).first();
+    await loc.waitFor({ state: "visible", timeout: 10_000 });
+    const lb = await loc.boundingBox();
+    if (!lb) throw new Error(`${file}: label ${JSON.stringify(label)} has no bounding box`);
+    if (!boxContains(listBox, lb)) {
+      throw new Error(
+        `${file}: label ${JSON.stringify(label)} is attached but outside the captured list box ` +
+          `(list=${JSON.stringify(listBox)} label=${JSON.stringify(lb)})`,
+      );
+    }
+  }
+}
+
+async function shoot(page, file, state, lang) {
   await assertNoNextIndicator(page, file);
   await page.mouse.move(0, 0);
   await page.waitForTimeout(120);
+  if (state === "populated") {
+    await assertFiveLabelsInList(page, lang, file);
+    const list = page.locator("#wh-deliveries");
+    await list.screenshot({ path: join(OUT, file) });
+    return;
+  }
   const overlay = page.locator(".acs-overlay.open");
   await overlay.screenshot({ path: join(OUT, file) });
 }
@@ -256,7 +307,9 @@ async function driveState(page, lang, state) {
   }
   if (state === "populated") {
     const delivered = lang === "zh" ? "已送达" : "Delivered";
+    const queued = lang === "zh" ? "已排队" : "Queued";
     await page.getByText(delivered).first().waitFor({ state: "visible", timeout: 10_000 });
+    await page.getByText(queued).first().waitFor({ state: "visible", timeout: 10_000 });
   }
   if (state === "empty") {
     const empty = lang === "zh" ? "此团队尚未登记 Webhook 端点。" : "This team has not registered a webhook endpoint yet.";
@@ -293,7 +346,7 @@ async function main() {
         try {
           await openWebhooks(page, shot.lang, VIEWPORTS[shot.viewport], shot.state);
           await driveState(page, shot.lang, shot.state);
-          await shoot(page, shot.file);
+          await shoot(page, shot.file, shot.state, shot.lang);
           files.push(shot.file);
           console.log("ok");
         } catch (err) {

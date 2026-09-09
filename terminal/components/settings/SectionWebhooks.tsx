@@ -64,7 +64,7 @@ export default function SectionWebhooks({ t, lang, onClose }: SectionProps) {
         return;
       }
       if (!r.ok) {
-        setLoadErr(lang === "zh" ? body.messageZh || webhookCopy("emptyTeamHelp", lang) : body.message || webhookCopy("emptyTeamHelp", lang));
+        setLoadErr(webhookCopy("teamLoadFailed", lang));
         setTeams([]);
         return;
       }
@@ -74,7 +74,7 @@ export default function SectionWebhooks({ t, lang, onClose }: SectionProps) {
       const pick = admins[0]?.id || list[0]?.id || "";
       setTeamId((cur) => cur || pick);
     } catch {
-      setLoadErr(webhookCopy("emptyTeamHelp", lang));
+      setLoadErr(webhookCopy("teamLoadFailed", lang));
       setTeams([]);
     }
   }, [lang]);
@@ -237,7 +237,7 @@ export default function SectionWebhooks({ t, lang, onClose }: SectionProps) {
     else legacy();
   }
 
-  const emptyTeam = teams !== null && teams.length === 0;
+  const emptyTeam = teams !== null && teams.length === 0 && !loadErr;
   const memberOnly = teams !== null && teams.length > 0 && eligible.length === 0;
 
   return (
@@ -373,6 +373,7 @@ export default function SectionWebhooks({ t, lang, onClose }: SectionProps) {
                     </div>
                   ) : null}
                   <Group title={webhookCopy("deliveries", lang)}>
+                    <div id="wh-deliveries" className="acs-webhook-deliveries">
                     {(deliveriesByEp[ep.id] ?? []).length === 0 ? (
                       <Row desc={webhookCopy("noDeliveries", lang)} />
                     ) : (
@@ -383,13 +384,30 @@ export default function SectionWebhooks({ t, lang, onClose }: SectionProps) {
                             key={d.id}
                             label={webhookEventTypeLabel(d.eventType, lang)}
                             desc={webhookRelativeTime(d.createdAt, lang)}
-                            value={webhookDeliveryStatusLabel(d.status, lang)}
+                            control={
+                              <span
+                                className="acs-webhook-status"
+                                style={{
+                                  display: "inline-block",
+                                  maxWidth: "11em",
+                                  whiteSpace: "normal",
+                                  overflowWrap: "anywhere",
+                                  textAlign: "right",
+                                  fontSize: 13,
+                                  color: "var(--text-2)",
+                                  lineHeight: 1.3,
+                                }}
+                              >
+                                {webhookDeliveryStatusLabel(d.status, lang)}
+                              </span>
+                            }
                           >
                             {cause ? <span className="acs-row-desc">{cause}</span> : null}
                           </Row>
                         );
                       })
                     )}
+                    </div>
                   </Group>
                 </div>
               ))

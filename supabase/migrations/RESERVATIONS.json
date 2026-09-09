@@ -186,7 +186,7 @@
       "pr_state": "open",
       "applied_in_production": false,
       "applied_date": null,
-      "note": "shipped unapplied; the seat applies with a receipt. File landed in open PR #549 (packet B-F12-7, seat ruling R2). B-F12-7 here is the seat's re-scoped Terminal signed-webhooks packet of 2026-09-09 (branch claude/mo-b-f12-7-signed-webhooks), not the refused public-API packet recorded against macro #6925 under the same id. Open-PR query at authoring: #547 holds 0017 (B-F13-5); #543 reserves 0017-0020 in the ledger only; 0019 remains for B-F12-8."
+      "note": "shipped unapplied; the seat applies with a receipt. applied_date not recorded because DDL is unapplied. File landed in open PR #549 (packet B-F12-7, seat ruling R2). B-F12-7 here is the seat's re-scoped Terminal signed-webhooks packet of 2026-09-09 (branch claude/mo-b-f12-7-signed-webhooks), not the refused public-API packet recorded against macro #6925 under the same id. Open-PR query at authoring: #547 holds 0017 (B-F13-5); #543 reserves 0017-0020 in the ledger only; 0019 remains for B-F12-8."
     },
     "0019": {
       "state": "reserved",

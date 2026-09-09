@@ -125,6 +125,10 @@ export const WEBHOOK_COPY = {
     "Create a team first, then you can register an HTTPS address for signed deliveries.",
     "请先创建团队，然后即可登记用于签名送达的 HTTPS 地址。",
   ],
+  teamLoadFailed: [
+    "We could not load your team right now. Try again.",
+    "暂时无法读取你的团队信息，请重试。",
+  ],
   createTeam: ["Create a team", "创建团队"],
   teamNameLabel: ["Team name", "团队名称"],
   teamNamePlaceholder: ["Research desk", "研究团队"],
@@ -162,10 +166,6 @@ export const WEBHOOK_COPY = {
   notHttps: ["Webhook addresses must use https.", "Webhook 地址必须使用 https。"],
   invalidUrl: ["Enter an https address on the public internet.", "请输入公网的 https 地址。"],
   testQueued: ["A test event is queued.", "测试事件已排队。"],
-  testDisabled: [
-    "This endpoint is turned off, so we did not send a test event.",
-    "此端点已关闭，因此我们未发送测试事件。",
-  ],
   // Wrong-cause guard: a route that answers without a JSON body tells us
   // nothing about WHY. These two say only what is certainly true — never the
   // ssrf or the turned-off sentence, which the route alone is entitled to say.

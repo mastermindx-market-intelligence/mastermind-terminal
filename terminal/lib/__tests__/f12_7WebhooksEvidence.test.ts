@@ -75,9 +75,10 @@ describe("B-F12-7 evidence lock is the sha256 of the layout sources", () => {
   it("no test file this packet adds imports a process spawner", () => {
     const banned = ["node:", "child_process"].join("");
     const files = packetTestFiles();
-    // The packet ships nine webhook suites, this evidence suite and the e2e
-    // spec. A count floor keeps a broken glob from passing vacuously.
-    expect(files.length).toBeGreaterThanOrEqual(11);
+    // The packet ships 14 test files (webhook*.test.ts / f12_7Webhooks*.test.ts
+    // under lib/__tests__, plus the e2e spec). A count floor keeps a broken
+    // glob from passing vacuously.
+    expect(files.length).toBeGreaterThanOrEqual(14);
     for (const abs of files) {
       expect(existsSync(abs), `${abs} is expected to exist`).toBe(true);
       const src = readFileSync(abs, "utf8");

@@ -17,7 +17,7 @@ import https from "node:https";
 import { isIP } from "node:net";
 import { lookup } from "node:dns/promises";
 import { signWebhookPayload } from "../terminal/lib/webhookSigning";
-import { failurePatch, hasBadRetryTimestamp, isDueDelivery } from "../terminal/lib/webhookRetry";
+import { failurePatch, hasBadRetryTimestamp, isDueDelivery, STALE_LEASE_MS } from "../terminal/lib/webhookRetry";
 import { decodeHostToIp, isPrivateIp, validateWebhookUrl } from "../terminal/lib/webhookUrl";
 
 const DEFAULT_ENV = "/opt/terminal/terminal/.env.local";
@@ -136,6 +136,25 @@ type PatchClient = {
   patch: (path: string, body: Record<string, unknown>) => Promise<unknown[]>;
 };
 
+const CLAIMABLE_STATUS = "status=in.(pending,retrying,delivering)";
+
+async function patchClaimable(
+  supa: PatchClient,
+  rowId: string,
+  body: Record<string, unknown>,
+  tag: string,
+): Promise<boolean> {
+  const patched = await supa.patch(
+    `webhook_deliveries?id=eq.${encodeURIComponent(rowId)}&${CLAIMABLE_STATUS}`,
+    body,
+  );
+  if (!patched.length) {
+    log(`${tag} SKIP already claimed`);
+    return false;
+  }
+  return true;
+}
+
 async function resolvePublicAddress(hostname: string): Promise<{ address: string; family: number } | { error: string }> {
   const literal = decodeHostToIp(hostname);
   if (literal) {
@@ -209,10 +228,14 @@ const DUE_SELECT =
  * 4-hour backoff) fill every page and starve rows that really were due.
  */
 export function dueDeliveriesPath(now: Date): string {
-  const cutoff = encodeURIComponent(now.toISOString());
+  const nowIso = encodeURIComponent(now.toISOString());
+  const staleCutoff = encodeURIComponent(new Date(now.getTime() - STALE_LEASE_MS).toISOString());
+  // pending/retrying: next_retry_at is due. delivering: only stale leases
+  // (claimed_at older than STALE_LEASE_MS) so a row claimed seconds ago is
+  // never fetched back onto the page.
   return (
-    "webhook_deliveries?status=in.(pending,retrying,delivering)" +
-    `&or=(next_retry_at.is.null,next_retry_at.lte.${cutoff})` +
+    "webhook_deliveries?" +
+    `or=(and(status.in.(pending,retrying),or(next_retry_at.is.null,next_retry_at.lte.${nowIso})),and(status.eq.delivering,claimed_at.lte.${staleCutoff}))` +
     `&select=${DUE_SELECT}&order=created_at.asc&limit=${DUE_PAGE_LIMIT}`
   );
 }
@@ -239,10 +262,13 @@ export async function deliverOne(
   // be a false statement of fact about a delivery tried zero times.
   if (!endpoint.enabled) {
     if (!dryRun) {
-      await supa.patch(
-        `webhook_deliveries?id=eq.${encodeURIComponent(row.id)}`,
+      const wrote = await patchClaimable(
+        supa,
+        row.id,
         { status: "not_sent_disabled", last_error: "endpoint_disabled", next_retry_at: null },
+        tag,
       );
+      if (!wrote) return;
     }
     log(`${tag} SKIP endpoint disabled`);
     return;
@@ -251,14 +277,17 @@ export async function deliverOne(
   const urlCheck = validateWebhookUrl(endpoint.url);
   if (!urlCheck.ok) {
     if (!dryRun) {
-      await supa.patch(
-        `webhook_deliveries?id=eq.${encodeURIComponent(row.id)}`,
+      const wrote = await patchClaimable(
+        supa,
+        row.id,
         {
           status: "not_sent_invalid_url",
           last_error: truncateError(urlCheck.code),
           next_retry_at: null,
         },
+        tag,
       );
+      if (!wrote) return;
     }
     log(`${tag} SKIP ${urlCheck.code}`);
     return;
@@ -281,14 +310,8 @@ export async function deliverOne(
     claimPatch.last_error = "bad_retry_timestamp";
     log(`${tag} bad next_retry_at — treated as due now`);
   }
-  const claimed = await supa.patch(
-    `webhook_deliveries?id=eq.${encodeURIComponent(row.id)}&status=in.(pending,retrying,delivering)`,
-    claimPatch,
-  );
-  if (!claimed.length) {
-    log(`${tag} SKIP already claimed`);
-    return;
-  }
+  const claimed = await patchClaimable(supa, row.id, claimPatch, tag);
+  if (!claimed) return;
 
   const resolve = hooks.resolve ?? resolvePublicAddress;
   const post = hooks.post ?? postPinned;

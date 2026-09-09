@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { WEBHOOK_COPY, webhookCopy, webhookRelativeTime } from "@/lib/webhookLabels";
+import { WEBHOOK_ROUTE_MESSAGES } from "@/lib/webhooks";
 
 const NOW = Date.parse("2026-09-09T12:00:00.000Z");
 
@@ -61,10 +62,38 @@ describe("a failure with no stated cause says only that it failed", () => {
   it("neither fallback repeats the ssrf or turned-off sentence", () => {
     for (const key of ["saveFailed", "testFailed"] as const) {
       expect(webhookCopy(key, "en")).not.toBe(webhookCopy("ssrf", "en"));
-      expect(webhookCopy(key, "en")).not.toBe(webhookCopy("testDisabled", "en"));
+      expect(webhookCopy(key, "en")).not.toBe(WEBHOOK_ROUTE_MESSAGES.endpoint_disabled[0]);
       expect(webhookCopy(key, "zh")).not.toBe(webhookCopy("ssrf", "zh"));
-      expect(webhookCopy(key, "zh")).not.toBe(webhookCopy("testDisabled", "zh"));
+      expect(webhookCopy(key, "zh")).not.toBe(WEBHOOK_ROUTE_MESSAGES.endpoint_disabled[1]);
     }
+  });
+});
+
+describe("a team-load failure is its own sentence, never the empty-team help", () => {
+  it("carries the load-failed pair in both languages", () => {
+    expect("teamLoadFailed" in WEBHOOK_COPY).toBe(true);
+    const pair = (WEBHOOK_COPY as Record<string, readonly [string, string]>).teamLoadFailed;
+    expect(pair[0]).toBe("We could not load your team right now. Try again.");
+    expect(pair[1]).toBe("暂时无法读取你的团队信息，请重试。");
+  });
+
+  it("is not the empty-team help sentence", () => {
+    const pair = (WEBHOOK_COPY as Record<string, readonly [string, string]>).teamLoadFailed;
+    expect(pair[0]).not.toBe(webhookCopy("emptyTeamHelp", "en"));
+    expect(pair[1]).not.toBe(webhookCopy("emptyTeamHelp", "zh"));
+  });
+});
+
+describe("both catalogues name the object 端点, never 回调", () => {
+  it("fails on any 回调 hit in WEBHOOK_COPY or WEBHOOK_ROUTE_MESSAGES", () => {
+    const hits: string[] = [];
+    for (const [key, pair] of Object.entries(WEBHOOK_COPY)) {
+      if (pair[0].includes("回调") || pair[1].includes("回调")) hits.push(`WEBHOOK_COPY.${key}`);
+    }
+    for (const [key, pair] of Object.entries(WEBHOOK_ROUTE_MESSAGES)) {
+      if (pair[0].includes("回调") || pair[1].includes("回调")) hits.push(`WEBHOOK_ROUTE_MESSAGES.${key}`);
+    }
+    expect(hits, `回调 remains in: ${hits.join(", ")}`).toEqual([]);
   });
 });
 

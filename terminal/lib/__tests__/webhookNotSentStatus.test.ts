@@ -68,11 +68,42 @@ describe("a delivery abandoned without exhausting the retry table is never `fail
     expect(supa.patches[0].body.last_error).toBe("private_address");
   });
 
-  it("neither non-exhaustion path claims the row or sends anything", async () => {
+  it("neither non-exhaustion path writes delivering or POSTs", async () => {
     const supa = recorder();
     await deliverOne(supa, ROW, { ...ENDPOINT, enabled: false }, false);
-    expect(supa.patches.some((p) => p.path.includes("status=in."))).toBe(false);
     expect(supa.patches.some((p) => p.body.status === "delivering")).toBe(false);
+  });
+});
+
+describe("not-sent writes honour a concurrent claim (zero-row PATCH)", () => {
+  function concurrentClaim() {
+    const patches: Patch[] = [];
+    return {
+      patches,
+      patch: async (path: string, body: Record<string, unknown>) => {
+        patches.push({ path, body });
+        if (path.includes("status=in.(pending,retrying,delivering)")) return [];
+        return [{ id: "d1" }];
+      },
+    };
+  }
+
+  it("not_sent_disabled carries the claim filter and skips a zero-row result", async () => {
+    const supa = concurrentClaim();
+    await deliverOne(supa, ROW, { ...ENDPOINT, enabled: false }, false);
+    expect(supa.patches).toHaveLength(1);
+    expect(supa.patches[0].path).toContain("status=in.(pending,retrying,delivering)");
+    expect(supa.patches[0].path).toContain(`id=eq.${ROW.id}`);
+    expect(supa.patches[0].body.status).toBe("not_sent_disabled");
+  });
+
+  it("not_sent_invalid_url carries the claim filter and skips a zero-row result", async () => {
+    const supa = concurrentClaim();
+    await deliverOne(supa, ROW, { ...ENDPOINT, url: "http://hooks.example.com/mastermind" }, false);
+    expect(supa.patches).toHaveLength(1);
+    expect(supa.patches[0].path).toContain("status=in.(pending,retrying,delivering)");
+    expect(supa.patches[0].path).toContain(`id=eq.${ROW.id}`);
+    expect(supa.patches[0].body.status).toBe("not_sent_invalid_url");
   });
 });
 

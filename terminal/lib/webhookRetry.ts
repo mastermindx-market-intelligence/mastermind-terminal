@@ -17,7 +17,7 @@ export function failurePatch(
   return { status: "retrying", next_retry_at: new Date(now.getTime() + ms).toISOString() };
 }
 
-const STALE_LEASE_MS = 10 * 60_000;
+export const STALE_LEASE_MS = 10 * 60_000;
 
 /**
  * True when `next_retry_at` holds something no Date can read. The only writer

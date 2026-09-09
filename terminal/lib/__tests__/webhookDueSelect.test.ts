@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { STALE_LEASE_MS } from "@/lib/webhookRetry";
 import {
   DUE_PAGE_LIMIT,
   dueDeliveriesPath,
@@ -35,11 +36,26 @@ function fakePostgrest(rows: Row[]) {
 
     const or = params.get("or");
     if (or) {
-      const m = /^\(next_retry_at\.is\.null,next_retry_at\.lte\.(.+)\)$/.exec(or);
-      if (!m) throw new Error(`unsupported or filter: ${or}`);
-      const cutoff = Date.parse(decodeURIComponent(m[1]));
-      expect(Number.isFinite(cutoff)).toBe(true);
-      out = out.filter((r) => r.next_retry_at == null || Date.parse(r.next_retry_at) <= cutoff);
+      // Nested or: pending/retrying next_retry_at arm AND delivering claimed_at arm.
+      if (!or.includes("claimed_at.lte.")) {
+        throw new Error(`delivering arm missing claimed_at.lte: ${or}`);
+      }
+      const retryM = /next_retry_at\.lte\.([^,)]+)/.exec(or);
+      const claimedM = /claimed_at\.lte\.([^,)]+)/.exec(or);
+      if (!retryM || !claimedM) throw new Error(`unsupported or filter: ${or}`);
+      const retryCutoff = Date.parse(decodeURIComponent(retryM[1]));
+      const claimedCutoff = Date.parse(decodeURIComponent(claimedM[1]));
+      expect(Number.isFinite(retryCutoff)).toBe(true);
+      expect(Number.isFinite(claimedCutoff)).toBe(true);
+      out = out.filter((r) => {
+        if (r.status === "pending" || r.status === "retrying") {
+          return r.next_retry_at == null || Date.parse(r.next_retry_at) <= retryCutoff;
+        }
+        if (r.status === "delivering") {
+          return r.claimed_at != null && Date.parse(r.claimed_at) <= claimedCutoff;
+        }
+        return false;
+      });
     }
 
     if (params.get("order") === "created_at.asc") {
@@ -96,10 +112,38 @@ function starvationFixture(): Row[] {
 describe("the due-row page carries the spec's next_retry_at predicate server-side", () => {
   it("puts the predicate in the query, not in JS after truncation", () => {
     const path = dueDeliveriesPath(NOW);
-    expect(path).toContain("or=(next_retry_at.is.null,next_retry_at.lte.");
+    expect(path).toContain("next_retry_at.is.null");
+    expect(path).toContain("next_retry_at.lte.");
     expect(path).toContain(encodeURIComponent(NOW.toISOString()));
-    expect(path).toContain("status=in.(pending,retrying,delivering)");
+    expect(path).toMatch(/status(?:\.in|=in\.)\.\(pending,retrying/);
     expect(path).toContain(`limit=${DUE_PAGE_LIMIT}`);
+  });
+
+  it("the delivering arm carries claimed_at.lte at the stale-lease cutoff", () => {
+    const path = dueDeliveriesPath(NOW);
+    const stale = new Date(NOW.getTime() - STALE_LEASE_MS).toISOString();
+    expect(path).toContain("status.eq.delivering");
+    expect(path).toContain("claimed_at.lte.");
+    expect(path).toContain(encodeURIComponent(stale));
+  });
+
+  it("a freshly claimed delivering row never enters the page", async () => {
+    const fresh = row({
+      id: "fresh-claim",
+      status: "delivering",
+      claimed_at: new Date(NOW.getTime() - 30_000).toISOString(),
+      next_retry_at: null,
+      created_at: new Date(NOW.getTime() - 120_000).toISOString(),
+    });
+    const stale = row({
+      id: "stale-claim",
+      status: "delivering",
+      claimed_at: new Date(NOW.getTime() - STALE_LEASE_MS - 1_000).toISOString(),
+      next_retry_at: null,
+      created_at: new Date(NOW.getTime() - 180_000).toISOString(),
+    });
+    const due = await fetchDueDeliveries({ get: fakePostgrest([fresh, stale]) }, NOW);
+    expect(due.map((r) => r.id)).toEqual(["stale-claim"]);
   });
 
   it("a due row survives 101 not-yet-due rows that are all older", async () => {

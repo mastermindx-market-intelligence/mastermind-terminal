@@ -36,14 +36,14 @@ export const WEBHOOK_ROUTE_MESSAGES: Record<WebhookRouteCode, [string, string]> 
   not_signed_in: ["You are not signed in.", "您尚未登录。"],
   not_admin: [
     "Only a team owner or admin can add or change webhook endpoints.",
-    "只有团队所有者或管理员才能添加或更改 Webhook 回调。",
+    "只有团队所有者或管理员才能添加或更改 Webhook 端点。",
   ],
   unavailable: [
     "Webhook endpoints are not set up on this server yet.",
-    "此服务器尚未启用 Webhook 回调。",
+    "此服务器尚未启用 Webhook 端点。",
   ],
-  read_failed: ["We could not read webhook endpoints just now.", "我们暂时无法读取 Webhook 回调。"],
-  write_failed: ["We could not save that webhook endpoint.", "我们无法保存该 Webhook 回调。"],
+  read_failed: ["We could not read webhook endpoints just now.", "我们暂时无法读取 Webhook 端点。"],
+  write_failed: ["We could not save that webhook endpoint.", "我们无法保存该 Webhook 端点。"],
   closed_patch: [
     "That change is not allowed. You can only update the address, whether it is active, or the event types.",
     "不允许该更改。您只能更新地址、是否启用或事件类型。",
@@ -58,11 +58,11 @@ export const WEBHOOK_ROUTE_MESSAGES: Record<WebhookRouteCode, [string, string]> 
   team_required: ["Choose a team.", "请选择一个团队。"],
   endpoint_disabled: [
     "This endpoint is turned off, so we did not send a test event.",
-    "此回调已关闭，因此我们未发送测试事件。",
+    "此端点已关闭，因此我们未发送测试事件。",
   ],
-  not_found: ["We could not find that webhook endpoint.", "找不到该 Webhook 回调。"],
+  not_found: ["We could not find that webhook endpoint.", "找不到该 Webhook 端点。"],
   test_failed: ["We could not queue a test event just now.", "我们暂时无法排队发送测试事件。"],
-  invalid_filter: ["Choose at least one event type that this endpoint accepts.", "请至少选择一种此回调接受的事件类型。"],
+  invalid_filter: ["Choose at least one event type that this endpoint accepts.", "请至少选择一种此端点接受的事件类型。"],
 };
 
 export type WebhookEndpoint = {
