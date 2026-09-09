@@ -203,23 +203,33 @@ async function captureOptionsHub(page, width, lang, outPath) {
   await cropLocator(page, target, outPath, 14);
 }
 
+async function waitForCutChip(hub, page, lang, outPath) {
+  const cutWord = lang === "zh" ? "减持" : "Cut";
+  const input = hub.locator("input").first();
+  await input.click();
+  await input.fill("META");
+  const row = hub.locator(".r").filter({ hasText: "META" }).first();
+  await row.waitFor({ state: "visible", timeout: 20_000 });
+  const verd = row.locator(".verd").first();
+  await verd.waitFor({ state: "visible", timeout: 20_000 });
+  const deadline = Date.now() + 12_000;
+  let text = "";
+  while (Date.now() < deadline) {
+    text = ((await verd.textContent()) || "").trim();
+    if (new RegExp(cutWord, "i").test(text)) return;
+    await page.waitForTimeout(200);
+  }
+  throw new Error(`${outPath}: expected CUT chip ${cutWord} on META, got ${text}`);
+}
+
 async function captureSearchModal(page, width, lang, outPath) {
   await gotoReady(page, "/terminal?symbol=SPY", lang);
   await page.locator(".workspace").waitFor({ state: "visible", timeout: 45_000 });
-  const cutWord = lang === "zh" ? "减持" : "Cut";
   if (width === 390) {
     await page.locator(".m-symbar").click();
     const hub = page.locator(".msheet-search");
     await hub.waitFor({ state: "visible", timeout: 20_000 });
-    const input = hub.locator(".sh input, input").first();
-    await input.click();
-    await input.fill("META");
-    const verd = hub.locator(".sres .verd, .verd").first();
-    await verd.waitFor({ state: "visible", timeout: 20_000 });
-    const text = ((await verd.textContent()) || "").trim();
-    if (!new RegExp(cutWord, "i").test(text)) {
-      throw new Error(`${outPath}: expected CUT chip ${cutWord}, got ${text}`);
-    }
+    await waitForCutChip(hub, page, lang, outPath);
     await cropLocator(page, hub, outPath, 8);
   } else {
     const pair = page.locator(".topbar .pair").first();
@@ -227,15 +237,7 @@ async function captureSearchModal(page, width, lang, outPath) {
     await pair.click();
     const hub = page.locator(".smodal-hub").first();
     await hub.waitFor({ state: "visible", timeout: 20_000 });
-    const input = hub.locator("input").first();
-    await input.click();
-    await input.fill("META");
-    const verd = hub.locator(".verd").first();
-    await verd.waitFor({ state: "visible", timeout: 20_000 });
-    const text = ((await verd.textContent()) || "").trim();
-    if (!new RegExp(cutWord, "i").test(text)) {
-      throw new Error(`${outPath}: expected CUT chip ${cutWord}, got ${text}`);
-    }
+    await waitForCutChip(hub, page, lang, outPath);
     await cropLocator(page, hub, outPath, 10);
   }
 }

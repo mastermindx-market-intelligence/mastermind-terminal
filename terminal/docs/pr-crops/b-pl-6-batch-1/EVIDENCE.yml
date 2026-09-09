@@ -1,42 +1,47 @@
 # B-PL-6 batch 1 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 7632c18eed1a16f0d088f1bd221c319f1d58d79f
-# capturedAt: 2026-09-09T05:27:52.385Z
+# capturedAtHead: 2c1eafb51715312e2a781b1d6a5c308ce8114fca
+# capturedAt: 2026-09-09T05:56:50.842Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/OptionsHubView.tsx: "6c96e1600be54665de06fe8d4fad58242b6e4ee6e0366239b3375910f38dde3a"
+  terminal/components/OptionsHubView.tsx: "37c67a26b3833275834c4ba0267040161fab9c6ea543fa23a7cddf7eb60accf9"
   terminal/components/SearchModal.tsx: "ed4545abe5d31c5f79e7eab96bad45b76b06694bf4d1994901dd6defd195bbc0"
+  terminal/components/StockAnalysis.tsx: "7657d401a22f79d2b9649ce561545cb0a703e8c95d37a8b5d4e9388e0bda65f8"
   terminal/components/workspaces/AnalysisWorkspace.tsx: "eb240013c5d579cd58098656a8e233efe5b8bf4a153c734bf9d26a6f3b081657"
   terminal/components/ChartPanel.tsx: "94a56f94bc442112817170bfac5f6080c595f26c5dc70ea8d82b9e30ec076258"
   terminal/components/DayRange.tsx: "c84724652783da1897ab4eeb98550eaf3dbd7942eefe3ce127b6ada2b16dd672"
-  terminal/lib/plainLabels.ts: "3c4684e60f23f2eb35cfed1ccde6f62aa702dc60571f9e3c832cb36264c3f2d1"
-  terminal/lib/i18n.tsx: "3c11d8eb256257228bb220feb60b532e0119abfb7022eeed324fa8db5b22eeaf"
+  terminal/lib/plainLabels.ts: "39f1b5ad8e817d98c0a67f709ed303e1940dbc9ea3a44b6a078a9c10992487e7"
+  terminal/lib/i18n.tsx: "537185c5f3c31f6355a3fb140b27dba43687af5f9336634266105abea12bfa21"
 theme: dark
 languages: [en, zh]
 viewports:
   - { name: desktop, width: 1440, height: 900 }
   - { name: mobile, width: 390, height: 844 }
-surfaces: [OptionsHubView, SearchModal, AnalysisWorkspace, ChartChrome]
+surfaces: [OptionsHubView, SearchModal, StockAnalysis, AnalysisWorkspace, ChartChrome]
 capture_flag: TERMINAL_E2E_FIXTURE
 capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
 command: |
   cd terminal
   node e2e/tools/capture_pl6_batch1.cjs
 files:
-  - OptionsHubView-1440.png
-  - SearchModal-1440.png
-  - AnalysisWorkspace-1440.png
-  - ChartChrome-1440.png
-  - OptionsHubView-1440-zh.png
-  - SearchModal-1440-zh.png
   - AnalysisWorkspace-1440-zh.png
-  - ChartChrome-1440-zh.png
-  - OptionsHubView-390.png
-  - SearchModal-390.png
-  - AnalysisWorkspace-390.png
-  - ChartChrome-390.png
-  - OptionsHubView-390-zh.png
-  - SearchModal-390-zh.png
+  - AnalysisWorkspace-1440.png
   - AnalysisWorkspace-390-zh.png
+  - AnalysisWorkspace-390.png
+  - ChartChrome-1440-zh.png
+  - ChartChrome-1440.png
   - ChartChrome-390-zh.png
+  - ChartChrome-390.png
+  - OptionsHubView-1440-zh.png
+  - OptionsHubView-1440.png
+  - OptionsHubView-390-zh.png
+  - OptionsHubView-390.png
+  - SearchModal-1440-zh.png
+  - SearchModal-1440.png
+  - SearchModal-390-zh.png
+  - SearchModal-390.png
+  - StockAnalysis-1440-zh.png
+  - StockAnalysis-1440.png
+  - StockAnalysis-390-zh.png
+  - StockAnalysis-390.png
