@@ -20,6 +20,9 @@ function makeFakeTransport() {
     fault: null as { code: string } | null,
     insertFault: null as { code: string } | null,
     rlsEmptyWrite: false,
+    // A fault that fires on the UPDATE/DELETE only, so the caller's role still reads normally and
+    // the write is the thing under test (round-4 ruling R4(i)).
+    writeFault: null as { code: string } | null,
     seq: 0,
   };
   const nextId = (prefix: string) => `${prefix}-${++state.seq}`;
@@ -83,12 +86,14 @@ function makeFakeTransport() {
           return { data: inserted, error: null };
         }
         if (pendingUpdate) {
+          if (state.writeFault) return { data: null, error: { code: state.writeFault.code, message: "fault" } };
           if (state.rlsEmptyWrite) return { data: [], error: null };
           const matched = applyFilters(rowsFor(table));
           for (const row of matched) Object.assign(row, pendingUpdate);
           return { data: matched, error: null };
         }
         if (pendingDelete) {
+          if (state.writeFault) return { data: null, error: { code: state.writeFault.code, message: "fault" } };
           if (state.rlsEmptyWrite) return { data: [], error: null };
           const matched = applyFilters(rowsFor(table)).map((r) => ({ ...r }));
           const ids = new Set(matched.map((r) => r.id));
@@ -287,7 +292,7 @@ describe("B-F12-8 policy matrix (§2.1)", () => {
     H.user = { id: "member" };
     const asMember = await jsonOf(await MPATCH(membersReq("PATCH", { userId: "peer", role: "admin" }), ctx(teamId)));
     expect(asMember.status).toBe(403);
-    expectCode(asMember.body, "not_member");
+    expectCode(asMember.body, "owner_only");
     H.user = { id: "owner" };
     const asOwner = await jsonOf(await MPATCH(membersReq("PATCH", { userId: "member", role: "admin" }), ctx(teamId)));
     expect(asOwner.status).toBe(200);
@@ -315,7 +320,7 @@ describe("B-F12-8 policy matrix (§2.1)", () => {
     H.user = { id: "member" };
     const asMember = await jsonOf(await MDELETE(membersReq("DELETE", undefined, "?userId=peer"), ctx(teamId)));
     expect(asMember.status).toBe(403);
-    expectCode(asMember.body, "not_member");
+    expectCode(asMember.body, "remove_not_allowed");
     H.user = { id: "admin" };
     expect((await MDELETE(membersReq("DELETE", undefined, "?userId=peer"), ctx(teamId))).status).toBe(200);
     H.user = { id: "owner" };
@@ -349,7 +354,7 @@ describe("B-F12-8 policy matrix (§2.1)", () => {
     H.user = { id: "member" };
     const memberSelf = await jsonOf(await MPATCH(membersReq("PATCH", { userId: "member", role: "admin" }), ctx(teamId)));
     expect(memberSelf.status).toBe(403);
-    expectCode(memberSelf.body, "not_member");
+    expectCode(memberSelf.body, "owner_only");
   });
 
   it("last-owner: PATCH targeting the owner is 403 owner_locked", async () => {
@@ -430,6 +435,62 @@ describe("B-F12-8 policy matrix (§2.1)", () => {
     H.user = { id: "admin" };
     const stillAdmin = await jsonOf(await MGET(membersReq("GET"), ctx(teamId)));
     expect(stillAdmin.body.members.find((m: { userId: string }) => m.userId === "admin").role).toBe("admin");
+  });
+
+  it("R2: a caller who IS on the team is never told they are not a member", async () => {
+    // The plain-language law is about the sentence the reader receives, and "You are not a member
+    // of this team." is false for a member. Every gate a member can reach is checked here, in both
+    // languages, against the exact catalogued strings.
+    const teamId = await seedRoster();
+    const [notMemberEn, notMemberZh] = TEAM_ROUTE_MESSAGES.not_member;
+    H.user = { id: "member" };
+    const reached = [
+      await jsonOf(await MPATCH(membersReq("PATCH", { userId: "peer", role: "admin" }), ctx(teamId))),
+      await jsonOf(await MPATCH(membersReq("PATCH", { userId: "member", role: "admin" }), ctx(teamId))),
+      await jsonOf(await MDELETE(membersReq("DELETE", undefined, "?userId=peer"), ctx(teamId))),
+      await jsonOf(await MDELETE(membersReq("DELETE", undefined, "?userId=admin"), ctx(teamId))),
+    ];
+    for (const answer of reached) {
+      expect(answer.status).toBe(403);
+      expect(answer.body.message).not.toBe(notMemberEn);
+      expect(answer.body.messageZh).not.toBe(notMemberZh);
+    }
+    expectCode(reached[0].body, "owner_only");
+    expectCode(reached[1].body, "owner_only");
+    expectCode(reached[2].body, "remove_not_allowed");
+    expectCode(reached[3].body, "remove_not_allowed");
+  });
+
+  it("R2: not_member is still the answer to a caller who is truly not on the team", async () => {
+    const teamId = await seedRoster();
+    H.user = { id: "stranger" };
+    const { status, body } = await jsonOf(await MGET(membersReq("GET"), ctx(teamId)));
+    expect(status).toBe(403);
+    expectCode(body, "not_member");
+  });
+
+  it("R4(i): a database permission denial is 403 with this gate's sentence, never a 500", async () => {
+    // 0019's tm_delete_admin raises 42501 through team_members_rls_deny() instead of filtering to
+    // zero rows, and tm_update_admin's WITH CHECK raises it too. Both mean the same thing as the
+    // zero-row refusal the route already answers with a 403.
+    const teamId = await seedRoster();
+    transport.state.writeFault = { code: "42501" };
+    H.user = { id: "owner" };
+    const patched = await jsonOf(await MPATCH(membersReq("PATCH", { userId: "member", role: "admin" }), ctx(teamId)));
+    expect(patched.status).toBe(403);
+    expectCode(patched.body, "role_change_failed");
+    const removed = await jsonOf(await MDELETE(membersReq("DELETE", undefined, "?userId=member"), ctx(teamId)));
+    expect(removed.status).toBe(403);
+    expectCode(removed.body, "remove_failed");
+  });
+
+  it("a write error that is not a permission denial is still a 500", async () => {
+    const teamId = await seedRoster();
+    transport.state.writeFault = { code: "08006" };
+    H.user = { id: "owner" };
+    const patched = await jsonOf(await MPATCH(membersReq("PATCH", { userId: "member", role: "admin" }), ctx(teamId)));
+    expect(patched.status).toBe(500);
+    expectCode(patched.body, "write_failed");
   });
 });
 

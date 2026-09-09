@@ -69,6 +69,11 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
     return readFail(result.reason, result.error);
   }
   const named = await listMemberNames(session.db, id);
+  // Round-4 ruling R4(l): the roster still answers — a name we cannot read is absent, never
+  // invented — but a broken team_member_names and an empty display name are different states, and
+  // an operator could not tell them apart while this path was silent. The log carries the reason
+  // only: no display names and no account ids, which are exactly what this call reads.
+  if (!named.ok) console.error("team member names unreadable, roster falls back to no names:", named.reason);
   const names = named.ok ? named.names : new Map<string, string>();
   const members = result.members.map((m) => ({
     ...m,

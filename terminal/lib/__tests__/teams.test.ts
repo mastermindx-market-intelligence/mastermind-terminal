@@ -496,6 +496,7 @@ describe("INVITE_MESSAGES plain-word completeness (acceptance #6)", () => {
 
 const NEW_TEAM_ROUTE_CODES: TeamRouteCode[] = [
   "owner_only",
+  "remove_not_allowed",
   "owner_only_admin",
   "owner_only_change_admin",
   "owner_only_remove_admin",
@@ -551,6 +552,16 @@ const SENTENCE_LEX_KEYS = new Set([
 const BANNED = ["falsifier", "refuted", "证伪", "team_members", "team_role_changes", "team_member_names", "RLS", "42501", "23505"];
 
 describe("TEAM_ROUTE_MESSAGES and LEX plain-word completeness (B-F12-8)", () => {
+  it("the role words a caller reads match the words the Team section paints (round-4 ruling R4(j))", () => {
+    // Every label this packet ships says "Administrator" (acsRoleAdmin, acsMakeAdmin), so the
+    // sentence that asks for a role says it too rather than the shorter "admin".
+    const [en, zh] = TEAM_ROUTE_MESSAGES.invalid_role;
+    expect(en).toBe("Choose a role: administrator or member.");
+    expect(en).not.toMatch(/\badmin\b/);
+    expect(zh).toContain("管理员");
+    expect(LEX.acsRoleAdmin[0]).toBe("Administrator");
+  });
+
   it("every new TEAM_ROUTE_MESSAGES entry is a distinct EN/ZH sentence with no banned vocabulary", () => {
     for (const code of NEW_TEAM_ROUTE_CODES) {
       const [en, zh] = TEAM_ROUTE_MESSAGES[code];

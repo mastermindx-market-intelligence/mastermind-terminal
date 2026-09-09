@@ -48,6 +48,17 @@ export function isAbsentTableError(error: { code?: string; message?: string } | 
   return error.code === "42P01" || error.code === "PGRST205";
 }
 
+/**
+ * A database-level permission denial (round-4 ruling R4(i)). 0019 uses one deliberately: a
+ * forbidden DELETE raises 42501 through team_members_rls_deny() rather than filtering to zero
+ * rows, and tm_update_admin's WITH CHECK raises it too. Both mean the same thing as the zero-row
+ * result the write paths already turn into a 403 — so they must not fall through to a 500.
+ * Classified by CODE ONLY, never by message prose (README:26-39 idiom).
+ */
+export function isPermissionDeniedError(error: { code?: string; message?: string } | null | undefined): boolean {
+  return Boolean(error && error.code === "42501");
+}
+
 export function normalizeTeamName(value: unknown): string | null {
   if (typeof value !== "string") return null;
   const trimmed = value.trim();
@@ -122,6 +133,7 @@ export type RoleGateCode =
   | "role_change_failed"
   | "remove_failed"
   | "not_member"
+  | "remove_not_allowed"
   | "not_admin_add"
   | "team_not_found";
 export type WriteResult<T> =
@@ -411,7 +423,9 @@ export async function changeMemberRole(
     return failWrite(roleResult.reason, roleResult.error, roleResult.reason === "unavailable" ? 503 : 500);
   }
   if (!roleResult.role) return failWrite("not_found", "team not found", 404, "team_not_found");
-  if (roleResult.role === "member") return failWrite("forbidden", "not a member who can change roles", 403, "not_member");
+  // A member IS on this team, so the answer names the gate rather than denying their membership
+  // (round-4 ruling R2). Only the owner changes a role, which is true for every target.
+  if (roleResult.role === "member") return failWrite("forbidden", "only the owner can change a role", 403, "owner_only");
 
   const addRole = normalizeChangeRole(nextRole);
   if (!addRole) return failWrite("invalid", "invalid role", 400, "invalid_role");
@@ -440,9 +454,12 @@ export async function changeMemberRole(
     .eq("user_id", targetUserId)
     .select("user_id,role,invited_by,created_at");
   if (updated.error) {
-    return isAbsentTableError(updated.error)
-      ? failWrite("unavailable", updated.error.message || "unavailable", 503)
-      : failWrite("failed", updated.error.message || "update failed", 500);
+    if (isAbsentTableError(updated.error)) return failWrite("unavailable", updated.error.message || "unavailable", 503);
+    // The same refusal the zero-row branch below answers, just expressed as an error.
+    if (isPermissionDeniedError(updated.error)) {
+      return failWrite("forbidden", "role change refused by the database", 403, "role_change_failed");
+    }
+    return failWrite("failed", updated.error.message || "update failed", 500);
   }
   const rows = Array.isArray(updated.data) ? updated.data : updated.data ? [updated.data] : [];
   // Load-bearing: a zero-row result means RLS refused. Never a silent 200.
@@ -477,8 +494,10 @@ export async function removeMember(
   if (self && roleResult.role === "owner") {
     return failWrite("forbidden", "the owner cannot leave", 403, "owner_cannot_leave");
   }
+  // Round-4 ruling R2: the caller is a member of this team, so the sentence names the gate. It
+  // cannot be `owner_only` either — an administrator may remove a member — hence its own entry.
   if (roleResult.role === "member" && !self) {
-    return failWrite("forbidden", "not allowed to remove this person", 403, "not_member");
+    return failWrite("forbidden", "only the owner or an administrator can remove someone", 403, "remove_not_allowed");
   }
 
   const target = await getCallerRole(db, targetUserId, teamId);
@@ -490,9 +509,6 @@ export async function removeMember(
   if (!self && roleResult.role === "admin" && target.role === "admin") {
     return failWrite("forbidden", "only the owner can remove an administrator", 403, "owner_only_remove_admin");
   }
-  if (!self && roleResult.role !== "owner" && roleResult.role !== "admin") {
-    return failWrite("forbidden", "not allowed to remove this person", 403, "not_member");
-  }
 
   const deleted = await db
     .from(TEAM_MEMBERS_TABLE)
@@ -501,9 +517,13 @@ export async function removeMember(
     .eq("user_id", targetUserId)
     .select("user_id");
   if (deleted.error) {
-    return isAbsentTableError(deleted.error)
-      ? failWrite("unavailable", deleted.error.message || "unavailable", 503)
-      : failWrite("failed", deleted.error.message || "delete failed", 500);
+    if (isAbsentTableError(deleted.error)) return failWrite("unavailable", deleted.error.message || "unavailable", 503);
+    // 0019's tm_delete_admin raises 42501 on a forbidden DELETE by design. That is a 403 with this
+    // gate's sentence, not "We could not save that change."
+    if (isPermissionDeniedError(deleted.error)) {
+      return failWrite("forbidden", "remove refused by the database", 403, "remove_failed");
+    }
+    return failWrite("failed", deleted.error.message || "delete failed", 500);
   }
   const rows = Array.isArray(deleted.data) ? deleted.data : deleted.data ? [deleted.data] : [];
   // Zero rows with a caller who is a member is a 403, not a 404 and not a success.
@@ -566,6 +586,7 @@ export type TeamRouteCode =
   | "team_name_required"
   | "team_id_required"
   | "not_member"
+  | "remove_not_allowed"
   | "not_admin_add"
   | "team_not_found"
   | "already_on_team"
@@ -597,11 +618,20 @@ export const TEAM_ROUTE_MESSAGES: Record<TeamRouteCode, [string, string]> = {
   unrecognised_action: ["We do not recognise that action.", "我们无法识别该操作。"],
   team_name_required: ["A team needs a name of 1 to 120 characters.", "团队名称需要为 1 到 120 个字符。"],
   team_id_required: ["A team id is required.", "必须提供团队编号。"],
+  // `not_member` is for a caller who is genuinely not on the team (the roster GET's forbidden
+  // branch). It is NEVER the answer to a caller who IS a member: round-4 ruling R2 — a sentence
+  // the reader can receive has to be true about the reader's own state.
   not_member: ["You are not a member of this team.", "您不是该团队的成员。"],
+  remove_not_allowed: [
+    "Only the team owner or an administrator can remove someone from this team.",
+    "只有团队所有者或管理员才能将成员移出团队。",
+  ],
   not_admin_add: ["Only a team owner or admin can add people.", "只有团队所有者或管理员才能添加成员。"],
   team_not_found: INVITE_MESSAGES.team_not_found,
   already_on_team: ["That person is already on this team.", "该成员已在此团队中。"],
-  invalid_role: ["Choose a role: admin or member.", "请选择角色：管理员或成员。"],
+  // Round-4 ruling R4(j): every label this packet ships says "Administrator", so the sentence a
+  // caller reads says it too. The Chinese twin already read 管理员.
+  invalid_role: ["Choose a role: administrator or member.", "请选择角色：管理员或成员。"],
   invalid_user_id: ["That user id is not valid.", "该用户标识无效。"],
   user_not_found: ["We could not find that person. Ask them to sign in to Mastermind first.", "找不到该用户。请先让对方登录 Mastermind。"],
   email_not_supported: [
