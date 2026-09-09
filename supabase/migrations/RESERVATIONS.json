@@ -13,7 +13,9 @@
       "packet": null,
       "pr": null,
       "pr_state": null,
-      "note": "predates the reservation law; creating PR not recorded in-repo (null, not unknown-and-guessed)"
+      "applied_in_production": true,
+      "applied_date": null,
+      "note": "predates the reservation law; creating PR not recorded in-repo (null, not unknown-and-guessed); applied in production per README.md's application table (\"yes (recorded, largely no-ops)\"), which records no date for 0001-0007 -- applied_date is therefore null, not recorded before the ledger and never guessed"
     },
     "0002": {
       "state": "historical",
@@ -21,7 +23,9 @@
       "packet": null,
       "pr": null,
       "pr_state": null,
-      "note": "predates the reservation law; creating PR not recorded in-repo (null, not unknown-and-guessed)"
+      "applied_in_production": true,
+      "applied_date": null,
+      "note": "predates the reservation law; creating PR not recorded in-repo (null, not unknown-and-guessed); applied in production per README.md's application table (\"yes (recorded, largely no-ops)\"), which records no date for 0001-0007 -- applied_date is therefore null, not recorded before the ledger and never guessed"
     },
     "0003": {
       "state": "historical",
@@ -29,7 +33,9 @@
       "packet": null,
       "pr": null,
       "pr_state": null,
-      "note": "predates the reservation law; creating PR not recorded in-repo (null, not unknown-and-guessed)"
+      "applied_in_production": true,
+      "applied_date": null,
+      "note": "predates the reservation law; creating PR not recorded in-repo (null, not unknown-and-guessed); applied in production per README.md's application table (\"yes (recorded, largely no-ops)\"), which records no date for 0001-0007 -- applied_date is therefore null, not recorded before the ledger and never guessed"
     },
     "0004": {
       "state": "historical",
@@ -37,7 +43,9 @@
       "packet": null,
       "pr": null,
       "pr_state": null,
-      "note": "predates the reservation law; creating PR not recorded in-repo (null, not unknown-and-guessed); analytics_events.id is a bigint identity here (see 0011)"
+      "applied_in_production": true,
+      "applied_date": null,
+      "note": "predates the reservation law; creating PR not recorded in-repo (null, not unknown-and-guessed); analytics_events.id is a bigint identity here (see 0011); applied in production per README.md's application table (\"yes (recorded, largely no-ops)\"), which records no date for 0001-0007 -- applied_date is therefore null, not recorded before the ledger and never guessed"
     },
     "0005": {
       "state": "historical",
@@ -45,7 +53,9 @@
       "packet": null,
       "pr": null,
       "pr_state": null,
-      "note": "predates the reservation law; creating PR not recorded in-repo (null, not unknown-and-guessed)"
+      "applied_in_production": true,
+      "applied_date": null,
+      "note": "predates the reservation law; creating PR not recorded in-repo (null, not unknown-and-guessed); applied in production per README.md's application table (\"yes (recorded, largely no-ops)\"), which records no date for 0001-0007 -- applied_date is therefore null, not recorded before the ledger and never guessed"
     },
     "0006": {
       "state": "historical",
@@ -53,7 +63,9 @@
       "packet": null,
       "pr": null,
       "pr_state": null,
-      "note": "predates the reservation law; creating PR not recorded in-repo (null, not unknown-and-guessed)"
+      "applied_in_production": true,
+      "applied_date": null,
+      "note": "predates the reservation law; creating PR not recorded in-repo (null, not unknown-and-guessed); applied in production per README.md's application table (\"yes (recorded, largely no-ops)\"), which records no date for 0001-0007 -- applied_date is therefore null, not recorded before the ledger and never guessed"
     },
     "0007": {
       "state": "historical",
@@ -61,7 +73,9 @@
       "packet": null,
       "pr": null,
       "pr_state": null,
-      "note": "predates the reservation law; creating PR not recorded in-repo (null, not unknown-and-guessed)"
+      "applied_in_production": true,
+      "applied_date": null,
+      "note": "predates the reservation law; creating PR not recorded in-repo (null, not unknown-and-guessed); applied in production per README.md's application table (\"yes (recorded, largely no-ops)\"), which records no date for 0001-0007 -- applied_date is therefore null, not recorded before the ledger and never guessed"
     },
     "0008": {
       "state": "historical",
@@ -69,7 +83,9 @@
       "packet": null,
       "pr": 427,
       "pr_state": "merged",
-      "note": "the original collision: PR #427 and PR #426 both landed a 0008_ file; README.md:69-73"
+      "applied_in_production": true,
+      "applied_date": "2026-08-21",
+      "note": "the original collision: PR #427 and PR #426 both landed a 0008_ file; README.md:69-73; applied in production 2026-08-21 (README.md application table)"
     },
     "0009": {
       "state": "historical",
@@ -77,7 +93,9 @@
       "packet": null,
       "pr": 426,
       "pr_state": "merged",
-      "note": "renamed from 0008_watchlist_symbol_unique.sql at merge time; README.md:69-73"
+      "applied_in_production": true,
+      "applied_date": "2026-08-19",
+      "note": "renamed from 0008_watchlist_symbol_unique.sql at merge time; README.md:69-73; applied in production 2026-08-19 (README.md application table); applied two days BEFORE 0008 -- application order is not numeric order"
     },
     "0010": {
       "state": "historical",
@@ -85,7 +103,9 @@
       "packet": null,
       "pr": null,
       "pr_state": null,
-      "note": "applied 2026-08-21 (README.md:49); creating PR not recorded (null)"
+      "applied_in_production": true,
+      "applied_date": "2026-08-21",
+      "note": "applied 2026-08-21 (README.md:49); creating PR not recorded (null); applied in production 2026-08-21 (README.md application table)"
     },
     "0011": {
       "state": "historical",
@@ -93,7 +113,9 @@
       "packet": "CA1A",
       "pr": 507,
       "pr_state": "merged",
-      "note": "packet id read from the file header 0011_analytics_eid.sql:1 (WS:COMMERCIAL-ACTIVATION CA1A)"
+      "applied_in_production": true,
+      "applied_date": "2026-09-05",
+      "note": "packet id read from the file header 0011_analytics_eid.sql:1 (WS:COMMERCIAL-ACTIVATION CA1A); applied in production 2026-09-05, readback receipt posted 2026-09-06 on PR #507 comment 5557754941 (README.md application table)"
     },
     "0012": {
       "state": "taken",
@@ -101,7 +123,9 @@
       "packet": "F11-1",
       "pr": 502,
       "pr_state": "merged",
-      "note": "present on master via PR #502; open PR #520 (B-F11-2) does not touch supabase/migrations at all (verified against #520's file list) -- no collision, and the earlier claim that #520 edits this path was stale and is corrected here"
+      "applied_in_production": true,
+      "applied_date": "2026-09-06",
+      "note": "present on master via PR #502; DDL applied in production 2026-09-06 (README.md application table); receipt not posted as a PR comment (no receipt comment found on the owning PR); open PR #520 (B-F11-2) does not touch supabase/migrations at all (verified against #520's file list) -- no collision, and the earlier claim that #520 edits this path was stale and is corrected here"
     },
     "0013": {
       "state": "taken",
@@ -109,55 +133,74 @@
       "packet": "B-F08-2",
       "pr": 513,
       "pr_state": "merged",
-      "note": "present on master via PR #513 (merged 2026-09-06); the reservation premise that this file was absent from the checkout is stale and is corrected here -- present-file and absent-file are now both provable on the real tree (0013 present, 0014 still absent)"
+      "applied_in_production": true,
+      "applied_date": "2026-09-07",
+      "note": "present on master via PR #513 (merged 2026-09-06); DDL applied in production 2026-09-07; readback receipt on the owning PR: https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/513#issuecomment-5563321750; the reservation premise that this file was absent from the checkout is stale and is corrected here -- present-file and absent-file are now both provable on the real tree (0013 present, 0014 still absent)"
     },
     "0014": {
       "state": "taken",
       "file": "0014_tenancy_foundation.sql",
       "packet": "B-F12-1",
       "pr": 514,
-      "pr_state": "open",
-      "note": "file is in open PR #514 (packet B-F12-1); not applied"
+      "pr_state": "merged",
+      "merged_sha": "cff58ee8d",
+      "applied_in_production": true,
+      "applied_date": "2026-09-08",
+      "note": "merged to master as cff58ee8d (2026-09-08); DDL applied in production 2026-09-08; readback receipt posted on the owning PR: https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/514#issuecomment-5592694274"
     },
     "0015": {
       "state": "taken",
       "file": "0015_team_roles_invitations.sql",
       "packet": "B-F12-3",
       "pr": 514,
-      "pr_state": "open",
-      "note": "file landed in open PR #514; not applied. Packet id kept as B-F12-3 (the original claim)."
+      "pr_state": "merged",
+      "merged_sha": "cff58ee8d",
+      "applied_in_production": true,
+      "applied_date": "2026-09-08",
+      "note": "landed on master inside #514 (cff58ee8d, 2026-09-08); DDL applied in production 2026-09-08, strictly after 0014; readback receipt posted on the owning PR: https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/514#issuecomment-5592697055"
     },
     "0016": {
       "state": "taken",
       "file": "0016_account_lifecycle_requests.sql",
       "packet": "B-F12-4",
       "pr": 527,
-      "pr_state": "open",
-      "note": "file landed in open PR #527; not applied"
+      "pr_state": "merged",
+      "merged_sha": "68bbe8ea6",
+      "applied_in_production": true,
+      "applied_date": "2026-09-09T01:11:07Z",
+      "note": "merged to master as 68bbe8ea6 (2026-09-09; source master 68bbe8ea); DDL applied in production 2026-09-09T01:11:07Z; readback receipt posted on the owning PR: https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/527#issuecomment-5594233632"
     },
     "0017": {
-      "state": "free",
+      "state": "reserved",
       "file": null,
-      "packet": null,
+      "packet": "B-F13-5",
       "pr": null,
       "pr_state": null,
-      "note": "free -- claim before you write"
+      "note": "personal accuracy ledger; reserved by Meta-CEO B ruling 2026-09-09; PR pending"
     },
     "0018": {
-      "state": "free",
+      "state": "reserved",
       "file": null,
-      "packet": null,
+      "packet": "B-F12-7",
       "pr": null,
       "pr_state": null,
-      "note": "free -- claim before you write"
+      "note": "signed webhooks; reserved by Meta-CEO B ruling 2026-09-09; PR pending. B-F12-7 here is the seat's re-scoped Terminal signed-webhooks packet of 2026-09-09 (branch claude/mo-b-f12-7-signed-webhooks), not the refused public-API packet recorded against macro #6925 under the same id"
     },
     "0019": {
-      "state": "free",
+      "state": "reserved",
       "file": null,
-      "packet": null,
+      "packet": "B-F12-8",
       "pr": null,
       "pr_state": null,
-      "note": "free -- claim before you write"
+      "note": "team roles; reserved by Meta-CEO B ruling 2026-09-09; PR pending"
+    },
+    "0020": {
+      "state": "reserved",
+      "file": null,
+      "packet": "B-F12-9",
+      "pr": null,
+      "pr_state": null,
+      "note": "ownership transfer; reserved by Meta-CEO B ruling 2026-09-09; PR pending"
     },
     "0022": {
       "state": "taken",
@@ -165,7 +208,9 @@
       "packet": "B-F12-B5-2",
       "pr": 555,
       "pr_state": "open",
-      "note": "packet B-F12-B5-2 team-shared saved workspaces; shipped unapplied. Seat ruling R1 owns prefix 0022 (0021 is B-F12-B5-1 explicit grants). Open draft PR #555."
+      "applied_in_production": false,
+      "applied_date": null,
+      "note": "packet B-F12-B5-2 team-shared saved workspaces; shipped unapplied. Seat ruling R1 owns prefix 0022 (0021 is B-F12-B5-1 explicit grants). Open draft PR #555. applied_in_production is false and applied_date is null, not recorded as applied and never guessed."
     }
   }
 }

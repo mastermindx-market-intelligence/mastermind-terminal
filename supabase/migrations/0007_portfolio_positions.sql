@@ -2,7 +2,7 @@
 --
 -- ========================== THIS IS A RECORD, NOT A DEPLOYMENT ==========================
 -- `public.portfolio_positions` has been LIVE in the shared Supabase project
--- (`fsldfzlxyavsuwqbceod`) since <= 2026-07-18, but its CREATE TABLE was never version
+-- (`{ref}`) since <= 2026-07-18, but its CREATE TABLE was never version
 -- controlled in ANY repository — only its RLS policies were, in the macro repo's
 -- `templates/uwp_supabase.sql`. This file gives the table a home so a fresh environment can
 -- be stood up from source.
@@ -25,7 +25,7 @@
 -- =======================================================================================
 --
 -- ------------------------------- HOW THE SHAPE WAS VERIFIED -------------------------------
--- Live introspection, 2026-08-12, against https://fsldfzlxyavsuwqbceod.supabase.co/rest/v1
+-- Live introspection, 2026-08-12, against https://{ref}.supabase.co/rest/v1
 -- with the PUBLISHABLE key only (`sb_publishable_f33VG8fZ...`, public by design — macro
 -- `config.yml` watchlist.supabase.anon_key). No secret key, no DDL, no writes.
 --
