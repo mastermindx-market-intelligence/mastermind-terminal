@@ -128,12 +128,12 @@
       "note": "file landed in open PR #514; not applied. Packet id kept as B-F12-3 (the original claim)."
     },
     "0016": {
-      "state": "reserved",
-      "file": null,
+      "state": "taken",
+      "file": "0016_account_lifecycle_requests.sql",
       "packet": "B-F12-4",
-      "pr": null,
-      "pr_state": null,
-      "note": "claimed by packet B-F12-4; no pull request opened yet (null = not yet opened, not unknown). Packet id sourced from the B4 commission only."
+      "pr": 527,
+      "pr_state": "open",
+      "note": "file landed in open PR #527; not applied"
     },
     "0017": {
       "state": "free",
