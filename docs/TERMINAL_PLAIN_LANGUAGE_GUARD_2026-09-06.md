@@ -228,9 +228,11 @@ not a finding about the diff.
   convenience only — it is not what CI exercises, so `actions/checkout@v4`'s
   default depth in other jobs is irrelevant to this guard. §14 has the full
   wiring detail, including the one still-disclosed residual: a
-  `workflow_dispatch` run against a stale (unrefreshed) branch can see a
-  legacy line as newly added — a false red only, never a false green, and
-  one that merge-on-green's pre-dispatch branch refresh prevents in practice.
+  `workflow_dispatch` run whose branch is behind its base at dispatch time
+  can see a legacy line as newly added — a false red only, never a false
+  green. That includes merge-on-green's own dispatches: it issues the branch
+  refresh and dispatches this workflow immediately after, without waiting for
+  the (async) refresh to land, so the same window is open there too.
 
 ## 9. Review fixes (round 2, PR #530)
 
@@ -755,11 +757,14 @@ workflow itself:
   changes count as added and can block — which is the point of re-running
   the proof. A pre-existing line can surface as added on that path only if
   the branch is BEHIND the base: git reads the branch's older copy of a line
-  the base has since changed as an addition. merge-on-green refreshes a
-  branch from master before it dispatches, which is what keeps the branch
-  from being behind in practice — the disclosed residual (§14 above) is the
-  window between a hand-dispatched run on a branch that skipped that refresh
-  and the base moving; the failure direction stays false-red only.
+  the base has since changed as an addition. merge-on-green issues that
+  refresh (`PUT /pulls/{n}/update-branch`, queued async as a 202) and
+  dispatches this workflow immediately after, without polling the refresh to
+  completion or pinning the dispatch to the post-refresh sha — so the
+  disclosed residual (§8) is not limited to a hand-dispatched run: it is the
+  window, on ANY `workflow_dispatch` run, between the branch's tip at
+  dispatch time and the base moving; the failure direction stays false-red
+  only.
 - **The diff is taken with two dots, not three.** `git diff A B` compares two
   trees and needs no merge base; `git diff A...B` needs one, and two shallow
   histories give git nothing to find it in. On a pull request run, HEAD is

@@ -120,8 +120,11 @@ describe("plain-language guard — CI wiring", () => {
     expect(enforce).toContain("git fetch --no-tags --depth=1 origin");
     expect(enforce).toContain('"+refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}"');
     // Read through an env var, never interpolated straight into the shell:
-    // a branch name is attacker-controllable text.
-    expect(unit).toContain("BASE_REF: ${{ github.base_ref || 'master' }}");
+    // a branch name is attacker-controllable text. Scoped to the enforce
+    // step itself, like every other assertion in this test — a bare
+    // `expect(unit)` would also pass if BASE_REF were set as an env on some
+    // other step in the job.
+    expect(enforce).toContain("BASE_REF: ${{ github.base_ref || 'master' }}");
 
     // Forward-only mode, fed the diff that base resolution just made possible.
     expect(enforce).toMatch(/git diff --unified=0 "\$BASE" HEAD -- ':\/terminal'/);
@@ -129,7 +132,7 @@ describe("plain-language guard — CI wiring", () => {
     expect(enforce).toMatch(/check_plain_language\.mjs --mode enforce-added --diff-file/);
   });
 
-  it("A2b. terminal-unit — and only terminal-unit — checks out deep enough for HEAD^1 to resolve", () => {
+  it("A2b. terminal-unit's checkout step is deep enough for HEAD^1 to resolve", () => {
     const text = readFileSync(workflowPath, "utf8");
     const unit = jobBlock(text, "terminal-unit");
     // actions/checkout defaults to depth 1, which holds the merge commit and
@@ -139,17 +142,11 @@ describe("plain-language guard — CI wiring", () => {
     // reliably help, because checkout leaves remote.origin.fetch pointing at
     // refs/heads/* and the merge commit sits on no branch.
     expect(unit).toMatch(/- uses: actions\/checkout@v4\n\s+with:\n\s+fetch-depth: 2\n/);
-    // No other job pays for the extra objects — scoped by slicing terminal-unit
-    // out of the file first (jobBlock, same helper the rest of the suite
-    // uses) and asserting the REMAINDER never mentions fetch-depth, rather
-    // than asserting a file-wide occurrence COUNT. A legitimate future job
-    // adding its own fetch-depth for an unrelated reason still fails this
-    // (that is the point — it does not belong to terminal-unit), but the
-    // failure now shows the offending text instead of a bare "1 !== 2".
-    const outsideUnit = text.replace(unit, "");
-    expect(outsideUnit, "fetch-depth found outside the terminal-unit job").not.toContain(
-      "fetch-depth:",
-    );
+    // No file-wide "fetch-depth appears nowhere else" assertion here: this
+    // packet owns terminal-unit's checkout, not every job's. A future job
+    // (e.g. terminal-e2e) that legitimately needs its own checkout depth for
+    // an unrelated reason should not turn this plain-language suite red for
+    // wiring it does not own.
   });
 
   it("A3. both guard steps run LAST — after npm test and after the quarantine disclosure — inside the job that feeds the required check", () => {
@@ -177,25 +174,20 @@ describe("plain-language guard — CI wiring", () => {
     expect(aggregate).toContain("needs: [terminal-unit, terminal-e2e]");
   });
 
-  it("A4. the guard is not wired anywhere else in the workflow", () => {
+  it("A4. the guard is invoked exactly twice inside terminal-unit (self-check, then enforce)", () => {
     // Exactly two INVOCATIONS (self-check, then enforce), both in the job
-    // above. A third copy in e.g. terminal-e2e would double the cost and
-    // could disagree with this one. Counting `node scripts/...` rather than
-    // the bare filename keeps prose mentions of the script in the comments
-    // out of the count.
+    // above. A third copy in the same job would double the cost and could
+    // disagree with this one. Counting `node scripts/...` rather than the
+    // bare filename keeps prose mentions of the script in the comments out
+    // of the count.
     const text = readFileSync(workflowPath, "utf8");
     const unit = jobBlock(text, "terminal-unit");
     expect(unit.split("node scripts/check_plain_language.mjs").length - 1).toBe(2);
-    // Scoped like A2b: slice terminal-unit out (jobBlock) and assert the
-    // REMAINDER of the file never mentions the guard, instead of asserting a
-    // file-wide count of 2 — the two checks together still pin "exactly two,
-    // both inside terminal-unit," but a failure here names the job as
-    // outside terminal-unit rather than an opaque total mismatch.
-    const outsideUnit = text.replace(unit, "");
-    expect(
-      outsideUnit,
-      "guard invocation found outside the terminal-unit job",
-    ).not.toContain("node scripts/check_plain_language.mjs");
+    // No file-wide "the guard appears nowhere else" assertion here: this
+    // packet owns terminal-unit's wiring, not every job in the workflow. A
+    // future job that legitimately invokes the guard for its own reason
+    // should not turn this plain-language suite red for wiring it does not
+    // own.
   });
 });
 

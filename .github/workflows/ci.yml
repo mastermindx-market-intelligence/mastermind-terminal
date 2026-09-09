@@ -96,11 +96,15 @@ jobs:
       # could put a raw state enum or an untranslated stat token in front of a
       # user and every required check still went green.
       #
-      # These two steps run LAST in the job, after the quarantine disclosure
-      # above. That disclosure's comment promises it runs on EVERY run, but it
-      # carries no `if: always()`; a guard step placed before it would, the
-      # first time it found a blocking line, skip the disclosure outright and
-      # quietly retract that promise.
+      # These two steps run LAST in the job. The packet census permits this
+      # placement -- "after npm test" -- and landing them after the
+      # quarantine disclosure above specifically. That disclosure's comment
+      # promises it runs on EVERY run, but it carries no `if: always()`; on
+      # any run where the disclosure step itself executes, a guard step
+      # placed before it would, the first time it found a blocking line, skip
+      # the disclosure outright. Placing the guard last instead keeps that
+      # promise intact wherever it already holds, rather than giving it a new
+      # way to break.
       #
       # Step 1 proves the guard still works before anyone trusts its verdict.
       # Each rule is fed a fixture that violates it, through the same
@@ -139,9 +143,16 @@ jobs:
       # OWN changes count as added and can block, which is the point of
       # re-running the proof. A pre-existing line can only surface as added on
       # that path if the branch is BEHIND the base (git reads the branch's
-      # older copy of a line the base has since changed as an addition);
-      # merge-on-green refreshes the branch from master before it dispatches,
-      # which is what keeps the branch from being behind in practice.
+      # older copy of a line the base has since changed as an addition). That
+      # window is not hand-dispatch-only: merge-on-green issues
+      # `PUT /pulls/{n}/update-branch` (async, 202) and dispatches this
+      # workflow right after, without polling that update to completion or
+      # pinning the dispatch to the post-refresh sha -- so a merge-on-green
+      # dispatch can race the same behind-branch window a hand dispatch can.
+      # Failure direction stays false-red only. Making the refresh actually
+      # land before dispatch (poll update-branch, or dispatch on the observed
+      # post-refresh sha) is a change to scripts/merge_on_green.py, outside
+      # this job's four files.
       #
       # `set -euo pipefail` so the step fails CLOSED: an unresolvable HEAD^1
       # kills it loudly instead of leaving BASE empty and passing green.
