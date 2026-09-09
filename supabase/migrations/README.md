@@ -57,6 +57,7 @@ rows each record their own date — `0011`'s DDL was applied 2026-09-05
 | `0011_analytics_eid.sql` | `analytics_events.eid` (nullable unique UUID column) + `analytics_events_eid_uniq` unique index (WS:COMMERCIAL-ACTIVATION CA1A) | yes — DDL applied 2026-09-05; readback receipt posted 2026-09-06 (PR #507 comment `5557754941`) |
 | `0012_thesis_objects.sql` | `theses`, `thesis_versions` + `apply_thesis_version_v1()`/`read_current_thesis_versions_v1()` | yes — applied 2026-09-06 (Meta-CEO B; project fsldfzlxyavsuwqbceod; post-apply readback: both tables relrowsecurity=true, policies theses_select_own + thesis_versions_select_own, SELECT-only grant to authenticated, functions apply_thesis_version_v1 (security definer) + read_current_thesis_versions_v1 (security invoker), indexes theses_owner_updated_idx/theses_owner_subject_idx/thesis_versions_owner_thesis_idx) |
 | `0013_alert_runs_outbox.sql` | `alert_runs`, `alert_outbox` tables + RLS (Market Ontology F08 packet B-F08-2) | yes — applied 2026-09-07 via a direct Management API query (curl method above); readback receipt on PR #513 comment `5563321750` |
+| `0016_account_lifecycle_requests.sql` | `account_lifecycle_requests` table + RLS | **no** — pending Meta-CEO application |
 
 **Raw-fallback note (terminal PR #516):** `scripts/supabase_apply.py` only
 becomes the reviewed applier for files in this directory once that PR merges
