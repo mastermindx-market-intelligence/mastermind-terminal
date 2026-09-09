@@ -1,13 +1,16 @@
 # B-F13-5 Personal accuracy ledger — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 124c98e3c92b44f87534b3aa658f8bd61be2165a
-# capturedAt: 2026-09-09T10:45:56.692Z
+# capturedAtHead: a9a89325652d88d40c0710f1e44385d9c8b906b1
+# capturedAt: 2026-09-09T11:29:22.860Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/settings/SectionAccuracy.tsx: "64406bdd2a2e4c221705af8a8c1494b3b91712aea1a1dab9be410641d64f8023"
-  terminal/app/settings.css: "9af8217fdfaf2a1977b2f7b84246edfaf708ab5d27fcfb016bdd681ea309d0fb"
-  terminal/lib/personalAccuracy.ts: "6f463d93a4cd9d291d9af69e611a66f48675cee8787973a48fa917ee45ec2557"
+  terminal/components/settings/SectionAccuracy.tsx: "ca89bc9448e120bbc29cd9a9ac5b6b852802b3c14bd0910ead3d38f3f6dfb180"
+  terminal/components/settings/SectionAccuracy.module.css: "a35d7db4b05ab753db30f2ac46ba0b8c16eeef61309336531f05d2a6ae7f21cc"
+  terminal/components/settings/SettingsPanel.tsx: "f6b551b448636b5587203dac732ccc5e9f8e3e90030e3dfff81ba40b6622cb57"
+  terminal/lib/i18n.tsx: "e9d16875ffaf4be3339fcb07a589a7f1ac7653a6d7105ba8d37db8bceba7a651"
+  terminal/lib/personalAccuracy.ts: "37be44dd33da165e3a5466e4cc51cd70bfea2cbcac6ed8968760ac51286ee200"
+  terminal/app/dev/settings/accuracyFixtures.ts: "6f3b0831d99f641bd5a3da73cd34e1eb3cf22adb9c31f7eba2daa3ae11cf2aaf"
 theme: dark
 languages: [en, zh]
 viewports:
