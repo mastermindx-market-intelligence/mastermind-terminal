@@ -1,21 +1,22 @@
 # B-F12-8 Team roles v1 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: eb5569d9541333d70abc44c9482cd70f0485700b
-# capturedAt: 2026-09-09T13:14:05.971Z
+# capturedAtHead: 65283312838a34e70134a55e2604d096185299c6
+# capturedAt: 2026-09-09T18:25:21.109Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/settings/SectionTeam.tsx: "e63e1d7d7c7c01b4327346dd57755e4e0d6f3674d2e0743a5c830096dfe1b6b2"
-  terminal/components/settings/SectionTeam.module.css: "0064d75a9ba2ea8e90b91da9bebda903487de433c7e9cd2168f554d08e251cef"
+  terminal/components/settings/SectionTeam.tsx: "64b1a5bfe12fd07ae6beefc7162dc8145c3b3de45aaf8e19c1107b70d77ea67d"
+  terminal/components/settings/SectionTeam.module.css: "f5a8f2286cc7d997841f713e5b7dcb97dd418971bf4a3d2d9e623ec85afa0746"
   terminal/components/settings/SettingsPanel.tsx: "954825616c2c3d02b7ec5e3a82011e236f78219e91474e3483de1e317a9dc7d6"
+  terminal/components/settings/icons.tsx: "38047f880a5ed0717ab3940049990d2befefe0c6562869f09998f758acbd1406"
   terminal/app/settings.css: "3189163136d943431cbf52e4b5d241c105b695ba5af94c4c2e29151d537b5ef5"
-  terminal/lib/i18n.tsx: "d01e1459b95b17444723209257ce7e9a02e5ea4dd9319aa04c823b0c1cdc32eb"
+  terminal/lib/i18n.tsx: "157395a49c1a309035edee741d3055d83162a5ea3c6d45f7f4a23ab679bd043d"
 theme: dark
 languages: [en, zh]
 viewports:
   - { name: desktop, width: 1440, height: 900 }
   - { name: mobile, width: 390, height: 844 }
-harness: /dev/settings?s=team&lang=<en|zh>
+harness: /dev/settings?s=team&lang=<en|zh> (roster and confirm crops); /dev/settings?s=team&team=none&lang=<en|zh> (zero-team crops)
 capture_flag: TERMINAL_E2E_FIXTURE
 capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.
 command: |
@@ -26,16 +27,24 @@ files:
   - desktop-zh-team.png
   - desktop-en-change-role.png
   - desktop-zh-change-role.png
+  - desktop-en-no-team.png
+  - desktop-zh-no-team.png
   - mobile-en-team.png
   - mobile-zh-team.png
   - mobile-en-change-role.png
   - mobile-zh-change-role.png
+  - mobile-en-no-team.png
+  - mobile-zh-no-team.png
 measurements:
-  desktop-en-team.png: { roleBadgeText: "Member | Owner | Administrator | Member", changeRolePresent: true, removeClass: "acs-btn btn-danger SectionTeam-module__okp4Qq__btnSm" }
-  desktop-zh-team.png: { roleBadgeText: "成员 | 所有者 | 管理员 | 成员", changeRolePresent: true, removeClass: "acs-btn btn-danger SectionTeam-module__okp4Qq__btnSm" }
-  desktop-en-change-role.png: { roleBadgeText: "Member | Owner | Administrator | Member", changeRolePresent: true, removeClass: "acs-btn btn-danger SectionTeam-module__okp4Qq__btnSm" }
-  desktop-zh-change-role.png: { roleBadgeText: "成员 | 所有者 | 管理员 | 成员", changeRolePresent: true, removeClass: "acs-btn btn-danger SectionTeam-module__okp4Qq__btnSm" }
-  mobile-en-team.png: { roleBadgeText: "Member | Owner | Administrator | Member", changeRolePresent: true, removeClass: "acs-btn btn-danger SectionTeam-module__okp4Qq__btnSm" }
-  mobile-zh-team.png: { roleBadgeText: "成员 | 所有者 | 管理员 | 成员", changeRolePresent: true, removeClass: "acs-btn btn-danger SectionTeam-module__okp4Qq__btnSm" }
-  mobile-en-change-role.png: { roleBadgeText: "Member | Owner | Administrator | Member", changeRolePresent: true, removeClass: "acs-btn btn-danger SectionTeam-module__okp4Qq__btnSm" }
-  mobile-zh-change-role.png: { roleBadgeText: "成员 | 所有者 | 管理员 | 成员", changeRolePresent: true, removeClass: "acs-btn btn-danger SectionTeam-module__okp4Qq__btnSm" }
+  desktop-en-team.png: { roleBadgeText: "Member | Owner | Administrator | Member", changeRolePresent: true, changeRoleLabels: "Make a member | Make an administrator", confirmText: "", noTeamPresent: false, createLabel: "", removeClass: "acs-btn btn-danger SectionTeam-module__okp4Qq__btnSm" }
+  desktop-zh-team.png: { roleBadgeText: "成员 | 所有者 | 管理员 | 成员", changeRolePresent: true, changeRoleLabels: "设为成员 | 设为管理员", confirmText: "", noTeamPresent: false, createLabel: "", removeClass: "acs-btn btn-danger SectionTeam-module__okp4Qq__btnSm" }
+  desktop-en-change-role.png: { roleBadgeText: "Member | Owner | Administrator | Member", changeRolePresent: true, changeRoleLabels: "Make a member | Make an administrator", confirmText: "Remove this person from the team? They will lose access to everything the team shares.", noTeamPresent: false, createLabel: "", removeClass: "acs-btn btn-danger SectionTeam-module__okp4Qq__btnSm" }
+  desktop-zh-change-role.png: { roleBadgeText: "成员 | 所有者 | 管理员 | 成员", changeRolePresent: true, changeRoleLabels: "设为成员 | 设为管理员", confirmText: "确定将此成员移出团队吗？他们将无法再访问团队共享的任何内容。", noTeamPresent: false, createLabel: "", removeClass: "acs-btn btn-danger SectionTeam-module__okp4Qq__btnSm" }
+  desktop-en-no-team.png: { roleBadgeText: "", changeRolePresent: false, changeRoleLabels: "", confirmText: "", noTeamPresent: true, createLabel: "Create team", removeClass: "" }
+  desktop-zh-no-team.png: { roleBadgeText: "", changeRolePresent: false, changeRoleLabels: "", confirmText: "", noTeamPresent: true, createLabel: "创建团队", removeClass: "" }
+  mobile-en-team.png: { roleBadgeText: "Member | Owner | Administrator | Member", changeRolePresent: true, changeRoleLabels: "Make a member | Make an administrator", confirmText: "", noTeamPresent: false, createLabel: "", removeClass: "acs-btn btn-danger SectionTeam-module__okp4Qq__btnSm" }
+  mobile-zh-team.png: { roleBadgeText: "成员 | 所有者 | 管理员 | 成员", changeRolePresent: true, changeRoleLabels: "设为成员 | 设为管理员", confirmText: "", noTeamPresent: false, createLabel: "", removeClass: "acs-btn btn-danger SectionTeam-module__okp4Qq__btnSm" }
+  mobile-en-change-role.png: { roleBadgeText: "Member | Owner | Administrator | Member", changeRolePresent: true, changeRoleLabels: "Make a member | Make an administrator", confirmText: "Remove this person from the team? They will lose access to everything the team shares.", noTeamPresent: false, createLabel: "", removeClass: "acs-btn btn-danger SectionTeam-module__okp4Qq__btnSm" }
+  mobile-zh-change-role.png: { roleBadgeText: "成员 | 所有者 | 管理员 | 成员", changeRolePresent: true, changeRoleLabels: "设为成员 | 设为管理员", confirmText: "确定将此成员移出团队吗？他们将无法再访问团队共享的任何内容。", noTeamPresent: false, createLabel: "", removeClass: "acs-btn btn-danger SectionTeam-module__okp4Qq__btnSm" }
+  mobile-en-no-team.png: { roleBadgeText: "", changeRolePresent: false, changeRoleLabels: "", confirmText: "", noTeamPresent: true, createLabel: "Create team", removeClass: "" }
+  mobile-zh-no-team.png: { roleBadgeText: "", changeRolePresent: false, changeRoleLabels: "", confirmText: "", noTeamPresent: true, createLabel: "创建团队", removeClass: "" }
