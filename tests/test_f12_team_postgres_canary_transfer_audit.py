@@ -52,3 +52,11 @@ def test_lock_hold_check_can_fail():
     assert "lock_hold_ms >= 0" not in block
     assert "0 < lock_hold_ms" in block
     assert "clock_timestamp()" in block
+
+
+def test_concurrent_transfer_imports_threading():
+    """CI run 34397999407 crashed NameError: threading is not defined after the audit conjunct passed."""
+    src = CANARY.read_text(encoding="utf-8")
+    assert "import threading" in src
+    assert "threading.Barrier" in src
+    assert "import time" in src

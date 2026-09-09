@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Real-Postgres RLS + isolation canary for packets B-F12-3 and B-F12-8.
+"""Real-Postgres RLS + isolation canary for packets B-F12-3, B-F12-8 and B-F12-9.
 
 Same shape as f12_tenancy_postgres_canary.py: bootstrap a minimal `auth` schema + roles, apply
-every migration 0001..0019 in sorted order (0017 is applied when present), then exercise
-accept_team_invite, workspace_settings, team_role_changes and team_member_names under real
-actor-scoped connections (RLS is the authority under test, never application filtering). Emits
-GitHub annotations at line start with flush=True (fleet law) and writes a JSON receipt.
+every migration 0001..0020 in sorted order (0017 is applied when present), then exercise
+accept_team_invite, workspace_settings, team_role_changes, team_member_names and
+transfer_team_ownership under real actor-scoped connections (RLS is the authority under test,
+never application filtering). Emits GitHub annotations at line start with flush=True (fleet law)
+and writes a JSON receipt.
 
 Env: F12_TEAM_DATABASE_URL (required), F12_TEAM_EXPECTED_COMMIT/IMAGE/POSTGRES (optional, recorded
 only), F12_TEAM_GITHUB_RUN_ID/RUN_ATTEMPT/JOB (optional, recorded only).
@@ -16,6 +17,8 @@ import hashlib
 import json
 import os
 import sys
+import threading
+import time
 import uuid
 from pathlib import Path
 
