@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Real-Postgres RLS + isolation canary for packet B-F12-3 (0015_team_roles_invitations.sql).
+"""Real-Postgres RLS + isolation canary for packets B-F12-3 and B-F12-8.
 
 Same shape as f12_tenancy_postgres_canary.py: bootstrap a minimal `auth` schema + roles, apply
-every migration 0001..0015 in sorted order, then exercise accept_team_invite and
-workspace_settings under real actor-scoped connections (RLS is the authority under test, never
-application filtering). Emits GitHub annotations at line start with flush=True (fleet law) and
-writes a JSON receipt.
+every migration 0001..0019 in sorted order (0017 is applied when present), then exercise
+accept_team_invite, workspace_settings, team_role_changes and team_member_names under real
+actor-scoped connections (RLS is the authority under test, never application filtering). Emits
+GitHub annotations at line start with flush=True (fleet law) and writes a JSON receipt.
 
 Env: F12_TEAM_DATABASE_URL (required), F12_TEAM_EXPECTED_COMMIT/IMAGE/POSTGRES (optional, recorded
 only), F12_TEAM_GITHUB_RUN_ID/RUN_ATTEMPT/JOB (optional, recorded only).
@@ -323,6 +323,130 @@ def main() -> int:
         " intact, after deleting a non-creator WRITER's auth.users row -- deleting the team's own"
         " creator is a separate, frozen 0014 cascade this check does not exercise)",
     )
+
+    # --- B-F12-8: team_role_changes audit + T1/T3 policies + team_member_names ---
+    with admin.cursor() as cur:
+        cur.execute(
+            "select relrowsecurity, count(p.polname) from pg_class c "
+            "left join pg_policy p on p.polrelid=c.oid "
+            "where c.relnamespace='public'::regnamespace and c.relname='team_role_changes' group by 1"
+        )
+        row = cur.fetchone()
+    proof.check("catalog:team_role_changes", bool(row) and row[0] is True and row[1] == 1, str(row))
+
+    with admin.cursor() as cur:
+        cur.execute(
+            "select polcmd from pg_policy p join pg_class c on c.oid=p.polrelid "
+            "join pg_namespace n on n.oid=c.relnamespace "
+            "where n.nspname='public' and c.relname='team_role_changes'"
+        )
+        cmds = [r[0] for r in cur.fetchall()]
+    proof.check("rls:team_role_changes_select_only", cmds == ["r"], str(cmds))
+
+    g_admin = str(uuid.uuid4())
+    g_member = str(uuid.uuid4())
+    g_promote = str(uuid.uuid4())
+    g_peer = str(uuid.uuid4())
+    g_stranger = str(uuid.uuid4())
+    with admin.cursor() as cur:
+        cur.execute(
+            "insert into auth.users (id, email) values "
+            "(%s, 'g-admin@a.example'), (%s, 'g-member@a.example'), (%s, 'g-promote@a.example'), "
+            "(%s, 'g-peer@a.example'), (%s, 'g-stranger@a.example')",
+            (g_admin, g_member, g_promote, g_peer, g_stranger),
+        )
+        cur.execute(
+            "insert into public.team_members (team_id, user_id, role, invited_by) values "
+            "(%s,%s,'admin',%s), (%s,%s,'member',%s), (%s,%s,'member',%s), (%s,%s,'admin',%s)",
+            (team_a, g_admin, a_owner, team_a, g_member, a_owner, team_a, g_promote, a_owner, team_a, g_peer, a_owner),
+        )
+        cur.execute("update public.profiles set display_name = 'G Member' where id = %s", (g_member,))
+
+    g_admin_conn = actor_connection(dsn, g_admin)
+    g_member_conn = actor_connection(dsn, g_member)
+    g_stranger_conn = actor_connection(dsn, g_stranger)
+
+    with admin.cursor() as cur:
+        cur.execute(
+            "select count(*) from public.team_role_changes where team_id=%s and subject_id=%s",
+            (team_a, g_promote),
+        )
+        before_change = cur.fetchone()[0]
+
+    with a_conn.cursor() as cur:
+        cur.execute("update public.team_members set role='admin' where team_id=%s and user_id=%s", (team_a, g_promote))
+
+    with admin.cursor() as cur:
+        cur.execute(
+            "select subject_id::text, actor_id::text, old_role, new_role from public.team_role_changes "
+            "where team_id=%s and subject_id=%s and old_role is not null order by changed_at desc limit 1",
+            (team_a, g_promote),
+        )
+        latest = cur.fetchone()
+        cur.execute(
+            "select count(*) from public.team_role_changes where team_id=%s and subject_id=%s",
+            (team_a, g_promote),
+        )
+        after_change = cur.fetchone()[0]
+    proof.check("audit:role_change_writes_one_row", after_change == before_change + 1, f"before={before_change} after={after_change}")
+    proof.check(
+        "audit:role_change_ids",
+        bool(latest) and latest[0] == g_promote and latest[1] == a_owner and latest[2] == "member" and latest[3] == "admin",
+        str(latest),
+    )
+
+    def admin_demotes_peer():
+        with g_admin_conn.cursor() as cur:
+            cur.execute("update public.team_members set role='member' where team_id=%s and user_id=%s", (team_a, g_peer))
+
+    proof.check(
+        "rls:admin_cannot_change_peer_admin",
+        expect_database_error(admin_demotes_peer, "42501"),
+        "an administrator UPDATE of a peer administrator must raise 42501",
+    )
+
+    with g_member_conn.cursor() as cur:
+        cur.execute("select count(*) from public.team_role_changes where team_id=%s", (team_a,))
+        member_log_count = cur.fetchone()[0]
+    proof.check("rls:member_cannot_read_role_changes", member_log_count == 0, f"member saw {member_log_count} log rows")
+
+    def member_deletes_other():
+        with g_member_conn.cursor() as cur:
+            cur.execute("delete from public.team_members where team_id=%s and user_id=%s", (team_a, g_admin))
+
+    proof.check(
+        "rls:member_cannot_delete_other",
+        expect_database_error(member_deletes_other, "42501"),
+        "a member DELETE of another row must raise 42501",
+    )
+
+    with g_member_conn.cursor() as cur:
+        cur.execute("delete from public.team_members where team_id=%s and user_id=%s", (team_a, g_member))
+        deleted = cur.rowcount
+    proof.check("rls:member_can_leave", deleted == 1, f"rowcount={deleted}")
+
+    with admin.cursor() as cur:
+        cur.execute(
+            "select old_role, new_role from public.team_role_changes "
+            "where team_id=%s and subject_id=%s order by changed_at desc limit 1",
+            (team_a, g_member),
+        )
+        removal = cur.fetchone()
+    proof.check(
+        "audit:removal_new_role_null",
+        bool(removal) and removal[0] == "member" and removal[1] is None,
+        str(removal),
+    )
+
+    with g_stranger_conn.cursor() as cur:
+        cur.execute("select * from public.team_member_names(%s)", (team_a,))
+        stranger_names = cur.fetchall()
+    proof.check("rpc:team_member_names_hides_from_non_member", len(stranger_names) == 0, f"stranger saw {len(stranger_names)}")
+
+    with a_conn.cursor() as cur:
+        cur.execute("select user_id::text, display_name from public.team_member_names(%s)", (team_a,))
+        owner_names = cur.fetchall()
+    proof.check("rpc:team_member_names_for_member", len(owner_names) >= 1, str(owner_names))
 
     Path(args.receipt).write_text(json.dumps(_receipt(proof.failed), indent=2))
     print(f"::notice title=f12-team-canary::receipt written to {args.receipt}", flush=True)

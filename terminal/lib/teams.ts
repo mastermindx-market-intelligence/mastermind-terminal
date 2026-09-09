@@ -20,7 +20,13 @@ import type { DbResult, DbRow, WatchlistDb } from "@/lib/watchlists";
 export type TenancyDb = WatchlistDb;
 export type TeamRole = "owner" | "admin" | "member";
 export type Team = { id: string; name: string; role: TeamRole; createdAt: string | null };
-export type Member = { userId: string; role: TeamRole; invitedBy: string | null; createdAt: string | null };
+export type Member = {
+  userId: string;
+  role: TeamRole;
+  invitedBy: string | null;
+  createdAt: string | null;
+  displayName?: string | null;
+};
 export type Invite = { id: string; email: string; role: TeamRole; expiresAt: string | null; acceptedAt: string | null };
 
 export const TEAMS_TABLE = "teams";
@@ -95,13 +101,28 @@ export type MembersRead =
 // law (Chairman ruling, M3): the route maps `code` to a complete-sentence `message`, and `error`
 // (free-text, may embed a raw Postgres message) never reaches the HTTP response body directly.
 export type InvalidCode = "invalid_role" | "invalid_user_id" | "user_not_found" | "email_not_supported" | "missing_target";
+export type RoleGateCode =
+  | "owner_only"
+  | "owner_only_admin"
+  | "owner_only_change_admin"
+  | "owner_only_remove_admin"
+  | "owner_locked"
+  | "owner_cannot_leave"
+  | "no_self_role"
+  | "not_on_team"
+  | "same_role"
+  | "role_change_failed"
+  | "remove_failed"
+  | "not_member"
+  | "not_admin_add"
+  | "team_not_found";
 export type WriteResult<T> =
   | { ok: true; value: T }
   | {
       ok: false;
       reason: "unavailable" | "failed" | "forbidden" | "not_found" | "invalid" | "duplicate";
       error: string;
-      code?: InvalidCode;
+      code?: InvalidCode | RoleGateCode;
       status: number;
     };
 
@@ -266,11 +287,21 @@ export async function addMember(
     return { ok: false, reason: "not_found", error: "team not found", status: 404 };
   }
   if (roleResult.role !== "owner" && roleResult.role !== "admin") {
-    return { ok: false, reason: "forbidden", error: "only an owner or admin can add people", status: 403 };
+    return { ok: false, reason: "forbidden", error: "only an owner or admin can add people", code: "not_admin_add", status: 403 };
   }
 
   const addRole = normalizeAddRole(input.role);
   if (!addRole) return { ok: false, reason: "invalid", error: "invalid role", code: "invalid_role", status: 400 };
+  // T1: only the owner grants administrator.
+  if (roleResult.role === "admin" && addRole === "admin") {
+    return {
+      ok: false,
+      reason: "forbidden",
+      error: "only the owner can make someone an administrator",
+      code: "owner_only_admin",
+      status: 403,
+    };
+  }
 
   const targetUserId = typeof input.userId === "string" ? input.userId.trim() : "";
   const emailProvided = input.email !== undefined && input.email !== null && input.email !== "";
@@ -327,6 +358,154 @@ export async function addMember(
   return { ok: false, reason: "invalid", error: "userId or email required", code: "missing_target", status: 400 };
 }
 
+function failWrite<T>(
+  reason: "unavailable" | "failed" | "forbidden" | "not_found" | "invalid",
+  error: string,
+  status: number,
+  code?: InvalidCode | RoleGateCode,
+): WriteResult<T> {
+  return { ok: false, reason, error, status, ...(code ? { code } : {}) };
+}
+
+const TEAM_MEMBER_NAMES_FN = "team_member_names";
+
+/** Display names for a team's roster. Fail-closed: an unreadable name is absent, never invented. */
+export async function listMemberNames(
+  db: TenancyDb & { rpc?: (fn: string, args: Record<string, unknown>) => Promise<DbResult> },
+  teamId: string,
+): Promise<{ ok: true; names: Map<string, string> } | ReadFail> {
+  if (typeof db.rpc !== "function") return { ok: true, names: new Map() };
+  const result = await db.rpc(TEAM_MEMBER_NAMES_FN, { p_team: teamId });
+  if (result.error) {
+    return isAbsentTableError(result.error)
+      ? { ok: false, reason: "unavailable", error: result.error.message || "table unavailable" }
+      : { ok: false, reason: "failed", error: result.error.message || "read failed" };
+  }
+  const rows = (Array.isArray(result.data) ? result.data : result.data ? [result.data] : []) as DbRow[];
+  const names = new Map<string, string>();
+  for (const row of rows) {
+    const userId = typeof row.user_id === "string" ? row.user_id : null;
+    const displayName = typeof row.display_name === "string" ? row.display_name : "";
+    if (userId && displayName) names.set(userId, displayName);
+  }
+  return { ok: true, names };
+}
+
+export async function changeMemberRole(
+  db: TenancyDb,
+  actorUserId: string,
+  teamId: string,
+  targetUserId: string,
+  nextRole: unknown,
+): Promise<WriteResult<Member>> {
+  const roleResult = await getCallerRole(db, actorUserId, teamId);
+  if (!roleResult.ok) {
+    return failWrite(roleResult.reason, roleResult.error, roleResult.reason === "unavailable" ? 503 : 500);
+  }
+  if (!roleResult.role) return failWrite("not_found", "team not found", 404, "team_not_found");
+  if (roleResult.role === "member") return failWrite("forbidden", "not a member who can change roles", 403, "not_member");
+
+  const addRole = normalizeAddRole(nextRole);
+  if (!addRole) return failWrite("invalid", "invalid role", 400, "invalid_role");
+
+  const target = await getCallerRole(db, targetUserId, teamId);
+  if (!target.ok) {
+    return failWrite(target.reason, target.error, target.reason === "unavailable" ? 503 : 500);
+  }
+  if (!target.role) return failWrite("not_found", "that person is not on this team", 404, "not_on_team");
+  if (target.role === "owner") return failWrite("forbidden", "the owner cannot be changed", 403, "owner_locked");
+  if (targetUserId === actorUserId) return failWrite("forbidden", "cannot change own role", 403, "no_self_role");
+  if (roleResult.role !== "owner") {
+    return failWrite(
+      "forbidden",
+      "only the owner can change a role",
+      403,
+      target.role === "admin" || addRole === "admin" ? "owner_only_change_admin" : "owner_only",
+    );
+  }
+  if (target.role === addRole) return failWrite("invalid", "already that role", 400, "same_role");
+
+  const updated = await db
+    .from(TEAM_MEMBERS_TABLE)
+    .update({ role: addRole })
+    .eq("team_id", teamId)
+    .eq("user_id", targetUserId)
+    .select("user_id,role,invited_by,created_at");
+  if (updated.error) {
+    return isAbsentTableError(updated.error)
+      ? failWrite("unavailable", updated.error.message || "unavailable", 503)
+      : failWrite("failed", updated.error.message || "update failed", 500);
+  }
+  const rows = Array.isArray(updated.data) ? updated.data : updated.data ? [updated.data] : [];
+  // Load-bearing: a zero-row result means RLS refused. Never a silent 200.
+  if (rows.length === 0) {
+    return failWrite("forbidden", "role change refused", 403, "role_change_failed");
+  }
+  const row = rows[0] as DbRow;
+  return {
+    ok: true,
+    value: {
+      userId: typeof row.user_id === "string" ? row.user_id : targetUserId,
+      role: toRoleOrNull(row.role) ?? addRole,
+      invitedBy: typeof row.invited_by === "string" ? row.invited_by : null,
+      createdAt: typeof row.created_at === "string" ? row.created_at : null,
+    },
+  };
+}
+
+export async function removeMember(
+  db: TenancyDb,
+  actorUserId: string,
+  teamId: string,
+  targetUserId: string,
+): Promise<WriteResult<{ userId: string }>> {
+  const roleResult = await getCallerRole(db, actorUserId, teamId);
+  if (!roleResult.ok) {
+    return failWrite(roleResult.reason, roleResult.error, roleResult.reason === "unavailable" ? 503 : 500);
+  }
+  if (!roleResult.role) return failWrite("not_found", "team not found", 404, "team_not_found");
+
+  const self = targetUserId === actorUserId;
+  if (self && roleResult.role === "owner") {
+    return failWrite("forbidden", "the owner cannot leave", 403, "owner_cannot_leave");
+  }
+  if (roleResult.role === "member" && !self) {
+    return failWrite("forbidden", "not allowed to remove this person", 403, "not_member");
+  }
+
+  const target = await getCallerRole(db, targetUserId, teamId);
+  if (!target.ok) {
+    return failWrite(target.reason, target.error, target.reason === "unavailable" ? 503 : 500);
+  }
+  if (!target.role) return failWrite("not_found", "that person is not on this team", 404, "not_on_team");
+  if (target.role === "owner") return failWrite("forbidden", "the owner cannot be removed", 403, "owner_locked");
+  if (!self && roleResult.role === "admin" && target.role === "admin") {
+    return failWrite("forbidden", "only the owner can remove an administrator", 403, "owner_only_remove_admin");
+  }
+  if (!self && roleResult.role !== "owner" && roleResult.role !== "admin") {
+    return failWrite("forbidden", "not allowed to remove this person", 403, "not_member");
+  }
+
+  const deleted = await db
+    .from(TEAM_MEMBERS_TABLE)
+    .delete()
+    .eq("team_id", teamId)
+    .eq("user_id", targetUserId)
+    .select("user_id");
+  if (deleted.error) {
+    return isAbsentTableError(deleted.error)
+      ? failWrite("unavailable", deleted.error.message || "unavailable", 503)
+      : failWrite("failed", deleted.error.message || "delete failed", 500);
+  }
+  const rows = Array.isArray(deleted.data) ? deleted.data : deleted.data ? [deleted.data] : [];
+  // Zero rows with a caller who is a member is a 403, not a 404 and not a success.
+  if (rows.length === 0) {
+    return failWrite("forbidden", "remove refused", 403, "remove_failed");
+  }
+  const row = rows[0] as DbRow;
+  return { ok: true, value: { userId: typeof row.user_id === "string" ? row.user_id : targetUserId } };
+}
+
 // --- Packet B-F12-3: invitations, role-gated authorization, workspace-scoped settings ---
 // (MO-PAID-081 invitation/membership flow, MO-PAID-082 role/permission model, MO-PAID-083
 // workspace concept.) Reuses this file's existing token primitives (newInviteToken /
@@ -349,7 +528,7 @@ export type InviteCode =
   | "no_email_delivery" | "unavailable" | "failed";
 
 // [en, zh] tuples -- same shape as lib/i18n.tsx:18 `LEX: Record<string, [string, string]>`.
-// i18n.tsx is NOT an owned path, so the catalogue lives here; lift into LEX when a UI lands.
+// UI-facing labels live in LEX (packet B-F12-8). Route messages stay here.
 // Plain-word law: complete sentences, no role slugs, no table/function names, no status codes,
 // no internal state words, never falsifier/refuted/证伪.
 export const INVITE_MESSAGES: Record<InviteCode, [string, string]> = {
@@ -387,7 +566,18 @@ export type TeamRouteCode =
   | "user_not_found"
   | "email_not_supported"
   | "missing_target"
-  | "invalid_request";
+  | "invalid_request"
+  | "owner_only"
+  | "owner_only_admin"
+  | "owner_only_change_admin"
+  | "owner_only_remove_admin"
+  | "owner_locked"
+  | "owner_cannot_leave"
+  | "no_self_role"
+  | "not_on_team"
+  | "same_role"
+  | "role_change_failed"
+  | "remove_failed";
 
 // Same [en, zh] shape as INVITE_MESSAGES. Used by /api/teams and /api/teams/[id]/members.
 export const TEAM_ROUTE_MESSAGES: Record<TeamRouteCode, [string, string]> = {
@@ -412,6 +602,17 @@ export const TEAM_ROUTE_MESSAGES: Record<TeamRouteCode, [string, string]> = {
   ],
   missing_target: ["Provide a user id or an email address.", "请提供用户标识或电子邮件地址。"],
   invalid_request: ["That request is not valid.", "该请求无效。"],
+  owner_only: ["Only the team owner can do this.", "只有团队所有者可以执行此操作。"],
+  owner_only_admin: ["Only the team owner can make someone an administrator.", "只有团队所有者才能将他人设为管理员。"],
+  owner_only_change_admin: ["Only the team owner can change an administrator.", "只有团队所有者才能更改管理员。"],
+  owner_only_remove_admin: ["Only the team owner can remove an administrator.", "只有团队所有者才能移除管理员。"],
+  owner_locked: ["The team owner cannot be changed or removed.", "团队所有者无法被更改或移除。"],
+  owner_cannot_leave: ["The team owner cannot leave the team.", "团队所有者无法退出团队。"],
+  no_self_role: ["You cannot change your own role. Ask the team owner.", "您无法更改自己的角色。请联系团队所有者。"],
+  not_on_team: ["That person is not on this team.", "该成员不在此团队中。"],
+  same_role: ["That person already has that role.", "该成员已经是该角色。"],
+  role_change_failed: ["We could not change that role just now. Nothing was changed.", "我们暂时无法更改该角色。未更改任何内容。"],
+  remove_failed: ["We could not remove that person just now. Nothing was changed.", "我们暂时无法移除该成员。未更改任何内容。"],
 };
 
 export const SETTING_MESSAGES: Record<"saved" | "not_admin" | "invalid_key" | "invalid_value" | "unavailable", [string, string]> = {
@@ -464,7 +665,7 @@ function inviteRow(row: DbRow | null): Invite | null {
   };
 }
 
-type CreateInviteResult = WriteResult<{ invite: Invite; token: string }> & { code?: InviteCode };
+type CreateInviteResult = WriteResult<{ invite: Invite; token: string }> & { code?: InviteCode | RoleGateCode };
 
 export async function createInvite(
   db: TenancyDb,
@@ -472,7 +673,7 @@ export async function createInvite(
   teamId: string,
   input: { email?: unknown; role?: unknown },
 ): Promise<CreateInviteResult> {
-  const fail = (v: { reason: string; error: string; code?: InviteCode; status: number }): CreateInviteResult => ({ ok: false, ...v } as unknown as CreateInviteResult);
+  const fail = (v: { reason: string; error: string; code?: InviteCode | RoleGateCode; status: number }): CreateInviteResult => ({ ok: false, ...v } as unknown as CreateInviteResult);
   const roleResult = await getCallerRole(db, userId, teamId);
   if (!roleResult.ok) return fail({reason: roleResult.reason, error: roleResult.error, code: roleResult.reason === "unavailable" ? "unavailable" : "failed", status: roleResult.reason === "unavailable" ? 503 : 500})
   if (!roleResult.role) {
@@ -485,6 +686,15 @@ export async function createInvite(
   if (!email) return fail({reason: "invalid", error: "invalid email", code: "invalid_email", status: 400})
   const role = normalizeRole(input.role);
   if (!role || role === "owner") return fail({reason: "invalid", error: "invalid role", code: "invalid_role", status: 400})
+  // T1: only the owner grants administrator, including through an invitation.
+  if (roleResult.role === "admin" && role === "admin") {
+    return fail({
+      reason: "forbidden",
+      error: "only the owner can make someone an administrator",
+      code: "owner_only_admin",
+      status: 403,
+    });
+  }
 
   const token = newInviteToken();
   const insertResult = await db

@@ -337,8 +337,13 @@ def test_reservations_records_the_known_collision_surface():
     assert prefixes["0016"]["pr"] == 527
     assert prefixes["0016"]["pr_state"] == "open"
 
-    for prefix in ("0017", "0018", "0019"):
+    for prefix in ("0017", "0018"):
         assert prefixes[prefix]["state"] == "free"
+
+    assert prefixes["0019"]["state"] == "taken"
+    assert prefixes["0019"]["file"] == "0019_team_role_changes.sql"
+    assert prefixes["0019"]["packet"] == "B-F12-8"
+    assert prefixes["0019"]["pr_state"] == "open"
 
     assert doc["claim_before_you_write"].strip() != ""
 

@@ -8,6 +8,9 @@ on:
       # 0014 is included so a change there also re-runs this canary (round-3 review minor).
       - "supabase/migrations/0014_tenancy_foundation.sql"
       - "supabase/migrations/0015_team_roles_invitations.sql"
+      - "supabase/migrations/0016_account_lifecycle_requests.sql"
+      - "supabase/migrations/0017_personal_accuracy_ledger.sql"
+      - "supabase/migrations/0019_team_role_changes.sql"
       - "terminal/scripts/f12_team_postgres_canary.py"
       - ".github/workflows/f12-team-postgres-canary.yml"
   workflow_dispatch: {}

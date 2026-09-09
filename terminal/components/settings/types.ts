@@ -14,6 +14,27 @@ export type AcsQuotas = AccountQuotas;
 export type AcsPlan = AccountPlan;
 export type AcsUsage = AccountUsage;
 
+export type DevTeamMember = {
+  userId: string;
+  role: "owner" | "admin" | "member";
+  displayName: string;
+  createdAt: string | null;
+};
+export type DevTeamInvite = {
+  id: string;
+  email: string;
+  role: "admin" | "member";
+  expiresAt: string | null;
+};
+/** Dev-harness roster (app/dev/settings). The harness has no Supabase session. */
+export type DevTeamFixture = {
+  team: { id: string; name: string };
+  callerRole: "owner" | "admin" | "member";
+  callerUserId: string;
+  members: DevTeamMember[];
+  invites: DevTeamInvite[];
+};
+
 /** What every section receives from the panel. */
 export interface SectionProps {
   t: (key: string, fallback?: string) => string;

@@ -152,12 +152,12 @@
       "note": "free -- claim before you write"
     },
     "0019": {
-      "state": "free",
-      "file": null,
-      "packet": null,
-      "pr": null,
-      "pr_state": null,
-      "note": "free -- claim before you write"
+      "state": "taken",
+      "file": "0019_team_role_changes.sql",
+      "packet": "B-F12-8",
+      "pr": 548,
+      "pr_state": "open",
+      "note": "claimed in this pull request (packet B-F12-8, team roles v1); not applied. Seat ruling R6: 0017 = F13-5, 0018 = F12-7, this packet is 0019. The pr number is filled after the draft opens if GitHub assigns a different one."
     }
   }
 }

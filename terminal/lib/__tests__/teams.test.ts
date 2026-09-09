@@ -10,8 +10,11 @@ import {
   normalizeEmail,
   normalizeRole,
   normalizeTeamName,
+  TEAM_ROUTE_MESSAGES,
+  type TeamRouteCode,
   type TenancyDb,
 } from "@/lib/teams";
+import { LEX } from "@/lib/i18n";
 
 function fakeDb(responder: (table: string, calls: string[]) => { data?: unknown; error?: { code?: string; message?: string } | null }): TenancyDb {
   const captured: { table: string; calls: string[]; payload?: unknown }[] = [];
@@ -490,3 +493,99 @@ describe("INVITE_MESSAGES plain-word completeness (acceptance #6)", () => {
     }
   });
 });
+
+const NEW_TEAM_ROUTE_CODES: TeamRouteCode[] = [
+  "owner_only",
+  "owner_only_admin",
+  "owner_only_change_admin",
+  "owner_only_remove_admin",
+  "owner_locked",
+  "owner_cannot_leave",
+  "no_self_role",
+  "not_on_team",
+  "same_role",
+  "role_change_failed",
+  "remove_failed",
+];
+
+const NEW_LEX_KEYS = [
+  "acsTeam",
+  "acsTeamSub",
+  "acsTeamPeople",
+  "acsRoleOwner",
+  "acsRoleAdmin",
+  "acsRoleMember",
+  "acsRoleOwnerWhat",
+  "acsRoleAdminWhat",
+  "acsRoleMemberWhat",
+  "acsTeamWhatEach",
+  "acsTeamYou",
+  "acsTeamJoined",
+  "acsMakeAdmin",
+  "acsMakeMember",
+  "acsTeamRemove",
+  "acsTeamLeave",
+  "acsOwnerLocked",
+  "acsTeamRemoveAsk",
+  "acsTeamLeaveAsk",
+  "acsTeamSaved",
+  "acsTeamRemoved",
+  "acsTeamLeft",
+  "acsTeamEmpty",
+] as const;
+
+const SENTENCE_LEX_KEYS = new Set([
+  "acsTeamSub",
+  "acsRoleOwnerWhat",
+  "acsRoleAdminWhat",
+  "acsRoleMemberWhat",
+  "acsOwnerLocked",
+  "acsTeamRemoveAsk",
+  "acsTeamLeaveAsk",
+  "acsTeamSaved",
+  "acsTeamRemoved",
+  "acsTeamLeft",
+  "acsTeamEmpty",
+]);
+
+const BANNED = ["falsifier", "refuted", "证伪", "team_members", "team_role_changes", "team_member_names", "RLS", "42501", "23505"];
+
+describe("TEAM_ROUTE_MESSAGES and LEX plain-word completeness (B-F12-8)", () => {
+  it("every new TEAM_ROUTE_MESSAGES entry is a distinct EN/ZH sentence with no banned vocabulary", () => {
+    for (const code of NEW_TEAM_ROUTE_CODES) {
+      const [en, zh] = TEAM_ROUTE_MESSAGES[code];
+      expect(en.length).toBeGreaterThan(0);
+      expect(zh.length).toBeGreaterThan(0);
+      expect(en).not.toBe(zh);
+      expect(zh).toMatch(/[一-鿿]/);
+      expect(en).toMatch(/^[A-Z].*[.!?]$/);
+      for (const banned of BANNED) {
+        expect(en).not.toContain(banned);
+        expect(zh).not.toContain(banned);
+      }
+      expect(en).not.toMatch(/\b\d{3}\b/);
+    }
+  });
+
+  it("every new LEX key is a distinct EN/ZH pair with no banned vocabulary", () => {
+    for (const key of NEW_LEX_KEYS) {
+      const pair = LEX[key];
+      expect(pair, key).toBeTruthy();
+      const [en, zh] = pair;
+      expect(en.length).toBeGreaterThan(0);
+      expect(zh.length).toBeGreaterThan(0);
+      expect(en).not.toBe(zh);
+      expect(zh).toMatch(/[一-鿿]/);
+      expect(en).toMatch(/^[A-Z]/);
+      if (SENTENCE_LEX_KEYS.has(key)) {
+        expect(en).toMatch(/^[A-Z].*[.!?]$/);
+      }
+      for (const banned of BANNED) {
+        expect(en).not.toContain(banned);
+        expect(zh).not.toContain(banned);
+      }
+      expect(en).not.toMatch(/\b\d{3}\b/);
+    }
+  });
+});
+

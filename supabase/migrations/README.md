@@ -60,6 +60,7 @@ rows each record their own date — `0011`'s DDL was applied 2026-09-05
 | `0014_tenancy_foundation.sql` | `teams`, `team_members`, `team_invites` tables + `is_team_member()`/`team_role()`/`handle_new_team()` + RLS | yes — applied 2026-09-08 (Meta-CEO B; readback receipt on PR #514 comment `5592694274`) |
 | `0015_team_roles_invitations.sql` | `workspace_settings` table + `accept_team_invite()` + RLS | yes — applied 2026-09-08 (Meta-CEO B; readback receipt on PR #514 comment `5592697055`) |
 | `0016_account_lifecycle_requests.sql` | `account_lifecycle_requests` table + RLS | yes — applied 2026-09-09 (Meta-CEO B; readback receipt on PR #527 comment `5594233632`) |
+| `0019_team_role_changes.sql` | `team_role_changes` table + `log_team_role_change()` / `team_member_names()` + replaced `tm_insert_admin` / `tm_update_admin` / `tm_delete_admin` | **no** — open PR (packet B-F12-8); not applied |
 
 **Raw-fallback note (terminal PR #516):** `scripts/supabase_apply.py` only
 becomes the reviewed applier for files in this directory once that PR merges
@@ -181,6 +182,7 @@ amendment, only a README edit.
 | `0014` | `tenancy_foundation` | PR #514 (merged as `cff58ee8` on 2026-09-08, packet B-F12-1) | merged + applied 2026-09-08 |
 | `0015` | `team_roles_invitations` | PR #514 (merged as `cff58ee8` on 2026-09-08, packet B-F12-3; authored on stacked PR #526 squash `83424c63`) | merged + applied 2026-09-08 |
 | `0016` | `account_lifecycle_requests` | PR #527 (merged as `68bbe8ea` on 2026-09-09, packet B-F12-4) | merged + applied 2026-09-09 |
+| `0019` | `team_role_changes` | packet B-F12-8 (this pull request; owner / administrator / member roles v1) | open PR; not applied |
 
 What the statuses mean: **reserved** — the number is claimed (for example, by a Meta-CEO B
 pre-reservation) but no pull request carrying its file is open yet; **open PR** — a pull

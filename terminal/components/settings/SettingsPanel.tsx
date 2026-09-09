@@ -7,9 +7,9 @@ import { entitlementAgeMs, useDisplayEntitlement } from "@/lib/entitlementStore"
 import { useUsage } from "@/lib/usageStore";
 import type { AcsUser, SettingsSection } from "./SettingsProvider";
 import { SETTINGS_SECTIONS } from "./SettingsProvider";
-import type { AcsPlan, AcsUsage, SectionProps } from "./types";
+import type { AcsPlan, AcsUsage, DevTeamFixture, SectionProps } from "./types";
 import {
-  IconAccount, IconBilling, IconPrefs, IconSignOut, IconSync, IconTerminal, IconUsage, IconX,
+  IconAccount, IconBilling, IconPrefs, IconSignOut, IconSync, IconTeam, IconTerminal, IconUsage, IconX,
 } from "./icons";
 import SectionAccount from "./SectionAccount";
 import SectionBilling from "./SectionBilling";
@@ -17,6 +17,7 @@ import SectionUsage from "./SectionUsage";
 import SectionPreferences from "./SectionPreferences";
 import SectionTerminal from "./SectionTerminal";
 import SectionSync from "./SectionSync";
+import SectionTeam from "./SectionTeam";
 
 // ── The settings dashboard shell ─────────────────────────────────────────────
 // Ported from the Macro Dashboard's `_buildSDash` / `_wireSDash` / `_sdShow` /
@@ -31,6 +32,7 @@ import SectionSync from "./SectionSync";
 
 const NAV: { id: SettingsSection; icon: React.ReactNode; key: string }[] = [
   { id: "account", icon: <IconAccount />, key: "acsAccount" },
+  { id: "team", icon: <IconTeam />, key: "acsTeam" },
   { id: "billing", icon: <IconBilling />, key: "acsBilling" },
   { id: "usage", icon: <IconUsage />, key: "acsUsage" },
   { id: "prefs", icon: <IconPrefs />, key: "acsPrefs" },
@@ -40,6 +42,7 @@ const NAV: { id: SettingsSection; icon: React.ReactNode; key: string }[] = [
 
 const HEAD_KEY: Record<SettingsSection, string> = {
   account: "acsAccount",
+  team: "acsTeam",
   billing: "acsBilling",
   usage: "acsUsage",
   prefs: "acsPrefs",
@@ -64,6 +67,7 @@ export interface SettingsPanelProps {
    *  way to exercise the paid/unlimited plan states and the usage meters. */
   devPlan?: AcsPlan;
   devUsage?: AcsUsage;
+  devTeam?: DevTeamFixture;
 }
 
 export default function SettingsPanel(props: SettingsPanelProps) {
@@ -265,9 +269,11 @@ export default function SettingsPanel(props: SettingsPanelProps) {
           {/* Only the active section is mounted: that gives the acsRise entry
               animation for free on every switch, and keeps the six sections
               from all fetching at once. The payloads they share (plan, usage)
-              are cached above, so switching back is free. */}
+              are cached above, so switching back is free. Team joins the existing
+              settings family; it is not a third nav. */}
           <div className="acs-sect on" key={section}>
             {section === "account" && <SectionAccount {...shared} />}
+            {section === "team" && <SectionTeam {...shared} devTeam={props.devTeam} />}
             {section === "billing" && (
               <SectionBilling {...shared} plan={plan} planErr={planErr} planStale={planStale} onRefreshPlan={entitlement.refresh} />
             )}

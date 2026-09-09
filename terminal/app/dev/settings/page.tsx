@@ -15,7 +15,7 @@ import { notFound, useSearchParams } from "next/navigation";
 import SettingsPanel from "@/components/settings/SettingsPanel";
 import type { SettingsSection } from "@/components/settings/SettingsProvider";
 import type { AcsUser } from "@/components/settings/SettingsProvider";
-import type { AcsPlan, AcsUsage } from "@/components/settings/types";
+import type { AcsPlan, AcsUsage, DevTeamFixture } from "@/components/settings/types";
 import { applyLang } from "@/lib/i18n";
 import { accountIdentity, GUEST_IDENTITY } from "@/lib/accountIdentity";
 
@@ -64,7 +64,41 @@ const USAGE: Record<string, AcsUsage> = {
   unlimited: { tier: "pro", quotas: { fast: { remaining: 0, limit: -1 }, pro: { remaining: 96, limit: 150, period: "month" } } },
 };
 
-const SECTIONS: SettingsSection[] = ["account", "billing", "usage", "prefs", "terminal", "sync"];
+const SECTIONS: SettingsSection[] = ["account", "team", "billing", "usage", "prefs", "terminal", "sync"];
+
+const DEV_TEAM: DevTeamFixture = {
+  team: { id: "team-desk", name: "Desk" },
+  callerRole: "owner",
+  callerUserId: MOCK_USER.id,
+  members: [
+    {
+      userId: MOCK_USER.id,
+      role: "owner",
+      displayName: "Chris Wong",
+      createdAt: "2026-02-14T09:12:00.000Z",
+    },
+    {
+      userId: "a1b2c3d4-1111-4e6a-9c03-5b71ee0a4d22",
+      role: "admin",
+      displayName: "Alex Chen",
+      createdAt: "2026-03-01T12:00:00.000Z",
+    },
+    {
+      userId: "b2c3d4e5-2222-4e6a-9c03-5b71ee0a4d22",
+      role: "member",
+      displayName: "Jordan Lee",
+      createdAt: "2026-04-02T15:30:00.000Z",
+    },
+  ],
+  invites: [
+    {
+      id: "inv-1",
+      email: "pending@example.com",
+      role: "member",
+      expiresAt: "2026-09-23T00:00:00.000Z",
+    },
+  ],
+};
 
 const btn = (on: boolean): React.CSSProperties => ({
   font: "600 12px var(--font-ui)",
@@ -149,6 +183,7 @@ function Harness() {
         onRefreshUser={async () => {}}
         devPlan={PLANS[planKey]}
         devUsage={USAGE[usageKey]}
+        devTeam={DEV_TEAM}
       />
     </div>
   );
