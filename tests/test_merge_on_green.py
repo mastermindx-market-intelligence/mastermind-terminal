@@ -84,6 +84,7 @@ class FakeApi:
         # number -> (status, message) to raise as ApiError instead of merging.
         self.merge_errors = merge_errors or {}
         self.actions = []
+        self.dispatched: list[tuple[str, int | None]] = []
 
     def list_pulls(self):
         return [deepcopy(item) for item in self.pulls.values()]
@@ -97,8 +98,12 @@ class FakeApi:
     def update_branch(self, number, head_sha):
         self.actions.append(("update", number, head_sha))
 
-    def dispatch_ci(self, branch):
+    def dispatch_ci(self, branch, pr_number=None):
+        # The ("dispatch_ci", branch) shape is what the older tests assert on and
+        # is kept; `dispatched` additionally records the number the sweeper hands
+        # down, which is what makes the refreshed head's CI run provable.
         self.actions.append(("dispatch_ci", branch))
+        self.dispatched.append((branch, pr_number))
 
     def merge(self, number, head_sha):
         self.actions.append(("merge", number, head_sha))
@@ -509,3 +514,94 @@ def test_after_one_merge_the_next_stale_green_is_refreshed_not_merged():
         "#1: merged and deleted claude/pr-1",
         "#2: updated onto current master; awaiting fresh CI",
     ]
+
+
+# --- review round 4, MAJOR 2 -------------------------------------------------
+#
+# A GITHUB_TOKEN-authored branch update fires no recursive pull_request workflow,
+# so the run this controller dispatches is the ONLY CI run for the sha that then
+# merges. On a workflow_dispatch `github.event.pull_request.number` is empty, so
+# the supabase/migrations namespace guard resolved that gating run to its LENIENT
+# rule set and its one enforcement rule was inert on exactly the head that
+# merges. ci.yml now takes a `pr_number` input and the number is passed through.
+#
+# Every test here drives a stub in place of the HTTP layer: nothing touches the
+# network, and no token or project reference appears anywhere.
+
+
+class RecordingApi(mog.GitHubApi):
+    """A real GitHubApi with only `request` replaced, so the payload under test is
+    the one the production method actually builds.
+    """
+
+    def __init__(self, fail_statuses: list[int] | None = None):
+        super().__init__("owner/repo", "unused-in-this-test")
+        self.calls: list[tuple[str, str, dict[str, Any] | None]] = []
+        self.fail_statuses = list(fail_statuses or [])
+
+    def request(self, method, path, payload=None):  # type: ignore[override]
+        self.calls.append((method, path, deepcopy(payload)))
+        if self.fail_statuses:
+            raise ApiError(self.fail_statuses.pop(0), "Unexpected inputs provided")
+        return None
+
+
+def test_dispatch_carries_the_pull_request_number_as_a_workflow_input():
+    api = RecordingApi()
+    api.dispatch_ci("claude/pr-7", 543)
+    assert api.calls == [
+        (
+            "POST",
+            "/actions/workflows/ci.yml/dispatches",
+            {"ref": "claude/pr-7", "inputs": {"pr_number": "543"}},
+        )
+    ]
+
+
+def test_dispatch_without_a_number_sends_no_inputs_key():
+    api = RecordingApi()
+    api.dispatch_ci("claude/pr-7")
+    assert api.calls == [("POST", "/actions/workflows/ci.yml/dispatches", {"ref": "claude/pr-7"})]
+
+
+def test_a_422_on_the_input_retries_once_without_it_and_says_the_run_is_lenient(capsys):
+    """A branch whose ci.yml predates the input answers 422. Ordering the proof
+    matters more than ordering it in the stricter mode -- but the fallback must
+    say out loud that the dispatched run will not assert the pull-request rule,
+    rather than let a reader assume it did.
+    """
+    api = RecordingApi(fail_statuses=[422])
+    api.dispatch_ci("claude/pr-7", 543)
+
+    assert [call[2] for call in api.calls] == [
+        {"ref": "claude/pr-7", "inputs": {"pr_number": "543"}},
+        {"ref": "claude/pr-7"},
+    ]
+    printed = capsys.readouterr().out
+    assert "LENIENT" in printed and "422" in printed and "claude/pr-7" in printed
+
+
+def test_a_non_422_dispatch_error_is_not_swallowed():
+    """Only the "this workflow does not take that input" case is retried. A 404 or
+    a 5xx is a real failure and must reach the sweep's error path.
+    """
+    api = RecordingApi(fail_statuses=[404])
+    with pytest.raises(ApiError):
+        api.dispatch_ci("claude/pr-7", 543)
+    assert len(api.calls) == 1
+
+
+def test_a_422_without_inputs_is_not_retried_forever():
+    api = RecordingApi(fail_statuses=[422])
+    with pytest.raises(ApiError):
+        api.dispatch_ci("claude/pr-7")
+    assert len(api.calls) == 1
+
+
+def test_the_refresh_path_hands_the_number_to_the_dispatched_run():
+    """The wiring through sweep(), not just the leaf method: the number is known
+    at the refresh site and must reach the run that will gate the merge.
+    """
+    api = FakeApi([pull(7, mergeable_state="behind")])
+    sweep(api)
+    assert api.dispatched == [("claude/pr-7", 7)]
