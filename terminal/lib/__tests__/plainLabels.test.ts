@@ -2,7 +2,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { FD } from "@/lib/flowdeskStrings";
-import { getHeatmapStr } from "@/lib/heatmapStrings";
+import { getHeatmapStr, sectorChipLabel } from "@/lib/heatmapStrings";
 import { LEX } from "@/lib/i18n";
 import {
   CLASSIC_CATEGORY_TKEY,
@@ -23,6 +23,8 @@ import {
   WIDGET_TYPE_LABEL,
   SUBJECT_KIND_LABEL,
   SOURCE_KIND_LABEL,
+  OPTION_RIGHT_LABEL,
+  optionRightLabel,
   SOURCE_STATUS_LABEL,
   TOPIC_STATUS_LABEL,
   FLOW_SIDE_LABEL,
@@ -591,5 +593,59 @@ describe("batch 3 retail register", () => {
     expect(LEX.peLangScript[1]).toBe("脚本");
     expect(LEX.peLastEdited[0]).toContain("Last edited");
     expect(LEX.peLastEdited[1]).toContain("上次修改");
+  });
+});
+
+describe("plain-language — batch 3 round 3", () => {
+  it("optionRightLabel spells the option right; the bare C / P letters never reach a chip", () => {
+    expect(optionRightLabel("C", "en")).toBe("Call");
+    expect(optionRightLabel("C", "zh")).toBe("认购");
+    expect(optionRightLabel("P", "en")).toBe("Put");
+    expect(optionRightLabel("P", "zh")).toBe("认沽");
+    expect(optionRightLabel("", "en")).toBe("All");
+    expect(optionRightLabel("", "zh")).toBe("全部");
+    expect(optionRightLabel(null, "zh")).toBe("全部");
+    expect(optionRightLabel("Z", "en")).toBe(notClassified("en"));
+    for (const [en, zh] of Object.values(OPTION_RIGHT_LABEL)) {
+      expect(en).not.toMatch(/^[CP]$/);
+      expect(zh).not.toMatch(/[A-Za-z]/);
+    }
+  });
+
+  it("the heatmap lean row label is a plain word in both languages", () => {
+    expect(getHeatmapStr("en", "detailLean")).toBe("Lean");
+    expect(getHeatmapStr("zh", "detailLean")).toBe("倾向");
+    expect(getHeatmapStr("en", "detailLean")).not.toContain("~");
+    expect(getHeatmapStr("zh", "detailLean")).not.toContain("~");
+  });
+
+  it("sector chips read Chinese in the ZH frame and keep the English token in EN", () => {
+    expect(sectorChipLabel("zh", "Information Technology", "TECH")).toBe("科技");
+    expect(sectorChipLabel("zh", "Communication Services", "COMM")).toBe("通信");
+    expect(sectorChipLabel("zh", "Consumer Discretionary", "CONS DISC")).toBe("非必需消费");
+    expect(sectorChipLabel("zh", "Real Estate", "REAL EST")).toBe("房地产");
+    expect(sectorChipLabel("en", "Information Technology", "TECH")).toBe("TECH");
+    expect(sectorChipLabel("zh", "Nonexistent Sector", "FALLBACK")).toBe("FALLBACK");
+  });
+
+  it("the protected-script tooltip and badge are plain fintech words, not ALL CAPS jargon", () => {
+    expect(LEX.peProtected[0]).toBe("Protected script — source not shown");
+    expect(LEX.peProtected[1]).toBe("受保护脚本，不显示源代码");
+    expect(LEX.peProtected[0].toLowerCase()).not.toContain("proprietary");
+    expect(LEX.peProtected[1]).not.toContain("自研");
+    expect(LEX.peProprietaryBadge[0]).toBe("Protected");
+    expect(LEX.peProprietaryBadge[1]).toBe("受保护");
+    expect(LEX.peProprietaryBadge[0]).not.toBe(LEX.peProprietaryBadge[0].toUpperCase());
+  });
+
+  it("the pine console and inputs heading have bilingual keys beside peCompiledOk", () => {
+    expect(LEX.peCompiling[0]).toContain("{name}");
+    expect(LEX.peCompiling[1]).toContain("{name}");
+    expect(LEX.peCompiling[1]).toContain("正在编译");
+    expect(LEX.peErrorCount[0]).toBe("{n} errors");
+    expect(LEX.peErrorCount[1]).toBe("{n} 个错误");
+    expect(LEX.peErrorCountOne[1]).toBe("1 个错误");
+    expect(LEX.peInputsHeading[0]).toBe("Inputs");
+    expect(LEX.peInputsHeading[1]).toBe("可调参数");
   });
 });

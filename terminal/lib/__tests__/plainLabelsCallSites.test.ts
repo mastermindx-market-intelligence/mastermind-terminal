@@ -341,3 +341,78 @@ describe("plain-language call sites — batch 3", () => {
     expect(src).toContain("mappedOrNeutral(");
   });
 });
+
+describe("plain-language call sites — batch 3 round 3", () => {
+  const readLib = (rel: string) => readFileSync(join(__dirname, "..", rel), "utf8");
+
+  it("OptionsFlowBoardView.tsx: the schema slug leaves the visible chrome but stays machine-readable", () => {
+    const src = readOwned("options/OptionsFlowBoardView.tsx");
+    expect(src).not.toContain('<code>{feedSchema');
+    expect(src).toContain("data-options-flow-contract=");
+    const codeLine = lineContaining(src, "<code", "feed chip");
+    expect(codeLine).toContain("title=");
+    expect(codeLine).toContain("pick(");
+    expect(codeLine).not.toMatch(/>\{feedSchema/);
+  });
+
+  it("OptionsFlowBoardView.tsx: the call/put chips and the card clock read as words", () => {
+    const src = readOwned("options/OptionsFlowBoardView.tsx");
+    expect(src).not.toContain('"All C/P"');
+    expect(src).not.toContain("全部 C/P");
+    expect(src).not.toContain("{value || (lang");
+    expect(src).toContain("optionRightLabel(");
+    expect(src).not.toContain("} ET</span>");
+    const clock = lineContaining(src, "formatTime(event.ts)} ", "card clock");
+    expect(clock).toContain("pick(");
+    expect(clock).toContain("美东");
+  });
+
+  it("FiltersPanel.tsx: score and DTE options carry real Chinese, routed through pick()", () => {
+    const src = readOwned("flowdesk/FiltersPanel.tsx");
+    expect(src).not.toContain('{ v: 0,  label: "Any" }');
+    expect(src).not.toContain('{ v: 90, label: "90+ Elite" }');
+    expect(src).not.toContain('{ key: "0d",     label: "0DTE" }');
+    expect(src).toContain('zh: "不限"');
+    expect(src).toContain('zh: "90+ 顶级"');
+    expect(src).toContain('zh: "当日到期"');
+    expect(src).toContain('zh: "90天以上"');
+    expect(lineContaining(src, "SCORE_OPTIONS.map", "score row")).toContain("zh: zl");
+    expect(lineContaining(src, "DTE_OPTIONS.map", "dte row")).toContain("zh: zl");
+  });
+
+  it("PineEditor.tsx: the compiling line, the error count and the inputs heading route through t()", () => {
+    const src = readOwned("PineEditor.tsx");
+    expect(src).not.toContain("Compiling {active.name}");
+    expect(src).not.toContain("<h4>Inputs</h4>");
+    expect(src).not.toContain("{lines.length} lines");
+    expect(src).not.toContain('error{diag.length === 1 ? "" : "s"}');
+    expect(src).toContain('t("peCompiling")');
+    expect(src).toContain('t("peErrorCount")');
+    expect(src).toContain('t("peErrorCountOne")');
+    expect(src).toContain('t("peInputsHeading")');
+    expect(src).toContain('t("peLineCount")');
+  });
+
+  it("HeatmapView.tsx: sector chips go through sectorChipLabel, never the raw English map", () => {
+    const src = readOwned("heatmap/HeatmapView.tsx");
+    expect(src).not.toContain("label={sc.label}");
+    expect(src).toContain("sectorChipLabel(lang, sc.sector, sc.label)");
+    expect(src).toMatch(/from ["']@\/lib\/heatmapStrings["']/);
+  });
+
+  it("heatmapStrings.ts: the lean label drops the tilde fragment", () => {
+    const src = readLib("heatmapStrings.ts");
+    const leanEntry = lineContaining(src, "detailLean:", "detailLean entry");
+    expect(leanEntry).not.toContain("~");
+    expect(leanEntry).toContain('["Lean", "倾向"]');
+    // tonePos / toneNeg / detailVerdictSoft still carry the "(~soft)" fragment; they are
+    // off-crop (DetailPanel only) and out of this batch's diff — censused for batch 4.
+    expect(src).toContain("sectorChipLabel");
+  });
+
+  it("i18n.tsx: the protected-script strings are plain, not ALL CAPS jargon", () => {
+    const src = readLib("i18n.tsx");
+    expect(src).not.toContain('["PROPRIETARY", "自研"]');
+    expect(src).not.toContain("Proprietary — protected source, editing disabled");
+  });
+});

@@ -77,12 +77,12 @@ interface FiltersPanelProps {
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-const DTE_OPTIONS: { key: DteBucket; label: string }[] = [
-  { key: "0d",     label: "0DTE" },
-  { key: "1_7d",   label: "1–7d" },
-  { key: "8_30d",  label: "8–30d" },
-  { key: "31_90d", label: "31–90d" },
-  { key: "90p",    label: "90d+" },
+const DTE_OPTIONS: { key: DteBucket; label: string; zh: string }[] = [
+  { key: "0d",     label: "0DTE",   zh: "当日到期" },
+  { key: "1_7d",   label: "1–7d",   zh: "1–7天" },
+  { key: "8_30d",  label: "8–30d",  zh: "8–30天" },
+  { key: "31_90d", label: "31–90d", zh: "31–90天" },
+  { key: "90p",    label: "90d+",   zh: "90天以上" },
 ];
 
 const MNY_OPTIONS: { key: MnyBucket; label: string; zh: string }[] = [
@@ -92,13 +92,13 @@ const MNY_OPTIONS: { key: MnyBucket; label: string; zh: string }[] = [
   { key: "far_otm",  label: "Far OTM",  zh: "深虚值" },
 ];
 
-const SCORE_OPTIONS: { v: FlowFilters["minScore"]; label: string }[] = [
-  { v: 0,  label: "Any" },
-  { v: 50, label: "50+" },
-  { v: 60, label: "60+" },
-  { v: 70, label: "70+" },
-  { v: 80, label: "80+" },
-  { v: 90, label: "90+ Elite" },
+const SCORE_OPTIONS: { v: FlowFilters["minScore"]; label: string; zh: string }[] = [
+  { v: 0,  label: "Any",       zh: "不限" },
+  { v: 50, label: "50+",       zh: "50+" },
+  { v: 60, label: "60+",       zh: "60+" },
+  { v: 70, label: "70+",       zh: "70+" },
+  { v: 80, label: "80+",       zh: "80+" },
+  { v: 90, label: "90+ Elite", zh: "90+ 顶级" },
 ];
 
 const PREMIUM_OPTIONS: { v: number; label: string; zh: string }[] = [
@@ -279,13 +279,13 @@ export function FiltersPanel({ filters, onFiltersChange, lang }: FiltersPanelPro
       {/* ── Min Score ── */}
       <FilterRow label={zh ? "最低评分" : "Min score"}>
         <div className="fin-toggle">
-          {SCORE_OPTIONS.map(({ v, label }) => (
+          {SCORE_OPTIONS.map(({ v, label, zh: zl }) => (
             <button
               key={v}
               className={filters.minScore === v ? "on" : ""}
               onClick={() => patch({ minScore: v })}
             >
-              {label}
+              {pick(zh, label, zl)}
             </button>
           ))}
         </div>
@@ -309,7 +309,7 @@ export function FiltersPanel({ filters, onFiltersChange, lang }: FiltersPanelPro
       {/* ── DTE Buckets ── */}
       <FilterRow label={zh ? "到期天数" : "DTE"}>
         <div style={CHIP_ROW_STYLE}>
-          {DTE_OPTIONS.map(({ key, label }) => {
+          {DTE_OPTIONS.map(({ key, label, zh: zl }) => {
             const on = filters.dteBuckets.includes(key);
             return (
               <button
@@ -318,7 +318,7 @@ export function FiltersPanel({ filters, onFiltersChange, lang }: FiltersPanelPro
                 className={`obs-chip${on ? " on" : ""}`}
                 aria-pressed={on}
               >
-                {label}
+                {pick(zh, label, zl)}
               </button>
             );
           })}

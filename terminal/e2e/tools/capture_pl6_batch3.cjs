@@ -31,6 +31,7 @@ const LAYOUT_FILES = [
   "terminal/components/alerts/AlertDetail.tsx",
   "terminal/components/heatmap/HeatmapView.tsx",
   "terminal/components/heatmap/Treemap.tsx",
+  "terminal/lib/heatmapStrings.ts",
   "terminal/lib/plainLabels.ts",
   "terminal/lib/i18n.tsx",
 ];

@@ -3,7 +3,7 @@
 import { useDeferredValue, useMemo, useState } from "react";
 import type { Lang } from "@/lib/i18n";
 import { pick } from "@/lib/finFormat";
-import { flowSideLabel, volAboveOiLabel } from "@/lib/plainLabels";
+import { flowSideLabel, optionRightLabel, volAboveOiLabel } from "@/lib/plainLabels";
 import {
   selectOptionsFlowBoardRows,
   summarizeOptionsFlowBoard,
@@ -152,7 +152,7 @@ export function OptionsFlowBoardView({
         </div>
         <div className="options-flow-board-source" aria-label={pick(lang === "zh", "Data source", "数据来源")}>
           <span className={stale || unavailable ? "is-stale" : !events ? "is-pending" : ""}>{sourceStatus}</span>
-          <code>{feedSchema || "live_flow.feed/v1"}</code>
+          <code title={feedSchema || "live_flow.feed/v1"}>{pick(lang === "zh", "Flow feed", "资金流数据源")}</code>
           {sessionDate && <small>{sessionDate}</small>}
         </div>
       </div>
@@ -190,7 +190,7 @@ export function OptionsFlowBoardView({
               aria-pressed={right === value}
               onClick={() => setRight(value)}
             >
-              {value || (lang === "zh" ? "全部 C/P" : "All C/P")}
+              {optionRightLabel(value, lang)}
             </button>
           ))}
         </div>
@@ -298,7 +298,7 @@ export function OptionsFlowBoardView({
                     <strong>{formatPremium(event.premium)}</strong>
                   </div>
                   <div className="options-flow-board-card-meta">
-                    <span>{formatTime(event.ts)} ET</span>
+                    <span>{formatTime(event.ts)} {pick(lang === "zh", "ET", "美东")}</span>
                     <span>{event.n_prints.toLocaleString("en-US")} {lang === "zh" ? "笔" : "prints"}</span>
                     <span>{event.size.toLocaleString("en-US")} {lang === "zh" ? "张" : "contracts"}</span>
                     <span className={`options-flow-board-side side-${event.side.replace("~", "")}`}>{flowSideLabel(event.side, lang)}</span>

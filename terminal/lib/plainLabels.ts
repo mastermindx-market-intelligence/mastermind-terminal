@@ -231,6 +231,26 @@ export const FLOW_SIDE_LABEL = {
   mixed: ["Mixed", "混合"],
 } as const;
 
+/** Option right shown on the flow board chips — never the bare C / P letter. */
+export const OPTION_RIGHT_LABEL = {
+  C: ["Call", "认购"],
+  c: ["Call", "认购"],
+  call: ["Call", "认购"],
+  P: ["Put", "认沽"],
+  p: ["Put", "认沽"],
+  put: ["Put", "认沽"],
+} as const;
+
+export type OptionRightKey = keyof typeof OPTION_RIGHT_LABEL;
+
+/** Empty value means "no right filter" — the chip reads All / 全部, not a raw token. */
+export function optionRightLabel(value: string | null | undefined, lang: PlainLang): string {
+  if (value == null || value === "") return lang === "zh" ? "全部" : "All";
+  const pair = OPTION_RIGHT_LABEL[value as OptionRightKey];
+  if (!pair) return notClassified(lang);
+  return lang === "zh" ? pair[1] : pair[0];
+}
+
 export type FlowSideKey = keyof typeof FLOW_SIDE_LABEL;
 
 export function flowSideLabel(value: string | null | undefined, lang: PlainLang): string {

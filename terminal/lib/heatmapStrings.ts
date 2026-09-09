@@ -88,7 +88,7 @@ const HM_LEX = {
   detailCallPct:    ["Call share", "认购占比"],
   detailTone:       ["Positioning tone", "持仓倾向"],
   detailToneSoft:   ["(ΔOI-based, direction soft)", "（基于ΔOI，方向为软性）"],
-  detailLean:       ["Lean (~soft)", "倾向（~软性）"],
+  detailLean:       ["Lean", "倾向"],
   detailDivChip:    ["Price and flow disagree — trust the size", "价格与资金流背离 — 以规模为准"],
   detailDivNote:    ["Price direction and flow tone disagree beyond dead-zones. Treat as a magnitude observation, not a directional call.", "价格走势与持仓倾向超出中性区间后背离。视为规模观察，非方向性判断。"],
   detailNoDoi:      ["ΔOI tone unavailable", "ΔOI倾向数据缺失"],
@@ -141,6 +141,30 @@ const HM_LEX = {
 } as const;
 
 type HeatmapKey = keyof typeof HM_LEX;
+
+/** GICS sector → sector-chip key. Keeps the ZH chip row off the English GICS tokens. */
+const SECTOR_CHIP_KEY: Record<string, HeatmapKey> = {
+  "Information Technology": "sectorTech",
+  "Communication Services": "sectorComm",
+  "Consumer Discretionary": "sectorConsDisc",
+  "Consumer Staples":       "sectorConsStaple",
+  "Financials":             "sectorFinance",
+  "Health Care":            "sectorHealth",
+  "Energy":                 "sectorEnergy",
+  "Industrials":            "sectorIndustrial",
+  "Materials":              "sectorMaterials",
+  "Utilities":              "sectorUtilities",
+  "Real Estate":            "sectorRealEstate",
+  "Crypto":                 "sectorCrypto",
+  "ETF":                    "sectorETF",
+  "Other":                  "sectorOther",
+};
+
+/** Sector chip text for `lang`; unmapped sectors fall back to the caller's label. */
+export function sectorChipLabel(lang: Lang, sector: string, fallback: string): string {
+  const key = SECTOR_CHIP_KEY[sector];
+  return key ? getHeatmapStr(lang, key) : fallback;
+}
 
 export function getHeatmapStr(lang: Lang, key: HeatmapKey): string {
   const entry = HM_LEX[key];

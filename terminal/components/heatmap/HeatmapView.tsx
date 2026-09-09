@@ -19,7 +19,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLang } from "@/lib/i18n";
 import { trackSearch } from "@/lib/searchTrack";
-import { makeHeatmapT } from "@/lib/heatmapStrings";
+import { makeHeatmapT, sectorChipLabel } from "@/lib/heatmapStrings";
 import { Tip } from "@/components/ui/Tip";
 import { Treemap, heatSwatches } from "./Treemap";
 import { HeatmapTable } from "./HeatmapTable";
@@ -612,7 +612,7 @@ export function HeatmapView() {
         {sectorChips.map(sc => (
           <SectorChip
             key={sc.sector}
-            label={sc.label}
+            label={sectorChipLabel(lang, sc.sector, sc.label)}
             active={sectorFilt === sc.sector}
             value={layer === "flow" ? sc.avgTone : sc.avgChg}
             isFlow={layer === "flow"}
