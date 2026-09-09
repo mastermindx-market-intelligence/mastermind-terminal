@@ -604,6 +604,26 @@ describe("B-F08-B5-3 lastAttempt/lastSuccess come from monitorLanes, never the e
     expect(view.lastSuccessState).toBe("READ_OK_ZERO");
   });
 
+  it("a timestamp on the relevant lane is kept when lastSuccessState is omitted", () => {
+    const engine = {
+      run: baseRun(),
+      runsState: "READ_OK" as const,
+      lastSuccessAt: "2026-09-05T11:59:00Z",
+      id: "engine" as const,
+    };
+    const suite = { run: null, runsState: "READ_OK_ZERO" as const, id: "suite" as const };
+    const armed: Alert[] = [{ id: "p1", active: true, created_at: "2026-01-01T00:00:00Z", condition: { type: "price" } }];
+    const lanes = lanesForArmedAlerts(armed, engine, suite);
+    const view = buildAlertsView({
+      alerts: armed, alertsState: "READ_OK",
+      run: engine.run, lastSuccessAt: engine.lastSuccessAt, lastSuccessState: "READ_UNAVAILABLE",
+      runsState: engine.runsState,
+      outbox: [], outboxState: "READ_OK_ZERO", now: NOW, monitorLanes: lanes,
+    });
+    expect(view.lastSuccessAt).toBe("2026-09-05T11:59:00Z");
+    expect(view.lastSuccessState).toBe("READ_OK");
+  });
+
   it("suite-free user still reports the engine lane's attempt and last success", () => {
     const armed: Alert[] = [{ id: "p1", active: true, created_at: "2026-01-01T00:00:00Z", condition: { type: "price" } }];
     const lanes = lanesForArmedAlerts(armed, engineFresh, suiteNever);

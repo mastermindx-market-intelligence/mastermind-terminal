@@ -203,15 +203,22 @@ export function attemptAndSuccessForLanes(
     : focus.some((l) => l.runsState === "READ_UNAVAILABLE") ? "READ_UNAVAILABLE" : "READ_OK_ZERO";
 
   const successes = focus.map(laneLastSuccess);
-  if (successes.some((s) => s.state === "READ_UNAVAILABLE")) {
-    return { lastAttemptAt, lastAttemptState, lastSuccessAt: null, lastSuccessState: "READ_UNAVAILABLE" };
+  const times = successes.map((s) => s.at).filter((t): t is string => typeof t === "string");
+  // A last-success time is the proof-of-run claim. Missing time → honest null.
+  // READ_UNAVAILABLE without a time is "cannot read"; a present time is still a
+  // success even if a mock omitted last_success_state (fmtTime prefers the ISO).
+  if (times.length === 0) {
+    const lastSuccessState: ReadState = successes.some((s) => s.state === "READ_UNAVAILABLE")
+      ? "READ_UNAVAILABLE"
+      : "READ_OK_ZERO";
+    return { lastAttemptAt, lastAttemptState, lastSuccessAt: null, lastSuccessState };
   }
-  if (successes.some((s) => !s.at)) {
+  if (times.length < successes.length) {
     return { lastAttemptAt, lastAttemptState, lastSuccessAt: null, lastSuccessState: "READ_OK_ZERO" };
   }
   return {
     lastAttemptAt, lastAttemptState,
-    lastSuccessAt: newestIso(successes.map((s) => s.at as string)),
+    lastSuccessAt: newestIso(times),
     lastSuccessState: "READ_OK",
   };
 }

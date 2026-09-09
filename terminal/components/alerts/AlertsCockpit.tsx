@@ -78,17 +78,30 @@ export default function AlertsCockpit({ email, children }: { email: string; chil
   // conditions" whenever any symbol was unpriced (major: read-state overloading).
   const { view, degradedLaneLines } = useMemo(() => {
     const now = Date.now();
+    const successState = (at: string | null | undefined, explicit: ReadState | undefined, runsState: ReadState): ReadState => {
+      if (explicit) return explicit;
+      if (at) return "READ_OK";
+      return runsState === "READ_UNAVAILABLE" ? "READ_UNAVAILABLE" : "READ_OK_ZERO";
+    };
     const engineLane = {
       run: receipts?.run ?? null,
       runsState: (receipts?.runs_state ?? "READ_UNAVAILABLE") as ReadState,
       lastSuccessAt: receipts?.last_success_at ?? null,
-      lastSuccessState: (receipts?.last_success_state ?? "READ_UNAVAILABLE") as ReadState,
+      lastSuccessState: successState(
+        receipts?.last_success_at,
+        receipts?.last_success_state,
+        (receipts?.runs_state ?? "READ_UNAVAILABLE") as ReadState,
+      ),
     };
     const suiteLane = {
       run: receipts?.suite_run ?? null,
       runsState: (receipts?.suite_runs_state ?? "READ_UNAVAILABLE") as ReadState,
       lastSuccessAt: receipts?.suite_last_success_at ?? null,
-      lastSuccessState: (receipts?.suite_last_success_state ?? "READ_UNAVAILABLE") as ReadState,
+      lastSuccessState: successState(
+        receipts?.suite_last_success_at,
+        receipts?.suite_last_success_state,
+        (receipts?.suite_runs_state ?? "READ_UNAVAILABLE") as ReadState,
+      ),
     };
     const monitorLanes = lanesForArmedAlerts(alerts, engineLane, suiteLane);
     const view = buildAlertsView({
