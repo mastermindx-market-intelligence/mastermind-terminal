@@ -20,7 +20,7 @@
  */
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { makeHeatmapT } from "@/lib/heatmapStrings";
+import { makeHeatmapT, sectorChipLabel } from "@/lib/heatmapStrings";
 import { deltaOiPutCallLabel } from "@/lib/plainLabels";
 import type { HeatmapTile, Layer, SizingMode, SectorBlock, TreemapNode, LayoutRect } from "./types";
 import { SECTOR_LABEL, SECTOR_ORDER } from "./sectorMap";
@@ -423,9 +423,11 @@ interface SectorBlockGroupProps {
 }
 
 function SectorBlockGroup({
-  block, layer, selectedTicker, onTileMouseEnter, onTileClick,
+  block, layer, selectedTicker, onTileMouseEnter, onTileClick, zh,
 }: SectorBlockGroupProps) {
-  const abbrev = SECTOR_LABEL[block.sector] ?? block.sector;
+  // The sector band is chrome, not data: in the ZH frame it reads 科技 / 通信,
+  // never the English GICS token. SECTOR_LABEL stays the EN text and the fallback.
+  const abbrev = sectorChipLabel(zh ? "zh" : "en", block.sector, SECTOR_LABEL[block.sector] ?? block.sector);
   const hH = getHeaderH(block.h);
   const avg = sectorAvgChg(block, layer);
   const avgColor = avg > 0 ? "var(--up)" : avg < 0 ? "var(--down)" : "rgba(148,163,184,0.6)";

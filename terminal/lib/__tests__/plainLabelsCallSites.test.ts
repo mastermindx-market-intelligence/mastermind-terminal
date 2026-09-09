@@ -400,6 +400,14 @@ describe("plain-language call sites — batch 3 round 3", () => {
     expect(src).toMatch(/from ["']@\/lib\/heatmapStrings["']/);
   });
 
+  it("Treemap.tsx: the sector band is localized, not the raw English GICS token", () => {
+    const src = readOwned("heatmap/Treemap.tsx");
+    const band = lineContaining(src, "const abbrev =", "sector band label");
+    expect(band).toContain("sectorChipLabel(");
+    expect(band).toContain('zh ? "zh" : "en"');
+    expect(src).toMatch(/from ["']@\/lib\/heatmapStrings["']/);
+  });
+
   it("heatmapStrings.ts: the lean label drops the tilde fragment", () => {
     const src = readLib("heatmapStrings.ts");
     const leanEntry = lineContaining(src, "detailLean:", "detailLean entry");
