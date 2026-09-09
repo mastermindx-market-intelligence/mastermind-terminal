@@ -1,0 +1,40 @@
+# B-F12-7 Outbound signed webhooks — capture evidence
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
+# capturedAtHead: b170bc7f4a61ec8d834a0bc1eb17486359cb7bb5
+# capturedAt: 2026-09-09T11:10:25.442Z
+# capturedAtHead is informational. The lock is layoutFiles.
+layoutFiles:
+  terminal/components/settings/SectionWebhooks.tsx: "bf99c6cd101afbc20c85a374763b6dd6ba08f348262e832056fda4abdbf72349"
+  terminal/lib/webhookLabels.ts: "caed062fbd38013772691edca8f1f6df490f8be925a2cd4c7a48c37f1285eb5b"
+  terminal/components/settings/SettingsPanel.tsx: "15b449b00e744bffd65659d1064c4e45c928d5a8a63c663ced4e478d556195ab"
+  terminal/components/settings/icons.tsx: "a27f9c8cdbd288a1acbad4c6c8b2cd93ee26b6c7ccfc51453442dfdfc812230a"
+  terminal/lib/i18n.tsx: "dbe654cac5561a579403adcf70bdda3eb846a46ab258a7add15ad03dd3af64c2"
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: mobile, width: 390, height: 844 }
+harness: /dev/settings?s=webhooks&lang=<en|zh>
+capture_flag: TERMINAL_E2E_FIXTURE
+capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.
+command: |
+  cd terminal
+  node e2e/tools/capture_f12_7_webhooks.cjs
+files:
+  - desktop-en-empty.png
+  - desktop-en-populated.png
+  - desktop-en-secret.png
+  - desktop-en-ssrf.png
+  - desktop-zh-empty.png
+  - desktop-zh-populated.png
+  - desktop-zh-secret.png
+  - desktop-zh-ssrf.png
+  - mobile-en-empty.png
+  - mobile-en-populated.png
+  - mobile-en-secret.png
+  - mobile-en-ssrf.png
+  - mobile-zh-empty.png
+  - mobile-zh-populated.png
+  - mobile-zh-secret.png
+  - mobile-zh-ssrf.png
