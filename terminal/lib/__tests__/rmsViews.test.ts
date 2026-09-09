@@ -243,10 +243,12 @@ describe("rmsViews copy", () => {
     expect(formatScopeSentence(0, 1, false, RMS_COPY.en, true)).toBe("Showing lines from 0 of the 1 active thesis in this view.");
     expect(formatScopeSentence(1, 1, true, RMS_COPY.en, true)).toBe("Showing lines from the 1 active thesis in this view.");
     expect(formatScopeSentence(2, 2, true, RMS_COPY.en, true)).not.toContain("of your");
-    expect(formatScopeSentence(1, 2, false, RMS_COPY.zh, true)).toBe("正在显示这个视图中 2 条活跃论点里 1 条的内容。");
-    expect(formatScopeSentence(2, 2, true, RMS_COPY.zh, true)).toBe("正在显示这个视图中全部 2 条活跃论点的内容。");
-    expect(formatScopeSentence(0, 1, false, RMS_COPY.zh, true)).toBe("正在显示这个视图中 1 条活跃论点里 0 条的内容。");
-    expect(formatScopeSentence(1, 1, true, RMS_COPY.zh, true)).toBe("正在显示这个视图中这 1 条活跃论点的全部内容。");
+    // Round-5 review (Meta-CEO B ruling R3d): the ZH strings this packet adds name the
+    // active lifecycle 有效 — the word the row status chip beside them already uses.
+    expect(formatScopeSentence(1, 2, false, RMS_COPY.zh, true)).toBe("正在显示这个视图中 2 条有效论点里 1 条的内容。");
+    expect(formatScopeSentence(2, 2, true, RMS_COPY.zh, true)).toBe("正在显示这个视图中全部 2 条有效论点的内容。");
+    expect(formatScopeSentence(0, 1, false, RMS_COPY.zh, true)).toBe("正在显示这个视图中 1 条有效论点里 0 条的内容。");
+    expect(formatScopeSentence(1, 1, true, RMS_COPY.zh, true)).toBe("正在显示这个视图中这 1 条有效论点的全部内容。");
   });
 
   it("formatScopeSentence: ZH plural/singular x partial/complete (round-2 review r3 minor 4 — ZH was asserted only via /活跃/ on the raw templates, never through a rendered sentence)", () => {
@@ -421,7 +423,9 @@ describe("rmsViews copy — round-4 repairs (B-F11-4, PR #546)", () => {
     const preset = BUILTIN_VIEWS.find((v) => v.id === "mine")!;
     expect(preset.filter.lifecycle).toBe("active");
     expect(RMS_COPY.en["builtin.mine"]).toBe("Your active theses");
-    expect(RMS_COPY.zh["builtin.mine"]).toBe("你的进行中论点");
+    // Round-5 review (ruling R3d): 进行中 read as "being drafted" and was a THIRD word
+    // for the one lifecycle; the chip now says what every row chip beside it says.
+    expect(RMS_COPY.zh["builtin.mine"]).toBe("你的有效论点");
     // The bare ownership words are what round 3 shipped and what this ruling withdrew.
     expect(RMS_COPY.en["builtin.mine"]).not.toBe("Yours");
     expect(RMS_COPY.zh["builtin.mine"]).not.toBe("你的");
@@ -435,5 +439,60 @@ describe("rmsViews copy — round-4 repairs (B-F11-4, PR #546)", () => {
     expect(RMS_COPY.zh["savedViews.alreadyRemoved"]).toBe("该视图已被删除。");
     expect(RMS_COPY.en["savedViews.alreadyRemoved"]).not.toBe(RMS_COPY.en["savedViews.unavailable"]);
     expect(RMS_COPY.zh["savedViews.alreadyRemoved"]).not.toBe(RMS_COPY.zh["savedViews.unavailable"]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Round-5 review of PR #546 (B-F11-4), Meta-CEO B seat rulings R2, R3a and R3d.
+// Every test below was RED at head 0d648864.
+// ---------------------------------------------------------------------------
+describe("rmsViews copy — round-5 repairs (B-F11-4, PR #546)", () => {
+  // R2: a subject filter and a view narrow the Theses lens at the same time. The
+  // categorical view sentence is false in that state, so the combined state gets its
+  // own sentence, naming the narrowing the reader can undo to see the rest.
+  it("R2 the combined view-and-subject empty state has its own sentence, EN and ZH", () => {
+    expect(RMS_COPY.en.filteredByViewAndSubjectEmpty).toBe(
+      "Nothing matches this view for {subject}. Clear the subject filter to see the rest of the view.",
+    );
+    expect(RMS_COPY.zh.filteredByViewAndSubjectEmpty).toBe(
+      "这个视图中没有关于{subject}的论点。清除标的筛选即可查看视图中的其余内容。",
+    );
+    // It carries the subject, unlike the categorical sentences it replaces.
+    expect(RMS_COPY.en.filteredByViewAndSubjectEmpty).toContain("{subject}");
+    expect(RMS_COPY.zh.filteredByViewAndSubjectEmpty).toContain("{subject}");
+    expect(RMS_COPY.en.filteredByViewAndSubjectEmpty).not.toBe(RMS_COPY.en["savedViews.viewEmpty"]);
+    expect(RMS_COPY.zh.filteredByViewAndSubjectEmpty).not.toBe(RMS_COPY.zh["savedViews.viewEmpty"]);
+    // And it is not the subject-only sentence either: that one tells the reader to
+    // clear the filter "to see every thesis", which a view still prevents.
+    expect(RMS_COPY.en.filteredByViewAndSubjectEmpty).not.toBe(RMS_COPY.en.filteredEmpty);
+    expect(RMS_COPY.zh.filteredByViewAndSubjectEmpty).not.toBe(RMS_COPY.zh.filteredEmpty);
+  });
+
+  // R3a: `listSavedViews` sorts by `updatedAt` descending and slices the cap, so the
+  // hidden rows are the least recently UPDATED, not the oldest created. A view made
+  // two years ago but renamed today stays visible.
+  it("R3a the truncation sentence names the ordering the read actually uses, EN and ZH", () => {
+    expect(RMS_COPY.en["savedViews.truncated"]).toBe(
+      "You have more than 50 saved views. The least recently updated are hidden until you delete some.",
+    );
+    expect(RMS_COPY.zh["savedViews.truncated"]).toBe(
+      "已保存的视图超过 50 个。最久未更新的那些暂时不显示，删除一些后会重新显示。",
+    );
+    expect(RMS_COPY.en["savedViews.truncated"]).not.toContain("The oldest");
+    expect(RMS_COPY.zh["savedViews.truncated"]).not.toContain("最早");
+  });
+
+  // R3d: one Chinese word for the one lifecycle across every string this packet adds.
+  it("R3d every ZH string this packet adds names the active lifecycle 有效", () => {
+    for (const key of ["scopeView", "scopeViewSingular", "scopeViewComplete", "scopeViewCompleteSingular"] as const) {
+      expect(RMS_COPY.zh[key], key).toContain("有效论点");
+      expect(RMS_COPY.zh[key], key).not.toContain("活跃");
+    }
+    expect(RMS_COPY.zh["builtin.mine"]).toContain("有效");
+    expect(RMS_COPY.zh["builtin.mine"]).not.toContain("进行中");
+    // The pre-existing master sentences are deliberately NOT edited by this packet —
+    // harmonising them is the copy owner's follow-up, recorded in DEVIATIONS.
+    expect(RMS_COPY.zh.scope).toContain("活跃论点");
+    expect(RMS_COPY.zh.scopeComplete).toContain("活跃论点");
   });
 });

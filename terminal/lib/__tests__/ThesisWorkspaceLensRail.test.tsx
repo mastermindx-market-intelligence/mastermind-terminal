@@ -1570,6 +1570,9 @@ type WorkspaceStub = {
   fireStatusHttpStatus?: number;
 };
 
+/** The `updatedAt` the fixture route stamps on a rename — newer than any seed row. */
+const RENAMED_AT = "2026-09-09T00:00:00.000Z";
+
 /** Same shape as `installFetch`, plus the two new B-F11-4 read paths. */
 function installWorkspaceFetch(stub: WorkspaceStub) {
   const fireCalls: string[][] = [];
@@ -1599,6 +1602,19 @@ function installWorkspaceFetch(stub: WorkspaceStub) {
           views = views.filter((v) => v.id !== body.id);
           truncated = false;
           return jsonResponse({ ok: true });
+        }
+        // Round-5 review (Meta-CEO B ruling R3b): a rename is PERSISTED here, with the
+        // fresh `updatedAt` the route stamps (savedViews.ts) — and because the read sorts
+        // `updatedAt` descending, the renamed view comes back FIRST. A client that keeps
+        // its own in-place copy and never re-reads cannot pass a test on the strip order.
+        if (body.action === "rename") {
+          const renameStatus = stub.savedViewsPutStatus ?? 200;
+          if (renameStatus >= 400) return jsonResponse({ error: renameStatus === 400 ? "invalid_name" : "saved_views_unavailable" }, renameStatus);
+          const current = views.find((v) => v.id === body.id);
+          if (!current) return jsonResponse({ error: "saved_view_not_found" }, 404);
+          const renamed = { ...current, name: body.name, updatedAt: RENAMED_AT };
+          views = [renamed, ...views.filter((v) => v.id !== body.id)];
+          return jsonResponse({ view: renamed });
         }
         const status = stub.savedViewsPutStatus ?? 200;
         if (status >= 400) return jsonResponse({ error: status === 400 ? "invalid_name" : "saved_views_unavailable" }, status);
@@ -1932,6 +1948,10 @@ describe("ThesisWorkspace research views — round-3 repairs (B-F11-4, PR #546)"
     expect(text).toContain("Condition checks are not connected yet.");
     expect(text).not.toContain("Clear the filter to see every thesis.");
     expect(text).not.toContain("Nothing has a closed window right now.");
+    // Round-5 review (ruling R2): the combined view-and-subject sentence promises a
+    // remainder of the view. A failed fire-status read knows of no such remainder, so
+    // spec 2.8's fallback still wins here — see `viewAndSubjectEmptyCopy`.
+    expect(text).not.toContain("Clear the subject filter to see the rest of the view.");
   });
 
   it("R2 preset + subject + a fresh subject: the Stale preset's own empty sentence wins over the subject sentence", async () => {
@@ -1951,6 +1971,10 @@ describe("ThesisWorkspace research views — round-3 repairs (B-F11-4, PR #546)"
     expect(text).toMatch(/last 30 days/i);
     expect(text).not.toContain("Clear the filter to see every thesis.");
     expect(text).not.toContain("No theses yet");
+    // Round-5 review (ruling R2): nothing here is stale for ANY subject, so the view —
+    // not the subject filter — is what emptied the lens, and there is no "rest of the
+    // view" to promise. The preset's own sentence is the true one.
+    expect(text).not.toContain("Clear the subject filter to see the rest of the view.");
   });
 
   // R3: "Nothing has a closed window right now." may render only when the read
@@ -2311,5 +2335,247 @@ describe("ThesisWorkspace research views — round-4 repairs (B-F11-4, PR #546)"
     await act(async () => chip(el, "mine").click());
     await flush();
     expect(lensWhat(el)).toBe("Only what matches the “Your active theses” view.");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Round-5 review of PR #546 (B-F11-4), Meta-CEO B seat rulings R1, R2 and R3b/R3c.
+// Every test below was RED at head 0d648864 and names the ruling it closes.
+// ---------------------------------------------------------------------------
+
+function savedViewOrder(el: HTMLElement): string[] {
+  return Array.from(el.querySelectorAll("[data-saved-view]")).map((n) => n.getAttribute("data-saved-view") ?? "");
+}
+
+describe("ThesisWorkspace research views — round-5 repairs (B-F11-4, PR #546)", () => {
+  // R1 (MAJOR 1): the catalysts/risks/notes branch never consulted `presetEmptyCopy`,
+  // so a preset or a saved view that emptied the slice printed the lens's own
+  // workspace-wide sentence. For Revision notes that sentence carries no "in the
+  // theses loaded here" scoping clause (Catalysts and Risks do), so it told a user who
+  // HAS revision notes that they have none, and instructed them to write one.
+  it("R1 Revision notes under the Window-closed preset names the view, never 'No revision notes yet'", async () => {
+    const alpha = activeThesis("aaaaaaaa-aaaa-4aaa-8aaa-000000000501", "AAA", "Alpha one");
+    const beta = activeThesis("aaaaaaaa-aaaa-4aaa-8aaa-000000000502", "BBB", "Beta one");
+    installWorkspaceFetch({
+      theses: [alpha, beta],
+      details: new Map([
+        [alpha.id, detailFor(alpha, { revisionNote: "Widened the horizon after the print." })],
+        [beta.id, detailFor(beta, { revisionNote: "Cut the size after the guidance." })],
+      ]),
+    });
+    const el = await mount({ ownerKey: "owner-r5-notes-window-closed" });
+    await flush();
+    await act(async () => tabs(el).find((b) => b.dataset.view === "notes")!.click());
+    await flush();
+    // The premise: this owner demonstrably has revision notes on screen.
+    expect(el.querySelectorAll('[data-testid="rms-line-row"]').length).toBe(2);
+
+    // Every fire-status read answers `unavailable`, so the Window-closed view matches
+    // nothing — the production path the body discloses.
+    await act(async () => chip(el, "window_closed").click());
+    await flush();
+
+    const text = emptyText(el);
+    expect(text).toContain("Condition checks are not connected yet.");
+    expect(text).not.toContain("No revision notes yet.");
+    expect(text).not.toContain("They appear when you save a change and say why.");
+  });
+
+  // R1: the same branch under a SAVED view, on the Catalysts lens.
+  it("R1 Catalysts under a saved view that matches nothing says the view is empty", async () => {
+    const viewId = "aaaaaaaa-1111-4111-8111-111111111111";
+    const alpha = activeThesis("aaaaaaaa-aaaa-4aaa-8aaa-000000000503", "AAA", "Alpha one");
+    installWorkspaceFetch({
+      theses: [alpha],
+      details: new Map([[alpha.id, detailFor(alpha, { catalysts: ["The print lands in March."] })]]),
+      savedViews: [{
+        id: viewId,
+        name: "Nothing matches",
+        filter: { lifecycle: "active", subjectGroupKey: "data_os.security_master|issuer|ZZZ" },
+        createdAt: "2026-09-01T00:00:00.000Z",
+        updatedAt: "2026-09-01T00:00:00.000Z",
+      }],
+    });
+    const el = await mount({ ownerKey: "owner-r5-catalysts-saved-view" });
+    await flush();
+    await act(async () => tabs(el).find((b) => b.dataset.view === "catalysts")!.click());
+    await flush();
+    expect(el.querySelectorAll('[data-testid="rms-line-row"]').length).toBe(1);
+
+    await act(async () => el.querySelector<HTMLButtonElement>(`[data-saved-view="${viewId}"] button`)!.click());
+    await flush();
+
+    const text = emptyText(el);
+    expect(text).toBe("No theses match this view.");
+    expect(text).not.toContain("No catalysts yet.");
+  });
+
+  // R1 (green guard): with nothing narrowing the lens, its own sentence is the true
+  // one and still renders.
+  it("R1 with no view active the Revision notes lens keeps its own sentence", async () => {
+    const alpha = activeThesis("aaaaaaaa-aaaa-4aaa-8aaa-000000000504", "AAA", "Alpha one");
+    installWorkspaceFetch({ theses: [alpha], details: new Map([[alpha.id, detailFor(alpha)]]) });
+    const el = await mount({ ownerKey: "owner-r5-notes-unfiltered" });
+    await flush();
+    await act(async () => tabs(el).find((b) => b.dataset.view === "notes")!.click());
+    await flush();
+    expect(emptyText(el)).toContain("No revision notes yet.");
+  });
+
+  // R2 (MAJOR 2): a subject filter and a view narrow the Theses lens at the same time,
+  // and the preset-first branch printed the CATEGORICAL "No theses match this view."
+  // over a slice the SUBJECT emptied — false while another subject in that same view
+  // demonstrably has theses. Two clicks, no macro dependency.
+  it("R2 a saved view plus a subject filter names both, never the categorical view sentence", async () => {
+    const viewId = "aaaaaaaa-2222-4222-8222-222222222222";
+    installWorkspaceFetch({
+      theses: [
+        activeThesis("aaaaaaaa-aaaa-4aaa-8aaa-000000000511", "AAPL", "Apple one", STALE),
+        activeThesis("aaaaaaaa-aaaa-4aaa-8aaa-000000000512", "NVDA", "Nvidia one"),
+      ],
+      savedViews: [{
+        id: viewId,
+        name: "Only Apple",
+        filter: { lifecycle: "active", subjectGroupKey: "data_os.security_master|issuer|AAPL" },
+        createdAt: "2026-09-01T00:00:00.000Z",
+        updatedAt: "2026-09-01T00:00:00.000Z",
+      }],
+    });
+    const el = await mount({ ownerKey: "owner-r5-view-and-subject" });
+    await flush();
+    // Click 1: the NVDA Coverage row sets the subject filter and switches to Theses.
+    await filterToSubject(el, "NVDA Co");
+    // Click 2: a saved view that excludes NVDA.
+    await act(async () => el.querySelector<HTMLButtonElement>(`[data-saved-view="${viewId}"] button`)!.click());
+    await flush();
+
+    // The head sentence names both narrowings; the empty sentence uses the SAME
+    // subject display it does.
+    expect(lensWhat(el)).toBe("Only what matches the \u201cOnly Apple\u201d view, and only about NVDA Co.");
+    const text = emptyText(el);
+    expect(text).toBe("Nothing matches this view for NVDA Co. Clear the subject filter to see the rest of the view.");
+    // The categorical negative is flatly false here: Apple matches this view.
+    expect(text).not.toContain("No theses match this view.");
+  });
+
+  // R2: the same combined state under a BUILT-IN preset never borrows the preset's own
+  // categorical sentence either.
+  it("R2 a built-in preset plus a subject filter names both, never the preset's own empty sentence", async () => {
+    installWorkspaceFetch({
+      theses: [
+        activeThesis("aaaaaaaa-aaaa-4aaa-8aaa-000000000513", "AAPL", "Apple one", STALE),
+        activeThesis("aaaaaaaa-aaaa-4aaa-8aaa-000000000514", "NVDA", "Nvidia one"),
+      ],
+    });
+    const el = await mount({ ownerKey: "owner-r5-preset-and-subject" });
+    await flush();
+    await filterToSubject(el, "NVDA Co");
+    await act(async () => chip(el, "stale_30").click());
+    await flush();
+
+    const text = emptyText(el);
+    expect(text).toBe("Nothing matches this view for NVDA Co. Clear the subject filter to see the rest of the view.");
+    expect(text).not.toContain("Everything here changed in the last 30 days.");
+    expect(text).not.toContain("No changes in 30 days.");
+  });
+
+  // R2 (green guard): with NO subject filter the view's own sentence is the true one
+  // and is unchanged.
+  it("R2 a saved view that matches nothing, with no subject filter, keeps the view sentence", async () => {
+    const viewId = "aaaaaaaa-3333-4333-8333-333333333333";
+    installWorkspaceFetch({
+      theses: [activeThesis("aaaaaaaa-aaaa-4aaa-8aaa-000000000515", "AAPL", "Apple one")],
+      savedViews: [{
+        id: viewId,
+        name: "Nothing matches",
+        filter: { lifecycle: "active", subjectGroupKey: "data_os.security_master|issuer|ZZZ" },
+        createdAt: "2026-09-01T00:00:00.000Z",
+        updatedAt: "2026-09-01T00:00:00.000Z",
+      }],
+    });
+    const el = await mount({ ownerKey: "owner-r5-view-no-subject" });
+    await flush();
+    await act(async () => el.querySelector<HTMLButtonElement>(`[data-saved-view="${viewId}"] button`)!.click());
+    await flush();
+
+    const text = emptyText(el);
+    expect(text).toBe("No theses match this view.");
+    expect(text).not.toContain("Clear the subject filter");
+  });
+
+  // R3b: `renameView` updated the list in place while the route stamps a fresh
+  // `updatedAt` and the read sorts `updatedAt` descending, so the renamed chip stayed
+  // in its old slot — outside the order spec 2.6 froze — until a page reload.
+  it("R3b a rename re-reads the list, so the strip keeps the newest-first order", async () => {
+    const mk = (n: number, name: string, updatedAt: string) => ({
+      id: `66666666-6666-4666-8666-${String(n).padStart(12, "0")}`,
+      name,
+      filter: { lifecycle: "active", staleDays: 30 },
+      createdAt: "2026-09-01T00:00:00.000Z",
+      updatedAt,
+    });
+    const newest = mk(1, "Newest", "2026-09-03T00:00:00.000Z");
+    const middle = mk(2, "Middle", "2026-09-02T00:00:00.000Z");
+    const oldest = mk(3, "Oldest", "2026-09-01T00:00:00.000Z");
+    installWorkspaceFetch({
+      theses: [activeThesis("r5-rename-a", "AAA", "Alpha one")],
+      savedViews: [newest, middle, oldest],
+    });
+    const el = await mount({ ownerKey: "owner-r5-rename-order" });
+    await flush();
+    expect(savedViewOrder(el)).toEqual([newest.id, middle.id, oldest.id]);
+
+    const item = el.querySelector(`[data-saved-view="${oldest.id}"]`)!;
+    await act(async () => Array.from(item.querySelectorAll("button")).find((b) => b.textContent === "Rename")!.click());
+    await flush();
+    const input = el.querySelector<HTMLInputElement>(`[data-saved-view="${oldest.id}"] input`)!;
+    await act(async () => typeInto(input, "Renamed just now"));
+    await flush();
+    await act(async () => {
+      el.querySelector<HTMLButtonElement>(`[data-saved-view="${oldest.id}"] button[type="submit"]`)!
+        .closest("form")!.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+    });
+    await flush();
+
+    expect(savedViewsStrip(el)).toContain("Renamed just now");
+    expect(savedViewOrder(el)).toEqual([oldest.id, newest.id, middle.id]);
+  });
+
+  // R3c: "That view was already removed." had no clearer other than another delete or
+  // an owner swap, so it kept rendering beside unrelated later work.
+  it("R3c a rename after an already-removed delete clears the already-removed notice", async () => {
+    const goneId = "77777777-1111-4111-8111-111111111111";
+    const keptId = "77777777-2222-4222-8222-222222222222";
+    installWorkspaceFetch({
+      theses: [activeThesis("r5-gone-a", "AAA", "Alpha one")],
+      savedViews: [
+        { id: goneId, name: "Deleted elsewhere", filter: { lifecycle: "active", staleDays: 30 }, createdAt: "2026-09-01T00:00:00.000Z", updatedAt: "2026-09-02T00:00:00.000Z" },
+        { id: keptId, name: "Still here", filter: { lifecycle: "active", staleDays: 30 }, createdAt: "2026-09-01T00:00:00.000Z", updatedAt: "2026-09-01T00:00:00.000Z" },
+      ],
+      savedViewsDeleteStatus: 404,
+    });
+    vi.stubGlobal("confirm", () => true);
+    const el = await mount({ ownerKey: "owner-r5-gone-then-rename" });
+    await flush();
+
+    await act(async () => deleteButton(el, goneId).click());
+    await flush();
+    expect(savedViewsStrip(el)).toContain("That view was already removed.");
+
+    const item = el.querySelector(`[data-saved-view="${keptId}"]`)!;
+    await act(async () => Array.from(item.querySelectorAll("button")).find((b) => b.textContent === "Rename")!.click());
+    await flush();
+    const input = el.querySelector<HTMLInputElement>(`[data-saved-view="${keptId}"] input`)!;
+    await act(async () => typeInto(input, "Renamed after the delete"));
+    await flush();
+    await act(async () => {
+      el.querySelector<HTMLButtonElement>(`[data-saved-view="${keptId}"] button[type="submit"]`)!
+        .closest("form")!.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+    });
+    await flush();
+
+    const strip = savedViewsStrip(el);
+    expect(strip).toContain("Renamed after the delete");
+    expect(strip).not.toContain("That view was already removed.");
   });
 });

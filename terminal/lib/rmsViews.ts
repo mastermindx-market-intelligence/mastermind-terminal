@@ -449,6 +449,16 @@ export type RmsCopy = {
    *  filter is active and resolves to zero rows; never claims "No theses yet." while
    *  the workspace actually holds theses (round-2 review MAJOR). */
   filteredEmpty: string;
+  /** {subject} placeholder — the empty state when a built-in preset or a saved view
+   *  AND a Coverage subject filter are BOTH narrowing the Theses lens and their
+   *  intersection is empty. Round-5 review (Meta-CEO B ruling R2): the two narrowings
+   *  coexist by design (`filterBySubject` never clears the preset and the chips never
+   *  clear the subject), and the preset-first branch printed the categorical
+   *  `savedViews.viewEmpty` ("No theses match this view.") over a slice the SUBJECT
+   *  emptied — flatly false while other subjects in that same view have theses and the
+   *  rail badge still counts them. This names both narrowings and points at the one
+   *  the reader can undo to see the rest. */
+  filteredByViewAndSubjectEmpty: string;
   /** Screen-reader-only word appended to the Theses lens rail badge when a subject
    *  filter is active — the badge already shows the filtered count (round-2 review r3
    *  minor 7: the filtered count needs a marker so it does not read as the total). */
@@ -554,6 +564,7 @@ export const RMS_COPY: { en: RmsCopy; zh: RmsCopy } = {
     filteredByViewAndSubject: "Only what matches the \u201c{view}\u201d view, and only about {subject}.",
     clearFilter: "Show everything",
     filteredEmpty: "Nothing written about {subject} right now. Clear the filter to see every thesis.",
+    filteredByViewAndSubjectEmpty: "Nothing matches this view for {subject}. Clear the subject filter to see the rest of the view.",
     filteredMarker: "filtered",
     "savedViews.title": "Your saved views",
     "savedViews.newView": "Save this view",
@@ -563,7 +574,7 @@ export const RMS_COPY: { en: RmsCopy; zh: RmsCopy } = {
     "savedViews.delete": "Delete this view",
     "savedViews.confirmDelete": "Delete this saved view? This cannot be undone.",
     "savedViews.limitReached": "You have reached the limit of 50 saved views. Delete one to save another.",
-    "savedViews.truncated": "You have more than 50 saved views. The oldest are hidden until you delete some.",
+    "savedViews.truncated": "You have more than 50 saved views. The least recently updated are hidden until you delete some.",
     "savedViews.nameRequired": "Give this view a name before you save it.",
     "savedViews.empty": "No saved views yet. Filter the list, then save it with a name.",
     "savedViews.unavailable": "Your saved views did not load. Nothing has been changed.",
@@ -624,10 +635,16 @@ export const RMS_COPY: { en: RmsCopy; zh: RmsCopy } = {
     scopeSingular: "正在显示 1 条活跃论点中 {loaded} 条的内容。",
     scopeComplete: "正在显示全部 {total} 条活跃论点的内容。",
     scopeCompleteSingular: "正在显示这 1 条活跃论点的全部内容。",
-    scopeView: "正在显示这个视图中 {total} 条活跃论点里 {loaded} 条的内容。",
-    scopeViewSingular: "正在显示这个视图中 1 条活跃论点里 {loaded} 条的内容。",
-    scopeViewComplete: "正在显示这个视图中全部 {total} 条活跃论点的内容。",
-    scopeViewCompleteSingular: "正在显示这个视图中这 1 条活跃论点的全部内容。",
+    // Round-5 review (Meta-CEO B ruling R3d): every ZH string this packet ADDS names the
+    // active lifecycle 有效 — the word the row status chip beside them already renders
+    // (ThesisWorkspace.tsx:135). These four sentences shipped with master's 活跃, which
+    // put two words for one state in a single frame. The pre-existing master strings
+    // (`scope*` and `coverageRatio` above) keep 活跃 and are not edited here; harmonising
+    // them is the copy owner's follow-up, recorded in DEVIATIONS.
+    scopeView: "正在显示这个视图中 {total} 条有效论点里 {loaded} 条的内容。",
+    scopeViewSingular: "正在显示这个视图中 1 条有效论点里 {loaded} 条的内容。",
+    scopeViewComplete: "正在显示这个视图中全部 {total} 条有效论点的内容。",
+    scopeViewCompleteSingular: "正在显示这个视图中这 1 条有效论点的全部内容。",
     showMore: "再载入 {n} 条",
     unavailableLens: "此视角暂时没有内容可显示。没有任何内容被更改。",
     hydrationFault: "接下来的 {n} 条未能载入。请重试。",
@@ -641,6 +658,7 @@ export const RMS_COPY: { en: RmsCopy; zh: RmsCopy } = {
     filteredByViewAndSubject: "仅显示符合「{view}」视图、并且关于 {subject} 的内容。",
     clearFilter: "显示全部",
     filteredEmpty: "目前没有关于 {subject} 的论点。清除筛选可查看全部论点。",
+    filteredByViewAndSubjectEmpty: "这个视图中没有关于{subject}的论点。清除标的筛选即可查看视图中的其余内容。",
     filteredMarker: "已筛选",
     "savedViews.title": "你保存的视图",
     "savedViews.newView": "保存此视图",
@@ -650,13 +668,15 @@ export const RMS_COPY: { en: RmsCopy; zh: RmsCopy } = {
     "savedViews.delete": "删除此视图",
     "savedViews.confirmDelete": "删除这个已保存的视图？此操作无法撤销。",
     "savedViews.limitReached": "已达到 50 个已保存视图的上限。请先删除一个再保存新的。",
-    "savedViews.truncated": "你保存的视图超过 50 个。最早的那些暂时不显示，删除一些之后才会出现。",
+    "savedViews.truncated": "已保存的视图超过 50 个。最久未更新的那些暂时不显示，删除一些后会重新显示。",
     "savedViews.nameRequired": "保存前请先为这个视图命名。",
     "savedViews.empty": "还没有保存任何视图。先筛选列表，再为其保存命名。",
     "savedViews.unavailable": "无法加载已保存的视图。没有任何内容被更改。",
     "savedViews.alreadyRemoved": "该视图已被删除。",
     "savedViews.viewEmpty": "没有符合这个视图的论点。",
-    "builtin.mine": "你的进行中论点",
+    // Round-5 review (ruling R3d): 进行中 reads as "being drafted" and was a third word
+    // for the one lifecycle; the chip now says what every row chip beside it says.
+    "builtin.mine": "你的有效论点",
     "builtin.stale30": "长期未更新",
     "builtin.staleWhat": "30 天没有改动。",
     "builtin.windowClosed": "观察窗口已结束",

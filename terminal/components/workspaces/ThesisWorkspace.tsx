@@ -964,6 +964,34 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     return null;
   }, [activePreset, rms, fireStatusUnavailable]);
 
+  // Round-5 review (Meta-CEO B ruling R2): a preset and a Coverage subject filter narrow
+  // the Theses lens at the same time by design — `filterBySubject` does not clear
+  // `activePreset` and the chip handlers do not clear `subjectFilterKey` — and the head
+  // sentence directly above the list already says so with `filteredByViewAndSubject`.
+  // The preset-first branch below therefore printed a CATEGORICAL negative over a slice
+  // the SUBJECT emptied: with a stale AAPL thesis and a fresh NVDA thesis, clicking the
+  // NVDA Coverage row and then a view that excludes NVDA printed "No theses match this
+  // view." while AAPL demonstrably matches it and the rail badge still counted it. Both
+  // narrowings are named here, and the sentence points at the one the reader can undo
+  // to see the rest of the view. This is the Theses lens only: `subjectFilterKey` is
+  // applied in `thesesViewRows` (above) and nowhere else, so no other lens is subject-
+  // narrowed and `presetEmptyCopy` alone stays true for them.
+  //
+  // The sentence promises there IS a rest of the view, so it may only render when the
+  // SUBJECT is what emptied the slice — the view itself still holds rows. When the view
+  // holds nothing for any subject (`allThesesViewRows` empty: a Stale view over a
+  // workspace where nothing is stale, or a Window-closed view whose fire-status read
+  // failed and knows nothing), the preset's own sentence — including spec 2.8's
+  // `condition.unavailable` fallback, which round-3 ruling R2 made survive a subject
+  // filter — is the true one and still wins. Writing the combined sentence there would
+  // promise a remainder that does not exist, and over a failed read would claim
+  // knowledge the workspace does not have.
+  const viewAndSubjectEmptyCopy = useMemo(() => {
+    if (!presetEmptyCopy || !subjectFilterKey || !filteredSubjectDisplay) return null;
+    if (allThesesViewRows.length === 0 || thesesViewRows.length > 0) return null;
+    return rms.filteredByViewAndSubjectEmpty.replace("{subject}", filteredSubjectDisplay);
+  }, [presetEmptyCopy, subjectFilterKey, filteredSubjectDisplay, allThesesViewRows, thesesViewRows, rms]);
+
   // Round-4 review (Meta-CEO B ruling R2): this used to be declared BELOW the
   // mutations. `deleteView` now re-reads the list through it (a delete can resolve
   // the truncation state and the save controls with it), so it has to exist before
@@ -982,6 +1010,13 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       }
       setSavedViews(payload.views);
       setSavedViewsUnavailable(false);
+      // Round-5 review (Meta-CEO B ruling R3c): "That view was already removed." had
+      // exactly three writers and no clearer other than another delete or an owner swap,
+      // so it kept rendering beside unrelated later work. A successful read is a fresh
+      // answer about what exists, so it retires the notice — mirroring
+      // `savedViewNameError`, which every successful write clears. The 404 delete branch
+      // below therefore raises the notice AFTER its own re-read, not before it.
+      setSavedViewGone(false);
       // `truncated` (round-2 review, Opus minor 3): more rows exist than this answer
       // carries, so say so in words instead of dropping them silently. Round-3 review
       // (ruling R4): in ITS OWN sentence — reusing the limit sentence told a user who
@@ -1030,6 +1065,9 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       setNameDraft("");
       setSavedViewsLimit(false);
       setSavedViewNameError(false);
+      // Round-5 review (ruling R3c): a successful create retires the already-removed
+      // notice, exactly as it retires the name error one line above.
+      setSavedViewGone(false);
     } catch {
       setSavedViewsUnavailable(true);
     }
@@ -1069,10 +1107,19 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       setRenamingId(null);
       setNameDraft("");
       setSavedViewNameError(false);
+      // Round-5 review (ruling R3c): a successful rename retires the already-removed
+      // notice too — see `loadSavedViews` above.
+      setSavedViewGone(false);
+      // Round-5 review (ruling R3b): the in-place `map` above keeps the renamed chip in
+      // its OLD slot, because the route stamps a fresh `updatedAt` (savedViews.ts) and
+      // the read sorts `updatedAt` descending — so spec 2.6's frozen "updatedAt desc"
+      // order was broken until the next page load. `deleteView` already re-reads for the
+      // same reason; the map stays so the new name shows even if this read fails.
+      await loadSavedViews();
     } catch {
       setSavedViewsUnavailable(true);
     }
-  }, []);
+  }, [loadSavedViews]);
 
   const deleteView = useCallback(async (id: string) => {
     if (!window.confirm(rms["savedViews.confirmDelete"])) return;
@@ -1093,10 +1140,12 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       // say what actually happened and re-read the list. Everything else is still a
       // failed delete, which is what spec 2.8 reserves `savedViews.unavailable` for.
       if (response.status === 404 || response.status === 400) {
-        setSavedViewGone(true);
         setSavedViews((current) => current.filter((view) => view.id !== id));
         setActivePreset((current) => (current?.kind === "saved" && current.id === id ? null : current));
         await loadSavedViews();
+        // Round-5 review (ruling R3c): raised AFTER the re-read, which now clears the
+        // notice. This is the one place the sentence is true, so it is set last.
+        setSavedViewGone(true);
         return;
       }
       if (!response.ok) {
@@ -1918,8 +1967,12 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
                   // filter brings none of them back. The subject sentence renders only
                   // when no preset is active, which is the only state it describes
                   // truthfully.
+                  // Round-5 review (Meta-CEO B ruling R2): when a subject filter is ALSO
+                  // narrowing this lens, the preset's own sentence is a categorical
+                  // negative over a slice the subject emptied — see the note on
+                  // `viewAndSubjectEmptyCopy` above. Both narrowings are named instead.
                   ? (presetEmptyCopy
-                    ? <div className={styles.emptyLens} data-testid="rms-empty"><p>{presetEmptyCopy}</p></div>
+                    ? <div className={styles.emptyLens} data-testid="rms-empty"><p>{view === "theses" && viewAndSubjectEmptyCopy ? viewAndSubjectEmptyCopy : presetEmptyCopy}</p></div>
                     : view === "theses" && subjectFilterKey
                       ? <div className={styles.emptyLens} data-testid="rms-filtered-empty">
                         <p>{rms.filteredEmpty.replace("{subject}", filteredSubjectDisplay ?? "")}</p>
@@ -1951,7 +2004,18 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
                     ? null
                     : (hydrating && detailListRows.length === 0
                       ? <p className={styles.muted} role="status">{copy.loading}</p>
-                      : <div className={styles.emptyLens} data-testid="rms-empty"><p>{rms.empty[view]}</p></div>))
+                      // Round-5 review (Meta-CEO B ruling R1): the last three lenses the
+                      // BLOCKER-3 repair never reached. `contentRows` derives from
+                      // `viewDetailRows` (`presetFilter ? detailListRows.filter(...) :
+                      // detailListRows`), so a preset or a saved view empties them — and
+                      // this printed "No revision notes yet. They appear when you save a
+                      // change and say why." at a user who HAS revision notes, telling
+                      // them to go write one. `empty.notes` carries no "in the theses
+                      // loaded here" scoping clause (Catalysts and Risks do), so it is a
+                      // false sentence, not a narrow one. Same `presetEmptyCopy` decision
+                      // as Coverage and the ideas/theses/reviews branch above; with no
+                      // view active the lens's own sentence is the true one and stays.
+                      : <div className={styles.emptyLens} data-testid="rms-empty"><p>{presetEmptyCopy ?? rms.empty[view]}</p></div>))
                   : contentRows.map((row) => (
                     <article key={`${row.thesisId}-${row.index}`} className={styles.lineRow} data-testid="rms-line-row">
                       <p className={styles.lineText}>{row.text}</p>
