@@ -18,8 +18,10 @@ import {
   SIGNAL_VERDICT_LABEL,
   STAT_TOKEN_LABEL,
   WIDGET_TYPE_LABEL,
+  SUBJECT_KIND_LABEL,
   entryStatusLabel,
   statTokenLabel,
+  subjectKindLabel,
   trustTierLabel,
   verdictLabel,
   volAboveOiLabel,
@@ -333,5 +335,60 @@ describe("widgetTypeLabel", () => {
     expect(widgetTypeLabel("pane", "en")).not.toBe("Pane");
     expect(widgetTypeLabel("mystery-pane", "en")).toBe(notClassified("en"));
     expect(widgetTypeLabel("mystery-pane", "en")).not.toBe("mystery-pane");
+  });
+});
+
+function liveSubjectKinds(): string[] {
+  const found = new Set<string>();
+  function walkDir(dir: string) {
+    for (const name of readdirSync(dir)) {
+      const full = join(dir, name);
+      try {
+        const st = JSON.parse(readFileSync(full, "utf8"));
+        walkStrings(st, (key, value) => {
+          if (key === "kind" && (value === "issuer" || value === "theme")) found.add(value);
+        });
+      } catch {
+        /* not a JSON file */
+      }
+    }
+  }
+  walkDir(PUBLIC_DATA);
+  return [...found].sort();
+}
+
+describe("subjectKindLabel", () => {
+  it("every mapped kind has a non-empty EN and ZH label", () => {
+    for (const [key, pair] of Object.entries(SUBJECT_KIND_LABEL)) {
+      assertBilingual(pair, key);
+    }
+  });
+
+  it("known kinds are retail words, never the slug", () => {
+    expect(subjectKindLabel("issuer", "en")).toBe("Company listing");
+    expect(subjectKindLabel("issuer", "zh")).toBe("上市标的");
+    expect(subjectKindLabel("theme", "en")).toBe("Theme");
+    expect(subjectKindLabel("theme", "zh")).toBe("主题");
+    expect(subjectKindLabel("issuer", "en")).not.toBe("issuer");
+    expect(subjectKindLabel("theme", "zh")).not.toBe("theme");
+  });
+
+  it("unknown kind never returns the raw value", () => {
+    expect(subjectKindLabel("basket", "en")).toBe(notClassified("en"));
+    expect(subjectKindLabel("basket", "zh")).toBe(notClassified("zh"));
+    expect(subjectKindLabel("basket", "en")).not.toBe("basket");
+    expect(subjectKindLabel("", "zh")).toBe(notClassified("zh"));
+  });
+
+  it("every issuer/theme kind in live fixture data has a pair in EN and ZH", () => {
+    const kinds = new Set(["issuer", "theme", ...liveSubjectKinds()]);
+    for (const kind of kinds) {
+      const en = subjectKindLabel(kind, "en");
+      const zh = subjectKindLabel(kind, "zh");
+      expect(en, `${kind} EN`).not.toBe(notClassified("en"));
+      expect(zh, `${kind} ZH`).not.toBe(notClassified("zh"));
+      expect(en, `${kind} EN must not echo the slug`).not.toBe(kind);
+      expect(zh, `${kind} ZH must not echo the slug`).not.toBe(kind);
+    }
   });
 });

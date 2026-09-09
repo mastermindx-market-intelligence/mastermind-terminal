@@ -43,13 +43,13 @@ function LoginForm() {
         <div style={{ display: "flex", justifyContent: "center", marginBottom: 18 }}>
           <Link href="/"><BrandMark size={40} /></Link>
         </div>
-        <h2>{mode === "signin" ? "Sign in to Mastermind" : "Create your account"}</h2>
+        <h2>{mode === "signin" ? t("lgSignInTitle") : t("lgCreateTitle")}</h2>
         <p className="sub">
-          {mode === "signin" ? "Welcome back." : "Free access to charts; Pro unlocks custom + proprietary indicators."}
+          {mode === "signin" ? t("lgWelcomeBack") : t("lgSignupPitch")}
         </p>
-        <label htmlFor="auth-email">Email</label>
+        <label htmlFor="auth-email">{t("lgEmail")}</label>
         <input id="auth-email" className="field" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
-        <label htmlFor="auth-pw">Password</label>
+        <label htmlFor="auth-pw">{t("lgPassword")}</label>
         <input id="auth-pw" className="field" type="password" required minLength={6} value={pw} onChange={(e) => setPw(e.target.value)} placeholder="••••••••" />
         {err && <div className="err">{err}</div>}
         <button className="btn btn-primary" style={{ width: "100%", marginTop: 18 }} disabled={busy}>

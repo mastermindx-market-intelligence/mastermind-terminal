@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLang } from "@/lib/i18n";
+import { subjectKindLabel } from "@/lib/plainLabels";
 import { parseAnalysisSearchParams } from "@/lib/analysisRoute";
 import { normalizeAnalysisSymbol } from "@/lib/analysisSymbol";
 import { isUuid, normalizeThesisContent, normalizeThesisSubject } from "@/lib/theses";
@@ -1531,7 +1532,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
                               <div><dt>{copy.systemRecorded}</dt><dd><time dateTime={entry.systemRecordedAt}>{new Date(entry.systemRecordedAt).toLocaleString(lang === "zh" ? "zh-CN" : "en-CA")}</time></dd></div>
                               <div><dt>{copy.subject}</dt><dd>{entry.subject.key}</dd></div>
                               <div><dt>{copy.subjectOwner}</dt><dd>{entry.subject.owner}</dd></div>
-                              <div><dt>{copy.subjectKind}</dt><dd>{entry.subject.kind}</dd></div>
+                              <div><dt>{copy.subjectKind}</dt><dd>{subjectKindLabel(entry.subject.kind, lang)}</dd></div>
                               <div><dt>{copy.listing}</dt><dd>{entry.subject.listing?.symbol ?? copy.none}</dd></div>
                             </dl>
                             <div className={styles.snapshotGrid}>

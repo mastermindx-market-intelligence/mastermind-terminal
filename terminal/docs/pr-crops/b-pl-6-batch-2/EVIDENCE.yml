@@ -1,0 +1,41 @@
+# B-PL-6 batch 2 — capture evidence
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
+# capturedAtHead: a5045c08748a0be32e9b07866110af83837975ea
+# capturedAt: 2026-09-09T07:38:03.471Z
+# capturedAtHead is informational. The lock is layoutFiles.
+layoutFiles:
+  terminal/components/GuidePanel.tsx: "edf89e1861d998371bfd7bdf67939228d3b194f57222d8b12aab3115633c2d41"
+  terminal/components/levels/LevelsView.tsx: "0f3ed4ea7d5ae64265301bebf893b038977ea25637aac176d771eb18ea04dcf8"
+  terminal/components/levels/LevelsLearn.tsx: "ca8923e68f511cb525db2bac1b41e9e1d93c3c1492cb345162085de1412cee05"
+  terminal/components/ChartConductor.tsx: "6592289cd32f6e92f58c280507d3ed853533ba03364c8ced9bab6037f60cc1ad"
+  terminal/lib/plainLabels.ts: "718526665dd6899a3b726540a775645d37ab512cc603b77c5b37d966663a0e58"
+  terminal/lib/i18n.tsx: "a307932230d62a4553c3f73a00b3689a7b431d43ff64c2723c312e7d0be1577f"
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: mobile, width: 390, height: 844 }
+surfaces: [GuidePanel, LevelsView, LevelsLearn, ChartConductor]
+capture_flag: TERMINAL_E2E_FIXTURE
+capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
+command: |
+  cd terminal
+  node e2e/tools/capture_pl6_batch2.cjs
+files:
+  - ChartConductor-1440-zh.png
+  - ChartConductor-1440.png
+  - ChartConductor-390-zh.png
+  - ChartConductor-390.png
+  - GuidePanel-1440-zh.png
+  - GuidePanel-1440.png
+  - GuidePanel-390-zh.png
+  - GuidePanel-390.png
+  - LevelsLearn-1440-zh.png
+  - LevelsLearn-1440.png
+  - LevelsLearn-390-zh.png
+  - LevelsLearn-390.png
+  - LevelsView-1440-zh.png
+  - LevelsView-1440.png
+  - LevelsView-390-zh.png
+  - LevelsView-390.png

@@ -29,7 +29,7 @@ import React, {
   useState,
 } from "react";
 import { flowGet } from "@/lib/flowClientCache";
-import { useLang } from "@/lib/i18n";
+import { useLang, useT } from "@/lib/i18n";
 import { trackSearch } from "@/lib/searchTrack";
 import {
   ROLE_GLYPH,
@@ -179,6 +179,7 @@ function priceBand(payload: LevelsPayload | null): [number, number] | null {
 
 export function LevelsView() {
   const { lang } = useLang();
+  const t = useT();
 
   const [ticker, setTicker]     = useState("SPY");
   const [inputVal, setInputVal] = useState("SPY");
@@ -332,7 +333,7 @@ export function LevelsView() {
               onBlur={commitTicker}
               onKeyDown={(e) => { if (e.key === "Enter") commitTicker(); }}
               placeholder="SPY"
-              aria-label="Ticker"
+              aria-label={t("lvTicker")}
               spellCheck={false}
               maxLength={12}
             />
@@ -360,7 +361,7 @@ export function LevelsView() {
         <div style={CONTROLS_RIGHT}>
           {asofStr && (
             <span style={asofStale ? { ...ASOF_BADGE, color: "var(--warn)" } : ASOF_BADGE}>
-              as of {asofStr}{asofStale && <span style={{ marginLeft: 5, fontWeight: 600 }}>· prior session</span>}
+              {t("lvAsOf")} {asofStr}{asofStale && <span style={{ marginLeft: 5, fontWeight: 600 }}>{t("lvPriorSession")}</span>}
             </span>
           )}
           <button
@@ -368,12 +369,12 @@ export function LevelsView() {
             style={{ height: 24, fontSize: 11, fontWeight: 700, letterSpacing: "0.02em" }}
             onClick={() => setColorblind((v) => !v)}
             aria-pressed={colorblind}
-            title="Colorblind palette — repaint sticky/slippery as blue/orange"
+            title={t("lvColorblindTitle")}
           >
-            ◑ {colorblind ? "Blue / Orange" : "Colorblind"}
+            ◑ {colorblind ? t("lvColorblindOn") : t("lvColorblindOff")}
           </button>
-          {loading && <span style={LOADING_BADGE}>Loading…</span>}
-          {error && !loading && <span style={ERROR_BADGE}>No levels for this root yet</span>}
+          {loading && <span style={LOADING_BADGE}>{t("lvLoading")}</span>}
+          {error && !loading && <span style={ERROR_BADGE}>{t("lvNoLevels")}</span>}
         </div>
       </div>
 
@@ -385,7 +386,7 @@ export function LevelsView() {
             color: isSticky ? palette.stickyVar : palette.slipperyVar,
             borderColor: isSticky ? `rgba(${palette.stickyRGB},0.4)` : `rgba(${palette.slipperyRGB},0.4)`,
           }}>
-            {isSticky ? "STICKY" : "SLIPPERY"}
+            {isSticky ? t("lvSticky") : t("lvSlippery")}
           </span>
           <span style={RIBBON_TEXT}>{regime.ribbon}</span>
         </div>
@@ -397,11 +398,10 @@ export function LevelsView() {
         {/* ── Terrain column (the gamma weather map) ─────────────────────── */}
         <div style={COLUMN_PANE} className="levels-column">
           {loading && !payload ? (
-            <div style={COLUMN_LOADING}>Reading the gamma map…</div>
+            <div style={COLUMN_LOADING}>{t("lvReadingMap")}</div>
           ) : !payload || terrainNodes.length === 0 ? (
             <div style={COLUMN_LOADING}>
-              No dealer-gamma levels to map for {ticker}. This root may not carry
-              enough open interest yet — the board stays honest rather than draw a guess.
+              {t("lvEmptyMap").replace("{ticker}", ticker)}
             </div>
           ) : (
             <div style={COLUMN_STAGE}>
@@ -475,7 +475,7 @@ export function LevelsView() {
               {/* spot marker */}
               {band && payload.spot != null && (
                 <div style={{ ...SPOT_LINE, top: `${projY(payload.spot) * 100}%` }}>
-                  <span style={SPOT_TAG}>Spot {fmtStrike(payload.spot)}</span>
+                  <span style={SPOT_TAG}>{t("lvSpot")} {fmtStrike(payload.spot)}</span>
                 </div>
               )}
             </div>
@@ -493,13 +493,13 @@ export function LevelsView() {
                 <div style={DETAIL_NOTE}>{selected.note}</div>
               </>
             ) : (
-              <div style={DETAIL_EMPTY}>Tap any level to read what it means.</div>
+              <div style={DETAIL_EMPTY}>{t("lvTapLevel")}</div>
             )}
           </div>
 
           {/* named-levels rail */}
           <div style={RAIL_SCROLL} className="obs-scroll levels-rail-scroll">
-            <div style={RAIL_TITLE}>Named levels</div>
+            <div style={RAIL_TITLE}>{t("lvNamedLevels")}</div>
             {railEntries.map(({ role, node }) => {
               const present = node != null && node.strike != null;
               const c = node ? roleColor(node) : "var(--text-dim)";
@@ -521,7 +521,7 @@ export function LevelsView() {
             {/* stacks (confluence strikes) */}
             {(payload?.stacks?.length ?? 0) > 0 && (
               <>
-                <div style={{ ...RAIL_TITLE, marginTop: 12 }}>Confluence</div>
+                <div style={{ ...RAIL_TITLE, marginTop: 12 }}>{t("lvConfluence")}</div>
                 {payload!.stacks.map((s, i) => (
                   <button
                     key={`stack-${i}`}
@@ -538,34 +538,32 @@ export function LevelsView() {
 
             {/* legend + color law */}
             <div style={LEGEND}>
-              <div style={{ ...RAIL_TITLE, marginTop: 0 }}>Reading the map</div>
+              <div style={{ ...RAIL_TITLE, marginTop: 0 }}>{t("lvReadingLegend")}</div>
               <div style={LEGEND_ROW}>
                 <span style={{ ...LEGEND_SWATCH, background: `rgba(${palette.stickyRGB},0.6)` }} />
-                <span style={LEGEND_TXT}><b style={{ color: palette.stickyVar }}>Sticky</b> — price tends to hold here.</span>
+                <span style={LEGEND_TXT}><b style={{ color: palette.stickyVar }}>{t("lvSticky")}</b> {t("lvStickyHint")}</span>
               </div>
               <div style={LEGEND_ROW}>
                 <span style={{ ...LEGEND_SWATCH, background: `rgba(${palette.slipperyRGB},0.6)` }} />
-                <span style={LEGEND_TXT}><b style={{ color: palette.slipperyVar }}>Slippery</b> — price tends to slide here.</span>
+                <span style={LEGEND_TXT}><b style={{ color: palette.slipperyVar }}>{t("lvSlippery")}</b> {t("lvSlipperyHint")}</span>
               </div>
               <div style={LEGEND_ROW}>
                 <span style={{ ...LEGEND_SWATCH, background: `linear-gradient(90deg, rgba(${palette.stickyRGB},0.15), rgba(${palette.stickyRGB},0.7))` }} />
-                <span style={LEGEND_TXT}>Brighter, wider = more dealer gamma at that strike.</span>
+                <span style={LEGEND_TXT}>{t("lvBrightnessHint")}</span>
               </div>
             </div>
 
             {/* honesty note + source lineage */}
             <div style={HONESTY}>
-              Positioning, not prophecy. These are locations where dealer hedging
-              concentrates — not forecasts. The dealer-sign convention is assumed,
-              not measured. Open interest updates once a day, so this is a snapshot.
+              {t("lvHonesty")}
               {payload?.source?.source_convention && (
                 <span style={{ display: "block", marginTop: 4, color: "var(--text-dim)" }}>
-                  Convention (assumed): {payload.source.source_convention}
+                  {t("lvConvention")} {payload.source.source_convention}
                 </span>
               )}
             </div>
 
-            <a href="/learn" style={LEARN_LINK}>New here? Learn the board →</a>
+            <a href="/learn" style={LEARN_LINK}>{t("lvLearnCta")}</a>
           </div>
         </div>
       </div>

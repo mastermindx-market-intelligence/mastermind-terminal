@@ -105,3 +105,70 @@ describe("plain-language call sites — leaky fallbacks gone", () => {
     expect(chip![0]).not.toMatch(/\?\s*"EARLY"/);
   });
 });
+
+describe("plain-language call sites — batch 2", () => {
+  it("ChartConductor.tsx: live-steps titles route through t(), never English-only", () => {
+    const src = readOwned("ChartConductor.tsx");
+    expect(src).not.toContain('title={railOpen ? "Hide live steps" : "Show live steps"}');
+    expect(src).not.toContain('title="Skip animations"');
+    const toggle = lineContaining(src, "cmxHideSteps", "hide-steps");
+    expect(toggle).toMatch(/\bt\(/);
+  });
+
+  it("IndicatorSource.tsx: read-only footnote routes through tPlain", () => {
+    const src = readOwned("IndicatorSource.tsx");
+    expect(src).not.toContain("Built-in indicators are read-only");
+    expect(src).toMatch(/\btPlain\(/);
+  });
+
+  it("DiscoverWorkspace.tsx: tablist aria-label routes through t()", () => {
+    const src = readOwned("workspaces/DiscoverWorkspace.tsx");
+    expect(src).not.toContain('"Discover tabs"');
+    expect(src).toContain('t("wtDiscoverTabs")');
+  });
+
+  it("ThesisWorkspace.tsx: subject kind routes through subjectKindLabel", () => {
+    const src = readOwned("workspaces/ThesisWorkspace.tsx");
+    expect(src).not.toContain("{entry.subject.kind}");
+    expect(src).toContain("subjectKindLabel(");
+  });
+
+  it("OptionsPaywall.tsx: plan chip routes through t()", () => {
+    const src = readOwned("OptionsPaywall.tsx");
+    expect(src).not.toMatch(/>Essential · Pro</);
+    expect(src).toContain('t("opwPlans")');
+  });
+
+  it("LoginFormLegacy.tsx: signup pitch routes through t()", () => {
+    const src = readFileSync(join(__dirname, "../../app/login/LoginFormLegacy.tsx"), "utf8");
+    expect(src).not.toContain("Free access to charts; Pro unlocks custom + proprietary indicators.");
+    expect(src).toContain('t("lgSignupPitch")');
+  });
+
+  it("GuidePanel.tsx: academy chrome and teaching labels route through t(); tier uses planTierLabel", () => {
+    const src = readOwned("GuidePanel.tsx");
+    expect(src).not.toContain('"Indicator Academy"');
+    expect(src).not.toContain('"At a glance"');
+    expect(src).not.toContain("{candidate.tier}");
+    expect(src).toContain('t("gpAcademy")');
+    expect(src).toContain("planTierLabel(");
+  });
+
+  it("LevelsView.tsx: board chrome routes through t()", () => {
+    const src = readOwned("levels/LevelsView.tsx");
+    expect(src).not.toContain("No levels for this root yet");
+    expect(src).not.toContain("Reading the gamma map");
+    expect(src).not.toContain("New here? Learn the board");
+    expect(src).toContain('t("lvNoLevels")');
+    expect(src).toContain('t("lvLearnCta")');
+  });
+
+  it("LevelsLearn.tsx: teaching copy routes through t(), never English-only JSX", () => {
+    const src = readOwned("levels/LevelsLearn.tsx");
+    expect(src).not.toContain("Why price gets sticky or slippery");
+    expect(src).not.toContain("The gamma weather map, in six reads");
+    expect(src).not.toContain("leans against");
+    expect(src).toContain('t("llHeroTitle")');
+    expect(src).toContain('t("ll1title")');
+  });
+});

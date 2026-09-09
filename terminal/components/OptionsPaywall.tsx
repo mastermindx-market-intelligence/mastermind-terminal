@@ -15,7 +15,7 @@ export default function OptionsPaywall() {
   return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100%", padding: "48px 20px" }}>
       <div style={{ maxWidth: 440, width: "100%", background: "var(--panel-3)", border: "1px solid var(--line-3)", borderRadius: "var(--r-md)", padding: "26px 24px", textAlign: "center", boxShadow: "0 16px 48px -18px rgba(0,0,0,.7)" }}>
-        <div style={{ fontSize: 11, letterSpacing: ".1em", textTransform: "uppercase", color: "var(--brand-2)", fontWeight: 700, marginBottom: 12 }}>Essential · Pro</div>
+        <div style={{ fontSize: 11, letterSpacing: ".1em", textTransform: "uppercase", color: "var(--brand-2)", fontWeight: 700, marginBottom: 12 }}>{t("opwPlans")}</div>
         <h1 style={{ fontSize: 20, fontWeight: 750, color: "var(--text)", margin: "0 0 8px", lineHeight: 1.25 }}>{t("opwTitle")}</h1>
         <p style={{ fontSize: 13, lineHeight: 1.55, color: "var(--text)", opacity: 0.68, margin: "0 0 20px" }}>{t("opwBody")}</p>
         <ul style={{ listStyle: "none", padding: 0, margin: "0 0 22px", display: "grid", gap: 9, textAlign: "left" }}>
