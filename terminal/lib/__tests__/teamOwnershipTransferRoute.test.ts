@@ -119,4 +119,17 @@ describe("POST /api/teams/[id]/transfer-ownership", () => {
     await POST(req({ newOwnerUserId: ADMIN }), ctx());
     expect(H.rpcCalls).toHaveLength(1);
   });
+
+  it("maps a P0001 restore-failed raise to the write_failed sentence, never the SQL text", async () => {
+    H.rpcResult = {
+      data: null,
+      error: { code: "P0001", message: "ownership transfer restore failed for team aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa" },
+    };
+    const res = await POST(req({ newOwnerUserId: ADMIN }), ctx());
+    expect(res.status).toBe(500);
+    const body = await res.json();
+    expect(body.message).toBe(TEAM_ROUTE_MESSAGES.write_failed[0]);
+    expect(body.messageZh).toBe(TEAM_ROUTE_MESSAGES.write_failed[1]);
+    expect(JSON.stringify(body)).not.toMatch(/P0001|ownership transfer restore failed|team_members|transfer_team_ownership/);
+  });
 });

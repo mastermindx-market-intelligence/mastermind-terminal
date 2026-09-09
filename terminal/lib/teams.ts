@@ -59,6 +59,11 @@ export function isPermissionDeniedError(error: { code?: string; message?: string
   return Boolean(error && error.code === "42501");
 }
 
+/** Classified by CODE ONLY. 0020 raises P0001 when the ownership-transfer restore updates no row. */
+export function isRestoreFailedError(error: { code?: string; message?: string } | null | undefined): boolean {
+  return Boolean(error && error.code === "P0001");
+}
+
 export function normalizeTeamName(value: unknown): string | null {
   if (typeof value !== "string") return null;
   const trimmed = value.trim();
@@ -569,6 +574,7 @@ const TRANSFER_FAIL_STATUS: Record<string, number> = {
   unavailable: 403,
   invalid_user_id: 400,
   invalid_team_id: 400,
+  write_failed: 500,
 };
 
 function transferFail(message: TeamRouteCode): TransferOwnershipResult {
@@ -597,6 +603,9 @@ export async function transferOwnership(
   if (result.error) {
     if (isAbsentTableError(result.error)) return transferFail("unavailable");
     if (isPermissionDeniedError(result.error)) return transferFail("unavailable");
+    // Seat ruling M1: RAISE EXCEPTION P0001 from a failed restore maps to the
+    // existing write_failed sentence. Never forward the SQLSTATE or the raise text.
+    if (isRestoreFailedError(result.error)) return transferFail("write_failed");
     return {
       success: false,
       message: "write_failed",

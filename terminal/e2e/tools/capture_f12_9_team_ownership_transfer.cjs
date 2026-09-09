@@ -155,6 +155,40 @@ async function openConfirm(page, lang, file) {
   return text;
 }
 
+async function assertInvitesInView(page, file) {
+  const badge = page.locator("[data-testid=\"team-invite-badge\"]");
+  await badge.waitFor({ state: "visible", timeout: 10_000 });
+  await page.getByText("pending@example.com").waitFor({ state: "visible", timeout: 10_000 });
+  await page.locator(".acs-group-t", { hasText: /Invitations not yet accepted|尚未接受的邀请/ }).first()
+    .evaluate((el) => el.scrollIntoView({ block: "nearest", inline: "nearest" }))
+    .catch(() => {});
+  await page.waitForTimeout(120);
+  const inView = await page.evaluate(() => {
+    const body = document.querySelector(".acs-overlay.open .acs-body");
+    const badgeEl = document.querySelector("[data-testid=\"team-invite-badge\"]");
+    const row = Array.from(document.querySelectorAll(".acs-row")).find((el) =>
+      (el.textContent || "").includes("pending@example.com"),
+    );
+    if (!body || !badgeEl || !row) return { ok: false, reason: "missing" };
+    const br = body.getBoundingClientRect();
+    const visible = (r) => r.bottom > br.top + 4 && r.top < br.bottom - 4;
+    const nr = badgeEl.getBoundingClientRect();
+    const rr = row.getBoundingClientRect();
+    return {
+      ok: visible(nr) && visible(rr),
+      badgeTop: nr.top,
+      rowTop: rr.top,
+      bodyTop: br.top,
+      bodyBottom: br.bottom,
+    };
+  });
+  if (!inView.ok) {
+    // 390 may clip; do not change layout. Record the miss so the evidence lock
+    // still names the group from the DOM, and disclose the clip under GAPS.
+    process.stderr.write(`${file}: pending invitation may be clipped (${JSON.stringify(inView)})\n`);
+  }
+}
+
 async function measureLayout(page) {
   return page.evaluate(() => {
     const button = document.querySelector("[data-testid=\"team-transfer-ownership\"]");
@@ -164,12 +198,18 @@ async function measureLayout(page) {
     const badges = Array.from(document.querySelectorAll("[data-testid=\"team-role-badge\"]")).map((el) =>
       (el.textContent || "").trim(),
     );
+    const inviteBadge = document.querySelector("[data-testid=\"team-invite-badge\"]");
+    const inviteGroup = Array.from(document.querySelectorAll(".acs-group-t")).map((el) =>
+      (el.textContent || "").trim(),
+    ).find((t) => t === "Invitations not yet accepted" || t === "尚未接受的邀请") || "";
     return {
       transferButtonText: button ? (button.textContent || "").trim() : "",
       dialogPresent: !!dialog,
       confirmTitle: title ? (title.textContent || "").trim() : "",
       consequenceText: consequence ? (consequence.textContent || "").trim() : "",
       roleBadgeText: badges.join(" | "),
+      inviteBadgeText: inviteBadge ? (inviteBadge.textContent || "").trim() : "",
+      inviteGroupTitle: inviteGroup,
     };
   });
 }
@@ -213,6 +253,9 @@ async function main() {
         page.setDefaultTimeout(45_000);
         try {
           await openTeam(page, shot.lang, VIEWPORTS[shot.viewport]);
+          if (shot.kind === "button") {
+            await assertInvitesInView(page, shot.file);
+          }
           let consequence = "";
           if (shot.kind === "confirm") {
             consequence = await openConfirm(page, shot.lang, shot.file);
@@ -220,6 +263,15 @@ async function main() {
           const m = await measureLayout(page);
           if (shot.kind === "confirm") m.consequenceText = m.consequenceText || consequence;
           measurements[shot.file] = m;
+          if (!m.inviteBadgeText) {
+            throw new Error(`${shot.file}: invite badge missing`);
+          }
+          if (!m.inviteGroupTitle) {
+            throw new Error(`${shot.file}: invitations group title missing`);
+          }
+          if (!/^(Owner|所有者) \|/.test(m.roleBadgeText)) {
+            throw new Error(`${shot.file}: role badges start with ${m.roleBadgeText}`);
+          }
           if (!m.transferButtonText && shot.kind === "button") {
             throw new Error(`${shot.file}: transfer button missing`);
           }
@@ -276,7 +328,8 @@ async function main() {
     ...Object.entries(measurements).map(([file, m]) =>
       `  ${file}: { transferButtonText: ${JSON.stringify(m.transferButtonText)}, dialogPresent: ${m.dialogPresent},`
       + ` confirmTitle: ${JSON.stringify(m.confirmTitle)}, consequenceText: ${JSON.stringify(m.consequenceText)},`
-      + ` roleBadgeText: ${JSON.stringify(m.roleBadgeText)} }`),
+      + ` roleBadgeText: ${JSON.stringify(m.roleBadgeText)}, inviteBadgeText: ${JSON.stringify(m.inviteBadgeText)},`
+      + ` inviteGroupTitle: ${JSON.stringify(m.inviteGroupTitle)} }`),
     "",
   ].join("\n");
   writeFileSync(join(OUT, "EVIDENCE.yml"), evidence);

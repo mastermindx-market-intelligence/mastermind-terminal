@@ -60,3 +60,13 @@ def test_concurrent_transfer_imports_threading():
     assert "import threading" in src
     assert "threading.Barrier" in src
     assert "import time" in src
+
+
+def test_promote_fail_canary_forces_restore_raise_and_one_owner():
+    """Seat ruling M1: RED on 75916e59 — canary had no promote-fail path."""
+    block = _transfer_block()
+    assert "mastermind.canary_skip_owner_promote" in block
+    assert "rpc:transfer_promote_fail_rolls_back" in block
+    assert "P0001" in block
+    src = CANARY.read_text(encoding="utf-8")
+    assert "canary_skip_owner_promote" in src

@@ -854,6 +854,90 @@ def main() -> int:
         f"outcomes={outcomes!r} owners={concurrent_owners} owner_id={concurrent_owner_id} boxes={boxes!r}",
     )
 
+    # Seat ruling M1: force the promote UPDATE to affect 0 rows (BEFORE UPDATE
+    # trigger RETURN NULL). The restore UPDATE then also matches admin→owner and
+    # is skipped, so GET DIAGNOSTICS restored <> 1 and the function RAISE
+    # EXCEPTION P0001. The statement rolls back; the team still has exactly one
+    # owner. On 75916e59 the restore returned conflict with no RAISE and could
+    # commit zero owners.
+    p_owner = str(uuid.uuid4())
+    p_admin = str(uuid.uuid4())
+    with admin.cursor() as cur:
+        cur.execute(
+            "insert into auth.users (id, email) values (%s, 'p-owner@a.example'), (%s, 'p-admin@a.example')",
+            (p_owner, p_admin),
+        )
+        cur.execute(
+            "insert into public.teams (id, name, created_by) values (gen_random_uuid(), 'Team Promote Fail', %s) returning id",
+            (p_owner,),
+        )
+        team_p = cur.fetchone()[0]
+        cur.execute(
+            "insert into public.team_members (team_id, user_id, role, invited_by) values (%s,%s,'admin',%s)",
+            (team_p, p_admin, p_owner),
+        )
+        cur.execute(
+            """
+            create or replace function public.canary_skip_owner_promote()
+            returns trigger
+            language plpgsql
+            as $f$
+            begin
+              if new.role = 'owner' and old.role = 'admin'
+                 and current_setting('mastermind.canary_skip_owner_promote', true) = 'on' then
+                return null;
+              end if;
+              return new;
+            end
+            $f$;
+            """
+        )
+        cur.execute("drop trigger if exists canary_skip_owner_promote on public.team_members")
+        cur.execute(
+            "create trigger canary_skip_owner_promote before update of role on public.team_members "
+            "for each row execute function public.canary_skip_owner_promote()"
+        )
+
+    p_owner_conn = actor_connection(dsn, p_owner)
+    promote_fail_raised = False
+    promote_fail_sqlstate = None
+    promote_fail_row = None
+    try:
+        with p_owner_conn.cursor() as cur:
+            cur.execute("select set_config('mastermind.canary_skip_owner_promote', 'on', false)")
+            try:
+                cur.execute(
+                    "select success, message from public.transfer_team_ownership(%s, %s)",
+                    (team_p, p_admin),
+                )
+                promote_fail_row = cur.fetchone()
+            except psycopg.Error as exc:  # type: ignore[attr-defined]
+                promote_fail_raised = True
+                diag = getattr(exc, "diag", None)
+                promote_fail_sqlstate = getattr(diag, "sqlstate", None) if diag else None
+    finally:
+        p_owner_conn.close()
+        with admin.cursor() as cur:
+            cur.execute("drop trigger if exists canary_skip_owner_promote on public.team_members")
+            cur.execute("drop function if exists public.canary_skip_owner_promote()")
+            cur.execute("select count(*) from public.team_members where team_id=%s and role='owner'", (team_p,))
+            promote_fail_owners = cur.fetchone()[0]
+            cur.execute(
+                "select user_id::text from public.team_members where team_id=%s and role='owner'",
+                (team_p,),
+            )
+            promote_fail_owner_row = cur.fetchone()
+            promote_fail_owner_id = promote_fail_owner_row[0] if promote_fail_owner_row else None
+    proof.check(
+        "rpc:transfer_promote_fail_rolls_back",
+        promote_fail_raised
+        and promote_fail_sqlstate == "P0001"
+        and promote_fail_owners == 1
+        and promote_fail_owner_id == p_owner,
+        f"raised={promote_fail_raised} sqlstate={promote_fail_sqlstate} owners={promote_fail_owners} "
+        f"owner_id={promote_fail_owner_id} row={promote_fail_row!r}",
+    )
+
     receipt = _receipt(proof.failed)
     receipt["lock_hold_ms"] = round(lock_hold_ms, 3)
     Path(args.receipt).write_text(json.dumps(receipt, indent=2))

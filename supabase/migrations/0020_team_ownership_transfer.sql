@@ -41,6 +41,7 @@ declare
   v_new_owner_role text;
   v_demoted int;
   v_promoted int;
+  restored int;
 begin
   if v_caller_id is null then
     return query select false, 'not_signed_in'::text;
@@ -138,6 +139,11 @@ begin
      where team_id = p_team
        and user_id = v_current_owner_id
        and role = 'admin';
+    get diagnostics restored = row_count;
+    if restored <> 1 then
+      raise exception 'ownership transfer restore failed for team %', p_team
+        using errcode = 'P0001';
+    end if;
     return query select false, 'conflict'::text;
     return;
   end if;

@@ -76,4 +76,13 @@ describe("0020 team ownership transfer migration contract", () => {
   it("does not create a team_ownership_transfers table (audit lives on 0019's team_role_changes)", () => {
     expect(flat).not.toMatch(/create table if not exists public\.team_ownership_transfers/);
   });
+
+  it("a failed restore after a failed promote raises P0001 so the statement rolls back", () => {
+    // Seat ruling M1: RED on 75916e59 because the restore UPDATE returned conflict
+    // with no GET DIAGNOSTICS and no RAISE, so a 0-row restore could commit zero owners.
+    expect(flat).toMatch(/get diagnostics restored = row_count/i);
+    expect(flat).toMatch(/if restored <> 1 then/i);
+    expect(flat).toContain("ownership transfer restore failed for team");
+    expect(flat).toMatch(/errcode = 'P0001'/i);
+  });
 });

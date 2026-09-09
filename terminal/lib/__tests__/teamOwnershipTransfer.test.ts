@@ -235,6 +235,17 @@ describe("transferOwnership (B-F12-9)", () => {
     expect(called).toBe(false);
     expect(result).toEqual({ success: false, message: "invalid_user_id", status: 400 });
   });
+
+  it("maps a P0001 restore-failed raise to write_failed, never the SQLSTATE or raise text", async () => {
+    const db = fakeTransferDb({
+      rpc: async () => ({
+        data: null,
+        error: { code: "P0001", message: "ownership transfer restore failed for team " + TEAM },
+      }),
+    });
+    const result = await transferOwnership(db, TEAM, ADMIN);
+    expect(result).toEqual({ success: false, message: "write_failed", status: 500 });
+  });
 });
 
 describe("TEAM_ROUTE_MESSAGES for transfer codes", () => {
