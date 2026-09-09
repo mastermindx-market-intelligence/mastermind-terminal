@@ -36,6 +36,7 @@ import {
 } from "@/lib/rmsViews";
 import type { RmsViewDef, RmsViewId, CoverageRow } from "@/lib/rmsViews";
 import styles from "./ThesisWorkspace.module.css";
+import ClaimAuthoringForm from "./ClaimAuthoringForm";
 
 export interface ThesisWorkspaceProps {
   ownerKey: string;
@@ -88,7 +89,7 @@ const COPY = {
     catalysts: "Catalysts", falsifiers: "What would prove this wrong", risks: "Risks", onePerLine: "One item per line",
     horizon: "Horizon", effective: "Effective as of (optional)", effectiveHistory: "Effective as of", revision: "Revision note",
     save: "Save", saving: "Saving…", archive: "Archive", invalidate: "Invalidate", reopen: "Reopen",
-    copyLink: "Copy link", copied: "Link copied", version: "Version", current: "Current",
+    copyLink: "Copy link", copied: "Link copied", makeACall: "Make a call", version: "Version", current: "Current",
     active: "Active", archived: "Archived", invalidated: "Invalidated", history: "Version history",
     conflict: "A newer version was saved elsewhere", conflictBody: "Your draft is still here. Nothing was overwritten.",
     reload: "Reload current", copyDraft: "Copy draft", draftCopied: "Draft copied",
@@ -119,7 +120,7 @@ const COPY = {
     catalysts: "催化因素", falsifiers: "什么情况会推翻这个判断", risks: "风险", onePerLine: "每行一项",
     horizon: "时间范围", effective: "生效时间（可选）", effectiveHistory: "生效时间", revision: "修订说明",
     save: "保存", saving: "保存中…", archive: "归档", invalidate: "判定失效", reopen: "重新打开",
-    copyLink: "复制链接", copied: "链接已复制", version: "版本", current: "当前",
+    copyLink: "复制链接", copied: "链接已复制", makeACall: "记录一条判断", version: "版本", current: "当前",
     active: "有效", archived: "已归档", invalidated: "已失效", history: "版本历史",
     conflict: "其他位置已保存更新版本", conflictBody: "你的草稿仍在这里，没有内容被覆盖。",
     reload: "载入当前版本", copyDraft: "复制草稿", draftCopied: "草稿已复制",
@@ -417,6 +418,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   const [inspectedVersion, setInspectedVersion] = useState<number | null>(null);
   const [routeInvalid, setRouteInvalid] = useState(invalidLink);
   const [mobilePane, setMobilePane] = useState<MobilePane>(initialThesisId || seededSymbol ? "detail" : "list");
+  const [claimFormOpen, setClaimFormOpen] = useState(false);
   const [view, setView] = useState<RmsViewId>(RMS_DEFAULT_VIEW);
   const [subjectFilterKey, setSubjectFilterKey] = useState<string | null>(null);
   // Stored alongside subjectFilterKey at the moment of selection (never re-derived by
@@ -1298,9 +1300,22 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
         <div><small>{copy.eyebrow}</small><h1>{copy.title}</h1><span className={styles.contextSubject}>{(detail?.subject.key ?? subjectDraft) || "—"}</span></div>
         <div className={styles.contextActions}>
           {detail && <button type="button" onClick={() => void copyLink()}>{copy.copyLink}</button>}
+          <button
+            type="button"
+            data-testid="claim-entry-button"
+            disabled={carrierLocked || !normalizeAnalysisSymbol(detail?.subject.key ?? subjectDraft)}
+            onClick={() => setClaimFormOpen(true)}
+          >{copy.makeACall}</button>
           <button type="button" className={styles.primaryButton} disabled={carrierLocked} onClick={startNew}>{copy.newThesis}</button>
         </div>
       </header>
+      {claimFormOpen && (
+        <ClaimAuthoringForm
+          open={claimFormOpen}
+          symbol={normalizeAnalysisSymbol(detail?.subject.key ?? subjectDraft) ?? ""}
+          onClose={() => setClaimFormOpen(false)}
+        />
+      )}
 
       {listState === "session_expired" ? (
         <section className={styles.centerState} role="status"><span className={styles.stateMark}>↗</span><h1>{copy.expired}</h1><p>{copy.expiredBody}</p></section>

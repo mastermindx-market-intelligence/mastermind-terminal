@@ -2121,6 +2121,33 @@ export const LEX: Record<string, [string, string]> = {
   accDetAttributionNull: ["Why a call was right or wrong is not recorded yet.", "对错原因尚未记录。"],
   accDetLoadErr: ["We could not load your record. Nothing was changed.", "无法加载你的记录。没有任何改动。"],
 
+  // B-F13-6 claim authoring form — EN/ZH verbatim from the frozen spec §2.4 / §2.7.
+  // ZH uses CJK punctuation throughout. No raw error code, enum, or field name is rendered.
+  claimEntryButton: ["Make a call", "记录一条判断"],
+  claimModalTitle: ["Make a call", "记录一条判断"],
+  claimModalSub: ["Write down what you expect, the day it settles, and what would prove it wrong. This is checked against reality later — it does not change anything else here.", "写下你的预期、结算日期，以及什么情况算判断错了。以后会用真实结果核对——这不会改变本处的其他任何内容。"],
+  claimOwnerLabel: ["Checked against", "核对依据"],
+  claimComparatorLabel: ["Direction", "方向"],
+  claimThresholdLabel: ["Level", "数值"],
+  claimResolvesAtLabel: ["Settles on", "结算日期"],
+  claimProbabilityToggle: ["I also want to state how sure I am", "我也想说明我的把握程度"],
+  claimNoteLabel: ["Add a note (optional)", "添加备注（可选）"],
+  claimSubmit: ["Save this call", "保存这条判断"],
+  claimSaving: ["Saving…", "保存中…"],
+  claimSaved: ["Saved. Checked on the date above.", "已保存。将在上方日期核对。"],
+  claimListEmpty: ["Calls you save this session appear here.", "本次会话中保存的判断会显示在这里。"],
+  claimGoToLedger: ["See your accuracy record", "查看你的准确度记录"],
+  claimClose: ["Close", "关闭"],
+  claimErrInvalidSymbol: ["Open this from a company page before you save a call.", "请先打开某家公司的页面，再保存判断。"],
+  claimErrInvalidOwner: ["Choose what this call is checked against.", "请选择用来核对这条判断的数据来源。"],
+  claimErrInvalidComparator: ["Choose above, below, or an exact bound.", "请选择高于、低于，或某个具体界限。"],
+  claimErrInvalidThreshold: ["Enter a price greater than zero.", "请输入大于零的价格。"],
+  claimErrInvalidResolvesAt: ["Pick a date between tomorrow and two years from now.", "请选择明天到两年后之间的日期。"],
+  claimErrInvalidProbability: ["That number has to be between 0 and 100.", "该数值须介于 0 到 100 之间。"],
+  claimErrTooLong: ["This is too long. Shorten your note and try again.", "内容过长，请缩短备注后重试。"],
+  claimErrUnauthenticated: ["Sign in to save a call.", "请登录后再保存判断。"],
+  claimErrNotRecorded: ["We could not save this call, so we are not going to pretend we did. Nothing was saved. Try again.", "我们无法保存这条判断，因此不会假装已经保存。未保存任何内容，请重试。"],
+
   // ---- chart settings modal: the whole dialog shipped in English only ----
   smClose: ["Close", "关闭"],
   smSections: ["Chart settings sections", "图表设置分区"],
