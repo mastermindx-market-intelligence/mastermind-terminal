@@ -804,3 +804,12 @@ html.acs-lock, html.acs-lock body { overflow: hidden; }
   color: var(--text-2);
 }
 .acs-team-delivery { margin: 0 0 8px; }
+@media (max-width: 640px) {
+  .acs-row:has(.acs-team-actions) .acs-row-line,
+  .acs-row:has(.acs-role-badge) .acs-row-line {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+  .acs-row:has(.acs-role-badge) .acs-row-val { max-width: none; }
+  .acs-team-actions { width: 100%; justify-content: flex-start; margin-top: 6px; }
+}
