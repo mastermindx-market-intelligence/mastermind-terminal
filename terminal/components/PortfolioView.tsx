@@ -39,6 +39,7 @@ import {
 import { riskCopy, riskAvailability, failedRereadDisposition, T_RISK_UNAVAILABLE, type PortfolioRisk, type Lang } from "@/lib/portfolioRisk";
 import {
   targetsCopy,
+  targetsAvailability,
   apiErrorCopy,
   copyBandFit,
   driftBandFit,
@@ -48,6 +49,7 @@ import {
   T_DRIFT,
   T_BAND,
   T_CLEAR,
+  T_CLEARED,
   T_SAVED,
   T_SAVE_FAIL,
   T_ARIA_TARGET,
@@ -504,11 +506,17 @@ export default function PortfolioView(
         })()}
 
         {(() => {
-          switch (riskAvailability(!!open.length, targets as unknown as PortfolioRisk | null, targetsAttempted)) {
+          // R1 (BLOCKER): the targets section used `riskAvailability`, which returns "hidden" the
+          // moment the open book is empty — so closing the last holding hid every saved target on
+          // a closed position with no disclosure at all. `targetsAvailability` is this section's
+          // own gate and keeps it mounted while orphaned rows exist.
+          const shapeReadoutVisible = riskAvailability(!!open.length, risk, riskAttempted) === "ready";
+          switch (targetsAvailability(!!open.length, targets, targetsAttempted)) {
             case "ready": return (
               <PortfolioTargetsReadout
                 summary={targets!}
                 lang={lang as Lang}
+                shapeReadoutVisible={shapeReadoutVisible}
                 onSetTarget={saveTarget}
                 onClearTarget={clearTarget}
               />
@@ -752,21 +760,29 @@ function fillLabel(template: { en: string; zh: string }, ticker: string, lang: L
   return raw.split("{ticker}").join(ticker);
 }
 
-function PortfolioTargetsReadout({ summary, lang, onSetTarget, onClearTarget }: {
+// Exported so `lib/__tests__/portfolioTargetsView.test.tsx` can mount the real readout without
+// standing up the whole page (the `riskAvailability` precedent: keep the decision testable).
+export function PortfolioTargetsReadout({ summary, lang, shapeReadoutVisible, onSetTarget, onClearTarget }: {
   summary: PortfolioTargetsSummary; lang: Lang;
+  shapeReadoutVisible: boolean;
   onSetTarget: (ticker: string, targetWeightPct: number, bandPct?: number) => Promise<void>;
   onClearTarget: (ticker: string) => Promise<void>;
 }) {
-  const copy = targetsCopy(summary, lang);
+  const copy = targetsCopy(summary, lang, { shapeReadoutVisible });
   const pick = (b: { en: string; zh: string } | null | undefined) => (b ? (lang === "zh" ? b.zh : b.en) : "");
   const [justSaved, setJustSaved] = useState<string | null>(null);
+  const [justCleared, setJustCleared] = useState<string | null>(null);
   const persist = async (ticker: string, targetWeightPct: number, bandPct?: number) => {
     await onSetTarget(ticker, targetWeightPct, bandPct);
+    setJustCleared(null);
     setJustSaved(ticker);
   };
+  // R6 (d): a clear is not a save. The row that survives the reload used to show "Saved" beside a
+  // blank field right after the user deleted the target.
   const drop = async (ticker: string) => {
     await onClearTarget(ticker);
-    setJustSaved(ticker);
+    setJustSaved(null);
+    setJustCleared(ticker);
   };
   return (
     <section className={tg.section} data-testid="portfolio-targets" aria-labelledby="pf-targets-h">
@@ -815,6 +831,7 @@ function PortfolioTargetsReadout({ summary, lang, onSetTarget, onClearTarget }: 
               lang={lang}
               onSetTarget={persist}
               showSaved={justSaved === row.ticker}
+              showCleared={justCleared === row.ticker}
             />
           ))}
         </div>
@@ -826,8 +843,10 @@ function PortfolioTargetsReadout({ summary, lang, onSetTarget, onClearTarget }: 
           {copy.orphaned.rows.map((row) => (
             <div key={row.ticker} className={tg.orphanedRow} data-ticker={row.ticker} data-status="orphaned">
               <p className={tg.ticker}>{row.ticker}</p>
-              <p className={tg.value}>{pick(T_TARGET)} {row.targetWeightPct}%</p>
-              <p className={tg.value}>{pick(T_BAND)} ±{row.bandPct}</p>
+              <p className={tg.value}>{pick(T_TARGET)} {pick(row.target)}</p>
+              {/* R6 (b): the unit-bearing string the copy module already computes — the raw
+                  number read "Your band ±5", ambiguous between percent and percentage points. */}
+              <p className={tg.value}>{pick(T_BAND)} {pick(row.band)}</p>
             </div>
           ))}
         </div>
@@ -841,10 +860,20 @@ function useDebouncedSave(
   lang: Lang,
   onSetTarget: (ticker: string, targetWeightPct: number, bandPct?: number) => Promise<void>,
 ) {
-  const [flash, setFlash] = useState<"saved" | "error" | null>(null);
+  const [flash, setFlash] = useState<"saved" | "cleared" | "error" | null>(null);
   const [errorText, setErrorText] = useState<string | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const rollback = useRef<{ target: string; band: string }>({ target: "", band: String(DEFAULT_BAND_PCT) });
+
+  const cancel = useCallback(() => {
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = null;
+  }, []);
+
+  // R3: a pending save must never outlive the row it belongs to. Without this, clearing a target
+  // inside the 500ms window unmounted the card and the timer then fired against the captured
+  // closure, re-creating the target the user had just deleted.
+  useEffect(() => cancel, [cancel]);
 
   const schedule = (
     targetStr: string,
@@ -852,7 +881,14 @@ function useDebouncedSave(
     restore: (target: string, band: string) => void,
     includeBand: boolean,
   ) => {
-    if (timer.current) clearTimeout(timer.current);
+    cancel();
+    // R3: an emptied field is not a value. `Number("")` is 0, which `Number.isFinite` accepts and
+    // `normalizeWeightPct` admits (0 is in range), so a user who select-all-deleted a target to
+    // retype it and paused past the debounce had a 0% target written for them and the input reset
+    // from props to a "0" they never typed. Blank never writes — and it cancels whatever was
+    // already queued, because the user has withdrawn the value that was pending.
+    if (!targetStr.trim()) return;
+    if (includeBand && !bandStr.trim()) return;
     timer.current = setTimeout(async () => {
       const weight = Number(targetStr);
       if (!Number.isFinite(weight)) return;
@@ -872,7 +908,7 @@ function useDebouncedSave(
     }, 500);
   };
 
-  return { flash, errorText, schedule, rollback, setFlash };
+  return { flash, errorText, schedule, cancel, rollback, setFlash };
 }
 
 function TargetCard({
@@ -894,7 +930,7 @@ function TargetCard({
 }) {
   const [targetStr, setTargetStr] = useState(String(targetWeightPct));
   const [bandStr, setBandStr] = useState(String(bandPct));
-  const { flash, errorText, schedule, rollback, setFlash } = useDebouncedSave(ticker, lang, onSetTarget);
+  const { flash, errorText, schedule, cancel, rollback, setFlash } = useDebouncedSave(ticker, lang, onSetTarget);
   const pick = (b: { en: string; zh: string }) => (lang === "zh" ? b.zh : b.en);
 
   useEffect(() => {
@@ -953,9 +989,12 @@ function TargetCard({
           type="button"
           className={tg.clear}
           onClick={async () => {
+            // R3: a save queued inside the debounce window would otherwise fire after this clear
+            // and put the target straight back.
+            cancel();
             try {
               await onClearTarget(ticker);
-              setFlash("saved");
+              setFlash("cleared");
             } catch {
               setFlash("error");
             }
@@ -964,6 +1003,7 @@ function TargetCard({
           {pick(T_CLEAR)}
         </button>
         {(flash === "saved" || showSaved) && <span className={tg.saved}>{pick(T_SAVED)}</span>}
+        {flash === "cleared" && <span className={tg.saved}>{pick(T_CLEARED)}</span>}
         {flash === "error" && <span className={tg.error}>{errorText || pick(T_SAVE_FAIL)}</span>}
       </div>
     </article>
@@ -971,13 +1011,14 @@ function TargetCard({
 }
 
 function UntargetedRow({
-  ticker, hint, lang, onSetTarget, showSaved,
+  ticker, hint, lang, onSetTarget, showSaved, showCleared,
 }: {
   ticker: string;
   hint: string;
   lang: Lang;
   onSetTarget: (ticker: string, targetWeightPct: number, bandPct?: number) => Promise<void>;
   showSaved: boolean;
+  showCleared: boolean;
 }) {
   const [targetStr, setTargetStr] = useState("");
   const [bandStr, setBandStr] = useState(String(DEFAULT_BAND_PCT));
@@ -1017,11 +1058,12 @@ function UntargetedRow({
             const next = event.target.value;
             setBandStr(next);
             setFlash(null);
-            if (targetStr.trim()) schedule(targetStr, next, (t, b) => { setTargetStr(t); setBandStr(b); }, true);
+            schedule(targetStr, next, (t, b) => { setTargetStr(t); setBandStr(b); }, true);
           }}
         />
       </label>
       {(flash === "saved" || showSaved) && <span className={tg.saved}>{pick(T_SAVED)}</span>}
+      {(flash === "cleared" || showCleared) && <span className={tg.saved}>{pick(T_CLEARED)}</span>}
       {flash === "error" && <span className={tg.error}>{errorText || pick(T_SAVE_FAIL)}</span>}
     </div>
   );

@@ -108,7 +108,10 @@ export async function POST(req: Request) {
 
   const body = await req.json().catch(() => null) as Record<string, unknown> | null;
   if (!body) return fail("invalid JSON", 400);
+  // R6 (i): dispatch on the action FIRST. Validating the ticker ahead of it answered a POST of
+  // `{"action":"bogus"}` with "invalid ticker" — a true statement about the wrong thing.
   const action = body.action;
+  if (action !== "set" && action !== "clear") return fail("unsupported action", 400);
   const ticker = normalizeTicker(body.ticker);
   if (!ticker) return fail("invalid ticker", 400);
 
@@ -128,12 +131,21 @@ export async function POST(req: Request) {
       bandValue = band.value;
     }
 
-    const existing = await db.from(TARGETS_TABLE)
-      .select("ticker,target_weight_pct,band_pct,updated_at")
-      .eq("user_id", userId)
-      .eq("ticker", ticker)
-      .maybeSingle();
-    if (existing.error) return fail("targets unavailable", 503);
+    // R6 (i): wrapped exactly like `readTargets` above. A driver that RETURNS an error already
+    // produced the right 503; a driver that THROWS escaped as a 500, where the GET path on the
+    // very same table guarantees a 503.
+    let existing: { data?: DbRow | DbRow[] | null; error?: { message?: string } | null };
+    try {
+      existing = await db.from(TARGETS_TABLE)
+        .select("ticker,target_weight_pct,band_pct,updated_at")
+        .eq("user_id", userId)
+        .eq("ticker", ticker)
+        .maybeSingle();
+    } catch (cause) {
+      console.error("portfolio targets POST read failed:", cause);
+      return fail("targets unavailable", 503);
+    }
+    if (existing?.error) return fail("targets unavailable", 503);
     const now = new Date().toISOString();
     const existingRow = existing.data && typeof existing.data === "object" && !Array.isArray(existing.data)
       ? existing.data
@@ -175,7 +187,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, target });
   }
 
-  if (action === "clear") {
+  {
+    // action === "clear" — the only remaining case, pinned by the dispatch guard above.
     const deleted = await db.from(TARGETS_TABLE)
       .delete()
       .eq("user_id", userId)
@@ -186,6 +199,4 @@ export async function POST(req: Request) {
     if (!rows.length) return fail("target not found", 404);
     return NextResponse.json({ ok: true, clearedTicker: ticker });
   }
-
-  return fail("unsupported action", 400);
 }

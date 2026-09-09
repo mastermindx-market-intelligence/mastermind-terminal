@@ -35,24 +35,29 @@ vi.mock("@/lib/supabase/server", async () => {
         });
         return query as unknown as WatchlistQuery;
       };
+      // R6 (i): a driver whose `maybeSingle` THROWS, preserved across the whole
+      // `.select().eq().eq()` chain — each link returns a fresh query object, so a shallow
+      // proxy on `from(table)` alone would be bypassed before `maybeSingle` is ever reached.
+      const CHAIN = new Set(["select", "eq", "in", "order", "limit", "insert", "update", "delete"]);
+      const wrapThrowing = (query: WatchlistQuery): WatchlistQuery => new Proxy(query, {
+        get(target, prop, receiver) {
+          if (prop === "maybeSingle") return async () => { throw new Error("driver exploded"); };
+          const value = Reflect.get(target, prop, receiver);
+          if (typeof value !== "function") return value;
+          const fn = (value as (...a: unknown[]) => unknown).bind(target);
+          if (!CHAIN.has(String(prop))) return fn;
+          return (...args: unknown[]) => {
+            const out = fn(...args);
+            return out && typeof out === "object" ? wrapThrowing(out as WatchlistQuery) : out;
+          };
+        },
+      }) as unknown as WatchlistQuery;
       return {
         auth: { getUser: vi.fn(async () => ({ data: { user: H.user } })) },
         from: (table: string) => {
           H.reads.push(table);
           if (H.failReadTable === table) return failedQuery();
-          const query = db.from(table);
-          if (H.throwOnMaybeSingle) {
-            return new Proxy(query, {
-              get(target, prop, receiver) {
-                if (prop === "maybeSingle") {
-                  return async () => { throw new Error("driver exploded"); };
-                }
-                const inner = Reflect.get(target, prop, receiver);
-                return typeof inner === "function" ? inner.bind(target) : inner;
-              },
-            });
-          }
-          return new Proxy(query, {
+          const spied = new Proxy(db.from(table), {
             get(target, prop, receiver) {
               if (prop === "insert" || prop === "update" || prop === "delete") {
                 return (value?: unknown) => {
@@ -64,7 +69,8 @@ vi.mock("@/lib/supabase/server", async () => {
               const value = Reflect.get(target, prop, receiver);
               return typeof value === "function" ? value.bind(target) : value;
             },
-          });
+          }) as unknown as WatchlistQuery;
+          return H.throwOnMaybeSingle ? wrapThrowing(spied) : spied;
         },
       };
     }),

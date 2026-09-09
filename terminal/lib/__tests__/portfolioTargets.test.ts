@@ -101,8 +101,13 @@ const STATE_FIXTURES: { state: string; summary: PortfolioTargetsSummary; shapeRe
     shapeReadoutVisible: true,
   },
   {
-    state: "unweighable (targeted position with no entry price)",
-    summary: computePortfolioTargets([pos("AAA", 10, null)], [tgt("AAA", 40, 5)]),
+    // Both faces of unweighable: a TARGETED row with no entry price (the status sentence) and an
+    // UNTARGETED short (the hint), alongside one weighable holding.
+    state: "unweighable (targeted with no entry price, and an untargeted short)",
+    summary: computePortfolioTargets(
+      [pos("AAA", 10, null), pos("BBB", 100, 100), pos("SHORT", -50, 100)],
+      [tgt("AAA", 40, 5)],
+    ),
     shapeReadoutVisible: false,
   },
   {
@@ -403,7 +408,7 @@ describe("targetsCopy — denylist (no suggested trade, no rebalance imperative)
     expect(seen).toContain(T_UNWEIGHABLE.en);
     expect(seen).toContain(T_EMPTY_BOOK.en);
     expect(seen).toContain(T_NO_TARGETS.en);
-    expect(seen).toContain(T_UNTARGETED_HINT_UNWEIGHABLE.zh.split("{ticker}").join("AAA"));
+    expect(seen).toContain(T_UNTARGETED_HINT_UNWEIGHABLE.zh.split("{ticker}").join("SHORT"));
   });
 });
 
