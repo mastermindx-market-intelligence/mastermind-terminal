@@ -1,8 +1,8 @@
 # B-PL-6 batch 3 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 8039f513337980bca8f23a1d947f9bfe606d70e7
-# capturedAt: 2026-09-09T13:58:24.464Z
+# capturedAtHead: bb87130fed411b3aa862e5ac788ba17d83d4ed1b
+# capturedAt: 2026-09-09T18:38:14.065Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/components/options/OptionsFlowBoardView.tsx: "7d6edee96f29cbefb8fcae85aa534e6046c9b556f97dda4fb5202e130c16b382"
@@ -12,9 +12,9 @@ layoutFiles:
   terminal/components/heatmap/HeatmapView.tsx: "2d5a27c95c6ddaf0d804b3b39b974d3da9760882ffbe3a39a0725d984bfb1eec"
   terminal/components/heatmap/Treemap.tsx: "33b7d0a69b13b8baf2a66c235d37ce5878d8803814a0b7696d26dc0fbb6e1ea6"
   terminal/lib/heatmapStrings.ts: "301bc087b30d4830d0d374cc92816b46b76838f24c6a13a6222e1090bc05e272"
-  terminal/lib/flowdeskStrings.ts: "244db1096bc0797a5197635fc6b4bf3157f74144640cb952ea94648a4c9be76a"
-  terminal/lib/plainLabels.ts: "69b5f2ad47a04e8010ba002308ce82fdf44731df2c44bd617da6a4728b17ca5b"
-  terminal/lib/i18n.tsx: "35b7ad9679a593882c6e2bee939a6683adb537e33fc9fd19285822bb97b853b5"
+  terminal/lib/flowdeskStrings.ts: "cb77fe18f14816737dff64bda9970e1166bcca9b0c3e983fd5120f0bd917c791"
+  terminal/lib/plainLabels.ts: "8f69818feca65a5f28c590460c52e4f06c04c25cc4f3da8643eff9050161b588"
+  terminal/lib/i18n.tsx: "9a17df6bf5c28684aa6eff31bf7a8e506791a781023ed7311514a64230fabcc3"
 theme: dark
 languages: [en, zh]
 viewports:
