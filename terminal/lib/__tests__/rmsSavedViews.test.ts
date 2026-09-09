@@ -4,7 +4,9 @@ import {
   MAX_SAVED_VIEWS,
   RMS_REVIEW_STALE_DAYS,
   RMS_SAVED_VIEW_STALE_DAYS,
+  RMS_FIRE_STATUS_BATCH,
   applyViewFilter,
+  fireStatusBatches,
   readConditionStates,
   reviewRows,
 } from "@/lib/rmsViews";
@@ -151,5 +153,34 @@ describe("applyViewFilter", () => {
       NOW,
     );
     expect(filtered.map((r) => r.id)).toEqual([tStale45.id]);
+  });
+});
+
+// Round-2 review of PR #546.
+describe("built-in predicates and fire-status batching — round-2 repairs", () => {
+  // Opus minor 1 / Grok minor 4: window_closed shipped `lifecycle: "any"`, so
+  // archived and invalidated theses could appear; spec 2.2 defaults it to "active".
+  it("window_closed keeps the spec's active-only lifecycle", () => {
+    const preset = BUILTIN_VIEWS.find((v) => v.id === "window_closed")!;
+    expect(preset.filter.lifecycle).toBe("active");
+    expect(preset.filter.windowClosed).toBe(true);
+  });
+
+  it("window_closed excludes an archived thesis whose window closed", () => {
+    const closed: ConditionState = { source: "monitor", state: "window_closed", at: "2026-09-01T00:00:00.000Z" };
+    const conditions = new Map<string, ConditionState>([[tClosed.id, closed], [tArchived.id, closed]]);
+    const preset = BUILTIN_VIEWS.find((v) => v.id === "window_closed")!;
+    const filtered = applyViewFilter([tClosed, tArchived], preset.filter, conditions, NOW);
+    expect(filtered.map((r) => r.id)).toEqual([tClosed.id]);
+  });
+
+  // Opus MAJOR 2 / Grok minor 1: the client read truncated at 50 ids.
+  it("fireStatusBatches splits every id into route-sized batches, dropping none", () => {
+    const ids = Array.from({ length: 123 }, (_, i) => `id-${i}`);
+    const batches = fireStatusBatches(ids);
+    expect(batches.length).toBe(3);
+    for (const batch of batches) expect(batch.length).toBeLessThanOrEqual(RMS_FIRE_STATUS_BATCH);
+    expect(batches.flat()).toEqual(ids);
+    expect(fireStatusBatches([])).toEqual([]);
   });
 });

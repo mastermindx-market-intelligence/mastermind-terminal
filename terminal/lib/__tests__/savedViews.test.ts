@@ -240,3 +240,65 @@ describe("savedViews CRUD (per-row workspace_settings)", () => {
 
 // Keep the type import live so a missing SavedView export fails this file at load.
 export type _AssertSavedView = SavedView;
+
+// Round-2 review of PR #546 — Opus minors 2 and 3.
+describe("savedViews CRUD — round-2 repairs", () => {
+  const owner = "11111111-1111-4111-8111-111111111111";
+
+  // minor 2: `deleteSavedView` answered { ok: true } for an id that never existed,
+  // so the route's 404 branch was unreachable.
+  it("delete of an id with no row answers not_found, not ok", async () => {
+    const { db } = makeDb();
+    const result = await deleteSavedView(db, owner, "99999999-9999-4999-8999-999999999999");
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.status).toBe("not_found");
+  });
+
+  it("delete of a row that exists still answers ok", async () => {
+    const { db } = makeDb();
+    const id = "88888888-8888-4888-8888-888888888888";
+    const made = await createSavedView(db, owner, { id, name: "Keep", filter: FILTER });
+    expect(made.ok).toBe(true);
+    const result = await deleteSavedView(db, owner, id);
+    expect(result.ok).toBe(true);
+    const after = await listSavedViews(db, owner);
+    expect(after.ok && after.views).toHaveLength(0);
+  });
+
+  // minor 3: rows past the 50th were silently dropped from the read with no signal,
+  // so a user could hold a saved view that is invisible and undeletable.
+  it("list reports truncation when more rows exist than the cap shows", async () => {
+    const { db, rows } = makeDb();
+    for (let i = 0; i < MAX_SAVED_VIEWS + 2; i += 1) {
+      const id = `77777777-7777-4777-8777-${String(i).padStart(12, "0")}`;
+      const view: SavedView = {
+        id,
+        name: `View ${i}`,
+        filter: FILTER,
+        createdAt: "2026-09-01T00:00:00.000Z",
+        updatedAt: `2026-09-01T00:00:${String(i).padStart(2, "0")}.000Z`,
+      };
+      rows.push({ scope: "user", user_id: owner, key: savedViewSettingsKey(id), value: view });
+    }
+    const result = await listSavedViews(db, owner);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.views).toHaveLength(MAX_SAVED_VIEWS);
+    expect(result.truncated).toBe(true);
+  });
+
+  it("list reports no truncation under the cap", async () => {
+    const { db } = makeDb();
+    const made = await createSavedView(db, owner, {
+      id: "66666666-6666-4666-8666-666666666666",
+      name: "One",
+      filter: FILTER,
+    });
+    expect(made.ok).toBe(true);
+    const result = await listSavedViews(db, owner);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.truncated).toBe(false);
+  });
+});

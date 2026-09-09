@@ -15,8 +15,8 @@
 
 const { spawn, execFileSync } = require("node:child_process");
 const { createHash, randomUUID } = require("node:crypto");
-const { mkdirSync, readdirSync, readFileSync, writeFileSync } = require("node:fs");
-const { join } = require("node:path");
+const { mkdirSync, readFileSync, writeFileSync } = require("node:fs");
+const { basename, join } = require("node:path");
 const { chromium } = require("@playwright/test");
 
 const ROOT = join(__dirname, "..", "..");
@@ -187,11 +187,21 @@ async function stripDevOverlay(page) {
   });
 }
 
+// Round-2 review of PR #546 (Opus MAJOR 4): this used to call stripDevOverlay() FIRST
+// and then count, so the count was 0 by construction and the throw was unreachable —
+// and it ran after the PNG had already been written. Count on the pre-strip DOM, and
+// let shootPane() run it before the screenshot, so a present bubble fails the capture.
 async function assertNoNextIndicator(page, file) {
   await page.waitForTimeout(250);
-  await stripDevOverlay(page);
   const n = await page.locator("[data-nextjs-dev-tools-button]").count();
   if (n > 0) throw new Error(`${file}: Next.js N overlay still mounted (${n})`);
+}
+
+/** Assert first, then strip, then shoot. */
+async function shootPane(page, outPath) {
+  await assertNoNextIndicator(page, basename(outPath));
+  await stripDevOverlay(page);
+  await cropPane(page, outPath);
 }
 
 async function cropPane(page, outPath) {
@@ -234,7 +244,7 @@ async function withStore(browser, width, lang, storeKey, run) {
 async function captureEmpty(page, width, lang, outPath) {
   await openList(page, width, lang);
   await page.waitForSelector('[data-testid="rms-saved-views-empty"]', { timeout: 15_000 });
-  await cropPane(page, outPath);
+  await shootPane(page, outPath);
 }
 
 async function captureNamed(page, context, width, lang, outPath) {
@@ -250,7 +260,7 @@ async function captureNamed(page, context, width, lang, outPath) {
   });
   await openList(page, width, lang);
   await page.waitForSelector('[data-saved-view]', { timeout: 15_000 });
-  await cropPane(page, outPath);
+  await shootPane(page, outPath);
 }
 
 async function captureSaveFlow(page, context, width, lang, outPath) {
@@ -261,26 +271,28 @@ async function captureSaveFlow(page, context, width, lang, outPath) {
   await page.getByRole("button", { name: /NVDA/ }).first().click();
   await page.getByTestId("rms-save-view").click();
   await page.getByLabel(lang === "zh" ? "为这个视图命名" : "Name this view").waitFor({ state: "visible" });
-  await cropPane(page, outPath);
+  await shootPane(page, outPath);
 }
 
+// Round-2 review of PR #546 (BLOCKER 1): this surface used to `page.route()` the app's
+// own /api/thesis-fire-status and hand-fulfill a window_closed state, so the committed
+// pixels depicted no shipped code — neither the route handler nor
+// mapOutboxToConditionStates() ever ran. It now runs against a REAL alert_outbox row in
+// the fixture database (store key carries FIXTURE_MONITOR_FIRED_TOKEN, see
+// terminal/lib/watchlistsFixtureDb.ts), which the first thesis created in this store
+// gets and the second does not — so the preset filters one matched row from two theses
+// through the shipped read path. No network stub anywhere in this file.
 async function captureWindowClosed(page, context, width, lang, outPath) {
-  const thesisId = await createThesis(context, lang === "zh" ? "窗口已结束的论点" : "Closed-window thesis", "NVDA");
-  await page.route("**/api/thesis-fire-status**", async (route) => {
-    const url = new URL(route.request().url());
-    const ids = url.searchParams.getAll("id");
-    const states = {};
-    for (const id of ids) {
-      states[id] = id === thesisId
-        ? { source: "monitor", state: "window_closed", at: "2026-09-01T00:00:00.000Z" }
-        : { source: "unavailable" };
-    }
-    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ states }) });
-  });
+  await createThesis(context, lang === "zh" ? "窗口已结束的论点" : "Closed-window thesis", "NVDA");
+  await createThesis(context, lang === "zh" ? "窗口仍开着的论点" : "Open-window thesis", "AAPL");
   await openList(page, width, lang);
   await page.locator('[data-builtin="window_closed"]').click();
   await page.waitForTimeout(400);
-  await cropPane(page, outPath);
+  const rows = await page.locator('[data-testid="rms-lens-panel"] [data-testid="rms-empty"]').count();
+  if (rows > 0) {
+    throw new Error(`${basename(outPath)}: window_closed rendered its empty state — the fixture alert_outbox row did not reach the route`);
+  }
+  await shootPane(page, outPath);
 }
 
 async function main() {
@@ -298,16 +310,16 @@ async function main() {
             { name: "empty", run: (page) => captureEmpty(page, width, lang, join(OUT, cropName("empty", width, lang))) },
             { name: "named-views", run: (page, context) => captureNamed(page, context, width, lang, join(OUT, cropName("named-views", width, lang))) },
             { name: "save-flow", run: (page, context) => captureSaveFlow(page, context, width, lang, join(OUT, cropName("save-flow", width, lang))) },
-            { name: "window-closed", run: (page, context) => captureWindowClosed(page, context, width, lang, join(OUT, cropName("window-closed", width, lang))) },
+            // "monitorfired" in the store key is what seeds the alert_outbox row.
+            { name: "window-closed", store: "monitorfired", run: (page, context) => captureWindowClosed(page, context, width, lang, join(OUT, cropName("window-closed", width, lang))) },
           ];
           for (const surface of surfaces) {
             const file = cropName(surface.name, width, lang);
             process.stdout.write(`capture ${file} … `);
-            const storeKey = `f11-4-${surface.name}-${width}-${lang}-${randomUUID().slice(0, 8)}`;
+            const storeKey = `f11-4-${surface.store || surface.name}-${width}-${lang}-${randomUUID().slice(0, 8)}`;
             try {
               await withStore(browser, width, lang, storeKey, async (page, context) => {
                 await surface.run(page, context);
-                await assertNoNextIndicator(page, file);
               });
               files.push(file);
               console.log("ok");
@@ -341,21 +353,31 @@ async function main() {
     "  - { name: mobile, width: 390, height: 844 }",
     "surfaces: [empty, named-views, save-flow, window-closed]",
     "capture_flag: TERMINAL_E2E_FIXTURE",
+    "window_closed_data: |",
+    "  A real alert_outbox row in the e2e fixture database, seeded by the fixture",
+    "  transport for the first thesis created in a store whose key carries",
+    "  FIXTURE_MONITOR_FIRED_TOKEN (terminal/lib/watchlistsFixtureDb.ts). The shipped",
+    "  GET /api/thesis-fire-status route and mapOutboxToConditionStates() run for real",
+    "  against it; nothing in this capture stubs a network response.",
     "capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.",
     "command: |",
     "  cd terminal",
     "  node e2e/tools/capture_f11_4_research_views.cjs",
     "files:",
-    ...[...new Set([
-      ...readdirSync(OUT).filter((f) => f.endsWith(".png") && !f.startsWith("FAIL-")).sort(),
-      ...files,
-    ])].map((f) => `  - ${f}`),
+    // Opus minor 6 (round-2 review): this used to union the directory listing, so a PNG
+    // left behind by an earlier head was listed beside freshly computed hashes. Only
+    // what THIS run wrote is listed, and a run with any failure writes no manifest at all.
+    ...[...files].sort().map((f) => `  - ${f}`),
     "",
   ].join("\n");
+  if (failed) {
+    console.error(`${failed} surface(s) failed — EVIDENCE.yml not written`);
+    process.exitCode = 1;
+    return;
+  }
   writeFileSync(join(OUT, "EVIDENCE.yml"), evidence);
   console.log(`capturedAtHead ${capturedAtHead}`);
   console.log(`wrote ${files.length} crops + EVIDENCE.yml to ${OUT}`);
-  if (failed) process.exitCode = 1;
 }
 
 main().catch((err) => {

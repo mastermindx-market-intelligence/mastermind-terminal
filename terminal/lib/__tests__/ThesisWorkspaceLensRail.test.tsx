@@ -1548,3 +1548,222 @@ describe("ThesisWorkspace lens rail (B-F11-2, M2)", () => {
     expect(empty!.textContent).not.toMatch(/^0|—$/);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Round-2 review of PR #546 (B-F11-4). Every test below was RED at head
+// 2e0a55bd and names the finding it closes.
+// ---------------------------------------------------------------------------
+
+type WorkspaceStub = {
+  theses: ThesisSummary[];
+  details?: Map<string, ThesisDetail>;
+  savedViews?: unknown[];
+  fireStates?: Record<string, unknown>;
+  fireStatusHttpStatus?: number;
+};
+
+/** Same shape as `installFetch`, plus the two new B-F11-4 read paths. */
+function installWorkspaceFetch(stub: WorkspaceStub) {
+  const fireCalls: string[][] = [];
+  const details = stub.details ?? new Map<string, ThesisDetail>();
+  const fetchMock = vi.fn(async (input: string | URL | Request) => {
+    const raw = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
+    const url = new URL(raw, "https://x.test");
+    if (url.pathname === "/api/thesis-saved-views") return jsonResponse({ views: stub.savedViews ?? [] });
+    if (url.pathname === "/api/thesis-fire-status") {
+      const ids = url.searchParams.getAll("id");
+      fireCalls.push(ids);
+      if (stub.fireStatusHttpStatus && stub.fireStatusHttpStatus >= 400) {
+        return jsonResponse({ error: "fire_status_unavailable" }, stub.fireStatusHttpStatus);
+      }
+      const states: Record<string, unknown> = {};
+      for (const id of ids) states[id] = (stub.fireStates ?? {})[id] ?? { source: "unavailable" };
+      return jsonResponse({ states });
+    }
+    if (url.pathname !== "/api/theses") return jsonResponse({ error: "not_found" }, 404);
+    const ids = url.searchParams.getAll("ids");
+    if (ids.length > 0) {
+      const batch: ThesisDetail[] = [];
+      const missing: string[] = [];
+      for (const id of ids) {
+        const d = details.get(id);
+        if (d) batch.push(d);
+        else missing.push(id);
+      }
+      return jsonResponse({ batch, missing });
+    }
+    const id = url.searchParams.get("id");
+    if (id) {
+      const d = details.get(id);
+      return d ? jsonResponse({ thesis: d }) : jsonResponse({ error: "thesis_not_found" }, 404);
+    }
+    return jsonResponse({ theses: stub.theses, truncated: false });
+  });
+  vi.stubGlobal("fetch", fetchMock);
+  return { fetchMock, fireCalls };
+}
+
+const FRESH = new Date(Date.now() - 60_000).toISOString();
+
+function activeThesis(id: string, key: string, title: string, updatedAt = FRESH, version = 1): ThesisSummary {
+  return {
+    id,
+    currentVersion: version,
+    lifecycleState: "active",
+    subject: subject(key, `${key} Co`),
+    title,
+    updatedAt,
+  };
+}
+
+function chip(el: HTMLElement, builtin: string): HTMLButtonElement {
+  const found = el.querySelector<HTMLButtonElement>(`[data-builtin="${builtin}"]`);
+  expect(found, `expected the ${builtin} chip`).not.toBeNull();
+  return found!;
+}
+
+function emptyText(el: HTMLElement): string {
+  const node = el.querySelector('[data-testid="rms-empty"], [data-testid="thesis-empty"], [data-testid="rms-filtered-empty"]');
+  expect(node, "expected an empty-state node").not.toBeNull();
+  return node!.textContent ?? "";
+}
+
+describe("ThesisWorkspace saved views — round-2 repairs (B-F11-4, PR #546)", () => {
+  // BLOCKER 2: the Stale preset's zero-row state printed `builtin.staleWhat`
+  // ("No changes in 30 days."), the exact inverse of the truth.
+  it("Stale preset with nothing stale says everything moved, never 'No changes in 30 days.'", async () => {
+    installWorkspaceFetch({ theses: [activeThesis("t-fresh", "AAA", "Alpha")] });
+    const el = await mount({ ownerKey: "owner-stale-empty" });
+    await flush();
+    await act(async () => chip(el, "stale_30").click());
+    await flush();
+    const text = emptyText(el);
+    expect(text).not.toContain("No changes in 30 days.");
+    expect(text).not.toContain("No theses yet");
+    expect(text).toMatch(/last 30 days/i);
+    expect(el.querySelector('[data-testid="thesis-empty"]')).toBeNull();
+  });
+
+  // BLOCKER 3: a saved view matching zero rows fell through to
+  // `RMS_COPY.empty.theses` ("No theses yet…") — false while theses exist.
+  it("a saved view matching zero rows says no theses match this view, never 'No theses yet'", async () => {
+    installWorkspaceFetch({
+      theses: [activeThesis("t-fresh", "AAA", "Alpha")],
+      savedViews: [{
+        id: "55555555-5555-4555-8555-555555555555",
+        name: "Stale ones",
+        filter: { lifecycle: "active", staleDays: 30 },
+        createdAt: "2026-09-01T00:00:00.000Z",
+        updatedAt: "2026-09-01T00:00:00.000Z",
+      }],
+    });
+    const el = await mount({ ownerKey: "owner-saved-empty" });
+    await flush();
+    const savedChip = el.querySelector<HTMLButtonElement>('[data-saved-view="55555555-5555-4555-8555-555555555555"] button')!;
+    expect(savedChip).not.toBeNull();
+    await act(async () => savedChip.click());
+    await flush();
+    const text = emptyText(el);
+    expect(text).not.toContain("No theses yet");
+    expect(text).toMatch(/match this view/i);
+    expect(el.querySelector('[data-testid="thesis-empty"]')).toBeNull();
+  });
+
+  // BLOCKER 3 (second half): the same fall-through on the Ideas and Reviews lenses.
+  it("Ideas and Reviews under a built-in preset use the preset's empty copy, not the lens's", async () => {
+    installWorkspaceFetch({ theses: [activeThesis("t-fresh", "AAA", "Alpha")] });
+    const el = await mount({ ownerKey: "owner-lens-empty" });
+    await flush();
+    await act(async () => chip(el, "stale_30").click());
+    await flush();
+
+    await act(async () => tabs(el).find((b) => b.dataset.view === "ideas")!.click());
+    await flush();
+    const ideas = emptyText(el);
+    expect(ideas).not.toContain("Nothing new is waiting");
+    expect(ideas).toMatch(/last 30 days/i);
+
+    await act(async () => tabs(el).find((b) => b.dataset.view === "reviews")!.click());
+    await flush();
+    const reviews = emptyText(el);
+    expect(reviews).not.toContain("Nothing is waiting for a second look");
+    expect(reviews).toMatch(/last 30 days/i);
+  });
+
+  // MAJOR 2 / Grok 1: the fire-status read truncated at the first 50 ids while the
+  // list carries up to 200 — theses 51+ could never enter the Window closed preset.
+  it("asks for fire status for every thesis, in batches, never only the first 50", async () => {
+    const many = Array.from({ length: 63 }, (_, i) =>
+      activeThesis(`aaaaaaaa-aaaa-4aaa-8aaa-${String(i + 1).padStart(12, "0")}`, "AAA", `Alpha ${i}`));
+    const { fireCalls } = installWorkspaceFetch({ theses: many });
+    await mount({ ownerKey: "owner-fire-batch" });
+    await flush();
+    await flush();
+    const requested = new Set(fireCalls.flat());
+    for (const row of many) expect(requested.has(row.id), `${row.id} was never asked about`).toBe(true);
+    expect(requested.size).toBe(63);
+    for (const call of fireCalls) expect(call.length).toBeLessThanOrEqual(50);
+  });
+
+  // MAJOR 1: a failed fire-status read was swallowed into an empty map, so
+  // "unavailable" rendered as the positive claim "nothing has a closed window".
+  it("a failed fire-status read reads as not connected, never as 'nothing has a closed window'", async () => {
+    installWorkspaceFetch({
+      theses: [activeThesis("aaaaaaaa-aaaa-4aaa-8aaa-000000000001", "AAA", "Alpha")],
+      fireStatusHttpStatus: 503,
+    });
+    const el = await mount({ ownerKey: "owner-fire-unavailable" });
+    await flush();
+    await act(async () => chip(el, "window_closed").click());
+    await flush();
+    const text = emptyText(el);
+    expect(text).not.toContain("Nothing has a closed window right now.");
+    expect(text).toContain("Condition checks are not connected yet.");
+  });
+
+  // MAJOR 5: the three built-in chips were `<button role="listitem">`, so the
+  // packet's primary new controls announced as list items, not as buttons.
+  it("built-in chips are real buttons and never carry role=listitem", async () => {
+    installWorkspaceFetch({ theses: [activeThesis("t1", "AAA", "Alpha")] });
+    const el = await mount({ ownerKey: "owner-chip-roles" });
+    await flush();
+    const strip = el.querySelector('[data-testid="rms-saved-views"]')!;
+    const builtins = Array.from(strip.querySelectorAll("[data-builtin]"));
+    expect(builtins).toHaveLength(3);
+    for (const node of builtins) {
+      expect(node.tagName).toBe("BUTTON");
+      expect(node.getAttribute("role")).toBeNull();
+    }
+    expect(strip.querySelector('[role="listitem"]')).toBeNull();
+  });
+
+  // Grok minor 2: the Coverage rail counted every thesis while a saved view was
+  // active, so the rail disagreed with the list it sits above.
+  it("Coverage rows and the rail badge follow the active saved view", async () => {
+    installWorkspaceFetch({
+      theses: [
+        activeThesis("t-a", "AAA", "Alpha"),
+        activeThesis("t-b", "BBB", "Beta"),
+      ],
+      savedViews: [{
+        id: "66666666-6666-4666-8666-666666666666",
+        name: "Only Alpha",
+        filter: { lifecycle: "active", subjectGroupKey: "data_os.security_master|issuer|AAA" },
+        createdAt: "2026-09-01T00:00:00.000Z",
+        updatedAt: "2026-09-01T00:00:00.000Z",
+      }],
+    });
+    const el = await mount({ ownerKey: "owner-coverage-view" });
+    await flush();
+    const savedChip = el.querySelector<HTMLButtonElement>('[data-saved-view="66666666-6666-4666-8666-666666666666"] button')!;
+    await act(async () => savedChip.click());
+    await flush();
+    const coverageTab = tabs(el).find((b) => b.dataset.view === "coverage")!;
+    expect(coverageTab.textContent).toContain("1");
+    await act(async () => coverageTab.click());
+    await flush();
+    const rows = Array.from(el.querySelectorAll('[data-testid="rms-lens-panel"] button'));
+    expect(rows).toHaveLength(1);
+    expect(rows[0].textContent).toContain("AAA");
+  });
+});

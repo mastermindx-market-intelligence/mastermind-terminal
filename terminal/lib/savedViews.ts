@@ -10,7 +10,11 @@ const SETTINGS_KEY = /^rms_saved_view\.[0-9a-f]{32}$/;
 export const SAVED_VIEW_KEY_PREFIX = "rms_saved_view.";
 
 export type SavedViewsRead =
-  | { ok: true; views: SavedView[] }
+  /** `truncated` is true when the user owns more rows than MAX_SAVED_VIEWS shows.
+   *  Round-2 review (Opus minor 3): the read used to `.slice()` silently, so a row
+   *  past the cap was invisible in the UI and undeletable through it, with no signal
+   *  anywhere that it existed. */
+  | { ok: true; views: SavedView[]; truncated: boolean }
   | { ok: false; status: "unavailable"; error: string };
 
 export type SavedViewWrite =
@@ -85,7 +89,7 @@ export async function listSavedViews(db: WatchlistDb, userId: string): Promise<S
     .map(parseSavedView)
     .filter((view): view is SavedView => !!view)
     .sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : a.updatedAt > b.updatedAt ? -1 : a.id.localeCompare(b.id)));
-  return { ok: true, views: views.slice(0, MAX_SAVED_VIEWS) };
+  return { ok: true, views: views.slice(0, MAX_SAVED_VIEWS), truncated: views.length > MAX_SAVED_VIEWS };
 }
 
 export async function createSavedView(
@@ -145,6 +149,15 @@ export async function renameSavedView(
 
 export async function deleteSavedView(db: WatchlistDb, userId: string, id: string): Promise<SavedViewDelete> {
   if (!isUuid(id)) return { ok: false, status: "invalid_id", error: "invalid_id" };
+  // Round-2 review (Opus minor 2): the delete answered { ok: true } whatever the row
+  // count was, so the route's 404 branch was unreachable and deleting an id that never
+  // existed reported success. Same read-then-write shape `renameSavedView` already
+  // uses; the window between the two is the disclosed single-writer race, not a new one.
+  const listed = await listSavedViews(db, userId);
+  if (!listed.ok) return { ok: false, status: "unavailable", error: listed.error };
+  if (!listed.views.some((view) => view.id === id)) {
+    return { ok: false, status: "not_found", error: "not_found" };
+  }
   const result = await db.from("workspace_settings")
     .delete()
     .eq("scope", "user")

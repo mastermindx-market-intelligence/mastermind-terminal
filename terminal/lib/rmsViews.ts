@@ -26,6 +26,11 @@ export const RMS_REVIEW_STALE_DAYS = 90;
  *  separate from RMS_REVIEW_STALE_DAYS (90), which the Reviews lens uses. */
 export const RMS_SAVED_VIEW_STALE_DAYS = 30;
 export const RMS_HYDRATION_BATCH = 10; // must equal the route's ids cap
+/** Must equal MAX_IDS in app/api/thesis-fire-status/route.ts. Round-2 review
+ *  (Opus MAJOR 2 / Grok minor 1): the client read every id in batches of this size
+ *  instead of truncating at the first 50, which silently dropped theses 51..199
+ *  out of the one preset that exists to surface a closed window. */
+export const RMS_FIRE_STATUS_BATCH = 50;
 export const MAX_SAVED_VIEWS = 50;
 export const MAX_SAVED_VIEW_NAME = 80;
 
@@ -55,7 +60,9 @@ export type BuiltinViewDef = {
 export const BUILTIN_VIEWS: readonly BuiltinViewDef[] = [
   { id: "mine", filter: { lifecycle: "active" } },
   { id: "stale_30", filter: { lifecycle: "active", staleDays: RMS_SAVED_VIEW_STALE_DAYS } },
-  { id: "window_closed", filter: { windowClosed: true, lifecycle: "any" } },
+  // Round-2 review (Opus minor 1 / Grok minor 4): spec 2.2 defaults lifecycle to
+  // "active"; shipping "any" let archived and invalidated theses into the preset.
+  { id: "window_closed", filter: { windowClosed: true, lifecycle: "active" } },
 ];
 
 export type CoverageRow = {
@@ -140,6 +147,17 @@ export function mapOutboxToConditionStates(
     const at = closedAt.get(id);
     return at === undefined ? undefined : { source: "monitor", state: "window_closed", at };
   });
+}
+
+/** Splits ids into route-sized batches. Pure; every id lands in exactly one batch. */
+export function fireStatusBatches(
+  ids: readonly string[],
+  batch: number = RMS_FIRE_STATUS_BATCH,
+): string[][] {
+  const size = Math.max(1, Math.floor(batch));
+  const out: string[][] = [];
+  for (let i = 0; i < ids.length; i += size) out.push(ids.slice(i, i + size));
+  return out;
 }
 
 export function applyViewFilter(
@@ -413,6 +431,10 @@ export type RmsCopy = {
   "savedViews.limitReached": string;
   "savedViews.empty": string;
   "savedViews.unavailable": string;
+  /** Shown when a SAVED view resolves to zero rows. Round-2 review BLOCKER 3: this
+   *  slice used to fall through to `empty.theses` ("No theses yet."), which is false
+   *  while the workspace holds theses — the spec names that exact misreport. */
+  "savedViews.viewEmpty": string;
   "builtin.mine": string;
   "builtin.stale30": string;
   "builtin.staleWhat": string;
@@ -421,6 +443,10 @@ export type RmsCopy = {
   "builtin.teamTooltip": string;
   "builtin.windowClosedEmpty": string;
   "builtin.mineEmpty": string;
+  /** Round-2 review BLOCKER 2: the Stale preset's zero-row state used to print
+   *  `builtin.staleWhat` ("No changes in 30 days."), the exact inverse of the truth —
+   *  an empty Stale list means everything DID change inside the window. */
+  "builtin.staleEmpty": string;
 };
 
 export const RMS_COPY: { en: RmsCopy; zh: RmsCopy } = {
@@ -488,6 +514,7 @@ export const RMS_COPY: { en: RmsCopy; zh: RmsCopy } = {
     "savedViews.limitReached": "You have reached the limit of 50 saved views. Delete one to save another.",
     "savedViews.empty": "No saved views yet. Filter the list, then save it with a name.",
     "savedViews.unavailable": "Your saved views did not load. Nothing has been changed.",
+    "savedViews.viewEmpty": "No theses match this view.",
     "builtin.mine": "Yours",
     "builtin.stale30": "Stale",
     "builtin.staleWhat": "No changes in 30 days.",
@@ -496,6 +523,7 @@ export const RMS_COPY: { en: RmsCopy; zh: RmsCopy } = {
     "builtin.teamTooltip": "Team sharing for theses is not built yet.",
     "builtin.windowClosedEmpty": "Nothing has a closed window right now.",
     "builtin.mineEmpty": "Nothing here yet.",
+    "builtin.staleEmpty": "Everything here changed in the last 30 days. Nothing is stale.",
   },
   zh: {
     lensRailLabel: "研究视角",
@@ -558,6 +586,7 @@ export const RMS_COPY: { en: RmsCopy; zh: RmsCopy } = {
     "savedViews.limitReached": "已达到 50 个已保存视图的上限。请先删除一个再保存新的。",
     "savedViews.empty": "还没有保存任何视图。先筛选列表，再为其保存命名。",
     "savedViews.unavailable": "无法加载已保存的视图。没有任何内容被更改。",
+    "savedViews.viewEmpty": "没有符合这个视图的论点。",
     "builtin.mine": "你的",
     "builtin.stale30": "长期未更新",
     "builtin.staleWhat": "30 天没有改动。",
@@ -566,5 +595,6 @@ export const RMS_COPY: { en: RmsCopy; zh: RmsCopy } = {
     "builtin.teamTooltip": "论点的团队共享功能尚未上线。",
     "builtin.windowClosedEmpty": "目前没有观察窗口已结束的论点。",
     "builtin.mineEmpty": "这里还没有内容。",
+    "builtin.staleEmpty": "这里的论点最近 30 天都有改动，没有长期未更新的。",
   },
 };

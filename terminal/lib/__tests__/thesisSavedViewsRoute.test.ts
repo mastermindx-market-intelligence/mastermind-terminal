@@ -47,7 +47,7 @@ describe("GET /api/thesis-saved-views", () => {
   it("returns an empty list from the fixture store", async () => {
     const response = await GET(new Request("https://x.test/api/thesis-saved-views"));
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ views: [] });
+    expect(await response.json()).toEqual({ views: [], truncated: false });
   });
 });
 
@@ -105,5 +105,19 @@ describe("PUT /api/thesis-saved-views", () => {
     expect(await response.json()).toEqual({ error: "invalid_scope" });
     const listed = await GET(new Request("https://x.test/api/thesis-saved-views"));
     expect((await listed.json()).views).toEqual([]);
+  });
+});
+
+// Round-2 review of PR #546 — Opus minor 2: the delete branch's 404 was dead code
+// because the service answered ok for an id that never existed.
+describe("PUT /api/thesis-saved-views — delete of an unknown id", () => {
+  it("answers 404 saved_view_not_found", async () => {
+    const response = await PUT(new Request("https://x.test/api/thesis-saved-views", {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ action: "delete", id: "99999999-9999-4999-8999-999999999999" }),
+    }));
+    expect(response.status).toBe(404);
+    expect(await response.json()).toEqual({ error: "saved_view_not_found" });
   });
 });

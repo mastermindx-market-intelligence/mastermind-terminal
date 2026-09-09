@@ -48,6 +48,22 @@ export const FAULT_THESES_READ = "theses_read";
 export const FAULT_SAVED_VIEWS_READ = "saved_views_read";
 export const FAULT_ALERT_OUTBOX_READ = "alert_outbox_read";
 
+/**
+ * Store-key token that models "macro's nightly thesis-condition monitor enqueued one
+ * `alert_outbox` row." In a store whose key holds this token, the FIRST thesis created
+ * through `apply_thesis_version_v1` also gets a real fixture `alert_outbox` row; every
+ * later thesis in that store stays unmatched, so the Window closed preset can be
+ * exercised with one matched row beside one unmatched one.
+ *
+ * This is fixture DATA, read through the shipped path: `GET /api/thesis-fire-status`
+ * runs its real query, `mapOutboxToConditionStates()` maps the row, and the preset
+ * filters for real. Round-2 review of PR #546 BLOCKER 1: the crop capture used to stub
+ * that API at the network layer with `page.route`, so the committed pixels depicted no
+ * shipped code at all. Terminal never writes this table in production — macro's engine
+ * does — which is exactly why the e2e world needs a seam here and not a write route.
+ */
+export const FIXTURE_MONITOR_FIRED_TOKEN = "monitorfired";
+
 export function fixtureFaults(raw: string | undefined | null): Set<string> {
   return new Set((raw || "").split(",").map((token) => token.trim()).filter(Boolean));
 }
@@ -60,6 +76,8 @@ type Store = {
   thesisVersions: DbRow[];
   workspaceSettings: DbRow[];
   alertOutbox: DbRow[];
+  /** See FIXTURE_MONITOR_FIRED_TOKEN. Derived from the store key, never written to. */
+  monitorFires: boolean;
   seq: number;
 };
 
@@ -113,6 +131,7 @@ function seedStore(key: string): Store {
     thesisVersions: [],
     workspaceSettings: [],
     alertOutbox: [],
+    monitorFires: key.includes(FIXTURE_MONITOR_FIRED_TOKEN),
     seq: 0,
   };
 }
@@ -311,8 +330,18 @@ class FixtureQuery implements WatchlistQuery {
           if (typeof row.key !== "string" || !keyOk.test(row.key)) {
             return { data: null, error: { message: "new row violates check constraint workspace_settings_key" } };
           }
-          if (row.scope === "workspace") {
-            return { data: null, error: { message: "workspace scope is not written by this packet" } };
+          // Grok minor 5 (round-2 review): this used to reject EVERY scope="workspace"
+          // insert, which made the shared fixture lie about a table the live schema
+          // allows both scopes on. Model the real constraint instead — a row's owner is
+          // team_id for a workspace row and user_id for a user row, and 0015's unique
+          // index on (scope, owner_id, key) cannot hold without one. That B-F11-4 writes
+          // no workspace row is asserted where it belongs: the route test (invalid_scope
+          // 400) and savedViews' own team-scoping test.
+          if (row.scope !== "user" && row.scope !== "workspace") {
+            return { data: null, error: { message: "new row violates check constraint workspace_settings_scope" } };
+          }
+          if (row.scope === "workspace" ? !row.team_id : !row.user_id) {
+            return { data: null, error: { message: "workspace_settings row has no owner for its scope" } };
           }
           const ownerId = row.team_id ?? row.user_id;
           row.owner_id = ownerId;
@@ -498,6 +527,17 @@ function applyThesisVersionFixture(store: Store, args: Record<string, unknown>):
     };
     store.theses.push(head);
     store.thesisVersions.push(version);
+    if (store.monitorFires && store.alertOutbox.length === 0) {
+      // Shaped like compose_payload()'s row in macro's thesis condition monitor: the
+      // route only reads user_id, status, created_at and payload->>thesis_id.
+      store.alertOutbox.push({
+        id: crypto.randomUUID(),
+        user_id: userId,
+        status: "pending",
+        payload: { thesis_id: id, kind: "thesis_condition" },
+        created_at: now,
+      });
+    }
     return thesisRpcResult({ status: "created", thesis_id: id, version: 1, current_version: 1, lifecycle_state: "active", replayed: false });
   }
 

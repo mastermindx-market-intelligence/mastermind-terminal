@@ -44,7 +44,9 @@ export async function GET(_request: Request) {
     console.error("thesis-saved-views GET failed:", result.error);
     return jsonError("saved_views_unavailable", 503);
   }
-  return NextResponse.json({ views: result.views });
+  // `truncated` lets the workspace say, in words, that more saved views exist than
+  // this answer carries (round-2 review, Opus minor 3) instead of dropping them silently.
+  return NextResponse.json({ views: result.views, truncated: result.truncated });
 }
 
 async function readBoundedJson(request: Request): Promise<

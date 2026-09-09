@@ -130,3 +130,70 @@ describe("GET /api/thesis-fire-status", () => {
     expect(body.states[THESIS_C]).toEqual({ source: "unavailable" });
   });
 });
+
+// Round-2 review of PR #546 — BLOCKER 1. The window-closed crops were produced by a
+// `page.route` stub of this API. The fixture transport can carry the real row: a
+// store key holding FIXTURE_MONITOR_FIRED_TOKEN models "macro's nightly monitor
+// enqueued one alert_outbox row", and the shipped route reads it with the same query
+// it runs against Postgres.
+describe("fixture transport: monitor-fired store key", () => {
+  beforeEach(() => {
+    resetFixtureStores();
+    H.faults = [];
+    delete process.env.TERMINAL_E2E_FIXTURE;
+    vi.clearAllMocks();
+  });
+
+  it("seeds one alert_outbox row for the first thesis created in a monitor-fired store", async () => {
+    const { createFixtureDb, FIXTURE_MONITOR_FIRED_TOKEN } = await import("@/lib/watchlistsFixtureDb");
+    const key = `crops-${FIXTURE_MONITOR_FIRED_TOKEN}-1`;
+    H.key = key;
+    H.user = { id: fixtureUserId(key) };
+    const db = createFixtureDb(key);
+    const create = async (title: string) => {
+      const result = await db.rpc("apply_thesis_version_v1", {
+        p_thesis_id: null,
+        p_expected_version: 0,
+        p_transition: "create",
+        p_subject_ref: { schema: "mastermind.thesis-subject-ref/v1", kind: "issuer", owner: "terminal.analysis_symbol", key: "NVDA", display: "NVDA" },
+        p_content: { schema: "mastermind.thesis-content/v1", title, statement: "s" },
+        p_client_request_id: `req-${title}`,
+        p_effective_at: null,
+      });
+      const row = Array.isArray(result.data) ? result.data[0] : null;
+      return String(row?.thesis_id);
+    };
+    const first = await create("closed window");
+    const second = await create("still open");
+    expect(isUuid(first)).toBe(true);
+    expect(isUuid(second)).toBe(true);
+
+    const store = fixtureStore(key);
+    expect(store.alertOutbox).toHaveLength(1);
+
+    const response = await GET(new Request(
+      `https://x.test/api/thesis-fire-status?id=${first}&id=${second}`,
+    ));
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.states[first].source).toBe("monitor");
+    expect(body.states[first].state).toBe("window_closed");
+    expect(body.states[second]).toEqual({ source: "unavailable" });
+  });
+
+  it("seeds nothing in an ordinary store", async () => {
+    const { createFixtureDb } = await import("@/lib/watchlistsFixtureDb");
+    const key = "crops-ordinary-store";
+    const db = createFixtureDb(key);
+    await db.rpc("apply_thesis_version_v1", {
+      p_thesis_id: null,
+      p_expected_version: 0,
+      p_transition: "create",
+      p_subject_ref: { schema: "mastermind.thesis-subject-ref/v1", kind: "issuer", owner: "terminal.analysis_symbol", key: "NVDA", display: "NVDA" },
+      p_content: { schema: "mastermind.thesis-content/v1", title: "t", statement: "s" },
+      p_client_request_id: "req-ordinary",
+      p_effective_at: null,
+    });
+    expect(fixtureStore(key).alertOutbox).toHaveLength(0);
+  });
+});

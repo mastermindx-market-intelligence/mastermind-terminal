@@ -30,6 +30,7 @@ import {
   catalystRows,
   riskRows,
   noteRows,
+  fireStatusBatches,
   selectHydrationIds,
   hydrationScope,
   formatScopeSentence,
@@ -458,6 +459,10 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [savedViewsLimit, setSavedViewsLimit] = useState(false);
   const [fireStates, setFireStates] = useState<Map<string, ConditionState>>(new Map());
+  // Round-2 review (Opus MAJOR 1): a failed fire-status read used to collapse into an
+  // empty map, which the Window closed preset then reported as the positive claim
+  // "nothing has a closed window". An unread condition is unknown, not absent.
+  const [fireStatusUnavailable, setFireStatusUnavailable] = useState(false);
   const [hydratedDetails, setHydratedDetails] = useState<Map<string, ThesisDetail>>(new Map());
   const [hydrating, setHydrating] = useState(false);
   const [hydrationUnavailable, setHydrationUnavailable] = useState(false);
@@ -808,10 +813,6 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [view, activeTheses, hydrateBatch]);
 
-  const hydrateMore = useCallback(() => {
-    void hydrateBatch(selectHydrationIds(activeTheses, new Set([...hydratedDetails.keys(), ...missingIds])));
-  }, [activeTheses, hydratedDetails, missingIds, hydrateBatch]);
-
   const rms = RMS_COPY[lang];
   const activeViewDef: RmsViewDef = RMS_VIEWS.find((v) => v.id === view) ?? RMS_VIEWS[0];
   // Meta-CEO B ruling r4 MAJOR (defensive half): the reset above closes the ordinary
@@ -834,7 +835,6 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   // missing id contributes zero rows either way — counting it toward `scope.complete`
   // reaches an honest 100% instead of one that can never complete for a thesis that no
   // longer exists, and reports no rows as loaded that were actually dropped.
-  const scope = useMemo(() => hydrationScope(activeTheses, new Set([...hydratedDetails.keys(), ...missingIds])), [activeTheses, hydratedDetails, missingIds]);
   const conditions = useMemo(
     () => readConditionStates(theses.map((t) => t.id), (id) => fireStates.get(id)),
     [theses, fireStates],
@@ -850,7 +850,25 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     () => (presetFilter ? applyViewFilter(theses, presetFilter, conditions, reviewNow) : theses),
     [theses, presetFilter, conditions, reviewNow],
   );
-  const coverageViewRows = useMemo(() => coverageRows(theses), [theses]);
+  const viewIdSet = useMemo(() => new Set(filteredSummaries.map((t) => t.id)), [filteredSummaries]);
+  // The active subset of what the CURRENT view holds. The scope sentence and "Show N
+  // more" count this set, not the workspace, so that under a saved view the sentence
+  // still describes the lines actually on screen (Grok minor 2's other half — the
+  // content lenses now respect the view, so the hydration budget must follow it).
+  const viewActiveTheses = useMemo(
+    () => filteredSummaries.filter((t) => t.lifecycleState === "active"),
+    [filteredSummaries],
+  );
+  const scope = useMemo(
+    () => hydrationScope(viewActiveTheses, new Set([...hydratedDetails.keys(), ...missingIds])),
+    [viewActiveTheses, hydratedDetails, missingIds],
+  );
+  const hydrateMore = useCallback(() => {
+    void hydrateBatch(selectHydrationIds(viewActiveTheses, new Set([...hydratedDetails.keys(), ...missingIds])));
+  }, [viewActiveTheses, hydratedDetails, missingIds, hydrateBatch]);
+  // Grok minor 2 (round-2 review): the Coverage rail used to count EVERY thesis while a
+  // saved view or preset was active, so the rail disagreed with the list under it.
+  const coverageViewRows = useMemo(() => coverageRows(filteredSummaries), [filteredSummaries]);
   const ideaViewRows = useMemo(() => ideaRows(filteredSummaries), [filteredSummaries]);
   const allThesesViewRows = useMemo(() => thesisRows(filteredSummaries), [filteredSummaries]);
   const thesesViewRows = useMemo(
@@ -876,13 +894,25 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     return base;
   }, [presetFilter, subjectFilterKey]);
   const canSaveView = isSavableFilter(filterToSave) && !savedViewsUnavailable;
-  const builtinEmptyCopy = useMemo(() => {
-    if (!activePreset || activePreset.kind !== "builtin" || subjectFilterKey) return null;
-    if (activePreset.id === "window_closed") return rms["builtin.windowClosedEmpty"];
+  // Round-2 review BLOCKERs 2 and 3 and MAJOR 1, which are one defect: whatever emptied
+  // the list has to be what the empty state names. A saved view used to fall through to
+  // `empty.theses` ("No theses yet.") — false while theses exist, and the exact string
+  // the spec forbids for a filtered slice; the Stale preset printed `builtin.staleWhat`
+  // ("No changes in 30 days."), the inverse of the truth; and a fire-status read that
+  // never landed was reported as "nothing has a closed window". This applies on every
+  // lens that renders thesis rows, not only Theses.
+  const presetEmptyCopy = useMemo(() => {
+    if (!activePreset || subjectFilterKey) return null;
+    if (activePreset.kind === "saved") return rms["savedViews.viewEmpty"];
+    if (activePreset.id === "window_closed") {
+      // Spec 2.8: a failed thesis-fire-status read falls back to the already-frozen
+      // condition.unavailable copy — no new error string for this one read path.
+      return fireStatusUnavailable ? rms["condition.unavailable"] : rms["builtin.windowClosedEmpty"];
+    }
     if (activePreset.id === "mine") return rms["builtin.mineEmpty"];
-    if (activePreset.id === "stale_30") return rms["builtin.staleWhat"];
+    if (activePreset.id === "stale_30") return rms["builtin.staleEmpty"];
     return null;
-  }, [activePreset, subjectFilterKey, rms]);
+  }, [activePreset, subjectFilterKey, rms, fireStatusUnavailable]);
 
   const saveCurrentView = useCallback(async () => {
     if (savedViews.length >= MAX_SAVED_VIEWS) {
@@ -959,9 +989,16 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     }
   }, [rms]);
   const reviewViewRows = useMemo(() => reviewRows(filteredSummaries, reviewNow, conditions), [filteredSummaries, conditions, reviewNow]);
-  const catalystViewRows = useMemo(() => catalystRows(detailListRows), [detailListRows]);
-  const riskViewRows = useMemo(() => riskRows(detailListRows), [detailListRows]);
-  const noteViewRows = useMemo(() => noteRows(detailListRows), [detailListRows]);
+  // Grok minor 2 (round-2 review): the three content lenses used to read every hydrated
+  // thesis, so their rows and rail counts ignored the active view. `detailListRows`
+  // stays workspace-wide — the hydration-fault panels below deliberately gate on it.
+  const viewDetailRows = useMemo(
+    () => (presetFilter ? detailListRows.filter((d) => viewIdSet.has(d.id)) : detailListRows),
+    [detailListRows, viewIdSet, presetFilter],
+  );
+  const catalystViewRows = useMemo(() => catalystRows(viewDetailRows), [viewDetailRows]);
+  const riskViewRows = useMemo(() => riskRows(viewDetailRows), [viewDetailRows]);
+  const noteViewRows = useMemo(() => noteRows(viewDetailRows), [viewDetailRows]);
   const lensCount = useCallback((v: RmsViewDef): number | string => {
     // m1 (round-2 review): once hydration scope is complete, the content-lens counts
     // are exactly knowable — stop showing "—" forever.
@@ -1044,7 +1081,9 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       }
       setSavedViews(payload.views);
       setSavedViewsUnavailable(false);
-      setSavedViewsLimit(payload.views.length >= MAX_SAVED_VIEWS);
+      // `truncated` (round-2 review, Opus minor 3): more rows exist than this answer
+      // carries, so say so in words instead of dropping them silently.
+      setSavedViewsLimit(payload.truncated === true || payload.views.length >= MAX_SAVED_VIEWS);
     } catch {
       setSavedViewsUnavailable(true);
     }
@@ -1157,31 +1196,49 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   }, [initialThesisId, invalidLink, loadDetail, loadList, loadSavedViews, ownerKey]);
 
   useEffect(() => {
-    const ids = theses.map((row) => row.id).filter((id) => isUuid(id)).slice(0, 50);
+    // Round-2 review (Opus MAJOR 2 / Grok minor 1): this used to `.slice(0, 50)` while
+    // the list carries up to 200, so a thesis at index 50+ whose window had actually
+    // closed was silently dropped from the one preset that exists to surface it. Every
+    // id is asked about, in batches of the route's own cap — the same bounded shape
+    // `RMS_HYDRATION_BATCH` uses for content hydration.
+    const ids = theses.map((row) => row.id).filter((id) => isUuid(id));
     if (ids.length === 0) {
       setFireStates(new Map());
+      setFireStatusUnavailable(false);
       return;
     }
     let cancelled = false;
-    void fetch(`/api/thesis-fire-status?${ids.map((id) => `id=${encodeURIComponent(id)}`).join("&")}`, { cache: "no-store" })
-      .then(async (response) => {
-        if (!response.ok) throw new Error("unavailable");
-        return response.json();
-      })
-      .then((payload) => {
+    const batches = fireStatusBatches(ids);
+    void Promise.all(batches.map(async (batch) => {
+      const response = await fetch(
+        `/api/thesis-fire-status?${batch.map((id) => `id=${encodeURIComponent(id)}`).join("&")}`,
+        { cache: "no-store" },
+      );
+      if (!response.ok) throw new Error("unavailable");
+      return response.json();
+    }))
+      .then((payloads) => {
         if (cancelled) return;
         const next = new Map<string, ConditionState>();
-        const states = payload && typeof payload === "object" ? (payload as { states?: Record<string, ConditionState> }).states : undefined;
-        if (states && typeof states === "object") {
+        for (const payload of payloads) {
+          const states = payload && typeof payload === "object"
+            ? (payload as { states?: Record<string, ConditionState> }).states
+            : undefined;
+          if (!states || typeof states !== "object") continue;
           for (const id of ids) {
             const state = states[id];
             if (state) next.set(id, state);
           }
         }
         setFireStates(next);
+        setFireStatusUnavailable(false);
       })
       .catch(() => {
-        if (!cancelled) setFireStates(new Map());
+        if (cancelled) return;
+        // Not an empty map dressed as an answer: nothing is known, and the preset's
+        // empty state says so.
+        setFireStates(new Map());
+        setFireStatusUnavailable(true);
       });
     return () => { cancelled = true; };
   }, [theses]);
@@ -1529,12 +1586,20 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
 
             <section className={styles.savedViews} data-testid="rms-saved-views" aria-label={rms["savedViews.title"]}>
               <p className={styles.savedViewsTitle}>{rms["savedViews.title"]}</p>
-              <div className={styles.savedViewChips} role="list">
+              {/* Round-2 review (Opus MAJOR 5): these were `<button role="listitem">`,
+                  so an explicit ARIA role replaced the implicit one and the packet's
+                  primary new controls stopped announcing themselves as actionable.
+                  Plain buttons in a container with no list role — the saved-view rows
+                  below are wrappers, not list items, for the same reason. */}
+              <div className={styles.savedViewChips}>
                 {BUILTIN_VIEWS.map((item) => {
                   const selected = activePreset?.kind === "builtin" && activePreset.id === item.id;
                   return (
-                    <button key={item.id} type="button" role="listitem" className={styles.savedViewChip}
+                    <button key={item.id} type="button" className={styles.savedViewChip}
                       data-builtin={item.id} data-selected={selected || undefined}
+                      // Opus minor 4: `builtin.staleWhat` had no render site at all, so
+                      // the Stale chip shipped with no plain-language explanation.
+                      title={item.id === "stale_30" ? rms["builtin.staleWhat"] : undefined}
                       disabled={carrierLocked}
                       onClick={() => setActivePreset(selected ? null : { kind: "builtin", id: item.id })}>
                       {builtinLabel(item.id, rms)}
@@ -1544,7 +1609,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
                 {savedViews.map((view) => {
                   const selected = activePreset?.kind === "saved" && activePreset.id === view.id;
                   return (
-                    <span key={view.id} className={styles.savedViewItem} role="listitem" data-saved-view={view.id}>
+                    <span key={view.id} className={styles.savedViewItem} data-saved-view={view.id}>
                       {renamingId === view.id ? (
                         <form className={styles.saveViewForm} onSubmit={(event) => { event.preventDefault(); void renameView(view.id, nameDraft); }}>
                           <input aria-label={rms["savedViews.namePlaceholder"]} value={nameDraft} maxLength={80}
@@ -1668,12 +1733,18 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
                   // NOT the first-run empty state — the workspace is not empty, only the
                   // filtered slice is — so it never reuses `rms.empty.theses` ("No theses
                   // yet.", false while theses exist) and never claims `thesis-empty`.
+                  // Round-2 review BLOCKER 3: `presetEmptyCopy` applies on ALL THREE of
+                  // these lenses now (it used to be Theses only), and it covers saved
+                  // views as well as built-ins — a view that matched nothing says so,
+                  // and never borrows a lens-wide claim ("No theses yet.", "Every thesis
+                  // has been revisited at least once.") that is false while the
+                  // workspace holds theses the view filtered out.
                   ? (view === "theses" && subjectFilterKey
                     ? <div className={styles.emptyLens} data-testid="rms-filtered-empty">
                       <p>{rms.filteredEmpty.replace("{subject}", filteredSubjectDisplay ?? "")}</p>
                     </div>
-                    : view === "theses" && builtinEmptyCopy
-                      ? <div className={styles.emptyLens} data-testid="rms-empty"><p>{builtinEmptyCopy}</p></div>
+                    : presetEmptyCopy
+                      ? <div className={styles.emptyLens} data-testid="rms-empty"><p>{presetEmptyCopy}</p></div>
                     : <div className={styles.emptyLens} data-testid={view === "theses" ? "thesis-empty" : "rms-empty"}><p>{rms.empty[view]}</p></div>)
                   : <div className={styles.thesisList}>
                     {(view === "ideas" ? ideaViewRows : view === "reviews" ? reviewViewRows : thesesViewRows).map((row) => (
