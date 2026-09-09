@@ -155,9 +155,9 @@
       "state": "taken",
       "file": "0019_team_role_changes.sql",
       "packet": "B-F12-8",
-      "pr": 548,
+      "pr": 550,
       "pr_state": "open",
-      "note": "claimed in this pull request (packet B-F12-8, team roles v1); not applied. Seat ruling R6: 0017 = F13-5, 0018 = F12-7, this packet is 0019. The pr number is filled after the draft opens if GitHub assigns a different one."
+      "note": "claimed in this pull request #550 (packet B-F12-8, team roles v1); not applied. Seat ruling R6: 0017 = F13-5, 0018 = F12-7, this packet is 0019."
     }
   }
 }

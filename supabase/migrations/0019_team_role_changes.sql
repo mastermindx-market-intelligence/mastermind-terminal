@@ -1,4 +1,4 @@
--- Ledger row: 0019_team_role_changes / PR pending (open, packet B-F12-8); not applied
+-- Ledger row: 0019_team_role_changes / PR #550 (open, packet B-F12-8); not applied
 -- Rollback: drop trigger if exists team_role_changes_log on public.team_members; drop function if exists public.log_team_role_change(); drop function if exists public.team_member_names(uuid); drop table if exists public.team_role_changes; -- then recreate tm_insert_admin / tm_update_admin / tm_delete_admin from 0014_tenancy_foundation.sql
 -- 0019: team role changes — audit log, tighter administrator grants, self-leave (packet B-F12-8).
 --
