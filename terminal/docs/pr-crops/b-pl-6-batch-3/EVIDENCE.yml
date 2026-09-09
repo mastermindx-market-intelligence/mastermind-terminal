@@ -1,0 +1,43 @@
+# B-PL-6 batch 3 — capture evidence
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
+# capturedAtHead: 894a06d7eb012583118a065ca6fefe04420e4f63
+# capturedAt: 2026-09-09T09:34:52.462Z
+# capturedAtHead is informational. The lock is layoutFiles.
+layoutFiles:
+  terminal/components/options/OptionsFlowBoardView.tsx: "a06a705f74e87efb7a29be33a7f39d91db9af03470872ba3ee0971391f3af2c9"
+  terminal/components/flowdesk/FiltersPanel.tsx: "15960f51b2e5b12141af401f4c069c19ebc14f2a6d588568fb45448b84512510"
+  terminal/components/flowdesk/FlowCard.tsx: "e91ce65c335635451235392ae9025e6c0e485731fdc0d5e9e956e271ffe61967"
+  terminal/components/alerts/AlertDetail.tsx: "74bbdd5f0f5106b97fa56d67b6966caa86f32e65649eaef0d811f6ae6ef2485f"
+  terminal/components/heatmap/HeatmapView.tsx: "950f45b4b1869abc1fadca02eb39136242a8087bb1d4a15e074116cbd7ebc6de"
+  terminal/components/heatmap/Treemap.tsx: "6fab5263f6aefc7e15a88f9f15e2e5fddec470b7a64f1282706ab709c0e045fb"
+  terminal/lib/plainLabels.ts: "132515c980086dd7165c3d400c4dcd2263d962947060f2091c54f1cdf3e7e427"
+  terminal/lib/i18n.tsx: "57bc607ee0476e6d744f00925839cd93be1b595476fbd09bed1efbc007589242"
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: mobile, width: 390, height: 844 }
+surfaces: [OptionsFlowBoard, FlowDesk, AlertDetail, HeatmapTreemap]
+capture_flag: TERMINAL_E2E_FIXTURE
+capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
+command: |
+  cd terminal
+  node e2e/tools/capture_pl6_batch3.cjs
+files:
+  - AlertDetail-1440-zh.png
+  - AlertDetail-1440.png
+  - AlertDetail-390-zh.png
+  - AlertDetail-390.png
+  - FlowDesk-1440-zh.png
+  - FlowDesk-1440.png
+  - FlowDesk-390-zh.png
+  - FlowDesk-390.png
+  - HeatmapTreemap-1440-zh.png
+  - HeatmapTreemap-1440.png
+  - HeatmapTreemap-390-zh.png
+  - HeatmapTreemap-390.png
+  - OptionsFlowBoard-1440-zh.png
+  - OptionsFlowBoard-1440.png
+  - OptionsFlowBoard-390-zh.png
+  - OptionsFlowBoard-390.png
