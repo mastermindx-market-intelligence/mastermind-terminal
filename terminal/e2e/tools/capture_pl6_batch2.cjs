@@ -244,17 +244,28 @@ async function captureChartConductor(page, width, lang, outPath) {
   const play = page.getByRole("button", { name: /Play demo|Playing/ });
   await play.waitFor({ state: "visible", timeout: 20_000 });
   await play.click();
-  const plate = page.locator(".cmx-plate").first();
-  await plate.waitFor({ state: "visible", timeout: 20_000 });
-  const toggle = page.locator(".cmx-btn").filter({ hasNot: page.locator(".cmx-skip") }).first();
-  await toggle.waitFor({ state: "visible", timeout: 15_000 });
+  const plate = page.locator(".cmx-plate.show").first();
+  await plate.waitFor({ state: "attached", timeout: 20_000 });
+  await page.waitForFunction(() => {
+    const el = document.querySelector(".cmx-plate.show");
+    return !!el && getComputedStyle(el).opacity === "1";
+  }, null, { timeout: 15_000 });
+  const toggle = page.locator(".cmx-plate-ctl .cmx-btn:not(.cmx-skip)").first();
+  await toggle.waitFor({ state: "attached", timeout: 15_000 });
   const expected = lang === "zh" ? "显示实时步骤" : "Show live steps";
+  const hide = lang === "zh" ? "隐藏实时步骤" : "Hide live steps";
   const title = (await toggle.getAttribute("title")) || (await toggle.getAttribute("aria-label")) || "";
-  if (!title.includes(expected) && !title.includes(lang === "zh" ? "隐藏实时步骤" : "Hide live steps")) {
+  if (!title.includes(expected) && !title.includes(hide)) {
     throw new Error(`${outPath}: expected conductor toggle ${expected}, got ${title}`);
   }
-  const overlay = page.locator(".cmx").first();
-  await cropLocator(page, overlay, outPath, 12);
+  const skip = lang === "zh" ? "跳过" : "Skip";
+  await page.locator(".cmx-skip").getByText(skip).waitFor({ state: "visible", timeout: 10_000 });
+  if (!(await toggle.getAttribute("aria-expanded") === "true")) {
+    await toggle.click();
+  }
+  await page.locator(".cmx-rail").waitFor({ state: "visible", timeout: 10_000 }).catch(() => {});
+  const pane = page.locator(".cmx").locator("xpath=..");
+  await cropLocator(page, pane, outPath, 8);
 }
 
 const SURFACES = [
