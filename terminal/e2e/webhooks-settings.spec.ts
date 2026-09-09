@@ -70,5 +70,5 @@ test("settings Webhooks section is reachable in EN and ZH", async ({ page }, tes
   await expect(zhDialog.getByRole("tab", { name: "Webhook 回调" })).toHaveAttribute("aria-selected", "true");
   await expect(page.getByRole("heading", { name: "Webhook 回调" })).toBeVisible();
   await expect(page.getByText("您还没有团队")).toHaveCount(0);
-  await expect(page.getByText("此团队尚未登记 Webhook 回调地址。")).toBeVisible();
+  await expect(page.getByText("此团队尚未登记 Webhook 端点。")).toBeVisible();
 });

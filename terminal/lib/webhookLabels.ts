@@ -130,14 +130,14 @@ export const WEBHOOK_COPY = {
   teamNamePlaceholder: ["Research desk", "研究团队"],
   memberReadOnly: [
     "You can see this team's webhook deliveries. Only an owner or admin can add or turn endpoints on or off.",
-    "您可以查看此团队的 Webhook 送达记录。只有所有者或管理员才能添加或开关回调地址。",
+    "您可以查看此团队的 Webhook 送达记录。只有所有者或管理员才能添加或开关端点。",
   ],
-  addEndpoint: ["Add an endpoint", "添加回调地址"],
+  addEndpoint: ["Add an endpoint", "添加端点"],
   urlLabel: ["Endpoint URL", "端点地址"],
   urlPlaceholder: ["https://example.com/webhook", "https://example.com/webhook"],
   eventType: ["Event type", "事件类型"],
   testEvent: ["Test event", "测试事件"],
-  add: ["Add endpoint", "添加回调"],
+  add: ["Add endpoint", "添加端点"],
   endpoints: ["Endpoints", "端点"],
   deliveries: ["Last 20 deliveries", "最近 20 次送达"],
   sendTest: ["Send a test event", "发送测试事件"],
@@ -151,7 +151,7 @@ export const WEBHOOK_COPY = {
   dismissSecret: ["I have stored it", "我已保存"],
   noEndpoints: [
     "This team has not registered a webhook endpoint yet.",
-    "此团队尚未登记 Webhook 回调地址。",
+    "此团队尚未登记 Webhook 端点。",
   ],
   noDeliveries: ["No deliveries yet.", "尚无送达记录。"],
   teamLabel: ["Team", "团队"],
@@ -164,7 +164,7 @@ export const WEBHOOK_COPY = {
   testQueued: ["A test event is queued.", "测试事件已排队。"],
   testDisabled: [
     "This endpoint is turned off, so we did not send a test event.",
-    "此回调已关闭，因此我们未发送测试事件。",
+    "此端点已关闭，因此我们未发送测试事件。",
   ],
   // Wrong-cause guard: a route that answers without a JSON body tells us
   // nothing about WHY. These two say only what is certainly true — never the
