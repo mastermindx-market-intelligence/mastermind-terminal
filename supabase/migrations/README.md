@@ -188,7 +188,7 @@ amendment, only a README edit.
 | `0015` | `team_roles_invitations` | PR #514 (merged as `cff58ee8` on 2026-09-08, packet B-F12-3; authored on stacked PR #526 squash `83424c63`) | merged + applied 2026-09-08 |
 | `0016` | `account_lifecycle_requests` | PR #527 (merged as `68bbe8ea` on 2026-09-09, packet B-F12-4) | merged + applied 2026-09-09 |
 | `0017` | (pre-reservation) | Meta-CEO B ruling 2026-09-09, packet B-F13-5 (personal accuracy ledger); no pull request open yet | reserved |
-| `0018` | (pre-reservation) | Meta-CEO B ruling 2026-09-09, packet B-F12-7 (signed webhooks); no pull request open yet | reserved |
+| `0018` | (pre-reservation) | Meta-CEO B ruling 2026-09-09, packet B-F12-7 — the seat's **re-scoped Terminal signed-webhooks** packet of 2026-09-09 (branch `claude/mo-b-f12-7-signed-webhooks`), **not** the refused public-API packet recorded against macro #6925 under the same id; no pull request open yet | reserved |
 | `0019` | (pre-reservation) | Meta-CEO B ruling 2026-09-09, packet B-F12-8 (team roles); no pull request open yet | reserved |
 | `0020` | (pre-reservation) | Meta-CEO B ruling 2026-09-09, packet B-F12-9 (ownership transfer); no pull request open yet | reserved |
 
@@ -257,8 +257,8 @@ of three modes from what the environment **proves**, and prints which one it use
 | mode | earned when | a present file whose row says `open` is… |
 |---|---|---|
 | **STRICT** | `GITHUB_EVENT_NAME=push` **and** `GITHUB_REF_NAME=master` (or `--strict` locally) | always stale — the file being on `master` proves its pull request merged (`OPEN_PR_STATE_WITH_FILE_PRESENT`) |
-| **PULL_REQUEST** | `GITHUB_EVENT_NAME=pull_request` **and** `PR_NUMBER` carrying the running number | legitimate **only** for that pull request; any other is stale (`OPEN_PR_STATE_STALE`) |
-| **LENIENT** | anything else — a local run, a `workflow_dispatch` | required only to be `state: "taken"` with a pull-request number (`OPEN_PR_STATE_WITHOUT_OWNING_PR`) |
+| **PULL_REQUEST** | `GITHUB_EVENT_NAME=pull_request` **or** `workflow_dispatch`, **and** `PR_NUMBER` carrying a positive pull-request number | legitimate **only** for that pull request; any other is stale (`OPEN_PR_STATE_STALE`) |
+| **LENIENT** | anything else — a local run, or a `workflow_dispatch` ordered without a `pr_number` input | required only to be `state: "taken"` with a pull-request number (`OPEN_PR_STATE_WITHOUT_OWNING_PR`) |
 
 The PULL_REQUEST mode exists because no workflow in this repository has an `on: push` trigger:
 `.github/workflows/ci.yml` runs on `pull_request` and `workflow_dispatch` only. Without it the
@@ -269,6 +269,19 @@ a pull-request number, not a credential, and it comes with no change in workflow
 converse rule — `pr_state: "merged"` while the file is absent — needs no scope and runs in all
 three modes.
 
+`workflow_dispatch` earns the same PULL_REQUEST mode because of one specific run.
+`scripts/merge_on_green.py` refreshes a stale branch with `GITHUB_TOKEN` and then dispatches this
+workflow, since a token-authored branch update fires no recursive `pull_request` workflow — so on
+a refreshed head the dispatched run is the **only** CI run for the sha that then merges, and it is
+the run that gates the merge. `github.event.pull_request.number` is empty on a dispatch, so that
+gating run used to fall to LENIENT and this ledger's one enforcement rule was inert on exactly the
+head being merged (Terminal PR #543, review round 4). `ci.yml` now declares an optional
+`workflow_dispatch` input `pr_number`, the pytest step reads
+`${{ github.event.pull_request.number || inputs.pr_number }}`, and the controller passes the
+number it already knows. A dispatch ordered by hand without the input is **not** broken — it stays
+LENIENT, and the printed mode line names that case specifically rather than reading like an
+ordinary local run.
+
 Every prefix whose `.sql` is in the checkout must also carry both `applied_in_production` and
 `applied_date` **keys** (`APPLIED_FIELDS_MISSING`). What is required is that the row *answers* the
 question, not that the answer is yes: where nothing in this repository records the fact, the
@@ -276,3 +289,10 @@ correct entry is an explicit `null` with a note saying it was not recorded. `000
 `applied_in_production: true` with `applied_date: null` for exactly that reason — the application
 table above records that they are in production but records no date, and a guessed date would be
 worse than the gap it fills.
+
+The two keys must also agree with **each other** (`APPLIED_FIELDS_HALF_FILLED`). Two shapes are
+half-filled: `applied_in_production: true` beside `applied_date: null` **with no note** — the
+combination is legitimate, which is why `0001`–`0007` pass, but only when the row says *why* the
+date is unknown, since an unexplained null is indistinguishable from a forgotten one; and an
+`applied_date` carried while `applied_in_production` is anything but `true`, which is a row that
+contradicts itself and that no note reconciles.

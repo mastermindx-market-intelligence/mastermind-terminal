@@ -184,7 +184,7 @@
       "packet": "B-F12-7",
       "pr": null,
       "pr_state": null,
-      "note": "signed webhooks; reserved by Meta-CEO B ruling 2026-09-09; PR pending"
+      "note": "signed webhooks; reserved by Meta-CEO B ruling 2026-09-09; PR pending. B-F12-7 here is the seat's re-scoped Terminal signed-webhooks packet of 2026-09-09 (branch claude/mo-b-f12-7-signed-webhooks), not the refused public-API packet recorded against macro #6925 under the same id"
     },
     "0019": {
       "state": "reserved",
