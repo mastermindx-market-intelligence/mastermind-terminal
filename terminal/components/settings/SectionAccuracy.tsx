@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { SectionHead } from "./icons";
 import { acsDate, type SectionProps } from "./types";
+import { identityOwnerKey, isAccountOwner } from "@/lib/accountIdentity";
 import {
   BRIER_MIN_PAIRS,
   HIT_RATE_MIN_EPISODES,
@@ -102,6 +103,10 @@ function claimCountPhrase(t: (key: string) => string, n: number): string {
   return n === 1 ? t("accClaimCount1") : interpolate(t("accClaimCountN"), { n });
 }
 
+function unscorablePhrase(t: (key: string) => string, n: number): string {
+  return n === 1 ? t("accUnscorable1") : interpolate(t("accUnscorableN"), { n });
+}
+
 function hitsOfPhrase(t: (key: string) => string, hits: number, n: number): string {
   return n === 1
     ? interpolate(t("accDetHitsOf1"), { hits })
@@ -121,39 +126,52 @@ function reasonCopy(t: (key: string) => string, reason: AccuracyClaimRow["unscor
   return null;
 }
 
-export default function SectionAccuracy({ t, lang, onClose, readout, loadErr }: AccuracyProps) {
+export default function SectionAccuracy({ t, lang, onClose, readout, loadErr, identity }: AccuracyProps) {
   const [open, setOpen] = useState(false);
+  const owner = isAccountOwner(identityOwnerKey(identity));
   const nResolved = readout?.resolvedEpisodes ?? 0;
   const nUnscorableCalls = readout ? unscorableCallCount(readout) : 0;
   const nPairs = readout?.brierPairs ?? 0;
   const state = loadErr ? "error" : accuracyGlanceState(readout);
   const colon = lang === "zh" ? "：" : ": ";
+  const showEarly = nResolved > 0 && nResolved < HIT_RATE_MIN_EPISODES;
 
   return (
     <>
       <SectionHead title={t("accTitle")} sub={t("accSub")} closeLabel={t("acsClose")} onClose={onClose} />
       <div className="acs-body">
-        {state === "unread" ? (
+        {!owner ? (
+          <div className="acs-sync off" data-acc-state="signed-out">
+            <span className="dot" />
+            <span className="acs-sync-main">
+              <span className="acs-sync-t">{t("acsSyncOff")}</span>
+              <span className="acs-sync-s">{t("acsSignInToOn")}</span>
+            </span>
+          </div>
+        ) : null}
+        {owner && state === "unread" ? (
           <p className={s.empty} data-acc-state="unread">{t("accUnread")}</p>
         ) : null}
-        {state === "error" ? (
+        {owner && state === "error" ? (
           <p className={s.line} data-acc-state="error">{t("accDetLoadErr")}</p>
         ) : null}
-        {state === "empty" ? (
+        {owner && state === "empty" ? (
           <p className={s.empty} data-acc-state="empty">{t("accEmpty")}</p>
         ) : null}
-        {state === "unscorable" && readout ? (
+        {owner && state === "unscorable" && readout ? (
           <p className={`${s.line} ${s.unscorable}`} data-acc-state="unscorable">
-            {interpolate(t("accUnscorableN"), { n: nUnscorableCalls })}
+            {unscorablePhrase(t, nUnscorableCalls)}
             {" "}
             {claimCountPhrase(t, readout.claimCount)}
           </p>
         ) : null}
-        {state === "readout" && readout ? (
+        {owner && state === "readout" && readout ? (
           <div data-acc-state="readout">
-            <p className={`${s.stance} ${stanceClass(readout.stance)}`}>{t(STANCE_KEY[readout.stance])}</p>
+            {showEarly ? null : (
+              <p className={`${s.stance} ${stanceClass(readout.stance)}`}>{t(STANCE_KEY[readout.stance])}</p>
+            )}
             <p className={s.line}>
-              {nResolved < HIT_RATE_MIN_EPISODES
+              {showEarly
                 ? interpolate(t("accEarlyN"), { n: nResolved })
                 : interpolate(t("accCheckedN"), { n: nResolved })}
               {" "}
@@ -167,6 +185,7 @@ export default function SectionAccuracy({ t, lang, onClose, readout, loadErr }: 
 
         <p className={s.ceiling}>{t("accCeiling")}</p>
 
+        {owner ? (
         <button
           type="button"
           className={s.toggle}
@@ -176,6 +195,7 @@ export default function SectionAccuracy({ t, lang, onClose, readout, loadErr }: 
         >
           {open ? t("accDetailClose") : t("accDetailOpen")}
         </button>
+        ) : null}
 
         {open ? (
           <div className={s.detail} data-acc="detail">
@@ -212,7 +232,7 @@ export default function SectionAccuracy({ t, lang, onClose, readout, loadErr }: 
               </div>
               <div>
                 <dt>{t("accDetUnscorable")}</dt>
-                <dd>{readout.unscorableCount}</dd>
+                <dd>{nUnscorableCalls}</dd>
               </div>
             </dl>
             {readout.claims.length > 0 ? (

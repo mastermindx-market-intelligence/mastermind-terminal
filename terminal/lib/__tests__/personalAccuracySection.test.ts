@@ -11,6 +11,7 @@ import { createRoot, type Root } from "react-dom/client";
 import React from "react";
 import SectionAccuracy, { accuracyGlanceState } from "@/components/settings/SectionAccuracy";
 import { LEX } from "@/lib/i18n";
+import { accountIdentity, GUEST_IDENTITY } from "@/lib/accountIdentity";
 import { emptyAccuracyReadout, scorePersonalAccuracy, type UserClaim } from "@/lib/personalAccuracy";
 import {
   overlappingUnscorableAccuracyFixture,
@@ -18,6 +19,8 @@ import {
   unscorableAccuracyFixture,
 } from "@/app/dev/settings/accuracyFixtures";
 import type { AccuracyProps } from "@/components/settings/SectionAccuracy";
+
+const OWNER = accountIdentity("8f2c41ba-7d19-4e6a-9c03-5b71ee0a4d22", "a@example.com");
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -32,7 +35,7 @@ function baseProps(lang: "en" | "zh", extra: Partial<AccuracyProps> = {}): Accur
   return {
     t: makeT(lang),
     lang,
-    identity: { kind: "guest" },
+    identity: OWNER,
     email: "a@example.com",
     user: null,
     onClose: () => {},
@@ -131,7 +134,9 @@ function interpolate(template: string, vars: Record<string, string | number>): s
 function glanceSentences(lang: 0 | 1, nUnscorable = 0) {
   return {
     empty: LEX.accEmpty[lang],
-    unscorable: interpolate(LEX.accUnscorableN[lang], { n: nUnscorable }),
+    unscorable: nUnscorable === 1
+      ? LEX.accUnscorable1[lang]
+      : interpolate(LEX.accUnscorableN[lang], { n: nUnscorable }),
     readout: LEX.accStanceMostly[lang],
   };
 }
@@ -224,6 +229,24 @@ describe("SectionAccuracy glance state machine (exactly one state sentence)", ()
     expect(text).not.toContain(interpolate(LEX.accUnscorableN[0], { n: 1 }));
     expect(container.querySelectorAll("[data-acc-state]")).toHaveLength(1);
     expect(container.querySelector("[data-acc-state='unscorable']")).toBeTruthy();
+  });
+
+  it("EN unscorable glance is singular at n = 1", () => {
+    const readout = unscorableAccuracyFixture();
+    expect(readout.claimCount).toBe(1);
+    mount("en", { readout, loadErr: false });
+    const text = container.textContent || "";
+    expect(text).toContain(LEX.accUnscorable1[0]);
+    expect(text).not.toContain("1 calls could not be checked");
+  });
+
+  it("a non-account-owner sees the signed-out card, never Reading your record forever", () => {
+    mount("en", { identity: GUEST_IDENTITY, readout: null, loadErr: false });
+    const text = container.textContent || "";
+    expect(text).toContain(LEX.acsSignInToOn[0]);
+    expect(text).not.toContain(LEX.accUnread[0]);
+    expect(container.querySelector("[data-acc-state='signed-out']")).toBeTruthy();
+    expect(container.querySelector("[data-acc-state='unread']")).toBeNull();
   });
 
   it("EN claim-count line is singular at n = 1", () => {
@@ -330,7 +353,73 @@ describe("SectionAccuracy detail honesty", () => {
     });
     expect(detail).toContain(expected);
     expect(detail).not.toMatch(new RegExp(`>\\s*${readout.brierMean!.toFixed(3)}\\s*<`));
-    expect(detail.includes(`Brier ${readout.brierMean!.toFixed(3)} over ${readout.brierPairs} resolved calls.`)).toBe(true);
+    expect(detail.includes(`Brier ${readout.brierMean!.toFixed(3)} over ${readout.brierPairs} resolved groups of calls.`)).toBe(true);
+  });
+
+  it("glance and detail print the same unscorable call tally on overlappingUnscorableAccuracyFixture", () => {
+    const readout = overlappingUnscorableAccuracyFixture();
+    expect(readout.unscorableCount).toBe(1);
+    expect(readout.claimCount).toBe(2);
+    mount("en", { readout, loadErr: false });
+    const glance = interpolate(LEX.accUnscorableN[0], { n: 2 });
+    expect(container.textContent).toContain(glance);
+    openDetail();
+    const dt = [...container.querySelectorAll("dt")].find(
+      (el) => el.textContent === LEX.accDetUnscorable[0],
+    );
+    expect(dt).toBeTruthy();
+    expect(dt!.nextElementSibling?.textContent).toBe("2");
+  });
+
+  it("labels name groups where the number is episodes and calls where it is claims", () => {
+    const readout = overlappingUnscorableAccuracyFixture();
+    expect(readout.episodeCount).not.toBe(readout.claimCount);
+    mount("en", { readout, loadErr: false });
+    const detail = openDetail();
+    expect(detail).toContain(LEX.accDetEpisodes[0]);
+    expect(detail).toContain(LEX.accDetClaims[0]);
+    const episodeDt = [...container.querySelectorAll("dt")].find(
+      (el) => el.textContent === LEX.accDetEpisodes[0],
+    );
+    const claimDt = [...container.querySelectorAll("dt")].find(
+      (el) => el.textContent === LEX.accDetClaims[0],
+    );
+    expect(episodeDt?.nextElementSibling?.textContent).toBe(String(readout.episodeCount));
+    expect(claimDt?.nextElementSibling?.textContent).toBe(String(readout.claimCount));
+  });
+
+  it("while accEarlyN renders the stance line is not printed twice", () => {
+    const claims: UserClaim[] = Array.from({ length: 5 }, (_, i) => ({
+      claim_id: `early${i.toString(16).padStart(11, "0")}`.slice(0, 16),
+      user_id: "11111111-1111-4111-8111-111111111111",
+      subject: { kind: "security", id: `E${i}` },
+      stated_at: "2026-01-01T00:00:00.000Z",
+      resolves_at: "2026-02-01T00:00:00.000Z",
+      claim_text: `Call ${i} finishes at or above the line.`,
+      condition: { metric: "last_close", comparator: ">=", threshold: 100, owner: "quotes.last_close" },
+      stated_probability: 0.5,
+      evidence: [],
+      status: "resolved",
+      resolution: {
+        outcome: 1,
+        observed: 110,
+        resolved_at: "2026-02-01T00:00:00.000Z",
+        resolver: "quotes.last_close",
+        note: "",
+      },
+      supersedes: null,
+    }));
+    const readout = scorePersonalAccuracy(claims);
+    expect(readout.resolvedEpisodes).toBe(5);
+    expect(readout.resolvedEpisodes).toBeGreaterThan(0);
+    expect(readout.resolvedEpisodes).toBeLessThan(10);
+    expect(readout.stance).toBe("Too early to say");
+    mount("en", { readout, loadErr: false });
+    const text = container.textContent || "";
+    const early = interpolate(LEX.accEarlyN[0], { n: 5 });
+    expect(text).toContain(early);
+    const stanceHits = (text.match(/Too early to say/g) || []).length;
+    expect(stanceHits).toBe(1);
   });
 
   it("ZH detail rows use a full-width colon and omit the raw subject identifier", () => {

@@ -5,12 +5,12 @@
 # capturedAt: 2026-09-09T13:41:30.746Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/settings/SectionAccuracy.tsx: "63a5d14b1d09affe71d786c8a84f9e376391596d673c27b67669e433d70afeb7"
+  terminal/components/settings/SectionAccuracy.tsx: "c0e28373259fa12de62e6b1a5095f3ad5b0d23dd50639171f811fd5fe9f4bd95"
   terminal/components/settings/SectionAccuracy.module.css: "a35d7db4b05ab753db30f2ac46ba0b8c16eeef61309336531f05d2a6ae7f21cc"
-  terminal/components/settings/SettingsPanel.tsx: "9f9d7fc5ae5dc99d1424a70621438a041f75c1ea9235b2acb45f51ad02583c24"
-  terminal/lib/i18n.tsx: "2d9ad4ef58843f7c556b165f366d9ab5c0fb0f6ca36b955f6031b2e57d1fdfe1"
+  terminal/components/settings/SettingsPanel.tsx: "d8f20c6e0dbf96b6caf67bcec6c2a65cdb581fda90e8eb724e158ccbb5024052"
+  terminal/lib/i18n.tsx: "a4f4f171c9148c7ea65d7685920e84e3c82def256bbdd957453129c3a1525a99"
   terminal/lib/personalAccuracy.ts: "085f2a959640752d41219d5af27ffd5a9184caeebaa4ac022fbdac477ac9b889"
-  terminal/app/dev/settings/page.tsx: "086455cbea494de228aa89c7392d09f391a7934db5391bb7aa592bb0642d218f"
+  terminal/app/dev/settings/page.tsx: "00de7de9d901dea10d88e638e72039cebdb017b4d173b563ae4a7b81477df52d"
   terminal/app/dev/settings/accuracyFixtures.ts: "839d45a530c3625ec0747f44749a6a0f097f7c8c0f4d8674673da40e4fecdeee"
 theme: dark
 languages: [en, zh]

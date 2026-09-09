@@ -18,7 +18,7 @@ const FROZEN_GLANCE_KEYS = [
   "accCeiling",
 ] as const;
 
-const GLANCE_KEYS = [...FROZEN_GLANCE_KEYS, "accClaimCountN", "accUnread"] as const;
+const GLANCE_KEYS = [...FROZEN_GLANCE_KEYS, "accClaimCountN", "accUnread", "accDetLoadErr"] as const;
 
 const FROZEN_EN = [
   "Your calls, checked.",
@@ -30,7 +30,8 @@ const FROZEN_EN = [
   "Nothing has settled yet. Your first call gets checked on the day you set.",
   "Too early to say — checked {n} of your calls so far.",
   "Checked so far: {n} of your calls.",
-  "Not enough settled calls yet ({n} of 30).",
+  // seat ruling R5(c) round 3, corrected R1 round 4
+  "Not enough settled calls yet to check how well your odds match reality ({n} of 30).",
   "{n} calls could not be checked — the data they named wasn't there.",
   "This is a learning record. It never changes what we show you, what we rank, or what you can do here.",
 ];
@@ -45,7 +46,8 @@ const FROZEN_ZH = [
   "还没有到期的判断。第一条会在你设定的那天核对。",
   "还看不出来——目前核对了你的 {n} 条判断。",
   "已核对：你的 {n} 条判断。",
-  "已核对的判断还不够（{n}／30）。",
+  // seat ruling R5(c) round 3, corrected R1 round 4
+  "还没有足够的已结算判断来核对你的把握是否准确（{n}／30）。",
   "有 {n} 条判断无法核对——所引用的数据不存在。",
   "这只是学习记录。它不会改变我们展示什么、如何排序，也不会改变你能做什么。",
 ];
@@ -84,6 +86,13 @@ describe("B-F13-5 glance copy", () => {
     expect(LEX.accClaimCountN[1]).toBe("共写下 {n} 条判断。");
     expect(LEX.accClaimCount1[0]).toBe("1 call written down.");
     expect(LEX.accClaimCount1[1]).toBe("共写下 1 条判断。");
+  });
+
+  it("accUnscorable1 is the n = 1 twin of accUnscorableN, routed like accClaimCount1", () => {
+    // Seat-ordered R5(a) variant of a frozen line (round 4 R3(a)).
+    expect(LEX.accUnscorable1[0]).toBe("1 call could not be checked — the data they named wasn't there.");
+    expect(LEX.accUnscorable1[1]).toBe("有 1 条判断无法核对——所引用的数据不存在。");
+    expect(LEX.accUnscorableN[1]).toBe("有 {n} 条判断无法核对——所引用的数据不存在。");
   });
 
   it("unread glance copy is the seat-ordered neutral sentence", () => {
@@ -137,17 +146,16 @@ describe("B-F13-5 glance copy", () => {
 
 describe("B-F13-5 authored extras stay sentences and stay out of the glance body", () => {
   it("accDetHitsOf is a sentence in both languages, not a slash fraction", () => {
+    // Seat-ordered R2(c) variant of a frozen line (条 → 组).
     const [en, zh] = LEX.accDetHitsOf;
-    expect(en).toContain("{hits}");
-    expect(en).toContain("{n}");
-    expect(zh).toContain("{hits}");
-    expect(zh).toContain("{n}");
+    expect(en).toBe("{hits} of {n} checked groups of calls landed.");
+    expect(zh).toBe("已核对的 {n} 组判断中，有 {hits} 组判中。");
     expect(en.trim()).not.toMatch(/^\{hits\}\s+of\s+\{n\}$/);
     expect(zh.trim()).not.toMatch(/^\{hits\}\s*\/\s*\{n\}$/);
     expect(en).toMatch(/[.!?]$/);
     expect(zh).toMatch(/[。！？]$/);
-    expect(en.replace(/\{hits\}|\{n\}/g, "").replace(/[\s.,]/g, "").length).toBeGreaterThan(6);
-    expect(zh.replace(/\{hits\}|\{n\}/g, "").replace(/[\s，。、]/g, "").length).toBeGreaterThan(4);
+    expect(LEX.accDetHitsOf1[0]).toBe("{hits} of 1 checked group of calls landed.");
+    expect(LEX.accDetHitsOf1[1]).toBe("已核对的 1 组判断中，有 {hits} 组判中。");
   });
 
   it("accDetLoadErr is rendered at the glance; the detail may repeat it", () => {
@@ -179,16 +187,26 @@ describe("B-F13-5 authored extras stay sentences and stay out of the glance body
   });
 
   it("accDetBrierN is a sentence that names the pair count in both languages", () => {
+    // Seat-ordered R2(c) variant of a frozen line (条 → 组).
     const [en, zh] = LEX.accDetBrierN;
-    expect(en).toContain("{value}");
-    expect(en).toContain("{n}");
-    expect(zh).toContain("{value}");
-    expect(zh).toContain("{n}");
-    expect(en).toMatch(/resolved calls/);
+    expect(en).toBe("Brier {value} over {n} resolved groups of calls.");
+    expect(zh).toBe("按 {n} 组已核对判断计算，Brier 分数 {value}。");
     expect(zh.startsWith("Brier"), "ZH must open with Chinese, not a Latin token").toBe(false);
-    expect(zh).toMatch(/^按 \{n\} 条已核对判断计算/);
-    expect(zh).toMatch(/Brier 分数 \{value\}/);
     expect(en).toMatch(/[.!?]$/);
     expect(zh).toMatch(/[。！？]$/);
+    expect(LEX.accDetBrierN1[0]).toBe("Brier {value} over 1 resolved group of calls.");
+    expect(LEX.accDetBrierN1[1]).toBe("按 1 组已核对判断计算，Brier 分数 {value}。");
+  });
+
+  it("accDetEpisodes labels the total episode count, open ones included", () => {
+    // Seat-ordered R2(a) variant of a frozen line.
+    expect(LEX.accDetEpisodes[0]).toBe("Groups of calls");
+    expect(LEX.accDetEpisodes[1]).toBe("判断组");
+  });
+
+  it("accDetUnscorable labels the call tally, not the episode tally", () => {
+    // Seat-ordered R2(b).
+    expect(LEX.accDetUnscorable[0]).toBe("Calls that could not be checked");
+    expect(LEX.accDetUnscorable[1]).toBe("无法核对的判断");
   });
 });

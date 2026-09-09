@@ -5,6 +5,7 @@ import {
   scorePersonalAccuracy,
   type UserClaim,
 } from "@/lib/personalAccuracy";
+import { overlappingUnscorableAccuracyFixture } from "@/app/dev/settings/accuracyFixtures";
 
 const USER = "11111111-1111-4111-8111-111111111111";
 
@@ -328,6 +329,97 @@ describe("malformed timestamps are unscorable, never epoch 0", () => {
     expect(readout.brierPairs).toBe(0);
     expect(readout.claims.every((row) => row.unscorableReason === "malformed_timestamp")).toBe(true);
     expect(readout.claims.every((row) => row.status === "void_unscorable")).toBe(true);
+  });
+});
+
+describe("Where the docket was silent — F3 and F4", () => {
+  it("F3: an episode is unscorable with no live carrier or a checked carrier with no 0/1 outcome (personalAccuracy.ts 265-278)", () => {
+    const withdrawn = scorePersonalAccuracy([
+      claim({
+        claim_id: "f3withdrawn00001",
+        stated_at: "2026-01-01T00:00:00.000Z",
+        resolves_at: "2026-02-01T00:00:00.000Z",
+        status: "withdrawn",
+        resolution: null,
+      }),
+    ]);
+    expect(withdrawn.unscorableCount).toBe(1);
+    expect(withdrawn.openEpisodes).toBe(0);
+    expect(withdrawn.resolvedEpisodes).toBe(0);
+
+    const resolvedNull = scorePersonalAccuracy([
+      claim({
+        claim_id: "f3resolvednull01",
+        stated_at: "2026-01-01T00:00:00.000Z",
+        resolves_at: "2026-02-01T00:00:00.000Z",
+        status: "resolved",
+        resolution: {
+          outcome: null,
+          observed: null,
+          resolved_at: "2026-02-01T00:00:00.000Z",
+          resolver: "personalAccuracyStore.RESOLVER_REGISTRY",
+          note: "the data this call named was not available",
+        },
+      }),
+    ]);
+    expect(resolvedNull.unscorableCount).toBe(1);
+    expect(resolvedNull.resolvedEpisodes).toBe(0);
+
+    const maturedNull = scorePersonalAccuracy([
+      claim({
+        claim_id: "f3maturednull001",
+        stated_at: "2026-01-01T00:00:00.000Z",
+        resolves_at: "2026-02-01T00:00:00.000Z",
+        status: "matured",
+        resolution: {
+          outcome: null,
+          observed: null,
+          resolved_at: "2026-02-01T00:00:00.000Z",
+          resolver: "personalAccuracyStore.RESOLVER_REGISTRY",
+          note: "the data this call named was not available",
+        },
+      }),
+    ]);
+    expect(maturedNull.unscorableCount).toBe(1);
+    expect(maturedNull.resolvedEpisodes).toBe(0);
+
+    const stillOpen = scorePersonalAccuracy([
+      claim({
+        claim_id: "f3stillopen00001",
+        stated_at: "2026-01-01T00:00:00.000Z",
+        resolves_at: "2026-02-01T00:00:00.000Z",
+        status: "open",
+        resolution: null,
+      }),
+    ]);
+    expect(stillOpen.unscorableCount).toBe(0);
+    expect(stillOpen.openEpisodes).toBe(1);
+
+    const landed = scorePersonalAccuracy([
+      claim({
+        claim_id: "f3landed00000001",
+        stated_at: "2026-01-01T00:00:00.000Z",
+        resolves_at: "2026-02-01T00:00:00.000Z",
+        status: "resolved",
+        resolution: {
+          outcome: 1,
+          observed: 6100,
+          resolved_at: "2026-02-01T00:00:00.000Z",
+          resolver: "quotes.last_close",
+          note: "",
+        },
+      }),
+    ]);
+    expect(landed.unscorableCount).toBe(0);
+    expect(landed.resolvedEpisodes).toBe(1);
+  });
+
+  it("F4: unscorableCount is an episode tally; overlapping claims can make it smaller than the call count", () => {
+    const readout = overlappingUnscorableAccuracyFixture();
+    expect(readout.episodeCount).toBe(1);
+    expect(readout.unscorableCount).toBe(1);
+    expect(readout.claimCount).toBe(2);
+    expect(readout.unscorableCount).not.toBe(readout.claimCount);
   });
 });
 
