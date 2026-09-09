@@ -45,6 +45,8 @@ export const FIXTURE_FAULT_COOKIE = "mm_e2e_fault";
 export const FAULT_POSITIONS_READ = "positions_read";
 export const FAULT_POSITIONS_MUTATION_NOOP = "positions_mutation_noop";
 export const FAULT_THESES_READ = "theses_read";
+export const FAULT_SAVED_VIEWS_READ = "saved_views_read";
+export const FAULT_ALERT_OUTBOX_READ = "alert_outbox_read";
 
 export function fixtureFaults(raw: string | undefined | null): Set<string> {
   return new Set((raw || "").split(",").map((token) => token.trim()).filter(Boolean));
@@ -56,6 +58,8 @@ type Store = {
   positions: DbRow[];
   theses: DbRow[];
   thesisVersions: DbRow[];
+  workspaceSettings: DbRow[];
+  alertOutbox: DbRow[];
   seq: number;
 };
 
@@ -107,6 +111,8 @@ function seedStore(key: string): Store {
     positions: [],
     theses: [],
     thesisVersions: [],
+    workspaceSettings: [],
+    alertOutbox: [],
     seq: 0,
   };
 }
@@ -126,7 +132,7 @@ export function resetFixtureStores(): void {
   stores.clear();
 }
 
-type Table = "watchlists" | "watchlist_symbols" | "portfolio_positions" | "theses" | "thesis_versions";
+type Table = "watchlists" | "watchlist_symbols" | "portfolio_positions" | "theses" | "thesis_versions" | "workspace_settings" | "alert_outbox";
 
 export type FixtureDatabaseEvent = {
   source: "table" | "rpc";
@@ -155,6 +161,8 @@ class FixtureQuery implements WatchlistQuery {
     if (this.table === "portfolio_positions") return this.store.positions;
     if (this.table === "theses") return this.store.theses;
     if (this.table === "thesis_versions") return this.store.thesisVersions;
+    if (this.table === "workspace_settings") return this.store.workspaceSettings;
+    if (this.table === "alert_outbox") return this.store.alertOutbox;
     return this.store.symbols;
   }
 
@@ -201,7 +209,15 @@ class FixtureQuery implements WatchlistQuery {
 
   in(column: string, values: readonly unknown[]): WatchlistQuery {
     const set = new Set(values);
-    this.predicates.push((row) => set.has(row[column]));
+    this.predicates.push((row) => {
+      const jsonPath = column.match(/^payload->>([A-Za-z_]+)$/);
+      if (jsonPath) {
+        const payload = row.payload;
+        if (!payload || typeof payload !== "object" || Array.isArray(payload)) return false;
+        return set.has((payload as Record<string, unknown>)[jsonPath[1]]);
+      }
+      return set.has(row[column]);
+    });
     return this;
   }
 
@@ -248,6 +264,12 @@ class FixtureQuery implements WatchlistQuery {
       && this.mode === "read" && this.faults.has(FAULT_THESES_READ)) {
       return { data: null, error: { message: "fixture: thesis store unavailable" } };
     }
+    if (this.table === "workspace_settings" && this.mode === "read" && this.faults.has(FAULT_SAVED_VIEWS_READ)) {
+      return { data: null, error: { message: "fixture: workspace_settings unavailable" } };
+    }
+    if (this.table === "alert_outbox" && this.mode === "read" && this.faults.has(FAULT_ALERT_OUTBOX_READ)) {
+      return { data: null, error: { message: "fixture: alert_outbox unavailable" } };
+    }
     if (this.table === "portfolio_positions"
       && (this.mode === "update" || this.mode === "delete")
       && this.faults.has(FAULT_POSITIONS_MUTATION_NOOP)) {
@@ -268,6 +290,9 @@ class FixtureQuery implements WatchlistQuery {
         ...(this.table === "portfolio_positions"
           ? { created_at: new Date().toISOString(), status: "open" }
           : {}),
+        ...(this.table === "workspace_settings"
+          ? { updated_at: new Date().toISOString() }
+          : {}),
         ...row,
       }));
       // The live schema's unique (user_id,name) is what makes the migration converge under a
@@ -275,6 +300,25 @@ class FixtureQuery implements WatchlistQuery {
       if (this.table === "watchlists") {
         for (const row of incoming) {
           if (this.store.lists.some((list) => list.user_id === row.user_id && list.name === row.name)) {
+            if (this.mode === "upsert" && this.ignoreDuplicates) continue;
+            return { data: null, error: { message: "duplicate key value violates unique constraint" } };
+          }
+        }
+      }
+      if (this.table === "workspace_settings") {
+        const keyOk = /^[a-z][a-z0-9_.]{0,63}$/;
+        for (const row of incoming) {
+          if (typeof row.key !== "string" || !keyOk.test(row.key)) {
+            return { data: null, error: { message: "new row violates check constraint workspace_settings_key" } };
+          }
+          if (row.scope === "workspace") {
+            return { data: null, error: { message: "workspace scope is not written by this packet" } };
+          }
+          const ownerId = row.team_id ?? row.user_id;
+          row.owner_id = ownerId;
+          const clash = this.store.workspaceSettings.some((existing) =>
+            existing.scope === row.scope && existing.owner_id === ownerId && existing.key === row.key);
+          if (clash) {
             if (this.mode === "upsert" && this.ignoreDuplicates) continue;
             return { data: null, error: { message: "duplicate key value violates unique constraint" } };
           }
@@ -318,6 +362,14 @@ class FixtureQuery implements WatchlistQuery {
         // untouched here: deleting a list must never delete a position (packet section 0, gate C).
       } else if (this.table === "portfolio_positions") {
         this.store.positions = kept;
+      } else if (this.table === "workspace_settings") {
+        this.store.workspaceSettings = kept;
+      } else if (this.table === "alert_outbox") {
+        this.store.alertOutbox = kept;
+      } else if (this.table === "theses") {
+        this.store.theses = kept;
+      } else if (this.table === "thesis_versions") {
+        this.store.thesisVersions = kept;
       } else {
         this.store.symbols = kept;
       }

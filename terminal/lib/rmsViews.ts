@@ -22,7 +22,41 @@ export const RMS_VIEWS: readonly RmsViewDef[] = [
 ];
 export const RMS_DEFAULT_VIEW: RmsViewId = "theses";
 export const RMS_REVIEW_STALE_DAYS = 90;
+/** Tighter "check on this" cadence for the saved-view Stale preset. Kept
+ *  separate from RMS_REVIEW_STALE_DAYS (90), which the Reviews lens uses. */
+export const RMS_SAVED_VIEW_STALE_DAYS = 30;
 export const RMS_HYDRATION_BATCH = 10; // must equal the route's ids cap
+export const MAX_SAVED_VIEWS = 50;
+export const MAX_SAVED_VIEW_NAME = 80;
+
+export type ViewFilter = {
+  lifecycle: "active" | "any";
+  staleDays?: number;
+  windowClosed?: boolean;
+  subjectGroupKey?: string;
+};
+
+export type SavedView = {
+  id: string;
+  name: string;
+  filter: ViewFilter;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type BuiltinViewId = "mine" | "stale_30" | "window_closed";
+
+export type BuiltinViewDef = {
+  id: BuiltinViewId;
+  filter: ViewFilter;
+};
+
+/** Frozen order. Team is absent in v1 (seat ruling R5). */
+export const BUILTIN_VIEWS: readonly BuiltinViewDef[] = [
+  { id: "mine", filter: { lifecycle: "active" } },
+  { id: "stale_30", filter: { lifecycle: "active", staleDays: RMS_SAVED_VIEW_STALE_DAYS } },
+  { id: "window_closed", filter: { windowClosed: true, lifecycle: "any" } },
+];
 
 export type CoverageRow = {
   key: string;
@@ -68,6 +102,72 @@ export function readConditionStates(
   const map = new Map<string, ConditionState>();
   for (const id of ids) map.set(id, (reader && reader(id)) ?? { source: "unavailable" });
   return map;
+}
+
+const THESIS_ID_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const FIRE_STATUSES = new Set(["pending", "deferred", "sent"]);
+
+export type OutboxRow = {
+  payload: unknown;
+  status?: unknown;
+  created_at?: unknown;
+};
+
+function wellFormedThesisId(value: unknown): value is string {
+  return typeof value === "string" && THESIS_ID_UUID.test(value);
+}
+
+/** Turns owner-scoped alert_outbox rows into ConditionState. A thesis with no
+ *  matching row stays unavailable — never "open". Payload must be an object
+ *  with a well-formed thesis_id UUID; anything else is skipped. */
+export function mapOutboxToConditionStates(
+  ids: readonly string[],
+  rows: readonly OutboxRow[],
+): Map<string, ConditionState> {
+  const wanted = new Set(ids);
+  const closedAt = new Map<string, string>();
+  for (const row of rows) {
+    const payload = row.payload;
+    if (!payload || typeof payload !== "object" || Array.isArray(payload)) continue;
+    const thesisId = (payload as Record<string, unknown>).thesis_id;
+    if (!wellFormedThesisId(thesisId) || !wanted.has(thesisId)) continue;
+    if (!FIRE_STATUSES.has(typeof row.status === "string" ? row.status : "")) continue;
+    const at = typeof row.created_at === "string" && row.created_at ? row.created_at : "";
+    const previous = closedAt.get(thesisId);
+    if (previous === undefined || at > previous) closedAt.set(thesisId, at);
+  }
+  return readConditionStates(ids, (id) => {
+    const at = closedAt.get(id);
+    return at === undefined ? undefined : { source: "monitor", state: "window_closed", at };
+  });
+}
+
+export function applyViewFilter(
+  rows: readonly ThesisSummary[],
+  filter: ViewFilter,
+  conditions: Map<string, ConditionState>,
+  now: Date,
+): ThesisSummary[] {
+  const lifecycle = filter.lifecycle ?? "active";
+  const staleMs = typeof filter.staleDays === "number" && Number.isFinite(filter.staleDays) && filter.staleDays > 0
+    ? filter.staleDays * 24 * 60 * 60 * 1000
+    : null;
+  return rows.filter((row) => {
+    if (lifecycle === "active" && row.lifecycleState !== "active") return false;
+    if (filter.subjectGroupKey) {
+      const key = `${row.subject.owner}|${row.subject.kind}|${row.subject.key}`;
+      if (key !== filter.subjectGroupKey) return false;
+    }
+    if (staleMs !== null) {
+      const updated = new Date(row.updatedAt).getTime();
+      if (!Number.isFinite(updated) || now.getTime() - updated < staleMs) return false;
+    }
+    if (filter.windowClosed) {
+      const cond = conditions.get(row.id);
+      if (!(cond && cond.source === "monitor" && cond.state === "window_closed")) return false;
+    }
+    return true;
+  });
 }
 
 function toThesisRow(s: ThesisSummary, reason?: ReviewReason): ThesisRow {
@@ -303,6 +403,24 @@ export type RmsCopy = {
    *  filter is active — the badge already shows the filtered count (round-2 review r3
    *  minor 7: the filtered count needs a marker so it does not read as the total). */
   filteredMarker: string;
+  "savedViews.title": string;
+  "savedViews.newView": string;
+  "savedViews.namePlaceholder": string;
+  "savedViews.save": string;
+  "savedViews.rename": string;
+  "savedViews.delete": string;
+  "savedViews.confirmDelete": string;
+  "savedViews.limitReached": string;
+  "savedViews.empty": string;
+  "savedViews.unavailable": string;
+  "builtin.mine": string;
+  "builtin.stale30": string;
+  "builtin.staleWhat": string;
+  "builtin.windowClosed": string;
+  "builtin.team": string;
+  "builtin.teamTooltip": string;
+  "builtin.windowClosedEmpty": string;
+  "builtin.mineEmpty": string;
 };
 
 export const RMS_COPY: { en: RmsCopy; zh: RmsCopy } = {
@@ -360,6 +478,24 @@ export const RMS_COPY: { en: RmsCopy; zh: RmsCopy } = {
     clearFilter: "Show everything",
     filteredEmpty: "Nothing written about {subject} right now. Clear the filter to see every thesis.",
     filteredMarker: "filtered",
+    "savedViews.title": "Your saved views",
+    "savedViews.newView": "Save this view",
+    "savedViews.namePlaceholder": "Name this view",
+    "savedViews.save": "Save",
+    "savedViews.rename": "Rename",
+    "savedViews.delete": "Delete this view",
+    "savedViews.confirmDelete": "Delete this saved view? This cannot be undone.",
+    "savedViews.limitReached": "You have reached the limit of 50 saved views. Delete one to save another.",
+    "savedViews.empty": "No saved views yet. Filter the list, then save it with a name.",
+    "savedViews.unavailable": "Your saved views did not load. Nothing has been changed.",
+    "builtin.mine": "Yours",
+    "builtin.stale30": "Stale",
+    "builtin.staleWhat": "No changes in 30 days.",
+    "builtin.windowClosed": "Window closed",
+    "builtin.team": "Team (not yet available)",
+    "builtin.teamTooltip": "Team sharing for theses is not built yet.",
+    "builtin.windowClosedEmpty": "Nothing has a closed window right now.",
+    "builtin.mineEmpty": "Nothing here yet.",
   },
   zh: {
     lensRailLabel: "研究视角",
@@ -412,5 +548,23 @@ export const RMS_COPY: { en: RmsCopy; zh: RmsCopy } = {
     clearFilter: "显示全部",
     filteredEmpty: "目前没有关于 {subject} 的论点。清除筛选可查看全部论点。",
     filteredMarker: "已筛选",
+    "savedViews.title": "你保存的视图",
+    "savedViews.newView": "保存此视图",
+    "savedViews.namePlaceholder": "为这个视图命名",
+    "savedViews.save": "保存",
+    "savedViews.rename": "重命名",
+    "savedViews.delete": "删除此视图",
+    "savedViews.confirmDelete": "删除这个已保存的视图？此操作无法撤销。",
+    "savedViews.limitReached": "已达到 50 个已保存视图的上限。请先删除一个再保存新的。",
+    "savedViews.empty": "还没有保存任何视图。先筛选列表，再为其保存命名。",
+    "savedViews.unavailable": "无法加载已保存的视图。没有任何内容被更改。",
+    "builtin.mine": "你的",
+    "builtin.stale30": "长期未更新",
+    "builtin.staleWhat": "30 天没有改动。",
+    "builtin.windowClosed": "观察窗口已结束",
+    "builtin.team": "团队（暂未开放）",
+    "builtin.teamTooltip": "论点的团队共享功能尚未上线。",
+    "builtin.windowClosedEmpty": "目前没有观察窗口已结束的论点。",
+    "builtin.mineEmpty": "这里还没有内容。",
   },
 };

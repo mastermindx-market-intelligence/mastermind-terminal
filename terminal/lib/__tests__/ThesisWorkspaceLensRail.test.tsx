@@ -73,6 +73,8 @@ function installFetch(theses: ThesisSummary[], details: Map<string, ThesisDetail
   const fetchMock = vi.fn(async (input: string | URL | Request) => {
     const raw = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
     const url = new URL(raw, "https://x.test");
+    if (url.pathname === "/api/thesis-saved-views") return jsonResponse({ views: [] });
+    if (url.pathname === "/api/thesis-fire-status") return jsonResponse({ states: {} });
     if (url.pathname !== "/api/theses") return jsonResponse({ error: "not_found" }, 404);
     const ids = url.searchParams.getAll("ids");
     if (ids.length > 0) {
@@ -1477,5 +1479,72 @@ describe("ThesisWorkspace lens rail (B-F11-2, M2)", () => {
         (HTMLElement.prototype as unknown as { scrollIntoView: unknown }).scrollIntoView = originalScrollIntoView;
       }
     }
+  });
+
+  it("saved-views strip: built-ins in frozen order, user views after, Team absent in v1 (R5)", async () => {
+    const t1: ThesisSummary = {
+      id: "sv-t1", currentVersion: 1, lifecycleState: "active",
+      subject: subject("AAA", "Alpha Co"), title: "Alpha", updatedAt: "2026-09-01T00:00:00.000Z",
+    };
+    const fetchMock = vi.fn(async (input: string | URL | Request) => {
+      const raw = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
+      const url = new URL(raw, "https://x.test");
+      if (url.pathname === "/api/thesis-saved-views") {
+        return jsonResponse({
+          views: [
+            {
+              id: "33333333-3333-4333-8333-333333333333",
+              name: "NVDA only",
+              filter: { lifecycle: "active", subjectGroupKey: "data_os.security_master|issuer|AAA" },
+              createdAt: "2026-09-01T00:00:00.000Z",
+              updatedAt: "2026-09-03T00:00:00.000Z",
+            },
+            {
+              id: "44444444-4444-4444-8444-444444444444",
+              name: "Older view",
+              filter: { lifecycle: "active" },
+              createdAt: "2026-08-01T00:00:00.000Z",
+              updatedAt: "2026-09-02T00:00:00.000Z",
+            },
+          ],
+        });
+      }
+      if (url.pathname === "/api/thesis-fire-status") return jsonResponse({ states: {} });
+      if (url.pathname !== "/api/theses") return jsonResponse({ error: "not_found" }, 404);
+      return jsonResponse({ theses: [t1], truncated: false });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const el = await mount({ ownerKey: "owner-saved-views" });
+    await flush();
+
+    const strip = el.querySelector('[data-testid="rms-saved-views"]');
+    expect(strip, "expected the saved-views strip").not.toBeNull();
+    const builtins = Array.from(strip!.querySelectorAll("[data-builtin]")).map((b) => b.getAttribute("data-builtin"));
+    expect(builtins).toEqual(["mine", "stale_30", "window_closed"]);
+    expect(strip!.querySelector("[data-builtin='team']")).toBeNull();
+    expect(strip!.querySelector("[data-disabled], [aria-disabled='true']")).toBeNull();
+    expect(strip!.textContent).not.toMatch(/not yet available|暂未开放/);
+
+    const userViews = Array.from(strip!.querySelectorAll("[data-saved-view]")).map((b) => b.getAttribute("data-saved-view"));
+    expect(userViews).toEqual([
+      "33333333-3333-4333-8333-333333333333",
+      "44444444-4444-4444-8444-444444444444",
+    ]);
+    expect(strip!.textContent).toContain("NVDA only");
+    expect(strip!.textContent).toContain("Older view");
+  });
+
+  it("saved-views strip empty state is a plain sentence, never a bare count", async () => {
+    const t1: ThesisSummary = {
+      id: "sv-empty", currentVersion: 1, lifecycleState: "active",
+      subject: subject("AAA", "Alpha Co"), title: "Alpha", updatedAt: "2026-09-01T00:00:00.000Z",
+    };
+    installFetch([t1], new Map());
+    const el = await mount({ ownerKey: "owner-saved-views-empty" });
+    await flush();
+    const empty = el.querySelector('[data-testid="rms-saved-views-empty"]');
+    expect(empty).not.toBeNull();
+    expect(empty!.textContent).toBe("No saved views yet. Filter the list, then save it with a name.");
+    expect(empty!.textContent).not.toMatch(/^0|—$/);
   });
 });

@@ -21,6 +21,8 @@ import {
   RMS_DEFAULT_VIEW,
   RMS_HYDRATION_BATCH,
   RMS_COPY,
+  BUILTIN_VIEWS,
+  MAX_SAVED_VIEWS,
   coverageRows,
   ideaRows,
   thesisRows,
@@ -33,8 +35,17 @@ import {
   formatScopeSentence,
   conditionLine,
   readConditionStates,
+  applyViewFilter,
 } from "@/lib/rmsViews";
-import type { RmsViewDef, RmsViewId, CoverageRow } from "@/lib/rmsViews";
+import type {
+  BuiltinViewId,
+  ConditionState,
+  CoverageRow,
+  RmsViewDef,
+  RmsViewId,
+  SavedView,
+  ViewFilter,
+} from "@/lib/rmsViews";
 import styles from "./ThesisWorkspace.module.css";
 
 export interface ThesisWorkspaceProps {
@@ -206,6 +217,19 @@ function localInputToUtcInstant(value: string): string | undefined {
 function statusLabel(state: ThesisLifecycle, copy: typeof COPY.en | typeof COPY.zh): string {
   return state === "active" ? copy.active : state === "archived" ? copy.archived : copy.invalidated;
 }
+
+function builtinLabel(id: BuiltinViewId, rms: (typeof RMS_COPY)["en"]): string {
+  if (id === "mine") return rms["builtin.mine"];
+  if (id === "stale_30") return rms["builtin.stale30"];
+  return rms["builtin.windowClosed"];
+}
+
+function isSavableFilter(filter: ViewFilter | null): boolean {
+  if (!filter) return false;
+  return !!filter.staleDays || !!filter.windowClosed || !!filter.subjectGroupKey || filter.lifecycle !== "active";
+}
+
+type ActivePreset = { kind: "builtin"; id: BuiltinViewId } | { kind: "saved"; id: string };
 
 function buildContent(draft: Draft, baselineEffectiveAt: string | null, effectiveEdited: boolean): ThesisContent | null {
   const effectiveAt = effectiveEdited
@@ -426,6 +450,14 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   // back to the forbidden "Everything you have written." sentence and a bare
   // " · Show everything" chip while the filter was still active.
   const [subjectFilterLabel, setSubjectFilterLabel] = useState<string | null>(null);
+  const [savedViews, setSavedViews] = useState<SavedView[]>([]);
+  const [savedViewsUnavailable, setSavedViewsUnavailable] = useState(false);
+  const [activePreset, setActivePreset] = useState<ActivePreset | null>(null);
+  const [namingOpen, setNamingOpen] = useState(false);
+  const [nameDraft, setNameDraft] = useState("");
+  const [renamingId, setRenamingId] = useState<string | null>(null);
+  const [savedViewsLimit, setSavedViewsLimit] = useState(false);
+  const [fireStates, setFireStates] = useState<Map<string, ConditionState>>(new Map());
   const [hydratedDetails, setHydratedDetails] = useState<Map<string, ThesisDetail>>(new Map());
   const [hydrating, setHydrating] = useState(false);
   const [hydrationUnavailable, setHydrationUnavailable] = useState(false);
@@ -472,6 +504,14 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     setMissingIds(new Set());
     setSubjectFilterKey(null);
     setSubjectFilterLabel(null);
+    setSavedViews([]);
+    setSavedViewsUnavailable(false);
+    setActivePreset(null);
+    setNamingOpen(false);
+    setNameDraft("");
+    setRenamingId(null);
+    setSavedViewsLimit(false);
+    setFireStates(new Map());
     // This round's review (minor 5): the MAJOR fix above resets every per-owner
     // HYDRATION field, but `theses` itself (the id set the defensive membership
     // filter in `detailListRows` checks against) and `listState` were left holding
@@ -795,10 +835,24 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   // reaches an honest 100% instead of one that can never complete for a thesis that no
   // longer exists, and reports no rows as loaded that were actually dropped.
   const scope = useMemo(() => hydrationScope(activeTheses, new Set([...hydratedDetails.keys(), ...missingIds])), [activeTheses, hydratedDetails, missingIds]);
-  const conditions = useMemo(() => readConditionStates(theses.map((t) => t.id)), [theses]);
+  const conditions = useMemo(
+    () => readConditionStates(theses.map((t) => t.id), (id) => fireStates.get(id)),
+    [theses, fireStates],
+  );
+  const presetFilter = useMemo<ViewFilter | null>(() => {
+    if (!activePreset) return null;
+    if (activePreset.kind === "builtin") {
+      return BUILTIN_VIEWS.find((item) => item.id === activePreset.id)?.filter ?? null;
+    }
+    return savedViews.find((item) => item.id === activePreset.id)?.filter ?? null;
+  }, [activePreset, savedViews]);
+  const filteredSummaries = useMemo(
+    () => (presetFilter ? applyViewFilter(theses, presetFilter, conditions, reviewNow) : theses),
+    [theses, presetFilter, conditions, reviewNow],
+  );
   const coverageViewRows = useMemo(() => coverageRows(theses), [theses]);
-  const ideaViewRows = useMemo(() => ideaRows(theses), [theses]);
-  const allThesesViewRows = useMemo(() => thesisRows(theses), [theses]);
+  const ideaViewRows = useMemo(() => ideaRows(filteredSummaries), [filteredSummaries]);
+  const allThesesViewRows = useMemo(() => thesisRows(filteredSummaries), [filteredSummaries]);
   const thesesViewRows = useMemo(
     () => (subjectFilterKey ? allThesesViewRows.filter((r) => r.subjectGroupKey === subjectFilterKey) : allThesesViewRows),
     [allThesesViewRows, subjectFilterKey],
@@ -816,7 +870,95 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     setSubjectFilterKey(null);
     setSubjectFilterLabel(null);
   }, []);
-  const reviewViewRows = useMemo(() => reviewRows(theses, reviewNow, conditions), [theses, conditions, reviewNow]);
+  const filterToSave = useMemo<ViewFilter>(() => {
+    const base: ViewFilter = presetFilter ? { ...presetFilter } : { lifecycle: "active" };
+    if (subjectFilterKey) base.subjectGroupKey = subjectFilterKey;
+    return base;
+  }, [presetFilter, subjectFilterKey]);
+  const canSaveView = isSavableFilter(filterToSave) && !savedViewsUnavailable;
+  const builtinEmptyCopy = useMemo(() => {
+    if (!activePreset || activePreset.kind !== "builtin" || subjectFilterKey) return null;
+    if (activePreset.id === "window_closed") return rms["builtin.windowClosedEmpty"];
+    if (activePreset.id === "mine") return rms["builtin.mineEmpty"];
+    if (activePreset.id === "stale_30") return rms["builtin.staleWhat"];
+    return null;
+  }, [activePreset, subjectFilterKey, rms]);
+
+  const saveCurrentView = useCallback(async () => {
+    if (savedViews.length >= MAX_SAVED_VIEWS) {
+      setSavedViewsLimit(true);
+      return;
+    }
+    const name = nameDraft;
+    try {
+      const response = await fetch("/api/thesis-saved-views", {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ action: "create", name, filter: filterToSave }),
+      });
+      if (response.status === 409) {
+        setSavedViewsLimit(true);
+        return;
+      }
+      if (!response.ok) {
+        setSavedViewsUnavailable(true);
+        return;
+      }
+      const payload = await response.json();
+      if (payload.view) {
+        setSavedViews((current) => [payload.view, ...current].slice(0, MAX_SAVED_VIEWS));
+        setActivePreset({ kind: "saved", id: payload.view.id });
+      }
+      setNamingOpen(false);
+      setNameDraft("");
+      setSavedViewsLimit(false);
+    } catch {
+      setSavedViewsUnavailable(true);
+    }
+  }, [filterToSave, nameDraft, savedViews.length]);
+
+  const renameView = useCallback(async (id: string, name: string) => {
+    try {
+      const response = await fetch("/api/thesis-saved-views", {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ action: "rename", id, name }),
+      });
+      if (!response.ok) {
+        setSavedViewsUnavailable(true);
+        return;
+      }
+      const payload = await response.json();
+      if (payload.view) {
+        setSavedViews((current) => current.map((view) => (view.id === id ? payload.view : view)));
+      }
+      setRenamingId(null);
+      setNameDraft("");
+    } catch {
+      setSavedViewsUnavailable(true);
+    }
+  }, []);
+
+  const deleteView = useCallback(async (id: string) => {
+    if (!window.confirm(rms["savedViews.confirmDelete"])) return;
+    try {
+      const response = await fetch("/api/thesis-saved-views", {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ action: "delete", id }),
+      });
+      if (!response.ok) {
+        setSavedViewsUnavailable(true);
+        return;
+      }
+      setSavedViews((current) => current.filter((view) => view.id !== id));
+      setActivePreset((current) => (current?.kind === "saved" && current.id === id ? null : current));
+      setSavedViewsLimit(false);
+    } catch {
+      setSavedViewsUnavailable(true);
+    }
+  }, [rms]);
+  const reviewViewRows = useMemo(() => reviewRows(filteredSummaries, reviewNow, conditions), [filteredSummaries, conditions, reviewNow]);
   const catalystViewRows = useMemo(() => catalystRows(detailListRows), [detailListRows]);
   const riskViewRows = useMemo(() => riskRows(detailListRows), [detailListRows]);
   const noteViewRows = useMemo(() => noteRows(detailListRows), [detailListRows]);
@@ -850,8 +992,8 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   // `detail` yet — an unsaved NEW thesis is not an object whose condition can be
   // "not connected"; it does not exist. The render site below gates on `detail`.
   const detailCondition = useMemo(
-    () => (detail ? (readConditionStates([detail.id]).get(detail.id) ?? { source: "unavailable" as const }) : null),
-    [detail],
+    () => (detail ? (conditions.get(detail.id) ?? { source: "unavailable" as const }) : null),
+    [detail, conditions],
   );
 
   useEffect(() => {
@@ -887,6 +1029,26 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       document.removeEventListener("click", protectRouteClick, true);
     };
   }, [copy.confirmDiscard, isDirty, pending]);
+
+  const loadSavedViews = useCallback(async () => {
+    try {
+      const response = await fetch("/api/thesis-saved-views", { cache: "no-store" });
+      if (!response.ok) {
+        setSavedViewsUnavailable(true);
+        return;
+      }
+      const payload = await response.json();
+      if (!Array.isArray(payload.views)) {
+        setSavedViewsUnavailable(true);
+        return;
+      }
+      setSavedViews(payload.views);
+      setSavedViewsUnavailable(false);
+      setSavedViewsLimit(payload.views.length >= MAX_SAVED_VIEWS);
+    } catch {
+      setSavedViewsUnavailable(true);
+    }
+  }, []);
 
   const loadList = useCallback(async () => {
     try {
@@ -987,11 +1149,42 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     // Start external synchronization in a microtask: the effect itself performs no synchronous
     // React state transition, and both loaders update only after their first network boundary.
     void Promise.resolve().then(() => loadList());
+    void Promise.resolve().then(() => loadSavedViews());
     if (initialThesisId) {
       const token = ++detailRequest.current;
       void Promise.resolve().then(() => loadDetail(initialThesisId, token));
     }
-  }, [initialThesisId, invalidLink, loadDetail, loadList, ownerKey]);
+  }, [initialThesisId, invalidLink, loadDetail, loadList, loadSavedViews, ownerKey]);
+
+  useEffect(() => {
+    const ids = theses.map((row) => row.id).filter((id) => isUuid(id)).slice(0, 50);
+    if (ids.length === 0) {
+      setFireStates(new Map());
+      return;
+    }
+    let cancelled = false;
+    void fetch(`/api/thesis-fire-status?${ids.map((id) => `id=${encodeURIComponent(id)}`).join("&")}`, { cache: "no-store" })
+      .then(async (response) => {
+        if (!response.ok) throw new Error("unavailable");
+        return response.json();
+      })
+      .then((payload) => {
+        if (cancelled) return;
+        const next = new Map<string, ConditionState>();
+        const states = payload && typeof payload === "object" ? (payload as { states?: Record<string, ConditionState> }).states : undefined;
+        if (states && typeof states === "object") {
+          for (const id of ids) {
+            const state = states[id];
+            if (state) next.set(id, state);
+          }
+        }
+        setFireStates(next);
+      })
+      .catch(() => {
+        if (!cancelled) setFireStates(new Map());
+      });
+    return () => { cancelled = true; };
+  }, [theses]);
 
   const resetToNew = useCallback((symbol: string, historyMode: "push" | "none" = "push") => {
     detailRequest.current += 1;
@@ -1334,6 +1527,58 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
               </ul>
             </nav>
 
+            <section className={styles.savedViews} data-testid="rms-saved-views" aria-label={rms["savedViews.title"]}>
+              <p className={styles.savedViewsTitle}>{rms["savedViews.title"]}</p>
+              <div className={styles.savedViewChips} role="list">
+                {BUILTIN_VIEWS.map((item) => {
+                  const selected = activePreset?.kind === "builtin" && activePreset.id === item.id;
+                  return (
+                    <button key={item.id} type="button" role="listitem" className={styles.savedViewChip}
+                      data-builtin={item.id} data-selected={selected || undefined}
+                      disabled={carrierLocked}
+                      onClick={() => setActivePreset(selected ? null : { kind: "builtin", id: item.id })}>
+                      {builtinLabel(item.id, rms)}
+                    </button>
+                  );
+                })}
+                {savedViews.map((view) => {
+                  const selected = activePreset?.kind === "saved" && activePreset.id === view.id;
+                  return (
+                    <span key={view.id} className={styles.savedViewItem} role="listitem" data-saved-view={view.id}>
+                      {renamingId === view.id ? (
+                        <form className={styles.saveViewForm} onSubmit={(event) => { event.preventDefault(); void renameView(view.id, nameDraft); }}>
+                          <input aria-label={rms["savedViews.namePlaceholder"]} value={nameDraft} maxLength={80}
+                            onChange={(event) => setNameDraft(event.target.value)} />
+                          <button type="submit" className={styles.primaryButton}>{rms["savedViews.save"]}</button>
+                        </form>
+                      ) : (
+                        <>
+                          <button type="button" className={styles.savedViewChip} data-selected={selected || undefined}
+                            disabled={carrierLocked}
+                            onClick={() => setActivePreset(selected ? null : { kind: "saved", id: view.id })}>
+                            {view.name}
+                          </button>
+                          <button type="button" className={styles.savedViewAction} disabled={carrierLocked}
+                            onClick={() => { setRenamingId(view.id); setNameDraft(view.name); }}>
+                            {rms["savedViews.rename"]}
+                          </button>
+                          <button type="button" className={styles.savedViewAction} disabled={carrierLocked}
+                            onClick={() => void deleteView(view.id)}>
+                            {rms["savedViews.delete"]}
+                          </button>
+                        </>
+                      )}
+                    </span>
+                  );
+                })}
+              </div>
+              {savedViewsUnavailable && <p className={styles.savedViewsNote} role="status">{rms["savedViews.unavailable"]}</p>}
+              {!savedViewsUnavailable && savedViews.length === 0 && (
+                <p className={styles.savedViewsNote} data-testid="rms-saved-views-empty">{rms["savedViews.empty"]}</p>
+              )}
+              {savedViewsLimit && <p className={styles.savedViewsNote} role="status">{rms["savedViews.limitReached"]}</p>}
+            </section>
+
             <div className={styles.lensHead}>
               <h2>{rms.name[view]}</h2>
               {/* M3 (round-2 review): under a subject filter this lens does not hold
@@ -1348,6 +1593,22 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
                 <button type="button" className={styles.subjectChip} data-testid="rms-subject-chip" onClick={clearSubjectFilter}>
                   {filteredSubjectDisplay ?? ""} · {rms.clearFilter}
                 </button>
+              )}
+              {canSaveView && !namingOpen && (
+                <button type="button" className={styles.subjectChip} data-testid="rms-save-view"
+                  disabled={carrierLocked || savedViewsLimit}
+                  onClick={() => { setNamingOpen(true); setNameDraft(""); }}>
+                  {rms["savedViews.newView"]}
+                </button>
+              )}
+              {namingOpen && (
+                <form className={styles.saveViewForm} onSubmit={(event) => { event.preventDefault(); void saveCurrentView(); }}>
+                  <input aria-label={rms["savedViews.namePlaceholder"]} placeholder={rms["savedViews.namePlaceholder"]}
+                    value={nameDraft} maxLength={80} onChange={(event) => setNameDraft(event.target.value)} />
+                  <button type="submit" className={styles.primaryButton} disabled={carrierLocked || savedViewsLimit || !nameDraft.trim()}>
+                    {rms["savedViews.save"]}
+                  </button>
+                </form>
               )}
               {activeViewDef.requiresContent && (
                 <p className={styles.scopeNote} data-testid="rms-scope">{scopeSentence}</p>
@@ -1411,6 +1672,8 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
                     ? <div className={styles.emptyLens} data-testid="rms-filtered-empty">
                       <p>{rms.filteredEmpty.replace("{subject}", filteredSubjectDisplay ?? "")}</p>
                     </div>
+                    : view === "theses" && builtinEmptyCopy
+                      ? <div className={styles.emptyLens} data-testid="rms-empty"><p>{builtinEmptyCopy}</p></div>
                     : <div className={styles.emptyLens} data-testid={view === "theses" ? "thesis-empty" : "rms-empty"}><p>{rms.empty[view]}</p></div>)
                   : <div className={styles.thesisList}>
                     {(view === "ideas" ? ideaViewRows : view === "reviews" ? reviewViewRows : thesesViewRows).map((row) => (
