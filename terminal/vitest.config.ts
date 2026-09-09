@@ -9,7 +9,12 @@ export default defineConfig({
     // .tsx is included alongside .ts for component tests that render JSX (each such file
     // opts into a DOM with a `// @vitest-environment jsdom` pragma — the suite default
     // stays plain Node, unchanged for every existing .ts test).
-    include: ["lib/__tests__/**/*.test.ts", "lib/__tests__/**/*.test.tsx"],
+    include: [
+      "lib/__tests__/**/*.test.ts",
+      "lib/__tests__/**/*.test.tsx",
+      // B-F08-6: section tests live next to the settings components they mount.
+      "components/settings/__tests__/**/*.test.tsx",
+    ],
   },
   resolve: {
     alias: {

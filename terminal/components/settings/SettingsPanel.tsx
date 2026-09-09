@@ -9,12 +9,13 @@ import type { AcsUser, SettingsSection } from "./SettingsProvider";
 import { SETTINGS_SECTIONS } from "./SettingsProvider";
 import type { AcsPlan, AcsUsage, SectionProps } from "./types";
 import {
-  IconAccount, IconBilling, IconPrefs, IconSharing, IconSignOut, IconSync, IconTerminal, IconUsage, IconX,
+  IconAccount, IconAlertDelivery, IconBilling, IconPrefs, IconSharing, IconSignOut, IconSync, IconTerminal, IconUsage, IconX,
 } from "./icons";
 import SectionAccount from "./SectionAccount";
 import SectionBilling from "./SectionBilling";
 import SectionUsage from "./SectionUsage";
 import SectionPreferences from "./SectionPreferences";
+import SectionAlertDelivery from "./SectionAlertDelivery";
 import SectionTerminal from "./SectionTerminal";
 import SectionSync from "./SectionSync";
 import SectionSharing from "./SectionSharing";
@@ -35,6 +36,7 @@ const NAV: { id: SettingsSection; icon: React.ReactNode; key: string }[] = [
   { id: "billing", icon: <IconBilling />, key: "acsBilling" },
   { id: "usage", icon: <IconUsage />, key: "acsUsage" },
   { id: "prefs", icon: <IconPrefs />, key: "acsPrefs" },
+  { id: "alertDelivery", icon: <IconAlertDelivery />, key: "acsAlertDelivery" },
   { id: "terminal", icon: <IconTerminal />, key: "acsTerminal" },
   { id: "sync", icon: <IconSync />, key: "acsSyncT" },
   { id: "sharing", icon: <IconSharing />, key: "acsSharing" },
@@ -45,6 +47,7 @@ const HEAD_KEY: Record<SettingsSection, string> = {
   billing: "acsBilling",
   usage: "acsUsage",
   prefs: "acsPrefs",
+  alertDelivery: "acsAlertDelivery",
   terminal: "acsTerminal",
   sync: "acsSyncT",
   sharing: "acsSharing",
@@ -278,6 +281,7 @@ export default function SettingsPanel(props: SettingsPanelProps) {
               <SectionUsage {...shared} plan={plan} usage={usage} usageErr={usageErr} usageStale={usageStale} />
             )}
             {section === "prefs" && <SectionPreferences {...shared} />}
+            {section === "alertDelivery" && <SectionAlertDelivery {...shared} />}
             {section === "terminal" && <SectionTerminal {...shared} />}
             {section === "sync" && <SectionSync {...shared} />}
             {section === "sharing" && <SectionSharing {...shared} />}
