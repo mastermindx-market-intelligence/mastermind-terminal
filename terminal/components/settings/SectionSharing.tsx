@@ -184,17 +184,43 @@ export default function SectionSharing({ t, lang, onClose }: SectionProps) {
     }
   }
 
-  function onToggleReceived(row: ReceivedRow) {
+  async function onToggleReceived(row: ReceivedRow) {
     if (openId === row.id) {
       setOpenId(null);
       return;
     }
-    if (!row.symbols || row.symbols.length === 0) {
-      setGoneIds((ids) => (ids.includes(row.id) ? ids : [...ids, row.id]));
-      return;
+    try {
+      const res = await fetch("/api/watchlist", { headers: { Accept: "application/json" } });
+      if (res.status === 404) {
+        setGoneIds((ids) => (ids.includes(row.id) ? ids : [...ids, row.id]));
+        setOpenId(null);
+        return;
+      }
+      if (res.status === 503) {
+        setUnavailable(true);
+        setMsg({ kind: "err", text: t("shrUnavailable") });
+        return;
+      }
+      if (!res.ok) {
+        setMsg({ kind: "err", text: t("shrReadFailed") });
+        return;
+      }
+      const body = await res.json().catch(() => ({})) as { sharedWithMe?: ReceivedRow[] };
+      const fresh = Array.isArray(body.sharedWithMe)
+        ? body.sharedWithMe.find((item) => item.id === row.id)
+        : undefined;
+      if (!fresh) {
+        setGoneIds((ids) => (ids.includes(row.id) ? ids : [...ids, row.id]));
+        setOpenId(null);
+        return;
+      }
+      const symbols = Array.isArray(fresh.symbols) ? fresh.symbols : [];
+      setReceived((rows) => rows.map((item) => (item.id === row.id ? { ...item, ...fresh, symbols } : item)));
+      setOpenId(row.id);
+      setGoneIds((ids) => ids.filter((id) => id !== row.id));
+    } catch {
+      setMsg({ kind: "err", text: t("shrReadFailed") });
     }
-    setOpenId(row.id);
-    setGoneIds((ids) => ids.filter((id) => id !== row.id));
   }
 
   return (
@@ -307,7 +333,7 @@ export default function SectionSharing({ t, lang, onClose }: SectionProps) {
                   <button
                     type="button"
                     className="acs-btn ghost"
-                    onClick={() => onToggleReceived(row)}
+                    onClick={() => void onToggleReceived(row)}
                     aria-label={openId === row.id ? t("shrCloseList") : t("shrOpenList")}
                     aria-expanded={openId === row.id}
                   >

@@ -164,5 +164,6 @@ commit;
 --   select indexname from pg_indexes where schemaname='public' and tablename='resource_grants';
 --   select tgname from pg_trigger where tgrelid='public.resource_grants'::regclass and not tgisinternal;
 --     -- expected: resource_grants_revoke_is_terminal
--- down: see the `-- Rollback:` header line above. WARNING: dropping the table destroys the record
---       of every share ever made. Prefer revoking each grant.
+
+-- down: drop trigger if exists resource_grants_revoke_is_terminal on public.resource_grants; drop function if exists public.resource_grants_guard(); drop policy if exists watchlists_granted_read on public.watchlists; drop policy if exists wls_granted_read on public.watchlist_symbols; drop function if exists public.has_active_grant(text, uuid); drop function if exists public.owns_watchlist(uuid); drop table if exists public.resource_grants;
+--       -- WARNING: dropping the table destroys the record of every share ever made. Prefer revoking each grant.
