@@ -230,9 +230,9 @@ async function captureLevelsLearn(page, width, lang, outPath) {
   await gotoReady(page, "/learn", lang);
   const hero = page.locator("h1").first();
   await hero.waitFor({ state: "visible", timeout: 20_000 });
-  const needle = lang === "zh" ? "Gamma 天气图" : "The gamma weather map";
+  const needle = lang === "zh" ? "伽马天气图" : "The gamma weather map";
   const text = ((await hero.textContent()) || "").trim();
-  if (!text.includes(needle.replace("The ", "").slice(0, 12)) && !text.includes(needle)) {
+  if (!text.includes(needle)) {
     throw new Error(`${outPath}: expected learn hero ${needle}, got ${text}`);
   }
   const main = page.locator("main").first();
