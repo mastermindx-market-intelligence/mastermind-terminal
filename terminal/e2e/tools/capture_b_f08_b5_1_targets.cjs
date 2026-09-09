@@ -32,11 +32,17 @@ const VIEWPORTS = {
   1440: { width: 1440, height: 900 },
   390: { width: 390, height: 844 },
 };
+// Round 2 adds three states for the seat's rulings: the BLOCKER case (R1) where the open book is
+// empty and only an orphaned target remains, the unweighable case (R2 / R6 c), and the cleared
+// flash (R6 d). The five original states are recaptured because their copy changed.
 const STATES = [
   "empty",
   "populated-within-band",
   "populated-outside-band",
   "orphaned-target-disclosed",
+  "orphaned-empty-book",
+  "unweighable",
+  "cleared",
   "unavailable",
 ];
 
@@ -216,6 +222,34 @@ async function prepareState(page, state) {
     if (!close.ok()) throw new Error(`close NVDA failed: ${close.status()}`);
     return;
   }
+  if (state === "orphaned-empty-book") {
+    // R1 (BLOCKER): the LAST holding closed. Zero open positions, one target still saved.
+    const rows = [{ ticker: "NVDA", shares: "100", entryPrice: "200" }];
+    await seed(page, rows);
+    await setTarget(page, "NVDA", 80, 5);
+    const close = await page.request.post(`${BASE}/api/portfolio`, {
+      data: { action: "close", id: rows[0].id },
+    });
+    if (!close.ok()) throw new Error(`close NVDA failed: ${close.status()}`);
+    return;
+  }
+  if (state === "unweighable") {
+    // R2 / R6 (c): a zero-cost holding WITH a target (the unweighable status sentence) and a
+    // zero-cost holding WITHOUT one (the unweighable hint), beside a normal weighable row.
+    await seed(page, [
+      { ticker: "NVDA", shares: "100", entryPrice: "200" },
+      { ticker: "AAPL", shares: "0", entryPrice: "200" },
+      { ticker: "MSFT", shares: "0", entryPrice: "100" },
+    ]);
+    await setTarget(page, "NVDA", 80, 5);
+    await setTarget(page, "AAPL", 10, 5);
+    return;
+  }
+  if (state === "cleared") {
+    await seed(page, [{ ticker: "NVDA", shares: "100", entryPrice: "200" }]);
+    await setTarget(page, "NVDA", 80, 5);
+    return;
+  }
   if (state === "unavailable") {
     await seed(page, [{ ticker: "NVDA", shares: "100", entryPrice: "200" }]);
     await page.route("**/api/portfolio/targets", (route) => {
@@ -232,6 +266,16 @@ async function captureState(page, width, lang, state, outPath) {
   await page.goto(`${BASE}/portfolio`, { waitUntil: "domcontentloaded", timeout: 90_000 });
   await ensureLang(page, lang);
   await page.waitForTimeout(600);
+  if (state === "cleared") {
+    // R6 (d): the flash the user actually sees after clearing a target — it must read "Target
+    // cleared." / "已清除目标。", never the save confirmation.
+    const button = page.getByTestId("portfolio-targets")
+      .getByRole("button", { name: lang === "zh" ? "清除目标" : "Clear target" });
+    await button.first().waitFor({ state: "visible", timeout: 20_000 });
+    await button.first().click();
+    await page.getByTestId("targets-untargeted").waitFor({ state: "visible", timeout: 20_000 });
+    await page.waitForTimeout(400);
+  }
   const testId = state === "unavailable" ? "portfolio-targets-unavailable" : "portfolio-targets";
   const loc = page.getByTestId(testId);
   await loc.waitFor({ state: "visible", timeout: 20_000 });
