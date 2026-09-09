@@ -21,7 +21,8 @@ async function resolveDb(): Promise<{ db: AccuracyDb | "fixture"; userId: string
 
 const jsonError = (error: string, status: number) => NextResponse.json({ error }, { status });
 
-export async function GET() {
+export async function GET(request: Request) {
+  void request;
   const session = await resolveDb();
   if (!session) return jsonError("unauthenticated", 401);
 

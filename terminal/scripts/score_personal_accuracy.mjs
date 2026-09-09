@@ -5,9 +5,8 @@
  * Never imported by a route. Never invoked from CI. Never runs on the render path.
  *
  * Canonical resolver map: terminal/lib/personalAccuracyStore.ts RESOLVER_REGISTRY
- * (v1: declared and empty). This file inlines the same empty map so it can run as
- * Node 20 ESM without compiling TypeScript. A registry miss writes outcome null —
- * it never guesses.
+ * (v1: declared and empty). This worker reads that TypeScript file — it does not
+ * freeze its own empty copy. A registry miss writes outcome null — it never guesses.
  *
  * From terminal/:
  *   node scripts/score_personal_accuracy.mjs
@@ -15,11 +14,78 @@
  * Reads NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY from the environment.
  * No key, ref, or token value is printed, logged, or committed.
  */
+import { readFileSync, mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { createClient } from "@supabase/supabase-js";
 
-const RESOLVER_REGISTRY = Object.freeze({});
+const HERE = dirname(fileURLToPath(import.meta.url));
+const STORE_PATH = join(HERE, "../lib/personalAccuracyStore.ts");
 const RESOLVER_NAME = "personalAccuracyStore.RESOLVER_REGISTRY";
 const UNDETERMINED_NOTE = "the data this call named was not available";
+
+function extractFrozenRegistryLiteral(src) {
+  const marker = "export const RESOLVER_REGISTRY";
+  const at = src.indexOf(marker);
+  if (at < 0) throw new Error("personalAccuracyStore.ts is missing RESOLVER_REGISTRY");
+  const freezeAt = src.indexOf("Object.freeze(", at);
+  if (freezeAt < 0 || freezeAt > at + 500) {
+    throw new Error("RESOLVER_REGISTRY is not an Object.freeze(...) assignment");
+  }
+  const open = src.indexOf("{", freezeAt);
+  if (open < 0) throw new Error("RESOLVER_REGISTRY freeze is missing an object literal");
+  let depth = 0;
+  for (let i = open; i < src.length; i += 1) {
+    const ch = src[i];
+    if (ch === "{") depth += 1;
+    else if (ch === "}") {
+      depth -= 1;
+      if (depth === 0) return src.slice(open, i + 1);
+    }
+  }
+  throw new Error("RESOLVER_REGISTRY object literal is unclosed");
+}
+
+export async function loadResolverRegistry() {
+  const src = readFileSync(STORE_PATH, "utf8");
+  const literal = extractFrozenRegistryLiteral(src);
+  const compact = literal.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "").replace(/\s+/g, "");
+  if (compact === "{}") return Object.freeze({});
+
+  // Non-empty: B-F13-7 filled the TypeScript map. Bundle that file so this
+  // worker invokes the same functions instead of guessing null.
+  let esbuild;
+  try {
+    esbuild = await import("esbuild");
+  } catch {
+    console.error("score_personal_accuracy: resolver registry is non-empty; esbuild is required to load personalAccuracyStore.ts");
+    process.exit(2);
+  }
+  const outdir = mkdtempSync(join(tmpdir(), "acc-reg-"));
+  const outfile = join(outdir, "registry.mjs");
+  try {
+    esbuild.buildSync({
+      entryPoints: [STORE_PATH],
+      outfile,
+      bundle: true,
+      format: "esm",
+      platform: "node",
+      packages: "external",
+      alias: {
+        "@/lib/personalAccuracy": join(HERE, "../lib/personalAccuracy.ts"),
+      },
+    });
+    const mod = await import(pathToFileURL(outfile).href);
+    if (!mod || typeof mod.RESOLVER_REGISTRY !== "object" || mod.RESOLVER_REGISTRY === null) {
+      console.error("score_personal_accuracy: personalAccuracyStore.ts did not export RESOLVER_REGISTRY");
+      process.exit(2);
+    }
+    return mod.RESOLVER_REGISTRY;
+  } finally {
+    rmSync(outdir, { recursive: true, force: true });
+  }
+}
 
 function createServiceClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -50,6 +116,7 @@ function thresholdNumber(value) {
 }
 
 async function main() {
+  const RESOLVER_REGISTRY = await loadResolverRegistry();
   const client = createServiceClient();
   if (!client) {
     console.error("score_personal_accuracy: service client unavailable");
@@ -128,7 +195,19 @@ async function main() {
   console.log(`score_personal_accuracy: settled ${settled}, undetermined ${undetermined}, skipped ${skipped}`);
 }
 
-main().catch(() => {
-  console.error("score_personal_accuracy: failed");
-  process.exit(1);
-});
+function isDirectRun() {
+  const entry = process.argv[1];
+  if (!entry) return false;
+  try {
+    return import.meta.url === pathToFileURL(resolve(entry)).href;
+  } catch {
+    return false;
+  }
+}
+
+if (isDirectRun()) {
+  main().catch(() => {
+    console.error("score_personal_accuracy: failed");
+    process.exit(1);
+  });
+}

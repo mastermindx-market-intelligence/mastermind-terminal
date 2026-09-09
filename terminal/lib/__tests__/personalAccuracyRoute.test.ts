@@ -128,4 +128,8 @@ describe("GET /api/accuracy", () => {
     expect(route).not.toHaveProperty("PATCH");
     expect(route).not.toHaveProperty("DELETE");
   });
+
+  it("GET accepts a Request the way theses/route.ts does", () => {
+    expect(route.GET.length).toBe(1);
+  });
 });

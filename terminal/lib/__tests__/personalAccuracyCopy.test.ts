@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { LEX } from "@/lib/i18n";
 
 const GLANCE_KEYS = [
@@ -116,5 +118,38 @@ describe("B-F13-5 glance copy", () => {
       expect(en, key).not.toMatch(/\d+\.\d+/);
       expect(zh, key).not.toMatch(/\d+\.\d+/);
     }
+  });
+});
+
+describe("B-F13-5 authored extras stay sentences and stay out of the glance body", () => {
+  it("accDetHitsOf is a sentence in both languages, not a slash fraction", () => {
+    const [en, zh] = LEX.accDetHitsOf;
+    expect(en).toContain("{hits}");
+    expect(en).toContain("{n}");
+    expect(zh).toContain("{hits}");
+    expect(zh).toContain("{n}");
+    expect(en.trim()).not.toMatch(/^\{hits\}\s+of\s+\{n\}$/);
+    expect(zh.trim()).not.toMatch(/^\{hits\}\s*\/\s*\{n\}$/);
+    expect(en).toMatch(/[.!?]$/);
+    expect(zh).toMatch(/[。！？]$/);
+    expect(en.replace(/\{hits\}|\{n\}/g, "").replace(/[\s.,]/g, "").length).toBeGreaterThan(6);
+    expect(zh.replace(/\{hits\}|\{n\}/g, "").replace(/[\s，。、]/g, "").length).toBeGreaterThan(4);
+  });
+
+  it("accDetLoadErr is only rendered behind the detail control", () => {
+    const src = readFileSync(
+      join(__dirname, "../../components/settings/SectionAccuracy.tsx"),
+      "utf8",
+    );
+    const loadAt = src.indexOf('t("accDetLoadErr")');
+    const detailAt = src.indexOf("acs-acc-detail");
+    const toggleAt = src.indexOf("accDetailOpen");
+    expect(loadAt, "accDetLoadErr must be rendered").toBeGreaterThan(0);
+    expect(detailAt, "detail pane must exist").toBeGreaterThan(0);
+    expect(toggleAt, "detail toggle must exist").toBeGreaterThan(0);
+    expect(loadAt).toBeGreaterThan(detailAt);
+    expect(loadAt).toBeGreaterThan(toggleAt);
+    const glance = src.slice(src.indexOf("acs-body"), detailAt);
+    expect(glance).not.toContain('t("accDetLoadErr")');
   });
 });

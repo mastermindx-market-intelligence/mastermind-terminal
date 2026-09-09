@@ -2091,7 +2091,7 @@ export const LEX: Record<string, [string, string]> = {
   accDetWhatHappened: ["What happened", "实际结果"],
   accDetCheckedOn: ["Checked on", "核对日期"],
   accDetHowChecked: ["How it was checked", "核对方式"],
-  accDetHitsOf: ["{hits} of {n}", "{hits} / {n}"],
+  accDetHitsOf: ["{hits} of {n} checked calls landed.", "已核对的 {n} 条判断中，有 {hits} 条落在正确一边。"],
   accDetStatusOpen: ["Not yet due", "尚未到期"],
   accDetStatusMatured: ["Due, waiting to be checked", "已到期，等待核对"],
   accDetStatusResolved: ["Checked", "已核对"],

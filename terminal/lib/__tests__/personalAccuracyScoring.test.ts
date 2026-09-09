@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import {
   scorePersonalAccuracy,
   type UserClaim,
@@ -279,5 +281,16 @@ describe("scorePersonalAccuracy", () => {
     expect(readout.episodeCount).toBe(1);
     expect(readout.resolvedHits).toBe(0);
     expect(readout.claims.find((row) => row.claimId === "0000000000000001")).toBeTruthy();
+  });
+});
+
+describe("score_personal_accuracy worker registry source", () => {
+  it("reads RESOLVER_REGISTRY from personalAccuracyStore.ts instead of freezing its own empty map", () => {
+    const src = readFileSync(
+      join(__dirname, "../../scripts/score_personal_accuracy.mjs"),
+      "utf8",
+    );
+    expect(src).toMatch(/personalAccuracyStore\.ts/);
+    expect(src).not.toMatch(/const RESOLVER_REGISTRY = Object\.freeze\(\{\}\)/);
   });
 });

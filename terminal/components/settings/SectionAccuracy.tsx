@@ -74,9 +74,7 @@ export default function SectionAccuracy({ t, lang, onClose, readout, loadErr }: 
     <>
       <SectionHead title={t("accTitle")} sub={t("accSub")} closeLabel={t("acsClose")} onClose={onClose} />
       <div className="acs-body">
-        {loadErr ? (
-          <p className="acs-acc-line">{t("accDetLoadErr")}</p>
-        ) : empty ? (
+        {loadErr ? null : empty ? (
           <p className="acs-acc-empty">{t("accEmpty")}</p>
         ) : (
           <>
@@ -114,8 +112,13 @@ export default function SectionAccuracy({ t, lang, onClose, readout, loadErr }: 
           {open ? t("accDetailClose") : t("accDetailOpen")}
         </button>
 
-        {open && readout ? (
+        {open ? (
           <div className="acs-acc-detail">
+            {loadErr ? (
+              <p className="acs-acc-line">{t("accDetLoadErr")}</p>
+            ) : null}
+            {readout ? (
+              <>
             <p className="acs-acc-note">{t("accDetAttributionNull")}</p>
             <dl className="acs-acc-stats">
               <div>
@@ -167,6 +170,8 @@ export default function SectionAccuracy({ t, lang, onClose, readout, loadErr }: 
                   );
                 })}
               </ul>
+            ) : null}
+              </>
             ) : null}
           </div>
         ) : null}
