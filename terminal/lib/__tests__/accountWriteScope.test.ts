@@ -183,6 +183,7 @@ describe("§2.5.3 every existing pump write stays whole", () => {
     updates.length = 0;
   }
 
+  // Scope the pre-fence object the test itself sent, not updates[0] (already fenced).
   function expectUnscoped(sent: Record<string, unknown>) {
     const scoped = scopeAccountWrite(sent);
     expect(scoped.dropped).toEqual([]);
@@ -200,7 +201,7 @@ describe("§2.5.3 every existing pump write stays whole", () => {
     await settle();
     const expected = serializeMarketPrefs(next);
     expect(updates[0]).toEqual(expected);
-    expectUnscoped(updates[0]);
+    expectUnscoped(expected);
   });
 
   it("persistMarkets with follows still sends market_focus and markets", async () => {
@@ -215,42 +216,46 @@ describe("§2.5.3 every existing pump write stays whole", () => {
     await settle();
     const expected = { market_focus: next.followed, ...serializeMarketPrefs(next) };
     expect(updates[0]).toEqual(expected);
-    expectUnscoped(updates[0]);
+    expectUnscoped(expected);
   });
 
   it("persistStartTf still sends the whole terminal blob", async () => {
     await loadEmptyAccount();
     persistStartTf("W");
     await settle();
-    expect(updates[0]).toEqual({ terminal: { start_tf: "W", updown: "west" } });
-    expectUnscoped(updates[0]);
+    const expected = { terminal: { start_tf: "W", updown: "west" } };
+    expect(updates[0]).toEqual(expected);
+    expectUnscoped(expected);
   });
 
   it("persistUpDown still sends the whole terminal blob", async () => {
     await loadEmptyAccount();
     persistUpDown("east");
     await settle();
-    expect(updates[0]).toEqual({ terminal: { start_tf: "D", updown: "east" } });
-    expectUnscoped(updates[0]);
+    const expected = { terminal: { start_tf: "D", updown: "east" } };
+    expect(updates[0]).toEqual(expected);
+    expectUnscoped(expected);
   });
 
   it("persistMetaPrefs still dual-writes the atomics and the nested prefs blob", async () => {
     await loadEmptyAccount();
     persistMetaPrefs({ lang: "zh" });
     await settle();
-    expect(updates[0]).toEqual({
+    const expected = {
       lang: "zh",
       prefs: { theme: "dark", themeAuto: "0", lang: "zh" },
-    });
-    expectUnscoped(updates[0]);
+    };
+    expect(updates[0]).toEqual(expected);
+    expectUnscoped(expected);
   });
 
   it("persistTradeTypes still sends trade_types", async () => {
     await loadEmptyAccount();
     persistTradeTypes(["stocks", "options"]);
     await settle();
-    expect(updates[0]).toEqual({ trade_types: ["stocks", "options"] });
-    expectUnscoped(updates[0]);
+    const expected = { trade_types: ["stocks", "options"] };
+    expect(updates[0]).toEqual(expected);
+    expectUnscoped(expected);
   });
 });
 
@@ -278,8 +283,30 @@ describe("§2.5.5 display_name survives, and an empty scoped patch is never sent
       brain_depth: "concise",
     });
     expect(send).not.toHaveBeenCalled();
-    expect(result).toBeUndefined();
+    expect(result).toEqual({
+      error: { name: "ScopedToEmpty", message: "no owned key in patch" },
+      dropped: ["alert_email_optin", "tz", "brain_depth"],
+    });
     expect(warn).toHaveBeenCalled();
+    warn.mockRestore();
+  });
+
+  it.each([
+    { name: "null", patch: null, dropped: ["null"] },
+    { name: "undefined", patch: undefined, dropped: ["undefined"] },
+    { name: "array", patch: ["alert_email_optin"], dropped: ["array"] },
+  ])("a $name patch warns like an all-foreign patch and is not sent", async ({ patch, dropped }) => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const send = vi.fn(async () => ({ error: null }));
+    const result = await sendScopedAccountWrite(send, patch as never);
+    expect(send).not.toHaveBeenCalled();
+    expect(result).toEqual({
+      error: { name: "ScopedToEmpty", message: "no owned key in patch" },
+      dropped,
+    });
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn.mock.calls[0][0]).toBe("[accountPrefs] dropped keys the Terminal does not own");
+    expect(warn.mock.calls[0][1]).toEqual(dropped);
     warn.mockRestore();
   });
 
@@ -298,13 +325,16 @@ describe("§2.5.5 display_name survives, and an empty scoped patch is never sent
 
 describe("every user_metadata write site is wrapped by the fence", () => {
   const TERMINAL_ROOT = join(__dirname, "..", "..");
+  // Applied at the terminal root only. Nested folders that happen to share a skip
+  // name are still scanned. The exact four-file list below is kept as ruled — a
+  // new auth.updateUser data site must be reviewed; do not silently extend it.
   const SKIP_DIRS = new Set([
     "node_modules", ".next", "__tests__", "proof", "e2e", "docs", "public", "test-fixtures",
   ]);
 
   function walk(dir: string, out: string[] = []): string[] {
     for (const entry of readdirSync(dir)) {
-      if (SKIP_DIRS.has(entry)) continue;
+      if (dir === TERMINAL_ROOT && SKIP_DIRS.has(entry)) continue;
       const full = join(dir, entry);
       const stat = statSync(full);
       if (stat.isDirectory()) walk(full, out);
@@ -317,7 +347,7 @@ describe("every user_metadata write site is wrapped by the fence", () => {
     return src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
   }
 
-  it("each auth.updateUser({ data }) call sits behind sendScopedAccountWrite or scopeAccountWrite", () => {
+  it("each updateUser data write sits behind sendScopedAccountWrite or scopeAccountWrite", () => {
     const files = walk(TERMINAL_ROOT);
     const hits: { file: string; wrapped: boolean }[] = [];
     const dataWrite = /auth\.updateUser\(\{\s*data/;
@@ -343,5 +373,36 @@ describe("every user_metadata write site is wrapped by the fence", () => {
       "lib/useMarketPrefs.ts",
     ]);
     for (const hit of hits) expect(hit.wrapped, hit.file).toBe(true);
+  });
+
+  it("sign-up metadata literal keys stay inside TERMINAL_WRITE_KEYS", () => {
+    // Enumerates auth.signUp calls whose options.data writes metadata and asserts
+    // each site's literal keys are within TERMINAL_WRITE_KEYS. Today that is
+    // StepAccount.tsx:64 (first_name, last_name). A new metadata-writing sign-up
+    // site must be reviewed. LoginFormLegacy signs up without options.data.
+    const files = walk(TERMINAL_ROOT);
+    const sites: { file: string; keys: string[] }[] = [];
+    const signUp = /auth\.signUp\(/;
+    for (const file of files) {
+      const stripped = stripComments(readFileSync(file, "utf8"));
+      let from = 0;
+      while (from < stripped.length) {
+        const idx = stripped.slice(from).search(signUp);
+        if (idx < 0) break;
+        const abs = from + idx;
+        const window = stripped.slice(abs, abs + 500);
+        const dataObj = window.match(/options:\s*\{\s*data:\s*\{([^}]*)\}/);
+        if (dataObj) {
+          const keys = [...dataObj[1].matchAll(/([A-Za-z_][A-Za-z0-9_]*)\s*:/g)].map((m) => m[1]);
+          sites.push({ file: relative(TERMINAL_ROOT, file), keys });
+        }
+        from = abs + 1;
+      }
+    }
+    expect(sites.map((s) => s.file).sort()).toEqual([
+      "components/onboarding/StepAccount.tsx",
+    ]);
+    expect(sites[0].keys.sort()).toEqual(["first_name", "last_name"]);
+    for (const key of sites[0].keys) expect([...TERMINAL_WRITE_KEYS]).toContain(key);
   });
 });

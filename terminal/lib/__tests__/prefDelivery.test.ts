@@ -16,6 +16,7 @@
  */
 import { describe, it, expect, vi } from "vitest";
 import { PreferencePump, type SendResult } from "@/lib/prefDelivery";
+import { sendScopedAccountWrite } from "@/lib/accountPrefs";
 
 /** A fake authority whose every request is released by hand. */
 function authority() {
@@ -241,5 +242,28 @@ describe("dispose() is the owner boundary", () => {
     pump.dispose();
     pump.queue({ market_focus: ["us"] });
     expect(a.sent).toEqual([]);
+  });
+});
+
+describe("B-F08-7b — a foreign-only patch is not an acknowledgement", () => {
+  it("does not ack or publish saved when the fence scopes to empty", async () => {
+    const a = authority();
+    const c = clock();
+    const seen: string[] = [];
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const pump = new PreferencePump({
+      send: (data) => sendScopedAccountWrite(a.send, data),
+      onStatus: (s) => seen.push(s.phase),
+      setTimer: c.setTimer,
+      clearTimer: c.clearTimer,
+    });
+    expect(pump.getStatus().acked).toBe(0);
+    pump.queue({ alert_email_optin: true, tz: "UTC" });
+    await tick();
+    expect(a.sent).toEqual([]);
+    expect(pump.getStatus().acked).toBe(0);
+    expect(pump.getStatus().phase).not.toBe("saved");
+    expect(seen).not.toContain("saved");
+    warn.mockRestore();
   });
 });

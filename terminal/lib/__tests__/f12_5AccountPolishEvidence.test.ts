@@ -9,6 +9,12 @@
 // as an informational field. Changing a layout file without a recapture
 // turns this file RED.
 //
+// A hash refresh without recapture is allowed only with this comment present
+// beside the refreshed sha256: `# pixels re-verified unchanged at <sha>; no
+// recapture — seat ruling B-F08-7b R3 (no JSX / class / string change)`. The
+// test asserts that comment exists whenever capturedAtHead predates the hash
+// (a static check on the file text).
+//
 // Review MINOR: overview rows reported confirmClass/confirmBg of a control
 // whose .acs-form is display:none until .acs-row.editing. Overview
 // measurements must not describe that hidden confirm.
@@ -54,7 +60,7 @@ function layoutFileMap(yml: string): Record<string, string> {
   const map: Record<string, string> = {};
   for (const line of yml.slice(at + marker.length).split("\n")) {
     if (!line.startsWith("  ")) break;
-    const m = line.match(/^  (\S+): "?([0-9a-f]{64})"?$/);
+    const m = line.match(/^  (\S+): "?([0-9a-f]{64})"?\s*(#.*)?$/);
     if (!m) throw new Error(`layoutFiles row is not path: sha256: ${line}`);
     map[m[1]] = m[2];
   }
@@ -86,6 +92,16 @@ function measurement(yml: string, file: string): Record<string, string> {
 describe("B-F12-5 evidence lock is the sha256 of the layout sources", () => {
   it("capturedAtHead remains recorded as an informational field", () => {
     expect(capturedAtHead(evidenceText())).toMatch(/^[0-9a-f]{40}$/);
+  });
+
+  it("a hash refresh without recapture carries the R3 comment beside the sha256", () => {
+    const yml = evidenceText();
+    const captured = capturedAtHead(yml);
+    const line = yml.split("\n").find((l) => l.includes("terminal/components/settings/SectionAccount.tsx:"));
+    expect(line, "SectionAccount.tsx layoutFiles row is missing").toBeTruthy();
+    const comment = line!.match(/# pixels re-verified unchanged at ([0-9a-f]{40}); no recapture — seat ruling B-F08-7b R3 \(no JSX \/ class \/ string change\)/);
+    expect(comment, "hash refresh without recapture is allowed only with the R3 comment present").toBeTruthy();
+    expect(comment![1], "capturedAtHead predates the hash").not.toBe(captured);
   });
 
   it("layout file sha256 matches EVIDENCE.yml (RED when a layout file changes without a recapture)", () => {

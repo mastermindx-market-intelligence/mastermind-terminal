@@ -239,36 +239,57 @@ const TERMINAL_WRITE_KEY_SET: ReadonlySet<string> = new Set(TERMINAL_WRITE_KEYS)
 /**
  * Filter a user_metadata patch to TERMINAL_WRITE_KEYS. Pure: no React, no Supabase, no I/O.
  * `dropped` names every key that was removed. Unknown keys the Terminal never owned are
- * never returned in `data`.
+ * never returned in `data`. A null, undefined, or array patch is not a key map: `data`
+ * is empty and `dropped` names the shape so the send helper can take the not-sent branch.
  */
-export function scopeAccountWrite(patch: Record<string, unknown>): {
+export function scopeAccountWrite(patch: unknown): {
   data: Record<string, unknown>;
   dropped: string[];
 } {
   const data: Record<string, unknown> = {};
   const dropped: string[] = [];
-  if (!patch || typeof patch !== "object" || Array.isArray(patch)) {
-    return { data, dropped };
-  }
-  for (const key of Object.keys(patch)) {
-    if (TERMINAL_WRITE_KEY_SET.has(key)) data[key] = patch[key];
+  if (patch === null) return { data, dropped: ["null"] };
+  if (patch === undefined) return { data, dropped: ["undefined"] };
+  if (Array.isArray(patch)) return { data, dropped: ["array"] };
+  if (!patch || typeof patch !== "object") return { data, dropped: [typeof patch] };
+  for (const key of Object.keys(patch as Record<string, unknown>)) {
+    if (TERMINAL_WRITE_KEY_SET.has(key)) data[key] = (patch as Record<string, unknown>)[key];
     else dropped.push(key);
   }
   return { data, dropped };
 }
 
+/** The not-sent outcome of `sendScopedAccountWrite`. Same `{ error }` shape callers already treat as failure. */
+export type ScopedToEmptyResult = {
+  error: { name: "ScopedToEmpty"; message: "no owned key in patch" };
+  dropped: string[];
+};
+
 /**
  * Apply the write fence, warn in development about anything dropped, and call `send` only
- * when at least one owned key remains. A patch that scopes to empty is not sent at all.
+ * when at least one owned key remains.
+ *
+ * Three outcomes:
+ *   - sent — every key is owned; `send` is called with the patch.
+ *   - scoped-and-sent — some keys are dropped; `send` is called with the owned remainder.
+ *   - not sent — no owned key remains (all-foreign, empty, or not a key map). Returns
+ *     `{ error: { name: "ScopedToEmpty", message: "no owned key in patch" }, dropped }`
+ *     and does not call `send`. Callers already treat a truthy `{ error }` as failure, so
+ *     the outbox keeps its record and the delivery layer does not ack or publish "saved".
  */
 export async function sendScopedAccountWrite<R extends { error?: unknown } | void>(
   send: (data: Record<string, unknown>) => Promise<R>,
-  patch: Record<string, unknown>,
-): Promise<R | void> {
+  patch: unknown,
+): Promise<R | ScopedToEmptyResult> {
   const { data, dropped } = scopeAccountWrite(patch);
   if (dropped.length && process.env.NODE_ENV !== "production") {
     console.warn("[accountPrefs] dropped keys the Terminal does not own", dropped);
   }
-  if (Object.keys(data).length === 0) return;
+  if (Object.keys(data).length === 0) {
+    return {
+      error: { name: "ScopedToEmpty", message: "no owned key in patch" },
+      dropped,
+    };
+  }
   return send(data);
 }

@@ -21,6 +21,7 @@ import {
   readPendingPrefs, writePendingPrefs, clearPendingPrefs, deliverPendingPrefs,
   MAX_DELIVERY_ATTEMPTS,
 } from "@/lib/onboardingPrefsOutbox";
+import { sendScopedAccountWrite } from "@/lib/accountPrefs";
 
 const PREFS: PendingPrefs = {
   first_name: "Ada",
@@ -191,5 +192,19 @@ describe("D5 — read tolerance", () => {
     expect(() => writePendingPrefs(PREFS)).not.toThrow();
     expect(readPendingPrefs()).toBeNull();
     expect(() => clearPendingPrefs()).not.toThrow();
+  });
+});
+
+describe("B-F08-7b — a foreign-only patch is not an acknowledgement", () => {
+  it("the outbox keeps the record when the fence scopes to empty", async () => {
+    const foreign = { alert_email_optin: true, tz: "UTC" };
+    localStorage.setItem(LS_PENDING_PREFS, JSON.stringify({ prefs: foreign, attempts: 0 }));
+    const send = vi.fn(async () => ({ error: null }));
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const outcome = await deliverPendingPrefs((data) => sendScopedAccountWrite(send, data));
+    expect(send).not.toHaveBeenCalled();
+    expect(outcome.status).toBe("failed");
+    expect(readPendingPrefs()?.prefs).toEqual(foreign);
+    warn.mockRestore();
   });
 });
