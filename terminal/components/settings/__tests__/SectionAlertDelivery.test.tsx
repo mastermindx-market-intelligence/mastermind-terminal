@@ -285,6 +285,22 @@ describe("optimistic toggle → 502/503/throw rollback + generic copy, both lang
     expect(el.textContent).toContain(SAVE_FAIL_EN);
   });
 
+  it("503 EN", async () => {
+    getImpl = async () => jsonRes(200, {
+      ok: true,
+      prefs: { alert_email_optin: false },
+      unset: ["tz"],
+      categories_available: ["holdings_material_change", "thesis_window"],
+    });
+    postImpl = async () => jsonRes(503, { detail: "could not save preferences, please try again" });
+    const el = await mount(accountProps("en"));
+    const onBtn = el.querySelector<HTMLButtonElement>('button[data-alert-field="optin-on"]')!;
+    await act(async () => { onBtn.click(); });
+    await flush();
+    expect(onBtn.getAttribute("aria-pressed")).toBe("false");
+    expect(el.textContent).toContain(SAVE_FAIL_EN);
+  });
+
   it("throw ZH", async () => {
     getImpl = async () => jsonRes(200, {
       ok: true,

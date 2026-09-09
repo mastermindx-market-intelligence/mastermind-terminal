@@ -1902,7 +1902,7 @@ export const LEX: Record<string, [string, string]> = {
   acsPrefs: ["Preferences", "偏好"],
   acsPrefsSub: ["Which markets you follow, and how the dashboard looks.", "你关注哪些市场，以及仪表盘的外观。"],
   acsAlertDelivery: ["Alert delivery", "提醒送达"],
-  acsAlertDeliverySub: ["When and how we email you about your book.", "我们何时、以何种方式把关于你账户的提醒发到邮箱。"],
+  acsAlertDeliverySub: ["When and how we email you about alerts on your account.", "我们何时、以何种方式就账户提醒给你发邮件。"],
   acsAlertEmail: ["Email alerts", "邮件提醒"],
   acsAlertEmailNote: ["When this is on, we email you the alert types you pick below.", "开启后，我们会把你勾选的提醒类型发到邮箱。"],
   acsAlertOn: ["On", "开"],
