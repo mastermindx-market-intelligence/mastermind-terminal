@@ -1,0 +1,38 @@
+# B-F13-6 Claim authoring form — capture evidence
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
+# capturedAtHead: a599425f4ee5ca526f5be0784435cca0ac4bd67a
+# capturedAt: 2026-09-09T15:10:42.419Z
+# capturedAtHead is informational. The lock is layoutFiles.
+layoutFiles:
+  terminal/components/workspaces/ClaimAuthoringForm.tsx: "84eeb03cd793baf3e0be82a2247f57e4d5db667a977a91f8a6b7fe2182350ae9"
+  terminal/components/workspaces/ClaimAuthoringForm.module.css: "a8f3030eef0538dccc9f32f5a2688ecbf5f7b8e9c1601717fa819fae763acdc1"
+  terminal/lib/claimAuthoring.ts: "889c7f1df958db49c5c7a7d122427e030b068a5b8e2d18e13d4df5d7ea3c410e"
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: mobile, width: 390, height: 844 }
+harness:
+  desktop-en-empty.png: { url: "/analysis?view=theses&symbol=NVDA&lang=en", state: empty }
+  desktop-zh-empty.png: { url: "/analysis?view=theses&symbol=NVDA&lang=zh", state: empty }
+  desktop-en-filled.png: { url: "/analysis?view=theses&symbol=NVDA&lang=en", state: filled }
+  desktop-zh-filled.png: { url: "/analysis?view=theses&symbol=NVDA&lang=zh", state: filled }
+  mobile-en-empty.png: { url: "/analysis?view=theses&symbol=NVDA&lang=en", state: empty }
+  mobile-zh-empty.png: { url: "/analysis?view=theses&symbol=NVDA&lang=zh", state: empty }
+  mobile-en-filled.png: { url: "/analysis?view=theses&symbol=NVDA&lang=en", state: filled }
+  mobile-zh-filled.png: { url: "/analysis?view=theses&symbol=NVDA&lang=zh", state: filled }
+capture_flag: TERMINAL_E2E_FIXTURE
+capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.
+command: |
+  cd terminal
+  node e2e/tools/capture_b_f13_6_claim_form.cjs
+files:
+  - desktop-en-empty.png
+  - desktop-zh-empty.png
+  - desktop-en-filled.png
+  - desktop-zh-filled.png
+  - mobile-en-empty.png
+  - mobile-zh-empty.png
+  - mobile-en-filled.png
+  - mobile-zh-filled.png
