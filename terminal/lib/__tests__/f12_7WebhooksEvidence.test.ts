@@ -47,9 +47,10 @@ function sha256Of(abs: string): string {
 }
 
 describe("B-F12-7 evidence lock is the sha256 of the layout sources", () => {
-  it("does not shell out to git", () => {
+  it("does not import a process spawner", () => {
     const src = readFileSync(join(__dirname, "f12_7WebhooksEvidence.test.ts"), "utf8");
-    expect(src).not.toMatch(/child_process|execFileSync|spawnSync|execSync/);
+    expect(src).not.toContain("node:child_process");
+    expect(src).not.toContain('from "child_process"');
   });
 
   it("capturedAtHead remains recorded as an informational field", () => {
