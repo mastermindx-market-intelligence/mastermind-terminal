@@ -59,6 +59,16 @@ describe("POST /api/teams/[id]/transfer-ownership", () => {
     expect(H.rpcCalls).toEqual([]);
   });
 
+  it("400 when the team path id is not a UUID, with the team-id sentence", async () => {
+    const res = await POST(req({ newOwnerUserId: ADMIN }), ctx("not-a-team"));
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.message).toBe(TEAM_ROUTE_MESSAGES.invalid_team_id[0]);
+    expect(body.messageZh).toBe(TEAM_ROUTE_MESSAGES.invalid_team_id[1]);
+    expect(body.message).not.toBe(TEAM_ROUTE_MESSAGES.invalid_user_id[0]);
+    expect(H.rpcCalls).toEqual([]);
+  });
+
   it("relays a successful function result as 200 with the mapped sentence", async () => {
     H.rpcResult = { data: [{ success: true, message: "transfer_success" }], error: null };
     const res = await POST(req({ newOwnerUserId: ADMIN }), ctx());

@@ -210,7 +210,7 @@ describe("transferOwnership (B-F12-9)", () => {
     expect(result).toEqual({ success: false, message: "unavailable", status: 403 });
   });
 
-  it("rejects a malformed id before calling rpc", async () => {
+  it("rejects a malformed team path id as invalid_team_id, not invalid_user_id", async () => {
     let called = false;
     const db = fakeTransferDb({
       rpc: async () => {
@@ -219,6 +219,19 @@ describe("transferOwnership (B-F12-9)", () => {
       },
     });
     const result = await transferOwnership(db, "not-a-uuid", ADMIN);
+    expect(called).toBe(false);
+    expect(result).toEqual({ success: false, message: "invalid_team_id", status: 400 });
+  });
+
+  it("rejects a malformed recipient id as invalid_user_id", async () => {
+    let called = false;
+    const db = fakeTransferDb({
+      rpc: async () => {
+        called = true;
+        return { data: [], error: null };
+      },
+    });
+    const result = await transferOwnership(db, TEAM, "not-a-uuid");
     expect(called).toBe(false);
     expect(result).toEqual({ success: false, message: "invalid_user_id", status: 400 });
   });

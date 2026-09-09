@@ -253,7 +253,7 @@ async function main() {
   }
 
   const evidence = [
-    "# Ledger row: 0020_team_ownership_transfer / PR pending (open, packet B-F12-9); not applied",
+    "# Ledger row: 0020_team_ownership_transfer / PR #557 (open, packet B-F12-9); not applied",
     "# layoutFiles carry sha256 hashes of the files they name; proof of which code generated each crop.",
     "# Rebuild any crop and recompute its layoutFiles, or the test will fail and the PR will not land.",
     `# capturedAtHead: ${capturedAtHead}`,

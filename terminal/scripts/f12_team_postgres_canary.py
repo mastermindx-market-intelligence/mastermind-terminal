@@ -604,19 +604,38 @@ def main() -> int:
             "insert into public.team_members (team_id, user_id, role, invited_by) values (%s,%s,'admin',%s), (%s,%s,'member',%s)",
             (team_t, t_admin, t_owner, team_t, t_member, t_owner),
         )
-        cur.execute("select count(*) from public.team_role_changes where team_id=%s", (team_t,))
+        # Count the same population the after-read uses: UPDATE/DELETE log rows
+        # (old_role is not null). INSERT trigger rows (owner/admin/member, old_role
+        # NULL) must not be in this number — CI run 34394270728 failed 2 >= 3+2.
+        cur.execute(
+            "select count(*) from public.team_role_changes where team_id=%s and old_role is not null",
+            (team_t,),
+        )
         audit_before = cur.fetchone()[0]
 
     t_owner_conn = actor_connection(dsn, t_owner)
     t_admin_conn = actor_connection(dsn, t_admin)
     t_member_conn = actor_connection(dsn, t_member)
 
-    t0 = time.perf_counter()
+    # Server-side elapsed for the transfer statement. The function takes
+    # pg_advisory_xact_lock and holds it until this autocommit xact ends, so this
+    # is the lock-hold upper bound excluding client RTT (Risk 5).
     with t_owner_conn.cursor() as cur:
-        cur.execute("select success, message from public.transfer_team_ownership(%s, %s)", (team_t, t_admin))
+        cur.execute(
+            """
+            select x.success, x.message,
+                   extract(epoch from (clock_timestamp() - s.t0)) * 1000
+              from (select clock_timestamp() as t0) s
+              cross join lateral (
+                select success, message
+                  from public.transfer_team_ownership(%s, %s)
+              ) x
+            """,
+            (team_t, t_admin),
+        )
         xfer = cur.fetchone()
-    lock_hold_ms = (time.perf_counter() - t0) * 1000
-    proof.check("rpc:transfer_success", bool(xfer) and xfer[0] is True and xfer[1] == "transfer_success", str(xfer))
+    lock_hold_ms = float(xfer[2]) if xfer and xfer[2] is not None else -1.0
+    proof.check("rpc:transfer_success", bool(xfer) and xfer[0] is True and xfer[1] == "transfer_success", str(xfer[:2] if xfer else xfer))
 
     with admin.cursor() as cur:
         cur.execute("select user_id::text, role from public.team_members where team_id=%s order by role, user_id::text", (team_t,))
@@ -640,10 +659,10 @@ def main() -> int:
     promote = ("admin", "owner", t_owner)
     proof.check(
         "audit:transfer_writes_two_rows",
-        audit_rows.count(demote) >= 1 and audit_rows.count(promote) >= 1 and len(audit_rows) >= audit_before + 2,
+        audit_rows.count(demote) >= 1 and audit_rows.count(promote) >= 1 and len(audit_rows) == audit_before + 2,
         f"audit={audit_rows!r} before={audit_before}",
     )
-    proof.check("rpc:transfer_lock_hold_ms", lock_hold_ms >= 0, f"lock_hold_ms={lock_hold_ms:.3f}")
+    proof.check("rpc:transfer_lock_hold_ms", 0 < lock_hold_ms < 60_000, f"lock_hold_ms={lock_hold_ms:.3f}")
 
     t_admin_conn.close()
     t_admin_conn = actor_connection(dsn, t_admin)

@@ -353,6 +353,77 @@ describe("B-F12-9: ownership transfer control", () => {
     expect(text()).toContain(TEAM_ROUTE_MESSAGES.conflict[0]);
     expect(container.querySelector('[data-testid="team-transfer-retry"]')?.textContent).toBe(LEX.acsTeamTransferRetry[0]);
   });
+
+  it("waits one second before posting again after Try again", async () => {
+    let transferPosts = 0;
+    const impl = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url === "/api/teams") {
+        return { ok: true, status: 200, json: async () => ({ teams: [{ id: "team-1", name: "Desk" }] }) } as unknown as Response;
+      }
+      if (url.startsWith("/api/teams/team-1/members")) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            members: ROSTER_FIXTURE.members.map((m) => ({ ...m })),
+            callerRole: "owner",
+          }),
+        } as unknown as Response;
+      }
+      if (url.startsWith("/api/teams/team-1/transfer-ownership")) {
+        transferPosts += 1;
+        return {
+          ok: false,
+          status: 409,
+          json: async () => ({
+            error: "CONFLICT",
+            message: TEAM_ROUTE_MESSAGES.conflict[0],
+            messageZh: TEAM_ROUTE_MESSAGES.conflict[1],
+          }),
+        } as unknown as Response;
+      }
+      if (url.startsWith("/api/teams/team-1/invites") || url.includes("/invites")) {
+        return { ok: true, status: 200, json: async () => ({ invites: [] }) } as unknown as Response;
+      }
+      return { ok: true, status: 200, json: async () => ({}) } as unknown as Response;
+    });
+    vi.stubGlobal("fetch", impl);
+    await mount("en");
+    await act(async () => {
+      (container.querySelector('[data-testid="team-transfer-ownership"]') as HTMLButtonElement).click();
+    });
+    const adminChoice = Array.from(container.querySelectorAll("[data-testid=\"team-transfer-recipients\"] button")).find((b) =>
+      (b.textContent || "").includes("Alex Chen"),
+    ) as HTMLButtonElement;
+    await act(async () => {
+      adminChoice.click();
+    });
+    await act(async () => {
+      (container.querySelector('[data-testid="team-transfer-next"]') as HTMLButtonElement).click();
+    });
+    await act(async () => {
+      (container.querySelector('[data-testid="team-transfer-confirm"]') as HTMLButtonElement).click();
+    });
+    expect(transferPosts).toBe(1);
+    vi.useFakeTimers();
+    try {
+      await act(async () => {
+        (container.querySelector('[data-testid="team-transfer-retry"]') as HTMLButtonElement).click();
+      });
+      expect(transferPosts).toBe(1);
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(999);
+      });
+      expect(transferPosts).toBe(1);
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(1);
+      });
+      expect(transferPosts).toBe(2);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });
 
 function pair(code: keyof typeof TEAM_ROUTE_MESSAGES) {

@@ -511,6 +511,7 @@ const NEW_TEAM_ROUTE_CODES: TeamRouteCode[] = [
   "same_owner",
   "transfer_success",
   "conflict",
+  "invalid_team_id",
 ];
 
 const NEW_LEX_KEYS = [

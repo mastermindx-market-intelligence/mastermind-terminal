@@ -568,6 +568,7 @@ const TRANSFER_FAIL_STATUS: Record<string, number> = {
   conflict: 409,
   unavailable: 403,
   invalid_user_id: 400,
+  invalid_team_id: 400,
 };
 
 function transferFail(message: TeamRouteCode): TransferOwnershipResult {
@@ -583,7 +584,10 @@ export async function transferOwnership(
   teamId: string,
   newOwnerId: string,
 ): Promise<TransferOwnershipResult> {
-  if (!isUuid(teamId) || !isUuid(newOwnerId)) {
+  if (!isUuid(teamId)) {
+    return transferFail("invalid_team_id");
+  }
+  if (!isUuid(newOwnerId)) {
     return transferFail("invalid_user_id");
   }
   const result = await db.rpc(TRANSFER_OWNERSHIP_FN, {
@@ -661,6 +665,7 @@ export type TeamRouteCode =
   | "already_on_team"
   | "invalid_role"
   | "invalid_user_id"
+  | "invalid_team_id"
   | "user_not_found"
   | "email_not_supported"
   | "missing_target"
@@ -706,6 +711,7 @@ export const TEAM_ROUTE_MESSAGES: Record<TeamRouteCode, [string, string]> = {
   // caller reads says it too. The Chinese twin already read 管理员.
   invalid_role: ["Choose a role: administrator or member.", "请选择角色：管理员或成员。"],
   invalid_user_id: ["That user id is not valid.", "该用户标识无效。"],
+  invalid_team_id: ["That team id is not valid.", "该团队标识无效。"],
   user_not_found: ["We could not find that person. Ask them to sign in to Mastermind first.", "找不到该用户。请先让对方登录 Mastermind。"],
   email_not_supported: [
     "Invitations by email are not available yet. Ask them to sign in to Mastermind first, then add them by their account.",
