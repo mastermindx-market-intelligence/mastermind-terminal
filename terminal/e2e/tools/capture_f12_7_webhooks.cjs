@@ -51,16 +51,18 @@ const ENDPOINT = {
   createdBy: "8f2c41ba-7d19-4e6a-9c03-5b71ee0a4d22",
   createdAt: "2026-09-09T10:00:00.000Z",
 };
-// All seven statuses, and the two cause labels the deliveries list renders
-// under a status (last_error is a machine class; the row shows the sentence).
+// All seven statuses, newest first (the route orders created_at desc). The
+// three TERMINAL states lead, so the crop shows the distinction the labels
+// exist to draw: `failed` alone claims five attempts, and the two not-sent
+// states each carry the plain cause sentence under the status.
 const DELIVERIES = [
-  { id: "d1", endpointId: "ep-1", teamId: "team-1", eventId: "e1", eventType: "webhook.test", attempt: 0, status: "pending", lastError: null, createdAt: new Date(Date.now() - 30_000).toISOString() },
-  { id: "d2", endpointId: "ep-1", teamId: "team-1", eventId: "e2", eventType: "webhook.test", attempt: 1, status: "delivering", lastError: null, createdAt: new Date(Date.now() - 120_000).toISOString() },
+  { id: "d6", endpointId: "ep-1", teamId: "team-1", eventId: "e6", eventType: "webhook.test", attempt: 0, status: "not_sent_disabled", lastError: "endpoint_disabled", createdAt: new Date(Date.now() - 60_000).toISOString() },
+  { id: "d7", endpointId: "ep-1", teamId: "team-1", eventId: "e7", eventType: "webhook.test", attempt: 0, status: "not_sent_invalid_url", lastError: "private_address", createdAt: new Date(Date.now() - 120_000).toISOString() },
+  { id: "d5", endpointId: "ep-1", teamId: "team-1", eventId: "e5", eventType: "webhook.test", attempt: 5, status: "failed", lastError: "http 500", createdAt: new Date(Date.now() - 600_000).toISOString() },
   { id: "d3", endpointId: "ep-1", teamId: "team-1", eventId: "e3", eventType: "webhook.test", attempt: 2, status: "retrying", lastError: "timeout", createdAt: new Date(Date.now() - 3600_000).toISOString() },
-  { id: "d4", endpointId: "ep-1", teamId: "team-1", eventId: "e4", eventType: "webhook.test", attempt: 1, status: "delivered", lastError: null, createdAt: new Date(Date.now() - 7200_000).toISOString() },
-  { id: "d5", endpointId: "ep-1", teamId: "team-1", eventId: "e5", eventType: "webhook.test", attempt: 5, status: "failed", lastError: "http 500", createdAt: new Date(Date.now() - 86400_000).toISOString() },
-  { id: "d6", endpointId: "ep-1", teamId: "team-1", eventId: "e6", eventType: "webhook.test", attempt: 0, status: "not_sent_disabled", lastError: "endpoint_disabled", createdAt: new Date(Date.now() - 90000_000).toISOString() },
-  { id: "d7", endpointId: "ep-1", teamId: "team-1", eventId: "e7", eventType: "webhook.test", attempt: 0, status: "not_sent_invalid_url", lastError: "private_address", createdAt: new Date(Date.now() - 95000_000).toISOString() },
+  { id: "d2", endpointId: "ep-1", teamId: "team-1", eventId: "e2", eventType: "webhook.test", attempt: 1, status: "delivering", lastError: null, createdAt: new Date(Date.now() - 7200_000).toISOString() },
+  { id: "d4", endpointId: "ep-1", teamId: "team-1", eventId: "e4", eventType: "webhook.test", attempt: 1, status: "delivered", lastError: null, createdAt: new Date(Date.now() - 10800_000).toISOString() },
+  { id: "d1", endpointId: "ep-1", teamId: "team-1", eventId: "e1", eventType: "webhook.test", attempt: 0, status: "pending", lastError: null, createdAt: new Date(Date.now() - 14400_000).toISOString() },
 ];
 
 mkdirSync(OUT, { recursive: true });
@@ -236,7 +238,7 @@ async function shoot(page, file) {
 async function driveState(page, lang, state) {
   if (state === "secret") {
     await page.locator("#wh-url").fill("https://hooks.example.com/mastermind");
-    const add = lang === "zh" ? "添加回调" : "Add endpoint";
+    const add = lang === "zh" ? "添加端点" : "Add endpoint";
     await page.getByRole("button", { name: add }).click();
     const once = lang === "zh"
       ? "此密钥仅显示一次，请立即保存，之后将无法再次查看。"
@@ -245,7 +247,7 @@ async function driveState(page, lang, state) {
   }
   if (state === "ssrf") {
     await page.locator("#wh-url").fill("https://127.0.0.1/hook");
-    const add = lang === "zh" ? "添加回调" : "Add endpoint";
+    const add = lang === "zh" ? "添加端点" : "Add endpoint";
     await page.getByRole("button", { name: add }).click();
     const err = lang === "zh"
       ? "请使用公网的 https 地址。不支持私有或本地地址。"
@@ -257,7 +259,7 @@ async function driveState(page, lang, state) {
     await page.getByText(delivered).first().waitFor({ state: "visible", timeout: 10_000 });
   }
   if (state === "empty") {
-    const empty = lang === "zh" ? "此团队尚未登记 Webhook 回调地址。" : "This team has not registered a webhook endpoint yet.";
+    const empty = lang === "zh" ? "此团队尚未登记 Webhook 端点。" : "This team has not registered a webhook endpoint yet.";
     await page.getByText(empty).waitFor({ state: "visible", timeout: 10_000 });
   }
 }

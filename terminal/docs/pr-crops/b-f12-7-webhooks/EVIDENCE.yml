@@ -1,15 +1,23 @@
 # B-F12-7 Outbound signed webhooks — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: b68f6a73d5524ea70f0480d495ee24ae843be037
-# capturedAt: 2026-09-09T11:57:26.653Z
+# capturedAtHead: c094065c53c1b582cee9dfbf5b1110bd599a9dfd
+# capturedAt: 2026-09-09T18:27:31.162Z
 # capturedAtHead is informational. The lock is layoutFiles.
+# layoutFiles are packet-local and ARE asserted by
+# terminal/lib/__tests__/f12_7WebhooksEvidence.test.ts. informationalFiles
+# are recorded for provenance only: terminal/lib/i18n.tsx is the repo-wide
+# bilingual lexicon every UI packet extends, and asserting it here would
+# redden master for unrelated LEX-adding work.
 layoutFiles:
-  terminal/components/settings/SectionWebhooks.tsx: "bf99c6cd101afbc20c85a374763b6dd6ba08f348262e832056fda4abdbf72349"
-  terminal/lib/webhookLabels.ts: "b561502a7d0e245a187cfafbafea988983c374f77a0e4d7b3392e1a978c92f75"
+  terminal/components/settings/SectionWebhooks.tsx: "0de205448c79979047e937ee34a31f451c157fb15d2b8d38407225b1362bf394"
+  terminal/lib/webhookLabels.ts: "212f15117c45f70fd9ed328aec47038570cd6b697a82315eacd0759f69f5e646"
+  terminal/lib/webhookUrl.ts: "e1928132afa22ba3f3f5c5ad00c1f5cd7c66eee06a95ad49e6d25008117e18cf"
   terminal/components/settings/SettingsPanel.tsx: "15b449b00e744bffd65659d1064c4e45c928d5a8a63c663ced4e478d556195ab"
   terminal/components/settings/icons.tsx: "a27f9c8cdbd288a1acbad4c6c8b2cd93ee26b6c7ccfc51453442dfdfc812230a"
-  terminal/lib/i18n.tsx: "dbe654cac5561a579403adcf70bdda3eb846a46ab258a7add15ad03dd3af64c2"
+informationalFiles:
+  asserted: false
+  terminal/lib/i18n.tsx: "93c22dbcdf9c001873d43b172d6ac4eeedcc0d95ecb74181ab2e408befcda89a"
 theme: dark
 languages: [en, zh]
 viewports:
