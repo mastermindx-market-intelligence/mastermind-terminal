@@ -98,8 +98,25 @@ DEFAULT_FLOW_R2 = "https://pub-f7ffb4441c5f4ad983ca56ec7c651c61.r2.dev"
 # lane_cadence_budget_s is plumbed from a named, documented source instead of an implicit match.
 ALERTS_LANE = "alerts_engine"
 ALERTS_LANE_CADENCE_S = 300
+# Owned by the Node suite lane (ingest/suite_alerts.ts:185), which selects exactly
+# these two and fires them with identical disarm semantics. This engine must never
+# count another lane's rows as its own unevaluable — see F08 freeze §13 C2.
+SUITE_LANE_TYPES = ("suite_event", "suite_sequence")
 FLOW_USER_AGENT = "mastermind-alerts/1.0"
 FLOW_ROOT_RE = re.compile(r"^[A-Z0-9]{1,10}(?:[.-][A-Z0-9]{1,4})?$")
+_MARKET_WIDE_OPT = {"opt_premium_burst", "opt_0dte_spike"}
+
+
+def normalize_opt_alert_root(value) -> str | None:
+    """Byte-for-byte port of terminal/lib/optionsAlerts.ts:635-639
+    (normalizeOptAlertRoot). The regex is already identical to FLOW_ROOT_RE
+    (:102); the divergence this closes is the missing .strip(). F08 freeze §13 C12."""
+    if not isinstance(value, str):
+        return None
+    root = value.strip().upper()
+    return root if FLOW_ROOT_RE.fullmatch(root) else None
+
+
 FLOW_STAMP_RE = re.compile(r"^[A-Za-z0-9_-]{1,32}$")
 FLOW_ET = ZoneInfo("America/New_York")
 FLOW_RTH_OPEN = time(9, 30)
@@ -240,7 +257,11 @@ _OPT_WALL_SIDE_ZH = {
 
 
 def _plain_root(cond: dict, symbol: str) -> str:
-    return str(cond.get("root") or symbol or "the underlying")
+    return (
+        normalize_opt_alert_root(cond.get("root"))
+        or normalize_opt_alert_root(symbol)
+        or "the underlying"
+    )
 
 
 def _condition_plain_en(cond: dict, symbol: str) -> str:
@@ -347,7 +368,11 @@ class Supa:
         self.h = {"apikey": key, "Authorization": f"Bearer {key}"}
 
     def active_alerts(self) -> list[dict]:
-        return http_json(f"{self.base}/alerts?active=eq.true&select=*", self.h) or []
+        types = ",".join(SUITE_LANE_TYPES)
+        return http_json(
+            f"{self.base}/alerts?active=eq.true&condition->>type=not.in.({types})&select=*",
+            self.h,
+        ) or []
 
     def fire(self, alert: dict, value, note: str, *, vintage: str) -> bool:
         """Disarm + stamp trigger evidence. The active=eq.true guard makes double-fires a no-op
@@ -797,7 +822,7 @@ class Flow:
 
     @staticmethod
     def _root(root: str) -> str | None:
-        key = str(root or "").upper()
+        key = str(root or "").strip().upper()
         return key if len(key) <= 12 and FLOW_ROOT_RE.fullmatch(key) else None
 
     @staticmethod
@@ -1453,16 +1478,16 @@ def _eval_0dte(cond: dict, dte, prev: dict):
 # The tuple is (state-key, evaluator, payload-getter). The engine persists nxt back to that
 # sub-key when it changed but did NOT fire (see main()), so the state machine survives across runs.
 _OPT_EVALUATORS = {
-    "opt_gamma_flip": ("_fs", _eval_gamma_flip, lambda cond, flow: flow.gamma_state(cond.get("root") or "")),
-    "opt_wall_touch": ("_wp", _eval_wall, lambda cond, flow: flow.gex(cond.get("root") or "")),
+    "opt_gamma_flip": ("_fs", _eval_gamma_flip, lambda cond, flow: flow.gamma_state(normalize_opt_alert_root(cond.get("root")) or "")),
+    "opt_wall_touch": ("_wp", _eval_wall, lambda cond, flow: flow.gex(normalize_opt_alert_root(cond.get("root")) or "")),
     "opt_premium_burst": ("_pb", _eval_premium_burst, lambda cond, flow: flow.tide()),
     "opt_0dte_spike": ("_zd", _eval_0dte, lambda cond, flow: flow.dte()),
-    "opt_surface_pocket": ("_sp", _eval_surface_pocket, lambda cond, flow: flow.surface(cond.get("root") or "")),
+    "opt_surface_pocket": ("_sp", _eval_surface_pocket, lambda cond, flow: flow.surface(normalize_opt_alert_root(cond.get("root")) or "")),
     # Market Structure Core §8 (2026-08-01). The masterplan sketched these as msc_*;
     # they ship under the opt_* prefix every existing options type already uses.
-    "opt_wall_migration": ("_wm", _eval_wall_migration, lambda cond, flow: flow.gex(cond.get("root") or "")),
-    "opt_sign_fragile": ("_sf", _eval_sign_fragile, lambda cond, flow: flow.gex(cond.get("root") or "")),
-    "opt_opex_concentration": ("_oc", _eval_opex_concentration, lambda cond, flow: flow.gex(cond.get("root") or "")),
+    "opt_wall_migration": ("_wm", _eval_wall_migration, lambda cond, flow: flow.gex(normalize_opt_alert_root(cond.get("root")) or "")),
+    "opt_sign_fragile": ("_sf", _eval_sign_fragile, lambda cond, flow: flow.gex(normalize_opt_alert_root(cond.get("root")) or "")),
+    "opt_opex_concentration": ("_oc", _eval_opex_concentration, lambda cond, flow: flow.gex(normalize_opt_alert_root(cond.get("root")) or "")),
 }
 
 # Meta-CEO ruling (PR #513 review round 4, MAJOR-2): derived from _OPT_EVALUATORS' own state
@@ -1482,6 +1507,8 @@ def evaluate(alert: dict, data: Data, flow: "Flow | None" = None):
         state_key, fn, getter = _OPT_EVALUATORS[ctype]
         if flow is None:
             return None, None, "flow feed unavailable", None
+        if ctype not in _MARKET_WIDE_OPT and normalize_opt_alert_root(cond.get("root")) is None:
+            return None, None, "identity unresolved — stored underlying is not a readable options root", None
         prev = cond.get(state_key) if isinstance(cond.get(state_key), dict) else {}
         payload = getter(cond, flow)
         return fn(cond, payload, prev)
@@ -1605,7 +1632,7 @@ def run_once(
             if (a.get("condition") or {}).get("type") == "price"
         }
         option_syms = {
-            str((a.get("condition") or {}).get("root") or "").upper()
+            (normalize_opt_alert_root((a.get("condition") or {}).get("root")) or "")
             for a in alerts
             if str((a.get("condition") or {}).get("type") or "").startswith("opt_")
         }
@@ -1644,7 +1671,7 @@ def run_once(
                     # CONDITION's root — the underlying the evaluator actually read — never the
                     # alert row's own `symbol` field, which can differ from it.
                     vintage_sym = (
-                        str((a.get("condition") or {}).get("root") or "").upper()
+                        (normalize_opt_alert_root((a.get("condition") or {}).get("root")) or "")
                         if ctype in _OPT_EVALUATORS
                         else str(a.get("symbol") or "").upper()
                     )

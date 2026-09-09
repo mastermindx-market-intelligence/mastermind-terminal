@@ -3,7 +3,7 @@ import { readFileSync } from "fs";
 import path from "path";
 import {
   buildAlertsView, monitorFor, foldOutbox, deliveryFor, ALERTS_COPY, copy, conditionText, conditionsWord, verdictText,
-  firedEventTextZh,
+  firedEventTextZh, lanesForArmedAlerts, noCoverageAcross, rowChipKey,
   type RunReceipt, type OutboxRow, type Alert,
 } from "../alertsView";
 
@@ -483,5 +483,95 @@ describe("firedEventTextZh — the ZH event sentence never restates the conditio
     expect(firedEventTextZh("72", "price")).toBe("触发时价格 72");
     expect(firedEventTextZh("not-a-number", "price")).toBe("已触发，未记录触发价");
     expect(firedEventTextZh("", "price")).toBe("已触发，未记录触发价");
+  });
+});
+
+describe("B-F08-B5-3 monitorFor two-lane worst-of", () => {
+  const fresh = baseRun();
+  const partial = baseRun({ outcome: "partial", lane: "suite_alerts", run_id: "r2" });
+  const engine = { run: fresh, runsState: "READ_OK" as const };
+  const suitePartial = { run: partial, runsState: "READ_OK" as const };
+  const suiteFresh = { run: baseRun({ lane: "suite_alerts", run_id: "r2" }), runsState: "READ_OK" as const };
+  const suiteZero = { run: null, runsState: "READ_OK_ZERO" as const };
+  const suiteDown = { run: null, runsState: "READ_UNAVAILABLE" as const };
+
+  it("{success-fresh, partial} → degraded", () => {
+    expect(monitorFor([engine, suitePartial], NOW)).toBe("degraded");
+  });
+  it("{success-fresh, success-fresh} → watching", () => {
+    expect(monitorFor([engine, suiteFresh], NOW)).toBe("watching");
+  });
+  it("{success-fresh, READ_OK_ZERO} → never_ran", () => {
+    expect(monitorFor([engine, suiteZero], NOW)).toBe("never_ran");
+  });
+  it("{success-fresh, READ_UNAVAILABLE} → unknown", () => {
+    expect(monitorFor([engine, suiteDown], NOW)).toBe("unknown");
+  });
+  it("single-lane signature is unchanged", () => {
+    expect(monitorFor(fresh, "READ_OK", NOW)).toBe("watching");
+    expect(monitorFor(partial, "READ_OK", NOW)).toBe("degraded");
+  });
+});
+
+describe("B-F08-B5-3 suite-free user is byte-identical to today's single-lane path", () => {
+  it("lanesForArmedAlerts with only price alerts returns the engine lane alone", () => {
+    const engine = { run: baseRun(), runsState: "READ_OK" as const };
+    const suite = { run: null, runsState: "READ_OK_ZERO" as const };
+    const armed: Alert[] = [{ id: "a1", active: true, created_at: "2026-01-01T00:00:00Z", condition: { type: "price" } }];
+    const lanes = lanesForArmedAlerts(armed, engine, suite);
+    expect(lanes).toHaveLength(1);
+    expect(lanes[0].run).toBe(engine.run);
+    expect(lanes[0].runsState).toBe(engine.runsState);
+    expect(lanes[0].id).toBe("engine");
+    expect(monitorFor(lanes, NOW)).toBe(monitorFor(engine.run, engine.runsState, NOW));
+  });
+  it("zero alerts keeps the engine lane (today's empty.calm.zero path)", () => {
+    const engine = { run: null, runsState: "READ_OK_ZERO" as const };
+    const suite = { run: null, runsState: "READ_UNAVAILABLE" as const };
+    const lanes = lanesForArmedAlerts([], engine, suite);
+    expect(lanes).toHaveLength(1);
+    expect(lanes[0].runsState).toBe("READ_OK_ZERO");
+    expect(lanes[0].id).toBe("engine");
+  });
+});
+
+describe("B-F08-B5-3 noCoverageCount sums relevant lanes only", () => {
+  it("sums numeric unevaluable_n across the lanes passed in", () => {
+    expect(noCoverageAcross([baseRun({ unevaluable_n: 2 }), baseRun({ unevaluable_n: 1, lane: "suite_alerts" })])).toBe(3);
+  });
+  it("engine-only (suite-free) equals today's single-run value", () => {
+    expect(noCoverageAcross([baseRun({ unevaluable_n: 3 })])).toBe(3);
+    expect(noCoverageAcross([null])).toBeNull();
+  });
+});
+
+describe("B-F08-B5-3 R8 copy + unresolved chip", () => {
+  it("ships every new/changed string verbatim in both languages", () => {
+    expect(ALERTS_COPY["identity.unresolved"]).toEqual(["Cannot be checked", "无法检查"]);
+    expect(ALERTS_COPY["identity.unresolved.body"]).toEqual([
+      "The underlying saved on this alert is not in a form we can read, so it will never fire. Delete it and set it up again.",
+      "这条提醒保存的标的格式我们无法读取，因此它永远不会触发。请删除后重新设置。",
+    ]);
+    expect(ALERTS_COPY["noCoverage.body"]).toEqual([
+      "We could not check {n} of your conditions on the last run.",
+      "上次检查中，有 {n} 项条件我们未能完成检查。",
+    ]);
+    expect(ALERTS_COPY["noCoverage.body.prices"]).toEqual([
+      "We cannot read prices for {n} of your symbols, so those conditions were not checked.",
+      "有 {n} 个代码我们读不到价格，这些条件未被检查。",
+    ]);
+    expect(ALERTS_COPY["monitor.lane.suite"]).toEqual(["Signal-suite conditions", "信号套件条件"]);
+    expect(ALERTS_COPY["monitor.lane.engine"]).toEqual(["Price, trend and options conditions", "价格、趋势与期权条件"]);
+    expect(ALERTS_COPY["monitor.lane.degraded"]).toEqual([
+      "{lane}: monitoring degraded — last successful check {t}.",
+      "{lane}：监控降级 —— 上次成功检查 {t}。",
+    ]);
+    expect(ALERTS_COPY["resolution.armed"]).toEqual(["Armed — still watching", "已启用 —— 仍在监控"]);
+  });
+  it("identity.unresolved replaces resolution.armed on an unresolved row", () => {
+    expect(rowChipKey({ identity_state: "unresolved", active: true, condition: { type: "opt_gamma_flip" } })).toBe("identity.unresolved");
+    expect(rowChipKey({ identity_state: "ok", active: true, condition: { type: "opt_gamma_flip" } })).toBe("resolution.armed");
+    expect(copy("identity.unresolved", "en")).not.toBe(copy("resolution.armed", "en"));
+    expect(copy("identity.unresolved.body", "zh")).toMatch(/[，。]/);
   });
 });

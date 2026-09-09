@@ -40,6 +40,7 @@
  */
 
 import { readFileSync, existsSync } from "node:fs";
+import { randomUUID } from "node:crypto";
 import { join } from "node:path";
 import { computeSuite, resolveSuiteColors } from "../terminal/lib/indicator-canvas/host";
 import type { SuiteHostInput } from "../terminal/lib/indicator-canvas/host";
@@ -58,6 +59,8 @@ import type { SuiteAlertCondition, SuiteSequenceCondition } from "../terminal/li
 
 const DEFAULT_ENV = "/opt/terminal/terminal/.env.local";
 const DEFAULT_DATA = "/opt/terminal/terminal/public/data";
+const LANE = "suite_alerts";
+const LANE_CADENCE_S = 300;
 
 // ───────────────────────────────────────────────────────────────── log + args + env
 
@@ -215,6 +218,67 @@ class Supa {
     });
     if (!r.ok) throw new Error(`PATCH alerts id=${id} -> ${r.status}`);
   }
+
+  private tableMissing(status: number, parsed: unknown): boolean {
+    if (status === 404) return true;
+    if (parsed && typeof parsed === "object" && (parsed as { code?: string }).code === "42P01") return true;
+    return false;
+  }
+
+  private classify(status: number): string {
+    if (status === 401 || status === 403) return "READ_DENIED";
+    if (status === 409) return "READ_CONFLICT";
+    if (status === 503 || status === 599) return "READ_UNAVAILABLE";
+    return "READ_ERROR";
+  }
+
+  private async jsonStatus(url: string, method: string, body?: unknown): Promise<{ status: number; parsed: unknown; text: string }> {
+    const r = await fetch(url, {
+      method,
+      headers: { ...this.headers, "Content-Type": "application/json", Prefer: "return=minimal" },
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+    });
+    const text = await r.text();
+    let parsed: unknown = null;
+    try { parsed = text.trim() ? JSON.parse(text) : null; } catch { parsed = null; }
+    return { status: r.status, parsed, text };
+  }
+
+  async startRun(lane: string, runId: string, startedAt: string, laneCadenceBudgetS: number): Promise<boolean> {
+    const { status, parsed, text } = await this.jsonStatus(`${this.base}/alert_runs`, "POST", {
+      lane, run_id: runId, started_at: startedAt, source_asof: null, lane_cadence_budget_s: laneCadenceBudgetS,
+    });
+    if (this.tableMissing(status, parsed)) {
+      log("READ_UNAVAILABLE alert_runs (start) — table not applied yet; run proceeds without a receipt");
+      return false;
+    }
+    if (status >= 300) {
+      log(`${this.classify(status)} alert_runs (start) — ${status}: ${text.slice(0, 200)}`);
+      return false;
+    }
+    return true;
+  }
+
+  async concludeRun(
+    lane: string, runId: string, concludedAt: string, outcome: string,
+    evaluatedN: number | null, firedN: number | null, unevaluableN: number | null,
+    errorClass: string | null,
+  ): Promise<boolean> {
+    const url = `${this.base}/alert_runs?lane=eq.${encodeURIComponent(lane)}&run_id=eq.${encodeURIComponent(runId)}`;
+    const { status, parsed, text } = await this.jsonStatus(url, "PATCH", {
+      concluded_at: concludedAt, outcome, evaluated_n: evaluatedN, fired_n: firedN,
+      unevaluable_n: unevaluableN, error_class: errorClass,
+    });
+    if (this.tableMissing(status, parsed)) {
+      log("READ_UNAVAILABLE alert_runs (conclude) — table not applied yet");
+      return false;
+    }
+    if (status >= 300) {
+      log(`${this.classify(status)} alert_runs (conclude) — ${status}: ${text.slice(0, 200)}`);
+      return false;
+    }
+    return true;
+  }
 }
 
 // ──────────────────────────────────────────────────────────────────────────── demo
@@ -256,6 +320,10 @@ function runDemo(args: Args): number {
 
 // ──────────────────────────────────────────────────────────────────────────── main
 
+function isoSeconds(): string {
+  return new Date().toISOString().slice(0, 19) + "+00:00";
+}
+
 async function main(): Promise<number> {
   const args = parseArgs(process.argv.slice(2));
 
@@ -270,113 +338,157 @@ async function main(): Promise<number> {
   }
 
   const supa = new Supa(url, key);
-  let alerts: any[];
+  const runId = randomUUID().replace(/-/g, "");
+  const startedAt = isoSeconds();
+  let runReceipted = false;
+  if (args.dryRun) {
+    log(`[dry-run] start_run lane=${LANE} run_id=${runId} started_at=${startedAt} (no write)`);
+  } else {
+    runReceipted = await supa.startRun(LANE, runId, startedAt, LANE_CADENCE_S);
+  }
+
+  const conclude = async (
+    outcome: string,
+    evaluatedN: number | null,
+    firedN: number | null,
+    unevaluableN: number | null,
+    errorClass: string | null,
+  ) => {
+    const concludedAt = isoSeconds();
+    if (runReceipted) {
+      await supa.concludeRun(LANE, runId, concludedAt, outcome, evaluatedN, firedN, unevaluableN, errorClass);
+    } else if (args.dryRun) {
+      log(`[dry-run] conclude_run lane=${LANE} run_id=${runId} outcome=${outcome} evaluated_n=${evaluatedN} fired_n=${firedN} unevaluable_n=${unevaluableN} error_class=${errorClass} (no write)`);
+    }
+  };
+
   try {
-    alerts = await supa.activeSuiteAlerts();
-  } catch (e) {
-    log(`FETCH ERROR listing alerts: ${e instanceof Error ? e.message : e}`);
-    return 1;
-  }
-  if (alerts.length === 0) {
-    log("no armed suite_event alerts — nothing to do");
-    return 0;
-  }
+    let alerts: any[];
+    try {
+      alerts = await supa.activeSuiteAlerts();
+    } catch (e) {
+      await conclude("failure", null, null, null, e instanceof Error ? e.constructor.name : "Error");
+      log(`FETCH ERROR listing alerts: ${e instanceof Error ? e.message : e}`);
+      return 1;
+    }
+    if (alerts.length === 0) {
+      log("no armed suite_event alerts — nothing to do");
+      const skipped = 0;
+      const evalErrors = 0;
+      const outcome = (skipped === 0 && evalErrors === 0) ? "success" : "partial";
+      await conclude(outcome, 0, 0, 0, null);
+      return 0;
+    }
 
-  // Group by symbol → one bars load + one computeSuite per (symbol, suite).
-  const bySymbol = new Map<string, any[]>();
-  for (const a of alerts) {
-    const sym = String(a?.symbol ?? "").toUpperCase();
-    if (!bySymbol.has(sym)) bySymbol.set(sym, []);
-    bySymbol.get(sym)!.push(a);
-  }
+    // Group by symbol → one bars load + one computeSuite per (symbol, suite).
+    const bySymbol = new Map<string, any[]>();
+    for (const a of alerts) {
+      const sym = String(a?.symbol ?? "").toUpperCase();
+      if (!bySymbol.has(sym)) bySymbol.set(sym, []);
+      bySymbol.get(sym)!.push(a);
+    }
 
-  let fired = 0;
-  let skipped = 0;
-  for (const sym of [...bySymbol.keys()].sort()) {
-    const rows = bySymbol.get(sym)!;
-    const data = loadSymbolData(args.dataDir, sym);
-    const eventsCache = new Map<string, SuiteEvent[] | null>(); // null = compute failed
+    let fired = 0;
+    let skipped = 0;
+    let evalErrors = 0;
+    for (const sym of [...bySymbol.keys()].sort()) {
+      const rows = bySymbol.get(sym)!;
+      const data = loadSymbolData(args.dataDir, sym);
+      const eventsCache = new Map<string, SuiteEvent[] | null>(); // null = compute failed
 
-    for (const a of rows) {
-      const cond = (a?.condition ?? {}) as SuiteAlertCondition | SuiteSequenceCondition;
-      const isSeq = (cond as { type?: unknown }).type === "suite_sequence";
-      const tag = `${sym} ${JSON.stringify(cond).slice(0, 80)}`;
-
-      const reason = isSeq ? validateSuiteSequence(cond) : validateSuiteCondition(cond as SuiteAlertCondition);
-      if (reason) {
-        skipped++;
-        log(`SKIP  ${tag} — malformed condition: ${reason}`);
-        continue;
-      }
-      if (!data) {
-        skipped++;
-        log(`SKIP  ${tag} — no daily bars file`);
-        continue;
-      }
-
-      let events = eventsCache.get(cond.suite);
-      if (events === undefined) {
+      for (const a of rows) {
         try {
-          events = suiteEventsFor(cond.suite, sym, data);
+          const cond = (a?.condition ?? {}) as SuiteAlertCondition | SuiteSequenceCondition;
+          const isSeq = (cond as { type?: unknown }).type === "suite_sequence";
+          const tag = `${sym} ${JSON.stringify(cond).slice(0, 80)}`;
+
+          const reason = isSeq ? validateSuiteSequence(cond) : validateSuiteCondition(cond as SuiteAlertCondition);
+          if (reason) {
+            skipped++;
+            log(`SKIP  ${tag} — malformed condition: ${reason}`);
+            continue;
+          }
+          if (!data) {
+            skipped++;
+            log(`SKIP  ${tag} — no daily bars file`);
+            continue;
+          }
+
+          let events = eventsCache.get(cond.suite);
+          if (events === undefined) {
+            try {
+              events = suiteEventsFor(cond.suite, sym, data);
+            } catch (e) {
+              events = null;
+              log(`EVAL ERROR ${sym} suite ${cond.suite}: ${e instanceof Error ? e.message : e}`);
+            }
+            eventsCache.set(cond.suite, events);
+          }
+          if (events === null) {
+            skipped++;
+            log(`SKIP  ${tag} — suite compute failed`);
+            continue;
+          }
+
+          // Floor = alert creation time: old history never fires on first evaluation.
+          // SAME day-floored floorT for both condition types.
+          const createdMs = Date.parse(String(a?.created_at ?? ""));
+          const floorT = Number.isFinite(createdMs) ? floorToUtcDayStart(createdMs / 1000) : 0;
+          const r = isSeq
+            ? evalSuiteSequence(cond as SuiteSequenceCondition, events, data.barsT, floorT)
+            : evalSuiteEvent(cond as SuiteAlertCondition, events, data.barsT, floorT);
+          const stateKey = isSeq ? "_sq" : "_se";
+
+          if (r.fired) {
+            fired++;
+            const fallbackName = isSeq
+              ? (cond as SuiteSequenceCondition).steps?.map((s) => s?.event).join("→")
+              : (cond as SuiteAlertCondition).event;
+            const note = `${sym} — ${r.note ?? fallbackName}`;
+            log(`FIRE  ${tag} — ${r.note ?? ""}${args.dryRun ? " [dry-run]" : ""}`);
+            if (!args.dryRun) {
+              try {
+                // Final state rides WITH the fire (the W3 _se-with-fire law; _sq inherits it).
+                await supa.fire(a, typeof r.value === "number" ? r.value : null, note, r.state ? { [stateKey]: r.state } : undefined);
+              } catch (e) {
+                log(`PATCH ERROR ${sym} ${a?.id}: ${e instanceof Error ? e.message : e}`);
+              }
+            }
+          } else {
+            log(`idle  ${tag}`);
+            // State change without a fire → persist condition only (active stays true),
+            // mirroring the Python engine's hysteresis path. Sequences are genuinely
+            // stateful: evalSuiteSequence emits state on EVERY arm/disarm change and we
+            // persist each one; evalSuiteEvent only emits state on fire today, so the
+            // _se branch stays a forward-compat no-op most runs.
+            const prevState = isSeq ? (cond as SuiteSequenceCondition)._sq : (cond as SuiteAlertCondition)._se;
+            const changed = isSeq
+              ? !!r.state // evalSuiteSequence's contract: state present ⇔ it differs from _sq
+              : !!r.state && r.state.lastFiredT !== prevState?.lastFiredT;
+            if (changed && !args.dryRun) {
+              try {
+                await supa.updateCondition(a, { ...cond, [stateKey]: r.state });
+              } catch (e) {
+                log(`PATCH ERROR ${sym} ${a?.id}: ${e instanceof Error ? e.message : e}`);
+              }
+            }
+          }
         } catch (e) {
-          events = null;
-          log(`EVAL ERROR ${sym} suite ${cond.suite}: ${e instanceof Error ? e.message : e}`);
-        }
-        eventsCache.set(cond.suite, events);
-      }
-      if (events === null) {
-        skipped++;
-        log(`SKIP  ${tag} — suite compute failed`);
-        continue;
-      }
-
-      // Floor = alert creation time: old history never fires on first evaluation.
-      // SAME day-floored floorT for both condition types.
-      const createdMs = Date.parse(String(a?.created_at ?? ""));
-      const floorT = Number.isFinite(createdMs) ? floorToUtcDayStart(createdMs / 1000) : 0;
-      const r = isSeq
-        ? evalSuiteSequence(cond as SuiteSequenceCondition, events, data.barsT, floorT)
-        : evalSuiteEvent(cond as SuiteAlertCondition, events, data.barsT, floorT);
-      const stateKey = isSeq ? "_sq" : "_se";
-
-      if (r.fired) {
-        fired++;
-        const fallbackName = isSeq
-          ? (cond as SuiteSequenceCondition).steps?.map((s) => s?.event).join("→")
-          : (cond as SuiteAlertCondition).event;
-        const note = `${sym} — ${r.note ?? fallbackName}`;
-        log(`FIRE  ${tag} — ${r.note ?? ""}${args.dryRun ? " [dry-run]" : ""}`);
-        if (!args.dryRun) {
-          try {
-            // Final state rides WITH the fire (the W3 _se-with-fire law; _sq inherits it).
-            await supa.fire(a, typeof r.value === "number" ? r.value : null, note, r.state ? { [stateKey]: r.state } : undefined);
-          } catch (e) {
-            log(`PATCH ERROR ${sym} ${a?.id}: ${e instanceof Error ? e.message : e}`);
-          }
-        }
-      } else {
-        log(`idle  ${tag}`);
-        // State change without a fire → persist condition only (active stays true),
-        // mirroring the Python engine's hysteresis path. Sequences are genuinely
-        // stateful: evalSuiteSequence emits state on EVERY arm/disarm change and we
-        // persist each one; evalSuiteEvent only emits state on fire today, so the
-        // _se branch stays a forward-compat no-op most runs.
-        const prevState = isSeq ? (cond as SuiteSequenceCondition)._sq : (cond as SuiteAlertCondition)._se;
-        const changed = isSeq
-          ? !!r.state // evalSuiteSequence's contract: state present ⇔ it differs from _sq
-          : !!r.state && r.state.lastFiredT !== prevState?.lastFiredT;
-        if (changed && !args.dryRun) {
-          try {
-            await supa.updateCondition(a, { ...cond, [stateKey]: r.state });
-          } catch (e) {
-            log(`PATCH ERROR ${sym} ${a?.id}: ${e instanceof Error ? e.message : e}`);
-          }
+          evalErrors++;
+          log(`EVAL ERROR ${sym} ${a?.id}: ${e instanceof Error ? e.message : e}`);
         }
       }
     }
+    const unevaluableN = skipped + evalErrors;
+    const evaluatedN = alerts.length - unevaluableN;
+    const outcome = (skipped === 0 && evalErrors === 0) ? "success" : "partial";
+    await conclude(outcome, evaluatedN, fired, unevaluableN, evalErrors === 0 ? null : "eval_error");
+    log(`done: ${alerts.length} armed, ${fired} fired, ${unevaluableN} unevaluable`);
+    return 0;
+  } catch (e) {
+    await conclude("failure", null, null, null, e instanceof Error ? e.constructor.name : "Error");
+    throw e;
   }
-  log(`done: ${alerts.length} armed, ${fired} fired, ${skipped} unevaluable`);
-  return 0;
 }
 
 main().then(

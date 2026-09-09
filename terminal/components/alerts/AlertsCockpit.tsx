@@ -9,6 +9,7 @@ import AlertDetail, { type AlertDetailData } from "./AlertDetail";
 import { NewAlertPanel } from "@/components/AlertsView";
 import {
   buildAlertsView, conditionText, conditionsWord, copy, verdictText, ALERTS_CHANGED_EVENT,
+  lanesForArmedAlerts, monitorFor,
   type Alert, type ReadState, type RunReceipt, type OutboxRow,
 } from "@/lib/alertsView";
 import { useLang } from "@/lib/i18n";
@@ -17,11 +18,15 @@ interface AlertsResp { alerts?: Alert[]; error?: string }
 interface ReceiptsResp {
   run: RunReceipt | null; runs_state: ReadState; last_success_at: string | null;
   last_success_state?: ReadState; outbox?: OutboxRow[]; outbox_state: ReadState;
+  suite_run?: RunReceipt | null; suite_runs_state?: ReadState;
+  suite_last_success_at?: string | null; suite_last_success_state?: ReadState;
 }
 
 const UNAVAILABLE_RECEIPTS: ReceiptsResp = {
   run: null, runs_state: "READ_UNAVAILABLE", last_success_at: null,
   last_success_state: "READ_UNAVAILABLE", outbox_state: "READ_UNAVAILABLE",
+  suite_run: null, suite_runs_state: "READ_UNAVAILABLE",
+  suite_last_success_at: null, suite_last_success_state: "READ_UNAVAILABLE",
 };
 
 export default function AlertsCockpit({ email, children }: { email: string; children?: ReactNode }) {
@@ -71,14 +76,45 @@ export default function AlertsCockpit({ email, children }: { email: string; chil
   // run receipt's own `unevaluable_n`, and rendered by CouldNotWatch as its own module. Folding it
   // into alertsState previously nulled a perfectly-known list count and printed "watching 0
   // conditions" whenever any symbol was unpriced (major: read-state overloading).
-  const view = useMemo(() => buildAlertsView({
-    alerts, alertsState,
-    run: receipts?.run ?? null, lastSuccessAt: receipts?.last_success_at ?? null,
-    lastSuccessState: receipts?.last_success_state ?? "READ_UNAVAILABLE",
-    runsState: receipts?.runs_state ?? "READ_UNAVAILABLE",
-    outbox: receipts?.outbox ?? [], outboxState: receipts?.outbox_state ?? "READ_UNAVAILABLE",
-    now: Date.now(),
-  }), [alerts, alertsState, receipts]);
+  const { view, degradedLaneLines } = useMemo(() => {
+    const now = Date.now();
+    const engineLane = {
+      run: receipts?.run ?? null,
+      runsState: (receipts?.runs_state ?? "READ_UNAVAILABLE") as ReadState,
+    };
+    const suiteLane = {
+      run: receipts?.suite_run ?? null,
+      runsState: (receipts?.suite_runs_state ?? "READ_UNAVAILABLE") as ReadState,
+    };
+    const monitorLanes = lanesForArmedAlerts(alerts, engineLane, suiteLane);
+    const view = buildAlertsView({
+      alerts, alertsState,
+      run: receipts?.run ?? null, lastSuccessAt: receipts?.last_success_at ?? null,
+      lastSuccessState: receipts?.last_success_state ?? "READ_UNAVAILABLE",
+      runsState: receipts?.runs_state ?? "READ_UNAVAILABLE",
+      outbox: receipts?.outbox ?? [], outboxState: receipts?.outbox_state ?? "READ_UNAVAILABLE",
+      now, monitorLanes,
+    });
+    const fmtLaneTime = (iso: string | null | undefined, state: ReadState | undefined) => {
+      if (iso) {
+        const d = new Date(iso);
+        if (!Number.isNaN(d.getTime())) return d.toLocaleTimeString(L === "zh" ? "zh-CN" : "en-US", { hour: "2-digit", minute: "2-digit" });
+      }
+      return copy(state === "READ_UNAVAILABLE" ? "null.cannotRead" : "null.notRecorded", L);
+    };
+    const degradedLaneLines = monitorLanes
+      .filter((l) => monitorFor(l.run, l.runsState, now) === "degraded")
+      .map((l) => ({
+        id: l.id ?? "engine",
+        text: copy("monitor.lane.degraded", L, {
+          lane: copy(l.id === "suite" ? "monitor.lane.suite" : "monitor.lane.engine", L),
+          t: l.id === "suite"
+            ? fmtLaneTime(receipts?.suite_last_success_at ?? null, receipts?.suite_last_success_state)
+            : fmtLaneTime(receipts?.last_success_at ?? null, receipts?.last_success_state),
+        }),
+      }));
+    return { view, degradedLaneLines };
+  }, [alerts, alertsState, receipts, L]);
 
   const timelineRows: TimelineRow[] = view.rows.map((r) => {
     const alert = alerts?.find((a) => a.id === r.alertId);
@@ -269,6 +305,9 @@ export default function AlertsCockpit({ email, children }: { email: string; chil
               rendered a few lines above it. Plain-language law: a human reads a time, never a
               machine timestamp with seconds — force the same minute precision here. */}
           <p className={s.degradedBody}>{copy("degraded.body", L, { t: fmtLastSuccess() })}</p>
+          {degradedLaneLines.map((line) => (
+            <p key={line.id} className={s.degradedBody} data-lane={line.id}>{line.text}</p>
+          ))}
           <button type="button" className={`btn btn-ghost ${s.emptyAction}`} onClick={load}>{copy("degraded.action", L)}</button>
         </div>
       )}
@@ -314,7 +353,14 @@ export default function AlertsCockpit({ email, children }: { email: string; chil
         // identical doubled-ticker defect (MAJOR-2, r10 ruling) and is now also passed
         // `undefined` (see the `detail` builder above) — the ticker appears exactly once on
         // every surface: `.subject`/Symbol-fact, never re-prefixed onto the condition text.
-        rows={(alerts || []).filter((a) => a.active).map((a) => ({ id: a.id, symbol: a.symbol || "—", label: conditionText(a.condition, undefined, L), state: "armed" as const }))}
+        rows={(alerts || []).filter((a) => a.active).map((a) => ({
+          id: a.id,
+          symbol: a.symbol || "—",
+          label: a.identity_state === "unresolved" ? copy("identity.unresolved.body", L) : conditionText(a.condition, undefined, L),
+          state: "armed" as const,
+          chip: a.identity_state === "unresolved" ? copy("identity.unresolved", L) : undefined,
+          identityState: a.identity_state,
+        }))}
         unavailable={listUnavailable}
         lang={L}
       />

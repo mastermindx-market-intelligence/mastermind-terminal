@@ -66,6 +66,7 @@ export interface Alert {
   condition: { type: string; triggered?: TriggeredEvidence | boolean; [k: string]: unknown };
   symbol?: string;
   created_at: string;
+  identity_state?: "ok" | "unresolved";
 }
 
 export interface AlertsView {
@@ -95,11 +96,64 @@ function isFresh(run: RunReceipt, now: number): boolean {
   return now - concluded <= budget * 1000;
 }
 
-export function monitorFor(run: RunReceipt | null, runsState: ReadState, now: number): MonitorState {
+export type LaneMonitor = { run: RunReceipt | null; runsState: ReadState; id?: "engine" | "suite" };
+
+const MONITOR_RANK: Record<MonitorState, number> = {
+  unknown: 0,
+  never_ran: 1,
+  degraded: 2,
+  watching: 3,
+};
+
+function monitorForOne(run: RunReceipt | null, runsState: ReadState, now: number): MonitorState {
   if (runsState === "READ_UNAVAILABLE") return "unknown";
   if (runsState === "READ_OK_ZERO") return "never_ran";
   if (runsState === "READ_OK" && run && isFresh(run, now)) return "watching";
   return "degraded";
+}
+
+export function monitorFor(run: RunReceipt | null, runsState: ReadState, now: number): MonitorState;
+export function monitorFor(lanes: LaneMonitor[], now: number): MonitorState;
+export function monitorFor(
+  a: RunReceipt | null | LaneMonitor[],
+  b: ReadState | number,
+  c?: number,
+): MonitorState {
+  if (Array.isArray(a)) {
+    const now = b as number;
+    if (a.length === 0) return "unknown";
+    return a
+      .map((lane) => monitorForOne(lane.run, lane.runsState, now))
+      .reduce((worst, state) => (MONITOR_RANK[state] < MONITOR_RANK[worst] ? state : worst));
+  }
+  return monitorForOne(a, b as ReadState, c as number);
+}
+
+export const SUITE_CONDITION_TYPES = new Set(["suite_event", "suite_sequence"]);
+
+export function lanesForArmedAlerts(
+  alerts: Alert[] | null | undefined,
+  engine: LaneMonitor,
+  suite: LaneMonitor,
+): LaneMonitor[] {
+  const armed = (alerts ?? []).filter((a) => a.active);
+  if (armed.length === 0) return [{ ...engine, id: "engine" }];
+  const hasSuite = armed.some((a) => SUITE_CONDITION_TYPES.has(a.condition?.type));
+  const hasEngine = armed.some((a) => !SUITE_CONDITION_TYPES.has(a.condition?.type));
+  const lanes: LaneMonitor[] = [];
+  if (hasEngine) lanes.push({ ...engine, id: "engine" });
+  if (hasSuite) lanes.push({ ...suite, id: "suite" });
+  return lanes;
+}
+
+export function noCoverageAcross(runs: Array<RunReceipt | null>): number | null {
+  const nums = runs.map((r) => r?.unevaluable_n).filter((n): n is number => typeof n === "number");
+  if (nums.length === 0) return null;
+  return nums.reduce((a, b) => a + b, 0);
+}
+
+export function rowChipKey(alert: { identity_state?: string; active?: boolean; condition?: unknown }): string {
+  return alert.identity_state === "unresolved" ? "identity.unresolved" : "resolution.armed";
 }
 
 /** Fold outbox rows by fire_event_id, keeping the newest (by created_at) per id. */
@@ -183,8 +237,11 @@ export function buildAlertsView(input: {
   outbox: OutboxRow[] | null;
   outboxState: ReadState;
   now: number;
+  monitorLanes?: LaneMonitor[];
 }): AlertsView {
-  const monitor = monitorFor(input.run, input.runsState, input.now);
+  const monitor = input.monitorLanes
+    ? monitorFor(input.monitorLanes, input.now)
+    : monitorFor(input.run, input.runsState, input.now);
   const folded = foldOutbox(input.outbox ?? []);
   const alerts = input.alerts ?? [];
   // Only alerts that have actually FIRED get a delivery-timeline row — an alert that has never
@@ -218,7 +275,9 @@ export function buildAlertsView(input: {
     // Distinct from `coverage.count` (which is an honest null, not a number, when coverage
     // is degraded) — this is the "how many symbols could we not evaluate" fact for the
     // CouldNotWatch module, sourced only from the evaluator's own run receipt.
-    noCoverageCount: input.run?.unevaluable_n ?? null,
+    noCoverageCount: input.monitorLanes
+      ? noCoverageAcross(input.monitorLanes.map((l) => l.run))
+      : input.run?.unevaluable_n ?? null,
     rows,
     emptyAction,
   };
@@ -265,7 +324,13 @@ export const ALERTS_COPY: Record<string, [string, string]> = {
   "outage.body": ["We cannot confirm monitoring right now. Try again in a few minutes.", "我们暂时无法确认监控状态，请几分钟后再试。"],
   "outage.action": ["Retry", "重试"],
   "listUnavailable.body": ["We could not confirm your alert list just now. Try again in a few minutes.", "我们刚才无法确认你的警报列表，请几分钟后再试。"],
-  "noCoverage.body": ["We cannot read prices for {n} of your symbols, so those conditions were not checked.", "有 {n} 个代码我们读不到价格，这些条件未被检查。"],
+  "noCoverage.body": ["We could not check {n} of your conditions on the last run.", "上次检查中，有 {n} 项条件我们未能完成检查。"],
+  "noCoverage.body.prices": ["We cannot read prices for {n} of your symbols, so those conditions were not checked.", "有 {n} 个代码我们读不到价格，这些条件未被检查。"],
+  "identity.unresolved": ["Cannot be checked", "无法检查"],
+  "identity.unresolved.body": ["The underlying saved on this alert is not in a form we can read, so it will never fire. Delete it and set it up again.", "这条提醒保存的标的格式我们无法读取，因此它永远不会触发。请删除后重新设置。"],
+  "monitor.lane.suite": ["Signal-suite conditions", "信号套件条件"],
+  "monitor.lane.engine": ["Price, trend and options conditions", "价格、趋势与期权条件"],
+  "monitor.lane.degraded": ["{lane}: monitoring degraded — last successful check {t}.", "{lane}：监控降级 —— 上次成功检查 {t}。"],
   // Major (round-5 review): the no-coverage module answers "what could we not watch" but, at
   // zero timeline rows, said nothing about activity at all — a page that only ever mentions
   // what failed, never what happened. This pair renders alongside CouldNotWatch whenever

@@ -659,6 +659,16 @@ export function canonicalizeOptAlertIdentity(
   return { symbol: root, condition: { ...condition, root } };
 }
 
+export type OptAlertIdentityState = "ok" | "unresolved";
+
+/** Derived read-side identity. Unresolved exactly when canonicalize returns null. */
+export function optAlertIdentityState(
+  symbol: string,
+  condition: Record<string, unknown>,
+): OptAlertIdentityState {
+  return canonicalizeOptAlertIdentity(symbol, condition) ? "ok" : "unresolved";
+}
+
 /**
  * Build the `{type, root, ...}` condition the POST sends. Only the fields each
  * type reads are included (opaque jsonb — the API route passes it through
