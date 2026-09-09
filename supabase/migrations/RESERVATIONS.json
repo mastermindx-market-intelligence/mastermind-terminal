@@ -163,7 +163,7 @@
       "state": "taken",
       "file": "0023_portfolio_targets.sql",
       "packet": "B-F08-B5-1",
-      "pr": 0,
+      "pr": 552,
       "pr_state": "open",
       "note": "portfolio target weights + bands, user-typed, RLS own-row"
     }
