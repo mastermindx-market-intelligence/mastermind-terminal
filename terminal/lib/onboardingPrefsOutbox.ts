@@ -90,7 +90,7 @@ export type DeliveryOutcome =
  * client, and so the caller decides which client performs the write.
  */
 export async function deliverPendingPrefs(
-  updateUser: (data: Record<string, unknown>) => Promise<{ error?: { message?: string } | null } | void>,
+  updateUser: (data: Record<string, unknown>) => Promise<{ error?: { name?: string; message?: string } | null } | void>,
 ): Promise<DeliveryOutcome> {
   const record = readPendingPrefs();
   if (!record) return { status: "nothing-pending" };
@@ -110,7 +110,7 @@ export async function deliverPendingPrefs(
       clearPendingPrefs();
       return { status: "delivered" };
     }
-    record.prefs = data as PendingPrefs;
+    record.prefs = data as unknown as PendingPrefs;
     try {
       localStorage.setItem(LS_PENDING_PREFS, JSON.stringify({ prefs: record.prefs, attempts: record.attempts } satisfies OutboxRecord));
     } catch { /* ignore */ }

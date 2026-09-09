@@ -212,7 +212,7 @@ describe("B-F08-7b — a patch that scopes to empty is nothing the Terminal may 
   it("strips foreign keys from the durable record, delivers what remains, and does not retry the foreign keys", async () => {
     const mixed = { first_name: "Ada", alert_email_optin: true, tz: "UTC" };
     localStorage.setItem(LS_PENDING_PREFS, JSON.stringify({ prefs: mixed, attempts: 0 }));
-    const send = vi.fn(async () => ({ error: { message: "network" } }));
+    const send = vi.fn(async (_data: Record<string, unknown>) => ({ error: { message: "network" } }));
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const outcome = await deliverPendingPrefs((data) => sendScopedAccountWrite(send, data));
     expect(outcome.status).toBe("failed");
