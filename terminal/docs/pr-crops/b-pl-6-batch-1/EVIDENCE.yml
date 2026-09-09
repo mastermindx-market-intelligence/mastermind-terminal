@@ -1,0 +1,42 @@
+# B-PL-6 batch 1 — capture evidence
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
+# capturedAtHead: a3bef72694ad522854b199faffa6efbe76bae79a
+# capturedAt: 2026-09-09T05:01:50.416Z
+# capturedAtHead is informational. The lock is layoutFiles.
+layoutFiles:
+  terminal/components/OptionsHubView.tsx: "6c96e1600be54665de06fe8d4fad58242b6e4ee6e0366239b3375910f38dde3a"
+  terminal/components/SearchModal.tsx: "ed4545abe5d31c5f79e7eab96bad45b76b06694bf4d1994901dd6defd195bbc0"
+  terminal/components/workspaces/AnalysisWorkspace.tsx: "eb240013c5d579cd58098656a8e233efe5b8bf4a153c734bf9d26a6f3b081657"
+  terminal/components/ChartPanel.tsx: "20d22afbe6af69d3165ba7a60324182e40c9a36b92cc40a1d321d99573e99805"
+  terminal/components/DayRange.tsx: "c84724652783da1897ab4eeb98550eaf3dbd7942eefe3ce127b6ada2b16dd672"
+  terminal/lib/plainLabels.ts: "32bbc808e5572584756eca5b110fd7cd0bf9c5cbcb363e534ef9523073b180ba"
+  terminal/lib/i18n.tsx: "d3bed4d8c484627c8b524c7495669282e4d7e3affb98c52e5d17f3a607e5f7a8"
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: mobile, width: 390, height: 844 }
+surfaces: [OptionsHubView, SearchModal, AnalysisWorkspace, ChartChrome]
+capture_flag: TERMINAL_E2E_FIXTURE
+capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
+command: |
+  cd terminal
+  node e2e/tools/capture_pl6_batch1.cjs
+files:
+  - OptionsHubView-1440.png
+  - SearchModal-1440.png
+  - AnalysisWorkspace-1440.png
+  - ChartChrome-1440.png
+  - OptionsHubView-1440-zh.png
+  - SearchModal-1440-zh.png
+  - AnalysisWorkspace-1440-zh.png
+  - ChartChrome-1440-zh.png
+  - OptionsHubView-390.png
+  - SearchModal-390.png
+  - AnalysisWorkspace-390.png
+  - ChartChrome-390.png
+  - OptionsHubView-390-zh.png
+  - SearchModal-390-zh.png
+  - AnalysisWorkspace-390-zh.png
+  - ChartChrome-390-zh.png

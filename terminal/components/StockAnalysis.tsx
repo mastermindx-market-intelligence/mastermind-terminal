@@ -41,7 +41,9 @@ import {
   MACRO_DURATION_ZH,
   MACRO_INFLATION_ZH,
   MACRO_REGIME_ZH,
+  entryStatusLabel,
   macroChipLabel,
+  mappedOrNeutral,
   regimeLabel as plainRegime,
   trustTierLabel,
 } from "@/lib/plainLabels";
@@ -360,6 +362,7 @@ function TechGauge({ bars, pick, onOpen }: { bars: Bar[]; pick: Pick; onOpen?: (
 
 /** Analyst gauge — fund.analyst dist → gauge + target/upside. CN empty-state. */
 function AnalystGauge({ fund, spot, pick, onOpen, hasIntelAnalyst }: { fund: Fund | null; spot: number | null; pick: Pick; onOpen?: () => void; hasIntelAnalyst?: boolean }) {
+  const { lang } = useLang();
   const an = fund?.analyst;
   if (!an) {
     // CN names carry null fund.analyst but often DO carry an intel analyst block (44 analysts etc.).
@@ -386,7 +389,7 @@ function AnalystGauge({ fund, spot, pick, onOpen, hasIntelAnalyst }: { fund: Fun
         const arc = readingToArc(score);
         return (
           <div className="sa-gauge fin-arc-wrap">
-            <ArcGauge value={arc.value} state={arc.state} size={150} sublabel={verdict} />
+            <ArcGauge value={arc.value} state={arc.state} size={150} sublabel={mappedOrNeutral(verdict, lang)} />
             <div className="fin-gauge-counts">
               <span className="down">{pick("Sell", "卖")} {d.sell + d.strongSell}</span>
               <span className="mut">{pick("Neutral", "中性")} {d.hold}</span>
@@ -696,7 +699,7 @@ export default function StockAnalysis({
         <Section title={pick("Timing quality", "时机质量")} sub={entry.grade ? `${pick("grade", "评级")} ${cap(entry.grade)}` : supporting ? pick("act now?", "现在行动？") : undefined}
           accent={entry.status === "open" ? "var(--buy)" : entry.status === "blocked" ? "var(--down)" : "var(--signal)"}>
           <div className="sa-entry-head">
-            <span className={`sa-status ${entry.status}`}>{cap(entry.urgency || entry.status)}</span>
+            <span className={`sa-status ${entry.status}`}>{entryStatusLabel(entry.urgency || entry.status, lang)}</span>
             <b>{pick(entry.headline, entry.headline_zh)}</b>
           </div>
           {pick(entry.action, entry.action_zh) && <div className="sa-entry-act">{pick(entry.action, entry.action_zh)}</div>}

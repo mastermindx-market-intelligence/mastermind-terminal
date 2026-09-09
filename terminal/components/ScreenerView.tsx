@@ -15,6 +15,7 @@ import { verdictIsStale } from "@/lib/signalVerdict";
 import { flowGet } from "@/lib/flowClientCache";
 import { parseGlanceIndex, REGIME_COLORS, REGIME_RANK, type GexRegime, type GlanceIndex } from "@/lib/mscGlance";
 import { makeGexT } from "@/components/gexdesk/gexStrings";
+import { notClassified, verdictLabel } from "@/lib/plainLabels";
 import AssetLogo from "@/components/AssetLogo";
 
 /* ────────────────────────────────────────────────────────────────────────────
@@ -934,7 +935,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
               const sigCell = (
                 <td>
                   {r.verdict
-                    ? <span className={`pill ${buy ? "buy" : "sell"}${verdictIsStale(r.vts) ? " stale" : ""}`} title={r.vts ? `${r.verdict} · ${r.vts}` : undefined}>{r.verdict}</span>
+                    ? <span className={`pill ${buy ? "buy" : "sell"}${verdictIsStale(r.vts) ? " stale" : ""}`} title={r.vts ? `${verdictLabel(r.verdict, lang)} · ${r.vts}` : undefined}>{verdictLabel(r.verdict, lang)}</span>
                     : "—"}
                 </td>
               );
@@ -966,7 +967,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
                       {glance && (
                         <>
                           {/* γ regime — the desk's word + colour (one table, lib/mscGlance) */}
-                          <td>{r.mscRegime ? <span style={{ color: REGIME_COLORS[r.mscRegime] }}>{gexT(`regime${r.mscRegime}`) || (lang === "zh" ? "未分类" : "Not classified")}</span> : "—"}</td>
+                          <td>{r.mscRegime ? <span style={{ color: REGIME_COLORS[r.mscRegime] }}>{gexT(`regime${r.mscRegime}`) || notClassified(lang)}</span> : "—"}</td>
                           {/* net dealer gamma — polarity tone (the desk's POSITIVE/NEGATIVE pairing) */}
                           <td className={r.mscNetGex != null ? (r.mscNetGex >= 0 ? "up" : "down") : ""}>{r.mscNetGex != null ? `${r.mscNetGex >= 0 ? "+" : ""}${r.mscNetGex.toFixed(1)}B` : "—"}</td>
                           {/* distance to flip — position, not day direction (offHi precedent) */}

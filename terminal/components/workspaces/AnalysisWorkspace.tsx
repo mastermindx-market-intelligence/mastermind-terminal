@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 import MegaPane, { FIN_PAGES as FIN_PAGE_LIST, type FinPage } from "@/components/fin/MegaPane";
 import { getFund, getBars, type Fund, type Bar } from "@/lib/fund";
 import { getJSON } from "@/lib/dataCache";
-import { useLang } from "@/lib/i18n";
+import { useLang, useT } from "@/lib/i18n";
 import { ANALYSIS_DEFAULT_SYMBOL, normalizeAnalysisSymbol } from "@/lib/analysisSymbol";
 import { announceShellBrainSymbol } from "@/lib/shellBrainSymbol";
 import { readActiveSymbol, writeActiveSymbol } from "@/lib/activeSymbol";
@@ -73,6 +73,7 @@ export interface AnalysisWorkspaceProps {
 
 export default function AnalysisWorkspace({ initialSymbol, initialPage }: AnalysisWorkspaceProps) {
   const { lang } = useLang();
+  const t = useT();
   const router = useRouter();
 
   const requestedSymbol = initialSymbol?.trim().toUpperCase() || "";
@@ -225,9 +226,9 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
           trackSource="analysis-search"
           className={invalidSymbol ? "sym-pick--invalid" : undefined}
         />
-        <div className="analysis-context-freshness" aria-label={zh ? "公司研究工作区" : "Company research workspace"}>
+        <div className="analysis-context-freshness" aria-label={t("wsCompanyResearch")}>
           <i />
-          <span>{zh ? "公司研究" : "Company research"}</span>
+          <span>{t("wsCompanyResearch")}</span>
         </div>
       </div>
 
@@ -235,13 +236,13 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
         <section className="analysis-invalid-state" role="status" aria-live="polite">
           <span className="analysis-invalid-mark" aria-hidden>!</span>
           <div>
-            <p className="fin-eyebrow">{zh ? "未解析标的" : "UNRESOLVED SYMBOL"}</p>
-            <h1>{zh ? "无法打开该公司研究页" : "This company research page was not opened"}</h1>
+            <p className="fin-eyebrow">{t("wsUnresolvedSymbol")}</p>
+            <h1>{t("wsResearchNotOpened")}</h1>
             <p>{zh
               ? `“${invalidSymbol}” 不是受支持的代码格式。系统未将其替换为 ${DEFAULT_SYMBOL}，也未请求公司数据。`
               : `“${invalidSymbol}” is not a supported symbol format. It was not substituted with ${DEFAULT_SYMBOL}, and no company data was requested.`}</p>
             <button className="btn btn-primary" onClick={() => setPickerOpen(true)}>
-              {zh ? "选择一个标的" : "Choose a company"}
+              {t("wsChooseCompany")}
             </button>
           </div>
         </section>

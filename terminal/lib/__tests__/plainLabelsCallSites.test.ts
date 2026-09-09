@@ -56,12 +56,13 @@ describe("plain-language call sites — leaky fallbacks gone", () => {
     expect(src).toContain("planTierLabel(");
   });
 
-  it("ScreenerView.tsx: no || r.mscRegime; inline Not classified / 未分类", () => {
+  it("ScreenerView.tsx: no || r.mscRegime; notClassified helper on the regime line", () => {
     const src = readOwned("ScreenerView.tsx");
     const gexLine = lineContaining(src, "regime${r.mscRegime}", "mscRegime gexT line");
     expect(gexLine).not.toContain("|| r.mscRegime");
-    expect(gexLine).toContain("Not classified");
-    expect(gexLine).toContain("未分类");
+    expect(gexLine).toContain("notClassified(lang)");
+    expect(gexLine).not.toContain("Not classified");
     expect(src).not.toContain("|| r.mscRegime");
+    expect(src).toContain("verdictLabel(");
   });
 });

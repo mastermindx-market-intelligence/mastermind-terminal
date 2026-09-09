@@ -15,7 +15,15 @@ import {
   notClassified,
   planTierLabel,
   regimeLabel,
+  SIGNAL_VERDICT_LABEL,
+  STAT_TOKEN_LABEL,
+  WIDGET_TYPE_LABEL,
+  entryStatusLabel,
+  statTokenLabel,
   trustTierLabel,
+  verdictLabel,
+  volAboveOiLabel,
+  widgetTypeLabel,
 } from "@/lib/plainLabels";
 
 function assertBilingual(pair: readonly [string, string], key: string) {
@@ -150,5 +158,82 @@ describe("mappedOrNeutral", () => {
     expect(mappedOrNeutral(undefined, "en")).toBe(notClassified("en"));
     expect(mappedOrNeutral(undefined, "zh")).toBe(notClassified("zh"));
     expect(mappedOrNeutral("TECH", "en")).toBe("TECH");
+  });
+});
+
+describe("verdictLabel", () => {
+  it("every mapped verdict has a non-empty EN and ZH label", () => {
+    for (const [key, pair] of Object.entries(SIGNAL_VERDICT_LABEL)) {
+      assertBilingual(pair, key);
+    }
+  });
+
+  it("unknown verdict never returns the raw value", () => {
+    expect(verdictLabel("HOLD", "en")).toBe(notClassified("en"));
+    expect(verdictLabel("HOLD", "zh")).toBe(notClassified("zh"));
+    expect(verdictLabel("HOLD", "en")).not.toBe("HOLD");
+  });
+
+  it("known verdicts are retail words, never the enum", () => {
+    expect(verdictLabel("BUY", "en")).toBe("Buy");
+    expect(verdictLabel("BUY", "zh")).toBe("买入");
+    expect(verdictLabel("REBUY", "en")).toBe("Buy again");
+    expect(verdictLabel("REBUY", "zh")).toBe("再次买入");
+  });
+});
+
+describe("entryStatusLabel", () => {
+  it("maps open and blocked and never echoes the slug", () => {
+    expect(entryStatusLabel("open", "en")).toBe("Window open");
+    expect(entryStatusLabel("open", "zh")).toBe("窗口已开");
+    expect(entryStatusLabel("blocked", "en")).toBe("Blocked");
+    expect(entryStatusLabel("blocked", "zh")).toBe("受阻");
+    expect(entryStatusLabel("open", "en")).not.toBe("open");
+  });
+
+  it("keeps a spaced phrase and classifies an unknown slug", () => {
+    expect(entryStatusLabel("Act now", "en")).toBe("Act now");
+    expect(entryStatusLabel("urgent", "en")).toBe(notClassified("en"));
+    expect(entryStatusLabel("urgent", "en")).not.toBe("urgent");
+  });
+});
+
+describe("statTokenLabel", () => {
+  it("every mapped token has a non-empty EN and ZH label", () => {
+    for (const [key, pair] of Object.entries(STAT_TOKEN_LABEL)) {
+      assertBilingual(pair, key);
+    }
+  });
+
+  it("spells out open interest and never returns oi", () => {
+    expect(statTokenLabel("oi", "en")).toBe("Open interest");
+    expect(statTokenLabel("oi", "zh")).toBe("未平仓合约");
+    expect(statTokenLabel("OI", "en")).not.toBe("OI");
+    expect(statTokenLabel("iv_rank", "en")).toBe("IV rank");
+    expect(statTokenLabel("iv_rank", "zh")).toBe("隐含波动率百分位");
+  });
+});
+
+describe("volAboveOiLabel", () => {
+  it("never contains the raw OI token", () => {
+    expect(volAboveOiLabel("en")).toBe("Volume above open interest");
+    expect(volAboveOiLabel("zh")).toBe("成交量高于未平仓量");
+    expect(volAboveOiLabel("en").toLowerCase()).not.toMatch(/\boi\b/);
+    expect(volAboveOiLabel("zh")).not.toMatch(/OI/i);
+  });
+});
+
+describe("widgetTypeLabel", () => {
+  it("every mapped type has a non-empty EN and ZH label", () => {
+    for (const [key, pair] of Object.entries(WIDGET_TYPE_LABEL)) {
+      assertBilingual(pair, key);
+    }
+  });
+
+  it("unknown widget type never returns the raw slug", () => {
+    expect(widgetTypeLabel("screener", "en")).toBe("Screener");
+    expect(widgetTypeLabel("screener", "zh")).toBe("选股");
+    expect(widgetTypeLabel("mystery-pane", "en")).toBe(notClassified("en"));
+    expect(widgetTypeLabel("mystery-pane", "en")).not.toBe("mystery-pane");
   });
 });

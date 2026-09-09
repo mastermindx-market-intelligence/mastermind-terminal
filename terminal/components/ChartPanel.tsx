@@ -87,7 +87,7 @@ import { makeNearestBarIndex } from "@/lib/barSnap";
 import { ichimoku, supertrend, avwap as computeAvwap, rollingVwap, weekAnchoredVwap, vprofile, volbox, rsiStack, accumPct, trendRibbon, buyShare as mfBuyShare } from "@/lib/indicatorMath";
 import ChartOverlays, { type PaneInfo, type LegendEntry } from "@/components/ChartOverlays";
 import DayStatsStrip from "@/components/DayStatsStrip";
-import { tPlain } from "@/lib/i18n";
+import { tPlain, useT } from "@/lib/i18n";
 import { listTemplates } from "@/lib/chartTemplates";
 import {
   announceTerminalVisualReady,
@@ -517,6 +517,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     /** Entitlement tier (UI gate for premium suite modules — authority stays server-side). */
     userTier?: SuiteTier;
   }) {
+  const t = useT();
   const ref = useRef<HTMLDivElement>(null);
   const statusRef = useRef<HTMLSpanElement>(null);
   const verdictRef = useRef<HTMLSpanElement>(null);
@@ -2611,7 +2612,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         : v === "BOTTOM_WATCH" ? "EARLY"
           : isStopSweepReclaim({ type: v, quality: vQuality }) ? "LIQUIDITY RECLAIM"
             : v === "RECLAIM" ? "RE-ENTRY" : v;
-      verdictRef.current.textContent = `GOLDEN ORACLE · ${vLabel}`;
+      verdictRef.current.textContent = `${tPlain("goldenOracleLbl")} · ${vLabel}`;
       verdictRef.current.style.color = chipColor;
       const w = verdictRef.current.parentElement as HTMLElement;
       // Token-derived so the chip tracks the shell palette (byte-identical output on web, where
@@ -8571,7 +8572,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       )}
       <div className="statusline">
         <span ref={statusRef} />
-        <span className="mm" style={{ display: oracleVisible ? undefined : "none" }}><i style={{ background: "currentColor" }} /><span ref={verdictRef}>GOLDEN ORACLE</span></span>
+        <span className="mm" style={{ display: oracleVisible ? undefined : "none" }}><i style={{ background: "currentColor" }} /><span ref={verdictRef}>{t("goldenOracleLbl")}</span></span>
         {replayIdx != null && <span className="mm" style={{ background: "rgba(232,179,57,.14)", borderColor: "rgba(232,179,57,.35)", color: "var(--signal)" }}><i style={{ background: "var(--signal)" }} />REPLAY</span>}
         {/* GC v2: toggle the early-dots + arm/confirm warning overlay (side channels) */}
         {oracleVisible && <span className="mm" role="button" tabIndex={0} onClick={() => setShowDetail((v) => !v)}
