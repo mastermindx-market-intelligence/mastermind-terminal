@@ -1,7 +1,7 @@
 # `supabase/migrations` — what this directory is, and what it is not
 
 This directory is the **schema source of record** for the shared Supabase project
-(`fsldfzlxyavsuwqbceod`). It is NOT a migration runner, and nothing in the deploy chain applies it.
+(`{ref}`). It is NOT a migration runner, and nothing in the deploy chain applies it.
 
 **Before you add a file here, claim its number.** See [Numbering and reservations](#numbering-and-reservations) at the foot of this file for the allocation rule and the current list of open claims.
 
@@ -55,9 +55,11 @@ rows each record their own date — `0011`'s DDL was applied 2026-09-05
 | `0009_watchlist_symbol_unique.sql` | `wls_watchlist_symbol` | **yes** — applied 2026-08-19 |
 | `0010_search_event_stats.sql` | `search_event_stats()` + `search_events_created_at` | **yes** — applied 2026-08-21 |
 | `0011_analytics_eid.sql` | `analytics_events.eid` (nullable unique UUID column) + `analytics_events_eid_uniq` unique index (WS:COMMERCIAL-ACTIVATION CA1A) | yes — DDL applied 2026-09-05; readback receipt posted 2026-09-06 (PR #507 comment `5557754941`) |
-| `0012_thesis_objects.sql` | `theses`, `thesis_versions` + `apply_thesis_version_v1()`/`read_current_thesis_versions_v1()` | yes — applied 2026-09-06 (Meta-CEO B; project fsldfzlxyavsuwqbceod; post-apply readback: both tables relrowsecurity=true, policies theses_select_own + thesis_versions_select_own, SELECT-only grant to authenticated, functions apply_thesis_version_v1 (security definer) + read_current_thesis_versions_v1 (security invoker), indexes theses_owner_updated_idx/theses_owner_subject_idx/thesis_versions_owner_thesis_idx) |
+| `0012_thesis_objects.sql` | `theses`, `thesis_versions` + `apply_thesis_version_v1()`/`read_current_thesis_versions_v1()` | yes — applied 2026-09-06 (Meta-CEO B; project {ref}; post-apply readback: both tables relrowsecurity=true, policies theses_select_own + thesis_versions_select_own, SELECT-only grant to authenticated, functions apply_thesis_version_v1 (security definer) + read_current_thesis_versions_v1 (security invoker), indexes theses_owner_updated_idx/theses_owner_subject_idx/thesis_versions_owner_thesis_idx) |
 | `0013_alert_runs_outbox.sql` | `alert_runs`, `alert_outbox` tables + RLS (Market Ontology F08 packet B-F08-2) | yes — applied 2026-09-07 via a direct Management API query (curl method above); readback receipt on PR #513 comment `5563321750` |
-| `0016_account_lifecycle_requests.sql` | `account_lifecycle_requests` table + RLS | **no** — pending Meta-CEO application |
+| `0014_tenancy_foundation.sql` | `teams`, `team_members`, `team_invites` tables + `is_team_member()`/`team_role()`/`handle_new_team()` + RLS | yes — applied 2026-09-08 (Meta-CEO B; readback receipt on PR #514 comment `5592694274`) |
+| `0015_team_roles_invitations.sql` | `workspace_settings` table + `accept_team_invite()` + RLS | yes — applied 2026-09-08 (Meta-CEO B; readback receipt on PR #514 comment `5592697055`) |
+| `0016_account_lifecycle_requests.sql` | `account_lifecycle_requests` table + RLS | yes — applied 2026-09-09 (Meta-CEO B; readback receipt on PR #527 comment `5594233632`) |
 
 **Raw-fallback note (terminal PR #516):** `scripts/supabase_apply.py` only
 becomes the reviewed applier for files in this directory once that PR merges
@@ -119,7 +121,7 @@ the ruling text.
 Four rules, in plain words:
 
 **(a) One forward ledger.** This directory is the only forward migration ledger for the shared
-Supabase project `fsldfzlxyavsuwqbceod`. The Macro repo's `scripts/deploy/000N` series is frozen as
+Supabase project `{ref}`. The Macro repo's `scripts/deploy/000N` series is frozen as
 a historical record: it is never extended, and any Macro-side DDL need becomes a pull request in
 *this* directory instead.
 
@@ -176,9 +178,9 @@ amendment, only a README edit.
 | `0011` | `analytics_eid` | PR #507 (DDL applied 2026-09-05; readback receipt posted 2026-09-06: https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/507#issuecomment-5557754941) | applied |
 | `0012` | `thesis_objects` | PR #502 (merged as `d4556962`; DDL applied 2026-09-06, readback receipt) | merged + applied 2026-09-06 |
 | `0013` | `alert_runs_outbox` | PR #513 (merged as `be898be5` on 2026-09-06, packet B-F08-2) | applied 2026-09-07 via a direct Management API query (the curl method described above in "How DDL actually lands"), used instead of the apply script `scripts/supabase_apply.py` (PR #516) because of a readback-parser bug in that script; readback receipt posted on PR #513 (Meta-CEO B comment https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/513#issuecomment-5563321750) |
-| `0014` | `tenancy_foundation` | PR #514 (open PR, packet B-F12-1) | open PR |
-| `0015` | `team_roles_invitations` | PR #514 (open PR, packet B-F12-1) | open PR |
-| `0016` | `account_lifecycle_requests` | PR #527 (open PR) | open PR |
+| `0014` | `tenancy_foundation` | PR #514 (merged as `cff58ee8` on 2026-09-08, packet B-F12-1) | merged + applied 2026-09-08 |
+| `0015` | `team_roles_invitations` | PR #514 (merged as `cff58ee8` on 2026-09-08, packet B-F12-3; authored on stacked PR #526 squash `83424c63`) | merged + applied 2026-09-08 |
+| `0016` | `account_lifecycle_requests` | PR #527 (merged as `68bbe8ea` on 2026-09-09, packet B-F12-4) | merged + applied 2026-09-09 |
 
 What the statuses mean: **reserved** — the number is claimed (for example, by a Meta-CEO B
 pre-reservation) but no pull request carrying its file is open yet; **open PR** — a pull
@@ -190,18 +192,22 @@ history (merged first, applied later) is otherwise lost. (**released** is an ope
 status — see "Release path" above — for a claim that was stood down; it is not one of the
 ruling's own status words and no row currently carries it.)
 
-`0001`–`0013` have reached production (DDL applied): `0001`–`0010` per the application-status
+`0001`–`0016` have reached production (DDL applied): `0001`–`0010` per the application-status
 table above, `0011` via its corrective DDL applied live on 2026-09-05 via the management API
 (readback receipt posted 2026-09-06, recorded on PR #507, ahead of `0011`'s own file landing on
 `master`), `0012` merged to `master` as `d4556962` with its DDL applied 2026-09-06 (Meta-CEO B,
-readback receipt), and `0013` (PR #513) merged to `master` as `be898be5` on 2026-09-06 with its
+readback receipt), `0013` (PR #513) merged to `master` as `be898be5` on 2026-09-06 with its
 DDL applied out of band on 2026-09-07 via a direct Management API query (the method described
 above in "How DDL actually lands"), used instead of the apply script `scripts/supabase_apply.py`
 (PR #516) because of a readback-parser bug in that script (readback receipt posted on PR #513,
-comment `5563321750`) — merged = yes, applied = yes. `0014` and `0015` (both PR #514) and `0016`
-(PR #527) remain open pull requests (merged = no, applied = no). The "in production?" table and
-the Reservations table above now agree on `0013`: both read applied 2026-09-07 (round-13
-Meta-CEO B ruling, resolving the round-11/round-12 wording split between the two tables).
+comment `5563321750`) — merged = yes, applied = yes. `0014` (PR #514) merged to `master` as
+`cff58ee8` on 2026-09-08 with its DDL applied 2026-09-08 (readback receipt on PR #514 comment
+`5592694274`; summary comment `5592731536`). `0015` (authored on stacked PR #526 squash
+`83424c63`, reached master inside `cff58ee8`) had its DDL applied 2026-09-08 strictly after
+`0014` (readback receipt on PR #514 comment `5592697055`). `0016` (PR #527) merged to `master`
+as `68bbe8ea` on 2026-09-09 with its DDL applied 2026-09-09 (readback receipt on PR #527 comment
+`5594233632`) — merged = yes, applied = yes. The "in production?" table and
+the Reservations table above now agree on `0013`, `0014`, `0015`, and `0016`.
 
 This table is re-verified at merge time, not just at the moment this pull request opened. A later
 reader should re-run the same open-pull-request query rather than trust these owner cells past
