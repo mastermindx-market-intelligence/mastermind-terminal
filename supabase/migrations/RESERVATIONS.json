@@ -101,7 +101,9 @@
       "packet": "F11-1",
       "pr": 502,
       "pr_state": "merged",
-      "note": "present on master via PR #502; open PR #520 (B-F11-2) does not touch supabase/migrations at all (verified against #520's file list) -- no collision, and the earlier claim that #520 edits this path was stale and is corrected here"
+      "applied_in_production": true,
+      "applied_date": "2026-09-06",
+      "note": "present on master via PR #502; DDL applied in production 2026-09-06 (README.md application table); receipt not posted as a PR comment (no receipt comment found on the owning PR); open PR #520 (B-F11-2) does not touch supabase/migrations at all (verified against #520's file list) -- no collision, and the earlier claim that #520 edits this path was stale and is corrected here"
     },
     "0013": {
       "state": "taken",
@@ -109,7 +111,9 @@
       "packet": "B-F08-2",
       "pr": 513,
       "pr_state": "merged",
-      "note": "present on master via PR #513 (merged 2026-09-06); the reservation premise that this file was absent from the checkout is stale and is corrected here -- present-file and absent-file are now both provable on the real tree (0013 present, 0014 still absent)"
+      "applied_in_production": true,
+      "applied_date": "2026-09-07",
+      "note": "present on master via PR #513 (merged 2026-09-06); DDL applied in production 2026-09-07; readback receipt on the owning PR: https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/513#issuecomment-5563321750; the reservation premise that this file was absent from the checkout is stale and is corrected here -- present-file and absent-file are now both provable on the real tree (0013 present, 0014 still absent)"
     },
     "0014": {
       "state": "taken",
@@ -120,7 +124,7 @@
       "merged_sha": "cff58ee8d",
       "applied_in_production": true,
       "applied_date": "2026-09-08",
-      "note": "merged to master as cff58ee8d (2026-09-08); DDL applied in production 2026-09-08; receipt held by the Meta-CEO B seat (kit records_queue)"
+      "note": "merged to master as cff58ee8d (2026-09-08); DDL applied in production 2026-09-08; readback receipt posted on the owning PR: https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/514#issuecomment-5592694274"
     },
     "0015": {
       "state": "taken",
@@ -131,7 +135,7 @@
       "merged_sha": "cff58ee8d",
       "applied_in_production": true,
       "applied_date": "2026-09-08",
-      "note": "landed on master inside #514 (cff58ee8d, 2026-09-08); DDL applied in production 2026-09-08, strictly after 0014; receipt held by the Meta-CEO B seat (kit records_queue)"
+      "note": "landed on master inside #514 (cff58ee8d, 2026-09-08); DDL applied in production 2026-09-08, strictly after 0014; readback receipt posted on the owning PR: https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/514#issuecomment-5592697055"
     },
     "0016": {
       "state": "taken",
@@ -142,7 +146,7 @@
       "merged_sha": "68bbe8ea6",
       "applied_in_production": true,
       "applied_date": "2026-09-09T01:11:07Z",
-      "note": "merged to master as 68bbe8ea6 (2026-09-09; source master 68bbe8ea); DDL applied in production 2026-09-09T01:11:07Z; receipt held by the Meta-CEO B seat (kit records_queue)"
+      "note": "merged to master as 68bbe8ea6 (2026-09-09; source master 68bbe8ea); DDL applied in production 2026-09-09T01:11:07Z; readback receipt posted on the owning PR: https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/527#issuecomment-5594233632"
     },
     "0017": {
       "state": "reserved",

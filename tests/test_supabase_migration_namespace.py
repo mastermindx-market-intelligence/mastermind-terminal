@@ -7,6 +7,7 @@ prefix whose file has not merged yet is a Disclosure, not a Finding.
 """
 from __future__ import annotations
 
+import os
 import warnings
 from pathlib import Path
 
@@ -32,12 +33,22 @@ from scripts.check_supabase_migration_namespace import (
     validate_reservations,
 )
 
+# A ref-SHAPED but deliberately fake token: 20 lowercase-alphanumeric characters,
+# so PROJECT_REF_RE matches it, and hardcoded here so no fixture in this module
+# ever carries the estate's real Supabase project reference. Three fixtures below
+# used to spell the real value out verbatim (review round 2, FIX-1) -- a test file
+# is a published artefact and a ref-shaped secret in one is a leak whether or not
+# the guard would have caught it. `test_the_real_project_ref_is_not_duplicated_
+# anywhere` proves at runtime that this constant is not the real value and that
+# the real value survives in exactly one place: the ledger's own field.
+SYNTHETIC_PROJECT_REF = "zzzzsyntheticref0000"
+
 
 def reservations_doc(**overrides) -> dict:
     doc = {
         "$schema_note": "test fixture",
         "version": 1,
-        "project_ref": "fsldfzlxyavsuwqbceod",
+        "project_ref": SYNTHETIC_PROJECT_REF,
         "prefix_width": 4,
         "header_required_from": "0015",
         "header_required_note": "test fixture",
@@ -443,6 +454,14 @@ def test_collect_end_to_end_over_a_synthetic_tree(tmp_path):
     dup_root = tmp_path / "dup"
     dup_root.mkdir()
 
+    # pr_state="open" is the LEGITIMATE shape here, not a stale-ledger bug: this
+    # models a pull request that carries its own .sql file, which is exactly the
+    # tree CI checks out for `on: pull_request`. Round 1 flipped it to "merged"
+    # to dodge the then-unconditional open-while-present rule; that made the
+    # fixture model a state the next migration PR can never be in (review round
+    # 2, FIX-2). collect() defaults to lenient (non-master) mode, where a present
+    # file with pr_state="open" is legal provided the entry is state=taken with a
+    # pull-request number -- which this fixture is.
     doc = reservations_doc(
         prefixes={
             "0099": {
@@ -450,7 +469,7 @@ def test_collect_end_to_end_over_a_synthetic_tree(tmp_path):
                 "file": "0099_a.sql",
                 "packet": "TEST",
                 "pr": 1,
-                "pr_state": "merged",
+                "pr_state": "open",
                 "note": "fixture",
             },
         }
@@ -576,7 +595,9 @@ def test_open_pr_state_with_a_present_file_is_detected():
             }
         }
     )
-    findings = check_open_pr_state_for_present_files(["0014_tenancy_foundation.sql"], doc)
+    findings = check_open_pr_state_for_present_files(
+        ["0014_tenancy_foundation.sql"], doc, strict_master=True
+    )
     assert any(
         f.code == "OPEN_PR_STATE_WITH_FILE_PRESENT" and f.prefix == "0014" for f in findings
     )
@@ -599,16 +620,25 @@ def test_open_pr_state_is_fine_when_the_file_is_genuinely_absent():
     assert findings == []
 
 
-def test_no_present_file_has_pr_state_open_on_the_real_tree():
-    """The RED-first proof for rule (a): run against the real checkout. Before
-    the ledger fix this fails for 0014/0015/0016 (files present, pr_state
-    still "open"); after RESERVATIONS.json is corrected to pr_state="merged"
-    for all three, this is green.
+def test_pr_state_matches_file_presence_on_the_real_tree():
+    """Rule (a) against the real checkout, in whichever mode this run earns.
+
+    "A present .sql file cannot belong to a pull request the ledger still calls
+    open" is only true of `master`. CI runs this suite `on: pull_request`, on a
+    tree where the PR's own migration IS present and its ledger entry honestly
+    says pr_state="open" -- so asserting the strict rule unconditionally would
+    make the next migration pull request (0017, packet B-F13-5) unmergeable with
+    a truthful ledger (review round 2, FIX-2). So: strict only when the
+    environment PROVES this is a master run, lenient otherwise -- and the
+    assertion runs either way (never a skip), naming the mode it ran in.
     """
+    strict = os.environ.get("GITHUB_EVENT_NAME") == "push" and os.environ.get("GITHUB_REF_NAME") == "master"
+    mode = "strict (master push)" if strict else "lenient (not a master push)"
+
     doc = load_reservations(RESERVATIONS_PATH)
     on_disk = sorted(p.name for p in MIGRATIONS_DIR.glob("*.sql"))
-    findings = check_open_pr_state_for_present_files(on_disk, doc)
-    assert findings == [], format_report(findings, [])
+    findings = check_open_pr_state_for_present_files(on_disk, doc, strict_master=strict)
+    assert findings == [], f"ran in {mode} mode\n" + format_report(findings, [])
 
 
 # --- 19 (packet B-PLAT-B5-2, rule b: reserved prefixes, no gaps) -------------
@@ -670,7 +700,7 @@ def test_literal_project_ref_in_an_entry_is_detected():
                 "packet": "P",
                 "pr": None,
                 "pr_state": None,
-                "note": "receipt against fsldfzlxyavsuwqbceod pending",
+                "note": f"receipt against {SYNTHETIC_PROJECT_REF} pending",
             }
         }
     )
@@ -747,12 +777,371 @@ def test_check_all_wires_the_ledger_truth_checks():
                 "packet": "P4",
                 "pr": None,
                 "pr_state": None,
-                "note": "receipt against fsldfzlxyavsuwqbceod pending",
+                "note": f"receipt against {SYNTHETIC_PROJECT_REF} pending",
             },
         },
     )
-    findings = check_all(filenames, texts, doc)
+    findings = check_all(filenames, texts, doc, strict_master=True)
     codes = {f.code for f in findings}
     assert "OPEN_PR_STATE_WITH_FILE_PRESENT" in codes
     assert "RESERVATION_GAP" in codes
     assert "LITERAL_PROJECT_REF_IN_ENTRY" in codes
+
+
+# --- 22 (review round 2, FIX-1: the real project ref lives in exactly one place) ---
+
+
+def test_synthetic_project_ref_is_not_the_real_one():
+    """Cheap, loud guard on the constant itself. If someone ever "fixes" a
+    fixture by pasting the real value back into SYNTHETIC_PROJECT_REF, this
+    fails immediately -- without ever printing either value.
+    """
+    real = load_reservations(RESERVATIONS_PATH)["project_ref"]
+    assert isinstance(real, str) and len(real) == 20
+    assert SYNTHETIC_PROJECT_REF != real, (
+        "SYNTHETIC_PROJECT_REF must be a fake token, not the estate's real project reference"
+    )
+    assert len(SYNTHETIC_PROJECT_REF) == 20 and SYNTHETIC_PROJECT_REF.isalnum()
+    assert SYNTHETIC_PROJECT_REF.islower()
+
+
+def test_the_real_project_ref_appears_only_in_the_ledger_field():
+    """The real Supabase project reference must survive in exactly ONE place in
+    this tree: RESERVATIONS.json's own top-level `project_ref` field. Everywhere
+    else -- the migration .sql comments, README.md, and this very test module --
+    it is written `{ref}` (Terminal #538's redaction law).
+
+    The value is read at runtime and NEVER printed: every assertion message
+    below names files and counts only. A test that had to hardcode the ref in
+    order to search for it would be the leak it is trying to prevent.
+    """
+    real = load_reservations(RESERVATIONS_PATH)["project_ref"]
+    assert isinstance(real, str) and real
+
+    offenders = []
+    for path in sorted(MIGRATIONS_DIR.rglob("*")):
+        if not path.is_file() or path.name == RESERVATIONS_PATH.name:
+            continue
+        try:
+            text = path.read_text(encoding="utf-8", errors="replace")
+        except OSError:  # pragma: no cover - unreadable file is not a leak
+            continue
+        if real in text:
+            offenders.append(path.name)
+
+    assert offenders == [], (
+        "these files under supabase/migrations/ spell out the literal project "
+        f"reference; replace it with '{{ref}}': {offenders}"
+    )
+
+    own_source = Path(__file__).read_text(encoding="utf-8")
+    assert real not in own_source, (
+        "this test module's own source carries the literal project reference -- "
+        "use SYNTHETIC_PROJECT_REF in fixtures instead"
+    )
+
+    ledger_text = RESERVATIONS_PATH.read_text(encoding="utf-8")
+    assert ledger_text.count(real) == 1, (
+        "RESERVATIONS.json must carry the project reference exactly once, in its "
+        f"top-level 'project_ref' field (found {ledger_text.count(real)} occurrences)"
+    )
+
+
+def test_md_files_beside_the_ledger_are_scanned_for_the_literal_ref():
+    """FIX-1: the guard used to inspect only the entries under `prefixes`, so a
+    README.md sitting in the same directory could spell the ref out in full and
+    stay green. The sibling scan compares against the ledger's OWN project_ref
+    value (not the generic 20-char shape), so it cannot false-positive on prose.
+    """
+    doc = reservations_doc()  # project_ref is SYNTHETIC_PROJECT_REF
+    leaky = {"README.md": f"the shared Supabase project ({SYNTHETIC_PROJECT_REF}).\n"}
+    findings = check_no_literal_project_ref(doc, leaky)
+    assert any(f.code == "LITERAL_PROJECT_REF_IN_DOC" for f in findings)
+    detail = next(f.detail for f in findings if f.code == "LITERAL_PROJECT_REF_IN_DOC")
+    assert "README.md" in detail
+    # The finding must NAME the file, never quote the value.
+    assert SYNTHETIC_PROJECT_REF not in detail
+
+    clean = {"README.md": "the shared Supabase project (`{ref}`).\n", "OTHER.md": "nothing here\n"}
+    assert check_no_literal_project_ref(doc, clean) == []
+
+
+def test_real_migrations_markdown_carries_no_literal_ref():
+    """Same rule, run against the real supabase/migrations/*.md on this tree."""
+    doc = load_reservations(RESERVATIONS_PATH)
+    md_texts = {
+        p.name: p.read_text(encoding="utf-8", errors="replace")
+        for p in sorted(MIGRATIONS_DIR.glob("*.md"))
+    }
+    assert md_texts, "expected at least one .md beside the ledger (README.md)"
+    findings = check_no_literal_project_ref(doc, md_texts)
+    assert findings == [], format_report(findings, [])
+
+
+# --- 23 (review round 2, FIX-2: open-while-present is a MASTER-scope rule) ---
+
+
+def _present_open_doc(pr=514, state="taken"):
+    return reservations_doc(
+        prefixes={
+            "0014": {
+                "state": state,
+                "file": "0014_tenancy_foundation.sql",
+                "packet": "B-F12-1",
+                "pr": pr,
+                "pr_state": "open",
+                "note": "fixture: the pull request itself carries this file",
+            }
+        }
+    )
+
+
+def test_strict_fires_and_lenient_does_not_on_the_same_fixture():
+    """The load-bearing FIX-2 proof: ONE fixture, two modes, opposite verdicts.
+
+    On master, a present file whose ledger row still says pr_state="open" is a
+    stale ledger (that is how 0014/0015/0016 lied). On a pull-request branch the
+    same shape is the normal, honest state of the PR that introduces the file --
+    the branch carries its own .sql while its PR is genuinely still open. Firing
+    in both places would make every future migration PR unmergeable with a
+    truthful ledger.
+    """
+    doc = _present_open_doc()
+    files = ["0014_tenancy_foundation.sql"]
+
+    strict = check_open_pr_state_for_present_files(files, doc, strict_master=True)
+    assert any(f.code == "OPEN_PR_STATE_WITH_FILE_PRESENT" and f.prefix == "0014" for f in strict)
+
+    lenient = check_open_pr_state_for_present_files(files, doc, strict_master=False)
+    assert lenient == [], format_report(lenient, [])
+
+
+def test_lenient_mode_still_requires_a_taken_entry_with_a_pr_number():
+    """Lenient is not "no rule": a present file claiming pr_state="open" must be
+    carried by a real, numbered pull request and be recorded state=taken. A
+    reserved-but-occupied prefix, or an open state with no PR number, is still a
+    finding in lenient mode -- so the mode relaxes exactly one clause and no more.
+    """
+    no_pr = _present_open_doc(pr=None)
+    findings = check_open_pr_state_for_present_files(
+        ["0014_tenancy_foundation.sql"], no_pr, strict_master=False
+    )
+    assert any(
+        f.code == "OPEN_PR_STATE_WITHOUT_OWNING_PR" and f.prefix == "0014" for f in findings
+    )
+
+    not_taken = _present_open_doc(state="reserved")
+    findings = check_open_pr_state_for_present_files(
+        ["0014_tenancy_foundation.sql"], not_taken, strict_master=False
+    )
+    assert any(
+        f.code == "OPEN_PR_STATE_WITHOUT_OWNING_PR" and f.prefix == "0014" for f in findings
+    )
+
+
+def test_merged_pr_state_with_an_absent_file_is_detected_in_both_modes():
+    """The cheap converse, valid on every ref: pr_state="merged" means the file
+    reached master, so it must be present in ANY checkout descended from master.
+    Absent means the ledger is lying in the other direction -- which no check
+    covered before (review round 2, FIX-2).
+    """
+    doc = reservations_doc(
+        prefixes={
+            "0013": {
+                "state": "taken",
+                "file": "0013_alert_runs_outbox.sql",
+                "packet": "B-F08-2",
+                "pr": 513,
+                "pr_state": "merged",
+                "note": "fixture: claims merged, but the file is not on disk",
+            }
+        }
+    )
+    for strict in (True, False):
+        findings = check_open_pr_state_for_present_files([], doc, strict_master=strict)
+        assert any(
+            f.code == "MERGED_PR_STATE_WITH_FILE_ABSENT" and f.prefix == "0013" for f in findings
+        ), f"converse check must fire in strict_master={strict} mode too"
+
+
+def test_merged_pr_state_with_the_file_present_is_clean():
+    doc = reservations_doc(
+        prefixes={
+            "0013": {
+                "state": "taken",
+                "file": "0013_alert_runs_outbox.sql",
+                "packet": "B-F08-2",
+                "pr": 513,
+                "pr_state": "merged",
+                "note": "fixture",
+            }
+        }
+    )
+    for strict in (True, False):
+        assert check_open_pr_state_for_present_files(
+            ["0013_alert_runs_outbox.sql"], doc, strict_master=strict
+        ) == []
+
+
+# --- 24 (review round 2, FIX-5: `released` is a real state, not a permanent red) ---
+
+
+def test_released_is_a_valid_state_with_no_file():
+    doc = reservations_doc(
+        prefixes={
+            "0017": {
+                "state": "released",
+                "file": None,
+                "packet": "B-F13-5",
+                "pr": None,
+                "pr_state": None,
+                "note": "fixture: pre-reservation stood down by Meta-CEO B",
+            }
+        }
+    )
+    assert validate_reservations(doc) == []
+
+
+def test_released_with_a_file_is_a_schema_finding():
+    """README.md's release path: the row keeps its number but the claim is stood
+    down and no .sql was ever written for it. A `released` row naming a file is
+    self-contradictory.
+    """
+    doc = reservations_doc(
+        prefixes={
+            "0017": {
+                "state": "released",
+                "file": "0017_something.sql",
+                "packet": "B-F13-5",
+                "pr": None,
+                "pr_state": None,
+                "note": "fixture",
+            }
+        }
+    )
+    findings = validate_reservations(doc)
+    assert any(f.code == "RESERVATION_SCHEMA" and f.prefix == "0017" for f in findings)
+
+
+def test_released_prefix_occupied_by_a_file_on_disk_is_detected():
+    doc = reservations_doc(
+        prefixes={
+            "0017": {
+                "state": "released",
+                "file": None,
+                "packet": "B-F13-5",
+                "pr": None,
+                "pr_state": None,
+                "note": "fixture",
+            }
+        }
+    )
+    findings = check_files_are_reserved(["0017_someone_elses.sql"], doc)
+    assert any(f.code == "RELEASED_PREFIX_OCCUPIED" and f.prefix == "0017" for f in findings)
+
+
+def test_released_entry_between_reserved_ones_leaves_no_gap():
+    """The FIX-5 defect in one test: README.md documents `released` as the way a
+    stood-down claim is recorded in place, but VALID_STATES did not know the word
+    and check_reservation_contiguity did not count it as occupying its number --
+    so the README's own release path would have produced a permanent
+    RESERVATION_GAP red the moment anyone used it.
+    """
+    def doc_with(state_0018):
+        return reservations_doc(
+            prefixes={
+                "0016": {
+                    "state": "taken",
+                    "file": "0016_x.sql",
+                    "packet": "P",
+                    "pr": 1,
+                    "pr_state": "merged",
+                    "note": "fixture",
+                },
+                "0017": {
+                    "state": "reserved",
+                    "file": None,
+                    "packet": "P2",
+                    "pr": None,
+                    "pr_state": None,
+                    "note": "fixture",
+                },
+                "0018": {
+                    "state": state_0018,
+                    "file": None,
+                    "packet": "P3" if state_0018 != "free" else None,
+                    "pr": None,
+                    "pr_state": None,
+                    "note": "fixture",
+                },
+                "0019": {
+                    "state": "reserved",
+                    "file": None,
+                    "packet": "P4",
+                    "pr": None,
+                    "pr_state": None,
+                    "note": "fixture",
+                },
+            }
+        )
+
+    released = check_reservation_contiguity(doc_with("released"))
+    assert released == [], format_report(released, [])
+
+    # Control: the same shape with 0018 genuinely free IS a gap, so the test
+    # above is proving `released` occupies the number, not that the check is dead.
+    freed = check_reservation_contiguity(doc_with("free"))
+    assert any(f.code == "RESERVATION_GAP" and f.prefix == "0018" for f in freed)
+
+
+def test_released_disclosure_prints_no_nulls():
+    doc = reservations_doc(
+        prefixes={
+            "0017": {
+                "state": "released",
+                "file": None,
+                "packet": "B-F13-5",
+                "pr": None,
+                "pr_state": None,
+                "note": "fixture",
+            }
+        }
+    )
+    report = format_report([], disclosures([], doc))
+    assert "None" not in report
+    assert "released" in report
+
+
+# --- 25 (review round 2, FIX-7: applied-in-production fields and historical nulls) ---
+
+
+def test_applied_prefixes_carry_their_application_date():
+    """README.md's application table records 0012 applied 2026-09-06 and 0013
+    applied 2026-09-07, but their ledger rows carried no applied_* fields at all
+    while 0014-0016 did -- two documents disagreeing about the same fact.
+    """
+    prefixes = load_reservations(RESERVATIONS_PATH)["prefixes"]
+    expected = {
+        "0012": "2026-09-06",
+        "0013": "2026-09-07",
+        "0014": "2026-09-08",
+        "0015": "2026-09-08",
+    }
+    for prefix, date in expected.items():
+        assert prefixes[prefix]["applied_in_production"] is True, prefix
+        assert prefixes[prefix]["applied_date"].startswith(date), prefix
+    assert prefixes["0016"]["applied_in_production"] is True
+    assert prefixes["0016"]["applied_date"].startswith("2026-09-09")
+
+
+def test_historical_prefixes_carry_no_pr_state_by_design():
+    """0001-0007 and 0010 predate the ledger: their creating pull requests are
+    not recorded in-repo, so pr/pr_state are null on purpose (null, not
+    unknown-and-guessed). Pinning that here stops a later "tidy-up" from
+    inventing PR numbers for them.
+    """
+    prefixes = load_reservations(RESERVATIONS_PATH)["prefixes"]
+    for prefix in ("0001", "0002", "0003", "0004", "0005", "0006", "0007", "0010"):
+        assert prefixes[prefix]["state"] == "historical", prefix
+        assert prefixes[prefix]["pr"] is None, prefix
+        assert prefixes[prefix]["pr_state"] is None, prefix

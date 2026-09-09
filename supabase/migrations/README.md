@@ -170,13 +170,19 @@ amendment, only a README edit.
   `max()` like any other row — `released` marks the claim as abandoned, it does not free the
   number for reissue. `released` is a status this README defines to implement the release path
   above; it is not one of the ruling's enumerated statuses. No number below has been released.
+  `RESERVATIONS.json` and `scripts/check_supabase_migration_namespace.py` now both know the word:
+  `released` is a valid ledger `state`, it must carry no `file`, the guard fails loudly if a `.sql`
+  ever appears at a released prefix (`RELEASED_PREFIX_OCCUPIED`), and the contiguity walk counts a
+  released number as occupied. Until Terminal PR #543 the script's `VALID_STATES` had no
+  `released` at all, so following this very paragraph would have turned the ledger permanently red
+  (`RESERVATION_SCHEMA` on the word, `RESERVATION_GAP` on the number) with no honest way out.
 
 ### Reservations
 
 | number | name | owner (PR / packet) | status |
 |---|---|---|---|
 | `0011` | `analytics_eid` | PR #507 (DDL applied 2026-09-05; readback receipt posted 2026-09-06: https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/507#issuecomment-5557754941) | applied |
-| `0012` | `thesis_objects` | PR #502 (merged as `d4556962`; DDL applied 2026-09-06, readback receipt) | merged + applied 2026-09-06 |
+| `0012` | `thesis_objects` | PR #502 (merged as `d4556962`; DDL applied 2026-09-06, readback receipt taken at apply time but **no receipt comment found on the owning PR** — searched #502's comments 2026-09-09) | merged + applied 2026-09-06 |
 | `0013` | `alert_runs_outbox` | PR #513 (merged as `be898be5` on 2026-09-06, packet B-F08-2) | applied 2026-09-07 via a direct Management API query (the curl method described above in "How DDL actually lands"), used instead of the apply script `scripts/supabase_apply.py` (PR #516) because of a readback-parser bug in that script; readback receipt posted on PR #513 (Meta-CEO B comment https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/513#issuecomment-5563321750) |
 | `0014` | `tenancy_foundation` | PR #514 (merged as `cff58ee8` on 2026-09-08, packet B-F12-1) | merged + applied 2026-09-08 |
 | `0015` | `team_roles_invitations` | PR #514 (merged as `cff58ee8` on 2026-09-08, packet B-F12-3; authored on stacked PR #526 squash `83424c63`) | merged + applied 2026-09-08 |
@@ -185,6 +191,13 @@ amendment, only a README edit.
 | `0018` | (pre-reservation) | Meta-CEO B ruling 2026-09-09, packet B-F12-7 (signed webhooks); no pull request open yet | reserved |
 | `0019` | (pre-reservation) | Meta-CEO B ruling 2026-09-09, packet B-F12-8 (team roles); no pull request open yet | reserved |
 | `0020` | (pre-reservation) | Meta-CEO B ruling 2026-09-09, packet B-F12-9 (ownership transfer); no pull request open yet | reserved |
+
+`0001`–`0007` and `0010` are **historical**: they predate this ledger, their creating pull
+requests were never recorded in-repo, and so their `pr` and `pr_state` fields in
+`RESERVATIONS.json` are `null` **by design** — null meaning "not recorded", never
+unknown-and-guessed. Do not backfill them with inferred pull-request numbers; the guard and
+`tests/test_supabase_migration_namespace.py` both pin that nullity so a later tidy-up cannot
+invent provenance for them.
 
 What the statuses mean: **reserved** — the number is claimed (for example, by a Meta-CEO B
 pre-reservation) but no pull request carrying its file is open yet; **open PR** — a pull

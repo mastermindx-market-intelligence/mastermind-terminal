@@ -8,16 +8,44 @@ see each other's filenames, which is exactly how `0008_` was claimed twice (PR #
 PR #426, README.md:67-75). `RESERVATIONS.json` is the forward ledger that makes that
 collision visible before merge: claim a prefix there before you write the `.sql` file.
 
-This checker joins the files actually present in this checkout against that ledger. A
-`taken`/`reserved` prefix whose file is absent is NOT an error -- it means the owning
-pull request has not merged yet -- so the guard stays green on a checkout missing
-in-flight files (e.g. 0013/0014 living in open PRs #513/#514), and it still fails on a
-genuine duplicate-prefix or unreserved-prefix fixture. That is what proves the guard is
-real and not vacuously green.
+This checker joins the files actually present in this checkout against that ledger.
+The join runs on-disk-file -> ledger-entry, never the reverse, so an entry whose file
+is not in this checkout is a Disclosure rather than a Finding. The current rule set,
+in full:
+
+  * `state` is one of `historical`, `taken`, `reserved`, `released`, `free`. A file on
+    disk at a `free` prefix, at a `reserved` prefix (the owner claimed the number but
+    has not written the .sql), or at a `released` prefix (the claim was stood down and
+    the number is retired, never reissued) is a Finding. `released` keeps its number and
+    counts toward `max()` exactly like an active claim -- see README.md's "Release path".
+  * present file x `pr_state: "open"` is scope-dependent, which is why this guard takes
+    a `strict_master` flag. On `master` the file being here proves its pull request
+    merged, so `open` is a stale ledger (that is how 0014/0015/0016 lied) and it is a
+    Finding. On a pull-request branch the same shape is the honest, normal state of the
+    PR that INTRODUCES the file: CI checks out the branch with its own .sql present
+    while the PR really is open. Firing there would make every future migration PR
+    unmergeable with a truthful ledger, so lenient mode instead requires only that the
+    entry is `state: "taken"` with a pull-request number.
+  * absent file x `pr_state: "merged"` is a Finding in BOTH modes -- the converse is
+    valid on every ref, because a merged file is on `master` and therefore in any
+    checkout descended from it.
+  * absent file x `pr_state: "open"` is never a Finding; it is the unmerged in-flight
+    case, disclosed in plain words rather than failed.
+  * `reserved` prefixes must form a gap-free block above the highest merged/historical
+    number (with `released` numbers counting as occupied), so a later claimant cannot
+    step over a live Meta-CEO B pre-reservation without seeing it.
+  * the literal Supabase project ref appears exactly once in this directory: the
+    ledger's own top-level `project_ref`. Entries under `prefixes` and every `*.md`
+    beside the ledger must write `{ref}` instead (Terminal #538's redaction law).
+
+`main()` selects strict mode only when the environment proves a `master` push
+(`GITHUB_EVENT_NAME=push` and `GITHUB_REF_NAME=master`); every other invocation, local
+or pull-request CI, is lenient.
 """
 from __future__ import annotations
 
 import json
+import os
 import re
 import sys
 from dataclasses import dataclass
@@ -35,7 +63,17 @@ RESERVATIONS_PATH = MIGRATIONS_DIR / "RESERVATIONS.json"
 MIGRATION_RE = re.compile(r"^(?P<prefix>\d{4})_(?P<name>[a-z0-9_]+)\.sql$")
 LEDGER_ROW_RE = re.compile(r"^--\s*Ledger row:\s*(?P<row>\S.*)$", re.IGNORECASE | re.MULTILINE)
 ROLLBACK_RE = re.compile(r"^--\s*Rollback:\s*(?P<sql>\S.*)$", re.IGNORECASE | re.MULTILINE)
-VALID_STATES = ("historical", "taken", "reserved", "free")
+# `released` is the README's own release path (README.md, "Release path" operating
+# note): a claim that was stood down keeps its row and its number in place, counts
+# toward max() like any other row, and is never reissued. It was missing from this
+# tuple, so the moment anyone actually followed the README the ledger would have gone
+# RESERVATION_SCHEMA-red on the state word and RESERVATION_GAP-red on the number --
+# permanently, with no honest way out (review round 2, FIX-5).
+VALID_STATES = ("historical", "taken", "reserved", "released", "free")
+
+# The states that occupy a number: they hold it against reissue, so a contiguity walk
+# must treat them as filled rather than as a gap.
+OCCUPYING_STATES = ("taken", "reserved", "released")
 HEADER_SCAN_LINES = 40  # header lines only; a buried '-- Rollback:' mid-file does not count
 
 # A Supabase project ref is a 20-char lowercase-alphanumeric token. Bounded on
@@ -172,11 +210,33 @@ def validate_reservations(doc: dict) -> list[Finding]:
                     findings.append(Finding("RESERVATION_SCHEMA", key, "state=reserved with pr=null requires pr_state to be null"))
             elif not isinstance(pr_v, int):
                 findings.append(Finding("RESERVATION_SCHEMA", key, "state=reserved 'pr' must be null or an int"))
+        elif state == "released":
+            # A stood-down claim: the row stays, the number stays retired, and no
+            # .sql was ever written for it. `packet` is still required -- the row
+            # records WHOSE claim was stood down, which is the whole point of not
+            # deleting it.
+            if file_v is not None:
+                findings.append(Finding("RESERVATION_SCHEMA", key, "state=released requires 'file' to be null -- a released claim never wrote its .sql"))
+            if not _non_empty_str(packet_v):
+                findings.append(Finding("RESERVATION_WITHOUT_OWNER", key, "state=released requires a non-empty 'packet' naming the claim that was stood down"))
         elif state == "free":
             if file_v is not None or packet_v is not None or pr_v is not None or pr_state_v is not None:
                 findings.append(Finding("RESERVATION_SCHEMA", key, "state=free requires file/packet/pr/pr_state to all be null"))
 
     return findings
+
+
+def is_master_push(env: "Mapping[str, str] | None" = None) -> bool:
+    """True only when the environment PROVES this run is a push to `master`.
+
+    The open-while-present rule (see `check_open_pr_state_for_present_files`) is a
+    master-scope property, so it must not be asserted on a pull-request checkout.
+    GitHub Actions sets both of these; anything else -- a local run, a
+    `pull_request` event, a `workflow_dispatch` on a branch -- reads as False and
+    gets the lenient rule set.
+    """
+    env = os.environ if env is None else env
+    return env.get("GITHUB_EVENT_NAME") == "push" and env.get("GITHUB_REF_NAME") == "master"
 
 
 def check_prefix_collisions(filenames: Sequence[str]) -> list[Finding]:
@@ -240,6 +300,22 @@ def check_files_are_reserved(filenames: Sequence[str], doc: dict) -> list[Findin
             )
             continue
 
+        if state == "released":
+            # A released number is retired, not recycled: README.md's release path
+            # says the row keeps counting toward max() precisely so the number is
+            # never reissued. A file sitting on a released prefix means someone
+            # reissued it anyway.
+            findings.append(
+                Finding(
+                    "RELEASED_PREFIX_OCCUPIED",
+                    prefix,
+                    f"'{name}' occupies prefix {prefix}, which RESERVATIONS.json marks released "
+                    f"(claim by packet '{entry.get('packet')}' stood down); a released number is "
+                    "retired and never reissued -- claim the next free number instead",
+                )
+            )
+            continue
+
         expected_file = entry.get("file")
         if expected_file is None:
             findings.append(
@@ -282,32 +358,75 @@ def check_migration_header(filename: str, text: str, doc: dict) -> list[Finding]
     return findings
 
 
-def check_open_pr_state_for_present_files(filenames: Sequence[str], doc: dict) -> list[Finding]:
-    """A `.sql` file that is actually present in this checkout cannot belong to
-    a pull request the ledger still calls 'open' -- if the file is here, on
-    whatever ref this checkout is, its pull request has merged. `pr_state:
-    "open"` next to a present file is exactly how the ledger went stale for
-    0014/0015/0016 (merged in #514/#527, but never flipped off 'open'), and
-    silently -- nothing else in this guard caught it, because
-    `check_files_are_reserved` only compares filenames, not `pr_state`. This
-    closes that gap.
+def check_open_pr_state_for_present_files(
+    filenames: Sequence[str],
+    doc: dict,
+    strict_master: bool = False,
+) -> list[Finding]:
+    """Cross-check `pr_state` against what is actually on disk.
+
+    Two rules with different scopes, which is why this takes `strict_master`:
+
+    **present x open -- MASTER-scope only.** On `master`, a `.sql` file being
+    here proves its pull request merged, so `pr_state: "open"` beside it is a
+    stale ledger: that is exactly how 0014/0015/0016 lied (merged in #514/#527,
+    never flipped off 'open'), silently, because `check_files_are_reserved` only
+    compares filenames. But this suite also runs under `on: pull_request`, on the
+    PR branch, where the migration the PR INTRODUCES is present and its entry
+    honestly says 'open'. Asserting the master rule there would leave the next
+    migration PR no truthful ledger that passes -- `reserved` trips
+    RESERVED_PREFIX_OCCUPIED, `taken`+`open` would trip this, and only a false
+    `taken`+`merged` gets through (review round 2, FIX-2). So in lenient mode a
+    present file with `pr_state: "open"` is legitimate, and the rule that still
+    holds is checked instead: it must be recorded `state: "taken"` with a real
+    pull-request number, so the claim is attributable either way.
+
+    **absent x merged -- valid on every ref.** A merged file is on `master`, so
+    it is in any checkout descended from `master`. Absent while claiming merged
+    is the ledger lying in the opposite direction, and nothing caught it before.
     """
     findings: list[Finding] = []
     prefixes = doc.get("prefixes", {}) if isinstance(doc, dict) else {}
     present = {parse_prefix(name) for name in filenames} - {None}
 
     for prefix, entry in prefixes.items():
-        if prefix not in present or not isinstance(entry, dict):
+        if not isinstance(entry, dict):
             continue
-        if entry.get("pr_state") == "open":
+        pr_state = entry.get("pr_state")
+        is_present = prefix in present
+
+        if is_present and pr_state == "open":
+            if strict_master:
+                findings.append(
+                    Finding(
+                        "OPEN_PR_STATE_WITH_FILE_PRESENT",
+                        prefix,
+                        f"prefix {prefix}'s file is present on master but RESERVATIONS.json "
+                        f"still records pr_state 'open' (pr {entry.get('pr')!r}) -- a file "
+                        "present on master means the owning pull request merged; flip pr_state "
+                        "to 'merged' (and record the merge sha) or the ledger is stale",
+                    )
+                )
+            elif entry.get("state") != "taken" or not isinstance(entry.get("pr"), int):
+                findings.append(
+                    Finding(
+                        "OPEN_PR_STATE_WITHOUT_OWNING_PR",
+                        prefix,
+                        f"prefix {prefix}'s file is present in this checkout with pr_state "
+                        "'open' -- legitimate on a pull-request branch, but only when the entry "
+                        f"is state='taken' with a pull-request number; this one is "
+                        f"state={entry.get('state')!r} pr={entry.get('pr')!r}",
+                    )
+                )
+        elif not is_present and pr_state == "merged":
             findings.append(
                 Finding(
-                    "OPEN_PR_STATE_WITH_FILE_PRESENT",
+                    "MERGED_PR_STATE_WITH_FILE_ABSENT",
                     prefix,
-                    f"prefix {prefix}'s file is present in this checkout but RESERVATIONS.json "
-                    f"still records pr_state 'open' (pr {entry.get('pr')!r}) -- a present file "
-                    "means the owning pull request merged; flip pr_state to 'merged' (and record "
-                    "the merge sha) or the ledger is stale",
+                    f"RESERVATIONS.json records prefix {prefix} as pr_state 'merged' (pr "
+                    f"{entry.get('pr')!r}) but no file for it is in this checkout -- a merged "
+                    "file is on master and therefore in every checkout descended from it; the "
+                    "ledger, the filename, or the merge claim is wrong",
                 )
             )
     return findings
@@ -318,8 +437,15 @@ def check_reservation_contiguity(doc: dict) -> list[Finding]:
     form a strictly increasing, gap-free block starting immediately after the
     highest prefix that is already `merged` (state=taken, pr_state=merged) or
     `historical`. A gap in that block -- a number between the merged trunk and
-    the highest reservation that is neither `taken` nor `reserved` -- would let
-    a later claimant skip past a live Meta-CEO B ruling without seeing it.
+    the highest claim that is not in OCCUPYING_STATES -- would let a later
+    claimant skip past a live Meta-CEO B ruling without seeing it.
+
+    `released` counts as occupying its number, not as a hole: README.md's
+    release path stands a claim down WITHOUT freeing the number, and the number
+    keeps counting toward `max()` so it can never be reissued. Before this fix
+    the walk demanded `taken` or `reserved` only, so following the README's own
+    documented release path produced a permanent RESERVATION_GAP red with no
+    honest way out (review round 2, FIX-5).
     """
     findings: list[Finding] = []
     prefixes = doc.get("prefixes", {}) if isinstance(doc, dict) else {}
@@ -335,35 +461,52 @@ def check_reservation_contiguity(doc: dict) -> list[Finding]:
         for n, e in numeric.items()
         if e.get("state") == "historical" or (e.get("state") == "taken" and e.get("pr_state") == "merged")
     ]
-    reserved = sorted(n for n, e in numeric.items() if e.get("state") == "reserved")
-    if not reserved:
+    # `reserved` opens a block; `released` numbers inside or above it are held,
+    # not free. Walking to the top of BOTH is what stops a released tail from
+    # silently dropping out of the contiguity window.
+    claimed = sorted(n for n, e in numeric.items() if e.get("state") in ("reserved", "released"))
+    if not claimed:
         return findings
 
     highest_merged = max(merged_trunk) if merged_trunk else 0
 
-    for n in range(highest_merged + 1, max(reserved) + 1):
+    for n in range(highest_merged + 1, max(claimed) + 1):
         key = f"{n:04d}"
         entry = numeric.get(n)
-        if entry is None or entry.get("state") not in ("taken", "reserved"):
+        if entry is None or entry.get("state") not in OCCUPYING_STATES:
             findings.append(
                 Finding(
                     "RESERVATION_GAP",
                     key,
-                    f"prefix {key} is missing or is neither taken nor reserved, leaving a gap "
-                    f"between the highest merged prefix {highest_merged:04d} and the reserved "
-                    f"block up to {max(reserved):04d} -- reserved prefixes must be strictly "
-                    "increasing with no gaps below the highest merged prefix",
+                    f"prefix {key} is missing or is none of {OCCUPYING_STATES}, leaving a gap "
+                    f"between the highest merged prefix {highest_merged:04d} and the claimed "
+                    f"block up to {max(claimed):04d} -- claimed prefixes must be strictly "
+                    "increasing with no gaps above the highest merged prefix",
                 )
             )
     return findings
 
 
-def check_no_literal_project_ref(doc: dict) -> list[Finding]:
-    """No per-prefix entry may spell out the literal Supabase project ref --
-    README.md's own rule (redacted to `{ref}` there since Terminal #538). The
-    top-level `project_ref` field is the one sanctioned place this document
-    carries the real value; an *entry* under `prefixes` repeating it in a note
-    or elsewhere is a leak this guard now catches.
+def check_no_literal_project_ref(
+    doc: dict,
+    sibling_texts: "Mapping[str, str] | None" = None,
+) -> list[Finding]:
+    """The literal Supabase project ref belongs in exactly one place.
+
+    That place is RESERVATIONS.json's top-level `project_ref` field -- README.md's
+    own rule, redacted to `{ref}` everywhere else since Terminal #538. Two scans:
+
+      * every field of every entry under `prefixes`, against the ref SHAPE
+        (`PROJECT_REF_RE`), so a note repeating any ref-looking token is caught
+        even if it is not this project's ref;
+      * every sibling document handed in via `sibling_texts` -- README.md and any
+        other `*.md` beside the ledger -- against the ledger's OWN `project_ref`
+        value. Prose cannot be matched on shape without false positives, and the
+        exact-value comparison has none. Before this, README.md could spell the
+        ref out in full and this guard stayed green (review round 2, FIX-1).
+
+    Neither branch ever puts the value into a Finding: the detail names the file
+    and the field, never the token, because these findings are printed into CI logs.
     """
     findings: list[Finding] = []
     prefixes = doc.get("prefixes", {}) if isinstance(doc, dict) else {}
@@ -381,10 +524,30 @@ def check_no_literal_project_ref(doc: dict) -> list[Finding]:
                         "token that looks like the Supabase project ref -- use '{ref}' instead",
                     )
                 )
+
+    real_ref = doc.get("project_ref") if isinstance(doc, dict) else None
+    if _non_empty_str(real_ref):
+        for name, text in sorted((sibling_texts or {}).items()):
+            if isinstance(text, str) and real_ref in text:
+                findings.append(
+                    Finding(
+                        "LITERAL_PROJECT_REF_IN_DOC",
+                        None,
+                        f"'{name}' (beside RESERVATIONS.json) spells out the literal Supabase "
+                        "project ref -- write '{ref}' instead; the ledger's top-level "
+                        "'project_ref' field is the only sanctioned copy",
+                    )
+                )
     return findings
 
 
-def check_all(filenames: Sequence[str], texts: Mapping[str, str], doc: dict) -> list[Finding]:
+def check_all(
+    filenames: Sequence[str],
+    texts: Mapping[str, str],
+    doc: dict,
+    sibling_texts: "Mapping[str, str] | None" = None,
+    strict_master: bool = False,
+) -> list[Finding]:
     findings: list[Finding] = []
 
     # Ledger-schema validation must run even on an empty/wrong migrations dir --
@@ -393,7 +556,7 @@ def check_all(filenames: Sequence[str], texts: Mapping[str, str], doc: dict) -> 
     # violation stays invisible (minor finding, review round 2).
     findings.extend(validate_reservations(doc))
     findings.extend(check_reservation_contiguity(doc))
-    findings.extend(check_no_literal_project_ref(doc))
+    findings.extend(check_no_literal_project_ref(doc, sibling_texts))
 
     if not filenames:
         findings.append(Finding("MIGRATIONS_DIR_EMPTY", None, "no .sql migrations found -- a wrong path would make every other check vacuously pass"))
@@ -401,7 +564,7 @@ def check_all(filenames: Sequence[str], texts: Mapping[str, str], doc: dict) -> 
 
     findings.extend(check_prefix_collisions(filenames))
     findings.extend(check_files_are_reserved(filenames, doc))
-    findings.extend(check_open_pr_state_for_present_files(filenames, doc))
+    findings.extend(check_open_pr_state_for_present_files(filenames, doc, strict_master=strict_master))
     for name in filenames:
         text = texts.get(name, "")
         findings.extend(check_migration_header(name, text, doc))
@@ -421,6 +584,14 @@ def _plain_note(prefix: str, entry: Mapping[str, Any], doc: Mapping[str, Any]) -
     if state == "reserved":
         pr_txt = f"pull request #{pr} ({pr_state})" if pr is not None else "no pull request opened yet"
         return f"{prefix} — reserved by packet {packet}; {pr_txt}."
+    if state == "released":
+        owner_txt = f"packet {packet}" if packet else "an owner not recorded in this repository"
+        pr_txt = f" (pull request #{pr})" if pr is not None else ""
+        return (
+            f"{prefix} — released: the claim by {owner_txt}{pr_txt} was stood down. The number "
+            "stays retired — it keeps counting toward the next free number and is never reissued "
+            "— and no file exists for it anywhere."
+        )
     if state == "free":
         return f"{prefix} — free — claim it in RESERVATIONS.json before you write the file."
     if state == "historical":
@@ -494,6 +665,7 @@ def format_report(findings: Sequence[Finding], notes: Sequence[Disclosure]) -> s
 def collect(
     migrations_dir: Path = MIGRATIONS_DIR,
     reservations: Path = RESERVATIONS_PATH,
+    strict_master: bool = False,
 ) -> "tuple[list[Finding], list[Disclosure]]":
     try:
         doc = load_reservations(reservations)
@@ -508,7 +680,16 @@ def collect(
         except OSError:
             texts[name] = ""
 
-    findings = check_all(sql_files, texts, doc)
+    # Every `*.md` beside the ledger, scanned for the literal project ref.
+    sibling_texts: dict[str, str] = {}
+    if migrations_dir.is_dir():
+        for path in sorted(migrations_dir.glob("*.md")):
+            try:
+                sibling_texts[path.name] = path.read_text(encoding="utf-8", errors="replace")
+            except OSError:
+                sibling_texts[path.name] = ""
+
+    findings = check_all(sql_files, texts, doc, sibling_texts, strict_master=strict_master)
     notes = disclosures(sql_files, doc)
     return findings, notes
 
@@ -521,11 +702,30 @@ def main(argv: "Sequence[str] | None" = None) -> int:
         print(f"::error title=migration-namespace::RESERVATION_SCHEMA missing file — {RESERVATIONS_PATH} does not exist", flush=True)
         return 2
 
+    # The open-while-present rule is master-scope; `--strict` forces it on for a
+    # local dry run, but otherwise only a proven master push earns it.
+    strict = "--strict" in argv or is_master_push()
+
     try:
-        findings, notes = collect()
+        findings, notes = collect(strict_master=strict)
     except Exception as exc:  # defensive: usage error, not a finding
         print(f"::error title=migration-namespace::usage error — {exc}", flush=True)
         return 2
+
+    # Never let the reader guess which rule set produced this report.
+    notes = list(notes) + [
+        Disclosure(
+            prefix="*",
+            state="note",
+            text=(
+                "open-while-present rule ran in "
+                + ("STRICT (master) mode" if strict else "LENIENT (not a proven master push) mode")
+                + " — in lenient mode a present .sql whose ledger row says pr_state 'open' is the "
+                "pull request that carries it, and is required only to be state 'taken' with a "
+                "pull-request number. The absent-while-merged converse runs in both modes."
+            ),
+        )
+    ]
 
     if as_json:
         payload = {
