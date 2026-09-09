@@ -13,6 +13,7 @@ import {
   normalizeWizardStash, type OnboardResumeStash,
   STEP_ACCOUNT, STEP_PREFS, STEP_PLAN, STEP_BILLING, STEP_DONE,
 } from "./types";
+import { sendScopedAccountWrite } from "@/lib/accountPrefs";
 import { deliverPendingPrefs, writePendingPrefs } from "@/lib/onboardingPrefsOutbox";
 import RailCard, { MobileStepper, type WizardSnapshot } from "./RailCard";
 import StepAccount from "./StepAccount";
@@ -207,7 +208,10 @@ export default function OnboardingSheet(props: OnboardingSheetProps) {
     // No session yet: the provider delivers it on the first authed mount.
     if (confirmPending || !effEmail) return;
     const supabase = createClient();
-    const outcome = await deliverPendingPrefs((data) => supabase.auth.updateUser({ data }));
+    const outcome = await deliverPendingPrefs((data) => sendScopedAccountWrite(
+      (scoped) => supabase.auth.updateUser({ data: scoped }),
+      data,
+    ));
     setPrefsPending(outcome.status !== "delivered");
   }, [firstName, lastName, prefs, confirmPending, effEmail]);
 

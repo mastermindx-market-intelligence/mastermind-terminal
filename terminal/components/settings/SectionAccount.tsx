@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { sendScopedAccountWrite } from "@/lib/accountPrefs";
 import { Group, IconGoogle, IconSignOut, IconTwitterX, Msg, Row, SectionHead } from "./icons";
 import { acsDate, type SectionProps } from "./types";
 import type { ExportFormat } from "@/lib/accountExport";
@@ -199,7 +200,11 @@ export default function SectionAccount({ t, lang, email, user, onClose, onPatchM
     const val = nameIn.trim();
     setBusy(true); setMsg(null);
     try {
-      const { error } = await createClient().auth.updateUser({ data: { display_name: val } });
+      const result = await sendScopedAccountWrite(
+        (data) => createClient().auth.updateUser({ data }),
+        { display_name: val },
+      );
+      const error = result && typeof result === "object" ? result.error : undefined;
       if (error) throw error;
       onPatchMeta({ display_name: val });   // ID card + rail repaint without a refetch
       setEditing(null);

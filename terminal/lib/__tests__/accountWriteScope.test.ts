@@ -270,6 +270,7 @@ describe("§2.5.5 display_name survives, and an empty scoped patch is never sent
   });
 
   it("a patch that scopes to empty is never sent", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const send = vi.fn(async () => ({ error: null }));
     const result = await sendScopedAccountWrite(send, {
       alert_email_optin: true,
@@ -278,15 +279,20 @@ describe("§2.5.5 display_name survives, and an empty scoped patch is never sent
     });
     expect(send).not.toHaveBeenCalled();
     expect(result).toBeUndefined();
+    expect(warn).toHaveBeenCalled();
+    warn.mockRestore();
   });
 
   it("a mixed patch is sent without the alert keys", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const send = vi.fn(async (data: Record<string, unknown>) => {
       expect(data).toEqual({ lang: "zh" });
       return { error: null };
     });
     await sendScopedAccountWrite(send, { lang: "zh", ...ALERT_SEED });
     expect(send).toHaveBeenCalledTimes(1);
+    expect(warn).toHaveBeenCalled();
+    warn.mockRestore();
   });
 });
 

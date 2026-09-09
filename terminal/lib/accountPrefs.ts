@@ -206,3 +206,69 @@ export function readLang(): LangId {
   const attr = document.documentElement.getAttribute("data-lang");
   return isLangId(attr) ? attr : "en";
 }
+
+// ── write fence (B-F08-7b) ────────────────────────────────────────────────────────────────
+//
+// The Terminal already writes key-scoped at the top level. This closed set turns that from an
+// observed property into an invariant: a user_metadata patch cannot name a key the Terminal
+// does not own. Alert delivery keys (`alert_email_optin`, `alert_categories`, `tz`,
+// `quiet_hours`) and macro's `brain_depth` are absent by construction. A dropped key is
+// dropped, never thrown — a preference write must not crash a signed-in session.
+
+/** Top-level `user_metadata` keys the Terminal client is permitted to write. */
+export const TERMINAL_WRITE_KEYS = [
+  "market_focus",
+  "markets",
+  "terminal",
+  "theme",
+  "theme_auto",
+  "lang",
+  "prefs",
+  "trade_types",
+  "display_name",
+  "first_name",
+  "last_name",
+  "theme_pref",
+  "onboarded_at",
+] as const;
+
+export type TerminalWriteKey = (typeof TERMINAL_WRITE_KEYS)[number];
+
+const TERMINAL_WRITE_KEY_SET: ReadonlySet<string> = new Set(TERMINAL_WRITE_KEYS);
+
+/**
+ * Filter a user_metadata patch to TERMINAL_WRITE_KEYS. Pure: no React, no Supabase, no I/O.
+ * `dropped` names every key that was removed. Unknown keys the Terminal never owned are
+ * never returned in `data`.
+ */
+export function scopeAccountWrite(patch: Record<string, unknown>): {
+  data: Record<string, unknown>;
+  dropped: string[];
+} {
+  const data: Record<string, unknown> = {};
+  const dropped: string[] = [];
+  if (!patch || typeof patch !== "object" || Array.isArray(patch)) {
+    return { data, dropped };
+  }
+  for (const key of Object.keys(patch)) {
+    if (TERMINAL_WRITE_KEY_SET.has(key)) data[key] = patch[key];
+    else dropped.push(key);
+  }
+  return { data, dropped };
+}
+
+/**
+ * Apply the write fence, warn in development about anything dropped, and call `send` only
+ * when at least one owned key remains. A patch that scopes to empty is not sent at all.
+ */
+export async function sendScopedAccountWrite<R extends { error?: unknown } | void>(
+  send: (data: Record<string, unknown>) => Promise<R>,
+  patch: Record<string, unknown>,
+): Promise<R | void> {
+  const { data, dropped } = scopeAccountWrite(patch);
+  if (dropped.length && process.env.NODE_ENV !== "production") {
+    console.warn("[accountPrefs] dropped keys the Terminal does not own", dropped);
+  }
+  if (Object.keys(data).length === 0) return;
+  return send(data);
+}
