@@ -343,7 +343,10 @@ def test_reservations_records_the_known_collision_surface():
     assert prefixes["0019"]["state"] == "taken"
     assert prefixes["0019"]["file"] == "0019_team_role_changes.sql"
     assert prefixes["0019"]["packet"] == "B-F12-8"
+    assert prefixes["0019"]["pr"] == 550
     assert prefixes["0019"]["pr_state"] == "open"
+    assert prefixes["0019"]["applied_in_production"] is False
+    assert prefixes["0019"]["applied_date"] is None
 
     assert doc["claim_before_you_write"].strip() != ""
 

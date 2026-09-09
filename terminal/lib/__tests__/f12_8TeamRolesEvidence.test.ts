@@ -18,6 +18,7 @@ const CROP_DIR = join(__dirname, "../../docs/pr-crops/b-f12-8-team-roles");
 const EVIDENCE = join(CROP_DIR, "EVIDENCE.yml");
 const LAYOUT_FILES = [
   "terminal/components/settings/SectionTeam.tsx",
+  "terminal/components/settings/SectionTeam.module.css",
   "terminal/components/settings/SettingsPanel.tsx",
   "terminal/app/settings.css",
   "terminal/lib/i18n.tsx",

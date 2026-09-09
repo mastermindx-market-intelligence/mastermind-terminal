@@ -1,5 +1,5 @@
 -- Ledger row: 0019_team_role_changes / PR #550 (open, packet B-F12-8); not applied
--- Rollback: drop trigger if exists team_role_changes_log on public.team_members; drop function if exists public.log_team_role_change(); drop function if exists public.team_member_names(uuid); drop table if exists public.team_role_changes; -- then recreate tm_insert_admin / tm_update_admin / tm_delete_admin / ti_insert_admin from 0014_tenancy_foundation.sql
+-- Rollback: drop trigger if exists team_role_changes_log on public.team_members; drop function if exists public.log_team_role_change(); drop function if exists public.team_member_names(uuid); drop function if exists public.team_members_rls_deny(); drop table if exists public.team_role_changes; -- then recreate tm_insert_admin / tm_update_admin / tm_delete_admin / ti_insert_admin from 0014_tenancy_foundation.sql
 -- 0019: team role changes — audit log, tighter administrator grants, self-leave (packet B-F12-8).
 --
 -- ============================ MUST NOT BE APPLIED BY THIS PACKET ============================
@@ -117,27 +117,48 @@ create policy tm_insert_admin on public.team_members
     or (public.team_role(team_id) = 'admin' and role = 'member')
   );
 
+-- Raises 42501 from a DELETE USING miss. PostgreSQL RLS treats a USING miss as
+-- 0-row success (not 42501); WITH CHECK exists only for INSERT/UPDATE. The house
+-- canary rls:member_cannot_delete_other asserts 42501, so a forbidden DELETE must
+-- raise rather than silently filter. VOLATILE so the planner cannot skip the call.
+create or replace function public.team_members_rls_deny()
+returns boolean
+language plpgsql
+volatile
+set search_path = pg_catalog, public, auth as $$
+begin
+  raise exception using errcode = '42501', message = 'permission denied for table team_members';
+end
+$$;
+revoke all on function public.team_members_rls_deny() from public, anon;
+grant execute on function public.team_members_rls_deny() to authenticated;
+
 -- Supersedes 0014_tenancy_foundation.sql tm_update_admin.
 -- T1 + T2: only the owner changes a role; the owner row is untouchable; nobody changes their own.
+-- USING includes administrator so an administrator's UPDATE of a peer matches the row;
+-- WITH CHECK then rejects it with 42501 (a USING miss would be 0-row success, which the
+-- house canary rls:admin_cannot_change_peer_admin does not accept).
 drop policy if exists tm_update_admin on public.team_members;
 create policy tm_update_admin on public.team_members
   for update to authenticated
-  using (role <> 'owner' and public.team_role(team_id) = 'owner' and user_id <> auth.uid())
+  using (role <> 'owner' and public.team_role(team_id) in ('owner','admin'))
   with check (role in ('admin','member') and public.team_role(team_id) = 'owner' and user_id <> auth.uid());
 
 -- Supersedes 0014_tenancy_foundation.sql tm_delete_admin.
 -- The owner removes anyone but themselves; an administrator removes members only;
 -- T3: anyone who is not the owner may remove their own row (leave).
+-- CASE ELSE raises 42501 so a member DELETE of another row is a deny, not a silent miss.
 drop policy if exists tm_delete_admin on public.team_members;
 create policy tm_delete_admin on public.team_members
   for delete to authenticated
   using (
-    role <> 'owner'
-    and (
-      public.team_role(team_id) = 'owner'
-      or (public.team_role(team_id) = 'admin' and role = 'member')
-      or user_id = auth.uid()
-    )
+    case
+      when role = 'owner' then false
+      when public.team_role(team_id) = 'owner' then true
+      when public.team_role(team_id) = 'admin' and role = 'member' then true
+      when user_id = auth.uid() then true
+      else public.team_members_rls_deny()
+    end
   );
 
 -- Supersedes 0014_tenancy_foundation.sql ti_insert_admin.
@@ -180,7 +201,7 @@ create policy ti_insert_admin on public.team_invites
 --   select proname, prosecdef, pg_get_function_identity_arguments(oid)
 --     from pg_proc
 --    where pronamespace = 'public'::regnamespace
---      and proname in ('log_team_role_change','team_member_names');
+--      and proname in ('log_team_role_change','team_member_names','team_members_rls_deny');
 --   select pg_get_functiondef(oid) from pg_proc
 --    where pronamespace = 'public'::regnamespace and proname = 'team_member_names';
 
@@ -188,6 +209,7 @@ create policy ti_insert_admin on public.team_invites
 --   drop trigger if exists team_role_changes_log on public.team_members;
 --   drop function if exists public.log_team_role_change();
 --   drop function if exists public.team_member_names(uuid);
+--   drop function if exists public.team_members_rls_deny();
 --   drop table if exists public.team_role_changes;
 --   -- Recreate the 0014 policies (see supabase/migrations/0014_tenancy_foundation.sql):
 --   drop policy if exists tm_insert_admin on public.team_members;

@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Group, Msg, Row, SectionHead } from "./icons";
 import { acsDate, type DevTeamFixture, type DevTeamMember, type SectionProps } from "./types";
 import { INVITE_MESSAGES, TEAM_ROUTE_MESSAGES, type TeamRole } from "@/lib/teams";
+import s from "./SectionTeam.module.css";
 
 type RosterMember = DevTeamMember;
 type PendingInvite = DevTeamFixture["invites"][number];
@@ -202,13 +203,17 @@ export default function SectionTeam({
 
         {showInvites ? (
           <Group>
-            <p className="acs-note acs-team-delivery">{delivery}</p>
+            <p className={`acs-note ${s.delivery}`} data-testid="team-delivery">{delivery}</p>
             {invites.map((invite) => (
               <Row
                 key={invite.id || invite.email}
                 label={invite.email}
                 value={
-                  <span className={`acs-role-badge acs-role-${invite.role}`} data-role={invite.role}>
+                  <span
+                    className={s.roleBadge}
+                    data-role={invite.role}
+                    data-testid="team-role-badge"
+                  >
                     {t(roleKey(invite.role))}
                   </span>
                 }
@@ -237,9 +242,9 @@ export default function SectionTeam({
                   key={member.userId}
                   editing={confirming}
                   label={
-                    <span className="acs-team-name">
+                    <span className={s.teamName}>
                       {displayLabel(member)}
-                      {isYou ? <span className="acs-team-you">{t("acsTeamYou")}</span> : null}
+                      {isYou ? <span className={s.you}>{t("acsTeamYou")}</span> : null}
                     </span>
                   }
                   desc={
@@ -248,17 +253,21 @@ export default function SectionTeam({
                       : undefined
                   }
                   value={
-                    <span className={`acs-role-badge acs-role-${member.role}`} data-role={member.role}>
+                    <span
+                      className={`${s.roleBadge}${member.role === "owner" ? ` ${s.roleOwner}` : ""}`}
+                      data-role={member.role}
+                      data-testid="team-role-badge"
+                    >
                       {t(roleKey(member.role))}
                     </span>
                   }
                   control={
-                    <span className="acs-team-actions">
+                    <span className={s.actions} data-testid="team-actions">
                       {canChangeRole ? (
-                        <span className="acs-team-change-role" data-testid="team-change-role">
+                        <span className={s.changeRole} data-testid="team-change-role">
                           <button
                             type="button"
-                            className="acs-btn ghost acs-btn-sm"
+                            className={`acs-btn ghost ${s.btnSm}`}
                             disabled={busyId === member.userId}
                             onClick={() => void patchRole(member, "admin")}
                           >
@@ -266,7 +275,7 @@ export default function SectionTeam({
                           </button>
                           <button
                             type="button"
-                            className="acs-btn ghost acs-btn-sm"
+                            className={`acs-btn ghost ${s.btnSm}`}
                             disabled={busyId === member.userId}
                             onClick={() => void patchRole(member, "member")}
                           >
@@ -277,7 +286,7 @@ export default function SectionTeam({
                       {canRemove ? (
                         <button
                           type="button"
-                          className="acs-btn btn-danger acs-btn-sm"
+                          className={`acs-btn btn-danger ${s.btnSm}`}
                           disabled={busyId === member.userId}
                           onClick={() => setConfirm({ userId: member.userId, kind: "remove" })}
                         >
@@ -287,7 +296,7 @@ export default function SectionTeam({
                       {canLeave ? (
                         <button
                           type="button"
-                          className="acs-btn btn-danger acs-btn-sm"
+                          className={`acs-btn btn-danger ${s.btnSm}`}
                           disabled={busyId === member.userId}
                           onClick={() => setConfirm({ userId: member.userId, kind: "leave" })}
                         >
@@ -297,7 +306,7 @@ export default function SectionTeam({
                     </span>
                   }
                 >
-                  {isOwnerRow ? <p className="acs-owner-locked">{t("acsOwnerLocked")}</p> : null}
+                  {isOwnerRow ? <p className={s.ownerLocked}>{t("acsOwnerLocked")}</p> : null}
                   {confirming ? (
                     <div className="acs-form">
                       <p className="acs-note">{t(confirm.kind === "leave" ? "acsTeamLeaveAsk" : "acsTeamRemoveAsk")}</p>

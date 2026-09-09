@@ -1,0 +1,44 @@
+/* B-F12-8 team roles. Packet-owned so settings.css stays at origin/master
+   bytes (B-F12-5 evidence lock). Terminal dark-only. */
+
+.roleBadge {
+  display: inline-flex;
+  align-items: center;
+  font: 700 11px/1 var(--font-ui);
+  letter-spacing: 0.02em;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text) 10%, transparent);
+  color: var(--text);
+  white-space: nowrap;
+}
+.roleOwner {
+  background: color-mix(in srgb, var(--brand) 22%, transparent);
+  color: var(--brand-2);
+}
+.teamName { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.you {
+  font: 700 10px/1 var(--font-ui);
+  color: var(--text-2);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 2px 6px;
+}
+.actions { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
+.changeRole { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+.btnSm { font-size: 11.5px; padding: 6px 10px; }
+.ownerLocked {
+  margin: 6px 0 0;
+  font: 400 12px/1.45 var(--font-ui);
+  color: var(--text-2);
+}
+.delivery { margin: 0 0 8px; }
+@media (max-width: 640px) {
+  :global(.acs-row):has(.actions) :global(.acs-row-line),
+  :global(.acs-row):has(.roleBadge) :global(.acs-row-line) {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+  :global(.acs-row):has(.roleBadge) :global(.acs-row-val) { max-width: none; }
+  .actions { width: 100%; justify-content: flex-start; margin-top: 6px; }
+}

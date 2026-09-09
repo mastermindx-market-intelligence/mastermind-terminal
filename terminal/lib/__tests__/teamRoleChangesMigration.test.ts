@@ -68,6 +68,27 @@ describe("0019 team role changes migration contract", () => {
     }
   });
 
+  it("tm_update_admin USING lets an administrator attempt so WITH CHECK can raise 42501", () => {
+    // PostgreSQL RLS treats a USING miss as 0-row success, not 42501. The house
+    // canary rls:admin_cannot_change_peer_admin expects 42501, so USING must
+    // match an administrator's UPDATE of a non-owner row, and WITH CHECK must
+    // still require the owner. Ruling R1: do not weaken the canary.
+    expect(flat).toMatch(
+      /create policy tm_update_admin on public\.team_members\s+for update to authenticated\s+using \(\s*role <> 'owner'\s+and public\.team_role\(team_id\) in \('owner','admin'\)\s*\)\s+with check \(\s*role in \('admin','member'\)\s+and public\.team_role\(team_id\) = 'owner'\s+and user_id <> auth\.uid\(\)\s*\)/,
+    );
+  });
+
+  it("tm_delete_admin raises 42501 via team_members_rls_deny on a forbidden DELETE", () => {
+    // DELETE has no WITH CHECK. A USING miss is 0-row success, so the canary
+    // rls:member_cannot_delete_other cannot see a deny unless the policy
+    // raises 42501. Ruling R1: do not weaken the canary.
+    expect(flat).toMatch(
+      /create or replace function public\.team_members_rls_deny\(\)\s+returns boolean\s+language plpgsql/,
+    );
+    expect(flat).toContain("errcode = '42501'");
+    expect(flat).toContain("else public.team_members_rls_deny()");
+  });
+
   it("ti_insert_admin is replaced so an administrator cannot invite an administrator (T1)", () => {
     expect(flat).toContain("drop policy if exists ti_insert_admin on public.team_invites");
     expect(flat).toContain("create policy ti_insert_admin on public.team_invites");

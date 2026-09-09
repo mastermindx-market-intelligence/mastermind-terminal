@@ -26,6 +26,7 @@ const REPO = join(ROOT, "..");
 const OUT = join(ROOT, "docs", "pr-crops", "b-f12-8-team-roles");
 const LAYOUT_FILES = [
   "terminal/components/settings/SectionTeam.tsx",
+  "terminal/components/settings/SectionTeam.module.css",
   "terminal/components/settings/SettingsPanel.tsx",
   "terminal/app/settings.css",
   "terminal/lib/i18n.tsx",
@@ -135,17 +136,17 @@ async function openTeam(page, lang, viewport) {
   await page.locator(".acs-overlay.open .acs-card").waitFor({ state: "visible", timeout: 45_000 });
   const locked = lang === "zh" ? "所有者创建了该团队。所有者无法被更改或移除。" : "The owner created this team. The owner cannot be changed or removed.";
   await page.getByText(locked, { exact: true }).waitFor({ state: "visible", timeout: 15_000 });
-  await page.locator(".acs-role-badge").first().waitFor({ state: "visible", timeout: 15_000 });
+  await page.locator("[data-testid=\"team-role-badge\"]").first().waitFor({ state: "visible", timeout: 15_000 });
   await stripDevOverlay(page);
 }
 
 async function assertDeliveryInView(page, file) {
-  const delivery = page.locator(".acs-team-delivery");
+  const delivery = page.locator("[data-testid=\"team-delivery\"]");
   await delivery.waitFor({ state: "visible", timeout: 10_000 });
   await page.getByText("pending@example.com").waitFor({ state: "visible", timeout: 10_000 });
   const inView = await page.evaluate(() => {
     const body = document.querySelector(".acs-overlay.open .acs-body");
-    const note = document.querySelector(".acs-team-delivery");
+    const note = document.querySelector("[data-testid=\"team-delivery\"]");
     const row = Array.from(document.querySelectorAll(".acs-row")).find((el) =>
       (el.textContent || "").includes("pending@example.com"),
     );
@@ -171,9 +172,9 @@ async function assertDeliveryInView(page, file) {
 
 async function measureLayout(page) {
   return page.evaluate(() => {
-    const badges = Array.from(document.querySelectorAll(".acs-role-badge")).map((el) => (el.textContent || "").trim());
-    const change = document.querySelector(".acs-team-change-role");
-    const remove = document.querySelector(".acs-team-actions button.btn-danger");
+    const badges = Array.from(document.querySelectorAll("[data-testid=\"team-role-badge\"]")).map((el) => (el.textContent || "").trim());
+    const change = document.querySelector("[data-testid=\"team-change-role\"]");
+    const remove = document.querySelector("[data-testid=\"team-actions\"] button.btn-danger");
     return {
       roleBadgeText: badges.join(" | "),
       changeRolePresent: !!change,
@@ -223,7 +224,7 @@ async function main() {
           await openTeam(page, shot.lang, VIEWPORTS[shot.viewport]);
           await assertDeliveryInView(page, shot.file);
           if (shot.change) {
-            const control = page.locator(".acs-team-change-role").first();
+            const control = page.locator("[data-testid=\"team-change-role\"]").first();
             await control.waitFor({ state: "visible", timeout: 10_000 });
             await control.evaluate((el) => el.scrollIntoView({ block: "nearest", inline: "nearest" }));
             await page.waitForTimeout(200);
