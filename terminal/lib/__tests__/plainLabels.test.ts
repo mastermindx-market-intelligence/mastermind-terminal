@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
@@ -29,6 +29,42 @@ import {
 function assertBilingual(pair: readonly [string, string], key: string) {
   expect(pair[0].trim(), `${key} EN`).not.toBe("");
   expect(pair[1].trim(), `${key} ZH`).not.toBe("");
+}
+
+const PUBLIC_DATA = join(__dirname, "../../public/data");
+
+function walkStrings(node: unknown, visit: (key: string, value: string) => void): void {
+  if (Array.isArray(node)) {
+    for (const item of node) walkStrings(item, visit);
+    return;
+  }
+  if (node && typeof node === "object") {
+    for (const [key, value] of Object.entries(node as Record<string, unknown>)) {
+      if (typeof value === "string") visit(key, value);
+      else walkStrings(value, visit);
+    }
+  }
+}
+
+function liveManifestVerdicts(): string[] {
+  const raw = JSON.parse(readFileSync(join(PUBLIC_DATA, "manifest.json"), "utf8"));
+  const found = new Set<string>();
+  walkStrings(raw, (key, value) => {
+    if (key === "verdict" && value.trim()) found.add(value);
+  });
+  return [...found].sort();
+}
+
+function liveIntelUrgencyAndStatus(): string[] {
+  const found = new Set<string>();
+  for (const name of readdirSync(PUBLIC_DATA)) {
+    if (!name.endsWith(".intel.json")) continue;
+    const raw = JSON.parse(readFileSync(join(PUBLIC_DATA, name), "utf8"));
+    walkStrings(raw, (key, value) => {
+      if ((key === "urgency" || key === "status") && value.trim()) found.add(value);
+    });
+  }
+  return [...found].sort();
 }
 
 describe("notClassified", () => {
@@ -188,6 +224,26 @@ describe("verdictLabel", () => {
     expect(verdictLabel("RECLAIM", "en")).not.toBe("RECLAIM");
     expect(verdictLabel("RECLAIM", "zh")).not.toBe("Reclaim");
   });
+
+  it("CUT is an exit word, never the fallback", () => {
+    expect(verdictLabel("CUT", "en")).toBe("Cut");
+    expect(verdictLabel("CUT", "zh")).toBe("减持");
+    expect(verdictLabel("CUT", "zh")).not.toBe(notClassified("zh"));
+    expect(verdictLabel("CUT", "en")).not.toBe("CUT");
+  });
+
+  it("every verdict in the live manifest has a pair in EN and ZH", () => {
+    const verdicts = liveManifestVerdicts();
+    expect(verdicts.length, "manifest must carry at least one verdict").toBeGreaterThan(0);
+    for (const verdict of verdicts) {
+      const en = verdictLabel(verdict, "en");
+      const zh = verdictLabel(verdict, "zh");
+      expect(en, `${verdict} EN`).not.toBe(notClassified("en"));
+      expect(zh, `${verdict} ZH`).not.toBe(notClassified("zh"));
+      expect(en, `${verdict} EN must not echo the enum`).not.toBe(verdict);
+      expect(zh, `${verdict} ZH must not echo the enum`).not.toBe(verdict);
+    }
+  });
 });
 
 describe("entryStatusLabel", () => {
@@ -205,6 +261,35 @@ describe("entryStatusLabel", () => {
     expect(entryStatusLabel("Act now", "zh")).not.toBe("Act now");
     expect(entryStatusLabel("urgent", "en")).toBe(notClassified("en"));
     expect(entryStatusLabel("urgent", "en")).not.toBe("urgent");
+  });
+
+  it("maps live intel urgency and wait_pullback, never the fallback", () => {
+    expect(entryStatusLabel("avoid", "en")).toBe("Stand aside");
+    expect(entryStatusLabel("avoid", "zh")).toBe("回避");
+    expect(entryStatusLabel("later", "en")).toBe("Wait");
+    expect(entryStatusLabel("later", "zh")).toBe("再等");
+    expect(entryStatusLabel("wait_pullback", "en")).toBe("Wait for a dip");
+    expect(entryStatusLabel("wait_pullback", "zh")).toBe("等待回撤");
+  });
+
+  it("an unmapped urgency falls through to the mapped status before the fallback", () => {
+    expect(entryStatusLabel("no-such-urgency", "en", "blocked")).toBe("Blocked");
+    expect(entryStatusLabel("no-such-urgency", "zh", "blocked")).toBe("受阻");
+    expect(entryStatusLabel("avoid", "en", "blocked")).toBe("Stand aside");
+    expect(entryStatusLabel("later", "zh", "wait_pullback")).toBe("再等");
+  });
+
+  it("every urgency and status in live intel files has a pair in EN and ZH", () => {
+    const values = liveIntelUrgencyAndStatus();
+    expect(values.length, "intel fixtures must carry urgency or status").toBeGreaterThan(0);
+    for (const value of values) {
+      const en = entryStatusLabel(value, "en");
+      const zh = entryStatusLabel(value, "zh");
+      expect(en, `${value} EN`).not.toBe(notClassified("en"));
+      expect(zh, `${value} ZH`).not.toBe(notClassified("zh"));
+      expect(en, `${value} EN must not echo the slug`).not.toBe(value);
+      expect(zh, `${value} ZH must not echo the slug`).not.toBe(value);
+    }
   });
 });
 

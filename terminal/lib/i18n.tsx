@@ -2316,7 +2316,7 @@ export const LEX: Record<string, [string, string]> = {
   ohNoTermStructure: ["Fewer than two expiries priced — no term structure to draw.", "可用到期不足两个，无法绘制期限结构。"],
   ohNoSmile: ["No priced quotes on this expiry — nothing to plot.", "该到期无有效双边报价，无法绘制微笑曲线。"],
   ohIvRankWarm: ["IV rank baseline is still building.", "隐含波动率百分位基线仍在积累。"],
-  ohNightlyPending: ["Nightly data pending for this root", "该标的夜间数据待更新"],
+  ohNightlyPending: ["Nightly data pending for this symbol.", "该标的夜间数据待更新"],
   ohCallConcentration: ["Call concentration", "认购集中"],
   ohPutConcentration: ["Put concentration", "认沽集中"],
   ohNightlyView: ["This view is built from the nightly close — it refreshes after tonight’s run.", "该视图来自夜间收盘构建，今晚运行后刷新。"],

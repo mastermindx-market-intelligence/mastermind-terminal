@@ -3518,7 +3518,7 @@ export default function OptionsHubView({
                           <tr>
                             <th style={{ textAlign: "left" }}>{lang === "zh" ? "代码" : "Ticker"}</th>
                             <th style={{ textAlign: "left" }}>{t("screenerColSector", "Sector")}</th>
-                            {hdr("gross", "Gross Prem", "总保费", "Total premium across all flow events today")}
+                            {hdr("gross", "Gross Prem", "总权利金", "Total premium across all flow events today")}
                             {hdr("z", "Activity", "活跃度", "Premium activity compared with roughly one trading year")}
                             {hdr("call_share", "Call%", "认购占比", "Call premium share of total")}
                           </tr>
@@ -3580,7 +3580,7 @@ export default function OptionsHubView({
                             <th style={{ textAlign: "left" }}>{lang === "zh" ? "代码" : "Ticker"}</th>
                             <th style={{ textAlign: "left" }}>{t("screenerColSector", "Sector")}</th>
                             {hdr("z", "Activity", "活跃度", "Premium activity compared with roughly one trading year")}
-                            {hdr("gross", "Gross", "总保费", "Total premium today")}
+                            {hdr("gross", "Gross", "总权利金", "Total premium today")}
                             {hdr("call_share", "Call%", "认购占比")}
                           </tr>
                         </thead>

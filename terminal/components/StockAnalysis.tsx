@@ -699,7 +699,7 @@ export default function StockAnalysis({
         <Section title={pick("Timing quality", "时机质量")} sub={entry.grade ? `${pick("grade", "评级")} ${cap(entry.grade)}` : supporting ? pick("act now?", "现在行动？") : undefined}
           accent={entry.status === "open" ? "var(--buy)" : entry.status === "blocked" ? "var(--down)" : "var(--signal)"}>
           <div className="sa-entry-head">
-            <span className={`sa-status ${entry.status}`}>{entryStatusLabel(entry.urgency || entry.status, lang)}</span>
+            <span className={`sa-status ${entry.status}`}>{entryStatusLabel(entry.urgency, lang, entry.status)}</span>
             <b>{pick(entry.headline, entry.headline_zh)}</b>
           </div>
           {pick(entry.action, entry.action_zh) && <div className="sa-entry-act">{pick(entry.action, entry.action_zh)}</div>}

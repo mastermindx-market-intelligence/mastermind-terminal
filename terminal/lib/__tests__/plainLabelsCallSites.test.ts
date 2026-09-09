@@ -73,6 +73,26 @@ describe("plain-language call sites — leaky fallbacks gone", () => {
     expect(line).toMatch(/lang\s*===\s*["']zh["']/);
   });
 
+  it("StockAnalysis.tsx: entry chip tries urgency then falls through to status", () => {
+    const src = readOwned("StockAnalysis.tsx");
+    const line = lineContaining(src, "entryStatusLabel(", "entry chip");
+    expect(line).not.toContain("entry.urgency || entry.status");
+    expect(line).toMatch(/entryStatusLabel\(\s*entry\.urgency/);
+    expect(line).toContain("entry.status");
+  });
+
+  it("OptionsHubView.tsx: ZH premium column is 总权利金, never 总保费", () => {
+    const src = readOwned("OptionsHubView.tsx");
+    expect(src).not.toContain("总保费");
+    expect(src).toContain("总权利金");
+  });
+
+  it("i18n.tsx: ohNightlyPending English names the symbol, not a root", () => {
+    const src = readFileSync(join(__dirname, "../i18n.tsx"), "utf8");
+    expect(src).toContain('ohNightlyPending: ["Nightly data pending for this symbol."');
+    expect(src).not.toContain('ohNightlyPending: ["Nightly data pending for this root"');
+  });
+
   it("ChartPanel.tsx: oracle chip routes glance text through verdictLabel", () => {
     const src = readOwned("ChartPanel.tsx");
     expect(src).toContain('from "@/lib/plainLabels"');

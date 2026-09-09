@@ -115,6 +115,7 @@ export function mappedOrNeutral(mapped: string | undefined, lang: PlainLang): st
 export const SIGNAL_VERDICT_LABEL = {
   BUY: ["Buy", "买入"],
   SELL: ["Sell", "卖出"],
+  CUT: ["Cut", "减持"],
   REBUY: ["Buy again", "再次买入"],
   RECLAIM: ["Take back", "重新站上"],
   STOP: ["Stop", "止损"],
@@ -136,15 +137,29 @@ export const ENTRY_STATUS_LABEL = {
   blocked: ["Blocked", "受阻"],
   closed: ["Closed", "已关闭"],
   "act now": ["Act now", "现在行动"],
+  avoid: ["Stand aside", "回避"],
+  later: ["Wait", "再等"],
+  wait_pullback: ["Wait for a dip", "等待回撤"],
 } as const;
 
 export type EntryStatus = keyof typeof ENTRY_STATUS_LABEL;
 
-export function entryStatusLabel(value: string | null | undefined, lang: PlainLang): string {
-  if (value == null || value === "") return notClassified(lang);
+export function entryStatusLabel(
+  value: string | null | undefined,
+  lang: PlainLang,
+  fallback?: string | null,
+): string {
+  if (value == null || value === "") {
+    return fallback != null && fallback !== ""
+      ? entryStatusLabel(fallback, lang)
+      : notClassified(lang);
+  }
   const normalized = value.trim().toLowerCase().replace(/\?+$/, "") as EntryStatus;
   const pair = ENTRY_STATUS_LABEL[normalized];
   if (pair) return lang === "zh" ? pair[1] : pair[0];
+  if (fallback != null && fallback !== "" && fallback !== value) {
+    return entryStatusLabel(fallback, lang);
+  }
   // A leftover slug never reaches the screen. An unmapped English phrase
   // stays English only; Chinese never inherits the English words.
   if (/\s/.test(value)) return lang === "zh" ? notClassified(lang) : value;

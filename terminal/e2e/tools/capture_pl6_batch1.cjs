@@ -16,7 +16,7 @@
 
 const { spawn, execFileSync } = require("node:child_process");
 const { createHash } = require("node:crypto");
-const { mkdirSync, readFileSync, writeFileSync } = require("node:fs");
+const { mkdirSync, readdirSync, readFileSync, writeFileSync } = require("node:fs");
 const { join } = require("node:path");
 const { chromium } = require("@playwright/test");
 
@@ -26,12 +26,17 @@ const OUT = join(ROOT, "docs", "pr-crops", "b-pl-6-batch-1");
 const LAYOUT_FILES = [
   "terminal/components/OptionsHubView.tsx",
   "terminal/components/SearchModal.tsx",
+  "terminal/components/StockAnalysis.tsx",
   "terminal/components/workspaces/AnalysisWorkspace.tsx",
   "terminal/components/ChartPanel.tsx",
   "terminal/components/DayRange.tsx",
   "terminal/lib/plainLabels.ts",
   "terminal/lib/i18n.tsx",
 ];
+const ONLY = (process.env.CAPTURE_ONLY || "")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
 const PORT = Number(process.env.TERMINAL_CROP_PORT || 3536);
 const BASE = `http://127.0.0.1:${PORT}`;
 const VIEWPORTS = {
@@ -180,11 +185,18 @@ async function cropLocator(page, locator, outPath, pad = 18) {
 }
 
 async function captureOptionsHub(page, width, lang, outPath) {
-  await gotoReady(page, "/options?tab=vol", lang);
+  await gotoReady(page, "/options?tab=screener", lang);
   const workspace = page.locator(".options-workspace, .main2.options-workspace, main").first();
   await workspace.waitFor({ state: "visible", timeout: 60_000 });
   const heading = page.locator(".obs-lbl, .obs-card-hd, .options-ia-nav").first();
   await heading.waitFor({ state: "visible", timeout: 45_000 }).catch(() => {});
+  const needle = lang === "zh" ? "总权利金" : "Gross";
+  const labeled = page.locator(".obs-card").filter({ hasText: needle }).first();
+  if (await labeled.count()) {
+    await labeled.waitFor({ state: "visible", timeout: 45_000 });
+    await cropLocator(page, labeled, outPath, 14);
+    return;
+  }
   const target = (await page.locator(".obs-card").count())
     ? page.locator(".obs-card").first()
     : workspace;
@@ -194,24 +206,20 @@ async function captureOptionsHub(page, width, lang, outPath) {
 async function captureSearchModal(page, width, lang, outPath) {
   await gotoReady(page, "/terminal?symbol=SPY", lang);
   await page.locator(".workspace").waitFor({ state: "visible", timeout: 45_000 });
+  const cutWord = lang === "zh" ? "减持" : "Cut";
   if (width === 390) {
     await page.locator(".m-symbar").click();
     const hub = page.locator(".msheet-search");
     await hub.waitFor({ state: "visible", timeout: 20_000 });
-    // Phone HOME is the watchlist sheet (quotes, no verdict chips). Switch to
-    // Recently viewed so the crop shows the same Sell / 卖出 row as desktop.
-    const toggle = hub.locator(".sh-view-toggle");
-    if (await toggle.count()) {
-      const label = ((await toggle.textContent()) || "").trim();
-      if (/Recent|最近/.test(label)) await toggle.click();
-    }
+    const input = hub.locator(".sh input, input").first();
+    await input.click();
+    await input.fill("META");
     const verd = hub.locator(".sres .verd, .verd").first();
-    if (!(await verd.isVisible().catch(() => false))) {
-      const input = hub.locator(".sh input");
-      await input.click();
-      await input.fill("SPY");
-    }
     await verd.waitFor({ state: "visible", timeout: 20_000 });
+    const text = ((await verd.textContent()) || "").trim();
+    if (!new RegExp(cutWord, "i").test(text)) {
+      throw new Error(`${outPath}: expected CUT chip ${cutWord}, got ${text}`);
+    }
     await cropLocator(page, hub, outPath, 8);
   } else {
     const pair = page.locator(".topbar .pair").first();
@@ -219,9 +227,33 @@ async function captureSearchModal(page, width, lang, outPath) {
     await pair.click();
     const hub = page.locator(".smodal-hub").first();
     await hub.waitFor({ state: "visible", timeout: 20_000 });
-    await hub.locator(".verd").first().waitFor({ state: "visible", timeout: 20_000 });
+    const input = hub.locator("input").first();
+    await input.click();
+    await input.fill("META");
+    const verd = hub.locator(".verd").first();
+    await verd.waitFor({ state: "visible", timeout: 20_000 });
+    const text = ((await verd.textContent()) || "").trim();
+    if (!new RegExp(cutWord, "i").test(text)) {
+      throw new Error(`${outPath}: expected CUT chip ${cutWord}, got ${text}`);
+    }
     await cropLocator(page, hub, outPath, 10);
   }
+}
+
+async function captureStockAnalysis(page, width, lang, outPath) {
+  await gotoReady(page, "/terminal?symbol=AAPL", lang);
+  await page.locator(".workspace, .app").first().waitFor({ state: "visible", timeout: 60_000 });
+  const chip = page.locator(".sa-status").first();
+  await chip.waitFor({ state: "attached", timeout: 60_000 });
+  await chip.scrollIntoViewIfNeeded();
+  await chip.waitFor({ state: "visible", timeout: 20_000 });
+  const expected = lang === "zh" ? "回避" : "Stand aside";
+  const text = ((await chip.textContent()) || "").trim();
+  if (!new RegExp(expected, "i").test(text)) {
+    throw new Error(`${outPath}: expected entry chip ${expected}, got ${text}`);
+  }
+  const head = page.locator(".sa-entry-head").first();
+  await cropLocator(page, head, outPath, 12);
 }
 
 async function captureAnalysis(page, width, lang, outPath) {
@@ -247,9 +279,16 @@ async function captureChartChrome(page, width, lang, outPath) {
 const SURFACES = [
   { name: "OptionsHubView", run: captureOptionsHub },
   { name: "SearchModal", run: captureSearchModal },
+  { name: "StockAnalysis", run: captureStockAnalysis },
   { name: "AnalysisWorkspace", run: captureAnalysis },
   { name: "ChartChrome", run: captureChartChrome },
 ];
+
+function shouldCapture(surfaceName, width, lang) {
+  if (!ONLY.length) return true;
+  const stem = cropName(surfaceName, width, lang).replace(/\.png$/, "");
+  return ONLY.includes(surfaceName) || ONLY.includes(stem);
+}
 
 async function main() {
   const capturedAtHead = currentGitHead();
@@ -263,6 +302,7 @@ async function main() {
       for (const width of [1440, 390]) {
         for (const lang of ["en", "zh"]) {
           for (const surface of SURFACES) {
+            if (!shouldCapture(surface.name, width, lang)) continue;
             const file = cropName(surface.name, width, lang);
             process.stdout.write(`capture ${file} … `);
             const { context, page } = await newPage(browser, width, lang);
@@ -304,14 +344,17 @@ async function main() {
     "viewports:",
     "  - { name: desktop, width: 1440, height: 900 }",
     "  - { name: mobile, width: 390, height: 844 }",
-    "surfaces: [OptionsHubView, SearchModal, AnalysisWorkspace, ChartChrome]",
+    "surfaces: [OptionsHubView, SearchModal, StockAnalysis, AnalysisWorkspace, ChartChrome]",
     "capture_flag: TERMINAL_E2E_FIXTURE",
     "capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.",
     "command: |",
     "  cd terminal",
     "  node e2e/tools/capture_pl6_batch1.cjs",
     "files:",
-    ...files.map((f) => `  - ${f}`),
+    ...[...new Set([
+      ...readdirSync(OUT).filter((f) => f.endsWith(".png") && !f.startsWith("FAIL-")).sort(),
+      ...files,
+    ])].map((f) => `  - ${f}`),
     "",
   ].join("\n");
   writeFileSync(join(OUT, "EVIDENCE.yml"), evidence);
