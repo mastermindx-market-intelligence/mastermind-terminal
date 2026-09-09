@@ -198,6 +198,20 @@ async function captureSearchModal(page, width, lang, outPath) {
     await page.locator(".m-symbar").click();
     const hub = page.locator(".msheet-search");
     await hub.waitFor({ state: "visible", timeout: 20_000 });
+    // Phone HOME is the watchlist sheet (quotes, no verdict chips). Switch to
+    // Recently viewed so the crop shows the same Sell / 卖出 row as desktop.
+    const toggle = hub.locator(".sh-view-toggle");
+    if (await toggle.count()) {
+      const label = ((await toggle.textContent()) || "").trim();
+      if (/Recent|最近/.test(label)) await toggle.click();
+    }
+    const verd = hub.locator(".sres .verd, .verd").first();
+    if (!(await verd.isVisible().catch(() => false))) {
+      const input = hub.locator(".sh input");
+      await input.click();
+      await input.fill("SPY");
+    }
+    await verd.waitFor({ state: "visible", timeout: 20_000 });
     await cropLocator(page, hub, outPath, 8);
   } else {
     const pair = page.locator(".topbar .pair").first();
@@ -205,6 +219,7 @@ async function captureSearchModal(page, width, lang, outPath) {
     await pair.click();
     const hub = page.locator(".smodal-hub").first();
     await hub.waitFor({ state: "visible", timeout: 20_000 });
+    await hub.locator(".verd").first().waitFor({ state: "visible", timeout: 20_000 });
     await cropLocator(page, hub, outPath, 10);
   }
 }

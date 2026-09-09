@@ -2302,7 +2302,7 @@ export const LEX: Record<string, [string, string]> = {
   lgCreateAccount: ["Create account", "注册"],
 
   // ---- B-PL-6 batch 1: shell, error, analysis, options hub ----
-  errShellBody: ["An unexpected error occurred in the application shell.", "应用外壳发生了意外错误。"],
+  errShellBody: ["An unexpected error occurred in the application.", "应用发生了意外错误。"],
   wsCompanyResearch: ["Company research", "公司研究"],
   wsUnresolvedSymbol: ["This symbol is not recognized", "无法识别该代码"],
   wsResearchNotOpened: ["This company research page was not opened", "无法打开该公司研究页"],
@@ -2348,7 +2348,7 @@ export const LEX: Record<string, [string, string]> = {
   ohLoadingVol: ["Loading the volatility surface…", "波动率数据加载中…"],
   ohEtfUniverseExpanding: ["ETF universe · single names expanding", "ETF品种覆盖，个股扩展中"],
   ohNeitherFeed: ["Neither the intraday options tape nor the nightly close build could be read right now.", "盘中期权流与夜间收盘构建当前均无法读取。"],
-  ohTopPremiumToday: ["Top Premium — Today", "保费最大（今日）"],
+  ohTopPremiumToday: ["Top Premium — Today", "权利金最大（今日）"],
   ohActivityVsYear: ["Activity compares today’s premium with roughly one trading year. Click a row for details.", "活跃度将今日权利金与约一年的交易历史比较。点击行查看详情。"],
   ohUnusualActivity: ["Unusual Activity", "异常活跃度"],
   ohUnusualFoot: ["Very unusual and Extreme mean today’s activity is well above its one-year norm. Click a row for details.", "“很异常”和“极异常”表示今日活动明显高于一年常态。点击行查看详情。"],

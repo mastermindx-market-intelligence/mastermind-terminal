@@ -65,4 +65,23 @@ describe("plain-language call sites — leaky fallbacks gone", () => {
     expect(src).not.toContain("|| r.mscRegime");
     expect(src).toContain("verdictLabel(");
   });
+
+  it("StockAnalysis.tsx: AnalystGauge ratingVerdict uses lang, never hardcoded English", () => {
+    const src = readOwned("StockAnalysis.tsx");
+    const line = lineContaining(src, "ratingVerdict(", "ratingVerdict call");
+    expect(line).not.toMatch(/ratingVerdict\([^)]*,\s*false\s*\)/);
+    expect(line).toMatch(/lang\s*===\s*["']zh["']/);
+  });
+
+  it("ChartPanel.tsx: oracle chip routes glance text through verdictLabel", () => {
+    const src = readOwned("ChartPanel.tsx");
+    expect(src).toContain('from "@/lib/plainLabels"');
+    const chip = src.match(/const vLabel[\s\S]*?verdictRef\.current\.textContent/);
+    expect(chip, "vLabel assignment").not.toBeNull();
+    expect(chip![0]).toContain("verdictLabel(");
+    expect(chip![0]).not.toContain("LIQUIDITY RECLAIM");
+    expect(chip![0]).not.toContain("RE-ENTRY");
+    expect(chip![0]).not.toMatch(/=\s*"STOP"/);
+    expect(chip![0]).not.toMatch(/\?\s*"EARLY"/);
+  });
 });

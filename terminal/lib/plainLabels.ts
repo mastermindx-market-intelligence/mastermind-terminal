@@ -116,7 +116,7 @@ export const SIGNAL_VERDICT_LABEL = {
   BUY: ["Buy", "买入"],
   SELL: ["Sell", "卖出"],
   REBUY: ["Buy again", "再次买入"],
-  RECLAIM: ["Reclaim", "收复"],
+  RECLAIM: ["Take back", "重新站上"],
   STOP: ["Stop", "止损"],
   EARLY: ["Early watch", "提前关注"],
 } as const;
@@ -135,16 +135,19 @@ export const ENTRY_STATUS_LABEL = {
   open: ["Window open", "窗口已开"],
   blocked: ["Blocked", "受阻"],
   closed: ["Closed", "已关闭"],
+  "act now": ["Act now", "现在行动"],
 } as const;
 
 export type EntryStatus = keyof typeof ENTRY_STATUS_LABEL;
 
 export function entryStatusLabel(value: string | null | undefined, lang: PlainLang): string {
   if (value == null || value === "") return notClassified(lang);
-  const pair = ENTRY_STATUS_LABEL[value.toLowerCase() as EntryStatus];
+  const normalized = value.trim().toLowerCase().replace(/\?+$/, "") as EntryStatus;
+  const pair = ENTRY_STATUS_LABEL[normalized];
   if (pair) return lang === "zh" ? pair[1] : pair[0];
-  // A spaced phrase is already copy; a leftover slug never reaches the screen.
-  if (/\s/.test(value)) return value;
+  // A leftover slug never reaches the screen. An unmapped English phrase
+  // stays English only; Chinese never inherits the English words.
+  if (/\s/.test(value)) return lang === "zh" ? notClassified(lang) : value;
   return notClassified(lang);
 }
 
@@ -174,7 +177,7 @@ export function volAboveOiLabel(lang: PlainLang): string {
 export const WIDGET_TYPE_LABEL = {
   screener: ["Screener", "选股"],
   chart: ["Chart", "图表"],
-  pane: ["Pane", "窗格"],
+  pane: ["Panel", "面板"],
   overlay: ["Overlay", "叠加层"],
   unknown: ["Unknown", "未知"],
 } as const;

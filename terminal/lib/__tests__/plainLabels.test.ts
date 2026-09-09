@@ -179,6 +179,14 @@ describe("verdictLabel", () => {
     expect(verdictLabel("BUY", "zh")).toBe("买入");
     expect(verdictLabel("REBUY", "en")).toBe("Buy again");
     expect(verdictLabel("REBUY", "zh")).toBe("再次买入");
+    expect(verdictLabel("STOP", "en")).toBe("Stop");
+    expect(verdictLabel("STOP", "zh")).toBe("止损");
+    expect(verdictLabel("EARLY", "en")).toBe("Early watch");
+    expect(verdictLabel("EARLY", "zh")).toBe("提前关注");
+    expect(verdictLabel("RECLAIM", "en")).toBe("Take back");
+    expect(verdictLabel("RECLAIM", "zh")).toBe("重新站上");
+    expect(verdictLabel("RECLAIM", "en")).not.toBe("RECLAIM");
+    expect(verdictLabel("RECLAIM", "zh")).not.toBe("Reclaim");
   });
 });
 
@@ -191,8 +199,10 @@ describe("entryStatusLabel", () => {
     expect(entryStatusLabel("open", "en")).not.toBe("open");
   });
 
-  it("keeps a spaced phrase and classifies an unknown slug", () => {
+  it("keeps a spaced phrase in English and translates Act now in Chinese", () => {
     expect(entryStatusLabel("Act now", "en")).toBe("Act now");
+    expect(entryStatusLabel("Act now", "zh")).toBe("现在行动");
+    expect(entryStatusLabel("Act now", "zh")).not.toBe("Act now");
     expect(entryStatusLabel("urgent", "en")).toBe(notClassified("en"));
     expect(entryStatusLabel("urgent", "en")).not.toBe("urgent");
   });
@@ -233,6 +243,9 @@ describe("widgetTypeLabel", () => {
   it("unknown widget type never returns the raw slug", () => {
     expect(widgetTypeLabel("screener", "en")).toBe("Screener");
     expect(widgetTypeLabel("screener", "zh")).toBe("选股");
+    expect(widgetTypeLabel("pane", "en")).toBe("Panel");
+    expect(widgetTypeLabel("pane", "zh")).toBe("面板");
+    expect(widgetTypeLabel("pane", "en")).not.toBe("Pane");
     expect(widgetTypeLabel("mystery-pane", "en")).toBe(notClassified("en"));
     expect(widgetTypeLabel("mystery-pane", "en")).not.toBe("mystery-pane");
   });

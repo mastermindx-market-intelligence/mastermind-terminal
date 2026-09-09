@@ -88,6 +88,7 @@ import { ichimoku, supertrend, avwap as computeAvwap, rollingVwap, weekAnchoredV
 import ChartOverlays, { type PaneInfo, type LegendEntry } from "@/components/ChartOverlays";
 import DayStatsStrip from "@/components/DayStatsStrip";
 import { tPlain, useT } from "@/lib/i18n";
+import { verdictLabel, type PlainLang } from "@/lib/plainLabels";
 import { listTemplates } from "@/lib/chartTemplates";
 import {
   announceTerminalVisualReady,
@@ -2605,13 +2606,22 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       const buy = v === "BUY" || v === "REBUY" || v === "RECLAIM";
       const watch = v === "BOTTOM_WATCH";
       const chipColor = watch ? t.signal : buy ? t.buy : t.sell;
-      // HK-O1: a structure stop says STOP, not SELL. The chip is the glance tier — four
-      // characters, inside the existing pill geometry at every breakpoint — and the full
-      // "Structure stop — swing-low break" read lives on the rail card and the marker hover.
-      const vLabel = isStructureStop({ type: v, basis: vBasis }) ? "STOP"
-        : v === "BOTTOM_WATCH" ? "EARLY"
-          : isStopSweepReclaim({ type: v, quality: vQuality }) ? "LIQUIDITY RECLAIM"
-            : v === "RECLAIM" ? "RE-ENTRY" : v;
+      // HK-O1: a structure stop says Stop, not Sell. The chip is the glance
+      // tier — inside the existing pill geometry at every breakpoint — and the
+      // full "Structure stop — swing-low break" read lives on the rail card
+      // and the marker hover. Route every word through verdictLabel so a raw
+      // enum never reaches the chip in either language.
+      const chipLang: PlainLang =
+        typeof document !== "undefined" && document.documentElement.getAttribute("data-lang") === "zh"
+          ? "zh"
+          : "en";
+      const vLabel = isStructureStop({ type: v, basis: vBasis })
+        ? verdictLabel("STOP", chipLang)
+        : v === "BOTTOM_WATCH"
+          ? verdictLabel("EARLY", chipLang)
+          : isStopSweepReclaim({ type: v, quality: vQuality })
+            ? verdictLabel("RECLAIM", chipLang)
+            : verdictLabel(v, chipLang);
       verdictRef.current.textContent = `${tPlain("goldenOracleLbl")} · ${vLabel}`;
       verdictRef.current.style.color = chipColor;
       const w = verdictRef.current.parentElement as HTMLElement;

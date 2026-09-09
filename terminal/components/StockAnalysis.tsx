@@ -382,7 +382,7 @@ function AnalystGauge({ fund, spot, pick, onOpen, hasIntelAnalyst }: { fund: Fun
   const upside = target != null && spot != null && spot !== 0 ? ((target - spot) / spot) * 100 : null;
   if (score == null && target == null) return null;
   // Never empty: falls back to the zone word when rating_label is null.
-  const verdict = ratingVerdict(an.rating_label, score, false) || undefined;
+  const verdict = ratingVerdict(an.rating_label, score, lang === "zh") || undefined;
   return (
     <Section title={pick("Analyst rating", "分析师评级")}>
       {score != null && (() => {
