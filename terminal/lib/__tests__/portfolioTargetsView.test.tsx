@@ -255,3 +255,32 @@ describe("PortfolioTargetsReadout — the unweighable untargeted hint (R6 c)", (
     expect(text()).not.toContain("—%");
   });
 });
+
+// The unweighable state produced no fixture and no crop in round 1, so nobody saw that the card
+// printed the same sentence twice: spec 2.6 names T_UNWEIGHABLE as the STATUS of an unweighable
+// row, and the row also rendered it again as a separate note.
+describe("PortfolioTargetsReadout — the unweighable card says it once", () => {
+  const unweighable = computePortfolioTargets(
+    [pos("AAA", 100, 200), pos("ZERO", 0, 200)],
+    [tgt("AAA", 80, 5), tgt("ZERO", 10, 5)],
+  );
+  const sentence = "No share count or entry price yet — this target can't be measured.";
+
+  it("renders the unweighable sentence exactly once on the card", () => {
+    mount(unweighable, {}, "en");
+    expect(text()).toContain(sentence);
+    expect(text().split(sentence).length - 1).toBe(1);
+  });
+
+  it("renders the ZH unweighable sentence exactly once", () => {
+    mount(unweighable, {}, "zh");
+    const zh = "还没有记录股数或建仓价，暂时无法衡量这个目标。";
+    expect(text()).toContain(zh);
+    expect(text().split(zh).length - 1).toBe(1);
+  });
+
+  it("still shows a band verdict on the weighable row beside it", () => {
+    mount(unweighable, {}, "en");
+    expect(text()).toContain("Outside your band");
+  });
+});

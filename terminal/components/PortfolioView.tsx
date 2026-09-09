@@ -983,7 +983,12 @@ function TargetCard({
         </div>
       </div>
       <p className={tg.status} data-kind={bandFit}>{bandFitLabel}</p>
-      {unweighableNote ? <p className={tg.unweighable}>{unweighableNote}</p> : null}
+      {/* On an unweighable row the status label IS T_UNWEIGHABLE (spec 2.6 names that sentence as
+          the status), so rendering the note as well printed the same sentence twice on one card.
+          The state produced no fixture and no crop in round 1, which is why nobody saw it. */}
+      {unweighableNote && unweighableNote !== bandFitLabel
+        ? <p className={tg.unweighable}>{unweighableNote}</p>
+        : null}
       <div className={tg.actions}>
         <button
           type="button"
