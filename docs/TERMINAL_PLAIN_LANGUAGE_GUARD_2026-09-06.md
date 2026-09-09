@@ -213,22 +213,24 @@ not a finding about the diff.
   all) — but the guard still cannot distinguish "genuinely compliant" from
   "missed by a rule gap" beyond the rules R1–R5b actually implement. That is
   a detection-coverage limit, not a misreported null.
-- **CI base resolution is untested end-to-end against a real repo-wide diff.**
-  `actions/checkout@v4` at default depth likely cannot resolve
-  `origin/master` inside the `terminal` job, so the repo-wide `--since
-  origin/master` path may always take the disclosed fail-open branch in CI.
-  This is why the CI proof for this packet runs through the vitest suite's
-  own `--diff-file` fixtures rather than a live repo-wide scan, and why the
-  guard is a developer command + test suite today, not yet wired as a
-  standalone PR-diff check in `.github/workflows/ci.yml`. Wiring it there
-  (and confirming checkout depth) is out of this packet's owned paths
-  (`terminal/scripts/check_plain_language.mjs`,
-  `terminal/lib/__tests__/plainLanguageGuard.test.ts`, this doc) and needs a
-  follow-up wiring packet rather than a silent scope expansion here. If
-  checkout depth ever changes and full history becomes available, the
-  `--since` path starts working with no code change; if it stays shallow,
-  the disclosed fail-open is the correct, non-silent outcome — never a false
-  green on a real violation.
+- **CI wiring is live, and it does not use the repo-wide `--since` path.**
+  Packet `B-PLAT-B5-1` wired the guard into `.github/workflows/ci.yml` (§14):
+  it runs in the `terminal-unit` job, as the job's last two steps, after
+  "Disclose quarantined e2e journeys" — first a self-check that exits 2 if
+  any rule (R1–R5b) can no longer detect its own violation, then a
+  forward-only enforce run fed an explicit `--diff-file`. On `pull_request`
+  that diff's base is `HEAD^1`, the merge commit's first parent, which
+  `terminal-unit`'s `fetch-depth: 2` checkout makes resolvable and which
+  cannot drift while the job runs; off `pull_request` the base branch tip is
+  fetched explicitly at step time instead. Because the CI step always
+  supplies `--diff-file`, the repo-wide `origin/master`-guessing `--since`
+  path described in §4's exit-code table (row 0) is a local-development
+  convenience only — it is not what CI exercises, so `actions/checkout@v4`'s
+  default depth in other jobs is irrelevant to this guard. §14 has the full
+  wiring detail, including the one still-disclosed residual: a
+  `workflow_dispatch` run against a stale (unrefreshed) branch can see a
+  legacy line as newly added — a false red only, never a false green, and
+  one that merge-on-green's pre-dispatch branch refresh prevents in practice.
 
 ## 9. Review fixes (round 2, PR #530)
 
@@ -741,17 +743,23 @@ workflow itself:
   green. Fail closed, like the guard's own exit 2.
 - **Off `pull_request`, the base branch tip is fetched explicitly.** A
   `workflow_dispatch` re-run has no merge commit, and a shallow checkout does
-  not contain the base — without the fetch the guard resolves no base,
-  discloses that nothing can block, and exits 0, a step that is green because
-  it checked nothing. The step fetches `origin/<base ref>` (or `master` when
-  there is no base ref) one commit deep, reading the branch name from an
-  environment variable rather than interpolating it into the shell text. The
-  diff is then base tip vs HEAD, so the branch's OWN changes count as added
-  and can block — which is the point of re-running the proof. A pre-existing
-  line can surface as added on that path only if the branch is BEHIND the
-  base: git reads the branch's older copy of a line the base has since changed
-  as an addition. merge-on-green refreshes a branch from master before it
-  dispatches, which is what keeps the branch from being behind.
+  not contain the base — without the fetch `$BASE` cannot resolve at all.
+  This step always supplies `--diff-file` (never `--since`), so an
+  unresolved `$BASE` does not fail open: `git diff --unified=0 "$BASE" HEAD`
+  fails under `set -euo pipefail` and the step dies loudly, having invoked
+  the guard on nothing. The fetch is what lets `$BASE` resolve, not a guard
+  against a silent pass. Once it resolves, the step fetches `origin/<base
+  ref>` (or `master` when there is no base ref) one commit deep, reading the
+  branch name from an environment variable rather than interpolating it into
+  the shell text. The diff is then base tip vs HEAD, so the branch's OWN
+  changes count as added and can block — which is the point of re-running
+  the proof. A pre-existing line can surface as added on that path only if
+  the branch is BEHIND the base: git reads the branch's older copy of a line
+  the base has since changed as an addition. merge-on-green refreshes a
+  branch from master before it dispatches, which is what keeps the branch
+  from being behind in practice — the disclosed residual (§14 above) is the
+  window between a hand-dispatched run on a branch that skipped that refresh
+  and the base moving; the failure direction stays false-red only.
 - **The diff is taken with two dots, not three.** `git diff A B` compares two
   trees and needs no merge base; `git diff A...B` needs one, and two shallow
   histories give git nothing to find it in. On a pull request run, HEAD is

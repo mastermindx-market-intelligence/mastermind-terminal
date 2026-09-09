@@ -111,8 +111,12 @@ describe("plain-language guard — CI wiring", () => {
     expect(enforce).toContain("set -euo pipefail");
 
     // Off `pull_request` there is no merge commit, so the base branch tip is
-    // fetched explicitly — a shallow checkout does not contain it, and without
-    // it the guard reports "nothing can block" and exits 0.
+    // fetched explicitly — a shallow checkout does not contain it, and
+    // without the fetch $BASE cannot resolve at all. This step always calls
+    // the guard with --diff-file (never --since), so an unresolved $BASE does
+    // not fail open: `git diff --unified=0 "$BASE" HEAD` fails under
+    // `set -euo pipefail` and the step dies loudly, having invoked nothing.
+    // The fetch is what lets $BASE resolve, not a guard against a silent pass.
     expect(enforce).toContain("git fetch --no-tags --depth=1 origin");
     expect(enforce).toContain('"+refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}"');
     // Read through an env var, never interpolated straight into the shell:
@@ -135,8 +139,17 @@ describe("plain-language guard — CI wiring", () => {
     // reliably help, because checkout leaves remote.origin.fetch pointing at
     // refs/heads/* and the merge commit sits on no branch.
     expect(unit).toMatch(/- uses: actions\/checkout@v4\n\s+with:\n\s+fetch-depth: 2\n/);
-    // No other job pays for the extra objects.
-    expect(text.split("fetch-depth:").length - 1).toBe(1);
+    // No other job pays for the extra objects — scoped by slicing terminal-unit
+    // out of the file first (jobBlock, same helper the rest of the suite
+    // uses) and asserting the REMAINDER never mentions fetch-depth, rather
+    // than asserting a file-wide occurrence COUNT. A legitimate future job
+    // adding its own fetch-depth for an unrelated reason still fails this
+    // (that is the point — it does not belong to terminal-unit), but the
+    // failure now shows the offending text instead of a bare "1 !== 2".
+    const outsideUnit = text.replace(unit, "");
+    expect(outsideUnit, "fetch-depth found outside the terminal-unit job").not.toContain(
+      "fetch-depth:",
+    );
   });
 
   it("A3. both guard steps run LAST — after npm test and after the quarantine disclosure — inside the job that feeds the required check", () => {
@@ -171,10 +184,18 @@ describe("plain-language guard — CI wiring", () => {
     // the bare filename keeps prose mentions of the script in the comments
     // out of the count.
     const text = readFileSync(workflowPath, "utf8");
-    const invocations = text.split("node scripts/check_plain_language.mjs").length - 1;
-    expect(invocations).toBe(2);
     const unit = jobBlock(text, "terminal-unit");
     expect(unit.split("node scripts/check_plain_language.mjs").length - 1).toBe(2);
+    // Scoped like A2b: slice terminal-unit out (jobBlock) and assert the
+    // REMAINDER of the file never mentions the guard, instead of asserting a
+    // file-wide count of 2 — the two checks together still pin "exactly two,
+    // both inside terminal-unit," but a failure here names the job as
+    // outside terminal-unit rather than an opaque total mismatch.
+    const outsideUnit = text.replace(unit, "");
+    expect(
+      outsideUnit,
+      "guard invocation found outside the terminal-unit job",
+    ).not.toContain("node scripts/check_plain_language.mjs");
   });
 });
 
@@ -188,11 +209,16 @@ describe("plain-language guard — self-check is a real gate", () => {
     expect(res.stdout).not.toContain("NOT detected");
   });
 
-  it("B2. --self-check exits NON-ZERO when a rule stops detecting its own violation", () => {
+  it("B2. --self-check exits 2 (the fail-closed infrastructure-fault code) when a rule stops detecting its own violation", () => {
     // Mutation test: a self-check that always exits 0 is a decoration, not a
     // gate — the CI step would stay green with every rule dead. Run a copy of
     // the real script whose R1 fixture expects a rule name that can never
-    // fire, and require the process to fail.
+    // fire, and require the process to fail CLOSED with exit 2 specifically —
+    // not merely non-zero. Docs §4's exit table and §7 both publish 2 (never
+    // 1) as the contract for "the guard itself is broken": exit 1 means "a
+    // real blocking finding," and a regression that made a dead rule exit 1
+    // would make a broken guard indistinguishable from a real finding — the
+    // exact confusion the distinct code exists to prevent.
     //
     // The copy lives in an OS temp dir, never inside the tracked tree: a run
     // killed between mkdtemp and the finally block used to strand a
@@ -216,7 +242,7 @@ describe("plain-language guard — self-check is a real gate", () => {
 
       const res = run(brokenPath, ["--self-check"]);
       expect(res.stdout).toContain("R1 NOT detected");
-      expect(res.status).not.toBe(0);
+      expect(res.status).toBe(2);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }

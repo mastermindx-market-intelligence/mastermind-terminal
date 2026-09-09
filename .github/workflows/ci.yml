@@ -130,14 +130,18 @@ jobs:
       # Off `pull_request` (the workflow_dispatch re-run merge-on-green fires
       # on a refreshed branch) there is no merge commit, so the base branch tip
       # is fetched explicitly -- a shallow checkout does not contain it, and
-      # without it the guard resolves no base, discloses that nothing can
-      # block, and exits 0 having checked nothing. The diff is then base tip vs
-      # HEAD, so the branch's OWN changes count as added and can block, which
-      # is the point of re-running the proof. A pre-existing line can only
-      # surface as added on that path if the branch is BEHIND the base (git
-      # reads the branch's older copy of a line the base has since changed as
-      # an addition); merge-on-green refreshes the branch from master before it
-      # dispatches, which is what keeps the branch from being behind.
+      # without the fetch $BASE cannot resolve at all. This step always passes
+      # --diff-file (never --since), so an unresolved $BASE does not fail
+      # open: `git diff --unified=0 "$BASE" HEAD` fails under
+      # `set -euo pipefail` and the step dies loudly, having invoked the guard
+      # on nothing. The fetch exists so $BASE resolves, not to avoid a silent
+      # pass. Once it resolves, the diff is base tip vs HEAD, so the branch's
+      # OWN changes count as added and can block, which is the point of
+      # re-running the proof. A pre-existing line can only surface as added on
+      # that path if the branch is BEHIND the base (git reads the branch's
+      # older copy of a line the base has since changed as an addition);
+      # merge-on-green refreshes the branch from master before it dispatches,
+      # which is what keeps the branch from being behind in practice.
       #
       # `set -euo pipefail` so the step fails CLOSED: an unresolvable HEAD^1
       # kills it loudly instead of leaving BASE empty and passing green.
