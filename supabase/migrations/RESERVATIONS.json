@@ -203,6 +203,16 @@
       "pr": null,
       "pr_state": null,
       "note": "ownership transfer; reserved by Meta-CEO B ruling 2026-09-09; PR pending"
+    },
+    "0022": {
+      "state": "taken",
+      "file": "0022_chart_layouts_team_sharing.sql",
+      "packet": "B-F12-B5-2",
+      "pr": 555,
+      "pr_state": "open",
+      "applied_in_production": false,
+      "applied_date": null,
+      "note": "packet B-F12-B5-2 team-shared saved workspaces; shipped unapplied. Seat ruling R1 owns prefix 0022 (0021 is B-F12-B5-1 explicit grants). Open draft PR #555. applied_in_production is false and applied_date is null, not recorded as applied and never guessed."
     }
   }
 }
