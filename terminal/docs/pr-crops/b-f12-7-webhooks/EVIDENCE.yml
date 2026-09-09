@@ -1,12 +1,12 @@
 # B-F12-7 Outbound signed webhooks — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: b170bc7f4a61ec8d834a0bc1eb17486359cb7bb5
-# capturedAt: 2026-09-09T11:10:25.442Z
+# capturedAtHead: b68f6a73d5524ea70f0480d495ee24ae843be037
+# capturedAt: 2026-09-09T11:57:26.653Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/components/settings/SectionWebhooks.tsx: "bf99c6cd101afbc20c85a374763b6dd6ba08f348262e832056fda4abdbf72349"
-  terminal/lib/webhookLabels.ts: "caed062fbd38013772691edca8f1f6df490f8be925a2cd4c7a48c37f1285eb5b"
+  terminal/lib/webhookLabels.ts: "b561502a7d0e245a187cfafbafea988983c374f77a0e4d7b3392e1a978c92f75"
   terminal/components/settings/SettingsPanel.tsx: "15b449b00e744bffd65659d1064c4e45c928d5a8a63c663ced4e478d556195ab"
   terminal/components/settings/icons.tsx: "a27f9c8cdbd288a1acbad4c6c8b2cd93ee26b6c7ccfc51453442dfdfc812230a"
   terminal/lib/i18n.tsx: "dbe654cac5561a579403adcf70bdda3eb846a46ab258a7add15ad03dd3af64c2"
