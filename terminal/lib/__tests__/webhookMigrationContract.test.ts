@@ -64,8 +64,9 @@ describe("0018 webhook delivery migration contract", () => {
     expect(flat).not.toMatch(/enqueue_test_webhook_delivery\s*\(\s*p_endpoint_id uuid\s*,/);
     expect(flat).toContain("public.team_role(v_ep.team_id)");
     const insertStmt = (flat.match(/insert into public\.webhook_deliveries[^;]*;/) || [""])[0];
-    expect(insertStmt).toContain("'webhook.test'");
-    expect(insertStmt).not.toMatch(/p_event_type|event_type\s*,/);
+    expect(insertStmt).toMatch(/,\s*'webhook.test'\s*,/);
+    expect(insertStmt).not.toMatch(/\bp_event_type\b/);
+    expect(insertStmt).not.toContain("p_endpoint_id");
   });
 
   it("carries both required header lines for 0018", () => {

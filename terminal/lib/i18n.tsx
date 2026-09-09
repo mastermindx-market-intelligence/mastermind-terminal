@@ -1905,6 +1905,8 @@ export const LEX: Record<string, [string, string]> = {
   acsTerminalSub: ["How the Terminal behaves — search markets and chart defaults.", "终端的行为——搜索市场与图表默认设置。"], // NEW
   acsSyncT: ["Sync", "同步"],
   acsSyncSub: ["What follows your account across devices.", "跟随账户同步到各设备的内容。"],
+  acsWebhooks: ["Webhooks", "Webhook 回调"],
+  acsWebhooksSub: ["Send signed events to an HTTPS address your team owns.", "把已签名的事件发送到团队拥有的 HTTPS 地址。"],
   // rail
   acsRailSub: ["Synced across devices", "已在各设备同步"],
   acsSections: ["Settings sections", "设置分区"],

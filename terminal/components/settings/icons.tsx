@@ -63,6 +63,14 @@ export function IconSync() {
     </svg>
   );
 }
+export function IconWebhooks() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" {...S}>
+      <path d="M10 13a5 5 0 0 0 7.07 0l1.41-1.41a5 5 0 0 0-7.07-7.07L10 5.93" />
+      <path d="M14 11a5 5 0 0 0-7.07 0L5.52 12.4a5 5 0 0 0 7.07 7.07L14 18.07" />
+    </svg>
+  );
+}
 export function IconSignOut() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" {...S} strokeWidth={1.8}>

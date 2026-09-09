@@ -77,6 +77,18 @@ Offset +4 min so each run follows the 5-min data/flagship refresh:
 4-59/5 * * * * cd /opt/terminal && /usr/bin/node ingest/dist/suite_alerts.mjs >> /var/log/suite-alerts.log 2>&1
 ```
 
+### Outbound signed webhooks cron (`ingest/webhook_delivery.ts` → `ingest/dist/webhook_delivery.mjs`)
+
+The Node worker that claims due `webhook_deliveries` rows, HMAC-signs the payload, and POSTs with redirects disabled and the TCP connection pinned to a pre-validated public IP. It imports `terminal/lib/webhookSigning.ts` (and the retry/URL helpers), so it must be bundled before the cron can run. **Box-side, install once** (not managed by the deploy — same as the other cron lines). Bundle, then the every-minute cadence required by the 1-minute first retry step:
+
+```
+cd /opt/terminal/terminal && npx esbuild ../ingest/webhook_delivery.ts --bundle --platform=node --format=esm --outfile=../ingest/dist/webhook_delivery.mjs --alias:@=.
+```
+
+```cron
+* * * * * cd /opt/terminal && /usr/bin/node ingest/dist/webhook_delivery.mjs >> /var/log/webhook-delivery.log 2>&1
+```
+
 ### Deliberately NOT deployed
 
 - `api/`, `docs/`, `indicator_engine/`, `tests/`, `web/`, `supabase/`, `requirements.txt` — not
