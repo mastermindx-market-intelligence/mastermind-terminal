@@ -687,10 +687,15 @@ no job depended on it. A pull request could put a raw state enum or an
 untranslated statistic token in front of a user and every required check
 still went green.
 
-Two steps in the `terminal-unit` job of `.github/workflows/ci.yml` now run it,
-immediately after `npm test`. That job feeds the aggregate check named
-"Terminal typecheck + tests", which is the check master's branch protection
-requires — so either step going red blocks the merge.
+Two steps in the `terminal-unit` job of `.github/workflows/ci.yml` now run it.
+They are the LAST two steps in that job — after `npm test` and after
+"Disclose quarantined e2e journeys". The placement is deliberate: the
+disclosure step's own comment promises it annotates every run, but it carries
+no `if: always()`, so a guard step in front of it would, the first time it
+found a blocking line, skip the disclosure outright and quietly retract that
+promise. That job feeds the aggregate check named "Terminal typecheck +
+tests", which is the check master's branch protection requires — so either
+guard step going red blocks the merge.
 
 **Step 1, the self-check** (`node scripts/check_plain_language.mjs
 --self-check`) proves the guard still works before anyone trusts what it says
@@ -709,23 +714,50 @@ sides.
 Two details in that step are load-bearing, and both are commented in the
 workflow itself:
 
-- **The base has to be fetched.** `actions/checkout` clones one commit deep,
-  so the base commit simply is not in the checkout. Without the fetch the
-  guard cannot resolve a base, discloses that nothing can block, and exits 0
-  — a step that is green because it checked nothing. The step fetches
-  `origin/<base ref>` (the pull request's base branch, or `master` when there
-  is no base ref) one commit deep, reading the branch name from an
-  environment variable rather than interpolating it into the shell text.
+- **On `pull_request` the base is `HEAD^1`, the merge commit's first parent
+  — never a freshly fetched `refs/heads/<base>`.** HEAD on that trigger is
+  the merge commit `M` GitHub built when the run was queued: this branch
+  merged into the base tip *as it was then*. Re-fetching the base branch at
+  step time would instead read the base *as it is now*, and the base can
+  advance while the job runs. Every line those newer commits changed still
+  stands in `M` in its older form, so `git diff base@now M` emits that older
+  form as a `+` line. Legacy findings in files the pull request never opened
+  would then count as ADDED and turn the required check red — precisely the
+  false red the forward-only promise in §2 exists to prevent, and, because it
+  depends on someone else's merge timing, an intermittent one. `M`'s first
+  parent *is* the base tip GitHub merged against and cannot drift, because
+  `M` is fixed.
+
+  This is why the job's checkout asks for `fetch-depth: 2`. The default depth
+  of 1 holds `M` and neither parent. `actions/checkout` does the deepening
+  itself against the exact ref it checks out (`refs/pull/N/merge`), so the
+  parents come down with it; a later `git fetch --deepen=1 origin` would not
+  reliably do the same, because checkout leaves `remote.origin.fetch`
+  pointing at `refs/heads/*` and the merge commit sits on no branch. Only
+  `terminal-unit` asks for the extra commit.
+
+  The step runs under `set -euo pipefail`, so an `HEAD^1` that cannot be
+  resolved kills it loudly instead of leaving the base empty and passing
+  green. Fail closed, like the guard's own exit 2.
+- **Off `pull_request`, the base branch tip is fetched explicitly.** A
+  `workflow_dispatch` re-run has no merge commit, and a shallow checkout does
+  not contain the base — without the fetch the guard resolves no base,
+  discloses that nothing can block, and exits 0, a step that is green because
+  it checked nothing. The step fetches `origin/<base ref>` (or `master` when
+  there is no base ref) one commit deep, reading the branch name from an
+  environment variable rather than interpolating it into the shell text. The
+  diff is then base tip vs HEAD, so the branch's OWN changes count as added
+  and can block — which is the point of re-running the proof. A pre-existing
+  line can surface as added on that path only if the branch is BEHIND the
+  base: git reads the branch's older copy of a line the base has since changed
+  as an addition. merge-on-green refreshes a branch from master before it
+  dispatches, which is what keeps the branch from being behind.
 - **The diff is taken with two dots, not three.** `git diff A B` compares two
-  trees and needs no merge base; `git diff A...B` needs one, and a one-commit
-  base and a one-commit HEAD share no history for git to find it. On a pull
-  request run, HEAD is GitHub's merge commit — this branch already merged
-  into the base tip — so the two-dot diff is exactly the change the pull
-  request makes, which is also what the three-dot form would have produced.
-  On a `workflow_dispatch` re-run, merge-on-green has already refreshed the
-  branch from master, so the two forms agree there too; and a run whose HEAD
-  is master itself diffs to nothing, so no line counts as added and the
-  legacy census alone can never fail the step.
+  trees and needs no merge base; `git diff A...B` needs one, and two shallow
+  histories give git nothing to find it in. On a pull request run, HEAD is
+  the merge commit and the base is its first parent, so the two-dot diff is
+  exactly the change the pull request makes — which is also what the
+  three-dot form would have produced.
 
 The guard reads that diff through `--diff-file`, the same entry point every
 test in both suites uses, so what CI exercises is the path the suites cover.

@@ -16,11 +16,15 @@
 // YAML dependency, and the only js-yaml on this tree is a transitive hoist of
 // eslint's own dependency, which would make this suite break the day eslint
 // changed its tree. The repo's YAML-semantic checks live in
-// tests/test_merge_on_green.py, which has PyYAML for real.
+// tests/test_merge_on_green.py, which has PyYAML for real (PyYAML is not
+// reachable from vitest). To keep the text reading honest, the assertions
+// below slice out one job (jobBlock) or one step (stepBlock) first, so a claim
+// about the enforce step cannot be satisfied by matching text somewhere else
+// in the file.
 
 import { describe, it, expect } from "vitest";
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync } from "node:fs";
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync, symlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -46,6 +50,23 @@ function jobBlock(text: string, name: string): string {
   return next === -1 ? rest : rest.slice(0, next + 1);
 }
 
+// Returns the text of ONE step, from its `- name:` line to the marker that
+// starts the next step (a `- ` list item, or the `#` comment block that
+// introduces it) at the same six-space indent. Narrowing to a single step is
+// what makes "this step fails closed" a real assertion: `set -euo pipefail`
+// or `HEAD^1` anywhere else in the job would satisfy a bare substring search.
+function stepBlock(jobText: string, stepName: string): string {
+  const start = jobText.indexOf(`- name: ${stepName}`);
+  expect(start, `step '${stepName}' not found in the job`).toBeGreaterThan(-1);
+  const rest = jobText.slice(start);
+  const next = rest.slice(1).search(/\n {6}[-#]/);
+  return next === -1 ? rest : rest.slice(0, next + 1);
+}
+
+const ENFORCE_STEP = "Plain-language guard (forward-only, added lines block)";
+const SELF_CHECK_STEP = "Plain-language guard self-check";
+const DISCLOSE_STEP = "Disclose quarantined e2e journeys";
+
 function fixtureRoot(): string {
   const root = mkdtempSync(join(tmpdir(), "plg-ci-"));
   mkdirSync(join(root, "terminal/components"), { recursive: true });
@@ -69,29 +90,70 @@ describe("plain-language guard — CI wiring", () => {
     expect(unit).toContain("scripts/check_plain_language.mjs --self-check");
   });
 
-  it("A2. the terminal-unit job fetches the PR base and enforces on added lines", () => {
+  it("A2. on pull_request the enforce step's base is the merge commit's FIRST PARENT, not a freshly fetched base branch", () => {
     const unit = jobBlock(readFileSync(workflowPath, "utf8"), "terminal-unit");
-    // The base commit is NOT in a depth-1 checkout: without this fetch the
-    // guard cannot resolve a base, reports "nothing can block", and exits 0 —
-    // a step that is green because it checked nothing.
-    expect(unit).toContain("git fetch --no-tags --depth=1 origin");
+    const enforce = stepBlock(unit, ENFORCE_STEP);
+
+    // THE RACE THIS CLOSES. On `pull_request`, HEAD is the merge commit M
+    // GitHub built at trigger time: this branch merged into the base tip AS
+    // IT WAS THEN. Re-fetching refs/heads/master at STEP time reads master AS
+    // IT IS NOW, and if master advanced during the run, every line those newer
+    // commits changed still stands in M in its older form — so
+    // `git diff master@now M` emits it as `+`. Legacy findings in files this
+    // PR never opened would count as ADDED and turn the check red. M's first
+    // parent IS that base tip and cannot drift, because M is fixed.
+    expect(enforce).toMatch(/\[ "\$\{GITHUB_EVENT_NAME\}" = "pull_request" \]/);
+    expect(enforce).toMatch(/BASE=\$\(git rev-parse HEAD\^1\)/);
+
+    // Fail CLOSED. An unresolvable HEAD^1 (a checkout too shallow to hold it)
+    // must kill the step loudly rather than leave BASE empty, diff against
+    // nothing, and pass green having checked nothing.
+    expect(enforce).toContain("set -euo pipefail");
+
+    // Off `pull_request` there is no merge commit, so the base branch tip is
+    // fetched explicitly — a shallow checkout does not contain it, and without
+    // it the guard reports "nothing can block" and exits 0.
+    expect(enforce).toContain("git fetch --no-tags --depth=1 origin");
+    expect(enforce).toContain('"+refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}"');
     // Read through an env var, never interpolated straight into the shell:
     // a branch name is attacker-controllable text.
     expect(unit).toContain("BASE_REF: ${{ github.base_ref || 'master' }}");
-    expect(unit).toContain('"+refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}"');
-    // Forward-only mode, fed the diff that fetch just made possible.
-    expect(unit).toContain("--mode enforce-added");
-    expect(unit).toMatch(/check_plain_language\.mjs --mode enforce-added --diff-file/);
+
+    // Forward-only mode, fed the diff that base resolution just made possible.
+    expect(enforce).toMatch(/git diff --unified=0 "\$BASE" HEAD -- ':\/terminal'/);
+    expect(enforce).toContain("--mode enforce-added");
+    expect(enforce).toMatch(/check_plain_language\.mjs --mode enforce-added --diff-file/);
   });
 
-  it("A3. both guard steps run AFTER the unit tests, and inside the job that feeds the required check", () => {
+  it("A2b. terminal-unit — and only terminal-unit — checks out deep enough for HEAD^1 to resolve", () => {
+    const text = readFileSync(workflowPath, "utf8");
+    const unit = jobBlock(text, "terminal-unit");
+    // actions/checkout defaults to depth 1, which holds the merge commit and
+    // none of its parents. Depth 2 brings the first parent down. checkout does
+    // the deepening itself, against the exact ref it checks out
+    // (refs/pull/N/merge); a later `git fetch --deepen=1 origin` would not
+    // reliably help, because checkout leaves remote.origin.fetch pointing at
+    // refs/heads/* and the merge commit sits on no branch.
+    expect(unit).toMatch(/- uses: actions\/checkout@v4\n\s+with:\n\s+fetch-depth: 2\n/);
+    // No other job pays for the extra objects.
+    expect(text.split("fetch-depth:").length - 1).toBe(1);
+  });
+
+  it("A3. both guard steps run LAST — after npm test and after the quarantine disclosure — inside the job that feeds the required check", () => {
     const text = readFileSync(workflowPath, "utf8");
     const unit = jobBlock(text, "terminal-unit");
     const testStep = unit.indexOf("- run: npm test");
-    const selfCheck = unit.indexOf("--self-check");
-    const enforce = unit.indexOf("--mode enforce-added");
+    const disclose = unit.indexOf(`- name: ${DISCLOSE_STEP}`);
+    const selfCheck = unit.indexOf(`- name: ${SELF_CHECK_STEP}`);
+    const enforce = unit.indexOf(`- name: ${ENFORCE_STEP}`);
     expect(testStep).toBeGreaterThan(-1);
-    expect(selfCheck).toBeGreaterThan(testStep);
+    expect(disclose).toBeGreaterThan(testStep);
+    // The disclosure step's own comment promises it runs on EVERY run, but it
+    // carries no `if: always()`. A guard step placed BEFORE it would, the first
+    // time it found a blocking line, skip the disclosure outright and quietly
+    // retract that promise — a green matrix would stop being annotated with
+    // the journeys it does not cover. The guard goes last.
+    expect(selfCheck).toBeGreaterThan(disclose);
     expect(enforce).toBeGreaterThan(selfCheck);
 
     // The aggregate job's name is what master's branch protection keys on, and
@@ -132,10 +194,17 @@ describe("plain-language guard — self-check is a real gate", () => {
     // the real script whose R1 fixture expects a rule name that can never
     // fire, and require the process to fail.
     //
-    // The copy lives under terminal/ so that its `import ts from "typescript"`
-    // still resolves against terminal/node_modules.
-    const dir = mkdtempSync(join(repoRoot, "terminal", ".plg-selfcheck-"));
+    // The copy lives in an OS temp dir, never inside the tracked tree: a run
+    // killed between mkdtemp and the finally block used to strand a
+    // `terminal/.plg-selfcheck-*` directory holding a mutated copy of the
+    // guard, one `git add` away from being committed. `import ts from
+    // "typescript"` still resolves because node walks parent directories
+    // looking for `node_modules`, and the temp dir is handed a symlink to
+    // terminal/node_modules. (NODE_PATH is not an option here — ESM
+    // resolution ignores it.)
+    const dir = mkdtempSync(join(tmpdir(), "plg-selfcheck-"));
     try {
+      symlinkSync(join(repoRoot, "terminal", "node_modules"), join(dir, "node_modules"), "dir");
       const source = readFileSync(scriptPath, "utf8");
       const intact = 'R1: { relPath: "fixture.tsx", code: "const x = <span>BOTTOM_WATCH</span>;", rule: "raw_state_enum" }';
       // Fails loudly if the fixture table is ever refactored, rather than
