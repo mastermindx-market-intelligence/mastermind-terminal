@@ -176,6 +176,37 @@ async function refuseSharedIfNotWriter(
   return { ok: false, reason: "forbidden" };
 }
 
+function storeWriteReason(error: LayoutDbError | null): WorkspaceFailureReason {
+  if (error?.code === "42501") return "forbidden";
+  if (error?.code === CODE_UNIQUE_VIOLATION) return "name_conflict";
+  return "unavailable";
+}
+
+/** Owner-scoped UPDATE first; if that matches nothing and the caller named a row id, a second
+ *  UPDATE scoped to `visibility = 'team'` lets an owner/admin overwrite a shared workspace they
+ *  did not create. A SELECT-before-write would poison the numbered-revision path when a `list`
+ *  fault is injected (W2-A unavailable e2e: the fenced UPDATE must still land, and only the
+ *  trailing library refresh is allowed to fail). RLS/fixture 42501 maps to `forbidden`. */
+async function applyWorkspaceUpdate(
+  db: LayoutDb,
+  userId: string,
+  values: LayoutRow,
+  workspaceName: string,
+  expectedId: string | undefined,
+  extra: (query: LayoutQuery) => LayoutQuery,
+): Promise<LayoutDbResult> {
+  const run = (teamShared: boolean) => {
+    let query = db.from(LAYOUTS_TABLE).update(values);
+    query = teamShared ? query.eq("visibility", "team") : query.eq("user_id", userId);
+    query = extra(query.eq("name", workspaceName));
+    if (expectedId) query = query.eq("id", expectedId);
+    return query.select("id");
+  };
+  const ownerWrite = await run(false);
+  if (errOf(ownerWrite) || rowsOf(ownerWrite).length || !expectedId) return ownerWrite;
+  return run(true);
+}
+
 /** Owner-scoped read. A transport error is `unavailable` — never an empty library. */
 export async function listLayouts(db: LayoutDb, userId: string): Promise<ListLayoutsResult> {
   let result = await db
@@ -359,15 +390,11 @@ export async function saveWorkspace(
   if (typeof expectedRevision === "number") {
     const nextRevision = expectedRevision + 1;
     const payload = { ...envelope, name: null, revision: nextRevision };
-    let query = db
-      .from(LAYOUTS_TABLE)
-      .update({ config: payload, updated_at: nowIso() })
-      .eq("user_id", userId)
-      .eq("name", workspaceName)
-      .eq("config->>revision", String(expectedRevision));
-    if (expectedId) query = query.eq("id", expectedId);
-    const updated = await query.select("id");
-    if (errOf(updated)) return { ok: false, reason: "unavailable" };
+    const updated = await applyWorkspaceUpdate(
+      db, userId, { config: payload, updated_at: nowIso() }, workspaceName, expectedId,
+      (query) => query.eq("config->>revision", String(expectedRevision)),
+    );
+    if (errOf(updated)) return { ok: false, reason: storeWriteReason(errOf(updated)) };
     const rows = rowsOf(updated);
     if (rows.length) {
       const id = str(rows[0]?.id);
@@ -382,29 +409,21 @@ export async function saveWorkspace(
   // workspace_layout.v1" without ever matching an already-converted row (see the `LayoutQuery`
   // doc-comment for why a single `.neq()` cannot do this alone). A3 ruling 5: the id fence applies
   // to BOTH attempts, not just one.
-  let attempt1Query = db
-    .from(LAYOUTS_TABLE)
-    .update({ config: payload, updated_at: nowIso() })
-    .eq("user_id", userId)
-    .eq("name", workspaceName)
-    .is("config->>schema", null);
-  if (expectedId) attempt1Query = attempt1Query.eq("id", expectedId);
-  const attempt1 = await attempt1Query.select("id");
-  if (errOf(attempt1)) return { ok: false, reason: "unavailable" };
+  const attempt1 = await applyWorkspaceUpdate(
+    db, userId, { config: payload, updated_at: nowIso() }, workspaceName, expectedId,
+    (query) => query.is("config->>schema", null),
+  );
+  if (errOf(attempt1)) return { ok: false, reason: storeWriteReason(errOf(attempt1)) };
   if (rowsOf(attempt1).length) {
     const id = str(rowsOf(attempt1)[0]?.id);
     return id ? { ok: true, id, revision: 1 } : { ok: false, reason: "unavailable" };
   }
 
-  let attempt2Query = db
-    .from(LAYOUTS_TABLE)
-    .update({ config: payload, updated_at: nowIso() })
-    .eq("user_id", userId)
-    .eq("name", workspaceName)
-    .neq("config->>schema", WORKSPACE_SCHEMA);
-  if (expectedId) attempt2Query = attempt2Query.eq("id", expectedId);
-  const attempt2 = await attempt2Query.select("id");
-  if (errOf(attempt2)) return { ok: false, reason: "unavailable" };
+  const attempt2 = await applyWorkspaceUpdate(
+    db, userId, { config: payload, updated_at: nowIso() }, workspaceName, expectedId,
+    (query) => query.neq("config->>schema", WORKSPACE_SCHEMA),
+  );
+  if (errOf(attempt2)) return { ok: false, reason: storeWriteReason(errOf(attempt2)) };
   if (rowsOf(attempt2).length) {
     const id = str(rowsOf(attempt2)[0]?.id);
     return id ? { ok: true, id, revision: 1 } : { ok: false, reason: "unavailable" };
@@ -420,7 +439,7 @@ export async function saveWorkspace(
       .insert({ user_id: userId, name: workspaceName, config: payload, updated_at: nowIso() })
       .select("id");
     const error = errOf(inserted);
-    if (error) return { ok: false, reason: error.code === CODE_UNIQUE_VIOLATION ? "name_conflict" : "unavailable" };
+    if (error) return { ok: false, reason: storeWriteReason(error) };
     const id = str(rowsOf(inserted)[0]?.id);
     return id ? { ok: true, id, revision: 1 } : { ok: false, reason: "unavailable" };
   }
@@ -551,7 +570,7 @@ export async function renameWorkspace(
   if (!isTeamShared(row)) updatedQuery = updatedQuery.eq("user_id", userId);
   const updated = await updatedQuery.select("id");
   const error = errOf(updated);
-  if (error) return { ok: false, reason: error.code === CODE_UNIQUE_VIOLATION ? "name_conflict" : "unavailable" };
+  if (error) return { ok: false, reason: storeWriteReason(error) };
   if (rowsOf(updated).length) return { ok: true, revision: nextRevision };
 
   // 0 rows: retry-echo (our own earlier attempt already renamed it) vs a genuine conflict,

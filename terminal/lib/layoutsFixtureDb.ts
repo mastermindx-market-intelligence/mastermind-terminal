@@ -126,6 +126,21 @@ export function createLayoutFixtureDb(key: string, fault: LayoutFault = "", team
     return rows;
   };
 
+  // Production SELECT is owner-policy OR team-read policy. A foreign shared row must not load
+  // on `eq("id")` just because it lives in a process-global team store.
+  const visibleOnSelect = (row: LayoutRow): boolean => {
+    if (row.visibility === "team" && typeof row.team_id === "string" && row.team_id) {
+      if (row.user_id === userId) return true;
+      return !!teamId && row.team_id === teamId;
+    }
+    return true;
+  };
+
+  const canTouchTeamRow = (row: LayoutRow): boolean => {
+    if (row.visibility !== "team") return true;
+    return canWriteTeam && !!teamId && row.team_id === teamId;
+  };
+
   const removeLayoutRow = (row: LayoutRow) => {
     store.rows = store.rows.filter((r) => r !== row);
     for (const ts of teamStores.values()) ts.rows = ts.rows.filter((r) => r !== row);
@@ -172,7 +187,7 @@ export function createLayoutFixtureDb(key: string, fault: LayoutFault = "", team
       if (fault === "all" || (fault && fault === faultClassOf(op))) return transportFault();
       switch (op.kind) {
         case "select": {
-          let rows = allLayoutRows().filter(matches);
+          let rows = allLayoutRows().filter(matches).filter(visibleOnSelect);
           if (sort) {
             const { column, ascending } = sort;
             rows = [...rows].sort((a, b) => String(a[column] ?? "").localeCompare(String(b[column] ?? "")) * (ascending ? 1 : -1));
@@ -182,8 +197,8 @@ export function createLayoutFixtureDb(key: string, fault: LayoutFault = "", team
         case "insert": {
           const values: LayoutRow = { visibility: "private", team_id: null, ...op.values };
           if (values.visibility === "team") {
-            if (!canWriteTeam) return { error: { code: "42501", message: "insufficient privilege" } };
             const tid = typeof values.team_id === "string" ? values.team_id : "";
+            if (!canWriteTeam || !tid || tid !== teamId) return { error: { code: "42501", message: "insufficient privilege" } };
             if (tid && teamNameCollision({} as LayoutRow, tid, values.name)) {
               return { error: { code: "23505", message: "duplicate key value violates unique constraint chart_layouts_team_name" } };
             }
@@ -199,7 +214,11 @@ export function createLayoutFixtureDb(key: string, fault: LayoutFault = "", team
           const hit = allLayoutRows().filter(matches);
           const updateValues = op.values;
           const becomingTeam = updateValues.visibility === "team";
-          if ((becomingTeam || hit.some((r) => r.visibility === "team")) && !canWriteTeam) {
+          if (becomingTeam) {
+            const tid = typeof updateValues.team_id === "string" ? updateValues.team_id : "";
+            if (!canWriteTeam || !tid || tid !== teamId) return { error: { code: "42501", message: "insufficient privilege" } };
+          }
+          if (hit.some((r) => r.visibility === "team" && !canTouchTeamRow(r))) {
             return { error: { code: "42501", message: "insufficient privilege" } };
           }
           const newName = updateValues.name;
@@ -229,7 +248,7 @@ export function createLayoutFixtureDb(key: string, fault: LayoutFault = "", team
         }
         case "delete": {
           const hit = allLayoutRows().filter(matches);
-          if (hit.some((r) => r.visibility === "team") && !canWriteTeam) {
+          if (hit.some((r) => r.visibility === "team" && !canTouchTeamRow(r))) {
             return { error: { code: "42501", message: "insufficient privilege" } };
           }
           for (const row of hit) removeLayoutRow(row);

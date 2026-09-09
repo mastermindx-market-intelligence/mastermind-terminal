@@ -11,9 +11,29 @@ import {
   setWorkspaceSharing,
   toScopedResource,
 } from "@/lib/teamSharedWorkflow";
-import { duplicateWorkspace, renameWorkspace, saveWorkspace } from "@/lib/layouts";
+import { deleteLayout, duplicateWorkspace, renameWorkspace, saveWorkspace } from "@/lib/layouts";
+import { createLayoutFixtureDb, fixtureLayoutUserId } from "@/lib/layoutsFixtureDb";
 
 type Row = Record<string, unknown>;
+type Filter = { column: string; op: "eq" | "neq" | "is"; value: unknown };
+
+function readPath(row: Row, column: string): unknown {
+  const idx = column.indexOf("->>");
+  if (idx === -1) return row[column];
+  const base = row[column.slice(0, idx)];
+  if (typeof base !== "object" || base === null || Array.isArray(base)) return null;
+  const val = (base as Record<string, unknown>)[column.slice(idx + 3)];
+  return val === undefined || val === null ? null : String(val);
+}
+
+function filterMatches(row: Row, filter: Filter): boolean {
+  const actual = readPath(row, filter.column);
+  switch (filter.op) {
+    case "eq": return actual !== null && actual === filter.value;
+    case "neq": return actual !== null && actual !== filter.value;
+    case "is": return filter.value === null ? actual === null : actual === filter.value;
+  }
+}
 
 function makeDb(init?: {
   layouts?: Row[];
@@ -22,6 +42,7 @@ function makeDb(init?: {
   layoutFault?: boolean;
   teamFault?: boolean;
   updateZero?: boolean;
+  writeCode?: string;
 }) {
   const state = {
     layouts: (init?.layouts ?? []).map((r) => ({ ...r })),
@@ -30,7 +51,9 @@ function makeDb(init?: {
     layoutFault: init?.layoutFault ?? false,
     teamFault: init?.teamFault ?? false,
     updateZero: init?.updateZero ?? false,
+    writeCode: init?.writeCode,
   };
+  let lastSeenUserId: unknown = null;
 
   function rowsFor(table: string): Row[] {
     if (table === "chart_layouts") return state.layouts;
@@ -41,7 +64,7 @@ function makeDb(init?: {
 
   const db = {
     from(table: string) {
-      let filters: Array<[string, unknown]> = [];
+      const filters: Filter[] = [];
       let inFilter: { col: string; values: unknown[] } | null = null;
       let pendingInsert: Row | null = null;
       let pendingUpdate: Row | null = null;
@@ -50,7 +73,7 @@ function makeDb(init?: {
       const apply = (rows: Row[]) =>
         rows.filter(
           (r) =>
-            filters.every(([c, v]) => r[c] === v) &&
+            filters.every((f) => filterMatches(r, f)) &&
             (!inFilter || inFilter.values.includes(r[inFilter.col])),
         );
 
@@ -60,6 +83,9 @@ function makeDb(init?: {
         }
         if ((table === "teams" || table === "team_members") && state.teamFault) {
           return { data: null, error: { code: "XX000", message: "team fault" } };
+        }
+        if (table === "chart_layouts" && state.writeCode && (pendingInsert || pendingUpdate || pendingDelete)) {
+          return { data: null, error: { code: state.writeCode, message: "insufficient privilege" } };
         }
         if (pendingInsert) {
           if (
@@ -77,6 +103,16 @@ function makeDb(init?: {
         if (pendingUpdate) {
           if (state.updateZero) return { data: [], error: null };
           const hit = apply(rowsFor(table));
+          if (table === "chart_layouts") {
+            const teamHit = hit.filter((r) => r.visibility === "team" || pendingUpdate!.visibility === "team");
+            if (teamHit.length) {
+              const teamId = teamHit[0]?.team_id ?? pendingUpdate!.team_id;
+              const member = state.members.find((m) => m.user_id === lastSeenUserId && m.team_id === teamId);
+              if (!member || (member.role !== "owner" && member.role !== "admin")) {
+                return { data: null, error: { code: "42501", message: "insufficient privilege" } };
+              }
+            }
+          }
           if (
             pendingUpdate.visibility === "team" &&
             typeof pendingUpdate.name === "string" &&
@@ -95,6 +131,13 @@ function makeDb(init?: {
         }
         if (pendingDelete) {
           const hit = apply(rowsFor(table));
+          if (table === "chart_layouts" && hit.some((r) => r.visibility === "team")) {
+            const teamId = hit.find((r) => r.visibility === "team")?.team_id;
+            const member = state.members.find((m) => m.user_id === lastSeenUserId && m.team_id === teamId);
+            if (!member || (member.role !== "owner" && member.role !== "admin")) {
+              return { data: null, error: { code: "42501", message: "insufficient privilege" } };
+            }
+          }
           const ids = new Set(hit.map((r) => r.id));
           if (table === "chart_layouts") state.layouts = state.layouts.filter((r) => !ids.has(r.id));
           return { data: hit.map((r) => ({ ...r })), error: null };
@@ -105,11 +148,18 @@ function makeDb(init?: {
       const q: any = {
         select: () => q,
         eq: (c: string, v: unknown) => {
-          filters.push([c, v]);
+          if (c === "user_id") lastSeenUserId = v;
+          filters.push({ column: c, op: "eq", value: v });
           return q;
         },
-        neq: () => q,
-        is: () => q,
+        neq: (c: string, v: unknown) => {
+          filters.push({ column: c, op: "neq", value: v });
+          return q;
+        },
+        is: (c: string, v: null | boolean) => {
+          filters.push({ column: c, op: "is", value: v });
+          return q;
+        },
         in: (c: string, v: unknown[]) => {
           inFilter = { col: c, values: v };
           return q;
@@ -169,21 +219,23 @@ function seedTeam() {
   };
 }
 
-const privateRow = (userId: string, name = "Mine"): Row => ({
+const WS1 = { schema: "workspace_layout.v1", revision: 1 };
+
+const privateRow = (userId: string, name = "Mine", config: Row = {}): Row => ({
   id: `priv-${userId}`,
   user_id: userId,
   name,
-  config: {},
+  config,
   updated_at: "2026-01-02T00:00:00.000Z",
   team_id: null,
   visibility: "private",
 });
 
-const sharedRow = (creator: string, name = "Open"): Row => ({
+const sharedRow = (creator: string, name = "Open", config: Row = {}): Row => ({
   id: `shared-${name}`,
   user_id: creator,
   name,
-  config: {},
+  config,
   updated_at: "2026-01-02T00:00:00.000Z",
   team_id: TEAM_A,
   visibility: "team",
@@ -316,26 +368,70 @@ describe("team-shared workspaces — who can see what", () => {
 
 describe("team-shared workspaces — who can write", () => {
   it("a team owner may share, rename and delete a shared workspace", async () => {
-    const { db, state } = makeDb({ layouts: [privateRow(OWNER, "Open")], ...seedTeam() });
+    const { db, state } = makeDb({ layouts: [privateRow(OWNER, "Open", WS1)], ...seedTeam() });
     const shared = await setWorkspaceSharing(db as any, OWNER, { id: "priv-user-owner", sharing: "team", teamId: TEAM_A });
     expect(shared.ok).toBe(true);
     if (!shared.ok) return;
     expect(shared.sharing).toBe("team");
     const renamed = await renameWorkspace(db as any, OWNER, "Open", "Open 2", 1, "priv-user-owner");
-    expect(renamed.ok || renamed.reason === "stale_revision" || renamed.reason === "not_found").toBe(true);
+    expect(renamed.ok).toBe(true);
+    if (!renamed.ok) return;
+    expect(state.layouts.find((r) => r.id === "priv-user-owner")?.name).toBe("Open 2");
+    const deleted = await deleteLayout(db as any, OWNER, "priv-user-owner");
+    expect(deleted.ok).toBe(true);
+    expect(state.layouts.some((r) => r.id === "priv-user-owner")).toBe(false);
     expect(canWriteShared("owner")).toBe(true);
-    expect(state.layouts.some((r) => r.visibility === "team")).toBe(true);
   });
 
   it("a team administrator may share, rename and delete a shared workspace", async () => {
-    const { db } = makeDb({ layouts: [privateRow(ADMIN, "Admin Desk")], ...seedTeam() });
+    const { db, state } = makeDb({ layouts: [privateRow(ADMIN, "Admin Desk", WS1)], ...seedTeam() });
     const shared = await setWorkspaceSharing(db as any, ADMIN, {
       id: "priv-user-admin",
       sharing: "team",
       teamId: TEAM_A,
     });
     expect(shared.ok).toBe(true);
+    if (!shared.ok) return;
+    const renamed = await renameWorkspace(db as any, ADMIN, "Admin Desk", "Admin Desk 2", 1, "priv-user-admin");
+    expect(renamed.ok).toBe(true);
+    if (!renamed.ok) return;
+    expect(state.layouts.find((r) => r.id === "priv-user-admin")?.name).toBe("Admin Desk 2");
+    const deleted = await deleteLayout(db as any, ADMIN, "priv-user-admin");
+    expect(deleted.ok).toBe(true);
+    expect(state.layouts.some((r) => r.id === "priv-user-admin")).toBe(false);
     expect(canWriteShared("admin")).toBe(true);
+  });
+
+  it("a team administrator who did not create the row may overwrite a shared workspace", async () => {
+    const { db, state } = makeDb({
+      layouts: [sharedRow(OWNER, "Open", WS1)],
+      ...seedTeam(),
+    });
+    const saved = await saveWorkspace(
+      db as any,
+      ADMIN,
+      "Open",
+      { schema: "workspace_layout.v1", widgets: [{ id: "w1" }] },
+      1,
+      "shared-Open",
+    );
+    expect(saved.ok).toBe(true);
+    if (!saved.ok) return;
+    expect(saved.revision).toBe(2);
+    const row = state.layouts.find((r) => r.id === "shared-Open");
+    expect((row?.config as { revision?: number } | undefined)?.revision).toBe(2);
+  });
+
+  it("a store refusal of a shared overwrite is forbidden, never unavailable", async () => {
+    const { db } = makeDb({
+      layouts: [sharedRow(OWNER, "Open", WS1)],
+      ...seedTeam(),
+      writeCode: "42501",
+    });
+    const saved = await saveWorkspace(db as any, OWNER, "Open", { schema: "workspace_layout.v1" }, 1, "shared-Open");
+    expect(saved.ok).toBe(false);
+    if (saved.ok) return;
+    expect(saved.reason).toBe("forbidden");
   });
 
   it("a plain member cannot share a workspace with the team", async () => {
@@ -394,12 +490,49 @@ describe("team-shared workspaces — who can write", () => {
   });
 
   it("nothing about private workspaces changes: a member still creates, renames and deletes their own", async () => {
-    const { db, state } = makeDb({ layouts: [privateRow(MEMBER, "Solo")], ...seedTeam() });
+    const { db, state } = makeDb({ layouts: [], ...seedTeam() });
+    const created = await saveWorkspace(db as any, MEMBER, "Solo", { schema: "workspace_layout.v1" }, null);
+    expect(created.ok).toBe(true);
+    if (!created.ok) return;
+    expect(state.layouts.some((r) => r.id === created.id && r.user_id === MEMBER && r.visibility !== "team")).toBe(true);
+    const renamed = await renameWorkspace(db as any, MEMBER, "Solo", "Solo 2", 1, created.id);
+    expect(renamed.ok).toBe(true);
+    if (!renamed.ok) return;
+    expect(state.layouts.find((r) => r.id === created.id)?.name).toBe("Solo 2");
+    const deleted = await deleteLayout(db as any, MEMBER, created.id);
+    expect(deleted.ok).toBe(true);
+    expect(state.layouts.some((r) => r.id === created.id)).toBe(false);
     const listed = await listVisibleWorkspaces(db as any, MEMBER);
     expect(listed.ok).toBe(true);
     if (!listed.ok) return;
-    expect(listed.layouts.some((l) => l.id === "priv-user-member" && l.sharing === "private" && l.canEdit)).toBe(true);
-    expect(state.layouts.some((r) => r.user_id === MEMBER && r.visibility === "private")).toBe(true);
+    expect(listed.layouts.some((l) => l.id === created.id)).toBe(false);
+  });
+
+  it("fixture select hides a foreign team's shared row on an id read", async () => {
+    const suffix = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    const keyA = `wf-fix-a-${suffix}`;
+    const keyB = `wf-fix-b-${suffix}`;
+    const teamA = `team-a-${suffix}`;
+    const teamB = `team-b-${suffix}`;
+    const dbA = createLayoutFixtureDb(keyA, "", { teamId: teamA, role: "owner", teamName: "Desk A" });
+    const userA = fixtureLayoutUserId(keyA);
+    const inserted = await dbA
+      .from("chart_layouts")
+      .insert({
+        user_id: userA,
+        name: "Open",
+        config: WS1,
+        visibility: "team",
+        team_id: teamA,
+        updated_at: "2026-01-02T00:00:00.000Z",
+      })
+      .select("id");
+    const id = (inserted.data as Row[] | undefined)?.[0]?.id;
+    expect(typeof id).toBe("string");
+    const dbB = createLayoutFixtureDb(keyB, "", { teamId: teamB, role: "member", teamName: "Desk B" });
+    const loaded = await dbB.from("chart_layouts").select("id").eq("id", id).maybeSingle();
+    expect(loaded.error).toBeUndefined();
+    expect(loaded.data ?? null).toBeNull();
   });
 
   it("a write that touches zero rows is a refusal, never a success", async () => {

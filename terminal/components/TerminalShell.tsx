@@ -2694,7 +2694,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
       setLayoutStatus("ready");
       return { ok: true, rows };
     } catch { setLayoutStatus("unavailable"); return { ok: false }; }
-  }, []);
+  }, [lang]);
   const refreshLayouts = useCallback(async (): Promise<boolean> => (await fetchWorkspaceRows()).ok, [fetchWorkspaceRows]);
   useEffect(() => { void refreshLayouts(); }, [refreshLayouts]);
   useEffect(() => {

@@ -106,7 +106,9 @@ export default function LayoutMenu({
   const t = useT();
   const writableTeams = teams.filter((team) => team.role === "owner" || team.role === "admin");
   const canShare = writableTeams.length > 0;
-  const onTeam = teams.length > 0;
+  // A team-directory outage arrives as `teams: []` plus `teamRead.ok: false`. That is unavailable,
+  // never "you are on no team" — collapsing the two is the layouts.ts empty-vs-outage law.
+  const showTeamGroup = teams.length > 0 || teamRead.ok === false;
   const [shareTeamId, setShareTeamId] = useState(writableTeams[0]?.id ?? "");
   useEffect(() => {
     if (!shareTeamId && writableTeams[0]) setShareTeamId(writableTeams[0].id);
@@ -373,7 +375,7 @@ export default function LayoutMenu({
           <button type="button" className="menu-note-retry" data-layout-retry onClick={onRetry}>{t("layoutRetry")}</button>
         </div>
       )}
-      {status === "ready" && layouts.length === 0 && !onTeam && (
+      {status === "ready" && layouts.length === 0 && !showTeamGroup && (
         <div className="menu-row empty" data-layout-status="empty">{t("noSavedLayouts")}</div>
       )}
 
@@ -404,7 +406,7 @@ export default function LayoutMenu({
       )}
 
       {/* ── ZONE 2 · LIBRARY ── */}
-      {onTeam && (
+      {showTeamGroup && (
         <>
           <div className="ws-hd" data-ws-group-hd="team">{t("wsGroupTeam")}</div>
           {!teamRead.ok && (
@@ -412,16 +414,16 @@ export default function LayoutMenu({
           )}
         </>
       )}
-      {layouts.length > 0 && !onTeam && <div className="ws-hd">{t("wsSectionSaved")}</div>}
+      {layouts.length > 0 && !showTeamGroup && <div className="ws-hd">{t("wsSectionSaved")}</div>}
       <div className="ws-list" data-ws-list>
-        {onTeam && layouts.filter((l) => l.sharing === "team").length === 0 && (
+        {showTeamGroup && teamRead.ok && layouts.filter((l) => l.sharing === "team").length === 0 && (
           <div className="menu-row empty" data-ws-team-empty>{t("wsTeamEmpty")}</div>
         )}
-        {onTeam && layouts.filter((l) => l.sharing === "team").map((l) => renderRow(l))}
-        {onTeam && (
+        {showTeamGroup && layouts.filter((l) => l.sharing === "team").map((l) => renderRow(l))}
+        {showTeamGroup && (
           <div className="ws-hd" data-ws-group-hd="mine">{t("wsGroupMine")}</div>
         )}
-        {(onTeam ? layouts.filter((l) => l.sharing !== "team") : layouts).map((l) => renderRow(l))}
+        {(showTeamGroup ? layouts.filter((l) => l.sharing !== "team") : layouts).map((l) => renderRow(l))}
       </div>
 
       {/* ── ZONE 3 · BRING ONE IN ── */}
