@@ -116,48 +116,65 @@
       "file": "0014_tenancy_foundation.sql",
       "packet": "B-F12-1",
       "pr": 514,
-      "pr_state": "open",
-      "note": "file is in open PR #514 (packet B-F12-1); not applied"
+      "pr_state": "merged",
+      "merged_sha": "cff58ee8d",
+      "applied_in_production": true,
+      "applied_date": "2026-09-08",
+      "note": "merged to master as cff58ee8d (2026-09-08); DDL applied in production 2026-09-08; receipt held by the Meta-CEO B seat (kit records_queue)"
     },
     "0015": {
       "state": "taken",
       "file": "0015_team_roles_invitations.sql",
       "packet": "B-F12-3",
       "pr": 514,
-      "pr_state": "open",
-      "note": "file landed in open PR #514; not applied. Packet id kept as B-F12-3 (the original claim)."
+      "pr_state": "merged",
+      "merged_sha": "cff58ee8d",
+      "applied_in_production": true,
+      "applied_date": "2026-09-08",
+      "note": "landed on master inside #514 (cff58ee8d, 2026-09-08); DDL applied in production 2026-09-08, strictly after 0014; receipt held by the Meta-CEO B seat (kit records_queue)"
     },
     "0016": {
       "state": "taken",
       "file": "0016_account_lifecycle_requests.sql",
       "packet": "B-F12-4",
       "pr": 527,
-      "pr_state": "open",
-      "note": "file landed in open PR #527; not applied"
+      "pr_state": "merged",
+      "merged_sha": "68bbe8ea6",
+      "applied_in_production": true,
+      "applied_date": "2026-09-09T01:11:07Z",
+      "note": "merged to master as 68bbe8ea6 (2026-09-09; source master 68bbe8ea); DDL applied in production 2026-09-09T01:11:07Z; receipt held by the Meta-CEO B seat (kit records_queue)"
     },
     "0017": {
-      "state": "free",
+      "state": "reserved",
       "file": null,
-      "packet": null,
+      "packet": "B-F13-5",
       "pr": null,
       "pr_state": null,
-      "note": "free -- claim before you write"
+      "note": "personal accuracy ledger; reserved by Meta-CEO B ruling 2026-09-09; PR pending"
     },
     "0018": {
-      "state": "free",
+      "state": "reserved",
       "file": null,
-      "packet": null,
+      "packet": "B-F12-7",
       "pr": null,
       "pr_state": null,
-      "note": "free -- claim before you write"
+      "note": "signed webhooks; reserved by Meta-CEO B ruling 2026-09-09; PR pending"
     },
     "0019": {
-      "state": "free",
+      "state": "reserved",
       "file": null,
-      "packet": null,
+      "packet": "B-F12-8",
       "pr": null,
       "pr_state": null,
-      "note": "free -- claim before you write"
+      "note": "team roles; reserved by Meta-CEO B ruling 2026-09-09; PR pending"
+    },
+    "0020": {
+      "state": "reserved",
+      "file": null,
+      "packet": "B-F12-9",
+      "pr": null,
+      "pr_state": null,
+      "note": "ownership transfer; reserved by Meta-CEO B ruling 2026-09-09; PR pending"
     }
   }
 }

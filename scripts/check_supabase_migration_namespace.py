@@ -38,6 +38,13 @@ ROLLBACK_RE = re.compile(r"^--\s*Rollback:\s*(?P<sql>\S.*)$", re.IGNORECASE | re
 VALID_STATES = ("historical", "taken", "reserved", "free")
 HEADER_SCAN_LINES = 40  # header lines only; a buried '-- Rollback:' mid-file does not count
 
+# A Supabase project ref is a 20-char lowercase-alphanumeric token. Bounded on
+# both sides so it does not fire on a longer hex string (e.g. a 40-char git
+# sha) that merely contains 20 consecutive lowercase-alphanumeric characters --
+# entries in this ledger are expected to carry short/abbreviated shas (<20
+# chars), never full ones, precisely so this stays unambiguous.
+PROJECT_REF_RE = re.compile(r"(?<![a-z0-9])[a-z0-9]{20}(?![a-z0-9])")
+
 REQUIRED_KEYS = {"state", "file", "packet", "pr", "pr_state", "note"}
 
 # Pinned expected value (MAJOR 2 fix): header_required_from used to be read
@@ -275,6 +282,108 @@ def check_migration_header(filename: str, text: str, doc: dict) -> list[Finding]
     return findings
 
 
+def check_open_pr_state_for_present_files(filenames: Sequence[str], doc: dict) -> list[Finding]:
+    """A `.sql` file that is actually present in this checkout cannot belong to
+    a pull request the ledger still calls 'open' -- if the file is here, on
+    whatever ref this checkout is, its pull request has merged. `pr_state:
+    "open"` next to a present file is exactly how the ledger went stale for
+    0014/0015/0016 (merged in #514/#527, but never flipped off 'open'), and
+    silently -- nothing else in this guard caught it, because
+    `check_files_are_reserved` only compares filenames, not `pr_state`. This
+    closes that gap.
+    """
+    findings: list[Finding] = []
+    prefixes = doc.get("prefixes", {}) if isinstance(doc, dict) else {}
+    present = {parse_prefix(name) for name in filenames} - {None}
+
+    for prefix, entry in prefixes.items():
+        if prefix not in present or not isinstance(entry, dict):
+            continue
+        if entry.get("pr_state") == "open":
+            findings.append(
+                Finding(
+                    "OPEN_PR_STATE_WITH_FILE_PRESENT",
+                    prefix,
+                    f"prefix {prefix}'s file is present in this checkout but RESERVATIONS.json "
+                    f"still records pr_state 'open' (pr {entry.get('pr')!r}) -- a present file "
+                    "means the owning pull request merged; flip pr_state to 'merged' (and record "
+                    "the merge sha) or the ledger is stale",
+                )
+            )
+    return findings
+
+
+def check_reservation_contiguity(doc: dict) -> list[Finding]:
+    """`reserved` prefixes (claimed by ruling ahead of any pull request) must
+    form a strictly increasing, gap-free block starting immediately after the
+    highest prefix that is already `merged` (state=taken, pr_state=merged) or
+    `historical`. A gap in that block -- a number between the merged trunk and
+    the highest reservation that is neither `taken` nor `reserved` -- would let
+    a later claimant skip past a live Meta-CEO B ruling without seeing it.
+    """
+    findings: list[Finding] = []
+    prefixes = doc.get("prefixes", {}) if isinstance(doc, dict) else {}
+
+    numeric: dict[int, Mapping[str, Any]] = {}
+    for key, entry in prefixes.items():
+        if not isinstance(key, str) or not re.fullmatch(r"\d{4}", key) or not isinstance(entry, dict):
+            continue
+        numeric[int(key)] = entry
+
+    merged_trunk = [
+        n
+        for n, e in numeric.items()
+        if e.get("state") == "historical" or (e.get("state") == "taken" and e.get("pr_state") == "merged")
+    ]
+    reserved = sorted(n for n, e in numeric.items() if e.get("state") == "reserved")
+    if not reserved:
+        return findings
+
+    highest_merged = max(merged_trunk) if merged_trunk else 0
+
+    for n in range(highest_merged + 1, max(reserved) + 1):
+        key = f"{n:04d}"
+        entry = numeric.get(n)
+        if entry is None or entry.get("state") not in ("taken", "reserved"):
+            findings.append(
+                Finding(
+                    "RESERVATION_GAP",
+                    key,
+                    f"prefix {key} is missing or is neither taken nor reserved, leaving a gap "
+                    f"between the highest merged prefix {highest_merged:04d} and the reserved "
+                    f"block up to {max(reserved):04d} -- reserved prefixes must be strictly "
+                    "increasing with no gaps below the highest merged prefix",
+                )
+            )
+    return findings
+
+
+def check_no_literal_project_ref(doc: dict) -> list[Finding]:
+    """No per-prefix entry may spell out the literal Supabase project ref --
+    README.md's own rule (redacted to `{ref}` there since Terminal #538). The
+    top-level `project_ref` field is the one sanctioned place this document
+    carries the real value; an *entry* under `prefixes` repeating it in a note
+    or elsewhere is a leak this guard now catches.
+    """
+    findings: list[Finding] = []
+    prefixes = doc.get("prefixes", {}) if isinstance(doc, dict) else {}
+
+    for key, entry in prefixes.items():
+        if not isinstance(entry, dict):
+            continue
+        for field, value in entry.items():
+            if isinstance(value, str) and PROJECT_REF_RE.search(value):
+                findings.append(
+                    Finding(
+                        "LITERAL_PROJECT_REF_IN_ENTRY",
+                        key,
+                        f"entry field '{field}' contains a literal 20-char lowercase-alphanumeric "
+                        "token that looks like the Supabase project ref -- use '{ref}' instead",
+                    )
+                )
+    return findings
+
+
 def check_all(filenames: Sequence[str], texts: Mapping[str, str], doc: dict) -> list[Finding]:
     findings: list[Finding] = []
 
@@ -283,6 +392,8 @@ def check_all(filenames: Sequence[str], texts: Mapping[str, str], doc: dict) -> 
     # the wrong path) produces only MIGRATIONS_DIR_EMPTY and every schema
     # violation stays invisible (minor finding, review round 2).
     findings.extend(validate_reservations(doc))
+    findings.extend(check_reservation_contiguity(doc))
+    findings.extend(check_no_literal_project_ref(doc))
 
     if not filenames:
         findings.append(Finding("MIGRATIONS_DIR_EMPTY", None, "no .sql migrations found -- a wrong path would make every other check vacuously pass"))
@@ -290,6 +401,7 @@ def check_all(filenames: Sequence[str], texts: Mapping[str, str], doc: dict) -> 
 
     findings.extend(check_prefix_collisions(filenames))
     findings.extend(check_files_are_reserved(filenames, doc))
+    findings.extend(check_open_pr_state_for_present_files(filenames, doc))
     for name in filenames:
         text = texts.get(name, "")
         findings.extend(check_migration_header(name, text, doc))

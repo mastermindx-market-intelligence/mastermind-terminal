@@ -20,7 +20,10 @@ from scripts.check_supabase_migration_namespace import (
     check_all,
     check_files_are_reserved,
     check_migration_header,
+    check_no_literal_project_ref,
+    check_open_pr_state_for_present_files,
     check_prefix_collisions,
+    check_reservation_contiguity,
     collect,
     disclosures,
     format_report,
@@ -320,25 +323,44 @@ def test_reservations_records_the_known_collision_surface():
     assert prefixes["0013"]["pr"] == 513
     assert prefixes["0013"]["pr_state"] == "merged"
 
+    # 0014-0016 merged and applied to production (Meta-CEO B receipts) --
+    # updated from the stale pr_state="open" this test used to assert, which
+    # was the ledger lying: all three files have been on master (via #514 and
+    # #527) since before this packet ran. See README.md's application table
+    # and Reservations table for the receipts this mirrors.
     assert prefixes["0014"]["state"] == "taken"
     assert prefixes["0014"]["packet"] == "B-F12-1"
     assert prefixes["0014"]["pr"] == 514
-    assert prefixes["0014"]["pr_state"] == "open"
+    assert prefixes["0014"]["pr_state"] == "merged"
+    assert prefixes["0014"]["applied_in_production"] is True
 
     assert prefixes["0015"]["state"] == "taken"
     assert prefixes["0015"]["file"] == "0015_team_roles_invitations.sql"
     assert prefixes["0015"]["packet"] == "B-F12-3"
     assert prefixes["0015"]["pr"] == 514
-    assert prefixes["0015"]["pr_state"] == "open"
+    assert prefixes["0015"]["pr_state"] == "merged"
+    assert prefixes["0015"]["applied_in_production"] is True
 
     assert prefixes["0016"]["state"] == "taken"
     assert prefixes["0016"]["file"] == "0016_account_lifecycle_requests.sql"
     assert prefixes["0016"]["packet"] == "B-F12-4"
     assert prefixes["0016"]["pr"] == 527
-    assert prefixes["0016"]["pr_state"] == "open"
+    assert prefixes["0016"]["pr_state"] == "merged"
+    assert prefixes["0016"]["applied_in_production"] is True
 
-    for prefix in ("0017", "0018", "0019"):
-        assert prefixes[prefix]["state"] == "free"
+    # 0017-0020 reserved by Meta-CEO B ruling 2026-09-09 (packet id, not yet a
+    # pull request) -- updated from the stale state="free" this test used to
+    # assert.
+    ruling_owners = {
+        "0017": "B-F13-5",
+        "0018": "B-F12-7",
+        "0019": "B-F12-8",
+        "0020": "B-F12-9",
+    }
+    for prefix, packet in ruling_owners.items():
+        assert prefixes[prefix]["state"] == "reserved"
+        assert prefixes[prefix]["file"] is None
+        assert prefixes[prefix]["packet"] == packet
 
     assert doc["claim_before_you_write"].strip() != ""
 
@@ -428,7 +450,7 @@ def test_collect_end_to_end_over_a_synthetic_tree(tmp_path):
                 "file": "0099_a.sql",
                 "packet": "TEST",
                 "pr": 1,
-                "pr_state": "open",
+                "pr_state": "merged",
                 "note": "fixture",
             },
         }
@@ -529,3 +551,208 @@ def test_check_all_validates_reservations_even_with_no_sql_files():
     codes = {f.code for f in findings}
     assert "MIGRATIONS_DIR_EMPTY" in codes
     assert "MISSING_HEADER_FLOOR" in codes
+
+
+# --- 18 (packet B-PLAT-B5-2, rule a: a present file cannot be pr_state=open) ---
+#
+# This is the RED-first case: on the unfixed ledger, 0014/0015/0016's .sql
+# files are all present in supabase/migrations/ while RESERVATIONS.json still
+# recorded pr_state="open" for all three (they merged in #514 and #527). That
+# is a stale ledger telling a provable lie, and nothing above this line would
+# have caught it -- check_files_are_reserved only compares filenames, never
+# pr_state.
+
+
+def test_open_pr_state_with_a_present_file_is_detected():
+    doc = reservations_doc(
+        prefixes={
+            "0014": {
+                "state": "taken",
+                "file": "0014_tenancy_foundation.sql",
+                "packet": "B-F12-1",
+                "pr": 514,
+                "pr_state": "open",
+                "note": "fixture: stale -- file is present, PR is not still open",
+            }
+        }
+    )
+    findings = check_open_pr_state_for_present_files(["0014_tenancy_foundation.sql"], doc)
+    assert any(
+        f.code == "OPEN_PR_STATE_WITH_FILE_PRESENT" and f.prefix == "0014" for f in findings
+    )
+
+
+def test_open_pr_state_is_fine_when_the_file_is_genuinely_absent():
+    doc = reservations_doc(
+        prefixes={
+            "0014": {
+                "state": "taken",
+                "file": "0014_tenancy_foundation.sql",
+                "packet": "B-F12-1",
+                "pr": 514,
+                "pr_state": "open",
+                "note": "fixture: file has not merged yet, open is correct",
+            }
+        }
+    )
+    findings = check_open_pr_state_for_present_files([], doc)
+    assert findings == []
+
+
+def test_no_present_file_has_pr_state_open_on_the_real_tree():
+    """The RED-first proof for rule (a): run against the real checkout. Before
+    the ledger fix this fails for 0014/0015/0016 (files present, pr_state
+    still "open"); after RESERVATIONS.json is corrected to pr_state="merged"
+    for all three, this is green.
+    """
+    doc = load_reservations(RESERVATIONS_PATH)
+    on_disk = sorted(p.name for p in MIGRATIONS_DIR.glob("*.sql"))
+    findings = check_open_pr_state_for_present_files(on_disk, doc)
+    assert findings == [], format_report(findings, [])
+
+
+# --- 19 (packet B-PLAT-B5-2, rule b: reserved prefixes, no gaps) -------------
+
+
+def test_reservation_gap_below_highest_merged_is_detected():
+    doc = reservations_doc(
+        prefixes={
+            "0016": {
+                "state": "taken",
+                "file": "0016_x.sql",
+                "packet": "P",
+                "pr": 1,
+                "pr_state": "merged",
+                "note": "fixture",
+            },
+            "0017": {
+                "state": "reserved",
+                "file": None,
+                "packet": "P2",
+                "pr": None,
+                "pr_state": None,
+                "note": "fixture",
+            },
+            "0019": {
+                "state": "reserved",
+                "file": None,
+                "packet": "P3",
+                "pr": None,
+                "pr_state": None,
+                "note": "fixture",
+            },
+        }
+    )
+    findings = check_reservation_contiguity(doc)
+    assert any(f.code == "RESERVATION_GAP" and f.prefix == "0018" for f in findings)
+
+
+def test_no_reservations_means_no_contiguity_findings():
+    doc = reservations_doc()  # default fixture has no `reserved` entries at all
+    assert check_reservation_contiguity(doc) == []
+
+
+def test_reservations_are_contiguous_with_no_gap_on_the_real_tree():
+    doc = load_reservations(RESERVATIONS_PATH)
+    findings = check_reservation_contiguity(doc)
+    assert findings == [], format_report(findings, [])
+
+
+# --- 20 (packet B-PLAT-B5-2, rule c: no literal project ref in an entry) -----
+
+
+def test_literal_project_ref_in_an_entry_is_detected():
+    doc = reservations_doc(
+        prefixes={
+            "0017": {
+                "state": "reserved",
+                "file": None,
+                "packet": "P",
+                "pr": None,
+                "pr_state": None,
+                "note": "receipt against fsldfzlxyavsuwqbceod pending",
+            }
+        }
+    )
+    findings = check_no_literal_project_ref(doc)
+    assert any(
+        f.code == "LITERAL_PROJECT_REF_IN_ENTRY" and f.prefix == "0017" for f in findings
+    )
+
+
+def test_short_shas_do_not_false_positive_as_a_project_ref():
+    doc = reservations_doc(
+        prefixes={
+            "0014": {
+                "state": "taken",
+                "file": "0014_tenancy_foundation.sql",
+                "packet": "B-F12-1",
+                "pr": 514,
+                "pr_state": "merged",
+                "note": "merged as cff58ee8d; a short sha must never trip the ref pattern",
+            }
+        }
+    )
+    assert check_no_literal_project_ref(doc) == []
+
+
+def test_no_entry_contains_a_literal_project_ref_on_the_real_tree():
+    doc = load_reservations(RESERVATIONS_PATH)
+    findings = check_no_literal_project_ref(doc)
+    assert findings == [], format_report(findings, [])
+
+
+# --- 21 (wires all three packet B-PLAT-B5-2 checks through check_all) -------
+
+
+def test_check_all_wires_the_ledger_truth_checks():
+    """Exercises check_all() -- the path CI runs -- with one violation from
+    each of the three new checks live at once, so deleting any single wiring
+    line in check_all silently drops one of these from CI's output.
+    """
+    filenames = ["0014_x.sql"]
+    texts = {
+        "0014_x.sql": "-- Ledger row: NONE: fixture\n-- Rollback: NONE: fixture\ncreate table t();\n",
+    }
+    doc = reservations_doc(
+        header_required_from="0015",
+        prefixes={
+            "0014": {
+                "state": "taken",
+                "file": "0014_x.sql",
+                "packet": "P",
+                "pr": 514,
+                "pr_state": "open",
+                "note": "fixture",
+            },
+            "0016": {
+                "state": "taken",
+                "file": "0016_x.sql",
+                "packet": "P2",
+                "pr": 2,
+                "pr_state": "merged",
+                "note": "fixture",
+            },
+            "0017": {
+                "state": "reserved",
+                "file": None,
+                "packet": "P3",
+                "pr": None,
+                "pr_state": None,
+                "note": "fixture",
+            },
+            "0019": {
+                "state": "reserved",
+                "file": None,
+                "packet": "P4",
+                "pr": None,
+                "pr_state": None,
+                "note": "receipt against fsldfzlxyavsuwqbceod pending",
+            },
+        },
+    )
+    findings = check_all(filenames, texts, doc)
+    codes = {f.code for f in findings}
+    assert "OPEN_PR_STATE_WITH_FILE_PRESENT" in codes
+    assert "RESERVATION_GAP" in codes
+    assert "LITERAL_PROJECT_REF_IN_ENTRY" in codes
