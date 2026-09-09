@@ -1,11 +1,11 @@
 # B-F12-B5-1 Explicit grants — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 4dc16e4442fa2d785d33f2c8163572d7bd696f44
-# capturedAt: 2026-09-09T11:00:48.627Z
+# capturedAtHead: 7bb9f73150939eefcfa35faa7738a88225d0d44d
+# capturedAt: 2026-09-09T11:39:49.819Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/settings/SectionSharing.tsx: "7b37575730ae7076b6617fc5f650a223c16968d6dbd1a156e353b50de34378eb"
+  terminal/components/settings/SectionSharing.tsx: "06855a1e25dc25307bc4b6ad44e4b3bc66f5c32d2fd289f7c0826caf64ef428a"
   terminal/components/settings/SettingsPanel.tsx: "2ca4b4290b4b12ce2e3a09bbd04b1c7e4833462aff9da5ce5ece1454030ec270"
   terminal/app/settings.css: "3189163136d943431cbf52e4b5d241c105b695ba5af94c4c2e29151d537b5ef5"
 theme: dark
@@ -30,10 +30,10 @@ files:
   - mobile-zh-empty.png
 measurements:
   desktop-en-shared.png: { cardWidth: 1140, groupCount: 2, revokeVisible: true, badgeText: "Read only" }
-  desktop-zh-shared.png: { cardWidth: 1138, groupCount: 2, revokeVisible: true, badgeText: "仅可查看" }
+  desktop-zh-shared.png: { cardWidth: 1140, groupCount: 2, revokeVisible: true, badgeText: "仅可查看" }
   desktop-en-empty.png: { cardWidth: 1123, groupCount: 2, revokeVisible: false, badgeText: "" }
   desktop-zh-empty.png: { cardWidth: 1123, groupCount: 2, revokeVisible: false, badgeText: "" }
   mobile-en-shared.png: { cardWidth: 390, groupCount: 2, revokeVisible: true, badgeText: "Read only" }
   mobile-zh-shared.png: { cardWidth: 390, groupCount: 2, revokeVisible: true, badgeText: "仅可查看" }
-  mobile-en-empty.png: { cardWidth: 384, groupCount: 2, revokeVisible: false, badgeText: "" }
+  mobile-en-empty.png: { cardWidth: 387, groupCount: 2, revokeVisible: false, badgeText: "" }
   mobile-zh-empty.png: { cardWidth: 387, groupCount: 2, revokeVisible: false, badgeText: "" }
