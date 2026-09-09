@@ -356,6 +356,17 @@ export function targetsCopy(summary: PortfolioTargetsSummary, _lang: Lang): {
   };
 }
 
+export function driftBandFit(drift: TargetDrift): TargetStatus {
+  return drift.status;
+}
+
+export function copyBandFit(
+  row: { status: Bilingual },
+  lang: Lang,
+): string {
+  return lang === "zh" ? row.status.zh : row.status.en;
+}
+
 export function apiErrorCopy(error: string): Bilingual {
   if (error === "invalid target") return T_ERR_INVALID_TARGET;
   if (error === "invalid band") return T_ERR_INVALID_BAND;

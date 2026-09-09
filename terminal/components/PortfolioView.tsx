@@ -37,7 +37,26 @@ import {
   type Position,
 } from "@/lib/portfolio";
 import { riskCopy, riskAvailability, failedRereadDisposition, T_RISK_UNAVAILABLE, type PortfolioRisk, type Lang } from "@/lib/portfolioRisk";
+import {
+  targetsCopy,
+  apiErrorCopy,
+  copyBandFit,
+  driftBandFit,
+  T_UNAVAILABLE,
+  T_CURRENT,
+  T_TARGET,
+  T_DRIFT,
+  T_BAND,
+  T_CLEAR,
+  T_SAVED,
+  T_SAVE_FAIL,
+  T_ARIA_TARGET,
+  T_ARIA_BAND,
+  DEFAULT_BAND_PCT,
+  type PortfolioTargetsSummary,
+} from "@/lib/portfolioTargets";
 import s from "@/components/PortfolioRisk.module.css";
+import tg from "@/components/PortfolioTargets.module.css";
 
 type Quote = { last?: number; chg?: number } | null | undefined;
 type ManifestRow = { name?: string; zh?: string; col?: string; last?: number; chg?: number };
@@ -99,6 +118,8 @@ export default function PortfolioView(
   // whether that read succeeded or failed; never reset, since a later successful reload simply
   // replaces `risk` with a real value and `riskAvailability` reads that first.
   const [riskAttempted, setRiskAttempted] = useState(false);
+  const [targets, setTargets] = useState<PortfolioTargetsSummary | null>(null);
+  const [targetsAttempted, setTargetsAttempted] = useState(false);
   // The server could not read the book. `positions` is [] here because there is nothing to show
   // — NOT because the user holds nothing. Everything that would assert a count or a total is
   // suppressed while this is true, and it clears the moment a read lands.
@@ -151,18 +172,34 @@ export default function PortfolioView(
         setUnread(true);
       }
     };
+    let authoritative: Position[] | null = null;
     try {
       const response = await fetch("/api/portfolio", { headers: { Accept: "application/json" } });
-      if (!response.ok) { onFailedReread(); return null; }
-      const payload = await response.json();
-      if (!Array.isArray(payload?.positions)) { onFailedReread(); return null; }
-      const authoritative = payload.positions as Position[];
-      setPositions(authoritative);
-      setRisk((payload?.risk ?? null) as PortfolioRisk | null);
-      setUnread(false);
-      return authoritative;
-    } catch { onFailedReread(); return null; }
+      if (!response.ok) { onFailedReread(); }
+      else {
+        const payload = await response.json();
+        if (!Array.isArray(payload?.positions)) { onFailedReread(); }
+        else {
+          authoritative = payload.positions as Position[];
+          setPositions(authoritative);
+          setRisk((payload?.risk ?? null) as PortfolioRisk | null);
+          setUnread(false);
+        }
+      }
+    } catch { onFailedReread(); }
     finally { setRiskAttempted(true); }
+
+    try {
+      const targetResponse = await fetch("/api/portfolio/targets", { headers: { Accept: "application/json" } });
+      if (!targetResponse.ok) setTargets(null);
+      else {
+        const payload = await targetResponse.json();
+        setTargets((payload?.summary ?? null) as PortfolioTargetsSummary | null);
+      }
+    } catch { setTargets(null); }
+    finally { setTargetsAttempted(true); }
+
+    return authoritative;
   }, []);
 
   const retryRead = useCallback(async () => {
@@ -213,6 +250,39 @@ export default function PortfolioView(
     chainRef.current = request;
     return request;
   }, [reload, t]);
+
+  const saveTarget = useCallback(async (ticker: string, targetWeightPct: number, bandPct?: number) => {
+    const response = await fetch("/api/portfolio/targets", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "set",
+        ticker,
+        targetWeightPct,
+        ...(bandPct !== undefined ? { bandPct } : {}),
+      }),
+    });
+    const detail = await response.json().catch(() => null) as { error?: string } | null;
+    if (!response.ok) {
+      const code = typeof detail?.error === "string" ? detail.error : "save failed";
+      throw Object.assign(new Error(code), { code });
+    }
+    await reload();
+  }, [reload]);
+
+  const clearTarget = useCallback(async (ticker: string) => {
+    const response = await fetch("/api/portfolio/targets", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "clear", ticker }),
+    });
+    const detail = await response.json().catch(() => null) as { error?: string } | null;
+    if (!response.ok) {
+      const code = typeof detail?.error === "string" ? detail.error : "save failed";
+      throw Object.assign(new Error(code), { code });
+    }
+    await reload();
+  }, [reload]);
 
   // ── live values ────────────────────────────────────────────────────────────
   // The same hub the rail uses: the nightly manifest for names/colours/EOD, the batched
@@ -429,6 +499,21 @@ export default function PortfolioView(
           switch (riskAvailability(!!open.length, risk, riskAttempted)) {
             case "ready": return <PortfolioRiskReadout risk={risk!} lang={lang as Lang} />;
             case "unavailable": return <RiskUnavailableNotice lang={lang as Lang} />;
+            default: return null;
+          }
+        })()}
+
+        {(() => {
+          switch (riskAvailability(!!open.length, targets as unknown as PortfolioRisk | null, targetsAttempted)) {
+            case "ready": return (
+              <PortfolioTargetsReadout
+                summary={targets!}
+                lang={lang as Lang}
+                onSetTarget={saveTarget}
+                onClearTarget={clearTarget}
+              />
+            );
+            case "unavailable": return <TargetsUnavailableNotice lang={lang as Lang} />;
             default: return null;
           }
         })()}
@@ -651,6 +736,281 @@ function PortfolioRiskReadout({ risk, lang }: { risk: PortfolioRisk; lang: Lang 
         </details>
       )}
     </section>
+  );
+}
+
+function TargetsUnavailableNotice({ lang }: { lang: Lang }) {
+  return (
+    <section className={tg.section} data-testid="portfolio-targets-unavailable">
+      <p className={tg.notice}>{lang === "zh" ? T_UNAVAILABLE.zh : T_UNAVAILABLE.en}</p>
+    </section>
+  );
+}
+
+function fillLabel(template: { en: string; zh: string }, ticker: string, lang: Lang): string {
+  const raw = lang === "zh" ? template.zh : template.en;
+  return raw.split("{ticker}").join(ticker);
+}
+
+function PortfolioTargetsReadout({ summary, lang, onSetTarget, onClearTarget }: {
+  summary: PortfolioTargetsSummary; lang: Lang;
+  onSetTarget: (ticker: string, targetWeightPct: number, bandPct?: number) => Promise<void>;
+  onClearTarget: (ticker: string) => Promise<void>;
+}) {
+  const copy = targetsCopy(summary, lang);
+  const pick = (b: { en: string; zh: string } | null | undefined) => (b ? (lang === "zh" ? b.zh : b.en) : "");
+  return (
+    <section className={tg.section} data-testid="portfolio-targets" aria-labelledby="pf-targets-h">
+      <header className={tg.head}>
+        <h3 id="pf-targets-h" className={tg.title}>{pick(copy.title)}</h3>
+        <p className={tg.standing}>{pick(copy.standing)}</p>
+        <p className={tg.basis}>{pick(copy.basis)}</p>
+      </header>
+      {copy.sumNote && <p className={tg.sumNote} data-testid="targets-sum-note">{pick(copy.sumNote)}</p>}
+      {copy.emptyState && <p className={tg.empty} data-testid="targets-empty">{pick(copy.emptyState)}</p>}
+      {!!copy.rows.length && (
+        <div className={tg.list}>
+          {copy.rows.map((row) => {
+            const drift = summary.drifts.find((d) => d.ticker === row.ticker);
+            if (!drift) return null;
+            const bandFitLabel = copyBandFit(row, lang);
+            const bandFit = driftBandFit(drift);
+            return (
+              <TargetCard
+                key={row.ticker}
+                ticker={row.ticker}
+                current={pick(row.current) || "—"}
+                driftText={pick(row.drift) || "—"}
+                bandFitLabel={bandFitLabel}
+                bandFit={bandFit}
+                unweighableNote={pick(row.unweighableNote)}
+                targetWeightPct={drift.targetWeightPct}
+                bandPct={drift.bandPct}
+                lang={lang}
+                onSetTarget={onSetTarget}
+                onClearTarget={onClearTarget}
+              />
+            );
+          })}
+        </div>
+      )}
+      {copy.untargeted && (
+        <div className={tg.group} data-testid="targets-untargeted">
+          <h4 className={tg.groupTitle}>{pick(copy.untargeted.header)}</h4>
+          {copy.untargeted.rows.map((row) => (
+            <UntargetedRow
+              key={row.ticker}
+              ticker={row.ticker}
+              hint={pick(row.hint)}
+              lang={lang}
+              onSetTarget={onSetTarget}
+            />
+          ))}
+        </div>
+      )}
+      {copy.orphaned && (
+        <div className={tg.group} data-testid="targets-orphaned">
+          <h4 className={tg.groupTitle}>{pick(copy.orphaned.header)}</h4>
+          <p className={tg.explain}>{pick(copy.orphaned.explanation)}</p>
+          {copy.orphaned.rows.map((row) => (
+            <div key={row.ticker} className={tg.orphanedRow} data-ticker={row.ticker} data-status="orphaned">
+              <p className={tg.ticker}>{row.ticker}</p>
+              <p className={tg.value}>{pick(T_TARGET)} {row.targetWeightPct}%</p>
+              <p className={tg.value}>{pick(T_BAND)} ±{row.bandPct}</p>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function useDebouncedSave(
+  ticker: string,
+  lang: Lang,
+  onSetTarget: (ticker: string, targetWeightPct: number, bandPct?: number) => Promise<void>,
+) {
+  const [flash, setFlash] = useState<"saved" | "error" | null>(null);
+  const [errorText, setErrorText] = useState<string | null>(null);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const rollback = useRef<{ target: string; band: string }>({ target: "", band: String(DEFAULT_BAND_PCT) });
+
+  const schedule = (
+    targetStr: string,
+    bandStr: string,
+    restore: (target: string, band: string) => void,
+    includeBand: boolean,
+  ) => {
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(async () => {
+      const weight = Number(targetStr);
+      if (!Number.isFinite(weight)) return;
+      const band = Number(bandStr);
+      try {
+        await onSetTarget(ticker, weight, includeBand && Number.isFinite(band) ? band : undefined);
+        setFlash("saved");
+        setErrorText(null);
+        rollback.current = { target: targetStr, band: bandStr };
+      } catch (cause) {
+        restore(rollback.current.target, rollback.current.band);
+        setFlash("error");
+        const code = cause && typeof cause === "object" && "code" in cause ? String((cause as { code: string }).code) : "";
+        const copy = apiErrorCopy(code);
+        setErrorText(lang === "zh" ? copy.zh : copy.en);
+      }
+    }, 500);
+  };
+
+  return { flash, errorText, schedule, rollback, setFlash };
+}
+
+function TargetCard({
+  ticker, current, driftText, bandFitLabel, bandFit, unweighableNote,
+  targetWeightPct, bandPct, lang, onSetTarget, onClearTarget,
+}: {
+  ticker: string;
+  current: string;
+  driftText: string;
+  bandFitLabel: string;
+  bandFit: "within_band" | "outside_band" | "unweighable";
+  unweighableNote: string;
+  targetWeightPct: number;
+  bandPct: number;
+  lang: Lang;
+  onSetTarget: (ticker: string, targetWeightPct: number, bandPct?: number) => Promise<void>;
+  onClearTarget: (ticker: string) => Promise<void>;
+}) {
+  const [targetStr, setTargetStr] = useState(String(targetWeightPct));
+  const [bandStr, setBandStr] = useState(String(bandPct));
+  const { flash, errorText, schedule, rollback, setFlash } = useDebouncedSave(ticker, lang, onSetTarget);
+  const pick = (b: { en: string; zh: string }) => (lang === "zh" ? b.zh : b.en);
+
+  useEffect(() => {
+    setTargetStr(String(targetWeightPct));
+    setBandStr(String(bandPct));
+    rollback.current = { target: String(targetWeightPct), band: String(bandPct) };
+  }, [targetWeightPct, bandPct, rollback]);
+
+  return (
+    <article className={tg.card} data-ticker={ticker} data-status={bandFit}>
+      <p className={tg.ticker}>{ticker}</p>
+      <div className={tg.grid}>
+        <div className={tg.field}>
+          <span className={tg.lbl}>{pick(T_CURRENT)}</span>
+          <p className={tg.value}>{current}</p>
+        </div>
+        <label className={tg.field}>
+          <span className={tg.lbl}>{pick(T_TARGET)}</span>
+          <input
+            className={tg.input}
+            inputMode="decimal"
+            value={targetStr}
+            aria-label={fillLabel(T_ARIA_TARGET, ticker, lang)}
+            onChange={(event) => {
+              const next = event.target.value;
+              setTargetStr(next);
+              setFlash(null);
+              schedule(next, bandStr, (t, b) => { setTargetStr(t); setBandStr(b); }, true);
+            }}
+          />
+        </label>
+        <label className={tg.field}>
+          <span className={tg.lbl}>{pick(T_BAND)}</span>
+          <input
+            className={tg.input}
+            inputMode="decimal"
+            value={bandStr}
+            aria-label={fillLabel(T_ARIA_BAND, ticker, lang)}
+            onChange={(event) => {
+              const next = event.target.value;
+              setBandStr(next);
+              setFlash(null);
+              schedule(targetStr, next, (t, b) => { setTargetStr(t); setBandStr(b); }, true);
+            }}
+          />
+        </label>
+        <div className={tg.field}>
+          <span className={tg.lbl}>{pick(T_DRIFT)}</span>
+          <p className={tg.value}>{driftText}</p>
+        </div>
+      </div>
+      <p className={tg.status} data-kind={bandFit}>{bandFitLabel}</p>
+      {unweighableNote ? <p className={tg.unweighable}>{unweighableNote}</p> : null}
+      <div className={tg.actions}>
+        <button
+          type="button"
+          className={tg.clear}
+          onClick={async () => {
+            try {
+              await onClearTarget(ticker);
+              setFlash("saved");
+            } catch {
+              setFlash("error");
+            }
+          }}
+        >
+          {pick(T_CLEAR)}
+        </button>
+        {flash === "saved" && <span className={tg.saved}>{pick(T_SAVED)}</span>}
+        {flash === "error" && <span className={tg.error}>{errorText || pick(T_SAVE_FAIL)}</span>}
+      </div>
+    </article>
+  );
+}
+
+function UntargetedRow({
+  ticker, hint, lang, onSetTarget,
+}: {
+  ticker: string;
+  hint: string;
+  lang: Lang;
+  onSetTarget: (ticker: string, targetWeightPct: number, bandPct?: number) => Promise<void>;
+}) {
+  const [targetStr, setTargetStr] = useState("");
+  const [bandStr, setBandStr] = useState(String(DEFAULT_BAND_PCT));
+  const { flash, errorText, schedule, rollback, setFlash } = useDebouncedSave(ticker, lang, onSetTarget);
+  const pick = (b: { en: string; zh: string }) => (lang === "zh" ? b.zh : b.en);
+
+  useEffect(() => {
+    rollback.current = { target: "", band: String(DEFAULT_BAND_PCT) };
+  }, [rollback]);
+
+  return (
+    <div className={tg.untargetedRow} data-ticker={ticker} data-status="untargeted">
+      <p className={tg.hint}>{hint}</p>
+      <label className={tg.field}>
+        <span className={tg.lbl}>{pick(T_TARGET)}</span>
+        <input
+          className={tg.input}
+          inputMode="decimal"
+          value={targetStr}
+          aria-label={fillLabel(T_ARIA_TARGET, ticker, lang)}
+          onChange={(event) => {
+            const next = event.target.value;
+            setTargetStr(next);
+            setFlash(null);
+            schedule(next, bandStr, (t, b) => { setTargetStr(t); setBandStr(b); }, true);
+          }}
+        />
+      </label>
+      <label className={tg.field}>
+        <span className={tg.lbl}>{pick(T_BAND)}</span>
+        <input
+          className={tg.input}
+          inputMode="decimal"
+          value={bandStr}
+          aria-label={fillLabel(T_ARIA_BAND, ticker, lang)}
+          onChange={(event) => {
+            const next = event.target.value;
+            setBandStr(next);
+            setFlash(null);
+            if (targetStr.trim()) schedule(targetStr, next, (t, b) => { setTargetStr(t); setBandStr(b); }, true);
+          }}
+        />
+      </label>
+      {flash === "saved" && <span className={tg.saved}>{pick(T_SAVED)}</span>}
+      {flash === "error" && <span className={tg.error}>{errorText || pick(T_SAVE_FAIL)}</span>}
+    </div>
   );
 }
 

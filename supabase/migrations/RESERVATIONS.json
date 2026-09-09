@@ -158,6 +158,14 @@
       "pr": null,
       "pr_state": null,
       "note": "free -- claim before you write"
+    },
+    "0023": {
+      "state": "taken",
+      "file": "0023_portfolio_targets.sql",
+      "packet": "B-F08-B5-1",
+      "pr": 0,
+      "pr_state": "open",
+      "note": "portfolio target weights + bands, user-typed, RLS own-row"
     }
   }
 }
