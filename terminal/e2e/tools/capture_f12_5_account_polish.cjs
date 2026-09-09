@@ -16,12 +16,18 @@
 "use strict";
 
 const { spawn, execFileSync } = require("node:child_process");
-const { mkdirSync, writeFileSync } = require("node:fs");
+const { createHash } = require("node:crypto");
+const { mkdirSync, readFileSync, writeFileSync } = require("node:fs");
 const { join } = require("node:path");
 const { chromium } = require("@playwright/test");
 
 const ROOT = join(__dirname, "..", "..");
+const REPO = join(ROOT, "..");
 const OUT = join(ROOT, "docs", "pr-crops", "b-f12-5-account-polish");
+const LAYOUT_FILES = [
+  "terminal/components/settings/SectionAccount.tsx",
+  "terminal/app/settings.css",
+];
 const PORT = Number(process.env.TERMINAL_CROP_PORT || 3531);
 const BASE = `http://127.0.0.1:${PORT}`;
 const VIEWPORTS = {
@@ -33,6 +39,14 @@ mkdirSync(OUT, { recursive: true });
 
 function currentGitHead() {
   return execFileSync("git", ["rev-parse", "HEAD"], { cwd: ROOT, encoding: "utf8" }).trim();
+}
+
+function sha256File(rel) {
+  return createHash("sha256").update(readFileSync(join(REPO, rel))).digest("hex");
+}
+
+function layoutFilesBlock() {
+  return LAYOUT_FILES.map((rel) => `  ${rel}: "${sha256File(rel)}"`);
 }
 
 function startServer() {
@@ -258,6 +272,9 @@ async function main() {
     "# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR",
     `# capturedAtHead: ${capturedAtHead}`,
     `# capturedAt: ${new Date().toISOString()}`,
+    "# capturedAtHead is informational. The lock is layoutFiles.",
+    "layoutFiles:",
+    ...layoutFilesBlock(),
     "theme: dark",
     "languages: [en, zh]",
     "viewports:",

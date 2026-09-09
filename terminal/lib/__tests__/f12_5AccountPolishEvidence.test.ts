@@ -1,20 +1,25 @@
-// Review MAJOR (PR #539 round 2): EVIDENCE.yml recorded capturedAtHead as
-// origin/master (e95059832…) while the crops were produced from the F12-5
-// working tree that became e73e5bdc8. Review standard (c) and REQUIRED 4
-// require the evidence record to name a SHA whose account layout files match
-// this HEAD — so a recapture taken before the code commit (script writes
-// git rev-parse HEAD, which was still master) cannot silently ship again.
+// Review MAJOR (PR #539 round 3): the evidence lock used to name a commit
+// and ask whether it was an ancestor of HEAD. The required CI shard checks
+// out a single commit, so that named SHA is absent and the check is RED
+// there while the same file is GREEN in a full-history worktree. A check
+// that only passes with full history is not a CI test.
+//
+// The lock is now the sha256 of the account layout sources the crops
+// depend on, recorded in EVIDENCE.yml layoutFiles. capturedAtHead stays
+// as an informational field. Changing a layout file without a recapture
+// turns this file RED.
 //
 // Review MINOR: overview rows reported confirmClass/confirmBg of a control
 // whose .acs-form is display:none until .acs-row.editing. Overview
 // measurements must not describe that hidden confirm.
 import { describe, expect, it } from "vitest";
-import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 const REPO = join(__dirname, "../../..");
-const EVIDENCE = join(__dirname, "../../docs/pr-crops/b-f12-5-account-polish/EVIDENCE.yml");
+const CROP_DIR = join(__dirname, "../../docs/pr-crops/b-f12-5-account-polish");
+const EVIDENCE = join(CROP_DIR, "EVIDENCE.yml");
 const LAYOUT_FILES = [
   "terminal/components/settings/SectionAccount.tsx",
   "terminal/app/settings.css",
@@ -37,9 +42,28 @@ function evidenceText(): string {
 }
 
 function capturedAtHead(yml: string): string {
-  const m = yml.match(/^# capturedAtHead: ([0-9a-f]{40})$/m);
+  const m = yml.match(/^(?:# )?capturedAtHead: ([0-9a-f]{40})$/m);
   if (!m) throw new Error("EVIDENCE.yml is missing a 40-char capturedAtHead");
   return m[1];
+}
+
+function layoutFileMap(yml: string): Record<string, string> {
+  const marker = "layoutFiles:\n";
+  const at = yml.indexOf(marker);
+  if (at < 0) throw new Error("EVIDENCE.yml is missing layoutFiles");
+  const map: Record<string, string> = {};
+  for (const line of yml.slice(at + marker.length).split("\n")) {
+    if (!line.startsWith("  ")) break;
+    const m = line.match(/^  (\S+): "?([0-9a-f]{64})"?$/);
+    if (!m) throw new Error(`layoutFiles row is not path: sha256: ${line}`);
+    map[m[1]] = m[2];
+  }
+  if (Object.keys(map).length === 0) throw new Error("EVIDENCE.yml layoutFiles is empty");
+  return map;
+}
+
+function sha256Of(abs: string): string {
+  return createHash("sha256").update(readFileSync(abs)).digest("hex");
 }
 
 function measurement(yml: string, file: string): Record<string, string> {
@@ -55,17 +79,24 @@ function measurement(yml: string, file: string): Record<string, string> {
   return fields;
 }
 
-function git(args: string[]): string {
-  return execFileSync("git", args, { cwd: REPO, encoding: "utf8" }).trim();
-}
+describe("B-F12-5 evidence lock is the sha256 of the layout sources", () => {
+  it("capturedAtHead remains recorded as an informational field", () => {
+    expect(capturedAtHead(evidenceText())).toMatch(/^[0-9a-f]{40}$/);
+  });
 
-describe("B-F12-5 evidence record names the code head that produced the crops", () => {
-  it("capturedAtHead is an ancestor of HEAD whose account layout files match this HEAD", () => {
-    const sha = capturedAtHead(evidenceText());
-    // merge-base --is-ancestor exits 1 when sha is not an ancestor.
-    git(["merge-base", "--is-ancestor", sha, "HEAD"]);
-    const diff = git(["diff", sha, "HEAD", "--", ...LAYOUT_FILES]);
-    expect(diff, `account layout files differ between capturedAtHead ${sha} and HEAD`).toBe("");
+  it("layout file sha256 matches EVIDENCE.yml (RED when a layout file changes without a recapture)", () => {
+    const recorded = layoutFileMap(evidenceText());
+    for (const rel of LAYOUT_FILES) {
+      expect(recorded[rel], `layoutFiles is missing ${rel}`).toMatch(/^[0-9a-f]{64}$/);
+    }
+    for (const [rel, expected] of Object.entries(recorded)) {
+      const abs = join(REPO, rel);
+      expect(existsSync(abs), `${rel} is recorded in layoutFiles but absent from the tree`).toBe(true);
+      expect(
+        sha256Of(abs),
+        `${rel} changed without a recapture`,
+      ).toBe(expected);
+    }
   });
 
   it("overview measurements do not report the hidden delete confirm", () => {
@@ -85,6 +116,18 @@ describe("B-F12-5 evidence record names the code head that produced the crops", 
       expect(row.confirmBg, file).not.toBe("");
       expect(row.confirmBg, file).not.toBe("rgb(41, 98, 255)");
       expect(row.confirmBg, file).not.toBe("rgb(77, 130, 255)");
+    }
+  });
+
+  it("EN/ZH twins are present for every crop", () => {
+    const listed = [...OVERVIEW_FILES, ...DELETE_FORM_FILES];
+    for (const file of listed) {
+      expect(existsSync(join(CROP_DIR, file)), file).toBe(true);
+      if (file.includes("-en-")) {
+        const zh = file.replace("-en-", "-zh-");
+        expect(listed, `${file} is missing its ZH twin in the lock`).toContain(zh);
+        expect(existsSync(join(CROP_DIR, zh)), zh).toBe(true);
+      }
     }
   });
 });

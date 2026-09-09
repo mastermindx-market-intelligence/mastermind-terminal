@@ -3,6 +3,10 @@
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
 # capturedAtHead: e73e5bdc8d9ba55887b9d35a8936ac4966ade80b
 # capturedAt: 2026-09-09T02:37:16.733Z
+# capturedAtHead is informational. The lock is layoutFiles.
+layoutFiles:
+  terminal/components/settings/SectionAccount.tsx: "c52efebbd06b1bc924c9d94c6ac22dab777b3416bc17e55c5ea0179d9ae51e62"
+  terminal/app/settings.css: "3189163136d943431cbf52e4b5d241c105b695ba5af94c4c2e29151d537b5ef5"
 theme: dark
 languages: [en, zh]
 viewports:
