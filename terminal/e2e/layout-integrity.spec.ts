@@ -1,7 +1,14 @@
 import { expect, test, type Page } from "@playwright/test";
 import { injectLayoutFault, isolateLayoutStore, renderAsGuest, useLang } from "./layoutStore";
 import { isPhoneViewport } from "./phoneChrome";
-import { chooseToolbarSplit, openLayoutMenu, toggleToolbarSync } from "./terminalToolbar";
+import {
+  chooseToolbarSplit,
+  createToolbarIntent,
+  createToolbarTestBound,
+  openLayoutMenu,
+  toggleToolbarSync,
+  type ToolbarTestBound,
+} from "./terminalToolbar";
 
 // Saved-layout integrity, in the browser, at all three contract viewports.
 //
@@ -28,9 +35,15 @@ const gotoTerminal = async (page: Page) => {
 const skipWithoutLayoutMenu = (page: Page) =>
   test.skip(isPhoneViewport(page), "no phone entry point for Saved Layouts (Analysis-hub Templates tile is a ghost)");
 
+const createLayoutToolbarBound = (testInfo: { timeout: number }): ToolbarTestBound =>
+  createToolbarTestBound({
+    testStartedAtMs: Date.now(),
+    testTimeoutMs: testInfo.timeout,
+  });
+
 /** Save through the real menu; `name` empty exercises the blank auto-name path. */
-async function saveLayout(page: Page, name = "") {
-  const menu = await openLayoutMenu(page);
+async function saveLayout(page: Page, name: string, bound: ToolbarTestBound) {
+  const menu = await openLayoutMenu(page, createToolbarIntent(bound));
   const input = menu.locator("[data-layout-save] input");
   await input.fill(name);
   await menu.locator("[data-layout-save-btn]").click();
@@ -58,6 +71,7 @@ const inventory = (page: Page): Promise<{ id: string; name: string; config: Reco
 
 test.describe("saved layouts", () => {
   test("a guest is never offered a Save that cannot succeed", async ({ page, baseURL }, testInfo) => {
+    const toolbarBound = createLayoutToolbarBound(testInfo);
     skipWithoutLayoutMenu(page);
     await isolateLayoutStore(page, testInfo, baseURL);
     await renderAsGuest(page, baseURL);
@@ -67,7 +81,7 @@ test.describe("saved layouts", () => {
     page.on("request", (r) => { if (r.url().includes("/api/layouts") && r.method() === "POST") saveAttempts.push(r.url()); });
 
     await gotoTerminal(page);
-    const menu = await openLayoutMenu(page);
+    const menu = await openLayoutMenu(page, createToolbarIntent(toolbarBound));
 
     await expect(menu.locator("[data-layout-save-btn]")).toBeDisabled();
     await expect(menu.locator("[data-layout-save] input")).toBeDisabled();
@@ -80,12 +94,13 @@ test.describe("saved layouts", () => {
   });
 
   test("a signed-in save round-trips, and a blank name never overwrites another layout", async ({ page, baseURL }, testInfo) => {
+    const toolbarBound = createLayoutToolbarBound(testInfo);
     skipWithoutLayoutMenu(page);
     await isolateLayoutStore(page, testInfo, baseURL);
     await gotoTerminal(page);
 
     for (const _ of [1, 2, 3]) {
-      const menu = await saveLayout(page);
+      const menu = await saveLayout(page, "", toolbarBound);
       await expect(menu.locator('[data-layout-feedback="saved"]')).toBeVisible();
     }
     expect((await inventory(page)).map((l) => l.name).sort()).toEqual(["Layout 1", "Layout 2", "Layout 3"]);
@@ -93,12 +108,12 @@ test.describe("saved layouts", () => {
     // Pin what "Layout 3" holds, delete "Layout 2", then blank-save again. Under the old
     // `layouts.length + 1` generator this regenerated "Layout 3" and overwrote it.
     const beforeConfig = JSON.stringify((await inventory(page)).find((l) => l.name === "Layout 3")!.config);
-    const menu = await openLayoutMenu(page);
+    const menu = await openLayoutMenu(page, createToolbarIntent(toolbarBound));
     await deleteLayout(menu, "Layout 2");
     await expect(menu.locator('[data-layout-row="Layout 2"]')).toHaveCount(0);
 
-    await saveLayout(page);
-    const savedAgain = await openLayoutMenu(page);
+    await saveLayout(page, "", toolbarBound);
+    const savedAgain = await openLayoutMenu(page, createToolbarIntent(toolbarBound));
     await expect(savedAgain.locator('[data-layout-feedback="saved"]')).toBeVisible();
 
     const after = await inventory(page);
@@ -124,12 +139,13 @@ test.describe("saved layouts", () => {
   });
 
   test("a save failure is visible and does not clear the typed name", async ({ page, baseURL }, testInfo) => {
+    const toolbarBound = createLayoutToolbarBound(testInfo);
     skipWithoutLayoutMenu(page);
     await isolateLayoutStore(page, testInfo, baseURL);
     await gotoTerminal(page);
 
     await injectLayoutFault(page, "save", baseURL);
-    const menu = await saveLayout(page, "Swing");
+    const menu = await saveLayout(page, "Swing", toolbarBound);
 
     await expect(menu.locator('[data-layout-feedback="error"]')).toBeVisible();
     await expect(menu.locator('[data-layout-feedback="saved"]')).toHaveCount(0);
@@ -144,14 +160,15 @@ test.describe("saved layouts", () => {
   });
 
   test("a failed delete rolls back and the layout stays visible", async ({ page, baseURL }, testInfo) => {
+    const toolbarBound = createLayoutToolbarBound(testInfo);
     skipWithoutLayoutMenu(page);
     await isolateLayoutStore(page, testInfo, baseURL);
     await gotoTerminal(page);
-    const saved = await saveLayout(page, "Keeper");
+    const saved = await saveLayout(page, "Keeper", toolbarBound);
     await expect(saved.locator('[data-layout-feedback="saved"]')).toBeVisible();
 
     await injectLayoutFault(page, "delete", baseURL);
-    const menu = await openLayoutMenu(page);
+    const menu = await openLayoutMenu(page, createToolbarIntent(toolbarBound));
     await deleteLayout(menu, "Keeper");
 
     await expect(menu.locator("[data-layout-delete-error]")).toBeVisible();
@@ -167,6 +184,7 @@ test.describe("saved layouts", () => {
     // test simply does more real work than the unset (30s) default budget reliably covers under
     // CI-shaped contention, even with the shared dev-server's workers already capped at 2.
     test.setTimeout(90_000);
+    const toolbarBound = createLayoutToolbarBound(testInfo);
     skipWithoutLayoutMenu(page);
     await isolateLayoutStore(page, testInfo, baseURL);
     await gotoTerminal(page);
@@ -174,10 +192,13 @@ test.describe("saved layouts", () => {
     // Build a workspace that is NOT the default, save it, then change it and load it back. The pure
     // capture/apply contract is unit-tested in lib/__tests__/layoutConfig.test.ts; what this proves
     // is the WIRING — that the shell captures the live workspace and re-applies all of it.
-    await chooseToolbarSplit(page, 4);
+    await chooseToolbarSplit(page, 4, createToolbarIntent(toolbarBound));
     await expect(page.locator(".pane, .chart-pane").first()).toBeVisible();
-    await saveLayout(page, "Workspace A");
-    await expect((await openLayoutMenu(page)).locator('[data-layout-feedback="saved"]')).toBeVisible();
+    await saveLayout(page, "Workspace A", toolbarBound);
+    await expect((await openLayoutMenu(
+      page,
+      createToolbarIntent(toolbarBound),
+    )).locator('[data-layout-feedback="saved"]')).toBeVisible();
 
     // W2-A: every save now stores a `workspace_layout.v1` ENVELOPE (freeze §1/§7), not a flat v2
     // config — the chart's own fields live under `widgets[0].config` (the "chart-main" primary
@@ -220,16 +241,22 @@ test.describe("saved layouts", () => {
     expect(chartA).not.toHaveProperty("favTF");
 
     // Mutate: flip Sync away from what was saved, then collapse the grid.
-    await toggleToolbarSync(page);
-    await chooseToolbarSplit(page, 1);
+    // This is one composed local-toolbar journey: each action consumes the same finite test-bound
+    // intent rather than silently minting a fresh helper deadline before reopening Workspaces.
+    const restoreToolbarIntent = createToolbarIntent(toolbarBound);
+    await toggleToolbarSync(page, restoreToolbarIntent);
+    await chooseToolbarSplit(page, 1, restoreToolbarIntent);
 
-    const menu = await openLayoutMenu(page);
+    const menu = await openLayoutMenu(page, restoreToolbarIntent);
     await menu.locator('[data-layout-row="Workspace A"]').click();
 
     // Re-capturing the restored workspace must reproduce the stored contract exactly. Any field the
     // shell fails to restore shows up here as a difference.
-    await saveLayout(page, "Workspace B");
-    await expect((await openLayoutMenu(page)).locator('[data-layout-feedback="saved"]')).toBeVisible();
+    await saveLayout(page, "Workspace B", toolbarBound);
+    await expect((await openLayoutMenu(
+      page,
+      createToolbarIntent(toolbarBound),
+    )).locator('[data-layout-feedback="saved"]')).toBeVisible();
     const configB = (await inventory(page)).find((l) => l.name === "Workspace B")!.config;
     expect(configB).toEqual(configA);
   });
@@ -238,6 +265,7 @@ test.describe("saved layouts", () => {
   // UI change is not done until zh is checked — specifically that neither language leaks into the
   // other's view. Asserting the tuples render is deterministic where a screenshot is not.
   test("new layout copy renders in zh, with no English leaking through", async ({ page, baseURL }, testInfo) => {
+    const toolbarBound = createLayoutToolbarBound(testInfo);
     skipWithoutLayoutMenu(page);
     await isolateLayoutStore(page, testInfo, baseURL);
     await useLang(page, "zh");
@@ -246,7 +274,7 @@ test.describe("saved layouts", () => {
 
     // W2-A (Layouts -> Workspaces, spec §2.1) revalued these two strings; the DOM/selectors are
     // unchanged, only the golden copy is.
-    const guestMenu = await openLayoutMenu(page);
+    const guestMenu = await openLayoutMenu(page, createToolbarIntent(toolbarBound));
     await expect(guestMenu.locator("[data-layout-gate]")).toContainText("注册免费账户即可保存工作区");
     await expect(guestMenu.locator("[data-layout-save] input")).toHaveAttribute("placeholder", "登录后可保存工作区");
     await expect(guestMenu.locator("[data-layout-gate]")).not.toContainText(/[A-Za-z]{4,}/);
@@ -255,22 +283,23 @@ test.describe("saved layouts", () => {
     await page.context().clearCookies({ name: "mm_e2e_guest" });
     await injectLayoutFault(page, "list", baseURL);
     await gotoTerminal(page);
-    const menu = await openLayoutMenu(page);
+    const menu = await openLayoutMenu(page, createToolbarIntent(toolbarBound));
     await expect(menu.locator('[data-layout-status="unavailable"]')).toContainText("暂时无法读取您的工作区");
     await expect(menu.locator("[data-layout-retry]")).toHaveText("重试");
     await expect(menu.locator('[data-layout-status="unavailable"]')).not.toContainText("unavailable");
   });
 
   test("a read outage says unavailable, not 'no saved layouts'", async ({ page, baseURL }, testInfo) => {
+    const toolbarBound = createLayoutToolbarBound(testInfo);
     skipWithoutLayoutMenu(page);
     await isolateLayoutStore(page, testInfo, baseURL);
     await gotoTerminal(page);
-    const saved = await saveLayout(page, "Swing");
+    const saved = await saveLayout(page, "Swing", toolbarBound);
     await expect(saved.locator('[data-layout-feedback="saved"]')).toBeVisible();
 
     await injectLayoutFault(page, "list", baseURL);
     await gotoTerminal(page);
-    const menu = await openLayoutMenu(page);
+    const menu = await openLayoutMenu(page, createToolbarIntent(toolbarBound));
 
     await expect(menu.locator('[data-layout-status="unavailable"]')).toBeVisible();
     await expect(menu.locator('[data-layout-status="empty"]')).toHaveCount(0);

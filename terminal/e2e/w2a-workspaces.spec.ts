@@ -4,7 +4,12 @@ import {
   forceStaleRevision, seedNameConflict, seedUnreadableWorkspace, seedFutureFloorWorkspace,
   seedUnknownWidgetTypeWorkspace, seedTolerantDefectWorkspace,
 } from "./layoutStore";
-import { openLayoutMenu } from "./terminalToolbar";
+import {
+  createToolbarIntent,
+  createToolbarTestBound,
+  openLayoutMenu,
+  type ToolbarTestBound,
+} from "./terminalToolbar";
 import { expectTapTarget } from "./tapTarget";
 
 // W2-A Terminal workspace-management UX — builder screenshot checklist + non-screenshot assertions
@@ -37,9 +42,16 @@ async function shot(page: Page, name: string) {
   await page.screenshot({ path: `${PROOF_DIR}/${name}.png` });
 }
 
+function createW2AToolbarBound(testInfo: { timeout: number }): ToolbarTestBound {
+  return createToolbarTestBound({
+    testStartedAtMs: Date.now(),
+    testTimeoutMs: testInfo.timeout,
+  });
+}
+
 /** Save through the real menu; `name` empty exercises the blank auto-name path. */
-async function saveWorkspace(page: Page, name: string) {
-  const menu = await openLayoutMenu(page);
+async function saveWorkspace(page: Page, name: string, bound: ToolbarTestBound) {
+  const menu = await openLayoutMenu(page, createToolbarIntent(bound));
   const input = menu.locator("[data-layout-save] input");
   await input.fill(name);
   await menu.locator("[data-layout-save-btn]").click();
@@ -71,11 +83,12 @@ test.describe("W2-A workspace menu — 1440×900 EN", () => {
   });
 
   test("ready / empty / row-open / renaming / unsupported-rows / name-conflict / stale", async ({ page, baseURL }, testInfo) => {
+    const toolbarBound = createW2AToolbarBound(testInfo);
     await isolateLayoutStore(page, testInfo, baseURL);
     await gotoTerminal(page);
 
     // empty (an authoritative zero-row read, not "unavailable")
-    let menu = await openLayoutMenu(page);
+    let menu = await openLayoutMenu(page, createToolbarIntent(toolbarBound));
     await expect(menu.locator('[data-layout-status="empty"]')).toBeVisible();
     await shot(page, "1440-en-empty");
     await assertNoRawCodes(page);
@@ -84,11 +97,11 @@ test.describe("W2-A workspace menu — 1440×900 EN", () => {
     // so "ready" and "unsupported-rows" both show a populated, mixed library. The floor/schema rows
     // are seeded via a raw fetch (bypassing the page's React state), so a fresh navigation is what
     // actually picks them up — the menu has no standalone "refresh" affordance of its own.
-    await saveWorkspace(page, "Alpha");
+    await saveWorkspace(page, "Alpha", toolbarBound);
     await seedFutureFloorWorkspace(page, "Newer Build");
     await seedUnreadableWorkspace(page, "Mystery");
     await gotoTerminal(page);
-    menu = await openLayoutMenu(page);
+    menu = await openLayoutMenu(page, createToolbarIntent(toolbarBound));
     await expect(menu.locator('[data-layout-row="Alpha"]')).toBeVisible();
     await expect(menu.locator('[data-layout-row="Newer Build"]')).toBeVisible();
     await expect(menu.locator('[data-layout-row="Mystery"]')).toBeVisible();
@@ -135,7 +148,7 @@ test.describe("W2-A workspace menu — 1440×900 EN", () => {
     // exactly "another device already saved over what I'm looking at" (freeze §4).
     await alphaRow.locator('[data-ws-act="open"]').click();
     await forceStaleRevision(page, "Alpha");
-    const menuAfterLoad = await openLayoutMenu(page);
+    const menuAfterLoad = await openLayoutMenu(page, createToolbarIntent(toolbarBound));
     await menuAfterLoad.locator("[data-layout-save] input").fill("Alpha");
     await menuAfterLoad.locator("[data-layout-save-btn]").click();
     await expect(menuAfterLoad.locator('[data-ws-stale="Alpha"]')).toBeVisible();
@@ -145,10 +158,11 @@ test.describe("W2-A workspace menu — 1440×900 EN", () => {
   });
 
   test("guest", async ({ page, baseURL }, testInfo) => {
+    const toolbarBound = createW2AToolbarBound(testInfo);
     await isolateLayoutStore(page, testInfo, baseURL);
     await renderAsGuest(page, baseURL);
     await gotoTerminal(page);
-    const menu = await openLayoutMenu(page);
+    const menu = await openLayoutMenu(page, createToolbarIntent(toolbarBound));
     await expect(menu.locator("[data-layout-save-btn]")).toBeDisabled();
     await expect(menu.locator("[data-layout-gate]")).toBeVisible();
     await expect(menu.locator("[data-ws-import]")).toBeDisabled();
@@ -157,6 +171,7 @@ test.describe("W2-A workspace menu — 1440×900 EN", () => {
   });
 
   test("loading", async ({ page, baseURL }, testInfo) => {
+    const toolbarBound = createW2AToolbarBound(testInfo);
     await isolateLayoutStore(page, testInfo, baseURL);
     let release: (() => void) | undefined;
     const gate = new Promise<void>((resolve) => { release = resolve; });
@@ -170,7 +185,7 @@ test.describe("W2-A workspace menu — 1440×900 EN", () => {
       }
     });
     await gotoTerminal(page);
-    const menu = await openLayoutMenu(page);
+    const menu = await openLayoutMenu(page, createToolbarIntent(toolbarBound));
     await expect(menu.locator('[data-layout-status="loading"]')).toBeVisible();
     await shot(page, "1440-en-loading");
     release?.();
@@ -178,10 +193,11 @@ test.describe("W2-A workspace menu — 1440×900 EN", () => {
   });
 
   test("unavailable — a banner above the still-populated last-good list", async ({ page, baseURL }, testInfo) => {
+    const toolbarBound = createW2AToolbarBound(testInfo);
     await isolateLayoutStore(page, testInfo, baseURL);
     await gotoTerminal(page);
-    await saveWorkspace(page, "Swing");
-    let menu = await openLayoutMenu(page);
+    await saveWorkspace(page, "Swing", toolbarBound);
+    let menu = await openLayoutMenu(page, createToolbarIntent(toolbarBound));
     await expect(menu.locator('[data-layout-row="Swing"]')).toBeVisible();
     // Load it (tracks name+revision), so the NEXT save-over is a single fenced UPDATE with no
     // internal SELECT of its own (lib/layouts.ts's numbered-revision CAS path) — unlike the
@@ -195,7 +211,7 @@ test.describe("W2-A workspace menu — 1440×900 EN", () => {
     // so "Swing" stays on screen UNDER the new banner — "unavailable != empty" — without ever
     // navigating away from this page.
     await injectLayoutFault(page, "list", baseURL);
-    menu = await openLayoutMenu(page);
+    menu = await openLayoutMenu(page, createToolbarIntent(toolbarBound));
     await menu.locator("[data-layout-save] input").fill("Swing");
     await menu.locator("[data-layout-save-btn]").click();
     await expect(menu.locator('[data-layout-status="unavailable"]')).toBeVisible();
@@ -207,10 +223,11 @@ test.describe("W2-A workspace menu — 1440×900 EN", () => {
   });
 
   test("unsupported-widget tile beside a working chart", async ({ page, baseURL }, testInfo) => {
+    const toolbarBound = createW2AToolbarBound(testInfo);
     await isolateLayoutStore(page, testInfo, baseURL);
     await gotoTerminal(page);
-    await saveWorkspace(page, "WithExtra");
-    const menu = await openLayoutMenu(page);
+    await saveWorkspace(page, "WithExtra", toolbarBound);
+    const menu = await openLayoutMenu(page, createToolbarIntent(toolbarBound));
     await menu.locator('[data-layout-row="WithExtra"]').click();
     // Splice an extra rail-lane chart widget into the saved row directly (the generic-widget-graph
     // fallback, spec §6/freeze §9 — reachable via import of a hand-authored envelope; simulated here
@@ -233,7 +250,7 @@ test.describe("W2-A workspace menu — 1440×900 EN", () => {
     // Fresh navigation: the mutated envelope lives in the STORE, not in this page's already-loaded
     // client state, so a plain re-load-and-click is what actually picks it up.
     await gotoTerminal(page);
-    const reopened = await openLayoutMenu(page);
+    const reopened = await openLayoutMenu(page, createToolbarIntent(toolbarBound));
     await reopened.locator('[data-layout-row="WithExtra"]').click();
     await expect(page.locator("[data-ws-missing-widget]")).toBeVisible();
     await expect(page.locator(".chart-wrap, .chart-host, canvas").first()).toBeVisible(); // the chart still opened
@@ -241,6 +258,7 @@ test.describe("W2-A workspace menu — 1440×900 EN", () => {
   });
 
   test("reviewer ruling M5 — a genuinely unknown widget type opens the workspace, never bricks the row", async ({ page, baseURL }, testInfo) => {
+    const toolbarBound = createW2AToolbarBound(testInfo);
     // Before M5, `migrateLegacy`'s already-canonical (row 3) branch treated ANY validation error —
     // including `unknown_widget_type` — as a hard refusal, so a row carrying a widget type this
     // build does not recognize (e.g. a NEWER client's "screener" panel) never opened at all: not
@@ -248,7 +266,7 @@ test.describe("W2-A workspace menu — 1440×900 EN", () => {
     await isolateLayoutStore(page, testInfo, baseURL);
     await gotoTerminal(page);
     await seedUnknownWidgetTypeWorkspace(page, "UnknownWidget");
-    const menu = await openLayoutMenu(page);
+    const menu = await openLayoutMenu(page, createToolbarIntent(toolbarBound));
     // The row itself must be "ok" — never the unsupported_schema/blocked treatment M5 forbids for a
     // per-widget-type defect.
     await expect(menu.locator('[data-layout-row="UnknownWidget"]')).toHaveAttribute("data-ws-state", "ok");
@@ -262,7 +280,7 @@ test.describe("W2-A workspace menu — 1440×900 EN", () => {
 
     // Reviewer ruling M5b: the tile alone is a per-widget RENDER affordance — it does not warn that
     // a save would REMOVE that panel. Reopening the menu must show a SEPARATE, honest disclosure.
-    const menuReopened = await openLayoutMenu(page);
+    const menuReopened = await openLayoutMenu(page, createToolbarIntent(toolbarBound));
     const panelNote = menuReopened.locator("[data-ws-unsupported-panels]");
     await expect(panelNote).toBeVisible();
     await expect(panelNote).toHaveText("This workspace holds a panel this version can't open. Saving will remove that panel.");
@@ -277,11 +295,12 @@ test.describe("W2-A workspace menu — 1440×900 EN", () => {
     await menuReopened.locator("[data-layout-save-btn]").click();
     await expect(menuReopened.locator('[data-layout-feedback="saved"]')).toBeVisible();
     await expect(page.locator("[data-ws-missing-widget]")).toHaveCount(0); // the tile is gone — the panel was actually dropped
-    const menuAfterSave = await openLayoutMenu(page);
+    const menuAfterSave = await openLayoutMenu(page, createToolbarIntent(toolbarBound));
     await expect(menuAfterSave.locator("[data-ws-unsupported-panels]")).toHaveCount(0); // and the warning correctly stops firing
   });
 
   test("reviewer ruling B1/B2 — a tolerant-defect row opens 'ok' and surfaces the unreadable-settings disclosure", async ({ page, baseURL }, testInfo) => {
+    const toolbarBound = createW2AToolbarBound(testInfo);
     // Before B1, ANY per-field migration defect (a legacy row with one invalid field among
     // otherwise-valid ones) made `workspaceRowState` report `unsupported_schema` — the tolerant
     // read path existed in `migrateLegacy` but nothing in the product actually called it in `false`
@@ -292,10 +311,10 @@ test.describe("W2-A workspace menu — 1440×900 EN", () => {
     await isolateLayoutStore(page, testInfo, baseURL);
     await gotoTerminal(page);
     await seedTolerantDefectWorkspace(page, "TolerantDefect");
-    await saveWorkspace(page, "Other"); // a second, clean workspace to load afterward
+    await saveWorkspace(page, "Other", toolbarBound); // a second, clean workspace to load afterward
     await gotoTerminal(page);
 
-    const menu = await openLayoutMenu(page);
+    const menu = await openLayoutMenu(page, createToolbarIntent(toolbarBound));
     // The row itself opens "ok" — a per-field defect is no longer treated as unsupported_schema.
     await expect(menu.locator('[data-layout-row="TolerantDefect"]')).toHaveAttribute("data-ws-state", "ok");
     await menu.locator('[data-layout-row="TolerantDefect"]').click();
@@ -304,7 +323,7 @@ test.describe("W2-A workspace menu — 1440×900 EN", () => {
     // Loading a row closes the popover (CSS `.show` toggle — `LayoutMenu` itself stays mounted, so
     // the note is a real persisted state, not a transient toast tied to this one open/close cycle);
     // reopen to observe it, exactly like every other "does this state survive?" case in this file.
-    const menuReopened = await openLayoutMenu(page);
+    const menuReopened = await openLayoutMenu(page, createToolbarIntent(toolbarBound));
     const note = menuReopened.locator("[data-ws-unclaimed]");
     await expect(note).toBeVisible();
     await expect(note).toHaveText("Some settings in this workspace couldn't be read. They'll be left out if you save it.");
@@ -315,7 +334,7 @@ test.describe("W2-A workspace menu — 1440×900 EN", () => {
     await shot(page, "1440-en-unclaimed-note");
 
     // Lifecycle: loading a DIFFERENT (clean) workspace clears the note.
-    const menuAfterLoad = await openLayoutMenu(page);
+    const menuAfterLoad = await openLayoutMenu(page, createToolbarIntent(toolbarBound));
     await menuAfterLoad.locator('[data-layout-row="Other"]').click();
     await expect(page.locator("[data-ws-unclaimed]")).toHaveCount(0);
   });
@@ -327,11 +346,12 @@ test.describe("W2-A workspace menu — 1440×900 ZH", () => {
   });
 
   test("ready / unavailable / stale, no English leaking through", async ({ page, baseURL }, testInfo) => {
+    const toolbarBound = createW2AToolbarBound(testInfo);
     await isolateLayoutStore(page, testInfo, baseURL);
     await useLang(page, "zh");
     await gotoTerminal(page);
-    await saveWorkspace(page, "阿尔法");
-    let menu = await openLayoutMenu(page);
+    await saveWorkspace(page, "阿尔法", toolbarBound);
+    let menu = await openLayoutMenu(page, createToolbarIntent(toolbarBound));
     await expect(menu.locator('[data-layout-row="阿尔法"]')).toBeVisible();
     await expect(menu).not.toContainText(/Workspaces|Saved workspaces/);
     await shot(page, "1440-zh-ready");
@@ -340,7 +360,7 @@ test.describe("W2-A workspace menu — 1440×900 ZH", () => {
     // "list" fault targets SELECTs only — the fenced resave still writes; its own trailing
     // refreshLayouts() is what fails, so the last-good row stays visible under the banner.
     await injectLayoutFault(page, "list", baseURL);
-    menu = await openLayoutMenu(page);
+    menu = await openLayoutMenu(page, createToolbarIntent(toolbarBound));
     await menu.locator("[data-layout-save] input").fill("阿尔法");
     await menu.locator("[data-layout-save-btn]").click();
     await expect(menu.locator('[data-layout-status="unavailable"]')).toContainText("暂时无法读取您的工作区");
@@ -356,10 +376,11 @@ test.describe("W2-A workspace menu — 1440×900 ZH", () => {
   });
 
   test("tile in zh", async ({ page, baseURL }, testInfo) => {
+    const toolbarBound = createW2AToolbarBound(testInfo);
     await isolateLayoutStore(page, testInfo, baseURL);
     await useLang(page, "zh");
     await gotoTerminal(page);
-    await saveWorkspace(page, "工作区A");
+    await saveWorkspace(page, "工作区A", toolbarBound);
     await page.evaluate(async () => {
       const r = await fetch("/api/layouts", { headers: { Accept: "application/json" } });
       const { layouts } = await r.json();
@@ -372,7 +393,7 @@ test.describe("W2-A workspace menu — 1440×900 ZH", () => {
       });
     });
     await gotoTerminal(page);
-    const menu = await openLayoutMenu(page);
+    const menu = await openLayoutMenu(page, createToolbarIntent(toolbarBound));
     await menu.locator('[data-layout-row="工作区A"]').click();
     await expect(page.locator("[data-ws-missing-widget]")).toContainText("此面板在当前版本中不可用");
     await shot(page, "1440-zh-tile");
@@ -385,10 +406,11 @@ test.describe("W2-A workspace menu — 820×1180 (drill-down mount)", () => {
   });
 
   test("ready / row-open", async ({ page, baseURL }, testInfo) => {
+    const toolbarBound = createW2AToolbarBound(testInfo);
     await isolateLayoutStore(page, testInfo, baseURL);
     await gotoTerminal(page);
-    await saveWorkspace(page, "Tablet Setup");
-    const menu = await openLayoutMenu(page);
+    await saveWorkspace(page, "Tablet Setup", toolbarBound);
+    const menu = await openLayoutMenu(page, createToolbarIntent(toolbarBound));
     await expect(page.locator(".toolbar-overflow-back")).toBeVisible();
     await expect(menu.locator('[data-layout-row="Tablet Setup"]')).toBeVisible();
     await shot(page, "820-en-ready");
@@ -399,11 +421,12 @@ test.describe("W2-A workspace menu — 820×1180 (drill-down mount)", () => {
   });
 
   test("stale in zh", async ({ page, baseURL }, testInfo) => {
+    const toolbarBound = createW2AToolbarBound(testInfo);
     await isolateLayoutStore(page, testInfo, baseURL);
     await useLang(page, "zh");
     await gotoTerminal(page);
-    await saveWorkspace(page, "平板设置");
-    const menu = await openLayoutMenu(page);
+    await saveWorkspace(page, "平板设置", toolbarBound);
+    const menu = await openLayoutMenu(page, createToolbarIntent(toolbarBound));
     await forceStaleRevision(page, "平板设置");
     await menu.locator("[data-layout-save] input").fill("平板设置");
     await menu.locator("[data-layout-save-btn]").click();
@@ -425,6 +448,7 @@ test.describe("W2-A workspace menu — 390×844 (phone: no entry point today)", 
   }
 
   test("390-en-tile — the tile does not need the menu, only a loaded workspace", async ({ page, baseURL }, testInfo) => {
+    const toolbarBound = createW2AToolbarBound(testInfo);
     await isolateLayoutStore(page, testInfo, baseURL);
     // Seed + load via the DESKTOP-shaped menu (the phone chrome has no menu entry point — the
     // documented gap above), THEN resize down. Resizing does not navigate, so the already-loaded
@@ -432,7 +456,7 @@ test.describe("W2-A workspace menu — 390×844 (phone: no entry point today)", 
     // exactly the point: the tile is a RENDER concern, independent of how the workspace got loaded.
     await page.setViewportSize({ width: 1440, height: 900 });
     await gotoTerminal(page);
-    await saveWorkspace(page, "PhoneTile");
+    await saveWorkspace(page, "PhoneTile", toolbarBound);
     await page.evaluate(async () => {
       const r = await fetch("/api/layouts", { headers: { Accept: "application/json" } });
       const { layouts } = await r.json();
@@ -445,7 +469,7 @@ test.describe("W2-A workspace menu — 390×844 (phone: no entry point today)", 
       });
     });
     await gotoTerminal(page); // fresh navigation so the mutated stored envelope is what gets read
-    const menu = await openLayoutMenu(page);
+    const menu = await openLayoutMenu(page, createToolbarIntent(toolbarBound));
     await menu.locator('[data-layout-row="PhoneTile"]').click();
     await expect(page.locator("[data-ws-missing-widget]")).toBeVisible();
     await page.setViewportSize({ width: 390, height: 844 });
@@ -459,12 +483,13 @@ test.describe("W2-A workspace menu — non-screenshot assertions (spec §7)", ()
   // Workspaces menu, which has no phone (390px) entry point in the shipped product — so this runs
   // at 820 only. Re-run at 390 the moment a phone entry point ships.
   test("tap targets are >=44x44 at 820 (390 unreachable — see the phone-gap note above)", async ({ page, baseURL }, testInfo) => {
+    const toolbarBound = createW2AToolbarBound(testInfo);
     for (const width of [820] as const) {
       await page.setViewportSize({ width, height: 1180 });
       await isolateLayoutStore(page, testInfo, baseURL);
       await gotoTerminal(page);
-      await saveWorkspace(page, "TapTarget");
-      const menu = await openLayoutMenu(page);
+      await saveWorkspace(page, "TapTarget", toolbarBound);
+      const menu = await openLayoutMenu(page, createToolbarIntent(toolbarBound));
       const row = await openRow(menu, "TapTarget");
       await expectTapTarget(row.locator('[data-ws-more="TapTarget"]'), { width: 44, height: 44 });
       for (const act of ["open", "rename", "duplicate", "export", "delete"]) {
@@ -487,12 +512,13 @@ test.describe("W2-A workspace menu — non-screenshot assertions (spec §7)", ()
   });
 
   test("zero horizontal document overflow at all three widths with the menu open + a row unfolded", async ({ page, baseURL }, testInfo) => {
+    const toolbarBound = createW2AToolbarBound(testInfo);
     await isolateLayoutStore(page, testInfo, baseURL);
     await gotoTerminal(page);
-    await saveWorkspace(page, "OverflowCheck");
+    await saveWorkspace(page, "OverflowCheck", toolbarBound);
     for (const width of [1440, 820] as const) {
       await page.setViewportSize({ width, height: width === 1440 ? 900 : 1180 });
-      const menu = await openLayoutMenu(page);
+      const menu = await openLayoutMenu(page, createToolbarIntent(toolbarBound));
       await openRow(menu, "OverflowCheck");
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
       expect(overflow, `horizontal overflow at ${width}px`).toBeLessThanOrEqual(0);
@@ -506,12 +532,13 @@ test.describe("W2-A workspace menu — non-screenshot assertions (spec §7)", ()
   });
 
   test("no raw failure code ever appears in the rendered menu, across every reachable failure state", async ({ page, baseURL }, testInfo) => {
+    const toolbarBound = createW2AToolbarBound(testInfo);
     await page.setViewportSize({ width: 1440, height: 900 });
     await isolateLayoutStore(page, testInfo, baseURL);
     await gotoTerminal(page);
-    await saveWorkspace(page, "Codes1");
+    await saveWorkspace(page, "Codes1", toolbarBound);
     await seedNameConflict(page, "Codes2");
-    const menu = await openLayoutMenu(page);
+    const menu = await openLayoutMenu(page, createToolbarIntent(toolbarBound));
 
     // conflict
     const row = await openRow(menu, "Codes1");
@@ -536,7 +563,7 @@ test.describe("W2-A workspace menu — non-screenshot assertions (spec §7)", ()
     // explicit "Open" action rather than the outer row container, which would land on whatever
     // sub-row happens to sit at the box's center.
     await row.locator('[data-ws-act="open"]').click();
-    const menuReopened = await openLayoutMenu(page);
+    const menuReopened = await openLayoutMenu(page, createToolbarIntent(toolbarBound));
     await injectLayoutFault(page, "list", baseURL);
     await menuReopened.locator("[data-layout-save] input").fill("Codes1");
     await menuReopened.locator("[data-layout-save-btn]").click();
@@ -549,7 +576,7 @@ test.describe("W2-A workspace menu — non-screenshot assertions (spec §7)", ()
     await seedUnreadableWorkspace(page, "Codes4");
     await page.reload();
     await gotoTerminal(page);
-    const menu2 = await openLayoutMenu(page);
+    const menu2 = await openLayoutMenu(page, createToolbarIntent(toolbarBound));
     await expect(menu2.locator('[data-ws-state="unsupported_floor"]')).toBeVisible();
     await expect(menu2.locator('[data-ws-state="unsupported_schema"]')).toBeVisible();
     await assertNoRawCodes(page);
@@ -564,18 +591,19 @@ test.describe("W2-A workspace menu — non-screenshot assertions (spec §7)", ()
   });
 
   test("EN/ZH leakage both ways", async ({ page, baseURL }, testInfo) => {
+    const toolbarBound = createW2AToolbarBound(testInfo);
     await page.setViewportSize({ width: 1440, height: 900 });
     await isolateLayoutStore(page, testInfo, baseURL);
     await gotoTerminal(page);
-    await saveWorkspace(page, "LeakCheck");
-    const enMenu = await openLayoutMenu(page);
+    await saveWorkspace(page, "LeakCheck", toolbarBound);
+    const enMenu = await openLayoutMenu(page, createToolbarIntent(toolbarBound));
     const enText = await enMenu.innerText();
     expect(enText).not.toMatch(/[一-鿿]/); // no CJK in the EN render
 
     await useLang(page, "zh");
     await page.reload();
     await gotoTerminal(page);
-    const zhMenu = await openLayoutMenu(page);
+    const zhMenu = await openLayoutMenu(page, createToolbarIntent(toolbarBound));
     const zhText = await zhMenu.innerText();
     // New W2-A keys should not appear as untranslated ASCII-only English inside the zh render.
     for (const phrase of ["Include the assistant dock", "Duplicate", "Export to a file", "Import from a file"]) {
@@ -584,11 +612,12 @@ test.describe("W2-A workspace menu — non-screenshot assertions (spec §7)", ()
   });
 
   test("keyboard: Tab order, two-stage Escape, rename Enter/Escape, focus returns to the more toggle", async ({ page, baseURL }, testInfo) => {
+    const toolbarBound = createW2AToolbarBound(testInfo);
     await page.setViewportSize({ width: 1440, height: 900 });
     await isolateLayoutStore(page, testInfo, baseURL);
     await gotoTerminal(page);
-    await saveWorkspace(page, "KeyboardRow");
-    const menu = await openLayoutMenu(page);
+    await saveWorkspace(page, "KeyboardRow", toolbarBound);
+    const menu = await openLayoutMenu(page, createToolbarIntent(toolbarBound));
 
     const row = await openRow(menu, "KeyboardRow");
     await expect(row.locator('[data-ws-act="open"]')).toBeFocused();
@@ -601,7 +630,7 @@ test.describe("W2-A workspace menu — non-screenshot assertions (spec §7)", ()
     await expect(page.locator(".pop.show, .toolbar-overflow-pop.show")).toHaveCount(0);
 
     // rename: Escape cancels without committing
-    const menu2 = await openLayoutMenu(page);
+    const menu2 = await openLayoutMenu(page, createToolbarIntent(toolbarBound));
     const row2 = await openRow(menu2, "KeyboardRow");
     await row2.locator('[data-ws-act="rename"]').click();
     const input = menu2.locator("[data-ws-rename-input]");
@@ -621,11 +650,12 @@ test.describe("W2-A workspace menu — non-screenshot assertions (spec §7)", ()
   });
 
   test("an unreadable row is present, disabled, and no write fires on click", async ({ page, baseURL }, testInfo) => {
+    const toolbarBound = createW2AToolbarBound(testInfo);
     await page.setViewportSize({ width: 1440, height: 900 });
     await isolateLayoutStore(page, testInfo, baseURL);
     await gotoTerminal(page);
     await seedUnreadableWorkspace(page, "Broken");
-    const menu = await openLayoutMenu(page);
+    const menu = await openLayoutMenu(page, createToolbarIntent(toolbarBound));
     const row = menu.locator('[data-layout-row="Broken"]');
     await expect(row).toBeVisible();
     await expect(row).toHaveAttribute("data-ws-state", "unsupported_schema");
