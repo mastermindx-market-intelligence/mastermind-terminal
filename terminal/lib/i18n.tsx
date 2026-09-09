@@ -1914,11 +1914,13 @@ export const LEX: Record<string, [string, string]> = {
   acsAlertTzNote: ["Used for quiet hours.", "用于免打扰时段。"],
   acsAlertTzUnset: ["No time zone chosen yet.", "尚未选择时区。"],
   acsAlertQh: ["Quiet hours", "免打扰时段"],
-  acsAlertQhHint: ["Alerts wait and are sent when the window ends.", "这段时间不会发送任何邮件。提醒会等待，在时段结束后发送"],
+  acsAlertQhHint: ["Alerts wait and are sent when the window ends.", "提醒会等待，在时段结束后发送。"],
   acsAlertQhStart: ["Start", "开始"],
   acsAlertQhEnd: ["End", "结束"],
+  acsAlertQh24h: ["Times are on a 24-hour clock, like 22:00 and 07:00.", "时间为 24 小时制，例如 22:00 与 07:00。"],
   acsAlertQhClear: ["Turn quiet hours off", "关闭免打扰时段"],
   acsAlertUnavailable: ["Alert delivery settings are not available yet.", "提醒送达设置尚未上线。"],
+  acsAlertLoadFail: ["Alert delivery settings could not load right now. Try again in a moment.", "暂时无法加载提醒送达设置，请稍后再试。"],
   acsAlertSaveFail: ["Preferences could not be saved. Try again.", "偏好设置未能保存，请重试。"],
   acsTerminal: ["Terminal", "终端"],                                                                        // NEW
   acsTerminalSub: ["How the Terminal behaves — search markets and chart defaults.", "终端的行为——搜索市场与图表默认设置。"], // NEW

@@ -376,3 +376,224 @@ describe("category closed-set: only the two known categories render", () => {
     expect(el.textContent).toContain(CAT_THES_EN);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Round 2 — findings from the adversarial review at 6532ef6f.
+// ---------------------------------------------------------------------------
+
+describe("time zone options read as a place plus its UTC offset, in both languages", () => {
+  const READY = {
+    ok: true,
+    prefs: { alert_email_optin: true, tz: "Asia/Shanghai" },
+    unset: ["quiet_hours"],
+    categories_available: ["holdings_material_change", "thesis_window"],
+  };
+
+  it("EN renders the city name and the offset, and keeps the IANA id as the value", async () => {
+    getImpl = async () => jsonRes(200, READY);
+    const el = await mount(accountProps("en"));
+    const opt = el.querySelector<HTMLOptionElement>('option[value="Asia/Shanghai"]')!;
+    expect(opt).not.toBeNull();
+    expect(opt.textContent).toBe("Shanghai (UTC+8)");
+    const utc = el.querySelector<HTMLOptionElement>('option[value="UTC"]')!;
+    expect(utc.textContent).toBe("Coordinated Universal Time (UTC+0)");
+  });
+
+  it("ZH renders the Chinese place name; no option is a bare IANA id for a known zone", async () => {
+    getImpl = async () => jsonRes(200, READY);
+    const el = await mount(accountProps("zh"));
+    const opt = el.querySelector<HTMLOptionElement>('option[value="Asia/Shanghai"]')!;
+    expect(opt.textContent).toBe("上海（UTC+8）");
+    const ny = el.querySelector<HTMLOptionElement>('option[value="America/New_York"]')!;
+    expect(ny.textContent).toContain("纽约（UTC");
+    expect(ny.textContent).not.toContain("America/New_York");
+  });
+
+  it("a zone with no curated name still gets an offset rather than a bare id", async () => {
+    getImpl = async () => jsonRes(200, READY);
+    const el = await mount(accountProps("zh"));
+    const odd = el.querySelector<HTMLOptionElement>('option[value="America/Port_of_Spain"]');
+    if (odd) {
+      expect(odd.textContent).toMatch(/^America\/Port_of_Spain（UTC[+−]/);
+    }
+  });
+});
+
+describe("quiet-hours time inputs follow the app language and say the clock is 24-hour", () => {
+  const READY = {
+    ok: true,
+    prefs: { alert_email_optin: true, tz: "Asia/Shanghai", quiet_hours: { start: "22:00", end: "07:00" } },
+    unset: [],
+    categories_available: ["holdings_material_change", "thesis_window"],
+  };
+
+  it("ZH binds lang on both inputs and shows the 24-hour hint", async () => {
+    getImpl = async () => jsonRes(200, READY);
+    const el = await mount(accountProps("zh"));
+    const start = el.querySelector<HTMLInputElement>('input[data-alert-field="qh-start"]')!;
+    const end = el.querySelector<HTMLInputElement>('input[data-alert-field="qh-end"]')!;
+    expect(start.getAttribute("lang")).toBe("zh-CN");
+    expect(end.getAttribute("lang")).toBe("zh-CN");
+    expect(el.textContent).toContain(LEX.acsAlertQh24h[1]);
+  });
+
+  it("EN binds lang on both inputs and shows the 24-hour hint", async () => {
+    getImpl = async () => jsonRes(200, READY);
+    const el = await mount(accountProps("en"));
+    const start = el.querySelector<HTMLInputElement>('input[data-alert-field="qh-start"]')!;
+    expect(start.getAttribute("lang")).toBe("en");
+    expect(el.textContent).toContain(LEX.acsAlertQh24h[0]);
+  });
+});
+
+describe("a failed save rolls back only the field it was writing", () => {
+  it("a 400 on the opt-in save does not undo a category tick the server already accepted", async () => {
+    getImpl = async () => jsonRes(200, {
+      ok: true,
+      prefs: { alert_email_optin: false, alert_categories: [], tz: "UTC" },
+      unset: ["quiet_hours"],
+      categories_available: ["holdings_material_change", "thesis_window"],
+    });
+    let releaseOptin: (() => void) | null = null;
+    const optinGate = new Promise<void>((resolve) => { releaseOptin = resolve; });
+    postImpl = async (_url, init) => {
+      const sent = JSON.parse((init?.body as string) || "{}");
+      if ("alert_email_optin" in sent) {
+        await optinGate;
+        return jsonRes(400, { detail: { field: "alert_email_optin", en: "That setting is on or off — nothing else.", zh: "该设置只有开或关两种状态。" } });
+      }
+      return jsonRes(200, { ok: true, prefs: { alert_categories: ["thesis_window"] }, metadata: true, email_prefs: false });
+    };
+    const el = await mount(accountProps("en"));
+    const onBtn = el.querySelector<HTMLButtonElement>('button[data-alert-field="optin-on"]')!;
+    const thes = el.querySelector<HTMLButtonElement>('button[data-alert-cat="thesis_window"]')!;
+    await act(async () => { onBtn.click(); });
+    await act(async () => { thes.click(); });
+    await flush();
+    expect(thes.getAttribute("aria-pressed")).toBe("true");
+    await act(async () => { releaseOptin!(); });
+    await flush();
+    await flush();
+    // The opt-in reverts (its own save failed) but the accepted category stays.
+    expect(onBtn.getAttribute("aria-pressed")).toBe("false");
+    expect(thes.getAttribute("aria-pressed")).toBe("true");
+  });
+});
+
+describe("quiet hours survive a failed save: the next partial edit keeps the other half", () => {
+  it("a failed 'turn quiet hours off' rolls back, and editing Start alone still posts both times", async () => {
+    getImpl = async () => jsonRes(200, {
+      ok: true,
+      prefs: { alert_email_optin: true, tz: "UTC", quiet_hours: { start: "22:00", end: "07:00" } },
+      unset: [],
+      categories_available: ["holdings_material_change", "thesis_window"],
+    });
+    postImpl = async () => jsonRes(502, { detail: "could not save preferences, please try again" });
+    const el = await mount(accountProps("en"));
+    const start = el.querySelector<HTMLInputElement>('input[data-alert-field="qh-start"]')!;
+    const end = el.querySelector<HTMLInputElement>('input[data-alert-field="qh-end"]')!;
+    expect(start.value).toBe("22:00");
+    const clear = Array.from(el.querySelectorAll("button")).find((b) => b.textContent === LEX.acsAlertQhClear[0])!;
+    await act(async () => { clear.click(); });
+    await flush();
+    expect(start.value).toBe("22:00");
+    expect(end.value).toBe("07:00");
+
+    postImpl = async () => jsonRes(200, {
+      ok: true,
+      prefs: { quiet_hours: { start: "23:00", end: "07:00" } },
+      metadata: true,
+      email_prefs: false,
+    });
+    const before = fetchCalls.filter((c) => c.method === "POST").length;
+    vi.useFakeTimers();
+    const setInput = (node: HTMLInputElement, value: string) => {
+      const desc = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value");
+      desc?.set?.call(node, value);
+      node.dispatchEvent(new Event("input", { bubbles: true }));
+      node.dispatchEvent(new Event("change", { bubbles: true }));
+    };
+    await act(async () => { setInput(start, "23:00"); });
+    expect(end.value).toBe("07:00");
+    await act(async () => { vi.advanceTimersByTime(500); });
+    await flush();
+    const posts = fetchCalls.filter((c) => c.method === "POST");
+    expect(posts).toHaveLength(before + 1);
+    expect(JSON.parse(posts[posts.length - 1].body || "{}")).toEqual({
+      quiet_hours: { start: "23:00", end: "07:00" },
+    });
+  });
+});
+
+describe("a GET that fails for a transient reason says so, not 'not available yet'", () => {
+  it("502 EN reads as a load that can be retried", async () => {
+    getImpl = async () => jsonRes(502, { detail: "auth check failed, please try again" });
+    const el = await mount(accountProps("en"));
+    expect(el.textContent).toContain(LEX.acsAlertLoadFail[0]);
+    expect(el.textContent).not.toContain(UNAVAILABLE_EN);
+    expect(el.querySelector("select")).toBeNull();
+  });
+
+  it("502 ZH reads as a load that can be retried", async () => {
+    getImpl = async () => jsonRes(502, { detail: "auth check failed, please try again" });
+    const el = await mount(accountProps("zh"));
+    expect(el.textContent).toContain(LEX.acsAlertLoadFail[1]);
+    expect(el.textContent).not.toContain(UNAVAILABLE_ZH);
+  });
+
+  it("404 still reads as the calm not-available-yet state", async () => {
+    getImpl = async () => jsonRes(404, { detail: "Not Found" });
+    const el = await mount(accountProps("en"));
+    expect(el.textContent).toContain(UNAVAILABLE_EN);
+    expect(el.textContent).not.toContain(LEX.acsAlertLoadFail[0]);
+  });
+});
+
+describe("the Saving/Saved note is per row", () => {
+  it("saving the time zone notes it on the time-zone row only", async () => {
+    getImpl = async () => jsonRes(200, {
+      ok: true,
+      prefs: { alert_email_optin: true, tz: "UTC" },
+      unset: ["quiet_hours"],
+      categories_available: ["holdings_material_change", "thesis_window"],
+    });
+    postImpl = async () => jsonRes(200, { ok: true, prefs: { tz: "Asia/Shanghai" }, metadata: true, email_prefs: false });
+    const el = await mount(accountProps("en"));
+    const tz = el.querySelector<HTMLSelectElement>('select[data-alert-field="tz"]')!;
+    await act(async () => {
+      tz.value = "Asia/Shanghai";
+      tz.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+    await flush();
+    const tzRow = tz.closest(".acs-row")!;
+    const optinRow = el.querySelector('button[data-alert-field="optin-on"]')!.closest(".acs-row")!;
+    expect(tzRow.textContent).toContain(LEX.acsPrefSaved[0]);
+    expect(optinRow.textContent).not.toContain(LEX.acsPrefSaved[0]);
+  });
+});
+
+describe("a 400 naming a field this section does not render still explains itself", () => {
+  it("shows the generic save-failed sentence instead of reverting in silence", async () => {
+    getImpl = async () => jsonRes(200, {
+      ok: true,
+      prefs: { alert_email_optin: false, tz: "UTC" },
+      unset: ["quiet_hours"],
+      categories_available: ["holdings_material_change", "thesis_window"],
+    });
+    postImpl = async () => jsonRes(400, { detail: { field: "brain_depth", en: "Pick a length from the list.", zh: "请从列表中选择长度。" } });
+    const el = await mount(accountProps("en"));
+    const onBtn = el.querySelector<HTMLButtonElement>('button[data-alert-field="optin-on"]')!;
+    await act(async () => { onBtn.click(); });
+    await flush();
+    expect(onBtn.getAttribute("aria-pressed")).toBe("false");
+    expect(el.textContent).toContain(SAVE_FAIL_EN);
+    expect(el.textContent).not.toContain("Pick a length from the list.");
+  });
+});
+
+describe("the quiet-hours hint says the same thing in both languages", () => {
+  it("the Chinese hint mirrors the English one and ends in a full stop", () => {
+    expect(LEX.acsAlertQhHint[1].endsWith("。")).toBe(true);
+    expect(LEX.acsAlertQhHint[1]).not.toContain("这段时间不会发送任何邮件");
+  });
+});

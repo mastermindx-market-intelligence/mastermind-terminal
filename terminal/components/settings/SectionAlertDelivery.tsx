@@ -1,6 +1,7 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { identityOwnerKey, isAccountOwner } from "@/lib/accountIdentity";
+import { timeZoneLabel } from "@/lib/plainLabels";
 import { DeliveryNote, Group, IconCheck, Msg, Row, SectionHead } from "./icons";
 import type { SectionProps } from "./types";
 
@@ -14,6 +15,15 @@ const CAT_KEY: Record<KnownCat, string> = {
   holdings_material_change: "acsAlertCatHold",
   thesis_window: "acsAlertCatThes",
 };
+
+// The four keys this section writes. A save is scoped to the keys in its own
+// request: it reports on those rows and, if it fails, rolls back only those.
+const FIELDS = ["alert_email_optin", "alert_categories", "tz", "quiet_hours"] as const;
+type FieldKey = (typeof FIELDS)[number];
+
+function isFieldKey(v: string): v is FieldKey {
+  return (FIELDS as readonly string[]).includes(v);
+}
 
 type QuietHours = { start: string; end: string };
 type AlertState = {
@@ -30,9 +40,21 @@ const EMPTY: AlertState = {
   quiet_hours: null,
 };
 
-type FieldErr = { field: string; en: string; zh: string };
+type FieldErr = { field: FieldKey; en: string; zh: string };
 type Phase = "idle" | "syncing" | "saved";
-type Gate = "loading" | "ready" | "unavailable" | "signedOut";
+type Gate = "loading" | "ready" | "unavailable" | "loadFail" | "signedOut";
+
+// Per-row save state. `show` on DeliveryNote is per-row by its own documented
+// contract (icons.tsx): a control the user has not touched says nothing.
+type RowState = { phase: Phase; touched: boolean; failed: boolean };
+type Rows = Record<FieldKey, RowState>;
+const IDLE_ROW: RowState = { phase: "idle", touched: false, failed: false };
+const IDLE_ROWS: Rows = {
+  alert_email_optin: IDLE_ROW,
+  alert_categories: IDLE_ROW,
+  tz: IDLE_ROW,
+  quiet_hours: IDLE_ROW,
+};
 
 function ianaZones(): string[] {
   const intl = Intl as typeof Intl & { supportedValuesOf?: (key: string) => string[] };
@@ -60,6 +82,18 @@ function asQuiet(raw: unknown): QuietHours | null {
   const end = (raw as { end?: unknown }).end;
   if (typeof start !== "string" || typeof end !== "string") return null;
   return { start, end };
+}
+
+/** The last-known-good value of exactly the keys a save is about to write. */
+function snapshotOf(s: AlertState, keys: readonly FieldKey[]): Partial<AlertState> {
+  const out: Partial<AlertState> = {};
+  for (const k of keys) {
+    if (k === "alert_email_optin") out.alert_email_optin = s.alert_email_optin;
+    else if (k === "alert_categories") out.alert_categories = s.alert_categories;
+    else if (k === "tz") out.tz = s.tz;
+    else out.quiet_hours = s.quiet_hours;
+  }
+  return out;
 }
 
 function stateFromGet(body: {
@@ -98,17 +132,20 @@ function Chip({
 export default function SectionAlertDelivery({ t, lang, identity, onClose }: SectionProps) {
   const owner = identityOwnerKey(identity);
   const guest = !isAccountOwner(owner);
+  const htmlLang = lang === "zh" ? "zh-CN" : "en";
 
   const [gate, setGate] = useState<Gate>(guest ? "signedOut" : "loading");
   const [state, setState] = useState<AlertState>(EMPTY);
-  const [phase, setPhase] = useState<Phase>("idle");
-  const [touched, setTouched] = useState(false);
+  const [rows, setRows] = useState<Rows>(IDLE_ROWS);
   const [fieldErr, setFieldErr] = useState<FieldErr | null>(null);
-  const [saveFail, setSaveFail] = useState(false);
   const [zones] = useState<string[]>(() => ianaZones());
 
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const qhDraft = useRef<QuietHours>({ start: "", end: "" });
+  // The quiet-hours last-known-good is captured when an editing session opens,
+  // not on each keystroke, so a debounced pair of edits rolls back to the value
+  // that was stored before the session — never to a half-typed intermediate.
+  const qhSnap = useRef<Partial<AlertState> | null>(null);
   const alive = useRef(true);
   useEffect(() => {
     alive.current = true;
@@ -123,11 +160,10 @@ export default function SectionAlertDelivery({ t, lang, identity, onClose }: Sec
     renderedFor.current = owner;
     if (saveTimer.current) { clearTimeout(saveTimer.current); saveTimer.current = null; }
     qhDraft.current = { start: "", end: "" };
+    qhSnap.current = null;
     setState(EMPTY);
-    setPhase("idle");
-    setTouched(false);
+    setRows(IDLE_ROWS);
     setFieldErr(null);
-    setSaveFail(false);
     setGate(!isAccountOwner(owner) ? "signedOut" : "loading");
   }
 
@@ -139,27 +175,57 @@ export default function SectionAlertDelivery({ t, lang, identity, onClose }: Sec
         const res = await fetch("/api/account/alert-prefs");
         if (cancelled || !alive.current) return;
         if (res.status === 401) { setGate("signedOut"); return; }
+        // 404/503 is the spec's "not deployed yet" case: calm and terminal.
         if (res.status === 404 || res.status === 503) { setGate("unavailable"); return; }
-        if (!res.ok) { setGate("unavailable"); return; }
+        // Anything else that failed (502 from an auth outage, a 500) is a
+        // moment, not a missing feature — say so instead.
+        if (!res.ok) { setGate("loadFail"); return; }
         const body = await res.json();
         if (cancelled || !alive.current) return;
         const loaded = stateFromGet(body);
         qhDraft.current = loaded.quiet_hours ?? { start: "", end: "" };
+        qhSnap.current = null;
         setState(loaded);
         setGate("ready");
       } catch {
         if (cancelled || !alive.current) return;
-        setGate("unavailable");
+        setGate("loadFail");
       }
     })();
     return () => { cancelled = true; };
   }, [owner]);
 
-  async function post(patch: Record<string, unknown>, snapshot: AlertState) {
-    setPhase("syncing");
-    setTouched(true);
+  function markRows(keys: readonly FieldKey[], patch: Partial<RowState>) {
+    setRows((r) => {
+      const next = { ...r };
+      for (const k of keys) next[k] = { ...next[k], ...patch };
+      return next;
+    });
+  }
+
+  /** Restore only the keys this save was writing, leaving every other field —
+   *  including one another save already stored — exactly as it stands. */
+  function rollback(keys: readonly FieldKey[], snap: Partial<AlertState>) {
+    if (keys.includes("quiet_hours")) {
+      qhDraft.current = snap.quiet_hours ?? { start: "", end: "" };
+    }
+    setState((s) => {
+      const next = { ...s };
+      for (const k of keys) {
+        if (k === "alert_email_optin") next.alert_email_optin = snap.alert_email_optin ?? null;
+        else if (k === "alert_categories") next.alert_categories = snap.alert_categories ?? [];
+        else if (k === "tz") next.tz = snap.tz ?? "";
+        else next.quiet_hours = snap.quiet_hours ?? null;
+      }
+      return next;
+    });
+  }
+
+  async function post(patch: Partial<Record<FieldKey, unknown>>, snap: Partial<AlertState>) {
+    const keys = (Object.keys(patch) as FieldKey[]).filter(isFieldKey);
+    if (keys.includes("quiet_hours")) qhSnap.current = null;
+    markRows(keys, { phase: "syncing", touched: true, failed: false });
     setFieldErr(null);
-    setSaveFail(false);
     try {
       const res = await fetch("/api/account/alert-prefs", {
         method: "POST",
@@ -168,106 +234,116 @@ export default function SectionAlertDelivery({ t, lang, identity, onClose }: Sec
       });
       if (!alive.current) return;
       if (res.status === 401) {
+        qhDraft.current = { start: "", end: "" };
+        qhSnap.current = null;
         setGate("signedOut");
         setState(EMPTY);
+        setRows(IDLE_ROWS);
         return;
       }
       let body: { ok?: boolean; prefs?: Record<string, unknown>; detail?: unknown } | null = null;
       try { body = await res.json(); } catch { body = null; }
       if (res.status === 200 && body?.ok) {
         const prefs = body.prefs && typeof body.prefs === "object" ? body.prefs : {};
+        let quiet: QuietHours | null | undefined;
+        if (prefs.quiet_hours === null) quiet = null;
+        else if (prefs.quiet_hours !== undefined) quiet = asQuiet(prefs.quiet_hours);
+        // The draft follows the value the server actually stored, so the next
+        // partial edit builds on the stored window and not on a stale draft.
+        if (quiet !== undefined) qhDraft.current = quiet ?? { start: "", end: "" };
         setState((s) => {
           const next = { ...s };
           if (typeof prefs.alert_email_optin === "boolean") next.alert_email_optin = prefs.alert_email_optin;
           if (Array.isArray(prefs.alert_categories)) next.alert_categories = asKnownCats(prefs.alert_categories);
           if (typeof prefs.tz === "string") next.tz = prefs.tz;
-          if (prefs.quiet_hours === null) next.quiet_hours = null;
-          else if (prefs.quiet_hours !== undefined) next.quiet_hours = asQuiet(prefs.quiet_hours);
+          if (quiet !== undefined) next.quiet_hours = quiet;
           return next;
         });
-        setPhase("saved");
+        markRows(keys, { phase: "saved", failed: false });
         return;
       }
       if (res.status === 400 && body?.detail && typeof body.detail === "object") {
         const d = body.detail as { field?: unknown; en?: unknown; zh?: unknown };
-        setState(snapshot);
-        if (typeof d.field === "string" && typeof d.en === "string" && typeof d.zh === "string") {
+        rollback(keys, snap);
+        if (typeof d.field === "string" && isFieldKey(d.field) && typeof d.en === "string" && typeof d.zh === "string") {
           setFieldErr({ field: d.field, en: d.en, zh: d.zh });
+          markRows(keys, { phase: "idle", failed: false });
         } else {
-          setSaveFail(true);
+          // A 400 about a field this section does not render still has to say
+          // something — a control that reverts in silence is not an answer.
+          markRows(keys, { phase: "idle", failed: true });
         }
-        setPhase("idle");
         return;
       }
-      setState(snapshot);
-      setSaveFail(true);
-      setPhase("idle");
+      rollback(keys, snap);
+      markRows(keys, { phase: "idle", failed: true });
     } catch {
       if (!alive.current) return;
-      setState(snapshot);
-      setSaveFail(true);
-      setPhase("idle");
+      rollback(keys, snap);
+      markRows(keys, { phase: "idle", failed: true });
     }
   }
 
   function pickOptin(on: boolean) {
-    const snapshot = state;
+    const snap = snapshotOf(state, ["alert_email_optin"]);
     setState((s) => ({ ...s, alert_email_optin: on }));
-    void post({ alert_email_optin: on }, snapshot);
+    void post({ alert_email_optin: on }, snap);
   }
 
   function toggleCat(id: KnownCat) {
-    const snapshot = state;
+    const snap = snapshotOf(state, ["alert_categories"]);
     const next = state.alert_categories.includes(id)
       ? state.alert_categories.filter((c) => c !== id)
       : [...state.alert_categories, id];
     setState((s) => ({ ...s, alert_categories: next }));
-    void post({ alert_categories: next }, snapshot);
+    void post({ alert_categories: next }, snap);
   }
 
   function pickTz(tz: string) {
     if (!tz) return;
-    const snapshot = state;
+    const snap = snapshotOf(state, ["tz"]);
     setState((s) => ({ ...s, tz }));
-    void post({ tz }, snapshot);
-  }
-
-  function scheduleQuiet(next: QuietHours | null, patch: Record<string, unknown>, snapshot: AlertState) {
-    setState((s) => ({ ...s, quiet_hours: next }));
-    if (saveTimer.current) clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(() => {
-      saveTimer.current = null;
-      void post(patch, snapshot);
-    }, 500);
+    void post({ tz }, snap);
   }
 
   function onQuietPart(part: "start" | "end", value: string) {
-    const snapshot = state;
+    if (!qhSnap.current) qhSnap.current = snapshotOf(state, ["quiet_hours"]);
+    const snap = qhSnap.current;
     const next = { ...qhDraft.current, [part]: value };
     qhDraft.current = next;
     setState((s) => ({ ...s, quiet_hours: next }));
     if (!next.start || !next.end) return;
-    scheduleQuiet(next, { quiet_hours: next }, snapshot);
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => {
+      saveTimer.current = null;
+      void post({ quiet_hours: next }, snap);
+    }, 500);
   }
 
   function clearQuiet() {
-    const snapshot = state;
+    const snap = qhSnap.current ?? snapshotOf(state, ["quiet_hours"]);
     if (saveTimer.current) { clearTimeout(saveTimer.current); saveTimer.current = null; }
     qhDraft.current = { start: "", end: "" };
     setState((s) => ({ ...s, quiet_hours: null }));
-    void post({ quiet_hours: "off" }, snapshot);
+    void post({ quiet_hours: "off" }, snap);
   }
 
-  const note = (show: boolean) => (
-    <DeliveryNote phase={phase === "syncing" ? "syncing" : phase === "saved" ? "saved" : "idle"} guest={false} show={show} t={t} onRetry={() => {}} />
+  const rowNote = (field: FieldKey) => (
+    <>
+      <DeliveryNote phase={rows[field].phase} guest={false} show={rows[field].touched} t={t} onRetry={() => {}} />
+      {rows[field].failed ? <Msg text={t("acsAlertSaveFail")} kind="err" /> : null}
+    </>
   );
-  const fieldMsg = (field: string) => {
+  const fieldMsg = (field: FieldKey) => {
     if (!fieldErr || fieldErr.field !== field) return null;
     return <Msg text={lang === "zh" ? fieldErr.zh : fieldErr.en} kind="err" />;
   };
-  const failMsg = saveFail ? <Msg text={t("acsAlertSaveFail")} kind="err" /> : null;
 
-  const tzOptions = state.tz && !zones.includes(state.tz) ? [state.tz, ...zones] : zones;
+  const tzOptions = useMemo(() => {
+    const now = new Date();
+    const list = state.tz && !zones.includes(state.tz) ? [state.tz, ...zones] : zones;
+    return list.map((z) => ({ value: z, label: timeZoneLabel(z, lang, now) }));
+  }, [zones, lang, state.tz]);
 
   return (
     <>
@@ -283,6 +359,9 @@ export default function SectionAlertDelivery({ t, lang, identity, onClose }: Sec
         )}
         {gate === "unavailable" && (
           <p className="acs-row-desc" data-alert-state="unavailable">{t("acsAlertUnavailable")}</p>
+        )}
+        {gate === "loadFail" && (
+          <p className="acs-row-desc" data-alert-state="load-failed">{t("acsAlertLoadFail")}</p>
         )}
         {gate === "ready" && (
           <Group title={t("acsAlertDelivery")}>
@@ -304,6 +383,7 @@ export default function SectionAlertDelivery({ t, lang, identity, onClose }: Sec
                 >{t("acsAlertOff")}</button>
               </span>
               {fieldMsg("alert_email_optin")}
+              {rowNote("alert_email_optin")}
             </Row>
 
             <Row label={t("acsAlertCats")}>
@@ -319,6 +399,7 @@ export default function SectionAlertDelivery({ t, lang, identity, onClose }: Sec
                 ))}
               </div>
               {fieldMsg("alert_categories")}
+              {rowNote("alert_categories")}
             </Row>
 
             <Row label={t("acsAlertTz")} desc={t("acsAlertTzNote")}>
@@ -331,18 +412,21 @@ export default function SectionAlertDelivery({ t, lang, identity, onClose }: Sec
               >
                 <option value="">{t("acsAlertTzUnset")}</option>
                 {tzOptions.map((z) => (
-                  <option key={z} value={z}>{z}</option>
+                  <option key={z.value} value={z.value}>{z.label}</option>
                 ))}
               </select>
               {fieldMsg("tz")}
+              {rowNote("tz")}
             </Row>
 
             <Row label={t("acsAlertQh")} desc={t("acsAlertQhHint")}>
               <div>
+                <p className="acs-row-desc" data-alert-hint="clock">{t("acsAlertQh24h")}</p>
                 <label>
                   {t("acsAlertQhStart")}
                   <input
                     type="time"
+                    lang={htmlLang}
                     className="acs-in"
                     data-alert-field="qh-start"
                     value={state.quiet_hours?.start ?? ""}
@@ -354,6 +438,7 @@ export default function SectionAlertDelivery({ t, lang, identity, onClose }: Sec
                   {t("acsAlertQhEnd")}
                   <input
                     type="time"
+                    lang={htmlLang}
                     className="acs-in"
                     data-alert-field="qh-end"
                     value={state.quiet_hours?.end ?? ""}
@@ -366,9 +451,8 @@ export default function SectionAlertDelivery({ t, lang, identity, onClose }: Sec
                 </button>
               </div>
               {fieldMsg("quiet_hours")}
+              {rowNote("quiet_hours")}
             </Row>
-            {note(touched)}
-            {failMsg}
           </Group>
         )}
       </div>

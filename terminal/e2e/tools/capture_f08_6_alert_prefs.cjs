@@ -29,6 +29,9 @@ const LAYOUT_FILES = [
   "terminal/components/settings/SettingsPanel.tsx",
   "terminal/components/settings/icons.tsx",
   "terminal/lib/i18n.tsx",
+  // The time-zone option text is rendered from this overlay, so the crops
+  // depend on it exactly as they depend on the section and the lexicon.
+  "terminal/lib/plainLabels.ts",
 ];
 const PORT = Number(process.env.TERMINAL_CROP_PORT || 3538);
 const BASE = `http://127.0.0.1:${PORT}`;

@@ -220,3 +220,233 @@ export function subjectKindLabel(value: string | null | undefined, lang: PlainLa
   if (!pair) return notClassified(lang);
   return lang === "zh" ? pair[1] : pair[0];
 }
+
+/**
+ * Time-zone picker labels (B-F08-6).
+ *
+ * The stored value is always the IANA id — macro validates against the full
+ * IANA database and that is what goes on the wire. Only the text a person
+ * reads changes: a place name in their own language plus the zone's current
+ * offset from UTC, e.g. "New York (UTC−4)" / "纽约（UTC−4）". A zone with no
+ * curated name still gets its offset, so no option is ever a bare identifier
+ * with nothing to read.
+ *
+ * The offset is computed at render time from the real clock, so a zone that
+ * observes daylight saving shows the offset in force today, not a frozen one.
+ */
+export const TIME_ZONE_CITY: Record<string, readonly [string, string]> = {
+  UTC: ["Coordinated Universal Time", "协调世界时"],
+  "Etc/UTC": ["Coordinated Universal Time", "协调世界时"],
+  "Etc/GMT": ["Greenwich Mean Time", "格林尼治标准时间"],
+  // Asia
+  "Asia/Shanghai": ["Shanghai", "上海"],
+  "Asia/Urumqi": ["Urumqi", "乌鲁木齐"],
+  "Asia/Hong_Kong": ["Hong Kong", "香港"],
+  "Asia/Macau": ["Macau", "澳门"],
+  "Asia/Taipei": ["Taipei", "台北"],
+  "Asia/Tokyo": ["Tokyo", "东京"],
+  "Asia/Seoul": ["Seoul", "首尔"],
+  "Asia/Pyongyang": ["Pyongyang", "平壤"],
+  "Asia/Singapore": ["Singapore", "新加坡"],
+  "Asia/Kuala_Lumpur": ["Kuala Lumpur", "吉隆坡"],
+  "Asia/Bangkok": ["Bangkok", "曼谷"],
+  "Asia/Jakarta": ["Jakarta", "雅加达"],
+  "Asia/Manila": ["Manila", "马尼拉"],
+  "Asia/Saigon": ["Ho Chi Minh City", "胡志明市"],
+  "Asia/Ho_Chi_Minh": ["Ho Chi Minh City", "胡志明市"],
+  "Asia/Phnom_Penh": ["Phnom Penh", "金边"],
+  "Asia/Vientiane": ["Vientiane", "万象"],
+  "Asia/Rangoon": ["Yangon", "仰光"],
+  "Asia/Yangon": ["Yangon", "仰光"],
+  "Asia/Dhaka": ["Dhaka", "达卡"],
+  "Asia/Kathmandu": ["Kathmandu", "加德满都"],
+  "Asia/Katmandu": ["Kathmandu", "加德满都"],
+  "Asia/Kolkata": ["Kolkata", "加尔各答"],
+  "Asia/Calcutta": ["Kolkata", "加尔各答"],
+  "Asia/Colombo": ["Colombo", "科伦坡"],
+  "Asia/Karachi": ["Karachi", "卡拉奇"],
+  "Asia/Kabul": ["Kabul", "喀布尔"],
+  "Asia/Tashkent": ["Tashkent", "塔什干"],
+  "Asia/Almaty": ["Almaty", "阿拉木图"],
+  "Asia/Bishkek": ["Bishkek", "比什凯克"],
+  "Asia/Dushanbe": ["Dushanbe", "杜尚别"],
+  "Asia/Ashgabat": ["Ashgabat", "阿什哈巴德"],
+  "Asia/Ulaanbaatar": ["Ulaanbaatar", "乌兰巴托"],
+  "Asia/Tehran": ["Tehran", "德黑兰"],
+  "Asia/Baghdad": ["Baghdad", "巴格达"],
+  "Asia/Riyadh": ["Riyadh", "利雅得"],
+  "Asia/Kuwait": ["Kuwait City", "科威特城"],
+  "Asia/Qatar": ["Doha", "多哈"],
+  "Asia/Bahrain": ["Manama", "麦纳麦"],
+  "Asia/Muscat": ["Muscat", "马斯喀特"],
+  "Asia/Dubai": ["Dubai", "迪拜"],
+  "Asia/Jerusalem": ["Jerusalem", "耶路撒冷"],
+  "Asia/Beirut": ["Beirut", "贝鲁特"],
+  "Asia/Damascus": ["Damascus", "大马士革"],
+  "Asia/Amman": ["Amman", "安曼"],
+  "Asia/Nicosia": ["Nicosia", "尼科西亚"],
+  "Asia/Baku": ["Baku", "巴库"],
+  "Asia/Tbilisi": ["Tbilisi", "第比利斯"],
+  "Asia/Yerevan": ["Yerevan", "埃里温"],
+  "Asia/Vladivostok": ["Vladivostok", "海参崴"],
+  "Asia/Yekaterinburg": ["Yekaterinburg", "叶卡捷琳堡"],
+  "Asia/Novosibirsk": ["Novosibirsk", "新西伯利亚"],
+  "Asia/Krasnoyarsk": ["Krasnoyarsk", "克拉斯诺亚尔斯克"],
+  "Asia/Irkutsk": ["Irkutsk", "伊尔库茨克"],
+  "Asia/Yakutsk": ["Yakutsk", "雅库茨克"],
+  "Asia/Magadan": ["Magadan", "马加丹"],
+  "Asia/Kamchatka": ["Kamchatka", "堪察加"],
+  // Europe
+  "Europe/London": ["London", "伦敦"],
+  "Europe/Dublin": ["Dublin", "都柏林"],
+  "Europe/Lisbon": ["Lisbon", "里斯本"],
+  "Europe/Madrid": ["Madrid", "马德里"],
+  "Europe/Paris": ["Paris", "巴黎"],
+  "Europe/Brussels": ["Brussels", "布鲁塞尔"],
+  "Europe/Amsterdam": ["Amsterdam", "阿姆斯特丹"],
+  "Europe/Luxembourg": ["Luxembourg", "卢森堡"],
+  "Europe/Berlin": ["Berlin", "柏林"],
+  "Europe/Zurich": ["Zurich", "苏黎世"],
+  "Europe/Vienna": ["Vienna", "维也纳"],
+  "Europe/Rome": ["Rome", "罗马"],
+  "Europe/Malta": ["Valletta", "瓦莱塔"],
+  "Europe/Copenhagen": ["Copenhagen", "哥本哈根"],
+  "Europe/Oslo": ["Oslo", "奥斯陆"],
+  "Europe/Stockholm": ["Stockholm", "斯德哥尔摩"],
+  "Europe/Helsinki": ["Helsinki", "赫尔辛基"],
+  "Europe/Tallinn": ["Tallinn", "塔林"],
+  "Europe/Riga": ["Riga", "里加"],
+  "Europe/Vilnius": ["Vilnius", "维尔纽斯"],
+  "Europe/Warsaw": ["Warsaw", "华沙"],
+  "Europe/Prague": ["Prague", "布拉格"],
+  "Europe/Bratislava": ["Bratislava", "布拉迪斯拉发"],
+  "Europe/Budapest": ["Budapest", "布达佩斯"],
+  "Europe/Ljubljana": ["Ljubljana", "卢布尔雅那"],
+  "Europe/Zagreb": ["Zagreb", "萨格勒布"],
+  "Europe/Belgrade": ["Belgrade", "贝尔格莱德"],
+  "Europe/Sarajevo": ["Sarajevo", "萨拉热窝"],
+  "Europe/Skopje": ["Skopje", "斯科普里"],
+  "Europe/Tirane": ["Tirana", "地拉那"],
+  "Europe/Sofia": ["Sofia", "索非亚"],
+  "Europe/Bucharest": ["Bucharest", "布加勒斯特"],
+  "Europe/Athens": ["Athens", "雅典"],
+  "Europe/Istanbul": ["Istanbul", "伊斯坦布尔"],
+  "Europe/Kiev": ["Kyiv", "基辅"],
+  "Europe/Kyiv": ["Kyiv", "基辅"],
+  "Europe/Chisinau": ["Chisinau", "基希讷乌"],
+  "Europe/Minsk": ["Minsk", "明斯克"],
+  "Europe/Moscow": ["Moscow", "莫斯科"],
+  "Europe/Kaliningrad": ["Kaliningrad", "加里宁格勒"],
+  "Europe/Reykjavik": ["Reykjavik", "雷克雅未克"],
+  "Atlantic/Reykjavik": ["Reykjavik", "雷克雅未克"],
+  "Atlantic/Azores": ["Azores", "亚速尔群岛"],
+  "Atlantic/Canary": ["Canary Islands", "加那利群岛"],
+  "Atlantic/Madeira": ["Madeira", "马德拉群岛"],
+  "Atlantic/Bermuda": ["Bermuda", "百慕大"],
+  "Atlantic/Cape_Verde": ["Cape Verde", "佛得角"],
+  // North America
+  "America/New_York": ["New York", "纽约"],
+  "America/Toronto": ["Toronto", "多伦多"],
+  "America/Montreal": ["Montreal", "蒙特利尔"],
+  "America/Detroit": ["Detroit", "底特律"],
+  "America/Indianapolis": ["Indianapolis", "印第安纳波利斯"],
+  "America/Chicago": ["Chicago", "芝加哥"],
+  "America/Winnipeg": ["Winnipeg", "温尼伯"],
+  "America/Mexico_City": ["Mexico City", "墨西哥城"],
+  "America/Denver": ["Denver", "丹佛"],
+  "America/Edmonton": ["Edmonton", "埃德蒙顿"],
+  "America/Phoenix": ["Phoenix", "凤凰城"],
+  "America/Los_Angeles": ["Los Angeles", "洛杉矶"],
+  "America/Vancouver": ["Vancouver", "温哥华"],
+  "America/Tijuana": ["Tijuana", "蒂华纳"],
+  "America/Anchorage": ["Anchorage", "安克雷奇"],
+  "America/Halifax": ["Halifax", "哈利法克斯"],
+  "America/St_Johns": ["St. John's", "圣约翰斯"],
+  "America/Havana": ["Havana", "哈瓦那"],
+  "America/Panama": ["Panama City", "巴拿马城"],
+  "America/Guatemala": ["Guatemala City", "危地马拉城"],
+  "America/Costa_Rica": ["San José", "圣何塞"],
+  "America/Puerto_Rico": ["San Juan", "圣胡安"],
+  "America/Jamaica": ["Kingston", "金斯敦"],
+  "Pacific/Honolulu": ["Honolulu", "檀香山"],
+  // South America
+  "America/Sao_Paulo": ["São Paulo", "圣保罗"],
+  "America/Argentina/Buenos_Aires": ["Buenos Aires", "布宜诺斯艾利斯"],
+  "America/Buenos_Aires": ["Buenos Aires", "布宜诺斯艾利斯"],
+  "America/Santiago": ["Santiago", "圣地亚哥"],
+  "America/Lima": ["Lima", "利马"],
+  "America/Bogota": ["Bogotá", "波哥大"],
+  "America/Caracas": ["Caracas", "加拉加斯"],
+  "America/Montevideo": ["Montevideo", "蒙得维的亚"],
+  "America/Asuncion": ["Asunción", "亚松森"],
+  "America/La_Paz": ["La Paz", "拉巴斯"],
+  "America/Guayaquil": ["Guayaquil", "瓜亚基尔"],
+  // Africa
+  "Africa/Cairo": ["Cairo", "开罗"],
+  "Africa/Lagos": ["Lagos", "拉各斯"],
+  "Africa/Accra": ["Accra", "阿克拉"],
+  "Africa/Abidjan": ["Abidjan", "阿比让"],
+  "Africa/Dakar": ["Dakar", "达喀尔"],
+  "Africa/Casablanca": ["Casablanca", "卡萨布兰卡"],
+  "Africa/Algiers": ["Algiers", "阿尔及尔"],
+  "Africa/Tunis": ["Tunis", "突尼斯"],
+  "Africa/Tripoli": ["Tripoli", "的黎波里"],
+  "Africa/Khartoum": ["Khartoum", "喀土穆"],
+  "Africa/Addis_Ababa": ["Addis Ababa", "亚的斯亚贝巴"],
+  "Africa/Nairobi": ["Nairobi", "内罗毕"],
+  "Africa/Kampala": ["Kampala", "坎帕拉"],
+  "Africa/Dar_es_Salaam": ["Dar es Salaam", "达累斯萨拉姆"],
+  "Africa/Kinshasa": ["Kinshasa", "金沙萨"],
+  "Africa/Luanda": ["Luanda", "罗安达"],
+  "Africa/Harare": ["Harare", "哈拉雷"],
+  "Africa/Lusaka": ["Lusaka", "卢萨卡"],
+  "Africa/Maputo": ["Maputo", "马普托"],
+  "Africa/Johannesburg": ["Johannesburg", "约翰内斯堡"],
+  "Africa/Windhoek": ["Windhoek", "温得和克"],
+  "Indian/Mauritius": ["Mauritius", "毛里求斯"],
+  "Indian/Maldives": ["Maldives", "马尔代夫"],
+  // Oceania
+  "Australia/Sydney": ["Sydney", "悉尼"],
+  "Australia/Melbourne": ["Melbourne", "墨尔本"],
+  "Australia/Canberra": ["Canberra", "堪培拉"],
+  "Australia/Brisbane": ["Brisbane", "布里斯班"],
+  "Australia/Adelaide": ["Adelaide", "阿德莱德"],
+  "Australia/Perth": ["Perth", "珀斯"],
+  "Australia/Darwin": ["Darwin", "达尔文"],
+  "Australia/Hobart": ["Hobart", "霍巴特"],
+  "Pacific/Auckland": ["Auckland", "奥克兰"],
+  "Pacific/Fiji": ["Fiji", "斐济"],
+  "Pacific/Guam": ["Guam", "关岛"],
+  "Pacific/Port_Moresby": ["Port Moresby", "莫尔兹比港"],
+  "Pacific/Noumea": ["Nouméa", "努美阿"],
+  "Pacific/Tahiti": ["Tahiti", "塔希提"],
+};
+
+/** The zone's offset from UTC right now, e.g. "UTC+8", "UTC−4", "UTC+5:30".
+ *  Empty when the runtime cannot resolve the zone, so the caller drops it. */
+function utcOffsetLabel(zone: string, at: Date): string {
+  try {
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone: zone,
+      timeZoneName: "longOffset",
+    }).formatToParts(at);
+    const raw = parts.find((p) => p.type === "timeZoneName")?.value ?? "";
+    const m = /GMT([+-])(\d{1,2}):(\d{2})/.exec(raw);
+    if (!m) return /GMT$/.test(raw) ? "UTC+0" : "";
+    const sign = m[1] === "-" ? "−" : "+";
+    const hours = String(Number(m[2]));
+    const minutes = m[3] === "00" ? "" : `:${m[3]}`;
+    return `UTC${sign}${hours}${minutes}`;
+  } catch {
+    return "";
+  }
+}
+
+/** Reader-facing label for one IANA time zone. The value stored stays the id. */
+export function timeZoneLabel(zone: string, lang: PlainLang, at: Date = new Date()): string {
+  const pair = TIME_ZONE_CITY[zone];
+  const name = pair ? (lang === "zh" ? pair[1] : pair[0]) : zone;
+  const offset = utcOffsetLabel(zone, at);
+  if (!offset) return name;
+  return lang === "zh" ? `${name}（${offset}）` : `${name} (${offset})`;
+}
