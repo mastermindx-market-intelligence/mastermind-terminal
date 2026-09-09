@@ -1,0 +1,39 @@
+# B-F08-6 Alert delivery — capture evidence
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
+# capturedAtHead: ff6b6ea7c668b04d610b536e72222384d7310ae9
+# capturedAt: 2026-09-09T09:47:56.317Z
+# capturedAtHead is informational. The lock is layoutFiles.
+layoutFiles:
+  terminal/components/settings/SectionAlertDelivery.tsx: "ebca85285640b5c222f1142ac3f68226ff3897dc488f54edff4f8e3d6c0a0c8f"
+  terminal/components/settings/SettingsPanel.tsx: "a85d87b53f3982131744af3e6fe3d3c165818e4a787790d918e6d84eac279f5a"
+  terminal/components/settings/icons.tsx: "5c809c869e036d48a09f0586f954b2855a06c8302c99267a3c6dda94424c8adb"
+  terminal/lib/i18n.tsx: "d28feda23ec461f848befe2f1a432737b450b899f500f4b1422e33fd70e0d122"
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: mobile, width: 390, height: 844 }
+surfaces: [SectionAlertDelivery]
+capture_flag: TERMINAL_E2E_FIXTURE
+capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
+command: |
+  cd terminal
+  node e2e/tools/capture_f08_6_alert_prefs.cjs
+files:
+  - SectionAlertDelivery-field-error-1440-zh.png
+  - SectionAlertDelivery-field-error-1440.png
+  - SectionAlertDelivery-field-error-390-zh.png
+  - SectionAlertDelivery-field-error-390.png
+  - SectionAlertDelivery-populated-1440-zh.png
+  - SectionAlertDelivery-populated-1440.png
+  - SectionAlertDelivery-populated-390-zh.png
+  - SectionAlertDelivery-populated-390.png
+  - SectionAlertDelivery-quiet-hours-1440-zh.png
+  - SectionAlertDelivery-quiet-hours-1440.png
+  - SectionAlertDelivery-quiet-hours-390-zh.png
+  - SectionAlertDelivery-quiet-hours-390.png
+  - SectionAlertDelivery-unavailable-1440-zh.png
+  - SectionAlertDelivery-unavailable-1440.png
+  - SectionAlertDelivery-unavailable-390-zh.png
+  - SectionAlertDelivery-unavailable-390.png
