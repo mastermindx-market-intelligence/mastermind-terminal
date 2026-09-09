@@ -29,7 +29,8 @@ const LAYOUT_FILES = [
   "terminal/lib/i18n.tsx",
 ];
 
-// 4 surfaces x EN/ZH x 1440/390.
+// 4 surfaces x EN/ZH x 1440/390, plus the one pair ruling R3e adds: the combined
+// view-plus-subject empty state, at 1440 only, in both languages.
 const CROP_FILES = [
   "empty-1440.png",
   "empty-1440-zh.png",
@@ -47,6 +48,8 @@ const CROP_FILES = [
   "window-closed-1440-zh.png",
   "window-closed-390.png",
   "window-closed-390-zh.png",
+  "view-subject-empty-1440.png",
+  "view-subject-empty-1440-zh.png",
 ];
 
 function evidenceText(): string {

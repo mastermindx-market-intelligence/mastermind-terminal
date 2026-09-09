@@ -279,6 +279,38 @@ async function captureSaveFlow(page, context, width, lang, outPath) {
   await shootPane(page, outPath);
 }
 
+// Round-5 review of PR #546 (Meta-CEO B ruling R3e): the R2 sentence
+// `filteredByViewAndSubjectEmpty` had no crop in either language, so the seat's own
+// check — open the combined empty state in EN and ZH and read the ruled sentence off
+// the screen — could not be run. Both narrowings are driven through the shipped UI: a
+// saved view "NVDA only" (created through the real route) plus a Coverage subject
+// filter on AAPL, whose intersection is empty while the view demonstrably holds the
+// NVDA thesis. No network stub anywhere.
+async function captureViewSubjectEmpty(page, context, width, lang, outPath) {
+  await createThesis(context, lang === "zh" ? "英伟达运营杠杆" : "NVDA operating leverage", "NVDA");
+  await createThesis(context, lang === "zh" ? "苹果服务" : "Apple services", "AAPL");
+  await createSavedView(context, lang === "zh" ? "只看英伟达" : "NVDA only", {
+    lifecycle: "active",
+    subjectGroupKey: "terminal.analysis_symbol|issuer|NVDA",
+  });
+  await openList(page, width, lang);
+  // The subject filter first: clicking a Coverage row sets it and switches to Theses.
+  await page.getByRole("tab", { name: lang === "zh" ? "覆盖范围" : "Coverage" }).click();
+  await page.getByRole("button", { name: /AAPL/ }).first().click();
+  await page.waitForSelector('[data-testid="rms-subject-chip"]', { timeout: 15_000 });
+  // Then the view, which excludes AAPL — the intersection is empty, the view is not.
+  await page.locator("[data-saved-view] button").first().click();
+  await page.waitForSelector('[data-testid="rms-empty"]', { timeout: 15_000 });
+  const text = (await page.locator('[data-testid="rms-empty"]').innerText()).trim();
+  const expected = lang === "zh" ? "清除标的筛选" : "Clear the subject filter";
+  if (!text.includes(expected)) {
+    throw new Error(`${basename(outPath)}: combined view+subject sentence not on screen, read: ${text}`);
+  }
+  await page.mouse.move(0, 0);
+  await page.waitForTimeout(200);
+  await shootPane(page, outPath);
+}
+
 // Round-2 review of PR #546 (BLOCKER 1): this surface used to `page.route()` the app's
 // own /api/thesis-fire-status and hand-fulfill a window_closed state, so the committed
 // pixels depicted no shipped code — neither the route handler nor
@@ -318,6 +350,13 @@ async function main() {
             // "monitorfired" in the store key is what seeds the alert_outbox row.
             { name: "window-closed", store: "monitorfired", run: (page, context) => captureWindowClosed(page, context, width, lang, join(OUT, cropName("window-closed", width, lang))) },
           ];
+          // Ruling R3e asks for ONE pair (EN and ZH) at 1440 for the combined state.
+          if (width === 1440) {
+            surfaces.push({
+              name: "view-subject-empty",
+              run: (page, context) => captureViewSubjectEmpty(page, context, width, lang, join(OUT, cropName("view-subject-empty", width, lang))),
+            });
+          }
           for (const surface of surfaces) {
             const file = cropName(surface.name, width, lang);
             process.stdout.write(`capture ${file} … `);
@@ -356,7 +395,10 @@ async function main() {
     "viewports:",
     "  - { name: desktop, width: 1440, height: 900 }",
     "  - { name: mobile, width: 390, height: 844 }",
-    "surfaces: [empty, named-views, save-flow, window-closed]",
+    "surfaces: [empty, named-views, save-flow, window-closed, view-subject-empty]",
+    // Ruling R3e: the combined view+subject empty state is captured at 1440 only, in
+    // both languages — the one pair the seat asked for, not a full matrix row.
+    "view_subject_empty_scope: 1440 only, en and zh",
     // Carried disclosure (named in the PR body since round 1, restated here so the
     // manifest itself cannot be read as claiming full-width frames): `viewports` above
     // describes the BROWSER viewport the page was rendered at, not the PNG's own width.
