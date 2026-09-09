@@ -233,11 +233,11 @@ async function cropBox(page, box, outPath, pad) {
   if (!box || !vp) throw new Error(`no box for ${outPath}`);
   const x = Math.max(0, Math.floor(box.x - pad));
   const y = Math.max(0, Math.floor(box.y - pad));
-  // 390 frames: keep the clip off the bottom 52px of the viewport where the Next
-  // N pill paints even after the host is removed (closed compositor layer).
-  const bottomGuard = vp.width <= 500 ? 52 : 0;
+  // 390 AlertDetail: the Next N pill sits in the 40px under the rounded card.
+  // Viewport-bottom guards miss it because the card is not flush with the frame.
+  const trimBottom = /AlertDetail-390/.test(String(outPath)) ? 40 : 0;
   const width = Math.max(8, Math.min(vp.width - x, Math.ceil(box.width + pad * 2)));
-  const height = Math.max(8, Math.min(vp.height - bottomGuard - y, Math.ceil(box.height + pad * 2)));
+  const height = Math.max(8, Math.min(vp.height - y, Math.ceil(box.height + pad * 2)) - trimBottom);
   const nPortals = await page.locator("nextjs-portal").count();
   if (nPortals > 0) {
     throw new Error(`${outPath}: nextjs-portal still in DOM (${nPortals})`);

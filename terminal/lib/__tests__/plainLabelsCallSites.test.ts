@@ -326,8 +326,8 @@ describe("plain-language call sites — batch 3", () => {
     const cropBox = src.slice(cropStart, cropEnd);
     expect(cropBox).toContain("assertNoNextIndicator");
     expect(cropBox.indexOf("assertNoNextIndicator")).toBeLessThan(cropBox.indexOf("page.screenshot"));
-    expect(cropBox).toContain("vp.width <= 500");
-    expect(cropBox).not.toContain("vp.height <= 500");
+    expect(cropBox).toContain("AlertDetail-390");
+    expect(cropBox).toContain("trimBottom");
     const desk = src.slice(src.indexOf("async function captureFlowDesk"), src.indexOf("async function installAlertFixtures"));
     expect(desk.indexOf("assertNoNextIndicator")).toBeGreaterThan(0);
     expect(desk.indexOf("assertNoNextIndicator")).toBeLessThan(desk.indexOf("page.screenshot"));
