@@ -1,0 +1,34 @@
+# B-F12-5 Account page polish — capture evidence
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
+# capturedAtHead: e95059832e5ccc719b55f4a6cc06b28844485423
+# capturedAt: 2026-09-09T02:19:14.504Z
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: mobile, width: 390, height: 844 }
+harness: /dev/settings?s=account&lang=<en|zh>
+capture_flag: TERMINAL_E2E_FIXTURE
+capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.
+command: |
+  cd terminal
+  node e2e/tools/capture_f12_5_account_polish.cjs
+files:
+  - desktop-en-overview.png
+  - desktop-zh-overview.png
+  - desktop-en-delete-form.png
+  - desktop-zh-delete-form.png
+  - mobile-en-overview.png
+  - mobile-zh-overview.png
+  - mobile-en-delete-form.png
+  - mobile-zh-delete-form.png
+measurements:
+  desktop-en-overview.png: { spanWidth: 831, gridWidth: 831, profileWidth: 405, confirmClass: "acs-btn btn-danger", confirmBg: "rgb(240, 86, 107)", signOutClass: "acs-signout-m acs-btn ghost", signOutColor: "" }
+  desktop-zh-overview.png: { spanWidth: 831, gridWidth: 831, profileWidth: 405, confirmClass: "acs-btn btn-danger", confirmBg: "rgb(240, 86, 107)", signOutClass: "acs-signout-m acs-btn ghost", signOutColor: "" }
+  desktop-en-delete-form.png: { spanWidth: 844, gridWidth: 844, profileWidth: 411, confirmClass: "acs-btn btn-danger", confirmBg: "rgb(240, 86, 107)", signOutClass: "acs-signout-m acs-btn ghost", signOutColor: "" }
+  desktop-zh-delete-form.png: { spanWidth: 844, gridWidth: 844, profileWidth: 411, confirmClass: "acs-btn btn-danger", confirmBg: "rgb(240, 86, 107)", signOutClass: "acs-signout-m acs-btn ghost", signOutColor: "" }
+  mobile-en-overview.png: { spanWidth: 356, gridWidth: 356, profileWidth: 356, confirmClass: "acs-btn btn-danger", confirmBg: "rgb(240, 86, 107)", signOutClass: "acs-signout-m acs-btn ghost", signOutColor: "rgb(214, 218, 227)" }
+  mobile-zh-overview.png: { spanWidth: 357, gridWidth: 357, profileWidth: 357, confirmClass: "acs-btn btn-danger", confirmBg: "rgb(240, 86, 107)", signOutClass: "acs-signout-m acs-btn ghost", signOutColor: "rgb(214, 218, 227)" }
+  mobile-en-delete-form.png: { spanWidth: 360, gridWidth: 360, profileWidth: 360, confirmClass: "acs-btn btn-danger", confirmBg: "rgb(240, 86, 107)", signOutClass: "acs-signout-m acs-btn ghost", signOutColor: "rgb(214, 218, 227)" }
+  mobile-zh-delete-form.png: { spanWidth: 360, gridWidth: 360, profileWidth: 360, confirmClass: "acs-btn btn-danger", confirmBg: "rgb(240, 86, 107)", signOutClass: "acs-signout-m acs-btn ghost", signOutColor: "rgb(214, 218, 227)" }

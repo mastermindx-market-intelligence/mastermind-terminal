@@ -126,4 +126,58 @@ describe("SectionAccount editBtn labels (review MAJOR round 2: acsDeleteBtn vs a
       expect(btn.className).toBe("acs-edit");
     }
   });
+
+  function openDeleteForm(lang: "en" | "zh") {
+    mount(lang);
+    const deleteRowBtn = Array.from(container.querySelectorAll("button.acs-edit")).at(-1);
+    expect(deleteRowBtn).toBeTruthy();
+    act(() => {
+      (deleteRowBtn as HTMLButtonElement).click();
+    });
+  }
+
+  function deleteConfirmButton(): HTMLButtonElement {
+    const buttons = Array.from(container.querySelectorAll(".acs-form button.acs-btn")) as HTMLButtonElement[];
+    const confirm = buttons.find((btn) => btn.textContent === "Delete my account" || btn.textContent === "删除我的账户");
+    if (!confirm) throw new Error("delete confirm button not found");
+    return confirm;
+  }
+
+  it("the delete confirm reuses the existing btn-danger class, never the brand-blue primary class", () => {
+    openDeleteForm("en");
+    const confirm = deleteConfirmButton();
+    expect(confirm.className.split(/\s+/)).toContain("btn-danger");
+    expect(confirm.className.split(/\s+/)).not.toContain("primary");
+    expect(confirm.className.split(/\s+/)).toContain("acs-btn");
+  });
+
+  it("ZH: the delete confirm still reads 删除我的账户 and still uses btn-danger", () => {
+    openDeleteForm("zh");
+    const confirm = deleteConfirmButton();
+    expect(confirm.textContent).toBe("删除我的账户");
+    expect(confirm.className.split(/\s+/)).toContain("btn-danger");
+    expect(confirm.className.split(/\s+/)).not.toContain("primary");
+  });
+
+  it("name/email/password save buttons stay on the primary class (danger is only the deletion confirm)", () => {
+    mount("en");
+    const nameEdit = Array.from(container.querySelectorAll("button.acs-edit"))[0] as HTMLButtonElement;
+    act(() => { nameEdit.click(); });
+    const save = Array.from(container.querySelectorAll(".acs-form button.acs-btn"))
+      .find((btn) => (btn.textContent || "").trim() === "Save") as HTMLButtonElement | undefined;
+    expect(save).toBeTruthy();
+    expect(save!.className.split(/\s+/)).toContain("primary");
+    expect(save!.className.split(/\s+/)).not.toContain("btn-danger");
+  });
+
+  it("Sign out uses the existing ghost (neutral secondary) class, not a danger class", () => {
+    mount("en");
+    const signOut = container.querySelector("button.acs-signout-m") as HTMLButtonElement | null;
+    expect(signOut).toBeTruthy();
+    const classes = signOut!.className.split(/\s+/);
+    expect(classes).toContain("acs-btn");
+    expect(classes).toContain("ghost");
+    expect(classes).not.toContain("btn-danger");
+    expect(classes).not.toContain("primary");
+  });
 });
