@@ -1,0 +1,30 @@
+# B-F13-5 Personal accuracy ledger — capture evidence
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
+# capturedAtHead: eaa27846e37bc871f000cdb669eff9982338a918
+# capturedAt: 2026-09-09T10:15:26.288Z
+# capturedAtHead is informational. The lock is layoutFiles.
+layoutFiles:
+  terminal/components/settings/SectionAccuracy.tsx: "8c2d07f74105d58bbab716ccfd10996d02ba646379b625c4173211182247b679"
+  terminal/app/settings.css: "9af8217fdfaf2a1977b2f7b84246edfaf708ab5d27fcfb016bdd681ea309d0fb"
+  terminal/lib/personalAccuracy.ts: "6f463d93a4cd9d291d9af69e611a66f48675cee8787973a48fa917ee45ec2557"
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: mobile, width: 390, height: 844 }
+harness: /dev/settings?s=accuracy&lang=<en|zh>
+capture_flag: TERMINAL_E2E_FIXTURE
+capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.
+command: |
+  cd terminal
+  node e2e/tools/capture_b_f13_5_accuracy.cjs
+files:
+  - desktop-en-empty.png
+  - desktop-zh-empty.png
+  - desktop-en-detail.png
+  - desktop-zh-detail.png
+  - mobile-en-empty.png
+  - mobile-zh-empty.png
+  - mobile-en-detail.png
+  - mobile-zh-detail.png
