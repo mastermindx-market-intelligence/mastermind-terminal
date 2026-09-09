@@ -49,9 +49,12 @@ test("settings Webhooks section is reachable in EN and ZH", async ({ page }, tes
   const dialog = page.locator(".acs-overlay.open .acs-card");
   await expect(dialog).toBeVisible({ timeout: 45_000 });
   const tabs = dialog.getByRole("tab");
-  // Seven sections, Webhooks last — at 1440, 820 AND 390.
-  await expect(tabs).toHaveCount(7);
-  await expect(tabs.nth(6)).toHaveText("Webhooks");
+  // Webhooks is the LAST Settings tab — at 1440, 820 AND 390. Asserted as
+  // "last", not as a fixed index: master gained an eighth section (#545) while
+  // this branch was open, and a hard count would redden the next packet that
+  // adds one rather than catching anything real.
+  await expect(tabs.last()).toHaveText("Webhooks");
+  expect(await tabs.count()).toBeGreaterThanOrEqual(8);
   await expect(dialog.getByRole("tab", { name: "Webhooks" })).toHaveAttribute("aria-selected", "true");
   await expect(page.getByRole("heading", { name: "Webhooks" })).toBeVisible();
   await expect(page.getByText("You don't have a team yet")).toHaveCount(0);
@@ -65,8 +68,8 @@ test("settings Webhooks section is reachable in EN and ZH", async ({ page }, tes
   await page.goto("/dev/settings?s=webhooks&lang=zh");
   const zhDialog = page.locator(".acs-overlay.open .acs-card");
   await expect(zhDialog).toBeVisible({ timeout: 45_000 });
-  await expect(zhDialog.getByRole("tab")).toHaveCount(7);
-  await expect(zhDialog.getByRole("tab").nth(6)).toHaveText("Webhook 回调");
+  await expect(zhDialog.getByRole("tab").last()).toHaveText("Webhook 回调");
+  expect(await zhDialog.getByRole("tab").count()).toBeGreaterThanOrEqual(8);
   await expect(zhDialog.getByRole("tab", { name: "Webhook 回调" })).toHaveAttribute("aria-selected", "true");
   await expect(page.getByRole("heading", { name: "Webhook 回调" })).toBeVisible();
   await expect(page.getByText("您还没有团队")).toHaveCount(0);

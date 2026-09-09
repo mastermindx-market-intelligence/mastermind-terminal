@@ -45,6 +45,15 @@ export function IconPrefs() {
     </svg>
   );
 }
+/** Alert delivery — a bell, the same job as email-alert preferences. */
+export function IconAlertDelivery() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" {...S}>
+      <path d="M6 9a6 6 0 1 1 12 0c0 7 3 8 3 8H3s3-1 3-8" />
+      <path d="M10 20a2 2 0 0 0 4 0" />
+    </svg>
+  );
+}
 /** Terminal section — a chart glyph, the Terminal's own idiom in this rail. */
 export function IconTerminal() {
   return (
