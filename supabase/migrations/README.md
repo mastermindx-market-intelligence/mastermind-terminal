@@ -184,7 +184,7 @@ amendment, only a README edit.
 | `0015` | `team_roles_invitations` | PR #514 (merged as `cff58ee8` on 2026-09-08, packet B-F12-3; authored on stacked PR #526 squash `83424c63`) | merged + applied 2026-09-08 |
 | `0016` | `account_lifecycle_requests` | PR #527 (merged as `68bbe8ea` on 2026-09-09, packet B-F12-4) | merged + applied 2026-09-09 |
 | `0019` | `team_role_changes` | PR #550 (packet B-F12-8; owner / administrator / member roles v1) | open PR; not applied |
-| `0020` | `team_ownership_transfer` | PR pending (packet B-F12-9; atomic ownership transfer v1). Seat ruled 0020; the spec's claim of 0019 is superseded because 0019 is B-F12-8. | open PR; not applied |
+| `0020` | `team_ownership_transfer` | PR #557 (packet B-F12-9; atomic ownership transfer v1). Seat ruled 0020; the spec's claim of 0019 is superseded because 0019 is B-F12-8. | open PR; not applied |
 
 What the statuses mean: **reserved** — the number is claimed (for example, by a Meta-CEO B
 pre-reservation) but no pull request carrying its file is open yet; **open PR** — a pull

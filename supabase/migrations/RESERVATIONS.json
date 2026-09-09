@@ -165,7 +165,7 @@
       "state": "taken",
       "file": "0020_team_ownership_transfer.sql",
       "packet": "B-F12-9",
-      "pr": 0,
+      "pr": 557,
       "pr_state": "open",
       "applied_in_production": false,
       "applied_date": null,

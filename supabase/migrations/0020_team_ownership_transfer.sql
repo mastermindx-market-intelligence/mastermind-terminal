@@ -1,4 +1,4 @@
--- Ledger row: 0020_team_ownership_transfer / PR pending (open, packet B-F12-9); not applied
+-- Ledger row: 0020_team_ownership_transfer / PR #557 (open, packet B-F12-9); not applied
 -- Rollback: drop function if exists public.transfer_team_ownership(uuid, uuid) cascade;
 -- 0020: atomic team ownership transfer — demote-then-promote, owner-only, admin recipient (packet B-F12-9).
 --
