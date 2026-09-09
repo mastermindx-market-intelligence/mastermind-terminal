@@ -2115,7 +2115,8 @@ export const LEX: Record<string, [string, string]> = {
   accDetailOpen: ["Show the full record", "查看完整记录"],
   accDetailClose: ["Hide the full record", "收起完整记录"],
   accDetBrier: ["How well your odds matched", "你的把握与实际的吻合程度"],
-  accDetHitRate: ["Hits among checked calls", "已核对判断中的命中"],
+  // accDetHitRate: seat ruling R1 round 5 — label unit matches accDetHitsOf (groups of calls / 判断组).
+  accDetHitRate: ["Hits among checked groups of calls", "已核对判断组中的命中"],
   // accDetEpisodes: seat-ordered R2(a) variant — total episode count, open ones included.
   accDetEpisodes: ["Groups of calls", "判断组"],
   accDetClaims: ["Calls written down", "写下的判断"],

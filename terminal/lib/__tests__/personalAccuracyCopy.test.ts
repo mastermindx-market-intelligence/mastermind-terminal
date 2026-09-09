@@ -209,4 +209,11 @@ describe("B-F13-5 authored extras stay sentences and stay out of the glance body
     expect(LEX.accDetUnscorable[0]).toBe("Calls that could not be checked");
     expect(LEX.accDetUnscorable[1]).toBe("无法核对的判断");
   });
+
+  it("accDetHitRate labels hits among checked groups of calls, matching the value unit", () => {
+    // Seat ruling R1 round 5: the value (accDetHitsOf) is groups of calls; the
+    // label must use the same unit word, not bare "calls" / "判断".
+    expect(LEX.accDetHitRate[0]).toBe("Hits among checked groups of calls");
+    expect(LEX.accDetHitRate[1]).toBe("已核对判断组中的命中");
+  });
 });

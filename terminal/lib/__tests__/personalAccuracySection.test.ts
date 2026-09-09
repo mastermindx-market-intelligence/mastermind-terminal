@@ -121,6 +121,39 @@ describe("SectionAccuracy load-error placement (review MAJOR round 2)", () => {
     expect(detail).toContain("7");
     expect(detail).toContain("10");
   });
+
+  it("EN and ZH: the hit-rate label and value share the groups-of-calls unit", () => {
+    // Seat ruling R1 round 5. Label used to say "checked calls" while the
+    // value named "checked groups of calls".
+    const readout = populatedAccuracyFixture();
+    expect(readout.hitRate).not.toBeNull();
+    mount("en", { readout, loadErr: false });
+    const toggle = container.querySelector("[data-acc='toggle']") as HTMLButtonElement;
+    act(() => {
+      toggle.click();
+    });
+    const enDt = [...container.querySelectorAll("dt")].find(
+      (el) => el.textContent === LEX.accDetHitRate[0],
+    );
+    expect(enDt).toBeTruthy();
+    expect(enDt!.textContent).toBe("Hits among checked groups of calls");
+    expect(enDt!.nextElementSibling?.textContent).toContain("checked groups of calls");
+    act(() => {
+      root?.unmount();
+      root = createRoot(container);
+      root!.render(React.createElement(SectionAccuracy, baseProps("zh", { readout, loadErr: false })));
+    });
+    const zhToggle = container.querySelector("[data-acc='toggle']") as HTMLButtonElement;
+    act(() => {
+      zhToggle.click();
+    });
+    const zhDt = [...container.querySelectorAll("dt")].find(
+      (el) => el.textContent === LEX.accDetHitRate[1],
+    );
+    expect(zhDt).toBeTruthy();
+    expect(zhDt!.textContent).toBe("已核对判断组中的命中");
+    expect(zhDt!.nextElementSibling?.textContent).toContain("组判断");
+  });
 });
 
 function interpolate(template: string, vars: Record<string, string | number>): string {
