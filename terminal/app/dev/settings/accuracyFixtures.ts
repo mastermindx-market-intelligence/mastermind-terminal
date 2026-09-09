@@ -33,6 +33,14 @@ export function populatedAccuracyFixture(): AccuracyReadout {
   return scorePersonalAccuracy(claims);
 }
 
+const UNDETERMINED = {
+  outcome: null,
+  observed: null,
+  resolved_at: "2026-04-01T12:00:00.000Z",
+  resolver: "personalAccuracyStore.RESOLVER_REGISTRY",
+  note: "the data this call named was not available",
+} as const;
+
 export function unscorableAccuracyFixture(): AccuracyReadout {
   const claim: UserClaim = {
     claim_id: "aaaaaaaaaaaaaaaa",
@@ -45,14 +53,44 @@ export function unscorableAccuracyFixture(): AccuracyReadout {
     stated_probability: 0.65,
     evidence: [],
     status: "resolved",
-    resolution: {
-      outcome: null,
-      observed: null,
-      resolved_at: "2026-04-01T12:00:00.000Z",
-      resolver: "personalAccuracyStore.RESOLVER_REGISTRY",
-      note: "the data this call named was not available",
-    },
+    resolution: { ...UNDETERMINED },
     supersedes: null,
   };
   return scorePersonalAccuracy([claim]);
+}
+
+/** Two overlapping unresolved calls collapse to one episode. HONEST-N pin. */
+export function overlappingUnscorableAccuracyFixture(): AccuracyReadout {
+  const userId = "8f2c41ba-7d19-4e6a-9c03-5b71ee0a4d22";
+  const claims: UserClaim[] = [
+    {
+      claim_id: "aaaaaaaaaaaaaaa1",
+      user_id: userId,
+      subject: { kind: "security", id: "N0" },
+      stated_at: "2026-01-01T12:00:00.000Z",
+      resolves_at: "2026-04-01T12:00:00.000Z",
+      claim_text: "Name 0 finishes at or above the line I wrote down.",
+      condition: { metric: "last_close", comparator: ">=", threshold: 100, owner: "quotes.last_close" },
+      stated_probability: 0.65,
+      evidence: [],
+      status: "resolved",
+      resolution: { ...UNDETERMINED },
+      supersedes: null,
+    },
+    {
+      claim_id: "aaaaaaaaaaaaaaa2",
+      user_id: userId,
+      subject: { kind: "security", id: "N0" },
+      stated_at: "2026-02-01T12:00:00.000Z",
+      resolves_at: "2026-04-15T12:00:00.000Z",
+      claim_text: "Name 0 still finishes at or above the line I wrote down.",
+      condition: { metric: "last_close", comparator: ">=", threshold: 100, owner: "quotes.last_close" },
+      stated_probability: 0.70,
+      evidence: [],
+      status: "resolved",
+      resolution: { ...UNDETERMINED, resolved_at: "2026-04-15T12:00:00.000Z" },
+      supersedes: null,
+    },
+  ];
+  return scorePersonalAccuracy(claims);
 }

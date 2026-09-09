@@ -29,6 +29,7 @@ const LAYOUT_FILES = [
   "terminal/components/settings/SettingsPanel.tsx",
   "terminal/lib/i18n.tsx",
   "terminal/lib/personalAccuracy.ts",
+  "terminal/app/dev/settings/page.tsx",
   "terminal/app/dev/settings/accuracyFixtures.ts",
 ];
 const PORT = Number(process.env.TERMINAL_CROP_PORT || 3547);
@@ -37,6 +38,16 @@ const VIEWPORTS = {
   desktop: { width: 1440, height: 900 },
   mobile: { width: 390, height: 844 },
 };
+const SHOTS = [
+  { viewport: "desktop", lang: "en", acc: "empty", detail: false, file: "desktop-en-empty.png" },
+  { viewport: "desktop", lang: "zh", acc: "empty", detail: false, file: "desktop-zh-empty.png" },
+  { viewport: "desktop", lang: "en", acc: "populated", detail: true, file: "desktop-en-detail.png" },
+  { viewport: "desktop", lang: "zh", acc: "populated", detail: true, file: "desktop-zh-detail.png" },
+  { viewport: "mobile", lang: "en", acc: "empty", detail: false, file: "mobile-en-empty.png" },
+  { viewport: "mobile", lang: "zh", acc: "empty", detail: false, file: "mobile-zh-empty.png" },
+  { viewport: "mobile", lang: "en", acc: "populated", detail: true, file: "mobile-en-detail.png" },
+  { viewport: "mobile", lang: "zh", acc: "populated", detail: true, file: "mobile-zh-detail.png" },
+];
 
 mkdirSync(OUT, { recursive: true });
 
@@ -166,17 +177,7 @@ async function main() {
     await waitForServer(180_000);
     const browser = await chromium.launch({ headless: true });
     try {
-      const shots = [
-        { viewport: "desktop", lang: "en", acc: "empty", detail: false, file: "desktop-en-empty.png" },
-        { viewport: "desktop", lang: "zh", acc: "empty", detail: false, file: "desktop-zh-empty.png" },
-        { viewport: "desktop", lang: "en", acc: "populated", detail: true, file: "desktop-en-detail.png" },
-        { viewport: "desktop", lang: "zh", acc: "populated", detail: true, file: "desktop-zh-detail.png" },
-        { viewport: "mobile", lang: "en", acc: "empty", detail: false, file: "mobile-en-empty.png" },
-        { viewport: "mobile", lang: "zh", acc: "empty", detail: false, file: "mobile-zh-empty.png" },
-        { viewport: "mobile", lang: "en", acc: "populated", detail: true, file: "mobile-en-detail.png" },
-        { viewport: "mobile", lang: "zh", acc: "populated", detail: true, file: "mobile-zh-detail.png" },
-      ];
-      for (const shot of shots) {
+      for (const shot of SHOTS) {
         process.stdout.write(`capture ${shot.file} … `);
         const context = await browser.newContext({
           viewport: VIEWPORTS[shot.viewport],
@@ -229,7 +230,8 @@ async function main() {
     "viewports:",
     "  - { name: desktop, width: 1440, height: 900 }",
     "  - { name: mobile, width: 390, height: 844 }",
-    "harness: /dev/settings?s=accuracy&lang=<en|zh>",
+    "harness:",
+    ...SHOTS.map((s) => `  ${s.file}: { url: "/dev/settings?s=accuracy&lang=${s.lang}&acc=${s.acc}", fixture: ${s.acc} }`),
     "capture_flag: TERMINAL_E2E_FIXTURE",
     "capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.",
     "command: |",

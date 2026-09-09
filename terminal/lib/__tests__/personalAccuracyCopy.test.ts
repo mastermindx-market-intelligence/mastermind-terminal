@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { LEX } from "@/lib/i18n";
 
-const GLANCE_KEYS = [
+const FROZEN_GLANCE_KEYS = [
   "accTitle",
   "accSub",
   "accStanceEarly",
@@ -18,6 +18,8 @@ const GLANCE_KEYS = [
   "accCeiling",
 ] as const;
 
+const GLANCE_KEYS = [...FROZEN_GLANCE_KEYS, "accClaimCountN", "accUnread"] as const;
+
 const FROZEN_EN = [
   "Your calls, checked.",
   "We only check what you wrote down first: the call, the day it settles, and what would prove it wrong.",
@@ -28,7 +30,7 @@ const FROZEN_EN = [
   "Nothing has settled yet. Your first call gets checked on the day you set.",
   "Too early to say — checked {n} of your calls so far.",
   "Checked so far: {n} of your calls.",
-  "Not enough settled calls yet to check how well your odds match reality.",
+  "Not enough settled calls yet ({n} of 30).",
   "{n} calls could not be checked — the data they named wasn't there.",
   "This is a learning record. It never changes what we show you, what we rank, or what you can do here.",
 ];
@@ -43,7 +45,7 @@ const FROZEN_ZH = [
   "还没有到期的判断。第一条会在你设定的那天核对。",
   "还看不出来——目前核对了你的 {n} 条判断。",
   "已核对：你的 {n} 条判断。",
-  "还没有足够的已结算判断来核对你的把握是否准确。",
+  "已核对的判断还不够（{n}／30）。",
   "有 {n} 条判断无法核对——所引用的数据不存在。",
   "这只是学习记录。它不会改变我们展示什么、如何排序，也不会改变你能做什么。",
 ];
@@ -66,15 +68,27 @@ const ACCURACY_KEY = /^acc[A-Z]/;
 
 describe("B-F13-5 glance copy", () => {
   it("glance LEX values match the frozen EN copy block verbatim", () => {
-    GLANCE_KEYS.forEach((key, i) => {
+    FROZEN_GLANCE_KEYS.forEach((key, i) => {
       expect(LEX[key]?.[0], key).toBe(FROZEN_EN[i]);
     });
   });
 
   it("glance LEX values match the frozen ZH copy block verbatim", () => {
-    GLANCE_KEYS.forEach((key, i) => {
+    FROZEN_GLANCE_KEYS.forEach((key, i) => {
       expect(LEX[key]?.[1], key).toBe(FROZEN_ZH[i]);
     });
+  });
+
+  it("accClaimCountN is glance prose with singular English at n = 1", () => {
+    expect(LEX.accClaimCountN[0]).toBe("{n} calls written down.");
+    expect(LEX.accClaimCountN[1]).toBe("共写下 {n} 条判断。");
+    expect(LEX.accClaimCount1[0]).toBe("1 call written down.");
+    expect(LEX.accClaimCount1[1]).toBe("共写下 1 条判断。");
+  });
+
+  it("unread glance copy is the seat-ordered neutral sentence", () => {
+    expect(LEX.accUnread[0]).toBe("Reading your record.");
+    expect(LEX.accUnread[1]).toBe("正在读取你的记录。");
   });
 
   it("every accuracy key carries both an EN and a ZH value", () => {
@@ -98,9 +112,9 @@ describe("B-F13-5 glance copy", () => {
     }
   });
 
-  it("the {n} placeholder appears in exactly the three frozen sentences that carry it", () => {
+  it("the {n} placeholder appears in the frozen n-sentences plus accCalibWithheld and accClaimCountN", () => {
     const withN = GLANCE_KEYS.filter((key) => LEX[key][0].includes("{n}"));
-    expect(withN).toEqual(["accEarlyN", "accCheckedN", "accUnscorableN"]);
+    expect(withN).toEqual(["accEarlyN", "accCheckedN", "accCalibWithheld", "accUnscorableN", "accClaimCountN"]);
     for (const key of withN) {
       expect(LEX[key][1]).toContain("{n}");
     }
@@ -136,7 +150,7 @@ describe("B-F13-5 authored extras stay sentences and stay out of the glance body
     expect(zh.replace(/\{hits\}|\{n\}/g, "").replace(/[\s，。、]/g, "").length).toBeGreaterThan(4);
   });
 
-  it("accDetLoadErr is only rendered behind the detail control", () => {
+  it("accDetLoadErr is rendered at the glance; the detail may repeat it", () => {
     const src = readFileSync(
       join(__dirname, "../../components/settings/SectionAccuracy.tsx"),
       "utf8",
@@ -147,10 +161,9 @@ describe("B-F13-5 authored extras stay sentences and stay out of the glance body
     expect(loadAt, "accDetLoadErr must be rendered").toBeGreaterThan(0);
     expect(detailAt, "detail pane must exist").toBeGreaterThan(0);
     expect(toggleAt, "detail toggle must exist").toBeGreaterThan(0);
-    expect(loadAt).toBeGreaterThan(detailAt);
-    expect(loadAt).toBeGreaterThan(toggleAt);
     const glance = src.slice(src.indexOf("acs-body"), detailAt);
-    expect(glance).not.toContain('t("accDetLoadErr")');
+    expect(glance).toContain('t("accDetLoadErr")');
+    expect(loadAt).toBeLessThan(detailAt);
   });
 
   it("the settings sidebar tab is the noun Accuracy / 准确度, not the glance sentence", () => {
@@ -172,7 +185,9 @@ describe("B-F13-5 authored extras stay sentences and stay out of the glance body
     expect(zh).toContain("{value}");
     expect(zh).toContain("{n}");
     expect(en).toMatch(/resolved calls/);
-    expect(zh).toMatch(/已核对判断/);
+    expect(zh.startsWith("Brier"), "ZH must open with Chinese, not a Latin token").toBe(false);
+    expect(zh).toMatch(/^按 \{n\} 条已核对判断计算/);
+    expect(zh).toMatch(/Brier 分数 \{value\}/);
     expect(en).toMatch(/[.!?]$/);
     expect(zh).toMatch(/[。！？]$/);
   });

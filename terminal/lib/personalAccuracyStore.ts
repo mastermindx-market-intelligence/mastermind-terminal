@@ -1,7 +1,7 @@
 // Owner-scoped claim reads + the v1 resolver registry (declared, empty).
 // Maturation/resolution writes are service-role only (the out-of-band worker).
 
-import type { ClaimCondition, ClaimResolution, ClaimStatus, SubjectKind, UserClaim } from "@/lib/personalAccuracy";
+import type { ClaimCondition, ClaimResolution, ClaimStatus, SubjectKind, UnscorableReason, UserClaim } from "@/lib/personalAccuracy";
 
 export type MetricResolver = (claim: UserClaim) => Promise<{ observed: number } | null>;
 
@@ -56,12 +56,14 @@ function parseResolution(value: unknown): ClaimResolution | null {
   };
 }
 
-function parseKind(value: unknown): SubjectKind {
-  return KINDS.has(text(value)) ? (value as SubjectKind) : "security";
+export function parseKind(value: unknown): SubjectKind | null {
+  const s = text(value);
+  return KINDS.has(s) ? (s as SubjectKind) : null;
 }
 
-function parseStatus(value: unknown): ClaimStatus {
-  return STATUSES.has(text(value)) ? (value as ClaimStatus) : "open";
+export function parseStatus(value: unknown): ClaimStatus | null {
+  const s = text(value);
+  return STATUSES.has(s) ? (s as ClaimStatus) : null;
 }
 
 export function parseUserClaim(row: Record<string, unknown>): UserClaim | null {
@@ -73,19 +75,25 @@ export function parseUserClaim(row: Record<string, unknown>): UserClaim | null {
     ? (subjectRaw as Record<string, unknown>)
     : {};
   const probability = row.stated_probability;
+  const kind = parseKind(subjectObj.kind);
+  const status = parseStatus(row.status);
+  let ingestUnscorable: UnscorableReason | null = null;
+  if (kind === null) ingestUnscorable = "unrecognised_kind";
+  else if (status === null) ingestUnscorable = "unrecognised_status";
   return {
     claim_id,
     user_id,
-    subject: { kind: parseKind(subjectObj.kind), id: text(subjectObj.id) },
+    subject: { kind: kind ?? "security", id: text(subjectObj.id) },
     stated_at: text(row.stated_at),
     resolves_at: text(row.resolves_at),
     claim_text: text(row.claim_text),
     condition: parseCondition(row.condition),
     stated_probability: typeof probability === "number" && Number.isFinite(probability) ? probability : null,
     evidence: Array.isArray(row.evidence) ? row.evidence : [],
-    status: parseStatus(row.status),
+    status: ingestUnscorable ? "void_unscorable" : status as ClaimStatus,
     resolution: parseResolution(row.resolution),
     supersedes: typeof row.supersedes === "string" && row.supersedes ? row.supersedes : null,
+    ingestUnscorable,
   };
 }
 

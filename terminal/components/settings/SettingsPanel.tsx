@@ -304,7 +304,7 @@ export default function SettingsPanel(props: SettingsPanelProps) {
 
         <section className="acs-pane">
           {/* Only the active section is mounted: that gives the acsRise entry
-              animation for free on every switch, and keeps the six sections
+              animation for free on every switch, and keeps the seven sections
               from all fetching at once. The payloads they share (plan, usage)
               are cached above, so switching back is free. */}
           <div className="acs-sect on" key={section}>

@@ -7,6 +7,7 @@ const H = vi.hoisted(() => ({
   error: null as { message: string } | null,
   eqCalls: [] as Array<[string, unknown]>,
   throwCreate: false,
+  throwQuery: false,
 }));
 
 vi.mock("next/headers", () => ({ cookies: vi.fn(async () => ({ get: () => undefined })) }));
@@ -25,6 +26,7 @@ vi.mock("@/lib/supabase/server", () => ({
       });
       q.order = vi.fn(() => q);
       q.then = (resolve: (v: unknown) => unknown, reject?: (e: unknown) => unknown) => {
+        if (H.throwQuery) return Promise.reject(new Error("socket hang up")).then(resolve, reject);
         if (table !== "user_claims") {
           return Promise.resolve({ data: [], error: null }).then(resolve, reject);
         }
@@ -79,6 +81,7 @@ beforeEach(() => {
   H.error = null;
   H.eqCalls = [];
   H.throwCreate = false;
+  H.throwQuery = false;
   delete process.env.TERMINAL_E2E_FIXTURE;
   vi.clearAllMocks();
 });
@@ -114,6 +117,13 @@ describe("GET /api/accuracy", () => {
 
   it("returns 503 when the store faults before the query", async () => {
     H.throwCreate = true;
+    const res = await route.GET(new Request("https://x.test/api/accuracy"));
+    expect(res.status).toBe(503);
+    expect(await res.json()).toEqual({ error: "accuracy_store_unavailable" });
+  });
+
+  it("returns 503 when the claims query throws", async () => {
+    H.throwQuery = true;
     const res = await route.GET(new Request("https://x.test/api/accuracy"));
     expect(res.status).toBe(503);
     expect(await res.json()).toEqual({ error: "accuracy_store_unavailable" });

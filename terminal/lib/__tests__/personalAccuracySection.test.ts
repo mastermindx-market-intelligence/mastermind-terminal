@@ -1,19 +1,22 @@
 // @vitest-environment jsdom
 //
-// Review MAJOR (round 2): accDetLoadErr was rendered in the glance body when
-// loadErr was set. Spec 2.6 / reviewer §3.5 allow that sentence only behind
-// the detail control. This mounts the real SectionAccuracy (no test double)
-// and reads the rendered text before and after the toggle.
+// Round 3: loadErr prints accDetLoadErr at the glance (R2). Unread is a
+// fourth glance state (R1). Unscorable glance prints call count + claim
+// count (R3). This mounts the real SectionAccuracy (no test double).
 import { describe, expect, it, beforeEach, afterEach } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import React from "react";
-import SectionAccuracy from "@/components/settings/SectionAccuracy";
+import SectionAccuracy, { accuracyGlanceState } from "@/components/settings/SectionAccuracy";
 import { LEX } from "@/lib/i18n";
 import { emptyAccuracyReadout, scorePersonalAccuracy, type UserClaim } from "@/lib/personalAccuracy";
-import { populatedAccuracyFixture, unscorableAccuracyFixture } from "@/app/dev/settings/accuracyFixtures";
+import {
+  overlappingUnscorableAccuracyFixture,
+  populatedAccuracyFixture,
+  unscorableAccuracyFixture,
+} from "@/app/dev/settings/accuracyFixtures";
 import type { AccuracyProps } from "@/components/settings/SectionAccuracy";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -65,11 +68,15 @@ describe("SectionAccuracy load-error placement (review MAJOR round 2)", () => {
     });
   }
 
-  it("EN: a load error is not in the glance body; it appears after Show the full record", () => {
+  it("EN: a load error is visible in the glance before the toggle is opened", () => {
     const err = LEX.accDetLoadErr[0];
     mount("en", { readout: null, loadErr: true });
-    expect(container.textContent).not.toContain(err);
-    expect(container.textContent).toContain(LEX.accCeiling[0]);
+    expect(container.textContent).toContain(err);
+    expect(container.querySelector("[data-acc-state='error']")?.textContent).toContain(err);
+    expect(container.querySelector("[data-acc='detail']")).toBeNull();
+    expect(container.textContent).not.toContain(LEX.accEmpty[0]);
+    expect(container.textContent).not.toContain(LEX.accUnread[0]);
+    expect(container.querySelectorAll("[data-acc-state]")).toHaveLength(1);
     const toggle = container.querySelector("[data-acc='toggle']") as HTMLButtonElement;
     expect(toggle).toBeTruthy();
     expect(toggle.textContent).toBe(LEX.accDetailOpen[0]);
@@ -77,13 +84,16 @@ describe("SectionAccuracy load-error placement (review MAJOR round 2)", () => {
       toggle.click();
     });
     expect(container.querySelector("[data-acc='detail']")?.textContent).toContain(err);
-    expect(container.querySelector(".acs-body")?.textContent).toContain(err);
   });
 
-  it("ZH: a load error is not in the glance body; it appears after 查看完整记录", () => {
+  it("ZH: a load error is visible in the glance before the toggle is opened", () => {
     const err = LEX.accDetLoadErr[1];
     mount("zh", { readout: null, loadErr: true });
-    expect(container.textContent).not.toContain(err);
+    expect(container.textContent).toContain(err);
+    expect(container.querySelector("[data-acc-state='error']")?.textContent).toContain(err);
+    expect(container.querySelector("[data-acc='detail']")).toBeNull();
+    expect(container.textContent).not.toContain(LEX.accEmpty[1]);
+    expect(container.textContent).not.toContain(LEX.accUnread[1]);
     const toggle = container.querySelector("[data-acc='toggle']") as HTMLButtonElement;
     act(() => {
       toggle.click();
@@ -150,6 +160,22 @@ describe("SectionAccuracy glance state machine (exactly one state sentence)", ()
     });
   }
 
+  it("accuracyGlanceState(null) returns unread, never empty", () => {
+    expect(accuracyGlanceState(null)).toBe("unread");
+    expect(accuracyGlanceState(emptyAccuracyReadout())).toBe("empty");
+  });
+
+  it("null readout: only the unread copy is in the DOM", () => {
+    mount("en", { readout: null, loadErr: false });
+    const text = container.textContent || "";
+    expect(text).toContain(LEX.accUnread[0]);
+    expect(text).not.toContain(LEX.accEmpty[0]);
+    expect(text).not.toContain(interpolate(LEX.accUnscorableN[0], { n: 1 }));
+    expect(text).not.toContain(LEX.accStanceMostly[0]);
+    expect(container.querySelectorAll("[data-acc-state]")).toHaveLength(1);
+    expect(container.querySelector("[data-acc-state='unread']")).toBeTruthy();
+  });
+
   it("no claims at all: only the empty copy is in the DOM", () => {
     mount("en", { readout: emptyAccuracyReadout(), loadErr: false });
     const text = container.textContent || "";
@@ -185,6 +211,48 @@ describe("SectionAccuracy glance state machine (exactly one state sentence)", ()
     expect(container.querySelector("[data-acc-state='readout']")).toBeTruthy();
     expect(text).toContain(interpolate(LEX.accClaimCountN[0], { n: readout.claimCount }));
   });
+
+  it("unscorable glance prints call count beside claim count when two overlapping calls collapse to one episode", () => {
+    const readout = overlappingUnscorableAccuracyFixture();
+    expect(readout.episodeCount).toBe(1);
+    expect(readout.claimCount).toBe(2);
+    expect(readout.unscorableCount).toBe(1);
+    mount("en", { readout, loadErr: false });
+    const text = container.textContent || "";
+    expect(text).toContain(interpolate(LEX.accUnscorableN[0], { n: 2 }));
+    expect(text).toContain(interpolate(LEX.accClaimCountN[0], { n: 2 }));
+    expect(text).not.toContain(interpolate(LEX.accUnscorableN[0], { n: 1 }));
+    expect(container.querySelectorAll("[data-acc-state]")).toHaveLength(1);
+    expect(container.querySelector("[data-acc-state='unscorable']")).toBeTruthy();
+  });
+
+  it("EN claim-count line is singular at n = 1", () => {
+    const readout = scorePersonalAccuracy([{
+      claim_id: "1111111111111111",
+      user_id: "11111111-1111-4111-8111-111111111111",
+      subject: { kind: "security", id: "SPX" },
+      stated_at: "2026-01-01T00:00:00.000Z",
+      resolves_at: "2026-02-01T00:00:00.000Z",
+      claim_text: "SPX finishes at or above 6000",
+      condition: { metric: "last_close", comparator: ">=", threshold: 6000, owner: "quotes.last_close" },
+      stated_probability: 0.7,
+      evidence: [],
+      status: "resolved",
+      resolution: {
+        outcome: 1,
+        observed: 6100,
+        resolved_at: "2026-02-01T00:00:00.000Z",
+        resolver: "quotes.last_close",
+        note: "",
+      },
+      supersedes: null,
+    }]);
+    expect(readout.claimCount).toBe(1);
+    mount("en", { readout, loadErr: false });
+    const text = container.textContent || "";
+    expect(text).toContain(LEX.accClaimCount1[0]);
+    expect(text).not.toContain("1 calls written down.");
+  });
 });
 
 describe("SectionAccuracy detail honesty", () => {
@@ -218,6 +286,18 @@ describe("SectionAccuracy detail honesty", () => {
     });
     return container.querySelector("[data-acc='detail']")?.textContent || "";
   }
+
+  it("withheld Brier line prints the pair count in the glance and the detail", () => {
+    const readout = populatedAccuracyFixture();
+    expect(readout.brierMean).toBeNull();
+    expect(readout.brierPairs).toBeGreaterThan(0);
+    expect(readout.brierPairs).toBeLessThan(30);
+    mount("en", { readout, loadErr: false });
+    const expected = interpolate(LEX.accCalibWithheld[0], { n: readout.brierPairs });
+    expect(container.textContent).toContain(expected);
+    const detail = openDetail();
+    expect(detail).toContain(expected);
+  });
 
   it("never prints a bare Brier number; the denominator is the pair count", () => {
     const claims: UserClaim[] = Array.from({ length: 30 }, (_, i) => ({

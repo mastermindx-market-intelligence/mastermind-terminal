@@ -13,8 +13,6 @@
 import { Suspense, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { notFound, useSearchParams } from "next/navigation";
-
-const SettingsPanel = dynamic(() => import("@/components/settings/SettingsPanel"), { ssr: false });
 import type { SettingsSection } from "@/components/settings/SettingsProvider";
 import type { AcsUser } from "@/components/settings/SettingsProvider";
 import type { AcsPlan, AcsUsage } from "@/components/settings/types";
@@ -22,6 +20,8 @@ import { applyLang } from "@/lib/i18n";
 import { accountIdentity, GUEST_IDENTITY } from "@/lib/accountIdentity";
 import { emptyAccuracyReadout, type AccuracyReadout } from "@/lib/personalAccuracy";
 import { populatedAccuracyFixture } from "./accuracyFixtures";
+
+const SettingsPanel = dynamic(() => import("@/components/settings/SettingsPanel"), { ssr: false });
 
 const MOCK_USER: AcsUser = {
   id: "8f2c41ba-7d19-4e6a-9c03-5b71ee0a4d22",

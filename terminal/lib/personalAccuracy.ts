@@ -28,6 +28,8 @@ export type ClaimResolution = {
   note: string;
 };
 
+export type UnscorableReason = "malformed_timestamp" | "unrecognised_kind" | "unrecognised_status";
+
 export type UserClaim = {
   claim_id: string;
   user_id: string;
@@ -41,9 +43,9 @@ export type UserClaim = {
   status: ClaimStatus;
   resolution: ClaimResolution | null;
   supersedes: string | null;
+  /** Set by the store parser when kind or status is not a recognised enum. */
+  ingestUnscorable?: UnscorableReason | null;
 };
-
-export type UnscorableReason = "malformed_timestamp";
 
 export type AccuracyClaimRow = {
   claimId: string;
@@ -226,7 +228,12 @@ export function compareObserved(comparator: string, observed: number, threshold:
 export function scorePersonalAccuracy(claims: UserClaim[]): AccuracyReadout {
   const usable: UserClaim[] = [];
   const malformedIds = new Set<string>();
+  const ingestFailed = new Map<string, UnscorableReason>();
   for (const claim of claims) {
+    if (claim.ingestUnscorable) {
+      ingestFailed.set(claim.claim_id, claim.ingestUnscorable);
+      continue;
+    }
     if (hasValidWindow(claim)) usable.push(claim);
     else malformedIds.add(claim.claim_id);
   }
@@ -248,8 +255,8 @@ export function scorePersonalAccuracy(claims: UserClaim[]): AccuracyReadout {
   let openEpisodes = 0;
   const carrierIds = new Set<string>();
 
-  episodeCount += malformedIds.size;
-  unscorableCount += malformedIds.size;
+  episodeCount += malformedIds.size + ingestFailed.size;
+  unscorableCount += malformedIds.size + ingestFailed.size;
 
   for (const members of groups.values()) {
     for (const episode of collapseGroup(members)) {
@@ -301,7 +308,8 @@ export function scorePersonalAccuracy(claims: UserClaim[]): AccuracyReadout {
       toRow(
         c,
         carrierIds.has(c.claim_id) ? c.claim_id : null,
-        malformedIds.has(c.claim_id) ? "malformed_timestamp" : null,
+        ingestFailed.get(c.claim_id)
+          ?? (malformedIds.has(c.claim_id) ? "malformed_timestamp" : null),
       ),
     ),
   };

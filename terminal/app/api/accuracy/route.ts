@@ -35,7 +35,12 @@ export async function GET(request: Request) {
     return NextResponse.json(scorePersonalAccuracy([]));
   }
 
-  const listed = await listOwnClaims(session.db, session.userId);
+  let listed: Awaited<ReturnType<typeof listOwnClaims>>;
+  try {
+    listed = await listOwnClaims(session.db, session.userId);
+  } catch {
+    return jsonError("accuracy_store_unavailable", 503);
+  }
   if (!listed.ok) {
     console.error("accuracy GET failed:", listed.error);
     return jsonError("accuracy_store_unavailable", 503);

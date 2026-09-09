@@ -17,6 +17,7 @@ const LAYOUT_FILES = [
   "terminal/components/settings/SettingsPanel.tsx",
   "terminal/lib/i18n.tsx",
   "terminal/lib/personalAccuracy.ts",
+  "terminal/app/dev/settings/page.tsx",
   "terminal/app/dev/settings/accuracyFixtures.ts",
 ];
 const CROPS = [
@@ -85,5 +86,17 @@ describe("B-F13-5 evidence lock is the sha256 of the layout sources", () => {
     expect(yml).toMatch(/DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06/);
     expect(yml).toMatch(/^theme:\s*dark$/m);
     expect(yml).toMatch(/capturedAtHead is informational\. The lock is layoutFiles\./);
+  });
+
+  it("each crop names the exact harness URL and fixture so it reproduces", () => {
+    const yml = evidenceText();
+    for (const file of CROPS) {
+      const empty = file.includes("-empty.");
+      const lang = file.includes("-zh-") ? "zh" : "en";
+      const acc = empty ? "empty" : "populated";
+      const url = `/dev/settings?s=accuracy&lang=${lang}&acc=${acc}`;
+      expect(yml, file).toMatch(new RegExp(`${file}:\\s*\\{[^}]*url:\\s*"${url.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}"`));
+      expect(yml, file).toMatch(new RegExp(`${file}:\\s*\\{[^}]*fixture:\\s*${acc}`));
+    }
   });
 });
