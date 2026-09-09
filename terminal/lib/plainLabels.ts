@@ -205,3 +205,18 @@ export function widgetTypeLabel(value: string | null | undefined, lang: PlainLan
   if (!pair) return notClassified(lang);
   return lang === "zh" ? pair[1] : pair[0];
 }
+
+/** Thesis subject kind shown on the research workspace inspector. */
+export const SUBJECT_KIND_LABEL = {
+  issuer: ["Company listing", "上市标的"],
+  theme: ["Theme", "主题"],
+} as const;
+
+export type SubjectKind = keyof typeof SUBJECT_KIND_LABEL;
+
+export function subjectKindLabel(value: string | null | undefined, lang: PlainLang): string {
+  if (value == null || value === "") return notClassified(lang);
+  const pair = SUBJECT_KIND_LABEL[value as SubjectKind];
+  if (!pair) return notClassified(lang);
+  return lang === "zh" ? pair[1] : pair[0];
+}

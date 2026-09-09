@@ -5,7 +5,7 @@ import ScreenerView from "@/components/ScreenerView";
 import HeatmapPageRoot from "@/components/heatmap/HeatmapPageRoot";
 import { DiscoverLeadersMount, DiscoverRadarMount } from "@/components/workspaces/DiscoverFlowMounts";
 import { useShellIdentity } from "@/components/chrome/AppShell";
-import { useLang } from "@/lib/i18n";
+import { useT } from "@/lib/i18n";
 
 /**
  * Discover workspace composer (Wave-2 IA) — the `/discover` body.
@@ -39,7 +39,7 @@ const KEYS = new Set(["screener", "heatmap", "leaders", "radar"]);
 const DEFAULT_TAB = "screener";
 
 export default function DiscoverWorkspace() {
-  const { lang } = useLang();
+  const t = useT();
   const identity = useShellIdentity(); // resolved once by the (shell) layout → AppShell context
   const [tab, setTab] = useState<string>(DEFAULT_TAB);
   // Bumped on every tab click so re-selecting the active Leaders/Radar tab
@@ -71,7 +71,7 @@ export default function DiscoverWorkspace() {
           tabs={TABS}
           active={tab}
           onSelect={onSelect}
-          aria-label={lang === "zh" ? "发现选项卡" : "Discover tabs"}
+          aria-label={t("wtDiscoverTabs")}
         />
       </div>
 
