@@ -5,7 +5,7 @@
 # capturedAt: 2026-09-09T02:37:16.733Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/settings/SectionAccount.tsx: "c52efebbd06b1bc924c9d94c6ac22dab777b3416bc17e55c5ea0179d9ae51e62"
+  terminal/components/settings/SectionAccount.tsx: "b9ac1909c964af78ff4903263102e908d41116fe9e4bed88b9d259f7b5255336"
   terminal/app/settings.css: "3189163136d943431cbf52e4b5d241c105b695ba5af94c4c2e29151d537b5ef5"
 theme: dark
 languages: [en, zh]

@@ -429,4 +429,27 @@ describe("password path stays singular", () => {
       expect(text).not.toMatch(/password|service_role|SUPABASE_SERVICE_ROLE_KEY|auth\/v1\/admin/);
     }
   });
+
+  it("current_password appears in exactly the same one file as the password write", () => {
+    const root = join(process.cwd());
+    const files = walk(root);
+    const hits = files.filter((f) => readFileSync(f, "utf8").includes("current_password"));
+    expect(hits).toHaveLength(1);
+    expect(hits[0]).toContain("components/settings/SectionAccount.tsx");
+  });
+
+  it("password identifiers are never arguments to a console write", () => {
+    const root = join(process.cwd());
+    const files = walk(root);
+    const ident = /\b(pw1|pw2|pwCur|password|current_password)\b/;
+    const consoleWrite = /\bconsole\.(log|warn|error)\s*\(/;
+    for (const f of files) {
+      const lines = readFileSync(f, "utf8").split("\n");
+      for (const line of lines) {
+        if (consoleWrite.test(line) && ident.test(line)) {
+          throw new Error(`${f} logs a password identifier: ${line.trim()}`);
+        }
+      }
+    }
+  });
 });

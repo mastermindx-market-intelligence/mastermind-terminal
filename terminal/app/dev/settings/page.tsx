@@ -84,6 +84,8 @@ export default function SettingsHarness() {
 // Every control is also a URL parameter, so each screenshot in
 // docs/pr-crops/settings-panel/ has one reproducible address:
 //   /dev/settings?s=billing&plan=pro%20%C2%B7%20annual&usage=low&lang=zh
+// Optional `provider` (default "google") opts the mock user into email so the
+// password-change form can be captured; other callers stay on google.
 function Harness() {
   const q = useSearchParams();
   const [section, setSection] = useState<SettingsSection>(
@@ -144,7 +146,7 @@ function Harness() {
         onSection={setSection}
         onClose={() => setOpen(false)}
         identity={signedIn ? accountIdentity(MOCK_USER.id, MOCK_USER.email) : GUEST_IDENTITY}
-        user={signedIn ? MOCK_USER : null}
+        user={signedIn ? { ...MOCK_USER, provider: (q.get("provider") || MOCK_USER.provider).toLowerCase() } : null}
         onPatchMeta={() => {}}
         onRefreshUser={async () => {}}
         devPlan={PLANS[planKey]}

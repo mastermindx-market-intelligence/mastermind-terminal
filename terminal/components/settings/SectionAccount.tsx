@@ -4,6 +4,11 @@ import { createClient } from "@/lib/supabase/client";
 import { Group, IconGoogle, IconSignOut, IconTwitterX, Msg, Row, SectionHead } from "./icons";
 import { acsDate, type SectionProps } from "./types";
 import type { ExportFormat } from "@/lib/accountExport";
+import {
+  classifyTeamSummary,
+  parseTeamsResponse,
+  type TeamsFetch,
+} from "@/lib/teamSummary";
 
 // ── Account ──────────────────────────────────────────────────────────────────
 // Ported from the macro dashboard's `_renderSDAccount` + `_wireSDAccount`:
@@ -26,6 +31,44 @@ type DeletionReceipt = {
 // does not need a DOM.
 export function isActiveDeletionStatus(status: string): boolean {
   return status === "received" || status === "in_progress" || status === "completed";
+}
+
+export function passwordErrorKey(code: string | undefined): string {
+  if (code === "invalid_credentials") return "acsPwWrongCurrent";
+  if (code === "same_password") return "acsPwSame";
+  if (code === "over_request_rate_limit") return "acsPwRateLimited";
+  if (code === "weak_password") return "acsPwShort";
+  return "acsPwFailed";
+}
+
+export function canChangePassword(provider: string | undefined | null): boolean {
+  return provider === "email";
+}
+
+export function teamSummaryText(lang: "en" | "zh", fetch: TeamsFetch | null): string {
+  if (!fetch) return lang === "zh" ? "正在加载团队信息…" : "Loading your team…";
+  if (fetch.status === "unavailable") {
+    return lang === "zh" ? "我们暂时无法查看您的团队信息。" : "We could not check your team right now.";
+  }
+  const s = classifyTeamSummary(fetch.teams, fetch.truncated);
+  if (s.kind === "none") {
+    return lang === "zh" ? "您还没有加入任何团队。" : "You are not on a team yet.";
+  }
+  if (s.kind === "one") {
+    const roleWord = {
+      owner: ["owner", "所有者"],
+      admin: ["administrator", "管理员"],
+      member: ["member", "成员"],
+    }[s.team.role];
+    const name = s.team.teamName || (lang === "zh" ? "未命名团队" : "an unnamed team");
+    return lang === "zh"
+      ? `您是\u201c${name}\u201d团队的${roleWord[1]}。`
+      : `You are the ${roleWord[0]} of ${name}.`;
+  }
+  const plus = s.truncated ? "+" : "";
+  return lang === "zh"
+    ? `您已加入 ${s.count}${plus} 个团队。`
+    : `You are on ${s.count}${plus} team${s.count === 1 ? "" : "s"}.`;
 }
 
 function providerLabelKey(p: string): string {
@@ -71,6 +114,8 @@ export default function SectionAccount({ t, lang, email, user, onClose, onPatchM
   const [emailIn, setEmailIn] = useState("");
   const [pw1, setPw1] = useState("");
   const [pw2, setPw2] = useState("");
+  const [pwCur, setPwCur] = useState("");
+  const [teamsFetch, setTeamsFetch] = useState<TeamsFetch | null>(null);
 
   const [copied, setCopied] = useState(false);
   const copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -93,6 +138,20 @@ export default function SectionAccount({ t, lang, email, user, onClose, onPatchM
         const rows: DeletionReceipt[] = Array.isArray(body?.requests) ? body.requests : [];
         if (live && rows.length) setFiled(rows[0]);
       } catch { /* no receipt shown — not an error state, just unknown */ }
+    })();
+    return () => { live = false; };
+  }, []);
+  useEffect(() => {
+    let live = true;
+    (async () => {
+      try {
+        const res = await fetch("/api/teams");
+        const body = await res.json().catch(() => null);
+        const parsed = res.ok ? parseTeamsResponse(body) : { status: "unavailable" as const };
+        if (live) setTeamsFetch(parsed);
+      } catch {
+        if (live) setTeamsFetch({ status: "unavailable" });
+      }
     })();
     return () => { live = false; };
   }, []);
@@ -186,13 +245,13 @@ export default function SectionAccount({ t, lang, email, user, onClose, onPatchM
     setMsg(null);
     if (kind === "name") setNameIn(displayName);
     if (kind === "email") setEmailIn("");
-    if (kind === "pw") { setPw1(""); setPw2(""); }
+    if (kind === "pw") { setPw1(""); setPw2(""); setPwCur(""); }
     if (kind === "del") setDelIn("");
   }
   function cancelEdit() {
     setEditing(null);
     setMsg(null);
-    setEmailIn(""); setPw1(""); setPw2(""); setDelIn("");
+    setEmailIn(""); setPw1(""); setPw2(""); setPwCur(""); setDelIn("");
   }
 
   async function saveName() {
@@ -231,19 +290,21 @@ export default function SectionAccount({ t, lang, email, user, onClose, onPatchM
   }
 
   async function savePw() {
+    if (!pwCur.trim()) { setMsg({ kind: "err", text: t("acsCurrentPwRequired") }); return; }
     if (pw1.length < 8) { setMsg({ kind: "err", text: t("acsPwShort") }); return; }
     if (pw1 !== pw2) { setMsg({ kind: "err", text: t("acsPwMismatch") }); return; }
     setBusy(true); setMsg(null);
     try {
-      const { error } = await createClient().auth.updateUser({ password: pw1 });
+      const { error } = await createClient().auth.updateUser({ password: pw1, current_password: pwCur });
       if (error) throw error;
       setMsg({ kind: "ok", text: t("acsPwOk") });
-      setPw1(""); setPw2("");
+      setPw1(""); setPw2(""); setPwCur("");
       closeTimer.current = setTimeout(() => { setEditing(null); setMsg(null); }, 1200);
     } catch (e) {
-      setMsg({ kind: "err", text: (e as Error)?.message || t("acsErrGen") });
+      setMsg({ kind: "err", text: t(passwordErrorKey((e as { code?: string })?.code)) });
     } finally {
       setBusy(false);
+      setPwCur("");
     }
   }
 
@@ -349,6 +410,7 @@ export default function SectionAccount({ t, lang, email, user, onClose, onPatchM
             </Row>
 
             {/* password */}
+            {canChangePassword(provider) ? (
             <Row
               label={t("acsPassword")}
               value="••••••••"
@@ -356,6 +418,15 @@ export default function SectionAccount({ t, lang, email, user, onClose, onPatchM
               editing={editing === "pw"}
             >
               <div className="acs-form">
+                <input
+                  className="acs-in"
+                  type="password"
+                  value={pwCur}
+                  placeholder={t("acsCurrentPwPh")}
+                  aria-label={t("acsCurrentPw")}
+                  autoComplete="current-password"
+                  onChange={(e) => setPwCur(e.target.value)}
+                />
                 <input
                   className="acs-in"
                   type="password"
@@ -378,9 +449,17 @@ export default function SectionAccount({ t, lang, email, user, onClose, onPatchM
                 <FormBtns busy={busy} t={t} onCancel={cancelEdit} onSave={savePw} saveKey="acsUpdatePw" />
               </div>
             </Row>
+            ) : (
+            <Row
+              label={t("acsPassword")}
+              value="••••••••"
+              desc={t("acsPwNoPassword")}
+            />
+            )}
           </Group>
 
           <Group title={t("acsSecurity")}>
+            <Row label={teamSummaryText(lang, teamsFetch)} />
             <Row
               label={t("acsLoginMethod")}
               control={
