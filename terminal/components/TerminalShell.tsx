@@ -5394,7 +5394,10 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
             "the workspace still opened", so it sits beside a working chart, never instead of one. */}
         {!paneOpen && !tableViewOpen && extraWorkspaceWidgets.length > 0 && (
           <div className="ws-extra-widgets" data-ws-extra-widgets>
-            {extraWorkspaceWidgets.map((w) => <WorkspaceTile key={w.id} type={w.type} />)}
+            {extraWorkspaceWidgets.map((w) => {
+              const widgetType = w.type;
+              return <WorkspaceTile key={w.id} type={widgetType} />;
+            })}
           </div>
         )}
         {/* The strip is the foot of the chart column, directly under the canvas and in place of

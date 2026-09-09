@@ -2,6 +2,7 @@
 import { Fragment, useCallback, useDeferredValue, useEffect, useId, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useLang, useT } from "@/lib/i18n";
+import { verdictLabel } from "@/lib/plainLabels";
 import { CMP_PALETTE, CmpMode, CmpCfg } from "@/lib/compare";
 import { parseComposite, compositeExpr, validateLegs } from "@/lib/composite";
 import { getRecentlyViewed, RECENTLY_VIEWED_LIMIT } from "@/lib/recentlyViewed";
@@ -525,10 +526,10 @@ export default function SearchModal({
                 {r?.verdict && (
                   <span
                     className={"verd" + (verdictIsStale(r.vts) ? " stale" : "")}
-                    title={r.vts ? `${r.verdict} · ${r.vts}` : undefined}
+                    title={r.vts ? `${verdictLabel(r.verdict, lang)} · ${r.vts}` : undefined}
                     style={{ color: buy ? "var(--buy)" : "var(--sell)", background: `color-mix(in srgb, ${buy ? "var(--buy)" : "var(--sell)"} 13%, transparent)` }}
                   >
-                    {r.verdict}
+                    {verdictLabel(r.verdict, lang)}
                   </span>
                 )}
               </>
@@ -886,10 +887,10 @@ export default function SearchModal({
                       {r.verdict && (
                         <span
                           className={"verd" + (verdictIsStale(r.vts) ? " stale" : "")}
-                          title={r.vts ? `${r.verdict} · ${r.vts}` : undefined}
+                          title={r.vts ? `${verdictLabel(r.verdict, lang)} · ${r.vts}` : undefined}
                           style={{ color: buy ? "var(--buy)" : "var(--sell)", background: `color-mix(in srgb, ${buy ? "var(--buy)" : "var(--sell)"} 13%, transparent)` }}
                         >
-                          {r.verdict}
+                          {verdictLabel(r.verdict, lang)}
                         </span>
                       )}
                     </div>

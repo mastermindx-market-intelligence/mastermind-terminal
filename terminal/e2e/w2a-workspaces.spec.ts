@@ -4,6 +4,7 @@ import {
   forceStaleRevision, seedNameConflict, seedUnreadableWorkspace, seedFutureFloorWorkspace,
   seedUnknownWidgetTypeWorkspace, seedTolerantDefectWorkspace,
 } from "./layoutStore";
+import { widgetTypeLabel } from "@/lib/plainLabels";
 import { openLayoutMenu } from "./terminalToolbar";
 import { expectTapTarget } from "./tapTarget";
 
@@ -257,7 +258,8 @@ test.describe("W2-A workspace menu — 1440×900 EN", () => {
     const tile = page.locator("[data-ws-missing-widget]");
     await expect(tile).toBeVisible();
     await expect(tile).toHaveAttribute("data-ws-missing-widget", "screener"); // the tile names the actual unknown type
-    await expect(tile).toContainText("screener");
+    // PR #540 / B-PL-6: visible text is the bilingual widget-type word; the attribute keeps the slug.
+    await expect(tile).toContainText(widgetTypeLabel("screener", "en"));
     await shot(page, "1440-en-tile-unknown-type");
 
     // Reviewer ruling M5b: the tile alone is a per-widget RENDER affordance — it does not warn that

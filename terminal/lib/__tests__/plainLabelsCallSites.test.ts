@@ -56,12 +56,52 @@ describe("plain-language call sites — leaky fallbacks gone", () => {
     expect(src).toContain("planTierLabel(");
   });
 
-  it("ScreenerView.tsx: no || r.mscRegime; inline Not classified / 未分类", () => {
+  it("ScreenerView.tsx: no || r.mscRegime; notClassified helper on the regime line", () => {
     const src = readOwned("ScreenerView.tsx");
     const gexLine = lineContaining(src, "regime${r.mscRegime}", "mscRegime gexT line");
     expect(gexLine).not.toContain("|| r.mscRegime");
-    expect(gexLine).toContain("Not classified");
-    expect(gexLine).toContain("未分类");
+    expect(gexLine).toContain("notClassified(lang)");
+    expect(gexLine).not.toContain("Not classified");
     expect(src).not.toContain("|| r.mscRegime");
+    expect(src).toContain("verdictLabel(");
+  });
+
+  it("StockAnalysis.tsx: AnalystGauge ratingVerdict uses lang, never hardcoded English", () => {
+    const src = readOwned("StockAnalysis.tsx");
+    const line = lineContaining(src, "ratingVerdict(", "ratingVerdict call");
+    expect(line).not.toMatch(/ratingVerdict\([^)]*,\s*false\s*\)/);
+    expect(line).toMatch(/lang\s*===\s*["']zh["']/);
+  });
+
+  it("StockAnalysis.tsx: entry chip tries urgency then falls through to status", () => {
+    const src = readOwned("StockAnalysis.tsx");
+    const line = lineContaining(src, "entryStatusLabel(", "entry chip");
+    expect(line).not.toContain("entry.urgency || entry.status");
+    expect(line).toMatch(/entryStatusLabel\(\s*entry\.urgency/);
+    expect(line).toContain("entry.status");
+  });
+
+  it("OptionsHubView.tsx: ZH premium column is 总权利金, never 总保费", () => {
+    const src = readOwned("OptionsHubView.tsx");
+    expect(src).not.toContain("总保费");
+    expect(src).toContain("总权利金");
+  });
+
+  it("i18n.tsx: ohNightlyPending English names the symbol, not a root", () => {
+    const src = readFileSync(join(__dirname, "../i18n.tsx"), "utf8");
+    expect(src).toContain('ohNightlyPending: ["Nightly data pending for this symbol."');
+    expect(src).not.toContain('ohNightlyPending: ["Nightly data pending for this root"');
+  });
+
+  it("ChartPanel.tsx: oracle chip routes glance text through verdictLabel", () => {
+    const src = readOwned("ChartPanel.tsx");
+    expect(src).toContain('from "@/lib/plainLabels"');
+    const chip = src.match(/const vLabel[\s\S]*?verdictRef\.current\.textContent/);
+    expect(chip, "vLabel assignment").not.toBeNull();
+    expect(chip![0]).toContain("verdictLabel(");
+    expect(chip![0]).not.toContain("LIQUIDITY RECLAIM");
+    expect(chip![0]).not.toContain("RE-ENTRY");
+    expect(chip![0]).not.toMatch(/=\s*"STOP"/);
+    expect(chip![0]).not.toMatch(/\?\s*"EARLY"/);
   });
 });

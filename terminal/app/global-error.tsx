@@ -1,8 +1,10 @@
 "use client";
 // Global error boundary — catches errors in the root layout itself.
 // This replaces the entire document (html + body required); LangProvider is NOT available here
-// because it lives in the layout being replaced. English-only fallback is correct per spec.
+// because it lives in the layout being replaced. tPlain reads data-lang, so the copy still
+// follows the saved language without mounting the provider.
 import { useEffect } from "react";
+import { tPlain } from "@/lib/i18n";
 import { tryChunkReload } from "./error";
 
 export default function GlobalError({
@@ -21,11 +23,11 @@ export default function GlobalError({
   }, [error]);
 
   return (
-    <html lang="en" data-theme="dark">
+    <html lang={typeof document !== "undefined" && document.documentElement.getAttribute("data-lang") === "zh" ? "zh-CN" : "en"} data-theme="dark" data-lang={typeof document !== "undefined" && document.documentElement.getAttribute("data-lang") === "zh" ? "zh" : "en"}>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>Something went wrong — Mastermind Terminal</title>
+        <title>{tPlain("errTitle")} — Mastermind Terminal</title>
         <style>{`
           *{box-sizing:border-box;margin:0;padding:0}
           body{min-height:100vh;display:flex;align-items:center;justify-content:center;
@@ -56,14 +58,14 @@ export default function GlobalError({
             <rect x="3" y="3" width="34" height="34" rx="8" fill="url(#gbT)" />
             <path d="M13 28 L13 14.5 L20 22 L27 12.5 L27 28" fill="none" stroke="#fff" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-          <h1>Something went wrong</h1>
+          <h1>{tPlain("errTitle")}</h1>
           <p>
-            An unexpected error occurred in the application shell.
+            {tPlain("errShellBody")}
             {error.digest && <span className="ref">ref: {error.digest}</span>}
           </p>
           <div className="cta">
-            <button className="primary" onClick={() => unstable_retry()}>Try again</button>
-            <a href="/terminal" className="ghost">Go to chart</a>
+            <button className="primary" onClick={() => unstable_retry()}>{tPlain("errTryAgain")}</button>
+            <a href="/terminal" className="ghost">{tPlain("errGoToChart")}</a>
           </div>
         </div>
       </body>
