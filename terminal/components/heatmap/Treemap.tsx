@@ -557,6 +557,7 @@ function SectorBlockGroup({
             layer={layer}
             isSelected={selectedTicker === node.tile.ticker}
             fill={fill}
+            zh={zh}
             onMouseEnter={onTileMouseEnter}
             onClick={onTileClick}
           />
@@ -573,12 +574,14 @@ interface TileRectProps {
   layer: Layer;
   isSelected: boolean;
   fill: string;
+  zh: boolean;
   onMouseEnter: (tile: HeatmapTile, cx: number, cy: number) => void;
   onClick: (tile: HeatmapTile) => void;
 }
 
-function TileRect({ node, layer, isSelected, fill, onMouseEnter, onClick }: TileRectProps) {
+function TileRect({ node, layer, isSelected, fill, zh, onMouseEnter, onClick }: TileRectProps) {
   const { x, y, w, h, tile } = node;
+  const t = makeHeatmapT(zh ? "zh" : "en");
 
   // Font sizing — mirrors MomoEdge: tFs = min(w/4.5, h/2.2, 16), cFs = min(w/6, h/3.5, 12)
   const tFs = Math.min(w / 4.5, h / 2.2, 16);
@@ -667,7 +670,7 @@ function TileRect({ node, layer, isSelected, fill, onMouseEnter, onClick }: Tile
           fill="rgba(255,255,255,0.3)"
           style={{ userSelect: "none", fontFamily: "var(--font-ui)", pointerEvents: "none" }}
         >
-          price
+          {t("tilePriceBadge")}
         </text>
       )}
     </g>

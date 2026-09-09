@@ -60,4 +60,20 @@ describe("AlertTimeline — zero-row guard (major 3, round-3 review)", () => {
     const mod = container.querySelector('[data-alerts-module="recent-activity"]');
     expect(mod).not.toBeNull();
   });
+
+  it("renders the verdict sentence as given, without mappedOrNeutral wrapping it", () => {
+    mount([ROW]);
+    expect(container.textContent).toContain("NVDA price above 200");
+    act(() => {
+      root?.unmount();
+      root = createRoot(container);
+      root!.render(React.createElement(AlertTimeline, {
+        rows: [{ ...ROW, verdict: "价格低于 150" }],
+        lang: "zh",
+        onOpen: () => {},
+      }));
+    });
+    expect(container.textContent).toContain("价格低于 150");
+    expect(container.textContent).toContain("近期活动");
+  });
 });

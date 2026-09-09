@@ -653,7 +653,7 @@ describe("plain-language — batch 3 round 3", () => {
     expect(sectorChipLabel("zh", "Communication Services", "COMM")).toBe("通信");
     expect(sectorChipLabel("zh", "Consumer Discretionary", "CONS DISC")).toBe("非必需消费");
     expect(sectorChipLabel("zh", "Real Estate", "REAL EST")).toBe("房地产");
-    expect(sectorChipLabel("en", "Information Technology", "TECH")).toBe("TECH");
+    expect(sectorChipLabel("en", "Information Technology", "TECH")).toBe("Tech");
     expect(sectorChipLabel("zh", "Nonexistent Sector", "FALLBACK")).toBe("FALLBACK");
   });
 
@@ -729,5 +729,46 @@ describe("plain-language — batch 3 round 5", () => {
       expect(pair.en.length, key).toBeGreaterThan(0);
       expect(pair.zh.length, key).toBeGreaterThan(0);
     }
+  });
+});
+
+describe("plain-language — batch 3 round 7", () => {
+  it("the treemap price-only badge is a lexicon pair, never a bare English token", () => {
+    expect(getHeatmapStr("en", "tilePriceBadge")).toBe("price");
+    expect(getHeatmapStr("zh", "tilePriceBadge")).toBe("价格");
+    expect(getHeatmapStr("zh", "tilePriceBadge")).not.toBe("price");
+  });
+
+  it("heatmap house-case tokens are title case in English; Chinese is unchanged", () => {
+    expect(getHeatmapStr("en", "mixed")).toBe("Mixed");
+    expect(getHeatmapStr("en", "mixedZone")).toBe("Mixed");
+    expect(getHeatmapStr("en", "sectorTech")).toBe("Tech");
+    expect(getHeatmapStr("en", "sectorComm")).toBe("Comms");
+    expect(getHeatmapStr("en", "sectorOther")).toBe("Other");
+    expect(getHeatmapStr("zh", "mixed")).toBe("混合");
+    expect(getHeatmapStr("zh", "sectorTech")).toBe("科技");
+    expect(getHeatmapStr("zh", "sectorComm")).toBe("通信");
+    expect(getHeatmapStr("zh", "sectorOther")).toBe("其他");
+    expect(getHeatmapStr("en", "mixed")).not.toBe(getHeatmapStr("en", "mixed").toUpperCase());
+    expect(getHeatmapStr("en", "sectorTech")).not.toBe("TECH");
+  });
+
+  it("toneSoftNote is a plain sentence in both languages, with no ΔOI token", () => {
+    expect(getHeatmapStr("en", "toneSoftNote")).toBe(
+      "Positioning tone from the change in open interest — direction is a soft read; size is reliable.",
+    );
+    expect(getHeatmapStr("zh", "toneSoftNote")).toBe(
+      "持仓倾向来自未平仓合约的变化——方向为软性读数，规模可靠。",
+    );
+    expect(getHeatmapStr("en", "toneSoftNote")).not.toContain("ΔOI");
+    expect(getHeatmapStr("zh", "toneSoftNote")).not.toContain("ΔOI");
+  });
+
+  it("the lean tooltip's English half is the house sentence", () => {
+    expect(getFlowStr("en", "leanTooltip")).toBe(
+      "Lean is inferred from the last trade's price change, not confirmed by the official bid and ask, so direction is approximate; size is the reliable read. Colour and rank use premium size, not the inferred side.",
+    );
+    expect(getFlowStr("en", "leanTooltip")).not.toMatch(/tick-rule/i);
+    expect(getFlowStr("en", "leanTooltip")).not.toContain("NBBO");
   });
 });

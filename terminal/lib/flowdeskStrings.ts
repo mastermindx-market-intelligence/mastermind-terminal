@@ -146,7 +146,7 @@ const FLOW_LEX = {
 
   // ── Soft-direction tooltip (HONESTY DOCTRINE — the key required copy) ──────
   leanTooltip: [
-    "Lean is tick-rule derived — magnitude is the reliable read. Direction without NBBO is approximate (~0.41 recovery). Color and rank use premium size, not asserted side.",
+    "Lean is inferred from the last trade's price change, not confirmed by the official bid and ask, so direction is approximate; size is the reliable read. Colour and rank use premium size, not the inferred side.",
     "方向倾向由成交价变动规则推断，未经官方买卖报价确认（方向正确率约0.41）；权利金规模才是可靠读数。颜色与排名基于权利金规模，而非推断出的买卖方向。",
   ],
 

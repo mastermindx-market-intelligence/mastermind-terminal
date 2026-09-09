@@ -772,7 +772,7 @@ test("Company Intelligence preserves its mobile workflow in Chinese", async ({ p
   await expect(page.locator(".ci-theme-card")).toContainText("代理映射");
   await expect(page.locator(".ci-theme-footer")).toContainText("已过期");
   await expect(page.locator(".ci-theme-footer")).not.toContainText("stale");
-  await expect(page.getByRole("heading", { name: "3 家追踪管理人申报持仓" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "3 家追踪管理人披露持仓" })).toBeVisible();
   await expect(page.locator(".ci-inst-card")).toContainText("仅限该名册的 HHI");
   await expectNoDocumentOverflow(page);
   await page.screenshot({

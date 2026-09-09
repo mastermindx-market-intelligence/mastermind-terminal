@@ -35,6 +35,7 @@ const LAYOUT_FILES = [
   "terminal/lib/flowdeskStrings.ts",
   "terminal/lib/plainLabels.ts",
   "terminal/lib/i18n.tsx",
+  "terminal/components/PineEditor.tsx",
 ];
 const ONLY = (process.env.CAPTURE_ONLY || "")
   .split(",")
@@ -364,11 +365,21 @@ async function captureHeatmap(page, width, lang, outPath) {
   await cropLocator(page, map, outPath, width === 390 ? 4 : 8);
 }
 
+async function capturePineLibrary(page, width, lang, outPath) {
+  await gotoReady(page, "/scripts", lang);
+  const side = page.locator(".pine-side").first();
+  await side.waitFor({ state: "visible", timeout: 60_000 });
+  const needle = lang === "zh" ? "我的脚本" : "My Scripts";
+  await side.getByText(needle).first().waitFor({ state: "visible", timeout: 20_000 });
+  await cropLocator(page, side, outPath, width === 390 ? 6 : 10);
+}
+
 const SURFACES = [
   { name: "OptionsFlowBoard", run: captureFlowBoard },
   { name: "FlowDesk", run: captureFlowDesk },
   { name: "AlertDetail", run: captureAlertDetail },
   { name: "HeatmapTreemap", run: captureHeatmap },
+  { name: "PineLibrary", run: capturePineLibrary },
 ];
 
 function shouldCapture(surfaceName, width, lang) {
@@ -430,7 +441,7 @@ async function main() {
     "viewports:",
     "  - { name: desktop, width: 1440, height: 900 }",
     "  - { name: mobile, width: 390, height: 844 }",
-    "surfaces: [OptionsFlowBoard, FlowDesk, AlertDetail, HeatmapTreemap]",
+    "surfaces: [OptionsFlowBoard, FlowDesk, AlertDetail, HeatmapTreemap, PineLibrary]",
     "capture_flag: TERMINAL_E2E_FIXTURE",
     "capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.",
     "command: |",

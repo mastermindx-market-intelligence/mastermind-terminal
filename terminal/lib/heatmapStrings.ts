@@ -48,24 +48,24 @@ const HM_LEX = {
   directionIsSoft:  ["Direction is a soft read", "方向为软性读数"],
   bullFlow:         ["Bull flow", "偏多流向"],
   bullFlowTip:      ["Share of active-flow names with net-bullish ΔOI (breadth, not premium share)", "净持仓变化偏多的活跃标的占比（广度，非权利金占比）"],
-  mixedZone:        ["MIXED", "混合"],
+  mixedZone:        ["Mixed", "混合"],
   callHeavy:        ["CALL-HEAVY", "以认购为主"],
   putHeavy:         ["PUT-HEAVY", "以认沽为主"],
   priceMode:        ["Mode", "市场状态"],
   bullish:          ["BULLISH", "偏多"],
   bearish:          ["BEARISH", "偏空"],
-  mixed:            ["MIXED", "混合"],
+  mixed:            ["Mixed", "混合"],
 
   // ── Flow tone labels (magnitude-first, direction soft) ───────────────────────
   tonePos:          ["positive tone (~soft)", "积极倾向（~软性）"],
   toneNeg:          ["negative tone (~soft)", "消极倾向（~软性）"],
   toneNeutral:      ["neutral / mixed", "中性 / 混合"],
-  toneSoftNote:     ["Positioning tone from ΔOI — direction is soft (magnitude reliable)", "基于ΔOI的持仓倾向 — 方向为软性读数，权利金规模可靠"],
+  toneSoftNote:     ["Positioning tone from the change in open interest — direction is a soft read; size is reliable.", "持仓倾向来自未平仓合约的变化——方向为软性读数，规模可靠。"],
 
   // ── Sector labels ────────────────────────────────────────────────────────────
   sectorAll:        ["ALL", "全部"],
-  sectorTech:       ["TECH", "科技"],
-  sectorComm:       ["COMM", "通信"],
+  sectorTech:       ["Tech", "科技"],
+  sectorComm:       ["Comms", "通信"],
   sectorConsDisc:   ["CONS DISC", "非必需消费"],
   sectorConsStaple: ["STAPLES", "必需消费"],
   sectorFinance:    ["FINANCE", "金融"],
@@ -77,9 +77,10 @@ const HM_LEX = {
   sectorRealEstate: ["REAL EST", "房地产"],
   sectorCrypto:     ["CRYPTO", "加密货币"],
   sectorETF:        ["ETF", "ETF"],
-  sectorOther:      ["OTHER", "其他"],
+  sectorOther:      ["Other", "其他"],
 
   // ── Tile & detail ────────────────────────────────────────────────────────────
+  tilePriceBadge:   ["price", "价格"],
   tileNoFlow:       ["Price only", "仅价格"],
   detailTitle:      ["Detail", "详情"],
   detailPrice:      ["Price", "价格"],

@@ -122,7 +122,7 @@ export function OptionsFlowBoardView({
     : (lang === "zh" ? "最大资金流事件" : "Largest Flow Events");
   const deck = zeroDte
     ? (lang === "zh"
-        ? "仅展示发布器标记的当日到期期权事件，并按聚合权利金排序。覆盖范围为达标资金流，而非完整 OPRA 逐笔。"
+        ? "仅展示发布器标记的当日到期期权事件，并按聚合权利金排序。覆盖范围为达标资金流，而非完整的逐笔期权成交记录。"
         : "Publisher-flagged same-day expiries, ordered by aggregated premium. Coverage is the qualifying flow feed, not the full OPRA tape.")
     : (lang === "zh"
         ? "按聚合权利金展示最大达标事件。每行可能合并同一轮询批次内同一合约的多笔成交，并非单笔成交排名。"
@@ -229,7 +229,7 @@ export function OptionsFlowBoardView({
         )}
         {events && modeEvents.length === 0 && (
           <div className="options-flow-board-empty" role="status">
-            <strong>{zeroDte ? pick(lang === "zh", "No qualifying 0DTE events this session", "本时段暂无 0DTE 达标事件") : pick(lang === "zh", "No qualifying events this session", "本时段暂无达标事件")}</strong>
+            <strong>{zeroDte ? pick(lang === "zh", "No qualifying 0DTE events this session", "本时段暂无当日到期的达标事件") : pick(lang === "zh", "No qualifying events this session", "本时段暂无达标事件")}</strong>
             <span>{pick(lang === "zh", "This is an empty source state, not a calculated substitute.", "这是源数据的空值状态，而非计算结果。")}</span>
           </div>
         )}

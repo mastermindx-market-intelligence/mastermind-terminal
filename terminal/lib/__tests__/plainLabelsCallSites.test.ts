@@ -350,12 +350,12 @@ describe("plain-language call sites — batch 3", () => {
     expect(desk.indexOf("assertNoNextIndicator")).toBeLessThan(desk.indexOf("page.screenshot"));
   });
 
-  it("AlertTimeline.tsx: header routes through pick(); verdict through mappedOrNeutral", () => {
+  it("AlertTimeline.tsx: header routes through pick(); the verdict is the rendered sentence", () => {
     const src = readOwned("alerts/AlertTimeline.tsx");
     expect(src).not.toContain('lang === "zh" ? "近期活动" : "Recent activity"');
-    expect(src).not.toContain("{r.verdict}");
+    expect(src).toContain("{r.verdict}");
     expect(src).toContain("pick(");
-    expect(src).toContain("mappedOrNeutral(");
+    expect(src).not.toContain("mappedOrNeutral(");
   });
 });
 
@@ -513,9 +513,109 @@ describe("plain-language call sites — batch 3 round 5", () => {
 
   it("flowdeskStrings.ts: the lean tooltip's Chinese carries no English market tokens", () => {
     const src = readLib("flowdeskStrings.ts");
-    const table = src.slice(src.indexOf("leanTooltip:"), src.indexOf("leanTooltip:") + 600);
+    const table = src.slice(src.indexOf("leanTooltip:"), src.indexOf("leanTooltip:") + 800);
     expect(table).toContain("由成交价变动规则推断，未经官方买卖报价确认");
     expect(table).not.toContain("倾向基于tick规则推算");
     expect(table).not.toContain("无NBBO时方向为近似值（约0.41正确率）");
+  });
+});
+
+describe("plain-language call sites — batch 3 round 7", () => {
+  const readLib = (rel: string) => readFileSync(join(__dirname, "..", rel), "utf8");
+  const readE2E = (rel: string) => readFileSync(join(__dirname, "../../e2e", rel), "utf8");
+  const readRepo = (rel: string) => readFileSync(join(__dirname, "../../..", rel), "utf8");
+
+  it("Treemap.tsx: the price-only badge routes through t(\"tilePriceBadge\"), never a bare English text node", () => {
+    const src = readOwned("heatmap/Treemap.tsx");
+    expect(src).toContain('t("tilePriceBadge")');
+    expect(src).not.toMatch(/^\s*price\s*$/m);
+    expect(src).toContain("zh={zh}");
+  });
+
+  it("HeatmapView.tsx: Net puts / Premium size / Net calls sit outside any CSS-uppercasing container", () => {
+    const src = readOwned("heatmap/HeatmapView.tsx");
+    const start = src.indexOf("{/* Color legend */}");
+    expect(start).toBeGreaterThan(0);
+    const legend = src.slice(start, start + 1600);
+    expect(legend).toContain('t("netPut")');
+    expect(legend).toContain('t("premiumSize")');
+    expect(legend).toContain('t("netCall")');
+    expect(legend).not.toContain('textTransform: "uppercase"');
+    expect(legend).toContain('textTransform: "none"');
+  });
+
+  it("HeatmapView.tsx: the regime banner uses house-case Note, not NOTE", () => {
+    const src = readOwned("heatmap/HeatmapView.tsx");
+    expect(src).toContain('{zh ? "注意" : "Note"}');
+    expect(src).not.toContain('{zh ? "注意" : "NOTE"}');
+  });
+
+  it("OptionsFlowBoardView.tsx: the ZH deck drops OPRA; the empty state names same-day expiry in words", () => {
+    const src = readOwned("options/OptionsFlowBoardView.tsx");
+    expect(src).toContain("覆盖范围为达标资金流，而非完整的逐笔期权成交记录。");
+    expect(src).not.toContain("而非完整 OPRA 逐笔");
+    expect(src).toContain("本时段暂无当日到期的达标事件");
+    expect(src).not.toContain("本时段暂无 0DTE 达标事件");
+  });
+
+  it("company-intelligence.spec.ts: the ZH institutional heading uses 披露, never 申报", () => {
+    const src = readE2E("company-intelligence.spec.ts");
+    expect(src).toContain("3 家追踪管理人披露持仓");
+    expect(src).not.toContain("申报");
+  });
+
+  it("every file in this PR's batch-3 set contains zero 申报", () => {
+    const packet = [
+      "terminal/app/x/[slug]/page.tsx",
+      "terminal/components/LocalizedCopy.tsx",
+      "terminal/components/PineEditor.tsx",
+      "terminal/components/alerts/AlertDetail.tsx",
+      "terminal/components/alerts/AlertTimeline.tsx",
+      "terminal/components/fin/CompanyIntelligenceV2Current.tsx",
+      "terminal/components/fin/CompanySourceManifest.tsx",
+      "terminal/components/flowdesk/FiltersPanel.tsx",
+      "terminal/components/flowdesk/FlowCard.tsx",
+      "terminal/components/heatmap/HeatmapView.tsx",
+      "terminal/components/heatmap/Treemap.tsx",
+      "terminal/components/options/OptionsFlowBoardView.tsx",
+      "terminal/components/prophet/OptionCard.tsx",
+      "terminal/components/prophet/prophetStrings.ts",
+      "terminal/e2e/company-intelligence.spec.ts",
+      "terminal/e2e/pine-editor-integrity.spec.ts",
+      "terminal/e2e/tools/capture_pl6_batch3.cjs",
+      "terminal/lib/companyIntelligenceLabels.ts",
+      "terminal/lib/flowdeskStrings.ts",
+      "terminal/lib/heatmapStrings.ts",
+      "terminal/lib/i18n.tsx",
+      "terminal/lib/plainLabels.ts",
+    ];
+    for (const rel of packet) {
+      const src = readRepo(rel);
+      expect(src, rel).not.toContain("申报");
+    }
+  });
+
+  it("PineEditor.tsx joins server ids with a JavaScript NUL escape so the file diffs on the web", () => {
+    const src = readOwned("PineEditor.tsx");
+    expect(src).toContain('join("\\u0000")');
+    expect(src).not.toContain("\u0000");
+  });
+
+  it("PineEditor.tsx formats editedOn with zh-CN when lang is zh (2026/9/9, never 9/9/2026)", () => {
+    const src = readOwned("PineEditor.tsx");
+    expect(src).toContain('toLocaleDateString(lang === "zh" ? "zh-CN" : "en-US"');
+    expect(src).toContain("editedOn(s.updated_at, lang)");
+    const sample = new Date("2026-09-09T12:00:00Z").toLocaleDateString("zh-CN", { timeZone: "UTC" });
+    expect(sample).toMatch(/2026\/9\/9/);
+    expect(sample).not.toMatch(/9\/9\/2026/);
+  });
+
+  it("filterLean census pointers are the three consecutive entries at flowdeskStrings.ts:33-35", () => {
+    const src = readLib("flowdeskStrings.ts");
+    const lines = src.split("\n");
+    expect(lines[32]).toContain("filterLean:");
+    expect(lines[33]).toContain("filterLeanBuy:");
+    expect(lines[34]).toContain("filterLeanSell:");
+    expect(lines[32]).not.toContain("filterType");
   });
 });

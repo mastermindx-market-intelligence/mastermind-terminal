@@ -1,7 +1,6 @@
 "use client";
 import s from "./alerts.module.css";
 import { pick } from "@/lib/finFormat";
-import { mappedOrNeutral } from "@/lib/plainLabels";
 import { copy, type DeliveryState } from "@/lib/alertsView";
 
 export interface TimelineRow {
@@ -43,7 +42,7 @@ export default function AlertTimeline({
             <span className={s.dot} />
             <span className={s.time}>{r.time}</span>
             <span className={s.subject}>{r.subject}</span>
-            <span className={s.verdict}>{mappedOrNeutral(r.verdict, lang)}</span>
+            <span className={s.verdict}>{r.verdict}</span>
             <span className={`${s.chip} ${CHIP_CLASS[r.delivery]}`}>{copy(`delivery.${r.delivery}`, lang)}</span>
             {r.foldedRows > 0 && <span className={s.moduleCount}>{copy("folded.note", lang, { n: r.foldedRows })}</span>}
           </div>
