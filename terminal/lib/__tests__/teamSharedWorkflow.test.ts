@@ -447,7 +447,7 @@ describe("team-shared workspaces — who can write", () => {
   });
 
   it("a plain member cannot rename, overwrite or delete a workspace the team shares", async () => {
-    const { db } = makeDb({ layouts: [sharedRow(OWNER)], ...seedTeam() });
+    const { db, state } = makeDb({ layouts: [sharedRow(OWNER, "Open", WS1)], ...seedTeam() });
     const renamed = await renameWorkspace(db as any, MEMBER, "Open", "Hijacked", 1, "shared-Open");
     expect(renamed.ok).toBe(false);
     if (renamed.ok) return;
@@ -456,6 +456,13 @@ describe("team-shared workspaces — who can write", () => {
     expect(saved.ok).toBe(false);
     if (saved.ok) return;
     expect(saved.reason).toBe("forbidden");
+    const deleted = await deleteLayout(db as any, MEMBER, "shared-Open");
+    expect(deleted.ok).toBe(false);
+    if (deleted.ok) return;
+    expect(deleted.reason).toBe("forbidden");
+    const row = state.layouts.find((r) => r.id === "shared-Open");
+    expect(row?.name).toBe("Open");
+    expect(row?.visibility).toBe("team");
   });
 
   it("a plain member may duplicate a shared workspace, and the copy is private", async () => {
@@ -470,8 +477,8 @@ describe("team-shared workspaces — who can write", () => {
   });
 
   it("the creator of a shared workspace cannot change it once they are no longer an administrator", async () => {
-    const { db } = makeDb({
-      layouts: [sharedRow(ADMIN)],
+    const { db, state } = makeDb({
+      layouts: [sharedRow(ADMIN, "Open", WS1)],
       teams: seedTeam().teams,
       members: [
         { team_id: TEAM_A, user_id: OWNER, role: "owner" },
@@ -487,6 +494,22 @@ describe("team-shared workspaces — who can write", () => {
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.code).toBe("not_admin_edit");
+    const renamed = await renameWorkspace(db as any, ADMIN, "Open", "Stolen", 1, "shared-Open");
+    expect(renamed.ok).toBe(false);
+    if (renamed.ok) return;
+    expect(renamed.reason).toBe("forbidden");
+    const saved = await saveWorkspace(db as any, ADMIN, "Open", { schema: "workspace_layout.v1" }, 1, "shared-Open");
+    expect(saved.ok).toBe(false);
+    if (saved.ok) return;
+    expect(saved.reason).toBe("forbidden");
+    const deleted = await deleteLayout(db as any, ADMIN, "shared-Open");
+    expect(deleted.ok).toBe(false);
+    if (deleted.ok) return;
+    expect(deleted.reason).toBe("forbidden");
+    const row = state.layouts.find((r) => r.id === "shared-Open");
+    expect(row?.name).toBe("Open");
+    expect(row?.visibility).toBe("team");
+    expect(row?.user_id).toBe(ADMIN);
   });
 
   it("nothing about private workspaces changes: a member still creates, renames and deletes their own", async () => {

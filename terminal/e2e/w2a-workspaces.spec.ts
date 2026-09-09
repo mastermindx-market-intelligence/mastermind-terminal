@@ -642,7 +642,7 @@ test.describe("W2-A workspace menu — non-screenshot assertions (spec §7)", ()
 });
 
 test.describe("W2-A workspace menu — team sharing", () => {
-  test("1440 EN/ZH grouped library, share confirm, and member read-only", async ({ page, baseURL }, testInfo) => {
+  test("1440 EN/ZH grouped library, share confirm, and member sees the shared workspace as read-only when the role flag is member", async ({ page, baseURL }, testInfo) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     const teamId = `team-${testInfo.testId}`.slice(0, 40);
     await isolateLayoutStore(page, testInfo, baseURL);

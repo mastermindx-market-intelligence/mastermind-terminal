@@ -76,6 +76,24 @@ def expect_database_error(fn, sqlstate: str | None = None) -> bool:
     return False
 
 
+def raised_sqlstate(fn) -> str | None:
+    """Return the SQLSTATE a write raised, or None if it succeeded."""
+    try:
+        fn()
+    except psycopg.Error as exc:  # type: ignore[attr-defined]
+        return getattr(exc.diag, "sqlstate", None) if hasattr(exc, "diag") else None
+    return None
+
+
+def write_rowcount_or_sqlstate(fn) -> tuple[int, str | None]:
+    """Run a write. Return (rowcount, None) on success, or (0, SQLSTATE) on error."""
+    try:
+        return fn(), None
+    except psycopg.Error as exc:  # type: ignore[attr-defined]
+        code = getattr(exc.diag, "sqlstate", None) if hasattr(exc, "diag") else None
+        return 0, code
+
+
 def bootstrap(conn: "psycopg.Connection") -> None:
     with conn.cursor() as cur:
         cur.execute("create schema if not exists auth")
@@ -216,9 +234,10 @@ def main() -> int:
             )
             return cur.fetchone()[0]
 
+    admin_shared_id = None
     try:
-        admin_share()
-        proof.check("rls:admin_insert_team", True)
+        admin_shared_id = admin_share()
+        proof.check("rls:admin_insert_team", True, str(admin_shared_id))
     except Exception as exc:  # noqa: BLE001
         proof.check("rls:admin_insert_team", False, str(exc))
 
@@ -252,18 +271,45 @@ def main() -> int:
 
     demoted = actor_connection(dsn, admin_user)
 
-    # 0-row UPDATE is how a restrictive USING miss arrives (not always 42501). Treat either as a refusal.
-    with demoted.cursor() as cur:
-        cur.execute("update public.chart_layouts set name='Stolen' where id=%s", (shared_id,))
-        updated = cur.rowcount
-        cur.execute("select name from public.chart_layouts where id=%s", (shared_id,))
-        name_row = cur.fetchone()
-    proof.check("rls:demoted_admin_update_zero_or_denied", updated == 0 and (name_row is None or name_row[0] != "Stolen"), f"updated={updated} name={name_row}")
+    # R2: the demotion proof MUST target the demoted administrator's own shared row
+    # (admin_share()'s returned id). Targeting the owner's share row (shared_id) is a
+    # false-green: the 0001 owner policy never matches that row for this actor, so the
+    # UPDATE/DELETE guards are not exercised.
+    def demoted_update_own():
+        with demoted.cursor() as cur:
+            cur.execute("update public.chart_layouts set name='Stolen' where id=%s", (admin_shared_id,))
+            return cur.rowcount
 
-    with demoted.cursor() as cur:
-        cur.execute("delete from public.chart_layouts where id=%s", (shared_id,))
-        deleted = cur.rowcount
-    proof.check("rls:demoted_admin_delete_zero_or_denied", deleted == 0, f"deleted={deleted}")
+    updated, update_state = write_rowcount_or_sqlstate(demoted_update_own)
+    proof.check(
+        "rls:demoted_admin_update_zero_or_denied",
+        admin_shared_id is not None and (updated == 0 or update_state == "42501"),
+        f"id={admin_shared_id} updated={updated} sqlstate={update_state}",
+    )
+
+    def demoted_delete_own():
+        with demoted.cursor() as cur:
+            cur.execute("delete from public.chart_layouts where id=%s", (admin_shared_id,))
+            return cur.rowcount
+
+    deleted, delete_state = write_rowcount_or_sqlstate(demoted_delete_own)
+    proof.check(
+        "rls:demoted_admin_delete_zero_or_denied",
+        admin_shared_id is not None and (deleted == 0 or delete_state == "42501"),
+        f"id={admin_shared_id} deleted={deleted} sqlstate={delete_state}",
+    )
+
+    with owner_c.cursor() as cur:
+        cur.execute(
+            "select name, visibility from public.chart_layouts where id=%s",
+            (admin_shared_id,),
+        )
+        admin_row = cur.fetchone()
+    proof.check(
+        "rls:demoted_admin_own_row_unchanged",
+        bool(admin_row) and admin_row[0] == "Admin Open" and admin_row[1] == "team",
+        str(admin_row),
+    )
 
     def second_same_name():
         with owner_c.cursor() as cur:
@@ -275,25 +321,105 @@ def main() -> int:
 
     proof.check("ddl:team_name_unique", expect_database_error(second_same_name, "23505"), "second (team,name)")
 
-    def team_without_team_id():
-        with owner_c.cursor() as cur:
+    # R1: CHECK constraints must be proven as CHECK constraints. An authenticated insert
+    # hits the restrictive INSERT guard first (42501) and never reaches 23514. Run the
+    # two CHECK inserts as the table owner (admin connection, RLS not in the way) and
+    # keep the authenticated cases as separate 42501 RLS proofs.
+    def team_without_team_id_owner():
+        with admin.cursor() as cur:
             cur.execute(
                 "insert into public.chart_layouts (user_id, name, config, visibility, team_id)"
                 " values (%s,'Shapeless','{}'::jsonb,'team',null)",
                 (owner,),
             )
 
-    proof.check("ddl:shape_team_needs_team_id", expect_database_error(team_without_team_id, "23514"), "team + null team_id")
+    shape_state = raised_sqlstate(team_without_team_id_owner)
+    proof.check(
+        "ddl:shape_team_needs_team_id",
+        shape_state == "23514",
+        f"sqlstate={shape_state} want=23514 (table owner, RLS not in the way)",
+    )
 
-    def public_visibility():
-        with owner_c.cursor() as cur:
+    def public_visibility_owner():
+        with admin.cursor() as cur:
             cur.execute(
                 "insert into public.chart_layouts (user_id, name, config, visibility)"
                 " values (%s,'Public','{}'::jsonb,'public')",
                 (owner,),
             )
 
-    proof.check("ddl:visibility_public_rejected", expect_database_error(public_visibility, "23514"), "visibility=public")
+    public_state = raised_sqlstate(public_visibility_owner)
+    proof.check(
+        "ddl:visibility_public_rejected",
+        public_state == "23514",
+        f"sqlstate={public_state} want=23514 (table owner, RLS not in the way)",
+    )
+
+    with admin.cursor() as cur:
+        cur.execute(
+            """
+            select conname, pg_get_constraintdef(oid)
+            from pg_constraint
+            where conrelid = 'public.chart_layouts'::regclass
+              and conname in ('chart_layouts_visibility_ck', 'chart_layouts_share_shape_ck')
+            """
+        )
+        constraint_defs = {name: (defn or "") for name, defn in cur.fetchall()}
+
+    vis_def = constraint_defs.get("chart_layouts_visibility_ck", "")
+    vis_flat = " ".join(vis_def.lower().split())
+    proof.check(
+        "ddl:constraint_visibility_ck",
+        "chart_layouts_visibility_ck" in constraint_defs
+        and vis_flat.startswith("check")
+        and "private" in vis_flat
+        and "team" in vis_flat
+        and "public" not in vis_flat,
+        vis_def,
+    )
+    shape_def = constraint_defs.get("chart_layouts_share_shape_ck", "")
+    shape_flat = " ".join(shape_def.lower().split())
+    proof.check(
+        "ddl:constraint_share_shape_ck",
+        "chart_layouts_share_shape_ck" in constraint_defs
+        and shape_flat.startswith("check")
+        and "team_id" in shape_flat
+        and "is not null" in shape_flat
+        and "is null" in shape_flat
+        and "private" in shape_flat
+        and "team" in shape_flat,
+        shape_def,
+    )
+
+    def team_without_team_id_authenticated():
+        with owner_c.cursor() as cur:
+            cur.execute(
+                "insert into public.chart_layouts (user_id, name, config, visibility, team_id)"
+                " values (%s,'Shapeless Rls','{}'::jsonb,'team',null)",
+                (owner,),
+            )
+
+    rls_shape_state = raised_sqlstate(team_without_team_id_authenticated)
+    proof.check(
+        "rls:shape_team_needs_team_id",
+        rls_shape_state == "42501",
+        f"sqlstate={rls_shape_state} want=42501 (authenticated, RLS first)",
+    )
+
+    def public_visibility_authenticated():
+        with owner_c.cursor() as cur:
+            cur.execute(
+                "insert into public.chart_layouts (user_id, name, config, visibility)"
+                " values (%s,'Public Rls','{}'::jsonb,'public')",
+                (owner,),
+            )
+
+    rls_public_state = raised_sqlstate(public_visibility_authenticated)
+    proof.check(
+        "rls:visibility_public_rejected",
+        rls_public_state == "42501",
+        f"sqlstate={rls_public_state} want=42501 (authenticated, RLS first)",
+    )
 
     with owner_c.cursor() as cur:
         cur.execute("select visibility, team_id from public.chart_layouts where id=%s", (private_id,))
