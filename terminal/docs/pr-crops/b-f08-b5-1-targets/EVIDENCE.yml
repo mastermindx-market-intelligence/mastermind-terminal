@@ -1,0 +1,42 @@
+# B-F08-B5-1 portfolio construction targets — capture evidence
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
+# capturedAtHead: db0ca2aa3811528f3f26b9f177decc346db1258b
+# capturedAt: 2026-09-09T14:49:11.470Z
+# capturedAtHead is informational. The lock is layoutFiles.
+layoutFiles:
+  terminal/components/PortfolioView.tsx: "9189eaae591c90b508992394bbb3ef4666ae9074a0016917c3489f5543e282f0"
+  terminal/lib/portfolioTargets.ts: "f12ad9cc344300c8ddd798bc2eb28ff102db4b1f6577efa4680107b7972e4758"
+  terminal/components/PortfolioTargets.module.css: "7a6cf0f47abdb773a3f56c11452ece374221c2a9140e87831023ecfd5120129a"
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: mobile, width: 390, height: 844 }
+surfaces: [PortfolioTargetsReadout]
+capture_flag: TERMINAL_E2E_FIXTURE
+capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
+command: |
+  cd terminal
+  node e2e/tools/capture_b_f08_b5_1_targets.cjs
+files:
+  - PortfolioTargets-empty-1440-zh.png
+  - PortfolioTargets-empty-1440.png
+  - PortfolioTargets-empty-390-zh.png
+  - PortfolioTargets-empty-390.png
+  - PortfolioTargets-orphaned-target-disclosed-1440-zh.png
+  - PortfolioTargets-orphaned-target-disclosed-1440.png
+  - PortfolioTargets-orphaned-target-disclosed-390-zh.png
+  - PortfolioTargets-orphaned-target-disclosed-390.png
+  - PortfolioTargets-populated-outside-band-1440-zh.png
+  - PortfolioTargets-populated-outside-band-1440.png
+  - PortfolioTargets-populated-outside-band-390-zh.png
+  - PortfolioTargets-populated-outside-band-390.png
+  - PortfolioTargets-populated-within-band-1440-zh.png
+  - PortfolioTargets-populated-within-band-1440.png
+  - PortfolioTargets-populated-within-band-390-zh.png
+  - PortfolioTargets-populated-within-band-390.png
+  - PortfolioTargets-unavailable-1440-zh.png
+  - PortfolioTargets-unavailable-1440.png
+  - PortfolioTargets-unavailable-390-zh.png
+  - PortfolioTargets-unavailable-390.png
