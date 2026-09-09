@@ -1,0 +1,42 @@
+# B-F08-B5-3 collisions — capture evidence
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
+# capturedAtHead: b860844018309f68120dc1fe4b5cd35024977dfd
+# capturedAt: 2026-09-09T19:38:33.613Z
+# capturedAtHead is informational. The lock is layoutFiles.
+layoutFiles:
+  terminal/components/alerts/AlertsCockpit.tsx: "e2ef1cd015d97ad4fb05cc500e33cc63125a568938a6dea69377ae94b809b971"
+  terminal/components/alerts/WatchingList.tsx: "945462eb9a5139e5dfe000948d32152394a42f733f4f462a6ce365dff5ea9f27"
+  terminal/components/alerts/AnswerLine.tsx: "f3bf1f587566c521b66d210b84ec316ed1e5809f2f5ce758c6c0c81f77e4dbdb"
+  terminal/components/alerts/CouldNotWatch.tsx: "e9abf8d001f1bdccc9b70c74a111f71976ee2c89b082f676780369b6f3ba0981"
+  terminal/lib/alertsView.ts: "f12d71cac6698936b2e548df8b644116715b20f241e3731c322acee5a1b54f43"
+  terminal/app/api/alerts/receipts/route.ts: "757ba2198de83826398f7f563fe4c05f3371a887c125e91a9b8f039fc042496f"
+  terminal/app/api/alerts/route.ts: "7b7ff8a30555230b344027385b24fcb488871bace93cf8b51e6a47c0433e66d3"
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: mobile, width: 390, height: 844 }
+surfaces: [AlertsCockpit]
+capture_flag: TERMINAL_E2E_FIXTURE
+capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
+states: [watching, suite-degraded, suite-never-ran, unresolved]
+command: |
+  node $TMPDIR/b-f08-b5-3-capture.cjs
+files:
+  - watching-1440.png
+  - watching-1440-zh.png
+  - watching-390.png
+  - watching-390-zh.png
+  - suite-degraded-1440.png
+  - suite-degraded-1440-zh.png
+  - suite-degraded-390.png
+  - suite-degraded-390-zh.png
+  - suite-never-ran-1440.png
+  - suite-never-ran-1440-zh.png
+  - suite-never-ran-390.png
+  - suite-never-ran-390-zh.png
+  - unresolved-1440.png
+  - unresolved-1440-zh.png
+  - unresolved-390.png
+  - unresolved-390-zh.png
