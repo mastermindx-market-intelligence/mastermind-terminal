@@ -231,7 +231,7 @@ export const FlowCard = memo(function FlowCard({
           {ev.iv != null && (
             <>
               <span className="obs-fc-meta-sep">·</span>
-              <span className="num">IV {((ev.iv as number) * 100).toFixed(1)}%</span>
+              <span className="num">{statTokenLabel("iv", lang)} {((ev.iv as number) * 100).toFixed(1)}%</span>
             </>
           )}
           {flags.map((f) => (

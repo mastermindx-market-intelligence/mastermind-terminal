@@ -202,7 +202,12 @@ describe("plain-language call sites — batch 3", () => {
     expect(src).not.toContain("✓ Compiled successfully");
     expect(src).not.toContain("ready to add to chart");
     expect(src).not.toContain('s.locked ? "proprietary · read-only"');
+    expect(src).not.toContain("${s.lang} · edited");
+    expect(src).not.toContain("edited ${editedOn");
     expect(src).toContain('t("peReadOnly")');
+    expect(src).toContain('t("peLangPine")');
+    expect(src).toContain('t("peLangScript")');
+    expect(src).toContain('t("peLastEdited")');
     expect(src).toContain('t("peNeedsPro")');
     expect(src).toContain('t("peSaveChanges")');
     expect(src).toContain('t("peCompiledOk")');
@@ -217,16 +222,22 @@ describe("plain-language call sites — batch 3", () => {
     expect(src).not.toContain('"Sweep is heuristic — aggressor not NBBO-confirmed"');
     expect(src).not.toContain('"Detections from enrich artifact; absent/stale → v1 behavior, badges hidden."');
     expect(src).not.toContain('"Reset filters"');
+    expect(src).not.toContain("~Buy lean");
+    expect(src).not.toContain("~买方");
+    expect(src).not.toContain("~Sell lean");
     expect(src).toContain("pick(");
+    expect(src).toContain("flowSideLabel(");
   });
 
   it("FlowCard.tsx: OI token and honesty copy route through helpers / t()", () => {
     const src = readOwned("flowdesk/FlowCard.tsx");
     expect(src).not.toContain("OI {(ev.oi");
+    expect(src).not.toContain("IV {((");
     expect(src).not.toContain('"spread — direction unreliable"');
     expect(src).not.toContain('"Direction lean"');
     expect(src).not.toContain('"tick-rule inferred, not NBBO-confirmed"');
     expect(src).toContain("statTokenLabel(");
+    expect(src).toContain('statTokenLabel("iv"');
     expect(src).toContain('t("spreadUnreliable")');
     expect(src).toContain('t("scoreHonesty")');
     expect(src).toContain('t("directionLean")');
@@ -290,7 +301,10 @@ describe("plain-language call sites — batch 3", () => {
     expect(src).not.toContain('"Intraday live quote"');
     expect(src).not.toContain('"Intraday mid-price — updated within 20 min"');
     expect(src).not.toContain('"EOD mark — not a live quote"');
+    expect(src).not.toContain('zh ? "实时" : "LIVE"');
+    expect(src).not.toContain('zh ? "实时" : "Live"');
     expect(src).toContain('t("optionLiveQuote")');
+    expect(src).toContain('t("optionLiveChip")');
     expect(src).toContain('t("optionLiveTip")');
     expect(src).toContain('t("optionEodTip")');
   });
@@ -301,6 +315,20 @@ describe("plain-language call sites — batch 3", () => {
     expect(src).not.toContain("Created with");
     expect(src).toContain('k="xChartSnapshot"');
     expect(src).toContain('k="xCreatedWith"');
+  });
+
+  it("capture_pl6_batch3.cjs strips the Next indicator before the screenshot", () => {
+    const src = readFileSync(join(__dirname, "../../e2e/tools/capture_pl6_batch3.cjs"), "utf8");
+    const cropStart = src.indexOf("async function cropBox");
+    const cropEnd = src.indexOf("async function cropLocator");
+    expect(cropStart).toBeGreaterThan(0);
+    expect(cropEnd).toBeGreaterThan(cropStart);
+    const cropBox = src.slice(cropStart, cropEnd);
+    expect(cropBox).toContain("assertNoNextIndicator");
+    expect(cropBox.indexOf("assertNoNextIndicator")).toBeLessThan(cropBox.indexOf("page.screenshot"));
+    const desk = src.slice(src.indexOf("async function captureFlowDesk"), src.indexOf("async function installAlertFixtures"));
+    expect(desk.indexOf("assertNoNextIndicator")).toBeGreaterThan(0);
+    expect(desk.indexOf("assertNoNextIndicator")).toBeLessThan(desk.indexOf("page.screenshot"));
   });
 
   it("AlertTimeline.tsx: header routes through pick(); verdict through mappedOrNeutral", () => {

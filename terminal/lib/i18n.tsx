@@ -2164,7 +2164,10 @@ export const LEX: Record<string, [string, string]> = {
 
   // ---- Pine editor ----
   peTitle: ["Pine Editor", "Pine 编辑器"],
-  peReadOnly: ["proprietary · read-only", "自研 · 只读"],
+  peReadOnly: ["Protected source — view only", "受保护的源码，仅可查看。"],
+  peLangPine: ["Pine", "Pine 脚本"],
+  peLangScript: ["Script", "脚本"],
+  peLastEdited: ["Last edited {date}", "上次修改 {date}"],
   peProtected: ["Proprietary — protected source, editing disabled", "自研代码 — 源码受保护，不可编辑"],
   peAddToChart: ["Add to chart", "添加到图表"],
   peRun: ["Run / compile", "运行 / 编译"],

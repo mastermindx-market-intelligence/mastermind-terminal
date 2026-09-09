@@ -169,6 +169,7 @@ export function entryStatusLabel(
 /** Statistic tokens the guard flags when they reach a visible span. */
 export const STAT_TOKEN_LABEL = {
   oi: ["Open interest", "未平仓合约"],
+  iv: ["Implied volatility", "隐含波动率"],
   iv_rank: ["IV rank", "隐含波动率百分位"],
   ivr: ["IV rank", "隐含波动率百分位"],
   dte: ["Days to expiry", "距到期天数"],

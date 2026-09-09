@@ -111,7 +111,7 @@ export function OptionCard({ contract, lang, liveMark, liveMarkForced }: OptionC
             onMouseLeave={() => setTipKey(null)}
             aria-label={t("optionLiveQuote")}
           >
-            {zh ? "实时" : "LIVE"}
+            {t("optionLiveChip")}
             {tipKey === "live" && (
               <span style={TIP_STYLE}>
                 {t("optionLiveTip")}

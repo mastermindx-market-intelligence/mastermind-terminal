@@ -207,6 +207,7 @@ const PROPHET_LEX = {
   optionPremEntry:  ["Entry prem.", "入场权利金"],
   optionEodMark:    ["EOD mark", "收盘标记"],
   optionLiveQuote:  ["Intraday live quote", "盘中实时报价"],
+  optionLiveChip:   ["Live", "实时"],
   optionLiveTip:    ["Intraday mid-price — updated within 20 min", "盘中实时中间价 — 20分钟内更新"],
   optionEodTip:     ["End-of-day mark — not a live quote", "收盘标记 — 不是实时报价"],
   optionCall:       ["CALL", "认购"],

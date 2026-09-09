@@ -129,6 +129,15 @@ async function newPage(browser, width, lang) {
     localStorage.setItem("theme_auto", "0");
     document.documentElement.setAttribute("data-theme", "dark");
     document.documentElement.setAttribute("data-lang", l);
+    const hide = () => {
+      document.querySelectorAll("nextjs-portal").forEach((el) => el.remove());
+    };
+    const start = () => {
+      hide();
+      new MutationObserver(hide).observe(document.documentElement, { childList: true, subtree: true });
+    };
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start);
+    else start();
   }, lang);
   const page = await context.newPage();
   page.setDefaultTimeout(45_000);
@@ -158,7 +167,6 @@ async function stripDevOverlay(page) {
 }
 
 async function assertNoNextIndicator(page, file) {
-  await page.waitForTimeout(400);
   await stripDevOverlay(page);
   const n = await page.locator("[data-nextjs-dev-tools-button]").count();
   if (n > 0) {
@@ -167,6 +175,7 @@ async function assertNoNextIndicator(page, file) {
 }
 
 async function cropBox(page, box, outPath, pad) {
+  await assertNoNextIndicator(page, outPath);
   const vp = page.viewportSize();
   if (!box || !vp) throw new Error(`no box for ${outPath}`);
   const x = Math.max(0, Math.floor(box.x - pad));
@@ -211,6 +220,7 @@ async function captureFlowDesk(page, width, lang, outPath) {
   // Reset only appears when dirty; the caveat lines are always present.
   const caveat = lang === "zh" ? "方向由成交价变动规则推断" : "inferred from the last trade";
   await filters.getByText(caveat).first().waitFor({ state: "visible", timeout: 15_000 });
+  await assertNoNextIndicator(page, outPath);
   const filterBox = await filters.boundingBox();
   const cardBox = await card.boundingBox();
   const vp = page.viewportSize();
@@ -320,7 +330,6 @@ async function main() {
             const { context, page } = await newPage(browser, width, lang);
             try {
               await surface.run(page, width, lang, join(OUT, file));
-              await assertNoNextIndicator(page, file);
               files.push(file);
               console.log("ok");
             } catch (err) {

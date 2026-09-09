@@ -7,11 +7,12 @@
  *
  * HONESTY DOCTRINE: "lean" is a soft tick-rule derivation; we do NOT offer a
  * directional green/red filter gate labeled "buy" / "sell" — the lean filter
- * uses neutral language ("~buy lean", "~sell lean") matching our field values.
+ * uses flowSideLabel ("Likely buying" / "偏买入"), never the raw ~buy token.
  */
 
 import { pick } from "@/lib/finFormat";
 import { FD } from "@/lib/flowdeskStrings";
+import { flowSideLabel } from "@/lib/plainLabels";
 import type { DteBucket, MnyBucket, Side } from "./FeedPane";
 
 // ── Filter shape ─────────────────────────────────────────────────────────────
@@ -255,17 +256,17 @@ export function FiltersPanel({ filters, onFiltersChange, lang }: FiltersPanelPro
       <FilterRow label={zh ? "倾向" : "Lean"}>
         <div className="fin-toggle">
           {([
-            { v: "all",    en: "All",       zh: "全部" },
-            { v: "~buy",   en: "~Buy lean", zh: "~买方" },
-            { v: "~sell",  en: "~Sell lean", zh: "~卖方" },
-            { v: "mixed",  en: "Mixed",      zh: "混合" },
-          ] as const).map(({ v, en, zh: zl }) => (
+            { v: "all" as const },
+            { v: "~buy" as const },
+            { v: "~sell" as const },
+            { v: "mixed" as const },
+          ]).map(({ v }) => (
             <button
               key={v}
               className={filters.lean === v ? "on" : ""}
               onClick={() => patch({ lean: v as Side | "all" })}
             >
-              {zh ? zl : en}
+              {v === "all" ? (zh ? "全部" : "All") : flowSideLabel(v, lang)}
             </button>
           ))}
         </div>

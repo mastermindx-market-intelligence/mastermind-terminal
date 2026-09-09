@@ -321,6 +321,13 @@ describe("statTokenLabel", () => {
     expect(statTokenLabel("iv_rank", "en")).toBe("IV rank");
     expect(statTokenLabel("iv_rank", "zh")).toBe("隐含波动率百分位");
   });
+
+  it("spells out implied volatility and never returns the IV token", () => {
+    expect(statTokenLabel("iv", "en")).toBe("Implied volatility");
+    expect(statTokenLabel("iv", "zh")).toBe("隐含波动率");
+    expect(statTokenLabel("iv", "en")).not.toBe("IV");
+    expect(statTokenLabel("IV", "en")).not.toBe("IV");
+  });
 });
 
 describe("volAboveOiLabel", () => {
@@ -567,5 +574,22 @@ describe("batch 3 retail register", () => {
     expect(LEX.ciQaStructure[0]).not.toContain("enrichment");
     expect(LEX.ciOpenInTranscript[0]).toBe("Open in the earnings call");
     expect(LEX.ciOpenInTranscript[1]).toBe("在电话会中查看");
+  });
+
+  it("peReadOnly is a retail sentence, not heading-only machine chrome", () => {
+    expect(LEX.peReadOnly[0]).toBe("Protected source — view only");
+    expect(LEX.peReadOnly[1]).toBe("受保护的源码，仅可查看。");
+    expect(LEX.peReadOnly[0].toLowerCase()).not.toContain("proprietary");
+    expect(LEX.peReadOnly[0].toLowerCase()).not.toContain("read-only");
+    expect(LEX.peReadOnly[1]).not.toContain("自研 · 只读");
+  });
+
+  it("pine library-row copy names the language and the last-edited date", () => {
+    expect(LEX.peLangPine[0]).toBe("Pine");
+    expect(LEX.peLangPine[1]).toBe("Pine 脚本");
+    expect(LEX.peLangScript[0]).toBe("Script");
+    expect(LEX.peLangScript[1]).toBe("脚本");
+    expect(LEX.peLastEdited[0]).toContain("Last edited");
+    expect(LEX.peLastEdited[1]).toContain("上次修改");
   });
 });
