@@ -160,28 +160,88 @@ async function gotoReady(page, path, lang) {
   await page.waitForTimeout(400);
 }
 
-async function stripDevOverlay(page) {
+async function hideNextIndicatorCss(page) {
   await page.evaluate(() => {
-    document.querySelectorAll("nextjs-portal").forEach((el) => el.remove());
+    const id = "mm-hide-next-indicator";
+    if (document.getElementById(id)) return;
+    const s = document.createElement("style");
+    s.id = id;
+    s.textContent = [
+      "nextjs-portal,",
+      "script[data-nextjs-dev-overlay],",
+      "#next-logo,",
+      "[data-next-mark],",
+      "[data-nextjs-dev-tools-button],",
+      "[data-nextjs-toast] {",
+      "  display: none !important;",
+      "  visibility: hidden !important;",
+      "  opacity: 0 !important;",
+      "  pointer-events: none !important;",
+      "}",
+    ].join("\n");
+    document.documentElement.appendChild(s);
   });
+}
+
+async function stripDevOverlay(page) {
+  await hideNextIndicatorCss(page);
+  await page.evaluate(() => {
+    const kill = (el) => {
+      if (!el) return;
+      if (el.shadowRoot) {
+        const s = document.createElement("style");
+        s.textContent = "*{display:none!important;visibility:hidden!important;opacity:0!important}";
+        el.shadowRoot.appendChild(s);
+      }
+      el.remove();
+    };
+    document.querySelectorAll("script[data-nextjs-dev-overlay], nextjs-portal").forEach(kill);
+    document.querySelectorAll("#next-logo, [data-next-mark]").forEach(kill);
+  });
+  for (const sel of ["nextjs-portal", "script[data-nextjs-dev-overlay]", "#next-logo", "[data-nextjs-dev-tools-button]", "[data-next-mark]"]) {
+    const loc = page.locator(sel);
+    const n = await loc.count();
+    for (let i = 0; i < n; i++) {
+      try { await loc.nth(i).evaluate((el) => el.remove()); } catch { /* detached */ }
+    }
+  }
 }
 
 async function assertNoNextIndicator(page, file) {
   await stripDevOverlay(page);
   const n = await page.locator("[data-nextjs-dev-tools-button]").count();
-  if (n > 0) {
-    throw new Error(`${file}: Next.js N overlay still mounted (${n}); TERMINAL_E2E_FIXTURE gate failed`);
+  async function visibleCount(locator) {
+    const c = await locator.count();
+    let v = 0;
+    for (let i = 0; i < c; i++) {
+      if (await locator.nth(i).isVisible()) v += 1;
+    }
+    return v;
+  }
+  const zhHint = await visibleCount(page.getByText("激活捷径"));
+  const enHint = await visibleCount(page.getByText("Activate shortcut"));
+  if (n > 0 || zhHint > 0 || enHint > 0) {
+    throw new Error(`${file}: Next.js N overlay still mounted (button=${n} zhHint=${zhHint} enHint=${enHint})`);
   }
 }
 
 async function cropBox(page, box, outPath, pad) {
   await assertNoNextIndicator(page, outPath);
+  await page.waitForTimeout(120);
+  await stripDevOverlay(page);
   const vp = page.viewportSize();
   if (!box || !vp) throw new Error(`no box for ${outPath}`);
   const x = Math.max(0, Math.floor(box.x - pad));
   const y = Math.max(0, Math.floor(box.y - pad));
+  // 390 frames: keep the clip off the bottom 52px of the viewport where the Next
+  // N pill paints even after the host is removed (closed compositor layer).
+  const bottomGuard = vp.width <= 500 ? 52 : 0;
   const width = Math.max(8, Math.min(vp.width - x, Math.ceil(box.width + pad * 2)));
-  const height = Math.max(8, Math.min(vp.height - y, Math.ceil(box.height + pad * 2)));
+  const height = Math.max(8, Math.min(vp.height - bottomGuard - y, Math.ceil(box.height + pad * 2)));
+  const nPortals = await page.locator("nextjs-portal").count();
+  if (nPortals > 0) {
+    throw new Error(`${outPath}: nextjs-portal still in DOM (${nPortals})`);
+  }
   await page.screenshot({ path: outPath, clip: { x, y, width, height } });
 }
 
@@ -221,14 +281,17 @@ async function captureFlowDesk(page, width, lang, outPath) {
   const caveat = lang === "zh" ? "方向由成交价变动规则推断" : "inferred from the last trade";
   await filters.getByText(caveat).first().waitFor({ state: "visible", timeout: 15_000 });
   await assertNoNextIndicator(page, outPath);
+  await page.waitForTimeout(120);
+  await stripDevOverlay(page);
   const filterBox = await filters.boundingBox();
   const cardBox = await card.boundingBox();
   const vp = page.viewportSize();
   if (!filterBox || !cardBox || !vp) throw new Error(`no desk boxes for ${outPath}`);
   const x = Math.max(0, Math.floor(Math.min(filterBox.x, cardBox.x) - 8));
   const y = Math.max(0, Math.floor(Math.min(filterBox.y, cardBox.y) - 8));
+  const bottomGuard = vp.width <= 500 ? 52 : 0;
   const right = Math.min(vp.width, Math.max(filterBox.x + filterBox.width, cardBox.x + cardBox.width) + 8);
-  const bottom = Math.min(vp.height, Math.max(filterBox.y + filterBox.height, cardBox.y + cardBox.height) + 8);
+  const bottom = Math.min(vp.height - bottomGuard, Math.max(filterBox.y + filterBox.height, cardBox.y + cardBox.height) + 8);
   await page.screenshot({
     path: outPath,
     clip: { x, y, width: Math.max(8, right - x), height: Math.max(8, bottom - y) },
