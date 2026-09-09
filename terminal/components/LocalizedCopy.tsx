@@ -1,4 +1,5 @@
 "use client";
+import type { CSSProperties, ImgHTMLAttributes } from "react";
 import { useT } from "@/lib/i18n";
 
 // Lexicon text for SERVER components.
@@ -13,8 +14,14 @@ export function T({ k, as: Tag = "span", className, style }: {
   k: string;
   as?: "span" | "p" | "h1" | "h2" | "div";
   className?: string;
-  style?: React.CSSProperties;
+  style?: CSSProperties;
 }) {
   const t = useT();
   return <Tag className={className} style={style}>{t(k)}</Tag>;
+}
+
+export function TImg({ k, ...rest }: { k: string } & ImgHTMLAttributes<HTMLImageElement>) {
+  const t = useT();
+  /* eslint-disable-next-line @next/next/no-img-element */
+  return <img alt={t(k)} {...rest} />;
 }

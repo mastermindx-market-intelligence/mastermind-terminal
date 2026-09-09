@@ -271,9 +271,7 @@ export function FiltersPanel({ filters, onFiltersChange, lang }: FiltersPanelPro
         </div>
         {/* Honesty note: lean is tick-rule derived, not NBBO-verified */}
         <div style={CAVEAT_STYLE}>
-          {zh
-            ? "方向为tick规则推断，非NBBO确认"
-            : "Direction is tick-rule heuristic — not NBBO-verified"}
+          {pick(zh, FD.leanHeuristic.en, FD.leanHeuristic.zh)}
         </div>
       </FilterRow>
 
@@ -325,7 +323,7 @@ export function FiltersPanel({ filters, onFiltersChange, lang }: FiltersPanelPro
           })}
         </div>
         {filters.dteBuckets.length === 0 && (
-          <div style={CAVEAT_STYLE}>{zh ? "全部到期" : "All expirations"}</div>
+          <div style={CAVEAT_STYLE}>{pick(zh, FD.allExpirations.en, FD.allExpirations.zh)}</div>
         )}
       </FilterRow>
 
@@ -369,9 +367,7 @@ export function FiltersPanel({ filters, onFiltersChange, lang }: FiltersPanelPro
           })}
         </div>
         <div style={CAVEAT_STYLE}>
-          {zh
-            ? "Sweep为启发式，非经NBBO确认的买方/卖方"
-            : "Sweep is heuristic — aggressor not NBBO-confirmed"}
+          {pick(zh, FD.sweepHeuristic.en, FD.sweepHeuristic.zh)}
         </div>
       </FilterRow>
 
@@ -396,9 +392,7 @@ export function FiltersPanel({ filters, onFiltersChange, lang }: FiltersPanelPro
           })}
         </div>
         <div style={CAVEAT_STYLE}>
-          {zh
-            ? "检测信号来自富集数据层；缺失文件时退化为v1行为，徽章隐藏。"
-            : "Detections from enrich artifact; absent/stale → v1 behavior, badges hidden."}
+          {pick(zh, FD.detectionsCaveat.en, FD.detectionsCaveat.zh)}
         </div>
       </FilterRow>
 
@@ -410,7 +404,7 @@ export function FiltersPanel({ filters, onFiltersChange, lang }: FiltersPanelPro
             onClick={() => onFiltersChange({ ...DEFAULT_FILTERS, badges: new Set(), detections: new Set() })}
             style={{ fontSize: "var(--fs-label)" }}
           >
-            {zh ? "重置筛选" : "Reset filters"}
+            {pick(zh, FD.resetFilters.en, FD.resetFilters.zh)}
           </button>
         </div>
       )}

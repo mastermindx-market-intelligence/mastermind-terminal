@@ -465,7 +465,7 @@ export function HeatmapView() {
                 ${breadth.totalPremiumMn.toFixed(1)}M
               </span>
               <span style={{ fontSize: 9, color: "var(--muted)", fontStyle: "italic", marginLeft: 4 }}>
-                {zh ? "仅规模" : "magnitude only"}
+                {t("magnitudeOnly")}
               </span>
             </div>
           </>
@@ -668,9 +668,9 @@ export function HeatmapView() {
             border: "1px solid var(--line)", borderRadius: 9,
           }}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: 14, fontSize: 9, textTransform: "uppercase", letterSpacing: ".05em", color: "var(--muted)" }}>
-              <span style={{ color: "var(--down)" }}>{layer === "flow" ? (lang === "zh" ? "净认沽" : "net put") : (lang === "zh" ? "下跌" : "down")}</span>
-              <span style={{ color: "var(--text-2)" }}>{layer === "flow" ? (lang === "zh" ? "权利金规模" : "premium size") : (lang === "zh" ? "1日涨跌" : "1D %chg")}</span>
-              <span style={{ color: "var(--up)" }}>{layer === "flow" ? (lang === "zh" ? "净认购" : "net call") : (lang === "zh" ? "上涨" : "up")}</span>
+              <span style={{ color: "var(--down)" }}>{layer === "flow" ? t("netPut") : (lang === "zh" ? "下跌" : "down")}</span>
+              <span style={{ color: "var(--text-2)" }}>{layer === "flow" ? t("premiumSize") : (lang === "zh" ? "1日涨跌" : "1D %chg")}</span>
+              <span style={{ color: "var(--up)" }}>{layer === "flow" ? t("netCall") : (lang === "zh" ? "上涨" : "up")}</span>
             </div>
             {(() => {
               const sw = heatSwatches();

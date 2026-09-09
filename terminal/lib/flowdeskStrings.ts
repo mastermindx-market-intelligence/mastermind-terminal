@@ -170,6 +170,13 @@ const FLOW_LEX = {
   typeCall:         ["Call", "认购"],
   typePut:          ["Put", "认沽"],
   displayOnly:      ["Display-only — not investment advice", "仅供展示 — 非投资建议"],
+  spreadUnreliable: ["spread — direction unreliable", "价差 — 方向不可靠"],
+  scoreHonesty:     [
+    "Score reflects magnitude/activity/novelty — not a win-rate prediction. Tiers are descriptive; no historical predictive edge until a forward ledger gates authority.",
+    "评分反映规模、活跃度和新鲜程度，不是胜率预测。等级只是描述；在前瞻账本完成之前，没有历史预测效力。",
+  ],
+  directionLean:    ["Direction lean", "方向倾向"],
+  tickRuleInferred: ["tick-rule inferred, not NBBO-confirmed", "由成交价变动规则推断，未经买卖报价确认"],
   softDirection:    ["~soft direction", "~软性方向"],
   noNbbo:           ["Direction without NBBO is approximate", "无NBBO时方向为近似值"],
   baselineWarming:  ["baseline warming (<30 sessions)", "基线积累中（<30个交易日）"],
@@ -323,6 +330,20 @@ export const FD = {
     "Ticker-level premium activity is much higher than its typical level over the past trading year.",
     "该标的的权利金活跃度显著高于过去一个交易年度的常态水平。",
   ),
+  leanHeuristic: bi(
+    "Direction is tick-rule heuristic — not NBBO-verified",
+    "方向由成交价变动规则推断，未经买卖报价确认",
+  ),
+  allExpirations: bi("All expirations", "全部到期"),
+  sweepHeuristic: bi(
+    "Sweep is heuristic — aggressor not NBBO-confirmed",
+    "扫单是启发式判断，未经买卖报价确认主动方",
+  ),
+  detectionsCaveat: bi(
+    "Detections from enrich artifact; absent/stale → v1 behavior, badges hidden.",
+    "检测信号来自富集数据；文件缺失或过期时退回基础筛选，徽章会隐藏。",
+  ),
+  resetFilters: bi("Reset filters", "重置筛选"),
 } as const;
 
 /**

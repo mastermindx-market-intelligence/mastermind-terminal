@@ -109,14 +109,12 @@ export function OptionCard({ contract, lang, liveMark, liveMarkForced }: OptionC
             style={LIVE_CHIP}
             onMouseEnter={() => setTipKey("live")}
             onMouseLeave={() => setTipKey(null)}
-            aria-label={zh ? "盘中实时报价" : "Intraday live quote"}
+            aria-label={t("optionLiveQuote")}
           >
             {zh ? "实时" : "LIVE"}
             {tipKey === "live" && (
               <span style={TIP_STYLE}>
-                {zh
-                  ? "盘中实时中间价 — 20分钟内更新"
-                  : "Intraday mid-price — updated within 20 min"}
+                {t("optionLiveTip")}
               </span>
             )}
           </span>
@@ -131,9 +129,7 @@ export function OptionCard({ contract, lang, liveMark, liveMarkForced }: OptionC
             {t("optionEodMark")}
             {tipKey === "eod" && (
               <span style={TIP_STYLE}>
-                {zh
-                  ? "EOD收盘标记 — 非实时报价"
-                  : "EOD mark — not a live quote"}
+                {t("optionEodTip")}
               </span>
             )}
           </span>

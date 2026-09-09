@@ -93,6 +93,12 @@ describe("plain-language call sites — leaky fallbacks gone", () => {
     expect(src).not.toContain('ohNightlyPending: ["Nightly data pending for this root"');
   });
 
+  it("i18n.tsx: gpGuardrail English names when not to trust it", () => {
+    const src = readFileSync(join(__dirname, "../i18n.tsx"), "utf8");
+    expect(src).toContain('gpGuardrail: ["When not to trust it"');
+    expect(src).not.toContain('gpGuardrail: ["Guardrail"');
+  });
+
   it("ChartPanel.tsx: oracle chip routes glance text through verdictLabel", () => {
     const src = readOwned("ChartPanel.tsx");
     expect(src).toContain('from "@/lib/plainLabels"');
@@ -170,5 +176,131 @@ describe("plain-language call sites — batch 2", () => {
     expect(src).not.toContain("leans against");
     expect(src).toContain('t("llHeroTitle")');
     expect(src).toContain('t("ll1title")');
+  });
+});
+
+describe("plain-language call sites — batch 3", () => {
+  it("OptionsFlowBoardView.tsx: chrome routes through pick(); vol>OI and side through helpers", () => {
+    const src = readOwned("options/OptionsFlowBoardView.tsx");
+    expect(src).not.toContain('lang === "zh" ? "资金流 · 仅供展示" : "Flow · display only"');
+    expect(src).not.toContain("vol&gt;OI");
+    expect(src).not.toContain("{event.side}");
+    expect(src).toMatch(/from ["']@\/lib\/plainLabels["']/);
+    expect(src).toContain("pick(");
+    expect(src).toContain("volAboveOiLabel(");
+    expect(src).toContain("flowSideLabel(");
+  });
+
+  it("PineEditor.tsx: remaining chrome routes through t(), never English-only JSX", () => {
+    const src = readOwned("PineEditor.tsx");
+    expect(src).not.toContain(">Proprietary · read-only");
+    expect(src).not.toContain('title={!isPro ? "Saving custom indicators requires Pro"');
+    expect(src).not.toContain('dirty ? "Save changes"');
+    expect(src).not.toContain("✓ Compiled with");
+    expect(src).not.toContain("✓ Compiled successfully");
+    expect(src).not.toContain("ready to add to chart");
+    expect(src).not.toContain('s.locked ? "proprietary · read-only"');
+    expect(src).toContain('t("peReadOnly")');
+    expect(src).toContain('t("peNeedsPro")');
+    expect(src).toContain('t("peSaveChanges")');
+    expect(src).toContain('t("peCompiledOk")');
+    expect(src).toContain('t("peUnsavedChanges")');
+    expect(src).toContain('t("peReadyToAdd")');
+  });
+
+  it("FiltersPanel.tsx: caveats and reset route through pick()", () => {
+    const src = readOwned("flowdesk/FiltersPanel.tsx");
+    expect(src).not.toContain('"Direction is tick-rule heuristic — not NBBO-verified"');
+    expect(src).not.toContain('"All expirations"');
+    expect(src).not.toContain('"Sweep is heuristic — aggressor not NBBO-confirmed"');
+    expect(src).not.toContain('"Detections from enrich artifact; absent/stale → v1 behavior, badges hidden."');
+    expect(src).not.toContain('"Reset filters"');
+    expect(src).toContain("pick(");
+  });
+
+  it("FlowCard.tsx: OI token and honesty copy route through helpers / t()", () => {
+    const src = readOwned("flowdesk/FlowCard.tsx");
+    expect(src).not.toContain("OI {(ev.oi");
+    expect(src).not.toContain('"spread — direction unreliable"');
+    expect(src).not.toContain('"Direction lean"');
+    expect(src).not.toContain('"tick-rule inferred, not NBBO-confirmed"');
+    expect(src).toContain("statTokenLabel(");
+    expect(src).toContain('t("spreadUnreliable")');
+    expect(src).toContain('t("scoreHonesty")');
+    expect(src).toContain('t("directionLean")');
+  });
+
+  it("AlertDetail.tsx: dialog chrome routes through pick()", () => {
+    const src = readOwned("alerts/AlertDetail.tsx");
+    expect(src).not.toContain('lang === "zh" ? "警报详情" : "Alert detail"');
+    expect(src).not.toContain('lang === "zh" ? "发生了什么" : "What changed"');
+    expect(src).not.toContain('lang === "zh" ? "查看证据" : "View evidence"');
+    expect(src).not.toContain('lang === "zh" ? "无证据链接" : "no evidence link"');
+    expect(src).toContain("pick(");
+  });
+
+  it("HeatmapView.tsx: legend and magnitude note route through t()", () => {
+    const src = readOwned("heatmap/HeatmapView.tsx");
+    expect(src).not.toContain('"magnitude only"');
+    expect(src).not.toContain('"net put"');
+    expect(src).not.toContain('"premium size"');
+    expect(src).not.toContain('"net call"');
+    expect(src).toContain('t("magnitudeOnly")');
+    expect(src).toContain('t("netPut")');
+    expect(src).toContain('t("premiumSize")');
+    expect(src).toContain('t("netCall")');
+  });
+
+  it("Treemap.tsx: tooltip stats route through t() and deltaOiPutCallLabel; no raw OI token", () => {
+    const src = readOwned("heatmap/Treemap.tsx");
+    expect(src).not.toContain("ΔOI P/C");
+    expect(src).not.toContain('"price/flow divergence — magnitude read"');
+    expect(src).not.toContain('"direction is soft"');
+    expect(src).not.toContain('"price only"');
+    expect(src).toContain("deltaOiPutCallLabel(");
+    expect(src).toContain('t("detailDivChip")');
+    expect(src).toContain('t("directionIsSoft")');
+    expect(src).toContain('t("tileNoFlow")');
+  });
+
+  it("CompanyIntelligenceV2Current.tsx: topic status and remaining English route through helpers / pick()", () => {
+    const src = readOwned("fin/CompanyIntelligenceV2Current.tsx");
+    expect(src).not.toContain('zh ? "结构已验证 · 主题增强暂不可用" : "Structure verified · topic enrichment unavailable"');
+    expect(src).not.toContain('zh ? "在电话会中查看" : "Open in transcript"');
+    expect(src).toContain("topicStatusLabel(");
+    expect(src).toContain("pick(");
+  });
+
+  it("CompanySourceManifest.tsx: kind and status interpolations route through helpers", () => {
+    const src = readOwned("fin/CompanySourceManifest.tsx");
+    expect(src).not.toContain("{source.status}");
+    expect(src).toContain("sourceKindLabel(");
+    expect(src).toContain("sourceStatusLabel(");
+  });
+
+  it("OptionCard.tsx: live/EOD quote chrome routes through t()", () => {
+    const src = readOwned("prophet/OptionCard.tsx");
+    expect(src).not.toContain('"Intraday live quote"');
+    expect(src).not.toContain('"Intraday mid-price — updated within 20 min"');
+    expect(src).not.toContain('"EOD mark — not a live quote"');
+    expect(src).toContain('t("optionLiveQuote")');
+    expect(src).toContain('t("optionLiveTip")');
+    expect(src).toContain('t("optionEodTip")');
+  });
+
+  it("x/[slug]/page.tsx: snapshot chrome routes through T / TImg", () => {
+    const src = readFileSync(join(__dirname, "../../app/x/[slug]/page.tsx"), "utf8");
+    expect(src).not.toContain('alt="Chart snapshot"');
+    expect(src).not.toContain("Created with");
+    expect(src).toContain('k="xChartSnapshot"');
+    expect(src).toContain('k="xCreatedWith"');
+  });
+
+  it("AlertTimeline.tsx: header routes through pick(); verdict through mappedOrNeutral", () => {
+    const src = readOwned("alerts/AlertTimeline.tsx");
+    expect(src).not.toContain('lang === "zh" ? "近期活动" : "Recent activity"');
+    expect(src).not.toContain("{r.verdict}");
+    expect(src).toContain("pick(");
+    expect(src).toContain("mappedOrNeutral(");
   });
 });

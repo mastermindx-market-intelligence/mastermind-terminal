@@ -19,9 +19,18 @@ import {
   STAT_TOKEN_LABEL,
   WIDGET_TYPE_LABEL,
   SUBJECT_KIND_LABEL,
+  SOURCE_KIND_LABEL,
+  SOURCE_STATUS_LABEL,
+  TOPIC_STATUS_LABEL,
+  FLOW_SIDE_LABEL,
+  deltaOiPutCallLabel,
   entryStatusLabel,
+  flowSideLabel,
+  sourceKindLabel,
+  sourceStatusLabel,
   statTokenLabel,
   subjectKindLabel,
+  topicStatusLabel,
   trustTierLabel,
   verdictLabel,
   volAboveOiLabel,
@@ -366,7 +375,7 @@ describe("subjectKindLabel", () => {
 
   it("known kinds are retail words, never the slug", () => {
     expect(subjectKindLabel("issuer", "en")).toBe("Company listing");
-    expect(subjectKindLabel("issuer", "zh")).toBe("上市标的");
+    expect(subjectKindLabel("issuer", "zh")).toBe("上市公司");
     expect(subjectKindLabel("theme", "en")).toBe("Theme");
     expect(subjectKindLabel("theme", "zh")).toBe("主题");
     expect(subjectKindLabel("issuer", "en")).not.toBe("issuer");
@@ -390,5 +399,128 @@ describe("subjectKindLabel", () => {
       expect(en, `${kind} EN must not echo the slug`).not.toBe(kind);
       expect(zh, `${kind} ZH must not echo the slug`).not.toBe(kind);
     }
+  });
+});
+
+function liveFlowSides(): string[] {
+  const found = new Set<string>();
+  function walkDir(dir: string) {
+    for (const name of readdirSync(dir)) {
+      const full = join(dir, name);
+      let st: unknown;
+      try {
+        st = JSON.parse(readFileSync(full, "utf8"));
+      } catch {
+        continue;
+      }
+      walkStrings(st, (key, value) => {
+        if (key === "side" && value.trim()) found.add(value);
+      });
+    }
+  }
+  walkDir(PUBLIC_DATA);
+  return [...found].sort();
+}
+
+describe("flowSideLabel", () => {
+  it("every mapped side has a non-empty EN and ZH label", () => {
+    for (const [key, pair] of Object.entries(FLOW_SIDE_LABEL)) {
+      assertBilingual(pair, key);
+    }
+  });
+
+  it("spells out inferred lean and never echoes the token", () => {
+    expect(flowSideLabel("~buy", "en")).toBe("Likely buying");
+    expect(flowSideLabel("~buy", "zh")).toBe("偏买入");
+    expect(flowSideLabel("~sell", "en")).toBe("Likely selling");
+    expect(flowSideLabel("~sell", "zh")).toBe("偏卖出");
+    expect(flowSideLabel("mixed", "en")).toBe("Mixed");
+    expect(flowSideLabel("mixed", "zh")).toBe("混合");
+    expect(flowSideLabel("~buy", "en")).not.toBe("~buy");
+  });
+
+  it("every side in live flow fixture data has a pair in EN and ZH", () => {
+    const sides = liveFlowSides();
+    expect(sides.length, "flow fixtures must carry side").toBeGreaterThan(0);
+    for (const side of sides) {
+      const en = flowSideLabel(side, "en");
+      const zh = flowSideLabel(side, "zh");
+      expect(en, `${side} EN`).not.toBe(notClassified("en"));
+      expect(zh, `${side} ZH`).not.toBe(notClassified("zh"));
+      expect(en, `${side} EN must not echo the token`).not.toBe(side);
+      expect(zh, `${side} ZH must not echo the token`).not.toBe(side);
+    }
+  });
+});
+
+describe("sourceKindLabel", () => {
+  it("every mapped kind has a non-empty EN and ZH label", () => {
+    for (const [key, pair] of Object.entries(SOURCE_KIND_LABEL)) {
+      assertBilingual(pair, key);
+    }
+  });
+
+  it("known kinds are retail words, never the slug", () => {
+    expect(sourceKindLabel("transcript", "en")).toBe("Earnings call transcript");
+    expect(sourceKindLabel("transcript", "zh")).toBe("电话会记录");
+    expect(sourceKindLabel("issuer_release", "en")).toBe("Company filing");
+    expect(sourceKindLabel("score_overlay", "zh")).toBe("结构化事件分析");
+    expect(sourceKindLabel("transcript", "en")).not.toBe("transcript");
+  });
+
+  it("unknown kind never returns the raw value", () => {
+    expect(sourceKindLabel("mystery_kind", "en")).toBe(notClassified("en"));
+    expect(sourceKindLabel("mystery_kind", "zh")).toBe(notClassified("zh"));
+    expect(sourceKindLabel("mystery_kind", "en")).not.toBe("mystery_kind");
+  });
+});
+
+describe("sourceStatusLabel", () => {
+  it("every mapped status has a non-empty EN and ZH label", () => {
+    for (const [key, pair] of Object.entries(SOURCE_STATUS_LABEL)) {
+      assertBilingual(pair, key);
+    }
+  });
+
+  it("known statuses are retail words, never the slug", () => {
+    expect(sourceStatusLabel("present", "en")).toBe("Present");
+    expect(sourceStatusLabel("present", "zh")).toBe("可用");
+    expect(sourceStatusLabel("metadata_only", "en")).toBe("Metadata only");
+    expect(sourceStatusLabel("metadata_only", "zh")).toBe("仅元数据");
+    expect(sourceStatusLabel("address_only", "en")).toBe("Address only");
+    expect(sourceStatusLabel("address_only", "zh")).toBe("仅有地址");
+    expect(sourceStatusLabel("present", "en")).not.toBe("present");
+  });
+
+  it("unknown status never returns the raw value", () => {
+    expect(sourceStatusLabel("weird_status", "en")).toBe(notClassified("en"));
+    expect(sourceStatusLabel("weird_status", "zh")).toBe(notClassified("zh"));
+  });
+});
+
+describe("topicStatusLabel", () => {
+  it("every mapped status has a non-empty EN and ZH label", () => {
+    for (const [key, pair] of Object.entries(TOPIC_STATUS_LABEL)) {
+      assertBilingual(pair, key);
+    }
+  });
+
+  it("known statuses are retail words, never the slug", () => {
+    expect(topicStatusLabel("added", "en")).toBe("Added");
+    expect(topicStatusLabel("added", "zh")).toBe("新增");
+    expect(topicStatusLabel("persistent", "en")).toBe("Persistent");
+    expect(topicStatusLabel("persistent", "zh")).toBe("延续");
+    expect(topicStatusLabel("dropped", "en")).toBe("Dropped");
+    expect(topicStatusLabel("dropped", "zh")).toBe("退出");
+    expect(topicStatusLabel("added", "en")).not.toBe("added");
+  });
+});
+
+describe("deltaOiPutCallLabel", () => {
+  it("spells out the open-interest change and never contains a raw OI token", () => {
+    expect(deltaOiPutCallLabel("en")).toBe("Open-interest change, puts vs calls");
+    expect(deltaOiPutCallLabel("zh")).toBe("未平仓量变化（认沽/认购）");
+    expect(deltaOiPutCallLabel("en").toLowerCase()).not.toMatch(/\boi\b/);
+    expect(deltaOiPutCallLabel("zh")).not.toMatch(/OI/i);
   });
 });

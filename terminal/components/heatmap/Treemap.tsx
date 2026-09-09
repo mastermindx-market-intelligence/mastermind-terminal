@@ -20,6 +20,8 @@
  */
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { makeHeatmapT } from "@/lib/heatmapStrings";
+import { deltaOiPutCallLabel } from "@/lib/plainLabels";
 import type { HeatmapTile, Layer, SizingMode, SectorBlock, TreemapNode, LayoutRect } from "./types";
 import { SECTOR_LABEL, SECTOR_ORDER } from "./sectorMap";
 import type { GicsSector } from "./types";
@@ -92,7 +94,7 @@ function priceColor(chg: number): string {
  * Flat flow tile color by SIGNED net premium (the number shown on the tile).
  *   sign  → hue: + = net-call/bullish (up color), − = net-put/bearish (down color)
  *   |$M|  → intensity via log10 so the median ~$0.4M name is a visible dim tone.
- * HONESTY: net-premium SIGN is a soft tape signal (see the "direction is soft"
+ * HONESTY: net-premium SIGN is a soft tape signal (see the direction-is-soft
  * caption); MAGNITUDE is reliable and always drives brightness.
  */
 function flowColor(tile: HeatmapTile): string {
@@ -653,7 +655,7 @@ function TileRect({ node, layer, isSelected, fill, onMouseEnter, onClick }: Tile
         </text>
       )}
 
-      {/* "price only" badge on flow layer when no flow data */}
+      {/* price-only badge on flow layer when no flow data */}
       {layer === "flow" && !tile.hasFlow && w > 36 && h > 16 && (
         <text
           x={x + w / 2}
@@ -681,6 +683,7 @@ interface HoverTooltipProps {
 }
 
 function HoverTooltip({ tooltip, layer, canvasW, canvasH, zh }: HoverTooltipProps) {
+  const t = makeHeatmapT(zh ? "zh" : "en");
   const { tile, cx, cy } = tooltip;
   const TIP_W = 180;
   const TIP_H = layer === "flow" ? 230 : 170;
@@ -756,25 +759,25 @@ function HoverTooltip({ tooltip, layer, canvasW, canvasH, zh }: HoverTooltipProp
 
             {tile.doiPc != null && (
               <>
-                <span style={{ color: "#475569" }}>ΔOI P/C</span>
+                <span style={{ color: "#475569" }}>{deltaOiPutCallLabel(zh ? "zh" : "en")}</span>
                 <span style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{tile.doiPc.toFixed(2)}</span>
               </>
             )}
 
             {isDivergent && (
               <div style={{ gridColumn: "1 / -1", marginTop: 4, padding: "3px 5px", background: "rgba(232,179,57,0.12)", borderRadius: 3, fontSize: 9, color: "var(--warn)", lineHeight: 1.4 }}>
-                {zh ? "价格/流向背离 — 以规模为准" : "price/flow divergence — magnitude read"}
+                {t("detailDivChip")}
               </div>
             )}
             <div style={{ gridColumn: "1 / -1", marginTop: 3, fontSize: 9, color: "var(--muted)", fontStyle: "italic" }}>
-              {zh ? "方向为软性读数" : "direction is soft"}
+              {t("directionIsSoft")}
             </div>
           </>
         )}
 
         {layer === "flow" && !tile.hasFlow && (
           <div style={{ gridColumn: "1 / -1", color: "var(--muted)", fontSize: 9, fontStyle: "italic", marginTop: 4 }}>
-            {zh ? "仅价格数据" : "price only"}
+            {t("tileNoFlow")}
           </div>
         )}
       </div>

@@ -18,6 +18,7 @@ import TranscriptSearchWorkspace from "./TranscriptSearchWorkspace";
 import { openMastermindBrainForSymbol } from "../../lib/mastermindBrain";
 import type { TranscriptOpenTarget } from "../../lib/transcriptSearch";
 import { EVENT_WORKSPACE_ATTRIBUTION, topicTagLabel } from "../../lib/companyIntelligenceLabels";
+import { topicStatusLabel } from "../../lib/plainLabels";
 
 type Lens = "brief" | "results" | "transcript" | "history" | "topics" | "sources";
 
@@ -42,12 +43,6 @@ function lensLabel(lens: Lens, zh: boolean): string {
     sources: ["Sources", "来源"],
   };
   return pick(zh, labels[lens][0], labels[lens][1]);
-}
-
-function topicStateLabel(status: "added" | "persistent" | "dropped", zh: boolean): string {
-  if (status === "added") return pick(zh, "Added", "新增");
-  if (status === "dropped") return pick(zh, "Dropped", "退出");
-  return pick(zh, "Persistent", "延续");
 }
 
 const EMPTY_METRICS = {
@@ -177,7 +172,7 @@ function AnalystQaBlock({
     <section className="ci-qa" data-ci-results-region="analyst-qa" aria-label={zh ? "分析师问答" : "Analyst Q&A"}>
       <header className="ci-qa-head">
         <span className="fin-eyebrow">{zh ? `分析师问答 · ${exchanges.length} 轮` : `ANALYST Q&A · ${exchanges.length} exchanges`}</span>
-        <p>{zh ? "结构已验证 · 主题增强暂不可用" : "Structure verified · topic enrichment unavailable"}</p>
+        <p>{pick(zh, "Structure verified · topic enrichment unavailable", "结构已验证 · 主题增强暂不可用")}</p>
       </header>
       <div className="ci-qa-list">
         {exchanges.map((exchange) => {
@@ -213,7 +208,7 @@ function AnalystQaBlock({
                     className="ci-qa-open"
                     onClick={() => onOpen({ id: txId, segment_index: segment, expected_document_sha256: txSha })}
                   >
-                    {zh ? "在电话会中查看" : "Open in transcript"}
+                    {pick(zh, "Open in transcript", "在电话会中查看")}
                   </button>
                 ) : null}
               </div>
@@ -607,9 +602,9 @@ export default function CompanyIntelligenceV2Current({
                 <ul className="ci-topic-list">
                   {v1.topics.timeline.map((topic) => (
                     <li key={topic.tag}>
-                      <span className={`ci-topic-status ${topic.status}`} aria-hidden />
+                      <span className={`ci-topic-status ${topic.status}`} aria-hidden data-plain-status={topicStatusLabel(topic.status, zh ? "zh" : "en")} />
                       <div><strong>{topicTagLabel(topic.tag, zh)}</strong></div>
-                      <span className="fin-tag" style={{ "--c": "var(--rcpt-exact)" } as React.CSSProperties}>{topicStateLabel(topic.status, zh)}</span>
+                      <span className="fin-tag" style={{ "--c": "var(--rcpt-exact)" } as React.CSSProperties}>{topicStatusLabel(topic.status, zh ? "zh" : "en")}</span>
                       <b className="num">{topic.event_count}</b>
                     </li>
                   ))}

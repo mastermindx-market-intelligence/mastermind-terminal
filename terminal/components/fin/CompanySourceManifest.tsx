@@ -2,6 +2,7 @@
 
 import { useLang } from "../../lib/i18n";
 import { pick } from "../../lib/finFormat";
+import { sourceKindLabel, sourceStatusLabel } from "../../lib/plainLabels";
 import type {
   CompanyIntelligenceEvent,
   CompanyIntelligenceSource,
@@ -74,7 +75,7 @@ export default function CompanySourceManifest({ event, onOpenTranscript, compact
         const color = v2Color(source.receipt_state);
         const id = source.transcript_id;
         return (
-          <li key={`${source.kind}:${source.document_id ?? index}`} data-ci-source-kind={source.kind} data-ci-receipt-state={source.receipt_state}>
+          <li key={`${source.kind}:${source.document_id ?? index}`} data-ci-source-kind={source.kind} data-ci-receipt-state={source.receipt_state} data-plain-kind={sourceKindLabel(source.kind, zh ? "zh" : "en")}>
             <span className="ci-source-icon" style={{ "--ci-source": color } as React.CSSProperties} aria-hidden>
               {v2Glyph(source.kind)}
             </span>
@@ -83,7 +84,7 @@ export default function CompanySourceManifest({ event, onOpenTranscript, compact
               <small>{v2Note(source, zh)}</small>
             </span>
             <span className="ci-source-state">
-              <span className="fin-tag" style={{ "--c": color } as React.CSSProperties}>{source.status}</span>
+              <span className="fin-tag" style={{ "--c": color } as React.CSSProperties}>{sourceStatusLabel(source.status, zh ? "zh" : "en")}</span>
               {!compact && id && <button onClick={() => onOpenTranscript(id)}>{pick(zh, "Read", "阅读")} ›</button>}
               {!compact && source.url?.startsWith("https://") && (
                 <a href={source.url} target="_blank" rel="noreferrer">{pick(zh, "Open", "打开")} ↗</a>
@@ -95,7 +96,7 @@ export default function CompanySourceManifest({ event, onOpenTranscript, compact
         const id = txId(source.url);
         const color = source.status === "present" ? "var(--up)" : source.status === "metadata_only" ? "var(--warn)" : "var(--muted)";
         return (
-          <li key={`${source.kind}:${index}`}>
+          <li key={`${source.kind}:${index}`} data-plain-kind={sourceKindLabel(source.kind, zh ? "zh" : "en")}>
             <span className="ci-source-icon" style={{ "--ci-source": color } as React.CSSProperties} aria-hidden>
               {source.kind === "transcript" ? "T" : source.kind === "score_overlay" ? "◇" : "H"}
             </span>
