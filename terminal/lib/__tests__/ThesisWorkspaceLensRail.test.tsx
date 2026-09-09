@@ -1562,6 +1562,11 @@ type WorkspaceStub = {
   savedViewsTruncated?: boolean;
   /** HTTP status the saved-views PUT answers with (400 = the route's name validation). */
   savedViewsPutStatus?: number;
+  /** Round-5 review (Meta-CEO B ruling R3b): the route answers a 400 with a
+   *  DISTINGUISHING `error` field — `invalid_name`, but also `invalid_filter`,
+   *  `invalid_id`, `invalid_scope`, `invalid_json` and `unsupported_action`. The
+   *  client used to discard it and report every one of them as a missing name. */
+  savedViewsPutError?: string;
   /** Round-4 review (ruling R3): the status the DELETE action answers with, on its own
    *  knob — 404 is `saved_view_not_found` (the row is already gone), 400 is `invalid_id`.
    *  Neither is a failed read of the list, which is on screen at that moment. */
@@ -1609,7 +1614,7 @@ function installWorkspaceFetch(stub: WorkspaceStub) {
         // its own in-place copy and never re-reads cannot pass a test on the strip order.
         if (body.action === "rename") {
           const renameStatus = stub.savedViewsPutStatus ?? 200;
-          if (renameStatus >= 400) return jsonResponse({ error: renameStatus === 400 ? "invalid_name" : "saved_views_unavailable" }, renameStatus);
+          if (renameStatus >= 400) return jsonResponse({ error: renameStatus === 400 ? (stub.savedViewsPutError ?? "invalid_name") : "saved_views_unavailable" }, renameStatus);
           const current = views.find((v) => v.id === body.id);
           if (!current) return jsonResponse({ error: "saved_view_not_found" }, 404);
           const renamed = { ...current, name: body.name, updatedAt: RENAMED_AT };
@@ -1617,7 +1622,7 @@ function installWorkspaceFetch(stub: WorkspaceStub) {
           return jsonResponse({ view: renamed });
         }
         const status = stub.savedViewsPutStatus ?? 200;
-        if (status >= 400) return jsonResponse({ error: status === 400 ? "invalid_name" : "saved_views_unavailable" }, status);
+        if (status >= 400) return jsonResponse({ error: status === 400 ? (stub.savedViewsPutError ?? "invalid_name") : "saved_views_unavailable" }, status);
         return jsonResponse({ view: { ...(body.view ?? {}), id: body.id ?? "new", name: body.name, filter: body.filter ?? { lifecycle: "active" }, createdAt: "2026-09-01T00:00:00.000Z", updatedAt: "2026-09-02T00:00:00.000Z" } });
       }
       return jsonResponse({ views, truncated });
@@ -2577,5 +2582,226 @@ describe("ThesisWorkspace research views — round-5 repairs (B-F11-4, PR #546)"
     const strip = savedViewsStrip(el);
     expect(strip).toContain("Renamed after the delete");
     expect(strip).not.toContain("That view was already removed.");
+  });
+});
+
+/** Stale enough for the 30-day built-in view, fresh enough that `reviewRows`' own
+ *  90-day threshold does NOT claim it — the gap the round-6 R1 tests live in. */
+const STALE_40 = new Date(Date.now() - 40 * 24 * 60 * 60 * 1000).toISOString();
+
+describe("ThesisWorkspace research views — round-6 repairs (B-F11-4, PR #546)", () => {
+  // R1 (BLOCKER): the round-5 repair wired the preset/view empty sentence to "a preset
+  // is active", never to "the view emptied this lens". Five of the seven lenses apply a
+  // SECOND predicate of their own on top of the view, so a view that MATCHED theses
+  // which simply carry no rows of that kind printed the view's categorical negative.
+  // These three tests are the discriminating case the round-5 tests never exercised:
+  // in every one of them the view demonstrably matches theses.
+  it("R1 Ideas under a Stale view that MATCHED theses keeps the lens's own sentence", async () => {
+    const rows = [
+      activeThesis("aaaaaaaa-aaaa-4aaa-8aaa-000000000601", "AAA", "Alpha two", STALE_40, 2),
+      activeThesis("aaaaaaaa-aaaa-4aaa-8aaa-000000000602", "BBB", "Beta two", STALE_40, 2),
+      activeThesis("aaaaaaaa-aaaa-4aaa-8aaa-000000000603", "CCC", "Gamma two", STALE_40, 2),
+    ];
+    installWorkspaceFetch({ theses: rows });
+    const el = await mount({ ownerKey: "owner-r6-ideas-stale" });
+    await flush();
+
+    await act(async () => chip(el, "stale_30").click());
+    await flush();
+    // The premise: the Stale view is displaying all three theses one click away.
+    expect(el.querySelectorAll('[data-testid="rms-lens-panel"] [class*="thesisList"] button').length).toBe(3);
+
+    await act(async () => tabs(el).find((b) => b.dataset.view === "ideas")!.click());
+    await flush();
+    const text = emptyText(el);
+    // `ideaRows` keeps only version-1 actives, so the LENS emptied this slice, not the
+    // view — the view's own sentence would be the exact inverse of what is on screen.
+    expect(text).toContain("Nothing new is waiting.");
+    expect(text).not.toContain("Nothing is stale.");
+    expect(text).not.toContain("last 30 days");
+  });
+
+  it("R1 Reviews under a Stale view that MATCHED theses keeps the lens's own sentence", async () => {
+    const rows = [
+      activeThesis("aaaaaaaa-aaaa-4aaa-8aaa-000000000604", "AAA", "Alpha two", STALE_40, 2),
+      activeThesis("aaaaaaaa-aaaa-4aaa-8aaa-000000000605", "BBB", "Beta two", STALE_40, 2),
+    ];
+    installWorkspaceFetch({ theses: rows });
+    const el = await mount({ ownerKey: "owner-r6-reviews-stale" });
+    await flush();
+
+    await act(async () => chip(el, "stale_30").click());
+    await flush();
+    expect(el.querySelectorAll('[data-testid="rms-lens-panel"] [class*="thesisList"] button').length).toBe(2);
+
+    await act(async () => tabs(el).find((b) => b.dataset.view === "reviews")!.click());
+    await flush();
+    const text = emptyText(el);
+    // 40 days is past the view's 30-day rule and short of `RMS_REVIEW_STALE_DAYS` (90),
+    // so the Reviews lens is empty while the view holds two theses.
+    expect(text).toContain("Nothing is waiting for a second look.");
+    expect(text).not.toContain("Nothing is stale.");
+    expect(text).not.toContain("last 30 days");
+  });
+
+  it("R1 Catalysts under a saved view that MATCHED theses keeps the lens's own scoped sentence", async () => {
+    const viewId = "aaaaaaaa-6666-4666-8666-666666666601";
+    const aapl = activeThesis("aaaaaaaa-aaaa-4aaa-8aaa-000000000606", "AAPL", "Apple thesis");
+    const nvda = activeThesis("aaaaaaaa-aaaa-4aaa-8aaa-000000000607", "NVDA", "Nvidia thesis");
+    installWorkspaceFetch({
+      theses: [aapl, nvda],
+      details: new Map([
+        [aapl.id, detailFor(aapl, { catalysts: ["The print lands in March."] })],
+        [nvda.id, detailFor(nvda)],
+      ]),
+      savedViews: [{
+        id: viewId,
+        name: "NVDA only",
+        filter: { lifecycle: "active", subjectGroupKey: "data_os.security_master|issuer|NVDA" },
+        createdAt: "2026-09-01T00:00:00.000Z",
+        updatedAt: "2026-09-01T00:00:00.000Z",
+      }],
+    });
+    const el = await mount({ ownerKey: "owner-r6-catalysts-saved-view" });
+    await flush();
+    await act(async () => tabs(el).find((b) => b.dataset.view === "catalysts")!.click());
+    await flush();
+    expect(el.querySelectorAll('[data-testid="rms-line-row"]').length).toBe(1);
+
+    await act(async () => el.querySelector<HTMLButtonElement>(`[data-saved-view="${viewId}"] button`)!.click());
+    await flush();
+
+    const text = emptyText(el);
+    // "NVDA only" matches the NVDA thesis — it just carries no catalysts. The scoped
+    // sentence is true of the loaded set, which under a view IS the view's set.
+    expect(text).toBe("No catalysts written down in the theses loaded here.");
+    expect(text).not.toContain("No theses match this view.");
+
+    // And the view demonstrably matched: the Theses lens under it lists the NVDA row.
+    await act(async () => tabs(el).find((b) => b.dataset.view === "theses")!.click());
+    await flush();
+    expect(el.querySelector('[data-testid="rms-lens-panel"]')!.textContent).toContain("Nvidia thesis");
+  });
+
+  // R1 (the disclosed residue, pinned rather than left to drift): `empty.notes` carries
+  // no "in the theses loaded here" scoping clause the way Catalysts and Risks do, so
+  // under a view it still reads workspace-wide. The seat's ruling makes the fallback the
+  // default and reserves a new per-lens key for its own exact strings; GAPS names it.
+  it("R1 Revision notes under a saved view that MATCHED theses falls back to the lens's own sentence", async () => {
+    const viewId = "aaaaaaaa-6666-4666-8666-666666666602";
+    const aapl = activeThesis("aaaaaaaa-aaaa-4aaa-8aaa-000000000608", "AAPL", "Apple thesis");
+    const nvda = activeThesis("aaaaaaaa-aaaa-4aaa-8aaa-000000000609", "NVDA", "Nvidia thesis");
+    installWorkspaceFetch({
+      theses: [aapl, nvda],
+      details: new Map([
+        [aapl.id, detailFor(aapl, { revisionNote: "Widened the horizon after the print." })],
+        [nvda.id, detailFor(nvda)],
+      ]),
+      savedViews: [{
+        id: viewId,
+        name: "NVDA only",
+        filter: { lifecycle: "active", subjectGroupKey: "data_os.security_master|issuer|NVDA" },
+        createdAt: "2026-09-01T00:00:00.000Z",
+        updatedAt: "2026-09-01T00:00:00.000Z",
+      }],
+    });
+    const el = await mount({ ownerKey: "owner-r6-notes-saved-view" });
+    await flush();
+    await act(async () => tabs(el).find((b) => b.dataset.view === "notes")!.click());
+    await flush();
+    expect(el.querySelectorAll('[data-testid="rms-line-row"]').length).toBe(1);
+
+    await act(async () => el.querySelector<HTMLButtonElement>(`[data-saved-view="${viewId}"] button`)!.click());
+    await flush();
+
+    const text = emptyText(el);
+    expect(text).not.toContain("No theses match this view.");
+    expect(text).toContain("No revision notes yet.");
+  });
+
+  // R3b: the client answered every 400 the route can return with "Give this view a
+  // name before you save it." — an instruction the reader cannot act on for five of
+  // the six causes. The route's JSON already carries the distinguishing `error`.
+  it("R3b a 400 that is not a name problem says the save failed, never 'give this view a name'", async () => {
+    installWorkspaceFetch({
+      theses: [activeThesis("aaaaaaaa-aaaa-4aaa-8aaa-000000000610", "AAA", "Alpha one")],
+      savedViewsPutStatus: 400,
+      savedViewsPutError: "invalid_filter",
+    });
+    const el = await mount({ ownerKey: "owner-r6-save-invalid-filter" });
+    await flush();
+    // "Save this view" only offers itself once something is actually narrowing the list.
+    await act(async () => chip(el, "stale_30").click());
+    await flush();
+    await act(async () => el.querySelector<HTMLButtonElement>('[data-testid="rms-save-view"]')!.click());
+    await flush();
+    const input = el.querySelector<HTMLInputElement>('input[placeholder="Name this view"]')!;
+    await act(async () => typeInto(input, "A perfectly good name"));
+    await flush();
+    await act(async () => {
+      el.querySelector<HTMLInputElement>('input[placeholder="Name this view"]')!
+        .closest("form")!.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+    });
+    await flush();
+
+    const strip = savedViewsStrip(el);
+    expect(strip).toContain("We could not save this view. Try again.");
+    expect(strip).not.toContain("Give this view a name before you save it.");
+    expect(strip).not.toContain("Your saved views did not load.");
+  });
+
+  // R3b (green guard): the route's own name rule still reads as a name problem.
+  it("R3b a 400 that IS a name problem still asks for a name", async () => {
+    installWorkspaceFetch({
+      theses: [activeThesis("aaaaaaaa-aaaa-4aaa-8aaa-000000000611", "AAA", "Alpha one")],
+      savedViewsPutStatus: 400,
+      savedViewsPutError: "invalid_name",
+    });
+    const el = await mount({ ownerKey: "owner-r6-save-invalid-name" });
+    await flush();
+    await act(async () => chip(el, "stale_30").click());
+    await flush();
+    await act(async () => el.querySelector<HTMLButtonElement>('[data-testid="rms-save-view"]')!.click());
+    await flush();
+    const input = el.querySelector<HTMLInputElement>('input[placeholder="Name this view"]')!;
+    await act(async () => typeInto(input, "   . "));
+    await flush();
+    await act(async () => {
+      el.querySelector<HTMLInputElement>('input[placeholder="Name this view"]')!
+        .closest("form")!.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+    });
+    await flush();
+
+    const strip = savedViewsStrip(el);
+    expect(strip).toContain("Give this view a name before you save it.");
+    expect(strip).not.toContain("We could not save this view.");
+  });
+
+  // R3c: with N saved views a screen reader announced N buttons called "Rename" and N
+  // called "Delete this view", with nothing to tell them apart.
+  it("R3c two saved views give their Rename and Delete controls distinct accessible names", async () => {
+    const first = "aaaaaaaa-7777-4777-8777-777777777701";
+    const second = "aaaaaaaa-7777-4777-8777-777777777702";
+    installWorkspaceFetch({
+      theses: [activeThesis("aaaaaaaa-aaaa-4aaa-8aaa-000000000612", "AAA", "Alpha one")],
+      savedViews: [
+        { id: first, name: "NVDA only", filter: { lifecycle: "active" }, createdAt: "2026-09-01T00:00:00.000Z", updatedAt: "2026-09-02T00:00:00.000Z" },
+        { id: second, name: "Stale ones", filter: { lifecycle: "active", staleDays: 30 }, createdAt: "2026-09-01T00:00:00.000Z", updatedAt: "2026-09-01T00:00:00.000Z" },
+      ],
+    });
+    const el = await mount({ ownerKey: "owner-r6-row-labels" });
+    await flush();
+
+    const labels = (viewId: string) =>
+      Array.from(el.querySelectorAll<HTMLButtonElement>(`[data-saved-view="${viewId}"] button`))
+        .map((b) => b.getAttribute("aria-label"))
+        .filter((v): v is string => typeof v === "string");
+
+    expect(labels(first)).toEqual(["Rename NVDA only", "Delete NVDA only"]);
+    expect(labels(second)).toEqual(["Rename Stale ones", "Delete Stale ones"]);
+    // The visible words are unchanged (spec 2.12's copy freeze).
+    const strip = savedViewsStrip(el);
+    expect(strip).toContain("Rename");
+    expect(strip).toContain("Delete this view");
   });
 });

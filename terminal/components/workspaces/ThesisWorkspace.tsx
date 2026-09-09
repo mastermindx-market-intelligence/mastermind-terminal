@@ -468,6 +468,16 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   // 2.8); a 400 now names the actual problem instead of claiming the views — visibly on
   // screen at that moment — did not load.
   const [savedViewNameError, setSavedViewNameError] = useState(false);
+  // Round-5 review (Meta-CEO B ruling R3b): `savedViewNameError` above was the client's
+  // answer to EVERY 400 the saved-views route can return — `invalid_name`, but also
+  // `invalid_filter`, `invalid_id`, `invalid_scope`, `invalid_json` and
+  // `unsupported_action` — so five of the six causes were reported to the reader as a
+  // missing name they could not fix by naming anything. The route's JSON already
+  // carries the distinguishing `error` field; only `invalid_name` is a naming problem,
+  // and the rest are a write that did not happen. A 5xx stays `savedViews.unavailable`:
+  // spec 2.8 assigns that sentence to a failed fetch/save/delete, and a rejected input
+  // is not a failed store.
+  const [savedViewSaveFailed, setSavedViewSaveFailed] = useState(false);
   // Round-4 review (Meta-CEO B ruling R3): a delete the route answers "that row is not
   // here" (404 saved_view_not_found, live since round 3, or a 400 on the id) used to
   // report `savedViews.unavailable` — a failed READ — over views that were on screen at
@@ -540,6 +550,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     setFireStatusUnavailable(false);
     setSavedViewsTruncated(false);
     setSavedViewNameError(false);
+    setSavedViewSaveFailed(false);
     setSavedViewGone(false);
     // This round's review (minor 5): the MAJOR fix above resets every per-owner
     // HYDRATION field, but `theses` itself (the id set the defensive membership
@@ -964,6 +975,31 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     return null;
   }, [activePreset, rms, fireStatusUnavailable]);
 
+  // Round-5 review (Meta-CEO B ruling R1, round 6): `presetEmptyCopy` above answers
+  // "which view is active", NOT "did the view empty this lens" — and five of the seven
+  // lenses apply a SECOND predicate of their own on top of the view (`ideaRows` keeps
+  // only version-1 actives, `reviewRows` only review-worthy ones, and catalysts/risks/
+  // notes keep only theses that actually carry lines of that kind). So a view that
+  // matched theses which simply carry no lines of that kind printed the view's own
+  // categorical negative — "No theses match this view." on Revision notes over a
+  // matched thesis with no note, or "Everything here changed in the last 30 days.
+  // Nothing is stale." on Ideas one click away from a Stale view listing stale theses —
+  // directly under a scope sentence saying lines are being shown from that view's
+  // active theses. Two clicks on ordinary data, in both languages, and on catalysts/
+  // risks/notes it REPLACED master's true, scoped sentence.
+  //
+  // The sentence is only true when the VIEW is what emptied the slice, so it is gated on
+  // exactly that: `filteredSummaries` is the view's whole match set, and Coverage and
+  // Theses are 1:1 with it (`coverageRows`/`thesisRows` drop nothing), so those two are
+  // unchanged by this gate — they were only ever empty when the view matched nothing.
+  // When the view DID match theses, each lens falls back to its own scoped sentence
+  // (`rms.empty[view]`), which is true under a view because the loaded set IS the view's
+  // set. `presetEmptyCopy` itself stays ungated because `viewAndSubjectEmptyCopy` below
+  // is a different question — there the SUBJECT emptied the slice out of a view that
+  // does hold rows, and its own gate already establishes that.
+  const viewEmptiedSet = filteredSummaries.length === 0;
+  const lensViewEmptyCopy = viewEmptiedSet ? presetEmptyCopy : null;
+
   // Round-5 review (Meta-CEO B ruling R2): a preset and a Coverage subject filter narrow
   // the Theses lens at the same time by design — `filterBySubject` does not clear
   // `activePreset` and the chip handlers do not clear `subjectFilterKey` — and the head
@@ -1030,6 +1066,18 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     }
   }, []);
 
+  // Round-5 review (Meta-CEO B ruling R3b): the route answers every rejection with
+  // `{ error }`; a body that is not JSON at all (a proxy's own 400 page) resolves to
+  // null, which the callers below read as "not a name problem" — the conservative side.
+  const readRouteError = useCallback(async (response: Response): Promise<string | null> => {
+    try {
+      const payload = await response.json();
+      return typeof payload?.error === "string" ? payload.error : null;
+    } catch {
+      return null;
+    }
+  }, []);
+
   const saveCurrentView = useCallback(async () => {
     if (savedViews.length >= MAX_SAVED_VIEWS) {
       setSavedViewsLimit(true);
@@ -1048,8 +1096,17 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       }
       // Round-3 review (ruling R4): the route's own name rule, reported as a name
       // problem rather than as a failed read (the same repair as `renameView` below).
+      // Round-5 review (ruling R3b): and ONLY the name rule — the other five 400 causes
+      // are a save that did not happen, which no amount of renaming fixes.
       if (response.status === 400) {
-        setSavedViewNameError(true);
+        const error = await readRouteError(response);
+        if (error === "invalid_name") {
+          setSavedViewSaveFailed(false);
+          setSavedViewNameError(true);
+        } else {
+          setSavedViewNameError(false);
+          setSavedViewSaveFailed(true);
+        }
         return;
       }
       if (!response.ok) {
@@ -1065,13 +1122,14 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       setNameDraft("");
       setSavedViewsLimit(false);
       setSavedViewNameError(false);
+      setSavedViewSaveFailed(false);
       // Round-5 review (ruling R3c): a successful create retires the already-removed
       // notice, exactly as it retires the name error one line above.
       setSavedViewGone(false);
     } catch {
       setSavedViewsUnavailable(true);
     }
-  }, [filterToSave, nameDraft, savedViews.length]);
+  }, [filterToSave, nameDraft, savedViews.length, readRouteError]);
 
   const renameView = useCallback(async (id: string, name: string) => {
     // Round-3 review (Meta-CEO B ruling R4): the create form has always carried this
@@ -1080,6 +1138,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     // views that were on screen at that moment. The submit button below is disabled for
     // the same reason; this is the belt to its braces (Enter on an empty field).
     if (!name.trim()) {
+      setSavedViewSaveFailed(false);
       setSavedViewNameError(true);
       return;
     }
@@ -1092,8 +1151,17 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       // A name the client cannot pre-check (the route's own rule) is still a name
       // problem, never a failed read: spec 2.8 reserves `savedViews.unavailable` for a
       // failed fetch/save/delete.
+      // Round-5 review (ruling R3b): rename can also come back `invalid_id`, which is
+      // not a name the reader can correct — it is a write that did not happen.
       if (response.status === 400) {
-        setSavedViewNameError(true);
+        const error = await readRouteError(response);
+        if (error === "invalid_name") {
+          setSavedViewSaveFailed(false);
+          setSavedViewNameError(true);
+        } else {
+          setSavedViewNameError(false);
+          setSavedViewSaveFailed(true);
+        }
         return;
       }
       if (!response.ok) {
@@ -1107,6 +1175,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       setRenamingId(null);
       setNameDraft("");
       setSavedViewNameError(false);
+      setSavedViewSaveFailed(false);
       // Round-5 review (ruling R3c): a successful rename retires the already-removed
       // notice too — see `loadSavedViews` above.
       setSavedViewGone(false);
@@ -1119,7 +1188,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     } catch {
       setSavedViewsUnavailable(true);
     }
-  }, [loadSavedViews]);
+  }, [loadSavedViews, readRouteError]);
 
   const deleteView = useCallback(async (id: string) => {
     if (!window.confirm(rms["savedViews.confirmDelete"])) return;
@@ -1789,7 +1858,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
                       {renamingId === view.id ? (
                         <form className={styles.saveViewForm} onSubmit={(event) => { event.preventDefault(); void renameView(view.id, nameDraft); }}>
                           <input aria-label={rms["savedViews.namePlaceholder"]} value={nameDraft} maxLength={80}
-                            onChange={(event) => { setNameDraft(event.target.value); setSavedViewNameError(false); }} />
+                            onChange={(event) => { setNameDraft(event.target.value); setSavedViewNameError(false); setSavedViewSaveFailed(false); }} />
                           {/* Round-3 review (Meta-CEO B ruling R4): the create form has
                               always carried this guard; without it here a blank name
                               reached the route and came back reported as a failed read. */}
@@ -1804,11 +1873,20 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
                             onClick={() => setActivePreset(selected ? null : { kind: "saved", id: view.id })}>
                             {view.name}
                           </button>
+                          {/* Round-5 review (Meta-CEO B ruling R3c): the visible word is
+                              the same on every row, so with N saved views a screen reader
+                              announced N buttons called "Rename" and N called "Delete this
+                              view" with nothing to tell them apart — and "this view" read
+                              as the ACTIVE view rather than the row the button sits on.
+                              The accessible name carries the row's own view name; the
+                              visible text is unchanged (spec 2.12's copy freeze). */}
                           <button type="button" className={styles.savedViewAction} disabled={carrierLocked}
+                            aria-label={rms["savedViews.renameNamed"].replace("{name}", view.name)}
                             onClick={() => { setRenamingId(view.id); setNameDraft(view.name); }}>
                             {rms["savedViews.rename"]}
                           </button>
                           <button type="button" className={styles.savedViewAction} disabled={carrierLocked}
+                            aria-label={rms["savedViews.deleteNamed"].replace("{name}", view.name)}
                             onClick={() => void deleteView(view.id)}>
                             {rms["savedViews.delete"]}
                           </button>
@@ -1831,6 +1909,9 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
                 <p className={styles.savedViewsNote} data-testid="rms-saved-views-empty">{rms["savedViews.empty"]}</p>
               )}
               {savedViewNameError && <p className={styles.savedViewsNote} role="status">{rms["savedViews.nameRequired"]}</p>}
+              {/* Round-5 review (ruling R3b): a rejected write that is NOT a name problem
+                  is neither "give this a name" nor "your saved views did not load". */}
+              {savedViewSaveFailed && <p className={styles.savedViewsNote} role="status" data-testid="rms-saved-view-save-failed">{rms["savedViews.saveFailed"]}</p>}
               {/* Round-4 review (ruling R3): a row the route can no longer resolve is
                   not a failed read of the list beside it. */}
               {savedViewGone && <p className={styles.savedViewsNote} role="status" data-testid="rms-saved-view-gone">{rms["savedViews.alreadyRemoved"]}</p>}
@@ -1932,7 +2013,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
                   and still renders. */}
               {listState === "ready" && view === "coverage" && (
                 coverageViewRows.length === 0
-                  ? <div className={styles.emptyLens} data-testid="rms-empty"><p>{presetEmptyCopy ?? rms.empty.coverage}</p></div>
+                  ? <div className={styles.emptyLens} data-testid="rms-empty"><p>{lensViewEmptyCopy ?? rms.empty.coverage}</p></div>
                   : coverageViewRows.map((row) => (
                     <button key={row.key} type="button" className={styles.subjectRow} onClick={() => filterBySubject(row)}>
                       <span><strong>{row.display}</strong><i data-state={row.active > 0 ? "active" : "idle"} /></span>
@@ -1971,8 +2052,17 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
                   // narrowing this lens, the preset's own sentence is a categorical
                   // negative over a slice the subject emptied — see the note on
                   // `viewAndSubjectEmptyCopy` above. Both narrowings are named instead.
-                  ? (presetEmptyCopy
-                    ? <div className={styles.emptyLens} data-testid="rms-empty"><p>{view === "theses" && viewAndSubjectEmptyCopy ? viewAndSubjectEmptyCopy : presetEmptyCopy}</p></div>
+                  // Round-5 review (Meta-CEO B ruling R1, round 6): the view sentence is
+                  // tested through `lensViewEmptyCopy`, which renders it only when the
+                  // VIEW emptied the set. The combined view+subject sentence is tested
+                  // FIRST and independently: there the view holds rows and the SUBJECT
+                  // emptied the slice, so it is true exactly when `lensViewEmptyCopy` is
+                  // null. Ideas and Reviews now fall back to their own scoped sentence
+                  // when the view matched theses that carry no rows for this lens.
+                  ? ((view === "theses" && viewAndSubjectEmptyCopy)
+                    ? <div className={styles.emptyLens} data-testid="rms-empty"><p>{viewAndSubjectEmptyCopy}</p></div>
+                    : lensViewEmptyCopy
+                    ? <div className={styles.emptyLens} data-testid="rms-empty"><p>{lensViewEmptyCopy}</p></div>
                     : view === "theses" && subjectFilterKey
                       ? <div className={styles.emptyLens} data-testid="rms-filtered-empty">
                         <p>{rms.filteredEmpty.replace("{subject}", filteredSubjectDisplay ?? "")}</p>
@@ -2015,7 +2105,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
                       // false sentence, not a narrow one. Same `presetEmptyCopy` decision
                       // as Coverage and the ideas/theses/reviews branch above; with no
                       // view active the lens's own sentence is the true one and stays.
-                      : <div className={styles.emptyLens} data-testid="rms-empty"><p>{presetEmptyCopy ?? rms.empty[view]}</p></div>))
+                      : <div className={styles.emptyLens} data-testid="rms-empty"><p>{lensViewEmptyCopy ?? rms.empty[view]}</p></div>))
                   : contentRows.map((row) => (
                     <article key={`${row.thesisId}-${row.index}`} className={styles.lineRow} data-testid="rms-line-row">
                       <p className={styles.lineText}>{row.text}</p>

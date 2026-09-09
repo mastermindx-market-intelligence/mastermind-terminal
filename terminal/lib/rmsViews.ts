@@ -469,6 +469,16 @@ export type RmsCopy = {
   "savedViews.save": string;
   "savedViews.rename": string;
   "savedViews.delete": string;
+  /** {name} placeholder — the ACCESSIBLE name of a saved view's per-row Rename control.
+   *  Round-5 review (Meta-CEO B ruling R3c): the visible word is the same on every row,
+   *  so N saved views announced N buttons called "Rename" with nothing to tell them
+   *  apart. The visible text is unchanged; this rides on `aria-label`. */
+  "savedViews.renameNamed": string;
+  /** {name} placeholder — the ACCESSIBLE name of a saved view's per-row Delete control.
+   *  Round-5 review (Meta-CEO B ruling R3c): "Delete this view" also read as the
+   *  CURRENTLY ACTIVE view rather than the row the button sits on — correct wording on
+   *  a single control, wrong on a repeated one. */
+  "savedViews.deleteNamed": string;
   "savedViews.confirmDelete": string;
   "savedViews.limitReached": string;
   /** Round-3 review (Meta-CEO B ruling R4): holding MORE than the cap is not the same
@@ -479,6 +489,12 @@ export type RmsCopy = {
    *  read. `savedViews.unavailable` is for a failed fetch/save/delete only (spec 2.8);
    *  this names the actual problem. */
   "savedViews.nameRequired": string;
+  /** Round-5 review (Meta-CEO B ruling R3b): the client used to report EVERY 400 the
+   *  saved-views route can return as a missing name. The route already carries a
+   *  distinguishing `error` field; only `invalid_name` is a name problem, and every
+   *  other rejected write is a save that did not happen — which is neither a failed
+   *  READ (`savedViews.unavailable`) nor a naming instruction. */
+  "savedViews.saveFailed": string;
   "savedViews.empty": string;
   "savedViews.unavailable": string;
   /** Round-4 review (Meta-CEO B ruling R3): a delete the route resolves as "that row
@@ -572,10 +588,13 @@ export const RMS_COPY: { en: RmsCopy; zh: RmsCopy } = {
     "savedViews.save": "Save",
     "savedViews.rename": "Rename",
     "savedViews.delete": "Delete this view",
+    "savedViews.renameNamed": "Rename {name}",
+    "savedViews.deleteNamed": "Delete {name}",
     "savedViews.confirmDelete": "Delete this saved view? This cannot be undone.",
     "savedViews.limitReached": "You have reached the limit of 50 saved views. Delete one to save another.",
     "savedViews.truncated": "You have more than 50 saved views. The least recently updated are hidden until you delete some.",
     "savedViews.nameRequired": "Give this view a name before you save it.",
+    "savedViews.saveFailed": "We could not save this view. Try again.",
     "savedViews.empty": "No saved views yet. Filter the list, then save it with a name.",
     "savedViews.unavailable": "Your saved views did not load. Nothing has been changed.",
     "savedViews.alreadyRemoved": "That view was already removed.",
@@ -666,10 +685,13 @@ export const RMS_COPY: { en: RmsCopy; zh: RmsCopy } = {
     "savedViews.save": "保存",
     "savedViews.rename": "重命名",
     "savedViews.delete": "删除此视图",
+    "savedViews.renameNamed": "重命名{name}",
+    "savedViews.deleteNamed": "删除{name}",
     "savedViews.confirmDelete": "删除这个已保存的视图？此操作无法撤销。",
     "savedViews.limitReached": "已达到 50 个已保存视图的上限。请先删除一个再保存新的。",
     "savedViews.truncated": "已保存的视图超过 50 个。最久未更新的那些暂时不显示，删除一些后会重新显示。",
     "savedViews.nameRequired": "保存前请先为这个视图命名。",
+    "savedViews.saveFailed": "无法保存这个视图，请重试。",
     "savedViews.empty": "还没有保存任何视图。先筛选列表，再为其保存命名。",
     "savedViews.unavailable": "无法加载已保存的视图。没有任何内容被更改。",
     "savedViews.alreadyRemoved": "该视图已被删除。",
