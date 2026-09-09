@@ -76,14 +76,22 @@ export const WEBHOOK_COPY = {
     "此回调已关闭，因此我们未发送测试事件。",
   ],
   relativeJustNow: ["just now", "刚刚"],
+  minuteAgo: ["minute ago", "分钟前"],
   minutesAgo: ["minutes ago", "分钟前"],
+  hourAgo: ["hour ago", "小时前"],
   hoursAgo: ["hours ago", "小时前"],
+  dayAgo: ["day ago", "天前"],
   daysAgo: ["days ago", "天前"],
 } as const;
 
 export function webhookCopy(key: keyof typeof WEBHOOK_COPY, lang: PlainLang): string {
   const pair = WEBHOOK_COPY[key];
   return lang === "zh" ? pair[1] : pair[0];
+}
+
+function agoPhrase(count: number, singular: keyof typeof WEBHOOK_COPY, plural: keyof typeof WEBHOOK_COPY, lang: PlainLang): string {
+  const unit = webhookCopy(count === 1 ? singular : plural, lang);
+  return `${count} ${unit}`;
 }
 
 export function webhookRelativeTime(iso: string | null | undefined, lang: PlainLang, nowMs = Date.now()): string {
@@ -93,13 +101,9 @@ export function webhookRelativeTime(iso: string | null | undefined, lang: PlainL
   const delta = Math.max(0, nowMs - then);
   if (delta < 45_000) return webhookCopy("relativeJustNow", lang);
   const minutes = Math.round(delta / 60_000);
-  if (minutes < 60) {
-    return lang === "zh" ? `${minutes} ${webhookCopy("minutesAgo", lang)}` : `${minutes} ${webhookCopy("minutesAgo", lang)}`;
-  }
+  if (minutes < 60) return agoPhrase(minutes, "minuteAgo", "minutesAgo", lang);
   const hours = Math.round(minutes / 60);
-  if (hours < 48) {
-    return lang === "zh" ? `${hours} ${webhookCopy("hoursAgo", lang)}` : `${hours} ${webhookCopy("hoursAgo", lang)}`;
-  }
+  if (hours < 48) return agoPhrase(hours, "hourAgo", "hoursAgo", lang);
   const days = Math.round(hours / 24);
-  return lang === "zh" ? `${days} ${webhookCopy("daysAgo", lang)}` : `${days} ${webhookCopy("daysAgo", lang)}`;
+  return agoPhrase(days, "dayAgo", "daysAgo", lang);
 }

@@ -99,7 +99,7 @@ class Supa {
   }
 }
 
-type DeliveryRow = {
+export type DeliveryRow = {
   id: string;
   endpoint_id: string;
   team_id: string;
@@ -112,11 +112,28 @@ type DeliveryRow = {
   next_retry_at: string | null;
 };
 
-type EndpointRow = {
+export type EndpointRow = {
   id: string;
   url: string;
   secret: string;
   enabled: boolean;
+};
+
+export type Poster = (
+  urlStr: string,
+  address: string,
+  family: number,
+  headers: Record<string, string>,
+  rawBody: string,
+) => Promise<{ status: number; error?: string }>;
+
+export type DeliverHooks = {
+  post?: Poster;
+  resolve?: (hostname: string) => Promise<{ address: string; family: number } | { error: string }>;
+};
+
+type PatchClient = {
+  patch: (path: string, body: Record<string, unknown>) => Promise<unknown[]>;
 };
 
 async function resolvePublicAddress(hostname: string): Promise<{ address: string; family: number } | { error: string }> {
@@ -181,7 +198,13 @@ function postPinned(
   });
 }
 
-async function deliverOne(supa: Supa, row: DeliveryRow, endpoint: EndpointRow, dryRun: boolean): Promise<void> {
+export async function deliverOne(
+  supa: PatchClient,
+  row: DeliveryRow,
+  endpoint: EndpointRow,
+  dryRun: boolean,
+  hooks: DeliverHooks = {},
+): Promise<void> {
   const tag = `delivery=${row.id}`;
   if (!endpoint.enabled) {
     if (!dryRun) {
@@ -221,9 +244,11 @@ async function deliverOne(supa: Supa, row: DeliveryRow, endpoint: EndpointRow, d
     return;
   }
 
+  const resolve = hooks.resolve ?? resolvePublicAddress;
+  const post = hooks.post ?? postPinned;
   const u = new URL(endpoint.url);
   const host = u.hostname.replace(/^\[|\]$/g, "");
-  const resolved = await resolvePublicAddress(host);
+  const resolved = await resolve(host);
   if ("error" in resolved) {
     const fail = failurePatch(attempt, new Date());
     await supa.patch(`webhook_deliveries?id=eq.${encodeURIComponent(row.id)}`, {
@@ -238,7 +263,7 @@ async function deliverOne(supa: Supa, row: DeliveryRow, endpoint: EndpointRow, d
   const rawBody = JSON.stringify(row.payload ?? {});
   const timestamp = Math.floor(Date.now() / 1000);
   const hex = signWebhookPayload(endpoint.secret, timestamp, rawBody);
-  const result = await postPinned(
+  const result = await post(
     endpoint.url,
     resolved.address,
     resolved.family,
@@ -342,7 +367,15 @@ async function main(): Promise<number> {
   return 0;
 }
 
-main().then((code) => process.exit(code)).catch((e) => {
-  log(`FATAL ${e instanceof Error ? e.message : e}`);
-  process.exit(1);
-});
+function invokedAsCli(): boolean {
+  const entry = process.argv[1];
+  if (!entry) return false;
+  return /webhook_delivery(?:\.[cm]?js|\.ts)?$/.test(entry.replace(/\\/g, "/"));
+}
+
+if (invokedAsCli()) {
+  main().then((code) => process.exit(code)).catch((e) => {
+    log(`FATAL ${e instanceof Error ? e.message : e}`);
+    process.exit(1);
+  });
+}
