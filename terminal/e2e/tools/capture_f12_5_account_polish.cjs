@@ -135,15 +135,20 @@ async function measureLayout(page) {
     const spanBox = span ? span.getBoundingClientRect() : null;
     const gridBox = grid ? grid.getBoundingClientRect() : null;
     const profileBox = profile ? profile.getBoundingClientRect() : null;
-    const confirmCs = confirm ? getComputedStyle(confirm) : null;
+    // Row always emits children; .acs-form is display:none until .acs-row.editing.
+    // Overview crops must not report class/bg of that hidden confirm.
+    const form = confirm ? confirm.closest(".acs-form") : null;
+    const formVisible = !!(form && getComputedStyle(form).display !== "none");
+    const confirmCs = formVisible && confirm ? getComputedStyle(confirm) : null;
     const signCs = signOut && getComputedStyle(signOut).display !== "none" ? getComputedStyle(signOut) : null;
     return {
       spanWidth: spanBox ? Math.round(spanBox.width) : 0,
       gridWidth: gridBox ? Math.round(gridBox.width) : 0,
       profileWidth: profileBox ? Math.round(profileBox.width) : 0,
-      confirmClass: confirm ? confirm.className : "",
+      confirmVisible: formVisible,
+      confirmClass: formVisible && confirm ? confirm.className : "",
       confirmBg: confirmCs ? confirmCs.backgroundColor : "",
-      confirmText: confirm ? (confirm.textContent || "").trim() : "",
+      confirmText: formVisible && confirm ? (confirm.textContent || "").trim() : "",
       signOutClass: signOut ? signOut.className : "",
       signOutColor: signCs ? signCs.color : "",
       signOutDisplay: signOut ? getComputedStyle(signOut).display : "",
@@ -268,7 +273,7 @@ async function main() {
     ...files.map((f) => `  - ${f}`),
     "measurements:",
     ...Object.entries(measurements).map(([file, m]) =>
-      `  ${file}: { spanWidth: ${m.spanWidth}, gridWidth: ${m.gridWidth}, profileWidth: ${m.profileWidth}, confirmClass: ${JSON.stringify(m.confirmClass)}, confirmBg: ${JSON.stringify(m.confirmBg)}, signOutClass: ${JSON.stringify(m.signOutClass)}, signOutColor: ${JSON.stringify(m.signOutColor)} }`),
+      `  ${file}: { spanWidth: ${m.spanWidth}, gridWidth: ${m.gridWidth}, profileWidth: ${m.profileWidth}, confirmVisible: ${m.confirmVisible}, confirmClass: ${JSON.stringify(m.confirmClass)}, confirmBg: ${JSON.stringify(m.confirmBg)}, signOutClass: ${JSON.stringify(m.signOutClass)}, signOutColor: ${JSON.stringify(m.signOutColor)} }`),
     "",
   ].join("\n");
   writeFileSync(join(OUT, "EVIDENCE.yml"), evidence);
