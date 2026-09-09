@@ -759,6 +759,15 @@ function PortfolioTargetsReadout({ summary, lang, onSetTarget, onClearTarget }: 
 }) {
   const copy = targetsCopy(summary, lang);
   const pick = (b: { en: string; zh: string } | null | undefined) => (b ? (lang === "zh" ? b.zh : b.en) : "");
+  const [justSaved, setJustSaved] = useState<string | null>(null);
+  const persist = async (ticker: string, targetWeightPct: number, bandPct?: number) => {
+    await onSetTarget(ticker, targetWeightPct, bandPct);
+    setJustSaved(ticker);
+  };
+  const drop = async (ticker: string) => {
+    await onClearTarget(ticker);
+    setJustSaved(ticker);
+  };
   return (
     <section className={tg.section} data-testid="portfolio-targets" aria-labelledby="pf-targets-h">
       <header className={tg.head}>
@@ -787,8 +796,9 @@ function PortfolioTargetsReadout({ summary, lang, onSetTarget, onClearTarget }: 
                 targetWeightPct={drift.targetWeightPct}
                 bandPct={drift.bandPct}
                 lang={lang}
-                onSetTarget={onSetTarget}
-                onClearTarget={onClearTarget}
+                onSetTarget={persist}
+                onClearTarget={drop}
+                showSaved={justSaved === row.ticker}
               />
             );
           })}
@@ -803,7 +813,8 @@ function PortfolioTargetsReadout({ summary, lang, onSetTarget, onClearTarget }: 
               ticker={row.ticker}
               hint={pick(row.hint)}
               lang={lang}
-              onSetTarget={onSetTarget}
+              onSetTarget={persist}
+              showSaved={justSaved === row.ticker}
             />
           ))}
         </div>
@@ -866,7 +877,7 @@ function useDebouncedSave(
 
 function TargetCard({
   ticker, current, driftText, bandFitLabel, bandFit, unweighableNote,
-  targetWeightPct, bandPct, lang, onSetTarget, onClearTarget,
+  targetWeightPct, bandPct, lang, onSetTarget, onClearTarget, showSaved,
 }: {
   ticker: string;
   current: string;
@@ -879,6 +890,7 @@ function TargetCard({
   lang: Lang;
   onSetTarget: (ticker: string, targetWeightPct: number, bandPct?: number) => Promise<void>;
   onClearTarget: (ticker: string) => Promise<void>;
+  showSaved: boolean;
 }) {
   const [targetStr, setTargetStr] = useState(String(targetWeightPct));
   const [bandStr, setBandStr] = useState(String(bandPct));
@@ -951,7 +963,7 @@ function TargetCard({
         >
           {pick(T_CLEAR)}
         </button>
-        {flash === "saved" && <span className={tg.saved}>{pick(T_SAVED)}</span>}
+        {(flash === "saved" || showSaved) && <span className={tg.saved}>{pick(T_SAVED)}</span>}
         {flash === "error" && <span className={tg.error}>{errorText || pick(T_SAVE_FAIL)}</span>}
       </div>
     </article>
@@ -959,12 +971,13 @@ function TargetCard({
 }
 
 function UntargetedRow({
-  ticker, hint, lang, onSetTarget,
+  ticker, hint, lang, onSetTarget, showSaved,
 }: {
   ticker: string;
   hint: string;
   lang: Lang;
   onSetTarget: (ticker: string, targetWeightPct: number, bandPct?: number) => Promise<void>;
+  showSaved: boolean;
 }) {
   const [targetStr, setTargetStr] = useState("");
   const [bandStr, setBandStr] = useState(String(DEFAULT_BAND_PCT));
@@ -1008,7 +1021,7 @@ function UntargetedRow({
           }}
         />
       </label>
-      {flash === "saved" && <span className={tg.saved}>{pick(T_SAVED)}</span>}
+      {(flash === "saved" || showSaved) && <span className={tg.saved}>{pick(T_SAVED)}</span>}
       {flash === "error" && <span className={tg.error}>{errorText || pick(T_SAVE_FAIL)}</span>}
     </div>
   );
