@@ -1,11 +1,11 @@
 # B-F12-B5-2 team-shared workspaces — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 2c2651aa6c677b507a62298251477872bf8689e5
-# capturedAt: 2026-09-09T15:36:26.151Z
+# capturedAtHead: 010b0cb6f50f8d0ea9d75674bf0e6fb7c3ad335f
+# capturedAt: 2026-09-09T16:19:38.213Z
 # capturedAtHead is the code commit the pixels depict. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/LayoutMenu.tsx: "6e9bf1883c651c5ee87e3e4eea0a0a2cf27a29c9720b749ef602500283e2d82b"
+  terminal/components/LayoutMenu.tsx: "235bf33a22dc3b4d7d9b143f0ecf19818863b4352e9a7df3d0a787634d73116b"
   terminal/lib/teamSharedWorkflow.ts: "2c28cdbc5b232c2767381a22be45cc1be44c4864acab3f8119824efdeae1fb04"
   terminal/lib/i18n.tsx: "954a31a85501b503def5b1216c4d1e3a86684cefb1a542cdb6c13bf21b684d42"
   terminal/app/dev/workspaces/page.tsx: "320f7983a913e212249dbfc65a18c1807f1fca9f6de9305f595a855ad4b9f1b5"
