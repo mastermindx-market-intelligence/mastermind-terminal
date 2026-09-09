@@ -280,7 +280,12 @@ export default function SectionTeam({
         closeLabel={t("acsClose")}
         onClose={onClose}
       />
-      <div className="acs-body">
+      <div
+        className="acs-body"
+        data-testid="team-live"
+        data-team-id={teamId || ""}
+        data-caller-role={callerRole || ""}
+      >
         <Group title={t("acsTeamWhatEach")}>
           <Row label={t("acsRoleOwner")} desc={t("acsRoleOwnerWhat")} />
           <Row label={t("acsRoleAdmin")} desc={t("acsRoleAdminWhat")} />

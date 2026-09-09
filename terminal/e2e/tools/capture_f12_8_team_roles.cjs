@@ -187,6 +187,37 @@ async function openTruncated(page, lang, viewport) {
   await stripDevOverlay(page);
 }
 
+function truncatedVisibleInBody() {
+  const body = document.querySelector(".acs-overlay.open .acs-body");
+  const truncated = document.querySelector("[data-testid=\"team-truncated\"]");
+  if (!body || !truncated) return { ok: false, reason: "missing" };
+  const br = body.getBoundingClientRect();
+  const tr = truncated.getBoundingClientRect();
+  const visible = tr.bottom > br.top + 4 && tr.top < br.bottom - 4 && tr.height > 0;
+  return {
+    ok: visible,
+    truncatedTop: tr.top,
+    truncatedBottom: tr.bottom,
+    bodyTop: br.top,
+    bodyBottom: br.bottom,
+  };
+}
+
+// Round-7 review MAJOR: waiting for team-truncated is not enough — Playwright
+// "visible" does not mean painted inside .acs-body's overflow. Confirm crops
+// already scrollIntoView; truncated crops must too, or the overlay shot is a
+// second copy of the team crop and the sentence never appears.
+async function assertTruncatedInView(page, file) {
+  const el = page.locator("[data-testid=\"team-truncated\"]");
+  await el.waitFor({ state: "visible", timeout: 10_000 });
+  await el.evaluate((node) => node.scrollIntoView({ block: "end", inline: "nearest" }));
+  await page.waitForTimeout(200);
+  const inView = await page.evaluate(truncatedVisibleInBody);
+  if (!inView.ok) {
+    throw new Error(`${file}: truncated sentence is clipped (${JSON.stringify(inView)})`);
+  }
+}
+
 // Round-4 ruling R4(b): the four change-role crops carried no evidence the four team crops did not
 // — a scrollIntoView on an element already in view. They now open the confirm state, so
 // acsTeamRemoveAsk is on screen in both languages and at both widths.
@@ -246,6 +277,13 @@ async function measureLayout(page) {
     const nameLabel = document.querySelector("[data-testid=\"team-name-label\"]");
     const asking = document.querySelector(".acs-row.editing .acs-form .acs-note");
     const truncated = document.querySelector("[data-testid=\"team-truncated\"]");
+    const body = document.querySelector(".acs-overlay.open .acs-body");
+    let truncatedInView = false;
+    if (body && truncated) {
+      const br = body.getBoundingClientRect();
+      const tr = truncated.getBoundingClientRect();
+      truncatedInView = tr.bottom > br.top + 4 && tr.top < br.bottom - 4 && tr.height > 0;
+    }
     const inviteBadge = document.querySelector("[data-testid=\"team-invite-badge\"]");
     const unnamed = Array.from(document.querySelectorAll("[data-user-id]")).filter((el) => {
       const name = (el.textContent || "");
@@ -267,6 +305,7 @@ async function measureLayout(page) {
       createLabel: create ? (create.textContent || "").trim() : "",
       nameLabel: nameLabel ? (nameLabel.textContent || "").trim() : "",
       truncatedText: truncated ? (truncated.textContent || "").trim() : "",
+      truncatedInView,
       inviteBadgeText: inviteBadge ? (inviteBadge.textContent || "").trim() : "",
       unnamedRows: unnamed,
       ownerWhat: ownerWhat || "",
@@ -324,6 +363,7 @@ async function main() {
             await openNoTeam(page, shot.lang, VIEWPORTS[shot.viewport]);
           } else if (shot.kind === "truncated") {
             await openTruncated(page, shot.lang, VIEWPORTS[shot.viewport]);
+            await assertTruncatedInView(page, shot.file);
           } else {
             await openTeam(page, shot.lang, VIEWPORTS[shot.viewport]);
             await assertInvitesInView(page, shot.file);
@@ -356,6 +396,9 @@ async function main() {
             }
             if (shot.kind === "truncated" && !m.truncatedText) {
               throw new Error(`${shot.file}: truncated sentence missing`);
+            }
+            if (shot.kind === "truncated" && !m.truncatedInView) {
+              throw new Error(`${shot.file}: truncated sentence is not inside the body viewport`);
             }
             if ((shot.kind === "team" || shot.kind === "truncated") && m.unnamedRows < 2) {
               throw new Error(`${shot.file}: expected two unnamed rows, got ${m.unnamedRows}`);
@@ -415,6 +458,7 @@ async function main() {
       + ` changeRoleLabels: ${JSON.stringify(m.changeRoleLabels)}, confirmText: ${JSON.stringify(m.confirmText)},`
       + ` noTeamPresent: ${m.noTeamPresent}, createLabel: ${JSON.stringify(m.createLabel)},`
       + ` nameLabel: ${JSON.stringify(m.nameLabel)}, truncatedText: ${JSON.stringify(m.truncatedText)},`
+      + ` truncatedInView: ${Boolean(m.truncatedInView)},`
       + ` inviteBadgeText: ${JSON.stringify(m.inviteBadgeText)}, unnamedRows: ${m.unnamedRows},`
       + ` ownerWhatPresent: ${Boolean(m.ownerWhat)},`
       + ` removeClass: ${JSON.stringify(m.removeClass)} }`),
