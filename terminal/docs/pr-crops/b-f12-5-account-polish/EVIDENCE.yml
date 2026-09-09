@@ -7,7 +7,7 @@
 # B-F08-7b: SectionAccount.tsx hash refreshed for a non-visual write-fence wrap
 # (saveName routes through sendScopedAccountWrite). Pixels unchanged; no recapture.
 layoutFiles:
-  terminal/components/settings/SectionAccount.tsx: "034f4f7cec9edb484ca1ed6cb53ca225989121eeca875d3577712c83df254025"  # pixels re-verified unchanged at 256861d864e9db82592764887630ce48a0b81a16; no recapture — seat ruling B-F08-7b R3 (no JSX / class / string change)
+  terminal/components/settings/SectionAccount.tsx: "c840ae614763e53223bc774f4e9d969bf2e7c28f46cc7075293e13c6fb72a4a2"  # no visual change in this file (no JSX, class or string edit); crops unchanged from e73e5bdc
   terminal/app/settings.css: "3189163136d943431cbf52e4b5d241c105b695ba5af94c4c2e29151d537b5ef5"
 theme: dark
 languages: [en, zh]

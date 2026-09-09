@@ -205,6 +205,29 @@ export class PreferencePump {
         this.sending = 0;
         // The Supabase shape: RESOLVED, with an error inside. A `.catch()` never sees this.
         if (result && typeof result === "object" && "error" in result && result.error) {
+          const err = result.error as { name?: unknown };
+          if (err && typeof err === "object" && err.name === "ScopedToEmpty") {
+            const dropped = Array.isArray((result as { dropped?: unknown }).dropped)
+              ? (result as { dropped: string[] }).dropped
+              : Object.keys(payload);
+            for (const key of dropped) {
+              if (key in this.desired) delete this.desired[key];
+            }
+            if (process.env.NODE_ENV !== "production") {
+              console.warn("[prefDelivery] nothing the Terminal may write; evicting", dropped);
+            }
+            this.attempts = 0;
+            if (revision > this.acked) this.acked = revision;
+            for (const [key, atRev] of Array.from(this.oneShotKeys)) {
+              if (atRev <= this.acked) {
+                delete this.desired[key];
+                this.oneShotKeys.delete(key);
+              }
+            }
+            this.publish(this.revision > this.acked ? "syncing" : "saved");
+            this.kick();
+            return;
+          }
           this.fail();
           return;
         }

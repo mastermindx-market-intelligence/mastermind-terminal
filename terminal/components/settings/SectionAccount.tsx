@@ -29,6 +29,19 @@ export function isActiveDeletionStatus(status: string): boolean {
   return status === "received" || status === "in_progress" || status === "completed";
 }
 
+/** Pane copy for a failed account write. A translated `i18nKey` wins; anything else
+ *  (including a developer Error.message) falls back to the generic sentence. */
+function accountSaveErrorText(e: unknown, t: SectionProps["t"]): string {
+  if (e && typeof e === "object" && "i18nKey" in e) {
+    const key = (e as { i18nKey: unknown }).i18nKey;
+    if (typeof key === "string" && key) {
+      const translated = t(key);
+      if (translated && translated !== key) return translated;
+    }
+  }
+  return t("acsErrGen");
+}
+
 function providerLabelKey(p: string): string {
   if (p === "google") return "acsProvGoogle";
   if (p === "twitter") return "acsProvX";
@@ -210,7 +223,7 @@ export default function SectionAccount({ t, lang, email, user, onClose, onPatchM
       setEditing(null);
       void onRefreshUser();
     } catch (e) {
-      setMsg({ kind: "err", text: (e as Error)?.message || t("acsErrGen") });
+      setMsg({ kind: "err", text: accountSaveErrorText(e, t) });
     } finally {
       setBusy(false);
     }

@@ -259,11 +259,18 @@ export function scopeAccountWrite(patch: unknown): {
   return { data, dropped };
 }
 
-/** The not-sent outcome of `sendScopedAccountWrite`. Same `{ error }` shape callers already treat as failure. */
+/** The not-sent outcome of `sendScopedAccountWrite`. Same `{ error }` shape callers already treat as failure.
+ *  `name` only — no display message. The developer text lives solely in the dev-mode console.warn. */
 export type ScopedToEmptyResult = {
-  error: { name: "ScopedToEmpty"; message: "no owned key in patch" };
+  error: { name: "ScopedToEmpty" };
   dropped: string[];
 };
+
+export function isScopedToEmpty(result: unknown): result is ScopedToEmptyResult {
+  if (!result || typeof result !== "object") return false;
+  const err = (result as { error?: unknown }).error;
+  return !!err && typeof err === "object" && (err as { name?: unknown }).name === "ScopedToEmpty";
+}
 
 /**
  * Apply the write fence, warn in development about anything dropped, and call `send` only
@@ -273,9 +280,10 @@ export type ScopedToEmptyResult = {
  *   - sent — every key is owned; `send` is called with the patch.
  *   - scoped-and-sent — some keys are dropped; `send` is called with the owned remainder.
  *   - not sent — no owned key remains (all-foreign, empty, or not a key map). Returns
- *     `{ error: { name: "ScopedToEmpty", message: "no owned key in patch" }, dropped }`
- *     and does not call `send`. Callers already treat a truthy `{ error }` as failure, so
- *     the outbox keeps its record and the delivery layer does not ack or publish "saved".
+ *     `{ error: { name: "ScopedToEmpty" }, dropped }` and does not call `send`. The
+ *     developer text ("no owned key in patch") is a console.warn only, never a display
+ *     message. Callers treat this as "nothing the Terminal may write": the pump evicts
+ *     those keys and the outbox strips them from the durable record.
  */
 export async function sendScopedAccountWrite<R extends { error?: unknown } | void>(
   send: (data: Record<string, unknown>) => Promise<R>,
@@ -286,8 +294,11 @@ export async function sendScopedAccountWrite<R extends { error?: unknown } | voi
     console.warn("[accountPrefs] dropped keys the Terminal does not own", dropped);
   }
   if (Object.keys(data).length === 0) {
+    if (process.env.NODE_ENV !== "production") {
+      console.warn("[accountPrefs] no owned key in patch", dropped);
+    }
     return {
-      error: { name: "ScopedToEmpty", message: "no owned key in patch" },
+      error: { name: "ScopedToEmpty" },
       dropped,
     };
   }

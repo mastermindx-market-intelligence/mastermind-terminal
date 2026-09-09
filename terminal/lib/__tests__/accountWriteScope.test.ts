@@ -347,11 +347,56 @@ describe("every user_metadata write site is wrapped by the fence", () => {
     return src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
   }
 
-  /** Literal keys of `options.data` on an `auth.signUp(` window. */
+  /** Literal keys of `options.data` on an `auth.signUp(` window.
+   *  Finds `data:` anywhere inside `options:` (not only as its first property)
+   *  and reads only top-level keys, tolerating one nested object inside data. */
   function signupMetadataKeys(window: string): string[] | null {
-    const dataObj = window.match(/options:\s*\{\s*data:\s*\{([^}]*)\}/);
-    if (!dataObj) return null;
-    return [...dataObj[1].matchAll(/([A-Za-z_][A-Za-z0-9_]*)\s*:/g)].map((m) => m[1]);
+    const optKey = window.search(/options\s*:/);
+    if (optKey < 0) return null;
+    const relBrace = window.slice(optKey).search(/\{/);
+    if (relBrace < 0) return null;
+    const options = extractBalancedObject(window, optKey + relBrace);
+    if (!options) return null;
+    const dataMatch = options.match(/\bdata\s*:\s*\{/);
+    if (!dataMatch || dataMatch.index == null) return null;
+    const data = extractBalancedObject(options, dataMatch.index + dataMatch[0].length - 1);
+    if (!data) return null;
+    return topLevelKeys(data);
+  }
+
+  function extractBalancedObject(src: string, fromBrace: number): string | null {
+    if (src[fromBrace] !== "{") return null;
+    let depth = 0;
+    for (let i = fromBrace; i < src.length; i++) {
+      if (src[i] === "{") depth += 1;
+      else if (src[i] === "}") {
+        depth -= 1;
+        if (depth === 0) return src.slice(fromBrace, i + 1);
+      }
+    }
+    return null;
+  }
+
+  function topLevelKeys(objSrc: string): string[] {
+    const inner = objSrc.slice(1, -1);
+    const keys: string[] = [];
+    let depth = 0;
+    let i = 0;
+    while (i < inner.length) {
+      const ch = inner[i];
+      if (ch === "{") { depth += 1; i += 1; continue; }
+      if (ch === "}") { depth = Math.max(0, depth - 1); i += 1; continue; }
+      if (depth === 0) {
+        const km = inner.slice(i).match(/^(\s*)([A-Za-z_][A-Za-z0-9_]*)\s*:/);
+        if (km) {
+          keys.push(km[2]);
+          i += km[0].length;
+          continue;
+        }
+      }
+      i += 1;
+    }
+    return keys;
   }
 
   it("each updateUser data write sits behind sendScopedAccountWrite or scopeAccountWrite", () => {

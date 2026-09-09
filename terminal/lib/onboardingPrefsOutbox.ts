@@ -21,6 +21,7 @@
  */
 import type { PendingPrefs } from "@/components/onboarding/types";
 import { LS_PENDING_PREFS } from "@/components/onboarding/types";
+import { scopeAccountWrite } from "@/lib/accountPrefs";
 
 /** How many times ONE delivery pass will try before giving the record back to the outbox.
  *
@@ -93,6 +94,27 @@ export async function deliverPendingPrefs(
 ): Promise<DeliveryOutcome> {
   const record = readPendingPrefs();
   if (!record) return { status: "nothing-pending" };
+
+  // A patch that scopes to empty is nothing the Terminal may write: strip foreign
+  // keys from the durable record, deliver what remains, and clear only when
+  // nothing owned remains. Never an unbounded retry of keys we will never send.
+  const { data, dropped } = scopeAccountWrite(record.prefs as unknown as Record<string, unknown>);
+  if (dropped.length) {
+    if (process.env.NODE_ENV !== "production") {
+      console.warn("[onboardingPrefsOutbox] dropping keys the Terminal does not own", dropped);
+    }
+    if (Object.keys(data).length === 0) {
+      if (process.env.NODE_ENV !== "production") {
+        console.warn("[onboardingPrefsOutbox] no owned key in patch");
+      }
+      clearPendingPrefs();
+      return { status: "delivered" };
+    }
+    record.prefs = data as PendingPrefs;
+    try {
+      localStorage.setItem(LS_PENDING_PREFS, JSON.stringify({ prefs: record.prefs, attempts: record.attempts } satisfies OutboxRecord));
+    } catch { /* ignore */ }
+  }
 
   // The budget is PER PASS. `record.attempts` is history, not a veto — a record that failed three
   // times yesterday must still be deliverable today.
