@@ -89,6 +89,41 @@ cd /opt/terminal/terminal && npx esbuild ../ingest/webhook_delivery.ts --bundle 
 * * * * * cd /opt/terminal && /usr/bin/node ingest/dist/webhook_delivery.mjs >> /var/log/webhook-delivery.log 2>&1
 ```
 
+#### How a receiver verifies a delivery
+
+Every request carries three headers:
+
+```
+Mastermind-Webhook-Id:        <delivery id, a uuid>
+Mastermind-Webhook-Timestamp: <unix seconds, integer>
+Mastermind-Webhook-Signature: v1=<hex>
+```
+
+`<hex>` is `HMAC-SHA256(secret, "<timestamp>.<raw request body>")`, lower-case
+hex, over the **exact bytes received** — parse the JSON only after verifying,
+never re-serialize first. `secret` is the value returned once when the endpoint
+was created (Settings → Webhooks); it is shown once and cannot be shown again,
+so a lost secret means registering a new endpoint.
+
+A receiver must:
+
+1. Read the raw body as bytes, before any JSON parsing.
+2. Recompute the HMAC and compare it to the header with a **timing-safe**
+   comparison (`crypto.timingSafeEqual`, `hmac.compare_digest`) — never `==`.
+3. **Reject if `|now − timestamp| > 300` seconds.** That 300-second replay
+   window is what stops a captured request from being replayed later; the
+   signature alone never expires. The delivery id is stable across retries of
+   the same event, so a receiver that also wants exactly-once handling should
+   treat `Mastermind-Webhook-Id` as an idempotency key rather than widening
+   the window.
+4. Answer `2xx` to accept. Any other status, or no answer within 10 seconds,
+   is retried at 1 min, 5 min, 30 min and 4 h; after the fifth attempt the
+   delivery stops for good.
+
+Redirects are never followed, and the outbound connection is pinned to a
+pre-validated public address, so a receiver must answer on the address it
+registered.
+
 ### Deliberately NOT deployed
 
 - `api/`, `docs/`, `indicator_engine/`, `tests/`, `web/`, `supabase/`, `requirements.txt` — not

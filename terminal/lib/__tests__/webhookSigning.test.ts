@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { signWebhookPayload } from "@/lib/webhookSigning";
 
 // Hand-computed with Node's crypto.createHmac("sha256", secret).update(`${ts}.${rawBody}`).digest("hex")
@@ -26,5 +28,31 @@ describe("signWebhookPayload", () => {
     expect(digest).toBe(EMPTY_BODY_HEX);
     expect(digest).not.toBe("");
     expect(digest).toMatch(/^[0-9a-f]{64}$/);
+  });
+});
+
+// A signature with no stated staleness tolerance is a replayable signature.
+// The construction is only half the contract; the window is the other half,
+// and this repo ships no verifier, so the documentation IS the deliverable.
+describe("the receiver-facing verification contract is documented", () => {
+  const deploy = readFileSync(path.join(process.cwd(), "..", "DEPLOY.md"), "utf8");
+
+  it("states the 300-second replay window", () => {
+    expect(deploy).toContain("300");
+    expect(deploy).toMatch(/\|now − timestamp\| > 300/);
+  });
+
+  it("states the construction, the header names and the v1 prefix", () => {
+    expect(deploy).toContain("Mastermind-Webhook-Id");
+    expect(deploy).toContain("Mastermind-Webhook-Timestamp");
+    expect(deploy).toContain("Mastermind-Webhook-Signature");
+    expect(deploy).toContain("v1=<hex>");
+    expect(deploy).toContain('HMAC-SHA256(secret, "<timestamp>.<raw request body>")');
+  });
+
+  it("requires a timing-safe comparison and says the secret is shown once", () => {
+    expect(deploy).toContain("timing-safe");
+    expect(deploy).toContain("timingSafeEqual");
+    expect(deploy).toContain("shown once and cannot be shown again");
   });
 });
