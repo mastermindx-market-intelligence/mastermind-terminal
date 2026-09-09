@@ -4,13 +4,18 @@ on:
   pull_request:
     paths:
       # 0015's accept_team_invite/workspace_settings build on 0014's teams/team_members/
-      # team_invites, and the canary applies 0001..0019 in order against a real Postgres
-      # (0017 is applied when present; 0018 is reserved for F12-7). 0014 is included so a
+      # team_invites, and the canary applies EVERY .sql it finds in the directory, in sorted
+      # order (f12_team_postgres_canary.py: sorted(migrations_dir.glob("*.sql"))). So this
+      # filter must list every migration the canary can apply, or a change to one of them
+      # will not re-run a canary that nevertheless applies it. 0018 is F12-7's prefix and is
+      # listed for exactly that reason (round-4 ruling R4(e)); the file arrives with #549 and
+      # a paths entry for a file that does not exist yet is inert. 0014 is included so a
       # change there also re-runs this canary (round-3 review minor).
       - "supabase/migrations/0014_tenancy_foundation.sql"
       - "supabase/migrations/0015_team_roles_invitations.sql"
       - "supabase/migrations/0016_account_lifecycle_requests.sql"
       - "supabase/migrations/0017_personal_accuracy_ledger.sql"
+      - "supabase/migrations/0018_webhook_delivery.sql"
       - "supabase/migrations/0019_team_role_changes.sql"
       - "terminal/scripts/f12_team_postgres_canary.py"
       - ".github/workflows/f12-team-postgres-canary.yml"

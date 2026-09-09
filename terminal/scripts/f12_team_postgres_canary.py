@@ -442,6 +442,90 @@ def main() -> int:
         "an administrator UPDATE of a peer administrator must raise 42501",
     )
 
+    # Round-4 ruling R1: a membership row never moves between teams or between people.
+    # rls:admin_cannot_change_peer_admin above stays INSIDE one team, so it never reached the hole
+    # the round-3 review found: USING is evaluated on the OLD row and WITH CHECK on the NEW one, so
+    # public.team_role(team_id) reads the SOURCE team in one and the DESTINATION team in the other.
+    # An administrator of team A who owns any team B could therefore UPDATE a peer administrator's
+    # row out of A by setting team_id = B -- and because the audit trigger fires `of role`, that
+    # removal wrote no log row at all. 0019's BEFORE UPDATE trigger deny_team_member_move is what
+    # closes it. Both moves get a case: an administrator moving a PEER ADMINISTRATOR into a team
+    # the attacker owns, and the team owner moving any row out of their own team.
+    with admin.cursor() as cur:
+        cur.execute(
+            "insert into public.teams (id, name, created_by) values (gen_random_uuid(), 'Team H', %s) returning id",
+            (g_admin,),
+        )
+        team_h = cur.fetchone()[0]
+        cur.execute(
+            "insert into public.teams (id, name, created_by) values (gen_random_uuid(), 'Team I', %s) returning id",
+            (a_owner,),
+        )
+        team_i = cur.fetchone()[0]
+        cur.execute("select count(*) from public.team_role_changes where subject_id=%s", (g_peer,))
+        peer_log_before = cur.fetchone()[0]
+
+    def admin_moves_peer_admin_across_teams():
+        with g_admin_conn.cursor() as cur:
+            cur.execute(
+                "update public.team_members set team_id=%s where team_id=%s and user_id=%s",
+                (team_h, team_a, g_peer),
+            )
+
+    peer_move_raised = expect_database_error(admin_moves_peer_admin_across_teams, "42501")
+    with admin.cursor() as cur:
+        cur.execute("select team_id::text, role from public.team_members where user_id=%s", (g_peer,))
+        peer_rows = cur.fetchall()
+        cur.execute("select count(*) from public.team_role_changes where subject_id=%s", (g_peer,))
+        peer_log_after = cur.fetchone()[0]
+    proof.check(
+        "rls:admin_cannot_move_peer_admin_across_teams",
+        peer_move_raised
+        and peer_rows == [(str(team_a), "admin")]
+        and peer_log_after == peer_log_before,
+        f"raised42501={peer_move_raised} rows={peer_rows!r} (expected the row still in team A as"
+        f" admin) log_before={peer_log_before} log_after={peer_log_after} (expected equal: a"
+        " team_id-only UPDATE writes no audit row, so a successful move would be invisible)",
+    )
+
+    def owner_moves_row_across_teams():
+        with a_conn.cursor() as cur:
+            cur.execute(
+                "update public.team_members set team_id=%s where team_id=%s and user_id=%s",
+                (team_i, team_a, g_member),
+            )
+
+    owner_move_raised = expect_database_error(owner_moves_row_across_teams, "42501")
+    with admin.cursor() as cur:
+        cur.execute("select team_id::text, role from public.team_members where user_id=%s", (g_member,))
+        member_rows = cur.fetchall()
+    proof.check(
+        "rls:owner_cannot_move_row_across_teams",
+        owner_move_raised and member_rows == [(str(team_a), "member")],
+        f"raised42501={owner_move_raised} rows={member_rows!r} (expected the row still in team A"
+        " as member; the owner of both teams passes USING and WITH CHECK, so only the trigger"
+        " stops the move)",
+    )
+
+    # Round-4 ruling R4(d): tm_delete_admin's raising ELSE must not become a membership oracle.
+    # A caller who is not a member of the team gets a plain 0-row miss -- the behaviour before
+    # 0019 -- so 42501 vs 0 rows cannot be used to test whether a membership row exists.
+    stranger_delete_raised = False
+    stranger_deleted = None
+    try:
+        with g_stranger_conn.cursor() as cur:
+            cur.execute("delete from public.team_members where team_id=%s and user_id=%s", (team_a, g_member))
+            stranger_deleted = cur.rowcount
+    except psycopg.Error as exc:  # type: ignore[attr-defined]
+        stranger_delete_raised = True
+        stranger_deleted = getattr(exc.diag, "sqlstate", None) if hasattr(exc, "diag") else "error"
+    proof.check(
+        "rls:stranger_delete_is_silent",
+        (not stranger_delete_raised) and stranger_deleted == 0,
+        f"raised={stranger_delete_raised} rowcount_or_sqlstate={stranger_deleted!r} (a non-member"
+        " must get a silent 0-row miss, never 42501)",
+    )
+
     with g_member_conn.cursor() as cur:
         cur.execute("select count(*) from public.team_role_changes where team_id=%s", (team_a,))
         member_log_count = cur.fetchone()[0]

@@ -1,5 +1,5 @@
 -- Ledger row: 0019_team_role_changes / PR #550 (open, packet B-F12-8); not applied
--- Rollback: drop trigger if exists team_role_changes_log on public.team_members; drop function if exists public.log_team_role_change(); drop function if exists public.team_member_names(uuid); drop function if exists public.team_members_rls_deny(); drop table if exists public.team_role_changes; -- then recreate tm_insert_admin / tm_update_admin / tm_delete_admin / ti_insert_admin from 0014_tenancy_foundation.sql
+-- Rollback: drop trigger if exists team_role_changes_log on public.team_members; drop trigger if exists team_member_move_deny on public.team_members; drop function if exists public.log_team_role_change(); drop function if exists public.team_member_names(uuid); drop function if exists public.team_members_rls_deny(); drop function if exists public.deny_team_member_move(); drop table if exists public.team_role_changes; -- then recreate tm_insert_admin / tm_update_admin / tm_delete_admin / ti_insert_admin from 0014_tenancy_foundation.sql
 -- 0019: team role changes — audit log, tighter administrator grants, self-leave (packet B-F12-8).
 --
 -- ============================ MUST NOT BE APPLIED BY THIS PACKET ============================
@@ -28,7 +28,7 @@ create table if not exists public.team_role_changes (
 comment on table public.team_role_changes is
   'Append-only log of team membership role changes. Written only by the log_team_role_change trigger. Owner and administrator may read; nobody may insert, update or delete through RLS.';
 comment on column public.team_role_changes.actor_id is
-  'The account that made the change (auth.uid() at trigger time). Null for the founding-owner insert inside handle_new_team. On delete set null so the log survives the actor leaving.';
+  'The account that made the change (auth.uid() at trigger time). The founding-owner insert inside handle_new_team records the team creator: auth.uid() reads the request JWT setting, which SECURITY DEFINER does not clear. Null only when there is no request JWT at all (an operator or job acting directly on the database). On delete set null so the log survives the actor leaving.';
 comment on column public.team_role_changes.old_role is
   'Role before the change. Null when the person was added.';
 comment on column public.team_role_changes.new_role is
@@ -144,10 +144,39 @@ create policy tm_update_admin on public.team_members
   using (role <> 'owner' and public.team_role(team_id) in ('owner','admin'))
   with check (role in ('admin','member') and public.team_role(team_id) = 'owner' and user_id <> auth.uid());
 
+-- Round-4 ruling R1: a membership row never moves between teams or between people.
+-- USING is evaluated on the OLD row and WITH CHECK on the NEW row, so public.team_role(team_id)
+-- resolves against the SOURCE team in USING and the DESTINATION team in WITH CHECK, with nothing
+-- tying the two together. Without this trigger, an administrator of team A who also owns any
+-- team B (one team creation away) could UPDATE a peer administrator's row out of A by setting
+-- team_id = B: USING passes on the old row, WITH CHECK passes on the new one, and because the
+-- audit trigger below fires `of role`, a team_id-only UPDATE writes no log row at all. The same
+-- shape lets a user_id be rewritten, which would move a membership between people. A BEFORE
+-- UPDATE trigger states the invariant directly and raises 42501 for either move, so the widened
+-- USING (previous round, ruling R1) stays and no canary assertion is weakened.
+create or replace function public.deny_team_member_move() returns trigger
+  language plpgsql
+  set search_path = pg_catalog, public, auth as $$
+begin
+  if new.team_id is distinct from old.team_id or new.user_id is distinct from old.user_id then
+    raise exception using errcode = '42501', message = 'permission denied for table team_members';
+  end if;
+  return new;
+end
+$$;
+
+drop trigger if exists team_member_move_deny on public.team_members;
+create trigger team_member_move_deny
+  before update on public.team_members
+  for each row execute function public.deny_team_member_move();
+
 -- Supersedes 0014_tenancy_foundation.sql tm_delete_admin.
 -- The owner removes anyone but themselves; an administrator removes members only;
 -- T3: anyone who is not the owner may remove their own row (leave).
 -- CASE ELSE raises 42501 so a member DELETE of another row is a deny, not a silent miss.
+-- ORDER IS LOAD-BEARING: `role = 'owner' then false` comes FIRST, before the owner-of-team
+-- branch, so a team owner cannot delete their own owner row. Reversing those two lines would
+-- open owner self-eviction, which §2.10 forbids; the migration contract test pins this order.
 drop policy if exists tm_delete_admin on public.team_members;
 create policy tm_delete_admin on public.team_members
   for delete to authenticated
@@ -157,6 +186,13 @@ create policy tm_delete_admin on public.team_members
       when public.team_role(team_id) = 'owner' then true
       when public.team_role(team_id) = 'admin' and role = 'member' then true
       when user_id = auth.uid() then true
+      -- Round-4 ruling R4(d): the raising ELSE below must fire only for a caller who IS a member
+      -- of this team. A non-member reaching a raise would turn RLS into a membership oracle: the
+      -- same DELETE raises 42501 when the row exists and returns 0 rows when it does not, so an
+      -- authenticated stranger holding two ids could test membership. Before 0019 both cases were
+      -- a silent 0-row miss (0014's USING is a plain boolean); this branch keeps that for
+      -- strangers while the canary's member_cannot_delete_other still gets its 42501.
+      when public.team_role(team_id) is null then false
       else public.team_members_rls_deny()
     end
   );
@@ -201,15 +237,20 @@ create policy ti_insert_admin on public.team_invites
 --   select proname, prosecdef, pg_get_function_identity_arguments(oid)
 --     from pg_proc
 --    where pronamespace = 'public'::regnamespace
---      and proname in ('log_team_role_change','team_member_names','team_members_rls_deny');
+--      and proname in ('log_team_role_change','team_member_names','team_members_rls_deny','deny_team_member_move');
+--   select tgname, tgtype from pg_trigger t join pg_class c on c.oid = t.tgrelid
+--     join pg_namespace n on n.oid = c.relnamespace
+--    where n.nspname = 'public' and c.relname = 'team_members' and not t.tgisinternal order by 1;
 --   select pg_get_functiondef(oid) from pg_proc
 --    where pronamespace = 'public'::regnamespace and proname = 'team_member_names';
 
 -- down:
 --   drop trigger if exists team_role_changes_log on public.team_members;
+--   drop trigger if exists team_member_move_deny on public.team_members;
 --   drop function if exists public.log_team_role_change();
 --   drop function if exists public.team_member_names(uuid);
 --   drop function if exists public.team_members_rls_deny();
+--   drop function if exists public.deny_team_member_move();
 --   drop table if exists public.team_role_changes;
 --   -- Recreate the 0014 policies (see supabase/migrations/0014_tenancy_foundation.sql):
 --   drop policy if exists tm_insert_admin on public.team_members;
