@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import ChartPanel, { type DetectCmd, type LiveQuote, type PineScript } from "@/components/ChartPanel";
 import ChartFrameBar, { DEFAULT_CHART_SETTINGS, type ChartSettings } from "@/components/ChartFrameBar";
 import ChartSettingsModal, { type ChartSettingsTab } from "@/components/ChartSettingsModal";
@@ -40,12 +40,19 @@ export default function ChartPane({ idx, symbol, drawingOwnerKey, isActive, onAc
   const { lang } = useLang();
   const [auto, setAuto] = useState<Drawing[]>([]);
   const [chartSettings, setChartSettings] = useState<ChartSettings>(DEFAULT_CHART_SETTINGS);
+  const [chartSettingsReady, setChartSettingsReady] = useState(false);
   const [chartApi, setChartApi] = useState<IChartApi | null>(null);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
   const [settingsModalTab, setSettingsModalTab] = useState<ChartSettingsTab>("scales");
 
-  // Load persisted chart settings on mount
-  useEffect(() => { setChartSettings(load(DEFAULT_CHART_SETTINGS)); }, []);
+  // Resolve this pane-local owner before child passive data work can become visually current.
+  // `dataReady && chartSettingsReady` below also covers a fast child generation that was already
+  // constructed: Effect 7 applies this value before the existing ready announcement is re-evaluated.
+  useLayoutEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage is client-only; this pre-paint handoff is the hydration boundary.
+    setChartSettings(load(DEFAULT_CHART_SETTINGS));
+    setChartSettingsReady(true);
+  }, []);
   // Listen for tab-switch events dispatched by ChartSettingsModal tab buttons
   useEffect(() => {
     const h = (e: Event) => {
@@ -57,12 +64,13 @@ export default function ChartPane({ idx, symbol, drawingOwnerKey, isActive, onAc
     window.addEventListener("mm:settings-tab", h);
     return () => window.removeEventListener("mm:settings-tab", h);
   }, []);
-  // Persist chart settings on change (skip initial mount)
-  const settingsMounted = useRef(false);
+  // The default render is not an authoritative setting. In development StrictMode the initial
+  // effects are replayed, so an "ignore the first effect" ref can write that stale default during
+  // the replay and destroy an existing localStorage owner. Persist only after hydration commits.
   useEffect(() => {
-    if (!settingsMounted.current) { settingsMounted.current = true; return; }
+    if (!chartSettingsReady) return;
     try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(chartSettings)); } catch {}
-  }, [chartSettings]);
+  }, [chartSettingsReady, chartSettings]);
 
   const patchSettings = useCallback((patch: Partial<ChartSettings>) => {
     setChartSettings((s) => ({ ...s, ...patch }));
@@ -152,7 +160,7 @@ export default function ChartPane({ idx, symbol, drawingOwnerKey, isActive, onAc
           The SYMBOL is deliberately not part of that identity — see
           lib/drawingOwnership.ts and the swap state above. */}
       <ChartPanel
-        symbol={symbol} companyName={displayName(row, lang)} chartType={chartType} indicators={inds} timeframe={tf} dataReady={dataReady} initialTimeframe={initialTimeframe}
+        symbol={symbol} companyName={displayName(row, lang)} chartType={chartType} indicators={inds} timeframe={tf} dataReady={dataReady && chartSettingsReady} initialTimeframe={initialTimeframe}
         replayIdx={isActive ? replayIdx : null} onMeta={isActive ? onMeta : undefined}
         tool={isActive ? tool : null} toolActivation={toolActivation} drawingSticky={isActive && drawingSticky} drawingCreationDisabled={drawingCreationDisabled} drawStyle={drawStyle} drawings={merged}
         onDrawingsChange={handleChange} detectCmd={detectCmd?.targetPane === idx ? detectCmd : null}
