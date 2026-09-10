@@ -55,9 +55,9 @@ export interface SectionProps {
 /** Locale-aware date, matching the macro dashboard's `_sdDate`. Unreadable input is null, never "Invalid Date". */
 export function acsDate(iso: string | null | undefined, lang: "en" | "zh"): string | null {
   if (!iso) return null;
-  const ms = new Date(iso).getTime();
-  if (Number.isNaN(ms)) return null;
   try {
+    const ms = new Date(iso).getTime();
+    if (Number.isNaN(ms)) return null;
     const d = new Date(iso);
     if (Number.isNaN(d.getTime())) return null;
     return d.toLocaleDateString(lang === "zh" ? "zh-CN" : undefined, {

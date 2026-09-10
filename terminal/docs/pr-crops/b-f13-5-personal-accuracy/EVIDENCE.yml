@@ -4,11 +4,12 @@
 # capturedAtHead: f1ad9fde39afa395ac4e66e3c2bd24a794d029bc
 # capturedAt: 2026-09-10T21:32:00.361Z
 # capturedAtHead is informational. The lock is layoutFiles.
+# types.ts hash restamped: acsDate NaN guard moved inside the existing try so a throwing input stays null (this PR's heal h3 test). No crop pixels changed.
 layoutFiles:
   terminal/components/settings/SectionAccuracy.tsx: "53304918f2cd38ffbb2b733a754503a644ce030594ea92d09079d78ad37dca1e"
   terminal/components/settings/SectionAccuracy.module.css: "a35d7db4b05ab753db30f2ac46ba0b8c16eeef61309336531f05d2a6ae7f21cc"
   terminal/components/settings/SettingsPanel.tsx: "1c6a50235520cc6cb20498f9aebcd20c4f0c1a996ab82d127c5f4a10ddab7181"
-  terminal/components/settings/types.ts: "d2f21d14df44ec12e671124e3424a41f27f32a764a26e74198b5b8686580d074"
+  terminal/components/settings/types.ts: "108b8e5876b864efec5ceaed22b50da68367e35aae7535aae9be71435d909675"
   terminal/lib/i18n.tsx: "a6a7156fd493d4c392376b89f3b2a3e6f6588e629e9aa0e1638d2cce53bfa6b2"
   terminal/lib/personalAccuracy.ts: "0f479c6932a2bcee23ba0f840739dbc6c133046d077a07a6f802a173c63efa1b"
   terminal/lib/personalAccuracyStore.ts: "adc6e5c9c0d5f1ac6ed800df821b393c1d98f345bac2ccc87b3cb4c40b1b99f9"
