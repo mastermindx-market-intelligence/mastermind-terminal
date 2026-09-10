@@ -5,12 +5,12 @@
 # capturedAt: 2026-09-09T20:04:44.626Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/settings/SectionTeam.tsx: "1d72efd0ed19a9a341c5373547da43065438ebf4ad0f7597f9d3ace74cd132b4"
+  terminal/components/settings/SectionTeam.tsx: "8edecabab007dca3ed99bf7ab01d221001c84246d367c77ad8285fdf662a1940"
   terminal/components/settings/SectionTeam.module.css: "924ab5b81d4f0e11ef2138557e92c43a0d1fa21b78622567fb6ccddcf6c146a8"
   terminal/components/settings/SettingsPanel.tsx: "ad86b6deaad20ef3eabd07818433ffec84c6893dadf5dcb4f232204a181d1467"
   terminal/components/settings/icons.tsx: "c9cd4167fe24748e4ee51de55c0f7c57a51af89bda4fd2e56900c1ba01c836db"
   terminal/app/settings.css: "3189163136d943431cbf52e4b5d241c105b695ba5af94c4c2e29151d537b5ef5"
-  terminal/lib/i18n.tsx: "1dcd87cde56d94f8f4eba87737eb85f6c2f76b09b3f5616303b4903c797277b8"
+  terminal/lib/i18n.tsx: "707a6da45a9350c80c7a93b9e9ec4cc598a67e21015ed57604e9dbbffd7699a8"
 theme: dark
 languages: [en, zh]
 viewports:

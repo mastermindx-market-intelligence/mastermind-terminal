@@ -600,7 +600,12 @@ const BANNED = [
 
 describe("TEAM_ROUTE_MESSAGES and LEX plain-word completeness (B-F12-8)", () => {
   it("seat R5: acsTeam* transfer copy addresses the customer as 你; TEAM_ROUTE_MESSAGES keeps 您", () => {
-    expect(LEX.acsTeamTransferConsequence[1]).toBe("你将成为管理员，对方将成为团队所有者。之后你随时可以转回。");
+    expect(LEX.acsTeamTransferConsequence[0]).toBe(
+      "You will become an administrator. They will become the team owner. The new owner can transfer it back to you later.",
+    );
+    expect(LEX.acsTeamTransferConsequence[1]).toBe(
+      "你将成为管理员，对方将成为团队所有者。之后对方可以随时转回给你。",
+    );
     expect(LEX.acsTeamTransferConsequence[1]).not.toContain("您");
     expect(TEAM_ROUTE_MESSAGES.same_owner[1]).toContain("您");
     expect(TEAM_ROUTE_MESSAGES.conflict[1]).toMatch(/。/);

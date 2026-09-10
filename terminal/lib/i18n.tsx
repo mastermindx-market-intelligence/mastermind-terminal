@@ -1971,8 +1971,8 @@ export const LEX: Record<string, [string, string]> = {
   ],
   acsTeamTransferConfirm: ["Transfer ownership to {name}?", "将所有权转移给 {name}？"],
   acsTeamTransferConsequence: [
-    "You will become an administrator. They will become the team owner. You can always transfer back later.",
-    "你将成为管理员，对方将成为团队所有者。之后你随时可以转回。",
+    "You will become an administrator. They will become the team owner. The new owner can transfer it back to you later.",
+    "你将成为管理员，对方将成为团队所有者。之后对方可以随时转回给你。",
   ],
   acsTeamTransferSuccess: ["Ownership transferred to {name}.", "所有权已转移给 {name}。"],
   acsTeamTransferRetry: ["Try again", "重试"],

@@ -32,7 +32,9 @@ function evidenceText(): string {
 }
 
 function capturedAtHead(yml: string): string {
-  const m = yml.match(/^(?:# )?capturedAtHead: ([0-9a-f]{40})$/m);
+  // Data line only. A `/m` regex with an optional "# " prefix returns the
+  // comment on line 4 and would let a bogus data-line SHA pass.
+  const m = yml.match(/^capturedAtHead: ([0-9a-f]{40})$/m);
   if (!m) throw new Error("EVIDENCE.yml is missing a 40-char capturedAtHead");
   return m[1];
 }
@@ -61,12 +63,16 @@ function sha256Buf(buf: Buffer): string {
 }
 
 function git(args: string[]): { ok: boolean; stdout: Buffer } {
-  const r = spawnSync("git", args, { cwd: REPO, maxBuffer: 20_000_000 });
+  const r = spawnSync("git", args, { cwd: REPO, maxBuffer: 20_000_000, timeout: 30_000 });
   return { ok: (r.status ?? 1) === 0, stdout: (r.stdout as Buffer) || Buffer.alloc(0) };
 }
 
 function commitExists(sha: string): boolean {
   return git(["cat-file", "-e", `${sha}^{commit}`]).ok;
+}
+
+function fetchCommitOnce(sha: string): void {
+  git(["fetch", "--depth=1", "origin", sha]);
 }
 
 function isAncestorOrEqual(sha: string): boolean {
@@ -104,19 +110,18 @@ describe("B-F12-9 evidence lock is the sha256 of the layout sources", () => {
     const sha = capturedAtHead(yml);
     const recorded = layoutFileMap(yml);
     expect(sha).toMatch(/^[0-9a-f]{40}$/);
-    if (commitExists(sha)) {
-      expect(isAncestorOrEqual(sha), `capturedAtHead ${sha} is not an ancestor-or-equal of HEAD`).toBe(true);
-      for (const [rel, expected] of Object.entries(recorded)) {
-        const blob = blobAt(sha, rel);
-        expect(blob, `git cannot read ${rel} at capturedAtHead ${sha}`).not.toBeNull();
-        expect(sha256Buf(blob!), `${rel} hash does not match the file bytes at capturedAtHead ${sha}`).toBe(expected);
-      }
-    } else {
-      // The required Terminal unit shard checks out fetch-depth 2 (the GitHub merge
-      // commit plus its parents). A capture commit that is not HEAD or a parent is
-      // absent there; the working-tree hash lock below still fails a layout change
-      // without a recapture.
-      expect(sha).toMatch(/^[0-9a-f]{40}$/);
+    if (!commitExists(sha)) {
+      fetchCommitOnce(sha);
+    }
+    expect(
+      commitExists(sha),
+      `capturedAtHead ${sha} is not a commit reachable from origin — recapture and record the real code commit`,
+    ).toBe(true);
+    expect(isAncestorOrEqual(sha), `capturedAtHead ${sha} is not an ancestor-or-equal of HEAD`).toBe(true);
+    for (const [rel, expected] of Object.entries(recorded)) {
+      const blob = blobAt(sha, rel);
+      expect(blob, `git cannot read ${rel} at capturedAtHead ${sha}`).not.toBeNull();
+      expect(sha256Buf(blob!), `${rel} hash does not match the file bytes at capturedAtHead ${sha}`).toBe(expected);
     }
     for (const rel of LAYOUT_FILES) {
       expect(recorded[rel], `layoutFiles is missing ${rel}`).toMatch(/^[0-9a-f]{64}$/);
@@ -154,12 +159,12 @@ describe("B-F12-9 evidence lock is the sha256 of the layout sources", () => {
       expect(row.consequenceText, file).toBeTruthy();
       if (file.includes("-zh-")) {
         expect(row.consequenceText, file).toBe(
-          "你将成为管理员，对方将成为团队所有者。之后你随时可以转回。",
+          "你将成为管理员，对方将成为团队所有者。之后对方可以随时转回给你。",
         );
         expect(row.confirmTitle, file).toMatch(/将所有权转移给/);
       } else {
         expect(row.consequenceText, file).toBe(
-          "You will become an administrator. They will become the team owner. You can always transfer back later.",
+          "You will become an administrator. They will become the team owner. The new owner can transfer it back to you later.",
         );
         expect(row.confirmTitle, file).toMatch(/^Transfer ownership to /);
       }

@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Group, Msg, Row, SectionHead } from "./icons";
 import { acsDate, type DevTeamFixture, type DevTeamMember, type SectionProps } from "./types";
 import { TEAM_ROUTE_MESSAGES, type TeamRole } from "@/lib/teams";
@@ -38,6 +38,33 @@ function shortUserId(userId: string): string {
 function displayLabel(member: RosterMember, t: (key: string, fallback?: string) => string): string {
   const name = (member.displayName || "").trim();
   return name || t("acsTeamNoName");
+}
+
+/** Eight-character account id, only when the roster row has no display name (B-F12-8 R8). */
+function unnamedShort(member: RosterMember): string | null {
+  if ((member.displayName || "").trim()) return null;
+  const short = shortUserId(member.userId);
+  return short || null;
+}
+
+function unnamedAccountMark(
+  member: RosterMember,
+  t: (key: string, fallback?: string) => string,
+) {
+  const short = unnamedShort(member);
+  if (!short) return null;
+  return (
+    <span className={s.accountId} aria-label={fill(t("acsTeamAccount"), { short })}>
+      {short}
+    </span>
+  );
+}
+
+/** Spoken name for titles and success: display name, or "Name not set" plus the eight-character id. */
+function transferSpokenName(member: RosterMember, t: (key: string, fallback?: string) => string): string {
+  const label = displayLabel(member, t);
+  const short = unnamedShort(member);
+  return short ? `${label} ${short}` : label;
 }
 
 function fillName(template: string, name: string): string {
@@ -90,10 +117,28 @@ export default function SectionTeam({
   const [confirm, setConfirm] = useState<{ userId: string; kind: "remove" | "leave" } | null>(null);
   const [transfer, setTransfer] = useState<{ phase: TransferPhase; recipientId: string | null } | null>(null);
   const [transferBusy, setTransferBusy] = useState(false);
+  const transferDialogRef = useRef<HTMLDivElement>(null);
+  const transferButtonRef = useRef<HTMLButtonElement>(null);
+  const transferWasOpen = useRef(false);
   // The zero-team sentence must not flash before the first answer arrives, so it waits on this.
   const [loaded, setLoaded] = useState(Boolean(devTeam));
   const [newName, setNewName] = useState("");
   const [creating, setCreating] = useState(false);
+
+  useEffect(() => {
+    if (transfer) {
+      if (!transferWasOpen.current) {
+        transferWasOpen.current = true;
+        const first = transferDialogRef.current?.querySelector<HTMLElement>(
+          "button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])",
+        );
+        first?.focus();
+      }
+    } else if (transferWasOpen.current) {
+      transferWasOpen.current = false;
+      transferButtonRef.current?.focus();
+    }
+  }, [transfer]);
 
   const loadLive = useCallback(async () => {
     if (devTeam) return;
@@ -266,7 +311,7 @@ export default function SectionTeam({
     setMsg(null);
     try {
       if (devTeam) {
-        const name = displayLabel(members.find((m) => m.userId === recipientId) || { userId: recipientId, role: "admin", displayName: "", createdAt: null }, t);
+        const name = transferSpokenName(members.find((m) => m.userId === recipientId) || { userId: recipientId, role: "admin", displayName: "", createdAt: null }, t);
         setTransfer(null);
         setMsg({ kind: "ok", text: fillName(t("acsTeamTransferSuccess"), name) });
         return;
@@ -287,13 +332,14 @@ export default function SectionTeam({
       if (!res.ok) {
         setMembers(previousMembers);
         setCallerRole(previousRole);
+        setTransfer(null);
         setMsg({
           kind: "err",
           text: routeMessage(body, lang) || TEAM_ROUTE_MESSAGES.write_failed[lang === "zh" ? 1 : 0],
         });
         return;
       }
-      const name = displayLabel(
+      const name = transferSpokenName(
         previousMembers.find((m) => m.userId === recipientId) || {
           userId: recipientId,
           role: "admin",
@@ -307,6 +353,7 @@ export default function SectionTeam({
     } catch {
       setMembers(previousMembers);
       setCallerRole(previousRole);
+      setTransfer(null);
       setMsg({ kind: "err", text: TEAM_ROUTE_MESSAGES.write_failed[lang === "zh" ? 1 : 0] });
     } finally {
       setTransferBusy(false);
@@ -438,8 +485,6 @@ export default function SectionTeam({
               const isYou = member.userId === callerUserId;
               const known = isKnownRole(member.role);
               const isOwnerRow = member.role === "owner";
-              const unnamed = !(member.displayName || "").trim();
-              const short = shortUserId(member.userId);
               // Round-6 ruling R9(3): an unrecognised role withholds every control.
               const canChangeRole = known && callerRole === "owner" && !isOwnerRow && !isYou;
               const canRemove =
@@ -457,11 +502,7 @@ export default function SectionTeam({
                   label={
                     <span className={s.teamName}>
                       {displayLabel(member, t)}
-                      {unnamed && short ? (
-                        <span className={s.accountId} aria-label={fill(t("acsTeamAccount"), { short })}>
-                          {short}
-                        </span>
-                      ) : null}
+                      {unnamedAccountMark(member, t)}
                       {isYou ? <span className={s.you}>{t("acsTeamYou")}</span> : null}
                     </span>
                   }
@@ -530,6 +571,7 @@ export default function SectionTeam({
                       {canTransfer ? (
                         <button
                           type="button"
+                          ref={transferButtonRef}
                           className={`acs-btn ghost ${s.btnSm}`}
                           data-testid="team-transfer-ownership"
                           disabled={transferBusy}
@@ -541,7 +583,13 @@ export default function SectionTeam({
                     </span>
                   }
                 >
-                  {isOwnerRow && !canTransfer ? <p className={s.ownerLocked}>{t("acsOwnerLocked")}</p> : null}
+                  {isOwnerRow && !canTransfer ? (
+                    <p className={s.ownerLocked}>
+                      {callerRole === "owner" && isYou && !hasAdmin
+                        ? t("acsTeamTransferAdminNeed")
+                        : t("acsOwnerLocked")}
+                    </p>
+                  ) : null}
                   {confirming ? (
                     <div className="acs-form">
                       <p className="acs-note">{t(confirm.kind === "leave" ? "acsTeamLeaveAsk" : "acsTeamRemoveAsk")}</p>
@@ -571,10 +619,18 @@ export default function SectionTeam({
         </Group>
 
         {transfer ? (
-          <div className={s.transferDialog} role="dialog" aria-modal="true" data-testid="team-transfer-dialog">
+          <div
+            ref={transferDialogRef}
+            className={s.transferDialog}
+            role="dialog"
+            aria-labelledby="team-transfer-dialog-title"
+            data-testid="team-transfer-dialog"
+          >
             {transfer.phase === "pick" ? (
               <>
-                <p className={s.transferTitle}>{t("acsTeamTransferTitle")}</p>
+                <p className={s.transferTitle} id="team-transfer-dialog-title">
+                  {t("acsTeamTransferTitle")}
+                </p>
                 <p className="acs-note">{t("acsTeamTransferAdminNeed")}</p>
                 <div className={s.transferList} data-testid="team-transfer-recipients">
                   {transferRecipients.map((row) => {
@@ -588,7 +644,10 @@ export default function SectionTeam({
                         disabled={transferBusy}
                         onClick={() => setTransfer({ phase: "pick", recipientId: row.userId })}
                       >
-                        <span>{displayLabel(row, t)}</span>
+                        <span className={s.teamName}>
+                          {displayLabel(row, t)}
+                          {unnamedAccountMark(row, t)}
+                        </span>
                         <span className={s.roleBadge} data-role={row.role}>
                           {t(roleKey(row.role))}
                         </span>
@@ -625,8 +684,8 @@ export default function SectionTeam({
             ) : null}
             {transfer.phase === "confirm" && transfer.recipientId ? (
               <>
-                <p className={s.transferTitle} data-testid="team-transfer-confirm-title">
-                  {fillName(t("acsTeamTransferConfirm"), displayLabel(transferRecipient || {
+                <p className={s.transferTitle} id="team-transfer-dialog-title" data-testid="team-transfer-confirm-title">
+                  {fillName(t("acsTeamTransferConfirm"), transferSpokenName(transferRecipient || {
                     userId: transfer.recipientId,
                     role: "admin",
                     displayName: "",
@@ -659,7 +718,7 @@ export default function SectionTeam({
             ) : null}
             {transfer.phase === "conflict" && transfer.recipientId ? (
               <>
-                <p className="acs-note" data-testid="team-transfer-conflict">
+                <p className="acs-note" id="team-transfer-dialog-title" data-testid="team-transfer-conflict">
                   {TEAM_ROUTE_MESSAGES.conflict[lang === "zh" ? 1 : 0]}
                 </p>
                 <div className="acs-btns">

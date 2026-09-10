@@ -49,6 +49,16 @@ export function isAbsentTableError(error: { code?: string; message?: string } | 
 }
 
 /**
+ * A missing RPC (0020 unapplied). PostgREST answers PGRST202 ("Could not find the
+ * function … in the schema cache"); Postgres answers SQLSTATE 42883. Classified by
+ * CODE ONLY, never by message prose.
+ */
+export function isAbsentFunctionError(error: { code?: string; message?: string } | null | undefined): boolean {
+  if (!error || !error.code) return false;
+  return error.code === "PGRST202" || error.code === "42883";
+}
+
+/**
  * A database-level permission denial (round-4 ruling R4(i)). 0019 uses one deliberately: a
  * forbidden DELETE raises 42501 through team_members_rls_deny() rather than filtering to zero
  * rows, and tm_update_admin's WITH CHECK raises it too. Both mean the same thing as the zero-row
@@ -602,6 +612,7 @@ export async function transferOwnership(
   });
   if (result.error) {
     if (isAbsentTableError(result.error)) return transferFail("unavailable");
+    if (isAbsentFunctionError(result.error)) return transferFail("unavailable");
     if (isPermissionDeniedError(result.error)) return transferFail("unavailable");
     // Seat ruling M1: RAISE EXCEPTION P0001 from a failed restore maps to the
     // existing write_failed sentence. Never forward the SQLSTATE or the raise text.

@@ -473,6 +473,20 @@ describe("B-F12-9: ownership transfer control", () => {
     expect(container.querySelector('[data-testid="team-transfer-ownership"]')).toBeNull();
   });
 
+  it("the owner with no administrator reads the transfer-admin hint, not the locked-owner sentence", async () => {
+    const noAdmin: DevTeamFixture = {
+      ...ROSTER_FIXTURE,
+      members: ROSTER_FIXTURE.members.map((m) => (m.role === "admin" ? { ...m, role: "member" } : m)),
+    };
+    await mount("en", noAdmin);
+    const ownerRow = container.querySelector(`[data-user-id="${CALLER}"]`);
+    expect(ownerRow).toBeTruthy();
+    expect(ownerRow!.textContent).toContain(LEX.acsTeamTransferAdminNeed[0]);
+    expect(ownerRow!.textContent).not.toContain(LEX.acsOwnerLocked[0]);
+    expect(text()).toContain(LEX.acsTeamTransferAdminNeed[0]);
+    expect(text()).not.toContain(LEX.acsOwnerLocked[0]);
+  });
+
   it.each(["en", "zh"] as const)("%s: the two-step dialog shows the consequence sentence and never a machine word", async (lang) => {
     await mount(lang, ROSTER_FIXTURE);
     const idx = lang === "zh" ? 1 : 0;
@@ -494,6 +508,65 @@ describe("B-F12-9: ownership transfer control", () => {
     expect(text()).toContain(LEX.acsTeamTransferConfirm[idx].replaceAll("{name}", "Alex Chen"));
     expect(text()).not.toContain("transfer_team_ownership");
     expect(text()).not.toContain("team_members");
+  });
+
+  it("opening the transfer dialog moves focus inside it and does not declare aria-modal", async () => {
+    await mount("en", ROSTER_FIXTURE);
+    const openButton = container.querySelector('[data-testid="team-transfer-ownership"]') as HTMLButtonElement;
+    await act(async () => {
+      openButton.click();
+    });
+    const dialog = container.querySelector('[data-testid="team-transfer-dialog"]') as HTMLElement;
+    expect(dialog).toBeTruthy();
+    expect(dialog.getAttribute("aria-modal")).toBeNull();
+    expect(dialog.getAttribute("role")).toBe("dialog");
+    expect(dialog.getAttribute("aria-labelledby")).toBe("team-transfer-dialog-title");
+    expect(document.getElementById("team-transfer-dialog-title")).toBeTruthy();
+    expect(dialog.contains(document.activeElement)).toBe(true);
+  });
+
+  it("two unnamed administrators are named by Name not set plus the eight-character account id in the list, confirm title, and success sentence", async () => {
+    const UNNAMED_A = "d4e5f6a7-4444-4e6a-9c03-5b71ee0a4d22";
+    const UNNAMED_B = "e5f6a7b8-5555-4e6a-9c03-5b71ee0a4d22";
+    const unnamedAdmins: DevTeamFixture = {
+      ...ROSTER_FIXTURE,
+      members: [
+        ROSTER_FIXTURE.members[0],
+        { userId: UNNAMED_A, role: "admin", displayName: "", createdAt: null },
+        { userId: UNNAMED_B, role: "admin", displayName: "", createdAt: null },
+      ],
+    };
+    await mount("en", unnamedAdmins);
+    await act(async () => {
+      (container.querySelector('[data-testid="team-transfer-ownership"]') as HTMLButtonElement).click();
+    });
+    const choices = Array.from(container.querySelectorAll("[data-testid=\"team-transfer-recipients\"] button"));
+    expect(choices).toHaveLength(2);
+    expect(choices[0].textContent).toContain(LEX.acsTeamNoName[0]);
+    expect(choices[0].textContent).toContain("d4e5f6a7");
+    expect(choices[1].textContent).toContain(LEX.acsTeamNoName[0]);
+    expect(choices[1].textContent).toContain("e5f6a7b8");
+    expect(choices[0].querySelector("[aria-label]")?.getAttribute("aria-label")).toBe(
+      LEX.acsTeamAccount[0].replace("{short}", "d4e5f6a7"),
+    );
+    expect(choices[1].querySelector("[aria-label]")?.getAttribute("aria-label")).toBe(
+      LEX.acsTeamAccount[0].replace("{short}", "e5f6a7b8"),
+    );
+    await act(async () => {
+      (choices[0] as HTMLButtonElement).click();
+    });
+    await act(async () => {
+      (container.querySelector('[data-testid="team-transfer-next"]') as HTMLButtonElement).click();
+    });
+    const spokenA = `${LEX.acsTeamNoName[0]} d4e5f6a7`;
+    expect(container.querySelector('[data-testid="team-transfer-confirm-title"]')?.textContent).toBe(
+      LEX.acsTeamTransferConfirm[0].replaceAll("{name}", spokenA),
+    );
+    await act(async () => {
+      (container.querySelector('[data-testid="team-transfer-confirm"]') as HTMLButtonElement).click();
+    });
+    expect(text()).toContain(LEX.acsTeamTransferSuccess[0].replaceAll("{name}", spokenA));
+    expect(text()).not.toContain(LEX.acsTeamTransferSuccess[0].replaceAll("{name}", LEX.acsTeamNoName[0] + "."));
   });
 
   it("a 409 shows the conflict sentence and a Try again control", async () => {
@@ -617,5 +690,87 @@ describe("B-F12-9: ownership transfer control", () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+
+  it("after 409 then Try again, a 403 closes the dialog and shows only the 403 sentence", async () => {
+    let transferPosts = 0;
+    const impl = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url === "/api/teams") {
+        return { ok: true, status: 200, json: async () => ({ teams: [{ id: "team-1", name: "Desk" }] }) } as unknown as Response;
+      }
+      if (url.startsWith("/api/teams/team-1/members")) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            members: ROSTER_FIXTURE.members.map((m) => ({ ...m })),
+            callerRole: "owner",
+          }),
+        } as unknown as Response;
+      }
+      if (url.startsWith("/api/teams/team-1/transfer-ownership")) {
+        transferPosts += 1;
+        if (transferPosts === 1) {
+          return {
+            ok: false,
+            status: 409,
+            json: async () => ({
+              error: "CONFLICT",
+              message: TEAM_ROUTE_MESSAGES.conflict[0],
+              messageZh: TEAM_ROUTE_MESSAGES.conflict[1],
+            }),
+          } as unknown as Response;
+        }
+        return {
+          ok: false,
+          status: 403,
+          json: async () => ({
+            error: "FORBIDDEN",
+            message: TEAM_ROUTE_MESSAGES.transfer_requires_admin[0],
+            messageZh: TEAM_ROUTE_MESSAGES.transfer_requires_admin[1],
+          }),
+        } as unknown as Response;
+      }
+      if (url.startsWith("/api/teams/team-1/invites") || url.includes("/invites")) {
+        return { ok: true, status: 200, json: async () => ({ invites: [] }) } as unknown as Response;
+      }
+      return { ok: true, status: 200, json: async () => ({}) } as unknown as Response;
+    });
+    vi.stubGlobal("fetch", impl);
+    await mount("en");
+    await act(async () => {
+      (container.querySelector('[data-testid="team-transfer-ownership"]') as HTMLButtonElement).click();
+    });
+    const adminChoice = Array.from(container.querySelectorAll("[data-testid=\"team-transfer-recipients\"] button")).find((b) =>
+      (b.textContent || "").includes("Alex Chen"),
+    ) as HTMLButtonElement;
+    await act(async () => {
+      adminChoice.click();
+    });
+    await act(async () => {
+      (container.querySelector('[data-testid="team-transfer-next"]') as HTMLButtonElement).click();
+    });
+    await act(async () => {
+      (container.querySelector('[data-testid="team-transfer-confirm"]') as HTMLButtonElement).click();
+    });
+    expect(text()).toContain(TEAM_ROUTE_MESSAGES.conflict[0]);
+    expect(container.querySelector('[data-testid="team-transfer-retry"]')).toBeTruthy();
+    vi.useFakeTimers();
+    try {
+      await act(async () => {
+        (container.querySelector('[data-testid="team-transfer-retry"]') as HTMLButtonElement).click();
+      });
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(1000);
+      });
+    } finally {
+      vi.useRealTimers();
+    }
+    expect(transferPosts).toBe(2);
+    expect(container.querySelector('[data-testid="team-transfer-dialog"]')).toBeNull();
+    expect(container.querySelector('[data-testid="team-transfer-retry"]')).toBeNull();
+    expect(text()).toContain(TEAM_ROUTE_MESSAGES.transfer_requires_admin[0]);
+    expect(text()).not.toContain(TEAM_ROUTE_MESSAGES.conflict[0]);
   });
 });

@@ -246,6 +246,28 @@ describe("transferOwnership (B-F12-9)", () => {
     const result = await transferOwnership(db, TEAM, ADMIN);
     expect(result).toEqual({ success: false, message: "write_failed", status: 500 });
   });
+
+  it("maps a missing transfer function (PGRST202) to unavailable, never write_failed", async () => {
+    const db = fakeTransferDb({
+      rpc: async () => ({
+        data: null,
+        error: { code: "PGRST202", message: "Could not find the function public.transfer_team_ownership in the schema cache" },
+      }),
+    });
+    const result = await transferOwnership(db, TEAM, ADMIN);
+    expect(result).toEqual({ success: false, message: "unavailable", status: 403 });
+  });
+
+  it("maps a missing transfer function (SQLSTATE 42883) to unavailable, never write_failed", async () => {
+    const db = fakeTransferDb({
+      rpc: async () => ({
+        data: null,
+        error: { code: "42883", message: "function public.transfer_team_ownership(uuid, uuid) does not exist" },
+      }),
+    });
+    const result = await transferOwnership(db, TEAM, ADMIN);
+    expect(result).toEqual({ success: false, message: "unavailable", status: 403 });
+  });
 });
 
 describe("TEAM_ROUTE_MESSAGES for transfer codes", () => {
