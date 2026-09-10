@@ -462,6 +462,45 @@ describe("SectionAccuracy detail honesty", () => {
     expect(stanceHits).toBe(1);
   });
 
+  it("accEarly1 at n = 1 and accEarlyN at n = 5", () => {
+    const claimsAt = (n: number): UserClaim[] => Array.from({ length: n }, (_, i) => ({
+      claim_id: `early${n.toString(16)}${i.toString(16).padStart(10, "0")}`.slice(0, 16),
+      user_id: "11111111-1111-4111-8111-111111111111",
+      subject: { kind: "security", id: `E${n}${i}` },
+      stated_at: "2026-01-01T00:00:00.000Z",
+      resolves_at: "2026-02-01T00:00:00.000Z",
+      claim_text: `Call ${i} finishes at or above the line.`,
+      condition: { metric: "last_close", comparator: ">=", threshold: 100, owner: "quotes.last_close" },
+      stated_probability: 0.5,
+      evidence: [],
+      status: "resolved" as const,
+      resolution: {
+        outcome: 1 as const,
+        observed: 110,
+        resolved_at: "2026-02-01T00:00:00.000Z",
+        resolver: "quotes.last_close",
+        note: "",
+      },
+      supersedes: null,
+    }));
+    const one = scorePersonalAccuracy(claimsAt(1));
+    expect(one.resolvedEpisodes).toBe(1);
+    mount("en", { readout: one, loadErr: false });
+    const text1 = container.textContent || "";
+    expect(text1).toContain("Too early to say — checked 1 group of your calls so far.");
+    expect(text1).not.toContain("Too early to say — checked 1 groups of your calls so far.");
+    const five = scorePersonalAccuracy(claimsAt(5));
+    expect(five.resolvedEpisodes).toBe(5);
+    act(() => {
+      root?.unmount();
+      root = createRoot(container);
+      root!.render(React.createElement(SectionAccuracy, baseProps("en", { readout: five, loadErr: false })));
+    });
+    const text5 = container.textContent || "";
+    expect(text5).toContain("Too early to say — checked 5 groups of your calls so far.");
+    expect(text5).not.toContain("Too early to say — checked 1 group of your calls so far.");
+  });
+
   it("ZH detail rows use a full-width colon and omit the raw subject identifier", () => {
     mount("zh", { readout: populatedAccuracyFixture(), loadErr: false });
     const detail = openDetail();
@@ -652,6 +691,74 @@ describe("SectionAccuracy unscorable cause split (META-CEO B round 7 M3)", () =>
     });
     const detail = container.querySelector("[data-acc='detail']")?.textContent || "";
     expect(detail).toContain(LEX.accDetReasonBadStatus[0]);
+  });
+
+  it("readout glance prints the withdrawn cause after the claim-count line", () => {
+    const populated = populatedAccuracyFixture();
+    expect(populated.resolvedEpisodes).toBe(10);
+    const readout = scorePersonalAccuracy([
+      ...populated.claims.map((row) => ({
+        claim_id: row.claimId,
+        user_id: "8f2c41ba-7d19-4e6a-9c03-5b71ee0a4d22",
+        subject: { kind: row.subjectKind, id: row.subjectId },
+        stated_at: row.statedAt,
+        resolves_at: row.resolvesAt,
+        claim_text: row.claimText,
+        condition: { metric: "last_close", comparator: ">=", threshold: 100, owner: "quotes.last_close" },
+        stated_probability: row.statedProbability,
+        evidence: [],
+        status: row.status,
+        resolution: row.resolution
+          ? {
+              outcome: row.resolution.outcome,
+              observed: row.resolution.observed,
+              resolved_at: row.resolution.resolvedAt,
+              resolver: row.resolution.resolver,
+              note: row.resolution.note,
+            }
+          : null,
+        supersedes: null,
+      })),
+      rowClaim({
+        claim_id: "withdrawnreadout01",
+        user_id: "8f2c41ba-7d19-4e6a-9c03-5b71ee0a4d22",
+        subject: { kind: "security", id: "W0" },
+        status: "withdrawn",
+        resolution: null,
+      }),
+    ]);
+    expect(readout.resolvedEpisodes).toBe(10);
+    expect(readout.unscorableCount).toBeGreaterThan(0);
+    mount({ readout, loadErr: false });
+    const card = container.querySelector("[data-acc-state='readout']");
+    expect(card).toBeTruthy();
+    const text = card!.textContent || "";
+    expect(text).toContain(LEX.accUnscorableWithdrawn1[0]);
+    const claimAt = text.indexOf(interpolate(LEX.accClaimCountN[0], { n: readout.claimCount }));
+    const causeAt = text.indexOf(LEX.accUnscorableWithdrawn1[0]);
+    expect(claimAt).toBeGreaterThanOrEqual(0);
+    expect(causeAt).toBeGreaterThan(claimAt);
+  });
+
+  it("a matured row with no resolution is pending, not a not-binary cause", () => {
+    const readout = scorePersonalAccuracy([rowClaim({
+      claim_id: "maturedpending0001",
+      status: "matured",
+      resolution: null,
+    })]);
+    expect(readout.claims[0].status).toBe("matured");
+    expect(readout.claims[0].resolution).toBeNull();
+    mount({ readout, loadErr: false });
+    const text = container.textContent || "";
+    expect(text).not.toContain(LEX.accUnscorableNotBinary1[0]);
+    expect(text).not.toContain("the result was not a clear yes or no");
+    const toggle = container.querySelector("[data-acc='toggle']") as HTMLButtonElement;
+    act(() => {
+      toggle.click();
+    });
+    const detail = container.querySelector("[data-acc='detail']")?.textContent || "";
+    expect(detail).toContain(LEX.accDetStatusMatured[0]);
+    expect(detail).toContain("Due, waiting to be checked");
   });
 });
 

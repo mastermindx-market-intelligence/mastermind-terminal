@@ -55,7 +55,9 @@ function parseResolution(value: unknown): { resolution: ClaimResolution | null; 
   }
   const o = value as Record<string, unknown>;
   const outcome = o.outcome === 0 || o.outcome === 1 ? o.outcome : o.outcome === null ? null : null;
-  const resolved_at = text(o.resolved_at);
+  const rawResolvedAt = o.resolved_at;
+  const nonStringResolvedAt = rawResolvedAt != null && typeof rawResolvedAt !== "string";
+  const resolved_at = typeof rawResolvedAt === "string" ? rawResolvedAt : "";
   return {
     resolution: {
       outcome,
@@ -64,7 +66,8 @@ function parseResolution(value: unknown): { resolution: ClaimResolution | null; 
       resolver: text(o.resolver),
       note: text(o.note),
     },
-    malformedResolvedAt: resolved_at.length > 0 && !timestampLooksValid(resolved_at),
+    malformedResolvedAt:
+      nonStringResolvedAt || (resolved_at.length > 0 && !timestampLooksValid(resolved_at)),
   };
 }
 

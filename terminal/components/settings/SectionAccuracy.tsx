@@ -95,6 +95,8 @@ function unscorableCause(row: AccuracyClaimRow): UnscorableCause | null {
   const note = row.resolution?.note || "";
   const resolver = row.resolution?.resolver || "";
   if (/was not available/i.test(note) || resolver.includes("RESOLVER_REGISTRY")) return "data_absent";
+  // A matured row with no resolution is still pending, not unscorable.
+  if (row.status === "matured" && !row.resolution) return null;
   if (
     (row.status === "resolved" || row.status === "matured")
     && row.resolution?.outcome !== 0
@@ -225,11 +227,16 @@ export default function SectionAccuracy({ t, lang, onClose, readout, loadErr, id
             )}
             <p className={s.line}>
               {showEarly
-                ? interpolate(t("accEarlyN"), { n: nResolved })
+                ? countPhrase(t, nResolved, "accEarlyN", "accEarly1")
                 : interpolate(t("accCheckedN"), { n: nResolved })}
               {" "}
               {claimCountPhrase(t, readout.claimCount)}
             </p>
+            {readout.unscorableCount > 0
+              ? unscorableGlancePhrases(t, readout).map((line) => (
+                  <p key={line} className={`${s.line} ${s.unscorable}`}>{line}</p>
+                ))
+              : null}
             {nPairs < BRIER_MIN_PAIRS ? (
               <>
                 <p className={s.line}>{t("accCalibWithheld")}</p>

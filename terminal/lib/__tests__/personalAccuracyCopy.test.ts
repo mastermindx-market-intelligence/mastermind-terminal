@@ -12,13 +12,39 @@ const FROZEN_GLANCE_KEYS = [
   "accStanceNot",
   "accEmpty",
   "accEarlyN",
+  "accEarly1",
   "accCheckedN",
   "accCalibWithheld",
   "accUnscorableN",
   "accCeiling",
 ] as const;
 
-const GLANCE_KEYS = [...FROZEN_GLANCE_KEYS, "accClaimCountN", "accUnread", "accDetLoadErr", "accCalibProgress"] as const;
+const GLANCE_KEYS = [
+  ...FROZEN_GLANCE_KEYS,
+  "accClaimCountN",
+  "accClaimCount1",
+  "accUnread",
+  "accDetLoadErr",
+  "accCalibProgress",
+  "accSignInToSee",
+  "accUnscorable1",
+  "accUnscorableIncompleteN",
+  "accUnscorableIncomplete1",
+  "accUnscorableWithdrawnN",
+  "accUnscorableWithdrawn1",
+  "accUnscorableNotBinaryN",
+  "accUnscorableNotBinary1",
+  "accUnscorableBadDateN",
+  "accUnscorableBadDate1",
+  "accUnscorableBadKindN",
+  "accUnscorableBadKind1",
+  "accUnscorableBadStatusN",
+  "accUnscorableBadStatus1",
+  "accUnscorableOtherN",
+  "accUnscorableOther1",
+  "accDetailOpen",
+  "accDetailClose",
+] as const;
 
 const FROZEN_EN = [
   "Your calls, checked.",
@@ -30,6 +56,8 @@ const FROZEN_EN = [
   "Nothing has settled yet. Your first call gets checked on the day you set.",
   // META-CEO B round 7 seat amendment of frozen §6 lines (session d640f3ef, 2026-09-09 20:35Z)
   "Too early to say — checked {n} groups of your calls so far.",
+  // META-CEO B heal round h7: accEarly1 twin of frozen accEarlyN
+  "Too early to say — checked 1 group of your calls so far.",
   "Checked so far: {n} groups of your calls.",
   // same ruling: noun is groups of calls; ({n} of 30) tail removed
   "Not enough settled groups of calls yet to check how well your odds match reality.",
@@ -47,6 +75,8 @@ const FROZEN_ZH = [
   "还没有到期的判断。第一条会在你设定的那天核对。",
   // META-CEO B round 7 seat amendment of frozen §6 lines (session d640f3ef, 2026-09-09 20:35Z)
   "现在下结论还太早——目前已核对你的 {n} 组判断。",
+  // META-CEO B heal round h7: accEarly1 ZH is accEarlyN with {n} replaced by 1
+  "现在下结论还太早——目前已核对你的 1 组判断。",
   "目前已核对：你的 {n} 组判断。",
   // same ruling: 条 → 组 for the same noun; （{n}／30） tail removed
   "还没有足够的已结算判断组来核对你的把握是否准确。",
@@ -128,7 +158,20 @@ describe("B-F13-5 glance copy", () => {
     const frozenWithN = FROZEN_GLANCE_KEYS.filter((key) => LEX[key][0].includes("{n}"));
     expect(frozenWithN).toEqual(["accEarlyN", "accCheckedN", "accUnscorableN"]);
     const withN = GLANCE_KEYS.filter((key) => LEX[key][0].includes("{n}"));
-    expect(withN).toEqual(["accEarlyN", "accCheckedN", "accUnscorableN", "accClaimCountN", "accCalibProgress"]);
+    expect(withN).toEqual([
+      "accEarlyN",
+      "accCheckedN",
+      "accUnscorableN",
+      "accClaimCountN",
+      "accCalibProgress",
+      "accUnscorableIncompleteN",
+      "accUnscorableWithdrawnN",
+      "accUnscorableNotBinaryN",
+      "accUnscorableBadDateN",
+      "accUnscorableBadKindN",
+      "accUnscorableBadStatusN",
+      "accUnscorableOtherN",
+    ]);
     for (const key of withN) {
       expect(LEX[key][1]).toContain("{n}");
     }
@@ -146,6 +189,26 @@ describe("B-F13-5 glance copy", () => {
       expect(en, key).not.toMatch(/\d+\.\d+/);
       expect(zh, key).not.toMatch(/\d+\.\d+/);
     }
+  });
+
+  it("GLANCE_KEYS is exactly the acc* keys the glance region can render", () => {
+    const src = readFileSync(
+      join(__dirname, "../../components/settings/SectionAccuracy.tsx"),
+      "utf8",
+    );
+    const collect = (chunk: string): string[] =>
+      [...chunk.matchAll(/"(acc[A-Za-z0-9]+)"/g)].map((m) => m[1]);
+    const glanceJsx = src.slice(src.indexOf("<SectionHead"), src.indexOf("{open ? ("));
+    const stance = src.match(/const STANCE_KEY[\s\S]*?};/)?.[0] ?? "";
+    const phrases = src.match(/function unscorableGlancePhrases[\s\S]*?\n\}/)?.[0] ?? "";
+    const claimCount = src.match(/function claimCountPhrase[\s\S]*?\n\}/)?.[0] ?? "";
+    const derived = [...new Set([
+      ...collect(glanceJsx),
+      ...collect(stance),
+      ...collect(phrases),
+      ...collect(claimCount),
+    ])].sort();
+    expect(derived).toEqual([...GLANCE_KEYS].sort());
   });
 });
 

@@ -2105,6 +2105,8 @@ export const LEX: Record<string, [string, string]> = {
   accSignInToSee: ["Sign in to see how your calls have turned out.", "登录后即可查看你的判断结果。"],
   // accEarlyN / accCheckedN / accCalibWithheld: META-CEO B round 7 seat amendment of frozen §6 lines (session d640f3ef, 2026-09-09 20:35Z).
   accEarlyN: ["Too early to say — checked {n} groups of your calls so far.", "现在下结论还太早——目前已核对你的 {n} 组判断。"],
+  // accEarly1: META-CEO B heal round h7 seat amendment of frozen §6 (session d640f3ef, 2026-09-10 14:07Z).
+  accEarly1: ["Too early to say — checked 1 group of your calls so far.", "现在下结论还太早——目前已核对你的 1 组判断。"],
   accCheckedN: ["Checked so far: {n} groups of your calls.", "目前已核对：你的 {n} 组判断。"],
   // accCalibWithheld: same ruling — noun is groups of calls / 判断组; ({n} of 30) tail removed.
   accCalibWithheld: ["Not enough settled groups of calls yet to check how well your odds match reality.", "还没有足够的已结算判断组来核对你的把握是否准确。"],

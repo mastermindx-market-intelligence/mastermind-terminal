@@ -27,8 +27,10 @@ const LAYOUT_FILES = [
   "terminal/components/settings/SectionAccuracy.tsx",
   "terminal/components/settings/SectionAccuracy.module.css",
   "terminal/components/settings/SettingsPanel.tsx",
+  "terminal/components/settings/types.ts",
   "terminal/lib/i18n.tsx",
   "terminal/lib/personalAccuracy.ts",
+  "terminal/lib/personalAccuracyStore.ts",
   "terminal/app/dev/settings/page.tsx",
   "terminal/app/dev/settings/accuracyFixtures.ts",
 ];
@@ -39,14 +41,18 @@ const VIEWPORTS = {
   mobile: { width: 390, height: 844 },
 };
 const SHOTS = [
-  { viewport: "desktop", lang: "en", acc: "empty", detail: false, file: "desktop-en-empty.png" },
-  { viewport: "desktop", lang: "zh", acc: "empty", detail: false, file: "desktop-zh-empty.png" },
-  { viewport: "desktop", lang: "en", acc: "populated", detail: true, file: "desktop-en-detail.png" },
-  { viewport: "desktop", lang: "zh", acc: "populated", detail: true, file: "desktop-zh-detail.png" },
-  { viewport: "mobile", lang: "en", acc: "empty", detail: false, file: "mobile-en-empty.png" },
-  { viewport: "mobile", lang: "zh", acc: "empty", detail: false, file: "mobile-zh-empty.png" },
-  { viewport: "mobile", lang: "en", acc: "populated", detail: true, file: "mobile-en-detail.png" },
-  { viewport: "mobile", lang: "zh", acc: "populated", detail: true, file: "mobile-zh-detail.png" },
+  { viewport: "desktop", lang: "en", acc: "empty", kind: "empty", file: "desktop-en-empty.png" },
+  { viewport: "desktop", lang: "zh", acc: "empty", kind: "empty", file: "desktop-zh-empty.png" },
+  { viewport: "desktop", lang: "en", acc: "populated", kind: "glance", file: "desktop-en-glance.png" },
+  { viewport: "desktop", lang: "zh", acc: "populated", kind: "glance", file: "desktop-zh-glance.png" },
+  { viewport: "desktop", lang: "en", acc: "populated", kind: "detail", file: "desktop-en-detail.png" },
+  { viewport: "desktop", lang: "zh", acc: "populated", kind: "detail", file: "desktop-zh-detail.png" },
+  { viewport: "mobile", lang: "en", acc: "empty", kind: "empty", file: "mobile-en-empty.png" },
+  { viewport: "mobile", lang: "zh", acc: "empty", kind: "empty", file: "mobile-zh-empty.png" },
+  { viewport: "mobile", lang: "en", acc: "populated", kind: "glance", file: "mobile-en-glance.png" },
+  { viewport: "mobile", lang: "zh", acc: "populated", kind: "glance", file: "mobile-zh-glance.png" },
+  { viewport: "mobile", lang: "en", acc: "populated", kind: "detail", file: "mobile-en-detail.png" },
+  { viewport: "mobile", lang: "zh", acc: "populated", kind: "detail", file: "mobile-zh-detail.png" },
 ];
 
 mkdirSync(OUT, { recursive: true });
@@ -189,10 +195,12 @@ async function main() {
         page.setDefaultTimeout(45_000);
         try {
           await openAccuracy(page, shot.lang, VIEWPORTS[shot.viewport], shot.acc);
-          if (shot.detail) {
+          if (shot.kind === "detail") {
             await openDetail(page, shot.lang);
             await page.locator("[data-acc='detail']").scrollIntoViewIfNeeded();
             await page.waitForTimeout(200);
+          } else if (shot.kind === "glance") {
+            await page.locator("[data-acc-state='readout']").waitFor({ state: "visible", timeout: 10_000 });
           } else {
             await page.locator("[data-acc-state='empty']").waitFor({ state: "visible", timeout: 10_000 });
           }
