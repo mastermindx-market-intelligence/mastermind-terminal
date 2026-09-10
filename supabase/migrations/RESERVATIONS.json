@@ -200,11 +200,11 @@
       "state": "taken",
       "file": "0020_team_ownership_transfer.sql",
       "packet": "B-F12-9",
-      "pr": 557,
+      "pr": 550,
       "pr_state": "open",
       "applied_in_production": false,
       "applied_date": null,
-      "note": "ownership transfer; seat ruled 0020 (the spec claimed 0019; 0019 is B-F12-8). Flipped from reserved (#543) to taken in this PR. Shipped unapplied; applied_date is not recorded because the seat has not applied it; the seat applies with a receipt."
+      "note": "ownership transfer; originated in PR #557 (squash-merged into this branch at 29257a43) and rides to master with PR #550, so the open row names this pull request. Seat ruled 0020 (the spec claimed 0019; 0019 is B-F12-8). Flipped from reserved (#543) to taken. Shipped unapplied; applied_date is not recorded because the seat has not applied it; the seat applies with a receipt."
     },
     "0022": {
       "state": "taken",

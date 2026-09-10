@@ -1,5 +1,17 @@
+// Review BLOCKER (PR #550 round 2 / B-F12-9 stacked on B-F12-8): the evidence
+// lock used to name a commit and ask whether it was an ancestor of HEAD, and
+// it shelled out to git to walk that ancestry. The required CI shard checks
+// out a single commit, so that named SHA is absent and the check is RED
+// there while the same file is GREEN in a full-history worktree. A check
+// that only passes with full history is not a CI test. Terminal law: tests
+// never shell out to git history. The B-F12-8 lock already dropped that
+// pattern; this file matches it.
+//
+// The lock is now the sha256 of the transfer-panel layout sources the crops
+// depend on, recorded in EVIDENCE.yml layoutFiles. capturedAtHead stays
+// as an informational field. Changing a layout file without a recapture
+// turns this file RED.
 import { describe, expect, it } from "vitest";
-import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -58,72 +70,6 @@ function sha256Of(abs: string): string {
   return createHash("sha256").update(readFileSync(abs)).digest("hex");
 }
 
-function sha256Buf(buf: Buffer): string {
-  return createHash("sha256").update(buf).digest("hex");
-}
-
-function git(args: string[]): { ok: boolean; stdout: Buffer } {
-  const r = spawnSync("git", args, { cwd: REPO, maxBuffer: 20_000_000, timeout: 30_000 });
-  return { ok: (r.status ?? 1) === 0, stdout: (r.stdout as Buffer) || Buffer.alloc(0) };
-}
-
-function commitExists(sha: string): boolean {
-  return git(["cat-file", "-e", `${sha}^{commit}`]).ok;
-}
-
-function fetchCommitOnce(sha: string): void {
-  git(["fetch", "--depth=1", "origin", sha]);
-}
-
-function commitParents(sha: string): string[] {
-  const r = git(["cat-file", "-p", sha]);
-  if (!r.ok) return [];
-  const parents: string[] = [];
-  for (const line of r.stdout.toString("utf8").split("\n")) {
-    if (line === "") break;
-    const m = line.match(/^parent ([0-9a-f]{40})$/);
-    if (m) parents.push(m[1]);
-  }
-  return parents;
-}
-
-function isAncestorOrEqual(sha: string): boolean {
-  if (git(["merge-base", "--is-ancestor", sha, "HEAD"]).ok) return true;
-  // GitHub's pull_request checkout is fetch-depth 2 of the merge commit
-  // (HEAD = merge, parents = base + PR tip). capturedAtHead is the PR
-  // tip's parent by the B1 crops-follow-code flow, so it sits behind
-  // .git/shallow: merge-base cannot walk the PR tip's parent even after
-  // the ruled `git fetch --depth=1 origin <sha>` brings the object in
-  // disconnected. Parent SHAs in commit headers of objects we do have
-  // still name that hop. Walk those headers (no second fetch). A sha
-  // that is not on HEAD's parent chain still fails.
-  const head = git(["rev-parse", "HEAD"]);
-  if (!head.ok) return false;
-  const headSha = head.stdout.toString("utf8").trim();
-  if (headSha === sha) return true;
-  const seen = new Set<string>();
-  let frontier = [headSha];
-  for (let hops = 0; hops < 6 && frontier.length > 0; hops += 1) {
-    const next: string[] = [];
-    for (const c of frontier) {
-      if (seen.has(c)) continue;
-      seen.add(c);
-      if (c === sha) return true;
-      for (const p of commitParents(c)) {
-        if (p === sha) return true;
-        if (!seen.has(p) && commitExists(p)) next.push(p);
-      }
-    }
-    frontier = next;
-  }
-  return false;
-}
-
-function blobAt(sha: string, rel: string): Buffer | null {
-  const r = git(["cat-file", "-p", `${sha}:${rel}`]);
-  return r.ok ? r.stdout : null;
-}
-
 function escapeRegExp(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
@@ -142,35 +88,8 @@ function measurement(yml: string, file: string): Record<string, string> {
 }
 
 describe("B-F12-9 evidence lock is the sha256 of the layout sources", () => {
-  it("capturedAtHead is an ancestor-or-equal of HEAD and layoutFiles hashes match the bytes at that commit", () => {
-    // Seat ruling B1(ii): capturedAtHead is no longer informational. RED on 75916e59
-    // because EVIDENCE.yml still names 144fbbd7 while layoutFiles hashes were restamped
-    // to this head's SectionTeam.tsx bytes (99/22 after the stacked-base merge).
-    const yml = evidenceText();
-    const sha = capturedAtHead(yml);
-    const recorded = layoutFileMap(yml);
-    expect(sha).toMatch(/^[0-9a-f]{40}$/);
-    if (!commitExists(sha)) {
-      fetchCommitOnce(sha);
-    }
-    expect(
-      commitExists(sha),
-      `capturedAtHead ${sha} is not a commit reachable from origin — recapture and record the real code commit`,
-    ).toBe(true);
-    expect(isAncestorOrEqual(sha), `capturedAtHead ${sha} is not an ancestor-or-equal of HEAD`).toBe(true);
-    for (const [rel, expected] of Object.entries(recorded)) {
-      const blob = blobAt(sha, rel);
-      expect(blob, `git cannot read ${rel} at capturedAtHead ${sha}`).not.toBeNull();
-      expect(sha256Buf(blob!), `${rel} hash does not match the file bytes at capturedAtHead ${sha}`).toBe(expected);
-    }
-    for (const rel of LAYOUT_FILES) {
-      expect(recorded[rel], `layoutFiles is missing ${rel}`).toMatch(/^[0-9a-f]{64}$/);
-    }
-    for (const [rel, expected] of Object.entries(recorded)) {
-      const abs = join(REPO, rel);
-      expect(existsSync(abs), `${rel} is recorded in layoutFiles but absent from the tree`).toBe(true);
-      expect(sha256Of(abs), `${rel} changed without a recapture`).toBe(expected);
-    }
+  it("capturedAtHead remains recorded as an informational field", () => {
+    expect(capturedAtHead(evidenceText())).toMatch(/^[0-9a-f]{40}$/);
   });
 
   it("layout file sha256 matches EVIDENCE.yml (RED when a layout file changes without a recapture)", () => {
@@ -212,9 +131,6 @@ describe("B-F12-9 evidence lock is the sha256 of the layout sources", () => {
   });
 
   it("crops name the invitations group and never paint the invited person as a Member role badge", () => {
-    // Seat ruling B1(iii): RED on 75916e59 because measurements still start
-    // roleBadgeText with Member and have no inviteBadgeText (the committed
-    // PNGs still show pending@example.com as a Member/成员 badge).
     const yml = evidenceText();
     for (const file of [...BUTTON_FILES, ...CONFIRM_FILES]) {
       const row = measurement(yml, file);
