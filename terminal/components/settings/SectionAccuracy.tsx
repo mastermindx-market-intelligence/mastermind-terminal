@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { SectionHead } from "./icons";
 import { acsDate, type SectionProps } from "./types";
+import { identityOwnerKey, isAccountOwner } from "@/lib/accountIdentity";
 import {
   BRIER_MIN_PAIRS,
   HIT_RATE_MIN_EPISODES,
@@ -68,10 +69,44 @@ function outcomeKey(row: AccuracyClaimRow): string | null {
 function resolverKey(row: AccuracyClaimRow): string | null {
   if (!row.resolution) return null;
   const name = row.resolution.resolver || "";
+  if (!name) return null;
   if (name.includes("RESOLVER_REGISTRY") || /was not available/i.test(row.resolution.note || "")) {
     return "accDetResolverMissing";
   }
   return "accDetResolverKnown";
+}
+
+type UnscorableCause =
+  | "data_absent"
+  | "incomplete"
+  | "withdrawn"
+  | "not_binary"
+  | "bad_date"
+  | "bad_kind"
+  | "bad_status"
+  | "other";
+
+function unscorableCause(row: AccuracyClaimRow): UnscorableCause | null {
+  if (row.unscorableReason === "malformed_timestamp") return "bad_date";
+  if (row.unscorableReason === "condition_incomplete") return "incomplete";
+  if (row.unscorableReason === "unrecognised_kind") return "bad_kind";
+  if (row.unscorableReason === "unrecognised_status") return "bad_status";
+  if (row.status === "withdrawn") return "withdrawn";
+  const note = row.resolution?.note || "";
+  const resolver = row.resolution?.resolver || "";
+  if (/was not available/i.test(note) || resolver.includes("RESOLVER_REGISTRY")) return "data_absent";
+  // A matured row with no resolution is still pending, not unscorable.
+  if (row.status === "matured" && !row.resolution) return null;
+  if (
+    (row.status === "resolved" || row.status === "matured")
+    && row.resolution?.outcome !== 0
+    && row.resolution?.outcome !== 1
+  ) {
+    return "not_binary";
+  }
+  if (row.unscorableReason) return "other";
+  if (row.status === "void_unscorable") return "other";
+  return null;
 }
 
 export function accuracyGlanceState(readout: AccuracyReadout | null): AccuracyGlanceState {
@@ -84,18 +119,43 @@ export function accuracyGlanceState(readout: AccuracyReadout | null): AccuracyGl
 }
 
 function unscorableCallCount(readout: AccuracyReadout): number {
-  return readout.claims.filter((row) => {
-    if (row.unscorableReason) return true;
-    if (row.status === "void_unscorable" || row.status === "withdrawn") return true;
-    if (
-      (row.status === "resolved" || row.status === "matured")
-      && row.resolution?.outcome !== 0
-      && row.resolution?.outcome !== 1
-    ) {
-      return true;
-    }
-    return false;
-  }).length;
+  return readout.claims.filter((row) => unscorableCause(row) !== null).length;
+}
+
+function tallyUnscorable(readout: AccuracyReadout): Record<UnscorableCause, number> {
+  const counts: Record<UnscorableCause, number> = {
+    data_absent: 0,
+    incomplete: 0,
+    withdrawn: 0,
+    not_binary: 0,
+    bad_date: 0,
+    bad_kind: 0,
+    bad_status: 0,
+    other: 0,
+  };
+  for (const row of readout.claims) {
+    const cause = unscorableCause(row);
+    if (cause) counts[cause] += 1;
+  }
+  return counts;
+}
+
+function countPhrase(t: (key: string) => string, n: number, keyN: string, key1: string): string {
+  return n === 1 ? t(key1) : interpolate(t(keyN), { n });
+}
+
+function unscorableGlancePhrases(t: (key: string) => string, readout: AccuracyReadout): string[] {
+  const c = tallyUnscorable(readout);
+  const lines: string[] = [];
+  if (c.data_absent > 0) lines.push(countPhrase(t, c.data_absent, "accUnscorableN", "accUnscorable1"));
+  if (c.incomplete > 0) lines.push(countPhrase(t, c.incomplete, "accUnscorableIncompleteN", "accUnscorableIncomplete1"));
+  if (c.withdrawn > 0) lines.push(countPhrase(t, c.withdrawn, "accUnscorableWithdrawnN", "accUnscorableWithdrawn1"));
+  if (c.not_binary > 0) lines.push(countPhrase(t, c.not_binary, "accUnscorableNotBinaryN", "accUnscorableNotBinary1"));
+  if (c.bad_date > 0) lines.push(countPhrase(t, c.bad_date, "accUnscorableBadDateN", "accUnscorableBadDate1"));
+  if (c.bad_kind > 0) lines.push(countPhrase(t, c.bad_kind, "accUnscorableBadKindN", "accUnscorableBadKind1"));
+  if (c.bad_status > 0) lines.push(countPhrase(t, c.bad_status, "accUnscorableBadStatusN", "accUnscorableBadStatus1"));
+  if (c.other > 0) lines.push(countPhrase(t, c.other, "accUnscorableOtherN", "accUnscorableOther1"));
+  return lines;
 }
 
 function claimCountPhrase(t: (key: string) => string, n: number): string {
@@ -121,52 +181,74 @@ function reasonCopy(t: (key: string) => string, reason: AccuracyClaimRow["unscor
   return null;
 }
 
-export default function SectionAccuracy({ t, lang, onClose, readout, loadErr }: AccuracyProps) {
+export default function SectionAccuracy({ t, lang, onClose, readout, loadErr, identity }: AccuracyProps) {
   const [open, setOpen] = useState(false);
+  const owner = isAccountOwner(identityOwnerKey(identity));
   const nResolved = readout?.resolvedEpisodes ?? 0;
   const nUnscorableCalls = readout ? unscorableCallCount(readout) : 0;
   const nPairs = readout?.brierPairs ?? 0;
   const state = loadErr ? "error" : accuracyGlanceState(readout);
   const colon = lang === "zh" ? "：" : ": ";
+  const showEarly = nResolved > 0 && nResolved < HIT_RATE_MIN_EPISODES;
 
   return (
     <>
       <SectionHead title={t("accTitle")} sub={t("accSub")} closeLabel={t("acsClose")} onClose={onClose} />
       <div className="acs-body">
-        {state === "unread" ? (
+        {!owner ? (
+          <div className="acs-sync off" data-acc-state="signed-out">
+            <span className="dot" />
+            <span className="acs-sync-main">
+              <span className="acs-sync-s">{t("accSignInToSee")}</span>
+            </span>
+          </div>
+        ) : null}
+        {owner && state === "unread" ? (
           <p className={s.empty} data-acc-state="unread">{t("accUnread")}</p>
         ) : null}
-        {state === "error" ? (
+        {owner && state === "error" ? (
           <p className={s.line} data-acc-state="error">{t("accDetLoadErr")}</p>
         ) : null}
-        {state === "empty" ? (
+        {owner && state === "empty" ? (
           <p className={s.empty} data-acc-state="empty">{t("accEmpty")}</p>
         ) : null}
-        {state === "unscorable" && readout ? (
-          <p className={`${s.line} ${s.unscorable}`} data-acc-state="unscorable">
-            {interpolate(t("accUnscorableN"), { n: nUnscorableCalls })}
-            {" "}
-            {claimCountPhrase(t, readout.claimCount)}
-          </p>
+        {owner && state === "unscorable" && readout ? (
+          <div data-acc-state="unscorable">
+            {unscorableGlancePhrases(t, readout).map((line) => (
+              <p key={line} className={`${s.line} ${s.unscorable}`}>{line}</p>
+            ))}
+            <p className={s.line}>{claimCountPhrase(t, readout.claimCount)}</p>
+          </div>
         ) : null}
-        {state === "readout" && readout ? (
+        {owner && state === "readout" && readout ? (
           <div data-acc-state="readout">
-            <p className={`${s.stance} ${stanceClass(readout.stance)}`}>{t(STANCE_KEY[readout.stance])}</p>
+            {showEarly ? null : (
+              <p className={`${s.stance} ${stanceClass(readout.stance)}`}>{t(STANCE_KEY[readout.stance])}</p>
+            )}
             <p className={s.line}>
-              {nResolved < HIT_RATE_MIN_EPISODES
-                ? interpolate(t("accEarlyN"), { n: nResolved })
+              {showEarly
+                ? countPhrase(t, nResolved, "accEarlyN", "accEarly1")
                 : interpolate(t("accCheckedN"), { n: nResolved })}
               {" "}
               {claimCountPhrase(t, readout.claimCount)}
             </p>
+            {readout.unscorableCount > 0
+              ? unscorableGlancePhrases(t, readout).map((line) => (
+                  <p key={line} className={`${s.line} ${s.unscorable}`}>{line}</p>
+                ))
+              : null}
             {nPairs < BRIER_MIN_PAIRS ? (
-              <p className={s.line}>{interpolate(t("accCalibWithheld"), { n: nPairs })}</p>
+              <>
+                <p className={s.line}>{t("accCalibWithheld")}</p>
+                <p className={s.line}>{interpolate(t("accCalibProgress"), { n: nPairs })}</p>
+              </>
             ) : null}
           </div>
         ) : null}
 
         <p className={s.ceiling}>{t("accCeiling")}</p>
 
+        {owner ? (
         <button
           type="button"
           className={s.toggle}
@@ -176,6 +258,7 @@ export default function SectionAccuracy({ t, lang, onClose, readout, loadErr }: 
         >
           {open ? t("accDetailClose") : t("accDetailOpen")}
         </button>
+        ) : null}
 
         {open ? (
           <div className={s.detail} data-acc="detail">
@@ -206,13 +289,13 @@ export default function SectionAccuracy({ t, lang, onClose, readout, loadErr }: 
                 <dt>{t("accDetBrier")}</dt>
                 <dd>
                   {readout.brierMean === null
-                    ? interpolate(t("accCalibWithheld"), { n: readout.brierPairs })
+                    ? `${t("accCalibWithheld")} ${interpolate(t("accCalibProgress"), { n: readout.brierPairs })}`
                     : brierPhrase(t, readout.brierMean.toFixed(3), readout.brierPairs)}
                 </dd>
               </div>
               <div>
                 <dt>{t("accDetUnscorable")}</dt>
-                <dd>{readout.unscorableCount}</dd>
+                <dd>{nUnscorableCalls}</dd>
               </div>
             </dl>
             {readout.claims.length > 0 ? (
@@ -220,6 +303,7 @@ export default function SectionAccuracy({ t, lang, onClose, readout, loadErr }: 
                 {readout.claims.map((row) => {
                   const happened = outcomeKey(row);
                   const how = resolverKey(row);
+                  const checkedOn = acsDate(row.resolution?.resolvedAt, lang);
                   return (
                     <li key={row.claimId} className={s.row}>
                       <p className={s.call}>{row.claimText}</p>
@@ -234,8 +318,8 @@ export default function SectionAccuracy({ t, lang, onClose, readout, loadErr }: 
                         <p className={s.meta}>{reasonCopy(t, row.unscorableReason)}</p>
                       ) : null}
                       {happened ? <p className={s.meta}>{t("accDetWhatHappened")}{colon}{t(happened)}</p> : null}
-                      {row.resolution?.resolvedAt ? (
-                        <p className={s.meta}>{t("accDetCheckedOn")}{colon}{acsDate(row.resolution.resolvedAt, lang)}</p>
+                      {checkedOn ? (
+                        <p className={s.meta}>{t("accDetCheckedOn")}{colon}{checkedOn}</p>
                       ) : null}
                       {how ? <p className={s.meta}>{t("accDetHowChecked")}{colon}{t(how)}</p> : null}
                     </li>

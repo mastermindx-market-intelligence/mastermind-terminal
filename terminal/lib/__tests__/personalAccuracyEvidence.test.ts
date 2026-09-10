@@ -15,18 +15,24 @@ const LAYOUT_FILES = [
   "terminal/components/settings/SectionAccuracy.tsx",
   "terminal/components/settings/SectionAccuracy.module.css",
   "terminal/components/settings/SettingsPanel.tsx",
+  "terminal/components/settings/types.ts",
   "terminal/lib/i18n.tsx",
   "terminal/lib/personalAccuracy.ts",
+  "terminal/lib/personalAccuracyStore.ts",
   "terminal/app/dev/settings/page.tsx",
   "terminal/app/dev/settings/accuracyFixtures.ts",
 ];
 const CROPS = [
   "desktop-en-empty.png",
   "desktop-zh-empty.png",
-  "mobile-en-empty.png",
-  "mobile-zh-empty.png",
+  "desktop-en-glance.png",
+  "desktop-zh-glance.png",
   "desktop-en-detail.png",
   "desktop-zh-detail.png",
+  "mobile-en-empty.png",
+  "mobile-zh-empty.png",
+  "mobile-en-glance.png",
+  "mobile-zh-glance.png",
   "mobile-en-detail.png",
   "mobile-zh-detail.png",
 ];
@@ -71,8 +77,8 @@ describe("B-F13-5 evidence lock is the sha256 of the layout sources", () => {
     }
   });
 
-  it("all eight dark crops exist and are non-empty", () => {
-    expect(CROPS).toHaveLength(8);
+  it("all twelve dark crops exist and are non-empty", () => {
+    expect(CROPS).toHaveLength(12);
     for (const file of CROPS) {
       const abs = join(CROP_DIR, file);
       expect(existsSync(abs), file).toBe(true);

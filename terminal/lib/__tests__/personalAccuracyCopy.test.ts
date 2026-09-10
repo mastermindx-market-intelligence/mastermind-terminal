@@ -12,13 +12,39 @@ const FROZEN_GLANCE_KEYS = [
   "accStanceNot",
   "accEmpty",
   "accEarlyN",
+  "accEarly1",
   "accCheckedN",
   "accCalibWithheld",
   "accUnscorableN",
   "accCeiling",
 ] as const;
 
-const GLANCE_KEYS = [...FROZEN_GLANCE_KEYS, "accClaimCountN", "accUnread"] as const;
+const GLANCE_KEYS = [
+  ...FROZEN_GLANCE_KEYS,
+  "accClaimCountN",
+  "accClaimCount1",
+  "accUnread",
+  "accDetLoadErr",
+  "accCalibProgress",
+  "accSignInToSee",
+  "accUnscorable1",
+  "accUnscorableIncompleteN",
+  "accUnscorableIncomplete1",
+  "accUnscorableWithdrawnN",
+  "accUnscorableWithdrawn1",
+  "accUnscorableNotBinaryN",
+  "accUnscorableNotBinary1",
+  "accUnscorableBadDateN",
+  "accUnscorableBadDate1",
+  "accUnscorableBadKindN",
+  "accUnscorableBadKind1",
+  "accUnscorableBadStatusN",
+  "accUnscorableBadStatus1",
+  "accUnscorableOtherN",
+  "accUnscorableOther1",
+  "accDetailOpen",
+  "accDetailClose",
+] as const;
 
 const FROZEN_EN = [
   "Your calls, checked.",
@@ -28,9 +54,13 @@ const FROZEN_EN = [
   "Mixed so far",
   "Not landing yet",
   "Nothing has settled yet. Your first call gets checked on the day you set.",
-  "Too early to say — checked {n} of your calls so far.",
-  "Checked so far: {n} of your calls.",
-  "Not enough settled calls yet ({n} of 30).",
+  // META-CEO B round 7 seat amendment of frozen §6 lines (session d640f3ef, 2026-09-09 20:35Z)
+  "Too early to say — checked {n} groups of your calls so far.",
+  // META-CEO B heal round h7: accEarly1 twin of frozen accEarlyN
+  "Too early to say — checked 1 group of your calls so far.",
+  "Checked so far: {n} groups of your calls.",
+  // same ruling: noun is groups of calls; ({n} of 30) tail removed
+  "Not enough settled groups of calls yet to check how well your odds match reality.",
   "{n} calls could not be checked — the data they named wasn't there.",
   "This is a learning record. It never changes what we show you, what we rank, or what you can do here.",
 ];
@@ -43,9 +73,13 @@ const FROZEN_ZH = [
   "目前好坏参半",
   "目前还没落在正确一边",
   "还没有到期的判断。第一条会在你设定的那天核对。",
-  "还看不出来——目前核对了你的 {n} 条判断。",
-  "已核对：你的 {n} 条判断。",
-  "已核对的判断还不够（{n}／30）。",
+  // META-CEO B round 7 seat amendment of frozen §6 lines (session d640f3ef, 2026-09-09 20:35Z)
+  "现在下结论还太早——目前已核对你的 {n} 组判断。",
+  // META-CEO B heal round h7: accEarly1 ZH is accEarlyN with {n} replaced by 1
+  "现在下结论还太早——目前已核对你的 1 组判断。",
+  "目前已核对：你的 {n} 组判断。",
+  // same ruling: 条 → 组 for the same noun; （{n}／30） tail removed
+  "还没有足够的已结算判断组来核对你的把握是否准确。",
   "有 {n} 条判断无法核对——所引用的数据不存在。",
   "这只是学习记录。它不会改变我们展示什么、如何排序，也不会改变你能做什么。",
 ];
@@ -86,6 +120,13 @@ describe("B-F13-5 glance copy", () => {
     expect(LEX.accClaimCount1[1]).toBe("共写下 1 条判断。");
   });
 
+  it("accUnscorable1 is the n = 1 twin of accUnscorableN, routed like accClaimCount1", () => {
+    // Seat-ordered R5(a) variant of a frozen line (round 4 R3(a)).
+    expect(LEX.accUnscorable1[0]).toBe("1 call could not be checked — the data they named wasn't there.");
+    expect(LEX.accUnscorable1[1]).toBe("有 1 条判断无法核对——所引用的数据不存在。");
+    expect(LEX.accUnscorableN[1]).toBe("有 {n} 条判断无法核对——所引用的数据不存在。");
+  });
+
   it("unread glance copy is the seat-ordered neutral sentence", () => {
     expect(LEX.accUnread[0]).toBe("Reading your record.");
     expect(LEX.accUnread[1]).toBe("正在读取你的记录。");
@@ -112,9 +153,25 @@ describe("B-F13-5 glance copy", () => {
     }
   });
 
-  it("the {n} placeholder appears in the frozen n-sentences plus accCalibWithheld and accClaimCountN", () => {
+  it("the {n} placeholder appears in exactly the frozen sentences that carry it", () => {
+    // META-CEO B round 7: accCalibWithheld no longer carries {n}; accCalibProgress does.
+    const frozenWithN = FROZEN_GLANCE_KEYS.filter((key) => LEX[key][0].includes("{n}"));
+    expect(frozenWithN).toEqual(["accEarlyN", "accCheckedN", "accUnscorableN"]);
     const withN = GLANCE_KEYS.filter((key) => LEX[key][0].includes("{n}"));
-    expect(withN).toEqual(["accEarlyN", "accCheckedN", "accCalibWithheld", "accUnscorableN", "accClaimCountN"]);
+    expect(withN).toEqual([
+      "accEarlyN",
+      "accCheckedN",
+      "accUnscorableN",
+      "accClaimCountN",
+      "accCalibProgress",
+      "accUnscorableIncompleteN",
+      "accUnscorableWithdrawnN",
+      "accUnscorableNotBinaryN",
+      "accUnscorableBadDateN",
+      "accUnscorableBadKindN",
+      "accUnscorableBadStatusN",
+      "accUnscorableOtherN",
+    ]);
     for (const key of withN) {
       expect(LEX[key][1]).toContain("{n}");
     }
@@ -133,21 +190,40 @@ describe("B-F13-5 glance copy", () => {
       expect(zh, key).not.toMatch(/\d+\.\d+/);
     }
   });
+
+  it("GLANCE_KEYS is exactly the acc* keys the glance region can render", () => {
+    const src = readFileSync(
+      join(__dirname, "../../components/settings/SectionAccuracy.tsx"),
+      "utf8",
+    );
+    const collect = (chunk: string): string[] =>
+      [...chunk.matchAll(/"(acc[A-Za-z0-9]+)"/g)].map((m) => m[1]);
+    const glanceJsx = src.slice(src.indexOf("<SectionHead"), src.indexOf("{open ? ("));
+    const stance = src.match(/const STANCE_KEY[\s\S]*?};/)?.[0] ?? "";
+    const phrases = src.match(/function unscorableGlancePhrases[\s\S]*?\n\}/)?.[0] ?? "";
+    const claimCount = src.match(/function claimCountPhrase[\s\S]*?\n\}/)?.[0] ?? "";
+    const derived = [...new Set([
+      ...collect(glanceJsx),
+      ...collect(stance),
+      ...collect(phrases),
+      ...collect(claimCount),
+    ])].sort();
+    expect(derived).toEqual([...GLANCE_KEYS].sort());
+  });
 });
 
 describe("B-F13-5 authored extras stay sentences and stay out of the glance body", () => {
   it("accDetHitsOf is a sentence in both languages, not a slash fraction", () => {
+    // Seat-ordered R2(c) variant of a frozen line (条 → 组).
     const [en, zh] = LEX.accDetHitsOf;
-    expect(en).toContain("{hits}");
-    expect(en).toContain("{n}");
-    expect(zh).toContain("{hits}");
-    expect(zh).toContain("{n}");
+    expect(en).toBe("{hits} of {n} checked groups of calls landed.");
+    expect(zh).toBe("已核对的 {n} 组判断中，有 {hits} 组判中。");
     expect(en.trim()).not.toMatch(/^\{hits\}\s+of\s+\{n\}$/);
     expect(zh.trim()).not.toMatch(/^\{hits\}\s*\/\s*\{n\}$/);
     expect(en).toMatch(/[.!?]$/);
     expect(zh).toMatch(/[。！？]$/);
-    expect(en.replace(/\{hits\}|\{n\}/g, "").replace(/[\s.,]/g, "").length).toBeGreaterThan(6);
-    expect(zh.replace(/\{hits\}|\{n\}/g, "").replace(/[\s，。、]/g, "").length).toBeGreaterThan(4);
+    expect(LEX.accDetHitsOf1[0]).toBe("{hits} of 1 checked group of calls landed.");
+    expect(LEX.accDetHitsOf1[1]).toBe("已核对的 1 组判断中，有 {hits} 组判中。");
   });
 
   it("accDetLoadErr is rendered at the glance; the detail may repeat it", () => {
@@ -179,16 +255,65 @@ describe("B-F13-5 authored extras stay sentences and stay out of the glance body
   });
 
   it("accDetBrierN is a sentence that names the pair count in both languages", () => {
+    // Seat-ordered R2(c) variant of a frozen line (条 → 组).
     const [en, zh] = LEX.accDetBrierN;
-    expect(en).toContain("{value}");
-    expect(en).toContain("{n}");
-    expect(zh).toContain("{value}");
-    expect(zh).toContain("{n}");
-    expect(en).toMatch(/resolved calls/);
+    expect(en).toBe("Brier {value} over {n} resolved groups of calls.");
+    expect(zh).toBe("按 {n} 组已核对判断计算，Brier 分数 {value}。");
     expect(zh.startsWith("Brier"), "ZH must open with Chinese, not a Latin token").toBe(false);
-    expect(zh).toMatch(/^按 \{n\} 条已核对判断计算/);
-    expect(zh).toMatch(/Brier 分数 \{value\}/);
     expect(en).toMatch(/[.!?]$/);
     expect(zh).toMatch(/[。！？]$/);
+    expect(LEX.accDetBrierN1[0]).toBe("Brier {value} over 1 resolved group of calls.");
+    expect(LEX.accDetBrierN1[1]).toBe("按 1 组已核对判断计算，Brier 分数 {value}。");
+  });
+
+  it("accDetEpisodes labels the total episode count, open ones included", () => {
+    // Seat-ordered R2(a) variant of a frozen line.
+    expect(LEX.accDetEpisodes[0]).toBe("Groups of calls");
+    expect(LEX.accDetEpisodes[1]).toBe("判断组");
+  });
+
+  it("accDetUnscorable labels the call tally, not the episode tally", () => {
+    // Seat-ordered R2(b).
+    expect(LEX.accDetUnscorable[0]).toBe("Calls that could not be checked");
+    expect(LEX.accDetUnscorable[1]).toBe("无法核对的判断");
+  });
+
+  it("accDetHitRate labels hits among checked groups of calls, matching the value unit", () => {
+    // Seat ruling R1 round 5: the value (accDetHitsOf) is groups of calls; the
+    // label must use the same unit word, not bare "calls" / "判断".
+    expect(LEX.accDetHitRate[0]).toBe("Hits among checked groups of calls");
+    expect(LEX.accDetHitRate[1]).toBe("已核对判断组中的命中");
+  });
+
+  it("accSignInToSee names this feature, not Sync", () => {
+    expect(LEX.accSignInToSee[0]).toBe("Sign in to see how your calls have turned out.");
+    expect(LEX.accSignInToSee[1]).toBe("登录后即可查看你的判断结果。");
+  });
+
+  it("accCalibProgress is a separate sentence from the withheld line", () => {
+    expect(LEX.accCalibProgress[0]).toBe("Settled so far: {n} of the 30 groups needed.");
+    expect(LEX.accCalibProgress[1]).toBe("目前已结清 {n} 组，需要 30 组。");
+    expect(LEX.accCalibWithheld[0]).not.toContain("{n}");
+    expect(LEX.accCalibWithheld[0]).not.toContain("of 30");
+  });
+
+  it("each M3 cause line has an n = 1 English twin, like accUnscorable1", () => {
+    expect(LEX.accUnscorableIncomplete1[0]).toBe("1 call could not be checked because it did not say what to check.");
+    expect(LEX.accUnscorableIncomplete1[1]).toBe("1 条判断无法核对，因为没有写明要核对什么。");
+    expect(LEX.accUnscorableWithdrawn1[0]).toBe("1 call you withdrew.");
+    expect(LEX.accUnscorableWithdrawn1[1]).toBe("你撤回了 1 条判断。");
+    expect(LEX.accUnscorableNotBinary1[0]).toBe("1 call could not be checked — the result was not a clear yes or no.");
+    expect(LEX.accUnscorableNotBinary1[1]).toBe("1 条判断无法核对——结果不是明确的是或否。");
+    expect(LEX.accUnscorableBadDate1[0]).toBe("1 call could not be checked because its date could not be read.");
+    expect(LEX.accUnscorableBadDate1[1]).toBe("1 条判断无法核对，因为日期无法读取。");
+    expect(LEX.accUnscorableOther1[0]).toBe("1 call could not be checked; the reason was not recorded.");
+    expect(LEX.accUnscorableOther1[1]).toBe("1 条判断无法核对，原因未记录。");
+    expect(LEX.accUnscorableBadKind1[0]).toBe("1 call could not be checked because the subject it names is not one we score.");
+    expect(LEX.accUnscorableBadKind1[1]).toBe("1 条判断无法核对，因为所写的标的类型不在可计分范围内。");
+    expect(LEX.accUnscorableBadStatus1[0]).toBe("1 call could not be checked because its recorded state is not one we score.");
+    expect(LEX.accUnscorableBadStatus1[1]).toBe("1 条判断无法核对，因为所写的状态不在可计分范围内。");
+    expect(LEX.accUnscorableIncompleteN[0]).toBe("{n} calls could not be checked because they did not say what to check.");
+    expect(LEX.accUnscorableBadKindN[0]).toBe("{n} calls could not be checked because the subject they name is not one we score.");
+    expect(LEX.accUnscorableBadStatusN[0]).toBe("{n} calls could not be checked because the recorded state is not one we score.");
   });
 });

@@ -13,10 +13,10 @@ import {
 // each copy carried its own state. Here the BUTTONS mount three times and the
 // panel exactly once, so there is nothing to drift.
 
-export type SettingsSection = "account" | "accuracy" | "billing" | "usage" | "prefs" | "terminal" | "sync";
+export type SettingsSection = "account" | "accuracy" | "billing" | "usage" | "prefs" | "alertDelivery" | "terminal" | "sync";
 
 export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
-  "account", "accuracy", "billing", "usage", "prefs", "terminal", "sync",
+  "account", "accuracy", "billing", "usage", "prefs", "alertDelivery", "terminal", "sync",
 ] as const;
 
 interface SettingsApi {

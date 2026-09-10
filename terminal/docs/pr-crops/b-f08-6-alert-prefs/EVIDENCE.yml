@@ -1,0 +1,43 @@
+# B-F08-6 Alert delivery — capture evidence
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
+# capturedAtHead: b2f53e45d2a4babaf37f7062d86860b79e7f9770
+# capturedAt: 2026-09-09T14:59:49.815Z
+# capturedAtHead is informational. The lock is layoutFiles.
+layoutFiles:
+  terminal/components/settings/SectionAlertDelivery.tsx: "9c770be9ef78bc2bb9f1fa3c0b21824632ba63bc061f852264e3bc412d719aa0"
+  terminal/components/settings/SettingsPanel.tsx: "a85d87b53f3982131744af3e6fe3d3c165818e4a787790d918e6d84eac279f5a"
+  terminal/components/settings/icons.tsx: "5c809c869e036d48a09f0586f954b2855a06c8302c99267a3c6dda94424c8adb"
+  terminal/lib/i18n.tsx: "b1376a5e152b77bf5d18e6634dd78ff489b09b3411f59e08c2e5c5ec988fd1c3"
+  terminal/lib/plainLabels.ts: "9e88f214f16f711c9e0ce4ae84201c027158ac2c6b5bfcc2592e6dce1d6c21be"
+  terminal/app/settings.css: "3189163136d943431cbf52e4b5d241c105b695ba5af94c4c2e29151d537b5ef5"
+  terminal/components/settings/SettingsProvider.tsx: "916cd199d787a7ca05fe9cc9b50f4cf5e616c6bfe71712f734b38b4d8686d265"
+  terminal/app/dev/settings/page.tsx: "d6457521c0b53da4608c3f2be3493e659f7ed5f9fdf7d060e8779bc47c441488"
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: mobile, width: 390, height: 844 }
+surfaces: [SectionAlertDelivery]
+capture_flag: TERMINAL_E2E_FIXTURE
+capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
+command: |
+  cd terminal
+  node e2e/tools/capture_f08_6_alert_prefs.cjs
+files:
+  - SectionAlertDelivery-field-error-1440-zh.png
+  - SectionAlertDelivery-field-error-1440.png
+  - SectionAlertDelivery-field-error-390-zh.png
+  - SectionAlertDelivery-field-error-390.png
+  - SectionAlertDelivery-populated-1440-zh.png
+  - SectionAlertDelivery-populated-1440.png
+  - SectionAlertDelivery-populated-390-zh.png
+  - SectionAlertDelivery-populated-390.png
+  - SectionAlertDelivery-quiet-hours-1440-zh.png
+  - SectionAlertDelivery-quiet-hours-1440.png
+  - SectionAlertDelivery-quiet-hours-390-zh.png
+  - SectionAlertDelivery-quiet-hours-390.png
+  - SectionAlertDelivery-unavailable-1440-zh.png
+  - SectionAlertDelivery-unavailable-1440.png
+  - SectionAlertDelivery-unavailable-390-zh.png
+  - SectionAlertDelivery-unavailable-390.png

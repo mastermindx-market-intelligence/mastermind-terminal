@@ -28,7 +28,11 @@ export type ClaimResolution = {
   note: string;
 };
 
-export type UnscorableReason = "malformed_timestamp" | "unrecognised_kind" | "unrecognised_status";
+export type UnscorableReason =
+  | "malformed_timestamp"
+  | "unrecognised_kind"
+  | "unrecognised_status"
+  | "condition_incomplete";
 
 export type UserClaim = {
   claim_id: string;
@@ -156,7 +160,10 @@ function toRow(
   carrierId: string | null,
   reason: UnscorableReason | null,
 ): AccuracyClaimRow {
-  const voided = reason !== null || !conditionIsComplete(claim.condition);
+  const resolvedReason: UnscorableReason | null =
+    reason
+    ?? (!conditionIsComplete(claim.condition) ? "condition_incomplete" : null);
+  const voided = resolvedReason !== null;
   return {
     claimId: claim.claim_id,
     claimText: claim.claim_text,
@@ -167,7 +174,7 @@ function toRow(
     subjectId: claim.subject?.id ?? "",
     subjectKind: claim.subject?.kind ?? "security",
     carrier: carrierId !== null && claim.claim_id === carrierId,
-    unscorableReason: reason,
+    unscorableReason: resolvedReason,
     resolution: claim.resolution
       ? {
           outcome: claim.resolution.outcome,
