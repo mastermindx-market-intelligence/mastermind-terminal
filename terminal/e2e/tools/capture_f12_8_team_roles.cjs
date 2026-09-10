@@ -139,8 +139,9 @@ async function openTeam(page, lang, viewport) {
     timeout: 90_000,
   });
   await page.locator(".acs-overlay.open .acs-card").waitFor({ state: "visible", timeout: 45_000 });
-  const locked = lang === "zh" ? "所有者创建了该团队。所有者无法被更改或移除。" : "The owner created this team. The owner cannot be changed or removed.";
-  await page.getByText(locked, { exact: true }).waitFor({ state: "visible", timeout: 15_000 });
+  await page.locator(".acs-overlay.open .acs-head h2", { hasText: "Desk" }).waitFor({ state: "visible", timeout: 15_000 });
+  const joinUnread = lang === "zh" ? "加入时间未读取" : "Join date not read";
+  await page.getByText(joinUnread, { exact: true }).first().waitFor({ state: "visible", timeout: 15_000 });
   await page.locator("[data-testid=\"team-role-badge\"]").first().waitFor({ state: "visible", timeout: 15_000 });
   await stripDevOverlay(page);
 }
@@ -238,7 +239,7 @@ async function openConfirm(page, file) {
 }
 
 async function assertInvitesInView(page, file) {
-  const badge = page.locator("[data-testid=\"team-invite-badge\"]");
+  const badge = page.locator("[data-testid=\"team-invite-badge\"]").first();
   await badge.waitFor({ state: "visible", timeout: 10_000 });
   await page.getByText("pending@example.com").waitFor({ state: "visible", timeout: 10_000 });
   const inView = await page.evaluate(() => {

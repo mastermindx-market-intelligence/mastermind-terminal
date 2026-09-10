@@ -191,6 +191,9 @@ describe("B-F12-8 evidence lock is the sha256 of the layout sources", () => {
       expect(row.inviteBadgeText, file).toBeTruthy();
       expect(row.unnamedRows, file).toBe("2");
       expect(row.ownerWhatPresent, file).toBe("true");
+      expect(row.headingTitle, file).toBe("Desk");
+      expect(Number(row.joinNotRead), file).toBeGreaterThanOrEqual(2);
+      expect(Number(row.expiryNotRead), file).toBeGreaterThanOrEqual(1);
     }
   });
 
