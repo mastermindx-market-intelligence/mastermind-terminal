@@ -156,7 +156,7 @@ async function openConfirm(page, lang, file) {
 }
 
 async function assertInvitesInView(page, file) {
-  const badge = page.locator("[data-testid=\"team-invite-badge\"]");
+  const badge = page.locator("[data-testid=\"team-invite-badge\"]").first();
   await badge.waitFor({ state: "visible", timeout: 10_000 });
   await page.getByText("pending@example.com").waitFor({ state: "visible", timeout: 10_000 });
   await page.locator(".acs-group-t", { hasText: /Invitations not yet accepted|尚未接受的邀请/ }).first()
