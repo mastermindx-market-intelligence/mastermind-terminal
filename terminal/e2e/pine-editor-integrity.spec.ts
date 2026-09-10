@@ -1,5 +1,8 @@
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
 
+// A LITERAL, deliberately: this spec must fail if the editor's copy changes under it.
+const UNSAVED = "Unsaved changes";
+
 /**
  * D3 + D4 — the Pine editor must not lose user-authored content, and must say which script it is
  * editing.
@@ -79,7 +82,7 @@ async function setSource(page: Page, text: string) {
   await editor(page).click();
   await page.keyboard.press("ControlOrMeta+a");
   await page.keyboard.type(text);
-  await expect(console_(page)).toContainText("unsaved changes", { timeout: 10_000 });
+  await expect(console_(page)).toContainText(UNSAVED, { timeout: 10_000 });
 }
 
 test.describe("D3b — a successful save becomes the editor's baseline", () => {
@@ -92,14 +95,14 @@ test.describe("D3b — a successful save becomes the editor's baseline", () => {
     await expect(editor(page)).toHaveValue(A_SRC);
     const EDITED = "//@version=6\nindicator(\"My Momentum\")\nplot(close * 2) // A-PRIME\n";
     await setSource(page, EDITED);
-    await expect(console_(page)).toContainText("unsaved changes");
+    await expect(console_(page)).toContainText(UNSAVED);
 
     // Save, and assert the editor stops calling itself dirty. Deliberately NOT asserting the
     // "Saved ✓" label: it lives for 2.2s and a loaded runner can miss the window entirely, which
     // made this spec flaky. Losing the dirty marker is the durable, load-independent evidence that
     // the baseline actually moved — which is the thing D3b fixed.
     await page.getByRole("button", { name: /Save/ }).first().click();
-    await expect(console_(page)).not.toContainText("unsaved changes", { timeout: 15_000 });
+    await expect(console_(page)).not.toContainText(UNSAVED, { timeout: 15_000 });
 
     // Leave and come back. THIS is where the save used to disappear.
     await sideRow(page, B).click();
@@ -107,7 +110,7 @@ test.describe("D3b — a successful save becomes the editor's baseline", () => {
     await sideRow(page, A).click();
     await expect(editor(page)).toHaveValue(/A-PRIME/);
     // …and it is not merely displayed — the editor considers it stored, so a further switch is clean.
-    await expect(console_(page)).not.toContainText("unsaved changes");
+    await expect(console_(page)).not.toContainText(UNSAVED);
   });
 
   test("a second save sends the SAVED source, not the pre-save one", async ({ page, baseURL }, testInfo) => {

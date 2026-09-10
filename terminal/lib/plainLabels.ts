@@ -169,6 +169,7 @@ export function entryStatusLabel(
 /** Statistic tokens the guard flags when they reach a visible span. */
 export const STAT_TOKEN_LABEL = {
   oi: ["Open interest", "未平仓合约"],
+  iv: ["Implied volatility", "隐含波动率"],
   iv_rank: ["IV rank", "隐含波动率百分位"],
   ivr: ["IV rank", "隐含波动率百分位"],
   dte: ["Days to expiry", "距到期天数"],
@@ -208,7 +209,7 @@ export function widgetTypeLabel(value: string | null | undefined, lang: PlainLan
 
 /** Thesis subject kind shown on the research workspace inspector. */
 export const SUBJECT_KIND_LABEL = {
-  issuer: ["Company listing", "上市标的"],
+  issuer: ["Company listing", "上市公司"],
   theme: ["Theme", "主题"],
 } as const;
 
@@ -219,6 +220,136 @@ export function subjectKindLabel(value: string | null | undefined, lang: PlainLa
   const pair = SUBJECT_KIND_LABEL[value as SubjectKind];
   if (!pair) return notClassified(lang);
   return lang === "zh" ? pair[1] : pair[0];
+}
+
+/** Inferred tape lean shown on the 0DTE board and flow cards — never the raw ~buy token. */
+export const FLOW_SIDE_LABEL = {
+  "~buy": ["Leans buy (approximate)", "偏买入（近似）"],
+  buy: ["Leans buy (approximate)", "偏买入（近似）"],
+  "~sell": ["Leans sell (approximate)", "偏卖出（近似）"],
+  sell: ["Leans sell (approximate)", "偏卖出（近似）"],
+  mixed: ["Mixed", "混合"],
+} as const;
+
+/** Option right shown on the flow board chips — never the bare C / P letter. */
+export const OPTION_RIGHT_LABEL = {
+  C: ["Call", "认购"],
+  c: ["Call", "认购"],
+  call: ["Call", "认购"],
+  P: ["Put", "认沽"],
+  p: ["Put", "认沽"],
+  put: ["Put", "认沽"],
+} as const;
+
+export type OptionRightKey = keyof typeof OPTION_RIGHT_LABEL;
+
+/** Empty value means "no right filter" — the chip reads All / 全部, not a raw token. */
+export function optionRightLabel(value: string | null | undefined, lang: PlainLang): string {
+  if (value == null || value === "") return lang === "zh" ? "全部" : "All";
+  const pair = OPTION_RIGHT_LABEL[value as OptionRightKey];
+  if (!pair) return notClassified(lang);
+  return lang === "zh" ? pair[1] : pair[0];
+}
+
+export type FlowSideKey = keyof typeof FLOW_SIDE_LABEL;
+
+export function flowSideLabel(value: string | null | undefined, lang: PlainLang): string {
+  if (value == null || value === "") return notClassified(lang);
+  const pair = FLOW_SIDE_LABEL[value.toLowerCase() as FlowSideKey];
+  if (!pair) return notClassified(lang);
+  return lang === "zh" ? pair[1] : pair[0];
+}
+
+/** Company-intelligence source kind shown on the manifest. */
+export const SOURCE_KIND_LABEL = {
+  transcript: ["Earnings call transcript", "财报电话会记录"],
+  earnings_history: ["Historical earnings record", "历史财报记录"],
+  score_overlay: ["Structured event analysis", "结构化事件分析"],
+  issuer_release: ["Company 8-K filing, exhibit 99.1", "公司 8-K 披露文件，附件 99.1"],
+  filing: ["Company 8-K filing, exhibit 99.1", "公司 8-K 披露文件，附件 99.1"],
+  release: ["Company 8-K filing, exhibit 99.1", "公司 8-K 披露文件，附件 99.1"],
+  public_wire: ["Public wire record", "公开快讯"],
+  edgar_collector: ["SEC filing feed", "监管披露来源"],
+  presentation: ["Slides", "演示文稿"],
+} as const;
+
+export type SourceKindKey = keyof typeof SOURCE_KIND_LABEL;
+
+export function sourceKindLabel(value: string | null | undefined, lang: PlainLang): string {
+  if (value == null || value === "") return notClassified(lang);
+  const pair = SOURCE_KIND_LABEL[value as SourceKindKey];
+  if (!pair) return notClassified(lang);
+  return lang === "zh" ? pair[1] : pair[0];
+}
+
+/**
+ * A kind that names a regulatory filing family. Only these may fall back to the
+ * filing wording: asserting a regulatory provenance for a source whose kind is
+ * unknown or absent would state more than the data supports.
+ */
+function isFilingFamilyKind(value: string): boolean {
+  return /(^|[_-])(filing|filings|edgar|sec)([_-]|$)/.test(value.trim().toLowerCase());
+}
+
+/** The unclassified source line — never a document id, CIK, or accession. */
+function sourceNotClassified(lang: PlainLang): string {
+  return lang === "zh" ? "来源未分类" : "Source not classified";
+}
+
+/** Visible kind when no plainer label exists — never a document id, CIK, or accession. */
+export function sourceVisibleKindLabel(value: string | null | undefined, lang: PlainLang): string {
+  if (value == null || value.trim() === "") return sourceNotClassified(lang);
+  const mapped = sourceKindLabel(value, lang);
+  if (mapped !== notClassified(lang)) return mapped;
+  if (isFilingFamilyKind(value)) return lang === "zh" ? "监管披露文件" : "SEC filing";
+  return sourceNotClassified(lang);
+}
+
+/** Source completeness shown on the company-intelligence manifest. */
+export const SOURCE_STATUS_LABEL = {
+  present: ["Present", "可用"],
+  Present: ["Present", "可用"],
+  metadata_only: ["Recorded, file missing", "有记录，无正文"],
+  missing: ["Missing", "缺失"],
+  Unavailable: ["Unavailable", "不可用"],
+  unavailable: ["Unavailable", "不可用"],
+  "address only": ["Address only", "仅有地址"],
+  address_only: ["Address only", "仅有地址"],
+  "Address only": ["Address only", "仅有地址"],
+  Unjoinable: ["Cannot be joined", "无法匹配"],
+  unjoinable: ["Cannot be joined", "无法匹配"],
+  byte_replayed: ["Present", "可用"],
+  typed_absence: ["Not available", "暂无"],
+} as const;
+
+export type SourceStatusKey = keyof typeof SOURCE_STATUS_LABEL;
+
+export function sourceStatusLabel(value: string | null | undefined, lang: PlainLang): string {
+  if (value == null || value === "") return notClassified(lang);
+  const pair = SOURCE_STATUS_LABEL[value as SourceStatusKey];
+  if (!pair) return notClassified(lang);
+  return lang === "zh" ? pair[1] : pair[0];
+}
+
+/** Topic timeline state on company intelligence. */
+export const TOPIC_STATUS_LABEL = {
+  added: ["Added", "新增"],
+  persistent: ["Persistent", "延续"],
+  dropped: ["Dropped", "退出"],
+} as const;
+
+export type TopicStatusKey = keyof typeof TOPIC_STATUS_LABEL;
+
+export function topicStatusLabel(value: string | null | undefined, lang: PlainLang): string {
+  if (value == null || value === "") return notClassified(lang);
+  const pair = TOPIC_STATUS_LABEL[value as TopicStatusKey];
+  if (!pair) return notClassified(lang);
+  return lang === "zh" ? pair[1] : pair[0];
+}
+
+/** Heatmap ΔOI put/call ratio — spelled out, never the raw OI token. */
+export function deltaOiPutCallLabel(lang: PlainLang): string {
+  return lang === "zh" ? "未平仓量变化（认沽/认购）" : "Open-interest change, puts vs calls";
 }
 
 /**
