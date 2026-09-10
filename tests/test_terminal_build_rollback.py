@@ -611,8 +611,9 @@ def test_empty_gated_archive_stages_the_app_alone(tmp_path):
 
     # The sandbox has no ops/terminal-data, so the script's later install step exits
     # non-zero on every platform; this test pins only the staging step.
+    # (step 8's runtime sync still pipes the stubbed git into tar after the swap, so GNU tar
+    # may print its empty-archive complaint on stderr there; that step is not this test's.)
     assert "staging the app alone" in proc.stdout, f"empty archive was not tolerated:\n{proc.stdout}\n{proc.stderr}"
-    assert "does not look like a tar archive" not in proc.stderr
     assert "new build OK" in proc.stdout, f"staging never reached the build:\n{proc.stdout}\n{proc.stderr}"
     assert marker_of(app) == NEW_SHA
 
