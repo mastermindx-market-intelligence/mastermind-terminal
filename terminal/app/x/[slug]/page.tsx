@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 // see lib/upstreams.ts
 import { R2_BASE } from "@/lib/upstreams";
 import { BrandLockup } from "@/components/BrandMark";
+import { T, TImg } from "@/components/LocalizedCopy";
 import { isSnapshotSlug } from "@/lib/snapshotSlug";
 
 function imgUrl(slug: string): string {
@@ -84,14 +85,14 @@ export default async function SnapshotPage({ params }: { params: Promise<{ slug:
         border: "1px solid rgba(255,255,255,0.07)",
       }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <TImg
+          k="xChartSnapshot"
           src={image}
-          alt="Chart snapshot"
           style={{ display: "block", width: "100%", height: "auto" }}
         />
       </div>
       <div style={{ marginTop: 16, color: "#5a616f", fontSize: 12 }}>
-        Created with{" "}
+        <T k="xCreatedWith" />{" "}
         <a href="/" style={{ color: "#4d82ff", textDecoration: "none" }}>Mastermind Terminal</a>
       </div>
     </div>

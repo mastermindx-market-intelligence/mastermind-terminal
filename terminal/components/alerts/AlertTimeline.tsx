@@ -1,5 +1,6 @@
 "use client";
 import s from "./alerts.module.css";
+import { pick } from "@/lib/finFormat";
 import { copy, type DeliveryState } from "@/lib/alertsView";
 
 export interface TimelineRow {
@@ -28,7 +29,7 @@ export default function AlertTimeline({
       <div className={s.moduleHead}>
         {/* Not anchored to a last-visit timestamp yet (Major 4) — "recent activity" makes
             no claim about when the account last looked, unlike "new"/"since you were here". */}
-        <span>{lang === "zh" ? "近期活动" : "Recent activity"}</span>
+        <span>{pick(lang === "zh", "Recent activity", "近期活动")}</span>
         <span className={s.moduleCount}>{rows.length} {lang === "zh" ? "条" : "shown"}</span>
       </div>
       <div className={s.spine}>

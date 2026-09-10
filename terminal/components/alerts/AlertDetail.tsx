@@ -1,6 +1,7 @@
 "use client";
 import { useEffect } from "react";
 import s from "./alerts.module.css";
+import { pick } from "@/lib/finFormat";
 import { copy, firedEventTextZh, type DeliveryState, type ReadState, type ResolutionState } from "@/lib/alertsView";
 
 export interface AlertDetailData {
@@ -54,7 +55,7 @@ export default function AlertDetail({ data, lang, onClose }: { data: AlertDetail
   };
   return (
     <div className={s.detailScrim} onClick={onClose}>
-    <div className={s.detail} data-cockpit-state="drillback" role="dialog" aria-modal="true" aria-label={lang === "zh" ? "警报详情" : "Alert detail"} onClick={(e) => e.stopPropagation()}>
+    <div className={s.detail} data-cockpit-state="drillback" role="dialog" aria-modal="true" aria-label={pick(lang === "zh", "Alert detail", "警报详情")} onClick={(e) => e.stopPropagation()}>
       <button type="button" className={s.detailClose} onClick={onClose}>{lang === "zh" ? "关闭" : "Close"}</button>
       <div className={s.detailFact}><span className={s.detailLabel}>{lang === "zh" ? "条件" : "Condition"}</span><span>{data.conditionText}</span></div>
       <div className={s.detailFact}>
@@ -82,11 +83,11 @@ export default function AlertDetail({ data, lang, onClose }: { data: AlertDetail
           say) rendered as if it were a price. `data.conditionType` is passed through so
           firedEventTextZh only claims "price" for an actual `type === "price"` condition, and
           says "数值" (value) — unit-neutral — for every other kind. */}
-      <div className={s.detailFact}><span className={s.detailLabel}>{lang === "zh" ? "发生了什么" : "What changed"}</span><span>{lang === "zh" ? firedEventTextZh(data.triggeredValue, data.conditionType) : (data.summaryPlain || data.conditionPlain || copy("null.notRecorded", lang))}</span></div>
+      <div className={s.detailFact}><span className={s.detailLabel}>{pick(lang === "zh", "What changed", "发生了什么")}</span><span>{lang === "zh" ? firedEventTextZh(data.triggeredValue, data.conditionType) : (data.summaryPlain || data.conditionPlain || copy("null.notRecorded", lang))}</span></div>
       <div className={s.detailFact}><span className={s.detailLabel}>{lang === "zh" ? "时间线" : "Timeframe"}</span><span>{data.firedAt ? (lang === "zh" ? `触发于 ${fmt(data.firedAt)}` : `Fired ${fmt(data.firedAt)}`) : copy("null.notRecorded", lang)}{lang === "zh" ? `，建立于 ${fmt(data.armedAt)}` : `, armed ${fmt(data.armedAt)}`}</span></div>
       <div className={s.detailFact}>
         <span className={s.detailLabel}>{lang === "zh" ? "证据" : "Evidence"}</span>
-        <span>{data.evidenceUrl ? <a href={data.evidenceUrl}>{lang === "zh" ? "查看证据" : "View evidence"}</a> : (lang === "zh" ? "无证据链接" : "no evidence link")}</span>
+        <span>{data.evidenceUrl ? <a href={data.evidenceUrl}>{pick(lang === "zh", "View evidence", "查看证据")}</a> : pick(lang === "zh", "No evidence link", "无证据链接")}</span>
       </div>
       <div className={s.detailFact}><span className={s.detailLabel}>{copy("fact.lastAttempt", lang)}</span><span>{fmtState(data.lastAttemptAt, data.lastAttemptState)}</span></div>
       <div className={s.detailFact}><span className={s.detailLabel}>{copy("fact.lastSuccess", lang)}</span><span>{fmtState(data.lastSuccessAt, data.lastSuccessState)}</span></div>

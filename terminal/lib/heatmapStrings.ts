@@ -41,26 +41,31 @@ const HM_LEX = {
   advancers:        ["Adv", "上涨"],
   decliners:        ["Dec", "下跌"],
   totalPremium:     ["Total premium", "总权利金"],
+  magnitudeOnly:    ["Size only", "仅规模"],
+  netPut:           ["Net puts", "净认沽"],
+  premiumSize:      ["Premium size", "权利金规模"],
+  netCall:          ["Net calls", "净认购"],
+  directionIsSoft:  ["Direction is a soft read", "方向为软性读数"],
   bullFlow:         ["Bull flow", "偏多流向"],
   bullFlowTip:      ["Share of active-flow names with net-bullish ΔOI (breadth, not premium share)", "净持仓变化偏多的活跃标的占比（广度，非权利金占比）"],
-  mixedZone:        ["MIXED", "混合"],
+  mixedZone:        ["Mixed", "混合"],
   callHeavy:        ["CALL-HEAVY", "以认购为主"],
   putHeavy:         ["PUT-HEAVY", "以认沽为主"],
   priceMode:        ["Mode", "市场状态"],
   bullish:          ["BULLISH", "偏多"],
   bearish:          ["BEARISH", "偏空"],
-  mixed:            ["MIXED", "混合"],
+  mixed:            ["Mixed", "混合"],
 
   // ── Flow tone labels (magnitude-first, direction soft) ───────────────────────
   tonePos:          ["positive tone (~soft)", "积极倾向（~软性）"],
   toneNeg:          ["negative tone (~soft)", "消极倾向（~软性）"],
   toneNeutral:      ["neutral / mixed", "中性 / 混合"],
-  toneSoftNote:     ["Positioning tone from ΔOI — direction is soft (magnitude reliable)", "基于ΔOI的持仓倾向 — 方向为软性读数，权利金规模可靠"],
+  toneSoftNote:     ["Positioning tone from the change in open interest — direction is a soft read; size is reliable.", "持仓倾向来自未平仓合约的变化——方向为软性读数，规模可靠。"],
 
   // ── Sector labels ────────────────────────────────────────────────────────────
   sectorAll:        ["ALL", "全部"],
-  sectorTech:       ["TECH", "科技"],
-  sectorComm:       ["COMM", "通信"],
+  sectorTech:       ["Tech", "科技"],
+  sectorComm:       ["Comms", "通信"],
   sectorConsDisc:   ["CONS DISC", "非必需消费"],
   sectorConsStaple: ["STAPLES", "必需消费"],
   sectorFinance:    ["FINANCE", "金融"],
@@ -72,10 +77,11 @@ const HM_LEX = {
   sectorRealEstate: ["REAL EST", "房地产"],
   sectorCrypto:     ["CRYPTO", "加密货币"],
   sectorETF:        ["ETF", "ETF"],
-  sectorOther:      ["OTHER", "其他"],
+  sectorOther:      ["Other", "其他"],
 
   // ── Tile & detail ────────────────────────────────────────────────────────────
-  tileNoFlow:       ["price only", "仅价格"],
+  tilePriceBadge:   ["price", "价格"],
+  tileNoFlow:       ["Price only", "仅价格"],
   detailTitle:      ["Detail", "详情"],
   detailPrice:      ["Price", "价格"],
   detailChg:        ["Chg (1D)", "涨跌幅（1日）"],
@@ -83,8 +89,8 @@ const HM_LEX = {
   detailCallPct:    ["Call share", "认购占比"],
   detailTone:       ["Positioning tone", "持仓倾向"],
   detailToneSoft:   ["(ΔOI-based, direction soft)", "（基于ΔOI，方向为软性）"],
-  detailLean:       ["Lean (~soft)", "倾向（~软性）"],
-  detailDivChip:    ["price/flow divergence — magnitude read", "价格与资金流背离 — 以规模为准"],
+  detailLean:       ["Lean", "倾向"],
+  detailDivChip:    ["Price and flow disagree — trust the size", "价格与资金流背离 — 以规模为准"],
   detailDivNote:    ["Price direction and flow tone disagree beyond dead-zones. Treat as a magnitude observation, not a directional call.", "价格走势与持仓倾向超出中性区间后背离。视为规模观察，非方向性判断。"],
   detailNoDoi:      ["ΔOI tone unavailable", "ΔOI倾向数据缺失"],
   detailNoFlow:     ["No flow data — price only", "无资金流数据 — 仅显示价格"],
@@ -136,6 +142,30 @@ const HM_LEX = {
 } as const;
 
 type HeatmapKey = keyof typeof HM_LEX;
+
+/** GICS sector → sector-chip key. Keeps the ZH chip row off the English GICS tokens. */
+const SECTOR_CHIP_KEY: Record<string, HeatmapKey> = {
+  "Information Technology": "sectorTech",
+  "Communication Services": "sectorComm",
+  "Consumer Discretionary": "sectorConsDisc",
+  "Consumer Staples":       "sectorConsStaple",
+  "Financials":             "sectorFinance",
+  "Health Care":            "sectorHealth",
+  "Energy":                 "sectorEnergy",
+  "Industrials":            "sectorIndustrial",
+  "Materials":              "sectorMaterials",
+  "Utilities":              "sectorUtilities",
+  "Real Estate":            "sectorRealEstate",
+  "Crypto":                 "sectorCrypto",
+  "ETF":                    "sectorETF",
+  "Other":                  "sectorOther",
+};
+
+/** Sector chip text for `lang`; unmapped sectors fall back to the caller's label. */
+export function sectorChipLabel(lang: Lang, sector: string, fallback: string): string {
+  const key = SECTOR_CHIP_KEY[sector];
+  return key ? getHeatmapStr(lang, key) : fallback;
+}
 
 export function getHeatmapStr(lang: Lang, key: HeatmapKey): string {
   const entry = HM_LEX[key];

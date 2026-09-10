@@ -772,7 +772,7 @@ test("Company Intelligence preserves its mobile workflow in Chinese", async ({ p
   await expect(page.locator(".ci-theme-card")).toContainText("代理映射");
   await expect(page.locator(".ci-theme-footer")).toContainText("已过期");
   await expect(page.locator(".ci-theme-footer")).not.toContainText("stale");
-  await expect(page.getByRole("heading", { name: "3 家追踪管理人申报持仓" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "3 家追踪管理人披露持仓" })).toBeVisible();
   await expect(page.locator(".ci-inst-card")).toContainText("仅限该名册的 HHI");
   await expectNoDocumentOverflow(page);
   await page.screenshot({
@@ -955,9 +955,12 @@ test("AAPL intelligence opens the verified FY2026 Q3 event workspace", async ({ 
 
   await closeEvidenceOverlay(page);
   await page.locator(".ci-lenses").getByRole("tab", { name: "Sources" }).click();
-  await expect(page.locator("[data-ci-source-kind='issuer_release']")).toContainText("8-K / Exhibit 99.1");
-  await expect(page.locator("[data-ci-source-kind='transcript']")).toContainText("2026Q3");
-  await expect(page.locator("[data-ci-source-kind='issuer_release']")).toContainText("0000320193-26-000018");
+  await expect(page.locator("[data-ci-source-kind='issuer_release']")).toContainText("Company 8-K filing, exhibit 99.1");
+  await expect(page.locator("[data-ci-source-kind='issuer_release']")).not.toContainText("8-K / Exhibit 99.1");
+  await expect(page.locator("[data-ci-source-kind='issuer_release']")).not.toContainText("0000320193-26-000018");
+  await expect(page.locator("[data-ci-source-kind='issuer_release']")).toHaveAttribute("data-ci-accession", "0000320193-26-000018");
+  await expect(page.locator("[data-ci-source-kind='transcript']")).toHaveAttribute("data-ci-transcript-id", "2026Q3");
+  await expect(page.locator("[data-ci-source-kind='transcript']")).not.toContainText("2026Q3");
   await page.screenshot({ path: testInfo.outputPath(`${testInfo.project.name}-aapl-sources.png`), fullPage: false });
 
   await closeEvidenceOverlay(page);
@@ -1058,7 +1061,8 @@ test("AAPL v1 score overlay cannot populate current Brief, Results, or Sources",
   await expect(page.locator("#ci-panel-results")).toContainText("$109.4B");
   await expect(page.locator("#ci-panel-results")).not.toContainText("14");
   await page.locator(".ci-lenses").getByRole("tab", { name: "Sources" }).click();
-  await expect(page.locator("#ci-panel-sources")).toContainText("8-K / Exhibit 99.1");
+  await expect(page.locator("#ci-panel-sources")).toContainText("Company 8-K filing, exhibit 99.1");
+  await expect(page.locator("#ci-panel-sources")).not.toContainText("8-K / Exhibit 99.1");
   await expect(page.locator("#ci-panel-sources")).not.toContainText("14");
   await expect(page.locator("#ci-panel-sources")).not.toContainText(/score overlay/i);
 });
@@ -1126,7 +1130,7 @@ async function openAaplQaResults(page: Page, lang: "en" | "zh" = "en") {
 test("AAPL Results shows seven verified exchanges and opens the exact transcript segment", async ({ page }, testInfo) => {
   const qa = await openAaplQaResults(page);
   await expect(qa).toContainText("ANALYST Q&A · 7 exchanges");
-  await expect(qa).toContainText("Structure verified · topic enrichment unavailable");
+  await expect(qa).toContainText("Structure is verified. Topic labels are not available yet.");
   await expect(qa).toContainText("Amit Daryanani · Evercore");
   await expect(qa.locator(".ci-qa-row")).toHaveCount(7);
   await expect(page.locator('[data-ci-results-region="typed-absences"]')).not.toContainText("Analyst questions");
@@ -1139,7 +1143,7 @@ test("AAPL Results shows seven verified exchanges and opens the exact transcript
   await expectNoDocumentOverflow(page);
   await page.screenshot({ path: testInfo.outputPath(`${testInfo.project.name}-aapl-qa-expanded.png`), fullPage: false });
 
-  await first.getByRole("button", { name: "Open in transcript" }).click();
+  await first.getByRole("button", { name: "Open in the earnings call" }).click();
   await expect(page.locator(".fin-tx-drawer")).toBeVisible();
   const target = page.locator('.fin-tx-seg[data-segment="34"]');
   await expect(target).toContainText("Amit Daryanani");
@@ -1153,7 +1157,7 @@ test("AAPL Results Q&A remains usable in Chinese at desktop and mobile", async (
   test.skip(!project.endsWith("desktop") && !project.endsWith("mobile"), "ZH proof is desktop + mobile");
   const qa = await openAaplQaResults(page, "zh");
   await expect(qa).toContainText("分析师问答 · 7 轮");
-  await expect(qa).toContainText("结构已验证 · 主题增强暂不可用");
+  await expect(qa).toContainText("结构已验证。主题标签暂不可用。");
   const first = qa.locator(".ci-qa-row").first();
   await first.locator("summary").click();
   await expect(first.getByRole("button", { name: "在电话会中查看" })).toBeVisible();
