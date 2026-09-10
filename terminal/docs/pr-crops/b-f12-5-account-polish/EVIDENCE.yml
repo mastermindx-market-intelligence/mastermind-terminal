@@ -4,8 +4,11 @@
 # capturedAtHead: e73e5bdc8d9ba55887b9d35a8936ac4966ade80b
 # capturedAt: 2026-09-09T02:37:16.733Z
 # capturedAtHead is informational. The lock is layoutFiles.
+# B-F08-7b: SectionAccount.tsx hash refreshed for a non-visual write-fence wrap
+# (saveName routes through sendScopedAccountWrite); not recaptured: the eight crops depict overview and delete-form states, none an error line.
+# Merge-heal (master b7aa0981, which contains 5fe8026b): SectionAccount.tsx re-hashed after merging that fence into this PR; no packet key moved, no crop recaptured.
 layoutFiles:
-  terminal/components/settings/SectionAccount.tsx: "8009fbf745eadeff265004f66f39a9764d0ce013a2166f3d84ec8462f2a2c5be"
+  terminal/components/settings/SectionAccount.tsx: "d2c3828c286bbaac321881d5a6562efdd4f30e580f4200d49c5165c0fa7ef9a4"  # no visual change in this file (no JSX, class or string edit); crops unchanged from e73e5bdc
   terminal/app/settings.css: "3189163136d943431cbf52e4b5d241c105b695ba5af94c4c2e29151d537b5ef5"
 theme: dark
 languages: [en, zh]

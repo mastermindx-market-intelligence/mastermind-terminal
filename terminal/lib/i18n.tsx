@@ -1928,6 +1928,8 @@ export const LEX: Record<string, [string, string]> = {
   acsTerminalSub: ["How the Terminal behaves — search markets and chart defaults.", "终端的行为——搜索市场与图表默认设置。"], // NEW
   acsSyncT: ["Sync", "同步"],
   acsSyncSub: ["What follows your account across devices.", "跟随账户同步到各设备的内容。"],
+  acsWebhooks: ["Webhooks", "Webhook 回调"],
+  acsWebhooksSub: ["Send signed events to an HTTPS address your team owns. Only test events are available today.", "把已签名的事件发送到团队拥有的 HTTPS 地址。目前仅支持测试事件。"],
   // rail
   acsRailSub: ["Synced across devices", "已在各设备同步"],
   acsSections: ["Settings sections", "设置分区"],
@@ -2108,6 +2110,88 @@ export const LEX: Record<string, [string, string]> = {
   acsWatchNote: ["Live wherever you sign in.", "登录任意设备即可使用。"],
   acsTermSettings: ["Terminal settings", "终端设置"],                                                        // NEW
   acsTermSettingsNote: ["Default timeframe, chart colors and market visibility ride with your account.", "默认周期、图表颜色与市场可见性随账户同步。"], // NEW
+
+  // B-F13-5 personal accuracy ledger — glance block pasted VERBATIM from the F13 docket §6
+  // (macro research/.../MARKET_ONTOLOGY_F13_PERSONAL_ACCURACY_LEDGER_SPEC_2026-09-06.md,
+  // cited via refs/remotes/origin/pr-6997). accNav is the sidebar noun; accTitle stays
+  // the glance sentence inside the section. accDetail* / accDet* / accClaimCountN
+  // are authored extras.
+  accNav: ["Accuracy", "准确度"],
+  accTitle: ["Your calls, checked.", "你的判断，逐条核对。"],
+  accSub: ["We only check what you wrote down first: the call, the day it settles, and what would prove it wrong.", "只核对你事先写下的：判断本身、结算日期，以及什么情况算判断错了。"],
+  accStanceEarly: ["Too early to say", "还看不出来"],
+  accStanceMostly: ["Mostly landing so far", "目前多数落在正确一边"],
+  accStanceMixed: ["Mixed so far", "目前好坏参半"],
+  accStanceNot: ["Not landing yet", "目前还没落在正确一边"],
+  accEmpty: ["Nothing has settled yet. Your first call gets checked on the day you set.", "还没有到期的判断。第一条会在你设定的那天核对。"],
+  accUnread: ["Reading your record.", "正在读取你的记录。"],
+  accSignInToSee: ["Sign in to see how your calls have turned out.", "登录后即可查看你的判断结果。"],
+  // accEarlyN / accCheckedN / accCalibWithheld: META-CEO B round 7 seat amendment of frozen §6 lines (session d640f3ef, 2026-09-09 20:35Z).
+  accEarlyN: ["Too early to say — checked {n} groups of your calls so far.", "现在下结论还太早——目前已核对你的 {n} 组判断。"],
+  // accEarly1: META-CEO B heal round h7 seat amendment of frozen §6 (session d640f3ef, 2026-09-10 14:07Z).
+  accEarly1: ["Too early to say — checked 1 group of your calls so far.", "现在下结论还太早——目前已核对你的 1 组判断。"],
+  accCheckedN: ["Checked so far: {n} groups of your calls.", "目前已核对：你的 {n} 组判断。"],
+  // accCalibWithheld: same ruling — noun is groups of calls / 判断组; ({n} of 30) tail removed.
+  accCalibWithheld: ["Not enough settled groups of calls yet to check how well your odds match reality.", "还没有足够的已结算判断组来核对你的把握是否准确。"],
+  accCalibProgress: ["Settled so far: {n} of the 30 groups needed.", "目前已结清 {n} 组，需要 30 组。"],
+  accUnscorableN: ["{n} calls could not be checked — the data they named wasn't there.", "有 {n} 条判断无法核对——所引用的数据不存在。"],
+  // accUnscorable1: seat-ordered R5(a) variant of a frozen line (round 4 R3(a)).
+  accUnscorable1: ["1 call could not be checked — the data they named wasn't there.", "有 1 条判断无法核对——所引用的数据不存在。"],
+  accUnscorableIncompleteN: ["{n} calls could not be checked because they did not say what to check.", "{n} 条判断无法核对，因为没有写明要核对什么。"],
+  accUnscorableIncomplete1: ["1 call could not be checked because it did not say what to check.", "1 条判断无法核对，因为没有写明要核对什么。"],
+  accUnscorableWithdrawnN: ["{n} calls you withdrew.", "你撤回了 {n} 条判断。"],
+  accUnscorableWithdrawn1: ["1 call you withdrew.", "你撤回了 1 条判断。"],
+  accUnscorableNotBinaryN: ["{n} calls could not be checked — the result was not a clear yes or no.", "{n} 条判断无法核对——结果不是明确的是或否。"],
+  accUnscorableNotBinary1: ["1 call could not be checked — the result was not a clear yes or no.", "1 条判断无法核对——结果不是明确的是或否。"],
+  accUnscorableBadDateN: ["{n} calls could not be checked because their dates could not be read.", "{n} 条判断无法核对，因为日期无法读取。"],
+  accUnscorableBadDate1: ["1 call could not be checked because its date could not be read.", "1 条判断无法核对，因为日期无法读取。"],
+  accUnscorableOtherN: ["{n} calls could not be checked; the reason was not recorded.", "{n} 条判断无法核对，原因未记录。"],
+  accUnscorableOther1: ["1 call could not be checked; the reason was not recorded.", "1 条判断无法核对，原因未记录。"],
+  accUnscorableBadKindN: ["{n} calls could not be checked because the subject they name is not one we score.", "{n} 条判断无法核对，因为所写的标的类型不在可计分范围内。"],
+  accUnscorableBadKind1: ["1 call could not be checked because the subject it names is not one we score.", "1 条判断无法核对，因为所写的标的类型不在可计分范围内。"],
+  accUnscorableBadStatusN: ["{n} calls could not be checked because the recorded state is not one we score.", "{n} 条判断无法核对，因为所写的状态不在可计分范围内。"],
+  accUnscorableBadStatus1: ["1 call could not be checked because its recorded state is not one we score.", "1 条判断无法核对，因为所写的状态不在可计分范围内。"],
+  accClaimCountN: ["{n} calls written down.", "共写下 {n} 条判断。"],
+  accClaimCount1: ["1 call written down.", "共写下 1 条判断。"],
+  accCeiling: ["This is a learning record. It never changes what we show you, what we rank, or what you can do here.", "这只是学习记录。它不会改变我们展示什么、如何排序，也不会改变你能做什么。"],
+  accDetailOpen: ["Show the full record", "查看完整记录"],
+  accDetailClose: ["Hide the full record", "收起完整记录"],
+  accDetBrier: ["How well your odds matched", "你的把握与实际的吻合程度"],
+  // accDetHitRate: seat ruling R1 round 5 — label unit matches accDetHitsOf (groups of calls / 判断组).
+  accDetHitRate: ["Hits among checked groups of calls", "已核对判断组中的命中"],
+  // accDetEpisodes: seat-ordered R2(a) variant — total episode count, open ones included.
+  accDetEpisodes: ["Groups of calls", "判断组"],
+  accDetClaims: ["Calls written down", "写下的判断"],
+  // accDetUnscorable: seat-ordered R2(b) — call tally, not the episode figure.
+  accDetUnscorable: ["Calls that could not be checked", "无法核对的判断"],
+  accDetCall: ["The call", "判断"],
+  accDetWhatHappened: ["What happened", "实际结果"],
+  accDetCheckedOn: ["Checked on", "核对日期"],
+  accDetHowChecked: ["How it was checked", "核对方式"],
+  // accDetHitsOf / accDetBrierN: seat-ordered R2(c) variants of frozen lines (条 → 组).
+  accDetHitsOf: ["{hits} of {n} checked groups of calls landed.", "已核对的 {n} 组判断中，有 {hits} 组判中。"],
+  accDetHitsOf1: ["{hits} of 1 checked group of calls landed.", "已核对的 1 组判断中，有 {hits} 组判中。"],
+  accDetBrierN: ["Brier {value} over {n} resolved groups of calls.", "按 {n} 组已核对判断计算，Brier 分数 {value}。"],
+  accDetBrierN1: ["Brier {value} over 1 resolved group of calls.", "按 1 组已核对判断计算，Brier 分数 {value}。"],
+  accDetReasonBadDate: ["This call could not be checked because its date was not a real date.", "这条判断无法核对，因为日期不是有效日期。"],
+  accDetReasonBadKind: ["This call could not be checked because the subject it names is not one we score.", "这条判断无法核对，因为所写的标的类型不在可计分范围内。"],
+  accDetReasonBadStatus: ["This call could not be checked because its recorded state is not one we score.", "这条判断无法核对，因为所写的状态不在可计分范围内。"],
+  accDetStatusOpen: ["Not yet due", "尚未到期"],
+  accDetStatusMatured: ["Due, waiting to be checked", "已到期，等待核对"],
+  accDetStatusResolved: ["Checked", "已核对"],
+  accDetStatusVoid: ["Cannot be scored", "无法计分"],
+  accDetStatusWithdrawn: ["Withdrawn", "已撤回"],
+  accDetKindSecurity: ["A listed name", "上市标的"],
+  accDetKindMacro: ["A macro series", "宏观序列"],
+  accDetKindBasket: ["A basket of names", "一篮子标的"],
+  accDetKindUnknown: ["A subject we cannot score yet", "尚无法计分的标的"],
+  accDetOutcomeHit: ["Landed", "落在正确一边"],
+  accDetOutcomeMiss: ["Did not land", "没有落在正确一边"],
+  accDetOutcomeNull: ["Could not be checked", "无法核对"],
+  accDetResolverMissing: ["The data this call named was not available", "所引用的数据不存在"],
+  accDetResolverKnown: ["Checked against the named data", "已按所引用的数据核对"],
+  accDetAttributionNull: ["Why a call was right or wrong is not recorded yet.", "对错原因尚未记录。"],
+  accDetLoadErr: ["We could not load your record. Nothing was changed.", "无法加载你的记录。没有任何改动。"],
 
   // ---- chart settings modal: the whole dialog shipped in English only ----
   smClose: ["Close", "关闭"],

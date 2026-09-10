@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { sendScopedAccountWrite } from "@/lib/accountPrefs";
 import { Group, IconGoogle, IconSignOut, IconTwitterX, Msg, Row, SectionHead } from "./icons";
 import { acsDate, type SectionProps } from "./types";
 import type { ExportFormat } from "@/lib/accountExport";
@@ -32,6 +33,13 @@ type DeletionReceipt = {
 // does not need a DOM.
 export function isActiveDeletionStatus(status: string): boolean {
   return status === "received" || status === "in_progress" || status === "completed";
+}
+
+/** Pane copy for a failed account write. ScopedToEmpty (name only) uses the generic
+ *  sentence; every other error keeps its own message, else the generic sentence. */
+export function accountSaveErrorText(e: unknown, t: SectionProps["t"]): string {
+  if ((e as { name?: unknown })?.name === "ScopedToEmpty") return t("acsErrGen");
+  return (e as Error)?.message || t("acsErrGen");
 }
 
 export function passwordErrorKey(code: string | undefined): string {
@@ -280,13 +288,17 @@ export default function SectionAccount({ t, lang, email, user, onClose, onPatchM
     const val = nameIn.trim();
     setBusy(true); setMsg(null);
     try {
-      const { error } = await createClient().auth.updateUser({ data: { display_name: val } });
+      const result = await sendScopedAccountWrite(
+        (data) => createClient().auth.updateUser({ data }),
+        { display_name: val },
+      );
+      const error = result && typeof result === "object" ? result.error : undefined;
       if (error) throw error;
       onPatchMeta({ display_name: val });   // ID card + rail repaint without a refetch
       setEditing(null);
       void onRefreshUser();
     } catch (e) {
-      setMsg({ kind: "err", text: (e as Error)?.message || t("acsErrGen") });
+      setMsg({ kind: "err", text: accountSaveErrorText(e, t) });
     } finally {
       setBusy(false);
     }

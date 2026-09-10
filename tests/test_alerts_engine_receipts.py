@@ -840,6 +840,7 @@ def test_outbox_payload_condition_plain_describes_condition_not_result(monkeypat
     for key in ("subject_zh", "summary_plain_zh", "condition_plain_zh"):
         assert key in payload and payload[key], f"missing or empty {key}"
     assert payload["condition_plain_zh"] == "AAPL涨破100"
+    assert payload["summary_plain_zh"] == "你的提醒已触发：AAPL涨破100。"
 
 
 def test_outbox_payload_carries_the_fired_value(monkeypatch):

@@ -8,16 +8,29 @@ import { useUsage } from "@/lib/usageStore";
 import type { AcsUser, SettingsSection } from "./SettingsProvider";
 import { SETTINGS_SECTIONS } from "./SettingsProvider";
 import type { AcsPlan, AcsUsage, SectionProps } from "./types";
+import type { AccuracyReadout } from "@/lib/personalAccuracy";
 import {
-  IconAccount, IconAlertDelivery, IconBilling, IconPrefs, IconSignOut, IconSync, IconTerminal, IconUsage, IconX,
+  IconAccount, IconAlertDelivery, IconBilling, IconPrefs, IconSignOut, IconSync, IconTerminal, IconUsage,
+  IconWebhooks, IconX,
 } from "./icons";
 import SectionAccount from "./SectionAccount";
+import SectionAccuracy from "./SectionAccuracy";
 import SectionBilling from "./SectionBilling";
 import SectionUsage from "./SectionUsage";
 import SectionPreferences from "./SectionPreferences";
 import SectionAlertDelivery from "./SectionAlertDelivery";
 import SectionTerminal from "./SectionTerminal";
 import SectionSync from "./SectionSync";
+import SectionWebhooks from "./SectionWebhooks";
+
+function IconAccuracy() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M8 7h11M8 12h11M8 17h7" />
+      <path d="m4.2 7.2 1.2 1.2 2.2-2.4M4.2 12.2l1.2 1.2 2.2-2.4" />
+    </svg>
+  );
+}
 
 // ── The settings dashboard shell ─────────────────────────────────────────────
 // Ported from the Macro Dashboard's `_buildSDash` / `_wireSDash` / `_sdShow` /
@@ -32,22 +45,26 @@ import SectionSync from "./SectionSync";
 
 const NAV: { id: SettingsSection; icon: React.ReactNode; key: string }[] = [
   { id: "account", icon: <IconAccount />, key: "acsAccount" },
+  { id: "accuracy", icon: <IconAccuracy />, key: "accNav" },
   { id: "billing", icon: <IconBilling />, key: "acsBilling" },
   { id: "usage", icon: <IconUsage />, key: "acsUsage" },
   { id: "prefs", icon: <IconPrefs />, key: "acsPrefs" },
   { id: "alertDelivery", icon: <IconAlertDelivery />, key: "acsAlertDelivery" },
   { id: "terminal", icon: <IconTerminal />, key: "acsTerminal" },
   { id: "sync", icon: <IconSync />, key: "acsSyncT" },
+  { id: "webhooks", icon: <IconWebhooks />, key: "acsWebhooks" },
 ];
 
 const HEAD_KEY: Record<SettingsSection, string> = {
   account: "acsAccount",
+  accuracy: "accNav",
   billing: "acsBilling",
   usage: "acsUsage",
   prefs: "acsPrefs",
   alertDelivery: "acsAlertDelivery",
   terminal: "acsTerminal",
   sync: "acsSyncT",
+  webhooks: "acsWebhooks",
 };
 
 export interface SettingsPanelProps {
@@ -67,6 +84,7 @@ export interface SettingsPanelProps {
    *  way to exercise the paid/unlimited plan states and the usage meters. */
   devPlan?: AcsPlan;
   devUsage?: AcsUsage;
+  devAccuracy?: AccuracyReadout | null;
 }
 
 export default function SettingsPanel(props: SettingsPanelProps) {
@@ -172,6 +190,33 @@ export default function SettingsPanel(props: SettingsPanelProps) {
   const usageErr = !props.devUsage && usageLive.unavailable;
   const usageStale = !props.devUsage && usageLive.stale;
 
+  const [accuracyLive, setAccuracyLive] = useState<AccuracyReadout | null>(null);
+  const [accuracyErr, setAccuracyErr] = useState(false);
+  useEffect(() => {
+    if (props.devAccuracy !== undefined) return;
+    if (!visible || section !== "accuracy") return;
+    if (!isAccountOwner(owner)) return;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await fetch("/api/accuracy");
+        if (!res.ok) {
+          if (!cancelled) { setAccuracyLive(null); setAccuracyErr(true); }
+          return;
+        }
+        const body = await res.json() as AccuracyReadout;
+        if (!cancelled) { setAccuracyLive(body); setAccuracyErr(false); }
+      } catch {
+        if (!cancelled) { setAccuracyLive(null); setAccuracyErr(true); }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [visible, section, owner, openSeq, props.devAccuracy]);
+  const accuracy = props.devAccuracy !== undefined
+    ? props.devAccuracy
+    : (isAccountOwner(owner) ? accuracyLive : null);
+  const accuracyLoadErr = props.devAccuracy === undefined && isAccountOwner(owner) && accuracyErr;
+
   // ── freshness on RE-OPEN and on focus ─────────────────────────────────────
   // The panel is mounted once and hidden between uses, so "open it again" is not a
   // remount and used to revalidate nothing: a user could upgrade through onboarding
@@ -266,11 +311,14 @@ export default function SettingsPanel(props: SettingsPanelProps) {
 
         <section className="acs-pane">
           {/* Only the active section is mounted: that gives the acsRise entry
-              animation for free on every switch, and keeps the six sections
+              animation for free on every switch, and keeps the eight sections
               from all fetching at once. The payloads they share (plan, usage)
               are cached above, so switching back is free. */}
           <div className="acs-sect on" key={section}>
             {section === "account" && <SectionAccount {...shared} />}
+            {section === "accuracy" && (
+              <SectionAccuracy {...shared} readout={accuracy} loadErr={accuracyLoadErr} />
+            )}
             {section === "billing" && (
               <SectionBilling {...shared} plan={plan} planErr={planErr} planStale={planStale} onRefreshPlan={entitlement.refresh} />
             )}
@@ -281,6 +329,7 @@ export default function SettingsPanel(props: SettingsPanelProps) {
             {section === "alertDelivery" && <SectionAlertDelivery {...shared} />}
             {section === "terminal" && <SectionTerminal {...shared} />}
             {section === "sync" && <SectionSync {...shared} />}
+            {section === "webhooks" && <SectionWebhooks {...shared} />}
           </div>
         </section>
       </div>
