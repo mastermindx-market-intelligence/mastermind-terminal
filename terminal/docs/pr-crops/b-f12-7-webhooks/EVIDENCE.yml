@@ -1,10 +1,9 @@
 # B-F12-7 Outbound signed webhooks — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 7efed45b946e01f87dace4f328eb5e4ae9e5af89
-# capturedAt: 2026-09-10T20:31:08.107Z
+# capturedAtHead: f1ad9fde39afa395ac4e66e3c2bd24a794d029bc
+# capturedAt: 2026-09-10T21:31:08.700Z
 # capturedAtHead is informational. The lock is layoutFiles.
-# 2026-09-10 merge-heal on PR #547: SettingsPanel.tsx gained the B-F13-5 Accuracy nav row. SettingsPanel.tsx re-hashed; 18 crops recaptured at merge commit 5992b8b52 so the rail matches the merged panel.
 # layoutFiles are packet-local and ARE asserted by
 # terminal/lib/__tests__/f12_7WebhooksEvidence.test.ts. informationalFiles
 # are recorded for provenance only: terminal/lib/i18n.tsx is the repo-wide
@@ -14,11 +13,11 @@ layoutFiles:
   terminal/components/settings/SectionWebhooks.tsx: "042cfc46c2a8bdfc967e1360333269d1a50e48fed87f85d8d4597dd23379a60b"
   terminal/lib/webhookLabels.ts: "e9d8bb808f09e88eb9ed31582915b9cc281986e714cdec86442708a7da8689eb"
   terminal/lib/webhookUrl.ts: "e1928132afa22ba3f3f5c5ad00c1f5cd7c66eee06a95ad49e6d25008117e18cf"
-  terminal/components/settings/SettingsPanel.tsx: "2ff6a6609e9a55d6912641fe2a3d721aa8e84c8fc8b2d446c1191b442890cb4a"
+  terminal/components/settings/SettingsPanel.tsx: "1c6a50235520cc6cb20498f9aebcd20c4f0c1a996ab82d127c5f4a10ddab7181"
   terminal/components/settings/icons.tsx: "891f36a103eff8cdba5f78cf04c802d850ba0959d1c6a75097ade4a911acf697"
 informationalFiles:
   asserted: false
-  terminal/lib/i18n.tsx: "165b10fd927547b1f328ab125a4e8a98d27f7abbac558d18d5fb1d8ea1b87215"
+  terminal/lib/i18n.tsx: "a6a7156fd493d4c392376b89f3b2a3e6f6588e629e9aa0e1638d2cce53bfa6b2"
 theme: dark
 languages: [en, zh]
 viewports:
