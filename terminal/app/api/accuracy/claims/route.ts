@@ -6,6 +6,7 @@ import {
   buildInsertRow,
   CLAIM_NOT_RECORDED_MESSAGE,
   CLAIM_RESPONSE_KEYS,
+  THRESHOLD_MAX,
   type ClaimInsertRow,
 } from "@/lib/claimAuthoring";
 
@@ -88,8 +89,15 @@ async function readBoundedJson(request: Request): Promise<
 
 function claimResponse(row: Record<string, unknown>) {
   const claim: Record<string, unknown> = {};
-  for (const key of CLAIM_RESPONSE_KEYS) claim[key] = row[key] ?? (key === "stated_probability" ? null : row[key]);
+  for (const key of CLAIM_RESPONSE_KEYS) claim[key] = row[key] ?? null;
   return claim;
+}
+
+function thresholdValue(body: Record<string, unknown>): number {
+  const condition = body.condition;
+  if (!condition || typeof condition !== "object" || Array.isArray(condition)) return NaN;
+  const raw = (condition as { threshold?: unknown }).threshold;
+  return typeof raw === "number" ? raw : typeof raw === "string" ? Number(raw) : NaN;
 }
 
 function notRecorded() {
@@ -113,7 +121,13 @@ export async function POST(request: Request): Promise<Response> {
 
   const statedAt = new Date().toISOString();
   const built = buildInsertRow(parsed.body, session.userId, statedAt);
-  if (!built.ok) return jsonError(built.error, 400);
+  if (!built.ok) {
+    if (built.error === "invalid_threshold") {
+      const n = thresholdValue(parsed.body);
+      if (Number.isFinite(n) && n > THRESHOLD_MAX) return jsonError("threshold_too_high", 400);
+    }
+    return jsonError(built.error, 400);
+  }
 
   const insertRow: ClaimInsertRow = built.row;
   let insertResult: DbResult;

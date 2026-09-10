@@ -2194,8 +2194,15 @@ export const LEX: Record<string, [string, string]> = {
   claimErrInvalidResolvesAt: ["Pick a date between tomorrow and two years from now.", "请选择明天到两年后之间的日期。"],
   claimErrInvalidProbability: ["That number has to be between 0 and 100.", "该数值须介于 0 到 100 之间。"],
   claimErrTooLong: ["This is too long. Shorten your note and try again.", "内容过长，请缩短备注后重试。"],
+  claimErrThresholdTooHigh: ["Enter a price between 0 and 1,000,000.", "请输入 0 到 1,000,000 之间的价格。"],
+  claimErrTextEmpty: ["This call has no text yet. Write your call, then try again.", "这条判断还没有内容，请写下你的判断后重试。"],
   claimErrUnauthenticated: ["Sign in to save a call.", "请登录后再保存判断。"],
   claimErrNotRecorded: ["We could not save this call, so we are not going to pretend we did. Nothing was saved. Try again.", "我们无法保存这条判断，因此不会假装已经保存。未保存任何内容，请重试。"],
+  claimSymbolUnset: ["No symbol chosen", "未选择标的"],
+  claimDirectionUnset: ["Choose a direction", "选择方向"],
+  claimCharsLeft: ["{n} characters left in this call", "这条判断还可输入 {n} 个字"],
+  claimCharsLeft1: ["1 character left in this call", "这条判断还可输入 1 个字"],
+  claimCharsOver: ["{n} characters over", "这条判断超出 {n} 个字"],
 
   // ---- chart settings modal: the whole dialog shipped in English only ----
   smClose: ["Close", "关闭"],

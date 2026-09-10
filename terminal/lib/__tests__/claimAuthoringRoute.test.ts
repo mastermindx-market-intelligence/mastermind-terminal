@@ -6,7 +6,8 @@ const H = vi.hoisted(() => ({
   inserted: null as Record<string, unknown> | null,
   insertError: null as { message: string } | null,
   throwInsert: false,
-  createdAt: "2026-09-09T12:00:00.111Z",
+  createdAt: "2026-09-09T12:00:00.111Z" as string | undefined,
+  omitCreatedAt: false,
 }));
 
 vi.mock("next/headers", () => ({ cookies: vi.fn(async () => ({ get: () => undefined })) }));
@@ -27,7 +28,7 @@ vi.mock("@/lib/supabase/server", () => ({
         if (!H.inserted || H.inserted.table !== "user_claims") {
           return Promise.resolve({ data: [], error: null }).then(resolve, reject);
         }
-        const row = {
+        const row: Record<string, unknown> = {
           claim_id: H.inserted.claim_id,
           subject: H.inserted.subject,
           condition: H.inserted.condition,
@@ -35,8 +36,8 @@ vi.mock("@/lib/supabase/server", () => ({
           claim_text: H.inserted.claim_text,
           stated_probability: H.inserted.stated_probability ?? null,
           status: H.inserted.status,
-          created_at: H.createdAt,
         };
+        if (!H.omitCreatedAt) row.created_at = H.createdAt;
         return Promise.resolve({ data: [row], error: null }).then(resolve, reject);
       };
       return q;
@@ -53,7 +54,7 @@ const TOMORROW_ISO = toResolvesAtIso(TOMORROW);
 function validBody(overrides: Record<string, unknown> = {}): Record<string, unknown> {
   return {
     subject: { kind: "security", id: "NVDA" },
-    condition: { metric: "last", comparator: ">=", threshold: 150, owner: OWNER },
+    condition: { metric: "close", comparator: ">=", threshold: 150, owner: OWNER },
     resolves_at: TOMORROW_ISO,
     claim_text: composeClaimText({
       symbol: "NVDA",
@@ -82,6 +83,8 @@ beforeEach(() => {
   H.inserted = null;
   H.insertError = null;
   H.throwInsert = false;
+  H.omitCreatedAt = false;
+  H.createdAt = "2026-09-09T12:00:00.111Z";
   delete process.env.TERMINAL_E2E_FIXTURE;
   vi.clearAllMocks();
 });
@@ -101,7 +104,7 @@ describe("POST /api/accuracy/claims", () => {
     expect(body.ok).toBe(true);
     expect(body.claim.claim_id).toMatch(/^[0-9a-f]{16}$/);
     expect(body.claim.status).toBe("open");
-    expect(body.claim.claim_text).toBe(`NVDA last traded price at or above 150 by ${TOMORROW}.`);
+    expect(body.claim.claim_text).toBe(`NVDA closing price at or above 150 on ${TOMORROW}.`);
     expect(H.inserted?.user_id).toBe("user-A");
     expect(H.inserted?.status).toBe("open");
     expect(H.inserted?.resolution).toBeNull();
@@ -170,5 +173,37 @@ describe("POST /api/accuracy/claims", () => {
     expect(route).not.toHaveProperty("GET");
     expect(route).not.toHaveProperty("PATCH");
     expect(route).not.toHaveProperty("DELETE");
+  });
+
+  it("rejects an empty claim_text with claim_text_empty", async () => {
+    const res = await post(validBody({ claim_text: "" }));
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ error: "claim_text_empty" });
+  });
+
+  it("maps an over-ceiling threshold onto threshold_too_high", async () => {
+    const res = await post(validBody({
+      condition: { metric: "close", comparator: ">=", threshold: 1_000_001, owner: OWNER },
+    }));
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ error: "threshold_too_high" });
+  });
+
+  it("response carries all eight keys with explicit null for a missing column", async () => {
+    H.omitCreatedAt = true;
+    const res = await post(validBody());
+    expect(res.status).toBe(201);
+    const body = await res.json() as { claim: Record<string, unknown> };
+    expect(Object.keys(body.claim).sort()).toEqual([
+      "claim_id",
+      "claim_text",
+      "condition",
+      "created_at",
+      "resolves_at",
+      "stated_probability",
+      "status",
+      "subject",
+    ].sort());
+    expect(body.claim.created_at).toBeNull();
   });
 });

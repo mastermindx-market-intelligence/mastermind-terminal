@@ -27,6 +27,7 @@ const LAYOUT_FILES = [
   "terminal/components/workspaces/ClaimAuthoringForm.tsx",
   "terminal/components/workspaces/ClaimAuthoringForm.module.css",
   "terminal/lib/claimAuthoring.ts",
+  "terminal/components/workspaces/ThesisWorkspace.tsx",
 ];
 const PORT = Number(process.env.TERMINAL_CROP_PORT || 3556);
 const BASE = `http://127.0.0.1:${PORT}`;
@@ -36,14 +37,18 @@ const VIEWPORTS = {
   mobile: { width: 390, height: 844 },
 };
 const SHOTS = [
-  { viewport: "desktop", lang: "en", filled: false, file: "desktop-en-empty.png" },
-  { viewport: "desktop", lang: "zh", filled: false, file: "desktop-zh-empty.png" },
-  { viewport: "desktop", lang: "en", filled: true, file: "desktop-en-filled.png" },
-  { viewport: "desktop", lang: "zh", filled: true, file: "desktop-zh-filled.png" },
-  { viewport: "mobile", lang: "en", filled: false, file: "mobile-en-empty.png" },
-  { viewport: "mobile", lang: "zh", filled: false, file: "mobile-zh-empty.png" },
-  { viewport: "mobile", lang: "en", filled: true, file: "mobile-en-filled.png" },
-  { viewport: "mobile", lang: "zh", filled: true, file: "mobile-zh-filled.png" },
+  { viewport: "desktop", lang: "en", filled: false, file: "desktop-en-empty.png", kind: "modal" },
+  { viewport: "desktop", lang: "zh", filled: false, file: "desktop-zh-empty.png", kind: "modal" },
+  { viewport: "desktop", lang: "en", filled: true, file: "desktop-en-filled.png", kind: "modal" },
+  { viewport: "desktop", lang: "zh", filled: true, file: "desktop-zh-filled.png", kind: "modal" },
+  { viewport: "mobile", lang: "en", filled: false, file: "mobile-en-empty.png", kind: "modal" },
+  { viewport: "mobile", lang: "zh", filled: false, file: "mobile-zh-empty.png", kind: "modal" },
+  { viewport: "mobile", lang: "en", filled: true, file: "mobile-en-filled.png", kind: "modal" },
+  { viewport: "mobile", lang: "zh", filled: true, file: "mobile-zh-filled.png", kind: "modal" },
+  { viewport: "desktop", lang: "en", filled: false, file: "desktop-en-entry.png", kind: "entry" },
+  { viewport: "desktop", lang: "zh", filled: false, file: "desktop-zh-entry.png", kind: "entry" },
+  { viewport: "mobile", lang: "en", filled: false, file: "mobile-en-entry.png", kind: "entry" },
+  { viewport: "mobile", lang: "zh", filled: false, file: "mobile-zh-entry.png", kind: "entry" },
 ];
 
 mkdirSync(OUT, { recursive: true });
@@ -135,7 +140,7 @@ async function assertNoNextIndicator(page, file) {
   }
 }
 
-async function openWorkspace(page, lang, viewport) {
+async function openWorkspace(page, lang, viewport, clickEntry) {
   await page.setViewportSize(viewport);
   await page.addInitScript((l) => {
     localStorage.setItem("mm.lang", l);
@@ -156,8 +161,12 @@ async function openWorkspace(page, lang, viewport) {
     const el = document.querySelector('[data-testid="claim-entry-button"]');
     return !!(el && !el.disabled);
   }, null, { timeout: 45_000 });
-  await btn.click();
-  await page.getByTestId("claim-authoring-form").waitFor({ state: "visible", timeout: 15_000 });
+  if (clickEntry) {
+    await btn.click();
+    await page.getByTestId("claim-authoring-form").waitFor({ state: "visible", timeout: 15_000 });
+  } else {
+    await page.getByTestId("thesis-context-actions").waitFor({ state: "visible", timeout: 15_000 });
+  }
   await stripDevOverlay(page);
 }
 
@@ -176,12 +185,14 @@ async function fillForm(page, lang) {
   await form.getByLabel(noteLabel).fill(lang === "zh" ? "若需求维持。" : "If demand holds.");
 }
 
-async function shoot(page, file) {
+async function shoot(page, file, kind) {
   await assertNoNextIndicator(page, file);
   await page.mouse.move(0, 0);
   await page.waitForTimeout(200);
-  const dialog = page.getByTestId("claim-authoring-form");
-  await dialog.screenshot({ path: join(OUT, file) });
+  const target = kind === "entry"
+    ? page.getByTestId("thesis-context-actions")
+    : page.getByTestId("claim-authoring-form");
+  await target.screenshot({ path: join(OUT, file) });
 }
 
 async function main() {
@@ -203,9 +214,9 @@ async function main() {
         const page = await context.newPage();
         page.setDefaultTimeout(45_000);
         try {
-          await openWorkspace(page, shot.lang, VIEWPORTS[shot.viewport]);
-          if (shot.filled) await fillForm(page, shot.lang);
-          await shoot(page, shot.file);
+          await openWorkspace(page, shot.lang, VIEWPORTS[shot.viewport], shot.kind !== "entry");
+          if (shot.kind === "modal" && shot.filled) await fillForm(page, shot.lang);
+          await shoot(page, shot.file, shot.kind);
           files.push(shot.file);
           console.log("ok");
         } catch (err) {
@@ -240,7 +251,7 @@ async function main() {
     "  - { name: desktop, width: 1440, height: 900 }",
     "  - { name: mobile, width: 390, height: 844 }",
     "harness:",
-    ...SHOTS.map((s) => `  ${s.file}: { url: "/analysis?view=theses&symbol=${SYM}&lang=${s.lang}", state: ${s.filled ? "filled" : "empty"} }`),
+    ...SHOTS.map((s) => `  ${s.file}: { url: "/analysis?view=theses&symbol=${SYM}&lang=${s.lang}", state: ${s.kind === "entry" ? "entry" : (s.filled ? "filled" : "empty")} }`),
     "capture_flag: TERMINAL_E2E_FIXTURE",
     "capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.",
     "command: |",

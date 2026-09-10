@@ -15,6 +15,7 @@ const LAYOUT_FILES = [
   "terminal/components/workspaces/ClaimAuthoringForm.tsx",
   "terminal/components/workspaces/ClaimAuthoringForm.module.css",
   "terminal/lib/claimAuthoring.ts",
+  "terminal/components/workspaces/ThesisWorkspace.tsx",
 ];
 const CROPS = [
   "desktop-en-empty.png",
@@ -25,6 +26,10 @@ const CROPS = [
   "desktop-zh-filled.png",
   "mobile-en-filled.png",
   "mobile-zh-filled.png",
+  "desktop-en-entry.png",
+  "desktop-zh-entry.png",
+  "mobile-en-entry.png",
+  "mobile-zh-entry.png",
 ];
 
 function evidenceText(): string {
@@ -67,8 +72,8 @@ describe("B-F13-6 evidence lock is the sha256 of the layout sources", () => {
     }
   });
 
-  it("all eight dark crops exist and are non-empty", () => {
-    expect(CROPS).toHaveLength(8);
+  it("all twelve dark crops exist and are non-empty", () => {
+    expect(CROPS).toHaveLength(12);
     for (const file of CROPS) {
       const abs = join(CROP_DIR, file);
       expect(existsSync(abs), file).toBe(true);
