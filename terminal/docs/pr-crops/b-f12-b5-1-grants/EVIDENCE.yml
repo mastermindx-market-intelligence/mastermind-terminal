@@ -1,14 +1,15 @@
 # B-F12-B5-1 Explicit grants — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: aa59f6d8c53c274e4f4e7f478230c1ac28fd7284
-# capturedAt: 2026-09-10T20:18:17.912Z
+# capturedAtHead: c926a0cb847680e69f10c5ac8cbee4f7763125f3
+# capturedAt: 2026-09-10T21:59:37.220Z
 # capturedAtHead is informational. The lock is layoutFiles.
+# 2026-09-10 merge-heal 2 on PR #548: origin/master eab65ff7 (includes #547 b7aa0981 Accuracy). SettingsPanel.tsx and i18n.tsx re-hashed; 12 crops recaptured at merge commit c926a0cb so the rail shows Accuracy and Sharing.
 layoutFiles:
   terminal/components/settings/SectionSharing.tsx: "29fd9b355d50ecb3d3284b6d117b6ed50a461c7b7d45ea3d8588575fe5eca56a"
-  terminal/components/settings/SettingsPanel.tsx: "976e6785490025ddd322f5daeed8dbb0d0fd36455bf7356bfa3396b3f542dc0c"
+  terminal/components/settings/SettingsPanel.tsx: "0624427f94d2e35014dc5b419cea832cc60cd69de1e15c18a1feb387112acf5a"
   terminal/app/settings.css: "3189163136d943431cbf52e4b5d241c105b695ba5af94c4c2e29151d537b5ef5"
-  terminal/lib/i18n.tsx: "e81fe63c2079d19c4ba9e969273d5f48853229949070458262bd39a8a0da3451"
+  terminal/lib/i18n.tsx: "41b96ef78208fca0979e2db4b3f1cc3c8ea8e3d46412097c1b0d3e9599791440"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -38,8 +39,8 @@ measurements:
   desktop-zh-shared.png: { cardWidth: 1140, groupCount: 2, revokeVisible: true, badgeText: "仅可查看" }
   desktop-en-empty-list.png: { cardWidth: 1140, groupCount: 2, revokeVisible: true, badgeText: "Read only" }
   desktop-zh-empty-list.png: { cardWidth: 1140, groupCount: 2, revokeVisible: true, badgeText: "仅可查看" }
-  desktop-en-empty.png: { cardWidth: 1129, groupCount: 2, revokeVisible: false, badgeText: "" }
-  desktop-zh-empty.png: { cardWidth: 1128, groupCount: 2, revokeVisible: false, badgeText: "" }
+  desktop-en-empty.png: { cardWidth: 1132, groupCount: 2, revokeVisible: false, badgeText: "" }
+  desktop-zh-empty.png: { cardWidth: 1123, groupCount: 2, revokeVisible: false, badgeText: "" }
   mobile-en-shared.png: { cardWidth: 390, groupCount: 2, revokeVisible: true, badgeText: "Read only" }
   mobile-zh-shared.png: { cardWidth: 390, groupCount: 2, revokeVisible: true, badgeText: "仅可查看" }
   mobile-en-empty-list.png: { cardWidth: 390, groupCount: 2, revokeVisible: true, badgeText: "Read only" }
