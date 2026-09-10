@@ -5,16 +5,21 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import {
   CLAIM_OWNER_LAST_CLOSE,
+  UNAVAILABLE_NOTE,
+  UNREADABLE_NOTE,
+  defaultReadDailyBars,
+  lastCloseOnOrBefore,
+  parseBars,
   resolveLastClose,
   type Bar,
   type ReadDailyBars,
   type ResolverInput,
   type ResolverResult,
 } from "@/lib/dailyCloseResolver";
-import { RESOLVER_REGISTRY } from "@/lib/personalAccuracyStore";
+import { RESOLVER_REGISTRY, UNDETERMINED_NOTE } from "@/lib/personalAccuracyStore";
 
 const FIXTURE_DIR = join(__dirname, "fixtures/dailyClose");
-const UNAVAILABLE = "the data this call named was not available";
+const UNAVAILABLE = UNDETERMINED_NOTE;
 const TRADING_CLOSE = 227;
 const WEEKEND_CLOSE = 50.5;
 const HOLIDAY_CLOSE = 52;
@@ -90,9 +95,9 @@ describe("last close from the quote owner", () => {
   });
 
   it("returns the prior trading day's close when resolves_at falls on the fixture's holiday gap", async () => {
-    // GAPSYM: Wednesday 2024-11-27 close 52.00; Thanksgiving Thursday 2024-11-28 and Friday
-    // 2024-11-29 are absent. A naive "subtract one day" from Friday would look for Thursday
-    // and miss; on-or-before selects Wednesday.
+    // GAPSYM is a synthetic fixture. Wednesday 2024-11-27 close 52.00; Thursday 2024-11-28
+    // and Friday 2024-11-29 are absent on purpose. A naive "subtract one day" from Friday
+    // would look for Thursday and miss; on-or-before selects Wednesday.
     const result = await resolveLastClose(
       input({
         subject: { kind: "security", id: "gapsym" },
@@ -195,5 +200,85 @@ describe("last close from the quote owner", () => {
   it("score_personal_accuracy.mjs still selects only status in (open, matured) claims", () => {
     const src = readFileSync(join(__dirname, "../../scripts/score_personal_accuracy.mjs"), "utf8");
     expect(src).toContain('.in("status", ["open", "matured"])');
+  });
+
+  it.each([null, "", [], false, "abc"] as const)(
+    "returns undetermined with the unreadable note when threshold is %j",
+    async (threshold) => {
+      const result = await resolveLastClose(
+        input({ condition: { threshold: threshold as unknown as number } }),
+        { readDailyBars },
+      );
+      expect(result.outcome).toBeNull();
+      expect(result.observed).toBeNull();
+      expect(result.resolver).toBe(CLAIM_OWNER_LAST_CLOSE.owner);
+      expect(result.note).toBe(UNREADABLE_NOTE);
+    },
+  );
+
+  it("returns the unreadable note when the bar was read but the comparator is not usable", async () => {
+    const result = await resolveLastClose(
+      input({ condition: { comparator: "<>" as ResolverInput["condition"]["comparator"] } }),
+      { readDailyBars },
+    );
+    expect(result.outcome).toBeNull();
+    expect(result.observed).toBeNull();
+    expect(result.note).toBe(UNREADABLE_NOTE);
+  });
+
+  it("lastCloseOnOrBefore takes the max date on or before the day in both array orders", () => {
+    const ascending = parseFixtureBars("AAPL.json");
+    const descending = [...ascending].reverse();
+    const unsorted = [ascending[2], ascending[0], ascending[3], ascending[1]];
+    expect(lastCloseOnOrBefore(ascending, "2026-09-04T20:00:00.000Z")?.close).toBe(TRADING_CLOSE);
+    expect(lastCloseOnOrBefore(descending, "2026-09-04T20:00:00.000Z")?.close).toBe(TRADING_CLOSE);
+    expect(lastCloseOnOrBefore(unsorted, "2026-09-04T20:00:00.000Z")?.close).toBe(TRADING_CLOSE);
+    expect(lastCloseOnOrBefore(descending, "2026-09-04T20:00:00.000Z")?.date).toBe("2026-09-04");
+  });
+
+  it("parseBars writes null for missing or non-finite open/high/low/vol", () => {
+    const bars = parseBars({
+      bars: [["2026-09-04", "x", null, undefined, 227, ""]],
+    });
+    expect(bars).toEqual([
+      { date: "2026-09-04", open: null, high: null, low: null, close: 227, vol: null },
+    ]);
+  });
+
+  it("returns undetermined when the newest on-or-before row has a valid date but an unusable close", async () => {
+    const bars = parseBars({
+      bars: [
+        ["2026-09-02", 220, 222, 219, 221.75, 1],
+        ["2026-09-04", 223, 228, 223, "nope", 1],
+      ],
+    });
+    expect(bars).toHaveLength(2);
+    expect(Number.isFinite(bars![1].close)).toBe(false);
+    const result = await resolveLastClose(input(), { readDailyBars: async () => bars });
+    undeterminedShape(result);
+  });
+
+  it("parseBars skips a row with no parseable date and still reads later rows", () => {
+    const bars = parseBars({
+      bars: [
+        ["not-a-date", 1, 2, 3, 4, 5],
+        ["2026-09-04", 223, 228, 223, 227, 1],
+      ],
+    });
+    expect(bars).toEqual([
+      { date: "2026-09-04", open: 223, high: 228, low: 223, close: 227, vol: 1 },
+    ]);
+  });
+
+  it("defaultReadDailyBars rejects path-traversal symbols and a symbol with no file", async () => {
+    expect(await defaultReadDailyBars("/etc/passwd")).toBeNull();
+    expect(await defaultReadDailyBars("foo\\bar")).toBeNull();
+    expect(await defaultReadDailyBars("..")).toBeNull();
+    expect(await defaultReadDailyBars("ZZZNOFILEZZZ")).toBeNull();
+  });
+
+  it("UNAVAILABLE_NOTE is the store's honest-null sentence", () => {
+    expect(UNAVAILABLE_NOTE).toBe(UNDETERMINED_NOTE);
+    expect(UNAVAILABLE_NOTE).toBe("the data this call named was not available");
   });
 });

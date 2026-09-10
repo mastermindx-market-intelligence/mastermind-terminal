@@ -5,8 +5,10 @@
  * Never imported by a route. Never invoked from CI. Never runs on the render path.
  *
  * Canonical resolver map: terminal/lib/personalAccuracyStore.ts RESOLVER_REGISTRY
- * (v1: declared and empty). This worker reads that TypeScript file — it does not
- * freeze its own empty copy. A registry miss writes outcome null — it never guesses.
+ * (v1: last close from the quote owner). This worker reads that TypeScript file —
+ * it does not freeze its own empty copy. A registry miss writes outcome null — it
+ * never guesses. The scoring worker now needs esbuild at runtime; it is a
+ * devDependency; install with dev deps or promote it in a later packet.
  *
  * From terminal/:
  *   node scripts/score_personal_accuracy.mjs
@@ -47,11 +49,18 @@ function extractFrozenRegistryLiteral(src) {
   throw new Error("RESOLVER_REGISTRY object literal is unclosed");
 }
 
-export async function loadResolverRegistry() {
+export async function loadStoreModule() {
   const src = readFileSync(STORE_PATH, "utf8");
   const literal = extractFrozenRegistryLiteral(src);
   const compact = literal.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "").replace(/\s+/g, "");
-  if (compact === "{}") return Object.freeze({});
+  if (compact === "{}") {
+    return Object.freeze({
+      RESOLVER_REGISTRY: Object.freeze({}),
+      thresholdNumber,
+      compareObserved,
+      UNDETERMINED_NOTE,
+    });
+  }
 
   // Non-empty: B-F13-7 filled the TypeScript map. Bundle that file so this
   // worker invokes the same functions instead of guessing null.
@@ -59,7 +68,7 @@ export async function loadResolverRegistry() {
   try {
     esbuild = await import("esbuild");
   } catch {
-    console.error("score_personal_accuracy: resolver registry is non-empty; esbuild is required to load personalAccuracyStore.ts");
+    console.error("the scoring worker now needs esbuild at runtime; it is a devDependency; install with dev deps or promote it in a later packet");
     process.exit(2);
   }
   const outdir = mkdtempSync(join(tmpdir(), "acc-reg-"));
@@ -81,10 +90,15 @@ export async function loadResolverRegistry() {
       console.error("score_personal_accuracy: personalAccuracyStore.ts did not export RESOLVER_REGISTRY");
       process.exit(2);
     }
-    return mod.RESOLVER_REGISTRY;
+    return mod;
   } finally {
     rmSync(outdir, { recursive: true, force: true });
   }
+}
+
+export async function loadResolverRegistry() {
+  const mod = await loadStoreModule();
+  return mod.RESOLVER_REGISTRY;
 }
 
 function createServiceClient() {
@@ -115,18 +129,16 @@ function thresholdNumber(value) {
   return null;
 }
 
-async function main() {
-  const RESOLVER_REGISTRY = await loadResolverRegistry();
-  const client = createServiceClient();
-  if (!client) {
-    console.error("score_personal_accuracy: service client unavailable");
-    process.exit(2);
-  }
+export async function scoreDueClaims(client, options = {}) {
+  const RESOLVER_REGISTRY = options.registry ?? await loadResolverRegistry();
+  const now = options.now ?? new Date().toISOString();
+  const resolverDeps = options.resolverDeps;
+  const thresholdNumberFn = options.thresholdNumber ?? thresholdNumber;
+  const compareObservedFn = options.compareObserved ?? compareObserved;
 
-  const now = new Date().toISOString();
   const { data, error } = await client
     .from("user_claims")
-    .select("claim_id,status,condition,resolves_at,resolution")
+    .select("claim_id,status,condition,resolves_at,resolution,subject")
     .in("status", ["open", "matured"])
     .lte("resolves_at", now);
 
@@ -154,17 +166,27 @@ async function main() {
     let resolverName = RESOLVER_NAME;
 
     if (typeof resolver === "function") {
-      const result = await resolver(row);
-      if (result && typeof result.observed === "number" && Number.isFinite(result.observed)) {
-        const threshold = thresholdNumber(condition.threshold);
+      const result = await resolver(row, resolverDeps);
+      const determined = result
+        && (result.outcome === 0 || result.outcome === 1)
+        && typeof result.observed === "number"
+        && Number.isFinite(result.observed);
+      if (determined) {
+        const threshold = thresholdNumberFn(condition.threshold);
         const compared = threshold === null
           ? null
-          : compareObserved(condition.comparator, result.observed, threshold);
+          : compareObservedFn(condition.comparator, result.observed, threshold);
         if (compared === 0 || compared === 1) {
-          outcome = compared;
-          observed = result.observed;
-          note = "";
-          resolverName = owner;
+          if (compared === result.outcome) {
+            outcome = result.outcome;
+            observed = result.observed;
+            note = typeof result.note === "string" ? result.note : UNDETERMINED_NOTE;
+            resolverName = typeof result.resolver === "string" && result.resolver
+              ? result.resolver
+              : owner;
+          } else {
+            console.error("score_personal_accuracy: resolver outcome disagreed with worker recomputation");
+          }
         }
       }
     }
@@ -192,7 +214,22 @@ async function main() {
     if (outcome === null) undetermined += 1;
   }
 
-  console.log(`score_personal_accuracy: settled ${settled}, undetermined ${undetermined}, skipped ${skipped}`);
+  return { settled, undetermined, skipped };
+}
+
+async function main() {
+  const client = createServiceClient();
+  if (!client) {
+    console.error("score_personal_accuracy: service client unavailable");
+    process.exit(2);
+  }
+  const mod = await loadStoreModule();
+  const counts = await scoreDueClaims(client, {
+    registry: mod.RESOLVER_REGISTRY,
+    thresholdNumber: typeof mod.thresholdNumber === "function" ? mod.thresholdNumber : thresholdNumber,
+    compareObserved: typeof mod.compareObserved === "function" ? mod.compareObserved : compareObserved,
+  });
+  console.log(`score_personal_accuracy: settled ${counts.settled}, undetermined ${counts.undetermined}, skipped ${counts.skipped}`);
 }
 
 function isDirectRun() {

@@ -4,13 +4,17 @@
 
 import { readFile } from "node:fs/promises";
 import path from "node:path";
+import { CLAIM_OWNER_LAST_CLOSE } from "./claimOwners";
+import { compareObserved, thresholdNumber } from "./personalAccuracy";
 
-export const CLAIM_OWNER_LAST_CLOSE = {
-  owner: "hub/lib/anchor.js",
-  metric: "close",
-} as const;
+export { CLAIM_OWNER_LAST_CLOSE };
 
-const UNAVAILABLE_NOTE = "the data this call named was not available";
+export const UNAVAILABLE_NOTE = "the data this call named was not available";
+export const UNREADABLE_NOTE = "what this call had to beat was not available";
+
+export function settledNote(date: string): string {
+  return `close on ${date}`;
+}
 
 const ET_DATE_FMT = new Intl.DateTimeFormat("en-US", {
   timeZone: "America/New_York",
@@ -19,7 +23,14 @@ const ET_DATE_FMT = new Intl.DateTimeFormat("en-US", {
   day: "2-digit",
 });
 
-export type Bar = { date: string; open: number; high: number; low: number; close: number; vol: number };
+export type Bar = {
+  date: string;
+  open: number | null;
+  high: number | null;
+  low: number | null;
+  close: number;
+  vol: number | null;
+};
 export type ResolverInput = {
   subject: { kind: "security" | "macro_series" | "basket"; id: string };
   condition: { metric: string; comparator: ">=" | "<=" | ">" | "<"; threshold: number; owner: string };
@@ -42,6 +53,15 @@ function undetermined(): ResolverResult {
   };
 }
 
+function unreadable(): ResolverResult {
+  return {
+    outcome: null,
+    observed: null,
+    resolver: CLAIM_OWNER_LAST_CLOSE.owner,
+    note: UNREADABLE_NOTE,
+  };
+}
+
 function etDate(ms: number): string {
   const parts: Record<string, string> = {};
   for (const part of ET_DATE_FMT.formatToParts(ms)) {
@@ -57,7 +77,16 @@ function etCalendarDate(dateISO: string): string | null {
   return etDate(ms);
 }
 
-function parseBars(payload: unknown): Bar[] | null {
+function finiteOrNull(value: unknown): number | null {
+  if (typeof value === "number") return Number.isFinite(value) ? value : null;
+  if (typeof value === "string" && value.trim() !== "") {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : null;
+  }
+  return null;
+}
+
+export function parseBars(payload: unknown): Bar[] | null {
   if (!payload || typeof payload !== "object" || Array.isArray(payload)) return null;
   const raw = (payload as { bars?: unknown }).bars;
   if (!Array.isArray(raw) || raw.length === 0) return null;
@@ -65,26 +94,21 @@ function parseBars(payload: unknown): Bar[] | null {
   for (const row of raw) {
     if (!Array.isArray(row) || row.length < 5) continue;
     const date = row[0];
-    const close = Number(row[4]);
     if (typeof date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
-    if (!Number.isFinite(close)) continue;
-    const open = Number(row[1]);
-    const high = Number(row[2]);
-    const low = Number(row[3]);
-    const vol = Number(row[5] ?? 0);
+    const close = Number(row[4]);
     bars.push({
       date,
-      open: Number.isFinite(open) ? open : 0,
-      high: Number.isFinite(high) ? high : 0,
-      low: Number.isFinite(low) ? low : 0,
-      close,
-      vol: Number.isFinite(vol) ? vol : 0,
+      open: finiteOrNull(row[1]),
+      high: finiteOrNull(row[2]),
+      low: finiteOrNull(row[3]),
+      close: Number.isFinite(close) ? close : Number.NaN,
+      vol: finiteOrNull(row[5]),
     });
   }
   return bars.length ? bars : null;
 }
 
-async function defaultReadDailyBars(sym: string): Promise<Bar[] | null> {
+export async function defaultReadDailyBars(sym: string): Promise<Bar[] | null> {
   const upper = String(sym).toUpperCase();
   if (upper.includes("/") || upper.includes("\\") || upper.includes("..")) return null;
   try {
@@ -96,22 +120,13 @@ async function defaultReadDailyBars(sym: string): Promise<Bar[] | null> {
   }
 }
 
-function compare(comparator: string, observed: number, threshold: number): 1 | 0 | null {
-  switch (comparator) {
-    case ">=": return observed >= threshold ? 1 : 0;
-    case "<=": return observed <= threshold ? 1 : 0;
-    case ">": return observed > threshold ? 1 : 0;
-    case "<": return observed < threshold ? 1 : 0;
-    default: return null;
-  }
-}
-
 export function lastCloseOnOrBefore(bars: Bar[], dateISO: string): Bar | null {
   const day = etCalendarDate(dateISO);
   if (!day || !Array.isArray(bars) || bars.length === 0) return null;
   let found: Bar | null = null;
   for (const bar of bars) {
-    if (bar && typeof bar.date === "string" && bar.date <= day) found = bar;
+    if (!bar || typeof bar.date !== "string") continue;
+    if (bar.date <= day && (!found || bar.date > found.date)) found = bar;
   }
   return found;
 }
@@ -132,17 +147,17 @@ export async function resolveLastClose(
   const bar = lastCloseOnOrBefore(bars, input.resolves_at);
   if (!bar || !Number.isFinite(bar.close)) return undetermined();
 
-  const threshold = typeof condition.threshold === "number" ? condition.threshold : Number(condition.threshold);
-  if (!Number.isFinite(threshold)) return undetermined();
+  const threshold = thresholdNumber(condition.threshold);
+  if (threshold === null) return unreadable();
 
   const observed = bar.close;
-  const outcome = compare(condition.comparator, observed, threshold);
-  if (outcome === null) return undetermined();
+  const outcome = compareObserved(condition.comparator, observed, threshold);
+  if (outcome === null) return unreadable();
 
   return {
     outcome,
     observed,
     resolver: CLAIM_OWNER_LAST_CLOSE.owner,
-    note: `close on ${bar.date}`,
+    note: settledNote(bar.date),
   };
 }

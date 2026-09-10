@@ -1,13 +1,33 @@
 // Owner-scoped claim reads + the v1 resolver registry (last close from the quote owner).
 // Maturation/resolution writes are service-role only (the out-of-band worker).
 
-import type { ClaimCondition, ClaimResolution, ClaimStatus, SubjectKind, UnscorableReason, UserClaim } from "@/lib/personalAccuracy";
-import { CLAIM_OWNER_LAST_CLOSE, resolveLastClose } from "./dailyCloseResolver";
+import {
+  compareObserved,
+  thresholdNumber,
+  type ClaimCondition,
+  type ClaimResolution,
+  type ClaimStatus,
+  type SubjectKind,
+  type UnscorableReason,
+  type UserClaim,
+} from "@/lib/personalAccuracy";
+import { CLAIM_OWNER_LAST_CLOSE } from "./claimOwners";
+import {
+  resolveLastClose,
+  type ReadDailyBars,
+  type ResolverInput,
+  type ResolverResult,
+} from "./dailyCloseResolver";
 
-export type MetricResolver = (claim: UserClaim) => Promise<{ observed: number } | null>;
+export { compareObserved, thresholdNumber };
+
+export type MetricResolver = (
+  input: ResolverInput,
+  deps?: { readDailyBars: ReadDailyBars },
+) => Promise<ResolverResult>;
 
 /** v1: last close from the quote owner. Never guess an outcome. */
-export const RESOLVER_REGISTRY = Object.freeze({
+export const RESOLVER_REGISTRY: Readonly<Record<string, MetricResolver>> = Object.freeze({
   [CLAIM_OWNER_LAST_CLOSE.owner]: resolveLastClose,
 });
 
