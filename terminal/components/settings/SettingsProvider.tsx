@@ -13,10 +13,11 @@ import {
 // each copy carried its own state. Here the BUTTONS mount three times and the
 // panel exactly once, so there is nothing to drift.
 
-export type SettingsSection = "account" | "accuracy" | "billing" | "usage" | "prefs" | "alertDelivery" | "terminal" | "sync";
+export type SettingsSection =
+  | "account" | "accuracy" | "billing" | "usage" | "prefs" | "alertDelivery" | "terminal" | "sync" | "webhooks";
 
 export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
-  "account", "accuracy", "billing", "usage", "prefs", "alertDelivery", "terminal", "sync",
+  "account", "accuracy", "billing", "usage", "prefs", "alertDelivery", "terminal", "sync", "webhooks",
 ] as const;
 
 interface SettingsApi {
@@ -71,7 +72,7 @@ function toAcsUser(u: {
   };
 }
 
-// Code-split: the panel and its six sections never load until the user opens
+// Code-split: the panel and its sections never load until the user opens
 // settings for the first time (mirrors OnboardingProvider's sheet).
 const SettingsPanel = dynamic(() => import("./SettingsPanel"), { ssr: false });
 

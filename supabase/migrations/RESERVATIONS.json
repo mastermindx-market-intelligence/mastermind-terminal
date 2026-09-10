@@ -181,12 +181,15 @@
       "note": "claimed by packet B-F13-5 in PR #547; DDL shipped, not applied; applied_date not recorded because the pull request has not merged"
     },
     "0018": {
-      "state": "reserved",
-      "file": null,
+      "state": "taken",
+      "file": "0018_webhook_delivery.sql",
       "packet": "B-F12-7",
-      "pr": null,
-      "pr_state": null,
-      "note": "signed webhooks; reserved by Meta-CEO B ruling 2026-09-09; PR pending. B-F12-7 here is the seat's re-scoped Terminal signed-webhooks packet of 2026-09-09 (branch claude/mo-b-f12-7-signed-webhooks), not the refused public-API packet recorded against macro #6925 under the same id"
+      "pr": 549,
+      "pr_state": "merged",
+      "merged_sha": "cd1269fe",
+      "applied_in_production": false,
+      "applied_date": null,
+      "note": "shipped unapplied; the seat applies with a receipt. applied_date not recorded because DDL is unapplied. File landed in open PR #549 (packet B-F12-7, seat ruling R2). B-F12-7 here is the seat's re-scoped Terminal signed-webhooks packet of 2026-09-09 (branch claude/mo-b-f12-7-signed-webhooks), not the refused public-API packet recorded against macro #6925 under the same id. Open-PR query at authoring: #547 holds 0017 (B-F13-5); #543 reserves 0017-0020 in the ledger only; 0019 remains for B-F12-8. Merged to master 2026-09-10T19:13Z via merge-on-green (#549); not yet applied — waits for 0017 in ledger order."
     },
     "0019": {
       "state": "reserved",
@@ -214,6 +217,17 @@
       "applied_in_production": false,
       "applied_date": null,
       "note": "packet B-F12-B5-2 team-shared saved workspaces; shipped unapplied. Seat ruling R1 owns prefix 0022 (0021 is B-F12-B5-1 explicit grants). Open draft PR #555. applied_in_production is false and applied_date is null, not recorded as applied and never guessed. Merged to master 2026-09-09T20:01Z via auto-merge (#555); not yet applied — waits for 0017–0021 in ledger order."
+    },
+    "0023": {
+      "state": "taken",
+      "file": "0023_portfolio_targets.sql",
+      "packet": "B-F08-B5-1",
+      "pr": 552,
+      "pr_state": "merged",
+      "merged_sha": "9022e0138",
+      "applied_in_production": false,
+      "applied_date": null,
+      "note": "portfolio target weights + bands, user-typed, RLS own-row; ships UNAPPLIED -- the builder never runs DDL against production and the seat applies with receipts, so applied_in_production is false and the date is not recorded because there is no application yet, never because a real date was lost. Merged to master 2026-09-10T15:19Z via merge-on-green (#552); not yet applied — waits for 0017–0022 in ledger order."
     }
   }
 }

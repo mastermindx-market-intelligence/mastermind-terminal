@@ -635,7 +635,8 @@ const OPT_ALERT_ROOT_RE = /^[A-Z0-9]{1,10}(?:[.-][A-Z0-9]{1,4})?$/;
 export function normalizeOptAlertRoot(value: unknown): string | null {
   if (typeof value !== "string") return null;
   const root = value.trim().toUpperCase();
-  return OPT_ALERT_ROOT_RE.test(root) ? root : null;
+  // Flow._root (ingest/alerts_engine.py) is the law: strip+upper, total length ≤ 12, then the regex.
+  return root.length <= 12 && OPT_ALERT_ROOT_RE.test(root) ? root : null;
 }
 
 /** Canonical storage identity for an options alert.
@@ -657,6 +658,16 @@ export function canonicalizeOptAlertIdentity(
   const root = normalizeOptAlertRoot(condition.root);
   if (!root) return null;
   return { symbol: root, condition: { ...condition, root } };
+}
+
+export type OptAlertIdentityState = "ok" | "unresolved";
+
+/** Derived read-side identity. Unresolved exactly when canonicalize returns null. */
+export function optAlertIdentityState(
+  symbol: string,
+  condition: Record<string, unknown>,
+): OptAlertIdentityState {
+  return canonicalizeOptAlertIdentity(symbol, condition) ? "ok" : "unresolved";
 }
 
 /**
