@@ -1,0 +1,54 @@
+# B-F08-B5-1 portfolio construction targets — capture evidence
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
+# capturedAtHead: 3a2519ce2ca531beeac84d21ad98bec2151c53b9
+# capturedAt: 2026-09-10T14:19:38.106Z
+# capturedAtHead is informational. The lock is layoutFiles.
+layoutFiles:
+  terminal/components/PortfolioView.tsx: "14b30087415f19a6a557644d7e10c24cf004a1a83e88afddba83a7ba6ff3c509"
+  terminal/lib/portfolioTargets.ts: "7857cef2eb79cd4f78b875744734a7d45ed04d1d50f1ea55dd7ce155248a2bf9"
+  terminal/components/PortfolioTargets.module.css: "7a6cf0f47abdb773a3f56c11452ece374221c2a9140e87831023ecfd5120129a"
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: mobile, width: 390, height: 844 }
+surfaces: [PortfolioTargetsReadout]
+capture_flag: TERMINAL_E2E_FIXTURE
+capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
+command: |
+  cd terminal
+  node e2e/tools/capture_b_f08_b5_1_targets.cjs
+files:
+  - PortfolioTargets-cleared-1440-zh.png
+  - PortfolioTargets-cleared-1440.png
+  - PortfolioTargets-cleared-390-zh.png
+  - PortfolioTargets-cleared-390.png
+  - PortfolioTargets-empty-1440-zh.png
+  - PortfolioTargets-empty-1440.png
+  - PortfolioTargets-empty-390-zh.png
+  - PortfolioTargets-empty-390.png
+  - PortfolioTargets-orphaned-empty-book-1440-zh.png
+  - PortfolioTargets-orphaned-empty-book-1440.png
+  - PortfolioTargets-orphaned-empty-book-390-zh.png
+  - PortfolioTargets-orphaned-empty-book-390.png
+  - PortfolioTargets-orphaned-target-disclosed-1440-zh.png
+  - PortfolioTargets-orphaned-target-disclosed-1440.png
+  - PortfolioTargets-orphaned-target-disclosed-390-zh.png
+  - PortfolioTargets-orphaned-target-disclosed-390.png
+  - PortfolioTargets-populated-outside-band-1440-zh.png
+  - PortfolioTargets-populated-outside-band-1440.png
+  - PortfolioTargets-populated-outside-band-390-zh.png
+  - PortfolioTargets-populated-outside-band-390.png
+  - PortfolioTargets-populated-within-band-1440-zh.png
+  - PortfolioTargets-populated-within-band-1440.png
+  - PortfolioTargets-populated-within-band-390-zh.png
+  - PortfolioTargets-populated-within-band-390.png
+  - PortfolioTargets-unavailable-1440-zh.png
+  - PortfolioTargets-unavailable-1440.png
+  - PortfolioTargets-unavailable-390-zh.png
+  - PortfolioTargets-unavailable-390.png
+  - PortfolioTargets-unweighable-1440-zh.png
+  - PortfolioTargets-unweighable-1440.png
+  - PortfolioTargets-unweighable-390-zh.png
+  - PortfolioTargets-unweighable-390.png
