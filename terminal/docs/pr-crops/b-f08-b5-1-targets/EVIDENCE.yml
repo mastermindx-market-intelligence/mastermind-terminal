@@ -1,12 +1,12 @@
 # B-F08-B5-1 portfolio construction targets — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 31bbf8ec79c2353ad6a77f1b3fb44b2f6e009c13
-# capturedAt: 2026-09-09T19:19:05.005Z
+# capturedAtHead: 3a2519ce2ca531beeac84d21ad98bec2151c53b9
+# capturedAt: 2026-09-10T14:19:38.106Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/components/PortfolioView.tsx: "14b30087415f19a6a557644d7e10c24cf004a1a83e88afddba83a7ba6ff3c509"
-  terminal/lib/portfolioTargets.ts: "ece7aab0f13300881406e7b7b06b3a930926477c3d4d7c2c76042865d958b0f3"
+  terminal/lib/portfolioTargets.ts: "7857cef2eb79cd4f78b875744734a7d45ed04d1d50f1ea55dd7ce155248a2bf9"
   terminal/components/PortfolioTargets.module.css: "7a6cf0f47abdb773a3f56c11452ece374221c2a9140e87831023ecfd5120129a"
 theme: dark
 languages: [en, zh]
