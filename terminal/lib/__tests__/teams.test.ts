@@ -5,6 +5,7 @@ import {
   createTeam,
   inviteTokenHash,
   isAbsentTableError,
+  listMemberNames,
   listTeams,
   newInviteToken,
   normalizeEmail,
@@ -54,6 +55,18 @@ describe("normalizeRole", () => {
 describe("normalizeEmail", () => {
   it("rejects missing domain dot", () => expect(normalizeEmail("a@b")).toBeNull());
   it("trims and lowercases", () => expect(normalizeEmail("A@B.co ")).toBe("a@b.co"));
+});
+
+describe("listMemberNames", () => {
+  it("a client without rpc fails closed so the route can disclose the unread names", async () => {
+    const db = { from: () => ({}) } as unknown as TenancyDb;
+    const result = await listMemberNames(db, "t1");
+    expect(result).toEqual({
+      ok: false,
+      reason: "failed",
+      error: "team_member_names is not callable on this client",
+    });
+  });
 });
 
 describe("invite tokens", () => {
@@ -549,6 +562,11 @@ const NEW_LEX_KEYS = [
   "acsTeamInviteBadge",
   "acsTeamInviteExpires",
   "acsTeamTruncated",
+  "acsTeamInvitesFail",
+  "acsTeamMany",
+  "acsTeamListTruncated",
+  "acsTeamJoinedUnread",
+  "acsTeamExpiryUnread",
   "acsTeamTransferButton",
   "acsTeamTransferTitle",
   "acsTeamTransferNote",
@@ -575,6 +593,9 @@ const SENTENCE_LEX_KEYS = new Set([
   "acsTeamCreated",
   "acsTeamInviteExpires",
   "acsTeamTruncated",
+  "acsTeamInvitesFail",
+  "acsTeamMany",
+  "acsTeamListTruncated",
   "acsTeamTransferTitle",
   "acsTeamTransferNote",
   "acsTeamTransferAdminNeed",
@@ -599,7 +620,7 @@ const BANNED = [
 ];
 
 describe("TEAM_ROUTE_MESSAGES and LEX plain-word completeness (B-F12-8)", () => {
-  it("seat R5: acsTeam* transfer copy addresses the customer as 你; TEAM_ROUTE_MESSAGES keeps 您", () => {
+  it("seat R5: acsTeam* transfer copy addresses the customer as 你; same_owner and no_self_role follow that law", () => {
     expect(LEX.acsTeamTransferConsequence[0]).toBe(
       "You will become an administrator. They will become the team owner. The new owner can transfer it back to you later.",
     );
@@ -607,7 +628,8 @@ describe("TEAM_ROUTE_MESSAGES and LEX plain-word completeness (B-F12-8)", () => 
       "你将成为管理员，对方将成为团队所有者。之后对方可以随时转回给你。",
     );
     expect(LEX.acsTeamTransferConsequence[1]).not.toContain("您");
-    expect(TEAM_ROUTE_MESSAGES.same_owner[1]).toContain("您");
+    expect(TEAM_ROUTE_MESSAGES.same_owner[1]).toBe("你已经是所有者。");
+    expect(TEAM_ROUTE_MESSAGES.no_self_role[1]).toBe("你无法更改自己的角色。请联系团队所有者。");
     expect(TEAM_ROUTE_MESSAGES.conflict[1]).toMatch(/。/);
   });
 

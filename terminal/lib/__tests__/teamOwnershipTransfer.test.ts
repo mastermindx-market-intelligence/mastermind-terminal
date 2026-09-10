@@ -273,7 +273,7 @@ describe("transferOwnership (B-F12-9)", () => {
 describe("TEAM_ROUTE_MESSAGES for transfer codes", () => {
   it("maps each transfer code to a complete EN/ZH pair", () => {
     expect(TEAM_ROUTE_MESSAGES.transfer_requires_admin[0]).toMatch(/^[A-Z].*\.$/);
-    expect(TEAM_ROUTE_MESSAGES.same_owner[1]).toContain("您");
+    expect(TEAM_ROUTE_MESSAGES.same_owner[1]).toBe("你已经是所有者。");
     expect(TEAM_ROUTE_MESSAGES.conflict[1]).toMatch(/[一-鿿]/);
     expect(TEAM_ROUTE_MESSAGES.transfer_success[0]).toMatch(/^[A-Z].*\.$/);
   });

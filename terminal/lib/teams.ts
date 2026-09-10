@@ -409,7 +409,9 @@ export async function listMemberNames(
   db: TenancyDb & { rpc?: (fn: string, args: Record<string, unknown>) => Promise<DbResult> },
   teamId: string,
 ): Promise<{ ok: true; names: Map<string, string> } | ReadFail> {
-  if (typeof db.rpc !== "function") return { ok: true, names: new Map() };
+  if (typeof db.rpc !== "function") {
+    return { ok: false, reason: "failed", error: "team_member_names is not callable on this client" };
+  }
   const result = await db.rpc(TEAM_MEMBER_NAMES_FN, { p_team: teamId });
   if (result.error) {
     return isAbsentTableError(result.error)
@@ -453,12 +455,9 @@ export async function changeMemberRole(
   if (target.role === "owner") return failWrite("forbidden", "the owner cannot be changed", 403, "owner_locked");
   if (targetUserId === actorUserId) return failWrite("forbidden", "cannot change own role", 403, "no_self_role");
   if (roleResult.role !== "owner") {
-    return failWrite(
-      "forbidden",
-      "only the owner can change a role",
-      403,
-      target.role === "admin" || addRole === "admin" ? "owner_only_change_admin" : "owner_only",
-    );
+    const code =
+      target.role === "admin" ? "owner_only_change_admin" : addRole === "admin" ? "owner_only_admin" : "owner_only";
+    return failWrite("forbidden", "only the owner can change a role", 403, code);
   }
   if (target.role === addRole) return failWrite("invalid", "already that role", 400, "same_role");
 
@@ -745,7 +744,7 @@ export const TEAM_ROUTE_MESSAGES: Record<TeamRouteCode, [string, string]> = {
   owner_only_remove_admin: ["Only the team owner can remove an administrator.", "只有团队所有者才能移除管理员。"],
   owner_locked: ["The team owner cannot be changed or removed.", "团队所有者无法被更改或移除。"],
   owner_cannot_leave: ["The team owner cannot leave the team.", "团队所有者无法退出团队。"],
-  no_self_role: ["You cannot change your own role. Ask the team owner.", "您无法更改自己的角色。请联系团队所有者。"],
+  no_self_role: ["You cannot change your own role. Ask the team owner.", "你无法更改自己的角色。请联系团队所有者。"],
   not_on_team: ["That person is not on this team.", "该成员不在此团队中。"],
   same_role: ["That person already has that role.", "该成员已经是该角色。"],
   role_change_failed: ["We could not change that role just now. Nothing was changed.", "我们暂时无法更改该角色。未更改任何内容。"],
@@ -754,7 +753,7 @@ export const TEAM_ROUTE_MESSAGES: Record<TeamRouteCode, [string, string]> = {
     "They must be an administrator before they can become the owner.",
     "他们必须是管理员才能成为所有者。",
   ],
-  same_owner: ["You are already the owner.", "您已经是所有者。"],
+  same_owner: ["You are already the owner.", "你已经是所有者。"],
   transfer_success: ["Ownership transferred successfully.", "所有权已成功转移。"],
   conflict: [
     "The transfer failed due to a concurrent change. Please try again.",

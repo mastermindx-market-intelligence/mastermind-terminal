@@ -288,7 +288,7 @@ describe("B-F12-8 policy matrix (§2.1)", () => {
     H.user = { id: "admin" };
     const asAdmin = await jsonOf(await MPATCH(membersReq("PATCH", { userId: "member", role: "admin" }), ctx(teamId)));
     expect(asAdmin.status).toBe(403);
-    expectCode(asAdmin.body, "owner_only_change_admin");
+    expectCode(asAdmin.body, "owner_only_admin");
     H.user = { id: "member" };
     const asMember = await jsonOf(await MPATCH(membersReq("PATCH", { userId: "peer", role: "admin" }), ctx(teamId)));
     expect(asMember.status).toBe(403);

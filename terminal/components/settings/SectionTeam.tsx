@@ -107,13 +107,17 @@ export default function SectionTeam({
 }: SectionProps & { devTeam?: DevTeamFixture }) {
   const callerUserId = devTeam?.callerUserId || user?.id || "";
   const [teamId, setTeamId] = useState<string | null>(devTeam?.team?.id ?? null);
+  const [teamName, setTeamName] = useState((devTeam?.team?.name || "").trim());
+  const [teamsCount, setTeamsCount] = useState(devTeam?.team ? 1 : 0);
+  const [teamsTruncated, setTeamsTruncated] = useState(false);
   const [callerRole, setCallerRole] = useState<TeamRole | null>(devTeam?.callerRole ?? null);
   const [members, setMembers] = useState<RosterMember[]>(devTeam?.members ?? []);
   const [invites, setInvites] = useState<PendingInvite[]>(devTeam?.invites ?? []);
+  const [invitesFail, setInvitesFail] = useState(false);
   const [truncated, setTruncated] = useState(Boolean(devTeam?.truncated));
   const [rosterFail, setRosterFail] = useState<[string, string] | null>(null);
   const [msg, setMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
-  const [busyId, setBusyId] = useState<string | null>(null);
+  const [busyId, setBusyId] = useState<Set<string>>(() => new Set());
   const [confirm, setConfirm] = useState<{ userId: string; kind: "remove" | "leave" } | null>(null);
   const [transfer, setTransfer] = useState<{ phase: TransferPhase; recipientId: string | null } | null>(null);
   const [transferBusy, setTransferBusy] = useState(false);
@@ -146,7 +150,11 @@ export default function SectionTeam({
       setRosterFail(rosterFailPair(status, body));
       setMembers([]);
       setTruncated(false);
+      setInvites([]);
+      setInvitesFail(false);
     };
+    setInvites([]);
+    setInvitesFail(false);
     try {
       const teamsRes = await fetch("/api/teams");
       if (!teamsRes.ok) {
@@ -162,14 +170,21 @@ export default function SectionTeam({
       if (teams.length === 0) {
         setRosterFail(null);
         setTeamId(null);
+        setTeamName("");
+        setTeamsCount(0);
+        setTeamsTruncated(false);
         setCallerRole(null);
         setMembers([]);
         setInvites([]);
+        setInvitesFail(false);
         setTruncated(false);
         return;
       }
       const team = teams[0];
       setTeamId(typeof team.id === "string" ? team.id : null);
+      setTeamName(typeof team.name === "string" ? team.name.trim() : "");
+      setTeamsCount(teams.length);
+      setTeamsTruncated(teamsBody.truncated === true);
       const membersRes = await fetch(`/api/teams/${encodeURIComponent(team.id)}/members`);
       if (!membersRes.ok) {
         fail(membersRes.status, await membersRes.json().catch(() => ({})));
@@ -193,21 +208,31 @@ export default function SectionTeam({
         })),
       );
       if (membersBody.callerRole === "owner" || membersBody.callerRole === "admin") {
-        const invRes = await fetch(`/api/teams/invitations?teamId=${encodeURIComponent(team.id)}`);
-        if (invRes.ok) {
-          const invBody = await invRes.json();
-          const pending = Array.isArray(invBody?.invites) ? invBody.invites : [];
-          setInvites(
-            pending.map((row: Record<string, unknown>) => ({
-              id: String(row.id || ""),
-              email: String(row.email || ""),
-              role: row.role === "admin" ? "admin" : "member",
-              expiresAt: typeof row.expiresAt === "string" ? row.expiresAt : null,
-            })),
-          );
+        try {
+          const invRes = await fetch(`/api/teams/invitations?teamId=${encodeURIComponent(team.id)}`);
+          if (!invRes.ok) {
+            setInvitesFail(true);
+            setInvites([]);
+          } else {
+            const invBody = await invRes.json();
+            const pending = Array.isArray(invBody?.invites) ? invBody.invites : [];
+            setInvitesFail(false);
+            setInvites(
+              pending.map((row: Record<string, unknown>) => ({
+                id: String(row.id || ""),
+                email: String(row.email || ""),
+                role: row.role === "admin" ? "admin" : "member",
+                expiresAt: typeof row.expiresAt === "string" ? row.expiresAt : null,
+              })),
+            );
+          }
+        } catch {
+          setInvitesFail(true);
+          setInvites([]);
         }
       } else {
         setInvites([]);
+        setInvitesFail(false);
       }
     } catch {
       // A network failure is not an absent team schema either.
@@ -232,11 +257,32 @@ export default function SectionTeam({
     };
   }, [devTeam, loadLive]);
 
+  function rowError(target: RosterMember, message: string): string {
+    const name = displayLabel(target, t);
+    return lang === "zh" ? `${name}：${message}` : `${name}: ${message}`;
+  }
+
+  function addBusy(userId: string) {
+    setBusyId((prev) => {
+      const next = new Set(prev);
+      next.add(userId);
+      return next;
+    });
+  }
+
+  function dropBusy(userId: string) {
+    setBusyId((prev) => {
+      const next = new Set(prev);
+      next.delete(userId);
+      return next;
+    });
+  }
+
   async function patchRole(target: RosterMember, role: "admin" | "member") {
     if (!teamId || devTeam) return;
-    const previous = members;
+    const previousRole = target.role;
     setMembers((rows) => rows.map((row) => (row.userId === target.userId ? { ...row, role } : row)));
-    setBusyId(target.userId);
+    addBusy(target.userId);
     setMsg(null);
     try {
       const res = await fetch(`/api/teams/${encodeURIComponent(teamId)}/members`, {
@@ -246,25 +292,38 @@ export default function SectionTeam({
       });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setMembers(previous);
-        setMsg({ kind: "err", text: routeMessage(body, lang) || TEAM_ROUTE_MESSAGES.role_change_failed[lang === "zh" ? 1 : 0] });
+        setMembers((rows) =>
+          rows.map((row) => (row.userId === target.userId ? { ...row, role: previousRole } : row)),
+        );
+        setMsg({
+          kind: "err",
+          text: rowError(
+            target,
+            routeMessage(body, lang) || TEAM_ROUTE_MESSAGES.role_change_failed[lang === "zh" ? 1 : 0],
+          ),
+        });
         return;
       }
       const nextRole = body?.member?.role === "admin" || body?.member?.role === "member" ? body.member.role : role;
       setMembers((rows) => rows.map((row) => (row.userId === target.userId ? { ...row, role: nextRole } : row)));
       setMsg({ kind: "ok", text: t("acsTeamSaved") });
     } catch {
-      setMembers(previous);
-      setMsg({ kind: "err", text: TEAM_ROUTE_MESSAGES.role_change_failed[lang === "zh" ? 1 : 0] });
+      setMembers((rows) =>
+        rows.map((row) => (row.userId === target.userId ? { ...row, role: previousRole } : row)),
+      );
+      setMsg({
+        kind: "err",
+        text: rowError(target, TEAM_ROUTE_MESSAGES.role_change_failed[lang === "zh" ? 1 : 0]),
+      });
     } finally {
-      setBusyId(null);
+      dropBusy(target.userId);
     }
   }
 
   async function confirmRemove() {
     if (!confirm || !teamId || devTeam) return;
     const { userId, kind } = confirm;
-    setBusyId(userId);
+    addBusy(userId);
     setMsg(null);
     try {
       const res = await fetch(`/api/teams/${encodeURIComponent(teamId)}/members?userId=${encodeURIComponent(userId)}`, {
@@ -287,7 +346,7 @@ export default function SectionTeam({
     } catch {
       setMsg({ kind: "err", text: TEAM_ROUTE_MESSAGES.remove_failed[lang === "zh" ? 1 : 0] });
     } finally {
-      setBusyId(null);
+      dropBusy(userId);
     }
   }
 
@@ -405,12 +464,12 @@ export default function SectionTeam({
   // shown to everyone and nothing else in the Terminal creates a team — so this state gets a
   // sentence and a way out, never a titled box with nothing in it.
   const noTeam = loaded && !rosterFail && !teamId && members.length === 0;
-  const showInvites = (callerRole === "owner" || callerRole === "admin") && invites.length > 0;
+  const showInvites = (callerRole === "owner" || callerRole === "admin") && (invites.length > 0 || invitesFail);
 
   return (
     <>
       <SectionHead
-        title={t("acsTeam")}
+        title={teamName || t("acsTeam")}
         sub={noTeam ? undefined : t("acsTeamSub")}
         closeLabel={t("acsClose")}
         onClose={onClose}
@@ -421,6 +480,16 @@ export default function SectionTeam({
         data-team-id={teamId || ""}
         data-caller-role={callerRole || ""}
       >
+        {!noTeam && teamsCount > 1 && teamName ? (
+          <p className="acs-note" data-testid="team-many">
+            {fill(t("acsTeamMany"), { n: String(teamsCount), name: teamName })}
+          </p>
+        ) : null}
+        {!noTeam && teamsTruncated ? (
+          <p className="acs-note" data-testid="team-list-truncated">
+            {t("acsTeamListTruncated")}
+          </p>
+        ) : null}
         <Group title={t("acsTeamWhatEach")}>
           <Row label={t("acsRoleOwner")} desc={t("acsRoleOwnerWhat")} />
           <Row label={t("acsRoleAdmin")} desc={t("acsRoleAdminWhat")} />
@@ -429,22 +498,27 @@ export default function SectionTeam({
 
         {showInvites ? (
           <Group title={t("acsTeamInvites")}>
-            {invites.map((invite) => (
-              <Row
-                key={invite.id || invite.email}
-                label={invite.email}
-                desc={
-                  invite.expiresAt
-                    ? fill(t("acsTeamInviteExpires"), { date: acsDate(invite.expiresAt, lang) })
-                    : undefined
-                }
-                value={
-                  <span className={s.inviteBadge} data-testid="team-invite-badge">
-                    {t("acsTeamInviteBadge")}
-                  </span>
-                }
-              />
-            ))}
+            {invitesFail ? (
+              <p className="acs-note" data-testid="team-invites-fail">
+                {t("acsTeamInvitesFail")}
+              </p>
+            ) : (
+              invites.map((invite) => {
+                const expiry = acsDate(invite.expiresAt, lang);
+                return (
+                  <Row
+                    key={invite.id || invite.email}
+                    label={invite.email}
+                    desc={expiry ? fill(t("acsTeamInviteExpires"), { date: expiry }) : t("acsTeamExpiryUnread")}
+                    value={
+                      <span className={s.inviteBadge} data-testid="team-invite-badge">
+                        {t("acsTeamInviteBadge")}
+                      </span>
+                    }
+                  />
+                );
+              })
+            )}
           </Group>
         ) : null}
 
@@ -494,6 +568,7 @@ export default function SectionTeam({
               const canLeave = known && isYou && (callerRole === "admin" || callerRole === "member");
               const canTransfer = callerRole === "owner" && isYou && isOwnerRow && hasAdmin;
               const confirming = confirm?.userId === member.userId;
+              const joined = acsDate(member.createdAt, lang);
               return (
                 <Row
                   key={member.userId}
@@ -506,11 +581,7 @@ export default function SectionTeam({
                       {isYou ? <span className={s.you}>{t("acsTeamYou")}</span> : null}
                     </span>
                   }
-                  desc={
-                    member.createdAt
-                      ? `${t("acsTeamJoined")} ${acsDate(member.createdAt, lang)}`
-                      : undefined
-                  }
+                  desc={joined ? `${t("acsTeamJoined")} ${joined}` : t("acsTeamJoinedUnread")}
                   value={
                     <span
                       className={`${s.roleBadge}${member.role === "owner" ? ` ${s.roleOwner}` : ""}`}
@@ -530,7 +601,7 @@ export default function SectionTeam({
                             <button
                               type="button"
                               className={`acs-btn ghost ${s.btnSm}`}
-                              disabled={busyId === member.userId}
+                              disabled={busyId.has(member.userId)}
                               onClick={() => void patchRole(member, "admin")}
                             >
                               {t("acsMakeAdmin")}
@@ -540,7 +611,7 @@ export default function SectionTeam({
                             <button
                               type="button"
                               className={`acs-btn ghost ${s.btnSm}`}
-                              disabled={busyId === member.userId}
+                              disabled={busyId.has(member.userId)}
                               onClick={() => void patchRole(member, "member")}
                             >
                               {t("acsMakeMember")}
@@ -552,7 +623,7 @@ export default function SectionTeam({
                         <button
                           type="button"
                           className={`acs-btn btn-danger ${s.btnSm}`}
-                          disabled={busyId === member.userId}
+                          disabled={busyId.has(member.userId)}
                           onClick={() => setConfirm({ userId: member.userId, kind: "remove" })}
                         >
                           {t("acsTeamRemove")}
@@ -562,7 +633,7 @@ export default function SectionTeam({
                         <button
                           type="button"
                           className={`acs-btn btn-danger ${s.btnSm}`}
-                          disabled={busyId === member.userId}
+                          disabled={busyId.has(member.userId)}
                           onClick={() => setConfirm({ userId: member.userId, kind: "leave" })}
                         >
                           {t("acsTeamLeave")}
@@ -594,14 +665,14 @@ export default function SectionTeam({
                     <div className="acs-form">
                       <p className="acs-note">{t(confirm.kind === "leave" ? "acsTeamLeaveAsk" : "acsTeamRemoveAsk")}</p>
                       <div className="acs-btns">
-                        <button type="button" className="acs-btn ghost" onClick={() => setConfirm(null)} disabled={busyId === member.userId}>
+                        <button type="button" className="acs-btn ghost" onClick={() => setConfirm(null)} disabled={busyId.has(member.userId)}>
                           {t("acsCancel")}
                         </button>
                         <button
                           type="button"
                           className="acs-btn btn-danger"
                           onClick={() => void confirmRemove()}
-                          disabled={busyId === member.userId}
+                          disabled={busyId.has(member.userId)}
                         >
                           {t(confirm.kind === "leave" ? "acsTeamLeave" : "acsTeamRemove")}
                         </button>

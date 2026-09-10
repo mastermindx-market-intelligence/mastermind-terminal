@@ -293,6 +293,9 @@ async function measureLayout(page) {
       .find((t) => t.includes("Created this team") || t.includes("创建了该团队"));
     const perRowCounts = Array.from(document.querySelectorAll("[data-testid=\"team-change-role\"]"))
       .map((el) => el.querySelectorAll("button").length);
+    const bodyText = document.querySelector(".acs-overlay.open .acs-card")?.textContent || "";
+    const joinNotRead = (bodyText.match(/Join date not read/g) || bodyText.match(/加入时间未读取/g) || []).length;
+    const expiryNotRead = (bodyText.match(/Expiry date not read/g) || bodyText.match(/到期时间未读取/g) || []).length;
     return {
       roleBadgeText: badges.join(" | "),
       changeRolePresent: !!change,
@@ -309,6 +312,9 @@ async function measureLayout(page) {
       inviteBadgeText: inviteBadge ? (inviteBadge.textContent || "").trim() : "",
       unnamedRows: unnamed,
       ownerWhat: ownerWhat || "",
+      headingTitle: (document.querySelector(".acs-overlay.open .acs-head h2")?.textContent || "").trim(),
+      joinNotRead,
+      expiryNotRead,
     };
   });
 }
@@ -406,6 +412,17 @@ async function main() {
             if (!m.ownerWhat) {
               throw new Error(`${shot.file}: owner sentence missing`);
             }
+            if (shot.kind === "team" || shot.kind === "change" || shot.kind === "truncated") {
+              if (m.headingTitle !== "Desk") {
+                throw new Error(`${shot.file}: heading is ${JSON.stringify(m.headingTitle)}, expected Desk`);
+              }
+              if (m.joinNotRead < 2) {
+                throw new Error(`${shot.file}: expected two join-date-not-read rows, got ${m.joinNotRead}`);
+              }
+              if (m.expiryNotRead < 1) {
+                throw new Error(`${shot.file}: expected an expiry-not-read invitation, got ${m.expiryNotRead}`);
+              }
+            }
           }
           if (m.removeClass && !/\bbtn-danger\b/.test(m.removeClass)) {
             throw new Error(`${shot.file}: remove class is ${m.removeClass}, expected btn-danger`);
@@ -461,6 +478,8 @@ async function main() {
       + ` truncatedInView: ${Boolean(m.truncatedInView)},`
       + ` inviteBadgeText: ${JSON.stringify(m.inviteBadgeText)}, unnamedRows: ${m.unnamedRows},`
       + ` ownerWhatPresent: ${Boolean(m.ownerWhat)},`
+      + ` headingTitle: ${JSON.stringify(m.headingTitle)},`
+      + ` joinNotRead: ${m.joinNotRead}, expiryNotRead: ${m.expiryNotRead},`
       + ` removeClass: ${JSON.stringify(m.removeClass)} }`),
     "",
   ].join("\n");

@@ -325,7 +325,8 @@ describe("R4: pending invitations are a titled group, never roster badges", () =
     expect(rosterBadges).not.toContain(LEX.acsTeamInviteBadge[idx]);
     expect(rosterBadges).toEqual([LEX.acsRoleOwner[idx], LEX.acsRoleAdmin[idx], LEX.acsRoleMember[idx]]);
     const date = acsDate("2026-09-23T00:00:00.000Z", lang);
-    expect(text()).toContain(LEX.acsTeamInviteExpires[idx].replace("{date}", date));
+    expect(date).toBeTruthy();
+    expect(text()).toContain(LEX.acsTeamInviteExpires[idx].replace("{date}", date as string));
   });
 });
 
@@ -774,3 +775,426 @@ describe("B-F12-9: ownership transfer control", () => {
     expect(text()).not.toContain(TEAM_ROUTE_MESSAGES.conflict[0]);
   });
 });
+
+const INVITES_FAIL_EN = "We could not read this team's invitations just now.";
+const INVITES_FAIL_ZH = "暂时无法读取这个团队的邀请。";
+const JOIN_UNREAD_EN = "Join date not read";
+const JOIN_UNREAD_ZH = "加入时间未读取";
+const EXPIRY_UNREAD_EN = "Expiry date not read";
+const EXPIRY_UNREAD_ZH = "到期时间未读取";
+
+function heading(): string {
+  return (container.querySelector(".acs-head h2")?.textContent || "").trim();
+}
+
+function actionButtons(userId: string): HTMLButtonElement[] {
+  const row = container.querySelector(`[data-user-id="${userId}"]`);
+  if (!row) return [];
+  return Array.from(row.querySelectorAll('[data-testid="team-actions"] button')) as HTMLButtonElement[];
+}
+
+function liveDesk(overrides?: {
+  teams?: unknown[];
+  truncated?: boolean;
+  members?: unknown[];
+  callerRole?: string;
+  invites?: { status: number; body?: unknown } | "throw";
+}) {
+  const teams = overrides?.teams ?? [{ id: "team-1", name: "Desk" }];
+  const members = overrides?.members ?? [
+    { userId: CALLER, role: "owner", displayName: "Chris Wong", createdAt: "2026-02-14T09:12:00.000Z" },
+    { userId: "a1b2c3d4-1111-4e6a-9c03-5b71ee0a4d22", role: "admin", displayName: "Alex Chen", createdAt: null },
+  ];
+  const invites = overrides?.invites ?? { status: 200, body: { invites: [] } };
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.startsWith("/api/teams/invitations")) {
+        if (invites === "throw") throw new Error("invitations down");
+        return {
+          ok: invites.status >= 200 && invites.status < 300,
+          status: invites.status,
+          json: async () => invites.body ?? {},
+        } as unknown as Response;
+      }
+      if (url.startsWith("/api/teams/team-1/members") || url.startsWith("/api/teams/team-2/members")) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            members,
+            callerRole: overrides?.callerRole ?? "owner",
+          }),
+        } as unknown as Response;
+      }
+      if (url === "/api/teams") {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({ teams, truncated: overrides?.truncated === true }),
+        } as unknown as Response;
+      }
+      throw new Error(`unstubbed fetch: ${url}`);
+    }),
+  );
+}
+
+describe("heal h3: a failed invitations read paints the invitations group, never an empty list", () => {
+  beforeEach(() => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  it.each([403, 429, 500, 503] as const)("status %s shows the invitations-fail sentence in the invites group", async (status) => {
+    liveDesk({ invites: { status, body: {} } });
+    await mount("en");
+    expect(text()).toContain(LEX.acsTeamInvites[0]);
+    expect(text()).toContain(INVITES_FAIL_EN);
+    expect(container.querySelector('[data-testid="team-invites-fail"]')?.textContent).toBe(INVITES_FAIL_EN);
+    expect(text()).toContain("Chris Wong");
+    expect(text()).not.toContain(TEAM_ROUTE_MESSAGES.read_failed[0]);
+    expect(container.querySelector('[data-testid="team-invite-badge"]')).toBeNull();
+  });
+
+  it("a thrown invitations fetch shows the same sentence, in Chinese, and keeps the roster", async () => {
+    liveDesk({ invites: "throw" });
+    await mount("zh");
+    expect(text()).toContain(LEX.acsTeamInvites[1]);
+    expect(text()).toContain(INVITES_FAIL_ZH);
+    expect(text()).toContain("Chris Wong");
+    expect(text()).not.toContain(TEAM_ROUTE_MESSAGES.read_failed[1]);
+  });
+
+  it("a second loadLive does not keep the previous team's invitation rows", async () => {
+    let left = false;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input);
+        const method = init?.method || "GET";
+        if (url.startsWith("/api/teams/team-1/members") && method === "DELETE") {
+          left = true;
+          return { ok: true, status: 200, json: async () => ({ ok: true, userId: CALLER }) } as unknown as Response;
+        }
+        if (url === "/api/teams") {
+          return {
+            ok: true,
+            status: 200,
+            json: async () => ({ teams: left ? [{ id: "team-2", name: "Other" }] : [{ id: "team-1", name: "Desk" }] }),
+          } as unknown as Response;
+        }
+        if (url.startsWith("/api/teams/team-1/members")) {
+          return {
+            ok: true,
+            status: 200,
+            json: async () => ({
+              members: [
+                { userId: "owner-1", role: "owner", displayName: "Owner", createdAt: null },
+                { userId: CALLER, role: "admin", displayName: "Chris Wong", createdAt: null },
+              ],
+              callerRole: "admin",
+            }),
+          } as unknown as Response;
+        }
+        if (url.startsWith("/api/teams/team-2/members")) {
+          return {
+            ok: true,
+            status: 200,
+            json: async () => ({
+              members: [
+                { userId: "owner-2", role: "owner", displayName: "Pat", createdAt: null },
+                { userId: CALLER, role: "admin", displayName: "Chris Wong", createdAt: null },
+              ],
+              callerRole: "admin",
+            }),
+          } as unknown as Response;
+        }
+        if (url.startsWith("/api/teams/invitations")) {
+          if (left) return { ok: false, status: 500, json: async () => ({}) } as unknown as Response;
+          return {
+            ok: true,
+            status: 200,
+            json: async () => ({
+              invites: [{ id: "inv-old", email: "old@example.com", role: "member", expiresAt: null }],
+            }),
+          } as unknown as Response;
+        }
+        throw new Error(`unstubbed ${method} ${url}`);
+      }),
+    );
+    await mount("en");
+    expect(text()).toContain("old@example.com");
+    const leave = Array.from(container.querySelectorAll("button")).find(
+      (b) => (b.textContent || "").trim() === LEX.acsTeamLeave[0],
+    ) as HTMLButtonElement;
+    await act(async () => {
+      leave.click();
+    });
+    const confirm = Array.from(container.querySelectorAll(".acs-form button.btn-danger")).find(
+      (b) => (b.textContent || "").trim() === LEX.acsTeamLeave[0],
+    ) as HTMLButtonElement;
+    await act(async () => {
+      confirm.click();
+    });
+    expect(text()).not.toContain("old@example.com");
+    expect(text()).toContain(INVITES_FAIL_EN);
+    expect(heading()).toBe("Other");
+  });
+});
+
+describe("heal h3: the heading names the team; extra teams and a truncated list are said", () => {
+  it("two named teams: the heading is the first name and the count sentence names it", async () => {
+    liveDesk({
+      teams: [
+        { id: "team-1", name: "Desk" },
+        { id: "team-2", name: "Research" },
+      ],
+    });
+    await mount("en");
+    expect(heading()).toBe("Desk");
+    expect(container.querySelector('[data-testid="team-many"]')?.textContent).toBe(
+      "You are on 2 teams. This panel shows Desk.",
+    );
+  });
+
+  it("Chinese names the count with 你 and the first team's name", async () => {
+    liveDesk({
+      teams: [
+        { id: "team-1", name: "Desk" },
+        { id: "team-2", name: "Research" },
+      ],
+    });
+    await mount("zh");
+    expect(heading()).toBe("Desk");
+    expect(container.querySelector('[data-testid="team-many"]')?.textContent).toBe(
+      "你在 2 个团队中。这里显示的是 Desk。",
+    );
+  });
+
+  it("a truncated team list names that not every team could be listed (EN)", async () => {
+    liveDesk({
+      teams: [{ id: "team-1", name: "Desk" }],
+      truncated: true,
+    });
+    await mount("en");
+    expect(container.querySelector('[data-testid="team-list-truncated"]')?.textContent).toBe(
+      "Not every team you belong to could be listed.",
+    );
+  });
+
+  it("a truncated team list names that not every team could be listed (ZH)", async () => {
+    liveDesk({
+      teams: [{ id: "team-1", name: "Desk" }],
+      truncated: true,
+    });
+    await mount("zh");
+    expect(container.querySelector('[data-testid="team-list-truncated"]')?.textContent).toBe(
+      "你所属的团队未能全部列出。",
+    );
+  });
+
+  it("an unnamed team keeps the Team heading and does not render the count sentence even with two teams", async () => {
+    liveDesk({
+      teams: [
+        { id: "team-1", name: "" },
+        { id: "team-2", name: "Research" },
+      ],
+    });
+    await mount("en");
+    expect(heading()).toBe(LEX.acsTeam[0]);
+    expect(container.querySelector('[data-testid="team-many"]')).toBeNull();
+  });
+});
+
+describe("heal h3: a failed role change restores only that row", () => {
+  it("A's PATCH pending, B's PATCH succeeds, A's fails — B keeps the server's role", async () => {
+    const A = "a1b2c3d4-1111-4e6a-9c03-5b71ee0a4d22";
+    const B = "b2c3d4e5-2222-4e6a-9c03-5b71ee0a4d22";
+    let releaseA: ((value: Response) => void) | undefined;
+    let releaseB: ((value: Response) => void) | undefined;
+    const aGate = new Promise<Response>((resolve) => {
+      releaseA = resolve;
+    });
+    const bGate = new Promise<Response>((resolve) => {
+      releaseB = resolve;
+    });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input);
+        const method = init?.method || "GET";
+        if (url === "/api/teams") {
+          return {
+            ok: true,
+            status: 200,
+            json: async () => ({ teams: [{ id: "team-1", name: "Desk" }] }),
+          } as unknown as Response;
+        }
+        if (url.startsWith("/api/teams/team-1/members") && method === "GET") {
+          return {
+            ok: true,
+            status: 200,
+            json: async () => ({
+              members: [
+                { userId: CALLER, role: "owner", displayName: "Chris Wong", createdAt: null },
+                { userId: A, role: "admin", displayName: "Alex Chen", createdAt: null },
+                { userId: B, role: "member", displayName: "Blair Ng", createdAt: null },
+              ],
+              callerRole: "owner",
+            }),
+          } as unknown as Response;
+        }
+        if (url.startsWith("/api/teams/invitations")) {
+          return { ok: true, status: 200, json: async () => ({ invites: [] }) } as unknown as Response;
+        }
+        if (method === "PATCH") {
+          const body = JSON.parse(String(init?.body || "{}")) as { userId?: string };
+          if (body.userId === A) return aGate;
+          if (body.userId === B) return bGate;
+        }
+        throw new Error(`unstubbed ${method} ${url}`);
+      }),
+    );
+    await mount("en");
+    const alexRow = container.querySelector(`[data-user-id="${A}"]`)!;
+    const blairRow = container.querySelector(`[data-user-id="${B}"]`)!;
+    const makeMember = actionButtons(A).find((b) => (b.textContent || "").trim() === LEX.acsMakeMember[0]);
+    const makeAdmin = actionButtons(B).find((b) => (b.textContent || "").trim() === LEX.acsMakeAdmin[0]);
+    expect(makeMember).toBeTruthy();
+    expect(makeAdmin).toBeTruthy();
+    await act(async () => {
+      makeMember!.click();
+    });
+    expect(actionButtons(A).some((b) => b.disabled)).toBe(true);
+    expect(actionButtons(B).find((b) => (b.textContent || "").trim() === LEX.acsMakeAdmin[0])?.disabled).toBe(false);
+    await act(async () => {
+      actionButtons(B)
+        .find((b) => (b.textContent || "").trim() === LEX.acsMakeAdmin[0])!
+        .click();
+    });
+    expect(actionButtons(A).some((b) => b.disabled)).toBe(true);
+    expect(actionButtons(B).some((b) => b.disabled)).toBe(true);
+    await act(async () => {
+      releaseB!({
+        ok: true,
+        status: 200,
+        json: async () => ({ member: { userId: B, role: "admin" } }),
+      } as unknown as Response);
+    });
+    expect(blairRow.querySelector('[data-testid="team-role-badge"]')?.textContent).toBe(LEX.acsRoleAdmin[0]);
+    expect(actionButtons(A).some((b) => b.disabled)).toBe(true);
+    await act(async () => {
+      releaseA!({
+        ok: false,
+        status: 500,
+        json: async () => ({
+          message: TEAM_ROUTE_MESSAGES.role_change_failed[0],
+          messageZh: TEAM_ROUTE_MESSAGES.role_change_failed[1],
+        }),
+      } as unknown as Response);
+    });
+    expect(alexRow.querySelector('[data-testid="team-role-badge"]')?.textContent).toBe(LEX.acsRoleAdmin[0]);
+    expect(blairRow.querySelector('[data-testid="team-role-badge"]')?.textContent).toBe(LEX.acsRoleAdmin[0]);
+    expect(text()).toContain(`Alex Chen: ${TEAM_ROUTE_MESSAGES.role_change_failed[0]}`);
+  });
+
+  it("an unnamed row's failure names the row as Name not set, with the Chinese fullwidth colon", async () => {
+    const unnamed = "b2c3d4e5-2222-4e6a-9c03-5b71ee0a4d22";
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input);
+        const method = init?.method || "GET";
+        if (url === "/api/teams") {
+          return {
+            ok: true,
+            status: 200,
+            json: async () => ({ teams: [{ id: "team-1", name: "Desk" }] }),
+          } as unknown as Response;
+        }
+        if (url.startsWith("/api/teams/team-1/members") && method !== "PATCH") {
+          return {
+            ok: true,
+            status: 200,
+            json: async () => ({
+              members: [
+                { userId: CALLER, role: "owner", displayName: "Chris Wong", createdAt: null },
+                { userId: unnamed, role: "member", displayName: "", createdAt: null },
+              ],
+              callerRole: "owner",
+            }),
+          } as unknown as Response;
+        }
+        if (url.startsWith("/api/teams/invitations")) {
+          return { ok: true, status: 200, json: async () => ({ invites: [] }) } as unknown as Response;
+        }
+        if (method === "PATCH") {
+          return {
+            ok: false,
+            status: 500,
+            json: async () => ({
+              message: TEAM_ROUTE_MESSAGES.role_change_failed[0],
+              messageZh: TEAM_ROUTE_MESSAGES.role_change_failed[1],
+            }),
+          } as unknown as Response;
+        }
+        throw new Error(`unstubbed ${method} ${url}`);
+      }),
+    );
+    await mount("zh");
+    const makeAdmin = actionButtons(unnamed).find((b) => (b.textContent || "").trim() === LEX.acsMakeAdmin[1]);
+    expect(makeAdmin).toBeTruthy();
+    await act(async () => {
+      makeAdmin!.click();
+    });
+    expect(text()).toContain(`${LEX.acsTeamNoName[1]}：${TEAM_ROUTE_MESSAGES.role_change_failed[1]}`);
+  });
+});
+
+describe("heal h3: a join date or expiry that was not read is printed, never hidden", () => {
+  it.each(["en", "zh"] as const)("%s: a missing join date and a missing expiry render the not-read pairs", async (lang) => {
+    const idx = lang === "zh" ? 1 : 0;
+    await mount(lang, {
+      ...ROSTER_FIXTURE,
+      members: [
+        { userId: CALLER, role: "owner", displayName: "Chris Wong", createdAt: null },
+        { userId: "a1b2c3d4-1111-4e6a-9c03-5b71ee0a4d22", role: "admin", displayName: "Alex Chen", createdAt: "not-a-date" },
+      ],
+      invites: [{ id: "inv-1", email: "pending@example.com", role: "member", expiresAt: null }],
+    });
+    expect(text()).toContain(idx === 1 ? JOIN_UNREAD_ZH : JOIN_UNREAD_EN);
+    expect(text()).not.toContain("Invalid Date");
+    expect(text()).toContain(idx === 1 ? EXPIRY_UNREAD_ZH : EXPIRY_UNREAD_EN);
+  });
+
+  it("acsDate returns null for every unreadable input and never Invalid Date", () => {
+    expect(acsDate(null, "en")).toBeNull();
+    expect(acsDate(undefined, "en")).toBeNull();
+    expect(acsDate("", "zh")).toBeNull();
+    expect(acsDate("not-a-date", "en")).toBeNull();
+    expect(acsDate("not-a-date", "zh")).toBeNull();
+    const thrown = {
+      toString() {
+        throw new Error("cannot stringify");
+      },
+    };
+    expect(acsDate(thrown as unknown as string, "en")).toBeNull();
+    expect(acsDate("2026-02-14T09:12:00.000Z", "en")).toMatch(/2026/);
+  });
+});
+
+describe("heal h3: standing-law 你 — no 您 in acsTeam*/acsRole* keys", () => {
+  it("no ZH string among LEX keys whose name starts with acsTeam or acsRole contains 您", () => {
+    const keys = Object.keys(LEX).filter((key) => key.startsWith("acsTeam") || key.startsWith("acsRole"));
+    expect(keys.length).toBeGreaterThan(0);
+    for (const key of keys) {
+      const pair = LEX[key];
+      expect(pair, key).toBeTruthy();
+      expect(pair[1], key).not.toContain("您");
+    }
+    expect(LEX.acsTeamCreated[1]).toBe("你的团队已创建。");
+    expect(TEAM_ROUTE_MESSAGES.no_self_role[1]).toBe("你无法更改自己的角色。请联系团队所有者。");
+    expect(TEAM_ROUTE_MESSAGES.same_owner[1]).toBe("你已经是所有者。");
+  });
+});
+

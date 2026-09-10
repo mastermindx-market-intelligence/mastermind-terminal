@@ -109,6 +109,12 @@ const DEV_TEAM: DevTeamFixture = {
       role: "member",
       expiresAt: "2026-09-23T00:00:00.000Z",
     },
+    {
+      id: "inv-2",
+      email: "noreply@example.com",
+      role: "member",
+      expiresAt: null,
+    },
   ],
 };
 

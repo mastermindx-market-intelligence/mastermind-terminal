@@ -52,17 +52,19 @@ export interface SectionProps {
   onRefreshUser: () => Promise<void>;
 }
 
-/** Locale-aware date, matching the macro dashboard's `_sdDate`. */
-export function acsDate(iso: string | null | undefined, lang: "en" | "zh"): string {
-  if (!iso) return "";
+/** Locale-aware date, matching the macro dashboard's `_sdDate`. Unreadable input is null, never "Invalid Date". */
+export function acsDate(iso: string | null | undefined, lang: "en" | "zh"): string | null {
+  if (!iso) return null;
   try {
-    return new Date(iso).toLocaleDateString(lang === "zh" ? "zh-CN" : undefined, {
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return null;
+    return d.toLocaleDateString(lang === "zh" ? "zh-CN" : undefined, {
       year: "numeric",
       month: "short",
       day: "numeric",
     });
   } catch {
-    return "";
+    return null;
   }
 }
 
