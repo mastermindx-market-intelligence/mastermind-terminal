@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { WEBHOOK_COPY, webhookCopy, webhookRelativeTime } from "@/lib/webhookLabels";
 import { WEBHOOK_ROUTE_MESSAGES } from "@/lib/webhooks";
 
@@ -121,5 +123,53 @@ describe("every copy pair is real text in both languages", () => {
       // urlPlaceholder is a literal example URL and is identical by design.
       if (key !== "urlPlaceholder") expect(pair[1], key).not.toBe(pair[0]);
     }
+  });
+});
+
+describe("an endpoints-load failure is its own sentence, never the no-endpoints sentence", () => {
+  it("carries the endpointsLoadFailed pair in both languages", () => {
+    expect("endpointsLoadFailed" in WEBHOOK_COPY).toBe(true);
+    const pair = (WEBHOOK_COPY as Record<string, readonly [string, string]>).endpointsLoadFailed;
+    expect(pair[0]).toBe("We could not read this team's webhook endpoints just now. Please try again.");
+    expect(pair[1]).toBe("暂时无法读取这个团队的 Webhook 端点，请重试。");
+    expect(pair[0]).not.toBe(webhookCopy("noEndpoints", "en"));
+    expect(pair[1]).not.toBe(webhookCopy("noEndpoints", "zh"));
+  });
+});
+
+describe("a deliveries-load failure is its own sentence, never No deliveries yet", () => {
+  it("carries the deliveriesLoadFailed pair in both languages", () => {
+    expect("deliveriesLoadFailed" in WEBHOOK_COPY).toBe(true);
+    const pair = (WEBHOOK_COPY as Record<string, readonly [string, string]>).deliveriesLoadFailed;
+    expect(pair[0]).toBe("We could not read the delivery log for this endpoint just now.");
+    expect(pair[1]).toBe("暂时无法读取这个端点的送达记录。");
+    expect(pair[0]).not.toBe(webhookCopy("noDeliveries", "en"));
+    expect(pair[1]).not.toBe(webhookCopy("noDeliveries", "zh"));
+  });
+});
+
+describe("the mutation fallback is the route write_failed pair", () => {
+  it("pins write_failed byte-for-byte so the client fallback cannot drift", () => {
+    expect(WEBHOOK_ROUTE_MESSAGES.write_failed[0]).toBe("We could not save that webhook endpoint.");
+    expect(WEBHOOK_ROUTE_MESSAGES.write_failed[1]).toBe("我们无法保存该 Webhook 端点。");
+  });
+});
+
+describe("newly authored ZH copy addresses the user as 你, never 您", () => {
+  it("forbids 您 in webhooks.ts and webhookLabels.ts", () => {
+    const files = ["lib/webhooks.ts", "lib/webhookLabels.ts"];
+    for (const rel of files) {
+      const src = readFileSync(path.join(process.cwd(), rel), "utf8");
+      expect(src.includes("您"), `${rel} still addresses the user as 您`).toBe(false);
+    }
+  });
+
+  it("pins the four seat-ordered 你 sentences", () => {
+    expect(WEBHOOK_ROUTE_MESSAGES.not_signed_in[1]).toBe("你尚未登录。");
+    expect(WEBHOOK_ROUTE_MESSAGES.closed_patch[1]).toBe("不允许该更改。你只能更新地址、是否启用或事件类型。");
+    expect(webhookCopy("emptyTeam", "zh")).toBe("你还没有团队");
+    expect(webhookCopy("memberReadOnly", "zh")).toBe(
+      "你可以查看此团队的 Webhook 送达记录。只有所有者或管理员才能添加或开关端点。",
+    );
   });
 });

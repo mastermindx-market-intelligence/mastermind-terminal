@@ -120,7 +120,7 @@ export function webhookEnabledLabel(enabled: boolean, lang: PlainLang): string {
 }
 
 export const WEBHOOK_COPY = {
-  emptyTeam: ["You don't have a team yet", "您还没有团队"],
+  emptyTeam: ["You don't have a team yet", "你还没有团队"],
   emptyTeamHelp: [
     "Create a team first, then you can register an HTTPS address for signed deliveries.",
     "请先创建团队，然后即可登记用于签名送达的 HTTPS 地址。",
@@ -134,7 +134,7 @@ export const WEBHOOK_COPY = {
   teamNamePlaceholder: ["Research desk", "研究团队"],
   memberReadOnly: [
     "You can see this team's webhook deliveries. Only an owner or admin can add or turn endpoints on or off.",
-    "您可以查看此团队的 Webhook 送达记录。只有所有者或管理员才能添加或开关端点。",
+    "你可以查看此团队的 Webhook 送达记录。只有所有者或管理员才能添加或开关端点。",
   ],
   addEndpoint: ["Add an endpoint", "添加端点"],
   urlLabel: ["Endpoint URL", "端点地址"],
@@ -156,6 +156,14 @@ export const WEBHOOK_COPY = {
   noEndpoints: [
     "This team has not registered a webhook endpoint yet.",
     "此团队尚未登记 Webhook 端点。",
+  ],
+  endpointsLoadFailed: [
+    "We could not read this team's webhook endpoints just now. Please try again.",
+    "暂时无法读取这个团队的 Webhook 端点，请重试。",
+  ],
+  deliveriesLoadFailed: [
+    "We could not read the delivery log for this endpoint just now.",
+    "暂时无法读取这个端点的送达记录。",
   ],
   noDeliveries: ["No deliveries yet.", "尚无送达记录。"],
   teamLabel: ["Team", "团队"],

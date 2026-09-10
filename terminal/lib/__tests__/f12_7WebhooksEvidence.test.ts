@@ -63,26 +63,38 @@ function sha256Of(abs: string): string {
  * f12_7Webhooks*.test.ts under lib/__tests__, plus the packet's e2e spec.
  */
 function packetTestFiles(): string[] {
-  const dir = join(__dirname);
-  const local = readdirSync(dir)
+  const libDir = join(__dirname);
+  const settingsDir = join(__dirname, "../../components/settings/__tests__");
+  const local = readdirSync(libDir)
     .filter((f) => /^(webhook|f12_7Webhooks).*\.test\.tsx?$/.test(f))
     .sort()
-    .map((f) => join(dir, f));
-  return [...local, join(__dirname, "../../e2e/webhooks-settings.spec.ts")];
+    .map((f) => join(libDir, f));
+  const settings = readdirSync(settingsDir)
+    .filter((f) => /^(webhook|f12_7Webhooks|SectionWebhooks).*\.test\.tsx?$/.test(f))
+    .sort()
+    .map((f) => join(settingsDir, f));
+  return [...local, ...settings, join(__dirname, "../../e2e/webhooks-settings.spec.ts")];
 }
 
 describe("B-F12-7 evidence lock is the sha256 of the layout sources", () => {
   it("no test file this packet adds imports a process spawner", () => {
-    const banned = ["node:", "child_process"].join("");
     const files = packetTestFiles();
-    // The packet ships 14 test files (webhook*.test.ts / f12_7Webhooks*.test.ts
-    // under lib/__tests__, plus the e2e spec). A count floor keeps a broken
-    // glob from passing vacuously.
-    expect(files.length).toBeGreaterThanOrEqual(14);
+    // Exact packet test-file count at this head: 13 lib/__tests__ files matching
+    // webhook*|f12_7Webhooks*, plus SectionWebhooks.test.tsx (globbed from
+    // components/settings/__tests__), plus the e2e spec = 15. An equality keeps
+    // a broken glob from passing vacuously and keeps this file from being
+    // omitted from the scan.
+    expect(files.length).toBe(15);
+    expect(files.some((abs) => abs.endsWith("components/settings/__tests__/SectionWebhooks.test.tsx"))).toBe(true);
     for (const abs of files) {
       expect(existsSync(abs), `${abs} is expected to exist`).toBe(true);
       const src = readFileSync(abs, "utf8");
-      expect(src.includes(banned), `${abs} imports a process spawner`).toBe(false);
+      // Needles are assembled at runtime so this file's own source does not
+      // contain the banned import strings as contiguous text.
+      const bareChildProcess = ["child", "process"].join("_");
+      const nodeChildProcess = ["node", bareChildProcess].join(":");
+      expect(src.includes(nodeChildProcess), `${abs} imports ${nodeChildProcess}`).toBe(false);
+      expect(src.includes(bareChildProcess), `${abs} imports ${bareChildProcess}`).toBe(false);
       expect(/\bexecFileSync\b|\bspawnSync\b|\bexecSync\b/.test(src), `${abs} shells out`).toBe(false);
     }
   });
@@ -145,6 +157,11 @@ describe("B-F12-7 evidence lock is the sha256 of the layout sources", () => {
       }
     }
     expect(listed).toHaveLength(16);
+  });
+
+  it("desktop failed-state crops exist in EN and ZH", () => {
+    expect(existsSync(join(CROP_DIR, "desktop-en-failed.png"))).toBe(true);
+    expect(existsSync(join(CROP_DIR, "desktop-zh-failed.png"))).toBe(true);
   });
 
   it("theme is dark-only", () => {

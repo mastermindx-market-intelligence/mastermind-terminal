@@ -110,6 +110,17 @@ function starvationFixture(): Row[] {
 }
 
 describe("the due-row page carries the spec's next_retry_at predicate server-side", () => {
+  it("pins the PostgREST query string byte-for-byte", () => {
+    const nowIso = encodeURIComponent(NOW.toISOString());
+    const staleIso = encodeURIComponent(new Date(NOW.getTime() - STALE_LEASE_MS).toISOString());
+    expect(dueDeliveriesPath(NOW)).toBe(
+      "webhook_deliveries?" +
+        `or=(and(status.in.(pending,retrying),or(next_retry_at.is.null,next_retry_at.lte.${nowIso})),and(status.eq.delivering,claimed_at.lte.${staleIso}))` +
+        `&select=id,endpoint_id,team_id,event_id,event_type,payload,attempt,status,claimed_at,next_retry_at` +
+        `&order=created_at.asc&limit=${DUE_PAGE_LIMIT}`,
+    );
+  });
+
   it("puts the predicate in the query, not in JS after truncation", () => {
     const path = dueDeliveriesPath(NOW);
     expect(path).toContain("next_retry_at.is.null");

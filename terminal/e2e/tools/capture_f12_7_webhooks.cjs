@@ -192,6 +192,14 @@ async function mockApis(page, state) {
       });
       return;
     }
+    if (state === "failed" && method === "GET") {
+      await route.fulfill({
+        status: 502,
+        contentType: "text/html",
+        body: "<html>bad gateway</html>",
+      });
+      return;
+    }
     if (url.includes("/test")) {
       await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, eventId: "evt-test" }) });
       return;
@@ -254,10 +262,10 @@ function boxContains(outer, inner) {
 }
 
 async function assertFiveLabelsInList(page, lang, file) {
-  const list = page.locator("#wh-deliveries");
+  const list = page.locator("#wh-deliveries-ep-1");
   await list.waitFor({ state: "visible", timeout: 10_000 });
   const listBox = await list.boundingBox();
-  if (!listBox) throw new Error(`${file}: #wh-deliveries has no bounding box`);
+  if (!listBox) throw new Error(`${file}: #wh-deliveries-ep-1 has no bounding box`);
   for (const label of FIVE_DELIVERY_LABELS[lang]) {
     const loc = list.getByText(label, { exact: true }).first();
     await loc.waitFor({ state: "visible", timeout: 10_000 });
@@ -278,7 +286,7 @@ async function shoot(page, file, state, lang) {
   await page.waitForTimeout(120);
   if (state === "populated") {
     await assertFiveLabelsInList(page, lang, file);
-    const list = page.locator("#wh-deliveries");
+    const list = page.locator("#wh-deliveries-ep-1");
     await list.screenshot({ path: join(OUT, file) });
     return;
   }
@@ -315,6 +323,12 @@ async function driveState(page, lang, state) {
     const empty = lang === "zh" ? "此团队尚未登记 Webhook 端点。" : "This team has not registered a webhook endpoint yet.";
     await page.getByText(empty).waitFor({ state: "visible", timeout: 10_000 });
   }
+  if (state === "failed") {
+    const failed = lang === "zh"
+      ? "暂时无法读取这个团队的 Webhook 端点，请重试。"
+      : "We could not read this team's webhook endpoints just now. Please try again.";
+    await page.getByText(failed).waitFor({ state: "visible", timeout: 10_000 });
+  }
 }
 
 async function main() {
@@ -332,6 +346,9 @@ async function main() {
             shots.push({ viewport, lang, state, file: `${viewport}-${lang}-${state}.png` });
           }
         }
+      }
+      for (const lang of ["en", "zh"]) {
+        shots.push({ viewport: "desktop", lang, state: "failed", file: `desktop-${lang}-failed.png` });
       }
       for (const shot of shots) {
         process.stdout.write(`capture ${shot.file} … `);

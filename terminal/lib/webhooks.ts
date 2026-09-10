@@ -33,7 +33,7 @@ export type WebhookRouteCode =
   | "invalid_filter";
 
 export const WEBHOOK_ROUTE_MESSAGES: Record<WebhookRouteCode, [string, string]> = {
-  not_signed_in: ["You are not signed in.", "您尚未登录。"],
+  not_signed_in: ["You are not signed in.", "你尚未登录。"],
   not_admin: [
     "Only a team owner or admin can add or change webhook endpoints.",
     "只有团队所有者或管理员才能添加或更改 Webhook 端点。",
@@ -46,7 +46,7 @@ export const WEBHOOK_ROUTE_MESSAGES: Record<WebhookRouteCode, [string, string]> 
   write_failed: ["We could not save that webhook endpoint.", "我们无法保存该 Webhook 端点。"],
   closed_patch: [
     "That change is not allowed. You can only update the address, whether it is active, or the event types.",
-    "不允许该更改。您只能更新地址、是否启用或事件类型。",
+    "不允许该更改。你只能更新地址、是否启用或事件类型。",
   ],
   invalid_url: ["Enter an https address on the public internet.", "请输入公网的 https 地址。"],
   not_https: ["Webhook addresses must use https.", "Webhook 地址必须使用 https。"],

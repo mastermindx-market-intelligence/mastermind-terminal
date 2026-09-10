@@ -28,18 +28,43 @@ type Delivery = {
   createdAt: string | null;
 };
 
+type LoadState = "loading" | "loaded" | "failed";
+type DeliveryBucket = { state: LoadState; rows: Delivery[] };
+
 function truncateUrl(url: string): string {
   const bare = url.replace(/^https:\/\//, "");
   return bare.length > 48 ? `${bare.slice(0, 45)}…` : bare;
+}
+
+function pickRouteText(
+  body: { message?: unknown; messageZh?: unknown },
+  lang: "en" | "zh",
+  fallback: string,
+): string {
+  const raw = lang === "zh" ? body.messageZh : body.message;
+  if (typeof raw === "string" && raw.trim() !== "") return raw.trim();
+  return fallback;
+}
+
+/** Byte-identical to WEBHOOK_ROUTE_MESSAGES.write_failed. Client cannot import webhooks.ts. */
+function writeFailedText(lang: "en" | "zh"): string {
+  return lang === "zh" ? "我们无法保存该 Webhook 端点。" : "We could not save that webhook endpoint.";
+}
+
+function notSignedInText(lang: "en" | "zh"): string {
+  return lang === "zh" ? "你尚未登录。" : "You are not signed in.";
 }
 
 export default function SectionWebhooks({ t, lang, onClose }: SectionProps) {
   const [teams, setTeams] = useState<Team[] | null>(null);
   const [teamId, setTeamId] = useState<string>("");
   const [endpoints, setEndpoints] = useState<Endpoint[]>([]);
-  const [deliveriesByEp, setDeliveriesByEp] = useState<Record<string, Delivery[]>>({});
+  const [endpointsState, setEndpointsState] = useState<LoadState>("loading");
+  const [endpointsErr, setEndpointsErr] = useState("");
+  const [deliveriesByEp, setDeliveriesByEp] = useState<Record<string, DeliveryBucket>>({});
   const [callerRole, setCallerRole] = useState<"owner" | "admin" | "member" | null>(null);
   const [loadErr, setLoadErr] = useState<string>("");
+  const [signedOut, setSignedOut] = useState(false);
   const [urlIn, setUrlIn] = useState("");
   const [teamNameIn, setTeamNameIn] = useState("");
   const [wantTest, setWantTest] = useState(true);
@@ -56,11 +81,14 @@ export default function SectionWebhooks({ t, lang, onClose }: SectionProps) {
 
   const loadTeams = useCallback(async () => {
     setLoadErr("");
+    setSignedOut(false);
     try {
       const r = await fetch("/api/teams");
       const body = await r.json().catch(() => ({}));
       if (r.status === 401) {
         setTeams([]);
+        setSignedOut(true);
+        setLoadErr(pickRouteText(body, lang, notSignedInText(lang)));
         return;
       }
       if (!r.ok) {
@@ -83,33 +111,46 @@ export default function SectionWebhooks({ t, lang, onClose }: SectionProps) {
     if (!id) {
       setEndpoints([]);
       setCallerRole(null);
+      setEndpointsState("loaded");
+      setEndpointsErr("");
       return;
     }
+    setEndpointsState("loading");
     try {
       const r = await fetch(`/api/webhooks?teamId=${encodeURIComponent(id)}`);
       const body = await r.json().catch(() => ({}));
       if (!r.ok) {
         setEndpoints([]);
         setCallerRole(null);
-        setLoadErr(lang === "zh" ? body.messageZh || "" : body.message || "");
+        setEndpointsState("failed");
+        setEndpointsErr(pickRouteText(body, lang, webhookCopy("endpointsLoadFailed", lang)));
         return;
       }
-      setLoadErr("");
+      setEndpointsState("loaded");
+      setEndpointsErr("");
       setEndpoints(Array.isArray(body.endpoints) ? body.endpoints : []);
       setCallerRole(body.callerRole === "owner" || body.callerRole === "admin" || body.callerRole === "member" ? body.callerRole : null);
     } catch {
       setEndpoints([]);
+      setCallerRole(null);
+      setEndpointsState("failed");
+      setEndpointsErr(webhookCopy("endpointsLoadFailed", lang));
     }
   }, [lang]);
 
   const loadDeliveries = useCallback(async (epId: string) => {
+    setDeliveriesByEp((cur) => ({ ...cur, [epId]: { state: "loading", rows: cur[epId]?.rows ?? [] } }));
     try {
       const r = await fetch(`/api/webhooks/${encodeURIComponent(epId)}/deliveries`);
       const body = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        setDeliveriesByEp((cur) => ({ ...cur, [epId]: { state: "failed", rows: [] } }));
+        return;
+      }
       const rows = Array.isArray(body.deliveries) ? (body.deliveries as Delivery[]) : [];
-      setDeliveriesByEp((cur) => ({ ...cur, [epId]: rows }));
+      setDeliveriesByEp((cur) => ({ ...cur, [epId]: { state: "loaded", rows } }));
     } catch {
-      setDeliveriesByEp((cur) => ({ ...cur, [epId]: [] }));
+      setDeliveriesByEp((cur) => ({ ...cur, [epId]: { state: "failed", rows: [] } }));
     }
   }, []);
 
@@ -153,20 +194,34 @@ export default function SectionWebhooks({ t, lang, onClose }: SectionProps) {
       setUrlIn("");
       setFormMsg(null);
       await loadEndpoints(teamId);
+    } catch {
+      setFormMsg({ text: writeFailedText(lang), kind: "err" });
     } finally {
       setBusy(false);
     }
   }
 
   async function toggleEnabled(ep: Endpoint) {
+    const previous = ep.enabled;
+    const next = !previous;
     setBusy(true);
+    setEndpoints((cur) => cur.map((row) => (row.id === ep.id ? { ...row, enabled: next } : row)));
     try {
-      await fetch(`/api/webhooks/${encodeURIComponent(ep.id)}`, {
+      const r = await fetch(`/api/webhooks/${encodeURIComponent(ep.id)}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ enabled: !ep.enabled }),
+        body: JSON.stringify({ enabled: next }),
       });
+      const body = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        setEndpoints((cur) => cur.map((row) => (row.id === ep.id ? { ...row, enabled: previous } : row)));
+        setFormMsg({ text: pickRouteText(body, lang, writeFailedText(lang)), kind: "err" });
+        return;
+      }
       await loadEndpoints(teamId);
+    } catch {
+      setEndpoints((cur) => cur.map((row) => (row.id === ep.id ? { ...row, enabled: previous } : row)));
+      setFormMsg({ text: writeFailedText(lang), kind: "err" });
     } finally {
       setBusy(false);
     }
@@ -187,6 +242,8 @@ export default function SectionWebhooks({ t, lang, onClose }: SectionProps) {
       }
       setFormMsg({ text: webhookCopy("testQueued", lang), kind: "ok" });
       await loadDeliveries(ep.id);
+    } catch {
+      setFormMsg({ text: writeFailedText(lang), kind: "err" });
     } finally {
       setBusy(false);
     }
@@ -207,10 +264,12 @@ export default function SectionWebhooks({ t, lang, onClose }: SectionProps) {
       });
       const body = await r.json().catch(() => ({}));
       if (!r.ok) {
-        setLoadErr(lang === "zh" ? body.messageZh || "" : body.message || "");
+        setLoadErr(pickRouteText(body, lang, writeFailedText(lang)));
         return;
       }
       await loadTeams();
+    } catch {
+      setLoadErr(writeFailedText(lang));
     } finally {
       setBusy(false);
     }
@@ -237,8 +296,9 @@ export default function SectionWebhooks({ t, lang, onClose }: SectionProps) {
     else legacy();
   }
 
-  const emptyTeam = teams !== null && teams.length === 0 && !loadErr;
+  const emptyTeam = teams !== null && teams.length === 0 && !loadErr && !signedOut;
   const memberOnly = teams !== null && teams.length > 0 && eligible.length === 0;
+  const showEndpoints = teams !== null && teams.length > 0 && !signedOut;
 
   return (
     <>
@@ -340,12 +400,16 @@ export default function SectionWebhooks({ t, lang, onClose }: SectionProps) {
           </Group>
         ) : null}
 
-        {!emptyTeam ? (
+        {showEndpoints ? (
           <Group title={webhookCopy("endpoints", lang)}>
-            {endpoints.length === 0 ? (
+            {endpointsState === "failed" ? (
+              <Row desc={endpointsErr || webhookCopy("endpointsLoadFailed", lang)} />
+            ) : endpointsState === "loaded" && endpoints.length === 0 ? (
               <Row desc={webhookCopy("noEndpoints", lang)} />
-            ) : (
-              endpoints.map((ep) => (
+            ) : endpointsState === "loaded" ? (
+              endpoints.map((ep) => {
+                const bucket = deliveriesByEp[ep.id];
+                return (
                 <div key={ep.id}>
                   <Row
                     label={truncateUrl(ep.url)}
@@ -373,11 +437,13 @@ export default function SectionWebhooks({ t, lang, onClose }: SectionProps) {
                     </div>
                   ) : null}
                   <Group title={webhookCopy("deliveries", lang)}>
-                    <div id="wh-deliveries" className="acs-webhook-deliveries">
-                    {(deliveriesByEp[ep.id] ?? []).length === 0 ? (
+                    <div id={`wh-deliveries-${ep.id}`} className="acs-webhook-deliveries">
+                    {bucket?.state === "failed" ? (
+                      <Row desc={webhookCopy("deliveriesLoadFailed", lang)} />
+                    ) : bucket?.state === "loaded" && bucket.rows.length === 0 ? (
                       <Row desc={webhookCopy("noDeliveries", lang)} />
-                    ) : (
-                      (deliveriesByEp[ep.id] ?? []).map((d) => {
+                    ) : bucket?.state === "loaded" ? (
+                      bucket.rows.map((d) => {
                         const cause = webhookCauseLabel(d.lastError, lang);
                         return (
                           <Row
@@ -406,12 +472,13 @@ export default function SectionWebhooks({ t, lang, onClose }: SectionProps) {
                           </Row>
                         );
                       })
-                    )}
+                    ) : null}
                     </div>
                   </Group>
                 </div>
-              ))
-            )}
+                );
+              })
+            ) : null}
           </Group>
         ) : null}
       </div>
