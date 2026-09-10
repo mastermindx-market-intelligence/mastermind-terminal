@@ -1,0 +1,48 @@
+# B-F12-B5-2 team-shared workspaces — capture evidence
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
+# capturedAtHead: 010b0cb6f50f8d0ea9d75674bf0e6fb7c3ad335f
+# capturedAt: 2026-09-09T16:19:38.213Z
+# capturedAtHead is the code commit the pixels depict. The lock is layoutFiles.
+layoutFiles:
+  terminal/components/LayoutMenu.tsx: "235bf33a22dc3b4d7d9b143f0ecf19818863b4352e9a7df3d0a787634d73116b"
+  terminal/lib/teamSharedWorkflow.ts: "2c28cdbc5b232c2767381a22be45cc1be44c4864acab3f8119824efdeae1fb04"
+  terminal/lib/i18n.tsx: "954a31a85501b503def5b1216c4d1e3a86684cefb1a542cdb6c13bf21b684d42"
+  terminal/app/dev/workspaces/page.tsx: "320f7983a913e212249dbfc65a18c1807f1fca9f6de9305f595a855ad4b9f1b5"
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: mobile, width: 390, height: 844 }
+harness: /dev/workspaces?lang=<en|zh>&state=<team-grouped|share-confirm|member-read-only>
+capture_flag: TERMINAL_E2E_FIXTURE
+capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set.
+command: |
+  cd terminal
+  node e2e/tools/capture_f12_b5_2_team_workspaces.cjs
+files:
+  - desktop-en-team-grouped.png
+  - desktop-en-share-confirm.png
+  - desktop-en-member-read-only.png
+  - desktop-zh-team-grouped.png
+  - desktop-zh-share-confirm.png
+  - desktop-zh-member-read-only.png
+  - mobile-en-team-grouped.png
+  - mobile-en-share-confirm.png
+  - mobile-en-member-read-only.png
+  - mobile-zh-team-grouped.png
+  - mobile-zh-share-confirm.png
+  - mobile-zh-member-read-only.png
+measurements:
+  desktop-en-team-grouped.png: { teamHeading: "Shared with your team", mineHeading: "Only you", sharePresent: true, renamePresent: true, deletePresent: true, confirmPresent: false, readonlyPresent: false }
+  desktop-en-share-confirm.png: { teamHeading: "Shared with your team", mineHeading: "Only you", sharePresent: false, renamePresent: false, deletePresent: false, confirmPresent: true, readonlyPresent: false }
+  desktop-en-member-read-only.png: { teamHeading: "Shared with your team", mineHeading: "Only you", sharePresent: false, renamePresent: false, deletePresent: false, confirmPresent: false, readonlyPresent: true }
+  desktop-zh-team-grouped.png: { teamHeading: "已与团队共享", mineHeading: "仅自己可见", sharePresent: true, renamePresent: true, deletePresent: true, confirmPresent: false, readonlyPresent: false }
+  desktop-zh-share-confirm.png: { teamHeading: "已与团队共享", mineHeading: "仅自己可见", sharePresent: false, renamePresent: false, deletePresent: false, confirmPresent: true, readonlyPresent: false }
+  desktop-zh-member-read-only.png: { teamHeading: "已与团队共享", mineHeading: "仅自己可见", sharePresent: false, renamePresent: false, deletePresent: false, confirmPresent: false, readonlyPresent: true }
+  mobile-en-team-grouped.png: { teamHeading: "Shared with your team", mineHeading: "Only you", sharePresent: true, renamePresent: true, deletePresent: true, confirmPresent: false, readonlyPresent: false }
+  mobile-en-share-confirm.png: { teamHeading: "Shared with your team", mineHeading: "Only you", sharePresent: false, renamePresent: false, deletePresent: false, confirmPresent: true, readonlyPresent: false }
+  mobile-en-member-read-only.png: { teamHeading: "Shared with your team", mineHeading: "Only you", sharePresent: false, renamePresent: false, deletePresent: false, confirmPresent: false, readonlyPresent: true }
+  mobile-zh-team-grouped.png: { teamHeading: "已与团队共享", mineHeading: "仅自己可见", sharePresent: true, renamePresent: true, deletePresent: true, confirmPresent: false, readonlyPresent: false }
+  mobile-zh-share-confirm.png: { teamHeading: "已与团队共享", mineHeading: "仅自己可见", sharePresent: false, renamePresent: false, deletePresent: false, confirmPresent: true, readonlyPresent: false }
+  mobile-zh-member-read-only.png: { teamHeading: "已与团队共享", mineHeading: "仅自己可见", sharePresent: false, renamePresent: false, deletePresent: false, confirmPresent: false, readonlyPresent: true }

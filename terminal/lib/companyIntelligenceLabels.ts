@@ -79,7 +79,7 @@ export const TYPED_ABSENCE_REASON_LABELS: Record<TypedAbsenceReason, BilingualLa
   no_span_addressable_evidence: { en: "No line-level evidence can be addressed.", zh: "无法定位到原文对应内容。" },
   document_bytes_not_held: { en: "The document file is not stored.", zh: "未保存该文档文件。" },
   scanned_image_no_text_layer: { en: "The scan has no text layer.", zh: "扫描件没有可检索文本。" },
-  unjoinable_filing_identity: { en: "The filing identity cannot be joined.", zh: "无法匹配该申报文件。" },
+  unjoinable_filing_identity: { en: "The filing identity cannot be joined.", zh: "无法匹配该披露文件。" },
   speaker_unresolvable: { en: "The speaker cannot be resolved.", zh: "无法确定发言人。" },
   slide_family_discontinued: { en: "This slide family was discontinued.", zh: "该类幻灯片已不再使用。" },
   superseded_by_duplicate: { en: "This record was superseded by a duplicate.", zh: "已有重复记录取代此项。" },

@@ -11,8 +11,16 @@
 // you paid" rather than implied as market value. `weightBasis` rides the payload as a literal so a
 // future market-value version is a schema bump, never a silent redefinition.
 
+import { normalizeTicker } from "@/lib/portfolio";
+
 export type Lang = "en" | "zh";
 export interface Bilingual { en: string; zh: string }
+
+/** One holding identity. Two open lots of the same ticker are one holding (0007 has no unique
+ *  (user_id, ticker)). Shared with `portfolioTargets.ts` — do not copy. */
+export function tickerKey(raw: string): string {
+  return normalizeTicker(raw) ?? raw.trim().toUpperCase();
+}
 
 /** The ONLY fields this readout reads out of a macro per-ticker artifact. */
 export interface TickerFacts {
@@ -172,15 +180,17 @@ export function computePortfolioRisk(
   const gaps: { ticker: string; reason: GapReason }[] = [];
 
   type Sized = { ticker: string; cost: number };
-  const sized: Sized[] = [];
+  const costByTicker = new Map<string, number>();
   for (const p of open) {
+    const key = tickerKey(p.ticker);
     const cost = isFiniteNum(p.shares) && isFiniteNum(p.entryPrice) ? p.shares * p.entryPrice : null;
     if (cost == null || !(cost > 0)) {
-      gaps.push({ ticker: p.ticker, reason: "no_size" });
+      gaps.push({ ticker: key, reason: "no_size" });
       continue;
     }
-    sized.push({ ticker: p.ticker, cost });
+    costByTicker.set(key, (costByTicker.get(key) ?? 0) + cost);
   }
+  const sized: Sized[] = [...costByTicker.entries()].map(([ticker, cost]) => ({ ticker, cost }));
 
   const totalCost = sized.length ? sized.reduce((a, s) => a + s.cost, 0) : null;
   const pctOf = (cost: number) => (totalCost && totalCost > 0 ? (cost / totalCost) * 100 : 0);
