@@ -1,14 +1,14 @@
 # B-F12-B5-1 Explicit grants — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 02f8592c28682cf1e21677f5cfeab2e5e23b6f4d
-# capturedAt: 2026-09-10T14:08:29.866Z
+# capturedAtHead: aa59f6d8c53c274e4f4e7f478230c1ac28fd7284
+# capturedAt: 2026-09-10T20:18:17.912Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/components/settings/SectionSharing.tsx: "29fd9b355d50ecb3d3284b6d117b6ed50a461c7b7d45ea3d8588575fe5eca56a"
-  terminal/components/settings/SettingsPanel.tsx: "6e529eb17a25bc918e0464518c0ca01fed8daed15c1a8a6d357a930236acf931"
+  terminal/components/settings/SettingsPanel.tsx: "976e6785490025ddd322f5daeed8dbb0d0fd36455bf7356bfa3396b3f542dc0c"
   terminal/app/settings.css: "3189163136d943431cbf52e4b5d241c105b695ba5af94c4c2e29151d537b5ef5"
-  terminal/lib/i18n.tsx: "5e05c5241451a39ce30d042e34abc142601a6da056df70dbff187a6f55391765"
+  terminal/lib/i18n.tsx: "e81fe63c2079d19c4ba9e969273d5f48853229949070458262bd39a8a0da3451"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -38,11 +38,11 @@ measurements:
   desktop-zh-shared.png: { cardWidth: 1140, groupCount: 2, revokeVisible: true, badgeText: "仅可查看" }
   desktop-en-empty-list.png: { cardWidth: 1140, groupCount: 2, revokeVisible: true, badgeText: "Read only" }
   desktop-zh-empty-list.png: { cardWidth: 1140, groupCount: 2, revokeVisible: true, badgeText: "仅可查看" }
-  desktop-en-empty.png: { cardWidth: 1123, groupCount: 2, revokeVisible: false, badgeText: "" }
-  desktop-zh-empty.png: { cardWidth: 1123, groupCount: 2, revokeVisible: false, badgeText: "" }
+  desktop-en-empty.png: { cardWidth: 1129, groupCount: 2, revokeVisible: false, badgeText: "" }
+  desktop-zh-empty.png: { cardWidth: 1128, groupCount: 2, revokeVisible: false, badgeText: "" }
   mobile-en-shared.png: { cardWidth: 390, groupCount: 2, revokeVisible: true, badgeText: "Read only" }
   mobile-zh-shared.png: { cardWidth: 390, groupCount: 2, revokeVisible: true, badgeText: "仅可查看" }
   mobile-en-empty-list.png: { cardWidth: 390, groupCount: 2, revokeVisible: true, badgeText: "Read only" }
   mobile-zh-empty-list.png: { cardWidth: 390, groupCount: 2, revokeVisible: true, badgeText: "仅可查看" }
-  mobile-en-empty.png: { cardWidth: 386, groupCount: 2, revokeVisible: false, badgeText: "" }
-  mobile-zh-empty.png: { cardWidth: 387, groupCount: 2, revokeVisible: false, badgeText: "" }
+  mobile-en-empty.png: { cardWidth: 387, groupCount: 2, revokeVisible: false, badgeText: "" }
+  mobile-zh-empty.png: { cardWidth: 386, groupCount: 2, revokeVisible: false, badgeText: "" }
