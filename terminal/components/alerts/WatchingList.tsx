@@ -2,7 +2,14 @@
 import s from "./alerts.module.css";
 import { copy, conditionsWord } from "@/lib/alertsView";
 
-export interface WatchingRow { id: string; symbol: string; label: string; state: "armed" | "paused" }
+export interface WatchingRow {
+  id: string;
+  symbol: string;
+  label: string;
+  state: "armed" | "paused";
+  chip?: string;
+  identityState?: "ok" | "unresolved";
+}
 
 // `unavailable` means the underlying /api/alerts read itself failed — a genuinely different fact
 // from "you have zero alerts". Printing "0 conditions" for both is the fabricated-zero bug this
@@ -27,7 +34,7 @@ export default function WatchingList({ rows, lang, unavailable }: { rows: Watchi
           <div key={r.id} className={s.row}>
             <span className={s.subject}>{r.symbol}</span>
             <span className={s.verdict}>{r.label}</span>
-            <span className={s.moduleCount}>{r.state === "armed" ? (lang === "zh" ? "已启用" : "Armed") : (lang === "zh" ? "已暂停" : "Paused")}</span>
+            <span className={s.moduleCount} data-identity-state={r.identityState ?? (r.state === "armed" ? "ok" : undefined)}>{r.chip ?? (r.state === "armed" ? (lang === "zh" ? "已启用" : "Armed") : (lang === "zh" ? "已暂停" : "Paused"))}</span>
           </div>
         ))}
       </div>
