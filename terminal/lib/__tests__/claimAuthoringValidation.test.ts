@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  CLAIM_OWNER_LAST_CLOSE,
   CLAIM_OWNERS,
+  THRESHOLD_MAX,
   buildInsertRow,
   clientClaimPayload,
   composeClaimText,
@@ -17,7 +19,7 @@ function validBody(overrides: Record<string, unknown> = {}): Record<string, unkn
   return {
     subject: { kind: "security", id: "NVDA" },
     condition: {
-      metric: "last",
+      metric: "close",
       comparator: ">=",
       threshold: 150,
       owner: OWNER,
@@ -52,16 +54,19 @@ describe("claim authoring validation", () => {
 
   it("rejects a threshold that is zero or negative", () => {
     expect(validateClaimInput(validBody({
-      condition: { metric: "last", comparator: ">=", threshold: 0, owner: OWNER },
+      condition: { metric: "close", comparator: ">=", threshold: 0, owner: OWNER },
     }), NOW)).toEqual({ ok: false, error: "invalid_threshold" });
     expect(validateClaimInput(validBody({
-      condition: { metric: "last", comparator: ">=", threshold: -1, owner: OWNER },
+      condition: { metric: "close", comparator: ">=", threshold: -1, owner: OWNER },
     }), NOW)).toEqual({ ok: false, error: "invalid_threshold" });
   });
 
   it("rejects a threshold above the 1,000,000 ceiling", () => {
     expect(validateClaimInput(validBody({
-      condition: { metric: "last", comparator: ">=", threshold: 1_000_000.01, owner: OWNER },
+      condition: { metric: "close", comparator: ">=", threshold: THRESHOLD_MAX + 1, owner: OWNER },
+    }), NOW)).toEqual({ ok: false, error: "invalid_threshold" });
+    expect(validateClaimInput(validBody({
+      condition: { metric: "close", comparator: ">=", threshold: 1_000_000.01, owner: OWNER },
     }), NOW)).toEqual({ ok: false, error: "invalid_threshold" });
   });
 
@@ -125,7 +130,7 @@ describe("claim authoring validation", () => {
       lang: "en",
     });
     expect(text.length).toBeGreaterThan(0);
-    expect(text).toBe("NVDA last traded price at or above 150 by 2026-09-10.");
+    expect(text).toBe("NVDA closing price at or above 150 on 2026-09-10.");
     expect(text).not.toContain("undefined");
     const zh = composeClaimText({
       symbol: "NVDA",
@@ -134,7 +139,7 @@ describe("claim authoring validation", () => {
       date: TOMORROW,
       lang: "zh",
     });
-    expect(zh).toBe("NVDA 最新成交价在 2026-09-10 前大于等于150。");
+    expect(zh).toBe("NVDA 在 2026-09-10 的收盘价大于等于150。");
   });
 
   it("appends a non-empty note to the composed base sentence", () => {
@@ -146,7 +151,7 @@ describe("claim authoring validation", () => {
       note: "If demand holds.",
       lang: "en",
     });
-    expect(text).toBe("NVDA last traded price above 200 by 2026-09-10. If demand holds.");
+    expect(text).toBe("NVDA closing price above 200 on 2026-09-10. If demand holds.");
   });
 
   it("rejects a note that would push claim_text over 280 characters", () => {
@@ -168,14 +173,46 @@ describe("claim authoring validation", () => {
 
   it("rejects an owner value outside CLAIM_OWNERS", () => {
     expect(validateClaimInput(validBody({
-      condition: { metric: "last", comparator: ">=", threshold: 150, owner: "not-an-owner" },
+      condition: { metric: "close", comparator: ">=", threshold: 150, owner: "not-an-owner" },
     }), NOW)).toEqual({ ok: false, error: "invalid_owner" });
   });
 
   it("rejects a comparator outside >=, <=, >, <", () => {
     expect(validateClaimInput(validBody({
-      condition: { metric: "last", comparator: "==", threshold: 150, owner: OWNER },
+      condition: { metric: "close", comparator: "==", threshold: 150, owner: OWNER },
     }), NOW)).toEqual({ ok: false, error: "invalid_comparator" });
+  });
+
+  it("CLAIM_OWNER_LAST_CLOSE is the single last-close owner with metric close", () => {
+    expect(CLAIM_OWNER_LAST_CLOSE).toEqual({ owner: "hub/lib/anchor.js", metric: "close" });
+    expect(CLAIM_OWNERS).toHaveLength(1);
+    expect(CLAIM_OWNERS[0].owner).toBe(CLAIM_OWNER_LAST_CLOSE.owner);
+    expect(CLAIM_OWNERS[0].metric).toBe(CLAIM_OWNER_LAST_CLOSE.metric);
+    expect(CLAIM_OWNERS[0].labelEn).toBe("Closing price");
+    expect(CLAIM_OWNERS[0].labelZh).toBe("收盘价");
+    const result = buildInsertRow(validBody(), "user-A", "2026-09-09T12:00:00.000Z", NOW);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.row.condition.metric).toBe("close");
+    expect(result.row.condition.owner).toBe("hub/lib/anchor.js");
+  });
+
+  it("rejects an empty claim_text with claim_text_empty, not claim_text_too_long", () => {
+    expect(validateClaimInput(validBody({ claim_text: "" }), NOW)).toEqual({
+      ok: false,
+      error: "claim_text_empty",
+    });
+  });
+
+  it("rejects a resolves_at instant that is not YYYY-MM-DD and has no UTC designator", () => {
+    expect(validateClaimInput(validBody({
+      resolves_at: "2026-09-10T00:00:00",
+    }), NOW)).toEqual({ ok: false, error: "invalid_resolves_at" });
+  });
+
+  it("accepts the client's T23:59:59.999Z resolves_at form", () => {
+    const result = validateClaimInput(validBody({ resolves_at: TOMORROW_ISO }), NOW);
+    expect(result.ok).toBe(true);
   });
 
   it("never accepts a client-supplied claim_id, user_id, stated_at, status, or resolution", () => {

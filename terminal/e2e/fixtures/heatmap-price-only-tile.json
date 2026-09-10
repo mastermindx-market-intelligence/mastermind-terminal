@@ -1,0 +1,46 @@
+{
+  "comment": "B-PL-6 batch 3 round 8 (ruling R2): a small FLOW-layer universe with at least one price-only tile (INTC has no flow_idx row) so tilePriceBadge (price / 价格) is large enough to read in every HeatmapTreemap crop. Capture loads this via page.route; it is not a production data file.",
+  "manifest": {
+    "as_of": "2026-07-10",
+    "source": "pl6-batch3-price-only-crop",
+    "symbols": {
+      "NVDA": { "name": "NVIDIA Corp", "sec": "Equities", "last": 192.53, "chg": -1.64, "vol": 179303288 },
+      "AAPL": { "name": "Apple Inc", "sec": "Equities", "last": 283.78, "chg": 3.14, "vol": 261774853 },
+      "INTC": { "name": "Intel Corp", "sec": "Equities", "last": 128.32, "chg": -3.42, "vol": 99471748 },
+      "TSLA": { "name": "Tesla Inc", "sec": "Equities", "last": 379.71, "chg": 1.22, "vol": 53527039 }
+    }
+  },
+  "flow_idx": {
+    "as_of": "2026-07-10",
+    "source": "pl6-batch3-price-only-crop",
+    "rows": [
+      {
+        "key": "NVDA",
+        "asof": "2026-07-10",
+        "spot": 192.53,
+        "net_premium_mn": 558.08,
+        "tone": "neutral",
+        "doi_pc": 1.26,
+        "verdict": "premium traded; direction approximate"
+      },
+      {
+        "key": "AAPL",
+        "asof": "2026-07-10",
+        "spot": 283.78,
+        "net_premium_mn": 34.14,
+        "tone": "neutral",
+        "doi_pc": 1.11,
+        "verdict": "premium traded; direction approximate"
+      },
+      {
+        "key": "TSLA",
+        "asof": "2026-07-10",
+        "spot": 379.71,
+        "net_premium_mn": 425.27,
+        "tone": "neutral",
+        "doi_pc": 0.57,
+        "verdict": "premium traded; direction approximate"
+      }
+    ]
+  }
+}

@@ -3,13 +3,16 @@
 
 import { createHash } from "node:crypto";
 import { normalizeAnalysisSymbol } from "@/lib/analysisSymbol";
+import { CLAIM_OWNER_LAST_CLOSE } from "./claimOwners";
+
+export { CLAIM_OWNER_LAST_CLOSE } from "./claimOwners";
 
 export const CLAIM_OWNERS = [
   {
-    owner: "terminal/app/api/quote/route.ts",
-    metric: "last",
-    labelEn: "Last traded price",
-    labelZh: "最新成交价",
+    owner: CLAIM_OWNER_LAST_CLOSE.owner,
+    metric: CLAIM_OWNER_LAST_CLOSE.metric,
+    labelEn: "Closing price",
+    labelZh: "收盘价",
   },
 ] as const;
 
@@ -49,11 +52,12 @@ export type ClaimAuthoringError =
   | "invalid_threshold"
   | "invalid_resolves_at"
   | "invalid_probability"
-  | "claim_text_too_long";
+  | "claim_text_too_long"
+  | "claim_text_empty";
 
 export type ClaimSubject = { kind: "security"; id: string };
 export type ClaimCondition = {
-  metric: "last";
+  metric: "close";
   comparator: ClaimComparator;
   threshold: number;
   owner: (typeof CLAIM_OWNERS)[number]["owner"];
@@ -99,15 +103,19 @@ export function toResolvesAtIso(ymd: string): string {
   return `${ymd}T23:59:59.999Z`;
 }
 
+const YMD = /^\d{4}-\d{2}-\d{2}$/;
+const ISO_UTC_INSTANT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]00:00)$/;
+
 function utcYmd(value: string): string | null {
-  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+  if (YMD.test(value)) return value;
+  if (!ISO_UTC_INSTANT.test(value)) return null;
   const t = Date.parse(value);
   if (!Number.isFinite(t)) return null;
   return new Date(t).toISOString().slice(0, 10);
 }
 
 function formatThreshold(threshold: number): string {
-  return Number.isInteger(threshold) ? String(threshold) : String(threshold);
+  return String(threshold);
 }
 
 export function composeClaimText(args: {
@@ -121,8 +129,8 @@ export function composeClaimText(args: {
   const words = CLAIM_COMPARATOR_WORDS[args.lang][args.comparator];
   const level = formatThreshold(args.threshold);
   const base = args.lang === "zh"
-    ? `${args.symbol} 最新成交价在 ${args.date} 前${words}${level}。`
-    : `${args.symbol} last traded price ${words} ${level} by ${args.date}.`;
+    ? `${args.symbol} 在 ${args.date} 的收盘价${words}${level}。`
+    : `${args.symbol} closing price ${words} ${level} on ${args.date}.`;
   const note = typeof args.note === "string" ? args.note.trim() : "";
   return note ? `${base} ${note}` : base;
 }
@@ -142,7 +150,7 @@ export function clientClaimPayload(input: {
   const payload: Record<string, unknown> = {
     subject: { kind: "security", id: input.symbol },
     condition: {
-      metric: ownerRow?.metric ?? "last",
+      metric: ownerRow?.metric ?? CLAIM_OWNER_LAST_CLOSE.metric,
       comparator: input.comparator,
       threshold: input.threshold,
       owner: input.owner,
@@ -206,7 +214,7 @@ export function validateClaimInput(
   if (!ymd || ymd < bounds.min || ymd > bounds.max) {
     return { ok: false, error: "invalid_resolves_at" };
   }
-  const resolves_at = /^\d{4}-\d{2}-\d{2}$/.test(resolvesRaw) ? toResolvesAtIso(resolvesRaw) : resolvesRaw;
+  const resolves_at = YMD.test(resolvesRaw) ? toResolvesAtIso(resolvesRaw) : resolvesRaw;
 
   if ("stated_probability" in body) {
     const p = body.stated_probability;
@@ -217,7 +225,7 @@ export function validateClaimInput(
 
   const claim_text = typeof body.claim_text === "string" ? body.claim_text : "";
   if (claim_text.length > CLAIM_TEXT_MAX) return { ok: false, error: "claim_text_too_long" };
-  if (claim_text.length < 1) return { ok: false, error: "claim_text_too_long" };
+  if (claim_text.length < 1) return { ok: false, error: "claim_text_empty" };
 
   const fields: ValidatedClaimFields = {
     subject: { kind: "security", id: symbol },

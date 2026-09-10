@@ -8,6 +8,7 @@ import {
   CLAIM_COMPARATORS,
   CLAIM_OWNERS,
   CLAIM_TEXT_MAX,
+  THRESHOLD_MAX,
   clientClaimPayload,
   composeClaimText,
   resolvesAtBounds,
@@ -28,9 +29,11 @@ const ERROR_KEY: Record<string, string> = {
   invalid_owner: "claimErrInvalidOwner",
   invalid_comparator: "claimErrInvalidComparator",
   invalid_threshold: "claimErrInvalidThreshold",
+  threshold_too_high: "claimErrThresholdTooHigh",
   invalid_resolves_at: "claimErrInvalidResolvesAt",
   invalid_probability: "claimErrInvalidProbability",
   claim_text_too_long: "claimErrTooLong",
+  claim_text_empty: "claimErrTextEmpty",
   unauthenticated: "claimErrUnauthenticated",
   claim_not_recorded: "claimErrNotRecorded",
 };
@@ -87,6 +90,12 @@ export default function ClaimAuthoringForm({
     });
   }, [symbol, comparator, threshold, resolvesAt, note, lang, bounds.min]);
   const remaining = CLAIM_TEXT_MAX - (composed ? composed.length : 0);
+  const thresholdOverMax = Number(threshold) > THRESHOLD_MAX;
+  const budgetCopy = remaining < 0
+    ? t("claimCharsOver").replace("{n}", String(-remaining))
+    : remaining === 1
+      ? t("claimCharsLeft1")
+      : t("claimCharsLeft").replace("{n}", String(remaining));
 
   function resetFilled() {
     setComparator("");
@@ -106,6 +115,7 @@ export default function ClaimAuthoringForm({
     if (!isComparator(comparator)) { setErrorKey("claimErrInvalidComparator"); return; }
     const n = Number(threshold);
     if (!Number.isFinite(n) || n <= 0) { setErrorKey("claimErrInvalidThreshold"); return; }
+    if (thresholdOverMax) return;
     if (!resolvesAt) { setErrorKey("claimErrInvalidResolvesAt"); return; }
     if (remaining < 0) { setErrorKey("claimErrTooLong"); return; }
     const payload = clientClaimPayload({
@@ -171,7 +181,7 @@ export default function ClaimAuthoringForm({
         <form className={styles.body} onSubmit={onSubmit}>
           <div className={styles.fields}>
             <label className={styles.row}>
-              <span className={styles.chip}>{symbol || "—"}</span>
+              <span className={styles.chip}>{symbol || t("claimSymbolUnset")}</span>
             </label>
             <label className={styles.row}>
               {t("claimOwnerLabel")}
@@ -186,7 +196,7 @@ export default function ClaimAuthoringForm({
                 onChange={(event) => { setComparator(event.target.value); setErrorKey(null); }}
                 aria-label={t("claimComparatorLabel")}
               >
-                <option value="" />
+                <option value="">{t("claimDirectionUnset")}</option>
                 {CLAIM_COMPARATORS.map((value) => (
                   <option key={value} value={value}>{CLAIM_COMPARATOR_WORDS[lang][value]}</option>
                 ))}
@@ -201,6 +211,9 @@ export default function ClaimAuthoringForm({
                 onChange={(event) => { setThreshold(event.target.value); setErrorKey(null); }}
                 aria-label={t("claimThresholdLabel")}
               />
+              {thresholdOverMax && (
+                <p className={styles.error} role="alert">{t("claimErrThresholdTooHigh")}</p>
+              )}
             </label>
             <label className={styles.row}>
               {t("claimResolvesAtLabel")}
@@ -245,13 +258,13 @@ export default function ClaimAuthoringForm({
                 onChange={(event) => { setNote(event.target.value); setErrorKey(null); }}
                 aria-label={t("claimNoteLabel")}
               />
-              <span className={remaining < 0 ? styles.counterOver : styles.counter}>{remaining}</span>
+              <span className={remaining < 0 ? styles.counterOver : styles.counter}>{budgetCopy}</span>
             </label>
           </div>
           {errorKey && <p className={styles.error} role="alert">{t(errorKey)}</p>}
           {saved && <p className={styles.saved}>{t("claimSaved")}</p>}
           <div className={styles.actions}>
-            <button className={styles.submit} type="submit" disabled={saving || remaining < 0}>
+            <button className={styles.submit} type="submit" disabled={saving || remaining < 0 || thresholdOverMax}>
               {saving ? t("claimSaving") : t("claimSubmit")}
             </button>
             <button

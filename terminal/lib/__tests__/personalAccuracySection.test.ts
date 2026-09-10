@@ -11,6 +11,7 @@ import { createRoot, type Root } from "react-dom/client";
 import React from "react";
 import SectionAccuracy, { accuracyGlanceState } from "@/components/settings/SectionAccuracy";
 import { LEX } from "@/lib/i18n";
+import { accountIdentity, GUEST_IDENTITY } from "@/lib/accountIdentity";
 import { emptyAccuracyReadout, scorePersonalAccuracy, type UserClaim } from "@/lib/personalAccuracy";
 import {
   overlappingUnscorableAccuracyFixture,
@@ -18,6 +19,8 @@ import {
   unscorableAccuracyFixture,
 } from "@/app/dev/settings/accuracyFixtures";
 import type { AccuracyProps } from "@/components/settings/SectionAccuracy";
+
+const OWNER = accountIdentity("8f2c41ba-7d19-4e6a-9c03-5b71ee0a4d22", "a@example.com");
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -32,7 +35,7 @@ function baseProps(lang: "en" | "zh", extra: Partial<AccuracyProps> = {}): Accur
   return {
     t: makeT(lang),
     lang,
-    identity: { kind: "guest" },
+    identity: OWNER,
     email: "a@example.com",
     user: null,
     onClose: () => {},
@@ -118,6 +121,39 @@ describe("SectionAccuracy load-error placement (review MAJOR round 2)", () => {
     expect(detail).toContain("7");
     expect(detail).toContain("10");
   });
+
+  it("EN and ZH: the hit-rate label and value share the groups-of-calls unit", () => {
+    // Seat ruling R1 round 5. Label used to say "checked calls" while the
+    // value named "checked groups of calls".
+    const readout = populatedAccuracyFixture();
+    expect(readout.hitRate).not.toBeNull();
+    mount("en", { readout, loadErr: false });
+    const toggle = container.querySelector("[data-acc='toggle']") as HTMLButtonElement;
+    act(() => {
+      toggle.click();
+    });
+    const enDt = [...container.querySelectorAll("dt")].find(
+      (el) => el.textContent === LEX.accDetHitRate[0],
+    );
+    expect(enDt).toBeTruthy();
+    expect(enDt!.textContent).toBe("Hits among checked groups of calls");
+    expect(enDt!.nextElementSibling?.textContent).toContain("checked groups of calls");
+    act(() => {
+      root?.unmount();
+      root = createRoot(container);
+      root!.render(React.createElement(SectionAccuracy, baseProps("zh", { readout, loadErr: false })));
+    });
+    const zhToggle = container.querySelector("[data-acc='toggle']") as HTMLButtonElement;
+    act(() => {
+      zhToggle.click();
+    });
+    const zhDt = [...container.querySelectorAll("dt")].find(
+      (el) => el.textContent === LEX.accDetHitRate[1],
+    );
+    expect(zhDt).toBeTruthy();
+    expect(zhDt!.textContent).toBe("已核对判断组中的命中");
+    expect(zhDt!.nextElementSibling?.textContent).toContain("组判断");
+  });
 });
 
 function interpolate(template: string, vars: Record<string, string | number>): string {
@@ -131,7 +167,9 @@ function interpolate(template: string, vars: Record<string, string | number>): s
 function glanceSentences(lang: 0 | 1, nUnscorable = 0) {
   return {
     empty: LEX.accEmpty[lang],
-    unscorable: interpolate(LEX.accUnscorableN[lang], { n: nUnscorable }),
+    unscorable: nUnscorable === 1
+      ? LEX.accUnscorable1[lang]
+      : interpolate(LEX.accUnscorableN[lang], { n: nUnscorable }),
     readout: LEX.accStanceMostly[lang],
   };
 }
@@ -226,6 +264,26 @@ describe("SectionAccuracy glance state machine (exactly one state sentence)", ()
     expect(container.querySelector("[data-acc-state='unscorable']")).toBeTruthy();
   });
 
+  it("EN unscorable glance is singular at n = 1", () => {
+    const readout = unscorableAccuracyFixture();
+    expect(readout.claimCount).toBe(1);
+    mount("en", { readout, loadErr: false });
+    const text = container.textContent || "";
+    expect(text).toContain(LEX.accUnscorable1[0]);
+    expect(text).not.toContain("1 calls could not be checked");
+  });
+
+  it("a non-account-owner sees the signed-out card, never Reading your record forever", () => {
+    mount("en", { identity: GUEST_IDENTITY, readout: null, loadErr: false });
+    const text = container.textContent || "";
+    const card = container.querySelector("[data-acc-state='signed-out']");
+    expect(card).toBeTruthy();
+    expect(card!.textContent).toContain("Sign in to see how your calls have turned out.");
+    expect(card!.textContent).not.toContain(LEX.acsSyncOff[0]);
+    expect(text).not.toContain(LEX.accUnread[0]);
+    expect(container.querySelector("[data-acc-state='unread']")).toBeNull();
+  });
+
   it("EN claim-count line is singular at n = 1", () => {
     const readout = scorePersonalAccuracy([{
       claim_id: "1111111111111111",
@@ -293,10 +351,14 @@ describe("SectionAccuracy detail honesty", () => {
     expect(readout.brierPairs).toBeGreaterThan(0);
     expect(readout.brierPairs).toBeLessThan(30);
     mount("en", { readout, loadErr: false });
-    const expected = interpolate(LEX.accCalibWithheld[0], { n: readout.brierPairs });
-    expect(container.textContent).toContain(expected);
+    const withheld = "Not enough settled groups of calls yet to check how well your odds match reality.";
+    const progress = interpolate("Settled so far: {n} of the 30 groups needed.", { n: readout.brierPairs });
+    expect(container.textContent).toContain(withheld);
+    expect(container.textContent).toContain(progress);
+    expect(container.textContent).not.toMatch(/\(\d+ of 30\)/);
     const detail = openDetail();
-    expect(detail).toContain(expected);
+    expect(detail).toContain(withheld);
+    expect(detail).toContain(progress);
   });
 
   it("never prints a bare Brier number; the denominator is the pair count", () => {
@@ -330,7 +392,113 @@ describe("SectionAccuracy detail honesty", () => {
     });
     expect(detail).toContain(expected);
     expect(detail).not.toMatch(new RegExp(`>\\s*${readout.brierMean!.toFixed(3)}\\s*<`));
-    expect(detail.includes(`Brier ${readout.brierMean!.toFixed(3)} over ${readout.brierPairs} resolved calls.`)).toBe(true);
+    expect(detail.includes(`Brier ${readout.brierMean!.toFixed(3)} over ${readout.brierPairs} resolved groups of calls.`)).toBe(true);
+  });
+
+  it("glance and detail print the same unscorable call tally on overlappingUnscorableAccuracyFixture", () => {
+    const readout = overlappingUnscorableAccuracyFixture();
+    expect(readout.unscorableCount).toBe(1);
+    expect(readout.claimCount).toBe(2);
+    mount("en", { readout, loadErr: false });
+    const glance = interpolate(LEX.accUnscorableN[0], { n: 2 });
+    expect(container.textContent).toContain(glance);
+    openDetail();
+    const dt = [...container.querySelectorAll("dt")].find(
+      (el) => el.textContent === LEX.accDetUnscorable[0],
+    );
+    expect(dt).toBeTruthy();
+    expect(dt!.nextElementSibling?.textContent).toBe("2");
+  });
+
+  it("labels name groups where the number is episodes and calls where it is claims", () => {
+    const readout = overlappingUnscorableAccuracyFixture();
+    expect(readout.episodeCount).not.toBe(readout.claimCount);
+    mount("en", { readout, loadErr: false });
+    const detail = openDetail();
+    expect(detail).toContain(LEX.accDetEpisodes[0]);
+    expect(detail).toContain(LEX.accDetClaims[0]);
+    const episodeDt = [...container.querySelectorAll("dt")].find(
+      (el) => el.textContent === LEX.accDetEpisodes[0],
+    );
+    const claimDt = [...container.querySelectorAll("dt")].find(
+      (el) => el.textContent === LEX.accDetClaims[0],
+    );
+    expect(episodeDt?.nextElementSibling?.textContent).toBe(String(readout.episodeCount));
+    expect(claimDt?.nextElementSibling?.textContent).toBe(String(readout.claimCount));
+  });
+
+  it("while accEarlyN renders the stance line is not printed twice", () => {
+    const claims: UserClaim[] = Array.from({ length: 5 }, (_, i) => ({
+      claim_id: `early${i.toString(16).padStart(11, "0")}`.slice(0, 16),
+      user_id: "11111111-1111-4111-8111-111111111111",
+      subject: { kind: "security", id: `E${i}` },
+      stated_at: "2026-01-01T00:00:00.000Z",
+      resolves_at: "2026-02-01T00:00:00.000Z",
+      claim_text: `Call ${i} finishes at or above the line.`,
+      condition: { metric: "last_close", comparator: ">=", threshold: 100, owner: "quotes.last_close" },
+      stated_probability: 0.5,
+      evidence: [],
+      status: "resolved",
+      resolution: {
+        outcome: 1,
+        observed: 110,
+        resolved_at: "2026-02-01T00:00:00.000Z",
+        resolver: "quotes.last_close",
+        note: "",
+      },
+      supersedes: null,
+    }));
+    const readout = scorePersonalAccuracy(claims);
+    expect(readout.resolvedEpisodes).toBe(5);
+    expect(readout.resolvedEpisodes).toBeGreaterThan(0);
+    expect(readout.resolvedEpisodes).toBeLessThan(10);
+    expect(readout.stance).toBe("Too early to say");
+    mount("en", { readout, loadErr: false });
+    const text = container.textContent || "";
+    const early = "Too early to say — checked 5 groups of your calls so far.";
+    expect(text).toContain(early);
+    expect(text).not.toContain("Too early to say — checked 5 of your calls so far.");
+    const stanceHits = (text.match(/Too early to say/g) || []).length;
+    expect(stanceHits).toBe(1);
+  });
+
+  it("accEarly1 at n = 1 and accEarlyN at n = 5", () => {
+    const claimsAt = (n: number): UserClaim[] => Array.from({ length: n }, (_, i) => ({
+      claim_id: `early${n.toString(16)}${i.toString(16).padStart(10, "0")}`.slice(0, 16),
+      user_id: "11111111-1111-4111-8111-111111111111",
+      subject: { kind: "security", id: `E${n}${i}` },
+      stated_at: "2026-01-01T00:00:00.000Z",
+      resolves_at: "2026-02-01T00:00:00.000Z",
+      claim_text: `Call ${i} finishes at or above the line.`,
+      condition: { metric: "last_close", comparator: ">=", threshold: 100, owner: "quotes.last_close" },
+      stated_probability: 0.5,
+      evidence: [],
+      status: "resolved" as const,
+      resolution: {
+        outcome: 1 as const,
+        observed: 110,
+        resolved_at: "2026-02-01T00:00:00.000Z",
+        resolver: "quotes.last_close",
+        note: "",
+      },
+      supersedes: null,
+    }));
+    const one = scorePersonalAccuracy(claimsAt(1));
+    expect(one.resolvedEpisodes).toBe(1);
+    mount("en", { readout: one, loadErr: false });
+    const text1 = container.textContent || "";
+    expect(text1).toContain("Too early to say — checked 1 group of your calls so far.");
+    expect(text1).not.toContain("Too early to say — checked 1 groups of your calls so far.");
+    const five = scorePersonalAccuracy(claimsAt(5));
+    expect(five.resolvedEpisodes).toBe(5);
+    act(() => {
+      root?.unmount();
+      root = createRoot(container);
+      root!.render(React.createElement(SectionAccuracy, baseProps("en", { readout: five, loadErr: false })));
+    });
+    const text5 = container.textContent || "";
+    expect(text5).toContain("Too early to say — checked 5 groups of your calls so far.");
+    expect(text5).not.toContain("Too early to say — checked 1 group of your calls so far.");
   });
 
   it("ZH detail rows use a full-width colon and omit the raw subject identifier", () => {
@@ -352,6 +520,306 @@ describe("SectionAccuracy detail honesty", () => {
     expect(src).toMatch(/BRIER_MIN_PAIRS/);
     expect(src).not.toMatch(/nResolved < 10/);
     expect(src).not.toMatch(/brierPairs.{0,40}< 30/);
+  });
+});
+
+function rowClaim(partial: Partial<UserClaim> & Pick<UserClaim, "claim_id">): UserClaim {
+  return {
+    user_id: "11111111-1111-4111-8111-111111111111",
+    subject: { kind: "security", id: "SPX" },
+    stated_at: "2026-01-01T00:00:00.000Z",
+    resolves_at: "2026-02-01T00:00:00.000Z",
+    claim_text: "SPX finishes at or above 6000",
+    condition: { metric: "last_close", comparator: ">=", threshold: 6000, owner: "quotes.last_close" },
+    stated_probability: 0.7,
+    evidence: [],
+    status: "resolved",
+    resolution: {
+      outcome: 1,
+      observed: 6100,
+      resolved_at: "2026-02-01T00:00:00.000Z",
+      resolver: "quotes.last_close",
+      note: "",
+    },
+    supersedes: null,
+    ...partial,
+  };
+}
+
+describe("SectionAccuracy unscorable cause split (META-CEO B round 7 M3)", () => {
+  let container: HTMLDivElement;
+  let root: Root | undefined;
+
+  beforeEach(() => {
+    container = document.createElement("div");
+    document.body.appendChild(container);
+  });
+
+  afterEach(() => {
+    act(() => {
+      root?.unmount();
+    });
+    root = undefined;
+    container.remove();
+  });
+
+  function mount(extra: Partial<AccuracyProps> = {}) {
+    act(() => {
+      root = createRoot(container);
+      root!.render(React.createElement(SectionAccuracy, baseProps("en", extra)));
+    });
+  }
+
+  function glance(): string {
+    return container.querySelector("[data-acc-state='unscorable']")?.textContent || "";
+  }
+
+  it("(a) named-data-absent rows keep the existing missing-data sentence", () => {
+    const readout = unscorableAccuracyFixture();
+    mount({ readout, loadErr: false });
+    const text = glance();
+    expect(text).toContain(LEX.accUnscorable1[0]);
+    expect(text).not.toContain("the reason was not recorded");
+  });
+
+  it("(b) an incomplete condition is its own sentence, not the missing-data sentence", () => {
+    const readout = scorePersonalAccuracy([rowClaim({
+      claim_id: "incomplete000001",
+      condition: { metric: "last_close", comparator: ">=", threshold: 6000 },
+      status: "open",
+      resolution: null,
+    })]);
+    expect(readout.claims[0].unscorableReason).toBe("condition_incomplete");
+    mount({ readout, loadErr: false });
+    const text = glance();
+    expect(text).toContain(LEX.accUnscorableIncomplete1[0]);
+    expect(text).not.toContain("1 calls could not be checked because they did not say what to check.");
+    expect(text).not.toContain(LEX.accUnscorable1[0]);
+  });
+
+  it("(c) a withdrawn call is counted as withdrawn", () => {
+    const readout = scorePersonalAccuracy([rowClaim({
+      claim_id: "withdrawn0000001",
+      status: "withdrawn",
+      resolution: null,
+    })]);
+    mount({ readout, loadErr: false });
+    const text = glance();
+    expect(text).toContain(LEX.accUnscorableWithdrawn1[0]);
+    expect(text).not.toContain("1 calls you withdrew.");
+    expect(text).not.toContain(LEX.accUnscorable1[0]);
+  });
+
+  it("(d) a checked call whose result is not yes or no is its own sentence", () => {
+    const readout = scorePersonalAccuracy([rowClaim({
+      claim_id: "notbinary0000001",
+      status: "resolved",
+      resolution: {
+        outcome: null,
+        observed: null,
+        resolved_at: "2026-02-01T00:00:00.000Z",
+        resolver: "quotes.last_close",
+        note: "",
+      },
+    })]);
+    mount({ readout, loadErr: false });
+    const text = glance();
+    expect(text).toContain(LEX.accUnscorableNotBinary1[0]);
+    expect(text).not.toContain("1 calls could not be checked — the result was not a clear yes or no.");
+    expect(text).not.toContain(LEX.accUnscorable1[0]);
+  });
+
+  it("(e) a malformed date is its own sentence, not the missing-data sentence", () => {
+    const readout = scorePersonalAccuracy([rowClaim({
+      claim_id: "baddate000000001",
+      stated_at: "not-a-date",
+      resolves_at: "2026-02-01T00:00:00.000Z",
+    })]);
+    expect(readout.claims[0].unscorableReason).toBe("malformed_timestamp");
+    mount({ readout, loadErr: false });
+    const text = glance();
+    expect(text).toContain(LEX.accUnscorableBadDate1[0]);
+    expect(text).not.toContain("1 calls could not be checked because their dates could not be read.");
+    expect(text).not.toContain(LEX.accUnscorable1[0]);
+  });
+
+  it("(f) a void call with no recorded reason uses the unrecorded-reason sentence", () => {
+    const readout = scorePersonalAccuracy([rowClaim({
+      claim_id: "voidnoreason00001",
+      status: "void_unscorable",
+    })]);
+    expect(readout.claims[0].unscorableReason).toBeNull();
+    mount({ readout, loadErr: false });
+    const text = glance();
+    expect(text).toContain(LEX.accUnscorableOther1[0]);
+    expect(text).not.toContain("1 calls could not be checked; the reason was not recorded.");
+    expect(text).not.toContain(LEX.accUnscorable1[0]);
+  });
+
+  it("unrecognised_kind glance names the same cause the detail names", () => {
+    const readout = scorePersonalAccuracy([{
+      ...rowClaim({ claim_id: "unknownkind00001" }),
+      ingestUnscorable: "unrecognised_kind",
+    }]);
+    expect(readout.claims[0].unscorableReason).toBe("unrecognised_kind");
+    mount({ readout, loadErr: false });
+    const text = glance();
+    expect(text).toContain(LEX.accUnscorableBadKind1[0]);
+    expect(text).not.toContain("the reason was not recorded");
+    expect(text).not.toContain(LEX.accUnscorable1[0]);
+    const toggle = container.querySelector("[data-acc='toggle']") as HTMLButtonElement;
+    act(() => {
+      toggle.click();
+    });
+    const detail = container.querySelector("[data-acc='detail']")?.textContent || "";
+    expect(detail).toContain(LEX.accDetReasonBadKind[0]);
+  });
+
+  it("unrecognised_status glance names the same cause the detail names", () => {
+    const readout = scorePersonalAccuracy([{
+      ...rowClaim({ claim_id: "unknownstatus0001" }),
+      ingestUnscorable: "unrecognised_status",
+    }]);
+    expect(readout.claims[0].unscorableReason).toBe("unrecognised_status");
+    mount({ readout, loadErr: false });
+    const text = glance();
+    expect(text).toContain(LEX.accUnscorableBadStatus1[0]);
+    expect(text).not.toContain("the reason was not recorded");
+    const toggle = container.querySelector("[data-acc='toggle']") as HTMLButtonElement;
+    act(() => {
+      toggle.click();
+    });
+    const detail = container.querySelector("[data-acc='detail']")?.textContent || "";
+    expect(detail).toContain(LEX.accDetReasonBadStatus[0]);
+  });
+
+  it("readout glance prints the withdrawn cause after the claim-count line", () => {
+    const populated = populatedAccuracyFixture();
+    expect(populated.resolvedEpisodes).toBe(10);
+    const readout = scorePersonalAccuracy([
+      ...populated.claims.map((row) => ({
+        claim_id: row.claimId,
+        user_id: "8f2c41ba-7d19-4e6a-9c03-5b71ee0a4d22",
+        subject: { kind: row.subjectKind, id: row.subjectId },
+        stated_at: row.statedAt,
+        resolves_at: row.resolvesAt,
+        claim_text: row.claimText,
+        condition: { metric: "last_close", comparator: ">=", threshold: 100, owner: "quotes.last_close" },
+        stated_probability: row.statedProbability,
+        evidence: [],
+        status: row.status,
+        resolution: row.resolution
+          ? {
+              outcome: row.resolution.outcome,
+              observed: row.resolution.observed,
+              resolved_at: row.resolution.resolvedAt,
+              resolver: row.resolution.resolver,
+              note: row.resolution.note,
+            }
+          : null,
+        supersedes: null,
+      })),
+      rowClaim({
+        claim_id: "withdrawnreadout01",
+        user_id: "8f2c41ba-7d19-4e6a-9c03-5b71ee0a4d22",
+        subject: { kind: "security", id: "W0" },
+        status: "withdrawn",
+        resolution: null,
+      }),
+    ]);
+    expect(readout.resolvedEpisodes).toBe(10);
+    expect(readout.unscorableCount).toBeGreaterThan(0);
+    mount({ readout, loadErr: false });
+    const card = container.querySelector("[data-acc-state='readout']");
+    expect(card).toBeTruthy();
+    const text = card!.textContent || "";
+    expect(text).toContain(LEX.accUnscorableWithdrawn1[0]);
+    const claimAt = text.indexOf(interpolate(LEX.accClaimCountN[0], { n: readout.claimCount }));
+    const causeAt = text.indexOf(LEX.accUnscorableWithdrawn1[0]);
+    expect(claimAt).toBeGreaterThanOrEqual(0);
+    expect(causeAt).toBeGreaterThan(claimAt);
+  });
+
+  it("a matured row with no resolution is pending, not a not-binary cause", () => {
+    const readout = scorePersonalAccuracy([rowClaim({
+      claim_id: "maturedpending0001",
+      status: "matured",
+      resolution: null,
+    })]);
+    expect(readout.claims[0].status).toBe("matured");
+    expect(readout.claims[0].resolution).toBeNull();
+    mount({ readout, loadErr: false });
+    const text = container.textContent || "";
+    expect(text).not.toContain(LEX.accUnscorableNotBinary1[0]);
+    expect(text).not.toContain("the result was not a clear yes or no");
+    const toggle = container.querySelector("[data-acc='toggle']") as HTMLButtonElement;
+    act(() => {
+      toggle.click();
+    });
+    const detail = container.querySelector("[data-acc='detail']")?.textContent || "";
+    expect(detail).toContain(LEX.accDetStatusMatured[0]);
+    expect(detail).toContain("Due, waiting to be checked");
+  });
+});
+
+describe("SectionAccuracy date and resolver honesty (META-CEO B round 7 R9)", () => {
+  let container: HTMLDivElement;
+  let root: Root | undefined;
+
+  beforeEach(() => {
+    container = document.createElement("div");
+    document.body.appendChild(container);
+  });
+
+  afterEach(() => {
+    act(() => {
+      root?.unmount();
+    });
+    root = undefined;
+    container.remove();
+  });
+
+  function mount(extra: Partial<AccuracyProps> = {}) {
+    act(() => {
+      root = createRoot(container);
+      root!.render(React.createElement(SectionAccuracy, baseProps("en", extra)));
+    });
+  }
+
+  function openDetail(): string {
+    const toggle = container.querySelector("[data-acc='toggle']") as HTMLButtonElement;
+    act(() => {
+      toggle.click();
+    });
+    return container.querySelector("[data-acc='detail']")?.textContent || "";
+  }
+
+  it("omits Checked on when resolvedAt is garbage so Invalid Date never prints", () => {
+    const readout = scorePersonalAccuracy([rowClaim({
+      claim_id: "garbagedate00001",
+      resolution: {
+        outcome: 1,
+        observed: 6100,
+        resolved_at: "garbage",
+        resolver: "quotes.last_close",
+        note: "",
+      },
+    })]);
+    mount({ readout, loadErr: false });
+    const detail = openDetail();
+    expect(detail).not.toContain("Invalid Date");
+    expect(detail).not.toContain(LEX.accDetCheckedOn[0]);
+  });
+
+  it("renders no How it was checked line when resolution is {}", () => {
+    const readout = scorePersonalAccuracy([rowClaim({
+      claim_id: "emptyresolver0001",
+      resolution: {} as UserClaim["resolution"],
+    })]);
+    mount({ readout, loadErr: false });
+    const detail = openDetail();
+    expect(detail).not.toContain(LEX.accDetResolverKnown[0]);
+    expect(detail).not.toContain(LEX.accDetHowChecked[0]);
   });
 });
 

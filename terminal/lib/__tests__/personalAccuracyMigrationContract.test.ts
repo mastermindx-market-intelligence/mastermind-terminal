@@ -84,7 +84,7 @@ describe("0017 personal accuracy ledger migration contract", () => {
 
   it("claims prefix 0017 in RESERVATIONS.json and leaves 0011 through 0016 untouched", () => {
     const doc = JSON.parse(readFileSync(reservationsPath, "utf8")) as {
-      prefixes: Record<string, { state: string; file: string | null; packet: string | null; pr: number | null; pr_state: string | null }>;
+      prefixes: Record<string, { state: string; file: string | null; packet: string | null; pr: number | null; pr_state: string | null; applied_in_production?: boolean | null }>;
     };
     const row = doc.prefixes["0017"];
     expect(row.state).toBe("taken");
@@ -92,13 +92,14 @@ describe("0017 personal accuracy ledger migration contract", () => {
     expect(row.packet).toBe("B-F13-5");
     expect(row.pr_state).toBe("open");
     expect(row.pr).toBe(547);
+    expect(row.applied_in_production).toBe(false);
 
     expect(doc.prefixes["0011"]).toMatchObject({ state: "historical", file: "0011_analytics_eid.sql", packet: "CA1A", pr: 507, pr_state: "merged" });
     expect(doc.prefixes["0012"]).toMatchObject({ state: "taken", file: "0012_thesis_objects.sql", packet: "F11-1", pr: 502 });
     expect(doc.prefixes["0013"]).toMatchObject({ state: "taken", file: "0013_alert_runs_outbox.sql", packet: "B-F08-2", pr: 513, pr_state: "merged" });
-    expect(doc.prefixes["0014"]).toMatchObject({ state: "taken", file: "0014_tenancy_foundation.sql", packet: "B-F12-1", pr: 514 });
-    expect(doc.prefixes["0015"]).toMatchObject({ state: "taken", file: "0015_team_roles_invitations.sql", packet: "B-F12-3", pr: 514 });
-    expect(doc.prefixes["0016"]).toMatchObject({ state: "taken", file: "0016_account_lifecycle_requests.sql", packet: "B-F12-4", pr: 527 });
+    expect(doc.prefixes["0014"]).toMatchObject({ state: "taken", file: "0014_tenancy_foundation.sql", packet: "B-F12-1", pr: 514, pr_state: "merged" });
+    expect(doc.prefixes["0015"]).toMatchObject({ state: "taken", file: "0015_team_roles_invitations.sql", packet: "B-F12-3", pr: 514, pr_state: "merged" });
+    expect(doc.prefixes["0016"]).toMatchObject({ state: "taken", file: "0016_account_lifecycle_requests.sql", packet: "B-F12-4", pr: 527, pr_state: "merged" });
   });
 
   it("records 0017 as not applied in the README application table", () => {

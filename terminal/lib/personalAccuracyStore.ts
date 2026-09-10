@@ -46,16 +46,31 @@ function parseCondition(value: unknown): ClaimCondition {
   };
 }
 
-function parseResolution(value: unknown): ClaimResolution | null {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+function timestampLooksValid(iso: string): boolean {
+  if (typeof iso !== "string" || iso.length === 0) return false;
+  const n = Date.parse(iso);
+  return Number.isFinite(n);
+}
+
+function parseResolution(value: unknown): { resolution: ClaimResolution | null; malformedResolvedAt: boolean } {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return { resolution: null, malformedResolvedAt: false };
+  }
   const o = value as Record<string, unknown>;
   const outcome = o.outcome === 0 || o.outcome === 1 ? o.outcome : o.outcome === null ? null : null;
+  const rawResolvedAt = o.resolved_at;
+  const nonStringResolvedAt = rawResolvedAt != null && typeof rawResolvedAt !== "string";
+  const resolved_at = typeof rawResolvedAt === "string" ? rawResolvedAt : "";
   return {
-    outcome,
-    observed: numOrNull(o.observed),
-    resolved_at: text(o.resolved_at),
-    resolver: text(o.resolver),
-    note: text(o.note),
+    resolution: {
+      outcome,
+      observed: numOrNull(o.observed),
+      resolved_at,
+      resolver: text(o.resolver),
+      note: text(o.note),
+    },
+    malformedResolvedAt:
+      nonStringResolvedAt || (resolved_at.length > 0 && !timestampLooksValid(resolved_at)),
   };
 }
 
@@ -80,9 +95,11 @@ export function parseUserClaim(row: Record<string, unknown>): UserClaim | null {
   const probability = row.stated_probability;
   const kind = parseKind(subjectObj.kind);
   const status = parseStatus(row.status);
+  const { resolution, malformedResolvedAt } = parseResolution(row.resolution);
   let ingestUnscorable: UnscorableReason | null = null;
   if (kind === null) ingestUnscorable = "unrecognised_kind";
   else if (status === null) ingestUnscorable = "unrecognised_status";
+  else if (malformedResolvedAt) ingestUnscorable = "malformed_timestamp";
   return {
     claim_id,
     user_id,
@@ -94,7 +111,7 @@ export function parseUserClaim(row: Record<string, unknown>): UserClaim | null {
     stated_probability: typeof probability === "number" && Number.isFinite(probability) ? probability : null,
     evidence: Array.isArray(row.evidence) ? row.evidence : [],
     status: ingestUnscorable ? "void_unscorable" : status as ClaimStatus,
-    resolution: parseResolution(row.resolution),
+    resolution,
     supersedes: typeof row.supersedes === "string" && row.supersedes ? row.supersedes : null,
     ingestUnscorable,
   };

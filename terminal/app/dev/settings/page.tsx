@@ -68,7 +68,7 @@ const USAGE: Record<string, AcsUsage> = {
   unlimited: { tier: "pro", quotas: { fast: { remaining: 0, limit: -1 }, pro: { remaining: 96, limit: 150, period: "month" } } },
 };
 
-const SECTIONS: SettingsSection[] = ["account", "accuracy", "billing", "usage", "prefs", "terminal", "sync"];
+const SECTIONS: SettingsSection[] = ["account", "accuracy", "billing", "usage", "prefs", "alertDelivery", "terminal", "sync"];
 
 const ACCURACY: Record<string, AccuracyReadout> = {
   empty: emptyAccuracyReadout(),
