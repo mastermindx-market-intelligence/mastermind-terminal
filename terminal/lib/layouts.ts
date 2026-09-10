@@ -69,7 +69,15 @@ export const AUTO_LAYOUT_PREFIX = "Layout";
 const CODE_UNIQUE_VIOLATION = "23505";
 const CODE_NO_CONFLICT_TARGET = "42P10";
 
-export type SavedLayout = { id: string; name: string; config: unknown; updated_at: string | null };
+export type SavedLayout = {
+  id: string;
+  name: string;
+  config: unknown;
+  updated_at: string | null;
+  userId?: string | null;
+  teamId?: string | null;
+  visibility?: string | null;
+};
 
 export type ListLayoutsResult =
   | { ok: true; layouts: SavedLayout[] }
@@ -81,7 +89,7 @@ export type SaveLayoutResult =
 
 export type DeleteLayoutResult =
   | { ok: true }
-  | { ok: false; reason: "unavailable" | "not_found" };
+  | { ok: false; reason: "unavailable" | "not_found" | "forbidden" };
 
 /** "create" refuses to touch an existing name (used by blank-name auto-save, which must never
  *  overwrite an unrelated layout); "overwrite" is the user explicitly typing an existing name. */
@@ -127,16 +135,93 @@ const toSavedLayout = (row: LayoutRow): SavedLayout | null => {
   const id = str(row.id);
   const name = str(row.name);
   if (!id || name === null) return null;
-  return { id, name, config: row.config ?? {}, updated_at: str(row.updated_at) };
+  return {
+    id,
+    name,
+    config: row.config ?? {},
+    updated_at: str(row.updated_at),
+    userId: str(row.user_id),
+    teamId: str(row.team_id),
+    visibility: typeof row.visibility === "string" ? row.visibility : null,
+  };
 };
+
+function isMissingShareColumn(error: LayoutDbError): boolean {
+  if (!error) return false;
+  if (error.code === "42703" || error.code === "PGRST204") return true;
+  const msg = (error.message || "").toLowerCase();
+  return msg.includes("visibility") || msg.includes("team_id");
+}
+
+function isTeamShared(row: LayoutRow | undefined | null): boolean {
+  return !!row && row.visibility === "team" && typeof row.team_id === "string" && row.team_id.length > 0;
+}
+
+async function roleForTeam(db: LayoutDb, userId: string, teamId: string): Promise<"owner" | "admin" | "member" | null> {
+  const result = await db.from("team_members").select("role").eq("team_id", teamId).eq("user_id", userId).maybeSingle();
+  if (errOf(result)) return null;
+  const role = rowsOf(result)[0]?.role;
+  if (role === "owner" || role === "admin" || role === "member") return role;
+  return null;
+}
+
+async function refuseSharedIfNotWriter(
+  db: LayoutDb,
+  userId: string,
+  row: LayoutRow | undefined | null,
+): Promise<{ ok: false; reason: "forbidden" | "unavailable" } | null> {
+  if (!isTeamShared(row)) return null;
+  const role = await roleForTeam(db, userId, String(row!.team_id));
+  if (role === "owner" || role === "admin") return null;
+  return { ok: false, reason: "forbidden" };
+}
+
+function storeWriteReason(error: LayoutDbError | null): WorkspaceFailureReason {
+  if (error?.code === "42501") return "forbidden";
+  if (error?.code === CODE_UNIQUE_VIOLATION) return "name_conflict";
+  return "unavailable";
+}
+
+/** Owner-scoped UPDATE first; if that matches nothing and the caller named a row id, a second
+ *  UPDATE scoped to `visibility = 'team'` lets an owner/admin overwrite a shared workspace they
+ *  did not create. A SELECT-before-write would poison the numbered-revision path when a `list`
+ *  fault is injected (W2-A unavailable e2e: the fenced UPDATE must still land, and only the
+ *  trailing library refresh is allowed to fail). RLS/fixture 42501 maps to `forbidden`. */
+async function applyWorkspaceUpdate(
+  db: LayoutDb,
+  userId: string,
+  values: LayoutRow,
+  workspaceName: string,
+  expectedId: string | undefined,
+  extra: (query: LayoutQuery) => LayoutQuery,
+): Promise<LayoutDbResult> {
+  const run = (teamShared: boolean) => {
+    let query = db.from(LAYOUTS_TABLE).update(values);
+    query = teamShared ? query.eq("visibility", "team") : query.eq("user_id", userId);
+    query = extra(query.eq("name", workspaceName));
+    if (expectedId) query = query.eq("id", expectedId);
+    return query.select("id");
+  };
+  const ownerWrite = await run(false);
+  if (errOf(ownerWrite) || rowsOf(ownerWrite).length || !expectedId) return ownerWrite;
+  return run(true);
+}
 
 /** Owner-scoped read. A transport error is `unavailable` — never an empty library. */
 export async function listLayouts(db: LayoutDb, userId: string): Promise<ListLayoutsResult> {
-  const result = await db
+  let result = await db
     .from(LAYOUTS_TABLE)
-    .select("id,name,config,updated_at")
+    .select("id,name,config,updated_at,user_id,team_id,visibility")
     .eq("user_id", userId)
     .order("updated_at", { ascending: false });
+  if (errOf(result) && isMissingShareColumn(errOf(result))) {
+    // DDL 0022 is shipped unapplied: a missing-column error must not 503 every personal library.
+    result = await db
+      .from(LAYOUTS_TABLE)
+      .select("id,name,config,updated_at,user_id")
+      .eq("user_id", userId)
+      .order("updated_at", { ascending: false });
+  }
   if (errOf(result)) return { ok: false, reason: "unavailable" };
   const layouts = rowsOf(result).map(toSavedLayout).filter((l): l is SavedLayout => l !== null);
   return { ok: true, layouts };
@@ -184,6 +269,8 @@ async function overwriteWithoutConstraint(db: LayoutDb, userId: string, name: st
  * Authoritative save. `overwrite` mode is a single atomic upsert on (user_id, name) whenever the
  * constraint exists; `create` mode refuses an existing name outright.
  */
+// Legacy blind-upsert path is NOT extended. It never sets visibility or team_id, so every
+// legacy write lands private by the column default (or stays owner-only while 0022 is unapplied).
 export async function saveLayout(
   db: LayoutDb,
   userId: string,
@@ -218,8 +305,24 @@ export async function deleteLayout(db: LayoutDb, userId: string, id: unknown): P
   const layoutId = str(id);
   if (!layoutId) return { ok: false, reason: "not_found" };
   const deleted = await db.from(LAYOUTS_TABLE).delete().eq("user_id", userId).eq("id", layoutId).select("id");
-  if (errOf(deleted)) return { ok: false, reason: "unavailable" };
-  return rowsOf(deleted).length ? { ok: true } : { ok: false, reason: "not_found" };
+  if (errOf(deleted)) {
+    if (errOf(deleted)?.code === "42501") return { ok: false, reason: "forbidden" };
+    return { ok: false, reason: "unavailable" };
+  }
+  if (rowsOf(deleted).length) return { ok: true };
+  const existing = await db.from(LAYOUTS_TABLE).select("id,user_id,visibility,team_id").eq("id", layoutId).maybeSingle();
+  if (errOf(existing)) return { ok: false, reason: "unavailable" };
+  const row = rowsOf(existing)[0];
+  if (!row) return { ok: false, reason: "not_found" };
+  const refused = await refuseSharedIfNotWriter(db, userId, row);
+  if (refused) return refused;
+  if (!isTeamShared(row)) return { ok: false, reason: "not_found" };
+  const teamDeleted = await db.from(LAYOUTS_TABLE).delete().eq("id", layoutId).select("id");
+  if (errOf(teamDeleted)) {
+    if (errOf(teamDeleted)?.code === "42501") return { ok: false, reason: "forbidden" };
+    return { ok: false, reason: "unavailable" };
+  }
+  return rowsOf(teamDeleted).length ? { ok: true } : { ok: false, reason: "forbidden" };
 }
 
 // ── W2-A workspace evolution ─────────────────────────────────────────────────────────────────────
@@ -236,7 +339,7 @@ const WORKSPACE_SCHEMA = "workspace_layout.v1";
 const isRecordLike = (v: unknown): v is Record<string, unknown> =>
   typeof v === "object" && v !== null && !Array.isArray(v);
 
-export type WorkspaceFailureReason = "unavailable" | "invalid_name" | "name_conflict" | "stale_revision" | "not_found";
+export type WorkspaceFailureReason = "unavailable" | "invalid_name" | "name_conflict" | "stale_revision" | "not_found" | "forbidden";
 
 export type SaveWorkspaceResult =
   | { ok: true; id: string; revision: number }
@@ -287,15 +390,11 @@ export async function saveWorkspace(
   if (typeof expectedRevision === "number") {
     const nextRevision = expectedRevision + 1;
     const payload = { ...envelope, name: null, revision: nextRevision };
-    let query = db
-      .from(LAYOUTS_TABLE)
-      .update({ config: payload, updated_at: nowIso() })
-      .eq("user_id", userId)
-      .eq("name", workspaceName)
-      .eq("config->>revision", String(expectedRevision));
-    if (expectedId) query = query.eq("id", expectedId);
-    const updated = await query.select("id");
-    if (errOf(updated)) return { ok: false, reason: "unavailable" };
+    const updated = await applyWorkspaceUpdate(
+      db, userId, { config: payload, updated_at: nowIso() }, workspaceName, expectedId,
+      (query) => query.eq("config->>revision", String(expectedRevision)),
+    );
+    if (errOf(updated)) return { ok: false, reason: storeWriteReason(errOf(updated)) };
     const rows = rowsOf(updated);
     if (rows.length) {
       const id = str(rows[0]?.id);
@@ -310,29 +409,21 @@ export async function saveWorkspace(
   // workspace_layout.v1" without ever matching an already-converted row (see the `LayoutQuery`
   // doc-comment for why a single `.neq()` cannot do this alone). A3 ruling 5: the id fence applies
   // to BOTH attempts, not just one.
-  let attempt1Query = db
-    .from(LAYOUTS_TABLE)
-    .update({ config: payload, updated_at: nowIso() })
-    .eq("user_id", userId)
-    .eq("name", workspaceName)
-    .is("config->>schema", null);
-  if (expectedId) attempt1Query = attempt1Query.eq("id", expectedId);
-  const attempt1 = await attempt1Query.select("id");
-  if (errOf(attempt1)) return { ok: false, reason: "unavailable" };
+  const attempt1 = await applyWorkspaceUpdate(
+    db, userId, { config: payload, updated_at: nowIso() }, workspaceName, expectedId,
+    (query) => query.is("config->>schema", null),
+  );
+  if (errOf(attempt1)) return { ok: false, reason: storeWriteReason(errOf(attempt1)) };
   if (rowsOf(attempt1).length) {
     const id = str(rowsOf(attempt1)[0]?.id);
     return id ? { ok: true, id, revision: 1 } : { ok: false, reason: "unavailable" };
   }
 
-  let attempt2Query = db
-    .from(LAYOUTS_TABLE)
-    .update({ config: payload, updated_at: nowIso() })
-    .eq("user_id", userId)
-    .eq("name", workspaceName)
-    .neq("config->>schema", WORKSPACE_SCHEMA);
-  if (expectedId) attempt2Query = attempt2Query.eq("id", expectedId);
-  const attempt2 = await attempt2Query.select("id");
-  if (errOf(attempt2)) return { ok: false, reason: "unavailable" };
+  const attempt2 = await applyWorkspaceUpdate(
+    db, userId, { config: payload, updated_at: nowIso() }, workspaceName, expectedId,
+    (query) => query.neq("config->>schema", WORKSPACE_SCHEMA),
+  );
+  if (errOf(attempt2)) return { ok: false, reason: storeWriteReason(errOf(attempt2)) };
   if (rowsOf(attempt2).length) {
     const id = str(rowsOf(attempt2)[0]?.id);
     return id ? { ok: true, id, revision: 1 } : { ok: false, reason: "unavailable" };
@@ -348,7 +439,7 @@ export async function saveWorkspace(
       .insert({ user_id: userId, name: workspaceName, config: payload, updated_at: nowIso() })
       .select("id");
     const error = errOf(inserted);
-    if (error) return { ok: false, reason: error.code === CODE_UNIQUE_VIOLATION ? "name_conflict" : "unavailable" };
+    if (error) return { ok: false, reason: storeWriteReason(error) };
     const id = str(rowsOf(inserted)[0]?.id);
     return id ? { ok: true, id, revision: 1 } : { ok: false, reason: "unavailable" };
   }
@@ -390,10 +481,14 @@ async function resolveZeroRowUpdate(
   };
 
   if (expectedId) {
-    const byId = await db.from(LAYOUTS_TABLE).select("id,name,config").eq("user_id", userId).eq("id", expectedId).maybeSingle();
+    const byId = await db.from(LAYOUTS_TABLE).select("id,name,config,visibility,team_id,user_id").eq("id", expectedId).maybeSingle();
     if (errOf(byId)) return { ok: false, reason: "unavailable" };
     const row = rowsOf(byId)[0];
-    if (row) return retryEchoOrConflict(row);
+    if (row && !( !isTeamShared(row) && str(row.user_id) && str(row.user_id) !== userId )) {
+      const refused = await refuseSharedIfNotWriter(db, userId, row);
+      if (refused) return refused;
+      return retryEchoOrConflict(row);
+    }
     // The loaded row is gone by id — distinguish "nothing there" from "something else has this
     // name now" (delete-recreate ABA) via a name-only read.
     const byName = await db.from(LAYOUTS_TABLE).select("id").eq("user_id", userId).eq("name", name).maybeSingle();
@@ -407,10 +502,12 @@ async function resolveZeroRowUpdate(
     return { ok: false, reason: rowsOf(byName).length ? "stale_revision" : "not_found" };
   }
 
-  const existing = await db.from(LAYOUTS_TABLE).select("id,name,config").eq("user_id", userId).eq("name", name).maybeSingle();
+  const existing = await db.from(LAYOUTS_TABLE).select("id,name,config,visibility,team_id,user_id").eq("user_id", userId).eq("name", name).maybeSingle();
   if (errOf(existing)) return { ok: false, reason: "unavailable" };
   const row = rowsOf(existing)[0];
   if (!row) return { ok: false, reason: "not_found" };
+  const refused = await refuseSharedIfNotWriter(db, userId, row);
+  if (refused) return refused;
   return retryEchoOrConflict(row);
 }
 
@@ -438,11 +535,12 @@ export async function renameWorkspace(
   const to = normalizeLayoutName(newName);
   if (!from || !to) return { ok: false, reason: "invalid_name" };
 
-  let initialQuery = db.from(LAYOUTS_TABLE).select("id,config").eq("user_id", userId);
-  initialQuery = expectedId ? initialQuery.eq("id", expectedId) : initialQuery.eq("name", from);
+  let initialQuery = db.from(LAYOUTS_TABLE).select("id,config,visibility,team_id,user_id");
+  initialQuery = expectedId ? initialQuery.eq("id", expectedId) : initialQuery.eq("user_id", userId).eq("name", from);
   const current = await initialQuery.maybeSingle();
   if (errOf(current)) return { ok: false, reason: "unavailable" };
   const row = rowsOf(current)[0];
+  if (row && !isTeamShared(row) && str(row.user_id) && str(row.user_id) !== userId) return { ok: false, reason: "not_found" };
   if (!row) {
     if (!expectedId) return { ok: false, reason: "not_found" };
     // ABA: the loaded row is gone by id — does the OLD name now resolve to a DIFFERENT row
@@ -455,22 +553,24 @@ export async function renameWorkspace(
   }
   const rowId = str(row.id);
   if (!rowId) return { ok: false, reason: "unavailable" };
+  const refused = await refuseSharedIfNotWriter(db, userId, row);
+  if (refused) return refused;
 
   const nextRevision = expectedRevision + 1;
   const config: Record<string, unknown> = isRecordLike(row.config) ? { ...row.config } : {};
   config.name = null;
   config.revision = nextRevision;
 
-  const updated = await db
+  let updatedQuery = db
     .from(LAYOUTS_TABLE)
     .update({ name: to, config, updated_at: new Date().toISOString() })
-    .eq("user_id", userId)
     .eq("id", rowId)
     .eq("name", from)
-    .eq("config->>revision", String(expectedRevision))
-    .select("id");
+    .eq("config->>revision", String(expectedRevision));
+  if (!isTeamShared(row)) updatedQuery = updatedQuery.eq("user_id", userId);
+  const updated = await updatedQuery.select("id");
   const error = errOf(updated);
-  if (error) return { ok: false, reason: error.code === CODE_UNIQUE_VIOLATION ? "name_conflict" : "unavailable" };
+  if (error) return { ok: false, reason: storeWriteReason(error) };
   if (rowsOf(updated).length) return { ok: true, revision: nextRevision };
 
   // 0 rows: retry-echo (our own earlier attempt already renamed it) vs a genuine conflict,
@@ -479,7 +579,9 @@ export async function renameWorkspace(
   // just name+revision — two different renames landing on the same target name and revision number
   // (e.g. two devices racing DIFFERENT new names that happen to collide, or unrelated config drift)
   // must not be conflated into a false "success" echo.
-  const diag = await db.from(LAYOUTS_TABLE).select("id,name,config").eq("user_id", userId).eq("id", rowId).maybeSingle();
+  let diagQuery = db.from(LAYOUTS_TABLE).select("id,name,config").eq("id", rowId);
+  if (!isTeamShared(row)) diagQuery = diagQuery.eq("user_id", userId);
+  const diag = await diagQuery.maybeSingle();
   if (errOf(diag)) return { ok: false, reason: "unavailable" };
   const diagRow = rowsOf(diag)[0];
   if (!diagRow) return { ok: false, reason: "not_found" }; // deleted entirely between read and write
@@ -516,8 +618,8 @@ export async function duplicateWorkspace(
   const from = normalizeLayoutName(sourceName);
   if (!from) return { ok: false, reason: "invalid_name" };
 
-  let sourceQuery = db.from(LAYOUTS_TABLE).select("id,name,config").eq("user_id", userId);
-  sourceQuery = sourceId ? sourceQuery.eq("id", sourceId) : sourceQuery.eq("name", from);
+  let sourceQuery = db.from(LAYOUTS_TABLE).select("id,name,config,user_id,visibility,team_id");
+  sourceQuery = sourceId ? sourceQuery.eq("id", sourceId) : sourceQuery.eq("user_id", userId).eq("name", from);
   const current = await sourceQuery.maybeSingle();
   if (errOf(current)) return { ok: false, reason: "unavailable" };
   const row = rowsOf(current)[0];
@@ -531,6 +633,7 @@ export async function duplicateWorkspace(
     return { ok: false, reason: rowsOf(byName).length ? "stale_revision" : "not_found" };
   }
   if (row.name !== from) return { ok: false, reason: "stale_revision" }; // moved out from under the id we loaded
+  if (!isTeamShared(row) && str(row.user_id) && str(row.user_id) !== userId) return { ok: false, reason: "not_found" };
 
   let target = normalizeLayoutName(newName);
   if (!target) {
@@ -549,10 +652,16 @@ export async function duplicateWorkspace(
     config.revision = 1;
   }
 
-  const inserted = await db
+  let inserted = await db
     .from(LAYOUTS_TABLE)
-    .insert({ user_id: userId, name: target, config, updated_at: new Date().toISOString() })
+    .insert({ user_id: userId, name: target, config, updated_at: new Date().toISOString(), visibility: "private", team_id: null })
     .select("id");
+  if (errOf(inserted) && isMissingShareColumn(errOf(inserted))) {
+    inserted = await db
+      .from(LAYOUTS_TABLE)
+      .insert({ user_id: userId, name: target, config, updated_at: new Date().toISOString() })
+      .select("id");
+  }
   const error = errOf(inserted);
   if (error) return { ok: false, reason: error.code === CODE_UNIQUE_VIOLATION ? "name_conflict" : "unavailable" };
   const id = str(rowsOf(inserted)[0]?.id);

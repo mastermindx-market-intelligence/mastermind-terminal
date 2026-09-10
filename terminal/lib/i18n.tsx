@@ -2515,6 +2515,23 @@ export const LEX: Record<string, [string, string]> = {
   ll6c: [", so the map is a snapshot, not a live read. The dealer-sign convention (who is long or short what) is ", "，所以这是快照，不是实时读数。做市商多空约定（谁在多、谁在空）是"],
   ll6assumed: ["assumed, not measured", "假定的，不是实测的"],
   ll6d: [" — a standard convention applied to the visible options, not confirmed inventory. And a level marks a tendency, never a guarantee. Read it as a weather map, not a schedule.", "——这是套在可见期权上的标准约定，不是已确认的库存。档位只标出倾向，从不保证。把它当天气图读，而不是时刻表。"],
+  // B-F12-B5-2 team-shared workspaces — one contiguous chrome block (seat R6 / spec §2.9).
+  wsGroupMine: ["Only you", "仅自己可见"],
+  wsGroupTeam: ["Shared with your team", "已与团队共享"],
+  wsSharedBadge: ["Team", "团队"],
+  wsShareAction: ["Share with your team", "共享给团队"],
+  wsUnshareAction: ["Make it private again", "改回仅自己可见"],
+  wsShareTitle: ["Share this workspace with your team?", "要将此工作区共享给团队吗？"],
+  wsShareBody: ["Everyone on {team} will be able to open it, with all of its charts and settings. Afterwards only an owner or an administrator can change it or remove it.", "{team} 的所有成员都可以打开它，包括其中的全部图表和设置。之后只有所有者或管理员才能修改或删除。"],
+  wsShareYes: ["Share it", "确认共享"],
+  wsShareNo: ["Keep it private", "保持私有"],
+  wsUnshareTitle: ["Stop sharing this workspace?", "要停止共享此工作区吗？"],
+  wsUnshareBody: ["Your team will no longer see it. Your own copy stays.", "团队将不再看到它。您自己的副本会保留。"],
+  wsUnshareYes: ["Stop sharing", "停止共享"],
+  wsPickTeam: ["Choose the team to share with.", "请选择要共享给哪个团队。"],
+  wsTeamEmpty: ["Your team has not shared a workspace yet.", "您的团队还没有共享任何工作区。"],
+  wsTeamReadOnly: ["Only an owner or an administrator can change a workspace the team shares.", "只有团队所有者或管理员才能修改团队共享的工作区。"],
+  wsTakeCopy: ["Take your own copy", "复制一份到我的工作区"],
 };
 
 // Non-hook LEX lookup for imperative contexts (e.g. chart legend meta assembled outside React render).
