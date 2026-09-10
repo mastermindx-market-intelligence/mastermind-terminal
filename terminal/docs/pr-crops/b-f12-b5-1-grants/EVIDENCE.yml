@@ -1,13 +1,14 @@
 # B-F12-B5-1 Explicit grants — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 54257ee04bc81697b7a84813e6fc8257989649f6
-# capturedAt: 2026-09-09T19:04:25.304Z
+# capturedAtHead: 02f8592c28682cf1e21677f5cfeab2e5e23b6f4d
+# capturedAt: 2026-09-10T14:08:29.866Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/settings/SectionSharing.tsx: "c7d56a13120eb31fd3ea3b61a9b66a2b4e9fd748913da5e7f137d5e4c1705d31"
+  terminal/components/settings/SectionSharing.tsx: "29fd9b355d50ecb3d3284b6d117b6ed50a461c7b7d45ea3d8588575fe5eca56a"
   terminal/components/settings/SettingsPanel.tsx: "6e529eb17a25bc918e0464518c0ca01fed8daed15c1a8a6d357a930236acf931"
   terminal/app/settings.css: "3189163136d943431cbf52e4b5d241c105b695ba5af94c4c2e29151d537b5ef5"
+  terminal/lib/i18n.tsx: "5e05c5241451a39ce30d042e34abc142601a6da056df70dbff187a6f55391765"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -43,5 +44,5 @@ measurements:
   mobile-zh-shared.png: { cardWidth: 390, groupCount: 2, revokeVisible: true, badgeText: "仅可查看" }
   mobile-en-empty-list.png: { cardWidth: 390, groupCount: 2, revokeVisible: true, badgeText: "Read only" }
   mobile-zh-empty-list.png: { cardWidth: 390, groupCount: 2, revokeVisible: true, badgeText: "仅可查看" }
-  mobile-en-empty.png: { cardWidth: 388, groupCount: 2, revokeVisible: false, badgeText: "" }
-  mobile-zh-empty.png: { cardWidth: 386, groupCount: 2, revokeVisible: false, badgeText: "" }
+  mobile-en-empty.png: { cardWidth: 386, groupCount: 2, revokeVisible: false, badgeText: "" }
+  mobile-zh-empty.png: { cardWidth: 387, groupCount: 2, revokeVisible: false, badgeText: "" }
