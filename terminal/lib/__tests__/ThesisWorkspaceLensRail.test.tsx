@@ -255,12 +255,12 @@ describe("ThesisWorkspace lens rail (B-F11-2, M2)", () => {
 
     const expectedEmpty: Record<string, string> = {
       coverage: "Nothing is covered yet. Write a thesis and its subject appears here.",
-      ideas: "Nothing new is waiting. Every thesis has been revisited at least once.",
+      ideas: "Nothing new is waiting in the theses loaded here. Every thesis has been revisited at least once.",
       theses: "No theses yet. Start with a view you could be wrong about.",
-      reviews: "Nothing is waiting for a second look.",
+      reviews: "Nothing in the theses loaded here is waiting for a second look.",
       catalysts: "No catalysts written down in the theses loaded here.",
       risks: "No risks written down in the theses loaded here.",
-      notes: "No revision notes yet. They appear when you save a change and say why.",
+      notes: "No revision notes in the theses loaded here. They appear when you save a change and say why.",
     };
     for (const [view, text] of Object.entries(expectedEmpty)) {
       const tab = tabs(el).find((b) => b.dataset.view === view)!;
@@ -1571,6 +1571,10 @@ type WorkspaceStub = {
    *  knob — 404 is `saved_view_not_found` (the row is already gone), 400 is `invalid_id`.
    *  Neither is a failed read of the list, which is on screen at that moment. */
   savedViewsDeleteStatus?: number;
+  /** Round-8 heal (REQUIRED 4): the status the LIST GET answers with. A number is
+   *  constant; an array is consumed in order and the last value repeats, so a first
+   *  read of 503 can be followed by a retry of 200. */
+  savedViewsGetStatus?: number | number[];
   fireStates?: Record<string, unknown>;
   fireStatusHttpStatus?: number;
 };
@@ -1588,6 +1592,7 @@ function installWorkspaceFetch(stub: WorkspaceStub) {
   // owner is no longer over the cap. A client that never re-reads the list cannot pass.
   let views = [...((stub.savedViews ?? []) as Array<Record<string, unknown>>)];
   let truncated = stub.savedViewsTruncated === true;
+  let savedViewsGetCount = 0;
   const fetchMock = vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
     const raw = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
     const url = new URL(raw, "https://x.test");
@@ -1614,6 +1619,12 @@ function installWorkspaceFetch(stub: WorkspaceStub) {
         // its own in-place copy and never re-reads cannot pass a test on the strip order.
         if (body.action === "rename") {
           const renameStatus = stub.savedViewsPutStatus ?? 200;
+          // Round-8 heal (REQUIRED 1): a rename 404 is the same already-gone row as
+          // delete's 404 — drop it from the next read so the re-read cannot restore it.
+          if (renameStatus === 404) {
+            views = views.filter((v) => v.id !== body.id);
+            return jsonResponse({ error: "saved_view_not_found" }, 404);
+          }
           if (renameStatus >= 400) return jsonResponse({ error: renameStatus === 400 ? (stub.savedViewsPutError ?? "invalid_name") : "saved_views_unavailable" }, renameStatus);
           const current = views.find((v) => v.id === body.id);
           if (!current) return jsonResponse({ error: "saved_view_not_found" }, 404);
@@ -1625,6 +1636,12 @@ function installWorkspaceFetch(stub: WorkspaceStub) {
         if (status >= 400) return jsonResponse({ error: status === 400 ? (stub.savedViewsPutError ?? "invalid_name") : "saved_views_unavailable" }, status);
         return jsonResponse({ view: { ...(body.view ?? {}), id: body.id ?? "new", name: body.name, filter: body.filter ?? { lifecycle: "active" }, createdAt: "2026-09-01T00:00:00.000Z", updatedAt: "2026-09-02T00:00:00.000Z" } });
       }
+      const getStatuses = Array.isArray(stub.savedViewsGetStatus)
+        ? stub.savedViewsGetStatus
+        : [stub.savedViewsGetStatus ?? 200];
+      const getStatus = getStatuses[Math.min(savedViewsGetCount, getStatuses.length - 1)] ?? 200;
+      savedViewsGetCount += 1;
+      if (getStatus >= 400) return jsonResponse({ error: "saved_views_unavailable" }, getStatus);
       return jsonResponse({ views, truncated });
     }
     if (url.pathname === "/api/thesis-fire-status") {
@@ -2424,7 +2441,7 @@ describe("ThesisWorkspace research views — round-5 repairs (B-F11-4, PR #546)"
     await flush();
     await act(async () => tabs(el).find((b) => b.dataset.view === "notes")!.click());
     await flush();
-    expect(emptyText(el)).toContain("No revision notes yet.");
+    expect(emptyText(el)).toContain("No revision notes in the theses loaded here.");
   });
 
   // R2 (MAJOR 2): a subject filter and a view narrow the Theses lens at the same time,
@@ -2616,7 +2633,7 @@ describe("ThesisWorkspace research views — round-6 repairs (B-F11-4, PR #546)"
     const text = emptyText(el);
     // `ideaRows` keeps only version-1 actives, so the LENS emptied this slice, not the
     // view — the view's own sentence would be the exact inverse of what is on screen.
-    expect(text).toContain("Nothing new is waiting.");
+    expect(text).toContain("Nothing new is waiting in the theses loaded here.");
     expect(text).not.toContain("Nothing is stale.");
     expect(text).not.toContain("last 30 days");
   });
@@ -2639,7 +2656,7 @@ describe("ThesisWorkspace research views — round-6 repairs (B-F11-4, PR #546)"
     const text = emptyText(el);
     // 40 days is past the view's 30-day rule and short of `RMS_REVIEW_STALE_DAYS` (90),
     // so the Reviews lens is empty while the view holds two theses.
-    expect(text).toContain("Nothing is waiting for a second look.");
+    expect(text).toContain("Nothing in the theses loaded here is waiting for a second look.");
     expect(text).not.toContain("Nothing is stale.");
     expect(text).not.toContain("last 30 days");
   });
@@ -2683,10 +2700,9 @@ describe("ThesisWorkspace research views — round-6 repairs (B-F11-4, PR #546)"
     expect(el.querySelector('[data-testid="rms-lens-panel"]')!.textContent).toContain("Nvidia thesis");
   });
 
-  // R1 (the disclosed residue, pinned rather than left to drift): `empty.notes` carries
-  // no "in the theses loaded here" scoping clause the way Catalysts and Risks do, so
-  // under a view it still reads workspace-wide. The seat's ruling makes the fallback the
-  // default and reserves a new per-lens key for its own exact strings; GAPS names it.
+  // Round-8 heal (REQUIRED 2): `empty.notes` now carries the same "in the theses
+  // loaded here" scoping clause Catalysts and Risks already had, so under a view
+  // that matched theses this sentence is true of the loaded set.
   it("R1 Revision notes under a saved view that MATCHED theses falls back to the lens's own sentence", async () => {
     const viewId = "aaaaaaaa-6666-4666-8666-666666666602";
     const aapl = activeThesis("aaaaaaaa-aaaa-4aaa-8aaa-000000000608", "AAPL", "Apple thesis");
@@ -2716,7 +2732,7 @@ describe("ThesisWorkspace research views — round-6 repairs (B-F11-4, PR #546)"
 
     const text = emptyText(el);
     expect(text).not.toContain("No theses match this view.");
-    expect(text).toContain("No revision notes yet.");
+    expect(text).toBe("No revision notes in the theses loaded here. They appear when you save a change and say why.");
   });
 
   // R3b: the client answered every 400 the route can return with "Give this view a
@@ -2803,5 +2819,139 @@ describe("ThesisWorkspace research views — round-6 repairs (B-F11-4, PR #546)"
     const strip = savedViewsStrip(el);
     expect(strip).toContain("Rename");
     expect(strip).toContain("Delete this view");
+  });
+});
+
+describe("ThesisWorkspace research views — round-8 heal (B-F11-4, PR #546)", () => {
+  // REQUIRED 1: renaming a row the store can no longer find used to paint
+  // `savedViews.unavailable` over a strip that was visibly loaded.
+  it("REQUIRED 1 a rename 404 says the view was already removed, re-reads, and never 'did not load'", async () => {
+    const viewId = "aaaaaaaa-8888-4888-8888-888888888801";
+    const { fetchMock } = installWorkspaceFetch({
+      theses: [activeThesis("aaaaaaaa-aaaa-4aaa-8aaa-000000000701", "AAA", "Alpha one")],
+      savedViews: [{
+        id: viewId,
+        name: "Gone elsewhere",
+        filter: { lifecycle: "active", staleDays: 30 },
+        createdAt: "2026-09-01T00:00:00.000Z",
+        updatedAt: "2026-09-01T00:00:00.000Z",
+      }],
+      savedViewsPutStatus: 404,
+    });
+    const el = await mount({ ownerKey: "owner-r8-rename-404" });
+    await flush();
+
+    const item = el.querySelector(`[data-saved-view="${viewId}"]`)!;
+    await act(async () => Array.from(item.querySelectorAll("button")).find((b) => b.textContent === "Rename")!.click());
+    await flush();
+    const input = el.querySelector<HTMLInputElement>(`[data-saved-view="${viewId}"] input`)!;
+    await act(async () => typeInto(input, "A new name"));
+    await flush();
+    await act(async () => {
+      el.querySelector<HTMLButtonElement>(`[data-saved-view="${viewId}"] button[type="submit"]`)!
+        .closest("form")!.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+    });
+    await flush();
+
+    const strip = savedViewsStrip(el);
+    expect(strip).toContain("That view was already removed.");
+    expect(strip).not.toContain("Your saved views did not load.");
+    expect(el.querySelector(`[data-saved-view="${viewId}"]`)).toBeNull();
+    const methods = fetchMock.mock.calls.map((call) => {
+      const init = call[1] as RequestInit | undefined;
+      return (init?.method ?? "GET").toUpperCase();
+    });
+    expect(methods.filter((method) => method === "GET").length).toBeGreaterThanOrEqual(2);
+  });
+
+  // REQUIRED 3: the create form's name input left the save-failed notice stuck,
+  // unlike the rename input which already clears it on change.
+  it("REQUIRED 3 typing in the create name field clears the save-failed notice", async () => {
+    installWorkspaceFetch({
+      theses: [activeThesis("aaaaaaaa-aaaa-4aaa-8aaa-000000000702", "AAA", "Alpha one")],
+      savedViewsPutStatus: 400,
+      savedViewsPutError: "invalid_filter",
+    });
+    const el = await mount({ ownerKey: "owner-r8-create-clears-save-failed" });
+    await flush();
+    await act(async () => chip(el, "stale_30").click());
+    await flush();
+    await act(async () => el.querySelector<HTMLButtonElement>('[data-testid="rms-save-view"]')!.click());
+    await flush();
+    const input = el.querySelector<HTMLInputElement>('input[placeholder="Name this view"]')!;
+    await act(async () => typeInto(input, "A perfectly good name"));
+    await flush();
+    await act(async () => {
+      input.closest("form")!.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+    });
+    await flush();
+    expect(savedViewsStrip(el)).toContain("We could not save this view. Try again.");
+
+    await act(async () => typeInto(input, "A perfectly good name edited"));
+    await flush();
+    expect(savedViewsStrip(el)).not.toContain("We could not save this view. Try again.");
+  });
+
+  // REQUIRED 3: a delete must also retire the save-failed notice.
+  it("REQUIRED 3 deleting a view clears the save-failed notice", async () => {
+    const viewId = "aaaaaaaa-8888-4888-8888-888888888802";
+    installWorkspaceFetch({
+      theses: [activeThesis("aaaaaaaa-aaaa-4aaa-8aaa-000000000703", "AAA", "Alpha one", STALE_40)],
+      savedViews: [{
+        id: viewId,
+        name: "Keep me",
+        filter: { lifecycle: "active", staleDays: 30 },
+        createdAt: "2026-09-01T00:00:00.000Z",
+        updatedAt: "2026-09-01T00:00:00.000Z",
+      }],
+      savedViewsPutStatus: 400,
+      savedViewsPutError: "invalid_filter",
+    });
+    vi.stubGlobal("confirm", () => true);
+    const el = await mount({ ownerKey: "owner-r8-delete-clears-save-failed" });
+    await flush();
+    await act(async () => chip(el, "stale_30").click());
+    await flush();
+    await act(async () => el.querySelector<HTMLButtonElement>('[data-testid="rms-save-view"]')!.click());
+    await flush();
+    const input = el.querySelector<HTMLInputElement>('input[placeholder="Name this view"]')!;
+    await act(async () => typeInto(input, "A perfectly good name"));
+    await flush();
+    await act(async () => {
+      input.closest("form")!.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+    });
+    await flush();
+    expect(savedViewsStrip(el)).toContain("We could not save this view. Try again.");
+
+    await act(async () => deleteButton(el, viewId).click());
+    await flush();
+    expect(savedViewsStrip(el)).not.toContain("We could not save this view. Try again.");
+  });
+
+  // REQUIRED 4: an owner whose first list read fails had no way back. The retry
+  // reuses the in-component copy.retry pair. The test first applies a narrowing so
+  // isSavableFilter is true, then the re-read can return the Save control.
+  it("REQUIRED 4 a first list read of 503 shows Retry, and a retry of 200 returns the strip and Save", async () => {
+    installWorkspaceFetch({
+      theses: [activeThesis("aaaaaaaa-aaaa-4aaa-8aaa-000000000704", "AAA", "Alpha one", STALE_40)],
+      savedViewsGetStatus: [503, 200],
+    });
+    const el = await mount({ ownerKey: "owner-r8-list-retry" });
+    await flush();
+    await act(async () => chip(el, "stale_30").click());
+    await flush();
+
+    const strip = savedViewsStrip(el);
+    expect(strip).toContain("Your saved views did not load.");
+    const retry = Array.from(el.querySelectorAll<HTMLButtonElement>('[data-testid="rms-saved-views"] button'))
+      .find((b) => b.textContent === "Try again");
+    expect(retry, "expected the in-component Try again control on the unavailable notice").toBeTruthy();
+    expect(el.querySelector('[data-testid="rms-save-view"]')).toBeNull();
+
+    await act(async () => retry!.click());
+    await flush();
+
+    expect(savedViewsStrip(el)).not.toContain("Your saved views did not load.");
+    expect(el.querySelector('[data-testid="rms-save-view"]')).not.toBeNull();
   });
 });

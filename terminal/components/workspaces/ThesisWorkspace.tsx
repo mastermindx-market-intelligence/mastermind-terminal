@@ -1164,6 +1164,18 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
         }
         return;
       }
+      // Round-8 heal (REQUIRED 1): a rename 404 is the same already-gone row
+      // `deleteView` already handles — never `savedViews.unavailable` over a strip
+      // that is visibly loaded. A rename 400 stays on the name / save-failed
+      // family above; every other non-2xx stays on unavailable.
+      if (response.status === 404) {
+        setSavedViews((current) => current.filter((view) => view.id !== id));
+        setActivePreset((current) => (current?.kind === "saved" && current.id === id ? null : current));
+        setRenamingId(null);
+        await loadSavedViews();
+        setSavedViewGone(true);
+        return;
+      }
       if (!response.ok) {
         setSavedViewsUnavailable(true);
         return;
@@ -1193,6 +1205,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   const deleteView = useCallback(async (id: string) => {
     if (!window.confirm(rms["savedViews.confirmDelete"])) return;
     setSavedViewGone(false);
+    setSavedViewSaveFailed(false);
     try {
       const response = await fetch("/api/thesis-saved-views", {
         method: "PUT",
@@ -1904,7 +1917,15 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
               {activePreset?.kind === "builtin" && activePreset.id === "stale_30" && (
                 <p className={styles.savedViewsNote} data-testid="rms-builtin-what">{rms["builtin.staleWhat"]}</p>
               )}
-              {savedViewsUnavailable && <p className={styles.savedViewsNote} role="status">{rms["savedViews.unavailable"]}</p>}
+              {savedViewsUnavailable && (
+                <div className={styles.savedViewsFault} role="status">
+                  <p className={styles.savedViewsNote}>{rms["savedViews.unavailable"]}</p>
+                  <button type="button" className={styles.savedViewAction} data-testid="rms-saved-views-retry"
+                    onClick={() => { void loadSavedViews(); }}>
+                    {copy.retry}
+                  </button>
+                </div>
+              )}
               {!savedViewsUnavailable && savedViews.length === 0 && (
                 <p className={styles.savedViewsNote} data-testid="rms-saved-views-empty">{rms["savedViews.empty"]}</p>
               )}
@@ -1957,7 +1978,8 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
               {namingOpen && (
                 <form className={styles.saveViewForm} onSubmit={(event) => { event.preventDefault(); void saveCurrentView(); }}>
                   <input aria-label={rms["savedViews.namePlaceholder"]} placeholder={rms["savedViews.namePlaceholder"]}
-                    value={nameDraft} maxLength={80} onChange={(event) => setNameDraft(event.target.value)} />
+                    value={nameDraft} maxLength={80}
+                    onChange={(event) => { setNameDraft(event.target.value); setSavedViewNameError(false); setSavedViewSaveFailed(false); }} />
                   <button type="submit" className={styles.primaryButton} disabled={carrierLocked || savedViewsBlocked || !nameDraft.trim()}>
                     {rms["savedViews.save"]}
                   </button>
@@ -2094,17 +2116,12 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
                     ? null
                     : (hydrating && detailListRows.length === 0
                       ? <p className={styles.muted} role="status">{copy.loading}</p>
-                      // Round-5 review (Meta-CEO B ruling R1): the last three lenses the
-                      // BLOCKER-3 repair never reached. `contentRows` derives from
-                      // `viewDetailRows` (`presetFilter ? detailListRows.filter(...) :
-                      // detailListRows`), so a preset or a saved view empties them — and
-                      // this printed "No revision notes yet. They appear when you save a
-                      // change and say why." at a user who HAS revision notes, telling
-                      // them to go write one. `empty.notes` carries no "in the theses
-                      // loaded here" scoping clause (Catalysts and Risks do), so it is a
-                      // false sentence, not a narrow one. Same `presetEmptyCopy` decision
-                      // as Coverage and the ideas/theses/reviews branch above; with no
-                      // view active the lens's own sentence is the true one and stays.
+                      // Round-8 heal (REQUIRED 2): `empty.notes` now carries the same
+                      // "in the theses loaded here" scoping clause Catalysts and Risks
+                      // already had, so under a view that matched theses this sentence
+                      // is true of the loaded set. Same `lensViewEmptyCopy` decision as
+                      // Coverage and the ideas/theses/reviews branch above; with no view
+                      // active the lens's own (now scoped) sentence is still the true one.
                       : <div className={styles.emptyLens} data-testid="rms-empty"><p>{lensViewEmptyCopy ?? rms.empty[view]}</p></div>))
                   : contentRows.map((row) => (
                     <article key={`${row.thesisId}-${row.index}`} className={styles.lineRow} data-testid="rms-line-row">

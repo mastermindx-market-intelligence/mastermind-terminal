@@ -50,6 +50,8 @@ const CROP_FILES = [
   "window-closed-390-zh.png",
   "view-subject-empty-1440.png",
   "view-subject-empty-1440-zh.png",
+  "unavailable-1440.png",
+  "unavailable-1440-zh.png",
 ];
 
 function evidenceText(): string {

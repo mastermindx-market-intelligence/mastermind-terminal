@@ -222,14 +222,17 @@ async function cropPane(page, outPath) {
   await page.screenshot({ path: outPath, clip: { x, y, width, height } });
 }
 
-async function withStore(browser, width, lang, storeKey, run) {
+async function withStore(browser, width, lang, storeKey, run, extraCookies = []) {
   const context = await browser.newContext({
     viewport: VIEWPORTS[width],
     hasTouch: width === 390,
     locale: lang === "zh" ? "zh-CN" : "en-US",
     colorScheme: "dark",
   });
-  await context.addCookies([{ name: "mm_e2e_wl", value: storeKey, url: BASE }]);
+  await context.addCookies([
+    { name: "mm_e2e_wl", value: storeKey, url: BASE },
+    ...extraCookies.map((cookie) => ({ ...cookie, url: BASE })),
+  ]);
   await context.addInitScript((l) => {
     localStorage.setItem("mm.lang", l);
     localStorage.setItem("theme", "dark");
@@ -249,6 +252,24 @@ async function withStore(browser, width, lang, storeKey, run) {
 async function captureEmpty(page, width, lang, outPath) {
   await openList(page, width, lang);
   await page.waitForSelector('[data-testid="rms-saved-views-empty"]', { timeout: 15_000 });
+  await shootPane(page, outPath);
+}
+
+// Round-8 heal (REQUIRED 4): the first list read can 503, and the notice now
+// carries the in-component Retry control. The fixture fault cookie makes the
+// shipped GET /api/thesis-saved-views fail for real — no network stub.
+async function captureUnavailable(page, width, lang, outPath) {
+  await createThesis(page.context(), lang === "zh" ? "英伟达运营杠杆" : "NVDA operating leverage", "NVDA");
+  await openList(page, width, lang);
+  await page.waitForSelector('[data-testid="rms-saved-views-retry"]', { timeout: 15_000 });
+  const text = (await page.locator('[data-testid="rms-saved-views"]').innerText()).trim();
+  const expectedNotice = lang === "zh" ? "无法加载已保存的视图" : "Your saved views did not load";
+  const expectedRetry = lang === "zh" ? "重试" : "Try again";
+  if (!text.includes(expectedNotice) || !text.includes(expectedRetry)) {
+    throw new Error(`${basename(outPath)}: unavailable notice with retry not on screen, read: ${text}`);
+  }
+  await page.mouse.move(0, 0);
+  await page.waitForTimeout(200);
   await shootPane(page, outPath);
 }
 
@@ -332,6 +353,25 @@ async function captureWindowClosed(page, context, width, lang, outPath) {
   await shootPane(page, outPath);
 }
 
+function manifestFiles(captured) {
+  if (!process.env.CAPTURE_ONLY) return [...captured].sort();
+  const existing = [];
+  try {
+    const yml = readFileSync(join(OUT, "EVIDENCE.yml"), "utf8");
+    const at = yml.indexOf("\nfiles:\n");
+    if (at >= 0) {
+      for (const line of yml.slice(at + "\nfiles:\n".length).split("\n")) {
+        const m = line.match(/^ {2}- (\S+)$/);
+        if (!m) break;
+        existing.push(m[1]);
+      }
+    }
+  } catch {
+    /* first capture */
+  }
+  return [...new Set([...existing, ...captured])].sort();
+}
+
 async function main() {
   const capturedAtHead = currentGitHead();
   const child = startServer();
@@ -356,15 +396,26 @@ async function main() {
               name: "view-subject-empty",
               run: (page, context) => captureViewSubjectEmpty(page, context, width, lang, join(OUT, cropName("view-subject-empty", width, lang))),
             });
+            // Round-8 heal (REQUIRED 4): one pair of the unavailable notice with Retry.
+            surfaces.push({
+              name: "unavailable",
+              fault: "saved_views_read",
+              run: (page) => captureUnavailable(page, width, lang, join(OUT, cropName("unavailable", width, lang))),
+            });
           }
-          for (const surface of surfaces) {
+          const only = process.env.CAPTURE_ONLY;
+          const selected = only ? surfaces.filter((surface) => surface.name === only) : surfaces;
+          for (const surface of selected) {
             const file = cropName(surface.name, width, lang);
             process.stdout.write(`capture ${file} … `);
             const storeKey = `f11-4-${surface.store || surface.name}-${width}-${lang}-${randomUUID().slice(0, 8)}`;
             try {
+              const extraCookies = surface.fault
+                ? [{ name: "mm_e2e_fault", value: surface.fault }]
+                : [];
               await withStore(browser, width, lang, storeKey, async (page, context) => {
                 await surface.run(page, context);
-              });
+              }, extraCookies);
               files.push(file);
               console.log("ok");
             } catch (err) {
@@ -395,10 +446,11 @@ async function main() {
     "viewports:",
     "  - { name: desktop, width: 1440, height: 900 }",
     "  - { name: mobile, width: 390, height: 844 }",
-    "surfaces: [empty, named-views, save-flow, window-closed, view-subject-empty]",
+    "surfaces: [empty, named-views, save-flow, window-closed, view-subject-empty, unavailable]",
     // Ruling R3e: the combined view+subject empty state is captured at 1440 only, in
     // both languages — the one pair the seat asked for, not a full matrix row.
     "view_subject_empty_scope: 1440 only, en and zh",
+    "unavailable_scope: 1440 only, en and zh",
     // Carried disclosure (named in the PR body since round 1, restated here so the
     // manifest itself cannot be read as claiming full-width frames): `viewports` above
     // describes the BROWSER viewport the page was rendered at, not the PNG's own width.
@@ -422,7 +474,9 @@ async function main() {
     // Opus minor 6 (round-2 review): this used to union the directory listing, so a PNG
     // left behind by an earlier head was listed beside freshly computed hashes. Only
     // what THIS run wrote is listed, and a run with any failure writes no manifest at all.
-    ...[...files].sort().map((f) => `  - ${f}`),
+    // CAPTURE_ONLY keeps the rest of the committed manifest so a targeted recapture
+    // cannot drop surfaces this run did not shoot.
+    ...manifestFiles(files).map((f) => `  - ${f}`),
     "",
   ].join("\n");
   if (failed) {

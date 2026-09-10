@@ -543,12 +543,12 @@ export const RMS_COPY: { en: RmsCopy; zh: RmsCopy } = {
     },
     empty: {
       coverage: "Nothing is covered yet. Write a thesis and its subject appears here.",
-      ideas: "Nothing new is waiting. Every thesis has been revisited at least once.",
+      ideas: "Nothing new is waiting in the theses loaded here. Every thesis has been revisited at least once.",
       theses: "No theses yet. Start with a view you could be wrong about.",
-      reviews: "Nothing is waiting for a second look.",
+      reviews: "Nothing in the theses loaded here is waiting for a second look.",
       catalysts: "No catalysts written down in the theses loaded here.",
       risks: "No risks written down in the theses loaded here.",
-      notes: "No revision notes yet. They appear when you save a change and say why.",
+      notes: "No revision notes in the theses loaded here. They appear when you save a change and say why.",
     },
     reason: {
       archived: "Archived",
@@ -637,12 +637,12 @@ export const RMS_COPY: { en: RmsCopy; zh: RmsCopy } = {
     },
     empty: {
       coverage: "还没有覆盖任何标的。写下一条论点，标的就会出现在这里。",
-      ideas: "没有待处理的新想法。每条论点都至少修订过一次。",
+      ideas: "已载入的论点中没有待处理的新想法。每条论点都至少修订过一次。",
       theses: "暂无论点。从一个你可能判断错的观点开始。",
-      reviews: "没有需要复看的内容。",
+      reviews: "已载入的论点中没有需要复看的内容。",
       catalysts: "已载入的论点中没有写下催化因素。",
       risks: "已载入的论点中没有写下风险。",
-      notes: "暂无修订说明。保存修改并写下原因后会显示在这里。",
+      notes: "已载入的论点中暂无修订说明。保存修改并写下原因后会显示在这里。",
     },
     reason: {
       archived: "已归档",

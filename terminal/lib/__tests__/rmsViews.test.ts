@@ -496,3 +496,32 @@ describe("rmsViews copy — round-5 repairs (B-F11-4, PR #546)", () => {
     expect(RMS_COPY.zh.scopeComplete).toContain("活跃论点");
   });
 });
+
+describe("rmsViews copy — round-8 heal (B-F11-4, PR #546)", () => {
+  it("REQUIRED 2 empty.ideas, empty.reviews and empty.notes carry the loaded-here clause, EN and ZH", () => {
+    expect(RMS_COPY.en.empty.ideas).toBe(
+      "Nothing new is waiting in the theses loaded here. Every thesis has been revisited at least once.",
+    );
+    expect(RMS_COPY.zh.empty.ideas).toBe(
+      "已载入的论点中没有待处理的新想法。每条论点都至少修订过一次。",
+    );
+    expect(RMS_COPY.en.empty.reviews).toBe(
+      "Nothing in the theses loaded here is waiting for a second look.",
+    );
+    expect(RMS_COPY.zh.empty.reviews).toBe(
+      "已载入的论点中没有需要复看的内容。",
+    );
+    expect(RMS_COPY.en.empty.notes).toBe(
+      "No revision notes in the theses loaded here. They appear when you save a change and say why.",
+    );
+    expect(RMS_COPY.zh.empty.notes).toBe(
+      "已载入的论点中暂无修订说明。保存修改并写下原因后会显示在这里。",
+    );
+    expect(RMS_COPY.en.empty.coverage).toBe(
+      "Nothing is covered yet. Write a thesis and its subject appears here.",
+    );
+    expect(RMS_COPY.en.empty.theses).toBe(
+      "No theses yet. Start with a view you could be wrong about.",
+    );
+  });
+});
