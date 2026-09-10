@@ -258,6 +258,72 @@ describe("last close from the quote owner", () => {
     undeterminedShape(result);
   });
 
+  it("returns undetermined when the newest on-or-before close is null", async () => {
+    const bars = parseBars({
+      bars: [
+        ["2026-09-02", 220, 222, 219, 221.75, 1],
+        ["2026-09-04", 223, 228, 223, null, 1],
+      ],
+    });
+    expect(bars).toHaveLength(2);
+    expect(Number.isFinite(bars![1].close)).toBe(false);
+    const result = await resolveLastClose(input(), { readDailyBars: async () => bars });
+    undeterminedShape(result);
+  });
+
+  it("returns undetermined when the newest on-or-before close is an empty string", async () => {
+    const bars = parseBars({
+      bars: [
+        ["2026-09-02", 220, 222, 219, 221.75, 1],
+        ["2026-09-04", 223, 228, 223, "", 1],
+      ],
+    });
+    expect(bars).toHaveLength(2);
+    expect(Number.isFinite(bars![1].close)).toBe(false);
+    const result = await resolveLastClose(input(), { readDailyBars: async () => bars });
+    undeterminedShape(result);
+  });
+
+  it("returns undetermined when the newest on-or-before close is whitespace-only", async () => {
+    const bars = parseBars({
+      bars: [
+        ["2026-09-02", 220, 222, 219, 221.75, 1],
+        ["2026-09-04", 223, 228, 223, "   ", 1],
+      ],
+    });
+    expect(bars).toHaveLength(2);
+    expect(Number.isFinite(bars![1].close)).toBe(false);
+    const result = await resolveLastClose(input(), { readDailyBars: async () => bars });
+    undeterminedShape(result);
+  });
+
+  it("settles a genuine numeric 0 close instead of treating it as missing", async () => {
+    const asNumber = parseBars({
+      bars: [["2026-09-04", 0, 0, 0, 0, 1]],
+    });
+    expect(asNumber).toHaveLength(1);
+    expect(asNumber![0].close).toBe(0);
+    const hit = await resolveLastClose(
+      input({ condition: { threshold: 0 } }),
+      { readDailyBars: async () => asNumber },
+    );
+    expect(hit.observed).toBe(0);
+    expect(hit.outcome).toBe(1);
+    expect(hit.resolver).toBe(CLAIM_OWNER_LAST_CLOSE.owner);
+    expect(hit.note).toBe("close on 2026-09-04");
+
+    const asString = parseBars({
+      bars: [["2026-09-04", 0, 0, 0, "0", 1]],
+    });
+    expect(asString![0].close).toBe(0);
+    const fromString = await resolveLastClose(
+      input({ condition: { threshold: 0 } }),
+      { readDailyBars: async () => asString },
+    );
+    expect(fromString.observed).toBe(0);
+    expect(fromString.outcome).toBe(1);
+  });
+
   it("parseBars skips a row with no parseable date and still reads later rows", () => {
     const bars = parseBars({
       bars: [

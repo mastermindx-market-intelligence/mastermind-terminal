@@ -95,13 +95,13 @@ export function parseBars(payload: unknown): Bar[] | null {
     if (!Array.isArray(row) || row.length < 5) continue;
     const date = row[0];
     if (typeof date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
-    const close = Number(row[4]);
+    const close = finiteOrNull(row[4]);
     bars.push({
       date,
       open: finiteOrNull(row[1]),
       high: finiteOrNull(row[2]),
       low: finiteOrNull(row[3]),
-      close: Number.isFinite(close) ? close : Number.NaN,
+      close: close === null ? Number.NaN : close,
       vol: finiteOrNull(row[5]),
     });
   }
