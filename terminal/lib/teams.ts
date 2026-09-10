@@ -49,6 +49,16 @@ export function isAbsentTableError(error: { code?: string; message?: string } | 
 }
 
 /**
+ * A missing RPC (0020 unapplied). PostgREST answers PGRST202 ("Could not find the
+ * function … in the schema cache"); Postgres answers SQLSTATE 42883. Classified by
+ * CODE ONLY, never by message prose.
+ */
+export function isAbsentFunctionError(error: { code?: string; message?: string } | null | undefined): boolean {
+  if (!error || !error.code) return false;
+  return error.code === "PGRST202" || error.code === "42883";
+}
+
+/**
  * A database-level permission denial (round-4 ruling R4(i)). 0019 uses one deliberately: a
  * forbidden DELETE raises 42501 through team_members_rls_deny() rather than filtering to zero
  * rows, and tm_update_admin's WITH CHECK raises it too. Both mean the same thing as the zero-row
@@ -57,6 +67,11 @@ export function isAbsentTableError(error: { code?: string; message?: string } | 
  */
 export function isPermissionDeniedError(error: { code?: string; message?: string } | null | undefined): boolean {
   return Boolean(error && error.code === "42501");
+}
+
+/** Classified by CODE ONLY. 0020 raises P0001 when the ownership-transfer restore updates no row. */
+export function isRestoreFailedError(error: { code?: string; message?: string } | null | undefined): boolean {
+  return Boolean(error && error.code === "P0001");
 }
 
 export function normalizeTeamName(value: unknown): string | null {
@@ -545,6 +560,84 @@ import type { DbResult as _DbResult } from "@/lib/watchlists";
 export type TenancyRpcDb = TenancyDb & { rpc: (fn: string, args: Record<string, unknown>) => Promise<_DbResult> };
 
 export const ACCEPT_INVITE_FN = "accept_team_invite";
+export const TRANSFER_OWNERSHIP_FN = "transfer_team_ownership";
+
+/** RFC 4122-shaped UUID. The route validates both path and body ids before calling the function. */
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+export function isUuid(value: unknown): value is string {
+  return typeof value === "string" && UUID_RE.test(value);
+}
+
+export type TransferOwnershipResult =
+  | { success: true; message: "transfer_success"; newOwnerId: string }
+  | { success: false; message: TeamRouteCode; status: number };
+
+const TRANSFER_FAIL_STATUS: Record<string, number> = {
+  not_signed_in: 401,
+  team_not_found: 404,
+  not_on_team: 404,
+  owner_only: 403,
+  transfer_requires_admin: 403,
+  same_owner: 400,
+  conflict: 409,
+  unavailable: 403,
+  invalid_user_id: 400,
+  invalid_team_id: 400,
+  write_failed: 500,
+};
+
+function transferFail(message: TeamRouteCode): TransferOwnershipResult {
+  return { success: false, message, status: TRANSFER_FAIL_STATUS[message] ?? 500 };
+}
+
+/**
+ * Call public.transfer_team_ownership. The function is the source of truth — this helper
+ * does not re-gate. A zero-row result (RLS refusal or an empty update) is never a success.
+ */
+export async function transferOwnership(
+  db: TenancyRpcDb,
+  teamId: string,
+  newOwnerId: string,
+): Promise<TransferOwnershipResult> {
+  if (!isUuid(teamId)) {
+    return transferFail("invalid_team_id");
+  }
+  if (!isUuid(newOwnerId)) {
+    return transferFail("invalid_user_id");
+  }
+  const result = await db.rpc(TRANSFER_OWNERSHIP_FN, {
+    p_team: teamId,
+    p_new_owner_user_id: newOwnerId,
+  });
+  if (result.error) {
+    if (isAbsentTableError(result.error)) return transferFail("unavailable");
+    if (isAbsentFunctionError(result.error)) return transferFail("unavailable");
+    if (isPermissionDeniedError(result.error)) return transferFail("unavailable");
+    // Seat ruling M1: RAISE EXCEPTION P0001 from a failed restore maps to the
+    // existing write_failed sentence. Never forward the SQLSTATE or the raise text.
+    if (isRestoreFailedError(result.error)) return transferFail("write_failed");
+    return {
+      success: false,
+      message: "write_failed",
+      status: 500,
+    };
+  }
+  const rows = (Array.isArray(result.data) ? result.data : result.data ? [result.data] : []) as DbRow[];
+  // Load-bearing: a zero-row result means RLS refused. Never a silent 200.
+  if (rows.length === 0) {
+    return transferFail("unavailable");
+  }
+  const row = rows[0];
+  const code = typeof row.message === "string" ? row.message : "";
+  if (row.success === true && code === "transfer_success") {
+    return { success: true, message: "transfer_success", newOwnerId };
+  }
+  if (code && code in TEAM_ROUTE_MESSAGES) {
+    return transferFail(code as TeamRouteCode);
+  }
+  return transferFail("unavailable");
+}
 export const WORKSPACE_SETTINGS_TABLE = "workspace_settings";
 export const MAX_INVITES = 200;
 export const MAX_SETTING_BYTES = 4096;
@@ -592,6 +685,7 @@ export type TeamRouteCode =
   | "already_on_team"
   | "invalid_role"
   | "invalid_user_id"
+  | "invalid_team_id"
   | "user_not_found"
   | "email_not_supported"
   | "missing_target"
@@ -606,7 +700,11 @@ export type TeamRouteCode =
   | "not_on_team"
   | "same_role"
   | "role_change_failed"
-  | "remove_failed";
+  | "remove_failed"
+  | "transfer_requires_admin"
+  | "same_owner"
+  | "transfer_success"
+  | "conflict";
 
 // Same [en, zh] shape as INVITE_MESSAGES. Used by /api/teams and /api/teams/[id]/members.
 export const TEAM_ROUTE_MESSAGES: Record<TeamRouteCode, [string, string]> = {
@@ -633,6 +731,7 @@ export const TEAM_ROUTE_MESSAGES: Record<TeamRouteCode, [string, string]> = {
   // caller reads says it too. The Chinese twin already read 管理员.
   invalid_role: ["Choose a role: administrator or member.", "请选择角色：管理员或成员。"],
   invalid_user_id: ["That user id is not valid.", "该用户标识无效。"],
+  invalid_team_id: ["That team id is not valid.", "该团队标识无效。"],
   user_not_found: ["We could not find that person. Ask them to sign in to Mastermind first.", "找不到该用户。请先让对方登录 Mastermind。"],
   email_not_supported: [
     "Invitations by email are not available yet. Ask them to sign in to Mastermind first, then add them by their account.",
@@ -651,6 +750,16 @@ export const TEAM_ROUTE_MESSAGES: Record<TeamRouteCode, [string, string]> = {
   same_role: ["That person already has that role.", "该成员已经是该角色。"],
   role_change_failed: ["We could not change that role just now. Nothing was changed.", "我们暂时无法更改该角色。未更改任何内容。"],
   remove_failed: ["We could not remove that person just now. Nothing was changed.", "我们暂时无法移除该成员。未更改任何内容。"],
+  transfer_requires_admin: [
+    "They must be an administrator before they can become the owner.",
+    "他们必须是管理员才能成为所有者。",
+  ],
+  same_owner: ["You are already the owner.", "您已经是所有者。"],
+  transfer_success: ["Ownership transferred successfully.", "所有权已成功转移。"],
+  conflict: [
+    "The transfer failed due to a concurrent change. Please try again.",
+    "由于并发更改，转移失败。请重试。",
+  ],
 };
 
 export const SETTING_MESSAGES: Record<"saved" | "not_admin" | "invalid_key" | "invalid_value" | "unavailable", [string, string]> = {

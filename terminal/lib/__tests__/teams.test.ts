@@ -507,6 +507,11 @@ const NEW_TEAM_ROUTE_CODES: TeamRouteCode[] = [
   "same_role",
   "role_change_failed",
   "remove_failed",
+  "transfer_requires_admin",
+  "same_owner",
+  "transfer_success",
+  "conflict",
+  "invalid_team_id",
 ];
 
 const NEW_LEX_KEYS = [
@@ -544,6 +549,14 @@ const NEW_LEX_KEYS = [
   "acsTeamInviteBadge",
   "acsTeamInviteExpires",
   "acsTeamTruncated",
+  "acsTeamTransferButton",
+  "acsTeamTransferTitle",
+  "acsTeamTransferNote",
+  "acsTeamTransferAdminNeed",
+  "acsTeamTransferConfirm",
+  "acsTeamTransferConsequence",
+  "acsTeamTransferSuccess",
+  "acsTeamTransferRetry",
 ] as const;
 
 const SENTENCE_LEX_KEYS = new Set([
@@ -562,11 +575,42 @@ const SENTENCE_LEX_KEYS = new Set([
   "acsTeamCreated",
   "acsTeamInviteExpires",
   "acsTeamTruncated",
+  "acsTeamTransferTitle",
+  "acsTeamTransferNote",
+  "acsTeamTransferAdminNeed",
+  "acsTeamTransferConfirm",
+  "acsTeamTransferConsequence",
+  "acsTeamTransferSuccess",
 ]);
 
-const BANNED = ["falsifier", "refuted", "证伪", "team_members", "team_role_changes", "team_member_names", "RLS", "42501", "23505"];
+const BANNED = [
+  "falsifier",
+  "refuted",
+  "证伪",
+  "team_members",
+  "team_role_changes",
+  "team_ownership_transfers",
+  "team_member_names",
+  "RLS",
+  "42501",
+  "23505",
+  "SECURITY DEFINER",
+  "transfer_team_ownership",
+];
 
 describe("TEAM_ROUTE_MESSAGES and LEX plain-word completeness (B-F12-8)", () => {
+  it("seat R5: acsTeam* transfer copy addresses the customer as 你; TEAM_ROUTE_MESSAGES keeps 您", () => {
+    expect(LEX.acsTeamTransferConsequence[0]).toBe(
+      "You will become an administrator. They will become the team owner. The new owner can transfer it back to you later.",
+    );
+    expect(LEX.acsTeamTransferConsequence[1]).toBe(
+      "你将成为管理员，对方将成为团队所有者。之后对方可以随时转回给你。",
+    );
+    expect(LEX.acsTeamTransferConsequence[1]).not.toContain("您");
+    expect(TEAM_ROUTE_MESSAGES.same_owner[1]).toContain("您");
+    expect(TEAM_ROUTE_MESSAGES.conflict[1]).toMatch(/。/);
+  });
+
   it("the role words a caller reads match the words the Team section paints (round-4 ruling R4(j))", () => {
     // Every label this packet ships says "Administrator" (acsRoleAdmin, acsMakeAdmin), so the
     // sentence that asks for a role says it too rather than the shorter "admin".
@@ -616,7 +660,8 @@ describe("TEAM_ROUTE_MESSAGES and LEX plain-word completeness (B-F12-8)", () => 
       expect(zh).toMatch(/[一-鿿]/);
       expect(en).toMatch(/^[A-Z]/);
       if (SENTENCE_LEX_KEYS.has(key)) {
-        expect(en).toMatch(/^[A-Z].*[.!?]$/);
+        const filled = en.replaceAll("{name}", "Alex Chen");
+        expect(filled).toMatch(/^[A-Z].*[.!?]$/);
       }
       for (const banned of BANNED) {
         expect(en).not.toContain(banned);

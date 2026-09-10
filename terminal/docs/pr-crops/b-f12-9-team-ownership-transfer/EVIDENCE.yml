@@ -1,0 +1,39 @@
+# Ledger row: 0020_team_ownership_transfer / PR #557 (open, packet B-F12-9); not applied
+# layoutFiles carry sha256 hashes of the files they name; proof of which code generated each crop.
+# Rebuild any crop and recompute its layoutFiles, or the test will fail and the PR will not land.
+# capturedAtHead: 746367d7bc79259bbacee924adce226bccf1bb11
+capturedAtHead: 746367d7bc79259bbacee924adce226bccf1bb11
+capturedAt: 2026-09-10T15:14:06.718Z
+layoutFiles:
+  terminal/components/settings/SectionTeam.tsx: "8edecabab007dca3ed99bf7ab01d221001c84246d367c77ad8285fdf662a1940"
+  terminal/components/settings/SectionTeam.module.css: "924ab5b81d4f0e11ef2138557e92c43a0d1fa21b78622567fb6ccddcf6c146a8"
+  terminal/components/settings/SettingsPanel.tsx: "ad86b6deaad20ef3eabd07818433ffec84c6893dadf5dcb4f232204a181d1467"
+  terminal/app/settings.css: "3189163136d943431cbf52e4b5d241c105b695ba5af94c4c2e29151d537b5ef5"
+  terminal/lib/i18n.tsx: "707a6da45a9350c80c7a93b9e9ec4cc598a67e21015ed57604e9dbbffd7699a8"
+theme: dark
+languages: [en, zh]
+viewports:
+  - 1440x900
+  - 390x844
+harness: /dev/settings?s=team&lang=<en|zh>
+capture_flag: TERMINAL_E2E_FIXTURE
+capture_flag_law: Set TERMINAL_E2E_FIXTURE=1 and next.config.ts sets devIndicators false, hiding Next.js dev button overlay from crops.
+command: node terminal/e2e/tools/capture_f12_9_team_ownership_transfer.cjs
+files:
+  - desktop-en-transfer-button.png
+  - desktop-zh-transfer-button.png
+  - desktop-en-transfer-confirm.png
+  - desktop-zh-transfer-confirm.png
+  - mobile-en-transfer-button.png
+  - mobile-zh-transfer-button.png
+  - mobile-en-transfer-confirm.png
+  - mobile-zh-transfer-confirm.png
+measurements:
+  desktop-en-transfer-button.png: { transferButtonText: "Transfer ownership", dialogPresent: false, confirmTitle: "", consequenceText: "", roleBadgeText: "Owner | Administrator | Member | Member | Member", inviteBadgeText: "Invited — not yet accepted", inviteGroupTitle: "Invitations not yet accepted" }
+  desktop-zh-transfer-button.png: { transferButtonText: "转移所有权", dialogPresent: false, confirmTitle: "", consequenceText: "", roleBadgeText: "所有者 | 管理员 | 成员 | 成员 | 成员", inviteBadgeText: "已邀请，尚未接受", inviteGroupTitle: "尚未接受的邀请" }
+  desktop-en-transfer-confirm.png: { transferButtonText: "Transfer ownership", dialogPresent: true, confirmTitle: "Transfer ownership to Alex Chen?", consequenceText: "You will become an administrator. They will become the team owner. The new owner can transfer it back to you later.", roleBadgeText: "Owner | Administrator | Member | Member | Member", inviteBadgeText: "Invited — not yet accepted", inviteGroupTitle: "Invitations not yet accepted" }
+  desktop-zh-transfer-confirm.png: { transferButtonText: "转移所有权", dialogPresent: true, confirmTitle: "将所有权转移给 Alex Chen？", consequenceText: "你将成为管理员，对方将成为团队所有者。之后对方可以随时转回给你。", roleBadgeText: "所有者 | 管理员 | 成员 | 成员 | 成员", inviteBadgeText: "已邀请，尚未接受", inviteGroupTitle: "尚未接受的邀请" }
+  mobile-en-transfer-button.png: { transferButtonText: "Transfer ownership", dialogPresent: false, confirmTitle: "", consequenceText: "", roleBadgeText: "Owner | Administrator | Member | Member | Member", inviteBadgeText: "Invited — not yet accepted", inviteGroupTitle: "Invitations not yet accepted" }
+  mobile-zh-transfer-button.png: { transferButtonText: "转移所有权", dialogPresent: false, confirmTitle: "", consequenceText: "", roleBadgeText: "所有者 | 管理员 | 成员 | 成员 | 成员", inviteBadgeText: "已邀请，尚未接受", inviteGroupTitle: "尚未接受的邀请" }
+  mobile-en-transfer-confirm.png: { transferButtonText: "Transfer ownership", dialogPresent: true, confirmTitle: "Transfer ownership to Alex Chen?", consequenceText: "You will become an administrator. They will become the team owner. The new owner can transfer it back to you later.", roleBadgeText: "Owner | Administrator | Member | Member | Member", inviteBadgeText: "Invited — not yet accepted", inviteGroupTitle: "Invitations not yet accepted" }
+  mobile-zh-transfer-confirm.png: { transferButtonText: "转移所有权", dialogPresent: true, confirmTitle: "将所有权转移给 Alex Chen？", consequenceText: "你将成为管理员，对方将成为团队所有者。之后对方可以随时转回给你。", roleBadgeText: "所有者 | 管理员 | 成员 | 成员 | 成员", inviteBadgeText: "已邀请，尚未接受", inviteGroupTitle: "尚未接受的邀请" }

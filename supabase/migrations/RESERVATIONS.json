@@ -197,12 +197,14 @@
       "note": "shipped unapplied; applied_date is not recorded because the seat has not applied it; the seat applies with a receipt"
     },
     "0020": {
-      "state": "reserved",
-      "file": null,
+      "state": "taken",
+      "file": "0020_team_ownership_transfer.sql",
       "packet": "B-F12-9",
-      "pr": null,
-      "pr_state": null,
-      "note": "ownership transfer; reserved by Meta-CEO B ruling 2026-09-09; PR pending"
+      "pr": 557,
+      "pr_state": "open",
+      "applied_in_production": false,
+      "applied_date": null,
+      "note": "ownership transfer; seat ruled 0020 (the spec claimed 0019; 0019 is B-F12-8). Flipped from reserved (#543) to taken in this PR. Shipped unapplied; applied_date is not recorded because the seat has not applied it; the seat applies with a receipt."
     },
     "0022": {
       "state": "taken",

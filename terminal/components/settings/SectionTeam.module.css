@@ -60,6 +60,38 @@
   color: var(--text-2);
 }
 .createBtns { display: flex; gap: 7px; margin-top: 9px; justify-content: flex-end; }
+.transferDialog {
+  margin: 12px 0 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-2);
+}
+.transferTitle {
+  margin: 0 0 8px;
+  font: 650 13px/1.35 var(--font-ui);
+  color: var(--text);
+}
+.transferList { display: flex; flex-direction: column; gap: 6px; margin: 10px 0; }
+.transferChoice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  font: 500 12.5px/1.3 var(--font-ui);
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 8px 10px;
+  cursor: pointer;
+}
+.transferChoiceOn {
+  border-color: var(--brand);
+  background: color-mix(in srgb, var(--brand) 14%, var(--panel));
+}
 @media (max-width: 640px) {
   :global(.acs-row):has(.actions) :global(.acs-row-line),
   :global(.acs-row):has(.roleBadge) :global(.acs-row-line) {

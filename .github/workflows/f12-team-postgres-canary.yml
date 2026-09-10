@@ -18,6 +18,7 @@ on:
       - "supabase/migrations/0017_personal_accuracy_ledger.sql"
       - "supabase/migrations/0018_webhook_delivery.sql"
       - "supabase/migrations/0019_team_role_changes.sql"
+      - "supabase/migrations/0020_team_ownership_transfer.sql"
       - "terminal/scripts/f12_team_postgres_canary.py"
       - ".github/workflows/f12-team-postgres-canary.yml"
   workflow_dispatch: {}
