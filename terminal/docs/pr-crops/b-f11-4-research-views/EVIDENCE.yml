@@ -1,23 +1,24 @@
 # B-F11-4 research management views — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: e4a0121fc75e99c5916e8159a1d3fc21c87d264a
-# capturedAt: 2026-09-09T18:36:25.580Z
+# capturedAtHead: 3257006cb8a777437bf084738132583b9d3bf681
+# capturedAt: 2026-09-10T15:42:44.798Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/workspaces/ThesisWorkspace.tsx: "c697c29547ce550aee0607b10318bd146c8d73de056db465dc47b47a8a9df381"
-  terminal/components/workspaces/ThesisWorkspace.module.css: "e2654fd1b179dd3bd1573f2a19cb3d93b248928394afd491b2ba8207b25f8fc9"
-  terminal/lib/rmsViews.ts: "d8dba7e3d3f5529b383915d90e07844bfb1726faeb988197bed69dc8ca090f6d"
+  terminal/components/workspaces/ThesisWorkspace.tsx: "930c2e9a554f56f893d138479659c088b48d4b4404381e4c4a77ea9f3166a9c6"
+  terminal/components/workspaces/ThesisWorkspace.module.css: "ac9547b1b7cf4a5d51f4838a40983f55d489483bef1e237ee2b5e81c8e10d37c"
+  terminal/lib/rmsViews.ts: "fd5f025806c5a4b1b27e7d99a026e82f555767f0d96b6a2766a5b363961897cb"
   terminal/lib/savedViews.ts: "16e2914a032cba50cce999d1802c53e51098ce76dd82931925ef41b8e0f7af54"
-  terminal/lib/plainLabels.ts: "9e88f214f16f711c9e0ce4ae84201c027158ac2c6b5bfcc2592e6dce1d6c21be"
-  terminal/lib/i18n.tsx: "b1376a5e152b77bf5d18e6634dd78ff489b09b3411f59e08c2e5c5ec988fd1c3"
+  terminal/lib/plainLabels.ts: "8f69818feca65a5f28c590460c52e4f06c04c25cc4f3da8643eff9050161b588"
+  terminal/lib/i18n.tsx: "a36dfa59c17d63b9b4761a54acdcd0cc7fd6e1cbe4d38c79b872ba2536125a1a"
 theme: dark
 languages: [en, zh]
 viewports:
   - { name: desktop, width: 1440, height: 900 }
   - { name: mobile, width: 390, height: 844 }
-surfaces: [empty, named-views, save-flow, window-closed, view-subject-empty]
+surfaces: [empty, named-views, save-flow, window-closed, view-subject-empty, unavailable]
 view_subject_empty_scope: 1440 only, en and zh
+unavailable_scope: 1440 only, en and zh
 crop_surface: |
   Every PNG is the thesis list pane only — cropPane() clips to
   [data-testid="thesis-list-pane"], the surface spec 2.10 asks for. At the 1440
@@ -47,6 +48,8 @@ files:
   - save-flow-1440.png
   - save-flow-390-zh.png
   - save-flow-390.png
+  - unavailable-1440-zh.png
+  - unavailable-1440.png
   - view-subject-empty-1440-zh.png
   - view-subject-empty-1440.png
   - window-closed-1440-zh.png
