@@ -299,6 +299,7 @@ class FixtureQuery implements WatchlistQuery {
       // would happily hold the duplicates the real table now refuses, and an e2e "proof" of
       // uniqueness would be proving a property the product does not have.
       const accepted: DbRow[] = [];
+      const returned: DbRow[] = [];
       for (const row of incoming) {
         if (this.table === "watchlist_symbols") {
           const clash = this.store.symbols.some((existing) =>
@@ -318,16 +319,17 @@ class FixtureQuery implements WatchlistQuery {
             if (this.mode === "upsert") {
               const target = existing ?? queued;
               if (target) Object.assign(target, row, { updated_at: new Date().toISOString() });
-              if (existing) accepted.push(existing);
+              if (target && !returned.includes(target)) returned.push(target);
               continue;
             }
             return { data: null, error: { message: "duplicate key value violates unique constraint" } };
           }
         }
         accepted.push(row);
+        returned.push(row);
       }
       this.rows.push(...accepted);
-      return { data: this.project(accepted), error: null };
+      return { data: this.project(returned), error: null };
     }
     if (this.mode === "update") {
       const targets = this.matched();

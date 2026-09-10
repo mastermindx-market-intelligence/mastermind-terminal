@@ -12,8 +12,7 @@
 // one decimal for single-item facts — the same convention as concentration.top1, not
 // allocatePercentages (that is reserved for stacked bars that must visually sum to 100).
 
-import { normalizeTicker } from "@/lib/portfolio";
-import type { Lang, Bilingual, RiskInputPosition } from "@/lib/portfolioRisk";
+import { tickerKey, type Lang, type Bilingual, type RiskInputPosition } from "@/lib/portfolioRisk";
 
 export type { Lang, Bilingual };
 
@@ -91,10 +90,6 @@ export function normalizeBandPct(value: unknown): NumericField {
 
 function round1(n: number): number {
   return Math.round(n * 10) / 10;
-}
-
-function tickerKey(raw: string): string {
-  return normalizeTicker(raw) ?? raw.trim().toUpperCase();
 }
 
 export function computePortfolioTargets(
@@ -373,21 +368,24 @@ export function targetsCopy(
     }
     : null;
 
-  // R4: gate on the ROUNDED sum, and print that same rounded figure. The raw float sum of
-  // 28.4 + 35.8 + 35.8 is 99.99999999999999, which is `!== 100` while fmtPct renders "100.0" —
-  // the note then read "add up to 100.0%, not 100%" on the one surface whose whole promise is
-  // fidelity to what the user typed.
-  const roundedSum = summary.targetsSumPct == null ? null : round1(summary.targetsSumPct);
-  const sumNote = roundedSum != null && roundedSum !== 100
-    ? fill(T_SUM_NOTE, { sum: fmtPct(roundedSum) })
-    : null;
-
   // R1 / R6 (a): the lead sentence. T_NO_TARGETS was unreachable because it was only consulted on
   // the branch where every list was empty. It now speaks for the real "you hold weighable
   // positions and have set no targets" state, while T_EMPTY_BOOK covers every case with nothing
   // weighable to measure against — including a book emptied down to orphaned targets alone.
   const hasWeighable = summary.drifts.some((d) => d.currentWeightPct != null)
     || summary.untargeted.some((u) => u.currentWeightPct != null);
+
+  // R4: gate on the ROUNDED sum, and print that same rounded figure. The raw float sum of
+  // 28.4 + 35.8 + 35.8 is 99.99999999999999, which is `!== 100` while fmtPct renders "100.0" —
+  // the note then read "add up to 100.0%, not 100%" on the one surface whose whole promise is
+  // fidelity to what the user typed.
+  // Heal h3 REQUIRED 5: orphaned targets still enter `targetsSumPct`, so an emptied book would
+  // print the sum note above T_EMPTY_BOOK. The note only speaks when a weighable holding exists.
+  const roundedSum = summary.targetsSumPct == null ? null : round1(summary.targetsSumPct);
+  const sumNote = hasWeighable && roundedSum != null && roundedSum !== 100
+    ? fill(T_SUM_NOTE, { sum: fmtPct(roundedSum) })
+    : null;
+
   const emptyState = !hasWeighable
     ? T_EMPTY_BOOK
     : (summary.drifts.length === 0 && summary.orphaned.length === 0 ? T_NO_TARGETS : null);

@@ -142,6 +142,17 @@ describe("PortfolioTargetsReadout — orphaned targets with an empty open book (
     expect(text()).not.toContain("same as the shape readout above");
   });
 
+  it("does not print the sum note above the empty-book sentence (heal h3 REQUIRED 5)", () => {
+    mount(emptied, {}, "en", false);
+    expect(text()).toContain("Add a position with a share count and entry price to start setting targets.");
+    expect(text()).not.toContain("add up to");
+    expect(text()).not.toContain("not 100%");
+    unmount();
+    mount(emptied, {}, "zh", false);
+    expect(text()).not.toContain("合计为");
+    expect(text()).not.toContain("并非 100%");
+  });
+
   it("cross-references the shape readout when it is rendered (R6 e)", () => {
     mount(computePortfolioTargets([pos("AAA", 10, 100)], [tgt("AAA", 50)]), {}, "en", true);
     expect(text()).toContain("same as the shape readout above");

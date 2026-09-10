@@ -157,11 +157,17 @@ export async function POST(req: Request) {
         updated_at: now,
       };
       if (bandValue !== undefined) patch.band_pct = bandValue;
-      const updated = await db.from(TARGETS_TABLE)
-        .update(patch)
-        .eq("user_id", userId)
-        .eq("ticker", ticker)
-        .select(TARGET_FIELDS);
+      let updated: { data?: DbRow | DbRow[] | null; error?: { message?: string } | null };
+      try {
+        updated = await db.from(TARGETS_TABLE)
+          .update(patch)
+          .eq("user_id", userId)
+          .eq("ticker", ticker)
+          .select(TARGET_FIELDS);
+      } catch (cause) {
+        console.error("portfolio targets POST update failed:", cause);
+        return fail("targets unavailable", 503);
+      }
       if (updated.error || !Array.isArray(updated.data) || !updated.data[0]) {
         return fail("targets unavailable", 503);
       }
@@ -170,15 +176,21 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: true, target });
     }
 
-    const inserted = await db.from(TARGETS_TABLE)
-      .insert({
-        user_id: userId,
-        ticker,
-        target_weight_pct: weight.value,
-        band_pct: bandValue ?? DEFAULT_BAND_PCT,
-        updated_at: now,
-      })
-      .select(TARGET_FIELDS);
+    let inserted: { data?: DbRow | DbRow[] | null; error?: { message?: string } | null };
+    try {
+      inserted = await db.from(TARGETS_TABLE)
+        .insert({
+          user_id: userId,
+          ticker,
+          target_weight_pct: weight.value,
+          band_pct: bandValue ?? DEFAULT_BAND_PCT,
+          updated_at: now,
+        })
+        .select(TARGET_FIELDS);
+    } catch (cause) {
+      console.error("portfolio targets POST insert failed:", cause);
+      return fail("targets unavailable", 503);
+    }
     if (inserted.error || !Array.isArray(inserted.data) || !inserted.data[0]) {
       return fail("targets unavailable", 503);
     }
@@ -189,11 +201,17 @@ export async function POST(req: Request) {
 
   {
     // action === "clear" — the only remaining case, pinned by the dispatch guard above.
-    const deleted = await db.from(TARGETS_TABLE)
-      .delete()
-      .eq("user_id", userId)
-      .eq("ticker", ticker)
-      .select("ticker");
+    let deleted: { data?: DbRow | DbRow[] | null; error?: { message?: string } | null };
+    try {
+      deleted = await db.from(TARGETS_TABLE)
+        .delete()
+        .eq("user_id", userId)
+        .eq("ticker", ticker)
+        .select("ticker");
+    } catch (cause) {
+      console.error("portfolio targets POST delete failed:", cause);
+      return fail("targets unavailable", 503);
+    }
     if (deleted.error) return fail("targets unavailable", 503);
     const rows = Array.isArray(deleted.data) ? deleted.data : [];
     if (!rows.length) return fail("target not found", 404);

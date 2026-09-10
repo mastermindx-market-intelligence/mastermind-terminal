@@ -7,6 +7,9 @@ const H = vi.hoisted(() => ({
   // R6 (i): a driver that THROWS, not one that returns an error row — the GET path wraps its
   // select in try/catch and the POST path's maybeSingle must do the same.
   throwOnMaybeSingle: false,
+  throwOnUpdate: false,
+  throwOnInsert: false,
+  throwOnDelete: false,
   positionWrites: [] as { table: string; op: string }[],
   // R6 (h): every `from(table)` the route reaches, so "store never read" is an assertion and not
   // a dangling `expect(...)` with no matcher.
@@ -41,7 +44,18 @@ vi.mock("@/lib/supabase/server", async () => {
       const CHAIN = new Set(["select", "eq", "in", "order", "limit", "insert", "update", "delete"]);
       const wrapThrowing = (query: WatchlistQuery): WatchlistQuery => new Proxy(query, {
         get(target, prop, receiver) {
-          if (prop === "maybeSingle") return async () => { throw new Error("driver exploded"); };
+          if (prop === "maybeSingle" && H.throwOnMaybeSingle) {
+            return async () => { throw new Error("driver exploded"); };
+          }
+          if (prop === "update" && H.throwOnUpdate) {
+            return () => { throw new Error("driver exploded"); };
+          }
+          if (prop === "insert" && H.throwOnInsert) {
+            return () => { throw new Error("driver exploded"); };
+          }
+          if (prop === "delete" && H.throwOnDelete) {
+            return () => { throw new Error("driver exploded"); };
+          }
           const value = Reflect.get(target, prop, receiver);
           if (typeof value !== "function") return value;
           const fn = (value as (...a: unknown[]) => unknown).bind(target);
@@ -70,7 +84,9 @@ vi.mock("@/lib/supabase/server", async () => {
               return typeof value === "function" ? value.bind(target) : value;
             },
           }) as unknown as WatchlistQuery;
-          return H.throwOnMaybeSingle ? wrapThrowing(spied) : spied;
+          return (H.throwOnMaybeSingle || H.throwOnUpdate || H.throwOnInsert || H.throwOnDelete)
+            ? wrapThrowing(spied)
+            : spied;
         },
       };
     }),
@@ -106,6 +122,9 @@ beforeEach(() => {
   H.user = { id: owner };
   H.failReadTable = null;
   H.throwOnMaybeSingle = false;
+  H.throwOnUpdate = false;
+  H.throwOnInsert = false;
+  H.throwOnDelete = false;
   H.positionWrites = [];
   H.reads = [];
   vi.clearAllMocks();
@@ -328,5 +347,33 @@ describe("POST /api/portfolio/targets — error ordering and driver faults (R6 i
     expect(response.status).toBe(503);
     expect(await response.json()).toEqual({ error: "targets unavailable" });
     expect(H.positionWrites.filter((w) => w.table === "portfolio_targets")).toEqual([]);
+  });
+
+  it("is 503, never a 500, when the targets driver THROWS on update", async () => {
+    await seedHolding("NVDA", 100, 200);
+    const saved = await postTargets({ action: "set", ticker: "NVDA", targetWeightPct: 80, bandPct: 5 });
+    expect(saved.status).toBe(200);
+    H.throwOnUpdate = true;
+    const response = await postTargets({ action: "set", ticker: "NVDA", targetWeightPct: 55, bandPct: 5 });
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({ error: "targets unavailable" });
+  });
+
+  it("is 503, never a 500, when the targets driver THROWS on insert", async () => {
+    await seedHolding("NVDA", 100, 200);
+    H.throwOnInsert = true;
+    const response = await postTargets({ action: "set", ticker: "NVDA", targetWeightPct: 80, bandPct: 5 });
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({ error: "targets unavailable" });
+  });
+
+  it("is 503, never a 500, when the targets driver THROWS on delete", async () => {
+    await seedHolding("NVDA", 100, 200);
+    const saved = await postTargets({ action: "set", ticker: "NVDA", targetWeightPct: 80, bandPct: 5 });
+    expect(saved.status).toBe(200);
+    H.throwOnDelete = true;
+    const response = await postTargets({ action: "clear", ticker: "NVDA" });
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({ error: "targets unavailable" });
   });
 });

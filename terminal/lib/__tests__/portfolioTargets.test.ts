@@ -475,6 +475,25 @@ describe("computePortfolioTargets — one weight formula, agreeing with computeP
     expect(short?.currentWeightPct).toBeNull();
     expect(summary.untargeted.find((u) => u.ticker === "AAA")?.currentWeightPct).toBe(100);
   });
+
+  // Heal round h3 REQUIRED 2: two open lots of the same ticker are legal (0007 has no unique
+  // (user_id, ticker)). A holding is a ticker, not a lot — both compute functions must name the
+  // holding and agree on its weight. RED on the pre-fix tree: risk sized each lot separately, so
+  // top1 was the larger AAA lot at 50.0% while targets already reported the holding at 75.0%.
+  it("treats two lots of the same ticker as one holding: AAA 100@100 + AAA 50@100 + BBB 50@100 is AAA 75.0% on both sides", () => {
+    const book = [pos("AAA", 100, 100), pos("AAA", 50, 100), pos("BBB", 50, 100)];
+    const summary = computePortfolioTargets(book, [tgt("AAA", 70, 5), tgt("BBB", 30, 5)]);
+    const risk = computePortfolioRisk(book, {});
+    expect(summary.drifts.find((d) => d.ticker === "AAA")?.currentWeightPct).toBe(75);
+    expect(summary.drifts.find((d) => d.ticker === "BBB")?.currentWeightPct).toBe(25);
+    expect(risk.concentration?.top1).toEqual({ ticker: "AAA", weightPct: 75 });
+    expect(risk.concentration?.top1?.ticker).toBe(
+      summary.drifts.find((d) => d.ticker === "AAA")?.ticker,
+    );
+    expect(risk.concentration?.top1?.weightPct).toBe(
+      summary.drifts.find((d) => d.ticker === "AAA")?.currentWeightPct,
+    );
+  });
 });
 
 // ── Round 2, ruling R4 — the sum note gates on the ROUNDED sum ─────────────────────────────────
@@ -617,5 +636,9 @@ describe("computePortfolioTargets + targetsCopy — a closed last holding keeps 
     expect(copy.orphaned?.rows.map((r) => r.ticker)).toEqual(["NVDA"]);
     expect(copy.orphaned?.explanation.en).toContain("kept, not deleted");
     expect(copy.orphaned?.explanation.zh).toContain("不会删除");
+    // Heal round h3 REQUIRED 5: the sum note used to print "your targets add up to 80%, not 100%"
+    // above the empty-book sentence, because orphaned targets still entered the sum. It must not
+    // render when nothing weighable is held.
+    expect(copy.sumNote).toBeNull();
   });
 });

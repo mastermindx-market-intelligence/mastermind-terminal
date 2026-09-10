@@ -48,3 +48,20 @@ do $$ begin
   create policy "portfolio_targets_delete_own" on public.portfolio_targets
     for delete using (auth.uid() = user_id);
 exception when duplicate_object then null; end $$;
+
+-- down:
+-- begin;
+-- drop policy if exists "portfolio_targets_delete_own" on public.portfolio_targets;
+-- drop policy if exists "portfolio_targets_update_own" on public.portfolio_targets;
+-- drop policy if exists "portfolio_targets_insert_own" on public.portfolio_targets;
+-- drop policy if exists "portfolio_targets_select_own" on public.portfolio_targets;
+-- drop index if exists public.portfolio_targets_user;
+-- drop table if exists public.portfolio_targets;
+-- commit;
+
+-- readback:
+-- select c.relname, c.relrowsecurity, array_agg(p.polname order by p.polname) as policies
+--   from pg_class c
+--   left join pg_policy p on p.polrelid = c.oid
+--  where c.relnamespace = 'public'::regnamespace and c.relname = 'portfolio_targets'
+--  group by 1, 2;
