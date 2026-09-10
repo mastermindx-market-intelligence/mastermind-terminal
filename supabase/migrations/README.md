@@ -60,7 +60,8 @@ rows each record their own date — `0011`'s DDL was applied 2026-09-05
 | `0014_tenancy_foundation.sql` | `teams`, `team_members`, `team_invites` tables + `is_team_member()`/`team_role()`/`handle_new_team()` + RLS | yes — applied 2026-09-08 (Meta-CEO B; readback receipt on PR #514 comment `5592694274`) |
 | `0015_team_roles_invitations.sql` | `workspace_settings` table + `accept_team_invite()` + RLS | yes — applied 2026-09-08 (Meta-CEO B; readback receipt on PR #514 comment `5592697055`) |
 | `0016_account_lifecycle_requests.sql` | `account_lifecycle_requests` table + RLS | yes — applied 2026-09-09 (Meta-CEO B; readback receipt on PR #527 comment `5594233632`) |
-| `0017_personal_accuracy_ledger.sql` | `user_claims` table + RLS (personal accuracy ledger, packet B-F13-5) | **no — not applied** |
+| `0017_personal_accuracy_ledger.sql` | `user_claims` table + RLS (personal accuracy ledger, packet B-F13-5) | yes — applied 2026-09-10 (Meta-CEO B; readback receipt on PR #547 comment `5625342890`) |
+| `0018_webhook_delivery.sql` | `webhook_endpoints`, `webhook_deliveries` tables + `enqueue_test_webhook_delivery()` + RLS | yes — applied 2026-09-10 (Meta-CEO B; readback receipt on PR #549 comment `5625353856`) |
 
 **Raw-fallback note (terminal PR #516):** `scripts/supabase_apply.py` only
 becomes the reviewed applier for files in this directory once that PR merges
