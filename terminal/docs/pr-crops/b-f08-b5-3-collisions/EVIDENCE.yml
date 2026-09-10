@@ -1,16 +1,16 @@
 # B-F08-B5-3 collisions — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 736467a57b0b0165ae7ec36a638c5278a4b0142c
-# capturedAt: 2026-09-09T20:20:30.077Z
+# capturedAtHead: 56ebbc0e5710ecbe98252f74170bf55bbe3f9eb5
+# capturedAt: 2026-09-10T17:19:31.994Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/alerts/AlertsCockpit.tsx: "342a9efed626988aaca8ed4b4ca520b639fd41f6bcda928a08492834156a6b1e"
+  terminal/components/alerts/AlertsCockpit.tsx: "1ef11a4ecda479a37ac862de81332b16e37a20c3074d44f36bd598cee97ebadf"
   terminal/components/alerts/WatchingList.tsx: "945462eb9a5139e5dfe000948d32152394a42f733f4f462a6ce365dff5ea9f27"
   terminal/components/alerts/AnswerLine.tsx: "f3bf1f587566c521b66d210b84ec316ed1e5809f2f5ce758c6c0c81f77e4dbdb"
-  terminal/components/alerts/CouldNotWatch.tsx: "e9abf8d001f1bdccc9b70c74a111f71976ee2c89b082f676780369b6f3ba0981"
-  terminal/lib/alertsView.ts: "ae40b075245ee304ef3380142c14ebbc9f1cd078d7010aed0767b70a48516e91"
-  terminal/app/api/alerts/receipts/route.ts: "757ba2198de83826398f7f563fe4c05f3371a887c125e91a9b8f039fc042496f"
+  terminal/components/alerts/CouldNotWatch.tsx: "501f29cf420446f398424a036224788579e478038a8f4fdc3b2ad2273a464aed"
+  terminal/lib/alertsView.ts: "c4352ff32e8ad5713207eaa55c4bded69e098f4e78ad85580d74dbc444e27c20"
+  terminal/app/api/alerts/receipts/route.ts: "e90838781925cd4035cf913a3f011ad0e79a2f2fb4528fa1518a392144f44d82"
   terminal/app/api/alerts/route.ts: "7b7ff8a30555230b344027385b24fcb488871bace93cf8b51e6a47c0433e66d3"
 theme: dark
 languages: [en, zh]
@@ -22,21 +22,21 @@ capture_flag: TERMINAL_E2E_FIXTURE
 capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
 states: [watching, suite-degraded, suite-never-ran, unresolved]
 command: |
-  node $TMPDIR/b-f08-b5-3-capture.cjs
+  node e2e/tools/capture_b_f08_b5_3_collisions.cjs
 files:
-  - watching-1440.png
-  - watching-1440-zh.png
-  - watching-390.png
-  - watching-390-zh.png
-  - suite-degraded-1440.png
   - suite-degraded-1440-zh.png
-  - suite-degraded-390.png
+  - suite-degraded-1440.png
   - suite-degraded-390-zh.png
-  - suite-never-ran-1440.png
+  - suite-degraded-390.png
   - suite-never-ran-1440-zh.png
-  - suite-never-ran-390.png
+  - suite-never-ran-1440.png
   - suite-never-ran-390-zh.png
-  - unresolved-1440.png
+  - suite-never-ran-390.png
   - unresolved-1440-zh.png
-  - unresolved-390.png
+  - unresolved-1440.png
   - unresolved-390-zh.png
+  - unresolved-390.png
+  - watching-1440-zh.png
+  - watching-1440.png
+  - watching-390-zh.png
+  - watching-390.png
