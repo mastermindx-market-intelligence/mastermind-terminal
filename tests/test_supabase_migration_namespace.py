@@ -373,6 +373,17 @@ def test_reservations_records_the_known_collision_surface():
     assert prefixes["0017"]["pr_state"] == "open"
     assert prefixes["0017"]["applied_in_production"] is False
 
+    # 0018 is this PR's claim: taken, file present, PR 549 open, shipped unapplied.
+    # Other 0017-0020 owners stay as origin/master has them (reserved until their PRs take them).
+    assert prefixes["0018"]["state"] == "taken"
+    assert prefixes["0018"]["file"] == "0018_webhook_delivery.sql"
+    assert prefixes["0018"]["packet"] == "B-F12-7"
+    assert prefixes["0018"]["pr"] == 549
+    assert prefixes["0018"]["pr_state"] == "open"
+    assert prefixes["0018"]["applied_in_production"] is False
+    assert prefixes["0018"]["applied_date"] is None
+    assert "shipped unapplied; the seat applies with a receipt" in prefixes["0018"]["note"]
+
     # 0017-0020 claimed by Meta-CEO B ruling 2026-09-09 -- updated from the
     # stale state="free" this test used to assert.
     #
