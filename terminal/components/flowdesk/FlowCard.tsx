@@ -28,6 +28,7 @@ import { memo, useEffect, useRef, useState } from "react";
 import type { FlowEvent, EnrichEvent } from "./FeedPane";
 import { fmtNum } from "@/lib/finFormat";
 import { makeFlowT, scoreComponentLabel } from "@/lib/flowdeskStrings";
+import { flowSideLabel, statTokenLabel } from "@/lib/plainLabels";
 import { RingGauge } from "../ui/RingGauge";
 
 // ── Props ─────────────────────────────────────────────────────────────────────
@@ -187,13 +188,13 @@ export const FlowCard = memo(function FlowCard({
         </span>
 
         {/* Lean chip — dashed border, neutral color.
-            direction_discounted=true (spread detected): muted + "spread — direction unreliable" label. */}
+            direction_discounted=true (spread detected): muted + unreliable-direction label. */}
         {directionDiscounted ? (
           <span
             className="obs-fc-lean"
             style={{ opacity: 0.5 }}
           >
-            {zh ? "价差 — 方向不可靠" : "spread — direction unreliable"}
+            {t("spreadUnreliable")}
           </span>
         ) : (
           <span
@@ -202,11 +203,7 @@ export const FlowCard = memo(function FlowCard({
             onMouseLeave={() => setTipVisible(false)}
             aria-label={t("leanTooltip")}
           >
-            {ev.side === "~buy"
-              ? (zh ? "~买" : "~buy")
-              : ev.side === "~sell"
-              ? (zh ? "~卖" : "~sell")
-              : (zh ? "混合" : "mixed")}
+            {flowSideLabel(ev.side, lang)}
             {tipVisible && (
               <span style={LEAN_TIP_STYLE}>{t("leanTooltip")}</span>
             )}
@@ -228,13 +225,13 @@ export const FlowCard = memo(function FlowCard({
           {ev.oi != null && (
             <>
               <span className="obs-fc-meta-sep">·</span>
-              <span className="num">OI {(ev.oi as number).toLocaleString()}</span>
+              <span className="num">{statTokenLabel("oi", lang)} {(ev.oi as number).toLocaleString()}</span>
             </>
           )}
           {ev.iv != null && (
             <>
               <span className="obs-fc-meta-sep">·</span>
-              <span className="num">IV {((ev.iv as number) * 100).toFixed(1)}%</span>
+              <span className="num">{statTokenLabel("iv", lang)} {((ev.iv as number) * 100).toFixed(1)}%</span>
             </>
           )}
           {flags.map((f) => (
@@ -308,14 +305,12 @@ export const FlowCard = memo(function FlowCard({
           })}
 
           <div className="obs-note obs-fc-detail-honesty">
-            {zh
-              ? "评分反映大小/活跃度/新意，非胜率预测。等级为描述性，在前瞻账本完成之前无历史预测效力。"
-              : "Score reflects magnitude/activity/novelty — not a win-rate prediction. Tiers are descriptive; no historical predictive edge until a forward ledger gates authority."}
+            {t("scoreHonesty")}
           </div>
           <div className="obs-fc-detail-note">
-            {zh ? "方向倾向" : "Direction lean"}:{" "}
+            {t("directionLean")}:{" "}
             <span style={{ color: "var(--text-2)" }}>
-              {ev.side} — {zh ? "tick规则推断，非NBBO确认" : "tick-rule inferred, not NBBO-confirmed"}
+              {flowSideLabel(ev.side, lang)} — {t("tickRuleInferred")}
             </span>
           </div>
         </div>

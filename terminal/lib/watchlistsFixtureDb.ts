@@ -47,6 +47,7 @@ export const FAULT_POSITIONS_MUTATION_NOOP = "positions_mutation_noop";
 export const FAULT_THESES_READ = "theses_read";
 export const FAULT_SAVED_VIEWS_READ = "saved_views_read";
 export const FAULT_ALERT_OUTBOX_READ = "alert_outbox_read";
+export const FAULT_TARGETS_READ = "targets_read";
 
 /**
  * Store-key token that models "macro's nightly thesis-condition monitor enqueued one
@@ -78,6 +79,7 @@ type Store = {
   alertOutbox: DbRow[];
   /** See FIXTURE_MONITOR_FIRED_TOKEN. Derived from the store key, never written to. */
   monitorFires: boolean;
+  targets: DbRow[];
   seq: number;
 };
 
@@ -132,6 +134,7 @@ function seedStore(key: string): Store {
     workspaceSettings: [],
     alertOutbox: [],
     monitorFires: key.includes(FIXTURE_MONITOR_FIRED_TOKEN),
+    targets: [],
     seq: 0,
   };
 }
@@ -151,7 +154,7 @@ export function resetFixtureStores(): void {
   stores.clear();
 }
 
-type Table = "watchlists" | "watchlist_symbols" | "portfolio_positions" | "theses" | "thesis_versions" | "workspace_settings" | "alert_outbox";
+type Table = "watchlists" | "watchlist_symbols" | "portfolio_positions" | "theses" | "thesis_versions" | "workspace_settings" | "alert_outbox" | "portfolio_targets";
 
 export type FixtureDatabaseEvent = {
   source: "table" | "rpc";
@@ -182,6 +185,7 @@ class FixtureQuery implements WatchlistQuery {
     if (this.table === "thesis_versions") return this.store.thesisVersions;
     if (this.table === "workspace_settings") return this.store.workspaceSettings;
     if (this.table === "alert_outbox") return this.store.alertOutbox;
+    if (this.table === "portfolio_targets") return this.store.targets;
     return this.store.symbols;
   }
 
@@ -279,6 +283,9 @@ class FixtureQuery implements WatchlistQuery {
     if (this.table === "portfolio_positions" && this.mode === "read" && this.faults.has(FAULT_POSITIONS_READ)) {
       return { data: null, error: { message: "fixture: positions store unavailable" } };
     }
+    if (this.table === "portfolio_targets" && this.mode === "read" && this.faults.has(FAULT_TARGETS_READ)) {
+      return { data: null, error: { message: "fixture: targets store unavailable" } };
+    }
     if ((this.table === "theses" || this.table === "thesis_versions")
       && this.mode === "read" && this.faults.has(FAULT_THESES_READ)) {
       return { data: null, error: { message: "fixture: thesis store unavailable" } };
@@ -311,6 +318,13 @@ class FixtureQuery implements WatchlistQuery {
           : {}),
         ...(this.table === "workspace_settings"
           ? { updated_at: new Date().toISOString() }
+          : {}),
+        ...(this.table === "portfolio_targets"
+          ? {
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            band_pct: 5,
+          }
           : {}),
         ...row,
       }));
@@ -358,6 +372,7 @@ class FixtureQuery implements WatchlistQuery {
       // would happily hold the duplicates the real table now refuses, and an e2e "proof" of
       // uniqueness would be proving a property the product does not have.
       const accepted: DbRow[] = [];
+      const returned: DbRow[] = [];
       for (const row of incoming) {
         if (this.table === "watchlist_symbols") {
           const clash = this.store.symbols.some((existing) =>
@@ -368,10 +383,26 @@ class FixtureQuery implements WatchlistQuery {
             return { data: null, error: { message: "duplicate key value violates unique constraint" } };
           }
         }
+        if (this.table === "portfolio_targets") {
+          const existing = this.store.targets.find((rowExisting) =>
+            rowExisting.user_id === row.user_id && rowExisting.ticker === row.ticker);
+          const queued = accepted.find((queuedRow) =>
+            queuedRow.user_id === row.user_id && queuedRow.ticker === row.ticker);
+          if (existing || queued) {
+            if (this.mode === "upsert") {
+              const target = existing ?? queued;
+              if (target) Object.assign(target, row, { updated_at: new Date().toISOString() });
+              if (target && !returned.includes(target)) returned.push(target);
+              continue;
+            }
+            return { data: null, error: { message: "duplicate key value violates unique constraint" } };
+          }
+        }
         accepted.push(row);
+        returned.push(row);
       }
       this.rows.push(...accepted);
-      return { data: this.project(accepted), error: null };
+      return { data: this.project(returned), error: null };
     }
     if (this.mode === "update") {
       const targets = this.matched();
@@ -399,6 +430,8 @@ class FixtureQuery implements WatchlistQuery {
         this.store.theses = kept;
       } else if (this.table === "thesis_versions") {
         this.store.thesisVersions = kept;
+      } else if (this.table === "portfolio_targets") {
+        this.store.targets = kept;
       } else {
         this.store.symbols = kept;
       }
