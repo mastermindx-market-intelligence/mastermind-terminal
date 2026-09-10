@@ -203,7 +203,7 @@ describe("B-F08-7b — a patch that scopes to empty is nothing the Terminal may 
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const outcome = await deliverPendingPrefs((data) => sendScopedAccountWrite(send, data));
     expect(send).not.toHaveBeenCalled();
-    expect(outcome.status).toBe("delivered");
+    expect(outcome.status).toBe("nothing-pending");
     expect(readPendingPrefs()).toBeNull();
     expect(warn).toHaveBeenCalled();
     warn.mockRestore();
@@ -226,6 +226,28 @@ describe("B-F08-7b — a patch that scopes to empty is nothing the Terminal may 
     expect(kept).not.toBeNull();
     expect(kept!.prefs).toEqual({ first_name: "Ada" });
     expect(kept!.prefs).not.toHaveProperty("alert_email_optin");
+    warn.mockRestore();
+  });
+
+  it("a bare {} record clears without calling updateUser", async () => {
+    localStorage.setItem(LS_PENDING_PREFS, JSON.stringify({}));
+    const send = vi.fn(async () => ({ error: null }));
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const outcome = await deliverPendingPrefs(send);
+    expect(send).not.toHaveBeenCalled();
+    expect(outcome.status).toBe("nothing-pending");
+    expect(readPendingPrefs()).toBeNull();
+    warn.mockRestore();
+  });
+
+  it("an enveloped empty prefs record clears without calling updateUser", async () => {
+    localStorage.setItem(LS_PENDING_PREFS, JSON.stringify({ prefs: {}, attempts: 2 }));
+    const send = vi.fn(async () => ({ error: null }));
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const outcome = await deliverPendingPrefs(send);
+    expect(send).not.toHaveBeenCalled();
+    expect(outcome.status).toBe("nothing-pending");
+    expect(readPendingPrefs()).toBeNull();
     warn.mockRestore();
   });
 });

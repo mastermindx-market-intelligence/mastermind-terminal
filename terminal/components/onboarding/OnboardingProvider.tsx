@@ -145,7 +145,7 @@ export function OnboardingProvider({ email, children }: { email: string; childre
   // watched onboarding complete normally.
   //
   // Acknowledge before delete: the record is cleared only by deliverPendingPrefs, and only after
-  // the authority confirms the write. The latch below guards against CONCURRENT delivery (React
+  // the authority confirms the write, or when nothing owned remained to send. The latch below guards against CONCURRENT delivery (React
   // StrictMode double-invocation, a re-render mid-flight), not against ever trying again — a
   // failure releases it, so the next authed mount retries.
   const prefsInFlight = useRef(false);
@@ -159,7 +159,7 @@ export function OnboardingProvider({ email, children }: { email: string; childre
       data,
     ))
       .then((outcome) => {
-        if (outcome.status !== "delivered") {
+        if (outcome.status === "failed") {
           // Keep the record AND re-arm, so a later mount (or a later `email` transition) tries again.
           prefsInFlight.current = false;
           console.warn("[onboarding] preferences still pending delivery", outcome);

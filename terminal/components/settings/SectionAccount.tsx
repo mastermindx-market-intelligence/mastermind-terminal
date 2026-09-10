@@ -29,17 +29,11 @@ export function isActiveDeletionStatus(status: string): boolean {
   return status === "received" || status === "in_progress" || status === "completed";
 }
 
-/** Pane copy for a failed account write. A translated `i18nKey` wins; anything else
- *  (including a developer Error.message) falls back to the generic sentence. */
-function accountSaveErrorText(e: unknown, t: SectionProps["t"]): string {
-  if (e && typeof e === "object" && "i18nKey" in e) {
-    const key = (e as { i18nKey: unknown }).i18nKey;
-    if (typeof key === "string" && key) {
-      const translated = t(key);
-      if (translated && translated !== key) return translated;
-    }
-  }
-  return t("acsErrGen");
+/** Pane copy for a failed account write. ScopedToEmpty (name only) uses the generic
+ *  sentence; every other error keeps its own message, else the generic sentence. */
+export function accountSaveErrorText(e: unknown, t: SectionProps["t"]): string {
+  if ((e as { name?: unknown })?.name === "ScopedToEmpty") return t("acsErrGen");
+  return (e as Error)?.message || t("acsErrGen");
 }
 
 function providerLabelKey(p: string): string {

@@ -14,6 +14,7 @@ import { LEX } from "@/lib/i18n";
 import type { SectionProps } from "@/components/settings/types";
 
 const fenceMode = vi.hoisted(() => ({ foreignOnly: true }));
+const updateUser = vi.hoisted(() => vi.fn(async () => ({ error: null as unknown })));
 
 vi.mock("@/lib/accountPrefs", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/accountPrefs")>();
@@ -32,12 +33,12 @@ vi.mock("@/lib/accountPrefs", async (importOriginal) => {
 vi.mock("@/lib/supabase/client", () => ({
   createClient: () => ({
     auth: {
-      updateUser: vi.fn(async () => ({ error: null })),
+      updateUser,
     },
   }),
 }));
 
-import SectionAccount from "@/components/settings/SectionAccount";
+import SectionAccount, { accountSaveErrorText } from "@/components/settings/SectionAccount";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -75,6 +76,8 @@ describe("SectionAccount — a foreign-only save through the real fence never sh
 
   beforeEach(() => {
     fenceMode.foreignOnly = true;
+    updateUser.mockReset();
+    updateUser.mockResolvedValue({ error: null });
     container = document.createElement("div");
     document.body.appendChild(container);
     fetchSpy = vi.fn(async () => ({ ok: true, json: async () => ({ requests: [] }) })) as unknown as typeof fetchSpy;
@@ -121,5 +124,50 @@ describe("SectionAccount — a foreign-only save through the real fence never sh
     const text = await saveNameAndReadMsg("zh");
     expect(text).toBe(LEX.acsErrGen[1]);
     expect(text).not.toContain("no owned key in patch");
+  });
+});
+
+describe("accountSaveErrorText — provider errors keep their message; ScopedToEmpty uses acsErrGen", () => {
+  it("a provider Error with message x renders x, and ScopedToEmpty renders acsErrGen", () => {
+    const t = makeT("en");
+    const spy = vi.fn(accountSaveErrorText);
+    expect(spy(new Error("x"), t)).toBe("x");
+    expect(spy({ name: "ScopedToEmpty" }, t)).toBe(LEX.acsErrGen[0]);
+    expect(spy).toHaveBeenCalledTimes(2);
+  });
+
+  it("a provider error with message x still renders x on the pane", async () => {
+    fenceMode.foreignOnly = false;
+    updateUser.mockReset();
+    updateUser.mockResolvedValueOnce({ error: { message: "x" } });
+
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+    let root: Root | undefined;
+    (globalThis as unknown as { fetch: unknown }).fetch = vi.fn(async () => ({
+      ok: true,
+      json: async () => ({ requests: [] }),
+    }));
+    try {
+      await act(async () => {
+        root = createRoot(container);
+        root.render(React.createElement(SectionAccount, baseProps("en")));
+      });
+      const nameEdit = Array.from(container.querySelectorAll("button.acs-edit"))[0] as HTMLButtonElement;
+      await act(async () => { nameEdit.click(); });
+      const input = container.querySelector("input.acs-in") as HTMLInputElement;
+      await act(async () => {
+        input.value = "Bea";
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+      });
+      const save = Array.from(container.querySelectorAll(".acs-form button.acs-btn"))
+        .find((btn) => (btn.textContent || "").trim() === "Save") as HTMLButtonElement;
+      await act(async () => { save.click(); });
+      const msg = container.querySelector(".acs-msg") as HTMLElement | null;
+      expect((msg?.textContent || "").trim()).toBe("x");
+    } finally {
+      act(() => { root?.unmount(); });
+      container.remove();
+    }
   });
 });

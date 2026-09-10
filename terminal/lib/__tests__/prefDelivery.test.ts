@@ -246,7 +246,7 @@ describe("dispose() is the owner boundary", () => {
 });
 
 describe("B-F08-7b — a patch that scopes to empty is nothing the Terminal may write", () => {
-  it("evicts the foreign keys from desired, does not retry, and does not leave a backoff loop", async () => {
+  it("fresh pump, foreign-only queue: phase idle, acked 0, send not called", async () => {
     const a = authority();
     const c = clock();
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
@@ -258,13 +258,82 @@ describe("B-F08-7b — a patch that scopes to empty is nothing the Terminal may 
     pump.queue({ alert_email_optin: true, tz: "UTC" });
     await tick();
     expect(a.sent).toEqual([]);
-    expect(pump.getStatus().acked).toBe(pump.getStatus().revision);
+    expect(pump.getStatus().phase).toBe("idle");
+    expect(pump.getStatus().acked).toBe(0);
+    expect(pump.getStatus().revision).toBe(0);
     expect(pump.hasUndelivered()).toBe(false);
     expect(c.pending()).toBe(0);
     c.fire();
     await tick();
     expect(a.sent).toEqual([]);
-    expect(pump.getStatus().phase).not.toBe("failed");
+    expect(pump.getStatus().phase).toBe("idle");
+    warn.mockRestore();
+  });
+
+  it("a pump that previously reached saved, then a foreign-only queue, returns to idle", async () => {
+    const a = authority();
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const pump = new PreferencePump({
+      send: (data) => sendScopedAccountWrite(a.send, data),
+    });
+    pump.queue({ theme: "dark" }, { oneShot: ["theme"] });
+    a.ok();
+    await tick();
+    expect(pump.getStatus().phase).toBe("saved");
+    const savedAcked = pump.getStatus().acked;
+    expect(savedAcked).toBeGreaterThan(0);
+
+    pump.queue({ alert_email_optin: true, tz: "UTC" });
+    await tick();
+    expect(a.sent).toHaveLength(1);
+    expect(pump.getStatus().phase).toBe("idle");
+    expect(pump.getStatus().acked).toBe(savedAcked);
+    warn.mockRestore();
+  });
+
+  it("an owned edit queued while a not-sent request is in flight is still delivered", async () => {
+    const a = authority();
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const pump = new PreferencePump({
+      send: (data) => sendScopedAccountWrite(a.send, data),
+    });
+    pump.queue({ alert_email_optin: true, tz: "UTC" });
+    pump.queue({ market_focus: ["us"] });
+    await tick();
+    expect(a.sent).toEqual([{ market_focus: ["us"] }]);
+    expect(pump.getStatus().phase).toBe("syncing");
+    a.ok();
+    await tick();
+    expect(pump.getStatus().phase).toBe("saved");
+    warn.mockRestore();
+  });
+
+  it("a mixed patch sends the owned key once and never re-sends the foreign key", async () => {
+    const a = authority();
+    const seen: Record<string, unknown>[] = [];
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const pump = new PreferencePump({
+      send: (data) => {
+        seen.push({ ...data });
+        return sendScopedAccountWrite(a.send, data);
+      },
+    });
+    pump.queue({ market_focus: ["us"], alert_email_optin: true });
+    expect(seen).toEqual([{ market_focus: ["us"], alert_email_optin: true }]);
+    expect(a.sent).toEqual([{ market_focus: ["us"] }]);
+    a.ok();
+    await tick();
+    expect(pump.getStatus().phase).toBe("saved");
+    warn.mockClear();
+
+    pump.queue({ trade_types: ["stocks"] });
+    expect(seen[1]).toEqual({ market_focus: ["us"], trade_types: ["stocks"] });
+    expect(seen[1]).not.toHaveProperty("alert_email_optin");
+    expect(a.sent[1]).toEqual({ market_focus: ["us"], trade_types: ["stocks"] });
+    expect(warn).not.toHaveBeenCalled();
+    a.ok();
+    await tick();
+    expect(pump.getStatus().phase).toBe("saved");
     warn.mockRestore();
   });
 });
