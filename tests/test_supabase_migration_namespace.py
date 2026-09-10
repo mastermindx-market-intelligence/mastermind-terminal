@@ -370,8 +370,10 @@ def test_reservations_records_the_known_collision_surface():
     assert prefixes["0017"]["file"] == "0017_personal_accuracy_ledger.sql"
     assert prefixes["0017"]["packet"] == "B-F13-5"
     assert prefixes["0017"]["pr"] == 547
-    assert prefixes["0017"]["pr_state"] == "open"
-    assert prefixes["0017"]["applied_in_production"] is False
+    assert prefixes["0017"]["pr_state"] == "merged"
+    assert prefixes["0017"]["merged_sha"] == "b7aa0981"
+    assert prefixes["0017"]["applied_in_production"] is True
+    assert prefixes["0017"]["applied_date"] == "2026-09-10"
 
     # 0018 is merged on master (#549). 0017 is taken by open PR #547 (B-F13-5).
     assert prefixes["0018"]["state"] == "taken"
@@ -380,8 +382,8 @@ def test_reservations_records_the_known_collision_surface():
     assert prefixes["0018"]["pr"] == 549
     assert prefixes["0018"]["pr_state"] == "merged"
     assert prefixes["0018"]["merged_sha"] == "cd1269fe"
-    assert prefixes["0018"]["applied_in_production"] is False
-    assert prefixes["0018"]["applied_date"] is None
+    assert prefixes["0018"]["applied_in_production"] is True
+    assert prefixes["0018"]["applied_date"] == "2026-09-10"
     assert "shipped unapplied; the seat applies with a receipt" in prefixes["0018"]["note"]
 
     # 0017-0020 claimed by Meta-CEO B ruling 2026-09-09 -- updated from the
