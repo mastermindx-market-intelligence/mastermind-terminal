@@ -222,9 +222,22 @@ else
 fi
 
 # 2) stage: canonical terminal/ source + $APP runtime (node_modules/.env*/public/data — all gitignored)
-STAGE=$(mktemp -d "$(dirname "$APP")/.stage.XXXXXX")
-trap 'rm -rf "$STAGE"' EXIT
-log "staging origin/$BRANCH:terminal in $STAGE"
+# The stage is NESTED: $STAGE_ROOT/terminal is the app, and the gated commit's sibling
+# source dirs (ingest/ hub/ signal_layer/ config/ contracts/) sit beside it, so every
+# `../<dir>` the build follows — Next's type-check walks a terminal/ import into
+# ingest/, and ingest/ imports back into ../terminal/lib — resolves to origin/$BRANCH,
+# not to the live /opt/terminal/<dir> copies (which stay untouched until step 8).
+# Without this a terminal/ test that imports ../../../ingest/... type-checks the OLD
+# sidecar and the build fails on code master never had (deploy of #558, 2026-09-10).
+# scripts/ is deliberately a symlink to the live dir: the prebuild coverage script
+# writes next to its own resolved location, and that must remain the live app.
+STAGE_ROOT=$(mktemp -d "$(dirname "$APP")/.stage.XXXXXX")
+trap 'rm -rf "$STAGE_ROOT"' EXIT
+STAGE="$STAGE_ROOT/terminal"
+mkdir -p "$STAGE"
+git -C "$SRC" archive HEAD -- ingest hub signal_layer config contracts | tar -x -C "$STAGE_ROOT/"
+ln -s "$(dirname "$APP")/scripts" "$STAGE_ROOT/scripts"
+log "staging origin/$BRANCH:terminal in $STAGE (+ gated ingest/hub/signal_layer/config/contracts beside it)"
 rsync -a --delete \
   --exclude='.next' --exclude='node_modules' --exclude='.env' --exclude='.env.*' --exclude='public/data' \
   "$TSRC/" "$STAGE/"
