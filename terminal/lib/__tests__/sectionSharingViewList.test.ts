@@ -1,10 +1,8 @@
 // @vitest-environment jsdom
 //
-// Review MINOR (PR #548 round 2): View list never re-read. An empty `symbols`
-// array was treated as `shrNoLongerShared`, so a still-shared empty watchlist
-// showed “This list is no longer shared with you.” Spec §2.5 wants a follow-up
-// read: 404 / missing from sharedWithMe means the share ended; a still-present
-// row (even with zero symbols) must expand, not claim the share ended.
+// only a successful re-read whose sharedWithMe lacks the row means the share
+// ended; any non-2xx answer is a failed read, rendered as shrReadFailed with
+// the row kept (seat ruling R2, reaffirmed round 3).
 //
 // Mounts the real SectionSharing component (no test double). No
 // @testing-library/react in this repo — react-dom/client createRoot + act,
@@ -20,7 +18,35 @@ import type { SectionProps } from "@/components/settings/types";
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 const LIST_ID = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
+const OWNER_LIST = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+const GRANTEE = "22222222-2222-4222-8222-222222222222";
 const NO_LONGER = "This list is no longer shared with you.";
+const READ_FAILED = "We could not read your shared lists just now.";
+const YOU_SHARED = "You shared this list.";
+const ALREADY_SHARED = "This list is already shared with that account.";
+const ALREADY_SHARED_ZH = "此清单已共享给该账户。";
+const NO_OWN_LISTS = "You have no lists to share yet.";
+const EMPTY_LIST = "This list has no symbols yet.";
+
+type SharedGrantRow = {
+  id: string;
+  resourceId: string;
+  resourceName: string;
+  granteeUserId: string;
+  createdAt: string | null;
+  revokedAt: null;
+};
+
+function ownerGrant(): SharedGrantRow {
+  return {
+    id: "grant-owner-1",
+    resourceId: OWNER_LIST,
+    resourceName: "Copper Names",
+    granteeUserId: GRANTEE,
+    createdAt: "2026-09-10T00:00:00Z",
+    revokedAt: null,
+  };
+}
 
 type Received = {
   id: string;
@@ -175,7 +201,7 @@ describe("SectionSharing View list re-reads before claiming a share has ended", 
     expect(container.textContent).not.toContain("FCX");
   });
 
-  it("View list re-reads and shows the share-ended sentence on a 404 follow-up", async () => {
+  it("a 404 on the View-list re-read is a failed read: the read-failed sentence shows and the row keeps its control", async () => {
     let watchlistCalls = 0;
     fetchSpy.mockImplementation(async (input: RequestInfo | URL) => {
       const url = String(input);
@@ -196,8 +222,10 @@ describe("SectionSharing View list re-reads before claiming a share has ended", 
       viewButton().click();
     });
     await vi.waitFor(() => {
-      expect(container.textContent).toContain(NO_LONGER);
+      expect(container.textContent).toContain(READ_FAILED);
     });
+    expect(container.textContent).not.toContain(NO_LONGER);
+    expect(viewButton().getAttribute("aria-label")).toBe("View list");
   });
 
   it("a failed grants read shows the read-failed sentence, not the empty-share sentence", async () => {
@@ -259,9 +287,13 @@ describe("SectionSharing View list re-reads before claiming a share has ended", 
       viewButton().click();
     });
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("This list has no symbols yet.");
+      expect(container.textContent).toContain(EMPTY_LIST);
     });
-    expect(container.textContent).not.toContain(NO_LONGER);
+    const text = container.textContent ?? "";
+    expect(text.split(EMPTY_LIST).length - 1).toBe(1);
+    expect(text).not.toContain("0 symbols");
+    expect(text).not.toContain("0 个标的");
+    expect(text).not.toContain(NO_LONGER);
   });
 
   it("one symbol uses the singular word; two symbols use the plural", async () => {
@@ -303,8 +335,242 @@ describe("SectionSharing View list re-reads before claiming a share has ended", 
     }
     expect(LEX.shrYouShared[0]).toBe("You shared this list.");
     expect(LEX.shrYouShared[1]).toBe("你已共享此清单。");
+    expect(LEX.shrSharedWithAccount[0]).toBe("Shared with the account ending {n}.");
+    expect(LEX.shrSharedWithAccount[1]).toBe("已共享给账户尾号{n}。");
+    expect(LEX.shrNoOwnLists[0]).toBe("You have no lists to share yet.");
+    expect(LEX.shrNoOwnLists[1]).toBe("你还没有可以共享的清单。");
     const emptyList = (LEX as Record<string, [string, string] | undefined>).shrListEmpty;
     expect(emptyList?.[0]).toBe("This list has no symbols yet.");
     expect(emptyList?.[1]).toBe("这个清单还没有标的。");
+    // Every shr* ZH string whose EN ends a sentence ends with 。！？
+    for (const key of shrKeys) {
+      const [en, zh] = LEX[key];
+      if (/[.!?]$/.test(en.trim())) {
+        expect(zh, key).toMatch(/[。！？]$/);
+      }
+    }
+    // No ASCII space with a CJK character or CJK punctuation on both sides.
+    // Latin-adjoining forms ("账户 ID", "用户 ID") stay. Exact regex:
+    // /[\u4e00-\u9fff\u3002\uff01\uff1f] [\u4e00-\u9fff\u3002\uff01\uff1f]/
+    const cjkSpaceCjk = /[\u4e00-\u9fff\u3002\uff01\uff1f] [\u4e00-\u9fff\u3002\uff01\uff1f]/;
+    for (const key of shrKeys) {
+      expect(LEX[key][1], key).not.toMatch(cjkSpaceCjk);
+    }
+  });
+
+  it("a 201 share keeps You shared this list. on .acs-msg after the reload settles", async () => {
+    const grant = ownerGrant();
+    let grantsGets = 0;
+    fetchSpy.mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      const method = String(init?.method || "GET").toUpperCase();
+      if (url.includes("/api/grants") && method === "POST") {
+        return jsonRes(201, { grant });
+      }
+      if (url.includes("/api/grants")) {
+        grantsGets += 1;
+        return jsonRes(200, {
+          shared: grantsGets >= 2 ? [grant] : [],
+          sharedWithMe: [],
+        });
+      }
+      if (url.includes("/api/watchlist")) {
+        return jsonRes(200, {
+          lists: [{ id: OWNER_LIST, name: "Copper Names" }],
+          sharedWithMe: [],
+        });
+      }
+      throw new Error(`unexpected fetch ${url}`);
+    });
+    await act(async () => {
+      root = createRoot(container);
+      root.render(React.createElement(SectionSharing, baseProps("en")));
+    });
+    await vi.waitFor(() => {
+      expect(container.querySelector("#shr-pick-list")).toBeTruthy();
+    });
+    await fillAndShare(OWNER_LIST, GRANTEE);
+    await vi.waitFor(() => {
+      expect(grantsGets).toBeGreaterThanOrEqual(2);
+    });
+    await vi.waitFor(() => {
+      const msg = container.querySelector(".acs-msg");
+      expect(msg?.textContent).toBe(YOU_SHARED);
+    });
+    expect(container.textContent).toContain("Copper Names");
+  });
+
+  it("a 200 already-shared share keeps the already-shared sentence on .acs-msg after the reload settles", async () => {
+    const grant = ownerGrant();
+    async function mountShare(lang: "en" | "zh") {
+      let grantsGets = 0;
+      fetchSpy.mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input);
+        const method = String(init?.method || "GET").toUpperCase();
+        if (url.includes("/api/grants") && method === "POST") {
+          return jsonRes(200, {
+            grant,
+            message: ALREADY_SHARED,
+            messageZh: ALREADY_SHARED_ZH,
+          });
+        }
+        if (url.includes("/api/grants")) {
+          grantsGets += 1;
+          return jsonRes(200, { shared: [grant], sharedWithMe: [] });
+        }
+        if (url.includes("/api/watchlist")) {
+          return jsonRes(200, {
+            lists: [{ id: OWNER_LIST, name: "Copper Names" }],
+            sharedWithMe: [],
+          });
+        }
+        throw new Error(`unexpected fetch ${url}`);
+      });
+      await act(async () => {
+        root?.unmount();
+        root = createRoot(container);
+        root.render(React.createElement(SectionSharing, baseProps(lang)));
+      });
+      await vi.waitFor(() => {
+        expect(container.querySelector("#shr-pick-list")).toBeTruthy();
+      });
+      await fillAndShare(OWNER_LIST, GRANTEE);
+      await vi.waitFor(() => {
+        expect(grantsGets).toBeGreaterThanOrEqual(2);
+      });
+      const expected = lang === "zh" ? ALREADY_SHARED_ZH : ALREADY_SHARED;
+      await vi.waitFor(() => {
+        const msg = container.querySelector(".acs-msg");
+        expect(msg?.textContent).toBe(expected);
+      });
+    }
+    await mountShare("en");
+    await mountShare("zh");
+  });
+
+  it("a grants 200 body without shared is a failed read, not the empty-share sentence", async () => {
+    fetchSpy.mockImplementation(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("/api/grants")) {
+        return jsonRes(200, {});
+      }
+      if (url.includes("/api/watchlist")) {
+        return jsonRes(200, { lists: [], sharedWithMe: [] });
+      }
+      throw new Error(`unexpected fetch ${url}`);
+    });
+    await act(async () => {
+      root = createRoot(container);
+      root.render(React.createElement(SectionSharing, baseProps("en")));
+    });
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain(READ_FAILED);
+    });
+    expect(container.textContent).not.toContain("You have not shared a list with anyone yet.");
+  });
+
+  it("a watchlist 200 body without lists is a failed read", async () => {
+    fetchSpy.mockImplementation(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("/api/grants")) {
+        return jsonRes(200, { shared: [], sharedWithMe: [] });
+      }
+      if (url.includes("/api/watchlist")) {
+        return jsonRes(200, { sharedWithMe: [] });
+      }
+      throw new Error(`unexpected fetch ${url}`);
+    });
+    await act(async () => {
+      root = createRoot(container);
+      root.render(React.createElement(SectionSharing, baseProps("en")));
+    });
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain(READ_FAILED);
+    });
+  });
+
+  it("a true empty own-lists array replaces the share form with the no-lists sentence", async () => {
+    fetchSpy.mockImplementation(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("/api/grants")) {
+        return jsonRes(200, { shared: [], sharedWithMe: [] });
+      }
+      if (url.includes("/api/watchlist")) {
+        return jsonRes(200, { lists: [], sharedWithMe: [] });
+      }
+      throw new Error(`unexpected fetch ${url}`);
+    });
+    await act(async () => {
+      root = createRoot(container);
+      root.render(React.createElement(SectionSharing, baseProps("en")));
+    });
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain(NO_OWN_LISTS);
+    });
+    expect(container.querySelector("#shr-pick-list")).toBeNull();
+  });
+
+  it("the owner row composes two sentences with no language-keyed punctuation literal", async () => {
+    fetchSpy.mockImplementation(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("/api/grants")) {
+        return jsonRes(200, { shared: [ownerGrant()], sharedWithMe: [] });
+      }
+      if (url.includes("/api/watchlist")) {
+        return jsonRes(200, { lists: [{ id: OWNER_LIST, name: "Copper Names" }], sharedWithMe: [] });
+      }
+      throw new Error(`unexpected fetch ${url}`);
+    });
+    await act(async () => {
+      root = createRoot(container);
+      root.render(React.createElement(SectionSharing, baseProps("en")));
+    });
+    await vi.waitFor(() => {
+      expect(container.querySelector(".acs-row-desc")).toBeTruthy();
+    });
+    const enDesc = Array.from(container.querySelectorAll(".acs-row-desc")).find(
+      (el) => (el.textContent ?? "").includes("Shared with the account ending"),
+    );
+    expect(enDesc?.textContent).toBe("You shared this list. Shared with the account ending 2222.");
+    await act(async () => {
+      root?.unmount();
+      root = createRoot(container);
+      root.render(React.createElement(SectionSharing, baseProps("zh")));
+    });
+    await vi.waitFor(() => {
+      const zhDesc = Array.from(container.querySelectorAll(".acs-row-desc")).find(
+        (el) => (el.textContent ?? "").includes("已共享给账户尾号"),
+      );
+      expect(zhDesc).toBeTruthy();
+    });
+    const zhDesc = Array.from(container.querySelectorAll(".acs-row-desc")).find(
+      (el) => (el.textContent ?? "").includes("已共享给账户尾号"),
+    );
+    expect(zhDesc?.textContent).toBe("你已共享此清单。已共享给账户尾号2222。");
+    expect(zhDesc?.textContent).toMatch(/^[^ ]*$/);
   });
 });
+
+async function fillAndShare(listId: string, account: string) {
+  const select = document.querySelector("#shr-pick-list") as HTMLSelectElement | null;
+  const input = document.querySelector("#shr-account") as HTMLInputElement | null;
+  const btn = Array.from(document.querySelectorAll("button")).find(
+    (el) => el.getAttribute("aria-label") === "Share, read only" || el.getAttribute("aria-label") === "共享（仅可查看）",
+  ) as HTMLButtonElement | undefined;
+  if (!select || !input || !btn) {
+    throw new Error("share form controls not found");
+  }
+  await act(async () => {
+    const setter = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, "value")!.set!;
+    setter.call(select, listId);
+    select.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+  await act(async () => {
+    const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!;
+    setter.call(input, account);
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+  await act(async () => {
+    btn.click();
+  });
+}

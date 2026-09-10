@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Group, SectionHead } from "./icons";
 import type { SectionProps } from "./types";
 
@@ -50,8 +50,9 @@ export default function SectionSharing({ t, lang, onClose }: SectionProps) {
   const [goneIds, setGoneIds] = useState<string[]>([]);
   const [grantsReady, setGrantsReady] = useState(false);
   const [receivedReady, setReceivedReady] = useState(false);
+  const revokeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (): Promise<boolean> => {
     try {
       const [grantsRes, listsRes] = await Promise.all([
         fetch("/api/grants", { headers: { Accept: "application/json" } }),
@@ -73,36 +74,58 @@ export default function SectionSharing({ t, lang, onClose }: SectionProps) {
         setGrantsReady(false);
         setReceivedReady(false);
         setMsg({ kind: "err", text: t("shrUnavailable") });
-        return;
+        return false;
       }
       if (!grantsRes.ok) {
         setGrantsReady(false);
         setReceivedReady(false);
         setMsg({ kind: "err", text: pickMessage(lang, grantsBody, t("shrReadFailed")) });
-        return;
+        return false;
+      }
+      if (!Array.isArray(grantsBody.shared)) {
+        setGrantsReady(false);
+        setReceivedReady(false);
+        setMsg({ kind: "err", text: t("shrReadFailed") });
+        return false;
+      }
+      if (listsRes.ok && !Array.isArray(listsBody.lists)) {
+        setGrantsReady(false);
+        setReceivedReady(false);
+        setMsg({ kind: "err", text: t("shrReadFailed") });
+        return false;
       }
       setUnavailable(false);
-      setShared(Array.isArray(grantsBody.shared) ? grantsBody.shared : []);
+      setShared(grantsBody.shared);
       setGrantsReady(true);
       setOwnLists(Array.isArray(listsBody.lists) ? listsBody.lists.map((l) => ({ id: l.id, name: l.name })) : []);
       if (listsBody.sharedWithMeState === "failed" || listsBody.sharedWithMe === null || !Array.isArray(listsBody.sharedWithMe)) {
         setReceivedReady(false);
         setMsg({ kind: "err", text: t("shrReadFailed") });
-        return;
+        return false;
       }
       setReceived(listsBody.sharedWithMe);
       setReceivedReady(true);
-      setMsg(null);
+      return true;
     } catch {
       setGrantsReady(false);
       setReceivedReady(false);
       setMsg({ kind: "err", text: t("shrReadFailed") });
+      return false;
     }
   }, [lang, t]);
 
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    return () => {
+      if (revokeTimerRef.current !== null) {
+        clearTimeout(revokeTimerRef.current);
+        revokeTimerRef.current = null;
+      }
+    };
+  }, []);
 
   async function onShare() {
     if (busy) return;
@@ -130,8 +153,11 @@ export default function SectionSharing({ t, lang, onClose }: SectionProps) {
         return;
       }
       setGrantee("");
-      setMsg({ kind: "ok", text: pickMessage(lang, body, t("shrYouShared")) });
-      await load();
+      const sentence = pickMessage(lang, body, t("shrYouShared"));
+      const readOk = await load();
+      if (readOk) {
+        setMsg({ kind: "ok", text: sentence });
+      }
     } catch {
       setMsg({ kind: "err", text: t("shrWriteFailed") });
     } finally {
@@ -159,9 +185,13 @@ export default function SectionSharing({ t, lang, onClose }: SectionProps) {
         return;
       }
       setRevokedIds((ids) => [...ids, row.id]);
-      setTimeout(() => {
+      if (revokeTimerRef.current !== null) {
+        clearTimeout(revokeTimerRef.current);
+      }
+      revokeTimerRef.current = setTimeout(() => {
         setShared((rows) => rows.filter((r) => r.id !== row.id));
         setRevokedIds((ids) => ids.filter((id) => id !== row.id));
+        revokeTimerRef.current = null;
       }, 1600);
     } catch {
       setMsg({ kind: "err", text: t("shrWriteFailed") });
@@ -177,11 +207,6 @@ export default function SectionSharing({ t, lang, onClose }: SectionProps) {
     }
     try {
       const res = await fetch("/api/watchlist", { headers: { Accept: "application/json" } });
-      if (res.status === 404) {
-        setGoneIds((ids) => (ids.includes(row.id) ? ids : [...ids, row.id]));
-        setOpenId(null);
-        return;
-      }
       if (res.status === 503) {
         setUnavailable(true);
         setMsg({ kind: "err", text: t("shrUnavailable") });
@@ -233,44 +258,48 @@ export default function SectionSharing({ t, lang, onClose }: SectionProps) {
                 <span className="acs-row-desc">{t("shrReadOnlyNote")}</span>
               </div>
             </div>
-            <div className="acs-form" style={{ display: "block" }}>
-              <label className="acs-row-desc" htmlFor="shr-pick-list">{t("shrPickList")}</label>
-              <select
-                id="shr-pick-list"
-                className="acs-in"
-                value={listId}
-                onChange={(e) => setListId(e.target.value)}
-                aria-label={t("shrPickList")}
-                disabled={unavailable || busy}
-              >
-                <option value="">{t("shrPickList")}</option>
-                {ownLists.map((list) => (
-                  <option key={list.id} value={list.id}>{list.name}</option>
-                ))}
-              </select>
-              <label className="acs-row-desc" htmlFor="shr-account">{t("shrAccountLabel")}</label>
-              <input
-                id="shr-account"
-                className="acs-in"
-                value={grantee}
-                onChange={(e) => setGrantee(e.target.value)}
-                aria-label={t("shrAccountLabel")}
-                autoComplete="off"
-                disabled={unavailable || busy}
-              />
-              <p className="acs-note">{t("shrAccountHint")}</p>
-              <div className="acs-btns">
-                <button
-                  type="button"
-                  className="acs-btn primary"
-                  onClick={() => void onShare()}
-                  disabled={unavailable || busy || !listId || !grantee.trim()}
-                  aria-label={t("shrShareButton")}
+            {grantsReady && ownLists.length === 0 ? (
+              <p className="acs-note" style={{ margin: 0 }}>{t("shrNoOwnLists")}</p>
+            ) : (
+              <div className="acs-form" style={{ display: "block" }}>
+                <label className="acs-row-desc" htmlFor="shr-pick-list">{t("shrPickList")}</label>
+                <select
+                  id="shr-pick-list"
+                  className="acs-in"
+                  value={listId}
+                  onChange={(e) => setListId(e.target.value)}
+                  aria-label={t("shrPickList")}
+                  disabled={unavailable || busy}
                 >
-                  {t("shrShareButton")}
-                </button>
+                  <option value="">{t("shrPickList")}</option>
+                  {ownLists.map((list) => (
+                    <option key={list.id} value={list.id}>{list.name}</option>
+                  ))}
+                </select>
+                <label className="acs-row-desc" htmlFor="shr-account">{t("shrAccountLabel")}</label>
+                <input
+                  id="shr-account"
+                  className="acs-in"
+                  value={grantee}
+                  onChange={(e) => setGrantee(e.target.value)}
+                  aria-label={t("shrAccountLabel")}
+                  autoComplete="off"
+                  disabled={unavailable || busy}
+                />
+                <p className="acs-note">{t("shrAccountHint")}</p>
+                <div className="acs-btns">
+                  <button
+                    type="button"
+                    className="acs-btn primary"
+                    onClick={() => void onShare()}
+                    disabled={unavailable || busy || !listId || !grantee.trim()}
+                    aria-label={t("shrShareButton")}
+                  >
+                    {t("shrShareButton")}
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {!grantsReady ? null : shared.length === 0 ? (
@@ -289,7 +318,7 @@ export default function SectionSharing({ t, lang, onClose }: SectionProps) {
                       className="acs-row-desc"
                       title={`${t("shrFullAccount")}: ${row.granteeUserId}`}
                     >
-                      {t("shrYouShared")} {t("shrSharedWithAccount")} {lastFour(row.granteeUserId)}{lang === "zh" ? "。" : "."}
+                      {t("shrYouShared") + (lang === "zh" ? "" : " ") + t("shrSharedWithAccount").replace("{n}", lastFour(row.granteeUserId))}
                     </span>
                   </div>
                   <button
@@ -321,7 +350,7 @@ export default function SectionSharing({ t, lang, onClose }: SectionProps) {
                 </div>
                 <span className="acs-chip" aria-label={t("shrReadOnlyBadge")}>{t("shrReadOnlyBadge")}</span>
               </div>
-              <p className="acs-note">{symbolsLabel(row.symbols.length, t, lang)}</p>
+              <p className="acs-note">{row.symbols.length === 0 ? t("shrListEmpty") : symbolsLabel(row.symbols.length, t, lang)}</p>
               {goneIds.includes(row.id) ? (
                 <p className="acs-note" role="status">{t("shrNoLongerShared")}</p>
               ) : (
@@ -337,16 +366,12 @@ export default function SectionSharing({ t, lang, onClose }: SectionProps) {
                   </button>
                 </div>
               )}
-              {openId === row.id ? (
-                row.symbols.length > 0 ? (
-                  <ul className="acs-note" style={{ marginTop: 8, paddingLeft: 18 }}>
-                    {row.symbols.map((sym) => (
-                      <li key={sym.symbol}>{sym.symbol}</li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="acs-note" role="status">{t("shrListEmpty")}</p>
-                )
+              {openId === row.id && row.symbols.length > 0 ? (
+                <ul className="acs-note" style={{ marginTop: 8, paddingLeft: 18 }}>
+                  {row.symbols.map((sym) => (
+                    <li key={sym.symbol}>{sym.symbol}</li>
+                  ))}
+                </ul>
               ) : null}
             </div>
           ))}
