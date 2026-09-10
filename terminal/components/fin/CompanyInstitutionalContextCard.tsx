@@ -130,7 +130,7 @@ function ContextCard({ context, state }: { context: CompanyInstitutionalContext;
   const maxTrendValue = Math.max(1, ...context.trend.periods.map((point) => point.total_value_usd));
   const palette = state === "ready" ? "var(--up)" : state === "no_covered_holder" ? "var(--muted)" : "var(--warn)";
   const headline = holders
-    ? pick(zh, `${holders} tracked managers reported a position`, `${holders} 家追踪管理人申报持仓`)
+    ? pick(zh, `${holders} tracked managers reported a position`, `${holders} 家追踪管理人披露持仓`)
     : pick(zh, "No position among the tracked manager set", "追踪管理人集合中暂无持仓");
 
   return (

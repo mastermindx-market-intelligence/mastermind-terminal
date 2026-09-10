@@ -19,7 +19,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLang } from "@/lib/i18n";
 import { trackSearch } from "@/lib/searchTrack";
-import { makeHeatmapT } from "@/lib/heatmapStrings";
+import { makeHeatmapT, sectorChipLabel } from "@/lib/heatmapStrings";
 import { Tip } from "@/components/ui/Tip";
 import { Treemap, heatSwatches } from "./Treemap";
 import { HeatmapTable } from "./HeatmapTable";
@@ -416,7 +416,7 @@ export function HeatmapView() {
       {/* ═══ GEX REGIME CAVEAT BANNER (HONESTY DOCTRINE) ═════════════════════ */}
       <div className="obs-note" style={REGIME_BANNER}>
         <span style={{ color: "var(--warn)", fontWeight: 600, marginRight: 6 }}>
-          {zh ? "注意" : "NOTE"}
+          {zh ? "注意" : "Note"}
         </span>
         {t("regimeCaveat")}
       </div>
@@ -465,7 +465,7 @@ export function HeatmapView() {
                 ${breadth.totalPremiumMn.toFixed(1)}M
               </span>
               <span style={{ fontSize: 9, color: "var(--muted)", fontStyle: "italic", marginLeft: 4 }}>
-                {zh ? "仅规模" : "magnitude only"}
+                {t("magnitudeOnly")}
               </span>
             </div>
           </>
@@ -612,7 +612,7 @@ export function HeatmapView() {
         {sectorChips.map(sc => (
           <SectorChip
             key={sc.sector}
-            label={sc.label}
+            label={sectorChipLabel(lang, sc.sector, sc.label)}
             active={sectorFilt === sc.sector}
             value={layer === "flow" ? sc.avgTone : sc.avgChg}
             isFlow={layer === "flow"}
@@ -667,10 +667,10 @@ export function HeatmapView() {
             background: "rgba(10,12,16,0.72)", backdropFilter: "blur(8px)",
             border: "1px solid var(--line)", borderRadius: 9,
           }}>
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 14, fontSize: 9, textTransform: "uppercase", letterSpacing: ".05em", color: "var(--muted)" }}>
-              <span style={{ color: "var(--down)" }}>{layer === "flow" ? (lang === "zh" ? "净认沽" : "net put") : (lang === "zh" ? "下跌" : "down")}</span>
-              <span style={{ color: "var(--text-2)" }}>{layer === "flow" ? (lang === "zh" ? "权利金规模" : "premium size") : (lang === "zh" ? "1日涨跌" : "1D %chg")}</span>
-              <span style={{ color: "var(--up)" }}>{layer === "flow" ? (lang === "zh" ? "净认购" : "net call") : (lang === "zh" ? "上涨" : "up")}</span>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 14, fontSize: 9, letterSpacing: ".02em", color: "var(--muted)", textTransform: "none" }}>
+              <span style={{ color: "var(--down)" }}>{layer === "flow" ? t("netPut") : (lang === "zh" ? "下跌" : "down")}</span>
+              <span style={{ color: "var(--text-2)" }}>{layer === "flow" ? t("premiumSize") : (lang === "zh" ? "1日涨跌" : "1D %chg")}</span>
+              <span style={{ color: "var(--up)" }}>{layer === "flow" ? t("netCall") : (lang === "zh" ? "上涨" : "up")}</span>
             </div>
             {(() => {
               const sw = heatSwatches();
