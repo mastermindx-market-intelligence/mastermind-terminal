@@ -222,9 +222,31 @@ else
 fi
 
 # 2) stage: canonical terminal/ source + $APP runtime (node_modules/.env*/public/data — all gitignored)
-STAGE=$(mktemp -d "$(dirname "$APP")/.stage.XXXXXX")
-trap 'rm -rf "$STAGE"' EXIT
-log "staging origin/$BRANCH:terminal in $STAGE"
+# The stage is NESTED: $STAGE_ROOT/terminal is the app, and the gated commit's sibling
+# source dirs (ingest/ hub/ signal_layer/ config/ contracts/) sit beside it, so every
+# `../<dir>` the build follows — Next's type-check walks a terminal/ import into
+# ingest/, and ingest/ imports back into ../terminal/lib — resolves to origin/$BRANCH,
+# not to the live /opt/terminal/<dir> copies (which stay untouched until step 8).
+# Without this a terminal/ test that imports ../../../ingest/... type-checks the OLD
+# sidecar and the build fails on code master never had (deploy of #558, 2026-09-10).
+# scripts/ is deliberately a symlink to the live dir: the prebuild coverage script
+# writes next to its own resolved location, and that must remain the live app.
+STAGE_ROOT=$(mktemp -d "$(dirname "$APP")/.stage.XXXXXX")
+trap 'rm -rf "$STAGE_ROOT"' EXIT
+STAGE="$STAGE_ROOT/terminal"
+mkdir -p "$STAGE"
+# The gated dirs are archived to a file first: an EMPTY stream (a commit without them, or a
+# stubbed git) must stage the app alone rather than abort — GNU tar rejects empty stdin.
+GATED_TAR="$STAGE_ROOT/.gated.tar"
+git -C "$SRC" archive HEAD -- ingest hub signal_layer config contracts > "$GATED_TAR"
+if [ -s "$GATED_TAR" ]; then
+  tar -x -f "$GATED_TAR" -C "$STAGE_ROOT/"
+else
+  log "gated runtime dirs: nothing archived from origin/$BRANCH — staging the app alone"
+fi
+rm -f "$GATED_TAR"
+ln -s "$(dirname "$APP")/scripts" "$STAGE_ROOT/scripts"
+log "staging origin/$BRANCH:terminal in $STAGE (+ gated ingest/hub/signal_layer/config/contracts beside it)"
 rsync -a --delete \
   --exclude='.next' --exclude='node_modules' --exclude='.env' --exclude='.env.*' --exclude='public/data' \
   "$TSRC/" "$STAGE/"
