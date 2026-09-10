@@ -379,7 +379,8 @@ def test_reservations_records_the_known_collision_surface():
     assert prefixes["0018"]["file"] == "0018_webhook_delivery.sql"
     assert prefixes["0018"]["packet"] == "B-F12-7"
     assert prefixes["0018"]["pr"] == 549
-    assert prefixes["0018"]["pr_state"] == "open"
+    assert prefixes["0018"]["pr_state"] == "merged"
+    assert prefixes["0018"]["merged_sha"] == "cd1269fe"
     assert prefixes["0018"]["applied_in_production"] is False
     assert prefixes["0018"]["applied_date"] is None
     assert "shipped unapplied; the seat applies with a receipt" in prefixes["0018"]["note"]
