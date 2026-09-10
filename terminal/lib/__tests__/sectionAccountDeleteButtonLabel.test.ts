@@ -38,9 +38,16 @@ function baseProps(lang: "en" | "zh"): SectionProps {
   return {
     t: makeT(lang),
     lang,
-    identity: { kind: "guest" },
+    identity: { kind: "account", userId: "user-A", email: "a@example.com" },
     email: "a@example.com",
-    user: null,
+    user: {
+      id: "user-A",
+      email: "a@example.com",
+      createdAt: null,
+      lastSignInAt: null,
+      provider: "email",
+      meta: {},
+    },
     onClose: () => {},
     onPatchMeta: () => {},
     onRefreshUser: async () => {},
@@ -69,10 +76,14 @@ describe("SectionAccount editBtn labels (review MAJOR round 2: acsDeleteBtn vs a
     container.remove();
   });
 
-  function mount(lang: "en" | "zh") {
-    act(() => {
+  async function mount(lang: "en" | "zh") {
+    await act(async () => {
       root = createRoot(container);
       root!.render(React.createElement(SectionAccount, baseProps(lang)));
+    });
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
     });
   }
 
@@ -80,8 +91,8 @@ describe("SectionAccount editBtn labels (review MAJOR round 2: acsDeleteBtn vs a
     return Array.from(container.querySelectorAll("button.acs-edit")).map((el) => el.textContent || "");
   }
 
-  it("EN: the delete row's own control reads Delete, never the generic Edit", () => {
-    mount("en");
+  it("EN: the delete row's own control reads Delete, never the generic Edit", async () => {
+    await mount("en");
     const texts = editButtonTexts();
     // name, email, password, delete — in that document order.
     expect(texts).toHaveLength(4);
@@ -89,36 +100,36 @@ describe("SectionAccount editBtn labels (review MAJOR round 2: acsDeleteBtn vs a
     expect(texts[3]).not.toBe("Edit");
   });
 
-  it("ZH: the delete row's own control reads 删除, never the generic 编辑", () => {
-    mount("zh");
+  it("ZH: the delete row's own control reads 删除, never the generic 编辑", async () => {
+    await mount("zh");
     const texts = editButtonTexts();
     expect(texts).toHaveLength(4);
     expect(texts[3]).toBe("删除");
     expect(texts[3]).not.toBe("编辑");
   });
 
-  it("EN: the name row still reads Edit (unaffected by the delete row's own label)", () => {
-    mount("en");
+  it("EN: the name row still reads Edit (unaffected by the delete row's own label)", async () => {
+    await mount("en");
     expect(editButtonTexts()[0]).toBe("Edit");
   });
 
-  it("EN: the email and password rows still read Edit (unaffected by the delete row's own label)", () => {
-    mount("en");
+  it("EN: the email and password rows still read Edit (unaffected by the delete row's own label)", async () => {
+    await mount("en");
     const texts = editButtonTexts();
     expect(texts[1]).toBe("Edit");
     expect(texts[2]).toBe("Edit");
   });
 
-  it("ZH: the name, email and password rows still read 编辑, never leaking 删除 onto them", () => {
-    mount("zh");
+  it("ZH: the name, email and password rows still read 编辑, never leaking 删除 onto them", async () => {
+    await mount("zh");
     const texts = editButtonTexts();
     expect(texts[0]).toBe("编辑");
     expect(texts[1]).toBe("编辑");
     expect(texts[2]).toBe("编辑");
   });
 
-  it("the delete row's control carries the same acs-edit button class as every other row (styling parity, only the label differs)", () => {
-    mount("en");
+  it("the delete row's control carries the same acs-edit button class as every other row (styling parity, only the label differs)", async () => {
+    await mount("en");
     const buttons = Array.from(container.querySelectorAll("button.acs-edit"));
     expect(buttons).toHaveLength(4);
     for (const btn of buttons) {
@@ -127,8 +138,8 @@ describe("SectionAccount editBtn labels (review MAJOR round 2: acsDeleteBtn vs a
     }
   });
 
-  function openDeleteForm(lang: "en" | "zh") {
-    mount(lang);
+  async function openDeleteForm(lang: "en" | "zh") {
+    await mount(lang);
     const deleteRowBtn = Array.from(container.querySelectorAll("button.acs-edit")).at(-1);
     expect(deleteRowBtn).toBeTruthy();
     act(() => {
@@ -143,24 +154,24 @@ describe("SectionAccount editBtn labels (review MAJOR round 2: acsDeleteBtn vs a
     return confirm;
   }
 
-  it("the delete confirm reuses the existing btn-danger class, never the brand-blue primary class", () => {
-    openDeleteForm("en");
+  it("the delete confirm reuses the existing btn-danger class, never the brand-blue primary class", async () => {
+    await openDeleteForm("en");
     const confirm = deleteConfirmButton();
     expect(confirm.className.split(/\s+/)).toContain("btn-danger");
     expect(confirm.className.split(/\s+/)).not.toContain("primary");
     expect(confirm.className.split(/\s+/)).toContain("acs-btn");
   });
 
-  it("ZH: the delete confirm still reads 删除我的账户 and still uses btn-danger", () => {
-    openDeleteForm("zh");
+  it("ZH: the delete confirm still reads 删除我的账户 and still uses btn-danger", async () => {
+    await openDeleteForm("zh");
     const confirm = deleteConfirmButton();
     expect(confirm.textContent).toBe("删除我的账户");
     expect(confirm.className.split(/\s+/)).toContain("btn-danger");
     expect(confirm.className.split(/\s+/)).not.toContain("primary");
   });
 
-  it("name/email/password save buttons stay on the primary class (danger is only the deletion confirm)", () => {
-    mount("en");
+  it("name/email/password save buttons stay on the primary class (danger is only the deletion confirm)", async () => {
+    await mount("en");
     const nameEdit = Array.from(container.querySelectorAll("button.acs-edit"))[0] as HTMLButtonElement;
     act(() => { nameEdit.click(); });
     const save = Array.from(container.querySelectorAll(".acs-form button.acs-btn"))
@@ -170,8 +181,8 @@ describe("SectionAccount editBtn labels (review MAJOR round 2: acsDeleteBtn vs a
     expect(save!.className.split(/\s+/)).not.toContain("btn-danger");
   });
 
-  it("Sign out uses the existing ghost (neutral secondary) class, not a danger class", () => {
-    mount("en");
+  it("Sign out uses the existing ghost (neutral secondary) class, not a danger class", async () => {
+    await mount("en");
     const signOut = container.querySelector("button.acs-signout-m") as HTMLButtonElement | null;
     expect(signOut).toBeTruthy();
     const classes = signOut!.className.split(/\s+/);
