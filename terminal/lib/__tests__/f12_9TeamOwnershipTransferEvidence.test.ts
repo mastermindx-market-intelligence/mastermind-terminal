@@ -75,8 +75,48 @@ function fetchCommitOnce(sha: string): void {
   git(["fetch", "--depth=1", "origin", sha]);
 }
 
+function commitParents(sha: string): string[] {
+  const r = git(["cat-file", "-p", sha]);
+  if (!r.ok) return [];
+  const parents: string[] = [];
+  for (const line of r.stdout.toString("utf8").split("\n")) {
+    if (line === "") break;
+    const m = line.match(/^parent ([0-9a-f]{40})$/);
+    if (m) parents.push(m[1]);
+  }
+  return parents;
+}
+
 function isAncestorOrEqual(sha: string): boolean {
-  return git(["merge-base", "--is-ancestor", sha, "HEAD"]).ok;
+  if (git(["merge-base", "--is-ancestor", sha, "HEAD"]).ok) return true;
+  // GitHub's pull_request checkout is fetch-depth 2 of the merge commit
+  // (HEAD = merge, parents = base + PR tip). capturedAtHead is the PR
+  // tip's parent by the B1 crops-follow-code flow, so it sits behind
+  // .git/shallow: merge-base cannot walk the PR tip's parent even after
+  // the ruled `git fetch --depth=1 origin <sha>` brings the object in
+  // disconnected. Parent SHAs in commit headers of objects we do have
+  // still name that hop. Walk those headers (no second fetch). A sha
+  // that is not on HEAD's parent chain still fails.
+  const head = git(["rev-parse", "HEAD"]);
+  if (!head.ok) return false;
+  const headSha = head.stdout.toString("utf8").trim();
+  if (headSha === sha) return true;
+  const seen = new Set<string>();
+  let frontier = [headSha];
+  for (let hops = 0; hops < 6 && frontier.length > 0; hops += 1) {
+    const next: string[] = [];
+    for (const c of frontier) {
+      if (seen.has(c)) continue;
+      seen.add(c);
+      if (c === sha) return true;
+      for (const p of commitParents(c)) {
+        if (p === sha) return true;
+        if (!seen.has(p) && commitExists(p)) next.push(p);
+      }
+    }
+    frontier = next;
+  }
+  return false;
 }
 
 function blobAt(sha: string, rel: string): Buffer | null {
