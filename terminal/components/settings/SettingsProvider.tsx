@@ -42,11 +42,12 @@ export interface AcsUser {
   email: string;
   createdAt: string | null;
   lastSignInAt: string | null;
-  provider: string;
+  /** Null when app_metadata carries no provider — never invented as "email". */
+  provider: string | null;
   meta: Record<string, unknown>;
 }
 
-function toAcsUser(u: {
+export function toAcsUser(u: {
   id?: string;
   email?: string;
   created_at?: string;
@@ -57,16 +58,16 @@ function toAcsUser(u: {
   if (!u) return null;
   const am = u.app_metadata || {};
   const providers = am.providers;
-  const provider =
-    (typeof am.provider === "string" && am.provider) ||
-    (Array.isArray(providers) && typeof providers[0] === "string" ? providers[0] : "") ||
-    "email";
+  const fromProvider = typeof am.provider === "string" ? am.provider.trim() : "";
+  const fromList =
+    Array.isArray(providers) && typeof providers[0] === "string" ? providers[0].trim() : "";
+  const raw = fromProvider || fromList;
   return {
     id: u.id || "",
     email: u.email || (u.user_metadata?.email as string | undefined) || "",
     createdAt: u.created_at || null,
     lastSignInAt: u.last_sign_in_at || null,
-    provider: String(provider).toLowerCase(),
+    provider: raw ? raw.toLowerCase() : null,
     meta: (u.user_metadata as Record<string, unknown>) || {},
   };
 }

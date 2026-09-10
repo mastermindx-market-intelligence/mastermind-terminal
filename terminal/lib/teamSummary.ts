@@ -1,8 +1,5 @@
 /**
  * Team-summary parse + classify for the account section (B-F12-B5-3b).
- *
- * No user-facing strings live here: check_plain_language.mjs does not scan
- * plain `.ts` files. Sentences belong in SectionAccount.tsx.
  */
 
 export type TeamRole = "owner" | "admin" | "member";
@@ -34,6 +31,7 @@ export function parseTeamsResponse(raw: unknown): TeamsFetch {
       if (!teamId || !isRole(row.role)) continue;
       teams.push({ teamId, teamName, role: row.role });
     }
+    if (raw.teams.length > 0 && teams.length === 0) return { status: "unavailable" };
     return { status: "ok", teams, truncated };
   } catch {
     return { status: "unavailable" };

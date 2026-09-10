@@ -7,6 +7,7 @@ import type { ExportFormat } from "@/lib/accountExport";
 import {
   classifyTeamSummary,
   parseTeamsResponse,
+  type TeamRole,
   type TeamsFetch,
 } from "@/lib/teamSummary";
 
@@ -45,38 +46,44 @@ export function canChangePassword(provider: string | undefined | null): boolean 
   return provider === "email";
 }
 
-export function teamSummaryText(lang: "en" | "zh", fetch: TeamsFetch | null): string {
-  if (!fetch) return lang === "zh" ? "正在加载团队信息…" : "Loading your team…";
-  if (fetch.status === "unavailable") {
-    return lang === "zh" ? "我们暂时无法查看您的团队信息。" : "We could not check your team right now.";
-  }
-  const s = classifyTeamSummary(fetch.teams, fetch.truncated);
-  if (s.kind === "none") {
-    return lang === "zh" ? "您还没有加入任何团队。" : "You are not on a team yet.";
-  }
-  if (s.kind === "one") {
-    const roleWord = {
-      owner: ["owner", "所有者"],
-      admin: ["administrator", "管理员"],
-      member: ["member", "成员"],
-    }[s.team.role];
-    const name = s.team.teamName || (lang === "zh" ? "未命名团队" : "an unnamed team");
-    return lang === "zh"
-      ? `您是\u201c${name}\u201d团队的${roleWord[1]}。`
-      : `You are the ${roleWord[0]} of ${name}.`;
-  }
-  const plus = s.truncated ? "+" : "";
-  return lang === "zh"
-    ? `您已加入 ${s.count}${plus} 个团队。`
-    : `You are on ${s.count}${plus} team${s.count === 1 ? "" : "s"}.`;
+export const TEAM_FETCH_TIMEOUT_MS = 10_000;
+
+const ONE_TEAM_KEY: Record<TeamRole, string> = {
+  owner: "acsTeamOneOwner",
+  admin: "acsTeamOneAdmin",
+  member: "acsTeamOneMember",
+};
+
+function fill(template: string, vars: Record<string, string | number>): string {
+  return Object.entries(vars).reduce(
+    (acc, [k, v]) => acc.replaceAll(`{${k}}`, String(v)),
+    template,
+  );
 }
 
-function providerLabelKey(p: string): string {
+export function teamSummaryText(
+  t: (key: string, fallback?: string) => string,
+  fetch: TeamsFetch | null,
+): string {
+  if (!fetch) return t("acsTeamLoading");
+  if (fetch.status === "unavailable") return t("acsTeamUnavailable");
+  const s = classifyTeamSummary(fetch.teams, fetch.truncated);
+  if (s.kind === "none") return t("acsTeamNone");
+  if (s.kind === "one") {
+    const name = s.team.teamName || t("acsTeamUnnamed");
+    return fill(t(ONE_TEAM_KEY[s.team.role]), { name });
+  }
+  const count = `${s.count}${s.truncated ? "+" : ""}`;
+  return fill(t("acsTeamMany"), { count });
+}
+
+function providerLabelKey(p: string | null): string {
+  if (!p) return "acsProvUnknown";
   if (p === "google") return "acsProvGoogle";
   if (p === "twitter") return "acsProvX";
   return "acsProvEmail";
 }
-function ProviderIcon({ p }: { p: string }) {
+function ProviderIcon({ p }: { p: string | null }) {
   if (p === "google") return <IconGoogle />;
   if (p === "twitter") return <IconTwitterX />;
   return null;
@@ -141,20 +148,33 @@ export default function SectionAccount({ t, lang, email, user, onClose, onPatchM
     })();
     return () => { live = false; };
   }, []);
+  const hasAccount = user !== null;
   useEffect(() => {
+    if (!hasAccount) {
+      setTeamsFetch(null);
+      return;
+    }
+    const ac = new AbortController();
+    const timer = setTimeout(() => ac.abort(), TEAM_FETCH_TIMEOUT_MS);
     let live = true;
     (async () => {
       try {
-        const res = await fetch("/api/teams");
+        const res = await fetch("/api/teams", { signal: ac.signal });
         const body = await res.json().catch(() => null);
         const parsed = res.ok ? parseTeamsResponse(body) : { status: "unavailable" as const };
         if (live) setTeamsFetch(parsed);
       } catch {
         if (live) setTeamsFetch({ status: "unavailable" });
+      } finally {
+        clearTimeout(timer);
       }
     })();
-    return () => { live = false; };
-  }, []);
+    return () => {
+      live = false;
+      clearTimeout(timer);
+      ac.abort();
+    };
+  }, [hasAccount]);
   function stepText(r: DeletionReceipt): string {
     const step = r.steps.find((s) => !s.done) || r.steps[r.steps.length - 1];
     return step ? step.text[lang === "zh" ? 1 : 0] : r.receipt_code;
@@ -232,7 +252,9 @@ export default function SectionAccount({ t, lang, email, user, onClose, onPatchM
 
   const displayName = (typeof user?.meta?.display_name === "string" ? user.meta.display_name : "") || "";
   const addr = user?.email || email;
-  const provider = user?.provider || "email";
+  const provider = user ? user.provider : null;
+  const passwordLockedKey =
+    provider == null || provider === "" ? "acsPwProviderUnknown" : "acsPwNoPassword";
   const since = acsDate(user?.createdAt, lang);
   const lastIn = acsDate(user?.lastSignInAt, lang);
   const uid = user?.id || "";
@@ -452,14 +474,14 @@ export default function SectionAccount({ t, lang, email, user, onClose, onPatchM
             ) : (
             <Row
               label={t("acsPassword")}
-              value="••••••••"
-              desc={t("acsPwNoPassword")}
+              value={null}
+              desc={t(passwordLockedKey)}
             />
             )}
           </Group>
 
           <Group title={t("acsSecurity")}>
-            <Row label={teamSummaryText(lang, teamsFetch)} />
+            {hasAccount ? <Row label={teamSummaryText(t, teamsFetch)} /> : null}
             <Row
               label={t("acsLoginMethod")}
               control={

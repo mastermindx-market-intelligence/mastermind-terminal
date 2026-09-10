@@ -146,7 +146,7 @@ function Harness() {
         onSection={setSection}
         onClose={() => setOpen(false)}
         identity={signedIn ? accountIdentity(MOCK_USER.id, MOCK_USER.email) : GUEST_IDENTITY}
-        user={signedIn ? { ...MOCK_USER, provider: (q.get("provider") || MOCK_USER.provider).toLowerCase() } : null}
+        user={signedIn ? { ...MOCK_USER, provider: (q.get("provider") || MOCK_USER.provider || "google").toLowerCase() } : null}
         onPatchMeta={() => {}}
         onRefreshUser={async () => {}}
         devPlan={PLANS[planKey]}

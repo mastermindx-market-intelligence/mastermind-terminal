@@ -1,18 +1,26 @@
 /**
  * B-F12-B5-3b — team-summary parse/classify and the guarded EN/ZH sentences.
  *
- * Sentences live in SectionAccount.tsx (a file the plain-language guard scans).
+ * Sentences live in LEX (terminal/lib/i18n.tsx); teamSummaryText composes from t().
  * terminal/lib/teamSummary.ts is parse + classify only.
  */
 import { describe, expect, it } from "vitest";
 import { classifyTeamSummary, parseTeamsResponse, type CallerTeam } from "@/lib/teamSummary";
 import { teamSummaryText } from "@/components/settings/SectionAccount";
+import { LEX } from "@/lib/i18n";
 
 const OWNER: CallerTeam = { teamId: "t-1", teamName: "Acme", role: "owner" };
 const ADMIN: CallerTeam = { teamId: "t-2", teamName: "Northwind", role: "admin" };
 const MEMBER: CallerTeam = { teamId: "t-3", teamName: "Contoso", role: "member" };
 
 const BANNED = ["team_members", "team_id", "RLS"];
+
+function tFor(lang: "en" | "zh") {
+  return (key: string, fallback?: string) => {
+    const e = LEX[key];
+    return e ? e[lang === "zh" ? 1 : 0] : (fallback ?? key);
+  };
+}
 
 function assertPlain(en: string, zh: string) {
   expect(en.length).toBeGreaterThan(0);
@@ -69,6 +77,20 @@ describe("parseTeamsResponse", () => {
       teams: [OWNER],
     });
   });
+
+  it("a non-empty teams array that yields zero valid rows is unavailable, never ok with []", () => {
+    const parsed = parseTeamsResponse({
+      teams: [
+        { id: "t-bad" },
+        { id: "t-x", name: "X", role: "superuser" },
+        null,
+        4,
+      ],
+      truncated: false,
+    });
+    expect(parsed).toEqual({ status: "unavailable" });
+    expect(parsed).not.toEqual({ status: "ok", teams: [], truncated: false });
+  });
 });
 
 describe("classifyTeamSummary", () => {
@@ -105,42 +127,42 @@ describe("teamSummaryText", () => {
       {
         fetch: { status: "unavailable" },
         en: "We could not check your team right now.",
-        zh: "我们暂时无法查看您的团队信息。",
+        zh: "我们暂时无法查看你的团队信息。",
       },
       {
         fetch: { status: "ok", teams: [], truncated: false },
         en: "You are not on a team yet.",
-        zh: "您还没有加入任何团队。",
+        zh: "你还没有加入任何团队。",
       },
       {
         fetch: { status: "ok", teams: [OWNER], truncated: false },
         en: "You are the owner of Acme.",
-        zh: "您是\u201cAcme\u201d团队的所有者。",
+        zh: "你是\u201cAcme\u201d团队的所有者。",
       },
       {
         fetch: { status: "ok", teams: [ADMIN], truncated: false },
-        en: "You are the administrator of Northwind.",
-        zh: "您是\u201cNorthwind\u201d团队的管理员。",
+        en: "You are an administrator of Northwind.",
+        zh: "你是\u201cNorthwind\u201d团队的管理员。",
       },
       {
         fetch: { status: "ok", teams: [MEMBER], truncated: false },
-        en: "You are the member of Contoso.",
-        zh: "您是\u201cContoso\u201d团队的成员。",
+        en: "You are a member of Contoso.",
+        zh: "你是\u201cContoso\u201d团队的成员。",
       },
       {
         fetch: { status: "ok", teams: [OWNER, ADMIN], truncated: false },
         en: "You are on 2 teams.",
-        zh: "您已加入 2 个团队。",
+        zh: "你已加入 2 个团队。",
       },
       {
         fetch: { status: "ok", teams: [OWNER, ADMIN, MEMBER], truncated: true },
         en: "You are on 3+ teams.",
-        zh: "您已加入 3+ 个团队。",
+        zh: "你已加入 3+ 个团队。",
       },
     ];
     for (const c of cases) {
-      expect(teamSummaryText("en", c.fetch)).toBe(c.en);
-      expect(teamSummaryText("zh", c.fetch)).toBe(c.zh);
+      expect(teamSummaryText(tFor("en"), c.fetch)).toBe(c.en);
+      expect(teamSummaryText(tFor("zh"), c.fetch)).toBe(c.zh);
       assertPlain(c.en, c.zh);
     }
   });
@@ -151,13 +173,14 @@ describe("teamSummaryText", () => {
       teams: [{ teamId: "t-empty", teamName: "", role: "owner" as const }],
       truncated: false,
     };
-    const en = teamSummaryText("en", fetch);
-    const zh = teamSummaryText("zh", fetch);
+    const en = teamSummaryText(tFor("en"), fetch);
+    const zh = teamSummaryText(tFor("zh"), fetch);
     expect(en).toBe("You are the owner of an unnamed team.");
-    expect(zh).toBe("您是\u201c未命名团队\u201d团队的所有者。");
+    expect(zh).toBe("你是\u201c未命名\u201d团队的所有者。");
     expect(en).not.toContain("\"\"");
     expect(zh).not.toContain("\u201c\u201d");
     expect(zh).not.toContain("\"\"");
+    expect(zh).not.toContain("未命名团队");
     assertPlain(en, zh);
   });
 
@@ -173,7 +196,7 @@ describe("teamSummaryText", () => {
       { status: "ok", teams: [OWNER, ADMIN, MEMBER], truncated: true },
     ];
     for (const fetch of fetches) {
-      assertPlain(teamSummaryText("en", fetch), teamSummaryText("zh", fetch));
+      assertPlain(teamSummaryText(tFor("en"), fetch), teamSummaryText(tFor("zh"), fetch));
     }
   });
 });

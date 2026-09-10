@@ -5,15 +5,16 @@
 # capturedAt: 2026-09-09T15:06:09.020Z
 # capturedAtHead is the code commit the pixels depict. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/settings/SectionAccount.tsx: "b9ac1909c964af78ff4903263102e908d41116fe9e4bed88b9d259f7b5255336"
-  terminal/lib/teamSummary.ts: "dac2277632bce064913efd4ddc76f19edf93b7d6c3dce9d96110a4c36481ddcd"
-  terminal/lib/i18n.tsx: "9c417784b9653a07bf90459b235eb3bfd8a5a86d64a2f1171a2eef2cd47c0829"
+  terminal/components/settings/SectionAccount.tsx: "8009fbf745eadeff265004f66f39a9764d0ce013a2166f3d84ec8462f2a2c5be"
+  terminal/lib/teamSummary.ts: "7bd3b3f1d5251490e42399be1dd77e977b2626c1714efbece2f7139c584e0f15"
+  terminal/lib/i18n.tsx: "cbd38e652e1e380bc511b61f7f5ae97fd77025c0a82d213dc968e31e0741a657"
 theme: dark
 languages: [en, zh]
 viewports:
   - { name: desktop, width: 1440, height: 900 }
   - { name: mobile, width: 390, height: 844 }
 harness: /dev/settings?s=account&lang=<en|zh>&provider=<google|email>
+teams_fixture: The team line is produced by a capture-time Playwright route stub at e2e/tools/capture_b_f12_b5_3_account_completeness.cjs:125-133 (mockTeams fulfills **/api/teams with one owner team named Acme). It is not a live GET /api/teams.
 capture_flag: TERMINAL_E2E_FIXTURE
 capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.
 command: |
@@ -30,10 +31,10 @@ files:
   - mobile-zh-password.png
 measurements:
   desktop-en-overview.png: { teamLine: "You are the owner of Acme.", currentPasswordField: false, passwordEditVisible: false, noPasswordLine: "You signed in without a password, so there is nothing to change here." }
-  desktop-zh-overview.png: { teamLine: "您是“Acme”团队的所有者。", currentPasswordField: false, passwordEditVisible: false, noPasswordLine: "您登录时未设置密码，因此这里没有可更改的内容。" }
+  desktop-zh-overview.png: { teamLine: "你是“Acme”团队的所有者。", currentPasswordField: false, passwordEditVisible: false, noPasswordLine: "你登录时未设置密码，因此这里没有可更改的内容。" }
   desktop-en-password.png: { teamLine: "You are the owner of Acme.", currentPasswordField: true, passwordEditVisible: false, noPasswordLine: "" }
-  desktop-zh-password.png: { teamLine: "您是“Acme”团队的所有者。", currentPasswordField: true, passwordEditVisible: false, noPasswordLine: "" }
+  desktop-zh-password.png: { teamLine: "你是“Acme”团队的所有者。", currentPasswordField: true, passwordEditVisible: false, noPasswordLine: "" }
   mobile-en-overview.png: { teamLine: "You are the owner of Acme.", currentPasswordField: false, passwordEditVisible: false, noPasswordLine: "You signed in without a password, so there is nothing to change here." }
-  mobile-zh-overview.png: { teamLine: "您是“Acme”团队的所有者。", currentPasswordField: false, passwordEditVisible: false, noPasswordLine: "您登录时未设置密码，因此这里没有可更改的内容。" }
+  mobile-zh-overview.png: { teamLine: "你是“Acme”团队的所有者。", currentPasswordField: false, passwordEditVisible: false, noPasswordLine: "你登录时未设置密码，因此这里没有可更改的内容。" }
   mobile-en-password.png: { teamLine: "You are the owner of Acme.", currentPasswordField: true, passwordEditVisible: false, noPasswordLine: "" }
-  mobile-zh-password.png: { teamLine: "您是“Acme”团队的所有者。", currentPasswordField: true, passwordEditVisible: false, noPasswordLine: "" }
+  mobile-zh-password.png: { teamLine: "你是“Acme”团队的所有者。", currentPasswordField: true, passwordEditVisible: false, noPasswordLine: "" }

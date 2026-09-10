@@ -6,6 +6,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { canChangePassword, passwordErrorKey } from "@/components/settings/SectionAccount";
+import { toAcsUser } from "@/components/settings/SettingsProvider";
 import { LEX } from "@/lib/i18n";
 
 const NEW_KEYS = [
@@ -17,6 +18,19 @@ const NEW_KEYS = [
   "acsPwRateLimited",
   "acsPwNoPassword",
   "acsPwFailed",
+  "acsPwProviderUnknown",
+  "acsProvUnknown",
+  "acsTeamLoading",
+  "acsTeamUnavailable",
+  "acsTeamNone",
+  "acsTeamOneOwner",
+  "acsTeamOneAdmin",
+  "acsTeamOneMember",
+  "acsTeamMany",
+  "acsTeamRoleOwner",
+  "acsTeamRoleAdmin",
+  "acsTeamRoleMember",
+  "acsTeamUnnamed",
 ] as const;
 
 const SENTENCE_KEYS = [
@@ -26,7 +40,22 @@ const SENTENCE_KEYS = [
   "acsPwRateLimited",
   "acsPwNoPassword",
   "acsPwFailed",
+  "acsPwProviderUnknown",
+  "acsTeamLoading",
+  "acsTeamUnavailable",
+  "acsTeamNone",
+  "acsTeamOneOwner",
+  "acsTeamOneAdmin",
+  "acsTeamOneMember",
+  "acsTeamMany",
 ] as const;
+
+const FRAGMENT_KEYS = new Set([
+  "acsTeamRoleOwner",
+  "acsTeamRoleAdmin",
+  "acsTeamRoleMember",
+  "acsTeamUnnamed",
+]);
 
 const BANNED = ["team_members", "team_id", "RLS", "invalid_credentials", "same_password", "over_request_rate_limit", "weak_password"];
 
@@ -68,7 +97,9 @@ describe("new password LEX keys are plain words", () => {
       expect(zh.length).toBeGreaterThan(0);
       expect(en).not.toBe(zh);
       expect(zh).toMatch(/[一-鿿]/);
-      expect(en).toMatch(/^[A-Z]/);
+      if (!FRAGMENT_KEYS.has(key)) {
+        expect(en).toMatch(/^[A-Z]/);
+      }
       for (const banned of BANNED) {
         expect(en).not.toContain(banned);
         expect(zh).not.toContain(banned);
@@ -95,5 +126,66 @@ describe("new password LEX keys are plain words", () => {
       "We could not change your password. Check your current password and try again.",
       "我们无法更改密码，请检查当前密码后重试。",
     ]);
+    expect(LEX.acsCurrentPwPh).toEqual([
+      "Enter your current password",
+      "输入你的当前密码",
+    ]);
+    expect(LEX.acsPwNoPassword).toEqual([
+      "You signed in without a password, so there is nothing to change here.",
+      "你登录时未设置密码，因此这里没有可更改的内容。",
+    ]);
+    expect(LEX.acsPwProviderUnknown).toEqual([
+      "We could not tell how you signed in, so the password cannot be changed here.",
+      "我们无法确认你的登录方式，因此这里无法更改密码。",
+    ]);
+    expect(LEX.acsProvUnknown).toEqual(["Not known", "未知"]);
+  });
+
+  it("forbids 您 in every LEX key this PR adds", () => {
+    for (const key of NEW_KEYS) {
+      const pair = LEX[key];
+      expect(pair, key).toBeTruthy();
+      expect(pair[1], key).not.toContain("您");
+    }
+  });
+});
+
+describe("toAcsUser does not invent an email provider", () => {
+  it("returns null provider when app_metadata carries none", () => {
+    const user = toAcsUser({
+      id: "u1",
+      email: "a@example.com",
+      app_metadata: {},
+      user_metadata: {},
+    });
+    expect(user).not.toBeNull();
+    expect(user!.provider).toBeNull();
+    expect(canChangePassword(user!.provider)).toBe(false);
+  });
+
+  it("returns null provider for an empty providers list and an empty string provider", () => {
+    expect(toAcsUser({
+      id: "u1",
+      email: "a@example.com",
+      app_metadata: { provider: "", providers: [] },
+    })!.provider).toBeNull();
+    expect(toAcsUser({
+      id: "u1",
+      email: "a@example.com",
+      app_metadata: { provider: "" },
+    })!.provider).toBeNull();
+  });
+
+  it("keeps an explicit email or google provider", () => {
+    expect(toAcsUser({
+      id: "u1",
+      email: "a@example.com",
+      app_metadata: { provider: "email" },
+    })!.provider).toBe("email");
+    expect(toAcsUser({
+      id: "u1",
+      email: "a@example.com",
+      app_metadata: { provider: "google" },
+    })!.provider).toBe("google");
   });
 });
