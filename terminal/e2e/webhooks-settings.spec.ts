@@ -28,7 +28,7 @@ async function mockWebhookApis(page: Page) {
 // This spec matches no project's testIgnore, so it runs in the desktop (1440),
 // tablet (820) and mobile (390) shards. Every assertion below must therefore
 // hold at all three widths: the Settings panel keeps its full nav at 390 (it
-// becomes a horizontal scroller, it is not collapsed), so the Webhooks tab is
+// becomes a horizontal scroller, it is not collapsed), so the seventh tab is
 // present and selectable everywhere. The guard is explicit rather than
 // implied — a project with no fixed viewport would otherwise pass vacuously.
 test("settings Webhooks section is reachable in EN and ZH", async ({ page }, testInfo) => {
@@ -49,13 +49,12 @@ test("settings Webhooks section is reachable in EN and ZH", async ({ page }, tes
   const dialog = page.locator(".acs-overlay.open .acs-card");
   await expect(dialog).toBeVisible({ timeout: 45_000 });
   const tabs = dialog.getByRole("tab");
-  // Sharing is last after this packet's merge-heal kept #549's Webhooks tab
-  // and #548's Sharing tab. Webhooks stays reachable and selected here.
-  // Asserting Webhooks as "last" would redden any later section the same way
-  // a hard count would.
-  await expect(tabs.last()).toHaveText("Sharing");
-  expect(await tabs.count()).toBeGreaterThanOrEqual(9);
-  await expect(dialog.getByRole("tab", { name: "Webhooks" })).toBeVisible();
+  // Webhooks is the LAST Settings tab — at 1440, 820 AND 390. Asserted as
+  // "last", not as a fixed index: master gained an eighth section (#545) while
+  // this branch was open, and a hard count would redden the next packet that
+  // adds one rather than catching anything real.
+  await expect(tabs.last()).toHaveText("Webhooks");
+  expect(await tabs.count()).toBeGreaterThanOrEqual(8);
   await expect(dialog.getByRole("tab", { name: "Webhooks" })).toHaveAttribute("aria-selected", "true");
   await expect(page.getByRole("heading", { name: "Webhooks" })).toBeVisible();
   await expect(page.getByText("You don't have a team yet")).toHaveCount(0);
@@ -69,9 +68,8 @@ test("settings Webhooks section is reachable in EN and ZH", async ({ page }, tes
   await page.goto("/dev/settings?s=webhooks&lang=zh");
   const zhDialog = page.locator(".acs-overlay.open .acs-card");
   await expect(zhDialog).toBeVisible({ timeout: 45_000 });
-  await expect(zhDialog.getByRole("tab").last()).toHaveText("共享");
-  expect(await zhDialog.getByRole("tab").count()).toBeGreaterThanOrEqual(9);
-  await expect(zhDialog.getByRole("tab", { name: "Webhook 回调" })).toBeVisible();
+  await expect(zhDialog.getByRole("tab").last()).toHaveText("Webhook 回调");
+  expect(await zhDialog.getByRole("tab").count()).toBeGreaterThanOrEqual(8);
   await expect(zhDialog.getByRole("tab", { name: "Webhook 回调" })).toHaveAttribute("aria-selected", "true");
   await expect(page.getByRole("heading", { name: "Webhook 回调" })).toBeVisible();
   await expect(page.getByText("您还没有团队")).toHaveCount(0);
