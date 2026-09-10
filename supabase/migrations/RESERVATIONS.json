@@ -222,6 +222,16 @@
       "applied_in_production": false,
       "applied_date": null,
       "note": "packet B-F12-B5-2 team-shared saved workspaces; shipped unapplied. Seat ruling R1 owns prefix 0022 (0021 is B-F12-B5-1 explicit grants). Open draft PR #555. applied_in_production is false and applied_date is null, not recorded as applied and never guessed. Merged to master 2026-09-09T20:01Z via auto-merge (#555); not yet applied — waits for 0017–0021 in ledger order."
+    },
+    "0023": {
+      "state": "taken",
+      "file": "0023_portfolio_targets.sql",
+      "packet": "B-F08-B5-1",
+      "pr": 552,
+      "pr_state": "open",
+      "applied_in_production": false,
+      "applied_date": null,
+      "note": "portfolio target weights + bands, user-typed, RLS own-row; ships UNAPPLIED -- the builder never runs DDL against production and the seat applies with receipts, so applied_in_production is false and the date is not recorded because there is no application yet, never because a real date was lost"
     }
   }
 }
