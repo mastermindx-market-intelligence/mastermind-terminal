@@ -171,12 +171,14 @@
       "note": "merged to master as 68bbe8ea6 (2026-09-09; source master 68bbe8ea); DDL applied in production 2026-09-09T01:11:07Z; readback receipt posted on the owning PR: https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/527#issuecomment-5594233632"
     },
     "0017": {
-      "state": "reserved",
-      "file": null,
+      "state": "taken",
+      "file": "0017_personal_accuracy_ledger.sql",
       "packet": "B-F13-5",
-      "pr": null,
-      "pr_state": null,
-      "note": "personal accuracy ledger; reserved by Meta-CEO B ruling 2026-09-09; PR pending"
+      "pr": 547,
+      "pr_state": "open",
+      "applied_in_production": false,
+      "applied_date": null,
+      "note": "claimed by packet B-F13-5 in PR #547; DDL shipped, not applied; applied_date not recorded because the pull request has not merged"
     },
     "0018": {
       "state": "taken",
