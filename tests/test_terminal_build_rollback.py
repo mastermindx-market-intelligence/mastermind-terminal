@@ -603,6 +603,18 @@ def run_deploy(tmp_path: Path, script: Path = SCRIPT, **flags) -> tuple:
     return proc, app
 
 
+def test_empty_gated_archive_stages_the_app_alone(tmp_path):
+    """A git that archives nothing for the gated dirs (a commit without them, or the stub
+    here) must not abort the deploy: GNU tar rejects an empty stream, so the stage step
+    writes the archive to a file and extracts only when it has bytes."""
+    proc, app = run_deploy(tmp_path)
+
+    assert proc.returncode == 0, f"deploy failed on an empty gated archive:\n{proc.stdout}\n{proc.stderr}"
+    assert "staging the app alone" in proc.stdout
+    assert "does not look like a tar archive" not in proc.stderr
+    assert marker_of(app) == NEW_SHA
+
+
 def test_swap_move_failure_enters_rollback(tmp_path):
     """A failed `mv` of the new build must NOT abort past rollback.
 

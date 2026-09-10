@@ -235,7 +235,16 @@ STAGE_ROOT=$(mktemp -d "$(dirname "$APP")/.stage.XXXXXX")
 trap 'rm -rf "$STAGE_ROOT"' EXIT
 STAGE="$STAGE_ROOT/terminal"
 mkdir -p "$STAGE"
-git -C "$SRC" archive HEAD -- ingest hub signal_layer config contracts | tar -x -C "$STAGE_ROOT/"
+# The gated dirs are archived to a file first: an EMPTY stream (a commit without them, or a
+# stubbed git) must stage the app alone rather than abort — GNU tar rejects empty stdin.
+GATED_TAR="$STAGE_ROOT/.gated.tar"
+git -C "$SRC" archive HEAD -- ingest hub signal_layer config contracts > "$GATED_TAR"
+if [ -s "$GATED_TAR" ]; then
+  tar -x -f "$GATED_TAR" -C "$STAGE_ROOT/"
+else
+  log "gated runtime dirs: nothing archived from origin/$BRANCH — staging the app alone"
+fi
+rm -f "$GATED_TAR"
 ln -s "$(dirname "$APP")/scripts" "$STAGE_ROOT/scripts"
 log "staging origin/$BRANCH:terminal in $STAGE (+ gated ingest/hub/signal_layer/config/contracts beside it)"
 rsync -a --delete \
