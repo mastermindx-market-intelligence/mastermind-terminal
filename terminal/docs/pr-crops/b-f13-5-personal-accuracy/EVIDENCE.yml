@@ -11,7 +11,7 @@ layoutFiles:
   terminal/components/settings/SectionAccuracy.module.css: "a35d7db4b05ab753db30f2ac46ba0b8c16eeef61309336531f05d2a6ae7f21cc"
   terminal/components/settings/SettingsPanel.tsx: "70cd715018c8bdce3f09074adf79c6f053a642b478fe1686c732eefc951ad844"
   terminal/components/settings/types.ts: "11e4ca0d4804ded9913bdfba0629925f1127cd1db0dca7721bba50cd1e648d5e"
-  terminal/lib/i18n.tsx: "f18e4487e1051f2fe7e8848a6d07a86a40f806745d8588d556eaac9b0eb0957b"  # B-F13-6 (#554) added claim-form lexicon keys; no B-F13-5 string or layout changed; crops unchanged
+  terminal/lib/i18n.tsx: "f18e4487e1051f2fe7e8848a6d07a86a40f806745d8588d556eaac9b0eb0957b"
   terminal/lib/personalAccuracy.ts: "0f479c6932a2bcee23ba0f840739dbc6c133046d077a07a6f802a173c63efa1b"
   terminal/lib/personalAccuracyStore.ts: "adc6e5c9c0d5f1ac6ed800df821b393c1d98f345bac2ccc87b3cb4c40b1b99f9"
   terminal/app/dev/settings/page.tsx: "4f62b27d32e66d3b0f4361b0588b9ff178bbf14637b0b8e2abffcde20bde055f"
