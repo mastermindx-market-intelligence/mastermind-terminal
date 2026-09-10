@@ -9,7 +9,8 @@ import type { AcsUser, SettingsSection } from "./SettingsProvider";
 import { SETTINGS_SECTIONS } from "./SettingsProvider";
 import type { AcsPlan, AcsUsage, SectionProps } from "./types";
 import {
-  IconAccount, IconAlertDelivery, IconBilling, IconPrefs, IconSharing, IconSignOut, IconSync, IconTerminal, IconUsage, IconX,
+  IconAccount, IconAlertDelivery, IconBilling, IconPrefs, IconSharing, IconSignOut, IconSync, IconTerminal, IconUsage,
+  IconWebhooks, IconX,
 } from "./icons";
 import SectionAccount from "./SectionAccount";
 import SectionBilling from "./SectionBilling";
@@ -18,6 +19,7 @@ import SectionPreferences from "./SectionPreferences";
 import SectionAlertDelivery from "./SectionAlertDelivery";
 import SectionTerminal from "./SectionTerminal";
 import SectionSync from "./SectionSync";
+import SectionWebhooks from "./SectionWebhooks";
 import SectionSharing from "./SectionSharing";
 
 // ── The settings dashboard shell ─────────────────────────────────────────────
@@ -39,6 +41,7 @@ const NAV: { id: SettingsSection; icon: React.ReactNode; key: string }[] = [
   { id: "alertDelivery", icon: <IconAlertDelivery />, key: "acsAlertDelivery" },
   { id: "terminal", icon: <IconTerminal />, key: "acsTerminal" },
   { id: "sync", icon: <IconSync />, key: "acsSyncT" },
+  { id: "webhooks", icon: <IconWebhooks />, key: "acsWebhooks" },
   { id: "sharing", icon: <IconSharing />, key: "acsSharing" },
 ];
 
@@ -50,6 +53,7 @@ const HEAD_KEY: Record<SettingsSection, string> = {
   alertDelivery: "acsAlertDelivery",
   terminal: "acsTerminal",
   sync: "acsSyncT",
+  webhooks: "acsWebhooks",
   sharing: "acsSharing",
 };
 
@@ -284,6 +288,7 @@ export default function SettingsPanel(props: SettingsPanelProps) {
             {section === "alertDelivery" && <SectionAlertDelivery {...shared} />}
             {section === "terminal" && <SectionTerminal {...shared} />}
             {section === "sync" && <SectionSync {...shared} />}
+            {section === "webhooks" && <SectionWebhooks {...shared} />}
             {section === "sharing" && <SectionSharing {...shared} />}
           </div>
         </section>
