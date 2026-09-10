@@ -14,10 +14,10 @@ import {
 // panel exactly once, so there is nothing to drift.
 
 export type SettingsSection =
-  | "account" | "billing" | "usage" | "prefs" | "alertDelivery" | "terminal" | "sync" | "webhooks";
+  | "account" | "accuracy" | "billing" | "usage" | "prefs" | "alertDelivery" | "terminal" | "sync" | "webhooks";
 
 export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
-  "account", "billing", "usage", "prefs", "alertDelivery", "terminal", "sync", "webhooks",
+  "account", "accuracy", "billing", "usage", "prefs", "alertDelivery", "terminal", "sync", "webhooks",
 ] as const;
 
 interface SettingsApi {

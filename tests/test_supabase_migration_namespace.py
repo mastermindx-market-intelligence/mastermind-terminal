@@ -366,6 +366,13 @@ def test_reservations_records_the_known_collision_surface():
     assert prefixes["0016"]["pr_state"] == "merged"
     assert prefixes["0016"]["applied_in_production"] is True
 
+    assert prefixes["0017"]["state"] == "taken"
+    assert prefixes["0017"]["file"] == "0017_personal_accuracy_ledger.sql"
+    assert prefixes["0017"]["packet"] == "B-F13-5"
+    assert prefixes["0017"]["pr"] == 547
+    assert prefixes["0017"]["pr_state"] == "open"
+    assert prefixes["0017"]["applied_in_production"] is False
+
     # 0018 is this PR's claim: taken, file present, PR 549 open, shipped unapplied.
     # Other 0017-0020 owners stay as origin/master has them (reserved until their PRs take them).
     assert prefixes["0018"]["state"] == "taken"
