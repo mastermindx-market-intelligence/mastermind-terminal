@@ -1,15 +1,17 @@
 # B-F13-5 Personal accuracy ledger — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: ac35d036ebd9cf2565fc9a56f1e043402c151d75
-# capturedAt: 2026-09-09T21:11:23.082Z
+# capturedAtHead: dfc2dcc300a5dd942f4ff4ab4a5c3e5e454bdbae
+# capturedAt: 2026-09-10T14:19:18.187Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/settings/SectionAccuracy.tsx: "2f67622afea33148904165b1de5ddee42b3ff71328c499894ec965dd61c852a0"
+  terminal/components/settings/SectionAccuracy.tsx: "53304918f2cd38ffbb2b733a754503a644ce030594ea92d09079d78ad37dca1e"
   terminal/components/settings/SectionAccuracy.module.css: "a35d7db4b05ab753db30f2ac46ba0b8c16eeef61309336531f05d2a6ae7f21cc"
   terminal/components/settings/SettingsPanel.tsx: "d8f20c6e0dbf96b6caf67bcec6c2a65cdb581fda90e8eb724e158ccbb5024052"
-  terminal/lib/i18n.tsx: "0170b2bb6c2493e5b62e9b750a472af62ec52c00f47fc028b9fdd113ab2018b6"
+  terminal/components/settings/types.ts: "11e4ca0d4804ded9913bdfba0629925f1127cd1db0dca7721bba50cd1e648d5e"
+  terminal/lib/i18n.tsx: "38750274fb9ae6c4d434f705392626ffa7f001faec8f528c77094a6e16ca0866"
   terminal/lib/personalAccuracy.ts: "0f479c6932a2bcee23ba0f840739dbc6c133046d077a07a6f802a173c63efa1b"
+  terminal/lib/personalAccuracyStore.ts: "adc6e5c9c0d5f1ac6ed800df821b393c1d98f345bac2ccc87b3cb4c40b1b99f9"
   terminal/app/dev/settings/page.tsx: "00de7de9d901dea10d88e638e72039cebdb017b4d173b563ae4a7b81477df52d"
   terminal/app/dev/settings/accuracyFixtures.ts: "839d45a530c3625ec0747f44749a6a0f097f7c8c0f4d8674673da40e4fecdeee"
 theme: dark
@@ -20,10 +22,14 @@ viewports:
 harness:
   desktop-en-empty.png: { url: "/dev/settings?s=accuracy&lang=en&acc=empty", fixture: empty }
   desktop-zh-empty.png: { url: "/dev/settings?s=accuracy&lang=zh&acc=empty", fixture: empty }
+  desktop-en-glance.png: { url: "/dev/settings?s=accuracy&lang=en&acc=populated", fixture: populated }
+  desktop-zh-glance.png: { url: "/dev/settings?s=accuracy&lang=zh&acc=populated", fixture: populated }
   desktop-en-detail.png: { url: "/dev/settings?s=accuracy&lang=en&acc=populated", fixture: populated }
   desktop-zh-detail.png: { url: "/dev/settings?s=accuracy&lang=zh&acc=populated", fixture: populated }
   mobile-en-empty.png: { url: "/dev/settings?s=accuracy&lang=en&acc=empty", fixture: empty }
   mobile-zh-empty.png: { url: "/dev/settings?s=accuracy&lang=zh&acc=empty", fixture: empty }
+  mobile-en-glance.png: { url: "/dev/settings?s=accuracy&lang=en&acc=populated", fixture: populated }
+  mobile-zh-glance.png: { url: "/dev/settings?s=accuracy&lang=zh&acc=populated", fixture: populated }
   mobile-en-detail.png: { url: "/dev/settings?s=accuracy&lang=en&acc=populated", fixture: populated }
   mobile-zh-detail.png: { url: "/dev/settings?s=accuracy&lang=zh&acc=populated", fixture: populated }
 capture_flag: TERMINAL_E2E_FIXTURE
@@ -34,9 +40,13 @@ command: |
 files:
   - desktop-en-empty.png
   - desktop-zh-empty.png
+  - desktop-en-glance.png
+  - desktop-zh-glance.png
   - desktop-en-detail.png
   - desktop-zh-detail.png
   - mobile-en-empty.png
   - mobile-zh-empty.png
+  - mobile-en-glance.png
+  - mobile-zh-glance.png
   - mobile-en-detail.png
   - mobile-zh-detail.png
