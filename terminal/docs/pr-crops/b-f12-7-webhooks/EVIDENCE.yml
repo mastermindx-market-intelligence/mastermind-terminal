@@ -4,6 +4,7 @@
 # capturedAtHead: 7efed45b946e01f87dace4f328eb5e4ae9e5af89
 # capturedAt: 2026-09-10T20:31:08.107Z
 # capturedAtHead is informational. The lock is layoutFiles.
+# 2026-09-10 merge-heal on PR #547: SettingsPanel.tsx gained the B-F13-5 Accuracy nav row. SettingsPanel.tsx re-hashed; 18 crops recaptured at merge commit 5992b8b52 so the rail matches the merged panel.
 # layoutFiles are packet-local and ARE asserted by
 # terminal/lib/__tests__/f12_7WebhooksEvidence.test.ts. informationalFiles
 # are recorded for provenance only: terminal/lib/i18n.tsx is the repo-wide

@@ -11,13 +11,17 @@
 // token mapping regresses, this page shows it.
 
 import { Suspense, useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import { notFound, useSearchParams } from "next/navigation";
-import SettingsPanel from "@/components/settings/SettingsPanel";
 import type { SettingsSection } from "@/components/settings/SettingsProvider";
 import type { AcsUser } from "@/components/settings/SettingsProvider";
 import type { AcsPlan, AcsUsage, DevTeamFixture } from "@/components/settings/types";
 import { applyLang } from "@/lib/i18n";
 import { accountIdentity, GUEST_IDENTITY } from "@/lib/accountIdentity";
+import { emptyAccuracyReadout, type AccuracyReadout } from "@/lib/personalAccuracy";
+import { populatedAccuracyFixture } from "./accuracyFixtures";
+
+const SettingsPanel = dynamic(() => import("@/components/settings/SettingsPanel"), { ssr: false });
 
 const MOCK_USER: AcsUser = {
   id: "8f2c41ba-7d19-4e6a-9c03-5b71ee0a4d22",
@@ -64,7 +68,7 @@ const USAGE: Record<string, AcsUsage> = {
   unlimited: { tier: "pro", quotas: { fast: { remaining: 0, limit: -1 }, pro: { remaining: 96, limit: 150, period: "month" } } },
 };
 
-const SECTIONS: SettingsSection[] = ["account", "team", "billing", "usage", "prefs", "alertDelivery", "terminal", "sync", "webhooks"];
+const SECTIONS: SettingsSection[] = ["account", "team", "accuracy", "billing", "usage", "prefs", "alertDelivery", "terminal", "sync", "webhooks"];
 
 const DEV_TEAM: DevTeamFixture = {
   team: { id: "team-desk", name: "Desk" },
@@ -134,6 +138,11 @@ const DEV_TEAM_TRUNCATED: DevTeamFixture = {
   truncated: true,
 };
 
+const ACCURACY: Record<string, AccuracyReadout> = {
+  empty: emptyAccuracyReadout(),
+  populated: populatedAccuracyFixture(),
+};
+
 const btn = (on: boolean): React.CSSProperties => ({
   font: "600 12px var(--font-ui)",
   color: on ? "#fff" : "var(--text-2)",
@@ -163,6 +172,9 @@ function Harness() {
   const [usageKey, setUsageKey] = useState<string>(
     USAGE[q.get("usage") || ""] ? (q.get("usage") as string) : "free",
   );
+  const [accKey, setAccKey] = useState<string>(
+    ACCURACY[q.get("acc") || ""] ? (q.get("acc") as string) : "empty",
+  );
   const [signedIn, setSignedIn] = useState(q.get("out") !== "1");
   const teamParam = q.get("team");
   const teamFixture =
@@ -186,6 +198,7 @@ function Harness() {
           { label: "Section", items: SECTIONS as string[], cur: section, set: (v: string) => setSection(v as SettingsSection) },
           { label: "Plan", items: Object.keys(PLANS), cur: planKey, set: setPlanKey },
           { label: "Usage", items: Object.keys(USAGE), cur: usageKey, set: setUsageKey },
+          { label: "Accuracy", items: Object.keys(ACCURACY), cur: accKey, set: setAccKey },
         ].map((row) => (
           <div key={row.label} style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 10, alignItems: "center" }}>
             <span style={{ font: "700 11px var(--font-ui)", color: "var(--muted)", width: 62 }}>{row.label}</span>
@@ -221,6 +234,7 @@ function Harness() {
         devPlan={PLANS[planKey]}
         devUsage={USAGE[usageKey]}
         devTeam={teamFixture}
+        devAccuracy={ACCURACY[accKey]}
       />
     </div>
   );

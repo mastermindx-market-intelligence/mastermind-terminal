@@ -60,6 +60,7 @@ rows each record their own date — `0011`'s DDL was applied 2026-09-05
 | `0014_tenancy_foundation.sql` | `teams`, `team_members`, `team_invites` tables + `is_team_member()`/`team_role()`/`handle_new_team()` + RLS | yes — applied 2026-09-08 (Meta-CEO B; readback receipt on PR #514 comment `5592694274`) |
 | `0015_team_roles_invitations.sql` | `workspace_settings` table + `accept_team_invite()` + RLS | yes — applied 2026-09-08 (Meta-CEO B; readback receipt on PR #514 comment `5592697055`) |
 | `0016_account_lifecycle_requests.sql` | `account_lifecycle_requests` table + RLS | yes — applied 2026-09-09 (Meta-CEO B; readback receipt on PR #527 comment `5594233632`) |
+| `0017_personal_accuracy_ledger.sql` | `user_claims` table + RLS (personal accuracy ledger, packet B-F13-5) | **no — not applied** |
 | `0019_team_role_changes.sql` | `team_role_changes` table + `log_team_role_change()` / `team_member_names()` + replaced `tm_insert_admin` / `tm_update_admin` / `tm_delete_admin` / `ti_insert_admin` | **no** — open PR (packet B-F12-8); not applied |
 | `0020_team_ownership_transfer.sql` | `transfer_team_ownership(uuid, uuid)` — atomic demote-then-promote ownership transfer | **no** — open PR (packet B-F12-9); not applied |
 
@@ -189,7 +190,7 @@ amendment, only a README edit.
 | `0014` | `tenancy_foundation` | PR #514 (merged as `cff58ee8` on 2026-09-08, packet B-F12-1) | merged + applied 2026-09-08 |
 | `0015` | `team_roles_invitations` | PR #514 (merged as `cff58ee8` on 2026-09-08, packet B-F12-3; authored on stacked PR #526 squash `83424c63`) | merged + applied 2026-09-08 |
 | `0016` | `account_lifecycle_requests` | PR #527 (merged as `68bbe8ea` on 2026-09-09, packet B-F12-4) | merged + applied 2026-09-09 |
-| `0017` | (pre-reservation) | Meta-CEO B ruling 2026-09-09, packet B-F13-5 (personal accuracy ledger); no pull request open yet | reserved |
+| `0017` | `personal_accuracy_ledger` | PR #547 (packet B-F13-5) | open PR |
 | `0018` | (pre-reservation) | Meta-CEO B ruling 2026-09-09, packet B-F12-7 — the seat's **re-scoped Terminal signed-webhooks** packet of 2026-09-09 (branch `claude/mo-b-f12-7-signed-webhooks`), **not** the refused public-API packet recorded against macro #6925 under the same id; no pull request open yet | reserved |
 | `0019` | `team_role_changes` | PR #550 (packet B-F12-8; owner / administrator / member roles v1) | open PR; not applied |
 | `0020` | `team_ownership_transfer` | PR #557 (packet B-F12-9; atomic ownership transfer v1). Seat ruled 0020; the spec's claim of 0019 is superseded because 0019 is B-F12-8. | open PR; not applied |
@@ -212,13 +213,11 @@ history (merged first, applied later) is otherwise lost. (**released** is an ope
 status — see "Release path" above — for a claim that was stood down; it is not one of the
 ruling's own status words and no row currently carries it.)
 
-`0017` and `0018` (personal accuracy ledger, signed webhooks) are
-**reserved** by a Meta-CEO B ruling dated 2026-09-09: the numbers are claimed and owned by a named
-packet, exactly as rule (b) and the "Meta-CEO B pre-reservation channel" operating note above
-describe, but no pull request is open yet and no `.sql` file exists anywhere for them. `0019`
-(team roles) is now **taken** by open PR #550, which carries `0019_team_role_changes.sql`
-unapplied. `0020` (ownership transfer) is now **taken** by open PR #557, which carries
-`0020_team_ownership_transfer.sql` unapplied. That is
+`0017` (personal accuracy ledger, packet B-F13-5) is **taken** in open PR #547: the `.sql` ships
+in that pull request and is **not applied**. `0018` (signed webhooks) remains as master records it
+on this README. `0019` (team roles) is **taken** by open PR #550, which carries
+`0019_team_role_changes.sql` unapplied. `0020` (ownership transfer) is **taken** by open PR #550
+(originated in #557), which carries `0020_team_ownership_transfer.sql` unapplied. That is
 what separates `reserved` from `taken` — `taken` means a real file exists (in this checkout or in
 an open PR); `reserved` means only the number and the owner are settled. As with every prefix in
 this ledger, the seat applies DDL **in ledger order** — never ahead of a lower, still-unapplied
