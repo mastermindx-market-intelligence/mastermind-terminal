@@ -9,6 +9,17 @@
 // as an informational field. Changing a layout file without a recapture
 // turns this file RED.
 //
+// The deviation comment is REQUIRED only when the recorded sha256 for a layout
+// file differs from that file's sha256 at capturedAtHead. Tests never shell out
+// to git. When capturedAtHead is the original capture below, the test compares
+// the recorded digest to the baked sha256 of that committed blob (ordinary
+// file reads of EVIDENCE.yml plus the constant). When capturedAtHead is a later
+// recapture, the blob cannot be read without git, so the test derives the
+// condition from the comment's own SHA field being different from
+// capturedAtHead. A later recapture that sets capturedAtHead to the depicted
+// head and drops the comment therefore passes. Two fixtures prove both
+// branches; the live file uses the same helper.
+//
 // Review MINOR: overview rows reported confirmClass/confirmBg of a control
 // whose .acs-form is display:none until .acs-row.editing. Overview
 // measurements must not describe that hidden confirm.
@@ -54,7 +65,7 @@ function layoutFileMap(yml: string): Record<string, string> {
   const map: Record<string, string> = {};
   for (const line of yml.slice(at + marker.length).split("\n")) {
     if (!line.startsWith("  ")) break;
-    const m = line.match(/^  (\S+): "?([0-9a-f]{64})"?$/);
+    const m = line.match(/^  (\S+): "?([0-9a-f]{64})"?\s*(#.*)?$/);
     if (!m) throw new Error(`layoutFiles row is not path: sha256: ${line}`);
     map[m[1]] = m[2];
   }
@@ -64,6 +75,58 @@ function layoutFileMap(yml: string): Record<string, string> {
 
 function sha256Of(abs: string): string {
   return createHash("sha256").update(readFileSync(abs)).digest("hex");
+}
+
+/** Original B-F12-5 capture. Baked so the lock can compare without git. */
+const ORIGINAL_CAPTURED_AT_HEAD = "e73e5bdc8d9ba55887b9d35a8936ac4966ade80b";
+const SHA256_AT_ORIGINAL_CAPTURE: Record<string, string> = {
+  "terminal/components/settings/SectionAccount.tsx":
+    "c52efebbd06b1bc924c9d94c6ac22dab777b3416bc17e55c5ea0179d9ae51e62",
+  "terminal/app/settings.css":
+    "3189163136d943431cbf52e4b5d241c105b695ba5af94c4c2e29151d537b5ef5",
+};
+
+const DEVIATION_COMMENT =
+  /# no visual change in this file \(no JSX, class or string edit\); crops unchanged from ([0-9a-f]{7,40})/;
+
+function layoutRow(yml: string, rel: string): string {
+  const line = yml.split("\n").find((l) => l.startsWith("  ") && l.includes(`${rel}:`));
+  if (!line) throw new Error(`layoutFiles row missing for ${rel}`);
+  return line;
+}
+
+function depictedShaFromComment(line: string): string | null {
+  const m = line.match(DEVIATION_COMMENT);
+  return m ? m[1] : null;
+}
+
+/**
+ * Deviation comment required only when recorded sha256 differs from the file's
+ * sha256 at capturedAtHead. See the file-level docstring for which method is
+ * used (baked original-capture digest vs comment SHA field).
+ */
+function deviationCommentRequired(yml: string, rel: string): boolean {
+  const recorded = layoutFileMap(yml)[rel];
+  const captured = capturedAtHead(yml);
+  if (captured === ORIGINAL_CAPTURED_AT_HEAD) {
+    const atCapture = SHA256_AT_ORIGINAL_CAPTURE[rel];
+    if (atCapture) return recorded !== atCapture;
+  }
+  // Blob at capturedAtHead cannot be read without git: derive from the
+  // comment's own SHA field being different from capturedAtHead.
+  const depicted = depictedShaFromComment(layoutRow(yml, rel));
+  if (!depicted) return false;
+  return depicted !== captured && !captured.startsWith(depicted);
+}
+
+function assertDeviationComment(yml: string, rel: string) {
+  const line = layoutRow(yml, rel);
+  if (deviationCommentRequired(yml, rel)) {
+    expect(
+      line.match(DEVIATION_COMMENT),
+      `hash differs from capturedAtHead; the R3 deviation comment is required on ${rel}`,
+    ).toBeTruthy();
+  }
 }
 
 function escapeRegExp(s: string): string {
@@ -86,6 +149,33 @@ function measurement(yml: string, file: string): Record<string, string> {
 describe("B-F12-5 evidence lock is the sha256 of the layout sources", () => {
   it("capturedAtHead remains recorded as an informational field", () => {
     expect(capturedAtHead(evidenceText())).toMatch(/^[0-9a-f]{40}$/);
+  });
+
+  it("the live lock requires the deviation comment only when the SectionAccount hash differs from capturedAtHead", () => {
+    assertDeviationComment(evidenceText(), "terminal/components/settings/SectionAccount.tsx");
+  });
+
+  it("fixture: recorded sha256 differs from capturedAtHead → deviation comment required", () => {
+    const yml = [
+      `# capturedAtHead: ${ORIGINAL_CAPTURED_AT_HEAD}`,
+      "layoutFiles:",
+      `  terminal/components/settings/SectionAccount.tsx: "${"ab".repeat(32)}"  # no visual change in this file (no JSX, class or string edit); crops unchanged from e73e5bdc`,
+      `  terminal/app/settings.css: "${SHA256_AT_ORIGINAL_CAPTURE["terminal/app/settings.css"]}"`,
+    ].join("\n");
+    expect(deviationCommentRequired(yml, "terminal/components/settings/SectionAccount.tsx")).toBe(true);
+    assertDeviationComment(yml, "terminal/components/settings/SectionAccount.tsx");
+  });
+
+  it("fixture: a later recapture that sets capturedAtHead to the depicted head and drops the comment passes", () => {
+    const recaptureHead = "dddddddddddddddddddddddddddddddddddddddd";
+    const yml = [
+      `# capturedAtHead: ${recaptureHead}`,
+      "layoutFiles:",
+      `  terminal/components/settings/SectionAccount.tsx: "${"ef".repeat(32)}"`,
+      `  terminal/app/settings.css: "${"cd".repeat(32)}"`,
+    ].join("\n");
+    expect(deviationCommentRequired(yml, "terminal/components/settings/SectionAccount.tsx")).toBe(false);
+    expect(() => assertDeviationComment(yml, "terminal/components/settings/SectionAccount.tsx")).not.toThrow();
   });
 
   it("layout file sha256 matches EVIDENCE.yml (RED when a layout file changes without a recapture)", () => {

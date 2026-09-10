@@ -1981,6 +1981,8 @@ export const LEX: Record<string, [string, string]> = {
   ],
   acsTeamTransferSuccess: ["Ownership transferred to {name}.", "所有权已转移给 {name}。"],
   acsTeamTransferRetry: ["Try again", "重试"],
+  acsWebhooks: ["Webhooks", "Webhook 回调"],
+  acsWebhooksSub: ["Send signed events to an HTTPS address your team owns. Only test events are available today.", "把已签名的事件发送到团队拥有的 HTTPS 地址。目前仅支持测试事件。"],
   // rail
   acsRailSub: ["Synced across devices", "已在各设备同步"],
   acsSections: ["Settings sections", "设置分区"],

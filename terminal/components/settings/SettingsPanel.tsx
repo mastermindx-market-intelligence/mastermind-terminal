@@ -9,7 +9,8 @@ import type { AcsUser, SettingsSection } from "./SettingsProvider";
 import { SETTINGS_SECTIONS } from "./SettingsProvider";
 import type { AcsPlan, AcsUsage, DevTeamFixture, SectionProps } from "./types";
 import {
-  IconAccount, IconAlertDelivery, IconBilling, IconPrefs, IconSignOut, IconSync, IconTeam, IconTerminal, IconUsage, IconX,
+  IconAccount, IconAlertDelivery, IconBilling, IconPrefs, IconSignOut, IconSync, IconTeam, IconTerminal, IconUsage,
+  IconWebhooks, IconX,
 } from "./icons";
 import SectionAccount from "./SectionAccount";
 import SectionBilling from "./SectionBilling";
@@ -19,6 +20,7 @@ import SectionAlertDelivery from "./SectionAlertDelivery";
 import SectionTerminal from "./SectionTerminal";
 import SectionSync from "./SectionSync";
 import SectionTeam from "./SectionTeam";
+import SectionWebhooks from "./SectionWebhooks";
 
 // ── The settings dashboard shell ─────────────────────────────────────────────
 // Ported from the Macro Dashboard's `_buildSDash` / `_wireSDash` / `_sdShow` /
@@ -40,6 +42,7 @@ const NAV: { id: SettingsSection; icon: React.ReactNode; key: string }[] = [
   { id: "alertDelivery", icon: <IconAlertDelivery />, key: "acsAlertDelivery" },
   { id: "terminal", icon: <IconTerminal />, key: "acsTerminal" },
   { id: "sync", icon: <IconSync />, key: "acsSyncT" },
+  { id: "webhooks", icon: <IconWebhooks />, key: "acsWebhooks" },
 ];
 
 const HEAD_KEY: Record<SettingsSection, string> = {
@@ -51,6 +54,7 @@ const HEAD_KEY: Record<SettingsSection, string> = {
   alertDelivery: "acsAlertDelivery",
   terminal: "acsTerminal",
   sync: "acsSyncT",
+  webhooks: "acsWebhooks",
 };
 
 export interface SettingsPanelProps {
@@ -287,6 +291,7 @@ export default function SettingsPanel(props: SettingsPanelProps) {
             {section === "alertDelivery" && <SectionAlertDelivery {...shared} />}
             {section === "terminal" && <SectionTerminal {...shared} />}
             {section === "sync" && <SectionSync {...shared} />}
+            {section === "webhooks" && <SectionWebhooks {...shared} />}
           </div>
         </section>
       </div>
