@@ -3,6 +3,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import dynamic from "next/dynamic";
 import { createClient } from "@/lib/supabase/client";
 import { SS_OPEN, normalizePlanKey, type OnboardMode, type PlanKey, type Period, type OnboardingSheetProps } from "./types";
+import { sendScopedAccountWrite } from "@/lib/accountPrefs";
 import { deliverPendingPrefs, readPendingPrefs } from "@/lib/onboardingPrefsOutbox";
 
 // The wizard itself is code-split (ssr:false) so it never bloats first paint — it only loads
@@ -144,7 +145,7 @@ export function OnboardingProvider({ email, children }: { email: string; childre
   // watched onboarding complete normally.
   //
   // Acknowledge before delete: the record is cleared only by deliverPendingPrefs, and only after
-  // the authority confirms the write. The latch below guards against CONCURRENT delivery (React
+  // the authority confirms the write, or when nothing owned remained to send. The latch below guards against CONCURRENT delivery (React
   // StrictMode double-invocation, a re-render mid-flight), not against ever trying again — a
   // failure releases it, so the next authed mount retries.
   const prefsInFlight = useRef(false);
@@ -153,9 +154,12 @@ export function OnboardingProvider({ email, children }: { email: string; childre
     if (!readPendingPrefs()) return;
     prefsInFlight.current = true;
     const supabase = createClient();
-    void deliverPendingPrefs((data) => supabase.auth.updateUser({ data }))
+    void deliverPendingPrefs((data) => sendScopedAccountWrite(
+      (scoped) => supabase.auth.updateUser({ data: scoped }),
+      data,
+    ))
       .then((outcome) => {
-        if (outcome.status !== "delivered") {
+        if (outcome.status === "failed") {
           // Keep the record AND re-arm, so a later mount (or a later `email` transition) tries again.
           prefsInFlight.current = false;
           console.warn("[onboarding] preferences still pending delivery", outcome);
