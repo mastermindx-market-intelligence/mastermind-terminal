@@ -15,8 +15,8 @@ import {
 } from "@/lib/markets";
 import {
   applyUpDown, isStartTf, legacyPrefsPatch, metaObject, readLang, readMetaPrefs, readSharedPrefs,
-  readTerminalMeta, readUpDown, sharedPrefsPatch, DEFAULT_TERMINAL_PREFS, type LangId,
-  type MetaPrefs, type TerminalPrefs, type UpDown,
+  readTerminalMeta, readUpDown, sendScopedAccountWrite, sharedPrefsPatch, DEFAULT_TERMINAL_PREFS,
+  type LangId, type MetaPrefs, type TerminalPrefs, type UpDown,
 } from "@/lib/accountPrefs";
 
 // Client-side read/write of EVERY account preference, stored in Supabase `user_metadata` — the
@@ -252,7 +252,10 @@ function beginOwner(next: string) {
   if (isAccountOwner(next)) {
     const gen = generation;
     pump = new PreferencePump({
-      send: (data) => createClient().auth.updateUser({ data }),
+      send: (data) => sendScopedAccountWrite(
+        (scoped) => createClient().auth.updateUser({ data: scoped }),
+        data,
+      ),
       onStatus: (status) => {
         if (gen !== generation) return;   // a pump for an owner nobody is looking at any more
         sync = status;
