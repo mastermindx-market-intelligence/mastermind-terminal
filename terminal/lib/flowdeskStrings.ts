@@ -146,8 +146,8 @@ const FLOW_LEX = {
 
   // ── Soft-direction tooltip (HONESTY DOCTRINE — the key required copy) ──────
   leanTooltip: [
-    "Lean is tick-rule derived — magnitude is the reliable read. Direction without NBBO is approximate (~0.41 recovery). Color and rank use premium size, not asserted side.",
-    "倾向基于tick规则推算 — 权利金规模才是可靠读数。无NBBO时方向为近似值（约0.41正确率）。颜色与排名基于权利金规模，非声称的买卖方向。",
+    "Lean is inferred from the last trade's price change, not confirmed by the official bid and ask, so direction is approximate; size is the reliable read. Colour and rank use premium size, not the inferred side.",
+    "方向倾向由成交价变动规则推断，未经官方买卖报价确认（方向正确率约0.41）；权利金规模才是可靠读数。颜色与排名基于权利金规模，而非推断出的买卖方向。",
   ],
 
   // ── Empty / loading states ─────────────────────────────────────────────────
@@ -170,6 +170,13 @@ const FLOW_LEX = {
   typeCall:         ["Call", "认购"],
   typePut:          ["Put", "认沽"],
   displayOnly:      ["Display-only — not investment advice", "仅供展示 — 非投资建议"],
+  spreadUnreliable: ["Spread — direction is unreliable", "价差 — 方向不可靠"],
+  scoreHonesty:     [
+    "The score reflects size, activity, and how unusual the print is — not a predicted win rate. The tiers describe the print; they do not claim a historical edge until a live track record exists.",
+    "评分反映规模、活跃度和异常程度，不是胜率预测。等级只是描述；在有实盘记录之前，不代表历史预测效力。",
+  ],
+  directionLean:    ["Direction lean", "方向倾向"],
+  tickRuleInferred: ["inferred from the last trade’s price change, not confirmed by the official bid and ask", "由成交价变动规则推断，未经官方买卖报价确认"],
   softDirection:    ["~soft direction", "~软性方向"],
   noNbbo:           ["Direction without NBBO is approximate", "无NBBO时方向为近似值"],
   baselineWarming:  ["baseline warming (<30 sessions)", "基线积累中（<30个交易日）"],
@@ -323,6 +330,20 @@ export const FD = {
     "Ticker-level premium activity is much higher than its typical level over the past trading year.",
     "该标的的权利金活跃度显著高于过去一个交易年度的常态水平。",
   ),
+  leanHeuristic: bi(
+    "Direction is inferred from the last trade’s price change — not confirmed by the official bid and ask",
+    "方向由成交价变动规则推断，未经官方买卖报价确认",
+  ),
+  allExpirations: bi("All expirations", "全部到期"),
+  sweepHeuristic: bi(
+    "A sweep is an estimate of who hit the market — not confirmed by the official bid and ask",
+    "扫单是对主动成交方的估计，未经官方买卖报价确认",
+  ),
+  detectionsCaveat: bi(
+    "Detection badges come from extra data. If that file is missing or stale, the filters still work and the badges stay hidden.",
+    "检测标记来自补充数据。文件缺失或过期时，筛选仍可用，标记会隐藏。",
+  ),
+  resetFilters: bi("Reset filters", "重置筛选"),
 } as const;
 
 /**
