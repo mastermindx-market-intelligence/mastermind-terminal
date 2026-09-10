@@ -103,12 +103,18 @@ describe("0017 personal accuracy ledger migration contract", () => {
     expect(doc.prefixes["0016"]).toMatchObject({ state: "taken", file: "0016_account_lifecycle_requests.sql", packet: "B-F12-4", pr: 527, pr_state: "merged" });
   });
 
-  it("records 0017 as not applied in the README application table", () => {
+  it("records 0017 as applied in the README application table", () => {
+    // The seat applied 0017 in production on 2026-09-10 at 20:57:38Z, from master's copy at
+    // b7aa0981, with the readback receipt on PR #547 (comment 5625342890). RESERVATIONS.json
+    // records that above; the README's application table is the human-readable half of the same
+    // fact, so it moves with it.
     const readme = readFileSync(readmePath, "utf8");
     expect(readme).toMatch(/0017_personal_accuracy_ledger\.sql/);
     const appRow = readme.split("\n").find((line) => line.includes("0017_personal_accuracy_ledger.sql"));
     expect(appRow, "application-status table is missing the 0017 row").toBeTruthy();
-    expect(appRow!.toLowerCase()).toMatch(/no — not applied|not applied/);
+    expect(appRow!.toLowerCase()).not.toMatch(/not applied/);
+    expect(appRow!.toLowerCase()).toMatch(/yes — applied 2026-09-10/);
+    expect(appRow!).toContain("5625342890");
     expect(readme).toMatch(/\|\s*`0017`\s*\|/);
   });
 });
