@@ -51,6 +51,9 @@ def test_normalize_opt_alert_root_table():
     assert ae.normalize_opt_alert_root(7) is None
     assert ae.normalize_opt_alert_root("TOOLONGROOTNAME") is None
     assert ae.normalize_opt_alert_root("SP Y") is None
+    # Regex matches; Flow._root still refuses because total length is 15 (> 12).
+    assert ae.normalize_opt_alert_root("ABCDEFGHIJ.ABCD") is None
+    assert ae.Flow._root("ABCDEFGHIJ.ABCD") is None
 
 
 def test_root_regex_parity_with_typescript():

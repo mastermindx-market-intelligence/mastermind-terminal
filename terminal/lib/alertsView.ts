@@ -355,7 +355,9 @@ export function buildAlertsView(input: {
       // A successful read with zero rows IS a count of 0, not an unknown — READ_OK_ZERO is
       // just as much "the read succeeded" as READ_OK with rows (blocker: a zero-alert user's
       // successful, empty read rendered "cannot read" instead of an honest 0).
-      count: input.alertsState === "READ_OK" || input.alertsState === "READ_OK_ZERO" ? alerts.length : null,
+      count: input.alertsState === "READ_OK" || input.alertsState === "READ_OK_ZERO"
+        ? alerts.filter((a) => a.identity_state !== "unresolved").length
+        : null,
     },
     // Distinct from `coverage.count` (which is an honest null, not a number, when coverage
     // is degraded) — this is the "how many symbols could we not evaluate" fact for the
@@ -410,7 +412,6 @@ export const ALERTS_COPY: Record<string, [string, string]> = {
   "outage.action": ["Retry", "重试"],
   "listUnavailable.body": ["We could not confirm your alert list just now. Try again in a few minutes.", "我们刚才无法确认你的警报列表，请几分钟后再试。"],
   "noCoverage.body": ["We could not check {n} of your conditions on the last run.", "上次检查中，有 {n} 项条件我们未能完成检查。"],
-  "noCoverage.body.prices": ["We cannot read prices for {n} of your symbols, so those conditions were not checked.", "有 {n} 个代码我们读不到价格，这些条件未被检查。"],
   "identity.unresolved": ["Cannot be checked", "无法检查"],
   "identity.unresolved.body": ["The underlying saved on this alert is not in a form we can read, so it will never fire. Delete it and set it up again.", "这条提醒保存的标的格式我们无法读取，因此它永远不会触发。请删除后重新设置。"],
   "monitor.lane.suite": ["Signal-suite conditions", "信号套件条件"],

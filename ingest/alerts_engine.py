@@ -109,12 +109,13 @@ _MARKET_WIDE_OPT = {"opt_premium_burst", "opt_0dte_spike"}
 
 def normalize_opt_alert_root(value) -> str | None:
     """Byte-for-byte port of terminal/lib/optionsAlerts.ts:635-639
-    (normalizeOptAlertRoot). The regex is already identical to FLOW_ROOT_RE
-    (:102); the divergence this closes is the missing .strip(). F08 freeze §13 C12."""
+    (normalizeOptAlertRoot). Accepts exactly what Flow._root evaluates: strip+upper,
+    total length ≤ 12, then FLOW_ROOT_RE. A root the engine will refuse is refused
+    here too — F08 freeze §13 C12."""
     if not isinstance(value, str):
         return None
     root = value.strip().upper()
-    return root if FLOW_ROOT_RE.fullmatch(root) else None
+    return root if len(root) <= 12 and FLOW_ROOT_RE.fullmatch(root) else None
 
 
 FLOW_STAMP_RE = re.compile(r"^[A-Za-z0-9_-]{1,32}$")
@@ -416,7 +417,7 @@ class Supa:
         subject = f"{ticker} alert: {condition_plain}" if ticker else condition_plain
         subject_zh = f"{ticker}提醒：{condition_plain_zh}" if ticker else condition_plain_zh
         summary_plain = f"Your alert fired: {condition_plain}."
-        summary_plain_zh = f"您的提醒已触发：{condition_plain_zh}。"
+        summary_plain_zh = f"你的提醒已触发：{condition_plain_zh}。"
         payload = {
             "subject": subject,
             "subject_zh": subject_zh,

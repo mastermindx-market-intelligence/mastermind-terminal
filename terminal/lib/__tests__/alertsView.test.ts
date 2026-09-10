@@ -693,10 +693,7 @@ describe("B-F08-B5-3 R8 copy + unresolved chip", () => {
       "We could not check {n} of your conditions on the last run.",
       "上次检查中，有 {n} 项条件我们未能完成检查。",
     ]);
-    expect(ALERTS_COPY["noCoverage.body.prices"]).toEqual([
-      "We cannot read prices for {n} of your symbols, so those conditions were not checked.",
-      "有 {n} 个代码我们读不到价格，这些条件未被检查。",
-    ]);
+    expect(ALERTS_COPY["noCoverage.body.prices"]).toBeUndefined();
     expect(ALERTS_COPY["monitor.lane.suite"]).toEqual(["Signal-suite conditions", "信号套件条件"]);
     expect(ALERTS_COPY["monitor.lane.engine"]).toEqual(["Price, trend and options conditions", "价格、趋势与期权条件"]);
     expect(ALERTS_COPY["monitor.lane.degraded"]).toEqual([
@@ -710,5 +707,39 @@ describe("B-F08-B5-3 R8 copy + unresolved chip", () => {
     expect(rowChipKey({ identity_state: "ok", active: true, condition: { type: "opt_gamma_flip" } })).toBe("resolution.armed");
     expect(copy("identity.unresolved", "en")).not.toBe(copy("resolution.armed", "en"));
     expect(copy("identity.unresolved.body", "zh")).toMatch(/[，。]/);
+  });
+});
+
+describe("coverage.count excludes unresolved rows (REQUIRED 4)", () => {
+  it("an unresolved armed alert newer than the last run is not counted as tracked", () => {
+    const unresolved: Alert = {
+      id: "u1", active: true, created_at: "2026-09-05T12:00:00Z",
+      identity_state: "unresolved",
+      condition: { type: "opt_gamma_flip", root: "TOOLONGROOTNAME" },
+    };
+    const ok: Alert = {
+      id: "p1", active: true, created_at: "2026-01-01T00:00:00Z",
+      identity_state: "ok",
+      condition: { type: "price", op: "above", value: 200 },
+    };
+    const view = buildAlertsView({
+      alerts: [unresolved, ok], alertsState: "READ_OK",
+      run: baseRun(), lastSuccessAt: "2026-09-05T11:59:00Z", lastSuccessState: "READ_OK",
+      runsState: "READ_OK", outbox: [], outboxState: "READ_OK_ZERO", now: NOW,
+    });
+    expect(view.coverage.count).toBe(1);
+  });
+  it("a lone unresolved armed alert yields tracked count 0, never 1", () => {
+    const unresolved: Alert = {
+      id: "u1", active: true, created_at: "2026-09-05T12:00:00Z",
+      identity_state: "unresolved",
+      condition: { type: "opt_gamma_flip", root: "TOOLONGROOTNAME" },
+    };
+    const view = buildAlertsView({
+      alerts: [unresolved], alertsState: "READ_OK",
+      run: baseRun(), lastSuccessAt: "2026-09-05T11:59:00Z", lastSuccessState: "READ_OK",
+      runsState: "READ_OK", outbox: [], outboxState: "READ_OK_ZERO", now: NOW,
+    });
+    expect(view.coverage.count).toBe(0);
   });
 });

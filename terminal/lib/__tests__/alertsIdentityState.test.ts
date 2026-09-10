@@ -37,6 +37,16 @@ describe("optAlertIdentityState", () => {
     expect(optAlertIdentityState("X", { type: "opt_0dte_spike", root: 1 })).toBe("ok");
   });
 
+  it("refuses a 15-char dotted root the engine will refuse (ABCDEFGHIJ.ABCD)", () => {
+    // Regex {1,10}.{1,4} matches; Flow._root also requires total length ≤ 12.
+    expect(canonicalizeOptAlertIdentity("ABCDEFGHIJ.ABCD", {
+      type: "opt_gamma_flip", root: "ABCDEFGHIJ.ABCD",
+    })).toBeNull();
+    expect(optAlertIdentityState("ABCDEFGHIJ.ABCD", {
+      type: "opt_gamma_flip", root: "ABCDEFGHIJ.ABCD",
+    })).toBe("unresolved");
+  });
+
   it("agrees with canonicalizeOptAlertIdentity on every shared input (property, not two tables)", () => {
     for (const c of CASES) {
       const canon = canonicalizeOptAlertIdentity(c.symbol, c.condition);

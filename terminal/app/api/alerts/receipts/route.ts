@@ -42,6 +42,9 @@ async function readLane(
     last_success_at: successState === "READ_UNAVAILABLE" || !successRows?.[0]
       ? null
       : (successRows[0] as unknown as { concluded_at: string | null }).concluded_at,
+    // Distinct from last_success_at itself: a null time means EITHER "never had a successful
+    // run" (successState READ_OK_ZERO) or "could not confirm one way or the other" (successState
+    // READ_UNAVAILABLE) — the client must not render the same "not recorded" copy for both.
     last_success_state: successState,
   };
 }
@@ -53,8 +56,15 @@ export async function GET() {
 
   const runCols = "lane, run_id, started_at, concluded_at, outcome, evaluated_n, fired_n, unevaluable_n, source_asof, lane_cadence_budget_s, error_class";
 
-  const engine = await readLane(supabase, "alerts_engine", runCols);
-  const suite = await readLane(supabase, "suite_alerts", runCols);
+  // Distinct from last_success_at itself: a null time means EITHER "never had a successful
+  // run" (successState READ_OK_ZERO) or "could not confirm one way or the other" (successState
+  // READ_UNAVAILABLE) — the client must not render the same "not recorded" copy for both.
+  // Both lanes carry this pair independently; last_success_state is never inferred from the
+  // timestamp alone.
+  const [engine, suite] = await Promise.all([
+    readLane(supabase, "alerts_engine", runCols),
+    readLane(supabase, "suite_alerts", runCols),
+  ]);
 
   const { data: outboxRows, error: outboxErr } = await supabase
     .from("alert_outbox")

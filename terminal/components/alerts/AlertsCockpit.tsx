@@ -9,7 +9,7 @@ import AlertDetail, { type AlertDetailData } from "./AlertDetail";
 import { NewAlertPanel } from "@/components/AlertsView";
 import {
   buildAlertsView, conditionText, conditionsWord, copy, verdictText, ALERTS_CHANGED_EVENT,
-  lanesForArmedAlerts, monitorFor,
+  lanesForArmedAlerts, monitorFor, rowChipKey,
   type Alert, type ReadState, type RunReceipt, type OutboxRow,
 } from "@/lib/alertsView";
 import { useLang } from "@/lib/i18n";
@@ -228,6 +228,7 @@ export default function AlertsCockpit({ email, children }: { email: string; chil
   // have no fresh run receipt yet) still gets the calm "add a watch" copy, never "Check again"
   // (major: B1 calm-zero copy was reachable only under monitor==="watching").
   const zeroAlerts = view.emptyAction === "add_watch" && !listUnavailable;
+  const hasUnresolved = (alerts || []).some((a) => a.identity_state === "unresolved");
 
   // One state per screen: the spine's `data-cockpit-state` and the rendered explanatory module
   // below must always agree on which fact is being reported. Degraded (the engine's own run
@@ -326,7 +327,7 @@ export default function AlertsCockpit({ email, children }: { email: string; chil
           <button type="button" className={`btn btn-ghost ${s.emptyAction}`} onClick={load}>{copy("degraded.action", L)}</button>
         </div>
       )}
-      {dataState === "calm-empty" && !zeroAlerts && (
+      {dataState === "calm-empty" && !zeroAlerts && !hasUnresolved && (
         <div className={s.module} data-alerts-module="calm-empty">
           <p className={s.calmBody}>{copy("empty.calm", L, { n: view.coverage.count ?? 0, condWord: conditionsWord(view.coverage.count ?? 0, L) })}</p>
           <button type="button" className={`btn btn-ghost ${s.emptyAction}`} onClick={scrollToAddWatch}>{copy("empty.calm.action", L)}</button>
@@ -371,9 +372,11 @@ export default function AlertsCockpit({ email, children }: { email: string; chil
         rows={(alerts || []).filter((a) => a.active).map((a) => ({
           id: a.id,
           symbol: a.symbol || "—",
-          label: a.identity_state === "unresolved" ? copy("identity.unresolved.body", L) : conditionText(a.condition, undefined, L),
+          label: a.identity_state === "unresolved"
+            ? `${conditionText(a.condition, undefined, L)} — ${copy("identity.unresolved.body", L)}`
+            : conditionText(a.condition, undefined, L),
           state: "armed" as const,
-          chip: a.identity_state === "unresolved" ? copy("identity.unresolved", L) : undefined,
+          chip: a.identity_state === "unresolved" ? copy(rowChipKey(a), L) : undefined,
           identityState: a.identity_state,
         }))}
         unavailable={listUnavailable}
