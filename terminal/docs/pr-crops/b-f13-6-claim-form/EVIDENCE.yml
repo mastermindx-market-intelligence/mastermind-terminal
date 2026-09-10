@@ -1,13 +1,14 @@
 # B-F13-6 Claim authoring form — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: a599425f4ee5ca526f5be0784435cca0ac4bd67a
-# capturedAt: 2026-09-09T15:10:42.419Z
+# capturedAtHead: bf497352a1210dd2daa0500b054a1b4c485435cc
+# capturedAt: 2026-09-10T14:59:05.376Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/workspaces/ClaimAuthoringForm.tsx: "84eeb03cd793baf3e0be82a2247f57e4d5db667a977a91f8a6b7fe2182350ae9"
+  terminal/components/workspaces/ClaimAuthoringForm.tsx: "58c9be616f9ef5b7d90c7efdc164138ef76bdc6d7ffd590ff27ad904bfea4a3f"
   terminal/components/workspaces/ClaimAuthoringForm.module.css: "a8f3030eef0538dccc9f32f5a2688ecbf5f7b8e9c1601717fa819fae763acdc1"
-  terminal/lib/claimAuthoring.ts: "889c7f1df958db49c5c7a7d122427e030b068a5b8e2d18e13d4df5d7ea3c410e"
+  terminal/lib/claimAuthoring.ts: "b87652bc9c484de109395fb1d5b8dd8a0ba0ddb0ff8e88d629c4bd616b535ed5"
+  terminal/components/workspaces/ThesisWorkspace.tsx: "938fbc12ca754cef88b5d547a307b7cbae7d06bc8434cac50128f0269e784270"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -22,6 +23,10 @@ harness:
   mobile-zh-empty.png: { url: "/analysis?view=theses&symbol=NVDA&lang=zh", state: empty }
   mobile-en-filled.png: { url: "/analysis?view=theses&symbol=NVDA&lang=en", state: filled }
   mobile-zh-filled.png: { url: "/analysis?view=theses&symbol=NVDA&lang=zh", state: filled }
+  desktop-en-entry.png: { url: "/analysis?view=theses&symbol=NVDA&lang=en", state: entry }
+  desktop-zh-entry.png: { url: "/analysis?view=theses&symbol=NVDA&lang=zh", state: entry }
+  mobile-en-entry.png: { url: "/analysis?view=theses&symbol=NVDA&lang=en", state: entry }
+  mobile-zh-entry.png: { url: "/analysis?view=theses&symbol=NVDA&lang=zh", state: entry }
 capture_flag: TERMINAL_E2E_FIXTURE
 capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.
 command: |
@@ -36,3 +41,7 @@ files:
   - mobile-zh-empty.png
   - mobile-en-filled.png
   - mobile-zh-filled.png
+  - desktop-en-entry.png
+  - desktop-zh-entry.png
+  - mobile-en-entry.png
+  - mobile-zh-entry.png
