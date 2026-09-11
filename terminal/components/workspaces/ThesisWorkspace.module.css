@@ -93,6 +93,19 @@
   .historySummary > button { grid-column: 3; }
   .versionMeta { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+.savedViews { display: grid; gap: 8px; margin: 0 0 14px; padding: 10px 2px 0; border-top: 1px solid var(--line-2); }
+.savedViewsTitle { margin: 0; color: var(--text-2); font: 700 11px/1.3 var(--font-ui); letter-spacing: .04em; }
+.savedViewChips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.savedViewItem { display: inline-flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.savedViewChip { min-height: 30px; border: 1px solid var(--line-2); border-radius: var(--r-pill); padding: 4px 10px; color: var(--text-2); background: transparent; font: 700 11px/1.3 var(--font-ui); cursor: pointer; }
+.savedViewChip:hover:not(:disabled) { background: var(--panel-2); }
+.savedViewChip[data-selected] { border-color: var(--brand); background: color-mix(in srgb, var(--brand) 14%, transparent); color: var(--text); }
+.savedViewAction { min-height: 30px; border: 0; background: transparent; color: var(--muted); font: 600 11px/1.3 var(--font-ui); cursor: pointer; }
+.savedViewAction:hover:not(:disabled) { color: var(--text-2); }
+.savedViewsNote { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
+.savedViewsFault { display: grid; gap: 4px; justify-items: start; }
+.saveViewForm { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.saveViewForm input { min-height: 30px; min-width: 140px; border: 1px solid var(--line); border-radius: var(--r-md); padding: 4px 8px; color: var(--text); background: var(--panel-2); font: 600 12px/1.3 var(--font-ui); }
 .lensRail { margin: 0 0 14px; }
 .lensRail ul { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
 .lens { width: 100%; min-height: 30px; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 6px 9px 6px 8px; border: 0; border-left: 2px solid transparent; border-radius: 0 var(--r-md) var(--r-md) 0; background: transparent; color: var(--muted); font: 700 12px/1.2 var(--font-ui); text-align: left; cursor: pointer; transition: color var(--t-fast) var(--ease), background var(--t-fast) var(--ease); }
@@ -133,6 +146,7 @@
   .historySummary > button { grid-column: 2; grid-row: 1 / span 4; align-self: stretch; }
   .versionMeta, .snapshotGrid { grid-template-columns: 1fr; }
   .snapshotFull { grid-column: auto; }
+  .savedViewChip, .savedViewAction { min-height: 38px; }
   .lensRail { position: relative; z-index: 0; isolation: isolate; margin: 0 -10px 12px; padding: 0 10px; }
   .lensRail ul { position: relative; z-index: 0; grid-auto-flow: column; grid-auto-columns: max-content; overflow-x: auto; gap: 6px; padding-bottom: 4px; scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; }
   .lens { min-height: 38px; border-left: 0; border-bottom: 2px solid transparent; border-radius: var(--r-md); padding: 8px 12px; scroll-snap-align: start; }
