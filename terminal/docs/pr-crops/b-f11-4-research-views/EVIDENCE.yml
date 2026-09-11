@@ -1,0 +1,66 @@
+# B-F11-4 research management views — capture evidence
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
+# capturedAtHead: 3257006cb8a777437bf084738132583b9d3bf681
+# 2026-09-10 merge-only refresh onto master b7aa0981 (#547): i18n.tsx re-hashed because master's B-F13-5 lexicon keys merged into the shared file; no B-F11-4 string or layout changed; no crop recaptured.
+# 2026-09-10 merge-only refresh onto master 64c05ff2 (#553): i18n.tsx re-hashed again because master's B-F12-B5-3 account-completeness lexicon keys merged into the shared file; no B-F11-4 string or layout changed; no crop recaptured.
+# 2026-09-11 merge of master 9b7e7a41 (#546) into B-F13-6 (#554): ThesisWorkspace.tsx and i18n.tsx re-hashed. This PR adds a claim-entry button to the workspace context bar (styles.contextActions, inside <header>) and 31 claim* lexicon keys; the B-F11-4 crops clip to [data-testid="thesis-list-pane"], which contains neither, so no B-F11-4 surface renders differently and no crop was recaptured.
+# 2026-09-11 merge of master 9b7e7a41 (#546) into B-F12-B5-1 (#548): i18n.tsx re-hashed because this PR adds the Sharing-tab and explicit-grants lexicon keys (acsSharing plus 28 shr* keys) to the shared file; no B-F11-4 string or layout changed; no crop recaptured - those keys are not rendered on the thesis list pane.
+# 2026-09-11 merge of master bad423f5 (#548 explicit grants) into B-F13-6 (#554): i18n.tsx re-hashed a third time - the merged lexicon now carries BOTH this PR's 31 claim* keys AND master's acsSharing plus 28 shr* keys, so it hashes to neither side's value. No other B-F11-4 pinned file changed on either side; the crops clip to [data-testid="thesis-list-pane"], which renders neither the claim-entry button nor any settings-rail row, so no crop was recaptured.
+# capturedAt: 2026-09-10T15:42:44.798Z
+# capturedAtHead is informational. The lock is layoutFiles.
+# 2026-09-11 duplicate-key fix on #550: the carrier renamed its own acsTeamNone/acsTeamMany (acsTeamNone/acsTeamMany -> acsTeamNoneCreate/acsTeamManyPanel) to clear the TS1117 collision with master #553's pair; i18n.tsx re-hashed. No B-F11-4 string or layout changed; no crop recaptured.
+# 2026-09-11 merge of master e43733c1 (#548 explicit grants + #566 ledger flip) into B-F12-8 (#550): i18n.tsx re-hashed because master's Sharing-tab and explicit-grants lexicon keys merged into the shared file. No B-F11-4 string or layout changed; no crop recaptured.
+# 2026-09-11 merge of master 7e15e502 (#554 claim authoring form) into B-F12-8 (#550): i18n.tsx re-hashed because master's 31 claim* lexicon keys merged into the shared file, and ThesisWorkspace.tsx now carries master's claim-entry button (this PR edits neither file). The B-F11-4 crops clip to [data-testid="thesis-list-pane"], which contains neither that context-bar button nor any key this merge added, so no B-F11-4 surface renders differently and no crop was recaptured.
+layoutFiles:
+  terminal/components/workspaces/ThesisWorkspace.tsx: "51b6a96909a53373ca3ce160605960bc03615a89d296fcc6dfdd28461e987445"
+  terminal/components/workspaces/ThesisWorkspace.module.css: "ac9547b1b7cf4a5d51f4838a40983f55d489483bef1e237ee2b5e81c8e10d37c"
+  terminal/lib/rmsViews.ts: "fd5f025806c5a4b1b27e7d99a026e82f555767f0d96b6a2766a5b363961897cb"
+  terminal/lib/savedViews.ts: "16e2914a032cba50cce999d1802c53e51098ce76dd82931925ef41b8e0f7af54"
+  terminal/lib/plainLabels.ts: "8f69818feca65a5f28c590460c52e4f06c04c25cc4f3da8643eff9050161b588"
+  terminal/lib/i18n.tsx: "58228919212680b8b0335dfe561e5358c723b18fcbb4cb7fa47e71e5223d7910"
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: mobile, width: 390, height: 844 }
+surfaces: [empty, named-views, save-flow, window-closed, view-subject-empty, unavailable]
+view_subject_empty_scope: 1440 only, en and zh
+unavailable_scope: 1440 only, en and zh
+crop_surface: |
+  Every PNG is the thesis list pane only — cropPane() clips to
+  [data-testid="thesis-list-pane"], the surface spec 2.10 asks for. At the 1440
+  viewport that pane is about 290px wide, so a "1440" crop is a ~290px image taken
+  from a 1440x900 render, not a 1440-wide frame.
+capture_flag: TERMINAL_E2E_FIXTURE
+window_closed_data: |
+  A real alert_outbox row in the e2e fixture database, seeded by the fixture
+  transport for the first thesis created in a store whose key carries
+  FIXTURE_MONITOR_FIRED_TOKEN (terminal/lib/watchlistsFixtureDb.ts). The shipped
+  GET /api/thesis-fire-status route and mapOutboxToConditionStates() run for real
+  against it; nothing in this capture stubs a network response.
+capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
+command: |
+  cd terminal
+  node e2e/tools/capture_f11_4_research_views.cjs
+files:
+  - empty-1440-zh.png
+  - empty-1440.png
+  - empty-390-zh.png
+  - empty-390.png
+  - named-views-1440-zh.png
+  - named-views-1440.png
+  - named-views-390-zh.png
+  - named-views-390.png
+  - save-flow-1440-zh.png
+  - save-flow-1440.png
+  - save-flow-390-zh.png
+  - save-flow-390.png
+  - unavailable-1440-zh.png
+  - unavailable-1440.png
+  - view-subject-empty-1440-zh.png
+  - view-subject-empty-1440.png
+  - window-closed-1440-zh.png
+  - window-closed-1440.png
+  - window-closed-390-zh.png
+  - window-closed-390.png

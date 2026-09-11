@@ -1,24 +1,24 @@
 # B-F12-7 Outbound signed webhooks — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 5992b8b52f41e9aad3163b05d33cbb74bc30b75e
-# capturedAt: 2026-09-10T19:34:24.409Z
+# capturedAtHead: 916db2d4ac62b00aed236231433d8d952c22f3c6
+# capturedAt: 2026-09-11T02:58:28.624Z
 # capturedAtHead is informational. The lock is layoutFiles.
-# 2026-09-10 merge-heal on PR #547: SettingsPanel.tsx gained the B-F13-5 Accuracy nav row. SettingsPanel.tsx re-hashed; 18 crops recaptured at merge commit 5992b8b52 so the rail matches the merged panel.
 # layoutFiles are packet-local and ARE asserted by
 # terminal/lib/__tests__/f12_7WebhooksEvidence.test.ts. informationalFiles
 # are recorded for provenance only: terminal/lib/i18n.tsx is the repo-wide
 # bilingual lexicon every UI packet extends, and asserting it here would
 # redden master for unrelated LEX-adding work.
+# 2026-09-11 merge of master e43733c1 (#548 explicit grants + #566 ledger flip) into B-F12-8 (#550): 18 crops recaptured at merge commit 916db2d4ac62b00aed236231433d8d952c22f3c6 so the rail shows the merged 11 rows (account, team, accuracy, billing, usage, prefs, alertDelivery, terminal, sync, webhooks, sharing). This supersedes every earlier crops-unchanged / no-crop-recaptured line in this header.
 layoutFiles:
   terminal/components/settings/SectionWebhooks.tsx: "042cfc46c2a8bdfc967e1360333269d1a50e48fed87f85d8d4597dd23379a60b"
   terminal/lib/webhookLabels.ts: "e9d8bb808f09e88eb9ed31582915b9cc281986e714cdec86442708a7da8689eb"
   terminal/lib/webhookUrl.ts: "e1928132afa22ba3f3f5c5ad00c1f5cd7c66eee06a95ad49e6d25008117e18cf"
-  terminal/components/settings/SettingsPanel.tsx: "70cd715018c8bdce3f09074adf79c6f053a642b478fe1686c732eefc951ad844"
-  terminal/components/settings/icons.tsx: "42362b265590d385257ee01bc9b518ef755f359227b740ec7599881204b0c3c7"
+  terminal/components/settings/SettingsPanel.tsx: "378811617e0de2feed0d8bc1c6e01ae55d8e763204fe0d1c1829bc44fff1e1a4"
+  terminal/components/settings/icons.tsx: "3bcda36b25a736f7c957151d3c7cee4e7946967e253c4753f0ac7cdb1e5e4ab2"
 informationalFiles:
   asserted: false
-  terminal/lib/i18n.tsx: "460c7e6430f14a5f86e6b06539e41a62841f9107e205267220f2cf7575fda715"
+  terminal/lib/i18n.tsx: "4d2080b2e6838cac38bd1681ccf482e988e94c2254b0f7fbd9e2dc981eb87ff4"
 theme: dark
 languages: [en, zh]
 viewports:

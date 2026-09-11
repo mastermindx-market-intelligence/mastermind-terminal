@@ -7,10 +7,10 @@ import { entitlementAgeMs, useDisplayEntitlement } from "@/lib/entitlementStore"
 import { useUsage } from "@/lib/usageStore";
 import type { AcsUser, SettingsSection } from "./SettingsProvider";
 import { SETTINGS_SECTIONS } from "./SettingsProvider";
-import type { AcsPlan, AcsUsage, SectionProps } from "./types";
+import type { AcsPlan, AcsUsage, DevTeamFixture, SectionProps } from "./types";
 import type { AccuracyReadout } from "@/lib/personalAccuracy";
 import {
-  IconAccount, IconAlertDelivery, IconBilling, IconPrefs, IconSignOut, IconSync, IconTerminal, IconUsage,
+  IconAccount, IconAlertDelivery, IconBilling, IconPrefs, IconSharing, IconSignOut, IconSync, IconTeam, IconTerminal, IconUsage,
   IconWebhooks, IconX,
 } from "./icons";
 import SectionAccount from "./SectionAccount";
@@ -21,7 +21,9 @@ import SectionPreferences from "./SectionPreferences";
 import SectionAlertDelivery from "./SectionAlertDelivery";
 import SectionTerminal from "./SectionTerminal";
 import SectionSync from "./SectionSync";
+import SectionTeam from "./SectionTeam";
 import SectionWebhooks from "./SectionWebhooks";
+import SectionSharing from "./SectionSharing";
 
 function IconAccuracy() {
   return (
@@ -45,6 +47,7 @@ function IconAccuracy() {
 
 const NAV: { id: SettingsSection; icon: React.ReactNode; key: string }[] = [
   { id: "account", icon: <IconAccount />, key: "acsAccount" },
+  { id: "team", icon: <IconTeam />, key: "acsTeam" },
   { id: "accuracy", icon: <IconAccuracy />, key: "accNav" },
   { id: "billing", icon: <IconBilling />, key: "acsBilling" },
   { id: "usage", icon: <IconUsage />, key: "acsUsage" },
@@ -53,10 +56,12 @@ const NAV: { id: SettingsSection; icon: React.ReactNode; key: string }[] = [
   { id: "terminal", icon: <IconTerminal />, key: "acsTerminal" },
   { id: "sync", icon: <IconSync />, key: "acsSyncT" },
   { id: "webhooks", icon: <IconWebhooks />, key: "acsWebhooks" },
+  { id: "sharing", icon: <IconSharing />, key: "acsSharing" },
 ];
 
 const HEAD_KEY: Record<SettingsSection, string> = {
   account: "acsAccount",
+  team: "acsTeam",
   accuracy: "accNav",
   billing: "acsBilling",
   usage: "acsUsage",
@@ -65,6 +70,7 @@ const HEAD_KEY: Record<SettingsSection, string> = {
   terminal: "acsTerminal",
   sync: "acsSyncT",
   webhooks: "acsWebhooks",
+  sharing: "acsSharing",
 };
 
 export interface SettingsPanelProps {
@@ -84,6 +90,7 @@ export interface SettingsPanelProps {
    *  way to exercise the paid/unlimited plan states and the usage meters. */
   devPlan?: AcsPlan;
   devUsage?: AcsUsage;
+  devTeam?: DevTeamFixture;
   devAccuracy?: AccuracyReadout | null;
 }
 
@@ -313,9 +320,11 @@ export default function SettingsPanel(props: SettingsPanelProps) {
           {/* Only the active section is mounted: that gives the acsRise entry
               animation for free on every switch, and keeps the eight sections
               from all fetching at once. The payloads they share (plan, usage)
-              are cached above, so switching back is free. */}
+              are cached above, so switching back is free. Team joins the existing
+              settings family; it is not a third nav. */}
           <div className="acs-sect on" key={section}>
             {section === "account" && <SectionAccount {...shared} />}
+            {section === "team" && <SectionTeam {...shared} devTeam={props.devTeam} />}
             {section === "accuracy" && (
               <SectionAccuracy {...shared} readout={accuracy} loadErr={accuracyLoadErr} />
             )}
@@ -330,6 +339,7 @@ export default function SettingsPanel(props: SettingsPanelProps) {
             {section === "terminal" && <SectionTerminal {...shared} />}
             {section === "sync" && <SectionSync {...shared} />}
             {section === "webhooks" && <SectionWebhooks {...shared} />}
+            {section === "sharing" && <SectionSharing {...shared} />}
           </div>
         </section>
       </div>

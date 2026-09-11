@@ -272,7 +272,6 @@ test("left-side and percentage scales keep the foreground label on the active ax
   await page.goto("/terminal?symbol=NVDA");
   await chartReady(page);
 
-  const state = await labels(page);
   const wrap = await page.locator(".chart-wrap").boundingBox();
   expect(wrap).not.toBeNull();
   for (const selector of [".mm-ptag", ".mm-exttag"]) {
@@ -282,13 +281,21 @@ test("left-side and percentage scales keep the foreground label on the active ax
     ).toBeCloseTo(wrap!.x + 1, 0);
   }
 
-  const x = wrap!.x + wrap!.width * 0.55;
-  await page.mouse.move(x, wrap!.y + state.primaryAnchorY! - 35);
-  await page.mouse.move(x, wrap!.y + state.primaryAnchorY!);
-  await expect(page.locator(".mm-hovertag")).toBeVisible();
-  await expect(page.locator(".mm-hovertag")).toContainText(/%$/);
-  const hover = await page.locator(".mm-hovertag").boundingBox();
-  expect(hover).not.toBeNull();
+  // Sibling :364-366: one move to the last-price overlay point. A y-35 approach can leave the
+  // price pane, and under load that leave lands after the target move, so the tag ends up hidden
+  // with its leftover text (hoverTagPaint.ts:20 "hide" -> ChartPanel.tsx:3620 display:none).
+  const label = await settledHoverLabel(page, {
+    move: async () => {
+      const wrapNow = await page.locator(".chart-wrap").boundingBox();
+      const now = await labels(page);
+      if (!wrapNow || now.primaryAnchorY == null) return;
+      await page.mouse.move(wrapNow.x + wrapNow.width * 0.55, wrapNow.y + now.pricePaneTop + now.primaryAnchorY);
+    },
+    message: "the left-scale hover label should stay visible with a stable box",
+  });
+  // hoverLabelOk() already required visible + non-empty text + a laid-out box; the % unit is ours.
+  expect(label.text).toMatch(/%$/);
+  const hover = label.box;
   expect(hover!.x).toBeCloseTo(wrap!.x + 1, 0);
   expect(hover!.height).toBeGreaterThanOrEqual(28); // covers LWC's full 16px-font crosshair label
   const hoverFits = await page.locator(".mm-hovertag").evaluate((el) => el.scrollWidth <= el.clientWidth);

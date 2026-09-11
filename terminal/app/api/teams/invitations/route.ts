@@ -5,6 +5,7 @@ import {
   listInvites,
   acceptInvite,
   INVITE_MESSAGES,
+  TEAM_ROUTE_MESSAGES,
   type TenancyRpcDb,
 } from "@/lib/teams";
 
@@ -57,6 +58,10 @@ export async function POST(req: Request) {
     if (!teamId) return NextResponse.json(bodyFor("team_not_found"), { status: 404 });
     const result = await createInvite(session.db, session.userId, teamId, { email: body.email, role: body.role });
     if (!result.ok) {
+      if (result.code === "owner_only_admin") {
+        const [message, messageZh] = TEAM_ROUTE_MESSAGES.owner_only_admin;
+        return NextResponse.json({ error: "FORBIDDEN", message, messageZh }, { status: 403 });
+      }
       const code = (result.code ?? "failed") as keyof typeof INVITE_MESSAGES;
       return NextResponse.json(bodyFor(code), { status: result.status });
     }
