@@ -1,10 +1,11 @@
 # Ledger row: 0020_team_ownership_transfer / PR #557 (open, packet B-F12-9); not applied
 # layoutFiles carry sha256 hashes of the files they name; proof of which code generated each crop.
 # Rebuild any crop and recompute its layoutFiles, or the test will fail and the PR will not land.
-# capturedAtHead: 916db2d4ac62b00aed236231433d8d952c22f3c6
-capturedAtHead: 916db2d4ac62b00aed236231433d8d952c22f3c6
+# capturedAtHead: d4a16eb352946145e6e0292d1b9d33d8207778d2
+capturedAtHead: d4a16eb352946145e6e0292d1b9d33d8207778d2
 capturedAt: 2026-09-11T03:00:17.565Z
-# capturedAtHead is the merge commit 916db2d4ac62b00aed236231433d8d952c22f3c6, which is this commit's direct parent; the layoutFiles hashes below are that commit's bytes. (The earlier statement naming the duplicate-key fix commit no longer holds.)
+# capturedAtHead is the merge commit d4a16eb352946145e6e0292d1b9d33d8207778d2, which is this commit's direct parent; the layoutFiles hashes below are that commit's bytes. (The earlier statements naming the duplicate-key fix commit and the 916db2d4ac62b00aed236231433d8d952c22f3c6 merge no longer hold.)
+# capturedAtHead moved to the merge commit M3 (d4a16eb352946145e6e0292d1b9d33d8207778d2); pinned i18n.tsx changed by #554's claim* keys; the captured surface (team section + rail) did not render them; crops unchanged from 916db2d4ac62b00aed236231433d8d952c22f3c6.
 # 2026-09-11 duplicate-key fix (#550): master #553 added its own acsTeamNone/acsTeamMany, so #550's pair was renamed (-> acsTeamNoneCreate/acsTeamManyPanel) and SectionTeam repointed; neither key is rendered on the ownership-transfer surface.
 # 2026-09-11 merge of master e43733c1 (#548 explicit grants + #566 ledger flip) into B-F12-8 (#550): 8 crops recaptured at merge commit 916db2d4ac62b00aed236231433d8d952c22f3c6 so the rail shows the merged 11 rows (account, team, accuracy, billing, usage, prefs, alertDelivery, terminal, sync, webhooks, sharing). This supersedes every earlier crops-unchanged / no-crop-recaptured line in this header.
 # 2026-09-11 merge of master 7e15e502 (#554 claim authoring form) into B-F12-8 (#550): i18n.tsx re-hashed for master's 31 claim* lexicon keys, which render only in the research-workspace claim form. #554 edits none of this packet's other pinned files (SectionTeam.tsx, SectionTeam.module.css, SettingsPanel.tsx, settings.css), so the 8 crops captured at 916db2d4 still depict this tree and none was recaptured.
