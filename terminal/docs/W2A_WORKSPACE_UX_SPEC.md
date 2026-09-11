@@ -322,10 +322,10 @@ One inline-style change at the desktop mount: `TerminalShell.tsx:4566` — `minW
 | `saveCurrentAs` | `Save this workspace as…` | `将此工作区另存为…` |
 | `layoutSaved` | `Workspace saved` | `工作区已保存` |
 | `noSavedLayouts` | `No saved workspaces yet. Save the current one to start.` | `还没有已保存的工作区。先保存当前的工作区。` |
-| `layoutsLoading` | `Loading your workspaces…` | `正在加载您的工作区…` |
-| `layoutsUnavailable` | `Your workspaces can't be reached right now. What's listed below was loaded earlier.` | `暂时无法读取您的工作区。下方列出的是此前加载的内容。` |
+| `layoutsLoading` | `Loading your workspaces…` | `正在加载你的工作区…` |
+| `layoutsUnavailable` | `Your workspaces can't be reached right now. What's listed below was loaded earlier.` | `暂时无法读取你的工作区。下方列出的是此前加载的内容。` |
 | `layoutSaveFailed` | `Couldn't save — nothing was stored.` | `保存失败 —— 未写入任何内容。` |
-| `layoutDeleteFailed` | `Couldn't delete — it's still in your account.` | `删除失败 —— 仍保留在您的账户中。` |
+| `layoutDeleteFailed` | `Couldn't delete — it's still in your account.` | `删除失败 —— 仍保留在你的账户中。` |
 | `layoutSignInToSave` | `Sign in to save workspaces` | `登录后可保存工作区` |
 | `gateLayouts` | `Create a free account to save workspaces.` | `注册免费账户即可保存工作区` |
 
@@ -368,7 +368,7 @@ Failures — every frozen §8 code mapped to plain words. No code ever reaches t
 | `oversized_workspace` | `wsImportTooBig` | `That workspace file is too large to open. Nothing was imported.` | `该工作区文件过大，无法打开。未导入任何内容。` |
 | `too_many_widgets` | `wsImportTooManyPanels` | `That workspace holds more panels than one workspace can. Nothing was imported.` | `该工作区包含的面板数量超出上限。未导入任何内容。` |
 | `unknown_widget_type` (write) | `wsImportUnknownPanel` | `That workspace uses a panel this Terminal doesn't have. Nothing was imported.` | `该工作区使用了此终端没有的面板。未导入任何内容。` |
-| `not_found` | `wsGone` | `That workspace is no longer in your account.` | `该工作区已不在您的账户中。` |
+| `not_found` | `wsGone` | `That workspace is no longer in your account.` | `该工作区已不在你的账户中。` |
 | rename failure | `wsRenameFailed` | `Couldn't rename — the old name is still in use.` | `重命名失败 —— 仍在使用原名称。` |
 | duplicate failure | `wsDuplicateFailed` | `Couldn't make a copy — nothing was added.` | `创建副本失败 —— 未添加任何内容。` |
 | export failure | `wsExportFailed` | `Couldn't export this workspace.` | `导出此工作区失败。` |

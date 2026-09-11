@@ -132,8 +132,8 @@ export const LEX: Record<string, [string, string]> = {
   noSavedLayouts: ["No saved workspaces yet. Save the current one to start.", "还没有已保存的工作区。先保存当前的工作区。"],
   // Saved-workspace store states. "No saved workspaces" is an ANSWER, so it may only be shown after
   // an authoritative read — these cover the states that used to be flattened into it.
-  layoutsLoading: ["Loading your workspaces…", "正在加载您的工作区…"],
-  layoutsUnavailable: ["Your workspaces can't be reached right now. What's listed below was loaded earlier.", "暂时无法读取您的工作区。下方列出的是此前加载的内容。"],
+  layoutsLoading: ["Loading your workspaces…", "正在加载你的工作区…"],
+  layoutsUnavailable: ["Your workspaces can't be reached right now. What's listed below was loaded earlier.", "暂时无法读取你的工作区。下方列出的是此前加载的内容。"],
   layoutRetry: ["Retry", "重试"],
   layoutSaving: ["Saving…", "保存中…"],
   layoutSaved: ["Workspace saved", "工作区已保存"],
@@ -141,7 +141,7 @@ export const LEX: Record<string, [string, string]> = {
   // Reviewer ruling N15: revalued to the "workspace" copy family (matches wsNameTaken verbatim) —
   // "layout" undersells the object post-W2-A, same reasoning as the wsSectionSaved/etc. rename.
   layoutNameTaken: ["That name is already used.", "该名称已被使用。"],
-  layoutDeleteFailed: ["Couldn't delete — it's still in your account.", "删除失败 —— 仍保留在您的账户中。"],
+  layoutDeleteFailed: ["Couldn't delete — it's still in your account.", "删除失败 —— 仍保留在你的账户中。"],
   layoutSignInToSave: ["Sign in to save workspaces", "登录后可保存工作区"],
   // W2-A new keys (spec §2.2)
   wsSectionSaved: ["Saved workspaces", "已保存的工作区"],
@@ -1130,17 +1130,17 @@ export const LEX: Record<string, [string, string]> = {
   suiteEvMacdxDiv: ["MACD divergence", "MACD 背离"],
   suiteEvMacdxHistFlip: ["MACD histogram flip", "MACD 柱状图翻转"],
   // alerts list: honest signed-out state + delete confirm (OEU T-D)
-  alertsSignedOutTitle: ["You're signed out", "您尚未登录"],
+  alertsSignedOutTitle: ["You're signed out", "你尚未登录"],
   alertsSignedOutBody: [
     "Your alerts live with your account — sign in to see and manage them. Alerts keep running server-side while you're away.",
-    "提醒与您的账户绑定 —— 登录后即可查看和管理。您离开期间，提醒仍在服务器端持续运行。",
+    "提醒与你的账户绑定 —— 登录后即可查看和管理。你离开期间，提醒仍在服务器端持续运行。",
   ],
   // ...and the state one level down from signed-out: signed in, but the alert store did not
   // answer. "No alerts yet" would claim an empty inventory off a read that never landed.
-  alertsUnavailTitle: ["Could not load your alerts", "无法加载您的提醒"],
+  alertsUnavailTitle: ["Could not load your alerts", "无法加载你的提醒"],
   alertsUnavailBody: [
     "The alert store did not answer, so we cannot show what you have. Your alerts are unaffected — they keep running server-side.",
-    "提醒存储未响应，因此无法显示您的提醒。您的提醒不受影响 —— 它们仍在服务器端持续运行。",
+    "提醒存储未响应，因此无法显示你的提醒。你的提醒不受影响 —— 它们仍在服务器端持续运行。",
   ],
   alertsRetry: ["Retry", "重试"],
   alertsRefresh: ["Refresh alerts", "刷新提醒"],
@@ -2773,10 +2773,10 @@ export const LEX: Record<string, [string, string]> = {
   wsShareYes: ["Share it", "确认共享"],
   wsShareNo: ["Keep it private", "保持私有"],
   wsUnshareTitle: ["Stop sharing this workspace?", "要停止共享此工作区吗？"],
-  wsUnshareBody: ["Your team will no longer see it. Your own copy stays.", "团队将不再看到它。您自己的副本会保留。"],
+  wsUnshareBody: ["Your team will no longer see it. Your own copy stays.", "团队将不再看到它。你自己的副本会保留。"],
   wsUnshareYes: ["Stop sharing", "停止共享"],
   wsPickTeam: ["Choose the team to share with.", "请选择要共享给哪个团队。"],
-  wsTeamEmpty: ["Your team has not shared a workspace yet.", "您的团队还没有共享任何工作区。"],
+  wsTeamEmpty: ["Your team has not shared a workspace yet.", "你的团队还没有共享任何工作区。"],
   wsTeamReadOnly: ["Only an owner or an administrator can change a workspace the team shares.", "只有团队所有者或管理员才能修改团队共享的工作区。"],
   wsTakeCopy: ["Take your own copy", "复制一份到我的工作区"],
 };

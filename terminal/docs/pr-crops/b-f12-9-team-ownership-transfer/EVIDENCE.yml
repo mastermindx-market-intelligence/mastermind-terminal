@@ -1,21 +1,22 @@
 # Ledger row: 0020_team_ownership_transfer / PR #550 (merged 3cdcd746; originated in #557, packet B-F12-9); applied 2026-09-11
 # layoutFiles carry sha256 hashes of the files they name; proof of which code generated each crop.
 # Rebuild any crop and recompute its layoutFiles, or the test will fail and the PR will not land.
-# capturedAtHead: 3cdcd746b86d478ff139dd5fea408b66fce065af
-capturedAtHead: 3cdcd746b86d478ff139dd5fea408b66fce065af
+# capturedAtHead: aedfbf4de5b5a0f3e12d9994b219010b83ae7a9f
+capturedAtHead: aedfbf4de5b5a0f3e12d9994b219010b83ae7a9f
 capturedAt: 2026-09-11T03:00:17.565Z
-# capturedAtHead is master commit 3cdcd746b86d478ff139dd5fea408b66fce065af — the squash-merge of #550 (B-F12-9 + migrations 0019/0020) that landed this packet on master; the layoutFiles hashes below are that commit's bytes, byte-identical to the ones recorded at the previous pointer 2f775a39d112208196c223065e61242931c1b973. That pointer was a commit on #550's branch, which the squash merge left unreachable from master, so the ancestry check could no longer pass; no crop was recaptured. (The earlier statement naming 2f775a39d112208196c223065e61242931c1b973 as this commit's direct parent no longer holds.)
+# capturedAtHead is commit aedfbf4de5b5a0f3e12d9994b219010b83ae7a9f — this PR's own 您→你 conversion commit, and the direct parent of the commit that records this pointer (depth-2 pointer rule). MO-B PL-NI-1 changed terminal/lib/i18n.tsx, so no commit that predates aedfbf4de5b5a0f3e12d9994b219010b83ae7a9f carries the restamped bytes; the previous pointer 3cdcd746b86d478ff139dd5fea408b66fce065af (the squash-merge of #550 that landed this packet on master) remains an ancestor and every other layoutFiles row is byte-identical to its bytes there. The i18n.tsx change is plain-language 您→你 in the layouts*, alerts* and ws* keys, none of which renders on the ownership-transfer surface, so the 8 crops still depict this tree and none was recaptured.
 # Pinned i18n.tsx last changed on this carrier for master #554's claim* keys; the captured surface (team section + rail) does not render them; crops unchanged from 916db2d4ac62b00aed236231433d8d952c22f3c6.
 # 2026-09-11 duplicate-key fix (#550): master #553 added its own acsTeamNone/acsTeamMany, so #550's pair was renamed (-> acsTeamNoneCreate/acsTeamManyPanel) and SectionTeam repointed; neither key is rendered on the ownership-transfer surface.
 # 2026-09-11 merge of master e43733c1 (#548 explicit grants + #566 ledger flip) into B-F12-8 (#550): 8 crops recaptured at merge commit 916db2d4ac62b00aed236231433d8d952c22f3c6 so the rail shows the merged 11 rows (account, team, accuracy, billing, usage, prefs, alertDelivery, terminal, sync, webhooks, sharing). This supersedes every earlier crops-unchanged / no-crop-recaptured line in this header.
 # 2026-09-11 merge of master 7e15e502 (#554 claim authoring form) into B-F12-8 (#550): i18n.tsx re-hashed for master's 31 claim* lexicon keys, which render only in the research-workspace claim form. #554 edits none of this packet's other pinned files (SectionTeam.tsx, SectionTeam.module.css, SettingsPanel.tsx, settings.css), so the 8 crops captured at 916db2d4 still depict this tree and none was recaptured.
 # 2026-09-11 merge of master 19c57aca (#556 B-F13-7 first resolver) into B-F12-8 (#550): #556 touches only terminal/lib/personalAccuracy.ts, terminal/lib/personalAccuracyStore.ts, terminal/lib/dailyCloseResolver.ts, terminal/scripts/score_personal_accuracy.mjs and their tests/fixtures — none of this packet's pinned files — so every layoutFiles row is unchanged and no crop was recaptured; capturedAtHead moves by the depth-2 pointer rule only.
+# 2026-09-11 MO-B PL-NI-1 (packet T-PL-NI-1, 您→你 sweep of Terminal master): terminal/lib/i18n.tsx re-hashed — plain-language 您→你 only; layout unchanged; no recapture.
 layoutFiles:
   terminal/components/settings/SectionTeam.tsx: "fec63ed61b300fbfc6f745b1d8f8a605ad459304f10009bd68023b859b245595"
   terminal/components/settings/SectionTeam.module.css: "924ab5b81d4f0e11ef2138557e92c43a0d1fa21b78622567fb6ccddcf6c146a8"
   terminal/components/settings/SettingsPanel.tsx: "378811617e0de2feed0d8bc1c6e01ae55d8e763204fe0d1c1829bc44fff1e1a4"
   terminal/app/settings.css: "3189163136d943431cbf52e4b5d241c105b695ba5af94c4c2e29151d537b5ef5"
-  terminal/lib/i18n.tsx: "58228919212680b8b0335dfe561e5358c723b18fcbb4cb7fa47e71e5223d7910"
+  terminal/lib/i18n.tsx: "b5723f6e6a4bbf32b74219e0fc51612b1f2b16727b5beaa730e58817f51e4617"
 theme: dark
 languages: [en, zh]
 viewports:

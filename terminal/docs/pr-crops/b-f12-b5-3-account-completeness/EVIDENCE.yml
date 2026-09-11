@@ -14,10 +14,11 @@
 # CORRECTION by the 2026-09-11 #554 merge, replacing the trailing clauses the two #550 merge lines above carried ("those keys are not rendered on the account-completeness surface" and "No B-F12-B5-3 string or layout changed"): this carrier's acsTeam IS rendered on this surface - it labels the Team rail row SettingsPanel.tsx:50 adds, and the rail is inside the captured frame - so those clauses were false and COMMON forbids carrying a false header line forward. The packet's own SectionAccount copy and its acsTeamNone/acsTeamMany rows are unchanged.
 # 2026-09-11 merge of master 7e15e502 (#554 claim authoring form) into B-F12-8 (#550): i18n.tsx re-hashed for master's 31 claim* lexicon keys. SectionAccount.tsx and teamSummary.ts are untouched by both sides and no claim* key renders on this surface, so no crop was recaptured.
 # 2026-09-11 recapture at master 525157b13eb5530515f083d836f63d12f55553d2: rail now pinned via SettingsPanel.tsx + SettingsProvider.tsx; 8 crops recaptured so the frame shows the 11-row rail (account, team, accuracy, billing, usage, prefs, alertDelivery, terminal, sync, webhooks, sharing)
+# 2026-09-11 MO-B PL-NI-1 (packet T-PL-NI-1, 您→你 sweep of Terminal master): terminal/lib/i18n.tsx re-hashed — plain-language 您→你 only; layout unchanged; no recapture.
 layoutFiles:
   terminal/components/settings/SectionAccount.tsx: "d2c3828c286bbaac321881d5a6562efdd4f30e580f4200d49c5165c0fa7ef9a4"
   terminal/lib/teamSummary.ts: "7bd3b3f1d5251490e42399be1dd77e977b2626c1714efbece2f7139c584e0f15"
-  terminal/lib/i18n.tsx: "58228919212680b8b0335dfe561e5358c723b18fcbb4cb7fa47e71e5223d7910"
+  terminal/lib/i18n.tsx: "b5723f6e6a4bbf32b74219e0fc51612b1f2b16727b5beaa730e58817f51e4617"
   terminal/components/settings/SettingsPanel.tsx: "378811617e0de2feed0d8bc1c6e01ae55d8e763204fe0d1c1829bc44fff1e1a4"
   terminal/components/settings/SettingsProvider.tsx: "4ac330d429de63c5a3e431aaa1a1b41e4a7905cf2a08bc260b68afa0bc604bed"
 theme: dark

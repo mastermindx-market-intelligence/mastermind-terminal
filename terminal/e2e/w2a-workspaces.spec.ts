@@ -345,7 +345,7 @@ test.describe("W2-A workspace menu — 1440×900 ZH", () => {
     menu = await openLayoutMenu(page);
     await menu.locator("[data-layout-save] input").fill("阿尔法");
     await menu.locator("[data-layout-save-btn]").click();
-    await expect(menu.locator('[data-layout-status="unavailable"]')).toContainText("暂时无法读取您的工作区");
+    await expect(menu.locator('[data-layout-status="unavailable"]')).toContainText("暂时无法读取你的工作区");
     await shot(page, "1440-zh-unavailable");
     await injectLayoutFault(page, "", baseURL);
 

@@ -12,13 +12,14 @@
 # 2026-09-11 duplicate-key fix on #550: the carrier renamed its own acsTeamNone/acsTeamMany (acsTeamNone/acsTeamMany -> acsTeamNoneCreate/acsTeamManyPanel) to clear the TS1117 collision with master #553's pair; i18n.tsx re-hashed. No B-F11-4 string or layout changed; no crop recaptured.
 # 2026-09-11 merge of master e43733c1 (#548 explicit grants + #566 ledger flip) into B-F12-8 (#550): i18n.tsx re-hashed because master's Sharing-tab and explicit-grants lexicon keys merged into the shared file. No B-F11-4 string or layout changed; no crop recaptured.
 # 2026-09-11 merge of master 7e15e502 (#554 claim authoring form) into B-F12-8 (#550): i18n.tsx re-hashed because master's 31 claim* lexicon keys merged into the shared file, and ThesisWorkspace.tsx now carries master's claim-entry button (this PR edits neither file). The B-F11-4 crops clip to [data-testid="thesis-list-pane"], which contains neither that context-bar button nor any key this merge added, so no B-F11-4 surface renders differently and no crop was recaptured.
+# 2026-09-11 MO-B PL-NI-1 (packet T-PL-NI-1, 您→你 sweep of Terminal master): terminal/lib/i18n.tsx re-hashed — plain-language 您→你 only; layout unchanged; no recapture.
 layoutFiles:
   terminal/components/workspaces/ThesisWorkspace.tsx: "51b6a96909a53373ca3ce160605960bc03615a89d296fcc6dfdd28461e987445"
   terminal/components/workspaces/ThesisWorkspace.module.css: "ac9547b1b7cf4a5d51f4838a40983f55d489483bef1e237ee2b5e81c8e10d37c"
   terminal/lib/rmsViews.ts: "fd5f025806c5a4b1b27e7d99a026e82f555767f0d96b6a2766a5b363961897cb"
   terminal/lib/savedViews.ts: "16e2914a032cba50cce999d1802c53e51098ce76dd82931925ef41b8e0f7af54"
   terminal/lib/plainLabels.ts: "8f69818feca65a5f28c590460c52e4f06c04c25cc4f3da8643eff9050161b588"
-  terminal/lib/i18n.tsx: "58228919212680b8b0335dfe561e5358c723b18fcbb4cb7fa47e71e5223d7910"
+  terminal/lib/i18n.tsx: "b5723f6e6a4bbf32b74219e0fc51612b1f2b16727b5beaa730e58817f51e4617"
 theme: dark
 languages: [en, zh]
 viewports:
