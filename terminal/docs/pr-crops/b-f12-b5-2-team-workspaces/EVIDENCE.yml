@@ -4,9 +4,10 @@
 # capturedAtHead: 010b0cb6f50f8d0ea9d75674bf0e6fb7c3ad335f
 # capturedAt: 2026-09-09T16:19:38.213Z
 # capturedAtHead is the code commit the pixels depict. The lock is layoutFiles.
+# 2026-09-11 MO-B PL-NI-1 (packet T-PL-NI-1, 您→你 sweep of Terminal master): terminal/lib/teamSharedWorkflow.ts re-hashed — plain-language 您→你 only; layout unchanged; no recapture.
 layoutFiles:
   terminal/components/LayoutMenu.tsx: "235bf33a22dc3b4d7d9b143f0ecf19818863b4352e9a7df3d0a787634d73116b"
-  terminal/lib/teamSharedWorkflow.ts: "2c28cdbc5b232c2767381a22be45cc1be44c4864acab3f8119824efdeae1fb04"
+  terminal/lib/teamSharedWorkflow.ts: "1604fbf4eb28e119211a55acb1f70278339876d30e56ff3cda0cad1de68312df"
   terminal/lib/i18n.tsx: "954a31a85501b503def5b1216c4d1e3a86684cefb1a542cdb6c13bf21b684d42"
   terminal/app/dev/workspaces/page.tsx: "320f7983a913e212249dbfc65a18c1807f1fca9f6de9305f595a855ad4b9f1b5"
 theme: dark

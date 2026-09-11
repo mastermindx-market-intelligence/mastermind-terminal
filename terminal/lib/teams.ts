@@ -656,7 +656,7 @@ export const INVITE_MESSAGES: Record<InviteCode, [string, string]> = {
   invalid_token: ["This invitation link is not valid.", "该邀请链接无效。"],
   already_used: ["This invitation has already been used. Ask the team owner to send a new one.", "该邀请已被使用。请让团队所有者重新发送一份。"],
   expired: ["This invitation has expired. Ask the team owner to send a new one.", "该邀请已过期。请让团队所有者重新发送一份。"],
-  email_unknown: ["We could not confirm your email address. Please sign in again.", "我们无法确认您的邮箱地址。请重新登录。"],
+  email_unknown: ["We could not confirm your email address. Please sign in again.", "我们无法确认你的邮箱地址。请重新登录。"],
   email_mismatch: ["This invitation was sent to a different email address. Sign in with the invited address to join.", "该邀请发送至另一个邮箱地址。请使用被邀请的邮箱登录后加入。"],
   invalid_email: ["Enter a valid email address.", "请输入有效的邮箱地址。"],
   invalid_role: ["Choose a valid role for this person.", "请为此人选择一个有效角色。"],
@@ -707,7 +707,7 @@ export type TeamRouteCode =
 
 // Same [en, zh] shape as INVITE_MESSAGES. Used by /api/teams and /api/teams/[id]/members.
 export const TEAM_ROUTE_MESSAGES: Record<TeamRouteCode, [string, string]> = {
-  not_signed_in: ["You are not signed in.", "您尚未登录。"],
+  not_signed_in: ["You are not signed in.", "你尚未登录。"],
   unavailable: INVITE_MESSAGES.unavailable,
   read_failed: ["We could not read the team directory just now.", "我们暂时无法读取团队目录。"],
   write_failed: ["We could not save that change.", "我们无法保存该更改。"],
@@ -718,7 +718,7 @@ export const TEAM_ROUTE_MESSAGES: Record<TeamRouteCode, [string, string]> = {
   // `not_member` is for a caller who is genuinely not on the team (the roster GET's forbidden
   // branch). It is NEVER the answer to a caller who IS a member: round-4 ruling R2 — a sentence
   // the reader can receive has to be true about the reader's own state.
-  not_member: ["You are not a member of this team.", "您不是该团队的成员。"],
+  not_member: ["You are not a member of this team.", "你不是该团队的成员。"],
   remove_not_allowed: [
     "Only the team owner or an administrator can remove someone from this team.",
     "只有团队所有者或管理员才能将成员移出团队。",
@@ -762,7 +762,7 @@ export const TEAM_ROUTE_MESSAGES: Record<TeamRouteCode, [string, string]> = {
 };
 
 export const SETTING_MESSAGES: Record<"saved" | "not_admin" | "invalid_key" | "invalid_value" | "unavailable", [string, string]> = {
-  saved: ["Your setting was saved.", "您的设置已保存。"],
+  saved: ["Your setting was saved.", "你的设置已保存。"],
   not_admin: ["Only a team owner or an administrator can change this workspace setting.", "只有团队所有者或管理员才能更改此工作区设置。"],
   invalid_key: ["That setting name is not valid.", "该设置名称无效。"],
   invalid_value: ["That setting value is not valid.", "该设置值无效。"],
