@@ -13,6 +13,8 @@ const LAYOUT_FILES = [
   "terminal/components/settings/SectionAccount.tsx",
   "terminal/lib/teamSummary.ts",
   "terminal/lib/i18n.tsx",
+  "terminal/components/settings/SettingsPanel.tsx",
+  "terminal/components/settings/SettingsProvider.tsx",
 ];
 const CROP_FILES = [
   "desktop-en-overview.png",
