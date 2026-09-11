@@ -1,18 +1,18 @@
 # B-F12-8 Team roles v1 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: f1ad9fde39afa395ac4e66e3c2bd24a794d029bc
-# capturedAt: 2026-09-10T21:30:41.894Z
+# capturedAtHead: 916db2d4ac62b00aed236231433d8d952c22f3c6
+# capturedAt: 2026-09-11T02:59:54.027Z
 # capturedAtHead is informational. The lock is layoutFiles.
-# Merge of master 64c05ff2 (#553): i18n.tsx re-hashed for #553's account-completeness LEX keys. No packet key moved, no crop recaptured — those keys are not rendered on the team-roles surface.
-# 2026-09-11 duplicate-key fix (#550): master #553 added its own acsTeamNone/acsTeamMany, so this packet's pair was renamed (acsTeamNone/acsTeamMany -> acsTeamNoneCreate/acsTeamManyPanel) and SectionTeam repointed; i18n.tsx and SectionTeam.tsx re-hashed. No string text changed; the rename RESTORES the copy these crops depict (the duplicate made master's {count} rows win at runtime), so no crop was recaptured.
+# 2026-09-11 duplicate-key fix (#550): master #553 added its own acsTeamNone/acsTeamMany, so this packet's pair was renamed (-> acsTeamNoneCreate/acsTeamManyPanel) and SectionTeam repointed. No string text changed; the rename RESTORES the copy these crops depict (the duplicate made master's {count} rows win at runtime).
+# 2026-09-11 merge of master e43733c1 (#548 explicit grants + #566 ledger flip) into B-F12-8 (#550): 16 crops recaptured at merge commit 916db2d4ac62b00aed236231433d8d952c22f3c6 so the rail shows the merged 11 rows (account, team, accuracy, billing, usage, prefs, alertDelivery, terminal, sync, webhooks, sharing). This supersedes every earlier crops-unchanged / no-crop-recaptured line in this header.
 layoutFiles:
   terminal/components/settings/SectionTeam.tsx: "fec63ed61b300fbfc6f745b1d8f8a605ad459304f10009bd68023b859b245595"
   terminal/components/settings/SectionTeam.module.css: "924ab5b81d4f0e11ef2138557e92c43a0d1fa21b78622567fb6ccddcf6c146a8"
-  terminal/components/settings/SettingsPanel.tsx: "1c6a50235520cc6cb20498f9aebcd20c4f0c1a996ab82d127c5f4a10ddab7181"
-  terminal/components/settings/icons.tsx: "891f36a103eff8cdba5f78cf04c802d850ba0959d1c6a75097ade4a911acf697"
+  terminal/components/settings/SettingsPanel.tsx: "378811617e0de2feed0d8bc1c6e01ae55d8e763204fe0d1c1829bc44fff1e1a4"
+  terminal/components/settings/icons.tsx: "3bcda36b25a736f7c957151d3c7cee4e7946967e253c4753f0ac7cdb1e5e4ab2"
   terminal/app/settings.css: "3189163136d943431cbf52e4b5d241c105b695ba5af94c4c2e29151d537b5ef5"
-  terminal/lib/i18n.tsx: "9142e694ff9fd2ebaae1058db3db82dc62c7e9429d330c901367e3636b430e72"
+  terminal/lib/i18n.tsx: "4d2080b2e6838cac38bd1681ccf482e988e94c2254b0f7fbd9e2dc981eb87ff4"
 theme: dark
 languages: [en, zh]
 viewports:

@@ -1,18 +1,18 @@
 # Ledger row: 0020_team_ownership_transfer / PR #557 (open, packet B-F12-9); not applied
 # layoutFiles carry sha256 hashes of the files they name; proof of which code generated each crop.
 # Rebuild any crop and recompute its layoutFiles, or the test will fail and the PR will not land.
-# capturedAtHead: 06359f23e0cc65994adae6b9fd01b4311c118c7a
-capturedAtHead: 06359f23e0cc65994adae6b9fd01b4311c118c7a
-capturedAt: 2026-09-10T21:30:16.445Z
-# terminal/lib/i18n.tsx carries the merge of master 64c05ff2: #553's account-completeness lexicon keys are not rendered on the team-ownership-transfer surface; crops unchanged
-# capturedAtHead names this commit's direct parent, the duplicate-key fix commit; the layoutFiles hashes below are that commit's bytes (the earlier #546 refresh statement no longer holds because two pinned files were re-hashed)
-# 2026-09-11 duplicate-key fix (#550): master #553 added its own acsTeamNone/acsTeamMany, so #550's pair was renamed (acsTeamNone/acsTeamMany -> acsTeamNoneCreate/acsTeamManyPanel) and SectionTeam repointed; i18n.tsx and SectionTeam.tsx re-hashed. No string text changed and no crop recaptured — neither key is rendered on the ownership-transfer surface.
+# capturedAtHead: 916db2d4ac62b00aed236231433d8d952c22f3c6
+capturedAtHead: 916db2d4ac62b00aed236231433d8d952c22f3c6
+capturedAt: 2026-09-11T03:00:17.565Z
+# capturedAtHead is the merge commit 916db2d4ac62b00aed236231433d8d952c22f3c6, which is this commit's direct parent; the layoutFiles hashes below are that commit's bytes. (The earlier statement naming the duplicate-key fix commit no longer holds.)
+# 2026-09-11 duplicate-key fix (#550): master #553 added its own acsTeamNone/acsTeamMany, so #550's pair was renamed (-> acsTeamNoneCreate/acsTeamManyPanel) and SectionTeam repointed; neither key is rendered on the ownership-transfer surface.
+# 2026-09-11 merge of master e43733c1 (#548 explicit grants + #566 ledger flip) into B-F12-8 (#550): 8 crops recaptured at merge commit 916db2d4ac62b00aed236231433d8d952c22f3c6 so the rail shows the merged 11 rows (account, team, accuracy, billing, usage, prefs, alertDelivery, terminal, sync, webhooks, sharing). This supersedes every earlier crops-unchanged / no-crop-recaptured line in this header.
 layoutFiles:
   terminal/components/settings/SectionTeam.tsx: "fec63ed61b300fbfc6f745b1d8f8a605ad459304f10009bd68023b859b245595"
   terminal/components/settings/SectionTeam.module.css: "924ab5b81d4f0e11ef2138557e92c43a0d1fa21b78622567fb6ccddcf6c146a8"
-  terminal/components/settings/SettingsPanel.tsx: "1c6a50235520cc6cb20498f9aebcd20c4f0c1a996ab82d127c5f4a10ddab7181"
+  terminal/components/settings/SettingsPanel.tsx: "378811617e0de2feed0d8bc1c6e01ae55d8e763204fe0d1c1829bc44fff1e1a4"
   terminal/app/settings.css: "3189163136d943431cbf52e4b5d241c105b695ba5af94c4c2e29151d537b5ef5"
-  terminal/lib/i18n.tsx: "9142e694ff9fd2ebaae1058db3db82dc62c7e9429d330c901367e3636b430e72"
+  terminal/lib/i18n.tsx: "4d2080b2e6838cac38bd1681ccf482e988e94c2254b0f7fbd9e2dc981eb87ff4"
 theme: dark
 languages: [en, zh]
 viewports:
