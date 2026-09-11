@@ -13,6 +13,7 @@ import {
   normalizeWizardStash, type OnboardResumeStash,
   STEP_ACCOUNT, STEP_PREFS, STEP_PLAN, STEP_BILLING, STEP_DONE,
 } from "./types";
+import { sendScopedAccountWrite } from "@/lib/accountPrefs";
 import { deliverPendingPrefs, writePendingPrefs } from "@/lib/onboardingPrefsOutbox";
 import RailCard, { MobileStepper, type WizardSnapshot } from "./RailCard";
 import StepAccount from "./StepAccount";
@@ -188,10 +189,11 @@ export default function OnboardingSheet(props: OnboardingSheetProps) {
   // transient error meant the user's explicit market/trade-type/theme choice was silently gone —
   // they watched onboarding reach Done and found their personalization missing next session.
   //
-  // The pending record is now written FIRST, on both paths, and is only cleared once the authority
-  // acknowledges the write (deliverPendingPrefs). Forward progress is still immediate — one slow
-  // metadata request must not make onboarding feel stuck — but "moved on" no longer means
-  // "persisted": an undelivered choice stays in the outbox and the next authed mount retries it.
+  // The pending record is now written FIRST, on both paths, and is cleared after the authority
+  // acknowledged the write, OR when nothing owned remained to send. Forward progress is still
+  // immediate — one slow metadata request must not make onboarding feel stuck — but "moved on"
+  // no longer means "persisted": an undelivered choice stays in the outbox and the next authed
+  // mount retries it.
   const persistPrefs = useCallback(async () => {
     const payload: PendingPrefs = {
       first_name: firstName,
@@ -207,8 +209,11 @@ export default function OnboardingSheet(props: OnboardingSheetProps) {
     // No session yet: the provider delivers it on the first authed mount.
     if (confirmPending || !effEmail) return;
     const supabase = createClient();
-    const outcome = await deliverPendingPrefs((data) => supabase.auth.updateUser({ data }));
-    setPrefsPending(outcome.status !== "delivered");
+    const outcome = await deliverPendingPrefs((data) => sendScopedAccountWrite(
+      (scoped) => supabase.auth.updateUser({ data: scoped }),
+      data,
+    ));
+    setPrefsPending(outcome.status === "failed");
   }, [firstName, lastName, prefs, confirmPending, effEmail]);
 
   // ── Step transitions ──────────────────────────────────────────────────────────

@@ -370,8 +370,36 @@ def test_reservations_records_the_known_collision_surface():
     assert prefixes["0017"]["file"] == "0017_personal_accuracy_ledger.sql"
     assert prefixes["0017"]["packet"] == "B-F13-5"
     assert prefixes["0017"]["pr"] == 547
-    assert prefixes["0017"]["pr_state"] == "open"
-    assert prefixes["0017"]["applied_in_production"] is False
+    assert prefixes["0017"]["pr_state"] == "merged"
+    assert prefixes["0017"]["merged_sha"] == "b7aa0981"
+    assert prefixes["0017"]["applied_in_production"] is True
+    assert prefixes["0017"]["applied_date"] == "2026-09-10"
+
+    # 0018 is this PR's claim: taken, file present, PR 549 open, shipped unapplied.
+    # Other 0017-0020 owners stay as origin/master has them (reserved until their PRs take them).
+    assert prefixes["0018"]["state"] == "taken"
+    assert prefixes["0018"]["file"] == "0018_webhook_delivery.sql"
+    assert prefixes["0018"]["packet"] == "B-F12-7"
+    assert prefixes["0018"]["pr"] == 549
+    assert prefixes["0018"]["pr_state"] == "merged"
+    assert prefixes["0018"]["merged_sha"] == "cd1269fe"
+    assert prefixes["0018"]["applied_in_production"] is True
+    assert prefixes["0018"]["applied_date"] == "2026-09-10"
+    assert "shipped unapplied; the seat applies with a receipt" in prefixes["0018"]["note"]
+
+    # 0021 (packet B-F12-B5-1, explicit grants) merged to master as bad423f5 on
+    # 2026-09-11 in PR #548 and is still UNAPPLIED on purpose: 0019 and 0020 are
+    # open in PR #550 and the seat applies DDL in ledger order, never ahead of a
+    # lower, still-unapplied number. applied_date is null because there is no
+    # application yet, never because a real date was lost.
+    assert prefixes["0021"]["state"] == "taken"
+    assert prefixes["0021"]["file"] == "0021_resource_grants.sql"
+    assert prefixes["0021"]["packet"] == "B-F12-B5-1"
+    assert prefixes["0021"]["pr"] == 548
+    assert prefixes["0021"]["pr_state"] == "merged"
+    assert prefixes["0021"]["merged_sha"] == "bad423f5"
+    assert prefixes["0021"]["applied_in_production"] is False
+    assert prefixes["0021"]["applied_date"] is None
 
     # 0017-0020 claimed by Meta-CEO B ruling 2026-09-09 -- updated from the
     # stale state="free" this test used to assert.

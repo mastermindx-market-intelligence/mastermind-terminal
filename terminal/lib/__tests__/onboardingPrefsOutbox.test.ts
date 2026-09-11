@@ -21,6 +21,7 @@ import {
   readPendingPrefs, writePendingPrefs, clearPendingPrefs, deliverPendingPrefs,
   MAX_DELIVERY_ATTEMPTS,
 } from "@/lib/onboardingPrefsOutbox";
+import { sendScopedAccountWrite } from "@/lib/accountPrefs";
 
 const PREFS: PendingPrefs = {
   first_name: "Ada",
@@ -191,5 +192,62 @@ describe("D5 — read tolerance", () => {
     expect(() => writePendingPrefs(PREFS)).not.toThrow();
     expect(readPendingPrefs()).toBeNull();
     expect(() => clearPendingPrefs()).not.toThrow();
+  });
+});
+
+describe("B-F08-7b — a patch that scopes to empty is nothing the Terminal may write", () => {
+  it("strips foreign keys and clears the record when nothing owned remains (no retry loop)", async () => {
+    const foreign = { alert_email_optin: true, tz: "UTC" };
+    localStorage.setItem(LS_PENDING_PREFS, JSON.stringify({ prefs: foreign, attempts: 0 }));
+    const send = vi.fn(async () => ({ error: null }));
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const outcome = await deliverPendingPrefs((data) => sendScopedAccountWrite(send, data));
+    expect(send).not.toHaveBeenCalled();
+    expect(outcome.status).toBe("nothing-pending");
+    expect(readPendingPrefs()).toBeNull();
+    expect(warn).toHaveBeenCalled();
+    warn.mockRestore();
+  });
+
+  it("strips foreign keys from the durable record, delivers what remains, and does not retry the foreign keys", async () => {
+    const mixed = { first_name: "Ada", alert_email_optin: true, tz: "UTC" };
+    localStorage.setItem(LS_PENDING_PREFS, JSON.stringify({ prefs: mixed, attempts: 0 }));
+    const send = vi.fn(async (_data: Record<string, unknown>) => ({ error: { message: "network" } }));
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const outcome = await deliverPendingPrefs((data) => sendScopedAccountWrite(send, data));
+    expect(outcome.status).toBe("failed");
+    expect(send).toHaveBeenCalled();
+    for (const payload of send.mock.calls.map((c) => c[0] as Record<string, unknown>)) {
+      expect(payload).toEqual({ first_name: "Ada" });
+      expect(payload).not.toHaveProperty("alert_email_optin");
+      expect(payload).not.toHaveProperty("tz");
+    }
+    const kept = readPendingPrefs();
+    expect(kept).not.toBeNull();
+    expect(kept!.prefs).toEqual({ first_name: "Ada" });
+    expect(kept!.prefs).not.toHaveProperty("alert_email_optin");
+    warn.mockRestore();
+  });
+
+  it("a bare {} record clears without calling updateUser", async () => {
+    localStorage.setItem(LS_PENDING_PREFS, JSON.stringify({}));
+    const send = vi.fn(async () => ({ error: null }));
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const outcome = await deliverPendingPrefs(send);
+    expect(send).not.toHaveBeenCalled();
+    expect(outcome.status).toBe("nothing-pending");
+    expect(readPendingPrefs()).toBeNull();
+    warn.mockRestore();
+  });
+
+  it("an enveloped empty prefs record clears without calling updateUser", async () => {
+    localStorage.setItem(LS_PENDING_PREFS, JSON.stringify({ prefs: {}, attempts: 2 }));
+    const send = vi.fn(async () => ({ error: null }));
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const outcome = await deliverPendingPrefs(send);
+    expect(send).not.toHaveBeenCalled();
+    expect(outcome.status).toBe("nothing-pending");
+    expect(readPendingPrefs()).toBeNull();
+    warn.mockRestore();
   });
 });

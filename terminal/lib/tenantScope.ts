@@ -45,8 +45,9 @@ export type Identity = { userId: string | null };
  *  in a pure function. */
 export type Membership = { userId: string; teamId: string; role: TeamRole; revokedAt?: string | null };
 
-/** No `resource_grants` table exists (see the doc's Nulls Printed section). A Grant is
- *  caller-supplied. */
+/** A Grant is the application-side shape of one `public.resource_grants` row
+ *  (`supabase/migrations/0021_resource_grants.sql`, packet B-F12-B5-1, NOT APPLIED).
+ *  Callers map the wire row through `toTenantGrants` with no defaulting. */
 export type Grant = { resourceId: string; granteeUserId: string; revokedAt?: string | null };
 
 /** `ownerId` is the caller's mapping of the canonical `user_id` column

@@ -3,7 +3,7 @@ import { readFileSync } from "fs";
 import path from "path";
 import {
   buildAlertsView, monitorFor, foldOutbox, deliveryFor, ALERTS_COPY, copy, conditionText, conditionsWord, verdictText,
-  firedEventTextZh,
+  firedEventTextZh, lanesForArmedAlerts, noCoverageAcross, rowChipKey,
   type RunReceipt, type OutboxRow, type Alert,
 } from "../alertsView";
 
@@ -483,5 +483,263 @@ describe("firedEventTextZh — the ZH event sentence never restates the conditio
     expect(firedEventTextZh("72", "price")).toBe("触发时价格 72");
     expect(firedEventTextZh("not-a-number", "price")).toBe("已触发，未记录触发价");
     expect(firedEventTextZh("", "price")).toBe("已触发，未记录触发价");
+  });
+});
+
+describe("B-F08-B5-3 monitorFor two-lane worst-of", () => {
+  const fresh = baseRun();
+  const partial = baseRun({ outcome: "partial", lane: "suite_alerts", run_id: "r2" });
+  const engine = { run: fresh, runsState: "READ_OK" as const };
+  const suitePartial = { run: partial, runsState: "READ_OK" as const };
+  const suiteFresh = { run: baseRun({ lane: "suite_alerts", run_id: "r2" }), runsState: "READ_OK" as const };
+  const suiteZero = { run: null, runsState: "READ_OK_ZERO" as const };
+  const suiteDown = { run: null, runsState: "READ_UNAVAILABLE" as const };
+
+  it("{success-fresh, partial} → degraded", () => {
+    expect(monitorFor([engine, suitePartial], NOW)).toBe("degraded");
+  });
+  it("{success-fresh, success-fresh} → watching", () => {
+    expect(monitorFor([engine, suiteFresh], NOW)).toBe("watching");
+  });
+  it("{success-fresh, READ_OK_ZERO} → never_ran", () => {
+    expect(monitorFor([engine, suiteZero], NOW)).toBe("never_ran");
+  });
+  it("{success-fresh, READ_UNAVAILABLE} → unknown", () => {
+    expect(monitorFor([engine, suiteDown], NOW)).toBe("unknown");
+  });
+  it("single-lane signature is unchanged", () => {
+    expect(monitorFor(fresh, "READ_OK", NOW)).toBe("watching");
+    expect(monitorFor(partial, "READ_OK", NOW)).toBe("degraded");
+  });
+});
+
+describe("B-F08-B5-3 suite-free user is byte-identical to today's single-lane path", () => {
+  it("lanesForArmedAlerts with only price alerts returns the engine lane alone", () => {
+    const engine = { run: baseRun(), runsState: "READ_OK" as const };
+    const suite = { run: null, runsState: "READ_OK_ZERO" as const };
+    const armed: Alert[] = [{ id: "a1", active: true, created_at: "2026-01-01T00:00:00Z", condition: { type: "price" } }];
+    const lanes = lanesForArmedAlerts(armed, engine, suite);
+    expect(lanes).toHaveLength(1);
+    expect(lanes[0].run).toBe(engine.run);
+    expect(lanes[0].runsState).toBe(engine.runsState);
+    expect(lanes[0].id).toBe("engine");
+    expect(monitorFor(lanes, NOW)).toBe(monitorFor(engine.run, engine.runsState, NOW));
+  });
+  it("zero alerts keeps the engine lane (today's empty.calm.zero path)", () => {
+    const engine = { run: null, runsState: "READ_OK_ZERO" as const };
+    const suite = { run: null, runsState: "READ_UNAVAILABLE" as const };
+    const lanes = lanesForArmedAlerts([], engine, suite);
+    expect(lanes).toHaveLength(1);
+    expect(lanes[0].runsState).toBe("READ_OK_ZERO");
+    expect(lanes[0].id).toBe("engine");
+  });
+});
+
+describe("B-F08-B5-3 lastAttempt/lastSuccess come from monitorLanes, never the engine receipt", () => {
+  // Round-2 MAJOR: monitorFor already used only the lanes that own the user's armed alerts,
+  // but lastAttemptAt / lastSuccessAt still came from receipts.run / last_success_at. A
+  // suite-only user then saw "Not recorded" beside "Last successful check 12:37" — freeze §4
+  // treats a last-success time as a proof-of-run claim. RED on the previous head: the four
+  // facts leak the engine receipt even when monitorLanes is the suite lane alone.
+  const engineFresh = {
+    run: baseRun(),
+    runsState: "READ_OK" as const,
+    lastSuccessAt: "2026-09-05T11:59:00Z",
+    lastSuccessState: "READ_OK" as const,
+    id: "engine" as const,
+  };
+  const suiteNever = {
+    run: null,
+    runsState: "READ_OK_ZERO" as const,
+    lastSuccessAt: null,
+    lastSuccessState: "READ_OK_ZERO" as const,
+    id: "suite" as const,
+  };
+  const suiteFresh = {
+    run: baseRun({ lane: "suite_alerts", run_id: "r2", started_at: "2026-09-05T11:57:00Z", concluded_at: "2026-09-05T11:58:00Z" }),
+    runsState: "READ_OK" as const,
+    lastSuccessAt: "2026-09-05T11:58:00Z",
+    lastSuccessState: "READ_OK" as const,
+    id: "suite" as const,
+  };
+  const suitePartial = {
+    run: baseRun({ lane: "suite_alerts", run_id: "r2", outcome: "partial", started_at: "2026-09-05T11:50:00Z", concluded_at: "2026-09-05T11:51:00Z" }),
+    runsState: "READ_OK" as const,
+    lastSuccessAt: "2026-09-05T10:00:00Z",
+    lastSuccessState: "READ_OK" as const,
+    id: "suite" as const,
+  };
+
+  it("suite-only never-ran is honest-null on all four facts, even when the engine lane is globally success", () => {
+    const armed: Alert[] = [{ id: "s1", active: true, created_at: "2026-01-01T00:00:00Z", condition: { type: "suite_event" } }];
+    const lanes = lanesForArmedAlerts(armed, engineFresh, suiteNever);
+    const view = buildAlertsView({
+      alerts: armed, alertsState: "READ_OK",
+      run: engineFresh.run, lastSuccessAt: engineFresh.lastSuccessAt, lastSuccessState: engineFresh.lastSuccessState,
+      runsState: engineFresh.runsState,
+      outbox: [], outboxState: "READ_OK_ZERO", now: NOW, monitorLanes: lanes,
+    });
+    expect(view.monitor).toBe("never_ran");
+    expect(view.lastAttemptAt).toBeNull();
+    expect(view.lastAttemptState).toBe("READ_OK_ZERO");
+    expect(view.lastSuccessAt).toBeNull();
+    expect(view.lastSuccessState).toBe("READ_OK_ZERO");
+  });
+
+  it("mixed engine-success + suite-never-ran still honest-nulls lastSuccess (worst lane owns the facts)", () => {
+    const armed: Alert[] = [
+      { id: "p1", active: true, created_at: "2026-01-01T00:00:00Z", condition: { type: "price" } },
+      { id: "s1", active: true, created_at: "2026-01-01T00:00:00Z", condition: { type: "suite_event" } },
+    ];
+    const lanes = lanesForArmedAlerts(armed, engineFresh, suiteNever);
+    const view = buildAlertsView({
+      alerts: armed, alertsState: "READ_OK",
+      run: engineFresh.run, lastSuccessAt: engineFresh.lastSuccessAt, lastSuccessState: engineFresh.lastSuccessState,
+      runsState: engineFresh.runsState,
+      outbox: [], outboxState: "READ_OK_ZERO", now: NOW, monitorLanes: lanes,
+    });
+    expect(view.monitor).toBe("never_ran");
+    expect(view.lastAttemptAt).toBeNull();
+    expect(view.lastSuccessAt).toBeNull();
+    expect(view.lastSuccessState).toBe("READ_OK_ZERO");
+  });
+
+  it("a timestamp on the relevant lane is kept when lastSuccessState is omitted", () => {
+    const engine = {
+      run: baseRun(),
+      runsState: "READ_OK" as const,
+      lastSuccessAt: "2026-09-05T11:59:00Z",
+      id: "engine" as const,
+    };
+    const suite = { run: null, runsState: "READ_OK_ZERO" as const, id: "suite" as const };
+    const armed: Alert[] = [{ id: "p1", active: true, created_at: "2026-01-01T00:00:00Z", condition: { type: "price" } }];
+    const lanes = lanesForArmedAlerts(armed, engine, suite);
+    const view = buildAlertsView({
+      alerts: armed, alertsState: "READ_OK",
+      run: engine.run, lastSuccessAt: engine.lastSuccessAt, lastSuccessState: "READ_UNAVAILABLE",
+      runsState: engine.runsState,
+      outbox: [], outboxState: "READ_OK_ZERO", now: NOW, monitorLanes: lanes,
+    });
+    expect(view.lastSuccessAt).toBe("2026-09-05T11:59:00Z");
+    expect(view.lastSuccessState).toBe("READ_OK");
+  });
+
+  it("suite-free user still reports the engine lane's attempt and last success", () => {
+    const armed: Alert[] = [{ id: "p1", active: true, created_at: "2026-01-01T00:00:00Z", condition: { type: "price" } }];
+    const lanes = lanesForArmedAlerts(armed, engineFresh, suiteNever);
+    const view = buildAlertsView({
+      alerts: armed, alertsState: "READ_OK",
+      run: engineFresh.run, lastSuccessAt: engineFresh.lastSuccessAt, lastSuccessState: engineFresh.lastSuccessState,
+      runsState: engineFresh.runsState,
+      outbox: [], outboxState: "READ_OK_ZERO", now: NOW, monitorLanes: lanes,
+    });
+    expect(view.monitor).toBe("watching");
+    expect(view.lastAttemptAt).toBe(engineFresh.run.started_at);
+    expect(view.lastAttemptState).toBe("READ_OK");
+    expect(view.lastSuccessAt).toBe(engineFresh.lastSuccessAt);
+    expect(view.lastSuccessState).toBe("READ_OK");
+  });
+
+  it("suite-only watching reports the suite lane's times, not the engine's", () => {
+    const armed: Alert[] = [{ id: "s1", active: true, created_at: "2026-01-01T00:00:00Z", condition: { type: "suite_event" } }];
+    const lanes = lanesForArmedAlerts(armed, engineFresh, suiteFresh);
+    const view = buildAlertsView({
+      alerts: armed, alertsState: "READ_OK",
+      run: engineFresh.run, lastSuccessAt: engineFresh.lastSuccessAt, lastSuccessState: engineFresh.lastSuccessState,
+      runsState: engineFresh.runsState,
+      outbox: [], outboxState: "READ_OK_ZERO", now: NOW, monitorLanes: lanes,
+    });
+    expect(view.monitor).toBe("watching");
+    expect(view.lastAttemptAt).toBe(suiteFresh.run.started_at);
+    expect(view.lastSuccessAt).toBe(suiteFresh.lastSuccessAt);
+  });
+
+  it("worst-lane degraded interpolates that lane's last success, not a newer engine success", () => {
+    const armed: Alert[] = [
+      { id: "p1", active: true, created_at: "2026-01-01T00:00:00Z", condition: { type: "price" } },
+      { id: "s1", active: true, created_at: "2026-01-01T00:00:00Z", condition: { type: "suite_sequence" } },
+    ];
+    const lanes = lanesForArmedAlerts(armed, engineFresh, suitePartial);
+    const view = buildAlertsView({
+      alerts: armed, alertsState: "READ_OK",
+      run: engineFresh.run, lastSuccessAt: engineFresh.lastSuccessAt, lastSuccessState: engineFresh.lastSuccessState,
+      runsState: engineFresh.runsState,
+      outbox: [], outboxState: "READ_OK_ZERO", now: NOW, monitorLanes: lanes,
+    });
+    expect(view.monitor).toBe("degraded");
+    expect(view.lastAttemptAt).toBe(suitePartial.run.started_at);
+    expect(view.lastSuccessAt).toBe(suitePartial.lastSuccessAt);
+  });
+});
+
+describe("B-F08-B5-3 noCoverageCount sums relevant lanes only", () => {
+  it("sums numeric unevaluable_n across the lanes passed in", () => {
+    expect(noCoverageAcross([baseRun({ unevaluable_n: 2 }), baseRun({ unevaluable_n: 1, lane: "suite_alerts" })])).toBe(3);
+  });
+  it("engine-only (suite-free) equals today's single-run value", () => {
+    expect(noCoverageAcross([baseRun({ unevaluable_n: 3 })])).toBe(3);
+    expect(noCoverageAcross([null])).toBeNull();
+  });
+});
+
+describe("B-F08-B5-3 R8 copy + unresolved chip", () => {
+  it("ships every new/changed string verbatim in both languages", () => {
+    expect(ALERTS_COPY["identity.unresolved"]).toEqual(["Cannot be checked", "无法检查"]);
+    expect(ALERTS_COPY["identity.unresolved.body"]).toEqual([
+      "The underlying saved on this alert is not in a form we can read, so it will never fire. Delete it and set it up again.",
+      "这条提醒保存的标的格式我们无法读取，因此它永远不会触发。请删除后重新设置。",
+    ]);
+    expect(ALERTS_COPY["noCoverage.body"]).toEqual([
+      "We could not check {n} of your conditions on the last run.",
+      "上次检查中，有 {n} 项条件我们未能完成检查。",
+    ]);
+    expect(ALERTS_COPY["noCoverage.body.prices"]).toBeUndefined();
+    expect(ALERTS_COPY["monitor.lane.suite"]).toEqual(["Signal-suite conditions", "信号套件条件"]);
+    expect(ALERTS_COPY["monitor.lane.engine"]).toEqual(["Price, trend and options conditions", "价格、趋势与期权条件"]);
+    expect(ALERTS_COPY["monitor.lane.degraded"]).toEqual([
+      "{lane}: monitoring degraded — last successful check {t}.",
+      "{lane}：监控降级 —— 上次成功检查 {t}。",
+    ]);
+    expect(ALERTS_COPY["resolution.armed"]).toEqual(["Armed — still watching", "已启用 —— 仍在监控"]);
+  });
+  it("identity.unresolved replaces resolution.armed on an unresolved row", () => {
+    expect(rowChipKey({ identity_state: "unresolved", active: true, condition: { type: "opt_gamma_flip" } })).toBe("identity.unresolved");
+    expect(rowChipKey({ identity_state: "ok", active: true, condition: { type: "opt_gamma_flip" } })).toBe("resolution.armed");
+    expect(copy("identity.unresolved", "en")).not.toBe(copy("resolution.armed", "en"));
+    expect(copy("identity.unresolved.body", "zh")).toMatch(/[，。]/);
+  });
+});
+
+describe("coverage.count excludes unresolved rows (REQUIRED 4)", () => {
+  it("an unresolved armed alert newer than the last run is not counted as tracked", () => {
+    const unresolved: Alert = {
+      id: "u1", active: true, created_at: "2026-09-05T12:00:00Z",
+      identity_state: "unresolved",
+      condition: { type: "opt_gamma_flip", root: "TOOLONGROOTNAME" },
+    };
+    const ok: Alert = {
+      id: "p1", active: true, created_at: "2026-01-01T00:00:00Z",
+      identity_state: "ok",
+      condition: { type: "price", op: "above", value: 200 },
+    };
+    const view = buildAlertsView({
+      alerts: [unresolved, ok], alertsState: "READ_OK",
+      run: baseRun(), lastSuccessAt: "2026-09-05T11:59:00Z", lastSuccessState: "READ_OK",
+      runsState: "READ_OK", outbox: [], outboxState: "READ_OK_ZERO", now: NOW,
+    });
+    expect(view.coverage.count).toBe(1);
+  });
+  it("a lone unresolved armed alert yields tracked count 0, never 1", () => {
+    const unresolved: Alert = {
+      id: "u1", active: true, created_at: "2026-09-05T12:00:00Z",
+      identity_state: "unresolved",
+      condition: { type: "opt_gamma_flip", root: "TOOLONGROOTNAME" },
+    };
+    const view = buildAlertsView({
+      alerts: [unresolved], alertsState: "READ_OK",
+      run: baseRun(), lastSuccessAt: "2026-09-05T11:59:00Z", lastSuccessState: "READ_OK",
+      runsState: "READ_OK", outbox: [], outboxState: "READ_OK_ZERO", now: NOW,
+    });
+    expect(view.coverage.count).toBe(0);
   });
 });

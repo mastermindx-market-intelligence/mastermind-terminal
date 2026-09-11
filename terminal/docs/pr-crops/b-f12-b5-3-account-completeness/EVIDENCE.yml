@@ -1,0 +1,46 @@
+# B-F12-B5-3b Account completeness — capture evidence
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
+# capturedAtHead: 3922198b76580bf03cb4d2237f42f51417ee96fc
+# capturedAt: 2026-09-10T17:11:00.435Z
+# capturedAtHead is the code commit the pixels depict. The lock is layoutFiles.
+# Merge-heal (master b7aa0981): SectionAccount.tsx re-hashed for the B-F08-7b write-fence wrap; i18n.tsx re-hashed for master's auto-merged LEX keys. No packet key moved, no crop recaptured.
+# Merge of master 64c05ff2 (#553) into B-F13-6 (#554): i18n.tsx re-hashed for the claim-authoring LEX keys this PR adds to the shared lexicon. No packet key moved, no crop recaptured — those keys are not rendered on the account-completeness surface.
+# 2026-09-11 merge of master bad423f5 (#548 explicit grants) into B-F13-6 (#554): i18n.tsx re-hashed again - the merged lexicon carries this PR's 31 claim* keys plus master's acsSharing and 28 shr* keys. SectionAccount.tsx and teamSummary.ts are untouched by both sides.
+# CORRECTION, replacing the #548 line this merge superseded ("i18n.tsx re-hashed for the explicit-grants and Sharing-tab LEX keys ... no crop recaptured - those keys are not rendered on the account-completeness surface"): acsSharing IS rendered on this surface, so that clause was false and COMMON forbids carrying a false header line forward.
+# These 8 PNGs screenshot .acs-overlay (capture_b_f12_b5_3_account_completeness.cjs:189-190), which contains .acs-card > .acs-rail > .acs-nav, so EVERY SettingsPanel NAV row is inside the frame. They were captured at 3922198b (2026-09-10T17:10:37Z) when NAV had 7 rows (Account, Billing, Usage, Preferences, Alert delivery, Terminal, Sync); the merged tree renders 10 - Accuracy, Webhooks (#549) and Sharing (#548) all arrived after the capture - so the rail in these crops is three rows stale.
+# Not caused by #554 and deliberately NOT repaired here: this packet does not pin SettingsPanel.tsx, so the byte lock cannot see a rail change, and the evidence-lock law is to REPORT a captured surface that renders differently, never to recapture it inside a merge. Reported to the Meta-CEO B seat 2026-09-11 by Stream T run 7.
+layoutFiles:
+  terminal/components/settings/SectionAccount.tsx: "d2c3828c286bbaac321881d5a6562efdd4f30e580f4200d49c5165c0fa7ef9a4"
+  terminal/lib/teamSummary.ts: "7bd3b3f1d5251490e42399be1dd77e977b2626c1714efbece2f7139c584e0f15"
+  terminal/lib/i18n.tsx: "7c1b7232672bb85c753d99cf3fde91d9dffff43a31977fe0207412374eeaad2b"
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: mobile, width: 390, height: 844 }
+harness: /dev/settings?s=account&lang=<en|zh>&provider=<google|email>
+teams_fixture: The team line is produced by a capture-time Playwright route stub at e2e/tools/capture_b_f12_b5_3_account_completeness.cjs:125-133 (mockTeams fulfills **/api/teams with one owner team named Acme). It is not a live GET /api/teams.
+capture_flag: TERMINAL_E2E_FIXTURE
+capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.
+command: |
+  cd terminal
+  node e2e/tools/capture_b_f12_b5_3_account_completeness.cjs
+files:
+  - desktop-en-overview.png
+  - desktop-zh-overview.png
+  - desktop-en-password.png
+  - desktop-zh-password.png
+  - mobile-en-overview.png
+  - mobile-zh-overview.png
+  - mobile-en-password.png
+  - mobile-zh-password.png
+measurements:
+  desktop-en-overview.png: { teamLine: "You are the owner of Acme.", currentPasswordField: false, passwordEditVisible: false, noPasswordLine: "You signed in without a password, so there is nothing to change here." }
+  desktop-zh-overview.png: { teamLine: "你是“Acme”团队的所有者。", currentPasswordField: false, passwordEditVisible: false, noPasswordLine: "你登录时未设置密码，因此这里没有可更改的内容。" }
+  desktop-en-password.png: { teamLine: "You are the owner of Acme.", currentPasswordField: true, passwordEditVisible: false, noPasswordLine: "" }
+  desktop-zh-password.png: { teamLine: "你是“Acme”团队的所有者。", currentPasswordField: true, passwordEditVisible: false, noPasswordLine: "" }
+  mobile-en-overview.png: { teamLine: "You are the owner of Acme.", currentPasswordField: false, passwordEditVisible: false, noPasswordLine: "You signed in without a password, so there is nothing to change here." }
+  mobile-zh-overview.png: { teamLine: "你是“Acme”团队的所有者。", currentPasswordField: false, passwordEditVisible: false, noPasswordLine: "你登录时未设置密码，因此这里没有可更改的内容。" }
+  mobile-en-password.png: { teamLine: "You are the owner of Acme.", currentPasswordField: true, passwordEditVisible: false, noPasswordLine: "" }
+  mobile-zh-password.png: { teamLine: "你是“Acme”团队的所有者。", currentPasswordField: true, passwordEditVisible: false, noPasswordLine: "" }
