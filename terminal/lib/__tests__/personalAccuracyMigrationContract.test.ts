@@ -46,6 +46,28 @@ describe("0017 personal accuracy ledger migration contract", () => {
     expect(head).toMatch(/^-- Rollback:/m);
   });
 
+  it("the -- Ledger row: header agrees with the row on pull request, merge sha and apply date", () => {
+    // 0017's header keeps the lane id it was written with — MO-DELTA-007 (F13-OPS-LEARNING) — and
+    // now carries the facts the ledger records beside it. It used to end "packet B-F13-5; not
+    // applied", written while #547 was open: a statement that stopped being true when #547 merged
+    // as b7aa0981 and the seat applied the DDL on 2026-09-10. A pin must never assert a sentence
+    // known to be false, so the header was corrected to the ledger's truth and this assertion —
+    // read out of the row, never spelled out as a literal — is what keeps the two together.
+    const row = (JSON.parse(readFileSync(reservationsPath, "utf8")) as {
+      prefixes: Record<string, { pr: number; pr_state: string; merged_sha?: string; applied_date?: string | null }>;
+    }).prefixes["0017"];
+    const line = sql.split("\n").slice(0, 40).find((l) => l.startsWith("-- Ledger row:"));
+    expect(line, "0017 carries no -- Ledger row: header line").toBeTruthy();
+    expect(line!).toContain("0017_personal_accuracy_ledger");
+    expect(line!).toContain("MO-DELTA-007 (F13-OPS-LEARNING)");
+    expect(line!).toContain("packet B-F13-5");
+    expect(line!).toContain(`PR #${row.pr}`);
+    expect(line!).toContain(`${row.pr_state} ${row.merged_sha}`);
+    expect(line!).toContain(`applied ${row.applied_date}`);
+    expect(line!).not.toMatch(/not applied/);
+    expect(line!).not.toMatch(/\(open[,)]/);
+  });
+
   it("is re-runnable: every create is if-not-exists or duplicate_object guarded", () => {
     expect(flat).toContain("create table if not exists public.user_claims");
     expect(flat).toMatch(/create index if not exists user_claims_owner_stated_idx/);

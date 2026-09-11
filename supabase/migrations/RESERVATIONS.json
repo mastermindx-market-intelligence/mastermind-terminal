@@ -179,7 +179,7 @@
       "merged_sha": "b7aa0981",
       "applied_in_production": true,
       "applied_date": "2026-09-10",
-      "note": "claimed by packet B-F13-5 in PR #547; DDL shipped, not applied; applied_date not recorded because the pull request has not merged. Merged to master as b7aa0981 on 2026-09-10 (squash of #547's ratified head 661713ec); DDL still unapplied at merge time — the seat applies 0017 with a receipt in ledger order. Applied in production 2026-09-10T20:57:38Z by the seat (receipt comment on #547)."
+      "note": "claimed by packet B-F13-5 in PR #547; DDL shipped, not applied. Merged to master as b7aa0981 on 2026-09-10 (squash of #547's ratified head 661713ec); DDL still unapplied at merge time — the seat applies 0017 with a receipt in ledger order. Applied in production 2026-09-10T20:57:38Z by the seat (receipt comment on #547)."
     },
     "0018": {
       "state": "taken",

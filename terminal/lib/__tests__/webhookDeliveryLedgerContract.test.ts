@@ -8,6 +8,13 @@
  * was pinned on the vitest side by nothing at all — only by the pytest snapshot in
  * tests/test_supabase_migration_namespace.py.
  *
+ * The header line itself was stale when this pin was first written — it still read
+ * "(open, packet B-F12-7); not applied" long after #549 merged as cd1269fe and the seat applied the
+ * DDL on 2026-09-10. A pin must never assert a statement known to be false, so the header was
+ * corrected to the ledger's truth in the same change that added this file, exactly as PR #568 did
+ * for 0019 and 0020, and the agreement is asserted below against a line DERIVED from the row rather
+ * than against a literal that could go stale in its turn.
+ *
  * The ledger is read through lib/__tests__/helpers/reservations.ts, which masks nothing and never
  * logs the document, so the project reference in its `project_ref` field cannot reach a test log.
  */
@@ -15,6 +22,7 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import {
   headerPrNumber,
+  ledgerHeaderLineFromRow,
   ledgerRowHeaderLine,
   migrationExists,
   readMigration,
@@ -53,26 +61,24 @@ describe("0018 webhook delivery ledger contract", () => {
     expect(head).toMatch(/^-- Rollback:/m);
   });
 
-  it("the -- Ledger row: header names the same file, packet and pull request as the row", () => {
+  it("the -- Ledger row: header agrees with the row on pull request, merge sha and apply date", () => {
     const line = ledgerRowHeaderLine(sql);
     expect(line, "0018 carries no -- Ledger row: header line").toBeTruthy();
     expect(line!).toContain("0018_webhook_delivery");
-    expect(line!).toContain(`packet ${row.packet}`);
     expect(headerPrNumber(line!)).toBe(row.pr);
+    expect(line!).toContain(`${row.pr_state} ${row.merged_sha}`);
+    expect(line!).toContain(`packet ${row.packet}`);
+    expect(line!).toContain(`applied ${row.applied_date}`);
+    expect(line!).not.toMatch(/not applied/);
+    expect(line!).not.toMatch(/\(open[,)]/);
   });
 
-  it("records where the header and the row still disagree (reported, not edited here)", () => {
-    // ANOMALY, carried deliberately: the header was written while #549 was open and unapplied and
-    // has never been rewritten, so it still reads "(open, packet B-F12-7); not applied" while the
-    // row records pr_state "merged" (cd1269fe) and applied_in_production true on 2026-09-10. This
-    // lane ships tests and docs only and edits no .sql file, so the disagreement is pinned rather
-    // than papered over: when the seat corrects the header, this assertion fails and the pin is
-    // updated in the same change.
-    const line = ledgerRowHeaderLine(sql)!;
-    expect(line).toContain("(open, packet B-F12-7)");
-    expect(line).toContain("not applied");
-    expect(row.pr_state).toBe("merged");
-    expect(row.applied_in_production).toBe(true);
+  it("the header line is exactly the line the row derives, so no stale claim can survive in it", () => {
+    // The whole line, not a handful of substrings: the header is reconstructed from the row and
+    // compared byte for byte. Nothing about a pull request's state can be asserted here that the
+    // ledger does not itself record, and the next flip of this row fails this test until the header
+    // moves with it.
+    expect(ledgerRowHeaderLine(sql)).toBe(ledgerHeaderLineFromRow(row));
   });
 
   it("records 0018 as merged and applied in the README application table", () => {
