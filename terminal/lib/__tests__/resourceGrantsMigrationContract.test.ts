@@ -136,7 +136,7 @@ describe("0021 resource grants migration contract", () => {
     expect(downBlock).toContain("drop table if exists public.resource_grants");
   });
 
-  it("claims prefix 0021 in RESERVATIONS.json as merged and unapplied", () => {
+  it("claims prefix 0021 in RESERVATIONS.json as merged and applied", () => {
     const doc = JSON.parse(readFileSync(reservationsPath, "utf8")) as {
       prefixes: Record<
         string,
@@ -159,21 +159,23 @@ describe("0021 resource grants migration contract", () => {
     expect(row.pr).toBe(548);
     expect(row.pr_state).toBe("merged");
     expect(row.merged_sha).toBe("bad423f5");
-    // Ledger order: 0019 and 0020 are still open in PR #550, so 0021 cannot be applied yet. The
-    // date is null because there is no application, never because a real date was lost.
-    expect(row.applied_in_production).toBe(false);
-    expect(row.applied_date).toBeNull();
+    // Ledger order: 0019 and 0020 merged first (3cdcd746, PR #550) and were applied
+    // 2026-09-11T05:58:15Z / 05:58:34Z, which is what unblocked 0021. The seat applied 0021 at
+    // 2026-09-11T05:59:15Z with a readback receipt (PR #548 comment 5630176531).
+    expect(row.applied_in_production).toBe(true);
+    expect(row.applied_date).toBe("2026-09-11");
   });
 
-  it("records 0021 as merged and not applied in the README application table", () => {
+  it("records 0021 as merged and applied in the README application table", () => {
     const readme = readFileSync(readmePath, "utf8");
     const appRow = readme
       .split("\n")
       .find((line) => line.includes("0021_resource_grants.sql"));
     expect(appRow, "application-status table is missing the 0021 row").toBeTruthy();
     expect(appRow!).toContain("bad423f5");
-    expect(appRow!.toLowerCase()).toContain("not applied");
-    expect(appRow!.toLowerCase()).not.toMatch(/yes — applied/);
+    expect(appRow!.toLowerCase()).not.toMatch(/not applied/);
+    expect(appRow!.toLowerCase()).toMatch(/yes — applied 2026-09-11/);
+    expect(appRow!).toContain("5630176531");
     expect(readme).toMatch(/\|\s*`0021`\s*\|/);
   });
 });
