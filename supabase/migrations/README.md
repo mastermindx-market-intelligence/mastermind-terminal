@@ -62,6 +62,8 @@ rows each record their own date — `0011`'s DDL was applied 2026-09-05
 | `0016_account_lifecycle_requests.sql` | `account_lifecycle_requests` table + RLS | yes — applied 2026-09-09 (Meta-CEO B; readback receipt on PR #527 comment `5594233632`) |
 | `0017_personal_accuracy_ledger.sql` | `user_claims` table + RLS (personal accuracy ledger, packet B-F13-5) | yes — applied 2026-09-10 (Meta-CEO B; readback receipt on PR #547 comment `5625342890`) |
 | `0018_webhook_delivery.sql` | `webhook_endpoints`, `webhook_deliveries` tables + `enqueue_test_webhook_delivery()` + RLS | yes — applied 2026-09-10 (Meta-CEO B; readback receipt on PR #549 comment `5625353856`) |
+| `0019_team_role_changes.sql` | `team_role_changes` table + `log_team_role_change()` / `team_member_names()` + replaced `tm_insert_admin` / `tm_update_admin` / `tm_delete_admin` / `ti_insert_admin` | **no** — open PR (packet B-F12-8); not applied |
+| `0020_team_ownership_transfer.sql` | `transfer_team_ownership(uuid, uuid)` — atomic demote-then-promote ownership transfer | **no** — open PR (packet B-F12-9); not applied |
 | `0021_resource_grants.sql` | `resource_grants` table + `has_active_grant()`/`owns_watchlist()`/`resource_grants_guard()` + RLS on `watchlists`/`watchlist_symbols` (explicit grants, packet B-F12-B5-1) | merged `bad423f5` — **no — not applied** (ledger order after `0019`/`0020`) |
 
 **Raw-fallback note (terminal PR #516):** `scripts/supabase_apply.py` only
@@ -192,8 +194,8 @@ amendment, only a README edit.
 | `0016` | `account_lifecycle_requests` | PR #527 (merged as `68bbe8ea` on 2026-09-09, packet B-F12-4) | merged + applied 2026-09-09 |
 | `0017` | `personal_accuracy_ledger` | PR #547 (merged as `b7aa0981` on 2026-09-10, packet B-F13-5) | merged + applied 2026-09-10 (readback receipt on PR #547 comment `5625342890`) |
 | `0018` | `webhook_delivery` | PR #549 (merged as `cd1269fe` on 2026-09-10, packet B-F12-7 — the seat's **re-scoped Terminal signed-webhooks** packet of 2026-09-09 (branch `claude/mo-b-f12-7-signed-webhooks`), **not** the refused public-API packet recorded against macro #6925 under the same id) | merged + applied 2026-09-10 (readback receipt on PR #549 comment `5625353856`) |
-| `0019` | `team_role_changes` | PR #550 (open, packet B-F12-8 team roles) | open PR — shipped unapplied |
-| `0020` | `team_ownership_transfer` | PR #550 (open, packet B-F12-9 ownership transfer) | open PR — shipped unapplied |
+| `0019` | `team_role_changes` | PR #550 (packet B-F12-8; owner / administrator / member roles v1) | open PR; not applied |
+| `0020` | `team_ownership_transfer` | PR #557 (packet B-F12-9; atomic ownership transfer v1). Seat ruled 0020; the spec's claim of 0019 is superseded because 0019 is B-F12-8. | open PR; not applied |
 | `0021` | `resource_grants` | PR #548 (merged as `bad423f5` on 2026-09-11, packet B-F12-B5-1 explicit grants; prefix ruled by the seat 2026-09-09) | merged — not applied (waits for `0019` and `0020`) |
 | `0022` | `chart_layouts_team_sharing` | PR #555 (merged as `6cdbaa0a8` on 2026-09-09, packet B-F12-B5-2) | merged — not applied |
 | `0023` | `portfolio_targets` | PR #552 (merged as `9022e0138` on 2026-09-10, packet B-F08-B5-1) | merged — not applied |
@@ -221,8 +223,8 @@ have both merged and been applied: `0017` reached `master` as `b7aa0981` and its
 `cd1269fe` and was applied the same day, after it (readback receipt on PR #549, comment
 `5625353856`). `0019` (team roles, packet B-F12-8) and `0020` (ownership transfer, packet
 B-F12-9) have left pre-reservation: both files now ride open PR #550, so they are **taken in an
-open PR** and unapplied — their rows in `RESERVATIONS.json` still read `reserved` on `master` and
-flip to `taken` when #550 lands, which is that pull request's own edit to make, not this table's. `0021` (explicit grants, packet B-F12-B5-1) merged to `master` as
+open PR** and unapplied — on `master` their rows in `RESERVATIONS.json` read `reserved`, and this pull
+request is the edit that flips them to `taken` with `pr_state: open` — #550's own edit, not this table's. `0021` (explicit grants, packet B-F12-B5-1) merged to `master` as
 `bad423f5` on 2026-09-11, and `0022` (team-shared saved workspaces) and `0023` (portfolio
 targets) merged before it; all three are on `master` and **not applied**. That is what separates
 `reserved` from `taken` — `taken` means a real file exists (in this checkout or in an open PR);

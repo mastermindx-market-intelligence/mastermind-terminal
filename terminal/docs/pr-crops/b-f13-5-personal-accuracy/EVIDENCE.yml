@@ -1,22 +1,23 @@
 # B-F13-5 Personal accuracy ledger — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 5226e8010f1c3fcca686e1a5b66b9d733e92b961
-# capturedAt: 2026-09-10T22:04:15.150Z
+# capturedAtHead: 916db2d4ac62b00aed236231433d8d952c22f3c6
+# capturedAt: 2026-09-11T02:59:13.879Z
 # capturedAtHead is informational. The lock is layoutFiles.
-# 2026-09-10 merge-heal 2 on PR #548: origin/master eab65ff7 plus this PR's Sharing tab. SettingsPanel.tsx, page.tsx, i18n.tsx re-hashed; 12 crops recaptured so the rail shows Accuracy and Sharing. Code merge is c926a0cb.
-# 2026-09-11 merge of master bad423f5 (#548 explicit grants) into B-F13-6 (#554): i18n.tsx re-hashed ONLY - the merged lexicon carries this PR's 31 claim* keys plus master's acsSharing and 28 shr* keys. SettingsPanel.tsx and terminal/app/dev/settings/page.tsx keep exactly the values master restamped alongside that 12-crop recapture at 5226e801, so the crops in this packet already depict the rail this tree renders; no B-F13-5 acc* key moved and no crop was recaptured. The two superseded #549 / #553 merge-heal lines from the #554 side were dropped rather than carried: their "12 crops recaptured at 5992b8b52" claim stopped being true when #548 recaptured all 12 at 5226e801.
-# master 64c05ff2 (#553) changed terminal/lib/i18n.tsx and terminal/app/dev/settings/page.tsx; hash-only restamp after merge; crops unchanged
-# 2026-09-11 merge of master 7e15e502 (#554 B-F13-6 squashed) into B-F13-7 (#556): terminal/lib/personalAccuracy.ts and terminal/lib/personalAccuracyStore.ts re-hashed because this PR adds thresholdNumber and the last-close resolver registry entry; both edits are logic-only with no JSX, class or rendered-string change, so the captured surface is unchanged and no crop was recaptured.
+# types.ts hash restamped earlier on this PR: the acsDate NaN guard moved inside the existing try so a throwing input stays null (this PR's heal h3 test).
+# 2026-09-11 duplicate-key fix on #550: the carrier renamed its own acsTeamNone/acsTeamMany (-> acsTeamNoneCreate/acsTeamManyPanel) to clear the TS1117 collision with master #553's pair; neither key is rendered on the personal-accuracy surface.
+# 2026-09-11 merge of master e43733c1 (#548 explicit grants + #566 ledger flip) into B-F12-8 (#550): 12 crops recaptured at merge commit 916db2d4ac62b00aed236231433d8d952c22f3c6 so the rail shows the merged 11 rows (account, team, accuracy, billing, usage, prefs, alertDelivery, terminal, sync, webhooks, sharing). This supersedes every earlier crops-unchanged / no-crop-recaptured line in this header.
+# 2026-09-11 merge of master 7e15e502 (#554 claim authoring form) into B-F12-8 (#550): i18n.tsx re-hashed ONLY, for master's 31 claim* lexicon keys. #554 edits none of this packet's other pinned files, so SectionAccuracy.tsx, SectionAccuracy.module.css, SettingsPanel.tsx, types.ts, page.tsx, accuracyFixtures.ts and the two lib files keep this carrier's values; no claim* key renders on the accuracy surface and the rail is unchanged, so the 12 crops recaptured at 916db2d4 still depict this tree and none was recaptured. The three b-f13-5 header lines carried on the #554 side were dropped, not merged: their "SettingsPanel.tsx and page.tsx keep exactly the values master restamped ... so the crops in this packet already depict the rail this tree renders" and "12 crops recaptured ... Accuracy and Sharing" claims are false in this tree, where this carrier's 916db2d4 recapture (11-row rail, Team included) supersedes the 5226e801 one.
+# 2026-09-11 merge of master 19c57aca (#556 B-F13-7 first resolver, squashed) into B-F12-8 (#550): terminal/lib/personalAccuracy.ts and terminal/lib/personalAccuracyStore.ts re-hashed ONLY, to master's merged bytes — #556 adds thresholdNumber and the last-close resolver registry entry, both logic-only with no JSX, class or rendered-string change, so the captured surface is unchanged and no crop was recaptured; the 12 crops recaptured at 916db2d4 still depict this tree. #556 edits none of this packet's other pinned files, so SectionAccuracy.tsx, SectionAccuracy.module.css, SettingsPanel.tsx, types.ts, i18n.tsx, page.tsx and accuracyFixtures.ts keep this carrier's values. The four b-f13-5 header lines carried on the master side (the #548 merge-heal-2, #554, #553 and #556 lines) were dropped, not merged: their crop and rail claims describe the 5226e801 recapture, which this carrier's 916db2d4 recapture (11-row rail, Team included) supersedes.
 layoutFiles:
   terminal/components/settings/SectionAccuracy.tsx: "53304918f2cd38ffbb2b733a754503a644ce030594ea92d09079d78ad37dca1e"
   terminal/components/settings/SectionAccuracy.module.css: "a35d7db4b05ab753db30f2ac46ba0b8c16eeef61309336531f05d2a6ae7f21cc"
-  terminal/components/settings/SettingsPanel.tsx: "0624427f94d2e35014dc5b419cea832cc60cd69de1e15c18a1feb387112acf5a"
-  terminal/components/settings/types.ts: "11e4ca0d4804ded9913bdfba0629925f1127cd1db0dca7721bba50cd1e648d5e"
-  terminal/lib/i18n.tsx: "7c1b7232672bb85c753d99cf3fde91d9dffff43a31977fe0207412374eeaad2b"
+  terminal/components/settings/SettingsPanel.tsx: "378811617e0de2feed0d8bc1c6e01ae55d8e763204fe0d1c1829bc44fff1e1a4"
+  terminal/components/settings/types.ts: "108b8e5876b864efec5ceaed22b50da68367e35aae7535aae9be71435d909675"
+  terminal/lib/i18n.tsx: "58228919212680b8b0335dfe561e5358c723b18fcbb4cb7fa47e71e5223d7910"
   terminal/lib/personalAccuracy.ts: "66f098c42b9b18269c6184fa06b644406398d09f54afc10f968234499ec16c2d"
   terminal/lib/personalAccuracyStore.ts: "58e7b7e26f3246052743556ba8310c898dad73480a5fd9b2703989c5f9f5372c"
-  terminal/app/dev/settings/page.tsx: "d79ba37eb97c648e8b371fba880b8f3f0cc2c0d577474f465d6fc463941e027f"
+  terminal/app/dev/settings/page.tsx: "1f736bd79650c602e18007af7a785b38fd19f6722b693e9bb7945f22310bae17"
   terminal/app/dev/settings/accuracyFixtures.ts: "839d45a530c3625ec0747f44749a6a0f097f7c8c0f4d8674673da40e4fecdeee"
 theme: dark
 languages: [en, zh]
