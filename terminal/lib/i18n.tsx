@@ -1,5 +1,6 @@
 "use client";
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { DEEP_RESEARCH_MONTHLY } from "./chatQuotas";
 
 export type Lang = "en" | "zh";
 
@@ -1770,7 +1771,7 @@ export const LEX: Record<string, [string, string]> = {
   // summary — insider
   obInsiderHd: ["Everything in Free, plus…", "免费版全部内容，另加……"],
   obInsider1: ["Unlimited Flash AI", "无限量 Flash AI"],
-  obInsider2: ["20 Pro AI dives a month", "每月 20 次 Pro AI"],
+  obInsider2: [`${DEEP_RESEARCH_MONTHLY.essential} Pro AI dives a month`, `每月 ${DEEP_RESEARCH_MONTHLY.essential} 次 Pro AI`],
   obInsider3: ["Intraday options flow", "日内期权流"],
   obInsider4: ["Insider & Congress & 13F desks", "内部人、国会与 13F 看板"],
   obInsider5: ["Earnings call transcripts", "财报电话会记录"],
@@ -1779,7 +1780,7 @@ export const LEX: Record<string, [string, string]> = {
   obWedgeBtn: ["Switch to Pro", "切换到 Pro"],
   // summary — pro
   obProHd: ["Everything in Essential, plus…", "Essential 全部内容，另加……"],
-  obPro1: ["50 Pro AI dives a month", "每月 50 次 Pro AI"],
+  obPro1: [`${DEEP_RESEARCH_MONTHLY.pro} Pro AI dives a month`, `每月 ${DEEP_RESEARCH_MONTHLY.pro} 次 Pro AI`],
   obPro2: ["Mastermind + institutional research reports", "Mastermind 与机构研究报告"],
   obProResearchFine: ["JPM · Citi · Morgan Stanley · UBS · Goldman Sachs · BofA", "JPM · Citi · Morgan Stanley · UBS · Goldman Sachs · BofA"],
   obPro3: ["Mastermind Bot Portfolios", "Mastermind 机器人组合"],
@@ -2041,10 +2042,10 @@ export const LEX: Record<string, [string, string]> = {
   acsFeatInsider1: ["Every dashboard & all research", "全部看板与研究"],
   acsFeatInsider2: ["Full Terminal + live options", "完整 Terminal + 实时期权"],
   acsFeatInsider3: ["300 Mastermind questions a month", "每月 300 次 Mastermind 提问"],
-  acsFeatInsider4: ["10 deep research questions a month", "每月 10 次深度研究提问"],
+  acsFeatInsider4: [`${DEEP_RESEARCH_MONTHLY.essential} deep research questions a month`, `每月 ${DEEP_RESEARCH_MONTHLY.essential} 次深度研究提问`],
   acsFeatPro1: ["Everything in Essential", "Essential 全部功能"],
   acsFeatPro2: ["Unlimited Mastermind questions", "无限量 Mastermind 提问"],
-  acsFeatPro3: ["150 deep research questions a month", "每月 150 次深度研究提问"],
+  acsFeatPro3: [`${DEEP_RESEARCH_MONTHLY.pro} deep research questions a month`, `每月 ${DEEP_RESEARCH_MONTHLY.pro} 次深度研究提问`],
   acsFeatPro4: ["Priority research answers", "研究问题优先解答"],
   // usage
   acsChatLane: ["Mastermind chat", "Mastermind 对话"],
