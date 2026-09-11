@@ -157,7 +157,7 @@ describe("R3: the zero-team default state says so and offers a way out", () => {
     stubFetch({ "/api/teams": { status: 200, body: { teams: [] } } });
     await mount(lang);
     const idx = lang === "zh" ? 1 : 0;
-    expect(text()).toContain(LEX.acsTeamNone[idx]);
+    expect(text()).toContain(LEX.acsTeamNoneCreate[idx]);
     expect(container.querySelector('[data-testid="team-create"]')?.textContent).toBe(LEX.acsTeamCreate[idx]);
     expect(container.querySelector("#acs-team-name")).toBeTruthy();
     expect(container.querySelector('[data-testid="team-name-label"]')?.textContent).toBe(LEX.acsTeamName[idx]);
@@ -392,7 +392,7 @@ describe("R6: a successful self-leave reloads into the zero-team state", () => {
     expect(live()?.getAttribute("data-team-id")).toBe("");
     expect(live()?.getAttribute("data-caller-role")).toBe("");
     expect(text()).toContain(LEX.acsTeamLeft[0]);
-    expect(text()).toContain(LEX.acsTeamNone[0]);
+    expect(text()).toContain(LEX.acsTeamNoneCreate[0]);
     expect(calls.some((c) => c.method === "DELETE")).toBe(true);
   });
 });

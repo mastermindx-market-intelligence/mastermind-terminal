@@ -482,7 +482,7 @@ export default function SectionTeam({
       >
         {!noTeam && teamsCount > 1 && teamName ? (
           <p className="acs-note" data-testid="team-many">
-            {fill(t("acsTeamMany"), { n: String(teamsCount), name: teamName })}
+            {fill(t("acsTeamManyPanel"), { n: String(teamsCount), name: teamName })}
           </p>
         ) : null}
         {!noTeam && teamsTruncated ? (
@@ -526,7 +526,7 @@ export default function SectionTeam({
           {rosterFail ? <Msg text={rosterFail[lang === "zh" ? 1 : 0]} kind="err" /> : null}
           {noTeam ? (
             <div className={s.noTeam} data-testid="team-none">
-              <p className="acs-note">{t("acsTeamNone")}</p>
+              <p className="acs-note">{t("acsTeamNoneCreate")}</p>
               <label className={s.createLabel} htmlFor="acs-team-name" data-testid="team-name-label">
                 {t("acsTeamName")}
               </label>
