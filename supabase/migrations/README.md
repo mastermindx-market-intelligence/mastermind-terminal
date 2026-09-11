@@ -221,11 +221,12 @@ have both merged and been applied: `0017` reached `master` as `b7aa0981` and its
 `cd1269fe` and was applied the same day, after it (readback receipt on PR #549, comment
 `5625353856`). `0019` (team roles, packet B-F12-8) and `0020` (ownership transfer, packet
 B-F12-9) have left pre-reservation: both files now ride open PR #550, so they are **taken in an
-open PR** and unapplied. `0021` (explicit grants, packet B-F12-B5-1) merged to `master` as
+open PR** and unapplied — their rows in `RESERVATIONS.json` still read `reserved` on `master` and
+flip to `taken` when #550 lands, which is that pull request's own edit to make, not this table's. `0021` (explicit grants, packet B-F12-B5-1) merged to `master` as
 `bad423f5` on 2026-09-11, and `0022` (team-shared saved workspaces) and `0023` (portfolio
 targets) merged before it; all three are on `master` and **not applied**. That is what separates
 `reserved` from `taken` — `taken` means a real file exists (in this checkout or in an open PR);
-`reserved` means only the number and the owner are settled, and no row is `reserved` today. As
+`reserved` means only the number and the owner are settled. As
 with every prefix in this ledger, the seat applies DDL **in ledger order** — never ahead of a
 lower, still-unapplied number — and never without a pre/post catalog-readback receipt posted on
 the owning pull request first (rule (d) above); `0014` and `0015` applying strictly in that order
