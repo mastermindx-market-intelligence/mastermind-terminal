@@ -1,10 +1,10 @@
 # Ledger row: 0020_team_ownership_transfer / PR #550 (merged 3cdcd746; originated in #557, packet B-F12-9); applied 2026-09-11
 # layoutFiles carry sha256 hashes of the files they name; proof of which code generated each crop.
 # Rebuild any crop and recompute its layoutFiles, or the test will fail and the PR will not land.
-# capturedAtHead: 3cdcd746b86d478ff139dd5fea408b66fce065af
-capturedAtHead: 3cdcd746b86d478ff139dd5fea408b66fce065af
+# capturedAtHead: 35e9f60c895ae9c1e0ebb803bc16d48bd5962f86
+capturedAtHead: 35e9f60c895ae9c1e0ebb803bc16d48bd5962f86
 capturedAt: 2026-09-11T03:00:17.565Z
-# capturedAtHead is master commit 3cdcd746b86d478ff139dd5fea408b66fce065af — the squash-merge of #550 (B-F12-9 + migrations 0019/0020) that landed this packet on master; the layoutFiles hashes below are that commit's bytes, byte-identical to the ones recorded at the previous pointer 2f775a39d112208196c223065e61242931c1b973. That pointer was a commit on #550's branch, which the squash merge left unreachable from master, so the ancestry check could no longer pass; no crop was recaptured. (The earlier statement naming 2f775a39d112208196c223065e61242931c1b973 as this commit's direct parent no longer holds.)
+# capturedAtHead is merge commit 35e9f60c895ae9c1e0ebb803bc16d48bd5962f86 (H4b #565 onto master 908540b79). layoutFiles hashes are that commit's bytes except i18n.tsx, which this PR restamps for DEEP_RESEARCH_MONTHLY quota copy (obInsider2/obPro1/acsFeatInsider4/acsFeatPro3). Those strings are not rendered on the ownership-transfer surface; no crop recaptured. The previous pointer 3cdcd746b86d478ff139dd5fea408b66fce065af remains an ancestor; the ancestry guard requires capturedAtHead to name a commit whose i18n blob matches the restamped hash.
 # Pinned i18n.tsx last changed on this carrier for master #554's claim* keys; the captured surface (team section + rail) does not render them; crops unchanged from 916db2d4ac62b00aed236231433d8d952c22f3c6.
 # 2026-09-11 duplicate-key fix (#550): master #553 added its own acsTeamNone/acsTeamMany, so #550's pair was renamed (-> acsTeamNoneCreate/acsTeamManyPanel) and SectionTeam repointed; neither key is rendered on the ownership-transfer surface.
 # 2026-09-11 merge of master e43733c1 (#548 explicit grants + #566 ledger flip) into B-F12-8 (#550): 8 crops recaptured at merge commit 916db2d4ac62b00aed236231433d8d952c22f3c6 so the rail shows the merged 11 rows (account, team, accuracy, billing, usage, prefs, alertDelivery, terminal, sync, webhooks, sharing). This supersedes every earlier crops-unchanged / no-crop-recaptured line in this header.
@@ -15,7 +15,7 @@ layoutFiles:
   terminal/components/settings/SectionTeam.module.css: "924ab5b81d4f0e11ef2138557e92c43a0d1fa21b78622567fb6ccddcf6c146a8"
   terminal/components/settings/SettingsPanel.tsx: "378811617e0de2feed0d8bc1c6e01ae55d8e763204fe0d1c1829bc44fff1e1a4"
   terminal/app/settings.css: "3189163136d943431cbf52e4b5d241c105b695ba5af94c4c2e29151d537b5ef5"
-  terminal/lib/i18n.tsx: "58228919212680b8b0335dfe561e5358c723b18fcbb4cb7fa47e71e5223d7910"
+  terminal/lib/i18n.tsx: "6692a264e8c019ab4cbc028a4f26a35e8a81997366e4a790ac0c67d195cfc7a4"
 theme: dark
 languages: [en, zh]
 viewports:
