@@ -2,13 +2,14 @@
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
 # capturedAtHead: a111b055fee5c31a8577be70b239a7b76d417f96
+# 2026-09-11 merge of master 9b7e7a41 (#546) into this PR: ThesisWorkspace.tsx re-hashed for B-F11-4's research-views additions (+713/-29). Those additions touch neither contextActions/contextBar nor the claim form; this packet's crops clip to [data-testid="thesis-context-actions"] (entry) and [data-testid="claim-authoring-form"] (empty/filled), so no captured surface renders differently and no crop was recaptured.
 # capturedAt: 2026-09-10T15:33:21.786Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/components/workspaces/ClaimAuthoringForm.tsx: "58c9be616f9ef5b7d90c7efdc164138ef76bdc6d7ffd590ff27ad904bfea4a3f"
   terminal/components/workspaces/ClaimAuthoringForm.module.css: "a8f3030eef0538dccc9f32f5a2688ecbf5f7b8e9c1601717fa819fae763acdc1"
   terminal/lib/claimAuthoring.ts: "b87652bc9c484de109395fb1d5b8dd8a0ba0ddb0ff8e88d629c4bd616b535ed5"
-  terminal/components/workspaces/ThesisWorkspace.tsx: "938fbc12ca754cef88b5d547a307b7cbae7d06bc8434cac50128f0269e784270"
+  terminal/components/workspaces/ThesisWorkspace.tsx: "51b6a96909a53373ca3ce160605960bc03615a89d296fcc6dfdd28461e987445"
 theme: dark
 languages: [en, zh]
 viewports:
