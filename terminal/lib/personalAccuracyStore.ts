@@ -1,12 +1,35 @@
-// Owner-scoped claim reads + the v1 resolver registry (declared, empty).
+// Owner-scoped claim reads + the v1 resolver registry (last close from the quote owner).
 // Maturation/resolution writes are service-role only (the out-of-band worker).
 
-import type { ClaimCondition, ClaimResolution, ClaimStatus, SubjectKind, UnscorableReason, UserClaim } from "@/lib/personalAccuracy";
+import {
+  compareObserved,
+  thresholdNumber,
+  type ClaimCondition,
+  type ClaimResolution,
+  type ClaimStatus,
+  type SubjectKind,
+  type UnscorableReason,
+  type UserClaim,
+} from "@/lib/personalAccuracy";
+import { CLAIM_OWNER_LAST_CLOSE } from "./claimOwners";
+import {
+  resolveLastClose,
+  type ReadDailyBars,
+  type ResolverInput,
+  type ResolverResult,
+} from "./dailyCloseResolver";
 
-export type MetricResolver = (claim: UserClaim) => Promise<{ observed: number } | null>;
+export { compareObserved, thresholdNumber };
 
-/** v1: declared and empty. B-F13-7 lands the first resolver. Never guess an outcome. */
-export const RESOLVER_REGISTRY: Readonly<Record<string, MetricResolver>> = Object.freeze({});
+export type MetricResolver = (
+  input: ResolverInput,
+  deps?: { readDailyBars: ReadDailyBars },
+) => Promise<ResolverResult>;
+
+/** v1: last close from the quote owner. Never guess an outcome. */
+export const RESOLVER_REGISTRY: Readonly<Record<string, MetricResolver>> = Object.freeze({
+  [CLAIM_OWNER_LAST_CLOSE.owner]: resolveLastClose,
+});
 
 export const RESOLVER_REGISTRY_NAME = "personalAccuracyStore.RESOLVER_REGISTRY";
 export const UNDETERMINED_NOTE = "the data this call named was not available";
