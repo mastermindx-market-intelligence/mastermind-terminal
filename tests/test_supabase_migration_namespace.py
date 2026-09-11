@@ -375,8 +375,7 @@ def test_reservations_records_the_known_collision_surface():
     assert prefixes["0017"]["applied_in_production"] is True
     assert prefixes["0017"]["applied_date"] == "2026-09-10"
 
-    # 0018 is this PR's claim: taken, file present, PR 549 open, shipped unapplied.
-    # Other 0017-0020 owners stay as origin/master has them (reserved until their PRs take them).
+    # 0018 is merged on master (#549). 0017 is taken by open PR #547 (B-F13-5).
     assert prefixes["0018"]["state"] == "taken"
     assert prefixes["0018"]["file"] == "0018_webhook_delivery.sql"
     assert prefixes["0018"]["packet"] == "B-F12-7"
@@ -424,6 +423,32 @@ def test_reservations_records_the_known_collision_surface():
         assert prefixes[prefix]["packet"] == packet, prefix
         if prefixes[prefix]["state"] == "reserved":
             assert prefixes[prefix]["file"] is None, prefix
+
+    assert prefixes["0019"]["state"] == "taken"
+    assert prefixes["0019"]["file"] == "0019_team_role_changes.sql"
+    assert prefixes["0019"]["packet"] == "B-F12-8"
+    assert prefixes["0019"]["pr"] == 550
+    assert prefixes["0019"]["pr_state"] == "open"
+    assert prefixes["0019"]["applied_in_production"] is False
+    assert prefixes["0019"]["applied_date"] is None
+
+    # 0020 originated in #557 and now rides to master on this pull request, so
+    # the open row names 550. A present file whose open row names any other PR
+    # is OPEN_PR_STATE_STALE in pull_request mode (PR #550 round-2 BLOCKER 2).
+    assert prefixes["0020"]["state"] == "taken"
+    assert prefixes["0020"]["file"] == "0020_team_ownership_transfer.sql"
+    assert prefixes["0020"]["packet"] == "B-F12-9"
+    assert prefixes["0020"]["pr"] == 550
+    assert prefixes["0020"]["pr_state"] == "open"
+    assert prefixes["0020"]["applied_in_production"] is False
+    assert prefixes["0020"]["applied_date"] is None
+
+    # Master's 0022 and 0023 rows stay merged. An open 0023 on this branch is
+    # OPEN_PR_STATE_STALE (PR #550 round-2 BLOCKER 1).
+    assert prefixes["0022"]["pr_state"] == "merged"
+    assert prefixes["0022"]["merged_sha"] == "6cdbaa0a8"
+    assert prefixes["0023"]["pr_state"] == "merged"
+    assert prefixes["0023"]["merged_sha"] == "9022e0138"
 
     assert doc["claim_before_you_write"].strip() != ""
 

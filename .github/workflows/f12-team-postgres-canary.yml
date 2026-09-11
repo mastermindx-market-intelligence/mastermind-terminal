@@ -4,10 +4,36 @@ on:
   pull_request:
     paths:
       # 0015's accept_team_invite/workspace_settings build on 0014's teams/team_members/
-      # team_invites, and the canary applies 0001..0015 in order against a real Postgres --
-      # 0014 is included so a change there also re-runs this canary (round-3 review minor).
+      # team_invites, and the canary applies EVERY .sql it finds in the directory, in sorted
+      # order (f12_team_postgres_canary.py: sorted(migrations_dir.glob("*.sql"))). So this
+      # filter must list every migration the canary can apply, or a change to one of them
+      # will not re-run a canary that nevertheless applies it. 0001–0013 are listed because
+      # the canary applies them; 0017 and 0018 are reserved prefixes (B-F13-5 / B-F12-7);
+      # their path entries are inert until those files exist (round-6 ruling R9(9)). 0018
+      # was first listed for that reason by round-4 ruling R4(e). 0014 is included so a
+      # change there also re-runs this canary (round-3 review minor). No path is removed.
+      - "supabase/migrations/0001_init.sql"
+      - "supabase/migrations/0002_drawings.sql"
+      - "supabase/migrations/0003_search_events.sql"
+      - "supabase/migrations/0004_analytics.sql"
+      - "supabase/migrations/0005_brain_threads.sql"
+      - "supabase/migrations/0006_lock_is_pro.sql"
+      - "supabase/migrations/0007_portfolio_positions.sql"
+      - "supabase/migrations/0008_chart_layouts_unique_name.sql"
+      - "supabase/migrations/0009_watchlist_symbol_unique.sql"
+      - "supabase/migrations/0010_search_event_stats.sql"
+      - "supabase/migrations/0011_analytics_eid.sql"
+      - "supabase/migrations/0012_thesis_objects.sql"
+      - "supabase/migrations/0013_alert_runs_outbox.sql"
       - "supabase/migrations/0014_tenancy_foundation.sql"
       - "supabase/migrations/0015_team_roles_invitations.sql"
+      - "supabase/migrations/0016_account_lifecycle_requests.sql"
+      - "supabase/migrations/0017_personal_accuracy_ledger.sql"
+      - "supabase/migrations/0018_webhook_delivery.sql"
+      - "supabase/migrations/0019_team_role_changes.sql"
+      - "supabase/migrations/0020_team_ownership_transfer.sql"
+      - "supabase/migrations/0022_chart_layouts_team_sharing.sql"
+      - "supabase/migrations/0023_portfolio_targets.sql"
       - "terminal/scripts/f12_team_postgres_canary.py"
       - ".github/workflows/f12-team-postgres-canary.yml"
   workflow_dispatch: {}

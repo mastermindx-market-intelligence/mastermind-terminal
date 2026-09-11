@@ -72,6 +72,16 @@ export function IconSync() {
     </svg>
   );
 }
+export function IconTeam() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" {...S}>
+      <circle cx="9" cy="8" r="3" />
+      <circle cx="16" cy="9" r="2.4" />
+      <path d="M3.5 19a5.5 5.5 0 0 1 11 0" />
+      <path d="M14 19a4.5 4.5 0 0 1 6.5-4" />
+    </svg>
+  );
+}
 export function IconWebhooks() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" {...S}>
@@ -148,7 +158,7 @@ export function SectionHead({
   onClose,
 }: {
   title: string;
-  sub: string;
+  sub?: string;
   closeLabel: string;
   onClose: () => void;
 }) {
@@ -156,7 +166,7 @@ export function SectionHead({
     <header className="acs-head">
       <div className="acs-head-main">
         <h2>{title}</h2>
-        <p className="acs-sub">{sub}</p>
+        {sub ? <p className="acs-sub">{sub}</p> : null}
       </div>
       <button type="button" className="acs-x" aria-label={closeLabel} onClick={onClose}>
         <IconX />
@@ -185,6 +195,7 @@ export function Row({
   control,
   editing,
   children,
+  userId,
 }: {
   label?: ReactNode;
   desc?: ReactNode;
@@ -193,9 +204,10 @@ export function Row({
   control?: ReactNode;
   editing?: boolean;
   children?: ReactNode;
+  userId?: string;
 }) {
   return (
-    <div className={`acs-row${editing ? " editing" : ""}`}>
+    <div className={`acs-row${editing ? " editing" : ""}`} data-user-id={userId || undefined}>
       <div className="acs-row-line">
         <span className="acs-row-main">
           {label != null ? <span className="acs-row-lbl">{label}</span> : null}
