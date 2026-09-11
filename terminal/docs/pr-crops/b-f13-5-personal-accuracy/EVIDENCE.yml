@@ -1,20 +1,20 @@
 # B-F13-5 Personal accuracy ledger — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 5992b8b52f41e9aad3163b05d33cbb74bc30b75e
-# capturedAt: 2026-09-10T19:25:52.981Z
+# capturedAtHead: 5226e8010f1c3fcca686e1a5b66b9d733e92b961
+# capturedAt: 2026-09-10T22:04:15.150Z
 # capturedAtHead is informational. The lock is layoutFiles.
-# 2026-09-10 merge-heal (master cd1269fe / #549): SettingsPanel.tsx, page.tsx, i18n.tsx re-hashed. #549 Webhooks nav row now appears in the desktop rail — 12 crops recaptured at merge commit 5992b8b52. No B-F13-5 acc* key moved.
-# Merge-heal of #553 (master b7aa0981): i18n.tsx and page.tsx re-hashed for this PR's account-completeness LEX keys and harness provider query. No packet key moved, no crop recaptured — those edits are not visible in the accuracy viewports.
+# 2026-09-10 merge-heal 2 on PR #548: origin/master eab65ff7 plus this PR's Sharing tab. SettingsPanel.tsx, page.tsx, i18n.tsx re-hashed; 12 crops recaptured so the rail shows Accuracy and Sharing. Code merge is c926a0cb.
+# master 64c05ff2 (#553) changed terminal/lib/i18n.tsx and terminal/app/dev/settings/page.tsx; hash-only restamp after merge; crops unchanged
 layoutFiles:
   terminal/components/settings/SectionAccuracy.tsx: "53304918f2cd38ffbb2b733a754503a644ce030594ea92d09079d78ad37dca1e"
   terminal/components/settings/SectionAccuracy.module.css: "a35d7db4b05ab753db30f2ac46ba0b8c16eeef61309336531f05d2a6ae7f21cc"
-  terminal/components/settings/SettingsPanel.tsx: "70cd715018c8bdce3f09074adf79c6f053a642b478fe1686c732eefc951ad844"
+  terminal/components/settings/SettingsPanel.tsx: "0624427f94d2e35014dc5b419cea832cc60cd69de1e15c18a1feb387112acf5a"
   terminal/components/settings/types.ts: "11e4ca0d4804ded9913bdfba0629925f1127cd1db0dca7721bba50cd1e648d5e"
-  terminal/lib/i18n.tsx: "ff9d6134756711e4d8f59873c5c70aecf95e19658253d1fb251aa54490932988"
+  terminal/lib/i18n.tsx: "4dfdbbd53739f12b977ec0f4c5c627f0bf121717644f77b8401277e3f3b54b7f"
   terminal/lib/personalAccuracy.ts: "0f479c6932a2bcee23ba0f840739dbc6c133046d077a07a6f802a173c63efa1b"
   terminal/lib/personalAccuracyStore.ts: "adc6e5c9c0d5f1ac6ed800df821b393c1d98f345bac2ccc87b3cb4c40b1b99f9"
-  terminal/app/dev/settings/page.tsx: "b163e5d4bb9bbc59d381f102656313ef7656eb6e4e3dd90f7e591ac38a445a1c"
+  terminal/app/dev/settings/page.tsx: "d79ba37eb97c648e8b371fba880b8f3f0cc2c0d577474f465d6fc463941e027f"
   terminal/app/dev/settings/accuracyFixtures.ts: "839d45a530c3625ec0747f44749a6a0f097f7c8c0f4d8674673da40e4fecdeee"
 theme: dark
 languages: [en, zh]

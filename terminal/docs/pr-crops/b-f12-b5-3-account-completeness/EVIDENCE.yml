@@ -5,10 +5,11 @@
 # capturedAt: 2026-09-10T17:11:00.435Z
 # capturedAtHead is the code commit the pixels depict. The lock is layoutFiles.
 # Merge-heal (master b7aa0981): SectionAccount.tsx re-hashed for the B-F08-7b write-fence wrap; i18n.tsx re-hashed for master's auto-merged LEX keys. No packet key moved, no crop recaptured.
+# Merge of master 64c05ff2 (#553) into B-F12-B5-1 (#548): i18n.tsx re-hashed for the explicit-grants and Sharing-tab LEX keys this PR adds to the shared lexicon. No packet key moved, no crop recaptured — those keys are not rendered on the account-completeness surface.
 layoutFiles:
   terminal/components/settings/SectionAccount.tsx: "d2c3828c286bbaac321881d5a6562efdd4f30e580f4200d49c5165c0fa7ef9a4"
   terminal/lib/teamSummary.ts: "7bd3b3f1d5251490e42399be1dd77e977b2626c1714efbece2f7139c584e0f15"
-  terminal/lib/i18n.tsx: "ff9d6134756711e4d8f59873c5c70aecf95e19658253d1fb251aa54490932988"
+  terminal/lib/i18n.tsx: "4dfdbbd53739f12b977ec0f4c5c627f0bf121717644f77b8401277e3f3b54b7f"
 theme: dark
 languages: [en, zh]
 viewports:

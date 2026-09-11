@@ -193,6 +193,7 @@ amendment, only a README edit.
 | `0018` | (pre-reservation) | Meta-CEO B ruling 2026-09-09, packet B-F12-7 — the seat's **re-scoped Terminal signed-webhooks** packet of 2026-09-09 (branch `claude/mo-b-f12-7-signed-webhooks`), **not** the refused public-API packet recorded against macro #6925 under the same id; no pull request open yet | reserved |
 | `0019` | (pre-reservation) | Meta-CEO B ruling 2026-09-09, packet B-F12-8 (team roles); no pull request open yet | reserved |
 | `0020` | (pre-reservation) | Meta-CEO B ruling 2026-09-09, packet B-F12-9 (ownership transfer); no pull request open yet | reserved |
+| `0021` | `resource_grants` | PR #548 (draft, packet B-F12-B5-1 explicit grants; prefix ruled by the seat 2026-09-09; 0017–0020 reserved for B-F13-5 / B-F12-7 / B-F12-8 / B-F12-9) | open PR |
 | `0022` | `chart_layouts_team_sharing` | PR #555 (open, packet B-F12-B5-2) | open PR — shipped unapplied |
 
 `0001`–`0007` and `0010` are **historical**: they predate this ledger, their creating pull
