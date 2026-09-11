@@ -6,13 +6,14 @@
 # 2026-09-10 merge-only refresh onto master 64c05ff2 (#553): i18n.tsx re-hashed again because master's B-F12-B5-3 account-completeness lexicon keys merged into the shared file; no B-F11-4 string or layout changed; no crop recaptured.
 # capturedAt: 2026-09-10T15:42:44.798Z
 # capturedAtHead is informational. The lock is layoutFiles.
+# 2026-09-11 duplicate-key fix on #550: the carrier renamed its own acsTeamNone/acsTeamMany (acsTeamNone/acsTeamMany -> acsTeamNoneCreate/acsTeamManyPanel) to clear the TS1117 collision with master #553's pair; i18n.tsx re-hashed. No B-F11-4 string or layout changed; no crop recaptured.
 layoutFiles:
   terminal/components/workspaces/ThesisWorkspace.tsx: "930c2e9a554f56f893d138479659c088b48d4b4404381e4c4a77ea9f3166a9c6"
   terminal/components/workspaces/ThesisWorkspace.module.css: "ac9547b1b7cf4a5d51f4838a40983f55d489483bef1e237ee2b5e81c8e10d37c"
   terminal/lib/rmsViews.ts: "fd5f025806c5a4b1b27e7d99a026e82f555767f0d96b6a2766a5b363961897cb"
   terminal/lib/savedViews.ts: "16e2914a032cba50cce999d1802c53e51098ce76dd82931925ef41b8e0f7af54"
   terminal/lib/plainLabels.ts: "8f69818feca65a5f28c590460c52e4f06c04c25cc4f3da8643eff9050161b588"
-  terminal/lib/i18n.tsx: "ff9d6134756711e4d8f59873c5c70aecf95e19658253d1fb251aa54490932988"
+  terminal/lib/i18n.tsx: "9142e694ff9fd2ebaae1058db3db82dc62c7e9429d330c901367e3636b430e72"
 theme: dark
 languages: [en, zh]
 viewports:

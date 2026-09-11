@@ -6,12 +6,13 @@
 # capturedAtHead is informational. The lock is layoutFiles.
 # types.ts hash restamped: acsDate NaN guard moved inside the existing try so a throwing input stays null (this PR's heal h3 test). No crop pixels changed.
 # master 64c05ff2 (#553) changed terminal/lib/i18n.tsx and terminal/app/dev/settings/page.tsx; hash-only restamp after merge; crops unchanged
+# 2026-09-11 duplicate-key fix on #550: the carrier renamed its own acsTeamNone/acsTeamMany (acsTeamNone/acsTeamMany -> acsTeamNoneCreate/acsTeamManyPanel) to clear the TS1117 collision with master #553's pair; i18n.tsx re-hashed. Neither key is rendered on the personal-accuracy surface; no crop recaptured.
 layoutFiles:
   terminal/components/settings/SectionAccuracy.tsx: "53304918f2cd38ffbb2b733a754503a644ce030594ea92d09079d78ad37dca1e"
   terminal/components/settings/SectionAccuracy.module.css: "a35d7db4b05ab753db30f2ac46ba0b8c16eeef61309336531f05d2a6ae7f21cc"
   terminal/components/settings/SettingsPanel.tsx: "1c6a50235520cc6cb20498f9aebcd20c4f0c1a996ab82d127c5f4a10ddab7181"
   terminal/components/settings/types.ts: "108b8e5876b864efec5ceaed22b50da68367e35aae7535aae9be71435d909675"
-  terminal/lib/i18n.tsx: "29d0f121b1a96858b478dd6f9a6be0f7975b3d589b5144d72c13856291dc6543"
+  terminal/lib/i18n.tsx: "9142e694ff9fd2ebaae1058db3db82dc62c7e9429d330c901367e3636b430e72"
   terminal/lib/personalAccuracy.ts: "0f479c6932a2bcee23ba0f840739dbc6c133046d077a07a6f802a173c63efa1b"
   terminal/lib/personalAccuracyStore.ts: "adc6e5c9c0d5f1ac6ed800df821b393c1d98f345bac2ccc87b3cb4c40b1b99f9"
   terminal/app/dev/settings/page.tsx: "7cab6c4bc3b8d65452160fdeb4fa527e00087306b9033d8d0c27ee9b22e11cad"
