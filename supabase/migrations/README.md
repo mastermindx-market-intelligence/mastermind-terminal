@@ -62,6 +62,7 @@ rows each record their own date — `0011`'s DDL was applied 2026-09-05
 | `0016_account_lifecycle_requests.sql` | `account_lifecycle_requests` table + RLS | yes — applied 2026-09-09 (Meta-CEO B; readback receipt on PR #527 comment `5594233632`) |
 | `0017_personal_accuracy_ledger.sql` | `user_claims` table + RLS (personal accuracy ledger, packet B-F13-5) | yes — applied 2026-09-10 (Meta-CEO B; readback receipt on PR #547 comment `5625342890`) |
 | `0018_webhook_delivery.sql` | `webhook_endpoints`, `webhook_deliveries` tables + `enqueue_test_webhook_delivery()` + RLS | yes — applied 2026-09-10 (Meta-CEO B; readback receipt on PR #549 comment `5625353856`) |
+| `0021_resource_grants.sql` | `resource_grants` table + `has_active_grant()`/`owns_watchlist()`/`resource_grants_guard()` + RLS on `watchlists`/`watchlist_symbols` (explicit grants, packet B-F12-B5-1) | merged `bad423f5` — **no — not applied** (ledger order after `0019`/`0020`) |
 
 **Raw-fallback note (terminal PR #516):** `scripts/supabase_apply.py` only
 becomes the reviewed applier for files in this directory once that PR merges
@@ -189,12 +190,13 @@ amendment, only a README edit.
 | `0014` | `tenancy_foundation` | PR #514 (merged as `cff58ee8` on 2026-09-08, packet B-F12-1) | merged + applied 2026-09-08 |
 | `0015` | `team_roles_invitations` | PR #514 (merged as `cff58ee8` on 2026-09-08, packet B-F12-3; authored on stacked PR #526 squash `83424c63`) | merged + applied 2026-09-08 |
 | `0016` | `account_lifecycle_requests` | PR #527 (merged as `68bbe8ea` on 2026-09-09, packet B-F12-4) | merged + applied 2026-09-09 |
-| `0017` | `personal_accuracy_ledger` | PR #547 (packet B-F13-5) | open PR |
-| `0018` | (pre-reservation) | Meta-CEO B ruling 2026-09-09, packet B-F12-7 — the seat's **re-scoped Terminal signed-webhooks** packet of 2026-09-09 (branch `claude/mo-b-f12-7-signed-webhooks`), **not** the refused public-API packet recorded against macro #6925 under the same id; no pull request open yet | reserved |
-| `0019` | (pre-reservation) | Meta-CEO B ruling 2026-09-09, packet B-F12-8 (team roles); no pull request open yet | reserved |
-| `0020` | (pre-reservation) | Meta-CEO B ruling 2026-09-09, packet B-F12-9 (ownership transfer); no pull request open yet | reserved |
-| `0021` | `resource_grants` | PR #548 (draft, packet B-F12-B5-1 explicit grants; prefix ruled by the seat 2026-09-09; 0017–0020 reserved for B-F13-5 / B-F12-7 / B-F12-8 / B-F12-9) | open PR |
-| `0022` | `chart_layouts_team_sharing` | PR #555 (open, packet B-F12-B5-2) | open PR — shipped unapplied |
+| `0017` | `personal_accuracy_ledger` | PR #547 (merged as `b7aa0981` on 2026-09-10, packet B-F13-5) | merged + applied 2026-09-10 (readback receipt on PR #547 comment `5625342890`) |
+| `0018` | `webhook_delivery` | PR #549 (merged as `cd1269fe` on 2026-09-10, packet B-F12-7 — the seat's **re-scoped Terminal signed-webhooks** packet of 2026-09-09 (branch `claude/mo-b-f12-7-signed-webhooks`), **not** the refused public-API packet recorded against macro #6925 under the same id) | merged + applied 2026-09-10 (readback receipt on PR #549 comment `5625353856`) |
+| `0019` | `team_role_changes` | PR #550 (open, packet B-F12-8 team roles) | open PR — shipped unapplied |
+| `0020` | `team_ownership_transfer` | PR #550 (open, packet B-F12-9 ownership transfer) | open PR — shipped unapplied |
+| `0021` | `resource_grants` | PR #548 (merged as `bad423f5` on 2026-09-11, packet B-F12-B5-1 explicit grants; prefix ruled by the seat 2026-09-09) | merged — not applied (waits for `0019` and `0020`) |
+| `0022` | `chart_layouts_team_sharing` | PR #555 (merged as `6cdbaa0a8` on 2026-09-09, packet B-F12-B5-2) | merged — not applied |
+| `0023` | `portfolio_targets` | PR #552 (merged as `9022e0138` on 2026-09-10, packet B-F08-B5-1) | merged — not applied |
 
 `0001`–`0007` and `0010` are **historical**: they predate this ledger, their creating pull
 requests were never recorded in-repo, and so their `pr` and `pr_state` fields in
@@ -213,19 +215,24 @@ history (merged first, applied later) is otherwise lost. (**released** is an ope
 status — see "Release path" above — for a claim that was stood down; it is not one of the
 ruling's own status words and no row currently carries it.)
 
-`0017` (personal accuracy ledger, packet B-F13-5) is **taken** in open PR #547: the `.sql` ships
-in that pull request and is **not applied**. `0018`–`0020` (signed webhooks, team roles, ownership
-transfer) remain **reserved** by the Meta-CEO B ruling dated 2026-09-09: the numbers are claimed
-and owned by a named packet, exactly as rule (b) and the "Meta-CEO B pre-reservation channel"
-operating note above describe, but no pull request carrying those files is open yet on this
-branch. That is what separates `reserved` from `taken` — `taken` means a real file exists (in this
-checkout or in an open PR); `reserved` means only the number and the owner are settled. As with
-every prefix in this ledger, the seat applies DDL **in ledger order** — never ahead of a lower,
-still-unapplied number — and never without a pre/post catalog-readback receipt posted on the
-owning pull request first (rule (d) above); `0014` and `0015` applying strictly in that order on
-2026-09-08, and `0016` only after both, on 2026-09-09, is the worked example on the real tree.
+`0017` (personal accuracy ledger, packet B-F13-5) and `0018` (signed webhooks, packet B-F12-7)
+have both merged and been applied: `0017` reached `master` as `b7aa0981` and its DDL was applied
+2026-09-10 (readback receipt on PR #547, comment `5625342890`), and `0018` reached `master` as
+`cd1269fe` and was applied the same day, after it (readback receipt on PR #549, comment
+`5625353856`). `0019` (team roles, packet B-F12-8) and `0020` (ownership transfer, packet
+B-F12-9) have left pre-reservation: both files now ride open PR #550, so they are **taken in an
+open PR** and unapplied. `0021` (explicit grants, packet B-F12-B5-1) merged to `master` as
+`bad423f5` on 2026-09-11, and `0022` (team-shared saved workspaces) and `0023` (portfolio
+targets) merged before it; all three are on `master` and **not applied**. That is what separates
+`reserved` from `taken` — `taken` means a real file exists (in this checkout or in an open PR);
+`reserved` means only the number and the owner are settled, and no row is `reserved` today. As
+with every prefix in this ledger, the seat applies DDL **in ledger order** — never ahead of a
+lower, still-unapplied number — and never without a pre/post catalog-readback receipt posted on
+the owning pull request first (rule (d) above); `0014` and `0015` applying strictly in that order
+on 2026-09-08, and `0016` only after both, on 2026-09-09, is the worked example on the real tree.
+`0021` waits on the same rule: it cannot be applied until `0019` and `0020` land and are applied.
 
-`0001`–`0016` have reached production (DDL applied): `0001`–`0010` per the application-status
+`0001`–`0018` have reached production (DDL applied): `0001`–`0010` per the application-status
 table above, `0011` via its corrective DDL applied live on 2026-09-05 via the management API
 (readback receipt posted 2026-09-06, recorded on PR #507, ahead of `0011`'s own file landing on
 `master`), `0012` merged to `master` as `d4556962` with its DDL applied 2026-09-06 (Meta-CEO B,
@@ -239,8 +246,13 @@ comment `5563321750`) — merged = yes, applied = yes. `0014` (PR #514) merged t
 `83424c63`, reached master inside `cff58ee8`) had its DDL applied 2026-09-08 strictly after
 `0014` (readback receipt on PR #514 comment `5592697055`). `0016` (PR #527) merged to `master`
 as `68bbe8ea` on 2026-09-09 with its DDL applied 2026-09-09 (readback receipt on PR #527 comment
-`5594233632`) — merged = yes, applied = yes. The "in production?" table and
-the Reservations table above now agree on `0013`, `0014`, `0015`, and `0016`.
+`5594233632`) — merged = yes, applied = yes. `0017` (PR #547) merged to `master` as `b7aa0981`
+on 2026-09-10 with its DDL applied the same day (readback receipt on PR #547 comment
+`5625342890`), and `0018` (PR #549) merged as `cd1269fe` and was applied straight after it
+(readback receipt on PR #549 comment `5625353856`) — merged = yes, applied = yes for both.
+`0019`–`0023` have not been applied: `0019` and `0020` are still in open PR #550, and `0021`,
+`0022` and `0023` are on `master` and wait their turn in ledger order. The "in production?" table
+and the Reservations table above now agree on `0013` through `0018`, and on `0021`.
 
 This table is re-verified at merge time, not just at the moment this pull request opened. A later
 reader should re-run the same open-pull-request query rather than trust these owner cells past
