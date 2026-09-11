@@ -6,15 +6,17 @@
 # capturedAtHead is informational. The lock is layoutFiles.
 # 2026-09-10 B-F13-6 (#554) merge-heal: i18n.tsx re-hashed after the claim-form keys were added to the shared lexicon; no packet key moved; no crop recaptured.
 # 2026-09-10 merge-heal (master cd1269fe / #549): SettingsPanel.tsx, page.tsx, i18n.tsx re-hashed. #549 Webhooks nav row now appears in the desktop rail — 12 crops recaptured at merge commit 5992b8b52. No B-F13-5 acc* key moved.
+# Merge-heal of #553 (master b7aa0981): i18n.tsx and page.tsx re-hashed for this PR's account-completeness LEX keys and harness provider query. No packet key moved, no crop recaptured — those edits are not visible in the accuracy viewports.
+# master 64c05ff2 (#553) changed terminal/lib/i18n.tsx and terminal/app/dev/settings/page.tsx; hash-only restamp after merge; crops unchanged
 layoutFiles:
   terminal/components/settings/SectionAccuracy.tsx: "53304918f2cd38ffbb2b733a754503a644ce030594ea92d09079d78ad37dca1e"
   terminal/components/settings/SectionAccuracy.module.css: "a35d7db4b05ab753db30f2ac46ba0b8c16eeef61309336531f05d2a6ae7f21cc"
   terminal/components/settings/SettingsPanel.tsx: "70cd715018c8bdce3f09074adf79c6f053a642b478fe1686c732eefc951ad844"
   terminal/components/settings/types.ts: "11e4ca0d4804ded9913bdfba0629925f1127cd1db0dca7721bba50cd1e648d5e"
-  terminal/lib/i18n.tsx: "f18e4487e1051f2fe7e8848a6d07a86a40f806745d8588d556eaac9b0eb0957b"
+  terminal/lib/i18n.tsx: "78118272f53a4e789bb8edf9f797057f7036d1b4373084d3e305c366a3174ae7"
   terminal/lib/personalAccuracy.ts: "0f479c6932a2bcee23ba0f840739dbc6c133046d077a07a6f802a173c63efa1b"
   terminal/lib/personalAccuracyStore.ts: "adc6e5c9c0d5f1ac6ed800df821b393c1d98f345bac2ccc87b3cb4c40b1b99f9"
-  terminal/app/dev/settings/page.tsx: "4f62b27d32e66d3b0f4361b0588b9ff178bbf14637b0b8e2abffcde20bde055f"
+  terminal/app/dev/settings/page.tsx: "b163e5d4bb9bbc59d381f102656313ef7656eb6e4e3dd90f7e591ac38a445a1c"
   terminal/app/dev/settings/accuracyFixtures.ts: "839d45a530c3625ec0747f44749a6a0f097f7c8c0f4d8674673da40e4fecdeee"
 theme: dark
 languages: [en, zh]
