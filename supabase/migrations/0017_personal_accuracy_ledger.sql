@@ -1,4 +1,4 @@
--- Ledger row: MO-DELTA-007 (F13-OPS-LEARNING) / packet B-F13-5; not applied
+-- Ledger row: 0017_personal_accuracy_ledger / MO-DELTA-007 (F13-OPS-LEARNING) / packet B-F13-5 / PR #547 (merged b7aa0981); applied 2026-09-10
 -- Rollback: drop table if exists public.user_claims;
 -- 0017: user_claims — the append-only personal claim store the F13 accuracy ledger scores.
 -- Design authority: macro research/.../MARKET_ONTOLOGY_F13_PERSONAL_ACCURACY_LEDGER_SPEC_2026-09-06.md §1.

@@ -30,6 +30,12 @@ const LAYOUT_FILES = [
   "terminal/app/settings.css",
   "terminal/lib/i18n.tsx",
 ];
+const RESERVATIONS = join(REPO, "supabase", "migrations", "RESERVATIONS.json");
+const LEDGER_PREFIX = "0020";
+// This packet's file originated in PR #557 and was squash-merged into #550's branch at 29257a43
+// before riding #550 to master. That origin is packet history, not a ledger field, so it stays a
+// constant here while every changeable fact on the header line is read from the row.
+const ORIGIN_PR = 557;
 const PORT = Number(process.env.TERMINAL_CROP_PORT || 3540);
 const BASE = `http://127.0.0.1:${PORT}`;
 const VIEWPORTS = {
@@ -45,6 +51,29 @@ function currentGitHead() {
 
 function sha256File(rel) {
   return createHash("sha256").update(readFileSync(join(REPO, rel))).digest("hex");
+}
+
+/**
+ * The EVIDENCE.yml "# Ledger row:" line, DERIVED from supabase/migrations/RESERVATIONS.json.
+ *
+ * It used to be a hard-coded "PR #557 (open, packet B-F12-9); not applied" string, which froze a
+ * pull-request state that went stale the moment #550 merged and 0020 was applied; a recapture would
+ * have re-written that stale claim into the evidence file. Reading the row instead means the line
+ * can only ever say what the ledger says.
+ *
+ * Nothing here logs the ledger: the document carries the Supabase project reference in its
+ * `project_ref` field, and only this one row's fields ever leave this function.
+ */
+function ledgerRowHeader() {
+  const doc = JSON.parse(readFileSync(RESERVATIONS, "utf8"));
+  const row = doc.prefixes && doc.prefixes[LEDGER_PREFIX];
+  if (!row) throw new Error(`RESERVATIONS.json carries no row for prefix ${LEDGER_PREFIX}`);
+  const name = String(row.file || "").replace(/\.sql$/, "");
+  const merge = row.merged_sha ? `${row.pr_state} ${row.merged_sha}` : String(row.pr_state);
+  const applied = row.applied_in_production
+    ? `applied ${row.applied_date || "date not recorded"}`
+    : "not applied";
+  return `# Ledger row: ${name} / PR #${row.pr} (${merge}; originated in #${ORIGIN_PR}, packet ${row.packet}); ${applied}`;
 }
 
 function layoutFilesBlock() {
@@ -305,7 +334,7 @@ async function main() {
   }
 
   const evidence = [
-    "# Ledger row: 0020_team_ownership_transfer / PR #557 (open, packet B-F12-9); not applied",
+    ledgerRowHeader(),
     "# layoutFiles carry sha256 hashes of the files they name; proof of which code generated each crop.",
     "# Rebuild any crop and recompute its layoutFiles, or the test will fail and the PR will not land.",
     `# capturedAtHead: ${capturedAtHead}`,
