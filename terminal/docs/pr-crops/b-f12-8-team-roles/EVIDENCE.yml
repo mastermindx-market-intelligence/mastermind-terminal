@@ -4,13 +4,14 @@
 # capturedAtHead: f1ad9fde39afa395ac4e66e3c2bd24a794d029bc
 # capturedAt: 2026-09-10T21:30:41.894Z
 # capturedAtHead is informational. The lock is layoutFiles.
+# Merge of master 64c05ff2 (#553): i18n.tsx re-hashed for #553's account-completeness LEX keys. No packet key moved, no crop recaptured — those keys are not rendered on the team-roles surface.
 layoutFiles:
   terminal/components/settings/SectionTeam.tsx: "8d8ac294a70be51625af44d1cc87301bda7147018d0a83d62213987785fe3903"
   terminal/components/settings/SectionTeam.module.css: "924ab5b81d4f0e11ef2138557e92c43a0d1fa21b78622567fb6ccddcf6c146a8"
   terminal/components/settings/SettingsPanel.tsx: "1c6a50235520cc6cb20498f9aebcd20c4f0c1a996ab82d127c5f4a10ddab7181"
   terminal/components/settings/icons.tsx: "891f36a103eff8cdba5f78cf04c802d850ba0959d1c6a75097ade4a911acf697"
   terminal/app/settings.css: "3189163136d943431cbf52e4b5d241c105b695ba5af94c4c2e29151d537b5ef5"
-  terminal/lib/i18n.tsx: "a6a7156fd493d4c392376b89f3b2a3e6f6588e629e9aa0e1638d2cce53bfa6b2"
+  terminal/lib/i18n.tsx: "29d0f121b1a96858b478dd6f9a6be0f7975b3d589b5144d72c13856291dc6543"
 theme: dark
 languages: [en, zh]
 viewports:
