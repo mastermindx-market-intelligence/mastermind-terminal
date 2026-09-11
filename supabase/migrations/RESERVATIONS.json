@@ -213,10 +213,11 @@
       "file": "0021_resource_grants.sql",
       "packet": "B-F12-B5-1",
       "pr": 548,
-      "pr_state": "open",
+      "pr_state": "merged",
+      "merged_sha": "bad423f5",
       "applied_in_production": false,
       "applied_date": null,
-      "note": "packet B-F12-B5-1 explicit grants; prefix ruled by the seat 2026-09-09 (0017-0020 reserved for B-F13-5 / B-F12-7 / B-F12-8 / B-F12-9); draft PR #548; DDL unapplied; applied_date is not recorded because the seat has not applied it."
+      "note": "packet B-F12-B5-1 explicit grants; prefix ruled by the seat 2026-09-09 (0017-0020 reserved for B-F13-5 / B-F12-7 / B-F12-8 / B-F12-9); draft PR #548; DDL unapplied; applied_date is not recorded because the seat has not applied it. Merged to master 2026-09-11T02:00:51Z via auto-merge (#548); not yet applied — waits for 0019 and 0020 in ledger order (0017 and 0018 were applied 2026-09-10), so applied_in_production stays false and applied_date stays null until the seat applies it with a receipt."
     },
     "0022": {
       "state": "taken",
