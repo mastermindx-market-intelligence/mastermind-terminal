@@ -232,6 +232,15 @@ export function compareObserved(comparator: string, observed: number, threshold:
   }
 }
 
+export function thresholdNumber(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim() !== "") {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : null;
+  }
+  return null;
+}
+
 export function scorePersonalAccuracy(claims: UserClaim[]): AccuracyReadout {
   const usable: UserClaim[] = [];
   const malformedIds = new Set<string>();

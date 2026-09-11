@@ -2,6 +2,12 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { LEX } from "@/lib/i18n";
+import {
+  UNAVAILABLE_NOTE,
+  UNREADABLE_NOTE,
+  settledNote,
+} from "@/lib/dailyCloseResolver";
+import { UNDETERMINED_NOTE } from "@/lib/personalAccuracyStore";
 
 const FROZEN_GLANCE_KEYS = [
   "accTitle",
@@ -315,5 +321,28 @@ describe("B-F13-5 authored extras stay sentences and stay out of the glance body
     expect(LEX.accUnscorableIncompleteN[0]).toBe("{n} calls could not be checked because they did not say what to check.");
     expect(LEX.accUnscorableBadKindN[0]).toBe("{n} calls could not be checked because the subject they name is not one we score.");
     expect(LEX.accUnscorableBadStatusN[0]).toBe("{n} calls could not be checked because the recorded state is not one we score.");
+  });
+});
+
+describe("B-F13-7 last-close resolver notes", () => {
+  it("UNAVAILABLE_NOTE is the honest-null sentence, matching the store constant", () => {
+    expect(UNAVAILABLE_NOTE).toBe("the data this call named was not available");
+    expect(UNAVAILABLE_NOTE).toBe(UNDETERMINED_NOTE);
+  });
+
+  it("settledNote names the close date in a plain sentence", () => {
+    expect(settledNote("2026-09-04")).toBe("close on 2026-09-04");
+  });
+
+  it("UNREADABLE_NOTE is the frozen unreadable-threshold sentence", () => {
+    expect(UNREADABLE_NOTE).toBe("what this call had to beat was not available");
+  });
+
+  it("resolver notes contain no banned vocabulary", () => {
+    for (const note of [UNAVAILABLE_NOTE, UNREADABLE_NOTE, settledNote("2026-09-04")]) {
+      for (const token of BANNED) {
+        expect(note.toLowerCase(), `${note} contains ${token}`).not.toContain(token.toLowerCase());
+      }
+    }
   });
 });
