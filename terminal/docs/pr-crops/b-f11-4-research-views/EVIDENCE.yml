@@ -4,6 +4,7 @@
 # capturedAtHead: 3257006cb8a777437bf084738132583b9d3bf681
 # 2026-09-10 merge-only refresh onto master b7aa0981 (#547): i18n.tsx re-hashed because master's B-F13-5 lexicon keys merged into the shared file; no B-F11-4 string or layout changed; no crop recaptured.
 # 2026-09-10 merge-only refresh onto master 64c05ff2 (#553): i18n.tsx re-hashed again because master's B-F12-B5-3 account-completeness lexicon keys merged into the shared file; no B-F11-4 string or layout changed; no crop recaptured.
+# 2026-09-11 merge of master 9b7e7a41 (#546) into B-F12-B5-1 (#548): i18n.tsx re-hashed because this PR adds the Sharing-tab and explicit-grants lexicon keys (acsSharing plus 28 shr* keys) to the shared file; no B-F11-4 string or layout changed; no crop recaptured - those keys are not rendered on the thesis list pane.
 # capturedAt: 2026-09-10T15:42:44.798Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
@@ -12,7 +13,7 @@ layoutFiles:
   terminal/lib/rmsViews.ts: "fd5f025806c5a4b1b27e7d99a026e82f555767f0d96b6a2766a5b363961897cb"
   terminal/lib/savedViews.ts: "16e2914a032cba50cce999d1802c53e51098ce76dd82931925ef41b8e0f7af54"
   terminal/lib/plainLabels.ts: "8f69818feca65a5f28c590460c52e4f06c04c25cc4f3da8643eff9050161b588"
-  terminal/lib/i18n.tsx: "ff9d6134756711e4d8f59873c5c70aecf95e19658253d1fb251aa54490932988"
+  terminal/lib/i18n.tsx: "4dfdbbd53739f12b977ec0f4c5c627f0bf121717644f77b8401277e3f3b54b7f"
 theme: dark
 languages: [en, zh]
 viewports:
