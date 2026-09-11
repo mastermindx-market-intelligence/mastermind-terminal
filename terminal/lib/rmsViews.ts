@@ -22,7 +22,48 @@ export const RMS_VIEWS: readonly RmsViewDef[] = [
 ];
 export const RMS_DEFAULT_VIEW: RmsViewId = "theses";
 export const RMS_REVIEW_STALE_DAYS = 90;
+/** Tighter "check on this" cadence for the saved-view Stale preset. Kept
+ *  separate from RMS_REVIEW_STALE_DAYS (90), which the Reviews lens uses. */
+export const RMS_SAVED_VIEW_STALE_DAYS = 30;
 export const RMS_HYDRATION_BATCH = 10; // must equal the route's ids cap
+/** Must equal MAX_IDS in app/api/thesis-fire-status/route.ts. Round-2 review
+ *  (Opus MAJOR 2 / Grok minor 1): the client read every id in batches of this size
+ *  instead of truncating at the first 50, which silently dropped theses 51..199
+ *  out of the one preset that exists to surface a closed window. */
+export const RMS_FIRE_STATUS_BATCH = 50;
+export const MAX_SAVED_VIEWS = 50;
+export const MAX_SAVED_VIEW_NAME = 80;
+
+export type ViewFilter = {
+  lifecycle: "active" | "any";
+  staleDays?: number;
+  windowClosed?: boolean;
+  subjectGroupKey?: string;
+};
+
+export type SavedView = {
+  id: string;
+  name: string;
+  filter: ViewFilter;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type BuiltinViewId = "mine" | "stale_30" | "window_closed";
+
+export type BuiltinViewDef = {
+  id: BuiltinViewId;
+  filter: ViewFilter;
+};
+
+/** Frozen order. Team is absent in v1 (seat ruling R5). */
+export const BUILTIN_VIEWS: readonly BuiltinViewDef[] = [
+  { id: "mine", filter: { lifecycle: "active" } },
+  { id: "stale_30", filter: { lifecycle: "active", staleDays: RMS_SAVED_VIEW_STALE_DAYS } },
+  // Round-2 review (Opus minor 1 / Grok minor 4): spec 2.2 defaults lifecycle to
+  // "active"; shipping "any" let archived and invalidated theses into the preset.
+  { id: "window_closed", filter: { windowClosed: true, lifecycle: "active" } },
+];
 
 export type CoverageRow = {
   key: string;
@@ -68,6 +109,83 @@ export function readConditionStates(
   const map = new Map<string, ConditionState>();
   for (const id of ids) map.set(id, (reader && reader(id)) ?? { source: "unavailable" });
   return map;
+}
+
+const THESIS_ID_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const FIRE_STATUSES = new Set(["pending", "deferred", "sent"]);
+
+export type OutboxRow = {
+  payload: unknown;
+  status?: unknown;
+  created_at?: unknown;
+};
+
+function wellFormedThesisId(value: unknown): value is string {
+  return typeof value === "string" && THESIS_ID_UUID.test(value);
+}
+
+/** Turns owner-scoped alert_outbox rows into ConditionState. A thesis with no
+ *  matching row stays unavailable — never "open". Payload must be an object
+ *  with a well-formed thesis_id UUID; anything else is skipped. */
+export function mapOutboxToConditionStates(
+  ids: readonly string[],
+  rows: readonly OutboxRow[],
+): Map<string, ConditionState> {
+  const wanted = new Set(ids);
+  const closedAt = new Map<string, string>();
+  for (const row of rows) {
+    const payload = row.payload;
+    if (!payload || typeof payload !== "object" || Array.isArray(payload)) continue;
+    const thesisId = (payload as Record<string, unknown>).thesis_id;
+    if (!wellFormedThesisId(thesisId) || !wanted.has(thesisId)) continue;
+    if (!FIRE_STATUSES.has(typeof row.status === "string" ? row.status : "")) continue;
+    const at = typeof row.created_at === "string" && row.created_at ? row.created_at : "";
+    const previous = closedAt.get(thesisId);
+    if (previous === undefined || at > previous) closedAt.set(thesisId, at);
+  }
+  return readConditionStates(ids, (id) => {
+    const at = closedAt.get(id);
+    return at === undefined ? undefined : { source: "monitor", state: "window_closed", at };
+  });
+}
+
+/** Splits ids into route-sized batches. Pure; every id lands in exactly one batch. */
+export function fireStatusBatches(
+  ids: readonly string[],
+  batch: number = RMS_FIRE_STATUS_BATCH,
+): string[][] {
+  const size = Math.max(1, Math.floor(batch));
+  const out: string[][] = [];
+  for (let i = 0; i < ids.length; i += size) out.push(ids.slice(i, i + size));
+  return out;
+}
+
+export function applyViewFilter(
+  rows: readonly ThesisSummary[],
+  filter: ViewFilter,
+  conditions: Map<string, ConditionState>,
+  now: Date,
+): ThesisSummary[] {
+  const lifecycle = filter.lifecycle ?? "active";
+  const staleMs = typeof filter.staleDays === "number" && Number.isFinite(filter.staleDays) && filter.staleDays > 0
+    ? filter.staleDays * 24 * 60 * 60 * 1000
+    : null;
+  return rows.filter((row) => {
+    if (lifecycle === "active" && row.lifecycleState !== "active") return false;
+    if (filter.subjectGroupKey) {
+      const key = `${row.subject.owner}|${row.subject.kind}|${row.subject.key}`;
+      if (key !== filter.subjectGroupKey) return false;
+    }
+    if (staleMs !== null) {
+      const updated = new Date(row.updatedAt).getTime();
+      if (!Number.isFinite(updated) || now.getTime() - updated < staleMs) return false;
+    }
+    if (filter.windowClosed) {
+      const cond = conditions.get(row.id);
+      if (!(cond && cond.source === "monitor" && cond.state === "window_closed")) return false;
+    }
+    return true;
+  });
 }
 
 function toThesisRow(s: ThesisSummary, reason?: ReviewReason): ThesisRow {
@@ -240,11 +358,25 @@ export function formatScopeSentence(
   total: number,
   complete: boolean,
   copy: RmsCopy,
+  /** Round-3 review (Meta-CEO B ruling R1): true while a built-in preset or a saved
+   *  view is narrowing the list, so the counted set is the view's own active theses
+   *  and the sentence must say so instead of naming the whole workspace. */
+  filtered: boolean = false,
 ): string {
   if (complete) {
+    if (filtered) {
+      return total === 1
+        ? copy.scopeViewCompleteSingular
+        : copy.scopeViewComplete.replace("{total}", String(total));
+    }
     return total === 1
       ? copy.scopeCompleteSingular
       : copy.scopeComplete.replace("{total}", String(total));
+  }
+  if (filtered) {
+    return total === 1
+      ? copy.scopeViewSingular.replace("{loaded}", String(loaded))
+      : copy.scopeView.replace("{loaded}", String(loaded)).replace("{total}", String(total));
   }
   return total === 1
     ? copy.scopeSingular.replace("{loaded}", String(loaded))
@@ -274,6 +406,17 @@ export type RmsCopy = {
   scopeComplete: string;
   /** total === 1. */
   scopeCompleteSingular: string;
+  /** Round-3 review (Meta-CEO B ruling R1): under an active built-in preset or saved
+   *  view the counted set is the VIEW's active theses, not the workspace's — so the
+   *  sentence may never say "all {total} active theses" / "of your {total} active
+   *  theses" while a view is narrowing the list. {loaded}/{total}; total > 1. */
+  scopeView: string;
+  /** {loaded} placeholder only; total === 1, under an active view. */
+  scopeViewSingular: string;
+  /** {total} placeholder; total > 1, under an active view, fully loaded. */
+  scopeViewComplete: string;
+  /** total === 1, under an active view, fully loaded. */
+  scopeViewCompleteSingular: string;
   /** {n} placeholder — the actual pending increment (`min(RMS_HYDRATION_BATCH,
    *  remaining)`), never a hardcoded "10" (Meta-CEO B ruling r4 minor 2: a fixed "10"
    *  read false whenever fewer than 10 theses remained). */
@@ -294,15 +437,87 @@ export type RmsCopy = {
   coverageRatio: string;
   /** {subject} placeholder. */
   filteredBySubject: string;
+  /** {view} placeholder — the lens-head sentence while a built-in preset or a saved
+   *  view is narrowing the list. Round-3 review (Meta-CEO B ruling R1): the head used
+   *  to print `what[view]` ("Everything you have written.") over a filtered slice,
+   *  which is the same false claim the subject-filter repair already closed. */
+  filteredByView: string;
+  /** {view} and {subject} placeholders — both filters at once. */
+  filteredByViewAndSubject: string;
   clearFilter: string;
   /** {subject} placeholder — shown instead of `empty.theses` when a Coverage subject
    *  filter is active and resolves to zero rows; never claims "No theses yet." while
    *  the workspace actually holds theses (round-2 review MAJOR). */
   filteredEmpty: string;
+  /** {subject} placeholder — the empty state when a built-in preset or a saved view
+   *  AND a Coverage subject filter are BOTH narrowing the Theses lens and their
+   *  intersection is empty. Round-5 review (Meta-CEO B ruling R2): the two narrowings
+   *  coexist by design (`filterBySubject` never clears the preset and the chips never
+   *  clear the subject), and the preset-first branch printed the categorical
+   *  `savedViews.viewEmpty` ("No theses match this view.") over a slice the SUBJECT
+   *  emptied — flatly false while other subjects in that same view have theses and the
+   *  rail badge still counts them. This names both narrowings and points at the one
+   *  the reader can undo to see the rest. */
+  filteredByViewAndSubjectEmpty: string;
   /** Screen-reader-only word appended to the Theses lens rail badge when a subject
    *  filter is active — the badge already shows the filtered count (round-2 review r3
    *  minor 7: the filtered count needs a marker so it does not read as the total). */
   filteredMarker: string;
+  "savedViews.title": string;
+  "savedViews.newView": string;
+  "savedViews.namePlaceholder": string;
+  "savedViews.save": string;
+  "savedViews.rename": string;
+  "savedViews.delete": string;
+  /** {name} placeholder — the ACCESSIBLE name of a saved view's per-row Rename control.
+   *  Round-5 review (Meta-CEO B ruling R3c): the visible word is the same on every row,
+   *  so N saved views announced N buttons called "Rename" with nothing to tell them
+   *  apart. The visible text is unchanged; this rides on `aria-label`. */
+  "savedViews.renameNamed": string;
+  /** {name} placeholder — the ACCESSIBLE name of a saved view's per-row Delete control.
+   *  Round-5 review (Meta-CEO B ruling R3c): "Delete this view" also read as the
+   *  CURRENTLY ACTIVE view rather than the row the button sits on — correct wording on
+   *  a single control, wrong on a repeated one. */
+  "savedViews.deleteNamed": string;
+  "savedViews.confirmDelete": string;
+  "savedViews.limitReached": string;
+  /** Round-3 review (Meta-CEO B ruling R4): holding MORE than the cap is not the same
+   *  statement as having reached it — "Delete one to save another" also pointed at a
+   *  visible set that excluded the hidden rows. */
+  "savedViews.truncated": string;
+  /** Round-3 review (Meta-CEO B ruling R4): a name the route rejects is not a failed
+   *  read. `savedViews.unavailable` is for a failed fetch/save/delete only (spec 2.8);
+   *  this names the actual problem. */
+  "savedViews.nameRequired": string;
+  /** Round-5 review (Meta-CEO B ruling R3b): the client used to report EVERY 400 the
+   *  saved-views route can return as a missing name. The route already carries a
+   *  distinguishing `error` field; only `invalid_name` is a name problem, and every
+   *  other rejected write is a save that did not happen — which is neither a failed
+   *  READ (`savedViews.unavailable`) nor a naming instruction. */
+  "savedViews.saveFailed": string;
+  "savedViews.empty": string;
+  "savedViews.unavailable": string;
+  /** Round-4 review (Meta-CEO B ruling R3): a delete the route resolves as "that row
+   *  is not here" is not a failed READ of a list the user is looking at. Spec 2.8
+   *  reserves `savedViews.unavailable` for a failed fetch/save/delete; this names the
+   *  actual outcome, and the workspace re-reads the list behind it. */
+  "savedViews.alreadyRemoved": string;
+  /** Shown when a SAVED view resolves to zero rows. Round-2 review BLOCKER 3: this
+   *  slice used to fall through to `empty.theses` ("No theses yet."), which is false
+   *  while the workspace holds theses — the spec names that exact misreport. */
+  "savedViews.viewEmpty": string;
+  "builtin.mine": string;
+  "builtin.stale30": string;
+  "builtin.staleWhat": string;
+  "builtin.windowClosed": string;
+  "builtin.team": string;
+  "builtin.teamTooltip": string;
+  "builtin.windowClosedEmpty": string;
+  "builtin.mineEmpty": string;
+  /** Round-2 review BLOCKER 2: the Stale preset's zero-row state used to print
+   *  `builtin.staleWhat` ("No changes in 30 days."), the exact inverse of the truth —
+   *  an empty Stale list means everything DID change inside the window. */
+  "builtin.staleEmpty": string;
 };
 
 export const RMS_COPY: { en: RmsCopy; zh: RmsCopy } = {
@@ -328,12 +543,12 @@ export const RMS_COPY: { en: RmsCopy; zh: RmsCopy } = {
     },
     empty: {
       coverage: "Nothing is covered yet. Write a thesis and its subject appears here.",
-      ideas: "Nothing new is waiting. Every thesis has been revisited at least once.",
+      ideas: "Nothing new is waiting in the theses loaded here. Every thesis has been revisited at least once.",
       theses: "No theses yet. Start with a view you could be wrong about.",
-      reviews: "Nothing is waiting for a second look.",
+      reviews: "Nothing in the theses loaded here is waiting for a second look.",
       catalysts: "No catalysts written down in the theses loaded here.",
       risks: "No risks written down in the theses loaded here.",
-      notes: "No revision notes yet. They appear when you save a change and say why.",
+      notes: "No revision notes in the theses loaded here. They appear when you save a change and say why.",
     },
     reason: {
       archived: "Archived",
@@ -345,6 +560,10 @@ export const RMS_COPY: { en: RmsCopy; zh: RmsCopy } = {
     scopeSingular: "Showing lines from {loaded} of your 1 active thesis.",
     scopeComplete: "Showing lines from all {total} active theses.",
     scopeCompleteSingular: "Showing lines from all 1 active thesis.",
+    scopeView: "Showing lines from {loaded} of the {total} active theses in this view.",
+    scopeViewSingular: "Showing lines from {loaded} of the 1 active thesis in this view.",
+    scopeViewComplete: "Showing lines from all {total} active theses in this view.",
+    scopeViewCompleteSingular: "Showing lines from the 1 active thesis in this view.",
     showMore: "Show {n} more",
     // Not "Your thesis store did not answer..." — the strong heading right above this
     // paragraph already says exactly that; repeating it read as a stutter (sibling
@@ -357,9 +576,44 @@ export const RMS_COPY: { en: RmsCopy; zh: RmsCopy } = {
     countUnknown: "—",
     coverageRatio: "{active} active of {theses} written",
     filteredBySubject: "Only what you have written about {subject}.",
+    filteredByView: "Only what matches the \u201c{view}\u201d view.",
+    filteredByViewAndSubject: "Only what matches the \u201c{view}\u201d view, and only about {subject}.",
     clearFilter: "Show everything",
     filteredEmpty: "Nothing written about {subject} right now. Clear the filter to see every thesis.",
+    filteredByViewAndSubjectEmpty: "Nothing matches this view for {subject}. Clear the subject filter to see the rest of the view.",
     filteredMarker: "filtered",
+    "savedViews.title": "Your saved views",
+    "savedViews.newView": "Save this view",
+    "savedViews.namePlaceholder": "Name this view",
+    "savedViews.save": "Save",
+    "savedViews.rename": "Rename",
+    "savedViews.delete": "Delete this view",
+    "savedViews.renameNamed": "Rename {name}",
+    "savedViews.deleteNamed": "Delete {name}",
+    "savedViews.confirmDelete": "Delete this saved view? This cannot be undone.",
+    "savedViews.limitReached": "You have reached the limit of 50 saved views. Delete one to save another.",
+    "savedViews.truncated": "You have more than 50 saved views. The least recently updated are hidden until you delete some.",
+    "savedViews.nameRequired": "Give this view a name before you save it.",
+    "savedViews.saveFailed": "We could not save this view. Try again.",
+    "savedViews.empty": "No saved views yet. Filter the list, then save it with a name.",
+    "savedViews.unavailable": "Your saved views did not load. Nothing has been changed.",
+    "savedViews.alreadyRemoved": "That view was already removed.",
+    "savedViews.viewEmpty": "No theses match this view.",
+    // Round-4 review (Meta-CEO B ruling R7): this chip ships `lifecycle: "active"`, so
+    // clicking it drops archived and invalidated theses — which the unfiltered Theses
+    // lens does show. "Yours" named ownership as the cause of a lifecycle narrowing, and
+    // under owner-only RLS ownership filters nothing at all. The label now says what the
+    // predicate does, so the head sentence quoting it ("Only what matches the “…” view.")
+    // is true.
+    "builtin.mine": "Your active theses",
+    "builtin.stale30": "Stale",
+    "builtin.staleWhat": "No changes in 30 days.",
+    "builtin.windowClosed": "Window closed",
+    "builtin.team": "Team (not yet available)",
+    "builtin.teamTooltip": "Team sharing for theses is not built yet.",
+    "builtin.windowClosedEmpty": "Nothing has a closed window right now.",
+    "builtin.mineEmpty": "Nothing here yet.",
+    "builtin.staleEmpty": "Everything here changed in the last 30 days. Nothing is stale.",
   },
   zh: {
     lensRailLabel: "研究视角",
@@ -383,12 +637,12 @@ export const RMS_COPY: { en: RmsCopy; zh: RmsCopy } = {
     },
     empty: {
       coverage: "还没有覆盖任何标的。写下一条论点，标的就会出现在这里。",
-      ideas: "没有待处理的新想法。每条论点都至少修订过一次。",
+      ideas: "已载入的论点中没有待处理的新想法。每条论点都至少修订过一次。",
       theses: "暂无论点。从一个你可能判断错的观点开始。",
-      reviews: "没有需要复看的内容。",
+      reviews: "已载入的论点中没有需要复看的内容。",
       catalysts: "已载入的论点中没有写下催化因素。",
       risks: "已载入的论点中没有写下风险。",
-      notes: "暂无修订说明。保存修改并写下原因后会显示在这里。",
+      notes: "已载入的论点中暂无修订说明。保存修改并写下原因后会显示在这里。",
     },
     reason: {
       archived: "已归档",
@@ -400,6 +654,16 @@ export const RMS_COPY: { en: RmsCopy; zh: RmsCopy } = {
     scopeSingular: "正在显示 1 条活跃论点中 {loaded} 条的内容。",
     scopeComplete: "正在显示全部 {total} 条活跃论点的内容。",
     scopeCompleteSingular: "正在显示这 1 条活跃论点的全部内容。",
+    // Round-5 review (Meta-CEO B ruling R3d): every ZH string this packet ADDS names the
+    // active lifecycle 有效 — the word the row status chip beside them already renders
+    // (ThesisWorkspace.tsx:135). These four sentences shipped with master's 活跃, which
+    // put two words for one state in a single frame. The pre-existing master strings
+    // (`scope*` and `coverageRatio` above) keep 活跃 and are not edited here; harmonising
+    // them is the copy owner's follow-up, recorded in DEVIATIONS.
+    scopeView: "正在显示这个视图中 {total} 条有效论点里 {loaded} 条的内容。",
+    scopeViewSingular: "正在显示这个视图中 1 条有效论点里 {loaded} 条的内容。",
+    scopeViewComplete: "正在显示这个视图中全部 {total} 条有效论点的内容。",
+    scopeViewCompleteSingular: "正在显示这个视图中这 1 条有效论点的全部内容。",
     showMore: "再载入 {n} 条",
     unavailableLens: "此视角暂时没有内容可显示。没有任何内容被更改。",
     hydrationFault: "接下来的 {n} 条未能载入。请重试。",
@@ -409,8 +673,39 @@ export const RMS_COPY: { en: RmsCopy; zh: RmsCopy } = {
     countUnknown: "—",
     coverageRatio: "共写了 {theses} 条，其中 {active} 条活跃",
     filteredBySubject: "仅显示关于 {subject} 的内容。",
+    filteredByView: "仅显示符合「{view}」视图的内容。",
+    filteredByViewAndSubject: "仅显示符合「{view}」视图、并且关于 {subject} 的内容。",
     clearFilter: "显示全部",
     filteredEmpty: "目前没有关于 {subject} 的论点。清除筛选可查看全部论点。",
+    filteredByViewAndSubjectEmpty: "这个视图中没有关于{subject}的论点。清除标的筛选即可查看视图中的其余内容。",
     filteredMarker: "已筛选",
+    "savedViews.title": "你保存的视图",
+    "savedViews.newView": "保存此视图",
+    "savedViews.namePlaceholder": "为这个视图命名",
+    "savedViews.save": "保存",
+    "savedViews.rename": "重命名",
+    "savedViews.delete": "删除此视图",
+    "savedViews.renameNamed": "重命名{name}",
+    "savedViews.deleteNamed": "删除{name}",
+    "savedViews.confirmDelete": "删除这个已保存的视图？此操作无法撤销。",
+    "savedViews.limitReached": "已达到 50 个已保存视图的上限。请先删除一个再保存新的。",
+    "savedViews.truncated": "已保存的视图超过 50 个。最久未更新的那些暂时不显示，删除一些后会重新显示。",
+    "savedViews.nameRequired": "保存前请先为这个视图命名。",
+    "savedViews.saveFailed": "无法保存这个视图，请重试。",
+    "savedViews.empty": "还没有保存任何视图。先筛选列表，再为其保存命名。",
+    "savedViews.unavailable": "无法加载已保存的视图。没有任何内容被更改。",
+    "savedViews.alreadyRemoved": "该视图已被删除。",
+    "savedViews.viewEmpty": "没有符合这个视图的论点。",
+    // Round-5 review (ruling R3d): 进行中 reads as "being drafted" and was a third word
+    // for the one lifecycle; the chip now says what every row chip beside it says.
+    "builtin.mine": "你的有效论点",
+    "builtin.stale30": "长期未更新",
+    "builtin.staleWhat": "30 天没有改动。",
+    "builtin.windowClosed": "观察窗口已结束",
+    "builtin.team": "团队（暂未开放）",
+    "builtin.teamTooltip": "论点的团队共享功能尚未上线。",
+    "builtin.windowClosedEmpty": "目前没有观察窗口已结束的论点。",
+    "builtin.mineEmpty": "这里还没有内容。",
+    "builtin.staleEmpty": "这里的论点最近 30 天都有改动，没有长期未更新的。",
   },
 };
