@@ -3,6 +3,7 @@
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
 # capturedAtHead: 3257006cb8a777437bf084738132583b9d3bf681
 # 2026-09-10 merge-only refresh onto master b7aa0981 (#547): i18n.tsx re-hashed because master's B-F13-5 lexicon keys merged into the shared file; no B-F11-4 string or layout changed; no crop recaptured.
+# 2026-09-10 merge-only refresh onto master 64c05ff2 (#553): i18n.tsx re-hashed again because master's B-F12-B5-3 account-completeness lexicon keys merged into the shared file; no B-F11-4 string or layout changed; no crop recaptured.
 # capturedAt: 2026-09-10T15:42:44.798Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
@@ -11,7 +12,7 @@ layoutFiles:
   terminal/lib/rmsViews.ts: "fd5f025806c5a4b1b27e7d99a026e82f555767f0d96b6a2766a5b363961897cb"
   terminal/lib/savedViews.ts: "16e2914a032cba50cce999d1802c53e51098ce76dd82931925ef41b8e0f7af54"
   terminal/lib/plainLabels.ts: "8f69818feca65a5f28c590460c52e4f06c04c25cc4f3da8643eff9050161b588"
-  terminal/lib/i18n.tsx: "460c7e6430f14a5f86e6b06539e41a62841f9107e205267220f2cf7575fda715"
+  terminal/lib/i18n.tsx: "ff9d6134756711e4d8f59873c5c70aecf95e19658253d1fb251aa54490932988"
 theme: dark
 languages: [en, zh]
 viewports:
