@@ -1,0 +1,49 @@
+# B-F12-B5-1 Explicit grants — capture evidence
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
+# capturedAtHead: c926a0cb847680e69f10c5ac8cbee4f7763125f3
+# capturedAt: 2026-09-10T21:59:37.220Z
+# capturedAtHead is informational. The lock is layoutFiles.
+# 2026-09-10 merge-heal 2 on PR #548: origin/master eab65ff7 (includes #547 b7aa0981 Accuracy). SettingsPanel.tsx and i18n.tsx re-hashed; 12 crops recaptured at merge commit c926a0cb so the rail shows Accuracy and Sharing.
+layoutFiles:
+  terminal/components/settings/SectionSharing.tsx: "29fd9b355d50ecb3d3284b6d117b6ed50a461c7b7d45ea3d8588575fe5eca56a"
+  terminal/components/settings/SettingsPanel.tsx: "0624427f94d2e35014dc5b419cea832cc60cd69de1e15c18a1feb387112acf5a"
+  terminal/app/settings.css: "3189163136d943431cbf52e4b5d241c105b695ba5af94c4c2e29151d537b5ef5"
+  terminal/lib/i18n.tsx: "41b96ef78208fca0979e2db4b3f1cc3c8ea8e3d46412097c1b0d3e9599791440"
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: mobile, width: 390, height: 844 }
+harness: /dev/settings?s=sharing&lang=<en|zh>
+capture_flag: TERMINAL_E2E_FIXTURE
+capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.
+command: |
+  cd terminal
+  node e2e/tools/capture_b_f12_b5_1_sharing.cjs
+files:
+  - desktop-en-shared.png
+  - desktop-zh-shared.png
+  - desktop-en-empty-list.png
+  - desktop-zh-empty-list.png
+  - desktop-en-empty.png
+  - desktop-zh-empty.png
+  - mobile-en-shared.png
+  - mobile-zh-shared.png
+  - mobile-en-empty-list.png
+  - mobile-zh-empty-list.png
+  - mobile-en-empty.png
+  - mobile-zh-empty.png
+measurements:
+  desktop-en-shared.png: { cardWidth: 1140, groupCount: 2, revokeVisible: true, badgeText: "Read only" }
+  desktop-zh-shared.png: { cardWidth: 1140, groupCount: 2, revokeVisible: true, badgeText: "仅可查看" }
+  desktop-en-empty-list.png: { cardWidth: 1140, groupCount: 2, revokeVisible: true, badgeText: "Read only" }
+  desktop-zh-empty-list.png: { cardWidth: 1140, groupCount: 2, revokeVisible: true, badgeText: "仅可查看" }
+  desktop-en-empty.png: { cardWidth: 1132, groupCount: 2, revokeVisible: false, badgeText: "" }
+  desktop-zh-empty.png: { cardWidth: 1123, groupCount: 2, revokeVisible: false, badgeText: "" }
+  mobile-en-shared.png: { cardWidth: 390, groupCount: 2, revokeVisible: true, badgeText: "Read only" }
+  mobile-zh-shared.png: { cardWidth: 390, groupCount: 2, revokeVisible: true, badgeText: "仅可查看" }
+  mobile-en-empty-list.png: { cardWidth: 390, groupCount: 2, revokeVisible: true, badgeText: "Read only" }
+  mobile-zh-empty-list.png: { cardWidth: 390, groupCount: 2, revokeVisible: true, badgeText: "仅可查看" }
+  mobile-en-empty.png: { cardWidth: 387, groupCount: 2, revokeVisible: false, badgeText: "" }
+  mobile-zh-empty.png: { cardWidth: 386, groupCount: 2, revokeVisible: false, badgeText: "" }

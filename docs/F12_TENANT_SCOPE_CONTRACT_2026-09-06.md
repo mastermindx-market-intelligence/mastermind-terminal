@@ -208,8 +208,11 @@ and never need a denial sentence.
   rather than a silent one.
 - **No resource-level `team_id` column exists.** `team_id` appears only on
   `team_members`/`team_invites` in the unmerged `0014_tenancy_foundation.sql:23,32`.
-- **No grants table exists.** There is no `resource_grants` relation anywhere
-  and this packet creates none. `Grant` is a caller-supplied record only.
+- **`public.resource_grants` exists in `supabase/migrations/0021_resource_grants.sql`
+  (packet B-F12-B5-1).** The file is the schema source of record and ships
+  **unapplied**. A Grant is still caller-supplied to `decideTenantScope`; the
+  route maps a live row through `toTenantGrants` with no defaulting. There is
+  no token column, no public link, and no `anon` policy.
 - **Migration 0014 is unmerged and unapplied.** PR #514 is OPEN; the file's
   own header (line 10) says `NOT APPLIED`. `teams`/`team_members` therefore
   do not exist in the live database, so **no part of this contract can be
