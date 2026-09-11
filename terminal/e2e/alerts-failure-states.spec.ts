@@ -67,7 +67,7 @@ test("an unreadable alert store is its own state — never 'No alerts yet'", asy
   await expect(state(page, "empty")).toHaveCount(0);          // the lie the bug told
   await expect(page.locator(".panel .ph .sub")).toHaveCount(0); // no "0 total" over an unread list
   await expect(page.locator(".alerts-unavailable .alerts-signedout-h"))
-    .toHaveText(zh ? "无法加载您的提醒" : "Could not load your alerts");
+    .toHaveText(zh ? "无法加载你的提醒" : "Could not load your alerts");
 
   // A transport failure is the same fact by a different route.
   mode = "abort";
