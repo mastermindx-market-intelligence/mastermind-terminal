@@ -31,6 +31,14 @@ concurrency:
   group: ci-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+# Least-privilege default: CodeQL flags workflows with no permissions: block
+# (unbounded GITHUB_TOKEN). Every job here only checks out code, runs
+# npm/pytest, reads/writes the actions/cache, and uploads build artifacts —
+# all of which work under a read-only token. No job calls gh/the GitHub API
+# or writes checks/PR comments, so no job needs elevated permissions.
+permissions:
+  contents: read
+
 jobs:
   hub:
     name: Quote Hub tests
