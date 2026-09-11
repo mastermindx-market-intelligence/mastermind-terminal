@@ -5,13 +5,14 @@
 # capturedAt: 2026-09-10T22:04:15.150Z
 # capturedAtHead is informational. The lock is layoutFiles.
 # 2026-09-10 merge-heal 2 on PR #548: origin/master eab65ff7 plus this PR's Sharing tab. SettingsPanel.tsx, page.tsx, i18n.tsx re-hashed; 12 crops recaptured so the rail shows Accuracy and Sharing. Code merge is c926a0cb.
+# 2026-09-11 merge of master bad423f5 (#548 explicit grants) into B-F13-6 (#554): i18n.tsx re-hashed ONLY - the merged lexicon carries this PR's 31 claim* keys plus master's acsSharing and 28 shr* keys. SettingsPanel.tsx and terminal/app/dev/settings/page.tsx keep exactly the values master restamped alongside that 12-crop recapture at 5226e801, so the crops in this packet already depict the rail this tree renders; no B-F13-5 acc* key moved and no crop was recaptured. The two superseded #549 / #553 merge-heal lines from the #554 side were dropped rather than carried: their "12 crops recaptured at 5992b8b52" claim stopped being true when #548 recaptured all 12 at 5226e801.
 # master 64c05ff2 (#553) changed terminal/lib/i18n.tsx and terminal/app/dev/settings/page.tsx; hash-only restamp after merge; crops unchanged
 layoutFiles:
   terminal/components/settings/SectionAccuracy.tsx: "53304918f2cd38ffbb2b733a754503a644ce030594ea92d09079d78ad37dca1e"
   terminal/components/settings/SectionAccuracy.module.css: "a35d7db4b05ab753db30f2ac46ba0b8c16eeef61309336531f05d2a6ae7f21cc"
   terminal/components/settings/SettingsPanel.tsx: "0624427f94d2e35014dc5b419cea832cc60cd69de1e15c18a1feb387112acf5a"
   terminal/components/settings/types.ts: "11e4ca0d4804ded9913bdfba0629925f1127cd1db0dca7721bba50cd1e648d5e"
-  terminal/lib/i18n.tsx: "4dfdbbd53739f12b977ec0f4c5c627f0bf121717644f77b8401277e3f3b54b7f"
+  terminal/lib/i18n.tsx: "7c1b7232672bb85c753d99cf3fde91d9dffff43a31977fe0207412374eeaad2b"
   terminal/lib/personalAccuracy.ts: "0f479c6932a2bcee23ba0f840739dbc6c133046d077a07a6f802a173c63efa1b"
   terminal/lib/personalAccuracyStore.ts: "adc6e5c9c0d5f1ac6ed800df821b393c1d98f345bac2ccc87b3cb4c40b1b99f9"
   terminal/app/dev/settings/page.tsx: "d79ba37eb97c648e8b371fba880b8f3f0cc2c0d577474f465d6fc463941e027f"

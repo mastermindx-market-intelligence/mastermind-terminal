@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useLang } from "@/lib/i18n";
+import { useLang, useT } from "@/lib/i18n";
 import { subjectKindLabel } from "@/lib/plainLabels";
 import { parseAnalysisSearchParams } from "@/lib/analysisRoute";
 import { normalizeAnalysisSymbol } from "@/lib/analysisSymbol";
@@ -48,6 +48,7 @@ import type {
   ViewFilter,
 } from "@/lib/rmsViews";
 import styles from "./ThesisWorkspace.module.css";
+import ClaimAuthoringForm from "./ClaimAuthoringForm";
 
 export interface ThesisWorkspaceProps {
   ownerKey: string;
@@ -417,6 +418,7 @@ function historyState(position: number): Record<string, unknown> {
 
 export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesisId, invalidLink = false }: ThesisWorkspaceProps) {
   const { lang } = useLang();
+  const t = useT();
   const copy = COPY[lang];
   const seededSymbol = normalizeAnalysisSymbol(initialSymbol) ?? "";
   const [listState, setListState] = useState<LoadState>(invalidLink ? "ready" : "loading");
@@ -442,6 +444,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   const [inspectedVersion, setInspectedVersion] = useState<number | null>(null);
   const [routeInvalid, setRouteInvalid] = useState(invalidLink);
   const [mobilePane, setMobilePane] = useState<MobilePane>(initialThesisId || seededSymbol ? "detail" : "list");
+  const [claimFormOpen, setClaimFormOpen] = useState(false);
   const [view, setView] = useState<RmsViewId>(RMS_DEFAULT_VIEW);
   const [subjectFilterKey, setSubjectFilterKey] = useState<string | null>(null);
   // Stored alongside subjectFilterKey at the moment of selection (never re-derived by
@@ -1801,11 +1804,24 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     <main className={`main2 ws-shell ${styles.root}`} data-testid="thesis-workspace" data-list-state={listState} data-mobile-pane={mobilePane}>
       <header className={styles.contextBar}>
         <div><small>{copy.eyebrow}</small><h1>{copy.title}</h1><span className={styles.contextSubject}>{(detail?.subject.key ?? subjectDraft) || "—"}</span></div>
-        <div className={styles.contextActions}>
+        <div className={styles.contextActions} data-testid="thesis-context-actions">
           {detail && <button type="button" onClick={() => void copyLink()}>{copy.copyLink}</button>}
+          <button
+            type="button"
+            data-testid="claim-entry-button"
+            disabled={carrierLocked || !normalizeAnalysisSymbol(detail?.subject.key ?? subjectDraft)}
+            onClick={() => setClaimFormOpen(true)}
+          >{t("claimEntryButton")}</button>
           <button type="button" className={styles.primaryButton} disabled={carrierLocked} onClick={startNew}>{copy.newThesis}</button>
         </div>
       </header>
+      {claimFormOpen && (
+        <ClaimAuthoringForm
+          open={claimFormOpen}
+          symbol={normalizeAnalysisSymbol(detail?.subject.key ?? subjectDraft) ?? ""}
+          onClose={() => setClaimFormOpen(false)}
+        />
+      )}
 
       {listState === "session_expired" ? (
         <section className={styles.centerState} role="status"><span className={styles.stateMark}>↗</span><h1>{copy.expired}</h1><p>{copy.expiredBody}</p></section>
