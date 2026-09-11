@@ -1,15 +1,16 @@
 # Ledger row: 0020_team_ownership_transfer / PR #557 (open, packet B-F12-9); not applied
 # layoutFiles carry sha256 hashes of the files they name; proof of which code generated each crop.
 # Rebuild any crop and recompute its layoutFiles, or the test will fail and the PR will not land.
-# capturedAtHead: 2f775a39d112208196c223065e61242931c1b973
-capturedAtHead: 2f775a39d112208196c223065e61242931c1b973
+# capturedAtHead: 3cdcd746b86d478ff139dd5fea408b66fce065af
+capturedAtHead: 3cdcd746b86d478ff139dd5fea408b66fce065af
 capturedAt: 2026-09-11T03:00:17.565Z
-# capturedAtHead is the merge commit 2f775a39d112208196c223065e61242931c1b973 (merge of master 19c57aca, #556 B-F13-7), which is this commit's direct parent; the layoutFiles hashes below are that commit's bytes. They are byte-identical to the ones recorded at the previous pointer d4a16eb352946145e6e0292d1b9d33d8207778d2, because #556 edits none of this packet's pinned files. (The earlier statements naming the duplicate-key fix commit, the 916db2d4ac62b00aed236231433d8d952c22f3c6 merge and the d4a16eb352946145e6e0292d1b9d33d8207778d2 pointer no longer hold.)
+# capturedAtHead is the squash commit 3cdcd746b86d478ff139dd5fea408b66fce065af — master's tip after #550 landed, carrying this packet's merged tree; the layoutFiles hashes below are that commit's bytes. They are byte-identical to the ones recorded at the previous pointers 2f775a39d112208196c223065e61242931c1b973 and d4a16eb352946145e6e0292d1b9d33d8207778d2. (The earlier statements naming the duplicate-key fix commit, the 916db2d4ac62b00aed236231433d8d952c22f3c6 merge, the d4a16eb352946145e6e0292d1b9d33d8207778d2 pointer and the 2f775a39d112208196c223065e61242931c1b973 merge-commit pointer no longer hold.)
 # Pinned i18n.tsx last changed on this carrier for master #554's claim* keys; the captured surface (team section + rail) does not render them; crops unchanged from 916db2d4ac62b00aed236231433d8d952c22f3c6.
 # 2026-09-11 duplicate-key fix (#550): master #553 added its own acsTeamNone/acsTeamMany, so #550's pair was renamed (-> acsTeamNoneCreate/acsTeamManyPanel) and SectionTeam repointed; neither key is rendered on the ownership-transfer surface.
 # 2026-09-11 merge of master e43733c1 (#548 explicit grants + #566 ledger flip) into B-F12-8 (#550): 8 crops recaptured at merge commit 916db2d4ac62b00aed236231433d8d952c22f3c6 so the rail shows the merged 11 rows (account, team, accuracy, billing, usage, prefs, alertDelivery, terminal, sync, webhooks, sharing). This supersedes every earlier crops-unchanged / no-crop-recaptured line in this header.
 # 2026-09-11 merge of master 7e15e502 (#554 claim authoring form) into B-F12-8 (#550): i18n.tsx re-hashed for master's 31 claim* lexicon keys, which render only in the research-workspace claim form. #554 edits none of this packet's other pinned files (SectionTeam.tsx, SectionTeam.module.css, SettingsPanel.tsx, settings.css), so the 8 crops captured at 916db2d4 still depict this tree and none was recaptured.
 # 2026-09-11 merge of master 19c57aca (#556 B-F13-7 first resolver) into B-F12-8 (#550): #556 touches only terminal/lib/personalAccuracy.ts, terminal/lib/personalAccuracyStore.ts, terminal/lib/dailyCloseResolver.ts, terminal/scripts/score_personal_accuracy.mjs and their tests/fixtures — none of this packet's pinned files — so every layoutFiles row is unchanged and no crop was recaptured; capturedAtHead moves by the depth-2 pointer rule only.
+# 2026-09-11: #550 squash-merged as 3cdcd746; the previous pointer 2f775a39 (the PR's merge commit) left master's history; pointer moved to the squash commit, pinned bytes identical, crops unchanged from 916db2d4 (captured 2026-09-11 in #550)
 layoutFiles:
   terminal/components/settings/SectionTeam.tsx: "fec63ed61b300fbfc6f745b1d8f8a605ad459304f10009bd68023b859b245595"
   terminal/components/settings/SectionTeam.module.css: "924ab5b81d4f0e11ef2138557e92c43a0d1fa21b78622567fb6ccddcf6c146a8"

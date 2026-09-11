@@ -116,7 +116,12 @@ function isAncestorOrEqual(sha: string): boolean {
     }
     frontier = next;
   }
-  return false;
+  // A squash merge lands the packet's bytes on a brand-new master commit, so
+  // capturedAtHead can sit more than two hops behind HEAD. CI checks out with
+  // fetch-depth 2, so neither merge-base nor the header walk above can reach
+  // it. Deepen the shallow history once, then re-ask merge-base before failing.
+  git(["fetch", "--deepen=64", "origin"]);
+  return git(["merge-base", "--is-ancestor", sha, "HEAD"]).ok;
 }
 
 function blobAt(sha: string, rel: string): Buffer | null {
