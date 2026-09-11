@@ -375,7 +375,7 @@ def test_reservations_records_the_known_collision_surface():
     assert prefixes["0017"]["applied_in_production"] is True
     assert prefixes["0017"]["applied_date"] == "2026-09-10"
 
-    # 0018 is merged on master (#549). 0017 is taken by open PR #547 (B-F13-5).
+    # 0017 (#547) and 0018 (#549) are both merged on master and both applied 2026-09-10.
     assert prefixes["0018"]["state"] == "taken"
     assert prefixes["0018"]["file"] == "0018_webhook_delivery.sql"
     assert prefixes["0018"]["packet"] == "B-F12-7"
@@ -387,18 +387,19 @@ def test_reservations_records_the_known_collision_surface():
     assert "shipped unapplied; the seat applies with a receipt" in prefixes["0018"]["note"]
 
     # 0021 (packet B-F12-B5-1, explicit grants) merged to master as bad423f5 on
-    # 2026-09-11 in PR #548 and is still UNAPPLIED on purpose: 0019 and 0020 are
-    # open in PR #550 and the seat applies DDL in ledger order, never ahead of a
-    # lower, still-unapplied number. applied_date is null because there is no
-    # application yet, never because a real date was lost.
+    # 2026-09-11 in PR #548 and was applied 2026-09-11T05:59:15Z, after 0019 and
+    # 0020 -- the seat applies DDL in ledger order, never ahead of a lower,
+    # still-unapplied number, so 0021 could only go in once 0019 and 0020 had
+    # landed (3cdcd746) and been applied. Readback receipt: PR #548 comment
+    # 5630176531.
     assert prefixes["0021"]["state"] == "taken"
     assert prefixes["0021"]["file"] == "0021_resource_grants.sql"
     assert prefixes["0021"]["packet"] == "B-F12-B5-1"
     assert prefixes["0021"]["pr"] == 548
     assert prefixes["0021"]["pr_state"] == "merged"
     assert prefixes["0021"]["merged_sha"] == "bad423f5"
-    assert prefixes["0021"]["applied_in_production"] is False
-    assert prefixes["0021"]["applied_date"] is None
+    assert prefixes["0021"]["applied_in_production"] is True
+    assert prefixes["0021"]["applied_date"] == "2026-09-11"
 
     # 0017-0020 claimed by Meta-CEO B ruling 2026-09-09 -- updated from the
     # stale state="free" this test used to assert.
@@ -424,24 +425,31 @@ def test_reservations_records_the_known_collision_surface():
         if prefixes[prefix]["state"] == "reserved":
             assert prefixes[prefix]["file"] is None, prefix
 
+    # 0019 rode PR #550 to master, squash-merged as 3cdcd746 at
+    # 2026-09-11T05:42:28Z, and the seat applied its DDL 2026-09-11T05:58:15Z
+    # (readback receipt: PR #550 comment 5630176327).
     assert prefixes["0019"]["state"] == "taken"
     assert prefixes["0019"]["file"] == "0019_team_role_changes.sql"
     assert prefixes["0019"]["packet"] == "B-F12-8"
     assert prefixes["0019"]["pr"] == 550
-    assert prefixes["0019"]["pr_state"] == "open"
-    assert prefixes["0019"]["applied_in_production"] is False
-    assert prefixes["0019"]["applied_date"] is None
+    assert prefixes["0019"]["pr_state"] == "merged"
+    assert prefixes["0019"]["merged_sha"] == "3cdcd746"
+    assert prefixes["0019"]["applied_in_production"] is True
+    assert prefixes["0019"]["applied_date"] == "2026-09-11"
 
-    # 0020 originated in #557 and now rides to master on this pull request, so
-    # the open row names 550. A present file whose open row names any other PR
-    # is OPEN_PR_STATE_STALE in pull_request mode (PR #550 round-2 BLOCKER 2).
+    # 0020 originated in #557 and rode to master on PR #550, so the row names
+    # 550 and carries #550's merge sha, not #557's. It merged in the same squash
+    # as 0019 (3cdcd746, 2026-09-11T05:42:28Z) and was applied
+    # 2026-09-11T05:58:34Z, strictly after 0019 (same readback receipt comment,
+    # PR #550 comment 5630176327).
     assert prefixes["0020"]["state"] == "taken"
     assert prefixes["0020"]["file"] == "0020_team_ownership_transfer.sql"
     assert prefixes["0020"]["packet"] == "B-F12-9"
     assert prefixes["0020"]["pr"] == 550
-    assert prefixes["0020"]["pr_state"] == "open"
-    assert prefixes["0020"]["applied_in_production"] is False
-    assert prefixes["0020"]["applied_date"] is None
+    assert prefixes["0020"]["pr_state"] == "merged"
+    assert prefixes["0020"]["merged_sha"] == "3cdcd746"
+    assert prefixes["0020"]["applied_in_production"] is True
+    assert prefixes["0020"]["applied_date"] == "2026-09-11"
 
     # Master's 0022 and 0023 rows stay merged. An open 0023 on this branch is
     # OPEN_PR_STATE_STALE (PR #550 round-2 BLOCKER 1).
