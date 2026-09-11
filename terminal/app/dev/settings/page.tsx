@@ -68,7 +68,7 @@ const USAGE: Record<string, AcsUsage> = {
   unlimited: { tier: "pro", quotas: { fast: { remaining: 0, limit: -1 }, pro: { remaining: 96, limit: 150, period: "month" } } },
 };
 
-const SECTIONS: SettingsSection[] = ["account", "team", "accuracy", "billing", "usage", "prefs", "alertDelivery", "terminal", "sync", "webhooks"];
+const SECTIONS: SettingsSection[] = ["account", "team", "accuracy", "billing", "usage", "prefs", "alertDelivery", "terminal", "sync", "webhooks", "sharing"];
 
 const DEV_TEAM: DevTeamFixture = {
   team: { id: "team-desk", name: "Desk" },

@@ -10,7 +10,7 @@ import { SETTINGS_SECTIONS } from "./SettingsProvider";
 import type { AcsPlan, AcsUsage, DevTeamFixture, SectionProps } from "./types";
 import type { AccuracyReadout } from "@/lib/personalAccuracy";
 import {
-  IconAccount, IconAlertDelivery, IconBilling, IconPrefs, IconSignOut, IconSync, IconTeam, IconTerminal, IconUsage,
+  IconAccount, IconAlertDelivery, IconBilling, IconPrefs, IconSharing, IconSignOut, IconSync, IconTeam, IconTerminal, IconUsage,
   IconWebhooks, IconX,
 } from "./icons";
 import SectionAccount from "./SectionAccount";
@@ -23,6 +23,7 @@ import SectionTerminal from "./SectionTerminal";
 import SectionSync from "./SectionSync";
 import SectionTeam from "./SectionTeam";
 import SectionWebhooks from "./SectionWebhooks";
+import SectionSharing from "./SectionSharing";
 
 function IconAccuracy() {
   return (
@@ -55,6 +56,7 @@ const NAV: { id: SettingsSection; icon: React.ReactNode; key: string }[] = [
   { id: "terminal", icon: <IconTerminal />, key: "acsTerminal" },
   { id: "sync", icon: <IconSync />, key: "acsSyncT" },
   { id: "webhooks", icon: <IconWebhooks />, key: "acsWebhooks" },
+  { id: "sharing", icon: <IconSharing />, key: "acsSharing" },
 ];
 
 const HEAD_KEY: Record<SettingsSection, string> = {
@@ -68,6 +70,7 @@ const HEAD_KEY: Record<SettingsSection, string> = {
   terminal: "acsTerminal",
   sync: "acsSyncT",
   webhooks: "acsWebhooks",
+  sharing: "acsSharing",
 };
 
 export interface SettingsPanelProps {
@@ -336,6 +339,7 @@ export default function SettingsPanel(props: SettingsPanelProps) {
             {section === "terminal" && <SectionTerminal {...shared} />}
             {section === "sync" && <SectionSync {...shared} />}
             {section === "webhooks" && <SectionWebhooks {...shared} />}
+            {section === "sharing" && <SectionSharing {...shared} />}
           </div>
         </section>
       </div>

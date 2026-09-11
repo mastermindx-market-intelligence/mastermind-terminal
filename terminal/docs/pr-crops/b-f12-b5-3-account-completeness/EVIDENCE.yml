@@ -5,12 +5,14 @@
 # capturedAt: 2026-09-10T17:11:00.435Z
 # capturedAtHead is the code commit the pixels depict. The lock is layoutFiles.
 # Merge-heal (master b7aa0981): SectionAccount.tsx re-hashed for the B-F08-7b write-fence wrap; i18n.tsx re-hashed for master's auto-merged LEX keys. No packet key moved, no crop recaptured.
+# Merge of master 64c05ff2 (#553) into B-F12-B5-1 (#548): i18n.tsx re-hashed for the explicit-grants and Sharing-tab LEX keys this PR adds to the shared lexicon. No packet key moved, no crop recaptured — those keys are not rendered on the account-completeness surface.
 # Merge of master 64c05ff2 (#553) into B-F12-8 (#550): i18n.tsx re-hashed for the team-roles and ownership-transfer LEX keys this PR adds to the shared lexicon. No packet key moved, no crop recaptured — those keys are not rendered on the account-completeness surface.
 # 2026-09-11 duplicate-key fix on #550: the carrier renamed ITS OWN pair (acsTeamNone/acsTeamMany -> acsTeamNoneCreate/acsTeamManyPanel); this packet's acsTeamNone/acsTeamMany rows are untouched and, because the duplicate made them win at runtime anyway, the account-completeness copy is unchanged. i18n.tsx re-hashed; no crop recaptured.
+# 2026-09-11 merge of master e43733c1 (#548 explicit grants + #566 ledger flip) into B-F12-8 (#550): i18n.tsx re-hashed because master's Sharing-tab and explicit-grants lexicon keys merged into the shared file. No B-F12-B5-3 string or layout changed; no crop recaptured.
 layoutFiles:
   terminal/components/settings/SectionAccount.tsx: "d2c3828c286bbaac321881d5a6562efdd4f30e580f4200d49c5165c0fa7ef9a4"
   terminal/lib/teamSummary.ts: "7bd3b3f1d5251490e42399be1dd77e977b2626c1714efbece2f7139c584e0f15"
-  terminal/lib/i18n.tsx: "9142e694ff9fd2ebaae1058db3db82dc62c7e9429d330c901367e3636b430e72"
+  terminal/lib/i18n.tsx: "4d2080b2e6838cac38bd1681ccf482e988e94c2254b0f7fbd9e2dc981eb87ff4"
 theme: dark
 languages: [en, zh]
 viewports:

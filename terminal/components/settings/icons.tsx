@@ -90,6 +90,16 @@ export function IconWebhooks() {
     </svg>
   );
 }
+export function IconSharing() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" {...S}>
+      <circle cx="6.5" cy="12" r="2.2" />
+      <circle cx="17.5" cy="6.5" r="2.2" />
+      <circle cx="17.5" cy="17.5" r="2.2" />
+      <path d="M8.4 11.1 15.3 7.4M8.4 12.9 15.3 16.6" />
+    </svg>
+  );
+}
 export function IconSignOut() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" {...S} strokeWidth={1.8}>
