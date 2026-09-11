@@ -28,6 +28,8 @@ const LAYOUT_FILES = [
   "terminal/components/settings/SectionAccount.tsx",
   "terminal/lib/teamSummary.ts",
   "terminal/lib/i18n.tsx",
+  "terminal/components/settings/SettingsPanel.tsx",
+  "terminal/components/settings/SettingsProvider.tsx",
 ];
 const PORT = Number(process.env.TERMINAL_CROP_PORT || 3547);
 const BASE = `http://127.0.0.1:${PORT}`;
