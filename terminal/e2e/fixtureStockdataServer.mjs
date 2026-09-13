@@ -89,13 +89,16 @@ export function startFixtureStockdataServer(port = 0) {
       return;
     }
     const ticker = ohlc[1].toUpperCase();
-    if (ticker === "MISSING") {
+    // Auth already passed. DGS3MO/us3m are not in the public OHLC projection —
+    // a credentialed 404 is unpublished; an anonymous 401 above is the same
+    // locked shape as SPY and must not be typed as unpublished.
+    if (ticker === "MISSING" || ticker === "DGS3MO" || ticker === "US3M") {
       res.writeHead(404, { "content-type": "application/json" });
       res.end(JSON.stringify({ error: "not found" }));
       return;
     }
     const n = ticker === "THIN" ? 20 : 140;
-    const seed = ticker === "DGS3MO" || ticker === "US3M" ? 5 : ticker === "SPY" ? 200 : 100;
+    const seed = ticker === "SPY" ? 200 : 100;
     res.writeHead(200, { "content-type": "application/json" });
     res.end(JSON.stringify({ t: ticker, o: 1, src: "fixture", bar_quality: "real_ohlc", bars: ohlcBars(n, seed) }));
   });

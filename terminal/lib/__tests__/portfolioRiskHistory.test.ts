@@ -11,6 +11,7 @@ import {
   historyCopy,
   historyAvailability,
   RF_UNPUBLISHED_REASON,
+  RF_UNREADABLE_REASON,
   SCHEMA,
   MIN_ALIGNED,
   TRAIL_ALIGNED,
@@ -299,6 +300,38 @@ describe("computePortfolioRiskHistory", () => {
     expect(h.coverageStatus).toBe("partial");
   });
 
+  it("does not mark an open book whose names are all excluded as empty", () => {
+    const h = computePortfolioRiskHistory(
+      [pos("NVDA", 25, 10)],
+      {},
+      null,
+      null,
+    );
+    expect(h.counts.open).toBe(1);
+    expect(h.counts.included).toBe(0);
+    expect(h.coverageStatus).not.toBe("empty");
+    expect(h.coverageStatus).toBe("unavailable");
+    expect(h.excluded).toEqual([{ ticker: "NVDA", reason: "missing_price_history" }]);
+  });
+
+  it("does not type a locked/unreadable risk-free fetch as unpublished", () => {
+    const n = 130;
+    const h = computePortfolioRiskHistory(
+      [pos("AAA", 10, 10)],
+      { AAA: enoughDays(n) },
+      enoughSpy(n),
+      null,
+      { riskFreeStatus: "unreadable" },
+    );
+    expect(h.sharpe).toBeNull();
+    expect(h.sortino).toBeNull();
+    expect(h.sharpeReason).toBe(RF_UNREADABLE_REASON);
+    expect(h.sortinoReason).toBe(RF_UNREADABLE_REASON);
+    expect(h.sources.riskFreeSource).toBe("unreadable");
+    expect(h.beta).not.toBeNull();
+    expect(h.coverageStatus).toBe("partial");
+  });
+
   it("nulls beta when the benchmark series is missing, without fabricating a zero", () => {
     const n = 130;
     const h = computePortfolioRiskHistory(
@@ -428,6 +461,54 @@ describe("historyCopy — plain EN/ZH, no machine text, no grade", () => {
     expect(c.sharpe.unread?.zh).toMatch(/国债/);
     expect(c.sharpe.unread?.en).not.toBe(RF_UNPUBLISHED_REASON);
     expect(c.sharpe.unread?.zh).not.toContain(RF_UNPUBLISHED_REASON);
+  });
+
+  it("maps a locked risk-free fetch to a plain sentence, never unpublished or the raw typed string", () => {
+    const n = 130;
+    const h = computePortfolioRiskHistory(
+      [pos("AAA", 10, 10)],
+      { AAA: enoughDays(n) },
+      enoughSpy(n),
+      null,
+      { riskFreeStatus: "unreadable" },
+    );
+    const c = historyCopy(h);
+    expect(c.riskFree.en).toMatch(/could not be read/i);
+    expect(c.riskFree.zh).toMatch(/读不到/);
+    expect(c.sharpe.unread?.en).toMatch(/could not be read/i);
+    expect(c.sharpe.unread?.en).not.toBe(RF_UNREADABLE_REASON);
+    expect(c.sharpe.unread?.en).not.toContain(RF_UNPUBLISHED_REASON);
+    expect(JSON.stringify(c)).not.toContain(RF_UNREADABLE_REASON);
+  });
+
+  it("does not print the empty-book sentence when open holdings are all excluded", () => {
+    const h = computePortfolioRiskHistory(
+      [pos("NVDA", 25, 10)],
+      {},
+      null,
+      null,
+    );
+    const c = historyCopy(h);
+    expect(c.empty).toBeNull();
+    expect(c.sharpe.unread).not.toBeNull();
+    expect(c.excluded.map((row) => row.ticker)).toContain("NVDA");
+    expect(c.excluded[0].text.en).toMatch(/no daily price history/i);
+    const blob = JSON.stringify(c);
+    expect(blob).not.toContain("There is no open holding to describe yet.");
+    expect(blob).not.toContain("目前没有未平仓持仓可供描述。");
+  });
+
+  it("uses a singular English gap sentence when there is one gap", () => {
+    const h = computePortfolioRiskHistory(
+      [pos("AAA", 10, 10)],
+      { AAA: AAA5 },
+      SPY5,
+      RF5,
+    );
+    const c = historyCopy(h);
+    expect(c.gapsSummary?.en).toBe("1 gap in this picture");
+    expect(c.gapsSummary?.en).not.toMatch(/1 gaps/);
+    expect(c.gapsSummary?.zh).toMatch(/1/);
   });
 });
 

@@ -84,4 +84,15 @@ describe("fixture stockdata server", () => {
     });
     expect(missing.status).toBe(404);
   });
+
+  it("401s anonymous DGS3MO like SPY, and 404s DGS3MO/us3m once the session cookie is present", async () => {
+    const anon = await fetch(`${baseUrl}/ohlc/DGS3MO.json`);
+    expect(anon.status).toBe(401);
+    expect(anon.headers.get("x-regwall")).toBe("deny");
+    const cookie = { headers: { Cookie: `${SESSION_COOKIE_NAME}=${SESSION_COOKIE_VALUE}` } };
+    const dgs = await fetch(`${baseUrl}/ohlc/DGS3MO.json`, cookie);
+    expect(dgs.status).toBe(404);
+    const us3m = await fetch(`${baseUrl}/ohlc/us3m.json`, cookie);
+    expect(us3m.status).toBe(404);
+  });
 });

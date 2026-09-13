@@ -18,18 +18,20 @@ export const MIN_ALIGNED = 126;
 export const TRAIL_ALIGNED = 252;
 export const RF_FRESHNESS_DAYS = 7;
 export const RF_UNPUBLISHED_REASON = "risk-free series not published yet" as const;
+export const RF_UNREADABLE_REASON = "risk-free series could not be read" as const;
 
 export type ClosePoint = { date: string; close: number };
 export type CloseSeries = ClosePoint[];
 export type ReturnPoint = { date: string; ret: number };
 
-export type RiskFreeSource = "DGS3MO" | "us3m" | "unpublished";
+export type RiskFreeSource = "DGS3MO" | "us3m" | "unpublished" | "unreadable";
 export type RiskFreeSeries = { source: "DGS3MO" | "us3m"; points: CloseSeries };
 
 export type HistoryExcludeReason = "short" | "unsized" | "not_positive" | "missing_price_history";
 
 export type HistoryMetricReason =
   | typeof RF_UNPUBLISHED_REASON
+  | typeof RF_UNREADABLE_REASON
   | "risk-free series is stale"
   | "not enough history"
   | "benchmark missing"
@@ -43,6 +45,8 @@ export interface HistoryComputeOptions {
   minAligned?: number;
   trailAligned?: number;
   credentialed?: boolean;
+  /** Distinguishes a proven 404 (unpublished) from a 401/locked/outage (unreadable). */
+  riskFreeStatus?: "published" | "unpublished" | "unreadable";
 }
 
 export interface IncludedHolding {
@@ -301,6 +305,13 @@ export function computePortfolioRiskHistory(
   const minAligned = options.minAligned ?? MIN_ALIGNED;
   const trailAligned = options.trailAligned ?? TRAIL_ALIGNED;
   const credentialed = !!options.credentialed;
+  const rfStatus = rf
+    ? "published" as const
+    : (options.riskFreeStatus === "unreadable" ? "unreadable" as const : "unpublished" as const);
+  const rfAbsentReason: HistoryMetricReason = rfStatus === "unreadable"
+    ? RF_UNREADABLE_REASON
+    : RF_UNPUBLISHED_REASON;
+  const rfAbsentSource: RiskFreeSource = rfStatus === "unreadable" ? "unreadable" : "unpublished";
   const concentration = computePortfolioRisk(positions, {}, credentialed).concentration;
   const folded = foldHoldings(positions);
 
@@ -364,7 +375,7 @@ export function computePortfolioRiskHistory(
       ohlcAsOf,
       spyAsOf: lastDate(spy ?? null),
       riskFreeAsOf: lastDate(rf?.points ?? null),
-      riskFreeSource: (rf?.source ?? "unpublished") as RiskFreeSource,
+      riskFreeSource: (rf?.source ?? rfAbsentSource) as RiskFreeSource,
       benchmark: "SPY" as const,
     },
     included,
@@ -375,7 +386,7 @@ export function computePortfolioRiskHistory(
   if (!returnMaps.length) {
     return {
       ...base,
-      coverageStatus: "empty",
+      coverageStatus: folded.open === 0 ? "empty" : "unavailable",
       window: {
         firstSession: null,
         lastSession: null,
@@ -421,9 +432,9 @@ export function computePortfolioRiskHistory(
     gaps.push({ ticker: null, reason: "not enough history" });
   } else {
     if (!rf) {
-      sharpeReason = RF_UNPUBLISHED_REASON;
-      sortinoReason = RF_UNPUBLISHED_REASON;
-      gaps.push({ ticker: null, reason: RF_UNPUBLISHED_REASON });
+      sharpeReason = rfAbsentReason;
+      sortinoReason = rfAbsentReason;
+      gaps.push({ ticker: null, reason: rfAbsentReason });
     } else {
       const rfDaily = aligned.map((d) => rfDailyOn(rf.points, d));
       if (rfDaily.some((x) => x == null)) {
@@ -538,6 +549,10 @@ const T_RF_NONE: Bilingual = {
   en: "The three-month Treasury yield series has not been published yet.",
   zh: "三个月期国债收益率序列尚未发布。",
 };
+const T_RF_UNREADABLE: Bilingual = {
+  en: "The three-month Treasury yield could not be read.",
+  zh: "暂时读不到三个月期国债收益率。",
+};
 const T_ASOF: Bilingual = {
   en: "Holdings prices as of {ohlc}. SPY as of {spy}. Risk-free as of {rf}.",
   zh: "持仓价格截至 {ohlc}。SPY 截至 {spy}。无风险利率截至 {rf}。",
@@ -559,6 +574,7 @@ const T_CONC: Bilingual = { en: "Biggest holding", zh: "最大的一笔持仓" }
 const T_INCLUDED: Bilingual = { en: "Holdings in this picture", zh: "计入这张图的持仓" };
 const T_EXCLUDED: Bilingual = { en: "Holdings left out", zh: "未计入的持仓" };
 const T_GAPS: Bilingual = { en: "{n} gaps in this picture", zh: "这张图有 {n} 处缺口" };
+const T_GAPS_ONE: Bilingual = { en: "1 gap in this picture", zh: "这张图有 1 处缺口" };
 
 const EXCLUDE_COPY: Record<HistoryExcludeReason, Bilingual> = {
   short: { en: "short holdings are not given a return series in this version", zh: "本版本不为空头持仓编制收益率序列。" },
@@ -571,6 +587,10 @@ const METRIC_COPY: Record<HistoryMetricReason, Bilingual> = {
   [RF_UNPUBLISHED_REASON]: {
     en: "The three-month Treasury yield series has not been published yet, so this figure cannot be computed. Beta still uses SPY.",
     zh: "三个月期国债收益率序列尚未发布，因此无法计算该数字。贝塔仍按 SPY 计算。",
+  },
+  [RF_UNREADABLE_REASON]: {
+    en: "The three-month Treasury yield could not be read, so this figure cannot be computed. Beta still uses SPY.",
+    zh: "暂时读不到三个月期国债收益率，因此无法计算该数字。贝塔仍按 SPY 计算。",
   },
   "risk-free series is stale": {
     en: "The three-month Treasury yield is more than seven days old, so this figure cannot be computed.",
@@ -624,7 +644,7 @@ export function historyCopy(h: PortfolioRiskHistory): {
   gapsSummary: Bilingual | null;
   gapLines: { ticker: string | null; text: Bilingual }[];
 } {
-  const empty = h.counts.included === 0 ? T_EMPTY : null;
+  const empty = h.counts.open === 0 ? T_EMPTY : null;
   const window = h.window.n
     ? fill(T_WINDOW, {
       first: h.window.firstSession ?? dash,
@@ -636,7 +656,9 @@ export function historyCopy(h: PortfolioRiskHistory): {
     ? T_RF_DGS
     : h.sources.riskFreeSource === "us3m"
       ? T_RF_US3M
-      : T_RF_NONE;
+      : h.sources.riskFreeSource === "unreadable"
+        ? T_RF_UNREADABLE
+        : T_RF_NONE;
   const asOf = fill(T_ASOF, {
     ohlc: h.sources.ohlcAsOf ?? dash,
     spy: h.sources.spyAsOf ?? dash,
@@ -648,7 +670,7 @@ export function historyCopy(h: PortfolioRiskHistory): {
     value: number | null,
     reason: HistoryMetricReason | null,
   ) => {
-    if (h.counts.included === 0) {
+    if (h.counts.open === 0) {
       return { label, value: null as Bilingual | null, unread: null as Bilingual | null };
     }
     return {
@@ -699,7 +721,9 @@ export function historyCopy(h: PortfolioRiskHistory): {
     })),
     excludedHeader: T_EXCLUDED,
     excluded: h.excluded.map((row) => ({ ticker: row.ticker, text: EXCLUDE_COPY[row.reason] })),
-    gapsSummary: h.gaps.length ? fill(T_GAPS, { n: String(h.gaps.length) }) : null,
+    gapsSummary: h.gaps.length
+      ? (h.gaps.length === 1 ? T_GAPS_ONE : fill(T_GAPS, { n: String(h.gaps.length) }))
+      : null,
     gapLines,
   };
 }

@@ -209,6 +209,10 @@ async function captureState(page, width, lang, state, outPath) {
   }
   if (state === "populated") {
     await loc.getByText(lang === "zh" ? "夏普比率" : "Sharpe ratio").waitFor({ state: "visible", timeout: 20_000 });
+    // Production-partial card: RF unpublished, Sharpe/Sortino unread, beta still printed.
+    await loc.getByText(
+      lang === "zh" ? "三个月期国债收益率序列尚未发布" : "has not been published yet",
+    ).first().waitFor({ state: "visible", timeout: 20_000 });
   }
   await loc.scrollIntoViewIfNeeded();
   await cropLocator(page, loc, outPath, width === 390 ? 10 : 16);

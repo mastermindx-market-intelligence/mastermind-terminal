@@ -87,11 +87,29 @@ describe("PortfolioRiskHistoryReadout", () => {
     expect(zhText).toMatch(/[，。]/);
   });
 
-  it("shows the empty-book sentence when nothing is included", () => {
+  it("shows the empty-book sentence when the open book is empty", () => {
     const h = computePortfolioRiskHistory([], {}, null, null, { minAligned: 5, trailAligned: 5 });
     const el = mount(h);
     expect(el.querySelector("[data-testid='risk-history-empty']")?.textContent).toContain("no open holding");
     expect(el.textContent).not.toContain("At least 126 aligned sessions");
+  });
+
+  it("does not print the empty-book sentence when an open name is only excluded", () => {
+    const h = computePortfolioRiskHistory(
+      [pos("NVDA", 25, 10)],
+      {},
+      null,
+      null,
+      { minAligned: 5, trailAligned: 5 },
+    );
+    const el = mount(h);
+    expect(el.querySelector("[data-testid='risk-history-empty']")).toBeNull();
+    expect(el.textContent).not.toContain("There is no open holding to describe yet.");
+    expect(el.textContent).toContain("Holdings left out");
+    expect(el.textContent).toContain("NVDA");
+    expect(el.textContent).toContain("no daily price history to read");
+    expect(el.textContent).toContain("Biggest holding");
+    expect(el.querySelector("[data-card='sharpe']")?.textContent).toMatch(/126|price history|three-month|not enough/i);
   });
 
   it("shows the not-enough-history sentence when N is below 126", () => {

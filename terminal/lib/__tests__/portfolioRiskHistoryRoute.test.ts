@@ -14,7 +14,7 @@ import {
   FAULT_POSITIONS_READ,
 } from "@/lib/watchlistsFixtureDb";
 import { resetOhlcSeriesCache } from "@/lib/ohlcSeriesCache";
-import { RF_UNPUBLISHED_REASON } from "@/lib/portfolioRiskHistory";
+import { RF_UNPUBLISHED_REASON, RF_UNREADABLE_REASON } from "@/lib/portfolioRiskHistory";
 
 vi.mock("next/headers", () => ({
   cookies: vi.fn(),
@@ -134,6 +134,38 @@ describe("GET /api/portfolio/risk-history", () => {
     expect(body.history.sortino).toBeNull();
     expect(body.history.sharpeReason).toBe(RF_UNPUBLISHED_REASON);
     expect(body.history.sources.riskFreeSource).toBe("unpublished");
+    expect(body.history.beta).not.toBeNull();
+    expect(body.history.coverageStatus).toBe("partial");
+  });
+
+  it("does not type a 401/locked DGS3MO as unpublished; beta still computes", async () => {
+    resetOhlcSeriesCache();
+    calls = [];
+    global.fetch = vi.fn(async (url: string, init?: RequestInit) => {
+      calls.push({ url: String(url), init });
+      const path = String(url);
+      if (path.includes("/ohlc/DGS3MO.json") || path.includes("/ohlc/us3m.json")) {
+        return new Response(JSON.stringify({ locked: true, reason: "authentication_required" }), {
+          status: 401,
+          headers: { "content-type": "application/json", "x-regwall": "deny" },
+        });
+      }
+      if (path.includes("/ohlc/SPY.json")) {
+        return new Response(JSON.stringify(ohlcBody("SPY", 140, 200)), { status: 200 });
+      }
+      const m = /\/ohlc\/([A-Za-z0-9.]+)\.json/.exec(path);
+      if (m) {
+        return new Response(JSON.stringify(ohlcBody(m[1], 140, 100)), { status: 200 });
+      }
+      return new Response("not found", { status: 404 });
+    }) as typeof fetch;
+    const res = await GET();
+    const body = await res.json();
+    expect(body.history.sharpe).toBeNull();
+    expect(body.history.sortino).toBeNull();
+    expect(body.history.sharpeReason).toBe(RF_UNREADABLE_REASON);
+    expect(body.history.sortinoReason).toBe(RF_UNREADABLE_REASON);
+    expect(body.history.sources.riskFreeSource).toBe("unreadable");
     expect(body.history.beta).not.toBeNull();
     expect(body.history.coverageStatus).toBe("partial");
   });

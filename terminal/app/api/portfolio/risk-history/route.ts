@@ -163,14 +163,26 @@ async function fetchMany(
   return out;
 }
 
-async function fetchRiskFree(cookieHeader: string | null): Promise<RiskFreeSeries | null> {
+type RiskFreeFetch =
+  | { kind: "read"; series: RiskFreeSeries }
+  | { kind: "missing" }
+  | { kind: "locked" }
+  | { kind: "unreadable" };
+
+async function fetchRiskFree(cookieHeader: string | null): Promise<RiskFreeFetch> {
+  let locked = false;
+  let unreadable = false;
   for (const name of RF_CANDIDATES) {
     const got = await fetchOhlc(name, cookieHeader, true);
-    if (got.kind === "read") return { source: name, points: got.series };
-    if (got.kind === "missing") continue;
-    // Locked / unreadable: keep looking at the alias, then treat as unpublished.
+    if (got.kind === "read") return { kind: "read", series: { source: name, points: got.series } };
+    if (got.kind === "locked") locked = true;
+    else if (got.kind === "unreadable") unreadable = true;
   }
-  return null;
+  // A 401/locked response is the same shape SPY returns; it does not prove the
+  // series is unpublished. Only a clean miss on every candidate is unpublished.
+  if (locked) return { kind: "locked" };
+  if (unreadable) return { kind: "unreadable" };
+  return { kind: "missing" };
 }
 
 export async function GET() {
@@ -202,6 +214,7 @@ export async function GET() {
   let ohlcByTicker: Record<string, CloseSeries | null> = {};
   let spy: CloseSeries | null = null;
   let rf: RiskFreeSeries | null = null;
+  let riskFreeStatus: "published" | "unpublished" | "unreadable" = "unpublished";
   const skipLiveMacro = isE2eFixture() && !isLoopbackStockdata();
   if (!skipLiveMacro) {
     try {
@@ -212,16 +225,25 @@ export async function GET() {
       ]);
       ohlcByTicker = book;
       spy = bench.kind === "read" ? bench.series : null;
-      rf = riskFree;
+      if (riskFree.kind === "read") {
+        rf = riskFree.series;
+        riskFreeStatus = "published";
+      } else if (riskFree.kind === "missing") {
+        riskFreeStatus = "unpublished";
+      } else {
+        riskFreeStatus = "unreadable";
+      }
     } catch {
       ohlcByTicker = {};
       spy = null;
       rf = null;
+      riskFreeStatus = "unreadable";
     }
   }
 
   const history = computePortfolioRiskHistory(positions, ohlcByTicker, spy, rf, {
     credentialed: !!cookieHeader,
+    riskFreeStatus,
   });
   return NextResponse.json({ history });
 }
