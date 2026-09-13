@@ -90,8 +90,12 @@ begin
   end if;
   -- Mint the same shape newWebhookSecret() in terminal/lib/webhooks.ts produces: 32 random bytes,
   -- base64url (translate the standard base64 alphabet + strip trailing '=').
+  -- pgcrypto lives in schema `extensions` (canary scripts/f12_webhooks_postgres_canary.py:93
+  -- creates it there, production Supabase same, cf. 0012's `extensions.gen_random_uuid()`); the
+  -- function declares `set search_path = pg_catalog, public, auth`, so the call must be schema-
+  -- qualified — same pattern 0012 uses for `extensions.gen_random_uuid()`.
   v_new_secret := translate(
-    rtrim(encode(gen_random_bytes(32), 'base64'), '='),
+    rtrim(encode(extensions.gen_random_bytes(32), 'base64'), '='),
     '+/',
     '-_'
   );
@@ -109,7 +113,11 @@ begin
     'ok',                  true,
     'secret',              v_new_secret,
     'secret_version',      coalesce(v_ep.secret_version, 1) + 1,
-    'previous_expires_at', to_char(v_prev_expiry, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')
+    -- The route discards `previous_expires_at` (FROZEN SPEC (3) returns {ok,secret,secretVersion}
+    -- only). Emit it in UTC anyway — the rotate path casts the timestamptz to UTC at the
+    -- SQL boundary so a future caller that DOES read it sees the labelled UTC, not the session's
+    -- local TimeZone.
+    'previous_expires_at', to_char((v_prev_expiry at time zone 'utc'), 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')
   );
 end $$;
 revoke all on function public.rotate_webhook_secret(uuid) from public, anon;

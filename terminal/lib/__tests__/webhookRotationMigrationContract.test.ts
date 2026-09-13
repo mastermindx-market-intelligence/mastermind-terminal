@@ -78,14 +78,18 @@ describe("0026 webhook rotation + alert-fire migration contract", () => {
   it("rotate_webhook_secret is security definer and mints a base64url secret of the same shape as newWebhookSecret()", () => {
     expect(flat).toMatch(/create or replace function public\.rotate_webhook_secret\(p_endpoint_id uuid\) returns jsonb/);
     expect(flat).toContain("language plpgsql volatile security definer");
-    // gen_random_bytes(32) -> base64 -> strip '=' -> translate +/ to -_ : the same shape as
-    // newWebhookSecret() in terminal/lib/webhooks.ts (32 random bytes, base64url).
-    expect(flat).toContain("encode(gen_random_bytes(32), 'base64')");
+    // pgcrypto's gen_random_bytes lives in the `extensions` schema (canary creates it there;
+    // production Supabase same; cf. 0012's `extensions.gen_random_uuid()`). The function declares
+    // `set search_path = pg_catalog, public, auth`, so the call MUST be schema-qualified — an
+    // unqualified call would raise `function gen_random_bytes(integer) does not exist`.
+    expect(flat).toContain("encode(extensions.gen_random_bytes(32), 'base64')");
+    expect(flat).not.toMatch(/encode\(\s*gen_random_bytes\(32\)\s*,\s*'base64'\s*\)/);
     expect(flat).toContain("translate(");
-    // The exact shape: translate( rtrim(encode(gen_random_bytes(32), 'base64'), '='), '+/', '-_' )
-    // — i.e. 32 random bytes → base64 → strip '=' → swap +/ to -_ for URL-safe signing material.
+    // The exact shape: translate( rtrim(encode(extensions.gen_random_bytes(32), 'base64'), '='),
+    // '+/', '-_' ) — i.e. 32 random bytes → base64 → strip '=' → swap +/ to -_ for URL-safe
+    // signing material, matching newWebhookSecret() in terminal/lib/webhooks.ts.
     expect(flat).toContain(
-      "translate( rtrim(encode(gen_random_bytes(32), 'base64'), '='), '+/', '-_' )",
+      "translate( rtrim(encode(extensions.gen_random_bytes(32), 'base64'), '='), '+/', '-_' )",
     );
     expect(flat).toContain("public.team_role(v_ep.team_id)");
     // Returns the new secret exactly once; never echoes the previous secret.
