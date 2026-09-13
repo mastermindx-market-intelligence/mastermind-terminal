@@ -5,6 +5,7 @@ import {
   EVENT_KINDS,
   INVALIDATION_NULL_EN,
   INVALIDATION_NULL_ZH,
+  INVALIDATION_OWNER_LAST_CLOSE,
   VOID_PREFIX_EN,
   VOID_PREFIX_ZH,
   invalidationForKind,
@@ -494,11 +495,75 @@ describe("eventImpact join", () => {
       expect(zh).not.toMatch(/[≥≤]/);
     }
     const earnings = presentInvalidation(invalidationForKind("earnings", "2026-10-30"), "en");
-    expect(earnings).toContain("at or above");
+    expect(earnings).toContain("A last close has printed on the report date.");
+    expect(earnings).not.toContain("at or above zero");
     expect(earnings).not.toContain(">=");
     const typedNull = presentInvalidation(typedNullInvalidation("no_ticker_keyed_metric"), "en");
     expect(typedNull).toBe(`${VOID_PREFIX_EN}${INVALIDATION_NULL_EN}`);
     const typedNullZh = presentInvalidation(typedNullInvalidation("no_ticker_keyed_metric"), "zh");
     expect(typedNullZh).toBe(`${VOID_PREFIX_ZH}${INVALIDATION_NULL_ZH}`);
+  });
+
+  it("19b. runtime guard pins typed-null copy to the R2 sentences (MINOR 2, r2)", () => {
+    // RED on previous head: isEventInvalidation treated any non-empty condition_* as
+    // valid once null_reason was set, so garbage null copy still passed test 19.
+    const good = typedNullInvalidation("no_ticker_keyed_metric");
+    expect(isEventInvalidation(good)).toBe(true);
+    expect(
+      isEventInvalidation({
+        ...good,
+        condition_en: "garbage void copy",
+        condition_zh: "尚未定义的失效条件占位",
+      })
+    ).toBe(false);
+    expect(
+      isEventInvalidation({
+        ...good,
+        condition_en: INVALIDATION_NULL_EN,
+        condition_zh: "wrong chinese",
+      })
+    ).toBe(false);
+    expect(
+      isEventInvalidation({
+        ...good,
+        condition_en: "wrong english",
+        condition_zh: INVALIDATION_NULL_ZH,
+      })
+    ).toBe(false);
+  });
+
+  it("24. earnings void names a last close printing on the report date, never a tautological bound (MAJOR r2)", () => {
+    // RED on previous head: condition was "The last close on the report date is at or
+    // above zero." with comparator "at or above" and threshold 0 — a bound that cannot
+    // fail for any listed last close, while join already drops days_to < 0.
+    const inv = invalidationForKind("earnings", "2026-10-30");
+    expect(inv.null_reason).toBeUndefined();
+    expect(inv.condition_en).not.toMatch(/at or above zero/i);
+    expect(inv.condition_zh).not.toMatch(/大于等于零/);
+    expect(inv.threshold).not.toBe(0);
+    expect(inv.condition_en).toBe("A last close has printed on the report date.");
+    expect(inv.condition_zh).toBe("报告日已经公布收盘价。");
+    expect(inv.metric_owner).toBe(INVALIDATION_OWNER_LAST_CLOSE);
+    expect(inv.checked_against).toBe("named date");
+    expect(inv.named_date).toBe("2026-10-30");
+    expect(presentInvalidation(inv, "en")).toBe(
+      `${VOID_PREFIX_EN}A last close has printed on the report date.`
+    );
+    expect(presentInvalidation(inv, "zh")).toBe(`${VOID_PREFIX_ZH}报告日已经公布收盘价。`);
+  });
+
+  it("25. typed-null capture fixture uses a join-emitted kind, never an unjoinable calendar (MINOR 1, r2)", () => {
+    // RED on previous head: TYPED_NULL_EVENT.kind was "macro_release", so the crop
+    // headline said "AAPL is named on the macro release calendar" while the same
+    // panel's unjoinable line said that calendar does not name individual holdings.
+    const file = fs.readFileSync(
+      path.join(process.cwd(), "e2e", "tools", "capture_b_f08_8_invalidation.cjs"),
+      "utf8"
+    );
+    const m = file.match(/const TYPED_NULL_EVENT = \{[\s\S]*?\n\s*kind:\s*"([^"]+)"/);
+    expect(m).not.toBeNull();
+    expect(m![1]).toBe("earnings");
+    expect(m![1]).not.toBe("macro_release");
+    expect(m![1]).not.toBe("index_review");
   });
 });

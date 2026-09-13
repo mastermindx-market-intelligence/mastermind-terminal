@@ -60,11 +60,11 @@ const CONDITION_EVENT = {
   mechanism: { state: "not_stated" },
   timeframe: { state: "not_stated" },
   invalidation: {
-    condition_en: "The last close on the report date is at or above zero.",
-    condition_zh: "报告日收盘价大于等于零。",
+    condition_en: "A last close has printed on the report date.",
+    condition_zh: "报告日已经公布收盘价。",
     metric_owner: "hub/lib/anchor.js",
     comparator: "at or above",
-    threshold: 0,
+    threshold: null,
     checked_against: "named date",
     named_date: "2026-10-30",
   },
@@ -72,8 +72,12 @@ const CONDITION_EVENT = {
 };
 
 const TYPED_NULL_EVENT = {
-  eventId: "macro_release|AAPL|2026-10-30",
-  kind: "macro_release",
+  // Join never emits macro_release/index_review. Using those kinds here made
+  // the headline claim AAPL is named on a calendar the same panel's unjoinable
+  // line says does not name individual holdings (MINOR 1, r2). Earnings is the
+  // only kind join emits; the typed-null slot is injected on that shape.
+  eventId: "earnings|AAPL|2026-10-30",
+  kind: "earnings",
   ticker: "AAPL",
   date: "2026-10-30",
   daysUntil: 5,
@@ -255,7 +259,7 @@ async function captureState(page, width, lang, state, outPath) {
   const line = page.getByTestId("event-impact-invalidation");
   await line.waitFor({ state: "visible", timeout: 20_000 });
   const expected = lang === "zh"
-    ? (state === "typed-null" ? "什么会让此判断失效：" : "报告日收盘价大于等于零")
+    ? (state === "typed-null" ? "什么会让此判断失效：" : "报告日已经公布收盘价")
     : (state === "typed-null" ? "We haven't defined what would void this read yet." : "What would void this:");
   await page.getByTestId("event-impact-invalidation").filter({ hasText: expected }).waitFor({
     state: "visible",

@@ -404,7 +404,7 @@ describe("EventImpactPanel render (acceptance 2)", () => {
     expect(line).toBeTruthy();
     expect(line?.getAttribute("data-null")).toBe("0");
     expect(line?.textContent).toBe(
-      `${VOID_PREFIX_EN}The last close on the report date is at or above zero.`
+      `${VOID_PREFIX_EN}A last close has printed on the report date.`
     );
     expect(line?.textContent).not.toMatch(/[<>]=?|falsifier|refuted|证伪|hub\/lib/i);
   });
@@ -435,7 +435,7 @@ describe("EventImpactPanel render (acceptance 2)", () => {
     };
     await renderWith(body);
     const line = container.querySelector('[data-testid="event-impact-invalidation"]');
-    expect(line?.textContent).toBe(`${VOID_PREFIX_ZH}报告日收盘价大于等于零。`);
+    expect(line?.textContent).toBe(`${VOID_PREFIX_ZH}报告日已经公布收盘价。`);
     expect(line?.textContent).not.toMatch(/What would void|at or above/);
   });
 
@@ -448,8 +448,8 @@ describe("EventImpactPanel render (acceptance 2)", () => {
       unjoinable: [],
       events: [
         {
-          eventId: "macro_release|AAPL|2026-10-30",
-          kind: "macro_release",
+          eventId: "earnings|AAPL|2026-10-30",
+          kind: "earnings",
           ticker: "AAPL",
           date: "2026-10-30",
           daysUntil: 5,
@@ -466,6 +466,8 @@ describe("EventImpactPanel render (acceptance 2)", () => {
     const line = container.querySelector('[data-testid="event-impact-invalidation"]');
     expect(line?.getAttribute("data-null")).toBe("1");
     expect(line?.textContent).toBe(`${VOID_PREFIX_EN}${INVALIDATION_NULL_EN}`);
+    expect(container.textContent).toContain("AAPL reports earnings");
+    expect(container.textContent).not.toMatch(/named on the macro release calendar/);
     expect(line?.textContent).not.toMatch(/falsifier|refuted|证伪/i);
   });
 
@@ -479,8 +481,8 @@ describe("EventImpactPanel render (acceptance 2)", () => {
       unjoinable: [],
       events: [
         {
-          eventId: "macro_release|AAPL|2026-10-30",
-          kind: "macro_release",
+          eventId: "earnings|AAPL|2026-10-30",
+          kind: "earnings",
           ticker: "AAPL",
           date: "2026-10-30",
           daysUntil: 5,
@@ -498,5 +500,50 @@ describe("EventImpactPanel render (acceptance 2)", () => {
     expect(zhLine?.getAttribute("data-null")).toBe("1");
     expect(zhLine?.textContent).toBe(`${VOID_PREFIX_ZH}${INVALIDATION_NULL_ZH}`);
     expect(zhLine?.textContent).not.toMatch(/We haven't defined|What would void/);
+  });
+
+  it("typed-null slot with unjoinable sources does not claim the ticker is named on those calendars", async () => {
+    const body: EventImpactRead = {
+      state: "ok",
+      asof: "2026-09-05",
+      heldTickers: 1,
+      heldPositions: 1,
+      unjoinable: [
+        {
+          path: "/event_windows/snapshot.json",
+          reason: "no_ticker_field",
+          labelEn: "the macro release calendar",
+          labelZh: "宏观数据发布日历",
+        },
+        {
+          path: "/factordata/hk_catalyst_calendar.json",
+          reason: "no_ticker_field",
+          labelEn: "the index-review calendar",
+          labelZh: "指数检讨日历",
+        },
+      ],
+      events: [
+        {
+          eventId: "earnings|AAPL|2026-10-30",
+          kind: "earnings",
+          ticker: "AAPL",
+          date: "2026-10-30",
+          daysUntil: 5,
+          positions: [{ id: "p1", ticker: "AAPL", shares: 10, status: "open" }],
+          direction: { state: "not_stated" },
+          mechanism: { state: "not_stated" },
+          timeframe: { state: "not_stated" },
+          invalidation: typedNullInvalidation("no_ticker_keyed_metric"),
+          sourcePath: "/data/portfolio_ctx.json",
+        },
+      ],
+    };
+    await renderWith(body);
+    expect(container.textContent).toContain(`${VOID_PREFIX_EN}${INVALIDATION_NULL_EN}`);
+    expect(container.textContent).toContain("AAPL reports earnings");
+    expect(container.textContent).toContain("don't name individual holdings");
+    expect(container.textContent).toContain("the macro release calendar");
+    expect(container.textContent).not.toMatch(/named on the macro release calendar/);
+    expect(container.textContent).not.toMatch(/named on the index-review calendar/);
   });
 });

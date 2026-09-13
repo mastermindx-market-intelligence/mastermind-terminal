@@ -109,7 +109,7 @@ describe("event-impact route", () => {
     expect(body.events[0].ticker).toBe("AAPL");
     expect(body.events[0].invalidation).toBeDefined();
     expect(body.events[0].invalidation.condition_en).toBe(
-      "The last close on the report date is at or above zero."
+      "A last close has printed on the report date."
     );
     expect(body.events[0].invalidation.null_reason).toBeUndefined();
   });

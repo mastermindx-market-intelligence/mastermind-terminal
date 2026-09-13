@@ -88,15 +88,17 @@ type InvalidationMappingRow =
  */
 export const EVENT_INVALIDATION_BY_KIND: { readonly [K in EventKind]: InvalidationMappingRow } = {
   earnings: {
-    // The panel is "what's coming". Once a last close on the named report date
-    // has printed (a listed last close is at or above zero), the upcoming-event
-    // read is void. Owner is the last-close producer; threshold 0 is the bound
-    // of a valid last close, not an invented price target.
-    condition_en: "The last close on the report date is at or above zero.",
-    condition_zh: "报告日收盘价大于等于零。",
+    // The panel is "what's coming". The upcoming-event read is void once a last
+    // close has printed on the named report date (the event is no longer
+    // upcoming). That is a presence check on the last-close owner — threshold
+    // is null because a numeric bound of 0 cannot fail for any listed last
+    // close (MAJOR r2). Comparator stays in the schema (frozen spec) and is
+    // not rendered.
+    condition_en: "A last close has printed on the report date.",
+    condition_zh: "报告日已经公布收盘价。",
     metric_owner: INVALIDATION_OWNER_LAST_CLOSE,
     comparator: "at or above",
-    threshold: 0,
+    threshold: null,
     checked_against: "named date",
   },
   // Published calendars in this module that carry no ticker field — no owned
@@ -127,7 +129,11 @@ export function isEventInvalidation(v: unknown): v is EventInvalidation {
   if (typeof v.condition_zh !== "string" || !v.condition_zh.trim()) return false;
   if (v.null_reason != null) {
     if (typeof v.null_reason !== "string" || !v.null_reason.trim()) return false;
+    // Pin typed-null copy to the R2 sentences. Any other condition_* is
+    // garbage and must not pass just because null_reason is set (MINOR 2, r2).
     return (
+      v.condition_en === INVALIDATION_NULL_EN &&
+      v.condition_zh === INVALIDATION_NULL_ZH &&
       v.metric_owner === null &&
       v.comparator === null &&
       v.threshold === null &&
