@@ -155,7 +155,11 @@ async function fetchMany(
   const unique = [...new Set(tickers.map((t) => t.toUpperCase()))];
   const attempted = unique.slice(0, ARTIFACT_FANOUT_CAP);
   const out: Record<string, OhlcBookValue> = {};
-  for (const t of unique.slice(ARTIFACT_FANOUT_CAP)) out[t] = null;
+  // A name the fan-out cap never requested was never read, so it is not an absent
+  // artifact: `null` would type it `missing_price_history` and print "no daily price
+  // history to read" about a GET this route never made. `unreadable` is the truthful
+  // type, and `missing_price_history` stays reserved for a proven 404.
+  for (const t of unique.slice(ARTIFACT_FANOUT_CAP)) out[t] = "unreadable";
 
   let i = 0;
   async function worker() {

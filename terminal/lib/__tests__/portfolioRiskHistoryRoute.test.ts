@@ -14,7 +14,7 @@ import {
   FAULT_POSITIONS_READ,
 } from "@/lib/watchlistsFixtureDb";
 import { resetOhlcSeriesCache } from "@/lib/ohlcSeriesCache";
-import { RF_UNPUBLISHED_REASON, RF_UNREADABLE_REASON } from "@/lib/portfolioRiskHistory";
+import { RF_UNPUBLISHED_REASON, RF_UNREADABLE_REASON, historyCopy } from "@/lib/portfolioRiskHistory";
 
 vi.mock("next/headers", () => ({
   cookies: vi.fn(),
@@ -267,6 +267,38 @@ describe("GET /api/portfolio/risk-history", () => {
     const body = await res.json();
     expect(body.history.counts.included).toBe(0);
     expect(body.history.coverageStatus).toBe("empty");
+  });
+
+  it("types a holding the fan-out cap never requested as unreadable, never as missing history", async () => {
+    const capKey = `rh-cap-${Math.random().toString(36).slice(2)}`;
+    const { cookies } = await import("next/headers");
+    (cookies as any).mockResolvedValue(mockCookies(capKey));
+    resetOhlcSeriesCache();
+    calls = [];
+    await seedOpen(capKey, "AAA", 10, 10);
+    for (let i = 1; i <= 60; i++) {
+      await seedOpen(capKey, `OVN${String(i).padStart(2, "0")}`, 1, 100);
+    }
+    const res = await GET();
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    const fetched = new Set(
+      calls.map((c) => /\/ohlc\/([A-Za-z0-9.]+)\.json/.exec(c.url)?.[1]).filter(Boolean),
+    );
+    const neverRequested = body.history.excluded.filter(
+      (e: { ticker: string }) => !fetched.has(e.ticker),
+    );
+    // The cap left exactly one open holding unrequested. Nothing was read for it, so
+    // "no daily price history to read" would be a false sentence about an artifact
+    // this route never asked for.
+    expect(neverRequested).toHaveLength(1);
+    expect(neverRequested[0].reason).toBe("unreadable_price_history");
+    expect(
+      body.history.excluded.some((e: { reason: string }) => e.reason === "missing_price_history"),
+    ).toBe(false);
+    const line = historyCopy(body.history).excluded.find((r) => r.ticker === neverRequested[0].ticker);
+    expect(line?.text.en).toBe("We couldn't read this holding's price history.");
+    expect(line?.text.zh).toBe("我们读不到这只持仓的价格历史。");
   });
 
   it("store unreadable -> 503", async () => {
