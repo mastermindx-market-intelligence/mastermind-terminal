@@ -201,7 +201,7 @@ amendment, only a README edit.
 | `0021` | `resource_grants` | PR #548 (merged as `bad423f5` on 2026-09-11, packet B-F12-B5-1 explicit grants; prefix ruled by the seat 2026-09-09) | merged + applied 2026-09-11 (readback receipt on PR #548 comment `5630176531`) |
 | `0022` | `chart_layouts_team_sharing` | PR #555 (merged as `6cdbaa0a8` on 2026-09-09, packet B-F12-B5-2) | merged — not applied |
 | `0023` | `portfolio_targets` | PR #552 (merged as `9022e0138` on 2026-09-10, packet B-F08-B5-1) | merged — not applied |
-| `0024` | `thesis_amendment_proposals` | PR #576 (packet B-F11-5, MO-PAID-054 write-back; number rewritten if the opened pull request is not 576) | open PR — not applied |
+| `0024` | `thesis_amendment_proposals` | PR #577 (packet B-F11-5, MO-PAID-054 write-back) | open PR — not applied |
 
 `0001`–`0007` and `0010` are **historical**: they predate this ledger, their creating pull
 requests were never recorded in-repo, and so their `pr` and `pr_state` fields in

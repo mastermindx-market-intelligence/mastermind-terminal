@@ -108,7 +108,7 @@ describe("0024 thesis amendment proposals migration contract", () => {
     expect(row.state).toBe("taken");
     expect(row.file).toBe(FILE);
     expect(row.packet).toBe("B-F11-5");
-    expect(typeof row.pr).toBe("number");
+    expect(row.pr).toBe(577);
     expect(row.pr_state).toBe("open");
     expect(row.applied_in_production).toBe(false);
     expect(row.applied_date).toBeNull();
