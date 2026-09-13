@@ -216,10 +216,68 @@ describe("ThesisWorkspace suggested changes (B-F11-5)", () => {
     installFetch([proposal()]);
     const el = await mount("zh");
     const row = el.querySelector('[data-testid="thesis-proposal-row"]');
-    expect(row!.textContent).toMatch(/依据 2 版，日期为 /);
+    // Q3 (Round-1 heal): ZH version sentence now uses the ordinal 第.
+    expect(row!.textContent).toMatch(/依据第 2 版，日期为 /);
+    expect(row!.textContent).not.toMatch(/依据 2 版/);
     expect(row!.textContent).toContain("已建议");
     const buttons = Array.from(row!.querySelectorAll("button")).map((b) => b.textContent);
     expect(buttons).toContain("接受");
     expect(buttons).toContain("拒绝");
   });
+
+  // Q2 (Round-1 heal): when the version row cannot be resolved, the sentence says so
+  // plainly — it never invents a "version 0" or an "unknown date".
+  it("EN unresolved version renders the plain 'couldn't find any more' sentence", async () => {
+    installFetch([proposal({ versionNumber: null, versionRecordedAt: null })]);
+    const el = await mount("en");
+    const row = el.querySelector('[data-testid="thesis-proposal-row"]');
+    expect(row!.textContent).toContain("Based on a version of this thesis we couldn't find any more.");
+    expect(row!.textContent).not.toMatch(/version 0|from an unknown date/i);
+  });
+
+  it("ZH unresolved version renders the plain 'we couldn't find' sentence", async () => {
+    installFetch([proposal({ versionNumber: null, versionRecordedAt: null })]);
+    const el = await mount("zh");
+    const row = el.querySelector('[data-testid="thesis-proposal-row"]');
+    expect(row!.textContent).toContain("依据这条论点的一个我们已找不到的版本。");
+    expect(row!.textContent).not.toMatch(/0 版|未知日期/);
+  });
+
+  // H2 (Round-1 heal): the proposal state chip carries a data-state attribute equal to the
+  // raw ProposalState; the visible text is the plain-word label, never the raw enum.
+  it.each([
+    { state: "proposed", en: "Suggested", zh: "已建议" },
+    { state: "accepted", en: "Accepted", zh: "已接受" },
+    { state: "rejected", en: "Declined", zh: "已拒绝" },
+    { state: "superseded", en: "Replaced by a later choice", zh: "已被之后的选择替代" },
+  ] as const)(
+    "EN chip for state=$state carries data-state with the plain-word label",
+    async ({ state, en }) => {
+      installFetch([proposal({ state })]);
+      const el = await mount("en");
+      const chip = el.querySelector('[data-testid="thesis-proposal-row"] i');
+      expect(chip, "state chip missing").toBeTruthy();
+      expect(chip!.getAttribute("data-state")).toBe(state);
+      expect(chip!.textContent).toBe(en);
+      expect(chip!.textContent).not.toMatch(/\bproposed\b|\baccepted\b|\brejected\b|\bsuperseded\b/);
+    },
+  );
+
+  it.each([
+    { state: "proposed", zh: "已建议" },
+    { state: "accepted", zh: "已接受" },
+    { state: "rejected", zh: "已拒绝" },
+    { state: "superseded", zh: "已被之后的选择替代" },
+  ] as const)(
+    "ZH chip for state=$state carries data-state with the plain-word label",
+    async ({ state, zh }) => {
+      installFetch([proposal({ state })]);
+      const el = await mount("zh");
+      const chip = el.querySelector('[data-testid="thesis-proposal-row"] i');
+      expect(chip, "state chip missing").toBeTruthy();
+      expect(chip!.getAttribute("data-state")).toBe(state);
+      expect(chip!.textContent).toBe(zh);
+      expect(chip!.textContent).not.toMatch(/proposed|accepted|rejected|superseded/);
+    },
+  );
 });

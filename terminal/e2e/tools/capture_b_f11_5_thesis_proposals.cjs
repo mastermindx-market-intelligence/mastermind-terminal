@@ -166,14 +166,49 @@ async function seedThesis(page, populated, lang) {
   const versionId = payload.thesis?.current?.id;
   if (!versionId) throw new Error("created thesis has no current version id");
   if (populated) {
-    const body = lang === "zh"
+    // H2 (Round-1 heal): seed three rows so the populated crop shows at least one
+    // accepted or rejected chip beside a proposed chip, so the new data-state
+    // colours in ThesisWorkspace.module.css are visible in the evidence.
+    const proposedBody = lang === "zh"
       ? "把论点收窄到必须持续增长的那一块需求。"
       : "Name the demand that has to keep compounding.";
+    const declinedBody = lang === "zh"
+      ? "把催化剂清单替换成下一季财报日列表。"
+      : "Swap the catalysts list for the next earnings calendar.";
+    const acceptedBody = lang === "zh"
+      ? "把地平线从季度改为月。"
+      : "Shorten the horizon from quarters to months.";
     const proposed = await page.request.post(`${BASE}/api/thesis/${thesisId}/proposals`, {
-      data: { amended_from: versionId, body, evidence_refs: [] },
+      data: { amended_from: versionId, body: proposedBody, evidence_refs: [] },
     });
     if (proposed.status() !== 201) {
-      throw new Error(`create proposal failed: ${proposed.status()} ${await proposed.text()}`);
+      throw new Error(`create proposal (proposed) failed: ${proposed.status()} ${await proposed.text()}`);
+    }
+    const declined = await page.request.post(`${BASE}/api/thesis/${thesisId}/proposals`, {
+      data: { amended_from: versionId, body: declinedBody, evidence_refs: [] },
+    });
+    if (declined.status() !== 201) {
+      throw new Error(`create proposal (declined) failed: ${declined.status()} ${await declined.text()}`);
+    }
+    const declinedId = (await declined.json()).proposal?.proposalId;
+    const decline = await page.request.patch(`${BASE}/api/thesis/${thesisId}/proposals/${declinedId}`, {
+      data: { state: "rejected" },
+    });
+    if (decline.status() !== 200) {
+      throw new Error(`decline proposal failed: ${decline.status()} ${await decline.text()}`);
+    }
+    const accepted = await page.request.post(`${BASE}/api/thesis/${thesisId}/proposals`, {
+      data: { amended_from: versionId, body: acceptedBody, evidence_refs: [] },
+    });
+    if (accepted.status() !== 201) {
+      throw new Error(`create proposal (accepted) failed: ${accepted.status()} ${await accepted.text()}`);
+    }
+    const acceptedId = (await accepted.json()).proposal?.proposalId;
+    const accept = await page.request.patch(`${BASE}/api/thesis/${thesisId}/proposals/${acceptedId}`, {
+      data: { state: "accepted" },
+    });
+    if (accept.status() !== 200) {
+      throw new Error(`accept proposal failed: ${accept.status()} ${await accept.text()}`);
     }
   }
   return thesisId;

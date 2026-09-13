@@ -75,15 +75,19 @@ vi.mock("@/lib/supabase/server", () => ({
       };
       return q;
     },
-    rpc: vi.fn(async (name: string, args: Record<string, unknown>) => {
+    rpc: (rpcSpy = vi.fn(async (name: string, args: Record<string, unknown>) => {
       expect(name).toBe("set_thesis_amendment_state");
       return { data: [{ ...H.rpc, proposal_id: args.p_proposal_id }], error: null };
-    }),
+    })),
   })),
 }));
 
 import { GET, POST } from "@/app/api/thesis/[thesisId]/proposals/route";
 import { PATCH } from "@/app/api/thesis/[thesisId]/proposals/[proposalId]/route";
+
+// Spied in the `supabase/server` mock; tests assert the route never calls the RPC when the
+// URL thesis does not own the proposal.
+let rpcSpy = vi.fn();
 
 const params = (thesisId: string) => Promise.resolve({ thesisId });
 const patchParams = (thesisId: string, proposalId: string) => Promise.resolve({ thesisId, proposalId });
@@ -108,7 +112,16 @@ function patch(thesisId: string, proposalId: string, body: unknown) {
   }), { params: patchParams(thesisId, proposalId) });
 }
 
+function patchRaw(thesisId: string, proposalId: string, rawBody: string) {
+  return PATCH(new Request(`https://x.test/api/thesis/${thesisId}/proposals/${proposalId}`, {
+    method: "PATCH",
+    headers: { "content-type": "application/json" },
+    body: rawBody,
+  }), { params: patchParams(thesisId, proposalId) });
+}
+
 beforeEach(() => {
+  rpcSpy.mockClear();
   H.user = { id: USER_A };
   H.theses = [{ id: THESIS_ID, user_id: USER_A }];
   H.versions = [{
@@ -118,7 +131,20 @@ beforeEach(() => {
     system_recorded_at: "2026-09-10T08:00:00.000Z",
     user_id: USER_A,
   }];
-  H.proposals = [];
+  // H1 (Round-1 heal): every PATCH test starts with a proposal row whose thesis_id matches
+  // the URL thesis, so the URL-binding check passes and only the behaviour under test varies.
+  // The H1 cross-thesis test overrides H.proposals with a row bound to OTHER_THESIS.
+  H.proposals = [{
+    proposal_id: PROPOSAL_ID,
+    thesis_id: THESIS_ID,
+    amended_from: VERSION_ID,
+    body: "Name the demand that has to keep compounding.",
+    evidence_refs: [],
+    proposed_by: "assistant",
+    state: "proposed",
+    created_at: "2026-09-12T12:00:00.000Z",
+    user_id: USER_A,
+  }];
   H.insertError = null;
   H.rpc = { status: "ok", proposal_id: PROPOSAL_ID, state: "accepted" };
   H.consoleError = [];
@@ -244,6 +270,62 @@ describe("PATCH /api/thesis/[thesisId]/proposals/[proposalId]", () => {
     const res = await patch(THESIS_ID, PROPOSAL_ID, { state: "accepted" });
     expect(res.status).toBe(404);
     expect(await res.json()).toEqual({ error: "not_found" });
+  });
+
+  // H1 (Round-1 heal): a caller who owns two theses A and B cannot accept/reject a proposal
+  // on thesis B through `/api/thesis/<A>/proposals/<id>` — the URL binding must be checked
+  // BEFORE the rpc call.
+  it("returns 404 when the URL thesis does not own the proposal — rpc spy never called", async () => {
+    H.theses = [{ id: THESIS_ID, user_id: USER_A }, { id: OTHER_THESIS, user_id: USER_A }];
+    H.proposals = [{
+      proposal_id: PROPOSAL_ID,
+      thesis_id: OTHER_THESIS,
+      amended_from: VERSION_ID,
+      body: "Name the demand that has to keep compounding.",
+      evidence_refs: [],
+      proposed_by: "assistant",
+      state: "proposed",
+      created_at: "2026-09-12T12:00:00.000Z",
+      user_id: USER_A,
+    }];
+    const res = await patch(THESIS_ID, PROPOSAL_ID, { state: "accepted" });
+    expect(res.status).toBe(404);
+    expect(await res.json()).toEqual({ error: "not_found" });
+    expect(rpcSpy).not.toHaveBeenCalled();
+  });
+
+  // H1 happy path: the SAME proposal reached through the URL that names its thesis must 200.
+  it("returns 200 when the URL thesis matches the proposal's thesis", async () => {
+    H.theses = [{ id: THESIS_ID, user_id: USER_A }, { id: OTHER_THESIS, user_id: USER_A }];
+    H.proposals = [{
+      proposal_id: PROPOSAL_ID,
+      thesis_id: THESIS_ID,
+      amended_from: VERSION_ID,
+      body: "Name the demand that has to keep compounding.",
+      evidence_refs: [],
+      proposed_by: "assistant",
+      state: "proposed",
+      created_at: "2026-09-12T12:00:00.000Z",
+      user_id: USER_A,
+    }];
+    H.rpc = { status: "ok", proposal_id: PROPOSAL_ID, state: "accepted" };
+    const res = await patch(THESIS_ID, PROPOSAL_ID, { state: "accepted" });
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ proposalId: PROPOSAL_ID, state: "accepted" });
+    expect(rpcSpy).toHaveBeenCalledTimes(1);
+  });
+
+  // Q4 (Round-1 heal): the malformed-body reply must use the plain-word message, not
+  // the legacy "Send this request as JSON" machine-text form. The error code stays
+  // `invalid_json` for developers; only the user-facing message was rewording.
+  it("returns 400 with the plain-word reason when the body is malformed JSON", async () => {
+    const res = await patchRaw(THESIS_ID, PROPOSAL_ID, "{not json");
+    expect(res.status).toBe(400);
+    const json = await res.json();
+    expect(json.error).toBe("invalid_json");
+    expect(json.message).toBe("We couldn't read this request. Please try again.");
+    expect(json.messageZh).toBe("我们无法读取这个请求，请重试。");
+    expect(rpcSpy).not.toHaveBeenCalled();
   });
 
   it("returns 404 when the function reports not_found", async () => {

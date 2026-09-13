@@ -36,6 +36,22 @@ export async function PATCH(
   const owns = await ownedThesis(session.db, thesisId, session.userId);
   if (!owns) return jsonError("not_found", 404);
 
+  // H1 (Round-1 heal): bind the proposal to BOTH keys the URL names before the rpc call.
+  // The function already enforces owner-only access at the database side, but a caller
+  // who owns two theses could otherwise accept/reject a proposal on thesis B through
+  // `/api/thesis/<A>/proposals/<id>`. A missing row or a query error answers 404 and the
+  // RPC is never invoked.
+  const proposalLookup = await session.db.from("thesis_amendment_proposals")
+    .select("proposal_id")
+    .eq("proposal_id", proposalId)
+    .eq("thesis_id", thesisId)
+    .maybeSingle();
+  if (proposalLookup.error) return jsonError("not_found", 404);
+  const proposalRow = proposalLookup.data as { proposal_id?: string } | null;
+  if (!proposalRow || proposalRow.proposal_id !== proposalId) {
+    return jsonError("not_found", 404);
+  }
+
   const parsed = await readBoundedJson(request);
   if (!parsed.ok) return jsonError(parsed.error, 400, MESSAGES.sendJson);
   if (!isPatchableState(parsed.body.state)) {

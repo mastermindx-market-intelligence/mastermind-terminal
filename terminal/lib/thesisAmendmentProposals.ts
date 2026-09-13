@@ -64,8 +64,8 @@ export const MESSAGES = {
     "我们无法更新这条建议，因为不允许这样的更改。",
   ],
   sendJson: [
-    "Send this request as JSON.",
-    "请以 JSON 发送此请求。",
+    "We couldn't read this request. Please try again.",
+    "我们无法读取这个请求，请重试。",
   ],
 } as const;
 
@@ -103,12 +103,20 @@ export function basedOnVersionSentence(
   recordedAt: string | null,
   lang: "en" | "zh",
 ): string {
+  // Q2 (Round-1 heal): when the version row cannot be resolved (the FK on amended_from
+  // usually prevents this, but we still want an honest sentence), never invent a
+  // "version 0" — say plainly that the version is gone.
+  if (versionNumber === null || versionNumber === undefined) {
+    return lang === "zh"
+      ? "依据这条论点的一个我们已找不到的版本。"
+      : "Based on a version of this thesis we couldn't find any more.";
+  }
   const date = recordedAt
     ? new Date(recordedAt).toLocaleDateString(lang === "zh" ? "zh-CN" : "en-CA")
     : lang === "zh" ? "未知日期" : "an unknown date";
-  const n = versionNumber ?? 0;
-  if (lang === "zh") return `依据 ${n} 版，日期为 ${date}`;
-  return `Based on version ${n} from ${date}`;
+  // Q3 (Round-1 heal): ZH uses the ordinal 第 so it reads as a normal Chinese sentence.
+  if (lang === "zh") return `依据第 ${versionNumber} 版，日期为 ${date}`;
+  return `Based on version ${versionNumber} from ${date}`;
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {

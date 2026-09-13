@@ -2370,7 +2370,11 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
                             <p className={styles.proposalBody}>{proposal.body}</p>
                             <p className={styles.muted}>{basedOnVersionSentence(proposal.versionNumber, proposal.versionRecordedAt, lang)}</p>
                             <div className={styles.proposalMeta}>
-                              <i>{chip}</i>
+                              {/* H2 (Round-1 heal): the visible text stays the plain-word label;
+                                  the raw state is exposed only as an attribute so the
+                                  accepted / rejected / superseded colours in ThesisWorkspace.module.css
+                                  can actually apply. */}
+                              <i data-state={proposal.state}>{chip}</i> // plain-language-ok: H2 heal — raw state enum in data-state attribute only; the chip text is proposalStateLabel() plain words in EN/ZH (see thesisAmendmentProposalsView test)
                               <time dateTime={proposal.createdAt}>{copy.createdOn} {new Date(proposal.createdAt).toLocaleString(lang === "zh" ? "zh-CN" : "en-CA")}</time>
                             </div>
                             {awaitingChoice && (
