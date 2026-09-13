@@ -1,0 +1,38 @@
+# B-F11-5 Suggested changes to your thesis — capture evidence
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
+# capturedAtHead: a4be9a3f4b51246200cb1b7c4f1d44730066a9a9
+# capturedAt: 2026-09-13T04:40:50.178Z
+# capturedAtHead is informational. The lock is layoutFiles.
+layoutFiles:
+  terminal/components/workspaces/ThesisWorkspace.tsx: "5835481109357ba724a0809affd6ee0b6f74ea9d4663775425d3f7286cf54eec"
+  terminal/components/workspaces/ThesisWorkspace.module.css: "7817faab7afd0cf411cb92a678136e58a4786b162293d05539f9b614e398cbcf"
+  terminal/lib/thesisAmendmentProposals.ts: "44ac9e0c1373b6de6f5f849e27fd8593647fc20e5dd5064d9a818d7d6a5b18d3"
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: mobile, width: 390, height: 844 }
+harness:
+  desktop-en-empty.png: { url: "/analysis?view=theses&lang=en", state: empty }
+  desktop-zh-empty.png: { url: "/analysis?view=theses&lang=zh", state: empty }
+  mobile-en-empty.png: { url: "/analysis?view=theses&lang=en", state: empty }
+  mobile-zh-empty.png: { url: "/analysis?view=theses&lang=zh", state: empty }
+  desktop-en-populated.png: { url: "/analysis?view=theses&lang=en", state: populated }
+  desktop-zh-populated.png: { url: "/analysis?view=theses&lang=zh", state: populated }
+  mobile-en-populated.png: { url: "/analysis?view=theses&lang=en", state: populated }
+  mobile-zh-populated.png: { url: "/analysis?view=theses&lang=zh", state: populated }
+capture_flag: TERMINAL_E2E_FIXTURE
+capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.
+command: |
+  cd terminal
+  node e2e/tools/capture_b_f11_5_thesis_proposals.cjs
+files:
+  - desktop-en-empty.png
+  - desktop-zh-empty.png
+  - mobile-en-empty.png
+  - mobile-zh-empty.png
+  - desktop-en-populated.png
+  - desktop-zh-populated.png
+  - mobile-en-populated.png
+  - mobile-zh-populated.png

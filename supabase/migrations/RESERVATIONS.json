@@ -246,6 +246,16 @@
       "applied_in_production": false,
       "applied_date": null,
       "note": "portfolio target weights + bands, user-typed, RLS own-row; ships UNAPPLIED -- the builder never runs DDL against production and the seat applies with receipts, so applied_in_production is false and the date is not recorded because there is no application yet, never because a real date was lost. Merged to master 2026-09-10T15:19Z via merge-on-green (#552); not yet applied — waits for 0017–0022 in ledger order."
+    },
+    "0024": {
+      "state": "taken",
+      "file": "0024_thesis_amendment_proposals.sql",
+      "packet": "B-F11-5",
+      "pr": 576,
+      "pr_state": "open",
+      "applied_in_production": false,
+      "applied_date": null,
+      "note": "packet B-F11-5 thesis amendment proposals (MO-PAID-054 write-back). Shipped UNAPPLIED; the seat applies after merge. Prefix 0024 is the next free number after 0023 on master. applied_in_production is false and applied_date is null because there is no application yet — the date is not recorded, never because a real date was lost. PR number filled when the draft pull request opens; 576 is the predicted next number at authoring and is rewritten if the opened number differs."
     }
   }
 }
