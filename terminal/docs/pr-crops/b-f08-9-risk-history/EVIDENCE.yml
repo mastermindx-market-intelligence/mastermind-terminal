@@ -1,18 +1,31 @@
 # B-F08-9 Historical risk of today's book — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 73907fd874082b0edbf8bc581d25aae56b66829f
-# capturedAt: 2026-09-13T06:04:10.923Z
+# capturedAtHead: 7dc811d87d9a3402accadd86c95d695213313aad
+# capturedAt: 2026-09-13T15:04:19.998Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/PortfolioView.tsx: "8503bf6d1ea87afdb1b26cc30c7201db036c6f451dc68ab8d16a2b82d6d3da5a"
-  terminal/lib/portfolioRiskHistory.ts: "683c4baac69285eca03fcceedce527785c398d9eec76d9169548ec30fe13f37e"
-  terminal/components/PortfolioRiskHistory.module.css: "6eeadc0dc1dd1dd2bb09680c001ca7a7466cd78a60dc82f466873b78e22e5d70"
+  terminal/components/PortfolioView.tsx: "1a11ed505141c5f49c64b6726759abc42be2865b4773da4a5c59c7c7d281812e"
+  terminal/lib/portfolioRiskHistory.ts: "1f260800522bc61e54c4cd8731b95583aedc3dbd7214ccd5c66e6a3e5498f871"
+  terminal/components/PortfolioRiskHistory.module.css: "8627eca665ea7115ce929fad67d453cb7e715ea5e6cdfe1541a2ee4216b48796"
 theme: dark
 languages: [en, zh]
 viewports:
   - { name: desktop, width: 1440, height: 900 }
   - { name: mobile, width: 390, height: 844 }
+harness:
+  empty-book-1440-zh.png: { url: "/portfolio", state: empty-book }
+  empty-book-1440.png: { url: "/portfolio", state: empty-book }
+  empty-book-390-zh.png: { url: "/portfolio", state: empty-book }
+  empty-book-390.png: { url: "/portfolio", state: empty-book }
+  not-enough-history-1440-zh.png: { url: "/portfolio", state: not-enough-history }
+  not-enough-history-1440.png: { url: "/portfolio", state: not-enough-history }
+  not-enough-history-390-zh.png: { url: "/portfolio", state: not-enough-history }
+  not-enough-history-390.png: { url: "/portfolio", state: not-enough-history }
+  populated-1440-zh.png: { url: "/portfolio", state: populated }
+  populated-1440.png: { url: "/portfolio", state: populated }
+  populated-390-zh.png: { url: "/portfolio", state: populated }
+  populated-390.png: { url: "/portfolio", state: populated }
 surfaces: [PortfolioRiskHistoryReadout]
 capture_flag: TERMINAL_E2E_FIXTURE
 capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
