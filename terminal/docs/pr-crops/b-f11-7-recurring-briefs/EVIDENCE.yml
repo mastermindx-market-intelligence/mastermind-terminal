@@ -1,14 +1,14 @@
 # B-F11-7 Recurring briefs — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 9a0347ee21db90f21f42b6bb4a4795dd2d190177
-# capturedAt: 2026-09-13T05:48:33.370Z
+# capturedAtHead: ec790e040d1f0fce5c6df7b64aa2692228a1df13
+# capturedAt: 2026-09-13T06:44:08.252Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/briefs/BriefsInbox.tsx: "fb2c5515bd7892ea438146be2977751a74def9c4bc64cb490132b67514d33da7"
+  terminal/components/briefs/BriefsInbox.tsx: "7ab9a0c9ffcad73e430593e7fd7eec72de56cab22d65344c0346875b4b66cde5"
   terminal/components/briefs/BriefSubscribeControls.tsx: "ae6cd7b26f6ce48b2bc56e98ec7eedf72d163b1e04ae95d9b951d7c1b8ab9a56"
-  terminal/components/briefs/briefs.module.css: "655debe36807321fdf91daf057a73c6f9d6f8d8769cde5d747f59d00a71961a8"
-  terminal/lib/briefs.ts: "32a9d6a77ba420979b77b82965ebae77f00fd6b9aff5e1287454cd7233925317"
+  terminal/components/briefs/briefs.module.css: "bdec4855420f396e8ad30565741c70904d55090310298e396f75e3e44c41b573"
+  terminal/lib/briefs.ts: "45e085b000b79481d5a7ad0b73ab9f76300d21efde8e64bc0d9ef36f0a9159cb"
   terminal/components/alerts/AlertsCockpit.tsx: "3d1027efa3cbd0045550a58070b1d6328e9b57b0e85c4d6cfd1b99aa1643845d"
 theme: dark
 languages: [en, zh]
