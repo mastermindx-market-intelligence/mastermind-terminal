@@ -50,11 +50,23 @@ function hasSessionCookie(cookieHeader) {
 
 /** Starts the fixture server on `port` (0 = OS-assigned free port). Resolves once listening,
  *  with the base URL to point `STOCKDATA_BASE` at and a `close()` to tear it down. */
+function ohlcBars(n, seed) {
+  const start = Date.UTC(2025, 0, 2);
+  const bars = [];
+  for (let i = 0; i < n; i++) {
+    const date = new Date(start + i * 86400000).toISOString().slice(0, 10);
+    const c = seed * (1 + 0.002 * Math.sin(i / 8));
+    bars.push([date, c, c, c, c, 1000]);
+  }
+  return bars;
+}
+
 export function startFixtureStockdataServer(port = 0) {
   const server = createServer((req, res) => {
     const url = new URL(req.url ?? "/", "http://127.0.0.1");
-    const match = /^\/stockdata\/([A-Za-z0-9.]+)\.json$/.exec(url.pathname);
-    if (!match) {
+    const stock = /^\/stockdata\/([A-Za-z0-9.]+)\.json$/.exec(url.pathname);
+    const ohlc = /^\/ohlc\/([A-Za-z0-9.]+)\.json$/.exec(url.pathname);
+    if (!stock && !ohlc) {
       res.writeHead(404, { "content-type": "application/json" });
       res.end(JSON.stringify({ error: "not found" }));
       return;
@@ -64,15 +76,28 @@ export function startFixtureStockdataServer(port = 0) {
       res.end(JSON.stringify({ locked: true, reason: "authentication_required" }));
       return;
     }
-    const ticker = match[1].toUpperCase();
-    const facts = FIXTURE_TICKERS[ticker];
-    if (!facts) {
+    if (stock) {
+      const ticker = stock[1].toUpperCase();
+      const facts = FIXTURE_TICKERS[ticker];
+      if (!facts) {
+        res.writeHead(404, { "content-type": "application/json" });
+        res.end(JSON.stringify({ error: "not found" }));
+        return;
+      }
+      res.writeHead(200, { "content-type": "application/json" });
+      res.end(JSON.stringify({ sector: facts.sector, personality: { market_cap: facts.marketCap } }));
+      return;
+    }
+    const ticker = ohlc[1].toUpperCase();
+    if (ticker === "MISSING") {
       res.writeHead(404, { "content-type": "application/json" });
       res.end(JSON.stringify({ error: "not found" }));
       return;
     }
+    const n = ticker === "THIN" ? 20 : 140;
+    const seed = ticker === "DGS3MO" || ticker === "US3M" ? 5 : ticker === "SPY" ? 200 : 100;
     res.writeHead(200, { "content-type": "application/json" });
-    res.end(JSON.stringify({ sector: facts.sector, personality: { market_cap: facts.marketCap } }));
+    res.end(JSON.stringify({ t: ticker, o: 1, src: "fixture", bar_quality: "real_ohlc", bars: ohlcBars(n, seed) }));
   });
 
   return new Promise((resolve, reject) => {

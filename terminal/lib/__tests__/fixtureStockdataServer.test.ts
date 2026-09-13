@@ -68,4 +68,20 @@ describe("fixture stockdata server", () => {
     const buckets = new Set(facts.map((f) => sizeBucketOf(f.marketCap)));
     expect(buckets.size).toBeGreaterThanOrEqual(3);
   });
+
+  it("serves /ohlc/SPY.json only with the session cookie, and 404s a missing series", async () => {
+    const locked = await fetch(`${baseUrl}/ohlc/SPY.json`);
+    expect(locked.status).toBe(401);
+    const res = await fetch(`${baseUrl}/ohlc/SPY.json`, {
+      headers: { Cookie: `${SESSION_COOKIE_NAME}=${SESSION_COOKIE_VALUE}` },
+    });
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(Array.isArray(body.bars)).toBe(true);
+    expect(body.bars.length).toBeGreaterThanOrEqual(126);
+    const missing = await fetch(`${baseUrl}/ohlc/MISSING.json`, {
+      headers: { Cookie: `${SESSION_COOKIE_NAME}=${SESSION_COOKIE_VALUE}` },
+    });
+    expect(missing.status).toBe(404);
+  });
 });
