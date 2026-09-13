@@ -121,9 +121,13 @@ function startServer() {
     stdio: ["ignore", "pipe", "pipe"],
     detached: true,
   });
-  child.stdout.on("data", (buf) => {
-    const line = String(buf);
-    if (/Ready|compiled|error|Error/i.test(line)) process.stdout.write(`[dev] ${line}`);
+  child.ready = new Promise((resolve) => {
+    const onData = (buf) => {
+      const line = String(buf);
+      if (/Ready|compiled|error|Error/i.test(line)) process.stdout.write(`[dev] ${line}`);
+      if (/✓ Ready/i.test(line)) resolve();
+    };
+    child.stdout.on("data", onData);
   });
   child.stderr.on("data", (buf) => process.stderr.write(`[dev:err] ${buf}`));
   return child;
@@ -138,20 +142,24 @@ function stopServer(child) {
   }
 }
 
-async function waitForServer(timeoutMs) {
-  const deadline = Date.now() + timeoutMs;
+async function waitForServer(child, timeoutMs) {
+  await Promise.race([
+    child.ready,
+    new Promise((_, reject) => setTimeout(() => reject(new Error("dev server never printed Ready")), timeoutMs)),
+  ]);
+  const deadline = Date.now() + 60_000;
   let last = "not tried";
   while (Date.now() < deadline) {
     try {
-      const res = await fetch(`${BASE}/alerts`, { redirect: "manual" });
+      const res = await fetch(`${BASE}/terminal?symbol=NVDA`, { redirect: "manual" });
       last = String(res.status);
       if (res.status >= 200 && res.status < 500) return;
     } catch (err) {
-      last = err.cause?.code || err.message;
+      last = err.cause?.code || err.name || err.message;
     }
-    await new Promise((r) => setTimeout(r, 750));
+    await new Promise((r) => setTimeout(r, 1000));
   }
-  throw new Error(`dev server on ${PORT} never answered (${last})`);
+  throw new Error(`dev server on ${PORT} printed Ready but never answered (${last})`);
 }
 
 async function stripDevOverlay(page) {
@@ -209,23 +217,30 @@ async function openAlerts(page, lang, viewport, deliveries) {
 async function openSubscribe(page, lang, viewport) {
   await page.setViewportSize(viewport);
   await mockBriefs(page, []);
-  await page.addInitScript((l) => {
-    localStorage.setItem("mm.lang", l);
-    localStorage.setItem("theme", "dark");
-    localStorage.setItem("theme_auto", "0");
-    document.documentElement.setAttribute("data-theme", "dark");
-    document.documentElement.setAttribute("data-lang", l);
-    document.documentElement.setAttribute("lang", l === "zh" ? "zh-CN" : "en");
-  }, lang);
-  await page.goto(`${BASE}/analysis?view=theses&symbol=NVDA&lang=${lang}`, {
-    waitUntil: "domcontentloaded",
-    timeout: 90_000,
-  });
-  await page.getByTestId("thesis-workspace").waitFor({ state: "visible", timeout: 45_000 });
-  const created = await page.request.post(`${BASE}/api/theses`, {
-    data: {
-      action: "create",
-      clientRequestId: `crop-${lang}-${viewport}-${Date.now()}`,
+  const thesis = {
+    id: THESIS,
+    currentVersion: 1,
+    lifecycleState: "active",
+    subject: {
+      schema: "mastermind.thesis-subject-ref/v1",
+      kind: "issuer",
+      owner: "terminal.analysis_symbol",
+      key: "NVDA",
+      identityState: "listing_scoped",
+      listing: { symbol: "NVDA", mic: null, securityId: null },
+      companyId: null,
+      display: "NVDA · listing scoped",
+    },
+    title: "NVDA cycle",
+    updatedAt: "2026-09-11T20:00:00.000Z",
+    createdAt: "2026-09-11T20:00:00.000Z",
+    current: {
+      id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+      thesisId: THESIS,
+      version: 1,
+      previousVersion: null,
+      transition: "create",
+      lifecycleState: "active",
       subject: {
         schema: "mastermind.thesis-subject-ref/v1",
         kind: "issuer",
@@ -247,13 +262,34 @@ async function openSubscribe(page, lang, viewport) {
         effectiveAt: null,
         revisionNote: null,
       },
+      clientRequestId: "crop-subscribe",
+      systemRecordedAt: "2026-09-11T20:00:00.000Z",
+      effectiveAt: null,
     },
+    history: [],
+    historyTruncated: false,
+  };
+  await page.route("**/api/theses**", async (route) => {
+    const url = new URL(route.request().url());
+    if (url.searchParams.get("id") === THESIS) {
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ thesis }) });
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ theses: [thesis], truncated: false }),
+    });
   });
-  if (created.status() !== 201) {
-    throw new Error(`thesis create ${created.status()}: ${await created.text()}`);
-  }
-  const thesisId = (await created.json()).thesisId;
-  await page.goto(`${BASE}/analysis?view=theses&symbol=NVDA&thesis=${thesisId}&lang=${lang}`, {
+  await page.addInitScript((l) => {
+    localStorage.setItem("mm.lang", l);
+    localStorage.setItem("theme", "dark");
+    localStorage.setItem("theme_auto", "0");
+    document.documentElement.setAttribute("data-theme", "dark");
+    document.documentElement.setAttribute("data-lang", l);
+    document.documentElement.setAttribute("lang", l === "zh" ? "zh-CN" : "en");
+  }, lang);
+  await page.goto(`${BASE}/analysis?view=theses&symbol=NVDA&thesis=${THESIS}&lang=${lang}`, {
     waitUntil: "domcontentloaded",
     timeout: 90_000,
   });
@@ -276,7 +312,7 @@ async function main() {
   const child = startServer();
   const files = [];
   try {
-    await waitForServer(180_000);
+    await waitForServer(child, 180_000);
     const browser = await chromium.launch({ headless: true });
     try {
       for (const shot of SHOTS) {

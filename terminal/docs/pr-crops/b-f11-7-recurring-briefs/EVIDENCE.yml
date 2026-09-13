@@ -1,0 +1,48 @@
+# B-F11-7 Recurring briefs — capture evidence
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
+# capturedAtHead: 9a0347ee21db90f21f42b6bb4a4795dd2d190177
+# capturedAt: 2026-09-13T05:48:33.370Z
+# capturedAtHead is informational. The lock is layoutFiles.
+layoutFiles:
+  terminal/components/briefs/BriefsInbox.tsx: "fb2c5515bd7892ea438146be2977751a74def9c4bc64cb490132b67514d33da7"
+  terminal/components/briefs/BriefSubscribeControls.tsx: "ae6cd7b26f6ce48b2bc56e98ec7eedf72d163b1e04ae95d9b951d7c1b8ab9a56"
+  terminal/components/briefs/briefs.module.css: "655debe36807321fdf91daf057a73c6f9d6f8d8769cde5d747f59d00a71961a8"
+  terminal/lib/briefs.ts: "32a9d6a77ba420979b77b82965ebae77f00fd6b9aff5e1287454cd7233925317"
+  terminal/components/alerts/AlertsCockpit.tsx: "3d1027efa3cbd0045550a58070b1d6328e9b57b0e85c4d6cfd1b99aa1643845d"
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: mobile, width: 390, height: 844 }
+harness:
+  list-1440.png: { kind: list, lang: en, viewport: desktop }
+  list-1440-zh.png: { kind: list, lang: zh, viewport: desktop }
+  list-390.png: { kind: list, lang: en, viewport: mobile }
+  list-390-zh.png: { kind: list, lang: zh, viewport: mobile }
+  empty-1440.png: { kind: empty, lang: en, viewport: desktop }
+  empty-1440-zh.png: { kind: empty, lang: zh, viewport: desktop }
+  empty-390.png: { kind: empty, lang: en, viewport: mobile }
+  empty-390-zh.png: { kind: empty, lang: zh, viewport: mobile }
+  subscribe-1440.png: { kind: subscribe, lang: en, viewport: desktop }
+  subscribe-1440-zh.png: { kind: subscribe, lang: zh, viewport: desktop }
+  subscribe-390.png: { kind: subscribe, lang: en, viewport: mobile }
+  subscribe-390-zh.png: { kind: subscribe, lang: zh, viewport: mobile }
+capture_flag: TERMINAL_E2E_FIXTURE
+capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.
+command: |
+  cd terminal
+  node e2e/tools/capture_b_f11_7_recurring_briefs.cjs
+files:
+  - list-1440.png
+  - list-1440-zh.png
+  - list-390.png
+  - list-390-zh.png
+  - empty-1440.png
+  - empty-1440-zh.png
+  - empty-390.png
+  - empty-390-zh.png
+  - subscribe-1440.png
+  - subscribe-1440-zh.png
+  - subscribe-390.png
+  - subscribe-390-zh.png
