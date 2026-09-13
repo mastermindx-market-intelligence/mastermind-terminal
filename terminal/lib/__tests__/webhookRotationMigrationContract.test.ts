@@ -135,6 +135,20 @@ describe("0026 webhook rotation + alert-fire migration contract", () => {
     expect(flat).toContain("new.fire_event_id");
   });
 
+  it("the trigger body has NO fifth gate that filters by payload->>'team_id' (regression guard)", () => {
+    // Real alert_outbox.payload (ingest/alerts_engine.py:421-444) carries NO 'team_id' key —
+    // alerts are personal per 0001 / R2, and 0013_alert_runs_outbox.sql has no team_id column.
+    // A fifth gate like `coalesce(new.payload->>'team_id','') = e.team_id::text` evaluates to
+    // `'' = uuid::text` (always FALSE), so the trigger inserts ZERO rows and the acceptance
+    // test "a registered external URL receives a signed POST for a defined event type" can
+    // never pass in production. This assertion prevents that hunk from being re-introduced.
+    expect(flat).not.toMatch(/coalesce\(new\.payload->>'team_id'.*e\.team_id/);
+    // Also block the same idea phrased differently: a `payload->>'team_id'` compared to a row
+    // column. The only allowed use of `team_id` in the WHERE clause is the membership/optin
+    // EXISTS subqueries against e.team_id (those already asserted above).
+    expect(flat).not.toMatch(/payload->>'team_id'\)?[^,)]*=+\s*e\.team_id/);
+  });
+
   it("carries both required header lines for 0026", () => {
     const head = raw.split("\n").slice(0, 5).join("\n");
     expect(head).toMatch(/^-- Ledger row: 0026_webhook_rotation_alert_fires /m);

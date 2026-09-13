@@ -156,15 +156,16 @@ declare
   v_ep     public.webhook_endpoints%rowtype;
   v_payload jsonb;
 begin
-  -- Build the per-delivery payload once; payload keys mirror alert_outbox.payload, plus a schema
-  -- tag the receiver dispatches on (mastermind.alert-fired/v1). event_id equals fire_event_id
-  -- so Mastermind-Webhook-Event-Id IS the fire id (R5).
+  -- Build the per-delivery base payload (everything except team_id, which depends on the
+  -- matched endpoint — alerts are PERSONAL per 0001 / R2 and can fan out to multiple teams).
+  -- Payload keys mirror alert_outbox.payload, plus a schema tag the receiver dispatches on
+  -- (mastermind.alert-fired/v1). event_id equals fire_event_id so Mastermind-Webhook-Event-Id
+  -- IS the fire id (R5).
   v_payload := jsonb_build_object(
     'schema',            'mastermind.alert-fired/v1',
     'fire_event_id',     new.fire_event_id,
     'alert_id',          new.alert_id,
     'user_id',           new.user_id,
-    'team_id',           coalesce(new.payload->>'team_id', ''),
     'fired_at',          coalesce(new.payload->>'fired_at', ''),
     'ticker',            coalesce(new.payload->>'ticker', ''),
     'subject',           coalesce(new.payload->>'subject', ''),
@@ -177,14 +178,15 @@ begin
     'evidence_url',      coalesce(new.payload->>'evidence_url', '')
   );
 
-  -- One INSERT per matching endpoint. team_id is read from the payload (alert_outbox does not
-  -- carry a team_id column — alerts are PERSONAL per 0001 / R2).
+  -- One INSERT per matching endpoint. R2's four gates: endpoint enabled, event_filter
+  -- contains 'alert.fired', firing user is a current team_member, firing user has opted in.
+  -- alert_outbox has NO team_id column (alerts are personal per 0001 / R2), so team_id in the
+  -- payload is taken from the matched endpoint's row, not from new.payload.
   for v_ep in
     select e.*
       from public.webhook_endpoints e
      where e.enabled = true
        and 'alert.fired' = any(e.event_filter)
-       and coalesce(new.payload->>'team_id','') = e.team_id::text
        and exists (
          select 1 from public.team_members m
           where m.team_id = e.team_id and m.user_id = new.user_id
@@ -197,7 +199,8 @@ begin
     insert into public.webhook_deliveries
       (endpoint_id, team_id, event_id, event_type, payload)
     values
-      (v_ep.id, v_ep.team_id, new.fire_event_id, 'alert.fired', v_payload)
+      (v_ep.id, v_ep.team_id, new.fire_event_id, 'alert.fired',
+       v_payload || jsonb_build_object('team_id', v_ep.team_id::text))
     on conflict (dedupe_key) do nothing;
   end loop;
 

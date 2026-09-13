@@ -444,7 +444,9 @@ describe("/api/webhooks routes", () => {
       }),
     );
     expect(invalid.status).toBe(400);
-    expect((await invalid.json()).messageZh).toBe(WEBHOOK_ROUTE_MESSAGES.team_required[1]);
+    const invalidBody = await invalid.json();
+    expect(invalidBody.message).toBe(WEBHOOK_ROUTE_MESSAGES.invalid_team_id[0]);
+    expect(invalidBody.messageZh).toBe(WEBHOOK_ROUTE_MESSAGES.invalid_team_id[1]);
 
     const badBool = await OPTIN_PUT(
       req(`http://localhost/api/webhooks/alert-optin?teamId=${TEAM_UUID}`, {

@@ -18,11 +18,12 @@ function errorBody(error: string, code: WebhookRouteCode) {
   return { error, message, messageZh };
 }
 
-function teamIdFrom(req: Request): string | null {
+function teamIdFrom(req: Request): { ok: true; teamId: string } | { ok: false; reason: "team_required" | "invalid_team_id" } {
   const raw = new URL(req.url).searchParams.get("teamId") || "";
   const teamId = raw.trim();
-  if (!teamId || !isUuid(teamId)) return null;
-  return teamId;
+  if (!teamId) return { ok: false, reason: "team_required" };
+  if (!isUuid(teamId)) return { ok: false, reason: "invalid_team_id" };
+  return { ok: true, teamId };
 }
 
 export async function GET(req: Request) {
@@ -30,11 +31,11 @@ export async function GET(req: Request) {
   if (!session) {
     return NextResponse.json(errorBody("UNAUTHENTICATED", "not_signed_in"), { status: 401 });
   }
-  const teamId = teamIdFrom(req);
-  if (!teamId) {
-    return NextResponse.json(errorBody("INVALID", "team_required"), { status: 400 });
+  const parsed = teamIdFrom(req);
+  if (!parsed.ok) {
+    return NextResponse.json(errorBody("INVALID", parsed.reason), { status: 400 });
   }
-  const result = await readAlertOptin(session.db, session.userId, teamId);
+  const result = await readAlertOptin(session.db, session.userId, parsed.teamId);
   if (!result.ok) {
     return NextResponse.json(errorBody(result.code.toUpperCase(), result.code), { status: result.status });
   }
@@ -46,15 +47,15 @@ export async function PUT(req: Request) {
   if (!session) {
     return NextResponse.json(errorBody("UNAUTHENTICATED", "not_signed_in"), { status: 401 });
   }
-  const teamId = teamIdFrom(req);
-  if (!teamId) {
-    return NextResponse.json(errorBody("INVALID", "team_required"), { status: 400 });
+  const parsed = teamIdFrom(req);
+  if (!parsed.ok) {
+    return NextResponse.json(errorBody("INVALID", parsed.reason), { status: 400 });
   }
   const body = (await req.json().catch(() => null)) as Record<string, unknown> | null;
   if (!body || typeof body.enabled !== "boolean") {
     return NextResponse.json(errorBody("INVALID", "send_json"), { status: 400 });
   }
-  const result = await writeAlertOptin(session.db, session.userId, teamId, body.enabled);
+  const result = await writeAlertOptin(session.db, session.userId, parsed.teamId, body.enabled);
   if (!result.ok) {
     return NextResponse.json(errorBody(result.code.toUpperCase(), result.code), { status: result.status });
   }

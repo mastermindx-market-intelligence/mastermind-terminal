@@ -31,6 +31,7 @@ export type WebhookRouteCode =
   | "private_address"
   | "send_json"
   | "team_required"
+  | "invalid_team_id"
   | "endpoint_disabled"
   | "not_found"
   | "test_failed"
@@ -65,6 +66,7 @@ export const WEBHOOK_ROUTE_MESSAGES: Record<WebhookRouteCode, [string, string]> 
   ],
   send_json: ["Send a JSON body.", "请发送 JSON 正文。"],
   team_required: ["Choose a team.", "请选择一个团队。"],
+  invalid_team_id: ["Enter a valid team id.", "请输入有效的团队标识。"],
   endpoint_disabled: [
     "This endpoint is turned off, so we did not send a test event.",
     "此端点已关闭，因此我们未发送测试事件。",

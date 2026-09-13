@@ -249,11 +249,17 @@ def main() -> int:
     # owns an enabled endpoint subscribed to 'alert.fired'. The trigger MUST insert exactly
     # one webhook_deliveries row with event_type='alert.fired', payload->>'schema' equal to
     # 'mastermind.alert-fired/v1', and event_id equal to fire_event_id.
+    #
+    # Payload shape mirrors ingest/alerts_engine.py (no `team_id` key — alerts are personal per
+    # 0001 / R2, and 0013_alert_runs_outbox.sql has no team_id column). The trigger MUST
+    # therefore stamp team_id into the per-delivery payload from the matched endpoint row.
+    # This is the realistic-payload check that exposed the FIFTH-gate bug in the previous head:
+    # a payload->>'team_id' filter always evaluated to NULL → '' against e.team_id, so the
+    # trigger inserted ZERO rows. With the FIFTH gate removed, this insert must yield one row.
     # ---------------------------------------------------------------
     fire_id_1 = str(uuid.uuid4())
     payload_1 = {
         "schema": "mastermind.alert-fired/v1",
-        "team_id": team_id,
         "ticker": "AAPL",
         "subject": "Alert",
         "subject_zh": "提醒",
@@ -282,7 +288,7 @@ def main() -> int:
             )
             count = cur.fetchone()[0]
             cur.execute(
-                "select event_id, payload->>'schema' from public.webhook_deliveries "
+                "select event_id, payload->>'schema', payload->>'team_id' from public.webhook_deliveries "
                 "where event_id = %s and event_type = 'alert.fired'",
                 (fire_id_1,),
             )
@@ -301,6 +307,13 @@ def main() -> int:
             "alert-fire:payload-schema-tag",
             row is not None and row[1] == "mastermind.alert-fired/v1",
             f"payload->>'schema'={row[1] if row else None}",
+        )
+        # Realistic-payload regression: the trigger must stamp team_id from the matched
+        # endpoint, since alert_outbox.payload carries no team_id (alerts are personal).
+        proof.check(
+            "alert-fire:payload-team-id-from-endpoint",
+            row is not None and row[2] == team_id,
+            f"payload->>'team_id'={row[2] if row else None} (expected the endpoint's team_id {team_id})",
         )
     except Exception as exc:  # noqa: BLE001
         proof.check("alert-fire:happy-path", False, f"insert failed: {exc}")
