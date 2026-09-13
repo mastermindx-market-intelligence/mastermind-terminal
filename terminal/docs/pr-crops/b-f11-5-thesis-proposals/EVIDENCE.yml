@@ -1,13 +1,13 @@
 # B-F11-5 Suggested changes to your thesis — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: fd982cc5f4d28a04bb5c197b4617128e4f451eab
-# capturedAt: 2026-09-13T04:40:50.178Z
+# capturedAtHead: f3b4910e5cc95035344c2827e442489ed01fd455
+# capturedAt: 2026-09-13T15:02:36.031Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/workspaces/ThesisWorkspace.tsx: "5835481109357ba724a0809affd6ee0b6f74ea9d4663775425d3f7286cf54eec"
+  terminal/components/workspaces/ThesisWorkspace.tsx: "a5cc7a2764153cd1c64c114e587cd3b03902fc627d836049d4338485a0c3163c"
   terminal/components/workspaces/ThesisWorkspace.module.css: "7817faab7afd0cf411cb92a678136e58a4786b162293d05539f9b614e398cbcf"
-  terminal/lib/thesisAmendmentProposals.ts: "44ac9e0c1373b6de6f5f849e27fd8593647fc20e5dd5064d9a818d7d6a5b18d3"
+  terminal/lib/thesisAmendmentProposals.ts: "f82b472f87e9c098fd1752ed357447e1462be5e5dee26bc4a0c110c15ada0d9b"
 theme: dark
 languages: [en, zh]
 viewports:

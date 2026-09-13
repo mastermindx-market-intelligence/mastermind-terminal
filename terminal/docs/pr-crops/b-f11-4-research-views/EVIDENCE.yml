@@ -14,8 +14,9 @@
 # 2026-09-11 merge of master 7e15e502 (#554 claim authoring form) into B-F12-8 (#550): i18n.tsx re-hashed because master's 31 claim* lexicon keys merged into the shared file, and ThesisWorkspace.tsx now carries master's claim-entry button (this PR edits neither file). The B-F11-4 crops clip to [data-testid="thesis-list-pane"], which contains neither that context-bar button nor any key this merge added, so no B-F11-4 surface renders differently and no crop was recaptured.
 # 2026-09-11 MO-B PL-NI-1 (packet T-PL-NI-1, 您→你 sweep of Terminal master): terminal/lib/i18n.tsx re-hashed — plain-language 您→你 only; layout unchanged; no recapture.
 # 2026-09-12 B-F11-5 (thesis amendment proposals): restamped ThesisWorkspace.tsx and ThesisWorkspace.module.css layoutFiles hashes. This packet adds a Suggested changes / assistant-notes panel inside the detail pane (data-testid=thesis-amendment-panel). B-F11-4 crops clip to [data-testid="thesis-list-pane"], which does not contain that panel, so no B-F11-4 crop was recaptured.
+# 2026-09-13 B-F11-5 heal 1: ThesisWorkspace.tsx re-hashed — data-state attribute on the proposal state chip inside the detail pane; the B-F11-4 thesis-list-pane clip does not contain it; no recapture.
 layoutFiles:
-  terminal/components/workspaces/ThesisWorkspace.tsx: "5835481109357ba724a0809affd6ee0b6f74ea9d4663775425d3f7286cf54eec"
+  terminal/components/workspaces/ThesisWorkspace.tsx: "a5cc7a2764153cd1c64c114e587cd3b03902fc627d836049d4338485a0c3163c"
   terminal/components/workspaces/ThesisWorkspace.module.css: "7817faab7afd0cf411cb92a678136e58a4786b162293d05539f9b614e398cbcf"
   terminal/lib/rmsViews.ts: "fd5f025806c5a4b1b27e7d99a026e82f555767f0d96b6a2766a5b363961897cb"
   terminal/lib/savedViews.ts: "16e2914a032cba50cce999d1802c53e51098ce76dd82931925ef41b8e0f7af54"
