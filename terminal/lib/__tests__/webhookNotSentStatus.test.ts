@@ -38,6 +38,9 @@ const ENDPOINT: EndpointRow = {
   url: "https://hooks.example.com/mastermind",
   secret: "not-a-real-secret",
   enabled: true,
+  secret_previous: null,
+  secret_previous_expires_at: null,
+  secret_version: 1,
 };
 
 describe("a delivery abandoned without exhausting the retry table is never `failed`", () => {
