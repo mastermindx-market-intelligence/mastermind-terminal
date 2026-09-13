@@ -26,7 +26,7 @@ const LAYOUT_FILES = [
   "terminal/components/EventImpactPanel.tsx",
   "terminal/components/EventImpactPanel.module.css",
 ];
-const PORT = Number(process.env.TERMINAL_CROP_PORT || 3568);
+const PORT = Number(process.env.TERMINAL_CROP_PORT || 3571);
 const BASE = `http://127.0.0.1:${PORT}`;
 const VIEWPORTS = {
   1440: { width: 1440, height: 900 },
@@ -100,7 +100,20 @@ function impactBody(state) {
     asof: "2026-09-05",
     heldTickers: 1,
     heldPositions: 1,
-    unjoinable: [],
+    unjoinable: [
+      {
+        path: "/event_windows/snapshot.json",
+        reason: "no_ticker_field",
+        labelEn: "the macro release calendar",
+        labelZh: "宏观数据发布日历",
+      },
+      {
+        path: "/factordata/hk_catalyst_calendar.json",
+        reason: "no_ticker_field",
+        labelEn: "the index-review calendar",
+        labelZh: "指数检讨日历",
+      },
+    ],
     events: [state === "typed-null" ? TYPED_NULL_EVENT : CONDITION_EVENT],
   };
 }
@@ -162,6 +175,7 @@ async function newPage(browser, width, lang, storeKey) {
     hasTouch: width === 390,
     locale: lang === "zh" ? "zh-CN" : "en-US",
     colorScheme: "dark",
+    reducedMotion: "reduce",
   });
   await context.addCookies([{ name: "mm_e2e_wl", value: storeKey, url: BASE }]);
   await context.addInitScript((l) => {
@@ -212,10 +226,18 @@ async function assertNoNextIndicator(page, file) {
 async function cropLocator(page, locator, outPath, pad = 18) {
   const fresh = locator.first();
   await fresh.waitFor({ state: "visible", timeout: 20_000 });
-  await page.waitForTimeout(250);
+  let lastH = 0;
+  for (let i = 0; i < 8; i += 1) {
+    await page.waitForTimeout(150);
+    const box = await fresh.boundingBox();
+    const h = box ? Math.ceil(box.height) : 0;
+    if (h >= 280 && Math.abs(h - lastH) < 4) break;
+    lastH = h;
+  }
   const box = await fresh.boundingBox();
   const vp = page.viewportSize();
   if (!box || !vp) throw new Error(`no box for ${outPath}`);
+  if (box.height < 280) throw new Error(`${outPath}: panel height ${box.height} too short`);
   const x = Math.max(0, Math.floor(box.x - pad));
   const y = Math.max(0, Math.floor(box.y - pad));
   const width = Math.max(8, Math.min(vp.width - x, Math.ceil(box.width + pad * 2)));
@@ -226,10 +248,6 @@ async function cropLocator(page, locator, outPath, pad = 18) {
 async function captureState(page, width, lang, state, outPath) {
   await page.route("**/api/event-impact", (route) =>
     route.fulfill({ status: 200, json: impactBody(state) }));
-  const seed = await page.request.post(`${BASE}/api/portfolio`, {
-    data: { action: "create", ticker: "AAPL", shares: "10", entryPrice: "200" },
-  });
-  if (!seed.ok()) throw new Error(`seed AAPL failed: ${seed.status()}`);
   await page.goto(`${BASE}/portfolio`, { waitUntil: "domcontentloaded", timeout: 90_000 });
   await ensureLang(page, lang);
   const panel = page.getByTestId("event-impact");
