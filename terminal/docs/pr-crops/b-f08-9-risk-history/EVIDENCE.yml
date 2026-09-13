@@ -1,0 +1,34 @@
+# B-F08-9 Historical risk of today's book — capture evidence
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
+# capturedAtHead: f05dd98272e138264e812f02e5d12f2561dd6f0b
+# capturedAt: 2026-09-13T05:07:13.130Z
+# capturedAtHead is informational. The lock is layoutFiles.
+layoutFiles:
+  terminal/components/PortfolioView.tsx: "8503bf6d1ea87afdb1b26cc30c7201db036c6f451dc68ab8d16a2b82d6d3da5a"
+  terminal/lib/portfolioRiskHistory.ts: "3975bba3537486c739a4a6dcbe4027bd6eead8ad25723b79471a28ae8849ed77"
+  terminal/components/PortfolioRiskHistory.module.css: "6eeadc0dc1dd1dd2bb09680c001ca7a7466cd78a60dc82f466873b78e22e5d70"
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: mobile, width: 390, height: 844 }
+surfaces: [PortfolioRiskHistoryReadout]
+capture_flag: TERMINAL_E2E_FIXTURE
+capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
+command: |
+  cd terminal
+  node e2e/tools/capture_b_f08_9_risk_history.cjs
+files:
+  - empty-book-1440-zh.png
+  - empty-book-1440.png
+  - empty-book-390-zh.png
+  - empty-book-390.png
+  - not-enough-history-1440-zh.png
+  - not-enough-history-1440.png
+  - not-enough-history-390-zh.png
+  - not-enough-history-390.png
+  - populated-1440-zh.png
+  - populated-1440.png
+  - populated-390-zh.png
+  - populated-390.png
