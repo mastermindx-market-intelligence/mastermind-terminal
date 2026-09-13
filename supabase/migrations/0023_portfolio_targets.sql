@@ -1,4 +1,4 @@
--- Ledger row: MO-DELTA-003 (B-F08-B5-1, Market Ontology F08 lane, WS:MARKET-OS)
+-- Ledger row: MO-DELTA-003 (B-F08-B5-1, Market Ontology F08 lane, WS:MARKET-OS); applied 2026-09-13
 -- Rollback: drop table if exists public.portfolio_targets;
 --
 -- New table — not a record of a pre-existing live table (unlike 0007). This file IS the
