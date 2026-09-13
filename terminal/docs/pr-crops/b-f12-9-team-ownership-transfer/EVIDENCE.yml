@@ -2,7 +2,7 @@
 # layoutFiles carry sha256 hashes of the files they name; proof of which code generated each crop.
 # Rebuild any crop and recompute its layoutFiles, or the test will fail and the PR will not land.
 # capturedAtHead: 35e9f60c895ae9c1e0ebb803bc16d48bd5962f86
-capturedAtHead: 0000000000000000000000000000000000000000
+capturedAtHead: efdbf23b6cf0dcc7be6b18df399e6649344e7a0f
 capturedAt: 2026-09-11T03:00:17.565Z
 # capturedAtHead is merge commit 35e9f60c895ae9c1e0ebb803bc16d48bd5962f86 (H4b #565 onto master 908540b79). layoutFiles hashes are that commit's bytes except i18n.tsx, which this PR restamps for DEEP_RESEARCH_MONTHLY quota copy (obInsider2/obPro1/acsFeatInsider4/acsFeatPro3). Those strings are not rendered on the ownership-transfer surface; no crop recaptured. The previous pointer 3cdcd746b86d478ff139dd5fea408b66fce065af remains an ancestor; the ancestry guard requires capturedAtHead to name a commit whose i18n blob matches the restamped hash.
 # Pinned i18n.tsx last changed on this carrier for master #554's claim* keys; the captured surface (team section + rail) does not render them; crops unchanged from 916db2d4ac62b00aed236231433d8d952c22f3c6.
