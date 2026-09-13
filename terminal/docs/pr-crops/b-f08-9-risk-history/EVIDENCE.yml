@@ -4,6 +4,11 @@
 # capturedAtHead: 7dc811d87d9a3402accadd86c95d695213313aad
 # capturedAt: 2026-09-13T15:04:19.998Z
 # capturedAtHead is informational. The lock is layoutFiles.
+# Heal round (META-CEO B, packet T_F08_9, 2026-09-13): the only code commit after
+# capturedAtHead touched terminal/app/api/portfolio/risk-history/route.ts (how a holding the
+# fan-out cap never requested is typed). That file is not a layoutFile, and no rendered
+# sentence or layout changed, so these twelve pixels still depict the head and the
+# layoutFiles sha256 lock below still holds against the files on disk.
 layoutFiles:
   terminal/components/PortfolioView.tsx: "1a11ed505141c5f49c64b6726759abc42be2865b4773da4a5c59c7c7d281812e"
   terminal/lib/portfolioRiskHistory.ts: "1f260800522bc61e54c4cd8731b95583aedc3dbd7214ccd5c66e6a3e5498f871"
