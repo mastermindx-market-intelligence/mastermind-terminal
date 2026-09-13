@@ -1,4 +1,4 @@
--- Ledger row: 0026_webhook_rotation_alert_fires / PR #<n> (open, packet B-F12-11); not applied
+-- Ledger row: 0026_webhook_rotation_alert_fires / PR #582 (open, packet B-F12-11); not applied
 -- Rollback: drop function if exists public.requeue_failed_webhook_delivery(uuid); drop function if exists public.rotate_webhook_secret(uuid); drop function if exists public.project_alert_fire_to_webhooks(); drop trigger if exists alert_outbox_project_webhooks on public.alert_outbox; drop table if exists public.webhook_alert_optins; alter table public.webhook_endpoints drop column if exists secret_previous_expires_at; alter table public.webhook_endpoints drop column if exists secret_rotated_at; alter table public.webhook_endpoints drop column if exists secret_version; alter table public.webhook_endpoints drop column if exists secret_previous; alter table public.webhook_endpoints drop constraint if exists webhook_endpoints_event_filter_check;
 -- 0026: outbound signed webhooks — signing-key rotation, dead-letter redrive, alert-fire
 -- producer wiring, per-team consent row (packet B-F12-11, MO-PAID-056 + MO-DELTA-038).
