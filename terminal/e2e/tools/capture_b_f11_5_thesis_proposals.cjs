@@ -236,7 +236,11 @@ async function openPanel(page, lang, viewport, populated) {
   });
   await page.getByTestId("thesis-amendment-panel").waitFor({ state: "visible", timeout: 45_000 });
   if (populated) {
-    await page.getByTestId("thesis-proposal-row").waitFor({ state: "visible", timeout: 15_000 });
+    // Three rows (proposed + declined + accepted) share this test id; wait on
+    // the first card and on a non-proposed chip so the crop cannot land before
+    // the coloured data-state styles apply.
+    await page.getByTestId("thesis-proposal-row").first().waitFor({ state: "visible", timeout: 15_000 });
+    await page.locator('[data-testid="thesis-proposal-row"] i[data-state="accepted"], [data-testid="thesis-proposal-row"] i[data-state="rejected"]').first().waitFor({ state: "visible", timeout: 15_000 });
   } else {
     await page.getByTestId("thesis-proposals-empty").waitFor({ state: "visible", timeout: 15_000 });
   }
