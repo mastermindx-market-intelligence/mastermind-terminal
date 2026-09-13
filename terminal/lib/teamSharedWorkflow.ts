@@ -45,10 +45,10 @@ export const SHARED_WORKFLOW_CHROME: Record<string, [string, string]> = {
   wsShareYes: ["Share it", "确认共享"],
   wsShareNo: ["Keep it private", "保持私有"],
   wsUnshareTitle: ["Stop sharing this workspace?", "要停止共享此工作区吗？"],
-  wsUnshareBody: ["Your team will no longer see it. Your own copy stays.", "团队将不再看到它。您自己的副本会保留。"],
+  wsUnshareBody: ["Your team will no longer see it. Your own copy stays.", "团队将不再看到它。你自己的副本会保留。"],
   wsUnshareYes: ["Stop sharing", "停止共享"],
   wsPickTeam: ["Choose the team to share with.", "请选择要共享给哪个团队。"],
-  wsTeamEmpty: ["Your team has not shared a workspace yet.", "您的团队还没有共享任何工作区。"],
+  wsTeamEmpty: ["Your team has not shared a workspace yet.", "你的团队还没有共享任何工作区。"],
   wsTeamReadOnly: [
     "Only an owner or an administrator can change a workspace the team shares.",
     "只有团队所有者或管理员才能修改团队共享的工作区。",
@@ -61,7 +61,7 @@ export const SHARED_WORKFLOW_MESSAGES = {
   unshared_ok: ["This workspace is private again.", "此工作区已改回仅自己可见。"],
   malformed_sharing: ["Choose one: only you, or shared with your team.", "请选择：仅自己可见，或与团队共享。"],
   team_required: ["Choose the team to share with.", "请选择要共享给哪个团队。"],
-  no_team: ["You are not on a team yet, so there is nothing to share this with.", "您还没有加入团队，因此暂时无法共享。"],
+  no_team: ["You are not on a team yet, so there is nothing to share this with.", "你还没有加入团队，因此暂时无法共享。"],
   not_admin_share: [
     "Only a team owner or an administrator can share a workspace with the team.",
     "只有团队所有者或管理员才能将工作区共享给团队。",
@@ -77,7 +77,7 @@ export const SHARED_WORKFLOW_MESSAGES = {
   workspace_not_found: ["We could not find that workspace.", "找不到该工作区。"],
   team_read_unavailable: [
     "We could not read your team's shared workspaces just now. Your own workspaces are still listed.",
-    "我们暂时无法读取团队的共享工作区。您自己的工作区仍会显示。",
+    "我们暂时无法读取团队的共享工作区。你自己的工作区仍会显示。",
   ],
   store_unavailable: ["We could not save that change.", "我们无法保存该更改。"],
   not_signed_in: ["Sign in to see this.", "请登录后查看。"],
@@ -101,10 +101,10 @@ export const SHARED_WORKFLOW_DENIALS: Record<DenyReason, [string, string]> = {
     "This workspace is marked as shared but is not attached to a team.",
     "此工作区标记为共享，但未关联任何团队。",
   ],
-  no_membership: ["You are not on a team yet.", "您还没有加入团队。"],
-  wrong_team: ["This workspace belongs to a team you are not on.", "此工作区属于您未加入的团队。"],
-  membership_revoked: ["You no longer have access to this team.", "您已无权访问该团队。"],
-  grant_revoked: ["This workspace is no longer shared with you.", "此工作区已不再与您共享。"],
+  no_membership: ["You are not on a team yet.", "你还没有加入团队。"],
+  wrong_team: ["This workspace belongs to a team you are not on.", "此工作区属于你未加入的团队。"],
+  membership_revoked: ["You no longer have access to this team.", "你已无权访问该团队。"],
+  grant_revoked: ["This workspace is no longer shared with you.", "此工作区已不再与你共享。"],
 };
 
 export function interpolateTeam(template: string, teamName: string): string {

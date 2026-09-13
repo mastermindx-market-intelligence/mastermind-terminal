@@ -1,0 +1,31 @@
+# B-F08-8 event-impact invalidation — capture evidence
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
+# capturedAtHead: a17ef1ac8c9488ae55a1b7bd08047bf1ea2ba871
+# capturedAt: 2026-09-13T05:21:56.540Z
+# capturedAtHead is informational. The lock is layoutFiles.
+# This packet restamps only the lock rows for files it touches (eventImpact.ts, EventImpactPanel.tsx, EventImpactPanel.module.css).
+layoutFiles:
+  terminal/lib/eventImpact.ts: "47a17507376aa0e2ff54a2df181f6efdc2c10256bdf1e99cd8b4e8f8f28a686b"
+  terminal/components/EventImpactPanel.tsx: "5c18bdc1f14f82ea00daaff1fb8eedd3e943dbf5304f8db2c800d78f44bb0e28"
+  terminal/components/EventImpactPanel.module.css: "4f9c64066a829d5d33230caa507f8fd2c0d7479f49c8b5eee693b40bdd66cab7"
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: mobile, width: 390, height: 844 }
+surfaces: [EventImpactPanel]
+capture_flag: TERMINAL_E2E_FIXTURE
+capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
+command: |
+  cd terminal
+  node e2e/tools/capture_b_f08_8_invalidation.cjs
+files:
+  - desktop-en-condition.png
+  - desktop-en-typed-null.png
+  - desktop-zh-condition.png
+  - desktop-zh-typed-null.png
+  - mobile-en-condition.png
+  - mobile-en-typed-null.png
+  - mobile-zh-condition.png
+  - mobile-zh-typed-null.png

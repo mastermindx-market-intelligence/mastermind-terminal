@@ -84,6 +84,6 @@ export async function POST(req: Request) {
   if (!result.ok) {
     return NextResponse.json(bodyFor(result.code), { status: result.status });
   }
-  const [msg, msgZh] = ["You have joined the team.", "您已加入该团队。"];
+  const [msg, msgZh] = ["You have joined the team.", "你已加入该团队。"];
   return NextResponse.json({ ok: true, teamId: result.teamId, role: result.role, message: msg, messageZh: msgZh });
 }
