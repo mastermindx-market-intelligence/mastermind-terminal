@@ -409,7 +409,7 @@ export default function SectionWebhooks({ t, lang, onClose }: SectionProps) {
 
   return (
     <>
-      <SectionHead title={t("acsWebhooks")} sub={t("acsWebhooksSub")} closeLabel={t("acsClose")} onClose={onClose} />
+      <SectionHead title={t("acsWebhooks")} sub={webhookCopy("webhooksPanelSub", lang)} closeLabel={t("acsClose")} onClose={onClose} />
       <div className="acs-body">
         {loadErr ? <Msg text={loadErr} kind="err" /> : null}
 

@@ -224,6 +224,14 @@ export const WEBHOOK_COPY = {
     "We could not save your alert-fire setting just now.",
     "我们暂时无法保存你的提醒触发设置。",
   ],
+  // Section subtitle override (H10 Q-m1): the repo-wide i18n.tsx `acsWebhooksSub` still claims
+  // "Only test events are available today." / "目前仅支持测试事件。" (R8 pins i18n.tsx so this
+  // packet cannot edit it). SectionWebhooks imports this override and uses it instead of
+  // t("acsWebhooksSub"), so the panel no longer claims only test events are available.
+  webhooksPanelSub: [
+    "Send signed events to an HTTPS address your team owns. Subscribe to test events, alert fires, or both.",
+    "把已签名的事件发送到团队拥有的 HTTPS 地址。可订阅测试事件、提醒触发，或两者同时订阅。",
+  ],
 } as const;
 
 export function webhookKeyVersionLine(
