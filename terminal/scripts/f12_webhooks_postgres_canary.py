@@ -310,9 +310,12 @@ def main() -> int:
         )
         # Realistic-payload regression: the trigger must stamp team_id from the matched
         # endpoint, since alert_outbox.payload carries no team_id (alerts are personal).
+        # payload->>'team_id' is text from postgres; team_id is a psycopg UUID object. Compare
+        # against str(team_id) — jsonb text equals the UUID's text form, never the UUID object
+        # itself (Python's `UUID('x') == 'x'` is False; matching requires the same type).
         proof.check(
             "alert-fire:payload-team-id-from-endpoint",
-            row is not None and row[2] == team_id,
+            row is not None and row[2] == str(team_id),
             f"payload->>'team_id'={row[2] if row else None} (expected the endpoint's team_id {team_id})",
         )
     except Exception as exc:  # noqa: BLE001
