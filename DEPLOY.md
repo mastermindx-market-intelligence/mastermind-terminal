@@ -155,6 +155,10 @@ Redirects are never followed, and the outbound connection is pinned to a
 pre-validated public address, so a receiver must answer on the address it
 registered.
 
+### Apply migration 0026 before the worker or panel expect the new columns
+
+The settings › Webhooks panel (`SAFE_ENDPOINT_COLUMNS` in `terminal/lib/webhooks.ts`) and the every-minute `webhook_delivery` worker (`ingest/webhook_delivery.ts` endpoint select) reference 0026's columns (`secret_version`, `secret_rotated_at`, `secret_previous_expires_at`). Until the seat applies 0026, PostgREST returns a missing-column error for those selects, and `isAbsentTableError` (`terminal/lib/teams.ts`) does not classify that shape as absence — the live Webhooks panel 503s and the worker exits 1. Apply 0026 in ledger order (after `0017`–`0023`) before relying on either surface; the seat applies it after the PR merges.
+
 ### Deliberately NOT deployed
 
 - `api/`, `docs/`, `indicator_engine/`, `tests/`, `web/`, `supabase/`, `requirements.txt` — not
