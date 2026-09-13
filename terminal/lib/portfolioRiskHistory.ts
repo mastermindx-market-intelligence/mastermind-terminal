@@ -27,17 +27,29 @@ export type ReturnPoint = { date: string; ret: number };
 export type RiskFreeSource = "DGS3MO" | "us3m" | "unpublished" | "unreadable";
 export type RiskFreeSeries = { source: "DGS3MO" | "us3m"; points: CloseSeries };
 
-export type HistoryExcludeReason = "short" | "unsized" | "not_positive" | "missing_price_history";
+export type HistoryExcludeReason =
+  | "short"
+  | "unsized"
+  | "not_positive"
+  | "missing_price_history"
+  | "unreadable_price_history"
+  | "skipped_session";
+
+export const ALL_HOLDINGS_UNREADABLE_REASON = "could not read any holding's price history" as const;
 
 export type HistoryMetricReason =
   | typeof RF_UNPUBLISHED_REASON
   | typeof RF_UNREADABLE_REASON
+  | typeof ALL_HOLDINGS_UNREADABLE_REASON
   | "risk-free series is stale"
   | "not enough history"
   | "benchmark missing"
   | "zero volatility"
   | "zero downside deviation"
   | "zero benchmark variance";
+
+/** Parsed closes, a typed unreadable body, or an absent/404 artifact (`null`/`undefined`). */
+export type OhlcBookValue = CloseSeries | "unreadable" | null | undefined;
 
 export type CoverageStatus = "empty" | "partial" | "ready" | "unavailable";
 
@@ -133,15 +145,27 @@ export function annualPercentToDaily(y: number): number {
   return (1 + y / 100) ** (1 / 252) - 1;
 }
 
+function isUsableClose(close: number): boolean {
+  return Number.isFinite(close) && close > 0;
+}
+
+/** A skipped/invalid row ends the current segment. The next valid row starts a new one. */
 export function dailyReturns(closes: CloseSeries): ReturnPoint[] {
   const out: ReturnPoint[] = [];
-  for (let i = 1; i < closes.length; i++) {
-    const prev = closes[i - 1];
-    const cur = closes[i];
-    if (!(prev.close > 0) || !Number.isFinite(cur.close)) continue;
-    out.push({ date: cur.date, ret: cur.close / prev.close - 1 });
+  let prev: ClosePoint | null = null;
+  for (const cur of closes) {
+    if (!isUsableClose(cur.close)) {
+      prev = null;
+      continue;
+    }
+    if (prev) out.push({ date: cur.date, ret: cur.close / prev.close - 1 });
+    prev = cur;
   }
   return out;
+}
+
+export function countSkippedSessions(closes: CloseSeries): number {
+  return closes.reduce((n, p) => n + (isUsableClose(p.close) ? 0 : 1), 0);
 }
 
 export function sampleMean(xs: readonly number[]): number | null {
@@ -198,20 +222,62 @@ export function betaVsBenchmark(port: readonly number[], bench: readonly number[
   return cov / vb;
 }
 
+function discriminatorOf(body: object): 0 | 1 | null {
+  const raw = (body as { o?: unknown }).o;
+  if (raw === 0 || raw === "0") return 0;
+  if (raw === 1 || raw === "1") return 1;
+  return null;
+}
+
+function closeFromRow(row: unknown[], disc: 0 | 1 | null): { close: number; contradict: boolean } | null {
+  if (disc === 0) {
+    if (row.length !== 3) return { close: NaN, contradict: true };
+    return { close: Number(row[1]), contradict: false };
+  }
+  if (disc === 1) {
+    if (row.length < 5) return { close: NaN, contradict: true };
+    return { close: Number(row[4]), contradict: false };
+  }
+  if (row.length === 3) return { close: Number(row[1]), contradict: false };
+  if (row.length >= 5) return { close: Number(row[4]), contradict: false };
+  return null;
+}
+
+/**
+ * Honour the artifact `o` discriminator: close-only `{o:0, bars:[[d,close,v]]}` and
+ * candles `{o:1, bars:[[d,o,h,l,c,v]]}`. A body whose `o` contradicts its row shape,
+ * or bars that parse to nothing although bytes arrived, returns null (unreadable).
+ */
 export function parseOhlcBars(body: unknown, opts: { allowNonPositive?: boolean } = {}): CloseSeries | null {
   if (!body || typeof body !== "object") return null;
   const bars = (body as { bars?: unknown }).bars;
   if (!Array.isArray(bars)) return null;
+  const disc = discriminatorOf(body);
   const out: CloseSeries = [];
   for (const row of bars) {
-    if (!Array.isArray(row) || row.length < 5) continue;
+    if (!Array.isArray(row) || row.length < 2) {
+      if (disc !== null) return null;
+      continue;
+    }
     const date = ymd(String(row[0]));
-    const close = Number(row[4]);
-    if (!date || !Number.isFinite(close)) continue;
-    if (!opts.allowNonPositive && !(close > 0)) continue;
+    const parsed = closeFromRow(row as unknown[], disc);
+    if (!parsed) continue;
+    if (parsed.contradict) return null;
+    if (!date) continue;
+    const close = parsed.close;
+    if (!Number.isFinite(close)) {
+      out.push({ date, close: Number.NaN });
+      continue;
+    }
+    if (!opts.allowNonPositive && !(close > 0)) {
+      out.push({ date, close });
+      continue;
+    }
     out.push({ date, close });
   }
-  return out.length ? out : null;
+  if (!out.length) return null;
+  const usable = out.some((p) => Number.isFinite(p.close) && (opts.allowNonPositive || p.close > 0));
+  return usable ? out : null;
 }
 
 function lastDate(series: CloseSeries | null | undefined): string | null {
@@ -297,7 +363,7 @@ function foldHoldings(positions: readonly RiskInputPosition[]): Folded {
 
 export function computePortfolioRiskHistory(
   positions: readonly RiskInputPosition[],
-  ohlcByTicker: Readonly<Record<string, CloseSeries | null | undefined>>,
+  ohlcByTicker: Readonly<Record<string, OhlcBookValue>>,
   spy: CloseSeries | null | undefined,
   rf: RiskFreeSeries | null | undefined,
   options: HistoryComputeOptions = {},
@@ -319,24 +385,40 @@ export function computePortfolioRiskHistory(
   const excluded = [...folded.excluded];
   let extraExcludedCost = 0;
   const returnMaps: { ticker: string; cost: number; map: Map<string, number> }[] = [];
+  const skippedGaps: PortfolioRiskHistory["gaps"] = [];
   let ohlcAsOf: string | null = null;
 
   for (const [ticker, cost] of folded.costByTicker) {
-    const series = ohlcByTicker[ticker];
-    if (!series || series.length < 2) {
+    const raw = ohlcByTicker[ticker];
+    if (raw === "unreadable") {
+      excluded.push({ ticker, reason: "unreadable_price_history" });
+      extraExcludedCost += cost;
+      continue;
+    }
+    const series = raw;
+    if (!series) {
       excluded.push({ ticker, reason: "missing_price_history" });
       extraExcludedCost += cost;
       continue;
     }
-    const asOf = lastDate(series);
+    if (series.length < 2) {
+      excluded.push({ ticker, reason: "unreadable_price_history" });
+      extraExcludedCost += cost;
+      continue;
+    }
+    const asOf = lastDate(series.filter((p) => isUsableClose(p.close)));
     if (asOf && (!ohlcAsOf || asOf > ohlcAsOf)) ohlcAsOf = asOf;
     const map = toReturnMap(series);
     if (map.size < 1) {
-      excluded.push({ ticker, reason: "missing_price_history" });
+      excluded.push({ ticker, reason: "unreadable_price_history" });
       extraExcludedCost += cost;
       continue;
     }
     returnMaps.push({ ticker, cost, map });
+    const skipped = countSkippedSessions(series);
+    for (let i = 0; i < skipped; i++) {
+      skippedGaps.push({ ticker, reason: "skipped_session" });
+    }
   }
 
   const includedCost = returnMaps.reduce((a, r) => a + r.cost, 0);
@@ -352,7 +434,10 @@ export function computePortfolioRiskHistory(
   }
   included.sort((a, b) => b.cost - a.cost || a.ticker.localeCompare(b.ticker));
 
-  const gaps: PortfolioRiskHistory["gaps"] = excluded.map((e) => ({ ticker: e.ticker, reason: e.reason }));
+  const gaps: PortfolioRiskHistory["gaps"] = [
+    ...excluded.map((e) => ({ ticker: e.ticker, reason: e.reason })),
+    ...skippedGaps,
+  ];
 
   const base = {
     schema: SCHEMA,
@@ -384,6 +469,10 @@ export function computePortfolioRiskHistory(
   };
 
   if (!returnMaps.length) {
+    const unreadBook = folded.open > 0;
+    const unreadReason: HistoryMetricReason = unreadBook
+      ? ALL_HOLDINGS_UNREADABLE_REASON
+      : "not enough history";
     return {
       ...base,
       coverageStatus: folded.open === 0 ? "empty" : "unavailable",
@@ -391,16 +480,16 @@ export function computePortfolioRiskHistory(
         firstSession: null,
         lastSession: null,
         n: 0,
-        requested: TRAIL_ALIGNED,
-        minimum: MIN_ALIGNED,
+        requested: trailAligned,
+        minimum: minAligned,
       },
       gaps,
       sharpe: null,
       sortino: null,
       beta: null,
-      sharpeReason: "not enough history",
-      sortinoReason: "not enough history",
-      betaReason: "not enough history",
+      sharpeReason: unreadReason,
+      sortinoReason: unreadReason,
+      betaReason: unreadReason,
     };
   }
 
@@ -414,8 +503,8 @@ export function computePortfolioRiskHistory(
     firstSession: aligned[0] ?? null,
     lastSession: aligned[aligned.length - 1] ?? null,
     n: aligned.length,
-    requested: TRAIL_ALIGNED,
-    minimum: MIN_ALIGNED,
+    requested: trailAligned,
+    minimum: minAligned,
   };
 
   let sharpe: number | null = null;
@@ -561,6 +650,10 @@ const T_EMPTY: Bilingual = {
   en: "There is no open holding to describe yet.",
   zh: "目前没有未平仓持仓可供描述。",
 };
+const T_ALL_UNREADABLE: Bilingual = {
+  en: "We couldn't read price history for any holding in this book yet, so there is nothing to measure.",
+  zh: "我们目前读不到这本账户里任何持仓的价格历史，所以还没有可以衡量的内容。",
+};
 const T_NOT_ENOUGH: Bilingual = {
   en: "There are not enough overlapping trading days yet to describe this book's historical risk. At least 126 aligned sessions are needed.",
   zh: "重叠的交易日还不够，暂时无法描述这本持仓的历史风险。至少需要 126 个对齐的交易日。",
@@ -569,7 +662,6 @@ const T_NOT_ENOUGH: Bilingual = {
 const T_SHARPE: Bilingual = { en: "Sharpe ratio", zh: "夏普比率" };
 const T_SORTINO: Bilingual = { en: "Sortino ratio", zh: "索提诺比率" };
 const T_BETA: Bilingual = { en: "Beta versus SPY", zh: "相对 SPY 的贝塔" };
-const T_CONC: Bilingual = { en: "Biggest holding", zh: "最大的一笔持仓" };
 
 const T_INCLUDED: Bilingual = { en: "Holdings in this picture", zh: "计入这张图的持仓" };
 const T_EXCLUDED: Bilingual = { en: "Holdings left out", zh: "未计入的持仓" };
@@ -581,6 +673,11 @@ const EXCLUDE_COPY: Record<HistoryExcludeReason, Bilingual> = {
   unsized: { en: "no share count or entry price on record", zh: "没有记录数量或买入价。" },
   not_positive: { en: "cost is not positive", zh: "成本不是正数。" },
   missing_price_history: { en: "no daily price history to read", zh: "读不到每日价格历史。" },
+  unreadable_price_history: { en: "We couldn't read this holding's price history.", zh: "我们读不到这只持仓的价格历史。" },
+  skipped_session: {
+    en: "This holding's price history skips a session, so those two days are not joined.",
+    zh: "这只持仓的价格历史跳过了一个交易日，所以我们不会把前后两天连在一起。",
+  },
 };
 
 const METRIC_COPY: Record<HistoryMetricReason, Bilingual> = {
@@ -592,6 +689,7 @@ const METRIC_COPY: Record<HistoryMetricReason, Bilingual> = {
     en: "The three-month Treasury yield could not be read, so this figure cannot be computed. Beta still uses SPY.",
     zh: "暂时读不到三个月期国债收益率，因此无法计算该数字。贝塔仍按 SPY 计算。",
   },
+  [ALL_HOLDINGS_UNREADABLE_REASON]: T_ALL_UNREADABLE,
   "risk-free series is stale": {
     en: "The three-month Treasury yield is more than seven days old, so this figure cannot be computed.",
     zh: "三个月期国债收益率已超过七天未更新，因此无法计算该数字。",
@@ -629,6 +727,7 @@ export function historyCopy(h: PortfolioRiskHistory): {
   standing: Bilingual;
   basis: Bilingual;
   empty: Bilingual | null;
+  unreadBook: Bilingual | null;
   window: Bilingual;
   benchmark: Bilingual;
   riskFree: Bilingual;
@@ -636,7 +735,6 @@ export function historyCopy(h: PortfolioRiskHistory): {
   sharpe: { label: Bilingual; value: Bilingual | null; unread: Bilingual | null };
   sortino: { label: Bilingual; value: Bilingual | null; unread: Bilingual | null };
   beta: { label: Bilingual; value: Bilingual | null; unread: Bilingual | null };
-  concentration: { label: Bilingual; value: Bilingual | null; unread: Bilingual | null };
   includedHeader: Bilingual;
   included: { ticker: string; text: Bilingual }[];
   excludedHeader: Bilingual;
@@ -645,6 +743,7 @@ export function historyCopy(h: PortfolioRiskHistory): {
   gapLines: { ticker: string | null; text: Bilingual }[];
 } {
   const empty = h.counts.open === 0 ? T_EMPTY : null;
+  const unreadBook = h.counts.open > 0 && h.counts.included === 0 ? T_ALL_UNREADABLE : null;
   const window = h.window.n
     ? fill(T_WINDOW, {
       first: h.window.firstSession ?? dash,
@@ -673,23 +772,15 @@ export function historyCopy(h: PortfolioRiskHistory): {
     if (h.counts.open === 0) {
       return { label, value: null as Bilingual | null, unread: null as Bilingual | null };
     }
+    if (unreadBook) {
+      return { label, value: null as Bilingual | null, unread: T_ALL_UNREADABLE };
+    }
     return {
       label,
       value: value == null ? null : { en: fmtNum(value), zh: fmtNum(value) },
       unread: value == null ? (reason ? METRIC_COPY[reason] : T_NOT_ENOUGH) : null,
     };
   };
-
-  const conc = h.concentration?.top1
-    ? {
-      label: T_CONC,
-      value: {
-        en: `${h.concentration.top1.ticker} ${fmtPct(h.concentration.top1.weightPct)}%`,
-        zh: `${h.concentration.top1.ticker} ${fmtPct(h.concentration.top1.weightPct)}%`,
-      },
-      unread: null,
-    }
-    : { label: T_CONC, value: null, unread: { en: "No holding has both a share count and a buy price yet.", zh: "还没有持仓同时记录了数量和买入价。" } };
 
   const gapLines = h.gaps.map((g) => ({
     ticker: g.ticker,
@@ -703,6 +794,7 @@ export function historyCopy(h: PortfolioRiskHistory): {
     standing: T_STANDING,
     basis: T_BASIS,
     empty,
+    unreadBook,
     window,
     benchmark: T_BENCH,
     riskFree,
@@ -710,7 +802,6 @@ export function historyCopy(h: PortfolioRiskHistory): {
     sharpe: metric(T_SHARPE, h.sharpe, h.sharpeReason),
     sortino: metric(T_SORTINO, h.sortino, h.sortinoReason),
     beta: metric(T_BETA, h.beta, h.betaReason),
-    concentration: conc,
     includedHeader: T_INCLUDED,
     included: h.included.map((row) => ({
       ticker: row.ticker,

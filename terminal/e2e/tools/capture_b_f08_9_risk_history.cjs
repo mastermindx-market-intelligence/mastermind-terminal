@@ -277,6 +277,15 @@ async function main() {
     "viewports:",
     "  - { name: desktop, width: 1440, height: 900 }",
     "  - { name: mobile, width: 390, height: 844 }",
+    "harness:",
+    ...files.map((name) => {
+      const state = name.startsWith("populated")
+        ? "populated"
+        : name.startsWith("not-enough-history")
+          ? "not-enough-history"
+          : "empty-book";
+      return `  ${name}: { url: "/portfolio", state: ${state} }`;
+    }),
     "surfaces: [PortfolioRiskHistoryReadout]",
     "capture_flag: TERMINAL_E2E_FIXTURE",
     "capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.",

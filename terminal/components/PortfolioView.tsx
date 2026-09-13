@@ -696,7 +696,7 @@ export function PortfolioRiskHistoryReadout({ history, lang }: { history: Portfo
   const c = historyCopy(history);
   const pick = (b: { en: string; zh: string } | null | undefined) => (b ? (lang === "zh" ? b.zh : b.en) : null);
   const metric = (
-    key: "sharpe" | "sortino" | "beta" | "concentration",
+    key: "sharpe" | "sortino" | "beta",
     card: { label: { en: string; zh: string }; value: { en: string; zh: string } | null; unread: { en: string; zh: string } | null },
   ) => (
     <article className={rh.card} data-card={key}>
@@ -725,11 +725,11 @@ export function PortfolioRiskHistoryReadout({ history, lang }: { history: Portfo
         <p className={rh.metaLine}>{pick(c.asOf)}</p>
       </header>
       {c.empty && <p className={rh.empty} data-testid="risk-history-empty">{pick(c.empty)}</p>}
+      {c.unreadBook && <p className={rh.empty} data-testid="risk-history-unread-book">{pick(c.unreadBook)}</p>}
       <div className={rh.metrics}>
         {metric("sharpe", c.sharpe)}
         {metric("sortino", c.sortino)}
         {metric("beta", c.beta)}
-        {metric("concentration", c.concentration)}
       </div>
       {!!c.included.length && (
         <>

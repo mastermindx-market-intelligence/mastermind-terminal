@@ -54,6 +54,18 @@ function ohlcBody(ticker: string, n = 140, seed = 100) {
   return { t: ticker, o: 1, src: "test", bars: bars(n, "2023-01-02", seed) };
 }
 
+function closeOnlyBars(n: number, start = "2023-01-02", seed = 100): unknown[] {
+  const [y, m, d] = start.split("-").map(Number);
+  const t0 = Date.UTC(y, m - 1, d);
+  const out = [];
+  for (let i = 0; i < n; i++) {
+    const date = new Date(t0 + i * 86400000).toISOString().slice(0, 10);
+    const c = seed * (1 + 0.001 * ((i % 7) - 3));
+    out.push([date, c, 1]);
+  }
+  return out;
+}
+
 describe("GET /api/portfolio/risk-history", () => {
   const key = `rh-route-${Math.random().toString(36).slice(2)}`;
   let calls: Array<{ url: string; init?: RequestInit }> = [];
@@ -213,6 +225,36 @@ describe("GET /api/portfolio/risk-history", () => {
     for (let i = 0; i < 3; i++) await GET();
     const aaa = fetchMock.mock.calls.filter(([url]) => String(url).includes("/ohlc/AAA.json"));
     expect(aaa.length).toBe(1);
+  });
+
+  it("includes a close-only o:0 holding and types a malformed 200 body as unreadable, not missing", async () => {
+    resetOhlcSeriesCache();
+    calls = [];
+    global.fetch = vi.fn(async (url: string, init?: RequestInit) => {
+      calls.push({ url: String(url), init });
+      const path = String(url);
+      if (path.includes("/ohlc/DGS3MO.json") || path.includes("/ohlc/us3m.json")) {
+        return new Response("not found", { status: 404 });
+      }
+      if (path.includes("/ohlc/SPY.json")) {
+        return new Response(JSON.stringify(ohlcBody("SPY", 140, 200)), { status: 200 });
+      }
+      if (path.includes("/ohlc/AAA.json")) {
+        return new Response(JSON.stringify({ t: "AAA", o: 0, bars: closeOnlyBars(140) }), { status: 200 });
+      }
+      if (path.includes("/ohlc/BAD.json")) {
+        return new Response(JSON.stringify({ t: "BAD", o: 0, bars: bars(140) }), { status: 200 });
+      }
+      return new Response("not found", { status: 404 });
+    }) as typeof fetch;
+    await seedOpen(key, "BAD", 4, 25);
+    const res = await GET();
+    const body = await res.json();
+    expect(body.history.included.map((r: { ticker: string }) => r.ticker)).toContain("AAA");
+    expect(body.history.excluded).toEqual(
+      expect.arrayContaining([{ ticker: "BAD", reason: "unreadable_price_history" }]),
+    );
+    expect(body.history.excluded.some((e: { reason: string }) => e.reason === "missing_price_history")).toBe(false);
   });
 
   it("empty book still answers 200 with an empty included list", async () => {

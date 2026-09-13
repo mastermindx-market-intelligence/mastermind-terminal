@@ -85,6 +85,18 @@ describe("fixture stockdata server", () => {
     expect(missing.status).toBe(404);
   });
 
+  it("serves one close-only OHLC name so capture and e2e worlds exercise o:0 bars", async () => {
+    const res = await fetch(`${baseUrl}/ohlc/ZZTB.json`, {
+      headers: { Cookie: `${SESSION_COOKIE_NAME}=${SESSION_COOKIE_VALUE}` },
+    });
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.o).toBe(0);
+    expect(Array.isArray(body.bars)).toBe(true);
+    expect(body.bars[0]).toHaveLength(3);
+    expect(body.bars.length).toBeGreaterThanOrEqual(126);
+  });
+
   it("401s anonymous DGS3MO like SPY, and 404s DGS3MO/us3m once the session cookie is present", async () => {
     const anon = await fetch(`${baseUrl}/ohlc/DGS3MO.json`);
     expect(anon.status).toBe(401);

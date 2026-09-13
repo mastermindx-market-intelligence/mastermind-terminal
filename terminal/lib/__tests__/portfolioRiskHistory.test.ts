@@ -8,10 +8,12 @@ import {
   sortinoRatio,
   betaVsBenchmark,
   computePortfolioRiskHistory,
+  parseOhlcBars,
   historyCopy,
   historyAvailability,
   RF_UNPUBLISHED_REASON,
   RF_UNREADABLE_REASON,
+  ALL_HOLDINGS_UNREADABLE_REASON,
   SCHEMA,
   MIN_ALIGNED,
   TRAIL_ALIGNED,
@@ -115,7 +117,45 @@ describe("formula primitives", () => {
     expect(r.map((x) => x.date)).toEqual(FIX_DATES.slice(1));
     r.forEach((row, i) => expect(row.ret).toBeCloseTo(rA[i], 12));
   });
+
+  it("dailyReturns never spans an invalid middle row — the next valid row starts a new segment", () => {
+    const gapped = [
+      { date: "2024-01-02", close: 100 },
+      { date: "2024-01-03", close: 0 },
+      { date: "2024-01-04", close: 110 },
+      { date: "2024-01-05", close: 121 },
+    ];
+    const r = dailyReturns(gapped);
+    expect(r).toHaveLength(1);
+    expect(r[0].date).toBe("2024-01-05");
+    expect(r[0].ret).toBeCloseTo(121 / 110 - 1, 12);
+    expect(r.some((row) => row.date === "2024-01-04")).toBe(false);
+  });
 });
+
+function candleBody(ticker: string, n: number, seed = 100) {
+  const days = datesFrom("2023-01-02", n);
+  return {
+    t: ticker,
+    o: 1 as const,
+    bars: days.map((d, i) => {
+      const c = seed * (1 + 0.001 * ((i % 7) - 3));
+      return [d, c, c, c, c, 1000];
+    }),
+  };
+}
+
+function closeOnlyBody(ticker: string, n: number, seed = 100) {
+  const days = datesFrom("2023-01-02", n);
+  return {
+    t: ticker,
+    o: 0 as const,
+    bars: days.map((d, i) => {
+      const c = seed * (1 + 0.001 * ((i % 7) - 3));
+      return [d, c, 1000];
+    }),
+  };
+}
 
 describe("5-session hand-computed Sharpe / Sortino / beta", () => {
   it("matches the hand-computed Sharpe, Sortino and beta on the 5-session fixture", () => {
@@ -415,8 +455,151 @@ describe("computePortfolioRiskHistory", () => {
     expect(h.sources.riskFreeSource).toBe("DGS3MO");
     expect(h.included.map((r) => r.ticker)).toEqual(["AAA"]);
     expect(h.excluded.map((r) => r.ticker)).toContain("SHORT");
-    expect(h.window.requested).toBe(252);
-    expect(h.window.minimum).toBe(126);
+    expect(h.window.requested).toBe(5);
+    expect(h.window.minimum).toBe(5);
+  });
+
+  it("window.requested and window.minimum report the resolved options, never the module constants", () => {
+    const h = computePortfolioRiskHistory(
+      [pos("AAA", 10, 10)],
+      { AAA: AAA5 },
+      SPY5,
+      RF5,
+      { minAligned: 5, trailAligned: 5 },
+    );
+    expect(h.window).toEqual(expect.objectContaining({ requested: 5, minimum: 5 }));
+    expect(h.window.requested).not.toBe(TRAIL_ALIGNED);
+    expect(h.window.minimum).not.toBe(MIN_ALIGNED);
+  });
+
+  it("parses a close-only o:0 fixture and includes the holding with the same aligned window as a candle fixture", () => {
+    const closeOnly = parseOhlcBars(closeOnlyBody("AAA", 200));
+    const candle = parseOhlcBars(candleBody("AAA", 200));
+    expect(closeOnly).not.toBeNull();
+    expect(candle).not.toBeNull();
+    expect(closeOnly!.map((p) => p.date)).toEqual(candle!.map((p) => p.date));
+    expect(closeOnly!.map((p) => p.close)).toEqual(candle!.map((p) => p.close));
+    const fromClose = computePortfolioRiskHistory(
+      [pos("AAA", 10, 10)],
+      { AAA: closeOnly },
+      enoughSpy(199),
+      enoughRf(199),
+      { minAligned: 126, trailAligned: 252 },
+    );
+    const fromCandle = computePortfolioRiskHistory(
+      [pos("AAA", 10, 10)],
+      { AAA: candle },
+      enoughSpy(199),
+      enoughRf(199),
+      { minAligned: 126, trailAligned: 252 },
+    );
+    expect(fromClose.included.map((r) => r.ticker)).toEqual(["AAA"]);
+    expect(fromClose.excluded).toEqual([]);
+    expect(fromClose.window.n).toBe(fromCandle.window.n);
+    expect(fromClose.window.firstSession).toBe(fromCandle.window.firstSession);
+    expect(fromClose.window.lastSession).toBe(fromCandle.window.lastSession);
+    expect(fromClose.sharpe).toBeCloseTo(fromCandle.sharpe!, 10);
+  });
+
+  it("a candle o:1 fixture still parses close at index 4", () => {
+    const parsed = parseOhlcBars({
+      t: "AAA",
+      o: 1,
+      bars: FIX_DATES.map((d, i) => [d, AAA_CLOSE[i] - 1, AAA_CLOSE[i] + 1, AAA_CLOSE[i] - 2, AAA_CLOSE[i], 10]),
+    });
+    expect(parsed).toEqual(AAA5);
+  });
+
+  it("aligns and computes a mixed book of one o:0 name and one o:1 name", () => {
+    const aaa = parseOhlcBars(closeOnlyBody("AAA", 140, 100));
+    const bbb = parseOhlcBars(candleBody("BBB", 140, 50));
+    expect(aaa).not.toBeNull();
+    expect(bbb).not.toBeNull();
+    const h = computePortfolioRiskHistory(
+      [pos("AAA", 10, 10), pos("BBB", 2, 50)],
+      { AAA: aaa, BBB: bbb },
+      enoughSpy(139),
+      enoughRf(139),
+    );
+    expect(h.included.map((r) => r.ticker).sort()).toEqual(["AAA", "BBB"]);
+    expect(h.counts.included).toBe(2);
+    expect(h.window.n).toBeGreaterThanOrEqual(MIN_ALIGNED);
+    expect(h.sharpe).not.toBeNull();
+    expect(h.beta).not.toBeNull();
+  });
+
+  it("types a malformed body as unreadable_price_history, never missing_price_history", () => {
+    const contradict = parseOhlcBars({
+      t: "AAA",
+      o: 0,
+      bars: FIX_DATES.map((d, i) => [d, 100, 101, 99, AAA_CLOSE[i], 10]),
+    });
+    expect(contradict).toBeNull();
+    const emptyBars = parseOhlcBars({ t: "AAA", o: 1, bars: [] });
+    expect(emptyBars).toBeNull();
+    const h = computePortfolioRiskHistory(
+      [pos("AAA", 10, 10)],
+      { AAA: "unreadable" },
+      null,
+      null,
+      { minAligned: 5, trailAligned: 5 },
+    );
+    expect(h.excluded).toEqual([{ ticker: "AAA", reason: "unreadable_price_history" }]);
+    expect(h.excluded.some((e) => e.reason === "missing_price_history")).toBe(false);
+    const copy = historyCopy(h);
+    expect(copy.excluded[0].text.en).toBe("We couldn't read this holding's price history.");
+    expect(copy.excluded[0].text.zh).toBe("我们读不到这只持仓的价格历史。");
+    expect(copy.excluded[0].text.en).not.toMatch(/no daily price history/i);
+  });
+
+  it("when every open holding is excluded, the headline is the read-failure sentence, not short history", () => {
+    const h = computePortfolioRiskHistory(
+      [pos("NVDA", 25, 10)],
+      { NVDA: "unreadable" },
+      null,
+      null,
+      { minAligned: 5, trailAligned: 5 },
+    );
+    expect(h.counts.open).toBe(1);
+    expect(h.counts.included).toBe(0);
+    expect(h.sharpeReason).toBe(ALL_HOLDINGS_UNREADABLE_REASON);
+    expect(h.sortinoReason).toBe(ALL_HOLDINGS_UNREADABLE_REASON);
+    expect(h.betaReason).toBe(ALL_HOLDINGS_UNREADABLE_REASON);
+    expect(h.sharpeReason).not.toBe("not enough history");
+    const c = historyCopy(h);
+    expect(c.unreadBook?.en).toBe(
+      "We couldn't read price history for any holding in this book yet, so there is nothing to measure.",
+    );
+    expect(c.unreadBook?.zh).toBe(
+      "我们目前读不到这本账户里任何持仓的价格历史，所以还没有可以衡量的内容。",
+    );
+    expect(c.sharpe.unread?.en).toBe(c.unreadBook?.en);
+    expect(c.empty).toBeNull();
+    expect(JSON.stringify(c)).not.toContain("At least 126 aligned sessions");
+    expect(JSON.stringify(c)).not.toContain("至少需要 126 个对齐的交易日");
+  });
+
+  it("counts a skipped invalid middle row as a printed gap and does not join across it", () => {
+    const gapped = [
+      { date: "2024-01-02", close: 100 },
+      { date: "2024-01-03", close: 0 },
+      { date: "2024-01-04", close: 110 },
+      { date: "2024-01-05", close: 121 },
+      { date: "2024-01-08", close: 130 },
+      { date: "2024-01-09", close: 140 },
+    ];
+    expect(dailyReturns(gapped)).toHaveLength(3);
+    const h = computePortfolioRiskHistory(
+      [pos("AAA", 10, 10)],
+      { AAA: gapped },
+      SPY5,
+      RF5,
+      { minAligned: 1, trailAligned: 5 },
+    );
+    expect(h.included.map((r) => r.ticker)).toEqual(["AAA"]);
+    expect(h.window.n).toBe(3);
+    expect(h.gaps.filter((g) => g.reason === "skipped_session")).toHaveLength(1);
+    expect(h.gaps.length).toBeGreaterThanOrEqual(1);
   });
 });
 
@@ -490,12 +673,15 @@ describe("historyCopy — plain EN/ZH, no machine text, no grade", () => {
     );
     const c = historyCopy(h);
     expect(c.empty).toBeNull();
+    expect(c.unreadBook?.en).toMatch(/couldn't read price history for any holding/i);
     expect(c.sharpe.unread).not.toBeNull();
+    expect(c.sharpe.unread?.en).toBe(c.unreadBook?.en);
     expect(c.excluded.map((row) => row.ticker)).toContain("NVDA");
     expect(c.excluded[0].text.en).toMatch(/no daily price history/i);
     const blob = JSON.stringify(c);
     expect(blob).not.toContain("There is no open holding to describe yet.");
     expect(blob).not.toContain("目前没有未平仓持仓可供描述。");
+    expect(blob).not.toContain("At least 126 aligned sessions");
   });
 
   it("uses a singular English gap sentence when there is one gap", () => {

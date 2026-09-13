@@ -67,7 +67,7 @@ describe("PortfolioRiskHistoryReadout", () => {
   beforeEach(() => { unmount(); });
   afterEach(() => { unmount(); });
 
-  it("prints Sharpe, Sortino, beta and concentration in both languages without a grade", () => {
+  it("prints Sharpe, Sortino and beta in both languages without a grade or a second concentration tile", () => {
     const en = mount();
     expect(en.getAttribute("data-testid") || en.querySelector("[data-testid='portfolio-risk-history']")).toBeTruthy();
     const text = en.textContent ?? "";
@@ -75,7 +75,9 @@ describe("PortfolioRiskHistoryReadout", () => {
     expect(text).toContain("Sharpe ratio");
     expect(text).toContain("Sortino ratio");
     expect(text).toContain("Beta versus SPY");
-    expect(text).toContain("Biggest holding");
+    expect(text).not.toContain("Biggest holding");
+    expect(en.querySelector("[data-card='concentration']")).toBeNull();
+    expect(en.querySelectorAll("[data-card]").length).toBe(3);
     expect(text).toMatch(/not realized account/);
     expect(text.toLowerCase()).not.toContain("falsifier");
     unmount();
@@ -84,6 +86,7 @@ describe("PortfolioRiskHistoryReadout", () => {
     expect(zhText).toContain("今日持仓的历史风险特征");
     expect(zhText).toContain("夏普比率");
     expect(zhText).toContain("索提诺比率");
+    expect(zhText).not.toContain("最大的一笔持仓");
     expect(zhText).toMatch(/[，。]/);
   });
 
@@ -108,8 +111,34 @@ describe("PortfolioRiskHistoryReadout", () => {
     expect(el.textContent).toContain("Holdings left out");
     expect(el.textContent).toContain("NVDA");
     expect(el.textContent).toContain("no daily price history to read");
-    expect(el.textContent).toContain("Biggest holding");
-    expect(el.querySelector("[data-card='sharpe']")?.textContent).toMatch(/126|price history|three-month|not enough/i);
+    expect(el.textContent).not.toContain("Biggest holding");
+    expect(el.querySelector("[data-testid='risk-history-unread-book']")?.textContent).toContain(
+      "We couldn't read price history for any holding in this book yet",
+    );
+    expect(el.querySelector("[data-card='sharpe']")?.textContent).toMatch(/couldn't read price history for any holding/i);
+    unmount();
+    const zh = mount(h, "zh");
+    expect(zh.querySelector("[data-testid='risk-history-unread-book']")?.textContent).toContain(
+      "我们目前读不到这本账户里任何持仓的价格历史",
+    );
+    expect(zh.textContent).toContain("读不到每日价格历史。");
+  });
+
+  it("prints unreadable_price_history in plain words in both languages", () => {
+    const h = computePortfolioRiskHistory(
+      [pos("AAA", 10, 10), pos("BBB", 2, 50)],
+      { AAA: AAA, BBB: "unreadable" },
+      SPY,
+      RF,
+      { minAligned: 5, trailAligned: 5 },
+    );
+    const en = mount(h);
+    expect(en.textContent).toContain("We couldn't read this holding's price history.");
+    expect(en.textContent).not.toContain("unreadable_price_history");
+    expect(en.textContent).not.toContain("no daily price history to read");
+    unmount();
+    const zh = mount(h, "zh");
+    expect(zh.textContent).toContain("我们读不到这只持仓的价格历史。");
   });
 
   it("shows the not-enough-history sentence when N is below 126", () => {

@@ -7,6 +7,7 @@ import {
   computePortfolioRiskHistory,
   parseOhlcBars,
   type CloseSeries,
+  type OhlcBookValue,
   type RiskFreeSeries,
 } from "@/lib/portfolioRiskHistory";
 import { tickerKey } from "@/lib/portfolioRisk";
@@ -141,13 +142,19 @@ async function fetchOhlc(
   );
 }
 
+function bookValueOf(got: OhlcFetch): OhlcBookValue {
+  if (got.kind === "read") return got.series;
+  if (got.kind === "missing") return null;
+  return "unreadable";
+}
+
 async function fetchMany(
   tickers: readonly string[],
   cookieHeader: string | null,
-): Promise<Record<string, CloseSeries | null>> {
+): Promise<Record<string, OhlcBookValue>> {
   const unique = [...new Set(tickers.map((t) => t.toUpperCase()))];
   const attempted = unique.slice(0, ARTIFACT_FANOUT_CAP);
-  const out: Record<string, CloseSeries | null> = {};
+  const out: Record<string, OhlcBookValue> = {};
   for (const t of unique.slice(ARTIFACT_FANOUT_CAP)) out[t] = null;
 
   let i = 0;
@@ -156,7 +163,7 @@ async function fetchMany(
       const idx = i++;
       const ticker = attempted[idx];
       const got = await fetchOhlc(ticker, cookieHeader);
-      out[ticker] = got.kind === "read" ? got.series : null;
+      out[ticker] = bookValueOf(got);
     }
   }
   await Promise.all(Array.from({ length: Math.min(ARTIFACT_CONCURRENCY, attempted.length || 1) }, worker));
@@ -211,7 +218,7 @@ export async function GET() {
     wanted.add(tickerKey(p.ticker));
   }
 
-  let ohlcByTicker: Record<string, CloseSeries | null> = {};
+  let ohlcByTicker: Record<string, OhlcBookValue> = {};
   let spy: CloseSeries | null = null;
   let rf: RiskFreeSeries | null = null;
   let riskFreeStatus: "published" | "unpublished" | "unreadable" = "unpublished";

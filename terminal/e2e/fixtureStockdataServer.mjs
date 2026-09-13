@@ -61,6 +61,17 @@ function ohlcBars(n, seed) {
   return bars;
 }
 
+function ohlcCloseOnlyBars(n, seed) {
+  const start = Date.UTC(2025, 0, 2);
+  const bars = [];
+  for (let i = 0; i < n; i++) {
+    const date = new Date(start + i * 86400000).toISOString().slice(0, 10);
+    const c = seed * (1 + 0.002 * Math.sin(i / 8));
+    bars.push([date, c, 1000]);
+  }
+  return bars;
+}
+
 export function startFixtureStockdataServer(port = 0) {
   const server = createServer((req, res) => {
     const url = new URL(req.url ?? "/", "http://127.0.0.1");
@@ -100,6 +111,11 @@ export function startFixtureStockdataServer(port = 0) {
     const n = ticker === "THIN" ? 20 : 140;
     const seed = ticker === "SPY" ? 200 : 100;
     res.writeHead(200, { "content-type": "application/json" });
+    // ZZTB is the close-only name so capture and e2e worlds exercise `{o:0, bars:[[d,close,v]]}`.
+    if (ticker === "ZZTB") {
+      res.end(JSON.stringify({ t: ticker, o: 0, src: "breadth", bars: ohlcCloseOnlyBars(n, seed) }));
+      return;
+    }
     res.end(JSON.stringify({ t: ticker, o: 1, src: "fixture", bar_quality: "real_ohlc", bars: ohlcBars(n, seed) }));
   });
 
