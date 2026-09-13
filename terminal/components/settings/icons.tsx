@@ -100,6 +100,16 @@ export function IconSharing() {
     </svg>
   );
 }
+/** Portfolio targets — a target with a tick, the same job as "your weight targets and drift". */
+export function IconPortfolioTargets() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" {...S}>
+      <circle cx="12" cy="12" r="8.5" />
+      <circle cx="12" cy="12" r="4.5" />
+      <circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
 export function IconSignOut() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" {...S} strokeWidth={1.8}>
