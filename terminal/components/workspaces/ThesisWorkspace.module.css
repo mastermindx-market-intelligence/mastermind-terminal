@@ -52,6 +52,22 @@
 .form input:focus, .form textarea:focus, .form select:focus { outline: 2px solid color-mix(in srgb, var(--brand) 55%, transparent); outline-offset: 1px; }
 .form input:disabled, .form textarea:disabled, .form select:disabled { opacity: .72; background: color-mix(in srgb, var(--panel) 55%, transparent); }
 .full { grid-column: 1 / -1 !important; }
+.assistantNotes, .proposals { margin: 0 0 22px; padding: 16px; border: 1px solid var(--line); border-radius: 10px; background: color-mix(in srgb, var(--panel-2) 70%, transparent); }
+.assistantNotes label, .proposals label { display: grid; gap: 6px; color: var(--muted); font-size: 11px; font-weight: 700; }
+.assistantNotes textarea { width: 100%; min-width: 0; border: 1px solid var(--line); border-radius: 8px; padding: 10px 11px; color: var(--text); background: var(--panel); font: 13px/1.45 var(--font-ui); resize: vertical; }
+.assistantNotes textarea:focus { outline: 2px solid color-mix(in srgb, var(--brand) 55%, transparent); outline-offset: 1px; }
+.assistantNotes .actions { margin-top: 12px; }
+.proposalsCeiling { margin: 0 0 12px; color: var(--text-2); font-size: 13px; line-height: 1.55; }
+.proposalCard { display: grid; gap: 8px; padding: 12px 0; border-bottom: 1px solid color-mix(in srgb, var(--line) 72%, transparent); }
+.proposalCard:last-child { border-bottom: 0; padding-bottom: 0; }
+.proposalBody { margin: 0; font-size: 13px; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; }
+.proposalMeta { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.proposalMeta i { font-style: normal; font-size: 11px; font-weight: 700; color: var(--brand-2); }
+.proposalMeta i[data-state="accepted"] { color: var(--regime-up); }
+.proposalMeta i[data-state="rejected"] { color: var(--danger); }
+.proposalMeta i[data-state="superseded"] { color: var(--muted); }
+.proposalMeta time { color: var(--muted); font-size: 11px; }
+.proposalActions { display: flex; flex-wrap: wrap; gap: 8px; }
 .history { margin-top: 26px; padding-top: 20px; border-top: 1px solid var(--line); }
 .historyHeading { margin-bottom: 10px; }
 .history article { padding: 12px 4px; border-bottom: 1px solid color-mix(in srgb, var(--line) 72%, transparent); }
@@ -141,6 +157,8 @@
   .form label { margin-bottom: 13px; }
   .actions { display: grid; grid-template-columns: 1fr 1fr; }
   .actions button:first-child:last-child { grid-column: 1 / -1; }
+  .assistantNotes, .proposals { padding: 12px 10px; }
+  .proposalActions { display: grid; grid-template-columns: 1fr 1fr; }
   .historySummary { grid-template-columns: 1fr auto; }
   .historySummary > div, .historySummary time, .historySummary strong, .historySummary p { grid-column: 1; }
   .historySummary > button { grid-column: 2; grid-row: 1 / span 4; align-self: stretch; }
