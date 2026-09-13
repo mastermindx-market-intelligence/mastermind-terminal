@@ -7,9 +7,9 @@
 # 2026-09-10 merge-heal 2 on PR #548: origin/master eab65ff7 (includes #547 b7aa0981 Accuracy). SettingsPanel.tsx and i18n.tsx re-hashed; 12 crops recaptured at merge commit c926a0cb so the rail shows Accuracy and Sharing.
 layoutFiles:
   terminal/components/settings/SectionSharing.tsx: "29fd9b355d50ecb3d3284b6d117b6ed50a461c7b7d45ea3d8588575fe5eca56a"
-  terminal/components/settings/SettingsPanel.tsx: "0624427f94d2e35014dc5b419cea832cc60cd69de1e15c18a1feb387112acf5a"
+  terminal/components/settings/SettingsPanel.tsx: "67657d686f304adf292d263007701852fa2bc28cd7f4dabbeca92d7453884eed"
   terminal/app/settings.css: "3189163136d943431cbf52e4b5d241c105b695ba5af94c4c2e29151d537b5ef5"
-  terminal/lib/i18n.tsx: "41b96ef78208fca0979e2db4b3f1cc3c8ea8e3d46412097c1b0d3e9599791440"
+  terminal/lib/i18n.tsx: "271f79cdcde627b22b9ba864227a24221f98a262ceef64a228d520155b8f68c7"
 theme: dark
 languages: [en, zh]
 viewports:

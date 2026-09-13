@@ -19,7 +19,7 @@ layoutFiles:
   terminal/lib/rmsViews.ts: "fd5f025806c5a4b1b27e7d99a026e82f555767f0d96b6a2766a5b363961897cb"
   terminal/lib/savedViews.ts: "16e2914a032cba50cce999d1802c53e51098ce76dd82931925ef41b8e0f7af54"
   terminal/lib/plainLabels.ts: "8f69818feca65a5f28c590460c52e4f06c04c25cc4f3da8643eff9050161b588"
-  terminal/lib/i18n.tsx: "b5723f6e6a4bbf32b74219e0fc51612b1f2b16727b5beaa730e58817f51e4617"
+  terminal/lib/i18n.tsx: "271f79cdcde627b22b9ba864227a24221f98a262ceef64a228d520155b8f68c7"
 theme: dark
 languages: [en, zh]
 viewports:

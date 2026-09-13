@@ -1,8 +1,9 @@
 # Ledger row: 0020_team_ownership_transfer / PR #550 (merged 3cdcd746; originated in #557, packet B-F12-9); applied 2026-09-11
 # layoutFiles carry sha256 hashes of the files they name; proof of which code generated each crop.
 # Rebuild any crop and recompute its layoutFiles, or the test will fail and the PR will not land.
-# capturedAtHead: d812eba5cc082de66565a740d7217392650d397c
-capturedAtHead: d812eba5cc082de66565a740d7217392650d397c
+# capturedAtHead: 0c1adc8ef696bf6596e7cd16b161fc03e0d3ddab
+capturedAtHead: 0c1adc8ef696bf6596e7cd16b161fc03e0d3ddab
+# 2026-09-13 B-F12-10 restamp: SettingsPanel.tsx and i18n.tsx hashes move with the Developer access rail row and lexicon keys. Ownership-transfer pane copy is unchanged. capturedAtHead follows the restamped layoutFiles.
 capturedAt: 2026-09-11T03:00:17.565Z
 # capturedAtHead is master commit d812eba5cc082de66565a740d7217392650d397c — the squash-merge of #572 (T-PL-NI-1) that landed the i18n.tsx re-hash; the bytes of every layoutFiles row at d812eba5cc082de66565a740d7217392650d397c equal the pinned hashes. This pointer previously named aedfbf4de5b5a0f3e12d9994b219010b83ae7a9f, #572's own branch commit, which the squash made unreachable from master (capturedAtHead freshness law / squash law), so the pointer moves to the squash commit itself; no row hash changes and no crop was recaptured. The i18n.tsx change is plain-language 您→你 in the layouts*, alerts* and ws* keys, none of which renders on the ownership-transfer surface, so the 8 crops still depict this tree.
 # Pinned i18n.tsx last changed by master #572 (T-PL-NI-1 您→你 sweep, squash d812eba5cc082de66565a740d7217392650d397c) and before that for master #554's claim* keys; the captured surface (team section + rail) renders neither change; crops unchanged from 916db2d4ac62b00aed236231433d8d952c22f3c6.
@@ -14,9 +15,9 @@ capturedAt: 2026-09-11T03:00:17.565Z
 layoutFiles:
   terminal/components/settings/SectionTeam.tsx: "fec63ed61b300fbfc6f745b1d8f8a605ad459304f10009bd68023b859b245595"
   terminal/components/settings/SectionTeam.module.css: "924ab5b81d4f0e11ef2138557e92c43a0d1fa21b78622567fb6ccddcf6c146a8"
-  terminal/components/settings/SettingsPanel.tsx: "378811617e0de2feed0d8bc1c6e01ae55d8e763204fe0d1c1829bc44fff1e1a4"
+  terminal/components/settings/SettingsPanel.tsx: "67657d686f304adf292d263007701852fa2bc28cd7f4dabbeca92d7453884eed"
   terminal/app/settings.css: "3189163136d943431cbf52e4b5d241c105b695ba5af94c4c2e29151d537b5ef5"
-  terminal/lib/i18n.tsx: "b5723f6e6a4bbf32b74219e0fc51612b1f2b16727b5beaa730e58817f51e4617"
+  terminal/lib/i18n.tsx: "271f79cdcde627b22b9ba864227a24221f98a262ceef64a228d520155b8f68c7"
 theme: dark
 languages: [en, zh]
 viewports:

@@ -246,6 +246,16 @@
       "applied_in_production": true,
       "applied_date": "2026-09-13",
       "note": "portfolio target weights + bands, user-typed, RLS own-row; ships UNAPPLIED -- the builder never runs DDL against production and the seat applies with receipts. Merged to master 2026-09-10T15:19Z via merge-on-green (#552). Applied in production 2026-09-13T06:57:13Z by the seat, after 0019/0020/0021/0022 in ledger order; readback receipt held in the seat's handoff kit at ddl/receipt_0023.json; the project ref is never written."
+    },
+    "0024": {
+      "state": "taken",
+      "file": "0024_api_keys.sql",
+      "packet": "B-F12-10",
+      "pr": 580,
+      "pr_state": "open",
+      "applied_in_production": false,
+      "applied_date": null,
+      "note": "personal read-only API keys (packet B-F12-10, MO-PAID-055). Claimed per claim_before_you_write as the next free prefix after 0023. Shipped UNAPPLIED — the builder never runs DDL against production; the seat applies with a receipt. pr number is the owning draft pull request; flip to merged and record merged_sha when it lands. applied_in_production is false and applied_date is null, not recorded because there is no application yet, never because a real date was lost."
     }
   }
 }
