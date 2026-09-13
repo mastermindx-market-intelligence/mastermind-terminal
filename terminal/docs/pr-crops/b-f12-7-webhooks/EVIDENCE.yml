@@ -1,19 +1,18 @@
 # B-F12-7 Outbound signed webhooks — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 28761bfff33fbab17decacfaaf62c53bac4d5a5b
-# capturedAt: 2026-09-11T02:58:28.624Z
+# capturedAtHead: cc990b157fba64c5e9cd47d273ea6a9014cb056a
+# capturedAt: 2026-09-13T21:23:03.880Z
 # capturedAtHead is informational. The lock is layoutFiles.
 # layoutFiles are packet-local and ARE asserted by
 # terminal/lib/__tests__/f12_7WebhooksEvidence.test.ts. informationalFiles
 # are recorded for provenance only: terminal/lib/i18n.tsx is the repo-wide
 # bilingual lexicon every UI packet extends, and asserting it here would
 # redden master for unrelated LEX-adding work.
-# 2026-09-11 merge of master e43733c1 (#548 explicit grants + #566 ledger flip) into B-F12-8 (#550): 18 crops recaptured at merge commit 916db2d4ac62b00aed236231433d8d952c22f3c6 so the rail shows the merged 11 rows (account, team, accuracy, billing, usage, prefs, alertDelivery, terminal, sync, webhooks, sharing). This supersedes every earlier crops-unchanged / no-crop-recaptured line in this header.
-# 2026-09-13 B-F12-11 packet (MO-PAID-056 + MO-DELTA-038): SectionWebhooks.tsx and webhookLabels.ts changed to add the rotate-secret button + key-version line + alert-fires chip + consent group; the layout sha256s below are updated to those of the B-F12-11 commit. Crops themselves were NOT regenerated here; they are the same 18 PNGs the seat reviewed under B-F12-7 and remain visually accurate for the four base states (empty/populated/secret/ssrf) plus failed. The new rotated-state and the alert-fires chip in populated are captured separately under docs/pr-crops/b-f12-11-signed-webhooks/.
+# 2026-09-13 B-F12-11 (#582): SectionWebhooks.tsx and webhookLabels.ts changed (alert-fire subscription, consent row, rotate secret, send again); 18 crops recaptured at cc990b157fba64c5e9cd47d273ea6a9014cb056a.
 layoutFiles:
-  terminal/components/settings/SectionWebhooks.tsx: "587d900cc5dbd41c991a7fcb7ded16771a7c405ee90ab8c127f9b4a6d27a0b4a"
-  terminal/lib/webhookLabels.ts: "c0753b971c04715d103878c9a1142b76efda5f9d0994604d16eca016e91aeffc"
+  terminal/components/settings/SectionWebhooks.tsx: "bbb1e9e1cefe8aa3774830716a358f76d3ffbad59f6c56287b3f45b272b83305"
+  terminal/lib/webhookLabels.ts: "cb9bef9d4bdf7d3d830a12cec7025863e9bb528f230c3ca757fd7f5a8ad39c9d"
   terminal/lib/webhookUrl.ts: "e1928132afa22ba3f3f5c5ad00c1f5cd7c66eee06a95ad49e6d25008117e18cf"
   terminal/components/settings/SettingsPanel.tsx: "378811617e0de2feed0d8bc1c6e01ae55d8e763204fe0d1c1829bc44fff1e1a4"
   terminal/components/settings/icons.tsx: "3bcda36b25a736f7c957151d3c7cee4e7946967e253c4753f0ac7cdb1e5e4ab2"
