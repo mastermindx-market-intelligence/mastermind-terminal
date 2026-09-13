@@ -1,0 +1,36 @@
+# B-F12-11 Outbound signed webhooks: signature, retry, dedupe, producer wiring — capture evidence
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
+# capturedAtHead: 28761bfff33fbab17decacfaaf62c53bac4d5a5b
+# capturedAtHead is informational. The lock is layoutFiles.
+# layoutFiles are packet-local and ARE asserted by
+# terminal/lib/__tests__/f12_11SignedWebhooksEvidence.test.ts. informationalFiles
+# are recorded for provenance only: terminal/lib/i18n.tsx is the repo-wide
+# bilingual lexicon every UI packet extends, and asserting it here would
+# redden master for unrelated LEX-adding work.
+layoutFiles:
+  terminal/components/settings/SectionWebhooks.tsx: "587d900cc5dbd41c991a7fcb7ded16771a7c405ee90ab8c127f9b4a6d27a0b4a"
+  terminal/lib/webhookLabels.ts: "c0753b971c04715d103878c9a1142b76efda5f9d0994604d16eca016e91aeffc"
+informationalFiles:
+  asserted: false
+  terminal/lib/i18n.tsx: "b5723f6e6a4bbf32b74219e0fc51612b1f2b16727b5beaa730e58817f51e4617"
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: mobile, width: 390, height: 844 }
+harness: /dev/settings?s=webhooks&lang=<en|zh>
+capture_flag: TERMINAL_E2E_FIXTURE
+capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.
+command: |
+  cd terminal
+  node e2e/tools/capture_f12_11_webhooks.cjs
+files:
+  - desktop-en-populated.png
+  - desktop-en-rotated.png
+  - desktop-zh-populated.png
+  - desktop-zh-rotated.png
+  - mobile-en-populated.png
+  - mobile-en-rotated.png
+  - mobile-zh-populated.png
+  - mobile-zh-rotated.png

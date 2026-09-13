@@ -79,14 +79,15 @@ function packetTestFiles(): string[] {
 describe("B-F12-7 evidence lock is the sha256 of the layout sources", () => {
   it("no test file this packet adds imports a process spawner", () => {
     const files = packetTestFiles();
-    // Exact packet test-file count at this head: 15 lib/__tests__ files matching
+    // Exact packet test-file count at this head: 16 lib/__tests__ files matching
     // webhook*|f12_7Webhooks* (the packet's 13 plus
-    // webhookDeliveryLedgerContract.test.ts, plus
-    // webhookRotationMigrationContract.test.ts from B-F12-11), plus
+    // webhookDeliveryLedgerContract.test.ts, plus the three B-F12-11 additions —
+    // webhookRotationMigrationContract.test.ts, webhookRotationLedgerContract.test.ts,
+    // and webhooksRoute.test.ts for the rotate/requeue/opt-in routes), plus
     // SectionWebhooks.test.tsx (globbed from components/settings/__tests__),
-    // plus the e2e spec = 17. An equality keeps a broken glob from passing
+    // plus the e2e spec = 18. An equality keeps a broken glob from passing
     // vacuously and keeps this file from being omitted from the scan.
-    expect(files.length).toBe(17);
+    expect(files.length).toBe(18);
     expect(files.some((abs) => abs.endsWith("components/settings/__tests__/SectionWebhooks.test.tsx"))).toBe(true);
     for (const abs of files) {
       expect(existsSync(abs), `${abs} is expected to exist`).toBe(true);

@@ -543,8 +543,13 @@ describe("B-F12-11 alert-fire subscription, rotate, send-again, consent", () => 
     });
     await flush();
     await flush();
+    await flush();
+    // The secret is rendered into the read-only input's value, not textContent — query the
+    // input directly. The rotate-help sentence and the version line are both plain text.
+    const secretInput = el.querySelector("input.acs-in[readonly]") as HTMLInputElement | null;
+    expect(secretInput, "the once-only secret input must be mounted after rotate").not.toBeNull();
+    expect(secretInput!.value).toBe("whsec_rotated_once");
     const text = el.textContent || "";
-    expect(text).toContain("whsec_rotated_once");
     expect(text).toContain(webhookCopy("rotateHelp", "en"));
     expect(text).toContain(webhookCopy("secretOnce", "en"));
     expect(text).toContain(webhookKeyVersionLine(2, SUBSCRIBED.secretRotatedAt, "en"));
