@@ -1,12 +1,12 @@
 # B-F08-9 Historical risk of today's book — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: f05dd98272e138264e812f02e5d12f2561dd6f0b
-# capturedAt: 2026-09-13T05:07:13.130Z
+# capturedAtHead: 73907fd874082b0edbf8bc581d25aae56b66829f
+# capturedAt: 2026-09-13T06:04:10.923Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/components/PortfolioView.tsx: "8503bf6d1ea87afdb1b26cc30c7201db036c6f451dc68ab8d16a2b82d6d3da5a"
-  terminal/lib/portfolioRiskHistory.ts: "3975bba3537486c739a4a6dcbe4027bd6eead8ad25723b79471a28ae8849ed77"
+  terminal/lib/portfolioRiskHistory.ts: "683c4baac69285eca03fcceedce527785c398d9eec76d9169548ec30fe13f37e"
   terminal/components/PortfolioRiskHistory.module.css: "6eeadc0dc1dd1dd2bb09680c001ca7a7466cd78a60dc82f466873b78e22e5d70"
 theme: dark
 languages: [en, zh]
