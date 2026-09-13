@@ -136,6 +136,7 @@ import { OnboardingProvider } from "@/components/onboarding/OnboardingProvider";
 import DrawingSidebar from "@/components/DrawingSidebar";
 import DayRange from "@/components/DayRange";
 import { useT, useLang } from "@/lib/i18n";
+import BriefSubscribeControls from "@/components/briefs/BriefSubscribeControls";
 import { displayName } from "@/lib/markets";
 import { useFromMacro, backToMacro } from "@/lib/originNav";
 import { getJSON, prefetch, loadCoverage } from "@/lib/dataCache";
@@ -5642,6 +5643,13 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
                 {([["symbol", t("dispSymbol")], ["name", t("dispName")], ["both", t("dispBoth")]] as [string, string][]).map(([d, l]) => <div key={d} className={`set-row${set.disp === d ? " on" : ""}`} onClick={() => setSet((s) => ({ ...s, disp: d }))}><span className="rdo" />{l}</div>)}
               </div>
             </div>
+              {loggedIn && (
+                <BriefSubscribeControls
+                  targetKind="watchlist"
+                  listName={activeList}
+                  lang={lang === "zh" ? "zh" : "en"}
+                />
+              )}
             <div className="wl-scroll">
               <div className="wl-cols" style={{ gridTemplateColumns: wlGrid, minWidth: wlMinW }}>
                 <span className="wl-col">{t("symbol")}<i className="wl-rz" title={t("resizeCol")} onMouseDown={(e) => startResize("sym", e)} /></span>
