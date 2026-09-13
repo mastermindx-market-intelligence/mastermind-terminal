@@ -64,17 +64,18 @@ export default function BriefsInbox({ lang }: { lang: BriefLang }) {
             return (
               <div
                 key={row.deliveryId}
-                className={s.row}
+                className={b.briefRow}
+                data-brief-row=""
                 data-brief-miss={miss ? "true" : undefined}
                 data-brief-pinned={row.pinned ? "true" : undefined}
               >
-                <span className={s.subject}>{name}</span>
-                <span className={s.time}>{row.slotAsof}</span>
+                <span className={b.briefName} data-brief-name="">{name}</span>
+                <span className={b.briefDate} data-brief-date="">{row.slotAsof}</span>
                 {row.pinned && <span className={b.pinned}>{briefCopy("lastGood", L)}</span>}
                 {miss ? (
-                  <span className={b.sentence}>{degradedLine(row.subscription.cadence, L)}</span>
+                  <span className={b.sentence} data-brief-sentence="">{degradedLine(row.subscription.cadence, L)}</span>
                 ) : (
-                  <span className={b.sentence}>
+                  <span className={b.sentence} data-brief-sentence="">
                     {sentences.join(" ")}
                     {body ? ` · ${monitorsSummary(body, L)}` : ""}
                   </span>

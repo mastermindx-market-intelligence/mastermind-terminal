@@ -53,4 +53,15 @@ describe("briefs copy is a plain sentence in EN and ZH", () => {
     const src = readFileSync(join(__dirname, "../briefs.ts"), "utf8");
     expect(src).not.toContain("您");
   });
+
+  it("409 duplicate copy is a plain sentence, not 对象 or 节奏", () => {
+    expect(BRIEFS_ROUTE_MESSAGES.duplicate[0]).toBe(
+      "You already have a brief on this schedule for this thesis or watchlist.",
+    );
+    expect(BRIEFS_ROUTE_MESSAGES.duplicate[1]).toBe(
+      "你已经为这份论点或观察列表订阅了同一安排的简报。",
+    );
+    expect(BRIEFS_ROUTE_MESSAGES.duplicate[1]).not.toMatch(/对象|节奏/);
+    expect(BRIEFS_ROUTE_MESSAGES.duplicate.join("\n")).not.toMatch(/\bcadence\b|target_kind|target_id/);
+  });
 });

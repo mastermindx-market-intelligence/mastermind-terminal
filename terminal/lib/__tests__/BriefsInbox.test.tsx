@@ -1,5 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import BriefsInbox from "@/components/briefs/BriefsInbox";
@@ -98,7 +100,7 @@ describe("BriefsInbox rendering", () => {
         state: "degraded",
         body: {},
         createdAt: "2026-09-11T20:10:00.000Z",
-        subscription: { targetKind: "thesis", targetId: THESIS, cadence: "daily_after_us_close", state: "active" },
+        subscription: { targetKind: "thesis", targetId: THESIS, cadence: "daily_after_us_close", state: "active", targetName: "NVDA cycle" },
       },
       {
         deliveryId: "d-ready",
@@ -116,6 +118,16 @@ describe("BriefsInbox rendering", () => {
     expect(text()).toContain("The close held above last week's range.");
     expect(text()).toContain("Call buying stayed in the front week.");
     expect(text()).toContain(briefCopy("lastGood", "en"));
+    expect(text()).toContain("1 monitor");
+    expect(text()).not.toContain("1 monitors");
+    expect(container?.querySelectorAll("[data-brief-name]").length).toBe(2);
+    for (const el of Array.from(container?.querySelectorAll("[data-brief-name]") ?? [])) {
+      expect(el.textContent).toBe("NVDA cycle");
+    }
+    expect(container?.querySelector("[data-brief-date]")?.textContent).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    const sentence = container?.querySelector("[data-brief-sentence]");
+    expect(sentence?.className ?? "").toMatch(/sentence/);
+    expect(container?.querySelector("[data-brief-row]")?.className ?? "").toMatch(/briefRow/);
     expect(text()).not.toMatch(/daily_after_us_close|falsifier|证伪/);
     unmount();
     await mountInbox("zh");
@@ -139,5 +151,17 @@ describe("BriefSubscribeControls", () => {
     await mountSubscribe("zh");
     expect(text()).toContain(briefCopy("subscribeDaily", "zh"));
     expect(text()).toContain(briefCopy("subscribeWeekly", "zh"));
+  });
+});
+
+describe("watchlist subscribe mount is outside the nowrap wl-bar", () => {
+  it("places BriefSubscribeControls after the wl-bar closes", () => {
+    const src = readFileSync(join(__dirname, "../../components/TerminalShell.tsx"), "utf8");
+    const mount = src.indexOf("<BriefSubscribeControls");
+    expect(mount).toBeGreaterThan(0);
+    const before = src.slice(Math.max(0, mount - 250), mount);
+    expect(before).not.toMatch(/wl-acts/);
+    const after = src.slice(mount, mount + 500);
+    expect(after).toMatch(/BriefSubscribeControls[\s\S]{0,450}className="wl-scroll"/);
   });
 });

@@ -5628,13 +5628,6 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
                 <button title={t("addSymbol")} onClick={(e) => { e.stopPropagation(); addSymbolTargetRef.current = null; setSeed(""); setAddSymOpen(true); }}><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg></button>
                 <button title={t("settings")} onClick={(e) => { e.stopPropagation(); const willOpen = !wlSetOpen; closeAll(); setWlSetOpen(willOpen); }}><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5" /><circle cx="12" cy="12" r="1.5" /><circle cx="19" cy="12" r="1.5" /></svg></button>
               </div>
-              {loggedIn && (
-                <BriefSubscribeControls
-                  targetKind="watchlist"
-                  listName={activeList}
-                  lang={lang === "zh" ? "zh" : "en"}
-                />
-              )}
               <div className={`pop${wlSetOpen ? " show" : ""}`} style={{ top: 40, right: 6 }} onClick={(e) => e.stopPropagation()}>
                 <div className="set-h"><b>{t("tableViewLabel")}</b><span className={`switch${set.tableView ? " on" : ""}`} onClick={() => setSet((s) => ({ ...s, tableView: !s.tableView }))} /></div>
                 <div className="set-grp">{t("columns")}</div>
@@ -5650,6 +5643,13 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
                 {([["symbol", t("dispSymbol")], ["name", t("dispName")], ["both", t("dispBoth")]] as [string, string][]).map(([d, l]) => <div key={d} className={`set-row${set.disp === d ? " on" : ""}`} onClick={() => setSet((s) => ({ ...s, disp: d }))}><span className="rdo" />{l}</div>)}
               </div>
             </div>
+              {loggedIn && (
+                <BriefSubscribeControls
+                  targetKind="watchlist"
+                  listName={activeList}
+                  lang={lang === "zh" ? "zh" : "en"}
+                />
+              )}
             <div className="wl-scroll">
               <div className="wl-cols" style={{ gridTemplateColumns: wlGrid, minWidth: wlMinW }}>
                 <span className="wl-col">{t("symbol")}<i className="wl-rz" title={t("resizeCol")} onMouseDown={(e) => startResize("sym", e)} /></span>

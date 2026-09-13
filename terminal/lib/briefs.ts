@@ -104,6 +104,7 @@ export const BRIEFS_COPY = {
     "本周的简报没有生成——它所依据的市场解读没有重建。没有任何内容被重新计算。",
   ],
   lastGood: ["Last good brief", "上一份正常简报"],
+  monitorOne: ["{n} monitor", "{n} 项监控"],
   monitors: ["{n} monitors", "{n} 项监控"],
   unavailable: ["Briefs could not load right now. Try again in a moment.", "暂时无法加载简报，请稍后再试。"],
   retry: ["Try again", "重试"],
@@ -127,8 +128,8 @@ export const BRIEFS_ROUTE_MESSAGES = {
   not_signed_in: ["Sign in to manage briefs.", "请先登录，再管理简报。"],
   bad_request: ["That request was not complete. Check the fields and try again.", "请求不完整。请检查填写项后重试。"],
   duplicate: [
-    "You already have a brief on this cadence for this target.",
-    "这个对象在该节奏上已经有一份简报了。",
+    "You already have a brief on this schedule for this thesis or watchlist.",
+    "你已经为这份论点或观察列表订阅了同一安排的简报。",
   ],
   not_found: ["That brief could not be found.", "找不到这份简报。"],
   unavailable: ["Briefs could not load right now. Try again in a moment.", "暂时无法加载简报，请稍后再试。"],
@@ -293,8 +294,9 @@ export function marketReadSentences(body: BriefBody, lang: BriefLang, n = 2): st
 }
 
 export function monitorsSummary(body: BriefBody, lang: BriefLang): string {
-  const count = briefCopy("monitors", lang, { n: body.monitors.length });
-  if (body.monitors.length === 0) return count;
+  const n = body.monitors.length;
+  const count = briefCopy(n === 1 ? "monitorOne" : "monitors", lang, { n });
+  if (n === 0) return count;
   const first = lang === "zh" ? body.monitors[0].state_zh : body.monitors[0].state_en;
   return `${count} · ${first}`;
 }
@@ -321,6 +323,34 @@ export function pinLastReady(rows: BriefDelivery[]): PinnedDelivery[] {
 export function targetNameFromBody(body: unknown, fallback = ""): string {
   const parsed = validateBriefBody(body);
   return parsed?.target.name || fallback;
+}
+
+export function targetNameKey(kind: BriefTargetKind, id: string): string {
+  return `${kind}:${id}`;
+}
+
+/**
+ * List field: target name. A degraded row's body is empty by contract, so the
+ * name comes from a ready sibling on the same subscription, else from a
+ * theses/watchlists join the BFF supplies.
+ */
+export function fillTargetNames(
+  rows: BriefDelivery[],
+  joined: Map<string, string>,
+): BriefDelivery[] {
+  const fromSibling = new Map<string, string>();
+  for (const row of rows) {
+    const name = (row.subscription.targetName || "").trim() || targetNameFromBody(row.body);
+    if (name) fromSibling.set(row.subscriptionId, name);
+  }
+  return rows.map((row) => {
+    const name = (row.subscription.targetName || "").trim()
+      || fromSibling.get(row.subscriptionId)
+      || joined.get(targetNameKey(row.subscription.targetKind, row.subscription.targetId))
+      || "";
+    if (!name || row.subscription.targetName === name) return row;
+    return { ...row, subscription: { ...row.subscription, targetName: name } };
+  });
 }
 
 export function parseLimit(raw: string | null, fallback = 40, max = 100): number {

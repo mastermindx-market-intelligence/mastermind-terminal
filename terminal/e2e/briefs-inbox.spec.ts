@@ -55,7 +55,7 @@ test("ready and degraded rows render verbatim EN/ZH sentences, never a cadence s
       state: "degraded",
       body: {},
       createdAt: "2026-09-11T20:10:00.000Z",
-      subscription: { targetKind: "thesis", targetId: THESIS, cadence: "daily_after_us_close", state: "active" },
+      subscription: { targetKind: "thesis", targetId: THESIS, cadence: "daily_after_us_close", state: "active", targetName: "NVDA cycle" },
     },
     {
       deliveryId: "d-ready",
@@ -78,5 +78,41 @@ test("ready and degraded rows render verbatim EN/ZH sentences, never a cadence s
   await expect(inbox.getByText(degradedLine("daily_after_us_close", "en"))).toBeVisible();
   await expect(inbox.getByText("The close held above last week's range.")).toBeVisible();
   await expect(inbox.getByText(briefCopy("lastGood", "en"))).toBeVisible();
+  await expect(inbox.locator("[data-brief-name]").first()).toHaveText("NVDA cycle");
   await expect(inbox).not.toContainText("daily_after_us_close");
+});
+
+test("390 list sentences occupy the row width instead of one English word per line", async ({ page }) => {
+  const deliveries = [
+    {
+      deliveryId: "d-ready",
+      subscriptionId: "s1",
+      slotAsof: "2026-09-10",
+      state: "ready",
+      pinned: true,
+      body: readyBody,
+      createdAt: "2026-09-10T20:10:00.000Z",
+      subscription: {
+        targetKind: "thesis",
+        targetId: THESIS,
+        cadence: "daily_after_us_close",
+        state: "active",
+        targetName: "NVDA cycle",
+      },
+    },
+  ];
+  await page.addInitScript(() => {
+    localStorage.setItem("mm.lang", "en");
+    localStorage.setItem("theme", "dark");
+  });
+  await mockBriefs(page, deliveries);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/alerts");
+  const inbox = page.getByTestId("briefs-inbox");
+  await expect(inbox.getByText("The close held above last week's range.")).toBeVisible();
+  const sentence = inbox.locator("[data-brief-sentence]");
+  const box = await sentence.boundingBox();
+  expect(box?.width ?? 0).toBeGreaterThan(240);
+  const dateBox = await inbox.locator("[data-brief-date]").boundingBox();
+  expect(dateBox?.height ?? 99).toBeLessThan(28);
 });

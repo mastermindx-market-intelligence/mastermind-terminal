@@ -53,7 +53,7 @@ const LIST_DELIVERIES = [
     state: "degraded",
     body: {},
     createdAt: "2026-09-11T20:10:00.000Z",
-    subscription: { targetKind: "thesis", targetId: THESIS, cadence: "daily_after_us_close", state: "active" },
+    subscription: { targetKind: "thesis", targetId: THESIS, cadence: "daily_after_us_close", state: "active", targetName: "NVDA cycle" },
   },
   {
     deliveryId: "d-ready",

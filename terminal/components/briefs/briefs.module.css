@@ -1,4 +1,4 @@
-/* Brief subscribe controls. Inbox list reuses alerts.module.css (B-F08-3). */
+/* Brief subscribe controls and inbox rows (B-F08-3 list pattern, own wrap so 390 sentences stay readable). */
 
 .controls {
   display: grid;
@@ -55,6 +55,26 @@
   max-width: 52ch;
 }
 
+.briefRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 12px;
+  padding: 10px 0;
+  border-top: 1px solid var(--line-2);
+}
+.briefRow:first-child { border-top: none; }
+.briefName {
+  font-weight: 650;
+  min-width: 0;
+}
+.briefDate {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
 .pinned {
   font: 700 10px/1.2 var(--font-num);
   letter-spacing: .08em;
@@ -62,6 +82,8 @@
   text-transform: uppercase;
 }
 .sentence {
-  flex: 1;
+  flex: 1 1 100%;
+  min-width: 0;
   color: var(--text-2, var(--text));
+  font: 500 13px/1.45 var(--font-ui);
 }

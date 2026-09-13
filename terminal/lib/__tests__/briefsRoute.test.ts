@@ -9,6 +9,9 @@ const H = vi.hoisted(() => ({
   selectError: null as { code: string; message: string } | null,
   subscriptions: [] as Record<string, unknown>[],
   deliveries: [] as Record<string, unknown>[],
+  theses: [] as Record<string, unknown>[],
+  watchlists: [] as Record<string, unknown>[],
+  thesisVersions: [] as Record<string, unknown>[],
   lastInsert: null as Record<string, unknown> | null,
   lastUpdate: null as Record<string, unknown> | null,
 }));
@@ -20,6 +23,7 @@ vi.mock("@/lib/supabase/server", () => ({
       const q: {
         _select: string;
         _filters: Array<[string, unknown]>;
+        _in: Array<[string, unknown[]]>;
         _pendingInsert: Record<string, unknown> | null;
         _pendingUpdate: Record<string, unknown> | null;
         _pendingDelete: boolean;
@@ -27,6 +31,7 @@ vi.mock("@/lib/supabase/server", () => ({
         _limit: number | null;
         select: (fields?: string) => typeof q;
         eq: (col: string, val: unknown) => typeof q;
+        in: (col: string, vals: unknown[]) => typeof q;
         order: (col: string, opts?: { ascending?: boolean }) => typeof q;
         limit: (n: number) => typeof q;
         insert: (values: Record<string, unknown>) => typeof q;
@@ -38,6 +43,7 @@ vi.mock("@/lib/supabase/server", () => ({
       } = {
         _select: "*",
         _filters: [],
+        _in: [],
         _pendingInsert: null,
         _pendingUpdate: null,
         _pendingDelete: false,
@@ -49,6 +55,10 @@ vi.mock("@/lib/supabase/server", () => ({
         },
         eq(col: string, val: unknown) {
           q._filters.push([col, val]);
+          return q;
+        },
+        in(col: string, vals: unknown[]) {
+          q._in.push([col, vals]);
           return q;
         },
         order(col: string, opts?: { ascending?: boolean }) {
@@ -81,7 +91,9 @@ vi.mock("@/lib/supabase/server", () => ({
       };
 
       function matches(row: Record<string, unknown>) {
-        return q._filters.every(([c, v]) => row[c] === v);
+        const eqOk = q._filters.every(([c, v]) => row[c] === v);
+        const inOk = q._in.every(([c, vals]) => vals.includes(row[c]));
+        return eqOk && inOk;
       }
 
       function finishSingle(allowEmpty: boolean) {
@@ -133,6 +145,15 @@ vi.mock("@/lib/supabase/server", () => ({
           if (q._limit != null) rows = rows.slice(0, q._limit);
           return { data: rows, error: null };
         }
+        if (table === "theses") {
+          return { data: H.theses.filter(matches), error: null };
+        }
+        if (table === "watchlists") {
+          return { data: H.watchlists.filter(matches), error: null };
+        }
+        if (table === "thesis_versions") {
+          return { data: H.thesisVersions.filter(matches), error: null };
+        }
         return { data: [], error: null };
       }
 
@@ -164,6 +185,9 @@ describe("/api/briefs routes", () => {
     H.selectError = null;
     H.subscriptions = [];
     H.deliveries = [];
+    H.theses = [];
+    H.watchlists = [];
+    H.thesisVersions = [];
     H.lastInsert = null;
     H.lastUpdate = null;
     ({ GET: GET_SUB, POST: POST_SUB } = await import("@/app/api/briefs/subscriptions/route"));
@@ -339,5 +363,67 @@ describe("/api/briefs routes", () => {
     expect(body.deliveries[0].subscription.cadence).toBe("daily_after_us_close");
     expect(body.deliveries[0].state).toBe("degraded");
     expect(body.deliveries[1].state).toBe("ready");
+    expect(body.deliveries[0].subscription.targetName).toBe("NVDA cycle");
+    expect(body.deliveries[0].body).toEqual({});
+  });
+
+  it("strips an invalid body instead of shipping judgement keys to the client", async () => {
+    H.user = { id: "u-1" };
+    H.deliveries = [{
+      delivery_id: "bad",
+      subscription_id: SUB,
+      slot_asof: "2026-09-11",
+      state: "ready",
+      degraded_reason: null,
+      artifact_asof: null,
+      body: { score: 0.81, prompt: "summarise", target: { kind: "thesis" } },
+      created_at: "2026-09-11T20:10:00.000Z",
+      brief_subscriptions: {
+        subscription_id: SUB,
+        user_id: "u-1",
+        target_kind: "thesis",
+        target_id: THESIS,
+        cadence: "daily_after_us_close",
+        state: "active",
+      },
+    }];
+    const r = await GET_DEL(req("http://localhost/api/briefs/deliveries"));
+    expect(r.status).toBe(200);
+    const body = await r.json();
+    expect(body.deliveries[0].body).toEqual({});
+    expect(JSON.stringify(body)).not.toMatch(/score|prompt|summarise/);
+  });
+
+  it("joins a thesis title onto a degraded row that has no sibling body", async () => {
+    H.user = { id: "u-1" };
+    H.theses = [{ id: THESIS, current_version: 1, user_id: "u-1" }];
+    H.thesisVersions = [{
+      thesis_id: THESIS,
+      version: 1,
+      user_id: "u-1",
+      content: { title: "NVDA cycle" },
+    }];
+    H.deliveries = [{
+      delivery_id: "deg-only",
+      subscription_id: SUB,
+      slot_asof: "2026-09-11",
+      state: "degraded",
+      degraded_reason: "stale_artifact",
+      artifact_asof: null,
+      body: {},
+      created_at: "2026-09-11T20:10:00.000Z",
+      brief_subscriptions: {
+        subscription_id: SUB,
+        user_id: "u-1",
+        target_kind: "thesis",
+        target_id: THESIS,
+        cadence: "daily_after_us_close",
+        state: "active",
+      },
+    }];
+    const r = await GET_DEL(req("http://localhost/api/briefs/deliveries"));
+    expect(r.status).toBe(200);
+    const body = await r.json();
+    expect(body.deliveries[0].subscription.targetName).toBe("NVDA cycle");
   });
 });

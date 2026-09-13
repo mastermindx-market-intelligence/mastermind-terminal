@@ -2,9 +2,11 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import {
   BRIEFS_ROUTE_MESSAGES,
+  fillTargetNames,
   parseLimit,
   pinLastReady,
   targetNameFromBody,
+  targetNameKey,
   validateBriefBody,
   type BriefCadence,
   type BriefDelivery,
@@ -36,7 +38,9 @@ function asSub(raw: unknown): Record<string, unknown> | null {
 function mapDelivery(row: Record<string, unknown>): BriefDelivery | null {
   const sub = asSub(row.brief_subscriptions);
   if (!sub) return null;
-  const body = validateBriefBody(row.body) ?? (isPlain(row.body) ? row.body : {});
+  const parsed = validateBriefBody(row.body);
+  const body = parsed ?? {};
+  const targetName = parsed?.target.name || targetNameFromBody(row.body);
   return {
     deliveryId: String(row.delivery_id),
     subscriptionId: String(row.subscription_id),
@@ -51,9 +55,57 @@ function mapDelivery(row: Record<string, unknown>): BriefDelivery | null {
       targetId: String(sub.target_id),
       cadence: sub.cadence as BriefCadence,
       state: sub.state as BriefSubscriptionState,
-      targetName: targetNameFromBody(row.body),
+      ...(targetName ? { targetName } : {}),
     },
   };
+}
+
+async function lookupTargetNames(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  refs: Array<{ kind: BriefTargetKind; id: string }>,
+): Promise<Map<string, string>> {
+  const out = new Map<string, string>();
+  const thesisIds = [...new Set(refs.filter((r) => r.kind === "thesis").map((r) => r.id))];
+  const watchlistIds = [...new Set(refs.filter((r) => r.kind === "watchlist").map((r) => r.id))];
+  if (watchlistIds.length) {
+    const { data } = await supabase
+      .from("watchlists")
+      .select("id,name")
+      .eq("user_id", userId)
+      .in("id", watchlistIds);
+    for (const row of data || []) {
+      if (typeof row.id === "string" && typeof row.name === "string" && row.name.trim()) {
+        out.set(targetNameKey("watchlist", row.id), row.name.trim());
+      }
+    }
+  }
+  if (thesisIds.length) {
+    const { data: heads } = await supabase
+      .from("theses")
+      .select("id,current_version")
+      .eq("user_id", userId)
+      .in("id", thesisIds);
+    const pairs = (heads || []).filter(
+      (h): h is { id: string; current_version: number } =>
+        typeof h.id === "string" && typeof h.current_version === "number",
+    );
+    if (pairs.length) {
+      const { data: versions } = await supabase
+        .from("thesis_versions")
+        .select("thesis_id,version,content")
+        .eq("user_id", userId)
+        .in("thesis_id", pairs.map((p) => p.id));
+      const wanted = new Map(pairs.map((p) => [`${p.id}:${p.current_version}`, p.id]));
+      for (const v of versions || []) {
+        const id = wanted.get(`${v.thesis_id}:${v.version}`);
+        if (!id || !isPlain(v.content) || typeof v.content.title !== "string") continue;
+        const title = v.content.title.trim();
+        if (title) out.set(targetNameKey("thesis", id), title);
+      }
+    }
+  }
+  return out;
 }
 
 function isPlain(v: unknown): v is Record<string, unknown> {
@@ -83,5 +135,20 @@ export async function GET(req: Request) {
   const mapped = (data || [])
     .map((row) => mapDelivery(row as Record<string, unknown>))
     .filter((row): row is BriefDelivery => row !== null);
-  return NextResponse.json({ deliveries: pinLastReady(mapped) });
+  const withSiblings = fillTargetNames(mapped, new Map());
+  const missing = withSiblings.filter((row) => !row.subscription.targetName);
+  let named = withSiblings;
+  if (missing.length) {
+    try {
+      const joined = await lookupTargetNames(
+        supabase,
+        user.id,
+        missing.map((row) => ({ kind: row.subscription.targetKind, id: row.subscription.targetId })),
+      );
+      named = fillTargetNames(withSiblings, joined);
+    } catch (err) {
+      console.error("briefs deliveries name lookup failed:", err);
+    }
+  }
+  return NextResponse.json({ deliveries: pinLastReady(named) });
 }
