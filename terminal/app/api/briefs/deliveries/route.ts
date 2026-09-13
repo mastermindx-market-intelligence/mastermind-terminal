@@ -61,6 +61,9 @@ function isPlain(v: unknown): v is Record<string, unknown> {
 }
 
 export async function GET(req: Request) {
+  if (process.env.TERMINAL_E2E_FIXTURE === "1") {
+    return NextResponse.json({ deliveries: [] });
+  }
   const { supabase, user } = await uid();
   if (!user) return NextResponse.json(errorBody("not_signed_in"), { status: 401 });
   const limit = parseLimit(new URL(req.url).searchParams.get("limit"));

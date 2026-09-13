@@ -35,6 +35,9 @@ function mapRow(row: Record<string, unknown>) {
 }
 
 export async function GET(req: Request) {
+  if (process.env.TERMINAL_E2E_FIXTURE === "1") {
+    return NextResponse.json({ subscriptions: [] });
+  }
   const { supabase, user } = await uid();
   if (!user) return NextResponse.json(errorBody("not_signed_in"), { status: 401 });
   const url = new URL(req.url);
