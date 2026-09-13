@@ -7,7 +7,15 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { createRoot, type Root } from "react-dom/client";
 import React, { act } from "react";
-import type { EventImpactRead } from "@/lib/eventImpact";
+import {
+  INVALIDATION_NULL_EN,
+  INVALIDATION_NULL_ZH,
+  VOID_PREFIX_EN,
+  VOID_PREFIX_ZH,
+  invalidationForKind,
+  typedNullInvalidation,
+  type EventImpactRead,
+} from "@/lib/eventImpact";
 import type { Position } from "@/lib/portfolio";
 
 // A mutable box so individual tests can render in "zh" (MAJOR 1, review r5: every test in this
@@ -78,6 +86,7 @@ describe("EventImpactPanel render (acceptance 2)", () => {
           direction: { state: "not_stated" },
           mechanism: { state: "not_stated" },
           timeframe: { state: "not_stated" },
+          invalidation: invalidationForKind("earnings", "2026-10-30"),
           sourcePath: "/data/portfolio_ctx.json",
         },
       ],
@@ -107,6 +116,7 @@ describe("EventImpactPanel render (acceptance 2)", () => {
           direction: { state: "stated", text: "Guidance raise expected", textZh: null },
           mechanism: { state: "not_stated" },
           timeframe: { state: "not_stated" },
+          invalidation: invalidationForKind("earnings", "2026-10-30"),
           sourcePath: "/data/portfolio_ctx.json",
         },
       ],
@@ -326,6 +336,7 @@ describe("EventImpactPanel render (acceptance 2)", () => {
           direction: { state: "not_stated" },
           mechanism: { state: "not_stated" },
           timeframe: { state: "not_stated" },
+          invalidation: invalidationForKind("earnings", "2026-10-30"),
           sourcePath: "/data/portfolio_ctx.json",
         },
       ],
@@ -355,6 +366,7 @@ describe("EventImpactPanel render (acceptance 2)", () => {
           direction: { state: "not_stated" },
           mechanism: { state: "not_stated" },
           timeframe: { state: "not_stated" },
+          invalidation: invalidationForKind("earnings", "2026-09-08"),
           sourcePath: "/data/portfolio_ctx.json",
         },
       ],
@@ -362,5 +374,129 @@ describe("EventImpactPanel render (acceptance 2)", () => {
     await renderWith(body);
     expect(container.querySelector('[data-testid="event-impact-row"]')?.getAttribute("data-near")).toBe("1");
     expect(container.querySelector('[data-testid="event-impact-near-legend"]')).toBeTruthy();
+  });
+
+  it("renders the earnings invalidation line in EN under the carry slots", async () => {
+    const body: EventImpactRead = {
+      state: "ok",
+      asof: "2026-09-05",
+      heldTickers: 1,
+      heldPositions: 1,
+      unjoinable: [],
+      events: [
+        {
+          eventId: "earnings|AAPL|2026-10-30",
+          kind: "earnings",
+          ticker: "AAPL",
+          date: "2026-10-30",
+          daysUntil: 5,
+          positions: [{ id: "p1", ticker: "AAPL", shares: 10, status: "open" }],
+          direction: { state: "not_stated" },
+          mechanism: { state: "not_stated" },
+          timeframe: { state: "not_stated" },
+          invalidation: invalidationForKind("earnings", "2026-10-30"),
+          sourcePath: "/data/portfolio_ctx.json",
+        },
+      ],
+    };
+    await renderWith(body);
+    const line = container.querySelector('[data-testid="event-impact-invalidation"]');
+    expect(line).toBeTruthy();
+    expect(line?.getAttribute("data-null")).toBe("0");
+    expect(line?.textContent).toBe(
+      `${VOID_PREFIX_EN}The last close on the report date is at or above zero.`
+    );
+    expect(line?.textContent).not.toMatch(/[<>]=?|falsifier|refuted|证伪|hub\/lib/i);
+  });
+
+  it("renders the earnings invalidation line in ZH", async () => {
+    langBox.lang = "zh";
+    const body: EventImpactRead = {
+      state: "ok",
+      asof: "2026-09-05",
+      heldTickers: 1,
+      heldPositions: 1,
+      unjoinable: [],
+      events: [
+        {
+          eventId: "earnings|AAPL|2026-10-30",
+          kind: "earnings",
+          ticker: "AAPL",
+          date: "2026-10-30",
+          daysUntil: 5,
+          positions: [{ id: "p1", ticker: "AAPL", shares: 10, status: "open" }],
+          direction: { state: "not_stated" },
+          mechanism: { state: "not_stated" },
+          timeframe: { state: "not_stated" },
+          invalidation: invalidationForKind("earnings", "2026-10-30"),
+          sourcePath: "/data/portfolio_ctx.json",
+        },
+      ],
+    };
+    await renderWith(body);
+    const line = container.querySelector('[data-testid="event-impact-invalidation"]');
+    expect(line?.textContent).toBe(`${VOID_PREFIX_ZH}报告日收盘价大于等于零。`);
+    expect(line?.textContent).not.toMatch(/What would void|at or above/);
+  });
+
+  it("renders the typed-null invalidation in the same slot in EN", async () => {
+    const body: EventImpactRead = {
+      state: "ok",
+      asof: "2026-09-05",
+      heldTickers: 1,
+      heldPositions: 1,
+      unjoinable: [],
+      events: [
+        {
+          eventId: "macro_release|AAPL|2026-10-30",
+          kind: "macro_release",
+          ticker: "AAPL",
+          date: "2026-10-30",
+          daysUntil: 5,
+          positions: [{ id: "p1", ticker: "AAPL", shares: 10, status: "open" }],
+          direction: { state: "not_stated" },
+          mechanism: { state: "not_stated" },
+          timeframe: { state: "not_stated" },
+          invalidation: typedNullInvalidation("no_ticker_keyed_metric"),
+          sourcePath: "/data/portfolio_ctx.json",
+        },
+      ],
+    };
+    await renderWith(body);
+    const line = container.querySelector('[data-testid="event-impact-invalidation"]');
+    expect(line?.getAttribute("data-null")).toBe("1");
+    expect(line?.textContent).toBe(`${VOID_PREFIX_EN}${INVALIDATION_NULL_EN}`);
+    expect(line?.textContent).not.toMatch(/falsifier|refuted|证伪/i);
+  });
+
+  it("renders the typed-null invalidation in the same slot in ZH", async () => {
+    langBox.lang = "zh";
+    const body: EventImpactRead = {
+      state: "ok",
+      asof: "2026-09-05",
+      heldTickers: 1,
+      heldPositions: 1,
+      unjoinable: [],
+      events: [
+        {
+          eventId: "macro_release|AAPL|2026-10-30",
+          kind: "macro_release",
+          ticker: "AAPL",
+          date: "2026-10-30",
+          daysUntil: 5,
+          positions: [{ id: "p1", ticker: "AAPL", shares: 10, status: "open" }],
+          direction: { state: "not_stated" },
+          mechanism: { state: "not_stated" },
+          timeframe: { state: "not_stated" },
+          invalidation: typedNullInvalidation("no_ticker_keyed_metric"),
+          sourcePath: "/data/portfolio_ctx.json",
+        },
+      ],
+    };
+    await renderWith(body);
+    const zhLine = container.querySelector('[data-testid="event-impact-invalidation"]');
+    expect(zhLine?.getAttribute("data-null")).toBe("1");
+    expect(zhLine?.textContent).toBe(`${VOID_PREFIX_ZH}${INVALIDATION_NULL_ZH}`);
+    expect(zhLine?.textContent).not.toMatch(/We haven't defined|What would void/);
   });
 });

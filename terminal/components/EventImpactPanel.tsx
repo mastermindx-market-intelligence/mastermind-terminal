@@ -7,6 +7,7 @@ import {
   presentCarried,
   presentDaysUntil,
   presentEventSentence,
+  presentInvalidation,
   presentPosition,
   presentUnjoinable,
   type EventImpactRead,
@@ -297,6 +298,13 @@ export default function EventImpactPanel({ positions, holdingsUnreadable }: Even
                     </div>
                   ))}
                 </dl>
+                <p
+                  className={s.voidLine}
+                  data-testid="event-impact-invalidation"
+                  data-null={e.invalidation.null_reason ? "1" : "0"}
+                >
+                  {presentInvalidation(e.invalidation, lang)}
+                </p>
               </div>
             </li>
           ))}

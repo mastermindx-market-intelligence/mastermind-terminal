@@ -1,10 +1,21 @@
 import { describe, it, expect } from "vitest";
 import * as eventImpact from "@/lib/eventImpact";
 import {
+  EVENT_INVALIDATION_BY_KIND,
+  EVENT_KINDS,
+  INVALIDATION_NULL_EN,
+  INVALIDATION_NULL_ZH,
+  VOID_PREFIX_EN,
+  VOID_PREFIX_ZH,
+  invalidationForKind,
+  isEventInvalidation,
   joinEventImpact,
   presentCarried,
+  presentInvalidation,
   presentPosition,
   presentUnjoinable,
+  typedNullInvalidation,
+  type EventTouch,
   type TouchedPosition,
 } from "@/lib/eventImpact";
 import fs from "fs";
@@ -164,10 +175,23 @@ describe("eventImpact join", () => {
       "presentCarried",
       "presentDaysUntil",
       "presentEventSentence",
+      "presentInvalidation",
       "presentPosition",
       "presentUnjoinable",
       "NOT_STATED",
       "UNJOINABLE_SOURCES",
+      "EVENT_KINDS",
+      "EVENT_INVALIDATION_BY_KIND",
+      "INVALIDATION_COMPARATORS",
+      "INVALIDATION_CHECKED_AGAINST",
+      "INVALIDATION_NULL_EN",
+      "INVALIDATION_NULL_ZH",
+      "VOID_PREFIX_EN",
+      "VOID_PREFIX_ZH",
+      "INVALIDATION_OWNER_LAST_CLOSE",
+      "typedNullInvalidation",
+      "isEventInvalidation",
+      "invalidationForKind",
     ].sort();
     expect(Object.keys(eventImpact).sort()).toEqual(allowlist);
   });
@@ -380,5 +404,101 @@ describe("eventImpact join", () => {
     expect(holdings[1]).not.toBe(calendar[1]);
     expect(holdings[1]).not.toBe(upstream[1]);
     expect(calendar[1]).not.toBe(upstream[1]);
+  });
+
+  // B-F08-8: every joined event carries a required invalidation element. RED on the
+  // pre-packet substrate — EventTouch had no `invalidation` field, so this is undefined.
+  it("17. every joined event carries a required invalidation element (B-F08-8)", () => {
+    const ctx = baseCtx({ AAPL: { earnings: { next: "2026-10-30", days_to: 5 } } });
+    const read = joinEventImpact({ positions: [pos()], ctx });
+    expect(read.state).toBe("ok");
+    if (read.state !== "ok") throw new Error("unreachable");
+    const inv = read.events[0].invalidation;
+    expect(inv).toBeDefined();
+    expect(isEventInvalidation(inv)).toBe(true);
+    expect(typeof inv.condition_en).toBe("string");
+    expect(inv.condition_en.length).toBeGreaterThan(0);
+    expect(typeof inv.condition_zh).toBe("string");
+    expect(inv.condition_zh.length).toBeGreaterThan(0);
+  });
+
+  it("18. compile-time: EventTouch requires invalidation (@ts-expect-error)", () => {
+    const missing = {
+      eventId: "earnings|AAPL|2026-10-30",
+      kind: "earnings" as const,
+      ticker: "AAPL",
+      date: "2026-10-30",
+      daysUntil: 5,
+      positions: [] as TouchedPosition[],
+      direction: { state: "not_stated" as const },
+      mechanism: { state: "not_stated" as const },
+      timeframe: { state: "not_stated" as const },
+      sourcePath: "/data/portfolio_ctx.json" as const,
+    };
+    // @ts-expect-error invalidation is required on EventTouch
+    const bad: EventTouch = missing;
+    expect(bad.eventId).toBe("earnings|AAPL|2026-10-30");
+  });
+
+  it("19. runtime guard: typed null and stated rows pass; a missing element fails", () => {
+    expect(isEventInvalidation(undefined)).toBe(false);
+    expect(isEventInvalidation(null)).toBe(false);
+    expect(isEventInvalidation({})).toBe(false);
+    expect(isEventInvalidation(typedNullInvalidation("no_ticker_keyed_metric"))).toBe(true);
+    expect(isEventInvalidation(invalidationForKind("earnings", "2026-10-30"))).toBe(true);
+    expect(isEventInvalidation(invalidationForKind("not-a-kind"))).toBe(true);
+    expect(invalidationForKind("not-a-kind").null_reason).toBe("unmapped_kind");
+    expect(invalidationForKind("not-a-kind").condition_en).toBe(INVALIDATION_NULL_EN);
+  });
+
+  it("20. every mapped type carries a condition or the typed null (table-driven)", () => {
+    expect(Object.keys(EVENT_INVALIDATION_BY_KIND).sort()).toEqual([...EVENT_KINDS].sort());
+    for (const kind of EVENT_KINDS) {
+      const inv = invalidationForKind(kind, "2026-10-30");
+      expect(isEventInvalidation(inv)).toBe(true);
+      const row = EVENT_INVALIDATION_BY_KIND[kind];
+      if ("null_reason" in row) {
+        expect(inv.condition_en).toBe(INVALIDATION_NULL_EN);
+        expect(inv.condition_zh).toBe(INVALIDATION_NULL_ZH);
+        expect(inv.metric_owner).toBeNull();
+        expect(inv.comparator).toBeNull();
+        expect(inv.threshold).toBeNull();
+        expect(inv.checked_against).toBeNull();
+        expect(inv.null_reason).toBe(row.null_reason);
+      } else {
+        expect(inv.null_reason).toBeUndefined();
+        expect(inv.condition_en).toBe(row.condition_en);
+        expect(inv.condition_zh).toBe(row.condition_zh);
+        expect(inv.metric_owner).toBe(row.metric_owner);
+        expect(inv.comparator).toBe(row.comparator);
+        expect(inv.threshold).toBe(row.threshold);
+        expect(inv.checked_against).toBe(row.checked_against);
+        if (row.checked_against === "named date") {
+          expect(inv.named_date).toBe("2026-10-30");
+        }
+      }
+    }
+  });
+
+  it("21. rendered invalidation strings use plain phrases, never symbols or machine text", () => {
+    const banned = /[<>]=?|==|falsifier|refuted|证伪|hub\/lib|anchor\.js|metric_owner|null_reason|named_date|checked_against|macro_release|index_review|[a-z]+_[a-z]+/i;
+    for (const kind of EVENT_KINDS) {
+      const inv = invalidationForKind(kind, "2026-10-30");
+      const en = presentInvalidation(inv, "en");
+      const zh = presentInvalidation(inv, "zh");
+      expect(en.startsWith(VOID_PREFIX_EN)).toBe(true);
+      expect(zh.startsWith(VOID_PREFIX_ZH)).toBe(true);
+      expect(en).not.toMatch(banned);
+      expect(zh).not.toMatch(banned);
+      expect(en).not.toMatch(/[≥≤]/);
+      expect(zh).not.toMatch(/[≥≤]/);
+    }
+    const earnings = presentInvalidation(invalidationForKind("earnings", "2026-10-30"), "en");
+    expect(earnings).toContain("at or above");
+    expect(earnings).not.toContain(">=");
+    const typedNull = presentInvalidation(typedNullInvalidation("no_ticker_keyed_metric"), "en");
+    expect(typedNull).toBe(`${VOID_PREFIX_EN}${INVALIDATION_NULL_EN}`);
+    const typedNullZh = presentInvalidation(typedNullInvalidation("no_ticker_keyed_metric"), "zh");
+    expect(typedNullZh).toBe(`${VOID_PREFIX_ZH}${INVALIDATION_NULL_ZH}`);
   });
 });

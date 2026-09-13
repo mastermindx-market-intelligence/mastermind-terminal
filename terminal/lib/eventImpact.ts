@@ -30,9 +30,147 @@ export interface TouchedPosition {
   readonly status: "open" | "closed";
 }
 
+/**
+ * Event types the producer mapping table names (B-F08-8).
+ * `earnings` is the only kind joinEventImpact emits today (the only published
+ * artifact keyed by ticker). `macro_release` and `index_review` are the two
+ * calendars this module already discloses as unjoinable — mapped so a type
+ * without a defensible condition prints the typed null rather than a
+ * fabricated one (R2). join never emits them.
+ */
+export const EVENT_KINDS = ["earnings", "macro_release", "index_review"] as const;
+export type EventKind = (typeof EVENT_KINDS)[number];
+
+export const INVALIDATION_COMPARATORS = ["at or above", "at or below", "above", "below"] as const;
+export type InvalidationComparator = (typeof INVALIDATION_COMPARATORS)[number];
+
+export const INVALIDATION_CHECKED_AGAINST = ["last close", "next print", "named date"] as const;
+export type InvalidationCheckedAgainst = (typeof INVALIDATION_CHECKED_AGAINST)[number];
+
+/** R2 typed-null sentences. Never fabricated. Never the words falsifier/refuted/证伪. */
+export const INVALIDATION_NULL_EN = "We haven't defined what would void this read yet.";
+export const INVALIDATION_NULL_ZH = "我们尚未定义何种情况会让此判断失效。";
+
+export const VOID_PREFIX_EN = "What would void this: ";
+export const VOID_PREFIX_ZH = "什么会让此判断失效：";
+
+/**
+ * Last-close owner key — same module that produces the claim-authoring close
+ * (terminal/lib/claimOwners.ts). Internal; never rendered.
+ */
+export const INVALIDATION_OWNER_LAST_CLOSE = "hub/lib/anchor.js";
+
+export interface EventInvalidation {
+  readonly condition_en: string;
+  readonly condition_zh: string;
+  readonly metric_owner: string | null;
+  readonly comparator: InvalidationComparator | null;
+  readonly threshold: number | null;
+  readonly checked_against: InvalidationCheckedAgainst | null;
+  readonly named_date?: string | null;
+  readonly null_reason?: string;
+}
+
+type InvalidationMappingRow =
+  | {
+      readonly condition_en: string;
+      readonly condition_zh: string;
+      readonly metric_owner: string;
+      readonly comparator: InvalidationComparator;
+      readonly threshold: number | null;
+      readonly checked_against: InvalidationCheckedAgainst;
+    }
+  | { readonly null_reason: string };
+
+/**
+ * Producer mapping table. Every invalidation condition comes from here — no LLM.
+ * A type without a defensible ticker-keyed metric is the typed null (R2).
+ */
+export const EVENT_INVALIDATION_BY_KIND: { readonly [K in EventKind]: InvalidationMappingRow } = {
+  earnings: {
+    // The panel is "what's coming". Once a last close on the named report date
+    // has printed (a listed last close is at or above zero), the upcoming-event
+    // read is void. Owner is the last-close producer; threshold 0 is the bound
+    // of a valid last close, not an invented price target.
+    condition_en: "The last close on the report date is at or above zero.",
+    condition_zh: "报告日收盘价大于等于零。",
+    metric_owner: INVALIDATION_OWNER_LAST_CLOSE,
+    comparator: "at or above",
+    threshold: 0,
+    checked_against: "named date",
+  },
+  // Published calendars in this module that carry no ticker field — no owned
+  // per-position metric is defensible, so the mapping is the typed null.
+  macro_release: { null_reason: "no_ticker_keyed_metric" },
+  index_review: { null_reason: "no_ticker_keyed_metric" },
+};
+
+export function typedNullInvalidation(nullReason: string): EventInvalidation {
+  return {
+    condition_en: INVALIDATION_NULL_EN,
+    condition_zh: INVALIDATION_NULL_ZH,
+    metric_owner: null,
+    comparator: null,
+    threshold: null,
+    checked_against: null,
+    named_date: null,
+    null_reason: nullReason,
+  };
+}
+
+const COMPARATOR_SET: ReadonlySet<string> = new Set(INVALIDATION_COMPARATORS);
+const CHECKED_SET: ReadonlySet<string> = new Set(INVALIDATION_CHECKED_AGAINST);
+
+export function isEventInvalidation(v: unknown): v is EventInvalidation {
+  if (!isPlainObject(v)) return false;
+  if (typeof v.condition_en !== "string" || !v.condition_en.trim()) return false;
+  if (typeof v.condition_zh !== "string" || !v.condition_zh.trim()) return false;
+  if (v.null_reason != null) {
+    if (typeof v.null_reason !== "string" || !v.null_reason.trim()) return false;
+    return (
+      v.metric_owner === null &&
+      v.comparator === null &&
+      v.threshold === null &&
+      v.checked_against === null
+    );
+  }
+  if (typeof v.metric_owner !== "string" || !v.metric_owner.trim()) return false;
+  if (typeof v.comparator !== "string" || !COMPARATOR_SET.has(v.comparator)) return false;
+  if (!(v.threshold === null || (typeof v.threshold === "number" && Number.isFinite(v.threshold)))) {
+    return false;
+  }
+  if (typeof v.checked_against !== "string" || !CHECKED_SET.has(v.checked_against)) return false;
+  return true;
+}
+
+export function invalidationForKind(kind: string, namedDate?: string | null): EventInvalidation {
+  const row = (EVENT_INVALIDATION_BY_KIND as Record<string, InvalidationMappingRow | undefined>)[kind];
+  if (!row || "null_reason" in row) {
+    return typedNullInvalidation(row?.null_reason ?? "unmapped_kind");
+  }
+  const inv: EventInvalidation = {
+    condition_en: row.condition_en,
+    condition_zh: row.condition_zh,
+    metric_owner: row.metric_owner,
+    comparator: row.comparator,
+    threshold: row.threshold,
+    checked_against: row.checked_against,
+  };
+  if (row.checked_against === "named date") {
+    return { ...inv, named_date: namedDate ?? null };
+  }
+  return inv;
+}
+
+export function presentInvalidation(inv: EventInvalidation, lang: Lang): string {
+  const prefix = lang === "zh" ? VOID_PREFIX_ZH : VOID_PREFIX_EN;
+  const body = lang === "zh" ? inv.condition_zh : inv.condition_en;
+  return `${prefix}${body}`;
+}
+
 export interface EventTouch {
   readonly eventId: string; // `${kind}|${ticker}|${date}` — stable, no hashing
-  readonly kind: "earnings"; // the only kind any published artifact keys by ticker today
+  readonly kind: EventKind;
   readonly ticker: string;
   readonly date: string; // verbatim ISO yyyy-mm-dd from the artifact
   readonly daysUntil: number; // verbatim `days_to` — NEVER recomputed from a clock
@@ -40,6 +178,7 @@ export interface EventTouch {
   readonly direction: Carried;
   readonly mechanism: Carried;
   readonly timeframe: Carried;
+  readonly invalidation: EventInvalidation;
   readonly sourcePath: "/data/portfolio_ctx.json";
 }
 
@@ -196,6 +335,8 @@ export function joinEventImpact(input: {
       direction: readCarried(earnings, "direction"),
       mechanism: readCarried(earnings, "mechanism"),
       timeframe: readCarried(earnings, "timeframe"),
+      // 6b. Invalidation is REQUIRED and comes only from the producer mapping table (B-F08-8).
+      invalidation: invalidationForKind("earnings", next),
       sourcePath: "/data/portfolio_ctx.json",
     });
   }
@@ -227,6 +368,16 @@ export function presentDaysUntil(n: number, lang: Lang): string {
 }
 
 export function presentEventSentence(e: EventTouch, lang: Lang): string {
+  if (e.kind === "macro_release") {
+    return lang === "zh"
+      ? `宏观数据发布日历于 ${e.date} 点名了 ${e.ticker}。`
+      : `${e.ticker} is named on the macro release calendar for ${e.date}.`;
+  }
+  if (e.kind === "index_review") {
+    return lang === "zh"
+      ? `指数检讨日历于 ${e.date} 点名了 ${e.ticker}。`
+      : `${e.ticker} is named on the index-review calendar for ${e.date}.`;
+  }
   return lang === "zh"
     ? `${e.ticker} 将于 ${e.date} 公布财报。`
     : `${e.ticker} reports earnings on ${e.date}.`;

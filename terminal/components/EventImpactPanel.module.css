@@ -70,6 +70,14 @@
 .slotMissing .slotValue{color:var(--text-dim);
   text-decoration:underline dashed var(--line-3);text-underline-offset:3px}
 
+/* One line under the three carry slots: the producer-mapping invalidation
+   (B-F08-8). Typed-null uses the same missing-slot treatment so it never
+   reads as a stated condition. */
+.voidLine{margin:0;padding-top:var(--sp-2);border-top:1px solid var(--hairline);
+  font:400 var(--fs-label)/1.5 var(--font-ui);color:var(--text-2)}
+.voidLine[data-null="1"]{color:var(--text-dim);
+  text-decoration:underline dashed var(--line-3);text-underline-offset:3px}
+
 .empty,.cannotRead{margin:0;padding:var(--sp-4) var(--sp-3);
   font:400 var(--fs-body)/1.55 var(--font-ui);color:var(--text-2);
   background:var(--panel-2);border:1px dashed var(--line-3);

@@ -107,6 +107,11 @@ describe("event-impact route", () => {
     const body = await res.json();
     expect(body.state).toBe("ok");
     expect(body.events[0].ticker).toBe("AAPL");
+    expect(body.events[0].invalidation).toBeDefined();
+    expect(body.events[0].invalidation.condition_en).toBe(
+      "The last close on the report date is at or above zero."
+    );
+    expect(body.events[0].invalidation.null_reason).toBeUndefined();
   });
 
   it("5. GET only / read-only", async () => {
