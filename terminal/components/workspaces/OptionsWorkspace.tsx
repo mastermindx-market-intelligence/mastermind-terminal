@@ -139,7 +139,7 @@ export default function OptionsWorkspace() {
               tabs={CATEGORY_TABS}
               active={`cat-${activeCategory}`}
               onSelect={onCategorySelect}
-              aria-label={lang === "zh" ? "期权类别" : "Options categories"}
+              aria-label={t("optionsCategoriesAria")}
               className="options-category-tabs"
             />
             <OptionsWorkflowGuide activeView={activeView} onOpenView={selectView} />
@@ -152,7 +152,7 @@ export default function OptionsWorkspace() {
               tabs={viewTabs}
               active={activePageKey}
               onSelect={onViewSelect}
-              aria-label={lang === "zh" ? "期权子视图" : "Options views"}
+              aria-label={t("optionsViewsAria")}
               className="options-view-tabs"
             />
           ) : (
@@ -182,7 +182,7 @@ export default function OptionsWorkspace() {
                 "Exchange codes are retained. Contract statistics, trade-side statistics, and market share will appear here only after the publisher and validation gate ship.",
               )}
             </p>
-            <div className="options-statistics-gate-receipts" aria-label={lang === "zh" ? "统计页状态" : "Statistics status"}>
+            <div className="options-statistics-gate-receipts" aria-label={t("optionsStatisticsStatusAria")}>
               <span>{t("optionsStatisticsGatePublisher", "Publisher pending")}</span>
               <span>{t("optionsStatisticsGateValues", "No values shown")}</span>
             </div>

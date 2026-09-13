@@ -661,6 +661,11 @@ describe("optAlertPreview + buildOptCondition", () => {
     expect(canonicalizeOptAlertIdentity("SPY", {
       type: "opt_gamma_flip", root: "../../QQQ",
     })).toBeNull();
+    const { normalizeOptAlertRoot } = await import("../optionsAlerts");
+    expect(normalizeOptAlertRoot("ABCDEFGHIJ.ABCD")).toBeNull();
+    expect(canonicalizeOptAlertIdentity("SPY", {
+      type: "opt_gamma_flip", root: "ABCDEFGHIJ.ABCD",
+    })).toBeNull();
   });
 
   it("omitted numeric params fall through to evaluator defaults (field absent in condition)", () => {

@@ -1,5 +1,5 @@
 "use client";
-import { useLang } from "@/lib/i18n";
+import { useLang, useT } from "@/lib/i18n";
 
 // A small, beautiful illustration of the day's price range: a low→high track with the current
 // price riding a marker positioned by where `last` sits inside [low, high]. Renders compactly in
@@ -13,6 +13,7 @@ export default function DayRange({
   low?: number | null; high?: number | null; last?: number | null; open?: number | null; variant?: "bar" | "panel";
 }) {
   const { lang } = useLang();
+  const t = useT();
   const zh = lang === "zh";
   const has = low != null && high != null && isFinite(low) && isFinite(high) && high > low;
   const dec = (last ?? high ?? 0) < 10 ? 4 : 2;
@@ -23,9 +24,9 @@ export default function DayRange({
   const cur = up ? "var(--up)" : "var(--down)";
 
   return (
-    <div className={`dayrange dr-${variant}${!has ? " dr-empty" : ""}`} title={zh ? "当日区间" : "Day range"}>
+    <div className={`dayrange dr-${variant}${!has ? " dr-empty" : ""}`} title={t("dayRange")}>
       <div className="dr-cap">
-        <span className="dr-lab">{zh ? "当日区间" : "Day Range"}</span>
+        <span className="dr-lab">{t("dayRange")}</span>
         {has && <span className="dr-cur num" style={{ color: cur }}>{fmt(last, dec)}</span>}
       </div>
       <div className="dr-track">

@@ -19,6 +19,12 @@ const AAPL_TX = JSON.parse(gunzipSync(AAPL_TX_GZ).toString("utf8")) as {
 };
 
 const SHA = "a".repeat(64);
+// AppShell mounts BrainWidget on every /analysis route (PR #490), which requests this
+// production script. This spec's assertions are about Company Intelligence, not the Brain
+// widget, so stub the script to a no-op instead of letting a real cross-origin network
+// request race the page's own timing-sensitive assertions (CI has no route to the live
+// script, so an un-stubbed request either hangs or errors mid-test).
+const BRAIN_SCRIPT_SRC = "https://www.mastermind-x.com/mm_brain.js";
 const drawerFixtureBody = {
   schema: "mastermind.tx/v1",
   ticker: "NVDA",
@@ -278,6 +284,10 @@ async function openCompanyIntelligence(page: Page, intelligenceLabel = "Intellig
 }
 
 test.beforeEach(async ({ page }) => {
+  await page.route(BRAIN_SCRIPT_SRC, async (route) => route.fulfill({
+    contentType: "application/javascript",
+    body: "",
+  }));
   await routeInstitutionalContext(page);
   await page.route("**/api/event-workspace/**", async (route) => {
     await route.fulfill({
@@ -593,17 +603,13 @@ test("Analysis symbol URLs preserve valid market identifiers and refuse malforme
   });
 
   await page.goto("/analysis?symbol=BRK.B&page=intelligence");
-  await expect(page.locator(".analysis-context-identity strong")).toHaveText("BRK.B");
+  await expect(page.locator(".sym-pick strong")).toHaveText("BRK.B");
   await expect.poll(() => requested.some((path) => path.endsWith("/BRK.B"))).toBe(true);
 
+  // The free-text field this used to type into is gone: the switcher is components/SymbolPicker,
+  // which can only yield manifest symbols. A malformed value now reaches the workspace only
+  // through the URL, which is the case below — and it must still refuse to become NVDA.
   requested.length = 0;
-  await page.getByLabel("Change symbol").fill("../NVDA");
-  await page.getByLabel("Change symbol").press("Enter");
-  await expect(page.locator(".analysis-invalid-state")).toBeVisible();
-  await expect(page.locator(".analysis-invalid-state")).toContainText("not substituted with NVDA");
-  await page.waitForTimeout(200);
-  expect(requested).toEqual([]);
-
   await page.goto(`/analysis?symbol=${encodeURIComponent("../NVDA")}&page=intelligence`);
   await expect(page.locator(".analysis-invalid-state")).toBeVisible();
   await expect(page.locator(".analysis-invalid-state")).toContainText("not substituted with NVDA");
@@ -766,7 +772,7 @@ test("Company Intelligence preserves its mobile workflow in Chinese", async ({ p
   await expect(page.locator(".ci-theme-card")).toContainText("代理映射");
   await expect(page.locator(".ci-theme-footer")).toContainText("已过期");
   await expect(page.locator(".ci-theme-footer")).not.toContainText("stale");
-  await expect(page.getByRole("heading", { name: "3 家追踪管理人申报持仓" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "3 家追踪管理人披露持仓" })).toBeVisible();
   await expect(page.locator(".ci-inst-card")).toContainText("仅限该名册的 HHI");
   await expectNoDocumentOverflow(page);
   await page.screenshot({
@@ -949,9 +955,12 @@ test("AAPL intelligence opens the verified FY2026 Q3 event workspace", async ({ 
 
   await closeEvidenceOverlay(page);
   await page.locator(".ci-lenses").getByRole("tab", { name: "Sources" }).click();
-  await expect(page.locator("[data-ci-source-kind='issuer_release']")).toContainText("8-K / Exhibit 99.1");
-  await expect(page.locator("[data-ci-source-kind='transcript']")).toContainText("2026Q3");
-  await expect(page.locator("[data-ci-source-kind='issuer_release']")).toContainText("0000320193-26-000018");
+  await expect(page.locator("[data-ci-source-kind='issuer_release']")).toContainText("Company 8-K filing, exhibit 99.1");
+  await expect(page.locator("[data-ci-source-kind='issuer_release']")).not.toContainText("8-K / Exhibit 99.1");
+  await expect(page.locator("[data-ci-source-kind='issuer_release']")).not.toContainText("0000320193-26-000018");
+  await expect(page.locator("[data-ci-source-kind='issuer_release']")).toHaveAttribute("data-ci-accession", "0000320193-26-000018");
+  await expect(page.locator("[data-ci-source-kind='transcript']")).toHaveAttribute("data-ci-transcript-id", "2026Q3");
+  await expect(page.locator("[data-ci-source-kind='transcript']")).not.toContainText("2026Q3");
   await page.screenshot({ path: testInfo.outputPath(`${testInfo.project.name}-aapl-sources.png`), fullPage: false });
 
   await closeEvidenceOverlay(page);
@@ -1052,7 +1061,8 @@ test("AAPL v1 score overlay cannot populate current Brief, Results, or Sources",
   await expect(page.locator("#ci-panel-results")).toContainText("$109.4B");
   await expect(page.locator("#ci-panel-results")).not.toContainText("14");
   await page.locator(".ci-lenses").getByRole("tab", { name: "Sources" }).click();
-  await expect(page.locator("#ci-panel-sources")).toContainText("8-K / Exhibit 99.1");
+  await expect(page.locator("#ci-panel-sources")).toContainText("Company 8-K filing, exhibit 99.1");
+  await expect(page.locator("#ci-panel-sources")).not.toContainText("8-K / Exhibit 99.1");
   await expect(page.locator("#ci-panel-sources")).not.toContainText("14");
   await expect(page.locator("#ci-panel-sources")).not.toContainText(/score overlay/i);
 });
@@ -1120,7 +1130,7 @@ async function openAaplQaResults(page: Page, lang: "en" | "zh" = "en") {
 test("AAPL Results shows seven verified exchanges and opens the exact transcript segment", async ({ page }, testInfo) => {
   const qa = await openAaplQaResults(page);
   await expect(qa).toContainText("ANALYST Q&A · 7 exchanges");
-  await expect(qa).toContainText("Structure verified · topic enrichment unavailable");
+  await expect(qa).toContainText("Structure is verified. Topic labels are not available yet.");
   await expect(qa).toContainText("Amit Daryanani · Evercore");
   await expect(qa.locator(".ci-qa-row")).toHaveCount(7);
   await expect(page.locator('[data-ci-results-region="typed-absences"]')).not.toContainText("Analyst questions");
@@ -1133,7 +1143,7 @@ test("AAPL Results shows seven verified exchanges and opens the exact transcript
   await expectNoDocumentOverflow(page);
   await page.screenshot({ path: testInfo.outputPath(`${testInfo.project.name}-aapl-qa-expanded.png`), fullPage: false });
 
-  await first.getByRole("button", { name: "Open in transcript" }).click();
+  await first.getByRole("button", { name: "Open in the earnings call" }).click();
   await expect(page.locator(".fin-tx-drawer")).toBeVisible();
   const target = page.locator('.fin-tx-seg[data-segment="34"]');
   await expect(target).toContainText("Amit Daryanani");
@@ -1147,7 +1157,7 @@ test("AAPL Results Q&A remains usable in Chinese at desktop and mobile", async (
   test.skip(!project.endsWith("desktop") && !project.endsWith("mobile"), "ZH proof is desktop + mobile");
   const qa = await openAaplQaResults(page, "zh");
   await expect(qa).toContainText("分析师问答 · 7 轮");
-  await expect(qa).toContainText("结构已验证 · 主题增强暂不可用");
+  await expect(qa).toContainText("结构已验证。主题标签暂不可用。");
   const first = qa.locator(".ci-qa-row").first();
   await first.locator("summary").click();
   await expect(first.getByRole("button", { name: "在电话会中查看" })).toBeVisible();

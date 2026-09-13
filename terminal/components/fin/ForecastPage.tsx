@@ -1099,7 +1099,7 @@ export function Disclaimer({ zh }: { zh: boolean }) {
         {pick(
           zh,
           "This is not investment advice and doesn't take into account your personal circumstances. It isn't a recommendation to buy, sell, or hold any asset. Always do your own research.",
-          "本内容不构成投资建议，也未考虑您的个人情况。它不是对任何资产的买入、卖出或持有的推荐。请始终自行研究。",
+          "本内容不构成投资建议，也未考虑你的个人情况。它不是对任何资产的买入、卖出或持有的推荐。请始终自行研究。",
         )}
       </p>
     </div>

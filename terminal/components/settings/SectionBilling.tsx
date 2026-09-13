@@ -1,6 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useOnboarding } from "@/components/onboarding/OnboardingProvider";
+import { invalidateEntitlement } from "@/lib/entitlementStore";
 import { Group, IconCheck, IconExtLink, Msg, Row, SectionHead } from "./icons";
 import {
   ACS_PLAN_FEATURES, ACS_PRICE, ACS_UPGRADE_URL, acsDate, acsNormalizeTier,
@@ -74,8 +75,24 @@ export default function SectionBilling({ t, lang, onClose, plan, planErr, planSt
     }
     // Essential → Pro, or monthly → annual: a change to a LIVE subscription with
     // proration. The Terminal's sheet has no lane for that; the landing does.
+    leftForBilling.current = true;
     window.open(ACS_UPGRADE_URL, "_blank", "noopener");
   }
+
+  // A plan change made in ANOTHER tab — the Stripe portal, or the landing's upgrade flow — is
+  // invisible here until we ask again. Coming back to this tab is the moment we know something
+  // may have happened, so the return from a billing action invalidates rather than waiting out
+  // a TTL. Armed only after the user actually left for one.
+  const leftForBilling = useRef(false);
+  useEffect(() => {
+    const onFocus = () => {
+      if (!leftForBilling.current) return;
+      leftForBilling.current = false;
+      invalidateEntitlement();
+    };
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, []);
 
   async function openPortal() {
     setPortalBusy(true);
@@ -84,7 +101,7 @@ export default function SectionBilling({ t, lang, onClose, plan, planErr, planSt
       const r = await fetch("/api/billing/portal", { cache: "no-store" });
       if (r.ok) {
         const j = await r.json();
-        if (j?.url) { window.open(j.url as string, "_blank", "noopener"); return; }
+        if (j?.url) { leftForBilling.current = true; window.open(j.url as string, "_blank", "noopener"); return; }
         setPortalMsg(t("acsPortalErr"));
         return;
       }

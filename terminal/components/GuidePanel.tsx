@@ -13,6 +13,7 @@ import GuideVisual from "@/components/guides/GuideVisual";
 import { parseGuideDocument, type GuideSectionKind, type ParsedGuideDocument } from "@/lib/guides/document";
 import { loadGuide } from "@/lib/guides/registry";
 import { useLang, useT } from "@/lib/i18n";
+import { planTierLabel } from "@/lib/plainLabels";
 import { SUITE_ALERT_EVENTS } from "@/lib/suiteAlerts";
 import { ACS_UPGRADE_URL } from "@/components/settings/types";
 import {
@@ -125,11 +126,12 @@ function fieldRange(field: SuiteField, zh: boolean): string | null {
 }
 
 function GuideSettings({ entry, zh }: { entry: SuiteModuleCatalogEntry; zh: boolean }) {
+  const t = useT();
   if (entry.module.fields.length === 0) {
     return (
       <div className="gp-canonical-empty">
         <Icon name="tune" />
-        <span>{zh ? "此模块没有输入项；它会自动继承套件的实时计算环境。" : "This module has no inputs; it inherits the suite's live calculation context automatically."}</span>
+        <span>{t("gpNoInputs")}</span>
       </div>
     );
   }
@@ -137,11 +139,9 @@ function GuideSettings({ entry, zh }: { entry: SuiteModuleCatalogEntry; zh: bool
   return (
     <div className="gp-settings-schema">
       <p className="gp-schema-note">
-        {zh
-          ? "字段名与实际设置面板保持一致；默认值与范围由当前模块架构实时生成，中文操作说明见下方。"
-          : "Labels, defaults, and ranges are generated from the live module schema used by Settings."}
+        {t("gpSchemaNote")}
       </p>
-      <div className="gp-settings-grid" aria-label={zh ? "当前设置项" : "Current settings schema"}>
+      <div className="gp-settings-grid" aria-label={t("gpSchemaAria")}>
         {entry.module.fields.map((field) => {
           const range = fieldRange(field, zh);
           const dependency = field.showIf
@@ -177,11 +177,9 @@ function GuideAlerts({ entry, zh }: { entry: SuiteModuleCatalogEntry; zh: boolea
       <div className="gp-alert-head">
         <span className="gp-alert-icon"><Icon name="bell" /></span>
         <span>
-          <strong>{alertable.length > 0 ? (zh ? "可在提醒中心使用" : "Available in Alert Center") : (zh ? "提醒中心暂不可用" : "No Alert Center condition")}</strong>
+          <strong>{alertable.length > 0 ? t("gpAlertAvailable") : t("gpAlertNone")}</strong>
           <small>
-            {alertable.length > 0
-              ? (zh ? "以下事件来自实时提醒引擎，而不只是图表标记。" : "These conditions come from the live alert engine, not merely chart markers.")
-              : (zh ? "此模块目前没有可创建的套件提醒；下方指南会注明任何仅限图表的标记或事件。" : "This module has no creatable suite alert yet; the guide below notes any chart-only markers or events.")}
+            {alertable.length > 0 ? t("gpAlertLive") : t("gpAlertEmpty")}
           </small>
         </span>
       </div>
@@ -412,7 +410,7 @@ export default function GuidePanel({
         <header className="gp-head">
           <div className="gp-brandmark" aria-hidden="true"><Icon name="book" /></div>
           <div className="gp-head-copy">
-            <strong>{zh ? "指标学院" : "Indicator Academy"}</strong>
+            <strong>{t("gpAcademy")}</strong>
             <span>{localizedSuite}<i aria-hidden="true">/</i>{title}</span>
           </div>
           <span className="sr-only" role="status" aria-live="polite">
@@ -432,7 +430,7 @@ export default function GuidePanel({
                 rel="noopener"
               >
                 <Icon name="lock" />
-                {zh ? "升级解锁" : "Upgrade"}
+                {t("gpUpgrade")}
               </a>
             )}
             {entry && onToggleModule && !locked && (
@@ -443,12 +441,12 @@ export default function GuidePanel({
                 onClick={() => onToggleModule(entry.id)}
               >
                 <Icon name={onChart ? "remove" : "add"} />
-                {onChart ? (zh ? "已在图表" : "On chart") : (zh ? "添加到图表" : "Add to chart")}
+                {onChart ? t("gpOnChart") : t("gpAddToChart")}
               </button>
             )}
             {entry && onConfigureModule && (
               <button type="button" className="gp-configure" onClick={() => onConfigureModule(entry.id)}>
-                <Icon name="tune" />{zh ? "配置" : "Configure"}
+                <Icon name="tune" />{t("gpConfigure")}
               </button>
             )}
             <button type="button" className="gp-close" onClick={close} aria-label={t("guideClose", "Close")}>
@@ -458,27 +456,27 @@ export default function GuidePanel({
         </header>
 
         <div className="gp-layout">
-          <aside className="gp-library" aria-label={zh ? "指标指南" : "Indicator guides"}>
+          <aside className="gp-library" aria-label={t("gpGuidesAria")}>
             <div className="gp-library-head">
-              <span>{zh ? "指南库" : "Guide library"}</span>
-              <small>{MODULE_CATALOG.length} {zh ? "节课程" : "lessons"}</small>
+              <span>{t("gpLibrary")}</span>
+              <small>{MODULE_CATALOG.length} {t("gpLessons")}</small>
             </div>
             <div className="gp-guide-search" role="search">
               <Icon name="search" />
-              <label className="sr-only" htmlFor="guide-center-search">{zh ? "搜索指南" : "Search guides"}</label>
+              <label className="sr-only" htmlFor="guide-center-search">{t("gpSearchGuides")}</label>
               <input
                 ref={guideSearchRef}
                 id="guide-center-search"
                 type="search"
                 value={query}
-                placeholder={zh ? "搜索指标模块…" : "Search indicator modules…"}
+                placeholder={t("gpSearchModules")}
                 onChange={(event) => setQuery(event.target.value)}
               />
               {query && (
                 <button
                   type="button"
                   className="gp-guide-clear"
-                  aria-label={zh ? "清除指南搜索" : "Clear guide search"}
+                  aria-label={t("gpClearSearch")}
                   onClick={() => {
                     setQuery("");
                     window.requestAnimationFrame(() => guideSearchRef.current?.focus({ preventScroll: true }));
@@ -519,7 +517,7 @@ export default function GuidePanel({
                           >
                             <span aria-hidden="true">{candidate.tag}</span>
                             <span lang={zh ? "en" : undefined}>{candidate.label}</span>
-                            <small>{candidate.tier}</small>
+                            <small>{planTierLabel(candidate.tier, t, lang)}</small>
                           </button>
                         ))}
                       </div>
@@ -528,7 +526,7 @@ export default function GuidePanel({
                 );
               })}
               {filteredCatalog.length === 0 && (
-                <p className="gp-library-empty">{zh ? "没有匹配的指南。" : "No matching guides."}</p>
+                <p className="gp-library-empty">{t("gpNoMatches")}</p>
               )}
             </div>
           </aside>
@@ -553,7 +551,7 @@ export default function GuidePanel({
                       <div className="gp-breadcrumb">
                         <span>{localizedSuite}</span>
                         <span>{surfaceLabel(entry.surface, zh)}</span>
-                        <span className={`gp-tier gp-tier-${SUITE_TIER_LABEL[entry.tier]}`}>{SUITE_TIER_LABEL[entry.tier]}</span>
+                        <span className={`gp-tier gp-tier-${SUITE_TIER_LABEL[entry.tier]}`}>{planTierLabel(entry.tier, t, lang)}</span>
                       </div>
                       <h1 id="guide-center-title">{title}</h1>
                       <div className="gp-lede" dangerouslySetInnerHTML={{ __html: document.introHtml }} />
@@ -561,24 +559,24 @@ export default function GuidePanel({
                     <GuideVisual suiteKey={entry.suiteKey} moduleKey={entry.moduleKey} lang={lang} />
                   </section>
 
-                  <section className="gp-glance" aria-label={zh ? "快速了解" : "At a glance"}>
+                  <section className="gp-glance" aria-label={t("gpGlance")}>
                     <div>
-                      <span>{zh ? "显示什么" : "What it shows"}</span>
+                      <span>{t("gpWhatItShows")}</span>
                       <p>{zh ? entry.descriptionZh : entry.description}</p>
                     </div>
                     <div>
-                      <span>{zh ? "最佳用途" : "Best used for"}</span>
+                      <span>{t("gpBestUsed")}</span>
                       <p>{bestUse(entry, zh)}</p>
                     </div>
                     <div>
-                      <span>{zh ? "使用边界" : "Guardrail"}</span>
+                      <span>{t("gpGuardrail")}</span>
                       <p>{guardrail(entry, zh)}</p>
                     </div>
                   </section>
 
                   {document.sections.map((section) => (
                     <section
-                      className={`gp-section gp-section-${section.kind}`}
+                      className={["gp-section", "gp-section-" + section.kind].join(" ")}
                       id={`gp-section-${section.id}`}
                       key={section.id}
                     >
@@ -598,27 +596,27 @@ export default function GuidePanel({
                   {(source || previous || next) && (
                     <footer className="gp-related">
                       <div>
-                        <span>{zh ? "继续探索" : "Continue learning"}</span>
-                        <strong>{zh ? "探索相关指标" : "Explore related indicators"}</strong>
+                        <span>{t("gpContinue")}</span>
+                        <strong>{t("gpExploreRelated")}</strong>
                       </div>
                       <div className="gp-related-grid">
                         {source && source.id !== entry.id && (
                           <button type="button" onClick={() => selectModule(source)}>
-                            <span>{zh ? "计算来源" : "Calculation source"}</span>
+                            <span>{t("gpCalcSource")}</span>
                             <strong>{source.label}</strong>
                             <Icon name="arrow" />
                           </button>
                         )}
                         {previous && (
                           <button type="button" className="previous" onClick={() => selectModule(previous)}>
-                            <span>{zh ? "上一指南" : "Previous guide"}</span>
+                            <span>{t("gpPrevGuide")}</span>
                             <strong>{previous.label}</strong>
                             <Icon name="arrow" />
                           </button>
                         )}
                         {next && (
                           <button type="button" onClick={() => selectModule(next)}>
-                            <span>{zh ? "下一指南" : "Next guide"}</span>
+                            <span>{t("gpNextGuide")}</span>
                             <strong>{next.label}</strong>
                             <Icon name="arrow" />
                           </button>
@@ -631,8 +629,8 @@ export default function GuidePanel({
             </div>
           </main>
 
-          <aside className="gp-toc" aria-label={zh ? "本页内容" : "On this guide"}>
-            <span>{zh ? "本页内容" : "On this guide"}</span>
+          <aside className="gp-toc" aria-label={t("gpOnThisGuide")}>
+            <span>{t("gpOnThisGuide")}</span>
             {document?.sections.map((section) => (
               <button
                 type="button"

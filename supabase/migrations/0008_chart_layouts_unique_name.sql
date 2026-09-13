@@ -21,7 +21,7 @@
 --
 -- ========================= PRODUCTION CENSUS BEFORE APPLYING =========================
 -- Required by the delivery packet: never add a unique constraint without first counting what it
--- would reject. Run read-only against the shared project (`fsldfzlxyavsuwqbceod`) on 2026-08-19
+-- would reject. Run read-only against the shared project (`{ref}`) on 2026-08-19
 -- with the service key, from the VPS (`/opt/terminal/terminal/.env.local`):
 --
 --     GET /rest/v1/chart_layouts?select=id,user_id,name,updated_at,created_at

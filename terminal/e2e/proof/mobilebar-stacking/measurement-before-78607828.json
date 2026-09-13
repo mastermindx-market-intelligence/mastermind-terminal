@@ -1,0 +1,165 @@
+{
+  "label": "before-78607828",
+  "port": 3196,
+  "capturedAtHead": "7860782888fb27e6a3198d89b3d393f3c7776ad1",
+  "viewports": {
+    "1440x900": {
+      "mobilebar": {
+        "zIndex": "1",
+        "position": "relative",
+        "top": "auto",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "top": 0,
+          "bottom": 0,
+          "left": 0,
+          "right": 0
+        }
+      },
+      "mobilebarZIndexCascade": [
+        {
+          "selector": ".mobilebar",
+          "zIndex": "30"
+        },
+        {
+          "selector": ".obs-ambient > *",
+          "zIndex": "1"
+        }
+      ],
+      "finPane": {
+        "zIndex": "1",
+        "position": "relative",
+        "top": "0px",
+        "rect": {
+          "x": 60,
+          "y": 112,
+          "width": 1380,
+          "height": 760,
+          "top": 112,
+          "bottom": 872,
+          "left": 60,
+          "right": 1440
+        }
+      },
+      "finHead": {
+        "zIndex": "auto",
+        "position": "static",
+        "top": "auto",
+        "rect": {
+          "x": 60,
+          "y": 112,
+          "width": 1380,
+          "height": 52,
+          "top": 112,
+          "bottom": 164,
+          "left": 60,
+          "right": 1440
+        }
+      },
+      "menuButton": {
+        "zIndex": "auto",
+        "position": "static",
+        "top": "auto",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "top": 0,
+          "bottom": 0,
+          "left": 0,
+          "right": 0
+        }
+      },
+      "menuHitTest": {
+        "hitElementTag": "HEADER",
+        "hitElementIsMenuButton": false
+      },
+      "mobilebarOverlapsFinPane": false,
+      "finHeadCoveredByMobilebar": false,
+      "screenshot": "1440x900-before-78607828.png"
+    },
+    "390x844": {
+      "mobilebar": {
+        "zIndex": "1",
+        "position": "relative",
+        "top": "0px",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 52,
+          "top": 0,
+          "bottom": 52,
+          "left": 0,
+          "right": 390
+        }
+      },
+      "mobilebarZIndexCascade": [
+        {
+          "selector": ".mobilebar",
+          "zIndex": "30"
+        },
+        {
+          "selector": ".obs-ambient > *",
+          "zIndex": "1"
+        }
+      ],
+      "finPane": {
+        "zIndex": "90",
+        "position": "fixed",
+        "top": "0px",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 844,
+          "top": 0,
+          "bottom": 844,
+          "left": 0,
+          "right": 390
+        }
+      },
+      "finHead": {
+        "zIndex": "auto",
+        "position": "static",
+        "top": "auto",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 52,
+          "top": 0,
+          "bottom": 52,
+          "left": 0,
+          "right": 390
+        }
+      },
+      "menuButton": {
+        "zIndex": "auto",
+        "position": "static",
+        "top": "auto",
+        "rect": {
+          "x": 8,
+          "y": 5.5,
+          "width": 40,
+          "height": 40,
+          "top": 5.5,
+          "bottom": 45.5,
+          "left": 8,
+          "right": 48
+        }
+      },
+      "menuHitTest": {
+        "hitElementTag": "svg",
+        "hitElementIsMenuButton": false
+      },
+      "mobilebarOverlapsFinPane": true,
+      "finHeadCoveredByMobilebar": true,
+      "screenshot": "390x844-before-78607828.png"
+    }
+  }
+}

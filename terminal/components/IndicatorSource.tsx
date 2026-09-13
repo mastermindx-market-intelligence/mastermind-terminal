@@ -26,9 +26,9 @@ export default function IndicatorSource({ indKey, onClose }: { indKey: string; o
         </div>
         <pre className="src-code">{def.source}</pre>
         <div className="is-foot">
-          <span style={{ color: "var(--text-2)", fontSize: 12 }}>Built-in indicators are read-only. Edit a copy in the Pine Editor.</span>
+          <span style={{ color: "var(--text-2)", fontSize: 12 }}>{tPlain("isReadOnly")}</span>
           <div className="spacer" />
-          <button className="ai" onClick={onClose}>Close</button>
+          <button className="ai" onClick={onClose}>{tPlain("smClose", "Close")}</button>
         </div>
       </div>
     </div>

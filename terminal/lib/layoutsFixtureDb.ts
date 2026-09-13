@@ -27,8 +27,15 @@ export const LAYOUT_STORE_COOKIE = "mm_e2e_layouts";
 export const LAYOUT_FAULT_COOKIE = "mm_e2e_layout_fault";
 /** Renders the workspace as a signed-out visitor (page prop + API auth), for the guest-gate spec. */
 export const GUEST_COOKIE = "mm_e2e_guest";
+/** Team id this fixture session belongs to. Empty means the session is on no team. */
+export const LAYOUT_TEAM_COOKIE = "mm_e2e_layout_team";
+/** owner | admin | member. Default member. */
+export const LAYOUT_TEAM_ROLE_COOKIE = "mm_e2e_layout_role";
 
 export type LayoutFault = "list" | "save" | "delete" | "all" | "";
+export type LayoutTeamRole = "owner" | "admin" | "member";
+
+export type LayoutTeamContext = { teamId: string; role: LayoutTeamRole; teamName?: string };
 
 type Store = { rows: LayoutRow[]; seq: number };
 
@@ -36,8 +43,13 @@ type Store = { rows: LayoutRow[]; seq: number };
 // and Server Components into different bundles, so a module-level Map would be instantiated once
 // per bundle and the two would silently disagree about the same account's rows.
 const GLOBAL_KEY = Symbol.for("mm.e2e.layoutFixtureStores");
-type FixtureGlobal = typeof globalThis & { [GLOBAL_KEY]?: Map<string, Store> };
+const TEAM_GLOBAL_KEY = Symbol.for("mm.e2e.layoutFixtureTeamStores");
+type FixtureGlobal = typeof globalThis & {
+  [GLOBAL_KEY]?: Map<string, Store>;
+  [TEAM_GLOBAL_KEY]?: Map<string, Store>;
+};
 const stores: Map<string, Store> = ((globalThis as FixtureGlobal)[GLOBAL_KEY] ??= new Map<string, Store>());
+const teamStores: Map<string, Store> = ((globalThis as FixtureGlobal)[TEAM_GLOBAL_KEY] ??= new Map<string, Store>());
 
 /** Stable synthetic owner id per store key — the service still filters on it everywhere. */
 export function fixtureLayoutUserId(key: string): string {
@@ -90,26 +102,92 @@ function filterMatches(row: LayoutRow, filter: Filter): boolean {
   }
 }
 
-export function createLayoutFixtureDb(key: string, fault: LayoutFault = ""): LayoutDb {
-  const store = storeFor(key);
+function teamStoreFor(teamId: string): Store {
+  let store = teamStores.get(teamId);
+  if (!store) { store = { rows: [], seq: 0 }; teamStores.set(teamId, store); }
+  return store;
+}
 
-  const build = (): LayoutQuery => {
+export function fixtureTeamName(teamId: string): string {
+  return "Desk";
+}
+
+export function createLayoutFixtureDb(key: string, fault: LayoutFault = "", team?: LayoutTeamContext | null): LayoutDb {
+  const store = storeFor(key);
+  const userId = fixtureLayoutUserId(key);
+  const teamId = team?.teamId ?? "";
+  const role: LayoutTeamRole = team?.role ?? "member";
+  const teamName = team?.teamName || (teamId ? fixtureTeamName(teamId) : "");
+  const canWriteTeam = role === "owner" || role === "admin";
+
+  const allLayoutRows = (): LayoutRow[] => {
+    const rows = [...store.rows];
+    for (const ts of teamStores.values()) rows.push(...ts.rows);
+    return rows;
+  };
+
+  // Production SELECT is owner-policy OR team-read policy. A foreign shared row must not load
+  // on `eq("id")` just because it lives in a process-global team store.
+  const visibleOnSelect = (row: LayoutRow): boolean => {
+    if (row.visibility === "team" && typeof row.team_id === "string" && row.team_id) {
+      if (row.user_id === userId) return true;
+      return !!teamId && row.team_id === teamId;
+    }
+    return true;
+  };
+
+  const canTouchTeamRow = (row: LayoutRow): boolean => {
+    if (row.visibility !== "team") return true;
+    return canWriteTeam && !!teamId && row.team_id === teamId;
+  };
+
+  const removeLayoutRow = (row: LayoutRow) => {
+    store.rows = store.rows.filter((r) => r !== row);
+    for (const ts of teamStores.values()) ts.rows = ts.rows.filter((r) => r !== row);
+  };
+
+  const placeLayoutRow = (row: LayoutRow) => {
+    removeLayoutRow(row);
+    if (row.visibility === "team" && typeof row.team_id === "string" && row.team_id) {
+      teamStoreFor(row.team_id).rows.push(row);
+    } else {
+      store.rows.push(row);
+    }
+  };
+
+  const build = (table: string): LayoutQuery => {
     let op: Op = { kind: "select" };
     const filters: Filter[] = [];
+    let inFilter: { column: string; values: unknown[] } | null = null;
     let sort: { column: string; ascending: boolean } | null = null;
 
-    const matches = (row: LayoutRow) => filters.every((f) => filterMatches(row, f));
+    const matches = (row: LayoutRow) =>
+      filters.every((f) => filterMatches(row, f)) &&
+      (!inFilter || inFilter.values.includes(row[inFilter.column]));
 
-    /** A statement-level unique-constraint check for an UPDATE that changes `name`: real Postgres
-     *  enforces `unique(user_id, name)` on the UPDATE itself, not just on INSERT. */
     const nameCollision = (row: LayoutRow, newName: unknown): boolean =>
       store.rows.some((r) => r !== row && r.user_id === row.user_id && r.name === newName);
 
+    const teamNameCollision = (row: LayoutRow, team: string, newName: unknown): boolean => {
+      const ts = teamStores.get(team);
+      return !!ts && ts.rows.some((r) => r !== row && r.name === newName && r.visibility === "team");
+    };
+
     const run = (): LayoutDbResult => {
+      if (table === "team_members") {
+        if (!teamId) return { data: [] };
+        const rows: LayoutRow[] = [{ team_id: teamId, user_id: userId, role }];
+        return { data: rows.filter(matches).map((r) => ({ ...r })) };
+      }
+      if (table === "teams") {
+        if (!teamId) return { data: [] };
+        const rows: LayoutRow[] = [{ id: teamId, name: teamName, created_at: "2026-01-01T00:00:00.000Z" }];
+        return { data: rows.filter(matches).map((r) => ({ ...r })) };
+      }
       if (fault === "all" || (fault && fault === faultClassOf(op))) return transportFault();
       switch (op.kind) {
         case "select": {
-          let rows = store.rows.filter(matches);
+          let rows = allLayoutRows().filter(matches).filter(visibleOnSelect);
           if (sort) {
             const { column, ascending } = sort;
             rows = [...rows].sort((a, b) => String(a[column] ?? "").localeCompare(String(b[column] ?? "")) * (ascending ? 1 : -1));
@@ -117,26 +195,51 @@ export function createLayoutFixtureDb(key: string, fault: LayoutFault = ""): Lay
           return { data: rows.map((r) => ({ ...r })) };
         }
         case "insert": {
-          const values = op.values;
-          if (store.rows.some((r) => r.user_id === values.user_id && r.name === values.name)) {
+          const values: LayoutRow = { visibility: "private", team_id: null, ...op.values };
+          if (values.visibility === "team") {
+            const tid = typeof values.team_id === "string" ? values.team_id : "";
+            if (!canWriteTeam || !tid || tid !== teamId) return { error: { code: "42501", message: "insufficient privilege" } };
+            if (tid && teamNameCollision({} as LayoutRow, tid, values.name)) {
+              return { error: { code: "23505", message: "duplicate key value violates unique constraint chart_layouts_team_name" } };
+            }
+          } else if (store.rows.some((r) => r.user_id === values.user_id && r.name === values.name)) {
             return { error: { code: "23505", message: "duplicate key value violates unique constraint chart_layouts_user_name" } };
           }
-          const row: LayoutRow = { id: `layout-${key}-${++store.seq}`, created_at: new Date().toISOString(), ...values };
-          store.rows.push(row);
+          const dest = values.visibility === "team" && typeof values.team_id === "string" ? teamStoreFor(values.team_id) : store;
+          const row: LayoutRow = { id: `layout-${key}-${++dest.seq}`, created_at: new Date().toISOString(), ...values };
+          dest.rows.push(row);
           return { data: [{ ...row }] };
         }
         case "update": {
-          const hit = store.rows.filter(matches);
+          const hit = allLayoutRows().filter(matches);
           const updateValues = op.values;
+          const becomingTeam = updateValues.visibility === "team";
+          if (becomingTeam) {
+            const tid = typeof updateValues.team_id === "string" ? updateValues.team_id : "";
+            if (!canWriteTeam || !tid || tid !== teamId) return { error: { code: "42501", message: "insufficient privilege" } };
+          }
+          if (hit.some((r) => r.visibility === "team" && !canTouchTeamRow(r))) {
+            return { error: { code: "42501", message: "insufficient privilege" } };
+          }
           const newName = updateValues.name;
           if (typeof newName === "string" && hit.some((row) => nameCollision(row, newName))) {
             return { error: { code: "23505", message: "duplicate key value violates unique constraint chart_layouts_user_name" } };
           }
-          for (const row of hit) Object.assign(row, updateValues);
+          for (const row of hit) {
+            const nextTeam = typeof updateValues.team_id === "string" ? updateValues.team_id : typeof row.team_id === "string" ? row.team_id : "";
+            const nextName = typeof newName === "string" ? newName : row.name;
+            if ((becomingTeam || row.visibility === "team") && nextTeam && teamNameCollision(row, nextTeam, nextName)) {
+              return { error: { code: "23505", message: "duplicate key value violates unique constraint chart_layouts_team_name" } };
+            }
+          }
+          for (const row of hit) {
+            Object.assign(row, updateValues);
+            placeLayoutRow(row);
+          }
           return { data: hit.map((r) => ({ ...r })) };
         }
         case "upsert": {
-          const values = op.values;
+          const values: LayoutRow = { visibility: "private", team_id: null, ...op.values };
           const existing = store.rows.find((r) => r.user_id === values.user_id && r.name === values.name);
           if (existing) { Object.assign(existing, values); return { data: [{ ...existing }] }; }
           const row: LayoutRow = { id: `layout-${key}-${++store.seq}`, created_at: new Date().toISOString(), ...values };
@@ -144,8 +247,11 @@ export function createLayoutFixtureDb(key: string, fault: LayoutFault = ""): Lay
           return { data: [{ ...row }] };
         }
         case "delete": {
-          const hit = store.rows.filter(matches);
-          store.rows = store.rows.filter((r) => !matches(r));
+          const hit = allLayoutRows().filter(matches);
+          if (hit.some((r) => r.visibility === "team" && !canTouchTeamRow(r))) {
+            return { error: { code: "42501", message: "insufficient privilege" } };
+          }
+          for (const row of hit) removeLayoutRow(row);
           return { data: hit.map((r) => ({ ...r })) };
         }
       }
@@ -156,7 +262,9 @@ export function createLayoutFixtureDb(key: string, fault: LayoutFault = ""): Lay
       eq: (column: string, value: unknown) => { filters.push({ column, op: "eq", value }); return query; },
       neq: (column: string, value: unknown) => { filters.push({ column, op: "neq", value }); return query; },
       is: (column: string, value: null | boolean) => { filters.push({ column, op: "is", value }); return query; },
+      in: (column: string, values: unknown[]) => { inFilter = { column, values }; return query; },
       order: (column: string, options?: { ascending?: boolean }) => { sort = { column, ascending: options?.ascending !== false }; return query; },
+      limit: () => query,
       insert: (values: LayoutRow) => { op = { kind: "insert", values }; return query; },
       update: (values: LayoutRow) => { op = { kind: "update", values }; return query; },
       upsert: (values: LayoutRow) => { op = { kind: "upsert", values }; return query; },
@@ -167,7 +275,7 @@ export function createLayoutFixtureDb(key: string, fault: LayoutFault = ""): Lay
     return query;
   };
 
-  return { from: () => build() };
+  return { from: (table?: string) => build(table || "chart_layouts") };
 }
 
 /** Direct, synchronous store access for tests that need to simulate a concurrent write landing

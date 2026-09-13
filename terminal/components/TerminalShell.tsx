@@ -141,7 +141,9 @@ import { useFromMacro, backToMacro } from "@/lib/originNav";
 import { getJSON, prefetch, loadCoverage } from "@/lib/dataCache";
 import { type CmpCfg, type CmpMode, defaultCmpCfg, cmpKey, isCmpKey, cmpSymOf } from "@/lib/compare";
 import { isComposite, parseComposite, compositeQuote as calcCompositeQuote } from "@/lib/composite";
+import { planQuoteBatch, type QuoteDemandGroup } from "@/lib/quoteDemand";
 import { pushRecentlyViewed } from "@/lib/recentlyViewed";
+import { writeActiveSymbol } from "@/lib/activeSymbol";
 import { listScripts, deleteScript as delScript, renameScript as renScript, enabledScriptIds, setEnabledScriptIds, pineParamStore, setPineParamStore, mergedParams, type UserScript } from "@/lib/userScripts";
 import LayoutMenu, { type LayoutFeedback, type LayoutStatus, type SavedWorkspace } from "@/components/LayoutMenu";
 import WorkspaceTile from "@/components/WorkspaceTile";
@@ -1122,10 +1124,31 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
   // The active chart is the source of truth for Recently viewed. Recording here (instead of only
   // inside the search picker) includes direct Macro Dashboard links, the warm iframe bridge,
   // watchlists, movers, and search results. Composite expressions are not standalone ticker rows.
+  //
+  // `workspaceRestored` gates HISTORY on purpose: the boot seed is a transient the restore may
+  // replace a beat later, and Recently viewed is append-only — a symbol logged there wrongly
+  // cannot be taken back.
   useEffect(() => {
     if (!active || !workspaceRestored) return;
     if (!isComposite(active)) pushRecentlyViewed(active);
   }, [active, workspaceRestored]);
+  // The cross-route cursor (lib/activeSymbol) — the chart telling every other workspace which
+  // company is on screen. Until it said so, they each opened on their own default, which is how
+  // a user charting SMR got a full NVDA intelligence read from the mobile drawer.
+  //
+  // Deliberately NOT gated on `workspaceRestored`, unlike Recently viewed above. The restore can
+  // land far behind first paint (it is starvable — see the layout-effect note in
+  // watchlist-restore), and CI caught the consequence: the top bar read MSFT while the cursor was
+  // still unpublished, so leaving for Analysis in that window landed on the default all over
+  // again. The cursor is last-write-wins state, not history: publishing "what the chart is
+  // showing right now" is accurate at every instant, including the seed's brief turn, and the
+  // restore simply publishes over it. `writeActiveSymbol` refuses composites itself, so a
+  // composite chart leaves the cursor on the last real company rather than on something
+  // /analysis has no page for.
+  useEffect(() => {
+    if (!active) return;
+    writeActiveSymbol(active);
+  }, [active]);
   // Analytics: emit a ticker_view whenever the active chart symbol changes. The symbol is client
   // state (not a route), so the route tracker never sees it — fire a decoupled window event that
   // components/Tracker.tsx picks up. Fire-and-forget; never blocks the UI.
@@ -1260,6 +1283,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
   const [layoutSaving, setLayoutSaving] = useState(false);
   const [layoutFeedback, setLayoutFeedback] = useState<LayoutFeedback>({ kind: "idle" });
   const [layoutDeleteError, setLayoutDeleteError] = useState<string | null>(null);
+  const [layoutTeams, setLayoutTeams] = useState<Array<{ id: string; name: string; role: "owner" | "admin" | "member" }>>([]);
+  const [layoutTeamRead, setLayoutTeamRead] = useState<{ ok: true } | { ok: false; message: string }>({ ok: true });
+  const [pendingShare, setPendingShare] = useState<{ id: string; to: "team" | "private"; teamName: string; teamId?: string } | null>(null);
   // ── W2-A workspace identity + graph (freeze §4/§5/§7) ──
   // `workspaceName`/`workspaceRevision` track the CURRENTLY OPEN named workspace, not the Zone-1
   // name box (that box is "save as", independent of what is loaded). `workspaceRevision === null`
@@ -2403,38 +2429,80 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
   // consecutive misses (see quoteMissRef) so its badge reverts to grey and its row falls back to
   // manifest EOD — the old fallback invariant, minus the flap on a single slow upstream response.
   // F2: composite expressions expand their legs into the poll batch so compositeQuote() can sum them.
-  const quoteSyms = useMemo(() => {
-    const all: string[] = [];
+  //
+  // D2: demand is planned per poll rather than sent whole. The route caps a batch at
+  // QUOTE_REQUEST_LIMIT and used to enforce that with a silent slice, so a watchlist longer than
+  // the cap (canonical list operations permit 500, and each composite row expands into several
+  // symbols) lost its live plane from the boundary onward — permanently, and with nothing on
+  // screen attributing it to list POSITION rather than market support.
+  //
+  // The demand set is now split in two. PRIORITY — the charted symbol and the movers strip — is in
+  // every request. Everything else ROTATES through the leftover capacity. One request per tick of
+  // at most the cap, exactly as before, so provider fan-out is unchanged; what changes is that a
+  // row past the boundary refreshes within ceil(rotating / capacity) polls instead of never. A list
+  // that already fits is untouched: it is `complete`, so every symbol still refreshes every poll.
+  //
+  // Groups, not flat symbols: a composite row is only correct when ALL its legs are priced, so legs
+  // are admitted together and rotation can never split one across two polls.
+  const quotePriority = useMemo((): QuoteDemandGroup[] => {
+    const groups: QuoteDemandGroup[] = [];
     const activeLegs = parseComposite(active);
-    if (activeLegs) all.push(...activeLegs); else all.push(active);
-    for (const { symbol } of wl) {
-      const legs = parseComposite(symbol);
-      if (legs) all.push(...legs); else all.push(symbol);
-    }
-    // Movers bar shows the first 16 manifest symbols — include them in the batch so
-    // mergeLive() can apply live quotes and the strip matches the watchlist numbers.
-    // Bounded to 16 singles: negligible batch size impact.
+    if (active) groups.push({ key: active, symbols: activeLegs ?? [active] });
+    // Movers bar shows the first 16 manifest symbols — mergeLive() applies live quotes so the strip
+    // matches the watchlist numbers. Bounded to 16 singles; it used to be appended LAST and was
+    // therefore the first thing the old silent slice discarded on a long list.
     const moversSyms = Object.keys(man?.symbols || {}).slice(0, 16);
-    all.push(...moversSyms);
-    return Array.from(new Set(all)).filter(Boolean);
-  }, [active, wl, man]);
-  const quoteSymsKey = quoteSyms.join(",");
-  // The polled symbol set lives in a ref so a rapid watchlist edit doesn't tear down + immediately
-  // re-fire the interval (which bursts /api/quote). The interval is mounted ONCE and reads the ref;
+    for (const s of moversSyms) if (s) groups.push({ key: s, symbols: [s] });
+    return groups;
+  }, [active, man]);
+
+  const quoteRotating = useMemo((): QuoteDemandGroup[] => {
+    const groups: QuoteDemandGroup[] = [];
+    for (const { symbol } of wl) {
+      if (!symbol) continue;
+      const legs = parseComposite(symbol);
+      groups.push({ key: symbol, symbols: legs ?? [symbol] });
+    }
+    return groups;
+  }, [wl]);
+
+  // Cursor into `quoteRotating`, advanced by each poll. A ref, not state: it must not re-render the
+  // shell or re-arm the interval, and the interval reads it at fire time.
+  const quoteCursorRef = useRef(0);
+  const quotePriorityRef = useRef(quotePriority);
+  quotePriorityRef.current = quotePriority;
+  const quoteRotatingRef = useRef(quoteRotating);
+  quoteRotatingRef.current = quoteRotating;
+
+  // Identity of the demand SET (not of one poll's plan) — a change schedules one debounced catch-up
+  // poll, as before. Rotation must not appear here or every poll would re-arm the effect.
+  const quoteSymsKey = useMemo(
+    () => [...quotePriority, ...quoteRotating].map((g) => g.symbols.join("+")).join(","),
+    [quotePriority, quoteRotating],
+  );
+  // The demand groups live in refs (above) so a rapid watchlist edit doesn't tear down + immediately
+  // re-fire the interval (which bursts /api/quote). The interval is mounted ONCE and reads them;
   // key changes only schedule a single debounced fresh poll so back-to-back edits coalesce.
-  const quoteSymsKeyRef = useRef(quoteSymsKey);
-  quoteSymsKeyRef.current = quoteSymsKey;
   const quoteAliveRef = useRef(true);
   // Consecutive null polls per symbol. A null only evicts a previously-good quote after 3 misses
-  // in a row (~18s at the 6s cadence): one aborted upstream chunk nulls every CN/HK symbol at
-  // once, and hard-deleting on the first null flipped the whole board (header + watchlist +
-  // pane cards) to Historical until the next good poll. Counted outside the setQuotes updater so
-  // StrictMode double-invocation can't double-count.
+  // in a row: one aborted upstream chunk nulls every CN/HK symbol at once, and hard-deleting on the
+  // first null flipped the whole board (header + watchlist + pane cards) to Historical until the
+  // next good poll. Counted outside the setQuotes updater so StrictMode double-invocation can't
+  // double-count. Only symbols the response actually carries are counted, so a rotating symbol
+  // simply isn't judged on a poll it sat out — its eviction window stretches to 3 full cycles,
+  // which is strictly less flap-prone than the ~18s it used to be, never more.
   const quoteMissRef = useRef<Record<string, number>>({});
   const pollQuotes = useCallback(() => {
     if (typeof document !== "undefined" && document.hidden) return; // (b) don't poll a backgrounded tab
-    const key = quoteSymsKeyRef.current;
-    if (!key) return;
+    // Plan this poll: priority always, then as much of the rotation as still fits under the cap.
+    const plan = planQuoteBatch({
+      priority: quotePriorityRef.current,
+      rotating: quoteRotatingRef.current,
+      cursor: quoteCursorRef.current,
+    });
+    quoteCursorRef.current = plan.nextCursor;
+    if (!plan.symbols.length) return;
+    const key = plan.symbols.join(",");
     fetch(`/api/quote?syms=${encodeURIComponent(key)}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
@@ -2470,14 +2538,20 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
     document.addEventListener("visibilitychange", onVis);
     return () => { quoteAliveRef.current = false; clearInterval(id); document.removeEventListener("visibilitychange", onVis); };
   }, [pollQuotes]);
-  // debounced fresh poll whenever the symbol set changes (rapid edits collapse to one fetch);
-  // also prune miss counters for symbols that left the set so a re-added one starts at zero
+  // debounced fresh poll whenever the demand SET changes (rapid edits collapse to one fetch);
+  // also prune miss counters for symbols that left the set so a re-added one starts at zero.
+  // The prune reads the GROUPS, not quoteSymsKey: that key joins a composite's legs with "+" to
+  // keep group identity, so splitting it on "," would never match a leg and every composite leg's
+  // counter would leak.
   useEffect(() => {
     if (!quoteSymsKey) return;
-    const cur = new Set(quoteSymsKey.split(","));
+    const cur = new Set<string>();
+    for (const g of [...quotePriority, ...quoteRotating]) for (const s of g.symbols) cur.add(s);
     for (const k of Object.keys(quoteMissRef.current)) if (!cur.has(k)) delete quoteMissRef.current[k];
     const id = setTimeout(pollQuotes, 250);
     return () => clearTimeout(id);
+    // quoteSymsKey is the identity of that set; the group arrays are read through it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [quoteSymsKey, pollQuotes]);
 
   // Visible-chart fast lane. The wide watchlist/movers batch stays on its inexpensive 6s cadence;
@@ -2606,12 +2680,21 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
       // status codes above encode, applied one level down. Coercing it to [] here would reintroduce
       // the exact confusion this wave removes, just past the point where the status looked fine.
       if (!Array.isArray(d?.layouts)) { setLayoutStatus("unavailable"); return { ok: false }; }
-      const rows: SavedWorkspace[] = (d.layouts as SavedLayout[]).map((l) => ({ ...l, rowState: workspaceRowState(l.config) }));
+      const rows: SavedWorkspace[] = (d.layouts as SavedLayout[]).map((l) => ({
+        ...l,
+        teamId: l.teamId ?? null,
+        visibility: l.visibility ?? null,
+        rowState: workspaceRowState(l.config),
+      }));
       setLayouts(rows);
+      setLayoutTeams(Array.isArray(d.teams) ? d.teams : []);
+      setLayoutTeamRead(d.teamRead && d.teamRead.ok === false
+        ? { ok: false, message: String((lang === "zh" ? d.teamRead.messageZh : d.teamRead.message) || d.teamRead.message || "") }
+        : { ok: true });
       setLayoutStatus("ready");
       return { ok: true, rows };
     } catch { setLayoutStatus("unavailable"); return { ok: false }; }
-  }, []);
+  }, [lang]);
   const refreshLayouts = useCallback(async (): Promise<boolean> => (await fetchWorkspaceRows()).ok, [fetchWorkspaceRows]);
   useEffect(() => { void refreshLayouts(); }, [refreshLayouts]);
   useEffect(() => {
@@ -4609,6 +4692,28 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
   }
   // A guest's Save is disabled, so this is reached from the menu's own sign-up row: the same nudge
   // + onboarding path the watchlist gate uses, not a silent no-op.
+  async function confirmWorkspaceShare() {
+    if (!pendingShare) return;
+    const body = pendingShare.to === "team"
+      ? { op: "set_sharing", id: pendingShare.id, sharing: "team", teamId: pendingShare.teamId }
+      : { op: "set_sharing", id: pendingShare.id, sharing: "private", teamId: null };
+    try {
+      const r = await fetch("/api/layouts", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        const message = typeof d.message === "string" ? d.message : t("layoutSaveFailed");
+        setLayoutFeedback({ kind: "error", message });
+        setPendingShare(null);
+        return;
+      }
+      setLayoutFeedback({ kind: "info", message: typeof d.message === "string" ? d.message : "" });
+      setPendingShare(null);
+      await refreshLayouts();
+    } catch {
+      setLayoutFeedback({ kind: "error", message: t("layoutSaveFailed") });
+      setPendingShare(null);
+    }
+  }
   function promptLayoutSignup() {
     showGateNudge(t("gateLayouts"));
     window.dispatchEvent(new CustomEvent("mm:onboard", { detail: { mode: "signup" } }));
@@ -4642,6 +4747,19 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
     onSaveAsCopy: saveWorkspaceAsCopy,
     unclaimedFields,
     unsupportedWidgets,
+    teams: layoutTeams,
+    teamRead: layoutTeamRead,
+    pendingShare,
+    onShare: (layout: SavedWorkspace, teamId: string) => {
+      const team = layoutTeams.find((x) => x.id === teamId) ?? layoutTeams[0];
+      if (!team) return;
+      setPendingShare({ id: layout.id, to: "team", teamName: team.name, teamId: team.id });
+    },
+    onUnshare: (layout: SavedWorkspace) => {
+      setPendingShare({ id: layout.id, to: "private", teamName: layout.teamName || "", teamId: layout.teamId ?? undefined });
+    },
+    onConfirmShare: () => { void confirmWorkspaceShare(); },
+    onCancelShare: () => setPendingShare(null),
   };
 
   // Generic-widget-graph fallback data (see the `.ws-extra-widgets` render site below): every
@@ -5323,7 +5441,10 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
             "the workspace still opened", so it sits beside a working chart, never instead of one. */}
         {!paneOpen && !tableViewOpen && extraWorkspaceWidgets.length > 0 && (
           <div className="ws-extra-widgets" data-ws-extra-widgets>
-            {extraWorkspaceWidgets.map((w) => <WorkspaceTile key={w.id} type={w.type} />)}
+            {extraWorkspaceWidgets.map((w) => {
+              const widgetType = w.type;
+              return <WorkspaceTile key={w.id} type={widgetType} />;
+            })}
           </div>
         )}
         {/* The strip is the foot of the chart column, directly under the canvas and in place of

@@ -35,3 +35,22 @@ Both swaps are guarded by the 80%-count check (≥1000 floor).
 
 Deploy: automatic — every `terminal-build.sh` run installs `ops/terminal-data` to
 `/usr/local/bin/terminal-data` (merge to master → deploy; no scp).
+
+## MACRO_DATA_DIR (event-impact route)
+
+`terminal/app/api/event-impact/route.ts` (B-F08-5) joins the caller's open positions against
+the macro nightly's `portfolio_ctx.json` artifact. That artifact lives under the macro repo's
+own registration wall (`app/regwall.py`) — every `/data/*` path 401s an unauthenticated
+server-to-server fetch (`x-regwall: deny`), so a plain HTTP `fetch()` to
+`https://www.mastermind-x.com/data/portfolio_ctx.json` can never succeed in production.
+
+Both products are deployed on the same VPS, so the route reads the artifact directly off disk
+instead: `MACRO_DATA_DIR` (default `/opt/macro/site/data`, matching macro's own
+`REPO / "site/data/portfolio_ctx.json"` read in `app/main.py`) names the directory holding
+`portfolio_ctx.json`. The HTTP fetch is kept only as a fallback for a box where that path is not
+mounted (local dev, CI, a future split deploy) — a 401/403/timeout from the fallback renders the
+typed `upstream_locked` state rather than being confused with a genuinely missing/malformed
+artifact (`calendar_unreadable`).
+
+No deploy action is required beyond setting `MACRO_DATA_DIR` in `/etc/*.env` on the VPS if the
+default `/opt/macro/site/data` ever diverges from macro's actual `REPO` path.

@@ -1,0 +1,47 @@
+name: f12-shared-workspaces-postgres-canary
+
+on:
+  pull_request:
+    paths:
+      - "supabase/migrations/0014_tenancy_foundation.sql"
+      - "supabase/migrations/0022_chart_layouts_team_sharing.sql"
+      - "terminal/scripts/f12_shared_workspaces_postgres_canary.py"
+      - ".github/workflows/f12-shared-workspaces-postgres-canary.yml"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  canary:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install psycopg[binary]
+      - run: python3 terminal/scripts/f12_shared_workspaces_postgres_canary.py --migrations supabase/migrations --receipt f12-shared-workspaces-postgres-canary-receipt.json
+        env:
+          F12_SHARED_WS_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+          F12_SHARED_WS_EXPECTED_COMMIT: ${{ github.sha }}
+          F12_SHARED_WS_GITHUB_RUN_ID: ${{ github.run_id }}
+          F12_SHARED_WS_GITHUB_RUN_ATTEMPT: ${{ github.run_attempt }}
+          F12_SHARED_WS_GITHUB_JOB: ${{ github.job }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: f12-shared-workspaces-postgres-canary-receipt
+          path: f12-shared-workspaces-postgres-canary-receipt.json

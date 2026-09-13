@@ -37,6 +37,16 @@ import { REGIME_COLORS, type GlanceRow } from "@/lib/mscGlance";
 import { isBlockedSignal, isStructureStop, sliceSignalBasis } from "@/lib/signalVerdict";
 import { makeGexT } from "@/components/gexdesk/gexStrings";
 import { sessionsOldEt } from "@/lib/optionsLevels";
+import {
+  MACRO_DURATION_ZH,
+  MACRO_INFLATION_ZH,
+  MACRO_REGIME_ZH,
+  entryStatusLabel,
+  macroChipLabel,
+  mappedOrNeutral,
+  regimeLabel as plainRegime,
+  trustTierLabel,
+} from "@/lib/plainLabels";
 
 /* ── value formatting ───────────────────────────────────────────────── */
 const fnum = (n: number | null | undefined, d = 2) =>
@@ -352,6 +362,7 @@ function TechGauge({ bars, pick, onOpen }: { bars: Bar[]; pick: Pick; onOpen?: (
 
 /** Analyst gauge — fund.analyst dist → gauge + target/upside. CN empty-state. */
 function AnalystGauge({ fund, spot, pick, onOpen, hasIntelAnalyst }: { fund: Fund | null; spot: number | null; pick: Pick; onOpen?: () => void; hasIntelAnalyst?: boolean }) {
+  const { lang } = useLang();
   const an = fund?.analyst;
   if (!an) {
     // CN names carry null fund.analyst but often DO carry an intel analyst block (44 analysts etc.).
@@ -371,14 +382,14 @@ function AnalystGauge({ fund, spot, pick, onOpen, hasIntelAnalyst }: { fund: Fun
   const upside = target != null && spot != null && spot !== 0 ? ((target - spot) / spot) * 100 : null;
   if (score == null && target == null) return null;
   // Never empty: falls back to the zone word when rating_label is null.
-  const verdict = ratingVerdict(an.rating_label, score, false) || undefined;
+  const verdict = ratingVerdict(an.rating_label, score, lang === "zh") || undefined;
   return (
     <Section title={pick("Analyst rating", "分析师评级")}>
       {score != null && (() => {
         const arc = readingToArc(score);
         return (
           <div className="sa-gauge fin-arc-wrap">
-            <ArcGauge value={arc.value} state={arc.state} size={150} sublabel={verdict} />
+            <ArcGauge value={arc.value} state={arc.state} size={150} sublabel={mappedOrNeutral(verdict, lang)} />
             <div className="fin-gauge-counts">
               <span className="down">{pick("Sell", "卖")} {d.sell + d.strongSell}</span>
               <span className="mut">{pick("Neutral", "中性")} {d.hold}</span>
@@ -670,7 +681,7 @@ export default function StockAnalysis({
           onFocus={(e) => { if (!edgePop) showTrust(e.currentTarget); }} onBlur={() => setTrustPop(null)}
           onClick={(e) => { setTrustPop(null); setEdgePop(e.currentTarget.getBoundingClientRect()); }}
           onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setTrustPop(null); setEdgePop((e.currentTarget as HTMLElement).getBoundingClientRect()); } }}>
-          <span className="sa-trust-tier">{cap(dec?.trust_tier)}</span>
+          <span className="sa-trust-tier">{trustTierLabel(dec?.trust_tier, lang)}</span>
           <svg className="sa-trust-i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 7.6h.01" /></svg>
           {trustPop && !edgePop && <div className="sa-trust-pop" role="tooltip" style={{ left: trustPop.x, top: trustPop.y }}>{pick(dec?.trust_en, dec?.trust_zh)}</div>}
         </div>
@@ -688,7 +699,7 @@ export default function StockAnalysis({
         <Section title={pick("Timing quality", "时机质量")} sub={entry.grade ? `${pick("grade", "评级")} ${cap(entry.grade)}` : supporting ? pick("act now?", "现在行动？") : undefined}
           accent={entry.status === "open" ? "var(--buy)" : entry.status === "blocked" ? "var(--down)" : "var(--signal)"}>
           <div className="sa-entry-head">
-            <span className={`sa-status ${entry.status}`}>{cap(entry.urgency || entry.status)}</span>
+            <span className={`sa-status ${entry.status}`}>{entryStatusLabel(entry.urgency, lang, entry.status)}</span>
             <b>{pick(entry.headline, entry.headline_zh)}</b>
           </div>
           {pick(entry.action, entry.action_zh) && <div className="sa-entry-act">{pick(entry.action, entry.action_zh)}</div>}
@@ -846,7 +857,7 @@ export default function StockAnalysis({
                 {fl.fin_balance_yi != null && <span className="sa-chip">{pick("Margin bal", "融资余额")} ¥{fnum(fl.fin_balance_yi, 1)}亿</span>}
                 {fl.chg_pct != null && <span className={`sa-chip ${fl.chg_pct >= 0 ? "up" : "down"}`}>{fpct(fl.chg_pct, 1)}</span>}
                 {fl.pct_mcap != null && <span className="sa-chip">{fpct(fl.pct_mcap, 1, false)} {pick("of mkt cap", "占市值")}</span>}
-                {fl.lhb_count != null && <span className={`sa-chip ${(fl.lhb_net_yi ?? 0) >= 0 ? "up" : "down"}`}>{pick("龙虎榜", "龙虎榜")} ×{fl.lhb_count}{fl.lhb_net_yi != null ? ` · ${fl.lhb_net_yi >= 0 ? "+" : ""}¥${fnum(fl.lhb_net_yi, 1)}亿` : ""}</span>}
+                {fl.lhb_count != null && <span className={`sa-chip ${(fl.lhb_net_yi ?? 0) >= 0 ? "up" : "down"}`}>{pick("龙虎榜 (Dragon-Tiger list, top-trader board)", "龙虎榜")} ×{fl.lhb_count}{fl.lhb_net_yi != null ? ` · ${fl.lhb_net_yi >= 0 ? "+" : ""}¥${fnum(fl.lhb_net_yi, 1)}亿` : ""}</span>}
                 {fl.block_count != null && <span className="sa-chip">{pick("Block", "大宗")} ×{fl.block_count}{fl.block_amount_yi != null ? ` · ¥${fnum(fl.block_amount_yi, 1)}亿` : ""}</span>}
               </>
             )}
@@ -869,7 +880,7 @@ export default function StockAnalysis({
           {/* regime-dynamics law: the state word never stands alone — stability and
               dist-to-flip ride in the same chip row */}
           <div className="sa-chips">
-            <span className="sa-chip" style={{ color: REGIME_COLORS[glance.regime] }}>{gexT(`regime${glance.regime}`) || glance.regime}</span>
+            <span className="sa-chip" style={{ color: REGIME_COLORS[glance.regime] }}>{plainRegime(gexT, glance.regime, lang)}</span>
             {glance.stabilityPct != null && <span className="sa-chip">{pick("stability", "稳定度")} {fpct(glance.stabilityPct, 0, false)}</span>}
             {glance.distToFlipPct != null && <span className="sa-chip">{pick("to flip", "距翻转")} {fpct(glance.distToFlipPct, 1)}</span>}
           </div>
@@ -890,9 +901,9 @@ export default function StockAnalysis({
         <Section title={pick("Macro sensitivity", "宏观敏感度")}>
           <div className="sa-chips">
             {macro.tier_en && <span className="sa-chip">{pick("Rate: ", "利率：")}{pick(macro.tier_en, macro.tier_zh)}</span>}
-            {macro.duration_en && <span className="sa-chip">{macro.duration_en}</span>}
-            {macro.regime_en && <span className="sa-chip">{macro.regime_en}</span>}
-            {macro.inflation_en && <span className="sa-chip">{macro.inflation_en}</span>}
+            {macro.duration_en && <span className="sa-chip">{macroChipLabel(macro.duration_en, MACRO_DURATION_ZH, lang)}</span>}
+            {macro.regime_en && <span className="sa-chip">{macroChipLabel(macro.regime_en, MACRO_REGIME_ZH, lang)}</span>}
+            {macro.inflation_en && <span className="sa-chip">{macroChipLabel(macro.inflation_en, MACRO_INFLATION_ZH, lang)}</span>}
           </div>
           {pick(macro.headline_en, macro.headline_zh) && <div className="sa-macro-head">{pick(macro.headline_en, macro.headline_zh)}</div>}
         </Section>

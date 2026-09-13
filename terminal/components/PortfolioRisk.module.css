@@ -1,0 +1,236 @@
+/* PortfolioRisk — "What your holdings look like" (B-F08-4).
+   Dark treatment only (command center) — see the packet's frozen theme-argument section for why
+   no light CSS is authored here: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06. */
+
+.shape {
+  border-top: 1px solid var(--hairline, rgba(255,255,255,.08));
+  padding-top: var(--sp-6, 24px);
+  margin-top: var(--sp-6, 24px);
+}
+
+.head { margin-bottom: var(--sp-4, 16px); }
+
+.title {
+  font-size: var(--fs-title, 16px);
+  font-weight: 600;
+  color: var(--text, #d6dae3);
+  margin: 0 0 4px;
+}
+
+.standing {
+  font-size: var(--fs-body, 13px);
+  color: var(--text-2, #9ba3b4);
+  margin: 0 0 6px;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.basis { font-size: var(--fs-label, 11px); color: var(--muted, #717a8e); }
+.dot { width: 3px; height: 3px; border-radius: 50%; background: var(--muted, #717a8e); }
+.coverage { font-size: var(--fs-label, 11px); color: var(--muted, #717a8e); }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-4, 16px);
+}
+
+.wide { grid-column: 1 / -1; }
+.short { padding-bottom: var(--sp-3, 12px); }
+
+.card {
+  background: var(--panel-2, #15171d);
+  border: 1px solid var(--line, #23262f);
+  border-radius: var(--r-card, 14px);
+  box-shadow: var(--shadow-card);
+  padding: var(--sp-4, 16px);
+}
+
+.lbl {
+  display: block;
+  font-size: var(--fs-micro, 10px);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--muted, #717a8e);
+  margin-bottom: 4px;
+}
+
+.q {
+  font-size: var(--fs-label, 11px);
+  color: var(--text-2, #9ba3b4);
+  margin: 0 0 10px;
+}
+
+.hero {
+  display: block;
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--fs-num-lg, 28px);
+  font-weight: 600;
+  color: var(--text, #d6dae3);
+  line-height: 1.1;
+}
+
+.sub {
+  font-size: var(--fs-ui, 12.5px);
+  color: var(--text-2, #9ba3b4);
+  margin: 4px 0 12px;
+}
+
+.unread {
+  font-size: var(--fs-ui, 12.5px);
+  color: var(--muted, #717a8e);
+  margin: 0;
+}
+
+/* ── stacked bar ── */
+.bar {
+  display: flex;
+  height: 10px;
+  border-radius: var(--r, 4px);
+  overflow: hidden;
+  gap: 1px;
+  background: var(--bg, #0a0b0e);
+}
+
+.seg {
+  height: 100%;
+  width: 0%;
+  transition: width var(--t-slow, 320ms) var(--ease-out, cubic-bezier(.22,1,.36,1));
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.10);
+  /* Default/overflow slot color — every covered segment gets an explicit data-slot below. */
+  background: var(--cat-6, #5c6272);
+}
+
+/* Categorical ramp for covered segments, cycled by `data-slot` (0-4). Deliberately NEUTRAL
+   category colors — none of these is a direction/signal token (never --up/--down/--warn/
+   --flow-buy/--flow-sell/--signal): this readout describes portfolio SHAPE, never a call. */
+.seg[data-slot="0"] { background: var(--cat-1, #4d82ff); }
+.seg[data-slot="1"] { background: var(--cat-2, #7c6df2); }
+.seg[data-slot="2"] { background: var(--cat-3, #22b8b0); }
+.seg[data-slot="3"] { background: var(--cat-4, #d98a3d); }
+.seg[data-slot="4"] { background: var(--cat-5, #b23fae); }
+
+.segMuted {
+  background: var(--muted, #717a8e) !important;
+  box-shadow: none;
+}
+
+.segUncovered {
+  background-color: var(--panel-3, #1f222b);
+  background-image: repeating-linear-gradient(45deg, transparent 0 3px, rgba(255,255,255,.085) 3px 4px);
+  box-shadow: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .seg { transition: none; }
+}
+
+.legend {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 10px;
+}
+
+.legendRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-ui, 12.5px);
+  color: var(--text-2, #9ba3b4);
+}
+
+.legendSwatch {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+  background: var(--panel-3, #1f222b);
+}
+
+.legendSwatch[data-slot="0"] { background: var(--cat-1, #4d82ff); }
+.legendSwatch[data-slot="1"] { background: var(--cat-2, #7c6df2); }
+.legendSwatch[data-slot="2"] { background: var(--cat-3, #22b8b0); }
+.legendSwatch[data-slot="3"] { background: var(--cat-4, #d98a3d); }
+.legendSwatch[data-slot="4"] { background: var(--cat-5, #b23fae); }
+
+.legendSwatchMuted {
+  background: var(--muted, #717a8e) !important;
+}
+
+.legendLabel {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.legendPct {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* ── gaps ── */
+.gaps {
+  margin-top: var(--sp-4, 16px);
+  background: var(--inset, #08090c);
+  border: 1px solid var(--line-2, #1a1d24);
+  border-radius: var(--r-tile, 10px);
+  padding: var(--sp-3, 12px);
+}
+
+.gapsSummary {
+  cursor: pointer;
+  font-size: var(--fs-label, 11px);
+  color: var(--text-2, #9ba3b4);
+}
+
+.gapsSummary:focus-visible {
+  outline: 2px solid var(--brand-2, #4d82ff);
+  outline-offset: 2px;
+}
+
+.gapList {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.gapRow {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: var(--fs-ui, 12.5px);
+}
+
+.gapTk {
+  font-family: var(--font-num);
+  color: var(--text, #d6dae3);
+  flex-shrink: 0;
+}
+
+.gapWhy { color: var(--text-2, #9ba3b4); }
+
+@media (max-width: 900px) {
+  .hero { font-size: var(--fs-num, 20px); }
+}
+
+@media (max-width: 640px) {
+  .grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 480px) {
+  .card { padding: var(--sp-3, 12px); }
+  .bar { height: 8px; }
+  .gapRow { flex-direction: column; gap: 2px; }
+}

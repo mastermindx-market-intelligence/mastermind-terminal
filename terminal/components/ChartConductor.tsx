@@ -248,14 +248,14 @@ export default function ChartConductor({ queue, count }: ChartConductorProps) {
             <span className="cmx-cap" key={state.captionSwapKey}>{plateText}</span>
           </span>
           <span className="cmx-plate-ctl">
-            <button type="button" className="cmx-btn cmx-skip" onClick={skip} title="Skip animations" aria-label={t("cmxSkip")}>
+            <button type="button" className="cmx-btn cmx-skip" onClick={skip} title={t("cmxSkipAnim")} aria-label={t("cmxSkip")}>
               <span className="chv" aria-hidden="true">»</span>{t("cmxSkip")}
             </button>
             <button
               type="button"
               className="cmx-btn"
               onClick={() => setRailOpen((o) => !o)}
-              title={railOpen ? "Hide live steps" : "Show live steps"}
+              title={railOpen ? t("cmxHideSteps") : t("cmxToggleSteps")}
               aria-label={railOpen ? t("cmxHideSteps") : t("cmxToggleSteps")}
               aria-expanded={railOpen}
             >

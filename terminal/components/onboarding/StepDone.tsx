@@ -1,5 +1,6 @@
 "use client";
 import { useLang, useT } from "@/lib/i18n";
+import { selectDoneBillingLine } from "@/lib/billingReceipt";
 import type { PlanKey } from "./types";
 
 export interface StepDoneProps {
@@ -12,18 +13,33 @@ export interface StepDoneProps {
   trialEnd: number | null;
   /** The paid tier the trial is on (only meaningful when trialActive). */
   plan: PlanKey;
+  /** Fix round 1 (BLOCKER-1): a genuine no-trial purchase completed this session (essential,
+   *  plans.yml trial_days: 0). Charged, plan live, never combined with trialActive. */
+  planActivated?: boolean;
   /** D5: the preference write has not been acknowledged yet. Onboarding still completes — the
    *  outbox retries in the background — but the screen may not imply the choice is stored. */
   prefsPending?: boolean;
 }
 
 // Localized "Month Day" from an epoch-seconds trial_end.
-function fmtTrialDate(trialEnd: number | null, lang: string): string {
-  const d = trialEnd != null ? new Date(trialEnd * 1000) : (() => { const x = new Date(); x.setDate(x.getDate() + 7); return x; })();
-  return d.toLocaleDateString(lang === "zh" ? "zh-CN" : "en-US", { month: "long", day: "numeric" });
+//
+// D7: this used to fall back to `now + 7 days` when trial_end was null — a locally INVENTED billing
+// date, printed with the same confidence as a real one, on a screen whose entire job is to tell the
+// user when they will first be charged. The date now comes only from the authority.
+function fmtTrialDate(trialEnd: number, lang: string): string {
+  return new Date(trialEnd * 1000)
+    .toLocaleDateString(lang === "zh" ? "zh-CN" : "en-US", { month: "long", day: "numeric" });
 }
 
-export default function StepDone({ firstName, email, confirmPending, trialActive, trialEnd, plan, prefsPending }: StepDoneProps) {
+// Fix round 1 (MINOR-1): a trial_end that has already elapsed must never print as an UPCOMING
+// charge date — a skewed value (or simply the passage of time since it was recorded) would
+// otherwise render a past date as fact. `now` is a parameter so tests can pin both sides of the
+// boundary without a frozen system clock.
+function isUpcoming(trialEnd: number, now: number): boolean {
+  return trialEnd * 1000 > now;
+}
+
+export default function StepDone({ firstName, email, confirmPending, trialActive, trialEnd, plan, planActivated, prefsPending }: StepDoneProps) {
   const t = useT();
   const { lang } = useLang();
   const name = firstName.trim();
@@ -32,6 +48,11 @@ export default function StepDone({ firstName, email, confirmPending, trialActive
     : t("obDoneTitle");
 
   const tierName = plan === "essential" ? t("obPlanInsider") : plan === "pro" ? t("obPlanPro") : "";
+  // Round 2 review (MINOR-2): planActivated can only be set true by a completed purchase POST
+  // (OnboardingSheet's billingPurchaseActive), so — unlike the generic "ready" line below — it is
+  // trustworthy even while confirmPending (unconfirmed email) is still true. See
+  // lib/billingReceipt.ts's selectDoneBillingLine for the full rationale.
+  const doneLine = selectDoneBillingLine({ trialActive, planActivated, confirmPending });
 
   return (
     <div className="ob-fade">
@@ -46,14 +67,26 @@ export default function StepDone({ firstName, email, confirmPending, trialActive
               {t("obDoneConfirm").replace("{email}", email || "your inbox")}
             </p>
           )}
-          {trialActive && (
+          {doneLine === "trial" && (
             <p className="ob-done-line">
-              {t("obDoneTrial")
-                .replace("{tier}", tierName)
-                .replace("{date}", fmtTrialDate(trialEnd, lang))}
+              {trialEnd != null && isUpcoming(trialEnd, Date.now())
+                ? t("obDoneTrial")
+                    .replace("{tier}", tierName)
+                    .replace("{date}", fmtTrialDate(trialEnd, lang))
+                // No authority-supplied date, or the supplied date has already passed: say the
+                // trial is live and point at Settings → Billing, rather than manufacturing or
+                // printing a stale billing date as fact.
+                : t("obDoneTrialNoDate").replace("{tier}", tierName)}
             </p>
           )}
-          {!confirmPending && !trialActive && (
+          {/* Fix round 1 (BLOCKER-1): a genuine no-trial purchase (e.g. essential) — charged,
+              plan live, no trial to claim. Distinct from the generic "desk is set" line so the
+              screen actually confirms the purchase. Round 2 (MINOR-2): shown regardless of
+              confirmPending — see selectDoneBillingLine. */}
+          {doneLine === "planActive" && (
+            <p className="ob-done-line">{t("obDonePlanActive").replace("{tier}", tierName)}</p>
+          )}
+          {doneLine === "ready" && (
             <p className="ob-done-line">{t("obDoneReady")}</p>
           )}
           {/* D5 — quiet, honest, and not a blocker: the account is ready either way, but the flow

@@ -1,0 +1,98 @@
+/* EventImpactPanel — the Terminal shell is dark-only
+   (DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06, macro#6903 — armed, unmerged
+   at agentos/decisions/ in the macro repo as of this pass; cited here because it is the
+   authority this file's dark-only posture rests on, not because it has landed on macro main).
+   Every colour is a globals.css token and no literal hex or dark-ground rgba()
+   appears here, so a future light shell is a token swap plus the shadow change
+   noted in the spec — never a fork of this file. */
+
+.wrap{margin-top:var(--sp-4);padding:var(--sp-4) var(--sp-4) var(--sp-3);
+  background:var(--panel);border:1px solid var(--line);
+  border-radius:var(--r-card);box-shadow:var(--shadow-card)}
+
+.head{display:flex;flex-direction:column;gap:2px;margin-bottom:var(--sp-3)}
+.title{margin:0;font:650 var(--fs-title)/1.25 var(--font-ui);color:var(--text)}
+.sub{margin:0;font:400 var(--fs-label)/1.5 var(--font-ui);color:var(--muted);max-width:62ch}
+
+/* Rows are separated by 1px seams over --line-2, not by shadow: one instrument
+   face with etched rows, never a stack of floating cards. */
+.list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:1px;
+  background:var(--line-2);border-radius:var(--r-tile);overflow:hidden}
+
+/* The date column must fit a full ISO date ("2026-09-10") on one line at the tabular-nums
+   weight used below — 88px wrapped it on every row at 1440 (minor, review r3); widened with
+   headroom rather than trimmed to the exact measured width. */
+.row{position:relative;display:grid;grid-template-columns:3px 108px minmax(0,1fr);
+  align-items:start;column-gap:var(--sp-3);
+  padding:var(--sp-3) var(--sp-3) var(--sp-3) 0;background:var(--panel-2);
+  animation:eiRise var(--t-slow) var(--ease-out) both}
+.row:nth-child(2){animation-delay:40ms}
+.row:nth-child(3){animation-delay:80ms}
+.row:nth-child(4){animation-delay:120ms}
+.row:nth-child(5){animation-delay:160ms}
+.row:nth-child(6){animation-delay:200ms}
+@keyframes eiRise{from{opacity:0;transform:translateY(2px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.row{animation:none}}
+
+/* The only emissive element in the panel. Amber = on the clock. Never --up/--down:
+   a directional colour would assert a direction the source does not carry, and
+   globals.css swaps those two tokens under the East-Asian theme. */
+.rail{grid-column:1;align-self:stretch;background:transparent;border-radius:0 2px 2px 0}
+.row[data-near="1"] .rail{background:var(--signal)}
+
+.when{grid-column:2;display:flex;flex-direction:column;gap:2px;padding-left:var(--sp-3)}
+.date{font:600 var(--fs-ui)/1.2 var(--font-num);font-variant-numeric:tabular-nums;color:var(--text);
+  white-space:nowrap}
+.days{font:600 var(--fs-micro)/1.2 var(--font-ui);letter-spacing:.06em;
+  text-transform:uppercase;color:var(--muted)}
+.row[data-near="1"] .days{color:var(--signal)}
+
+.body{grid-column:3;min-width:0;display:flex;flex-direction:column;gap:var(--sp-2)}
+.sentence{margin:0;font:400 var(--fs-body)/1.5 var(--font-ui);color:var(--text)}
+
+.chips{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:var(--sp-1)}
+.chip{font:600 var(--fs-label)/1 var(--font-ui);color:var(--text-2);
+  background:var(--panel-3);border:1px solid var(--line);
+  border-radius:var(--r-pill);padding:4px 9px;white-space:nowrap;
+  font-variant-numeric:tabular-nums}
+.chipUnsized{color:var(--muted);background:transparent;border-style:dashed}
+
+/* Signature: three slots, equal geometry, always all three. */
+.carry{margin:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  border-top:1px solid var(--hairline);padding-top:var(--sp-2)}
+.slot{display:flex;flex-direction:column;gap:3px;
+  border-left:1px solid var(--hairline);padding:0 var(--sp-3)}
+.slot:first-child{border-left:0;padding-left:0}
+.slot:last-child{padding-right:0}
+.slotLabel{font:600 var(--fs-micro)/1.2 var(--font-ui);letter-spacing:.08em;
+  text-transform:uppercase;color:var(--muted)}
+.slotValue{margin:0;font:400 var(--fs-label)/1.45 var(--font-ui);color:var(--text)}
+.slotMissing .slotValue{color:var(--text-dim);
+  text-decoration:underline dashed var(--line-3);text-underline-offset:3px}
+
+.empty,.cannotRead{margin:0;padding:var(--sp-4) var(--sp-3);
+  font:400 var(--fs-body)/1.55 var(--font-ui);color:var(--text-2);
+  background:var(--panel-2);border:1px dashed var(--line-3);
+  border-radius:var(--r-tile);max-width:70ch}
+.cannotRead{color:var(--text)}
+
+.more{margin-top:var(--sp-2);align-self:flex-start;background:transparent;
+  border:1px solid var(--line-3);border-radius:var(--r-md);color:var(--text-2);
+  font:600 var(--fs-label)/1 var(--font-ui);padding:7px 12px;cursor:pointer;
+  transition:color var(--t-fast) var(--ease-out),border-color var(--t-fast) var(--ease-out)}
+.more:hover{color:var(--text);border-color:var(--pane-sep)}
+
+.disclosure{margin:var(--sp-3) 0 0;font:400 var(--fs-micro)/1.6 var(--font-ui);
+  color:var(--text-dim);max-width:72ch}
+
+@media (max-width:640px){
+  .row{grid-template-columns:3px minmax(0,1fr);row-gap:var(--sp-2);
+    padding-right:var(--sp-2)}
+  .when{grid-column:2;flex-direction:row;align-items:baseline;gap:var(--sp-2)}
+  .body{grid-column:2;padding-left:var(--sp-3)}
+  .carry{grid-template-columns:1fr;gap:var(--sp-2)}
+  .slot{border-left:0;border-top:1px solid var(--hairline);
+    padding:var(--sp-2) 0 0;flex-direction:row;align-items:baseline;gap:var(--sp-2)}
+  .slot:first-child{border-top:0;padding-top:0}
+  .slotLabel{flex:0 0 96px}  /* "How it reaches you" may wrap to two lines — accepted */
+}

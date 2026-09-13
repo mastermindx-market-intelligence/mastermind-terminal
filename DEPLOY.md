@@ -77,6 +77,53 @@ Offset +4 min so each run follows the 5-min data/flagship refresh:
 4-59/5 * * * * cd /opt/terminal && /usr/bin/node ingest/dist/suite_alerts.mjs >> /var/log/suite-alerts.log 2>&1
 ```
 
+### Outbound signed webhooks cron (`ingest/webhook_delivery.ts` → `ingest/dist/webhook_delivery.mjs`)
+
+The Node worker that claims due `webhook_deliveries` rows, HMAC-signs the payload, and POSTs with redirects disabled and the TCP connection pinned to a pre-validated public IP. It imports `terminal/lib/webhookSigning.ts` (and the retry/URL helpers), so it must be bundled before the cron can run. **Box-side, install once** (not managed by the deploy — same as the other cron lines). Bundle, then the every-minute cadence required by the 1-minute first retry step:
+
+```
+cd /opt/terminal/terminal && npx esbuild ../ingest/webhook_delivery.ts --bundle --platform=node --format=esm --outfile=../ingest/dist/webhook_delivery.mjs --alias:@=.
+```
+
+```cron
+* * * * * cd /opt/terminal && /usr/bin/node ingest/dist/webhook_delivery.mjs >> /var/log/webhook-delivery.log 2>&1
+```
+
+#### How a receiver verifies a delivery
+
+Every request carries three headers:
+
+```
+Mastermind-Webhook-Id:        <delivery id, a uuid>
+Mastermind-Webhook-Timestamp: <unix seconds, integer>
+Mastermind-Webhook-Signature: v1=<hex>
+```
+
+`<hex>` is `HMAC-SHA256(secret, "<timestamp>.<raw request body>")`, lower-case
+hex, over the **exact bytes received** — parse the JSON only after verifying,
+never re-serialize first. `secret` is the value returned once when the endpoint
+was created (Settings → Webhooks); it is shown once and cannot be shown again,
+so a lost secret means registering a new endpoint.
+
+A receiver must:
+
+1. Read the raw body as bytes, before any JSON parsing.
+2. Recompute the HMAC and compare it to the header with a **timing-safe**
+   comparison (`crypto.timingSafeEqual`, `hmac.compare_digest`) — never `==`.
+3. **Reject if `|now − timestamp| > 300` seconds.** That 300-second replay
+   window is what stops a captured request from being replayed later; the
+   signature alone never expires. The delivery id is stable across retries of
+   the same event, so a receiver that also wants exactly-once handling should
+   treat `Mastermind-Webhook-Id` as an idempotency key rather than widening
+   the window.
+4. Answer `2xx` to accept. Any other status, or no answer within 10 seconds,
+   is retried at 1 min, 5 min, 30 min and 4 h; after the fifth attempt the
+   delivery stops for good.
+
+Redirects are never followed, and the outbound connection is pinned to a
+pre-validated public address, so a receiver must answer on the address it
+registered.
+
 ### Deliberately NOT deployed
 
 - `api/`, `docs/`, `indicator_engine/`, `tests/`, `web/`, `supabase/`, `requirements.txt` — not
@@ -90,5 +137,34 @@ Offset +4 min so each run follows the 5-min data/flagship refresh:
 - Secrets live in `/opt/terminal/.env` / `terminal/.env.local` on the box (gitignored) — preserved across deploys.
 - `next.config.ts` sets `typescript.ignoreBuildErrors` + `eslint.ignoreDuringBuilds`, so the build won't
   catch type errors — run `tsc --noEmit` yourself before merging.
-- Rollback: the previous build is kept at `/opt/terminal/terminal/.next.bak` (auto-restored on a failed
-  health check); to force a rollback, swap it back and `systemctl restart terminal`.
+- **Rollback restores the identity and the build together.** `.deployment-id` and the `.next` it names are
+  one deploy generation. Before the new marker is installed the previous one is snapshotted to
+  `.deployment-id.bak` (`cp -p`, exact bytes and metadata) — or `.deployment-id.absent` records that there
+  was none. **Every** failure after that point restores `.next.bak` **and** the marker as a pair: a failed
+  `.next` swap, a failed `systemctl restart`, or a failed health/identity check. They all route through one
+  guarded exit, so none of them can abort the script past rollback — the script runs under `set -e`, and a
+  bare failing command used to terminate the deploy with the marker already advanced. The failed build is
+  kept at `.next.broken` for diagnosis.
+  Two cases do **not** produce a clean rollback, and the script says so instead of pretending otherwise:
+  if the marker record is gone, or if the swap already happened and there is **no** `.next.bak` to return
+  to (a bootstrap deploy, or a previous run that died between the marker install and the swap). Both exit
+  non-zero and report the identity `UNRESOLVED`. In the second case the build that just failed its health
+  check is still live — treat the box as serving nothing provable until reconciled by hand.
+  Whenever the live `.next` was moved the service is restarted, **including** on the unresolved path:
+  `next start` resolves `.next/*` at request time, so a server left bound to a renamed directory serves
+  one build's chunks against another build's manifests.
+- **To force a rollback by hand:** stop `terminal`, `mv .next .next.broken && mv .next.bak .next`, then set
+  `.deployment-id` to the SHA that build was deployed from and restart. Note the rollback snapshot is
+  **not** available for this — `.deployment-id.bak` is purged on every successful deploy — so recover the
+  previous SHA from `git -C /opt/terminal/.gitsrc rev-parse HEAD~1` or the prior deploy's log line.
+  Swapping `.next.bak` back while leaving `.deployment-id` on the new commit is exactly the incoherent
+  state this machinery exists to prevent.
+- **Verifying a deploy names three identities:** the intended `origin/master` SHA, the live
+  `/opt/terminal/terminal/.deployment-id`, and the live `/opt/terminal/terminal/.next/BUILD_ID`. The
+  deploy fails closed unless all three agree.
+  **`BUILD_ID` is not a per-deploy witness here** — Next 16.2.9 returns the constant literal
+  `build-TfctsWXpff2fKS` whenever `deploymentId` is set, which `next.config.ts` always does, so it reads
+  the same before and after every deploy and every rollback. It proves the live `.next` is present and
+  complete, nothing more. The discriminating identity is the marker, and it is only trustworthy because
+  rollback now restores it. For live proof from outside the box, read `?dpl=<full sha>` on
+  `/_next/static/*` or `data-dpl-id` on `<html>` — never `BUILD_ID`.

@@ -11,13 +11,17 @@
 // token mapping regresses, this page shows it.
 
 import { Suspense, useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import { notFound, useSearchParams } from "next/navigation";
-import SettingsPanel from "@/components/settings/SettingsPanel";
 import type { SettingsSection } from "@/components/settings/SettingsProvider";
 import type { AcsUser } from "@/components/settings/SettingsProvider";
-import type { AcsPlan, AcsUsage } from "@/components/settings/types";
+import type { AcsPlan, AcsUsage, DevTeamFixture } from "@/components/settings/types";
 import { applyLang } from "@/lib/i18n";
 import { accountIdentity, GUEST_IDENTITY } from "@/lib/accountIdentity";
+import { emptyAccuracyReadout, type AccuracyReadout } from "@/lib/personalAccuracy";
+import { populatedAccuracyFixture } from "./accuracyFixtures";
+
+const SettingsPanel = dynamic(() => import("@/components/settings/SettingsPanel"), { ssr: false });
 
 const MOCK_USER: AcsUser = {
   id: "8f2c41ba-7d19-4e6a-9c03-5b71ee0a4d22",
@@ -64,7 +68,80 @@ const USAGE: Record<string, AcsUsage> = {
   unlimited: { tier: "pro", quotas: { fast: { remaining: 0, limit: -1 }, pro: { remaining: 96, limit: 150, period: "month" } } },
 };
 
-const SECTIONS: SettingsSection[] = ["account", "billing", "usage", "prefs", "terminal", "sync"];
+const SECTIONS: SettingsSection[] = ["account", "team", "accuracy", "billing", "usage", "prefs", "alertDelivery", "terminal", "sync", "webhooks", "sharing"];
+
+const DEV_TEAM: DevTeamFixture = {
+  team: { id: "team-desk", name: "Desk" },
+  callerRole: "owner",
+  callerUserId: MOCK_USER.id,
+  members: [
+    {
+      userId: MOCK_USER.id,
+      role: "owner",
+      displayName: "Chris Wong",
+      createdAt: "2026-02-14T09:12:00.000Z",
+    },
+    {
+      userId: "a1b2c3d4-1111-4e6a-9c03-5b71ee0a4d22",
+      role: "admin",
+      displayName: "Alex Chen",
+      createdAt: "2026-03-01T12:00:00.000Z",
+    },
+    {
+      userId: "b2c3d4e5-2222-4e6a-9c03-5b71ee0a4d22",
+      role: "member",
+      displayName: "Jordan Lee",
+      createdAt: "2026-04-02T15:30:00.000Z",
+    },
+    {
+      userId: "c3d4e5f6-3333-4e6a-9c03-5b71ee0a4d22",
+      role: "member",
+      displayName: "",
+      createdAt: null,
+    },
+    {
+      userId: "d4e5f6a7-4444-4e6a-9c03-5b71ee0a4d22",
+      role: "member",
+      displayName: "",
+      createdAt: null,
+    },
+  ],
+  invites: [
+    {
+      id: "inv-1",
+      email: "pending@example.com",
+      role: "member",
+      expiresAt: "2026-09-23T00:00:00.000Z",
+    },
+    {
+      id: "inv-2",
+      email: "noreply@example.com",
+      role: "member",
+      expiresAt: null,
+    },
+  ],
+};
+
+// The zero-team default state (round-4 ruling R3): a signed-in account that belongs to no team.
+// Reached at /dev/settings?s=team&team=none so the crop has one reproducible address.
+const DEV_TEAM_NONE: DevTeamFixture = {
+  team: null,
+  callerRole: null,
+  callerUserId: MOCK_USER.id,
+  members: [],
+  invites: [],
+};
+
+// Truncated roster (round-6 ruling R7): same people, with the cap named.
+const DEV_TEAM_TRUNCATED: DevTeamFixture = {
+  ...DEV_TEAM,
+  truncated: true,
+};
+
+const ACCURACY: Record<string, AccuracyReadout> = {
+  empty: emptyAccuracyReadout(),
+  populated: populatedAccuracyFixture(),
+};
 
 const btn = (on: boolean): React.CSSProperties => ({
   font: "600 12px var(--font-ui)",
@@ -84,6 +161,8 @@ export default function SettingsHarness() {
 // Every control is also a URL parameter, so each screenshot in
 // docs/pr-crops/settings-panel/ has one reproducible address:
 //   /dev/settings?s=billing&plan=pro%20%C2%B7%20annual&usage=low&lang=zh
+// Optional `provider` (default "google") opts the mock user into email so the
+// password-change form can be captured; other callers stay on google.
 function Harness() {
   const q = useSearchParams();
   const [section, setSection] = useState<SettingsSection>(
@@ -95,7 +174,13 @@ function Harness() {
   const [usageKey, setUsageKey] = useState<string>(
     USAGE[q.get("usage") || ""] ? (q.get("usage") as string) : "free",
   );
+  const [accKey, setAccKey] = useState<string>(
+    ACCURACY[q.get("acc") || ""] ? (q.get("acc") as string) : "empty",
+  );
   const [signedIn, setSignedIn] = useState(q.get("out") !== "1");
+  const teamParam = q.get("team");
+  const teamFixture =
+    teamParam === "none" ? DEV_TEAM_NONE : teamParam === "truncated" ? DEV_TEAM_TRUNCATED : DEV_TEAM;
   const [seq, setSeq] = useState(1);
   // Real open/close, so Escape / backdrop / the header X can be exercised here.
   const [open, setOpen] = useState(true);
@@ -115,6 +200,7 @@ function Harness() {
           { label: "Section", items: SECTIONS as string[], cur: section, set: (v: string) => setSection(v as SettingsSection) },
           { label: "Plan", items: Object.keys(PLANS), cur: planKey, set: setPlanKey },
           { label: "Usage", items: Object.keys(USAGE), cur: usageKey, set: setUsageKey },
+          { label: "Accuracy", items: Object.keys(ACCURACY), cur: accKey, set: setAccKey },
         ].map((row) => (
           <div key={row.label} style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 10, alignItems: "center" }}>
             <span style={{ font: "700 11px var(--font-ui)", color: "var(--muted)", width: 62 }}>{row.label}</span>
@@ -144,11 +230,13 @@ function Harness() {
         onSection={setSection}
         onClose={() => setOpen(false)}
         identity={signedIn ? accountIdentity(MOCK_USER.id, MOCK_USER.email) : GUEST_IDENTITY}
-        user={signedIn ? MOCK_USER : null}
+        user={signedIn ? { ...MOCK_USER, provider: (q.get("provider") || MOCK_USER.provider || "google").toLowerCase() } : null}
         onPatchMeta={() => {}}
         onRefreshUser={async () => {}}
         devPlan={PLANS[planKey]}
         devUsage={USAGE[usageKey]}
+        devTeam={teamFixture}
+        devAccuracy={ACCURACY[accKey]}
       />
     </div>
   );

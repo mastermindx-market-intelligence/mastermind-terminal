@@ -49,12 +49,15 @@
  * The store creates a new pump per owner rather than resetting this one.
  *
  * Deliberately free of React and Supabase imports: `send` is injected, so the whole retry and
- * coalescing contract is unit-testable with a fake authority and a fake clock.
+ * coalescing contract is unit-testable with a fake authority and a fake clock. The write fence
+ * (`scopeAccountWrite` / `isScopedToEmpty`) is a pure helper, not a network import.
  */
+
+import { isScopedToEmpty, scopeAccountWrite } from "@/lib/accountPrefs";
 
 /** What the UI shows about the delivery lane. */
 export type DeliveryPhase =
-  /** Nothing has been written this session. */
+  /** Nothing is outstanding and the pane makes no claim about the last write. */
   | "idle"
   /** Guest: the change is kept on this device and there is no authority to reach. */
   | "local"
@@ -104,6 +107,13 @@ export const LOCAL_STATUS: DeliveryStatus = { phase: "local", attempts: 0, revis
 export class PreferencePump {
   /** The newest complete value of every key that has ever been queued on this pump. */
   private desired: Record<string, unknown> = {};
+  /**
+   * Keys that need no merge base (E6 shared atomics): once the revision that queued them is
+   * acknowledged, the key is evicted from `desired` so a LATER edit to an unrelated field never
+   * re-sends a value the caller has not touched again. Maps key -> revision it was queued at
+   * (the newest one, if queued more than once before ack).
+   */
+  private oneShotKeys: Map<string, number> = new Map();
   private revision = 0;
   private acked = 0;
   /** The revision the in-flight request carries. 0 when nothing is in flight. */
@@ -138,10 +148,11 @@ export class PreferencePump {
    * advances, and delivery is kicked. Coalescing is implicit: a second edit before the first
    * lands simply overwrites the desired value and raises the revision.
    */
-  queue(patch: Record<string, unknown>): number {
+  queue(patch: Record<string, unknown>, opts?: { oneShot?: readonly string[] }): number {
     if (this.dead) return this.revision;
     this.desired = { ...this.desired, ...patch };
     this.revision += 1;
+    for (const key of opts?.oneShot ?? []) this.oneShotKeys.set(key, this.revision);
     this.kick();
     return this.revision;
   }
@@ -196,12 +207,35 @@ export class PreferencePump {
         if (this.dead) return;
         this.sending = 0;
         // The Supabase shape: RESOLVED, with an error inside. A `.catch()` never sees this.
+        if (isScopedToEmpty(result)) {
+          const dropped = Array.isArray(result.dropped) ? result.dropped : Object.keys(payload);
+          for (const key of dropped) {
+            if (key in this.desired) delete this.desired[key];
+          }
+          if (process.env.NODE_ENV !== "production") {
+            console.warn("[prefDelivery] nothing the Terminal may write; evicting", dropped);
+          }
+          this.attempts = 0;
+          if (Object.keys(this.desired).length === 0) this.revision = this.acked;
+          this.publish("idle");
+          this.kick();
+          return;
+        }
         if (result && typeof result === "object" && "error" in result && result.error) {
           this.fail();
           return;
         }
         this.attempts = 0;
         if (revision > this.acked) this.acked = revision;
+        for (const key of scopeAccountWrite(payload).dropped) delete this.desired[key];
+        // A one-shot key needs no merge base — once its queuing revision is acknowledged it is
+        // evicted, so it rides along only until it is actually delivered, never forever.
+        for (const [key, atRev] of Array.from(this.oneShotKeys)) {
+          if (atRev <= this.acked) {
+            delete this.desired[key];
+            this.oneShotKeys.delete(key);
+          }
+        }
         this.publish(this.revision > this.acked ? "syncing" : "saved");
         this.kick();          // a newer desired state may have arrived while this was in flight
       },

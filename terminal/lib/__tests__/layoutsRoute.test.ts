@@ -29,6 +29,8 @@ vi.mock("@/lib/supabase/server", () => ({
           neq: () => q,
           is: () => q,
           order: () => q,
+          in: () => q,
+          limit: () => q,
           insert: () => q,
           update: () => q,
           upsert: () => q,
@@ -58,7 +60,10 @@ describe("GET /api/layouts", () => {
     H.user = null;
     const r = await GET();
     expect(r.status).toBe(401);
-    await expect(r.json()).resolves.toEqual({ error: "unauthenticated" });
+    const body = await r.json();
+    expect(body.error).toBe("UNAUTHENTICATED");
+    expect(typeof body.message).toBe("string");
+    expect(typeof body.messageZh).toBe("string");
   });
 
   it("reports a store failure as 503, not 200 []", async () => {
@@ -72,7 +77,10 @@ describe("GET /api/layouts", () => {
     H.results = [{ data: [] }];
     const r = await GET();
     expect(r.status).toBe(200);
-    await expect(r.json()).resolves.toEqual({ layouts: [] });
+    const body = await r.json();
+    expect(body.layouts).toEqual([]);
+    expect(body.teams).toEqual([]);
+    expect(body.teamRead).toEqual({ ok: true });
   });
 });
 

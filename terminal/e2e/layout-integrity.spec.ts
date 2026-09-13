@@ -256,7 +256,7 @@ test.describe("saved layouts", () => {
     await injectLayoutFault(page, "list", baseURL);
     await gotoTerminal(page);
     const menu = await openLayoutMenu(page);
-    await expect(menu.locator('[data-layout-status="unavailable"]')).toContainText("暂时无法读取您的工作区");
+    await expect(menu.locator('[data-layout-status="unavailable"]')).toContainText("暂时无法读取你的工作区");
     await expect(menu.locator("[data-layout-retry]")).toHaveText("重试");
     await expect(menu.locator('[data-layout-status="unavailable"]')).not.toContainText("unavailable");
   });

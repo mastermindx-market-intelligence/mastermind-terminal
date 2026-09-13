@@ -19,6 +19,7 @@
 
 import React, { useMemo, useState } from "react";
 import { makeHeatmapT } from "@/lib/heatmapStrings";
+import { mappedOrNeutral } from "@/lib/plainLabels";
 import { SECTOR_LABEL } from "./sectorMap";
 import { heatPalette } from "./Treemap";
 import type { HeatmapTile, Layer } from "./types";
@@ -220,7 +221,7 @@ interface TableRowProps {
 function TableRow({ tile, layer, isSelected, onClick, zh, universeAvgChg }: TableRowProps) {
   const chgColor = tile.chg1d >= 0 ? "var(--up)" : "var(--down)";
   const chgStr = `${tile.chg1d >= 0 ? "+" : ""}${tile.chg1d.toFixed(2)}%`;
-  const sectorLabel = SECTOR_LABEL[tile.sector] ?? tile.sector;
+  const sectorLabel = mappedOrNeutral(SECTOR_LABEL[tile.sector], zh ? "zh" : "en");
   const div = layer === "flow" ? isDivergent(tile) : false;
 
   const toneLabel = tile.tone === "pos" ? (zh ? "+倾向" : "+pos")

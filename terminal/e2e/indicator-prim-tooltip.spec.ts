@@ -1,4 +1,5 @@
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
+import { settledChartDrag, settledPanSample } from "./helpers/settled";
 
 // ── THE PRIMS THAT DELETED THE CHART'S GESTURES ─────────────────────────────────────────────
 //
@@ -290,27 +291,30 @@ test("a drag that starts on a premium prim pans the chart", async ({ page }, tes
   const before = await targets(page);
   const target = before[Math.floor(before.length / 2)];
   const other = before.find((p) => p.tid !== target.tid)!;
+  const chart = page.locator(".chart-wrap canvas").first();
 
   // Rightward: it scrolls BACK into history, which the fixture has 300 bars of, so the pan can
   // never be swallowed by the right-edge clamp instead of by a bug.
   const dx = 180;
-  await page.mouse.move(target.cx, target.cy);
-  await page.mouse.down();
-  await page.mouse.move(target.cx + dx, target.cy, { steps: 15 });
-  await page.mouse.up();
+  await settledChartDrag(page, {
+    locator: chart,
+    from: { x: target.cx, y: target.cy },
+    to: { x: target.cx + dx, y: target.cy },
+    readOffset: async () => byTid(await prims(page), target.tid).cx,
+    message: "the chart should acknowledge the first move of a drag that starts on a prim",
+  });
 
-  await expect.poll(async () => Math.round(byTid(await prims(page), target.tid).cx),
-    { message: "the prim should travel with the chart it sits on", timeout: 5_000 },
-  ).toBeGreaterThan(Math.round(target.cx) + dx * 0.5);
-
-  // …and it travelled BY the drag distance, not merely somewhere. A prim that moved a few px would
-  // mean the chart took part of the gesture and dropped the rest.
-  const after = await prims(page);
-  const moved = byTid(after, target.tid).cx - target.cx;
-  expect(Math.abs(moved - dx)).toBeLessThan(dx * 0.35);
-  // the whole field moved together — the chart panned, one prim did not wander
-  const movedOther = byTid(after, other.tid).cx - other.cx;
-  expect(Math.abs(movedOther - moved)).toBeLessThan(4);
+  // `|moved - dx|` is Playwright's Received (job 101553532995: 122.11 / 125.15; local
+  // b706144 repeat4: 89.21). A poll that only clears `dx * 0.5` then one-shots `after`
+  // is the settle.ts anti-pattern. Wait for one repeated sample inside slack.
+  const sample = await settledPanSample(async () => {
+    const after = await prims(page);
+    return {
+      moved: byTid(after, target.tid).cx - target.cx,
+      lockstep: byTid(after, other.tid).cx - other.cx,
+    };
+  }, dx, "the prim field should finish the drag at the requested distance");
+  expect(sample.moved).toBeGreaterThan(dx * 0.5);
 });
 
 test("the pointer-events repair would have broken that drag", async ({ page }, testInfo) => {

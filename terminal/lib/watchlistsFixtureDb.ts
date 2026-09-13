@@ -45,6 +45,25 @@ export const FIXTURE_FAULT_COOKIE = "mm_e2e_fault";
 export const FAULT_POSITIONS_READ = "positions_read";
 export const FAULT_POSITIONS_MUTATION_NOOP = "positions_mutation_noop";
 export const FAULT_THESES_READ = "theses_read";
+export const FAULT_SAVED_VIEWS_READ = "saved_views_read";
+export const FAULT_ALERT_OUTBOX_READ = "alert_outbox_read";
+export const FAULT_TARGETS_READ = "targets_read";
+
+/**
+ * Store-key token that models "macro's nightly thesis-condition monitor enqueued one
+ * `alert_outbox` row." In a store whose key holds this token, the FIRST thesis created
+ * through `apply_thesis_version_v1` also gets a real fixture `alert_outbox` row; every
+ * later thesis in that store stays unmatched, so the Window closed preset can be
+ * exercised with one matched row beside one unmatched one.
+ *
+ * This is fixture DATA, read through the shipped path: `GET /api/thesis-fire-status`
+ * runs its real query, `mapOutboxToConditionStates()` maps the row, and the preset
+ * filters for real. Round-2 review of PR #546 BLOCKER 1: the crop capture used to stub
+ * that API at the network layer with `page.route`, so the committed pixels depicted no
+ * shipped code at all. Terminal never writes this table in production — macro's engine
+ * does — which is exactly why the e2e world needs a seam here and not a write route.
+ */
+export const FIXTURE_MONITOR_FIRED_TOKEN = "monitorfired";
 
 export function fixtureFaults(raw: string | undefined | null): Set<string> {
   return new Set((raw || "").split(",").map((token) => token.trim()).filter(Boolean));
@@ -56,6 +75,11 @@ type Store = {
   positions: DbRow[];
   theses: DbRow[];
   thesisVersions: DbRow[];
+  workspaceSettings: DbRow[];
+  alertOutbox: DbRow[];
+  /** See FIXTURE_MONITOR_FIRED_TOKEN. Derived from the store key, never written to. */
+  monitorFires: boolean;
+  targets: DbRow[];
   seq: number;
 };
 
@@ -107,6 +131,10 @@ function seedStore(key: string): Store {
     positions: [],
     theses: [],
     thesisVersions: [],
+    workspaceSettings: [],
+    alertOutbox: [],
+    monitorFires: key.includes(FIXTURE_MONITOR_FIRED_TOKEN),
+    targets: [],
     seq: 0,
   };
 }
@@ -126,7 +154,7 @@ export function resetFixtureStores(): void {
   stores.clear();
 }
 
-type Table = "watchlists" | "watchlist_symbols" | "portfolio_positions" | "theses" | "thesis_versions";
+type Table = "watchlists" | "watchlist_symbols" | "portfolio_positions" | "theses" | "thesis_versions" | "workspace_settings" | "alert_outbox" | "portfolio_targets";
 
 export type FixtureDatabaseEvent = {
   source: "table" | "rpc";
@@ -155,6 +183,9 @@ class FixtureQuery implements WatchlistQuery {
     if (this.table === "portfolio_positions") return this.store.positions;
     if (this.table === "theses") return this.store.theses;
     if (this.table === "thesis_versions") return this.store.thesisVersions;
+    if (this.table === "workspace_settings") return this.store.workspaceSettings;
+    if (this.table === "alert_outbox") return this.store.alertOutbox;
+    if (this.table === "portfolio_targets") return this.store.targets;
     return this.store.symbols;
   }
 
@@ -201,7 +232,15 @@ class FixtureQuery implements WatchlistQuery {
 
   in(column: string, values: readonly unknown[]): WatchlistQuery {
     const set = new Set(values);
-    this.predicates.push((row) => set.has(row[column]));
+    this.predicates.push((row) => {
+      const jsonPath = column.match(/^payload->>([A-Za-z_]+)$/);
+      if (jsonPath) {
+        const payload = row.payload;
+        if (!payload || typeof payload !== "object" || Array.isArray(payload)) return false;
+        return set.has((payload as Record<string, unknown>)[jsonPath[1]]);
+      }
+      return set.has(row[column]);
+    });
     return this;
   }
 
@@ -244,9 +283,18 @@ class FixtureQuery implements WatchlistQuery {
     if (this.table === "portfolio_positions" && this.mode === "read" && this.faults.has(FAULT_POSITIONS_READ)) {
       return { data: null, error: { message: "fixture: positions store unavailable" } };
     }
+    if (this.table === "portfolio_targets" && this.mode === "read" && this.faults.has(FAULT_TARGETS_READ)) {
+      return { data: null, error: { message: "fixture: targets store unavailable" } };
+    }
     if ((this.table === "theses" || this.table === "thesis_versions")
       && this.mode === "read" && this.faults.has(FAULT_THESES_READ)) {
       return { data: null, error: { message: "fixture: thesis store unavailable" } };
+    }
+    if (this.table === "workspace_settings" && this.mode === "read" && this.faults.has(FAULT_SAVED_VIEWS_READ)) {
+      return { data: null, error: { message: "fixture: workspace_settings unavailable" } };
+    }
+    if (this.table === "alert_outbox" && this.mode === "read" && this.faults.has(FAULT_ALERT_OUTBOX_READ)) {
+      return { data: null, error: { message: "fixture: alert_outbox unavailable" } };
     }
     if (this.table === "portfolio_positions"
       && (this.mode === "update" || this.mode === "delete")
@@ -268,6 +316,16 @@ class FixtureQuery implements WatchlistQuery {
         ...(this.table === "portfolio_positions"
           ? { created_at: new Date().toISOString(), status: "open" }
           : {}),
+        ...(this.table === "workspace_settings"
+          ? { updated_at: new Date().toISOString() }
+          : {}),
+        ...(this.table === "portfolio_targets"
+          ? {
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            band_pct: 5,
+          }
+          : {}),
         ...row,
       }));
       // The live schema's unique (user_id,name) is what makes the migration converge under a
@@ -280,11 +338,41 @@ class FixtureQuery implements WatchlistQuery {
           }
         }
       }
+      if (this.table === "workspace_settings") {
+        const keyOk = /^[a-z][a-z0-9_.]{0,63}$/;
+        for (const row of incoming) {
+          if (typeof row.key !== "string" || !keyOk.test(row.key)) {
+            return { data: null, error: { message: "new row violates check constraint workspace_settings_key" } };
+          }
+          // Grok minor 5 (round-2 review): this used to reject EVERY scope="workspace"
+          // insert, which made the shared fixture lie about a table the live schema
+          // allows both scopes on. Model the real constraint instead — a row's owner is
+          // team_id for a workspace row and user_id for a user row, and 0015's unique
+          // index on (scope, owner_id, key) cannot hold without one. That B-F11-4 writes
+          // no workspace row is asserted where it belongs: the route test (invalid_scope
+          // 400) and savedViews' own team-scoping test.
+          if (row.scope !== "user" && row.scope !== "workspace") {
+            return { data: null, error: { message: "new row violates check constraint workspace_settings_scope" } };
+          }
+          if (row.scope === "workspace" ? !row.team_id : !row.user_id) {
+            return { data: null, error: { message: "workspace_settings row has no owner for its scope" } };
+          }
+          const ownerId = row.team_id ?? row.user_id;
+          row.owner_id = ownerId;
+          const clash = this.store.workspaceSettings.some((existing) =>
+            existing.scope === row.scope && existing.owner_id === ownerId && existing.key === row.key);
+          if (clash) {
+            if (this.mode === "upsert" && this.ignoreDuplicates) continue;
+            return { data: null, error: { message: "duplicate key value violates unique constraint" } };
+          }
+        }
+      }
       // …and unique (watchlist_id, symbol) since migration 0008. Modelling it here is what lets
       // the browser suite prove that concurrent adds converge on ONE row: without it the fixture
       // would happily hold the duplicates the real table now refuses, and an e2e "proof" of
       // uniqueness would be proving a property the product does not have.
       const accepted: DbRow[] = [];
+      const returned: DbRow[] = [];
       for (const row of incoming) {
         if (this.table === "watchlist_symbols") {
           const clash = this.store.symbols.some((existing) =>
@@ -295,10 +383,26 @@ class FixtureQuery implements WatchlistQuery {
             return { data: null, error: { message: "duplicate key value violates unique constraint" } };
           }
         }
+        if (this.table === "portfolio_targets") {
+          const existing = this.store.targets.find((rowExisting) =>
+            rowExisting.user_id === row.user_id && rowExisting.ticker === row.ticker);
+          const queued = accepted.find((queuedRow) =>
+            queuedRow.user_id === row.user_id && queuedRow.ticker === row.ticker);
+          if (existing || queued) {
+            if (this.mode === "upsert") {
+              const target = existing ?? queued;
+              if (target) Object.assign(target, row, { updated_at: new Date().toISOString() });
+              if (target && !returned.includes(target)) returned.push(target);
+              continue;
+            }
+            return { data: null, error: { message: "duplicate key value violates unique constraint" } };
+          }
+        }
         accepted.push(row);
+        returned.push(row);
       }
       this.rows.push(...accepted);
-      return { data: this.project(accepted), error: null };
+      return { data: this.project(returned), error: null };
     }
     if (this.mode === "update") {
       const targets = this.matched();
@@ -318,6 +422,16 @@ class FixtureQuery implements WatchlistQuery {
         // untouched here: deleting a list must never delete a position (packet section 0, gate C).
       } else if (this.table === "portfolio_positions") {
         this.store.positions = kept;
+      } else if (this.table === "workspace_settings") {
+        this.store.workspaceSettings = kept;
+      } else if (this.table === "alert_outbox") {
+        this.store.alertOutbox = kept;
+      } else if (this.table === "theses") {
+        this.store.theses = kept;
+      } else if (this.table === "thesis_versions") {
+        this.store.thesisVersions = kept;
+      } else if (this.table === "portfolio_targets") {
+        this.store.targets = kept;
       } else {
         this.store.symbols = kept;
       }
@@ -446,6 +560,17 @@ function applyThesisVersionFixture(store: Store, args: Record<string, unknown>):
     };
     store.theses.push(head);
     store.thesisVersions.push(version);
+    if (store.monitorFires && store.alertOutbox.length === 0) {
+      // Shaped like compose_payload()'s row in macro's thesis condition monitor: the
+      // route only reads user_id, status, created_at and payload->>thesis_id.
+      store.alertOutbox.push({
+        id: crypto.randomUUID(),
+        user_id: userId,
+        status: "pending",
+        payload: { thesis_id: id, kind: "thesis_condition" },
+        created_at: now,
+      });
+    }
     return thesisRpcResult({ status: "created", thesis_id: id, version: 1, current_version: 1, lifecycle_state: "active", replayed: false });
   }
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useLang } from "../../lib/i18n";
+import { LEX, useLang } from "../../lib/i18n";
 import { fmtDate, pick } from "../../lib/finFormat";
 import type { CompanyIntelligenceContext, CompanyIntelligenceEvent } from "../../lib/companyIntelligence";
 import {
@@ -17,6 +17,8 @@ import EvidenceRail, { type CompanyEvidenceSelection } from "./EvidenceRail";
 import TranscriptSearchWorkspace from "./TranscriptSearchWorkspace";
 import { openMastermindBrainForSymbol } from "../../lib/mastermindBrain";
 import type { TranscriptOpenTarget } from "../../lib/transcriptSearch";
+import { EVENT_WORKSPACE_ATTRIBUTION, topicTagLabel } from "../../lib/companyIntelligenceLabels";
+import { topicStatusLabel } from "../../lib/plainLabels";
 
 type Lens = "brief" | "results" | "transcript" | "history" | "topics" | "sources";
 
@@ -41,12 +43,6 @@ function lensLabel(lens: Lens, zh: boolean): string {
     sources: ["Sources", "来源"],
   };
   return pick(zh, labels[lens][0], labels[lens][1]);
-}
-
-function topicStateLabel(status: "added" | "persistent" | "dropped", zh: boolean): string {
-  if (status === "added") return pick(zh, "Added", "新增");
-  if (status === "dropped") return pick(zh, "Dropped", "退出");
-  return pick(zh, "Persistent", "延续");
 }
 
 const EMPTY_METRICS = {
@@ -176,7 +172,7 @@ function AnalystQaBlock({
     <section className="ci-qa" data-ci-results-region="analyst-qa" aria-label={zh ? "分析师问答" : "Analyst Q&A"}>
       <header className="ci-qa-head">
         <span className="fin-eyebrow">{zh ? `分析师问答 · ${exchanges.length} 轮` : `ANALYST Q&A · ${exchanges.length} exchanges`}</span>
-        <p>{zh ? "结构已验证 · 主题增强暂不可用" : "Structure verified · topic enrichment unavailable"}</p>
+        <p>{pick(zh, LEX.ciQaStructure[0], LEX.ciQaStructure[1])}</p>
       </header>
       <div className="ci-qa-list">
         {exchanges.map((exchange) => {
@@ -212,7 +208,7 @@ function AnalystQaBlock({
                     className="ci-qa-open"
                     onClick={() => onOpen({ id: txId, segment_index: segment, expected_document_sha256: txSha })}
                   >
-                    {zh ? "在电话会中查看" : "Open in transcript"}
+                    {pick(zh, LEX.ciOpenInTranscript[0], LEX.ciOpenInTranscript[1])}
                   </button>
                 ) : null}
               </div>
@@ -398,9 +394,8 @@ export default function CompanyIntelligenceV2Current({
             {" "}
             <time className="num" dateTime={presented.event_date}>{fmtDate(presented.event_date)}</time>
           </span>
-          <span>{pick(zh, "Generation", "版本")} <code>{presented.generation_id.slice(0, 12)}</code></span>
           <span>{pick(zh, "Authority", "权限")} <b>{pick(zh, "Context only", "仅供背景参考")}</b></span>
-          <span>{pick(zh, "Plane", "平面")} <code>event_workspace.v1</code></span>
+          <span>{pick(zh, EVENT_WORKSPACE_ATTRIBUTION.en, EVENT_WORKSPACE_ATTRIBUTION.zh)}</span>
         </div>
         {freshness === "stale" && (
           <p className="ci-stale-banner" role="status" data-ci-stale-banner="">
@@ -607,9 +602,9 @@ export default function CompanyIntelligenceV2Current({
                 <ul className="ci-topic-list">
                   {v1.topics.timeline.map((topic) => (
                     <li key={topic.tag}>
-                      <span className={`ci-topic-status ${topic.status}`} aria-hidden />
-                      <div><strong>{topic.tag}</strong><small>{topic.first_event_id} → {topic.last_event_id}</small></div>
-                      <span className="fin-tag" style={{ "--c": "var(--rcpt-exact)" } as React.CSSProperties}>{topicStateLabel(topic.status, zh)}</span>
+                      <span className={`ci-topic-status ${topic.status}`} aria-hidden data-plain-status={topicStatusLabel(topic.status, zh ? "zh" : "en")} />
+                      <div><strong>{topicTagLabel(topic.tag, zh)}</strong></div>
+                      <span className="fin-tag" style={{ "--c": "var(--rcpt-exact)" } as React.CSSProperties}>{topicStatusLabel(topic.status, zh ? "zh" : "en")}</span>
                       <b className="num">{topic.event_count}</b>
                     </li>
                   ))}
@@ -627,7 +622,7 @@ export default function CompanyIntelligenceV2Current({
                   <span className="fin-eyebrow">{pick(zh, "SOURCE MANIFEST", "来源清单")}</span>
                   <h3>{pick(zh, "Workspace completeness and receipts", "工作区完整性与凭证")}</h3>
                 </div>
-                <span>{pick(zh, "event_workspace.v1", "event_workspace.v1")}</span>
+                <span>{pick(zh, EVENT_WORKSPACE_ATTRIBUTION.en, EVENT_WORKSPACE_ATTRIBUTION.zh)}</span>
               </div>
               <CompanySourceManifest event={stubEvent} v2Sources={presented.sources} onOpenTranscript={(id) => onOpenTx({ id, expected_document_sha256: txSha })} />
             </section>

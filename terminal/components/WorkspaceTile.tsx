@@ -1,5 +1,6 @@
 "use client";
-import { useT } from "@/lib/i18n";
+import { useLang, useT } from "@/lib/i18n";
+import { widgetTypeLabel } from "@/lib/plainLabels";
 
 // The generic-widget-graph fallback (W2A_WORKSPACE_UX_SPEC.md §6; freeze §2/§9). A loaded workspace
 // envelope's widgets are exactly two things this build knows how to place today — the primary chart
@@ -24,14 +25,15 @@ export function displayType(type: unknown): string {
 
 export default function WorkspaceTile({ type }: { type: unknown }) {
   const t = useT();
-  const label = displayType(type);
+  const { lang } = useLang();
+  const raw = displayType(type);
   return (
-    <div className="ws-tile-missing" role="note" data-ws-missing-widget={label}>
+    <div className="ws-tile-missing" role="note" data-ws-missing-widget={raw}>
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4z" /><path d="M9 12h6" /></svg>
       <b>{t("wsPanelUnavailable")}</b>
       <span className="ws-tile-type">
         <span>{t("wsPanelType")}</span>
-        {label}
+        {widgetTypeLabel(raw, lang)}
       </span>
       <p>{t("wsPanelUnavailableSub")}</p>
     </div>

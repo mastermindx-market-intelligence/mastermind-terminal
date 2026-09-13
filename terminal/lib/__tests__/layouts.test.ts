@@ -20,6 +20,8 @@ function scriptedDb(results: LayoutDbResult[]): LayoutDb & { calls: Call[] } {
       select: (...args: unknown[]) => { calls.push({ op: "select", args }); return q; },
       eq: (...args: unknown[]) => { calls.push({ op: "eq", args }); return q; },
       order: (...args: unknown[]) => { calls.push({ op: "order", args }); return q; },
+      in: (...args: unknown[]) => { calls.push({ op: "in", args }); return q; },
+      limit: (...args: unknown[]) => { calls.push({ op: "limit", args }); return q; },
       insert: (...args: unknown[]) => { calls.push({ op: "insert", args }); return q; },
       update: (...args: unknown[]) => { calls.push({ op: "update", args }); return q; },
       upsert: (...args: unknown[]) => { calls.push({ op: "upsert", args }); return q; },
@@ -95,7 +97,13 @@ describe("listLayouts — C2: unavailable is not empty", () => {
   it("returns rows on success and stays owner-scoped", async () => {
     const db = scriptedDb([{ data: [{ id: "a", name: "Swing", config: { schemaVersion: 2 }, updated_at: "2026-08-19T00:00:00Z" }] }]);
     const result = await listLayouts(db, USER);
-    expect(result).toEqual({ ok: true, layouts: [{ id: "a", name: "Swing", config: { schemaVersion: 2 }, updated_at: "2026-08-19T00:00:00Z" }] });
+    expect(result).toEqual({
+      ok: true,
+      layouts: [{
+        id: "a", name: "Swing", config: { schemaVersion: 2 }, updated_at: "2026-08-19T00:00:00Z",
+        userId: null, teamId: null, visibility: null,
+      }],
+    });
     expect(db.calls).toContainEqual({ op: "eq", args: ["user_id", USER] });
   });
 

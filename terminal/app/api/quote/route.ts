@@ -29,6 +29,19 @@ const KEEP_GOOD_MS = 30_000; // ride out a transient upstream miss on a recently
 const MAX_BATCH = 200; // a watchlist is normally < 50; cap to bound one poll's upstream fan-out
 const MAX_CHART_BATCH = 8; // at most four panes today; leave headroom without enabling bulk scraping
 
+// D2: the cap stays (it is what bounds one poll's provider fan-out), but it may not be enforced in
+// SILENCE. It used to be a bare `slice(0, MAX_BATCH)`: no 413, no flag, no remainder — so a caller
+// asking for 300 symbols got 200 back in a response shaped exactly like a complete one, and the
+// symbols past the boundary sat on EOD fallback with nothing to say why. Watchlist operations
+// permit 500 (lib/watchlists.ts) and composites expand into several symbols each, so overshooting
+// this cap is a reachable state, not a theoretical one.
+//
+// `truncated` names precisely what was dropped so a consumer can schedule the remainder instead of
+// believing it was served. lib/quoteDemand.ts is the in-product consumer: it plans every poll under
+// the cap, so a correct client never sees this field — it is the fail-loud backstop for one that
+// gets it wrong, and the contract any future consumer can rely on.
+type Truncation = { requested: number; served: number; omitted: string[] };
+
 // Every client receives an explicit regular-session display lane. This keeps native/mobile
 // consumers from interpreting the feed's raw last/chg as an overnight percentage, while the
 // existing ext* namespace remains the sole source for pre/post/overnight presentation.
@@ -108,16 +121,28 @@ export async function GET(req: Request) {
 
   // ── batch: the live watchlist (one poll for the header + every row) ──
   if (symsParam) {
-    const want = Array.from(new Set(symsParam.split(",").map((s) => s.trim()).filter(Boolean)))
-      .slice(0, chartCadence ? MAX_CHART_BATCH : MAX_BATCH);
+    const asked = Array.from(new Set(symsParam.split(",").map((s) => s.trim()).filter(Boolean)));
+    const cap = chartCadence ? MAX_CHART_BATCH : MAX_BATCH;
+    const want = asked.slice(0, cap);
+    // Say so when the cap bites, rather than returning a short map shaped like a complete one.
+    const truncated: Truncation | null = asked.length > want.length
+      ? { requested: asked.length, served: want.length, omitted: asked.slice(cap) }
+      : null;
     if (!want.length) return NextResponse.json({ quotes: {} });
     const { hits, miss } = readCache(want, ttlMs);
     if (miss.length) { const denied = await gate(); if (denied) return denied; }
     try {
       const filled = await fillMisses(miss);
-      return NextResponse.json({ quotes: exposeMap({ ...hits, ...filled }) }, { headers: { "Cache-Control": "no-store" } });
+      return NextResponse.json(
+        { quotes: exposeMap({ ...hits, ...filled }), ...(truncated ? { truncated } : {}) },
+        { headers: { "Cache-Control": "no-store" } },
+      );
     } catch {
-      return NextResponse.json({ quotes: exposeMap(hits) }, { headers: { "Cache-Control": "no-store" } }); // serve what we have
+      // Serve what we have — but a partial serve still has to admit the cap dropped symbols.
+      return NextResponse.json(
+        { quotes: exposeMap(hits), ...(truncated ? { truncated } : {}) },
+        { headers: { "Cache-Control": "no-store" } },
+      );
     }
   }
 

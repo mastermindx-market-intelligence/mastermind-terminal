@@ -45,6 +45,15 @@ export function IconPrefs() {
     </svg>
   );
 }
+/** Alert delivery — a bell, the same job as email-alert preferences. */
+export function IconAlertDelivery() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" {...S}>
+      <path d="M6 9a6 6 0 1 1 12 0c0 7 3 8 3 8H3s3-1 3-8" />
+      <path d="M10 20a2 2 0 0 0 4 0" />
+    </svg>
+  );
+}
 /** Terminal section — a chart glyph, the Terminal's own idiom in this rail. */
 export function IconTerminal() {
   return (
@@ -60,6 +69,34 @@ export function IconSync() {
     <svg viewBox="0 0 24 24" aria-hidden="true" {...S}>
       <path d="M17.5 18.5a4.5 4.5 0 0 0 0-9 6 6 0 0 0-11.4 1.6A3.8 3.8 0 0 0 6.5 18.5z" />
       <path d="m10 14 2 2 2-2M12 16v-5" />
+    </svg>
+  );
+}
+export function IconTeam() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" {...S}>
+      <circle cx="9" cy="8" r="3" />
+      <circle cx="16" cy="9" r="2.4" />
+      <path d="M3.5 19a5.5 5.5 0 0 1 11 0" />
+      <path d="M14 19a4.5 4.5 0 0 1 6.5-4" />
+    </svg>
+  );
+}
+export function IconWebhooks() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" {...S}>
+      <path d="M10 13a5 5 0 0 0 7.07 0l1.41-1.41a5 5 0 0 0-7.07-7.07L10 5.93" />
+      <path d="M14 11a5 5 0 0 0-7.07 0L5.52 12.4a5 5 0 0 0 7.07 7.07L14 18.07" />
+    </svg>
+  );
+}
+export function IconSharing() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" {...S}>
+      <circle cx="6.5" cy="12" r="2.2" />
+      <circle cx="17.5" cy="6.5" r="2.2" />
+      <circle cx="17.5" cy="17.5" r="2.2" />
+      <path d="M8.4 11.1 15.3 7.4M8.4 12.9 15.3 16.6" />
     </svg>
   );
 }
@@ -121,7 +158,7 @@ export function SectionHead({
   onClose,
 }: {
   title: string;
-  sub: string;
+  sub?: string;
   closeLabel: string;
   onClose: () => void;
 }) {
@@ -129,7 +166,7 @@ export function SectionHead({
     <header className="acs-head">
       <div className="acs-head-main">
         <h2>{title}</h2>
-        <p className="acs-sub">{sub}</p>
+        {sub ? <p className="acs-sub">{sub}</p> : null}
       </div>
       <button type="button" className="acs-x" aria-label={closeLabel} onClick={onClose}>
         <IconX />
@@ -158,6 +195,7 @@ export function Row({
   control,
   editing,
   children,
+  userId,
 }: {
   label?: ReactNode;
   desc?: ReactNode;
@@ -166,9 +204,10 @@ export function Row({
   control?: ReactNode;
   editing?: boolean;
   children?: ReactNode;
+  userId?: string;
 }) {
   return (
-    <div className={`acs-row${editing ? " editing" : ""}`}>
+    <div className={`acs-row${editing ? " editing" : ""}`} data-user-id={userId || undefined}>
       <div className="acs-row-line">
         <span className="acs-row-main">
           {label != null ? <span className="acs-row-lbl">{label}</span> : null}

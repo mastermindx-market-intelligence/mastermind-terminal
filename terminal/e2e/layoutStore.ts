@@ -20,6 +20,19 @@ export async function isolateLayoutStore(page: Page, testInfo: TestInfo, baseURL
   return key;
 }
 
+export async function joinLayoutTeam(
+  page: Page,
+  teamId: string,
+  role: "owner" | "admin" | "member",
+  baseURL?: string,
+) {
+  const url = baseURL ?? DEFAULT_BASE;
+  await page.context().addCookies([
+    { name: "mm_e2e_layout_team", value: teamId, url },
+    { name: "mm_e2e_layout_role", value: role, url },
+  ]);
+}
+
 /**
  * Make one class of layout statement fail, the way a Supabase outage would.
  *

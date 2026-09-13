@@ -15,12 +15,13 @@
  * with the user having watched onboarding reach Done normally.
  *
  * The rule this module enforces is ACKNOWLEDGE BEFORE DELETE. The pending record is an outbox:
- * written first, cleared only after the authority confirms the write, preserved on failure. It is
+ * written first, cleared only after the authority confirms the write, or when nothing owned remained to send, preserved on failure. It is
  * deliberately NOT a new lifecycle store — it is the same `mm.pendingPrefs` key that already
  * existed, given the one property it was missing.
  */
 import type { PendingPrefs } from "@/components/onboarding/types";
 import { LS_PENDING_PREFS } from "@/components/onboarding/types";
+import { scopeAccountWrite } from "@/lib/accountPrefs";
 
 /** How many times ONE delivery pass will try before giving the record back to the outbox.
  *
@@ -67,7 +68,7 @@ export function writePendingPrefs(prefs: PendingPrefs): void {
   catch { /* storage blocked — delivery still attempts below, it just cannot be retried later */ }
 }
 
-/** Clear the outbox. ONLY ever called after the authority acknowledged the write. */
+/** Clear the outbox. Called after the authority acknowledged the write, OR when nothing owned remained to send. */
 export function clearPendingPrefs(): void {
   try { localStorage.removeItem(LS_PENDING_PREFS); } catch { /* ignore */ }
 }
@@ -83,16 +84,38 @@ export type DeliveryOutcome =
   | { status: "failed"; attempts: number; exhausted: boolean };
 
 /**
- * Deliver whatever is pending, clearing the record only on a confirmed success.
+ * Deliver whatever is pending, clearing the record after the authority acknowledged the write, OR when nothing owned remained to send.
  *
  * `updateUser` is injected rather than imported so the contract is testable without a Supabase
  * client, and so the caller decides which client performs the write.
  */
 export async function deliverPendingPrefs(
-  updateUser: (data: Record<string, unknown>) => Promise<{ error?: { message?: string } | null } | void>,
+  updateUser: (data: Record<string, unknown>) => Promise<{ error?: { name?: string; message?: string } | null } | void>,
 ): Promise<DeliveryOutcome> {
   const record = readPendingPrefs();
   if (!record) return { status: "nothing-pending" };
+
+  // A patch that scopes to empty is nothing the Terminal may write: strip foreign
+  // keys from the durable record, deliver what remains, and clear when
+  // nothing owned remains (including a {} / empty-prefs record). Never an
+  // unbounded retry of keys we will never send.
+  const { data, dropped } = scopeAccountWrite(record.prefs as unknown as Record<string, unknown>);
+  if (dropped.length && process.env.NODE_ENV !== "production") {
+    console.warn("[onboardingPrefsOutbox] dropping keys the Terminal does not own", dropped);
+  }
+  if (Object.keys(data).length === 0) {
+    if (process.env.NODE_ENV !== "production") {
+      console.warn("[onboardingPrefsOutbox] no owned key in patch");
+    }
+    clearPendingPrefs();
+    return { status: "nothing-pending" };
+  }
+  if (dropped.length) {
+    record.prefs = data as unknown as PendingPrefs;
+    try {
+      localStorage.setItem(LS_PENDING_PREFS, JSON.stringify({ prefs: record.prefs, attempts: record.attempts } satisfies OutboxRecord));
+    } catch { /* ignore */ }
+  }
 
   // The budget is PER PASS. `record.attempts` is history, not a veto — a record that failed three
   // times yesterday must still be deliverable today.

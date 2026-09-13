@@ -29,21 +29,18 @@ import React, {
   useState,
 } from "react";
 import { flowGet } from "@/lib/flowClientCache";
-import { useLang } from "@/lib/i18n";
+import { useLang, useT } from "@/lib/i18n";
 import { trackSearch } from "@/lib/searchTrack";
+import {
+  ROLE_GLYPH,
+  STACK_GLYPH,
+  notPresentLabel,
+  roleLabel,
+  stackLabel,
+  type Role,
+} from "./levelsLabels";
 
 // ─── levels.v1 schema (pinned to engine/levels_engine.py origin/main) ──────────
-
-type Role =
-  | "anchor"
-  | "call_wall"
-  | "put_wall"
-  | "flip"
-  | "cluster"
-  | "counter"
-  | "void"
-  | "trapdoor"
-  | "launchpad";
 
 interface LevelNode {
   role: Role;
@@ -90,21 +87,6 @@ interface LevelsPayload {
     note?: string;
   } | null;
 }
-
-// ─── Display-name map (role → label + glyph) ──────────────────────────────────
-
-const ROLE_META: Record<Role, { label: string; glyph: string }> = {
-  anchor:    { label: "Keystone",  glyph: "★" },
-  call_wall: { label: "Ceiling",   glyph: "▔" },
-  put_wall:  { label: "Floor",     glyph: "▁" },
-  flip:      { label: "Flip",      glyph: "⚡" },
-  cluster:   { label: "Cluster",   glyph: "◆" },
-  counter:   { label: "Backstop",  glyph: "↘" },
-  void:      { label: "Void",      glyph: "≋" },
-  trapdoor:  { label: "Trapdoor",  glyph: "⚠" },
-  launchpad: { label: "Launchpad", glyph: "⤴" },
-};
-const STACK_META = { label: "Stack", glyph: "⊕" };
 
 // The order named nodes sit in the side rail (matches the engine emission order,
 // most-magnetic first). Voids are ranges and get their own band overlay.
@@ -197,6 +179,7 @@ function priceBand(payload: LevelsPayload | null): [number, number] | null {
 
 export function LevelsView() {
   const { lang } = useLang();
+  const t = useT();
 
   const [ticker, setTicker]     = useState("SPY");
   const [inputVal, setInputVal] = useState("SPY");
@@ -350,7 +333,7 @@ export function LevelsView() {
               onBlur={commitTicker}
               onKeyDown={(e) => { if (e.key === "Enter") commitTicker(); }}
               placeholder="SPY"
-              aria-label="Ticker"
+              aria-label={t("lvTicker")}
               spellCheck={false}
               maxLength={12}
             />
@@ -378,7 +361,7 @@ export function LevelsView() {
         <div style={CONTROLS_RIGHT}>
           {asofStr && (
             <span style={asofStale ? { ...ASOF_BADGE, color: "var(--warn)" } : ASOF_BADGE}>
-              as of {asofStr}{asofStale && <span style={{ marginLeft: 5, fontWeight: 600 }}>· prior session</span>}
+              {t("lvAsOf")} {asofStr}{asofStale && <span style={{ marginLeft: 5, fontWeight: 600 }}>{t("lvPriorSession")}</span>}
             </span>
           )}
           <button
@@ -386,12 +369,12 @@ export function LevelsView() {
             style={{ height: 24, fontSize: 11, fontWeight: 700, letterSpacing: "0.02em" }}
             onClick={() => setColorblind((v) => !v)}
             aria-pressed={colorblind}
-            title="Colorblind palette — repaint sticky/slippery as blue/orange"
+            title={t("lvColorblindTitle")}
           >
-            ◑ {colorblind ? "Blue / Orange" : "Colorblind"}
+            ◑ {colorblind ? t("lvColorblindOn") : t("lvColorblindOff")}
           </button>
-          {loading && <span style={LOADING_BADGE}>Loading…</span>}
-          {error && !loading && <span style={ERROR_BADGE}>No levels for this root yet</span>}
+          {loading && <span style={LOADING_BADGE}>{t("lvLoading")}</span>}
+          {error && !loading && <span style={ERROR_BADGE}>{t("lvNoLevels")}</span>}
         </div>
       </div>
 
@@ -403,7 +386,7 @@ export function LevelsView() {
             color: isSticky ? palette.stickyVar : palette.slipperyVar,
             borderColor: isSticky ? `rgba(${palette.stickyRGB},0.4)` : `rgba(${palette.slipperyRGB},0.4)`,
           }}>
-            {isSticky ? "STICKY" : "SLIPPERY"}
+            {isSticky ? t("lvSticky") : t("lvSlippery")}
           </span>
           <span style={RIBBON_TEXT}>{regime.ribbon}</span>
         </div>
@@ -415,11 +398,10 @@ export function LevelsView() {
         {/* ── Terrain column (the gamma weather map) ─────────────────────── */}
         <div style={COLUMN_PANE} className="levels-column">
           {loading && !payload ? (
-            <div style={COLUMN_LOADING}>Reading the gamma map…</div>
+            <div style={COLUMN_LOADING}>{t("lvReadingMap")}</div>
           ) : !payload || terrainNodes.length === 0 ? (
             <div style={COLUMN_LOADING}>
-              No dealer-gamma levels to map for {ticker}. This root may not carry
-              enough open interest yet — the board stays honest rather than draw a guess.
+              {t("lvEmptyMap").replace("{ticker}", ticker)}
             </div>
           ) : (
             <div style={COLUMN_STAGE}>
@@ -435,10 +417,10 @@ export function LevelsView() {
                       top: `${yTop}%`,
                       height: `${Math.max(yBot - yTop, 1.5)}%`,
                     }}
-                    onClick={() => setSelected({ key: `void-${i}`, label: `${ROLE_META.void.label} ${ROLE_META.void.glyph}`, note: v.note })}
+                    onClick={() => setSelected({ key: `void-${i}`, label: `${roleLabel("void", lang)} ${ROLE_GLYPH.void}`, note: v.note })}
                     title={v.note}
                   >
-                    <span style={VOID_LABEL}>{ROLE_META.void.glyph} Void</span>
+                    <span style={VOID_LABEL}>{ROLE_GLYPH.void} {roleLabel("void", lang)}</span>
                   </button>
                 );
               })}
@@ -463,17 +445,17 @@ export function LevelsView() {
                     }}
                     onClick={() => setSelected({
                       key: `rung-${i}`,
-                      label: `${ROLE_META[n.role].label} ${ROLE_META[n.role].glyph}`,
+                      label: `${roleLabel(n.role, lang)} ${ROLE_GLYPH[n.role]}`,
                       note: n.note,
                     })}
                     title={n.note}
                   >
                     <span style={{ ...RUNG_GLYPH, color: roleColor(n) }}>
-                      {ROLE_META[n.role].glyph}
+                      {ROLE_GLYPH[n.role]}
                     </span>
                     <span style={RUNG_STRIKE}>{fmtStrike(n.strike)}</span>
                     <span style={{ ...RUNG_ROLE, color: roleColor(n) }}>
-                      {ROLE_META[n.role].label}
+                      {roleLabel(n.role, lang)}
                     </span>
                   </button>
                 );
@@ -483,17 +465,17 @@ export function LevelsView() {
               {band && flipNode && (
                 <button
                   style={{ ...FLIP_LINE, top: `${projY(flipNode.strike as number) * 100}%` }}
-                  onClick={() => setSelected({ key: "flip", label: `${ROLE_META.flip.label} ${ROLE_META.flip.glyph}`, note: flipNode.note })}
+                  onClick={() => setSelected({ key: "flip", label: `${roleLabel("flip", lang)} ${ROLE_GLYPH.flip}`, note: flipNode.note })}
                   title={flipNode.note}
                 >
-                  <span style={FLIP_TAG}>{ROLE_META.flip.glyph} Flip {fmtStrike(flipNode.strike)}</span>
+                  <span style={FLIP_TAG}>{ROLE_GLYPH.flip} {roleLabel("flip", lang)} {fmtStrike(flipNode.strike)}</span>
                 </button>
               )}
 
               {/* spot marker */}
               {band && payload.spot != null && (
                 <div style={{ ...SPOT_LINE, top: `${projY(payload.spot) * 100}%` }}>
-                  <span style={SPOT_TAG}>Spot {fmtStrike(payload.spot)}</span>
+                  <span style={SPOT_TAG}>{t("lvSpot")} {fmtStrike(payload.spot)}</span>
                 </div>
               )}
             </div>
@@ -511,27 +493,26 @@ export function LevelsView() {
                 <div style={DETAIL_NOTE}>{selected.note}</div>
               </>
             ) : (
-              <div style={DETAIL_EMPTY}>Tap any level to read what it means.</div>
+              <div style={DETAIL_EMPTY}>{t("lvTapLevel")}</div>
             )}
           </div>
 
           {/* named-levels rail */}
           <div style={RAIL_SCROLL} className="obs-scroll levels-rail-scroll">
-            <div style={RAIL_TITLE}>Named levels</div>
+            <div style={RAIL_TITLE}>{t("lvNamedLevels")}</div>
             {railEntries.map(({ role, node }) => {
-              const meta = ROLE_META[role];
               const present = node != null && node.strike != null;
               const c = node ? roleColor(node) : "var(--text-dim)";
               return (
                 <button
                   key={role}
                   style={{ ...RAIL_ROW, opacity: present ? 1 : 0.55 }}
-                  onClick={() => node && setSelected({ key: role, label: `${meta.label} ${meta.glyph}`, note: node.note })}
+                  onClick={() => node && setSelected({ key: role, label: `${roleLabel(role, lang)} ${ROLE_GLYPH[role]}`, note: node.note })}
                 >
-                  <span style={{ ...RAIL_GLYPH, color: c }}>{meta.glyph}</span>
-                  <span style={RAIL_LABEL}>{meta.label}</span>
+                  <span style={{ ...RAIL_GLYPH, color: c }}>{ROLE_GLYPH[role]}</span>
+                  <span style={RAIL_LABEL}>{roleLabel(role, lang)}</span>
                   <span style={{ ...RAIL_STRIKE, color: present ? "var(--text)" : "var(--text-dim)" }}>
-                    {present ? fmtStrike(node!.strike) : "not present"}
+                    {present ? fmtStrike(node!.strike) : notPresentLabel(lang)}
                   </span>
                 </button>
               );
@@ -540,15 +521,15 @@ export function LevelsView() {
             {/* stacks (confluence strikes) */}
             {(payload?.stacks?.length ?? 0) > 0 && (
               <>
-                <div style={{ ...RAIL_TITLE, marginTop: 12 }}>Confluence</div>
+                <div style={{ ...RAIL_TITLE, marginTop: 12 }}>{t("lvConfluence")}</div>
                 {payload!.stacks.map((s, i) => (
                   <button
                     key={`stack-${i}`}
                     style={RAIL_ROW}
-                    onClick={() => setSelected({ key: `stack-${i}`, label: `${STACK_META.label} ${STACK_META.glyph}`, note: s.note })}
+                    onClick={() => setSelected({ key: `stack-${i}`, label: `${stackLabel(lang)} ${STACK_GLYPH}`, note: s.note })}
                   >
-                    <span style={{ ...RAIL_GLYPH, color: "var(--signal)" }}>{STACK_META.glyph}</span>
-                    <span style={RAIL_LABEL}>{STACK_META.label}</span>
+                    <span style={{ ...RAIL_GLYPH, color: "var(--signal)" }}>{STACK_GLYPH}</span>
+                    <span style={RAIL_LABEL}>{stackLabel(lang)}</span>
                     <span style={{ ...RAIL_STRIKE, color: "var(--text)" }}>{fmtStrike(s.strike)}</span>
                   </button>
                 ))}
@@ -557,34 +538,32 @@ export function LevelsView() {
 
             {/* legend + color law */}
             <div style={LEGEND}>
-              <div style={{ ...RAIL_TITLE, marginTop: 0 }}>Reading the map</div>
+              <div style={{ ...RAIL_TITLE, marginTop: 0 }}>{t("lvReadingLegend")}</div>
               <div style={LEGEND_ROW}>
                 <span style={{ ...LEGEND_SWATCH, background: `rgba(${palette.stickyRGB},0.6)` }} />
-                <span style={LEGEND_TXT}><b style={{ color: palette.stickyVar }}>Sticky</b> — price tends to hold here.</span>
+                <span style={LEGEND_TXT}><b style={{ color: palette.stickyVar }}>{t("lvSticky")}</b> {t("lvStickyHint")}</span>
               </div>
               <div style={LEGEND_ROW}>
                 <span style={{ ...LEGEND_SWATCH, background: `rgba(${palette.slipperyRGB},0.6)` }} />
-                <span style={LEGEND_TXT}><b style={{ color: palette.slipperyVar }}>Slippery</b> — price tends to slide here.</span>
+                <span style={LEGEND_TXT}><b style={{ color: palette.slipperyVar }}>{t("lvSlippery")}</b> {t("lvSlipperyHint")}</span>
               </div>
               <div style={LEGEND_ROW}>
                 <span style={{ ...LEGEND_SWATCH, background: `linear-gradient(90deg, rgba(${palette.stickyRGB},0.15), rgba(${palette.stickyRGB},0.7))` }} />
-                <span style={LEGEND_TXT}>Brighter, wider = more dealer gamma at that strike.</span>
+                <span style={LEGEND_TXT}>{t("lvBrightnessHint")}</span>
               </div>
             </div>
 
             {/* honesty note + source lineage */}
             <div style={HONESTY}>
-              Positioning, not prophecy. These are locations where dealer hedging
-              concentrates — not forecasts. The dealer-sign convention is assumed,
-              not measured. Open interest updates once a day, so this is a snapshot.
+              {t("lvHonesty")}
               {payload?.source?.source_convention && (
                 <span style={{ display: "block", marginTop: 4, color: "var(--text-dim)" }}>
-                  Convention (assumed): {payload.source.source_convention}
+                  {t("lvConvention")} {payload.source.source_convention}
                 </span>
               )}
             </div>
 
-            <a href="/learn" style={LEARN_LINK}>New here? Learn the board →</a>
+            <a href="/learn" style={LEARN_LINK}>{t("lvLearnCta")}</a>
           </div>
         </div>
       </div>

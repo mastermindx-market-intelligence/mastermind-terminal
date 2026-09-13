@@ -22,6 +22,7 @@ import {
 import { SUITE_DEFS } from "@/lib/suites/registry";
 import { useGateEntitlement } from "@/lib/entitlementStore";
 import { useShellIdentity } from "@/components/chrome/AppShell";
+import { ALERTS_CHANGED_EVENT, conditionText, firedEventTextZh } from "@/lib/alertsView";
 
 type Alert = { id: string; symbol: string; condition: any; active: boolean; created_at: string };
 
@@ -142,7 +143,7 @@ export function _resetAlertPrefill(): void {
   pendingPrefill = null;
 }
 
-export default function AlertsView({ email }: { email: string }) {
+export default function AlertsView({ email, panelOnly, listOnly }: { email: string; panelOnly?: boolean; listOnly?: boolean }) {
   const t = useT();
   const { lang } = useLang();
   const fmtDate = (iso: string) => {
@@ -155,7 +156,24 @@ export default function AlertsView({ email }: { email: string }) {
   const condText = (c: any) => {
     if (c?.type === "signal") return c.target === "BUY" ? t("condSignalBuy") : t("condSignalSell");
     if (c?.type === "regime") return t("condRegimeUp");
-    if (c?.type === "price") return `${c.op === "above" ? t("condPriceAbove") : t("condPriceBelow")} ${c.value}`;
+    if (c?.type === "price") {
+      // Minor-4 (META-CEO B ruling r9): this row and the drillback's "条件"/"Condition" field
+      // describe the SAME fact — a price threshold — and must use one phrasing PER LANGUAGE
+      // on the page. The drillback field (AlertDetail.tsx, via verdictText -> conditionText)
+      // says "价格高于/低于 {value}" / "price above/below {value}"; this row used its own i18n
+      // pairs (condPriceAbove/condPriceBelow: "价格上穿/下穿" ZH, "Price crosses above/below"
+      // EN) for the identical fact, so the same alert read two different verbs on the same
+      // page (r9 review, minor-4). Round-9's first pass routed ZH alone through
+      // conditionText, which closed the ZH divergence but — because it left EN on the old
+      // condPriceAbove/condPriceBelow pair — left EN divergent in exactly the same way
+      // (row: "Price crosses below 150", drillback: "price below 150") the ruling exists to
+      // stop (r9 review round 2, minor-2). Route BOTH languages through conditionText: the
+      // New Alert dropdown a few lines up (COND_TYPES) is a distinct UI context this ruling
+      // does not touch and keeps condPriceAbove/condPriceBelow. `undefined` symbol — the row
+      // already shows the ticker in the adjacent `.tk` span; conditionText only prefixes a
+      // symbol when one is passed.
+      return conditionText(c, undefined, lang === "zh" ? "zh" : "en");
+    }
     if (c?.type === "rsi") return `${t("condRsiBelow")} ${c.value}`;
     // options-flow types: reuse the plain-word preview (already display-tier + bilingual)
     if (typeof c?.type === "string" && c.type.startsWith("opt_")) return optAlertPreview(c, lang === "zh" ? "zh" : "en");
@@ -295,6 +313,17 @@ export default function AlertsView({ email }: { email: string }) {
     return () => { alive = false; guard.alive = false; clearTimeout(gateTimer.current); };
   }, [loadAlerts]);
 
+  // /alerts composes TWO independent instances of this component (the cockpit's inline create
+  // form, panelOnly, and the separate existing-alerts management panel, listOnly) — a create
+  // here does not, on its own, make the OTHER instance's list re-read. Re-read on the shared
+  // signal either one fires after a successful create/re-arm/delete (major: "see it in the
+  // list" required a manual page reload without this).
+  useEffect(() => {
+    const onChanged = () => { void loadAlerts(); };
+    window.addEventListener(ALERTS_CHANGED_EVENT, onChanged);
+    return () => window.removeEventListener(ALERTS_CHANGED_EVENT, onChanged);
+  }, [loadAlerts]);
+
   // The condition the CURRENT form would POST (drives the preview + create()).
   const optCondition = buildOptCondition(optKind, optRoot, optParams);
   const marketWideOpt = isMarketWideOptKind(optKind);
@@ -382,7 +411,7 @@ export default function AlertsView({ email }: { email: string }) {
       }
       const r = await fetch("/api/alerts", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ symbol, condition }) });
       const d = await r.json().catch(() => ({}));
-      if (d.alert) { setAlerts((a) => [d.alert, ...a]); setVal(""); }
+      if (d.alert) { setAlerts((a) => [d.alert, ...a]); setVal(""); window.dispatchEvent(new Event(ALERTS_CHANGED_EVENT)); }
       else setErr(d.error || t("couldNotCreateAlert"));
     } catch {
       setErr(t("alertNetErr"));
@@ -394,7 +423,7 @@ export default function AlertsView({ email }: { email: string }) {
     try {
       const r = await fetch("/api/alerts", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
       const d = await r.json().catch(() => ({}));
-      if (d.alert) setAlerts((a) => a.map((x) => (x.id === id ? d.alert : x)));
+      if (d.alert) { setAlerts((a) => a.map((x) => (x.id === id ? d.alert : x))); window.dispatchEvent(new Event(ALERTS_CHANGED_EVENT)); }
       else setErr(d.error || t("couldNotRearm"));
     } catch {
       setErr(t("couldNotRearm"));
@@ -407,6 +436,7 @@ export default function AlertsView({ email }: { email: string }) {
     try {
       const r = await fetch(`/api/alerts?id=${id}`, { method: "DELETE" });
       if (!r.ok) throw new Error();
+      window.dispatchEvent(new Event(ALERTS_CHANGED_EVENT));
     } catch {
       // re-insert ONLY the failed item (functional update preserves any concurrent deletes)
       if (removed) setAlerts((a) => (a.some((x) => x.id === removed.id) ? a : [removed, ...a]));
@@ -441,9 +471,7 @@ export default function AlertsView({ email }: { email: string }) {
     </select>
   );
 
-  return (
-    <main className="main2"><div className="pg">
-        <div className="pg-head"><h2>{t("signalRegimeAlerts")}</h2><span className="sub">{t("alertsSub")}</span></div>
+  const newAlertPanel = (
         <div className="panel">
           <div className="ph">{t("newAlert")}</div>
           <div className="alert-form">
@@ -584,6 +612,18 @@ export default function AlertsView({ email }: { email: string }) {
             </div>
           )}
         </div>
+  );
+  const gateNudgeNode = gateNudge && (
+    <div className="undo-toast" role="status" style={{ position: "fixed", bottom: 96, left: "50%", transform: "translateX(-50%)", background: "var(--panel-3)", border: "1px solid var(--line-3)", borderRadius: "var(--r-md)", padding: "8px 16px", fontSize: 12.5, color: "var(--text)", boxShadow: "0 8px 24px -8px rgba(0,0,0,.7)", zIndex: 51, display: "flex", alignItems: "center", gap: 12 }}>
+      <span>{gateNudge}</span>
+      <a href="/login" style={{ color: "var(--brand-2)", fontWeight: 700, textDecoration: "none", whiteSpace: "nowrap" }}>{t("gateSignupCta")}</a>
+    </div>
+  );
+  if (panelOnly) {
+    return <>{newAlertPanel}{gateNudgeNode}</>;
+  }
+
+  const existingAlertsPanel = (
         <div className="panel">
           {/* The count is a claim about the inventory — it must not print "0 total" over a
               read that never landed. The re-read control is always present when signed in: a
@@ -603,6 +643,12 @@ export default function AlertsView({ email }: { email: string }) {
               >{reloading ? "…" : "↻"}</button>
             )}
           </div>
+          {/* `err` is also set by rearm()/del() below, which live in THIS panel — the create-flow
+              error span sits in `newAlertPanel`, a component chunk `listOnly` never renders (see
+              the `if (listOnly)` return above), so a rearm/delete failure had nowhere to display
+              and CI's own e2e/alerts-failure-states.spec.ts:117 caught it (the row was correctly
+              restored, but the "delete failed" message never appeared anywhere on the page). */}
+          {err && <span className="alert-err" style={{ color: "var(--danger)", fontSize: 12.5, display: "block", padding: "0 15px" }}>{err}</span>}
           {!loaded && <div style={{ padding: "26px 15px", color: "var(--muted)", fontSize: 13 }}>{t("loadingAlerts")}</div>}
           {/* Signed out: say so plainly. "No alerts yet" would be a lie — we cannot see theirs. */}
           {loaded && signedOut && (
@@ -638,8 +684,14 @@ export default function AlertsView({ email }: { email: string }) {
             const trig = !a.active && a.condition?.triggered; // engine one-shot: fired -> disarmed + stamped
             const note = trig ? String(a.condition.triggered.note ?? "") : "";
             const tval = trig ? a.condition.triggered.value : null;
+            // Minor-1 (round-9 review of a32b8fd4): mirrors the exact render gate of the
+            // `.arow-note` span below (zh = `trig` alone, en = `trig && note`) so the 390px
+            // grid (globals.css `.arow.has-note`) only reserves a note row when a note is
+            // actually about to render — an unconditional row reference was allocating an
+            // always-empty row-2 track (and its row-gap on both edges) on every unfired row.
+            const hasNote = lang === "zh" ? !!trig : !!(trig && note);
             return (
-              <div key={a.id} className="arow">
+              <div key={a.id} className={`arow${hasNote ? " has-note" : ""}`}>
                 <span className={`dot${a.active ? "" : " off"}`} style={trig ? { background: "var(--signal)" } : undefined} />
                 <span><span className="tk">{a.symbol}</span> <span className="cond">· {condText(a.condition)}</span></span>
                 {trig ? <button className="btn" style={{ height: 26, fontSize: 11.5, justifySelf: "end" }} onClick={() => rearm(a.id)}>{t("rearm")}</button> : <span />}
@@ -653,13 +705,42 @@ export default function AlertsView({ email }: { email: string }) {
                 )}
                 <button className="icbtn" aria-label={t("remove")} onClick={() => setConfirmDel((c) => (c === a.id ? null : a.id))}><svg viewBox="0 0 24 24"><path d="M5 7h14M9 7V5h6v2M7 7l1 13h8l1-13" /></svg></button>
                 {/* WHY it fired — was title=-only, invisible to touch and keyboard.
-                    The note is composed server-side by ingest/alerts_engine.py and stored
-                    as one English string, so it does NOT follow the UI language. Tagged
-                    lang="en" so assistive tech reads it correctly in the ZH view; making
-                    the engine emit a translated note is a separate contract change. */}
-                {trig && note && (
-                  <span className="arow-note" lang="en">{note}{tval != null ? ` · ${tval}` : ""}</span>
-                )}
+                    The note is composed server-side by ingest/alerts_engine.py as one
+                    English string, so it does NOT follow the UI language (major, round-6
+                    review: this span was rendering raw English — "crossed · 100" — on
+                    the ZH page). EN keeps the engine's own note (tagged lang="en" for
+                    assistive tech), gated on the note existing, unchanged.
+                    ZH never renders the engine note — it renders the shared EVENT sentence
+                    (firedEventTextZh, lib/alertsView.ts; META-CEO B ruling r8) instead. Two
+                    r7-review defects fixed here: (a) that ZH sentence used to be
+                    `conditionText` — the condition/threshold restated, duplicating the `.cond`
+                    span a few pixels to the left (ZH duplicate-fact row) — firedEventTextZh
+                    states the EVENT (the crossing value) instead, never the threshold; (b) the
+                    ZH branch used to be gated on the EN `note` string being non-empty
+                    (minor-2) — a note and a numeric value are stamped independently by the
+                    engine, so that silently hid a real value on the record whenever the note
+                    was empty. ZH is now gated on `trig` alone; firedEventTextZh itself decides
+                    what to say from the triggered VALUE, with an honest fallback sentence when
+                    none survived. Making the engine emit a translated note is a separate
+                    contract change.
+                    Major (round-9 review of f352b961): firedEventTextZh used to hardcode "价格"
+                    (price) for every condition kind, so a non-price alert (RSI, gamma-flip,
+                    premium-burst, ...) that fires with a stamped value rendered "触发时价格 72"
+                    — a false claim that a non-price number is a price. `a.condition?.type` is
+                    now passed through so the function can pick the price sentence only for an
+                    actual price condition, and a unit-neutral one otherwise. */}
+                {lang === "zh"
+                  ? trig && (
+                      <span className="arow-note" lang="zh">
+                        {firedEventTextZh(tval, a.condition?.type)}
+                      </span>
+                    )
+                  : trig && note && (
+                      <span className="arow-note" lang="en">
+                        {note}
+                        {tval != null ? ` · ${tval}` : ""}
+                      </span>
+                    )}
                 {confirmDel === a.id && (
                   <span className="arow-confirm" role="group" aria-label={t("deleteAlertQ")}>
                     <span className="arow-confirm-q">{t("deleteAlertQ")}</span>
@@ -671,14 +752,41 @@ export default function AlertsView({ email }: { email: string }) {
             );
           })}
         </div>
+  );
+  if (listOnly) {
+    // Major 8 attempted fix (a `.pg`-wrapped and a `<main>`-wrapped variant both broke the
+    // deterministic drillback e2e — the former via pointer-event interception from the
+    // cockpit above, the latter via unstable timeouts under parallel projects) — reverted to
+    // the original bare-panel render pending a real investigation. Tracked as an open GAP,
+    // not silently dropped: the page.tsx comment's "brings its own <main>" claim is still
+    // wrong for this mount and needs a follow-up fix once verified stable in isolation.
+    return <>{existingAlertsPanel}{gateNudgeNode}</>;
+  }
+
+  return (
+    <main className="main2"><div className="pg">
+        <div className="pg-head"><h2>{t("signalRegimeAlerts")}</h2><span className="sub">{t("alertsSub")}</span></div>
+        {newAlertPanel}
+        {existingAlertsPanel}
       </div>
       {/* anon register nudge — options alerts require a free account */}
-      {gateNudge && (
-        <div className="undo-toast" role="status" style={{ position: "fixed", bottom: 96, left: "50%", transform: "translateX(-50%)", background: "var(--panel-3)", border: "1px solid var(--line-3)", borderRadius: "var(--r-md)", padding: "8px 16px", fontSize: 12.5, color: "var(--text)", boxShadow: "0 8px 24px -8px rgba(0,0,0,.7)", zIndex: 51, display: "flex", alignItems: "center", gap: 12 }}>
-          <span>{gateNudge}</span>
-          <a href="/login" style={{ color: "var(--brand-2)", fontWeight: 700, textDecoration: "none", whiteSpace: "nowrap" }}>{t("gateSignupCta")}</a>
-        </div>
-      )}
+      {gateNudgeNode}
     </main>
   );
+}
+
+// D1 extraction (frozen-spec-flagged deviation): the create-alert panel as a
+// standalone export for AlertsCockpit's L1-3 'Add a watch' module. Zero behaviour
+// change — same component, same hooks/state, panelOnly/listOnly just narrow the
+// render to one panel alone, so the cockpit's inline create form and the full
+// management view's existing-alerts (pause/rearm/delete) list never render twice.
+export function NewAlertPanel({ email }: { email: string }) {
+  return <AlertsView email={email} panelOnly />;
+}
+
+// The existing-alerts list (pause/rearm/delete) as its own export — mounted on the
+// composed /alerts page ALONGSIDE the cockpit's own NewAlertPanel, so create/pause/
+// delete stay reachable without a duplicate "New alert" form on the page.
+export function ExistingAlertsPanel({ email }: { email: string }) {
+  return <AlertsView email={email} listOnly />;
 }

@@ -1,0 +1,54 @@
+# B-PL-6 batch 3 — capture evidence
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
+# capturedAtHead: c79208a01c2bbad0b4e39469fe976c11faf9d980
+# capturedAt: 2026-09-09T20:17:12.930Z
+# capturedAtHead is informational. The lock is layoutFiles.
+layoutFiles:
+  terminal/components/options/OptionsFlowBoardView.tsx: "96e0d1d0a4e7eaed7f2d2bbec6722725afacc093e205defa280a483bc6e14b8e"
+  terminal/components/flowdesk/FiltersPanel.tsx: "57ac663475b95a569f62d4c08e83a111f6137c920c78f13f1c9dfad1aa61708b"
+  terminal/components/flowdesk/FlowCard.tsx: "155aff67c1f2ec50fd396d2e7c2739d6400bad5ed37387df8a1b1d450f1b118d"
+  terminal/components/alerts/AlertDetail.tsx: "74bbdd5f0f5106b97fa56d67b6966caa86f32e65649eaef0d811f6ae6ef2485f"
+  terminal/components/heatmap/HeatmapView.tsx: "cce5c964be4c61a3cd9225ee1e3c8ca03841aea601006714c75316dec38c15e6"
+  terminal/components/heatmap/Treemap.tsx: "0c5a7f2fd990c41f725d96b9aecb83f5f73eb6a42fbc66c811b43cd722947a0d"
+  terminal/lib/heatmapStrings.ts: "f401976a6d2f998ad4b9bb63baad57950166410252c084b3f5ea536137b81e09"
+  terminal/lib/flowdeskStrings.ts: "ca5f6b819c004c85d167a8db34a8ad5b9a2ef7bbf7b7fc3e86cc3046408da8be"
+  terminal/lib/plainLabels.ts: "8f69818feca65a5f28c590460c52e4f06c04c25cc4f3da8643eff9050161b588"
+  terminal/lib/i18n.tsx: "9a17df6bf5c28684aa6eff31bf7a8e506791a781023ed7311514a64230fabcc3"
+  terminal/components/PineEditor.tsx: "e48a009b44f32f9501d2890602cd5096257ad57b83bac59147d691e221a69f63"
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: mobile, width: 390, height: 844 }
+surfaces: [OptionsFlowBoard, FlowDesk, AlertDetail, HeatmapTreemap, PineLibrary]
+capture_flag: TERMINAL_E2E_FIXTURE
+capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
+heatmap_price_only_fixture: terminal/e2e/fixtures/heatmap-price-only-tile.json
+heatmap_crops:
+  - HeatmapTreemap-1440.png
+  - HeatmapTreemap-1440-zh.png
+  - HeatmapTreemap-390.png
+  - HeatmapTreemap-390-zh.png
+command: |
+  cd terminal
+  CAPTURE_ONLY=HeatmapTreemap node e2e/tools/capture_pl6_batch3.cjs
+files:
+  - AlertDetail-1440-zh.png
+  - AlertDetail-1440.png
+  - AlertDetail-390-zh.png
+  - AlertDetail-390.png
+  - FlowDesk-1440-zh.png
+  - FlowDesk-1440.png
+  - FlowDesk-390-zh.png
+  - FlowDesk-390.png
+  - HeatmapTreemap-1440-zh.png
+  - HeatmapTreemap-1440.png
+  - HeatmapTreemap-390-zh.png
+  - HeatmapTreemap-390.png
+  - OptionsFlowBoard-1440-zh.png
+  - OptionsFlowBoard-1440.png
+  - OptionsFlowBoard-390-zh.png
+  - OptionsFlowBoard-390.png
+  - PineLibrary-1440-zh.png
+  - PineLibrary-390-zh.png

@@ -10,6 +10,7 @@ import {
   type CompanyInstitutionalPosition,
   type CompanyInstitutionalResult,
 } from "../../lib/companyInstitutionalContext";
+import { managerStyleLabel } from "../../lib/companyIntelligenceLabels";
 
 export interface CompanyInstitutionalContextCardProps {
   ticker: string;
@@ -106,7 +107,7 @@ function ManagerRow({ position, zh }: { position: CompanyInstitutionalPosition; 
   return (
     <li className={`ci-inst-manager ${position.action}`}>
       <span className="ci-inst-action">{actionLabel(position.action, zh)}</span>
-      <div className="ci-inst-manager-name"><strong>{position.manager_name}</strong><small>{position.manager_style.replaceAll("_", " ")} · {position.manager_grade}</small></div>
+      <div className="ci-inst-manager-name"><strong>{position.manager_name}</strong><small>{managerStyleLabel(position.manager_style, zh)} · {position.manager_grade}</small></div>
       <span><small>{pick(zh, "Filed", "提交")}</small><time className="num" dateTime={position.filing_date}>{position.filing_date}</time></span>
       <span><small>{pick(zh, "Position", "持仓价值")}</small><b className="num">{currency(position.value_usd, zh)}</b></span>
       <span><small>{pick(zh, "Book weight", "组合权重")}</small><b className="num">{pct(position.book_weight_pct)}</b></span>
@@ -129,7 +130,7 @@ function ContextCard({ context, state }: { context: CompanyInstitutionalContext;
   const maxTrendValue = Math.max(1, ...context.trend.periods.map((point) => point.total_value_usd));
   const palette = state === "ready" ? "var(--up)" : state === "no_covered_holder" ? "var(--muted)" : "var(--warn)";
   const headline = holders
-    ? pick(zh, `${holders} tracked managers reported a position`, `${holders} 家追踪管理人申报持仓`)
+    ? pick(zh, `${holders} tracked managers reported a position`, `${holders} 家追踪管理人披露持仓`)
     : pick(zh, "No position among the tracked manager set", "追踪管理人集合中暂无持仓");
 
   return (

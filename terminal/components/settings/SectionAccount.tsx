@@ -1,22 +1,97 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { sendScopedAccountWrite } from "@/lib/accountPrefs";
 import { Group, IconGoogle, IconSignOut, IconTwitterX, Msg, Row, SectionHead } from "./icons";
 import { acsDate, type SectionProps } from "./types";
+import type { ExportFormat } from "@/lib/accountExport";
+import {
+  classifyTeamSummary,
+  parseTeamsResponse,
+  type TeamRole,
+  type TeamsFetch,
+} from "@/lib/teamSummary";
 
 // ── Account ──────────────────────────────────────────────────────────────────
 // Ported from the macro dashboard's `_renderSDAccount` + `_wireSDAccount`:
 // the aurora ID card, then Profile (name / email / password inline editors) and
 // Security (login method / last sign-in / user id) in the two-column grid.
 
-type EditKind = "name" | "email" | "pw";
+type EditKind = "name" | "email" | "pw" | "del";
 
-function providerLabelKey(p: string): string {
+type DeletionReceipt = {
+  receipt_code: string;
+  status: string;
+  steps: { phase: string; done: boolean; text: [string, string] }[];
+};
+
+// A "cancelled" or "failed" request is a dead request: the account is not going anywhere and
+// the control below must still let the owner file a new one. Only "received"/"in_progress"
+// (still open — the DB's own partial unique index enforces at most one of these) and
+// "completed" (a real outcome worth keeping visible) permanently occupy this row. Exported so
+// the review MAJOR ("permanently removes the ability to file another") has a unit test that
+// does not need a DOM.
+export function isActiveDeletionStatus(status: string): boolean {
+  return status === "received" || status === "in_progress" || status === "completed";
+}
+
+/** Pane copy for a failed account write. ScopedToEmpty (name only) uses the generic
+ *  sentence; every other error keeps its own message, else the generic sentence. */
+export function accountSaveErrorText(e: unknown, t: SectionProps["t"]): string {
+  if ((e as { name?: unknown })?.name === "ScopedToEmpty") return t("acsErrGen");
+  return (e as Error)?.message || t("acsErrGen");
+}
+
+export function passwordErrorKey(code: string | undefined): string {
+  if (code === "invalid_credentials") return "acsPwWrongCurrent";
+  if (code === "same_password") return "acsPwSame";
+  if (code === "over_request_rate_limit") return "acsPwRateLimited";
+  if (code === "weak_password") return "acsPwShort";
+  return "acsPwFailed";
+}
+
+export function canChangePassword(provider: string | undefined | null): boolean {
+  return provider === "email";
+}
+
+export const TEAM_FETCH_TIMEOUT_MS = 10_000;
+
+const ONE_TEAM_KEY: Record<TeamRole, string> = {
+  owner: "acsTeamOneOwner",
+  admin: "acsTeamOneAdmin",
+  member: "acsTeamOneMember",
+};
+
+function fill(template: string, vars: Record<string, string | number>): string {
+  return Object.entries(vars).reduce(
+    (acc, [k, v]) => acc.replaceAll(`{${k}}`, String(v)),
+    template,
+  );
+}
+
+export function teamSummaryText(
+  t: (key: string, fallback?: string) => string,
+  fetch: TeamsFetch | null,
+): string {
+  if (!fetch) return t("acsTeamLoading");
+  if (fetch.status === "unavailable") return t("acsTeamUnavailable");
+  const s = classifyTeamSummary(fetch.teams, fetch.truncated);
+  if (s.kind === "none") return t("acsTeamNone");
+  if (s.kind === "one") {
+    const name = s.team.teamName || t("acsTeamUnnamed");
+    return fill(t(ONE_TEAM_KEY[s.team.role]), { name });
+  }
+  const count = `${s.count}${s.truncated ? "+" : ""}`;
+  return fill(t("acsTeamMany"), { count });
+}
+
+function providerLabelKey(p: string | null): string {
+  if (!p) return "acsProvUnknown";
   if (p === "google") return "acsProvGoogle";
   if (p === "twitter") return "acsProvX";
   return "acsProvEmail";
 }
-function ProviderIcon({ p }: { p: string }) {
+function ProviderIcon({ p }: { p: string | null }) {
   if (p === "google") return <IconGoogle />;
   if (p === "twitter") return <IconTwitterX />;
   return null;
@@ -26,18 +101,19 @@ function ProviderIcon({ p }: { p: string }) {
  *  call so the save handlers (which touch timer refs) are only ever passed as
  *  props — never invoked during render. */
 function FormBtns({
-  busy, t, onCancel, onSave, saveKey,
+  busy, t, onCancel, onSave, saveKey, saveClass = "primary",
 }: {
   busy: boolean;
   t: SectionProps["t"];
   onCancel: () => void;
   onSave: () => void;
   saveKey: string;
+  saveClass?: string;
 }) {
   return (
     <div className="acs-btns">
       <button type="button" className="acs-btn ghost" onClick={onCancel} disabled={busy}>{t("acsCancel")}</button>
-      <button type="button" className="acs-btn primary" onClick={onSave} disabled={busy}>
+      <button type="button" className={`acs-btn ${saveClass}`} onClick={onSave} disabled={busy}>
         {busy ? t("acsSaving") : t(saveKey)}
       </button>
     </div>
@@ -53,6 +129,8 @@ export default function SectionAccount({ t, lang, email, user, onClose, onPatchM
   const [emailIn, setEmailIn] = useState("");
   const [pw1, setPw1] = useState("");
   const [pw2, setPw2] = useState("");
+  const [pwCur, setPwCur] = useState("");
+  const [teamsFetch, setTeamsFetch] = useState<TeamsFetch | null>(null);
 
   const [copied, setCopied] = useState(false);
   const copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -62,9 +140,129 @@ export default function SectionAccount({ t, lang, email, user, onClose, onPatchM
     if (closeTimer.current) clearTimeout(closeTimer.current);
   }, []);
 
+  // ── data lifecycle (export / deletion request, B-F12-4) ──
+  const [delIn, setDelIn] = useState("");
+  const [filed, setFiled] = useState<DeletionReceipt | null>(null);
+  useEffect(() => {
+    let live = true;
+    (async () => {
+      try {
+        const res = await fetch("/api/account/deletion");
+        if (!res.ok) return;
+        const body = await res.json();
+        const rows: DeletionReceipt[] = Array.isArray(body?.requests) ? body.requests : [];
+        if (live && rows.length) setFiled(rows[0]);
+      } catch { /* no receipt shown — not an error state, just unknown */ }
+    })();
+    return () => { live = false; };
+  }, []);
+  const hasAccount = user !== null;
+  useEffect(() => {
+    if (!hasAccount) {
+      setTeamsFetch(null);
+      return;
+    }
+    const ac = new AbortController();
+    const timer = setTimeout(() => ac.abort(), TEAM_FETCH_TIMEOUT_MS);
+    let live = true;
+    (async () => {
+      try {
+        const res = await fetch("/api/teams", { signal: ac.signal });
+        const body = await res.json().catch(() => null);
+        const parsed = res.ok ? parseTeamsResponse(body) : { status: "unavailable" as const };
+        if (live) setTeamsFetch(parsed);
+      } catch {
+        if (live) setTeamsFetch({ status: "unavailable" });
+      } finally {
+        clearTimeout(timer);
+      }
+    })();
+    return () => {
+      live = false;
+      clearTimeout(timer);
+      ac.abort();
+    };
+  }, [hasAccount]);
+  function stepText(r: DeletionReceipt): string {
+    const step = r.steps.find((s) => !s.done) || r.steps[r.steps.length - 1];
+    return step ? step.text[lang === "zh" ? 1 : 0] : r.receipt_code;
+  }
+  async function saveDeletion() {
+    const email = delIn.trim();
+    if (email.toLowerCase() !== (addr || "").trim().toLowerCase()) {
+      setMsg({ kind: "err", text: t("acsDeleteMismatch") });
+      return;
+    }
+    setBusy(true); setMsg(null);
+    try {
+      const res = await fetch("/api/account/deletion", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ confirm_email: email }),
+      });
+      const body = await res.json();
+      if (!res.ok || !body?.ok) throw new Error(t("acsDeleteErr"));
+      setFiled(body.receipt as DeletionReceipt);
+      setMsg({ kind: "ok", text: t("acsDeleteOk") });
+      setEditing(null);
+      setDelIn("");
+    } catch (e) {
+      setMsg({ kind: "err", text: (e as Error)?.message || t("acsDeleteErr") });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  // ── data export (B-F12-4 / review MAJOR acceptance-6) ──
+  // A plain <a download> saved every non-200 body (429/503/500/401) to disk verbatim. This
+  // fetches, checks the status, and only ever hands the browser a real file on 200.
+  const [dlBusy, setDlBusy] = useState<ExportFormat | null>(null);
+  const [dlMsg, setDlMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
+  async function downloadExport(format: ExportFormat) {
+    setDlBusy(format);
+    setDlMsg(null);
+    try {
+      const res = await fetch(`/api/account/export?format=${format}`);
+      if (res.status === 429) {
+        let retryAfterS: number | null = null;
+        try {
+          const body = await res.json();
+          retryAfterS = typeof body?.retry_after_s === "number" ? body.retry_after_s : null;
+        } catch { /* keep retryAfterS null */ }
+        setDlMsg({
+          kind: "err",
+          text: retryAfterS ? `${t("acsDownloadWait")} (${retryAfterS}s)` : t("acsDownloadWait"),
+        });
+        return;
+      }
+      if (!res.ok) {
+        setDlMsg({ kind: "err", text: t("acsDownloadErr") });
+        return;
+      }
+      const blob = await res.blob();
+      const disposition = res.headers.get("Content-Disposition") || "";
+      const match = /filename="([^"]+)"/.exec(disposition);
+      const filename = match ? match[1] : `mastermind-terminal-data.${format}`;
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = filename;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
+    } catch {
+      setDlMsg({ kind: "err", text: t("acsDownloadErr") });
+    } finally {
+      setDlBusy(null);
+    }
+  }
+
   const displayName = (typeof user?.meta?.display_name === "string" ? user.meta.display_name : "") || "";
   const addr = user?.email || email;
-  const provider = user?.provider || "email";
+  const provider = user ? user.provider : null;
+  const passwordLockedKey =
+    provider == null || provider === "" ? "acsPwProviderUnknown" : "acsPwNoPassword";
   const since = acsDate(user?.createdAt, lang);
   const lastIn = acsDate(user?.lastSignInAt, lang);
   const uid = user?.id || "";
@@ -77,25 +275,30 @@ export default function SectionAccount({ t, lang, email, user, onClose, onPatchM
     setMsg(null);
     if (kind === "name") setNameIn(displayName);
     if (kind === "email") setEmailIn("");
-    if (kind === "pw") { setPw1(""); setPw2(""); }
+    if (kind === "pw") { setPw1(""); setPw2(""); setPwCur(""); }
+    if (kind === "del") setDelIn("");
   }
   function cancelEdit() {
     setEditing(null);
     setMsg(null);
-    setEmailIn(""); setPw1(""); setPw2("");
+    setEmailIn(""); setPw1(""); setPw2(""); setPwCur(""); setDelIn("");
   }
 
   async function saveName() {
     const val = nameIn.trim();
     setBusy(true); setMsg(null);
     try {
-      const { error } = await createClient().auth.updateUser({ data: { display_name: val } });
+      const result = await sendScopedAccountWrite(
+        (data) => createClient().auth.updateUser({ data }),
+        { display_name: val },
+      );
+      const error = result && typeof result === "object" ? result.error : undefined;
       if (error) throw error;
       onPatchMeta({ display_name: val });   // ID card + rail repaint without a refetch
       setEditing(null);
       void onRefreshUser();
     } catch (e) {
-      setMsg({ kind: "err", text: (e as Error)?.message || t("acsErrGen") });
+      setMsg({ kind: "err", text: accountSaveErrorText(e, t) });
     } finally {
       setBusy(false);
     }
@@ -121,19 +324,21 @@ export default function SectionAccount({ t, lang, email, user, onClose, onPatchM
   }
 
   async function savePw() {
+    if (!pwCur.trim()) { setMsg({ kind: "err", text: t("acsCurrentPwRequired") }); return; }
     if (pw1.length < 8) { setMsg({ kind: "err", text: t("acsPwShort") }); return; }
     if (pw1 !== pw2) { setMsg({ kind: "err", text: t("acsPwMismatch") }); return; }
     setBusy(true); setMsg(null);
     try {
-      const { error } = await createClient().auth.updateUser({ password: pw1 });
+      const { error } = await createClient().auth.updateUser({ password: pw1, current_password: pwCur });
       if (error) throw error;
       setMsg({ kind: "ok", text: t("acsPwOk") });
-      setPw1(""); setPw2("");
+      setPw1(""); setPw2(""); setPwCur("");
       closeTimer.current = setTimeout(() => { setEditing(null); setMsg(null); }, 1200);
     } catch (e) {
-      setMsg({ kind: "err", text: (e as Error)?.message || t("acsErrGen") });
+      setMsg({ kind: "err", text: t(passwordErrorKey((e as { code?: string })?.code)) });
     } finally {
       setBusy(false);
+      setPwCur("");
     }
   }
 
@@ -167,8 +372,10 @@ export default function SectionAccount({ t, lang, email, user, onClose, onPatchM
     else legacy();
   }
 
-  const editBtn = (kind: EditKind) => (
-    <button type="button" className="acs-edit" onClick={() => openEdit(kind)}>{t("acsEdit")}</button>
+  // `labelKey` lets one row use its own action word (review MAJOR round 2: reusing the generic
+  // "Edit"/"编辑" on the "Delete my account" row does not name the action).
+  const editBtn = (kind: EditKind, labelKey: string = "acsEdit") => (
+    <button type="button" className="acs-edit" onClick={() => openEdit(kind)}>{t(labelKey)}</button>
   );
 
   return (
@@ -237,6 +444,7 @@ export default function SectionAccount({ t, lang, email, user, onClose, onPatchM
             </Row>
 
             {/* password */}
+            {canChangePassword(provider) ? (
             <Row
               label={t("acsPassword")}
               value="••••••••"
@@ -244,6 +452,15 @@ export default function SectionAccount({ t, lang, email, user, onClose, onPatchM
               editing={editing === "pw"}
             >
               <div className="acs-form">
+                <input
+                  className="acs-in"
+                  type="password"
+                  value={pwCur}
+                  placeholder={t("acsCurrentPwPh")}
+                  aria-label={t("acsCurrentPw")}
+                  autoComplete="current-password"
+                  onChange={(e) => setPwCur(e.target.value)}
+                />
                 <input
                   className="acs-in"
                   type="password"
@@ -266,9 +483,17 @@ export default function SectionAccount({ t, lang, email, user, onClose, onPatchM
                 <FormBtns busy={busy} t={t} onCancel={cancelEdit} onSave={savePw} saveKey="acsUpdatePw" />
               </div>
             </Row>
+            ) : (
+            <Row
+              label={t("acsPassword")}
+              value={null}
+              desc={t(passwordLockedKey)}
+            />
+            )}
           </Group>
 
           <Group title={t("acsSecurity")}>
+            {hasAccount ? <Row label={teamSummaryText(t, teamsFetch)} /> : null}
             <Row
               label={t("acsLoginMethod")}
               control={
@@ -287,11 +512,70 @@ export default function SectionAccount({ t, lang, email, user, onClose, onPatchM
               }
             />
           </Group>
+
+          <div className="acs-span2">
+            <Group title={t("acsData")}>
+            <Row
+              label={t("acsDownload")}
+              desc={t("acsDownloadDesc")}
+              control={(
+                <>
+                  <button
+                    type="button"
+                    className="acs-mini"
+                    disabled={dlBusy !== null}
+                    onClick={() => downloadExport("json")}
+                  >
+                    {dlBusy === "json" ? t("acsDownloadWait") : "JSON"}
+                  </button>
+                  <button
+                    type="button"
+                    className="acs-mini"
+                    disabled={dlBusy !== null}
+                    onClick={() => downloadExport("csv")}
+                  >
+                    {dlBusy === "csv" ? t("acsDownloadWait") : "CSV"}
+                  </button>
+                </>
+              )}
+            />
+            {dlMsg ? <Msg text={dlMsg.text} kind={dlMsg.kind} /> : null}
+            {filed && isActiveDeletionStatus(filed.status) ? (
+              <Row label={t("acsDeleteFiled")} value={filed.receipt_code} desc={stepText(filed)} />
+            ) : (
+              <Row
+                label={t("acsDelete")}
+                // A prior cancelled/failed request is disclosed honestly rather than hidden —
+                // it removed nothing, so it must never block filing a new one (review MAJOR
+                // round 2).
+                desc={filed ? `${t("acsDeleteDesc")} ${stepText(filed)}` : t("acsDeleteDesc")}
+                control={editing === "del" ? undefined : editBtn("del", "acsDeleteBtn")}
+                editing={editing === "del"}
+              >
+                <div className="acs-form">
+                  <p className="acs-note">{t("acsDeleteConfirm")}</p>
+                  <input
+                    className="acs-in"
+                    type="email"
+                    autoComplete="off"
+                    spellCheck={false}
+                    aria-label={t("acsDeleteTypeEmail")}
+                    placeholder={t("acsDeleteTypeEmail")}
+                    value={delIn}
+                    onChange={(e) => setDelIn(e.target.value)}
+                  />
+                  <Msg text={msg && editing === "del" ? msg.text : ""} kind={msg?.kind || "err"} />
+                  <FormBtns busy={busy} t={t} onCancel={cancelEdit} onSave={saveDeletion} saveKey="acsDelete" saveClass="btn-danger" />
+                </div>
+              </Row>
+            )}
+            </Group>
+          </div>
         </div>
 
         {/* mobile sign-out row (the rail's is hidden ≤640px) */}
         <form action="/auth/signout" method="post">
-          <button type="submit" className="acs-signout-m">
+          <button type="submit" className="acs-signout-m acs-btn ghost">
             <IconSignOut />
             {t("signOut")}
           </button>

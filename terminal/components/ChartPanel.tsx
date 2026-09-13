@@ -50,6 +50,7 @@ import {
   priceScaleDisplayValue,
   secondaryPriceTagTop,
 } from "@/lib/priceTagPlacement";
+import { hoverTagPaint } from "@/lib/hoverTagPaint";
 import { setActivePaneCoords, getActivePaneCoords } from "@/lib/paneCoords";
 import { getJSON, getSliceAndOhlc, getCompositeOhlc, getOhlc } from "@/lib/dataCache";
 import { parseComposite, alignAndSum } from "@/lib/composite";
@@ -86,7 +87,8 @@ import { makeNearestBarIndex } from "@/lib/barSnap";
 import { ichimoku, supertrend, avwap as computeAvwap, rollingVwap, weekAnchoredVwap, vprofile, volbox, rsiStack, accumPct, trendRibbon, buyShare as mfBuyShare } from "@/lib/indicatorMath";
 import ChartOverlays, { type PaneInfo, type LegendEntry } from "@/components/ChartOverlays";
 import DayStatsStrip from "@/components/DayStatsStrip";
-import { tPlain } from "@/lib/i18n";
+import { tPlain, useT } from "@/lib/i18n";
+import { verdictLabel, type PlainLang } from "@/lib/plainLabels";
 import { listTemplates } from "@/lib/chartTemplates";
 import {
   announceTerminalVisualReady,
@@ -472,6 +474,20 @@ const SUBPANE_ORDER = ["rsi", "stochrsi", "macd", "rsistack", "accum", "rvol", "
 // Bases that carry a fresher-than-EOD price we can splice onto the last daily bar.
 const SPLICE_BASES = new Set(["REALTIME", "LIVE", "DELAYED_15M"]);
 
+type PriceScaleOwnerReader = {
+  options: () => { priceScaleId?: string };
+};
+
+/** The readiness owner is the live LWC series, not merely the requested React setting. */
+export function isRequestedPriceScaleApplied(
+  settings: Partial<ChartSettings>,
+  series: PriceScaleOwnerReader | null,
+): boolean {
+  if (!series) return false;
+  const requested = settings.scaleLeft ? "left" : "right";
+  try { return series.options().priceScaleId === requested; } catch { return false; }
+}
+
 export default function ChartPanel({ symbol, chartType = "candles", indicators, timeframe = "D", replayIdx = null, onMeta, tool = null, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, drawings = [], onDrawingsChange, detectCmd = null, magnet = "off", compare = [], compareCfg = EMPTY_OBJ, isActive = true, syncId = null, liveQuote = null,
   indParams = EMPTY_OBJ, hidden = EMPTY_SET, onToggleHidden, onRemoveInd, onOpenSettings, onOpenSource, pineScripts = EMPTY_PINE, chartSettings, onChartApi, extHours = false,
   instrumentName, instrumentMarket, instrumentColor, onAddAlert, onTableView, onObjectTree, onOpenSettingsModal, lockedVLine = null, onSetLockedVLine, onIndRowsAt, dayMode = false, onPaneCount, companyName = "", userTier = "free", dataReady = true, initialTimeframe = null }:
@@ -502,6 +518,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     /** Entitlement tier (UI gate for premium suite modules — authority stays server-side). */
     userTier?: SuiteTier;
   }) {
+  const t = useT();
   const ref = useRef<HTMLDivElement>(null);
   const statusRef = useRef<HTMLSpanElement>(null);
   const verdictRef = useRef<HTMLSpanElement>(null);
@@ -1079,7 +1096,12 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   const addPriceSeries = (chart: IChartApi, t: Tokens) => {
     const pf = priceFmt();
     const settings = chartSettingsRef.current;
-    const common = { priceFormat: pf, lastValueVisible: false, priceLineVisible: settings.priceLineVisible !== false };
+    const common = {
+      priceFormat: pf,
+      priceScaleId: chartSettingsRef.current.scaleLeft ? "left" : "right",
+      lastValueVisible: false,
+      priceLineVisible: settings.priceLineVisible !== false,
+    };
     if (chartTypeRef.current === "line") return chart.addSeries(LineSeries, { ...common, color: t.brand2, lineWidth: 2 }, 0);
     if (chartTypeRef.current === "line-markers") return chart.addSeries(LineSeries, { ...common, color: t.brand2, lineWidth: 2, pointMarkersVisible: true, pointMarkersRadius: 2.5 }, 0);
     if (chartTypeRef.current === "step") return chart.addSeries(LineSeries, { ...common, color: t.brand2, lineWidth: 2, lineType: LineType.WithSteps }, 0);
@@ -2584,14 +2606,23 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       const buy = v === "BUY" || v === "REBUY" || v === "RECLAIM";
       const watch = v === "BOTTOM_WATCH";
       const chipColor = watch ? t.signal : buy ? t.buy : t.sell;
-      // HK-O1: a structure stop says STOP, not SELL. The chip is the glance tier — four
-      // characters, inside the existing pill geometry at every breakpoint — and the full
-      // "Structure stop — swing-low break" read lives on the rail card and the marker hover.
-      const vLabel = isStructureStop({ type: v, basis: vBasis }) ? "STOP"
-        : v === "BOTTOM_WATCH" ? "EARLY"
-          : isStopSweepReclaim({ type: v, quality: vQuality }) ? "LIQUIDITY RECLAIM"
-            : v === "RECLAIM" ? "RE-ENTRY" : v;
-      verdictRef.current.textContent = `GOLDEN ORACLE · ${vLabel}`;
+      // HK-O1: a structure stop says Stop, not Sell. The chip is the glance
+      // tier — inside the existing pill geometry at every breakpoint — and the
+      // full "Structure stop — swing-low break" read lives on the rail card
+      // and the marker hover. Route every word through verdictLabel so a raw
+      // enum never reaches the chip in either language.
+      const chipLang: PlainLang =
+        typeof document !== "undefined" && document.documentElement.getAttribute("data-lang") === "zh"
+          ? "zh"
+          : "en";
+      const vLabel = isStructureStop({ type: v, basis: vBasis })
+        ? verdictLabel("STOP", chipLang)
+        : v === "BOTTOM_WATCH"
+          ? verdictLabel("EARLY", chipLang)
+          : isStopSweepReclaim({ type: v, quality: vQuality })
+            ? verdictLabel("RECLAIM", chipLang)
+            : verdictLabel(v, chipLang);
+      verdictRef.current.textContent = `${tPlain("goldenOracleLbl")} · ${vLabel}`;
       verdictRef.current.style.color = chipColor;
       const w = verdictRef.current.parentElement as HTMLElement;
       // Token-derived so the chip tracks the shell palette (byte-identical output on web, where
@@ -3569,15 +3600,25 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     };
     refreshHoverTag = () => {
       const tag = hoverTagRef.current;
-      if (!tag || !hoverState || priceProjHidden()) { if (tag) tag.style.display = "none"; return; }
+      if (!tag) return;
       const s = priceSeriesRef.current;
-      if (!s) { tag.style.display = "none"; return; }
-      const y = hoverState.snappedPrice == null
-        ? hoverState.pointerY
-        : (s.priceToCoordinate(hoverState.snappedPrice) as number | null);
-      if (y == null || !Number.isFinite(y)) { tag.style.display = "none"; return; }
-      const value = hoverState.snappedPrice ?? (s.coordinateToPrice(y) as number | null);
-      if (value == null || !Number.isFinite(value)) { tag.style.display = "none"; return; }
+      const y = hoverState == null || !s
+        ? null
+        : hoverState.snappedPrice == null
+          ? hoverState.pointerY
+          : (s.priceToCoordinate(hoverState.snappedPrice) as number | null);
+      const value = hoverState == null || !s
+        ? null
+        : hoverState.snappedPrice ?? (y == null || !Number.isFinite(y) ? null : (s.coordinateToPrice(y) as number | null));
+      const paint = hoverTagPaint({
+        hoverActive: hoverState != null,
+        priceProjectedHidden: priceProjHidden(),
+        hasSeries: !!s,
+        y: y == null || !Number.isFinite(y) ? null : y,
+        value: value == null || !Number.isFinite(value) ? null : value,
+      });
+      if (paint === "hide") { tag.style.display = "none"; return; }
+      if (paint === "keep" || y == null || value == null || !s) return;
       tag.textContent = scalePriceText(s, value);
       tag.style.background = tokensRef.current.p3;
       const axisFontSize = (() => { try { return Number((chart.options() as any).layout?.fontSize) || 12; } catch { return 12; } })();
@@ -7424,7 +7465,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
             epoch,
             indicatorSetKey(indicatorsRef.current),
             builtIndicatorRef.current,
-          ),
+          ) && isRequestedPriceScaleApplied(chartSettingsRef.current, priceSeriesRef.current),
           // LWC's setData/build calls update its model synchronously, but the first coordinate map is
           // established by its next canvas frame. Re-project the dependent SVG/DOM layers in that
           // frame, then terminalBoot releases consumers only on the following frame.
@@ -8402,6 +8443,9 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       if (barsRef.current.length) paintStatus(barsRef.current, sliceRef.current);
       applyExtendedPriceLine();
     } catch {}
+    // A pending fast-data generation may have reached this effect with the persisted owner still
+    // fenced. Re-evaluate only after the live series has accepted the requested scale identity.
+    visualReadyRef.current?.reevaluate();
     // eslint-disable-next-line
   }, [JSON.stringify(chartSettings)]);
 
@@ -8538,7 +8582,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       )}
       <div className="statusline">
         <span ref={statusRef} />
-        <span className="mm" style={{ display: oracleVisible ? undefined : "none" }}><i style={{ background: "currentColor" }} /><span ref={verdictRef}>GOLDEN ORACLE</span></span>
+        <span className="mm" style={{ display: oracleVisible ? undefined : "none" }}><i style={{ background: "currentColor" }} /><span ref={verdictRef}>{t("goldenOracleLbl")}</span></span>
         {replayIdx != null && <span className="mm" style={{ background: "rgba(232,179,57,.14)", borderColor: "rgba(232,179,57,.35)", color: "var(--signal)" }}><i style={{ background: "var(--signal)" }} />REPLAY</span>}
         {/* GC v2: toggle the early-dots + arm/confirm warning overlay (side channels) */}
         {oracleVisible && <span className="mm" role="button" tabIndex={0} onClick={() => setShowDetail((v) => !v)}

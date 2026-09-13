@@ -18,7 +18,11 @@ import {
 export interface UsageProps extends SectionProps {
   plan: AcsPlan | null;
   usage: AcsUsage | null;
+  /** Nothing same-owner is known for this account AND the brain gateway is unreachable. */
   usageErr: boolean;
+  /** The meters are a SAME-OWNER last-good rather than a fresh read. Say so — a stale quota is
+   *  the most misleading number on this pane, because the user spends it from inside this page. */
+  usageStale: boolean;
 }
 
 function Meter({
@@ -82,12 +86,19 @@ function Meter({
   );
 }
 
-export default function SectionUsage({ t, onClose, plan, usage, usageErr }: UsageProps) {
+export default function SectionUsage({ t, onClose, plan, usage, usageErr, usageStale }: UsageProps) {
   const onboarding = useOnboarding();
   const bodyRef = useRef<HTMLDivElement>(null);
 
+  // The fallback into the plan's `chat_budget` is owner-scoped by construction now: `plan` comes
+  // from the canonical entitlement store, which drops a payload outright on an owner change. It
+  // used to come from an email-keyed cache in the panel, so the fallback could serve one
+  // account's budget under another that arrived at the same address.
   const quotas: AcsQuotas | null = usage?.quotas || plan?.chat_budget || null;
   const tier = usage?.tier || plan?.tier || "free";
+  // Only the LIVE lane can be stale; falling back to the plan's budget is a different (and
+  // freshly-verified) source, so it is not labelled as an unrefreshed usage read.
+  const stale = usageStale && !!usage?.quotas;
 
   // draw-on-reveal: start every fill at 0, then paint the targets on the second
   // frame so the width transition runs each time the tab is shown.
@@ -142,6 +153,9 @@ export default function SectionUsage({ t, onClose, plan, usage, usageErr }: Usag
               <Meter lane={quotas.fast} labelKey="acsChatLane" noteKey="acsChatLaneNote" t={t} />
               <Meter lane={quotas.pro} labelKey="acsDeepLane" noteKey="acsDeepLaneNote" t={t} />
             </div>
+            {stale && (
+              <div className="acs-msg show wait" role="status">{t("acsUsageStale")}</div>
+            )}
             {nudge && (
               <div className="acs-nudge">
                 <div className="acs-nudge-main">

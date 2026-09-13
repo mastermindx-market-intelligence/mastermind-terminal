@@ -17,6 +17,7 @@ import {
   resolveTargetList,
   type WatchlistDb,
 } from "@/lib/watchlists";
+import { listSharedWatchlistsForCaller, type GrantsDb } from "@/lib/resourceGrants";
 
 // Owner-scoped watchlist API (RLS does the enforcing; every query is user-filtered as well).
 //
@@ -58,12 +59,23 @@ async function resolveDb(): Promise<{ db: WatchlistDb; userId: string } | null> 
 const unauthenticated = () => NextResponse.json({ error: "unauthenticated" }, { status: 401 });
 const fail = (error: string, status: number) => NextResponse.json({ error }, { status });
 
-/** The signed-in user's complete list inventory — what TerminalShell reads to become server-backed. */
+/** The signed-in user's complete list inventory — what TerminalShell reads to become server-backed.
+ *  `lists` keeps its present meaning (owned, writable). Lists other people shared with the caller
+ *  arrive in `sharedWithMe` and must never be folded into `lists`. */
 export async function GET() {
   const session = await resolveDb();
   if (!session) return unauthenticated();
   const lists = await listWatchlists(session.db, session.userId);
-  return NextResponse.json({ lists });
+  const shared = await listSharedWatchlistsForCaller(session.db as unknown as GrantsDb, session.userId);
+  if (!shared.ok) {
+    console.error("watchlist GET grant-fed read failed:", shared.error);
+    return NextResponse.json({
+      lists,
+      sharedWithMe: null,
+      sharedWithMeState: shared.reason,
+    });
+  }
+  return NextResponse.json({ lists, sharedWithMe: shared.lists });
 }
 
 export async function POST(req: Request) {

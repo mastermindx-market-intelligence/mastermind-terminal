@@ -1043,6 +1043,7 @@ export default function GuideVisual({ suiteKey, moduleKey, lang }: GuideVisualPr
     : playState === "paused"
       ? resume
       : replay;
+  const l = (en: string, zh: string) => lang === "zh" ? zh : en;
 
   return (
     <figure
@@ -1060,7 +1061,7 @@ export default function GuideVisual({ suiteKey, moduleKey, lang }: GuideVisualPr
           {isPurposefulAnimation && (
             <div className="gp-visual-player-status">
               <span className="gp-visual-live" aria-hidden="true">
-                <i className="gp-visual-live-dot" />{lang === "zh" ? "模型" : "MODEL"}
+                <i className="gp-visual-live-dot" />{l("MODEL", "模型")}
               </span>
               {!prefersReducedMotion && (
                 <button

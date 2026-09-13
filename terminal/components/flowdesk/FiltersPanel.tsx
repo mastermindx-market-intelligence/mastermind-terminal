@@ -7,11 +7,13 @@
  *
  * HONESTY DOCTRINE: "lean" is a soft tick-rule derivation; we do NOT offer a
  * directional green/red filter gate labeled "buy" / "sell" — the lean filter
- * uses neutral language ("~buy lean", "~sell lean") matching our field values.
+ * uses flowSideLabel ("Leans buy (approximate)" / "偏买入（近似）"), never the
+ * raw ~buy token and never an affirmative likelihood claim.
  */
 
 import { pick } from "@/lib/finFormat";
 import { FD } from "@/lib/flowdeskStrings";
+import { flowSideLabel } from "@/lib/plainLabels";
 import type { DteBucket, MnyBucket, Side } from "./FeedPane";
 
 // ── Filter shape ─────────────────────────────────────────────────────────────
@@ -76,12 +78,12 @@ interface FiltersPanelProps {
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-const DTE_OPTIONS: { key: DteBucket; label: string }[] = [
-  { key: "0d",     label: "0DTE" },
-  { key: "1_7d",   label: "1–7d" },
-  { key: "8_30d",  label: "8–30d" },
-  { key: "31_90d", label: "31–90d" },
-  { key: "90p",    label: "90d+" },
+const DTE_OPTIONS: { key: DteBucket; label: string; zh: string }[] = [
+  { key: "0d",     label: "0DTE",   zh: "当日到期" },
+  { key: "1_7d",   label: "1–7d",   zh: "1–7天" },
+  { key: "8_30d",  label: "8–30d",  zh: "8–30天" },
+  { key: "31_90d", label: "31–90d", zh: "31–90天" },
+  { key: "90p",    label: "90d+",   zh: "90天以上" },
 ];
 
 const MNY_OPTIONS: { key: MnyBucket; label: string; zh: string }[] = [
@@ -91,13 +93,13 @@ const MNY_OPTIONS: { key: MnyBucket; label: string; zh: string }[] = [
   { key: "far_otm",  label: "Far OTM",  zh: "深虚值" },
 ];
 
-const SCORE_OPTIONS: { v: FlowFilters["minScore"]; label: string }[] = [
-  { v: 0,  label: "Any" },
-  { v: 50, label: "50+" },
-  { v: 60, label: "60+" },
-  { v: 70, label: "70+" },
-  { v: 80, label: "80+" },
-  { v: 90, label: "90+ Elite" },
+const SCORE_OPTIONS: { v: FlowFilters["minScore"]; label: string; zh: string }[] = [
+  { v: 0,  label: "Any",       zh: "不限" },
+  { v: 50, label: "50+",       zh: "50+" },
+  { v: 60, label: "60+",       zh: "60+" },
+  { v: 70, label: "70+",       zh: "70+" },
+  { v: 80, label: "80+",       zh: "80+" },
+  { v: 90, label: "90+ Elite", zh: "90+ 顶级" },
 ];
 
 const PREMIUM_OPTIONS: { v: number; label: string; zh: string }[] = [
@@ -255,38 +257,36 @@ export function FiltersPanel({ filters, onFiltersChange, lang }: FiltersPanelPro
       <FilterRow label={zh ? "倾向" : "Lean"}>
         <div className="fin-toggle">
           {([
-            { v: "all",    en: "All",       zh: "全部" },
-            { v: "~buy",   en: "~Buy lean", zh: "~买方" },
-            { v: "~sell",  en: "~Sell lean", zh: "~卖方" },
-            { v: "mixed",  en: "Mixed",      zh: "混合" },
-          ] as const).map(({ v, en, zh: zl }) => (
+            { v: "all" as const },
+            { v: "~buy" as const },
+            { v: "~sell" as const },
+            { v: "mixed" as const },
+          ]).map(({ v }) => (
             <button
               key={v}
               className={filters.lean === v ? "on" : ""}
               onClick={() => patch({ lean: v as Side | "all" })}
             >
-              {zh ? zl : en}
+              {v === "all" ? (zh ? "全部" : "All") : flowSideLabel(v, lang)}
             </button>
           ))}
         </div>
         {/* Honesty note: lean is tick-rule derived, not NBBO-verified */}
         <div style={CAVEAT_STYLE}>
-          {zh
-            ? "方向为tick规则推断，非NBBO确认"
-            : "Direction is tick-rule heuristic — not NBBO-verified"}
+          {pick(zh, FD.leanHeuristic.en, FD.leanHeuristic.zh)}
         </div>
       </FilterRow>
 
       {/* ── Min Score ── */}
       <FilterRow label={zh ? "最低评分" : "Min score"}>
         <div className="fin-toggle">
-          {SCORE_OPTIONS.map(({ v, label }) => (
+          {SCORE_OPTIONS.map(({ v, label, zh: zl }) => (
             <button
               key={v}
               className={filters.minScore === v ? "on" : ""}
               onClick={() => patch({ minScore: v })}
             >
-              {label}
+              {pick(zh, label, zl)}
             </button>
           ))}
         </div>
@@ -310,7 +310,7 @@ export function FiltersPanel({ filters, onFiltersChange, lang }: FiltersPanelPro
       {/* ── DTE Buckets ── */}
       <FilterRow label={zh ? "到期天数" : "DTE"}>
         <div style={CHIP_ROW_STYLE}>
-          {DTE_OPTIONS.map(({ key, label }) => {
+          {DTE_OPTIONS.map(({ key, label, zh: zl }) => {
             const on = filters.dteBuckets.includes(key);
             return (
               <button
@@ -319,13 +319,13 @@ export function FiltersPanel({ filters, onFiltersChange, lang }: FiltersPanelPro
                 className={`obs-chip${on ? " on" : ""}`}
                 aria-pressed={on}
               >
-                {label}
+                {pick(zh, label, zl)}
               </button>
             );
           })}
         </div>
         {filters.dteBuckets.length === 0 && (
-          <div style={CAVEAT_STYLE}>{zh ? "全部到期" : "All expirations"}</div>
+          <div style={CAVEAT_STYLE}>{pick(zh, FD.allExpirations.en, FD.allExpirations.zh)}</div>
         )}
       </FilterRow>
 
@@ -369,9 +369,7 @@ export function FiltersPanel({ filters, onFiltersChange, lang }: FiltersPanelPro
           })}
         </div>
         <div style={CAVEAT_STYLE}>
-          {zh
-            ? "Sweep为启发式，非经NBBO确认的买方/卖方"
-            : "Sweep is heuristic — aggressor not NBBO-confirmed"}
+          {pick(zh, FD.sweepHeuristic.en, FD.sweepHeuristic.zh)}
         </div>
       </FilterRow>
 
@@ -396,9 +394,7 @@ export function FiltersPanel({ filters, onFiltersChange, lang }: FiltersPanelPro
           })}
         </div>
         <div style={CAVEAT_STYLE}>
-          {zh
-            ? "检测信号来自富集数据层；缺失文件时退化为v1行为，徽章隐藏。"
-            : "Detections from enrich artifact; absent/stale → v1 behavior, badges hidden."}
+          {pick(zh, FD.detectionsCaveat.en, FD.detectionsCaveat.zh)}
         </div>
       </FilterRow>
 
@@ -410,7 +406,7 @@ export function FiltersPanel({ filters, onFiltersChange, lang }: FiltersPanelPro
             onClick={() => onFiltersChange({ ...DEFAULT_FILTERS, badges: new Set(), detections: new Set() })}
             style={{ fontSize: "var(--fs-label)" }}
           >
-            {zh ? "重置筛选" : "Reset filters"}
+            {pick(zh, FD.resetFilters.en, FD.resetFilters.zh)}
           </button>
         </div>
       )}

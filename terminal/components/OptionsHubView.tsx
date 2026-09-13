@@ -7,6 +7,7 @@ import {
 import dynamic from "next/dynamic";
 import { useLang, useT } from "@/lib/i18n";
 import type { Lang } from "@/lib/i18n";
+import { daysHeld, daysToExpiry, volAboveOi } from "@/lib/plainAbbrev";
 import { CoachProvider, useCoach } from "@/lib/tutorial/coach";
 import { getTutStr } from "@/lib/tutorial/tutorialStrings";
 import { abbrevSector } from "@/lib/sectorAbbrev";
@@ -700,6 +701,7 @@ function TideTutorialButton({ lang }: { lang: Lang }) {
 // ─── Strike ladder SVG ───────────────────────────────────────────────────────
 
 const StrikeLadder = memo(function StrikeLadder({ strikes, lang, spotRef }: { strikes: StrikeRow[]; lang: string; spotRef: number | null }) {
+  const t = useT();
   const zh = lang === "zh";
   const ROW_H = 24;
   const LADDER_COLS = "52px 1fr 60px 1fr 52px";
@@ -803,7 +805,7 @@ const StrikeLadder = memo(function StrikeLadder({ strikes, lang, spotRef }: { st
             <span style={{ color: "var(--down)" }}>{zh ? "认沽" : "P"} {fmtPremium(inspect.put_prem)}</span>
             <span style={{ color: "var(--muted)" }}>{zh ? "量" : "Vol"} {inspect.vol.toLocaleString("en-US")}</span>
           </>
-        ) : <span style={{ color: "var(--muted)" }}>{zh ? "悬停查看行权价明细" : "Hover a strike for detail"}</span>}
+        ) : <span style={{ color: "var(--muted)" }}>{t("ohHoverStrike")}</span>}
       </div>
 
       {/* Column header — 5-col montage: [call $] [call bar] [strike] [put bar] [put $] */}
@@ -943,6 +945,7 @@ const SVG_NUM: CSSProperties = { fontFamily: "var(--font-num)", fontVariantNumer
 
 const MinuteNetChart = memo(function MinuteNetChart({ minutes, height = 160 }: { minutes: TickerMinute[]; height?: number }) {
   const { lang } = useLang();
+  const t = useT();
   // The wrapper is ALWAYS rendered so the ResizeObserver has an element from the
   // first paint — measuring is what makes 1 user unit == 1 CSS px (svgChart R1).
   const boxRef = useRef<HTMLDivElement>(null);
@@ -957,7 +960,7 @@ const MinuteNetChart = memo(function MinuteNetChart({ minutes, height = 160 }: {
     // Honest empty: say WHY there is no line rather than collapsing to nothing.
     body = (
       <div className="obs-lbl" style={{ color: "var(--muted)", padding: "6px 0" }}>
-        {lang === "zh" ? "盘中分钟数据不足，暂无法绘制。" : "Not enough intraday minutes to plot yet."}
+        {t("ohNoMinutes")}
       </div>
     );
   } else {
@@ -995,6 +998,7 @@ const MinuteNetChart = memo(function MinuteNetChart({ minutes, height = 160 }: {
 
 const TermStructureChart = memo(function TermStructureChart({ term }: { term: VolTerm[] }) {
   const { lang } = useLang();
+  const t = useT();
   const boxRef = useRef<HTMLDivElement>(null);
   const W = useChartWidth(boxRef, 600);
   const H = MIN_CHART_H.axis;
@@ -1004,7 +1008,7 @@ const TermStructureChart = memo(function TermStructureChart({ term }: { term: Vo
   if (pts0.length < 2) {
     body = (
       <div className="obs-lbl" style={{ color: "var(--muted)", padding: "6px 0" }}>
-        {lang === "zh" ? "可用到期不足两个，无法绘制期限结构。" : "Fewer than two expiries priced — no term structure to draw."}
+        {t("ohNoTermStructure")}
       </div>
     );
   } else {
@@ -1046,7 +1050,7 @@ const TermStructureChart = memo(function TermStructureChart({ term }: { term: Vo
           return (
             <g key={p.exp}>
               <circle cx={x} cy={y} r={3} fill="var(--brand-2)">
-                <title>{`${p.exp} · ${p.dte}d · ${p.atm_iv.toFixed(1)}%`}</title>
+                <title>{`${p.exp} · ${daysToExpiry(p.dte, lang)} · ${p.atm_iv.toFixed(1)}%`}</title>
               </circle>
               {labelled.has(p.exp) && (
                 <text x={x} y={H - 12} textAnchor="middle" fill="var(--text-dim)" fontSize={10} style={SVG_NUM}>
@@ -1071,6 +1075,7 @@ const okIv = (v: unknown): v is number => typeof v === "number" && Number.isFini
 
 const SmileChart = memo(function SmileChart({ points, spotRef }: { points: VolSmilePoint[]; spotRef: number | null }) {
   const { lang } = useLang();
+  const t = useT();
   const boxRef = useRef<HTMLDivElement>(null);
   const W = useChartWidth(boxRef, 600);
   const H = 200;
@@ -1084,7 +1089,7 @@ const SmileChart = memo(function SmileChart({ points, spotRef }: { points: VolSm
   if (pts0.length < 2 || allIvs.length < 2) {
     body = (
       <div className="obs-lbl" style={{ color: "var(--muted)", padding: "6px 0" }}>
-        {lang === "zh" ? "该到期无有效双边报价，无法绘制微笑曲线。" : "No priced quotes on this expiry — nothing to plot."}
+        {t("ohNoSmile")}
       </div>
     );
   } else {
@@ -1165,6 +1170,7 @@ const SmileChart = memo(function SmileChart({ points, spotRef }: { points: VolSm
 
 const IvRankHistory = memo(function IvRankHistory({ history }: { history: VolHistPoint[] }) {
   const { lang } = useLang();
+  const t = useT();
   const boxRef = useRef<HTMLDivElement>(null);
   const W = useChartWidth(boxRef, 560);
   const H = MIN_CHART_H.spark;
@@ -1177,7 +1183,7 @@ const IvRankHistory = memo(function IvRankHistory({ history }: { history: VolHis
   if (vals.length < 2) {
     body = (
       <div className="obs-lbl" style={{ color: "var(--muted)", padding: "6px 0" }}>
-        {lang === "zh" ? "IV分位基线仍在积累。" : "IV-rank baseline is still building."}
+        {t("ohIvRankWarm")}
       </div>
     );
   } else {
@@ -1270,15 +1276,14 @@ const GexStrikeLadder = memo(function GexStrikeLadder({ rows, greek, spotRef, ga
   putWall: number | null;
   lang: string;
 }) {
+  const t = useT();
   const [wideMode, setWideMode] = useState(false);
 
   // Empty state — render bilingual pending message instead of null
   if (!rows.length) {
     return (
       <div style={{ padding: "20px 0", textAlign: "center", color: "var(--muted)", fontSize: 12 }}>
-        {lang === "zh"
-          ? "该标的夜间数据待更新"
-          : "Nightly data pending for this root"}
+        {t("ohNightlyPending")}
       </div>
     );
   }
@@ -1388,12 +1393,12 @@ const GexStrikeLadder = memo(function GexStrikeLadder({ rows, greek, spotRef, ga
                 )}
                 {isCallWall && (
                   <text x={MID * 2 - 4} y={y + 14} textAnchor="end" fill="var(--warn)" fontSize={9} fontWeight={600}>
-                    {lang === "zh" ? "认购集中" : "call concentration"}
+                    {t("ohCallConcentration")}
                   </text>
                 )}
                 {isPutWall && (
                   <text x={MID * 2 - 4} y={y + 14} textAnchor="end" fill="var(--warn)" fontSize={9} fontWeight={600}>
-                    {lang === "zh" ? "认沽集中" : "put concentration"}
+                    {t("ohPutConcentration")}
                   </text>
                 )}
               </g>
@@ -1919,16 +1924,10 @@ export default function OptionsHubView({
             {/* Why: nightly dataset vs a quiet current snapshot vs the last session. */}
             <div className="fin-empty-why" style={{ margin: "6px auto 0" }}>
               {screenerPreset === "doi" || screenerPreset === "hot"
-                ? (lang === "zh"
-                    ? "该视图来自夜间收盘构建，今晚运行后刷新。"
-                    : "This view is built from the nightly close — it refreshes after tonight’s run.")
+                ? t("ohNightlyView")
                 : marketOpenNow
-                ? (lang === "zh"
-                    ? "当前常规交易时段仍在进行 — 达标成交进入新的源数据快照后显示。"
-                    : "The regular-hours session is current — rows appear in new published source snapshots.")
-                : (lang === "zh"
-                    ? "市场休市 — 显示上一交易时段；下次开盘后恢复新的源数据快照。"
-                    : "Market closed — showing the last session; new source snapshots resume after the next open.")}
+                ? t("ohSessionCurrent")
+                : t("ohMarketClosedSnapshots")}
             </div>
           </>
         )}
@@ -2237,7 +2236,7 @@ export default function OptionsHubView({
           return (
         <div className="options-flow-status-row" style={{ display: "flex", alignItems: "center", padding: "8px 14px", borderBottom: "1px solid var(--line)", flexShrink: 0, gap: 8 }}>
           {showStrip && (
-            <nav className="obs-pillnav" aria-label={lang === "zh" ? "期权工具选项卡" : "Options Hub tabs"}>
+            <nav className="obs-pillnav" aria-label={t("ohHubTabs")}>
               {stripTabs.map((tb) => (
                 <button
                   key={tb.key}
@@ -2537,12 +2536,10 @@ export default function OptionsHubView({
                   {fetchError && !feed && (
                     <div className="fin-empty fin-empty-lg" role="status">
                       <div className="fin-empty-title">
-                        {lang === "zh" ? "数据暂时不可用，请稍后重试。" : "Feed unavailable — retrying…"}
+                        {t("ohFeedUnavailable")}
                       </div>
                       <div className="fin-empty-why">
-                        {lang === "zh"
-                          ? "无法连接期权盘口数据流，本时段尚无缓存数据。"
-                          : "Can’t reach the options tape stream, and nothing is cached for this session yet."}
+                        {t("ohTapeUnreachable")}
                       </div>
                     </div>
                   )}
@@ -2587,12 +2584,12 @@ export default function OptionsHubView({
                             <td colSpan={11} style={{ textAlign: "center", padding: "40px 16px" }}>
                               <div className="fin-empty-title">
                                 {rawTapeCount > 0
-                                  ? (lang === "zh" ? "暂无符合条件的记录。" : "No events match these filters.")
+                                  ? t("ohNoFilterMatch")
                                   : feedDelayed && marketOpenNow
-                                  ? (lang === "zh" ? "源数据快照暂未刷新。" : "The source snapshot isn’t updating right now.")
+                                  ? t("ohSnapshotStalled")
                                   : feedDelayed
-                                  ? (lang === "zh" ? "市场休市 — 显示上一交易时段。" : "Market closed — showing the last session.")
-                                  : (lang === "zh" ? "本时段暂无异常期权流。" : "No unusual options flow yet this session.")}
+                                  ? t("ohMarketClosedLast")
+                                  : t("ohNoUnusualFlow")}
                               </div>
                               {/* Why: every empty tape states which of filters / stalled feed /
                                   closed market / quiet session is responsible. */}
@@ -2606,10 +2603,8 @@ export default function OptionsHubView({
                                       ? `最近更新 ${activeUpdatedLabel}。`
                                       : `Last update ${activeUpdatedLabel}.`)
                                   : feedDelayed
-                                  ? (lang === "zh" ? "显示上一完整交易时段。" : "Showing the last completed session.")
-                                  : (lang === "zh"
-                                      ? "最新源数据快照暂时清淡 — 达标大单进入后显示。"
-                                      : "The latest source snapshot is quiet — qualifying prints appear when published.")}
+                                  ? t("ohLastCompletedSession")
+                                  : t("ohSnapshotQuiet")}
                               </div>
                             </td>
                           </tr>
@@ -2645,9 +2640,9 @@ export default function OptionsHubView({
                               <td style={{ fontVariantNumeric: "tabular-nums" }}>{e.size.toLocaleString("en-US")}</td>
                               <td style={{ fontVariantNumeric: "tabular-nums" }}>{fmtPremium(e.premium)}</td>
                               <td>
-                                <span style={{ display: "flex", gap: 4, justifyContent: "flex-end", flexWrap: "wrap" }}>
+                                <span style={{ display: "flex", gap: 4, justifyContent: "flex-end", flexWrap: "wrap", alignItems: "flex-start" }}>
                                   {e.zerodte && <span className="flow-flag-chip">{lang === "zh" ? "当日" : "0DTE"}</span>}
-                                  {e.vol_gt_oi && <span className="flow-flag-chip">{lang === "zh" ? "量超持仓" : "vol>OI"}</span>}
+                                  {e.vol_gt_oi && <span className="flow-flag-chip is-long">{volAboveOi(lang)}</span>}
                                   {e.repeated && <span className="flow-flag-chip">{lang === "zh" ? "重复" : "repeat"}</span>}
                                   {e.swept && <span className="flow-flag-chip" style={{ color: "var(--warn)", borderColor: "color-mix(in srgb, var(--warn) 40%, transparent)" }}>{lang === "zh" ? "扫单" : "swept"}</span>}
                                   {oiConfSet.has(`${e.root}|${e.right}|${e.exp}|${e.strike}`) && (
@@ -2674,8 +2669,8 @@ export default function OptionsHubView({
                 {unusualNames.length > 0 && (
                   <div className="flow-unusual-rail">
                     <div className="flow-unusual-heading">
-                      <span>{lang === "zh" ? "活跃度领先" : "Activity Leaders"}</span>
-                      <small>{lang === "zh" ? "对比过去一年" : "vs the past trading year"}</small>
+                      <span>{t("ohActivityLeaders")}</span>
+                      <small>{t("ohVsPastYear")}</small>
                     </div>
                     {unusualNames.map((u) => (
                       <button
@@ -2744,12 +2739,10 @@ export default function OptionsHubView({
                 tideUnavailable ? (
                   <div className="fin-empty fin-empty-lg" role="status">
                     <div className="fin-empty-title">
-                      {lang === "zh" ? "市场潮汐不可用。" : "Market tide unavailable."}
+                      {t("ohTideUnavailable")}
                     </div>
                     <div className="fin-empty-why">
-                      {lang === "zh"
-                        ? "无法连接盘中潮汐数据流，本时段尚无缓存序列。"
-                        : "Can’t reach the intraday tide stream, and no series is cached for this session yet."}
+                      {t("ohTideUnreachable")}
                     </div>
                   </div>
                 ) : (
@@ -2779,7 +2772,7 @@ export default function OptionsHubView({
                     </div>
                     <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 8 }}>
                       {/* Tide | Session sub-view toggle (quanted Wave 1) */}
-                      <div className="obs-pillnav" role="group" aria-label={lang === "zh" ? "资金潮视图" : "Tide view"} style={{ padding: 2 }}>
+                      <div className="obs-pillnav" role="group" aria-label={t("ohTideView")} style={{ padding: 2 }}>
                         <button
                           className={`obs-pillnav-tab${tideView === "tide" ? " on" : ""}`}
                           onClick={() => setTideView("tide")}
@@ -2865,7 +2858,7 @@ export default function OptionsHubView({
                               );
                             })()}
                             <div style={{ fontSize: 10, color: "var(--text-dim)", marginTop: 4 }}>
-                              {lang === "zh" ? "点击筛选逐笔" : "click to filter Tape"}
+                              {t("ohClickFilterTape")}
                             </div>
                           </button>
                         );
@@ -2881,14 +2874,14 @@ export default function OptionsHubView({
                       <span style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 11, color: "var(--muted)" }}>
                         <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
                           <span style={{ display: "inline-block", width: 12, height: 8, borderRadius: 2, background: "var(--up)" }} />
-                          {lang === "zh" ? "净认购 · 偏多" : "net call · bullish"}
+                          {t("ohNetCallBullish")}
                         </span>
                         <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
                           <span style={{ display: "inline-block", width: 12, height: 8, borderRadius: 2, background: "var(--down)" }} />
-                          {lang === "zh" ? "净认沽 · 偏空" : "net put · bearish"}
+                          {t("ohNetPutBearish")}
                         </span>
                         <span style={{ color: "var(--text-dim)" }}>
-                          {lang === "zh" ? "条形长度 = 净方向权利金规模" : "bar length = size of net directional premium"}
+                          {t("ohBarLengthPremium")}
                         </span>
                       </span>
                     </div>
@@ -3039,14 +3032,12 @@ export default function OptionsHubView({
                   {filteredCandidates.length === 0 && (
                     <div style={{ padding: "20px 12px" }}>
                       <div className="fin-empty-title" style={{ fontSize: 12 }}>
-                        {lang === "zh" ? "无结果" : "No results"}
+                        {t("ohNoResults")}
                       </div>
                       {/* Why: the list is session-scoped, not a universe search. */}
                       <div className="fin-empty-why" style={{ marginTop: 5 }}>
                         {tickerCandidates.length === 0
-                          ? (lang === "zh"
-                              ? "本时段尚无带期权流的标的。"
-                              : "No names have carried options flow this session yet.")
+                          ? t("ohNoFlowNames")
                           : (lang === "zh"
                               ? `仅列出本时段有期权流的 ${tickerCandidates.length} 个标的。`
                               : `Only the ${tickerCandidates.length} names with flow this session are listed.`)}
@@ -3065,9 +3056,7 @@ export default function OptionsHubView({
                         {t("tickersSelectPrompt", "Select a ticker from the list or search above")}
                       </div>
                       <div className="fin-empty-why">
-                        {lang === "zh"
-                          ? "左侧按今日净权利金影响排序，仅列出本时段有期权流的标的。"
-                          : "The list is ranked by today’s net premium impact, and only names with flow this session appear."}
+                        {t("ohListRankedByPremium")}
                       </div>
                     </div>
                   </div>
@@ -3232,7 +3221,7 @@ export default function OptionsHubView({
                                     <td style={{ fontVariantNumeric: "tabular-nums" }}>{c.vol.toLocaleString("en-US")}</td>
                                     <td>
                                       {c.vol_gt_oi && (
-                                        <span className="flow-flag-chip">{lang === "zh" ? "量超持仓" : "vol>OI"}</span>
+                                        <span className="flow-flag-chip">{t("colVolGtOi")}</span>
                                       )}
                                     </td>
                                   </tr>
@@ -3313,11 +3302,11 @@ export default function OptionsHubView({
                                 <div style={{ fontSize: 10, color: "var(--text-dim)", marginTop: 6, display: "flex", gap: 14 }}>
                                   <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
                                     <span style={{ display: "inline-block", width: 10, height: 2, background: "var(--up)" }} />
-                                    {lang === "zh" ? "认购IV" : "Call IV"}
+                                    {t("ohCallIv")}
                                   </span>
                                   <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
                                     <span style={{ display: "inline-block", width: 10, height: 2, borderBottom: "1px dashed var(--down)" }} />
-                                    {lang === "zh" ? "认沽IV" : "Put IV"}
+                                    {t("ohPutIv")}
                                   </span>
                                 </div>
                               </div>
@@ -3326,7 +3315,7 @@ export default function OptionsHubView({
                         )}
                         {volLoading && (
                           <div style={{ color: "var(--muted)", fontSize: 12, padding: "12px 0" }}>
-                            {lang === "zh" ? "波动率数据加载中…" : "Loading vol surface…"}
+                            {t("ohLoadingVol")}
                           </div>
                         )}
                       </div>
@@ -3395,7 +3384,7 @@ export default function OptionsHubView({
                       </button>
                     ))}
                     <span style={{ marginLeft: "auto", fontSize: 11, color: "var(--text-dim)" }}>
-                      {lang === "zh" ? "ETF品种覆盖，个股扩展中" : "ETF universe · single names expanding"}
+                      {t("ohEtfUniverseExpanding")}
                     </span>
                     <OptionsCsvExportButton
                       label={t("exportCsv")}
@@ -3500,9 +3489,7 @@ export default function OptionsHubView({
                     {lang === "zh" ? "暂无可筛选的数据" : "Nothing to screen yet"}
                   </div>
                   <div className="fin-empty-why">
-                    {lang === "zh"
-                      ? "盘中期权流与夜间收盘构建当前均无法读取。"
-                      : "Neither the intraday options tape nor the nightly close build could be read right now."}
+                    {t("ohNeitherFeed")}
                   </div>
                 </div>
               )}
@@ -3523,7 +3510,7 @@ export default function OptionsHubView({
                 return (
                   <div className="obs-card" style={{ overflow: "hidden" }}>
                     <div className="obs-card-hd" style={{ borderBottom: "1px solid var(--line)" }}>
-                      <span className="obs-lbl">{lang === "zh" ? "保费最大（今日）" : "Top Premium — Today"}</span>
+                      <span className="obs-lbl">{t("ohTopPremiumToday")}</span>
                     </div>
                     <div style={{ overflowX: "auto" }}>
                       <table className="scr" style={{ fontSize: 12 }}>
@@ -3531,7 +3518,7 @@ export default function OptionsHubView({
                           <tr>
                             <th style={{ textAlign: "left" }}>{lang === "zh" ? "代码" : "Ticker"}</th>
                             <th style={{ textAlign: "left" }}>{t("screenerColSector", "Sector")}</th>
-                            {hdr("gross", "Gross Prem", "总保费", "Total premium across all flow events today")}
+                            {hdr("gross", "Gross Prem", "总权利金", "Total premium across all flow events today")}
                             {hdr("z", "Activity", "活跃度", "Premium activity compared with roughly one trading year")}
                             {hdr("call_share", "Call%", "认购占比", "Call premium share of total")}
                           </tr>
@@ -3561,7 +3548,7 @@ export default function OptionsHubView({
                       </table>
                     </div>
                     <div style={{ padding: "6px 14px", fontSize: 10, color: "var(--text-dim)", borderTop: "1px solid var(--line)" }}>
-                      {lang === "zh" ? "活跃度将今日权利金与约一年的交易历史比较。点击行查看详情。" : "Activity compares today’s premium with roughly one trading year. Click a row for details."}
+                      {t("ohActivityVsYear")}
                     </div>
                   </div>
                 );
@@ -3579,7 +3566,7 @@ export default function OptionsHubView({
                 return (
                   <div className="obs-card" style={{ overflow: "hidden" }}>
                     <div className="obs-card-hd" style={{ borderBottom: "1px solid var(--line)" }}>
-                      <span className="obs-lbl">{lang === "zh" ? "异常活跃度" : "Unusual Activity"}</span>
+                      <span className="obs-lbl">{t("ohUnusualActivity")}</span>
                       {warming.length > 0 && (
                         <span style={{ fontSize: 11, color: "var(--text-dim)" }}>
                           {lang === "zh" ? `${warming.length} 基线积累中（未显示）` : `${warming.length} warming baselines hidden`}
@@ -3593,7 +3580,7 @@ export default function OptionsHubView({
                             <th style={{ textAlign: "left" }}>{lang === "zh" ? "代码" : "Ticker"}</th>
                             <th style={{ textAlign: "left" }}>{t("screenerColSector", "Sector")}</th>
                             {hdr("z", "Activity", "活跃度", "Premium activity compared with roughly one trading year")}
-                            {hdr("gross", "Gross", "总保费", "Total premium today")}
+                            {hdr("gross", "Gross", "总权利金", "Total premium today")}
                             {hdr("call_share", "Call%", "认购占比")}
                           </tr>
                         </thead>
@@ -3626,7 +3613,7 @@ export default function OptionsHubView({
                       </table>
                     </div>
                     <div style={{ padding: "6px 14px", fontSize: 10, color: "var(--text-dim)", borderTop: "1px solid var(--line)" }}>
-                      {lang === "zh" ? "“很异常”和“极异常”表示今日活动明显高于一年常态。点击行查看详情。" : "Very unusual and Extreme mean today’s activity is well above its one-year norm. Click a row for details."}
+                      {t("ohUnusualFoot")}
                     </div>
                   </div>
                 );
@@ -3643,7 +3630,7 @@ export default function OptionsHubView({
                 return (
                   <div className="obs-card" style={{ overflow: "hidden" }}>
                     <div className="obs-card-hd" style={{ borderBottom: "1px solid var(--line)" }}>
-                      <span className="obs-lbl">{lang === "zh" ? "新建仓位（vol>OI 信号）" : "Fresh Positioning — vol > OI signals"}</span>
+                      <span className="obs-lbl">{t("ohFreshPositioning")}</span>
                     </div>
                     <div style={{ overflowX: "auto" }}>
                       <table className="scr" style={{ fontSize: 12 }}>
@@ -3651,8 +3638,8 @@ export default function OptionsHubView({
                           <tr>
                             <th style={{ textAlign: "left" }}>{lang === "zh" ? "代码" : "Ticker"}</th>
                             <th style={{ textAlign: "left" }}>{t("screenerColSector", "Sector")}</th>
-                            {hdr("n", "Fresh hits", "新开仓次数", "Number of vol>OI events today")}
-                            {hdr("prem", "Prem", "保费", "Total premium on vol>OI events")}
+                            {hdr("n", "Fresh hits", "新开仓次数", t("ohFreshFoot"))}
+                            {hdr("prem", "Prem", "保费", t("ohFreshFoot"))}
                           </tr>
                         </thead>
                         <tbody>
@@ -3667,13 +3654,13 @@ export default function OptionsHubView({
                             </tr>
                           ))}
                           {rows.length === 0 &&
-                            scrEmptyRow(4, "No vol>OI signals this session", "本时段暂无 vol>OI 信号",
+                            scrEmptyRow(4, t("ohFreshPositioning"), t("ohFreshPositioning"),
                               (feed.events ?? []).filter((e) => e.vol_gt_oi).length)}
                         </tbody>
                       </table>
                     </div>
                     <div style={{ padding: "6px 14px", fontSize: 10, color: "var(--text-dim)", borderTop: "1px solid var(--line)" }}>
-                      {lang === "zh" ? "vol>OI 表示当日成交量超过昨日持仓，为新开仓信号（非确认）。" : "vol>OI means today's volume exceeds prior OI — a fresh-positioning signal (not confirmed)."}
+                      {t("ohFreshFoot")}
                     </div>
                   </div>
                 );
@@ -3690,9 +3677,9 @@ export default function OptionsHubView({
                 return (
                   <div className="obs-card" style={{ overflow: "hidden" }}>
                     <div className="obs-card-hd" style={{ borderBottom: "1px solid var(--line)" }}>
-                      <span className="obs-lbl">{lang === "zh" ? "持仓增长（ΔOI）" : "OI Builds — ΔOI"}</span>
+                      <span className="obs-lbl">{t("ohOiBuilds")}</span>
                       <span style={{ fontSize: 11, color: "var(--text-dim)" }}>
-                        {lang === "zh" ? "截至上一交易日" : "as of previous session"}
+                        {t("ohAsOfPrevSession")}
                       </span>
                     </div>
                     <div style={{ overflowX: "auto" }}>
@@ -3703,8 +3690,8 @@ export default function OptionsHubView({
                             <th style={{ textAlign: "left" }}>{lang === "zh" ? "认购/认沽" : "C/P"}</th>
                             <th style={{ textAlign: "left" }}>{lang === "zh" ? "到期日" : "Exp"}</th>
                             <th>{lang === "zh" ? "行权价" : "Strike"}</th>
-                            {hdr("doi", "ΔOI", "持仓变动", "Open interest change (t-1 vs t-2)")}
-                            {hdr("oi", "OI t-1", "持仓（前日）")}
+                            {hdr("doi", t("ohOiChange"), t("ohOiChange"), t("ohDoiFoot"))}
+                            {hdr("oi", t("ohOiYesterday"), t("ohOiYesterday"))}
                             {hdr("mid", "Mid", "中间价")}
                           </tr>
                         </thead>
@@ -3735,7 +3722,7 @@ export default function OptionsHubView({
                       </table>
                     </div>
                     <div style={{ padding: "6px 14px", fontSize: 10, color: "var(--text-dim)", borderTop: "1px solid var(--line)" }}>
-                      {lang === "zh" ? "ΔOI为前两个交易日持仓差值，不代表当日方向。" : "ΔOI = OI(t-1)−OI(t-2); does not imply direction of today's flow."}
+                      {t("ohDoiFoot")}
                     </div>
                   </div>
                 );
@@ -3784,7 +3771,7 @@ export default function OptionsHubView({
                       </table>
                     </div>
                     <div style={{ padding: "6px 14px", fontSize: 10, color: "var(--text-dim)", borderTop: "1px solid var(--line)" }}>
-                      {lang === "zh" ? "0DTE=当日到期合约；高占比可能反映日内投机活动。" : "0DTE = same-day expiry contracts. High share may indicate intraday speculative activity."}
+                      {t("ohZeroDteFoot")}
                     </div>
                   </div>
                 );
@@ -3795,7 +3782,7 @@ export default function OptionsHubView({
                 <div className="obs-card" style={{ overflow: "hidden" }}>
                   <div className="obs-card-hd" style={{ borderBottom: "1px solid var(--line)", alignItems: "center" }}>
                     <span className="obs-lbl">
-                      {lang === "zh" ? "热门合约" : "Hot Contracts"}
+                      {t("ohHotContracts")}
                     </span>
                     <div style={{ display: "flex", gap: 4, marginLeft: "auto" }}>
                       <button
@@ -3825,7 +3812,7 @@ export default function OptionsHubView({
                           <th>{t("colPrem", "Prem")}</th>
                           <th>{t("colVol", "Vol")}</th>
                           <th>{t("colClose", "Close")}</th>
-                          <th>{t("colVolGtOi", "vol>OI")}</th>
+                          <th>{t("colVolGtOi")}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -3842,7 +3829,7 @@ export default function OptionsHubView({
                             <td style={{ fontVariantNumeric: "tabular-nums", color: "var(--text-2)" }}>{c.close.toFixed(2)}</td>
                             <td>
                               {c.vol_gt_oi && (
-                                <span className="flow-flag-chip">{lang === "zh" ? "量超持仓" : "vol>OI"}</span>
+                                <span className="flow-flag-chip">{t("colVolGtOi")}</span>
                               )}
                             </td>
                           </tr>
@@ -3853,7 +3840,7 @@ export default function OptionsHubView({
                     </table>
                   </div>
                   <div style={{ padding: "6px 14px", fontSize: 10, color: "var(--text-dim)", borderTop: "1px solid var(--line)" }}>
-                    {lang === "zh" ? "ETF覆盖；仅供展示参考，非投资建议。" : "ETF universe. Display only — not investment advice."}
+                    {t("ohEtfDisplayOnly")}
                   </div>
                 </div>
               )}
@@ -3939,7 +3926,7 @@ export default function OptionsHubView({
                     {t("leadersAbsent", "Flow Leaders publishes after tonight's build")}
                   </div>
                   <div style={{ fontSize: 12, color: "var(--muted)" }}>
-                    {lang === "zh" ? "数据每晚收盘后构建" : "Data builds nightly after market close"}
+                    {t("ohNightlyBuild")}
                   </div>
                 </div>
               )}
@@ -4494,7 +4481,7 @@ export default function OptionsHubView({
                                       {/* Days in state */}
                                       <td style={{ textAlign: "center", minWidth: 52, color: "var(--text-dim)", fontSize: 11 }}>
                                         {row.days_in_state !== null && row.days_in_state !== undefined
-                                          ? `${row.days_in_state}d`
+                                          ? daysHeld(row.days_in_state, lang)
                                           : <span style={{ fontStyle: "italic", color: "var(--muted)" }}>{t("radarSeeding", "seeding")}</span>}
                                       </td>
 
@@ -4714,9 +4701,7 @@ export default function OptionsHubView({
 
         {/* ── Disclaimer ── */}
         <div className="flow-disclaimer">
-          {lang === "zh"
-            ? "标注与方向标签为启发式近似（~），仅供展示，不构成投资建议。"
-            : "Notability and direction labels are heuristic and approximate (~). Display only — not investment advice."}
+          {t("ohHeuristicFoot")}
         </div>
       </Wrapper>
     </CoachProvider>

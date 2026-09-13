@@ -10,6 +10,7 @@
 import React from "react";
 import Link from "next/link";
 import { BrandLockup } from "@/components/BrandMark";
+import { useT } from "@/lib/i18n";
 
 interface Lesson {
   glyph: string;
@@ -18,123 +19,103 @@ interface Lesson {
   body: React.ReactNode;
 }
 
-const LESSONS: Lesson[] = [
-  {
-    glyph: "≈",
-    eyebrow: "The idea",
-    title: "Why price gets sticky or slippery",
-    body: (
-      <>
-        Big options positions have to be hedged, and the people on the other side
-        of them buy and sell the underlying stock to stay balanced as it moves.
-        When that hedging <em>leans against</em> the move — selling into strength,
-        buying into weakness — price tends to slow down and hold. We call that
-        <b> sticky</b>. When the hedging <em>chases</em> the move instead — buying
-        higher, selling lower — price tends to speed up and slide. We call that
-        <b> slippery</b>. The map colors every strike by which kind of terrain it is.
-      </>
-    ),
-  },
-  {
-    glyph: "★",
-    eyebrow: "The anchor",
-    title: "The Keystone",
-    body: (
-      <>
-        One strike usually carries more dealer hedging than any other. That is the
-        <b> Keystone</b> — the day&apos;s biggest magnet. Price is often drawn toward
-        it and tends to settle near it, because that is where hedging pressure is
-        heaviest. It is the first thing to find on the map, and everything else is
-        read relative to it. Brighter and wider means more weight; the Keystone is
-        the brightest rung by definition.
-      </>
-    ),
-  },
-  {
-    glyph: "▔▁",
-    eyebrow: "The edges",
-    title: "Ceiling vs. Floor — and why a Floor isn't support",
-    body: (
-      <>
-        The <b>Ceiling</b> is the heavy strike above price where hedging tends to
-        lean against a push higher — a spot where upside can stall. The <b>Floor</b>
-        is the heavy strike below price. Here is the honest part: a Floor is not the
-        same as support. It marks where hedging turns <em>slippery</em>, so a move
-        down through it can pick up speed rather than get cushioned. Treat the Floor
-        as a place where the terrain changes, not a place that catches you.
-      </>
-    ),
-  },
-  {
-    glyph: "⚡",
-    eyebrow: "The boundary",
-    title: "The Flip — calm above, wild below",
-    body: (
-      <>
-        The <b>Flip</b> is the price where the net hedging effect crosses from one
-        kind to the other. Above it the tape tends to run <b>calm</b> (sticky terrain,
-        moves fade). Below it the tape tends to run <b>wild</b> (slippery terrain,
-        moves extend). It is a boundary line on the map, not a level with weight of
-        its own — which is why it shows as a dashed line rather than a colored rung.
-      </>
-    ),
-  },
-  {
-    glyph: "◆ ≋",
-    eyebrow: "The texture",
-    title: "Clusters and Voids",
-    body: (
-      <>
-        A <b>Cluster</b> is a secondary magnet — a strike stacked with enough hedging
-        to act like a smaller Keystone. A <b>Void</b> is the opposite: a stretch of
-        strikes with almost no dealer gamma. Because there is little hedging friction
-        in a Void, price can travel across that band quickly once it enters — think
-        of it as thin air between rungs. Clusters are where the map is dense; Voids
-        are where it is empty.
-      </>
-    ),
-  },
-  {
-    glyph: "◑",
-    eyebrow: "The fine print",
-    title: "Positioning, not prophecy",
-    body: (
-      <>
-        This board shows <b>locations where dealer hedging concentrates</b> — it does
-        not predict direction or tell you what to do. Three honest limits worth
-        keeping in mind: the underlying open-interest data <b>updates once a day</b>,
-        so the map is a snapshot, not a live read. The dealer-sign convention (who is
-        long or short what) is <b>assumed, not measured</b> — a standard convention
-        applied to the visible options, not confirmed inventory. And a level marks a
-        tendency, never a guarantee. Read it as a weather map, not a schedule.
-      </>
-    ),
-  },
-];
+function lessons(t: (key: string) => string): Lesson[] {
+  return [
+    {
+      glyph: "≈",
+      eyebrow: t("ll1eyebrow"),
+      title: t("ll1title"),
+      body: (
+        <>
+          {t("ll1a")}<em>{t("ll1leans")}</em>{t("ll1b")}
+          <b>{t("ll1sticky")}</b>{t("ll1c")}
+          <em>{t("ll1chases")}</em>{t("ll1d")}
+          <b>{t("ll1slippery")}</b>{t("ll1e")}
+        </>
+      ),
+    },
+    {
+      glyph: "★",
+      eyebrow: t("ll2eyebrow"),
+      title: t("ll2title"),
+      body: (
+        <>
+          {t("ll2a")}
+          <b>{t("ll2keystone")}</b>
+          {t("ll2b")}
+        </>
+      ),
+    },
+    {
+      glyph: "▔▁",
+      eyebrow: t("ll3eyebrow"),
+      title: t("ll3title"),
+      body: (
+        <>
+          <b>{t("ll3ceiling")}</b>{t("ll3b")}
+          <b>{t("ll3floor")}</b>{t("ll3c")}
+          <em>{t("ll3slip")}</em>{t("ll3d")}
+        </>
+      ),
+    },
+    {
+      glyph: "⚡",
+      eyebrow: t("ll4eyebrow"),
+      title: t("ll4title"),
+      body: (
+        <>
+          <b>{t("ll4flip")}</b>{t("ll4b")}
+          <b>{t("ll4calm")}</b>{t("ll4c")}
+          <b>{t("ll4wild")}</b>{t("ll4d")}
+        </>
+      ),
+    },
+    {
+      glyph: "◆ ≋",
+      eyebrow: t("ll5eyebrow"),
+      title: t("ll5title"),
+      body: (
+        <>
+          <b>{t("ll5cluster")}</b>{t("ll5b")}
+          <b>{t("ll5void")}</b>{t("ll5c")}
+        </>
+      ),
+    },
+    {
+      glyph: "◑",
+      eyebrow: t("ll6eyebrow"),
+      title: t("ll6title"),
+      body: (
+        <>
+          {t("ll6a")}<b>{t("ll6loc")}</b>{t("ll6b")}
+          <b>{t("ll6daily")}</b>{t("ll6c")}
+          <b>{t("ll6assumed")}</b>{t("ll6d")}
+        </>
+      ),
+    },
+  ];
+}
 
 export function LevelsLearn() {
+  const t = useT();
   return (
     <div style={PAGE}>
       <header style={TOPBAR}>
         <Link href="/options?tab=levels" style={{ textDecoration: "none" }}>
           <BrandLockup />
         </Link>
-        <Link href="/options?tab=levels" style={BACK_LINK}>← Back to the board</Link>
+        <Link href="/options?tab=levels" style={BACK_LINK}>{t("llBack")}</Link>
       </header>
 
       <main style={MAIN}>
         <div style={HERO}>
-          <div style={HERO_EYEBROW}>Levels · learn the board</div>
-          <h1 style={HERO_TITLE}>The gamma weather map, in six reads</h1>
-          <p style={HERO_SUB}>
-            The Levels board maps where dealer hedging concentrates on a stock&apos;s
-            options — the terrain that tends to make price hold or slide. It is
-            display-only context: positioning, not prophecy. Here is how to read it.
-          </p>
+          <div style={HERO_EYEBROW}>{t("llHeroEyebrow")}</div>
+          <h1 style={HERO_TITLE}>{t("llHeroTitle")}</h1>
+          <p style={HERO_SUB}>{t("llHeroSub")}</p>
         </div>
 
         <ol style={LIST}>
-          {LESSONS.map((l, i) => (
+          {lessons(t).map((l, i) => (
             <li key={i} style={CARD}>
               <div style={CARD_RAIL}>
                 <span style={CARD_NUM}>{String(i + 1).padStart(2, "0")}</span>
@@ -150,10 +131,8 @@ export function LevelsLearn() {
         </ol>
 
         <div style={FOOT}>
-          <Link href="/options?tab=levels" style={FOOT_CTA}>Open the Levels board →</Link>
-          <span style={FOOT_NOTE}>
-            Display-only market structure. Not investment advice.
-          </span>
+          <Link href="/options?tab=levels" style={FOOT_CTA}>{t("llOpenBoard")}</Link>
+          <span style={FOOT_NOTE}>{t("llFootNote")}</span>
         </div>
       </main>
     </div>

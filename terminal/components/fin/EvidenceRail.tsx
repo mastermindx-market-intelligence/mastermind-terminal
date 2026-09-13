@@ -8,6 +8,7 @@ import type {
   CompanyIntelligenceSource,
 } from "../../lib/companyIntelligence";
 import type { EventWorkspaceEvidenceView } from "../../lib/eventWorkspacePresent";
+import { typedAbsenceReasonLabel } from "../../lib/companyIntelligenceLabels";
 
 export type CompanyEvidenceKind = "summary" | "highlight" | "quote" | "metric";
 
@@ -212,7 +213,7 @@ export default function EvidenceRail({
                   <>
                     <div className="ci-receipt-row">
                       <span>{pick(zh, "Reason", "原因")}</span>
-                      <b>{v2.typed_absence.reason.replaceAll("_", " ")}</b>
+                      <b>{typedAbsenceReasonLabel(v2.typed_absence.reason, zh)}</b>
                     </div>
                     <div className="ci-receipt-row">
                       <span>{pick(zh, "Detail", "说明")}</span>

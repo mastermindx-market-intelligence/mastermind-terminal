@@ -2,7 +2,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { createClient } from "@/lib/supabase/client";
+import { invalidateEntitlement } from "@/lib/entitlementStore";
 import { useT } from "@/lib/i18n";
+import { sanitizeStashTrial } from "@/lib/billingReceipt";
 import type {
   OnboardMode, OnboardingSheetProps, OnboardPrefs, PlanKey, Period, PendingPrefs, WizardStash,
 } from "./types";
@@ -11,6 +13,7 @@ import {
   normalizeWizardStash, type OnboardResumeStash,
   STEP_ACCOUNT, STEP_PREFS, STEP_PLAN, STEP_BILLING, STEP_DONE,
 } from "./types";
+import { sendScopedAccountWrite } from "@/lib/accountPrefs";
 import { deliverPendingPrefs, writePendingPrefs } from "@/lib/onboardingPrefsOutbox";
 import RailCard, { MobileStepper, type WizardSnapshot } from "./RailCard";
 import StepAccount from "./StepAccount";
@@ -57,9 +60,18 @@ export default function OnboardingSheet(props: OnboardingSheetProps) {
   const [plan, setPlan] = useState<PlanKey>(stash?.plan ?? props.initialPlan ?? "pro");
   const [period, setPeriod] = useState<Period>(stash?.period ?? props.initialPeriod ?? "annual");
   const [confirmPending, setConfirmPending] = useState(stash?.confirmPending ?? false);
+  // Fix round 1 (MAJOR-1) — the persisted stash is a second, unguarded input into the same
+  // "trial is live" UI claim the network receipt is fail-closed for; read it through the identical
+  // guard so {trialActive:true, trialEnd:null} (or an implausible trialEnd — 0, milliseconds, a
+  // negative) can never survive into state.
+  const stashTrial = sanitizeStashTrial(stash?.trialActive ?? false, stash?.trialEnd ?? null);
   // W2: an in-sheet Stripe trial has started (drives the Done "trial live" copy + rail chip).
-  const [trialActive, setTrialActive] = useState(stash?.trialActive ?? false);
-  const [trialEnd, setTrialEnd] = useState<number | null>(stash?.trialEnd ?? null);
+  const [trialActive, setTrialActive] = useState(stashTrial.trialActive);
+  const [trialEnd, setTrialEnd] = useState<number | null>(stashTrial.trialEnd);
+  // Fix round 1 (BLOCKER-1): a genuine no-trial purchase completed this session (essential,
+  // plans.yml trial_days: 0). Session-local only — not persisted to the stash, since it only
+  // matters for the terminal Done screen reached in the same pass.
+  const [planActivated, setPlanActivated] = useState(false);
   // D5: the authoritative preference write has not been acknowledged yet. The flow still moves
   // forward (one slow metadata request must not make onboarding feel stuck), but the UI does not
   // get to imply the choice was saved when it wasn't — the outbox keeps retrying behind this.
@@ -177,10 +189,11 @@ export default function OnboardingSheet(props: OnboardingSheetProps) {
   // transient error meant the user's explicit market/trade-type/theme choice was silently gone —
   // they watched onboarding reach Done and found their personalization missing next session.
   //
-  // The pending record is now written FIRST, on both paths, and is only cleared once the authority
-  // acknowledges the write (deliverPendingPrefs). Forward progress is still immediate — one slow
-  // metadata request must not make onboarding feel stuck — but "moved on" no longer means
-  // "persisted": an undelivered choice stays in the outbox and the next authed mount retries it.
+  // The pending record is now written FIRST, on both paths, and is cleared after the authority
+  // acknowledged the write, OR when nothing owned remained to send. Forward progress is still
+  // immediate — one slow metadata request must not make onboarding feel stuck — but "moved on"
+  // no longer means "persisted": an undelivered choice stays in the outbox and the next authed
+  // mount retries it.
   const persistPrefs = useCallback(async () => {
     const payload: PendingPrefs = {
       first_name: firstName,
@@ -196,8 +209,11 @@ export default function OnboardingSheet(props: OnboardingSheetProps) {
     // No session yet: the provider delivers it on the first authed mount.
     if (confirmPending || !effEmail) return;
     const supabase = createClient();
-    const outcome = await deliverPendingPrefs((data) => supabase.auth.updateUser({ data }));
-    setPrefsPending(outcome.status !== "delivered");
+    const outcome = await deliverPendingPrefs((data) => sendScopedAccountWrite(
+      (scoped) => supabase.auth.updateUser({ data: scoped }),
+      data,
+    ));
+    setPrefsPending(outcome.status === "failed");
   }, [firstName, lastName, prefs, confirmPending, effEmail]);
 
   // ── Step transitions ──────────────────────────────────────────────────────────
@@ -212,8 +228,31 @@ export default function OnboardingSheet(props: OnboardingSheetProps) {
   // Paid → advance to the in-sheet Billing step (Stripe Elements). No external link.
   function planPaid() { setStep(STEP_BILLING); }
   // Billing outcomes.
-  function billingTrialStarted(end: number | null) { setTrialActive(true); setTrialEnd(end); setStep(STEP_DONE); }
-  function billingAlreadyActive() { setStep(STEP_DONE); }       // 409 — plan already active, no in-sheet trial
+  // D7: `end` is a VERIFIED epoch from the gateway's receipt (StepBilling refuses anything less),
+  // so reaching Done with trialActive now always carries a real first-charge date.
+  // Fix round 2 (MINOR-1): a trial start is a real entitlement change (a brand-new subscription),
+  // and the 409 "already active" landing means an entitlement already exists that the Terminal's
+  // cached /api/me snapshot may predate — both must invalidate the same as a fresh purchase does,
+  // so no surface of the Terminal is left reading a stale pre-onboarding snapshot.
+  // E4 (master): the settings panel is mounted for the whole session and would otherwise keep
+  // serving the plan it verified before this purchase — invalidateEntitlement() below is that
+  // fix, merged in unchanged from master (this branch already carried it for the same reason).
+  function billingTrialStarted(end: number) {
+    invalidateEntitlement();
+    setTrialActive(true); setTrialEnd(end); setStep(STEP_DONE);
+  }
+  function billingAlreadyActive() { invalidateEntitlement(); setStep(STEP_DONE); } // 409 — plan already active, no in-sheet trial
+  // Fix round 1 (BLOCKER-1): a genuine no-trial purchase (e.g. essential) completed — the
+  // entitlement changed (a brand-new paid subscription), so the canonical /api/me store must
+  // re-read, exactly as a trial start would trigger once invalidateEntitlement() is wired through
+  // this flow.
+  function billingPurchaseActive() {
+    invalidateEntitlement();
+    setPlanActivated(true);
+    setTrialActive(false);
+    setTrialEnd(null);
+    setStep(STEP_DONE);
+  }
   function billingContinueToDone() { setStep(STEP_DONE); }       // confirm-first blocker escape
 
   // ── Snapshot for the rail account card ────────────────────────────────────────
@@ -315,6 +354,7 @@ export default function OnboardingSheet(props: OnboardingSheetProps) {
                     tier={plan}
                     period={period}
                     onTrialStarted={billingTrialStarted}
+                    onPurchaseActive={billingPurchaseActive}
                     onAlreadyActive={billingAlreadyActive}
                     onFree={chooseFree}
                     needsConfirmFirst={billingNeedsConfirmFirst}
@@ -324,7 +364,8 @@ export default function OnboardingSheet(props: OnboardingSheetProps) {
                 {step === STEP_DONE && (
                   <StepDone firstName={firstName} email={effEmail}
                     confirmPending={confirmPending} trialActive={trialActive}
-                    trialEnd={trialEnd} plan={plan} prefsPending={prefsPending} />
+                    trialEnd={trialEnd} plan={plan} planActivated={planActivated}
+                    prefsPending={prefsPending} />
                 )}
               </div>
 

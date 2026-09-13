@@ -2,11 +2,23 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import {
-  deleteLayout, duplicateWorkspace, listLayouts, renameWorkspace, saveLayout, saveWorkspace,
+  deleteLayout, duplicateWorkspace, renameWorkspace, saveLayout, saveWorkspace,
   type LayoutDb, type SaveMode,
 } from "@/lib/layouts";
-import { createLayoutFixtureDb, fixtureLayoutUserId, GUEST_COOKIE, LAYOUT_FAULT_COOKIE, LAYOUT_STORE_COOKIE, type LayoutFault } from "@/lib/layoutsFixtureDb";
-import { rowStateFor, validateEnvelope, SCHEMA as WORKSPACE_SCHEMA } from "@/lib/workspaceLayout";
+import {
+  createLayoutFixtureDb, fixtureLayoutUserId, fixtureTeamName, GUEST_COOKIE, LAYOUT_FAULT_COOKIE,
+  LAYOUT_STORE_COOKIE, LAYOUT_TEAM_COOKIE, LAYOUT_TEAM_ROLE_COOKIE,
+  type LayoutFault, type LayoutTeamRole,
+} from "@/lib/layoutsFixtureDb";
+import { validateEnvelope, SCHEMA as WORKSPACE_SCHEMA } from "@/lib/workspaceLayout";
+import type { Team, TeamRole, TenancyDb } from "@/lib/teams";
+import {
+  SHARED_WORKFLOW_MESSAGES,
+  interpolateTeam,
+  listVisibleWorkspaces,
+  setWorkspaceSharing,
+  sharingErrorName,
+} from "@/lib/teamSharedWorkflow";
 
 // Saved chart layouts (S6) — per-user persisted workspaces. Thin HTTP shell; every rule lives in
 // `lib/layouts.ts`, which is where the reasoning about names, atomicity and failure states is
@@ -28,23 +40,48 @@ import { rowStateFor, validateEnvelope, SCHEMA as WORKSPACE_SCHEMA } from "@/lib
 
 const isE2eFixture = () => process.env.TERMINAL_E2E_FIXTURE === "1";
 
+type LayoutSession = { db: LayoutDb & TenancyDb; userId: string; teams?: Team[] };
+
+function fixtureRole(raw: string | undefined): LayoutTeamRole {
+  return raw === "owner" || raw === "admin" || raw === "member" ? raw : "member";
+}
+
 /** Fixture transport for the Playwright dev server; the real RLS'd client everywhere else. */
-async function resolveDb(): Promise<{ db: LayoutDb; userId: string } | null> {
+async function resolveDb(): Promise<LayoutSession | null> {
   if (isE2eFixture()) {
     const jar = await cookies();
     // The guest spec needs the API to agree with the page: one cookie drives both.
     if (jar.get(GUEST_COOKIE)?.value === "1") return null;
     const key = jar.get(LAYOUT_STORE_COOKIE)?.value || "default";
     const fault = (jar.get(LAYOUT_FAULT_COOKIE)?.value || "") as LayoutFault;
-    return { db: createLayoutFixtureDb(key, fault), userId: fixtureLayoutUserId(key) };
+    const teamId = jar.get(LAYOUT_TEAM_COOKIE)?.value || "";
+    const role = fixtureRole(jar.get(LAYOUT_TEAM_ROLE_COOKIE)?.value);
+    const team: Team | null = teamId
+      ? { id: teamId, name: fixtureTeamName(teamId), role: role as TeamRole, createdAt: null }
+      : null;
+    return {
+      db: createLayoutFixtureDb(key, fault, team ? { teamId, role, teamName: team.name } : null) as unknown as LayoutDb & TenancyDb,
+      userId: fixtureLayoutUserId(key),
+      teams: team ? [team] : [],
+    };
   }
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
-  return { db: supabase as unknown as LayoutDb, userId: user.id };
+  return { db: supabase as unknown as LayoutDb & TenancyDb, userId: user.id };
 }
 
-const unauthenticated = () => NextResponse.json({ error: "unauthenticated" }, { status: 401 });
+function workflowBody(code: keyof typeof SHARED_WORKFLOW_MESSAGES, error: string, teamName?: string) {
+  const [en, zh] = SHARED_WORKFLOW_MESSAGES[code];
+  return {
+    error,
+    message: teamName ? interpolateTeam(en, teamName) : en,
+    messageZh: teamName ? interpolateTeam(zh, teamName) : zh,
+  };
+}
+
+const unauthenticated = () =>
+  NextResponse.json(workflowBody("not_signed_in", "UNAUTHENTICATED"), { status: 401 });
 const unavailable = () => NextResponse.json({ error: "layouts_unavailable" }, { status: 503 });
 // Distinct error string from the legacy `layouts_unavailable` above: this is the frozen §8 code
 // (`store_unavailable`) the workspace ops (`save_workspace`/`rename`/`duplicate`) speak, so a client
@@ -57,12 +94,14 @@ const isRecord = (v: unknown): v is Record<string, unknown> =>
 export async function GET() {
   const ctx = await resolveDb();
   if (!ctx) return unauthenticated();
-  const result = await listLayouts(ctx.db, ctx.userId);
+  const result = await listVisibleWorkspaces(ctx.db, ctx.userId, ctx.teams ? { teams: ctx.teams } : undefined);
   if (!result.ok) return unavailable();
-  // Per-row read state (contract §8/§9): a row this build cannot open is never silently rendered as
-  // empty/healthy — it is marked so the client can show a plain-word reason instead of a raw code.
-  const layouts = result.layouts.map((l) => ({ ...l, rowState: rowStateFor(l.config) }));
-  return NextResponse.json({ layouts });
+  // denied[] is logged internally and never serialised.
+  if (result.denied.length) {
+    console.info("layouts.denied", result.denied.map((d) => ({ id: d.id, reason: d.reason })));
+  }
+  const { layouts, teams, teamRead } = result;
+  return NextResponse.json({ layouts, teams, teamRead });
 }
 
 /** `body.expectedRevision`: `null`/absent means "no revision to fence on" (CREATE or migrate-on-
@@ -93,6 +132,9 @@ async function handleSaveWorkspace(ctx: { db: LayoutDb; userId: string }, body: 
 
   const result = await saveWorkspace(ctx.db, ctx.userId, body.name, envelope, expectedRevision, readOptionalId(body.id));
   if (result.ok) return NextResponse.json({ ok: true, id: result.id, revision: result.revision });
+  if (result.reason === "forbidden") {
+    return NextResponse.json(workflowBody("not_admin_edit", "FORBIDDEN"), { status: 403 });
+  }
   if (result.reason === "invalid_name") return NextResponse.json({ error: "invalid_name" }, { status: 400 });
   if (result.reason === "name_conflict") return NextResponse.json({ error: "name_conflict" }, { status: 409 });
   if (result.reason === "stale_revision") return NextResponse.json({ error: "stale_revision" }, { status: 409 });
@@ -106,6 +148,9 @@ async function handleRename(ctx: { db: LayoutDb; userId: string }, body: Record<
 
   const result = await renameWorkspace(ctx.db, ctx.userId, body.oldName, body.newName, expectedRevision, readOptionalId(body.id));
   if (result.ok) return NextResponse.json({ ok: true, revision: result.revision });
+  if (result.reason === "forbidden") {
+    return NextResponse.json(workflowBody("not_admin_edit", "FORBIDDEN"), { status: 403 });
+  }
   if (result.reason === "invalid_name") return NextResponse.json({ error: "invalid_name" }, { status: 400 });
   if (result.reason === "name_conflict") return NextResponse.json({ error: "name_conflict" }, { status: 409 });
   if (result.reason === "stale_revision") return NextResponse.json({ error: "stale_revision" }, { status: 409 });
@@ -134,6 +179,7 @@ export async function POST(req: Request) {
   if (op === "save_workspace") return handleSaveWorkspace(ctx, body);
   if (op === "rename") return handleRename(ctx, body);
   if (op === "duplicate") return handleDuplicate(ctx, body);
+  if (op === "set_sharing") return handleSetSharing(ctx, body);
 
   // Default/legacy save semantics — UNCHANGED for callers that never send `op`. Reviewer ruling B3:
   // this path's `saveLayout` is a blind upsert (contract §4 forbids blind-upserting a
@@ -168,5 +214,37 @@ export async function DELETE(req: Request) {
   // "not_found" is a legitimate end state for the client (the row is gone either way) but it is NOT
   // a successful delete, so it does not get to wear `ok:true`.
   if (result.reason === "not_found") return NextResponse.json({ error: "not_found" }, { status: 404 });
+  if (result.reason === "forbidden") {
+    return NextResponse.json(workflowBody("not_admin_edit", "FORBIDDEN"), { status: 403 });
+  }
   return unavailable();
+}
+
+async function handleSetSharing(ctx: LayoutSession, body: Record<string, unknown>) {
+  const result = await setWorkspaceSharing(ctx.db, ctx.userId, {
+    id: body.id,
+    sharing: body.sharing,
+    teamId: body.teamId,
+  });
+  if (result.ok) {
+    const message = result.sharing === "team"
+      ? workflowBody("shared_ok", "OK", result.teamName ?? "")
+      : workflowBody("unshared_ok", "OK");
+    return NextResponse.json({
+      ok: true,
+      id: result.id,
+      sharing: result.sharing,
+      teamId: result.teamId,
+      teamName: result.teamName,
+      message: message.message,
+      messageZh: message.messageZh,
+    });
+  }
+  const error = sharingErrorName(result.code);
+  const status = result.reason === "invalid" ? 400
+    : result.reason === "forbidden" ? 403
+    : result.reason === "not_found" ? 404
+    : result.reason === "duplicate" ? 409
+    : 503;
+  return NextResponse.json(workflowBody(result.code, error), { status });
 }

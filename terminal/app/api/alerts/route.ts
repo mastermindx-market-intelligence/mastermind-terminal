@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { isPaidTier, isProTier } from "@/lib/entitlement";
-import { canonicalizeOptAlertIdentity } from "@/lib/optionsAlerts";
+import { canonicalizeOptAlertIdentity, optAlertIdentityState } from "@/lib/optionsAlerts";
 import { SUITE_ALERT_EVENTS, validateSuiteCondition, validateSuiteSequence } from "@/lib/suiteAlerts";
 
 async function uid() {
@@ -25,18 +25,18 @@ const SUITE_SEQ_TYPE = "suite_sequence"; // two-step "A then B within N bars" (s
 
 const MAX_ALERTS_PER_USER = 50;
 
-function normalizeStoredAlert(row: unknown): unknown {
+export function normalizeStoredAlert(row: unknown): unknown {
   if (!row || typeof row !== "object") return row;
   const alert = row as Record<string, unknown>;
   const condition = alert.condition;
   if (!condition || typeof condition !== "object") return row;
   const type = String((condition as Record<string, unknown>).type ?? "");
   if (!OPT_TYPES.has(type)) return row;
-  const identity = canonicalizeOptAlertIdentity(
-    typeof alert.symbol === "string" ? alert.symbol : "",
-    condition as Record<string, unknown>,
-  );
-  return identity ? { ...alert, ...identity } : row;
+  const symbol = typeof alert.symbol === "string" ? alert.symbol : "";
+  const cond = condition as Record<string, unknown>;
+  const identity = canonicalizeOptAlertIdentity(symbol, cond);
+  const identity_state = optAlertIdentityState(symbol, cond);
+  return identity ? { ...alert, ...identity, identity_state } : { ...alert, identity_state };
 }
 
 /** Owning tier of a catalog event; unknown event → "pro" so an unlisted event fails CLOSED. */

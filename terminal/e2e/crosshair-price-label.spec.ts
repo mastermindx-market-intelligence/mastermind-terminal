@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { PRICE_TAG_MIN_VALUE_WIDTH, PRICE_TAG_ROW_HEIGHT, PRICE_TAG_TIME_HEIGHT } from "@/lib/priceTagPlacement";
-import { settled } from "./settle";
+import { settled, settledHoverLabel } from "./helpers/settled";
 
 type LabelState = {
   primaryTop: number | null;
@@ -13,6 +13,16 @@ type LabelState = {
   hoverTop: number | null;
   hoverText: string;
 };
+
+// Hosted desktop shards hide `.mm-hovertag` after leftover price text has already
+// been written (job 101689653547). A local machine is 10/10 without this; set
+// TERMINAL_E2E_CPU_THROTTLE=4 to replay the CI-shaped scheduler delay.
+test.beforeEach(async ({ page }) => {
+  const rate = Number(process.env.TERMINAL_E2E_CPU_THROTTLE || "");
+  if (!Number.isFinite(rate) || rate <= 1) return;
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send("Emulation.setCPUThrottlingRate", { rate });
+});
 
 const labels = (page: Page): Promise<LabelState> => page.evaluate(() =>
   (window as Window & { __mmPriceLabels?: () => LabelState }).__mmPriceLabels?.() ?? {
@@ -170,14 +180,26 @@ test("persistent and hover labels follow the price pane when a study moves above
 
   const rsiLegend = page.locator(".lg-block").filter({ hasText: "RSI" }).first();
   await expect(rsiLegend).toBeVisible({ timeout: 20_000 });
-  // The top-right pane strip is owned by React hover state and can unmount between Playwright's
-  // actionability check and click on a saturated runner. The legend row's More button is always
-  // mounted (native CSS reveals it), and its opened menu remains stable after the pointer moves.
   const rsiRow = rsiLegend.locator(".lg-row").filter({ hasText: "RSI" }).first();
-  await rsiRow.hover();
-  await rsiRow.getByRole("button", { name: "More" }).click();
   const paneMenu = page.locator(".lg-more");
-  await expect(paneMenu).toBeVisible({ timeout: 20_000 });
+  // .lg-ic is display:none until .lg-row:hover (globals.css). A one-shot hover+click lets
+  // Playwright scroll, lose :hover, then retry the detached node without re-hovering.
+  await settled({
+    drive: async (last) => {
+      if (last?.open) return;
+      if (await paneMenu.isVisible().catch(() => false)) return;
+      await rsiRow.hover();
+      try {
+        await rsiRow.getByRole("button", { name: "More" }).click({ timeout: 3_000 });
+      } catch {
+        // Remount or lost hover — the next drive re-hovers and clicks a fresh node.
+      }
+    },
+    read: async () => ({ open: await paneMenu.isVisible().catch(() => false) }),
+    ok: (value) => value.open,
+    same: (prev, next) => prev.open && next.open,
+    message: "the RSI pane menu should stay open after More is clicked",
+  });
   await paneMenu.getByText("Move pane up", { exact: true }).click();
 
   await expect.poll(async () => (await labels(page)).pricePaneTop, { timeout: 20_000 }).toBeGreaterThan(20);
@@ -193,9 +215,10 @@ test("persistent and hover labels follow the price pane when a study moves above
   await page.mouse.move(pointerX, pointerY - 35);
   await page.mouse.move(pointerX, pointerY);
   await expect(page.locator(".mm-hovertag")).toBeVisible();
-  const hover = await page.locator(".mm-hovertag").boundingBox();
-  expect(hover).not.toBeNull();
-  expect(hover!.y).toBeGreaterThan(wrap!.y + state.pricePaneTop);
+  await expect.poll(
+    async () => (await page.locator(".mm-hovertag").boundingBox())?.y ?? null,
+    { message: "the hover label should have a laid-out box after the pane move", timeout: 20_000 },
+  ).toBeGreaterThan(wrap!.y + state.pricePaneTop);
 });
 
 test("a four-digit premarket quote expands the compact numeric lane instead of clipping", async ({ page }) => {
@@ -249,7 +272,6 @@ test("left-side and percentage scales keep the foreground label on the active ax
   await page.goto("/terminal?symbol=NVDA");
   await chartReady(page);
 
-  const state = await labels(page);
   const wrap = await page.locator(".chart-wrap").boundingBox();
   expect(wrap).not.toBeNull();
   for (const selector of [".mm-ptag", ".mm-exttag"]) {
@@ -259,13 +281,21 @@ test("left-side and percentage scales keep the foreground label on the active ax
     ).toBeCloseTo(wrap!.x + 1, 0);
   }
 
-  const x = wrap!.x + wrap!.width * 0.55;
-  await page.mouse.move(x, wrap!.y + state.primaryAnchorY! - 35);
-  await page.mouse.move(x, wrap!.y + state.primaryAnchorY!);
-  await expect(page.locator(".mm-hovertag")).toBeVisible();
-  await expect(page.locator(".mm-hovertag")).toContainText(/%$/);
-  const hover = await page.locator(".mm-hovertag").boundingBox();
-  expect(hover).not.toBeNull();
+  // Sibling :364-366: one move to the last-price overlay point. A y-35 approach can leave the
+  // price pane, and under load that leave lands after the target move, so the tag ends up hidden
+  // with its leftover text (hoverTagPaint.ts:20 "hide" -> ChartPanel.tsx:3620 display:none).
+  const label = await settledHoverLabel(page, {
+    move: async () => {
+      const wrapNow = await page.locator(".chart-wrap").boundingBox();
+      const now = await labels(page);
+      if (!wrapNow || now.primaryAnchorY == null) return;
+      await page.mouse.move(wrapNow.x + wrapNow.width * 0.55, wrapNow.y + now.pricePaneTop + now.primaryAnchorY);
+    },
+    message: "the left-scale hover label should stay visible with a stable box",
+  });
+  // hoverLabelOk() already required visible + non-empty text + a laid-out box; the % unit is ours.
+  expect(label.text).toMatch(/%$/);
+  const hover = label.box;
   expect(hover!.x).toBeCloseTo(wrap!.x + 1, 0);
   expect(hover!.height).toBeGreaterThanOrEqual(28); // covers LWC's full 16px-font crosshair label
   const hoverFits = await page.locator(".mm-hovertag").evaluate((el) => el.scrollWidth <= el.clientWidth);
@@ -309,6 +339,9 @@ test("Magnet follows the nearest transformed price-pane series instead of the ra
 
 test("a stationary foreground label refreshes when the price scale changes underneath it", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "Wheel-on-axis is a desktop/trackpad gesture.");
+  // Two 20s settle budgets plus a wheel-driven refresh. Under 4× CPU throttle the
+  // previous 30s default died inside the first settle (10/10 local, this packet).
+  test.setTimeout(90_000);
   await routePremarket(page, 220);
   await page.goto("/terminal?symbol=NVDA");
   await chartReady(page);
@@ -317,25 +350,27 @@ test("a stationary foreground label refreshes when the price scale changes under
   expect(wrap).not.toBeNull();
   const state = await labels(page);
   const pointerY = state.primaryAnchorY!;
-  const pointerX = wrap!.x + wrap!.width * 0.55;
-  const nudge = async () => {
-    await page.mouse.move(pointerX, wrap!.y + pointerY - 35);
-    await page.mouse.move(pointerX, wrap!.y + pointerY);
-  };
-  await settled({
-    drive: nudge,
-    read: () => page.evaluate(() => ({
-      crossY: (window as any).__mmCrosshairDodge?.().crossY ?? null,
-      hover: document.querySelector<HTMLElement>(".mm-hovertag")?.textContent ?? "",
-    })),
-    ok: (value) => value.crossY != null && Math.abs(value.crossY - pointerY) <= 2 && !!value.hover,
-    same: (a, b) => a.crossY === b.crossY && a.hover === b.hover,
-    message: "the stationary crosshair should settle before the scale changes",
+  // Re-read wrap + pane offset on every drive. A one-shot wrap.y + anchorY can
+  // land in the legend while the price pane is still committing (hosted Shape A/B:
+  // leftover `.mm-hovertag` text, display:none). Same overlay point as the pane-move
+  // walk above — last price, pane-scoped.
+  const hover = await settledHoverLabel(page, {
+    move: async () => {
+      const wrapNow = await page.locator(".chart-wrap").boundingBox();
+      const now = await labels(page);
+      if (!wrapNow || now.primaryAnchorY == null) return;
+      const x = wrapNow.x + wrapNow.width * 0.55;
+      const y = wrapNow.y + now.pricePaneTop + now.primaryAnchorY;
+      // One move to the last-price overlay point. A y-35 approach can leave the
+      // price pane and hide the tag; under throttle that leave arrives after the
+      // target move and the box never repeats.
+      await page.mouse.move(x, y);
+    },
+    message: "the stationary hover label should stay visible with a stable box before the scale changes",
   });
-  const hover = page.locator(".mm-hovertag");
-  await expect(hover).toBeVisible();
-  const before = await hover.textContent();
-  const topBefore = (await hover.boundingBox())!.y;
+  const before = hover.text;
+  expect(hover.box, "the stationary hover label should have a laid-out box before the scale changes").not.toBeNull();
+  const hoverTopBefore = hover.box!.y;
 
   // Dispatch a scale-wheel frame at another y without moving the real pointer. The price at the
   // stationary crosshair changes, so the foreground value must update in the same render frame.
@@ -347,6 +382,10 @@ test("a stationary foreground label refreshes when the price scale changes under
     bubbles: true,
     cancelable: true,
   });
-  await expect.poll(() => hover.textContent()).not.toBe(before);
-  expect((await hover.boundingBox())!.y).toBeCloseTo(topBefore, 0);
+  await expect.poll(() => page.locator(".mm-hovertag").textContent()).not.toBe(before);
+  await expect(page.locator(".mm-hovertag")).toBeVisible();
+  await expect.poll(
+    async () => (await page.locator(".mm-hovertag").boundingBox())?.y ?? null,
+    { message: "the stationary hover label should keep a laid-out box after the scale change", timeout: 20_000 },
+  ).toBeCloseTo(hoverTopBefore, 0);
 });

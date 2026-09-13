@@ -18,6 +18,16 @@ test.beforeAll(() => {
 test("covered-tape options alerts stay honest and contained", async ({ page }, testInfo) => {
   const zh = testInfo.project.name === "tablet";
   let posted: Record<string, unknown> | null = null;
+  // /alerts now composes TWO independent instances of this component (B-F08-3: the cockpit's
+  // inline create form, and the separate existing-alerts management panel this test's `.arow`
+  // assertion reads) — creating in one no longer optimistically updates the other's own local
+  // state; it re-reads `/api/alerts` on the shared `mm:alerts-changed` signal instead (see
+  // lib/alertsView.ts ALERTS_CHANGED_EVENT). A GET mock that always answers `{alerts: []}`
+  // regardless of what was POSTed is honest for the OLD single-instance architecture but not
+  // this one: it must reflect the created row like a real server would, or `.arow` can never
+  // appear no matter how long the test waits — track it same as e2e/f08-alerts.spec.ts's own
+  // "create an alert…" fixture does.
+  let created: Array<Record<string, unknown>> = [];
 
   await page.addInitScript((lang) => {
     localStorage.setItem("mm.lang", lang);
@@ -27,19 +37,17 @@ test("covered-tape options alerts stay honest and contained", async ({ page }, t
   await page.route("**/api/alerts", async (route) => {
     if (route.request().method() === "POST") {
       posted = route.request().postDataJSON() as Record<string, unknown>;
-      await route.fulfill({
-        json: {
-          alert: {
-            id: "market-burst",
-            active: true,
-            created_at: "2026-08-11T15:00:00Z",
-            ...(posted as object),
-          },
-        },
-      });
+      const alert = {
+        id: "market-burst",
+        active: true,
+        created_at: "2026-08-11T15:00:00Z",
+        ...(posted as object),
+      };
+      created = [alert, ...created];
+      await route.fulfill({ json: { alert } });
       return;
     }
-    await route.fulfill({ json: { alerts: [] } });
+    await route.fulfill({ json: { alerts: created } });
   });
 
   await page.goto("/alerts");

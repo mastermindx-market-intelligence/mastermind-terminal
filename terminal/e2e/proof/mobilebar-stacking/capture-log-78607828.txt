@@ -1,0 +1,482 @@
+PR #490 evidence capture log — Meta-CEO B ruling r5 (MAJOR-1/2 protocol)
+Review-round-12 rewrite: replaces the previous version of this file after the
+round-11 review found it undisclosed a post-capture rename/hand-edit step
+(MAJOR-1) and an undisclosed byte-identity with the round-9 artifacts
+(MAJOR-2). Both are now stated explicitly below, with the unedited raw tool
+stdout included so a reviewer can verify every number without trusting this
+prose.
+
+CODE_HEAD (commit these artifacts sit on top of, and the sha every artifact's
+capturedAtHead field states): 7860782888fb27e6a3198d89b3d393f3c7776ad1
+
+=== Protocol ===
+1. `git checkout 7860782888fb27e6a3198d89b3d393f3c7776ad1` (detached), verify
+   `git status --short` is empty.
+2. Swap in be898be5's app/globals.css for the BEFORE run (see "BEFORE/AFTER
+   definitions" below); run the committed tool
+   terminal/e2e/tools/measure-analysis-mobilebar-stacking.mjs against a real
+   `next dev --webpack` server; restore app/globals.css to CODE_HEAD's
+   committed bytes (`git status --short app/globals.css` empty again) before
+   the AFTER run. `.next` deleted before each restart.
+3. capturedAtHead in both JSONs is CODE_HEAD because `git rev-parse HEAD`
+   never changed between the two runs (only a working-tree file was swapped
+   and restored, never committed).
+
+BEFORE = commit be898be5's app/globals.css (an ancestor of origin/master,
+byte-identical to this branch's merge-base 7ca25472's copy — origin/master's
+current tip has since gained an unrelated rule elsewhere in the file
+(`.s-universe-failed`), so be898be5 isolates exactly this PR's own CSS diff).
+AFTER = CODE_HEAD's app/globals.css, unmodified.
+
+=== Environment setup (new in this round — undocumented previously) ===
+/analysis is member-gated; the tool's own routes/mocks (company-intelligence,
+theme-context, etc.) do not cover Supabase auth, so a plain `next dev` 500s
+(no Supabase env) or redirects to sign-in (Supabase env present, no session).
+Two preliminary server starts failed for exactly these reasons before the
+successful run below:
+  - 1st start: no `.env.local` present in this worktree -> `next dev` 500s
+    with "Your project's URL and Key are required to create a Supabase
+    client!" on GET /analysis.
+  - 2nd start: `.env.local` copied in (browser-safe URL/anon key only, same
+    file the worktree's own .gitignore already excludes) -> GET /analysis
+    now 200s, but the tool's `.fin-pane` locator still times out because the
+    response body is the sign-in page (`grep -c "Sign in"` = 1), not the
+    workspace.
+  - 3rd start (successful): exported the same env vars this repo's own
+    playwright.config.ts sets on its `webServer` for exactly this reason
+    (its comment: "/analysis is normally member-gated. The page's local-only
+    preview seam keeps responsive visual tests focused on the workspace, not
+    auth."): ANALYSIS_LOCAL_PREVIEW=1, ADMIN_DEV=1, TERMINAL_E2E_FIXTURE=1,
+    TERMINAL_E2E_EMAIL=responsive@example.com, TERMINAL_E2E_ENTITLEMENT=
+    unlimited, RATE_LIMIT_MAX=100000, HUB_REALTIME_QUOTES=1, FLOW_FIXTURE=1,
+    NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321,
+    NEXT_PUBLIC_SUPABASE_ANON_KEY=fixture-anon-key. These are the existing
+    test-only seam already documented in playwright.config.ts, not a new one
+    introduced by this capture. Port 3196 was used (3195 was the port named
+    in the previous round's log; this round happened to pick a different
+    free local port — no significance beyond that).
+
+=== Wall-clock timestamps (UTC), the successful pass ===
+  2026-09-07T01:31:05Z  BEFORE dev server started (globals.css = be898be5,
+                        swapped in at 01:27:58Z and still in place; full env
+                        above; `.next` cleared first)
+  2026-09-07T01:31:10Z  BEFORE measurement run started:
+                        `node e2e/tools/measure-analysis-mobilebar-stacking.mjs 3196 raw-before-r12 /tmp/proof-r12`
+  2026-09-07T01:31:32Z  BEFORE measurement run finished; wrote raw-before-r12.json; server killed
+  2026-09-07T01:31:39Z  app/globals.css restored to CODE_HEAD's committed version;
+                        `git status --short app/globals.css` empty (byte-identical to HEAD)
+  2026-09-07T01:31:39Z  `.next` cleared; AFTER dev server restarted (same full env)
+  2026-09-07T01:31:45Z  AFTER measurement run started:
+                        `node e2e/tools/measure-analysis-mobilebar-stacking.mjs 3196 raw-after-r12 /tmp/proof-r12`
+  2026-09-07T01:31:59Z  AFTER measurement run finished; wrote raw-after-r12.json; server killed
+
+=== Rename/edit disclosure (MAJOR-1 repair) ===
+The tool's own filename convention is `<label>-<viewport>.<ext>` and
+`<label>.json` (see measure-analysis-mobilebar-stacking.mjs:213,231,240),
+where `<label>` is whatever free-text tag is passed as argv[2] — here
+`raw-before-r12` / `raw-after-r12` (the CODE_HEAD sha is not known to the
+caller until the run is captured, and is only knowable as the JSON's own
+`capturedAtHead` field, per the tool's own header comment). The tool
+therefore wrote:
+  /tmp/proof-r12/raw-before-r12-1440x900.png, raw-before-r12-390x844.png, raw-before-r12.json
+  /tmp/proof-r12/raw-after-r12-1440x900.png,  raw-after-r12-390x844.png,  raw-after-r12.json
+Those 6 files were then copied into terminal/e2e/proof/mobilebar-stacking/ and:
+  - the 4 PNGs were renamed, byte-for-byte, with NO content change, to the
+    ruling's `<viewport>-<before|after>-<CODE_HEAD8>.png` form (verified
+    below by SHA-256 — the committed bytes are identical to the tool's own
+    output bytes, not re-encoded or re-touched).
+  - the 2 JSONs had exactly two string fields hand-edited post-capture: the
+    top-level `label` (`raw-before-r12` -> `before-78607828`, and
+    `raw-after-r12` -> `after-78607828`) and, per viewport, the `screenshot`
+    field (renamed to match the renamed PNG, e.g.
+    `raw-before-r12-1440x900.png` -> `1440x900-before-78607828.png`). NO
+    other field in either JSON was touched — `capturedAtHead`, `port`, and
+    every measurement value (`mobilebar`, `mobilebarZIndexCascade`,
+    `finPane`, `finHead`, `menuButton`, `menuHitTest`,
+    `mobilebarOverlapsFinPane`, `finHeadCoveredByMobilebar`) are exactly the
+    tool's own raw output. This is provable without trusting this sentence:
+    the tool's raw, unedited stdout for both runs is appended verbatim below
+    (RAW TOOL STDOUT section) — diff it against the committed
+    measurement-{before,after}-78607828.json and the only differences are
+    the two renamed fields per file.
+
+=== Byte-identity disclosure (MAJOR-2 repair) ===
+All four committed PNGs are byte-identical (SHA-256) to this round's freshly
+captured PNGs, AND to the round-9 (a92330aa) committed PNGs that round-11
+renamed without recapturing:
+  1440x900-before-78607828.png  sha256 55438d6e92e3de68fe742c4690426c75d03d8a75f9396d196f82d6b3729dd6bf
+  1440x900-after-78607828.png   sha256 55438d6e92e3de68fe742c4690426c75d03d8a75f9396d196f82d6b3729dd6bf
+  390x844-before-78607828.png   sha256 b4e0970357537212d1a4c2e6a97e778af8073e8cb3a1f299c5c02b22042baeb4
+  390x844-after-78607828.png    sha256 6c53cae872cc9877c371b7520250a6086f84289780ddac7836f6329f211bdd03
+This is EXPECTED, not a red flag masked by a rename: the only render-affecting
+diff between round-9's capture head (a92330aa) and this round's CODE_HEAD
+(78607828) is a one-line CSS *comment* wording change
+(`git diff --stat a92330aa 78607828 -- terminal/app/globals.css` = `1 file
+changed, 1 insertion(+), 1 deletion(-)`, the comment-only "collision" ->
+"stacking conflict" edit from the r5 ruling's minor-3). Nothing else in the
+rendered surface changed, so a deterministic headless Chromium render
+produces identical pixels across three independent capture passes (round 9's
+original run, and this round's genuinely fresh run against a newly started
+dev server, PIDs unrelated to any earlier round). The two measurement JSONs
+differ from the previously committed ones by exactly one field each (`port`:
+3195 -> 3196, the free local port this run happened to bind) — every other
+value, including the full `mobilebarZIndexCascade`, is identical, which is
+the same "real fix, deterministic render" result, not reused bytes.
+
+390x844 (the fix's target breakpoint, @media max-width:860px), reproduced
+this round:
+  .mobilebar z-index          1  -> 95
+  .fin-pane--workspace top    0px -> 52px
+  mobilebarOverlapsFinPane    true -> false
+  Menu hit-test               svg (not the button) -> path inside the button (is the button)
+  (Pixel-diff-vs-BEFORE-crop numbers are unchanged from the prior round's
+  log, since the PNGs are byte-identical to that round's: mean 19.1/255,
+  37.7% of pixels differ by >8/255 — a real, visible difference matching the
+  fix.)
+
+1440x900 (desktop, >860px, where the CSS override is media-gated and never
+applies): .mobilebar stays display:none (0x0 box) in both runs;
+.fin-pane--workspace bounding box is identical in both runs
+({x:60,y:112,w:1380,h:760}). The two 1440x900 PNGs are byte-identical (see
+SHA-256 above) — reported as-is: the fix has no effect at this viewport BY
+DESIGN (media-gated at max-width:860px), and BEFORE/AFTER were still captured
+independently, ~29 seconds apart (01:31:10Z vs 01:31:45Z... measurement start
+times), against two separately started dev server processes.
+
+=== RAW TOOL STDOUT (unedited, exactly what the tool printed) ===
+
+--- raw-before-r12 (BEFORE run) ---
+[raw-before-r12] 1440x900
+{
+  "mobilebar": {
+    "zIndex": "1",
+    "position": "relative",
+    "top": "auto",
+    "rect": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0,
+      "top": 0,
+      "bottom": 0,
+      "left": 0,
+      "right": 0
+    }
+  },
+  "mobilebarZIndexCascade": [
+    {
+      "selector": ".mobilebar",
+      "zIndex": "30"
+    },
+    {
+      "selector": ".obs-ambient > *",
+      "zIndex": "1"
+    }
+  ],
+  "finPane": {
+    "zIndex": "1",
+    "position": "relative",
+    "top": "0px",
+    "rect": {
+      "x": 60,
+      "y": 112,
+      "width": 1380,
+      "height": 760,
+      "top": 112,
+      "bottom": 872,
+      "left": 60,
+      "right": 1440
+    }
+  },
+  "finHead": {
+    "zIndex": "auto",
+    "position": "static",
+    "top": "auto",
+    "rect": {
+      "x": 60,
+      "y": 112,
+      "width": 1380,
+      "height": 52,
+      "top": 112,
+      "bottom": 164,
+      "left": 60,
+      "right": 1440
+    }
+  },
+  "menuButton": {
+    "zIndex": "auto",
+    "position": "static",
+    "top": "auto",
+    "rect": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0,
+      "top": 0,
+      "bottom": 0,
+      "left": 0,
+      "right": 0
+    }
+  },
+  "menuHitTest": {
+    "hitElementTag": "HEADER",
+    "hitElementIsMenuButton": false
+  },
+  "mobilebarOverlapsFinPane": false,
+  "finHeadCoveredByMobilebar": false,
+  "screenshot": "raw-before-r12-1440x900.png"
+}
+[raw-before-r12] 390x844
+{
+  "mobilebar": {
+    "zIndex": "1",
+    "position": "relative",
+    "top": "0px",
+    "rect": {
+      "x": 0,
+      "y": 0,
+      "width": 390,
+      "height": 52,
+      "top": 0,
+      "bottom": 52,
+      "left": 0,
+      "right": 390
+    }
+  },
+  "mobilebarZIndexCascade": [
+    {
+      "selector": ".mobilebar",
+      "zIndex": "30"
+    },
+    {
+      "selector": ".obs-ambient > *",
+      "zIndex": "1"
+    }
+  ],
+  "finPane": {
+    "zIndex": "90",
+    "position": "fixed",
+    "top": "0px",
+    "rect": {
+      "x": 0,
+      "y": 0,
+      "width": 390,
+      "height": 844,
+      "top": 0,
+      "bottom": 844,
+      "left": 0,
+      "right": 390
+    }
+  },
+  "finHead": {
+    "zIndex": "auto",
+    "position": "static",
+    "top": "auto",
+    "rect": {
+      "x": 0,
+      "y": 0,
+      "width": 390,
+      "height": 52,
+      "top": 0,
+      "bottom": 52,
+      "left": 0,
+      "right": 390
+    }
+  },
+  "menuButton": {
+    "zIndex": "auto",
+    "position": "static",
+    "top": "auto",
+    "rect": {
+      "x": 8,
+      "y": 5.5,
+      "width": 40,
+      "height": 40,
+      "top": 5.5,
+      "bottom": 45.5,
+      "left": 8,
+      "right": 48
+    }
+  },
+  "menuHitTest": {
+    "hitElementTag": "svg",
+    "hitElementIsMenuButton": false
+  },
+  "mobilebarOverlapsFinPane": true,
+  "finHeadCoveredByMobilebar": true,
+  "screenshot": "raw-before-r12-390x844.png"
+}
+
+Wrote /tmp/proof-r12/raw-before-r12.json
+
+--- raw-after-r12 (AFTER run) ---
+[raw-after-r12] 1440x900
+{
+  "mobilebar": {
+    "zIndex": "95",
+    "position": "relative",
+    "top": "auto",
+    "rect": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0,
+      "top": 0,
+      "bottom": 0,
+      "left": 0,
+      "right": 0
+    }
+  },
+  "mobilebarZIndexCascade": [
+    {
+      "selector": ".mobilebar",
+      "zIndex": "30"
+    },
+    {
+      "selector": ".obs-ambient > *",
+      "zIndex": "1"
+    },
+    {
+      "selector": ".analysis-route .mobilebar",
+      "zIndex": "95"
+    }
+  ],
+  "finPane": {
+    "zIndex": "1",
+    "position": "relative",
+    "top": "0px",
+    "rect": {
+      "x": 60,
+      "y": 112,
+      "width": 1380,
+      "height": 760,
+      "top": 112,
+      "bottom": 872,
+      "left": 60,
+      "right": 1440
+    }
+  },
+  "finHead": {
+    "zIndex": "auto",
+    "position": "static",
+    "top": "auto",
+    "rect": {
+      "x": 60,
+      "y": 112,
+      "width": 1380,
+      "height": 52,
+      "top": 112,
+      "bottom": 164,
+      "left": 60,
+      "right": 1440
+    }
+  },
+  "menuButton": {
+    "zIndex": "auto",
+    "position": "static",
+    "top": "auto",
+    "rect": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0,
+      "top": 0,
+      "bottom": 0,
+      "left": 0,
+      "right": 0
+    }
+  },
+  "menuHitTest": {
+    "hitElementTag": "HEADER",
+    "hitElementIsMenuButton": false
+  },
+  "mobilebarOverlapsFinPane": false,
+  "finHeadCoveredByMobilebar": false,
+  "screenshot": "raw-after-r12-1440x900.png"
+}
+[raw-after-r12] 390x844
+{
+  "mobilebar": {
+    "zIndex": "95",
+    "position": "relative",
+    "top": "0px",
+    "rect": {
+      "x": 0,
+      "y": 0,
+      "width": 390,
+      "height": 52,
+      "top": 0,
+      "bottom": 52,
+      "left": 0,
+      "right": 390
+    }
+  },
+  "mobilebarZIndexCascade": [
+    {
+      "selector": ".mobilebar",
+      "zIndex": "30"
+    },
+    {
+      "selector": ".obs-ambient > *",
+      "zIndex": "1"
+    },
+    {
+      "selector": ".analysis-route .mobilebar",
+      "zIndex": "95"
+    }
+  ],
+  "finPane": {
+    "zIndex": "90",
+    "position": "fixed",
+    "top": "52px",
+    "rect": {
+      "x": 0,
+      "y": 52,
+      "width": 390,
+      "height": 792,
+      "top": 52,
+      "bottom": 844,
+      "left": 0,
+      "right": 390
+    }
+  },
+  "finHead": {
+    "zIndex": "auto",
+    "position": "static",
+    "top": "auto",
+    "rect": {
+      "x": 0,
+      "y": 52,
+      "width": 390,
+      "height": 52,
+      "top": 52,
+      "bottom": 104,
+      "left": 0,
+      "right": 390
+    }
+  },
+  "menuButton": {
+    "zIndex": "auto",
+    "position": "static",
+    "top": "auto",
+    "rect": {
+      "x": 8,
+      "y": 5.5,
+      "width": 40,
+      "height": 40,
+      "top": 5.5,
+      "bottom": 45.5,
+      "left": 8,
+      "right": 48
+    }
+  },
+  "menuHitTest": {
+    "hitElementTag": "path",
+    "hitElementIsMenuButton": true
+  },
+  "mobilebarOverlapsFinPane": false,
+  "finHeadCoveredByMobilebar": false,
+  "screenshot": "raw-after-r12-390x844.png"
+}
+
+Wrote /tmp/proof-r12/raw-after-r12.json
