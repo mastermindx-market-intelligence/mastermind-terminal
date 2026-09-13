@@ -65,6 +65,8 @@ rows each record their own date — `0011`'s DDL was applied 2026-09-05
 | `0019_team_role_changes.sql` | `team_role_changes` table + `log_team_role_change()` / `team_member_names()` + replaced `tm_insert_admin` / `tm_update_admin` / `tm_delete_admin` / `ti_insert_admin` | yes — applied 2026-09-11 (Meta-CEO B; merged as `3cdcd746` in PR #550; readback receipt on PR #550 comment `5630176327`) |
 | `0020_team_ownership_transfer.sql` | `transfer_team_ownership(uuid, uuid)` — atomic demote-then-promote ownership transfer | yes — applied 2026-09-11 (Meta-CEO B; merged as `3cdcd746` in PR #550, originated in PR #557; readback receipt on PR #550 comment `5630176327`) |
 | `0021_resource_grants.sql` | `resource_grants` table + `has_active_grant()`/`owns_watchlist()`/`resource_grants_guard()` + RLS on `watchlists`/`watchlist_symbols` (explicit grants, packet B-F12-B5-1) | yes — applied 2026-09-11 (Meta-CEO B; merged as `bad423f5` in PR #548, after `0019`/`0020` in ledger order; readback receipt on PR #548 comment `5630176531`) |
+| `0022_chart_layouts_team_sharing.sql` | adds `team_id` + `visibility` columns + `chart_layouts_visibility_ck` + `chart_layouts_share_shape_ck` constraints + `chart_layouts_team` + `chart_layouts_team_name` indexes + 6 RLS policies (`chart_layouts_team_read/update/delete` + `chart_layouts_share_insert/update/delete_guard`) on `public.chart_layouts` (team-shared saved workspaces, packet B-F12-B5-2) | yes — applied 2026-09-13 (Meta-CEO B; merged as `6cdbaa0a8` in PR #555, after `0019`/`0020`/`0021` in ledger order; readback receipt held in the seat's handoff kit at `ddl/receipt_0022.json`; the project ref is never written) |
+| `0023_portfolio_targets.sql` | `portfolio_targets` table + RLS + `portfolio_targets_user` index + 4 RLS policies (`portfolio_targets_select/insert/update/delete_own`) (portfolio target weights + bands, user-typed, packet B-F08-B5-1) | yes — applied 2026-09-13 (Meta-CEO B; merged as `9022e0138` in PR #552, after `0019`/`0020`/`0021`/`0022` in ledger order; readback receipt held in the seat's handoff kit at `ddl/receipt_0023.json`; the project ref is never written) |
 
 **Which prefixes carry a vitest ledger pin.** Every prefix from `0017` to `0023` now has a vitest contract under `terminal/lib/__tests__/` that reads `RESERVATIONS.json` and asserts its row's `state`, `pr`, `pr_state`, `merged_sha` and applied fields, plus the agreement between that row and the `-- Ledger row:` header line of the `.sql` it names: `0017` in `personalAccuracyMigrationContract.test.ts`, `0021` in `resourceGrantsMigrationContract.test.ts`, and `0018`, `0019`, `0020`, `0022` and `0023` in the `*LedgerContract.test.ts` files added beside them. They are a second reader, not the authority: `tests/test_supabase_migration_namespace.py` remains the **primary** pin — it is what CI's python job runs, it carries the STRICT / PULL_REQUEST / LENIENT scope rules described below, and it covers every prefix in this ledger, including the ones below `0017` that no vitest file names.
 
@@ -199,8 +201,8 @@ amendment, only a README edit.
 | `0019` | `team_role_changes` | PR #550 (merged as `3cdcd746` on 2026-09-11, packet B-F12-8; owner / administrator / member roles v1) | merged + applied 2026-09-11 (readback receipt on PR #550 comment `5630176327`) |
 | `0020` | `team_ownership_transfer` | PR #550 (merged as `3cdcd746` on 2026-09-11, packet B-F12-9; atomic ownership transfer v1; originated in PR #557 and squash-merged into #550's branch at `29257a43`). Seat ruled 0020; the spec's claim of 0019 is superseded because 0019 is B-F12-8. | merged + applied 2026-09-11 (readback receipt on PR #550 comment `5630176327`) |
 | `0021` | `resource_grants` | PR #548 (merged as `bad423f5` on 2026-09-11, packet B-F12-B5-1 explicit grants; prefix ruled by the seat 2026-09-09) | merged + applied 2026-09-11 (readback receipt on PR #548 comment `5630176531`) |
-| `0022` | `chart_layouts_team_sharing` | PR #555 (merged as `6cdbaa0a8` on 2026-09-09, packet B-F12-B5-2) | merged — not applied |
-| `0023` | `portfolio_targets` | PR #552 (merged as `9022e0138` on 2026-09-10, packet B-F08-B5-1) | merged — not applied |
+| `0022` | `chart_layouts_team_sharing` | PR #555 (merged as `6cdbaa0a8` on 2026-09-09, packet B-F12-B5-2) | merged + applied 2026-09-13 (readback receipt held in the seat's handoff kit at `ddl/receipt_0022.json`; the project ref is never written) |
+| `0023` | `portfolio_targets` | PR #552 (merged as `9022e0138` on 2026-09-10, packet B-F08-B5-1) | merged + applied 2026-09-13 (readback receipt held in the seat's handoff kit at `ddl/receipt_0023.json`; the project ref is never written) |
 
 `0001`–`0007` and `0010` are **historical**: they predate this ledger, their creating pull
 requests were never recorded in-repo, and so their `pr` and `pr_state` fields in
@@ -229,8 +231,10 @@ applied both that morning in ledger order — `0019` at 05:58:15Z, `0020` at 05:
 single readback receipt (PR #550, comment `5630176327`). `0021` (explicit grants, packet
 B-F12-B5-1) merged to `master` as `bad423f5` on 2026-09-11 and was applied straight after them at
 05:59:15Z (readback receipt on PR #548, comment `5630176531`). `0022` (team-shared saved
-workspaces) and `0023` (portfolio targets) merged before `0021` but are on `master` and still
-**not applied**. That is what separates
+workspaces) and `0023` (portfolio targets) merged before `0021`; on 2026-09-13 the seat applied
+them in ledger order — `0022` at 06:57:09Z, `0023` at 06:57:13Z — under readback receipts held in
+the seat's handoff kit (`ddl/receipt_0022.json`, `ddl/receipt_0023.json`); the project ref is never
+written. That is what separates
 `reserved` from `taken` — `taken` means a real file exists (in this checkout or in an open PR);
 `reserved` means only the number and the owner are settled. As
 with every prefix in this ledger, the seat applies DDL **in ledger order** — never ahead of a
@@ -241,7 +245,7 @@ on 2026-09-08, and `0016` only after both, on 2026-09-09, is the worked example 
 but could not be applied until `0019` and `0020` had landed and been applied, which is why its
 apply stamp sits 41 seconds after `0020`'s.
 
-`0001`–`0021` have reached production (DDL applied): `0001`–`0010` per the application-status
+`0001`–`0023` have reached production (DDL applied): `0001`–`0010` per the application-status
 table above, `0011` via its corrective DDL applied live on 2026-09-05 via the management API
 (readback receipt posted 2026-09-06, recorded on PR #507, ahead of `0011`'s own file landing on
 `master`), `0012` merged to `master` as `d4556962` with its DDL applied 2026-09-06 (Meta-CEO B,
@@ -263,9 +267,11 @@ on 2026-09-10 with its DDL applied the same day (readback receipt on PR #547 com
 `3cdcd746`, on 2026-09-11 and had their DDL applied the same morning — `0019` at 05:58:15Z, then
 `0020` at 05:58:34Z, under one readback receipt (PR #550 comment `5630176327`) — and `0021`
 (PR #548, `bad423f5`) followed at 05:59:15Z (readback receipt on PR #548 comment `5630176531`);
-merged = yes, applied = yes for all three. `0022` and `0023` are on `master` and wait their turn
-in ledger order. The "in production?" table and the Reservations table above now agree on `0013`
-through `0021`.
+merged = yes, applied = yes for all three. `0022` (PR #555, `6cdbaa0a8`) and `0023` (PR #552,
+`9022e0138`) had their DDL applied on 2026-09-13 — `0022` at 06:57:09Z, then `0023` at
+06:57:13Z, under readback receipts held in the seat's handoff kit (`ddl/receipt_0022.json`,
+`ddl/receipt_0023.json`); the project ref is never written; merged = yes, applied = yes for both.
+The "in production?" table and the Reservations table above now agree on `0013` through `0023`.
 
 This table is re-verified at merge time, not just at the moment this pull request opened. A later
 reader should re-run the same open-pull-request query rather than trust these owner cells past
