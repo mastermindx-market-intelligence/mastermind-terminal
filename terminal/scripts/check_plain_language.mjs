@@ -63,6 +63,7 @@ export const PLAIN_VOCABULARY = {
     "trustTierLabel(", "regimeLabel(", "planTierLabel(", "classicCategoryLabel(",
     "macroChipLabel(", "mappedOrNeutral(", "notClassified(", "t(", "tPlain(", "pick(", "LEX[",
     "webhookDeliveryStatusLabel(", "webhookEnabledLabel(", "webhookCopy(", "webhookRelativeTime(",
+    "apiKeyCopy(",
   ],
   allowTokens: ["RSI", "MACD", "ETF", "NAV", "AI", "API", "USD", "HKD", "CNY"],
 };

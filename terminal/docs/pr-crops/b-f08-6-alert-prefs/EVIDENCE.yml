@@ -6,13 +6,13 @@
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/components/settings/SectionAlertDelivery.tsx: "9c770be9ef78bc2bb9f1fa3c0b21824632ba63bc061f852264e3bc412d719aa0"
-  terminal/components/settings/SettingsPanel.tsx: "a85d87b53f3982131744af3e6fe3d3c165818e4a787790d918e6d84eac279f5a"
-  terminal/components/settings/icons.tsx: "5c809c869e036d48a09f0586f954b2855a06c8302c99267a3c6dda94424c8adb"
-  terminal/lib/i18n.tsx: "b1376a5e152b77bf5d18e6634dd78ff489b09b3411f59e08c2e5c5ec988fd1c3"
+  terminal/components/settings/SettingsPanel.tsx: "67657d686f304adf292d263007701852fa2bc28cd7f4dabbeca92d7453884eed"
+  terminal/components/settings/icons.tsx: "2611fcf38aed2595c976386d5510d44b62fb1b86cb0f11b46717e4b0a3dae510"
+  terminal/lib/i18n.tsx: "271f79cdcde627b22b9ba864227a24221f98a262ceef64a228d520155b8f68c7"
   terminal/lib/plainLabels.ts: "9e88f214f16f711c9e0ce4ae84201c027158ac2c6b5bfcc2592e6dce1d6c21be"
   terminal/app/settings.css: "3189163136d943431cbf52e4b5d241c105b695ba5af94c4c2e29151d537b5ef5"
-  terminal/components/settings/SettingsProvider.tsx: "916cd199d787a7ca05fe9cc9b50f4cf5e616c6bfe71712f734b38b4d8686d265"
-  terminal/app/dev/settings/page.tsx: "d6457521c0b53da4608c3f2be3493e659f7ed5f9fdf7d060e8779bc47c441488"
+  terminal/components/settings/SettingsProvider.tsx: "097dc689f3794e0cb7c05588bbc3bdfd473f313c1c66676bb4f4fd564db8c919"
+  terminal/app/dev/settings/page.tsx: "2a2c0f7db2e679158df3486b7ade6c0339d547311f7f1bec08442fe0d2c4d911"
 theme: dark
 languages: [en, zh]
 viewports:
