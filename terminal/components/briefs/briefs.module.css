@@ -1,0 +1,67 @@
+/* Brief subscribe controls. Inbox list reuses alerts.module.css (B-F08-3). */
+
+.controls {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg, 10px);
+  background: var(--panel-2, var(--panel));
+}
+.controlsHead {
+  font: 700 11px/1.2 var(--font-ui);
+  color: var(--muted);
+  letter-spacing: .04em;
+}
+.cadenceRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.cadenceRow p {
+  margin: 0;
+  flex: 1;
+  min-width: 12ch;
+  font: 500 13px/1.45 var(--font-ui);
+  color: var(--text);
+}
+.cadenceRow button {
+  min-height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 7px 12px;
+  color: inherit;
+  background: var(--panel);
+  font: 700 12px/1.2 var(--font-ui);
+  cursor: pointer;
+}
+.cadenceRow button[data-state="active"] {
+  border-color: color-mix(in srgb, var(--up, #26c281) 50%, var(--line));
+}
+.cadenceRow button[data-state="paused"] {
+  border-color: color-mix(in srgb, var(--warn, #e6b450) 50%, var(--line));
+}
+@media (pointer: coarse) {
+  .cadenceRow button { min-height: 44px; }
+}
+
+.emailNull {
+  margin: 8px 0 0;
+  font: 500 12px/1.5 var(--font-ui);
+  color: var(--muted);
+  max-width: 52ch;
+}
+
+.pinned {
+  font: 700 10px/1.2 var(--font-num);
+  letter-spacing: .08em;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+.sentence {
+  flex: 1;
+  color: var(--text-2, var(--text));
+}
