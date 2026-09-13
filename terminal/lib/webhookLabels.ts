@@ -38,6 +38,7 @@ export function webhookDeliveryStatusLabel(
 // writing the customer-facing name is a red test, not a silently wrong row.
 export const WEBHOOK_EVENT_TYPE_LABEL = {
   "webhook.test": ["Test event", "测试事件"],
+  "alert.fired": ["Alert fired", "提醒已触发"],
 } as const;
 
 export type WebhookEventType = keyof typeof WEBHOOK_EVENT_TYPE_LABEL;
@@ -192,7 +193,51 @@ export const WEBHOOK_COPY = {
   hoursAgo: ["hours ago", "小时前"],
   dayAgo: ["day ago", "天前"],
   daysAgo: ["days ago", "天前"],
+  alertFires: ["Alert fires", "提醒触发"],
+  consentTitle: ["Alert fires from your account", "你账户的提醒触发"],
+  consentToggle: [
+    "Send my alert fires to this team's webhooks",
+    "把我的提醒触发发送到这个团队的 Webhook",
+  ],
+  consentHelp: [
+    "Only your own alerts, and only to endpoints that subscribe to alert fires. You can turn this off at any time.",
+    "只包括你自己的提醒，且只发送到订阅了提醒触发的端点。你可以随时关闭。",
+  ],
+  rotateSecret: ["Rotate secret", "更换签名密钥"],
+  rotateHelp: [
+    "The old secret keeps working for 24 hours, so you can switch your receiver without missing a delivery.",
+    "旧密钥在 24 小时内继续有效，你可以在不漏掉任何送达的情况下切换接收端。",
+  ],
+  keyVersionRotated: ["Key version {n}, rotated {date}", "密钥版本 {n}，更换于 {date}"],
+  keyVersionNever: ["Key version {n}", "密钥版本 {n}"],
+  sendAgain: ["Send again", "重新发送"],
+  queuedAgain: ["Queued again.", "已重新排队。"],
+  rotateFailed: [
+    "We could not rotate this endpoint's signing secret just now.",
+    "我们暂时无法更换该端点的签名密钥。",
+  ],
+  requeueFailed: [
+    "We could not queue this delivery again just now.",
+    "我们暂时无法重新排队发送这条记录。",
+  ],
+  optinFailed: [
+    "We could not save your alert-fire setting just now.",
+    "我们暂时无法保存你的提醒触发设置。",
+  ],
 } as const;
+
+export function webhookKeyVersionLine(
+  version: number,
+  rotatedAt: string | null | undefined,
+  lang: PlainLang,
+  nowMs = Date.now(),
+): string {
+  if (!rotatedAt) {
+    return webhookCopy("keyVersionNever", lang).replace("{n}", String(version));
+  }
+  const date = webhookRelativeTime(rotatedAt, lang, nowMs);
+  return webhookCopy("keyVersionRotated", lang).replace("{n}", String(version)).replace("{date}", date);
+}
 
 export function webhookCopy(key: keyof typeof WEBHOOK_COPY, lang: PlainLang): string {
   const pair = WEBHOOK_COPY[key];

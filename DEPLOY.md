@@ -91,31 +91,62 @@ cd /opt/terminal/terminal && npx esbuild ../ingest/webhook_delivery.ts --bundle 
 
 #### How a receiver verifies a delivery
 
-Every request carries three headers:
+Every request carries these headers:
 
 ```
-Mastermind-Webhook-Id:        <delivery id, a uuid>
-Mastermind-Webhook-Timestamp: <unix seconds, integer>
-Mastermind-Webhook-Signature: v1=<hex>
+Mastermind-Webhook-Id:          <delivery id, a uuid>
+Mastermind-Webhook-Timestamp:   <unix seconds, integer>
+Mastermind-Webhook-Signature:   v1=<hex>
+Mastermind-Webhook-Key-Version: <integer secret version>
+Mastermind-Webhook-Event-Id:    <event id>
+Mastermind-Webhook-Event-Type:  <event type>
 ```
 
 `<hex>` is `HMAC-SHA256(secret, "<timestamp>.<raw request body>")`, lower-case
 hex, over the **exact bytes received** — parse the JSON only after verifying,
 never re-serialize first. `secret` is the value returned once when the endpoint
-was created (Settings → Webhooks); it is shown once and cannot be shown again,
-so a lost secret means registering a new endpoint.
+was created or when its signing secret was rotated (Settings → Webhooks); it is
+shown once and cannot be shown again, so a lost secret means rotating or
+registering a new endpoint.
+
+After a rotation the previous secret keeps working for 24 hours. During that
+window every delivery also carries:
+
+```
+Mastermind-Webhook-Signature-Previous: v1=<hex of the previous secret>
+```
+
+The current `Mastermind-Webhook-Signature` stays `v1=<hex>` so existing
+receivers keep verifying against the current secret. Switch the receiver to
+the new secret during those 24 hours; after the window the previous header is
+omitted.
+
+`Mastermind-Webhook-Event-Id` is the receiver-side idempotency key for the
+event (for an alert fire it equals the fire id). `Mastermind-Webhook-Id`
+stays the delivery id and is stable across retries of the same delivery.
+
+An `alert.fired` body uses schema tag `mastermind.alert-fired/v1` and these
+fields: `fire_event_id`, `alert_id`, `user_id`, `team_id`, `fired_at`,
+`ticker`, `subject`, `subject_zh`, `summary_plain`, `summary_plain_zh`,
+`condition_plain`, `condition_plain_zh`, `value`, `evidence_url`.
+
+A personal alert fire is posted to a team endpoint only when that endpoint is
+on, it is subscribed to alert fires, the firing user is a current member of
+the team, and that user has turned on sending their own alert fires to the
+team's webhooks.
 
 A receiver must:
 
 1. Read the raw body as bytes, before any JSON parsing.
 2. Recompute the HMAC and compare it to the header with a **timing-safe**
    comparison (`crypto.timingSafeEqual`, `hmac.compare_digest`) — never `==`.
+   During the 24-hour rotation window, accept a match on either the current
+   signature or the previous signature.
 3. **Reject if `|now − timestamp| > 300` seconds.** That 300-second replay
    window is what stops a captured request from being replayed later; the
-   signature alone never expires. The delivery id is stable across retries of
-   the same event, so a receiver that also wants exactly-once handling should
-   treat `Mastermind-Webhook-Id` as an idempotency key rather than widening
-   the window.
+   signature alone never expires. Prefer `Mastermind-Webhook-Event-Id` for
+   exactly-once handling of the event; `Mastermind-Webhook-Id` remains the
+   delivery id.
 4. Answer `2xx` to accept. Any other status, or no answer within 10 seconds,
    is retried at 1 min, 5 min, 30 min and 4 h; after the fifth attempt the
    delivery stops for good.

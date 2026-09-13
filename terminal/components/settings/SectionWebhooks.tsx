@@ -8,6 +8,7 @@ import {
   webhookDeliveryStatusLabel,
   webhookEnabledLabel,
   webhookEventTypeLabel,
+  webhookKeyVersionLine,
   webhookRelativeTime,
 } from "@/lib/webhookLabels";
 import { validateWebhookUrl } from "@/lib/webhookUrl";
@@ -19,6 +20,8 @@ type Endpoint = {
   url: string;
   enabled: boolean;
   eventFilter: string[];
+  secretVersion?: number;
+  secretRotatedAt?: string | null;
 };
 type Delivery = {
   id: string;
@@ -68,10 +71,14 @@ export default function SectionWebhooks({ t, lang, onClose }: SectionProps) {
   const [urlIn, setUrlIn] = useState("");
   const [teamNameIn, setTeamNameIn] = useState("");
   const [wantTest, setWantTest] = useState(true);
+  const [wantAlert, setWantAlert] = useState(false);
   const [busy, setBusy] = useState(false);
   const [formMsg, setFormMsg] = useState<{ text: string; kind: "ok" | "err" | "wait" } | null>(null);
   const [secret, setSecret] = useState<string | null>(null);
+  const [secretFromRotate, setSecretFromRotate] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [consentOn, setConsentOn] = useState(false);
+  const [consentState, setConsentState] = useState<LoadState>("loaded");
 
   const eligible = useMemo(
     () => (teams ?? []).filter((tm) => tm.role === "owner" || tm.role === "admin"),
@@ -154,11 +161,35 @@ export default function SectionWebhooks({ t, lang, onClose }: SectionProps) {
     }
   }, []);
 
+  const loadConsent = useCallback(async (id: string) => {
+    if (!id) {
+      setConsentOn(false);
+      setConsentState("loaded");
+      return;
+    }
+    setConsentState("loading");
+    try {
+      const r = await fetch(`/api/webhooks/alert-optin?teamId=${encodeURIComponent(id)}`);
+      const body = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        setConsentOn(false);
+        setConsentState("failed");
+        return;
+      }
+      setConsentOn(body.enabled === true);
+      setConsentState("loaded");
+    } catch {
+      setConsentOn(false);
+      setConsentState("failed");
+    }
+  }, [lang]);
+
   useEffect(() => { void loadTeams(); }, [loadTeams]);
   useEffect(() => {
     if (!teamId) return;
     void loadEndpoints(teamId);
-  }, [teamId, loadEndpoints]);
+    void loadConsent(teamId);
+  }, [teamId, loadEndpoints, loadConsent]);
   useEffect(() => {
     for (const ep of endpoints) void loadDeliveries(ep.id);
   }, [endpoints, loadDeliveries]);
@@ -180,7 +211,10 @@ export default function SectionWebhooks({ t, lang, onClose }: SectionProps) {
         body: JSON.stringify({
           teamId,
           url: urlIn.trim(),
-          event_filter: wantTest ? ["webhook.test"] : [],
+          event_filter: [
+            ...(wantTest ? ["webhook.test"] : []),
+            ...(wantAlert ? ["alert.fired"] : []),
+          ],
         }),
       });
       const body = await r.json().catch(() => ({}));
@@ -190,7 +224,10 @@ export default function SectionWebhooks({ t, lang, onClose }: SectionProps) {
         setFormMsg({ text: lang === "zh" ? body.messageZh || webhookCopy("saveFailed", lang) : body.message || webhookCopy("saveFailed", lang), kind: "err" });
         return;
       }
-      if (typeof body.secret === "string") setSecret(body.secret);
+      if (typeof body.secret === "string") {
+        setSecret(body.secret);
+        setSecretFromRotate(false);
+      }
       setUrlIn("");
       setFormMsg(null);
       await loadEndpoints(teamId);
@@ -244,6 +281,76 @@ export default function SectionWebhooks({ t, lang, onClose }: SectionProps) {
       await loadDeliveries(ep.id);
     } catch {
       setFormMsg({ text: writeFailedText(lang), kind: "err" });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function rotateSecret(ep: Endpoint) {
+    setBusy(true);
+    try {
+      const r = await fetch(`/api/webhooks/${encodeURIComponent(ep.id)}/rotate`, { method: "POST" });
+      const body = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        setFormMsg({ text: pickRouteText(body, lang, webhookCopy("rotateFailed", lang)), kind: "err" });
+        return;
+      }
+      if (typeof body.secret === "string") {
+        setSecret(body.secret);
+        setSecretFromRotate(true);
+        setCopied(false);
+      }
+      await loadEndpoints(teamId);
+    } catch {
+      setFormMsg({ text: webhookCopy("rotateFailed", lang), kind: "err" });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function sendAgain(ep: Endpoint, deliveryId: string) {
+    setBusy(true);
+    try {
+      const r = await fetch(
+        `/api/webhooks/${encodeURIComponent(ep.id)}/deliveries/${encodeURIComponent(deliveryId)}/retry`,
+        { method: "POST" },
+      );
+      const body = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        setFormMsg({ text: pickRouteText(body, lang, webhookCopy("requeueFailed", lang)), kind: "err" });
+        return;
+      }
+      setFormMsg({ text: webhookCopy("queuedAgain", lang), kind: "ok" });
+      await loadDeliveries(ep.id);
+    } catch {
+      setFormMsg({ text: webhookCopy("requeueFailed", lang), kind: "err" });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function toggleConsent() {
+    if (!teamId) return;
+    const previous = consentOn;
+    const next = !previous;
+    setConsentOn(next);
+    setBusy(true);
+    try {
+      const r = await fetch(`/api/webhooks/alert-optin?teamId=${encodeURIComponent(teamId)}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enabled: next }),
+      });
+      const body = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        setConsentOn(previous);
+        setFormMsg({ text: pickRouteText(body, lang, webhookCopy("optinFailed", lang)), kind: "err" });
+        return;
+      }
+      setConsentOn(body.enabled === true ? true : next);
+    } catch {
+      setConsentOn(previous);
+      setFormMsg({ text: webhookCopy("optinFailed", lang), kind: "err" });
     } finally {
       setBusy(false);
     }
@@ -339,7 +446,7 @@ export default function SectionWebhooks({ t, lang, onClose }: SectionProps) {
           </Group>
         ) : null}
 
-        {eligible.length > 1 ? (
+        {(teams ?? []).length > 1 ? (
           <Group title={webhookCopy("teamLabel", lang)}>
             <select
               className="acs-in"
@@ -347,7 +454,7 @@ export default function SectionWebhooks({ t, lang, onClose }: SectionProps) {
               value={teamId}
               onChange={(e) => setTeamId(e.target.value)}
             >
-              {eligible.map((tm) => (
+              {(teams ?? []).map((tm) => (
                 <option key={tm.id} value={tm.id}>{tm.name}</option>
               ))}
             </select>
@@ -357,6 +464,7 @@ export default function SectionWebhooks({ t, lang, onClose }: SectionProps) {
         {secret ? (
           <Group title={webhookCopy("secretTitle", lang)}>
             <Row desc={webhookCopy("secretOnce", lang)} />
+            {secretFromRotate ? <Row desc={webhookCopy("rotateHelp", lang)} /> : null}
             <input className="acs-in" type="text" readOnly value={secret} aria-label={webhookCopy("secretTitle", lang)} />
             <div className="acs-btns" style={{ justifyContent: "flex-start" }}>
               <button type="button" className="acs-btn primary" onClick={copySecret}>
@@ -383,6 +491,7 @@ export default function SectionWebhooks({ t, lang, onClose }: SectionProps) {
             />
             <button
               type="button"
+              id="wh-test-event"
               className="acs-check"
               aria-pressed={wantTest}
               onClick={() => setWantTest((v) => !v)}
@@ -391,12 +500,40 @@ export default function SectionWebhooks({ t, lang, onClose }: SectionProps) {
               <span className="box"><IconCheck /></span>
               {webhookCopy("testEvent", lang)}
             </button>
+            <button
+              type="button"
+              id="wh-alert-fires"
+              className="acs-check"
+              aria-pressed={wantAlert}
+              onClick={() => setWantAlert((v) => !v)}
+              style={{ marginTop: 6 }}
+            >
+              <span className="box"><IconCheck /></span>
+              {webhookCopy("alertFires", lang)}
+            </button>
             <Msg text={formMsg?.text || ""} kind={formMsg?.kind || "err"} />
             <div className="acs-btns" style={{ justifyContent: "flex-start" }}>
               <button type="button" className="acs-btn primary" onClick={() => void addEndpoint()} disabled={busy}>
                 {webhookCopy("add", lang)}
               </button>
             </div>
+          </Group>
+        ) : null}
+
+        {showEndpoints ? (
+          <Group title={webhookCopy("consentTitle", lang)}>
+            <button
+              type="button"
+              id="wh-consent-toggle"
+              className="acs-check"
+              aria-pressed={consentOn}
+              disabled={busy || consentState === "loading"}
+              onClick={() => void toggleConsent()}
+            >
+              <span className="box"><IconCheck /></span>
+              {webhookCopy("consentToggle", lang)}
+            </button>
+            <Row desc={webhookCopy("consentHelp", lang)} />
           </Group>
         ) : null}
 
@@ -429,10 +566,41 @@ export default function SectionWebhooks({ t, lang, onClose }: SectionProps) {
                       ) : undefined
                     }
                   />
+                  <div id={`wh-chips-${ep.id}`} style={{ display: "flex", flexWrap: "wrap", gap: 6, margin: "6px 0 4px" }}>
+                    {(ep.eventFilter.length ? ep.eventFilter : []).map((type) => (
+                      <span
+                        key={type}
+                        id={`wh-chip-${ep.id}-${type.replace(/[^a-z0-9]+/gi, "-")}`}
+                        style={{
+                          display: "inline-block",
+                          fontSize: 12,
+                          lineHeight: 1.3,
+                          padding: "2px 8px",
+                          borderRadius: 999,
+                          border: "1px solid var(--border)",
+                          color: "var(--text-2)",
+                        }}
+                      >
+                        {webhookEventTypeLabel(type, lang)}
+                      </span>
+                    ))}
+                  </div>
+                  <Row
+                    desc={webhookKeyVersionLine(ep.secretVersion ?? 1, ep.secretRotatedAt ?? null, lang)}
+                  />
                   {canWrite ? (
                     <div className="acs-btns" style={{ justifyContent: "flex-start" }}>
                       <button type="button" className="acs-btn ghost" onClick={() => void sendTest(ep)} disabled={busy || !ep.enabled}>
                         {webhookCopy("sendTest", lang)}
+                      </button>
+                      <button
+                        type="button"
+                        id={`wh-rotate-${ep.id}`}
+                        className="acs-btn ghost"
+                        onClick={() => void rotateSecret(ep)}
+                        disabled={busy}
+                      >
+                        {webhookCopy("rotateSecret", lang)}
                       </button>
                     </div>
                   ) : null}
@@ -469,6 +637,19 @@ export default function SectionWebhooks({ t, lang, onClose }: SectionProps) {
                             }
                           >
                             {cause ? <span className="acs-row-desc">{cause}</span> : null}
+                            {canWrite && d.status === "failed" ? (
+                              <div className="acs-btns" style={{ justifyContent: "flex-start", marginTop: 6 }}>
+                                <button
+                                  type="button"
+                                  id={`wh-retry-${d.id}`}
+                                  className="acs-btn ghost"
+                                  onClick={() => void sendAgain(ep, d.id)}
+                                  disabled={busy}
+                                >
+                                  {webhookCopy("sendAgain", lang)}
+                                </button>
+                              </div>
+                            ) : null}
                           </Row>
                         );
                       })
