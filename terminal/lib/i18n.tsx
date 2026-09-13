@@ -2779,6 +2779,16 @@ export const LEX: Record<string, [string, string]> = {
   wsTeamEmpty: ["Your team has not shared a workspace yet.", "你的团队还没有共享任何工作区。"],
   wsTeamReadOnly: ["Only an owner or an administrator can change a workspace the team shares.", "只有团队所有者或管理员才能修改团队共享的工作区。"],
   wsTakeCopy: ["Take your own copy", "复制一份到我的工作区"],
+  // Portfolio construction-targets settings section (MO-DELTA-003 / B-F08-13).
+  // Plain-language copy: no internal study names, no untranslated stats, no raw slugs.
+  // Settings mirrors the Holdings readout; it never trades, scores, or recommends.
+  acsPortfolioTargets: ["Portfolio targets", "组合目标权重"],
+  acsPortfolioTargetsSub: ["Your typed weight targets and drift, over the holdings you actually carry.", "针对你实际持有的仓位，查看你设定的目标权重与偏离度。"],
+  acsPortfolioTargetsLoading: ["Reading your targets…", "正在读取你的目标权重……"],
+  acsPortfolioTargetsUnreadable: ["Your targets could not be read just now. They will reappear when the read lands.", "目前无法读取你的目标权重。下次成功读取后会重新显示。"],
+  acsPortfolioTargetsEmptyTitle: ["No targets yet", "尚未设定目标权重"],
+  acsPortfolioTargetsEmptyBody: ["Targets are yours to set. Add one for any holding and the drift will appear here and on your holdings page.", "目标权重由你自行设定。任一持仓都可以添加，偏离度将同时显示在此处和持仓页。"],
+  acsPortfolioTargetsOpenHoldings: ["Open holdings page", "打开持仓页"],
 };
 
 // Non-hook LEX lookup for imperative contexts (e.g. chart legend meta assembled outside React render).
