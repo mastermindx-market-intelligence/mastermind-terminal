@@ -2,7 +2,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Group, Msg, Row, SectionHead } from "./icons";
 import { acsDate, type DevTeamFixture, type DevTeamMember, type SectionProps } from "./types";
-import { TEAM_ROUTE_MESSAGES, type TeamRole } from "@/lib/teams";
+import {
+  SETTING_MESSAGES,
+  TEAM_ROUTE_MESSAGES,
+  WORKSPACE_SETTING_COPY,
+  workspaceSettingDefaults,
+  type TeamRole,
+  type WorkspaceSettingKey,
+} from "@/lib/teams";
 import s from "./SectionTeam.module.css";
 
 type RosterMember = DevTeamMember;
@@ -128,6 +135,19 @@ export default function SectionTeam({
   const [loaded, setLoaded] = useState(Boolean(devTeam));
   const [newName, setNewName] = useState("");
   const [creating, setCreating] = useState(false);
+  // MO-PAID-083 workspace settings (MO-B F12-13): the section holds the closed defaults locally
+  // and reconciles with /api/teams/<id>/settings on load. Defaults are filled in for absent keys;
+  // unknown stored keys are dropped (the route never echoes them either).
+  const defaults = workspaceSettingDefaults();
+  const [chartTheme, setChartTheme] = useState<string>(
+    devTeam?.settings?.default_chart_theme ?? (defaults[0].value as string),
+  );
+  const [shareLayouts, setShareLayouts] = useState<boolean>(
+    devTeam?.settings?.share_layouts_by_default ?? (defaults[1].value as boolean),
+  );
+  const [settingsLoaded, setSettingsLoaded] = useState(Boolean(devTeam));
+  const [settingsBusyKey, setSettingsBusyKey] = useState<WorkspaceSettingKey | null>(null);
+  const [settingsMsg, setSettingsMsg] = useState<{ key: WorkspaceSettingKey; kind: "ok" | "err"; text: string } | null>(null);
 
   useEffect(() => {
     if (transfer) {
@@ -256,6 +276,88 @@ export default function SectionTeam({
       cancelled = true;
     };
   }, [devTeam, loadLive]);
+
+  // MO-PAID-083 — fetch the team's two workspace settings whenever the live roster identifies a
+  // team. The dev harness has no Supabase session, so the devTeam fixture already carries the
+  // values and this effect is skipped (R4).
+  const loadSettings = useCallback(async () => {
+    if (devTeam) return;
+    const currentTeamId = (() => {
+      try {
+        return JSON.parse(window.localStorage.getItem("mm.lastTeamId") || "null");
+      } catch {
+        return null;
+      }
+    })();
+    // The team id is the freshly loaded team. If the roster fetch failed we never reach here.
+    if (!teamId) return;
+    void currentTeamId;
+    try {
+      const res = await fetch(`/api/teams/${encodeURIComponent(teamId)}/settings`);
+      const body = (await res.json().catch(() => ({}))) as {
+        settings?: Array<{ key: WorkspaceSettingKey; value: string | boolean; updatedAt?: string | null }>;
+      };
+      if (!res.ok) return;
+      const next = body.settings || [];
+      const theme = next.find((r) => r.key === "default_chart_theme");
+      const share = next.find((r) => r.key === "share_layouts_by_default");
+      if (theme && (theme.value === "green_up" || theme.value === "red_up")) setChartTheme(theme.value);
+      if (share && typeof share.value === "boolean") setShareLayouts(share.value);
+    } catch {
+      // A network failure here must not flash a settings error — the roster already names it.
+    } finally {
+      setSettingsLoaded(true);
+    }
+  }, [devTeam, teamId]);
+
+  useEffect(() => {
+    if (devTeam) return;
+    if (!loaded) return;
+    if (!teamId) {
+      // Zero-team state hides the whole block; do not paint a half-state.
+      setSettingsLoaded(true);
+      return;
+    }
+    void loadSettings();
+  }, [devTeam, loaded, teamId, loadSettings]);
+
+  async function patchSetting(key: WorkspaceSettingKey, value: string | boolean) {
+    if (devTeam) {
+      // Dev harness never hits the network (R4). Reflect the change locally so the crops depict
+      // the persisted state, not the optimistic flip.
+      if (key === "default_chart_theme") setChartTheme(value as string);
+      if (key === "share_layouts_by_default") setShareLayouts(value as boolean);
+      const text = lang === "zh" ? SETTING_MESSAGES.saved[1] : SETTING_MESSAGES.saved[0];
+      setSettingsMsg({ key, kind: "ok", text });
+      return;
+    }
+    if (!teamId) return;
+    setSettingsBusyKey(key);
+    setSettingsMsg(null);
+    try {
+      const res = await fetch(`/api/teams/${encodeURIComponent(teamId)}/settings`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key, value }),
+      });
+      const body = (await res.json().catch(() => ({}))) as { message?: unknown; messageZh?: unknown };
+      if (!res.ok) {
+        const message =
+          routeMessage(body, lang) ||
+          (lang === "zh" ? SETTING_MESSAGES.unavailable[1] : SETTING_MESSAGES.unavailable[0]);
+        setSettingsMsg({ key, kind: "err", text: message });
+        return;
+      }
+      if (key === "default_chart_theme" && typeof value === "string") setChartTheme(value);
+      if (key === "share_layouts_by_default" && typeof value === "boolean") setShareLayouts(value);
+      setSettingsMsg({ key, kind: "ok", text: routeMessage(body, lang) || (lang === "zh" ? SETTING_MESSAGES.saved[1] : SETTING_MESSAGES.saved[0]) });
+    } catch {
+      const text = lang === "zh" ? SETTING_MESSAGES.unavailable[1] : SETTING_MESSAGES.unavailable[0];
+      setSettingsMsg({ key, kind: "err", text });
+    } finally {
+      setSettingsBusyKey(null);
+    }
+  }
 
   function rowError(target: RosterMember, message: string): string {
     const name = displayLabel(target, t);
@@ -688,6 +790,87 @@ export default function SectionTeam({
             </p>
           ) : null}
         </Group>
+
+        {/* MO-PAID-083 — Team settings block. Painted only when a team is loaded (R3), so the
+            zero-team state hides this block the same way it hides the roster. Members see the
+            values as plain sentences plus the owner-only sentence; owners/admins get the two
+            controls. The dev harness carries the values on the fixture and never calls fetch. */}
+        {!noTeam && teamId && loaded && settingsLoaded ? (
+          <Group title={WORKSPACE_SETTING_COPY.heading[lang === "zh" ? 1 : 0]}>
+            <div className={s.settings} data-testid="team-settings">
+              <p className="acs-note" data-testid="team-settings-chart-caption">
+                {WORKSPACE_SETTING_COPY.caption.default_chart_theme[lang === "zh" ? 1 : 0]}
+              </p>
+              {callerRole === "owner" || callerRole === "admin" ? (
+                <select
+                  className={s.settingsSelect}
+                  data-testid="team-settings-chart"
+                  disabled={settingsBusyKey === "default_chart_theme"}
+                  value={chartTheme}
+                  onChange={(event) => void patchSetting("default_chart_theme", event.target.value)}
+                >
+                  {WORKSPACE_SETTING_COPY.options.chart_theme.map(([en, zh]) => (
+                    <option key={en} value={en.startsWith("Green") ? "green_up" : "red_up"}>
+                      {lang === "zh" ? zh : en}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <p className={s.settingsValue} data-testid="team-settings-readonly">
+                  {chartTheme === "green_up"
+                    ? WORKSPACE_SETTING_COPY.options.chart_theme[0][lang === "zh" ? 1 : 0]
+                    : WORKSPACE_SETTING_COPY.options.chart_theme[1][lang === "zh" ? 1 : 0]}
+                </p>
+              )}
+              {settingsMsg?.key === "default_chart_theme" && settingsMsg.kind === "ok" ? (
+                <p className={s.settingsMsg} data-testid="team-settings-msg" data-msg-kind="ok">{settingsMsg.text}</p>
+              ) : null}
+              {settingsMsg?.key === "default_chart_theme" && settingsMsg.kind === "err" ? (
+                <p className={s.settingsMsg} data-testid="team-settings-msg" data-msg-kind="err">{settingsMsg.text}</p>
+              ) : null}
+
+              <p className="acs-note" data-testid="team-settings-share-caption">
+                {WORKSPACE_SETTING_COPY.caption.share_layouts_by_default[lang === "zh" ? 1 : 0]}
+              </p>
+              {callerRole === "owner" || callerRole === "admin" ? (
+                <label className={s.settingsSwitch} data-testid="team-settings-share">
+                  <input
+                    type="checkbox"
+                    disabled={settingsBusyKey === "share_layouts_by_default"}
+                    checked={shareLayouts}
+                    onChange={(event) => void patchSetting("share_layouts_by_default", event.target.checked)}
+                  />
+                  <span>
+                    {lang === "zh"
+                      ? WORKSPACE_SETTING_COPY.caption.share_layouts_by_default[1]
+                      : WORKSPACE_SETTING_COPY.caption.share_layouts_by_default[0]}
+                  </span>
+                </label>
+              ) : (
+                <p className={s.settingsValue}>
+                  {shareLayouts
+                    ? (lang === "zh" ? "开启" : "On")
+                    : (lang === "zh" ? "关闭" : "Off")}
+                </p>
+              )}
+              <p className="acs-note">
+                {WORKSPACE_SETTING_COPY.explainer.share_layouts_by_default[lang === "zh" ? 1 : 0]}
+              </p>
+              {settingsMsg?.key === "share_layouts_by_default" && settingsMsg.kind === "ok" ? (
+                <p className={s.settingsMsg} data-testid="team-settings-msg" data-msg-kind="ok">{settingsMsg.text}</p>
+              ) : null}
+              {settingsMsg?.key === "share_layouts_by_default" && settingsMsg.kind === "err" ? (
+                <p className={s.settingsMsg} data-testid="team-settings-msg" data-msg-kind="err">{settingsMsg.text}</p>
+              ) : null}
+
+              {callerRole === "member" ? (
+                <p className={s.settingsValue} data-testid="team-settings-readonly-note">
+                  {WORKSPACE_SETTING_COPY.memberReadOnly[lang === "zh" ? 1 : 0]}
+                </p>
+              ) : null}
+            </div>
+          </Group>
+        ) : null}
 
         {transfer ? (
           <div
