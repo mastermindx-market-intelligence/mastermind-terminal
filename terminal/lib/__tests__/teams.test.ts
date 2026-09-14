@@ -694,3 +694,125 @@ describe("TEAM_ROUTE_MESSAGES and LEX plain-word completeness (B-F12-8)", () => 
   });
 });
 
+// --- Packet W9T_F12_17 (MO-PAID-081, seat pick: honest link-only) appended tests ---
+import {
+  INVITE_ACCEPT_PATH,
+  INVITE_EMAIL_DELIVERY_CHECKED_AT,
+  INVITE_TTL_DAYS,
+  buildInviteUrl,
+  inviteCheckedOn,
+  inviteDeliveryBlock,
+  isInviteToken,
+  noEmailDeliveryLine,
+  noEmailDeliveryPair,
+} from "@/lib/teams";
+
+describe("MO-PAID-081 link-only copy (W9T_F12_17)", () => {
+  const BANNED_WORDS = ["falsifier", "refuted", "证伪", "no_email_delivery", "team_invites", "accept_team_invite", "RLS", "slug", "enum"];
+
+  it("the checked date is a real ISO date and reads as words in both languages", () => {
+    expect(INVITE_EMAIL_DELIVERY_CHECKED_AT).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(inviteCheckedOn(INVITE_EMAIL_DELIVERY_CHECKED_AT, "en")).toBe("13 September 2026");
+    expect(inviteCheckedOn(INVITE_EMAIL_DELIVERY_CHECKED_AT, "zh")).toBe("2026年9月13日");
+    // A timestamp is read as its date, in UTC terms, with no locale library in the path.
+    expect(inviteCheckedOn("2026-09-13T09:00:00.000Z", "en")).toBe("13 September 2026");
+    expect(inviteCheckedOn("2026-01-05", "zh")).toBe("2026年1月5日");
+  });
+
+  it("an unreadable date falls back to the raw string, never to 'Invalid Date'", () => {
+    for (const bad of ["", "not-a-date", "2026-13-45", "2026-00-10", "13/09/2026"]) {
+      for (const lang of ["en", "zh"] as const) {
+        const out = inviteCheckedOn(bad, lang);
+        expect(out, `${bad}/${lang}`).toBe(bad);
+        expect(out).not.toContain("Invalid");
+        expect(out).not.toContain("NaN");
+      }
+    }
+  });
+
+  it("the dated line says plainly that no invitation mail is sent, and names the check date", () => {
+    const en = noEmailDeliveryLine("en");
+    const zh = noEmailDeliveryLine("zh");
+    expect(en).toBe(
+      `We do not send invitation emails: this server has no email delivery set up. Last checked on ${inviteCheckedOn(INVITE_EMAIL_DELIVERY_CHECKED_AT, "en")}.`,
+    );
+    expect(zh).toContain("我们不会发送邀请邮件");
+    expect(zh).toContain(inviteCheckedOn(INVITE_EMAIL_DELIVERY_CHECKED_AT, "zh"));
+    expect(en).toMatch(/^[A-Z].*\.$/);
+    expect(zh).toMatch(/[一-鿿]/);
+    // Real Chinese with CJK punctuation, and no transliteration: not one run of Latin letters.
+    expect(zh).toContain("。");
+    expect(zh).toContain("：");
+    expect(zh).not.toMatch(/[A-Za-z]{2,}/);
+    // CJK sentences run together: no Latin space after a full stop or a colon.
+    expect(zh).not.toMatch(/[。，：、] /);
+    expect(en).not.toBe(zh);
+    for (const banned of BANNED_WORDS) {
+      expect(en).not.toContain(banned);
+      expect(zh).not.toContain(banned);
+    }
+    expect(en).not.toMatch(/\b\d{3}\b/);
+  });
+
+  it("the catalogued route answer IS the dated pair, plus what to do instead", () => {
+    const [en, zh] = INVITE_MESSAGES.no_email_delivery;
+    expect(en).toBe(noEmailDeliveryPair()[0]);
+    expect(zh).toBe(noEmailDeliveryPair()[1]);
+    expect(en.startsWith(noEmailDeliveryLine("en"))).toBe(true);
+    expect(zh.startsWith(noEmailDeliveryLine("zh"))).toBe(true);
+    expect(zh).not.toMatch(/[。，：、] /);
+    // The instruction names the real lifetime, so the number cannot drift from the constant.
+    expect(en).toContain(`${INVITE_TTL_DAYS} days`);
+    expect(zh).toContain(`${INVITE_TTL_DAYS} 天`);
+    expect(en).toMatch(/^[A-Z].*\.$/);
+    for (const banned of BANNED_WORDS) {
+      expect(en).not.toContain(banned);
+      expect(zh).not.toContain(banned);
+    }
+  });
+
+  it("moving the checked date moves the sentence — the date is a claim, not decoration", () => {
+    expect(noEmailDeliveryLine("en", "2027-01-05")).toContain("5 January 2027");
+    expect(noEmailDeliveryLine("zh", "2027-01-05")).toContain("2027年1月5日");
+    expect(noEmailDeliveryPair("2027-01-05")[0]).not.toBe(noEmailDeliveryPair()[0]);
+    expect(noEmailDeliveryPair("2027-01-05")[1]).not.toBe(noEmailDeliveryPair()[1]);
+  });
+
+  it("the delivery block always reports sent:false and carries both languages and the date", () => {
+    const block = inviteDeliveryBlock();
+    expect(block.sent).toBe(false);
+    expect(block.checkedAt).toBe(INVITE_EMAIL_DELIVERY_CHECKED_AT);
+    expect(block.message).toBe(INVITE_MESSAGES.no_email_delivery[0]);
+    expect(block.messageZh).toBe(INVITE_MESSAGES.no_email_delivery[1]);
+    const moved = inviteDeliveryBlock("2027-01-05");
+    expect(moved.sent).toBe(false);
+    expect(moved.checkedAt).toBe("2027-01-05");
+    expect(moved.message).toContain("5 January 2027");
+  });
+
+  it("buildInviteUrl points at the public accept page and carries the token once", () => {
+    const token = newInviteToken();
+    expect(INVITE_ACCEPT_PATH).toBe("/invite");
+    expect(buildInviteUrl("https://app.mastermind-x.com", token)).toBe(
+      `https://app.mastermind-x.com${INVITE_ACCEPT_PATH}?token=${token}`,
+    );
+    // A trailing slash on the origin must not double up in the link a person copies.
+    expect(buildInviteUrl("https://app.mastermind-x.com/", token)).toBe(
+      `https://app.mastermind-x.com${INVITE_ACCEPT_PATH}?token=${token}`,
+    );
+    expect(buildInviteUrl("", token)).toBe(`${INVITE_ACCEPT_PATH}?token=${token}`);
+    expect(buildInviteUrl("https://app.mastermind-x.com", token).split(token).length).toBe(2);
+  });
+
+  it("isInviteToken accepts only the shape newInviteToken mints", () => {
+    const token = newInviteToken();
+    expect(token).toMatch(/^[0-9a-f]{64}$/);
+    expect(isInviteToken(token)).toBe(true);
+    for (const bad of [
+      "", "x".repeat(64), "G".repeat(64), token.slice(0, 63), `${token}0`, token.toUpperCase(),
+      `${token}&admin=1`, null, undefined, 12345, {},
+    ]) {
+      expect(isInviteToken(bad), String(bad)).toBe(false);
+    }
+  });
+});

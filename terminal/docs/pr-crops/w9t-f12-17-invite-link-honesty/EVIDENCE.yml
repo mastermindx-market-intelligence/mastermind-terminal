@@ -1,0 +1,62 @@
+# W9T_F12_17 / MO-PAID-081 — copyable invitation link + the dated no-email-delivery line
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# Seat ruling 2026-09-13: honest link-only. No mail provider is provisioned by this lane.
+# layoutFiles carry sha256 hashes of the files they name; proof of which code generated each crop.
+# Rebuild any crop and recompute its layoutFiles, or the evidence lock will fail and the PR will not land.
+# capturedAtHead: f72c33fa4efc6c35bc83e7a9bae9b0363c6f7ab8
+capturedAtHead: f72c33fa4efc6c35bc83e7a9bae9b0363c6f7ab8
+capturedAt: 2026-09-14T00:36:30.324Z
+layoutFiles:
+  terminal/components/settings/SectionTeam.tsx: "ddb269dd8cd42a68731102ea7b5d8133832f50412b1799e7ffdf6ea1f76c4944"
+  terminal/components/settings/SectionTeam.module.css: "df1505604a67173d9bc1b50bc1ff4f14382303903d049357690c3830ae615c9c"
+  terminal/lib/i18n.tsx: "0149294fd039cf6155fd7015d6af5004dc80c6dab862422f1a26e6527ebfd44b"
+  terminal/lib/teams.ts: "8c6903b5649a7ed226cf3a096c6a2b8e5524117fad5c98ff5352b342c7a8b921"
+  terminal/app/api/teams/invitations/route.ts: "73dca3462059ef798dbdfa4846e6204c37ce6291f1904ce4ba72b8056f9eaf1c"
+  terminal/app/invite/page.tsx: "1e9e766f3551978a9e0e7f4f4fdace0db07fbd4661e45426576d180d8db94716"
+  terminal/app/invite/InviteAccept.tsx: "4730e81646141530d0a7481d4ee9a6483167a582115983bcb280a02636d1d363"
+  terminal/app/invite/invite.module.css: "98c9c1c76ac7c5a78dafee6968c0265aa315a7238359a725f806e65d82774aae"
+  terminal/app/settings.css: "3189163136d943431cbf52e4b5d241c105b695ba5af94c4c2e29151d537b5ef5"
+theme: dark
+languages: [en, zh]
+viewports:
+  - 1440x900
+  - 390x844
+harness: /dev/settings?s=team&lang=<en|zh> (Settings ▸ Team) and /invite?token=<64 hex> (public accept page)
+network_stubs: POST/GET /api/teams/invitations answered with the shape app/api/teams/invitations/route.ts returns; /invite joined frames also answer GET <supabase>/auth/v1/user. The harness has no database, so the real component is driven by the real answer shape.
+capture_flag: TERMINAL_E2E_FIXTURE
+capture_flag_law: Set TERMINAL_E2E_FIXTURE=1 and next.config.ts sets devIndicators false, hiding the Next.js dev button overlay from crops.
+command: node terminal/e2e/tools/capture_w9t_f12_17_invite_link.cjs
+files:
+  - desktop-en-team-invite-form.png
+  - desktop-en-team-invite-link.png
+  - desktop-en-invite-signin.png
+  - desktop-en-invite-joined.png
+  - desktop-zh-team-invite-form.png
+  - desktop-zh-team-invite-link.png
+  - desktop-zh-invite-signin.png
+  - desktop-zh-invite-joined.png
+  - mobile-en-team-invite-form.png
+  - mobile-en-team-invite-link.png
+  - mobile-en-invite-signin.png
+  - mobile-en-invite-joined.png
+  - mobile-zh-team-invite-form.png
+  - mobile-zh-team-invite-link.png
+  - mobile-zh-invite-signin.png
+  - mobile-zh-invite-joined.png
+measurements:
+  desktop-en-team-invite-form.png: { inviteGroupTitle: "Invite someone", pendingGroupTitle: "Invitations not yet accepted", deliveryLine: "We do not send invitation emails: this server has no email delivery set up. Last checked on 13 September 2026.", formPresent: true, createButtonText: "Create invitation link", emailLabel: "Their email address", roleLabel: "Their role", roleOptions: "Member | Administrator", linkPresent: false, linkReadOnly: false, tokenInVisibleText: false, horizontalOverflow: 0 }
+  desktop-en-team-invite-link.png: { inviteGroupTitle: "Invite someone", pendingGroupTitle: "Invitations not yet accepted", deliveryLine: "We do not send invitation emails: this server has no email delivery set up. Last checked on 13 September 2026.", formPresent: false, linkPresent: true, linkValue: "https://app.mastermind-x.com/invite?token=9f2c41ba7d194e6a9c035b71ee0a4d229f2c41ba7d194e6a9c035b71ee0a4d22", linkReadOnly: true, linkLabel: "Invitation link for friend@example.com", copyButtonText: "Copy link", sendLine: "Send this link to them yourself. It works for 14 days and can be used once.", tokenInVisibleText: false, horizontalOverflow: 0 }
+  desktop-en-invite-signin.png: { pageTitle: "Team invitation", phase: "signed-out", signInText: "Sign in", signInHref: "/terminal?signin=1", returnLine: "After you sign in, open this invitation link again to join the team.", linkLifeLine: "An invitation link works for 14 days and can be used once.", signInSentence: "Sign in to accept this invitation.", tokenInVisibleText: false, horizontalOverflow: 0 }
+  desktop-en-invite-joined.png: { pageTitle: "Team invitation", phase: "joined", noteText: "You have joined the team.", linkLifeLine: "An invitation link works for 14 days and can be used once.", tokenInVisibleText: false, horizontalOverflow: 0 }
+  desktop-zh-team-invite-form.png: { inviteGroupTitle: "邀请成员", pendingGroupTitle: "尚未接受的邀请", deliveryLine: "我们不会发送邀请邮件：此服务器尚未设置邮件发送功能。最近核查于 2026年9月13日。", formPresent: true, createButtonText: "创建邀请链接", emailLabel: "对方的邮箱地址", roleLabel: "对方的角色", roleOptions: "成员 | 管理员", linkPresent: false, linkReadOnly: false, tokenInVisibleText: false, horizontalOverflow: 0 }
+  desktop-zh-team-invite-link.png: { inviteGroupTitle: "邀请成员", pendingGroupTitle: "尚未接受的邀请", deliveryLine: "我们不会发送邀请邮件：此服务器尚未设置邮件发送功能。最近核查于 2026年9月13日。", formPresent: false, linkPresent: true, linkValue: "https://app.mastermind-x.com/invite?token=9f2c41ba7d194e6a9c035b71ee0a4d229f2c41ba7d194e6a9c035b71ee0a4d22", linkReadOnly: true, linkLabel: "friend@example.com 的邀请链接", copyButtonText: "复制链接", sendLine: "请自行把这个链接发送给对方。链接 14 天内有效，且只能使用一次。", tokenInVisibleText: false, horizontalOverflow: 0 }
+  desktop-zh-invite-signin.png: { pageTitle: "团队邀请", phase: "signed-out", signInText: "登录", signInHref: "/terminal?signin=1", returnLine: "登录之后，请再次打开这个邀请链接来加入团队。", linkLifeLine: "邀请链接 14 天内有效，且只能使用一次。", signInSentence: "请登录后接受此邀请。", tokenInVisibleText: false, horizontalOverflow: 0 }
+  desktop-zh-invite-joined.png: { pageTitle: "团队邀请", phase: "joined", noteText: "你已加入该团队。", linkLifeLine: "邀请链接 14 天内有效，且只能使用一次。", tokenInVisibleText: false, horizontalOverflow: 0 }
+  mobile-en-team-invite-form.png: { inviteGroupTitle: "Invite someone", pendingGroupTitle: "Invitations not yet accepted", deliveryLine: "We do not send invitation emails: this server has no email delivery set up. Last checked on 13 September 2026.", formPresent: true, createButtonText: "Create invitation link", emailLabel: "Their email address", roleLabel: "Their role", roleOptions: "Member | Administrator", linkPresent: false, linkReadOnly: false, tokenInVisibleText: false, horizontalOverflow: 0 }
+  mobile-en-team-invite-link.png: { inviteGroupTitle: "Invite someone", pendingGroupTitle: "Invitations not yet accepted", deliveryLine: "We do not send invitation emails: this server has no email delivery set up. Last checked on 13 September 2026.", formPresent: false, linkPresent: true, linkValue: "https://app.mastermind-x.com/invite?token=9f2c41ba7d194e6a9c035b71ee0a4d229f2c41ba7d194e6a9c035b71ee0a4d22", linkReadOnly: true, linkLabel: "Invitation link for friend@example.com", copyButtonText: "Copy link", sendLine: "Send this link to them yourself. It works for 14 days and can be used once.", tokenInVisibleText: false, horizontalOverflow: 0 }
+  mobile-en-invite-signin.png: { pageTitle: "Team invitation", phase: "signed-out", signInText: "Sign in", signInHref: "/terminal?signin=1", returnLine: "After you sign in, open this invitation link again to join the team.", linkLifeLine: "An invitation link works for 14 days and can be used once.", signInSentence: "Sign in to accept this invitation.", tokenInVisibleText: false, horizontalOverflow: 0 }
+  mobile-en-invite-joined.png: { pageTitle: "Team invitation", phase: "joined", noteText: "You have joined the team.", linkLifeLine: "An invitation link works for 14 days and can be used once.", tokenInVisibleText: false, horizontalOverflow: 0 }
+  mobile-zh-team-invite-form.png: { inviteGroupTitle: "邀请成员", pendingGroupTitle: "尚未接受的邀请", deliveryLine: "我们不会发送邀请邮件：此服务器尚未设置邮件发送功能。最近核查于 2026年9月13日。", formPresent: true, createButtonText: "创建邀请链接", emailLabel: "对方的邮箱地址", roleLabel: "对方的角色", roleOptions: "成员 | 管理员", linkPresent: false, linkReadOnly: false, tokenInVisibleText: false, horizontalOverflow: 0 }
+  mobile-zh-team-invite-link.png: { inviteGroupTitle: "邀请成员", pendingGroupTitle: "尚未接受的邀请", deliveryLine: "我们不会发送邀请邮件：此服务器尚未设置邮件发送功能。最近核查于 2026年9月13日。", formPresent: false, linkPresent: true, linkValue: "https://app.mastermind-x.com/invite?token=9f2c41ba7d194e6a9c035b71ee0a4d229f2c41ba7d194e6a9c035b71ee0a4d22", linkReadOnly: true, linkLabel: "friend@example.com 的邀请链接", copyButtonText: "复制链接", sendLine: "请自行把这个链接发送给对方。链接 14 天内有效，且只能使用一次。", tokenInVisibleText: false, horizontalOverflow: 0 }
+  mobile-zh-invite-signin.png: { pageTitle: "团队邀请", phase: "signed-out", signInText: "登录", signInHref: "/terminal?signin=1", returnLine: "登录之后，请再次打开这个邀请链接来加入团队。", linkLifeLine: "邀请链接 14 天内有效，且只能使用一次。", signInSentence: "请登录后接受此邀请。", tokenInVisibleText: false, horizontalOverflow: 0 }
+  mobile-zh-invite-joined.png: { pageTitle: "团队邀请", phase: "joined", noteText: "你已加入该团队。", linkLifeLine: "邀请链接 14 天内有效，且只能使用一次。", tokenInVisibleText: false, horizontalOverflow: 0 }

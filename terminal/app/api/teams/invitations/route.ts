@@ -4,6 +4,8 @@ import {
   createInvite,
   listInvites,
   acceptInvite,
+  buildInviteUrl,
+  inviteDeliveryBlock,
   INVITE_MESSAGES,
   TEAM_ROUTE_MESSAGES,
   type TenancyRpcDb,
@@ -14,6 +16,11 @@ export const runtime = "nodejs";
 // The ONE named route for MO-PAID-082 / MO-PAID-081 / MO-PAID-083's write surface.
 // Plain-language law: every response body is { message, messageZh } drawn from INVITE_MESSAGES --
 // no raw Postgres text ever reaches the body.
+//
+// MO-PAID-081 (seat ruling W9T_F12_17, link-only): this server sends no invitation mail, so a
+// created invitation answers with the link the caller copies and sends themselves, plus a
+// `delivery` block that says so and dates the check. Both the create answer and the list answer
+// carry that block -- the list is where an unsent invitation is still sitting.
 
 async function resolveDb(): Promise<{ db: TenancyRpcDb; userId: string } | null> {
   const supabase = await createClient();
@@ -25,6 +32,20 @@ async function resolveDb(): Promise<{ db: TenancyRpcDb; userId: string } | null>
 function bodyFor(code: keyof typeof INVITE_MESSAGES, extra?: Record<string, unknown>) {
   const [message, messageZh] = INVITE_MESSAGES[code];
   return { error: code.toUpperCase(), message, messageZh, ...extra };
+}
+
+/**
+ * The origin an invitation link must carry. Production sits behind a proxy, so the forwarded
+ * host/proto is the address a person can actually open; `req.url` is the loopback the runtime
+ * saw. Neither is trusted blindly -- the token is the only secret in the link and it is already
+ * one-time and expiring.
+ */
+function publicOrigin(req: Request): string {
+  const url = new URL(req.url);
+  const host = req.headers.get("x-forwarded-host") || req.headers.get("host") || url.host;
+  const forwardedProto = (req.headers.get("x-forwarded-proto") || "").split(",")[0].trim();
+  const proto = forwardedProto || url.protocol.replace(/:$/, "");
+  return `${proto}://${host}`;
 }
 
 const unauthenticated = () =>
@@ -44,7 +65,12 @@ export async function GET(req: Request) {
     if (result.reason === "not_found") return NextResponse.json(bodyFor("team_not_found"), { status: 404 });
     return NextResponse.json(bodyFor("unavailable"), { status: 503 });
   }
-  return NextResponse.json({ invites: result.invites, callerRole: result.callerRole, truncated: result.truncated });
+  return NextResponse.json({
+    invites: result.invites,
+    callerRole: result.callerRole,
+    truncated: result.truncated,
+    delivery: { code: "no_email_delivery", ...inviteDeliveryBlock() },
+  });
 }
 
 export async function POST(req: Request) {
@@ -65,13 +91,13 @@ export async function POST(req: Request) {
       const code = (result.code ?? "failed") as keyof typeof INVITE_MESSAGES;
       return NextResponse.json(bodyFor(code), { status: result.status });
     }
-    const [msg, msgZh] = INVITE_MESSAGES.no_email_delivery;
     return NextResponse.json(
       {
         invite: result.value.invite,
         token: result.value.token,
+        inviteUrl: buildInviteUrl(publicOrigin(req), result.value.token),
         acceptWith: { action: "accept" },
-        delivery: { sent: false, code: "no_email_delivery", message: msg, messageZh: msgZh },
+        delivery: { code: "no_email_delivery", ...inviteDeliveryBlock() },
       },
       { status: 201 },
     );
