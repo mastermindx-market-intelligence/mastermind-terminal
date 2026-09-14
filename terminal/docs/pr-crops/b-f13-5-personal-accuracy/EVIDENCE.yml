@@ -3,7 +3,7 @@
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
 # capturedAtHead: 3db34e7a8e8eca4bef1ca12eba90daab6cc0c10c
 # capturedAt: 2026-09-13T00:00:00.000Z
-# capturedAtHead is informational. The lock is layoutFiles (hash-only).
+# capturedAtHead is informational. The lock is layoutFiles.
 # 2026-09-13 MO-B F12-13 (packet MO-PAID-083): types.ts and dev/settings/page.tsx re-hashed —
 # DevTeamFixture gained an optional `settings?` block and DEV_TEAM/DEV_TEAM_MEMBER gained the
 # `team=member` harness address; the captured accuracy surface does not render either, so the
