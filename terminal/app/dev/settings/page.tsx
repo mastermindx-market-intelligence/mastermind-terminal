@@ -20,6 +20,7 @@ import { applyLang } from "@/lib/i18n";
 import { accountIdentity, GUEST_IDENTITY } from "@/lib/accountIdentity";
 import { emptyAccuracyReadout, type AccuracyReadout } from "@/lib/personalAccuracy";
 import { populatedAccuracyFixture } from "./accuracyFixtures";
+import { ROLLUP } from "./teamRollupFixtures";
 
 const SettingsPanel = dynamic(() => import("@/components/settings/SettingsPanel"), { ssr: false });
 
@@ -177,6 +178,9 @@ function Harness() {
   const [accKey, setAccKey] = useState<string>(
     ACCURACY[q.get("acc") || ""] ? (q.get("acc") as string) : "empty",
   );
+  const [rollupKey, setRollupKey] = useState<string>(
+    ROLLUP[q.get("rollup") || ""] !== undefined || q.get("rollup") === "none" ? (q.get("rollup") as string) : "none",
+  );
   const [signedIn, setSignedIn] = useState(q.get("out") !== "1");
   const teamParam = q.get("team");
   const teamFixture =
@@ -201,6 +205,7 @@ function Harness() {
           { label: "Plan", items: Object.keys(PLANS), cur: planKey, set: setPlanKey },
           { label: "Usage", items: Object.keys(USAGE), cur: usageKey, set: setUsageKey },
           { label: "Accuracy", items: Object.keys(ACCURACY), cur: accKey, set: setAccKey },
+          { label: "Rollup", items: Object.keys(ROLLUP), cur: rollupKey, set: setRollupKey },
         ].map((row) => (
           <div key={row.label} style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 10, alignItems: "center" }}>
             <span style={{ font: "700 11px var(--font-ui)", color: "var(--muted)", width: 62 }}>{row.label}</span>
@@ -237,6 +242,7 @@ function Harness() {
         devUsage={USAGE[usageKey]}
         devTeam={teamFixture}
         devAccuracy={ACCURACY[accKey]}
+        devRollup={ROLLUP[rollupKey]}
       />
     </div>
   );
