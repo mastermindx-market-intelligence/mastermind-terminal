@@ -15,11 +15,12 @@
 # 2026-09-11 merge of master 7e15e502 (#554 claim authoring form) into B-F12-8 (#550): i18n.tsx re-hashed for master's 31 claim* lexicon keys. SectionAccount.tsx and teamSummary.ts are untouched by both sides and no claim* key renders on this surface, so no crop was recaptured.
 # 2026-09-11 recapture at master 525157b13eb5530515f083d836f63d12f55553d2: rail now pinned via SettingsPanel.tsx + SettingsProvider.tsx; 8 crops recaptured so the frame shows the 11-row rail (account, team, accuracy, billing, usage, prefs, alertDelivery, terminal, sync, webhooks, sharing)
 # 2026-09-11 MO-B PL-NI-1 (packet T-PL-NI-1, 您→你 sweep of Terminal master): terminal/lib/i18n.tsx re-hashed — plain-language 您→你 only; layout unchanged; no recapture.
+# 2026-09-13 W9T_F13_9 / MO-DELTA-007 (your team sees its own calls scored together, never a ranking against other teams): terminal/components/settings/SettingsPanel.tsx and terminal/lib/i18n.tsx re-hashed ONLY — the team-rail activeTeamId derivation and the 14 accTeam* lexicon keys added by w9t_f13_9 do not change the account-completeness surface (no accTeam* key is rendered on this surface, and SettingsPanel.tsx's rail layout and section mount order are unchanged); no crop was recaptured. The 8 crops recaptured at 525157b13eb5530515f083d836f63d12f55553d2 still depict this tree.
 layoutFiles:
   terminal/components/settings/SectionAccount.tsx: "d2c3828c286bbaac321881d5a6562efdd4f30e580f4200d49c5165c0fa7ef9a4"
   terminal/lib/teamSummary.ts: "7bd3b3f1d5251490e42399be1dd77e977b2626c1714efbece2f7139c584e0f15"
-  terminal/lib/i18n.tsx: "b5723f6e6a4bbf32b74219e0fc51612b1f2b16727b5beaa730e58817f51e4617"
-  terminal/components/settings/SettingsPanel.tsx: "378811617e0de2feed0d8bc1c6e01ae55d8e763204fe0d1c1829bc44fff1e1a4"
+  terminal/lib/i18n.tsx: "72b7e44987c90741dfaed5989f720a65accd7ccbf4ebc04b7039652a46171a9c"
+  terminal/components/settings/SettingsPanel.tsx: "944c5f6cb215eadd094f61bba66ddc95ec414d2e0b68b130dde60960211b5119"
   terminal/components/settings/SettingsProvider.tsx: "4ac330d429de63c5a3e431aaa1a1b41e4a7905cf2a08bc260b68afa0bc604bed"
 theme: dark
 languages: [en, zh]
