@@ -9,6 +9,7 @@ import type { AcsUser, SettingsSection } from "./SettingsProvider";
 import { SETTINGS_SECTIONS } from "./SettingsProvider";
 import type { AcsPlan, AcsUsage, DevTeamFixture, SectionProps } from "./types";
 import type { AccuracyReadout } from "@/lib/personalAccuracy";
+import type { TeamRollupResult } from "@/lib/teamRollup";
 import {
   IconAccount, IconAlertDelivery, IconBilling, IconPrefs, IconSharing, IconSignOut, IconSync, IconTeam, IconTerminal, IconUsage,
   IconWebhooks, IconX,
@@ -92,6 +93,8 @@ export interface SettingsPanelProps {
   devUsage?: AcsUsage;
   devTeam?: DevTeamFixture;
   devAccuracy?: AccuracyReadout | null;
+  /** W9T_F13_9 / MO-DELTA-007 — dev-only team-rollup fixture for the /dev/settings harness. */
+  devRollup?: TeamRollupResult | null;
 }
 
 export default function SettingsPanel(props: SettingsPanelProps) {
@@ -259,6 +262,11 @@ export default function SettingsPanel(props: SettingsPanelProps) {
     [user?.meta?.first_name, user?.meta?.last_name].filter((v) => typeof v === "string" && v).join(" ") ||
     email;
   const avatarChar = (displayName || email || "U").trim().charAt(0).toUpperCase() || "U";
+  // W9T_F13_9 team-accuracy rollup: the section reads from the team whose roster the rest of
+  // the panel is already displaying. In dev/crop mode that is `props.devTeam.team.id`. The live
+  // panel shares the same id once the existing SectionTeam fetch has settled; rendering this
+  // section before that fetch lands shows the empty-members state, which is the correct read.
+  const activeTeamId: string | null = props.devTeam?.team?.id ?? null;
 
   const node = (
     <div
@@ -326,7 +334,7 @@ export default function SettingsPanel(props: SettingsPanelProps) {
             {section === "account" && <SectionAccount {...shared} />}
             {section === "team" && <SectionTeam {...shared} devTeam={props.devTeam} />}
             {section === "accuracy" && (
-              <SectionAccuracy {...shared} readout={accuracy} loadErr={accuracyLoadErr} />
+              <SectionAccuracy {...shared} readout={accuracy} loadErr={accuracyLoadErr} teamId={activeTeamId} devRollup={props.devRollup ?? undefined} />
             )}
             {section === "billing" && (
               <SectionBilling {...shared} plan={plan} planErr={planErr} planStale={planStale} onRefreshPlan={entitlement.refresh} />

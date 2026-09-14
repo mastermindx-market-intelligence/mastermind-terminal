@@ -1,0 +1,55 @@
+# W9T_F13_9 / MO-DELTA-007 — your team sees its own calls scored together, never a ranking against other teams
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
+# capturedAtHead: 503d3655619ebdc3013850d339ed95a6a56111d2
+# capturedAt: 2026-09-14T00:31:53.726Z
+# capturedAtHead is the code commit the pixels depict. The lock is layoutFiles.
+# Seat ruling: "Team sees its own scores; never a cross-team rank (hard gate, test pinned)." Every crop depicts the rollup block the hard gate is rendered into. The ceiling sentence at the bottom of every block is the gate in plain words.
+layoutFiles:
+  terminal/app/api/teams/[id]/accuracy/rollup/route.ts: "08d388952e20e061504bb078dfa2766e702efe5b29fcce97f12ca107ce2691a3"
+  terminal/app/dev/settings/page.tsx: "52c4a543c0da0a1d7024dfc88090c288053e49b70eea7d468071e93ee023ff44"
+  terminal/app/dev/settings/teamRollupFixtures.ts: "c9410a936be6f6e3147956dfc91893416c5cbce37c1bbd93eba45689e3803b05"
+  terminal/components/settings/SectionAccuracy.tsx: "860a95735238fdb04d81a67f340989540ead8e977616c82e5b41bc9f20a0a5eb"
+  terminal/components/settings/SectionAccuracy.module.css: "52a63398d78de0735f8e939090800b35b03cef4aed79c84644c0ee3650236d6c"
+  terminal/components/settings/SettingsPanel.tsx: "944c5f6cb215eadd094f61bba66ddc95ec414d2e0b68b130dde60960211b5119"
+  terminal/lib/i18n.tsx: "72b7e44987c90741dfaed5989f720a65accd7ccbf4ebc04b7039652a46171a9c"
+  terminal/lib/personalAccuracyStore.ts: "9d7911a2ed8a307335a8244659ad1f981c5b4268f4bfbdb173eaa0d54cb2f3c5"
+  terminal/lib/teamRollup.ts: "80123be06c55db182aeeead19ea6ce737f517268887a4b1dfff71cac02f28b4d"
+  terminal/lib/__tests__/teamRollup.test.ts: "d99fc2ed65b1f3b243f1ef87e16a25512f53ab2565995b9089674fdb3ce2c50c"
+  terminal/lib/__tests__/teamAccuracyRollupRoute.test.ts: "5cd90cae9204e0fa931b5a51e7fb25c3becd8a4d1380754ca13b77e2fd372d6c"
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: mobile, width: 390, height: 844 }
+harness:
+  desktop-en-ok.png: { url: "/dev/settings?s=accuracy&lang=en&acc=populated&rollup=ok", fixture: rollup-ok }
+  desktop-zh-ok.png: { url: "/dev/settings?s=accuracy&lang=zh&acc=populated&rollup=ok", fixture: rollup-ok }
+  desktop-en-no-rows.png: { url: "/dev/settings?s=accuracy&lang=en&acc=populated&rollup=no_rows", fixture: rollup-no_rows }
+  desktop-zh-no-rows.png: { url: "/dev/settings?s=accuracy&lang=zh&acc=populated&rollup=no_rows", fixture: rollup-no_rows }
+  desktop-en-empty-members.png: { url: "/dev/settings?s=accuracy&lang=en&acc=populated&rollup=empty_members", fixture: rollup-empty_members }
+  desktop-zh-empty-members.png: { url: "/dev/settings?s=accuracy&lang=zh&acc=populated&rollup=empty_members", fixture: rollup-empty_members }
+  mobile-en-ok.png: { url: "/dev/settings?s=accuracy&lang=en&acc=populated&rollup=ok", fixture: rollup-ok }
+  mobile-zh-ok.png: { url: "/dev/settings?s=accuracy&lang=zh&acc=populated&rollup=ok", fixture: rollup-ok }
+  mobile-en-no-rows.png: { url: "/dev/settings?s=accuracy&lang=en&acc=populated&rollup=no_rows", fixture: rollup-no_rows }
+  mobile-zh-no-rows.png: { url: "/dev/settings?s=accuracy&lang=zh&acc=populated&rollup=no_rows", fixture: rollup-no_rows }
+  mobile-en-empty-members.png: { url: "/dev/settings?s=accuracy&lang=en&acc=populated&rollup=empty_members", fixture: rollup-empty_members }
+  mobile-zh-empty-members.png: { url: "/dev/settings?s=accuracy&lang=zh&acc=populated&rollup=empty_members", fixture: rollup-empty_members }
+capture_flag: TERMINAL_E2E_FIXTURE
+capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.
+command: |
+  cd terminal
+  node e2e/tools/capture_w9t_f13_9_team_rollup.cjs
+files:
+  - desktop-en-ok.png
+  - desktop-zh-ok.png
+  - desktop-en-no-rows.png
+  - desktop-zh-no-rows.png
+  - desktop-en-empty-members.png
+  - desktop-zh-empty-members.png
+  - mobile-en-ok.png
+  - mobile-zh-ok.png
+  - mobile-en-no-rows.png
+  - mobile-zh-no-rows.png
+  - mobile-en-empty-members.png
+  - mobile-zh-empty-members.png
