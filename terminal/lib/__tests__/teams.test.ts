@@ -744,6 +744,8 @@ describe("MO-PAID-081 link-only copy (W9T_F12_17)", () => {
     expect(zh).toContain("。");
     expect(zh).toContain("：");
     expect(zh).not.toMatch(/[A-Za-z]{2,}/);
+    // CJK sentences run together: no Latin space after a full stop or a colon.
+    expect(zh).not.toMatch(/[。，：、] /);
     expect(en).not.toBe(zh);
     for (const banned of BANNED_WORDS) {
       expect(en).not.toContain(banned);
@@ -758,6 +760,7 @@ describe("MO-PAID-081 link-only copy (W9T_F12_17)", () => {
     expect(zh).toBe(noEmailDeliveryPair()[1]);
     expect(en.startsWith(noEmailDeliveryLine("en"))).toBe(true);
     expect(zh.startsWith(noEmailDeliveryLine("zh"))).toBe(true);
+    expect(zh).not.toMatch(/[。，：、] /);
     // The instruction names the real lifetime, so the number cannot drift from the constant.
     expect(en).toContain(`${INVITE_TTL_DAYS} days`);
     expect(zh).toContain(`${INVITE_TTL_DAYS} 天`);

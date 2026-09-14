@@ -699,7 +699,9 @@ export function noEmailDeliveryLine(
 ): string {
   const i = lang === "zh" ? 1 : 0;
   const checked = NO_EMAIL_CHECKED[i].replace("{date}", inviteCheckedOn(checkedAt, lang));
-  return `${NO_EMAIL_HEAD[i]} ${checked}`;
+  // Two English sentences take a space between them; two Chinese ones do not. A Latin space after
+  // a CJK full stop reads as a typo, which is exactly what the crop harness caught here.
+  return i === 1 ? `${NO_EMAIL_HEAD[1]}${checked}` : `${NO_EMAIL_HEAD[0]} ${checked}`;
 }
 
 /** The same line plus what to do instead — the route's `no_email_delivery` answer. */
@@ -708,7 +710,7 @@ export function noEmailDeliveryPair(
 ): [string, string] {
   return [
     `${noEmailDeliveryLine("en", checkedAt)} ${NO_EMAIL_INSTRUCT[0]}`,
-    `${noEmailDeliveryLine("zh", checkedAt)} ${NO_EMAIL_INSTRUCT[1]}`,
+    `${noEmailDeliveryLine("zh", checkedAt)}${NO_EMAIL_INSTRUCT[1]}`,
   ];
 }
 
