@@ -171,6 +171,10 @@ async function newPage(browser, lang, viewport) {
     hasTouch: viewport === "mobile",
     locale: lang === "zh" ? "zh-CN" : "en-US",
     colorScheme: "dark",
+    // The app's CSP allows connect-src 'self' and *.supabase.co, and this harness points the
+    // Supabase URL at a loopback port with nothing on it. The bypass lets the stubbed auth answer
+    // below reach the client; it is served by Playwright in-process and never leaves the machine.
+    bypassCSP: true,
   });
   const page = await context.newPage();
   page.setDefaultTimeout(45_000);
@@ -227,7 +231,35 @@ async function stubInvitations(page, { accept } = {}) {
   });
 }
 
-/** A signed-in session for /invite, answered where supabase-js asks for it. */
+/**
+ * A signed-in session for /invite. The browser client stores its session in a cookie named after
+ * the Supabase host (@supabase/ssr + supabase-js default storageKey), so the fixture session is
+ * seeded there and the user lookup below is answered where supabase-js asks for it. Nothing here
+ * touches a real project: NEXT_PUBLIC_SUPABASE_URL points at a loopback port with nothing on it.
+ */
+async function seedSession(context) {
+  const session = {
+    access_token: "fixture-access-token",
+    token_type: "bearer",
+    expires_in: 3600,
+    expires_at: Math.floor(Date.now() / 1000) + 3600,
+    refresh_token: "fixture-refresh-token",
+    user: {
+      id: "8f2c41ba-7d19-4e6a-9c03-5b71ee0a4d22",
+      aud: "authenticated",
+      role: "authenticated",
+      email: "invited@example.com",
+      app_metadata: { provider: "email", providers: ["email"] },
+      user_metadata: { display_name: "Invited Person" },
+      created_at: "2026-02-14T09:12:00.000Z",
+    },
+  };
+  // @supabase/ssr writes its cookie value as "base64-" + base64url(JSON); without the prefix the
+  // SDK treats the entry as absent, so the fixture session has to carry it.
+  const value = `base64-${Buffer.from(JSON.stringify(session), "utf8").toString("base64url")}`;
+  await context.addCookies([{ name: "sb-127-auth-token.0", value, url: BASE }]);
+}
+
 async function stubSession(page) {
   await page.route("**/auth/v1/**", async (route) => {
     const url = route.request().url();
@@ -302,6 +334,7 @@ async function measureInvite(page) {
       pageTitle: read("h1"),
       phase: document.querySelector('[data-testid="invite-card"]')?.getAttribute("data-phase") || "",
       noteText: read('[data-testid="invite-note"]'),
+      signInSentence: read('[data-testid="invite-signin"]'),
       signInText: read('[data-testid="invite-signin-link"]'),
       signInHref: link ? link.getAttribute("href") : "",
       returnLine: read('[data-testid="invite-return"]'),
@@ -353,7 +386,9 @@ async function main() {
             measurements[shot.file] = m;
             want(m.inviteGroupTitle, expect.inviteGroup, "invite group title", shot.file);
             want(m.deliveryLine, expect.deliveryLine, "dated delivery line", shot.file);
-            want(m.roleOptions, shot.lang === "zh" ? "成员 | 管理员" : "Member | Administrator", "role options", shot.file);
+            if (shot.surface === "team-form") {
+              want(m.roleOptions, shot.lang === "zh" ? "成员 | 管理员" : "Member | Administrator", "role options", shot.file);
+            }
             if (m.tokenInVisibleText) throw new Error(`${shot.file}: the raw token is printed as prose`);
             if (shot.surface === "team-form") {
               want(m.formPresent, true, "invitation form", shot.file);
@@ -373,6 +408,7 @@ async function main() {
             await page.locator(".acs-overlay.open").screenshot({ path: join(OUT, shot.file) });
           } else {
             if (shot.surface === "invite-joined") {
+              await seedSession(context);
               await stubSession(page);
               await stubInvitations(page, { accept: true });
             }
@@ -397,7 +433,8 @@ async function main() {
               want(m.noteText, expect.joined, "joined sentence", shot.file);
             } else {
               want(m.phase, "signed-out", "phase", shot.file);
-              want(m.signInText, expect.signIn, "sign-in control", shot.file);
+              want(m.signInSentence, expect.signIn, "sign-in sentence", shot.file);
+              want(m.signInText, shot.lang === "zh" ? "登录" : "Sign in", "sign-in control", shot.file);
               want(m.signInHref, "/terminal?signin=1", "sign-in target", shot.file);
               want(m.returnLine, expect.signInReturn, "come-back line", shot.file);
             }
@@ -430,7 +467,7 @@ async function main() {
     "inviteGroupTitle", "pendingGroupTitle", "deliveryLine", "formPresent", "createButtonText",
     "emailLabel", "roleLabel", "roleOptions", "linkPresent", "linkValue", "linkReadOnly",
     "linkLabel", "copyButtonText", "sendLine", "pageTitle", "phase", "noteText", "signInText",
-    "signInHref", "returnLine", "linkLifeLine", "tokenInVisibleText", "horizontalOverflow",
+    "signInHref", "returnLine", "linkLifeLine", "signInSentence", "tokenInVisibleText", "horizontalOverflow",
   ];
   const evidence = [
     "# W9T_F12_17 / MO-PAID-081 — copyable invitation link + the dated no-email-delivery line",

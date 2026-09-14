@@ -1,20 +1,21 @@
 # B-F12-8 Team roles v1 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 916db2d4ac62b00aed236231433d8d952c22f3c6
-# capturedAt: 2026-09-11T02:59:54.027Z
+# capturedAtHead: f72c33fa4efc6c35bc83e7a9bae9b0363c6f7ab8
+# capturedAt: 2026-09-14T00:45:13.169Z
 # capturedAtHead is informational. The lock is layoutFiles.
 # 2026-09-11 duplicate-key fix (#550): master #553 added its own acsTeamNone/acsTeamMany, so this packet's pair was renamed (-> acsTeamNoneCreate/acsTeamManyPanel) and SectionTeam repointed. No string text changed; the rename RESTORES the copy these crops depict (the duplicate made master's {count} rows win at runtime).
 # 2026-09-11 merge of master e43733c1 (#548 explicit grants + #566 ledger flip) into B-F12-8 (#550): 16 crops recaptured at merge commit 916db2d4ac62b00aed236231433d8d952c22f3c6 so the rail shows the merged 11 rows (account, team, accuracy, billing, usage, prefs, alertDelivery, terminal, sync, webhooks, sharing). This supersedes every earlier crops-unchanged / no-crop-recaptured line in this header.
 # 2026-09-11 merge of master 7e15e502 (#554 claim authoring form) into B-F12-8 (#550): i18n.tsx re-hashed for master's 31 claim* lexicon keys, which render only in the research-workspace claim form. No team* key moved and #554 edits none of this packet's other pinned files (SectionTeam.tsx, SectionTeam.module.css, SettingsPanel.tsx, icons.tsx, settings.css), so the 16 crops captured at 916db2d4 still depict this tree and none was recaptured.
 # 2026-09-11 MO-B PL-NI-1 (packet T-PL-NI-1, 您→你 sweep of Terminal master): terminal/lib/i18n.tsx re-hashed — plain-language 您→你 only; layout unchanged; no recapture.
+# 2026-09-13 MO-B W9T_F12_17 (team invitation link + the dated no-email line, MO-PAID-081): SectionTeam.tsx, SectionTeam.module.css and i18n.tsx changed — the team section now renders an "Invite someone" group (invitation form, copyable link, dated no-email sentence) above the pending-invitations group — so all 16 crops were recaptured at f72c33fa4efc6c35bc83e7a9bae9b0363c6f7ab8. This supersedes every earlier crops-unchanged / no-recapture line in this header.
 layoutFiles:
-  terminal/components/settings/SectionTeam.tsx: "fec63ed61b300fbfc6f745b1d8f8a605ad459304f10009bd68023b859b245595"
-  terminal/components/settings/SectionTeam.module.css: "924ab5b81d4f0e11ef2138557e92c43a0d1fa21b78622567fb6ccddcf6c146a8"
+  terminal/components/settings/SectionTeam.tsx: "ddb269dd8cd42a68731102ea7b5d8133832f50412b1799e7ffdf6ea1f76c4944"
+  terminal/components/settings/SectionTeam.module.css: "df1505604a67173d9bc1b50bc1ff4f14382303903d049357690c3830ae615c9c"
   terminal/components/settings/SettingsPanel.tsx: "378811617e0de2feed0d8bc1c6e01ae55d8e763204fe0d1c1829bc44fff1e1a4"
   terminal/components/settings/icons.tsx: "3bcda36b25a736f7c957151d3c7cee4e7946967e253c4753f0ac7cdb1e5e4ab2"
   terminal/app/settings.css: "3189163136d943431cbf52e4b5d241c105b695ba5af94c4c2e29151d537b5ef5"
-  terminal/lib/i18n.tsx: "b5723f6e6a4bbf32b74219e0fc51612b1f2b16727b5beaa730e58817f51e4617"
+  terminal/lib/i18n.tsx: "0149294fd039cf6155fd7015d6af5004dc80c6dab862422f1a26e6527ebfd44b"
 theme: dark
 languages: [en, zh]
 viewports:
