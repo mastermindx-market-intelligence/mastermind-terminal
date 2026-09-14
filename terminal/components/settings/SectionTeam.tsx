@@ -146,8 +146,9 @@ export default function SectionTeam({
     devTeam?.settings?.share_layouts_by_default ?? (defaults[1].value as boolean),
   );
   const [settingsLoaded, setSettingsLoaded] = useState(Boolean(devTeam));
+  const [settingsError, setSettingsError] = useState<[string, string] | null>(null);
   const [settingsBusyKey, setSettingsBusyKey] = useState<WorkspaceSettingKey | null>(null);
-  const [settingsMsg, setSettingsMsg] = useState<{ key: WorkspaceSettingKey; kind: "ok" | "err"; text: string } | null>(null);
+  const [settingsMsg, setSettingsMsg] = useState<{ key: WorkspaceSettingKey; tone: "ok" | "err"; text: string } | null>(null);
 
   useEffect(() => {
     if (transfer) {
@@ -198,6 +199,8 @@ export default function SectionTeam({
         setInvites([]);
         setInvitesFail(false);
         setTruncated(false);
+        setSettingsError(null);
+        setSettingsLoaded(true);
         return;
       }
       const team = teams[0];
@@ -282,29 +285,26 @@ export default function SectionTeam({
   // values and this effect is skipped (R4).
   const loadSettings = useCallback(async () => {
     if (devTeam) return;
-    const currentTeamId = (() => {
-      try {
-        return JSON.parse(window.localStorage.getItem("mm.lastTeamId") || "null");
-      } catch {
-        return null;
-      }
-    })();
-    // The team id is the freshly loaded team. If the roster fetch failed we never reach here.
     if (!teamId) return;
-    void currentTeamId;
     try {
       const res = await fetch(`/api/teams/${encodeURIComponent(teamId)}/settings`);
       const body = (await res.json().catch(() => ({}))) as {
         settings?: Array<{ key: WorkspaceSettingKey; value: string | boolean; updatedAt?: string | null }>;
       };
-      if (!res.ok) return;
+      if (!res.ok) {
+        // Surface the failure with a plain sentence so the block does not silently paint the
+        // closed defaults as "the team's saved values". The roster's failure-disclosure idiom
+        // already names the cause; we follow it here.
+        setSettingsError(TEAM_ROUTE_MESSAGES.read_failed);
+        return;
+      }
       const next = body.settings || [];
       const theme = next.find((r) => r.key === "default_chart_theme");
       const share = next.find((r) => r.key === "share_layouts_by_default");
       if (theme && (theme.value === "green_up" || theme.value === "red_up")) setChartTheme(theme.value);
       if (share && typeof share.value === "boolean") setShareLayouts(share.value);
     } catch {
-      // A network failure here must not flash a settings error — the roster already names it.
+      setSettingsError(TEAM_ROUTE_MESSAGES.read_failed);
     } finally {
       setSettingsLoaded(true);
     }
@@ -316,6 +316,7 @@ export default function SectionTeam({
     if (!teamId) {
       // Zero-team state hides the whole block; do not paint a half-state.
       setSettingsLoaded(true);
+      setSettingsError(null);
       return;
     }
     void loadSettings();
@@ -328,12 +329,13 @@ export default function SectionTeam({
       if (key === "default_chart_theme") setChartTheme(value as string);
       if (key === "share_layouts_by_default") setShareLayouts(value as boolean);
       const text = lang === "zh" ? SETTING_MESSAGES.saved[1] : SETTING_MESSAGES.saved[0];
-      setSettingsMsg({ key, kind: "ok", text });
+      setSettingsMsg({ key, tone: "ok", text });
       return;
     }
     if (!teamId) return;
     setSettingsBusyKey(key);
     setSettingsMsg(null);
+    setSettingsError(null);
     try {
       const res = await fetch(`/api/teams/${encodeURIComponent(teamId)}/settings`, {
         method: "PATCH",
@@ -345,15 +347,15 @@ export default function SectionTeam({
         const message =
           routeMessage(body, lang) ||
           (lang === "zh" ? SETTING_MESSAGES.unavailable[1] : SETTING_MESSAGES.unavailable[0]);
-        setSettingsMsg({ key, kind: "err", text: message });
+        setSettingsMsg({ key, tone: "err", text: message });
         return;
       }
       if (key === "default_chart_theme" && typeof value === "string") setChartTheme(value);
       if (key === "share_layouts_by_default" && typeof value === "boolean") setShareLayouts(value);
-      setSettingsMsg({ key, kind: "ok", text: routeMessage(body, lang) || (lang === "zh" ? SETTING_MESSAGES.saved[1] : SETTING_MESSAGES.saved[0]) });
+      setSettingsMsg({ key, tone: "ok", text: routeMessage(body, lang) || (lang === "zh" ? SETTING_MESSAGES.saved[1] : SETTING_MESSAGES.saved[0]) });
     } catch {
       const text = lang === "zh" ? SETTING_MESSAGES.unavailable[1] : SETTING_MESSAGES.unavailable[0];
-      setSettingsMsg({ key, kind: "err", text });
+      setSettingsMsg({ key, tone: "err", text });
     } finally {
       setSettingsBusyKey(null);
     }
@@ -798,6 +800,11 @@ export default function SectionTeam({
         {!noTeam && teamId && loaded && settingsLoaded ? (
           <Group title={WORKSPACE_SETTING_COPY.heading[lang === "zh" ? 1 : 0]}>
             <div className={s.settings} data-testid="team-settings">
+              {settingsError ? (
+                <p className="acs-note" data-testid="team-settings-fail">
+                  {settingsError[lang === "zh" ? 1 : 0]}
+                </p>
+              ) : null}
               <p className="acs-note" data-testid="team-settings-chart-caption">
                 {WORKSPACE_SETTING_COPY.caption.default_chart_theme[lang === "zh" ? 1 : 0]}
               </p>
@@ -822,12 +829,6 @@ export default function SectionTeam({
                     : WORKSPACE_SETTING_COPY.options.chart_theme[1][lang === "zh" ? 1 : 0]}
                 </p>
               )}
-              {settingsMsg?.key === "default_chart_theme" && settingsMsg.kind === "ok" ? (
-                <p className={s.settingsMsg} data-testid="team-settings-msg" data-msg-kind="ok">{settingsMsg.text}</p>
-              ) : null}
-              {settingsMsg?.key === "default_chart_theme" && settingsMsg.kind === "err" ? (
-                <p className={s.settingsMsg} data-testid="team-settings-msg" data-msg-kind="err">{settingsMsg.text}</p>
-              ) : null}
 
               <p className="acs-note" data-testid="team-settings-share-caption">
                 {WORKSPACE_SETTING_COPY.caption.share_layouts_by_default[lang === "zh" ? 1 : 0]}
@@ -847,20 +848,26 @@ export default function SectionTeam({
                   </span>
                 </label>
               ) : (
-                <p className={s.settingsValue}>
-                  {shareLayouts
-                    ? (lang === "zh" ? "开启" : "On")
-                    : (lang === "zh" ? "关闭" : "Off")}
+                <p className={s.settingsValue} data-testid="team-settings-share-value">
+                  {(shareLayouts ? WORKSPACE_SETTING_COPY.shareValue.on : WORKSPACE_SETTING_COPY.shareValue.off)[lang === "zh" ? 1 : 0]}
                 </p>
               )}
               <p className="acs-note">
                 {WORKSPACE_SETTING_COPY.explainer.share_layouts_by_default[lang === "zh" ? 1 : 0]}
               </p>
-              {settingsMsg?.key === "share_layouts_by_default" && settingsMsg.kind === "ok" ? (
-                <p className={s.settingsMsg} data-testid="team-settings-msg" data-msg-kind="ok">{settingsMsg.text}</p>
-              ) : null}
-              {settingsMsg?.key === "share_layouts_by_default" && settingsMsg.kind === "err" ? (
-                <p className={s.settingsMsg} data-testid="team-settings-msg" data-msg-kind="err">{settingsMsg.text}</p>
+
+              {/* Single shared message node — the most recently changed key. data-testid
+                  "team-settings-msg" is the spec's singular identifier; rendering one block
+                  keeps it unique regardless of which key was last touched. */}
+              {settingsMsg ? (
+                <p
+                  className={s.settingsMsg}
+                  data-testid="team-settings-msg"
+                  data-tone={settingsMsg.tone}
+                  data-setting-key={settingsMsg.key}
+                >
+                  {settingsMsg.text}
+                </p>
               ) : null}
 
               {callerRole === "member" ? (

@@ -126,13 +126,19 @@ describe("/api/teams/[id]/settings — GET", () => {
     expect(body.messageZh).toMatch(/[一-鿿]/);
   });
 
-  it("owner: 200 with both defaults applied when nothing is stored", async () => {
+  it("outsider without a seeded member row: 404 team_not_found (no defaults applied)", async () => {
+    // Different from the 401 cover above on purpose: with a session but no membership row,
+    // RLS hides the team — the route must answer 404 (never 401), and defaults must NOT be
+    // echoed as "the team's saved values" because there is no team to save them on.
     H.user = { id: "u-owner" };
     transport.state.teams = [];
     transport.state.team_members = [];
     transport.state.workspace_settings = [];
     const res = await GET({} as Request, ctx("t1"));
     expect(res.status).toBe(404);
+    const body = await res.json();
+    expect(body.message).toBeTruthy();
+    expect(body.messageZh).toBeTruthy();
   });
 
   it("owner with seeded member row: 200 with both defaults applied", async () => {

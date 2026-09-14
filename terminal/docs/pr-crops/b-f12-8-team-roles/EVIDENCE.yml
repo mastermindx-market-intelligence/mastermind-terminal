@@ -4,6 +4,10 @@
 # capturedAtHead: 3db34e7a8e8eca4bef1ca12eba90daab6cc0c10c
 # capturedAt: 2026-09-13T00:00:00.000Z
 # capturedAtHead is informational. The lock is layoutFiles (hash-only).
+# 2026-09-13 MO-B F12-13 C1 (packet MO-PAID-083): SectionTeam.tsx + SectionTeam.module.css re-hashed —
+# the Team settings block gained a settingsError state and renamed its message attribute (data-msg-kind
+# → data-tone) so the plain-language guard stops flagging `kind` as raw-slug interpolation; the painted
+# roster above is unchanged and the 16 crops still depict this tree.
 # 2026-09-13 MO-B F12-13 (packet MO-PAID-083): SectionTeam.tsx + SectionTeam.module.css re-hashed —
 # the Team settings block (chart-theme select + share-layouts switch + member read-only) was
 # added BELOW the roster group; the painted roster (owner crops) is unchanged and the 16 crops
@@ -13,8 +17,8 @@
 # 2026-09-11 merge of master 7e15e502 (#554 claim authoring form) into B-F12-8 (#550): i18n.tsx re-hashed for master's 31 claim* lexicon keys, which render only in the research-workspace claim form. No team* key moved and #554 edits none of this packet's other pinned files (SectionTeam.tsx, SectionTeam.module.css, SettingsPanel.tsx, icons.tsx, settings.css), so the 16 crops captured at 916db2d4 still depict this tree and none was recaptured.
 # 2026-09-11 MO-B PL-NI-1 (packet T-PL-NI-1, 您→你 sweep of Terminal master): terminal/lib/i18n.tsx re-hashed — plain-language 您→你 only; layout unchanged; no recapture.
 layoutFiles:
-  terminal/components/settings/SectionTeam.tsx: "09f94acf2abb58f26499485683322edaed48ceda53df3789aeeedd6a974fe9b2"
-  terminal/components/settings/SectionTeam.module.css: "abdc4479b6e624158498c5a8308651fe6de3e195563709ddd296fdb95229fd3c"
+  terminal/components/settings/SectionTeam.tsx: "f6955dce86cfc8937f123f7d3113d1f67880779a8a8bbe9f24e39276e571fe72"
+  terminal/components/settings/SectionTeam.module.css: "f1fe2aea3c2634800603113a95abadedc7b9e1031335d11e95e2b0fa48a656e3"
   terminal/components/settings/SettingsPanel.tsx: "378811617e0de2feed0d8bc1c6e01ae55d8e763204fe0d1c1829bc44fff1e1a4"
   terminal/components/settings/icons.tsx: "3bcda36b25a736f7c957151d3c7cee4e7946967e253c4753f0ac7cdb1e5e4ab2"
   terminal/app/settings.css: "3189163136d943431cbf52e4b5d241c105b695ba5af94c4c2e29151d537b5ef5"

@@ -807,12 +807,14 @@ describe("WORKSPACE_SETTING_COPY — plain-word catalogue (R3)", () => {
     WORKSPACE_SETTING_COPY.caption.share_layouts_by_default,
     ...WORKSPACE_SETTING_COPY.options.chart_theme,
   ];
-  // Sentences: the explainers and the read-only gate sentence. Each MUST end with a sentence
-  // terminator in both languages per the plain-language law (R3).
+  // Sentences: the explainer, the member share read-only sentences, and the read-only gate
+  // sentence. Each MUST end with a sentence terminator in both languages per the plain-language
+  // law (R3).
   const sentences: Array<readonly [string, string]> = [
     WORKSPACE_SETTING_COPY.memberReadOnly,
-    WORKSPACE_SETTING_COPY.explainer.default_chart_theme,
     WORKSPACE_SETTING_COPY.explainer.share_layouts_by_default,
+    WORKSPACE_SETTING_COPY.shareValue.on,
+    WORKSPACE_SETTING_COPY.shareValue.off,
   ];
   it("every [EN, ZH] label is distinct, has CJK, and avoids banned vocabulary", () => {
     for (const [en, zh] of labels) {

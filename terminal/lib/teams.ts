@@ -769,6 +769,58 @@ export const SETTING_MESSAGES: Record<"saved" | "not_admin" | "invalid_key" | "i
   unavailable: ["Team accounts are not set up on this server yet, so we cannot answer. Nothing was changed.", "此服务器尚未启用团队账户，因此我们无法作答。未更改任何内容。"],
 };
 
+// --- Packet MO-B F12-13: closed workspace-settings contract (R1). Keys are co-located with
+// SETTING_MESSAGES so the catalogues that back the same surface sit in one place. ---
+export type WorkspaceSettingKey = "default_chart_theme" | "share_layouts_by_default";
+
+export const WORKSPACE_SETTING_KEYS = {
+  default_chart_theme: {
+    kind: "enum" as const,
+    values: ["green_up", "red_up"] as const,
+    default: "green_up",
+  },
+  share_layouts_by_default: {
+    kind: "boolean" as const,
+    default: false,
+  },
+} as const;
+
+export type NormalizeWorkspaceSettingResult =
+  | { ok: true; key: WorkspaceSettingKey; value: string | boolean }
+  | { ok: false; code: "invalid_key" | "invalid_value" };
+
+/**
+ * Closed-validate a (key, value) pair against WORKSPACE_SETTING_KEYS. Any key outside the constant
+ * is `invalid_key`; any value outside its closed shape is `invalid_value`. Never persists, never
+ * coerces — the route is the only caller and it stops on `{ ok: false }`.
+ */
+export function normalizeWorkspaceSetting(key: unknown, value: unknown): NormalizeWorkspaceSettingResult {
+  if (key !== "default_chart_theme" && key !== "share_layouts_by_default") {
+    return { ok: false, code: "invalid_key" };
+  }
+  if (key === "default_chart_theme") {
+    if (value !== "green_up" && value !== "red_up") {
+      return { ok: false, code: "invalid_value" };
+    }
+    return { ok: true, key, value };
+  }
+  // share_layouts_by_default: must be a JSON boolean. A string "true"/"false" is rejected — the
+  // spec is explicit that a non-boolean shape is `invalid_value` (R7 test "string 'true' for the
+  // boolean -> 400 invalid_value").
+  if (typeof value !== "boolean") {
+    return { ok: false, code: "invalid_value" };
+  }
+  return { ok: true, key, value };
+}
+
+/** The closed defaults in key order (R1). */
+export function workspaceSettingDefaults(): { key: WorkspaceSettingKey; value: string | boolean }[] {
+  return [
+    { key: "default_chart_theme", value: WORKSPACE_SETTING_KEYS.default_chart_theme.default },
+    { key: "share_layouts_by_default", value: WORKSPACE_SETTING_KEYS.share_layouts_by_default.default },
+  ];
+}
+
 const INVITE_STATUS: Record<InviteCode, number> = {
   not_signed_in: 401, invalid_token: 404, already_used: 409, expired: 410,
   email_unknown: 403, email_mismatch: 403, invalid_email: 400, invalid_role: 400,
@@ -1004,55 +1056,6 @@ export async function writeSetting(
 // boolean "share new layouts by default" choice. No other workspace setting has an honest
 // consumer. Both values live under the workspace scope (terminal/lib/teams.ts WORKSPACE_SETTINGS_TABLE)
 // so personal settings on the same key never collide with them.
-export type WorkspaceSettingKey = "default_chart_theme" | "share_layouts_by_default";
-
-export const WORKSPACE_SETTING_KEYS = {
-  default_chart_theme: {
-    kind: "enum" as const,
-    values: ["green_up", "red_up"] as const,
-    default: "green_up",
-  },
-  share_layouts_by_default: {
-    kind: "boolean" as const,
-    default: false,
-  },
-} as const;
-
-export type NormalizeWorkspaceSettingResult =
-  | { ok: true; key: WorkspaceSettingKey; value: string | boolean }
-  | { ok: false; code: "invalid_key" | "invalid_value" };
-
-/**
- * Closed-validate a (key, value) pair against WORKSPACE_SETTING_KEYS. Any key outside the constant
- * is `invalid_key`; any value outside its closed shape is `invalid_value`. Never persists, never
- * coerces — the route is the only caller and it stops on `{ ok: false }`.
- */
-export function normalizeWorkspaceSetting(key: unknown, value: unknown): NormalizeWorkspaceSettingResult {
-  if (key !== "default_chart_theme" && key !== "share_layouts_by_default") {
-    return { ok: false, code: "invalid_key" };
-  }
-  if (key === "default_chart_theme") {
-    if (value !== "green_up" && value !== "red_up") {
-      return { ok: false, code: "invalid_value" };
-    }
-    return { ok: true, key, value };
-  }
-  // share_layouts_by_default: must be a JSON boolean. A string "true"/"false" is rejected — the
-  // spec is explicit that a non-boolean shape is `invalid_value` (R7 test "string 'true' for the
-  // boolean -> 400 invalid_value").
-  if (typeof value !== "boolean") {
-    return { ok: false, code: "invalid_value" };
-  }
-  return { ok: true, key, value };
-}
-
-/** The closed defaults in key order (R1). */
-export function workspaceSettingDefaults(): { key: WorkspaceSettingKey; value: string | boolean }[] {
-  return [
-    { key: "default_chart_theme", value: WORKSPACE_SETTING_KEYS.default_chart_theme.default },
-    { key: "share_layouts_by_default", value: WORKSPACE_SETTING_KEYS.share_layouts_by_default.default },
-  ];
-}
 
 // UI-facing copy for the team-settings block (R3). All [EN, ZH] tuples so the section can index
 // by lang like SETTING_MESSAGES / rosterFailPair. None of these strings carry a slug, snake_case,
@@ -1068,10 +1071,6 @@ export const WORKSPACE_SETTING_COPY = {
     ],
   },
   explainer: {
-    default_chart_theme: [
-      "Choose which colour marks a rising candle on the team's charts.",
-      "选择团队图表中代表上涨的颜色。",
-    ],
     share_layouts_by_default: [
       "Owners and administrators can still change sharing for each layout in Layouts.",
       "所有者和管理员仍可在“布局”中单独更改每个布局的共享设置。",
@@ -1082,6 +1081,12 @@ export const WORKSPACE_SETTING_COPY = {
       ["Green means up, red means down", "绿涨红跌"],
       ["Red means up, green means down", "红涨绿跌"],
     ],
+  },
+  // The member-only read-only value sentences for the boolean share setting. Plain words, never
+  // a token — same catalogue law as `caption`. Spec MAJOR: previously inlined in SectionTeam.tsx.
+  shareValue: {
+    on: ["Sharing new layouts is on.", "已开启自动共享新建布局。"],
+    off: ["Sharing new layouts is off.", "已关闭自动共享新建布局。"],
   },
   memberReadOnly: [
     "Only owners and administrators can change these.",

@@ -163,8 +163,10 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
 
   const body = (await req.json().catch(() => null)) as Record<string, unknown> | null;
   if (!body) return invalid("invalid_value");
-  // Spec R2: one key per call.
-  if (Object.prototype.hasOwnProperty.call(body, "key") === false) return invalid("invalid_value");
+  // Spec R2: one key per call. R1/R2 normalize-first — an absent or unknown key surfaces as
+  // `invalid_key` ("That setting name is not valid."), never as `invalid_value` ("That setting
+  // value is not valid."). Pass `undefined` for a missing `key` so the closed validator owns the
+  // branch.
   const normalized = normalizeWorkspaceSetting(body.key, body.value);
   if (!normalized.ok) return invalid(normalized.code);
 

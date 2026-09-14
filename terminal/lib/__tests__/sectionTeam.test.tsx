@@ -799,6 +799,7 @@ function liveDesk(overrides?: {
   members?: unknown[];
   callerRole?: string;
   invites?: { status: number; body?: unknown } | "throw";
+  settings?: { status: number; body?: unknown };
 }) {
   const teams = overrides?.teams ?? [{ id: "team-1", name: "Desk" }];
   const members = overrides?.members ?? [
@@ -806,6 +807,17 @@ function liveDesk(overrides?: {
     { userId: "a1b2c3d4-1111-4e6a-9c03-5b71ee0a4d22", role: "admin", displayName: "Alex Chen", createdAt: null },
   ];
   const invites = overrides?.invites ?? { status: 200, body: { invites: [] } };
+  const settings = overrides?.settings ?? {
+    status: 200,
+    body: {
+      teamId: "team-1",
+      role: overrides?.callerRole ?? "owner",
+      settings: [
+        { key: "default_chart_theme", value: "green_up", updatedAt: null },
+        { key: "share_layouts_by_default", value: false, updatedAt: null },
+      ],
+    },
+  };
   vi.stubGlobal(
     "fetch",
     vi.fn(async (input: RequestInfo | URL) => {
@@ -826,6 +838,13 @@ function liveDesk(overrides?: {
             members,
             callerRole: overrides?.callerRole ?? "owner",
           }),
+        } as unknown as Response;
+      }
+      if (url.startsWith("/api/teams/team-1/settings") || url.startsWith("/api/teams/team-2/settings")) {
+        return {
+          ok: settings.status >= 200 && settings.status < 300,
+          status: settings.status,
+          json: async () => settings.body ?? {},
         } as unknown as Response;
       }
       if (url === "/api/teams") {

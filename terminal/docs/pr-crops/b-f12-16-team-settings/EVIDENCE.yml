@@ -1,20 +1,16 @@
 # B-F12-16 Team settings block — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 3db34e7a8e8eca4bef1ca12eba90daab6cc0c10c
-# capturedAt: 2026-09-13T00:00:00.000Z
+# capturedAtHead: 0f08446bcc0ee72f95b65c144c769e10db3f4260
+# capturedAt: 2026-09-14T01:25:56.157Z
 # capturedAtHead is informational. The lock is layoutFiles (hash-only).
-# 2026-09-13 initial lock at packet MO-B F12-13 merge. Eight crops: 2 viewports (desktop, mobile)
-# x 2 languages (en, zh) x 2 caller roles (owner, member). The owner harness paints the two
-# controls (chart-theme select + share-layouts checkbox) and the saved messages; the member harness
-# paints the read-only sentence plus the closed-default chart-theme label.
 layoutFiles:
-  terminal/components/settings/SectionTeam.tsx: "09f94acf2abb58f26499485683322edaed48ceda53df3789aeeedd6a974fe9b2"
-  terminal/components/settings/SectionTeam.module.css: "abdc4479b6e624158498c5a8308651fe6de3e195563709ddd296fdb95229fd3c"
+  terminal/components/settings/SectionTeam.tsx: "f6955dce86cfc8937f123f7d3113d1f67880779a8a8bbe9f24e39276e571fe72"
+  terminal/components/settings/SectionTeam.module.css: "f1fe2aea3c2634800603113a95abadedc7b9e1031335d11e95e2b0fa48a656e3"
   terminal/components/settings/SettingsPanel.tsx: "378811617e0de2feed0d8bc1c6e01ae55d8e763204fe0d1c1829bc44fff1e1a4"
   terminal/components/settings/SettingsProvider.tsx: "4ac330d429de63c5a3e431aaa1a1b41e4a7905cf2a08bc260b68afa0bc604bed"
   terminal/app/settings.css: "3189163136d943431cbf52e4b5d241c105b695ba5af94c4c2e29151d537b5ef5"
-  terminal/lib/teams.ts: "a80203f52afdd7f3c5cdd7f87c7b0b6105e5834831df31e36e335ce40f7ec986"
+  terminal/lib/teams.ts: "2c0f36f264b6195ab1fcf3d50795e8c32d7a3221fa300485f8513b376ff0d0da"
   terminal/components/settings/types.ts: "65e846a39725a4dd6738dd746789e540e2b5433b669757356df4fce1d0a721fb"
   terminal/app/dev/settings/page.tsx: "5f6c93999876b88056d69773ca13da3a00fc2f26f28a6e12a394bc0c861cbd64"
 theme: dark
@@ -38,11 +34,11 @@ files:
   - mobile-en-member.png
   - mobile-zh-member.png
 measurements:
-  desktop-en-owner.png: { headingTitle: "Team settings", chartLabel: "Green means up, red means down", shareLabel: "Share new chart layouts with the team automatically", shareChecked: true, ownerWhatPresent: true }
-  desktop-zh-owner.png: { headingTitle: "团队设置", chartLabel: "绿涨红跌", shareLabel: "新建的图表布局自动与团队共享", shareChecked: true, ownerWhatPresent: true }
-  desktop-en-member.png: { headingTitle: "Team settings", chartLabel: "Green means up, red means down", memberReadOnlyPresent: true, shareControlPresent: false }
-  desktop-zh-member.png: { headingTitle: "团队设置", chartLabel: "绿涨红跌", memberReadOnlyPresent: true, shareControlPresent: false }
-  mobile-en-owner.png: { headingTitle: "Team settings", chartLabel: "Green means up, red means down", shareLabel: "Share new chart layouts with the team automatically", shareChecked: true, ownerWhatPresent: true }
-  mobile-zh-owner.png: { headingTitle: "团队设置", chartLabel: "绿涨红跌", shareLabel: "新建的图表布局自动与团队共享", shareChecked: true, ownerWhatPresent: true }
-  mobile-en-member.png: { headingTitle: "Team settings", chartLabel: "Green means up, red means down", memberReadOnlyPresent: true, shareControlPresent: false }
-  mobile-zh-member.png: { headingTitle: "团队设置", chartLabel: "绿涨红跌", memberReadOnlyPresent: true, shareControlPresent: false }
+  desktop-en-owner.png: { headingTitle: "Team settings", chartLabel: "Red means up, green means down", shareLabel: "Share new chart layouts with the team automatically", shareChecked: true, memberReadOnlyPresent: false, ownerWhatPresent: true }
+  desktop-zh-owner.png: { headingTitle: "团队设置", chartLabel: "红涨绿跌", shareLabel: "新建的图表布局自动与团队共享", shareChecked: true, memberReadOnlyPresent: false, ownerWhatPresent: true }
+  desktop-en-member.png: { headingTitle: "Team settings", chartLabel: "Green means up, red means down", shareLabel: "Share new chart layouts with the team automatically", shareChecked: null, memberReadOnlyPresent: true, ownerWhatPresent: true }
+  desktop-zh-member.png: { headingTitle: "团队设置", chartLabel: "绿涨红跌", shareLabel: "新建的图表布局自动与团队共享", shareChecked: null, memberReadOnlyPresent: true, ownerWhatPresent: true }
+  mobile-en-owner.png: { headingTitle: "Team settings", chartLabel: "Red means up, green means down", shareLabel: "Share new chart layouts with the team automatically", shareChecked: true, memberReadOnlyPresent: false, ownerWhatPresent: true }
+  mobile-zh-owner.png: { headingTitle: "团队设置", chartLabel: "红涨绿跌", shareLabel: "新建的图表布局自动与团队共享", shareChecked: true, memberReadOnlyPresent: false, ownerWhatPresent: true }
+  mobile-en-member.png: { headingTitle: "Team settings", chartLabel: "Green means up, red means down", shareLabel: "Share new chart layouts with the team automatically", shareChecked: null, memberReadOnlyPresent: true, ownerWhatPresent: true }
+  mobile-zh-member.png: { headingTitle: "团队设置", chartLabel: "绿涨红跌", shareLabel: "新建的图表布局自动与团队共享", shareChecked: null, memberReadOnlyPresent: true, ownerWhatPresent: true }

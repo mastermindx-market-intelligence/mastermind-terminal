@@ -81,8 +81,8 @@
   margin: 0;
   font: 500 12px/1.3 var(--font-ui);
 }
-.settingsMsg[data-msg-kind="ok"] { color: var(--brand-2); }
-.settingsMsg[data-msg-kind="err"] { color: var(--text-2); }
+.settingsMsg[data-tone="ok"] { color: var(--brand-2); }
+.settingsMsg[data-tone="err"] { color: var(--text-2); }
 /* Zero-team default state (round-4 ruling R3): a sentence and a way out, inside the same group
    the roster uses, so the section never paints a titled box with nothing in it. */
 .noTeam { display: block; }

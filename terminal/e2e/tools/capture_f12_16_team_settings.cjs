@@ -174,7 +174,7 @@ async function openMember(page, lang, viewport) {
 
 async function measureLayout(page) {
   return page.evaluate(() => {
-    const heading = document.querySelector('[data-testid="team-settings"]')?.closest(".acs-group")?.querySelector(".acs-group-title");
+    const heading = document.querySelector('[data-testid="team-settings"]')?.closest(".acs-group")?.querySelector(".acs-group-t");
     const chartSelect = document.querySelector('[data-testid="team-settings-chart"]');
     const shareSwitch = document.querySelector('[data-testid="team-settings-share"]');
     const shareInput = shareSwitch?.querySelector('input[type="checkbox"]');
