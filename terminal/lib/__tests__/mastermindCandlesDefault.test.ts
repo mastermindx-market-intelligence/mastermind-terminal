@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  isAmbientCandleSuite,
   migrateMastermindCandlesDefault,
   MASTERMIND_CANDLES_SUITE_KEY,
 } from "@/lib/mastermindCandlesDefault";
@@ -87,5 +88,49 @@ describe("Mastermind Candles default rollout", () => {
     expect(trendParams(result)).toEqual({ "cp.on": false, "cp.mode": "momentumVolume" });
     expect(result.hidden).toEqual(["suite:trend/cp"]);
     expect(result.changed).toBe(false);
+  });
+});
+
+
+describe("rollout isolation and malformed preferences", () => {
+  it("unhides only candles when a legacy suite-wide eye hid its siblings", () => {
+    const result = migrateMastermindCandlesDefault(
+      ["trend", "ema"], { trend: { "te.on": true, "vb.on": true, "cp.on": false } },
+      ["trend", "ema", "suite:trend/fb"], false,
+    );
+    expect(result.hidden).not.toContain("trend");
+    expect(result.hidden).not.toContain("suite:trend/cp");
+    expect(result.hidden).toEqual(expect.arrayContaining(["ema", "suite:trend/te", "suite:trend/vb", "suite:trend/fb"]));
+    expect(result.params.trend["te.on"]).toBe(true);
+    expect(result.params.trend["vb.on"]).toBe(true);
+  });
+
+  it.each([null, false, 12, "bad", {}])("never throws on valid JSON of the wrong shape (%j)", (bad) => {
+    const result = migrateMastermindCandlesDefault(bad as never, bad as never, bad as never, false);
+    expect(result.indicators).toContain("trend");
+    expect(result.params.trend["cp.on"]).toBe(true);
+    expect(result.hidden).toEqual([]);
+  });
+
+  it("does not mutate the input and the second migration preserves later removal", () => {
+    const ids = Object.freeze(["ema"]);
+    const params = Object.freeze({ trend: Object.freeze({ "cp.mode": "trendVolume", custom: 12 }) });
+    const hidden = Object.freeze(["ema"]);
+    const first = migrateMastermindCandlesDefault(ids, params, hidden, false);
+    const removed = migrateMastermindCandlesDefault(["ema"], first.params, first.hidden, true);
+    expect(removed.indicators).toEqual(["ema"]);
+    expect(removed.changed).toBe(false);
+    expect(params.trend).toEqual({ "cp.mode": "trendVolume", custom: 12 });
+  });
+});
+
+
+describe("anonymous candle-style slot exemption", () => {
+  it("does not consume a third study slot and never exempts premium siblings", () => {
+    const first = migrateMastermindCandlesDefault(["ema", "vol"], {}, [], false);
+    expect(first.indicators.length - Number(isAmbientCandleSuite(first.indicators, first.params))).toBe(2);
+    first.params.trend["te.on"] = true;
+    expect(isAmbientCandleSuite(first.indicators, first.params)).toBe(false);
+    expect(isAmbientCandleSuite(["ema"], first.params)).toBe(false);
   });
 });

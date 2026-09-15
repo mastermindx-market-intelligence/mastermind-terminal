@@ -1,4 +1,4 @@
-import { setSuiteModuleEnabledParams } from "@/lib/suites/catalog";
+import { enabledModulesForSuite, setSuiteModuleEnabledParams } from "@/lib/suites/catalog";
 
 export const MASTERMIND_CANDLES_MIGRATION_KEY = "mm.mastermindCandles.v1";
 export const MASTERMIND_CANDLES_SUITE_KEY = "trend";
@@ -30,8 +30,13 @@ export function migrateMastermindCandlesDefault(
   hidden: readonly string[],
   alreadyMigrated: boolean,
 ): MastermindCandlesMigration {
+  // Browser storage is an untrusted JSON boundary, even when TypeScript callers are typed.
+  const object = (value: unknown): value is Record<string, unknown> =>
+    typeof value === "object" && value !== null && !Array.isArray(value);
+  indicators = Array.isArray(indicators) ? indicators.filter((id) => typeof id === "string") : [];
+  hidden = Array.isArray(hidden) ? hidden.filter((id) => typeof id === "string") : [];
   const params = Object.fromEntries(
-    Object.entries(savedParams).map(([key, value]) => [key, { ...(value ?? {}) }]),
+    Object.entries(object(savedParams) ? savedParams : {}).map(([key, value]) => [key, object(value) ? { ...value } : {}]),
   ) as SavedParams;
 
   if (alreadyMigrated) {
@@ -50,10 +55,23 @@ export function migrateMastermindCandlesDefault(
     parentActive,
   );
 
+  const nextHidden = new Set(hidden.filter((id) => id !== MASTERMIND_CANDLES_MODULE_ID && id !== MASTERMIND_CANDLES_SUITE_KEY));
+  // Preserve the effective visibility of every sibling when translating the legacy suite-wide eye.
+  if (parentActive && hidden.includes(MASTERMIND_CANDLES_SUITE_KEY)) {
+    for (const entry of enabledModulesForSuite(MASTERMIND_CANDLES_SUITE_KEY, indicators, params)) {
+      if (entry.id !== MASTERMIND_CANDLES_MODULE_ID) nextHidden.add(entry.id);
+    }
+  }
   return {
     indicators: nextIndicators,
     params,
-    hidden: hidden.filter((id) => id !== MASTERMIND_CANDLES_MODULE_ID && id !== MASTERMIND_CANDLES_SUITE_KEY),
+    hidden: [...nextHidden],
     changed: true,
   };
+}
+
+/** Preserve the existing suite-based anonymous cap, exempting only a candle-only carrier. */
+export function isAmbientCandleSuite(indicators: Iterable<string>, params: SavedParams): boolean {
+  const active = enabledModulesForSuite(MASTERMIND_CANDLES_SUITE_KEY, indicators, params);
+  return active.length === 1 && active[0].id === MASTERMIND_CANDLES_MODULE_ID;
 }

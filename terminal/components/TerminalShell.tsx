@@ -42,7 +42,7 @@ import { FIN_PAGES, type FinPage } from "@/components/fin/finPages";
 import { getFund, getOpts, getBars, type Fund, type Bar } from "@/lib/fund";
 import { allDefaults, indDefaults, withDefaults, IND_ORDER, IND_DEFS, isIndKey } from "@/lib/indicators";
 import { isSuiteKey, suiteDefaults } from "@/lib/suites/registry";
-import { migrateMastermindCandlesDefault, MASTERMIND_CANDLES_MIGRATION_KEY, MASTERMIND_CANDLES_MODULE_ID, MASTERMIND_CANDLES_SUITE_KEY } from "@/lib/mastermindCandlesDefault";
+import { isAmbientCandleSuite, migrateMastermindCandlesDefault, MASTERMIND_CANDLES_MIGRATION_KEY, MASTERMIND_CANDLES_MODULE_ID, MASTERMIND_CANDLES_SUITE_KEY } from "@/lib/mastermindCandlesDefault";
 import {
   enabledModulesForSuite,
   enabledSuiteModules,
@@ -1423,10 +1423,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
   // Silent — the manual add path (toggleInd) shows the nudge; bulk/load just cap.
   useEffect(() => {
     if (loggedIn) return;
-    const trendModules = enabledModulesForSuite(MASTERMIND_CANDLES_SUITE_KEY, inds, indParams);
-    const candlesAreAmbientOnly = inds.has(MASTERMIND_CANDLES_SUITE_KEY)
-      && trendModules.length === 1
-      && trendModules[0]?.id === MASTERMIND_CANDLES_MODULE_ID;
+    const candlesAreAmbientOnly = isAmbientCandleSuite(inds, indParams);
     const counted = [...inds].filter((key) => !(candlesAreAmbientOnly && key === MASTERMIND_CANDLES_SUITE_KEY));
     if (counted.length <= MAX_ANON_IND) return;
     const keep = new Set(counted.slice(0, MAX_ANON_IND));
@@ -3781,7 +3778,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
   const toggleInd = (k: string) => {
     // Anon cap: toggling OFF is always fine; block ADDING past the cap + nudge.
     // Checked OUTSIDE the setInds updater (no setState side-effect in a reducer).
-    if (!loggedIn && !inds.has(k) && k !== MASTERMIND_CANDLES_SUITE_KEY && inds.size >= MAX_ANON_IND) { showGateNudge(t("gateIndCap")); return; }
+    if (!loggedIn && !inds.has(k) && k !== MASTERMIND_CANDLES_SUITE_KEY && inds.size - Number(isAmbientCandleSuite(inds, indParams)) >= MAX_ANON_IND) { showGateNudge(t("gateIndCap")); return; }
     setInds((s) => { const n = new Set(s); n.has(k) ? n.delete(k) : n.add(k); return n; });
     // A newly added suite starts with its quiet Focus profile. Saved workspaces are never migrated
     // implicitly; this runs only after an explicit add/toggle action.

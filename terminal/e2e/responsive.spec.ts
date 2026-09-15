@@ -881,7 +881,7 @@ test("a Pro-equivalent entitlement can discover all premium modules and add a su
 
   await modal.getByRole("button", { name: "Systems & Presets" }).click();
   const trendPreset = modal.locator(".ipreset-row").filter({ hasText: "Trend Waves" });
-  await trendPreset.getByRole("button", { name: "Add: Candle State" }).click();
+  // Mastermind Candles is already present on a first visit; it is the focused Trend profile.
   await expect(trendPreset.getByRole("button", { name: "Current: Candle State" })).toBeDisabled();
 });
 
