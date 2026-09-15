@@ -98,3 +98,36 @@ These inform an original implementation; no competitor assets, code or proprieta
 Finish the existing #589 release while implementing this frozen user journey on this branch.
 Keep source/effect identities recoverable. Stop only at a real release/authority boundary or
 production-proven outcome; record precisely what remains rather than calling foundations done.
+
+
+## Implementation checkpoint (2026-09-15)
+The first complete local journey now exists, not just this spec: Chart context opens on the active
+chart, explains its actual resampled bar, inspects history without future-calendar knowledge,
+controls four optional render layers, and extends the existing numeric table/CSV readout.
+The same canonical candle producer supplies both paint and explanations. Four pre-refactor
+paint-output digests remain byte-identical. The candle-only default imports no paid Trend runtime.
+
+Two existing cache defects were exposed by the new default and are part of this capability's
+correctness closure, not a separate rebuild: (1) the suite host memo ignored OHLCV corrections
+at fixed length/last-time; (2) raw price writes could remove candle colors while the applied-paint
+signature falsely claimed they remained on the canvas. Both have discriminating red-first tests.
+The existing bounded host memo now compares a primitive data snapshot; existing price writers
+invalidate their existing paint signature. A signature is committed only after setData succeeds.
+A bounded readback was added to the existing development-only chart diagnostics to prove actual
+series color channels, not only a switch or a state label. There is no new production control API.
+
+Latest verified local evidence at checkpoint: 327 unit files / 5430 passed / four existing todos;
+nine inspector browser journeys across desktop/tablet/mobile passed; a separate real-series
+paint test failed with all 120 sampled candle colors missing after a settings change, then passed
+with the invalidation repair. Full release-candidate verification remains owed after checkpoint.
+
+Candle predecessor #589 is merged as 702d81bb35f2c900a5aa1215437bf968aa9e6d93. Its git-gated VPS
+deploy completed with DEPLOY_EXIT=0, healthy service and matching served data-dpl-id. The isolated
+production browser proof tested both fresh and pre-existing browser state: default on, sibling
+settings preserved, explicit removal remains off after reload. Proof script and receipt are in
+terminal/e2e/tools/prove-mastermind-candles-live.mjs and the production crop directory.
+
+Current layer state: BUILT_NOT_PROVEN. More browser negative/replay/numeric-consumer checks,
+latest-head hosted gates, production deployment and real-data acceptance are still mandatory.
+This checkpoint is not acceptance. Source procedure re-pin for predecessor release:
+Mastermind 36f74c02edc938f7f5c41f38743f93ee34be2b2b (compatible skillpack 1.0.1).

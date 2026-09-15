@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { PriceScaleMode, type IChartApi } from "lightweight-charts";
 import { DEFAULT_CHART_SETTINGS, type ChartSettings } from "@/components/ChartFrameBar";
-import { useT } from "@/lib/i18n";
+import { visualText } from "@/lib/visualIntelligenceCopy";
+import { useLang, useT } from "@/lib/i18n";
 
 export type ChartSettingsTab = "symbol" | "status" | "scales" | "canvas";
 type Patch = (patch: Partial<ChartSettings>) => void;
@@ -100,7 +101,7 @@ export default function ChartSettingsModal({
       symbol: ["colorBarsPrevClose", "candleBodyVisible", "candleBordersVisible", "candleWicksVisible", "candleUpColor", "candleDownColor", "candleUpBorder", "candleDownBorder", "candleUpWick", "candleDownWick", "extHours", "precision"],
       status: ["showLogo", "showSymbolName", "titleMode", "showOHLC", "showBarChange", "showVolume", "showLastDayChange", "showIndicatorTitles", "indicatorBackgroundOpacity"],
       scales: ["mode", "invertScale", "scaleLeft", "autoScale", "lastValueVisible", "priceLineVisible", "countdownVisible", "extendedLineVisible", "preMarketColor", "postMarketColor", "overnightColor", "hourFormat"],
-      canvas: ["showWatermark", "backgroundType", "backgroundTop", "backgroundBottom", "gridHVisible", "gridVVisible", "gridHColor", "gridVColor", "paneSeparatorColor", "crosshairColor", "watermarkColor", "scaleTextColor", "scaleFontSize", "scaleLineColor", "paneButtons", "scaleMarginsTop", "scaleMarginsBottom", "rightOffsetBars"],
+      canvas: ["visualContext", "visualRegime", "visualVolume", "visualLevels", "visualEvents", "showWatermark", "backgroundType", "backgroundTop", "backgroundBottom", "gridHVisible", "gridVVisible", "gridHColor", "gridVColor", "paneSeparatorColor", "crosshairColor", "watermarkColor", "scaleTextColor", "scaleFontSize", "scaleLineColor", "paneButtons", "scaleMarginsTop", "scaleMarginsBottom", "rightOffsetBars"],
     };
     onSettings(Object.fromEntries(keys[tab].map((key) => [key, defaults[key]])) as Partial<ChartSettings>);
   }
@@ -341,7 +342,15 @@ function ScalesTab({ settings: s, onSettings, chartApi }: { settings: ChartSetti
 
 function CanvasTab({ settings: s, onSettings }: { settings: ChartSettings; onSettings: Patch }) {
   const t = useT();
+  const { lang } = useLang();
   return <div className="sm-section-list">
+    <Section title={visualText("title", lang)}>
+      <CheckRow label={visualText("restore", lang)} value={s.visualContext} onChange={(visualContext) => onSettings({ visualContext })} />
+      <CheckRow label={visualText("regimeToggle", lang)} value={s.visualRegime} disabled={!s.visualContext} onChange={(visualRegime) => onSettings({ visualRegime })} />
+      <CheckRow label={visualText("volumeToggle", lang)} value={s.visualVolume} disabled={!s.visualContext} onChange={(visualVolume) => onSettings({ visualVolume })} />
+      <CheckRow label={visualText("levelsToggle", lang)} value={s.visualLevels} disabled={!s.visualContext} onChange={(visualLevels) => onSettings({ visualLevels })} />
+      <CheckRow label={visualText("eventsToggle", lang)} value={s.visualEvents} disabled={!s.visualContext} onChange={(visualEvents) => onSettings({ visualEvents })} />
+    </Section>
     <Section title={t("smBasicStyles")}>
       <SelectRow label={t("smBackground")} value={s.backgroundType} onChange={(value) => onSettings({ backgroundType: value as "solid" | "gradient" })}
         options={[{ value: "solid", label: t("smBgSolid") }, { value: "gradient", label: t("smBgGradient") }]} />
