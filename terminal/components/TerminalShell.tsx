@@ -42,6 +42,7 @@ import { FIN_PAGES, type FinPage } from "@/components/fin/finPages";
 import { getFund, getOpts, getBars, type Fund, type Bar } from "@/lib/fund";
 import { allDefaults, indDefaults, withDefaults, IND_ORDER, IND_DEFS, isIndKey } from "@/lib/indicators";
 import { isSuiteKey, suiteDefaults } from "@/lib/suites/registry";
+import { migrateMastermindCandlesDefault, MASTERMIND_CANDLES_MIGRATION_KEY, MASTERMIND_CANDLES_MODULE_ID, MASTERMIND_CANDLES_SUITE_KEY } from "@/lib/mastermindCandlesDefault";
 import {
   enabledModulesForSuite,
   enabledSuiteModules,
@@ -1421,9 +1422,19 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
   // through `inds`, so clamp here instead of guarding ~10 setInds call sites.
   // Silent — the manual add path (toggleInd) shows the nudge; bulk/load just cap.
   useEffect(() => {
-    if (loggedIn || inds.size <= MAX_ANON_IND) return;
-    setInds((s) => new Set([...s].slice(0, MAX_ANON_IND)));
-  }, [inds, loggedIn]);
+    if (loggedIn) return;
+    const trendModules = enabledModulesForSuite(MASTERMIND_CANDLES_SUITE_KEY, inds, indParams);
+    const candlesAreAmbientOnly = inds.has(MASTERMIND_CANDLES_SUITE_KEY)
+      && trendModules.length === 1
+      && trendModules[0]?.id === MASTERMIND_CANDLES_MODULE_ID;
+    const counted = [...inds].filter((key) => !(candlesAreAmbientOnly && key === MASTERMIND_CANDLES_SUITE_KEY));
+    if (counted.length <= MAX_ANON_IND) return;
+    const keep = new Set(counted.slice(0, MAX_ANON_IND));
+    // Mastermind Candles is the Terminal's default candle styling, not one of the anonymous
+    // study slots. Exempt the carrier only while it contains no other Trend Waves modules.
+    if (candlesAreAmbientOnly) keep.add(MASTERMIND_CANDLES_SUITE_KEY);
+    setInds(keep);
+  }, [indParams, inds, loggedIn]);
   // Preserve OpenMarket-style defaults per tool. A global blue/1.5/solid state
   // flattened meaningful defaults (for example Highlighter 8px and dashed Fib)
   // as soon as a tool was selected. Overrides now belong to the tool that the
@@ -1743,7 +1754,35 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
     // paneTfs — same effect, same React batch, so the chart sees one commit either way.
     setPaneTfs([startTf]);
     setPrefsHydrated(true);
-    { const si = load("mm.inds", ["ema", "vol", "macd", "stochrsi"]) as string[]; setInds(new Set(si)); } setChartType(load("mm.ct", "candles")); setHidden(new Set(load("mm.indHidden", []))); { const savedP = load("mm.indParams", {}); const base = allDefaults(); for (const k of IND_ORDER) base[k] = withDefaults(k, savedP[k]); for (const k of Object.keys(savedP)) if (isSuiteKey(k)) base[k] = { ...suiteDefaults(k), ...savedP[k] }; setIndParams(base); } setFavTF(load("mm.favtf", ["D", "3D", "W", "1M"])); {
+    {
+      const savedInds = load("mm.inds", ["ema", "vol", "macd", "stochrsi"]) as string[];
+      const savedParams = load("mm.indParams", {}) as Record<string, Record<string, unknown>>;
+      const savedHidden = load("mm.indHidden", []) as string[];
+      const candlesMigrated = load(MASTERMIND_CANDLES_MIGRATION_KEY, null) === 1;
+      const rollout = migrateMastermindCandlesDefault(savedInds, savedParams, savedHidden, candlesMigrated);
+      setInds(new Set(rollout.indicators));
+      const base = allDefaults();
+      for (const k of IND_ORDER) base[k] = withDefaults(k, rollout.params[k]);
+      for (const k of Object.keys(rollout.params)) {
+        if (isSuiteKey(k)) base[k] = { ...suiteDefaults(k), ...rollout.params[k] };
+      }
+      setIndParams(base);
+      setHidden(new Set(rollout.hidden));
+      // Commit the one-time rollout before the mount-skip persistence effects. The marker is written
+      // last so an interrupted/blocked storage write retries rather than falsely claiming success.
+      if (rollout.changed) {
+        try {
+          localStorage.setItem("mm.inds", JSON.stringify(rollout.indicators));
+          localStorage.setItem("mm.indParams", JSON.stringify(rollout.params));
+          localStorage.setItem("mm.indHidden", JSON.stringify(rollout.hidden));
+          localStorage.setItem(MASTERMIND_CANDLES_MIGRATION_KEY, "1");
+        } catch { /* storage blocked: keep the in-memory default and retry next visit */ }
+      }
+    }
+    setChartType(load("mm.ct", "candles"));
+    // Hidden-state is restored inside the rollout block above so the one-time enable also makes
+    // Mastermind Candles visible for users who had previously hidden the old Candle Painter.
+    setFavTF(load("mm.favtf", ["D", "3D", "W", "1M"])); {
       const savedSet = load(WATCHLIST_SETTINGS_KEY, {});
       const savedVersion = Number(localStorage.getItem(WATCHLIST_SETTINGS_VERSION_KEY) || 0);
       const resolvedSet = resolveWatchlistSettings(savedSet, savedVersion);
@@ -3742,7 +3781,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
   const toggleInd = (k: string) => {
     // Anon cap: toggling OFF is always fine; block ADDING past the cap + nudge.
     // Checked OUTSIDE the setInds updater (no setState side-effect in a reducer).
-    if (!loggedIn && !inds.has(k) && inds.size >= MAX_ANON_IND) { showGateNudge(t("gateIndCap")); return; }
+    if (!loggedIn && !inds.has(k) && k !== MASTERMIND_CANDLES_SUITE_KEY && inds.size >= MAX_ANON_IND) { showGateNudge(t("gateIndCap")); return; }
     setInds((s) => { const n = new Set(s); n.has(k) ? n.delete(k) : n.add(k); return n; });
     // A newly added suite starts with its quiet Focus profile. Saved workspaces are never migrated
     // implicitly; this runs only after an explicit add/toggle action.
@@ -3772,11 +3811,11 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
     const parentActive = inds.has(k);
     const preset = applySuitePresetParams(k, profile.id, indParams[k]);
     const nextModuleCount = suiteModuleCatalogFor(k).filter(
-      (entry) => preset[`${entry.moduleKey}.on`] ?? entry.defaultOn,
+      (entry) => entry.id !== MASTERMIND_CANDLES_MODULE_ID && (preset[`${entry.moduleKey}.on`] ?? entry.defaultOn),
     ).length;
     const activeOutsideSuite = [...inds].filter((key) => !isSuiteKey(key)).length
-      + activeSuiteModuleIds.size
-      - (parentActive ? enabledModulesForSuite(k, inds, indParams).length : 0);
+      + [...activeSuiteModuleIds].filter((id) => id !== MASTERMIND_CANDLES_MODULE_ID).length
+      - (parentActive ? enabledModulesForSuite(k, inds, indParams).filter((entry) => entry.id !== MASTERMIND_CANDLES_MODULE_ID).length : 0);
     if (!loggedIn && activeOutsideSuite + nextModuleCount > MAX_ANON_IND) {
       showGateNudge(t("gateIndCap"));
       return;
@@ -3805,8 +3844,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
     const parentActive = inds.has(entry.suiteKey);
     const enabled = parentActive && activeSuiteModuleIds.has(entry.id);
     const nextEnabled = !enabled;
-    const activeStudyCount = [...inds].filter((key) => !isSuiteKey(key)).length + activeSuiteModuleIds.size;
-    if (nextEnabled && !loggedIn && activeStudyCount >= MAX_ANON_IND) {
+    const activeStudyCount = [...inds].filter((key) => !isSuiteKey(key)).length
+      + [...activeSuiteModuleIds].filter((moduleId) => moduleId !== MASTERMIND_CANDLES_MODULE_ID).length;
+    if (nextEnabled && entry.id !== MASTERMIND_CANDLES_MODULE_ID && !loggedIn && activeStudyCount >= MAX_ANON_IND) {
       showGateNudge(t("gateIndCap"));
       return;
     }
