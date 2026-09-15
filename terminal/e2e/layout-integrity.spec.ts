@@ -210,9 +210,17 @@ test.describe("saved layouts", () => {
     // `if ("_vis" in params) { ...; break; }` shape would pass silently even if `_vis` were
     // dropped from every entry but one — an unconditional assertion over every entry is what
     // actually proves the round trip.
-    for (const params of Object.values(indParams)) {
-      expect(params).toHaveProperty("_vis");
-      expect(typeof params._vis).toBe("object");
+    // Classic studies have nested visibility ranges; suite modules have a different, flat schema.
+    // Assert both contracts, rather than expecting a classic-only field on the new default suite.
+    for (const [key, params] of Object.entries(indParams)) {
+      if (key === "trend") {
+        expect(params["cp.on"]).toBe(true);
+        expect(params["cp.mode"]).toBe("momentum");
+        expect(params["te.on"]).toBe(false);
+      } else {
+        expect(params).toHaveProperty("_vis");
+        expect(typeof params._vis).toBe("object");
+      }
     }
     // …and the device preference it used to overwrite is still never part of the contract, at
     // either level (the anti-duplication law is unaffected by the nesting-depth fix).
