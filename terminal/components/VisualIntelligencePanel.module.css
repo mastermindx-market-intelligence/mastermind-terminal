@@ -1,0 +1,77 @@
+.root {
+  position: absolute; top: 36px; right: 12px; z-index: 12;
+  width: min(360px, calc(100% - 24px)); display: flex; flex-direction: column; align-items: flex-end;
+  pointer-events: none; font-family: var(--font-ui, system-ui, sans-serif); color: var(--text);
+}
+.trigger { pointer-events: auto; display: flex; align-items: center; gap: 7px; max-width: 100%; min-height: 30px;
+  border: 1px solid var(--line-3, #343946); border-radius: 5px; background: var(--panel, #181c25);
+  padding: 4px 9px; font: inherit; font-size: 11px; cursor: pointer; box-shadow: 0 2px 8px rgb(0 0 0 / .16); }
+.spark { font-size: 15px; }
+.triggerTitle { color: var(--text, #e4e8ef); font-weight: 650; white-space: nowrap; }
+.triggerState { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 135px; }
+.panel { pointer-events: auto; width: 100%; margin-top: 6px; overflow: auto; overscroll-behavior: contain;
+  border: 1px solid var(--line-3, #343946); border-radius: 8px; background: var(--panel, #181c25);
+  box-shadow: 0 12px 36px rgb(0 0 0 / .35); scrollbar-width: thin; }
+.header { display: flex; justify-content: space-between; align-items: center; padding: 13px 14px 10px;
+  border-bottom: 1px solid var(--line, #2b303b); }
+.header h3 { margin: 0; font-size: 15px; line-height: 1.4; font-weight: 650; }
+.header p { color: var(--muted, #a3abba); margin: 3px 0 0; font-size: 11px; }
+.iconButton { width: 32px; height: 32px; border: 0; border-radius: 4px; background: transparent; color: inherit; font-size: 22px; cursor: pointer; }
+.barNav { display: flex; align-items: center; gap: 7px; padding: 10px 12px; border-bottom: 1px solid var(--line, #2b303b); }
+.barNav > div { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.barNav small { font-size: 10px; color: var(--muted, #a3abba); }
+.barNav time { font-variant-numeric: tabular-nums; font-size: 11px; }
+.barNav button { background: transparent; border: 1px solid var(--line-3, #343946); border-radius: 4px;
+  font: inherit; font-size: 12px; color: var(--text, #e4e8ef); min-width: 29px; height: 30px; cursor: pointer; }
+.barNav button:disabled { opacity: .32; cursor: default; }
+.barNav .latest { padding: 0 7px; font-size: 10px; }
+.synthesis { margin: 12px 13px 6px; padding: 10px 11px; border-left: 2px solid currentColor;
+  background: color-mix(in srgb, currentColor 5%, transparent); font-weight: 600; font-size: 13px; line-height: 1.55; }
+.hint { margin: 0 14px 10px; font-size: 10px; color: var(--muted, #a3abba); line-height: 1.5; }
+.facts { padding: 0 14px; }
+.fact { padding: 11px 0; border-top: 1px solid var(--line, #2b303b); font-size: 12px; }
+.factHead { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 5px; }
+.factHead h4 { font-size: 12px; font-weight: 650; margin: 0; }
+.factHead > span { font-size: 10px; color: var(--muted, #a3abba); }
+.factHead > strong { font-variant-numeric: tabular-nums; text-align: right; font-size: 11px; }
+.fact p, .layers p { font-size: 10.5px; line-height: 1.55; color: var(--muted, #a3abba); margin: 6px 0 0; }
+.fact small { display: block; margin-top: 5px; font-size: 10px; color: var(--muted, #a3abba); }
+.numbers { display: flex; justify-content: space-between; gap: 12px; padding-top: 5px; font-size: 11px; font-variant-numeric: tabular-nums; }
+.numbers > span { color: var(--muted, #a3abba); }
+.meter { height: 4px; margin-top: 8px; border-radius: 4px; background: var(--line, #2b303b); overflow: hidden; }
+.meter > span { display: block; height: 100%; background: var(--brand-2, #7c9dff); }
+.events { display: flex; flex-direction: column; gap: 6px; margin: 5px 0 9px; }
+.events > div { display: grid; grid-template-columns: 1fr auto; gap: 3px; font-size: 11px; }
+.events time { font-variant-numeric: tabular-nums; color: var(--muted, #a3abba); }
+.events small { grid-column: 1 / -1; color: var(--warn, #e8b45d); margin: 0; }
+.layers { border: 0; border-top: 1px solid var(--line, #2b303b); margin: 0 14px; padding: 12px 0 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.layers legend { padding: 3px 0 0; font-size: 11px; font-weight: 650; }
+.layers button { display: flex; align-items: center; justify-content: space-between; gap: 6px; min-height: 36px;
+  padding: 6px 8px; color: var(--text, #e4e8ef); border: 1px solid var(--line-3, #343946); border-radius: 5px;
+  background: transparent; font: inherit; font-size: 10px; text-align: left; cursor: pointer; }
+.layers p { grid-column: 1 / -1; }
+.switch { flex: 0 0 23px; width: 23px; height: 12px; border-radius: 10px; background: var(--line-3, #343946); position: relative; }
+.switch::after { content: ""; width: 8px; height: 8px; border-radius: 50%; position: absolute; top: 2px; left: 2px; background: var(--muted, #a3abba); }
+.switch.on { background: var(--brand-2, #7c9dff); }
+.switch.on::after { left: 13px; background: var(--panel, #181c25); }
+.footer { padding: 10px 14px 13px; border-top: 1px solid var(--line, #2b303b); }
+.footer p { font-size: 10px; line-height: 1.55; color: var(--muted, #a3abba); margin: 0 0 7px; }
+.textButton { padding: 7px 0; background: none; border: 0; font: inherit; color: var(--brand-2, #7c9dff); font-size: 11px; cursor: pointer; }
+.feedback { display: flex; gap: 10px; flex-wrap: wrap; font-size: 10px; color: var(--muted, #a3abba); }
+.feedback button { background: transparent; border: 0; padding: 6px 0; color: var(--muted, #a3abba); font: inherit; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.empty { margin: 16px; font-size: 12px; color: var(--muted, #a3abba); }
+.up { color: var(--up, #18cda0); }
+.down { color: var(--down, #f05e79); }
+.warn { color: var(--warn, #e8b45d); }
+.neutral { color: var(--muted, #a3abba); }
+.fact .warning { color: var(--warn, #e8b45d); }
+.root button:focus-visible { outline: 2px solid var(--brand-2, #7c9dff); outline-offset: 2px; }
+@media (max-width: 860px), (pointer: coarse) {
+  .root { right: 8px; width: min(360px, calc(100% - 16px)); }
+  .trigger { min-height: 44px; padding: 7px 10px; }
+  .triggerState { max-width: 100px; }
+  .barNav button, .iconButton, .layers button, .feedback button, .textButton { min-height: 44px; }
+  .barNav button, .iconButton { min-width: 44px; }
+  .fact p, .layers p { font-size: 11px; }
+}
+@media (prefers-reduced-motion: reduce) { .root *, .root *::after { transition: none !important; animation: none !important; } }
