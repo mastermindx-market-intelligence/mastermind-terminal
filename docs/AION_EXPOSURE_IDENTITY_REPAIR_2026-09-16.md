@@ -60,3 +60,12 @@ The earlier request for light-theme evidence is also superseded on scope: curren
 The old source head's hosted run `35057984549` completed SUCCESS. Adding committed tests requires fresh exact-head CI; do not inherit its conclusion for the new test commit. Independent review is still unassigned; no reviewer/provider/Executive Job is claimed. This proof closes the mounted-race blocker only, not merge/deployment/real-customer acceptance.
 
 Next: consume the new exact-head CI and independent review, then use the existing lawful deployment and production selected-ticker proof. Keep the same #592 carrier. Liquidity #124 and observation-history design #686 remain separately gated.
+
+## Actual-browser response-order proof
+The same candidate now also has `terminal/e2e/exposure-state-identity.spec.ts`, exercising the complete Options page and its real presentation, rather than only the jsdom-mounted component. The test delays the SPY state HTTP response, switches to QQQ, admits QQQ's deliberately synthetic flip 701, then releases SPY with either synthetic flip 760 or HTTP 503. QQQ remains selected and the visible EOD-context Gamma flip stays 701.
+
+All **6 browser cases passed**: success/error at desktop 1440x900 EN, tablet 820x1180 ZH and mobile 390x844 EN. Tests used CI=1, isolated loopback port 32177, one worker, zero retries and no reused server. The first execution never reached application assertions because the pinned headless browser was absent; installing only that pinned browser with cache garbage collection disabled resolved that environment prerequisite. No user desktop/browser session was controlled.
+
+A separate discriminating run temporarily restored the original base GexDeskView and failed the desktop success case with exactly `Received: Gamma flip760EOD · Jul 10` when 701 was expected while QQQ remained selected. The original source was restored; the complete six-case browser run then passed again. TypeScript passed after adding the browser spec. Baseline and corrected-view captures are retained under `docs/evidence/aion-exposure-identity-20260916/browser-race/`.
+
+These are synthetic network ordering fixtures and old fixture dates, not numerical-consistency, forecasting, live-data or production evidence. The deliberate 701/760 test numbers are unrelated to actual prices. Production TypeScript remains byte-identical to 27a759. The only remaining pre-release requirements are current-head integration/CI and independent review; production selected-ticker verification follows lawful deployment, not this local proof.
