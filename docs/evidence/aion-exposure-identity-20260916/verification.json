@@ -2,8 +2,8 @@
   "source_base": "702d81bb35f2c900a5aa1215437bf968aa9e6d93",
   "evidence_class": "existing_fixture_browser_regression_not_production",
   "vitest": {
-    "files_passed": 327,
-    "tests_passed": 5434,
+    "files_passed": 328,
+    "tests_passed": 5446,
     "todo": 4
   },
   "focused_tests_passed": 136,
@@ -14,8 +14,18 @@
     "retries": 0,
     "cold_server": true
   },
-  "mounted_reversed_response_test": "blocked_before_file_creation",
-  "light_theme_proof": "not_established",
+  "mounted_reversed_response_test": {
+    "status": "passed",
+    "tests": 12,
+    "real_component": "GexDeskView",
+    "transport": "deferred synthetic promises",
+    "base_mutation_first_10": {
+      "failed": 8,
+      "passed": 2
+    },
+    "cleanup_mutation_targeted_test": "failed_before_restore"
+  },
+  "light_theme_proof": "unsupported_existing_terminal_capability_not_part_of_nonvisual_repair",
   "production_proof": false,
   "screenshots": [
     {
@@ -39,5 +49,8 @@
       "theme": "dark",
       "language": "en"
     }
-  ]
+  ],
+  "semantic_source": "27a759373b3feced2f313358cc0ef507155eca6b",
+  "skillpack_pin": "a78b8fe23d8e1ed129880ac47e97ebe96afa8aea",
+  "independent_review": "unassigned"
 }

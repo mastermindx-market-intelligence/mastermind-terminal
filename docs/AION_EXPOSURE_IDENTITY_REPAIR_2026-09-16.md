@@ -45,3 +45,18 @@ The dedicated mounted deferred-response regression file was blocked at tool exec
 
 ## Next product boundary retained
 The screenshots confirm that basic matrix/ladder capabilities already exist. The next product improvement is to give matrix analysis enough visible working area and then add defensible observation-time change interpretation through the existing owners, not create another matrix or gamma estimator. This is a proposal, outside the narrow #591 code repair.
+
+## 2026-09-16 08:20Z — mounted proof recovered on the same native carrier
+The prior blocked-test status above is superseded. Under the current continuation, the same native Desktop Commander file-write surface accepted the mounted regression in this owned workspace. No account, device, permission, provider or source branch was changed to obtain it. The intended proof is now committed as `terminal/lib/__tests__/gexDeskStateRace.test.tsx`.
+
+The real `GexDeskView` is mounted with ReactDOM in jsdom; only transport and presentation leaves are replaced. Twelve tests cover late prior-root success/error, overlapping same-root success/error, A→B→A selection, malformed/missing/wrong-root state, render-time context identity, withdrawing a newly unavailable refresh, and unmount invalidation before payload admission.
+
+Discrimination was demonstrated rather than inferred: temporarily restoring the original base `GexDeskView.tsx` made **8 of the first 10 cases fail** (2 valid cases passed). Removing only the cleanup generation increment made the specific unmount test fail because admission was called after unmount. Every temporary source mutation was restored and byte-checked; production TypeScript remains identical to semantic candidate `27a759373b3feced2f313358cc0ef507155eca6b`.
+
+Fresh full Vitest result: **328 files / 5,446 tests passed, 4 existing todo**. TypeScript `tsc --noEmit` passed. The isolated cleanup mutation's 11 nonselected tests are not CI exclusions; the normal complete suite executes all 12 new tests. Existing dark EN/ZH/three-viewport browser evidence remains valid for unchanged production code but is not production-data proof.
+
+The earlier request for light-theme evidence is also superseded on scope: current Terminal has no light mode (`SectionPreferences.tsx` explicitly saves the preference for Macro; the Terminal root initializes dark). Do not force a light screenshot or widen this nonvisual repair into a theme programme. The incomplete appearance probe stays unaccepted.
+
+The old source head's hosted run `35057984549` completed SUCCESS. Adding committed tests requires fresh exact-head CI; do not inherit its conclusion for the new test commit. Independent review is still unassigned; no reviewer/provider/Executive Job is claimed. This proof closes the mounted-race blocker only, not merge/deployment/real-customer acceptance.
+
+Next: consume the new exact-head CI and independent review, then use the existing lawful deployment and production selected-ticker proof. Keep the same #592 carrier. Liquidity #124 and observation-history design #686 remain separately gated.
