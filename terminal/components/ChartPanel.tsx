@@ -72,7 +72,7 @@ import {
 import { paintCandleData } from "@/lib/indicator-canvas/candlePaint";
 import { paintSnapshotTables } from "@/lib/chartSnapshotTables";
 import { SUITE_DEFS, getSuiteDef, isSuiteKey as isSuiteKeyReg, paneSuiteKeys } from "@/lib/suites/registry";
-import { ensureSuiteRuntime, peekSuiteRuntime } from "@/lib/suites/compute";
+import { ensureSuiteRuntime, peekSuiteRuntime, type SuiteRuntimeProfile } from "@/lib/suites/compute";
 import {
   enabledModulesForSuite,
   parseSuiteModuleId,
@@ -488,8 +488,14 @@ export function isRequestedPriceScaleApplied(
   try { return series.options().priceScaleId === requested; } catch { return false; }
 }
 
+import VisualIntelligencePanel, { type VisualIntelligenceHandle } from "@/components/VisualIntelligencePanel";
+import { buildVisualSeries, participationColor, visualOverlayBundle, visualReadout, visualSettings,
+  EMPTY_VISUAL_CALENDAR, type ChartReadoutMeta, type VisualCalendar, type VisualIntelligenceSettings,
+  type VisualSeries } from "@/lib/visualIntelligence";
+import { candleVolumeRank } from "@/lib/suites/trend/candlePainter";
+
 export default function ChartPanel({ symbol, chartType = "candles", indicators, timeframe = "D", replayIdx = null, onMeta, tool = null, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, drawings = [], onDrawingsChange, detectCmd = null, magnet = "off", compare = [], compareCfg = EMPTY_OBJ, isActive = true, syncId = null, liveQuote = null,
-  indParams = EMPTY_OBJ, hidden = EMPTY_SET, onToggleHidden, onRemoveInd, onOpenSettings, onOpenSource, pineScripts = EMPTY_PINE, chartSettings, onChartApi, extHours = false,
+  indParams = EMPTY_OBJ, hidden = EMPTY_SET, onToggleHidden, onRemoveInd, onOpenSettings, onOpenSource, pineScripts = EMPTY_PINE, chartSettings, onVisualSettings, onChartApi, extHours = false,
   instrumentName, instrumentMarket, instrumentColor, onAddAlert, onTableView, onObjectTree, onOpenSettingsModal, lockedVLine = null, onSetLockedVLine, onIndRowsAt, dayMode = false, onPaneCount, companyName = "", userTier = "free", dataReady = true, initialTimeframe = null }:
   { symbol: string; companyName?: string; chartType?: string; indicators: Set<string>; timeframe?: string; replayIdx?: number | null; onMeta?: (m: { total: number }) => void;
     /** False until the shell has COMMITTED its persisted prefs. See `effectiveTimeframe`. */
@@ -499,6 +505,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     tool?: DrawKind | null; toolActivation?: number; drawingSticky?: boolean; drawingCreationDisabled?: boolean; drawStyle?: { color: string; width: number; dash: "solid" | "dashed" | "dotted" }; drawings?: Drawing[]; onDrawingsChange?: (d: Drawing[]) => void; detectCmd?: DetectCmd; magnet?: "off" | "weak" | "strong" | boolean; compare?: string[]; compareCfg?: Record<string, CmpCfg>; isActive?: boolean; syncId?: number | null; liveQuote?: LiveQuote;
     indParams?: Record<string, any>; hidden?: Set<string>; onToggleHidden?: (key: string) => void; onRemoveInd?: (key: string) => void; onOpenSettings?: (key: string) => void; onOpenSource?: (key: string) => void; pineScripts?: PineScript[];
     chartSettings?: Partial<ChartSettings>;
+    onVisualSettings?: (patch: Partial<VisualIntelligenceSettings>) => void;
     instrumentName?: string;
     instrumentMarket?: string;
     instrumentColor?: string;
@@ -510,7 +517,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     lockedVLine?: string | null;
     onSetLockedVLine?: (time: string | null) => void;
     /** Called once after each data load with a function that returns per-key indicator values at a bar time. */
-    onIndRowsAt?: (fn: ((barTime: string | number) => Record<string, number | null>) | null) => void;
+    onIndRowsAt?: (fn: ((barTime: string | number) => Record<string, number | null>) | null, meta?: ChartReadoutMeta) => void;
     /** Day Trade Mode — enables session shading + countdown chip + stats strip. */
     dayMode?: boolean;
     /** B3: fires whenever the number of non-price sub-panes changes, so TerminalShell can grow the container. */
@@ -521,6 +528,12 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   const t = useT();
   const ref = useRef<HTMLDivElement>(null);
   const statusRef = useRef<HTMLSpanElement>(null);
+  const visualPanelRef = useRef<VisualIntelligenceHandle | null>(null);
+  const visualSeriesRef = useRef<VisualSeries | null>(null);
+  const visualSelectedTimeRef = useRef<string | null>(null);
+  // Accepted data identity, not merely the currently REQUESTED React symbol/timeframe.
+  const visualSourceRef = useRef<{ symbol: string; timeframe: string } | null>(null);
+  const visualCalendarRef = useRef<{ symbol: string; calendar: VisualCalendar }>({ symbol: "", calendar: EMPTY_VISUAL_CALENDAR });
   const verdictRef = useRef<HTMLSpanElement>(null);
   // ── chart / series refs (never in a dep array) ──
   // The engine owns the renderer lifecycle (chart-engine P1); chartRef is the raw-LWC
@@ -750,10 +763,12 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   // repainting through that alone left a just-loaded suite invisible until the next pan or zoom.
   const scheduleRenderRef = useRef<(() => void) | null>(null);
   const requestSuiteRuntime = (key: string) => {
-    if (suiteRuntimeHookedRef.current.has(key)) return;
-    suiteRuntimeHookedRef.current.add(key);
-    void ensureSuiteRuntime(key).then(() => {
-      suiteRuntimeHookedRef.current.delete(key);
+    const profile = suiteRuntimeProfile(key);
+    const pendingKey = `${key}:${profile}`;
+    if (suiteRuntimeHookedRef.current.has(pendingKey)) return;
+    suiteRuntimeHookedRef.current.add(pendingKey);
+    void ensureSuiteRuntime(key, profile).then(() => {
+      suiteRuntimeHookedRef.current.delete(pendingKey);
       // Both layers: the SVG prims/tables AND the candle paint, which is key-guarded and would
       // otherwise not notice that a suite it skipped now has something to say.
       scheduleRenderRef.current?.();      // suite prims + tables
@@ -812,6 +827,12 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   );
   const onPaneCountRef = useRef(onPaneCount); onPaneCountRef.current = onPaneCount;
   const lastPaneCountRef = useRef<number>(-1);   // last reported count to avoid redundant calls
+
+  const suiteRuntimeProfile = (key: string): SuiteRuntimeProfile => {
+    if (key !== "trend") return "full";
+    const modules = enabledModulesForSuite(key, indicatorsRef.current, indParamsRef.current);
+    return modules.length === 1 && modules[0].moduleKey === "cp" ? "candles" : "full";
+  };
 
   // `insider` is the pre-rename name for `essential`; still ranked so a stale cached tier can
   // never fail CLOSED here (the renderer refusing to draw) while the picker fails OPEN.
@@ -1033,6 +1054,18 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   // change and no second load is issued. Standalone callers (embed, dev theater, ChartConductor)
   // pass neither prop and are unaffected.
   const effectiveTimeframe = dataReady ? timeframe : (initialTimeframe ?? timeframe);
+  useLayoutEffect(() => {
+    visualSourceRef.current = null;
+    visualSeriesRef.current = null;
+    visualSelectedTimeRef.current = null;
+    visualCalendarRef.current = { symbol: "", calendar: EMPTY_VISUAL_CALENDAR };
+    visualPanelRef.current?.reset();
+  }, [symbol, effectiveTimeframe]);
+  useLayoutEffect(() => {
+    visualSeriesRef.current = null;
+    visualSelectedTimeRef.current = null;
+    visualPanelRef.current?.reset();
+  }, [replayIdx]);
   chartTypeRef.current = chartType; timeframeRef.current = effectiveTimeframe; compareRef.current = compare || []; compareCfgRef.current = compareCfg; indicatorsRef.current = indicators; dataReadyRef.current = dataReady; syncIdRef.current = syncId; replayIdxRef.current = replayIdx; liveQuoteRef.current = liveQuote; extHoursRef.current = extHours; symbolRef.current = symbol; companyNameRef.current = companyName;
   lastValueVisibleRef.current = chartSettings?.lastValueVisible !== false;
   countdownVisibleRef.current = chartSettings?.countdownVisible !== false;
@@ -1159,7 +1192,15 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     return [ln];
   };
   // volume rebuilt with param-aware colors so Effect 5 can recolor by re-setData (see volData)
-  const volData = (rows: Bar[]) => { const p = P("vol"); return rows.map((r) => ({ time: r.time, value: r.v, color: r.c >= r.o ? p.upCol : p.downCol })); };
+  const volData = (rows: Bar[]) => {
+    const p = P("vol");
+    const settings = visualSettings(chartSettingsRef.current);
+    return rows.map((r, i) => {
+      const color = r.c >= r.o ? p.upCol : p.downCol;
+      return { time: r.time, value: r.v, color: settings.visualContext && settings.visualVolume
+        ? participationColor(color, candleVolumeRank(rows, i).percentile) : color };
+    });
+  };
   const buildVol = (chart: IChartApi, rows: Bar[]): ISeriesApi<any>[] => {
     const vs = chart.addSeries(HistogramSeries, {
       priceFormat: { type: "volume" },
@@ -1447,7 +1488,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         ? { time: r.time, open: r.o, high: r.h, low: r.l, close: r.c, color: col }
         : { time: r.time, open: r.o, high: r.h, low: r.l, close: r.c, color: col, borderColor: col, wickColor: col };
     });
-    try { priceS.setData(colored as any); } catch {}
+    try { priceS.setData(colored as any); suitePaintKeyRef.current = ""; } catch {}
   };
 
   // Restore normal candle colors (called when ribbon removed or colorCandles toggled off).
@@ -1455,7 +1496,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     const priceS = priceSeriesRef.current; if (!priceS) return;
     const chartTyp = chartTypeRef.current;
     if (isValueChartType(chartTyp)) return;
-    try { priceS.setData(priceData(rows) as any); } catch {}
+    try { priceS.setData(priceData(rows) as any); suitePaintKeyRef.current = ""; } catch {}
   };
 
   // Premium suites: per-bar candle repaint (e.g. Structure Candles). Mirrors the ribbon pattern.
@@ -1472,7 +1513,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       if (!suiteColorsRef.current) suiteColorsRef.current = resolveSuiteColors();
       const lang = typeof document !== "undefined" && document.documentElement.getAttribute("data-lang") === "zh" ? "zh" as const : "en" as const;
       for (const k of active) {
-        const def = peekSuiteRuntime(k); if (!def) { requestSuiteRuntime(k); continue; }   // fetch + repaint when it lands
+        const def = peekSuiteRuntime(k, suiteRuntimeProfile(k)); if (!def) { requestSuiteRuntime(k); continue; }   // fetch + repaint when it lands
         try {
           const b = computeSuite(def, suiteRenderParams(k), { bars: rows as any, tf: timeframeRef.current, symbol: symbolRef.current, isIntraday: isIntradayRef.current, lang }, userTierRef.current, suiteColorsRef.current!);
           if (b.candlePaint.length) paint = paint.concat(b.candlePaint);
@@ -1493,9 +1534,16 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     const key = paint.length ? `${rows.length}:${String(last?.time)}:${paint.length}:${ph}` : "";
     if (key === suitePaintKeyRef.current) return;
     const hadPaint = suitePaintKeyRef.current !== "";
-    suitePaintKeyRef.current = key;
-    if (!paint.length) { if (hadPaint) restoreNormalCandleColors(rows); return; }
-    try { priceS.setData(paintCandleData(rows as any, paint, chartTyp === "bars" ? "bars" : "candles") as any); } catch {}
+    if (!paint.length) {
+      if (hadPaint) restoreNormalCandleColors(rows);
+      suitePaintKeyRef.current = "";
+      return;
+    }
+    try {
+      priceS.setData(paintCandleData(rows as any, paint, chartTyp === "bars" ? "bars" : "candles") as any);
+      // An attempted paint is not an applied paint: only commit the cache after setData succeeds.
+      suitePaintKeyRef.current = key;
+    } catch { suitePaintKeyRef.current = ""; }
   };
   applySuitePaintRef.current = applySuitePaint;
 
@@ -2371,8 +2419,9 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       rows.forEach((r, i) => { slot(r.time)["macd"] = mv.line[i] ?? null; });
     }
     indDataMapRef.current = m;
-    // Publish the stable getter to the parent (TerminalShell → ChartTableView)
-    onIndRowsAtRef.current?.((barTime) => indDataMapRef.current.get(String(barTime)) ?? {});
+    visualSourceRef.current = { symbol: symbolRef.current, timeframe: timeframeRef.current };
+    // The accepted-data writer owns the numeric projection and its exact resampled/replay bar basis.
+    refreshVisualContext(rows);
   };
 
   // Rebuild ONLY the compare overlays onto `rows` (used by data + replay effects).
@@ -2534,8 +2583,40 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     return { dots, warns };
   };
 
+  const inspectVisualTime = (time: string | number | null) => {
+    const key = time === null ? null : String(time);
+    if (key !== null && !visualSeriesRef.current?.indexByTime.has(key)) return;
+    if (visualSelectedTimeRef.current === key) return;
+    visualSelectedTimeRef.current = key;
+    visualPanelRef.current?.select(time);
+    const prefs = visualSettings(chartSettingsRef.current);
+    if (prefs.visualLevels || prefs.visualEvents) scheduleRenderRef.current?.();
+  };
+  const refreshVisualContext = (rows: Bar[]) => {
+    const source = visualSourceRef.current;
+    if (!source || source.symbol !== symbolRef.current || source.timeframe !== timeframeRef.current) return;
+    if (!rows.length) { visualSeriesRef.current = null; visualPanelRef.current?.reset("empty"); return; }
+    const series = buildVisualSeries(source.symbol, source.timeframe, rows, indParamsRef.current.trend?.["cp.mode"]);
+    visualSeriesRef.current = series;
+    if (visualSelectedTimeRef.current !== null && !series.indexByTime.has(visualSelectedTimeRef.current)) visualSelectedTimeRef.current = null;
+    for (const fact of series.facts) {
+      const key = String(fact.time);
+      indDataMapRef.current.set(key, { ...(indDataMapRef.current.get(key) ?? {}), ...visualReadout(fact) });
+    }
+    // Retire values outside a replay slice instead of leaving future numeric rows reachable.
+    for (const key of indDataMapRef.current.keys()) if (!series.indexByTime.has(key)) indDataMapRef.current.delete(key);
+    const colored = !isValueChartType(chartTypeRef.current) && chartTypeRef.current !== "heikin"
+      && enabledModulesForSuite("trend", indicatorsRef.current, indParamsRef.current).some((entry) => entry.moduleKey === "cp")
+      && !hiddenRef.current.has("trend") && !hiddenRef.current.has("suite:trend/cp");
+    visualPanelRef.current?.update({ series, colored, replay: replayIdxRef.current !== null, basis: liveQuoteRef.current?.basis ?? null });
+    onIndRowsAtRef.current?.((barTime) => indDataMapRef.current.get(String(barTime)) ?? {}, {
+      symbol: source.symbol, timeframe: source.timeframe, bars: series.bars,
+    });
+  };
+
   // Status line + verdict badge from the current bars + slice.
   const paintStatus = (rows: Bar[], slice: any) => {
+    refreshVisualContext(rows);
     const prec = precRef.current; const t = tokensRef.current;
     const last = rows[rows.length - 1], prev = rows[rows.length - 2] || last;
     if (statusRef.current && last) {
@@ -2659,7 +2740,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     const chart = chartRef.current;
     if (chart) for (const s of cmpSeriesRef.current.values()) { try { chart.removeSeries(s); } catch {} }
     cmpSeriesRef.current.clear();
-    try { priceSeriesRef.current?.setData([]); } catch {}
+    try { priceSeriesRef.current?.setData([]); suitePaintKeyRef.current = ""; } catch {}
     liveTickKeyRef.current = "";
     const liveWrap = wrapElRef.current;
     if (liveWrap) {
@@ -2703,6 +2784,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       priceS.update(isValueChartType(chartTypeRef.current)
         ? { time: bar.time, value: bar.c }
         : { time: bar.time, open: bar.o, high: bar.h, low: bar.l, close: bar.c });
+      suitePaintKeyRef.current = "";
     } catch { return; }
 
     liveTickKeyRef.current = mutation.tickKey;
@@ -2790,7 +2872,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // heikin falls through to the OHLC mapping (raw candle acceptable per spec caveat) — passing the
     // raw {o,h,l,c,v} bucket to a candlestick series is read as a whitespace point (no `open` key)
     // and BLANKS the live candle. Map to {open,high,low,close} like the candle/bars family.
-    try { priceS.update(isValueChartType(chartTypeRef.current) ? { time: bucket.time, value: bucket.c } : { time: bucket.time, open: bucket.o, high: bucket.h, low: bucket.l, close: bucket.c }); } catch { return; }
+    try { priceS.update(isValueChartType(chartTypeRef.current) ? { time: bucket.time, value: bucket.c } : { time: bucket.time, open: bucket.o, high: bucket.h, low: bucket.l, close: bucket.c }); suitePaintKeyRef.current = ""; } catch { return; }
     // keep the in-memory bar sets in step with what's on the chart (last bucket only)
     const fb = fullBarsRef.current;
     const bs = barsRef.current;
@@ -2805,6 +2887,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     closesRef.current = barsRef.current.map((r) => r.c);
     barIdxRef.current = { src: null, map: new Map() };   // force the time→index map to rebuild (bar count may have grown)
     paintStatus(barsRef.current, sliceRef.current);
+    applySuitePaintRef.current?.();
     renderSignalsRef.current();
     renderTagRef.current?.();   // live-quote splice moved the last close → refresh the price/countdown tag now
     schedulePineLiveRerun();    // recompute Pine plots/markers on the developing bar (debounced ~250ms)
@@ -3196,6 +3279,14 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           volumeTop: g(() => c.priceScale("volume").options().scaleMargins?.top) ?? null,
           watermarkVisible: watermarkVisibleRef.current,
           rowCount: barsRef.current.length,
+          // Bounded readback of the REAL canvas series for default-style integration tests.
+          // Reuses the existing dev-only diagnostics; unavailable in production and never a writer.
+          contextProof: g(() => ({
+            priceRows: priceSeriesRef.current?.data().slice(-120),
+            volumeRows: indSeriesRef.current.get("vol")?.[0]?.data().slice(-120),
+            facts: visualSeriesRef.current?.facts.slice(-120),
+            colors: resolveSuiteColors(),
+          })),
           timeframe: timeframeRef.current,
           visibleRange: g(() => c.timeScale().getVisibleLogicalRange()),
           priceVisibleRange: g(() => priceSeriesRef.current?.priceScale().getVisibleRange()),
@@ -5625,7 +5716,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           const wrapRect = wrapElRef.current?.getBoundingClientRect();
           const langP = typeof document !== "undefined" && document.documentElement.getAttribute("data-lang") === "zh" ? "zh" as const : "en" as const;
           for (const k of paneKeys) {
-            const def = peekSuiteRuntime(k); if (!def) { requestSuiteRuntime(k); continue; }   // fetch + repaint when it lands
+            const def = peekSuiteRuntime(k, suiteRuntimeProfile(k)); if (!def) { requestSuiteRuntime(k); continue; }   // fetch + repaint when it lands
             const anchor = indSeriesRef.current.get(k)?.[0]; if (!anchor || !wrapRect) continue;
             let paneTop = 0, paneH = 0;
             try { const paneEl = anchor.getPane().getHTMLElement(); if (!paneEl) continue; const rct = paneEl.getBoundingClientRect(); paneTop = rct.top - wrapRect.top; paneH = rct.height; } catch { continue; }
@@ -5664,7 +5755,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           if (!suiteColorsRef.current) suiteColorsRef.current = resolveSuiteColors();
           const lang = typeof document !== "undefined" && document.documentElement.getAttribute("data-lang") === "zh" ? "zh" as const : "en" as const;
           for (const k of tableOnlyKeys) {
-            const def = peekSuiteRuntime(k); if (!def) { requestSuiteRuntime(k); continue; }   // fetch + repaint when it lands
+            const def = peekSuiteRuntime(k, suiteRuntimeProfile(k)); if (!def) { requestSuiteRuntime(k); continue; }   // fetch + repaint when it lands
             try {
               const bundle = computeSuite(def, suiteRenderParams(k), {
                 bars: barsRef.current as any,
@@ -5917,7 +6008,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       // ── Premium suite draw-lists (IndicatorCanvas) — host-memoized compute, generic renderer ──
       {
         const activeSuites = Object.keys(SUITE_DEFS).filter((k) => SUITE_DEFS[k]?.kind !== "pane" && inds.has(k));
-        if (activeSuites.length && barsRef.current.length) {
+        if ((activeSuites.length || visualSettings(chartSettingsRef.current).visualContext) && barsRef.current.length) {
           if (!suiteColorsRef.current) suiteColorsRef.current = resolveSuiteColors();
           const ts = chart.timeScale();
           let lr: { from: number; to: number } | null = null;
@@ -5957,8 +6048,19 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
             i0: lr ? lr.from : 0, i1: lr ? lr.to : barsRef.current.length - 1, barW,
           };
           const lang = typeof document !== "undefined" && document.documentElement.getAttribute("data-lang") === "zh" ? "zh" as const : "en" as const;
+          const context = visualSeriesRef.current;
+          if (context && context.symbol === symbolRef.current && context.timeframe === timeframeRef.current) {
+            const selectedTime = visualSelectedTimeRef.current;
+            const selected = selectedTime === null ? null : context.indexByTime.get(selectedTime) ?? null;
+            const calendar = visualCalendarRef.current.symbol === context.symbol ? visualCalendarRef.current.calendar : EMPTY_VISUAL_CALENDAR;
+            const bundle = visualOverlayBundle(context, visualSettings(chartSettingsRef.current), suiteColorsRef.current,
+              m, selected, calendar, replayIdxRef.current !== null, lang);
+            const group = mk("g", { "data-visual-intelligence-overlay": "" }) as SVGGElement;
+            priceSuiteGroup.appendChild(group);
+            renderPrims(group, bundle, { ...m, W: chart.timeScale().width() });
+          }
           for (const k of activeSuites) {
-            const def = peekSuiteRuntime(k); if (!def) { requestSuiteRuntime(k); continue; }   // fetch + repaint when it lands
+            const def = peekSuiteRuntime(k, suiteRuntimeProfile(k)); if (!def) { requestSuiteRuntime(k); continue; }   // fetch + repaint when it lands
             try {
               const bundle = computeSuite(def, suiteRenderParams(k), {
                 bars: barsRef.current as any, tf: timeframeRef.current, symbol: symbolRef.current,
@@ -6125,6 +6227,14 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     window.addEventListener("pointerup", onProjectionPointerEnd);
     window.addEventListener("pointercancel", onProjectionPointerEnd);
     chart.subscribeCrosshairMove(onCrosshairProjection);
+    const onVisualCrosshair = (event: any) => {
+      if (!event?.point || event.time == null || toolRef.current || !activeRef.current || !visualPanelRef.current?.isInspecting()) return;
+      const time = typeof event.time === "object"
+        ? `${event.time.year}-${String(event.time.month).padStart(2, "0")}-${String(event.time.day).padStart(2, "0")}`
+        : event.time;
+      inspectVisualTime(time);
+    };
+    chart.subscribeCrosshairMove(onVisualCrosshair);
     if (shellAxis()) {
       // pointermove/pointerdown are the presence signals, not just pointerenter: headless
       // Chromium (CI) synthesizes moves without reliable boundary events, and a real
@@ -7363,6 +7473,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     return () => {
       dead = true; if (rafId != null) cancelAnimationFrame(rafId); if (measRaf != null) cancelAnimationFrame(measRaf);
       try { chart.unsubscribeCrosshairMove(onTagCrosshair); } catch {}
+      try { chart.unsubscribeCrosshairMove(onVisualCrosshair); } catch {}
       if (drawRaf != null) cancelAnimationFrame(drawRaf); if (resizeRaf != null) cancelAnimationFrame(resizeRaf);
       if (pineLiveTimerRef.current != null) { clearTimeout(pineLiveTimerRef.current); pineLiveTimerRef.current = null; }
       if (pineHostRef.current) { try { pineHostRef.current.dispose(); } catch {} pineHostRef.current = null; }
@@ -7454,6 +7565,11 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     let cancelled = false;
     let generationReady: TerminalVisualReadyAnnouncement | null = null;
     const announceVisualReady = (state: "data" | "empty") => {
+      if (state === "empty") {
+        visualSourceRef.current = null; visualSeriesRef.current = null; indDataMapRef.current.clear();
+        visualPanelRef.current?.reset("empty");
+        onIndRowsAtRef.current?.(() => ({}), { symbol, timeframe: effectiveTimeframe, bars: [] });
+      }
       generationReady?.cancel();
       generationReady = announceTerminalVisualReady(symbol, state, {
         timeframe: effectiveTimeframe,
@@ -7575,6 +7691,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         } else { priceS.applyOptions({ priceFormat: priceFmt() }); }
         if (chartType === "baseline" && onChart.length) priceS!.applyOptions({ baseValue: { type: "price", price: onChart[0].c } });
         priceS!.setData(priceData(onChart) as any);
+      suitePaintKeyRef.current = "";
         applyFutureAxis();   // future dates on the time axis follow the loaded bars
         cpMark(`chart-painted[${symbol}@${effectiveTimeframe}:intraday]`);
         chartDataSymRef.current = symbol;
@@ -7705,6 +7822,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       }
       if (chartType === "baseline" && onChart.length) priceS!.applyOptions({ baseValue: { type: "price", price: onChart[0].c } });
       priceS!.setData(priceData(onChart) as any);
+      suitePaintKeyRef.current = "";
       applyFutureAxis();   // future dates on the time axis follow the loaded bars
       cpMark(`chart-painted[${symbol}@${effectiveTimeframe}:daily]`);   // first candle on canvas
       chartDataSymRef.current = symbol;
@@ -8147,7 +8265,9 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       const full = fullBarsRef.current; barsRef.current = full; const closes = full.map((r) => r.c); closesRef.current = closes;
       precRef.current = closes.length && closes[closes.length - 1] < 10 ? 4 : 2;   // parity: prec from the visible last close
       priceS.setData(priceData(full) as any);
+      suitePaintKeyRef.current = "";
       clearAllIndicators(); buildAllIndicators(full, closes);
+      buildIndDataMap(full, closes);
       // recompute compare on the full set (fire-and-forget; guarded by epoch)
       void rebuildCompare(full, epochRef.current);
       sigMarksRef.current = resolveSigMarks(sliceRef.current, full);
@@ -8160,7 +8280,9 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       const closes = rows.map((r) => r.c); closesRef.current = closes;
       precRef.current = closes.length && closes[closes.length - 1] < 10 ? 4 : 2;   // parity: prec from the visible last close
       priceS.setData(priceData(rows) as any);
+      suitePaintKeyRef.current = "";
       clearAllIndicators(); buildAllIndicators(rows, closes);
+      buildIndDataMap(rows, closes);
       void rebuildCompare(rows, epochRef.current);
       sigMarksRef.current = resolveSigMarks(sliceRef.current, rows);
       { const sc = resolveSideChannels(sliceRef.current, rows); earlyDotsRef.current = sc.dots; warnMarksRef.current = sc.warns; }
@@ -8436,7 +8558,9 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         if (Object.keys(sOpts).length) priceS.applyOptions(sOpts as any);
         if (barsRef.current.length) {
           priceS.setData(priceData(barsRef.current) as any);
+          suitePaintKeyRef.current = "";
           applyLiveSplice();
+          applySuitePaintRef.current?.();
         }
       }
       renderTagRef.current?.();
@@ -8448,6 +8572,15 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     visualReadyRef.current?.reevaluate();
     // eslint-disable-next-line
   }, [JSON.stringify(chartSettings)]);
+
+  useEffect(() => {
+    if (!barsRef.current.length) return;
+    refreshVisualContext(barsRef.current);
+    const volume = indSeriesRef.current.get("vol")?.[0];
+    if (volume) { try { volume.setData(volData(barsRef.current)); } catch {} }
+    scheduleRenderRef.current?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [indKey, indParamsKey, JSON.stringify([...hidden]), JSON.stringify(chartSettings), isActive]);
 
   // Descriptive manifest data can land after OHLC. Refresh just the identity line
   // when it arrives instead of waiting for a quote or rebuilding the chart.
@@ -8594,6 +8727,19 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       </div>
       <div ref={ref} style={{ position: "absolute", inset: 0 }} />
       <ChartTables tables={suiteTables} />
+      <VisualIntelligencePanel ref={visualPanelRef} symbol={symbol} timeframe={timeframe}
+        visible={isActive && !!onVisualSettings && !paneLayout.some((pane) => pane.maximized && !pane.isPrice)}
+        replay={replayIdx !== null} settings={visualSettings(chartSettings)}
+        availableHeight={Math.max(160, (wrapElRef.current?.clientHeight ?? 480) - 90)}
+        onSettings={(patch) => onVisualSettings?.(patch)}
+        onInspectTime={inspectVisualTime}
+        onCalendar={(calendarSymbol, calendar) => {
+          if (calendarSymbol !== symbolRef.current) return;
+          visualCalendarRef.current = { symbol: calendarSymbol, calendar };
+          scheduleRenderRef.current?.();
+        }}
+        onCandleSettings={onOpenSettings ? () => onOpenSettings("suite:trend/cp") : undefined}
+      />
       <ChartOverlays
         panes={paneLayout} hoveredKey={hoveredKey} legendOpen={legendOpen} onToggleLegend={() => setLegendOpen((o) => !o)}
         showTitles={chartSettings?.showIndicatorTitles !== false}

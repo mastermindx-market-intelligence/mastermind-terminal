@@ -156,6 +156,7 @@ import { workspaceRowState, migrationUnclaimed, migrationUnsupportedWidgets, par
 import { type PineScript } from "@/components/ChartPanel";
 
 type ShellDrawingStyle = { color: string; width: number; dash: Dash };
+import { visualReadoutColumns, type ChartReadoutMeta } from "@/lib/visualIntelligence";
 import ChartTableView from "@/components/ChartTableView";
 import { type OTEntry } from "@/components/ChartObjectTree";
 import { listTemplates, saveTemplate } from "@/lib/chartTemplates";
@@ -1371,6 +1372,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
   // D4: object tree panel
   const [objectTreeOpen, setObjectTreeOpen] = useState(false);
   // D1: indicator value lookup by bar time — populated by the active ChartPane after each data load
+  const [chartReadoutMeta, setChartReadoutMeta] = useState<ChartReadoutMeta | null>(null);
   const [indRowsAt, setIndRowsAt] = useState<((barTime: string | number) => Record<string, number | null>) | null>(null);
   // B3: sub-pane count for mobile chart-body height formula (--subpanes CSS var)
   const [subPanes, setSubPanes] = useState(0);
@@ -5338,11 +5340,11 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
           <ChartTableView
             symbol={active}
             timeframe={tf}
-            bars={bars}
-            indCols={[...inds].filter((k) => !isSuiteKey(k) && !hidden.has(k)).map((k) => {
+            bars={chartReadoutMeta?.symbol === active && chartReadoutMeta.timeframe === tf ? chartReadoutMeta.bars : []}
+            indCols={[...[...inds].filter((k) => !isSuiteKey(k) && !hidden.has(k)).map((k) => {
               const def = (IND_DEFS as any)[k];
               return { key: k, label: def?.label ?? k, tag: def?.tag ?? k };
-            })}
+            }), ...visualReadoutColumns(lang)]}
             indRowsAt={indRowsAt ?? undefined}
             onBack={() => setTableViewOpen(false)}
           />
@@ -5404,7 +5406,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
                   onObjectTree={() => setObjectTreeOpen((o) => !o)}
                   lockedVLine={lockedVLine}
                   onSetLockedVLine={(t2) => setLockedVLine(t2)}
-                  onIndRowsAt={(fn) => setIndRowsAt(() => fn)}
+                  onIndRowsAt={i === activePane ? (fn, meta) => { setIndRowsAt(() => fn); if (meta) setChartReadoutMeta(meta); } : undefined}
                   onPaneCount={i === 0 ? onPaneCount : undefined}
                 />
               ))}
