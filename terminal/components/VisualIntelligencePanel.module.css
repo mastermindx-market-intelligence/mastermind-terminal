@@ -67,9 +67,12 @@
 .fact .warning { color: var(--warn, #e8b45d); }
 .root button:focus-visible { outline: 2px solid var(--brand-2, #7c9dff); outline-offset: 2px; }
 @media (max-width: 860px), (pointer: coarse) {
-  .root { right: 8px; width: min(360px, calc(100% - 16px)); }
-  .trigger { min-height: 44px; padding: 7px 10px; }
-  .triggerState { max-width: 100px; }
+  .root { top: 4px; right: 52px; width: min(360px, calc(100% - 56px)); }
+  /* Keep the collapsed control clear of both the fullscreen control and the price pane on touch
+     layouts. A wide overlay here steals pointer moves from the chart and breaks crosshair/drawing
+     continuity; the 52px right gutter reserves the existing fullscreen-control lane. */
+  .trigger { width: 44px; min-width: 44px; min-height: 44px; padding: 0; justify-content: center; }
+  .triggerTitle, .triggerState, .trigger > span:last-child { display: none; }
   .barNav button, .iconButton, .layers button, .feedback button, .textButton { min-height: 44px; }
   .barNav button, .iconButton { min-width: 44px; }
   .fact p, .layers p { font-size: 11px; }

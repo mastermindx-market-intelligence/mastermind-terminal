@@ -131,3 +131,30 @@ Current layer state: BUILT_NOT_PROVEN. More browser negative/replay/numeric-cons
 latest-head hosted gates, production deployment and real-data acceptance are still mandatory.
 This checkpoint is not acceptance. Source procedure re-pin for predecessor release:
 Mastermind 36f74c02edc938f7f5c41f38743f93ee34be2b2b (compatible skillpack 1.0.1).
+
+## Release-candidate verification checkpoint (2026-09-16)
+Canonical procedure was re-pinned from protected Mastermind master at
+8ba7deedde164c90298d3e88785d98e02fa5e2d2 (bootstrap major 1; COLD_START + ACTIVE_EXECUTION).
+This branch was merge-forwarded onto Terminal master through 34874e71, including the canonical
+session-close and intraday-lineage changes, with no VIL-path conflict.
+
+The browser journey is now closed locally across all supported sizes rather than inferred from
+unit tests. The Visual Intelligence suite passes 10/10 on desktop 1440x900, tablet 820x1180 and
+mobile 390x844. Those journeys cover persisted startup-timeframe hydration, current and historical
+bar explanations, classic-candle truthfulness, real candle-paint survival through chart settings,
+existing Chart Settings preference ownership, table/CSV parity against plotted 3D rows, replay
+future-data/calendar withholding, symbol-race and unavailable-calendar fencing, and Chinese copy.
+The mobile price-label/crosshair regression also passes after shrinking the collapsed context
+control to a 44px touch target outside the price pane/fullscreen lane.
+
+The current full local gate is clean: TypeScript noEmit passes; the forward-only plain-language
+check exits 0; Vitest reports 331/331 files and 5506 passing tests with four existing todos.
+User-visible context copy is routed through explicit EN/ZH pairs. The existing Chart Settings tabs
+also expose stable accessible names, so the same restore journey is operable on phone layouts.
+Six dark-theme browser captures (EN/ZH x desktop/tablet/mobile) were produced from the passing real
+journeys under terminal/docs/pr-crops/terminal-visual-intelligence/.
+
+Current layer state remains BUILT_NOT_PROVEN. Hosted CI on the exact pushed head, review/release
+gates, protected-master merge, git-gated VPS deployment, and production real-data browser proof
+remain mandatory before PROVEN_LIVE. Do not repeat local archaeology; next action is publish this
+exact candidate on PR #590 and reconcile only the checks/review findings on that head.

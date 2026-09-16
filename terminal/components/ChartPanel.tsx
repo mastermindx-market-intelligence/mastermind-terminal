@@ -8727,7 +8727,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       </div>
       <div ref={ref} style={{ position: "absolute", inset: 0 }} />
       <ChartTables tables={suiteTables} />
-      <VisualIntelligencePanel ref={visualPanelRef} symbol={symbol} timeframe={effectiveTimeframe}
+      <VisualIntelligencePanel ref={visualPanelRef} symbol={symbol} timeframe={timeframe}
         visible={isActive && !!onVisualSettings && !paneLayout.some((pane) => pane.maximized && !pane.isPrice)}
         replay={replayIdx !== null} settings={visualSettings(chartSettings)}
         availableHeight={Math.max(160, (wrapElRef.current?.clientHeight ?? 480) - 90)}

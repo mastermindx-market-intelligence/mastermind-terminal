@@ -122,6 +122,8 @@ export default function ChartSettingsModal({
               <button
                 key={key}
                 className={`sm-tab${tab === key ? " on" : ""}`}
+                aria-label={label}
+                aria-pressed={tab === key}
                 onClick={() => window.dispatchEvent(new CustomEvent("mm:settings-tab", { detail: key }))}
               >
                 {tabIcon(key)}<span>{label}</span>
