@@ -134,12 +134,17 @@ def fetch_polygon_intraday(sym: str, tf: str, frm: dt.date | None = None) -> lis
 
 
 def write_store(sym: str, tf: str, rows: list[list]) -> int:
+    """Write an intraday store atomically: temp file + os.replace so readers never see a
+    partial file. Returns 0 if the row count is below the minimum viable store size."""
     if len(rows) < 20:
         return 0
     INTRADAY.mkdir(parents=True, exist_ok=True)
+    target = INTRADAY / f"{sym}.{tf}.json"
     doc = {"t": sym, "tf": tf, "src": "polygon", "bar_quality": "real_ohlc",
            "asof": rows[-1][0], "bars": rows}
-    (INTRADAY / f"{sym}.{tf}.json").write_text(json.dumps(doc, separators=(",", ":")))
+    tmp = INTRADAY / f"{sym}.{tf}.json.tmp.{os.getpid()}"
+    tmp.write_text(json.dumps(doc, separators=(",", ":")))
+    os.replace(tmp, target)
     return len(rows)
 
 
@@ -173,6 +178,26 @@ def _merge(old: list[list], new: list[list]) -> list[list]:
     return [by_ep[k] for k in sorted(by_ep)]
 
 
+def existing_stores(tfs: list[str]) -> list[tuple[str, str]]:
+    """Enumerate already-present intraday store files for the given timeframes.
+
+    This is the incremental-refresh universe: it NEVER includes a symbol that has no
+    store on disk. Dot symbols (e.g. BRK.B) are included — the dot is valid in filenames.
+    """
+    if not INTRADAY.exists():
+        return []
+    out: list[tuple[str, str]] = []
+    for tf in tfs:
+        if tf not in TF_SPEC:
+            continue
+        pattern = f".{tf}.json"
+        for p in INTRADAY.iterdir():
+            if p.name.endswith(pattern) and p.name != f"{pattern}":  # guard empty glob
+                sym = p.name[: -len(pattern)]
+                out.append((sym, tf))
+    return out
+
+
 # ---------------------------------------------------------------- universe
 NON_US_SUFFIX = (".HK", ".TO", ".SS", ".SZ", "-USD")
 
@@ -195,7 +220,8 @@ def us_symbols_ranked() -> list[str]:
     return [s for _, s in scored]
 
 
-def main(argv: list[str]) -> None:
+def main(argv: list[str]) -> int | None:
+    """Returns total failed count, or None if there was nothing to do."""
     def opt(name, default=None):
         return argv[argv.index(name) + 1] if name in argv else default
 
@@ -205,60 +231,79 @@ def main(argv: list[str]) -> None:
     limit = int(opt("--limit") or 0)
     force = "--force" in argv
     update = "--update" in argv   # incremental: extend existing store files with recent bars
+    existing_only = "--existing-only" in argv
 
-    ranked = us_symbols_ranked()
-    if limit:
-        ranked = ranked[:limit]
-    top_set = set(ranked[:top])
+    # --existing-only: enumerate only the stores already on disk. Bypasses manifest/top-N;
+    # never creates a missing symbol. Not usable with --update (they share the same path).
+    if existing_only:
+        jobs = existing_stores(tfs)
+        print(f"intraday refresh --existing-only: {len(jobs)} existing (sym,tf) jobs | "
+              f"tfs={tfs} workers={workers}", flush=True)
+    else:
+        ranked = us_symbols_ranked()
+        if limit:
+            ranked = ranked[:limit]
+        top_set = set(ranked[:top])
 
-    # build the (sym, tf) work list: 1h for all; sub-hour tfs only for the top-N liquid
-    jobs: list[tuple[str, str]] = []
-    for tf in tfs:
-        if tf not in TF_SPEC:
-            print(f"skip unknown tf {tf}", flush=True)
-            continue
-        pool = ranked if tf == "1h" else [s for s in ranked if s in top_set]
-        for s in pool:
-            # --update processes existing files (to extend them); a plain run skips them
-            if not force and not update and (INTRADAY / f"{s}.{tf}.json").exists():
+        jobs: list[tuple[str, str]] = []
+        for tf in tfs:
+            if tf not in TF_SPEC:
+                print(f"skip unknown tf {tf}", flush=True)
                 continue
-            jobs.append((s, tf))
+            pool = ranked if tf == "1h" else [s for s in ranked if s in top_set]
+            for s in pool:
+                if not force and not update and (INTRADAY / f"{s}.{tf}.json").exists():
+                    continue
+                jobs.append((s, tf))
+        print(f"intraday backfill{' [update]' if update else ''}: {len(jobs)} (sym,tf) jobs | "
+              f"tfs={tfs} top={top} universe={len(ranked)} workers={workers}", flush=True)
 
-    print(f"intraday backfill{' [update]' if update else ''}: {len(jobs)} (sym,tf) jobs | "
-          f"tfs={tfs} top={top} universe={len(ranked)} workers={workers}", flush=True)
+    if not jobs:
+        print("intraday backfill: no jobs — nothing to do", flush=True)
+        return None
 
     def work(job):
         s, tf = job
         try:
             if update:
                 old, asof = load_store(s, tf)
-                if asof is not None:  # extend an existing file: re-fetch the last few days + new bars
+                if asof is not None:
                     frm = _date_of(asof) - dt.timedelta(days=3)
                     recent = fetch_polygon_intraday(s, tf, frm=frm)
                     if not recent:
-                        return s, tf, 0            # nothing new (weekend/holiday) — leave file intact
+                        return s, tf, 0
                     merged = _merge(old, recent)[-60000:]
                     return s, tf, write_store(s, tf, merged)
-                # no existing file → fall through to a full backfill for this new symbol
+                return s, tf, -1  # --update with no existing file is an error
             rows = fetch_polygon_intraday(s, tf)
             return s, tf, write_store(s, tf, rows)
         except Exception:
             return s, tf, -1
 
-    done = ok = 0
+    attempted = written = unchanged = failed = 0
     t0 = time.time()
     with ThreadPoolExecutor(max_workers=workers) as ex:
         futs = [ex.submit(work, j) for j in jobs]
         for f in as_completed(futs):
             s, tf, n = f.result()
-            done += 1
+            attempted += 1
             if n and n > 0:
-                ok += 1
-            if done % 100 == 0 or done == len(jobs):
-                rate = done / max(1e-9, time.time() - t0)
-                print(f"  {done}/{len(jobs)} | {ok} written | {rate:.1f}/s", flush=True)
-    print(f"intraday backfill complete: {ok}/{len(jobs)} stored in {time.time()-t0:.0f}s", flush=True)
+                written += 1
+            elif n == 0:
+                unchanged += 1
+            else:
+                failed += 1
+            if attempted % 100 == 0 or attempted == len(jobs):
+                rate = attempted / max(1e-9, time.time() - t0)
+                print(f"  {attempted}/{len(jobs)} | {written} written {unchanged} unchanged "
+                      f"{failed} failed | {rate:.1f}/s", flush=True)
+
+    print(f"intraday backfill complete: {written}/{len(jobs)} stored "
+          f"(unchanged={unchanged} failed={failed}) in {time.time()-t0:.0f}s", flush=True)
+    return failed
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    failed = main(sys.argv[1:])
+    if failed:
+        sys.exit(1)
