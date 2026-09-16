@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { PriceScaleMode, type IChartApi } from "lightweight-charts";
 import { DEFAULT_CHART_SETTINGS, type ChartSettings } from "@/components/ChartFrameBar";
 import { visualText } from "@/lib/visualIntelligenceCopy";
@@ -106,7 +107,7 @@ export default function ChartSettingsModal({
     onSettings(Object.fromEntries(keys[tab].map((key) => [key, defaults[key]])) as Partial<ChartSettings>);
   }
 
-  return (
+  const node = (
     <div className="sm-backdrop" ref={backdropRef} onMouseDown={(event) => { if (event.target === backdropRef.current) cancel(); }}>
       <div className="sm-modal" role="dialog" aria-modal="true" aria-label={t("smTitle")}>
         <div className="sm-header">
@@ -157,6 +158,10 @@ export default function ChartSettingsModal({
       </div>
     </div>
   );
+  // This dialog must escape the chart pane's overflow/stacking context. On responsive layouts the
+  // document rail follows the chart in flow; keeping a fixed modal inside .pane lets that sibling
+  // become the pointer hit target even while the dialog is visibly on top.
+  return createPortal(node, document.body);
 }
 
 function readTemplates(): Record<string, ChartSettings> {
