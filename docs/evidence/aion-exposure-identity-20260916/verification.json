@@ -1,0 +1,43 @@
+{
+  "source_base": "702d81bb35f2c900a5aa1215437bf968aa9e6d93",
+  "evidence_class": "existing_fixture_browser_regression_not_production",
+  "vitest": {
+    "files_passed": 327,
+    "tests_passed": 5434,
+    "todo": 4
+  },
+  "focused_tests_passed": 136,
+  "typecheck": "passed",
+  "existing_exposure_e2e": {
+    "passed": 8,
+    "existing_skipped": 1,
+    "retries": 0,
+    "cold_server": true
+  },
+  "mounted_reversed_response_test": "blocked_before_file_creation",
+  "light_theme_proof": "not_established",
+  "production_proof": false,
+  "screenshots": [
+    {
+      "file": "desktop-exposure-matrix.png",
+      "sha256": "17f8bab70c71264ce85fc0051b72d3185eee465fcc23edf6920765ff6468d1c1",
+      "bytes": 263482,
+      "theme": "dark",
+      "language": "en"
+    },
+    {
+      "file": "tablet-exposure-matrix.png",
+      "sha256": "7d9a6728f16a2b5a012662376bc42065b77bcc3bba1c9f67af1b5684aab6d5d0",
+      "bytes": 208786,
+      "theme": "dark",
+      "language": "zh"
+    },
+    {
+      "file": "mobile-exposure-matrix.png",
+      "sha256": "bd757fc1fd81103cbf7ecf4d276bbc25d47eb6aa24910838056efcfe2d0ceb58",
+      "bytes": 91669,
+      "theme": "dark",
+      "language": "en"
+    }
+  ]
+}
