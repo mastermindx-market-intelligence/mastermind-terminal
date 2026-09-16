@@ -265,7 +265,7 @@ def main(argv: list[str]) -> int | None:
     def work(job):
         s, tf = job
         try:
-            if update:
+            if update or existing_only:
                 old, asof = load_store(s, tf)
                 if asof is not None:
                     frm = _date_of(asof) - dt.timedelta(days=3)
@@ -274,7 +274,10 @@ def main(argv: list[str]) -> int | None:
                         return s, tf, 0
                     merged = _merge(old, recent)[-60000:]
                     return s, tf, write_store(s, tf, merged)
-                return s, tf, -1  # --update with no existing file is an error
+                if existing_only:
+                    return s, tf, -1  # refresh-only mode never invents/rebuilds a missing store
+                # Preserve legacy --update semantics: a newly listed symbol with no store
+                # falls through to the ordinary full backfill path.
             rows = fetch_polygon_intraday(s, tf)
             return s, tf, write_store(s, tf, rows)
         except Exception:

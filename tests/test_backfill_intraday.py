@@ -268,26 +268,37 @@ def test_existing_only_zero_jobs_returns_none(intraday_env, monkeypatch):
 
 
 def test_existing_only_still_updates_existing_store(intraday_env, monkeypatch):
-    """--existing-only uses --update logic internally; the existing file is extended, not replaced."""
+    """--existing-only must use bounded overlap refresh, then merge into the owned store."""
     make_store(intraday_env / "EXT.1h.json", "EXT", "1h", n=30)
     monkeypatch.setattr(mod, "INTRADAY", intraday_env)
     monkeypatch.setattr(mod, "MANIFEST", intraday_env.parent / "manifest.json")
 
-    # Return 5 bars with the last epoch > the existing store's asof
-    new_epoch = 1_700_000_000 + 35 * 3600
-    recent_rows = [[1_700_000_000 + i * 3600, 100 + i, 105 + i, 99 + i, 101 + i, 1000]
-                  for i in range(5, 10)]
+    original = json.loads((intraday_env / "EXT.1h.json").read_text())["bars"]
+    asof = original[-1][0]
+    overlap_epoch = original[-2][0]
+    new_epoch = asof + 3600
+    calls = []
+    recent_rows = [
+        [overlap_epoch, 999, 1001, 998, 1000, 7777],
+        [new_epoch, 130, 131, 129, 130.5, 2222],
+    ]
 
     def fake_fetch(sym, tf, frm=None):
+        calls.append((sym, tf, frm))
         return recent_rows
 
     with patch.object(mod, "fetch_polygon_intraday", fake_fetch):
         failed = mod.main(["--existing-only", "--tf", "1h", "--workers", "4"])
 
     assert failed == 0
+    assert calls == [("EXT", "1h", mod._date_of(asof) - mod.dt.timedelta(days=3))]
     doc = json.loads((intraday_env / "EXT.1h.json").read_text())
-    # Should contain old bars + new ones (merge), not just the 5 new ones
-    assert len(doc["bars"]) > 5
+    by_epoch = {row[0]: row for row in doc["bars"]}
+    assert len(doc["bars"]) == 31
+    assert by_epoch[original[0][0]] == original[0]  # historical prefix survived
+    assert by_epoch[overlap_epoch][1:6] == [999, 1001, 998, 1000, 7777]  # correction won
+    assert by_epoch[new_epoch][1:6] == [130, 131, 129, 130.5, 2222]
+    assert doc["asof"] == new_epoch
 
 
 # -----------------------------------------------------------------------------------------------
@@ -361,24 +372,28 @@ def test_update_extends_existing_and_falls_back_on_missing(intraday_env, monkeyp
     assert ("UPD", "update") in fetches
 
 
-def test_update_no_existing_file_is_failed_job(intraday_env, monkeypatch):
-    # Symbol is in manifest but has no existing store file → --update treats it as a failed job
+def test_update_missing_store_preserves_legacy_full_backfill(intraday_env, monkeypatch):
+    """--existing-only must not silently narrow the established --update operator contract."""
     monkeypatch.setattr(mod, "INTRADAY", intraday_env)
     manifest = intraday_env.parent / "manifest.json"
     manifest.write_text(json.dumps({
         "symbols": {"NEWONE": {"mkt": "NASDAQ", "last": 100, "vol": 1_000_000}}
     }))
     monkeypatch.setattr(mod, "MANIFEST", manifest)
+    calls = []
 
     def fake_fetch(sym, tf, frm=None):
+        calls.append((sym, tf, frm))
         return [[1_700_000_000 + i * 3600, 100 + i, 105 + i, 99 + i, 101 + i, 1000]
-                for i in range(5)]
+                for i in range(25)]
 
     with patch.object(mod, "fetch_polygon_intraday", fake_fetch):
         failed = mod.main(["--update", "--tf", "1h", "--workers", "4"])
 
-    # --update with no existing file for that symbol → -1 per job (fetched but not merged)
-    assert failed == 1
+    assert failed == 0
+    assert calls == [("NEWONE", "1h", None)]
+    doc = json.loads((intraday_env / "NEWONE.1h.json").read_text())
+    assert len(doc["bars"]) == 25
 
 
 # -----------------------------------------------------------------------------------------------
