@@ -148,7 +148,7 @@ The mobile price-label/crosshair regression also passes after shrinking the coll
 control to a 44px touch target outside the price pane/fullscreen lane.
 
 The current full local gate is clean: TypeScript noEmit passes; the forward-only plain-language
-check exits 0; Vitest reports 331/331 files and 5506 passing tests with four existing todos.
+check exits 0; Vitest reports 332/332 files and 5509 passing tests with four existing todos.
 User-visible context copy is routed through explicit EN/ZH pairs. The existing Chart Settings tabs
 also expose stable accessible names, so the same restore journey is operable on phone layouts.
 Six dark-theme browser captures (EN/ZH x desktop/tablet/mobile) were produced from the passing real
