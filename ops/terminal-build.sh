@@ -2,12 +2,14 @@
 # GIT-GATED zero-downtime build for the Mastermind Terminal (Next.js).
 #
 # ┌────────────────────────────────────────────────────────────────────────────┐
-# │  SOURCE OF TRUTH = origin/master (github.com/mastermindx-market-intelligence/          │
-# │  mastermind-terminal). This script builds ONLY committed master code.       │
-# │  Working-tree edits under /opt/terminal/terminal are IGNORED and will be     │
-# │  overwritten. TO GO LIVE:  commit -> open PR -> merge to master -> run this. │
-# │  A direct rsync/scp of a working tree no longer deploys anything.            │
+# │ SOURCE OF TRUTH = protected origin/master in mastermind-terminal.           │
+# │ The caller MUST name one full commit SHA already contained by the freshly   │
+# │ fetched protected ref. A W2A source receipt for the CURRENT generation must │
+# │ be CLEAN before fetch/reset/clean/build. A moving branch is never a target.  │
+# │ Working-tree edits and direct rsync/scp are never deployment authority.      │
 # └────────────────────────────────────────────────────────────────────────────┘
+#
+# USAGE: /opt/terminal/terminal-build.sh --target-sha <full-lowercase-40-hex>
 #
 # AUTHORING SOURCE: ops/terminal-build.sh in the repo. The deployed copy at
 # /opt/terminal/terminal-build.sh is installed from master by step 8 of every
@@ -26,14 +28,198 @@
 # Zero-downtime: builds into a staging tree, atomic-swaps `.next` only after the
 # build verifies (BUILD_ID present); the live server keeps serving until the swap.
 # Auto-rolls-back to the previous build if the new one fails its health check.
-# If the deploy fails at any step, NOTHING moves — app AND runtime code stay put.
+# W2B-A adds only the fail-closed source/target entrance gate. The downstream
+# build, app rollback and runtime-overlay behavior is otherwise unchanged here;
+# later W2B slices still owe reproducible build and whole-release effect receipts.
 set -euo pipefail
 
 APP=/opt/terminal/terminal
 SRC=/opt/terminal/.gitsrc            # canonical git checkout (read-only deploy key: github-mmterminal)
 TSRC="$SRC/terminal"
 BRANCH=master
+AUTHORING_OPS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+PREFLIGHT_RECEIPT_DIR=/var/lib/mastermind-terminal/release-preflight
+PREFLIGHT_SCRIPT=
+PREFLIGHT_POLICY=
+PREFLIGHT_RUNTIME_DIR=
+PREFLIGHT_ACCEPTED_SHA=
+PREFLIGHT_RECEIPT_PATH=
+PREFLIGHT_RECEIPT_ID=
+PREFLIGHT_SOURCE_RECEIPT_ID=
 log(){ echo "[build] $*"; }
+
+# One explicit full commit is the release intent. Never infer it from a moving
+# branch, a short SHA, or an inherited environment variable.
+validate_target_sha(){
+  local value=${1:-}
+  if ! [[ "$value" =~ ^[0-9a-f]{40}$ ]]; then
+    log "FATAL: --target-sha must be one full lower-case 40-hex commit SHA"
+    return 64
+  fi
+}
+
+# First adoption executes the exact protected ops/ artifact from a temporary
+# directory. Later releases use the currently deployed canonical checkout. The
+# script and policy always come from one complete, real, non-symlink directory;
+# an incomplete first candidate never mixes with a second candidate.
+select_preflight_artifacts(){
+  local directory script policy runtime unsafe resolved
+  PREFLIGHT_SCRIPT=
+  PREFLIGHT_POLICY=
+  PREFLIGHT_RUNTIME_DIR=
+  for directory in "$@"; do
+    [ -d "$directory" ] && [ ! -L "$directory" ] || continue
+    script="$directory/terminal_release_preflight.py"
+    policy="$directory/terminal_source_audit.production.json"
+    runtime="$directory/terminal_audit"
+    [ -f "$script" ] && [ ! -L "$script" ] || continue
+    [ -f "$policy" ] && [ ! -L "$policy" ] || continue
+    [ -d "$runtime" ] && [ ! -L "$runtime" ] || continue
+    unsafe=$(find "$runtime" -type l -print -quit 2>/dev/null) || continue
+    [ -z "$unsafe" ] || continue
+    unsafe=$(find "$runtime" -mindepth 1 ! -type f ! -type d -print -quit 2>/dev/null) || continue
+    [ -z "$unsafe" ] || continue
+    resolved=$(cd "$directory" && pwd -P) || continue
+    PREFLIGHT_SCRIPT="$resolved/terminal_release_preflight.py"
+    PREFLIGHT_POLICY="$resolved/terminal_source_audit.production.json"
+    PREFLIGHT_RUNTIME_DIR="$resolved/terminal_audit"
+    return 0
+  done
+  log "FATAL: no complete trusted Terminal release-preflight artifact pair is available"
+  return 66
+}
+
+# Receipt publication is the only write admitted before source mutation. The
+# production root is fixed, root-owned and not group/other writable; the W2A
+# command performs its own resolved-path and immutable-publication checks too.
+prepare_preflight_receipt_dir(){
+  local receipt_dir=$1 parent path identity
+  case "$receipt_dir" in
+    /*/*) ;;
+    *) log "FATAL: release-preflight receipt directory must be absolute"; return 64 ;;
+  esac
+  parent=${receipt_dir%/*}
+  for path in "$parent" "$receipt_dir"; do
+    if [ -L "$path" ]; then
+      log "FATAL: release-preflight receipt path is a symlink: $path"
+      return 73
+    fi
+  done
+  install -d -o root -g root -m 0750 "$parent" "$receipt_dir" || return $?
+  for path in "$parent" "$receipt_dir"; do
+    if [ ! -d "$path" ] || [ -L "$path" ]; then
+      log "FATAL: release-preflight receipt path is not a real directory: $path"
+      return 73
+    fi
+    identity=$(stat -c '%F:%a:%u:%g' "$path" 2>/dev/null) || {
+      log "FATAL: cannot inspect release-preflight receipt path: $path"
+      return 73
+    }
+    if [ "$identity" != "directory:750:0:0" ]; then
+      log "FATAL: receipt path $path is not root-owned 0750; group or other writable paths are refused"
+      return 73
+    fi
+  done
+}
+
+# Run the accepted W2A gate and bind its immutable evidence to shell variables
+# consumed by this owner. Every non-zero result is propagated unchanged.
+run_release_preflight(){
+  local script=$1 policy=$2 canonical_repo=$3 receipt_dir=$4
+  local temporary stdout_file stderr_file rc parsed
+  temporary=$(mktemp -d /tmp/terminal-build-preflight.XXXXXX) || return $?
+  stdout_file="$temporary/stdout.json"
+  stderr_file="$temporary/stderr.log"
+
+  if (
+    umask 027
+    PYTHONDONTWRITEBYTECODE=1 python3 "$script" \
+      --canonical-repo "$canonical_repo" \
+      --policy "$policy" \
+      --receipt-dir "$receipt_dir"
+  ) >"$stdout_file" 2>"$stderr_file"; then
+    rc=0
+  else
+    rc=$?
+  fi
+
+  if [ -s "$stderr_file" ]; then
+    cat "$stderr_file" >&2
+  fi
+  if [ "$rc" -ne 0 ]; then
+    if [ -s "$stdout_file" ]; then cat "$stdout_file" >&2; fi
+    rm -rf "$temporary"
+    return "$rc"
+  fi
+
+  if ! parsed=$(python3 - "$stdout_file" "$receipt_dir" <<'PY_RECEIPT'
+import json
+import re
+import sys
+from pathlib import Path
+
+summary_path = Path(sys.argv[1])
+receipt_root = Path(sys.argv[2]).resolve(strict=True)
+with summary_path.open(encoding="utf-8") as handle:
+    summary = json.load(handle)
+if summary.get("schema") != "mastermind.terminal.release_preflight_receipt.v1":
+    raise SystemExit("release-preflight summary schema is invalid")
+required = (
+    "result",
+    "accepted_sha",
+    "receipt_path",
+    "receipt_id",
+    "source_audit_receipt_id",
+)
+for key in required:
+    value = summary.get(key)
+    if not isinstance(value, str) or not value or any(char in value for char in "\r\n\t"):
+        raise SystemExit(f"invalid release-preflight summary field: {key}")
+if summary["result"] != "CLEAN":
+    raise SystemExit("release-preflight summary is not CLEAN")
+if re.fullmatch(r"[0-9a-f]{40}", summary["accepted_sha"]) is None:
+    raise SystemExit("release-preflight accepted SHA is not one full lower-case commit")
+receipt = Path(summary["receipt_path"])
+if receipt.is_symlink() or not receipt.is_file():
+    raise SystemExit("release-preflight receipt is not a real regular file")
+if receipt.resolve(strict=True).parent != receipt_root:
+    raise SystemExit("release-preflight receipt escaped its reviewed directory")
+print("\t".join(summary[key] for key in required[1:]))
+PY_RECEIPT
+  ); then
+    rm -rf "$temporary"
+    return 64
+  fi
+
+  IFS=$'\t' read -r PREFLIGHT_ACCEPTED_SHA PREFLIGHT_RECEIPT_PATH \
+    PREFLIGHT_RECEIPT_ID PREFLIGHT_SOURCE_RECEIPT_ID <<< "$parsed"
+  rm -rf "$temporary"
+  log "source preflight CLEAN: accepted=$PREFLIGHT_ACCEPTED_SHA receipt=$PREFLIGHT_RECEIPT_PATH"
+}
+
+# Admission is separate from fetching: callers first update the accepted ref,
+# then this function proves that the exact requested commit is available and
+# contained by that immutable local observation of the protected branch.
+admit_target_sha(){
+  local repository=$1 target_sha=$2 accepted_ref=$3 resolved
+  validate_target_sha "$target_sha" || return $?
+  if ! resolved=$(git -C "$repository" rev-parse --verify "${target_sha}^{commit}" 2>/dev/null); then
+    log "FATAL: requested target commit is unavailable after accepted-ref fetch: $target_sha"
+    return 65
+  fi
+  if [ "$resolved" != "$target_sha" ]; then
+    log "FATAL: requested target did not resolve to the exact full commit: $target_sha"
+    return 65
+  fi
+  if ! git -C "$repository" rev-parse --verify "${accepted_ref}^{commit}" >/dev/null 2>&1; then
+    log "FATAL: accepted ref is unavailable after fetch: $accepted_ref"
+    return 65
+  fi
+  if ! git -C "$repository" merge-base --is-ancestor "$target_sha" "$accepted_ref"; then
+    log "FATAL: requested target is not contained by accepted ref: $target_sha"
+    return 65
+  fi
+}
 
 # ── deploy generation: the identity and the build it names move together ──────
 # .deployment-id and the .next it describes are ONE generation. Installing the
@@ -196,21 +382,39 @@ if [ "${BASH_SOURCE[0]}" != "$0" ]; then
   return 0
 fi
 
-log "node $(node -v)"
+if ! { [ "$#" -eq 2 ] && [ "$1" = "--target-sha" ]; }; then
+  log "USAGE: $0 --target-sha <full-lowercase-40-hex-commit>"
+  exit 64
+fi
+TARGET_SHA=$2
+validate_target_sha "$TARGET_SHA" || exit $?
 
-# 0) GIT GATE — the ONLY code that gets built is origin/$BRANCH.
+# 0) CURRENT-GENERATION PREFLIGHT — before fetch/reset/clean/build/source writes.
 if [ ! -d "$SRC/.git" ]; then
   log "FATAL: canonical checkout missing. Create it once with:"
   log "  git clone --branch $BRANCH git@github-mmterminal:mastermindx-market-intelligence/mastermind-terminal.git $SRC"
   exit 1
 fi
-log "fetching origin/$BRANCH ..."
+select_preflight_artifacts "$AUTHORING_OPS_DIR" "$SRC/ops"
+prepare_preflight_receipt_dir "$PREFLIGHT_RECEIPT_DIR"
+run_release_preflight "$PREFLIGHT_SCRIPT" "$PREFLIGHT_POLICY" "$SRC" "$PREFLIGHT_RECEIPT_DIR"
+
+# 1) EXACT TARGET GATE — fetch the accepted ref, then pin every later step to
+# the caller's admitted full SHA. A later branch movement cannot change target.
+log "fetching accepted ref origin/$BRANCH for exact target admission ..."
 git -C "$SRC" fetch -q origin "$BRANCH"
-git -C "$SRC" reset -q --hard "origin/$BRANCH"
+ACCEPTED_REF="refs/remotes/origin/$BRANCH"
+admit_target_sha "$SRC" "$TARGET_SHA" "$ACCEPTED_REF"
+git -C "$SRC" reset -q --hard "$TARGET_SHA"
 git -C "$SRC" clean -qfd
 FULL_SHA=$(git -C "$SRC" rev-parse HEAD)
+[ "$FULL_SHA" = "$TARGET_SHA" ] || {
+  log "FATAL: canonical checkout did not land on admitted target: wanted=$TARGET_SHA actual=$FULL_SHA"
+  exit 65
+}
 SHA=${FULL_SHA:0:12}
-log "GIT-GATED: deploying origin/$BRANCH @ $SHA  (working-tree edits in $APP are IGNORED)"
+log "node $(node -v)"
+log "GIT-GATED: deploying accepted target $FULL_SHA from origin/$BRANCH (working-tree edits in $APP are IGNORED)"
 
 # 1) deps — from the canonical lockfile. Reuse $APP/node_modules unless the lock changed.
 if [ ! -d "$APP/node_modules" ] || ! cmp -s "$TSRC/package-lock.json" "$APP/package-lock.json" 2>/dev/null; then

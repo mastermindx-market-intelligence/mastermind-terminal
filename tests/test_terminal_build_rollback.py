@@ -546,6 +546,30 @@ SHIMS = {
     ),
     "curl": '#!/bin/sh\n[ -n "${FAIL_HEALTH:-}" ] && exit 22\nexit 0\n',
     "sleep": "#!/bin/sh\nexit 0\n",
+    "install": (
+        '#!/bin/sh\n'
+        'if [ "$1" = -d ]; then\n'
+        '  shift; mode=0755\n'
+        '  while [ "$#" -gt 0 ]; do\n'
+        '    case "$1" in -o|-g) shift 2 ;; -m) mode=$2; shift 2 ;; *) mkdir -p "$1" || exit $?; chmod "$mode" "$1" || exit $?; shift ;; esac\n'
+        '  done\n'
+        '  exit 0\n'
+        'fi\n'
+        'mode=0755\n'
+        'while [ "$#" -gt 0 ]; do case "$1" in -m) mode=$2; shift 2 ;; -o|-g) shift 2 ;; *) break ;; esac; done\n'
+        '[ "$#" -eq 2 ] || exit 64\n'
+        'cp "$1" "$2" || exit $?\n'
+        'chmod "$mode" "$2"\n'
+    ),
+    "stat": (
+        '#!/bin/sh\n'
+        'if [ "$1" = -c ] && [ "$2" = "%F:%a:%u:%g" ]; then\n'
+        '  [ -d "$3" ] || exit 1\n'
+        '  echo directory:750:0:0\n'
+        '  exit 0\n'
+        'fi\n'
+        'exit 64\n'
+    ),
     "mv": (
         '#!/bin/sh\n'
         'if [ -n "${FAIL_MV_MATCH:-}" ]; then\n'
@@ -562,9 +586,37 @@ def run_deploy(tmp_path: Path, script: Path = SCRIPT, **flags) -> tuple:
     root = tmp_path / "deployroot"
     app, src = root / "terminal", root / ".gitsrc"
     tsrc = src / "terminal"
+    ops = src / "ops"
     usrbin = tmp_path / "usrbin"
-    for d in (app / "node_modules", app / "public" / "data", tsrc, src / ".git", usrbin):
+    receipt_root = tmp_path / "varlib" / "mastermind-terminal"
+    for d in (app / "node_modules", app / "public" / "data", tsrc, src / ".git", ops, usrbin):
         d.mkdir(parents=True, exist_ok=True)
+    (ops / "terminal_source_audit.production.json").write_text("{}\n")
+    (ops / "terminal_audit").mkdir()
+    (ops / "terminal_audit" / "__init__.py").write_text("# sandbox runtime\n")
+    (ops / "terminal_release_preflight.py").write_text(
+        """import argparse
+import json
+from pathlib import Path
+parser = argparse.ArgumentParser()
+parser.add_argument('--canonical-repo')
+parser.add_argument('--policy')
+parser.add_argument('--receipt-dir', type=Path)
+args = parser.parse_args()
+args.receipt_dir.mkdir(parents=True, exist_ok=True)
+receipt = args.receipt_dir / 'sandbox-receipt.json'
+receipt.write_text('{}', encoding='utf-8')
+print(json.dumps({
+    'schema': 'mastermind.terminal.release_preflight_receipt.v1',
+    'result': 'CLEAN',
+    'accepted_sha': '""" + OLD_SHA + """',
+    'receipt_path': str(receipt),
+    'receipt_id': 'sandbox-outer',
+    'source_audit_receipt_id': 'sandbox-inner',
+}))
+""",
+        encoding="utf-8",
+    )
     # identical lockfiles so the deploy skips `npm ci`
     (app / "package-lock.json").write_text("lock\n")
     (tsrc / "package-lock.json").write_text("lock\n")
@@ -577,8 +629,13 @@ def run_deploy(tmp_path: Path, script: Path = SCRIPT, **flags) -> tuple:
 
     text = script.read_text()
     assert "/opt/terminal/" in text, "deploy root anchor vanished — cannot sandbox"
-    text = text.replace("/usr/local/bin", str(usrbin)).replace("/opt/terminal/", f"{root}/")
+    text = (
+        text.replace("/usr/local/bin", str(usrbin))
+        .replace("/var/lib/mastermind-terminal", str(receipt_root))
+        .replace("/opt/terminal/", f"{root}/")
+    )
     assert "/opt/terminal" not in text, "a real deploy path survived the rewrite"
+    assert "/var/lib/mastermind-terminal" not in text, "a real receipt path survived the rewrite"
     copy = tmp_path / "sandboxed-terminal-build.sh"
     copy.write_text(text)
     copy.chmod(0o755)
@@ -598,7 +655,11 @@ def run_deploy(tmp_path: Path, script: Path = SCRIPT, **flags) -> tuple:
     })
     env.update({k: str(v) for k, v in flags.items()})
     proc = subprocess.run(
-        [_bash(), str(copy)], capture_output=True, text=True, timeout=180, env=env
+        [_bash(), str(copy), "--target-sha", NEW_SHA],
+        capture_output=True,
+        text=True,
+        timeout=180,
+        env=env,
     )
     return proc, app
 
