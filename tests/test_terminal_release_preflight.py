@@ -29,6 +29,11 @@ def git(repo: Path, *args: str) -> str:
     return completed.stdout.strip()
 
 
+def git_mode(repo: Path, revision: str, path: str) -> str:
+    record = git(repo, "ls-tree", revision, "--", path)
+    return record.split(" ", 1)[0]
+
+
 @pytest.fixture()
 def preflight_fixture(tmp_path: Path) -> dict[str, object]:
     repo = tmp_path / "repo"
@@ -264,7 +269,9 @@ def test_production_policy_is_complete_narrow_and_tree_pinned() -> None:
     assert env_template["canonical_git_blob"] == git(
         PROJECT_ROOT, "rev-parse", "HEAD:terminal/.env.example"
     )
-    assert env_template["canonical_git_mode"] == "100644"
+    assert env_template["canonical_git_mode"] == git_mode(
+        PROJECT_ROOT, "HEAD", "terminal/.env.example"
+    ) == "100644"
     expected_app_types = {
         ".deployment-id": "file",
         ".env": "file",
@@ -299,7 +306,9 @@ def test_production_policy_is_complete_narrow_and_tree_pinned() -> None:
     assert runtime_cache["allow_tracked_runtime_file"] is True
     expected_blob = git(PROJECT_ROOT, "rev-parse", "HEAD:ingest/hk_universe_cache.json")
     assert runtime_cache["canonical_git_blob"] == expected_blob
-    assert runtime_cache["canonical_git_mode"] == "100644"
+    assert runtime_cache["canonical_git_mode"] == git_mode(
+        PROJECT_ROOT, "HEAD", "ingest/hk_universe_cache.json"
+    ) == "100644"
     assert "expected_live_type" not in runtime_cache
 
     special_contracts = {
