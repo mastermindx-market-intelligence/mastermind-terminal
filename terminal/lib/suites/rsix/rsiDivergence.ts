@@ -69,6 +69,8 @@ interface Div {
   ai: number; // pivot A bar index (older)
   bi: number; // pivot B bar index (newer, carries the label)
   confirmedAt: number; // bar at which the divergence became knowable
+  priceA: number;
+  priceB: number;
   strength: number; // 0..100
   hidden: boolean;
   dir: "bull" | "bear";
@@ -120,6 +122,7 @@ function compute(ctx: ModuleCtx): ModuleResult {
 
   const s = ctx.s || {};
   const wantHidden = boolOpt(s.hidden, true);
+  const priceLinks = boolOpt(s.priceLinks, false);
   const showLast = intOpt(s.showLast, 8, 2, 16);
   const zh = lang === "zh";
 
@@ -145,6 +148,8 @@ function compute(ctx: ModuleCtx): ModuleResult {
       ai,
       bi,
       confirmedAt: conf,
+      priceA: e.priceA,
+      priceB: e.priceB,
       strength: clampNum(Math.round(divergenceStrength(e, bars)), 0, 100),
       hidden,
       dir: e.kind === "bull" || e.kind === "hiddenBull" ? "bull" : "bear",
@@ -243,6 +248,22 @@ function compute(ctx: ModuleCtx): ModuleResult {
       tooltipId: tipId,
     } as LabelPrim);
 
+    if (priceLinks) {
+      for (const d of fan.slice(0, MAX_FAN)) {
+        if (!Number.isFinite(d.priceA) || !Number.isFinite(d.priceB) || d.priceA <= 0 || d.priceB <= 0) continue;
+        prims.push({ kind: "poly", coordinateSpace: "price", id: `rsix-price-div-c-${d.ai}-${d.bi}-${d.kind}`,
+          z: 2, pts: [{ i: d.ai, p: d.priceA }, { i: d.bi, p: d.priceB }], color: col, w: LINE_W,
+          ...(d.hidden ? { dash: HIDDEN_DASH, alpha: HIDDEN_ALPHA } : {}) } as PolyPrim);
+      }
+      const detectionPrice = bars[g.confirmedAt]?.c;
+      if (Number.isFinite(detectionPrice) && detectionPrice > 0) prims.push({
+        kind: "label", coordinateSpace: "price", id: `${tipId}-price-detected`, z: 3,
+        i: g.confirmedAt, p: detectionPrice, text: `${zh ? "RSI 背离" : "RSI Div"} · +${g.confirmedAt - primary.bi}`,
+        place: g.dir === "bull" ? "below" : "above", style: "chip", color: col, fs: LABEL_FS,
+        minPxPerBar: LABEL_MIN_PX, tooltipId: tipId,
+      } as LabelPrim);
+    }
+
     const best = fan.reduce((m, d) => (d.strength > m.strength ? d : m), fan[0]);
     const rowsOut: TooltipDef["rows"] = [
       { k: L.cls, v: className(primary.kind, zh), color: col },
@@ -250,6 +271,14 @@ function compute(ctx: ModuleCtx): ModuleResult {
       { k: L.strength, v: `${best.strength}` },
       { k: L.osc, v: `${(rsi[primary.bi] - rsi[primary.ai]).toFixed(1)}` },
     ];
+    if (priceLinks) {
+      const time = bars[g.confirmedAt]?.t;
+      const date = new Date(time * 1000);
+      rowsOut.push({ k: zh ? "检测延迟" : "Detection delay", v: `${g.confirmedAt - primary.bi} ${L.bars}` });
+      rowsOut.push({ k: zh ? "确认K线" : "Confirmation bar", v: Number.isFinite(date.getTime()) ? `${date.toISOString().replace("T", " ").replace(".000Z", " UTC")}` : "—" });
+      rowsOut.push({ k: zh ? "价格锚点" : "Price anchors", v: `${primary.priceA.toPrecision(6)} → ${primary.priceB.toPrecision(6)}` });
+      rowsOut.push({ k: zh ? "口径" : "Basis", v: zh ? "原始OHLC；最新源K线可能仍在形成，非交易入场。" : "Original OHLC; newest source bar may still be forming. Not a trade entry." });
+    }
     if (stacked) rowsOut.push({ k: L.stack, v: `×${count}` });
     tooltips.push({ id: tipId, title: L.title, accent: col, rows: rowsOut });
   }
