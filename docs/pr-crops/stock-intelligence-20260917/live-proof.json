@@ -1,0 +1,156 @@
+{
+  "capturedAt": "2026-09-17T23:31:42.629Z",
+  "source": "Published static payloads rendered by local branch, existing fixture-auth seam; not a deployed-branch claim",
+  "sources": {
+    "/data/INTC.slice.json": {
+      "status": 200,
+      "bytes": 225407,
+      "sha256": "b548c501260c6d7c749ab76a166fabf39e5f49fbbf43991be1b58c24b5ecf292"
+    },
+    "/data/INTC.json": {
+      "status": 200,
+      "bytes": 629578,
+      "sha256": "434dba28a495b9eaff51a84f2aa4a12d4291cb73d7f6aa1b5a6e15b6b04da2a5"
+    },
+    "/data/INTC.intel.json": {
+      "status": 200,
+      "bytes": 217933,
+      "sha256": "50afeb3ba103077c67e6df3b6d841d6ae7aad690c4b24a5abc84c43b06a1a7ae"
+    },
+    "/data/INTC.opts.json": {
+      "status": 200,
+      "bytes": 1900,
+      "sha256": "21530d9e5298d258532bcb3662fa298d8d96dfacc86c4f5793a745f18bb28f72"
+    },
+    "/data/INTC.fund.json": {
+      "status": 200,
+      "bytes": 20422,
+      "sha256": "07af763718e1c5d0d7b8684c4bbf99ae2e639314c3c6539840fb86b2ef63264a"
+    },
+    "/data/INTC.backtest.json": {
+      "status": 200,
+      "bytes": 13552,
+      "sha256": "d12785e2eb93603d21d4bfe0b0c32e6a901e93206a0768321ef338a13028ffbe"
+    }
+  },
+  "results": [
+    {
+      "viewport": "desktop",
+      "lang": "en",
+      "width": 1440,
+      "height": 900,
+      "foldBottom": 647.234375,
+      "views": 4,
+      "focusContainment": true,
+      "escapeReturn": true,
+      "chartReturn": true,
+      "researchAsOf": "2026-09-14"
+    },
+    {
+      "viewport": "desktop",
+      "lang": "zh",
+      "width": 1440,
+      "height": 900,
+      "foldBottom": 647.234375,
+      "views": 4,
+      "focusContainment": true,
+      "escapeReturn": true,
+      "chartReturn": true,
+      "researchAsOf": "2026-09-14"
+    },
+    {
+      "viewport": "tablet",
+      "lang": "en",
+      "width": 820,
+      "height": 1180,
+      "foldBottom": 1158.796875,
+      "views": 4,
+      "focusContainment": true,
+      "escapeReturn": true,
+      "chartReturn": true,
+      "researchAsOf": "2026-09-14"
+    },
+    {
+      "viewport": "tablet",
+      "lang": "zh",
+      "width": 820,
+      "height": 1180,
+      "foldBottom": 1158.796875,
+      "views": 4,
+      "focusContainment": true,
+      "escapeReturn": true,
+      "chartReturn": true,
+      "researchAsOf": "2026-09-14"
+    },
+    {
+      "viewport": "mobile",
+      "lang": "en",
+      "width": 390,
+      "height": 844,
+      "foldBottom": 841.765625,
+      "views": 4,
+      "focusContainment": true,
+      "escapeReturn": true,
+      "chartReturn": true,
+      "researchAsOf": "2026-09-14"
+    },
+    {
+      "viewport": "mobile",
+      "lang": "zh",
+      "width": 390,
+      "height": 844,
+      "foldBottom": 841.765625,
+      "views": 4,
+      "focusContainment": true,
+      "escapeReturn": true,
+      "chartReturn": true,
+      "researchAsOf": "2026-09-14"
+    }
+  ],
+  "screenshots": {
+    "desktop-en-equity.png": "d9c91802195ace61a08abed6f67255a28cea02704dac0610c10efce6d5cc6764",
+    "desktop-en-launcher.png": "74de4e6e99d83606619e91ba3024b5029f302a616d43f411e6095bd4c5637a95",
+    "desktop-en-overview.png": "1816c5b69f927d77d246c175319795e2c39374893f72f3b0794d9eef956e4a61",
+    "desktop-en-performance.png": "c7d9bfbbc950a81b802fe40f66f46ab5663a992e6225b5d4035faebb82f5f9f9",
+    "desktop-en-research.png": "4ee18ac76b7580ecac379cd3e321889cc14ad01f56117302c5b51052b0aada8c",
+    "desktop-en-signals.png": "283c06eaaff73960c6ba3be0da15f073ef5098a4dfef1526f9109b1ed482f8ee",
+    "desktop-zh-equity.png": "af25a3927376318cfdb3985aebb798ad37e50f85a3e9532fbb49a498c8739e30",
+    "desktop-zh-launcher.png": "bf13a8d6d94e9455c1b373accf6807c44667406adf33c3d403dbd83c8de5a2e9",
+    "desktop-zh-overview.png": "541ba47082e09da5e281c20196a368a53743b4b31d044c29baa5e8f3c0c1b1f9",
+    "desktop-zh-performance.png": "16a75bb9aa45349e2b7f2b2d91b85fd1dd6935afde0962387a792f33a28eceff",
+    "desktop-zh-research.png": "615987de39203408fa151b037ef22932d1228ab51beea771fcaec92a2e0e123b",
+    "desktop-zh-signals.png": "8678a994e64c5c2d28a44fd758ba5470a1d1416c14f87305d669d45669347f56",
+    "mobile-en-equity.png": "ebb0905f1510046afb387d80b4aa92ccfc4058c52dfc749f231fe1c0123ca0ef",
+    "mobile-en-launcher.png": "6b5579d6ccdbdd6a1f9c90693825d6d5b906145b57a712cd922bc574e38c18a0",
+    "mobile-en-overview.png": "a09d9227f11c950a5bfc6a51af2c94a28f280c934ef85bfc64ae5eeb7d557463",
+    "mobile-en-performance.png": "8deca82587b6e594917f61cf4b8a6d18c10a1557624e2657007e109820084b73",
+    "mobile-en-research.png": "c820d87012e7fe00dd152998d29a70ff7f4657761e5007a6c2b71084abb63d52",
+    "mobile-en-signals.png": "200202f04805cc9367d11a2da5f1c74587c09e572ac207876467d1082a31b1d6",
+    "mobile-zh-equity.png": "9f2161b1059d8139df85fc9c0cdab756a5b28a07d046bc2831e973e4a5119ec3",
+    "mobile-zh-launcher.png": "03811f19dea865bc79829314198c584548ca9f7985919bb7067d8fb2f1626503",
+    "mobile-zh-overview.png": "9a8b7bed477331d91f301cb382b1913bb6d808b88d97e956d8244e564497856c",
+    "mobile-zh-performance.png": "a7c0b3e4cc3b07c1047f1c4e24ef9a9ac270ffb1c680aa70a4836ebb0caa6e90",
+    "mobile-zh-research.png": "165b768f90acb421df6e699068b578a3d96a46a3986e536f8b9ad84452f1a5a6",
+    "mobile-zh-signals.png": "363e72e96f34ad2f07e0530e4b8f0bc1676fe73cfaa1704cb8b8b6da59bb4e8f",
+    "tablet-en-equity.png": "888f9e1641aec4925760a1d9f34dc4913845cc3dba987cb9e68538ddac6d6990",
+    "tablet-en-launcher.png": "89cdc00304369e6165aff04cf22aa5e1f9adc023ce79b8aea4834670683cbc33",
+    "tablet-en-overview.png": "94094c887e1f6d19f02d627be15815657a468fe8d4cbd2a41ad5fe7e24107d94",
+    "tablet-en-performance.png": "888f9e1641aec4925760a1d9f34dc4913845cc3dba987cb9e68538ddac6d6990",
+    "tablet-en-research.png": "937b37d4d40e5efda80eeac94535801138057383d9481458bc272bd4ab2ec558",
+    "tablet-en-signals.png": "e44cdc9a2c36aea977c642bcde95709e73c839d45041c2452949755822f6d7dc",
+    "tablet-zh-equity.png": "86287d17b4b329c74a12f7fdc7dac1df0412b0ab699d98ac90f5b59276f77a99",
+    "tablet-zh-launcher.png": "d7ee847cfb822d742664795ffc9102962e94b8db99ac77576b6e1f8957edc04a",
+    "tablet-zh-overview.png": "8df40e2bf0a375b399d8d577cc9de52f558b5cdf591d46857d875527b2a54f5d",
+    "tablet-zh-performance.png": "86287d17b4b329c74a12f7fdc7dac1df0412b0ab699d98ac90f5b59276f77a99",
+    "tablet-zh-research.png": "6f9d355596d009f665b5940f33e54ffebe891b97e196131a7fae1a5776b780cd",
+    "tablet-zh-signals.png": "050e7349f56adcec739ff0bfc6d01c4b5619abeec0a2d810b1cd780028c1fbd3"
+  },
+  "source_blobs": {
+    "terminal/components/fin/OracleDash.tsx": "1593bfe636bd5a32e999773d5d2d81e8ecaccd3b",
+    "terminal/components/SignalButton.tsx": "8a68d9f9e289dd69c5e3928a09d8415d168d3e00",
+    "terminal/components/fin/StockIntelligence.module.css": "5557f4061c2d091a08441022538232bb29f3d522",
+    "terminal/lib/__tests__/stockIntelligence.test.tsx": "78a0e9c55587e65cfc49326fd684114ad908d3df",
+    "terminal/e2e/stock-intelligence.spec.ts": "54209566c202f4f6262f247cc93a74d8512607de"
+  },
+  "baseline": "75c22083249e7a1529be3d6baf819b9ad5ea509f"
+}

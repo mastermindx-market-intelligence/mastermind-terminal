@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { getJSON } from "../dataCache"
 import React, { act } from "react"
 import { createRoot, type Root } from "react-dom/client"
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest"
@@ -19,6 +20,7 @@ beforeAll(() => {
 })
 beforeEach(() => {
   host = document.createElement("div"); document.body.append(host); root = createRoot(host)
+  vi.stubGlobal("ResizeObserver", class { observe() {} unobserve() {} disconnect() {} })
   vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false }))
 })
 afterEach(async () => { await act(async () => root.unmount()); host.remove(); vi.unstubAllGlobals() })
@@ -106,4 +108,51 @@ it("uses the existing full-analysis handoff and closes the intelligence panel", 
   await click(tab("Research"))
   await click([...document.querySelectorAll("button")].find(el => el.textContent?.includes("Open full analysis"))!)
   expect(onClose).toHaveBeenCalledOnce(); expect(onOpenFull).toHaveBeenCalledOnce()
+})
+
+it("renders the real producer's columnar equity contract with its own provenance", async () => {
+  vi.mocked(getJSON).mockResolvedValueOnce({ schema: "backtest_result/v1", status: "ok", as_of: "2026-06-26",
+    universe: { start: "2021-01-26", end: "2026-06-26", timeframe: "3D" }, validation: null,
+    honest_read: "After-cost historical simulation; significance requires separate validation.",
+    equity: { t: ["2026-06-22", "2026-06-25", "2026-06-26"], v: [1, 0.92, 1.35] } })
+  await render(); await click(tab("Performance"))
+  expect(document.querySelector(".od-curve svg")).not.toBeNull()
+  expect(text()).toContain("Jun 26, 2026")
+  expect(text()).toContain("Jan 26, 2021")
+  expect(text()).toContain("Statistical validation not supplied")
+  expect(text()).toContain("After-cost historical simulation")
+})
+it("rejects unpaired columnar dates/values rather than inventing an equity path", async () => {
+  vi.mocked(getJSON).mockResolvedValueOnce({ status: "ok", equity: { t: ["2026-06-26"], v: [1, 2] } })
+  await render(); await click(tab("Performance"))
+  expect(document.querySelector(".od-curve")).toBeNull()
+  expect(text()).toContain("Equity curve unavailable")
+})
+it("does not display an explicitly failed backtest even when it includes numeric values", async () => {
+  vi.mocked(getJSON).mockResolvedValueOnce({ status: "error", equity: [{ date: "2026-06-26", value: 1 }, { date: "2026-06-27", value: 2 }] })
+  await render(); await click(tab("Performance"))
+  expect(document.querySelector(".od-curve")).toBeNull()
+  expect(text()).toContain("Equity curve unavailable")
+})
+it("keeps the legacy row-oriented equity format working", async () => {
+  vi.mocked(getJSON).mockResolvedValueOnce({ equity: [{ date: "2026-06-25", value: 1 }, { date: "2026-06-26", value: 1.1 }] })
+  await render(); await click(tab("Performance"))
+  expect(document.querySelector(".od-curve svg")).not.toBeNull()
+})
+it("rejects invalid columnar dates without assigning invented calendar labels", async () => {
+  vi.mocked(getJSON).mockResolvedValueOnce({ status: "ok", equity: { t: [null, "2026-06-26"], v: [1, 2] } })
+  await render(); await click(tab("Performance"))
+  expect(document.querySelector(".od-curve")).toBeNull()
+  expect(text()).toContain("Equity curve unavailable")
+})
+it("keeps every tab control connected to an existing panel across navigation", async () => {
+  await render()
+  for (const label of ["Overview", "Research", "Signals", "Performance"]) {
+    await click(tab(label))
+    for (const control of document.querySelectorAll('[role="tab"]')) {
+      expect(document.getElementById(control.getAttribute("aria-controls")!)).not.toBeNull()
+    }
+    const panel = document.querySelector('[role="tabpanel"]')!
+    expect(panel.getAttribute("aria-labelledby")).toBe(tab(label).id)
+  }
 })

@@ -309,7 +309,7 @@ const DeskGlyph = (
 
 /* ── BacktestCurve: lazy-fetch <SYM>.backtest.json and draw equity curve ── */
 function BacktestCurve({ sym, zh }: { sym: string; zh: boolean }) {
-  const [data, setData] = useState<{ labels: string[]; values: (number | null)[] } | null>(null)
+  const [data, setData] = useState<{ labels: string[]; values: (number | null)[]; asOf?: string; start?: string; end?: string; note?: string; missingValidation: boolean } | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -318,9 +318,19 @@ function BacktestCurve({ sym, zh }: { sym: string; zh: boolean }) {
     setData(null)
     getJSON("/data/" + sym + ".backtest.json")
       .then((raw: any) => {
-        if (cancelled || !raw) return
-        const eq: any[] = raw?.equity ?? raw?.curve ?? []
-        if (!Array.isArray(eq) || eq.length === 0) return
+        if (cancelled || !raw || (raw.status && raw.status !== "ok")) return
+        const dateString = (value: unknown): string | undefined => typeof value === "string" && Number.isFinite(Date.parse(value)) ? value : undefined
+        const source = raw.equity ?? raw.curve ?? []
+        let eq: any[]
+        if (Array.isArray(source)) {
+          eq = source // Preserve the earlier row-oriented contract.
+        } else {
+          // backtest_result/v1 publishes paired date/value columns, not point objects.
+          // Preserve supplied values and gaps; never reconstruct equity from trades.
+          if (!Array.isArray(source.t) || !Array.isArray(source.v) || source.t.length !== source.v.length || !source.t.every((t: unknown) => dateString(t))) return
+          eq = source.t.map((date: string, i: number) => ({ date, value: source.v[i] }))
+        }
+        if (eq.length === 0) return
         const labels: string[] = []
         const values: (number | null)[] = []
         eq.forEach((pt: any) => {
@@ -333,7 +343,8 @@ function BacktestCurve({ sym, zh }: { sym: string; zh: boolean }) {
           }
         })
         if (values.some((v) => v != null)) {
-          setData({ labels, values })
+          setData({ labels, values, asOf: dateString(raw.as_of), start: dateString(raw.universe?.start), end: dateString(raw.universe?.end),
+            note: typeof raw.honest_read === "string" ? raw.honest_read : undefined, missingValidation: raw.validation == null })
         }
       })
       .catch(() => {})
@@ -353,10 +364,14 @@ function BacktestCurve({ sym, zh }: { sym: string; zh: boolean }) {
   return (
     <div className="od-curve">
       <div className="od-sec-h">{pick(zh, "Equity Curve", "资金曲线")}</div>
+      <p className={styles.date}>{data.asOf ? `${pick(zh, "Curve as of", "曲线截至")} ${signalHistoryDate(data.asOf, zh)}` : pick(zh, "Curve date not supplied", "未提供曲线日期")}
+        {data.start && data.end && <><br />{pick(zh, "Backtest window", "回测区间")}: {signalHistoryDate(data.start, zh)} — {signalHistoryDate(data.end, zh)}</>}
+      </p>
+      {data.missingValidation && <p className={styles.meta}>{pick(zh, "Statistical validation not supplied", "未提供统计验证证据")}</p>}
       <LineSeries
         labels={data.labels}
         series={[{
-          name: pick(zh, "Portfolio", "组合"),
+          name: pick(zh, "Strategy equity", "策略权益"),
           values: data.values,
           color: "var(--brand)",
         }]}
@@ -366,6 +381,7 @@ function BacktestCurve({ sym, zh }: { sym: string; zh: boolean }) {
         zh={zh}
         height={220}
       />
+      {data.note && <details className={styles.method}><summary>{pick(zh, "Source methodology", "数据源方法说明")}</summary><p>{data.note}</p></details>}
     </div>
   )
 }
@@ -759,16 +775,16 @@ export default function OracleDash({ sym, row, slice, intel, bars, zh = false, o
         <div><p className={styles.eyebrow}>{sym}</p><h2 ref={titleRef} tabIndex={-1} id={`${id}-title`}>{pick(zh, "Stock Intelligence", "个股情报")}</h2></div>
         <button type="button" className={styles.close} onClick={onClose} aria-label={pick(zh, "Close Stock Intelligence", "关闭个股情报")}>×</button>
       </header>
-      <p className={styles.description} id={`${id}-description`}>{pick(zh, "Research context and dated signals. One workspace, distinct evidence.", "研究背景与有日期的信号：一个工作台，保留各自证据。")}</p>
+      <p className={styles.description} id={`${id}-description`}>{pick(zh, "Research, dated signals, and their historical track record.", "研究判断、有日期的信号与历史表现。")}</p>
       <div className={styles.tabs} role="tablist" aria-label={pick(zh, "Intelligence views", "情报视图")}>
-        {tabs.map((label, index) => <button key={index} type="button" role="tab" id={`${id}-tab-${index}`} aria-controls={`${id}-panel-${index}`}
+        {tabs.map((label, index) => <button key={index} type="button" role="tab" id={`${id}-tab-${index}`} aria-controls={`${id}-panel`}
           aria-selected={activeTab === index} tabIndex={activeTab === index ? 0 : -1} ref={(el) => { tabsRef.current[index] = el }}
           onClick={() => selectTab(index)} onKeyDown={(event) => {
             const next = event.key === "ArrowRight" ? (index + 1) % 4 : event.key === "ArrowLeft" ? (index + 3) % 4 : event.key === "Home" ? 0 : event.key === "End" ? 3 : null
             if (next != null) { event.preventDefault(); event.stopPropagation(); selectTab(next, true) }
           }}>{label}{index === 2 && sigs.length > 0 && <span className={styles.count}>{sigs.length}</span>}</button>)}
       </div>
-      <div className={styles.body} ref={bodyRef} role="tabpanel" id={`${id}-panel-${activeTab}`} aria-labelledby={`${id}-tab-${activeTab}`} tabIndex={0}>
+      <div className={styles.body} ref={bodyRef} role="tabpanel" id={`${id}-panel`} aria-labelledby={`${id}-tab-${activeTab}`} tabIndex={0}>
         {activeTab === 0 && <>
           <div className={styles.overview}>
             <section className={styles.read}>
@@ -781,13 +797,13 @@ export default function OracleDash({ sym, row, slice, intel, bars, zh = false, o
             </section>
             <section className={styles.read}>
               <h3>{OracleStar}{pick(zh, "Golden Oracle", "黄金神谕")}</h3>
-              <p className={styles.date}>{pick(zh, "Dated signal / current posture", "有日期的信号 / 当前状态")}</p>
+              <p className={styles.date}>{pick(zh, ov.stance ? "Model posture" : "Latest dated signal", ov.stance ? "模型状态" : "最新有日期的信号")}</p>
               {oracleContent}
               <button type="button" className={styles.link} onClick={() => selectTab(2, true)}>{pick(zh, "Explore signals", "查看信号")} →</button>
             </section>
           </div>
           <section className={styles.evidence}>
-            <h3>{pick(zh, "What supports the research — and what needs care", "研究依据与注意事项")}</h3>
+            <h3>{pick(zh, "Key drivers & cautions", "关键驱动与注意事项")}</h3>
             <div className={styles.evidenceGrid}>
               <div><h4>{pick(zh, "Supporting factors", "支持因素")}</h4>{drivers.length ? <ul>{drivers.map((d, i) => <li key={i}>{d}</li>)}</ul> : <p className={styles.meta}>{pick(zh, "No supporting factors supplied.", "暂无已提供的支持因素。")}</p>}</div>
               <div className={styles.cautions}><h4>{pick(zh, "Cautions", "注意事项")}</h4>{cautions.length ? <ul>{cautions.map((c, i) => <li key={i}>{c}</li>)}</ul> : <p className={styles.meta}>{pick(zh, "No cautions supplied; this does not establish low risk.", "未提供注意事项并不代表低风险。")}</p>}</div>
@@ -1002,7 +1018,7 @@ export default function OracleDash({ sym, row, slice, intel, bars, zh = false, o
           <BacktestCurve key={sym} sym={sym} zh={zh} />
         </section>}
       </div>
-      <footer className={styles.footer}><span>{sym} · {pick(zh, "Research ≠ signal ≠ execution", "研究 ≠ 信号 ≠ 执行")}</span><span>{pick(zh, "Esc to close", "按 Esc 关闭")}</span></footer>
+      <footer className={styles.footer}><span>{sym} · {pick(zh, "Research Desk · Golden Oracle", "研究台 · 黄金神谕")}</span><span>{pick(zh, "Esc to close", "按 Esc 关闭")}</span></footer>
     </dialog>
   )
 }
