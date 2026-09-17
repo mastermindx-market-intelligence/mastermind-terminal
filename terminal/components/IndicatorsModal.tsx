@@ -852,7 +852,12 @@ export default function IndicatorsModal({
             </span>
             <span className="im-result-count">{classicEntries.length + MODULE_CATALOG.length}</span>
           </div>
-          <ChartWorkflowEntry lang={lang} onOpen={() => setCat(SYSTEM_PRESETS)} />
+          <ChartWorkflowEntry lang={lang} onOpen={() => {
+            pickCategory(SYSTEM_PRESETS);
+            // The entry unmounts in the new category. Keep focus with the existing
+            // dialog owner so Tab containment and Escape do not fall to the page.
+            dialogRef.current?.focus({ preventScroll: true });
+          }} />
           <section className="im-section">
             <div className="im-search-group">
               <strong>{copy("Built-in indicators", "内置指标")}</strong>

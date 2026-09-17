@@ -24,3 +24,5 @@ Recipe RED-to-GREEN completed; full unit 5,517 pass + 4 existing TODOs / 333 fil
 
 
 Independent review P2 was consumed and reproduced on the real UI; undo now expires permanently at the first committed custom edit. Native plain-language failure was reproduced and repaired with scoped bilingual pair lookup, leaving central i18n/evidence-locked files byte-identical. Final-source full unit 5,517 pass / 4 TODOs in 333 files; typecheck and added-line copy guard pass. Final browser matrix 10 pass / 8 disclosed shared-gate duplicates skipped, twelve refreshed real captures. Review successor and native CI remain next; source stays on #606.
+
+Keyboard review P2 reproduced and repaired through the existing dialog ref/category transition. Final 11-pass/10-disclosed-skip three-viewport matrix, full unit 5,517 pass/4 TODOs and typecheck pass. The subsequent optional keyboard apply/undo probe was platform-denied before any effect and is frozen; do not claim that additional probe was executed. Twelve exact-source captures refreshed.

@@ -98,3 +98,21 @@ test("workflow evidence guides return to the same configured workspace", async (
   await expect(card.getByTestId("apply-chart-workflow")).toBeDisabled();
   await expect(card.getByTestId("undo-chart-workflow")).toBeVisible();
 });
+
+
+test("keyboard workflow navigation retains modal focus, Tab containment and Escape", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "Shared keyboard focus transition.");
+  await page.goto("/terminal?symbol=NVDA");
+  await expect(page.locator(".chart-wrap canvas").first()).toBeVisible();
+  await openIndicatorLibrary(page);
+  const dialog=page.locator("#indicator-library-dialog");
+  await page.getByTestId("open-chart-workflows").focus();
+  await page.keyboard.press("Enter");
+  await expect(page.getByTestId("workflow-reversal-reclaim")).toBeVisible();
+  const focusInside=()=>page.evaluate(()=>Boolean(document.querySelector("#indicator-library-dialog")?.contains(document.activeElement)));
+  await expect.poll(focusInside).toBe(true);
+  await page.keyboard.press("Tab");
+  await expect.poll(focusInside).toBe(true);
+  await page.keyboard.press("Escape");
+  await expect(dialog).toBeHidden();
+});
