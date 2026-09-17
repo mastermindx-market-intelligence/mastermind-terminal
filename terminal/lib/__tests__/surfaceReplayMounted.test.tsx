@@ -22,17 +22,28 @@ vi.mock("lightweight-charts", async (original) => {
     setVisibleRange(range: unknown) { chartWrites.ranges.push(range); }, setAutoScale() {}, getVisibleRange: () => ({ from: 99, to: 105 }),
     width: () => 50, applyOptions() {},
   };
-  const series = () => ({
-    setData() {}, applyOptions() {}, coordinateToPrice: () => null,
-    priceToCoordinate: () => null, createPriceLine: () => ({}), removePriceLine() {},
-    priceScale: () => scale,
-  });
-  return { ...actual, createChart: () => ({
-    addCustomSeries: series, addSeries: series, priceScale: () => scale,
-    timeScale: () => ({ setVisibleRange() {}, fitContent() {}, getVisibleRange: () => null, subscribeVisibleTimeRangeChange() {}, unsubscribeVisibleTimeRangeChange() {} }),
-    subscribeCrosshairMove() {}, subscribeClick() {}, remove() {}, applyOptions() {},
-    setCrosshairPosition() {}, clearCrosshairPosition() {},
-  }) };
+  return { ...actual, createChart: () => {
+    const counts: number[] = [];
+    const series = () => {
+      const index = counts.push(0) - 1;
+      return {
+        setData(rows: unknown[]) { counts[index] = rows.length; },
+        applyOptions() {}, coordinateToPrice: () => null, priceToCoordinate: () => null,
+        createPriceLine: () => ({}), removePriceLine() {}, priceScale: () => scale,
+      };
+    };
+    const hasPoints = () => counts.some(count => count > 0);
+    return {
+      addCustomSeries: series, addSeries: series, priceScale: () => scale,
+      timeScale: () => ({
+        setVisibleRange() { if (!hasPoints()) throw new Error("Value is null: empty chart time scale"); },
+        fitContent() {}, getVisibleRange: () => hasPoints() ? ({ from: 100, to: 200 }) : null,
+        subscribeVisibleTimeRangeChange() {}, unsubscribeVisibleTimeRangeChange() {},
+      }),
+      subscribeCrosshairMove() {}, subscribeClick() {}, remove() {}, applyOptions() {},
+      setCrosshairPosition() {}, clearCrosshairPosition() {},
+    };
+  } };
 });
 
 let root: Root;
@@ -48,6 +59,7 @@ let emitFrames: boolean;
 let frameRevision: number;
 let delayedFrame: Promise<Response> | null;
 let emitGreek: boolean;
+let emitCandles: boolean;
 const date = "2026-09-17";
 const payload = () => ({ root: "SPY", date: sourceDate, stamps: [...(customStamps ?? stamps)], latest: (customStamps ?? stamps).at(-1) ?? null, cadenceSec: 60 });
 const json = (body: unknown) => new Response(JSON.stringify(body), { status: 200, headers: { "content-type": "application/json" } });
@@ -70,7 +82,7 @@ beforeEach(() => {
   calls = [];
   failIndex = false;
   delayedIndex = null;
-  indexRootOverride = null; sourceDate = date; customStamps = null; emitFrames = false; frameRevision = 0; delayedFrame = null; emitGreek = false;
+  indexRootOverride = null; sourceDate = date; customStamps = null; emitFrames = false; frameRevision = 0; delayedFrame = null; emitGreek = false; emitCandles = true;
   vi.stubGlobal("fetch", vi.fn(async (input: string | URL | Request) => {
     const url = new URL(String(input), "http://localhost");
     const f = url.searchParams.get("f") ?? url.pathname;
@@ -84,7 +96,7 @@ beforeEach(() => {
       return json({ ...payload(), root: f.split(":")[1], date: f.split(":")[2] });
     }
     if (f.startsWith("surface_dates:")) return json({ root: f.split(":")[1], dates: [date, "2026-09-16"], latest: date, cadenceSec: 60 });
-    if (emitFrames && f === "/api/intraday") return json({ bars:
+    if (emitFrames && emitCandles && f === "/api/intraday") return json({ bars:
       Array.from({ length: frameRevision > 0 ? 3 : 2 }, (_, i) =>
         [Date.UTC(2026,8,17,9,30) / 1000 + i * 300, 100, 100.5 + i, 99.5, 100.2, 10]) });
     if (emitFrames && (f.startsWith("surface:") || f.startsWith("surface_at:"))) {
@@ -309,4 +321,16 @@ it("preserves the session picker when the already selected root is clicked", asy
   const spy = [...host.querySelectorAll<HTMLButtonElement>(".obs-surf-head-tools button")].find(b => b.textContent === "SPY")!;
   await act(async () => { spy.click(); });
   expect(host.querySelector(".obs-surf-replay-session")).not.toBeNull();
+});
+
+
+it("keeps an unavailable Greek mounted when neither field nor candle time points remain", async () => {
+  emitFrames = true; emitGreek = true; emitCandles = false;
+  await mount();
+  const gamma = [...host.querySelectorAll<HTMLButtonElement>(".obs-surf-controls button")].find(b => b.textContent === "Gamma")!;
+  await act(async () => { gamma.click(); });
+  emitGreek = false;
+  await advance();
+  expect(rail().getAttribute("aria-valuemax")).toBe("2");
+  expect(gamma.classList.contains("on")).toBe(true);
 });

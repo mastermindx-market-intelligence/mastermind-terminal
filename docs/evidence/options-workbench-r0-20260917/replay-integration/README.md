@@ -27,3 +27,27 @@ Next: full Vitest/typecheck, cold-server EN/ZH responsive browser journeys,
 original-source discrimination, independent review, exact-head CI and the existing
 production release/proof gates. Do not merge or claim deployed merely from this
 checkpoint. Do not remove the regressions to obtain green.
+
+
+## Current validation
+
+Full Vitest: 336 files pass; 5,546 tests pass, zero failures, four pre-existing todo.
+TypeScript exits zero. Twelve actual /options browser journeys pass at desktop,
+tablet and mobile in both languages, one worker, zero retries, on a cold owned
+fixture server. The extended journeys include growing indexes, paused cursors,
+layout changes, failed/recovered reads and archived-session isolation, plus the
+existing real-consumer price-alignment checks. Thirty-six synthetic captures are
+preserved with SHA-256 digests. This is not production input or release evidence.
+
+The extended browser run exposed a real empty-time-scale crash during field
+replacement. The library requires actual time points before setVisibleRange.
+An additional mounted consumer test reproduces that exact precondition failure;
+the source now checks the existing chart axis before framing it. No catch-and-hide,
+forced reload, skipped test or extra retry was added. The twelve journeys then pass.
+
+A full responsive run is executing on the Mac through the original Desktop
+Commander process owner: PID 32987, log r0-responsive-full.log in the owning
+worktree. Consume its actual exit/result before claiming the broader suite passed.
+No autonomous model worker or production deployment was started. Independent
+review remains unassigned; its bounded packet is recorded for existing capacity
+placement, not broadcast as an open-pickup commission.

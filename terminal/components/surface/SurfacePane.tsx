@@ -1178,7 +1178,11 @@ export function SurfacePane({
     if (!chart || !date) return;
     if (timeWindow === "surface") {
       const window = observedTimeWindow(date, frame.time_steps);
-      if (window) chart.timeScale().setVisibleRange(window);
+      const axis = chart.timeScale();
+      // setVisibleRange requires actual chart time points. The selected Greek
+      // can be missing while the frame metadata exists and candles are pending.
+      // Wait for real series data; do not turn honest emptiness into a route crash.
+      if (window && axis.getVisibleRange() != null) axis.setVisibleRange(window);
       return;
     }
     if (sessionCandles.length > 0 || candleSession === date) chart.timeScale().fitContent();
