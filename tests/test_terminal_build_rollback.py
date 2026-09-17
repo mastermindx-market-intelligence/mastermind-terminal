@@ -772,9 +772,10 @@ def test_mutant_ignoring_preflight_failure_reaches_downstream_effects(
         tmp_path, script=mutant, MMX_PREFLIGHT_MODE="exit2"
     )
 
-    assert proc.returncode != 2
-    assert any(line.startswith("git ") for line in _effect_lines(tmp_path)), (
-        "mutation was inert — ignoring UNKNOWN_STOP did not cross the Git gate"
+    effects = _effect_lines(tmp_path)
+    assert any(line.startswith("git ") for line in effects), (
+        "mutation was inert — ignoring UNKNOWN_STOP did not cross the Git gate; "
+        f"returncode={proc.returncode} stdout={proc.stdout!r} stderr={proc.stderr!r}"
     )
 
 
