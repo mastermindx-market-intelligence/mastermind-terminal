@@ -5781,16 +5781,16 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       }
       if (priceProjHidden()) { flushTables(); return; }   // sub-pane maximized → price-anchored fills stay cleared
       const inds = indicatorsRef.current;
-      const W = el!.clientWidth, H = el!.clientHeight;
+      const W = el!.clientWidth;
       const priceS = priceSeriesRef.current;
       if (!priceS) return;
       const priceOverlayPaneGeometry = pricePaneGeometry();
       const priceOverlayScope = appendPricePaneSvgScope(svgEl, {
-        id: `${pricePaneScopeOwner}-legacy-overlays`,
+        id: `${pricePaneScopeOwner}-price-overlays`,
         width: W,
         top: priceOverlayPaneGeometry.top,
         height: priceOverlayPaneGeometry.height,
-        scope: "legacy-overlays",
+        scope: "price-overlays",
       });
       const p2y = (p: number): number | null => { try { const v = priceS.priceToCoordinate(p); return (v == null || !isFinite(v as number)) ? null : v as number; } catch { return null; } };
       const t2x = (tm: string | number): number | null => { try { const v = chart.timeScale().timeToCoordinate(tm as any); return (v == null || !isFinite(v as number)) ? null : v as number; } catch { return null; } };
@@ -6034,35 +6034,11 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           const xi = (i: number): number | null => { try { const v = ts.logicalToCoordinate(i as any); return v == null || !isFinite(v as number) ? null : (v as number); } catch { return null; } };
           const xa = xi(0), xb = xi(1);
           const barW = xa != null && xb != null ? Math.max(0.5, xb - xa) : 6;
-          // IndicatorCanvas overlay suites use price-pane coordinates, but the SVG spans the
-          // entire multi-pane chart. Without a price-pane clip, off-scale TP/SL labels can land
-          // below pane 0 and visibly bleed into RSI/Stoch/etc. Resolve the live pane band (pane
-          // order is user-movable), offset pane-local price coordinates into root-SVG space, and
-          // render every price suite through one shared clip group.
-          let pricePaneTop = 0, pricePaneH = H;
-          try {
-            const paneEl = priceS.getPane().getHTMLElement();
-            const wrapRect = wrapElRef.current?.getBoundingClientRect();
-            if (paneEl && wrapRect) {
-              const paneRect = paneEl.getBoundingClientRect();
-              pricePaneTop = paneRect.top - wrapRect.top;
-              pricePaneH = paneRect.height;
-            }
-          } catch { /* retain the single-pane fallback */ }
-          const priceSuiteY = (p: number): number | null => {
-            const y = p2y(p);
-            return y == null ? null : y + pricePaneTop;
-          };
-          const priceClipId = `ic-price-clip-${syncIdRef.current ?? "x"}`;
-          const priceDefs = mk("defs", {});
-          const priceClip = mk("clipPath", { id: priceClipId });
-          priceClip.appendChild(mk("rect", { x: 0, y: pricePaneTop, width: W, height: pricePaneH }));
-          priceDefs.appendChild(priceClip);
-          const priceSuiteGroup = mk("g", { "clip-path": `url(#${priceClipId})` }) as SVGGElement;
-          svgEl.appendChild(priceDefs);
-          svgEl.appendChild(priceSuiteGroup);
+          // IndicatorCanvas overlay suites already emit price-pane-local Y coordinates. Reuse
+          // the same translated + clipped price-overlay scope as the legacy fills above so every
+          // price-anchored SVG primitive obeys one live pane geometry contract.
           const m: CoordMapper = {
-            xi, y: priceSuiteY, W, H: pricePaneTop + pricePaneH,
+            xi, y: p2y, W, H: priceOverlayPaneGeometry.height,
             i0: lr ? lr.from : 0, i1: lr ? lr.to : barsRef.current.length - 1, barW,
           };
           const lang = typeof document !== "undefined" && document.documentElement.getAttribute("data-lang") === "zh" ? "zh" as const : "en" as const;
@@ -6074,7 +6050,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
             const bundle = visualOverlayBundle(context, visualSettings(chartSettingsRef.current), suiteColorsRef.current,
               m, selected, calendar, replayIdxRef.current !== null, lang);
             const group = mk("g", { "data-visual-intelligence-overlay": "" }) as SVGGElement;
-            priceSuiteGroup.appendChild(group);
+            priceOverlayScope.group.appendChild(group);
             renderPrims(group, bundle, { ...m, W: chart.timeScale().width() });
           }
           for (const k of activeSuites) {
@@ -6084,7 +6060,9 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
                 bars: barsRef.current as any, tf: timeframeRef.current, symbol: symbolRef.current,
                 isIntraday: isIntradayRef.current, lang,
               }, userTierRef.current, suiteColorsRef.current);
-              renderPrims(priceSuiteGroup, bundle, m);
+              const suiteGroup = mk("g", { "data-price-suite-overlay": k }) as SVGGElement;
+              priceOverlayScope.group.appendChild(suiteGroup);
+              renderPrims(suiteGroup, bundle, m);
               if (bundle.tables.length) collectedTables.push(...bundle.tables);
             } catch (e) { console.warn(`[suite:${k}] render skipped:`, e); }
           }

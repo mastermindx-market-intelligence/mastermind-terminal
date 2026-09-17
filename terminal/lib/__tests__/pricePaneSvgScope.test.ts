@@ -34,15 +34,17 @@ describe("price-pane SVG scope", () => {
     expect(clip?.getAttribute("height")).toBe("240");
   });
 
-  it("routes both signal overlays and every legacy price overlay through the scope", () => {
+  it("routes signals and every price-pane overlay through the shared pane scope", () => {
     const signalStart = chartPanel.indexOf("const renderSignals = () =>");
     const signalEnd = chartPanel.indexOf("renderSignalsRef.current = renderSignals", signalStart);
     const signalBlock = chartPanel.slice(signalStart, signalEnd);
 
     const overlayStart = chartPanel.indexOf("const renderIndOverlays = () =>");
     const legacyStart = chartPanel.indexOf("// ── Ichimoku cloud fill", overlayStart);
-    const legacyEnd = chartPanel.indexOf("// ── Premium suite draw-lists", legacyStart);
-    const legacyBlock = chartPanel.slice(legacyStart, legacyEnd);
+    const premiumStart = chartPanel.indexOf("// ── Premium suite draw-lists", legacyStart);
+    const legacyBlock = chartPanel.slice(legacyStart, premiumStart);
+    const premiumEnd = chartPanel.indexOf("flushTables();", premiumStart);
+    const premiumBlock = chartPanel.slice(premiumStart, premiumEnd);
 
     expect(chartPanel).toContain('from "@/lib/pricePaneSvgScope"');
     expect(signalBlock).toContain("appendPricePaneSvgScope");
@@ -54,7 +56,18 @@ describe("price-pane SVG scope", () => {
     expect(chartPanel).not.toContain('querySelectorAll<SVGGElement>(":scope > g")');
 
     expect(chartPanel).toContain("const priceOverlayScope = appendPricePaneSvgScope");
+    expect(chartPanel).toContain('scope: "price-overlays"');
     expect(legacyBlock).toContain("priceOverlayScope.group.appendChild");
     expect(legacyBlock).not.toContain("svgEl.appendChild(");
+
+    expect(premiumBlock).toContain("priceOverlayScope.group.appendChild(group)");
+    expect(premiumBlock).toContain('const suiteGroup = mk("g", { "data-price-suite-overlay": k })');
+    expect(premiumBlock).toContain("priceOverlayScope.group.appendChild(suiteGroup)");
+    expect(premiumBlock).toContain("renderPrims(suiteGroup, bundle, m)");
+    expect(premiumBlock).toContain("y: p2y");
+    expect(premiumBlock).toContain("H: priceOverlayPaneGeometry.height");
+    expect(premiumBlock).not.toContain("priceClipId");
+    expect(premiumBlock).not.toContain("priceSuiteY");
+    expect(premiumBlock).not.toContain("svgEl.appendChild(");
   });
 });

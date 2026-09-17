@@ -140,7 +140,14 @@ async function applyZh(page: Page) {
 
 async function openTerminal(
   page: Page,
-  opts: { zh?: boolean; zhPreseed?: boolean; indicators?: string[] } = {},
+  opts: {
+    zh?: boolean;
+    zhPreseed?: boolean;
+    indicators?: string[];
+    indicatorParams?: Record<string, unknown>;
+    devTier?: string;
+    chartSettings?: Record<string, unknown>;
+  } = {},
 ) {
   if (opts.zhPreseed) {
     await page.addInitScript(() => { localStorage.setItem("mm.lang", "zh"); });
@@ -152,9 +159,16 @@ async function openTerminal(
     await route.fulfill({ contentType: "application/json", body: JSON.stringify(SLICE) });
   });
   // Golden Oracle markers are an OPT-IN study — seed the saved indicator set.
-  await page.addInitScript((indicators) => {
+  await page.addInitScript(([indicators, indicatorParams, devTier]) => {
     localStorage.setItem("mm.inds", JSON.stringify(indicators));
-  }, opts.indicators ?? ["_oracle"]);
+    if (indicatorParams) localStorage.setItem("mm.indParams", JSON.stringify(indicatorParams));
+    if (devTier) localStorage.setItem("mm.devTier", devTier);
+  }, [opts.indicators ?? ["_oracle"], opts.indicatorParams, opts.devTier] as const);
+  if (opts.chartSettings) {
+    await page.addInitScript((settings) => {
+      localStorage.setItem("mm.chartSettings", JSON.stringify(settings));
+    }, opts.chartSettings);
+  }
   await armTerminalVisualReady(page);
   await page.goto("/terminal?symbol=COST");
   await expect(page.locator(".workspace")).toBeVisible();
@@ -369,16 +383,41 @@ test("every marker class shows its own tooltip on hover", async ({ page }, testI
 
 });
 
-test("signal markers and legacy overlays stay scoped to a moved price pane", async ({ page }, testInfo) => {
+test("signals and every price overlay stay scoped to a moved price pane", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "Pane move controls are a desktop interaction.");
   test.setTimeout(90_000);
-  await openTerminal(page, { indicators: ["_oracle", "rsi", "ichimoku"] });
-  await expect(page.locator('[data-price-pane-local="legacy-overlays"] > *').first()).toBeAttached({ timeout: 20_000 });
+  await openTerminal(page, {
+    indicators: ["_oracle", "rsi", "ichimoku", "trend"],
+    indicatorParams: { trend: {} },
+    devTier: "pro",
+    chartSettings: { visualContext: true, visualLevels: true },
+  });
+  const priceOverlays = page.locator('[data-price-pane-local="price-overlays"]');
+  await expect.poll(
+    () => priceOverlays.locator(":scope > polygon").count(),
+    { message: "Ichimoku should paint inside the shared price-overlay scope", timeout: 20_000 },
+  ).toBeGreaterThan(0);
+  await expect.poll(
+    () => priceOverlays.locator('[data-visual-intelligence-overlay] > *').count(),
+    { message: "visual-intelligence overlays should paint inside the shared scope", timeout: 20_000 },
+  ).toBeGreaterThan(0);
+  await expect.poll(
+    () => priceOverlays.locator('[data-price-suite-overlay="trend"] > *').count(),
+    { message: "the active Trend Waves suite should paint inside the shared scope", timeout: 45_000 },
+  ).toBeGreaterThan(0);
 
   await moveRsiPaneAbovePrice(page);
   await expect.poll(
-    () => page.locator('[data-price-pane-local="legacy-overlays"] > *').count(),
-    { message: "Ichimoku should keep painting inside the moved price-pane scope", timeout: 20_000 },
+    () => priceOverlays.locator(":scope > polygon").count(),
+    { message: "Ichimoku should remain inside the moved price-pane scope", timeout: 20_000 },
+  ).toBeGreaterThan(0);
+  await expect.poll(
+    () => priceOverlays.locator('[data-visual-intelligence-overlay] > *').count(),
+    { message: "visual-intelligence overlays should remain inside the moved price-pane scope", timeout: 20_000 },
+  ).toBeGreaterThan(0);
+  await expect.poll(
+    () => priceOverlays.locator('[data-price-suite-overlay="trend"] > *').count(),
+    { message: "Trend Waves should remain inside the moved price-pane scope", timeout: 20_000 },
   ).toBeGreaterThan(0);
 
   const proof = await page.evaluate(() => {
@@ -396,29 +435,43 @@ test("signal markers and legacy overlays stay scoped to a moved price pane", asy
         children: local?.children.length ?? 0,
       };
     };
+    const visual = document.querySelector<SVGGElement>("[data-visual-intelligence-overlay]");
     return {
       signals: readScope("signals"),
-      legacy: readScope("legacy-overlays"),
+      price: readScope("price-overlays"),
       markerCount: document.querySelectorAll('[data-price-pane-local="signals"] > g > title').length,
       directRootMarkers: document.querySelectorAll('[data-sig-layer] > g > title').length,
+      legacyPolygons: document.querySelectorAll('[data-price-pane-local="price-overlays"] > polygon').length,
+      visualChildren: visual?.children.length ?? 0,
+      visualParentScoped: visual?.parentElement?.getAttribute("data-price-pane-local") === "price-overlays",
+      trendSuiteChildren: document.querySelectorAll(
+        '[data-price-pane-local="price-overlays"] [data-price-suite-overlay="trend"] > *',
+      ).length,
+      trendSuiteOutsideScope: [...document.querySelectorAll('[data-price-suite-overlay="trend"]')]
+        .filter((node) => node.parentElement?.getAttribute("data-price-pane-local") !== "price-overlays").length,
       priceTagPaneTop: Number(document.querySelector<HTMLElement>(".mm-ptag")?.dataset.paneTop),
     };
   });
 
   expect(proof.signals.top).toBeGreaterThan(20);
-  expect(proof.signals.top).toBeCloseTo(proof.legacy.top, 1);
+  expect(proof.signals.top).toBeCloseTo(proof.price.top, 1);
   expect(proof.signals.top).toBeCloseTo(proof.priceTagPaneTop, 1);
   expect(proof.signals.height).toBeGreaterThan(100);
-  expect(proof.signals.height).toBeCloseTo(proof.legacy.height, 1);
+  expect(proof.signals.height).toBeCloseTo(proof.price.height, 1);
   expect(proof.signals.transform).toBe(`translate(0 ${proof.signals.top})`);
-  expect(proof.legacy.transform).toBe(`translate(0 ${proof.legacy.top})`);
+  expect(proof.price.transform).toBe(`translate(0 ${proof.price.top})`);
   expect(proof.signals.clipY).toBeCloseTo(proof.signals.top, 1);
-  expect(proof.legacy.clipY).toBeCloseTo(proof.legacy.top, 1);
+  expect(proof.price.clipY).toBeCloseTo(proof.price.top, 1);
   expect(proof.signals.clipHeight).toBeCloseTo(proof.signals.height, 1);
-  expect(proof.legacy.clipHeight).toBeCloseTo(proof.legacy.height, 1);
+  expect(proof.price.clipHeight).toBeCloseTo(proof.price.height, 1);
   expect(proof.markerCount).toBe(5);
   expect(proof.directRootMarkers).toBe(0);
-  expect(proof.legacy.children).toBeGreaterThan(0);
+  expect(proof.price.children).toBeGreaterThan(0);
+  expect(proof.legacyPolygons).toBeGreaterThan(0);
+  expect(proof.visualChildren).toBeGreaterThan(0);
+  expect(proof.visualParentScoped).toBe(true);
+  expect(proof.trendSuiteChildren).toBeGreaterThan(0);
+  expect(proof.trendSuiteOutsideScope).toBe(0);
 
   const movedMarkers = await settledMarkers(page);
   const retro = pick(movedMarkers, RETRO_TS);

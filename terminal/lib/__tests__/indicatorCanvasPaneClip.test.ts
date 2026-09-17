@@ -8,16 +8,20 @@ const chartPanel = readFileSync(
 );
 
 describe("IndicatorCanvas price-pane clipping", () => {
-  it("clips overlay-suite primitives to the live price pane", () => {
-    expect(chartPanel).toContain("priceS.getPane().getHTMLElement()");
-    expect(chartPanel).toContain("pricePaneTop = paneRect.top - wrapRect.top");
-    expect(chartPanel).toContain("pricePaneH = paneRect.height");
-    expect(chartPanel).toContain("const priceSuiteY");
-    expect(chartPanel).toContain("const priceClipId = `ic-price-clip-");
-    expect(chartPanel).toContain(
-      'priceClip.appendChild(mk("rect", { x: 0, y: pricePaneTop, width: W, height: pricePaneH }))',
-    );
-    expect(chartPanel).toContain("renderPrims(priceSuiteGroup, bundle, m)");
-    expect(chartPanel).not.toContain("renderPrims(svgEl, bundle, m)");
+  it("renders every overlay suite through the shared live price-pane scope", () => {
+    const premiumStart = chartPanel.indexOf("// ── Premium suite draw-lists");
+    const premiumEnd = chartPanel.indexOf("flushTables();", premiumStart);
+    const premiumBlock = chartPanel.slice(premiumStart, premiumEnd);
+
+    expect(chartPanel).toContain("const priceOverlayPaneGeometry = pricePaneGeometry()");
+    expect(chartPanel).toContain("const priceOverlayScope = appendPricePaneSvgScope");
+    expect(chartPanel).toContain('scope: "price-overlays"');
+    expect(premiumBlock).toContain("xi, y: p2y, W, H: priceOverlayPaneGeometry.height");
+    expect(premiumBlock).toContain('const suiteGroup = mk("g", { "data-price-suite-overlay": k })');
+    expect(premiumBlock).toContain("priceOverlayScope.group.appendChild(suiteGroup)");
+    expect(premiumBlock).toContain("renderPrims(suiteGroup, bundle, m)");
+    expect(premiumBlock).not.toContain("priceSuiteY");
+    expect(premiumBlock).not.toContain("priceClipId");
+    expect(premiumBlock).not.toContain("renderPrims(svgEl, bundle, m)");
   });
 });
