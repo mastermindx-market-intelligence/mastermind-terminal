@@ -59,7 +59,7 @@ def markdown(report: dict) -> str:
         f"Window: {report['window']['start']} through {report['window']['end']} (ET session dates).",
         f"Cutoff mode: `{report['cutoff_mode']}`; true UTC cutoff: `{report['cutoff_utc']}`.", '',
         'The inventory below covers the full requested window, not merely the cutoff. '
-        'Only the cutoff column is decision-time filtered. Full-file diagnostics and hashes are not model features.', '',
+        'The cutoff column uses the requested instant; session chains use each date\'s pre-open cutoff. Full-file diagnostics and hashes are not model features.', '',
         '| Symbol | Grain | Status | Window rows | PRE | RTH | AH | Cutoff rows |',
         '|---|---|---|---:|---:|---:|---:|---:|',
     ]
@@ -70,6 +70,19 @@ def markdown(report: dict) -> str:
         lines.append(f"| {cell['symbol']} | {cell['timeframe']} | {cell['status']} | "
                      f"{cell['window_rows']} | {counts[0]} | {counts[1]} | {counts[2]} | "
                      f"{'not requested' if cutoff is None else cutoff} |")
+    lines += ['', '## Pre-open session-chain inventory', '',
+              'Each decision date uses the previous scheduled regular session, its after-hours '
+              'window, and current premarket ending at the regular open. This is archived input '
+              'qualification, not a signal or a count of profitable opportunities. Full nominal '
+              'grid does not prove liquidity, feed completeness, or historical availability.', '',
+              '| Symbol | Grain | Decision dates | Full nominal chains | Incomplete/unknown | Unsupported | Source unavailable |',
+              '|---|---|---:|---:|---:|---:|---:|']
+    for cell in report['files']:
+        chains = cell['session_chains']
+        states = Counter(chain['state'] for chain in chains)
+        lines.append(f"| {cell['symbol']} | {cell['timeframe']} | {len(chains)} | "
+                     f"{states['full_nominal_grid']} | {states['incomplete_or_unknown']} | "
+                     f"{states['unsupported_chain_grain']} | {states['source_unavailable']} |")
     lines += ['', '## Evidence boundaries', '',
               'Nominal grid occupancy is not feed completeness. Missing aggregate cause is unknown '
               'without trade/quote evidence. Early-close post-market observations and boundary-straddling '

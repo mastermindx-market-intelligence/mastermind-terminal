@@ -41,3 +41,13 @@ Blocked predecessor operation: the live INTC `/api/intraday` inspection remains 
 
 ## Release boundary
 Source tests/local real-input proof, required hosted checks, independent review, merge and production proof remain distinct. D0 does not complete #598. Next dependency is qualified pilot coverage and registered experiments under the existing scientific owner, not unvalidated live alerts.
+
+## Approved-scope continuation: pre-open session-chain qualification
+
+The same D0 consumer now reports one archived chain per scheduled decision date. At that date's regular-session open, its inputs are the previous scheduled RTH, that previous session's qualified AH, and the current PRE. Previous means the calendar's previous trading session, not yesterday or the most recent date for which data happens to exist. The stored observations and fingerprints still come from one file read.
+
+The pure `session_chain_inventory` uses the existing cutoff view for each leg; current-session RTH and later observations cannot enter a pre-open leg. Its fixed per-date cutoffs are separate from the CLI's optional one-time `--cutoff`. Top-level inventory and whole-file validity remain retrospective diagnostics, not point-in-time model inputs or a historical recruitment rule. Historical availability remains unproven even when nominal occupancy is full.
+
+The report distinguishes full/partial nominal grid, no available observations, out-of-requested-window context, unknown predecessor, unqualified early-close AH, unsupported hourly chains and unavailable sources. 1m/5m/15m grid counts are diagnostic; no forward-fill, bar splitting, interpretation of missing-print cause or new provider call is added. Do not turn full nominal-grid coverage into a universal research-admission rule: that would select heavily on extended-hours observation density.
+
+The continuation adds no setup thresholds, strategy outcomes, scientific trial, scoring, trade alert, live evaluator or capital authority. R1 registration and its blocked source-read boundary are unchanged. Independent review must inspect the new #601 head; old-head CI and self-review do not approve the continuation.

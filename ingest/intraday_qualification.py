@@ -202,6 +202,89 @@ def _coverage(grids: Mapping[str, dict]) -> dict:
     }
 
 
+
+def session_chain_inventory(observations: Sequence[Observation], calendar: CalendarProjection,
+                            start_date: str, end_date: str, timeframe: str,
+                            mode: str, input_status: str = 'available') -> list[dict]:
+    """Pre-open three-leg occupancy using only existing calendar and cutoff owners.
+
+    These rows qualify archived input windows, not forecasts or trading episodes.
+    Previous means scheduled, never last observed. No missing bar is filled.
+    """
+    from bisect import bisect_left, bisect_right
+
+    first, last = _day(start_date), _day(end_date)
+    if first > last or (last - first).days > 4000 or timeframe not in GRAINS:
+        raise ValueError('invalid_chain_window_or_grain')
+    if input_status not in ('available', 'missing', 'invalid', 'empty', 'malformed', 'unreadable'):
+        raise ValueError('invalid_chain_source_status')
+    calendar.window(start_date); calendar.window(end_date)
+    cutoff_view((), 0, mode)
+    days = sorted(calendar.sessions)
+    by_day: dict[str, list[Observation]] = {}
+    if input_status == 'available':
+        for bar in observations:
+            if not _integer(bar.event_start_utc):
+                raise ValueError('invalid_observation')
+            day = datetime.fromtimestamp(bar.event_start_utc, UTC).astimezone(ET).date().isoformat()
+            if start_date <= day <= end_date:
+                by_day.setdefault(day, []).append(bar)
+    step = GRAINS[timeframe] * 60
+
+    def instant(day: str, minute: int) -> int:
+        midnight = int(datetime.fromisoformat(day).replace(tzinfo=UTC).timestamp())
+        return decode_display_epoch(midnight + minute * 60)
+
+    result = []
+    for day in days[bisect_left(days, start_date):bisect_right(days, end_date)]:
+        opening, _ = calendar.window(day)
+        position = bisect_left(days, day)
+        previous = days[position - 1] if position else None
+        cutoff = instant(day, opening)
+        row = {'decision_date': day, 'previous_session': previous, 'cutoff_utc': cutoff,
+               'mode': mode, 'input_status': input_status, 'state': 'incomplete_or_unknown',
+               'meaning': 'archival_preopen_nominal_grid_not_signal_or_feed_completeness',
+               'historical_availability_proven': False, 'trading_authority': False, 'legs': {}}
+        if input_status != 'available':
+            row['state'] = 'source_unavailable'; result.append(row); continue
+        if timeframe == '1h':
+            row['state'] = 'unsupported_chain_grain'; result.append(row); continue
+        previous_window = calendar.window(previous) if previous else None
+        bounds = (
+            ('prior_regular', previous, 'RTH', previous_window),
+            ('prior_after_hours', previous, 'AH',
+             (960, 1200) if previous_window and previous_window[1] == 960 else None),
+            ('premarket', day, 'PRE', (240, opening)),
+        )
+        for name, leg_day, phase, window in bounds:
+            leg = {'date': leg_day, 'phase': phase, 'state': 'no_available_observations',
+                   'nominal_slots': None, 'observed_slots': 0, 'absent_slots': None}
+            row['legs'][name] = leg
+            if leg_day is None:
+                leg['state'] = 'previous_session_unknown'; continue
+            if leg_day < start_date:
+                leg['state'] = 'outside_requested_window'; continue
+            if window is None or window[0] >= window[1]:
+                leg['state'] = 'schedule_unqualified'; continue
+            start, end = instant(leg_day, window[0]), instant(leg_day, window[1])
+            expected = set(range(start, end, step))
+            # A phase label alone is insufficient: the exact interval must fit
+            # the canonical leg. Closed-bar and knowledge-time rules stay shared.
+            eligible = cutoff_view(tuple(b for b in by_day.get(leg_day, ())
+                                         if b.session == phase), cutoff, mode)
+            observed = {b.event_start_utc for b in eligible
+                        if b.event_start_utc in expected and b.event_end_utc <= end
+                        and b.event_end_utc - b.event_start_utc == step}
+            leg.update(nominal_slots=len(expected), observed_slots=len(observed),
+                       absent_slots=len(expected - observed))
+            if observed:
+                leg['state'] = 'full_nominal_grid' if observed == expected else 'partial_nominal_grid'
+        if all(leg['state'] == 'full_nominal_grid' for leg in row['legs'].values()):
+            row['state'] = 'full_nominal_grid'
+        result.append(row)
+    return result
+
+
 def qualify_store(path: Path, symbol: str, timeframe: str, calendar: CalendarProjection,
                   start_date: str, end_date: str, cutoff_utc: int | None = None,
                   mode: str = 'corrected_history') -> dict:
@@ -218,6 +301,7 @@ def qualify_store(path: Path, symbol: str, timeframe: str, calendar: CalendarPro
     for offset in range((last - first).days + 1):
         day = (first + timedelta(days=offset)).isoformat()
         grids[day] = _day_grid(day, grain, calendar.window(day))
+    observations: list[Observation] = []
     out = {
         'symbol': symbol, 'timeframe': timeframe, 'status': 'missing', 'errors': {},
         'sha256': None, 'rows_total': 0, 'valid_rows': 0, 'window_rows': 0,
@@ -231,22 +315,27 @@ def qualify_store(path: Path, symbol: str, timeframe: str, calendar: CalendarPro
         'cutoff': {'mode': mode, 'utc': cutoff_utc, 'count': None if cutoff_utc is None else 0,
                    'last_event_end_utc': None, 'pit_proven': False},
     }
+    def finish() -> dict:
+        out['session_chains'] = session_chain_inventory(
+            observations, calendar, start_date, end_date, timeframe, mode, out['status'])
+        return out
+
     try:
         with path.open('rb') as stream:
             raw = stream.read(MAX_BYTES + 1)
     except FileNotFoundError:
-        return out
+        return finish()
     except OSError:
-        out['status'] = 'unreadable'; return out
+        out['status'] = 'unreadable'; return finish()
     if len(raw) > MAX_BYTES:
-        out['status'] = 'invalid'; out['errors'] = {'file_too_large': 1}; return out
+        out['status'] = 'invalid'; out['errors'] = {'file_too_large': 1}; return finish()
     out['sha256'] = hashlib.sha256(raw).hexdigest()
     try:
         d = json.loads(raw)
     except (ValueError, UnicodeError):
-        out['status'] = 'malformed'; return out
+        out['status'] = 'malformed'; return finish()
     if not isinstance(d, dict) or not isinstance(d.get('bars'), list):
-        out['status'] = 'malformed'; return out
+        out['status'] = 'malformed'; return finish()
     errors = Counter()
     for key, wanted, reason in (('t', symbol, 'symbol_identity'),
                                 ('tf', timeframe, 'timeframe_identity')):
@@ -259,7 +348,7 @@ def qualify_store(path: Path, symbol: str, timeframe: str, calendar: CalendarPro
     if isinstance(d.get('adjusted'), bool):
         out['price_adjustment'] = 'split_adjusted_declared' if d['adjusted'] else 'unadjusted_declared'
     bars = d['bars']; out['rows_total'] = len(bars)
-    seen = set(); previous = None; observations = []; occupied = {}
+    seen = set(); previous = None; occupied = {}
     for row in bars:
         if (not isinstance(row, list) or len(row) != 6 or not _integer(row[0])
                 or row[0] % (grain * 60) != 0 or not _valid_ohlcv(row[1:])):
@@ -302,4 +391,4 @@ def qualify_store(path: Path, symbol: str, timeframe: str, calendar: CalendarPro
         selected = cutoff_view(observations, cutoff_utc, mode)
         out['cutoff']['count'] = len(selected)
         out['cutoff']['last_event_end_utc'] = selected[-1].event_end_utc if selected else None
-    return out
+    return finish()

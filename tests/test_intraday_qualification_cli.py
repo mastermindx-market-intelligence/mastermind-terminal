@@ -85,3 +85,27 @@ def test_local_absence_is_not_reported_as_provider_coverage_failure(tmp_path):
     assert result.returncode==0,result.stderr
     d=json.loads(result.stdout)
     assert d['input_scope']=='explicit_local_files_not_vendor_inventory'
+
+
+def test_cli_reports_a_real_three_leg_chain_without_price_export(tmp_path):
+    from datetime import datetime, timezone
+    store=tmp_path/'store'; store.mkdir()
+    rows=[]
+    for day,start,end in [('2026-09-11',570,1200),('2026-09-14',240,570)]:
+        midnight=int(datetime.fromisoformat(day).replace(tzinfo=timezone.utc).timestamp())
+        rows.extend([[midnight+m*60,100,101,99,100,10] for m in range(start,end,5)])
+    (store/'AMD.5m.json').write_text(json.dumps({'t':'AMD','tf':'5m','src':'polygon','bars':rows}))
+    md=tmp_path/'chain.md'
+    result=run(tmp_path,'--start','2026-09-11','--end','2026-09-14','--markdown-out',str(md))
+    assert result.returncode==0,result.stderr
+    doc=json.loads(result.stdout)
+    cell=next(x for x in doc['files'] if x['symbol']=='AMD' and x['timeframe']=='5m')
+    assert len(cell['session_chains'])==2
+    assert cell['session_chains'][-1]['state']=='full_nominal_grid'
+    assert cell['session_chains'][0]['state']=='incomplete_or_unknown'
+    missing=next(x for x in doc['files'] if x['symbol']=='JPM' and x['timeframe']=='5m')
+    assert len(missing['session_chains'])==2
+    assert missing['session_chains'][-1]['state']=='source_unavailable'
+    assert 'Pre-open session-chain inventory' in md.read_text()
+    assert '| AMD | 5m | 2 | 1 |' in md.read_text()
+    assert 'ohlcv' not in result.stdout and '"bars"' not in result.stdout
