@@ -156,3 +156,10 @@ it("keeps every tab control connected to an existing panel across navigation", a
     expect(panel.getAttribute("aria-labelledby")).toBe(tab(label).id)
   }
 })
+
+it("preserves source-authored research prose even when the interface is Chinese", async () => {
+  await render({ zh: true })
+  expect(text()).toContain("个股情报")
+  expect(text()).toContain(intel.cards.ai_judgment.verdict)
+  expect(text()).not.toContain("未分类")
+})

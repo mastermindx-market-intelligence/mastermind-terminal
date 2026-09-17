@@ -791,7 +791,8 @@ export default function OracleDash({ sym, row, slice, intel, bars, zh = false, o
               <h3>{DeskGlyph}{pick(zh, "Research Desk", "研究台")}</h3>
               <p className={styles.date}>{researchDate}</p>
               <p className={styles.verdict} style={{ color: hasResearch ? dv.color : "var(--muted)" }}>{hasResearch ? dv.label : pick(zh, "Research unavailable", "研究暂不可用")}</p>
-              {aj?.verdict && <p className={styles.headline}>{aj.verdict}</p>}
+              {aj?.verdict && <p className={styles.headline}>{aj.verdict}</p> // plain-language-ok: ai_judgment.verdict is source-authored research prose, not a state enum; preserve the full original assessment.
+              }
               {convBand && <p className={styles.meta}>{convBand}</p>}
               <button type="button" className={styles.link} onClick={() => selectTab(1, true)}>{pick(zh, "Explore research", "查看研究")} →</button>
             </section>

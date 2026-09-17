@@ -152,5 +152,12 @@
     "terminal/lib/__tests__/stockIntelligence.test.tsx": "78a0e9c55587e65cfc49326fd684114ad908d3df",
     "terminal/e2e/stock-intelligence.spec.ts": "54209566c202f4f6262f247cc93a74d8512607de"
   },
-  "baseline": "75c22083249e7a1529be3d6baf819b9ad5ea509f"
+  "baseline": "75c22083249e7a1529be3d6baf819b9ad5ea509f",
+  "non_visual_ci_correction": {
+    "reason": "Documented, single-line source-prose waiver of a false-positive enum audit; no guard implementation or runtime change.",
+    "proof_source_commit": "37237e0b9ddcbd563ac5b3c20a98b8e41abd8cd8",
+    "updated_oracle_blob": "46e8a6f69b2c517399929850bca9275958d382f6",
+    "equal_emitted_javascript_sha256": "497ff598cd1a52509abed9ba56d7c531dc0f7d2f1704e3bacd925289ba94da89",
+    "verification": "TypeScript ES2020/react-jsx, comments removed, source maps disabled: emitted JavaScript byte-equal before/after. Final 18 workspace + 107 verdict tests and added-line copy guard PASS."
+  }
 }
