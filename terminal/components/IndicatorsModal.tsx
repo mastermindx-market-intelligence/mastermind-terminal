@@ -9,6 +9,7 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
 } from "react";
 import Link from "next/link";
+import ChartWorkflowCard, { ChartWorkflowEntry } from "./ChartWorkflowCard";
 import { ACS_UPGRADE_URL } from "@/components/settings/types";
 import { useLang, useT } from "@/lib/i18n";
 import {
@@ -27,6 +28,7 @@ import {
 } from "@/lib/suites/catalog";
 import {
   matchSuitePreset,
+  CHART_WORKFLOW_PRESETS,
   suitePresetsFor,
   type SuitePresetId,
 } from "@/lib/suites/presets";
@@ -142,6 +144,10 @@ export interface IndicatorsModalProps {
   onToggle: (key: string) => void;
   /** Applies one progressive suite profile without replacing customized field values. */
   onApplyPreset?: (key: string, presetId: SuitePresetId) => void;
+  onApplyChartWorkflow?: (id: string) => void;
+  onUndoChartWorkflow?: () => void;
+  /** Derived from current studies/settings by the existing workspace owner. */
+  activeChartWorkflow?: string;
   suiteParams?: Readonly<Record<string, Readonly<Record<string, unknown>> | undefined>>;
   /** Qualified module ids (`suite:<suite>/<module>`) — never short module keys. */
   onToggleModule?: (id: string) => void;
@@ -166,6 +172,9 @@ export default function IndicatorsModal({
   onClose,
   onToggle,
   onApplyPreset,
+  onApplyChartWorkflow,
+  onUndoChartWorkflow,
+  activeChartWorkflow,
   suiteParams,
   onToggleModule,
   onOpenModuleSettings,
@@ -714,9 +723,12 @@ export default function IndicatorsModal({
           <small>{copy("Guided workflows that scale from a clean chart to a complete research desk.", "从清爽图表逐步扩展到完整研究工作台的引导式工作流。")}</small>
         </span>
       </div>
+      {CHART_WORKFLOW_PRESETS.map(recipe => <ChartWorkflowCard key={recipe.id} recipe={recipe} lang={lang} userTier={userTier}
+        applied={activeChartWorkflow === recipe.id} onApply={onApplyChartWorkflow ? () => onApplyChartWorkflow(recipe.id) : undefined}
+        onUndo={onUndoChartWorkflow} onView={onClose} onGuide={onOpenGuide} />)}
       <div className="ipreset-note">
         <strong>{copy("Start focused. Add evidence deliberately.", "从聚焦开始，有目的地增加证据")}</strong>
-        <span>{copy("Profiles only change module switches. Your tuned inputs, colors, and saved work stay intact.", "预设只改变模块开关；已调整的参数、颜色与保存内容都会保留。")}</span>
+        <span>{copy("The suite profiles below only change module switches. Your tuned inputs, colors, and saved work stay intact.", "下方的套件预设只改变模块开关；已调整的参数、颜色与保存内容都会保留。")}</span>
       </div>
       <div className="ipreset-stack">
         {SUITE_ORDER.map((key) => {
@@ -840,6 +852,7 @@ export default function IndicatorsModal({
             </span>
             <span className="im-result-count">{classicEntries.length + MODULE_CATALOG.length}</span>
           </div>
+          <ChartWorkflowEntry lang={lang} onOpen={() => setCat(SYSTEM_PRESETS)} />
           <section className="im-section">
             <div className="im-search-group">
               <strong>{copy("Built-in indicators", "内置指标")}</strong>

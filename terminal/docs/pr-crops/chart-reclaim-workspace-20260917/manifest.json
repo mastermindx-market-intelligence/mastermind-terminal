@@ -1,0 +1,50 @@
+[
+  {
+    "path": "terminal/docs/pr-crops/chart-reclaim-workspace-20260917/desktop-reclaim-chart-en.png",
+    "sha256": "059c37fcdf3ca2db3740d757bfa447934438e57fe5fcc46a6a887269a252d755"
+  },
+  {
+    "path": "terminal/docs/pr-crops/chart-reclaim-workspace-20260917/desktop-reclaim-chart-zh.png",
+    "sha256": "771cecbf156949150d720cfaeee85a13e807f6173ece5336d099c8414579878e"
+  },
+  {
+    "path": "terminal/docs/pr-crops/chart-reclaim-workspace-20260917/desktop-reclaim-workflow-en.png",
+    "sha256": "4059009adad2d38e10d33c328a20c6569bb8e89b8db08869ea9ceb5a6495206a"
+  },
+  {
+    "path": "terminal/docs/pr-crops/chart-reclaim-workspace-20260917/desktop-reclaim-workflow-zh.png",
+    "sha256": "acbc9218097b35cecdde8fd645db1d497c6f23037f50dfd8bdb5a489a7cab21b"
+  },
+  {
+    "path": "terminal/docs/pr-crops/chart-reclaim-workspace-20260917/mobile-reclaim-chart-en.png",
+    "sha256": "49e2687ee9ce1cf727779cc9af9dd71143b63eb319d6ff178930613661db42c1"
+  },
+  {
+    "path": "terminal/docs/pr-crops/chart-reclaim-workspace-20260917/mobile-reclaim-chart-zh.png",
+    "sha256": "ad6a81c26a512d7a13f437fb99c38edc36732f79efeac8a7976ca679708ac592"
+  },
+  {
+    "path": "terminal/docs/pr-crops/chart-reclaim-workspace-20260917/mobile-reclaim-workflow-en.png",
+    "sha256": "6f9b6004ceb92707c1952e583e9b1eb74fe361374e34c523b976b7d2a1074d57"
+  },
+  {
+    "path": "terminal/docs/pr-crops/chart-reclaim-workspace-20260917/mobile-reclaim-workflow-zh.png",
+    "sha256": "645aefbf0ebe60149180d639a966df2d13dbe2fd1d23a13a7cccd6feef4ccae3"
+  },
+  {
+    "path": "terminal/docs/pr-crops/chart-reclaim-workspace-20260917/tablet-reclaim-chart-en.png",
+    "sha256": "19f97364f569afc0efb2ea285b32d9e312becb0ace0272379c048a83fc6ab342"
+  },
+  {
+    "path": "terminal/docs/pr-crops/chart-reclaim-workspace-20260917/tablet-reclaim-chart-zh.png",
+    "sha256": "4037d781f7ce4209d0b76b32a97043bcdfecca63a2321a8bf923e1ff6d3faee7"
+  },
+  {
+    "path": "terminal/docs/pr-crops/chart-reclaim-workspace-20260917/tablet-reclaim-workflow-en.png",
+    "sha256": "592e466b6abfc00a347b1634001e3df2ddb2de62de4214ca57333c13c5d68bd2"
+  },
+  {
+    "path": "terminal/docs/pr-crops/chart-reclaim-workspace-20260917/tablet-reclaim-workflow-zh.png",
+    "sha256": "9db47bd492f1e221bea8279dac81b0665cb0829f7244c7234375e5081ce37171"
+  }
+]
