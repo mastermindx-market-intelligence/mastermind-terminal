@@ -1180,6 +1180,13 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
   const [hidden, setHidden] = useState<Set<string>>(new Set());                       // indicators the eye has hidden
   const [indParams, setIndParams] = useState<Record<string, any>>(allDefaults());      // per-indicator params (Settings dialog)
   const [chartWorkflowUndo, setChartWorkflowUndo] = useState<{ before: ChartWorkflowApplied; after: ChartWorkflowApplied } | null>(null);
+  useEffect(() => {
+    // One-step undo expires on the first committed custom edit. Returning later
+    // to an equivalent arrangement must not resurrect the old saved workspace.
+    if (chartWorkflowUndo && !sameChartWorkflowState({ active: inds, hidden, params: indParams }, chartWorkflowUndo.after)) {
+      setChartWorkflowUndo(current => current === chartWorkflowUndo ? null : current);
+    }
+  }, [inds, hidden, indParams, chartWorkflowUndo]);
   const [settingsKey, setSettingsKey] = useState<string | null>(null);
   const [guide, setGuide] = useState<
     { suite: string; mod: string; label: string } | null

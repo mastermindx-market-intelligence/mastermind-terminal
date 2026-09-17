@@ -3,10 +3,18 @@ import type { ChartWorkflowPreset } from "@/lib/suites/presets";
 import type { SuiteTier } from "@/lib/indicator-canvas/types";
 import styles from "./ChartWorkflowCard.module.css";
 
+// Scoped presentation copy, as [English, Chinese] pairs. The shared dictionary is
+// evidence-locked by unrelated account/research screens; this card does not alter it.
+const ENTRY_COPY = {
+  title: ["Start with a workflow", "从工作流开始"],
+  description: ["Bring structure, momentum and price confirmation into one chart", "把结构、动能与价格确认放进同一张图"],
+} satisfies Record<string, [string, string]>;
+
 export function ChartWorkflowEntry({ lang, onOpen }: { lang: "en" | "zh"; onOpen: () => void }) {
+  const pick = (key: keyof typeof ENTRY_COPY) => ENTRY_COPY[key][lang === "zh" ? 1 : 0];
   return <button type="button" className={styles.entry} data-testid="open-chart-workflows" onClick={onOpen}>
-    <span><strong>{lang === "zh" ? "从工作流开始" : "Start with a workflow"}</strong>
-      <small>{lang === "zh" ? "把结构、动能与价格确认放进同一张图" : "Bring structure, momentum and price confirmation into one chart"}</small></span>
+    <span><strong>{pick("title")}</strong>
+      <small>{pick("description")}</small></span>
     <span aria-hidden="true">↗</span>
   </button>;
 }

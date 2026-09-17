@@ -21,3 +21,6 @@ This unlocks coherent composition, not the full synthesized setup state. Linked 
 
 ## Material checkpoint
 Recipe RED-to-GREEN completed; full unit 5,517 pass + 4 existing TODOs / 333 files. Six real chart/undo browser cases passed (three viewports × EN/ZH); three additional shared gate cases passed; real Guide Center return passed. Twelve captures preserved. Source implementation and screenshots remain a candidate until native checks/review and deployed browser proof. See docs/research/REVERSAL_RECLAIM_WORKSPACE_PROOF_2026-09-17.md.
+
+
+Independent review P2 was consumed and reproduced on the real UI; undo now expires permanently at the first committed custom edit. Native plain-language failure was reproduced and repaired with scoped bilingual pair lookup, leaving central i18n/evidence-locked files byte-identical. Final-source full unit 5,517 pass / 4 TODOs in 333 files; typecheck and added-line copy guard pass. Final browser matrix 10 pass / 8 disclosed shared-gate duplicates skipped, twelve refreshed real captures. Review successor and native CI remain next; source stays on #606.

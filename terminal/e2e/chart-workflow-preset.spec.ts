@@ -71,6 +71,12 @@ test("a later manual study change invalidates one-step undo without overwriting 
   await expect(library.getByTestId("undo-chart-workflow")).toHaveCount(0);
   await expect(library.getByTestId("apply-chart-workflow")).toBeEnabled();
   await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("mm.inds") || "[]"))).toContain("vol");
+  // Reverting the manual edit must not revive an older one-step undo promise.
+  await library.getByRole("button", { name: "All indicators", exact: false }).click();
+  await library.getByRole("switch", { name: "Volume", exact: true }).click();
+  await library.getByTestId("open-chart-workflows").click();
+  await expect(library.getByTestId("apply-chart-workflow")).toBeDisabled();
+  await expect(library.getByTestId("undo-chart-workflow")).toHaveCount(0);
 });
 
 
