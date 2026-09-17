@@ -57,6 +57,14 @@ const COPY = {
 } as const;
 export type VisualCopyKey = keyof typeof COPY;
 export function visualText(key: VisualCopyKey, lang: VisualLang): string { return COPY[key](lang); }
+
+/** Map the Terminal quote transport basis to the context-panel copy without inventing freshness. */
+export function visualQuoteCopyKey(basis: string | null | undefined): VisualCopyKey {
+  if (basis === "REALTIME" || basis === "LIVE") return "liveQuote";
+  if (basis === "DELAYED_15M") return "delayedQuote"; // plain-language-ok: transport basis is compared here, never rendered; the returned key selects localized copy.
+  if (basis === "EOD") return "eodQuote";
+  return "unknown";
+}
 const STATES: Record<CandleState, (lang: VisualLang) => string> = {
   up: (lang: VisualLang) => pick(lang, "Upward", "向上"), down: (lang: VisualLang) => pick(lang, "Downward", "向下"), weakening: (lang: VisualLang) => pick(lang, "Momentum weakening", "动能走弱"),
   neutral: (lang: VisualLang) => pick(lang, "Mixed / transitional", "混合或过渡"), warming: (lang: VisualLang) => pick(lang, "Not enough history", "历史不足"), missing: (lang: VisualLang) => pick(lang, "Price unavailable", "价格不可用"),
