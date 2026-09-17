@@ -1,5 +1,5 @@
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
-import { settledChartDrag, settledPanSample } from "./helpers/settled";
+import { settled, settledChartDrag, settledPanSample } from "./helpers/settled";
 // The tooltip wording is owned by the copy module and imported, never transcribed — the same
 // reason washout-retro.spec.ts imports `retroLegendCopy`. Sentence-level copy contracts live in
 // lib/__tests__/markerTooltipCopy.test.ts; this suite pins that they RENDER, and render wired.
@@ -138,7 +138,10 @@ async function applyZh(page: Page) {
   await expect(settings).toBeHidden();
 }
 
-async function openTerminal(page: Page, opts: { zh?: boolean; zhPreseed?: boolean } = {}) {
+async function openTerminal(
+  page: Page,
+  opts: { zh?: boolean; zhPreseed?: boolean; indicators?: string[] } = {},
+) {
   if (opts.zhPreseed) {
     await page.addInitScript(() => { localStorage.setItem("mm.lang", "zh"); });
   }
@@ -149,7 +152,9 @@ async function openTerminal(page: Page, opts: { zh?: boolean; zhPreseed?: boolea
     await route.fulfill({ contentType: "application/json", body: JSON.stringify(SLICE) });
   });
   // Golden Oracle markers are an OPT-IN study — seed the saved indicator set.
-  await page.addInitScript(() => { localStorage.setItem("mm.inds", JSON.stringify(["_oracle"])); });
+  await page.addInitScript((indicators) => {
+    localStorage.setItem("mm.inds", JSON.stringify(indicators));
+  }, opts.indicators ?? ["_oracle"]);
   await armTerminalVisualReady(page);
   await page.goto("/terminal?symbol=COST");
   await expect(page.locator(".workspace")).toBeVisible();
@@ -167,7 +172,7 @@ type Marker = { t: string; title: string; cx: number; cy: number };
 async function markers(page: Page): Promise<Marker[]> {
   return page.locator("[data-sig-layer]").first().evaluate((svg) => {
     const out: { t: string; title: string; cx: number; cy: number }[] = [];
-    for (const g of [...svg.querySelectorAll(":scope > g")]) {
+    for (const g of [...svg.querySelectorAll('[data-price-pane-local="signals"] > g')]) {
       const title = g.querySelector(":scope > title")?.textContent;
       if (!title) continue;
       const b = g.getBoundingClientRect();
@@ -248,6 +253,35 @@ async function hoverMarker(page: Page, m: Marker) {
   await page.mouse.move(m.cx, m.cy, { steps: 6 });
   await expect(tip(page)).toHaveAttribute("data-marker-at", m.t, { timeout: 5_000 });
   await expect(tip(page)).toBeVisible();
+}
+
+async function moveRsiPaneAbovePrice(page: Page) {
+  const rsiLegend = page.locator(".lg-block").filter({ hasText: "RSI" }).first();
+  await expect(rsiLegend).toBeVisible({ timeout: 20_000 });
+  const rsiRow = rsiLegend.locator(".lg-row").filter({ hasText: "RSI" }).first();
+  const paneMenu = page.locator(".lg-more");
+  await settled({
+    drive: async (last) => {
+      if (last?.open || await paneMenu.isVisible().catch(() => false)) return;
+      await rsiRow.hover();
+      try {
+        await rsiRow.getByRole("button", { name: "More" }).click({ timeout: 3_000 });
+      } catch {
+        // A render can replace the hovered row. The next drive retries against its successor.
+      }
+    },
+    read: async () => ({ open: await paneMenu.isVisible().catch(() => false) }),
+    ok: (value) => value.open,
+    same: (prev, next) => prev.open && next.open,
+    message: "the RSI pane menu should stay open before moving the pane",
+  });
+  await paneMenu.getByText("Move pane up", { exact: true }).click();
+  await expect.poll(async () => Number(
+    await page.locator('[data-price-pane-scope="signals"]').getAttribute("data-pane-top"),
+  ), {
+    message: "the signal layer should follow the price pane below RSI",
+    timeout: 20_000,
+  }).toBeGreaterThan(20);
 }
 
 // ── 1. DISPLAY: five classes, five tooltips, the right words in each ────────────────────────
@@ -335,6 +369,67 @@ test("every marker class shows its own tooltip on hover", async ({ page }, testI
 
 });
 
+test("signal markers and legacy overlays stay scoped to a moved price pane", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "Pane move controls are a desktop interaction.");
+  test.setTimeout(90_000);
+  await openTerminal(page, { indicators: ["_oracle", "rsi", "ichimoku"] });
+  await expect(page.locator('[data-price-pane-local="legacy-overlays"] > *').first()).toBeAttached({ timeout: 20_000 });
+
+  await moveRsiPaneAbovePrice(page);
+  await expect.poll(
+    () => page.locator('[data-price-pane-local="legacy-overlays"] > *').count(),
+    { message: "Ichimoku should keep painting inside the moved price-pane scope", timeout: 20_000 },
+  ).toBeGreaterThan(0);
+
+  const proof = await page.evaluate(() => {
+    const readScope = (name: string) => {
+      const scope = document.querySelector<SVGGElement>(`[data-price-pane-scope="${name}"]`);
+      const local = document.querySelector<SVGGElement>(`[data-price-pane-local="${name}"]`);
+      const clipRef = scope?.getAttribute("clip-path")?.match(/^url\(#(.+)\)$/)?.[1] ?? "";
+      const rect = clipRef ? document.querySelector<SVGRectElement>(`#${CSS.escape(clipRef)} rect`) : null;
+      return {
+        top: Number(scope?.getAttribute("data-pane-top")),
+        height: Number(scope?.getAttribute("data-pane-height")),
+        transform: local?.getAttribute("transform") ?? "",
+        clipY: Number(rect?.getAttribute("y")),
+        clipHeight: Number(rect?.getAttribute("height")),
+        children: local?.children.length ?? 0,
+      };
+    };
+    return {
+      signals: readScope("signals"),
+      legacy: readScope("legacy-overlays"),
+      markerCount: document.querySelectorAll('[data-price-pane-local="signals"] > g > title').length,
+      directRootMarkers: document.querySelectorAll('[data-sig-layer] > g > title').length,
+      priceTagPaneTop: Number(document.querySelector<HTMLElement>(".mm-ptag")?.dataset.paneTop),
+    };
+  });
+
+  expect(proof.signals.top).toBeGreaterThan(20);
+  expect(proof.signals.top).toBeCloseTo(proof.legacy.top, 1);
+  expect(proof.signals.top).toBeCloseTo(proof.priceTagPaneTop, 1);
+  expect(proof.signals.height).toBeGreaterThan(100);
+  expect(proof.signals.height).toBeCloseTo(proof.legacy.height, 1);
+  expect(proof.signals.transform).toBe(`translate(0 ${proof.signals.top})`);
+  expect(proof.legacy.transform).toBe(`translate(0 ${proof.legacy.top})`);
+  expect(proof.signals.clipY).toBeCloseTo(proof.signals.top, 1);
+  expect(proof.legacy.clipY).toBeCloseTo(proof.legacy.top, 1);
+  expect(proof.signals.clipHeight).toBeCloseTo(proof.signals.height, 1);
+  expect(proof.legacy.clipHeight).toBeCloseTo(proof.legacy.height, 1);
+  expect(proof.markerCount).toBe(5);
+  expect(proof.directRootMarkers).toBe(0);
+  expect(proof.legacy.children).toBeGreaterThan(0);
+
+  const movedMarkers = await settledMarkers(page);
+  const retro = pick(movedMarkers, RETRO_TS);
+  const wrap = await page.locator(".chart-wrap").boundingBox();
+  expect(wrap).not.toBeNull();
+  expect(retro.cy).toBeGreaterThan(wrap!.y + proof.signals.top);
+  expect(retro.cy).toBeLessThan(wrap!.y + proof.signals.top + proof.signals.height);
+  await hoverMarker(page, retro);
+  await expect(tip(page)).toHaveText(retro.title);
+});
+
 /** Crop the tooltip together with the marker it belongs to — a tooltip shot on its own proves the
  *  box rendered, not that it rendered ON the thing the reader pointed at. */
 async function tipShot(page: Page, testInfo: TestInfo, name: string) {
@@ -343,7 +438,7 @@ async function tipShot(page: Page, testInfo: TestInfo, name: string) {
     if (!t || t.style.display === "none") return null;
     const at = t.getAttribute("data-marker-at");
     const layer = document.querySelector("[data-sig-layer]");
-    const g = [...(layer?.querySelectorAll(":scope > g") ?? [])]
+    const g = [...(layer?.querySelectorAll('[data-price-pane-local="signals"] > g') ?? [])]
       .find((n) => (n.querySelector(":scope > title")?.textContent ?? "").startsWith(`${at} ·`));
     const boxes = [t.getBoundingClientRect(), ...(g ? [g.getBoundingClientRect()] : [])];
     const pad = 16;
@@ -408,7 +503,7 @@ test("the pointer-events repair would have broken that drag", async ({ page }, t
   const m = pick(await settledMarkers(page), RETRO_TS);
 
   await page.locator("[data-sig-layer]").first().evaluate((svg) => {
-    for (const g of svg.querySelectorAll(":scope > g")) g.setAttribute("pointer-events", "all");
+    for (const g of svg.querySelectorAll('[data-price-pane-local="signals"] > g')) g.setAttribute("pointer-events", "all");
   });
 
   await page.mouse.move(m.cx, m.cy);
