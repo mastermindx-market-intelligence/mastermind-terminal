@@ -81,8 +81,20 @@ export function replayReducer(state: ReplayState, action: ReplayAction): ReplayS
       const nextLen = action.stamps.length;
       let frame: number;
       if (nextLen === 0) frame = 0;
-      else if (action.keepHead || wasHead) frame = nextLen - 1;
-      else frame = clampFrame(state.frame, nextLen);
+      else if (action.keepHead || wasHead || len === 0) frame = nextLen - 1;
+      else {
+        // Frame identity is time, not its position in a mutable index. Inserting
+        // an earlier observation must not move a paused cursor. If a correction
+        // removes it, select the preceding available observation, never the next.
+        const selected = stampAt(state);
+        frame = 0;
+        if (selected != null) {
+          for (let i = 0; i < nextLen; i++) {
+            if (action.stamps[i] > selected) break;
+            frame = i;
+          }
+        }
+      }
       return { ...state, stamps: action.stamps, frame };
     }
     case "toFirst":

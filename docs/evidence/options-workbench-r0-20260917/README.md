@@ -27,3 +27,7 @@ The first two commands currently exit 1 for the captured defects; the last exits
 
 ## Continuation and do-not-redo
 Recover this branch and #603 rather than rerunning the old competitor teardown. Preserve #591/#592, #598/#599 and Macro #6604. After an actual platform authorization/recovery signal, reconcile the held source operations on their original carrier before further modification. Keep production changes, independent review, release and real-session acceptance separate. Existing passing geometry controls and timestamp counterexamples must remain discriminating. Do not merge this reproduction branch while its behavioral tests are red.
+
+## Partial correction continuation
+
+The original red evidence above remains historical. See `geometry-correction/README.md` and its verification manifest for the later applied source corrections and the remaining held integration.
