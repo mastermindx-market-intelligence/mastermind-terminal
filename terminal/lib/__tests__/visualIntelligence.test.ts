@@ -61,7 +61,7 @@ describe("canonical candle facts, never a second signal engine", () => {
 
 import { buildVisualSeries, chartDay, participationColor, visualCalendar, visualOverlayBundle, visualReadout, visualSettings,
   VISUAL_INTELLIGENCE_DEFAULTS, EMPTY_VISUAL_CALENDAR } from "@/lib/visualIntelligence";
-import { visualSynthesis, visualText } from "@/lib/visualIntelligenceCopy";
+import { visualQuoteCopyKey, visualSynthesis, visualText } from "@/lib/visualIntelligenceCopy";
 import type { Bar, Fund } from "@/lib/fund";
 import { ensureSuiteRuntime, peekSuiteRuntime } from "@/lib/suites/compute";
 const chartBars = (): Bar[] => bars().map(({ t, ...bar }) => ({ ...bar, time: t }));
@@ -101,6 +101,14 @@ describe("explainable chart projection", () => {
   });
   it("accepts only actual boolean preferences; optional layers are off without overwriting candle mode", () => {
     expect(visualSettings({ visualContext: false, visualLevels: "true" as never })).toEqual({ ...VISUAL_INTELLIGENCE_DEFAULTS, visualContext: false });
+  });
+  it("labels both canonical real-time basis values as live without overstating delayed or unknown data", () => {
+    expect(visualQuoteCopyKey("REALTIME")).toBe("liveQuote");
+    expect(visualQuoteCopyKey("LIVE")).toBe("liveQuote");
+    expect(visualQuoteCopyKey("DELAYED_15M")).toBe("delayedQuote");
+    expect(visualQuoteCopyKey("EOD")).toBe("eodQuote");
+    expect(visualQuoteCopyKey("SOMETHING_ELSE")).toBe("unknown");
+    expect(visualQuoteCopyKey(null)).toBe("unknown");
   });
   it("never promotes a neutral, missing or divergent read into a forecast/confidence number", () => {
     const fact = buildVisualSeries("TEST", "D", chartBars(), "momentum").facts[100];

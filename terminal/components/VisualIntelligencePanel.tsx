@@ -5,7 +5,7 @@ import { useLang } from "@/lib/i18n";
 import { getFund } from "@/lib/fund";
 import { track } from "@/lib/analytics";
 import { EMPTY_VISUAL_CALENDAR, formatVisualTime, visualCalendar, type VisualCalendar, type VisualFrame, type VisualIntelligenceSettings } from "@/lib/visualIntelligence";
-import { candleModeText, candleStateText, visualSynthesis, visualText, type VisualCopyKey } from "@/lib/visualIntelligenceCopy";
+import { candleModeText, candleStateText, visualQuoteCopyKey, visualSynthesis, visualText, type VisualCopyKey } from "@/lib/visualIntelligenceCopy";
 import styles from "./VisualIntelligencePanel.module.css";
 
 export interface VisualIntelligenceHandle {
@@ -118,7 +118,7 @@ const VisualIntelligencePanel = forwardRef<VisualIntelligenceHandle, Props>(func
     ["visualRegime", "regimeToggle"], ["visualVolume", "volumeToggle"], ["visualLevels", "levelsToggle"], ["visualEvents", "eventsToggle"],
   ];
   const recentEvents = [...calendar.events].reverse().slice(0, 5);
-  const quoteCopy: VisualCopyKey = current?.basis === "LIVE" ? "liveQuote" : current?.basis === "DELAYED_15M" ? "delayedQuote" : current?.basis === "EOD" ? "eodQuote" : "unknown";
+  const quoteCopy = visualQuoteCopyKey(current?.basis);
   return (
     <div className={styles.root} ref={root} data-visual-context data-context-symbol={symbol} data-context-timeframe={timeframe}>
       <button ref={trigger} type="button" className={`${styles.trigger} ${stateClass}`} aria-expanded={open} aria-controls={id}
