@@ -12,6 +12,8 @@ import { useLang } from "@/lib/i18n";
 import { displayName } from "@/lib/markets";
 import AssetLogo from "@/components/AssetLogo";
 import { classify, isIntradayTf } from "@/lib/intradaySources";
+import { isLiveFeedBasis } from "@/lib/feedFreshness";
+import statusStyles from "./ChartPaneStatus.module.css";
 import { isMacroSymbol } from "@/lib/macroSymbols";
 
 const f = (n: number | null | undefined, d = 2) => (n == null || !isFinite(n) ? "—" : n.toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d }));
@@ -145,7 +147,7 @@ export default function ChartPane({ idx, symbol, drawingOwnerKey, isActive, onAc
       : displayLabel;
 
   return (
-    <div className={`pane${isActive ? " on" : ""}${swapping ? " is-swapping" : ""}`} data-swapping={swapping ? "1" : undefined} onPointerDownCapture={() => { if (!isActive) onActivate(idx); }}>
+    <div className={`pane${isActive ? " on" : ""}${swapping ? " is-swapping" : ""}${isLiveFeedBasis(liveQuote?.basis) ? ` ${statusStyles.liveFeed}` : ""}`} data-swapping={swapping ? "1" : undefined} onPointerDownCapture={() => { if (!isActive) onActivate(idx); }}>
       <div className="pane-hd">
         {chartSettings.showLogo && <AssetLogo className="pic" symbol={symbol} name={displayLabel} market={marketLabel} color={row?.col} size={18} />}
         {chartSettings.showSymbolName && <b>{title}</b>}
