@@ -33,15 +33,15 @@ Files: create terminal/lib/__tests__/suiteEventConfirmation.test.ts.
 ## Task 2 — repair producer plus real consumers
 Files: terminal/lib/indicator-canvas/types.ts; terminal/lib/suiteAlerts.ts; terminal/lib/suites/{rsix/rsiSignals,rsix/rsiDivergence,pulse/divergences,macdx/macdDivergence}.ts; ingest/suite_alerts.ts.
 Interface: SuiteEvent.confirmedAt?: number. Export suiteEventTiming(event, barsT) returning {anchorI, confirmedI, anchorT, confirmedT} or null. Existing _se/_sq state gains optional clockVersion: 2 on new fire records.
-- [ ] Emit detector confirmation metadata without moving any chart anchors or changing mathematical settings.
-- [ ] Resolve indices and finite source timestamps once; refuse malformed metadata and unknown state-clock versions.
-- [ ] Use confirmation for creation/freshness/ordering, but interpret old lastFiredT against event anchors until its state migrates on fire.
-- [ ] Sidecar demo uses the same resolver. Its no-creds output must agree with the actual evaluator.
-- [ ] Rerun red tests, then original module/alert/sidecar tests. Adapt exact state assertions to the intentional clock-version field, not to weaker acceptance.
+- [x] Emit detector confirmation metadata without moving any chart anchors or changing mathematical settings.
+- [x] Resolve indices and finite source timestamps once; refuse malformed metadata and unknown state-clock versions.
+- [x] Use confirmation for creation/freshness/ordering, but interpret old lastFiredT against event anchors until its state migrates on fire.
+- [x] Sidecar demo uses the same resolver. Its no-creds output must agree with the actual evaluator.
+- [x] Rerun red tests, then original module/alert/sidecar tests. Adapt exact state assertions to the intentional clock-version field, not to weaker acceptance.
 
 ## Task 3 — prove the integration and retain continuity
 Files: existing alert-sidecar receipt tests and this plan's evidence section; concise technical contract under docs/.
-- [ ] Feed actual module events through the real sidecar with only HTTP transport mocked; prove successful conditional persistence and no-duplicate reevaluation.
+- [x] Feed actual module events through the real sidecar with only HTTP transport mocked; prove successful conditional persistence and no-duplicate reevaluation.
 - [ ] Run typecheck and full unit suite, git diff --check, scoped diff review, and the repository's required release checks.
 - [ ] Commit/push the exact carrier and obtain independent review. A draft/green PR is not production proof.
 - [ ] Record source/PR/test/remaining-scope references in the existing Macro Agent OS owner. Keep TOI research and Terminal deployment gates intact.
@@ -53,3 +53,8 @@ A2: cross-suite Reversal & Reclaim workspace, linked price/pane evidence, explic
 Baseline: 346 tests passed across suiteModules, suiteAlerts and suitePresets at the exact base. No production changes or customer alert delivery occurred.
 
 RED regression receipt: 25 tests, 21 expected assertion failures and 4 passing guards. All four delayed producer cases reproduced (RSI turn anchor 20 / confirmation 21; RSI divergence 100/105; Pulse divergence 134/139; MACD divergence 70/75). The final RED run had no import/setup errors. Source algorithms are still unchanged at this checkpoint.
+
+### Material discovery: actual sidecar was bound to metadata, not computation
+The transport-only integration test failed even after all 367 indicator/evaluator tests passed. `ingest/suite_alerts.ts` imported `getSuiteDef` from the metadata facade, cast it to the host runtime type, and the host skipped every module without a compute function. Result: a silently empty event stream. Two real-file/real-module/HTTP-only-mocked integration tests failed. The repair loads the existing `ensureSuiteRuntime` graph and awaits it at the existing sidecar/demonstration call sites. No duplicate runtime graph or algorithm is introduced; synchronous test-hook returns remain supported. This is part of A1's producer-to-real-consumer capability, not a separate unrelated refactor.
+
+GREEN proof: full unit 334 files / 5,541 passed / 4 existing TODOs; typecheck passed; production-form bundle and four read-only real-input demonstrations passed. Detailed proof: docs/research/CHART_RECLAIM_A1_CONFIRMATION_CONTRACT_2026-09-17.md. No candidate deployment or customer notification has occurred.

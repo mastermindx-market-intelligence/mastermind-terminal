@@ -46,11 +46,13 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { computeSuite, resolveSuiteColors } from "../terminal/lib/indicator-canvas/host";
 import type { SuiteHostInput } from "../terminal/lib/indicator-canvas/host";
 import type { SuiteEvent } from "../terminal/lib/indicator-canvas/types";
-import { getSuiteDef, suiteDefaults, SUITE_ORDER } from "../terminal/lib/suites/registry";
+import { suiteDefaults, SUITE_ORDER } from "../terminal/lib/suites/registry";
+import { ensureSuiteRuntime } from "../terminal/lib/suites/compute";
 import {
   SUITE_ALERT_EVENTS,
   SUITE_EVENT_FRESH_BARS,
   evalSuiteEvent,
+  suiteEventTiming,
   evalSuiteSequence,
   suiteAlertEventDef,
   validateSuiteCondition,
@@ -158,9 +160,11 @@ function loadSymbolData(dataDir: string, symbol: string): SymbolData | null {
 
 /** Run one suite at MODULE DEFAULTS over the symbol's daily bars; return its merged
  *  event stream. Throws only if the suite key is unknown (caller SKIPs). */
-function suiteEventsFor(suiteKey: string, symbol: string, data: SymbolData): SuiteEvent[] {
-  const def = getSuiteDef(suiteKey);
-  if (!def) throw new Error(`unknown suite "${suiteKey}"`);
+async function suiteEventsFor(suiteKey: string, symbol: string, data: SymbolData): Promise<SuiteEvent[]> {
+  // The registry is metadata only. Acquire the same runtime graph the chart loads;
+  // casting metadata to SuiteDef silently skips every compute and produces an empty tape.
+  const def = await ensureSuiteRuntime(suiteKey);
+  if (!def) throw new Error(`suite runtime unavailable: "${suiteKey}"`);
   const input: SuiteHostInput = { bars: data.bars, tf: "D", symbol, isIntraday: false, lang: "en" };
   // tier "pro" (see header), FALLBACK colors (resolveSuiteColors returns the token
   // fallbacks under Node — events carry no colors, prims are discarded anyway).
@@ -168,7 +172,7 @@ function suiteEventsFor(suiteKey: string, symbol: string, data: SymbolData): Sui
   // otherwise never fire (review W3-1). Settings stay at module defaults.
   const params: Record<string, any> = suiteDefaults(suiteKey);
   for (const mod of def.modules) params[`${mod.key}.on`] = true;
-  const res = computeSuite(def as Parameters<typeof computeSuite>[0], params, input, "pro", resolveSuiteColors());
+  const res = computeSuite(def, params, input, "pro", resolveSuiteColors());
   return res.events;
 }
 
@@ -296,7 +300,7 @@ class Supa {
 
 /** No-creds data-path exercise: compute every suite at defaults for --symbol and list
  *  the fresh-window events each curated alert type WOULD evaluate against. */
-function runDemo(args: Args): number {
+async function runDemo(args: Args): Promise<number> {
   log(`DEMO ${args.symbol} — data-path exercise, no Supabase (curated catalog: ${SUITE_ALERT_EVENTS.length} events)`);
   const data = loadSymbolData(args.dataDir, args.symbol);
   if (!data) {
@@ -311,15 +315,19 @@ function runDemo(args: Args): number {
   for (const suiteKey of SUITE_ORDER) {
     let events: SuiteEvent[];
     try {
-      events = suiteEventsFor(suiteKey, args.symbol, data);
+      events = await suiteEventsFor(suiteKey, args.symbol, data);
     } catch (e) {
       log(`SKIP  suite ${suiteKey} — compute failed: ${e instanceof Error ? e.message : e}`);
       continue;
     }
-    const fresh = events.filter((e) => curated.has(e.type) && Number.isInteger(e.i) && e.i >= freshFrom);
+    const fresh = events.filter((e) => {
+      const timing = suiteEventTiming(e, data.barsT);
+      return curated.has(e.type) && timing !== null && timing.confirmedI >= freshFrom;
+    });
     log(`suite ${suiteKey}: ${events.length} events total, ${fresh.length} curated in the fresh window`);
     for (const e of fresh) {
-      const day = String(data.bars[e.i]?.time ?? "?");
+      const timing = suiteEventTiming(e, data.barsT)!;
+      const day = String(data.bars[timing.confirmedI]?.time ?? "?");
       const def = suiteAlertEventDef(e.type);
       const s = typeof e.strength === "number" ? ` strength=${Math.round(e.strength)}` : "";
       log(`  would evaluate {type:"suite_event", suite:"${suiteKey}", event:"${e.type}"} — ${def?.en ?? e.type} ${e.dir}${s} on ${day}`);
@@ -338,7 +346,7 @@ function isoSeconds(): string {
 export type SuiteAlertsHooks = {
   fetchImpl?: typeof fetch;
   loadSymbolData?: typeof loadSymbolData;
-  suiteEventsFor?: typeof suiteEventsFor;
+  suiteEventsFor?: (...args: Parameters<typeof suiteEventsFor>) => SuiteEvent[] | Promise<SuiteEvent[]>;
 };
 
 export type SuiteAlertsRunResult = {
@@ -363,7 +371,7 @@ export async function runSuiteAlertsLane(opts: {
     code, outcome: null, fired: 0, unevaluableN: 0, evaluatedN: 0, deferred: 0, skipped: 0, evalErrors: 0, ...over,
   });
 
-  if (args.demo) return empty(runDemo(args));
+  if (args.demo) return empty(await runDemo(args));
 
   const env = opts.envOverride ?? (() => {
     const loaded = loadEnv(args.envFile);
@@ -460,7 +468,7 @@ export async function runSuiteAlertsLane(opts: {
           let events = eventsCache.get(cond.suite);
           if (events === undefined) {
             try {
-              events = computeEvents(cond.suite, sym, data);
+              events = await computeEvents(cond.suite, sym, data);
             } catch (e) {
               events = null;
               log(`EVAL ERROR ${sym} suite ${cond.suite}: ${e instanceof Error ? e.message : e}`);

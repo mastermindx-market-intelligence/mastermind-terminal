@@ -129,3 +129,34 @@ describe("sequences follow knowledge order rather than a retrospectively drawn p
     expect(evalSuiteSequence(sequence({ _sq: { stepIdx: 0, lastFiredT: t[4] } }), events, t, 0).fired).toBe(false);
   });
 });
+
+
+describe("confirmation-clock guardrails", () => {
+  it("refuses non-finite and reverse-ordered source timestamps", () => {
+    for (const bad of [NaN, Infinity, T0 - 1]) {
+      const t = times(10); t[9] = bad;
+      expect(evalSuiteEvent(one(), [ev(8, 9)], t, 0).fired).toBe(false);
+      expect(evalSuiteSequence(sequence(), [ev(6, 7), ev(8, 9, "rsix_reversal")], t, 0).fired).toBe(false);
+    }
+  });
+
+  it("does not infer an ordered sequence from two confirmations on the same bar", () => {
+    expect(evalSuiteSequence(sequence(), [ev(1, 9), ev(6, 9, "rsix_reversal")], times(10), 0).fired).toBe(false);
+  });
+
+  it("preserves a v2 fire clock across a no-fire arm, expiry and repeated evaluation", () => {
+    const t = times(14);
+    const prior = { stepIdx: 0, lastFiredT: t[6], clockVersion: 2 };
+    const armed = evalSuiteSequence(sequence({ _sq: prior }), [ev(4, 9)], t.slice(0, 11), 0);
+    expect(armed.state).toEqual({ stepIdx: 1, armedT: t[9], lastFiredT: t[6], clockVersion: 2 });
+    const expired = evalSuiteSequence(sequence({ _sq: armed.state }), [ev(4, 9)], t, 0);
+    expect(expired.state).toEqual({ stepIdx: 0, lastFiredT: t[6], clockVersion: 2 });
+    expect(evalSuiteSequence(sequence({ _sq: expired.state }), [ev(4, 9)], t, 0)).toEqual({ fired: false });
+  });
+
+  it("refuses an unknown sequence fire-clock version without mutating its state", () => {
+    const c = sequence({ _sq: { stepIdx: 0, lastFiredT: T0, clockVersion: 3 } });
+    expect(evalSuiteSequence(c, [ev(6, 7), ev(8, 9, "rsix_reversal")], times(10), 0)).toEqual({ fired: false });
+    expect(c._sq).toEqual({ stepIdx: 0, lastFiredT: T0, clockVersion: 3 });
+  });
+});
