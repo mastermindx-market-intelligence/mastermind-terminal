@@ -5597,6 +5597,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       else if (a === "alert") { onAddAlertRef.current?.(ctxPt.p); }
       else if (a === "unlockv") {
         lockedVLineOwnerSymbolRef.current = null;
+        lockedVLineRef.current = null;
         onSetLockedVLineRef.current?.(null);
         renderRef.current?.();
       }
@@ -5606,9 +5607,11 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           // Clicking the checked row is itself a toggle-off; the explicit X is the discoverable
           // affordance, not the only escape hatch.
           lockedVLineOwnerSymbolRef.current = null;
+          lockedVLineRef.current = null;
           onSetLockedVLineRef.current?.(null);
         } else {
           lockedVLineOwnerSymbolRef.current = symbolRef.current;
+          lockedVLineRef.current = ctxPt.t;
           onSetLockedVLineRef.current?.(ctxPt.t);
         }
         renderRef.current?.();
