@@ -1106,9 +1106,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
   // workspace later in the mount pass, so wait for that restore before counting the chart view;
   // otherwise the brief fallback seed would pollute Recent ahead of the actual restored ticker.
   const [workspaceRestored, setWorkspaceRestored] = useState(!!initialSymbol);
-  // Whether the mount effect below has applied this browser's PERSISTED prefs — specifically the
-  // startup timeframe. Distinct from `workspaceRestored`, which starts TRUE on any deep link and
-  // therefore cannot answer "is paneTfs the user's timeframe yet?".
+  // Whether the mount restore below has applied this browser's PERSISTED chart prefs as one
+  // authority batch (indicators/params/hidden state plus the resolved startup context). Distinct
+  // from `workspaceRestored`, which starts TRUE on any deep link and cannot gate chart readiness.
   const [prefsHydrated, setPrefsHydrated] = useState(false);
   // THE startup timeframe, resolved once, synchronously, on the client's first render.
   //
@@ -1746,21 +1746,24 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
   // already resolved a different persisted timeframe. This is the same scheduling class as the
   // watchlist restore below: a passive-effect state update can be repeatedly pre-empted by the
   // shell's boot traffic on a loaded runner, while ChartPanel has already consumed startTfRef
-  // out-of-band. That creates a split brain: 1s data under 3D chrome. Layout effects flush these
-  // two boot-critical writes synchronously before paint; the heavier preference restore remains
-  // passive below.
+  // out-of-band. That creates a split brain: 1s data under 3D chrome. The timeframe is the only
+  // value that must publish before paint; the semantic prefs gate stays in the passive restore
+  // below so it commits in the same React batch as saved indicators/params/hidden state.
   useLayoutEffect(() => {
     const savedStartTf = readStartTf();
     const startTf = startTfRef.current ?? resolveStartTf(savedStartTf, functionalSet(seed0, secondBarsEnabled));
     btMark(`startup-tf=${startTf}`);
     setPaneTfs([startTf]);
-    setPrefsHydrated(true);
   }, []);
   useEffect(() => {
     // Settings → Terminal → Default timeframe (3D unless changed). Resolved again here only for
     // workspace-restoration fallbacks; the visible startup state was already committed above.
     const savedStartTf = readStartTf();
     const startTf = startTfRef.current ?? resolveStartTf(savedStartTf, functionalSet(seed0, secondBarsEnabled));
+    // Keep this gate in the SAME passive-effect batch as the persisted indicator/parameter restore
+    // below. Publishing it from the earlier layout effect lets ChartPanel announce a default
+    // indicator generation before saved studies (for example _oracle) have become authoritative.
+    setPrefsHydrated(true);
     {
       const savedInds = load("mm.inds", ["ema", "vol", "macd", "stochrsi"]) as string[];
       const savedParams = load("mm.indParams", {}) as Record<string, Record<string, unknown>>;
