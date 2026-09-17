@@ -63,6 +63,30 @@ function ohlcFixture(days = 420) {
 }
 
 const OHLC = ohlcFixture();
+
+function gapOhlcFixture() {
+  // Derive from the exact Oracle fixture so its dated slice remains aligned even if this
+  // suite starts across a UTC-day boundary.
+  const fixture = OHLC;
+  const bars = fixture.bars.map((bar) => [...bar] as typeof bar);
+  const gapIndex = bars.length - 24;
+  const priorHigh = bars[gapIndex - 1][2];
+  const shelfLow = +(priorHigh * 1.08).toFixed(2);
+  const shelfHigh = +(shelfLow * 1.025).toFixed(2);
+  for (let offset = 0; offset < 4; offset++) {
+    const low = +(shelfLow + offset * 0.01).toFixed(2);
+    const high = +(shelfHigh + offset * 0.01).toFixed(2);
+    const close = +((low + high) / 2).toFixed(2);
+    bars[gapIndex + offset] = [bars[gapIndex + offset][0], close, high, low, close, 1_500_000];
+  }
+  // The fifth bar trades back through the prior high, so the zone remains visible as a
+  // filled four-session band rather than extending indefinitely across unrelated tests.
+  const fill = bars[gapIndex + 4];
+  bars[gapIndex + 4] = [fill[0], fill[1], Math.max(fill[2], priorHigh), Math.min(fill[3], priorHigh * .99), fill[4], fill[5]];
+  return { ...fixture, bars };
+}
+
+const GAP_OHLC = gapOhlcFixture();
 const BAR_DATES = OHLC.bars.map((b) => b[0]);
 const BAR_CLOSES = OHLC.bars.map((b) => b[4]);
 const back = (n: number) => BAR_DATES.length - 1 - n;
@@ -147,23 +171,26 @@ async function openTerminal(
     indicatorParams?: Record<string, unknown>;
     devTier?: string;
     chartSettings?: Record<string, unknown>;
+    ohlc?: ReturnType<typeof ohlcFixture>;
+    startTf?: string;
   } = {},
 ) {
   if (opts.zhPreseed) {
     await page.addInitScript(() => { localStorage.setItem("mm.lang", "zh"); });
   }
   await page.route(/\/data\/COST\.json(?:\?.*)?$/, async (route) => {
-    await route.fulfill({ contentType: "application/json", body: JSON.stringify(OHLC) });
+    await route.fulfill({ contentType: "application/json", body: JSON.stringify(opts.ohlc ?? OHLC) });
   });
   await page.route(/\/data\/COST\.slice\.json(?:\?.*)?$/, async (route) => {
     await route.fulfill({ contentType: "application/json", body: JSON.stringify(SLICE) });
   });
   // Golden Oracle markers are an OPT-IN study — seed the saved indicator set.
-  await page.addInitScript(([indicators, indicatorParams, devTier]) => {
+  await page.addInitScript(([indicators, indicatorParams, devTier, startTf]) => {
     localStorage.setItem("mm.inds", JSON.stringify(indicators));
     if (indicatorParams) localStorage.setItem("mm.indParams", JSON.stringify(indicatorParams));
     if (devTier) localStorage.setItem("mm.devTier", devTier);
-  }, [opts.indicators ?? ["_oracle"], opts.indicatorParams, opts.devTier] as const);
+    if (startTf) localStorage.setItem("mm.startTf", JSON.stringify(startTf));
+  }, [opts.indicators ?? ["_oracle"], opts.indicatorParams, opts.devTier, opts.startTf] as const);
   if (opts.chartSettings) {
     await page.addInitScript((settings) => {
       localStorage.setItem("mm.chartSettings", JSON.stringify(settings));
@@ -481,6 +508,49 @@ test("signals and every price overlay stay scoped to a moved price pane", async 
   expect(retro.cy).toBeLessThan(wrap!.y + proof.signals.top + proof.signals.height);
   await hoverMarker(page, retro);
   await expect(tip(page)).toHaveText(retro.title);
+});
+
+test("Gap Zones stays clipped to price when oscillator panes are present", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "The multi-pane geometry proof runs once on desktop.");
+  const gapColor = "#7f5af0";
+  await openTerminal(page, {
+    indicators: ["_oracle", "gaps", "stochrsi", "macd"],
+    indicatorParams: {
+      gaps: { showGaps: true, hideFilled: false, minGapPct: 0, maxGaps: 40, gapUpCol: gapColor, gapDownCol: "#ff5470" },
+    },
+    ohlc: GAP_OHLC,
+    startTf: "D",
+  });
+
+  const gapRect = page.locator(`[data-price-pane-local="signals"] > g > rect[fill="${gapColor}"]`).first();
+  await expect(gapRect).toBeAttached({ timeout: 20_000 });
+  const proof = await page.evaluate((color) => {
+    const root = document.querySelector<SVGSVGElement>("[data-sig-layer]");
+    const scope = root?.querySelector<SVGGElement>('[data-price-pane-scope="signals"]') ?? null;
+    const local = root?.querySelector<SVGGElement>('[data-price-pane-local="signals"]') ?? null;
+    const zone = local?.querySelector<SVGRectElement>(`:scope > g > rect[fill="${color}"]`) ?? null;
+    const clipRef = scope?.getAttribute("clip-path")?.match(/^url\(#(.+)\)$/)?.[1] ?? "";
+    const clipRect = clipRef ? root?.querySelector<SVGRectElement>(`#${CSS.escape(clipRef)} rect`) ?? null : null;
+    const wrap = document.querySelector<HTMLElement>(".chart-wrap")?.getBoundingClientRect() ?? null;
+    return {
+      zoneFound: Boolean(zone),
+      localScope: zone?.parentElement?.parentElement?.getAttribute("data-price-pane-local") ?? null,
+      rootDirectZones: root?.querySelectorAll(`:scope > g > rect[fill="${color}"]`).length ?? -1,
+      paneTop: Number(scope?.getAttribute("data-pane-top")),
+      paneHeight: Number(scope?.getAttribute("data-pane-height")),
+      clipY: Number(clipRect?.getAttribute("y")),
+      clipHeight: Number(clipRect?.getAttribute("height")),
+      chartHeight: wrap?.height ?? 0,
+    };
+  }, gapColor);
+
+  expect(proof.zoneFound).toBe(true);
+  expect(proof.localScope).toBe("signals");
+  expect(proof.rootDirectZones).toBe(0);
+  expect(proof.clipY).toBeCloseTo(proof.paneTop, 1);
+  expect(proof.clipHeight).toBeCloseTo(proof.paneHeight, 1);
+  expect(proof.paneHeight).toBeGreaterThan(100);
+  expect(proof.paneHeight).toBeLessThan(proof.chartHeight - 100);
 });
 
 /** Crop the tooltip together with the marker it belongs to — a tooltip shot on its own proves the
