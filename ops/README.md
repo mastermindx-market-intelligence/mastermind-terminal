@@ -18,6 +18,23 @@ that marker during `next start`, keeping the runtime deployment ID identical to
 the ID used during `next build` so clients never fetch the same chunks twice
 under build-time and runtime cache keys.
 
+## Terminal source audit and release preflight
+
+`terminal_source_audit.py` is the fail-closed source-state engine. The reviewed
+production policy is `terminal_source_audit.production.json`.
+`terminal_release_preflight.py` reads the live deployment marker, runs that audit
+against the exact deployed SHA, and publishes an immutable sanitized receipt.
+
+These W2A tools are read-only except for receipt publication. They do not fetch,
+reset, clean, build, synchronize source, restart services, or deploy. The current
+`terminal-build.sh` does not invoke the preflight yet; that integration remains
+W2B work after W2A is independently reviewed, merged, and proven on production.
+
+Full contracts, usage, retained host-owned path classes, and non-claims:
+[`TERMINAL_RELEASE_PREFLIGHT.md`](TERMINAL_RELEASE_PREFLIGHT.md). The underlying
+policy schema and finding codes are documented in
+[`TERMINAL_SOURCE_AUDIT.md`](TERMINAL_SOURCE_AUDIT.md).
+
 ## terminal-data
 
 VPS path: `/usr/local/bin/terminal-data`
