@@ -1,0 +1,35 @@
+# Stock Intelligence: one workspace, distinct evidence
+
+Operation: terminal-stock-intelligence-20260917-sol-001. Chairman commissioned end-to-end redesign and continued it in the current conversation. Sol owns design and acceptance.
+Source: mastermind-terminal master 75c22083249e7a1529be3d6baf819b9ad5ea509f. Skillpack: Mastermind protected master 7a191cc11039199843d4734c7df8d5523280e09c (v1.0.1; bootstrap 1).
+
+## Outcome and decision
+Replace the awkward linked pop-ups and floating View seam with one responsive Stock Intelligence workspace. An investor can read the current research assessment, inspect the latest dated signal, identify cautions, inspect history, and return to the same chart.
+Unify the experience, NOT the scoring engines. Do not create a consensus score, new trade authority, identity system, signal ledger, model call, or alternative company-intelligence backend.
+Alternatives rejected: cosmetic repair retains competing scroll regions; combining engine scores would falsely imply validated agreement; a new standalone dashboard would duplicate the existing company-analysis workspace.
+
+## Frozen interaction and composition
+One native modal dialog, one title/ticker, one close control, one vertical content scroller. Desktop: generous right-aligned panel (maximum 880px), quiet backdrop and chart context. Tablet/mobile: the same component fills the available viewport, including safe areas. No rail-coordinate measurement, paired floating windows, horizontal content scrolling, or swipe-to-dismiss while reading.
+Tabs: Overview, Research, Signals, Performance. Overview shows two named source assessments with their own dates, research drivers/cautions, and signal qualifications. It does not lead with backtest percentages. Research exposes the full source wording, sector/technical context, and explicitly labelled existing adjusted conviction. Signals preserves every historical qualifier, separates Prophet candidate receipts from Oracle calls, and progressively reveals rows. Performance contains the historical metrics, trade count, and lazy equity curve with honest absence states.
+The launcher retains the existing two source labels/verdicts/dates, but becomes one calm card with an ordinary footer action, no floating seam pill. Preserve existing props so concurrent TerminalShell changes remain untouched.
+Native dialog provides modal focus containment/inert background; focus starts on its title, Escape/backdrop/close dismiss, focus returns to the launcher. Tabs have roving keyboard focus. Chart jumps keep the chart-bar coordinate while displaying the known/confirmation date. Full analysis uses the existing callback.
+
+## Data, correction and visual law
+Keep oracleVerdict, deskVerdict, classification helpers, signal source/basis and trade calculations unchanged. Blocked entries, retro projections, starters, structure stops, unscored reclaims and missing evidence cannot acquire stronger authority through presentation. Unknown research dates are unknown, not fresh. Symbol changes reset local navigation and curve state; late responses cannot populate another symbol. No authored prices or market forecasts.
+Dark: solid instrument surfaces, restrained borders and amber reserved for actual cautions/signals; no gold gradient wash. Light: white research material, cool background, stronger separation/shadow, readable muted text. Reuse Terminal semantic tokens and localized EN/ZH copy; wrap source prose rather than truncating it. Verify 1440x900, 820x1180 and 390x844 in both themes and languages.
+
+## Implementation and proof
+1. Add behavioral component tests; prove failure for the absent single-dialog/tab contract.
+2. Refactor only OracleDash.tsx, SignalButton.tsx and new scoped presentation CSS; retain all signal truth labels and existing callbacks. Add regressions for unavailable research, dates, pagination and symbol switching.
+3. Run focused Vitest, signal-verdict and Python truth-label suites, TypeScript and real-route responsive browser tests. Capture each theme/language/viewport plus adverse states.
+4. Review changed code and browser evidence; publish a scoped PR, require repository CI, then use the current git-gated deployment and verify the exact live behavior. No direct source rsync or bypass of a deployment hold.
+
+## Custody and continuation
+Workspace: charting-app/.claude/worktrees/stock-intelligence-20260917; branch claude/stock-intelligence-20260917-sol-001. No overlapping OracleDash/SignalButton writer found in open PR files. TerminalShell and i18n.tsx have active sister writers and are out of scope. Direct work initially uses PRINCIPAL_JUDGMENT; Executive connector reports fixture mode with no production runtime, so no worker execution is claimed. Terminal uses its own documented attended worktree route; installed mmx-workspace is pinned to the different Mastermind repository. Existing financial/signal math and completed source-truth repairs are DO_NOT_REDO.
+
+## Implementation checkpoint — not release acceptance
+The single native-dialog component and four views are implemented without changing TerminalShell, i18n, signalVerdict or any engine. The initial 7 component tests plus 107 signal-verdict tests passed. Four adverse-state/handoff tests were added; the empty-sector-object counterexample correctly failed and the presence guard was repaired. TypeScript passed after restoring four tracked test fixtures omitted by the narrow checkout.
+The real /terminal?symbol=INTC route opens the new dialog using the existing TERMINAL_E2E_FIXTURE authentication seam and real published chart/signal payloads; it displayed 575 Oracle records and the retained starter/failed-confirmation/20-score qualifications. The first capture occurred before the parent's deferred research request, so it records an unavailable-input state, not a production research outage. Wait for the actual intel response before accepting populated screenshots.
+Do not re-investigate the local boot issues: the repository's default Turbopack dev command works; forcing webpack exposed an existing workspaceLayout node:crypto boundary. Ordinary local boot requires Supabase configuration. The existing Playwright fixture seam, with its non-secret loopback URL/fixture anon key, is the correct isolated browser test path. No auth, production configuration or workspaceLayout source was modified.
+Full Vitest initially reported omitted data/proof files from the sparse checkout (306 suites / 5403 tests already passed). Restore only the required tracked verification inputs and rerun; do not alter unrelated source or weaken assertions to compensate for missing checkout files. Production release remains unattempted. Open #605 is a separate W2B deploy-preflight lane and explicitly does not authorize independent production adoption.
+Next: complete populated responsive/theme/language browser proof, retain adverse/keyboard/chart-return coverage, inspect the visual result, publish a reviewed PR, and reconcile the current canonical release gate before any deployment. This checkpoint is BUILT_NOT_PROVEN, not parent-mission completion.
