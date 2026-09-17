@@ -133,7 +133,7 @@ bash -n ops/terminal-build.sh
 
 Expected: all pass.
 
-- [ ] **Step 6: Commit the implementation slice**
+- [x] **Step 6: Commit the implementation slice**
 
 ```bash
 git add ops/terminal-build.sh tests/test_terminal_build_admission.py docs/superpowers/plans/2026-09-17-terminal-w2b-a-exact-target-preflight.md
@@ -150,11 +150,11 @@ git commit -m "feat(ops): gate Terminal deploy on exact target preflight"
 **Interfaces:**
 - Documents the new deploy-owner consumer without claiming build/deploy/rollback/browser/drift completion.
 
-- [ ] **Step 1: Document the exact CLI and first-adoption path**
+- [x] **Step 1: Document the exact CLI and first-adoption path**
 
 State that W2B-A requires `--target-sha`, runs W2A before source mutation, uses adjacent exact-artifact ops files for first adoption and canonical-checkout ops files thereafter, and only admits a target contained by freshly fetched protected master.
 
-- [ ] **Step 2: Run full focused verification**
+- [x] **Step 2: Run full focused verification**
 
 Run:
 
@@ -173,11 +173,11 @@ python3 -m compileall -q ops tests/test_terminal_build_admission.py tests/test_t
 
 Expected: all pass, no warnings beyond accepted repository baseline.
 
-- [ ] **Step 3: Mutation checks**
+- [x] **Step 3: Mutation checks**
 
 Mutate the source in isolated temporary copies to remove target validation, move preflight after fetch, reset to `origin/master`, allow an unaccepted target, mix artifact directories, and ignore a preflight failure. Each corresponding test must fail.
 
-- [ ] **Step 4: Commit docs/test refinements**
+- [x] **Step 4: Commit docs/test refinements**
 
 ```bash
 git add ops/TERMINAL_RELEASE_PREFLIGHT.md ops/README.md tests/test_terminal_build_admission.py
