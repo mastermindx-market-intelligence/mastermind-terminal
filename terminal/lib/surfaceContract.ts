@@ -98,6 +98,20 @@ export function isSurfaceIndex(x: unknown): x is SurfaceIndex {
   );
 }
 
+/** Validate one selected replay index without coercing malformed frame clocks. */
+export function isSurfaceIndexForContext(
+  value: unknown, root: string, sessionDate: string | null,
+): value is SurfaceIndex {
+  if (!isSurfaceIndex(value) || !isSessionDate(value.date)) return false;
+  const suppliedRoot = (value as SurfaceIndex & { root?: unknown }).root;
+  if (suppliedRoot !== undefined &&
+      (typeof suppliedRoot !== "string" || suppliedRoot.trim().toUpperCase() !== root)) return false;
+  if (sessionDate != null && value.date !== sessionDate) return false;
+  if (!Number.isFinite(value.cadenceSec) || value.cadenceSec <= 0) return false;
+  return value.latest === (value.stamps.at(-1) ?? null) && value.stamps.every((stamp, i) =>
+    /^(?:[01]\d|2[0-3])[0-5]\d$/.test(stamp) && (i === 0 || stamp > value.stamps[i - 1]));
+}
+
 export function isSurfaceFrame(x: unknown): x is SurfaceFrame {
   if (!x || typeof x !== "object") return false;
   const o = x as Record<string, unknown>;

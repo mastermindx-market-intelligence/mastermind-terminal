@@ -107,7 +107,9 @@ const SURFACE_LEX = {
   replayLast: ["Latest frame", "最新帧"],
   replaySpeedAria: ["Playback speed", "播放速度"],
   replayScrubAria: ["Scrub to frame", "拖动到指定帧"],
-  replayLive: ["LIVE", "实时"],
+  replayLive: ["LATEST STORED", "最新已存帧"],
+  replayRefreshFailed: ["Refresh unavailable · retaining stored frames", "刷新暂不可用 · 保留已存帧"],
+  replaySelectionUnavailable: ["Selected observation unavailable", "所选观测暂无数据"],
   replayFrameOf: ["frame", "帧"],
   replayNoFrames: ["No frames — accruing.", "暂无帧 — 累积中。"],
   frameRailAria: ["Observed surface frames", "实测曲面帧"],
@@ -117,7 +119,7 @@ const SURFACE_LEX = {
 
   // ── Multi-day replay: session picker + archived-session badge ───────────────
   sessionPickerAria: ["Replay session", "回放交易日"],
-  sessionToday: ["Today · LIVE", "今日 · 实时"],
+  sessionToday: ["Latest session", "最新交易日"],
   sessionArchived: ["archived session", "历史交易日"],
   sessionArchivedNote: [
     "Replaying a past session. Everything below the scrubber describes that day, not today.",

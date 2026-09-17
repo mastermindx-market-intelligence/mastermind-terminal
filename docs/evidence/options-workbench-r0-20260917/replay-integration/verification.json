@@ -1,0 +1,22 @@
+{
+  "state": "BUILT_NOT_PROVEN",
+  "parent_issue": 603,
+  "pr": 608,
+  "base": "75c22083249e7a1529be3d6baf819b9ad5ea509f",
+  "prior_head": "bd578978746fac3ce8974c9a769484f5486d855f",
+  "skillpack": "320f586126b7c82c843ef17612f12d40d20a42e0",
+  "focused_tests": {
+    "passed": 167,
+    "failed": 0
+  },
+  "production_proof": false,
+  "source_sha256": {
+    "terminal/components/surface/replayContext.tsx": "a3d79a1e1da44fa90ab294995a8324289254557b4770916f434294db7d0bff46",
+    "terminal/components/surface/SurfaceView.tsx": "244372bfd565340e49655e5ed3acb2fe1363ca46669d4fab7deedfc431dfd580",
+    "terminal/components/surface/SurfacePane.tsx": "b854b1f6b8d0cbc025b87107977e0821c046f7cb1a3278029c50ceda4b32c837",
+    "terminal/components/surface/ReplayBar.tsx": "797276f39b8d6fcd8e481e1e9c22648b958fe04abe61a8f903656edb46e4766f",
+    "terminal/components/surface/surfaceStrings.ts": "e07661727f9c411be143e9e7260898499e1f8aac2195ddab01e75384030ac067",
+    "terminal/lib/replayEngine.ts": "23b4cfd246e0a03a10e85ee51851327c93091e535c835a29f28ca45280cac5c3",
+    "terminal/lib/surfaceContract.ts": "5bbecedeb534cd764acc4e0c31c3f6c00aadc0a209c197e86810ab9527fa4a31"
+  }
+}

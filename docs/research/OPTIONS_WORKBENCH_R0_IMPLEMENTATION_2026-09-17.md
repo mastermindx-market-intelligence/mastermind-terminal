@@ -37,3 +37,16 @@ Direct initial execution reason: PRINCIPAL_JUDGMENT / CRITICAL_PATH_SHORTCUT —
 
 ## Continuation boundary
 The failing reproduction suite and 18 synthetic browser captures are preserved under `docs/evidence/options-workbench-r0-20260917/`. Production modifications are platform-held and no source correction has landed. See its README for the navigation correction and exact do-not-retry boundary.
+
+
+## Integration continuation — 17 September 2026
+
+The shared provider/view/pane integration is now built on the same #608 carrier.
+Its focused 167-test suite is green. The former missing-code hold is superseded
+only by this verified source effect, not by a permission assumption. Read
+`docs/evidence/options-workbench-r0-20260917/replay-integration/README.md` for the
+current capability boundary and pending full regression/review/production gates.
+Current procedure pin: `320f586126b7c82c843ef17612f12d40d20a42e0`.
+Direct continuation reason: CRITICAL_PATH_SHORTCUT; incumbent source custody,
+existing red tests and immediate shared-state integration make dispatch overhead
+larger than the bounded direct repair. No worker START or source transfer is claimed.
