@@ -140,119 +140,227 @@ def _audit_ordinary_allowance_roots(
     return present, findings
 
 
-def _runtime_path(allowance: Allowance, root: Path, candidate: Path) -> str:
-    relative = candidate.relative_to(root).as_posix()
-    return f"{allowance.path}/{relative}" if relative != "." else allowance.path
+def _runtime_fd_path(
+    allowance: Allowance, current_root: str, name: str | None = None
+) -> str:
+    relative_root = Path(current_root).as_posix()
+    if relative_root == ".":
+        relative_root = ""
+    relative = "/".join(part for part in (relative_root, name or "") if part)
+    return f"{allowance.path}/{relative}" if relative else allowance.path
+
+
+def _live_type_from_mode(mode: int) -> str:
+    if stat.S_ISLNK(mode):
+        return "symlink"
+    if stat.S_ISREG(mode):
+        return "file"
+    if stat.S_ISDIR(mode):
+        return "directory"
+    return "special"
 
 
 def _audit_runtime_subtree_metadata(
     mapping: SourceMapping, allowance: Allowance, runtime_root: Path
-) -> list[dict[str, Any]]:
+) -> tuple[str, list[dict[str, Any]]]:
     findings: list[dict[str, Any]] = []
     walk_errors: list[OSError] = []
+    state = "PRESENT"
+    flags = os.O_RDONLY | os.O_NOFOLLOW | os.O_DIRECTORY
+    if hasattr(os, "O_CLOEXEC"):
+        flags |= os.O_CLOEXEC
+
+    try:
+        root_descriptor = os.open(runtime_root, flags)
+    except OSError as exc:
+        try:
+            actual_type = _live_type(runtime_root)
+        except OSError as inspection_error:
+            return (
+                "UNREADABLE",
+                [
+                    finding(
+                        "ALLOWED_RUNTIME_SUBTREE_UNREADABLE",
+                        "Configured host-owned runtime subtree could not be opened safely.",
+                        mapping=mapping.name,
+                        path=allowance.path,
+                        allowance_classification=allowance.classification,
+                        errno=inspection_error.errno,
+                    )
+                ],
+            )
+        if actual_type != "directory":
+            return (
+                "TYPE_MISMATCH",
+                [
+                    finding(
+                        "ALLOWED_RUNTIME_SUBTREE_TYPE_MISMATCH",
+                        "Configured host-owned runtime subtree must remain a real directory.",
+                        mapping=mapping.name,
+                        path=allowance.path,
+                        allowance_classification=allowance.classification,
+                        live_type=actual_type,
+                    )
+                ],
+            )
+        return (
+            "UNREADABLE",
+            [
+                finding(
+                    "ALLOWED_RUNTIME_SUBTREE_UNREADABLE",
+                    "Configured host-owned runtime subtree could not be opened safely.",
+                    mapping=mapping.name,
+                    path=allowance.path,
+                    allowance_classification=allowance.classification,
+                    errno=exc.errno,
+                )
+            ],
+        )
+
+    opened_metadata = os.fstat(root_descriptor)
 
     def record_walk_error(error: OSError) -> None:
         walk_errors.append(error)
 
-    for current_root, dirnames, filenames in os.walk(
-        runtime_root,
-        topdown=True,
-        followlinks=False,
-        onerror=record_walk_error,
-    ):
-        current = Path(current_root)
-        retained_dirs: list[str] = []
-        for dirname in sorted(dirnames):
-            candidate = current / dirname
-            try:
-                actual_type = _live_type(candidate)
-            except OSError as exc:
-                findings.append(
-                    finding(
-                        "ALLOWED_RUNTIME_SUBTREE_UNREADABLE",
-                        "Part of the host-owned runtime subtree could not be inspected.",
-                        mapping=mapping.name,
-                        path=_runtime_path(allowance, runtime_root, candidate),
-                        errno=exc.errno,
+    try:
+        for current_root, dirnames, filenames, current_descriptor in os.fwalk(
+            ".",
+            topdown=True,
+            follow_symlinks=False,
+            onerror=record_walk_error,
+            dir_fd=root_descriptor,
+        ):
+            retained_dirs: list[str] = []
+            for dirname in sorted(dirnames):
+                try:
+                    metadata = os.stat(
+                        dirname,
+                        dir_fd=current_descriptor,
+                        follow_symlinks=False,
                     )
-                )
-                continue
-            if actual_type == "symlink":
-                findings.append(
-                    finding(
-                        "ALLOWED_RUNTIME_SUBTREE_SYMLINK",
-                        "A symlink inside the host-owned runtime subtree is not allowed.",
-                        mapping=mapping.name,
-                        path=_runtime_path(allowance, runtime_root, candidate),
+                except OSError as exc:
+                    findings.append(
+                        finding(
+                            "ALLOWED_RUNTIME_SUBTREE_UNREADABLE",
+                            "Part of the host-owned runtime subtree could not be inspected.",
+                            mapping=mapping.name,
+                            path=_runtime_fd_path(allowance, current_root, dirname),
+                            errno=exc.errno,
+                        )
                     )
-                )
-                continue
-            if actual_type != "directory":
-                findings.append(
-                    finding(
-                        "ALLOWED_RUNTIME_SUBTREE_SPECIAL_FILE",
-                        "A special file inside the host-owned runtime subtree is not allowed.",
-                        mapping=mapping.name,
-                        path=_runtime_path(allowance, runtime_root, candidate),
-                        live_type=actual_type,
+                    continue
+                actual_type = _live_type_from_mode(metadata.st_mode)
+                if actual_type == "symlink":
+                    findings.append(
+                        finding(
+                            "ALLOWED_RUNTIME_SUBTREE_SYMLINK",
+                            "A symlink inside the host-owned runtime subtree is not allowed.",
+                            mapping=mapping.name,
+                            path=_runtime_fd_path(allowance, current_root, dirname),
+                        )
                     )
-                )
-                continue
-            retained_dirs.append(dirname)
-        dirnames[:] = retained_dirs
+                    continue
+                if actual_type != "directory":
+                    findings.append(
+                        finding(
+                            "ALLOWED_RUNTIME_SUBTREE_SPECIAL_FILE",
+                            "A special file inside the host-owned runtime subtree is not allowed.",
+                            mapping=mapping.name,
+                            path=_runtime_fd_path(allowance, current_root, dirname),
+                            live_type=actual_type,
+                        )
+                    )
+                    continue
+                retained_dirs.append(dirname)
+            dirnames[:] = retained_dirs
 
-        for filename in sorted(filenames):
-            candidate = current / filename
-            try:
-                actual_type = _live_type(candidate)
-            except OSError as exc:
-                findings.append(
-                    finding(
-                        "ALLOWED_RUNTIME_SUBTREE_UNREADABLE",
-                        "Part of the host-owned runtime subtree could not be inspected.",
-                        mapping=mapping.name,
-                        path=_runtime_path(allowance, runtime_root, candidate),
-                        errno=exc.errno,
+            for filename in sorted(filenames):
+                try:
+                    metadata = os.stat(
+                        filename,
+                        dir_fd=current_descriptor,
+                        follow_symlinks=False,
                     )
-                )
-                continue
-            if actual_type == "symlink":
-                findings.append(
-                    finding(
-                        "ALLOWED_RUNTIME_SUBTREE_SYMLINK",
-                        "A symlink inside the host-owned runtime subtree is not allowed.",
-                        mapping=mapping.name,
-                        path=_runtime_path(allowance, runtime_root, candidate),
+                except OSError as exc:
+                    findings.append(
+                        finding(
+                            "ALLOWED_RUNTIME_SUBTREE_UNREADABLE",
+                            "Part of the host-owned runtime subtree could not be inspected.",
+                            mapping=mapping.name,
+                            path=_runtime_fd_path(allowance, current_root, filename),
+                            errno=exc.errno,
+                        )
                     )
-                )
-            elif actual_type != "file":
-                findings.append(
-                    finding(
-                        "ALLOWED_RUNTIME_SUBTREE_SPECIAL_FILE",
-                        "A special file inside the host-owned runtime subtree is not allowed.",
-                        mapping=mapping.name,
-                        path=_runtime_path(allowance, runtime_root, candidate),
-                        live_type=actual_type,
+                    continue
+                actual_type = _live_type_from_mode(metadata.st_mode)
+                if actual_type == "symlink":
+                    findings.append(
+                        finding(
+                            "ALLOWED_RUNTIME_SUBTREE_SYMLINK",
+                            "A symlink inside the host-owned runtime subtree is not allowed.",
+                            mapping=mapping.name,
+                            path=_runtime_fd_path(allowance, current_root, filename),
+                        )
                     )
-                )
+                elif actual_type != "file":
+                    findings.append(
+                        finding(
+                            "ALLOWED_RUNTIME_SUBTREE_SPECIAL_FILE",
+                            "A special file inside the host-owned runtime subtree is not allowed.",
+                            mapping=mapping.name,
+                            path=_runtime_fd_path(allowance, current_root, filename),
+                            live_type=actual_type,
+                        )
+                    )
 
-    for error in walk_errors:
-        candidate = Path(error.filename or runtime_root)
-        try:
-            path = _runtime_path(allowance, runtime_root, candidate)
-        except ValueError:
-            path = str(candidate)
-        findings.append(
-            finding(
-                "ALLOWED_RUNTIME_SUBTREE_UNREADABLE",
-                "Part of the host-owned runtime subtree could not be traversed.",
-                mapping=mapping.name,
-                path=path,
-                errno=error.errno,
+        for error in walk_errors:
+            error_path = str(error.filename or ".")
+            findings.append(
+                finding(
+                    "ALLOWED_RUNTIME_SUBTREE_UNREADABLE",
+                    "Part of the host-owned runtime subtree could not be traversed.",
+                    mapping=mapping.name,
+                    path=_runtime_fd_path(allowance, error_path),
+                    errno=error.errno,
+                )
             )
-        )
-    return findings
 
+        try:
+            final_metadata = os.lstat(runtime_root)
+        except OSError as exc:
+            state = "UNREADABLE"
+            findings.append(
+                finding(
+                    "ALLOWED_RUNTIME_SUBTREE_UNREADABLE",
+                    "Configured host-owned runtime subtree changed during inspection.",
+                    mapping=mapping.name,
+                    path=allowance.path,
+                    allowance_classification=allowance.classification,
+                    errno=exc.errno,
+                )
+            )
+        else:
+            root_identity_changed = (
+                not stat.S_ISDIR(final_metadata.st_mode)
+                or final_metadata.st_dev != opened_metadata.st_dev
+                or final_metadata.st_ino != opened_metadata.st_ino
+            )
+            if root_identity_changed:
+                state = "TYPE_MISMATCH"
+                findings.append(
+                    finding(
+                        "ALLOWED_RUNTIME_SUBTREE_TYPE_MISMATCH",
+                        "Configured host-owned runtime subtree changed identity during inspection.",
+                        mapping=mapping.name,
+                        path=allowance.path,
+                        allowance_classification=allowance.classification,
+                        live_type=_live_type_from_mode(final_metadata.st_mode),
+                    )
+                )
+    finally:
+        os.close(root_descriptor)
+
+    return state, findings
 
 def _tracked_runtime_file_allowance_for(
     relative_path: str, allowances: Sequence[Allowance]
@@ -654,9 +762,10 @@ def audit_mapping(
                 )
             )
         else:
-            findings.extend(
-                _audit_runtime_subtree_metadata(mapping, allowance, runtime_live_root)
+            state, subtree_findings = _audit_runtime_subtree_metadata(
+                mapping, allowance, runtime_live_root
             )
+            findings.extend(subtree_findings)
         runtime_evidence.append(
             {
                 "path": allowance.path,

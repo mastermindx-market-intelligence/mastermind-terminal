@@ -362,3 +362,59 @@ def test_preflight_refuses_writable_receipt_directory(
         run_fixture(preflight_fixture)
 
     assert list(receipt_dir.iterdir()) == []
+
+
+@pytest.mark.parametrize("input_kind", ["marker", "policy"])
+def test_cli_symlink_input_returns_documented_input_error(
+    preflight_fixture: dict[str, object],
+    capsys: pytest.CaptureFixture[str],
+    input_kind: str,
+) -> None:
+    source = preflight_fixture[input_kind if input_kind == "marker" else "policy_path"]
+    assert isinstance(source, Path)
+    target = source.with_name(f"{source.name}.real")
+    source.rename(target)
+    source.symlink_to(target.name)
+
+    exit_code = preflight.main(
+        [
+            "--canonical-repo",
+            str(preflight_fixture["repo"]),
+            "--policy",
+            str(preflight_fixture["policy_path"]),
+            "--receipt-dir",
+            str(preflight_fixture["receipt_dir"]),
+        ]
+    )
+
+    assert exit_code == EXIT_INPUT_ERROR
+    assert "input/audit error" in capsys.readouterr().err
+    assert not Path(preflight_fixture["receipt_dir"]).exists()
+
+
+def test_receipt_directory_is_rechecked_after_resolution_race(
+    preflight_fixture: dict[str, object], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    receipt_dir = preflight_fixture["receipt_dir"]
+    live = preflight_fixture["live"]
+    assert isinstance(receipt_dir, Path)
+    assert isinstance(live, Path)
+    original_resolve = Path.resolve
+    receipt_resolves = 0
+
+    def racing_resolve(path: Path, strict: bool = False) -> Path:
+        nonlocal receipt_resolves
+        if path == receipt_dir:
+            receipt_resolves += 1
+            if receipt_resolves >= 4:
+                return original_resolve(live, strict=True)
+        return original_resolve(path, strict=strict)
+
+    def unexpected_render(_: object) -> bytes:
+        pytest.fail("receipt bytes were rendered after containment changed")
+
+    monkeypatch.setattr(Path, "resolve", racing_resolve)
+    monkeypatch.setattr(preflight, "_render_receipt", unexpected_render)
+
+    with pytest.raises(ValueError, match="outside canonical and live source roots"):
+        run_fixture(preflight_fixture)

@@ -22,6 +22,7 @@ if __package__:
         EXIT_INPUT_ERROR,
         EXIT_INTERNAL_ERROR,
         GitCommandError,
+        UnsupportedLiveFileType,
         receipt_id,
     )
     from .terminal_audit.policy import parse_policy
@@ -33,6 +34,7 @@ else:
         EXIT_INPUT_ERROR,
         EXIT_INTERNAL_ERROR,
         GitCommandError,
+        UnsupportedLiveFileType,
         receipt_id,
     )
     from terminal_audit.policy import parse_policy
@@ -82,7 +84,7 @@ def _validate_paths(
     receipt_dir: Path,
     deployment_marker: Path,
     mappings: Sequence[Any],
-) -> None:
+) -> tuple[Path, ...]:
     if not canonical_repo.is_absolute():
         raise ValueError("canonical_repo must be an absolute path")
     if not policy_path.is_absolute():
@@ -98,12 +100,21 @@ def _validate_paths(
 
     resolved_receipt_dir = receipt_dir.resolve(strict=False)
     protected_roots = [canonical_repo, *live_roots]
-    if any(path_is_within(resolved_receipt_dir, root) for root in protected_roots):
+    _assert_receipt_directory_outside_sources(
+        resolved_receipt_dir, protected_roots
+    )
+    if os.path.lexists(receipt_dir):
+        _validate_receipt_directory(receipt_dir)
+    return tuple(protected_roots)
+
+
+def _assert_receipt_directory_outside_sources(
+    receipt_dir: Path, protected_roots: Sequence[Path]
+) -> None:
+    if any(path_is_within(receipt_dir, root) for root in protected_roots):
         raise ValueError(
             "receipt directory must remain outside canonical and live source roots"
         )
-    if os.path.lexists(receipt_dir):
-        _validate_receipt_directory(receipt_dir)
 
 
 def _validate_receipt_directory(path: Path) -> None:
@@ -132,11 +143,16 @@ def _fsync_directory(path: Path) -> None:
 
 
 def _write_immutable_receipt(
-    *, receipt_dir: Path, filename: str, payload: Mapping[str, Any]
+    *,
+    receipt_dir: Path,
+    filename: str,
+    payload: Mapping[str, Any],
+    protected_roots: Sequence[Path],
 ) -> Path:
     receipt_dir.mkdir(mode=0o750, parents=True, exist_ok=True)
     _validate_receipt_directory(receipt_dir)
     resolved_dir = receipt_dir.resolve(strict=True)
+    _assert_receipt_directory_outside_sources(resolved_dir, protected_roots)
     final_path = resolved_dir / filename
     descriptor, temporary_name = tempfile.mkstemp(
         prefix=".terminal-preflight.", dir=resolved_dir
@@ -190,7 +206,7 @@ def run_preflight(
         raise ValueError("receipt directory must be an absolute path")
     policy = _read_policy(policy_file)
     _, deployment_marker, mappings = parse_policy(policy)
-    _validate_paths(
+    protected_roots = _validate_paths(
         canonical_repo=repo,
         policy_path=policy_file,
         receipt_dir=receipts,
@@ -225,6 +241,7 @@ def run_preflight(
         receipt_dir=receipts,
         filename=filename,
         payload=receipt,
+        protected_roots=protected_roots,
     )
     return receipt, exit_code, receipt_path
 
@@ -274,6 +291,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         UnicodeError,
         ValueError,
         GitCommandError,
+        UnsupportedLiveFileType,
         json.JSONDecodeError,
     ) as exc:
         print(f"terminal-release-preflight: input/audit error: {exc}", file=sys.stderr)

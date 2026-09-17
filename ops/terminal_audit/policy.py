@@ -251,18 +251,26 @@ def parse_policy(
                 )
             )
 
-        runtime_subtrees = [
-            item for item in allowances if item.allow_tracked_runtime_subtree
-        ]
-        for runtime_subtree in runtime_subtrees:
-            for other in allowances:
-                if other is runtime_subtree:
+        for index, allowance in enumerate(allowances):
+            allowance_is_special = (
+                allowance.allow_tracked_absence
+                or allowance.allow_tracked_runtime_subtree
+                or allowance.allow_tracked_runtime_file
+            )
+            for other in allowances[index + 1 :]:
+                other_is_special = (
+                    other.allow_tracked_absence
+                    or other.allow_tracked_runtime_subtree
+                    or other.allow_tracked_runtime_file
+                )
+                if not (allowance_is_special or other_is_special):
                     continue
-                if other.path.startswith(
-                    f"{runtime_subtree.path}/"
-                ) or runtime_subtree.path.startswith(f"{other.path}/"):
+                paths_overlap = allowance.path.startswith(
+                    f"{other.path}/"
+                ) or other.path.startswith(f"{allowance.path}/")
+                if paths_overlap:
                     raise ValueError(
-                        f"tracked runtime subtree allowance {runtime_subtree.path} "
+                        f"special tracked allowance {allowance.path} "
                         f"overlaps allowance {other.path}"
                     )
 

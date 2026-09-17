@@ -868,3 +868,61 @@ def test_special_tracked_contract_rejects_inert_expected_live_type(
 
     with pytest.raises(ValueError, match="expected_live_type.*special tracked"):
         run(policy_fixture, policy=policy)
+
+
+@pytest.mark.parametrize("contract", ["absence", "runtime_file"])
+def test_exact_special_contract_rejects_overlapping_ordinary_prefix(
+    policy_fixture: dict[str, object], contract: str
+) -> None:
+    policy = mapping_policy(policy_fixture)
+    allowances(policy).append(
+        {
+            "path": "public",
+            "classification": "host_runtime_parent",
+            "expected_live_type": "directory",
+        }
+    )
+    if contract == "absence":
+        add_tracked_absence(
+            policy_fixture, policy, path="public/data/seed.json"
+        )
+    else:
+        add_runtime_file(
+            policy_fixture, policy, path="public/data/seed.json"
+        )
+
+    with pytest.raises(ValueError, match="overlaps allowance"):
+        run(policy_fixture, policy=policy)
+
+
+def test_runtime_subtree_root_swap_to_symlink_fails_closed(
+    policy_fixture: dict[str, object], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    live = policy_fixture["live"]
+    assert isinstance(live, Path)
+    data = live / "public" / "data"
+    outside = live.parent / "raced-runtime-data"
+    outside.mkdir()
+    (outside / "secret.json").write_text('{"secret": true}\n', encoding="utf-8")
+    policy = mapping_policy(policy_fixture)
+    add_runtime_subtree(policy_fixture, policy)
+    original_is_dir = Path.is_dir
+    raced = False
+
+    def racing_is_dir(path: Path) -> bool:
+        nonlocal raced
+        result = original_is_dir(path)
+        if path == data and result and not raced:
+            shutil.rmtree(data)
+            os.symlink(outside, data)
+            raced = True
+        return result
+
+    monkeypatch.setattr(Path, "is_dir", racing_is_dir)
+
+    receipt, exit_code = run(policy_fixture, policy=policy)
+
+    assert raced is True
+    assert exit_code == EXIT_UNKNOWN_STOP
+    assert finding_codes(receipt) == ["ALLOWED_RUNTIME_SUBTREE_TYPE_MISMATCH"]
+    assert "secret" not in str(receipt)

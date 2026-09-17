@@ -41,9 +41,21 @@ SHA is contained by the configured accepted ref.
 The reviewed policy may be supplied from an immutable artifact outside the
 currently deployed checkout. This is necessary for first adoption: the W2A policy
 can be reviewed in a newer Git commit while production still serves the previous
-commit. The receipt binds the policy by its canonical SHA-256 digest, so release
-adjudication must compare that digest with the reviewed artifact before treating
-a `CLEAN` result as usable evidence.
+commit. The receipt binds the policy by SHA-256 over its canonical parsed JSON —
+`json.dumps(policy, sort_keys=True, separators=(",", ":"))` encoded as UTF-8 —
+not over the artifact's whitespace-preserving file bytes. Release adjudication
+must compare that digest with the reviewed artifact before treating a `CLEAN`
+result as usable evidence. One exact recompute command is:
+
+```bash
+python3 - /path/to/reviewed/ops/terminal_source_audit.production.json <<'PY'
+import hashlib, json, sys
+with open(sys.argv[1], encoding="utf-8") as handle:
+    policy = json.load(handle)
+canonical = json.dumps(policy, sort_keys=True, separators=(",", ":")).encode()
+print(hashlib.sha256(canonical).hexdigest())
+PY
+```
 
 ## Production policy
 
@@ -137,12 +149,16 @@ The receipt schema is
 - nested deterministic source-audit receipt ID;
 - release-preflight receipt ID and result.
 
-Receipt filenames bind the UTC timestamp, accepted SHA, and receipt ID. Files are
-published with mode `0640` by creating and syncing a temporary inode, linking it
-to a never-before-used final name, syncing the directory, and removing the
-temporary name. The receipt directory must be a real directory and must not be
-group- or other-writable; otherwise publication fails before creating a receipt.
-An existing final name causes a hard failure; it is never replaced.
+Receipt filenames bind the UTC timestamp, accepted SHA, and receipt ID. The nested
+source-audit receipt ID is deterministic for the audited state; the outer
+release-preflight receipt ID is intentionally observation-bound because it covers
+the nested audit timestamp. Files are published with mode `0640` by creating and
+syncing a temporary inode, linking it to a never-before-used final name, syncing
+the directory, and removing the temporary name. The receipt directory must be a
+real directory and must not be group- or other-writable; otherwise publication
+fails before creating a receipt. An existing final name causes a hard failure; it
+is never replaced; that guard is defense in depth even though normal observations
+produce unique outer receipt IDs.
 
 The receipt is sanitized evidence. It may include paths, Git object identities,
 file modes, sizes, and hashes of ordinary unexplained files. It never contains
