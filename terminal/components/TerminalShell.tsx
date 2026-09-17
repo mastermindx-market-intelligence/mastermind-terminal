@@ -1741,18 +1741,26 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
       window.removeEventListener(TERMINAL_VISUAL_READY_EVENT, loadManifest);
     };
   }, []);
-  useEffect(() => {
-    // Settings → Terminal → Default timeframe (3D unless changed). Resolved against the landing
-    // symbol's functional set, since the workspace restore below can land on a symbol other than seed0.
+  // Startup timeframe is display authority, not just a data-fetch hint. Publish it in a layout
+  // effect so the SSR-safe 3D shell can never paint (or remain starved) after the browser has
+  // already resolved a different persisted timeframe. This is the same scheduling class as the
+  // watchlist restore below: a passive-effect state update can be repeatedly pre-empted by the
+  // shell's boot traffic on a loaded runner, while ChartPanel has already consumed startTfRef
+  // out-of-band. That creates a split brain: 1s data under 3D chrome. Layout effects flush these
+  // two boot-critical writes synchronously before paint; the heavier preference restore remains
+  // passive below.
+  useLayoutEffect(() => {
     const savedStartTf = readStartTf();
     const startTf = startTfRef.current ?? resolveStartTf(savedStartTf, functionalSet(seed0, secondBarsEnabled));
     btMark(`startup-tf=${startTf}`);
-    // Publish the resolved timeframe and release the chart BEFORE the rest of this effect: every
-    // read below is a persisted-state read, and one throwing on corrupt localStorage must never
-    // strand the chart unloaded. A multi-pane workspace restore further down may still overwrite
-    // paneTfs — same effect, same React batch, so the chart sees one commit either way.
     setPaneTfs([startTf]);
     setPrefsHydrated(true);
+  }, []);
+  useEffect(() => {
+    // Settings → Terminal → Default timeframe (3D unless changed). Resolved again here only for
+    // workspace-restoration fallbacks; the visible startup state was already committed above.
+    const savedStartTf = readStartTf();
+    const startTf = startTfRef.current ?? resolveStartTf(savedStartTf, functionalSet(seed0, secondBarsEnabled));
     {
       const savedInds = load("mm.inds", ["ema", "vol", "macd", "stochrsi"]) as string[];
       const savedParams = load("mm.indParams", {}) as Record<string, Record<string, unknown>>;
