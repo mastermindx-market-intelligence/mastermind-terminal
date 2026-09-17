@@ -48,3 +48,11 @@ This is **local candidate / real production-input proof**, not deployed candidat
 A2: compose the existing chart modules into Reversal & Reclaim, link oscillator/price evidence, expose honest pending/confirmed states, and display original versus remaining reward/risk. A3: gap and structural lifecycle. A4: owner-native validated discovery and separately evaluated options expressions.
 
 Do not reimplement existing RSI/Pulse/MACD, refresh the source audit from scratch, duplicate #601 intraday qualification, mutate #600 release preflight, replace #597 feed status, or claim this work completes TOI #7094. Keep profile snapshots distinct from causal historical events and retain autoOpt's explicit historical-restyling limitation.
+
+
+## Independent review and repair
+Native Codex review of 956013c3a6d17c1614fd581b55420800a7be6648 returned one P2: event endpoint checks did not reject duplicate/out-of-order timestamps elsewhere in the source clock. Reproduced with four failing regressions, including same-bar events that could otherwise complete a backward-time sequence. The repair adds one shared strict monotonic-clock validator at the real input loader and before both batch evaluators; it never sorts bars and silently changes event indices. Added an actual-sidecar malformed-file test: unreadable clock is unevaluable, not an empty valid population.
+
+Post-review full suite: **334 files passed, 5,546 tests passed, 4 existing TODOs**. Typecheck, bundled real-production-input INTC demo and diff check passed. One intermediate full-suite run failed because an earlier captured test log inside terminal/test-results contained a literal matched by an existing all-extension source audit. Only this operation's logs were moved outside the application scan root; no product or audit test was weakened. The clean-root full run is the final receipt.
+
+Organizational continuity remains owed to Macro Agent OS. Reading the remaining Macro guide was blocked by the tool safety layer; that read/records lane was frozen without retry through another carrier. No Macro record write or transfer is claimed. Terminal source/PR evidence remains durable here while independent Terminal work continues.

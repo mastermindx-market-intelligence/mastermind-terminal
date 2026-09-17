@@ -160,3 +160,19 @@ describe("confirmation-clock guardrails", () => {
     expect(c._sq).toEqual({ stepIdx: 0, lastFiredT: T0, clockVersion: 3 });
   });
 });
+
+
+describe("independent review: reject unordered source clocks", () => {
+  it.each(["duplicate", "reversed", "nonfinite"])("rejects %s source times even for same-bar events", defect => {
+    const t = times(10);
+    t[8] = defect === "duplicate" ? t[7] : defect === "reversed" ? t[7] - 1 : NaN;
+    const a: SuiteEvent = { type: "rsix_div", dir: "bull", i: 7 };
+    const b: SuiteEvent = { type: "rsix_reversal", dir: "bull", i: 8 };
+    expect(evalSuiteSequence(sequence(), [a, b], t, 0)).toEqual({ fired: false });
+    expect(evalSuiteEvent(one({ event: "rsix_reversal" }), [b], t, 0)).toEqual({ fired: false });
+  });
+  it("rejects bad internal timestamps even when delayed event endpoints look ordered", () => {
+    const t = times(10); t[6] = t[5];
+    expect(evalSuiteEvent(one(), [ev(4, 9)], t, 0)).toEqual({ fired: false });
+  });
+});

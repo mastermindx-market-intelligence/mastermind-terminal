@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { runSuiteAlertsLane } from "../../../ingest/suite_alerts";
@@ -83,5 +83,22 @@ describe("the actual alert sidecar consumes confirmed runtime events", () => {
     expect(result.outcome).toBe("partial");
     expect(tx.alert.active).toBe(true);
     expect(tx.alert.condition._se).toBeUndefined();
+  });
+});
+
+
+describe("malformed production-style source clocks cannot become an armed-but-idle lie", () => {
+  it("reports duplicate dates as unevaluable before running or persisting signals", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "mmx-chart-clock-")); dirs.push(dir);
+    writeBars(dir, 106);
+    const path = join(dir, "CLOCK_FIXTURE.json");
+    const data = JSON.parse(readFileSync(path, "utf8"));
+    data.bars[104][0] = data.bars[103][0];
+    writeFileSync(path, JSON.stringify(data));
+    const tx = transport({ ...COND });
+    const result = await run(dir, tx.fetchImpl);
+    expect(result).toMatchObject({ fired: 0, unevaluableN: 1, outcome: "partial" });
+    expect(tx.patches).toHaveLength(0);
+    expect(tx.alert.active).toBe(true);
   });
 });

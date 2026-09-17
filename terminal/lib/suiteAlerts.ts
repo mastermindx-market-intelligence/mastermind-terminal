@@ -160,6 +160,18 @@ export function validateSuiteCondition(cond: unknown): string | null {
 
 // ───────────────────────────────────────────────────────── source-bar confirmation clock
 
+/** Validate once per batch before index-ordered consumers run. Sorting here would
+ * change event indices and silently reinterpret their evidence, so reject instead. */
+export function validSuiteBarClock(barsT: readonly number[]): boolean {
+  if (!Array.isArray(barsT) || barsT.length === 0) return false;
+  let prior = -Infinity;
+  for (const time of barsT) {
+    if (!isNum(time) || time <= prior || !Number.isFinite(new Date(time * 1000).getTime())) return false;
+    prior = time;
+  }
+  return true;
+}
+
 export interface SuiteEventTiming {
   anchorI: number;
   confirmedI: number;
@@ -169,7 +181,9 @@ export interface SuiteEventTiming {
 
 /** Resolve the same causal clock for alerts, sequences and the sidecar preview.
  * Never reinterpret malformed metadata as an immediate event. These timestamps are
- * source-bar identities, NOT wall-clock delivery times or proof a live bar closed. */
+ * source-bar identities, NOT wall-clock delivery times or proof a live bar closed.
+ * Batch consumers first call validSuiteBarClock; keeping this per-event projection
+ * constant-time avoids revalidating a long history for every emitted event. */
 export function suiteEventTiming(e: SuiteEvent, barsT: number[]): SuiteEventTiming | null {
   if (!e || !Array.isArray(barsT) || !Number.isInteger(e.i) || e.i < 0 || e.i >= barsT.length) return null;
   const confirmedI = e.confirmedAt === undefined ? e.i : e.confirmedAt;
@@ -233,7 +247,7 @@ export function evalSuiteEvent(
   floorT: number,
 ): SuiteEventEvalResult {
   const def = EVENT_BY_TYPE.get(cond?.event ?? "");
-  if (!def || !Array.isArray(events) || !Array.isArray(barsT) || barsT.length === 0) {
+  if (!def || !Array.isArray(events) || !validSuiteBarClock(barsT)) {
     return { fired: false };
   }
   if (!supportedFireClock(cond._se)) return { fired: false };
@@ -359,7 +373,7 @@ export function evalSuiteSequence(
   const maxGap = cond?.maxBarsBetween;
   if (
     steps.length !== 2 || !defA || !defB || !isNum(maxGap) ||
-    !Array.isArray(events) || !Array.isArray(barsT) || barsT.length === 0
+    !Array.isArray(events) || !validSuiteBarClock(barsT)
   ) {
     return { fired: false };
   }

@@ -53,6 +53,7 @@ import {
   SUITE_EVENT_FRESH_BARS,
   evalSuiteEvent,
   suiteEventTiming,
+  validSuiteBarClock,
   evalSuiteSequence,
   suiteAlertEventDef,
   validateSuiteCondition,
@@ -153,7 +154,7 @@ function loadSymbolData(dataDir: string, symbol: string): SymbolData | null {
     bars.push({ time: r[0] as string | number, o: +r[1], h: +r[2], l: +r[3], c: +r[4], v: +r[5] });
     barsT.push(t);
   }
-  return { bars, barsT };
+  return validSuiteBarClock(barsT) ? { bars, barsT } : null;
 }
 
 // ───────────────────────────────────────────────────────── suite events (real modules)
