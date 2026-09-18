@@ -37,12 +37,31 @@ production policy is `terminal_source_audit.production.json`.
 against the exact deployed SHA, and publishes an immutable sanitized receipt.
 
 These W2A tools are read-only except for receipt publication. They do not fetch,
-reset, clean, build, synchronize source, restart services, or deploy. W2B-A now
-makes that preflight the incumbent deploy owner's first gate: it must return a
-bound immutable `CLEAN` receipt for the current generation before any source or
-build mutation. The owner then admits only the explicit full SHA contained by
-the freshly fetched protected ref. Reproducible dependencies/build receipts and
-whole-release deploy/rollback/drift proof remain later #483 work.
+reset, clean, build, synchronize source, restart services, or deploy. W2B-A makes that preflight the incumbent deploy owner's first gate: it must
+return a bound immutable `CLEAN` receipt for the current generation before any
+source or build mutation. The owner then admits only the explicit full SHA
+contained by the freshly fetched protected ref.
+
+W2B-B adds the next pre-live gate inside that same owner. It holds one root-owned
+process lock, requires the exact production build runtime (`/usr/bin/node`
+20.20.2, `/usr/bin/npm` 10.8.2, Ubuntu 24.04 / glibc 2.39 / x86_64), archives the
+admitted Git object into an isolated root, performs fresh `npm ci` under a closed
+process environment, and invokes Next directly so the legacy deploy-time data
+coverage writer is not part of the build. Only an allowlisted `NEXT_PUBLIC_*`
+surface and the incumbent Next preview/RSC key pair enter the build; receipts
+record only identity hashes/expiry, never raw values.
+
+`terminal_build_receipt.py` publishes the immutable pre-live build receipt under
+`/var/lib/mastermind-terminal/build-receipts`. It binds the target tree, accepted
+ref observation, W2A receipt IDs/policy digest, dependency lock, runtime identity,
+public-env/key identities, BUILD_ID, and a canonical serving-output digest. A
+repeated build with the same complete input fingerprint must produce the same
+serving identity or fail closed. The receipt is read back before the owner may
+reset/clean the canonical checkout or touch a live deploy generation.
+
+W2B-B itself is still `BUILT_NOT_PROVEN` until protected review/merge and must not
+be production-adopted independently. Whole-release transactional deployment,
+rollback, served-browser proof, and drift detection remain W2B-C/W2C #483 work.
 
 Full contracts, usage, retained host-owned path classes, and non-claims:
 [`TERMINAL_RELEASE_PREFLIGHT.md`](TERMINAL_RELEASE_PREFLIGHT.md). The underlying

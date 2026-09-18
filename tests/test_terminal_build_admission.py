@@ -447,10 +447,10 @@ def test_preflight_is_before_every_source_or_build_mutation() -> None:
     preflight = body.index("run_release_preflight")
     mutation_tokens = (
         'fetch_accepted_ref "$SRC"',
+        'git -C "$SRC" archive "$TARGET_SHA"',
+        'run_isolated_terminal_build "$STAGE"',
         'git -C "$SRC" reset',
         'git -C "$SRC" clean',
-        "npm ci",
-        "npm run build",
         "rsync -a --delete",
         "systemctl restart terminal",
     )

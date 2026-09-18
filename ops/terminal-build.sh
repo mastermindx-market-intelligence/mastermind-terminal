@@ -28,9 +28,12 @@
 # Zero-downtime: builds into a staging tree, atomic-swaps `.next` only after the
 # build verifies (BUILD_ID present); the live server keeps serving until the swap.
 # Auto-rolls-back to the previous build if the new one fails its health check.
-# W2B-A adds only the fail-closed source/target entrance gate. The downstream
-# build, app rollback and runtime-overlay behavior is otherwise unchanged here;
-# later W2B slices still owe reproducible build and whole-release effect receipts.
+# W2B-A supplies the fail-closed source/target entrance gate. W2B-B then makes
+# the pre-live Terminal build an isolated exact-runtime operation: fresh npm ci,
+# closed public env/key inputs, immutable build receipt, serving-output digest,
+# and same-input reproducibility fence before canonical/live-generation mutation.
+# The live swap/rollback/runtime-overlay tail is still the inherited owner and is
+# NOT independently production-adopted by W2B-B; W2B-C owns that transaction proof.
 set -euo pipefail
 
 APP=/opt/terminal/terminal
@@ -39,6 +42,37 @@ TSRC="$SRC/terminal"
 BRANCH=master
 AUTHORING_OPS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 PREFLIGHT_RECEIPT_DIR=/var/lib/mastermind-terminal/release-preflight
+BUILD_RECEIPT_DIR=/var/lib/mastermind-terminal/build-receipts
+BUILD_LOCK_DIR=/run/mastermind-terminal
+BUILD_LOCK_FILE="$BUILD_LOCK_DIR/deploy.lock"
+EXPECTED_LOCK_UID=0
+EXPECTED_LOCK_GID=0
+EXPECTED_NODE_PATH="/usr/bin/node"
+EXPECTED_NPM_PATH="/usr/bin/npm"
+EXPECTED_NODE_VERSION="v20.20.2"
+EXPECTED_NPM_VERSION="10.8.2"
+EXPECTED_BUILD_OS="Linux"
+EXPECTED_BUILD_ARCH="x86_64"
+EXPECTED_OS_RELEASE_FILE="/etc/os-release"
+EXPECTED_OS_ID="ubuntu"
+EXPECTED_OS_VERSION_ID="24.04"
+EXPECTED_GETCONF_PATH="/usr/bin/getconf"
+EXPECTED_LIBC="glibc 2.39"
+CLEAN_BUILD_PATH="/usr/bin:/bin"
+BUILD_NODE_VERSION=
+BUILD_NPM_VERSION=
+BUILD_OS=
+BUILD_ARCH=
+BUILD_OS_ID=
+BUILD_OS_VERSION_ID=
+BUILD_LIBC=
+BUILD_PUBLIC_ENV_IDENTITY=
+BUILD_KEY_IDENTITY=
+BUILD_RECEIPT_PATH=
+BUILD_RECEIPT_ID=
+BUILD_INPUT_FINGERPRINT=
+BUILD_SERVING_DIGEST=
+TARGET_TREE=
 PREFLIGHT_SCRIPT=
 PREFLIGHT_POLICY=
 PREFLIGHT_RUNTIME_DIR=
@@ -629,6 +663,438 @@ admit_target_sha(){
     return 65
   fi
 }
+# W2B-B keeps serialization inside the one deploy owner.  The lock file is only
+# a kernel mutex rendezvous; it carries no lifecycle or release state.
+verify_lock_metadata(){
+  local path=$1 kind=$2 mode=$3
+  python3 -I - "$path" "$kind" "$mode" "$EXPECTED_LOCK_UID" "$EXPECTED_LOCK_GID" <<'PY_LOCK_META'
+import os
+import stat
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+kind = sys.argv[2]
+expected_mode = int(sys.argv[3], 8)
+expected_uid = int(sys.argv[4])
+expected_gid = int(sys.argv[5])
+metadata = os.lstat(path)
+if stat.S_ISLNK(metadata.st_mode):
+    raise SystemExit(f"lock path must not be a symlink: {path}")
+if kind == "directory" and not stat.S_ISDIR(metadata.st_mode):
+    raise SystemExit(f"lock parent is not a directory: {path}")
+if kind == "file" and not stat.S_ISREG(metadata.st_mode):
+    raise SystemExit(f"lock path is not a regular file: {path}")
+if stat.S_IMODE(metadata.st_mode) != expected_mode:
+    raise SystemExit(f"lock path mode mismatch: {path}")
+if metadata.st_uid != expected_uid or metadata.st_gid != expected_gid:
+    raise SystemExit(f"lock path owner/group mismatch: {path}")
+PY_LOCK_META
+}
+
+prepare_deploy_lock_dir(){
+  if [ -e "$BUILD_LOCK_DIR" ] || [ -L "$BUILD_LOCK_DIR" ]; then
+    verify_lock_metadata "$BUILD_LOCK_DIR" directory 0755 || {
+      log "FATAL: deploy lock parent is untrusted: $BUILD_LOCK_DIR"
+      return 73
+    }
+  else
+    mkdir -m 0755 "$BUILD_LOCK_DIR" || {
+      log "FATAL: cannot create deploy lock parent: $BUILD_LOCK_DIR"
+      return 73
+    }
+    verify_lock_metadata "$BUILD_LOCK_DIR" directory 0755 || return 73
+  fi
+}
+
+acquire_deploy_lock(){
+  local old_umask
+  prepare_deploy_lock_dir || return $?
+  if [ -e "$BUILD_LOCK_FILE" ] || [ -L "$BUILD_LOCK_FILE" ]; then
+    verify_lock_metadata "$BUILD_LOCK_FILE" file 0600 || {
+      log "FATAL: deploy lock file is untrusted: $BUILD_LOCK_FILE"
+      return 73
+    }
+  fi
+  old_umask=$(umask)
+  umask 077
+  if ! exec 9>"$BUILD_LOCK_FILE"; then
+    umask "$old_umask"
+    log "FATAL: cannot open deploy lock: $BUILD_LOCK_FILE"
+    return 73
+  fi
+  umask "$old_umask"
+  verify_lock_metadata "$BUILD_LOCK_FILE" file 0600 || {
+    log "FATAL: deploy lock file changed during open: $BUILD_LOCK_FILE"
+    return 73
+  }
+  if ! flock -n 9; then
+    log "FATAL: another Terminal deploy owner already holds $BUILD_LOCK_FILE"
+    return 75
+  fi
+}
+
+verify_build_runtime(){
+  local node_path npm_path getconf_path
+  node_path=$(command -v node 2>/dev/null) || return 69
+  npm_path=$(command -v npm 2>/dev/null) || return 69
+  getconf_path=$(command -v getconf 2>/dev/null) || return 69
+  if [ "$node_path" != "$EXPECTED_NODE_PATH" ] \
+    || [ "$npm_path" != "$EXPECTED_NPM_PATH" ] \
+    || [ "$getconf_path" != "$EXPECTED_GETCONF_PATH" ]; then
+    log "FATAL: build runtime path mismatch: node=$node_path npm=$npm_path getconf=$getconf_path"
+    log "       required: node=$EXPECTED_NODE_PATH npm=$EXPECTED_NPM_PATH getconf=$EXPECTED_GETCONF_PATH"
+    return 69
+  fi
+  [ -f "$EXPECTED_OS_RELEASE_FILE" ] && [ ! -L "$EXPECTED_OS_RELEASE_FILE" ] || {
+    log "FATAL: build OS release identity is unavailable or aliased: $EXPECTED_OS_RELEASE_FILE"
+    return 69
+  }
+  BUILD_NODE_VERSION=$("$EXPECTED_NODE_PATH" --version 2>/dev/null) || return 69
+  BUILD_NPM_VERSION=$("$EXPECTED_NPM_PATH" --version 2>/dev/null) || return 69
+  BUILD_OS=$(uname -s 2>/dev/null) || return 69
+  BUILD_ARCH=$(uname -m 2>/dev/null) || return 69
+  BUILD_OS_ID=$( ( . "$EXPECTED_OS_RELEASE_FILE"; printf '%s' "$ID" ) ) || return 69
+  BUILD_OS_VERSION_ID=$( ( . "$EXPECTED_OS_RELEASE_FILE"; printf '%s' "$VERSION_ID" ) ) || return 69
+  BUILD_LIBC=$("$EXPECTED_GETCONF_PATH" GNU_LIBC_VERSION 2>/dev/null) || return 69
+  if [ "$BUILD_NODE_VERSION" != "$EXPECTED_NODE_VERSION" ] \
+    || [ "$BUILD_NPM_VERSION" != "$EXPECTED_NPM_VERSION" ] \
+    || [ "$BUILD_OS" != "$EXPECTED_BUILD_OS" ] \
+    || [ "$BUILD_ARCH" != "$EXPECTED_BUILD_ARCH" ] \
+    || [ "$BUILD_OS_ID" != "$EXPECTED_OS_ID" ] \
+    || [ "$BUILD_OS_VERSION_ID" != "$EXPECTED_OS_VERSION_ID" ] \
+    || [ "$BUILD_LIBC" != "$EXPECTED_LIBC" ]; then
+    log "FATAL: build runtime mismatch: node=$BUILD_NODE_VERSION npm=$BUILD_NPM_VERSION os=$BUILD_OS arch=$BUILD_ARCH distro=$BUILD_OS_ID/$BUILD_OS_VERSION_ID libc=$BUILD_LIBC"
+    log "       required: node=$EXPECTED_NODE_VERSION npm=$EXPECTED_NPM_VERSION os=$EXPECTED_BUILD_OS arch=$EXPECTED_BUILD_ARCH distro=$EXPECTED_OS_ID/$EXPECTED_OS_VERSION_ID libc=$EXPECTED_LIBC"
+    return 69
+  fi
+}
+
+prepare_build_receipt_dir(){
+  prepare_preflight_receipt_dir "$BUILD_RECEIPT_DIR"
+}
+
+# Read ONLY a closed public-build vocabulary from the live env files.  Runtime
+# secrets never enter the build process.  The identity artifact contains names,
+# presence and value digests only; raw public values live only in the private
+# staging .env.production.local consumed by Next.
+prepare_public_build_env(){
+  local live_app=$1 stage=$2 identity=$3
+  if ! python3 -I - "$live_app" "$stage/.env.production.local" "$identity" <<'PY_PUBLIC_ENV'
+import hashlib
+import json
+import os
+import re
+import sys
+from pathlib import Path
+
+live = Path(sys.argv[1])
+out = Path(sys.argv[2])
+identity = Path(sys.argv[3])
+allowed = (
+    "NEXT_PUBLIC_LOGO_DEV_TOKEN",
+    "NEXT_PUBLIC_MM_AUTH_COOKIE_DOMAIN",
+    "NEXT_PUBLIC_POLYGON_KEY",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+    "NEXT_PUBLIC_SUPABASE_URL",
+)
+allowed_set = set(allowed)
+values = {}
+key_re = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+safe_value = re.compile(r"^[A-Za-z0-9._~:/?@%+=,;\-]*$")
+
+def parse_value(raw: str, source: Path, line_no: int) -> str:
+    value = raw.strip()
+    if not value:
+        return ""
+    if value.startswith("'"):
+        if len(value) < 2 or not value.endswith("'"):
+            raise ValueError(f"unterminated quoted public env value at {source}:{line_no}")
+        value = value[1:-1]
+    elif value.startswith('"'):
+        try:
+            decoded = json.loads(value)
+        except json.JSONDecodeError as exc:
+            raise ValueError(f"unsupported quoted public env value at {source}:{line_no}") from exc
+        if not isinstance(decoded, str):
+            raise ValueError(f"public env value must be a string at {source}:{line_no}")
+        value = decoded
+    if "\n" in value or "\r" in value or "\x00" in value or not safe_value.fullmatch(value):
+        raise ValueError(f"public env value uses unsupported syntax at {source}:{line_no}")
+    return value
+
+for name in (".env", ".env.local"):
+    source = live / name
+    if not source.exists():
+        continue
+    if source.is_symlink() or not source.is_file():
+        raise ValueError(f"live env source must be a real file: {source}")
+    if source.stat().st_size > 1024 * 1024:
+        raise ValueError(f"live env source exceeds size bound: {source}")
+    for line_no, raw in enumerate(source.read_text(encoding="utf-8").splitlines(), 1):
+        line = raw.strip()
+        if not line or line.startswith("#"):
+            continue
+        if line.startswith("export "):
+            line = line[7:].lstrip()
+        if "=" not in line:
+            continue
+        key, raw_value = line.split("=", 1)
+        key = key.strip()
+        if not key_re.fullmatch(key) or not key.startswith("NEXT_PUBLIC_"):
+            continue
+        if key not in allowed_set:
+            raise ValueError(f"undeclared NEXT_PUBLIC build input: {key}")
+        values[key] = parse_value(raw_value, source, line_no)
+
+if out.exists() or out.is_symlink():
+    raise ValueError(f"isolated build env path already exists: {out}")
+lines = []
+entries = []
+for key in allowed:
+    value = values.get(key)
+    if value is None:
+        entries.append({"name": key, "present": False, "bytes": 0, "sha256": None})
+        continue
+    payload = value.encode("utf-8")
+    lines.append(f"{key}={value}")
+    entries.append({
+        "name": key,
+        "present": True,
+        "bytes": len(payload),
+        "sha256": hashlib.sha256(payload).hexdigest(),
+    })
+out.write_text("\n".join(lines) + ("\n" if lines else ""), encoding="utf-8")
+os.chmod(out, 0o600)
+identity.write_text(json.dumps({
+    "schema": "mastermind.terminal.public_build_env_identity.v1",
+    "entries": entries,
+}, sort_keys=True, separators=(",", ":")) + "\n", encoding="utf-8")
+os.chmod(identity, 0o600)
+PY_PUBLIC_ENV
+  then
+    log "FATAL: could not derive the closed public build environment"
+    return 64
+  fi
+  BUILD_PUBLIC_ENV_IDENTITY=$identity
+}
+
+# Reuse Next's incumbent cache pair when it is structurally valid and has at
+# least one hour of lifetime.  Otherwise rotate the SAME cache formats once in
+# the isolated stage.  These bytes become explicit secret build inputs and later
+# move with .next; there is no second secret database/store.
+prepare_next_build_keys(){
+  local live_app=$1 stage=$2 identity=$3
+  if ! python3 -I - "$live_app/.next/cache" "$stage/.next/cache" "$identity" <<'PY_BUILD_KEYS'
+import base64
+import hashlib
+import json
+import os
+import re
+import secrets
+import stat
+import sys
+import time
+from pathlib import Path
+
+source = Path(sys.argv[1])
+target = Path(sys.argv[2])
+identity = Path(sys.argv[3])
+min_expire = int(time.time() * 1000) + 60 * 60 * 1000
+rotation_expire = int(time.time() * 1000) + 14 * 24 * 60 * 60 * 1000
+hex32 = re.compile(r"^[0-9a-f]{32}$")
+hex64 = re.compile(r"^[0-9a-f]{64}$")
+
+def read_real(path: Path):
+    expected = os.lstat(path)
+    if stat.S_ISLNK(expected.st_mode) or not stat.S_ISREG(expected.st_mode):
+        raise ValueError("not a real file")
+    if expected.st_uid != os.geteuid() or expected.st_gid != os.getegid():
+        raise ValueError("untrusted cache file owner/group")
+    if expected.st_mode & (stat.S_IWGRP | stat.S_IWOTH) or expected.st_size > 4096:
+        raise ValueError("untrusted cache file metadata")
+    flags = os.O_RDONLY | getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NOFOLLOW", 0)
+    fd = os.open(path, flags)
+    try:
+        before = os.fstat(fd)
+        identity = lambda item: (
+            item.st_dev, item.st_ino, item.st_mode, item.st_uid, item.st_gid,
+            item.st_size, item.st_mtime_ns,
+        )
+        if identity(before) != identity(expected):
+            raise ValueError("cache file changed before open")
+        payload = os.read(fd, 4097)
+        if len(payload) > 4096:
+            raise ValueError("cache file exceeds size bound")
+        after = os.fstat(fd)
+        if identity(before) != identity(after):
+            raise ValueError("cache file changed while read")
+        return payload
+    finally:
+        os.close(fd)
+
+def decode_pair(preview_bytes: bytes, rsc_bytes: bytes):
+    preview = json.loads(preview_bytes.decode("utf-8"))
+    rsc = json.loads(rsc_bytes.decode("utf-8"))
+    if set(preview) != {"previewModeId", "previewModeSigningKey", "previewModeEncryptionKey", "expireAt"}:
+        raise ValueError("preview cache schema")
+    if not hex32.fullmatch(preview["previewModeId"]): raise ValueError("preview id")
+    if not hex64.fullmatch(preview["previewModeSigningKey"]): raise ValueError("preview signing key")
+    if not hex64.fullmatch(preview["previewModeEncryptionKey"]): raise ValueError("preview encryption key")
+    if not isinstance(preview["expireAt"], int) or preview["expireAt"] <= 0: raise ValueError("preview expiry")
+    if set(rsc) != {"encryption.key", "encryption.expire_at"}: raise ValueError("rsc cache schema")
+    raw = base64.b64decode(rsc["encryption.key"], validate=True)
+    if len(raw) != 32: raise ValueError("rsc key")
+    if not isinstance(rsc["encryption.expire_at"], int) or rsc["encryption.expire_at"] <= 0: raise ValueError("rsc expiry")
+    return preview, rsc
+
+preview_path = source / ".previewinfo"
+rsc_path = source / ".rscinfo"
+preview_present = os.path.lexists(preview_path)
+rsc_present = os.path.lexists(rsc_path)
+if preview_present != rsc_present:
+    raise ValueError("Next build-key cache pair is partial; refusing normalization")
+
+mode = "retained"
+rotate = not preview_present
+if preview_present:
+    preview_bytes = read_real(preview_path)
+    rsc_bytes = read_real(rsc_path)
+    preview, rsc = decode_pair(preview_bytes, rsc_bytes)
+    rotate = preview["expireAt"] < min_expire or rsc["encryption.expire_at"] < min_expire
+
+if rotate:
+    mode = "rotated"
+    preview = {
+        "previewModeId": secrets.token_hex(16),
+        "previewModeSigningKey": secrets.token_hex(32),
+        "previewModeEncryptionKey": secrets.token_hex(32),
+        "expireAt": rotation_expire,
+    }
+    rsc = {
+        "encryption.key": base64.b64encode(secrets.token_bytes(32)).decode("ascii"),
+        "encryption.expire_at": rotation_expire,
+    }
+    preview_bytes = json.dumps(preview, separators=(",", ":")).encode("utf-8")
+    rsc_bytes = json.dumps(rsc, separators=(",", ":")).encode("utf-8")
+    decode_pair(preview_bytes, rsc_bytes)
+
+target.mkdir(parents=True, exist_ok=True)
+os.chmod(target, 0o700)
+files = {}
+for name, payload, expire in (
+    (".previewinfo", preview_bytes, preview["expireAt"]),
+    (".rscinfo", rsc_bytes, rsc["encryption.expire_at"]),
+):
+    path = target / name
+    path.write_bytes(payload)
+    os.chmod(path, 0o600)
+    files[name] = {"sha256": hashlib.sha256(payload).hexdigest(), "expire_at": expire}
+identity.write_text(json.dumps({
+    "schema": "mastermind.terminal.next_build_key_identity.v1",
+    "source": mode,
+    "files": files,
+}, sort_keys=True, separators=(",", ":")) + "\n", encoding="utf-8")
+os.chmod(identity, 0o600)
+PY_BUILD_KEYS
+  then
+    log "FATAL: could not prepare explicit Next build-key inputs"
+    return 64
+  fi
+  BUILD_KEY_IDENTITY=$identity
+}
+
+run_isolated_terminal_build(){
+  local stage=$1 live_app=$2 stage_root=$3 build_home npm_cache
+  build_home="$stage_root/.build-home"
+  npm_cache="$stage_root/.npm-cache"
+  mkdir -m 0700 "$build_home" "$npm_cache" || return $?
+  log "isolated dependency install: npm ci from accepted package-lock"
+  ( cd "$stage" && env -i \
+      PATH="$CLEAN_BUILD_PATH" \
+      HOME="$build_home" \
+      LANG=C.UTF-8 LC_ALL=C.UTF-8 TZ=UTC \
+      NPM_CONFIG_AUDIT=false NPM_CONFIG_FUND=false \
+      NPM_CONFIG_CACHE="$npm_cache" \
+      NPM_CONFIG_USERCONFIG=/dev/null NPM_CONFIG_GLOBALCONFIG=/dev/null \
+      "$EXPECTED_NPM_PATH" ci )
+  prepare_public_build_env "$live_app" "$stage" "$stage_root/.public-build-env-identity.json"
+  prepare_next_build_keys "$live_app" "$stage" "$stage_root/.next-build-key-identity.json"
+  [ -x "$stage/node_modules/.bin/next" ] || {
+    log "FATAL: accepted dependency install did not provide Next build binary"
+    return 66
+  }
+  log "next build (isolated accepted source; closed process environment; no live data/runtime secret mount) ..."
+  ( cd "$stage" && env -i \
+      PATH="$CLEAN_BUILD_PATH" \
+      HOME="$build_home" \
+      LANG=C.UTF-8 LC_ALL=C.UTF-8 TZ=UTC NODE_ENV=production \
+      NEXT_TELEMETRY_DISABLED=1 \
+      GIT_SHA="$TARGET_SHA" NEXT_DEPLOYMENT_ID="$TARGET_SHA" \
+      "$stage/node_modules/.bin/next" build )
+}
+
+publish_build_receipt(){
+  local helper=$1 stage=$2 stage_root=$3 summary_file parsed
+  [ -f "$helper" ] && [ ! -L "$helper" ] || {
+    log "FATAL: target build receipt helper is missing or symlinked"
+    return 66
+  }
+  prepare_build_receipt_dir || return $?
+  summary_file="$stage_root/.build-receipt-summary.json"
+  if ! python3 -I "$helper" \
+      --terminal-root "$stage" \
+      --receipt-dir "$BUILD_RECEIPT_DIR" \
+      --target-sha "$TARGET_SHA" \
+      --target-tree "$TARGET_TREE" \
+      --accepted-ref-sha "$ACCEPTED_REF_SHA" \
+      --preflight-accepted-sha "$PREFLIGHT_ACCEPTED_SHA" \
+      --preflight-receipt-id "$PREFLIGHT_RECEIPT_ID" \
+      --preflight-source-receipt-id "$PREFLIGHT_SOURCE_RECEIPT_ID" \
+      --preflight-policy-digest "$PREFLIGHT_POLICY_DIGEST" \
+      --node-path "$EXPECTED_NODE_PATH" \
+      --node-version "$BUILD_NODE_VERSION" \
+      --npm-path "$EXPECTED_NPM_PATH" \
+      --npm-version "$BUILD_NPM_VERSION" \
+      --build-os "$BUILD_OS" \
+      --build-arch "$BUILD_ARCH" \
+      --os-id "$BUILD_OS_ID" \
+      --os-version-id "$BUILD_OS_VERSION_ID" \
+      --libc "$BUILD_LIBC" \
+      --public-env-identity "$BUILD_PUBLIC_ENV_IDENTITY" \
+      --build-key-identity "$BUILD_KEY_IDENTITY" \
+      > "$summary_file"; then
+    log "FATAL: build receipt publication failed"
+    return 64
+  fi
+  if ! parsed=$(python3 -I - "$summary_file" "$TARGET_SHA" "$BUILD_RECEIPT_DIR" <<'PY_BUILD_SUMMARY'
+import json
+import re
+import sys
+from pathlib import Path
+summary = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+if summary.get("schema") != "mastermind.terminal.build_receipt.v1" or summary.get("result") != "BUILT":
+    raise SystemExit("invalid build receipt summary")
+if summary.get("target_sha") != sys.argv[2]:
+    raise SystemExit("build receipt target mismatch")
+for key in ("receipt_id", "input_fingerprint", "serving_digest"):
+    if re.fullmatch(r"[0-9a-f]{64}", str(summary.get(key, ""))) is None:
+        raise SystemExit(f"invalid build receipt summary field: {key}")
+receipt_root = Path(sys.argv[3]).resolve(strict=True)
+raw_path = Path(str(summary.get("receipt_path", "")))
+path = raw_path.resolve(strict=True)
+if raw_path != path or path.parent != receipt_root:
+    raise SystemExit("build receipt escaped or aliased its reviewed directory")
+print("\t".join((str(path), summary["receipt_id"], summary["input_fingerprint"], summary["serving_digest"])))
+PY_BUILD_SUMMARY
+  ); then
+    log "FATAL: build receipt readback failed"
+    return 64
+  fi
+  IFS=$'\t' read -r BUILD_RECEIPT_PATH BUILD_RECEIPT_ID BUILD_INPUT_FINGERPRINT BUILD_SERVING_DIGEST <<< "$parsed"
+  log "build receipt BUILT: target=$TARGET_SHA receipt=$BUILD_RECEIPT_PATH input=$BUILD_INPUT_FINGERPRINT serving_digest=$BUILD_SERVING_DIGEST"
+}
+
 # ── deploy generation: the identity and the build it names move together ──────
 # .deployment-id and the .next it describes are ONE generation. Installing the
 # marker before the swap and then rolling back only .next leaves the box serving
@@ -797,6 +1263,7 @@ fi
 TARGET_SHA=$2
 validate_target_sha "$TARGET_SHA" || exit $?
 sanitize_git_environment
+acquire_deploy_lock || exit $?
 
 # 0) CURRENT-GENERATION PREFLIGHT — before fetch/reset/clean/build/source writes.
 if [ ! -d "$SRC/.git" ]; then
@@ -815,79 +1282,59 @@ log "fetching accepted ref origin/$BRANCH for exact target admission ..."
 ACCEPTED_REF="refs/remotes/origin/$BRANCH"
 fetch_accepted_ref "$SRC" origin "$BRANCH" "$ACCEPTED_REF"
 admit_target_sha "$SRC" "$TARGET_SHA" "$ACCEPTED_REF_SHA"
-git -C "$SRC" reset -q --hard "$TARGET_SHA"
-git -C "$SRC" clean -qfd
-FULL_SHA=$(git -C "$SRC" rev-parse HEAD)
-[ "$FULL_SHA" = "$TARGET_SHA" ] || {
-  log "FATAL: canonical checkout did not land on admitted target: wanted=$TARGET_SHA actual=$FULL_SHA"
+verify_build_runtime || exit $?
+TARGET_TREE=$(git -C "$SRC" rev-parse --verify "${TARGET_SHA}^{tree}" 2>/dev/null) || {
+  log "FATAL: admitted target tree is unavailable: $TARGET_SHA"
   exit 65
 }
+[[ "$TARGET_TREE" =~ ^[0-9a-f]{40}$ ]] || {
+  log "FATAL: admitted target tree did not resolve to one full object ID"
+  exit 65
+}
+FULL_SHA=$TARGET_SHA
 SHA=${FULL_SHA:0:12}
-log "node $(node -v)"
-log "GIT-GATED: deploying accepted target $FULL_SHA from origin/$BRANCH (working-tree edits in $APP are IGNORED)"
+log "build runtime admitted: node=$BUILD_NODE_VERSION npm=$BUILD_NPM_VERSION os=$BUILD_OS arch=$BUILD_ARCH distro=$BUILD_OS_ID/$BUILD_OS_VERSION_ID libc=$BUILD_LIBC"
+log "GIT-GATED: building accepted target $FULL_SHA from captured origin/$BRANCH tip $ACCEPTED_REF_SHA"
 
-# 1) deps — from the canonical lockfile. Reuse $APP/node_modules unless the lock changed.
-if [ ! -d "$APP/node_modules" ] || ! cmp -s "$TSRC/package-lock.json" "$APP/package-lock.json" 2>/dev/null; then
-  log "installing deps (npm ci) — lockfile changed"
-  cp -f "$TSRC/package.json" "$TSRC/package-lock.json" "$APP/" 2>/dev/null || true
-  ( cd "$APP" && npm ci || npm install )
-else
-  log "deps unchanged — skipping npm ci"
-fi
-
-# 2) stage: canonical terminal/ source + $APP runtime (node_modules/.env*/public/data — all gitignored)
-# The stage is NESTED: $STAGE_ROOT/terminal is the app, and the gated commit's sibling
-# source dirs (ingest/ hub/ signal_layer/ config/ contracts/) sit beside it, so every
-# `../<dir>` the build follows — Next's type-check walks a terminal/ import into
-# ingest/, and ingest/ imports back into ../terminal/lib — resolves to origin/$BRANCH,
-# not to the live /opt/terminal/<dir> copies (which stay untouched until step 8).
-# Without this a terminal/ test that imports ../../../ingest/... type-checks the OLD
-# sidecar and the build fails on code master never had (deploy of #558, 2026-09-10).
-# scripts/ is deliberately a symlink to the live dir: the prebuild coverage script
-# writes next to its own resolved location, and that must remain the live app.
-STAGE_ROOT=$(mktemp -d "$(dirname "$APP")/.stage.XXXXXX")
+# 2) ISOLATED SOURCE + DEPENDENCIES — build directly from the admitted object.
+# Do not reset/clean the shared canonical checkout yet: its current generation is
+# still the W2A evidence source and another read-only consumer may inspect it.
+STAGE_ROOT=$(mktemp -d "$(dirname "$APP")/.build.XXXXXX")
 trap 'rm -rf "$STAGE_ROOT"' EXIT
+SOURCE_TAR="$STAGE_ROOT/.source.tar"
+git -C "$SRC" archive "$TARGET_SHA" > "$SOURCE_TAR"
+[ -s "$SOURCE_TAR" ] || { log "FATAL: admitted source archive is empty"; exit 66; }
+tar -x -f "$SOURCE_TAR" -C "$STAGE_ROOT"
+rm -f "$SOURCE_TAR"
 STAGE="$STAGE_ROOT/terminal"
-mkdir -p "$STAGE"
-# The gated dirs are archived to a file first: an EMPTY stream (a commit without them, or a
-# stubbed git) must stage the app alone rather than abort — GNU tar rejects empty stdin.
-GATED_TAR="$STAGE_ROOT/.gated.tar"
-git -C "$SRC" archive HEAD -- ingest hub signal_layer config contracts > "$GATED_TAR"
-if [ -s "$GATED_TAR" ]; then
-  tar -x -f "$GATED_TAR" -C "$STAGE_ROOT/"
-else
-  log "gated runtime dirs: nothing archived from origin/$BRANCH — staging the app alone"
-fi
-rm -f "$GATED_TAR"
-ln -s "$(dirname "$APP")/scripts" "$STAGE_ROOT/scripts"
-log "staging origin/$BRANCH:terminal in $STAGE (+ gated ingest/hub/signal_layer/config/contracts beside it)"
-rsync -a --delete \
-  --exclude='.next' --exclude='node_modules' --exclude='.env' --exclude='.env.*' --exclude='public/data' \
-  "$TSRC/" "$STAGE/"
-cp -al "$APP/node_modules" "$STAGE/node_modules"     # hardlink copy: Turbopack rejects out-of-tree symlinks
-cp -a "$APP/.env" "$STAGE/.env" 2>/dev/null || true
-cp -a "$APP/.env.local" "$STAGE/.env.local" 2>/dev/null || true
+[ -f "$STAGE/package.json" ] && [ -f "$STAGE/package-lock.json" ] || {
+  log "FATAL: admitted Terminal package contract is incomplete"
+  exit 66
+}
 printf '%s\n' "$FULL_SHA" > "$STAGE/.deployment-id"
-mkdir -p "$STAGE/public"
-cp -al "$APP/public/data" "$STAGE/public/data" 2>/dev/null || rsync -a "$APP/public/data/" "$STAGE/public/data/" 2>/dev/null || true
+chmod 0644 "$STAGE/.deployment-id"
+run_isolated_terminal_build "$STAGE" "$APP" "$STAGE_ROOT" || exit $?
 
-# 3) build into the staging tree — the slow part; live site stays up throughout.
-log "next build (staging) ..."
-# next.config.ts is evaluated in more than one build worker. Pin both supported
-# deployment-id inputs to the ONE deployed commit so every HTML/RSC response and
-# every static chunk uses the same ?dpl= value. The Date.now fallback is only for
-# ad-hoc local builds.
-( cd "$STAGE" && GIT_SHA="$FULL_SHA" NEXT_DEPLOYMENT_ID="$FULL_SHA" npm run build )
-
-# 4) verify the new build is complete before touching anything live.
+# 3) BUILD PROOF — immutable receipt is required before any live generation or
+# canonical-working-tree convergence effect.
 if [ ! -f "$STAGE/.next/BUILD_ID" ]; then
   log "BUILD FAILED (no BUILD_ID) — live site untouched, aborting"
   exit 1
 fi
 NEW_BUILD_ID=$(cat "$STAGE/.next/BUILD_ID")
-# BUILD_ID is a constant literal while deploymentId is set (see deploy_identity_verified),
-# so print the SHA beside it — the bare BUILD_ID line makes a healthy deploy look like a no-op.
-log "new build OK: BUILD_ID=$NEW_BUILD_ID sha=$FULL_SHA"
+publish_build_receipt "$STAGE_ROOT/ops/terminal_build_receipt.py" "$STAGE" "$STAGE_ROOT" || exit $?
+log "new isolated build OK: BUILD_ID=$NEW_BUILD_ID sha=$FULL_SHA receipt=$BUILD_RECEIPT_ID"
+
+# 4) CANONICAL CHECKOUT CONVERGENCE — only after the build is immutable and
+# receipted.  Later W2B-C owns full transactional runtime-dependency/source effects.
+git -C "$SRC" reset -q --hard "$TARGET_SHA"
+git -C "$SRC" clean -qfd
+FULL_SHA=$(git -C "$SRC" rev-parse HEAD)
+[ "$FULL_SHA" = "$TARGET_SHA" ] || {
+  log "FATAL: canonical checkout did not land on receipted target: wanted=$TARGET_SHA actual=$FULL_SHA"
+  exit 65
+}
+
 
 # 5) Pin the same deployment id for `next start`, which evaluates next.config.ts again.
 #    Install it only after the staged build verifies, immediately before the atomic

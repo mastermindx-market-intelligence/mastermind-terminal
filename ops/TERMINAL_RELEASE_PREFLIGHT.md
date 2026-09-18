@@ -58,10 +58,18 @@ through the existing owner path; subsequent runs may use the same artifacts in
 the currently deployed canonical checkout. This is one lifecycle, not a second
 deployer.
 
-W2B-A proves only current-source cleanliness and exact target admission. It does
-not yet make dependency installation reproducible, bind a build-tree digest,
-make all runtime overlays transactional, or prove deployment, browser behavior,
-rollback, or continuous drift. Those remain later #483 waves.
+W2B-A proves current-source cleanliness and exact target admission. W2B-B adds
+the next bounded gate before live-generation mutation: exact production runtime
+admission, isolated Git-object source materialization, fresh `npm ci`, a closed
+public build environment, explicit Next preview/RSC key identities, and an
+immutable `mastermind.terminal.build_receipt.v1` receipt. The receipt binds the
+complete build-input fingerprint plus BUILD_ID and canonical serving-output
+digest; identical complete inputs with divergent serving output fail closed.
+
+W2B-B does **not** make the inherited live swap/runtime overlays a transactional
+whole-release deployment and is not independently production-adoptable. W2B-C
+still owns live-generation transaction/rollback receipts; W2C still owes served
+browser/runtime identity and continuous drift proof.
 
 ## Inputs and authority
 
@@ -212,10 +220,11 @@ W2A is accepted only after:
 4. the production result is `CLEAN` and its policy digest matches the reviewed artifact;
 5. the immutable receipt is read back from the host.
 
-Even then, the overall #483 program remains active. W2B/W2C must still bind an
-exact target SHA and dependency lock to a reproducible build, capture rollback
-inputs, deploy through the existing owner, prove the served browser/runtime SHA,
-prove rollback, and arm continuous drift detection.
+Even then, the overall #483 program remains active. W2B-B supplies the isolated
+exact-runtime build and immutable build receipt; W2B-C must still make the live
+generation/runtime overlays one provable transaction with durable rollback
+evidence. W2C must then prove the served browser/runtime SHA and arm continuous
+drift detection.
 
 ## Focused verification
 
