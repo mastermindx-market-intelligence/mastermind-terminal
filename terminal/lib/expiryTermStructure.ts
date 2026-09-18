@@ -48,7 +48,7 @@ export interface ExpiryNode {
 
 export interface ExpiryTermStructure {
   lens: ExpiryLens;
-  available: boolean; // true only when at least one row actually carries this lens
+  available: boolean; // gamma/delta are schema-native; vanna/charm require a published row
   splitAvailable: false; // by_expiry never carries a calls/puts split → always Net-only
   nodes: ExpiryNode[]; // sorted nearest-expiration first; empty when no data
   maxAbs: number; // max |net| across nodes (0 when empty)
