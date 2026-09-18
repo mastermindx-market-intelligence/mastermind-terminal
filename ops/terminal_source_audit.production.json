@@ -1,0 +1,163 @@
+{
+  "schema": "mastermind.terminal.source_audit_policy.v1",
+  "accepted_ref": "refs/remotes/origin/master",
+  "deployment_id_file": "/opt/terminal/terminal/.deployment-id",
+  "mappings": [
+    {
+      "name": "terminal-app",
+      "repo_path": "terminal",
+      "live_path": "/opt/terminal/terminal",
+      "allowances": [
+        {
+          "path": ".deployment-id",
+          "classification": "deployment_marker",
+          "expected_live_type": "file"
+        },
+        {
+          "path": ".env",
+          "classification": "host_local_secret_config",
+          "sensitive": true,
+          "expected_live_type": "file"
+        },
+        {
+          "path": ".env.example",
+          "classification": "tracked_non_deployed_template",
+          "allow_tracked_absence": true,
+          "canonical_git_blob": "34ff6bfa76fc463dd20e40c418d253f497bb9c48",
+          "canonical_git_mode": "100644"
+        },
+        {
+          "path": ".env.local",
+          "classification": "host_local_secret_config",
+          "sensitive": true,
+          "expected_live_type": "file"
+        },
+        {
+          "path": ".env.local.bak-20260706",
+          "classification": "host_local_secret_backup",
+          "sensitive": true,
+          "expected_live_type": "file"
+        },
+        {
+          "path": ".next",
+          "classification": "generated_build_artifact",
+          "expected_live_type": "directory"
+        },
+        {
+          "path": ".next.bak",
+          "classification": "rollback_build_artifact",
+          "expected_live_type": "directory"
+        },
+        {
+          "path": "node_modules",
+          "classification": "generated_dependency_tree",
+          "expected_live_type": "directory"
+        },
+        {
+          "path": "public/data",
+          "classification": "host_owned_runtime_market_data",
+          "allow_tracked_runtime_subtree": true,
+          "canonical_git_tree": "b427e879f0e47c2fa9a78909ecbf6717893b16af"
+        }
+      ]
+    },
+    {
+      "name": "terminal-ingest",
+      "repo_path": "ingest",
+      "live_path": "/opt/terminal/ingest",
+      "allowances": [
+        {
+          "path": ".polygon_exchanges.json",
+          "classification": "host_runtime_cache",
+          "expected_live_type": "file"
+        },
+        {
+          "path": ".polygon_us_ref.json",
+          "classification": "host_runtime_cache",
+          "expected_live_type": "file"
+        },
+        {
+          "path": "__pycache__",
+          "classification": "generated_python_cache",
+          "expected_live_type": "directory"
+        },
+        {
+          "path": "backfill_ohlc.py.bak-preintl",
+          "classification": "host_local_backup",
+          "expected_live_type": "file"
+        },
+        {
+          "path": "build_universe.py.bak-preintl",
+          "classification": "host_local_backup",
+          "expected_live_type": "file"
+        },
+        {
+          "path": "dist",
+          "classification": "generated_sidecar_bundle",
+          "expected_live_type": "directory"
+        },
+        {
+          "path": "hk_universe_cache.json",
+          "classification": "host_runtime_cache",
+          "allow_tracked_runtime_file": true,
+          "canonical_git_blob": "4c972d9b8c0e5f41d23a660a98b9653ff0925cbb",
+          "canonical_git_mode": "100644"
+        },
+        {
+          "path": "zh_cache.json",
+          "classification": "host_runtime_cache",
+          "expected_live_type": "file"
+        }
+      ]
+    },
+    {
+      "name": "terminal-scripts",
+      "repo_path": "scripts",
+      "live_path": "/opt/terminal/scripts"
+    },
+    {
+      "name": "terminal-config",
+      "repo_path": "config",
+      "live_path": "/opt/terminal/config"
+    },
+    {
+      "name": "terminal-contracts",
+      "repo_path": "contracts",
+      "live_path": "/opt/terminal/contracts"
+    },
+    {
+      "name": "terminal-hub",
+      "repo_path": "hub",
+      "live_path": "/opt/terminal/hub",
+      "allowances": [
+        {
+          "path": "node_modules",
+          "classification": "generated_dependency_tree",
+          "expected_live_type": "directory"
+        }
+      ]
+    },
+    {
+      "name": "terminal-signal-layer",
+      "repo_path": "signal_layer",
+      "live_path": "/opt/terminal/signal_layer",
+      "allowances": [
+        {
+          "path": "__pycache__",
+          "classification": "generated_python_cache",
+          "expected_live_type": "directory"
+        }
+      ]
+    },
+    {
+      "name": "terminal-data-wrapper",
+      "repo_path": "ops/terminal-data",
+      "live_path": "/usr/local/bin/terminal-data"
+    },
+    {
+      "name": "terminal-build-wrapper",
+      "repo_path": "ops/terminal-build.sh",
+      "live_path": "/opt/terminal/terminal-build.sh"
+    }
+  ]
+}
