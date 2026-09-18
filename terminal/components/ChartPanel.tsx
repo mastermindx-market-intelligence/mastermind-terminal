@@ -4038,32 +4038,34 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         }
       }
 
-      // Persistent price badges also share the chart with the touch fullscreen/context controls and
-      // the price-pane legend. Move the DOM badges inward only where their rectangles intersect that
-      // chrome; their y anchors and every underlying horizontal price line remain exact.
+      // Preserve the Terminal's existing quote-axis contract when Options Levels is absent:
+      // the active quote stays on the true axis edge, so the default right-offset remains space
+      // between the latest candle and its price tag. When option badges actually share this axis,
+      // the persistent quote rows participate in the same chrome-avoidance lane as those badges.
       const obstacles = axisChromeObstacles();
       const containerWidth = wrap.getBoundingClientRect().width;
       let persistentOffset = 1;
-      const persistentRects: Array<{ element: HTMLElement; top: number; height: number; width: number }> = [];
-      if (shown) persistentRects.push({
-        element: tag,
-        top: Number.parseFloat(tag.style.top || "0"),
-        height: PRICE_TAG_ROW_HEIGHT + (currentTimed ? PRICE_TAG_TIME_HEIGHT : 0),
-        width: tag.offsetWidth,
-      });
-      if (extVisible) persistentRects.push({
-        element: extendedTag,
-        top: Number.parseFloat(extendedTag.style.top || "0"),
-        height: PRICE_TAG_ROW_HEIGHT + (extendedTimed ? PRICE_TAG_TIME_HEIGHT : 0),
-        width: extendedTag.offsetWidth,
-      });
-      for (const rect of persistentRects) {
-        persistentOffset = Math.max(persistentOffset, priceAxisOffsetForObstacles({
-          onLeft, containerWidth, top: rect.top, height: rect.height, width: rect.width,
-          baseOffset: persistentOffset, obstacles,
-        }));
+      if (badgeMeta.some((meta) => meta.kind === "option")) {
+        const persistentRects: Array<{ top: number; height: number; width: number }> = [];
+        if (shown) persistentRects.push({
+          top: Number.parseFloat(tag.style.top || "0"),
+          height: PRICE_TAG_ROW_HEIGHT + (currentTimed ? PRICE_TAG_TIME_HEIGHT : 0),
+          width: tag.offsetWidth,
+        });
+        if (extVisible) persistentRects.push({
+          top: Number.parseFloat(extendedTag.style.top || "0"),
+          height: PRICE_TAG_ROW_HEIGHT + (extendedTimed ? PRICE_TAG_TIME_HEIGHT : 0),
+          width: extendedTag.offsetWidth,
+        });
+        for (const rect of persistentRects) {
+          persistentOffset = Math.max(persistentOffset, priceAxisOffsetForObstacles({
+            onLeft, containerWidth, top: rect.top, height: rect.height, width: rect.width,
+            baseOffset: persistentOffset, obstacles,
+          }));
+        }
       }
-      for (const rect of persistentRects) placeOnAxisEdge(rect.element, onLeft, persistentOffset);
+      placeOnAxisEdge(tag, onLeft, persistentOffset);
+      placeOnAxisEdge(extendedTag, onLeft, persistentOffset);
 
       const preparedOptionTags = new Map<string, { node: HTMLDivElement; text: string; width: number }>();
       for (const meta of badgeMeta) {

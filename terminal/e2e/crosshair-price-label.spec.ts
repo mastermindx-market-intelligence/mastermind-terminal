@@ -189,36 +189,26 @@ test("extended hours owns the countdown while the static close and crosshair rem
     const primary = document.querySelector<HTMLElement>(".mm-ptag-val")!.getBoundingClientRect();
     const extendedTag = document.querySelector<HTMLElement>(".mm-exttag")!.getBoundingClientRect();
     const extended = document.querySelector<HTMLElement>(".mm-exttag-val")!.getBoundingClientRect();
-    const obstacles = [...document.querySelectorAll<HTMLElement>(
-      ".chart-fs-float, [data-visual-context] > button[aria-controls], .lg-block",
-    )].filter((node) => {
-      const style = getComputedStyle(node);
-      const box = node.getBoundingClientRect();
-      return style.display !== "none" && style.visibility !== "hidden" && box.width > 0 && box.height > 0;
-    });
-    const intersects = (a: DOMRect, b: DOMRect) =>
-      a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
     return {
       z: getComputedStyle(el).zIndex,
       coversPrimaryNumericLane: hover.left <= primary.left + 0.5 && hover.right >= primary.right - 0.5,
       primaryMovedInward: primaryTag.right < wrap.right - 2,
+      extendedMovedInward: extendedTag.right < wrap.right - 2,
       abovePrimary: Number(getComputedStyle(el).zIndex) > Number(getComputedStyle(document.querySelector<HTMLElement>(".mm-ptag")!).zIndex),
       aboveExtended: Number(getComputedStyle(el).zIndex) > Number(getComputedStyle(document.querySelector<HTMLElement>(".mm-exttag")!).zIndex),
       overlapsARequiredPersistentLane: !(hover.bottom <= primary.top || hover.top >= primary.bottom)
         || !(hover.bottom <= extended.top || hover.top >= extended.bottom),
-      persistentChromeOverlaps: [primaryTag, extendedTag].flatMap((badge, badgeIndex) =>
-        obstacles.filter((obstacle) => intersects(badge, obstacle.getBoundingClientRect()))
-          .map((_, obstacleIndex) => `${badgeIndex}:${obstacleIndex}`)),
     };
   });
   expect(foreground.z).toBe("6");
   expect(foreground.abovePrimary).toBe(true);
   expect(foreground.aboveExtended).toBe(true);
   expect(foreground.overlapsARequiredPersistentLane).toBe(true);
-  // The hover label stays on the true axis edge. On compact charts the persistent quote may move
-  // inward to clear fixed chrome; when it does, covering its numeric lane is no longer required.
-  expect(foreground.coversPrimaryNumericLane || foreground.primaryMovedInward).toBe(true);
-  expect(foreground.persistentChromeOverlaps).toEqual([]);
+  // With Options Levels absent, preserve the Terminal's established axis contract: both quote
+  // badges and the pointer label stay on the true edge, leaving the chart's reserved candle gap intact.
+  expect(foreground.primaryMovedInward).toBe(false);
+  expect(foreground.extendedMovedInward).toBe(false);
+  expect(foreground.coversPrimaryNumericLane).toBe(true);
 });
 
 test("regular hours keeps the bar-close countdown on the current quote", async ({ page }) => {
