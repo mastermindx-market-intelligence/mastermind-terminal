@@ -358,7 +358,7 @@ PY_RECEIPT_BEFORE
 
   if (
     umask 027
-    PYTHONDONTWRITEBYTECODE=1 python3 -E -s "$script" \
+    PYTHONDONTWRITEBYTECODE=1 python3 -B -E -s "$script" \
       --canonical-repo "$canonical_repo" \
       --policy "$policy" \
       --receipt-dir "$receipt_dir"
@@ -600,10 +600,14 @@ fetch_accepted_ref(){
 # then this function proves that the exact requested commit is available and
 # contained by that immutable local observation of the protected branch.
 admit_target_sha(){
-  local repository=$1 target_sha=$2 accepted_ref=$3 resolved
+  local repository=$1 target_sha=$2 accepted_sha=$3 resolved accepted_resolved
   sanitize_git_environment
   refuse_git_replace_refs "$repository" || return $?
   validate_target_sha "$target_sha" || return $?
+  if ! [[ "$accepted_sha" =~ ^[0-9a-f]{40}$ ]]; then
+    log "FATAL: captured accepted-ref observation is not one full lower-case commit"
+    return 65
+  fi
   if ! resolved=$(git -C "$repository" rev-parse --verify "${target_sha}^{commit}" 2>/dev/null); then
     log "FATAL: requested target commit is unavailable after accepted-ref fetch: $target_sha"
     return 65
@@ -612,16 +616,19 @@ admit_target_sha(){
     log "FATAL: requested target did not resolve to the exact full commit: $target_sha"
     return 65
   fi
-  if ! git -C "$repository" rev-parse --verify "${accepted_ref}^{commit}" >/dev/null 2>&1; then
-    log "FATAL: accepted ref is unavailable after fetch: $accepted_ref"
+  if ! accepted_resolved=$(git -C "$repository" rev-parse --verify "${accepted_sha}^{commit}" 2>/dev/null); then
+    log "FATAL: captured accepted-ref commit is unavailable after fetch: $accepted_sha"
     return 65
   fi
-  if ! git -C "$repository" merge-base --is-ancestor "$target_sha" "$accepted_ref"; then
-    log "FATAL: requested target is not contained by accepted ref: $target_sha"
+  if [ "$accepted_resolved" != "$accepted_sha" ]; then
+    log "FATAL: captured accepted-ref observation did not resolve exactly: $accepted_sha"
+    return 65
+  fi
+  if ! git -C "$repository" merge-base --is-ancestor "$target_sha" "$accepted_sha"; then
+    log "FATAL: requested target is not contained by captured accepted-ref observation: target=$target_sha accepted=$accepted_sha"
     return 65
   fi
 }
-
 # ── deploy generation: the identity and the build it names move together ──────
 # .deployment-id and the .next it describes are ONE generation. Installing the
 # marker before the swap and then rolling back only .next leaves the box serving
@@ -807,7 +814,7 @@ run_release_preflight "$PREFLIGHT_SCRIPT" "$PREFLIGHT_POLICY" "$SRC" "$PREFLIGHT
 log "fetching accepted ref origin/$BRANCH for exact target admission ..."
 ACCEPTED_REF="refs/remotes/origin/$BRANCH"
 fetch_accepted_ref "$SRC" origin "$BRANCH" "$ACCEPTED_REF"
-admit_target_sha "$SRC" "$TARGET_SHA" "$ACCEPTED_REF"
+admit_target_sha "$SRC" "$TARGET_SHA" "$ACCEPTED_REF_SHA"
 git -C "$SRC" reset -q --hard "$TARGET_SHA"
 git -C "$SRC" clean -qfd
 FULL_SHA=$(git -C "$SRC" rev-parse HEAD)

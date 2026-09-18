@@ -197,6 +197,57 @@ def _commit(repo: Path, name: str) -> str:
     return _git(repo, "rev-parse", "HEAD")
 
 
+def _real_preflight_owner_fixture(tmp_path: Path) -> tuple[Path, Path, Path, str]:
+    """Build a tiny canonical checkout that executes the real W2A package in-place."""
+    repo = tmp_path / "canonical"
+    live = tmp_path / "live"
+    receipts = tmp_path / "receipts"
+    subprocess.run(["git", "init", "-q", "-b", "master", str(repo)], check=True)
+    _git(repo, "config", "user.email", "test@example.com")
+    _git(repo, "config", "user.name", "Test")
+
+    terminal = repo / "terminal"
+    terminal.mkdir()
+    (terminal / "app.py").write_text("print('canonical')\n", encoding="utf-8")
+    live.mkdir()
+    shutil.copy2(terminal / "app.py", live / "app.py")
+    marker = live / ".deployment-id"
+
+    ops = repo / "ops"
+    ops.mkdir()
+    shutil.copy2(REPO / "ops" / "terminal_release_preflight.py", ops / "terminal_release_preflight.py")
+    shutil.copytree(
+        REPO / "ops" / "terminal_audit",
+        ops / "terminal_audit",
+        ignore=shutil.ignore_patterns("__pycache__", "*.pyc"),
+    )
+    policy = {
+        "schema": "mastermind.terminal.source_audit_policy.v1",
+        "accepted_ref": "refs/remotes/origin/master",
+        "deployment_id_file": str(marker),
+        "mappings": [
+            {
+                "name": "terminal-app",
+                "repo_path": "terminal",
+                "live_path": str(live),
+                "allowances": [
+                    {"path": ".deployment-id", "classification": "deployment_marker"}
+                ],
+            }
+        ],
+    }
+    (ops / "terminal_source_audit.production.json").write_text(
+        json.dumps(policy, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    subprocess.run(["git", "-C", str(repo), "add", "."], check=True)
+    subprocess.run(["git", "-C", str(repo), "commit", "-q", "-m", "fixture"], check=True)
+    accepted = _git(repo, "rev-parse", "HEAD")
+    _git(repo, "update-ref", "refs/remotes/origin/master", accepted)
+    marker.write_text(accepted + "\n", encoding="utf-8")
+    receipts.mkdir(mode=0o750)
+    return repo, ops, receipts, accepted
+
+
 @pytest.mark.parametrize(
     "value",
     ["master", "ABCDEF" * 7, "abc", "0" * 39, "0" * 41, "g" * 40, ""],
@@ -382,10 +433,10 @@ def test_admit_target_accepts_only_commit_contained_by_accepted_ref(
     _git(repo, "checkout", "-q", "master")
 
     good = run_gen(
-        f'admit_target_sha "{repo}" "{accepted}" "refs/heads/master"'
+        f'admit_target_sha "{repo}" "{accepted}" "{accepted}"'
     )
     bad = run_gen(
-        f'admit_target_sha "{repo}" "{unaccepted}" "refs/heads/master"'
+        f'admit_target_sha "{repo}" "{unaccepted}" "{accepted}"'
     )
     assert good.returncode == 0, good.stdout + good.stderr
     assert bad.returncode != 0, "a commit outside the accepted ref was admitted"
@@ -484,11 +535,11 @@ def test_admit_target_refuses_ambient_repository_redirection(tmp_path: Path) -> 
     }
 
     rejected = run_gen(
-        f'admit_target_sha "{legitimate}" "{redirected_sha}" refs/heads/master',
+        f'admit_target_sha "{legitimate}" "{redirected_sha}" "{legitimate_sha}"',
         env=hostile_env,
     )
     accepted = run_gen(
-        f'admit_target_sha "{legitimate}" "{legitimate_sha}" refs/heads/master',
+        f'admit_target_sha "{legitimate}" "{legitimate_sha}" "{legitimate_sha}"',
         env=hostile_env,
     )
 
@@ -551,7 +602,7 @@ def test_admit_target_refuses_repository_with_replace_refs(tmp_path: Path) -> No
     subprocess.run(["git", "-C", str(repo), "replace", target, first], check=True)
 
     result = run_gen(
-        f'admit_target_sha "{repo}" "{target}" refs/heads/master'
+        f'admit_target_sha "{repo}" "{target}" "{target}"'
     )
 
     assert result.returncode == 65, result.stdout + result.stderr
@@ -603,9 +654,57 @@ def test_executable_uses_explicit_fetch_helper_before_target_admission() -> None
     assert 'git -C "$SRC" fetch -q origin "$BRANCH"' not in body
 
 
+def test_executable_binds_admission_to_captured_accepted_ref_sha() -> None:
+    body = _deploy_body(code_only=True)
+    assert 'admit_target_sha "$SRC" "$TARGET_SHA" "$ACCEPTED_REF_SHA"' in body
+    assert 'admit_target_sha "$SRC" "$TARGET_SHA" "$ACCEPTED_REF"' not in body
+
+
+def test_admission_rejects_target_outside_captured_tip_after_ref_moves(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    subprocess.run(["git", "init", "-q", "-b", "master", str(repo)], check=True)
+    _git(repo, "config", "user.email", "test@example.com")
+    _git(repo, "config", "user.name", "Test")
+    first = _commit(repo, "first")
+    observed_tip = _commit(repo, "observed-tip")
+    subprocess.run(
+        ["git", "-C", str(repo), "checkout", "-q", "-b", "later", first],
+        check=True,
+    )
+    outside_observation = _commit(repo, "outside-observation")
+    _git(repo, "checkout", "-q", "master")
+    _git(repo, "update-ref", "refs/remotes/origin/master", observed_tip)
+    _git(repo, "update-ref", "refs/remotes/origin/master", outside_observation)
+
+    result = run_gen(
+        f'admit_target_sha "{repo}" "{outside_observation}" "{observed_tip}"'
+    )
+    assert result.returncode == 65, result.stdout + result.stderr
+
+
+def test_real_w2a_through_owner_never_writes_runtime_bytecode(tmp_path: Path) -> None:
+    repo, ops, receipts, _accepted = _real_preflight_owner_fixture(tmp_path)
+    runtime = ops / "terminal_audit"
+    result = run_gen(
+        f"""
+        select_preflight_artifacts "{os.getuid()}" "{ops}"
+        first=$?
+        [ "$first" -eq 0 ] || exit "$first"
+        run_release_preflight "$PREFLIGHT_SCRIPT" "$PREFLIGHT_POLICY" "{repo}" "{receipts}"
+        rc=$?
+        [ "$rc" -eq 0 ] || exit "$rc"
+        select_preflight_artifacts "{os.getuid()}" "{ops}"
+        """
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert not list(runtime.rglob("__pycache__")), (
+        "real W2A imports mutated the trusted source bundle with Python bytecode"
+    )
+
+
 def test_python_trust_decisions_use_isolated_interpreters() -> None:
     library = SCRIPT.read_text(encoding="utf-8")
-    assert 'python3 -E -s "$script"' in library
+    assert 'python3 -B -E -s "$script"' in library
     assert 'python3 -I - "$stdout_file" "$receipt_dir"' in library
 
 
