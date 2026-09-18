@@ -10,13 +10,14 @@
 # 2026-09-11 merge of H4b (#565) onto master 908540b79 at 35e9f60c8: i18n.tsx re-hashed because this PR drives onboarding/billing quota copy from DEEP_RESEARCH_MONTHLY (obInsider2/obPro1/acsFeatInsider4/acsFeatPro3). No team* key moved; those strings are not rendered on the team-roles surface; no crop recaptured.
 # 2026-09-11 MO-B PL-NI-1 (packet T-PL-NI-1, 您→你 sweep of Terminal master): terminal/lib/i18n.tsx re-hashed — plain-language 您→你 only; layout unchanged; no recapture.
 # 2026-09-13 H4b #565 history-preserving merge of origin/master 3db34e7a8 (PR #580 ledger flip atop #576 / #573 / #572 / #571 / #570): i18n.tsx re-hashed — auto-merge of master's PL-NI-1 (您→你 + DEEP_RESEARCH_MONTHLY template removal) with PR #565's H4b (DEEP_RESEARCH_MONTHLY template re-introduction) yields bytes 130d2ef1. Pinned below. No team* key moved; no crop recaptured.
+# 2026-09-18 Replay temporal authority (single-chart Bar Replay contract): terminal/lib/i18n.tsx re-hashed — replayMultiChartTip/replayNoDataTip added and replayMixedTip removed. Those keys render only on the chart toolbar and the Replay transport rail; no key on this packet's surface moved and no other pinned file changed, so no crop was recaptured.
 layoutFiles:
   terminal/components/settings/SectionTeam.tsx: "fec63ed61b300fbfc6f745b1d8f8a605ad459304f10009bd68023b859b245595"
   terminal/components/settings/SectionTeam.module.css: "924ab5b81d4f0e11ef2138557e92c43a0d1fa21b78622567fb6ccddcf6c146a8"
   terminal/components/settings/SettingsPanel.tsx: "378811617e0de2feed0d8bc1c6e01ae55d8e763204fe0d1c1829bc44fff1e1a4"
   terminal/components/settings/icons.tsx: "3bcda36b25a736f7c957151d3c7cee4e7946967e253c4753f0ac7cdb1e5e4ab2"
   terminal/app/settings.css: "3189163136d943431cbf52e4b5d241c105b695ba5af94c4c2e29151d537b5ef5"
-  terminal/lib/i18n.tsx: "130d2ef17884e818f50cebb89e4ae167d895d24a229ca09d315745d9dc593783"
+  terminal/lib/i18n.tsx: "7c176199ab61a53d55d7ee456294c70c7987264f63c0c4c6e694709f92393a24"
 theme: dark
 languages: [en, zh]
 viewports:
