@@ -1,0 +1,42 @@
+{
+  "schema": "mastermind.stock_intelligence_launcher_proof/v1",
+  "captured_at": "2026-09-18T07:48:38Z",
+  "operation": "terminal-stock-intelligence-launcher-identity-20260918-sol-001",
+  "parent_pr": 614,
+  "parent_head": "73fd07714303ed06b3a957675d5e4d2b09393b48",
+  "parent_semantic_head": "93550cfdd4793cae05f6538ac943d0590e05182c",
+  "claim": "One Stock Intelligence launcher identity with Golden Oracle and Research Desk preserved as subordinate source states.",
+  "red": {
+    "command": "npm test -- lib/__tests__/stockIntelligence.test.tsx",
+    "result": "1 failed, 17 passed",
+    "discriminator": "aria-label began Golden Oracle rather than Stock Intelligence"
+  },
+  "green": {
+    "focused_unit": "18 passed",
+    "stock_intelligence_e2e": "9 passed across desktop/tablet/mobile and EN/ZH",
+    "known_date_responsive_e2e": "3 passed across desktop/tablet/mobile",
+    "full_unit": "337 files passed; 5571 tests passed; 4 todo",
+    "typescript": "PASS",
+    "plain_language_self_check": "PASS; R1-R5b detected",
+    "plain_language_added_lines": "PASS; legacy census only",
+    "diff_check": "PASS"
+  },
+  "screenshots": {
+    "desktop-en-launcher.png": "50f461501235e8a336d0273b5e184b1a8d4760559ec67dc0e1b922743319b554",
+    "tablet-zh-launcher.png": "0fe8d0f204e12e5301a17dc6856bfae26135ce20174d208357f32d8b82176521",
+    "mobile-en-launcher.png": "66f137002283138987d7c79d2ec838120a957dda63f959bc875c686585cc4c07"
+  },
+  "source_sha256": {
+    "terminal/components/SignalButton.tsx": "f7bf9f16ec70a86c54693d3b9a2e42f7b419cc96e0688cc6ccd86fadbb9406a0",
+    "terminal/components/fin/StockIntelligence.module.css": "86ad0c05f7fdf9cbe25f31b506bef461b8273acad0c76b76c43dbb855155d07a",
+    "terminal/e2e/stock-intelligence.spec.ts": "0b8bfa05a9370efafd1c1f64a978184c7af47e4b5044f180582f6272f68f0345",
+    "terminal/e2e/responsive.spec.ts": "82ecfbe0f42d9f2721d1fa4d6032442672cc597de520c4e0e6b370589772f0ec",
+    "terminal/lib/__tests__/stockIntelligence.test.tsx": "145935bf8850027b206472df5beb68d7b870ed3f351adbb59ae8c96e821c102d"
+  },
+  "non_claims": [
+    "This is a local browser/source proof, not production deployment proof.",
+    "No Golden Oracle or Research Desk engine semantics changed.",
+    "No TerminalShell, shared i18n dictionary, provider, score, sizing, forecast, or trade authority changed.",
+    "This stacked slice must not merge ahead of parent PR #614."
+  ]
+}

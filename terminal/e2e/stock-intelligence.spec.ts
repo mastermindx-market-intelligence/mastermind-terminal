@@ -24,6 +24,8 @@ for (const lang of ["en", "zh"]) {
     await page.goto("/terminal?symbol=AAPL"); await response;
     const launcher = page.locator(".sig-btn");
     await expect(launcher).toBeVisible(); await expect(launcher).toHaveAttribute("aria-haspopup", "dialog");
+    await expect(launcher).toHaveAccessibleName(lang === "en" ? /^Stock Intelligence\./ : /^个股情报\./);
+    await expect(launcher.locator("[data-stock-intelligence-launcher-title]")).toHaveText(lang === "en" ? "Stock Intelligence" : "个股情报");
     if ((page.viewportSize()?.width ?? 1440) <= 640) { const box = (await launcher.boundingBox())!; expect(box.y + box.height).toBeLessThanOrEqual(page.viewportSize()!.height + 1); }
     await launcher.click();
     const dialog = page.getByRole("dialog", { name: lang === "en" ? "Stock Intelligence" : "个股情报" });

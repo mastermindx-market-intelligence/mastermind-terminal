@@ -1148,6 +1148,8 @@ test("Golden Oracle shows the session a 3D signal became knowable", async ({ pag
   // One calm launcher retains both source states; the old gradient and floating seam
   // are deliberately gone. This checks the approved interaction, not obsolete chrome.
   await expect(signalButton).toHaveAttribute("aria-haspopup", "dialog");
+  await expect(signalButton).toHaveAccessibleName(zh ? /^个股情报\./ : /^Stock Intelligence\./);
+  await expect(signalButton.locator("[data-stock-intelligence-launcher-title]")).toHaveText(zh ? "个股情报" : "Stock Intelligence");
   await expect(signalButton.locator(".sig-btn-half")).toHaveCount(2);
   await expect(signalButton.locator("button")).toHaveCount(0);
   for (const half of [".sig-btn-go", ".sig-btn-rd"]) {
