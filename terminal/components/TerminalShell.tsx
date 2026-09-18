@@ -6220,7 +6220,6 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
             </div>
           </div>
         </div>
-        <a className="logo-attribution" href="https://logo.dev" target="_blank" rel="noopener">{t("shLogoCredit")}</a>
       </aside>
       </>)}
 
