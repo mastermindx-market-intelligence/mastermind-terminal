@@ -41,6 +41,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 import textwrap
 from pathlib import Path
 
@@ -379,7 +380,7 @@ def test_deploy_restarts_whenever_the_build_moved_even_if_unresolved():
     """Static: the restart must not sit inside the resolved-only branch."""
     lib = _library()
     guard = lib.index('if [ "$DEPLOY_ROLLBACK_MOVED_BUILD" = 1 ]')
-    restart = lib.index("systemctl restart terminal", guard)
+    restart = lib.index('"$EXPECTED_SYSTEMCTL_PATH" restart terminal', guard)
     resolved = lib.index('if [ "$rc" = 0 ]')
     assert restart < resolved, (
         "the rollback restart is gated on the identity being resolved; an unresolved "
@@ -607,6 +608,23 @@ exit 64
         '  case "$*" in *"$FAIL_MV_MATCH"*) echo "mv: simulated failure: $*" >&2; exit 1 ;; esac\n'
         'fi\nexec /bin/mv "$@"\n'
     ),
+    "systemd-run": "#!/bin/sh\nexit 0\n",
+    "rsync": (
+        '#!/bin/sh\n'
+        'src= dst=\n'
+        'for arg in "$@"; do src=$dst; dst=$arg; done\n'
+        '[ -n "$src" ] && [ -n "$dst" ] || exit 64\n'
+        'mkdir -p "$dst"\n'
+        'cp -R "${src%/}/." "$dst/" 2>/dev/null || true\n'
+        'exit 0\n'
+    ),
+    "sha256sum": (
+        '#!/bin/sh\n'
+        'zeros=0000000000000000000000000000000000000000000000000000000000000000\n'
+        'if [ "$#" -eq 0 ]; then cat >/dev/null; printf "%s  -\n" "$zeros"; exit 0; fi\n'
+        'for path in "$@"; do printf "%s  %s\n" "$zeros" "$path"; done\n'
+    ),
+    "npx": "#!/bin/sh\nexit 0\n",
 }
 
 
@@ -729,19 +747,100 @@ print(json.dumps({
         text.replace("/usr/local/bin", str(usrbin))
         .replace("/var/lib/mastermind-terminal", str(receipt_root))
         .replace("/opt/terminal/", f"{root}/")
+        .replace('export PATH="/usr/bin:/bin"', f'export PATH="{bindir}:/usr/bin:/bin"')
         .replace("BUILD_LOCK_DIR=/run/mastermind-terminal", f'BUILD_LOCK_DIR="{lock_dir}"')
         .replace("EXPECTED_LOCK_UID=0", f"EXPECTED_LOCK_UID={os.getuid()}")
         .replace("EXPECTED_LOCK_GID=0", f"EXPECTED_LOCK_GID={os.getgid()}")
+        .replace("EXPECTED_BUILD_UID=980", f"EXPECTED_BUILD_UID={os.getuid()}")
+        .replace("EXPECTED_BUILD_GID=980", f"EXPECTED_BUILD_GID={os.getgid()}")
         .replace('EXPECTED_NODE_PATH="/usr/bin/node"', f'EXPECTED_NODE_PATH="{bindir / "node"}"')
         .replace('EXPECTED_NPM_PATH="/usr/bin/npm"', f'EXPECTED_NPM_PATH="{bindir / "npm"}"')
         .replace('EXPECTED_GETCONF_PATH="/usr/bin/getconf"', f'EXPECTED_GETCONF_PATH="{bindir / "getconf"}"')
-        .replace('EXPECTED_OS_RELEASE_FILE="/etc/os-release"', f'EXPECTED_OS_RELEASE_FILE="{os_release}"')
+        .replace('EXPECTED_UNAME_PATH="/usr/bin/uname"', f'EXPECTED_UNAME_PATH="{bindir / "uname"}"')
+        .replace('EXPECTED_FLOCK_PATH="/usr/bin/flock"', f'EXPECTED_FLOCK_PATH="{bindir / "flock"}"')
+        .replace('EXPECTED_SYSTEMD_RUN_PATH="/usr/bin/systemd-run"', f'EXPECTED_SYSTEMD_RUN_PATH="{bindir / "systemd-run"}"')
+        .replace('EXPECTED_GIT_PATH="/usr/bin/git"', f'EXPECTED_GIT_PATH="{bindir / "git"}"')
+        .replace('EXPECTED_PYTHON_PATH="/usr/bin/python3"', f'EXPECTED_PYTHON_PATH="{sys.executable}"')
+        .replace('EXPECTED_ENV_PATH="/usr/bin/env"', 'EXPECTED_ENV_PATH="/usr/bin/env"')
+        .replace('EXPECTED_TAR_PATH="/usr/bin/tar"', 'EXPECTED_TAR_PATH="/usr/bin/tar"')
+        .replace('EXPECTED_SYSTEMCTL_PATH="/usr/bin/systemctl"', f'EXPECTED_SYSTEMCTL_PATH="{bindir / "systemctl"}"')
+        .replace('EXPECTED_CURL_PATH="/usr/bin/curl"', f'EXPECTED_CURL_PATH="{bindir / "curl"}"')
+        .replace('EXPECTED_RSYNC_PATH="/usr/bin/rsync"', f'EXPECTED_RSYNC_PATH="{bindir / "rsync"}"')
+        .replace('EXPECTED_SHA256SUM_PATH="/usr/bin/sha256sum"', f'EXPECTED_SHA256SUM_PATH="{bindir / "sha256sum"}"')
+        .replace('EXPECTED_NPX_PATH="/usr/bin/npx"', f'EXPECTED_NPX_PATH="{bindir / "npx"}"')
+        .replace('EXPECTED_OS_RELEASE_FILE="/usr/lib/os-release"', f'EXPECTED_OS_RELEASE_FILE="{os_release}"')
         .replace('CLEAN_BUILD_PATH="/usr/bin:/bin"', f'CLEAN_BUILD_PATH="{bindir}:/usr/bin:/bin"')
         .replace(
             'select_preflight_artifacts 0 "$AUTHORING_OPS_DIR" "$SRC/ops"',
             f'select_preflight_artifacts {os.getuid()} "$AUTHORING_OPS_DIR" "$SRC/ops"',
         )
     )
+    guard = 'if [ "${BASH_SOURCE[0]}" != "$0" ]; then\n  return 0\nfi\n'
+    assert guard in text, "sourceable seam vanished from copied deploy owner"
+    sandbox_overrides = textwrap.dedent(
+        """
+
+        # TEST-ONLY integration seam: W2B-B itself is covered by its dedicated
+        # projection/receipt/sandbox suites. These overrides keep this older suite
+        # focused on the post-build generation swap, health and rollback path.
+        verify_build_runtime(){ :; }
+        verify_build_principal(){ :; }
+        fetch_accepted_ref(){
+          printf 'git fetch %s %s\n' "$2" "$3" >> "$MMX_EFFECT_LOG"
+          ACCEPTED_REF_SHA="$FAKE_SHA"
+          return 0
+        }
+        admit_target_sha(){
+          printf 'git admit %s\n' "$2" >> "$MMX_EFFECT_LOG"
+          return 0
+        }
+        prepare_build_roots(){
+          BUILD_TARGET_ROOT="@ROOT@/.build.$TARGET_TREE"
+          rm -rf "$BUILD_TARGET_ROOT"
+          BUILD_SOURCE_ROOT="$BUILD_TARGET_ROOT/source"
+          BUILD_DEPS_ROOT="$BUILD_TARGET_ROOT/deps"
+          BUILD_HOME_DIR="$BUILD_TARGET_ROOT/home"
+          BUILD_NPM_CACHE="$BUILD_TARGET_ROOT/cache"
+          BUILD_TMP_DIR="$BUILD_TARGET_ROOT/tmp"
+          BUILD_EVIDENCE_DIR="$BUILD_TARGET_ROOT/evidence"
+          mkdir -p "$BUILD_SOURCE_ROOT" "$BUILD_DEPS_ROOT" "$BUILD_HOME_DIR" \
+            "$BUILD_NPM_CACHE" "$BUILD_TMP_DIR" "$BUILD_EVIDENCE_DIR"
+        }
+        bootstrap_controller_evidence(){ :; }
+        materialize_build_projection(){
+          mkdir -p "$BUILD_SOURCE_ROOT/terminal"
+          cp -R "$FAKE_REPO_SOURCE/terminal/." "$BUILD_SOURCE_ROOT/terminal/"
+          BUILD_PROJECTION_MANIFEST="$BUILD_EVIDENCE_DIR/projection-manifest.json"
+          printf '{}\n' > "$BUILD_PROJECTION_MANIFEST"
+          BUILD_PROJECTION_DIGEST=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+        }
+        run_isolated_terminal_build(){
+          local stage=$1
+          mkdir -p "$stage/.next/server" "$stage/.next/static" "$stage/.next/cache"
+          printf '%s\n' "$FAKE_BUILD_ID" > "$stage/.next/BUILD_ID"
+          printf '%s\n' '{"files":[".next/routes-manifest.json"]}' > "$stage/.next/required-server-files.json"
+          printf '%s\n' '{"version":3}' > "$stage/.next/routes-manifest.json"
+          printf '%s\n' server > "$stage/.next/server/app.js"
+          printf '%s\n' static > "$stage/.next/static/chunk.js"
+          BUILD_PUBLIC_ENV_IDENTITY="$BUILD_EVIDENCE_DIR/public-build-env-identity.json"
+          BUILD_KEY_IDENTITY="$BUILD_EVIDENCE_DIR/next-build-key-identity.json"
+          BUILD_SANDBOX_IDENTITY="$BUILD_EVIDENCE_DIR/build-sandbox-identity.json"
+          printf '{}\n' > "$BUILD_PUBLIC_ENV_IDENTITY"
+          printf '{}\n' > "$BUILD_KEY_IDENTITY"
+          printf '{}\n' > "$BUILD_SANDBOX_IDENTITY"
+        }
+        publish_build_receipt(){
+          mkdir -p "$BUILD_RECEIPT_DIR"
+          BUILD_RECEIPT_PATH="$BUILD_RECEIPT_DIR/sandbox-build-receipt.json"
+          printf '%s\n' '{"schema":"sandbox.build-receipt.v1"}' > "$BUILD_RECEIPT_PATH"
+          chmod 0640 "$BUILD_RECEIPT_PATH"
+          BUILD_RECEIPT_ID=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+          BUILD_INPUT_FINGERPRINT=cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+          BUILD_SERVING_DIGEST=dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+        }
+        """
+    ).replace("@ROOT@", str(root))
+    text = text.replace(guard, guard + sandbox_overrides, 1)
     assert "/opt/terminal" not in text, "a real deploy path survived the rewrite"
     assert "/var/lib/mastermind-terminal" not in text, "a real receipt path survived the rewrite"
     assert "BUILD_LOCK_DIR=/run/mastermind-terminal" not in text, "a real lock path survived the rewrite"
@@ -934,8 +1033,8 @@ def test_mutant_unguarded_restart_is_caught(tmp_path):
     """Remove the restart guard -> `set -e` must abort before rollback again."""
     mutant = _mutate(
         tmp_path,
-        'if ! systemctl restart terminal; then',
-        'systemctl restart terminal  # MUTANT: unguarded, set -e aborts\nif false; then',
+        'if ! "$EXPECTED_SYSTEMCTL_PATH" restart terminal; then',
+        '"$EXPECTED_SYSTEMCTL_PATH" restart terminal  # MUTANT: unguarded, set -e aborts\nif false; then',
     )
     proc, app = run_deploy(tmp_path, script=mutant, FAIL_RESTART="1")
     assert proc.returncode != 0
@@ -995,7 +1094,7 @@ def test_every_failure_path_routes_through_the_single_abort():
     assert "deploy_generation_commit" in body, "rollback artifacts are never committed away"
     # the three failure points that previously aborted past rollback
     assert 'if ! mv "$STAGE/.next" "$APP/.next"; then' in body, "swap move is unguarded"
-    assert "if ! systemctl restart terminal; then" in body, "restart is unguarded"
+    assert 'if ! "$EXPECTED_SYSTEMCTL_PATH" restart terminal; then' in body, "restart is unguarded"
     assert body.count("deploy_generation_abort") >= 4, (
         "not every guarded failure routes into the abort path"
     )

@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/bash
 # GIT-GATED zero-downtime build for the Mastermind Terminal (Next.js).
 #
 # ┌────────────────────────────────────────────────────────────────────────────┐
@@ -35,6 +35,7 @@
 # The live swap/rollback/runtime-overlay tail is still the inherited owner and is
 # NOT independently production-adopted by W2B-B; W2B-C owns that transaction proof.
 set -euo pipefail
+export PATH="/usr/bin:/bin"
 
 APP=/opt/terminal/terminal
 SRC=/opt/terminal/.gitsrc            # canonical git checkout (read-only deploy key: github-mmterminal)
@@ -43,6 +44,10 @@ BRANCH=master
 AUTHORING_OPS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 PREFLIGHT_RECEIPT_DIR=/var/lib/mastermind-terminal/release-preflight
 BUILD_RECEIPT_DIR=/var/lib/mastermind-terminal/build-receipts
+BUILD_WORK_ROOT_BASE=/opt/terminal/.build-work
+BUILD_EVIDENCE_ROOT_BASE=/var/lib/mastermind-terminal/build-evidence
+BUILD_PROJECTION_HELPER="$AUTHORING_OPS_DIR/terminal_build_projection.py"
+BUILD_PROJECTION_POLICY="$AUTHORING_OPS_DIR/terminal_build_projection.json"
 BUILD_LOCK_DIR=/run/mastermind-terminal
 BUILD_LOCK_FILE="$BUILD_LOCK_DIR/deploy.lock"
 EXPECTED_LOCK_UID=0
@@ -53,10 +58,28 @@ EXPECTED_NODE_VERSION="v20.20.2"
 EXPECTED_NPM_VERSION="10.8.2"
 EXPECTED_BUILD_OS="Linux"
 EXPECTED_BUILD_ARCH="x86_64"
-EXPECTED_OS_RELEASE_FILE="/etc/os-release"
+EXPECTED_OS_RELEASE_FILE="/usr/lib/os-release"
 EXPECTED_OS_ID="ubuntu"
 EXPECTED_OS_VERSION_ID="24.04"
 EXPECTED_GETCONF_PATH="/usr/bin/getconf"
+EXPECTED_UNAME_PATH="/usr/bin/uname"
+EXPECTED_FLOCK_PATH="/usr/bin/flock"
+EXPECTED_SYSTEMD_RUN_PATH="/usr/bin/systemd-run"
+EXPECTED_GIT_PATH="/usr/bin/git"
+EXPECTED_PYTHON_PATH="/usr/bin/python3"
+EXPECTED_ENV_PATH="/usr/bin/env"
+EXPECTED_TAR_PATH="/usr/bin/tar"
+EXPECTED_SYSTEMCTL_PATH="/usr/bin/systemctl"
+EXPECTED_CURL_PATH="/usr/bin/curl"
+EXPECTED_RSYNC_PATH="/usr/bin/rsync"
+EXPECTED_SHA256SUM_PATH="/usr/bin/sha256sum"
+EXPECTED_NPX_PATH="/usr/bin/npx"
+EXPECTED_BUILD_USER="mastermind-terminal-build"
+EXPECTED_BUILD_GROUP="mastermind-terminal-build"
+EXPECTED_BUILD_UID=980
+EXPECTED_BUILD_GID=980
+EXPECTED_BUILD_HOME="/nonexistent"
+EXPECTED_BUILD_SHELL="/usr/sbin/nologin"
 EXPECTED_LIBC="glibc 2.39"
 CLEAN_BUILD_PATH="/usr/bin:/bin"
 BUILD_NODE_VERSION=
@@ -68,10 +91,20 @@ BUILD_OS_VERSION_ID=
 BUILD_LIBC=
 BUILD_PUBLIC_ENV_IDENTITY=
 BUILD_KEY_IDENTITY=
+BUILD_SANDBOX_IDENTITY=
 BUILD_RECEIPT_PATH=
 BUILD_RECEIPT_ID=
 BUILD_INPUT_FINGERPRINT=
 BUILD_SERVING_DIGEST=
+BUILD_TARGET_ROOT=
+BUILD_SOURCE_ROOT=
+BUILD_DEPS_ROOT=
+BUILD_HOME_DIR=
+BUILD_NPM_CACHE=
+BUILD_TMP_DIR=
+BUILD_EVIDENCE_DIR=
+BUILD_PROJECTION_MANIFEST=
+BUILD_PROJECTION_DIGEST=
 TARGET_TREE=
 PREFLIGHT_SCRIPT=
 PREFLIGHT_POLICY=
@@ -87,7 +120,7 @@ ACCEPTED_REF_BEFORE=
 ACCEPTED_REF_SHA=
 log(){ echo "[build] $*"; }
 
-# The deploy owner never accepts inherited Git routing or policy. `git -C`
+# The deploy owner never accepts inherited Git routing or policy. `"$EXPECTED_GIT_PATH" -C`
 # does not override GIT_DIR/GIT_WORK_TREE, and replacement/config variables can
 # change object/ref interpretation. Remove the complete ambient namespace, then
 # reinstate only narrow noninteractive/no-replacement settings shared by every
@@ -141,7 +174,7 @@ select_preflight_artifacts(){
     [ -f "$script" ] && [ ! -L "$script" ] || continue
     [ -f "$policy" ] && [ ! -L "$policy" ] || continue
     [ -d "$runtime" ] && [ ! -L "$runtime" ] || continue
-    if ! evidence=$(python3 -I - "$directory" "$expected_uid" <<'PY_BUNDLE'
+    if ! evidence=$("$EXPECTED_PYTHON_PATH" -I - "$directory" "$expected_uid" <<'PY_BUNDLE'
 import hashlib
 import json
 import os
@@ -330,7 +363,7 @@ run_release_preflight(){
   stderr_file="$temporary/stderr.log"
   before_manifest="$temporary/before.json"
 
-  if ! expected_policy_digest=$(python3 -I - "$policy" <<'PY_POLICY_DIGEST'
+  if ! expected_policy_digest=$("$EXPECTED_PYTHON_PATH" -I - "$policy" <<'PY_POLICY_DIGEST'
 import hashlib
 import json
 import sys
@@ -368,7 +401,7 @@ PY_POLICY_DIGEST
   fi
   PREFLIGHT_POLICY_DIGEST=$expected_policy_digest
 
-  if ! python3 -I - "$receipt_dir" "$before_manifest" <<'PY_RECEIPT_BEFORE'
+  if ! "$EXPECTED_PYTHON_PATH" -I - "$receipt_dir" "$before_manifest" <<'PY_RECEIPT_BEFORE'
 import json
 import os
 import stat
@@ -392,7 +425,7 @@ PY_RECEIPT_BEFORE
 
   if (
     umask 027
-    PYTHONDONTWRITEBYTECODE=1 python3 -B -E -s "$script" \
+    PYTHONDONTWRITEBYTECODE=1 "$EXPECTED_PYTHON_PATH" -B -E -s "$script" \
       --canonical-repo "$canonical_repo" \
       --policy "$policy" \
       --receipt-dir "$receipt_dir"
@@ -411,7 +444,7 @@ PY_RECEIPT_BEFORE
     return "$rc"
   fi
 
-  if ! parsed=$(python3 -I - "$stdout_file" "$receipt_dir" "$before_manifest" \
+  if ! parsed=$("$EXPECTED_PYTHON_PATH" -I - "$stdout_file" "$receipt_dir" "$before_manifest" \
     "$expected_policy_digest" <<'PY_RECEIPT'
 import hashlib
 import json
@@ -598,7 +631,7 @@ PY_RECEIPT
 
 refuse_git_replace_refs(){
   local repository=$1 replacement_refs
-  replacement_refs=$(git -C "$repository" for-each-ref --format='%(refname)' refs/replace/) \
+  replacement_refs=$("$EXPECTED_GIT_PATH" -C "$repository" for-each-ref --format='%(refname)' refs/replace/) \
     || return $?
   if [ -n "$replacement_refs" ]; then
     log "FATAL: canonical checkout contains forbidden refs/replace entries"
@@ -612,12 +645,12 @@ fetch_accepted_ref(){
   local repository=$1 remote=$2 branch=$3 accepted_ref=$4 observed
   sanitize_git_environment
   refuse_git_replace_refs "$repository" || return $?
-  ACCEPTED_REF_BEFORE=$(git -C "$repository" rev-parse --verify \
+  ACCEPTED_REF_BEFORE=$("$EXPECTED_GIT_PATH" -C "$repository" rev-parse --verify \
     "${accepted_ref}^{commit}" 2>/dev/null || printf '<absent>')
-  git -C "$repository" fetch -q --no-tags "$remote" \
+  "$EXPECTED_GIT_PATH" -C "$repository" fetch -q --no-tags "$remote" \
     "+refs/heads/$branch:$accepted_ref" || return $?
   refuse_git_replace_refs "$repository" || return $?
-  observed=$(git -C "$repository" rev-parse --verify \
+  observed=$("$EXPECTED_GIT_PATH" -C "$repository" rev-parse --verify \
     "${accepted_ref}^{commit}" 2>/dev/null) || {
       log "FATAL: accepted ref is unavailable after explicit fetch: $accepted_ref"
       return 65
@@ -642,7 +675,7 @@ admit_target_sha(){
     log "FATAL: captured accepted-ref observation is not one full lower-case commit"
     return 65
   fi
-  if ! resolved=$(git -C "$repository" rev-parse --verify "${target_sha}^{commit}" 2>/dev/null); then
+  if ! resolved=$("$EXPECTED_GIT_PATH" -C "$repository" rev-parse --verify "${target_sha}^{commit}" 2>/dev/null); then
     log "FATAL: requested target commit is unavailable after accepted-ref fetch: $target_sha"
     return 65
   fi
@@ -650,7 +683,7 @@ admit_target_sha(){
     log "FATAL: requested target did not resolve to the exact full commit: $target_sha"
     return 65
   fi
-  if ! accepted_resolved=$(git -C "$repository" rev-parse --verify "${accepted_sha}^{commit}" 2>/dev/null); then
+  if ! accepted_resolved=$("$EXPECTED_GIT_PATH" -C "$repository" rev-parse --verify "${accepted_sha}^{commit}" 2>/dev/null); then
     log "FATAL: captured accepted-ref commit is unavailable after fetch: $accepted_sha"
     return 65
   fi
@@ -658,7 +691,7 @@ admit_target_sha(){
     log "FATAL: captured accepted-ref observation did not resolve exactly: $accepted_sha"
     return 65
   fi
-  if ! git -C "$repository" merge-base --is-ancestor "$target_sha" "$accepted_sha"; then
+  if ! "$EXPECTED_GIT_PATH" -C "$repository" merge-base --is-ancestor "$target_sha" "$accepted_sha"; then
     log "FATAL: requested target is not contained by captured accepted-ref observation: target=$target_sha accepted=$accepted_sha"
     return 65
   fi
@@ -667,7 +700,7 @@ admit_target_sha(){
 # a kernel mutex rendezvous; it carries no lifecycle or release state.
 verify_lock_metadata(){
   local path=$1 kind=$2 mode=$3
-  python3 -I - "$path" "$kind" "$mode" "$EXPECTED_LOCK_UID" "$EXPECTED_LOCK_GID" <<'PY_LOCK_META'
+  "$EXPECTED_PYTHON_PATH" -I - "$path" "$kind" "$mode" "$EXPECTED_LOCK_UID" "$EXPECTED_LOCK_GID" <<'PY_LOCK_META'
 import os
 import stat
 import sys
@@ -728,42 +761,74 @@ acquire_deploy_lock(){
     log "FATAL: deploy lock file changed during open: $BUILD_LOCK_FILE"
     return 73
   }
-  if ! flock -n 9; then
+  if ! "$EXPECTED_FLOCK_PATH" -n 9; then
     log "FATAL: another Terminal deploy owner already holds $BUILD_LOCK_FILE"
     return 75
   fi
 }
 
 verify_build_runtime(){
-  local node_path npm_path getconf_path
-  node_path=$(command -v node 2>/dev/null) || return 69
-  npm_path=$(command -v npm 2>/dev/null) || return 69
-  getconf_path=$(command -v getconf 2>/dev/null) || return 69
-  if [ "$node_path" != "$EXPECTED_NODE_PATH" ] \
-    || [ "$npm_path" != "$EXPECTED_NPM_PATH" ] \
-    || [ "$getconf_path" != "$EXPECTED_GETCONF_PATH" ]; then
-    log "FATAL: build runtime path mismatch: node=$node_path npm=$npm_path getconf=$getconf_path"
-    log "       required: node=$EXPECTED_NODE_PATH npm=$EXPECTED_NPM_PATH getconf=$EXPECTED_GETCONF_PATH"
-    return 69
-  fi
+  local runtime_env os_values
+  for runtime_path in     "$EXPECTED_NODE_PATH" "$EXPECTED_NPM_PATH" "$EXPECTED_GETCONF_PATH"     "$EXPECTED_UNAME_PATH" "$EXPECTED_FLOCK_PATH" "$EXPECTED_SYSTEMD_RUN_PATH"     "$EXPECTED_GIT_PATH" "$EXPECTED_PYTHON_PATH" "$EXPECTED_ENV_PATH"     "$EXPECTED_TAR_PATH" "$EXPECTED_SYSTEMCTL_PATH" "$EXPECTED_CURL_PATH"     "$EXPECTED_RSYNC_PATH" "$EXPECTED_SHA256SUM_PATH" "$EXPECTED_NPX_PATH"; do
+    [ -x "$runtime_path" ] && [ -f "$runtime_path" ] && [ ! -L "$runtime_path" ] || {
+      log "FATAL: required build runtime is unavailable or aliased: $runtime_path"
+      return 69
+    }
+  done
   [ -f "$EXPECTED_OS_RELEASE_FILE" ] && [ ! -L "$EXPECTED_OS_RELEASE_FILE" ] || {
     log "FATAL: build OS release identity is unavailable or aliased: $EXPECTED_OS_RELEASE_FILE"
     return 69
   }
-  BUILD_NODE_VERSION=$("$EXPECTED_NODE_PATH" --version 2>/dev/null) || return 69
-  BUILD_NPM_VERSION=$("$EXPECTED_NPM_PATH" --version 2>/dev/null) || return 69
-  BUILD_OS=$(uname -s 2>/dev/null) || return 69
-  BUILD_ARCH=$(uname -m 2>/dev/null) || return 69
-  BUILD_OS_ID=$( ( . "$EXPECTED_OS_RELEASE_FILE"; printf '%s' "$ID" ) ) || return 69
-  BUILD_OS_VERSION_ID=$( ( . "$EXPECTED_OS_RELEASE_FILE"; printf '%s' "$VERSION_ID" ) ) || return 69
-  BUILD_LIBC=$("$EXPECTED_GETCONF_PATH" GNU_LIBC_VERSION 2>/dev/null) || return 69
-  if [ "$BUILD_NODE_VERSION" != "$EXPECTED_NODE_VERSION" ] \
-    || [ "$BUILD_NPM_VERSION" != "$EXPECTED_NPM_VERSION" ] \
-    || [ "$BUILD_OS" != "$EXPECTED_BUILD_OS" ] \
-    || [ "$BUILD_ARCH" != "$EXPECTED_BUILD_ARCH" ] \
-    || [ "$BUILD_OS_ID" != "$EXPECTED_OS_ID" ] \
-    || [ "$BUILD_OS_VERSION_ID" != "$EXPECTED_OS_VERSION_ID" ] \
-    || [ "$BUILD_LIBC" != "$EXPECTED_LIBC" ]; then
+  runtime_env=(env -i PATH="$CLEAN_BUILD_PATH" HOME=/nonexistent LANG=C.UTF-8 LC_ALL=C.UTF-8 TZ=UTC)
+  BUILD_NODE_VERSION=$("${runtime_env[@]}" "$EXPECTED_NODE_PATH" --version 2>/dev/null) || return 69
+  BUILD_NPM_VERSION=$("${runtime_env[@]}" "$EXPECTED_NPM_PATH" --version 2>/dev/null) || return 69
+  BUILD_OS=$("${runtime_env[@]}" "$EXPECTED_UNAME_PATH" -s 2>/dev/null) || return 69
+  BUILD_ARCH=$("${runtime_env[@]}" "$EXPECTED_UNAME_PATH" -m 2>/dev/null) || return 69
+  if ! os_values=$("${runtime_env[@]}" "$EXPECTED_PYTHON_PATH" -I - "$EXPECTED_OS_RELEASE_FILE" <<'PY_OS_RELEASE'
+import os
+import re
+import stat
+import sys
+from pathlib import Path
+path = Path(sys.argv[1])
+expected = os.lstat(path)
+if stat.S_ISLNK(expected.st_mode) or not stat.S_ISREG(expected.st_mode):
+    raise SystemExit("os-release must be a real regular file")
+if expected.st_uid != 0 or expected.st_gid != 0 or expected.st_mode & 0o022:
+    raise SystemExit("os-release custody is invalid")
+flags = os.O_RDONLY | getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NOFOLLOW", 0)
+fd = os.open(path, flags)
+try:
+    before = os.fstat(fd)
+    payload = os.read(fd, 65537)
+    after = os.fstat(fd)
+finally:
+    os.close(fd)
+identity = lambda item: (item.st_dev, item.st_ino, item.st_mode, item.st_uid, item.st_gid, item.st_size, item.st_mtime_ns)
+if len(payload) > 65536 or identity(before) != identity(after):
+    raise SystemExit("os-release changed or exceeded its bound")
+values = {}
+for raw in payload.decode("utf-8").splitlines():
+    if not raw or raw.startswith("#") or "=" not in raw:
+        continue
+    key, value = raw.split("=", 1)
+    if key not in {"ID", "VERSION_ID"}:
+        continue
+    value = value.strip().strip('"')
+    if not re.fullmatch(r"[A-Za-z0-9._-]+", value):
+        raise SystemExit("os-release identity value is invalid")
+    values[key] = value
+if set(values) != {"ID", "VERSION_ID"}:
+    raise SystemExit("os-release identity is incomplete")
+print(values["ID"] + "	" + values["VERSION_ID"])
+PY_OS_RELEASE
+  ); then
+    log "FATAL: build OS release identity could not be read safely"
+    return 69
+  fi
+  IFS=$'	' read -r BUILD_OS_ID BUILD_OS_VERSION_ID <<< "$os_values"
+  BUILD_LIBC=$("${runtime_env[@]}" "$EXPECTED_GETCONF_PATH" GNU_LIBC_VERSION 2>/dev/null) || return 69
+  if [ "$BUILD_NODE_VERSION" != "$EXPECTED_NODE_VERSION" ]     || [ "$BUILD_NPM_VERSION" != "$EXPECTED_NPM_VERSION" ]     || [ "$BUILD_OS" != "$EXPECTED_BUILD_OS" ]     || [ "$BUILD_ARCH" != "$EXPECTED_BUILD_ARCH" ]     || [ "$BUILD_OS_ID" != "$EXPECTED_OS_ID" ]     || [ "$BUILD_OS_VERSION_ID" != "$EXPECTED_OS_VERSION_ID" ]     || [ "$BUILD_LIBC" != "$EXPECTED_LIBC" ]; then
     log "FATAL: build runtime mismatch: node=$BUILD_NODE_VERSION npm=$BUILD_NPM_VERSION os=$BUILD_OS arch=$BUILD_ARCH distro=$BUILD_OS_ID/$BUILD_OS_VERSION_ID libc=$BUILD_LIBC"
     log "       required: node=$EXPECTED_NODE_VERSION npm=$EXPECTED_NPM_VERSION os=$EXPECTED_BUILD_OS arch=$EXPECTED_BUILD_ARCH distro=$EXPECTED_OS_ID/$EXPECTED_OS_VERSION_ID libc=$EXPECTED_LIBC"
     return 69
@@ -780,11 +845,12 @@ prepare_build_receipt_dir(){
 # staging .env.production.local consumed by Next.
 prepare_public_build_env(){
   local live_app=$1 stage=$2 identity=$3
-  if ! python3 -I - "$live_app" "$stage/.env.production.local" "$identity" <<'PY_PUBLIC_ENV'
+  if ! "$EXPECTED_PYTHON_PATH" -I - "$live_app" "$stage/.env.production.local" "$identity" <<'PY_PUBLIC_ENV'
 import hashlib
 import json
 import os
 import re
+import stat
 import sys
 from pathlib import Path
 
@@ -825,13 +891,32 @@ def parse_value(raw: str, source: Path, line_no: int) -> str:
 
 for name in (".env", ".env.local"):
     source = live / name
-    if not source.exists():
+    if not os.path.lexists(source):
         continue
-    if source.is_symlink() or not source.is_file():
+    expected = os.lstat(source)
+    if stat.S_ISLNK(expected.st_mode) or not stat.S_ISREG(expected.st_mode):
         raise ValueError(f"live env source must be a real file: {source}")
-    if source.stat().st_size > 1024 * 1024:
+    if expected.st_size > 1024 * 1024:
         raise ValueError(f"live env source exceeds size bound: {source}")
-    for line_no, raw in enumerate(source.read_text(encoding="utf-8").splitlines(), 1):
+    flags = os.O_RDONLY | getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NOFOLLOW", 0)
+    fd = os.open(source, flags)
+    try:
+        before = os.fstat(fd)
+        payload = os.read(fd, 1024 * 1024 + 1)
+        after = os.fstat(fd)
+    finally:
+        os.close(fd)
+    identity_tuple = lambda item: (
+        item.st_dev, item.st_ino, item.st_mode, item.st_uid, item.st_gid,
+        item.st_size, item.st_mtime_ns,
+    )
+    if len(payload) > 1024 * 1024 or identity_tuple(expected) != identity_tuple(before) or identity_tuple(before) != identity_tuple(after):
+        raise ValueError(f"live env source changed while read: {source}")
+    try:
+        source_text = payload.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise ValueError(f"live env source must be UTF-8: {source}") from exc
+    for line_no, raw in enumerate(source_text.splitlines(), 1):
         line = raw.strip()
         if not line or line.startswith("#"):
             continue
@@ -885,7 +970,7 @@ PY_PUBLIC_ENV
 # move with .next; there is no second secret database/store.
 prepare_next_build_keys(){
   local live_app=$1 stage=$2 identity=$3
-  if ! python3 -I - "$live_app/.next/cache" "$stage/.next/cache" "$identity" <<'PY_BUILD_KEYS'
+  if ! "$EXPECTED_PYTHON_PATH" -I - "$live_app/.next/cache" "$stage/.next/cache" "$identity" <<'PY_BUILD_KEYS'
 import base64
 import hashlib
 import json
@@ -905,29 +990,80 @@ rotation_expire = int(time.time() * 1000) + 14 * 24 * 60 * 60 * 1000
 hex32 = re.compile(r"^[0-9a-f]{32}$")
 hex64 = re.compile(r"^[0-9a-f]{64}$")
 
-def read_real(path: Path):
+def metadata_identity(item):
+    return (
+        item.st_dev, item.st_ino, item.st_mode, item.st_uid, item.st_gid,
+        item.st_size, item.st_mtime_ns,
+    )
+
+
+def open_real_directory(path: Path):
     expected = os.lstat(path)
+    if stat.S_ISLNK(expected.st_mode) or not stat.S_ISDIR(expected.st_mode):
+        raise ValueError("cache source directory is not a real directory")
+    if expected.st_uid != os.geteuid() or expected.st_gid != os.getegid():
+        raise ValueError("untrusted cache source directory owner/group")
+    if expected.st_mode & (stat.S_IWGRP | stat.S_IWOTH):
+        raise ValueError("untrusted cache source directory metadata")
+    flags = (
+        os.O_RDONLY | getattr(os, "O_CLOEXEC", 0)
+        | getattr(os, "O_DIRECTORY", 0) | getattr(os, "O_NOFOLLOW", 0)
+    )
+    fd = os.open(path, flags)
+    actual = os.fstat(fd)
+    if metadata_identity(actual) != metadata_identity(expected):
+        os.close(fd)
+        raise ValueError("cache source directory changed before open")
+    return fd, actual
+
+
+def open_child_directory(parent_fd: int, name: str):
+    expected = os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
+    if stat.S_ISLNK(expected.st_mode) or not stat.S_ISDIR(expected.st_mode):
+        raise ValueError("cache source directory is symlinked or not a directory")
+    if expected.st_uid != os.geteuid() or expected.st_gid != os.getegid():
+        raise ValueError("untrusted cache source directory owner/group")
+    if expected.st_mode & (stat.S_IWGRP | stat.S_IWOTH):
+        raise ValueError("untrusted cache source directory metadata")
+    flags = (
+        os.O_RDONLY | getattr(os, "O_CLOEXEC", 0)
+        | getattr(os, "O_DIRECTORY", 0) | getattr(os, "O_NOFOLLOW", 0)
+    )
+    fd = os.open(name, flags, dir_fd=parent_fd)
+    actual = os.fstat(fd)
+    if metadata_identity(actual) != metadata_identity(expected):
+        os.close(fd)
+        raise ValueError("cache source directory changed before open")
+    return fd, actual
+
+
+def child_exists(directory_fd: int, name: str) -> bool:
+    try:
+        os.stat(name, dir_fd=directory_fd, follow_symlinks=False)
+    except FileNotFoundError:
+        return False
+    return True
+
+
+def read_real_at(source_fd: int, name: str):
+    expected = os.stat(name, dir_fd=source_fd, follow_symlinks=False)
     if stat.S_ISLNK(expected.st_mode) or not stat.S_ISREG(expected.st_mode):
-        raise ValueError("not a real file")
+        raise ValueError("not a real cache file")
     if expected.st_uid != os.geteuid() or expected.st_gid != os.getegid():
         raise ValueError("untrusted cache file owner/group")
     if expected.st_mode & (stat.S_IWGRP | stat.S_IWOTH) or expected.st_size > 4096:
         raise ValueError("untrusted cache file metadata")
     flags = os.O_RDONLY | getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NOFOLLOW", 0)
-    fd = os.open(path, flags)
+    fd = os.open(name, flags, dir_fd=source_fd)
     try:
         before = os.fstat(fd)
-        identity = lambda item: (
-            item.st_dev, item.st_ino, item.st_mode, item.st_uid, item.st_gid,
-            item.st_size, item.st_mtime_ns,
-        )
-        if identity(before) != identity(expected):
+        if metadata_identity(before) != metadata_identity(expected):
             raise ValueError("cache file changed before open")
         payload = os.read(fd, 4097)
         if len(payload) > 4096:
             raise ValueError("cache file exceeds size bound")
         after = os.fstat(fd)
-        if identity(before) != identity(after):
+        if metadata_identity(before) != metadata_identity(after):
             raise ValueError("cache file changed while read")
         return payload
     finally:
@@ -948,20 +1084,40 @@ def decode_pair(preview_bytes: bytes, rsc_bytes: bytes):
     if not isinstance(rsc["encryption.expire_at"], int) or rsc["encryption.expire_at"] <= 0: raise ValueError("rsc expiry")
     return preview, rsc
 
-preview_path = source / ".previewinfo"
-rsc_path = source / ".rscinfo"
-preview_present = os.path.lexists(preview_path)
-rsc_present = os.path.lexists(rsc_path)
-if preview_present != rsc_present:
-    raise ValueError("Next build-key cache pair is partial; refusing normalization")
+next_root = source.parent
+next_fd = None
+source_fd = None
+next_before = None
+source_before = None
+preview_present = False
+rsc_present = False
+try:
+    if os.path.lexists(next_root):
+        next_fd, next_before = open_real_directory(next_root)
+        if child_exists(next_fd, source.name):
+            source_fd, source_before = open_child_directory(next_fd, source.name)
+            preview_present = child_exists(source_fd, ".previewinfo")
+            rsc_present = child_exists(source_fd, ".rscinfo")
+    if preview_present != rsc_present:
+        raise ValueError("Next build-key cache pair is partial; refusing normalization")
 
-mode = "retained"
-rotate = not preview_present
-if preview_present:
-    preview_bytes = read_real(preview_path)
-    rsc_bytes = read_real(rsc_path)
-    preview, rsc = decode_pair(preview_bytes, rsc_bytes)
-    rotate = preview["expireAt"] < min_expire or rsc["encryption.expire_at"] < min_expire
+    mode = "retained"
+    rotate = not preview_present
+    if preview_present:
+        assert source_fd is not None
+        preview_bytes = read_real_at(source_fd, ".previewinfo")
+        rsc_bytes = read_real_at(source_fd, ".rscinfo")
+        preview, rsc = decode_pair(preview_bytes, rsc_bytes)
+        rotate = preview["expireAt"] < min_expire or rsc["encryption.expire_at"] < min_expire
+    if source_fd is not None and metadata_identity(os.fstat(source_fd)) != metadata_identity(source_before):
+        raise ValueError("source directory changed while read")
+    if next_fd is not None and metadata_identity(os.fstat(next_fd)) != metadata_identity(next_before):
+        raise ValueError("source directory changed while read")
+finally:
+    if source_fd is not None:
+        os.close(source_fd)
+    if next_fd is not None:
+        os.close(next_fd)
 
 if rotate:
     mode = "rotated"
@@ -1004,40 +1160,531 @@ PY_BUILD_KEYS
   BUILD_KEY_IDENTITY=$identity
 }
 
+
+
+verify_build_principal(){
+  if ! "$EXPECTED_PYTHON_PATH" -I - \
+      "$EXPECTED_BUILD_USER" "$EXPECTED_BUILD_GROUP" \
+      "$EXPECTED_BUILD_UID" "$EXPECTED_BUILD_GID" \
+      "$EXPECTED_BUILD_HOME" "$EXPECTED_BUILD_SHELL" <<'PY_BUILD_PRINCIPAL'
+import grp
+import pwd
+import sys
+user_name, group_name, uid_raw, gid_raw, expected_home, expected_shell = sys.argv[1:]
+uid = int(uid_raw)
+gid = int(gid_raw)
+try:
+    user = pwd.getpwnam(user_name)
+    group = grp.getgrnam(group_name)
+except KeyError as exc:
+    raise SystemExit(f"build principal is absent: {exc}") from exc
+if (user.pw_uid, user.pw_gid, group.gr_gid) != (uid, gid, gid):
+    raise SystemExit("build principal UID/GID mismatch")
+if user.pw_dir != expected_home or user.pw_shell != expected_shell:
+    raise SystemExit("build principal home/shell mismatch")
+if group.gr_mem:
+    raise SystemExit("build principal group must not carry supplementary members")
+PY_BUILD_PRINCIPAL
+  then
+    log "FATAL: static build principal is absent or differs from the reviewed contract"
+    return 77
+  fi
+}
+
+prepare_build_roots(){
+  local prepared
+  if ! prepared=$("$EXPECTED_PYTHON_PATH" -I - \
+      "$BUILD_WORK_ROOT_BASE" "$BUILD_EVIDENCE_ROOT_BASE" "$TARGET_TREE" \
+      "$EXPECTED_BUILD_UID" "$EXPECTED_BUILD_GID" <<'PY_BUILD_ROOTS'
+import os
+import shutil
+import stat
+import sys
+import tempfile
+from pathlib import Path
+
+work_base = Path(sys.argv[1])
+evidence_base = Path(sys.argv[2])
+target_tree = sys.argv[3]
+build_uid = int(sys.argv[4])
+build_gid = int(sys.argv[5])
+if len(target_tree) != 40 or any(char not in "0123456789abcdef" for char in target_tree):
+    raise SystemExit("target tree is invalid")
+
+def ensure_base(path: Path, mode: int) -> Path:
+    if os.path.lexists(path):
+        metadata = os.lstat(path)
+        if stat.S_ISLNK(metadata.st_mode) or not stat.S_ISDIR(metadata.st_mode):
+            raise SystemExit(f"build base is not a real directory: {path}")
+    else:
+        path.mkdir(parents=True, mode=mode)
+    metadata = os.lstat(path)
+    if metadata.st_uid != os.geteuid() or metadata.st_gid != os.getegid():
+        raise SystemExit(f"build base owner/group differs from controller: {path}")
+    if metadata.st_mode & (stat.S_IWGRP | stat.S_IWOTH):
+        raise SystemExit(f"build base is group/other writable: {path}")
+    os.chmod(path, mode)
+    resolved = path.resolve(strict=True)
+    if resolved != path:
+        raise SystemExit(f"build base traverses an alias: {path}")
+    return resolved
+
+work_base = ensure_base(work_base, 0o755)
+evidence_base = ensure_base(evidence_base, 0o750)
+target_root = work_base / target_tree
+if os.path.lexists(target_root):
+    metadata = os.lstat(target_root)
+    if stat.S_ISLNK(metadata.st_mode) or not stat.S_ISDIR(metadata.st_mode):
+        raise SystemExit("target build root is not a real directory")
+    if metadata.st_uid != os.geteuid() or metadata.st_gid != os.getegid():
+        raise SystemExit("target build root owner/group differs from controller")
+    shutil.rmtree(target_root)
+target_root.mkdir(mode=0o755)
+source_root = target_root / "source"
+source_root.mkdir(mode=0o755)
+owned = []
+for name in ("deps", ".build-home", ".npm-cache", ".build-tmp"):
+    child = target_root / name
+    child.mkdir(mode=0o700)
+    os.chown(child, build_uid, build_gid)
+    owned.append(child)
+evidence_root = Path(tempfile.mkdtemp(prefix=f"{target_tree}.", dir=evidence_base))
+os.chmod(evidence_root, 0o700)
+print("\t".join((
+    str(target_root), str(source_root), str(owned[0]), str(owned[1]),
+    str(owned[2]), str(owned[3]), str(evidence_root),
+)))
+PY_BUILD_ROOTS
+  ); then
+    log "FATAL: could not prepare deterministic build/evidence roots"
+    return 73
+  fi
+  IFS=$'\t' read -r \
+    BUILD_TARGET_ROOT BUILD_SOURCE_ROOT BUILD_DEPS_ROOT BUILD_HOME_DIR \
+    BUILD_NPM_CACHE BUILD_TMP_DIR BUILD_EVIDENCE_DIR <<< "$prepared"
+  [ "$BUILD_TARGET_ROOT" = "$BUILD_WORK_ROOT_BASE/$TARGET_TREE" ] || {
+    log "FATAL: deterministic target build root disagrees with admitted tree"
+    return 73
+  }
+}
+
+
+bootstrap_controller_evidence(){
+  if ! "$EXPECTED_PYTHON_PATH" -I - \
+      "$EXPECTED_GIT_PATH" "$SRC" "$TARGET_SHA" "$BUILD_EVIDENCE_DIR" <<'PY_CONTROLLER_EVIDENCE'
+import os
+import re
+import stat
+import subprocess
+import sys
+from pathlib import Path
+
+git_path = sys.argv[1]
+repository = Path(sys.argv[2])
+target_sha = sys.argv[3]
+evidence = Path(sys.argv[4])
+full_sha = re.compile(r"^[0-9a-f]{40}$")
+files = {
+    "ops/terminal_build_projection.py": "projection-helper.py",
+    "ops/terminal_build_projection.json": "projection-policy.json",
+    "ops/terminal_build_receipt.py": "receipt-helper.py",
+    "terminal/package.json": "package.json",
+    "terminal/package-lock.json": "package-lock.json",
+}
+env = {
+    "PATH": "/usr/bin:/bin",
+    "HOME": "/nonexistent",
+    "LANG": "C.UTF-8",
+    "LC_ALL": "C.UTF-8",
+    "TZ": "UTC",
+    "GIT_CONFIG_NOSYSTEM": "1",
+    "GIT_CONFIG_GLOBAL": "/dev/null",
+    "GIT_CONFIG_SYSTEM": "/dev/null",
+    "GIT_NO_REPLACE_OBJECTS": "1",
+    "GIT_TERMINAL_PROMPT": "0",
+    "GIT_ASKPASS": "/bin/false",
+    "GIT_LITERAL_PATHSPECS": "1",
+}
+
+def git(*args: str) -> bytes:
+    result = subprocess.run(
+        [git_path, "-C", str(repository), *args],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        env=env,
+        check=False,
+    )
+    if result.returncode:
+        raise SystemExit(result.stderr.decode("utf-8", errors="replace"))
+    return result.stdout
+
+if not full_sha.fullmatch(target_sha):
+    raise SystemExit("controller evidence target is invalid")
+metadata = os.lstat(evidence)
+if stat.S_ISLNK(metadata.st_mode) or not stat.S_ISDIR(metadata.st_mode):
+    raise SystemExit("controller evidence root is not a real directory")
+if metadata.st_uid != os.geteuid() or metadata.st_gid != os.getegid() or stat.S_IMODE(metadata.st_mode) != 0o700:
+    raise SystemExit("controller evidence root custody is invalid")
+if any(evidence.iterdir()):
+    raise SystemExit("controller evidence root is not empty")
+for source, output_name in files.items():
+    rows = [row for row in git("ls-tree", "-z", target_sha, "--", source).split(b"\0") if row]
+    if len(rows) != 1:
+        raise SystemExit(f"controller evidence source is absent or ambiguous: {source}")
+    header, raw_path = rows[0].split(b"\t", 1)
+    mode, kind, oid = header.decode("ascii").split(" ", 2)
+    if raw_path.decode("utf-8") != source or kind != "blob" or mode not in {"100644", "100755"} or not full_sha.fullmatch(oid):
+        raise SystemExit(f"controller evidence source is not a regular blob: {source}")
+    payload = git("cat-file", "blob", oid)
+    output = evidence / output_name
+    fd = os.open(output, os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_CLOEXEC", 0), 0o400)
+    try:
+        view = memoryview(payload)
+        while view:
+            written = os.write(fd, view)
+            view = view[written:]
+        os.fsync(fd)
+        os.fchmod(fd, 0o400)
+    finally:
+        os.close(fd)
+PY_CONTROLLER_EVIDENCE
+  then
+    log "FATAL: could not bind controller evidence to exact admitted Git objects"
+    return 66
+  fi
+}
+
+materialize_build_projection(){
+  local summary parsed
+  summary="$BUILD_TARGET_ROOT/.projection-summary.json"
+  if ! "$EXPECTED_PYTHON_PATH" -I "$BUILD_EVIDENCE_DIR/projection-helper.py" \
+      --repository "$SRC" \
+      --target-sha "$TARGET_SHA" \
+      --destination "$BUILD_SOURCE_ROOT" \
+      --evidence-dir "$BUILD_EVIDENCE_DIR" \
+      --policy "$BUILD_EVIDENCE_DIR/projection-policy.json" \
+      --git-path "$EXPECTED_GIT_PATH" \
+      > "$summary"; then
+    log "FATAL: exact Git-object build projection failed"
+    return 66
+  fi
+  if ! parsed=$("$EXPECTED_PYTHON_PATH" -I - \
+      "$summary" "$BUILD_EVIDENCE_DIR" "$TARGET_SHA" "$TARGET_TREE" <<'PY_PROJECTION_SUMMARY'
+import json
+import os
+import stat
+import sys
+from pathlib import Path
+
+def stable(path: Path, limit: int = 8 * 1024 * 1024) -> bytes:
+    expected = os.lstat(path)
+    if stat.S_ISLNK(expected.st_mode) or not stat.S_ISREG(expected.st_mode):
+        raise SystemExit(f"expected real file: {path}")
+    if expected.st_size > limit:
+        raise SystemExit(f"file exceeds bound: {path}")
+    flags = os.O_RDONLY | getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NOFOLLOW", 0)
+    fd = os.open(path, flags)
+    try:
+        before = os.fstat(fd)
+        payload = os.read(fd, limit + 1)
+        after = os.fstat(fd)
+    finally:
+        os.close(fd)
+    identity = lambda item: (item.st_dev, item.st_ino, item.st_mode, item.st_uid, item.st_gid, item.st_size, item.st_mtime_ns)
+    if len(payload) > limit or identity(expected) != identity(before) or identity(before) != identity(after):
+        raise SystemExit(f"file changed while read: {path}")
+    return payload
+
+summary_path = Path(sys.argv[1])
+evidence = Path(sys.argv[2]).resolve(strict=True)
+target_sha = sys.argv[3]
+target_tree = sys.argv[4]
+value = json.loads(stable(summary_path).decode("utf-8"))
+if set(value) != {"schema", "target_sha", "target_tree", "projection_sha256", "manifest"}:
+    raise SystemExit("projection summary schema is open or incomplete")
+if value["schema"] != "mastermind.terminal.build_projection.v1":
+    raise SystemExit("projection summary schema is invalid")
+if value["target_sha"] != target_sha or value["target_tree"] != target_tree:
+    raise SystemExit("projection summary target/tree mismatch")
+manifest = Path(value["manifest"])
+if manifest.parent != evidence or manifest.resolve(strict=True) != manifest:
+    raise SystemExit("projection manifest escaped or aliased its evidence root")
+print("\t".join((str(manifest), value["projection_sha256"])))
+PY_PROJECTION_SUMMARY
+  ); then
+    log "FATAL: exact build projection readback failed"
+    return 66
+  fi
+  IFS=$'\t' read -r BUILD_PROJECTION_MANIFEST BUILD_PROJECTION_DIGEST <<< "$parsed"
+  log "exact build projection materialized: target=$TARGET_SHA tree=$TARGET_TREE digest=$BUILD_PROJECTION_DIGEST"
+}
+
+prepare_build_mountpoints(){
+  local stage=$1
+  if ! "$EXPECTED_PYTHON_PATH" -I - \
+      "$stage" "$BUILD_DEPS_ROOT" "$EXPECTED_BUILD_UID" "$EXPECTED_BUILD_GID" <<'PY_BUILD_MOUNTS'
+import os
+import stat
+import sys
+from pathlib import Path
+stage = Path(sys.argv[1])
+deps = Path(sys.argv[2])
+uid = int(sys.argv[3])
+gid = int(sys.argv[4])
+for path in (stage, deps):
+    metadata = os.lstat(path)
+    if stat.S_ISLNK(metadata.st_mode) or not stat.S_ISDIR(metadata.st_mode):
+        raise SystemExit(f"build path is not a real directory: {path}")
+next_dir = stage / ".next"
+if os.path.lexists(next_dir):
+    raise SystemExit("projection unexpectedly contains .next")
+next_dir.mkdir(mode=0o700)
+os.chown(next_dir, uid, gid)
+for name in ("package.json", "package-lock.json"):
+    target = deps / name
+    fd = os.open(target, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o400)
+    os.close(fd)
+node_modules = stage / "node_modules"
+if os.path.lexists(node_modules):
+    raise SystemExit("projection unexpectedly contains node_modules")
+os.symlink("../../deps/node_modules", node_modules)
+PY_BUILD_MOUNTS
+  then
+    log "FATAL: could not prepare reviewed install/build mountpoints"
+    return 73
+  fi
+}
+
+grant_build_output_custody(){
+  local stage=$1
+  if ! "$EXPECTED_PYTHON_PATH" -I - \
+      "$stage/.next" "$EXPECTED_BUILD_UID" "$EXPECTED_BUILD_GID" <<'PY_OUTPUT_CUSTODY'
+import os
+import stat
+import sys
+from pathlib import Path
+root = Path(sys.argv[1])
+uid = int(sys.argv[2])
+gid = int(sys.argv[3])
+metadata = os.lstat(root)
+if stat.S_ISLNK(metadata.st_mode) or not stat.S_ISDIR(metadata.st_mode):
+    raise SystemExit("build output root is not a real directory")
+for current, directories, files in os.walk(root, topdown=False, followlinks=False):
+    current_path = Path(current)
+    for name in files:
+        path = current_path / name
+        item = os.lstat(path)
+        if stat.S_ISLNK(item.st_mode) or not stat.S_ISREG(item.st_mode):
+            raise SystemExit(f"build output contains unsupported pre-build path: {path}")
+        os.chown(path, uid, gid, follow_symlinks=False)
+    for name in directories:
+        path = current_path / name
+        item = os.lstat(path)
+        if stat.S_ISLNK(item.st_mode) or not stat.S_ISDIR(item.st_mode):
+            raise SystemExit(f"build output contains unsupported pre-build directory: {path}")
+        os.chown(path, uid, gid, follow_symlinks=False)
+os.chown(root, uid, gid, follow_symlinks=False)
+PY_OUTPUT_CUSTODY
+  then
+    log "FATAL: could not grant bounded output custody to build principal"
+    return 73
+  fi
+}
+
+run_sandboxed_phase(){
+  local phase=$1 working_directory=$2 private_network=$3
+  shift 3
+  local unit="mastermind-terminal-build-${phase}-${TARGET_SHA:0:12}-$$"
+  local -a command=(
+    "$EXPECTED_SYSTEMD_RUN_PATH"
+    --quiet --wait --collect --pipe --service-type=exec
+    --expand-environment=no
+    --unit="$unit"
+    --uid="$EXPECTED_BUILD_UID"
+    --gid="$EXPECTED_BUILD_GID"
+    --working-directory="$working_directory"
+    --property=NoNewPrivileges=yes
+    --property=CapabilityBoundingSet=
+    --property=AmbientCapabilities=
+    --property=ProtectSystem=strict
+    --property=ProtectHome=yes
+    --property=PrivateTmp=yes
+    --property=PrivateDevices=yes
+    --property=ProtectKernelTunables=yes
+    --property=ProtectKernelModules=yes
+    --property=ProtectKernelLogs=yes
+    --property=ProtectControlGroups=yes
+    --property=RestrictSUIDSGID=yes
+    --property=LockPersonality=yes
+    --property=RestrictRealtime=yes
+    --property=UMask=0077
+    --property="PrivateNetwork=$private_network"
+    --property="InaccessiblePaths=$APP"
+    --property="InaccessiblePaths=$SRC"
+    --property="InaccessiblePaths=$PREFLIGHT_RECEIPT_DIR"
+    --property="InaccessiblePaths=$BUILD_RECEIPT_DIR"
+    --property="InaccessiblePaths=$BUILD_EVIDENCE_DIR"
+    --property="InaccessiblePaths=$BUILD_LOCK_DIR"
+  )
+  case "$phase" in
+    install)
+      command+=(
+        --property="InaccessiblePaths=$BUILD_SOURCE_ROOT"
+        --property="ReadWritePaths=$BUILD_DEPS_ROOT"
+        --property="ReadWritePaths=$BUILD_HOME_DIR"
+        --property="ReadWritePaths=$BUILD_NPM_CACHE"
+        --property="ReadWritePaths=$BUILD_TMP_DIR"
+        --property="BindReadOnlyPaths=$BUILD_EVIDENCE_DIR/package.json:$BUILD_DEPS_ROOT/package.json"
+        --property="BindReadOnlyPaths=$BUILD_EVIDENCE_DIR/package-lock.json:$BUILD_DEPS_ROOT/package-lock.json"
+      )
+      ;;
+    build)
+      command+=(
+        --property="ReadOnlyPaths=$BUILD_SOURCE_ROOT"
+        --property="ReadOnlyPaths=$BUILD_DEPS_ROOT/node_modules"
+        --property="ReadWritePaths=$working_directory/.next"
+        --property="ReadWritePaths=$BUILD_HOME_DIR"
+        --property="ReadWritePaths=$BUILD_NPM_CACHE"
+        --property="ReadWritePaths=$BUILD_TMP_DIR"
+      )
+      ;;
+    *)
+      log "FATAL: unknown sandbox phase: $phase"
+      return 64
+      ;;
+  esac
+  "${command[@]}" -- "$@"
+}
+
+prepare_sandbox_identity(){
+  BUILD_SANDBOX_IDENTITY="$BUILD_EVIDENCE_DIR/build-sandbox-identity.json"
+  if ! "$EXPECTED_PYTHON_PATH" -I - \
+      "$BUILD_SANDBOX_IDENTITY" "$EXPECTED_SYSTEMD_RUN_PATH" <<'PY_SANDBOX_IDENTITY'
+import json
+import os
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+systemd_run_path = sys.argv[2]
+payload = {
+    "schema": "mastermind.terminal.build_sandbox_identity.v1",
+    "systemd_run_path": systemd_run_path,
+    "common_properties": [
+        "AmbientCapabilities=",
+        "CapabilityBoundingSet=",
+        "LockPersonality=yes",
+        "NoNewPrivileges=yes",
+        "PrivateDevices=yes",
+        "PrivateTmp=yes",
+        "ProtectControlGroups=yes",
+        "ProtectHome=yes",
+        "ProtectKernelLogs=yes",
+        "ProtectKernelModules=yes",
+        "ProtectKernelTunables=yes",
+        "ProtectSystem=strict",
+        "RestrictRealtime=yes",
+        "RestrictSUIDSGID=yes",
+        "UMask=0077",
+    ],
+    "phases": {
+        "install": {
+            "private_network": False,
+            "read_only_inputs": ["package.json", "package-lock.json"],
+            "writable_roots": ["dependencies", "home", "npm_cache", "temporary"],
+        },
+        "build": {
+            "private_network": True,
+            "read_only_inputs": ["source", "node_modules"],
+            "writable_roots": [".next", "home", "npm_cache", "temporary"],
+        },
+    },
+}
+data = (json.dumps(payload, sort_keys=True, indent=2) + "\n").encode("utf-8")
+fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_CLOEXEC", 0), 0o400)
+try:
+    view = memoryview(data)
+    while view:
+        written = os.write(fd, view)
+        view = view[written:]
+    os.fsync(fd)
+    os.fchmod(fd, 0o400)
+finally:
+    os.close(fd)
+PY_SANDBOX_IDENTITY
+  then
+    log "FATAL: could not publish closed sandbox identity before target code"
+    return 73
+  fi
+}
+
+prepare_npm_configs(){
+  local userconfig=$1 globalconfig=$2
+  if ! "$EXPECTED_PYTHON_PATH" -I - \
+      "$userconfig" "$globalconfig" "$EXPECTED_BUILD_UID" "$EXPECTED_BUILD_GID" <<'PY_NPM_CONFIGS'
+import os
+import sys
+from pathlib import Path
+uid = int(sys.argv[3])
+gid = int(sys.argv[4])
+for raw in sys.argv[1:3]:
+    path = Path(raw)
+    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_CLOEXEC", 0), 0o600)
+    try:
+        os.fchown(fd, uid, gid)
+        os.fchmod(fd, 0o600)
+        os.fsync(fd)
+    finally:
+        os.close(fd)
+PY_NPM_CONFIGS
+  then
+    log "FATAL: could not create private npm configuration under build-principal custody"
+    return 73
+  fi
+}
+
 run_isolated_terminal_build(){
-  local stage=$1 live_app=$2 stage_root=$3 build_home npm_cache npm_userconfig npm_globalconfig
-  build_home="$stage_root/.build-home"
-  npm_cache="$stage_root/.npm-cache"
-  npm_userconfig="$stage_root/.npm-userconfig"
-  npm_globalconfig="$stage_root/.npm-globalconfig"
-  mkdir -m 0700 "$build_home" "$npm_cache" || return $?
-  : > "$npm_userconfig"
-  : > "$npm_globalconfig"
-  chmod 0600 "$npm_userconfig" "$npm_globalconfig" || return $?
+  local stage=$1 live_app=$2 stage_root=$3 npm_userconfig npm_globalconfig rc
+  npm_userconfig="$BUILD_HOME_DIR/.npm-userconfig"
+  npm_globalconfig="$BUILD_HOME_DIR/.npm-globalconfig"
+  prepare_npm_configs "$npm_userconfig" "$npm_globalconfig" || return $?
+  prepare_build_mountpoints "$stage" || return $?
+
+  BUILD_PUBLIC_ENV_IDENTITY="$BUILD_EVIDENCE_DIR/public-build-env-identity.json"
+  BUILD_KEY_IDENTITY="$BUILD_EVIDENCE_DIR/next-build-key-identity.json"
+  prepare_public_build_env \
+    "$live_app" "$stage" "$BUILD_PUBLIC_ENV_IDENTITY" || { rc=$?; return "$rc"; }
+  prepare_next_build_keys \
+    "$live_app" "$stage" "$BUILD_KEY_IDENTITY" || { rc=$?; return "$rc"; }
+  prepare_sandbox_identity || return $?
+  chmod 0444 "$stage/.env.production.local" || return $?
+  grant_build_output_custody "$stage" || return $?
+
   log "isolated dependency install: npm ci from accepted package-lock"
-  ( cd "$stage" && env -i \
+  run_sandboxed_phase install "$BUILD_DEPS_ROOT" no \
+    "$EXPECTED_ENV_PATH" -i \
       PATH="$CLEAN_BUILD_PATH" \
-      HOME="$build_home" \
+      HOME="$BUILD_HOME_DIR" TMPDIR="$BUILD_TMP_DIR" TMP="$BUILD_TMP_DIR" TEMP="$BUILD_TMP_DIR" \
       LANG=C.UTF-8 LC_ALL=C.UTF-8 TZ=UTC \
       NPM_CONFIG_AUDIT=false NPM_CONFIG_FUND=false \
-      NPM_CONFIG_CACHE="$npm_cache" \
+      NPM_CONFIG_CACHE="$BUILD_NPM_CACHE" \
       NPM_CONFIG_USERCONFIG="$npm_userconfig" \
       NPM_CONFIG_GLOBALCONFIG="$npm_globalconfig" \
-      "$EXPECTED_NPM_PATH" ci )
-  prepare_public_build_env "$live_app" "$stage" "$stage_root/.public-build-env-identity.json"
-  prepare_next_build_keys "$live_app" "$stage" "$stage_root/.next-build-key-identity.json"
-  [ -x "$stage/node_modules/.bin/next" ] || {
+      "$EXPECTED_NPM_PATH" ci || { rc=$?; return "$rc"; }
+
+  [ -x "$BUILD_DEPS_ROOT/node_modules/.bin/next" ] || {
     log "FATAL: accepted dependency install did not provide Next build binary"
     return 66
   }
-  log "next build (isolated accepted source; closed process environment; no live data/runtime secret mount) ..."
-  ( cd "$stage" && env -i \
-      PATH="$CLEAN_BUILD_PATH" \
-      HOME="$build_home" \
+  log "next build (static principal; source/dependencies read-only; network disabled) ..."
+  run_sandboxed_phase build "$stage" yes \
+    "$EXPECTED_ENV_PATH" -i \
+      PATH="$BUILD_DEPS_ROOT/node_modules/.bin:$CLEAN_BUILD_PATH" \
+      HOME="$BUILD_HOME_DIR" TMPDIR="$BUILD_TMP_DIR" TMP="$BUILD_TMP_DIR" TEMP="$BUILD_TMP_DIR" \
       LANG=C.UTF-8 LC_ALL=C.UTF-8 TZ=UTC NODE_ENV=production \
       NEXT_TELEMETRY_DISABLED=1 \
       GIT_SHA="$TARGET_SHA" NEXT_DEPLOYMENT_ID="$TARGET_SHA" \
-      "$stage/node_modules/.bin/next" build )
+      "$BUILD_DEPS_ROOT/node_modules/.bin/next" build || { rc=$?; return "$rc"; }
 }
 
 publish_build_receipt(){
@@ -1048,7 +1695,7 @@ publish_build_receipt(){
   }
   prepare_build_receipt_dir || return $?
   summary_file="$stage_root/.build-receipt-summary.json"
-  if ! python3 -I "$helper" \
+  if ! "$EXPECTED_PYTHON_PATH" -I "$helper" \
       --terminal-root "$stage" \
       --receipt-dir "$BUILD_RECEIPT_DIR" \
       --target-sha "$TARGET_SHA" \
@@ -1068,12 +1715,22 @@ publish_build_receipt(){
       --os-version-id "$BUILD_OS_VERSION_ID" \
       --libc "$BUILD_LIBC" \
       --public-env-identity "$BUILD_PUBLIC_ENV_IDENTITY" \
+      --public-env-file "$stage/.env.production.local" \
       --build-key-identity "$BUILD_KEY_IDENTITY" \
+      --projection-manifest "$BUILD_PROJECTION_MANIFEST" \
+      --build-uid "$EXPECTED_BUILD_UID" \
+      --build-gid "$EXPECTED_BUILD_GID" \
+      --build-user "$EXPECTED_BUILD_USER" \
+      --build-group "$EXPECTED_BUILD_GROUP" \
+      --build-home "$EXPECTED_BUILD_HOME" \
+      --build-shell "$EXPECTED_BUILD_SHELL" \
+      --sandbox-identity "$BUILD_SANDBOX_IDENTITY" \
+      --application-root "$stage" \
       > "$summary_file"; then
     log "FATAL: build receipt publication failed"
     return 64
   fi
-  if ! parsed=$(python3 -I - "$summary_file" "$TARGET_SHA" "$BUILD_RECEIPT_DIR" <<'PY_BUILD_SUMMARY'
+  if ! parsed=$("$EXPECTED_PYTHON_PATH" -I - "$summary_file" "$TARGET_SHA" "$BUILD_RECEIPT_DIR" <<'PY_BUILD_SUMMARY'
 import json
 import re
 import sys
@@ -1215,7 +1872,7 @@ deploy_identity_verified(){
 #
 # Rolling back only from the health check was not enough: `set -euo pipefail` aborts
 # the script on any bare failing command, so a failed swap `mv` or a failed
-# `systemctl restart` terminated the deploy with the marker already advanced and
+# `"$EXPECTED_SYSTEMCTL_PATH" restart` terminated the deploy with the marker already advanced and
 # .next possibly displaced, and rollback never ran at all. The swap case was the
 # worst of them — the old .next has already been moved to .next.bak by then, so the
 # box was left advertising the new commit with NO live build. Always returns
@@ -1231,7 +1888,7 @@ deploy_generation_abort(){
   # build's in-memory manifests. "Identity unresolved" is a reporting state; it is
   # never a reason to leave the process pointed at a directory that moved.
   if [ "$DEPLOY_ROLLBACK_MOVED_BUILD" = 1 ]; then
-    systemctl restart terminal || { log "restart after rollback FAILED"; rc=1; }
+    "$EXPECTED_SYSTEMCTL_PATH" restart terminal || { log "restart after rollback FAILED"; rc=1; }
   fi
   if [ "$rc" = 0 ]; then
     log "rolled back — $(deploy_identity_line "$app" "$want_sha")"
@@ -1289,7 +1946,8 @@ ACCEPTED_REF="refs/remotes/origin/$BRANCH"
 fetch_accepted_ref "$SRC" origin "$BRANCH" "$ACCEPTED_REF"
 admit_target_sha "$SRC" "$TARGET_SHA" "$ACCEPTED_REF_SHA"
 verify_build_runtime || exit $?
-TARGET_TREE=$(git -C "$SRC" rev-parse --verify "${TARGET_SHA}^{tree}" 2>/dev/null) || {
+verify_build_principal || exit $?
+TARGET_TREE=$("$EXPECTED_GIT_PATH" -C "$SRC" rev-parse --verify "${TARGET_SHA}^{tree}" 2>/dev/null) || {
   log "FATAL: admitted target tree is unavailable: $TARGET_SHA"
   exit 65
 }
@@ -1302,17 +1960,14 @@ SHA=${FULL_SHA:0:12}
 log "build runtime admitted: node=$BUILD_NODE_VERSION npm=$BUILD_NPM_VERSION os=$BUILD_OS arch=$BUILD_ARCH distro=$BUILD_OS_ID/$BUILD_OS_VERSION_ID libc=$BUILD_LIBC"
 log "GIT-GATED: building accepted target $FULL_SHA from captured origin/$BRANCH tip $ACCEPTED_REF_SHA"
 
-# 2) ISOLATED SOURCE + DEPENDENCIES — build directly from the admitted object.
-# Do not reset/clean the shared canonical checkout yet: its current generation is
-# still the W2A evidence source and another read-only consumer may inspect it.
-STAGE_ROOT=$(mktemp -d "$(dirname "$APP")/.build.XXXXXX")
-trap 'rm -rf "$STAGE_ROOT"' EXIT
-SOURCE_TAR="$STAGE_ROOT/.source.tar"
-git -C "$SRC" archive "$TARGET_SHA" > "$SOURCE_TAR"
-[ -s "$SOURCE_TAR" ] || { log "FATAL: admitted source archive is empty"; exit 66; }
-tar -x -f "$SOURCE_TAR" -C "$STAGE_ROOT"
-rm -f "$SOURCE_TAR"
-STAGE="$STAGE_ROOT/terminal"
+# 2) EXACT SOURCE PROJECTION + ISOLATED DEPENDENCIES — materialize the admitted
+# Git tree path-by-path under one deterministic application root. Repository-local
+# archive attributes and unrelated accepted roots cannot alter the build input.
+prepare_build_roots || exit $?
+bootstrap_controller_evidence || exit $?
+materialize_build_projection || exit $?
+STAGE_ROOT=$BUILD_TARGET_ROOT
+STAGE="$BUILD_SOURCE_ROOT/terminal"
 [ -f "$STAGE/package.json" ] && [ -f "$STAGE/package-lock.json" ] || {
   log "FATAL: admitted Terminal package contract is incomplete"
   exit 66
@@ -1328,14 +1983,14 @@ if [ ! -f "$STAGE/.next/BUILD_ID" ]; then
   exit 1
 fi
 NEW_BUILD_ID=$(cat "$STAGE/.next/BUILD_ID")
-publish_build_receipt "$STAGE_ROOT/ops/terminal_build_receipt.py" "$STAGE" "$STAGE_ROOT" || exit $?
+publish_build_receipt "$BUILD_EVIDENCE_DIR/receipt-helper.py" "$STAGE" "$STAGE_ROOT" || exit $?
 log "new isolated build OK: BUILD_ID=$NEW_BUILD_ID sha=$FULL_SHA receipt=$BUILD_RECEIPT_ID"
 
 # 4) CANONICAL CHECKOUT CONVERGENCE — only after the build is immutable and
 # receipted.  Later W2B-C owns full transactional runtime-dependency/source effects.
-git -C "$SRC" reset -q --hard "$TARGET_SHA"
-git -C "$SRC" clean -qfd
-FULL_SHA=$(git -C "$SRC" rev-parse HEAD)
+"$EXPECTED_GIT_PATH" -C "$SRC" reset -q --hard "$TARGET_SHA"
+"$EXPECTED_GIT_PATH" -C "$SRC" clean -qfd
+FULL_SHA=$("$EXPECTED_GIT_PATH" -C "$SRC" rev-parse HEAD)
 [ "$FULL_SHA" = "$TARGET_SHA" ] || {
   log "FATAL: canonical checkout did not land on receipted target: wanted=$TARGET_SHA actual=$FULL_SHA"
   exit 65
@@ -1377,12 +2032,12 @@ log "swapped .next (previous build kept as .next.bak)"
 #    it just as happily. The generation is accepted only when the intended SHA, the
 #    live marker and the live BUILD_ID all agree, and any rejection rolls identity
 #    and build back TOGETHER.
-if ! systemctl restart terminal; then
+if ! "$EXPECTED_SYSTEMCTL_PATH" restart terminal; then
   deploy_generation_abort "$APP" "$FULL_SHA" "$SWAPPED" "systemctl restart failed" || exit 1
 fi
 sleep 6
 DEPLOY_OK=1
-if curl -fsS http://127.0.0.1:3000/ -o /dev/null -w "[build] localhost:3000 -> %{http_code}\n"; then
+if "$EXPECTED_CURL_PATH" -fsS http://127.0.0.1:3000/ -o /dev/null -w "[build] localhost:3000 -> %{http_code}\n"; then
   log "health OK"
 else
   log "post-restart health check FAILED"
@@ -1412,22 +2067,22 @@ fi
 #    (box GC-v2 engine incl. confluence_v2.py committed; master's inverted golden_gate
 #    kept) — origin/master is now canonical for it, like ingest/.
 RUNTIME_PATHS="ingest scripts config contracts hub signal_layer"
-hub_state(){ find /opt/terminal/hub -type f -not -path '*/node_modules/*' -print0 2>/dev/null | sort -z | xargs -0 sha256sum 2>/dev/null | sha256sum || true; }
+hub_state(){ find /opt/terminal/hub -type f -not -path '*/node_modules/*' -print0 2>/dev/null | sort -z | xargs -0 "$EXPECTED_SHA256SUM_PATH" 2>/dev/null | "$EXPECTED_SHA256SUM_PATH" || true; }
 HUB_BEFORE=$(hub_state)
-LOCK_BEFORE=$(sha256sum /opt/terminal/hub/package-lock.json 2>/dev/null | cut -d' ' -f1 || true)
+LOCK_BEFORE=$("$EXPECTED_SHA256SUM_PATH" /opt/terminal/hub/package-lock.json 2>/dev/null | cut -d' ' -f1 || true)
 log "runtime sync <- origin/$BRANCH: $RUNTIME_PATHS"
-git -C "$SRC" archive HEAD -- $RUNTIME_PATHS | tar -x -C /opt/terminal/
+"$EXPECTED_GIT_PATH" -C "$SRC" archive HEAD -- $RUNTIME_PATHS | "$EXPECTED_TAR_PATH" -x -C /opt/terminal/
 
 # quote-hub runs hub/hub.js as a systemd service — npm ci if the lockfile moved, and
 # restart ONLY when hub/ actually changed (a restart briefly drops live WS clients).
-LOCK_AFTER=$(sha256sum /opt/terminal/hub/package-lock.json 2>/dev/null | cut -d' ' -f1 || true)
+LOCK_AFTER=$("$EXPECTED_SHA256SUM_PATH" /opt/terminal/hub/package-lock.json 2>/dev/null | cut -d' ' -f1 || true)
 if [ "$LOCK_BEFORE" != "$LOCK_AFTER" ]; then
   log "hub lockfile changed — npm ci"
-  ( cd /opt/terminal/hub && npm ci --omit=dev || npm install --omit=dev )
+  ( cd /opt/terminal/hub && "$EXPECTED_NPM_PATH" ci --omit=dev || "$EXPECTED_NPM_PATH" install --omit=dev )
 fi
 HUB_AFTER=$(hub_state)
 if [ "$HUB_BEFORE" != "$HUB_AFTER" ]; then
-  systemctl restart quote-hub
+  "$EXPECTED_SYSTEMCTL_PATH" restart quote-hub
   log "quote-hub restarted (hub/ changed)"
 else
   log "hub/ unchanged — quote-hub not restarted"
@@ -1449,7 +2104,7 @@ log "installed ops/terminal-build.sh -> /opt/terminal/terminal-build.sh (effecti
 # 9) reflect canonical master into $APP source (so the on-box source == what is live/committed,
 #    and any stray working-tree edits are cleared — enforcing 'master is the source of truth').
 log "syncing $APP source <- origin/$BRANCH:terminal"
-rsync -a --delete \
+"$EXPECTED_RSYNC_PATH" -a --delete \
   --exclude='.next' --exclude='.next.bak' --exclude='.next.broken' --exclude='.stage.*' \
   --exclude='node_modules' --exclude='.env' --exclude='.env.*' --exclude='public/data' \
   --exclude='.deployment-id' --exclude='.deployment-id.bak' --exclude='.deployment-id.absent' \
@@ -1463,7 +2118,7 @@ rsync -a --delete \
 #    Non-fatal on purpose: the app is live by now — a bundle failure must not roll it back
 #    (the cron just keeps running the previous bundle).
 log "bundling ingest/suite_alerts.ts -> ingest/dist/suite_alerts.mjs"
-if ( cd "$APP" && npx esbuild ../ingest/suite_alerts.ts --bundle --platform=node --format=esm \
+if ( cd "$APP" && "$EXPECTED_NPX_PATH" esbuild ../ingest/suite_alerts.ts --bundle --platform=node --format=esm \
       --outfile=../ingest/dist/suite_alerts.mjs "--alias:@=." --log-level=warning ); then
   log "installed ingest/dist/suite_alerts.mjs (suite_event alerts cron)"
 else
