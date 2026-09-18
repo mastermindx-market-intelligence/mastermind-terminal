@@ -1,6 +1,6 @@
 # Options-level coverage and axis-label browser evidence
 
-Source head: `04317812b386b43feda57eb958950cc218e605ab`
+Source head: `2c1e5a58df4b8d8e954a81ab539bc785726940be`
 
 ## Outcome under proof
 
@@ -41,5 +41,5 @@ Every capture proves six visible option badges, exact native line prices, native
 Capture command:
 
 ```bash
-BASE_URL=http://127.0.0.1:35871 node docs/pr-crops/options-level-axis-labels/capture.mjs
+BASE_URL=http://127.0.0.1:35911 node docs/pr-crops/options-level-axis-labels/capture.mjs
 ```
