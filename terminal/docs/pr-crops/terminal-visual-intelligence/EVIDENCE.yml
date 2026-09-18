@@ -1,11 +1,17 @@
 # Terminal Visual Intelligence Layer — release-candidate browser evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 1f56eae265bdbb69c60ce1c5b63dcea19f1f480e  # master this capture ran against
-# capturedAt: 2026-09-18T11:34:53Z
+# capturedAtHead: e2f2ba2059d21ef4381cb240a135f327dc69d8eb + this branch's ChartPanel.tsx change
+# capturedAt: 2026-09-18T13:05:00Z
+# Recaptured 2026-09-18 because terminal/components/ChartPanel.tsx changed: Trend Ribbon candle
+# coloring now decorates the active chart type's display rows instead of rebuilding raw OHLC.
+# The default workspace has no Trend Ribbon, so this surface is unchanged by that fix; the crop
+# bytes still move on every capture because the chart renders a live clock and countdown.
+# localGates below is the receipt from the ORIGINAL capture and is pinned verbatim by
+# lib/__tests__/visualIntelligenceEvidence.test.ts; this recapture's own gates are in the PR body.
 # capturedAtHead is informational. The lock is layoutFiles + cropFiles.
 layoutFiles:
-  terminal/components/ChartPanel.tsx: "acade3d71638f083ad5c5cd6acdeca37c0d076db6bc5c32d9e498358ba3b52f7"
+  terminal/components/ChartPanel.tsx: "54ad591f34ed1e4a1ad4bb64fbb43c181ad585975325c1fda64e00822322fc4e"
   terminal/components/ChartSettingsModal.tsx: "6c59eb27cc3c6db3613d592a8796f894cd87e144016ab1130a24389cba299d6b"
   terminal/components/VisualIntelligencePanel.tsx: "dd20b00a0c57613679dcb7ac3905b7b3e0589400935807724a5aea221f0020ec"
   terminal/components/VisualIntelligencePanel.module.css: "29a8fc3d37c55b701a5fe6484948901c00199fac3b5f0e120f7657d1cbd1c9cd"
@@ -15,12 +21,12 @@ layoutFiles:
   terminal/lib/suites/trend/candlePainter.ts: "8384d2bce3af939a51e88584b1436ee2898a89f0fbf1aedc09ffee624a3e12e1"
   terminal/lib/indicator-canvas/host.ts: "4f2949efb22b8c378cab1ff9d176466c4857073c14a36ee4f0eeab4ec1015a25"
 cropFiles:
-  desktop-context.png: "c25a3d852e6a7346ddbe10131354326b09a37cfd02b75fe319b4e64594ff2a48"
-  desktop-context-zh.png: "3a480a1126253540e3991ba87f7bd56bc2e0bf9877014b07ea3c8b66616d6486"
-  tablet-context.png: "7aadf0ccb8677070b2c2ce83e622f910294d37bc85862646e848ce20ceb3c6f6"
-  tablet-context-zh.png: "fd8818d22f47a6b3cc156f6b57fa44119d146515450947416c2598ed53b79f1b"
-  mobile-context.png: "6a42aeda7b9e23b54c794586adeddae9b5b6e4ae582eb9439a478ed7b7886b6d"
-  mobile-context-zh.png: "7e8c647a6359cd1822923e7109539fb080161c213cf10fdaf001a57fd98ecd88"
+  desktop-context.png: "0d43135d4a603ab4d0758affb1e7a94ec910ea8ed443f116ef0fa28691a0cbca"
+  desktop-context-zh.png: "559d82365e4694432ba202967557a876dfc5c60f91136400833469bcfb59715c"
+  tablet-context.png: "c2e8df5e1330974cd5d8aa2e20f9299f86bed826a599feff2ac47316e129e4e6"
+  tablet-context-zh.png: "f5865cdcd415b28a69fd84e4947a2c54836c5e82241d99f8225b4410b0697cd8"
+  mobile-context.png: "48ff03b4babf41adaeacc2c6d7a73c9c6d4b7ca6a5a8f36f3522dff417a55b63"
+  mobile-context-zh.png: "a2571407c402e3ffc78eb843125b5e724674595a67b724df2e8de1258c4abd4a"
 theme: dark
 languages: [en, zh]
 viewports:
