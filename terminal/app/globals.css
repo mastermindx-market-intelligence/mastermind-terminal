@@ -1937,6 +1937,15 @@ table.scr2 tbody tr.empty-row:hover,table.scr2 tbody tr.scr2-skel-row:hover,tabl
 .ctx-menu .ctx-danger .ctx-ico{color:var(--danger)}
 .ctx-menu .ctx-danger:hover{background:color-mix(in srgb,var(--danger) 8%,transparent)}
 .ctx-menu .ctx-checked .ctx-lbl{color:var(--brand-2)}
+.ctx-menu .ctx-lock-clear{
+  flex:0 0 24px;width:24px;height:24px;margin-left:8px;padding:0;
+  display:grid;place-items:center;border:0;border-radius:5px;
+  background:transparent;color:var(--text-dim);cursor:pointer;
+  transition:background var(--t) var(--ease),color var(--t) var(--ease);
+}
+.ctx-menu .ctx-lock-clear:hover{background:rgba(255,255,255,.08);color:var(--text)}
+.ctx-menu .ctx-lock-clear:focus-visible{outline:2px solid var(--brand-2);outline-offset:1px}
+.ctx-menu .ctx-lock-clear svg{width:12px;height:12px;pointer-events:none}
 /* group header */
 .ctx-menu .ctx-grp{
   font-size:10.5px;font-weight:600;letter-spacing:.1em;color:var(--text-dim);

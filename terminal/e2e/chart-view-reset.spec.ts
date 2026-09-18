@@ -87,6 +87,57 @@ test("Reset chart view restores the recent weekly window", async ({ page }, test
   await expectNormalizedView(page);
 });
 
+test("Vertical cursor lock has a clear X and never follows a ticker change", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "The chart context menu is a desktop pointer workflow.");
+
+  await page.goto("/terminal?symbol=AAPL");
+  const chart = page.locator(".chart-wrap").first();
+  await expect(chart.locator("canvas").first()).toBeVisible({ timeout: 45_000 });
+
+  const openContext = async (xFraction: number) => {
+    const box = await chart.boundingBox();
+    expect(box).not.toBeNull();
+    await page.mouse.click(
+      box!.x + box!.width * xFraction,
+      box!.y + box!.height * 0.45,
+      { button: "right" },
+    );
+    await expect(page.locator(".ctx-menu")).toBeVisible();
+  };
+
+  const lock = page.locator('.ctx-menu [data-a="lockv"]');
+  const unlock = page.locator('.ctx-menu [data-a="unlockv"]');
+
+  await openContext(0.45);
+  await expect(unlock).toHaveCount(0);
+  await lock.click();
+
+  // Once locked, the same menu exposes an explicit X rather than forcing another lock placement.
+  await openContext(0.70);
+  await expect(lock).toHaveClass(/ctx-checked/);
+  await expect(unlock).toBeVisible();
+  await unlock.click();
+
+  await openContext(0.60);
+  await expect(unlock).toHaveCount(0);
+  await expect(lock).not.toHaveClass(/ctx-checked/);
+
+  // The checked row itself is also a toggle-off. Re-lock, then change the ticker in place.
+  await lock.click();
+  await page.locator(".pair").first().click();
+  const search = page.locator(".sh input");
+  await expect(search).toBeVisible({ timeout: 20_000 });
+  await search.fill("MSFT");
+  await expect(page.locator('.sres [role="option"]').first()).toBeVisible({ timeout: 20_000 });
+  await search.press("Enter");
+  await expect(page.locator(".pair b").first()).toHaveText("MSFT", { timeout: 20_000 });
+
+  // A vertical cursor lock belongs to the chart/ticker that created it. It must not ride to MSFT.
+  await openContext(0.55);
+  await expect(unlock).toHaveCount(0);
+  await expect(lock).not.toHaveClass(/ctx-checked/);
+});
+
 test("Price-axis wheel zoom keeps compounding instead of hitting a fixed clamp", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "Wheel-on-axis is a desktop/trackpad gesture.");
 
