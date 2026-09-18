@@ -514,7 +514,7 @@ test("Gap Zones stays clipped to price when oscillator panes are present", async
   test.skip(testInfo.project.name !== "desktop", "The multi-pane geometry proof runs once on desktop.");
   const gapColor = "#7f5af0";
   await openTerminal(page, {
-    indicators: ["_oracle", "gaps", "stochrsi", "macd"],
+    indicators: ["_oracle", "gaps", "rsi", "stochrsi", "macd"],
     indicatorParams: {
       gaps: { showGaps: true, hideFilled: false, minGapPct: 0, maxGaps: 40, gapUpCol: gapColor, gapDownCol: "#ff5470" },
     },
@@ -523,6 +523,11 @@ test("Gap Zones stays clipped to price when oscillator panes are present", async
   });
 
   const gapRect = page.locator(`[data-price-pane-local="signals"] > g > rect[fill="${gapColor}"]`).first();
+  await expect(gapRect).toBeAttached({ timeout: 20_000 });
+  // Exercise the coordinate-space failure mode directly: move RSI above price, forcing the
+  // price pane away from root-SVG y=0, then prove the same live Gap Zones node is still owned by
+  // the translated + clipped signal scope rather than the chart-wide SVG.
+  await moveRsiPaneAbovePrice(page);
   await expect(gapRect).toBeAttached({ timeout: 20_000 });
   const proof = await page.evaluate((color) => {
     const root = document.querySelector<SVGSVGElement>("[data-sig-layer]");
@@ -538,6 +543,7 @@ test("Gap Zones stays clipped to price when oscillator panes are present", async
       rootDirectZones: root?.querySelectorAll(`:scope > g > rect[fill="${color}"]`).length ?? -1,
       paneTop: Number(scope?.getAttribute("data-pane-top")),
       paneHeight: Number(scope?.getAttribute("data-pane-height")),
+      localTransform: local?.getAttribute("transform") ?? "",
       clipY: Number(clipRect?.getAttribute("y")),
       clipHeight: Number(clipRect?.getAttribute("height")),
       chartHeight: wrap?.height ?? 0,
@@ -547,6 +553,8 @@ test("Gap Zones stays clipped to price when oscillator panes are present", async
   expect(proof.zoneFound).toBe(true);
   expect(proof.localScope).toBe("signals");
   expect(proof.rootDirectZones).toBe(0);
+  expect(proof.paneTop).toBeGreaterThan(20);
+  expect(proof.localTransform).toBe(`translate(0 ${proof.paneTop})`);
   expect(proof.clipY).toBeCloseTo(proof.paneTop, 1);
   expect(proof.clipHeight).toBeCloseTo(proof.paneHeight, 1);
   expect(proof.paneHeight).toBeGreaterThan(100);
