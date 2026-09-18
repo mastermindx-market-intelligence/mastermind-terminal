@@ -4,7 +4,7 @@ import {
   LIVE_BAR_PROJECTION,
   LIVE_INPLACE_SERIES_KEYS,
   LIVE_REBUILD_KEYS,
-  acceptsLiveStamp,
+  acceptsLiveTick,
   liveQuoteStamp,
   reuseSeries,
   seriesReuseChart,
@@ -55,17 +55,26 @@ describe("LIVE_BAR_PROJECTION — every built-in study has a decided live behavi
 });
 
 // ── out-of-order packets ─────────────────────────────────────────────────────
-describe("acceptsLiveStamp — a superseded tick must never repaint over a newer one", () => {
-  it("refuses a strictly older packet", () => {
-    expect(acceptsLiveStamp(1_000, 999)).toBe(false);
+describe("acceptsLiveTick — a superseded tick must never repaint over a newer one", () => {
+  const live = (stamp: number | null) => ({ basis: "REALTIME", stamp });
+
+  it("refuses a strictly older packet from the same lane", () => {
+    expect(acceptsLiveTick(live(1_000), live(999))).toBe(false);
   });
   it("accepts a newer packet, and a corrected print under the same instant", () => {
-    expect(acceptsLiveStamp(1_000, 1_001)).toBe(true);
-    expect(acceptsLiveStamp(1_000, 1_000)).toBe(true);
+    expect(acceptsLiveTick(live(1_000), live(1_001))).toBe(true);
+    expect(acceptsLiveTick(live(1_000), live(1_000))).toBe(true);
   });
   it("accepts anything when either side has no clock — a basis that ships none must not freeze", () => {
-    expect(acceptsLiveStamp(null, 42)).toBe(true);
-    expect(acceptsLiveStamp(42, null)).toBe(true);
+    expect(acceptsLiveTick(live(null), live(42))).toBe(true);
+    expect(acceptsLiveTick(live(42), live(null))).toBe(true);
+    expect(acceptsLiveTick(null, live(42))).toBe(true);
+  });
+  it("restarts the ordering on a lane change so a delayed fallback cannot freeze the chart", () => {
+    // REALTIME → DELAYED_15M moves the measured instant back a quarter of an hour. Comparing
+    // across that boundary would refuse every packet until the delayed clock caught up.
+    expect(acceptsLiveTick(live(1_700_000_900_000), { basis: "DELAYED_15M", stamp: 1_700_000_000_000 })).toBe(true);
+    expect(acceptsLiveTick({ basis: "DELAYED_15M", stamp: 1_700_000_900_000 }, live(1_700_000_000_000))).toBe(true);
   });
 });
 

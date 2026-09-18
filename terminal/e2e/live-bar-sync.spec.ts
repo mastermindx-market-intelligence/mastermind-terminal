@@ -21,7 +21,7 @@ const NEXT_SESSION = "2026-08-07";     // Friday — the appended session
 type SeriesTail = { time: unknown; value: number | null } | null;
 type Witness = {
   generation: number;
-  stamp: number | null;
+  tick: { basis: string; stamp: number | null } | null;
   barCount: number;
   lastBar: { time: string | number; o: number; h: number; l: number; c: number; v: number } | null;
   priceTail: SeriesTail;

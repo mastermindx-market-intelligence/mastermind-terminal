@@ -84,7 +84,7 @@ import ChartTables from "@/components/ChartTables";
 import { crossUps, crossDowns, crossUpsBelow, crossDownsAbove } from "@/lib/crossSignals";
 import { SOFT_Q, anchorSignal, isBlockedSignal, isOverrideCandidate, isReclaimOverrideTake, isRetroOverride, isStopSweepReclaim, isStructureStop, isWaivedEntry, markerTooltipCopy, opportunityMarkerGlyph, sliceSignalBasis } from "@/lib/signalVerdict";
 import { makeNearestBarIndex } from "@/lib/barSnap";
-import { LIVE_BAR_PROJECTION, LIVE_INPLACE_SERIES_KEYS, LIVE_REBUILD_KEYS, acceptsLiveStamp, liveQuoteStamp, seriesReuseChart } from "@/lib/liveBarProjection";
+import { LIVE_BAR_PROJECTION, LIVE_INPLACE_SERIES_KEYS, LIVE_REBUILD_KEYS, acceptsLiveTick, liveQuoteStamp, seriesReuseChart, type AcceptedLiveTick } from "@/lib/liveBarProjection";
 import { ichimoku, supertrend, avwap as computeAvwap, rollingVwap, weekAnchoredVwap, vprofile, volbox, rsiStack, accumPct, trendRibbon, buyShare as mfBuyShare } from "@/lib/indicatorMath";
 import ChartOverlays, { type PaneInfo, type LegendEntry } from "@/components/ChartOverlays";
 import DayStatsStrip from "@/components/DayStatsStrip";
@@ -733,10 +733,11 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   const extHoursRef = useRef(extHours);
   const liveTickKeyRef = useRef("");                        // rejects a repeated one-second packet without repainting
   const livePulseSeqRef = useRef(0);                         // alternates CSS animation names so every tick can pulse
-  // Newest quote instant this pane has ACCEPTED. The splice rewrites the developing bucket in place,
-  // so a packet that arrives out of order would roll the candle — and everything derived from it —
-  // backwards; `acceptsLiveStamp` refuses a strictly older one. Cleared with the bars.
-  const liveStampRef = useRef<number | null>(null);
+  // The newest quote this pane has ACCEPTED — its lane and its instant. The splice rewrites the
+  // developing bucket in place, so a packet that arrives out of order would roll the candle, and
+  // everything derived from it, backwards; `acceptsLiveTick` refuses a strictly older one FROM THE
+  // SAME LANE (a basis change is a different clock, so it restarts the ordering). Cleared with the bars.
+  const liveTickRef = useRef<AcceptedLiveTick | null>(null);
   // Monotonic live-bar generation. Bumped by the ONE derivation boundary below, so async work
   // launched under a tick can tell whether a newer tick has since superseded it.
   const liveGenRef = useRef(0);
@@ -2754,7 +2755,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     cmpSeriesRef.current.clear();
     try { priceSeriesRef.current?.setData([]); suitePaintKeyRef.current = ""; } catch {}
     liveTickKeyRef.current = "";
-    liveStampRef.current = null;   // a new bar set starts a new accepted-quote ordering
+    liveTickRef.current = null;    // a new bar set starts a new accepted-quote ordering
     const liveWrap = wrapElRef.current;
     if (liveWrap) {
       delete liveWrap.dataset.liveDirection;
@@ -2876,8 +2877,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // A superseded packet must never repaint after a newer one. `tickKey` alone only rejects an
     // exact REPEAT; an out-of-order packet carries a different key and would reshape the candle
     // backwards, so the accepted instant is the gate.
-    const stamp = liveQuoteStamp(liveQuoteRef.current);
-    if (!acceptsLiveStamp(liveStampRef.current, stamp)) return;
+    const tick: AcceptedLiveTick = { basis: liveQuoteRef.current?.basis ?? "", stamp: liveQuoteStamp(liveQuoteRef.current) };
+    if (!acceptsLiveTick(liveTickRef.current, tick)) return;
     const mutation = mutateLiveCandle(
       current as unknown as import("@/lib/liveCandle").LiveCandleBar[],
       liveQuoteRef.current,
@@ -2896,7 +2897,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     } catch { return; }
 
     liveTickKeyRef.current = mutation.tickKey;
-    liveStampRef.current = stamp ?? liveStampRef.current;
+    liveTickRef.current = tick;
     fullBarsRef.current = mutation.bars as unknown as Bar[];
     barsRef.current = fullBarsRef.current; // replay is guarded above, so the visible set is the full set
 
@@ -2943,8 +2944,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // A superseded packet must never repaint after a newer one: the fold below rewrites the
     // developing bucket IN PLACE, so an out-of-order quote would roll the candle — and every
     // consumer derived from it — backwards inside the same session.
-    const stamp = liveQuoteStamp(q);
-    if (!acceptsLiveStamp(liveStampRef.current, stamp)) return;
+    const tick: AcceptedLiveTick = { basis: q.basis ?? "", stamp: liveQuoteStamp(q) };
+    if (!acceptsLiveTick(liveTickRef.current, tick)) return;
     const tf = timeframeRef.current;
     const market = classify(symbol);
     const sd = sessionDateOf(q.ts, market);
@@ -2988,7 +2989,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     if (fb.length) { if (fb[fb.length - 1].time === bucket.time) fb[fb.length - 1] = bucket; else fullBarsRef.current = [...fb, bucket]; }
     if (wasSame) { barsRef.current = fullBarsRef.current; }
     else if (bs.length) { if (bs[bs.length - 1].time === bucket.time) bs[bs.length - 1] = bucket; else barsRef.current = [...bs, bucket]; }
-    liveStampRef.current = stamp ?? liveStampRef.current;
+    liveTickRef.current = tick;
     // One accepted bar → one generation → every follower (§commitLiveBarGeneration).
     commitLiveBarGeneration({ appended });
   };
@@ -3453,7 +3454,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         for (const [k, arr] of indSeriesRef.current) series[k] = arr.map((s) => tail(s));
         return {
           generation: liveGenRef.current,
-          stamp: liveStampRef.current,
+          tick: liveTickRef.current,
           barCount: rows.length,
           lastBar: last ? { time: last.time, o: last.o, h: last.h, l: last.l, c: last.c, v: last.v } : null,
           // what the candle on the canvas actually holds, not what we believe we pushed
@@ -7701,7 +7702,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     const chart = chartRef.current; if (!chart) return;
     cpMark(`chart-effect2-start[${symbol}@${effectiveTimeframe}]`);
     liveTickKeyRef.current = "";
-    liveStampRef.current = null;   // a new bar set starts a new accepted-quote ordering
+    liveTickRef.current = null;    // a new bar set starts a new accepted-quote ordering
     const liveWrap = wrapElRef.current;
     if (liveWrap) {
       delete liveWrap.dataset.liveDirection;

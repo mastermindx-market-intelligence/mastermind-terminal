@@ -162,16 +162,26 @@ export function liveQuoteStamp(
   return null;
 }
 
+/** The last quote a pane accepted: which lane it came from, and when. */
+export type AcceptedLiveTick = { basis: string; stamp: number | null };
+
 /**
  * Is `next` allowed to repaint over the generation `prev` already painted?
  *
- * A strictly OLDER packet must never land after a newer one: the daily splice rewrites the final
- * bucket in place, so an out-of-order quote would silently roll the developing candle (and every
- * consumer derived from it) backwards. An equal stamp is accepted — the chart cadence and the
- * header cadence share a packet time, and a corrected print can arrive under the same `ts`.
- * An unstamped quote is accepted, because rejecting it would freeze a basis that ships no clock.
+ * A strictly OLDER packet from the SAME lane must never land after a newer one: the daily splice
+ * rewrites the final bucket in place, so an out-of-order quote would silently roll the developing
+ * candle — and every consumer derived from it — backwards.
+ *
+ * Three deliberate acceptances:
+ *  • an equal stamp — the chart lane and the header lane share a packet time, and a corrected
+ *    print can arrive under the same `ts`;
+ *  • an unstamped quote — rejecting it would freeze a basis that ships no clock;
+ *  • ANY stamp after a lane change. Ordering is per-lane, and the lanes do not share a clock: a
+ *    REALTIME → DELAYED_15M fallback moves `asOfMs` back a quarter of an hour, and comparing
+ *    across that boundary would freeze the chart until the delayed clock caught up.
  */
-export function acceptsLiveStamp(prev: number | null, next: number | null): boolean {
-  if (prev == null || next == null) return true;
-  return next >= prev;
+export function acceptsLiveTick(prev: AcceptedLiveTick | null, next: AcceptedLiveTick): boolean {
+  if (!prev || prev.basis !== next.basis) return true;
+  if (prev.stamp == null || next.stamp == null) return true;
+  return next.stamp >= prev.stamp;
 }

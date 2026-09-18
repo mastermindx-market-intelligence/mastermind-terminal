@@ -2,10 +2,10 @@
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
 # capturedAtHead: 3dce16e46432a8bbe238c6b8b89417cdb2fe8f5c
-# capturedAt: 2026-09-18T10:17:51Z
+# capturedAt: 2026-09-18T10:39:10Z
 # capturedAtHead is informational. The lock is layoutFiles + cropFiles.
 layoutFiles:
-  terminal/components/ChartPanel.tsx: "8eb6458df879b350bb18053e1000dd5d169aa2d489ea0bc208b5f1f713636e44"
+  terminal/components/ChartPanel.tsx: "c8b7afd4ed938b06f0693d6acbe74abd07bf39a1fee4f1c600fc847632d3b57b"
   terminal/components/ChartSettingsModal.tsx: "6c59eb27cc3c6db3613d592a8796f894cd87e144016ab1130a24389cba299d6b"
   terminal/components/VisualIntelligencePanel.tsx: "dd20b00a0c57613679dcb7ac3905b7b3e0589400935807724a5aea221f0020ec"
   terminal/components/VisualIntelligencePanel.module.css: "29a8fc3d37c55b701a5fe6484948901c00199fac3b5f0e120f7657d1cbd1c9cd"
@@ -15,12 +15,12 @@ layoutFiles:
   terminal/lib/suites/trend/candlePainter.ts: "8384d2bce3af939a51e88584b1436ee2898a89f0fbf1aedc09ffee624a3e12e1"
   terminal/lib/indicator-canvas/host.ts: "4f2949efb22b8c378cab1ff9d176466c4857073c14a36ee4f0eeab4ec1015a25"
 cropFiles:
-  desktop-context.png: "68ef7c97a2e0934e13ef7998259bfd59d5b1db9fbbdc5159fdd3de8cf67d610a"
-  desktop-context-zh.png: "29cc78ca22b6e232915bf1edb3b87a8652cf818328aca27b01ea8034d79a943d"
-  tablet-context.png: "f46b11a808c52d97ecc4ddeea1cdd6e78be8672eca746b6e4031fbd781286819"
-  tablet-context-zh.png: "e39a3d07c3c3201690ec6b05a7b1eb2b598214d67e25c8171aba459e76fb5e36"
-  mobile-context.png: "e1d4f4c34802c2d72496b64d4da10f9623da8206e96ac9fc822fd8118c8a8242"
-  mobile-context-zh.png: "9205089468af6d8a98266646086a5de3025a20278eb7c2b4844af9918f41237e"
+  desktop-context.png: "e56c8e0033505ce535c5b385fdfac2a869208b5983369ebf45624f50c88154b5"
+  desktop-context-zh.png: "8998b954a7dcd2e8f957f9a6f8e3d173c2b62c172323370da8de60f95ec12458"
+  tablet-context.png: "06ae2ed4e5837db8ee45ad2612cfcc97801e444ec0cf504f334452a46262ce8e"
+  tablet-context-zh.png: "fa40764a2c2081fa81f43e7ef27dd7b7e9ce10b7a826e2d4d13acb48e875f3fb"
+  mobile-context.png: "9aefcd9d13e9c4d2b39e7f619492417de19bd4ba22f74147b458963b884e3409"
+  mobile-context-zh.png: "a01fc3f3992002a657a9558fd90dc47d567a64bd9f8ab731febb9fbaeacf4617"
 theme: dark
 languages: [en, zh]
 viewports:
