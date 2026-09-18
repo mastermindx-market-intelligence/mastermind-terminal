@@ -1,0 +1,49 @@
+[warmup] /terminal?symbol=NVDA → 200 in 129ms
+[warmup] /options → 200 in 183ms
+[warmup] /portfolio → 200 in 102ms
+[warmup] /alerts → 200 in 110ms
+[warmup] /analysis → 200 in 435ms
+[warmup] /discover → 200 in 165ms
+[warmup] /admin → 200 in 73ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 56ms
+[warmup] /login → 200 in 113ms
+[warmup] /api/me → 200 in 91ms
+[warmup] /api/watchlist → 200 in 39ms
+[warmup] /api/layouts → 200 in 46ms
+[warmup] 12 routes compiled in 2s
+
+Running 30 tests using 1 worker
+
+  ✓   1 [desktop] › e2e/options-surface-alignment.spec.ts:7:7 › served options surface keeps numeric band proportions (en) (1.3s)
+  ✓   2 [desktop] › e2e/options-surface-alignment.spec.ts:7:7 › served options surface keeps numeric band proportions (zh) (1.4s)
+  ✓   3 [desktop] › e2e/options-surface-geometry.spec.ts:56:11 › actual surface geometry at DPR 1 › linear (383ms)
+  ✓   4 [desktop] › e2e/options-surface-geometry.spec.ts:56:11 › actual surface geometry at DPR 1 › inverted (362ms)
+  ✓   5 [desktop] › e2e/options-surface-geometry.spec.ts:56:11 › actual surface geometry at DPR 1 › logarithmic (313ms)
+  ✓   6 [desktop] › e2e/options-surface-geometry.spec.ts:56:11 › actual surface geometry at DPR 2 › linear (443ms)
+  ✓   7 [desktop] › e2e/options-surface-geometry.spec.ts:56:11 › actual surface geometry at DPR 2 › inverted (407ms)
+  ✓   8 [desktop] › e2e/options-surface-geometry.spec.ts:56:11 › actual surface geometry at DPR 2 › logarithmic (387ms)
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓   9 [desktop] › e2e/options-surface-replay.spec.ts:6:7 › surface replay advances and preserves the cursor across layout changes (en) (3.4s)
+  ✓  10 [desktop] › e2e/options-surface-replay.spec.ts:6:7 › surface replay advances and preserves the cursor across layout changes (zh) (3.9s)
+  ✓  11 [tablet] › e2e/options-surface-alignment.spec.ts:7:7 › served options surface keeps numeric band proportions (en) (1.1s)
+  ✓  12 [tablet] › e2e/options-surface-alignment.spec.ts:7:7 › served options surface keeps numeric band proportions (zh) (1.3s)
+  ✓  13 [tablet] › e2e/options-surface-geometry.spec.ts:56:11 › actual surface geometry at DPR 1 › linear (306ms)
+  ✓  14 [tablet] › e2e/options-surface-geometry.spec.ts:56:11 › actual surface geometry at DPR 1 › inverted (331ms)
+  ✓  15 [tablet] › e2e/options-surface-geometry.spec.ts:56:11 › actual surface geometry at DPR 1 › logarithmic (304ms)
+  ✓  16 [tablet] › e2e/options-surface-geometry.spec.ts:56:11 › actual surface geometry at DPR 2 › linear (360ms)
+  ✓  17 [tablet] › e2e/options-surface-geometry.spec.ts:56:11 › actual surface geometry at DPR 2 › inverted (386ms)
+  ✓  18 [tablet] › e2e/options-surface-geometry.spec.ts:56:11 › actual surface geometry at DPR 2 › logarithmic (369ms)
+  ✓  19 [tablet] › e2e/options-surface-replay.spec.ts:6:7 › surface replay advances and preserves the cursor across layout changes (en) (2.9s)
+  ✓  20 [tablet] › e2e/options-surface-replay.spec.ts:6:7 › surface replay advances and preserves the cursor across layout changes (zh) (3.7s)
+  ✓  21 [mobile] › e2e/options-surface-alignment.spec.ts:7:7 › served options surface keeps numeric band proportions (en) (1.1s)
+  ✓  22 [mobile] › e2e/options-surface-alignment.spec.ts:7:7 › served options surface keeps numeric band proportions (zh) (1.2s)
+  ✓  23 [mobile] › e2e/options-surface-geometry.spec.ts:56:11 › actual surface geometry at DPR 1 › linear (302ms)
+  ✓  24 [mobile] › e2e/options-surface-geometry.spec.ts:56:11 › actual surface geometry at DPR 1 › inverted (306ms)
+  ✓  25 [mobile] › e2e/options-surface-geometry.spec.ts:56:11 › actual surface geometry at DPR 1 › logarithmic (311ms)
+  ✓  26 [mobile] › e2e/options-surface-geometry.spec.ts:56:11 › actual surface geometry at DPR 2 › linear (438ms)
+  ✓  27 [mobile] › e2e/options-surface-geometry.spec.ts:56:11 › actual surface geometry at DPR 2 › inverted (373ms)
+  ✓  28 [mobile] › e2e/options-surface-geometry.spec.ts:56:11 › actual surface geometry at DPR 2 › logarithmic (388ms)
+  ✓  29 [mobile] › e2e/options-surface-replay.spec.ts:6:7 › surface replay advances and preserves the cursor across layout changes (en) (3.1s)
+  ✓  30 [mobile] › e2e/options-surface-replay.spec.ts:6:7 › surface replay advances and preserves the cursor across layout changes (zh) (3.6s)
+
+  30 passed (43.3s)

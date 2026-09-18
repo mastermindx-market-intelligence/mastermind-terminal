@@ -6,8 +6,9 @@
  *   - The surface is a PREMIUM-FLOW field materialized from OPRA per-strike flow.
  *     Cadence is measured from the plotted timestamps — a configured producer target is
  *     not presented as achieved when the actual snapshots are sparse.
- *   - Greek surfaces (gamma/vanna/charm) are NOT built yet → shown disabled-with-tooltip
- *     ("accruing — ships with the greeks snapshotter"), never faked.
+ *   - Greek surfaces are modeled signed exposures from observed quote snapshots plus
+ *     prior-day OI. Their positive/negative sign is NEVER labelled premium inflow/outflow;
+ *     absent Greek grids remain disabled/accruing rather than substituted.
  *   - No "validated" / "predictive" / directional-signal language.
  *   - translated strings MUST NOT appear in HTML title= attributes (CI-guarded) — use
  *     aria-label / visible spans.
@@ -81,6 +82,8 @@ const SURFACE_LEX = {
   // ── Legend / stamps ─────────────────────────────────────────────────────────
   legendPos: ["inflow", "流入"],
   legendNeg: ["outflow", "流出"],
+  legendExposurePos: ["positive exposure", "正敞口"],
+  legendExposureNeg: ["negative exposure", "负敞口"],
   asOf: ["as of", "更新于"],
   cadenceLabel: ["cadence", "频率"],
   snapshots: ["snapshots", "个快照"],
@@ -91,11 +94,21 @@ const SURFACE_LEX = {
   dataStripSurface: ["Surface", "曲面"],
   dataStripPrice: ["Price", "价格"],
   observedOnly: ["Observed only · no interpolation", "仅实测 · 不插值"],
+  modeledExposure: ["Modeled exposure · observed snapshots", "模型敞口 · 基于实测快照"],
   observedFrames: ["observed frames", "个实测帧"],
 
   // ── Empty / loading ─────────────────────────────────────────────────────────
   surfaceEmpty: ["No surface data yet — accruing.", "暂无曲面数据 — 累积中。"],
   surfaceLoading: ["Loading surface…", "加载曲面中…"],
+  surfaceRefreshFailed: [
+    "Surface refresh unavailable · showing stored frame",
+    "曲面刷新暂不可用 · 显示已存帧",
+  ],
+  surfaceUnavailable: ["Surface unavailable — frame read failed.", "曲面暂不可用 — 帧读取失败。"],
+  surfaceUnavailableWhy: [
+    "No stored frame is available for this exact time. This read failure is not reported as still accruing.",
+    "该精确时点没有可保留的已存帧。本次读取失败不会被误报为仍在累积。",
+  ],
   noFrame: ["No frame for this time.", "该时间点暂无数据。"],
 
   // ── Replay bar ──────────────────────────────────────────────────────────────
@@ -107,7 +120,9 @@ const SURFACE_LEX = {
   replayLast: ["Latest frame", "最新帧"],
   replaySpeedAria: ["Playback speed", "播放速度"],
   replayScrubAria: ["Scrub to frame", "拖动到指定帧"],
-  replayLive: ["LIVE", "实时"],
+  replayLive: ["LATEST STORED", "最新已存帧"],
+  replayRefreshFailed: ["Refresh unavailable · retaining stored frames", "刷新暂不可用 · 保留已存帧"],
+  replaySelectionUnavailable: ["Selected observation unavailable", "所选观测暂无数据"],
   replayFrameOf: ["frame", "帧"],
   replayNoFrames: ["No frames — accruing.", "暂无帧 — 累积中。"],
   frameRailAria: ["Observed surface frames", "实测曲面帧"],
@@ -117,7 +132,7 @@ const SURFACE_LEX = {
 
   // ── Multi-day replay: session picker + archived-session badge ───────────────
   sessionPickerAria: ["Replay session", "回放交易日"],
-  sessionToday: ["Today · LIVE", "今日 · 实时"],
+  sessionToday: ["Latest session", "最新交易日"],
   sessionArchived: ["archived session", "历史交易日"],
   sessionArchivedNote: [
     "Replaying a past session. Everything below the scrubber describes that day, not today.",
@@ -229,6 +244,8 @@ const SURFACE_LEX = {
   stylePerMetric: ["Per metric", "按指标"],
   stylePos: ["Inflow", "流入"],
   styleNeg: ["Outflow", "流出"],
+  styleExposurePos: ["Positive exposure", "正敞口"],
+  styleExposureNeg: ["Negative exposure", "负敞口"],
   styleReset: ["Reset to theme", "恢复主题默认"],
   styleClose: ["Done", "完成"],
   presetDefault: ["Theme default", "主题默认"],
@@ -333,6 +350,7 @@ const SURFACE_LEX = {
   // Every data surface names its source next to its as-of. These are the two stores
   // this family actually reads — nothing here claims a feed we don't have.
   sourceOpra: ["OPRA per-strike flow", "OPRA 逐行权价资金流"],
+  sourceGreek: ["OPRA quotes + prior-day OI · modeled exposure", "OPRA 报价 + 前一交易日 OI · 模型敞口"],
   sourceTide: ["OPRA premium tide", "OPRA 权利金资金流"],
 
   // ── Honest empty / building states: name the reason, never a bare "no data" ──

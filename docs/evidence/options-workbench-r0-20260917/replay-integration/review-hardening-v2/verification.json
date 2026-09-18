@@ -1,0 +1,51 @@
+{
+  "schema": "mastermind.options_workbench.r0_review_hardening_v2.v1",
+  "skillpack_sha": "61a2ff79aba4e8a5685e779707ad5c4426cf5cc5",
+  "base_head": "1f94c551ff997a50dc915a3d7565d626d89f87c4",
+  "capability_state": "BUILT_NOT_PROVEN",
+  "repair": {
+    "name": "same_stamp_frame_refresh_failure",
+    "red": {
+      "mounted_cases_failed": 2,
+      "observed": [
+        "same-stamp refresh HTTP failure erased the admitted stored frame",
+        "initial frame transport failure rendered the no-data/accruing copy"
+      ]
+    },
+    "green": {
+      "same_identity_failure_retains_frame": true,
+      "initial_failure_is_unavailable_not_accrual": true,
+      "bilingual_stored_frame_failure_disclosure": true
+    }
+  },
+  "verification": {
+    "focused_surface_family": {
+      "files_passed": 9,
+      "tests_passed": 270,
+      "failed": 0
+    },
+    "typescript_exit": 0,
+    "browser_replay_alignment_geometry": {
+      "passed": 30,
+      "failed": 0,
+      "retries": 0,
+      "workers": 1,
+      "languages": ["en", "zh"],
+      "viewports": ["desktop", "tablet", "mobile"]
+    }
+  },
+  "source_hashes": {
+    "terminal/components/surface/SurfacePane.tsx": "b76ae9c05167391b6fd238d94ac71899f003f15131985a88cda84516537a9736",
+    "terminal/components/surface/surfaceStrings.ts": "2b289827d1af92110e3299627eaefd79e02b55afb1778c6c4122862eb8c74ebd",
+    "terminal/lib/__tests__/surfaceReplayMounted.test.tsx": "3bda265301384f76465263cd3bc08f7c9e6a2aa1d8d34c837a749aecdeb5372a",
+    "terminal/e2e/options-surface-replay.spec.ts": "e75c1035e19fe1b3834be873b82e814d59424c0ba1b0b8be50f4ce4d790bf13e"
+  },
+  "non_claims": [
+    "production deployment",
+    "live market freshness",
+    "observed dealer inventory",
+    "predictive edge",
+    "full QuantedOptions parity",
+    "parent #603 completion"
+  ]
+}

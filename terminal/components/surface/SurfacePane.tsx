@@ -62,8 +62,7 @@ import {
   filterFrameToRange,
   gridMaxAbs,
   gridPercentileAbs,
-  isSurfaceFrame,
-  isSurfaceIndex,
+  isSurfaceFrameForContext,
   metricEnabled,
   observedSurfaceCadenceSec,
   parseOiChangeRows,
@@ -322,7 +321,7 @@ export function SurfacePane({
   // setHover). A stable function identity across a lang-unchanged render fixes it.
   const t = useMemo(() => makeSurfaceT(lang), [lang]);
   const gexT = useMemo(() => makeGexT(lang), [lang]);
-  const { state: replayState, dispatch, asOfStamp, live, sessionDate, archived } = useReplay();
+  const { state: replayState, asOfStamp, live, sessionDate, archived, indexDate, frameRevision, sourceRevision } = useReplay();
   const sync = useSurfaceSync();
   const isCell = chrome === "cell";
   // Nightly-derived overlays (Levels / regime / OI Δ) never truncate or interpolate to the
@@ -338,7 +337,14 @@ export function SurfacePane({
   const [aggMin, setAggMin] = useState<number>(5);
   const [opacity, setOpacity] = useState<number>(1);
   const [rangeQ, setRangeQ] = useState<number>(80);
-  const [frame, setFrame] = useState<SurfaceFrame | null>(null);
+  const [frameResult, setFrameResult] = useState<{ root: string; stamp: string; data: SurfaceFrame } | null>(null);
+  const [frameError, setFrameError] = useState(false);
+  // Render-time identity fencing: a changed root/session/selection must not temporarily
+  // show the previous frame while its request is pending. Re-run the same admission
+  // contract used at write time instead of trusting the tuple's label alone.
+  const frame = frameResult?.root === root && frameResult?.stamp === asOfStamp && asOfStamp &&
+    isSurfaceFrameForContext(frameResult.data, root, indexDate, asOfStamp)
+      ? frameResult.data : null;
   const [candles, setCandles] = useState<Bar6[]>([]);
   /** Session whose candle request has completed (including an honest empty response). */
   const [candleSession, setCandleSession] = useState<string | null>(null);
@@ -434,7 +440,7 @@ export function SurfacePane({
   // The route slices server-side so a single-session pane does not receive 20,000 deep
   // history bars. Keep the same filter client-side as a contract boundary: a stale CDN,
   // fixture, or older server must never be able to flatten this chart again.
-  const candleSessionDate = frame?.session_date ?? null;
+  const candleSessionDate = indexDate;
   const sessionCandles = useMemo(
     () => candleSessionDate ? filterBarsToSessionDate(candles, candleSessionDate) : [],
     [candles, candleSessionDate],
@@ -453,8 +459,8 @@ export function SurfacePane({
   // still > 0 (the whitespace tail alone). The cutoff computation is hoisted here so both
   // the candle-draw effect below and host selection agree on what's actually plotted.
   const cutoffBars = useMemo(() => {
-    if (!sessionCandles.length) return { cutoff: Infinity, kept: [] as Bar6[], drawn: [] as Bar6[] };
-    const date = frame?.session_date;
+    if (!sessionCandles.length || !asOfStamp) return { cutoff: 0, kept: [] as Bar6[], drawn: [] as Bar6[] };
+    const date = indexDate;
     let cutoff = Infinity;
     if (!live && asOfStamp && date && asOfStamp.length >= 4) {
       const e = sessionEpoch(date, `${asOfStamp.slice(0, 2)}:${asOfStamp.slice(2, 4)}`);
@@ -463,7 +469,7 @@ export function SurfacePane({
     const kept = sessionCandles.filter((b, i, arr) => i === 0 || b[0] !== arr[i - 1][0]);
     const drawn = kept.filter((b) => b[0] <= cutoff);
     return { cutoff, kept, drawn };
-  }, [sessionCandles, live, asOfStamp, frame?.session_date]);
+  }, [sessionCandles, live, asOfStamp, indexDate]);
   // The boolean host selection actually needs. It only flips at the empty/non-empty
   // boundary (not per-frame during ordinary playback once past the first drawn bar), so
   // this doesn't churn the price-line effects on every scrub tick — see N1 above for why a
@@ -533,27 +539,6 @@ export function SurfacePane({
     return hi > lo ? [lo, hi] : null;
   });
 
-  // ── Seed the replay stamps from the index (once per root/session) ────────────
-  // An archived session reads its own dated index; today reads the legacy live path, which
-  // is untouched. A dated index that comes back malformed (or empty) yields no stamps — the
-  // bar says so rather than falling back to another day's frame list.
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      const data = await flowGet(
-        sessionDate ? `surface_idx_at:${root}:${sessionDate}` : `surface_idx:${root}`,
-      );
-      if (cancelled) return;
-      if (isSurfaceIndex(data)) {
-        dispatch({ type: "setStamps", stamps: data.stamps, keepHead: true });
-      } else {
-        dispatch({ type: "setStamps", stamps: [] });
-      }
-    })();
-    return () => { cancelled = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [root, sessionDate]);
-
   // ── Fetch the frame for the scrubbed stamp ───────────────────────────────────
   // All state writes happen inside the async task (never synchronously in the effect
   // body) so mounting doesn't fire a synchronous cascading re-render before the fetch
@@ -562,7 +547,7 @@ export function SurfacePane({
     let cancelled = false;
     (async () => {
       if (!asOfStamp) {
-        if (!cancelled) { setFrame(null); setLoading(false); }
+        if (!cancelled) { setFrameResult(null); setFrameError(false); setLoading(false); }
         return;
       }
       setLoading(true);
@@ -570,23 +555,32 @@ export function SurfacePane({
         sessionDate
           ? `surface_at:${root}:${sessionDate}:${asOfStamp}`
           : `surface:${root}:${asOfStamp}`,
+        { refresh: !archived && frameRevision > 0 },
       );
       if (cancelled) return;
-      const nextFrame = isSurfaceFrame(data) ? data : null;
-      setFrame(nextFrame);
-      // If the active greek metric isn't carried by this frame, fall back to the premium
-      // field (always present) so the pane never sits on a dead tab. Done here inside the
-      // async task (with the frame write) rather than a separate setState-in-effect.
-      // A quad cell is EXEMPT: its whole job is to hold one metric's slot, so an absent
-      // greek must show the honest "accruing" state, not silently become a second
-      // Net-Premium panel next to the real one.
-      if (!fixedMetric && metricRef.current !== "netprem" && (!nextFrame || !metricEnabled(nextFrame, metricRef.current))) {
-        setMetricState("netprem");
+      if (data == null) {
+        // A hard transport/status failure is not evidence that the selected observation
+        // never existed. Retain only a previously admitted frame for this exact
+        // root/session/stamp; a first read (or changed context) stays honestly unavailable.
+        setFrameError(true);
+        setFrameResult((previous) =>
+          previous?.root === root && previous.stamp === asOfStamp &&
+          isSurfaceFrameForContext(previous.data, root, indexDate, asOfStamp)
+            ? previous
+            : null,
+        );
+        setLoading(false);
+        return;
       }
+      setFrameError(false);
+      const nextFrame = isSurfaceFrameForContext(data, root, indexDate, asOfStamp) ? data : null;
+      setFrameResult(nextFrame ? { root, stamp: asOfStamp, data: nextFrame } : null);
+      // Preserve the selected metric when data is unavailable. A missing Greek
+      // is not permission to replace it with a different premium-flow series.
       setLoading(false);
     })();
     return () => { cancelled = true; };
-  }, [root, sessionDate, asOfStamp, fixedMetric]);
+  }, [root, sessionDate, asOfStamp, fixedMetric, indexDate, frameRevision, archived]);
 
   useEffect(() => { frameRef.current = frame; }, [frame]);
   useEffect(() => { stampsRef.current = replayState.stamps ?? []; }, [replayState.stamps]);
@@ -746,7 +740,7 @@ export function SurfacePane({
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const date = frame?.session_date;
+      const date = indexDate;
       if (!date) {
         if (!cancelled) { setCandles([]); setCandleSession(null); }
         return;
@@ -770,7 +764,7 @@ export function SurfacePane({
       }
     })();
     return () => { cancelled = true; };
-  }, [root, effAggMin, frame?.session_date]);
+  }, [root, effAggMin, indexDate, sourceRevision]);
 
   // ── Chart lifecycle: create once, tear down on unmount ───────────────────────
   useEffect(() => {
@@ -996,11 +990,11 @@ export function SurfacePane({
     applyShaderRef.current();
     const levelValues = shown.price_levels.filter((v) => Number.isFinite(v));
     levelsRef.current = levelValues;
-    // `sessionCandles.length` is in the key so the window is (re)computed once the bars actually
+    // Candle availability (not its changing count) is in the key so the window is (re)computed once the bars actually
     // arrive — the first pass runs with an empty array and would otherwise lock in the
     // candle-less fallback for the session. Nothing else in the key moves on a replay
     // scrub or a metric switch, so a scrub still cannot yank the user's zoom.
-    const rangeKey = `${root}:${frame.session_date ?? ""}:${rangeQ}:${sessionCandles.length}`;
+    const rangeKey = `${root}:${frame.session_date ?? ""}:${rangeQ}:${sessionCandles.length > 0 ? "candles" : "field"}`;
     if (levelValues.length > 0 && priceRangeKeyRef.current !== rangeKey) {
       // Price first, field second. The bars are already pinned to this frame's session.
       const win = priceWindow(sessionCandles) ?? strikeWindow(levelValues, frame.spot);
@@ -1201,7 +1195,11 @@ export function SurfacePane({
     if (!chart || !date) return;
     if (timeWindow === "surface") {
       const window = observedTimeWindow(date, frame.time_steps);
-      if (window) chart.timeScale().setVisibleRange(window);
+      const axis = chart.timeScale();
+      // setVisibleRange requires actual chart time points. The selected Greek
+      // can be missing while the frame metadata exists and candles are pending.
+      // Wait for real series data; do not turn honest emptiness into a route crash.
+      if (window && axis.getVisibleRange() != null) axis.setVisibleRange(window);
       return;
     }
     if (sessionCandles.length > 0 || candleSession === date) chart.timeScale().fitContent();
@@ -1484,7 +1482,7 @@ export function SurfacePane({
 
       {/* Compact data contract: three separate clocks, named where the user reads them.
           This replaces the giant amber paragraph and the on-canvas provenance sentence. */}
-      {!isCell && (
+      {!isCell && frame && (
         <div className="obs-surf-data-strip" role="status">
           <span className="obs-surf-data-item">
             <span className="obs-lbl">{t("dataStripSession")}</span>
@@ -1503,11 +1501,11 @@ export function SurfacePane({
           </span>
           <span className="obs-surf-observed-badge">
             <span className="obs-live-dot" aria-hidden />
-            {t("observedOnly")}
+            {metric === "netprem" ? t("observedOnly") : t("modeledExposure")}
           </span>
           <span className="obs-surf-data-legend">
-            <span style={LEGEND_ITEM}><span style={{ ...SWATCH, background: `var(${METRIC_CSS[metric].pos})` }} /><span className="obs-lbl">{t("legendPos")}</span></span>
-            <span style={LEGEND_ITEM}><span style={{ ...SWATCH, background: `var(${METRIC_CSS[metric].neg})` }} /><span className="obs-lbl">{t("legendNeg")}</span></span>
+            <span style={LEGEND_ITEM}><span style={{ ...SWATCH, background: `var(${METRIC_CSS[metric].pos})` }} /><span className="obs-lbl">{t(metric === "netprem" ? "legendPos" : "legendExposurePos")}</span></span>
+            <span style={LEGEND_ITEM}><span style={{ ...SWATCH, background: `var(${METRIC_CSS[metric].neg})` }} /><span className="obs-lbl">{t(metric === "netprem" ? "legendNeg" : "legendExposureNeg")}</span></span>
           </span>
           {/* Regime chip — nightly gexstate:{ROOT}, same word/colour as the screener's msc_*
               column, the watchlist dot and the ticker page's positioning block. Never stands
@@ -1547,7 +1545,7 @@ export function SurfacePane({
               )}
             </span>
           )}
-          <span className="obs-surf-data-source">{t("sourceOpra")}</span>
+          <span className="obs-surf-data-source">{t(metric === "netprem" ? "sourceOpra" : "sourceGreek")}</span>
         </div>
       )}
 
@@ -1588,6 +1586,12 @@ export function SurfacePane({
           </div>
         )}
 
+        {frameError && hasData && (
+          <div className="obs-tag obs-surf-frame-refresh-error" style={FRAME_REFRESH_ERROR} role="status">
+            {t("surfaceRefreshFailed")}
+          </div>
+        )}
+
         {/* Crosshair readout pill (top-left) */}
         {readout && hasData && (
           <div style={READOUT_PILL} className="num">
@@ -1605,11 +1609,11 @@ export function SurfacePane({
         {!hasData && (
           <div style={EMPTY}>
             <span style={EMPTY_TITLE}>
-              {loading ? t("surfaceLoading") : cellAccruing ? t("metricAccruing") : t("surfaceEmpty")}
+              {loading ? t("surfaceLoading") : frameError ? t("surfaceUnavailable") : cellAccruing ? t("metricAccruing") : t("surfaceEmpty")}
             </span>
             {!isCell && (
               <span style={EMPTY_WHY}>
-                {loading ? t("surfaceLoadingWhy") : t("surfaceEmptyWhy")}
+                {loading ? t("surfaceLoadingWhy") : frameError ? t("surfaceUnavailableWhy") : t("surfaceEmptyWhy")}
               </span>
             )}
           </div>
@@ -1744,6 +1748,14 @@ const LEGEND_ITEM: React.CSSProperties = { display: "inline-flex", alignItems: "
 const SWATCH: React.CSSProperties = { display: "inline-block", width: 10, height: 8, borderRadius: 2 };
 
 const CHART_AREA: React.CSSProperties = { position: "relative", flex: 1, minHeight: 260 };
+
+const FRAME_REFRESH_ERROR: React.CSSProperties = {
+  position: "absolute", left: "var(--sp-3)", bottom: "var(--sp-3)", zIndex: 5,
+  maxWidth: "calc(100% - 2 * var(--sp-3))", pointerEvents: "none",
+  background: "color-mix(in srgb, var(--panel) 90%, transparent)",
+  borderColor: "color-mix(in srgb, var(--signal) 40%, var(--line))",
+  color: "var(--text-2)", backdropFilter: "blur(6px)",
+};
 
 const READOUT_PILL: React.CSSProperties = {
   position: "absolute", top: "var(--sp-3)", left: "var(--sp-3)", zIndex: 5,
