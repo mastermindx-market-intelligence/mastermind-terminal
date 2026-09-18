@@ -88,6 +88,9 @@ export interface GexPayload {
     exp: string;
     gamma_net: number;
     delta_net?: number;
+    /** Additive R5 prerequisite fields. Older archived payloads legitimately omit them. */
+    vanna_net?: number;
+    charm_net?: number;
   }[];
   /**
    * The same book indexed by CALL-EQUIVALENT delta rather than by strike (Volland
