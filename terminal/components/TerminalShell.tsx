@@ -2,8 +2,8 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useIsMobile, useIsPhone } from "@/lib/useMediaQuery";
 import MobileSheet from "@/components/ui/MobileSheet";
-import { DndContext, DragOverlay, PointerSensor, KeyboardSensor, useDroppable, useSensor, useSensors, closestCenter, type CollisionDetection, type DragEndEvent, type DragStartEvent, type Modifier } from "@dnd-kit/core";
-import { SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { DndContext, DragOverlay, PointerSensor, KeyboardSensor, useDroppable, useSensor, useSensors, closestCenter, type Announcements, type CollisionDetection, type DragEndEvent, type DragOverEvent, type DragStartEvent, type KeyboardCoordinateGetter, type Modifier } from "@dnd-kit/core";
+import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import { CSS as DndCSS } from "@dnd-kit/utilities";
 import dynamic from "next/dynamic";
@@ -181,6 +181,7 @@ import {
 } from "@/lib/watchlistSelection";
 import {
   insertWatchlistSectionBefore,
+  moveWatchlistDragGroup,
   moveWatchlistSection,
   orderWatchlistRowsBySections,
   removeWatchlistSection,
@@ -245,19 +246,26 @@ function mergeLive(r: Row | undefined, q: any): Row | undefined {
 const SEC_DROP_PREFIX = "__sec__:";
 const ROOT_DROP_ID = "__watchlist_root__";
 const watchlistCollisionDetection: CollisionDetection = (args) => {
-  const draggingSection = String(args.active.id).startsWith(SEC_DROP_PREFIX);
+  const activeId = String(args.active.id);
+  const draggingSection = activeId.startsWith(SEC_DROP_PREFIX);
+  const carried = Array.isArray(args.active.data.current?.dragSymbols)
+    ? (args.active.data.current!.dragSymbols as unknown[]).map(String)
+    : [activeId];
+  const carriedIds = new Set(carried);
   const initialRect = args.active.rect.current.initial;
   const pointerInsideInitial = !!args.pointerCoordinates && !!initialRect
     && args.pointerCoordinates.x >= initialRect.left && args.pointerCoordinates.x <= initialRect.right
     && args.pointerCoordinates.y >= initialRect.top && args.pointerCoordinates.y <= initialRect.bottom;
-  // Keep the active target while the pointer is still inside its original
-  // bounds (micro-drags are no-ops). Once it leaves, exclude the transformed
-  // active node so it cannot follow the pointer and swallow a real drop.
+  // Keep the active target while the pointer is still inside its original bounds
+  // so micro-drags remain no-ops. Every OTHER carried ticker is excluded for the
+  // full gesture: a discontiguous source row must never swallow its own bundle.
   const scoped = {
     ...args,
-    droppableContainers: pointerInsideInitial
-      ? args.droppableContainers
-      : args.droppableContainers.filter((container) => container.id !== args.active.id),
+    droppableContainers: args.droppableContainers.filter((container) => {
+      const id = String(container.id);
+      if (!carriedIds.has(id)) return true;
+      return pointerInsideInitial && id === activeId;
+    }),
   };
   // dnd-kit caches layout rectangles at drag start. Sortable transforms then
   // move sibling rows visually, so those cached bounds can claim the adjacent
@@ -278,9 +286,6 @@ const watchlistCollisionDetection: CollisionDetection = (args) => {
       }).sort((a, b) => a.data.value - b.data.value)
     : [];
   if (args.pointerCoordinates && !draggingSection) {
-    // The root target is a zero-layout overlay on the first 25px of the list.
-    // When the pointer deliberately enters that band it owns the drop even
-    // though a ticker or divider remains visible beneath it.
     const exactRoot = exact.filter(({ id }) => id === ROOT_DROP_ID);
     if (!pointerInsideInitial && exactRoot.length) return exactRoot;
     const exactRows = exact.filter(({ id }) => id !== ROOT_DROP_ID && !String(id).startsWith(SEC_DROP_PREFIX));
@@ -295,33 +300,27 @@ const watchlistCollisionDetection: CollisionDetection = (args) => {
       if (gap > 12) return [];
       return [{ id: container.id, data: { droppableContainer: container, value: gap } }];
     }).sort((a, b) => a.data.value - b.data.value);
-    // A row may have shifted just beyond the pointer while opening the sortable
-    // gap. Prefer that nearby row over the adjoining divider; a deliberate
-    // header-center drop is farther than this tolerance and remains a section move.
     if (nearRows.length) return nearRows;
   }
   if (!exact.length) return closestCenter(scoped);
 
-  // Rows and divider headers can overlap while sort transforms are active. A
-  // ticker dropped on another ticker must resolve to that row (not the nearby
-  // section header); a divider drag gets the inverse preference. Empty/root
-  // runs still work because we fall back to the only exact container there.
   const preferred = exact.filter(({ id }) => {
     const isSectionTarget = id === ROOT_DROP_ID || String(id).startsWith(SEC_DROP_PREFIX);
     return draggingSection ? isSectionTarget : !isSectionTarget;
   });
-  const candidates = preferred.length ? preferred : exact;
-  return candidates;
+  return preferred.length ? preferred : exact;
 };
 
 // A watchlist section divider: collapse toggle, name, count, and — matching the operator's
 // TradingView reference — rename + trash affordances that appear on hover. Deleting removes the
 // DIVIDER only; the symbols survive in the section above (see deleteSection).
-function WlSectionHeader({ name, count, collapsed, minWidth, onToggle, onContextMenu, onRename, onDelete, labels }: {
+function WlSectionHeader({ name, count, collapsed, minWidth, dropActive, dropLabel, onToggle, onContextMenu, onRename, onDelete, labels }: {
   name: string;
   count: number;
   collapsed: boolean;
   minWidth: number;
+  dropActive: boolean;
+  dropLabel: string;
   onToggle: () => void;
   onContextMenu: (point: { x: number; y: number; focus: HTMLElement }) => void;
   onRename: (point: { x: number; y: number; focus: HTMLElement }) => void;
@@ -341,6 +340,11 @@ function WlSectionHeader({ name, count, collapsed, minWidth, onToggle, onContext
         onContextMenu({ x: event.clientX, y: event.clientY, focus: event.currentTarget });
       }}
     >
+      {dropActive && (
+        <span className="wl-drop-marker before section" data-watchlist-drop-edge="start" aria-hidden="true">
+          <b>{dropLabel}</b>
+        </span>
+      )}
       <button
         type="button"
         className="wl-sec-toggle"
@@ -401,10 +405,15 @@ function WlRootDropZone({ active, label }: { active: boolean; label: string }) {
 // Drag-sortable wrapper for a watchlist row. Whole-row draggable with a distance
 // activation constraint so a plain click still selects (pick) and only a >6px drag
 // starts a reorder. Lifted-row polish (opacity/shadow/scale) via isDragging.
-function SortableWlRow({ sym, section, selected, dragLabel, className, style, onClick, onContextMenu, onKeyDown, onMouseEnter, children }: {
+function SortableWlRow({ sym, section, selected, dragSymbols, groupDragging, freezeLayout, dropEdge, dropLabel, dragLabel, className, style, onClick, onContextMenu, onKeyDown, onMouseEnter, children }: {
   sym: string;
   section: string;
   selected: boolean;
+  dragSymbols: readonly string[];
+  groupDragging: boolean;
+  freezeLayout: boolean;
+  dropEdge: "before" | "after" | null;
+  dropLabel: string;
   dragLabel: string;
   className: string;
   style: React.CSSProperties;
@@ -414,7 +423,10 @@ function SortableWlRow({ sym, section, selected, dragLabel, className, style, on
   onMouseEnter: () => void;
   children: React.ReactNode;
 }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: sym });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: sym,
+    data: { dragSymbols: [...dragSymbols] },
+  });
   const forwardDndKey = (event: React.KeyboardEvent<HTMLElement>) => {
     event.stopPropagation();
     if (event.key === " " && event.code !== "Space") {
@@ -425,16 +437,14 @@ function SortableWlRow({ sym, section, selected, dragLabel, className, style, on
   return (
     <div
       ref={setNodeRef}
-      // dnd-kit derives aria-describedby from a module counter that differs
-      // between SSR and client — a benign, dev-only hydration mismatch.
       suppressHydrationWarning
-      className={`${className}${isDragging ? " dragging" : ""}`}
+      className={`${className}${isDragging ? " dragging" : ""}${groupDragging ? " group-dragging" : ""}`}
       data-watchlist-symbol={sym}
       data-watchlist-section={section}
       style={{
         ...style,
-        transform: DndCSS.Transform.toString(transform),
-        transition: transition ?? undefined,
+        transform: freezeLayout ? undefined : DndCSS.Transform.toString(transform),
+        transition: freezeLayout ? "none" : transition ?? undefined,
         cursor: "grab",
         ...(isDragging
           ? { opacity: 0.18, zIndex: 30, position: "relative", cursor: "grabbing" }
@@ -454,6 +464,11 @@ function SortableWlRow({ sym, section, selected, dragLabel, className, style, on
       aria-selected={selected}
       tabIndex={0}
     >
+      {dropEdge && (
+        <span className={`wl-drop-marker ${dropEdge}`} data-watchlist-drop-edge={dropEdge} aria-hidden="true">
+          <b>{dropLabel}</b>
+        </span>
+      )}
       <span
         suppressHydrationWarning
         {...attributes}
@@ -477,6 +492,34 @@ function SortableWlRow({ sym, section, selected, dragLabel, className, style, on
   );
 }
 
+function WlDragBundle({ symbols, activeSymbol, compact, movingLabel }: {
+  symbols: readonly string[];
+  activeSymbol: string;
+  compact: boolean;
+  movingLabel: string;
+}) {
+  const preview = symbols.slice(0, 3);
+  return (
+    <div
+      className={`wl-drag-bundle${compact ? " compact" : ""}`}
+      data-watchlist-drag-group="true"
+      data-watchlist-drag-count={symbols.length}
+      data-watchlist-drag-visual={activeSymbol}
+      aria-hidden="true"
+    >
+      <span className="wl-drag-bundle-copy">
+        <span className="wl-drag-bundle-kicker">{movingLabel}</span>
+        <span className="wl-drag-bundle-symbols">
+          {preview.map((symbol) => <b key={symbol} data-watchlist-drag-symbol={symbol}>{symbol}</b>)}
+        </span>
+      </span>
+      <span className="wl-drag-bundle-count">{symbols.length}</span>
+    </div>
+  );
+}
+
+type WlDragSession = { activeId: string; symbols: string[] };
+type WlDropTarget = { id: string; edge: "before" | "after" | "start" };
 type WlContextPoint = { x: number; y: number; symbol: string };
 type WlSectionContextPoint = { x: number; y: number; section: string; initialView?: "main" | "rename" };
 
@@ -953,7 +996,10 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
   const [wlSelected, setWlSelected] = useState<Set<string>>(() => new Set());
   const [wlContext, setWlContext] = useState<WlContextPoint | null>(null);
   const [wlSectionContext, setWlSectionContext] = useState<WlSectionContextPoint | null>(null);
-  const [wlDragId, setWlDragId] = useState<string | null>(null);
+  const [wlDrag, setWlDrag] = useState<WlDragSession | null>(null);
+  const [wlDropTarget, setWlDropTarget] = useState<WlDropTarget | null>(null);
+  const wlDropTargetRef = useRef<WlDropTarget | null>(null);
+  const wlDragId = wlDrag?.activeId ?? null;
   const [wlSyncFailed, setWlSyncFailed] = useState(false);
   const wlAnchorRef = useRef<string | null>(null);
   const wlContextFocusRef = useRef<HTMLElement | null>(null);
@@ -1051,9 +1097,79 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
   const wl = useMemo(() => lists[activeList] || [], [lists, activeList]);
   const setWl = (updater: any) => setLists((l) => ({ ...l, [activeList]: typeof updater === "function" ? updater(l[activeList] || []) : updater }));
   // Drag-to-reorder sensors: 6px activation distance so clicks still select rows.
+  // Keyboard traversal is watchlist-specific rather than generic sortable traversal:
+  // the rail has nested row/header SortableContexts plus an overlapping root target,
+  // and the generic getter can spend several Arrow presses cycling invisible geometry.
+  const wlKeyboardDirectionRef = useRef<"up" | "down" | null>(null);
+  const wlKeyboardTargetRef = useRef<WlDropTarget | null>(null);
+  const wlKeyboardReferenceRef = useRef<{
+    activeId: string;
+    sensor: { x: number; y: number };
+    source: { x: number; y: number };
+  } | null>(null);
+  const watchlistKeyboardCoordinates = useCallback<KeyboardCoordinateGetter>((event, { active, context }) => {
+    if (event.code !== "ArrowDown" && event.code !== "ArrowUp") return undefined;
+    event.preventDefault();
+    const collisionRect = context.collisionRect;
+    if (!collisionRect) return undefined;
+
+    const carried = Array.isArray(context.active?.data.current?.dragSymbols)
+      ? (context.active!.data.current!.dragSymbols as unknown[]).map(String)
+      : context.active ? [String(context.active.id)] : [];
+    const carriedIds = new Set(carried);
+    const currentTarget = wlKeyboardTargetRef.current;
+    const currentTargetContainer = currentTarget ? context.droppableContainers.get(currentTarget.id) : null;
+    const currentTargetRect = currentTargetContainer?.node.current?.getBoundingClientRect()
+      ?? (currentTarget ? context.droppableRects.get(currentTarget.id) : null);
+    const activeNodeRect = context.activeNode?.getBoundingClientRect();
+    const navigationRect = currentTargetRect ?? activeNodeRect ?? collisionRect;
+    const currentCenter = navigationRect.top + navigationRect.height / 2;
+    const movingDown = event.code === "ArrowDown";
+    wlKeyboardDirectionRef.current = movingDown ? "down" : "up";
+
+    const destinations = context.droppableContainers.getEnabled().flatMap((container) => {
+      const id = String(container.id);
+      if (carriedIds.has(id)) return [];
+      const isRoot = id === ROOT_DROP_ID;
+      const isSection = id.startsWith(SEC_DROP_PREFIX);
+      const node = container.node.current;
+      if (!isRoot && !isSection && !node?.matches(".wl-row[data-watchlist-symbol]")) return [];
+      if (movingDown && isRoot) return [];
+      const rect = node?.getBoundingClientRect() ?? context.droppableRects.get(container.id);
+      if (!rect) return [];
+      const center = rect.top + rect.height / 2;
+      const isAhead = movingDown ? center > currentCenter + 0.5 : center < currentCenter - 0.5;
+      return isAhead ? [{ id, rect, center }] : [];
+    }).sort((a, b) => movingDown ? a.center - b.center : b.center - a.center);
+
+    const next = destinations[0];
+    if (!next) return undefined;
+    const nextTarget: WlDropTarget = {
+      id: next.id,
+      edge: next.id === ROOT_DROP_ID || next.id.startsWith(SEC_DROP_PREFIX)
+        ? "start"
+        : movingDown ? "after" : "before",
+    };
+    wlKeyboardTargetRef.current = nextTarget;
+    wlDropTargetRef.current = nextTarget;
+    setWlDropTarget((current) => current?.id === nextTarget.id && current.edge === nextTarget.edge ? current : nextTarget);
+    if (!activeNodeRect) return undefined;
+    if (wlKeyboardReferenceRef.current?.activeId !== String(active)) {
+      wlKeyboardReferenceRef.current = {
+        activeId: String(active),
+        sensor: { x: collisionRect.left, y: collisionRect.top },
+        source: { x: activeNodeRect.left, y: activeNodeRect.top },
+      };
+    }
+    const reference = wlKeyboardReferenceRef.current;
+    return {
+      x: reference.sensor.x + (next.rect.left - reference.source.x),
+      y: reference.sensor.y + (next.rect.top - reference.source.y),
+    };
+  }, []);
   const dndSensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+    useSensor(KeyboardSensor, { coordinateGetter: watchlistKeyboardCoordinates }),
   );
   useEffect(() => {
     const trackPointer = (event: PointerEvent) => {
@@ -1479,6 +1595,65 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
   const nonce = useRef(0);
   const wsMounted = useRef(false);
   const t = useT();
+  const wlDndAnnouncements = useMemo<Announcements>(() => {
+    const symbolsFor = (active: { id: string | number; data: { current?: Record<string, unknown> } }) => {
+      const advertised = active.data.current?.dragSymbols;
+      return Array.isArray(advertised) && advertised.length ? advertised.map(String) : [String(active.id)];
+    };
+    const sectionName = (id: string) => id.slice(SEC_DROP_PREFIX.length);
+    const targetMessage = (count: number, target: WlDropTarget | null) => {
+      if (!target) return undefined;
+      if (target.id === ROOT_DROP_ID) return t("wlA11yMoveRoot").replace("{n}", String(count));
+      if (target.id.startsWith(SEC_DROP_PREFIX)) {
+        return t("wlA11yMoveSectionStart")
+          .replace("{n}", String(count))
+          .replace("{target}", sectionName(target.id));
+      }
+      return t(target.edge === "before" ? "wlA11yMoveBefore" : "wlA11yMoveAfter")
+        .replace("{n}", String(count))
+        .replace("{target}", target.id);
+    };
+    return {
+      onDragStart({ active }) {
+        const id = String(active.id);
+        if (id.startsWith(SEC_DROP_PREFIX)) return t("wlA11yPickedSection").replace("{section}", sectionName(id));
+        return t("wlA11yPickedSelection").replace("{n}", String(symbolsFor(active).length));
+      },
+      onDragMove({ active }) {
+        const id = String(active.id);
+        const target = wlDropTargetRef.current;
+        if (id.startsWith(SEC_DROP_PREFIX)) {
+          if (!target) return undefined;
+          const label = target.id === ROOT_DROP_ID ? t("wlUnsectioned")
+            : target.id.startsWith(SEC_DROP_PREFIX) ? sectionName(target.id) : target.id;
+          return t("wlA11yMoveSectionBlock").replace("{section}", sectionName(id)).replace("{target}", label);
+        }
+        return targetMessage(symbolsFor(active).length, target);
+      },
+      onDragOver({ active }) {
+        const id = String(active.id);
+        const target = wlDropTargetRef.current;
+        if (id.startsWith(SEC_DROP_PREFIX)) {
+          if (!target) return undefined;
+          const label = target.id === ROOT_DROP_ID ? t("wlUnsectioned")
+            : target.id.startsWith(SEC_DROP_PREFIX) ? sectionName(target.id) : target.id;
+          return t("wlA11yMoveSectionBlock").replace("{section}", sectionName(id)).replace("{target}", label);
+        }
+        return targetMessage(symbolsFor(active).length, target);
+      },
+      onDragEnd({ active }) {
+        const id = String(active.id);
+        if (id.startsWith(SEC_DROP_PREFIX)) return t("wlA11yDroppedSection").replace("{section}", sectionName(id));
+        return t("wlA11yDroppedSelection").replace("{n}", String(symbolsFor(active).length));
+      },
+      onDragCancel({ active }) {
+        const id = String(active.id);
+        if (id.startsWith(SEC_DROP_PREFIX)) return t("wlA11yCancelledSection").replace("{section}", sectionName(id));
+        return t("wlA11yCancelledSelection").replace("{n}", String(symbolsFor(active).length));
+      },
+    };
+  }, [t]);
+  const wlDndScreenReaderInstructions = useMemo(() => ({ draggable: t("wlA11yInstructions") }), [t]);
   // Why a disabled timeframe is disabled. Three distinct reasons, and naming the wrong one sends
   // the user hunting for a setting: the second band is off for the whole deployment ("not
   // enabled"), or on but unentitled for this symbol ("US stocks only"); everything else in the
@@ -3026,6 +3201,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
     [wl, wlSelected, visibleWlOrder],
   );
   const selectedWlCount = selectedWlRows.length;
+  const selectedWlSymbols = useMemo(() => selectedWlRows.map((row) => row.symbol), [selectedWlRows]);
   const inWl = useMemo(() => new Set(wl.map((s) => s.symbol)), [wl]);
 
   useEffect(() => {
@@ -3655,19 +3831,41 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
     }));
   }
 
+  function resetWlDragState() {
+    wlPointerDragRef.current = false;
+    wlPointerRef.current = null;
+    wlPointerLeftInitialRef.current = false;
+    wlPointerInitialRectRef.current = null;
+    wlPendingPointerRef.current = null;
+    wlActivationDeltaRef.current = null;
+    wlKeyboardDirectionRef.current = null;
+    wlKeyboardTargetRef.current = null;
+    wlKeyboardReferenceRef.current = null;
+    wlDropTargetRef.current = null;
+    setWlDrag(null);
+    setWlDropTarget(null);
+  }
+
   function onWlDragStart(event: DragStartEvent) {
     const activator = event.activatorEvent;
     const pointerDrag = "clientX" in activator && "clientY" in activator;
     const activatorPointer = pointerDrag ? activator as PointerEvent : null;
     const activeId = String(event.active.id);
-    const activeNode = activeId.startsWith(SEC_DROP_PREFIX)
+    const draggingSection = activeId.startsWith(SEC_DROP_PREFIX);
+    const advertised = Array.isArray(event.active.data.current?.dragSymbols)
+      ? (event.active.data.current!.dragSymbols as unknown[]).map(String)
+      : [activeId];
+    const symbols = !draggingSection && wlSelected.has(activeId) && advertised.length > 1
+      ? advertised.filter((symbol) => wl.some((row) => row.symbol === symbol))
+      : draggingSection ? [] : [activeId];
+    const activeNode = draggingSection
       ? document.querySelector<HTMLElement>(`[data-watchlist-section-header="${CSS.escape(activeId.slice(SEC_DROP_PREFIX.length))}"]`)
       : document.querySelector<HTMLElement>(`.wl-row[data-watchlist-symbol="${CSS.escape(activeId)}"]`);
     wlPointerDragRef.current = pointerDrag;
+    wlKeyboardTargetRef.current = null;
+    wlKeyboardReferenceRef.current = null;
+    wlDropTargetRef.current = null;
     wlPointerLeftInitialRef.current = false;
-    // dnd-kit invokes onDragStart before it publishes active.rect.current.initial.
-    // Capture the source element synchronously so a 12px wiggle remains a no-op,
-    // while a real drag that leaves and later re-enters this slot can still land.
     wlPointerInitialRectRef.current = event.active.rect.current.initial ?? activeNode?.getBoundingClientRect() ?? null;
     const latestPointer = pointerDrag ? wlPendingPointerRef.current : null;
     const activationRect = activeNode?.getBoundingClientRect();
@@ -3677,37 +3875,103 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
     wlPointerRef.current = latestPointer ?? (activatorPointer
       ? { x: activatorPointer.clientX, y: activatorPointer.clientY }
       : null);
-    setWlDragId(activeId);
+    if (!draggingSection && !wlSelected.has(activeId) && wlSelected.size) {
+      setWlSelected(new Set());
+      wlAnchorRef.current = activeId;
+    }
+    setWlDropTarget(null);
+    setWlDrag({ activeId, symbols });
     window.getSelection()?.removeAllRanges();
     setWlContext(null);
     setWlSectionContext(null);
   }
 
+  function onWlDragOver(event: DragOverEvent) {
+    const activeId = String(event.active.id);
+    const keyboardTarget = !wlPointerDragRef.current ? wlKeyboardTargetRef.current : null;
+    if (keyboardTarget) {
+      wlDropTargetRef.current = keyboardTarget;
+      setWlDropTarget((current) => current?.id === keyboardTarget.id && current.edge === keyboardTarget.edge ? current : keyboardTarget);
+      return;
+    }
+    if (!event.over || activeId.startsWith(SEC_DROP_PREFIX)) {
+      wlDropTargetRef.current = null;
+      setWlDropTarget(null);
+      return;
+    }
+    const advertised = Array.isArray(event.active.data.current?.dragSymbols)
+      ? (event.active.data.current!.dragSymbols as unknown[]).map(String)
+      : [activeId];
+    const carried = wlDrag?.activeId === activeId && wlDrag.symbols.length ? wlDrag.symbols : advertised;
+    const overId = String(event.over.id);
+    if (carried.includes(overId)) {
+      wlDropTargetRef.current = null;
+      setWlDropTarget(null);
+      return;
+    }
+    let edge: WlDropTarget["edge"] = "start";
+    if (overId !== ROOT_DROP_ID && !overId.startsWith(SEC_DROP_PREFIX)) {
+      const liveRect = document.querySelector<HTMLElement>(`.wl-row[data-watchlist-symbol="${CSS.escape(overId)}"]`)?.getBoundingClientRect();
+      const targetRect = liveRect ?? event.over.rect;
+      const translated = event.active.rect.current.translated;
+      const pointerY = wlPointerDragRef.current ? wlPointerRef.current?.y : null;
+      const activeCenter = translated ? translated.top + translated.height / 2 : null;
+      const keyboardDirection = pointerY == null ? wlKeyboardDirectionRef.current : null;
+      edge = keyboardDirection === "up"
+        ? "before"
+        : keyboardDirection === "down"
+          ? "after"
+          : (pointerY ?? activeCenter ?? targetRect.top) >= targetRect.top + targetRect.height / 2 ? "after" : "before";
+    }
+    const nextTarget = { id: overId, edge } satisfies WlDropTarget;
+    wlDropTargetRef.current = nextTarget;
+    setWlDropTarget((current) => current?.id === nextTarget.id && current.edge === nextTarget.edge ? current : nextTarget);
+  }
+
   // Symbols and divider blocks share one vertical DnD surface. A header drop means
   // "first item below this divider"; a row drop means "at this exact row".
   function onWlDragEnd(event: DragEndEvent) {
-    const pointer = wlPointerDragRef.current ? wlPointerRef.current : null;
+    const dragSession = wlDrag;
+    const pointerMode = wlPointerDragRef.current;
+    const keyboardTarget = pointerMode ? null : wlKeyboardTargetRef.current;
+    const pointer = pointerMode ? wlPointerRef.current : null;
     const pointerEverLeftInitial = wlPointerLeftInitialRef.current;
     const pointerInitialRect = wlPointerInitialRectRef.current;
-    wlPointerDragRef.current = false;
-    wlPointerRef.current = null;
-    wlPointerLeftInitialRef.current = false;
-    wlPointerInitialRectRef.current = null;
-    wlPendingPointerRef.current = null;
-    wlActivationDeltaRef.current = null;
-    setWlDragId(null);
+    resetWlDragState();
     const { active: dragActive, over } = event;
     const activeId = String(dragActive.id);
     const initialRect = dragActive.rect.current.initial ?? pointerInitialRect;
-    if (!over) return;
+    if (!over && !keyboardTarget) return;
     if (pointer && initialRect && !pointerEverLeftInitial) return;
-    let overId = String(over.id);
-    // Re-resolve pointer drops against live row rectangles. Sortable transforms
-    // can move the intended row after dnd-kit measured its cached collision rect;
-    // the live hit keeps a visible row drop attached to that row under load.
+    const dragSymbols = (dragSession?.activeId === activeId && dragSession.symbols.length
+      ? dragSession.symbols
+      : [activeId]).filter((symbol) => wl.some((row) => row.symbol === symbol));
+    const dragSet = new Set(dragSymbols);
+    // The collision engine deliberately removes carried rows so they cannot
+    // become insertion targets. Preserve the stronger user meaning here: when
+    // the pointer is visibly over ANY carried row, the gesture is a self-drop
+    // and therefore a no-op — never fall through to an adjacent unselected row.
+    if (pointer && dragSymbols.length > 1 && !activeId.startsWith(SEC_DROP_PREFIX)) {
+      // The active sortable node follows the pointer, so its LIVE rectangle is
+      // never a meaningful self-target. Use the captured source slot for it,
+      // and live rectangles only for the other selected source rows.
+      const overActiveOrigin = !!initialRect
+        && pointer.x >= initialRect.left && pointer.x <= initialRect.right
+        && pointer.y >= initialRect.top && pointer.y <= initialRect.bottom;
+      const overOtherCarried = dragSymbols.some((symbol) => {
+        if (symbol === activeId) return false;
+        const rect = document.querySelector<HTMLElement>(`.wl-row[data-watchlist-symbol="${CSS.escape(symbol)}"]`)?.getBoundingClientRect();
+        return !!rect && pointer.x >= rect.left && pointer.x <= rect.right
+          && pointer.y >= rect.top && pointer.y <= rect.bottom;
+      });
+      if (overActiveOrigin || overOtherCarried) return;
+    }
+    let overId = keyboardTarget?.id ?? String(over!.id);
+    // Re-resolve against live transformed rows, excluding the complete carried
+    // group rather than only the row that activated the sensor.
     if (pointer && !activeId.startsWith(SEC_DROP_PREFIX)) {
       const liveRows = [...document.querySelectorAll<HTMLElement>(".wl-row[data-watchlist-symbol]")]
-        .filter((node) => node.dataset.watchlistSymbol !== activeId)
+        .filter((node) => !dragSet.has(node.dataset.watchlistSymbol ?? ""))
         .map((node) => {
           const rect = node.getBoundingClientRect();
           const gap = pointer.y < rect.top ? rect.top - pointer.y : pointer.y > rect.bottom ? pointer.y - rect.bottom : 0;
@@ -3718,7 +3982,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
       const liveSymbol = liveRows[0]?.node.dataset.watchlistSymbol;
       if (liveSymbol) overId = liveSymbol;
     }
-    if (activeId === overId) return;
+    if (activeId === overId || dragSet.has(overId)) return;
 
     if (activeId.startsWith(SEC_DROP_PREFIX)) {
       const section = activeId.slice(SEC_DROP_PREFIX.length);
@@ -3735,6 +3999,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
       return;
     }
 
+    if (!dragSymbols.length) return;
     const fromRow = wl.find((row) => row.symbol === activeId);
     if (!fromRow) return;
     const targetSection = overId === ROOT_DROP_ID
@@ -3743,38 +4008,36 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
         ? overId.slice(SEC_DROP_PREFIX.length)
         : wl.find((row) => row.symbol === overId)?.section;
     if (targetSection == null) return;
-    const translated = dragActive.rect.current.translated;
-    const liveTargetRect = !overId.startsWith(SEC_DROP_PREFIX) && overId !== ROOT_DROP_ID
-      ? document.querySelector<HTMLElement>(`.wl-row[data-watchlist-symbol="${CSS.escape(overId)}"]`)?.getBoundingClientRect()
-      : null;
-    const targetRect = liveTargetRect ?? over.rect;
-    const insertAfterTarget = pointer
-      ? pointer.y >= targetRect.top + targetRect.height / 2
-      : !!translated && translated.top + translated.height / 2 > targetRect.top + targetRect.height / 2;
 
-    const from = wl.findIndex((row) => row.symbol === activeId);
-    if (from < 0) return;
-    const movedRow = { ...wl[from], section: targetSection };
-    const rest = wl.filter((_, index) => index !== from);
-
-    let nextRows: { symbol: string; section: string }[];
-    if (overId === ROOT_DROP_ID || overId.startsWith(SEC_DROP_PREFIX)) {
-      const firstInTarget = rest.findIndex((row) => row.section === targetSection);
-      rest.splice(firstInTarget >= 0 ? firstInTarget : rest.length, 0, movedRow);
-      nextRows = orderWatchlistRowsBySections(rest, sectionOrder);
-    } else {
-      const originalTargetIndex = wl.findIndex((row) => row.symbol === overId);
-      const targetIndex = rest.findIndex((row) => row.symbol === overId);
-      if (targetIndex < 0) return;
-      const placeAfter = fromRow.section === targetSection ? from < originalTargetIndex : insertAfterTarget;
-      rest.splice(targetIndex + (placeAfter ? 1 : 0), 0, movedRow);
-      nextRows = orderWatchlistRowsBySections(rest, sectionOrder);
+    let edge: "before" | "after" | "start" = keyboardTarget?.edge ?? "start";
+    const targetSymbol = overId === ROOT_DROP_ID || overId.startsWith(SEC_DROP_PREFIX) ? null : overId;
+    if (targetSymbol && !keyboardTarget) {
+      const translated = dragActive.rect.current.translated;
+      const liveTargetRect = document.querySelector<HTMLElement>(`.wl-row[data-watchlist-symbol="${CSS.escape(targetSymbol)}"]`)?.getBoundingClientRect();
+      const targetRect = liveTargetRect ?? over!.rect;
+      const insertAfterTarget = pointer
+        ? pointer.y >= targetRect.top + targetRect.height / 2
+        : !!translated && translated.top + translated.height / 2 > targetRect.top + targetRect.height / 2;
+      if (dragSymbols.length === 1 && fromRow.section === targetSection) {
+        const from = wl.findIndex((row) => row.symbol === activeId);
+        const target = wl.findIndex((row) => row.symbol === targetSymbol);
+        edge = from < target ? "after" : "before";
+      } else {
+        edge = insertAfterTarget ? "after" : "before";
+      }
     }
 
+    const nextRows = moveWatchlistDragGroup(wl, sectionOrder, dragSymbols, {
+      section: targetSection,
+      targetSymbol,
+      edge,
+    });
+    const unchanged = nextRows.length === wl.length
+      && nextRows.every((row, index) => row.symbol === wl[index]?.symbol && row.section === wl[index]?.section);
+    if (unchanged) return;
     setWl(nextRows);
-    if (fromRow.section !== targetSection) {
-      void syncActiveWatchlist("move", [fromRow.symbol], targetSection);
-    }
+    const changedSections = dragSymbols.filter((symbol) => wl.find((row) => row.symbol === symbol)?.section !== targetSection);
+    if (changedSections.length) void syncActiveWatchlist("move", changedSections, targetSection);
   }
 
   const toggleInd = (k: string) => {
@@ -5688,9 +5951,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
                 <span />
               </div>
               <div className="wl-list" role="listbox" aria-label={t("watchlists")} aria-multiselectable="true">
-                <DndContext sensors={dndSensors} collisionDetection={watchlistCollisionDetection} onDragStart={onWlDragStart} onDragCancel={() => { wlPointerDragRef.current = false; wlPointerRef.current = null; wlPointerLeftInitialRef.current = false; wlPointerInitialRectRef.current = null; wlPendingPointerRef.current = null; wlActivationDeltaRef.current = null; setWlDragId(null); }} onDragEnd={onWlDragEnd} modifiers={[restrictToVerticalAxis]}>
+                <DndContext sensors={dndSensors} collisionDetection={watchlistCollisionDetection} accessibility={{ announcements: wlDndAnnouncements, screenReaderInstructions: wlDndScreenReaderInstructions }} onDragStart={onWlDragStart} onDragOver={onWlDragOver} onDragCancel={resetWlDragState} onDragEnd={onWlDragEnd} modifiers={[restrictToVerticalAxis]}>
                 <SortableContext items={sectionOrder.map((section) => SEC_DROP_PREFIX + section)} strategy={verticalListSortingStrategy}>
-                <WlRootDropZone active={wlDragId !== null} label={t("wlUnsectionedDrop")} />
+                <WlRootDropZone active={wlDragId !== null} label={wlDrag?.symbols.length && wlDrag.symbols.length > 1 ? t("wlMoveHere").replace("{n}", String(wlDrag.symbols.length)) : t("wlUnsectionedDrop")} />
                 {[WATCHLIST_ROOT_SECTION, ...sectionOrder].map((sec) => {
                   const rows = sections[sec] ?? [];
                   const isRoot = sec === WATCHLIST_ROOT_SECTION;
@@ -5702,6 +5965,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
                       count={rows.length}
                       collapsed={isCollapsed}
                       minWidth={wlMinW}
+                      dropActive={wlDropTarget?.id === SEC_DROP_PREFIX + sec && wlDropTarget.edge === "start"}
+                      dropLabel={t("wlMoveHere").replace("{n}", String(wlDrag?.symbols.length || 1))}
                       onToggle={() => toggleSection(sec)}
                       onContextMenu={(point) => openWlSectionContext(sec, point)}
                       onRename={(point) => openWlSectionContext(sec, point, "rename")}
@@ -5747,7 +6012,14 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
                           sym={sym}
                           section={sec}
                           selected={wlSelected.has(sym)}
-                          dragLabel={t("wlDragSymbol").replace("{symbol}", sym)}
+                          dragSymbols={wlSelected.has(sym) && selectedWlCount >= 2 ? selectedWlSymbols : [sym]}
+                          groupDragging={!!wlDrag && wlDrag.symbols.length > 1 && wlDrag.symbols.includes(sym)}
+                          freezeLayout={!!wlDrag && wlDrag.symbols.length > 1}
+                          dropEdge={wlDropTarget?.id === sym && (wlDropTarget.edge === "before" || wlDropTarget.edge === "after") ? wlDropTarget.edge : null}
+                          dropLabel={t("wlMoveHere").replace("{n}", String(wlDrag?.symbols.length || 1))}
+                          dragLabel={wlSelected.has(sym) && selectedWlCount >= 2
+                            ? t("wlDragSelected").replace("{n}", String(selectedWlCount))
+                            : t("wlDragSymbol").replace("{symbol}", sym)}
                           className={`wl-row${sym === active ? " on" : ""}${wlSelected.has(sym) ? " selected" : ""}${set.tableView ? " tv" : ""}`}
                           style={{ gridTemplateColumns: wlGrid, minWidth: wlMinW, height: set.tableView ? 32 : 46 }}
                           onClick={(event) => selectWlRow(sym, event)}
@@ -5791,6 +6063,14 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
                 <DragOverlay dropAnimation={null} zIndex={45} modifiers={[preserveWlActivationDelta]}>
                   {wlDragId && !wlDragId.startsWith(SEC_DROP_PREFIX) ? (() => {
                     const sym = wlDragId;
+                    if (wlDrag && wlDrag.symbols.length > 1) {
+                      return <WlDragBundle
+                        symbols={wlDrag.symbols}
+                        activeSymbol={sym}
+                        compact={set.tableView}
+                        movingLabel={t("wlMovingSymbols").replace("{n}", String(wlDrag.symbols.length))}
+                      />;
+                    }
                     const r = mergeLive(man?.symbols?.[sym], quotes[sym]);
                     const nm = nameOf(r);
                     return (

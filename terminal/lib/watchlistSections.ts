@@ -116,3 +116,55 @@ export function moveWatchlistSection(
   next.splice(to, 0, section);
   return next;
 }
+
+
+export type WatchlistDragDestination = {
+  section: string;
+  targetSymbol: string | null;
+  edge: "before" | "after" | "start";
+};
+
+/**
+ * Move a visible selection as one indivisible block. The caller supplies the
+ * symbols in current visual order; source array order never gets to reorder a
+ * discontiguous selection behind the user's back.
+ */
+export function moveWatchlistDragGroup(
+  rows: readonly WatchlistSymbolRow[],
+  sections: readonly string[],
+  draggedSymbols: readonly string[],
+  destination: WatchlistDragDestination,
+): WatchlistSymbolRow[] {
+  const ordered = orderWatchlistRowsBySections(rows, sections);
+  const bySymbol = new Map(ordered.map((row) => [row.symbol, row]));
+  const seen = new Set<string>();
+  const dragged = draggedSymbols
+    .filter((symbol) => !seen.has(symbol) && seen.add(symbol))
+    .map((symbol) => bySymbol.get(symbol))
+    .filter((row): row is WatchlistSymbolRow => !!row);
+
+  if (!dragged.length) return ordered;
+  const draggedSet = new Set(dragged.map((row) => row.symbol));
+  if (destination.targetSymbol && draggedSet.has(destination.targetSymbol)) return ordered;
+
+  const rest = ordered.filter((row) => !draggedSet.has(row.symbol));
+  const block = dragged.map((row) => ({ ...row, section: destination.section }));
+  let insertAt = -1;
+
+  if (destination.targetSymbol) {
+    const targetAt = rest.findIndex((row) => row.symbol === destination.targetSymbol);
+    if (targetAt < 0) return ordered;
+    insertAt = targetAt + (destination.edge === "after" ? 1 : 0);
+  } else {
+    insertAt = rest.findIndex((row) => row.section === destination.section);
+    if (insertAt < 0) {
+      const visualSections = [WATCHLIST_ROOT_SECTION, ...watchlistSectionOrder(rows, sections)];
+      const targetRank = visualSections.indexOf(destination.section);
+      insertAt = rest.findIndex((row) => visualSections.indexOf(row.section) > targetRank);
+      if (insertAt < 0) insertAt = rest.length;
+    }
+  }
+
+  rest.splice(insertAt, 0, ...block);
+  return rest;
+}

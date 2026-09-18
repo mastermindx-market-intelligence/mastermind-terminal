@@ -9,6 +9,7 @@ import {
 } from "@/lib/watchlistSelection";
 import {
   insertWatchlistSectionBefore,
+  moveWatchlistDragGroup,
   moveWatchlistSection,
   orderWatchlistRowsBySections,
   removeWatchlistSection,
@@ -171,5 +172,67 @@ describe("TradingView-style section dividers", () => {
       { symbol: "G", section: "Empty" },
     ]);
     expect(removeWatchlistSection(canonical, ["Core", "Empty", "Growth"], "Growth")?.rows).toEqual(canonical);
+  });
+});
+
+
+describe("watchlist grouped drag ordering", () => {
+  it("moves a discontiguous selection as one ordered block after the target ticker", () => {
+    const rows = [
+      { symbol: "SPY", section: "" },
+      { symbol: "AAPL", section: "Core" },
+      { symbol: "MSFT", section: "Core" },
+      { symbol: "NVDA", section: "Growth" },
+      { symbol: "AMD", section: "Growth" },
+      { symbol: "QQQ", section: "Funds" },
+    ];
+
+    expect(moveWatchlistDragGroup(rows, ["Core", "Growth", "Funds"], ["AAPL", "NVDA"], {
+      section: "Growth", targetSymbol: "AMD", edge: "after",
+    })).toEqual([
+      { symbol: "SPY", section: "" },
+      { symbol: "MSFT", section: "Core" },
+      { symbol: "AMD", section: "Growth" },
+      { symbol: "AAPL", section: "Growth" },
+      { symbol: "NVDA", section: "Growth" },
+      { symbol: "QQQ", section: "Funds" },
+    ]);
+  });
+
+  it("inserts the whole group at an empty section start and rewrites membership", () => {
+    const rows = [
+      { symbol: "SPY", section: "" },
+      { symbol: "AAPL", section: "Core" },
+      { symbol: "MSFT", section: "Core" },
+      { symbol: "NVDA", section: "Growth" },
+    ];
+    expect(moveWatchlistDragGroup(rows, ["Core", "Archive", "Growth"], ["MSFT", "NVDA"], {
+      section: "Archive", targetSymbol: null, edge: "start",
+    })).toEqual([
+      { symbol: "SPY", section: "" },
+      { symbol: "AAPL", section: "Core" },
+      { symbol: "MSFT", section: "Archive" },
+      { symbol: "NVDA", section: "Archive" },
+    ]);
+  });
+
+  it("moves a selected block to the root and treats a carried target as a no-op", () => {
+    const rows = [
+      { symbol: "SPY", section: "" },
+      { symbol: "AAPL", section: "Core" },
+      { symbol: "MSFT", section: "Core" },
+      { symbol: "NVDA", section: "Growth" },
+    ];
+    expect(moveWatchlistDragGroup(rows, ["Core", "Growth"], ["AAPL", "NVDA"], {
+      section: WATCHLIST_ROOT_SECTION, targetSymbol: null, edge: "start",
+    })).toEqual([
+      { symbol: "AAPL", section: "" },
+      { symbol: "NVDA", section: "" },
+      { symbol: "SPY", section: "" },
+      { symbol: "MSFT", section: "Core" },
+    ]);
+    expect(moveWatchlistDragGroup(rows, ["Core", "Growth"], ["AAPL", "NVDA"], {
+      section: "Growth", targetSymbol: "NVDA", edge: "after",
+    })).toEqual(orderWatchlistRowsBySections(rows, ["Core", "Growth"]));
   });
 });
