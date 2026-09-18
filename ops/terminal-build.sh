@@ -1005,10 +1005,15 @@ PY_BUILD_KEYS
 }
 
 run_isolated_terminal_build(){
-  local stage=$1 live_app=$2 stage_root=$3 build_home npm_cache
+  local stage=$1 live_app=$2 stage_root=$3 build_home npm_cache npm_userconfig npm_globalconfig
   build_home="$stage_root/.build-home"
   npm_cache="$stage_root/.npm-cache"
+  npm_userconfig="$stage_root/.npm-userconfig"
+  npm_globalconfig="$stage_root/.npm-globalconfig"
   mkdir -m 0700 "$build_home" "$npm_cache" || return $?
+  : > "$npm_userconfig"
+  : > "$npm_globalconfig"
+  chmod 0600 "$npm_userconfig" "$npm_globalconfig" || return $?
   log "isolated dependency install: npm ci from accepted package-lock"
   ( cd "$stage" && env -i \
       PATH="$CLEAN_BUILD_PATH" \
@@ -1016,7 +1021,8 @@ run_isolated_terminal_build(){
       LANG=C.UTF-8 LC_ALL=C.UTF-8 TZ=UTC \
       NPM_CONFIG_AUDIT=false NPM_CONFIG_FUND=false \
       NPM_CONFIG_CACHE="$npm_cache" \
-      NPM_CONFIG_USERCONFIG=/dev/null NPM_CONFIG_GLOBALCONFIG=/dev/null \
+      NPM_CONFIG_USERCONFIG="$npm_userconfig" \
+      NPM_CONFIG_GLOBALCONFIG="$npm_globalconfig" \
       "$EXPECTED_NPM_PATH" ci )
   prepare_public_build_env "$live_app" "$stage" "$stage_root/.public-build-env-identity.json"
   prepare_next_build_keys "$live_app" "$stage" "$stage_root/.next-build-key-identity.json"

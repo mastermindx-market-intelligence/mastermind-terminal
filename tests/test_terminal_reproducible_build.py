@@ -181,8 +181,10 @@ def test_dependency_and_next_build_run_under_closed_environment() -> None:
     body = text[start:end]
     assert body.count("env -i") == 2
     assert 'PATH="$CLEAN_BUILD_PATH"' in body
-    assert 'NPM_CONFIG_USERCONFIG=/dev/null' in body
-    assert 'NPM_CONFIG_GLOBALCONFIG=/dev/null' in body
+    assert 'NPM_CONFIG_USERCONFIG="$npm_userconfig"' in body
+    assert 'NPM_CONFIG_GLOBALCONFIG="$npm_globalconfig"' in body
+    assert 'npm_userconfig="$stage_root/.npm-userconfig"' in body
+    assert 'npm_globalconfig="$stage_root/.npm-globalconfig"' in body
     assert '"$EXPECTED_NPM_PATH" ci' in body
     assert 'NODE_ENV=production' in body
 
