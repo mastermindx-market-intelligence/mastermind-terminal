@@ -82,7 +82,9 @@ export function atr(bars: Bar[], len: number): (number | null)[] {
   return rma(tr, len);
 }
 
-/** Rolling percentile rank of value in a window (0–100). */
+/** Rolling percentile rank of value in a complete finite window (0–100).
+ *  A partial window created by upstream warmup/nulls stays null instead of silently
+ *  shrinking the requested lookback. */
 export function rollingPercentile(src: (number | null)[], win: number): (number | null)[] {
   const out: (number | null)[] = Array(src.length).fill(null);
   for (let i = win - 1; i < src.length; i++) {
@@ -91,11 +93,11 @@ export function rollingPercentile(src: (number | null)[], win: number): (number 
     let below = 0, total = 0;
     for (let j = i - win + 1; j <= i; j++) {
       const x = src[j];
-      if (x == null) continue;
+      if (x == null || !isFinite(x)) continue;
       total++;
       if (x <= v) below++;
     }
-    out[i] = total ? (below / total) * 100 : null;
+    if (total === win) out[i] = (below / win) * 100;
   }
   return out;
 }
