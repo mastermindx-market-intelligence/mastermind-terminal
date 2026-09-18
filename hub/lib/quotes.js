@@ -106,6 +106,15 @@ function applyDemand(syms, nowMs, deps = {}, options = {}) {
   const { polygon, anchorCache, extFeed, macroFeed, snapshotFeed, disableUS } = deps;
   const includeExtended = options.includeExtended !== false;
   if (!Array.isArray(syms)) return;
+
+  // Request order is also priority order: API callers put the active symbol first, then visible
+  // watchlist names. ExtFeed's subscription budget is a 30-slot insertion-ordered LRU, so touching
+  // that list in forward order made the active symbol the OLDEST entry — and a request containing
+  // >30 US names evicted it before buildQuotesResponse even ran. Collect here and touch in reverse
+  // after every independent regular-demand leg has been processed; the first requested symbol then
+  // ends the pass as MRU. view=regular never enters this collection at all.
+  const extDemand = [];
+
   for (const sym of syms) {
     // Daily-only FRED series have NO leg here: not Polygon (no such ticker), not the ext feed
     // (a once-a-day print has no extended session), not the macro feed. Demanding one only
@@ -125,15 +134,19 @@ function applyDemand(syms, nowMs, deps = {}, options = {}) {
     // runs unconditionally of `includeExtended` — view=regular still needs a regular-session
     // print.
     if (snapshotFeed) snapshotFeed.demand(sym, nowMs);
+
+    // Extended pricing is an independent provider plane (Yahoo/Webull/Alpaca). A Polygon socket
+    // reconnect must not silently stop refreshing it. HUB_DISABLE_US remains the deliberate whole-
+    // US kill-switch; otherwise collect the symbol even when Polygon is absent or unhealthy.
+    if (!disableUS && includeExtended && extFeed) extDemand.push(sym);
+
     if (disableUS || !polygon || !polygon.isHealthy()) continue;
     polygon.ensureSubscribed(sym);
     // Fire-and-forget: resolve the anchor so the cache is warm for the next request.
     if (anchorCache) anchorCache.resolve(sym, nowMs).catch(() => {});
-    // Demand ext subscription (LRU tracking, no-op when the feed is disabled or in RTH) —
-    // but NEVER for view=regular: this is the first of the two closure boundaries. A public
-    // 60s regular-view poll over up to 58 names must not churn the shared 30-slot ExtFeed LRU.
-    if (includeExtended && extFeed) extFeed.demand(sym);
   }
+
+  for (let i = extDemand.length - 1; i >= 0; i--) extFeed.demand(extDemand[i]);
 }
 
 /**

@@ -96,6 +96,31 @@ function lruTouch(map, key, cap, onEvict) {
   map.set(key, { lastReq: Date.now() });
 }
 
+// Subscription capacity and quote-history capacity are different things. The upstream keyless
+// feeds can refresh only 30 symbols at once, but deleting a symbol's last valid print the instant
+// it loses a subscription turns ordinary LRU pressure into a fake market-data deletion. Retain a
+// bounded, insertion-ordered last-good cache; getExt's session + 90-minute gates remain the source
+// of truth for whether an entry is still servable.
+const EXT_CACHE_CAP = 500;
+
+/**
+ * Set an entry in a bounded insertion-ordered cache and refresh its MRU position.
+ * @param {Map} map
+ * @param {string} key
+ * @param {object} value
+ * @param {number} [cap]
+ */
+function boundedCacheSet(map, key, value, cap = EXT_CACHE_CAP) {
+  if (!(map instanceof Map) || !Number.isFinite(cap) || cap < 1) return;
+  if (map.has(key)) map.delete(key);
+  map.set(key, value);
+  while (map.size > cap) {
+    const oldest = map.keys().next().value;
+    if (oldest === undefined) break;
+    map.delete(oldest);
+  }
+}
+
 // ── Yahoo unofficial REST fallback ────────────────────────────────────────────
 
 const YAHOO_POLL_INTERVAL_MS = 60 * 1000; // poll every 60 s
@@ -572,8 +597,9 @@ class WebullFeed {
   /** LRU-track a demanded symbol. */
   demand(sym) {
     lruTouch(this.subs, sym, WEBULL_LRU_CAP, (old) => {
-      this.cache.delete(old);
-      log.info("webull LRU-evicted", old);
+      // Eviction ends refresh only. The last-good print remains in the independently bounded
+      // cache and is served only while ExtFeed.getExt's session/freshness gates accept it.
+      log.info("webull subscription LRU-evicted", old);
     });
   }
 
@@ -652,7 +678,7 @@ class WebullFeed {
           const print = webullExtractPrint(json, Date.now());
           // A rejected print writes NOTHING — we keep the previous (honest) entry.
           if (print) {
-            this.cache.set(sym, {
+            boundedCacheSet(this.cache, sym, {
               price: print.price,
               ts: print.ts,
               session: print.session,
@@ -688,11 +714,10 @@ class WebullFeed {
     for (const [sym, meta] of this.subs) {
       if (nowMs - meta.lastReq > WEBULL_IDLE_UNSUB_MS) expired.push(sym);
     }
-    for (const sym of expired) {
-      this.subs.delete(sym);
-      this.cache.delete(sym);
-    }
-    if (expired.length) log.info("webull idle-swept", expired.length, "symbols (>30m idle)");
+    for (const sym of expired) this.subs.delete(sym);
+    // Idle sweep, like LRU eviction, ends refresh only. The independently bounded cache is
+    // expired by getExt's session/freshness gates rather than by subscription bookkeeping.
+    if (expired.length) log.info("webull subscriptions idle-swept", expired.length, "symbols (>30m idle)");
   }
 
   _schedule() {
@@ -719,6 +744,23 @@ function validExtEntry(e) {
   if (!Number.isFinite(Number(e.price))) return null;
   if (!Number.isFinite(Number(e.ts))) return null;
   return e;
+}
+
+/**
+ * Return a candidate only when it is servable in the current window. Provider priority must be
+ * applied AFTER this filter: a retained stale Webull print must not shadow a fresh Yahoo fallback.
+ * @param {object|undefined} e
+ * @param {string} session
+ * @param {number} nowMs
+ * @returns {object|null}
+ */
+function servableExtEntry(e, session, nowMs) {
+  const entry = validExtEntry(e);
+  if (!entry || entry.session !== session) return null;
+  const ageMs = nowMs - Number(entry.ts) * 1000;
+  if (ageMs > 90 * 60 * 1000) return null;
+  if (ageMs < -60 * 1000) return null;
+  return entry;
 }
 
 // ── ExtFeed — main class ──────────────────────────────────────────────────────
@@ -837,13 +879,13 @@ class ExtFeed {
       // Mirror into Yahoo subs so the fallback poller covers this symbol if Alpaca
       // auth fails.  _yahooSubs is always initialised in alpaca mode (see constructor).
       lruTouch(this._yahooSubs, sym, ALPACA_LRU_CAP, (old) => {
-        this._yahooCache && this._yahooCache.delete(old);
-        log.info("yahoo fallback LRU-evicted", old);
+        // Subscription eviction ends refresh only; retain the bounded last-good print.
+        log.info("yahoo fallback subscription LRU-evicted", old);
       });
     } else if (this.mode === "yahoo_fallback" && this._yahooSubs) {
       lruTouch(this._yahooSubs, sym, ALPACA_LRU_CAP, (old) => {
-        this._yahooCache && this._yahooCache.delete(old);
-        log.info("yahoo ext LRU-evicted", old);
+        // Subscription eviction ends refresh only; retain the bounded last-good print.
+        log.info("yahoo ext subscription LRU-evicted", old);
       });
     }
     // Webull mirrors every demanded US symbol regardless of mode.
@@ -862,7 +904,7 @@ class ExtFeed {
     if (!Number.isFinite(entry.price) || !Number.isFinite(entry.ts)) return;
     if (entry.session === "rth") return;
     const previous = this._extMap.get(sym);
-    if (!previous || entry.ts >= previous.ts) this._extMap.set(sym, entry);
+    if (!previous || entry.ts >= previous.ts) boundedCacheSet(this._extMap, sym, entry);
   }
 
   /**
@@ -879,43 +921,37 @@ class ExtFeed {
     const session = classifySession(nowMs);
     if (session === "rth") return null;
 
-    // Preserve the documented provider priority. The shared map contains both
-    // Polygon and Alpaca prints, so an Alpaca entry is only eligible when the
-    // configured Alpaca leg has not failed authentication. A post-market print
-    // must not leak into the overnight lane merely because it is still young.
+    // Preserve the documented provider priority among candidates that are actually servable NOW.
+    // The shared map contains both Polygon and Alpaca prints, so an Alpaca entry is only eligible
+    // when the configured Alpaca leg has not failed authentication. Filtering session/freshness
+    // before priority also lets a fresh lower-priority leg replace a retained stale higher one.
     const streamEntry = this._extMap
-      ? validExtEntry(this._extMap.get(sym))
+      ? servableExtEntry(this._extMap.get(sym), session, nowMs)
       : null;
     const streamSource = String(streamEntry?.source || "");
     const streamEligible =
       streamEntry &&
-      streamEntry.session === session &&
       (
         !streamSource.startsWith("alpaca") ||
         (this.alpaca && !this.alpaca.authFailed)
       );
     const webullEntry = this.webull
-      ? validExtEntry(this.webull.get(sym))
+      ? servableExtEntry(this.webull.get(sym), session, nowMs)
       : null;
     const yahooEntry = this._yahooCache
-      ? validExtEntry(this._yahooCache.get(sym))
+      ? servableExtEntry(this._yahooCache.get(sym), session, nowMs)
       : null;
     const entry =
       (streamEligible ? streamEntry : null) ||
-      (webullEntry?.session === session ? webullEntry : null) ||
+      webullEntry ||
       (
-        yahooEntry?.session === session &&
+        yahooEntry &&
         !(session === "overnight" && String(yahooEntry.source || "").startsWith("yahoo"))
           ? yahooEntry
           : null
       );
 
     if (!entry) return null;
-
-    // Stale guard: reject ext prints older than 90 minutes.
-    const ageMs = nowMs - entry.ts * 1000;
-    if (ageMs > 90 * 60 * 1000) return null;
-    if (ageMs < -60 * 1000) return null;
 
     const extPrice = entry.price;
     // chg vs the best available close reference:
@@ -988,7 +1024,7 @@ class ExtFeed {
           // entry for having no finite price — while the early `return` below simultaneously
           // suppressed the direct-Yahoo calls that would otherwise have covered the gap. A
           // FRESH relay file therefore produced strictly LESS ext data than a stale one.
-          this._yahooCache.set(sym, {
+          boundedCacheSet(this._yahooCache, sym, {
             price: e.extPrice,
             ts: typeof e.extTs === "number" ? e.extTs : Math.floor(relayAsof / 1000),
             session,
@@ -1008,7 +1044,7 @@ class ExtFeed {
       syms.map(async (sym) => {
         const result = await this._fetchYahooExt(sym, nowMs);
         if (result) {
-          this._yahooCache.set(sym, { ...result, source: "yahoo_unofficial" });
+          boundedCacheSet(this._yahooCache, sym, { ...result, source: "yahoo_unofficial" });
         }
       })
     );
@@ -1035,7 +1071,9 @@ module.exports = {
   WebullFeed,
   webullExtractPrint,
   lruTouch,
+  boundedCacheSet,
   ALPACA_LRU_CAP,
   WEBULL_LRU_CAP,
+  EXT_CACHE_CAP,
   WEBULL_MAX_AGE_MS,
 };
