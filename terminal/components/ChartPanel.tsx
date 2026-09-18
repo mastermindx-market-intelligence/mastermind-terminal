@@ -84,6 +84,8 @@ import ChartTables from "@/components/ChartTables";
 import { crossUps, crossDowns, crossUpsBelow, crossDownsAbove } from "@/lib/crossSignals";
 import { SOFT_Q, anchorSignal, isBlockedSignal, isOverrideCandidate, isReclaimOverrideTake, isRetroOverride, isStopSweepReclaim, isStructureStop, isWaivedEntry, markerTooltipCopy, opportunityMarkerGlyph, sliceSignalBasis } from "@/lib/signalVerdict";
 import { makeNearestBarIndex } from "@/lib/barSnap";
+import { dailyMultipleOf, groupSessionBars, parseSessionAnchor, resolveBarAnchor,
+  sessionToBarTime, type SessionAnchor } from "@/lib/sessionBars";
 import { ichimoku, supertrend, avwap as computeAvwap, rollingVwap, weekAnchoredVwap, vprofile, volbox, rsiStack, accumPct, trendRibbon, buyShare as mfBuyShare } from "@/lib/indicatorMath";
 import ChartOverlays, { type PaneInfo, type LegendEntry } from "@/components/ChartOverlays";
 import DayStatsStrip from "@/components/DayStatsStrip";
@@ -100,7 +102,11 @@ import { DEFAULT_CHART_SETTINGS, type ChartSettings } from "@/components/ChartFr
 import { chartTimeAxisOptions, chartTimeSpanDays } from "@/lib/chartTimeAxis";
 
 const css = (n: string) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
-type Bar = { time: string; o: number; h: number; l: number; c: number; v: number };
+type Bar = { time: string; o: number; h: number; l: number; c: number; v: number;
+  /** Daily-multiple (2D/3D) bars only: the session on which this bar completes.
+   *  `time` is the bar's IDENTITY (its opening session, TradingView's 3D key);
+   *  `closeTime` is when its close became knowable. See lib/sessionBars.ts. */
+  closeTime?: string };
 
 const DRAWING_IMAGE_MAX_FILE_BYTES = 700 * 1024;
 const DRAWING_IMAGE_MAX_EDGE = 4096;
@@ -281,10 +287,10 @@ export function canSpliceRegularBar(
 // bucket (time key + OHLCV) that `series.update()` should push — reusing the existing bucketer so
 // the time key matches whatever Effect 2 produced (never invents a bucket unless the new daily date
 // genuinely starts one, e.g. a fresh ISO week). Returns null for tf=D (caller updates the raw bar).
-export function foldFinalBucket(daily: Bar[], tf: string): Bar | null {
+export function foldFinalBucket(daily: Bar[], tf: string, anchor?: SessionAnchor | null): Bar | null {
   if (!daily.length) return null;
   if (tf === "D") return daily[daily.length - 1];
-  const res = resampleTf(daily, tf);
+  const res = resampleTf(daily, tf, anchor);
   return res.length ? res[res.length - 1] : null;
 }
 
@@ -387,8 +393,34 @@ function cmStoch(highs: number[], lows: number[], cl: number[], len = 14, smooth
 function rsiMacd(cl: number[], rsiLen = 14, fastLen = 14, baseLen = 60, signalLen = 5) { const r = rsi(cl, rsiLen); const ef = ema(r, fastLen), es = ema(r, baseLen); const line = cl.map((_, i) => (ef[i] != null && es[i] != null ? ef[i]! - es[i]! : null)); const sig = ema(line, signalLen); const hist = line.map((_, i) => (line[i] != null && sig[i] != null ? line[i]! - sig[i]! : null)); return { line, sig, hist }; }
 const toLine = (rows: Bar[], arr: (number | null)[]) => rows.map((r, i) => (arr[i] != null && isFinite(arr[i]!) ? { time: r.time, value: arr[i]! } : null)).filter(Boolean) as any[];
 
-function resampleTf(rows: Bar[], tf: string): Bar[] {
+export function resampleTf(rows: Bar[], tf: string, anchor?: SessionAnchor | null): Bar[] {
   if (tf === "D" || rows.length === 0) return rows;
+  // ── daily multiples (2D / 3D) ─ ONE canonical grid, shared with the signal engine ──────
+  // These are the only timeframes with a session-PHASE freedom, and the phase is not a
+  // property of this array: it is the symbol's global session index, published on the OHLC
+  // document as `session_anchor` (ingest/session_anchor.py) because a truncated feed cannot
+  // tell you which sessions share a bar. Bucketing by row index from the feed's first row —
+  // what this function did — re-phased every later bar and stamped each one with its CLOSING
+  // session, so a Golden Oracle signal (indexed by the bar's OPEN) never matched the candle it
+  // was computed on. lib/sessionBars.ts carries the rule and the rationale.
+  const mult = dailyMultipleOf(tf);
+  if (mult != null) {
+    const barAnchor = resolveBarAnchor(rows.map((r) => r.time), anchor);
+    return groupSessionBars(rows, mult, barAnchor, (from, to) => {
+      const first = rows[from];
+      let h = first.h, l = first.l, v = first.v;
+      for (let i = from + 1; i <= to; i++) {
+        const r = rows[i];
+        if (r.h > h) h = r.h;
+        if (r.l < l) l = r.l;
+        v += r.v;
+      }
+      return { o: first.o, h, l, c: rows[to].c, v };
+    });
+  }
+  // ── calendar units (W / 2W / 1M / 3M) ─ unchanged ──────────────────────────────────────
+  // A calendar bucket has no phase to get wrong and its key is its LAST session; every
+  // consumer (lib/barSnap, lib/pine-engine/runtime, TechnicalsPage) is written to that.
   const out: Bar[] = []; let cur: Bar | null = null; let key: any = null;
   const isoWeek = (d: string) => { const dt = new Date(d + "T00:00:00Z"); const day = (dt.getUTCDay() + 6) % 7; dt.setUTCDate(dt.getUTCDate() - day); return dt.toISOString().slice(0, 10); };
   // 2W / 3M use ABSOLUTE-calendar bucketing (anchored to a fixed epoch, not the data's first bar), so
@@ -397,23 +429,45 @@ function resampleTf(rows: Bar[], tf: string): Bar[] {
   //   3M → year + calendar quarter (Q0=Jan-Mar … Q3=Oct-Dec)
   const biWeek = (d: string) => { const dt = new Date(isoWeek(d) + "T00:00:00Z"); return Math.floor(dt.getTime() / 86400_000 / 14); };
   const quarter = (d: string) => { const y = d.slice(0, 4); const m = +d.slice(5, 7) - 1; return `${y}-Q${Math.floor(m / 3)}`; };
-  for (let i = 0; i < rows.length; i++) { const r = rows[i]; const k = tf === "W" ? isoWeek(r.time) : tf === "2W" ? biWeek(r.time) : tf === "1M" ? r.time.slice(0, 7) : tf === "3M" ? quarter(r.time) : tf === "2D" ? Math.floor(i / 2) : Math.floor(i / 3); if (k !== key) { if (cur) out.push(cur); key = k; cur = { ...r }; } else { cur!.h = Math.max(cur!.h, r.h); cur!.l = Math.min(cur!.l, r.l); cur!.c = r.c; cur!.time = r.time; cur!.v += r.v; } }
+  // The daily-derived set is exactly {D, 2D, 3D, W, 2W, 1M, 3M} (TerminalShell.DAILY_FUNCTIONAL);
+  // D and the two daily multiples returned above, so only calendar units reach here. An
+  // unrecognised unit keys per row — one bar in, one bar out — rather than silently falling into
+  // a 3-row bucket, which is what the old trailing `Math.floor(i / 3)` default did.
+  for (let i = 0; i < rows.length; i++) { const r = rows[i]; const k = tf === "W" ? isoWeek(r.time) : tf === "2W" ? biWeek(r.time) : tf === "1M" ? r.time.slice(0, 7) : tf === "3M" ? quarter(r.time) : r.time; if (k !== key) { if (cur) out.push(cur); key = k; cur = { ...r }; } else { cur!.h = Math.max(cur!.h, r.h); cur!.l = Math.min(cur!.l, r.l); cur!.c = r.c; cur!.time = r.time; cur!.v += r.v; } }
   if (cur) out.push(cur); return out;
 }
 
 // ── resampleTf memoization: cache per (symbol, tf) so D→W→D doesn't recompute ──
 // Keys are evicted when the symbol changes (clearResampleCache). Max ~10 entries (6 TFs × recent symbols).
 // The cache stores the FULL resampled array; callers still slice for replay.
-const _resampleCache = new Map<string, Bar[]>();
-function resampleTfCached(rows: Bar[], tf: string, sym: string): Bar[] {
+//
+// THE KEY IS NOT THE IDENTITY. `symbol::timeframe` says nothing about WHICH OHLC the entry was
+// aggregated from, so a same-symbol correction — a revalidated document, a repaired bar, a
+// re-cut history — was served its predecessor's aggregation for the lifetime of the tab: the
+// symbol and the timeframe had not changed, and only those were being compared. An aggregation
+// must never outlive its source, so the entry carries the SOURCE GENERATION it was built from
+// (the fetched document's own `bars` array — stable while the document is, replaced the moment
+// dataCache resolves a new one) and the session anchor that phased it. Either moving is a miss.
+type ResampleEntry = { src: unknown; anchor: string; rows: Bar[] };
+const _resampleCache = new Map<string, ResampleEntry>();
+/** Stable identity of a session anchor, so a re-phased grid cannot reuse the old aggregation. */
+function anchorKey(anchor: SessionAnchor | null | undefined): string {
+  return anchor ? `${anchor.date}@${anchor.index}:${anchor.basis ?? ""}` : "-";
+}
+export function resampleTfCached(rows: Bar[], tf: string, sym: string, src: unknown,
+                          anchor: SessionAnchor | null | undefined): Bar[] {
   const key = sym + "::" + tf;
+  const ak = anchorKey(anchor);
   const cached = _resampleCache.get(key);
-  if (cached !== undefined) return cached;
-  const result = resampleTf(rows, tf);
-  _resampleCache.set(key, result);
+  // `src` is compared by IDENTITY on purpose: a content fingerprint (length, endpoints, last
+  // close) would still hand back a stale aggregation after a mid-history repair that left all
+  // of those equal, which is exactly the class of correction this cache must not survive.
+  if (cached !== undefined && cached.src === src && cached.anchor === ak) return cached.rows;
+  const result = resampleTf(rows, tf, anchor);
+  _resampleCache.set(key, { src, anchor: ak, rows: result });
   return result;
 }
-function clearResampleCache(sym?: string): void {
+export function clearResampleCache(sym?: string): void {
   if (sym === undefined) { _resampleCache.clear(); return; }
   for (const k of Array.from(_resampleCache.keys())) { if (k.startsWith(sym + "::")) _resampleCache.delete(k); }
 }
@@ -582,6 +636,13 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   const barsRef = useRef<Bar[]>([]);        // the bars currently ON the chart (full OR replay-sliced)
   const fullBarsRef = useRef<Bar[]>([]);    // the full resampled history — NEVER mutated by replay
   const dailyBarsRef = useRef<Bar[]>([]);   // the raw DAILY source (pre-resample) — the R11 splice operates here
+  // The published 2D/3D session anchor for the symbol currently on the chart, and the identity of
+  // the OHLC document it arrived on. The anchor phases the daily-multiple grid onto the SAME bars
+  // the Golden Oracle computed its 3D signals on (lib/sessionBars.ts); the source token is what
+  // the aggregation memo compares, so a corrected document cannot be served its predecessor's
+  // bars. Both are null for composites and on intraday, where neither applies.
+  const sessionAnchorRef = useRef<SessionAnchor | null>(null);
+  const ohlcSrcRef = useRef<unknown>(null);
   const isIntradayRef = useRef<boolean>(false);   // true when the active TF is an intraday branch (skip splice/resample/date-keyed overlays)
   const closesRef = useRef<number[]>([]);   // closes of barsRef
   // PERF: time→index map for O(1) barIndex()/snapT lookups (was an O(n) linear scan called per marker
@@ -2446,7 +2507,12 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       if (cmpGenRef.current !== gen || epochRef.current !== epoch) return;   // superseded compare run OR symbol/tf changed mid-fetch — abandon this build
       if (!co?.bars?.length) continue;
       let crows: Bar[] = co.bars.map((b: any[]) => ({ time: b[0], o: b[1], h: b[2], l: b[3], c: b[4], v: b[5] }));
-      crows = resampleTf(crows, timeframeRef.current);
+      // Each leg is bucketed with ITS OWN published anchor, never the host symbol's. The overlay
+      // is a date join (`cmap[r.time]` below), so two legs only line up when both grids sit on
+      // the real global session calendar; phasing each at its own first row — which is what
+      // bucketing by row index did — made every leg with a different history start join on a
+      // staircase of misses the moment the timeframe was a daily multiple.
+      crows = resampleTf(crows, timeframeRef.current, parseSessionAnchor(co.session_anchor));
       const cmap: Record<string, number> = {}; for (const cr of crows) cmap[cr.time] = cr.c;
       const cfg = compareCfgRef.current[cs] || defaultCmpCfg(ci);
       let lv: number | null = null;
@@ -2487,6 +2553,37 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     oracleMemoRef.current = { key, sig };
     return sig;
   };
+  // ── session → owning bar, for the current daily-multiple grid ─────────────────────────────
+  // Signal, dot, warning and opportunity dates are DAILY SESSION dates. On 2D/3D the bar that
+  // owns a session is a fact of the grid, not of proximity, and it is the same grid resampleTf
+  // bucketed the chart with (lib/sessionBars.ts). Returns null on every timeframe where there is
+  // no such grid — D, the calendar units, intraday — and those keep the nearest-bar helper.
+  // Memoized on the daily source identity + grid so replay, which re-resolves per tick, pays for
+  // the map once per data load rather than once per step.
+  const memberMemoRef = useRef<{ src: Bar[] | null; key: string; map: Map<string, string> }>(
+    { src: null, key: "", map: new Map() });
+  const dailyMultipleMembership = (): Map<string, string> | null => {
+    if (isIntradayRef.current) return null;
+    const mult = dailyMultipleOf(timeframeRef.current);
+    if (mult == null) return null;
+    const daily = dailyBarsRef.current;
+    if (!daily.length) return null;
+    const barAnchor = resolveBarAnchor(daily.map((r) => r.time), sessionAnchorRef.current);
+    const key = `${mult}:${barAnchor}`;
+    if (memberMemoRef.current.src !== daily || memberMemoRef.current.key !== key) {
+      memberMemoRef.current = { src: daily, key, map: sessionToBarTime(daily, mult, barAnchor) };
+    }
+    return memberMemoRef.current.map;
+  };
+  // The last SESSION represented on the chart — which is not the last bar's key. A daily-multiple
+  // bar is keyed by its opening session, so the final bar's key can be two sessions behind the
+  // newest data. Horizon filters must use this: dropping everything after the last bar KEY would
+  // move signals backwards in knowledge time and hide any fire inside the developing bar.
+  const lastSessionOf = (rows: Bar[]): string => {
+    const last = rows[rows.length - 1];
+    return (last?.closeTime ?? last?.time ?? "") as string;
+  };
+
   // Resolve BUY/SELL/CUT/REBUY/RECLAIM marks against the CURRENT bar set. PRIMARY source is the
   // slice's signal stream (indicator.signals — the scored GC-v2 lane the rail card reads; the nightly
   // regen ships full history universe-wide, and the flagship 5-min rewrites preserve it), so chart
@@ -2499,18 +2596,28 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     if (!rows.length) return [];
     const times = rows.map((r) => r.time);
     const lastDate = times[times.length - 1];
+    // Knowledge horizon: the last session on the chart, not the last bar key (see lastSessionOf).
+    const lastSession = lastSessionOf(rows) || (lastDate as string);
     const nearIdx = makeNearestBarIndex(times);
     const byTime = new Map(rows.map((r) => [r.time, r]));
+    // On a daily multiple, a signal date is an ENGINE BAR OPEN and must resolve to the bar that
+    // genuinely contains that session — never to whichever candle is closest. Nearest-bar snapping
+    // has a ~10-day tolerance, and a 3D phase error is one or two sessions, so a mis-phased chart
+    // put every marker on a plausible-looking neighbour and looked correct. This map is built from
+    // the SAME grid the bars were bucketed with, so a phase disagreement now shows up as a marker
+    // that does not resolve instead of one that silently lies.
+    const barOf = dailyMultipleMembership();
     // BUY-side marks anchor below the bar (low), SELL-side above (high) — same anchors either path.
-    // Exact-date hit skips the search; misses (resampled TFs, where most slice dates land between
-    // bars) binary-search the precomputed epoch array — replay re-resolves per tick, so the old
-    // O(signals × bars) Date-allocating scan is exactly what makeNearestBarIndex retires.
-    const snap = (ts: string, type: string): SigMark | null => { let bar = byTime.get(ts); if (!bar) { const i = nearIdx(ts); if (i >= 0) bar = rows[i]; } if (!bar) return null; return { t: bar.time as string, type, price: type === "SELL" || type === "CUT" ? bar.h : bar.l }; };
+    // Resolution order: exact bar key → the owning bar from the grid (daily multiples) → nearest
+    // bar within tolerance (calendar units and D, where no session grid exists). The nearest-bar
+    // path still binary-searches a precomputed epoch array rather than the O(signals × bars)
+    // Date-allocating scan makeNearestBarIndex retired — replay re-resolves this per tick.
+    const snap = (ts: string, type: string): SigMark | null => { let bar = byTime.get(ts); if (!bar && barOf) { const key = barOf.get(ts); if (key) bar = byTime.get(key); } if (!bar && !barOf) { const i = nearIdx(ts); if (i >= 0) bar = rows[i]; } if (!bar) return null; return { t: bar.time as string, type, price: type === "SELL" || type === "CUT" ? bar.h : bar.l }; };
     const sigs = slice?.indicator?.signals;
     const marks: SigMark[] = [];
     if (Array.isArray(sigs) && sigs.length) {
       for (const s of sigs) {
-        if (typeof s?.ts !== "string" || typeof s?.type !== "string" || s.ts > (lastDate as string)) continue;
+        if (typeof s?.ts !== "string" || typeof s?.type !== "string" || s.ts > lastSession) continue;
         const m = snap(s.ts, s.type); if (!m) continue;
         m.quality = s.quality; m.tier = s.tier; m.reason = s.quality_reason;
         m.scored = s.scored; m.subtype = s.subtype ?? null;
@@ -2536,7 +2643,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     } else {
       const daily = dailyBarsRef.current.length ? dailyBarsRef.current : rows;
       marks.push(...oracleSignals(daily)
-        .filter((s) => s.ts <= (lastDate as string))
+        .filter((s) => s.ts <= lastSession)
         .map((s) => snap(s.ts, s.type))
         .filter(Boolean) as SigMark[]);
     }
@@ -2549,7 +2656,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       for (const o of opps) {
         const ts = typeof o?.surfaced_at === "string" ? o.surfaced_at
           : typeof o?.entry_date === "string" ? o.entry_date : null;
-        if (!ts || ts > (lastDate as string)) continue;
+        if (!ts || ts > lastSession) continue;
         const m = snap(ts, "PROPHET"); if (!m) continue;
         if (typeof o.entry_price === "number" && Number.isFinite(o.entry_price)) m.price = o.entry_price;
         m.source = String(o.system || "prophet");
@@ -2572,18 +2679,21 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   const resolveSideChannels = (slice: any, rows: Bar[]) => {
     const times = rows.map((r) => r.time);
     const lastDate = times[times.length - 1] as string;
+    const lastSession = lastSessionOf(rows) || lastDate;
     const tset = new Set(times as unknown as string[]);
     const nearIdx = makeNearestBarIndex(times);
-    // Exact-hit shortcut mirrors resolveSigMarks' snap(): dots/warns are engine bar dates, so on
-    // the daily TF every one hits — misses (the resampled-TF case) binary-search the precomputed
-    // epoch array (replay re-resolves per tick; the old linear scan cost ~100ms/step here).
-    const snapT = (iso: string) => { if (tset.has(iso)) return iso; const i = nearIdx(iso); return i >= 0 ? (times[i] as string) : null; };
+    const barOf = dailyMultipleMembership();   // same session→bar resolution as resolveSigMarks
+    // Same resolution order as resolveSigMarks' snap(): dots/warns are engine bar dates, so on D
+    // and on a correctly phased daily multiple every one hits exactly; a daily multiple otherwise
+    // resolves through the grid, and the calendar units binary-search the precomputed epoch array
+    // (replay re-resolves per tick; the old linear scan cost ~100ms/step here).
+    const snapT = (iso: string) => { if (tset.has(iso)) return iso; if (barOf) { const k = barOf.get(iso); return k && tset.has(k) ? k : null; } const i = nearIdx(iso); return i >= 0 ? (times[i] as string) : null; };
     const dots = ((slice?.indicator?.early_dots || []) as string[])
-      .filter((ts) => ts <= lastDate)
+      .filter((ts) => ts <= lastSession)
       .map((ts) => ({ t: snapT(ts) as string | null }))
       .filter((m) => m.t) as { t: string }[];
     const warns = ((slice?.indicator?.warnings || []) as { ts: string; kind: string }[])
-      .filter((w) => w?.ts <= lastDate)
+      .filter((w) => w?.ts <= lastSession)
       .map((w) => ({ t: snapT(w.ts) as string | null, kind: w.kind }))
       .filter((m) => m.t) as { t: string; kind: string }[];
     return { dots, warns };
@@ -2856,20 +2966,23 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     const spliced = spliceDaily(daily, q, sd);
     if (spliced === daily) return;                         // nothing changed (older session)
     // fold to the bar the chart actually plots at this TF, then push it via update()
-    let bucket = foldFinalBucket(spliced, tf);
+    let bucket = foldFinalBucket(spliced, tf, sessionAnchorRef.current);
     if (!bucket) return;
     // Write the spliced daily back so the raw source stays current across ticks AND the
     // gap-zone memo (keyed on this array's identity) recomputes — else a gap formed by
     // today's developing bar stays invisible until the next full data reload.
     dailyBarsRef.current = spliced;
     // R11: reuse the EXISTING final-bucket time key unless the spliced daily date GENUINELY starts a
-    // new bucket (e.g. a fresh ISO week / month / 3D group). For resampled TFs the bucketer re-stamps
-    // the merged bucket's time to the newest daily date, which > the on-chart key → update() would
-    // APPEND a phantom bar. Detect "same bucket" by comparing pre/post bucket counts and, if equal,
-    // rewrite the key to the on-chart final bucket's time so update() REPLACES it in place.
+    // new bucket (e.g. a fresh ISO week / month). A CALENDAR bucket is keyed by its last daily date,
+    // so a mid-week splice re-stamps it forward past the on-chart key and update() would APPEND a
+    // phantom bar. Detect "same bucket" by comparing pre/post bucket counts and, if equal, rewrite
+    // the key to the on-chart final bucket's time so update() REPLACES it in place.
+    // 2D/3D no longer reach that failure: a daily-multiple bar is keyed by its OPENING session, which
+    // does not move as the bar fills, so the guard is inert there — kept because the calendar units
+    // still need it and an equal-count rewrite is a no-op when the keys already agree.
     if (tf !== "D") {
-      const preCount = resampleTf(daily, tf).length;
-      const postCount = resampleTf(spliced, tf).length;
+      const preCount = resampleTf(daily, tf, sessionAnchorRef.current).length;
+      const postCount = resampleTf(spliced, tf, sessionAnchorRef.current).length;
       const chartLastTime = fullBarsRef.current[fullBarsRef.current.length - 1]?.time;
       if (postCount === preCount && chartLastTime != null && chartLastTime !== bucket.time) {
         bucket = { ...bucket, time: chartLastTime as string };
@@ -7676,6 +7789,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         } catch (e: any) { feedErr = e?.message || "network error"; }
         if (cancelled || epochRef.current !== epoch) return;
         sliceRef.current = null;                 // no daily slice on intraday → no sig marks
+        sessionAnchorRef.current = null; ohlcSrcRef.current = null;   // daily-multiple grid does not apply here
         sigMarksRef.current = [];
         earlyDotsRef.current = []; warnMarksRef.current = [];   // GC v2 side channels: daily-only too
         dailyBarsRef.current = [];               // splice is daily-only; disable it here
@@ -7794,6 +7908,11 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         }
         daily = summed;
         sliceRef.current = null;
+        // A basket has no published session calendar of its own — the legs' anchors do not
+        // combine into one. It falls back to the documented feed-phased default, which is also
+        // what the signal engine would do, and no Oracle signal is claimed on a composite.
+        sessionAnchorRef.current = null;
+        ohlcSrcRef.current = summed;
       } else {
         const { ohlc, slice } = await getSliceAndOhlc(symbol);
         cpMark(`ohlc-fetch-done[${symbol}]`);
@@ -7807,10 +7926,18 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           return;
         }
         daily = ohlc.bars.map((b: any[]) => ({ time: b[0], o: b[1], h: b[2], l: b[3], c: b[4], v: b[5] }));
+        // THE PHASE AUTHORITY. Published by the OHLC pipeline on the document these bars came
+        // from (ingest/session_anchor.py) because the browser cannot derive the symbol's global
+        // session index from a truncated feed and must not invent one. Absent → the documented
+        // feed-phased default, which is the same fallback the signal engine itself takes.
+        sessionAnchorRef.current = parseSessionAnchor(ohlc.session_anchor);
+        // …and the document's own bars array is the aggregation memo's generation token.
+        ohlcSrcRef.current = ohlc.bars;
       }
       dailyBarsRef.current = daily;         // raw daily source — the R11 splice operates on THIS
       // ── PERF-FIX (b): use cached resample; same-symbol TF switches skip the O(N) bucketing pass ──
-      let rows: Bar[] = resampleTfCached(daily, effectiveTimeframe, symbol);
+      let rows: Bar[] = resampleTfCached(daily, effectiveTimeframe, symbol,
+        ohlcSrcRef.current, sessionAnchorRef.current);
       if (onMeta) onMeta({ total: rows.length });
       fullBarsRef.current = rows;
       // Read the LIVE replayIdx (not the effect's closure): if the user started replay while this

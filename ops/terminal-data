@@ -116,6 +116,13 @@ run "$PY" ingest/fetch_fred_daily.py
 # MUST run after build_macro_symbols, which writes the crypto manifest rows this pass reads, and
 # before the final hydrate, so a newly listed pair's LAST/CHG lands in the manifest the same night.
 run "$PY" ingest/refresh_crypto_ohlc.py --write
+# Publish the canonical 2D/3D session anchor onto every OHLC document. MUST run after the LAST
+# OHLC writer above (every one of them either rebuilds a document from scratch or mutates bars
+# in place preserving unknown keys), and it is what lets the BROWSER bucket daily sessions into
+# the same 3D bars the Golden Oracle computed on: the phase is counted from the symbol's IPO
+# session and is not derivable from the truncated feed the chart holds. Contract + rationale:
+# ingest/session_anchor.py. Seam pinned by tests/test_nightly_wiring.py.
+run "$PY" ingest/stamp_session_anchors.py
 # basket-washout state (display-tier): per-name thematic-basket peer drawdown from 252d highs,
 # the artifact gen_slices_all stamps the "washout override candidate" ⊘ class from. MUST run
 # BEFORE gen_slices_all — a missing/stale artifact is not an error, it just means every blocked

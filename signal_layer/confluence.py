@@ -205,6 +205,26 @@ def _resample_2w(daily_close: pd.Series, week_parity: int = 0) -> pd.Series:
     return pd.Series(wk.to_numpy()[close_pos], index=wk.index[close_pos], name=wk.name)
 
 
+def ipo_bar_anchor_basis(feed_close: pd.Series, symbol: str) -> tuple[int, str]:
+    """``(bar_anchor, basis)`` — the anchor AND how it was obtained.
+
+    ``basis`` is ``"ipo"`` when the deep store resolved the symbol's own session calendar and
+    the integer is a real global session index, and ``"feed"`` when it did not and the 0 is the
+    fallback "phase this feed at its own first row".
+
+    The two facts are NOT interchangeable and the integer alone cannot tell them apart: 0 is
+    also the legitimate IPO anchor of a full-history feed. Any consumer that must not FABRICATE
+    an IPO phase out of a truncated feed — the published ``session_anchor`` contract the browser
+    reads (``ingest/session_anchor.py``) is the one that matters — needs the basis to say which
+    of the two it is holding. ``ipo_bar_anchor`` keeps returning the integer alone for every
+    existing caller, whose behaviour is unchanged."""
+    try:
+        full = pd.read_parquet(DATA / f"{symbol}.parquet", columns=["close"]).index
+        return int(full.searchsorted(feed_close.dropna().index[0])), "ipo"
+    except Exception:
+        return 0, "feed"
+
+
 def ipo_bar_anchor(feed_close: pd.Series, symbol: str) -> int:
     """The ``bar_anchor`` for a TRUNCATED feed: the global session index (counted from the
     symbol's IPO) of ``feed_close``'s first row, so ``compute_signals`` phases the 3D bars
@@ -214,12 +234,9 @@ def ipo_bar_anchor(feed_close: pd.Series, symbol: str) -> int:
     which shares the NYSE calendar with the live Polygon feed (verified bar-for-bar). Returns
     0 when the deep store is unavailable (e.g. the rsync VPS, or a non-US symbol not in the
     store) — the 3D bars are then anchored at the feed's first row: still session-grouped
-    (fixing the resample('3B') bug) but possibly phase-shifted vs TV until full history is fed."""
-    try:
-        full = pd.read_parquet(DATA / f"{symbol}.parquet", columns=["close"]).index
-        return int(full.searchsorted(feed_close.dropna().index[0]))
-    except Exception:
-        return 0
+    (fixing the resample('3B') bug) but possibly phase-shifted vs TV until full history is fed.
+    ``ipo_bar_anchor_basis`` returns the same integer alongside which of those two it is."""
+    return ipo_bar_anchor_basis(feed_close, symbol)[0]
 
 
 def ipo_week_parity(feed_close: pd.Series, symbol: str) -> int:
