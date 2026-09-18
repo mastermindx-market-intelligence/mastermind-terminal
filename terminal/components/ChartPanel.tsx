@@ -8558,38 +8558,61 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     removeIndPriceLines("optlevels");
     rebuildPaneMeta();
     renderTagRef.current?.();
-    Promise.all([
-      flowGet(`gex:${root}`),
-      flowGet(`moves:${root}`),
-      flowGet(`gexstate:${root}`),
-    ]).then(([gex, moves, state]) => {
-      if (!alive || symbolRef.current !== sym) return;
-      if (gex == null && moves == null && state == null) {
-        // Every independent lane hard-failed. This can mean uncovered root, entitlement gate,
-        // or upstream outage; "unavailable" is the honest shared state.
-        optLevelsStateRef.current = { sym, status: "unavailable", res: null };
-      } else {
-        const res = deriveOptLevels(gex ?? {}, moves, root, state);
-        optLevelsStateRef.current = { sym, status: res.status, res };
-      }
-      // Effect 2/3 may have already built against the loading state. Rebuild only this line pool,
-      // reassert visibility, then paint the collision-resolved DOM badges from the same result.
-      try {
-        if (indicatorsRef.current.has("optlevels")) {
-          buildOptLevels();
-          applyHidden();
+
+    // Nightly artifacts can advance while a chart stays mounted for hours or days. A one-shot
+    // flowGet is insufficient because its SWR contract may hand back the old value while it
+    // refreshes the module cache in the background. Re-read on a bounded cadence so the NEXT
+    // tick consumes that refreshed value without creating a second cache/freshness plane.
+    const refresh = () => {
+      Promise.all([
+        flowGet(`gex:${root}`),
+        flowGet(`moves:${root}`),
+        flowGet(`gexstate:${root}`),
+      ]).then(([gex, moves, state]) => {
+        if (!alive || symbolRef.current !== sym) return;
+        if (gex == null && moves == null && state == null) {
+          // Every independent lane hard-failed. This can mean uncovered root, entitlement gate,
+          // or upstream outage; "unavailable" is the honest shared state.
+          optLevelsStateRef.current = { sym, status: "unavailable", res: null };
+        } else {
+          const res = deriveOptLevels(gex ?? {}, moves, root, state);
+          optLevelsStateRef.current = { sym, status: res.status, res };
+        }
+        // Effect 2/3 may have already built against the loading state. Rebuild only this line pool,
+        // reassert visibility, then paint the collision-resolved DOM badges from the same result.
+        try {
+          if (indicatorsRef.current.has("optlevels")) {
+            buildOptLevels();
+            applyHidden();
+            renderTagRef.current?.();
+          }
+        } catch {}
+        rebuildPaneMeta();
+      }).catch(() => {
+        if (!alive || symbolRef.current !== sym) return;
+        // Keep an already-rendered dated snapshot on a transient refresh failure; its EOD/session-age
+        // legend remains truthful. Only the initial no-data state collapses to unavailable.
+        if (optLevelsStateRef.current?.sym === sym && optLevelsStateRef.current.status === "loading") {
+          optLevelsStateRef.current = { sym, status: "unavailable", res: null };
+          removeIndPriceLines("optlevels");
+          rebuildPaneMeta();
           renderTagRef.current?.();
         }
-      } catch {}
-      rebuildPaneMeta();
-    }).catch(() => {
-      if (!alive || symbolRef.current !== sym) return;
-      optLevelsStateRef.current = { sym, status: "unavailable", res: null };
-      removeIndPriceLines("optlevels");
-      rebuildPaneMeta();
-      renderTagRef.current?.();
-    });
-    return () => { alive = false; };
+      });
+    };
+
+    refresh();
+    const refreshTimer = window.setInterval(refresh, 30_000);
+    const refreshOnVisible = () => {
+      if (document.visibilityState === "visible") refresh();
+    };
+    document.addEventListener("visibilitychange", refreshOnVisible);
+
+    return () => {
+      alive = false;
+      window.clearInterval(refreshTimer);
+      document.removeEventListener("visibilitychange", refreshOnVisible);
+    };
     // eslint-disable-next-line
   }, [hasOptLevels, symbol]);
 
