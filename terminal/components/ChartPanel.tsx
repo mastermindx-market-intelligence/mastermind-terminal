@@ -69,7 +69,7 @@ import { deriveOptLevels, sessionsOldEt, type OptLevelKey, type OptLevelsResult 
 import { computeSuite, resolveSuiteColors } from "@/lib/indicator-canvas/host";
 import { renderPrims, ensureTooltipHost } from "@/lib/indicator-canvas/render";
 import {
-  hitTestMarkers, placeMarkerTip, isTapGesture,
+  hitTestMarkers, placeMarkerTip, gestureStamp, isTapSample,
   MARKER_HOVER_SLACK, MARKER_TAP_SLACK, type MarkerHit,
 } from "@/lib/markerTooltip";
 import { paintCandleData } from "@/lib/indicator-canvas/candlePaint";
@@ -883,7 +883,9 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   // B1: double-tap + synthetic-hover suppression refs
   const lastDblHandledRef = useRef<number>(0);   // performance.now() of last touch-driven double-tap
   const lastTouchTsRef = useRef<number>(0);       // performance.now() of last touch pointerdown
-  const lastTapRef = useRef<{ t: number; x: number; y: number } | null>(null);   // first tap of a potential double-tap
+  // first tap of a potential double-tap. `ts` is the event's own time — the gap to the second tap
+  // is a GESTURE interval, so it is measured on the same clock the tap test uses (markerTooltip).
+  const lastTapRef = useRef<{ t: number; ts: number | null; x: number; y: number } | null>(null);
   // params for the ACTIVE indicators drive an indicator rebuild (Effect 3b)
   const indParamsKey = JSON.stringify(Array.from(indicators).sort().map((k) => indParams[k]));
   // ── existing DOM / interaction refs (unchanged) ──
@@ -3514,8 +3516,10 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     let sigHits: MarkerHit[] | null = null;
     // A tapped tooltip stays put until the next pointerdown; a hovered one follows the cursor.
     let sigTipPinned = false;
-    // Suppresses the tooltip for the whole of a press-drag, so it can never chase a pan.
-    let sigPointerDown: { x: number; y: number; t: number; id: number } | null = null;
+    // Suppresses the tooltip for the whole of a press-drag, so it can never chase a pan. `ts` is
+    // the event's own time — see markerTooltip.gestureStamp for why the handler clock cannot
+    // classify this gesture on a busy thread.
+    let sigPointerDown: { x: number; y: number; t: number; ts: number | null; id: number } | null = null;
     // Declared HERE, beside the state it owns, rather than down with the handlers: renderSignals
     // calls it and runs synchronously during this effect's setup, which would put a
     // handler-block declaration in the temporal dead zone.
@@ -6795,6 +6799,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       const startedWithTool = Boolean(toolRef.current);
       lastTouchTsRef.current = performance.now();   // for synthetic-hover suppression
       const now = performance.now();
+      const nowTs = gestureStamp(e);
       const x = e.clientX, y = e.clientY;
       // track up to detect a qualifying single tap; pointercancel (pinch/scroll takeover) must
       // also detach — pointerIds get reused on touch, so a stale onUp would eat a later tap
@@ -6806,11 +6811,24 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       const onUp = (eu: PointerEvent) => {
         if (eu.pointerId !== e.pointerId) return;
         wrap.removeEventListener("pointerup", onUp); wrap.removeEventListener("pointercancel", onCancel);
-        const dt = performance.now() - now;
-        const dx = eu.clientX - x, dy = eu.clientY - y;
-        if (dt > 300 || Math.hypot(dx, dy) > 12) { lastTapRef.current = null; return; }  // not a tap
+        const upNow = performance.now();
+        const upTs = gestureStamp(eu);
+        // Timed on the EVENTS, exactly like the two tooltip layers' tap tests, and through the
+        // same shared predicate so the three cannot drift: a thread held between down and up is
+        // dispatch latency, not a long press, and classifying it as one made a real fingertip tap
+        // stop being a tap for the tooltip AND stop arming this double-tap at the same moment.
+        const isTap = isTapSample(
+          { x, y, t: now, ts: nowTs },
+          { x: eu.clientX, y: eu.clientY, t: upNow, ts: upTs },
+        );
+        if (!isTap) { lastTapRef.current = null; return; }
         const prev = lastTapRef.current;
-        if (prev && performance.now() - prev.t < 350 && Math.hypot(eu.clientX - prev.x, eu.clientY - prev.y) < 40) {
+        // The inter-tap gap is a gesture interval too — measured on the event clock when both taps
+        // could date themselves, and on the handler clock only when one of them could not.
+        const gap = prev
+          ? (prev.ts != null && upTs != null && upTs >= prev.ts ? upTs - prev.ts : upNow - prev.t)
+          : Infinity;
+        if (prev && gap < 350 && Math.hypot(eu.clientX - prev.x, eu.clientY - prev.y) < 40) {
           // double-tap confirmed
           lastTapRef.current = null;
           if ((e.target as Element)?.closest?.(".chart-overlays")) return;
@@ -6822,7 +6840,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           lastDblHandledRef.current = performance.now();
           doMaximize(p.paneIndex);
         } else {
-          lastTapRef.current = { t: performance.now(), x: eu.clientX, y: eu.clientY };
+          lastTapRef.current = { t: upNow, ts: upTs, x: eu.clientX, y: eu.clientY };
         }
       };
       wrap.addEventListener("pointerup", onUp); wrap.addEventListener("pointercancel", onCancel);
@@ -6909,7 +6927,9 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       // Unconditional: a press anywhere dismisses an open tooltip BEFORE the gesture it starts.
       // This is also what makes the pinned (tapped) tooltip dismissable by a tap elsewhere.
       sigTipHide();
-      sigPointerDown = { x: e.clientX, y: e.clientY, t: performance.now(), id: e.pointerId };
+      sigPointerDown = {
+        x: e.clientX, y: e.clientY, t: performance.now(), ts: gestureStamp(e), id: e.pointerId,
+      };
     };
     onSigUp = (e: PointerEvent) => {
       const down = sigPointerDown;
@@ -6917,8 +6937,14 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       if (!down || down.id !== e.pointerId) return;
       if (e.pointerType === "mouse") return;      // a mouse click is not a tooltip gesture
       // TOUCH: a tap on a marker must not dead-end. The same thresholds the double-tap detector
-      // uses, so one gesture can never be a tap here and a drag for the chart.
-      if (!isTapGesture(down, { x: e.clientX, y: e.clientY, t: performance.now() })) return;
+      // uses, so one gesture can never be a tap here and a drag for the chart — and the same
+      // CLOCK as well: timed on the EVENTS rather than on when this handler ran, because
+      // a thread held for 300ms+ between down and up (a phone mid-repaint, a saturated runner)
+      // made a fingertip flick read as a long press and the tooltip dead-ended. The measurements
+      // are in markerTooltip.gestureStamp.
+      if (!isTapSample(down, {
+        x: e.clientX, y: e.clientY, t: performance.now(), ts: gestureStamp(e),
+      })) return;
       // Hit-tested at the DOWN point — where the finger actually landed — and with the larger
       // touch slack, because a ⊘ ring is ~11px across and a fingertip has no hover to correct with.
       const hit = sigHitAt(down.x, down.y, MARKER_TAP_SLACK);
