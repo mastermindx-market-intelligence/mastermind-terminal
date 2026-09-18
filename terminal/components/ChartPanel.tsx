@@ -4335,6 +4335,14 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       paneKey?: string | null;
     };
     let pending: PendingDrawing | null = null;
+    // A segmented tool that finished on its second pointerup is still followed by
+    // Chromium's native `dblclick` for that same press pair. That trailing event is
+    // the tail of a gesture that already committed, never a fresh intent, so it is
+    // consumed exactly once instead of re-entering creation or opening the settings
+    // editor for whatever drawing sits under the final anchor. The guard is ordering,
+    // not a timer: the next pointerdown re-arms ordinary double-click editing, and no
+    // pointerdown can occur between a commit and its own trailing dblclick.
+    let consumeNextDblClick = false;
     cancelPendingDrawingRef.current = () => {
       const current = pending;
       pending = null;
@@ -7175,8 +7183,15 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       try { svg.setPointerCapture(ev.pointerId); } catch {}
       renderDraw();
     });
+    // Any fresh press ends the completion window opened by the pointerup above, so an
+    // ordinary double-click on a drawing keeps opening its editor. Its own listener in the
+    // capture phase, so it still runs for presses the creation handler declines to handle
+    // (no tool armed, creation disabled, replay) and for presses that land on a child node.
+    svg.addEventListener("pointerdown", () => { consumeNextDblClick = false; }, true);
     // Double-click finishes variable segmented tools and edits text in cursor mode.
     svg.addEventListener("dblclick", (ev) => {
+      // Already committed on pointerup — this is that gesture's own tail, not a new one.
+      if (consumeNextDblClick) { consumeNextDblClick = false; ev.stopPropagation(); ev.preventDefault(); return; }
       if (!activeRef.current) return;
       const activeTool = toolRef.current, spec = getDrawingTool(activeTool);
       if (activeTool && spec?.creation.mode === "variable-multi" && pending?.kind === activeTool && pending.mode === "multi") {
@@ -7247,16 +7262,33 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       const b = constrainedSnap(angleOrigin, x, y, ev, { paneKey: current.paneKey });
       try { if (svg.hasPointerCapture(ev.pointerId)) svg.releasePointerCapture(ev.pointerId); } catch {}
       if (current.mode === "multi") {
+        const spec = getDrawingTool(current.kind);
         const previous = current.points[current.points.length - 1], px = previous ? xOf(previous.t) : null, py = previous ? yOfIn(previous.p, current.paneKey) : null;
         const repeatRadius = ev.pointerType === "touch" || matchMedia("(pointer:coarse)").matches ? 16 : 3;
-        const repeatedAnchor = Boolean(previous && px != null && py != null && Math.hypot(x - px, y - py) <= repeatRadius);
+        // A segmented tool finishes when the closing click lands on the SAME anchor, and
+        // "the same anchor" is the snapped, projected placement this gesture would commit —
+        // not raw cursor travel. Measuring the raw pointer against the previous PROJECTED
+        // anchor makes the finishing click miss by however far snapping moved it: the magnet
+        // holding the price on an OHLC level, or x quantized to a bar centre. The gesture then
+        // appended a duplicate semantic anchor and left the draft uncommitted. The native
+        // `dblclick` below is NOT a dependable backstop for that: whenever the closing press
+        // hit-tests onto an existing drawing, this layer's own re-render detaches that node, so
+        // the press and release share no live ancestor and Chromium dispatches neither `click`
+        // nor `dblclick` — a Path over any existing object then never finished at all.
+        // Variable-multi only: a fixed-multi tool keeps its declarative point count exactly.
+        const semanticRepeat = spec?.creation.mode === "variable-multi"
+          && Boolean(previous) && samePlacement(previous, b, current.paneKey);
+        const repeatedAnchor = Boolean(previous)
+          && (semanticRepeat || (px != null && py != null && Math.hypot(x - px, y - py) <= repeatRadius));
         if (!repeatedAnchor) current.points.push(b);
         current.pointerId = undefined; current.candidate = undefined;
-        const spec = getDrawingTool(current.kind);
         const required = spec?.creation.mode === "fixed-multi" && typeof spec.creation.pointCount === "number" ? spec.creation.pointCount : Infinity;
         const repeatedFinish = repeatedAnchor && spec?.creation.mode === "variable-multi" && current.points.length >= spec.creation.minPoints;
         if (current.points.length >= required || repeatedFinish || (spec?.creation.mode === "variable-multi" && current.points.length >= spec.creation.maxPoints)) {
-          const points = [...current.points]; pending = null; commitDrawing(current.kind, points, undefined, current.activation, current.paneKey);
+          const points = [...current.points]; pending = null;
+          // Commit exactly once; swallow this gesture's own trailing native dblclick.
+          if (spec?.creation.mode === "variable-multi") consumeNextDblClick = true;
+          commitDrawing(current.kind, points, undefined, current.activation, current.paneKey);
         } else renderDraw();
         return;
       }
