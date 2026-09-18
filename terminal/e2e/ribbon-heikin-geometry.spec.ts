@@ -437,3 +437,52 @@ test("the Ribbon overrides Color bars on previous close without disturbing Heiki
   expect(paintSequence(ribbon), "the Ribbon should own the paint, not colorBarsPrevClose")
     .not.toEqual(paintSequence(prevClose));
 });
+
+/**
+ * The East convention (red = up, CN/HK/TW/MO) is applied in JS because lightweight-charts paints to
+ * canvas and cannot resolve var(--up)/var(--down) — `applyUpDownConvention` rewrites the Ribbon's
+ * `colUp`/`colDn` defaults, and this fix must keep riding that rather than the raw hues.
+ */
+const DIRECTIONAL_TWIN: Record<string, string> = {
+  "#26c281": "#f0566b", "#f0566b": "#26c281",
+  "rgba(38,194,129,0.45)": "rgba(240,86,107,0.45)",
+  "rgba(240,86,107,0.45)": "rgba(38,194,129,0.45)",
+};
+
+test("Ribbon candle colors still follow the Up/Down locale convention", async ({ page }) => {
+  test.setTimeout(180_000);   // two full chart mounts (see the note on the first walk)
+  await routeFixture(page);
+  await seedWorkspace(page, { chartType: "heikin", inds: ["ribbon"] });
+  await openTerminal(page);
+
+  const west = await seriesWithPaint(page, "all", "the Ribbon should paint every bar under the West convention");
+  expectHeikin(west, "ribbon, West convention");
+
+  // `mm.updown` is a bare string read by the pre-paint script in app/layout.tsx, not a JSON pref.
+  await page.evaluate(() => localStorage.setItem("mm.updown", "east"));
+  await page.reload();
+  await expect.poll(
+    () => page.evaluate(() => Boolean((window as Window & { __mmRibbonReady?: boolean }).__mmRibbonReady)),
+    { message: "the Terminal should re-hydrate on the East convention", timeout: 45_000 },
+  ).toBe(true);
+  await expect.poll(
+    () => page.evaluate(() => document.documentElement.getAttribute("data-updown")),
+    { message: "the East convention should be stamped before paint", timeout: 20_000 },
+  ).toBe("east");
+
+  const east = await seriesWithPaint(page, "all", "the Ribbon should repaint every bar under the East convention");
+  expectHeikin(east, "ribbon, East convention");
+
+  // Same geometry, same per-bar STATES — every directional hue swapped to its twin, the neutral
+  // state left alone. A hardcoded green/red would come back identical here.
+  expect(east.rows.map((r) => [r.time, r.open, r.high, r.low, r.close]))
+    .toEqual(west.rows.map((r) => [r.time, r.open, r.high, r.low, r.close]));
+  expect(paintSequence(east)).toEqual(paintSequence(west).map((color) =>
+    color == null ? color : DIRECTIONAL_TWIN[color] ?? color));
+  expect(paintPalette(east), "at least one directional hue must actually have flipped")
+    .not.toEqual(paintPalette(west));
+  for (const row of east.rows) {
+    expect(row.borderColor, `${row.time}: border should follow the flipped ribbon color`).toBe(row.color);
+    expect(row.wickColor, `${row.time}: wick should follow the flipped ribbon color`).toBe(row.color);
+  }
+});
