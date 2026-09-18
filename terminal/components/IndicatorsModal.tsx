@@ -725,7 +725,12 @@ export default function IndicatorsModal({
       </div>
       {CHART_WORKFLOW_PRESETS.map(recipe => <ChartWorkflowCard key={recipe.id} recipe={recipe} lang={lang} userTier={userTier}
         applied={activeChartWorkflow === recipe.id} onApply={onApplyChartWorkflow ? () => onApplyChartWorkflow(recipe.id) : undefined}
-        onUndo={onUndoChartWorkflow} onView={onClose} onGuide={onOpenGuide} />)}
+        onUndo={onUndoChartWorkflow ? () => {
+          // Undo removes its own focused button while the Library stays open. Move focus to the
+          // existing dialog owner before the state change commits so keyboard containment survives.
+          dialogRef.current?.focus({ preventScroll: true });
+          onUndoChartWorkflow();
+        } : undefined} onView={onClose} onGuide={onOpenGuide} />)}
       <div className="ipreset-note">
         <strong>{copy("Start focused. Add evidence deliberately.", "从聚焦开始，有目的地增加证据")}</strong>
         <span>{copy("The suite profiles below only change module switches. Your tuned inputs, colors, and saved work stay intact.", "下方的套件预设只改变模块开关；已调整的参数、颜色与保存内容都会保留。")}</span>
