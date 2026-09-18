@@ -89,6 +89,18 @@ describe("Stock Intelligence workspace", () => {
     expect(document.querySelector(".sig-btn-seam")).toBeNull()
     await click(launcher); expect(view).toHaveBeenCalledOnce()
   })
+  it("shows supplied downside and risk-adjusted performance alongside return metrics", async () => {
+    await render({ slice: { backtest: { metrics: {
+      n_trades: 8, win_rate: 0.375, profit_factor: 2.24, cagr: 0.0662,
+      max_dd: -0.6925, sharpe: 0.3664,
+    } } } })
+    await click(tab("Performance"))
+    expect(text()).toContain("Max drawdown")
+    expect(text()).toContain("−69.3%")
+    expect(text()).toContain("Sharpe ratio")
+    expect(text()).toContain("0.37")
+    expect(text()).toContain("Small sample")
+  })
 })
 it("does not turn an empty sector object into an available Neutral research assessment", async () => {
   await render({ intel: { cards: {}, tape: { sector_pulse: {} } }, slice: null })

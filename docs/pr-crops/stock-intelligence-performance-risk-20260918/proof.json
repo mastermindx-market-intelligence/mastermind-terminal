@@ -1,0 +1,58 @@
+{
+  "schema": "mastermind.stock_intelligence_performance_risk_proof/v1",
+  "captured_at": "2026-09-18T08:02:00Z",
+  "operation": "terminal-stock-intelligence-performance-risk-20260918-sol-001",
+  "parent_pr": 619,
+  "parent_head": "a92516e5ceb82d9fa5ddcbb78cc80bba3f752f85",
+  "claim": "Performance shows producer-supplied maximum drawdown and Sharpe ratio beside return metrics, with explicit absence when those inputs are unavailable.",
+  "red": {
+    "focused_unit": "1 failed / 18 passed because Max drawdown was absent",
+    "first_responsive": "6 passed / 3 failed because the negative-state test still expected four stat cells after the product intentionally grew to six"
+  },
+  "green": {
+    "focused_unit": "19 passed",
+    "stock_intelligence_e2e": "9 passed across desktop/tablet/mobile and EN/ZH",
+    "full_unit": "337 files passed; 5572 tests passed; 4 todo",
+    "typescript": "PASS",
+    "plain_language_self_check": "PASS; R1-R5b detected",
+    "plain_language_added_lines": "PASS; legacy census only",
+    "diff_check": "PASS",
+    "negative_state": "Max drawdown, Sharpe ratio, and Trades each render em dash when detail feeds are unavailable"
+  },
+  "current_public_intc_input": {
+    "as_of": "2026-09-16",
+    "n_trades": 8,
+    "win_rate": 0.375,
+    "profit_factor": 2.24,
+    "cagr": 0.0662,
+    "max_dd": -0.6925,
+    "sharpe": 0.3664,
+    "sortino": 0.385,
+    "calmar": 0.0957
+  },
+  "checked_in_slice_coverage": {
+    "symbols_with_backtest_metrics": 31,
+    "max_dd": "31/31",
+    "sharpe": "31/31",
+    "sortino": "31/31",
+    "calmar": "31/31",
+    "profit_factor": "29/31"
+  },
+  "screenshots": {
+    "desktop-en-performance.png": "92541af9e8de7bec9e7ff6ff56dc210a0a6c4733f936913fe6cfd9e83aa39ede",
+    "tablet-zh-performance.png": "253600fa10662e47f7da88d4189da51e26997667509a0eb74d2b96ae77ab7196",
+    "mobile-en-performance.png": "dea719e8c2d8feee2b61ed7fe7c7785a7c5c91a97674dbadf117f420ad4479d3"
+  },
+  "source_sha256": {
+    "terminal/components/fin/OracleDash.tsx": "68f9fd85b7fa4607b4d7b2c719a112c8fb075ddfe133ecb994e94e6439dd5422",
+    "terminal/components/fin/StockIntelligence.module.css": "aae2c899b6f49dd7fa517ac53d8ae7ecd387eb9eef07524ec6614beef14c03bb",
+    "terminal/e2e/stock-intelligence.spec.ts": "cc595f627157d8d41b83b6594362beef6c633bab1976c3948efccf0b4ad60e84",
+    "terminal/lib/__tests__/stockIntelligence.test.tsx": "f2aaf39360a28d80efcadeff844b47f566a5eae89bc3f6b4d4844d94c1018bb1"
+  },
+  "non_claims": [
+    "No risk statistic is calculated in the UI; values are consumed directly from backtest_result/v1 metrics.",
+    "No confidence score, target, position size, forecast, signal rank, trade gate, or backtest methodology changes.",
+    "The screenshots are local browser proof, not production deployment proof.",
+    "This stacked slice must not merge ahead of parent PR #619 or root PR #614."
+  ]
+}
