@@ -114,6 +114,7 @@ type ChartDevWindow = Window & {
   __mmCrosshairDodge?: unknown;
   __mmPriceLabels?: unknown;
   __mmPaneMaximized?: unknown;
+  __mmChartOwnership?: unknown;
 };
 
 const DRAWING_IMAGE_MAX_FILE_BYTES = 700 * 1024;
@@ -381,6 +382,9 @@ const EMPTY_PINE: PineScript[] = [];
 export type PineScript = { id: string; name: string; source: string; params: Record<string, any> };
 // Sub-pane pine scripts get a namespaced pane key so they never collide with a built-in sub-pane key.
 const pineKeyOf = (id: string) => "pine:" + id;
+// The same namespace identifies a script's entries in the shared price-line pool.
+const isPineKey = (k: string) => k.startsWith("pine:");
+const pineIdOf = (k: string) => (isPineKey(k) ? k.slice(5) : k);
 // ~2s coarse runtime cap: a pathological script is skipped with an error rather than freezing the tab.
 const PINE_RUNTIME_CAP_MS = 2000;
 
@@ -1381,7 +1385,21 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     for (const plot of result.plots) { const s = addPinePlot(chart, plot, pane); if (s) series.push(s); }
     // hlines → price lines on the anchor series (first plot series, else the price series for overlays)
     const anchor = series[0] || (overlay ? priceS : null);
-    if (anchor) for (const hl of result.hlines) { try { anchor.createPriceLine({ price: hl.price, color: hl.color, lineWidth: 1, lineStyle: hl.style === "dashed" ? 2 : hl.style === "dotted" ? 1 : 0, axisLabelVisible: true, title: hl.title } as any); } catch {} }
+    // OWNERSHIP: a line on the script's OWN series is disposed when clearAllPine removes that
+    // series. An overlay script that rendered no series at all — an hline-only levels script, or
+    // one whose plots are entirely `na` over the loaded bars — anchors on the SHARED price series,
+    // which outlives every rebuild. Those lines survive clearAllPine, so they must be pooled and
+    // removed by key, exactly like slevels/pivots/optlevels. Without that, each build strands
+    // another full set (and buildAllPine's slow path paints twice per build), growing without
+    // bound for the life of the tab.
+    const anchoredOnPrice = anchor != null && anchor === priceS;
+    if (anchoredOnPrice) removeIndPriceLines(pineKeyOf(script.id));   // defensive: never double-draw
+    if (anchor) for (const hl of result.hlines) {
+      try {
+        const pl = anchor.createPriceLine({ price: hl.price, color: hl.color, lineWidth: 1, lineStyle: hl.style === "dashed" ? 2 : hl.style === "dotted" ? 1 : 0, axisLabelVisible: true, title: hl.title } as any);
+        if (anchoredOnPrice) pushIndPriceLine(pineKeyOf(script.id), pl);
+      } catch {}
+    }
     // shapes → markers on the anchor series (only meaningful when there's a series to hang them on)
     if (anchor && result.shapes.length) {
       try {
@@ -1402,6 +1420,11 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     const chart = chartRef.current; if (!chart) return;
     for (const plugin of pineMarkersRef.current.values()) { try { plugin.detach(); } catch {} }
     pineMarkersRef.current.clear();
+    // Price lines an overlay script anchored on the shared price series are NOT reclaimed by
+    // removing the script's own series — that series is not where they live (see buildPineScript).
+    // Read the pool rather than pineSeriesRef so the removal still happens for a script whose
+    // series registry was already emptied by another path.
+    for (const key of [...indPriceLinesRef.current.keys()]) if (isPineKey(key)) removeIndPriceLines(key);
     for (const arr of pineSeriesRef.current.values()) for (const s of arr) { try { chart.removeSeries(s); } catch {} }
     pineSeriesRef.current.clear(); pinePaneMapRef.current.clear();
   };
@@ -2273,9 +2296,14 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // price-line-only overlays (slevels/pivots/optlevels) plot no series — the eye must flip
     // their pooled IPriceLines directly or the toggle silently no-ops on them.
     for (const [k, lines] of indPriceLinesRef.current) {
-      const vis = !h.has(k) && tfVisible(k);
+      // A script's pooled hlines are keyed by its namespaced pane key, but its eye tracks the
+      // raw script id (the pine loop below) — resolve before asking, or hiding a script would
+      // leave its levels on the axis. Options Levels owns a collision-resolved DOM axis layer,
+      // so its native LWC axis labels stay suppressed even while its exact price lines are visible.
+      const eyeKey = pineIdOf(k);
+      const vis = !h.has(eyeKey) && tfVisible(eyeKey);
       for (const pl of lines) {
-        try { pl.applyOptions({ lineVisible: vis, axisLabelVisible: k === "optlevels" ? false : vis }); } catch {}
+        try { pl.applyOptions({ lineVisible: vis, axisLabelVisible: k === "optlevels" ? false : vis } as any); } catch {}
       }
     }
     // custom scripts: eye toggle by scriptId (no tf-visibility gating — scripts don't declare _vis)
@@ -2777,6 +2805,12 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     chartDataSymRef.current = "";
     clearExtendedPriceLine();
     clearAllIndicators();
+    // clearAllIndicators does NOT reach the custom-script layer — the only caller that clears
+    // both is buildAllIndicators, and a dead-ended fetch never gets there. Without this, a
+    // symbol with no history keeps the PREVIOUS symbol's Pine studies painted underneath its
+    // "no data" overlay: the same defect e2e/no-data-symbol.spec.ts was written for after the
+    // 000001.SS operator report, for the one owner that report did not reach.
+    clearAllPine();
     const chart = chartRef.current;
     if (chart) for (const s of cmpSeriesRef.current.values()) { try { chart.removeSeries(s); } catch {} }
     cmpSeriesRef.current.clear();
@@ -2960,6 +2994,80 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     const range = normalizedChartLogicalRange(rows.length, replay != null, plotWidth)
       ?? fullHistoryLogicalRange(rows.length, plotWidth);
     try { if (range) chart.timeScale().setVisibleLogicalRange(range); else chart.timeScale().fitContent(); } catch {}
+  };
+
+  // ── Lifecycle-ownership census ──────────────────────────────────────────────
+  // Read-only. Powers the dev-only window.__mmChartOwnership hook installed in Effect 1
+  // and the post-teardown receipt it leaves behind, so the chart-engine gate's "no leak
+  // across 50 symbol/timeframe switches" claim has something to check.
+  //
+  // Two independent views of the same resources: `live` is what the RENDERER says it
+  // holds (engine.inventory() → LWC panes()/getSeries()/priceLines()), `owned` is what
+  // this component still claims. Every series this file creates is returned into one of
+  // those owners, so the two totals must agree; the signed difference is the finding.
+  const chartOwnershipCensus = () => {
+    const engine = engineRef.current;
+    const live = engine
+      ? engine.inventory()
+      : { alive: false, panes: 0, series: 0, seriesByPane: [] as number[], priceLines: 0, watermarks: 0 };
+    let indicators = 0;
+    for (const arr of indSeriesRef.current.values()) indicators += arr.length;
+    let pine = 0;
+    for (const arr of pineSeriesRef.current.values()) pine += arr.length;
+    let pooledPriceLines = 0;
+    for (const lines of indPriceLinesRef.current.values()) pooledPriceLines += lines.length;
+    const owned = {
+      price: priceSeriesRef.current ? 1 : 0,
+      futureAxis: futureAxisRef.current ? 1 : 0,
+      indicators,
+      compare: cmpSeriesRef.current.size,
+      pine,
+    };
+    const trackedSeries = owned.price + owned.futureAxis + owned.indicators + owned.compare + owned.pine;
+    // Price lines are only comparable on the PRICE series: a line on an indicator's own
+    // series is disposed by removing that series and is deliberately never pooled, so
+    // pooling it would be the bug. The price series outlives every generation, so anything
+    // drawn on it must be pooled for explicit removal — that is what this pair checks.
+    let pricePaneLines = 0;
+    try { pricePaneLines = priceSeriesRef.current?.priceLines().length ?? 0; } catch { pricePaneLines = 0; }
+    const trackedPricePaneLines = pooledPriceLines + (extendedPriceLineRef.current ? 1 : 0);
+    return {
+      engine: engine ? 1 : 0,
+      live,
+      owned,
+      trackedSeries,
+      // > 0 → a series outlived its owner. < 0 → we hold a handle the renderer dropped.
+      orphanSeries: live.series - trackedSeries,
+      pricePaneLines,
+      trackedPricePaneLines,
+      orphanPricePaneLines: pricePaneLines - trackedPricePaneLines,
+      markerPlugins:
+        pineMarkersRef.current.size + (ttmsqMarkersRef.current ? 1 : 0) + (macdMarkersRef.current ? 1 : 0),
+      // Generation-scoped subscription owner. Effect 1's own crosshair/range handlers are
+      // mount-once and chart-owned (chart.remove() drops them with the delegate), so this
+      // registration — re-made on every symbol/timeframe generation — is the only one that
+      // could accumulate, and it must never exceed 1.
+      syncRegistered: syncCleanupRef.current ? 1 : 0,
+      paneObserver: paneRORef.current ? 1 : 0,
+      paneMeta: panesMeta.current.length,
+      timers: {
+        tag: tagTimerRef.current != null ? 1 : 0,
+        countdown: countdownTimerRef.current != null ? 1 : 0,
+        pineLive: pineLiveTimerRef.current != null ? 1 : 0,
+        highlight: highlightTimerRef.current != null ? 1 : 0,
+      },
+      // DOM overlays this component appends to the chart wrapper (and, for the bar tip, to
+      // <body>). Counted by connectedness, so a node removed from the document stops counting
+      // even while a ref still points at it.
+      domOverlays: [
+        svgRef.current, sigRef.current, indSvgRef.current, priceTagRef.current,
+        extendedTagRef.current, hoverTagRef.current, barRef.current, ctxRef.current,
+        emptyRef.current, textEditRef.current, countdownChipRef.current,
+        creationPaletteRef.current, mediaPickerRef.current, brandBugRef.current,
+      ].filter((n) => n != null && n.isConnected).length,
+      // LWC paints into canvases it owns inside `ref`. After destroy() there must be none.
+      canvases: ref.current ? ref.current.querySelectorAll("canvas").length : 0,
+    };
   };
 
   // ────────────────────────────────────────────────────────────────────────────
@@ -3412,6 +3520,19 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       // geometry cannot arbitrate that — it lags the toggle by a relayout — so expose the flag the
       // handler sets synchronously; `null` = no pane is maximized.
       (window as any).__mmPaneMaximized = () => paneCtl.current.maximized;
+      // ── Lifecycle-ownership census (dev/e2e only) ─────────────────────────────
+      // Chart resources live on the renderer, not in the DOM, so an ownership leak across
+      // symbol / timeframe / indicator / compare churn has no assertable surface — the
+      // documented "no leak across 50 switches" gate had no way to be checked. This puts the
+      // renderer's own live counts (engine.inventory(), read back from LWC's public panes() /
+      // getSeries() / priceLines()) next to what THIS component still claims to own, so a test
+      // can assert both stay bounded AND that they agree.
+      //
+      // `orphanSeries` / `orphanPricePaneLines` are the discriminators, and they are signed on
+      // purpose: > 0 means a resource outlived the owner that created it (a leak), < 0 means we
+      // still hold a handle the renderer already dropped (a stale owner). Zero heap bytes are
+      // involved — this counts owners, so it cannot be fooled by GC timing.
+      (window as any).__mmChartOwnership = () => chartOwnershipCensus();
     }
 
     // ── create the ONE chart (the hard invariant — exactly one renderer instance — now
@@ -7860,6 +7981,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           delete devWindow.__mmCrosshairDodge;
           delete devWindow.__mmPriceLabels;
           delete devWindow.__mmPaneMaximized;
+          delete devWindow.__mmChartOwnership;
         } catch {}
       }
       if (onKey) window.removeEventListener("keydown", onKey);
@@ -7902,11 +8024,24 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       // DT teardown: countdown chip + shading primitive
       if (countdownTimerRef.current) { clearInterval(countdownTimerRef.current); countdownTimerRef.current = null; }
       if (countdownChipRef.current) { try { countdownChipRef.current.remove(); } catch {} countdownChipRef.current = null; }
-      if (shadingPrimRef.current && priceSeriesRef.current) { try { detachSessionShading(priceSeriesRef.current, shadingPrimRef.current); } catch {} shadingPrimRef.current = null; }
+      if (shadingPrimRef.current) {
+        // Detach only if the series is still there; drop the reference either way. Gating the
+        // NULLING on priceSeriesRef too would strand this ref whenever the price series was
+        // already gone (a symbol that dead-ended before one was built).
+        if (priceSeriesRef.current) { try { detachSessionShading(priceSeriesRef.current, shadingPrimRef.current); } catch {} }
+        shadingPrimRef.current = null;
+      }
       clearExtendedPriceLine();
       indPriceLinesRef.current = new Map();
       indSeriesRef.current.clear(); cmpSeriesRef.current.clear(); paneMapRef.current.clear();
       pineSeriesRef.current.clear(); pineMarkersRef.current.clear(); pinePaneMapRef.current.clear(); pineErrRef.current.clear(); pineCacheRef.current.clear(); pineAstRef.current.clear();
+      // The two singleton marker plugins had no teardown line, unlike every sibling above. The
+      // chart disposes the primitives themselves, but an ISeriesMarkersPluginApi holds its host
+      // ISeriesApi, which holds the whole ChartModel — so a ref left set keeps the entire
+      // disposed chart graph reachable for as long as anything holds this component's refs.
+      // Nulled unconditionally: the plugin is already gone with the chart, so there is nothing
+      // to detach, only a reference to drop.
+      ttmsqMarkersRef.current = null; macdMarkersRef.current = null;
       priceSeriesRef.current = null; priceFamilyRef.current = null;
       futureAxisRef.current = null;   // the engine disposes every series with the chart
       watermarkPluginRef.current = null;   // plugin is attached to a pane; engine.destroy() tears it down
@@ -7914,6 +8049,16 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       // was only ever the unwrap bridge, so it just drops.
       if (engineRef.current) { try { engineRef.current.destroy(); } catch {} engineRef.current = null; }
       chartRef.current = null;
+      // Teardown receipt (dev/e2e only). The live probe above is deleted with the mount, so
+      // "unmount left nothing behind" would otherwise be unobservable — the one moment the
+      // numbers matter most is the moment the reader disappears. Taken AFTER destroy(), and
+      // reading canvases off the captured container rather than ref.current, which React may
+      // already have detached by the time this cleanup runs.
+      if (process.env.NODE_ENV !== "production") {
+        try {
+          (window as any).__mmChartOwnershipFinal = { ...chartOwnershipCensus(), canvases: el.querySelectorAll("canvas").length };
+        } catch {}
+      }
     };
   }, []); // eslint-disable-line
 
