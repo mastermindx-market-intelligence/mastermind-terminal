@@ -1,11 +1,11 @@
 # Terminal Visual Intelligence Layer — release-candidate browser evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: cc095d8f56531e8771f3495bb700a1108f708ec0
-# capturedAt: 2026-09-18T11:27:52Z
+# capturedAtHead: 04317812b386b43feda57eb958950cc218e605ab
+# capturedAt: 2026-09-18T12:47:02Z
 # capturedAtHead is informational. The lock is layoutFiles + cropFiles.
 layoutFiles:
-  terminal/components/ChartPanel.tsx: "a8634a53822d2a5fe7031bed8c9b0773e4ae46b07b7aaebeea136ead985100a4"
+  terminal/components/ChartPanel.tsx: "0f0373d7a410b940e13059882156db5ce0ca543318526c98fceaf6d016376b5b"
   terminal/components/ChartSettingsModal.tsx: "6c59eb27cc3c6db3613d592a8796f894cd87e144016ab1130a24389cba299d6b"
   terminal/components/VisualIntelligencePanel.tsx: "dd20b00a0c57613679dcb7ac3905b7b3e0589400935807724a5aea221f0020ec"
   terminal/components/VisualIntelligencePanel.module.css: "29a8fc3d37c55b701a5fe6484948901c00199fac3b5f0e120f7657d1cbd1c9cd"
@@ -15,12 +15,12 @@ layoutFiles:
   terminal/lib/suites/trend/candlePainter.ts: "8384d2bce3af939a51e88584b1436ee2898a89f0fbf1aedc09ffee624a3e12e1"
   terminal/lib/indicator-canvas/host.ts: "4f2949efb22b8c378cab1ff9d176466c4857073c14a36ee4f0eeab4ec1015a25"
 cropFiles:
-  desktop-context.png: "993a618a101babed393baac3a715f4bc0ce8bfa376107460f46057f26b467a3b"
-  desktop-context-zh.png: "6d726cfb9778ad37b2a97a3a94626c9bfd59722ee95d195a06f3a493b5c7810d"
-  tablet-context.png: "224b8ab2b50e261a3051b62b421f4961cff9640a90db8b4b3b0d1f6b5c30e226"
-  tablet-context-zh.png: "bfa507adf93b39168782ad02b521545698f4bf814e3a5593f807fa6ca7a91277"
-  mobile-context.png: "fcde5e25bd5dc875821b2053a9cdd5c4257e719a1229344815d50ad76c99925c"
-  mobile-context-zh.png: "b6e0fe1e1228b231343979f6d09222f95e7fb2338b8f5a7614bd64f03cc85bc9"
+  desktop-context.png: "91116b7473a434f41e9f591c362a2a91b8b8bf9ee33db415772a84350b92fede"
+  desktop-context-zh.png: "7fd4c4d5889154b5cb416157e3a3f6a8460bc15c3ae5c82ae5287cf63a49c710"
+  tablet-context.png: "6b35dc260229a68bacd7b1eb299916e4f21cd590d87a1196b5b78e0044c4b1c9"
+  tablet-context-zh.png: "ed418f5891ca0ef037c76d050cf70c741a9f16b1f9fcc19812b64a40b618d5e8"
+  mobile-context.png: "e3202984998a1895b5b400db96602b11bad32a5174b81b8bd6208137b55e6cb6"
+  mobile-context-zh.png: "7cbe8a0a67575f0f259794e825117b83f272cad0a42c4f4a6b5330fdbb279e32"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -32,10 +32,10 @@ harness: /terminal?symbol=NVDA
 capture_flag: TERMINAL_E2E_FIXTURE
 capture_flag_law: playwright.config.ts gives the e2e dev server TERMINAL_E2E_FIXTURE=1, which also disables the Next.js dev indicator.
 commands:
-  - TERMINAL_E2E_PORT=35648 npx playwright test e2e/visual-intelligence.spec.ts --project=desktop --workers=1 --retries=0 --reporter=list
-  - TERMINAL_E2E_PORT=35648 npx playwright test e2e/visual-intelligence.spec.ts --project=tablet --workers=1 --retries=0 --reporter=list
-  - TERMINAL_E2E_PORT=35648 npx playwright test e2e/visual-intelligence.spec.ts --project=mobile --workers=1 --retries=0 --reporter=list
-  - TERMINAL_E2E_PORT=35648 npx playwright test e2e/crosshair-price-label.spec.ts --project=mobile --workers=1 --retries=0 --reporter=list --grep 'dense option levels use gex_state fallback'
+  - TERMINAL_E2E_PORT=35871 npx playwright test e2e/visual-intelligence.spec.ts --project=desktop --workers=1 --retries=0 --reporter=list
+  - TERMINAL_E2E_PORT=35871 npx playwright test e2e/visual-intelligence.spec.ts --project=tablet --workers=1 --retries=0 --reporter=list
+  - TERMINAL_E2E_PORT=35871 npx playwright test e2e/visual-intelligence.spec.ts --project=mobile --workers=1 --retries=0 --reporter=list
+  - TERMINAL_E2E_PORT=35871 npx playwright test e2e/crosshair-price-label.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --reporter=list
 browserResults:
   desktop: 10/10 passed
   tablet: 10/10 passed
@@ -44,7 +44,7 @@ browserResults:
 localGates:
   typecheck: PASS
   plainLanguage: PASS
-  vitest: 338 files passed; 5590 tests passed; 4 todo
+  vitest: 338 files passed; 5602 tests passed; 4 todo
 files:
   - desktop-context.png
   - desktop-context-zh.png
