@@ -348,3 +348,21 @@ it("rejects a same-session frame whose last observed time does not match the sel
   expect(rail().getAttribute("aria-valuetext")).toContain("09:31");
   expect(host.querySelector(".obs-surf-data-strip")).toBeNull();
 });
+
+it("labels Greek sign as modeled exposure, not premium flow", async () => {
+  emitFrames = true;
+  emitGreek = true;
+  await mount();
+
+  const gamma = [...host.querySelectorAll<HTMLButtonElement>(".obs-surf-controls button")]
+    .find((button) => button.textContent === "Gamma")!;
+  await act(async () => { gamma.click(); });
+
+  const strip = host.querySelector<HTMLElement>(".obs-surf-data-strip")!;
+  expect(strip.textContent).toContain("positive exposure");
+  expect(strip.textContent).toContain("negative exposure");
+  expect(strip.textContent).toContain("Modeled exposure");
+  expect(strip.textContent).not.toContain("inflow");
+  expect(strip.textContent).not.toContain("outflow");
+  expect(strip.textContent).not.toContain("Observed only");
+});

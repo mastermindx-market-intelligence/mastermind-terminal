@@ -6,8 +6,9 @@
  *   - The surface is a PREMIUM-FLOW field materialized from OPRA per-strike flow.
  *     Cadence is measured from the plotted timestamps — a configured producer target is
  *     not presented as achieved when the actual snapshots are sparse.
- *   - Greek surfaces (gamma/vanna/charm) are NOT built yet → shown disabled-with-tooltip
- *     ("accruing — ships with the greeks snapshotter"), never faked.
+ *   - Greek surfaces are modeled signed exposures from observed quote snapshots plus
+ *     prior-day OI. Their positive/negative sign is NEVER labelled premium inflow/outflow;
+ *     absent Greek grids remain disabled/accruing rather than substituted.
  *   - No "validated" / "predictive" / directional-signal language.
  *   - translated strings MUST NOT appear in HTML title= attributes (CI-guarded) — use
  *     aria-label / visible spans.
@@ -81,6 +82,8 @@ const SURFACE_LEX = {
   // ── Legend / stamps ─────────────────────────────────────────────────────────
   legendPos: ["inflow", "流入"],
   legendNeg: ["outflow", "流出"],
+  legendExposurePos: ["positive exposure", "正敞口"],
+  legendExposureNeg: ["negative exposure", "负敞口"],
   asOf: ["as of", "更新于"],
   cadenceLabel: ["cadence", "频率"],
   snapshots: ["snapshots", "个快照"],
@@ -91,6 +94,7 @@ const SURFACE_LEX = {
   dataStripSurface: ["Surface", "曲面"],
   dataStripPrice: ["Price", "价格"],
   observedOnly: ["Observed only · no interpolation", "仅实测 · 不插值"],
+  modeledExposure: ["Modeled exposure · observed snapshots", "模型敞口 · 基于实测快照"],
   observedFrames: ["observed frames", "个实测帧"],
 
   // ── Empty / loading ─────────────────────────────────────────────────────────
@@ -231,6 +235,8 @@ const SURFACE_LEX = {
   stylePerMetric: ["Per metric", "按指标"],
   stylePos: ["Inflow", "流入"],
   styleNeg: ["Outflow", "流出"],
+  styleExposurePos: ["Positive exposure", "正敞口"],
+  styleExposureNeg: ["Negative exposure", "负敞口"],
   styleReset: ["Reset to theme", "恢复主题默认"],
   styleClose: ["Done", "完成"],
   presetDefault: ["Theme default", "主题默认"],
@@ -335,6 +341,7 @@ const SURFACE_LEX = {
   // Every data surface names its source next to its as-of. These are the two stores
   // this family actually reads — nothing here claims a feed we don't have.
   sourceOpra: ["OPRA per-strike flow", "OPRA 逐行权价资金流"],
+  sourceGreek: ["OPRA quotes + prior-day OI · modeled exposure", "OPRA 报价 + 前一交易日 OI · 模型敞口"],
   sourceTide: ["OPRA premium tide", "OPRA 权利金资金流"],
 
   // ── Honest empty / building states: name the reason, never a bare "no data" ──

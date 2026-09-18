@@ -1483,11 +1483,11 @@ export function SurfacePane({
           </span>
           <span className="obs-surf-observed-badge">
             <span className="obs-live-dot" aria-hidden />
-            {t("observedOnly")}
+            {metric === "netprem" ? t("observedOnly") : t("modeledExposure")}
           </span>
           <span className="obs-surf-data-legend">
-            <span style={LEGEND_ITEM}><span style={{ ...SWATCH, background: `var(${METRIC_CSS[metric].pos})` }} /><span className="obs-lbl">{t("legendPos")}</span></span>
-            <span style={LEGEND_ITEM}><span style={{ ...SWATCH, background: `var(${METRIC_CSS[metric].neg})` }} /><span className="obs-lbl">{t("legendNeg")}</span></span>
+            <span style={LEGEND_ITEM}><span style={{ ...SWATCH, background: `var(${METRIC_CSS[metric].pos})` }} /><span className="obs-lbl">{t(metric === "netprem" ? "legendPos" : "legendExposurePos")}</span></span>
+            <span style={LEGEND_ITEM}><span style={{ ...SWATCH, background: `var(${METRIC_CSS[metric].neg})` }} /><span className="obs-lbl">{t(metric === "netprem" ? "legendNeg" : "legendExposureNeg")}</span></span>
           </span>
           {/* Regime chip — nightly gexstate:{ROOT}, same word/colour as the screener's msc_*
               column, the watchlist dot and the ticker page's positioning block. Never stands
@@ -1527,7 +1527,7 @@ export function SurfacePane({
               )}
             </span>
           )}
-          <span className="obs-surf-data-source">{t("sourceOpra")}</span>
+          <span className="obs-surf-data-source">{t(metric === "netprem" ? "sourceOpra" : "sourceGreek")}</span>
         </div>
       )}
 

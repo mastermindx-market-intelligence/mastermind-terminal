@@ -44,6 +44,26 @@ for (const lang of ["en", "zh"] as const) {
     await page.goto("/options?tab=surface");
     const rail = page.locator(".obs-surf-frame-rail");
     await expect(rail).toHaveAttribute("aria-valuemax", "2", { timeout: 30_000 });
+
+    // Greek fields are modeled signed exposure, not premium-flow direction. Pin both the
+    // visible legend/provenance and the Style dialog's accessible colour semantics.
+    const gamma = page.locator(".obs-surf-controls button").filter({ hasText: lang === "en" ? "Gamma" : "伽马" }).first();
+    await gamma.click();
+    const strip = page.locator(".obs-surf-data-strip");
+    await expect(strip).toContainText(lang === "en" ? "positive exposure" : "正敞口");
+    await expect(strip).toContainText(lang === "en" ? "negative exposure" : "负敞口");
+    await expect(strip).toContainText(lang === "en" ? "Modeled exposure" : "模型敞口");
+    await expect(strip).not.toContainText(lang === "en" ? "inflow" : "流入");
+    await expect(strip).not.toContainText(lang === "en" ? "outflow" : "流出");
+
+    await page.locator(".obs-surf-style-wrap button").first().click();
+    const gammaStyle = page.locator(".obs-surf-style-row").filter({ hasText: lang === "en" ? "Gamma" : "伽马" });
+    await expect(gammaStyle.locator('input[type="color"]').first()).toHaveAttribute(
+      "aria-label", new RegExp(lang === "en" ? "Positive exposure" : "正敞口"),
+    );
+    await page.keyboard.press("Escape");
+
+    await page.locator(".obs-surf-controls button").filter({ hasText: lang === "en" ? "Net Prem" : "净权利金" }).first().click();
     await page.locator(".obs-surf-replay-transport button").first().click();
     await expect(rail).toHaveAttribute("aria-valuetext", /09:30/);
     await page.screenshot({ path: info.outputPath(`${lang}-paused-single.png`), fullPage: false });
