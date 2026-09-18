@@ -47,6 +47,10 @@ const SCENARIO: ScenarioSurfaceV1 = {
     market_observed_at: "2026-09-18T14:00:00.123456Z",
     iv_observed_at: "2026-09-18T13:59:59Z",
     oi_vintage: "2026-09-17",
+    trade_at_first: "2026-09-18T13:59:50Z",
+    trade_at_last: "2026-09-18T13:59:55Z",
+    quote_at_first: "2026-09-18T13:59:49.500000Z",
+    quote_at_last: "2026-09-18T13:59:54.500000Z",
   },
   expiry_scope: null,
   max_dte_days: 7,
@@ -161,7 +165,7 @@ describe("scenarioSurfaceContract", () => {
     expect(scenarioToHeatField(crossSession, "gex")).toBeNull();
   });
 
-  it("rejects source clocks or vintages from after the market information set", () => {
+  it("rejects source clocks or vintages outside the frozen information set", () => {
     expect(isScenarioSurfaceV1({
       ...SCENARIO,
       source_clocks: {
@@ -181,6 +185,59 @@ describe("scenarioSurfaceContract", () => {
       source_clocks: {
         ...SCENARIO.source_clocks,
         oi_vintage: "2026-09-19",
+      },
+    })).toBe(false);
+    expect(isScenarioSurfaceV1({
+      ...SCENARIO,
+      source_clocks: {
+        ...SCENARIO.source_clocks,
+        oi_vintage: "2026-09-18",
+      },
+    })).toBe(false);
+    expect(isScenarioSurfaceV1({
+      ...SCENARIO,
+      source_clocks: {
+        ...SCENARIO.source_clocks,
+        trade_at_last: "2026-09-18T14:00:01Z",
+      },
+    })).toBe(false);
+    expect(isScenarioSurfaceV1({
+      ...SCENARIO,
+      source_clocks: {
+        ...SCENARIO.source_clocks,
+        quote_at_first: null,
+      },
+    })).toBe(false);
+    expect(isScenarioSurfaceV1({
+      ...SCENARIO,
+      source_clocks: {
+        ...SCENARIO.source_clocks,
+        trade_at_first: "2026-09-18T13:59:58Z",
+        trade_at_last: "2026-09-18T13:59:55Z",
+      },
+    })).toBe(false);
+  });
+
+  it("pins the producer time/sign/unit semantics instead of accepting a relabeled model", () => {
+    expect(isScenarioSurfaceV1({
+      ...SCENARIO,
+      assumptions: {
+        ...SCENARIO.assumptions,
+        time: "forecasted_theta_path",
+      },
+    })).toBe(false);
+    expect(isScenarioSurfaceV1({
+      ...SCENARIO,
+      assumptions: {
+        ...SCENARIO.assumptions,
+        dealer_sign: "observed_market_maker_inventory",
+      },
+    })).toBe(false);
+    expect(isScenarioSurfaceV1({
+      ...SCENARIO,
+      units: {
+        ...SCENARIO.units,
+        gex: "contracts",
       },
     })).toBe(false);
   });

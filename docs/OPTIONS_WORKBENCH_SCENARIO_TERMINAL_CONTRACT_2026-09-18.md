@@ -22,7 +22,7 @@ The adapter:
 
 - validates schema `options.scenario_surface/v1` and product kind `conditional_price_time_scenario`;
 - requires `observed_history=false` and `price_axis=scenario_not_forecast`;
-- requires fixed-input inventory and sticky-strike assumptions rather than accepting a forecast masquerade;
+- requires fixed-input inventory, sticky-strike IV, deterministic time roll-forward, the incumbent assumption-based dealer-sign convention, and exact GEX/VEX/CEX units rather than accepting a relabeled model;
 - checks the horizon-major GEX/VEX/CEX matrix dimensions and rejects non-finite numeric cells;
 - maps Terminal metric names without semantic aliasing:
   - Gamma UI `gex` -> source `gex`
@@ -30,8 +30,9 @@ The adapter:
   - Charm UI `charm` -> source `cex`;
 - transposes Macro horizon-major grids into the renderer's price-major layout;
 - preserves metric-local zero-crossing arrays unchanged;
-- preserves market/IV/OI source-clock identity;
-- rejects an IV clock after the market observation and an OI vintage after the observation's ET date;
+- preserves market/IV/OI plus contributing trade/NBBO source-clock identity;
+- requires trade/NBBO envelopes to be either fully unknown (both bounds null) or fully dated, ordered, and no later than the market observation;
+- rejects an IV clock after the market observation and requires OI vintage to be strictly before the observation's ET date (same-day OI is lookahead);
 - derives future HH:MM columns in America/New_York from the observation + explicit horizons;
 - fails closed when a horizon crosses into another ET date, because the current HeatSeries time anchor carries HH:MM within one session and would otherwise erase date identity;
 - converts scenario `null` cells to `NaN` only at the HeatData boundary, making them transparent under the incumbent heat renderer instead of turning unknown into measured zero;
@@ -66,14 +67,26 @@ PIT review RED:
 PIT GREEN:
 - future IV clock and future-date OI vintage are rejected.
 
+Live-provenance / semantic-identity review RED:
+- same-day OI was accepted;
+- trade/NBBO source-envelope fields were not part of the typed contract or validated;
+- the validator accepted altered time/dealer-sign/unit semantics.
+
+GREEN after bounded hardening:
+- scenario contract: **9/9**;
+- same-day OI is refused;
+- live trade/NBBO envelopes are preserved and must be ordered, fully-known or fully-null, and no later than market observation;
+- exact producer time/dealer-sign/unit semantics are pinned.
+
 Fresh final owner pack:
 - `scenarioSurfaceContract.test.ts`
 - `surfaceContract.test.ts`
 - `heatSeries.test.ts`
-- **132 passed / 0 failed**
-- TypeScript `--noEmit`: exit 0.
+- **133 passed / 0 failed**
+- TypeScript `--noEmit`: exit 0;
+- `git diff --check`: clean.
 
-Protected Terminal master remained exactly `1f56eae265bdbb69c60ce1c5b63dcea19f1f480e`; no scenario owned path exists there and no adapter dependency moved during this slice.
+Implementation pickup base was `1f56eae265bdbb69c60ce1c5b63dcea19f1f480e`. Before release, protected-master compatibility is rechecked explicitly; the scenario-owned files remain additive and the incumbent `surfaceContract` / `heatSeries` dependencies are treated as separate owners.
 
 Evidence:
 `docs/evidence/options-workbench-r2-scenario-terminal-contract-20260918/`.

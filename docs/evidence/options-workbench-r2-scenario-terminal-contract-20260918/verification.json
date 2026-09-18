@@ -12,6 +12,20 @@
       "green": "pit-green.log",
       "id": "SCENARIO_PIT_SOURCE_CLOCKS",
       "red": "pit-red.log"
+    },
+    {
+      "after": "trade/NBBO envelopes are typed and validated as ordered fully-known or fully-null clocks no later than observation; OI must be strictly prior ET date",
+      "before": "Terminal type omitted live trade/NBBO envelopes, accepted same-day OI, and did not validate envelope ordering/future clocks",
+      "green": "live-provenance-semantic-green.log",
+      "id": "SCENARIO_LIVE_SOURCE_CLOCK_IDENTITY",
+      "red": "live-provenance-semantic-red.log"
+    },
+    {
+      "after": "Terminal pins Macro v1 deterministic-time, assumption-sign, and exact GEX/VEX/CEX units",
+      "before": "validator accepted altered time roll-forward, dealer-sign label, and arbitrary unit strings",
+      "green": "live-provenance-semantic-green.log",
+      "id": "SCENARIO_MODEL_SEMANTIC_IDENTITY",
+      "red": "live-provenance-semantic-red.log"
     }
   ],
   "macro_producer": "macro#7306",
@@ -27,17 +41,17 @@
   "operation": "options-workbench-r2-scenario-terminal-contract-20260918-sol-001",
   "parent": "mastermind-terminal#603",
   "release_gates": {
-    "hosted_ci": "not started until carrier is pushed",
-    "independent_review": "not requested until carrier is pushed",
+    "hosted_ci": "requires refresh after hardened head is pushed",
+    "independent_review": "requires refresh after hardened head is pushed",
     "production_proof": "not attempted",
     "surface_pane_consumer": "blocked on incumbent #608 plus Macro #7306 acceptance"
   },
   "schema": "mastermind.options_workbench.scenario_terminal_contract_evidence.v1",
   "skillpack_sha": "61a2ff79aba4e8a5685e779707ad5c4426cf5cc5",
   "source_hashes": {
-    "docs/OPTIONS_WORKBENCH_SCENARIO_TERMINAL_CONTRACT_2026-09-18.md": "e4ac51b852cdd71d9cc2e221fd7ba6e54eb18830afcb0a54b855de34ba6d49b8",
-    "terminal/lib/__tests__/scenarioSurfaceContract.test.ts": "3543487fcf027aaf837b0b7ed5181b6d70e6ef7c17adf0bae107245ad74a6888",
-    "terminal/lib/scenarioSurfaceContract.ts": "9d58dbdd5a2093ba6ceca76690e1503630ceb615c704c8f32530521df67f1fb7"
+    "docs/OPTIONS_WORKBENCH_SCENARIO_TERMINAL_CONTRACT_2026-09-18.md": "3ed05224e640f1012e456bd3648a00a122696d149edeea5568c12b006ab1e1e4",
+    "terminal/lib/__tests__/scenarioSurfaceContract.test.ts": "6ae4ec1cd430fa3e8b19c8b2aa591082e8931e0ae3a4efbc4e33b65665ae02ff",
+    "terminal/lib/scenarioSurfaceContract.ts": "05795f3ad656b76fc8c8867b57bd588a8288933634b5f36f40e2b042810a975d"
   },
   "state": "BUILT_NOT_PROVEN",
   "terminal_base": "1f56eae265bdbb69c60ce1c5b63dcea19f1f480e",
@@ -50,11 +64,11 @@
     "diff_check_exit": 0,
     "owner_pack": {
       "failed": 0,
-      "passed": 132
+      "passed": 133
     },
     "scenario_contract": {
       "failed": 0,
-      "passed": 8
+      "passed": 9
     },
     "typescript_exit": 0
   }

@@ -33,6 +33,10 @@ export interface ScenarioSourceClocks {
   market_observed_at: string;
   iv_observed_at: string | null;
   oi_vintage: string | null;
+  trade_at_first: string | null;
+  trade_at_last: string | null;
+  quote_at_first: string | null;
+  quote_at_last: string | null;
 }
 
 export interface ScenarioSurfaceV1 {
@@ -203,6 +207,19 @@ function validCounts(value: unknown): value is ScenarioSourceCounts {
   ].every((key) => nonnegativeInt(value[key]));
 }
 
+function validClockEnvelope(
+  first: unknown,
+  last: unknown,
+  observedMs: number,
+): boolean {
+  if (first === null && last === null) return true;
+  if (first === null || last === null) return false;
+  if (!awareInstant(first) || !awareInstant(last)) return false;
+  const firstMs = Date.parse(first);
+  const lastMs = Date.parse(last);
+  return firstMs <= lastMs && lastMs <= observedMs;
+}
+
 function validSourceClocks(
   value: unknown,
   observedAt: string,
@@ -219,8 +236,10 @@ function validSourceClocks(
   }
   if (oi !== null) {
     if (typeof oi !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(oi)) return false;
-    if (oi > observedEt.date) return false;
+    if (oi >= observedEt.date) return false;
   }
+  if (!validClockEnvelope(value.trade_at_first, value.trade_at_last, observedMs)) return false;
+  if (!validClockEnvelope(value.quote_at_first, value.quote_at_last, observedMs)) return false;
   return true;
 }
 
@@ -280,16 +299,18 @@ export function isScenarioSurfaceV1(value: unknown): value is ScenarioSurfaceV1 
     value.assumptions.price_axis !== "scenario_not_forecast" ||
     value.assumptions.inventory !== "fixed_input_oi_snapshot" ||
     value.assumptions.vol_map !== "sticky_strike" ||
-    !["provided_iv", "solve_from_mid"].includes(String(value.assumptions.iv_source))
+    !["provided_iv", "solve_from_mid"].includes(String(value.assumptions.iv_source)) ||
+    value.assumptions.time !== "deterministic_roll_forward_from_input_exp_years" ||
+    value.assumptions.dealer_sign !== "assumed_long_call_short_put"
   ) {
     return false;
   }
 
   if (!isRecord(value.units)) return false;
   if (
-    typeof value.units.gex !== "string" ||
-    typeof value.units.vex !== "string" ||
-    typeof value.units.cex !== "string"
+    value.units.gex !== "usd_per_1pct_spot_move" ||
+    value.units.vex !== "usd_delta_per_1_vol_point" ||
+    value.units.cex !== "usd_delta_per_calendar_day"
   ) {
     return false;
   }
