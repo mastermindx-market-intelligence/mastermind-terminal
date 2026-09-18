@@ -185,7 +185,7 @@ const AMBER_RGB = "rgb(232, 179, 57)";
  *  human reviewer. Crop tight around the marker's own bounding box instead. */
 async function cropMarker(page: Page, path: string) {
   const box = await page.locator("[data-sig-layer]").first().evaluate((svg) => {
-    const g = [...svg.querySelectorAll("g")]
+    const g = [...svg.querySelectorAll('[data-price-pane-local="signals"] > g')]
       .find((el) => el.querySelector('circle[fill="none"]') && el.querySelector("line"));
     if (!g) return null;
     const r = (g as SVGGElement).getBoundingClientRect();
@@ -226,7 +226,7 @@ test("a qualifying ⊘ wears the amber override class on card, hover and chart",
   const sigLayer = page.locator("[data-sig-layer]").first();
   await expect(sigLayer.locator('circle[fill="none"]').first()).toBeAttached();
   const marker = await sigLayer.evaluate((svg) => {
-    const groups = [...svg.querySelectorAll("g")];
+    const groups = [...svg.querySelectorAll('[data-price-pane-local="signals"] > g')];
     const g = groups.find((el) => el.querySelector('circle[fill="none"]') && el.querySelector("line"));
     if (!g) return null;
     const outline = g.querySelector<SVGCircleElement>('circle[fill="none"]')!;
@@ -298,7 +298,7 @@ test("a non-qualifying ⊘ renders exactly as it does today", async ({ page }, t
   expect(title).not.toContain("+22%");
 
   const readMarker = () => page.locator("[data-sig-layer]").first().evaluate((svg) => {
-    const g = [...svg.querySelectorAll("g")]
+    const g = [...svg.querySelectorAll('[data-price-pane-local="signals"] > g')]
       .find((el) => el.querySelector('circle[fill="none"]') && el.querySelector("line"));
     if (!g) return null;
     return {
@@ -343,7 +343,7 @@ async function cropEntryMarker(page: Page, path: string, needle: string) {
   const box = await page.locator("[data-sig-layer]").first().evaluate((svg, needle) => {
     // find it by what it SAYS, not by shape: every marker rect carries a `stroke`
     // attribute (often "none"), so a shape selector would happily return the SELL pill.
-    const g = [...svg.querySelectorAll("g")]
+    const g = [...svg.querySelectorAll('[data-price-pane-local="signals"] > g')]
       .find((el) => (el.querySelector("title")?.textContent ?? "").includes(needle));
     if (!g) return null;
     const r = (g as SVGGElement).getBoundingClientRect();
@@ -386,7 +386,7 @@ async function assertTakenEntry(page: Page, zh: boolean, label: string, testInfo
   const entryLine = washoutOverrideCopy(OVERRIDE_CTX, zh, "entry")!.line;
   await expect(sigLayer.locator("title", { hasText: entryLine }).first()).toBeAttached();
   const marker = await sigLayer.evaluate((svg, needle) => {
-    const g = [...svg.querySelectorAll("g")]
+    const g = [...svg.querySelectorAll('[data-price-pane-local="signals"] > g')]
       .find((el) => (el.querySelector("title")?.textContent ?? "").includes(needle));
     if (!g) return null;
     const rect = g.querySelector<SVGRectElement>("rect")!;
