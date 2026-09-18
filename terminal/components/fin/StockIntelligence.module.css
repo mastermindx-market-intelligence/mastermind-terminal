@@ -52,6 +52,8 @@
 .panel :global(.od-verdict.stance) { font-size: var(--fs-num); }
 .panel :global(.od-verdict.dim) { opacity: .7; }
 .panel :global(.od-vsub), .panel :global(.od-vline2) { margin: 8px 0; font-size: var(--fs-ui); color: var(--text-2); white-space: normal; overflow-wrap: anywhere; }
+/* Exception disclosures retain the signal meaning; they are not neutral date metadata. */
+.panel :global(.od-vline2) { color: var(--signal); }
 .panel :global(.od-stats) { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 24px 0; }
 .panel :global(.od-stat) { display: grid; gap: 8px; padding: 16px 12px; background: transparent; border: 1px solid var(--line); border-radius: var(--r-tile); min-width: 0; }
 .panel :global(.od-stat-k) { font-size: var(--fs-ui); color: var(--muted); }
