@@ -104,6 +104,17 @@ import { chartTimeAxisOptions, chartTimeSpanDays } from "@/lib/chartTimeAxis";
 
 const css = (n: string) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 type Bar = { time: string; o: number; h: number; l: number; c: number; v: number };
+type ChartDevPriceLine = {
+  price: number; color: string; lineVisible: boolean; axisLabelVisible: boolean;
+};
+type ChartDevWindow = Window & {
+  __mmChartSeriesTitles?: unknown;
+  __mmIndicatorPriceLines?: () => Record<string, ChartDevPriceLine[]>;
+  __mmChartAxisOpts?: unknown;
+  __mmCrosshairDodge?: unknown;
+  __mmPriceLabels?: unknown;
+  __mmPaneMaximized?: unknown;
+};
 
 const DRAWING_IMAGE_MAX_FILE_BYTES = 700 * 1024;
 const DRAWING_IMAGE_MAX_EDGE = 4096;
@@ -2262,7 +2273,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     for (const [k, lines] of indPriceLinesRef.current) {
       const vis = !h.has(k) && tfVisible(k);
       for (const pl of lines) {
-        try { pl.applyOptions({ lineVisible: vis, axisLabelVisible: k === "optlevels" ? false : vis } as any); } catch {}
+        try { pl.applyOptions({ lineVisible: vis, axisLabelVisible: k === "optlevels" ? false : vis }); } catch {}
       }
     }
     // custom scripts: eye toggle by scriptId (no tf-visibility gating — scripts don't declare _vis)
@@ -3291,7 +3302,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         }
         return out;
       };
-      (window as any).__mmIndicatorPriceLines = () =>
+      (window as ChartDevWindow).__mmIndicatorPriceLines = () =>
         Object.fromEntries([...indPriceLinesRef.current].map(([key, lines]) => [
           key,
           lines.map((line) => {
@@ -3304,7 +3315,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
                 axisLabelVisible: options.axisLabelVisible,
               };
             } catch { return null; }
-          }).filter(Boolean),
+          }).filter((value): value is ChartDevPriceLine => value != null),
         ]));
       // C2/C3/C4/C7 test hook — the axis rule, the label pitch, the volume band and the axis font
       // are all canvas-rendered, so the option layer is the only assertable surface.
@@ -7814,7 +7825,17 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       if (dragCleanup) dragCleanup();
       drawingTransactionRef.current = false;
       window.removeEventListener("mm:snapshot", snapshot);
-      if (process.env.NODE_ENV !== "production") { try { delete (window as any).__mmChartSeriesTitles; delete (window as any).__mmIndicatorPriceLines; delete (window as any).__mmChartAxisOpts; delete (window as any).__mmCrosshairDodge; delete (window as any).__mmPriceLabels; delete (window as any).__mmPaneMaximized; } catch {} }
+      if (process.env.NODE_ENV !== "production") {
+        try {
+          const devWindow = window as ChartDevWindow;
+          delete devWindow.__mmChartSeriesTitles;
+          delete devWindow.__mmIndicatorPriceLines;
+          delete devWindow.__mmChartAxisOpts;
+          delete devWindow.__mmCrosshairDodge;
+          delete devWindow.__mmPriceLabels;
+          delete devWindow.__mmPaneMaximized;
+        } catch {}
+      }
       if (onKey) window.removeEventListener("keydown", onKey);
       if (winDown) window.removeEventListener("pointerdown", winDown);
       window.removeEventListener("pointerup", onProjectionPointerEnd);

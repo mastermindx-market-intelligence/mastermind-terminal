@@ -162,7 +162,7 @@ test("extended hours owns the countdown while the static close and crosshair rem
   };
   const onPrice = await settled({
     drive: nudge,
-    read: async () => ({ state: await labels(page), cross: await page.evaluate(() => (window as any).__mmCrosshairDodge?.().crossY ?? null) }),
+    read: async () => ({ state: await labels(page), cross: await page.evaluate(() => (window as Window & { __mmCrosshairDodge?: () => { crossY: number | null } }).__mmCrosshairDodge?.().crossY ?? null) }),
     ok: ({ cross }) => cross != null && Math.abs(cross - y) <= 2,
     same: (a, b) => a.cross === b.cross && Math.abs((a.state.primaryTop ?? 0) - (b.state.primaryTop ?? 0)) <= 1,
     message: "the crosshair should settle on the current price without moving persistent labels",
