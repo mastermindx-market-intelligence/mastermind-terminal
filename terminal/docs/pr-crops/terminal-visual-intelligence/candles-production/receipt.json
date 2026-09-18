@@ -1,0 +1,20 @@
+{
+  "capturedAt": "2026-09-15T06:53:56.526Z",
+  "base": "https://app.mastermind-x.com",
+  "expectedRelease": "702d81bb35f2c900a5aa1215437bf968aa9e6d93",
+  "isolatedAnonymousContexts": true,
+  "cases": [
+    {
+      "scenario": "fresh",
+      "onAfterRollout": true,
+      "offAfterRemovalAndReload": true,
+      "siblingSettingsPreserved": true
+    },
+    {
+      "scenario": "existing",
+      "onAfterRollout": true,
+      "offAfterRemovalAndReload": true,
+      "siblingSettingsPreserved": true
+    }
+  ]
+}

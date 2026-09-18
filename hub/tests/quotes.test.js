@@ -291,6 +291,42 @@ describe("applyDemand — a daily-only symbol reaches NO feed", () => {
     assert.deepEqual(seen.macro, []);
   });
 
+  it("keeps the independent ext leg alive when Polygon is temporarily unhealthy", () => {
+    const { seen, deps } = spies();
+    deps.polygon.isHealthy = () => false;
+    applyDemand(["SOFI"], NOW, deps);
+    assert.deepEqual(seen.polygon, [], "an unhealthy regular feed cannot accept a subscription");
+    assert.deepEqual(seen.ext, ["SOFI"], "Yahoo/Webull/Alpaca must not fail closed with Polygon");
+  });
+
+  it("touches extended subscriptions in reverse request order so the first symbol stays MRU", () => {
+    const { seen, deps } = spies();
+    applyDemand(["QCOM", "AAPL", "NVDA"], NOW, deps);
+    assert.deepEqual(seen.polygon, ["QCOM", "AAPL", "NVDA"],
+      "regular-feed demand keeps request order");
+    assert.deepEqual(seen.ext, ["NVDA", "AAPL", "QCOM"],
+      "the first request symbol is the active/high-priority name and must be touched last in an LRU");
+  });
+
+  it("keeps the active first symbol resident when one request exceeds the 30-slot ext budget", () => {
+    const resident = [];
+    const extFeed = {
+      demand(sym) {
+        const prior = resident.indexOf(sym);
+        if (prior >= 0) resident.splice(prior, 1);
+        resident.push(sym);
+        while (resident.length > 30) resident.shift();
+      },
+    };
+    const syms = ["QCOM", ...Array.from({ length: 30 }, (_, i) => `W${i}`)];
+    const { deps } = spies();
+    applyDemand(syms, NOW, { ...deps, extFeed });
+    assert.equal(resident.length, 30);
+    assert.ok(resident.includes("QCOM"), "the active symbol must survive the exact reported churn case");
+    assert.equal(resident.at(-1), "QCOM", "the active symbol must finish most recently used");
+    assert.ok(!resident.includes("W29"), "the lowest-priority tail symbol yields the constrained slot");
+  });
+
   it("still routes a macro symbol to the MacroFeed alone", () => {
     const { seen, deps } = spies();
     applyDemand(["CL=F", "^GSPC"], NOW, deps);

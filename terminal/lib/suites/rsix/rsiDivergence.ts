@@ -183,6 +183,7 @@ function compute(ctx: ModuleCtx): ModuleResult {
     type: "rsix_div",
     dir: d.dir,
     i: d.bi,
+    confirmedAt: d.confirmedAt,
     p: rsi[d.bi],
     strength: d.strength,
     label: `${className(d.kind, zh)} · ${d.bi - d.ai} ${zh ? "根" : "bars"}`,

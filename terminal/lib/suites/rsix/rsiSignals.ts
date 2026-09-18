@@ -179,6 +179,7 @@ function compute(ctx: ModuleCtx): ModuleResult {
       type: "rsix_reversal",
       dir: sig.dir > 0 ? "bull" : "bear",
       i: sig.i,
+      confirmedAt: sig.confirm,
       p: sig.rsi,
       strength: clampNum(Math.round(Math.abs(MID_LEVEL - sig.rsi) * 2), 0, 100),
       label: revLabel(sig.dir, sig.rsi),

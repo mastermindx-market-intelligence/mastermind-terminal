@@ -93,3 +93,87 @@ test("Ext price and Ext % are independent, persistent watchlist columns", async 
   await expect(extHeader).toHaveText("Ext");
   await expect(extPctHeader).toHaveCount(0);
 });
+
+test("a transient ext-quote outage keeps the last-good quote at every width", async ({ page }, testInfo) => {
+  const isDesktop = testInfo.project.name === "desktop";
+
+  await page.addInitScript(() => {
+    localStorage.setItem("mm.setVersion", "1");
+    localStorage.setItem("mm.set", JSON.stringify({
+      tableView: true,
+      cols: { last: true, changePct: true, change: false, volume: false, ext: true, extPct: true },
+      disp: "symbol",
+      logo: true,
+      colW: {},
+    }));
+  });
+
+  let mode: "initial" | "outage" | "recovered" = "initial";
+  let requestCount = 0;
+  const quoteViews: Array<string | null> = [];
+  page.on("request", (request) => {
+    const url = new URL(request.url());
+    if (url.pathname === "/api/quote") quoteViews.push(url.searchParams.get("view"));
+  });
+  await page.route("**/api/ext-quote?**", async (route) => {
+    requestCount++;
+    if (mode === "outage") {
+      await route.fulfill({
+        status: 503,
+        contentType: "application/json",
+        body: JSON.stringify({ error: "quote_hub_unavailable" }),
+      });
+      return;
+    }
+
+    const syms = (new URL(route.request().url()).searchParams.get("syms") || "")
+      .split(",").filter(Boolean);
+    const quote = mode === "recovered"
+      ? { extPrice: 422.08, extChg: 8.06, extTs: 1_785_533_460, extSession: "post" }
+      : { extPrice: 421.14, extChg: 7.84, extTs: 1_785_533_400, extSession: "post" };
+    await route.fulfill({ json: { quotes: Object.fromEntries(syms.map((sym) => [
+      sym,
+      sym === "NVDA" ? quote : null,
+    ])) } });
+  });
+
+  await armTerminalVisualReady(page);
+  await page.goto("/terminal?symbol=NVDA");
+  await waitForTerminalVisualReady(page);
+  await expect.poll(() => quoteViews.length).toBeGreaterThan(0);
+  expect(quoteViews.every((view) => view === "regular")).toBe(true);
+
+  const nvda = page.locator(".wl-row", { has: page.locator(".tk", { hasText: /^NVDA$/ }) });
+  const extPrice = nvda.locator('[data-watchlist-column="ext"]');
+  const extPct = nvda.locator('[data-watchlist-column="extPct"]');
+  const detail = page.locator(".ah-block");
+  const compactExtended = page.locator('[data-quote-lane="extended"]');
+  const expectExt = async (price: string, pct: string) => {
+    if (isDesktop) {
+      await expect(extPrice).toHaveText(price);
+      await expect(extPct).toHaveText(pct);
+      await expect(detail.locator(".ah-price")).toHaveText(price);
+      await expect(detail.locator(".ah-chg")).toHaveText(pct);
+      return;
+    }
+    await expect(compactExtended).toContainText("After hours");
+    await expect(compactExtended).toContainText(price);
+    await expect(compactExtended).toContainText(pct);
+  };
+  await expectExt("421.14", "+7.84%");
+
+  // Re-run the same callback the shell uses when a hidden tab becomes visible. A failed
+  // refresh is not an authoritative deletion: every surface must keep the last-good print.
+  mode = "outage";
+  const beforeOutage = requestCount;
+  await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
+  await expect.poll(() => requestCount).toBeGreaterThan(beforeOutage);
+  await expectExt("421.14", "+7.84%");
+
+  // A later successful response remains authoritative and advances all consumers together.
+  mode = "recovered";
+  const beforeRecovery = requestCount;
+  await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
+  await expect.poll(() => requestCount).toBeGreaterThan(beforeRecovery);
+  await expectExt("422.08", "+8.06%");
+});

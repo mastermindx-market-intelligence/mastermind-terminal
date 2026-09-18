@@ -43,7 +43,9 @@ def _sanitized_git_environment() -> dict[str, str]:
     return environment
 
 
-def run_git(repo: Path, *args: str, check: bool = True) -> subprocess.CompletedProcess[bytes]:
+def run_git(
+    repo: Path, *args: str, check: bool = True
+) -> subprocess.CompletedProcess[bytes]:
     completed = subprocess.run(
         [
             "git",
@@ -61,7 +63,9 @@ def run_git(repo: Path, *args: str, check: bool = True) -> subprocess.CompletedP
         env=_sanitized_git_environment(),
     )
     if check and completed.returncode != 0:
-        raise GitCommandError(args, completed.returncode, completed.stderr.decode("utf-8", "replace"))
+        raise GitCommandError(
+            args, completed.returncode, completed.stderr.decode("utf-8", "replace")
+        )
     return completed
 
 
@@ -92,7 +96,9 @@ def tree_entries(
     if object_type != "tree":
         return object_type, []
 
-    recursive = run_git(repo, "ls-tree", "-r", "-z", accepted_sha, "--", mapping.repo_path)
+    recursive = run_git(
+        repo, "ls-tree", "-r", "-z", accepted_sha, "--", mapping.repo_path
+    )
     entries: list[TreeEntry] = []
     prefix = f"{mapping.repo_path}/"
     for record in recursive.stdout.split(b"\0"):
@@ -104,7 +110,9 @@ def tree_entries(
         entry_mode, entry_type, entry_sha = metadata.decode("ascii").split(" ", 2)
         repo_path = encoded_path.decode("utf-8", "surrogateescape")
         if not repo_path.startswith(prefix):
-            raise ValueError(f"git returned path outside mapping {mapping.name}: {repo_path}")
+            raise ValueError(
+                f"git returned path outside mapping {mapping.name}: {repo_path}"
+            )
         entries.append(
             TreeEntry(
                 mode=entry_mode,
@@ -115,6 +123,25 @@ def tree_entries(
             )
         )
     return "tree", sorted(entries, key=lambda entry: entry.relative_path)
+
+
+def object_identity(
+    repo: Path, accepted_sha: str, repo_path: str
+) -> tuple[str, str, str] | None:
+    """Return exact mode, object type and object id for one accepted path."""
+
+    result = run_git(repo, "ls-tree", "-z", accepted_sha, "--", repo_path)
+    records = [record for record in result.stdout.split(b"\0") if record]
+    if len(records) != 1:
+        return None
+    metadata, separator, encoded_path = records[0].partition(b"\t")
+    if not separator:
+        raise ValueError(f"malformed git ls-tree record for {repo_path}")
+    returned_path = encoded_path.decode("utf-8", "surrogateescape")
+    if returned_path != repo_path:
+        return None
+    mode, object_type, object_id = metadata.decode("ascii").split(" ", 2)
+    return mode, object_type, object_id
 
 
 def _file_type(mode: int) -> str:
@@ -147,7 +174,9 @@ def _open_stable_regular(path: Path) -> tuple[int, os.stat_result]:
         if not stat.S_ISREG(opened.st_mode):
             raise UnsupportedLiveFileType(_file_type(opened.st_mode))
         if (before.st_dev, before.st_ino) != (opened.st_dev, opened.st_ino):
-            raise OSError(errno.EAGAIN, "live file changed while it was opened", str(path))
+            raise OSError(
+                errno.EAGAIN, "live file changed while it was opened", str(path)
+            )
         return descriptor, opened
     except BaseException:
         os.close(descriptor)
@@ -172,7 +201,9 @@ def read_stable_regular_bytes(path: Path, *, max_bytes: int) -> bytes:
             chunks.append(chunk)
             total += len(chunk)
             if total > max_bytes:
-                raise OSError(errno.EFBIG, "regular file exceeds the read bound", str(path))
+                raise OSError(
+                    errno.EFBIG, "regular file exceeds the read bound", str(path)
+                )
         after = os.fstat(descriptor)
         if (
             total != opened.st_size
@@ -180,13 +211,17 @@ def read_stable_regular_bytes(path: Path, *, max_bytes: int) -> bytes:
             or after.st_mtime_ns != opened.st_mtime_ns
             or after.st_ctime_ns != opened.st_ctime_ns
         ):
-            raise OSError(errno.EAGAIN, "live file changed while it was read", str(path))
+            raise OSError(
+                errno.EAGAIN, "live file changed while it was read", str(path)
+            )
         return b"".join(chunks)
     finally:
         os.close(descriptor)
 
 
-def _hash_regular(path: Path, algorithm: str, *, git_blob: bool) -> tuple[str, int, int]:
+def _hash_regular(
+    path: Path, algorithm: str, *, git_blob: bool
+) -> tuple[str, int, int]:
     descriptor, opened = _open_stable_regular(path)
     try:
         digest = hashlib.new(algorithm)
@@ -206,7 +241,9 @@ def _hash_regular(path: Path, algorithm: str, *, git_blob: bool) -> tuple[str, i
             or after.st_mtime_ns != opened.st_mtime_ns
             or after.st_ctime_ns != opened.st_ctime_ns
         ):
-            raise OSError(errno.EAGAIN, "live file changed while it was hashed", str(path))
+            raise OSError(
+                errno.EAGAIN, "live file changed while it was hashed", str(path)
+            )
         return digest.hexdigest(), total, opened.st_mode
     finally:
         os.close(descriptor)
@@ -217,7 +254,11 @@ def live_blob(path: Path) -> tuple[str, str, int]:
     if stat.S_ISLNK(metadata.st_mode):
         data = os.readlink(path).encode("utf-8", "surrogateescape")
         header = f"blob {len(data)}\0".encode("ascii")
-        return hashlib.sha1(header + data).hexdigest(), "120000", len(data)  # nosec: Git ID
+        return (
+            hashlib.sha1(header + data).hexdigest(),
+            "120000",
+            len(data),
+        )  # nosec: Git ID
     if not stat.S_ISREG(metadata.st_mode):
         raise UnsupportedLiveFileType(_file_type(metadata.st_mode))
     digest, size, opened_mode = _hash_regular(path, "sha1", git_blob=True)

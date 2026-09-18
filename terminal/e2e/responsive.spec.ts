@@ -254,20 +254,10 @@ test("the search watchlist shows the regular-session price and change", async ({
   });
 });
 
-test("Discover loads company logos in symbol rows", async ({ page }, testInfo) => {
-  const logoRequests: string[] = [];
-  await page.route("https://img.logo.dev/**", async (route) => {
-    const url = route.request().url();
-    logoRequests.push(url);
-    if (url.includes("/ticker/MU?")) {
-      await route.fulfill({ status: 404 });
-      return;
-    }
-    await route.fulfill({
-      status: 200,
-      contentType: "image/svg+xml",
-      body: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" fill="#2962ff"/><path d="M18 46 32 15l14 31-14-8z" fill="white"/></svg>',
-    });
+test("Discover renders local asset badges without logo-network requests", async ({ page }, testInfo) => {
+  const externalLogoRequests: string[] = [];
+  page.on("request", (request) => {
+    if (/logo\.dev/i.test(request.url())) externalLogoRequests.push(request.url());
   });
 
   await page.goto("/discover");
@@ -275,10 +265,11 @@ test("Discover loads company logos in symbol rows", async ({ page }, testInfo) =
   const rows = page.locator("table.scr2 tbody tr").filter({ has: page.locator(".sym-cell") });
   await expect(rows.first()).toBeVisible();
   const logos = rows.locator(".asset-logo");
+  const image = logos.first().locator("img");
   await expect(logos.first()).toBeVisible();
-  await expect(logos.first().locator("img")).toBeVisible();
-  await expect.poll(() => logoRequests.length).toBeGreaterThan(0);
-  await expect(logos.first().locator("img")).toHaveAttribute("src", /https:\/\/img\.logo\.dev\/name\/Micron%20Technology/);
+  await expect(image).toBeVisible();
+  await expect(image).toHaveAttribute("src", /^data:image\/svg\+xml/);
+  expect(externalLogoRequests).toEqual([]);
 
   const iconSize = await logos.first().evaluate((el) => {
     const box = el.getBoundingClientRect();
@@ -292,7 +283,7 @@ test("Discover loads company logos in symbol rows", async ({ page }, testInfo) =
   expect(overflow.document).toBeLessThanOrEqual(overflow.viewport + 1);
 
   await page.screenshot({
-    path: testInfo.outputPath(`${testInfo.project.name}-discover-logos.png`),
+    path: testInfo.outputPath(`${testInfo.project.name}-discover-local-badges.png`),
     fullPage: false,
   });
 });
@@ -881,7 +872,7 @@ test("a Pro-equivalent entitlement can discover all premium modules and add a su
 
   await modal.getByRole("button", { name: "Systems & Presets" }).click();
   const trendPreset = modal.locator(".ipreset-row").filter({ hasText: "Trend Waves" });
-  await trendPreset.getByRole("button", { name: "Add: Candle State" }).click();
+  // Mastermind Candles is already present on a first visit; it is the focused Trend profile.
   await expect(trendPreset.getByRole("button", { name: "Current: Candle State" })).toBeDisabled();
 });
 

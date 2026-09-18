@@ -79,9 +79,18 @@ describe("/api/ext-quote — extSession passthrough", () => {
     expect(q.NVDA.extSession).toBe("post");
   });
 
-  it("returns all-null when the hub is unreachable — never a fake value", async () => {
+  it("returns 503 when the hub is unreachable so clients retain their last-good ext quote", async () => {
     globalThis.fetch = vi.fn(async () => { throw new Error("ECONNREFUSED"); }) as any;
-    expect(await quotes("NVDA,AAPL")).toEqual({ NVDA: null, AAPL: null });
+    const response = await GET(req("NVDA,AAPL"));
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({ error: "quote_hub_unavailable" });
+  });
+
+  it("returns 503 when the hub rejects the request instead of fabricating an all-null snapshot", async () => {
+    installHub({ error: "overloaded" }, 500);
+    const response = await GET(req("NVDA,AAPL"));
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({ error: "quote_hub_unavailable" });
   });
 
   it("only ever talks to the hub — no upstream feed of its own", async () => {
