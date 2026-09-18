@@ -117,6 +117,8 @@ interface BacktestMetrics {
   win_rate?: number | null
   profit_factor?: number | null
   cagr?: number | null
+  max_dd?: number | null
+  sharpe?: number | null
 }
 
 interface BacktestResult {
@@ -519,6 +521,8 @@ export default function OracleDash({ sym, row, slice, intel, bars, zh = false, o
   const wr = metrics?.win_rate ?? row?.wr ?? null
   const pf = metrics?.profit_factor ?? row?.pf ?? null
   const cagr = metrics?.cagr ?? row?.cagr ?? null
+  const maxDd = metrics?.max_dd ?? null
+  const sharpe = metrics?.sharpe ?? null
   const nTrades = metrics?.n_trades ?? bt?.n_trades ?? null
 
   // Research-desk read from the LIVE intel `cards` + `tape` schema (the old `analysis.decision`
@@ -1009,6 +1013,14 @@ export default function OracleDash({ sym, row, slice, intel, bars, zh = false, o
                   <div className="od-stat">
                     <span className="od-stat-k">{pick(zh, "CAGR", "年化收益")}</span>
                     <span className="od-stat-v">{fmtPctLocal(cagr, true)}</span>
+                  </div>
+                  <div className="od-stat">
+                    <span className="od-stat-k">{pick(zh, "Max drawdown", "最大回撤")}</span>
+                    <span className="od-stat-v">{fmtPctLocal(maxDd, true)}</span>
+                  </div>
+                  <div className="od-stat">
+                    <span className="od-stat-k">{pick(zh, "Sharpe ratio", "夏普比率")}</span>
+                    <span className="od-stat-v">{fmt2(sharpe)}</span>
                   </div>
                   <div className="od-stat">
                     <span className="od-stat-k">{pick(zh, "Trades", "交易次数")}</span>

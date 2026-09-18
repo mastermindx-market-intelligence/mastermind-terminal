@@ -19,7 +19,7 @@ for (const lang of ["en", "zh"]) {
   test(`Stock Intelligence: real launcher, four views and chart return (${lang})`, async ({ page }, testInfo) => {
     await page.addInitScript(lang => localStorage.setItem("mm.lang", lang), lang);
     await page.route("**/data/AAPL.intel.json*", route => route.fulfill({ json: intel }));
-    await page.route("**/data/AAPL.slice.json*", route => route.fulfill({ json: { indicator: { signals }, backtest: { metrics: { n_trades: 8, win_rate: 0.375, profit_factor: 2.1, cagr: 0.052 } } } }));
+    await page.route("**/data/AAPL.slice.json*", route => route.fulfill({ json: { indicator: { signals }, backtest: { metrics: { n_trades: 8, win_rate: 0.375, profit_factor: 2.1, cagr: 0.052, max_dd: -0.3416, sharpe: 0.3664 } } } }));
     const response = page.waitForResponse(r => r.url().includes("/data/AAPL.intel.json"));
     await page.goto("/terminal?symbol=AAPL"); await response;
     const launcher = page.locator(".sig-btn");
@@ -44,6 +44,8 @@ for (const lang of ["en", "zh"]) {
       await page.screenshot({ path: testInfo.outputPath(`stock-intelligence-${lang}-${i}.png`) });
     }
     await expect(dialog.locator(".od-stat-v").first()).toHaveText("37.5%");
+    await expect(dialog.locator(".od-stat").filter({ hasText: lang === "en" ? "Max drawdown" : "最大回撤" }).locator(".od-stat-v")).toHaveText("−34.2%");
+    await expect(dialog.locator(".od-stat").filter({ hasText: lang === "en" ? "Sharpe ratio" : "夏普比率" }).locator(".od-stat-v")).toHaveText("0.37");
     await expect(dialog.locator(".od-stat-v").last()).toHaveText("8");
     await dialog.getByRole("tab").first().focus(); await page.keyboard.press("ArrowRight");
     await expect(dialog.getByRole("tab").nth(1)).toBeFocused();
@@ -76,9 +78,11 @@ test("Stock Intelligence: unavailable detail feeds are disclosed without erasing
   await expect(dialog).toContainText("Research date unavailable");
   await dialog.getByRole("tab").nth(3).click();
   // The manifest remains available and legitimately supplies historical ratios.
-  // Detail-feed failure must not invent a trade count, research date or equity curve.
-  await expect(dialog.locator(".od-stat-v")).toHaveCount(4);
-  await expect(dialog.locator(".od-stat-v").last()).toHaveText("—");
+  // Detail-feed failure must not invent risk statistics, a trade count, research date or equity curve.
+  await expect(dialog.locator(".od-stat-v")).toHaveCount(6);
+  await expect(dialog.locator(".od-stat").filter({ hasText: "Max drawdown" }).locator(".od-stat-v")).toHaveText("—");
+  await expect(dialog.locator(".od-stat").filter({ hasText: "Sharpe ratio" }).locator(".od-stat-v")).toHaveText("—");
+  await expect(dialog.locator(".od-stat").filter({ hasText: "Trades" }).locator(".od-stat-v")).toHaveText("—");
   await expect(dialog.getByRole("status")).toContainText("Equity curve unavailable");
   await page.screenshot({ path: testInfo.outputPath("stock-intelligence-unavailable.png") });
 });
