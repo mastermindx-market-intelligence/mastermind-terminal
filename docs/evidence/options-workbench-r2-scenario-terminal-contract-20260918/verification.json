@@ -1,0 +1,61 @@
+{
+  "findings_closed": [
+    {
+      "after": "typed conditional-scenario validator/transpose/HeatData bridge exists without casting to SurfaceFrame",
+      "before": "no Terminal consumer contract existed for options.scenario_surface/v1",
+      "id": "SCENARIO_DISTINCT_FROM_HISTORY",
+      "red": "contract-red.log"
+    },
+    {
+      "after": "future IV clock and future-date OI vintage fail closed",
+      "before": "first validator accepted an IV source timestamp after market_observed_at",
+      "green": "pit-green.log",
+      "id": "SCENARIO_PIT_SOURCE_CLOCKS",
+      "red": "pit-red.log"
+    }
+  ],
+  "macro_producer": "macro#7306",
+  "non_claims": [
+    "user-visible surface integration",
+    "production deployment",
+    "live freshness",
+    "observed participant inventory",
+    "predictive edge",
+    "QuantedOptions parity",
+    "parent #603 completion"
+  ],
+  "operation": "options-workbench-r2-scenario-terminal-contract-20260918-sol-001",
+  "parent": "mastermind-terminal#603",
+  "release_gates": {
+    "hosted_ci": "not started until carrier is pushed",
+    "independent_review": "not requested until carrier is pushed",
+    "production_proof": "not attempted",
+    "surface_pane_consumer": "blocked on incumbent #608 plus Macro #7306 acceptance"
+  },
+  "schema": "mastermind.options_workbench.scenario_terminal_contract_evidence.v1",
+  "skillpack_sha": "61a2ff79aba4e8a5685e779707ad5c4426cf5cc5",
+  "source_hashes": {
+    "docs/OPTIONS_WORKBENCH_SCENARIO_TERMINAL_CONTRACT_2026-09-18.md": "e4ac51b852cdd71d9cc2e221fd7ba6e54eb18830afcb0a54b855de34ba6d49b8",
+    "terminal/lib/__tests__/scenarioSurfaceContract.test.ts": "3543487fcf027aaf837b0b7ed5181b6d70e6ef7c17adf0bae107245ad74a6888",
+    "terminal/lib/scenarioSurfaceContract.ts": "9d58dbdd5a2093ba6ceca76690e1503630ceb615c704c8f32530521df67f1fb7"
+  },
+  "state": "BUILT_NOT_PROVEN",
+  "terminal_base": "1f56eae265bdbb69c60ce1c5b63dcea19f1f480e",
+  "verification": {
+    "baseline_surface_contract": {
+      "failed": 0,
+      "passed": 93
+    },
+    "baseline_typescript_exit": 0,
+    "diff_check_exit": 0,
+    "owner_pack": {
+      "failed": 0,
+      "passed": 132
+    },
+    "scenario_contract": {
+      "failed": 0,
+      "passed": 8
+    },
+    "typescript_exit": 0
+  }
+}
