@@ -311,10 +311,12 @@ describe("A5 — the landing symbol the server preloads is the one the shell mou
     const script = readFileSync(path.resolve(root, "..", "ops", "terminal-build.sh"), "utf8");
     const localDeploy = readFileSync(path.resolve(root, "..", "scripts", "deploy_terminal.sh"), "utf8");
     const config = readFileSync(path.join(root, "next.config.ts"), "utf8");
-    expect(script).toContain('FULL_SHA=$(git -C "$SRC" rev-parse HEAD)');
+    expect(script).toContain('FULL_SHA=$TARGET_SHA');
+    expect(script).toContain('FULL_SHA=$("$EXPECTED_GIT_PATH" -C "$SRC" rev-parse HEAD)');
+    expect(script).toContain('[ "$FULL_SHA" = "$TARGET_SHA" ]');
     expect(script).toContain("env -i");
     expect(script).toContain('GIT_SHA="$TARGET_SHA" NEXT_DEPLOYMENT_ID="$TARGET_SHA"');
-    expect(script).toContain('"$stage/node_modules/.bin/next" build');
+    expect(script).toContain('"$BUILD_DEPS_ROOT/node_modules/.bin/next" build');
     expect(script).not.toContain('GIT_SHA="$FULL_SHA" NEXT_DEPLOYMENT_ID="$FULL_SHA" npm run build');
     expect(script).toContain('printf \'%s\\n\' "$FULL_SHA" > "$STAGE/.deployment-id"');
     // The marker is installed as one deploy generation with the .next swap, so a
