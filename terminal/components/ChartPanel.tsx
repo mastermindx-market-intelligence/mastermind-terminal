@@ -71,6 +71,8 @@ import {
 } from "@/lib/markerTooltip";
 import { paintCandleData } from "@/lib/indicator-canvas/candlePaint";
 import { paintSnapshotTables } from "@/lib/chartSnapshotTables";
+import { resolveSnapshotSurface } from "@/lib/chartSnapshotTheme";
+import { captureSnapshotLegendRows, paintSnapshotLegendRows } from "@/lib/chartSnapshotLegend";
 import { SUITE_DEFS, getSuiteDef, isSuiteKey as isSuiteKeyReg, paneSuiteKeys } from "@/lib/suites/registry";
 import { ensureSuiteRuntime, peekSuiteRuntime, type SuiteRuntimeProfile } from "@/lib/suites/compute";
 import {
@@ -2951,7 +2953,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // (z-index:4) are composited separately in the same order as the live chart.
     const TARGET_SCALE = 2;
     const SNAPSHOT_SVG_VARS = [
-      "--bg", "--panel", "--panel-2", "--panel-3", "--line", "--line-3",
+      "--bg", "--chart-bg", "--panel", "--panel-2", "--panel-3", "--line", "--line-3",
       "--text", "--text-2", "--text-dim", "--muted", "--brand", "--brand-2",
       "--up", "--down", "--buy", "--sell", "--signal", "--warn",
       "--font-inter", "--font-ui", "--font-num", "--font-code",
@@ -2993,8 +2995,12 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           // live-bar update, or settings change cannot export the previous render.
           renderSignalsRef.current?.();
           renderRef.current?.();
-          const src = chartRef.current!.takeScreenshot();   // HTMLCanvasElement — all panes (lightweight-charts' own px ratio)
           const wrap = wrapElRef.current;
+          // Capture the real DOM legend before the canvas pass. Its computed geometry, typography,
+          // color and scrim are the canonical live presentation; repainting from those values keeps
+          // exports in lockstep when the chart face changes instead of maintaining a second style.
+          const snapshotLegendRows = captureSnapshotLegendRows(wrap);
+          const src = chartRef.current!.takeScreenshot();   // HTMLCanvasElement — all panes (lightweight-charts' own px ratio)
           const cssW = wrap ? wrap.clientWidth : src.width;
           const cssH = wrap ? wrap.clientHeight : src.height;
           // Output scale for the final PNG: always TARGET_SCALE (2x) for crisp sharing.
@@ -3008,15 +3014,42 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           const out = document.createElement("canvas");
           out.width = chartW; out.height = chartH + HDR;
           const g = out.getContext("2d"); if (!g) return;
-          const bg = css("--bg") || "#0a0b0e";
           const text = css("--text") || "#d6dae3";
           const mut = tokensRef.current.mut || css("--muted") || "#5a616f";
-          const brand2 = tokensRef.current.brand2 || css("--brand-2") || "#4d82ff";
           const fam = css("--font-ui") || "system-ui, sans-serif";
           const numFam = css("--font-num") || fam;
           // ── background ──
-          g.fillStyle = bg;
-          g.fillRect(0, 0, out.width, out.height);
+          // lightweight-charts is transparent by default; the live grey-blue surface belongs to
+          // the containing pane, not the page's near-black --bg. Resolve exactly that surface (or
+          // the user's explicit solid/gradient setting) before compositing the chart raster.
+          const paneEl = wrap?.closest<HTMLElement>(".pane") ?? null;
+          const paneStyle = paneEl ? getComputedStyle(paneEl) : null;
+          const surface = resolveSnapshotSurface({
+            backgroundType: chartSettingsRef.current.backgroundType,
+            backgroundTop: chartSettingsRef.current.backgroundTop,
+            backgroundBottom: chartSettingsRef.current.backgroundBottom,
+            paneBackgroundImage: paneStyle?.backgroundImage,
+            paneBackgroundColor: paneStyle?.backgroundColor,
+            chartBackground: css("--chart-bg"),
+            pageBackground: css("--bg"),
+          });
+          if (surface.kind === "gradient") {
+            const bodyGradient = g.createLinearGradient(0, HDR, 0, out.height);
+            bodyGradient.addColorStop(0, surface.topColor);
+            bodyGradient.addColorStop(1, surface.bottomColor);
+            g.fillStyle = bodyGradient;
+          } else {
+            g.fillStyle = surface.topColor;
+          }
+          g.fillRect(0, HDR, out.width, chartH);
+          // The export header is a subtly darkened continuation of the canvas, not an unrelated
+          // pitch-black strip. A hairline separates metadata from price action without a hard seam.
+          g.fillStyle = surface.topColor;
+          g.fillRect(0, 0, out.width, HDR);
+          g.fillStyle = "rgba(4,7,13,0.16)";
+          g.fillRect(0, 0, out.width, HDR);
+          g.fillStyle = "rgba(255,255,255,0.07)";
+          g.fillRect(0, HDR - Math.max(1, Math.round(dpr * 0.5)), out.width, Math.max(1, Math.round(dpr * 0.5)));
           // Draw chart upscaled from its native resolution to TARGET_SCALE.
           // While a pane is maximized the DOM hides the other pane rows, but
           // takeScreenshot() rasterizes the library's INTERNAL layout (which
@@ -3161,44 +3194,11 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
             }
             if (maxNameW > Math.round(24 * dpr)) g.fillText(label, symX, Math.round(HDR / 2 + 7 * dpr));
           }
-          // ── per-pane indicator labels (top-left of each pane, matching live view) ──
-          // paneLayoutRef holds CSS-pixel positions; we convert to output-px using dpr (TARGET_SCALE),
-          // not realScale — so label positions align with the upscaled chart raster.
-          const pLayout = paneLayoutRef.current;
-          if (pLayout.length) {
-            g.textAlign = "left"; g.textBaseline = "top";
-            for (const pane of pLayout) {
-              const visEntries = pane.entries.filter((e) => !e.hidden);
-              if (!visEntries.length) continue;
-              // pane.top is CSS-px; multiply by dpr (output scale) and offset by HDR
-              const paneTopDev = Math.round(pane.top * dpr) + HDR;
-              const lPad = Math.round(8 * dpr);
-              const lTop = paneTopDev + Math.round(8 * dpr);
-              let lY = lTop;
-              const lineH = Math.round(14 * dpr);
-              for (const entry of visEntries) {
-                let lbl = entry.label.trim();
-                if (!lbl) continue;
-                // color swatch dot
-                const dot = (entry as any).color as string | undefined;
-                if (dot) {
-                  g.fillStyle = dot;
-                  g.beginPath(); g.arc(lPad + Math.round(4 * dpr), lY + Math.round(5 * dpr), Math.round(3.5 * dpr), 0, 2 * Math.PI); g.fill();
-                  g.font = `600 ${Math.round(9.5 * dpr)}px ${fam}`;
-                  g.fillStyle = text;
-                  g.fillText(lbl, lPad + Math.round(11 * dpr), lY);
-                } else {
-                  g.font = `600 ${Math.round(9.5 * dpr)}px ${fam}`;
-                  const lw = g.measureText(lbl).width;
-                  g.fillStyle = "rgba(10,11,14,0.55)";
-                  g.fillRect(lPad - Math.round(2 * dpr), lY - Math.round(1 * dpr), lw + Math.round(6 * dpr), lineH - Math.round(2 * dpr));
-                  g.fillStyle = brand2;
-                  g.fillText(lbl, lPad, lY);
-                }
-                lY += lineH;
-              }
-            }
-          }
+          // ── per-pane indicator labels ──
+          // Repaint the actual live legend rows captured above — same neutral text color, exact font,
+          // scrim, spacing, shell overrides and hidden-state styling. There is no export-only blue
+          // title language left to drift from ChartOverlays.
+          paintSnapshotLegendRows(g, snapshotLegendRows, { scale: dpr, chartBodyTop: HDR });
           const date = `${now.getFullYear()}${pad2(now.getMonth() + 1)}${pad2(now.getDate())}`;
           const fname = `${snapSym}_${tf}_${date}.png`;
           // textContent, not innerHTML. This interpolated `msg` into markup, and one caller passed

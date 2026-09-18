@@ -1,0 +1,98 @@
+{
+  "capturedAt": "2026-09-18T11:23:48.812Z",
+  "capturedAtHead": "46c4efe0a0217551cc25b8abc4021fb43d2b1817",
+  "base": "http://127.0.0.1:42195",
+  "theme": "dark",
+  "cases": [
+    {
+      "viewport": "desktop",
+      "language": "en",
+      "live": "desktop-dark-en-live.png",
+      "export": "desktop-dark-en-export.png",
+      "liveDimensions": [
+        1440,
+        900
+      ],
+      "exportDimensions": [
+        1934,
+        1600
+      ],
+      "indicatorTitle": "Moving Averages"
+    },
+    {
+      "viewport": "desktop",
+      "language": "zh",
+      "live": "desktop-dark-zh-live.png",
+      "export": "desktop-dark-zh-export.png",
+      "liveDimensions": [
+        1440,
+        900
+      ],
+      "exportDimensions": [
+        1934,
+        1600
+      ],
+      "indicatorTitle": "Moving Averages"
+    },
+    {
+      "viewport": "tablet",
+      "language": "en",
+      "live": "tablet-dark-en-live.png",
+      "export": "tablet-dark-en-export.png",
+      "liveDimensions": [
+        820,
+        1180
+      ],
+      "exportDimensions": [
+        1640,
+        1374
+      ],
+      "indicatorTitle": "Moving Averages"
+    },
+    {
+      "viewport": "tablet",
+      "language": "zh",
+      "live": "tablet-dark-zh-live.png",
+      "export": "tablet-dark-zh-export.png",
+      "liveDimensions": [
+        820,
+        1180
+      ],
+      "exportDimensions": [
+        1640,
+        1374
+      ],
+      "indicatorTitle": "Moving Averages"
+    },
+    {
+      "viewport": "mobile",
+      "language": "en",
+      "live": "mobile-dark-en-live.png",
+      "export": "mobile-dark-en-export.png",
+      "liveDimensions": [
+        390,
+        844
+      ],
+      "exportDimensions": [
+        780,
+        914
+      ],
+      "indicatorTitle": "Moving Averages"
+    },
+    {
+      "viewport": "mobile",
+      "language": "zh",
+      "live": "mobile-dark-zh-live.png",
+      "export": "mobile-dark-zh-export.png",
+      "liveDimensions": [
+        390,
+        844
+      ],
+      "exportDimensions": [
+        780,
+        914
+      ],
+      "indicatorTitle": "Moving Averages"
+    }
+  ]
+}
