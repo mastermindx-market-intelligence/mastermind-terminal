@@ -819,6 +819,10 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   const onOpenSettingsModalRef = useRef(onOpenSettingsModal); onOpenSettingsModalRef.current = onOpenSettingsModal;
   const onSetLockedVLineRef = useRef(onSetLockedVLine); onSetLockedVLineRef.current = onSetLockedVLine;
   const lockedVLineRef = useRef(lockedVLine); lockedVLineRef.current = lockedVLine;
+  // A cursor lock belongs to the exact chart/ticker that created it. The shell still carries the
+  // historical workspace field for compatibility, but this ref prevents that global value from
+  // painting on sibling panes or a different ticker after navigation.
+  const lockedVLineOwnerSymbolRef = useRef<string | null>(null);
   const onIndRowsAtRef = useRef(onIndRowsAt); onIndRowsAtRef.current = onIndRowsAt;
   // B2/B3/B5: mobile breakpoint ref (drives applyStretch) + reactive state (drives ChartOverlays coarse prop)
   const isMobileRef = useRef<boolean>(typeof window !== "undefined" && window.matchMedia("(max-width:860px)").matches);
@@ -5497,6 +5501,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     const icoPaste = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3.5" width="10" height="9.5" rx="1.5"/><path d="M5 3.5V2.5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v1"/></svg>`;
     const icoBell  = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 1v1M7 12v1M2.5 4.5a5 5 0 0 1 9 0v3.5l1 1v.5H1.5V9l1-1V4.5"/><path d="M5.5 12.5a1.5 1.5 0 0 0 3 0"/></svg>`;
     const icoLock  = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="1" x2="7" y2="13"/><path d="M4 4h6a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"/></svg>`;
+    const icoClose = `<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><line x1="2" y1="2" x2="10" y2="10"/><line x1="10" y1="2" x2="2" y2="10"/></svg>`;
     const icoTable = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="2" width="12" height="10" rx="1.5"/><line x1="1" y1="5.5" x2="13" y2="5.5"/><line x1="5.5" y1="5.5" x2="5.5" y2="12"/></svg>`;
     const icoTree  = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="1" width="4" height="3" rx="1"/><rect x="9" y="5" width="4" height="3" rx="1"/><rect x="9" y="10" width="4" height="3" rx="1"/><line x1="5" y1="2.5" x2="7" y2="2.5"/><line x1="7" y1="2.5" x2="7" y2="11.5"/><line x1="7" y1="6.5" x2="9" y2="6.5"/><line x1="7" y1="11.5" x2="9" y2="11.5"/></svg>`;
     const icoTmpl  = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="1" width="12" height="12" rx="2"/><line x1="1" y1="5" x2="13" y2="5"/><line x1="7" y1="5" x2="7" y2="13"/></svg>`;
@@ -5504,15 +5509,15 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     const icoGear  = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="7" r="2"/><path d="M7 1v1.5M7 11.5V13M1 7h1.5M11.5 7H13M2.4 2.4l1.1 1.1M10.5 10.5l1.1 1.1M2.4 11.6l1.1-1.1M10.5 3.5l1.1-1.1"/></svg>`;
     const icoArrow = `<svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1,1 5,5 1,9"/></svg>`;
     // helper to build a standard ctx row
-    const ctxRow = (action: string, icon: string, label: string, kbd = "", extra = "") =>
-      `<div data-a="${action}" class="ctx-row${extra}"><span class="ctx-ico">${icon}</span><span class="ctx-lbl">${label}</span>${kbd ? `<span class="ctx-kbd">${kbd}</span>` : ""}</div>`;
+    const ctxRow = (action: string, icon: string, label: string, kbd = "", extra = "", tail = "") =>
+      `<div data-a="${action}" class="ctx-row${extra}"><span class="ctx-ico">${icon}</span><span class="ctx-lbl">${label}</span>${kbd ? `<span class="ctx-kbd">${kbd}</span>` : ""}${tail}</div>`;
 
     const buildCtxMenu = () => {
       const sym = symbolRef.current;
       const prec = precRef.current;
       const px = ctxPt.p;
       const pxLabel = px ? px.toFixed(prec) : "—";
-      const locked = !!lockedVLineRef.current;
+      const locked = !!lockedVLineRef.current && lockedVLineOwnerSymbolRef.current === sym;
       // count visible (non-hidden) indicators from panesMeta
       const indCount = panesMeta.current.reduce((n, m) => n + m.entries.filter((e) => !hiddenRef.current.has(e.key)).length, 0);
       const hasInds = indCount > 0;
@@ -5525,7 +5530,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         <div class="sep"></div>
         <div data-a="alert" class="ctx-row"><span class="ctx-ico">${icoBell}</span><span class="ctx-lbl">${escH(tPlain("cpAddAlertOn", "Add alert on"))} <b>${escH(sym)}</b> @ ${pxLabel}&hellip;</span><span class="ctx-kbd">⌥A</span></div>
         <div class="sep"></div>
-        ${ctxRow("lockv", icoLock, escH("Lock vertical cursor line by time"), "", locked ? " ctx-checked" : "")}
+        ${ctxRow("lockv", icoLock, escH("Lock vertical cursor line by time"), "", locked ? " ctx-checked" : "", locked ? `<button type="button" data-a="unlockv" class="ctx-lock-clear" aria-label="Unlock vertical cursor line" title="Unlock vertical cursor line">${icoClose}</button>` : "")}
         <div class="sep"></div>
         ${ctxRow("tableview", icoTable, escH("Table view"))}
         ${ctxRow("objtree", icoTree, escH("Object tree"))}
@@ -5590,9 +5595,26 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       if (a === "reset") normalizeChartView();
       else if (a === "copypx") { try { navigator.clipboard.writeText(String(ctxPt.p)); } catch {} }
       else if (a === "alert") { onAddAlertRef.current?.(ctxPt.p); }
+      else if (a === "unlockv") {
+        lockedVLineOwnerSymbolRef.current = null;
+        lockedVLineRef.current = null;
+        onSetLockedVLineRef.current?.(null);
+        renderRef.current?.();
+      }
       else if (a === "lockv") {
-        const newTime = lockedVLineRef.current === ctxPt.t ? null : ctxPt.t;
-        onSetLockedVLineRef.current?.(newTime);
+        const lockedHere = !!lockedVLineRef.current && lockedVLineOwnerSymbolRef.current === symbolRef.current;
+        if (lockedHere) {
+          // Clicking the checked row is itself a toggle-off; the explicit X is the discoverable
+          // affordance, not the only escape hatch.
+          lockedVLineOwnerSymbolRef.current = null;
+          lockedVLineRef.current = null;
+          onSetLockedVLineRef.current?.(null);
+        } else {
+          lockedVLineOwnerSymbolRef.current = symbolRef.current;
+          lockedVLineRef.current = ctxPt.t;
+          onSetLockedVLineRef.current?.(ctxPt.t);
+        }
+        renderRef.current?.();
       }
       else if (a === "tableview") { onTableViewRef.current?.(); }
       else if (a === "objtree") { onObjectTreeRef.current?.(); }
@@ -6120,7 +6142,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       };
       for (const d of [...drawRef.current].sort((a, b) => (a.z ?? 0) - (b.z ?? 0))) svgEl.appendChild(shape(d, false, projectX, projectYFor(d)));
       // ── D2 locked vertical line overlay ──
-      const lvt = lockedVLineRef.current;
+      const lvt = lockedVLineOwnerSymbolRef.current === symbolRef.current ? lockedVLineRef.current : null;
       if (lvt) {
         const lx = xOf(lvt);
         if (lx != null) {
@@ -8645,7 +8667,20 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   }, [dayMode, timeframe, symbol]);
 
   // ── D2 locked vline: re-render SVG when the locked time changes ──
-  useEffect(() => { renderRef.current?.(); }, [lockedVLine]);
+  useEffect(() => {
+    if (!lockedVLine) lockedVLineOwnerSymbolRef.current = null;
+    renderRef.current?.();
+  }, [lockedVLine]);
+
+  // A lock is a transient chart interaction, not a cross-ticker cursor. If this exact ChartPanel
+  // navigates to another symbol, retire the lock before the new ticker paints it.
+  useLayoutEffect(() => {
+    const owner = lockedVLineOwnerSymbolRef.current;
+    if (!owner || owner === symbol) return;
+    lockedVLineOwnerSymbolRef.current = null;
+    if (lockedVLineRef.current) onSetLockedVLineRef.current?.(null);
+    renderRef.current?.();
+  }, [symbol]);
 
   // ── unchanged: re-render overlay + toggle interactivity on tool/drawings change (no chart rebuild) ──
   useLayoutEffect(() => {
