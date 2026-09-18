@@ -1,11 +1,11 @@
 # Terminal Visual Intelligence Layer — release-candidate browser evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: a7af26d304454f949b4fb3383ad28306c7fdf266
-# capturedAt: 2026-09-18T11:08:02Z
+# capturedAtHead: cc095d8f56531e8771f3495bb700a1108f708ec0
+# capturedAt: 2026-09-18T11:27:52Z
 # capturedAtHead is informational. The lock is layoutFiles + cropFiles.
 layoutFiles:
-  terminal/components/ChartPanel.tsx: "557eca73ae75115bbc426646dd9b61c35dd3dd598a7c1f9925ac8015148acbdb"
+  terminal/components/ChartPanel.tsx: "a8634a53822d2a5fe7031bed8c9b0773e4ae46b07b7aaebeea136ead985100a4"
   terminal/components/ChartSettingsModal.tsx: "6c59eb27cc3c6db3613d592a8796f894cd87e144016ab1130a24389cba299d6b"
   terminal/components/VisualIntelligencePanel.tsx: "dd20b00a0c57613679dcb7ac3905b7b3e0589400935807724a5aea221f0020ec"
   terminal/components/VisualIntelligencePanel.module.css: "29a8fc3d37c55b701a5fe6484948901c00199fac3b5f0e120f7657d1cbd1c9cd"
@@ -15,11 +15,11 @@ layoutFiles:
   terminal/lib/suites/trend/candlePainter.ts: "8384d2bce3af939a51e88584b1436ee2898a89f0fbf1aedc09ffee624a3e12e1"
   terminal/lib/indicator-canvas/host.ts: "4f2949efb22b8c378cab1ff9d176466c4857073c14a36ee4f0eeab4ec1015a25"
 cropFiles:
-  desktop-context.png: "b985b2684e58db81225c46d5e8cd9b28295fdb202f3893051c0b715a3be42e27"
-  desktop-context-zh.png: "f4423800c7843df40a04117761ff98c702a3026af8fbd3aa8df304da73601edf"
-  tablet-context.png: "fa015f7761396c2e5d1b772efd301f8d1c9fb0167048841a83b7d784f0ba26be"
-  tablet-context-zh.png: "7b6db8f7732599915baf946a82a86125701da12c1b6b052e7cb1e40c50e405d9"
-  mobile-context.png: "af63d49e7cc58d51593c0deb790ff2dda6859896e0256d97586f137e8f023a5c"
+  desktop-context.png: "993a618a101babed393baac3a715f4bc0ce8bfa376107460f46057f26b467a3b"
+  desktop-context-zh.png: "6d726cfb9778ad37b2a97a3a94626c9bfd59722ee95d195a06f3a493b5c7810d"
+  tablet-context.png: "224b8ab2b50e261a3051b62b421f4961cff9640a90db8b4b3b0d1f6b5c30e226"
+  tablet-context-zh.png: "bfa507adf93b39168782ad02b521545698f4bf814e3a5593f807fa6ca7a91277"
+  mobile-context.png: "fcde5e25bd5dc875821b2053a9cdd5c4257e719a1229344815d50ad76c99925c"
   mobile-context-zh.png: "b6e0fe1e1228b231343979f6d09222f95e7fb2338b8f5a7614bd64f03cc85bc9"
 theme: dark
 languages: [en, zh]
@@ -44,7 +44,7 @@ browserResults:
 localGates:
   typecheck: PASS
   plainLanguage: PASS
-  vitest: 338 files passed; 5581 tests passed; 4 todo
+  vitest: 338 files passed; 5590 tests passed; 4 todo
 files:
   - desktop-context.png
   - desktop-context-zh.png
