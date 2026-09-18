@@ -147,4 +147,22 @@ describe("Indicator Settings keyboard controls", () => {
     press(close!, " ");
     expect(onClose).toHaveBeenCalledTimes(1);
   });
+
+  it("shows the true RGB hue in color inputs even when an indicator default is translucent rgba", () => {
+    const view = mount({
+      indKey: "vol",
+      params: {},
+      onChange: vi.fn(),
+      onClose: vi.fn(),
+    });
+
+    const styleTab = [...view.querySelectorAll<HTMLButtonElement>(".is-tab")]
+      .find((button) => button.textContent === "Style");
+    expect(styleTab).toBeDefined();
+    act(() => styleTab!.click());
+
+    const colors = [...view.querySelectorAll<HTMLInputElement>('input[type="color"]')]
+      .map((input) => input.value.toLowerCase());
+    expect(colors).toEqual(["#26c281", "#f0566b"]);
+  });
 });
