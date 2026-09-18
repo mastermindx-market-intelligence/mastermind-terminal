@@ -11,6 +11,8 @@ import {
   rsiStack,
   accumPct,
   trendRibbon,
+  rollingPercentile,
+  volbox,
   type Bar,
 } from "../indicatorMath";
 
@@ -113,6 +115,29 @@ describe("rma", () => {
     const lastVal = result[result.length - 1];
     expect(lastVal).not.toBeNull();
     expect(Math.abs(lastVal! - constant)).toBeLessThan(0.001);
+  });
+});
+
+// ─── Rolling percentile / Volatility Box warmup ───────────────────────────────
+
+describe("rollingPercentile", () => {
+  it("does not emit a percentile until the whole rolling window is finite", () => {
+    const src: (number | null)[] = [null, null, 1, 2, 3, 4];
+    const result = rollingPercentile(src, 3);
+
+    expect(result.slice(0, 4)).toEqual([null, null, null, null]);
+    expect(result[4]).toBe(100);
+    expect(result[5]).toBe(100);
+  });
+
+  it("keeps Volatility Box out of squeeze state until pctileWin bandwidth observations exist", () => {
+    const bars = constBars(12, 100);
+    const result = volbox(bars, 3, 2, 5, 100, 3);
+
+    // BB bandwidth itself warms at index 2. A five-observation percentile window is not
+    // complete until index 6 (2,3,4,5,6), so no squeeze classification may appear earlier.
+    expect(result.inSqueeze.slice(0, 6)).toEqual(Array(6).fill(false));
+    expect(result.inSqueeze[6]).toBe(true);
   });
 });
 
