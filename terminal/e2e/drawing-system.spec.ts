@@ -990,12 +990,10 @@ test("drawing lifecycle supports one-shot, sticky, history, visibility, and scop
 });
 
 test("flagship geometry, editing, and path limits survive adversarial interaction", async ({ page }) => {
-  // QUARANTINED — see e2e/QUARANTINE.md. On unmodified master this fails 3/3 attempts at
-  // line 1140 below: after three Path clicks and a finishing double-click no committed
-  // `g[data-drawing-kind="path"]` element exists. Evidence: run 33942726252, whose PR (#507)
-  // changes only a .sql migration, so the failure is the base's, not that PR's.
-  // Owner: issue #485 (R1 reliability program). No repair PR exists for this journey yet.
-  test.fixme(true, "Path tool does not commit on double-click — issue #485; see e2e/QUARANTINE.md");
+  // Un-quarantined by the repair in ChartPanel's segmented-tool pointerup (issue #510):
+  // a closing click is now recognised as a repeat by its SNAPPED placement, so the finish
+  // no longer depends on a native `dblclick` the browser may never dispatch. The dedicated
+  // discriminating contract for that is the next test below.
   // This intentionally monolithic contract performs several independent real
   // pointer transactions; saturated shared runners can exceed the default
   // budget while still advancing normally through every assertion.
@@ -1185,6 +1183,128 @@ test("flagship geometry, editing, and path limits survive adversarial interactio
   await layer.dispatchEvent("pointercancel", { bubbles: true, pointerId: 402, pointerType: "touch", isPrimary: true, button: 0, buttons: 0, ...canceledFinal });
   await expect(layer.locator('g[data-drawing-kind="triangle"]:not([data-id="_p"])')).toHaveCount(0);
   await expect(triangleTool).toHaveAttribute("aria-pressed", "true");
+});
+
+// Issue #510. A segmented tool's closing click is a REPEAT of the previous anchor, and the
+// only authoritative reading of "the same anchor" is the snapped placement the gesture would
+// commit — never raw cursor travel measured against the previous projected anchor. Two facts
+// make that difference load-bearing rather than cosmetic:
+//   1. snapping moves the anchor (the magnet parks the price on an OHLC level; x quantises to a
+//      bar centre), so the closing click routinely sits further from the previous PROJECTED
+//      anchor than the 3px desktop precision radius even when it means the identical placement;
+//   2. the native `dblclick` is not a dependable backstop for (1). When the closing press
+//      hit-tests onto an existing drawing, the creation pointerdown's own re-render detaches
+//      that node, the press and release no longer share a live ancestor, and Chromium dispatches
+//      neither `click` nor `dblclick` — so on the unrepaired base a Path closed over ANY existing
+//      object committed nothing at all and left only the `_p` preview behind.
+// Both phases below close the Path over a seeded drawing, which is exactly the geometry that
+// removes the native-double-click rescue and leaves the pointerup path solely responsible.
+test("a desktop Path finishes exactly once when its closing double-click has no native dblclick", async ({ page }) => {
+  test.slow();
+  test.skip(
+    (page.viewportSize()?.width ?? 1440) <= 860,
+    "Desktop precision geometry; the coarse-pointer finish is covered above.",
+  );
+  const saves: DrawingSavePayload[] = [];
+  await openTerminal(page, {
+    drawings: [
+      {
+        id: "closing-target",
+        kind: "trendline",
+        source: "user",
+        points: [{ t: "2026-05-01", p: 200 }, { t: "2026-07-01", p: 200 }],
+        color: "#26c281",
+        width: 2,
+        dash: "solid",
+      },
+    ],
+    onPut: (payload) => saves.push(payload),
+  });
+
+  const layer = page.locator(".pane.on .drawing-layer");
+  const layerBox = await layer.boundingBox();
+  expect(layerBox).not.toBeNull();
+  const committedPaths = layer.locator('g[data-drawing-kind="path"]:not([data-id="_p"])');
+  const preview = layer.locator('g[data-id="_p"]');
+  const inspector = page.getByRole("toolbar", { name: "Selected drawing properties" });
+  const savedPaths = () => saves.flatMap((payload) => payload.drawings ?? []).filter((drawing) => drawing.kind === "path");
+
+  // The seeded object's own hit line is the close target, so the press really does land on a
+  // node this layer is about to detach. Read it from the DOM rather than guessing a pixel.
+  const closingHit = layer.locator('g[data-id="closing-target"] line[stroke="transparent"]').first();
+  await expect(closingHit).toHaveCount(1);
+  // Read the line's own attributes and offset them by the already-stabilized layer box. A quote
+  // repaint can replace the SVG subtree between locator resolution and evaluation, which makes
+  // `ownerSVGElement` transiently null even though the geometry is valid — the same hazard the
+  // vertical-line assertion above documents.
+  const closingLocal = await closingHit.evaluate((node) => {
+    const line = node as SVGLineElement;
+    return {
+      x: (Number(line.getAttribute("x1")) + Number(line.getAttribute("x2"))) / 2,
+      y: (Number(line.getAttribute("y1")) + Number(line.getAttribute("y2"))) / 2,
+    };
+  });
+  const closing = { x: layerBox!.x + closingLocal.x, y: layerBox!.y + closingLocal.y };
+  // Every anchor is placed in a band around the seeded object's own row so the whole gesture
+  // stays inside the PRICE pane. Anchors that stray into an indicator sub-pane carry that
+  // pane's reading rather than a price, which is a different contract (see the sub-pane
+  // rescale test below) and not what this one is measuring.
+  const near = (dx: number, dy: number) => ({ x: closing.x + dx, y: closing.y + dy });
+  expect(closing.x - 560).toBeGreaterThan(layerBox!.x);
+
+  // ── Phase 1: Strong magnet, so the committed anchor is deliberately NOT under the cursor ──
+  // The magnet parks each price on an OHLC level, so the closing click's raw coordinates sit
+  // well outside the 3px desktop radius from the previous PROJECTED anchor while meaning
+  // exactly it. Closing over the seeded drawing removes the native-dblclick rescue at the same
+  // time, which is what makes this the discriminating case rather than a cosmetic one.
+  await selectMagnet(page, "strong");
+  await page.getByTestId("drawing-group-freehand-menu-trigger").click();
+  await page.getByTestId("drawing-tool-path").press("Enter");
+  await page.mouse.click(near(-560, 70).x, near(-560, 70).y);
+  await page.mouse.click(near(-420, -50).x, near(-420, -50).y);
+  await page.mouse.click(near(-280, 40).x, near(-280, 40).y);
+  // Nothing may commit before the closing gesture; a swallowed anchor must report as a
+  // setup failure here rather than impersonating the finish defect below.
+  await expect(committedPaths).toHaveCount(0);
+  await page.mouse.dblclick(closing.x, closing.y, { delay: 60 });
+
+  await expect(committedPaths).toHaveCount(1);
+  await expect(preview).toHaveCount(0);
+  await expect.poll(
+    () => savedPaths().at(-1)?.points?.length ?? 0,
+    { timeout: 5_000, message: "the closing double-click should persist one four-anchor Path" },
+  ).toBe(4);
+  // The completion must not fall through into editing: no settings editor, and the seeded
+  // object under the closing anchor must not have been selected by the finishing gesture.
+  await expect(page.locator(".settings-open")).toHaveCount(0);
+  await expect(page.locator(".text-edit")).toHaveCount(0);
+  if (await inspector.count()) {
+    await expect(inspector).not.toHaveAttribute("data-drawing-id", "closing-target");
+  }
+
+  // A native `dblclick` that arrives after the gesture already committed is the tail of that
+  // same gesture. It must be consumed: no editor, and above all no second Path.
+  await committedPaths.first().dispatchEvent("dblclick", { bubbles: true, cancelable: true, detail: 2 });
+  await expect(committedPaths).toHaveCount(1);
+  await expect(page.locator(".settings-open")).toHaveCount(0);
+  await expect(preview).toHaveCount(0);
+
+  // ── Phase 2: magnet off, the unsnapped price path, closing over the seeded drawing again ──
+  await selectMagnet(page, "off");
+  await page.getByTestId("drawing-group-freehand-menu-trigger").click();
+  await page.getByTestId("drawing-tool-path").press("Enter");
+  await page.mouse.click(near(-200, 60).x, near(-200, 60).y);
+  await page.mouse.click(near(-110, -30).x, near(-110, -30).y);
+  await expect(committedPaths).toHaveCount(1);
+  await page.mouse.dblclick(closing.x, closing.y, { delay: 60 });
+
+  await expect(committedPaths).toHaveCount(2);
+  await expect(preview).toHaveCount(0);
+  await expect.poll(
+    () => savedPaths().at(-1)?.points?.length ?? 0,
+    { timeout: 5_000, message: "an unsnapped closing click should persist one three-anchor Path" },
+  ).toBe(3);
+  await expect(page.locator(".settings-open")).toHaveCount(0);
 });
 
 test("each drawing tool keeps its own defaults and fill color contract", async ({ page }) => {
