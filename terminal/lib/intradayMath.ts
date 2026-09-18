@@ -412,11 +412,13 @@ export interface TtmSqueezeResult {
 /**
  * TTM Squeeze — momentum oscillator + squeeze tier detection.
  *
- * BB standard deviation: POPULATION (÷N, matching ChartPanel inline `stddev` convention).
- * Comment WHY: ChartPanel's inline stddev divides by N (population), so we match that here
- * to produce identical band widths when compared against the chart's own BB overlay.
- * (indicatorMath.ts bollingerBands uses ddof=1 / sample std dev for the Python-parity fixture;
- *  that divergence is documented in indicatorParity.test.ts. Here we follow ChartPanel, not indicatorMath.)
+ * BB standard deviation: POPULATION (÷N) — the house convention for every charted band,
+ * because the product publishes `ta.stdev` as the BB definition (IND_DEFS.bb.source) and
+ * Pine's ta.stdev is population. indicatorMath.bollingerBands() now defaults to the same
+ * population σ and is the single owner of the chart's band math, so this squeeze detector
+ * and the chart's own BB overlay agree by construction rather than by comment.
+ * (The sample/ddof=1 bands still exist behind `bollingerBands(..., 1)` for the Macro Python
+ *  engine contract only — see bollingerRenderParity.test.ts and indicatorParity.test.ts.)
  *
  * KC = SMA ± mult·RMA(TR, len). Squeeze tier reports the TIGHTEST KC that still contains the BB
  * (kcMults ascending): 3 = inside 1.0×KC (tightest), 2 = 1.5×KC, 1 = 2.0×KC, 0 = no squeeze.

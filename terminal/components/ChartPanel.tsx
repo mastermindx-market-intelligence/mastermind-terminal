@@ -84,7 +84,7 @@ import ChartTables from "@/components/ChartTables";
 import { crossUps, crossDowns, crossUpsBelow, crossDownsAbove } from "@/lib/crossSignals";
 import { SOFT_Q, anchorSignal, isBlockedSignal, isOverrideCandidate, isReclaimOverrideTake, isRetroOverride, isStopSweepReclaim, isStructureStop, isWaivedEntry, markerTooltipCopy, opportunityMarkerGlyph, sliceSignalBasis } from "@/lib/signalVerdict";
 import { makeNearestBarIndex } from "@/lib/barSnap";
-import { ichimoku, supertrend, avwap as computeAvwap, rollingVwap, weekAnchoredVwap, vprofile, volbox, rsiStack, accumPct, trendRibbon, buyShare as mfBuyShare } from "@/lib/indicatorMath";
+import { ichimoku, supertrend, avwap as computeAvwap, rollingVwap, weekAnchoredVwap, vprofile, volbox, rsiStack, accumPct, trendRibbon, bollingerBands, buyShare as mfBuyShare } from "@/lib/indicatorMath";
 import ChartOverlays, { type PaneInfo, type LegendEntry } from "@/components/ChartOverlays";
 import DayStatsStrip from "@/components/DayStatsStrip";
 import { tPlain, useT } from "@/lib/i18n";
@@ -378,7 +378,6 @@ const PRESERVE_VIEW_ON_INDICATOR_TOGGLE = true;
 // ---- indicator math ----
 function ema(a: (number | null)[], p: number) { const o: (number | null)[] = Array(a.length).fill(null); const k = 2 / (p + 1); let pr: number | null = null, s = 0, c = 0; for (let i = 0; i < a.length; i++) { const v = a[i]; if (v == null) { o[i] = pr; continue; } if (pr == null) { s += v; c++; if (c === p) { pr = s / p; o[i] = pr; } } else { pr = v * k + pr * (1 - k); o[i] = pr; } } return o; }
 function sma(a: (number | null)[], p: number) { const o: (number | null)[] = Array(a.length).fill(null); const q: number[] = []; let s = 0; for (let i = 0; i < a.length; i++) { const v = a[i]; q.push(v == null ? 0 : v); if (v != null) s += v; if (q.length > p) s -= q.shift()!; if (q.length === p) o[i] = s / p; } return o; }
-function stddev(a: number[], p: number) { const o: (number | null)[] = Array(a.length).fill(null); for (let i = p - 1; i < a.length; i++) { const w = a.slice(i - p + 1, i + 1); const m = w.reduce((x, y) => x + y, 0) / p; o[i] = Math.sqrt(w.reduce((x, y) => x + (y - m) ** 2, 0) / p); } return o; }
 function rsi(cl: number[], p = 14) { const o: (number | null)[] = Array(cl.length).fill(null); let g = 0, l = 0; for (let i = 1; i < cl.length; i++) { const ch = cl[i] - cl[i - 1], u = ch > 0 ? ch : 0, d = ch < 0 ? -ch : 0; if (i <= p) { g += u; l += d; if (i === p) { g /= p; l /= p; o[i] = l === 0 ? 100 : 100 - 100 / (1 + g / l); } } else { g = (g * (p - 1) + u) / p; l = (l * (p - 1) + d) / p; o[i] = l === 0 ? 100 : 100 - 100 / (1 + g / l); } } return o; }
 // CM_Stochastic_MTF (ChrisMoody) — regular *price* stochastic on the current timeframe:
 // rawK = 100·(close − lowest(low,len)) / (highest(high,len) − lowest(low,len)); %K = SMA(rawK, smoothK); %D = SMA(%K, smoothD).
@@ -1181,11 +1180,12 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     });
     return out;
   };
-  const buildBb = (chart: IChartApi, rows: Bar[], closes: number[]): ISeriesApi<any>[] => {
+  const buildBb = (chart: IChartApi, rows: Bar[]): ISeriesApi<any>[] => {
     const out: ISeriesApi<any>[] = []; const p = P("bb");
-    const basis = sma(closes, p.length); const sd = stddev(closes, p.length);
-    const up = closes.map((_, i) => (basis[i] != null && sd[i] != null ? basis[i]! + p.mult * sd[i]! : null));
-    const lo = closes.map((_, i) => (basis[i] != null && sd[i] != null ? basis[i]! - p.mult * sd[i]! : null));
+    // Band math is owned by indicatorMath.bollingerBands (population σ, matching the
+    // published IND_DEFS.bb.source). Never inline it here — that duplicate is what let
+    // the rendered bands drift from the tested ones. See bollingerRenderParity.test.ts.
+    const { mid: basis, upper: up, lower: lo } = bollingerBands(rows, p.length, p.mult);
     [up, basis, lo].forEach((arr, j) => { const ln = chart.addSeries(LineSeries, { color: j === 1 ? p.basisCol : p.bandCol, lineWidth: p.width, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false }, 0); ln.setData(toLine(rows, arr)); out.push(ln); });
     return out;
   };
@@ -2287,7 +2287,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // Clear SVG overlay data for overlays being rebuilt
     indOverlayRef.current = {};
     if (inds.has("ema")) indSeriesRef.current.set("ema", buildEma(chart, rows, closes));
-    if (inds.has("bb")) indSeriesRef.current.set("bb", buildBb(chart, rows, closes));
+    if (inds.has("bb")) indSeriesRef.current.set("bb", buildBb(chart, rows));
     if (inds.has("vwap")) indSeriesRef.current.set("vwap", buildVwap(chart, rows));
     if (inds.has("vol")) indSeriesRef.current.set("vol", buildVol(chart, rows));
     // DT overlay indicators
@@ -2355,9 +2355,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     }
     if (inds.has("bb")) {
       const sArr = SB.get("bb"); const p = P("bb");
-      const basis = sma(closes, p.length); const sd = stddev(closes, p.length);
-      const up = closes.map((_, i) => (basis[i] != null && sd[i] != null ? basis[i]! + p.mult * sd[i]! : null));
-      const lo = closes.map((_, i) => (basis[i] != null && sd[i] != null ? basis[i]! - p.mult * sd[i]! : null));
+      // Same single owner as buildBb — the in-place update must not re-derive the bands.
+      const { mid: basis, upper: up, lower: lo } = bollingerBands(rows, p.length, p.mult);
       if (sArr) { [up, basis, lo].forEach((arr, j) => { if (sArr[j]) sArr[j].setData(toLine(rows, arr)); }); }
     }
     if (inds.has("vwap")) {
@@ -2403,7 +2402,9 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       if (activeLen != null) { const vals = ema(closes, activeLen); rows.forEach((r, i) => { slot(r.time)["ema"] = vals[i] ?? null; }); }
     }
     if (inds.has("bb")) {
-      const p = P("bb"); const basis = sma(closes, p.length);
+      // Same owner as the plotted series, so the table's "bb" column and the basis line on the
+      // chart are the same number rather than two independent SMA implementations.
+      const p = P("bb"); const { mid: basis } = bollingerBands(rows, p.length, p.mult);
       rows.forEach((r, i) => { slot(r.time)["bb"] = basis[i] ?? null; });
     }
     if (inds.has("vwap")) {
@@ -7986,7 +7987,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     }
     for (const k of wantOverlays) if (!haveOverlays.has(k)) {
       if (k === "ema") indSeriesRef.current.set("ema", buildEma(chart, rows, closes));
-      else if (k === "bb") indSeriesRef.current.set("bb", buildBb(chart, rows, closes));
+      else if (k === "bb") indSeriesRef.current.set("bb", buildBb(chart, rows));
       else if (k === "vwap") indSeriesRef.current.set("vwap", buildVwap(chart, rows));
       else if (k === "vol") indSeriesRef.current.set("vol", buildVol(chart, rows));
       else if (k === "ichimoku") indSeriesRef.current.set("ichimoku", buildIchimoku(chart, rows));
