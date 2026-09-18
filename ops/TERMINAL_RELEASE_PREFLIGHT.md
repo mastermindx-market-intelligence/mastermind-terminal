@@ -21,9 +21,47 @@ synchronize source, restart a service, or alter runtime data. Its only intended
 write is a new receipt below the caller-supplied receipt directory. Existing
 receipts are never replaced.
 
-The current `ops/terminal-build.sh` does not invoke this command yet. Integrating
-the gate into the deployment owner belongs to W2B; this W2A capability must first
-be independently reviewed, merged, and proven read-only on production.
+W2A was independently reviewed, merged in PR #600, and proven read-only on
+production. W2B-A integrates this command into the incumbent
+`ops/terminal-build.sh` as a mandatory entrance gate. The owner publishes and
+binds a `CLEAN` receipt for the currently deployed generation before it may
+fetch, reset, clean, install, build, synchronize source, or touch a service.
+Every nonzero preflight result is propagated unchanged and stops the release.
+
+## Deploy-owner integration (W2B-A)
+
+The deploy owner now accepts exactly one explicit release intent:
+
+```bash
+/opt/terminal/terminal-build.sh \
+  --target-sha <full-lowercase-40-hex-commit>
+```
+
+There is no environment-variable fallback and no branch-tip inference. The
+owner performs these gates in order:
+
+1. validate the exact target syntax before Node or Git access;
+2. select one complete preflight bundle (script, policy, and real non-symlink
+   `terminal_audit` package) from the executing `ops/` artifact, otherwise from
+   the currently deployed canonical checkout;
+3. create/verify the fixed receipt parent and leaf as root-owned mode `0750`;
+4. run the W2A preflight against the current deployed checkout and require its
+   immutable summary to be `CLEAN`;
+5. fetch `origin/master`, prove the requested full SHA resolves exactly and is
+   contained by the freshly observed `refs/remotes/origin/master`, then
+   reset/clean only to that SHA.
+
+For first adoption, release orchestration must execute `ops/terminal-build.sh`
+from one exact protected `ops/` archive that also contains the reviewed
+preflight script, policy, and audit package. The script later installs itself
+through the existing owner path; subsequent runs may use the same artifacts in
+the currently deployed canonical checkout. This is one lifecycle, not a second
+deployer.
+
+W2B-A proves only current-source cleanliness and exact target admission. It does
+not yet make dependency installation reproducible, bind a build-tree digest,
+make all runtime overlays transactional, or prove deployment, browser behavior,
+rollback, or continuous drift. Those remain later #483 waves.
 
 ## Inputs and authority
 
