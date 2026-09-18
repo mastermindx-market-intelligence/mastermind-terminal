@@ -775,6 +775,14 @@ print(json.dumps({
             f'select_preflight_artifacts {os.getuid()} "$AUTHORING_OPS_DIR" "$SRC/ops"',
         )
     )
+    entry_start = text.index("# Privilege is acquired only through sudo's setuid/sanitized boundary.")
+    entry_end = text.index("\nunset MMX_TERMINAL_BUILD_PRIVILEGED_ENTRY", entry_start)
+    entry_end = text.index("\n", entry_end + 1) + 1
+    text = (
+        text[:entry_start]
+        + "# TEST-ONLY: executable rollback sandbox bypasses the separately tested sudo/root entry.\n"
+        + text[entry_end:]
+    )
     guard = 'if [ "${BASH_SOURCE[0]}" != "$0" ]; then\n  return 0\nfi\n'
     assert guard in text, "sourceable seam vanished from copied deploy owner"
     sandbox_overrides = textwrap.dedent(
@@ -785,6 +793,7 @@ print(json.dumps({
         # focused on the post-build generation swap, health and rollback path.
         verify_build_runtime(){ :; }
         verify_build_principal(){ :; }
+        verify_sandbox_principal(){ :; }
         fetch_accepted_ref(){
           printf 'git fetch %s %s\n' "$2" "$3" >> "$MMX_EFFECT_LOG"
           ACCEPTED_REF_SHA="$FAKE_SHA"

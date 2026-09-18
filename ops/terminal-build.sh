@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/usr/bin/bash -p
 # GIT-GATED zero-downtime build for the Mastermind Terminal (Next.js).
 #
 # ┌────────────────────────────────────────────────────────────────────────────┐
@@ -35,6 +35,19 @@
 # The live swap/rollback/runtime-overlay tail is still the inherited owner and is
 # NOT independently production-adopted by W2B-B; W2B-C owns that transaction proof.
 set -euo pipefail
+# Both launcher passes use privileged-mode Bash so BASH_ENV/SHELLOPTS/imported
+# functions cannot run before the first command. The initial pass is deliberately
+# unprivileged and may only cross the reviewed sudo + env -i boundary below; the
+# explicit scrub keeps every later child free of ambient language/process policy.
+unset BASH_ENV ENV CDPATH GLOBIGNORE \
+  LD_PRELOAD LD_LIBRARY_PATH LD_AUDIT LD_DEBUG LD_PROFILE GCONV_PATH LOCPATH \
+  PYTHONPATH PYTHONHOME PYTHONINSPECT PYTHONSTARTUP \
+  NODE_OPTIONS NODE_PATH \
+  NPM_CONFIG_USERCONFIG NPM_CONFIG_GLOBALCONFIG npm_config_userconfig npm_config_globalconfig \
+  PERL5OPT RUBYOPT 2>/dev/null || true
+for inherited_function in env git python3 node npm npx flock systemd-run; do
+  unset -f "$inherited_function" 2>/dev/null || true
+done
 export PATH="/usr/bin:/bin"
 
 APP=/opt/terminal/terminal
@@ -52,6 +65,8 @@ BUILD_LOCK_DIR=/run/mastermind-terminal
 BUILD_LOCK_FILE="$BUILD_LOCK_DIR/deploy.lock"
 EXPECTED_LOCK_UID=0
 EXPECTED_LOCK_GID=0
+EXPECTED_CONTROLLER_UID=0
+EXPECTED_CONTROLLER_GID=0
 EXPECTED_NODE_PATH="/usr/bin/node"
 EXPECTED_NPM_PATH="/usr/bin/npm"
 EXPECTED_NODE_VERSION="v20.20.2"
@@ -59,6 +74,7 @@ EXPECTED_NPM_VERSION="10.8.2"
 EXPECTED_BUILD_OS="Linux"
 EXPECTED_BUILD_ARCH="x86_64"
 EXPECTED_OS_RELEASE_FILE="/usr/lib/os-release"
+EXPECTED_OS_RELEASE_ALIAS="/etc/os-release"
 EXPECTED_OS_ID="ubuntu"
 EXPECTED_OS_VERSION_ID="24.04"
 EXPECTED_GETCONF_PATH="/usr/bin/getconf"
@@ -68,6 +84,9 @@ EXPECTED_SYSTEMD_RUN_PATH="/usr/bin/systemd-run"
 EXPECTED_GIT_PATH="/usr/bin/git"
 EXPECTED_PYTHON_PATH="/usr/bin/python3"
 EXPECTED_ENV_PATH="/usr/bin/env"
+EXPECTED_SUDO_PATH="/usr/bin/sudo"
+EXPECTED_BASH_PATH="/usr/bin/bash"
+EXPECTED_CONTROLLER_PATH="/opt/terminal/terminal-build.sh"
 EXPECTED_TAR_PATH="/usr/bin/tar"
 EXPECTED_SYSTEMCTL_PATH="/usr/bin/systemctl"
 EXPECTED_CURL_PATH="/usr/bin/curl"
@@ -204,7 +223,7 @@ def trusted_stat(path: Path, kind: str) -> os.stat_result:
 
 def stable_bytes(path: Path, limit: int = 4 * 1024 * 1024) -> tuple[bytes, int]:
     expected = trusted_stat(path, "file")
-    flags = os.O_RDONLY | getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NOFOLLOW", 0)
+    flags = os.O_RDONLY | getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0)
     descriptor = os.open(path, flags)
     try:
         before = os.fstat(descriptor)
@@ -486,7 +505,7 @@ def deterministic_id(payload: dict) -> str:
 
 
 def stable_regular_bytes(path: Path, limit: int) -> tuple[bytes, os.stat_result]:
-    flags = os.O_RDONLY | getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NOFOLLOW", 0)
+    flags = os.O_RDONLY | getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0)
     descriptor = os.open(path, flags)
     try:
         before = os.fstat(descriptor)
@@ -779,24 +798,34 @@ verify_build_runtime(){
     log "FATAL: build OS release identity is unavailable or aliased: $EXPECTED_OS_RELEASE_FILE"
     return 69
   }
-  runtime_env=(env -i PATH="$CLEAN_BUILD_PATH" HOME=/nonexistent LANG=C.UTF-8 LC_ALL=C.UTF-8 TZ=UTC)
+  runtime_env=("$EXPECTED_ENV_PATH" -i PATH="$CLEAN_BUILD_PATH" HOME=/nonexistent LANG=C.UTF-8 LC_ALL=C.UTF-8 TZ=UTC)
   BUILD_NODE_VERSION=$("${runtime_env[@]}" "$EXPECTED_NODE_PATH" --version 2>/dev/null) || return 69
   BUILD_NPM_VERSION=$("${runtime_env[@]}" "$EXPECTED_NPM_PATH" --version 2>/dev/null) || return 69
   BUILD_OS=$("${runtime_env[@]}" "$EXPECTED_UNAME_PATH" -s 2>/dev/null) || return 69
   BUILD_ARCH=$("${runtime_env[@]}" "$EXPECTED_UNAME_PATH" -m 2>/dev/null) || return 69
-  if ! os_values=$("${runtime_env[@]}" "$EXPECTED_PYTHON_PATH" -I - "$EXPECTED_OS_RELEASE_FILE" <<'PY_OS_RELEASE'
+  if ! os_values=$("${runtime_env[@]}" "$EXPECTED_PYTHON_PATH" -I - \
+      "$EXPECTED_OS_RELEASE_FILE" "$EXPECTED_OS_RELEASE_ALIAS" <<'PY_OS_RELEASE'
 import os
 import re
 import stat
 import sys
 from pathlib import Path
 path = Path(sys.argv[1])
+alias = Path(sys.argv[2])
 expected = os.lstat(path)
 if stat.S_ISLNK(expected.st_mode) or not stat.S_ISREG(expected.st_mode):
     raise SystemExit("os-release must be a real regular file")
 if expected.st_uid != 0 or expected.st_gid != 0 or expected.st_mode & 0o022:
     raise SystemExit("os-release custody is invalid")
-flags = os.O_RDONLY | getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NOFOLLOW", 0)
+alias_metadata = os.lstat(alias)
+if not stat.S_ISLNK(alias_metadata.st_mode) or os.readlink(alias) != "../usr/lib/os-release":
+    raise SystemExit("canonical /etc/os-release alias is invalid")
+if alias.resolve(strict=True) != path.resolve(strict=True):
+    raise SystemExit("canonical /etc/os-release alias resolves to a different file")
+flags = (
+    os.O_RDONLY | getattr(os, "O_CLOEXEC", 0)
+    | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0)
+)
 fd = os.open(path, flags)
 try:
     before = os.fstat(fd)
@@ -898,7 +927,7 @@ for name in (".env", ".env.local"):
         raise ValueError(f"live env source must be a real file: {source}")
     if expected.st_size > 1024 * 1024:
         raise ValueError(f"live env source exceeds size bound: {source}")
-    flags = os.O_RDONLY | getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NOFOLLOW", 0)
+    flags = os.O_RDONLY | getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0)
     fd = os.open(source, flags)
     try:
         before = os.fstat(fd)
@@ -1053,7 +1082,7 @@ def read_real_at(source_fd: int, name: str):
         raise ValueError("untrusted cache file owner/group")
     if expected.st_mode & (stat.S_IWGRP | stat.S_IWOTH) or expected.st_size > 4096:
         raise ValueError("untrusted cache file metadata")
-    flags = os.O_RDONLY | getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NOFOLLOW", 0)
+    flags = os.O_RDONLY | getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0)
     fd = os.open(name, flags, dir_fd=source_fd)
     try:
         before = os.fstat(fd)
@@ -1168,6 +1197,7 @@ verify_build_principal(){
       "$EXPECTED_BUILD_UID" "$EXPECTED_BUILD_GID" \
       "$EXPECTED_BUILD_HOME" "$EXPECTED_BUILD_SHELL" <<'PY_BUILD_PRINCIPAL'
 import grp
+import os
 import pwd
 import sys
 user_name, group_name, uid_raw, gid_raw, expected_home, expected_shell = sys.argv[1:]
@@ -1182,6 +1212,9 @@ if (user.pw_uid, user.pw_gid, group.gr_gid) != (uid, gid, gid):
     raise SystemExit("build principal UID/GID mismatch")
 if user.pw_dir != expected_home or user.pw_shell != expected_shell:
     raise SystemExit("build principal home/shell mismatch")
+groups = os.getgrouplist(user_name, gid)
+if set(groups) != {gid}:
+    raise SystemExit("build principal must not carry supplementary groups")
 if group.gr_mem:
     raise SystemExit("build principal group must not carry supplementary members")
 PY_BUILD_PRINCIPAL
@@ -1337,14 +1370,15 @@ for source, output_name in files.items():
         raise SystemExit(f"controller evidence source is not a regular blob: {source}")
     payload = git("cat-file", "blob", oid)
     output = evidence / output_name
-    fd = os.open(output, os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_CLOEXEC", 0), 0o400)
+    mode = 0o444 if output_name in {"package.json", "package-lock.json"} else 0o400
+    fd = os.open(output, os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_CLOEXEC", 0), mode)
     try:
         view = memoryview(payload)
         while view:
             written = os.write(fd, view)
             view = view[written:]
         os.fsync(fd)
-        os.fchmod(fd, 0o400)
+        os.fchmod(fd, mode)
     finally:
         os.close(fd)
 PY_CONTROLLER_EVIDENCE
@@ -1382,7 +1416,7 @@ def stable(path: Path, limit: int = 8 * 1024 * 1024) -> bytes:
         raise SystemExit(f"expected real file: {path}")
     if expected.st_size > limit:
         raise SystemExit(f"file exceeds bound: {path}")
-    flags = os.O_RDONLY | getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NOFOLLOW", 0)
+    flags = os.O_RDONLY | getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0)
     fd = os.open(path, flags)
     try:
         before = os.fstat(fd)
@@ -1422,7 +1456,8 @@ PY_PROJECTION_SUMMARY
 prepare_build_mountpoints(){
   local stage=$1
   if ! "$EXPECTED_PYTHON_PATH" -I - \
-      "$stage" "$BUILD_DEPS_ROOT" "$EXPECTED_BUILD_UID" "$EXPECTED_BUILD_GID" <<'PY_BUILD_MOUNTS'
+      "$stage" "$BUILD_DEPS_ROOT" "$EXPECTED_BUILD_UID" "$EXPECTED_BUILD_GID" \
+      "$EXPECTED_CONTROLLER_UID" "$EXPECTED_CONTROLLER_GID" <<'PY_BUILD_MOUNTS'
 import os
 import stat
 import sys
@@ -1431,26 +1466,69 @@ stage = Path(sys.argv[1])
 deps = Path(sys.argv[2])
 uid = int(sys.argv[3])
 gid = int(sys.argv[4])
+controller_uid = int(sys.argv[5])
+controller_gid = int(sys.argv[6])
 for path in (stage, deps):
     metadata = os.lstat(path)
     if stat.S_ISLNK(metadata.st_mode) or not stat.S_ISDIR(metadata.st_mode):
         raise SystemExit(f"build path is not a real directory: {path}")
+for name in ("package.json", "package-lock.json"):
+    package = stage / name
+    item = os.lstat(package)
+    if stat.S_ISLNK(item.st_mode) or not stat.S_ISREG(item.st_mode):
+        raise SystemExit(f"accepted package input is not a real file: {package}")
+    if (
+        item.st_uid != controller_uid
+        or item.st_gid != controller_gid
+        or item.st_mode & (stat.S_IWGRP | stat.S_IWOTH)
+    ):
+        raise SystemExit(f"accepted package input custody differs from controller: {package}")
+    if stat.S_IMODE(item.st_mode) != 0o644:
+        raise SystemExit(f"accepted package input mode is not 0644: {package}")
+    target = deps / name
+    fd = os.open(
+        target,
+        os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_CLOEXEC", 0),
+        0o400,
+    )
+    os.close(fd)
 next_dir = stage / ".next"
 if os.path.lexists(next_dir):
-    raise SystemExit("projection unexpectedly contains .next")
+    raise SystemExit(f"projection unexpectedly contains generated build path: {next_dir}")
 next_dir.mkdir(mode=0o700)
 os.chown(next_dir, uid, gid)
-for name in ("package.json", "package-lock.json"):
-    target = deps / name
-    fd = os.open(target, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o400)
-    os.close(fd)
 node_modules = stage / "node_modules"
 if os.path.lexists(node_modules):
-    raise SystemExit("projection unexpectedly contains node_modules")
-os.symlink("../../deps/node_modules", node_modules)
+    raise SystemExit(f"projection unexpectedly contains generated build path: {node_modules}")
+node_modules.mkdir(mode=0o555)
+os.chmod(node_modules, 0o555)
+next_env = stage / "next-env.d.ts"
+if os.path.lexists(next_env):
+    raise SystemExit("projection unexpectedly contains generated next-env.d.ts")
+content = (
+    '/// <reference types="next" />\n'
+    '/// <reference types="next/image-types/global" />\n'
+    'import "./.next/types/routes.d.ts";\n\n'
+    '// NOTE: This file should not be edited\n'
+    '// see https://nextjs.org/docs/app/api-reference/config/typescript for more information.\n'
+).encode("utf-8")
+fd = os.open(
+    next_env,
+    os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_CLOEXEC", 0),
+    0o444,
+)
+try:
+    view = memoryview(content)
+    while view:
+        written = os.write(fd, view)
+        view = view[written:]
+    os.fsync(fd)
+    os.fchmod(fd, 0o444)
+finally:
+    os.close(fd)
 PY_BUILD_MOUNTS
   then
-    log "FATAL: could not prepare reviewed install/build mountpoints"
+    log "FATAL: could not prepare reviewed install/build bind mountpoints"
     return 73
   fi
 }
@@ -1517,6 +1595,8 @@ run_sandboxed_phase(){
     --property=RestrictSUIDSGID=yes
     --property=LockPersonality=yes
     --property=RestrictRealtime=yes
+    --property=SupplementaryGroups=
+    "--property=RestrictAddressFamilies=AF_INET AF_INET6"
     --property=UMask=0077
     --property="PrivateNetwork=$private_network"
     --property="InaccessiblePaths=$APP"
@@ -1527,6 +1607,11 @@ run_sandboxed_phase(){
     --property="InaccessiblePaths=$BUILD_LOCK_DIR"
   )
   case "$phase" in
+    identity)
+      command+=(
+        --property="ReadOnlyPaths=$BUILD_HOME_DIR"
+      )
+      ;;
     install)
       command+=(
         --property="InaccessiblePaths=$BUILD_SOURCE_ROOT"
@@ -1541,7 +1626,7 @@ run_sandboxed_phase(){
     build)
       command+=(
         --property="ReadOnlyPaths=$BUILD_SOURCE_ROOT"
-        --property="ReadOnlyPaths=$BUILD_DEPS_ROOT/node_modules"
+        --property="BindReadOnlyPaths=$BUILD_DEPS_ROOT/node_modules:$working_directory/node_modules"
         --property="ReadWritePaths=$working_directory/.next"
         --property="ReadWritePaths=$BUILD_HOME_DIR"
         --property="ReadWritePaths=$BUILD_NPM_CACHE"
@@ -1556,20 +1641,97 @@ run_sandboxed_phase(){
   "${command[@]}" -- "$@"
 }
 
+verify_sandbox_principal(){
+  local observed expected
+  expected="$EXPECTED_BUILD_UID"$'\t'"$EXPECTED_BUILD_GID"$'\t'0
+  if ! observed=$(
+    run_sandboxed_phase identity "$BUILD_HOME_DIR" yes \
+      "$EXPECTED_ENV_PATH" -i \
+        PATH="$CLEAN_BUILD_PATH" HOME="$EXPECTED_BUILD_HOME" \
+        LANG=C.UTF-8 LC_ALL=C.UTF-8 TZ=UTC \
+        "$EXPECTED_PYTHON_PATH" -I - \
+          "$EXPECTED_BUILD_UID" "$EXPECTED_BUILD_GID" <<'PY_SANDBOX_PRINCIPAL'
+import os
+import sys
+uid = int(sys.argv[1])
+gid = int(sys.argv[2])
+groups = sorted(set(os.getgroups()))
+if os.getuid() != uid or os.getgid() != gid or groups:
+    raise SystemExit(77)
+print(f"{os.getuid()}\t{os.getgid()}\t{len(groups)}")
+PY_SANDBOX_PRINCIPAL
+  ); then
+    log "FATAL: could not execute the effective build-principal sandbox probe"
+    return 77
+  fi
+  if [ "$observed" != "$expected" ]; then
+    log "FATAL: effective sandbox credentials differ from the reviewed build principal: $observed"
+    return 77
+  fi
+}
+
+
 prepare_sandbox_identity(){
   BUILD_SANDBOX_IDENTITY="$BUILD_EVIDENCE_DIR/build-sandbox-identity.json"
   if ! "$EXPECTED_PYTHON_PATH" -I - \
-      "$BUILD_SANDBOX_IDENTITY" "$EXPECTED_SYSTEMD_RUN_PATH" <<'PY_SANDBOX_IDENTITY'
+      "$BUILD_SANDBOX_IDENTITY" "$EXPECTED_SYSTEMD_RUN_PATH" \
+      "$EXPECTED_CONTROLLER_PATH" "$EXPECTED_SUDO_PATH" \
+      "$EXPECTED_ENV_PATH" "$EXPECTED_BASH_PATH" <<'PY_SANDBOX_IDENTITY'
+import hashlib
 import json
 import os
+import stat
 import sys
 from pathlib import Path
 
 path = Path(sys.argv[1])
-systemd_run_path = sys.argv[2]
+systemd_run_path, controller_path, sudo_path, env_path, bash_path = sys.argv[2:]
+controller = Path(controller_path)
+expected = os.lstat(controller)
+if stat.S_ISLNK(expected.st_mode) or not stat.S_ISREG(expected.st_mode):
+    raise SystemExit("canonical controller must be a real regular file")
+if expected.st_uid != 0 or expected.st_gid != 0 or stat.S_IMODE(expected.st_mode) != 0o755:
+    raise SystemExit("canonical controller custody/mode is invalid")
+if expected.st_size <= 0 or expected.st_size > 4 * 1024 * 1024:
+    raise SystemExit("canonical controller size is invalid")
+flags = (
+    os.O_RDONLY | getattr(os, "O_CLOEXEC", 0)
+    | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0)
+)
+fd = os.open(controller, flags)
+try:
+    before = os.fstat(fd)
+    digest = hashlib.sha256()
+    total = 0
+    while True:
+        chunk = os.read(fd, 1024 * 1024)
+        if not chunk:
+            break
+        total += len(chunk)
+        if total > 4 * 1024 * 1024:
+            raise SystemExit("canonical controller exceeds size bound")
+        digest.update(chunk)
+    after = os.fstat(fd)
+finally:
+    os.close(fd)
+identity = lambda item: (
+    item.st_dev, item.st_ino, item.st_mode, item.st_uid, item.st_gid,
+    item.st_size, item.st_mtime_ns,
+)
+if identity(expected) != identity(before) or identity(before) != identity(after):
+    raise SystemExit("canonical controller changed while read")
 payload = {
     "schema": "mastermind.terminal.build_sandbox_identity.v1",
     "systemd_run_path": systemd_run_path,
+    "controller_entry": {
+        "controller_path": controller_path,
+        "controller_sha256": digest.hexdigest(),
+        "sudo_path": sudo_path,
+        "env_path": env_path,
+        "bash_path": bash_path,
+        "privileged_mode": True,
+        "clean_environment": True,
+    },
     "common_properties": [
         "AmbientCapabilities=",
         "CapabilityBoundingSet=",
@@ -1585,9 +1747,16 @@ payload = {
         "ProtectSystem=strict",
         "RestrictRealtime=yes",
         "RestrictSUIDSGID=yes",
+        "SupplementaryGroups=",
+        "RestrictAddressFamilies=AF_INET AF_INET6",
         "UMask=0077",
     ],
     "phases": {
+        "identity": {
+            "private_network": True,
+            "read_only_inputs": [],
+            "writable_roots": [],
+        },
         "install": {
             "private_network": False,
             "read_only_inputs": ["package.json", "package-lock.json"],
@@ -1679,12 +1848,12 @@ run_isolated_terminal_build(){
   log "next build (static principal; source/dependencies read-only; network disabled) ..."
   run_sandboxed_phase build "$stage" yes \
     "$EXPECTED_ENV_PATH" -i \
-      PATH="$BUILD_DEPS_ROOT/node_modules/.bin:$CLEAN_BUILD_PATH" \
+      PATH="$stage/node_modules/.bin:$CLEAN_BUILD_PATH" \
       HOME="$BUILD_HOME_DIR" TMPDIR="$BUILD_TMP_DIR" TMP="$BUILD_TMP_DIR" TEMP="$BUILD_TMP_DIR" \
       LANG=C.UTF-8 LC_ALL=C.UTF-8 TZ=UTC NODE_ENV=production \
       NEXT_TELEMETRY_DISABLED=1 \
       GIT_SHA="$TARGET_SHA" NEXT_DEPLOYMENT_ID="$TARGET_SHA" \
-      "$BUILD_DEPS_ROOT/node_modules/.bin/next" build || { rc=$?; return "$rc"; }
+      "$stage/node_modules/.bin/next" build || { rc=$?; return "$rc"; }
 }
 
 publish_build_receipt(){
@@ -1919,12 +2088,48 @@ if [ "${BASH_SOURCE[0]}" != "$0" ]; then
   return 0
 fi
 
+# Argument shape and the immutable target syntax are pure and are checked on both
+# passes. Invalid requests never cross the privilege boundary; the clean root pass
+# rechecks the same bytes before any release effect.
 if ! { [ "$#" -eq 2 ] && [ "$1" = "--target-sha" ]; }; then
   log "USAGE: $0 --target-sha <full-lowercase-40-hex-commit>"
   exit 64
 fi
 TARGET_SHA=$2
 validate_target_sha "$TARGET_SHA" || exit $?
+
+# Privilege is acquired only through sudo's setuid/sanitized boundary. The
+# unprivileged first pass may inherit a hostile user environment, but it performs
+# no release effect and can invoke only this exact controller through the reviewed
+# sudoers command. The privileged pass starts under env -i + bash -p; direct root
+# execution is refused so LD_PRELOAD/BASH_ENV cannot become an accepted root path.
+if [ "${MMX_TERMINAL_BUILD_PRIVILEGED_ENTRY:-}" != 1 ]; then
+  if [ "$EUID" -eq 0 ]; then
+    log "FATAL: direct root controller entry is forbidden; use the admitted sudo launcher"
+    exit 77
+  fi
+  [ -x "$EXPECTED_SUDO_PATH" ] && [ -x "$EXPECTED_ENV_PATH" ] && [ -x "$EXPECTED_BASH_PATH" ] || {
+    log "FATAL: admitted sudo/env/bash launcher binaries are unavailable"
+    exit 77
+  }
+  exec "$EXPECTED_SUDO_PATH" -n -- \
+    "$EXPECTED_ENV_PATH" -i \
+      PATH="$CLEAN_BUILD_PATH" HOME=/root LANG=C.UTF-8 LC_ALL=C.UTF-8 TZ=UTC \
+      MMX_TERMINAL_BUILD_PRIVILEGED_ENTRY=1 \
+      "$EXPECTED_BASH_PATH" -p "$EXPECTED_CONTROLLER_PATH" "$@"
+  log "FATAL: admitted sudo launcher returned without replacing the process"
+  exit 77
+fi
+if [ "$EUID" -ne 0 ]; then
+  log "FATAL: privileged controller entry did not obtain uid 0"
+  exit 77
+fi
+if [ "$0" != "$EXPECTED_CONTROLLER_PATH" ]; then
+  log "FATAL: privileged controller path is not canonical: $0"
+  exit 77
+fi
+unset MMX_TERMINAL_BUILD_PRIVILEGED_ENTRY
+
 sanitize_git_environment
 acquire_deploy_lock || exit $?
 
@@ -1964,6 +2169,7 @@ log "GIT-GATED: building accepted target $FULL_SHA from captured origin/$BRANCH 
 # Git tree path-by-path under one deterministic application root. Repository-local
 # archive attributes and unrelated accepted roots cannot alter the build input.
 prepare_build_roots || exit $?
+verify_sandbox_principal || exit $?
 bootstrap_controller_evidence || exit $?
 materialize_build_projection || exit $?
 STAGE_ROOT=$BUILD_TARGET_ROOT

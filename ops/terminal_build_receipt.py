@@ -15,12 +15,13 @@ import re
 import stat
 import tempfile
 from datetime import datetime, timezone
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any, Iterable, Mapping, Sequence
 
 SCHEMA = "mastermind.terminal.build_receipt.v1"
 _FULL_SHA = re.compile(r"^[0-9a-f]{40}$")
 _FULL_DIGEST = re.compile(r"^[0-9a-f]{64}$")
+_SAFE_ROOT = re.compile(r"^[A-Za-z0-9._-]+$")
 _MAX_IDENTITY_BYTES = 256 * 1024
 _MAX_REQUIRED_SERVER_FILES = 20_000
 _MAX_RECEIPT_BYTES = 4 * 1024 * 1024
@@ -54,9 +55,16 @@ _SANDBOX_COMMON_PROPERTIES = (
     "ProtectSystem=strict",
     "RestrictRealtime=yes",
     "RestrictSUIDSGID=yes",
+    "SupplementaryGroups=",
+    "RestrictAddressFamilies=AF_INET AF_INET6",
     "UMask=0077",
 )
 _SANDBOX_PHASES = {
+    "identity": {
+        "private_network": True,
+        "read_only_inputs": [],
+        "writable_roots": [],
+    },
     "install": {
         "private_network": False,
         "read_only_inputs": ["package.json", "package-lock.json"],
@@ -75,12 +83,27 @@ def _sha256(payload: bytes) -> str:
 
 
 def _stable_regular_bytes(path: Path, *, limit: int) -> tuple[bytes, os.stat_result]:
-    flags = os.O_RDONLY | getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NOFOLLOW", 0)
+    expected = os.lstat(path)
+    if stat.S_ISLNK(expected.st_mode) or not stat.S_ISREG(expected.st_mode):
+        raise ValueError(f"expected regular file: {path}")
+    flags = (
+        os.O_RDONLY | getattr(os, "O_CLOEXEC", 0)
+        | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0)
+    )
     fd = os.open(path, flags)
     try:
         before = os.fstat(fd)
-        if not stat.S_ISREG(before.st_mode):
-            raise ValueError(f"expected regular file: {path}")
+        identity = lambda item: (
+            item.st_dev,
+            item.st_ino,
+            item.st_mode,
+            item.st_uid,
+            item.st_gid,
+            item.st_size,
+            item.st_mtime_ns,
+        )
+        if identity(expected) != identity(before) or not stat.S_ISREG(before.st_mode):
+            raise ValueError(f"expected stable regular file: {path}")
         if before.st_size > limit:
             raise ValueError(f"file exceeds size bound: {path}")
         chunks: list[bytes] = []
@@ -95,15 +118,6 @@ def _stable_regular_bytes(path: Path, *, limit: int) -> tuple[bytes, os.stat_res
         if len(payload) > limit:
             raise ValueError(f"file exceeds size bound: {path}")
         after = os.fstat(fd)
-        identity = lambda item: (
-            item.st_dev,
-            item.st_ino,
-            item.st_mode,
-            item.st_uid,
-            item.st_gid,
-            item.st_size,
-            item.st_mtime_ns,
-        )
         if identity(before) != identity(after):
             raise ValueError(f"file changed while read: {path}")
         return payload, after
@@ -310,11 +324,26 @@ def _open_trusted_directory(path: Path, *, expected_uid: int, expected_gid: int)
 
 
 def _stable_regular_bytes_at(directory_fd: int, name: str, *, limit: int) -> bytes:
-    flags = os.O_RDONLY | getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NOFOLLOW", 0)
+    expected = os.stat(name, dir_fd=directory_fd, follow_symlinks=False)
+    if stat.S_ISLNK(expected.st_mode) or not stat.S_ISREG(expected.st_mode):
+        raise ValueError(f"cache entry is not a bounded regular file: {name}")
+    flags = (
+        os.O_RDONLY | getattr(os, "O_CLOEXEC", 0)
+        | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0)
+    )
     fd = os.open(name, flags, dir_fd=directory_fd)
     try:
         before = os.fstat(fd)
-        if not stat.S_ISREG(before.st_mode) or before.st_size > limit:
+        identity = lambda item: (
+            item.st_dev,
+            item.st_ino,
+            item.st_mode,
+            item.st_uid,
+            item.st_gid,
+            item.st_size,
+            item.st_mtime_ns,
+        )
+        if identity(expected) != identity(before) or not stat.S_ISREG(before.st_mode) or before.st_size > limit:
             raise ValueError(f"cache entry is not a bounded regular file: {name}")
         chunks: list[bytes] = []
         remaining = limit + 1
@@ -326,7 +355,6 @@ def _stable_regular_bytes_at(directory_fd: int, name: str, *, limit: int) -> byt
             remaining -= len(chunk)
         payload = b"".join(chunks)
         after = os.fstat(fd)
-        identity = lambda item: (item.st_dev, item.st_ino, item.st_mode, item.st_uid, item.st_gid, item.st_size, item.st_mtime_ns)
         if len(payload) > limit or identity(before) != identity(after):
             raise ValueError(f"cache entry changed while read: {name}")
         return payload
@@ -334,12 +362,31 @@ def _stable_regular_bytes_at(directory_fd: int, name: str, *, limit: int) -> byt
         os.close(fd)
 
 def _validate_sandbox_identity(value: Mapping[str, Any]) -> Mapping[str, Any]:
-    if set(value) != {"schema", "systemd_run_path", "common_properties", "phases"}:
+    if set(value) != {"schema", "systemd_run_path", "controller_entry", "common_properties", "phases"}:
         raise ValueError("sandbox identity has unknown or missing fields")
     if value.get("schema") != "mastermind.terminal.build_sandbox_identity.v1":
         raise ValueError("sandbox identity schema is invalid")
     if value.get("systemd_run_path") != "/usr/bin/systemd-run":
         raise ValueError("sandbox systemd-run identity is invalid")
+    controller_entry = value.get("controller_entry")
+    expected_entry = {
+        "controller_path": "/opt/terminal/terminal-build.sh",
+        "controller_sha256": None,
+        "sudo_path": "/usr/bin/sudo",
+        "env_path": "/usr/bin/env",
+        "bash_path": "/usr/bin/bash",
+        "privileged_mode": True,
+        "clean_environment": True,
+    }
+    if not isinstance(controller_entry, Mapping) or set(controller_entry) != set(expected_entry):
+        raise ValueError("sandbox controller entry has unknown or missing fields")
+    controller_digest = controller_entry.get("controller_sha256")
+    if not isinstance(controller_digest, str) or not _FULL_DIGEST.fullmatch(controller_digest):
+        raise ValueError("sandbox controller digest is invalid")
+    fixed_entry = {key: value for key, value in controller_entry.items() if key != "controller_sha256"}
+    fixed_expected = {key: value for key, value in expected_entry.items() if key != "controller_sha256"}
+    if fixed_entry != fixed_expected:
+        raise ValueError("sandbox controller entry contract is invalid")
     if value.get("common_properties") != list(_SANDBOX_COMMON_PROPERTIES):
         raise ValueError("sandbox common property contract is invalid")
     phases = value.get("phases")
@@ -570,6 +617,122 @@ def _projection_identity(path: Path, *, target_sha: str, target_tree: str) -> Ma
         raise ValueError("projection policy digest is invalid")
     if not isinstance(projection_digest, str) or not _FULL_DIGEST.fullmatch(projection_digest):
         raise ValueError("projection digest is invalid")
+
+    included = value.get("included_roots")
+    if (
+        not isinstance(included, list)
+        or included != sorted(set(included))
+        or any(not isinstance(item, str) or not _SAFE_ROOT.fullmatch(item) for item in included)
+    ):
+        raise ValueError("projection included_roots is invalid")
+
+    def tree_rows(raw: Any, label: str) -> list[Mapping[str, Any]]:
+        if not isinstance(raw, list):
+            raise ValueError(f"projection {label} is invalid")
+        rows: list[Mapping[str, Any]] = []
+        for row in raw:
+            if not isinstance(row, Mapping) or set(row) != {"path", "mode", "type", "oid"}:
+                raise ValueError(f"projection {label} row has unknown or missing fields")
+            if (
+                not isinstance(row.get("path"), str)
+                or not _SAFE_ROOT.fullmatch(str(row["path"]))
+                or row.get("mode") != "040000"
+                or row.get("type") != "tree"
+                or not isinstance(row.get("oid"), str)
+                or not _FULL_SHA.fullmatch(str(row["oid"]))
+            ):
+                raise ValueError(f"projection {label} row is invalid")
+            rows.append(row)
+        if [str(row["path"]) for row in rows] != sorted({str(row["path"]) for row in rows}):
+            raise ValueError(f"projection {label} rows must be sorted and unique")
+        return rows
+
+    included_objects = tree_rows(value.get("included_root_objects"), "included_root_objects")
+    if [str(row["path"]) for row in included_objects] != included:
+        raise ValueError("projection included root objects disagree with included_roots")
+    excluded_objects = tree_rows(value.get("excluded_roots"), "excluded_roots")
+    if set(included).intersection(str(row["path"]) for row in excluded_objects):
+        raise ValueError("projection root sets overlap")
+
+    entries = value.get("entries")
+    if not isinstance(entries, list):
+        raise ValueError("projection entries is invalid")
+    seen_paths: set[str] = set()
+    for entry in entries:
+        if not isinstance(entry, Mapping):
+            raise ValueError("projection entry is invalid")
+        mode = entry.get("mode")
+        expected = {"path", "mode", "type", "oid", "bytes", "sha256"}
+        if mode == "120000":
+            expected.add("target")
+        if set(entry) != expected:
+            raise ValueError("projection entry has unknown or missing fields")
+        raw_path = entry.get("path")
+        if not isinstance(raw_path, str):
+            raise ValueError("projection entry path is invalid")
+        parsed = PurePosixPath(raw_path)
+        if (
+            parsed.is_absolute()
+            or not parsed.parts
+            or any(part in {"", ".", ".."} for part in parsed.parts)
+            or parsed.parts[0] not in set(included)
+            or raw_path in seen_paths
+        ):
+            raise ValueError("projection entry path is invalid or duplicated")
+        seen_paths.add(raw_path)
+        if mode not in {"100644", "100755", "120000"} or entry.get("type") != "blob":
+            raise ValueError("projection entry mode/type is invalid")
+        if not isinstance(entry.get("oid"), str) or not _FULL_SHA.fullmatch(str(entry["oid"])):
+            raise ValueError("projection entry object id is invalid")
+        if type(entry.get("bytes")) is not int or int(entry["bytes"]) < 0:
+            raise ValueError("projection entry byte count is invalid")
+        if not isinstance(entry.get("sha256"), str) or not _FULL_DIGEST.fullmatch(str(entry["sha256"])):
+            raise ValueError("projection entry digest is invalid")
+        if mode == "120000":
+            target = entry.get("target")
+            if not isinstance(target, str) or not target or any(char in target for char in "\x00\n\r"):
+                raise ValueError("projection symlink target is invalid")
+
+    controller = value.get("controller_evidence")
+    controller_sources = {
+        "projection_helper": ("ops/terminal_build_projection.py", "projection-helper.py"),
+        "projection_policy": ("ops/terminal_build_projection.json", "projection-policy.json"),
+        "receipt_helper": ("ops/terminal_build_receipt.py", "receipt-helper.py"),
+        "package_json": ("terminal/package.json", "package.json"),
+        "package_lock": ("terminal/package-lock.json", "package-lock.json"),
+    }
+    if not isinstance(controller, Mapping) or set(controller) != set(controller_sources):
+        raise ValueError("projection controller_evidence is invalid")
+    evidence_files: set[str] = set()
+    for name, row in controller.items():
+        if not isinstance(row, Mapping) or set(row) != {
+            "source_path", "file", "mode", "oid", "bytes", "sha256"
+        }:
+            raise ValueError(f"projection controller evidence has unknown or missing fields: {name}")
+        source_path = row.get("source_path")
+        file_name = row.get("file")
+        if (
+            not isinstance(source_path, str)
+            or PurePosixPath(source_path).is_absolute()
+            or any(part in {"", ".", ".."} for part in PurePosixPath(source_path).parts)
+            or not isinstance(file_name, str)
+            or "/" in file_name
+            or file_name in evidence_files
+        ):
+            raise ValueError(f"projection controller evidence path is invalid: {name}")
+        expected_source, expected_file = controller_sources[name]
+        if source_path != expected_source or file_name != expected_file:
+            raise ValueError(f"projection controller evidence source/file is invalid: {name}")
+        evidence_files.add(file_name)
+        if row.get("mode") not in {"100644", "100755"}:
+            raise ValueError(f"projection controller evidence mode is invalid: {name}")
+        if not isinstance(row.get("oid"), str) or not _FULL_SHA.fullmatch(str(row["oid"])):
+            raise ValueError(f"projection controller evidence object id is invalid: {name}")
+        if type(row.get("bytes")) is not int or int(row["bytes"]) < 0:
+            raise ValueError(f"projection controller evidence byte count is invalid: {name}")
+        if not isinstance(row.get("sha256"), str) or not _FULL_DIGEST.fullmatch(str(row["sha256"])):
+            raise ValueError(f"projection controller evidence digest is invalid: {name}")
+
     canonical = {key: item for key, item in value.items() if key != "projection_sha256"}
     if _sha256(json.dumps(canonical, sort_keys=True, separators=(",", ":")).encode("utf-8")) != projection_digest:
         raise ValueError("projection digest disagrees with manifest")

@@ -4,6 +4,8 @@ import hashlib
 import importlib.util
 import json
 import os
+import subprocess
+import sys
 from argparse import Namespace
 from datetime import datetime, timezone
 from pathlib import Path
@@ -106,10 +108,29 @@ def _fixture(tmp_path: Path) -> tuple[Path, Path, Path, Path, Path, Path]:
         "target_tree": TREE,
         "policy_sha256": "5" * 64,
         "included_roots": ["ingest", "terminal"],
-        "included_root_objects": [],
+        "included_root_objects": [
+            {"path": "ingest", "mode": "040000", "type": "tree", "oid": "6" * 40},
+            {"path": "terminal", "mode": "040000", "type": "tree", "oid": "7" * 40},
+        ],
         "excluded_roots": [],
         "entries": [],
-        "controller_evidence": {},
+        "controller_evidence": {
+            name: {
+                "source_path": source_path,
+                "file": file_name,
+                "mode": "100644",
+                "oid": format(index + 8, "x") * 40,
+                "bytes": 1,
+                "sha256": format(index + 8, "x") * 64,
+            }
+            for index, (name, source_path, file_name) in enumerate((
+                ("projection_helper", "ops/terminal_build_projection.py", "projection-helper.py"),
+                ("projection_policy", "ops/terminal_build_projection.json", "projection-policy.json"),
+                ("receipt_helper", "ops/terminal_build_receipt.py", "receipt-helper.py"),
+                ("package_json", "terminal/package.json", "package.json"),
+                ("package_lock", "terminal/package-lock.json", "package-lock.json"),
+            ))
+        },
     }
     projection_payload["projection_sha256"] = _sha(
         json.dumps(projection_payload, sort_keys=True, separators=(",", ":")).encode()
@@ -123,6 +144,15 @@ def _fixture(tmp_path: Path) -> tuple[Path, Path, Path, Path, Path, Path]:
             {
                 "schema": "mastermind.terminal.build_sandbox_identity.v1",
                 "systemd_run_path": "/usr/bin/systemd-run",
+                "controller_entry": {
+                    "controller_path": "/opt/terminal/terminal-build.sh",
+                    "controller_sha256": "c" * 64,
+                    "sudo_path": "/usr/bin/sudo",
+                    "env_path": "/usr/bin/env",
+                    "bash_path": "/usr/bin/bash",
+                    "privileged_mode": True,
+                    "clean_environment": True,
+                },
                 "common_properties": [
                     "AmbientCapabilities=",
                     "CapabilityBoundingSet=",
@@ -138,9 +168,16 @@ def _fixture(tmp_path: Path) -> tuple[Path, Path, Path, Path, Path, Path]:
                     "ProtectSystem=strict",
                     "RestrictRealtime=yes",
                     "RestrictSUIDSGID=yes",
+                    "SupplementaryGroups=",
+                    "RestrictAddressFamilies=AF_INET AF_INET6",
                     "UMask=0077",
                 ],
                 "phases": {
+                    "identity": {
+                        "private_network": True,
+                        "read_only_inputs": [],
+                        "writable_roots": [],
+                    },
                     "install": {
                         "private_network": False,
                         "read_only_inputs": ["package.json", "package-lock.json"],
@@ -504,3 +541,134 @@ def test_existing_receipt_with_unknown_root_field_fails_closed(tmp_path: Path) -
     second = receipt.build_receipt(_args(root, public, keys, projection, sandbox, receipts))
     with pytest.raises(ValueError, match="unknown|fields|schema"):
         receipt.publish_receipt(receipts, second)
+
+
+
+def _run_receipt_probe(code: str, *, timeout: float = 2.0) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        [sys.executable, "-c", code],
+        capture_output=True,
+        text=True,
+        timeout=timeout,
+    )
+
+
+def test_required_server_manifest_fifo_is_rejected_without_blocking(tmp_path: Path) -> None:
+    root, *_ = _fixture(tmp_path)
+    manifest = root / ".next" / "required-server-files.json"
+    manifest.unlink()
+    os.mkfifo(manifest)
+    try:
+        probe = f"""
+import importlib.util
+from pathlib import Path
+spec = importlib.util.spec_from_file_location('receipt_probe', {str(MODULE_PATH)!r})
+module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(module)
+try:
+    module.compute_serving_digest({str(root)!r})
+except ValueError as exc:
+    print(exc)
+    raise SystemExit(0)
+raise SystemExit('FIFO was accepted')
+"""
+        result = _run_receipt_probe(probe)
+        assert result.returncode == 0, result.stdout + result.stderr
+        assert "regular" in result.stdout.lower() or "special" in result.stdout.lower()
+    finally:
+        manifest.unlink(missing_ok=True)
+
+
+def test_next_key_fifo_is_rejected_without_blocking(tmp_path: Path) -> None:
+    root, *_ = _fixture(tmp_path)
+    cache = root / ".next" / "cache"
+    key = cache / ".previewinfo"
+    key.unlink()
+    os.mkfifo(key)
+    try:
+        probe = f"""
+import importlib.util, os
+from pathlib import Path
+spec = importlib.util.spec_from_file_location('receipt_probe', {str(MODULE_PATH)!r})
+module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(module)
+fd, _ = module._open_trusted_directory(Path({str(cache)!r}), expected_uid=os.getuid(), expected_gid=os.getgid())
+try:
+    module._stable_regular_bytes_at(fd, '.previewinfo', limit=4096)
+except ValueError as exc:
+    print(exc)
+    raise SystemExit(0)
+finally:
+    os.close(fd)
+raise SystemExit('FIFO was accepted')
+"""
+        result = _run_receipt_probe(probe)
+        assert result.returncode == 0, result.stdout + result.stderr
+        assert "regular" in result.stdout.lower() or "special" in result.stdout.lower()
+    finally:
+        key.unlink(missing_ok=True)
+
+
+def test_projection_manifest_rejects_undeclared_nested_entry_fields(tmp_path: Path) -> None:
+    root, public, keys, projection, sandbox, receipts = _fixture(tmp_path)
+    payload = json.loads(projection.read_text(encoding="utf-8"))
+    payload["entries"] = [{
+        "path": "terminal/package.json",
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d" * 40,
+        "bytes": 2,
+        "sha256": "e" * 64,
+        "payload": {"secret": "synthetic-canary"},
+    }]
+    payload["projection_sha256"] = _sha(
+        json.dumps(
+            {key: value for key, value in payload.items() if key != "projection_sha256"},
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode()
+    )
+    projection.write_text(json.dumps(payload), encoding="utf-8")
+    with pytest.raises(ValueError, match="projection.*entry|unknown|fields"):
+        receipt.build_receipt(_args(root, public, keys, projection, sandbox, receipts))
+
+
+def test_receipt_binds_closed_privileged_controller_entry(tmp_path: Path) -> None:
+    root, public, keys, projection, sandbox, receipts = _fixture(tmp_path)
+    value = receipt.build_receipt(_args(root, public, keys, projection, sandbox, receipts))
+    assert value["sandbox"]["controller_entry"] == {
+        "controller_path": "/opt/terminal/terminal-build.sh",
+        "controller_sha256": "c" * 64,
+        "sudo_path": "/usr/bin/sudo",
+        "env_path": "/usr/bin/env",
+        "bash_path": "/usr/bin/bash",
+        "privileged_mode": True,
+        "clean_environment": True,
+    }
+
+
+
+def test_controller_digest_participates_in_complete_input_fingerprint(tmp_path: Path) -> None:
+    root, public, keys, projection, sandbox, receipts = _fixture(tmp_path)
+    first = receipt.build_receipt(_args(root, public, keys, projection, sandbox, receipts))
+    payload = json.loads(sandbox.read_text(encoding="utf-8"))
+    payload["controller_entry"]["controller_sha256"] = "d" * 64
+    sandbox.write_text(json.dumps(payload), encoding="utf-8")
+    second = receipt.build_receipt(_args(root, public, keys, projection, sandbox, receipts))
+    assert first["input_fingerprint"] != second["input_fingerprint"]
+
+
+def test_projection_manifest_rejects_controller_evidence_source_substitution(tmp_path: Path) -> None:
+    root, public, keys, projection, sandbox, receipts = _fixture(tmp_path)
+    payload = json.loads(projection.read_text(encoding="utf-8"))
+    payload["controller_evidence"]["package_json"]["source_path"] = "terminal/not-package.json"
+    payload["projection_sha256"] = _sha(
+        json.dumps(
+            {key: value for key, value in payload.items() if key != "projection_sha256"},
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode()
+    )
+    projection.write_text(json.dumps(payload), encoding="utf-8")
+    with pytest.raises(ValueError, match="controller evidence.*source|source.*controller evidence"):
+        receipt.build_receipt(_args(root, public, keys, projection, sandbox, receipts))

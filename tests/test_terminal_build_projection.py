@@ -5,6 +5,7 @@ import hashlib
 import json
 import os
 import shutil
+import stat
 import subprocess
 from pathlib import Path
 
@@ -202,6 +203,54 @@ def test_absolute_or_escaping_symlink_inside_projection_fails(tmp_path: Path) ->
             )
 
 
+
+def test_chained_symlink_cannot_escape_through_an_allowed_intermediate_root(tmp_path: Path) -> None:
+    projection = _load_module()
+    repo, _ = _repo(tmp_path)
+    deep = repo / "terminal/deep"
+    deep.mkdir()
+    (deep / "a").symlink_to("../../ingest")
+    (deep / "b").symlink_to("a/../../terminal/app/route.ts")
+    _run(repo, "add", "terminal/deep/a", "terminal/deep/b")
+    _run(repo, "commit", "-qm", "chained symlink escape")
+    target = _run(repo, "rev-parse", "HEAD")
+    destination = tmp_path / "projection"
+    evidence = tmp_path / "evidence"
+    destination.mkdir()
+    evidence.mkdir(mode=0o700)
+    with pytest.raises(ValueError, match="symlink|escape|cycle"):
+        projection.materialize_projection(
+            repository=repo,
+            target_sha=target,
+            destination=destination,
+            evidence_dir=evidence,
+            policy_path=_policy(tmp_path, repo),
+            git_path=_git(),
+        )
+
+
+def test_projection_symlink_cycle_is_rejected_before_materialization(tmp_path: Path) -> None:
+    projection = _load_module()
+    repo, _ = _repo(tmp_path)
+    (repo / "terminal/a").symlink_to("b")
+    (repo / "terminal/b").symlink_to("a")
+    _run(repo, "add", "terminal/a", "terminal/b")
+    _run(repo, "commit", "-qm", "symlink cycle")
+    target = _run(repo, "rev-parse", "HEAD")
+    destination = tmp_path / "projection"
+    evidence = tmp_path / "evidence"
+    destination.mkdir()
+    evidence.mkdir(mode=0o700)
+    with pytest.raises(ValueError, match="symlink|cycle"):
+        projection.materialize_projection(
+            repository=repo,
+            target_sha=target,
+            destination=destination,
+            evidence_dir=evidence,
+            policy_path=_policy(tmp_path, repo),
+            git_path=_git(),
+        )
+
 def test_gitlink_inside_projection_fails(tmp_path: Path) -> None:
     projection = _load_module()
     repo, target = _repo(tmp_path)
@@ -241,7 +290,7 @@ def _preseed_controller_evidence(repo: Path, target: str, evidence: Path, policy
         ).stdout
         path = evidence / names[key]
         path.write_bytes(payload)
-        path.chmod(0o400)
+        path.chmod(0o444 if key in {"package_json", "package_lock"} else 0o400)
 
 
 def test_exact_preseeded_controller_evidence_is_accepted(tmp_path: Path) -> None:
@@ -264,6 +313,9 @@ def test_exact_preseeded_controller_evidence_is_accepted(tmp_path: Path) -> None
     assert result["controller_evidence"]["receipt_helper"]["sha256"] == hashlib.sha256(
         (evidence / "receipt-helper.py").read_bytes()
     ).hexdigest()
+    assert stat.S_IMODE((evidence / "projection-helper.py").stat().st_mode) == 0o400
+    assert stat.S_IMODE((evidence / "package.json").stat().st_mode) == 0o444
+    assert stat.S_IMODE((evidence / "package-lock.json").stat().st_mode) == 0o444
 
 
 def test_mutated_preseeded_controller_evidence_is_rejected(tmp_path: Path) -> None:

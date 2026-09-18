@@ -29,6 +29,11 @@ _EVIDENCE_FILENAMES = {
     "package_lock": "package-lock.json",
 }
 _ALLOWED_FILE_MODES = {"100644", "100755", "120000"}
+_READABLE_EVIDENCE_FILES = {"package.json", "package-lock.json"}
+
+
+def _evidence_mode(name: str) -> int:
+    return 0o444 if name in _READABLE_EVIDENCE_FILES else 0o400
 
 
 def _sha256(payload: bytes) -> str:
@@ -45,7 +50,10 @@ def _stable_bytes(path: Path, *, limit: int = 4 * 1024 * 1024) -> bytes:
         raise ValueError(f"expected real regular file: {path}")
     if expected.st_size > limit:
         raise ValueError(f"file exceeds size bound: {path}")
-    flags = os.O_RDONLY | getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NOFOLLOW", 0)
+    flags = (
+        os.O_RDONLY | getattr(os, "O_CLOEXEC", 0)
+        | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0)
+    )
     fd = os.open(path, flags)
     try:
         before = os.fstat(fd)
@@ -191,8 +199,11 @@ def _real_empty_directory(path: Path, *, evidence: bool = False) -> Path:
                 raise ValueError(f"preseeded controller evidence is not a real file: {item}")
             if item_metadata.st_uid != os.geteuid() or item_metadata.st_gid != os.getegid():
                 raise ValueError(f"preseeded controller evidence owner/group differs from executor: {item}")
-            if stat.S_IMODE(item_metadata.st_mode) != 0o400:
-                raise ValueError(f"preseeded controller evidence mode must be 0400: {item}")
+            expected_mode = _evidence_mode(item.name)
+            if stat.S_IMODE(item_metadata.st_mode) != expected_mode:
+                raise ValueError(
+                    f"preseeded controller evidence mode must be {expected_mode:04o}: {item}"
+                )
     elif entries:
         raise ValueError(f"projection destination is not empty: {path}")
     resolved = path.resolve(strict=True)
@@ -229,6 +240,59 @@ def _resolved_link(path: PurePosixPath, target: str, included_roots: set[str]) -
     if not parts or parts[0] not in included_roots:
         raise ValueError(f"projection symlink escapes the projection: {path}")
     return PurePosixPath(*parts)
+
+
+def _validate_symlink_graph(
+    links: Mapping[PurePosixPath, str], included_roots: set[str]
+) -> None:
+    """Resolve every projected link component-by-component before writing bytes.
+
+    A lexical target may look in-bounds while an intermediate symlink changes the
+    meaning of later ``..`` components. Resolve the complete admitted link graph,
+    reject repeated links/cycles, and refuse the first attempt to walk above the
+    projection root.
+    """
+
+    def resolve(link_path: PurePosixPath) -> PurePosixPath:
+        target = links[link_path]
+        target_path = PurePosixPath(target)
+        if target_path.is_absolute() or any(char in target for char in "\x00\n\r"):
+            raise ValueError(f"projection symlink is absolute or malformed: {link_path}")
+        queue = list(link_path.parent.parts) + list(target_path.parts)
+        resolved: list[str] = []
+        visited: set[PurePosixPath] = set()
+        hops = 0
+        while queue:
+            part = queue.pop(0)
+            if part in {"", "."}:
+                continue
+            if part == "..":
+                if not resolved:
+                    raise ValueError(f"projection symlink escapes the projection: {link_path}")
+                resolved.pop()
+                continue
+            resolved.append(part)
+            candidate = PurePosixPath(*resolved)
+            nested = links.get(candidate)
+            if nested is None:
+                continue
+            if candidate in visited:
+                raise ValueError(f"projection symlink cycle/revisit is forbidden: {link_path}")
+            visited.add(candidate)
+            hops += 1
+            if hops > len(links) + 1:
+                raise ValueError(f"projection symlink cycle is forbidden: {link_path}")
+            nested_path = PurePosixPath(nested)
+            if nested_path.is_absolute() or any(char in nested for char in "\x00\n\r"):
+                raise ValueError(f"projection symlink is absolute or malformed: {candidate}")
+            resolved.pop()
+            queue = list(nested_path.parts) + queue
+        if not resolved or resolved[0] not in included_roots:
+            raise ValueError(f"projection symlink escapes the projection: {link_path}")
+        return PurePosixPath(*resolved)
+
+    for link_path in sorted(links, key=lambda item: item.as_posix()):
+        resolve(link_path)
 
 
 def _write_regular(path: Path, payload: bytes, mode: int) -> None:
@@ -346,6 +410,20 @@ def materialize_projection(
         _git(git_path, repo, "ls-tree", "-r", "-z", "--full-tree", target_sha, "--", *included)
     )
     included_set = set(included)
+    symlink_targets: dict[PurePosixPath, str] = {}
+    for row in entries:
+        if row["mode"] != "120000":
+            continue
+        parsed = _safe_repo_path(row["path"], included_set)
+        payload = _git(git_path, repo, "cat-file", "blob", row["oid"])
+        try:
+            target = payload.decode("utf-8")
+        except UnicodeDecodeError as exc:
+            raise ValueError(f"projection symlink target is not UTF-8: {row['path']}") from exc
+        _resolved_link(parsed, target, included_set)
+        symlink_targets[parsed] = target
+    _validate_symlink_graph(symlink_targets, included_set)
+
     manifest_entries: list[dict[str, Any]] = []
     symlinks: list[tuple[Path, str]] = []
     for row in entries:
@@ -380,13 +458,14 @@ def materialize_projection(
         payload = _git(git_path, repo, "cat-file", "blob", row["oid"])
         output_name = _EVIDENCE_FILENAMES[name]
         output_path = evidence_root / output_name
+        expected_mode = _evidence_mode(output_name)
         if output_path.exists():
             existing = _stable_bytes(output_path, limit=max(len(payload), 1))
             metadata = os.lstat(output_path)
-            if existing != payload or stat.S_IMODE(metadata.st_mode) != 0o400:
+            if existing != payload or stat.S_IMODE(metadata.st_mode) != expected_mode:
                 raise ValueError(f"preseeded controller evidence disagrees with admitted target: {source_path}")
         else:
-            _write_regular(output_path, payload, 0o400)
+            _write_regular(output_path, payload, expected_mode)
         evidence_manifest[name] = {
             "source_path": source_path,
             "file": output_name,

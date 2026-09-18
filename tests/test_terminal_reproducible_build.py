@@ -275,6 +275,13 @@ working=
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --working-directory=*) working=${1#*=} ;;
+    --property=BindReadOnlyPaths=*)
+      pair=${1#--property=BindReadOnlyPaths=}
+      source=${pair%%:*}
+      target=${pair#*:}
+      rm -rf "$target"
+      ln -s "$source" "$target"
+      ;;
     --) shift; break ;;
   esac
   shift
@@ -296,11 +303,19 @@ def _sandbox_globals(tmp_path: Path, stage: Path, stage_root: Path, live: Path) 
         path.mkdir(exist_ok=True)
     (evidence / "package.json").write_text("{}\n", encoding="utf-8")
     (evidence / "package-lock.json").write_text('{"lockfileVersion":3}\n', encoding="utf-8")
+    (stage / "package.json").write_text("{}\n", encoding="utf-8")
+    (stage / "package-lock.json").write_text('{"lockfileVersion":3}\n', encoding="utf-8")
+    (stage / "package.json").chmod(0o644)
+    (stage / "package-lock.json").chmod(0o644)
     shim = _systemd_shim(tmp_path / "systemd-run")
     assignments = "\n".join(
         (
             f"EXPECTED_BUILD_UID={os.getuid()}",
             f"EXPECTED_BUILD_GID={os.getgid()}",
+            f"EXPECTED_LOCK_UID={os.getuid()}",
+            f"EXPECTED_LOCK_GID={os.getgid()}",
+            f"EXPECTED_CONTROLLER_UID={os.getuid()}",
+            f"EXPECTED_CONTROLLER_GID={os.getgid()}",
             f"EXPECTED_SYSTEMD_RUN_PATH={str(shim)!r}",
             f"EXPECTED_ENV_PATH={shutil.which('env')!r}",
             f"BUILD_DEPS_ROOT={str(deps)!r}",
@@ -361,6 +376,7 @@ def test_failed_dependency_install_stops_every_later_build_phase(tmp_path: Path)
         TARGET_SHA={'a'*40!r}
         prepare_public_build_env() {{ echo public-called; : > "$2/.env.production.local"; return 0; }}
         prepare_next_build_keys() {{ echo keys-called; return 0; }}
+        prepare_sandbox_identity() {{ :; }}
         run_isolated_terminal_build {str(stage)!r} {str(live)!r} {str(stage_root)!r}
         rc=$?
         printf 'RC=%s\\n' "$rc"
@@ -385,6 +401,8 @@ def test_install_and_next_receive_private_stage_temp(tmp_path: Path) -> None:
     next_script = "#!/bin/sh\nset -eu\nenv | grep -E '^(TMPDIR|TMP|TEMP)=' >> " + repr(str(env_log)) + "\n"
     _write_executable(
         fake_npm,
+        f"[ \"$PWD\" = {str(stage_root / 'deps')!r} ] || exit 81\n"
+        "[ -r package.json ] && [ -r package-lock.json ] || exit 82\n"
         "mkdir -p node_modules/.bin\n"
         "cat > node_modules/.bin/next <<'NEXT'\n" + next_script + "NEXT\n"
         "chmod +x node_modules/.bin/next\n"
@@ -400,6 +418,7 @@ def test_install_and_next_receive_private_stage_temp(tmp_path: Path) -> None:
         TARGET_SHA={'a'*40!r}
         prepare_public_build_env() {{ : > "$2/.env.production.local"; }}
         prepare_next_build_keys() {{ :; }}
+        prepare_sandbox_identity() {{ :; }}
         run_isolated_terminal_build {str(stage)!r} {str(live)!r} {str(stage_root)!r}
         """
     )
@@ -433,7 +452,7 @@ def test_runtime_admission_uses_closed_environment_and_real_ubuntu_identity() ->
     start = text.index("verify_build_runtime(){")
     end = text.index("\nprepare_build_receipt_dir(){", start)
     body = text[start:end]
-    assert "env -i" in body
+    assert 'runtime_env=("$EXPECTED_ENV_PATH" -i' in body
     assert "NODE_OPTIONS" not in body
 
 
@@ -508,6 +527,8 @@ def test_install_and_build_have_separate_network_and_write_contracts() -> None:
     assert 'run_sandboxed_phase install "$BUILD_DEPS_ROOT" no' in body
     assert 'run_sandboxed_phase build "$stage" yes' in body
     assert 'BindReadOnlyPaths=' in text
+    assert '--property="InaccessiblePaths=$BUILD_SOURCE_ROOT"' in text
+    assert '--property="BindReadOnlyPaths=$BUILD_DEPS_ROOT/node_modules:$working_directory/node_modules"' in text
     assert 'ReadWritePaths=' in text
     assert '--property="InaccessiblePaths=$APP"' in text
     assert '--property="InaccessiblePaths=$SRC"' in text
@@ -600,22 +621,198 @@ exec "$@"
         "--property=CapabilityBoundingSet=", "--property=AmbientCapabilities=",
         "--property=ProtectSystem=strict", "--property=ProtectHome=yes",
         "--property=PrivateTmp=yes", "--property=PrivateDevices=yes",
-        "--property=RestrictSUIDSGID=yes", "--property=UMask=0077",
+        "--property=RestrictSUIDSGID=yes", "--property=SupplementaryGroups=",
+        "--property=RestrictAddressFamilies=AF_INET AF_INET6", "--property=UMask=0077",
     )
     for token in common:
         assert token in install
         assert token in build
+    assert "\nAF_INET6\n" not in install
+    assert "\nAF_INET6\n" not in build
     assert "--property=PrivateNetwork=no" in install
     assert "--property=PrivateNetwork=yes" in build
+    assert f"--property=InaccessiblePaths={stage.parent}" in install
     assert f"--property=BindReadOnlyPaths={stage_root / 'evidence/package.json'}:{stage_root / 'deps/package.json'}" in install
+    assert f"--property=BindReadOnlyPaths={stage_root / 'evidence/package-lock.json'}:{stage_root / 'deps/package-lock.json'}" in install
     assert f"--property=ReadOnlyPaths={stage.parent}" in build
+    assert f"--property=BindReadOnlyPaths={stage_root / 'deps/node_modules'}:{stage / 'node_modules'}" in build
     assert f"--property=ReadWritePaths={stage / '.next'}" in build
     assert f"--property=InaccessiblePaths={stage_root / 'evidence'}" in build
 
 
+
+def test_controller_direct_entry_ignores_bash_env_before_its_first_gate(tmp_path: Path) -> None:
+    assert _text().startswith("#!/usr/bin/bash -p\n")
+    canary = tmp_path / "bash-env-canary"
+    bash_env = tmp_path / "bash-env"
+    bash_env.write_text(f"printf BASH_ENV_CANARY > {str(canary)!r}\n", encoding="utf-8")
+    sudo_log = tmp_path / "sudo.log"
+    fake_sudo = tmp_path / "sudo"
+    _write_executable(fake_sudo, f"printf '%s\n' \"$@\" > {str(sudo_log)!r}\nexit 77\n")
+    candidate = tmp_path / "terminal-build.sh"
+    candidate.write_text(
+        _text()
+        .replace('EXPECTED_SUDO_PATH="/usr/bin/sudo"', f'EXPECTED_SUDO_PATH="{fake_sudo}"')
+        .replace('EXPECTED_ENV_PATH="/usr/bin/env"', f'EXPECTED_ENV_PATH="{shutil.which("env")}"')
+        .replace('EXPECTED_BASH_PATH="/usr/bin/bash"', f'EXPECTED_BASH_PATH="{_bash()}"')
+        .replace('EXPECTED_CONTROLLER_PATH="/opt/terminal/terminal-build.sh"', f'EXPECTED_CONTROLLER_PATH="{candidate}"'),
+        encoding="utf-8",
+    )
+    candidate.chmod(0o755)
+    environment = os.environ.copy()
+    environment.update({
+        "PATH": "/usr/bin:/bin",
+        "BASH_ENV": str(bash_env),
+        "BASH_FUNC_env%%": "() { printf IMPORTED_ENV_FUNCTION >&2; return 97; }",
+        "LD_PRELOAD": "/definitely/not/a/real/preload.so",
+        "PYTHONPATH": "/tmp/hostile-pythonpath",
+        "NODE_OPTIONS": "--require=/definitely/not/a/real/module.js",
+    })
+    result = subprocess.run(
+        [_bash(), "-p", str(candidate), "--target-sha", "a" * 40],
+        capture_output=True,
+        text=True,
+        env=environment,
+        timeout=10,
+    )
+    assert result.returncode == 77, result.stdout + result.stderr
+    assert not canary.exists(), result.stdout + result.stderr
+    assert "BASH_ENV_CANARY" not in result.stdout + result.stderr
+    assert "IMPORTED_ENV_FUNCTION" not in result.stdout + result.stderr
+    launched = sudo_log.read_text(encoding="utf-8")
+    assert "-n" in launched
+    assert "MMX_TERMINAL_BUILD_PRIVILEGED_ENTRY=1" in launched
+    assert str(candidate) in launched
+
+
+def test_build_mountpoints_keep_dependencies_inside_the_application_root(tmp_path: Path) -> None:
+    stage = tmp_path / "source" / "terminal"
+    deps = tmp_path / "legacy-deps"
+    stage.mkdir(parents=True)
+    deps.mkdir()
+    (stage / "package.json").write_text('{"name":"terminal"}\n', encoding="utf-8")
+    (stage / "package-lock.json").write_text('{"lockfileVersion":3}\n', encoding="utf-8")
+    (stage / "package.json").chmod(0o644)
+    (stage / "package-lock.json").chmod(0o644)
+    result = _run_library(
+        f"""
+        BUILD_DEPS_ROOT={str(deps)!r}
+        EXPECTED_BUILD_UID={os.getuid()}
+        EXPECTED_BUILD_GID={os.getgid()}
+        EXPECTED_CONTROLLER_UID={os.getuid()}
+        EXPECTED_CONTROLLER_GID={os.getgid()}
+        prepare_build_mountpoints {str(stage)!r}
+        """
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    node_modules = stage / "node_modules"
+    assert node_modules.is_dir() and not node_modules.is_symlink()
+    assert node_modules.stat().st_mode & 0o777 == 0o555
+    expected_next_env = (
+        '/// <reference types="next" />\n'
+        '/// <reference types="next/image-types/global" />\n'
+        'import "./.next/types/routes.d.ts";\n\n'
+        '// NOTE: This file should not be edited\n'
+        '// see https://nextjs.org/docs/app/api-reference/config/typescript for more information.\n'
+    )
+    declaration = stage / "next-env.d.ts"
+    assert declaration.read_text(encoding="utf-8") == expected_next_env
+    assert declaration.stat().st_mode & 0o777 == 0o444
+    assert (deps / "package.json").is_file()
+    assert (deps / "package-lock.json").is_file()
+    assert (deps / "package.json").stat().st_mode & 0o777 == 0o400
+    assert (deps / "package-lock.json").stat().st_mode & 0o777 == 0o400
+
+
+def test_install_and_build_consume_dependencies_from_inside_turbopack_root() -> None:
+    text = _text()
+    start = text.index("run_isolated_terminal_build(){")
+    end = text.index("\npublish_build_receipt(){", start)
+    body = text[start:end]
+    assert 'run_sandboxed_phase install "$BUILD_DEPS_ROOT" no' in body
+    assert '"$stage/node_modules/.bin/next"' in body
+    assert 'PATH="$stage/node_modules/.bin:$CLEAN_BUILD_PATH"' in body
+    assert 'BindReadOnlyPaths=$BUILD_DEPS_ROOT/node_modules:$working_directory/node_modules' in text
+    assert 'os.symlink("../../deps/node_modules", node_modules)' not in text
+
+
+def test_package_and_dependency_bind_mounts_are_readable_immutable_and_in_root() -> None:
+    text = _text()
+    evidence_start = text.index("bootstrap_controller_evidence(){")
+    evidence_end = text.index("\nmaterialize_build_projection(){", evidence_start)
+    evidence = text[evidence_start:evidence_end]
+    assert 'mode = 0o444 if output_name in {"package.json", "package-lock.json"} else 0o400' in evidence
+    runner_start = text.index("run_sandboxed_phase(){")
+    runner_end = text.index("\nverify_sandbox_principal(){", runner_start)
+    runner = text[runner_start:runner_end]
+    assert 'BindReadOnlyPaths=$BUILD_EVIDENCE_DIR/package.json:$BUILD_DEPS_ROOT/package.json' in runner
+    assert 'BindReadOnlyPaths=$BUILD_EVIDENCE_DIR/package-lock.json:$BUILD_DEPS_ROOT/package-lock.json' in runner
+    assert 'BindReadOnlyPaths=$BUILD_DEPS_ROOT/node_modules:$working_directory/node_modules' in runner
+    assert 'os.symlink("../../deps/node_modules", node_modules)' not in text
+
+
+def test_privileged_controller_uses_a_closed_sudo_reexec_boundary() -> None:
+    text = _text()
+    main = _main()
+    assert 'EXPECTED_SUDO_PATH="/usr/bin/sudo"' in text
+    assert 'EXPECTED_BASH_PATH="/usr/bin/bash"' in text
+    assert 'EXPECTED_CONTROLLER_PATH="/opt/terminal/terminal-build.sh"' in text
+    assert 'MMX_TERMINAL_BUILD_PRIVILEGED_ENTRY' in main
+    assert '"$EXPECTED_SUDO_PATH" -n --' in main
+    assert '"$EXPECTED_ENV_PATH" -i' in main
+    assert '"$EXPECTED_BASH_PATH" -p "$EXPECTED_CONTROLLER_PATH"' in main
+    assert 'if [ "$EUID" -eq 0 ]; then' in main
+    assert 'if [ "$EUID" -ne 0 ]; then' in main
+    assert 'unset MMX_TERMINAL_BUILD_PRIVILEGED_ENTRY' in main
+    gate = main.index('MMX_TERMINAL_BUILD_PRIVILEGED_ENTRY')
+    lock = main.index('acquire_deploy_lock')
+    preflight = main.index('run_release_preflight')
+    assert gate < lock < preflight
+
+
+def test_controller_runtime_uses_pinned_env_and_suppresses_process_preloads() -> None:
+    text = _text()
+    assert text.startswith("#!/usr/bin/bash -p\n")
+    assert 'runtime_env=("$EXPECTED_ENV_PATH" -i' in text
+    assert "runtime_env=(env -i" not in text
+    entry = text[: text.index("APP=/opt/terminal/terminal")]
+    for variable in (
+        "BASH_ENV", "ENV", "LD_PRELOAD", "LD_LIBRARY_PATH", "PYTHONPATH",
+        "PYTHONHOME", "NODE_OPTIONS", "NODE_PATH", "NPM_CONFIG_USERCONFIG",
+    ):
+        assert variable in entry
+
+
+def test_build_principal_and_sandbox_close_supplementary_group_and_socket_access() -> None:
+    text = _text()
+    principal_start = text.index("verify_build_principal(){")
+    principal_end = text.index("\nprepare_build_roots(){", principal_start)
+    principal = text[principal_start:principal_end]
+    assert "os.getgrouplist(user_name, gid)" in principal
+    assert "set(groups) != {gid}" in principal
+    runner_start = text.index("run_sandboxed_phase(){")
+    runner_end = text.index("\nprepare_sandbox_identity(){", runner_start)
+    runner = text[runner_start:runner_end]
+    assert '--property=SupplementaryGroups=' in runner
+    assert '--property=RestrictAddressFamilies=AF_INET AF_INET6' in runner
+    assert '--property=RestrictAddressFamilies=AF_INET AF_INET6' in runner
+    assert '--property=InaccessiblePaths=/run' not in runner
+    assert "verify_sandbox_principal" in text
+
+
+def test_os_release_contract_binds_the_canonical_etc_alias() -> None:
+    text = _text()
+    assert 'EXPECTED_OS_RELEASE_ALIAS="/etc/os-release"' in text
+    runtime_start = text.index("verify_build_runtime(){")
+    runtime_end = text.index("\nprepare_build_receipt_dir(){", runtime_start)
+    body = text[runtime_start:runtime_end]
+    assert "os.readlink(alias)" in body
+    assert '"../usr/lib/os-release"' in body
+    assert "alias.resolve(strict=True) != path.resolve(strict=True)" in body
+
 def test_authority_binaries_are_absolute_and_path_is_closed() -> None:
     text = _text()
-    assert text.startswith("#!/usr/bin/bash\n")
+    assert text.startswith("#!/usr/bin/bash -p\n")
     assert 'export PATH="/usr/bin:/bin"' in text
     for token in (
         'EXPECTED_GIT_PATH="/usr/bin/git"',
@@ -652,6 +849,7 @@ def test_sandbox_identity_and_input_sidecars_precede_dependency_code() -> None:
     build = body.index("run_sandboxed_phase build")
     assert mount < public < keys < sandbox < custody < install < build
     assert '--property="InaccessiblePaths=$BUILD_SOURCE_ROOT"' in text
+    assert '--property="BindReadOnlyPaths=$BUILD_DEPS_ROOT/node_modules:$working_directory/node_modules"' in text
 
 
 def test_receipt_binds_builder_sandbox_and_stable_application_root() -> None:

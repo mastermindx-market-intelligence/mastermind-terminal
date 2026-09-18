@@ -42,14 +42,25 @@ return a bound immutable `CLEAN` receipt for the current generation before any
 source or build mutation. The owner then admits only the explicit full SHA
 contained by the freshly fetched protected ref.
 
-W2B-B adds the next pre-live gate inside that same owner. It holds one root-owned
-process lock, requires the exact production build runtime (`/usr/bin/node`
-20.20.2, `/usr/bin/npm` 10.8.2, Ubuntu 24.04 / glibc 2.39 / x86_64), archives the
-admitted Git object into an isolated root, performs fresh `npm ci` under a closed
-process environment, and invokes Next directly so the legacy deploy-time data
-coverage writer is not part of the build. Only an allowlisted `NEXT_PUBLIC_*`
-surface and the incumbent Next preview/RSC key pair enter the build; receipts
-record only identity hashes/expiry, never raw values.
+W2B-B adds the next pre-live gate inside that same owner. It rejects direct
+root entry: the accepted path is an unprivileged release operator crossing one
+reviewed `/usr/bin/sudo` boundary into `/usr/bin/env -i /usr/bin/bash -p` and the
+canonical controller path. The clean root pass holds one root-owned process lock,
+requires the exact production build runtime (`/usr/bin/node` 20.20.2,
+`/usr/bin/npm` 10.8.2, Ubuntu 24.04 / glibc 2.39 / x86_64), materializes the exact
+admitted Git objects into an isolated application root, and runs install/build as
+the static no-login `mastermind-terminal-build` principal through a closed
+`systemd-run` sandbox. Fresh `npm ci` writes only the external dependency root;
+Next receives that tree through a read-only bind at the real
+`terminal/node_modules` path plus a deterministic read-only `next-env.d.ts`, so
+Turbopack never follows an out-of-root dependency symlink. The receipt also binds
+the stable SHA-256 of the canonical controller bytes that actually performed the
+build, rather than assuming the target tree's future controller was the executor.
+The build invokes Next
+directly, excluding the legacy deploy-time data coverage writer. Only an
+allowlisted `NEXT_PUBLIC_*` surface and the incumbent Next preview/RSC key pair
+enter the build; receipts record identity hashes/expiry and the closed launcher,
+principal and sandbox contracts, never raw values.
 
 `terminal_build_receipt.py` publishes the immutable pre-live build receipt under
 `/var/lib/mastermind-terminal/build-receipts`. It binds the target tree, accepted
@@ -60,8 +71,10 @@ serving identity or fail closed. The receipt is read back before the owner may
 reset/clean the canonical checkout or touch a live deploy generation.
 
 W2B-B itself is still `BUILT_NOT_PROVEN` until protected review/merge and must not
-be production-adopted independently. Whole-release transactional deployment,
-rollback, served-browser proof, and drift detection remain W2B-C/W2C #483 work.
+be production-adopted independently. W2B-C must provision and prove the dedicated
+build principal plus the exact least-privilege sudoers entry before first use;
+whole-release transactional deployment, rollback, served-browser proof, and drift
+detection remain W2B-C/W2C #483 work.
 
 Full contracts, usage, retained host-owned path classes, and non-claims:
 [`TERMINAL_RELEASE_PREFLIGHT.md`](TERMINAL_RELEASE_PREFLIGHT.md). The underlying
