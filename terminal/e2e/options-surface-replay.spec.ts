@@ -11,7 +11,9 @@ for (const lang of ["en", "zh"] as const) {
     const stamps = ["0930", "0931"];
     const date = "2026-09-17";
     let indexReads = 0;
+    let frameReads = 0;
     let failIndex = false;
+    let failFrame = false;
     const epoch = Date.UTC(2026, 8, 17, 9, 30) / 1000;
     await page.route("**/api/intraday?**", (route) => route.fulfill({ json: {
       bars: [0, 1, 2].map((i) => [epoch + i * 60, 100.1, 100.4, 99.9, 100.2, 20]),
@@ -28,6 +30,8 @@ for (const lang of ["en", "zh"] as const) {
         root: "SPY", date: "2026-09-16", stamps: ["0930", "0931"], latest: "0931", cadenceSec: 60,
       } });
       if (f.startsWith("surface:SPY:") || f.startsWith("surface_at:SPY:2026-09-16:")) {
+        frameReads++;
+        if (failFrame && f.startsWith("surface:SPY:")) return route.fulfill({ status: 503, body: "frame refresh unavailable" });
         const archived = f.startsWith("surface_at:");
         const frameDate = archived ? "2026-09-16" : date;
         const stamp = f.split(":").at(-1)!;
@@ -106,6 +110,28 @@ for (const lang of ["en", "zh"] as const) {
     failIndex = false;
     await page.clock.fastForward(61_000);
     await expect(replay.locator(".obs-surf-replay-error")).toHaveCount(0);
+
+    // A successful index refresh followed by a same-HHMM frame failure must keep the
+    // already admitted observation visible and disclose that it is stored, not fresh.
+    await page.locator(".obs-surf-replay-transport button").last().click();
+    await expect(rail).toHaveAttribute("aria-valuetext", /09:33/);
+    const storedStrip = page.locator(".obs-surf-data-strip").first();
+    await expect(storedStrip).toBeVisible();
+    const beforeFrameRefresh = frameReads;
+    failFrame = true;
+    await page.clock.fastForward(61_000);
+    await expect.poll(() => frameReads, { timeout: 10_000 }).toBeGreaterThan(beforeFrameRefresh);
+    await expect(storedStrip).toBeVisible();
+    await expect(page.locator(".obs-surf-frame-refresh-error").first()).toContainText(
+      lang === "en" ? "Surface refresh unavailable" : "曲面刷新暂不可用",
+    );
+    await expect(page.locator(".obs-surf-chart-area").first()).not.toContainText(
+      lang === "en" ? "No surface data yet" : "暂无曲面数据",
+    );
+    failFrame = false;
+    await page.clock.fastForward(61_000);
+    await expect(page.locator(".obs-surf-frame-refresh-error")).toHaveCount(0);
+
     await page.locator(".obs-surf-replay-session").selectOption("2026-09-16");
     await expect(replay).toContainText("2026-09-16");
     await expect(rail).toHaveAttribute("aria-valuemax", "2");

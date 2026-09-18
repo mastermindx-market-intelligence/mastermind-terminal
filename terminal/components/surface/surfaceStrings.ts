@@ -100,6 +100,15 @@ const SURFACE_LEX = {
   // ── Empty / loading ─────────────────────────────────────────────────────────
   surfaceEmpty: ["No surface data yet — accruing.", "暂无曲面数据 — 累积中。"],
   surfaceLoading: ["Loading surface…", "加载曲面中…"],
+  surfaceRefreshFailed: [
+    "Surface refresh unavailable · showing stored frame",
+    "曲面刷新暂不可用 · 显示已存帧",
+  ],
+  surfaceUnavailable: ["Surface unavailable — frame read failed.", "曲面暂不可用 — 帧读取失败。"],
+  surfaceUnavailableWhy: [
+    "No stored frame is available for this exact time. This read failure is not reported as still accruing.",
+    "该精确时点没有可保留的已存帧。本次读取失败不会被误报为仍在累积。",
+  ],
   noFrame: ["No frame for this time.", "该时间点暂无数据。"],
 
   // ── Replay bar ──────────────────────────────────────────────────────────────

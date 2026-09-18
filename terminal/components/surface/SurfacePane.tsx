@@ -337,11 +337,14 @@ export function SurfacePane({
   const [aggMin, setAggMin] = useState<number>(5);
   const [opacity, setOpacity] = useState<number>(1);
   const [rangeQ, setRangeQ] = useState<number>(80);
-  const [frameResult, setFrameResult] = useState<{ stamp: string; data: SurfaceFrame } | null>(null);
-  // Render-time identity fencing: a changed selection must not temporarily show
-  // the previous frame under the new replay time while its request is pending.
-  const frame = frameResult?.stamp === asOfStamp && frameResult?.data.session_date === indexDate
-    ? frameResult.data : null;
+  const [frameResult, setFrameResult] = useState<{ root: string; stamp: string; data: SurfaceFrame } | null>(null);
+  const [frameError, setFrameError] = useState(false);
+  // Render-time identity fencing: a changed root/session/selection must not temporarily
+  // show the previous frame while its request is pending. Re-run the same admission
+  // contract used at write time instead of trusting the tuple's label alone.
+  const frame = frameResult?.root === root && frameResult?.stamp === asOfStamp && asOfStamp &&
+    isSurfaceFrameForContext(frameResult.data, root, indexDate, asOfStamp)
+      ? frameResult.data : null;
   const [candles, setCandles] = useState<Bar6[]>([]);
   /** Session whose candle request has completed (including an honest empty response). */
   const [candleSession, setCandleSession] = useState<string | null>(null);
@@ -544,7 +547,7 @@ export function SurfacePane({
     let cancelled = false;
     (async () => {
       if (!asOfStamp) {
-        if (!cancelled) { setFrameResult(null); setLoading(false); }
+        if (!cancelled) { setFrameResult(null); setFrameError(false); setLoading(false); }
         return;
       }
       setLoading(true);
@@ -555,8 +558,23 @@ export function SurfacePane({
         { refresh: !archived && frameRevision > 0 },
       );
       if (cancelled) return;
+      if (data == null) {
+        // A hard transport/status failure is not evidence that the selected observation
+        // never existed. Retain only a previously admitted frame for this exact
+        // root/session/stamp; a first read (or changed context) stays honestly unavailable.
+        setFrameError(true);
+        setFrameResult((previous) =>
+          previous?.root === root && previous.stamp === asOfStamp &&
+          isSurfaceFrameForContext(previous.data, root, indexDate, asOfStamp)
+            ? previous
+            : null,
+        );
+        setLoading(false);
+        return;
+      }
+      setFrameError(false);
       const nextFrame = isSurfaceFrameForContext(data, root, indexDate, asOfStamp) ? data : null;
-      setFrameResult(nextFrame ? { stamp: asOfStamp, data: nextFrame } : null);
+      setFrameResult(nextFrame ? { root, stamp: asOfStamp, data: nextFrame } : null);
       // Preserve the selected metric when data is unavailable. A missing Greek
       // is not permission to replace it with a different premium-flow series.
       setLoading(false);
@@ -1568,6 +1586,12 @@ export function SurfacePane({
           </div>
         )}
 
+        {frameError && hasData && (
+          <div className="obs-tag obs-surf-frame-refresh-error" style={FRAME_REFRESH_ERROR} role="status">
+            {t("surfaceRefreshFailed")}
+          </div>
+        )}
+
         {/* Crosshair readout pill (top-left) */}
         {readout && hasData && (
           <div style={READOUT_PILL} className="num">
@@ -1585,11 +1609,11 @@ export function SurfacePane({
         {!hasData && (
           <div style={EMPTY}>
             <span style={EMPTY_TITLE}>
-              {loading ? t("surfaceLoading") : cellAccruing ? t("metricAccruing") : t("surfaceEmpty")}
+              {loading ? t("surfaceLoading") : frameError ? t("surfaceUnavailable") : cellAccruing ? t("metricAccruing") : t("surfaceEmpty")}
             </span>
             {!isCell && (
               <span style={EMPTY_WHY}>
-                {loading ? t("surfaceLoadingWhy") : t("surfaceEmptyWhy")}
+                {loading ? t("surfaceLoadingWhy") : frameError ? t("surfaceUnavailableWhy") : t("surfaceEmptyWhy")}
               </span>
             )}
           </div>
@@ -1724,6 +1748,14 @@ const LEGEND_ITEM: React.CSSProperties = { display: "inline-flex", alignItems: "
 const SWATCH: React.CSSProperties = { display: "inline-block", width: 10, height: 8, borderRadius: 2 };
 
 const CHART_AREA: React.CSSProperties = { position: "relative", flex: 1, minHeight: 260 };
+
+const FRAME_REFRESH_ERROR: React.CSSProperties = {
+  position: "absolute", left: "var(--sp-3)", bottom: "var(--sp-3)", zIndex: 5,
+  maxWidth: "calc(100% - 2 * var(--sp-3))", pointerEvents: "none",
+  background: "color-mix(in srgb, var(--panel) 90%, transparent)",
+  borderColor: "color-mix(in srgb, var(--signal) 40%, var(--line))",
+  color: "var(--text-2)", backdropFilter: "blur(6px)",
+};
 
 const READOUT_PILL: React.CSSProperties = {
   position: "absolute", top: "var(--sp-3)", left: "var(--sp-3)", zIndex: 5,

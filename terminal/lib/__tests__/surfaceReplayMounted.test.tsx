@@ -51,6 +51,7 @@ let host: HTMLDivElement;
 let stamps: string[];
 let calls: string[];
 let failIndex: boolean;
+let failFrame: boolean;
 let delayedIndex: Promise<Response> | null;
 let indexRootOverride: string | null;
 let sourceDate: string;
@@ -82,6 +83,7 @@ beforeEach(() => {
   stamps = ["0930", "0931"];
   calls = [];
   failIndex = false;
+  failFrame = false;
   delayedIndex = null;
   indexRootOverride = null; sourceDate = date; customStamps = null; emitFrames = false; frameRevision = 0; delayedFrame = null; emitGreek = false; emitCandles = true; frameStampOverride = null;
   vi.stubGlobal("fetch", vi.fn(async (input: string | URL | Request) => {
@@ -102,6 +104,7 @@ beforeEach(() => {
         [Date.UTC(2026,8,17,9,30) / 1000 + i * 300, 100, 100.5 + i, 99.5, 100.2, 10]) });
     if (emitFrames && (f.startsWith("surface:") || f.startsWith("surface_at:"))) {
       if (delayedFrame) return delayedFrame;
+      if (failFrame) return new Response("frame unavailable", { status: 503 });
       const bits = f.split(":");
       const selectedDate = bits[0] === "surface_at" ? bits[2] : sourceDate;
       const requestedStamp = bits.at(-1)!;
@@ -250,6 +253,26 @@ describe("shared replay read boundaries", () => {
     expect(rail().getAttribute("aria-valuemax")).toBe("2");
     expect(host.querySelector(".obs-surf-replay")!.textContent).toContain("Refresh unavailable");
     expect(host.querySelector(".obs-surf-replay .obs-live-dot")).toBeNull();
+  });
+
+  it("retains the admitted current frame when only its same-stamp refresh fails", async () => {
+    emitFrames = true;
+    await mount();
+    expect(host.querySelector(".obs-surf-data-strip")).not.toBeNull();
+    failFrame = true;
+    await advance();
+    expect(host.querySelector(".obs-surf-data-strip")).not.toBeNull();
+    expect(host.querySelector(".obs-surf-frame-refresh-error")?.textContent).toContain("Surface refresh unavailable");
+    expect(host.querySelector(".obs-surf-chart-area")?.textContent ?? "").not.toContain("No surface data yet");
+  });
+
+  it("reports an initial frame transport failure as unavailable, not accrual", async () => {
+    emitFrames = true;
+    failFrame = true;
+    await mount();
+    expect(host.querySelector(".obs-surf-data-strip")).toBeNull();
+    expect(host.querySelector(".obs-surf-chart-area")?.textContent).toContain("Surface unavailable");
+    expect(host.querySelector(".obs-surf-chart-area")?.textContent ?? "").not.toContain("No surface data yet");
   });
 
   it("does not use a LIVE badge as a synonym for the latest stored frame", async () => {
