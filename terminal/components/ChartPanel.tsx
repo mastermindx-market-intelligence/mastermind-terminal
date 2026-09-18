@@ -64,7 +64,7 @@ import { isMacroSymbol, macroOnEtAxis } from "@/lib/macroSymbols";
 import { sessionVwap, openingRange, sessionLevels, pivotLevels, rvolSeries, ttmSqueeze, adx as calcAdx, cvdApprox, type Bar as IMBar, type DailyBar } from "@/lib/intradayMath";
 import { attachSessionShading, detachSessionShading, type SessionShadingPrimitive } from "@/lib/sessionShading";
 import { IND_DEFS, withDefaults, isIndKey } from "@/lib/indicators";
-import { flowGet } from "@/lib/flowClientCache";
+import { flowGet, flowGetFresh } from "@/lib/flowClientCache";
 import { deriveOptLevels, sessionsOldEt, type OptLevelKey, type OptLevelsResult } from "@/lib/optionsLevels";
 import { computeSuite, resolveSuiteColors } from "@/lib/indicator-canvas/host";
 import { renderPrims, ensureTooltipHost } from "@/lib/indicator-canvas/render";
@@ -8559,15 +8559,15 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     rebuildPaneMeta();
     renderTagRef.current?.();
 
-    // Nightly artifacts can advance while a chart stays mounted for hours or days. A one-shot
-    // flowGet is insufficient because its SWR contract may hand back the old value while it
-    // refreshes the module cache in the background. Re-read on a bounded cadence so the NEXT
-    // tick consumes that refreshed value without creating a second cache/freshness plane.
-    const refresh = () => {
+    // Nightly artifacts can advance while a chart stays mounted for hours or days. The initial
+    // read keeps the shared SWR behavior, but subsequent cadence/visibility reads must await stale
+    // revalidation so this mounted chart actually consumes the newly-published session.
+    const refresh = (fresh = false) => {
+      const read = fresh ? flowGetFresh : flowGet;
       Promise.all([
-        flowGet(`gex:${root}`),
-        flowGet(`moves:${root}`),
-        flowGet(`gexstate:${root}`),
+        read(`gex:${root}`),
+        read(`moves:${root}`),
+        read(`gexstate:${root}`),
       ]).then(([gex, moves, state]) => {
         if (!alive || symbolRef.current !== sym) return;
         if (gex == null && moves == null && state == null) {
@@ -8602,9 +8602,9 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     };
 
     refresh();
-    const refreshTimer = window.setInterval(refresh, 30_000);
+    const refreshTimer = window.setInterval(() => refresh(true), 30_000);
     const refreshOnVisible = () => {
-      if (document.visibilityState === "visible") refresh();
+      if (document.visibilityState === "visible") refresh(true);
     };
     document.addEventListener("visibilitychange", refreshOnVisible);
 
