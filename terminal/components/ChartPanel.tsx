@@ -500,7 +500,7 @@ import { candleVolumeRank } from "@/lib/suites/trend/candlePainter";
 export default function ChartPanel({ symbol, chartType = "candles", indicators, timeframe = "D", replayIdx = null, onMeta, tool = null, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, drawings = [], onDrawingsChange, detectCmd = null, magnet = "off", compare = [], compareCfg = EMPTY_OBJ, isActive = true, syncId = null, liveQuote = null,
   indParams = EMPTY_OBJ, hidden = EMPTY_SET, onToggleHidden, onRemoveInd, onOpenSettings, onOpenSource, pineScripts = EMPTY_PINE, chartSettings, onVisualSettings, onChartApi, extHours = false,
   instrumentName, instrumentMarket, instrumentColor, onAddAlert, onTableView, onObjectTree, onOpenSettingsModal, lockedVLine = null, onSetLockedVLine, onIndRowsAt, dayMode = false, onPaneCount, companyName = "", userTier = "free", dataReady = true, initialTimeframe = null }:
-  { symbol: string; companyName?: string; chartType?: string; indicators: Set<string>; timeframe?: string; replayIdx?: number | null; onMeta?: (m: { total: number }) => void;
+  { symbol: string; companyName?: string; chartType?: string; indicators: Set<string>; timeframe?: string; replayIdx?: number | null; onMeta?: (m: { total: number; symbol: string; timeframe: string }) => void;
     /** False until the shell has COMMITTED its persisted prefs. See `effectiveTimeframe`. */
     dataReady?: boolean;
     /** The shell's already-resolved startup timeframe, handed over before it can be rendered. */
@@ -2796,7 +2796,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       liveWrap.style.removeProperty("--mm-live-color");
     }
     rebuildPaneMeta();             // the legend must not advertise studies that are no longer drawn
-    if (onMeta) onMeta({ total: 0 });
+    if (onMeta) onMeta({ total: 0, symbol: symbolRef.current, timeframe: timeframeRef.current });
     renderTagRef.current?.();      // no bars → the last-price badge hides itself
     renderSignalsRef.current();    // drop the previous symbol's markers / gap zones
     renderRef.current();
@@ -2830,7 +2830,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     barsRef.current = fullBarsRef.current; // replay is guarded above, so the visible set is the full set
     closesRef.current = barsRef.current.map((r) => r.c);
     barIdxRef.current = { src: null, map: new Map() };
-    if (mutation.kind === "new-bar" && onMeta) onMeta({ total: barsRef.current.length });
+    if (mutation.kind === "new-bar" && onMeta) onMeta({ total: barsRef.current.length, symbol: symbolRef.current, timeframe: timeframeRef.current });
 
     // Existing built-ins already have an in-place update path. Running it here keeps the default
     // EMA/volume/MACD/Stoch stack breathing with the candle without removing/recreating panes.
@@ -7838,7 +7838,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         chart.applyOptions({ timeScale: { timeVisible: true, secondsVisible: isSecondTf(effectiveTimeframe) } });
         // epoch-second Bar6 [t,o,h,l,c,v] → Bar with a NUMERIC time (lightweight-charts accepts UTCTimestamp)
         const rows: Bar[] = bars.map((b: any[]) => ({ time: b[0] as any, o: b[1], h: b[2], l: b[3], c: b[4], v: b[5] }));
-        if (onMeta) onMeta({ total: rows.length });
+        if (onMeta) onMeta({ total: rows.length, symbol, timeframe: effectiveTimeframe });
         fullBarsRef.current = rows;
         const ri = replayIdxRef.current;
         const onChart = ri != null ? rows.slice(0, Math.max(20, ri + 1)) : rows;
@@ -7953,7 +7953,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       dailyBarsRef.current = daily;         // raw daily source — the R11 splice operates on THIS
       // ── PERF-FIX (b): use cached resample; same-symbol TF switches skip the O(N) bucketing pass ──
       let rows: Bar[] = resampleTfCached(daily, effectiveTimeframe, symbol);
-      if (onMeta) onMeta({ total: rows.length });
+      if (onMeta) onMeta({ total: rows.length, symbol, timeframe: effectiveTimeframe });
       fullBarsRef.current = rows;
       // Read the LIVE replayIdx (not the effect's closure): if the user started replay while this
       // fetch was in flight, Effect 4 bailed (fullBarsRef was empty) and would NOT re-slice — so we

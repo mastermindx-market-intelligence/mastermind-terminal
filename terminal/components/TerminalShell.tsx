@@ -118,6 +118,7 @@ import { oracleVerdict, deskVerdict } from "@/lib/signalVerdict";
 import { computeTrendState } from "@/lib/trend";
 import { useLive } from "@/lib/live";
 import { setPaneSync } from "@/lib/paneSync";
+import { REPLAY_MIN_IDX, replayIsAvailable, replayChartKey, resolveReplayTotal, replayHasSpan, clampReplayIdx, initialReplayIdx } from "@/lib/replayContract";
 import {
   MAX_DRAWINGS_PER_SYMBOL,
   type Dash,
@@ -1257,7 +1258,37 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
   const [wlSetOpen, setWlSetOpen] = useState(false); const [tfOpen, setTfOpen] = useState(false); const [ctOpen, setCtOpen] = useState(false); const [snapOpen, setSnapOpen] = useState(false);
   const [toolbarMoreOpen, setToolbarMoreOpen] = useState(false);
   const [toolbarMoreView, setToolbarMoreView] = useState<"main" | "detect" | "layouts" | "snapshot">("main");
-  const [replayOn, setReplayOn] = useState(false); const [replayIdx, setReplayIdx] = useState<number | null>(null); const [total, setTotal] = useState(0); const [playing, setPlaying] = useState(false); const [speed, setSpeed] = useState(1);
+  // ── REPLAY CONTRACT: Bar Replay is SINGLE-CHART ONLY (lib/replayContract.ts) ──
+  // `replayArmed` is the user's INTENT; `replayOn` is the EFFECTIVE state and the only
+  // thing any consumer may read. Deriving it — instead of resetting the flag in every
+  // layout transition — means there is no render, transient ones included, in which the
+  // workspace claims Replay while a second chart sits at present time.
+  const [replayArmed, setReplayArmed] = useState(false);
+  const [replayIdx, setReplayIdx] = useState<number | null>(null);
+  const [playing, setPlaying] = useState(false); const [speed, setSpeed] = useState(1);
+  // Bar counts keyed by (symbol|timeframe), not "whatever pane reported last": a bare
+  // total goes stale the moment the chart it described leaves the screen, and the
+  // transport would then scrub one symbol against another symbol's length.
+  const [paneTotals, setPaneTotals] = useState<Record<string, number>>({});
+  const replayAvailable = replayIsAvailable(panes.length);
+  const replayOn = replayArmed && replayAvailable;
+  const replayChart = replayChartKey(panes[0], paneTfs[0]);
+  const total = resolveReplayTotal(paneTotals, panes, paneTfs);
+  const replaySpan = replayHasSpan(total);
+  const onPaneMeta = useCallback((m: { total: number; symbol: string; timeframe: string }) => {
+    setPaneTotals((prev) => {
+      const key = replayChartKey(m.symbol, m.timeframe);
+      return prev[key] === m.total ? prev : { ...prev, [key]: m.total };
+    });
+  }, []);
+  // Losing single-chart availability retires the INTENT too, so collapsing back to one chart
+  // offers Replay afresh rather than silently resuming at an index measured on another symbol.
+  // Adjusted DURING RENDER, like the `pfEmail` owner transition below: `replayOn` is already false
+  // by derivation, and clearing the residue here means no committed frame ever holds a replay
+  // position belonging to a layout that no longer exists.
+  if (!replayAvailable && (replayArmed || replayIdx !== null || playing)) {
+    setReplayArmed(false); setReplayIdx(null); setPlaying(false);
+  }
   const playRef = useRef<any>(null);
   // §7 state
   // Tool identity and activation travel together. The epoch makes one-shot
@@ -2913,17 +2944,19 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
   // one-click multi-timeframe: the active symbol across D / 3D / W / 1M (drawings are shared per-symbol).
   // Clicking again while already in the MTF layout collapses back to a single pane on the active symbol.
   const isMtf = panes.length === 4 && panes.every((s) => s === active) && paneTfs.slice(0, 4).join(",") === "D,3D,W,1M";
-  // paneSync only mirrors same-timeframe peers, and the single replay slider assumes one bar count: with
-  // heterogeneous per-pane timeframes both are incoherent, so we disable Sync + replay in that case.
+  // paneSync only mirrors same-timeframe peers, so heterogeneous per-pane timeframes make it
+  // incoherent. Replay no longer consults this: it is unavailable in ANY multi-pane layout,
+  // matching timeframes included — equal bar indexes still name different dates per symbol.
   const mixedTfs = panes.length > 1 && new Set(paneTfs.slice(0, panes.length)).size > 1;
   function mtfLayout() {
     if (isMtf) { setSplit(1); setPanes([active]); setPaneTfs([tf]); setActivePane(0); return; }
     const sym = active; setSplit(4); setPanes([sym, sym, sym, sym]); setPaneTfs(["D", "3D", "W", "1M"]); setActivePane(0);
   }
   function toggleReplay() {
-    setReplayOn((on) => {
+    setReplayArmed((on) => {
       const next = !on;
-      if (next) setReplayIdx(Math.max(20, total - 80));
+      if (next && !(replayAvailable && replaySpan)) return on;   // never arm what cannot be honored
+      if (next) setReplayIdx(initialReplayIdx(total));
       setPlaying(false);
       return next;
     });
@@ -4183,7 +4216,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
     const existing = panes[activePane] === sym ? activePane : panes.findIndex((s) => s === sym);
     if (existing >= 0 && existing !== activePane) setActivePane(existing);          // shown in a different pane → focus it (don't duplicate)
     else if (panes[activePane] !== sym) setPanes((p) => p.map((s, i) => (i === activePane ? sym : s)));
-    setReplayOn(false); setReplayIdx(null); setPlaying(false); setCompare([]);
+    setReplayArmed(false); setReplayIdx(null); setPlaying(false); setCompare([]);
   }, [activePane, panes]);
   const selectWlRow = useCallback((symbol: string, event: Pick<React.MouseEvent, "shiftKey" | "metaKey" | "ctrlKey">) => {
     const toggle = event.metaKey || event.ctrlKey;
@@ -5173,8 +5206,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
               className={`tbtn tool-adv toolbar-overflow-item${replayOn ? " on" : ""}`}
               data-toolbar-item
               data-toolbar-action="replay"
-              title={mixedTfs && !replayOn ? t("replayMixedTip") : (replayOn ? t("replayExitTip") : t("replayTip"))}
-              disabled={mixedTfs && !replayOn}
+              data-replay-blocked={replayOn ? undefined : (!replayAvailable ? "multi-chart" : !replaySpan ? "no-data" : undefined)}
+              title={replayOn ? t("replayExitTip") : !replayAvailable ? t("replayMultiChartTip") : !replaySpan ? t("replayNoDataTip") : t("replayTip")}
+              disabled={!replayOn && !(replayAvailable && replaySpan)}
               onClick={toggleReplay}
             ><svg viewBox="0 0 24 24"><path d="M3 3v18M8 6l10 6-10 6V6z" /></svg>{t("replayBtn")}</button>
             <div className="pophost tool-adv toolbar-overflow-item" data-toolbar-item data-toolbar-action="detect">
@@ -5267,7 +5301,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
                   {panes.length > 1 && <button type="button" role="menuitem" className={`menu-row${sync && !mixedTfs ? " on" : ""}`} data-toolbar-menu-action="sync" disabled={mixedTfs} onClick={() => { setSync((s) => !s); setToolbarMoreOpen(false); }}>
                     <svg viewBox="0 0 24 24"><path d="M4 7h11M4 7l3-3M4 7l3 3M20 17H9M20 17l-3-3M20 17l-3 3" /></svg>{t("sync")}
                   </button>}
-                  <button type="button" role="menuitem" className={`menu-row${replayOn ? " on" : ""}`} data-toolbar-menu-action="replay" disabled={mixedTfs && !replayOn} onClick={() => { toggleReplay(); setToolbarMoreOpen(false); }}>
+                  <button type="button" role="menuitem" className={`menu-row${replayOn ? " on" : ""}`} data-toolbar-menu-action="replay" title={replayOn ? t("replayExitTip") : !replayAvailable ? t("replayMultiChartTip") : !replaySpan ? t("replayNoDataTip") : t("replayTip")} disabled={!replayOn && !(replayAvailable && replaySpan)} onClick={() => { toggleReplay(); setToolbarMoreOpen(false); }}>
                     <svg viewBox="0 0 24 24"><path d="M3 3v18M8 6l10 6-10 6V6z" /></svg>{t("replayBtn")}
                   </button>
                   <button type="button" role="menuitem" className="menu-row drill" data-toolbar-menu-action="detect" onClick={() => setToolbarMoreView("detect")}>
@@ -5305,15 +5339,21 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
           </div>
         </div>
 
+        {/* Replay transport. Every control below — reset, step, play, scrub — addresses the SAME
+            authority: `replayIdx` against `total`, and `total` is the bar count of the one chart
+            named by `replayChartKey`. There is no second source for the span, so the rail cannot
+            report a length that belongs to a symbol other than the one on screen. */}
         {replayOn && (
-          <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 14px", borderBottom: "1px solid var(--line)", background: "var(--bg)" }}>
-            <button className="icbtn" title={t("replayReset")} aria-label={t("replayReset")} onClick={() => { setReplayIdx(Math.max(20, total - 80)); setPlaying(false); }}><svg viewBox="0 0 24 24"><path d="M11 19l-7-7 7-7M20 19l-7-7 7-7" /></svg></button>
-            <button className="icbtn" disabled={mixedTfs} aria-label={t("replayPrev")} title={t("replayPrev")} onClick={() => setReplayIdx((i) => Math.max(20, (i ?? 0) - 1))}><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" /></svg></button>
-            <button className="icbtn" disabled={mixedTfs} aria-label={playing ? t("replayPause") : t("replayPlay")} title={mixedTfs ? t("replayMixedTip") : (playing ? t("replayPause") : t("replayPlay"))} onClick={() => setPlaying((p) => !p)}>{playing ? <svg viewBox="0 0 24 24"><path d="M6 4h4v16H6zM14 4h4v16h-4z" /></svg> : <svg viewBox="0 0 24 24" style={{ fill: "var(--signal)", stroke: "none" }}><path d="M6 4l14 8-14 8V4z" /></svg>}</button>
-            <button className="icbtn" disabled={mixedTfs} aria-label={t("replayNext")} title={t("replayNext")} onClick={() => setReplayIdx((i) => Math.min(total - 1, (i ?? 0) + 1))}><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" /></svg></button>
+          <div data-replay-rail="1" data-replay-chart={replayChart} data-replay-total={total} data-replay-idx={replayIdx ?? ""} style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 14px", borderBottom: "1px solid var(--line)", background: "var(--bg)" }}>
+            <button className="icbtn" disabled={!replaySpan} title={t("replayReset")} aria-label={t("replayReset")} onClick={() => { setReplayIdx(initialReplayIdx(total)); setPlaying(false); }}><svg viewBox="0 0 24 24"><path d="M11 19l-7-7 7-7M20 19l-7-7 7-7" /></svg></button>
+            <button className="icbtn" disabled={!replaySpan} aria-label={t("replayPrev")} title={t("replayPrev")} onClick={() => setReplayIdx((i) => clampReplayIdx((i ?? total - 1) - 1, total))}><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" /></svg></button>
+            <button className="icbtn" disabled={!replaySpan} aria-label={playing ? t("replayPause") : t("replayPlay")} title={playing ? t("replayPause") : t("replayPlay")} onClick={() => setPlaying((p) => !p)}>{playing ? <svg viewBox="0 0 24 24"><path d="M6 4h4v16H6zM14 4h4v16h-4z" /></svg> : <svg viewBox="0 0 24 24" style={{ fill: "var(--signal)", stroke: "none" }}><path d="M6 4l14 8-14 8V4z" /></svg>}</button>
+            <button className="icbtn" disabled={!replaySpan} aria-label={t("replayNext")} title={t("replayNext")} onClick={() => setReplayIdx((i) => clampReplayIdx((i ?? total - 1) + 1, total))}><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" /></svg></button>
             <div className="seg" style={{ height: 26 }}>{[1, 2, 4].map((s) => <button key={s} className={speed === s ? "on" : ""} onClick={() => setSpeed(s)}>{s}x</button>)}</div>
-            <input type="range" min={20} max={Math.max(21, total - 1)} value={replayIdx ?? total - 1} disabled={mixedTfs} title={mixedTfs ? t("replayMixedTip") : undefined} onChange={(e) => setReplayIdx(parseInt(e.target.value))} style={{ flex: 1, accentColor: "var(--brand)" }} />
-            <span className="num" style={{ color: "var(--muted)", fontSize: 11.5, minWidth: 70, textAlign: "right" }}>{(replayIdx ?? total - 1) + 1} / {total}</span>
+            <input type="range" min={REPLAY_MIN_IDX} max={Math.max(REPLAY_MIN_IDX + 1, total - 1)} value={clampReplayIdx(replayIdx ?? total - 1, total)} disabled={!replaySpan} onChange={(e) => setReplayIdx(clampReplayIdx(parseInt(e.target.value), total))} style={{ flex: 1, accentColor: "var(--brand)" }} />
+            {/* while the chart's own bar count is still unknown the counter says so rather than
+                printing a number the visible chart would not agree with */}
+            <span className="num" style={{ color: "var(--muted)", fontSize: 11.5, minWidth: 70, textAlign: "right" }}>{replaySpan ? `${clampReplayIdx(replayIdx ?? total - 1, total) + 1} / ${total}` : t("replayNoDataTip")}</span>
           </div>
         )}
 
@@ -5400,7 +5440,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
             />
             <div className="pane-grid" data-n={panes.length}>
               {panes.map((sym, i) => (
-                <ChartPane key={i} idx={i} symbol={sym} drawingOwnerKey={currentDrawingOwnerKey} isActive={i === activePane} onActivate={setActivePane} row={paneRows[i]} tf={paneTfs[i] ?? "D"} chartType={chartType} inds={inds} tool={drawingsReadyFor(sym) ? activeDrawingTool : null} toolActivation={toolState.activation} drawingSticky={drawingCreationDisabledReason ? false : drawingKeepsActive} drawingCreationDisabled={drawingCreationDisabledReason !== null} drawStyle={drawStyle} detectCmd={detectCmd} compare={compare} compareCfg={compareCfg} magnet={magnet} replayIdx={replayOn ? replayIdx : null} onMeta={(mm) => setTotal(mm.total)} drawings={[...(drawingOwnerMatches ? (drawStore[sym] ?? []) : []), ...chartBus.aiDrawingsFor(sym)]} drawingsVisible={drawingsVisible} onDrawingsChange={(d) => setSymbolDrawings(sym, d)} onDetectedDrawingCount={i === activePane ? setActivePaneDetectedDrawingCount : undefined} liveQuote={quotes[sym] ?? null} dataReady={prefsHydrated} initialTimeframe={startTfRef.current} indParams={indParams} hidden={hidden} onToggleHidden={toggleHidden} onRemoveInd={removeInd} onOpenSettings={openSettings} onOpenSource={openSource} pineScripts={pineScripts} dayMode={dtm} userTier={userTier}
+                <ChartPane key={i} idx={i} symbol={sym} drawingOwnerKey={currentDrawingOwnerKey} isActive={i === activePane} onActivate={setActivePane} row={paneRows[i]} tf={paneTfs[i] ?? "D"} chartType={chartType} inds={inds} tool={drawingsReadyFor(sym) ? activeDrawingTool : null} toolActivation={toolState.activation} drawingSticky={drawingCreationDisabledReason ? false : drawingKeepsActive} drawingCreationDisabled={drawingCreationDisabledReason !== null} drawStyle={drawStyle} detectCmd={detectCmd} compare={compare} compareCfg={compareCfg} magnet={magnet} replayIdx={replayOn && i === 0 ? replayIdx : null} onMeta={onPaneMeta} drawings={[...(drawingOwnerMatches ? (drawStore[sym] ?? []) : []), ...chartBus.aiDrawingsFor(sym)]} drawingsVisible={drawingsVisible} onDrawingsChange={(d) => setSymbolDrawings(sym, d)} onDetectedDrawingCount={i === activePane ? setActivePaneDetectedDrawingCount : undefined} liveQuote={quotes[sym] ?? null} dataReady={prefsHydrated} initialTimeframe={startTfRef.current} indParams={indParams} hidden={hidden} onToggleHidden={toggleHidden} onRemoveInd={removeInd} onOpenSettings={openSettings} onOpenSource={openSource} pineScripts={pineScripts} dayMode={dtm} userTier={userTier}
                   onAddAlert={(price) => { window.location.href = `/alerts?sym=${encodeURIComponent(active)}&price=${encodeURIComponent(price.toFixed(4))}&type=price_above`; }}
                   onTableView={() => setTableViewOpen(true)}
                   onObjectTree={() => setObjectTreeOpen((o) => !o)}
