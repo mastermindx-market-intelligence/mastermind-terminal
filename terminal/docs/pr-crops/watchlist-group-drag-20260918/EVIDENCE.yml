@@ -1,0 +1,24 @@
+# Terminal watchlist grouped drag — visual evidence
+capturedAtHead: e2d7fff7eaa25031329014e5e62b774a7f5bd02a
+capturedAt: 2026-09-18T11:45:54.541Z
+layoutFiles:
+  terminal/components/TerminalShell.tsx: "6566b1cd85e86664b0f9af907c0da43ccd6651242cbab0a542b68669f21d2415"
+  terminal/app/globals.css: "7c02de13182925579fdce8337118995bec3d9dd9cc1606ffc3251f09ef0b51d3"
+  terminal/lib/watchlistSections.ts: "593600946230dc2df49bbed2b3fbfd2c62db5f139382b6947a8e00c6f2570ee3"
+  terminal/lib/i18n.tsx: "baf5ae98af7891965a4bcd259be849be3363d5505835073e766f172e7690b3ff"
+capture_flag: TERMINAL_E2E_FIXTURE
+command: node terminal/e2e/tools/capture_watchlist_group_drag.cjs
+interaction: Ctrl/Cmd-select AAPL and NVDA; drag AAPL; hold bundle after AMD
+responsive_contract: The desktop watchlist board is intentionally hidden at widths <=860px; tablet/mobile captures prove containment without claiming drag availability.
+files:
+  - desktop-dark-en-drag.png
+  - desktop-light-en-drag.png
+  - desktop-dark-zh-drag.png
+  - tablet-dark-en-shell.png
+  - mobile-dark-zh-shell.png
+measurements:
+  desktop-dark-en-drag.png: { bundleCount: "2", symbols: "AAPL | NVDA", markerEdge: "after", markerText: "Move 2 here", ghostRows: 2, bundleWidth: 222, bundleHeight: 34, overflowX: false }
+  desktop-light-en-drag.png: { bundleCount: "2", symbols: "AAPL | NVDA", markerEdge: "after", markerText: "Move 2 here", ghostRows: 2, bundleWidth: 222, bundleHeight: 34, overflowX: false }
+  desktop-dark-zh-drag.png: { bundleCount: "2", symbols: "AAPL | NVDA", markerEdge: "after", markerText: "将 2 个移动到这里", ghostRows: 2, bundleWidth: 222, bundleHeight: 34, overflowX: false }
+  tablet-dark-en-shell.png: { watchlistVisible: false, overflowX: false, viewport: "820x1180" }
+  mobile-dark-zh-shell.png: { watchlistVisible: false, overflowX: false, viewport: "390x844" }
