@@ -20,6 +20,16 @@ export function setPaneSync(on: boolean) {
 }
 export function paneSyncEnabled() { return enabled; }
 
+/**
+ * What a peer would mirror at `time` — the REGISTERED lookup itself, not a re-derivation of it.
+ * Used by the live-bar coherence hook so a test asserts against the function sync actually calls.
+ */
+export function peerValueAt(id: number, time: Time): number | null {
+  const p = peers.get(id);
+  if (!p) return null;
+  try { return p.valueAt(time); } catch { return null; }
+}
+
 export function registerPane(id: number, peer: Peer) {
   peers.set(id, peer);
   return () => { if (peers.get(id) === peer) peers.delete(id); };
