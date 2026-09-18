@@ -136,9 +136,11 @@ async function prepare(page, shot) {
 async function liftBundle(page) {
   const row = (symbol) => page.locator(`[data-watchlist-symbol="${symbol}"]`);
   await page.locator(".wl-select").waitFor({ state: "visible", timeout: 60_000 });
+  await page.locator(".wl-select").filter({ hasText: "Bundle Proof" }).waitFor({ state: "visible", timeout: 60_000 });
   await page.locator(".wl-row").first().waitFor({ state: "visible", timeout: 60_000 });
-  await row("AAPL").click({ modifiers: ["Meta"] });
-  await row("NVDA").click({ modifiers: ["Meta"] });
+  if (await page.locator(".wl-row").count() !== 4) throw new Error("Bundle Proof did not hydrate with four seeded rows");
+  await row("AAPL").click({ modifiers: ["ControlOrMeta"] });
+  await row("NVDA").click({ modifiers: ["ControlOrMeta"] });
   await page.locator("[data-testid='watchlist-selection-count']").waitFor({ state: "visible" });
 
   const source = row("AAPL");
