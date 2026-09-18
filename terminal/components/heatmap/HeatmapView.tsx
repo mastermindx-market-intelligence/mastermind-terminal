@@ -71,7 +71,7 @@ async function fetchLiveChg(tickers: string[]): Promise<Record<string, number>> 
     const chunk = tickers.slice(i, i + QUOTE_CHUNK);
     const symsParam = chunk.join(",");
     const data = await safeFetch<{ quotes: Record<string, { chg: number | null } | null> }>(
-      `/api/quote?syms=${encodeURIComponent(symsParam)}`
+      `/api/quote?view=regular&syms=${encodeURIComponent(symsParam)}`
     );
     if (!data?.quotes) continue;
     for (const [sym, q] of Object.entries(data.quotes)) {
