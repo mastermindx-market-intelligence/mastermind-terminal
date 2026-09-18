@@ -1,4 +1,6 @@
 {
+  "current_master": "02e082b3603f7be03e93918051f2c924003e6a10",
+  "current_master_merge_head": "f69e493581a42860c99d821456b5d2adb724aca3",
   "findings_closed": [
     {
       "after": "typed conditional-scenario validator/transpose/HeatData bridge exists without casting to SurfaceFrame",
@@ -41,12 +43,13 @@
   "operation": "options-workbench-r2-scenario-terminal-contract-20260918-sol-001",
   "parent": "mastermind-terminal#603",
   "release_gates": {
-    "hosted_ci": "requires refresh after hardened head is pushed",
-    "independent_review": "requires refresh after hardened head is pushed",
+    "hosted_ci": "requires refresh after final records head is pushed",
+    "independent_review": "requires refresh after final records head is pushed",
     "production_proof": "not attempted",
     "surface_pane_consumer": "blocked on incumbent #608 plus Macro #7306 acceptance"
   },
   "schema": "mastermind.options_workbench.scenario_terminal_contract_evidence.v1",
+  "semantic_hardening_head": "d10b1b1d32beaa9a68beec2f55b3a85e210d5fad",
   "skillpack_sha": "61a2ff79aba4e8a5685e779707ad5c4426cf5cc5",
   "source_hashes": {
     "docs/OPTIONS_WORKBENCH_SCENARIO_TERMINAL_CONTRACT_2026-09-18.md": "3ed05224e640f1012e456bd3648a00a122696d149edeea5568c12b006ab1e1e4",
@@ -61,6 +64,11 @@
       "passed": 93
     },
     "baseline_typescript_exit": 0,
+    "current_master_owner_pack": {
+      "failed": 0,
+      "passed": 133
+    },
+    "current_master_typescript_exit": 0,
     "diff_check_exit": 0,
     "owner_pack": {
       "failed": 0,
