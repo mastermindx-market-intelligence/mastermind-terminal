@@ -3,6 +3,8 @@ import {
   aggregate,
   signSensitivity,
   scenarioGrid,
+  r5DteBucket,
+  r5Stage0Alignment,
   emFrame,
   topology,
   expiryConcentration,
@@ -167,6 +169,134 @@ describe("scenarioGrid", () => {
     expect(g.hasCharm).toBe(false);
     expect(g.charmPerDayMn).toBeNull();
     expect(g.cells[0][0]).toBeCloseTo(-10, 10);
+  });
+});
+
+describe("R5 Stage 0 scenario-conditioned alignment", () => {
+  const ASOF = "2026-09-18T20:00:00Z";
+  const scenario = {
+    spotPct: 1,
+    volPts: 2,
+    dtDays: 1,
+    materialityMn: 4,
+    positionTier: "naive_dealer_long_calls_short_puts/v1",
+  };
+
+  it("uses the frozen absolute-DTE buckets, not the gap-between-expiries tenor bands", () => {
+    expect(r5DteBucket(0)).toBe("0DTE");
+    expect(r5DteBucket(1)).toBe("1-2DTE");
+    expect(r5DteBucket(2)).toBe("1-2DTE");
+    expect(r5DteBucket(3)).toBe("3-7DTE");
+    expect(r5DteBucket(7)).toBe("3-7DTE");
+    expect(r5DteBucket(8)).toBe("8-30DTE");
+    expect(r5DteBucket(30)).toBe("8-30DTE");
+    expect(r5DteBucket(31)).toBe("31-90DTE");
+    expect(r5DteBucket(90)).toBe("31-90DTE");
+    expect(r5DteBucket(91)).toBe("91D+");
+    expect(r5DteBucket(-1)).toBeNull();
+  });
+
+  it("decomposes each tenor through the existing scenarioGrid math", () => {
+    const rows: MscExpiryRow[] = [
+      {
+        exp: "2026-09-18",
+        gamma_net: 10,
+        vanna_net: 4,
+        charm_net: 1,
+      },
+      {
+        exp: "2026-10-02",
+        gamma_net: -5,
+        vanna_net: 6,
+        charm_net: -2,
+      },
+    ];
+    const got = r5Stage0Alignment(rows, ASOF, scenario);
+    const d0 = got.buckets.find((r) => r.bucket === "0DTE")!;
+    const m = got.buckets.find((r) => r.bucket === "8-30DTE")!;
+
+    // 0DTE: gamma = -(10*1)=-10; vanna = -(4*2)=-8; charm=-(1*1)=-1.
+    expect(d0.gammaFlowMn).toBeCloseTo(-10, 10);
+    expect(d0.vannaFlowMn).toBeCloseTo(-8, 10);
+    expect(d0.charmFlowMn).toBeCloseTo(-1, 10);
+    expect(d0.totalFlowMn).toBeCloseTo(-19, 10);
+    expect(d0.alignment).toBe("aligned_negative");
+    expect(d0.alignmentStrength).toBeCloseTo(-10 * -8 / 80, 10);
+
+    // 14D: gamma = +5, vanna = -12, charm = +2 -> gamma/vanna oppose.
+    expect(m.gammaFlowMn).toBeCloseTo(5, 10);
+    expect(m.vannaFlowMn).toBeCloseTo(-12, 10);
+    expect(m.charmFlowMn).toBeCloseTo(2, 10);
+    expect(m.totalFlowMn).toBeCloseTo(-5, 10);
+    expect(m.alignment).toBe("opposed");
+
+    // Whole book reuses the same scenario math on the summed expiry state.
+    expect(got.wholeBook.totalFlowMn).toBeCloseTo(-24, 10);
+    expect(got.population).toBe("full_book_by_expiry");
+    expect(got.outcomeLabelsOpened).toBe(false);
+  });
+
+  it("keeps missing vanna unavailable and never turns it into a zero-flow factor", () => {
+    const got = r5Stage0Alignment([
+      { exp: "2026-09-19", gamma_net: 10, charm_net: 2 },
+    ], ASOF, scenario);
+    const row = got.buckets.find((r) => r.bucket === "1-2DTE")!;
+    expect(row.present).toBe(true);
+    expect(row.vannaMn).toBeNull();
+    expect(row.vannaFlowMn).toBeNull();
+    expect(row.alignment).toBe("unavailable");
+    // Existing scenarioGrid semantics still permit a total from the lenses that exist.
+    expect(row.totalFlowMn).toBeCloseTo(-12, 10);
+    expect(got.coverage.vannaRows).toBe(0);
+  });
+
+  it("distinguishes one-factor dominance from both-factors-immaterial", () => {
+    const dominant = r5Stage0Alignment([
+      { exp: "2026-09-19", gamma_net: 20, vanna_net: 1, charm_net: 0 },
+    ], ASOF, { ...scenario, materialityMn: 5 });
+    expect(dominant.wholeBook.alignment).toBe("one_factor_dominant");
+
+    const tiny = r5Stage0Alignment([
+      { exp: "2026-09-19", gamma_net: 1, vanna_net: 1, charm_net: 0 },
+    ], ASOF, { ...scenario, materialityMn: 5 });
+    expect(tiny.wholeBook.alignment).toBe("immaterial");
+  });
+
+  it("preserves all six buckets and marks empty ones absent rather than zero", () => {
+    const got = r5Stage0Alignment([
+      { exp: "2026-09-18", gamma_net: 3, vanna_net: 2, charm_net: 1 },
+    ], ASOF, scenario);
+    expect(got.buckets.map((r) => r.bucket)).toEqual([
+      "0DTE", "1-2DTE", "3-7DTE", "8-30DTE", "31-90DTE", "91D+",
+    ]);
+    const absent = got.buckets.find((r) => r.bucket === "31-90DTE")!;
+    expect(absent.present).toBe(false);
+    expect(absent.gammaMn).toBeNull();
+    expect(absent.totalFlowMn).toBeNull();
+  });
+
+  it("refuses expired/invalid rows without reclassifying them as 0DTE", () => {
+    const got = r5Stage0Alignment([
+      { exp: "2026-09-17", gamma_net: 99, vanna_net: 99, charm_net: 99 },
+      { exp: "not-a-date", gamma_net: 99, vanna_net: 99, charm_net: 99 },
+      { exp: "2026-09-19", gamma_net: 1, vanna_net: 1, charm_net: 1 },
+    ], ASOF, scenario);
+    expect(got.coverage.inputRows).toBe(3);
+    expect(got.coverage.qualifiedRows).toBe(1);
+    expect(got.coverage.invalidOrExpiredRows).toBe(2);
+    expect(got.buckets.find((r) => r.bucket === "0DTE")!.present).toBe(false);
+  });
+
+  it("requires explicit bounded shocks, materiality and a position-tier label", () => {
+    const rows: MscExpiryRow[] = [
+      { exp: "2026-09-19", gamma_net: 1, vanna_net: 1, charm_net: 1 },
+    ];
+    expect(() => r5Stage0Alignment(rows, ASOF, { ...scenario, spotPct: 3.01 })).toThrow(/3%/);
+    expect(() => r5Stage0Alignment(rows, ASOF, { ...scenario, volPts: -5.01 })).toThrow(/5pt/);
+    expect(() => r5Stage0Alignment(rows, ASOF, { ...scenario, dtDays: -1 })).toThrow(/non-negative/);
+    expect(() => r5Stage0Alignment(rows, ASOF, { ...scenario, materialityMn: -1 })).toThrow(/non-negative/);
+    expect(() => r5Stage0Alignment(rows, ASOF, { ...scenario, positionTier: " " })).toThrow(/declared/);
+    expect(() => r5Stage0Alignment(rows, "not-a-date", scenario)).toThrow(/valid YYYY-MM-DD/);
   });
 });
 
