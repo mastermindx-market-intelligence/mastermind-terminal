@@ -5,7 +5,7 @@
 # layoutFiles carry sha256 hashes of the files they name; proof of which code generated each crop.
 # Rebuild any crop and recompute its layoutFiles, or the test will fail and the PR will not land.
 # capturedAtHead: 35e9f60c895ae9c1e0ebb803bc16d48bd5962f86
-capturedAtHead: 0983d8057c62836f1e42adaeff4c05e5580c10ca
+capturedAtHead: 1aca671d93c965a7cc9c3a92c5d28b1ae836ee77
 capturedAt: 2026-09-11T03:00:17.565Z
 # capturedAtHead is merge commit 35e9f60c895ae9c1e0ebb803bc16d48bd5962f86 (H4b #565 onto master 908540b79). layoutFiles hashes are that commit's bytes except i18n.tsx, which this PR restamps for DEEP_RESEARCH_MONTHLY quota copy (obInsider2/obPro1/acsFeatInsider4/acsFeatPro3). Those strings are not rendered on the ownership-transfer surface; no crop recaptured. The previous pointer 3cdcd746b86d478ff139dd5fea408b66fce065af remains an ancestor; the ancestry guard requires capturedAtHead to name a commit whose i18n blob matches the restamped hash.
 # Pinned i18n.tsx last changed on this carrier for master #554's claim* keys; the captured surface (team section + rail) does not render them; crops unchanged from 916db2d4ac62b00aed236231433d8d952c22f3c6.
@@ -15,13 +15,12 @@ capturedAt: 2026-09-11T03:00:17.565Z
 # 2026-09-11 merge of master 19c57aca (#556 B-F13-7 first resolver) into B-F12-8 (#550): #556 touches only terminal/lib/personalAccuracy.ts, terminal/lib/personalAccuracyStore.ts, terminal/lib/dailyCloseResolver.ts, terminal/scripts/score_personal_accuracy.mjs and their tests/fixtures — none of this packet's pinned files — so every layoutFiles row is unchanged and no crop was recaptured; capturedAtHead moves by the depth-2 pointer rule only.
 # 2026-09-11 merge of master d812eba5cc082de66565a740d7217392650d397c (PL-NI-1 squash #572): capturedAtHead pointer moves forward to d812eba5cc082de66565a740d7217392650d397c so the i18n.tsx re-hash captures the plain-language 您→你 sweep. Pinned i18n.tsx bytes 130d2ef1 below equal the post-merge i18n.tsx (this branch's H4b DEEP_RESEARCH_MONTHLY template re-introduction combined with master's PL-NI-1 您→你 sweep via auto-merge).
 # 2026-09-13 H4b #565 history-preserving merge of origin/master 3db34e7a8: capturedAtHead pointer moves forward to the merge commit (placeholder 0000...0000 will be replaced by the iterative fixed-point commit SHA); i18n.tsx re-hashed — auto-merge of master's PL-NI-1 (您→你 + DEEP_RESEARCH_MONTHLY template removal) with PR #565's H4b (DEEP_RESEARCH_MONTHLY template re-introduction) yields bytes 130d2ef1. Pinned below. No B-F12-9 string or layout changed; no crop recaptured.
-# 2026-09-18 Terminal watchlist grouped drag: terminal/lib/i18n.tsx re-hashed for wlDragSelected/wlMovingSymbols/wlMoveHere and watchlist drag accessibility copy. These keys render only in the Terminal watchlist rail; this packet renders none of them, so its committed crops remain truthful and were not recaptured.
 layoutFiles:
   terminal/components/settings/SectionTeam.tsx: "fec63ed61b300fbfc6f745b1d8f8a605ad459304f10009bd68023b859b245595"
   terminal/components/settings/SectionTeam.module.css: "924ab5b81d4f0e11ef2138557e92c43a0d1fa21b78622567fb6ccddcf6c146a8"
   terminal/components/settings/SettingsPanel.tsx: "378811617e0de2feed0d8bc1c6e01ae55d8e763204fe0d1c1829bc44fff1e1a4"
   terminal/app/settings.css: "3189163136d943431cbf52e4b5d241c105b695ba5af94c4c2e29151d537b5ef5"
-  terminal/lib/i18n.tsx: "baf5ae98af7891965a4bcd259be849be3363d5505835073e766f172e7690b3ff"
+  terminal/lib/i18n.tsx: "130d2ef17884e818f50cebb89e4ae167d895d24a229ca09d315745d9dc593783"
 theme: dark
 languages: [en, zh]
 viewports:
