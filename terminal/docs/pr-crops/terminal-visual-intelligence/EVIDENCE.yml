@@ -1,8 +1,8 @@
 # Terminal Visual Intelligence Layer — release-candidate browser evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 2c1e5a58df4b8d8e954a81ab539bc785726940be
-# capturedAt: 2026-09-18T13:32:00Z
+# capturedAtHead: 06c23bfb3b87ed475d1f242770fb7c2c980a4c59
+# capturedAt: 2026-09-18T13:39:39Z
 # capturedAtHead is informational. The lock is layoutFiles + cropFiles.
 layoutFiles:
   terminal/components/ChartPanel.tsx: "97cd543d99a06901ecd1825cb8ddcdc6e727685561f5d1da5fd6c43dbabd254f"
@@ -15,12 +15,12 @@ layoutFiles:
   terminal/lib/suites/trend/candlePainter.ts: "8384d2bce3af939a51e88584b1436ee2898a89f0fbf1aedc09ffee624a3e12e1"
   terminal/lib/indicator-canvas/host.ts: "4f2949efb22b8c378cab1ff9d176466c4857073c14a36ee4f0eeab4ec1015a25"
 cropFiles:
-  desktop-context.png: "c540ecb9cd1e1f2c8ea2979ed6d09bb28ed76d9e3c12e4fc2a1aee11507abead"
-  desktop-context-zh.png: "d63fa994e5acc77e4c9d8950c8d5bdc19d279e2d1008de2145cf3f441fb383c5"
-  tablet-context.png: "9a1951ab813a9304196349d512d7e075b8138ae35dcbe6dcd05fcaca8f61d89e"
-  tablet-context-zh.png: "f418214e64c96809566c16b9093e9c29a8b36f5ebf64b72d0b67ff6cfd581604"
-  mobile-context.png: "8c26309fe2a81715ba5338a2a105de7aa6a18783ddb6578fabf8c02984f0e80d"
-  mobile-context-zh.png: "96336627af96093bb60564f46b30279c948e12b1999664ca0e922379f41f5bde"
+  desktop-context.png: "f11f023a42e8d6fd399a897a63eb98180a7fdf4a5e626d5e4f924b201a30bd25"
+  desktop-context-zh.png: "79a4affb128920543e689f63e310ff10fa2fa65dcd321c8016bdc176b112c212"
+  tablet-context.png: "8a30125b9c0fec4f808fa114a2ba1ee1a1aaba3d6bcee9d65c8d9529cb9e1b78"
+  tablet-context-zh.png: "5540488fa9171f6384221a8853f80ee176f899f4e4ef69aa86803bc85f1761fa"
+  mobile-context.png: "771d95fec0e966ac708ea32c52395c06e56c4c728f87437c79012cc6e04a1774"
+  mobile-context-zh.png: "eab8ffbc3d9472dafced1f2cf8dbd6622343346405d25b741ba30578202701ed"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -43,7 +43,7 @@ browserResults:
 localGates:
   typecheck: PASS
   plainLanguage: PASS
-  vitest: 338 files passed; 5602 tests passed; 4 todo
+  vitest: 339 files passed; 5605 tests passed; 4 todo
 files:
   - desktop-context.png
   - desktop-context-zh.png
