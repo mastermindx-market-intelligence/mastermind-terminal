@@ -721,7 +721,10 @@ export function Dumbbell({ points, fmtY = fmtNum, vw = 320, vh = 180, forecastFr
         // module width, so cx lands in 320-unit space and the old clamp pinned the tip
         // into the leftmost ~134px — the reported "bleeding off the container".
         const INSET = 8;
-        const TIPW = Math.min(180, Math.max(96, vw - INSET * 2));
+        // A 180px card is too narrow for legitimate low-denominator surprises such as
+        // "+0.22 (3162.41%)". Give the card room on normal charts, but keep the same
+        // measured-box clamp so compact panes can never push it outside the plot.
+        const TIPW = Math.min(232, Math.max(96, vw - INSET * 2));
         const left = Math.min(Math.max(INSET, cx - TIPW / 2), Math.max(INSET, vw - TIPW - INSET));
         const diff = num(p.actual) && num(p.estimate) ? (p.actual as number) - (p.estimate as number) : null;
         const sp = num(p.surp_pct)
@@ -737,8 +740,9 @@ export function Dumbbell({ points, fmtY = fmtNum, vw = 320, vh = 180, forecastFr
             <div className="r"><span className="k">{pick(!!zh, "Estimate", "预期")}</span><span className="v">{num(p.estimate) ? fmtY(p.estimate as number) : "—"}</span></div>
             {diff != null && (
               <div className="r"><span className="k">{pick(!!zh, "Surprise", "超预期")}</span>
-                <span className={"v " + (beat ? "up" : "down")}>
-                  {(diff >= 0 ? "+" : "−") + fmtY(Math.abs(diff))}{sp != null ? ` (${Math.abs(sp).toFixed(2)}%)` : ""}
+                <span className={"v surprise " + (beat ? "up" : "down")}>
+                  <span>{(diff >= 0 ? "+" : "−") + fmtY(Math.abs(diff))}</span>
+                  {sp != null && <span>({Math.abs(sp).toFixed(2)}%)</span>}
                 </span></div>
             )}
           </div>
