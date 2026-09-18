@@ -22,7 +22,8 @@ export default function IndicatorSource({ indKey, onClose }: { indKey: string; o
         <div className="is-head">
           <b>{def.label.toLowerCase().replace(/[^a-z0-9]+/g, "_")}.pine</b>
           <span className="badge" style={{ marginLeft: 8 }}>{tPlain("peBuiltIn", "PINE v6 · built-in")}</span>
-          <span className="x" onClick={onClose} aria-label={tPlain("smClose", "Close")}>✕</span>
+          <span className="x" onClick={onClose} role="button" tabIndex={0} aria-label={tPlain("smClose", "Close")}
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClose(); } }}>✕</span>
         </div>
         <pre className="src-code">{def.source}</pre>
         <div className="is-foot">

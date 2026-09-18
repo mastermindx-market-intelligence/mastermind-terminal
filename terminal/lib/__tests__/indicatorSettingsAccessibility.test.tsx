@@ -4,6 +4,7 @@ import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import IndicatorSettings from "@/components/IndicatorSettings";
+import IndicatorSource from "@/components/IndicatorSource";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -15,6 +16,14 @@ function mount(props: React.ComponentProps<typeof IndicatorSettings>): HTMLEleme
   document.body.appendChild(host);
   root = createRoot(host);
   act(() => root!.render(<IndicatorSettings {...props} />));
+  return host;
+}
+
+function mountSource(props: React.ComponentProps<typeof IndicatorSource>): HTMLElement {
+  host = document.createElement("div");
+  document.body.appendChild(host);
+  root = createRoot(host);
+  act(() => root!.render(<IndicatorSource {...props} />));
   return host;
 }
 
@@ -124,5 +133,18 @@ describe("Indicator Settings keyboard controls", () => {
 
     press(reset!, "Enter");
     expect(onReset).toHaveBeenCalledTimes(1);
+  });
+
+  it("makes the built-in source dialog's header close control keyboard-operable", () => {
+    const onClose = vi.fn();
+    const view = mountSource({ indKey: "rsi", onClose });
+
+    const close = view.querySelector<HTMLElement>(".ind-src .is-head .x");
+    expect(close).not.toBeNull();
+    expect(close!.getAttribute("role")).toBe("button");
+    expect(close!.tabIndex).toBe(0);
+
+    press(close!, " ");
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 });
