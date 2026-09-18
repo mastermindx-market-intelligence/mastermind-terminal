@@ -207,7 +207,15 @@ export default function ChartOverlays(props: {
                       {/* Static Legend: tapping the name area on touch ARMS the row (fires no action) */}
                       <span
                         className="lg-name"
+                        role={coarse && !isArmed ? "button" : undefined}
+                        tabIndex={coarse && !isArmed ? 0 : undefined}
                         onClick={coarse && !isArmed ? (ev) => { ev.stopPropagation(); setArmedKey(e.key); } : undefined}
+                        onKeyDown={coarse && !isArmed ? (ev) => {
+                          if (ev.key !== "Enter" && ev.key !== " ") return;
+                          ev.preventDefault();
+                          ev.stopPropagation();
+                          setArmedKey(e.key);
+                        } : undefined}
                       >{e.label}</span>
                       {/* Touch armed strip: icons appear INSIDE the same box — same .lg-menu as desktop,
                           no separate pill, no geometry change. Eye is the fixed first slot. */}

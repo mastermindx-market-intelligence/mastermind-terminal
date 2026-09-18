@@ -77,6 +77,21 @@ describe("indicator legend More menu keyboard semantics", () => {
     expect(document.activeElement).toBe(more);
   });
 
+  it("lets a keyboard user arm a visible coarse-pointer legend row", () => {
+    const { host } = renderLegend({ coarse: true });
+    const name = host.querySelector<HTMLElement>(".lg-row .lg-name");
+    expect(name).not.toBeNull();
+    expect(name!.getAttribute("role")).toBe("button");
+    expect(name!.tabIndex).toBe(0);
+    expect(host.querySelector(".lg-row .lg-menu")).toBeNull();
+
+    act(() => {
+      name!.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true }));
+    });
+
+    expect(host.querySelector(".lg-row.is-armed .lg-menu")).not.toBeNull();
+  });
+
   it("uses disabled native buttons for unavailable pane moves instead of pointer-only divs", () => {
     const pane: PaneInfo = {
       key: "rsi",
