@@ -22,12 +22,21 @@
  *    Fixing would require changing trendRibbon's EMA to match pandas adjust=True
  *    behaviour, which is a non-trivial rewrite and would change the displayed chart.
  *
- * 2. Bollinger Bands standard deviation (documented in the BB describe block):
- *    - Python fixture: numpy ddof=1 (sample std dev, divides by N-1)
- *    - indicatorMath.ts bollingerBands(): sample std dev (ddof=1) — MATCHES fixture
- *    - ChartPanel.tsx inline stddev(): population std dev (divides by N) — DIVERGES
- *    The parity test covers indicatorMath.ts bollingerBands() and PASSES.
- *    The ChartPanel stddev divergence is documented as test.todo.
+ * 2. Bollinger Bands standard deviation — RESOLVED, see bollingerRenderParity.test.ts.
+ *    This file used to carry a test.todo saying the rendered bands diverged from the
+ *    fixture by sqrt(N/(N-1)) and that only an indicatorMath-vs-fixture check existed.
+ *    The resolution was NOT to move either number: there are two different indicators
+ *    here and they are now named separately.
+ *      - THIS file pins the Macro Python engine's _bb_bands() (pandas .std(), ddof=1),
+ *        which drives engine/bollinger_event_signals.py. Sample std dev is correct for
+ *        those event signals, so the fixture and this tolerance are unchanged; the call
+ *        below now passes ddof=1 EXPLICITLY instead of relying on a library default.
+ *      - The CHARTED "Bollinger Bands" indicator is pinned by bollingerRenderParity.test.ts
+ *        against the product's own published definition (IND_DEFS.bb.source, `ta.stdev`,
+ *        i.e. population σ) run through the repo's Pine engine, and that file also asserts
+ *        ChartPanel derives its bands only through indicatorMath.bollingerBands().
+ *    Measured gap between the two contracts on this fixture: up to 0.24% of band value —
+ *    which is why conflating them let the rendered chart drift unnoticed.
  */
 
 import { describe, it, expect, test } from "vitest";
@@ -166,6 +175,26 @@ describe("ribbon EMA parity (TLT-R5)", () => {
   // up to 1% in the first ~100 bars. See module-level comment for full details.
   // Tests are marked todo rather than skipped so the divergence remains visible
   // in the test run and is not silently ignored.
+  //
+  // ── WHY THIS IS NOT THE SAME PROBLEM AS BOLLINGER (verified 2026-09-18) ──
+  // The BB defect was a TRUST failure: ChartPanel inlined its own band math, so this
+  // suite certified a function the chart never called. Ribbon has no such gap —
+  // ChartPanel.tsx buildRibbon() calls indicatorMath.trendRibbon() directly, so the
+  // implementation tested here IS the implementation rendered. Fixing BB therefore did
+  // not touch Ribbon, and these todos are a formula question, not a drift question.
+  // Measured on this fixture: fast_ema(20) max 0.118% (converged by bar 99),
+  // slow_ema(50) max 1.310% (converged by bar 243), ribbon_state disagrees on
+  // 11/500 bars, all inside bars 75–87.
+  // The open decision is NOT bounded the way BB's was, which is why it was left here:
+  //   1. indicatorMath.ema() is shared with the EMA overlay indicator and others, so
+  //      changing its seeding is not a Ribbon-local edit.
+  //   2. The Python side (engine/dannytrades.py `_ema`) feeds ribbon_trend() signals,
+  //      so changing it moves live signal output in the Macro repo, not just a fixture.
+  //   3. There is no clean in-repo oracle here, unlike BB: the published ribbon source
+  //      (IND_DEFS.ribbon.source) is labelled DISPLAY-TIER DESCRIPTIVE rather than
+  //      definitional, and this repo's Pine engine implements ta.ema as FIRST-VALUE
+  //      seeded (lib/pine-engine/runtime.ts) while TradingView's ta.ema is SMA-seeded —
+  //      a third convention, and a defect in its own right.
 
   const result = trendRibbon(BARS, 20, 50, 10);
 
@@ -237,11 +266,14 @@ describe("RSI parity (TLT-R5)", () => {
 
 // ─── Bollinger Bands parity ───────────────────────────────────────────────────
 
-describe("Bollinger Bands parity (TLT-R5)", () => {
-  // bollingerBands() in indicatorMath.ts uses sample std dev (ddof=1) to match
-  // the Python fixture.  See the module-level comment for the ChartPanel divergence.
+describe("Bollinger Bands parity (TLT-R5) — Macro Python engine contract", () => {
+  // Scope: engine/bollinger_event_signals.py `_bb_bands()`, which uses pandas .std()
+  // (ddof=1, sample). ddof=1 is passed EXPLICITLY — the library default is population σ
+  // because that is what the charted indicator publishes. Keeping this contract honest
+  // requires naming which std dev it means; it must not ride on a default that belongs
+  // to a different indicator. The charted bands are pinned in bollingerRenderParity.test.ts.
   const params = expBollinger._params as { len: number; mult: number };
-  const result = bollingerBands(BARS, params.len, params.mult);
+  const result = bollingerBands(BARS, params.len, params.mult, 1);
 
   it("upper band matches fixture within 1e-6 relative", () => {
     const expUpper: (number | null)[] = expBollinger.upper;
@@ -264,13 +296,10 @@ describe("Bollinger Bands parity (TLT-R5)", () => {
     }
   });
 
-  // ── DOCUMENTED DIVERGENCE ────────────────────────────────────────────────
-  test.todo(
-    "ChartPanel.tsx stddev uses population std dev (ddof=0), not sample (ddof=1): " +
-      "ChartPanel rendered Bollinger Bands will diverge from Python fixture by sqrt(N/(N-1)) " +
-      "factor (~0.05% at N=20). Fixing requires a deliberate UX decision to change the displayed " +
-      "chart. Do NOT loosen this test — keep it as a documentation marker.",
-  );
+  // The former "ChartPanel stddev diverges" test.todo lived here. It is resolved, not
+  // deleted: the rendered-chart contract it described is now an executing test in
+  // bollingerRenderParity.test.ts, which fails if ChartPanel ever re-inlines its own
+  // band math or if the owner's denominator is changed back.
 });
 
 // ─── Indicators M2 parity (D04: VWAP / Anchored VWAP / Volume Profile + POC) ──

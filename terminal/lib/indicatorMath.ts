@@ -625,13 +625,26 @@ export function accumPct(bars: Bar[], win = 63): (number | null)[] {
   return out;
 }
 
-// ─── Bollinger Bands (sample std dev, ddof=1) ─────────────────────────────────
+// ─── Bollinger Bands ──────────────────────────────────────────────────────────
 //
-// NOTE: This implementation uses the *sample* standard deviation (divides by N-1)
-// to match the Python engine's _bb_bands() (numpy ddof=1) and the parity fixtures.
-// The ChartPanel.tsx inline `stddev` function uses *population* std dev (divides by N)
-// — that is a known divergence between the chart display and this math library.
-// See indicatorParity.test.ts for the documented test.todo covering this divergence.
+// The DEFAULT is POPULATION std dev (ddof=0) because that is what this product
+// publishes as the definition of the indicator: IND_DEFS.bb.source — the read-only
+// Pine the chart's "Source code…" button shows the user — is
+//   basis = ta.sma(close, length);  dev = mult * ta.stdev(close, length)
+// and `ta.stdev` is population (see lib/pine-engine/runtime.ts, and TradingView).
+// The rest of the repo already matches that on purpose: marketDashboard.ts
+// ("population σ, like ta.stdev"), intradayMath.ts ttmSqueeze, suites/rsix/
+// rsiChannels.ts and volbox() below.
+//
+// `ddof: 1` selects the SAMPLE std dev, which is a DIFFERENT, still-live contract:
+// the Macro Python engine's _bb_bands() (pandas .std(), ddof=1) behind
+// engine/bollinger_event_signals.py. Those are event-signal bands, not the charted
+// indicator. Both are pinned — see __tests__/bollingerRenderParity.test.ts (charted)
+// and __tests__/indicatorParity.test.ts (Macro Python engine).
+//
+// The two differ by sqrt(N/(N-1)) ON THE DEVIATION — at N=20 that is 2.6% of the
+// band half-width, which reached 0.24% of the band VALUE on the 500-bar parity
+// fixture. That is ~2,000x the 1e-6 parity tolerance: not a rounding detail.
 
 export interface BollingerResult {
   upper: (number | null)[];
@@ -639,8 +652,12 @@ export interface BollingerResult {
   lower: (number | null)[];
 }
 
-/** Bollinger Bands with SMA basis and sample std dev (ddof=1). */
-export function bollingerBands(bars: Bar[], len = 20, mult = 2.0): BollingerResult {
+/**
+ * Bollinger Bands with an SMA basis.
+ * @param ddof 0 = population std dev (default; the charted indicator, Pine `ta.stdev`).
+ *             1 = sample std dev (the Macro Python `_bb_bands()` engine contract).
+ */
+export function bollingerBands(bars: Bar[], len = 20, mult = 2.0, ddof: 0 | 1 = 0): BollingerResult {
   const closes = bars.map((r) => r.c);
   const n = closes.length;
   const upperArr: (number | null)[] = Array(n).fill(null);
@@ -650,8 +667,7 @@ export function bollingerBands(bars: Bar[], len = 20, mult = 2.0): BollingerResu
   for (let i = len - 1; i < n; i++) {
     const window = closes.slice(i - len + 1, i + 1);
     const mean = window.reduce((a, v) => a + v, 0) / len;
-    // Sample std dev: divide by (N-1) to match Python numpy ddof=1
-    const variance = window.reduce((a, v) => a + (v - mean) ** 2, 0) / (len - 1);
+    const variance = window.reduce((a, v) => a + (v - mean) ** 2, 0) / (len - ddof);
     const sd = Math.sqrt(variance);
     midArr[i] = mean;
     upperArr[i] = mean + mult * sd;
