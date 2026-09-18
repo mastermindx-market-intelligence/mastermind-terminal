@@ -315,6 +315,30 @@ async function expectNoDocumentOverflow(page: Page) {
 test("Company Intelligence keeps its context and evidence workflow responsive", async ({ page }, testInfo) => {
   await openCompanyIntelligence(page);
   await expectNoDocumentOverflow(page);
+
+  // The structured event summary is a real content card, not text painted against
+  // the section edge. Keep enough internal space for short one-line summaries so
+  // they do not collapse into the thin, border-hugging strip this regression came from.
+  const structuredSummary = page.locator(".ci-stance-copy");
+  await expect(structuredSummary).toBeVisible();
+  const structuredGeometry = await structuredSummary.evaluate((element) => {
+    const style = getComputedStyle(element);
+    const rect = element.getBoundingClientRect();
+    const text = element.querySelector("span")?.getBoundingClientRect();
+    return {
+      minHeight: parseFloat(style.minHeight),
+      paddingLeft: parseFloat(style.paddingLeft),
+      paddingTop: parseFloat(style.paddingTop),
+      leftInset: text ? text.left - rect.left : 0,
+      topInset: text ? text.top - rect.top : 0,
+    };
+  });
+  expect(structuredGeometry.minHeight).toBeGreaterThanOrEqual(68);
+  expect(structuredGeometry.paddingLeft).toBeGreaterThanOrEqual(12);
+  expect(structuredGeometry.paddingTop).toBeGreaterThanOrEqual(12);
+  expect(structuredGeometry.leftInset).toBeGreaterThanOrEqual(12);
+  expect(structuredGeometry.topInset).toBeGreaterThanOrEqual(10);
+
   await expect(page.getByRole("heading", { name: "Curated basket context" })).toBeVisible();
   await expect(page.locator(".ci-theme-card")).toContainText("AI Infrastructure");
   await expect(page.locator(".ci-theme-card")).toContainText("Proxy crosswalk");
@@ -382,12 +406,10 @@ test("Company Intelligence keeps its context and evidence workflow responsive", 
   await expect(evidence).toHaveAttribute("inert", "");
   await expect(receipts).toBeFocused();
 
-  // The lens bar is its own roving tablist inside the Intelligence page; this
-  // assertion protects it from being swallowed by the outer Financials tabs.
+  // The lens bar is its own roving tablist inside the Intelligence page; it must
+  // stay in normal document flow. A sticky tab strip used to follow deep scrolling
+  // and float through the middle of the research workspace, obscuring content.
   const topics = page.locator(".ci-lenses").getByRole("tab", { name: "Topics" });
-  // Start from the deliberately taller transcript workspace so both Terminal
-  // hosts (inner .fin-body scroller and document scroller) exercise the same
-  // sticky-lens reveal contract.
   await page.locator(".ci-lenses").getByRole("tab").nth(1).click();
   await expect(page.locator(".ci-ts-explorer")).toBeVisible();
   await page.locator(".ci-ts-explorer").evaluate((element) => {
@@ -399,35 +421,32 @@ test("Company Intelligence keeps its context and evidence workflow responsive", 
     return inner ? inner.scrollHeight - inner.clientHeight : 0;
   })).toBeGreaterThan(0);
   const deepScroll = await page.evaluate(() => {
-    // Multiple retained Financial panes can exist in the shell. Bind the
-    // assertion to this workspace's actual scroll owner, not the first hidden
-    // `.fin-body` elsewhere in the DOM.
     const explorer = document.querySelector<HTMLElement>(".ci-ts-explorer");
     const inner = explorer?.closest<HTMLElement>(".fin-body") ?? null;
     if (inner) {
-      // Production uses smooth scrolling. Disable animation for this exact
-      // geometry assertion so the coordinate is sampled after, not during,
-      // the synthetic deep scroll.
       inner.style.scrollBehavior = "auto";
       inner.scrollTop = inner.scrollHeight;
     }
-    window.scrollTo(0, document.documentElement.scrollHeight);
-    return { inner: inner?.scrollTop ?? 0, windowY: window.scrollY };
+    return {
+      scrollTop: inner?.scrollTop ?? 0,
+      lensPosition: getComputedStyle(document.querySelector<HTMLElement>(".ci-lenses")!).position,
+      lensBottom: document.querySelector<HTMLElement>(".ci-lenses")!.getBoundingClientRect().bottom,
+      ownerTop: inner?.getBoundingClientRect().top ?? 0,
+    };
   });
-  expect(Math.max(deepScroll.inner, deepScroll.windowY)).toBeGreaterThan(0);
+  expect(deepScroll.scrollTop).toBeGreaterThan(0);
+  expect(deepScroll.lensPosition).toBe("relative");
+  expect(deepScroll.lensBottom).toBeLessThanOrEqual(deepScroll.ownerTop + 1);
+
+  // Return to the top explicitly; changing lenses must not secretly pull the
+  // scroller around just to make a sticky control usable.
+  await page.locator(".ci-ts-explorer").evaluate((element) => {
+    const inner = element.closest<HTMLElement>(".fin-body");
+    if (inner) inner.scrollTop = 0;
+  });
   await topics.click();
   await expect(topics).toHaveAttribute("aria-selected", "true");
   await expect(page.locator("#ci-panel-topics")).toContainText("What entered, persisted, or dropped");
-  await expect.poll(() => page.evaluate(() => {
-    const lenses = document.querySelector(".ci-lenses")?.getBoundingClientRect();
-    const workspace = document.querySelector(".ci-workspace")?.getBoundingClientRect();
-    return !!lenses && !!workspace && workspace.top >= lenses.bottom - 1;
-  })).toBe(true);
-  const afterReveal = await page.evaluate(() => ({
-    inner: document.querySelector<HTMLElement>(".ci-ts-explorer")?.closest<HTMLElement>(".fin-body")?.scrollTop ?? 0,
-    windowY: window.scrollY,
-  }));
-  expect(afterReveal.inner < deepScroll.inner || afterReveal.windowY < deepScroll.windowY).toBe(true);
   await expectNoDocumentOverflow(page);
 
   await page.screenshot({
