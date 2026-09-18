@@ -139,6 +139,34 @@ export type EngineMouseEventParams = {
 export type EngineMouseHandler = (param: EngineMouseEventParams) => void;
 export type EngineLogicalRangeHandler = (range: EngineLogicalRange | null) => void;
 
+// ── Live-resource census ────────────────────────────────────────────────────────
+// A read-only count of what the RENDERER currently holds, read back from the renderer
+// itself rather than from caller bookkeeping. That direction is the whole point: a
+// consumer that creates series through unwrap() (ChartPanel still does, at ~51 sites)
+// is invisible to any registry the engine keeps, so only the renderer's own view can
+// prove that no resource outlived the owner that created it. Compare a census against
+// the caller's tracked owners and the difference IS the orphan count.
+//
+// Counts must be cheap and must never throw — a census taken mid-teardown is exactly
+// when the numbers matter, so a disposed engine answers {alive:false} with zeroes
+// instead of raising.
+export type EngineInventory = {
+  // false once destroy() has run; every count below is then 0.
+  alive: boolean;
+  panes: number;
+  // Live series across every pane.
+  series: number;
+  // Per-pane series counts, in pane order (a pane-topology regression shows up here
+  // as a phantom pane holding 0 series even when the total is unchanged).
+  seriesByPane: number[];
+  // Live price lines across every live series. Price lines created on a series the
+  // creator does not own (e.g. the shared price series) outlive that creator, so this
+  // is the count that exposes an unpooled price line.
+  priceLines: number;
+  // Watermark plugins this engine created and has not replaced.
+  watermarks: number;
+};
+
 // ── Handles ─────────────────────────────────────────────────────────────────────
 
 export interface PriceLineHandle {
@@ -238,5 +266,9 @@ export interface ChartEngine {
   // handle so ChartPanel can reach APIs not yet surfaced. Every call site is tech debt
   // tagged `// engine-unwrap:` and must reach zero before P3. For LWC this is IChartApi.
   unwrap<T>(): T; // engine-unwrap: raw IChartApi
+  // Live-resource census (see EngineInventory). Read-only, cheap, and safe after
+  // destroy(). Every renderer that implements this contract owes the same numbers —
+  // it is how a lifecycle claim stays checkable across a renderer swap.
+  inventory(): EngineInventory;
   destroy(): void;
 }

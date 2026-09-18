@@ -120,11 +120,61 @@ export function placeMarkerTip(
 
 /** Did this pointer gesture stay still and short enough to read as a TAP rather than a pan?
  *  Same thresholds as ChartPanel's existing double-tap detector, so one gesture cannot be a tap
- *  for the tooltip and a drag for the chart. */
+ *  for the tooltip and a drag for the chart.
+ *
+ *  `t` is a gesture time, NOT a handler time — see `gestureStamp` / `isTapSample` below for why
+ *  that distinction is the whole difference between a tap that works on a busy phone and one that
+ *  dead-ends. Callers must not pass `performance.now()` when the event can date itself. */
 export function isTapGesture(
   down: { x: number; y: number; t: number },
   up: { x: number; y: number; t: number },
 ): boolean {
   if (up.t - down.t > 300) return false;
   return Math.hypot(up.x - down.x, up.y - down.y) <= 12;
+}
+
+/** When the gesture ACTUALLY happened, or null when the event cannot date itself.
+ *
+ *  ── WHY NOT `performance.now()` ─────────────────────────────────────────────────────────────
+ *
+ *  `performance.now()` read inside a handler is the moment THE MAIN THREAD GOT ROUND TO the
+ *  event, not the moment the finger moved. The two agree only on an idle thread. They come apart
+ *  exactly where this layer matters most — a phone mid-repaint, a chart re-laying its panes, a
+ *  saturated CI runner — because the browser queues input behind whatever the thread is already
+ *  doing and delivers it late, in a burst.
+ *
+ *  Measured on this chart (e2e, both touch viewports, both overlay layers): a zero-travel tap
+ *  whose two events are stamped 0-1ms apart is delivered with `performance.now()` deltas of
+ *  120 / 250 / 400 / 700ms as the thread is held for that long between down and up. At 400ms the
+ *  300ms bound above rejects it and the tooltip never opens — for a gesture that was physically
+ *  a flick of a fingertip. `timeStamp` carries the platform time the event was GENERATED, so it
+ *  reads ~0ms across all of them and the same tap classifies the same way whether the thread was
+ *  free or not.
+ *
+ *  Only ever consumed as a DELTA between two events of one gesture, so the epoch and the unit do
+ *  not have to match `performance.now()` — they only have to match each other, which two events
+ *  from one pointer always do. `0` reads as "no platform time" (some synthetic events) and is
+ *  refused, because a pair of zeroes would make every press, however long, look instantaneous. */
+export function gestureStamp(e: { timeStamp?: unknown }): number | null {
+  const ts = e.timeStamp;
+  return typeof ts === "number" && isFinite(ts) && ts > 0 ? ts : null;
+}
+
+/** One end of a pointer gesture: where it was, when its handler ran (`t`), and when the event
+ *  itself says it happened (`ts`, from `gestureStamp`, null when the event cannot date itself). */
+export type TapSample = { x: number; y: number; t: number; ts: number | null };
+
+/** `isTapGesture` over a gesture that carries both clocks — the form every delegated tooltip
+ *  layer on this chart uses, so they cannot drift apart in how they read one gesture.
+ *
+ *  Prefers the events' own stamps and falls back to the handler clock only when the pair is
+ *  unusable (either end undateable, or the two not in order — a mismatched pair whose delta would
+ *  be meaningless). The THRESHOLDS are not duplicated here: this resolves a clock and hands the
+ *  result to `isTapGesture`, which stays the one definition of what a tap is. */
+export function isTapSample(down: TapSample, up: TapSample): boolean {
+  const paired = down.ts != null && up.ts != null && up.ts >= down.ts;
+  return isTapGesture(
+    { x: down.x, y: down.y, t: paired ? down.ts as number : down.t },
+    { x: up.x, y: up.y, t: paired ? up.ts as number : up.t },
+  );
 }

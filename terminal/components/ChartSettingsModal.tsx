@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { PriceScaleMode, type IChartApi } from "lightweight-charts";
 import { DEFAULT_CHART_SETTINGS, type ChartSettings } from "@/components/ChartFrameBar";
-import { useT } from "@/lib/i18n";
+import { visualText } from "@/lib/visualIntelligenceCopy";
+import { useLang, useT } from "@/lib/i18n";
 
 export type ChartSettingsTab = "symbol" | "status" | "scales" | "canvas";
 type Patch = (patch: Partial<ChartSettings>) => void;
@@ -100,12 +102,12 @@ export default function ChartSettingsModal({
       symbol: ["colorBarsPrevClose", "candleBodyVisible", "candleBordersVisible", "candleWicksVisible", "candleUpColor", "candleDownColor", "candleUpBorder", "candleDownBorder", "candleUpWick", "candleDownWick", "extHours", "precision"],
       status: ["showLogo", "showSymbolName", "titleMode", "showOHLC", "showBarChange", "showVolume", "showLastDayChange", "showIndicatorTitles", "indicatorBackgroundOpacity"],
       scales: ["mode", "invertScale", "scaleLeft", "autoScale", "lastValueVisible", "priceLineVisible", "countdownVisible", "extendedLineVisible", "preMarketColor", "postMarketColor", "overnightColor", "hourFormat"],
-      canvas: ["showWatermark", "backgroundType", "backgroundTop", "backgroundBottom", "gridHVisible", "gridVVisible", "gridHColor", "gridVColor", "paneSeparatorColor", "crosshairColor", "watermarkColor", "scaleTextColor", "scaleFontSize", "scaleLineColor", "paneButtons", "scaleMarginsTop", "scaleMarginsBottom", "rightOffsetBars"],
+      canvas: ["visualContext", "visualRegime", "visualVolume", "visualLevels", "visualEvents", "showWatermark", "backgroundType", "backgroundTop", "backgroundBottom", "gridHVisible", "gridVVisible", "gridHColor", "gridVColor", "paneSeparatorColor", "crosshairColor", "watermarkColor", "scaleTextColor", "scaleFontSize", "scaleLineColor", "paneButtons", "scaleMarginsTop", "scaleMarginsBottom", "rightOffsetBars"],
     };
     onSettings(Object.fromEntries(keys[tab].map((key) => [key, defaults[key]])) as Partial<ChartSettings>);
   }
 
-  return (
+  const node = (
     <div className="sm-backdrop" ref={backdropRef} onMouseDown={(event) => { if (event.target === backdropRef.current) cancel(); }}>
       <div className="sm-modal" role="dialog" aria-modal="true" aria-label={t("smTitle")}>
         <div className="sm-header">
@@ -121,6 +123,8 @@ export default function ChartSettingsModal({
               <button
                 key={key}
                 className={`sm-tab${tab === key ? " on" : ""}`}
+                aria-label={label}
+                aria-pressed={tab === key}
                 onClick={() => window.dispatchEvent(new CustomEvent("mm:settings-tab", { detail: key }))}
               >
                 {tabIcon(key)}<span>{label}</span>
@@ -154,6 +158,10 @@ export default function ChartSettingsModal({
       </div>
     </div>
   );
+  // This dialog must escape the chart pane's overflow/stacking context. On responsive layouts the
+  // document rail follows the chart in flow; keeping a fixed modal inside .pane lets that sibling
+  // become the pointer hit target even while the dialog is visibly on top.
+  return createPortal(node, document.body);
 }
 
 function readTemplates(): Record<string, ChartSettings> {
@@ -341,7 +349,15 @@ function ScalesTab({ settings: s, onSettings, chartApi }: { settings: ChartSetti
 
 function CanvasTab({ settings: s, onSettings }: { settings: ChartSettings; onSettings: Patch }) {
   const t = useT();
+  const { lang } = useLang();
   return <div className="sm-section-list">
+    <Section title={visualText("title", lang)}>
+      <CheckRow label={visualText("restore", lang)} value={s.visualContext} onChange={(visualContext) => onSettings({ visualContext })} />
+      <CheckRow label={visualText("regimeToggle", lang)} value={s.visualRegime} disabled={!s.visualContext} onChange={(visualRegime) => onSettings({ visualRegime })} />
+      <CheckRow label={visualText("volumeToggle", lang)} value={s.visualVolume} disabled={!s.visualContext} onChange={(visualVolume) => onSettings({ visualVolume })} />
+      <CheckRow label={visualText("levelsToggle", lang)} value={s.visualLevels} disabled={!s.visualContext} onChange={(visualLevels) => onSettings({ visualLevels })} />
+      <CheckRow label={visualText("eventsToggle", lang)} value={s.visualEvents} disabled={!s.visualContext} onChange={(visualEvents) => onSettings({ visualEvents })} />
+    </Section>
     <Section title={t("smBasicStyles")}>
       <SelectRow label={t("smBackground")} value={s.backgroundType} onChange={(value) => onSettings({ backgroundType: value as "solid" | "gradient" })}
         options={[{ value: "solid", label: t("smBgSolid") }, { value: "gradient", label: t("smBgGradient") }]} />
