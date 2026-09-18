@@ -1,0 +1,52 @@
+
+> terminal@0.1.0 test:e2e:responsive
+> playwright test e2e/responsive.spec.ts e2e/washout-override.spec.ts e2e/washout-retro.spec.ts e2e/stock-intelligence.spec.ts --grep Golden Oracle shows|HK-O1:|a qualifying|a non-qualifying|a TAKEN|a retro projection|the retro legend|Stock Intelligence: --project=desktop --project=tablet --project=mobile --workers=1
+
+[warmup] /terminal?symbol=NVDA → 200 in 99ms
+[warmup] /options → 404 in 113ms
+[warmup] /portfolio → 404 in 27ms
+[warmup] /alerts → 404 in 72ms
+[warmup] /analysis → 404 in 31ms
+[warmup] /discover → 404 in 105ms
+[warmup] /admin → 404 in 50ms
+[warmup] /embed/chart?symbol=NVDA → 404 in 92ms
+[warmup] /login → 200 in 84ms
+[warmup] /api/me → 404 in 81ms
+[warmup] /api/watchlist → 404 in 27ms
+[warmup] /api/layouts → 404 in 58ms
+[warmup] 12 routes compiled in 1s
+
+Running 30 tests using 1 worker
+
+  ✓   1 [desktop] › e2e/responsive.spec.ts:1084:5 › Golden Oracle shows the session a 3D signal became knowable (5.5s)
+  ✓   2 [desktop] › e2e/responsive.spec.ts:1198:5 › HK-O1: a structure stop and a refused entry are labelled for what they are (5.1s)
+  ✓   3 [desktop] › e2e/stock-intelligence.spec.ts:19:7 › Stock Intelligence: real launcher, four views and chart return (en) (9.4s)
+  ✓   4 [desktop] › e2e/stock-intelligence.spec.ts:19:7 › Stock Intelligence: real launcher, four views and chart return (zh) (9.8s)
+  ✓   5 [desktop] › e2e/stock-intelligence.spec.ts:66:5 › Stock Intelligence: unavailable detail feeds are disclosed without erasing manifest facts (5.8s)
+  ✓   6 [desktop] › e2e/washout-override.spec.ts:201:5 › a qualifying ⊘ wears the amber override class on card, hover and chart (10.1s)
+  ✓   7 [desktop] › e2e/washout-override.spec.ts:291:5 › a non-qualifying ⊘ renders exactly as it does today (8.0s)
+  ✓   8 [desktop] › e2e/washout-override.spec.ts:446:5 › a TAKEN washout override renders as an ordinary entry, outlined amber (26.7s)
+  ✓   9 [desktop] › e2e/washout-retro.spec.ts:618:5 › a retro projection, a refusal and a waived entry read as three different things (29.7s)
+  ✓  10 [desktop] › e2e/washout-retro.spec.ts:638:5 › the retro legend renders only when a re-marked fire is actually in the list (10.6s)
+  ✓  11 [tablet] › e2e/responsive.spec.ts:1084:5 › Golden Oracle shows the session a 3D signal became knowable (17.5s)
+  ✓  12 [tablet] › e2e/responsive.spec.ts:1198:5 › HK-O1: a structure stop and a refused entry are labelled for what they are (19.7s)
+  ✓  13 [tablet] › e2e/stock-intelligence.spec.ts:19:7 › Stock Intelligence: real launcher, four views and chart return (en) (17.5s)
+  ✓  14 [tablet] › e2e/stock-intelligence.spec.ts:19:7 › Stock Intelligence: real launcher, four views and chart return (zh) (18.1s)
+  ✓  15 [tablet] › e2e/stock-intelligence.spec.ts:66:5 › Stock Intelligence: unavailable detail feeds are disclosed without erasing manifest facts (9.2s)
+  ✓  16 [tablet] › e2e/washout-override.spec.ts:201:5 › a qualifying ⊘ wears the amber override class on card, hover and chart (21.9s)
+  ✓  17 [tablet] › e2e/washout-override.spec.ts:291:5 › a non-qualifying ⊘ renders exactly as it does today (19.0s)
+  ✓  18 [tablet] › e2e/washout-override.spec.ts:446:5 › a TAKEN washout override renders as an ordinary entry, outlined amber (20.1s)
+  ✓  19 [tablet] › e2e/washout-retro.spec.ts:618:5 › a retro projection, a refusal and a waived entry read as three different things (21.9s)
+  ✓  20 [tablet] › e2e/washout-retro.spec.ts:638:5 › the retro legend renders only when a re-marked fire is actually in the list (15.5s)
+  ✓  21 [mobile] › e2e/responsive.spec.ts:1084:5 › Golden Oracle shows the session a 3D signal became knowable (8.9s)
+  ✓  22 [mobile] › e2e/responsive.spec.ts:1198:5 › HK-O1: a structure stop and a refused entry are labelled for what they are (10.3s)
+  ✓  23 [mobile] › e2e/stock-intelligence.spec.ts:19:7 › Stock Intelligence: real launcher, four views and chart return (en) (19.1s)
+  ✓  24 [mobile] › e2e/stock-intelligence.spec.ts:19:7 › Stock Intelligence: real launcher, four views and chart return (zh) (20.4s)
+  ✓  25 [mobile] › e2e/stock-intelligence.spec.ts:66:5 › Stock Intelligence: unavailable detail feeds are disclosed without erasing manifest facts (10.3s)
+  ✓  26 [mobile] › e2e/washout-override.spec.ts:201:5 › a qualifying ⊘ wears the amber override class on card, hover and chart (10.1s)
+  ✓  27 [mobile] › e2e/washout-override.spec.ts:291:5 › a non-qualifying ⊘ renders exactly as it does today (10.3s)
+  ✓  28 [mobile] › e2e/washout-override.spec.ts:446:5 › a TAKEN washout override renders as an ordinary entry, outlined amber (10.9s)
+  ✓  29 [mobile] › e2e/washout-retro.spec.ts:618:5 › a retro projection, a refusal and a waived entry read as three different things (10.8s)
+  ✓  30 [mobile] › e2e/washout-retro.spec.ts:638:5 › the retro legend renders only when a re-marked fire is actually in the list (5.0s)
+
+  30 passed (7.3m)

@@ -58,3 +58,18 @@ The existing tests now enter the accessible native Stock Intelligence dialog and
 Running those migrated tests exposed a real presentation regression that the old selectors had masked: the scoped shared `.od-vsub` / `.od-vline2` rule rendered the exception disclosure as neutral `rgb(155, 163, 180)`, overriding its existing amber signal colour `rgb(232, 179, 57)`. Three desktop cases failed on that exact unchanged colour assertion; four passed. The bounded product repair restores `var(--signal)` only for `.od-vline2`. No signal wording, interpretation, classification, source math or trading authority changes.
 
 This is a material visual delta only for exception disclosures. The prior committed real-input matrix remains an attributable earlier capture, not a claim that its CSS blob matches this repaired head. Final continuation evidence must bind the new CSS and test blobs and include responsive exception-state proof. Production acceptance remains held under #483; no production effect occurred.
+
+
+### Verified continuation result
+
+Exact functional source checkpoint: `a5ba156f2a31c9d7b96a75484e22ab1138720ace`.
+
+- **30/30 browser checks PASS** with one worker and no added retries/skips: seven retained legacy signal cases plus three unified-workspace cases at each of desktop, tablet and phone. These cover both languages, all four views, keyboard/close focus, actual chart-bar returns, research/full-analysis navigation, history expansion, honest missing feeds, refused/real/counterfactual distinctions and restored exception emphasis.
+- **125/125 focused unit tests PASS** (18 workspace; 107 verdict).
+- **TypeScript PASS** after regenerating route types with the installed `next typegen`. The earlier local check caught malformed dev-generated output at `.next/dev/types/validator.ts:118`, not an authored-source error. After the owned test server stopped, that generated tree was preserved, route validation regenerated and the complete unchanged TypeScript command passed. No source checks/exclusions were weakened. Unrelated route warm-up 404s from that dev-cache generation are not represented as global application health; the actual tested Terminal journeys passed.
+- An AST comparison against the previous published head proves **127 exact semantic expectation argument sets retained** (78 responsive, 19 washout override, 30 retro), with unchanged named-test and skip/fixme/only inventories.
+- **21 new exception-state screenshots**, red/green logs, unit/type logs and exact implementation/test blob identities are committed under `docs/pr-crops/stock-intelligence-20260917/continuation/`. These are clearly labelled deterministic adversarial fixture proof, not live-market performance or a deployed UI claim. The earlier 36 real-published-input captures remain separately attributable at their original source identity.
+
+The new visual review confirms the amber disclosure remains legible and subordinate to the true entry/refusal label. Known-date versus chart-bar mapping, blocked entries having no tier/score, and the visible counterfactual legend all pass through the new native dialog. No source producer, engine, classification, trade math or backend changed.
+
+Protected movement to `6f2e23951c8981acfc68609526d74d3e8ffbe5b5` was inspected: the shared ChartPanel/globals delta concerns vertical-cursor locking/unlocking, not this component or its research/signal contracts. The forthcoming GitHub run must still prove current-base integration. The complete hosted suite and exact-head release review are not inferred from the focused local result. Keep PR #614 on its existing carrier and #612 open; #483 still owns production admission.
