@@ -60,6 +60,7 @@ let frameRevision: number;
 let delayedFrame: Promise<Response> | null;
 let emitGreek: boolean;
 let emitCandles: boolean;
+let frameStampOverride: string | null;
 const date = "2026-09-17";
 const payload = () => ({ root: "SPY", date: sourceDate, stamps: [...(customStamps ?? stamps)], latest: (customStamps ?? stamps).at(-1) ?? null, cadenceSec: 60 });
 const json = (body: unknown) => new Response(JSON.stringify(body), { status: 200, headers: { "content-type": "application/json" } });
@@ -82,7 +83,7 @@ beforeEach(() => {
   calls = [];
   failIndex = false;
   delayedIndex = null;
-  indexRootOverride = null; sourceDate = date; customStamps = null; emitFrames = false; frameRevision = 0; delayedFrame = null; emitGreek = false; emitCandles = true;
+  indexRootOverride = null; sourceDate = date; customStamps = null; emitFrames = false; frameRevision = 0; delayedFrame = null; emitGreek = false; emitCandles = true; frameStampOverride = null;
   vi.stubGlobal("fetch", vi.fn(async (input: string | URL | Request) => {
     const url = new URL(String(input), "http://localhost");
     const f = url.searchParams.get("f") ?? url.pathname;
@@ -103,9 +104,14 @@ beforeEach(() => {
       if (delayedFrame) return delayedFrame;
       const bits = f.split(":");
       const selectedDate = bits[0] === "surface_at" ? bits[2] : sourceDate;
+      const requestedStamp = bits.at(-1)!;
+      const timeSteps = frameStampOverride != null
+        ? ["09:30", frameStampOverride]
+        : requestedStamp === "0930" ? ["09:30"] : ["09:30", "09:31"];
+      const row = (value: number) => Array(timeSteps.length).fill(value);
       return json({ root: bits[1], session_date: selectedDate, spot: 100.2,
-        price_levels: [100, 105], time_steps: ["09:30", "09:31"],
-        grids: { netprem: [[100, 100], [200, 200]], ...(emitGreek ? { gex: [[1, 1], [2, 2]] } : {}) },
+        price_levels: [100, 105], time_steps: timeSteps,
+        grids: { netprem: [row(100), row(200)], ...(emitGreek ? { gex: [row(1), row(2)] } : {}) },
         asof: `${selectedDate}T13:31:${String(frameRevision).padStart(2,"0")}Z`, cadence: "1-min" });
     }
     return json(null);
@@ -333,4 +339,12 @@ it("keeps an unavailable Greek mounted when neither field nor candle time points
   await advance();
   expect(rail().getAttribute("aria-valuemax")).toBe("2");
   expect(gamma.classList.contains("on")).toBe(true);
+});
+
+it("rejects a same-session frame whose last observed time does not match the selected stamp", async () => {
+  emitFrames = true;
+  frameStampOverride = "09:32";
+  await mount();
+  expect(rail().getAttribute("aria-valuetext")).toContain("09:31");
+  expect(host.querySelector(".obs-surf-data-strip")).toBeNull();
 });

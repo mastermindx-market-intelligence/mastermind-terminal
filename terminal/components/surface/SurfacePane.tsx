@@ -62,7 +62,7 @@ import {
   filterFrameToRange,
   gridMaxAbs,
   gridPercentileAbs,
-  isSurfaceFrame,
+  isSurfaceFrameForContext,
   metricEnabled,
   observedSurfaceCadenceSec,
   parseOiChangeRows,
@@ -555,8 +555,7 @@ export function SurfacePane({
         { refresh: !archived && frameRevision > 0 },
       );
       if (cancelled) return;
-      const nextFrame = isSurfaceFrame(data) && data.session_date === indexDate &&
-        (data.root == null || (typeof data.root === "string" && data.root.trim().toUpperCase() === root)) ? data : null;
+      const nextFrame = isSurfaceFrameForContext(data, root, indexDate, asOfStamp) ? data : null;
       setFrameResult(nextFrame ? { stamp: asOfStamp, data: nextFrame } : null);
       // Preserve the selected metric when data is unavailable. A missing Greek
       // is not permission to replace it with a different premium-flow series.

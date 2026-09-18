@@ -126,6 +126,26 @@ export function isSurfaceFrame(x: unknown): x is SurfaceFrame {
 }
 
 /**
+ * Bind a fetched frame to the exact replay request that selected it. The file path
+ * carries HHMM identity, so a same-session stale/misrouted response must not be
+ * relabelled with the requested cursor time merely because root/date still match.
+ */
+export function isSurfaceFrameForContext(
+  value: unknown, root: string, sessionDate: string | null, stamp: string,
+): value is SurfaceFrame {
+  if (!isSurfaceFrame(value) || !isSessionDate(sessionDate) || value.session_date !== sessionDate) return false;
+  const suppliedRoot = value.root;
+  if (suppliedRoot !== undefined &&
+      (typeof suppliedRoot !== "string" || suppliedRoot.trim().toUpperCase() !== root)) return false;
+  if (!/^(?:[01]\d|2[0-3])[0-5]\d$/.test(stamp) || value.time_steps.length === 0) return false;
+  if (!value.time_steps.every((step, i) =>
+    typeof step === "string" && /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(step) &&
+    (i === 0 || step > value.time_steps[i - 1]))) return false;
+  const expected = `${stamp.slice(0, 2)}:${stamp.slice(2, 4)}`;
+  return value.time_steps.at(-1) === expected;
+}
+
+/**
  * Validate that an index and a set of available stamp files agree.
  * Returns { ok, missing, extra } — `missing` = stamps promised by the index but with no
  * file; `extra` = files present that the index doesn't list. `latest` must equal the last
