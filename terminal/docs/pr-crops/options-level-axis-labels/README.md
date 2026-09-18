@@ -1,6 +1,6 @@
 # Options-level coverage and axis-label browser evidence
 
-Source head: `5ed75995850d441b244f0f727de79f6d8383a3db`
+Source head: `853625f3f4bd6780dd887e273444791dcfcb32e1`
 
 ## Outcome under proof
 
@@ -12,7 +12,7 @@ The chart consumes three independent, root-scoped stores:
 
 No missing value is fabricated and a payload belonging to another root is rejected. The six-line browser scenario deliberately exercises a no-level GEX payload plus current state fallback, expected moves, and an `ABS γ` strike.
 
-The horizontal lines remain at the exact prices `[192.42, 192.44, 192.46, 192.52, 192.58, 192.60]`. Native canvas badges are suppressed; the shared DOM axis layer fans badges vertically and, when necessary, inward into additional lanes. It also clears the chart legend, visual-context trigger, and fullscreen control. PRE/AH/ON owns the countdown while extended-hours pricing is active; regular hours returns the timer to the current quote.
+The horizontal lines remain at the exact prices `[192.42, 192.44, 192.46, 192.52, 192.58, 192.60]`. Native canvas badges are suppressed; the shared DOM axis layer fans badges vertically and, when necessary, inward into additional lanes. It also clears the chart legend, visual-context trigger, and fullscreen control. PRE/AH/ON owns the countdown while extended-hours pricing is active; regular hours returns the timer to the current quote. A mounted chart re-reads the existing flow cache on a bounded cadence and when a hidden tab becomes visible, so a newly published nightly state can replace the prior dated snapshot without a page reload.
 
 ## Coverage census
 
@@ -41,5 +41,5 @@ Every capture proves six visible option badges, exact native line prices, native
 Capture command:
 
 ```bash
-BASE_URL=http://127.0.0.1:35648 node docs/pr-crops/options-level-axis-labels/capture.mjs
+BASE_URL=http://127.0.0.1:35851 node docs/pr-crops/options-level-axis-labels/capture.mjs
 ```

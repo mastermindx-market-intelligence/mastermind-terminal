@@ -463,6 +463,69 @@ test("dense option levels use gex_state fallback and fan their badges without mo
   expect(resizedOverlaps).toEqual([]);
 });
 
+test("mounted options levels consume a newly published state snapshot without reloading the chart", async ({ page }) => {
+  await page.clock.install();
+  await page.addInitScript(() => localStorage.setItem("mm.inds", JSON.stringify(["optlevels"])));
+  await routePremarket(page, 192.50);
+
+  let published = false;
+  let stateRequests = 0;
+  await page.route("**/api/flow?**", async (route) => {
+    const f = new URL(route.request().url()).searchParams.get("f");
+    if (f === "gex:NVDA") {
+      await route.fulfill({ json: {
+        schema: "options_hub.gex/v1", root: "NVDA", asof: "2026-09-14",
+        spot_ref: 192.50, call_wall: null, put_wall: null, gamma_flip: null, by_strike: [],
+      } });
+      return;
+    }
+    if (f === "moves:NVDA") {
+      await route.fulfill({ json: {
+        schema: "options_hub.moves/v1", root: "NVDA", asof: "2026-09-14",
+        expected_move: { lo: 192.44, hi: 192.58 },
+      } });
+      return;
+    }
+    if (f === "gexstate:NVDA") {
+      stateRequests += 1;
+      await route.fulfill({ json: {
+        schema: "options_structure.gex_state/v1", root: "NVDA",
+        asof: published ? "2026-09-17T16:00:00-04:00" : "2026-09-16T16:00:00-04:00",
+        spot: 192.50,
+        call_wall: published ? 192.64 : 192.60,
+        put_wall: 192.42,
+        gamma_flip: 192.52,
+        net_gex_bn: 0.11,
+      } });
+      return;
+    }
+    await route.continue();
+  });
+
+  await page.goto("/terminal?symbol=NVDA");
+  await chartReady(page);
+  await expect.poll(async () => {
+    const state = await labels(page);
+    return state.optionTags.find((tag) => tag.key === "call_wall")?.price ?? null;
+  }, { timeout: 20_000 }).toBe(192.60);
+  expect(stateRequests).toBe(1);
+
+  // flowClientCache becomes stale after 25s. The first visible refresh starts SWR; the
+  // immediately following one joins that in-flight fetch and consumes the new payload.
+  published = true;
+  await page.clock.fastForward("00:26");
+  await page.evaluate(() => {
+    document.dispatchEvent(new Event("visibilitychange"));
+    document.dispatchEvent(new Event("visibilitychange"));
+  });
+
+  await expect.poll(() => stateRequests, { timeout: 20_000 }).toBeGreaterThanOrEqual(2);
+  await expect.poll(async () => {
+    const state = await labels(page);
+    return state.optionTags.find((tag) => tag.key === "call_wall")?.price ?? null;
+  }, { timeout: 20_000 }).toBe(192.64);
+});
+
 test("a four-digit premarket quote expands the compact numeric lane instead of clipping", async ({ page }) => {
   await routePremarket(page, 1_322.30);
   await page.goto("/terminal?symbol=NVDA");
