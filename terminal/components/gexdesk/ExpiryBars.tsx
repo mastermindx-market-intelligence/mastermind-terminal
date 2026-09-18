@@ -39,14 +39,17 @@ export function ExpiryBars({ byExpiry, greek, asOf = null, lang }: ExpiryBarsPro
   const t = makeGexT(lang);
 
   const sourceRows = (byExpiry ?? []) as ExpiryRow[];
+  if (sourceRows.length < 1) {
+    return <div style={EMPTY}>{t("expiryNoData")}</div>;
+  }
+
   const rows = sourceRows
     .filter((r) => expiryNetFor(r, greek) != null)
     .slice()
     .sort((a, b) => a.exp.localeCompare(b.exp)); // nearest expiration first (top)
 
   if (rows.length < 1) {
-    const lensPublished = sourceRows.some((r) => expiryNetFor(r, greek) != null);
-    return <div style={EMPTY}>{t(lensPublished ? "expiryNoData" : "expiryLensNA")}</div>;
+    return <div style={EMPTY}>{t("expiryLensNA")}</div>;
   }
 
   const maxAbs = rows.reduce((m, r) => {
