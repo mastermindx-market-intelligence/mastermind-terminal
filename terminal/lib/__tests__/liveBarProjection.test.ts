@@ -109,7 +109,7 @@ describe("seriesReuseChart — a re-run builder updates, it does not create", ()
   it("hands back the series the key already owns, in creation order", () => {
     const owned = [fakeSeries(), fakeSeries()];
     const addSeries = vi.fn();
-    const chart = { addSeries, priceScale: vi.fn(() => "scale") };
+    const chart = { addSeries, priceScale: vi.fn((_id: string) => "scale") };
     const facade = seriesReuseChart(chart, owned, "ichimoku") as typeof chart;
 
     (facade.addSeries as any)().setData([{ time: "2026-08-07", value: 1 }]);
@@ -121,9 +121,9 @@ describe("seriesReuseChart — a re-run builder updates, it does not create", ()
   });
 
   it("forwards every other chart call to the real chart", () => {
-    const chart = { addSeries: vi.fn(), priceScale: vi.fn(() => "scale") };
+    const chart = { addSeries: vi.fn(), priceScale: vi.fn((_id: string) => "scale") };
     const facade = seriesReuseChart(chart, [fakeSeries()], "vol") as typeof chart;
-    expect(facade.priceScale("volume" as never)).toBe("scale");
+    expect(facade.priceScale("volume")).toBe("scale");
     expect(chart.priceScale).toHaveBeenCalledWith("volume");
   });
 
