@@ -1,9 +1,9 @@
 # Terminal watchlist grouped drag — visual evidence
-capturedAtHead: e2d7fff7eaa25031329014e5e62b774a7f5bd02a
-capturedAt: 2026-09-18T11:45:54.541Z
+capturedAtHead: 4196fd9ce7d86192ef0c2562b3027291f3bd98c8
+capturedAt: 2026-09-18T23:54:48.288Z
 layoutFiles:
-  terminal/components/TerminalShell.tsx: "6566b1cd85e86664b0f9af907c0da43ccd6651242cbab0a542b68669f21d2415"
-  terminal/app/globals.css: "7c02de13182925579fdce8337118995bec3d9dd9cc1606ffc3251f09ef0b51d3"
+  terminal/components/TerminalShell.tsx: "09ffa166122ef70e883023f7b5f09b588cde4c3bf31c13d9f1b0ab6bd3c7d023"
+  terminal/app/globals.css: "223ab8f3fe2a26bb7ad3013978bb3682f31f67147790b21ab2a7f046ef9ca50e"
   terminal/lib/watchlistSections.ts: "593600946230dc2df49bbed2b3fbfd2c62db5f139382b6947a8e00c6f2570ee3"
   terminal/lib/i18n.tsx: "baf5ae98af7891965a4bcd259be849be3363d5505835073e766f172e7690b3ff"
 capture_flag: TERMINAL_E2E_FIXTURE
