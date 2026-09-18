@@ -7,18 +7,26 @@ import {
   type ExpiryRow,
 } from "@/lib/expiryTermStructure";
 
-// Mirrors gex_fixture.json[SPY].by_expiry shape: NET gamma + delta only, no calls/puts split.
+// Legacy archived shape: NET gamma + delta only, no calls/puts split.
 const ROWS: ExpiryRow[] = [
   { exp: "2026-07-11", gamma_net: 1.284, delta_net: 6.84 },
   { exp: "2026-07-18", gamma_net: 0.984, delta_net: 4.12 },
   { exp: "2026-09-19", gamma_net: -0.124, delta_net: -0.48 }, // negative → var(--down)
 ];
+
+const ENRICHED_ROWS: ExpiryRow[] = [
+  { exp: "2026-07-11", gamma_net: 1.284, delta_net: 6.84, vanna_net: 2.4, charm_net: -0.6 },
+  { exp: "2026-07-18", gamma_net: 0.984, delta_net: 4.12, vanna_net: -1.2, charm_net: 0.4 },
+  { exp: "2026-09-19", gamma_net: -0.124, delta_net: -0.48, vanna_net: 0.3, charm_net: 0.1 },
+];
 const ASOF = "2026-07-05T16:05:00Z"; // the by_expiry snapshot day (deterministic DTE anchor)
 
 describe("expiryNetFor — lens selection", () => {
-  it("gamma / delta read their net; vanna & charm are null (not per-expiration)", () => {
-    expect(expiryNetFor(ROWS[0], "gamma")).toBe(1.284);
-    expect(expiryNetFor(ROWS[0], "delta")).toBe(6.84);
+  it("reads every published net field and keeps missing legacy fields null", () => {
+    expect(expiryNetFor(ENRICHED_ROWS[0], "gamma")).toBe(1.284);
+    expect(expiryNetFor(ENRICHED_ROWS[0], "delta")).toBe(6.84);
+    expect(expiryNetFor(ENRICHED_ROWS[0], "vanna")).toBe(2.4);
+    expect(expiryNetFor(ENRICHED_ROWS[0], "charm")).toBe(-0.6);
     expect(expiryNetFor(ROWS[0], "vanna")).toBeNull();
     expect(expiryNetFor(ROWS[0], "charm")).toBeNull();
   });
@@ -90,8 +98,20 @@ describe("byExpiryToTermStructure — delta lens uses delta_net", () => {
   });
 });
 
-describe("byExpiryToTermStructure — honest fallbacks", () => {
-  it("vanna / charm are not per-expiration → available:false, no nodes (never faked zeros)", () => {
+describe("byExpiryToTermStructure — vanna/charm + honest fallbacks", () => {
+  it("renders vanna/charm when current payload rows actually publish them", () => {
+    const vanna = byExpiryToTermStructure(ENRICHED_ROWS, "vanna", ASOF);
+    expect(vanna.available).toBe(true);
+    expect(vanna.nodes.map((n) => n.net)).toEqual([2.4, -1.2, 0.3]);
+    expect(vanna.maxAbs).toBeCloseTo(2.4);
+
+    const charm = byExpiryToTermStructure(ENRICHED_ROWS, "charm", ASOF);
+    expect(charm.available).toBe(true);
+    expect(charm.nodes.map((n) => n.net)).toEqual([-0.6, 0.4, 0.1]);
+    expect(charm.nodes[0].isPos).toBe(false);
+  });
+
+  it("legacy payloads without vanna/charm remain unavailable, never zero-filled", () => {
     for (const lens of ["vanna", "charm"] as const) {
       const ts = byExpiryToTermStructure(ROWS, lens, ASOF);
       expect(ts.available).toBe(false);
@@ -99,10 +119,22 @@ describe("byExpiryToTermStructure — honest fallbacks", () => {
       expect(ts.maxAbs).toBe(0);
     }
   });
+
+  it("partially covered new lenses drop missing rows rather than zero-imputing them", () => {
+    const mixed: ExpiryRow[] = [
+      { exp: "2026-07-11", gamma_net: 1, vanna_net: 2 },
+      { exp: "2026-07-18", gamma_net: 2 },
+    ];
+    const ts = byExpiryToTermStructure(mixed, "vanna", ASOF);
+    expect(ts.available).toBe(true);
+    expect(ts.nodes.map((n) => [n.exp, n.net])).toEqual([["2026-07-11", 2]]);
+  });
+
   it("null / empty by_expiry → empty structure (gamma stays 'available' as a lens)", () => {
     expect(byExpiryToTermStructure(null, "gamma", ASOF).nodes).toEqual([]);
     expect(byExpiryToTermStructure([], "gamma", ASOF).nodes).toEqual([]);
     expect(byExpiryToTermStructure(undefined, "gamma", ASOF).maxAbs).toBe(0);
+    expect(byExpiryToTermStructure([], "gamma", ASOF).available).toBe(true);
   });
   it("splitAvailable is ALWAYS false — the drawer must label itself Net-only", () => {
     // Guards the honesty contract: if the payload ever grew a split, this test forces a
