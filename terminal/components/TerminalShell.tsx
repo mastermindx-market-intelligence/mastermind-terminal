@@ -2541,7 +2541,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
     quoteCursorRef.current = plan.nextCursor;
     if (!plan.symbols.length) return;
     const key = plan.symbols.join(",");
-    fetch(`/api/quote?syms=${encodeURIComponent(key)}`)
+    fetch(`/api/quote?view=regular&syms=${encodeURIComponent(key)}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
         if (!quoteAliveRef.current || !d || !d.quotes) return;
@@ -2613,7 +2613,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
     if (typeof document !== "undefined" && document.hidden) return;
     const key = chartQuoteSymsKeyRef.current;
     if (!key) return;
-    fetch(`/api/quote?cadence=chart&syms=${encodeURIComponent(key)}`, { cache: "no-store" })
+    fetch(`/api/quote?view=regular&cadence=chart&syms=${encodeURIComponent(key)}`, { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
         if (!chartQuoteAliveRef.current || !d?.quotes) return;
