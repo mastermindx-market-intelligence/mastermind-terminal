@@ -135,9 +135,19 @@ describe("Indicator Settings keyboard controls", () => {
     expect(onReset).toHaveBeenCalledTimes(1);
   });
 
-  it("makes the built-in source dialog's header close control keyboard-operable", () => {
+  it("gives the built-in source viewer real modal semantics, focus, and a keyboard close control", () => {
+    const invoker = document.createElement("button");
+    document.body.appendChild(invoker);
+    invoker.focus();
     const onClose = vi.fn();
     const view = mountSource({ indKey: "rsi", onClose });
+
+    const dialog = view.querySelector<HTMLElement>(".ind-src");
+    expect(dialog).not.toBeNull();
+    expect(dialog!.getAttribute("role")).toBe("dialog");
+    expect(dialog!.getAttribute("aria-modal")).toBe("true");
+    expect(dialog!.getAttribute("aria-labelledby")).toBe("indicator-source-title");
+    expect(document.activeElement).toBe(dialog);
 
     const close = view.querySelector<HTMLElement>(".ind-src .is-head .x");
     expect(close).not.toBeNull();
@@ -146,6 +156,7 @@ describe("Indicator Settings keyboard controls", () => {
 
     press(close!, " ");
     expect(onClose).toHaveBeenCalledTimes(1);
+    invoker.remove();
   });
 
   it("shows the true RGB hue in color inputs even when an indicator default is translucent rgba", () => {
