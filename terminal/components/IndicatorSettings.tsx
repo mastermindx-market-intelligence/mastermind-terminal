@@ -47,7 +47,8 @@ function Row({ f, val, onChange }: { f: IndField; val: any; onChange: (v: any) =
       <span className="is-label">{f.label}</span>
       {f.type === "number" && <NumberField value={typeof val === "number" ? val : 0} min={f.min} max={f.max} step={f.step} onChange={onChange} />}
       {f.type === "color" && <ColorField value={String(val ?? "#888888")} onChange={onChange} />}
-      {f.type === "bool" && <span className={`is-switch${val ? " on" : ""}`} onClick={() => onChange(!val)} role="switch" aria-checked={!!val} />}
+      {f.type === "bool" && <span className={`is-switch${val ? " on" : ""}`} onClick={() => onChange(!val)} role="switch" aria-checked={!!val} tabIndex={0}
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onChange(!val); } }} />}
     </div>
   );
 }
@@ -58,7 +59,8 @@ function VisRow({ label, unitMax, val, onChange }: { label: string; unitMax: num
   const clampMax = (v: number) => Math.max(val.min, Math.min(unitMax, Math.round(v)));
   return (
     <div className="vis-row">
-      <span className={`is-cbx${val.on ? " on" : ""}`} onClick={() => onChange({ on: !val.on })} role="checkbox" aria-checked={val.on}>
+      <span className={`is-cbx${val.on ? " on" : ""}`} onClick={() => onChange({ on: !val.on })} role="checkbox" aria-checked={val.on} tabIndex={0}
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onChange({ on: !val.on }); } }}>
         <svg viewBox="0 0 24 24"><path d="M4 12l5 5L20 6" /></svg>
       </span>
       <span className="vis-name">{label}</span>
@@ -308,7 +310,8 @@ export default function IndicatorSettings({ indKey, moduleTarget, params, onChan
       >
         <div className="is-head">
           <b id="indicator-settings-title">{title}</b>
-          <span className="x" onClick={onClose} aria-label="Close">✕</span>
+          <span className="x" onClick={onClose} role="button" tabIndex={0} aria-label="Close"
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClose(); } }}>✕</span>
         </div>
         <div className="is-tabs">
           {TABS.map(([k, l]) => <button key={k} className={`is-tab${activeTab === k ? " on" : ""}`} onClick={() => setTab(k)}>{l}</button>)}
@@ -350,7 +353,8 @@ export default function IndicatorSettings({ indKey, moduleTarget, params, onChan
                 <div key={k} className="is-row">
                   <span className="is-label">{k}</span>
                   {typeof v === "boolean"
-                    ? <span className={`is-switch${v ? " on" : ""}`} onClick={() => onPineChange?.({ [k]: !v })} role="switch" aria-checked={v} />
+                    ? <span className={`is-switch${v ? " on" : ""}`} onClick={() => onPineChange?.({ [k]: !v })} role="switch" aria-checked={v} tabIndex={0}
+                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onPineChange?.({ [k]: !v }); } }} />
                     : typeof v === "number"
                       ? <NumberField value={v} step={Number.isInteger(v) ? 1 : 0.1} onChange={(nv) => onPineChange?.({ [k]: nv })} />
                       : <input className="is-text" value={String(v)} onChange={(e) => onPineChange?.({ [k]: e.target.value })} />}
