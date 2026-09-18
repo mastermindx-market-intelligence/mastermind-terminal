@@ -45,7 +45,7 @@ function ColorField({ value, onChange }: { value: string; onChange: (v: string) 
   return (
     <span className="is-color">
       <span className="is-sw-cur" style={{ background: value }} />
-      {SWATCHES.map((s) => <button key={s} className={`is-sw${value === s ? " on" : ""}`} style={{ background: s }} title={s} onClick={() => apply(s)} />)}
+      {SWATCHES.map((s) => <button key={s} className={`is-sw${hexOf(value) === s.toLowerCase() ? " on" : ""}`} style={{ background: s }} title={s} onClick={() => apply(s)} />)}
       <input type="color" value={hexOf(value)} onChange={(e) => apply(e.target.value)} aria-label={t("customColor")} />
     </span>
   );

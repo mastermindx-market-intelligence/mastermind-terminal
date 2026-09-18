@@ -164,5 +164,9 @@ describe("Indicator Settings keyboard controls", () => {
     const colors = [...view.querySelectorAll<HTMLInputElement>('input[type="color"]')]
       .map((input) => input.value.toLowerCase());
     expect(colors).toEqual(["#26c281", "#f0566b"]);
+
+    const selectedSwatches = [...view.querySelectorAll<HTMLButtonElement>(".is-sw.on")]
+      .map((button) => button.title.toLowerCase());
+    expect(selectedSwatches).toEqual(["#26c281", "#f0566b"]);
   });
 });
