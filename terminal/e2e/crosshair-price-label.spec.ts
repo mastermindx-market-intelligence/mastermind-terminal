@@ -102,7 +102,16 @@ test("extended hours owns the countdown while the static close and crosshair rem
   await page.goto("/terminal?symbol=NVDA");
   await chartReady(page);
 
-  const initial = await labels(page);
+  const initial = await settled({
+    read: () => labels(page),
+    ok: (state) => state.timerOwner === "extended" && state.primaryTop != null && state.extendedTop != null,
+    same: (prev, next) => prev.primaryTop != null && next.primaryTop != null
+      && prev.extendedTop != null && next.extendedTop != null
+      && Math.abs(prev.primaryTop - next.primaryTop) <= 1
+      && Math.abs(prev.extendedTop - next.extendedTop) <= 1
+      && Math.abs(prev.pricePaneTop - next.pricePaneTop) <= 1,
+    message: "the persistent close/AH label geometry should settle before crosshair interaction",
+  });
   expect(initial.primaryTop).not.toBeNull();
   expect(initial.primaryAnchorY).not.toBeNull();
   expect(initial.timerOwner).toBe("extended");
@@ -175,24 +184,41 @@ test("extended hours owns the countdown while the static close and crosshair rem
   // is excluded from persistent collision layout and therefore cannot translate either badge.
   const foreground = await page.locator(".mm-hovertag").evaluate((el) => {
     const hover = el.getBoundingClientRect();
+    const wrap = document.querySelector<HTMLElement>(".chart-wrap")!.getBoundingClientRect();
+    const primaryTag = document.querySelector<HTMLElement>(".mm-ptag")!.getBoundingClientRect();
     const primary = document.querySelector<HTMLElement>(".mm-ptag-val")!.getBoundingClientRect();
+    const extendedTag = document.querySelector<HTMLElement>(".mm-exttag")!.getBoundingClientRect();
     const extended = document.querySelector<HTMLElement>(".mm-exttag-val")!.getBoundingClientRect();
+    const obstacles = [...document.querySelectorAll<HTMLElement>(
+      ".chart-fs-float, [data-visual-context] > button[aria-controls], .lg-block",
+    )].filter((node) => {
+      const style = getComputedStyle(node);
+      const box = node.getBoundingClientRect();
+      return style.display !== "none" && style.visibility !== "hidden" && box.width > 0 && box.height > 0;
+    });
+    const intersects = (a: DOMRect, b: DOMRect) =>
+      a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
     return {
       z: getComputedStyle(el).zIndex,
       coversPrimaryNumericLane: hover.left <= primary.left + 0.5 && hover.right >= primary.right - 0.5,
+      primaryMovedInward: primaryTag.right < wrap.right - 2,
       abovePrimary: Number(getComputedStyle(el).zIndex) > Number(getComputedStyle(document.querySelector<HTMLElement>(".mm-ptag")!).zIndex),
       aboveExtended: Number(getComputedStyle(el).zIndex) > Number(getComputedStyle(document.querySelector<HTMLElement>(".mm-exttag")!).zIndex),
       overlapsARequiredPersistentLane: !(hover.bottom <= primary.top || hover.top >= primary.bottom)
         || !(hover.bottom <= extended.top || hover.top >= extended.bottom),
+      persistentChromeOverlaps: [primaryTag, extendedTag].flatMap((badge, badgeIndex) =>
+        obstacles.filter((obstacle) => intersects(badge, obstacle.getBoundingClientRect()))
+          .map((_, obstacleIndex) => `${badgeIndex}:${obstacleIndex}`)),
     };
   });
-  expect(foreground).toEqual({
-    z: "6",
-    coversPrimaryNumericLane: true,
-    abovePrimary: true,
-    aboveExtended: true,
-    overlapsARequiredPersistentLane: true,
-  });
+  expect(foreground.z).toBe("6");
+  expect(foreground.abovePrimary).toBe(true);
+  expect(foreground.aboveExtended).toBe(true);
+  expect(foreground.overlapsARequiredPersistentLane).toBe(true);
+  // The hover label stays on the true axis edge. On compact charts the persistent quote may move
+  // inward to clear fixed chrome; when it does, covering its numeric lane is no longer required.
+  expect(foreground.coversPrimaryNumericLane || foreground.primaryMovedInward).toBe(true);
+  expect(foreground.persistentChromeOverlaps).toEqual([]);
 });
 
 test("regular hours keeps the bar-close countdown on the current quote", async ({ page }) => {
@@ -493,11 +519,16 @@ test("left-side and percentage scales keep the foreground label on the active ax
 
   const wrap = await page.locator(".chart-wrap").boundingBox();
   expect(wrap).not.toBeNull();
+  // Persistent labels belong to the left scale, but compact layouts may move them inward just
+  // enough to clear fixed chrome. The pointer label remains the exact axis-edge consumer below.
   for (const selector of [".mm-ptag", ".mm-exttag"]) {
-    await expect.poll(
-      async () => (await page.locator(selector).boundingBox())?.x ?? null,
-      { message: `${selector} should settle onto the persisted left-side scale`, timeout: 20_000 },
-    ).toBeCloseTo(wrap!.x + 1, 0);
+    await expect.poll(async () => {
+      const box = await page.locator(selector).boundingBox();
+      return !!box
+        && box.x >= wrap!.x + 1
+        && box.x + box.width <= wrap!.x + wrap!.width
+        && box.x < wrap!.x + wrap!.width * 0.45;
+    }, { message: `${selector} should settle on the left-scale side without leaving the chart`, timeout: 20_000 }).toBe(true);
   }
 
   await expect(page.locator(".mm-optlevel-tag:visible").first()).toBeVisible({ timeout: 20_000 });
@@ -508,12 +539,23 @@ test("left-side and percentage scales keep the foreground label on the active ax
   await expect(page.locator(".mm-optlevel-tag:visible").first()).toHaveText(/%$/);
 
   const leftObstacleOverlaps = await page.evaluate(() => {
-    const labels = [...document.querySelectorAll<HTMLElement>(".mm-optlevel-tag")].filter((element) => getComputedStyle(element).display !== "none");
-    const legends = [...document.querySelectorAll<HTMLElement>(".lg-block")].filter((element) => getComputedStyle(element).display !== "none");
-    return labels.flatMap((label) => legends.filter((legend) => {
-      const A = label.getBoundingClientRect(), B = legend.getBoundingClientRect();
+    const labels = [...document.querySelectorAll<HTMLElement>(".mm-ptag, .mm-exttag, .mm-optlevel-tag")]
+      .filter((element) => {
+        const style = getComputedStyle(element);
+        const box = element.getBoundingClientRect();
+        return style.display !== "none" && style.visibility !== "hidden" && box.width > 0 && box.height > 0;
+      });
+    const obstacles = [...document.querySelectorAll<HTMLElement>(
+      ".chart-fs-float, [data-visual-context] > button[aria-controls], .lg-block",
+    )].filter((element) => {
+      const style = getComputedStyle(element);
+      const box = element.getBoundingClientRect();
+      return style.display !== "none" && style.visibility !== "hidden" && box.width > 0 && box.height > 0;
+    });
+    return labels.flatMap((label) => obstacles.filter((obstacle) => {
+      const A = label.getBoundingClientRect(), B = obstacle.getBoundingClientRect();
       return A.left < B.right && A.right > B.left && A.top < B.bottom && A.bottom > B.top;
-    }).map(() => label.dataset.levelKey ?? "unknown"));
+    }).map(() => label.dataset.levelKey ?? label.className));
   });
   expect(leftObstacleOverlaps).toEqual([]);
 
