@@ -1,7 +1,7 @@
 # Terminal Visual Intelligence Layer — release-candidate browser evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: b0cbe30bdb2dc39f61cea990696f6ea1d18ca6a9
+# capturedAtHead: 3dce16e46432a8bbe238c6b8b89417cdb2fe8f5c
 # capturedAt: 2026-09-18T10:17:51Z
 # capturedAtHead is informational. The lock is layoutFiles + cropFiles.
 layoutFiles:
