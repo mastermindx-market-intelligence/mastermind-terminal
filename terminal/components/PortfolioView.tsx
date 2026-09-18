@@ -321,7 +321,7 @@ export default function PortfolioView(
       const plan = planQuoteBatch({ rotating: quoteGroupsRef.current, cursor: quoteCursorRef.current });
       quoteCursorRef.current = plan.nextCursor;
       if (!plan.symbols.length) return;
-      fetch(`/api/quote?syms=${encodeURIComponent(plan.symbols.join(","))}`)
+      fetch(`/api/quote?view=regular&syms=${encodeURIComponent(plan.symbols.join(","))}`)
         .then((r) => (r.ok ? r.json() : null))
         .then((payload) => {
           if (!alive || !payload?.quotes) return;

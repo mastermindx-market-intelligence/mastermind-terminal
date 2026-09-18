@@ -49,6 +49,8 @@ async function seedIndicators(page: Page, inds: string[], params: Record<string,
     localStorage.setItem("mm.inds", JSON.stringify(i));
     localStorage.setItem("mm.indParams", JSON.stringify(p));
     localStorage.setItem("mm.devTier", "pro");
+    // This is an explicit post-rollout selection, not a first-visit default.
+    localStorage.setItem("mm.mastermindCandles.v1", "1");
   }, [inds, params] as const);
 }
 
