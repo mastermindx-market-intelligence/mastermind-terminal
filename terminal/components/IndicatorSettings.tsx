@@ -288,6 +288,12 @@ export default function IndicatorSettings({ indKey, moduleTarget, params, onChan
     else onChange(snap.current);   // snapshot has all fields → merge restores the open-time state
     onClose();
   };
+  const resetSettings = () => {
+    setDefOpen(false);
+    if (isPine) cancel();
+    else if (directModule) onChange(moduleScopedReset(directModule));
+    else onReset?.();
+  };
 
   // Suite modules currently store visual fields alongside their inputs and only have suite-wide
   // visibility. Direct mode therefore exposes one honest, module-scoped tab; the legacy suite
@@ -381,12 +387,10 @@ export default function IndicatorSettings({ indKey, moduleTarget, params, onChan
           <div className="is-def pophost" onClick={(e) => e.stopPropagation()}>
             <button className="is-def-btn" onClick={() => setDefOpen((o) => !o)}>{t("isDefaults", "Defaults")} <svg viewBox="0 0 24 24" style={{ width: 12, height: 12, stroke: "currentColor", fill: "none", strokeWidth: 2, transform: defOpen ? "rotate(180deg)" : "none" }}><path d="M6 15l6-6 6 6" /></svg></button>
             {defOpen && <div className="is-def-menu">
-              <div className="is-def-row" onClick={() => {
-                setDefOpen(false);
-                if (isPine) cancel();
-                else if (directModule) onChange(moduleScopedReset(directModule));
-                else onReset?.();
-              }}>{t("isResetSettings", "Reset settings")}</div>
+              <div className="is-def-row" role="button" tabIndex={0} onClick={resetSettings}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); resetSettings(); } }}>
+                {t("isResetSettings", "Reset settings")}
+              </div>
             </div>}
           </div>
           <div className="spacer" />

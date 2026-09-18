@@ -102,4 +102,27 @@ describe("Indicator Settings keyboard controls", () => {
     press(toggle!, " ");
     expect(onPineChange).toHaveBeenCalledWith({ enabled: false });
   });
+
+  it("lets a keyboard user activate Reset settings from the Defaults menu", () => {
+    const onReset = vi.fn();
+    const view = mount({
+      indKey: "rsi",
+      params: {},
+      onChange: vi.fn(),
+      onClose: vi.fn(),
+      onReset,
+    });
+
+    const defaults = view.querySelector<HTMLButtonElement>(".is-def-btn");
+    expect(defaults).not.toBeNull();
+    act(() => defaults!.click());
+
+    const reset = view.querySelector<HTMLElement>(".is-def-row");
+    expect(reset).not.toBeNull();
+    expect(reset!.getAttribute("role")).toBe("button");
+    expect(reset!.tabIndex).toBe(0);
+
+    press(reset!, "Enter");
+    expect(onReset).toHaveBeenCalledTimes(1);
+  });
 });
