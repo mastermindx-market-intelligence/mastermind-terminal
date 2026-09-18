@@ -10,9 +10,10 @@
  *
  * HONESTY: by_expiry carries NET only (no call/put split) → the drawer is labelled Net-only.
  * It is an EOD structural read (the by_expiry snapshot), NOT intraday — it does not
- * participate in the replay scrubber and stamps its as-of as EOD. Vanna/charm aren't provided
- * per-expiration → an honest "not per-expiration" state, never faked zeros. Bar/bubble
- * direction (dealer-sign) is an assumption; magnitude is the read.
+ * participate in the replay scrubber and stamps its as-of as EOD. Current payloads may carry
+ * Vanna/Charm by expiration; older archived payloads do not, and therefore keep the existing
+ * honest "not per-expiration" state rather than faked zeros. Bar/bubble direction
+ * (dealer-sign) is an assumption; magnitude is the read.
  *
  * T-B: that "does not participate" is now VISIBLE rather than implicit. While the workspace
  * scrubber is off the live head, the drawer wears EodReplayTag — it keeps showing the close
