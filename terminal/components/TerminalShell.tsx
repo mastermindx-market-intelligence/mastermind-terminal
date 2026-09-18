@@ -1621,6 +1621,11 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
       },
       onDragMove({ active }) {
         const id = String(active.id);
+        if (!wlPointerDragRef.current && wlKeyboardDirectionRef.current == null) {
+          return id.startsWith(SEC_DROP_PREFIX)
+            ? t("wlA11yPickedSection").replace("{section}", sectionName(id))
+            : t("wlA11yPickedSelection").replace("{n}", String(symbolsFor(active).length));
+        }
         const target = wlDropTargetRef.current;
         if (id.startsWith(SEC_DROP_PREFIX)) {
           if (!target) return undefined;
@@ -1632,6 +1637,11 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
       },
       onDragOver({ active }) {
         const id = String(active.id);
+        if (!wlPointerDragRef.current && wlKeyboardDirectionRef.current == null) {
+          return id.startsWith(SEC_DROP_PREFIX)
+            ? t("wlA11yPickedSection").replace("{section}", sectionName(id))
+            : t("wlA11yPickedSelection").replace("{n}", String(symbolsFor(active).length));
+        }
         const target = wlDropTargetRef.current;
         if (id.startsWith(SEC_DROP_PREFIX)) {
           if (!target) return undefined;

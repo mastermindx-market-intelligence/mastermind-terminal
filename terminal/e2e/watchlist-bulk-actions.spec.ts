@@ -526,12 +526,14 @@ test("keyboard lift uses the same selected bundle and Escape cancels it intact",
   await expect(handle).toHaveAttribute("aria-label", "Drag 2 selected tickers");
   await handle.focus();
   await handle.press("Space");
+  await expect(page.locator('[id^="DndLiveRegion"]')).toHaveText("Picked up 2-ticker selection.");
 
   const bundle = page.locator('[data-watchlist-drag-group="true"]');
   await expect(bundle).toHaveAttribute("data-watchlist-drag-count", "2");
   await expect.poll(() => bundle.locator("[data-watchlist-drag-symbol]").evaluateAll((elements) =>
     elements.map((element) => element.getAttribute("data-watchlist-drag-symbol")))).toEqual(["AAPL", "NVDA"]);
   await handle.press("Escape");
+  await expect(page.getByRole("status").filter({ hasText: "Move cancelled; 2-ticker selection stayed in place." })).toBeVisible();
 
   await expect(bundle).toHaveCount(0);
   await expect(page.locator(".wl-row.group-dragging")).toHaveCount(0);
@@ -549,6 +551,7 @@ test("keyboard drop commits the selected bundle as one ordered block", async ({ 
   const handle = row(page, "AAPL").locator(".wl-drag-handle");
   await handle.focus();
   await handle.press("Space");
+  await expect(page.getByRole("status").filter({ hasText: "Picked up 2-ticker selection." })).toBeVisible();
   await expect(page.locator('[data-watchlist-drag-group="true"]')).toBeVisible();
   await handle.press("ArrowDown");
 
@@ -556,6 +559,7 @@ test("keyboard drop commits the selected bundle as one ordered block", async ({ 
   await expect(marker).toHaveAttribute("data-watchlist-drop-edge", "after");
   await expect(page.getByRole("status").filter({ hasText: "Move 2-ticker selection after MSFT." })).toBeVisible();
   await handle.press("Space");
+  await expect(page.getByRole("status").filter({ hasText: "Dropped 2-ticker selection." })).toBeVisible();
 
   await expect(page.locator('[data-watchlist-drag-group="true"]')).toHaveCount(0);
   await expect.poll(() => page.locator(".wl-row").evaluateAll((elements) =>
