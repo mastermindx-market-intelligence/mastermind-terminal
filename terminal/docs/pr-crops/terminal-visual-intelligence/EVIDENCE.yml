@@ -43,7 +43,7 @@ browserResults:
 localGates:
   typecheck: PASS
   plainLanguage: PASS
-  vitest: 337 files passed; 5573 tests passed; 4 todo
+  vitest: 337 files passed; 5576 tests passed; 4 todo
 files:
   - desktop-context.png
   - desktop-context-zh.png
