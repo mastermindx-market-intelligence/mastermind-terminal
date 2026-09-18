@@ -41,7 +41,7 @@ import { DRAWING_RENDERER_FAMILY, materializeSemanticPoints } from "@/lib/drawin
 import { calculateAnchoredVwap, calculateFixedRangeVolumeProfile, calculateRegressionChannel, generateGhostFeed } from "@/lib/drawing-engine/analytics";
 import { cloneDrawing, constrainScreenAngle, translateDrawingAnchors } from "@/lib/drawing-engine/interaction";
 import { calculatePositionMetrics, fibonacciSettings, positionSettings, type FibonacciLabelMode } from "@/lib/drawing-engine/settings";
-import { registerPane, broadcastCrosshair, broadcastRange } from "@/lib/paneSync";
+import { registerPane, broadcastCrosshair, broadcastRange, peerValueAt } from "@/lib/paneSync";
 import {
   PRICE_TAG_ROW_HEIGHT,
   PRICE_TAG_TIME_HEIGHT,
@@ -84,6 +84,7 @@ import ChartTables from "@/components/ChartTables";
 import { crossUps, crossDowns, crossUpsBelow, crossDownsAbove } from "@/lib/crossSignals";
 import { SOFT_Q, anchorSignal, isBlockedSignal, isOverrideCandidate, isReclaimOverrideTake, isRetroOverride, isStopSweepReclaim, isStructureStop, isWaivedEntry, markerTooltipCopy, opportunityMarkerGlyph, sliceSignalBasis } from "@/lib/signalVerdict";
 import { makeNearestBarIndex } from "@/lib/barSnap";
+import { LIVE_BAR_PROJECTION, LIVE_INPLACE_SERIES_KEYS, LIVE_REBUILD_KEYS, acceptsLiveStamp, liveQuoteStamp, seriesReuseChart } from "@/lib/liveBarProjection";
 import { ichimoku, supertrend, avwap as computeAvwap, rollingVwap, weekAnchoredVwap, vprofile, volbox, rsiStack, accumPct, trendRibbon, buyShare as mfBuyShare } from "@/lib/indicatorMath";
 import ChartOverlays, { type PaneInfo, type LegendEntry } from "@/components/ChartOverlays";
 import DayStatsStrip from "@/components/DayStatsStrip";
@@ -732,6 +733,13 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   const extHoursRef = useRef(extHours);
   const liveTickKeyRef = useRef("");                        // rejects a repeated one-second packet without repainting
   const livePulseSeqRef = useRef(0);                         // alternates CSS animation names so every tick can pulse
+  // Newest quote instant this pane has ACCEPTED. The splice rewrites the developing bucket in place,
+  // so a packet that arrives out of order would roll the candle — and everything derived from it —
+  // backwards; `acceptsLiveStamp` refuses a strictly older one. Cleared with the bars.
+  const liveStampRef = useRef<number | null>(null);
+  // Monotonic live-bar generation. Bumped by the ONE derivation boundary below, so async work
+  // launched under a tick can tell whether a newer tick has since superseded it.
+  const liveGenRef = useRef(0);
   const renderRef = useRef<() => void>(() => {});
   const cancelPendingDrawingRef = useRef<() => void>(() => {});
   const cancelMediaToolRef = useRef<(activeTool?: DrawKind | null) => void>(() => {});
@@ -2746,6 +2754,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     cmpSeriesRef.current.clear();
     try { priceSeriesRef.current?.setData([]); suitePaintKeyRef.current = ""; } catch {}
     liveTickKeyRef.current = "";
+    liveStampRef.current = null;   // a new bar set starts a new accepted-quote ordering
     const liveWrap = wrapElRef.current;
     if (liveWrap) {
       delete liveWrap.dataset.liveDirection;
@@ -2768,12 +2777,107 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     renderRef.current();
   };
 
+  // ── in-place study refresh ────────────────────────────────────────────────────────────────────
+  // `updateAllIndicators` only re-setData's the classic subset (EMA/BB/VWAP/Vol/RSI/Stoch/MACD).
+  // Every other built-in study caches a derivation — LWC series data, `indOverlayRef` geometry,
+  // pooled price lines — that a developing bar invalidates. Removing and re-adding those series is
+  // not an option: lightweight-charts auto-removes an emptied pane (sliding higher panes down), so a
+  // per-tick rebuild would recreate panes and reset their sizing on every quote.
+  //
+  // So the study's own BUILDER is re-run as its update owner, against a chart facade whose
+  // addSeries() hands back the series that key already owns. No math and no row→point mapping is
+  // duplicated: `buildIchimoku` stays the single definition of the Ichimoku projection, on both the
+  // build path and the live path. Classification lives in lib/liveBarProjection.ts.
+  /** Re-run one key's builder against the series it already owns. Returns false if it could not. */
+  const runStudyInPlace = (key: string, rows: Bar[], closes: number[]): boolean => {
+    const chart = chartRef.current; if (!chart) return false;
+    const owned = indSeriesRef.current.get(key); if (!owned) return false;
+    const facade = seriesReuseChart(chart, owned, key);
+    const pane = paneMapRef.current.get(key) ?? 0;
+    try {
+      if (key === "ichimoku") buildIchimoku(facade, rows);
+      else if (key === "ribbon") buildRibbon(facade, rows, closes);
+      else if (key === "supertrend") buildSupertrend(facade, rows);
+      else if (key === "avwap") buildAvwap(facade, rows);
+      else if (key === "rvwap") buildRvwap(facade, rows);
+      else if (key === "wvwap") buildWvwap(facade, rows);
+      else if (key === "vprofile") buildVprofile(rows);
+      else if (key === "volbox") buildVolbox(rows);
+      else if (key === "svwap") buildSvwap(facade, rows);
+      else if (key === "orb") buildOrb(rows);
+      else if (key === "slevels") buildSlevels(rows);
+      else if (key === "pivots") buildPivots(rows);
+      else if (key === "rsistack") buildRsiStack(facade, rows, pane);
+      else if (key === "accum") buildAccum(facade, rows, pane);
+      else if (key === "rvol") buildRvol(facade, rows, pane);
+      else if (key === "ttmsq") buildTtmsq(facade, rows, pane);
+      else if (key === "adx") buildAdx(facade, rows, pane);
+      else if (key === "cvd") buildCvd(facade, rows, pane);
+      else if (isSuiteKeyReg(key)) buildSuitePane(facade, rows, key, pane);
+      else return false;
+      return true;
+    } catch { return false; }
+  };
+  /** Carry every "inplace-rebuild" study that is currently drawn onto `rows`. */
+  const refreshLiveStudies = (rows: Bar[], closes: number[]) => {
+    if (!indSeriesRef.current.size || !rows.length) return;
+    for (const key of LIVE_REBUILD_KEYS) if (indSeriesRef.current.has(key)) runStudyInPlace(key, rows, closes);
+    // Pane suites hold no series data beyond a transparent range anchor — their prims recompute from
+    // barsRef in the render pass below — but that anchor must still span the newest bar.
+    for (const key of paneSuiteKeys()) if (indSeriesRef.current.has(key)) runStudyInPlace(key, rows, closes);
+  };
+
+  // ── THE live-bar derivation boundary ──────────────────────────────────────────────────────────
+  // One accepted bar mutation → one bar generation → every consumer that follows the developing bar,
+  // in one settled pass. Both accept paths (daily/resampled splice, intraday candle) end here, so a
+  // consumer can never read a different generation of the same candle than its neighbour.
+  //
+  // The caller owns ACCEPTANCE (which quote, which bucket, which bar arrays) because that differs
+  // per path; everything downstream of `barsRef.current` is owned here. Callers must therefore have
+  // already written `barsRef`/`fullBarsRef`/`dailyBarsRef` and pushed the bar to the price series.
+  // `appended` = the mutation started a NEW bar (a fresh session / resampled bucket / intraday slot)
+  // rather than replacing the developing one, so the addressable bar set itself grew.
+  const commitLiveBarGeneration = ({ appended }: { appended: boolean }) => {
+    const rows = barsRef.current; if (!rows.length) return;
+    const generation = ++liveGenRef.current;
+    closesRef.current = rows.map((r) => r.c);
+    // Force the time→index map to rebuild: the bar COUNT may have grown, and paneSync's `valueAt`
+    // reads its closes through that map (see reRegisterSync) — a stale map would leave a peer pane
+    // unable to mirror a crosshair onto the timestamp that just appeared.
+    barIdxRef.current = { src: null, map: new Map() };
+    const closes = closesRef.current;
+    // 0. a grown bar set moves the future-anchor gutter and the parent's row count with it
+    if (appended) { applyFutureAxis(); onMeta?.({ total: rows.length }); }
+    // 1. series that own a cached derivation of the bars
+    updateAllIndicators(rows, closes);
+    refreshLiveStudies(rows, closes);
+    // 2. the numeric projection behind Chart Table / visual intelligence (also republishes indRowsAt)
+    buildIndDataMap(rows, closes);
+    // 3. status line, verdict chip, price tag, signal marks
+    paintStatus(rows, sliceRef.current);
+    renderSignalsRef.current();
+    renderTagRef.current?.();
+    // 4. candle paint, then the SVG overlay pass that draws suite prims / cloud fills / profiles.
+    //    Paint first so the suite key-guard sees this generation's bars; the overlay pass is
+    //    rAF-coalesced, so a burst of quotes still costs one draw.
+    applySuitePaintRef.current?.();
+    scheduleRenderRef.current?.();
+    if (dayModeRef.current) setStripBars([...rows]);
+    // 5. off-thread work: epoch-guarded inside, and skipped outright if a newer tick already landed
+    if (liveGenRef.current === generation) schedulePineLiveRerun();
+  };
+
   const applyIntradayLiveCandle = () => {
     const priceS = priceSeriesRef.current;
     if (!priceS || !isIntradayRef.current || replayIdxRef.current != null) return;
     if (chartDataSymRef.current !== symbolRef.current) return;
     const current = fullBarsRef.current;
     if (!current.length) return;
+    // A superseded packet must never repaint after a newer one. `tickKey` alone only rejects an
+    // exact REPEAT; an out-of-order packet carries a different key and would reshape the candle
+    // backwards, so the accepted instant is the gate.
+    const stamp = liveQuoteStamp(liveQuoteRef.current);
+    if (!acceptsLiveStamp(liveStampRef.current, stamp)) return;
     const mutation = mutateLiveCandle(
       current as unknown as import("@/lib/liveCandle").LiveCandleBar[],
       liveQuoteRef.current,
@@ -2792,22 +2896,12 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     } catch { return; }
 
     liveTickKeyRef.current = mutation.tickKey;
+    liveStampRef.current = stamp ?? liveStampRef.current;
     fullBarsRef.current = mutation.bars as unknown as Bar[];
     barsRef.current = fullBarsRef.current; // replay is guarded above, so the visible set is the full set
-    closesRef.current = barsRef.current.map((r) => r.c);
-    barIdxRef.current = { src: null, map: new Map() };
-    if (mutation.kind === "new-bar" && onMeta) onMeta({ total: barsRef.current.length });
 
-    // Existing built-ins already have an in-place update path. Running it here keeps the default
-    // EMA/volume/MACD/Stoch stack breathing with the candle without removing/recreating panes.
-    updateAllIndicators(barsRef.current, closesRef.current);
-    buildIndDataMap(barsRef.current, closesRef.current);
-    paintStatus(barsRef.current, null);
-    renderSignalsRef.current();
-    renderRef.current();
-    renderTagRef.current?.();
-    if (dayModeRef.current) setStripBars([...barsRef.current]);
-    reRegisterSync();
+    // One accepted bar → one generation → every follower (§commitLiveBarGeneration).
+    commitLiveBarGeneration({ appended: mutation.kind === "new-bar" });
 
     // Canvas pixels change through series.update(); this small DOM tracer makes that mutation
     // perceptible at a glance without repainting the candle ourselves. Alternating a/b restarts
@@ -2846,6 +2940,11 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     if (!q || q.last == null || !isFinite(q.last)) return;
     if (!SPLICE_BASES.has(q.basis || "")) return;          // EOD / missing basis → no splice
     const daily = dailyBarsRef.current; if (!daily.length) return;
+    // A superseded packet must never repaint after a newer one: the fold below rewrites the
+    // developing bucket IN PLACE, so an out-of-order quote would roll the candle — and every
+    // consumer derived from it — backwards inside the same session.
+    const stamp = liveQuoteStamp(q);
+    if (!acceptsLiveStamp(liveStampRef.current, stamp)) return;
     const tf = timeframeRef.current;
     const market = classify(symbol);
     const sd = sessionDateOf(q.ts, market);
@@ -2885,16 +2984,13 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // fullBarsRef is reassigned to [...fb, bucket] while `fb`/`bs` still hold the old array — we must
     // resync barsRef to the new fullBarsRef (else the status line reads the pre-splice tail for a poll).
     const wasSame = bs.length > 0 && bs === fb;
+    const appended = fb.length > 0 && fb[fb.length - 1].time !== bucket.time;
     if (fb.length) { if (fb[fb.length - 1].time === bucket.time) fb[fb.length - 1] = bucket; else fullBarsRef.current = [...fb, bucket]; }
     if (wasSame) { barsRef.current = fullBarsRef.current; }
     else if (bs.length) { if (bs[bs.length - 1].time === bucket.time) bs[bs.length - 1] = bucket; else barsRef.current = [...bs, bucket]; }
-    closesRef.current = barsRef.current.map((r) => r.c);
-    barIdxRef.current = { src: null, map: new Map() };   // force the time→index map to rebuild (bar count may have grown)
-    paintStatus(barsRef.current, sliceRef.current);
-    applySuitePaintRef.current?.();
-    renderSignalsRef.current();
-    renderTagRef.current?.();   // live-quote splice moved the last close → refresh the price/countdown tag now
-    schedulePineLiveRerun();    // recompute Pine plots/markers on the developing bar (debounced ~250ms)
+    liveStampRef.current = stamp ?? liveStampRef.current;
+    // One accepted bar → one generation → every follower (§commitLiveBarGeneration).
+    commitLiveBarGeneration({ appended });
   };
 
   // Debounced (~250ms) incremental Pine re-run on a live splice. Pine indicators used to FREEZE on live
@@ -3341,6 +3437,46 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       // geometry cannot arbitrate that — it lags the toggle by a relayout — so expose the flag the
       // handler sets synchronously; `null` = no pane is maximized.
       (window as any).__mmPaneMaximized = () => paneCtl.current.maximized;
+      // Live-bar coherence test hook. Every witness below is read in ONE synchronous pass off the
+      // REAL canvas series / readout maps / sync peer, so a spec can prove that a single accepted
+      // quote left them all describing the same generation of the developing candle — the thing a
+      // screenshot of a canvas cannot show.
+      (window as any).__mmLiveBarGeneration = () => {
+        const g = <T,>(fn: () => T): T | null => { try { return fn(); } catch { return null; } };
+        const rows = barsRef.current;
+        const last = rows[rows.length - 1];
+        const tail = (s?: ISeriesApi<any>) => g(() => {
+          const d = s?.data() as any[] | undefined; const p = d?.[d.length - 1];
+          return p ? { time: p.time ?? null, value: p.value ?? p.close ?? null } : null;
+        });
+        const series: Record<string, ({ time: unknown; value: number | null } | null)[]> = {};
+        for (const [k, arr] of indSeriesRef.current) series[k] = arr.map((s) => tail(s));
+        return {
+          generation: liveGenRef.current,
+          stamp: liveStampRef.current,
+          barCount: rows.length,
+          lastBar: last ? { time: last.time, o: last.o, h: last.h, l: last.l, c: last.c, v: last.v } : null,
+          // what the candle on the canvas actually holds, not what we believe we pushed
+          priceTail: tail(priceSeriesRef.current ?? undefined),
+          series,
+          // Cached SVG-overlay geometry (ichimoku cloud, profiles, ORB, session VWAP bands). The POC
+          // is a COMPUTED value, not a reference into the bar array: an in-place last-bucket
+          // rewrite aliases `rows` even when nothing recomputed, so `rows` alone cannot tell a
+          // refreshed profile from a stale one.
+          overlayKeys: Object.keys(indOverlayRef.current),
+          overlayProfile: g(() => {
+            const vp = (indOverlayRef.current as any).vprofile;
+            if (!vp) return null;
+            const rows = vp.rows as Bar[] | undefined;
+            return { poc: vp.vp?.poc ?? null, rowsLastClose: rows?.[rows.length - 1]?.c ?? null };
+          }),
+          // Chart Table / visual-intelligence projection for the developing bar
+          indRow: last ? (indDataMapRef.current.get(String(last.time)) ?? null) : null,
+          // cross-pane sync's own lookup, asked exactly the way a peer asks it
+          syncValueAt: last ? g(() => peerValueAt(syncIdRef.current ?? -1, last.time as any)) : null,
+          projection: LIVE_BAR_PROJECTION,
+        };
+      };
     }
 
     // ── create the ONE chart (the hard invariant — exactly one renderer instance — now
@@ -7503,7 +7639,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       if (dragCleanup) dragCleanup();
       drawingTransactionRef.current = false;
       window.removeEventListener("mm:snapshot", snapshot);
-      if (process.env.NODE_ENV !== "production") { try { delete (window as any).__mmChartSeriesTitles; delete (window as any).__mmChartAxisOpts; delete (window as any).__mmCrosshairDodge; delete (window as any).__mmPriceLabels; delete (window as any).__mmPaneMaximized; } catch {} }
+      if (process.env.NODE_ENV !== "production") { try { delete (window as any).__mmChartSeriesTitles; delete (window as any).__mmChartAxisOpts; delete (window as any).__mmCrosshairDodge; delete (window as any).__mmPriceLabels; delete (window as any).__mmPaneMaximized; delete (window as any).__mmLiveBarGeneration; } catch {} }
       if (onKey) window.removeEventListener("keydown", onKey);
       if (winDown) window.removeEventListener("pointerdown", winDown);
       window.removeEventListener("pointerup", onProjectionPointerEnd);
@@ -7565,6 +7701,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     const chart = chartRef.current; if (!chart) return;
     cpMark(`chart-effect2-start[${symbol}@${effectiveTimeframe}]`);
     liveTickKeyRef.current = "";
+    liveStampRef.current = null;   // a new bar set starts a new accepted-quote ordering
     const liveWrap = wrapElRef.current;
     if (liveWrap) {
       delete liveWrap.dataset.liveDirection;
@@ -7850,12 +7987,13 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       chartDataSymRef.current = symbol;
       // ── PERF-FIX (a): indicators — on same-symbol TF/chartType switch, update series data in-place
       //    (setData only, no removeSeries/addSeries lifecycle). On symbol change, do a full rebuild. ──
-      // updateAllIndicators() only re-setData's these keys; every other DT-suite indicator
-      // (ichimoku/ribbon/supertrend/avwap/vprofile/volbox/rsistack/accum/rvol/ttmsq/adx/cvd)
-      // would strand on the PREVIOUS timeframe's data if we took the in-place path. So only
-      // take it when EVERY active indicator is in-place-updatable; otherwise full rebuild.
-      const INPLACE_KEYS = new Set(["ema", "bb", "vwap", "vol", "stochrsi", "rsi", "macd"]);
-      const allInPlaceable = [...indicatorsRef.current].every((k) => INPLACE_KEYS.has(k));
+      // updateAllIndicators() only re-setData's the "inplace-series" keys; every other DT-suite
+      // indicator (ichimoku/ribbon/supertrend/avwap/vprofile/volbox/rsistack/accum/rvol/ttmsq/adx/
+      // cvd) would strand on the PREVIOUS timeframe's data if we took the in-place path. So only
+      // take it when EVERY active indicator is in-place-updatable; otherwise full rebuild. The set
+      // is lib/liveBarProjection.ts's — the same classification the live-bar boundary reads, so a
+      // new study can never be in-place here and stale on a live tick (or vice versa).
+      const allInPlaceable = [...indicatorsRef.current].every((k) => LIVE_INPLACE_SERIES_KEYS.has(k as any));
       const canUpdateInPlace = !symbolChanged && !crossedIntradayBoundary && indSeriesRef.current.size > 0 && allInPlaceable;
       if (canUpdateInPlace) {
         updateAllIndicators(onChart, closes);
@@ -7907,9 +8045,20 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     if (syncCleanupRef.current) { try { syncCleanupRef.current(); } catch {} syncCleanupRef.current = null; }
     const chart = chartRef.current, priceS = priceSeriesRef.current, syncId = syncIdRef.current;
     if (syncId == null || !chart || !priceS) return;
-    const closeByTime = new Map(barsRef.current.map((r) => [r.time, r.c]));
+    // Resolve the peer's value at LOOKUP time, not at registration time. A snapshot Map taken here
+    // froze sync's lookup domain to the bar set that existed when the pane registered: a live splice
+    // that moved the developing close mirrored a stale price, and one that APPENDED a new session /
+    // resampled bucket left the newest timestamp unknown to sync entirely — the peer cleared its
+    // crosshair instead of mirroring it. `barIdxMap()` is rebuilt on every bar-set change (the live
+    // derivation boundary invalidates it), so this tracks the bars by construction and needs no
+    // per-tick re-registration.
     const cleanup = registerPane(syncId, {
-      chart, series: priceS, valueAt: (tm: any) => closeByTime.get(tm as any) ?? null, tf: timeframeRef.current,
+      chart, series: priceS,
+      valueAt: (tm: any) => {
+        const idx = barIdxMap().get(tm as any) ?? barIdxMap().get(String(tm));
+        return idx == null ? null : (barsRef.current[idx]?.c ?? null);
+      },
+      tf: timeframeRef.current,
       // A mirrored crosshair draws with no crosshairMove event behind it. Feed the independent
       // foreground DOM label directly while keeping both persistent badges untouched.
       onCrosshair: (price, time) => {
