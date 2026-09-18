@@ -236,7 +236,11 @@ export const LEX: Record<string, [string, string]> = {
   mtfTip: ["Multi-timeframe — the active symbol at D / 3D / W / 1M", "多周期 — 当前标的的 日/3日/周/月 图"],
   syncTip: ["Sync crosshair & time-axis across panes", "跨窗格同步十字光标与时间轴"],
   syncMixedTip: ["Sync needs matching timeframes across panes", "同步需要各窗格使用相同周期"],
-  replayMixedTip: ["Replay needs matching timeframes across panes", "回放需要各窗格使用相同周期"],
+  // Replay is single-chart only: one bar index cannot name one instant across symbols, because
+  // each symbol has its own first bar and its own missing sessions. Matching timeframes do not
+  // fix that, so the reason names the layout, not the timeframe.
+  replayMultiChartTip: ["Replay works on a single chart — switch to the 1-chart layout", "回放仅支持单图 — 请切换到单图布局"],
+  replayNoDataTip: ["Replay needs loaded history", "回放需要已加载的历史数据"],
   replayReset: ["Reset replay", "重置回放"],
   replayPrev: ["Previous bar", "上一根K线"],
   replayNext: ["Next bar", "下一根K线"],
