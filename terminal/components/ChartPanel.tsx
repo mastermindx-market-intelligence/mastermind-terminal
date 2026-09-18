@@ -1476,11 +1476,22 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   };
 
   // Apply per-bar candle colors for the ribbon indicator.
+  //
+  // DECORATION OWNS COLOR, NEVER GEOMETRY. The base array is priceData(rows) — the ONE
+  // representation of the active chart type — so a Heikin-Ashi chart keeps its transformed OHLC
+  // and only the color channels are overwritten. Building {open,high,low,close} from the raw
+  // `rows` here instead silently replaced a Heikin-Ashi price series with ordinary candles while
+  // the UI still read "Heikin Ashi" (and `restoreNormalCandleColors` transformed it back on
+  // removal, so the same chart showed two different price transforms depending on one study's
+  // toggle). This is also the contract lib/indicator-canvas/candlePaint.ts documents: paint
+  // receives the SAME display rows the series is fed. Do not re-derive the transform here.
   const applyRibbonCandleColors = (rows: Bar[], rb: ReturnType<typeof trendRibbon>, p: Record<string, any>) => {
     const priceS = priceSeriesRef.current; if (!priceS) return;
     const chartTyp = chartTypeRef.current;
     if (isValueChartType(chartTyp)) return;
-    const colored = rows.map((r, i) => {
+    // priceData() preserves length + order for every candle family, so index i still lines up
+    // with the ribbon state computed from `rows`.
+    const colored = (priceData(rows) as Record<string, any>[]).map((point, i) => {
       const st = rb.state[i], su = rb.shortUp[i];
       let col: string;
       // p.colUp/p.colDn already carry the Up/Down setting (and any user override); the weak
@@ -1488,9 +1499,11 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       if (st === "ribbonUp") col = su ? p.colUp : withAlpha(p.colUp, 0.45);
       else if (st === "ribbonDown") col = su === false ? p.colDn : withAlpha(p.colDn, 0.45);
       else col = "#8b93a3";
+      // OHLC bars carry a single color channel; every other candle family takes body+border+wick
+      // (an override of whatever colorBarsPrevClose may have written into the base point).
       return chartTyp === "bars"
-        ? { time: r.time, open: r.o, high: r.h, low: r.l, close: r.c, color: col }
-        : { time: r.time, open: r.o, high: r.h, low: r.l, close: r.c, color: col, borderColor: col, wickColor: col };
+        ? { ...point, color: col }
+        : { ...point, color: col, borderColor: col, wickColor: col };
     });
     try { priceS.setData(colored as any); suitePaintKeyRef.current = ""; } catch {}
   };
