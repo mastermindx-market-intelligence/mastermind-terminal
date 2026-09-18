@@ -32,6 +32,7 @@ const gexFull = {
 const movesFull = {
   schema: "options_hub.moves/v1",
   root: "NVDA",
+  asof: "2026-07-31",
   expected_move: { band_mult: 1.96, horizon_days: 1.0, pct: 3.62, lo: 130.8, hi: 140.6 },
 };
 
@@ -83,6 +84,146 @@ describe("deriveOptLevels", () => {
     expect(r.spot).toBe(135.7);
     expect(r.netGexBn).toBe(-1.24);
     expect(r.signed).toBe(true); // walls/flip drawn → Tier-B disclosure rides
+  });
+
+  it("rescues missing signed levels from the current gex_state lane while retaining the published EM band", () => {
+    const gexNoOi = {
+      schema: "options_hub.gex/v1",
+      root: "INTC",
+      asof: "2026-09-14",
+      spot_ref: null,
+      net_gex_bn: null,
+      gamma_flip: null,
+      call_wall: null,
+      put_wall: null,
+      by_strike: [],
+      no_data_reason: "no_oi_in_store:2026-09-14",
+    };
+    const moves = {
+      schema: "options_hub.moves/v1",
+      root: "INTC",
+      asof: "2026-08-21",
+      expected_move: { lo: 83.4423, hi: 96.6977 },
+    };
+    const state = {
+      schema: "options_structure.gex_state/v1",
+      root: "INTC",
+      asof: "2026-09-16T16:00:00-04:00",
+      spot: 101.05,
+      net_gex_bn: 0.11,
+      call_wall: 110,
+      put_wall: 90,
+      gamma_flip: 93.8,
+    };
+    const r = deriveOptLevels(gexNoOi, moves, "INTC", state);
+    expect(r.status).toBe("ok");
+    expect(byKey(r.levels)).toEqual({
+      call_wall: 110,
+      put_wall: 90,
+      gamma_flip: 93.8,
+      em_lo: 83.4423,
+      em_hi: 96.6977,
+    });
+    expect(r.spot).toBe(101.05);
+    expect(r.netGexBn).toBe(0.11);
+    // Mixed-vintage overlays disclose the oldest contributing lane rather than looking fresher
+    // than their stale expected-move band.
+    expect(r.asofDate).toBe("2026-08-21");
+    expect(r.signed).toBe(true);
+  });
+
+  it("derives state-only signed levels when the ladder artifact is absent", () => {
+    const state = {
+      schema: "options_structure.gex_state/v1",
+      root: "INTC",
+      asof: "2026-09-16T16:00:00-04:00",
+      spot: 101.05,
+      net_gex_bn: 0.11,
+      call_wall: 110,
+      put_wall: 90,
+      gamma_flip: 93.8,
+    };
+    const r = deriveOptLevels(null, null, "INTC", state);
+    expect(r.status).toBe("ok");
+    expect(byKey(r.levels)).toEqual({ call_wall: 110, put_wall: 90, gamma_flip: 93.8 });
+    expect(r.asofDate).toBe("2026-09-16");
+    expect(r.spot).toBe(101.05);
+    expect(r.netGexBn).toBe(0.11);
+  });
+
+  it("withholds a composite as-of date when any contributing fallback lane is undated", () => {
+    const state = {
+      schema: "options_structure.gex_state/v1",
+      root: "NVDA",
+      spot: 136,
+      gamma_flip: 132,
+    };
+    const g = { ...gexFull, gamma_flip: null, profile: null };
+    const r = deriveOptLevels(g, null, "NVDA", state);
+    expect(byKey(r.levels).gamma_flip).toBe(132);
+    expect(r.asofDate).toBeNull();
+  });
+
+  it("keeps valid ladder values authoritative and uses gex_state only for missing fields", () => {
+    const state = {
+      schema: "options_structure.gex_state/v1",
+      root: "NVDA",
+      asof: "2026-08-01",
+      spot: 136,
+      net_gex_bn: 9,
+      call_wall: 155,
+      put_wall: 115,
+      gamma_flip: 134,
+    };
+    const r = deriveOptLevels(gexFull, null, "NVDA", state);
+    expect(byKey(r.levels)).toMatchObject({ call_wall: 150, put_wall: 120, gamma_flip: 130 });
+    expect(r.spot).toBe(135.7);
+    expect(r.netGexBn).toBe(-1.24);
+    expect(r.asofDate).toBe("2026-07-31");
+  });
+
+  it("fills one missing ladder field from gex_state without replacing the surviving ladder fields", () => {
+    const g = { ...gexFull, gamma_flip: null, profile: null };
+    const state = {
+      schema: "options_structure.gex_state/v1",
+      root: "NVDA",
+      asof: "2026-08-01",
+      spot: 136,
+      call_wall: 155,
+      put_wall: 115,
+      gamma_flip: 132,
+    };
+    expect(byKey(deriveOptLevels(g, null, "NVDA", state).levels)).toMatchObject({
+      call_wall: 150,
+      put_wall: 120,
+      gamma_flip: 132,
+    });
+  });
+
+  it("sanity-gates a state fallback flip against the ladder spot when state omits spot", () => {
+    const g = {
+      ...gexFull,
+      spot_ref: 100,
+      gamma_flip: null,
+      call_wall: null,
+      put_wall: null,
+      by_strike: [],
+      profile: null,
+    };
+    const state = {
+      schema: "options_structure.gex_state/v1",
+      root: "NVDA",
+      asof: "2026-08-01",
+      spot: null,
+      gamma_flip: 500,
+    };
+    expect(deriveOptLevels(g, null, "NVDA", state).levels.map((level) => level.key))
+      .not.toContain("gamma_flip");
+  });
+
+  it("rejects another root's gex_state fallback rather than cross-labelling the chart", () => {
+    const state = { root: "SPY", asof: "2026-08-01", spot: 740, call_wall: 760, put_wall: 720, gamma_flip: 748 };
+    expect(deriveOptLevels({}, null, "NVDA", state).status).toBe("empty");
   });
 
   it("EM-only (partial publish: moves lane landed, gex lane empty) is Tier A — not signed", () => {

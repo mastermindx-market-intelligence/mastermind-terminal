@@ -48,7 +48,8 @@ import {
   PRICE_TAG_MIN_VALUE_WIDTH,
   priceTagRowTop,
   priceScaleDisplayValue,
-  secondaryPriceTagTop,
+  layoutPriceAxisBadges,
+  readablePriceTagTextColor,
 } from "@/lib/priceTagPlacement";
 import { hoverTagPaint } from "@/lib/hoverTagPaint";
 import { setActivePaneCoords, getActivePaneCoords } from "@/lib/paneCoords";
@@ -62,7 +63,7 @@ import { sessionVwap, openingRange, sessionLevels, pivotLevels, rvolSeries, ttmS
 import { attachSessionShading, detachSessionShading, type SessionShadingPrimitive } from "@/lib/sessionShading";
 import { IND_DEFS, withDefaults, isIndKey } from "@/lib/indicators";
 import { flowGet } from "@/lib/flowClientCache";
-import { deriveOptLevels, sessionsOldEt, type OptLevelsResult } from "@/lib/optionsLevels";
+import { deriveOptLevels, sessionsOldEt, type OptLevelKey, type OptLevelsResult } from "@/lib/optionsLevels";
 import { computeSuite, resolveSuiteColors } from "@/lib/indicator-canvas/host";
 import { renderPrims, ensureTooltipHost } from "@/lib/indicator-canvas/render";
 import {
@@ -900,6 +901,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   const sigRef = useRef<SVGSVGElement | null>(null);
   const priceTagRef = useRef<HTMLDivElement | null>(null);  // TradingView-style last-price + countdown tag on the right axis
   const extendedTagRef = useRef<HTMLDivElement | null>(null); // PRE/AH/ON badge; shares the DOM scale layer with the primary tag
+  const optionTagHostRef = useRef<HTMLDivElement | null>(null); // collision-resolved Options Levels badges (lines stay at true price)
   const hoverTagRef = useRef<HTMLDivElement | null>(null);   // pointer price; foreground and excluded from persistent collisions
   const tagTimerRef = useRef<number | null>(null);          // 1s ticker so the bar-close countdown stays live
   // y (price-pane coords) of the crosshair's axis price label. Persistent badges never consume
@@ -1024,7 +1026,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   useEffect(() => {
     const h = () => {
       if (!indicatorsRef.current.has("optlevels")) return;
-      try { buildOptLevels(); applyHidden(); rebuildPaneMeta(); } catch {}
+      try { buildOptLevels(); applyHidden(); rebuildPaneMeta(); renderTagRef.current?.(); } catch {}
     };
     window.addEventListener("mm:lang", h);
     return () => window.removeEventListener("mm:lang", h);
@@ -1783,6 +1785,28 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     return [];
   };
 
+  type OptLevelRenderStyle = {
+    on: boolean;
+    color: string;
+    lineStyle: number;
+    lineWidth: number;
+    title: string;
+  };
+  const optLevelRenderStyles = (): Record<OptLevelKey, OptLevelRenderStyle> => {
+    const p = P("optlevels");
+    const computed = getComputedStyle(document.documentElement);
+    const resolved = (name: string, fallback: string) =>
+      computed.getPropertyValue(name).trim() || fallback;
+    return {
+      call_wall: { on: p.cw !== false, color: resolved("--brand-2", "#4d82ff"), lineStyle: 0, lineWidth: 1, title: tPlain("olCw") },
+      put_wall: { on: p.pw !== false, color: resolved("--down", "#f0566b"), lineStyle: 0, lineWidth: 1, title: tPlain("olPw") },
+      gamma_flip: { on: p.flip !== false, color: resolved("--ai", "#9d86ff"), lineStyle: 2, lineWidth: 1, title: tPlain("olFlip") },
+      abs_gamma: { on: p.ags !== false, color: resolved("--signal", "#e8b339"), lineStyle: 1, lineWidth: 1, title: tPlain("olAgs") },
+      em_hi: { on: p.em !== false, color: resolved("--muted", "#8b93a3"), lineStyle: 1, lineWidth: 1, title: tPlain("olEmHi") },
+      em_lo: { on: p.em !== false, color: resolved("--muted", "#8b93a3"), lineStyle: 1, lineWidth: 1, title: tPlain("olEmLo") },
+    };
+  };
+
   // buildOptLevels: Options Levels (R3.1) as createPriceLine on the price series.
   // Draws from optLevelsStateRef (populated by the fetch effect) — data-fed, so unlike
   // slevels/pivots there is nothing to compute from `rows`; the guard against a stale
@@ -1797,24 +1821,19 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // Never draw until this symbol's bars are on the canvas (see chartDataSymRef) — the
     // Effect-2 build path re-runs this builder right after setData, so nothing is lost.
     if (chartDataSymRef.current !== symbolRef.current) return [];
-    const p = P("optlevels");
-    const css = (n: string, fb: string) =>
-      getComputedStyle(document.documentElement).getPropertyValue(n).trim() || fb;
-    const style: Record<string, { on: boolean; color: string; lineStyle: number; lineWidth: number; title: string }> = {
-      call_wall: { on: p.cw !== false, color: css("--brand-2", "#4d82ff"), lineStyle: 0, lineWidth: 1, title: tPlain("olCw") },
-      put_wall: { on: p.pw !== false, color: css("--down", "#f0566b"), lineStyle: 0, lineWidth: 1, title: tPlain("olPw") },
-      gamma_flip: { on: p.flip !== false, color: css("--ai", "#9d86ff"), lineStyle: 2 /* dashed — signed estimate */, lineWidth: 1, title: tPlain("olFlip") },
-      abs_gamma: { on: p.ags !== false, color: css("--signal", "#e8b339"), lineStyle: 1 /* dotted */, lineWidth: 1, title: tPlain("olAgs") },
-      em_hi: { on: p.em !== false, color: css("--muted", "#8b93a3"), lineStyle: 1, lineWidth: 1, title: tPlain("olEmHi") },
-      em_lo: { on: p.em !== false, color: css("--muted", "#8b93a3"), lineStyle: 1, lineWidth: 1, title: tPlain("olEmLo") },
-    };
+    const styles = optLevelRenderStyles();
     for (const lv of st.res.levels) {
-      const s = style[lv.key];
-      if (!s || !s.on) continue;
+      const s = styles[lv.key];
+      if (!s.on) continue;
       try {
         const pl = priceS.createPriceLine({
           price: lv.price, color: s.color, lineWidth: s.lineWidth,
-          lineStyle: s.lineStyle, axisLabelVisible: true, title: s.title,
+          lineStyle: s.lineStyle,
+          // Native LWC labels overlap when several structural levels share a tight range.
+          // Keep the horizontal line at the exact price and render its badge in our shared
+          // collision-resolved DOM scale layer instead.
+          axisLabelVisible: false,
+          title: "",
         } as any);
         pushIndPriceLine("optlevels", pl);
       } catch {}
@@ -2240,7 +2259,9 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // their pooled IPriceLines directly or the toggle silently no-ops on them.
     for (const [k, lines] of indPriceLinesRef.current) {
       const vis = !h.has(k) && tfVisible(k);
-      for (const pl of lines) { try { pl.applyOptions({ lineVisible: vis, axisLabelVisible: vis } as any); } catch {} }
+      for (const pl of lines) {
+        try { pl.applyOptions({ lineVisible: vis, axisLabelVisible: k === "optlevels" ? false : vis } as any); } catch {}
+      }
     }
     // custom scripts: eye toggle by scriptId (no tf-visibility gating — scripts don't declare _vis)
     for (const [id, arr] of pineSeriesRef.current) { const vis = !h.has(id); for (const s of arr) { try { s.applyOptions({ visible: vis } as any); } catch {} } }
@@ -3268,6 +3289,21 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         }
         return out;
       };
+      (window as any).__mmIndicatorPriceLines = () =>
+        Object.fromEntries([...indPriceLinesRef.current].map(([key, lines]) => [
+          key,
+          lines.map((line) => {
+            try {
+              const options = line.options();
+              return {
+                price: options.price,
+                color: options.color,
+                lineVisible: options.lineVisible,
+                axisLabelVisible: options.axisLabelVisible,
+              };
+            } catch { return null; }
+          }).filter(Boolean),
+        ]));
       // C2/C3/C4/C7 test hook — the axis rule, the label pitch, the volume band and the axis font
       // are all canvas-rendered, so the option layer is the only assertable surface.
       (window as any).__mmChartAxisOpts = () => {
@@ -3320,14 +3356,34 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       (window as any).__mmPriceLabels = () => {
         const primary = priceTagRef.current;
         const extended = extendedTagRef.current;
+        const primaryCd = primary?.querySelector<HTMLElement>(".mm-ptag-cd") ?? null;
+        const extendedCd = extended?.querySelector<HTMLElement>(".mm-exttag-cd") ?? null;
+        const primaryTimed = !!primaryCd && primary?.style.display !== "none" && primaryCd.style.display !== "none";
+        const extendedTimed = !!extendedCd && extended?.style.display !== "none" && extendedCd.style.display !== "none";
+        const optionTags = [...(optionTagHostRef.current?.querySelectorAll<HTMLElement>(".mm-optlevel-tag") ?? [])]
+          .filter((node) => node.style.display !== "none")
+          .map((node) => ({
+            key: node.dataset.levelKey ?? "",
+            price: Number(node.dataset.price),
+            top: parseFloat(node.style.top || "0"),
+            naturalTop: Number(node.dataset.naturalTop),
+            anchorY: Number(node.dataset.anchorY),
+            docked: node.dataset.docked === "true",
+            lane: Number(node.dataset.lane ?? 0),
+            text: node.textContent ?? "",
+          }));
         return {
-          primaryTop: primary ? parseFloat(primary.style.top || "0") : null,
+          primaryTop: primary && primary.style.display !== "none" ? parseFloat(primary.style.top || "0") : null,
+          primaryNaturalTop: primary?.dataset.naturalTop ? Number(primary.dataset.naturalTop) : null,
           primaryAnchorY: primary?.dataset.anchorY ? Number(primary.dataset.anchorY) : null,
+          primaryDocked: primary?.dataset.docked === "true",
           pricePaneTop: primary?.dataset.paneTop ? Number(primary.dataset.paneTop) : 0,
           extendedTop: extended && extended.style.display !== "none" ? parseFloat(extended.style.top || "0") : null,
           extendedNaturalTop: extended?.dataset.naturalTop ? Number(extended.dataset.naturalTop) : null,
           extendedAnchorY: extended?.dataset.anchorY ? Number(extended.dataset.anchorY) : null,
           extendedDocked: extended?.dataset.docked === "true",
+          timerOwner: extendedTimed ? "extended" : primaryTimed ? "primary" : null,
+          optionTags,
           hoverTop: hoverTagRef.current && hoverTagRef.current.style.display !== "none"
             ? parseFloat(hoverTagRef.current.style.top || "0")
             : null,
@@ -3497,11 +3553,14 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     extendedKind.style.cssText = `grid-area:kind;box-sizing:border-box;height:${PRICE_TAG_ROW_HEIGHT}px;padding:0 5px;border-radius:2px 0 0 2px;color:#fff;display:flex;align-items:center;font:500 12px/${PRICE_TAG_ROW_HEIGHT}px var(--font-num);font-variant-numeric:tabular-nums`;
     const extendedSlot = document.createElement("div");
     extendedSlot.className = "mm-exttag-slot";
-    extendedSlot.style.cssText = `grid-area:slot;box-sizing:border-box;width:${PRICE_TAG_MIN_VALUE_WIDTH}px;height:${PRICE_TAG_ROW_HEIGHT}px;display:flex;align-items:flex-start`;
+    extendedSlot.style.cssText = `grid-area:slot;position:relative;box-sizing:border-box;width:${PRICE_TAG_MIN_VALUE_WIDTH}px;height:${PRICE_TAG_ROW_HEIGHT}px;display:flex;align-items:flex-start`;
     const extendedValue = document.createElement("div");
     extendedValue.className = "mm-exttag-val";
     extendedValue.style.cssText = `box-sizing:border-box;flex:0 0 auto;height:${PRICE_TAG_ROW_HEIGHT}px;padding:0 8px;border-radius:0 2px 2px 0;color:#fff;display:flex;align-items:center;justify-content:flex-start;font:500 12px/${PRICE_TAG_ROW_HEIGHT}px var(--font-num);font-variant-numeric:tabular-nums`;
-    extendedSlot.appendChild(extendedValue);
+    const extendedCd = document.createElement("div");
+    extendedCd.className = "mm-exttag-cd";
+    extendedCd.style.cssText = `position:absolute;box-sizing:border-box;top:100%;right:0;width:${PRICE_TAG_MIN_VALUE_WIDTH}px;height:${PRICE_TAG_TIME_HEIGHT}px;padding:0 8px;border-radius:0 0 2px 2px;color:#fff;text-align:right;font:500 12px/${PRICE_TAG_TIME_HEIGHT}px var(--font-num);font-variant-numeric:tabular-nums;display:none`;
+    extendedSlot.appendChild(extendedValue); extendedSlot.appendChild(extendedCd);
     extendedTag.appendChild(extendedKind); extendedTag.appendChild(extendedSlot);
     wrap.appendChild(extendedTag); extendedTagRef.current = extendedTag;
 
@@ -3509,6 +3568,25 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     hoverTag.className = "mm-hovertag";
     hoverTag.style.cssText = `position:absolute;z-index:6;right:1px;display:none;box-sizing:border-box;width:${PRICE_TAG_MIN_VALUE_WIDTH}px;height:${PRICE_TAG_ROW_HEIGHT}px;padding:0 5px;border-radius:2px;color:#fff;align-items:center;justify-content:flex-end;pointer-events:none;white-space:nowrap;font:500 12px/${PRICE_TAG_ROW_HEIGHT}px var(--font-num);font-variant-numeric:tabular-nums`;
     wrap.appendChild(hoverTag); hoverTagRef.current = hoverTag;
+
+    // Options Levels share one DOM axis layer with current/AH labels. Native LWC labels are
+    // intentionally disabled for these price lines because the canvas has no collision resolver.
+    const optionTagHost = document.createElement("div");
+    optionTagHost.className = "mm-optlevel-layer";
+    optionTagHost.style.cssText = "position:absolute;inset:0;z-index:5;pointer-events:none;overflow:visible";
+    wrap.appendChild(optionTagHost); optionTagHostRef.current = optionTagHost;
+    const optionTagMap = new Map<OptLevelKey, HTMLDivElement>();
+    const ensureOptionTag = (key: OptLevelKey): HTMLDivElement => {
+      const existing = optionTagMap.get(key); if (existing) return existing;
+      const node = document.createElement("div");
+      node.className = "mm-optlevel-tag";
+      node.dataset.levelKey = key;
+      node.style.cssText = `position:absolute;right:1px;display:none;box-sizing:border-box;min-width:${PRICE_TAG_MIN_VALUE_WIDTH}px;height:${PRICE_TAG_ROW_HEIGHT}px;padding:0 6px;border-radius:2px;color:#fff;align-items:center;justify-content:flex-end;gap:5px;pointer-events:none;white-space:nowrap;font:600 11px/${PRICE_TAG_ROW_HEIGHT}px var(--font-num);font-variant-numeric:tabular-nums;box-shadow:0 0 0 1px rgba(0,0,0,.14)`;
+      optionTagHost.appendChild(node); optionTagMap.set(key, node); return node;
+    };
+    const hideOptionTags = () => {
+      for (const node of optionTagMap.values()) node.style.display = "none";
+    };
 
     const measureCtx = document.createElement("canvas").getContext("2d");
     const measuredLabelWidth = (el: HTMLElement, value: string, horizontalPadding: number) => {
@@ -3520,9 +3598,9 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       return Math.ceil(measureCtx.measureText(value).width + horizontalPadding + 4);
     };
     let priceLaneWidth = PRICE_TAG_MIN_VALUE_WIDTH;
-    const placeOnAxisEdge = (el: HTMLElement, onLeft: boolean) => {
-      el.style.left = onLeft ? "1px" : "auto";
-      el.style.right = onLeft ? "auto" : "1px";
+    const placeOnAxisEdge = (el: HTMLElement, onLeft: boolean, offset = 1) => {
+      el.style.left = onLeft ? `${offset}px` : "auto";
+      el.style.right = onLeft ? "auto" : `${offset}px`;
     };
     const applyLabelLayout = (onLeft: boolean, laneWidth: number) => {
       priceLaneWidth = Math.max(PRICE_TAG_MIN_VALUE_WIDTH, Math.ceil(laneWidth));
@@ -3536,6 +3614,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       tagVal.style.width = `${priceLaneWidth}px`;
       tagCd.style.width = `${priceLaneWidth}px`;
       extendedSlot.style.width = `${priceLaneWidth}px`;
+      extendedCd.style.width = `${priceLaneWidth}px`;
       tagSym.style.borderRadius = onLeft ? "0 2px 2px 0" : "2px 0 0 2px";
       tagVal.style.borderRadius = onLeft ? "2px 0 0 0" : "0 2px 0 0";
       tagPrice.style.justifyContent = onLeft ? "flex-start" : "flex-end";
@@ -3544,8 +3623,10 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       tagCd.style.textAlign = onLeft ? "left" : "right";
       extendedKind.style.borderRadius = onLeft ? "0 2px 2px 0" : "2px 0 0 2px";
       extendedSlot.style.justifyContent = onLeft ? "flex-end" : "flex-start";
-      extendedValue.style.borderRadius = onLeft ? "2px 0 0 2px" : "0 2px 2px 0";
       extendedValue.style.justifyContent = onLeft ? "flex-end" : "flex-start";
+      extendedCd.style.left = onLeft ? "0" : "auto";
+      extendedCd.style.right = onLeft ? "auto" : "0";
+      extendedCd.style.textAlign = onLeft ? "left" : "right";
       hoverTag.style.justifyContent = onLeft ? "flex-start" : "flex-end";
       hoverTag.style.textAlign = onLeft ? "left" : "right";
     };
@@ -3597,17 +3678,29 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     const renderPriceTags = () => {
       const tag = priceTagRef.current, s = priceSeriesRef.current;
       if (!tag || !s || dead) return;
-      if (priceProjHidden()) { tag.style.display = "none"; extendedTag.style.display = "none"; return; }
+      const hidePersistent = () => {
+        tag.style.display = "none";
+        extendedTag.style.display = "none";
+        hideOptionTags();
+      };
+      if (priceProjHidden()) { hidePersistent(); return; }
       const bars = barsRef.current; const last = bars[bars.length - 1];
-      if (!last) { tag.style.display = "none"; extendedTag.style.display = "none"; return; }
+      if (!last) { hidePersistent(); return; }
       const price = last.c;
       const y = s.priceToCoordinate(price) as number | null;
-      if (y == null || !Number.isFinite(y)) { tag.style.display = "none"; extendedTag.style.display = "none"; return; }
+      if (y == null || !Number.isFinite(y)) { hidePersistent(); return; }
+      const paneGeometry = pricePaneGeometry();
+      const paneH = paneGeometry.height;
+      if (!(paneH > 0)) { hidePersistent(); return; }
+
       const prev = bars[bars.length - 2];
       const up = prev ? price >= prev.c : price >= last.o;
       const col = up ? tokensRef.current.up : tokensRef.current.down;
       tagSym.textContent = symbolRef.current;
-      tagPrice.textContent = scalePriceText(s, price);
+      const currentText = scalePriceText(s, price);
+      tagPrice.textContent = currentText;
+      tagSym.style.background = col; tagVal.style.background = col;
+
       let cd = "";
       if (replayIdxRef.current == null) {                     // no meaningful "time to close" while replaying history
         const nowSec = Date.now() / 1000; let rem: number | null = null;
@@ -3620,27 +3713,10 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         }
         if (rem != null && isFinite(rem)) cd = fmtCountdown(rem, isIntradayRef.current);
       }
-      tagCd.textContent = cd;
-      const cdShown = !!cd && countdownVisibleRef.current;
-      tagCd.style.display = cdShown ? "block" : "none";
-      tagSym.style.background = col; tagVal.style.background = col;
-      const settings = chartSettingsRef.current;
-      const baseLaneWidth = Math.max(
-        PRICE_TAG_MIN_VALUE_WIDTH,
-        measuredLabelWidth(tagPrice, tagPrice.textContent || "", 10),
-        cdShown ? measuredLabelWidth(tagCd, cd, 10) : 0,
-      );
-      applyLabelLayout(!!settings.scaleLeft, baseLaneWidth);
-      const shown = lastValueVisibleRef.current;
-      tag.style.display = shown ? "grid" : "none";
-      const paneGeometry = pricePaneGeometry();
-      const primaryTop = paneGeometry.top + priceTagRowTop(y);
-      tag.style.top = primaryTop + "px";              // immutable: only price/scale movement changes this
-      tag.dataset.anchorY = String(y);
-      tag.dataset.paneTop = String(paneGeometry.top);
 
+      const settings = chartSettingsRef.current;
       const quote = liveQuoteRef.current;
-      const extVisible = !isIntradayRef.current
+      const extCandidate = !isIntradayRef.current
         && replayIdxRef.current == null
         && chartDataSymRef.current === symbolRef.current
         && classify(symbolRef.current) === "us"
@@ -3650,39 +3726,211 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         && quote.extPrice != null
         && Number.isFinite(quote.extPrice)
         && quote.extPrice > 0;
-      if (!extVisible) { extendedTag.style.display = "none"; return; }
+      const projectedExtendedY = extCandidate
+        ? s.priceToCoordinate(quote!.extPrice!) as number | null
+        : null;
+      const extVisible = extCandidate
+        && projectedExtendedY != null
+        && Number.isFinite(projectedExtendedY);
+      const extendedY = extVisible ? projectedExtendedY! : null;
+      const timerVisible = !!cd && countdownVisibleRef.current;
+      const currentTimed = timerVisible && !extVisible;
+      const extendedTimed = timerVisible && extVisible;
+      tagCd.textContent = currentTimed ? cd : "";
+      tagCd.style.display = currentTimed ? "block" : "none";
+      extendedCd.textContent = extendedTimed ? cd : "";
+      extendedCd.style.display = extendedTimed ? "block" : "none";
 
-      const extendedY = s.priceToCoordinate(quote!.extPrice!) as number | null;
-      if (extendedY == null || !Number.isFinite(extendedY)) { extendedTag.style.display = "none"; return; }
-      const extendedColor = quote!.extSession === "pre"
-        ? settings.preMarketColor || "#ff9800"
-        : quote!.extSession === "post"
-          ? settings.postMarketColor || "#2962ff"
-          : settings.overnightColor || "#9c27b0";
-      extendedKind.textContent = quote!.extSession === "pre" ? "Pre" : quote!.extSession === "post" ? "AH" : "ON";
-      const extendedText = scalePriceText(s, quote!.extPrice!);
-      extendedValue.textContent = extendedText;
-      extendedKind.style.background = extendedColor; extendedValue.style.background = extendedColor;
-      applyLabelLayout(
-        !!settings.scaleLeft,
-        Math.max(baseLaneWidth, measuredLabelWidth(extendedValue, extendedText, 16)),
+      let extendedText = "";
+      let extendedColor = "";
+      if (extVisible) {
+        extendedColor = quote!.extSession === "pre"
+          ? settings.preMarketColor || "#ff9800"
+          : quote!.extSession === "post"
+            ? settings.postMarketColor || "#2962ff"
+            : settings.overnightColor || "#9c27b0";
+        extendedKind.textContent = quote!.extSession === "pre" ? "Pre" : quote!.extSession === "post" ? "AH" : "ON";
+        extendedText = scalePriceText(s, quote!.extPrice!);
+        extendedValue.textContent = extendedText;
+        extendedKind.style.background = extendedColor;
+        extendedValue.style.background = extendedColor;
+        extendedCd.style.background = extendedColor;
+      }
+
+      const shown = lastValueVisibleRef.current;
+      const laneWidth = Math.max(
+        PRICE_TAG_MIN_VALUE_WIDTH,
+        shown ? measuredLabelWidth(tagPrice, currentText, 10) : 0,
+        extVisible ? measuredLabelWidth(extendedValue, extendedText, 16) : 0,
+        currentTimed ? measuredLabelWidth(tagCd, cd, 10) : 0,
+        extendedTimed ? measuredLabelWidth(extendedCd, cd, 16) : 0,
       );
-      const paneH = paneGeometry.height;
-      const naturalTop = priceTagRowTop(extendedY);
-      const extendedPaneTop = shown
-        ? secondaryPriceTagTop({
-            primaryY: y,
-            secondaryY: extendedY,
-            paneHeight: paneH,
-            primaryHeight: PRICE_TAG_ROW_HEIGHT + (cdShown ? PRICE_TAG_TIME_HEIGHT : 0),
-          })
-        : naturalTop;
-      const extendedTop = paneGeometry.top + extendedPaneTop;
-      extendedTag.style.top = extendedTop + "px";
-      extendedTag.style.display = "grid";
-      extendedTag.dataset.anchorY = String(extendedY);
-      extendedTag.dataset.naturalTop = String(paneGeometry.top + naturalTop);
-      extendedTag.dataset.docked = Math.abs(extendedPaneTop - naturalTop) > 0.5 ? "true" : "false";
+      const onLeft = !!settings.scaleLeft;
+      applyLabelLayout(onLeft, laneWidth);
+      tagVal.style.borderRadius = onLeft
+        ? currentTimed ? "2px 0 0 0" : "2px 0 0 2px"
+        : currentTimed ? "0 2px 0 0" : "0 2px 2px 0";
+      extendedValue.style.borderRadius = onLeft
+        ? extendedTimed ? "2px 0 0 0" : "2px 0 0 2px"
+        : extendedTimed ? "0 2px 0 0" : "0 2px 2px 0";
+      extendedCd.style.borderRadius = onLeft ? "0 0 0 2px" : "0 0 2px 0";
+
+      tag.style.display = shown ? "grid" : "none";
+      extendedTag.style.display = extVisible ? "grid" : "none";
+      hideOptionTags();
+
+      const currentNaturalTop = priceTagRowTop(y);
+      const clampActiveTop = (naturalTop: number, height: number) =>
+        Math.max(0, Math.min(Math.max(0, paneH - height), naturalTop));
+      let activeTop = -PRICE_TAG_ROW_HEIGHT - 2;
+      let activeHeight = 0;
+      let activeAnchorY = -Infinity;
+
+      if (extVisible && extendedY != null) {
+        const naturalTop = priceTagRowTop(extendedY);
+        activeHeight = PRICE_TAG_ROW_HEIGHT + (extendedTimed ? PRICE_TAG_TIME_HEIGHT : 0);
+        activeTop = clampActiveTop(naturalTop, activeHeight);
+        activeAnchorY = extendedY;
+        extendedTag.style.top = paneGeometry.top + activeTop + "px";
+        extendedTag.dataset.anchorY = String(extendedY);
+        extendedTag.dataset.naturalTop = String(paneGeometry.top + naturalTop);
+        extendedTag.dataset.docked = Math.abs(activeTop - naturalTop) > 0.5 ? "true" : "false";
+      } else if (shown) {
+        activeHeight = PRICE_TAG_ROW_HEIGHT + (currentTimed ? PRICE_TAG_TIME_HEIGHT : 0);
+        activeTop = clampActiveTop(currentNaturalTop, activeHeight);
+        activeAnchorY = y;
+        tag.style.top = paneGeometry.top + activeTop + "px";
+        tag.dataset.naturalTop = String(paneGeometry.top + currentNaturalTop);
+        tag.dataset.docked = Math.abs(activeTop - currentNaturalTop) > 0.5 ? "true" : "false";
+      }
+
+      tag.dataset.anchorY = String(y);
+      tag.dataset.paneTop = String(paneGeometry.top);
+
+      type RenderBadgeMeta = {
+        id: string;
+        anchorY: number;
+        naturalTop: number;
+        preferredSide?: "above" | "below";
+        priority?: number;
+        kind: "close" | "option";
+        key?: OptLevelKey;
+        price?: number;
+        style?: OptLevelRenderStyle;
+      };
+      const badgeMeta: RenderBadgeMeta[] = [];
+      if (extVisible && shown) {
+        badgeMeta.push({
+          id: "regular-close",
+          anchorY: y,
+          naturalTop: currentNaturalTop,
+          preferredSide: y <= activeAnchorY ? "above" : "below",
+          priority: 100,
+          kind: "close",
+        });
+      }
+
+      const st = optLevelsStateRef.current;
+      const optionBadgesVisible = indicatorsRef.current.has("optlevels")
+        && !hiddenRef.current.has("optlevels")
+        && tfVisible("optlevels")
+        && chartDataSymRef.current === symbolRef.current
+        && st?.sym === symbolRef.current
+        && st.status === "ok"
+        && !!st.res;
+      const levelStyles = optionBadgesVisible ? optLevelRenderStyles() : null;
+      if (optionBadgesVisible && levelStyles) {
+        for (const level of st!.res!.levels) {
+          const style = levelStyles[level.key];
+          if (!style.on) continue;
+          const anchorY = s.priceToCoordinate(level.price) as number | null;
+          // Match native scale-label visibility: off-scale lines do not pin a misleading badge
+          // to the pane edge. Once the true line enters view, its badge joins the resolver.
+          if (anchorY == null || !Number.isFinite(anchorY) || anchorY < 0 || anchorY > paneH) continue;
+          badgeMeta.push({
+            id: `option:${level.key}`,
+            anchorY,
+            naturalTop: priceTagRowTop(anchorY),
+            priority: level.key === "call_wall" || level.key === "put_wall" || level.key === "gamma_flip"
+              ? 50
+              : level.key === "em_hi" || level.key === "em_lo" ? 40 : 30,
+            kind: "option",
+            key: level.key,
+            price: level.price,
+            style,
+          });
+        }
+      }
+
+      const placements = layoutPriceAxisBadges({
+        paneHeight: paneH,
+        activeTop,
+        activeHeight,
+        badges: badgeMeta.map(({ id, anchorY, naturalTop, preferredSide, priority }) => ({
+          id, anchorY, naturalTop, preferredSide, priority,
+        })),
+      });
+      const placementById = new Map(placements.map((placement) => [placement.id, placement]));
+
+      if (extVisible && shown) {
+        const placement = placementById.get("regular-close");
+        if (placement) {
+          tag.style.top = paneGeometry.top + placement.top + "px";
+          tag.dataset.naturalTop = String(paneGeometry.top + currentNaturalTop);
+          tag.dataset.docked = placement.docked ? "true" : "false";
+        }
+      }
+
+      const preparedOptionTags = new Map<string, { node: HTMLDivElement; text: string; width: number }>();
+      for (const meta of badgeMeta) {
+        if (meta.kind !== "option" || !meta.key || meta.price == null || !meta.style) continue;
+        const node = ensureOptionTag(meta.key);
+        const text = `${meta.style.title} ${scalePriceText(s, meta.price)}`;
+        const width = Math.max(PRICE_TAG_MIN_VALUE_WIDTH, measuredLabelWidth(node, text, 12));
+        node.textContent = text;
+        node.style.background = meta.style.color;
+        node.style.color = readablePriceTagTextColor(meta.style.color);
+        node.style.width = `${width}px`;
+        preparedOptionTags.set(meta.id, { node, text, width });
+      }
+
+      // Overflow lanes fan inward. Lane 0 must clear the active/current quote's full width; every
+      // subsequent lane clears the widest badge in the lane before it.
+      const laneWidths = new Map<number, number>();
+      laneWidths.set(0, Math.max(
+        PRICE_TAG_MIN_VALUE_WIDTH,
+        shown ? priceTag.offsetWidth : 0,
+        extVisible ? extendedTag.offsetWidth : 0,
+      ));
+      for (const [id, prepared] of preparedOptionTags) {
+        const lane = placementById.get(id)?.lane ?? 0;
+        laneWidths.set(lane, Math.max(laneWidths.get(lane) ?? 0, prepared.width));
+      }
+      const laneOffsets = new Map<number, number>();
+      let nextOffset = 1;
+      const maxLane = Math.max(0, ...laneWidths.keys());
+      for (let lane = 0; lane <= maxLane; lane++) {
+        laneOffsets.set(lane, nextOffset);
+        nextOffset += (laneWidths.get(lane) ?? PRICE_TAG_MIN_VALUE_WIDTH) + 4;
+      }
+
+      for (const meta of badgeMeta) {
+        if (meta.kind !== "option") continue;
+        const placement = placementById.get(meta.id);
+        const prepared = preparedOptionTags.get(meta.id);
+        if (!placement || !prepared) continue;
+        const { node } = prepared;
+        node.style.justifyContent = onLeft ? "flex-start" : "flex-end";
+        node.style.textAlign = onLeft ? "left" : "right";
+        placeOnAxisEdge(node, onLeft, laneOffsets.get(placement.lane) ?? 1);
+        node.style.top = paneGeometry.top + placement.top + "px";
+        node.dataset.anchorY = String(meta.anchorY);
+        node.dataset.naturalTop = String(paneGeometry.top + meta.naturalTop);
+        node.dataset.docked = placement.docked ? "true" : "false";
+        node.dataset.lane = String(placement.lane);
+        node.dataset.price = String(meta.price);
+        node.style.display = "flex";
+      }
     };
     const renderAllPriceTags = () => { renderPriceTags(); refreshHoverTag(); };
     renderTagRef.current = renderAllPriceTags;
@@ -7503,7 +7751,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       if (dragCleanup) dragCleanup();
       drawingTransactionRef.current = false;
       window.removeEventListener("mm:snapshot", snapshot);
-      if (process.env.NODE_ENV !== "production") { try { delete (window as any).__mmChartSeriesTitles; delete (window as any).__mmChartAxisOpts; delete (window as any).__mmCrosshairDodge; delete (window as any).__mmPriceLabels; delete (window as any).__mmPaneMaximized; } catch {} }
+      if (process.env.NODE_ENV !== "production") { try { delete (window as any).__mmChartSeriesTitles; delete (window as any).__mmIndicatorPriceLines; delete (window as any).__mmChartAxisOpts; delete (window as any).__mmCrosshairDodge; delete (window as any).__mmPriceLabels; delete (window as any).__mmPaneMaximized; } catch {} }
       if (onKey) window.removeEventListener("keydown", onKey);
       if (winDown) window.removeEventListener("pointerdown", winDown);
       window.removeEventListener("pointerup", onProjectionPointerEnd);
@@ -7535,6 +7783,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       if (tagTimerRef.current != null) { clearInterval(tagTimerRef.current); tagTimerRef.current = null; }
       if (priceTagRef.current) { try { priceTagRef.current.remove(); } catch {} priceTagRef.current = null; }
       if (extendedTagRef.current) { try { extendedTagRef.current.remove(); } catch {} extendedTagRef.current = null; }
+      if (optionTagHostRef.current) { try { optionTagHostRef.current.remove(); } catch {} optionTagHostRef.current = null; }
       if (hoverTagRef.current) { try { hoverTagRef.current.remove(); } catch {} hoverTagRef.current = null; }
       if (sigTip) { try { sigTip.remove(); } catch {} sigTip = null; }
       sigHits = null; sigPointerDown = null; sigTipPinned = false;
@@ -8073,7 +8322,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     }
 
     normalizeStretch();
-    renderSignalsRef.current(); renderRef.current();
+    renderSignalsRef.current(); renderRef.current(); renderTagRef.current?.();
     builtIndicatorRef.current = { generation: epochRef.current, key: indKey };
     visualReadyRef.current?.reevaluate();
     if (PRESERVE_VIEW_ON_INDICATOR_TOGGLE && viewSavedRef.current) { try { chart.timeScale().setVisibleLogicalRange(viewSavedRef.current); } catch {} }
@@ -8133,7 +8382,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     const saved = PRESERVE_VIEW_ON_INDICATOR_TOGGLE ? (() => { try { const r = chart.timeScale().getVisibleLogicalRange(); return r ? { from: r.from as number, to: r.to as number } : null; } catch { return null; } })() : null;
     rebuildIndicators();
     normalizeStretch();
-    renderSignalsRef.current(); renderRef.current();
+    renderSignalsRef.current(); renderRef.current(); renderTagRef.current?.();
     if (saved) { try { chart.timeScale().setVisibleLogicalRange(saved); } catch {} }
     // eslint-disable-next-line
   }, [indParamsKey]);
@@ -8156,6 +8405,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     applyHidden();
     renderSignalsRef.current();
     renderRef.current();
+    renderTagRef.current?.();
     measureRef.current();
     if (saved) { try { chart.timeScale().setVisibleLogicalRange(saved); } catch {} }
     // eslint-disable-next-line
@@ -8198,44 +8448,63 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // eslint-disable-next-line
   }, [hasLab, symbol]);
 
-  // ── EFFECT 3-optlevels — fetch gex+moves when the Options Levels overlay is ON ──────
-  // Mirrors Effect 3-lab: one-shot fetch on toggle-on / symbol change with an alive-flag
-  // cancel. flowGet dedupes + SWR-caches and returns null on a hard error (including the
-  // /api/flow entitlement 403) — that renders as the legend's gate/unavailable note, the
-  // chart never throws on a gated fetch. Ineligible (non-US) symbols skip the network.
+  // ── EFFECT 3-optlevels — fetch ladder + moves + current state when Options Levels is ON ──
+  // The strike-resolved gex ladder remains authoritative. gex_state is a current root-scoped
+  // fallback for wall/flip fields that are absent from a no-OI ladder shell; moves independently
+  // supplies the calibrated expected-move band. flowGet dedupes/SWR-caches every lane.
   const hasOptLevels = indicators.has("optlevels");
   useEffect(() => {
-    if (!hasOptLevels) { optLevelsStateRef.current = null; return; }
+    if (!hasOptLevels) {
+      optLevelsStateRef.current = null;
+      removeIndPriceLines("optlevels");
+      renderTagRef.current?.();
+      return;
+    }
     const sym = symbolRef.current; if (!sym) return;
     if (!optLevelsEligible(sym)) {
       optLevelsStateRef.current = { sym, status: "ineligible", res: null };
+      removeIndPriceLines("optlevels");
       rebuildPaneMeta();
+      renderTagRef.current?.();
       return;
     }
     let alive = true;
     const root = sym.toUpperCase();
     optLevelsStateRef.current = { sym, status: "loading", res: null };
+    removeIndPriceLines("optlevels");
     rebuildPaneMeta();
-    Promise.all([flowGet(`gex:${root}`), flowGet(`moves:${root}`)]).then(([g, m]) => {
+    renderTagRef.current?.();
+    Promise.all([
+      flowGet(`gex:${root}`),
+      flowGet(`moves:${root}`),
+      flowGet(`gexstate:${root}`),
+    ]).then(([gex, moves, state]) => {
       if (!alive || symbolRef.current !== sym) return;
-      if (g == null && m == null) {
-        // Both lanes hard-failed (prod surfaces a missing/uncovered root's artifact as a
-        // 503 → flowGet null, NOT the fixture's 200 {}) — could be no coverage OR an
-        // outage; "unavailable" is the honest umbrella.
+      if (gex == null && moves == null && state == null) {
+        // Every independent lane hard-failed. This can mean uncovered root, entitlement gate,
+        // or upstream outage; "unavailable" is the honest shared state.
         optLevelsStateRef.current = { sym, status: "unavailable", res: null };
       } else {
-        // g == null with a live moves payload is the real-world partial publish (the two
-        // lanes are separate publishers) — derive from an empty gex shell so the Tier-A
-        // EM band still draws instead of being discarded.
-        const res = deriveOptLevels(g ?? {}, m, root);
+        const res = deriveOptLevels(gex ?? {}, moves, root, state);
         optLevelsStateRef.current = { sym, status: res.status, res };
       }
-      // First-load race (slevels precedent): Effect 2/3 may have already built against an
-      // empty state ref — the builder is idempotent (clears its own price-line pool, adds
-      // no LWC series), so re-run it directly now that data exists, then re-assert the eye.
-      try { if (indicatorsRef.current.has("optlevels")) { buildOptLevels(); applyHidden(); } } catch {}
+      // Effect 2/3 may have already built against the loading state. Rebuild only this line pool,
+      // reassert visibility, then paint the collision-resolved DOM badges from the same result.
+      try {
+        if (indicatorsRef.current.has("optlevels")) {
+          buildOptLevels();
+          applyHidden();
+          renderTagRef.current?.();
+        }
+      } catch {}
       rebuildPaneMeta();
-    }).catch(() => {});
+    }).catch(() => {
+      if (!alive || symbolRef.current !== sym) return;
+      optLevelsStateRef.current = { sym, status: "unavailable", res: null };
+      removeIndPriceLines("optlevels");
+      rebuildPaneMeta();
+      renderTagRef.current?.();
+    });
     return () => { alive = false; };
     // eslint-disable-next-line
   }, [hasOptLevels, symbol]);
@@ -8273,6 +8542,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     applyHidden();
     renderSignalsRef.current();
     renderRef.current();
+    renderTagRef.current?.();
     measureRef.current();
   }, [hidden]); // eslint-disable-line
 

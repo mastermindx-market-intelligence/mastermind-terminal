@@ -6,6 +6,8 @@ import {
   priceTagRowTop,
   priceScaleDisplayValue,
   secondaryPriceTagTop,
+  layoutPriceAxisBadges,
+  readablePriceTagTextColor,
 } from "../priceTagPlacement";
 
 const place = (
@@ -40,6 +42,19 @@ describe("priceScaleDisplayValue", () => {
     expect(priceScaleDisplayValue(120, 80, 1)).toBe(120);
     expect(priceScaleDisplayValue(120, 0, 2)).toBe(120);
     expect(priceScaleDisplayValue(120, null, 3)).toBe(120);
+  });
+});
+
+describe("readablePriceTagTextColor", () => {
+  it("uses dark text on bright options badges and white on dark badges", () => {
+    for (const background of ["#e8b339", "#9d86ff", "#4d82ff", "rgb(240, 86, 107)"]) {
+      expect(readablePriceTagTextColor(background), background).toBe("#000");
+    }
+    expect(readablePriceTagTextColor("#172033")).toBe("#fff");
+  });
+
+  it("fails safely to white for an unparseable CSS color", () => {
+    expect(readablePriceTagTextColor("var(--unknown)")).toBe("#fff");
   });
 });
 
@@ -80,5 +95,125 @@ describe("secondaryPriceTagTop", () => {
   it("clamps a naturally off-pane secondary row without moving the primary", () => {
     expect(place(190, -50, 300)).toBe(0);
     expect(place(190, 500, 300)).toBe(300 - PRICE_TAG_ROW_HEIGHT);
+  });
+});
+
+
+describe("layoutPriceAxisBadges", () => {
+  const assertNoOverlap = (
+    paneHeight: number,
+    activeTop: number,
+    activeHeight: number,
+    placements: ReturnType<typeof layoutPriceAxisBadges>,
+  ) => {
+    const rows = [
+      { id: "active", top: activeTop, height: activeHeight },
+      ...placements.map((p) => ({ id: p.id, top: p.top, height: PRICE_TAG_ROW_HEIGHT })),
+    ].sort((a, b) => a.top - b.top);
+    for (const row of rows) {
+      expect(row.top, `${row.id} top`).toBeGreaterThanOrEqual(0);
+      expect(row.top + row.height, `${row.id} bottom`).toBeLessThanOrEqual(paneHeight);
+    }
+    for (let i = 1; i < rows.length; i++) {
+      expect(rows[i].top, `${rows[i - 1].id}/${rows[i].id} overlap`)
+        .toBeGreaterThanOrEqual(rows[i - 1].top + rows[i - 1].height + 1);
+    }
+  };
+
+  it("fans a dense level cluster around the active timed quote without moving any price line", () => {
+    const activeTop = 92;
+    const activeHeight = PRICE_TAG_ROW_HEIGHT + PRICE_TAG_TIME_HEIGHT;
+    const badges = [
+      { id: "close", anchorY: 101, naturalTop: 93, preferredSide: "above" as const },
+      { id: "cw", anchorY: 100, naturalTop: 92 },
+      { id: "flip", anchorY: 102, naturalTop: 94 },
+      { id: "em_hi", anchorY: 104, naturalTop: 96 },
+      { id: "pw", anchorY: 106, naturalTop: 98 },
+      { id: "em_lo", anchorY: 108, naturalTop: 100 },
+    ];
+    const placed = layoutPriceAxisBadges({ paneHeight: 220, activeTop, activeHeight, badges });
+    expect(placed.map((p) => p.id).sort()).toEqual(badges.map((b) => b.id).sort());
+    expect(placed.some((p) => p.docked)).toBe(true);
+    assertNoOverlap(220, activeTop, activeHeight, placed);
+  });
+
+  it("leaves naturally separated level badges at their true projected rows", () => {
+    const placed = layoutPriceAxisBadges({
+      paneHeight: 220,
+      activeTop: 92,
+      activeHeight: PRICE_TAG_ROW_HEIGHT,
+      badges: [
+        { id: "cw", anchorY: 28, naturalTop: 20 },
+        { id: "pw", anchorY: 178, naturalTop: 170 },
+      ],
+    });
+    expect(Object.fromEntries(placed.map((p) => [p.id, p.top]))).toEqual({ cw: 20, pw: 170 });
+    expect(placed.every((p) => !p.docked)).toBe(true);
+  });
+
+  it("separates coincident PW and EM- badges while preserving their own anchor metadata", () => {
+    const placed = layoutPriceAxisBadges({
+      paneHeight: 180,
+      activeTop: 70,
+      activeHeight: PRICE_TAG_ROW_HEIGHT,
+      badges: [
+        { id: "pw", anchorY: 120, naturalTop: 112 },
+        { id: "em_lo", anchorY: 120.4, naturalTop: 112 },
+      ],
+    });
+    const byId = Object.fromEntries(placed.map((p) => [p.id, p]));
+    expect(Math.abs(byId.pw.top - byId.em_lo.top)).toBeGreaterThanOrEqual(PRICE_TAG_ROW_HEIGHT + 1);
+    expect(byId.pw.anchorY).toBe(120);
+    expect(byId.em_lo.anchorY).toBe(120.4);
+    assertNoOverlap(180, 70, PRICE_TAG_ROW_HEIGHT, placed);
+  });
+
+  it("moves overflow into adjacent horizontal lanes when one pane column cannot fit every badge", () => {
+    const activeTop = 60;
+    const activeHeight = PRICE_TAG_ROW_HEIGHT + PRICE_TAG_TIME_HEIGHT;
+    const placed = layoutPriceAxisBadges({
+      paneHeight: 150,
+      activeTop,
+      activeHeight,
+      badges: Array.from({ length: 7 }, (_, index) => ({
+        id: index === 0 ? "close" : `level-${index}`,
+        anchorY: 68 + index * 0.2,
+        naturalTop: 60 + index * 0.2,
+        priority: index === 0 ? 100 : 0,
+      })),
+    });
+    expect(placed).toHaveLength(7);
+    expect(Math.max(...placed.map((badge) => badge.lane))).toBeGreaterThan(0);
+    expect(placed.find((badge) => badge.id === "close")?.lane).toBe(0);
+
+    const lanes = new Map<number, typeof placed>();
+    for (const badge of placed) lanes.set(badge.lane, [...(lanes.get(badge.lane) ?? []), badge]);
+    for (const [lane, badges] of lanes) {
+      const rows = [
+        ...(lane === 0 ? [{ id: "active", top: activeTop, height: activeHeight }] : []),
+        ...badges.map((badge) => ({ id: badge.id, top: badge.top, height: PRICE_TAG_ROW_HEIGHT })),
+      ].sort((a, b) => a.top - b.top);
+      for (let index = 1; index < rows.length; index++) {
+        expect(rows[index].top, `lane ${lane}: ${rows[index - 1].id}/${rows[index].id}`)
+          .toBeGreaterThanOrEqual(rows[index - 1].top + rows[index - 1].height + 1);
+      }
+    }
+  });
+
+  it("spills crowded badges to the free side when the active quote is against a pane edge", () => {
+    const activeTop = 1;
+    const placed = layoutPriceAxisBadges({
+      paneHeight: 150,
+      activeTop,
+      activeHeight: PRICE_TAG_ROW_HEIGHT + PRICE_TAG_TIME_HEIGHT,
+      badges: Array.from({ length: 5 }, (_, i) => ({
+        id: `level-${i}`,
+        anchorY: 8 + i,
+        naturalTop: i,
+        preferredSide: "above" as const,
+      })),
+    });
+    expect(placed.every((p) => p.top > activeTop)).toBe(true);
+    assertNoOverlap(150, activeTop, PRICE_TAG_ROW_HEIGHT + PRICE_TAG_TIME_HEIGHT, placed);
   });
 });

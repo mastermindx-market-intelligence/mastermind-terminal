@@ -10,6 +10,9 @@ type LabelState = {
   extendedNaturalTop: number | null;
   extendedAnchorY: number | null;
   extendedDocked: boolean;
+  primaryDocked: boolean;
+  timerOwner: "primary" | "extended" | null;
+  optionTags: Array<{ key: string; price: number; top: number; naturalTop: number; anchorY: number; docked: boolean; lane: number; text: string }>;
   hoverTop: number | null;
   hoverText: string;
 };
@@ -33,6 +36,9 @@ const labels = (page: Page): Promise<LabelState> => page.evaluate(() =>
     extendedNaturalTop: null,
     extendedAnchorY: null,
     extendedDocked: false,
+    primaryDocked: false,
+    timerOwner: null,
+    optionTags: [],
     hoverTop: null,
     hoverText: "",
   });
@@ -68,7 +74,30 @@ async function chartReady(page: Page) {
   await expect.poll(async () => (await labels(page)).primaryAnchorY, { timeout: 45_000 }).not.toBeNull();
 }
 
-test("the crosshair stays foreground while current and near-premarket labels remain pinned", async ({ page }) => {
+async function routeRegularSession(page: Page) {
+  await page.route("**/api/quote?**", async (route) => {
+    const url = new URL(route.request().url());
+    const syms = (url.searchParams.get("syms") || "NVDA").split(",").filter(Boolean);
+    const quotes = Object.fromEntries(syms.map((sym) => [sym, sym === "NVDA" ? {
+      sym,
+      last: 192.53,
+      close: 192.53,
+      prevClose: 195.74,
+      regularPrice: 192.53,
+      regularChg: -1.64,
+      regularSessionDate: "2026-06-26",
+      basis: "DELAYED_15M",
+      marketSession: "regular",
+      extPrice: null,
+      extChg: null,
+      extTs: null,
+      extSession: null,
+    } : null]));
+    await route.fulfill({ json: { quotes } });
+  });
+}
+
+test("extended hours owns the countdown while the static close and crosshair remain collision-free", async ({ page }) => {
   await routePremarket(page, 192.53); // exact collision: PRE must dock above yesterday's close
   await page.goto("/terminal?symbol=NVDA");
   await chartReady(page);
@@ -76,39 +105,49 @@ test("the crosshair stays foreground while current and near-premarket labels rem
   const initial = await labels(page);
   expect(initial.primaryTop).not.toBeNull();
   expect(initial.primaryAnchorY).not.toBeNull();
-  expect(initial.extendedDocked).toBe(true);
-  expect(initial.extendedTop).toBe(initial.primaryTop! - PRICE_TAG_ROW_HEIGHT);
+  expect(initial.timerOwner).toBe("extended");
+  expect(initial.extendedDocked).toBe(false);
+  expect(initial.primaryDocked).toBe(true);
+  expect(initial.primaryTop).toBe(initial.extendedTop! - PRICE_TAG_ROW_HEIGHT - 1);
 
   const compact = await page.evaluate(() => {
     const box = (selector: string) => document.querySelector<HTMLElement>(selector)!.getBoundingClientRect();
     const tag = box(".mm-ptag");
     const sym = box(".mm-ptag-sym");
     const val = box(".mm-ptag-val");
-    const cd = box(".mm-ptag-cd");
+    const currentCd = document.querySelector<HTMLElement>(".mm-ptag-cd")!;
     const ext = box(".mm-exttag");
     const extValue = box(".mm-exttag-val");
+    const extCdEl = document.querySelector<HTMLElement>(".mm-exttag-cd")!;
+    const extCd = extCdEl.getBoundingClientRect();
     return {
       tagHeight: tag.height,
       extHeight: ext.height,
       valueWidth: val.width,
       seam: val.left - sym.right,
-      countdownHeight: cd.height,
-      countdownTop: cd.top,
-      tagBottom: tag.bottom,
+      currentCountdownDisplay: getComputedStyle(currentCd).display,
+      extendedCountdownDisplay: getComputedStyle(extCdEl).display,
+      countdownHeight: extCd.height,
+      countdownTop: extCd.top,
+      tagBottom: ext.bottom,
       numericSpineDelta: extValue.left - val.left,
-      countdown: document.querySelector(".mm-ptag-cd")?.textContent ?? "",
+      currentCountdown: currentCd.textContent ?? "",
+      countdown: extCdEl.textContent ?? "",
     };
   });
   expect(compact.tagHeight).toBeCloseTo(PRICE_TAG_ROW_HEIGHT, 0);
   expect(compact.extHeight).toBeCloseTo(PRICE_TAG_ROW_HEIGHT, 0);
-  // 66px is the compact floor. The shared lane may grow by a pixel or two when the live clock's
-  // current glyphs need it; clipping prevention is part of the contract, exact width is not.
+  // 66px is the compact floor. The shared lane may grow for the active AH countdown; clipping
+  // prevention is the contract, not a brittle exact width for the current clock glyphs.
   expect(compact.valueWidth).toBeGreaterThanOrEqual(PRICE_TAG_MIN_VALUE_WIDTH);
-  expect(compact.valueWidth).toBeLessThanOrEqual(PRICE_TAG_MIN_VALUE_WIDTH + 4);
+  expect(compact.valueWidth).toBeLessThanOrEqual(PRICE_TAG_MIN_VALUE_WIDTH + 12);
   expect(compact.seam).toBeCloseTo(1, 0);
+  expect(compact.currentCountdownDisplay).toBe("none");
+  expect(compact.extendedCountdownDisplay).toBe("block");
   expect(compact.countdownHeight).toBeCloseTo(PRICE_TAG_TIME_HEIGHT, 0);
   expect(compact.countdownTop).toBeCloseTo(compact.tagBottom, 0);
   expect(compact.numericSpineDelta).toBeCloseTo(0, 0);
+  expect(compact.currentCountdown).toBe("");
   expect(compact.countdown).toMatch(/^(?:\d+d \d+h|\d{2}:\d{2}(?::\d{2})?)$/);
 
   const geom = await page.locator(".mm-ptag").evaluate((tag) => {
@@ -154,6 +193,56 @@ test("the crosshair stays foreground while current and near-premarket labels rem
     aboveExtended: true,
     overlapsARequiredPersistentLane: true,
   });
+});
+
+test("regular hours keeps the bar-close countdown on the current quote", async ({ page }) => {
+  await routeRegularSession(page);
+  await page.goto("/terminal?symbol=NVDA");
+  await expect(page.locator(".chart-wrap canvas").first()).toBeVisible({ timeout: 45_000 });
+  await expect(page.locator(".mm-ptag")).toBeVisible({ timeout: 45_000 });
+  await expect(page.locator(".mm-exttag")).toBeHidden();
+  await expect.poll(async () => (await labels(page)).timerOwner, { timeout: 45_000 }).toBe("primary");
+  await expect(page.locator(".mm-ptag-cd")).toBeVisible();
+  await expect(page.locator(".mm-ptag-cd")).toHaveText(/^(?:\d+d \d+h|\d{2}:\d{2}(?::\d{2})?)$/);
+  await expect(page.locator(".mm-exttag-cd")).toBeHidden();
+});
+
+test("the countdown migrates back to the current quote when extended hours ends live", async ({ page }) => {
+  test.setTimeout(60_000);
+  let extended = true;
+  let requests = 0;
+  await page.route("**/api/quote?**", async (route) => {
+    requests++;
+    const url = new URL(route.request().url());
+    const syms = (url.searchParams.get("syms") || "NVDA").split(",").filter(Boolean);
+    const quotes = Object.fromEntries(syms.map((sym) => [sym, sym === "NVDA" ? {
+      sym,
+      last: 192.53,
+      close: 192.53,
+      prevClose: 195.74,
+      regularPrice: 192.53,
+      regularChg: -1.64,
+      regularSessionDate: "2026-06-26",
+      basis: "DELAYED_15M",
+      marketSession: extended ? "pre" : "regular",
+      extPrice: extended ? 192.53 : null,
+      extChg: extended ? 0 : null,
+      extTs: extended ? 1_786_550_400 : null,
+      extSession: extended ? "pre" : null,
+    } : null]));
+    await route.fulfill({ json: { quotes } });
+  });
+
+  await page.goto("/terminal?symbol=NVDA");
+  await chartReady(page);
+  await expect.poll(async () => (await labels(page)).timerOwner).toBe("extended");
+
+  const requestsBeforeClose = requests;
+  extended = false;
+  await expect.poll(() => requests, { timeout: 20_000 }).toBeGreaterThan(requestsBeforeClose);
+  await expect.poll(async () => (await labels(page)).timerOwner, { timeout: 20_000 }).toBe("primary");
+  await expect(page.locator(".mm-exttag")).toBeHidden();
+  await expect(page.locator(".mm-ptag-cd")).toBeVisible();
 });
 
 test("a diverged premarket label remains on its true projected price", async ({ page }) => {
@@ -205,8 +294,10 @@ test("persistent and hover labels follow the price pane when a study moves above
   await expect.poll(async () => (await labels(page)).pricePaneTop, { timeout: 20_000 }).toBeGreaterThan(20);
   const state = await labels(page);
   expect(state.pricePaneTop).toBeGreaterThan(20);
-  expect(state.primaryTop).toBeCloseTo(state.pricePaneTop + Math.round(state.primaryAnchorY! - 8), 0);
-  expect(state.extendedTop).toBeCloseTo(state.primaryTop! - PRICE_TAG_ROW_HEIGHT, 0);
+  // Extended hours is the active timed quote, so it stays on its true projection after a pane move;
+  // the regular close is the collision-resolved static neighbor above it.
+  expect(state.extendedTop).toBeCloseTo(state.pricePaneTop + Math.round(state.extendedAnchorY! - 8), 0);
+  expect(state.primaryTop).toBeCloseTo(state.extendedTop! - PRICE_TAG_ROW_HEIGHT - 1, 0);
 
   const wrap = await page.locator(".chart-wrap").boundingBox();
   expect(wrap).not.toBeNull();
@@ -219,6 +310,121 @@ test("persistent and hover labels follow the price pane when a study moves above
     async () => (await page.locator(".mm-hovertag").boundingBox())?.y ?? null,
     { message: "the hover label should have a laid-out box after the pane move", timeout: 20_000 },
   ).toBeGreaterThan(wrap!.y + state.pricePaneTop);
+});
+
+test("dense option levels use gex_state fallback and fan their badges without moving the active AH quote", async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem("mm.inds", JSON.stringify(["optlevels"])));
+  await routePremarket(page, 192.50);
+  await page.route("**/api/flow?**", async (route) => {
+    const f = new URL(route.request().url()).searchParams.get("f");
+    if (f === "gex:NVDA") {
+      await route.fulfill({ json: {
+        schema: "options_hub.gex/v1", root: "NVDA", asof: "2026-09-14",
+        spot_ref: 192.50, call_wall: null, put_wall: null, gamma_flip: null,
+        by_strike: [
+          { strike: 192.46, gamma_net: 80, gamma_call: 100, gamma_put: -20 },
+          { strike: 192.48, gamma_net: 10, gamma_call: 20, gamma_put: -10 },
+        ],
+      } });
+      return;
+    }
+    if (f === "moves:NVDA") {
+      await route.fulfill({ json: {
+        schema: "options_hub.moves/v1", root: "NVDA", asof: "2026-09-14",
+        expected_move: { lo: 192.44, hi: 192.58 },
+      } });
+      return;
+    }
+    if (f === "gexstate:NVDA") {
+      await route.fulfill({ json: {
+        schema: "options_structure.gex_state/v1", root: "NVDA",
+        asof: "2026-09-16T16:00:00-04:00", spot: 192.50,
+        call_wall: 192.60, put_wall: 192.42, gamma_flip: 192.52, net_gex_bn: 0.11,
+      } });
+      return;
+    }
+    await route.continue();
+  });
+  await page.goto("/terminal?symbol=NVDA");
+  await chartReady(page);
+  await expect(page.locator(".mm-optlevel-tag:visible")).toHaveCount(6, { timeout: 45_000 });
+
+  const state = await labels(page);
+  expect(state.timerOwner).toBe("extended");
+  expect(state.optionTags.map((tag) => tag.key).sort()).toEqual(
+    ["abs_gamma", "call_wall", "em_hi", "em_lo", "gamma_flip", "put_wall"].sort(),
+  );
+  expect(state.optionTags.some((tag) => tag.docked)).toBe(true);
+  for (const tag of state.optionTags) expect(Number.isFinite(tag.anchorY)).toBe(true);
+  expect(Object.fromEntries(state.optionTags.map((tag) => [tag.key, tag.price]))).toEqual({
+    call_wall: 192.60,
+    put_wall: 192.42,
+    gamma_flip: 192.52,
+    abs_gamma: 192.46,
+    em_lo: 192.44,
+    em_hi: 192.58,
+  });
+
+  const expectedLinePrices = [192.42, 192.44, 192.46, 192.52, 192.58, 192.60];
+  await expect.poll(async () => page.evaluate(() => {
+    const lines = (window as Window & { __mmIndicatorPriceLines?: () => Record<string, Array<{ price: number; axisLabelVisible: boolean }>> })
+      .__mmIndicatorPriceLines?.().optlevels ?? [];
+    return lines.map((line) => line.price).sort((a, b) => a - b);
+  }), { timeout: 20_000 }).toEqual(expectedLinePrices);
+
+  const geometry = await page.evaluate(({ row, timer }) => {
+    const rect = (selector: string) => document.querySelector<HTMLElement>(selector)!.getBoundingClientRect();
+    const wrap = rect(".chart-wrap");
+    const current = rect(".mm-ptag");
+    const extended = rect(".mm-exttag");
+    const extTimed = getComputedStyle(document.querySelector<HTMLElement>(".mm-exttag-cd")!).display !== "none";
+    const boxes = [
+      { id: "close", left: current.left - wrap.left, right: current.right - wrap.left, top: current.top - wrap.top, bottom: current.top - wrap.top + row },
+      { id: "extended", left: extended.left - wrap.left, right: extended.right - wrap.left, top: extended.top - wrap.top, bottom: extended.top - wrap.top + row + (extTimed ? timer : 0) },
+      ...[...document.querySelectorAll<HTMLElement>(".mm-optlevel-tag")]
+        .filter((el) => getComputedStyle(el).display !== "none")
+        .map((el) => {
+          const box = el.getBoundingClientRect();
+          return { id: el.dataset.levelKey!, left: box.left - wrap.left, right: box.right - wrap.left, top: box.top - wrap.top, bottom: box.bottom - wrap.top };
+        }),
+    ];
+    const overlaps: string[] = [];
+    for (let a = 0; a < boxes.length; a++) for (let b = a + 1; b < boxes.length; b++) {
+      const x = boxes[a].left < boxes[b].right && boxes[a].right > boxes[b].left;
+      const y = boxes[a].top < boxes[b].bottom && boxes[a].bottom > boxes[b].top;
+      if (x && y) overlaps.push(`${boxes[a].id}/${boxes[b].id}`);
+    }
+    return { boxes, overlaps, wrapWidth: wrap.width, wrapHeight: wrap.height };
+  }, { row: PRICE_TAG_ROW_HEIGHT, timer: PRICE_TAG_TIME_HEIGHT });
+  expect(geometry.overlaps).toEqual([]);
+  for (const box of geometry.boxes) {
+    expect(box.left, `${box.id} left`).toBeGreaterThanOrEqual(0);
+    expect(box.right, `${box.id} right`).toBeLessThanOrEqual(geometry.wrapWidth);
+    expect(box.top, `${box.id} top`).toBeGreaterThanOrEqual(0);
+    expect(box.bottom, `${box.id} bottom`).toBeLessThanOrEqual(geometry.wrapHeight);
+  }
+
+  // A resize cannot move the exact price lines or reintroduce overlaps; overflow may fan inward.
+  await page.setViewportSize({ width: 1440, height: 430 });
+  await expect(page.locator(".mm-optlevel-tag:visible")).toHaveCount(6, { timeout: 20_000 });
+  await expect.poll(async () => page.evaluate(() => {
+    const lines = (window as Window & { __mmIndicatorPriceLines?: () => Record<string, Array<{ price: number }>> })
+      .__mmIndicatorPriceLines?.().optlevels ?? [];
+    return lines.map((line) => line.price).sort((a, b) => a - b);
+  })).toEqual(expectedLinePrices);
+  const resizedOverlaps = await page.evaluate(() => {
+    const visible = [".mm-ptag", ".mm-exttag", ".mm-optlevel-tag"]
+      .flatMap((selector) => [...document.querySelectorAll<HTMLElement>(selector)])
+      .filter((element) => getComputedStyle(element).display !== "none")
+      .map((element) => ({ id: element.dataset.levelKey ?? element.className, box: element.getBoundingClientRect() }));
+    const overlaps: string[] = [];
+    for (let a = 0; a < visible.length; a++) for (let b = a + 1; b < visible.length; b++) {
+      const A = visible[a].box, B = visible[b].box;
+      if (A.left < B.right && A.right > B.left && A.top < B.bottom && A.bottom > B.top) overlaps.push(`${visible[a].id}/${visible[b].id}`);
+    }
+    return overlaps;
+  });
+  expect(resizedOverlaps).toEqual([]);
 });
 
 test("a four-digit premarket quote expands the compact numeric lane instead of clipping", async ({ page }) => {
@@ -267,7 +473,10 @@ test("left-side and percentage scales keep the foreground label on the active ax
   // of this file waits out every other async chart transition, instead of reading it once — with a
   // timeout generous enough to clear the observed contention tail, and a test-level budget to match.
   test.setTimeout(60_000);
-  await page.addInitScript(() => localStorage.setItem("mm.chartSettings", JSON.stringify({ scaleLeft: true, mode: 2, scaleFontSize: 16 })));
+  await page.addInitScript(() => {
+    localStorage.setItem("mm.inds", JSON.stringify(["optlevels"]));
+    localStorage.setItem("mm.chartSettings", JSON.stringify({ scaleLeft: true, mode: 2, scaleFontSize: 16 }));
+  });
   await routePremarket(page, 192.53);
   await page.goto("/terminal?symbol=NVDA");
   await chartReady(page);
@@ -280,6 +489,13 @@ test("left-side and percentage scales keep the foreground label on the active ax
       { message: `${selector} should settle onto the persisted left-side scale`, timeout: 20_000 },
     ).toBeCloseTo(wrap!.x + 1, 0);
   }
+
+  await expect(page.locator(".mm-optlevel-tag:visible").first()).toBeVisible({ timeout: 20_000 });
+  const optionBox = await page.locator(".mm-optlevel-tag:visible").first().boundingBox();
+  expect(optionBox).not.toBeNull();
+  expect(optionBox!.x).toBeGreaterThanOrEqual(wrap!.x + 1);
+  expect(optionBox!.x).toBeLessThan(wrap!.x + wrap!.width * 0.45);
+  await expect(page.locator(".mm-optlevel-tag:visible").first()).toHaveText(/%$/);
 
   // Sibling :364-366: one move to the last-price overlay point. A y-35 approach can leave the
   // price pane, and under load that leave lands after the target move, so the tag ends up hidden
