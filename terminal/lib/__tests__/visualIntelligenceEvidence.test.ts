@@ -71,6 +71,6 @@ describe("Terminal Visual Intelligence browser evidence", () => {
     expect(text).toContain("tablet: 10/10 passed");
     expect(text).toContain("mobile: 10/10 passed");
     expect(text).toContain("mobileCrosshairRegression: 1/1 passed");
-    expect(text).toContain("vitest: 332 files passed; 5510 tests passed; 4 todo");
+    expect(text).toContain("vitest: 335 files passed; 5548 tests passed; 4 todo");
   });
 });

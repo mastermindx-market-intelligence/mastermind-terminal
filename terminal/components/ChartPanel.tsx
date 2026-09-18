@@ -51,6 +51,7 @@ import {
   secondaryPriceTagTop,
 } from "@/lib/priceTagPlacement";
 import { hoverTagPaint } from "@/lib/hoverTagPaint";
+import { appendPricePaneSvgScope } from "@/lib/pricePaneSvgScope";
 import { setActivePaneCoords, getActivePaneCoords } from "@/lib/paneCoords";
 import { getJSON, getSliceAndOhlc, getCompositeOhlc, getOhlc } from "@/lib/dataCache";
 import { parseComposite, alignAndSum } from "@/lib/composite";
@@ -3400,6 +3401,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
 
     const wrap = el.parentElement as HTMLElement;
     wrapElRef.current = wrap;
+    const pricePaneScopeOwner = `mm-price-pane-${uid()}`;
     // indicator SVG overlay layer (z-index 2, below signals and drawings)
     const indSvg = mk("svg", { style: "position:absolute;inset:0;width:100%;height:100%;z-index:2;pointer-events:none" }) as SVGSVGElement;
     wrap.appendChild(indSvg); indSvgRef.current = indSvg;
@@ -3902,6 +3904,14 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       };
       while (layer.firstChild) layer.removeChild(layer.firstChild);
       if (priceProjHidden()) return;   // sub-pane maximized → price-anchored markers stay cleared
+      const signalPaneGeometry = pricePaneGeometry();
+      const signalScope = appendPricePaneSvgScope(layer, {
+        id: `${pricePaneScopeOwner}-signals`,
+        width: el!.clientWidth,
+        top: signalPaneGeometry.top,
+        height: signalPaneGeometry.height,
+        scope: "signals",
+      });
 
       // Prophet receipts are deliberately outside the Oracle study toggle. A sapphire diamond
       // says "another system surfaced this name here" without borrowing Oracle's star/pill grammar.
@@ -3914,7 +3924,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         g.appendChild(mk("path", { d: `M${x} ${cy - r} L${x + r} ${cy} L${x} ${cy + r} L${x - r} ${cy} Z`, fill, stroke: "#9bb7ff", "stroke-width": 1 }));
         const tEl = mk("text", { x, y: cy + 3.2, fill: "#fff", "font-size": 8.5, "font-weight": 900, "text-anchor": "middle", "font-family": "var(--font-ui)" });
         tEl.textContent = glyph; g.appendChild(tEl);
-        addMarkerTitle(g, m); layer.appendChild(g);
+        addMarkerTitle(g, m); signalScope.group.appendChild(g);
       }
 
       // ── Gap Zones premade indicator ──────────────────────────────────────────────
@@ -3972,7 +3982,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
             const x = Math.min(x1, x2), w = Math.max(1, Math.abs(x2 - x1)), y = Math.min(yHi, yLo), h = Math.max(1, Math.abs(yLo - yHi));
             const grp = mk("g", {});
             grp.appendChild(mk("rect", { x, y, width: w, height: h, fill: col, "fill-opacity": filled ? 0.05 : 0.15, stroke: col, "stroke-opacity": filled ? 0.18 : 0.55, "stroke-width": 1 }));
-            layer.appendChild(grp);
+            signalScope.group.appendChild(grp);
           }
         }
       }
@@ -4025,7 +4035,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           const titleEl = mk("title", {});
           titleEl.textContent = `${date}\n${names}`;
           g.appendChild(titleEl);
-          layer.appendChild(g);
+          signalScope.group.appendChild(g);
         }
       }
 
@@ -4045,7 +4055,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           const tEl = mk("text", { x: x + 6, y: cy + 3, fill: "#ff8a3d", "font-size": 8.5, "font-weight": 700, "text-anchor": "start", "font-family": "var(--font-ui)", "letter-spacing": ".02em" });
           tEl.textContent = "caution";
           g.appendChild(tEl);
-          layer.appendChild(g);
+          signalScope.group.appendChild(g);
           continue;
         }
         // ── HK-O1: a REFUSED entry is an annotation, never buy geometry ──
@@ -4074,7 +4084,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           g.appendChild(mk("line", { x1: x - k, y1: cy + k, x2: x + k, y2: cy - k, stroke, "stroke-width": 1.3 }));
           if (ovr) g.appendChild(mk("circle", { cx: x, cy: cy - r - 4, r: 1.5, fill: AMBER }));
           addMarkerTitle(g, m);
-          layer.appendChild(g);
+          signalScope.group.appendChild(g);
           continue;
         }
         const stop = isStructureStop(m);
@@ -4170,7 +4180,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           bEl.textContent = badge;
           g.appendChild(bEl);
         }
-        layer.appendChild(g);
+        signalScope.group.appendChild(g);
       }
 
       // ── GC v2 side channels (toggleable via the "Signals detail" chip) ──
@@ -4182,7 +4192,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           const y = b ? yOf(b.l) : null; if (y == null) continue;
           const g = mk("g", { opacity: 0.55 });
           g.appendChild(mk("circle", { cx: x, cy: y + 9, r: 2.2, fill: t2.mut }));
-          layer.appendChild(g);
+          signalScope.group.appendChild(g);
         }
         // warnings: ⚠ (arm) / ⛔ (confirm) small glyphs ABOVE the bar (structure-break anticipation).
         for (const w of warnMarksRef.current) {
@@ -4193,7 +4203,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           const tEl = mk("text", { x, y: y - 8, "font-size": 11, "text-anchor": "middle", "font-family": "var(--font-ui)" });
           tEl.textContent = w.kind === "confirm" ? "⛔" : "⚠";
           g.appendChild(tEl);
-          layer.appendChild(g);
+          signalScope.group.appendChild(g);
         }
       }
     };
@@ -5793,9 +5803,17 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       }
       if (priceProjHidden()) { flushTables(); return; }   // sub-pane maximized → price-anchored fills stay cleared
       const inds = indicatorsRef.current;
-      const W = el!.clientWidth, H = el!.clientHeight;
+      const W = el!.clientWidth;
       const priceS = priceSeriesRef.current;
       if (!priceS) return;
+      const priceOverlayPaneGeometry = pricePaneGeometry();
+      const priceOverlayScope = appendPricePaneSvgScope(svgEl, {
+        id: `${pricePaneScopeOwner}-price-overlays`,
+        width: W,
+        top: priceOverlayPaneGeometry.top,
+        height: priceOverlayPaneGeometry.height,
+        scope: "price-overlays",
+      });
       const p2y = (p: number): number | null => { try { const v = priceS.priceToCoordinate(p); return (v == null || !isFinite(v as number)) ? null : v as number; } catch { return null; } };
       const t2x = (tm: string | number): number | null => { try { const v = chart.timeScale().timeToCoordinate(tm as any); return (v == null || !isFinite(v as number)) ? null : v as number; } catch { return null; } };
 
@@ -5831,7 +5849,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
                 fill: isGreen ? ip.spanACol : ip.spanBCol,
                 stroke: "none",
               });
-              svgEl.appendChild(poly);
+              priceOverlayScope.group.appendChild(poly);
             }
           }
         }
@@ -5854,7 +5872,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           for (let i = 0; i < pts.length - 1; i++) {
             const p0 = pts[i], p1 = pts[i + 1];
             const fill = p0.state === "ribbonUp" ? rp.fillUp : p0.state === "ribbonDown" ? rp.fillDn : "rgba(139,147,163,0.07)";
-            svgEl.appendChild(mk("polygon", {
+            priceOverlayScope.group.appendChild(mk("polygon", {
               points: `${p0.x},${p0.yF} ${p1.x},${p1.yF} ${p1.x},${p1.yS} ${p0.x},${p0.yS}`,
               fill, stroke: "none",
             }));
@@ -5882,17 +5900,17 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
                 const isPoc = Math.abs(bin.priceMid - vp.poc) < (vp.bins[0]?.priceHi - vp.bins[0]?.priceLo) * 0.6;
                 const barH = Math.max(1, Math.abs(yLo - yHi));
                 const barY = Math.min(yHi, yLo);
-                svgEl.appendChild(mk("rect", {
+                priceOverlayScope.group.appendChild(mk("rect", {
                   x: W - barW, y: barY, width: barW, height: barH,
                   fill: isPoc ? "rgba(232,179,57,0.55)" : "rgba(77,130,255,0.25)",
                   stroke: "none",
                 }));
               }
               // POC gold price line
-              if (pocY != null) svgEl.appendChild(mk("line", { x1: W - maxBarW, y1: pocY, x2: W, y2: pocY, stroke: "#e8b339", "stroke-width": 1.5, "stroke-dasharray": "" }));
+              if (pocY != null) priceOverlayScope.group.appendChild(mk("line", { x1: W - maxBarW, y1: pocY, x2: W, y2: pocY, stroke: "#e8b339", "stroke-width": 1.5, "stroke-dasharray": "" }));
               // VAH/VAL dashed
-              if (vahY != null) svgEl.appendChild(mk("line", { x1: W - maxBarW, y1: vahY, x2: W, y2: vahY, stroke: "rgba(214,218,227,0.5)", "stroke-width": 1, "stroke-dasharray": "4 3" }));
-              if (valY != null) svgEl.appendChild(mk("line", { x1: W - maxBarW, y1: valY, x2: W, y2: valY, stroke: "rgba(214,218,227,0.5)", "stroke-width": 1, "stroke-dasharray": "4 3" }));
+              if (vahY != null) priceOverlayScope.group.appendChild(mk("line", { x1: W - maxBarW, y1: vahY, x2: W, y2: vahY, stroke: "rgba(214,218,227,0.5)", "stroke-width": 1, "stroke-dasharray": "4 3" }));
+              if (valY != null) priceOverlayScope.group.appendChild(mk("line", { x1: W - maxBarW, y1: valY, x2: W, y2: valY, stroke: "rgba(214,218,227,0.5)", "stroke-width": 1, "stroke-dasharray": "4 3" }));
             }
           }
         }
@@ -5918,7 +5936,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
             }
             if (upPts.length >= 2) {
               const pts = [...upPts, ...[...dnPts].reverse()].map((p) => `${p.x},${p.y}`).join(" ");
-              svgEl.appendChild(mk("polygon", { points: pts, fill: p.fillCol as string, stroke: "none" }));
+              priceOverlayScope.group.appendChild(mk("polygon", { points: pts, fill: p.fillCol as string, stroke: "none" }));
             }
           }
         }
@@ -5954,39 +5972,39 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
             if (sw < 3) continue;                           // too compressed to be legible — skip whole session
             const showDetail = sw > 40;                     // wide enough for extension rays + text labels
             // Shaded box over the opening range window
-            svgEl.appendChild(mk("rect", { x: x1, y: yHi, width: Math.max(0, x2 - x1), height: yLo - yHi, fill: p.boxCol as string, stroke: "none" }));
+            priceOverlayScope.group.appendChild(mk("rect", { x: x1, y: yHi, width: Math.max(0, x2 - x1), height: yLo - yHi, fill: p.boxCol as string, stroke: "none" }));
             // ORH solid ray to session end
-            svgEl.appendChild(mk("line", { x1: x1, y1: yHi, x2: rxEnd, y2: yHi, stroke: p.lineCol as string, "stroke-width": p.width, "stroke-dasharray": "" }));
+            priceOverlayScope.group.appendChild(mk("line", { x1: x1, y1: yHi, x2: rxEnd, y2: yHi, stroke: p.lineCol as string, "stroke-width": p.width, "stroke-dasharray": "" }));
             // ORL solid ray to session end
-            svgEl.appendChild(mk("line", { x1: x1, y1: yLo, x2: rxEnd, y2: yLo, stroke: p.lineCol as string, "stroke-width": p.width, "stroke-dasharray": "" }));
+            priceOverlayScope.group.appendChild(mk("line", { x1: x1, y1: yLo, x2: rxEnd, y2: yLo, stroke: p.lineCol as string, "stroke-width": p.width, "stroke-dasharray": "" }));
             // Mid dashed ray
             if (p.showMid) {
               const yMid = p2y(sess.mid); if (yMid != null) {
-                svgEl.appendChild(mk("line", { x1: x1, y1: yMid, x2: rxEnd, y2: yMid, stroke: p.lineCol as string, "stroke-width": 1, "stroke-dasharray": "4 3" }));
+                priceOverlayScope.group.appendChild(mk("line", { x1: x1, y1: yMid, x2: rxEnd, y2: yMid, stroke: p.lineCol as string, "stroke-width": 1, "stroke-dasharray": "4 3" }));
               }
             }
             // Extension rays + ±Nx labels — only when the session is wide enough on screen (declutter)
             if (showDetail) for (const ext of sess.exts) {
               const yUp = p2y(ext.up), yDn = p2y(ext.dn);
               if (yUp != null) {
-                svgEl.appendChild(mk("line", { x1: x1, y1: yUp, x2: rxEnd, y2: yUp, stroke: p.lineCol as string, "stroke-width": 1, "stroke-dasharray": "4 3" }));
+                priceOverlayScope.group.appendChild(mk("line", { x1: x1, y1: yUp, x2: rxEnd, y2: yUp, stroke: p.lineCol as string, "stroke-width": 1, "stroke-dasharray": "4 3" }));
                 // Label at right end
                 const lbl = mk("text", { x: rxEnd - 4, y: yUp - 3, fill: textColor, "font-size": 9, "text-anchor": "end", "font-family": "var(--font-ui)" });
                 lbl.textContent = `+${ext.k}x`;
-                svgEl.appendChild(lbl);
+                priceOverlayScope.group.appendChild(lbl);
               }
               if (yDn != null) {
-                svgEl.appendChild(mk("line", { x1: x1, y1: yDn, x2: rxEnd, y2: yDn, stroke: p.lineCol as string, "stroke-width": 1, "stroke-dasharray": "4 3" }));
+                priceOverlayScope.group.appendChild(mk("line", { x1: x1, y1: yDn, x2: rxEnd, y2: yDn, stroke: p.lineCol as string, "stroke-width": 1, "stroke-dasharray": "4 3" }));
                 const lbl2 = mk("text", { x: rxEnd - 4, y: yDn + 10, fill: textColor, "font-size": 9, "text-anchor": "end", "font-family": "var(--font-ui)" });
                 lbl2.textContent = `-${ext.k}x`;
-                svgEl.appendChild(lbl2);
+                priceOverlayScope.group.appendChild(lbl2);
               }
             }
             // ORH / ORL price labels — only when the session is wide enough (declutter)
             if (showDetail) {
               const orbLabelX = Math.min(x2 + 4, rxEnd - 4);
-              if (yHi != null) { const lh = mk("text", { x: orbLabelX, y: yHi - 3, fill: textColor, "font-size": 9, "text-anchor": "start", "font-family": "var(--font-ui)" }); lh.textContent = `ORH ${sess.hi.toFixed(2)}`; svgEl.appendChild(lh); }
-              if (yLo != null) { const ll = mk("text", { x: orbLabelX, y: yLo + 10, fill: textColor, "font-size": 9, "text-anchor": "start", "font-family": "var(--font-ui)" }); ll.textContent = `ORL ${sess.lo.toFixed(2)}`; svgEl.appendChild(ll); }
+              if (yHi != null) { const lh = mk("text", { x: orbLabelX, y: yHi - 3, fill: textColor, "font-size": 9, "text-anchor": "start", "font-family": "var(--font-ui)" }); lh.textContent = `ORH ${sess.hi.toFixed(2)}`; priceOverlayScope.group.appendChild(lh); }
+              if (yLo != null) { const ll = mk("text", { x: orbLabelX, y: yLo + 10, fill: textColor, "font-size": 9, "text-anchor": "start", "font-family": "var(--font-ui)" }); ll.textContent = `ORL ${sess.lo.toFixed(2)}`; priceOverlayScope.group.appendChild(ll); }
             }
           }
         }
@@ -6007,10 +6025,10 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
               if (x1 != null && x2 != null && yHi != null && yLo != null) {
                 const rx1 = Math.min(x1, x2), rx2 = Math.max(x1, x2);
                 // Shaded rect
-                svgEl.appendChild(mk("rect", { x: rx1, y: yHi, width: rx2 - rx1, height: yLo - yHi, fill: "rgba(232,179,57,0.09)", stroke: "#e8a33d", "stroke-width": 1, "stroke-dasharray": "" }));
+                priceOverlayScope.group.appendChild(mk("rect", { x: rx1, y: yHi, width: rx2 - rx1, height: yLo - yHi, fill: "rgba(232,179,57,0.09)", stroke: "#e8a33d", "stroke-width": 1, "stroke-dasharray": "" }));
                 // Top/bottom rails
-                svgEl.appendChild(mk("line", { x1: rx1, y1: yHi, x2: rx2, y2: yHi, stroke: "#e8a33d", "stroke-width": 1.5 }));
-                svgEl.appendChild(mk("line", { x1: rx1, y1: yLo, x2: rx2, y2: yLo, stroke: "#e8a33d", "stroke-width": 1.5 }));
+                priceOverlayScope.group.appendChild(mk("line", { x1: rx1, y1: yHi, x2: rx2, y2: yHi, stroke: "#e8a33d", "stroke-width": 1.5 }));
+                priceOverlayScope.group.appendChild(mk("line", { x1: rx1, y1: yLo, x2: rx2, y2: yLo, stroke: "#e8a33d", "stroke-width": 1.5 }));
                 // Resolution marker
                 if (vb.resolution != null && vb.resolutionIdx != null) {
                   const rx = t2x(vbRows[vb.resolutionIdx].time);
@@ -6018,7 +6036,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
                     const ry = vb.resolution === "up" ? yHi - 12 : yLo + 12;
                     const txt = mk("text", { x: rx, y: ry, fill: "#e8a33d", "font-size": 10, "text-anchor": "middle", "font-family": "var(--font-ui)" });
                     txt.textContent = vb.resolution === "up" ? "▲" : "▼";
-                    svgEl.appendChild(txt);
+                    priceOverlayScope.group.appendChild(txt);
                   }
                 }
               }
@@ -6038,35 +6056,11 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           const xi = (i: number): number | null => { try { const v = ts.logicalToCoordinate(i as any); return v == null || !isFinite(v as number) ? null : (v as number); } catch { return null; } };
           const xa = xi(0), xb = xi(1);
           const barW = xa != null && xb != null ? Math.max(0.5, xb - xa) : 6;
-          // IndicatorCanvas overlay suites use price-pane coordinates, but the SVG spans the
-          // entire multi-pane chart. Without a price-pane clip, off-scale TP/SL labels can land
-          // below pane 0 and visibly bleed into RSI/Stoch/etc. Resolve the live pane band (pane
-          // order is user-movable), offset pane-local price coordinates into root-SVG space, and
-          // render every price suite through one shared clip group.
-          let pricePaneTop = 0, pricePaneH = H;
-          try {
-            const paneEl = priceS.getPane().getHTMLElement();
-            const wrapRect = wrapElRef.current?.getBoundingClientRect();
-            if (paneEl && wrapRect) {
-              const paneRect = paneEl.getBoundingClientRect();
-              pricePaneTop = paneRect.top - wrapRect.top;
-              pricePaneH = paneRect.height;
-            }
-          } catch { /* retain the single-pane fallback */ }
-          const priceSuiteY = (p: number): number | null => {
-            const y = p2y(p);
-            return y == null ? null : y + pricePaneTop;
-          };
-          const priceClipId = `ic-price-clip-${syncIdRef.current ?? "x"}`;
-          const priceDefs = mk("defs", {});
-          const priceClip = mk("clipPath", { id: priceClipId });
-          priceClip.appendChild(mk("rect", { x: 0, y: pricePaneTop, width: W, height: pricePaneH }));
-          priceDefs.appendChild(priceClip);
-          const priceSuiteGroup = mk("g", { "clip-path": `url(#${priceClipId})` }) as SVGGElement;
-          svgEl.appendChild(priceDefs);
-          svgEl.appendChild(priceSuiteGroup);
+          // IndicatorCanvas overlay suites already emit price-pane-local Y coordinates. Reuse
+          // the same translated + clipped price-overlay scope as the legacy fills above so every
+          // price-anchored SVG primitive obeys one live pane geometry contract.
           const m: CoordMapper = {
-            xi, y: priceSuiteY, W, H: pricePaneTop + pricePaneH,
+            xi, y: p2y, W, H: priceOverlayPaneGeometry.height,
             i0: lr ? lr.from : 0, i1: lr ? lr.to : barsRef.current.length - 1, barW,
           };
           const lang = typeof document !== "undefined" && document.documentElement.getAttribute("data-lang") === "zh" ? "zh" as const : "en" as const;
@@ -6078,7 +6072,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
             const bundle = visualOverlayBundle(context, visualSettings(chartSettingsRef.current), suiteColorsRef.current,
               m, selected, calendar, replayIdxRef.current !== null, lang);
             const group = mk("g", { "data-visual-intelligence-overlay": "" }) as SVGGElement;
-            priceSuiteGroup.appendChild(group);
+            priceOverlayScope.group.appendChild(group);
             renderPrims(group, bundle, { ...m, W: chart.timeScale().width() });
           }
           for (const k of activeSuites) {
@@ -6088,7 +6082,9 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
                 bars: barsRef.current as any, tf: timeframeRef.current, symbol: symbolRef.current,
                 isIntraday: isIntradayRef.current, lang,
               }, userTierRef.current, suiteColorsRef.current);
-              renderPrims(priceSuiteGroup, bundle, m);
+              const suiteGroup = mk("g", { "data-price-suite-overlay": k }) as SVGGElement;
+              priceOverlayScope.group.appendChild(suiteGroup);
+              renderPrims(suiteGroup, bundle, m);
               if (bundle.tables.length) collectedTables.push(...bundle.tables);
             } catch (e) { console.warn(`[suite:${k}] render skipped:`, e); }
           }
@@ -6534,7 +6530,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       const layer = sigRef.current;
       const out: MarkerHit[] = [];
       if (!layer) return out;
-      for (const g of layer.querySelectorAll<SVGGElement>(":scope > g")) {
+      for (const g of layer.querySelectorAll<SVGGElement>('[data-price-pane-local="signals"] > g')) {
         const title = g.querySelector(":scope > title")?.textContent;
         if (!title) continue;
         let b: DOMRect;
