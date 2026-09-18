@@ -316,7 +316,9 @@ describe("A5 — the landing symbol the server preloads is the one the shell mou
     expect(script).toContain('[ "$FULL_SHA" = "$TARGET_SHA" ]');
     expect(script).toContain("env -i");
     expect(script).toContain('GIT_SHA="$TARGET_SHA" NEXT_DEPLOYMENT_ID="$TARGET_SHA"');
-    expect(script).toContain('"$BUILD_DEPS_ROOT/node_modules/.bin/next" build');
+    expect(script).toContain('run_sandboxed_phase build "$stage" yes');
+    expect(script).toContain('BindReadOnlyPaths=$BUILD_DEPS_ROOT/node_modules:$working_directory/node_modules');
+    expect(script).toContain('"$stage/node_modules/.bin/next" build');
     expect(script).not.toContain('GIT_SHA="$FULL_SHA" NEXT_DEPLOYMENT_ID="$FULL_SHA" npm run build');
     expect(script).toContain('printf \'%s\\n\' "$FULL_SHA" > "$STAGE/.deployment-id"');
     // The marker is installed as one deploy generation with the .next swap, so a
