@@ -82,11 +82,11 @@ export function byExpiryToTermStructure(
   lens: ExpiryLens,
   asOf: string | null | undefined,
 ): ExpiryTermStructure {
-  const kept = (byExpiry ?? [])
-    .map((r) => ({ r, net: expiryNetFor(r, lens) }))
-    .filter((x): x is { r: ExpiryRow; net: number } => x.net != null)
-    .sort((a, b) => a.r.exp.localeCompare(b.r.exp));
-  const available = kept.length > 0;
+  const rows = byExpiry ?? [];
+  const available =
+    lens === "gamma" || lens === "delta"
+      ? true
+      : rows.some((r) => expiryNetFor(r, lens) != null);
   const base: ExpiryTermStructure = {
     lens,
     available,
@@ -94,7 +94,13 @@ export function byExpiryToTermStructure(
     nodes: [],
     maxAbs: 0,
   };
-  if (!available) return base;
+  if (!available || rows.length === 0) return base;
+
+  const kept = rows
+    .map((r) => ({ r, net: expiryNetFor(r, lens) }))
+    .filter((x): x is { r: ExpiryRow; net: number } => x.net != null)
+    .sort((a, b) => a.r.exp.localeCompare(b.r.exp));
+  if (kept.length === 0) return base;
 
   const maxAbs = kept.reduce((m, x) => Math.max(m, Math.abs(x.net)), 0);
   const denom = maxAbs > 0 ? maxAbs : 1;
