@@ -49,7 +49,9 @@ import {
   priceTagRowTop,
   priceScaleDisplayValue,
   layoutPriceAxisBadges,
+  priceAxisOffsetForObstacles,
   readablePriceTagTextColor,
+  type PriceAxisObstacle,
 } from "@/lib/priceTagPlacement";
 import { hoverTagPaint } from "@/lib/hoverTagPaint";
 import { setActivePaneCoords, getActivePaneCoords } from "@/lib/paneCoords";
@@ -3602,6 +3604,25 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       el.style.left = onLeft ? `${offset}px` : "auto";
       el.style.right = onLeft ? "auto" : `${offset}px`;
     };
+    const axisChromeObstacles = (): PriceAxisObstacle[] => {
+      const wrapRect = wrap.getBoundingClientRect();
+      const nodes = document.querySelectorAll<HTMLElement>(
+        ".chart-fs-float, [data-visual-context] > button[aria-controls], .lg-block",
+      );
+      return [...nodes].flatMap((node) => {
+        const style = getComputedStyle(node);
+        const rect = node.getBoundingClientRect();
+        if (style.display === "none" || style.visibility === "hidden" || Number(style.opacity) === 0) return [];
+        if (!(rect.width > 0 && rect.height > 0)) return [];
+        if (rect.right <= wrapRect.left || rect.left >= wrapRect.right || rect.bottom <= wrapRect.top || rect.top >= wrapRect.bottom) return [];
+        return [{
+          left: rect.left - wrapRect.left,
+          right: rect.right - wrapRect.left,
+          top: rect.top - wrapRect.top,
+          bottom: rect.bottom - wrapRect.top,
+        }];
+      });
+    };
     const applyLabelLayout = (onLeft: boolean, laneWidth: number) => {
       priceLaneWidth = Math.max(PRICE_TAG_MIN_VALUE_WIDTH, Math.ceil(laneWidth));
       placeOnAxisEdge(priceTag, onLeft);
@@ -3881,6 +3902,33 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         }
       }
 
+      // Persistent price badges also share the chart with the touch fullscreen/context controls and
+      // the price-pane legend. Move the DOM badges inward only where their rectangles intersect that
+      // chrome; their y anchors and every underlying horizontal price line remain exact.
+      const obstacles = axisChromeObstacles();
+      const containerWidth = wrap.getBoundingClientRect().width;
+      let persistentOffset = 1;
+      const persistentRects: Array<{ element: HTMLElement; top: number; height: number; width: number }> = [];
+      if (shown) persistentRects.push({
+        element: tag,
+        top: Number.parseFloat(tag.style.top || "0"),
+        height: PRICE_TAG_ROW_HEIGHT + (currentTimed ? PRICE_TAG_TIME_HEIGHT : 0),
+        width: tag.offsetWidth,
+      });
+      if (extVisible) persistentRects.push({
+        element: extendedTag,
+        top: Number.parseFloat(extendedTag.style.top || "0"),
+        height: PRICE_TAG_ROW_HEIGHT + (extendedTimed ? PRICE_TAG_TIME_HEIGHT : 0),
+        width: extendedTag.offsetWidth,
+      });
+      for (const rect of persistentRects) {
+        persistentOffset = Math.max(persistentOffset, priceAxisOffsetForObstacles({
+          onLeft, containerWidth, top: rect.top, height: rect.height, width: rect.width,
+          baseOffset: persistentOffset, obstacles,
+        }));
+      }
+      for (const rect of persistentRects) placeOnAxisEdge(rect.element, onLeft, persistentOffset);
+
       const preparedOptionTags = new Map<string, { node: HTMLDivElement; text: string; width: number }>();
       for (const meta of badgeMeta) {
         if (meta.kind !== "option" || !meta.key || meta.price == null || !meta.style) continue;
@@ -3910,8 +3958,23 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       let nextOffset = 1;
       const maxLane = Math.max(0, ...laneWidths.keys());
       for (let lane = 0; lane <= maxLane; lane++) {
-        laneOffsets.set(lane, nextOffset);
-        nextOffset += (laneWidths.get(lane) ?? PRICE_TAG_MIN_VALUE_WIDTH) + 4;
+        let laneOffset = nextOffset;
+        for (const meta of badgeMeta) {
+          if (meta.kind !== "option") continue;
+          const placement = placementById.get(meta.id);
+          const prepared = preparedOptionTags.get(meta.id);
+          if (!placement || placement.lane !== lane || !prepared) continue;
+          laneOffset = Math.max(laneOffset, priceAxisOffsetForObstacles({
+            onLeft, containerWidth,
+            top: paneGeometry.top + placement.top,
+            height: PRICE_TAG_ROW_HEIGHT,
+            width: prepared.width,
+            baseOffset: laneOffset,
+            obstacles,
+          }));
+        }
+        laneOffsets.set(lane, laneOffset);
+        nextOffset = laneOffset + (laneWidths.get(lane) ?? PRICE_TAG_MIN_VALUE_WIDTH) + 4;
       }
 
       for (const meta of badgeMeta) {

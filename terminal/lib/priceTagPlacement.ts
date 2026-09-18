@@ -259,3 +259,60 @@ export function readablePriceTagTextColor(background: string): "#000" | "#fff" {
   const blackContrast = (luminance + 0.05) / 0.05;
   return blackContrast >= whiteContrast ? "#000" : "#fff";
 }
+
+
+export type PriceAxisObstacle = { left: number; right: number; top: number; bottom: number };
+
+export type PriceAxisObstacleOffsetInput = {
+  onLeft: boolean;
+  containerWidth: number;
+  top: number;
+  height: number;
+  width: number;
+  baseOffset?: number;
+  gap?: number;
+  obstacles: PriceAxisObstacle[];
+};
+
+/**
+ * Move one persistent badge inward only when its projected rectangle intersects fixed chart chrome.
+ * The y coordinate and underlying price line stay untouched. Coordinates are container-relative.
+ */
+export function priceAxisOffsetForObstacles({
+  onLeft,
+  containerWidth,
+  top,
+  height,
+  width,
+  baseOffset = 1,
+  gap = 4,
+  obstacles,
+}: PriceAxisObstacleOffsetInput): number {
+  const container = Math.max(0, containerWidth);
+  const badgeWidth = Math.max(0, width);
+  const badgeHeight = Math.max(0, height);
+  const maxOffset = Math.max(0, container - badgeWidth);
+  let offset = Math.max(0, Math.min(maxOffset, baseOffset));
+  const bottom = top + badgeHeight;
+
+  // An inward move can expose a second obstacle, so iterate to a stable offset. Monotonic offset
+  // growth and the bounded pass count make this deterministic even with malformed overlapping chrome.
+  for (let pass = 0; pass <= obstacles.length; pass++) {
+    let changed = false;
+    for (const obstacle of obstacles) {
+      const vertical = top < obstacle.bottom && bottom > obstacle.top;
+      if (!vertical) continue;
+      const left = onLeft ? offset : container - offset - badgeWidth;
+      const right = left + badgeWidth;
+      const horizontal = left < obstacle.right && right > obstacle.left;
+      if (!horizontal) continue;
+      const required = onLeft
+        ? obstacle.right + gap
+        : container - obstacle.left + gap;
+      const next = Math.max(offset, Math.min(maxOffset, required));
+      if (next > offset) { offset = next; changed = true; }
+    }
+    if (!changed) break;
+  }
+  return offset;
+}

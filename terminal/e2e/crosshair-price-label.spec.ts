@@ -387,6 +387,16 @@ test("dense option levels use gex_state fallback and fan their badges without mo
           const box = el.getBoundingClientRect();
           return { id: el.dataset.levelKey!, left: box.left - wrap.left, right: box.right - wrap.left, top: box.top - wrap.top, bottom: box.bottom - wrap.top };
         }),
+      ...[...document.querySelectorAll<HTMLElement>(".chart-fs-float, [data-visual-context] > button[aria-controls], .lg-block")]
+        .filter((el) => {
+          const style = getComputedStyle(el);
+          const box = el.getBoundingClientRect();
+          return style.display !== "none" && style.visibility !== "hidden" && box.width > 0 && box.height > 0;
+        })
+        .map((el, index) => {
+          const box = el.getBoundingClientRect();
+          return { id: `obstacle-${index}`, obstacle: true, left: box.left - wrap.left, right: box.right - wrap.left, top: box.top - wrap.top, bottom: box.bottom - wrap.top };
+        }),
     ];
     const overlaps: string[] = [];
     for (let a = 0; a < boxes.length; a++) for (let b = a + 1; b < boxes.length; b++) {
@@ -397,7 +407,7 @@ test("dense option levels use gex_state fallback and fan their badges without mo
     return { boxes, overlaps, wrapWidth: wrap.width, wrapHeight: wrap.height };
   }, { row: PRICE_TAG_ROW_HEIGHT, timer: PRICE_TAG_TIME_HEIGHT });
   expect(geometry.overlaps).toEqual([]);
-  for (const box of geometry.boxes) {
+  for (const box of geometry.boxes.filter((item) => !("obstacle" in item))) {
     expect(box.left, `${box.id} left`).toBeGreaterThanOrEqual(0);
     expect(box.right, `${box.id} right`).toBeLessThanOrEqual(geometry.wrapWidth);
     expect(box.top, `${box.id} top`).toBeGreaterThanOrEqual(0);
@@ -413,7 +423,7 @@ test("dense option levels use gex_state fallback and fan their badges without mo
     return lines.map((line) => line.price).sort((a, b) => a - b);
   })).toEqual(expectedLinePrices);
   const resizedOverlaps = await page.evaluate(() => {
-    const visible = [".mm-ptag", ".mm-exttag", ".mm-optlevel-tag"]
+    const visible = [".mm-ptag", ".mm-exttag", ".mm-optlevel-tag", ".chart-fs-float", "[data-visual-context] > button[aria-controls]", ".lg-block"]
       .flatMap((selector) => [...document.querySelectorAll<HTMLElement>(selector)])
       .filter((element) => getComputedStyle(element).display !== "none")
       .map((element) => ({ id: element.dataset.levelKey ?? element.className, box: element.getBoundingClientRect() }));
@@ -496,6 +506,16 @@ test("left-side and percentage scales keep the foreground label on the active ax
   expect(optionBox!.x).toBeGreaterThanOrEqual(wrap!.x + 1);
   expect(optionBox!.x).toBeLessThan(wrap!.x + wrap!.width * 0.45);
   await expect(page.locator(".mm-optlevel-tag:visible").first()).toHaveText(/%$/);
+
+  const leftObstacleOverlaps = await page.evaluate(() => {
+    const labels = [...document.querySelectorAll<HTMLElement>(".mm-optlevel-tag")].filter((element) => getComputedStyle(element).display !== "none");
+    const legends = [...document.querySelectorAll<HTMLElement>(".lg-block")].filter((element) => getComputedStyle(element).display !== "none");
+    return labels.flatMap((label) => legends.filter((legend) => {
+      const A = label.getBoundingClientRect(), B = legend.getBoundingClientRect();
+      return A.left < B.right && A.right > B.left && A.top < B.bottom && A.bottom > B.top;
+    }).map(() => label.dataset.levelKey ?? "unknown"));
+  });
+  expect(leftObstacleOverlaps).toEqual([]);
 
   // Sibling :364-366: one move to the last-price overlay point. A y-35 approach can leave the
   // price pane, and under load that leave lands after the target move, so the tag ends up hidden

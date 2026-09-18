@@ -8,6 +8,7 @@ import {
   secondaryPriceTagTop,
   layoutPriceAxisBadges,
   readablePriceTagTextColor,
+  priceAxisOffsetForObstacles,
 } from "../priceTagPlacement";
 
 const place = (
@@ -98,6 +99,39 @@ describe("secondaryPriceTagTop", () => {
   });
 });
 
+
+describe("priceAxisOffsetForObstacles", () => {
+  it("moves a right-edge badge left of intersecting chart chrome without changing y", () => {
+    expect(priceAxisOffsetForObstacles({
+      onLeft: false, containerWidth: 390, top: 60, height: 17, width: 84,
+      obstacles: [{ left: 294, right: 338, top: 40, bottom: 84 }],
+    })).toBe(100);
+  });
+
+  it("moves a left-edge badge right of a legend only when their rectangles intersect", () => {
+    const obstacle = { left: 8, right: 210, top: 40, bottom: 90 };
+    expect(priceAxisOffsetForObstacles({
+      onLeft: true, containerWidth: 390, top: 60, height: 17, width: 84, obstacles: [obstacle],
+    })).toBe(214);
+    expect(priceAxisOffsetForObstacles({
+      onLeft: true, containerWidth: 390, top: 120, height: 17, width: 84, obstacles: [obstacle],
+    })).toBe(1);
+  });
+
+  it("iterates across chained obstacles and remains inside the container", () => {
+    expect(priceAxisOffsetForObstacles({
+      onLeft: true, containerWidth: 300, top: 10, height: 17, width: 80,
+      obstacles: [
+        { left: 0, right: 80, top: 0, bottom: 40 },
+        { left: 84, right: 170, top: 0, bottom: 40 },
+      ],
+    })).toBe(174);
+    expect(priceAxisOffsetForObstacles({
+      onLeft: true, containerWidth: 120, top: 10, height: 17, width: 80,
+      obstacles: [{ left: 0, right: 110, top: 0, bottom: 40 }],
+    })).toBe(40);
+  });
+});
 
 describe("layoutPriceAxisBadges", () => {
   const assertNoOverlap = (
