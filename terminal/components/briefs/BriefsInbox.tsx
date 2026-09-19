@@ -43,6 +43,7 @@ export default function BriefsInbox({ lang }: { lang: BriefLang }) {
           <span className={s.moduleCount}>{rows.length}</span>
         )}
       </div>
+      <p className={b.deliveryNote} data-testid="briefs-email-null">{briefCopy("emailNull", L)}</p>
       {unavailable && (
         <>
           <p className={s.calmBody}>{briefCopy("unavailable", L)}</p>
@@ -85,7 +86,6 @@ export default function BriefsInbox({ lang }: { lang: BriefLang }) {
           })}
         </div>
       )}
-      <p className={b.emailNull} data-testid="briefs-email-null">{briefCopy("emailNull", L)}</p>
     </div>
   );
 }

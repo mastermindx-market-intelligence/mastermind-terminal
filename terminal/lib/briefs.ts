@@ -78,22 +78,25 @@ export type BriefPatchState = (typeof PATCH_STATES)[number];
 
 export const BRIEFS_COPY = {
   title: ["Briefs", "简报"],
+  controlsTitle: ["Schedule brief", "安排简报"],
+  scheduleHelp: [
+    "Choose when this thesis or watchlist should appear in your Briefs inbox.",
+    "选择这份论点或观察列表何时出现在简报收件箱中。",
+  ],
   emailNull: [
-    "Briefs appear here in the Terminal. Email delivery isn't available yet.",
-    "简报会出现在终端里。邮件送达尚未开通。",
+    "Delivery: Terminal → Alerts → Briefs. Email and push aren't available yet.",
+    "送达位置：终端 → 提醒 → 简报。邮件和推送尚未开通。",
   ],
-  subscribeDaily: [
-    "Send me a brief after each US close",
-    "每个美股收盘后给我一份简报",
-  ],
-  subscribeWeekly: ["Send me a brief every Saturday", "每周六给我一份简报"],
+  subscribeDaily: ["After each US close", "每个美股收盘后"],
+  subscribeWeekly: ["Every Saturday", "每周六"],
+  add: ["Add", "添加"],
   pause: ["Pause", "暂停"],
   resume: ["Resume", "恢复"],
   paused: ["Paused", "已暂停"],
-  on: ["On", "已开启"],
+  on: ["Scheduled", "已安排"],
   empty: [
-    "No briefs yet — subscribe a thesis or watchlist to get one after the next close.",
-    "还没有简报。订阅一份论点或观察列表，下次收盘后就会收到。",
+    "No delivered briefs yet. When a scheduled brief runs, it will appear here.",
+    "还没有已送达的简报。定时简报运行后会显示在这里。",
   ],
   degradedDaily: [
     "Tonight's brief didn't run — the market read it uses wasn't rebuilt. Nothing has been recalculated.",

@@ -143,12 +143,18 @@ describe("BriefSubscribeControls", () => {
     vi.unstubAllGlobals();
   });
 
-  it("offers the two cadence sentences in EN and ZH", async () => {
+  it("offers explicit schedules and tells the user exactly where briefs arrive", async () => {
     await mountSubscribe("en");
+    expect(text()).toContain(briefCopy("controlsTitle", "en"));
+    expect(text()).toContain(briefCopy("scheduleHelp", "en"));
+    expect(text()).toContain(briefCopy("emailNull", "en"));
     expect(text()).toContain(briefCopy("subscribeDaily", "en"));
     expect(text()).toContain(briefCopy("subscribeWeekly", "en"));
+    expect(text()).not.toContain("Send me a brief");
     unmount();
     await mountSubscribe("zh");
+    expect(text()).toContain(briefCopy("controlsTitle", "zh"));
+    expect(text()).toContain(briefCopy("emailNull", "zh"));
     expect(text()).toContain(briefCopy("subscribeDaily", "zh"));
     expect(text()).toContain(briefCopy("subscribeWeekly", "zh"));
   });

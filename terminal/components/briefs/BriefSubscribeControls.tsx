@@ -107,8 +107,11 @@ export default function BriefSubscribeControls({
     if (!existing) {
       return (
         <div className={s.cadenceRow} key={labelKey}>
+          <div className={s.cadenceCopy}>
+            <p>{sentence}</p>
+          </div>
           <button type="button" disabled={disabled} onClick={() => void subscribe(cadence)}>
-            {sentence}
+            {briefCopy("add", L)}
           </button>
         </div>
       );
@@ -116,7 +119,12 @@ export default function BriefSubscribeControls({
     const paused = subscriptionIsPaused(existing);
     return (
       <div className={s.cadenceRow} key={labelKey}>
-        <p>{sentence}</p>
+        <div className={s.cadenceCopy}>
+          <p>{sentence}</p>
+          <span className={s.stateChip} data-state={paused ? "paused" : "active"}>
+            {briefCopy(paused ? "paused" : "on", L)}
+          </span>
+        </div>
         <button
           type="button"
           disabled={disabled}
@@ -131,7 +139,9 @@ export default function BriefSubscribeControls({
 
   return (
     <div className={s.controls} data-testid="brief-subscribe">
-      <div className={s.controlsHead}>{briefCopy("title", L)}</div>
+      <div className={s.controlsHead}>{briefCopy("controlsTitle", L)}</div>
+      <p className={s.controlsNote}>{briefCopy("scheduleHelp", L)}</p>
+      <p className={s.deliveryNote} data-testid="briefs-subscribe-delivery">{briefCopy("emailNull", L)}</p>
       {row("daily_after_us_close", "subscribeDaily")}
       {row("weekly_saturday", "subscribeWeekly")}
     </div>

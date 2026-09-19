@@ -33,7 +33,7 @@ async function mockBriefs(page: Page, deliveries: unknown[]) {
   });
 }
 
-test("empty inbox shows the subscribe-next-close sentence", async ({ page }) => {
+test("empty inbox names the in-product destination without promising external delivery", async ({ page }) => {
   await page.addInitScript(() => {
     localStorage.setItem("mm.lang", "en");
     localStorage.setItem("theme", "dark");

@@ -9,11 +9,21 @@ import {
 } from "@/lib/briefs";
 
 describe("briefs copy is a plain sentence in EN and ZH", () => {
-  it("carries the R4 email-null sentence verbatim", () => {
+  it("names the in-product destination and the external-delivery null", () => {
     expect(briefCopy("emailNull", "en")).toBe(
-      "Briefs appear here in the Terminal. Email delivery isn't available yet.",
+      "Delivery: Terminal → Alerts → Briefs. Email and push aren't available yet.",
     );
-    expect(briefCopy("emailNull", "zh")).toBe("简报会出现在终端里。邮件送达尚未开通。");
+    expect(briefCopy("emailNull", "zh")).toBe(
+      "送达位置：终端 → 提醒 → 简报。邮件和推送尚未开通。",
+    );
+  });
+
+  it("describes schedules without pretending to send an external notification", () => {
+    expect(briefCopy("controlsTitle", "en")).toBe("Schedule brief");
+    expect(briefCopy("subscribeDaily", "en")).toBe("After each US close");
+    expect(briefCopy("subscribeWeekly", "en")).toBe("Every Saturday");
+    expect(briefCopy("add", "en")).toBe("Add");
+    expect(Object.values(BRIEFS_COPY).flat().join("\n")).not.toMatch(/Send me a brief|给我一份简报/);
   });
 
   it("carries the R6 degraded line for the nightly and weekly cadence", () => {
@@ -31,11 +41,13 @@ describe("briefs copy is a plain sentence in EN and ZH", () => {
     );
   });
 
-  it("carries the empty-state sentence", () => {
+  it("carries an empty-state sentence that does not promise a delivery channel", () => {
     expect(briefCopy("empty", "en")).toBe(
-      "No briefs yet — subscribe a thesis or watchlist to get one after the next close.",
+      "No delivered briefs yet. When a scheduled brief runs, it will appear here.",
     );
-    expect(briefCopy("empty", "zh")).toBe("还没有简报。订阅一份论点或观察列表，下次收盘后就会收到。");
+    expect(briefCopy("empty", "zh")).toBe(
+      "还没有已送达的简报。定时简报运行后会显示在这里。",
+    );
   });
 
   it("never leaks a cadence or state slug", () => {
