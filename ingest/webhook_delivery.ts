@@ -16,7 +16,7 @@ import { readFileSync } from "node:fs";
 import https from "node:https";
 import { isIP } from "node:net";
 import { lookup } from "node:dns/promises";
-import { signWebhookPayload } from "../terminal/lib/webhookSigning";
+import { buildWebhookHeaders, signWebhookPayload } from "../terminal/lib/webhookSigning";
 import { failurePatch, hasBadRetryTimestamp, isDueDelivery, STALE_LEASE_MS } from "../terminal/lib/webhookRetry";
 import { decodeHostToIp, isPrivateIp, validateWebhookUrl } from "../terminal/lib/webhookUrl";
 
@@ -117,6 +117,9 @@ export type EndpointRow = {
   url: string;
   secret: string;
   enabled: boolean;
+  secret_previous: string | null;
+  secret_previous_expires_at: string | null;
+  secret_version: number;
 };
 
 export type Poster = (
@@ -331,17 +334,24 @@ export async function deliverOne(
 
   const rawBody = JSON.stringify(row.payload ?? {});
   const timestamp = Math.floor(Date.now() / 1000);
-  const hex = signWebhookPayload(endpoint.secret, timestamp, rawBody);
+  const nowMs = Date.now();
+  const headers = buildWebhookHeaders({
+    secret: endpoint.secret,
+    secretPrevious: endpoint.secret_previous ?? null,
+    secretPreviousExpiresAt: endpoint.secret_previous_expires_at ?? null,
+    secretVersion: endpoint.secret_version ?? 1,
+    deliveryId: row.id,
+    eventId: row.event_id,
+    eventType: row.event_type,
+    timestamp,
+    rawBody,
+    nowMs,
+  });
   const result = await post(
     endpoint.url,
     resolved.address,
     resolved.family,
-    {
-      "Content-Type": "application/json",
-      "Mastermind-Webhook-Id": row.id,
-      "Mastermind-Webhook-Timestamp": String(timestamp),
-      "Mastermind-Webhook-Signature": `v1=${hex}`,
-    },
+    headers,
     rawBody,
   );
 
@@ -370,8 +380,22 @@ export async function deliverOne(
 
 function runDemo(): number {
   log("DEMO — no Supabase; signing + retry table only");
-  const hex = signWebhookPayload("demo-secret", 1_700_000_000, "{\"schema\":\"mastermind.webhook-test/v1\"}");
+  const rawBody = "{\"schema\":\"mastermind.webhook-test/v1\"}";
+  const hex = signWebhookPayload("demo-secret", 1_700_000_000, rawBody);
   log(`sign vector length=${hex.length}`);
+  const headers = buildWebhookHeaders({
+    secret: "demo-secret",
+    secretPrevious: null,
+    secretPreviousExpiresAt: null,
+    secretVersion: 1,
+    deliveryId: "00000000-0000-4000-8000-000000000001",
+    eventId: "demo-event",
+    eventType: "webhook.test",
+    timestamp: 1_700_000_000,
+    rawBody,
+    nowMs: 1_700_000_000_000,
+  });
+  log(`demo headers ${Object.keys(headers).sort().join(" ")}`);
   log("demo done");
   return 0;
 }
@@ -407,7 +431,7 @@ async function main(): Promise<number> {
   let endpoints: EndpointRow[] = [];
   try {
     const data = await supa.get(
-      `webhook_endpoints?id=in.(${ids.map(encodeURIComponent).join(",")})&select=id,url,secret,enabled`,
+      `webhook_endpoints?id=in.(${ids.map(encodeURIComponent).join(",")})&select=id,url,secret,enabled,secret_previous,secret_previous_expires_at,secret_version`,
     );
     endpoints = Array.isArray(data) ? (data as EndpointRow[]) : [];
   } catch (e) {

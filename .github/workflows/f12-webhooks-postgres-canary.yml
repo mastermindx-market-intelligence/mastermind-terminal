@@ -4,8 +4,11 @@ on:
   pull_request:
     paths:
       - "supabase/migrations/0018_webhook_delivery.sql"
+      - "supabase/migrations/0026_webhook_rotation_alert_fires.sql"
       - "ingest/webhook_delivery.ts"
       - "terminal/scripts/f12_webhooks_postgres_canary.py"
+      - "terminal/lib/webhookSigning.ts"
+      - "terminal/lib/webhooks.ts"
       - ".github/workflows/f12-webhooks-postgres-canary.yml"
   workflow_dispatch: {}
 

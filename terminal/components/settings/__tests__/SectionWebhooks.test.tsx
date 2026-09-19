@@ -9,7 +9,7 @@ import { createRoot, type Root } from "react-dom/client";
 import SectionWebhooks from "@/components/settings/SectionWebhooks";
 import { LEX } from "@/lib/i18n";
 import type { SectionProps } from "@/components/settings/types";
-import { webhookCopy, webhookDeliveryStatusLabel, webhookEnabledLabel } from "@/lib/webhookLabels";
+import { webhookCopy, webhookDeliveryStatusLabel, webhookEnabledLabel, webhookEventTypeLabel, webhookKeyVersionLine } from "@/lib/webhookLabels";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -474,5 +474,159 @@ describe("delivery list ids are unique per endpoint", () => {
     expect(el.querySelector("#wh-deliveries-ep-1")).not.toBeNull();
     expect(el.querySelector("#wh-deliveries-ep-2")).not.toBeNull();
     expect(el.querySelectorAll("[id^='wh-deliveries-']")).toHaveLength(2);
+  });
+});
+
+describe("B-F12-11 alert-fire subscription, rotate, send-again, consent", () => {
+  const SUBSCRIBED = {
+    ...ENDPOINT,
+    eventFilter: ["webhook.test", "alert.fired"],
+    secretVersion: 2,
+    secretRotatedAt: "2026-09-12T10:00:00.000Z",
+  };
+
+  it("EN and ZH render the new rows and chips", async () => {
+    webhooksImpl = async (url) => {
+      if (url.includes("/deliveries")) {
+        return jsonRes(200, {
+          deliveries: [
+            {
+              id: "d-ok",
+              eventType: "alert.fired",
+              status: "delivered",
+              lastError: null,
+              createdAt: "2026-09-09T11:00:00.000Z",
+            },
+          ],
+        });
+      }
+      return jsonRes(200, { endpoints: [SUBSCRIBED], callerRole: "owner", truncated: false });
+    };
+    const en = await mount(accountProps("en"));
+    expect(en.textContent || "").toContain(webhookCopy("alertFires", "en"));
+    expect(en.textContent || "").toContain(webhookCopy("consentTitle", "en"));
+    expect(en.textContent || "").toContain(webhookCopy("consentToggle", "en"));
+    expect(en.textContent || "").toContain(webhookCopy("rotateSecret", "en"));
+    expect(en.textContent || "").toContain(webhookEventTypeLabel("alert.fired", "en"));
+    expect(en.textContent || "").toContain(webhookEventTypeLabel("webhook.test", "en"));
+    expect(en.textContent || "").toContain(webhookKeyVersionLine(2, SUBSCRIBED.secretRotatedAt, "en"));
+    expect(en.textContent || "").not.toContain("alert.fired");
+    expect(en.querySelector("#wh-alert-fires")).not.toBeNull();
+    expect(en.querySelector("#wh-consent-toggle")).not.toBeNull();
+    expect(en.querySelector("#wh-rotate-ep-1")).not.toBeNull();
+    await act(async () => {
+      root?.unmount();
+    });
+    container?.remove();
+    const zh = await mount(accountProps("zh"));
+    expect(zh.textContent || "").toContain(webhookCopy("alertFires", "zh"));
+    expect(zh.textContent || "").toContain(webhookCopy("consentTitle", "zh"));
+    expect(zh.textContent || "").toContain(webhookCopy("consentToggle", "zh"));
+    expect(zh.textContent || "").toContain(webhookCopy("rotateSecret", "zh"));
+    expect(zh.textContent || "").toContain(webhookEventTypeLabel("alert.fired", "zh"));
+    expect(zh.textContent || "").not.toContain("您");
+  });
+
+  it("rotate shows the secret once with the version line", async () => {
+    webhooksImpl = async (url, method) => {
+      if (url.includes("/rotate") && method === "POST") {
+        return jsonRes(200, { ok: true, secret: "whsec_rotated_once", secretVersion: 2 });
+      }
+      if (url.includes("/deliveries")) return jsonRes(200, { deliveries: [] });
+      return jsonRes(200, { endpoints: [SUBSCRIBED], callerRole: "owner", truncated: false });
+    };
+    const el = await mount(accountProps("en"));
+    const btn = el.querySelector("#wh-rotate-ep-1") as HTMLButtonElement | null;
+    expect(btn).not.toBeNull();
+    await act(async () => {
+      btn!.click();
+    });
+    await flush();
+    await flush();
+    await flush();
+    // The secret is rendered into the read-only input's value, not textContent — query the
+    // input directly. The rotate-help sentence and the version line are both plain text.
+    const secretInput = el.querySelector("input.acs-in[readonly]") as HTMLInputElement | null;
+    expect(secretInput, "the once-only secret input must be mounted after rotate").not.toBeNull();
+    expect(secretInput!.value).toBe("whsec_rotated_once");
+    const text = el.textContent || "";
+    expect(text).toContain(webhookCopy("rotateHelp", "en"));
+    expect(text).toContain(webhookCopy("secretOnce", "en"));
+    expect(text).toContain(webhookKeyVersionLine(2, SUBSCRIBED.secretRotatedAt, "en"));
+  });
+
+  it("send-again on a failed row POSTs and shows Queued again.", async () => {
+    const posts: string[] = [];
+    webhooksImpl = async (url, method) => {
+      if (url.includes("/retry") && method === "POST") {
+        posts.push(url);
+        return jsonRes(200, { ok: true });
+      }
+      if (url.includes("/deliveries")) {
+        return jsonRes(200, {
+          deliveries: [
+            {
+              id: "d-fail",
+              eventType: "alert.fired",
+              status: "failed",
+              lastError: "http 500",
+              createdAt: "2026-09-09T11:00:00.000Z",
+            },
+          ],
+        });
+      }
+      return jsonRes(200, { endpoints: [SUBSCRIBED], callerRole: "owner", truncated: false });
+    };
+    const el = await mount(accountProps("en"));
+    const btn = el.querySelector("#wh-retry-d-fail") as HTMLButtonElement | null;
+    expect(btn).not.toBeNull();
+    expect(btn!.textContent).toBe(webhookCopy("sendAgain", "en"));
+    await act(async () => {
+      btn!.click();
+    });
+    await flush();
+    await flush();
+    expect(posts.some((u) => u.includes("/deliveries/d-fail/retry"))).toBe(true);
+    expect(el.textContent || "").toContain(webhookCopy("queuedAgain", "en"));
+  });
+
+  it("consent toggle PUT + revert on 503", async () => {
+    const puts: string[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
+        const method = (init?.method || "GET").toUpperCase();
+        if (url.includes("/api/teams")) return jsonRes(200, { teams: [TEAM], truncated: false });
+        if (url.includes("alert-optin") && method === "PUT") {
+          puts.push(String(init?.body || ""));
+          return jsonRes(503, {
+            error: "OPTIN_FAILED",
+            message: webhookCopy("optinFailed", "en"),
+            messageZh: webhookCopy("optinFailed", "zh"),
+          });
+        }
+        if (url.includes("alert-optin")) return jsonRes(200, { enabled: true });
+        if (url.includes("/deliveries")) return jsonRes(200, { deliveries: [] });
+        if (url.includes("/api/webhooks")) {
+          return jsonRes(200, { endpoints: [SUBSCRIBED], callerRole: "owner", truncated: false });
+        }
+        return jsonRes(404, {});
+      }),
+    );
+    const el = await mount(accountProps("en"));
+    const toggle = el.querySelector("#wh-consent-toggle") as HTMLButtonElement | null;
+    expect(toggle).not.toBeNull();
+    expect(toggle!.getAttribute("aria-pressed")).toBe("true");
+    await act(async () => {
+      toggle!.click();
+    });
+    await flush();
+    await flush();
+    const after = el.querySelector("#wh-consent-toggle") as HTMLButtonElement | null;
+    expect(after!.getAttribute("aria-pressed")).toBe("true");
+    expect(el.textContent || "").toContain(webhookCopy("optinFailed", "en"));
+    expect(puts.length).toBeGreaterThan(0);
+    expect(puts[0]).toContain('"enabled":false');
   });
 });
