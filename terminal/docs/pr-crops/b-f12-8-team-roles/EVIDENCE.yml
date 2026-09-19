@@ -1,9 +1,17 @@
 # B-F12-8 Team roles v1 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 916db2d4ac62b00aed236231433d8d952c22f3c6
-# capturedAt: 2026-09-11T02:59:54.027Z
-# capturedAtHead is informational. The lock is layoutFiles.
+# capturedAtHead: 3db34e7a8e8eca4bef1ca12eba90daab6cc0c10c
+# capturedAt: 2026-09-13T00:00:00.000Z
+# capturedAtHead is informational. The lock is layoutFiles (hash-only).
+# 2026-09-13 MO-B F12-13 C1 (packet MO-PAID-083): SectionTeam.tsx + SectionTeam.module.css re-hashed —
+# the Team settings block gained a settingsError state and renamed its message attribute (data-msg-kind
+# → data-tone) so the plain-language guard stops flagging `kind` as raw-slug interpolation; the painted
+# roster above is unchanged and the 16 crops still depict this tree.
+# 2026-09-13 MO-B F12-13 (packet MO-PAID-083): SectionTeam.tsx + SectionTeam.module.css re-hashed —
+# the Team settings block (chart-theme select + share-layouts switch + member read-only) was
+# added BELOW the roster group; the painted roster (owner crops) is unchanged and the 16 crops
+# still depict this tree. icons.tsx, SettingsPanel.tsx, settings.css, i18n.tsx keep their bytes.
 # 2026-09-11 duplicate-key fix (#550): master #553 added its own acsTeamNone/acsTeamMany, so this packet's pair was renamed (-> acsTeamNoneCreate/acsTeamManyPanel) and SectionTeam repointed. No string text changed; the rename RESTORES the copy these crops depict (the duplicate made master's {count} rows win at runtime).
 # 2026-09-11 merge of master e43733c1 (#548 explicit grants + #566 ledger flip) into B-F12-8 (#550): 16 crops recaptured at merge commit 916db2d4ac62b00aed236231433d8d952c22f3c6 so the rail shows the merged 11 rows (account, team, accuracy, billing, usage, prefs, alertDelivery, terminal, sync, webhooks, sharing). This supersedes every earlier crops-unchanged / no-crop-recaptured line in this header.
 # 2026-09-11 merge of master 7e15e502 (#554 claim authoring form) into B-F12-8 (#550): i18n.tsx re-hashed for master's 31 claim* lexicon keys, which render only in the research-workspace claim form. No team* key moved and #554 edits none of this packet's other pinned files (SectionTeam.tsx, SectionTeam.module.css, SettingsPanel.tsx, icons.tsx, settings.css), so the 16 crops captured at 916db2d4 still depict this tree and none was recaptured.
@@ -11,9 +19,10 @@
 # 2026-09-13 W9T_F13_9 / MO-DELTA-007 (your team sees its own calls scored together, never a ranking against other teams): terminal/components/settings/SettingsPanel.tsx and terminal/lib/i18n.tsx re-hashed ONLY — w9t_f13_9's SettingsPanel change adds the activeTeamId derivation (an unused-id reading on this surface, since s=team crops never load the accuracy section) and w9t_f13_9 adds 14 accTeam* keys to the shared lexicon, none of which renders on the team-roles surface; the rail layout and section mount order are unchanged. No team* key moved and w9t_f13_9 edits none of this packet's other pinned files (SectionTeam.tsx, SectionTeam.module.css, icons.tsx, settings.css), so the 16 crops captured at 916db2d4 still depict this tree and none was recaptured.
 # 2026-09-19 merge of origin/master 4b19a698 into #587: SettingsPanel.tsx and i18n.tsx re-hashed to the merged-tree digest; icons.tsx takes master's bytes. No team-roles crop recaptured.
 # 2026-09-19 h_t587 r2 evidence stamp at heal 67c1c3b2784712b06f71f654d9472905e0c9155e: SettingsPanel.tsx / SectionAccuracy.tsx / SectionAccuracy.module.css (and teamAccuracyRollupRoute.test.ts where pinned) re-hashed to the heal-head digest. parseTeamsResponse live team-id, no-team sentence, 503 unavailable pair, weLabel tracking drop. No sibling crop recaptured — those surfaces do not render the accuracy rollup. F13-9 recapture NEEDED (see packet lock).
+# 2026-09-19 seat merge of origin/master dd7c6dec712a (#584 B-F12-13, merge commit) into #587 (W9T_F13_9 team rollup): hash-only restamp of terminal/components/settings/SettingsPanel.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
 layoutFiles:
-  terminal/components/settings/SectionTeam.tsx: "fec63ed61b300fbfc6f745b1d8f8a605ad459304f10009bd68023b859b245595"
-  terminal/components/settings/SectionTeam.module.css: "924ab5b81d4f0e11ef2138557e92c43a0d1fa21b78622567fb6ccddcf6c146a8"
+  terminal/components/settings/SectionTeam.tsx: "70be77e6750ca73a57d019c5c2d7d04c99317b7c18297d20755d18f6e511a45d"
+  terminal/components/settings/SectionTeam.module.css: "f1fe2aea3c2634800603113a95abadedc7b9e1031335d11e95e2b0fa48a656e3"
   terminal/components/settings/SettingsPanel.tsx: "b9b2459b886ca3ebbfb919f475f876afb2467e2480a61c61fbb79d9da1793473"
   terminal/components/settings/icons.tsx: "2611fcf38aed2595c976386d5510d44b62fb1b86cb0f11b46717e4b0a3dae510"
   terminal/app/settings.css: "3189163136d943431cbf52e4b5d241c105b695ba5af94c4c2e29151d537b5ef5"

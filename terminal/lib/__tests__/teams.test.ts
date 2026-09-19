@@ -694,6 +694,166 @@ describe("TEAM_ROUTE_MESSAGES and LEX plain-word completeness (B-F12-8)", () => 
   });
 });
 
+
+// --- Packet MO-B F12-13 tests appended ---
+import {
+  WORKSPACE_SETTING_KEYS,
+  WORKSPACE_SETTING_COPY,
+  normalizeWorkspaceSetting,
+  workspaceSettingDefaults,
+} from "@/lib/teams";
+
+describe("WORKSPACE_SETTING_KEYS — exactly two closed keys (R1)", () => {
+  it("exposes exactly default_chart_theme and share_layouts_by_default", () => {
+    expect(Object.keys(WORKSPACE_SETTING_KEYS).sort()).toEqual(
+      ["default_chart_theme", "share_layouts_by_default"].sort(),
+    );
+  });
+  it("default_chart_theme is a closed enum of green_up/red_up with green_up as default", () => {
+    expect(WORKSPACE_SETTING_KEYS.default_chart_theme.kind).toBe("enum");
+    expect([...WORKSPACE_SETTING_KEYS.default_chart_theme.values].sort()).toEqual(["green_up", "red_up"]);
+    expect(WORKSPACE_SETTING_KEYS.default_chart_theme.default).toBe("green_up");
+  });
+  it("share_layouts_by_default is a boolean with false default", () => {
+    expect(WORKSPACE_SETTING_KEYS.share_layouts_by_default.kind).toBe("boolean");
+    expect(WORKSPACE_SETTING_KEYS.share_layouts_by_default.default).toBe(false);
+  });
+});
+
+describe("normalizeWorkspaceSetting accept/reject matrix (R1, R7)", () => {
+  it("accepts default_chart_theme green_up", () => {
+    expect(normalizeWorkspaceSetting("default_chart_theme", "green_up")).toEqual({
+      ok: true,
+      key: "default_chart_theme",
+      value: "green_up",
+    });
+  });
+  it("accepts default_chart_theme red_up", () => {
+    expect(normalizeWorkspaceSetting("default_chart_theme", "red_up")).toEqual({
+      ok: true,
+      key: "default_chart_theme",
+      value: "red_up",
+    });
+  });
+  it("rejects default_chart_theme purple_up as invalid_value", () => {
+    expect(normalizeWorkspaceSetting("default_chart_theme", "purple_up")).toEqual({
+      ok: false,
+      code: "invalid_value",
+    });
+  });
+  it("rejects default_chart_theme null / undefined as invalid_value", () => {
+    expect(normalizeWorkspaceSetting("default_chart_theme", null)).toEqual({ ok: false, code: "invalid_value" });
+    expect(normalizeWorkspaceSetting("default_chart_theme", undefined)).toEqual({ ok: false, code: "invalid_value" });
+  });
+  it("accepts share_layouts_by_default true / false", () => {
+    expect(normalizeWorkspaceSetting("share_layouts_by_default", true)).toEqual({
+      ok: true,
+      key: "share_layouts_by_default",
+      value: true,
+    });
+    expect(normalizeWorkspaceSetting("share_layouts_by_default", false)).toEqual({
+      ok: true,
+      key: "share_layouts_by_default",
+      value: false,
+    });
+  });
+  it("rejects string 'true' for the boolean as invalid_value", () => {
+    expect(normalizeWorkspaceSetting("share_layouts_by_default", "true")).toEqual({
+      ok: false,
+      code: "invalid_value",
+    });
+    expect(normalizeWorkspaceSetting("share_layouts_by_default", "false")).toEqual({
+      ok: false,
+      code: "invalid_value",
+    });
+  });
+  it("rejects unknown keys as invalid_key", () => {
+    expect(normalizeWorkspaceSetting("not_a_key", "x")).toEqual({ ok: false, code: "invalid_key" });
+    expect(normalizeWorkspaceSetting("", "x")).toEqual({ ok: false, code: "invalid_key" });
+    expect(normalizeWorkspaceSetting(null, "x")).toEqual({ ok: false, code: "invalid_key" });
+  });
+});
+
+describe("workspaceSettingDefaults — exactly two rows in key order (R2)", () => {
+  it("returns the two closed defaults in canonical order", () => {
+    expect(workspaceSettingDefaults()).toEqual([
+      { key: "default_chart_theme", value: "green_up" },
+      { key: "share_layouts_by_default", value: false },
+    ]);
+  });
+});
+
+describe("WORKSPACE_SETTING_COPY — plain-word catalogue (R3)", () => {
+  const BANNED = [
+    "falsifier",
+    "refuted",
+    "证伪",
+    "default_chart_theme",
+    "share_layouts_by_default",
+    "green_up",
+    "red_up",
+    "RLS",
+    "42501",
+    "team_settings",
+    "workspace_settings",
+  ];
+  // Labels: section heading, captions, and the select-options twins. Plain words, but they are
+  // noun phrases (e.g. "Chart colours") rather than full sentences — the seat ruling pins these
+  // exact strings, so the test checks EN starts with a capital, ZH has CJK, and neither twin
+  // carries banned vocabulary.
+  const labels: Array<readonly [string, string]> = [
+    WORKSPACE_SETTING_COPY.heading,
+    WORKSPACE_SETTING_COPY.caption.default_chart_theme,
+    WORKSPACE_SETTING_COPY.caption.share_layouts_by_default,
+    ...WORKSPACE_SETTING_COPY.options.chart_theme,
+  ];
+  // Sentences: the explainer, the member share read-only sentences, and the read-only gate
+  // sentence. Each MUST end with a sentence terminator in both languages per the plain-language
+  // law (R3).
+  const sentences: Array<readonly [string, string]> = [
+    WORKSPACE_SETTING_COPY.memberReadOnly,
+    WORKSPACE_SETTING_COPY.explainer.share_layouts_by_default,
+    WORKSPACE_SETTING_COPY.shareValue.on,
+    WORKSPACE_SETTING_COPY.shareValue.off,
+  ];
+  it("every [EN, ZH] label is distinct, has CJK, and avoids banned vocabulary", () => {
+    for (const [en, zh] of labels) {
+      expect(en.length).toBeGreaterThan(0);
+      expect(zh.length).toBeGreaterThan(0);
+      expect(en).not.toBe(zh);
+      expect(zh).toMatch(/[一-鿿]/);
+      expect(en).toMatch(/^[A-Z]/);
+      for (const banned of BANNED) {
+        expect(en).not.toContain(banned);
+        expect(zh).not.toContain(banned);
+      }
+    }
+  });
+  it("every [EN, ZH] sentence is distinct, ends with a terminator, and avoids banned vocabulary", () => {
+    for (const [en, zh] of sentences) {
+      expect(en.length).toBeGreaterThan(0);
+      expect(zh.length).toBeGreaterThan(0);
+      expect(en).not.toBe(zh);
+      expect(zh).toMatch(/[一-鿿]/);
+      expect(en).toMatch(/^[A-Z]/);
+      expect(en).toMatch(/[.!?。？]$/);
+      expect(zh).toMatch(/[.!?。？]$/);
+      for (const banned of BANNED) {
+        expect(en).not.toContain(banned);
+        expect(zh).not.toContain(banned);
+      }
+    }
+  });
+  it("the ZH chart-theme options match the seat ruling wording 绿涨红跌 / 红涨绿跌", () => {
+    expect(WORKSPACE_SETTING_COPY.options.chart_theme[0][1]).toBe("绿涨红跌");
+    expect(WORKSPACE_SETTING_COPY.options.chart_theme[1][1]).toBe("红涨绿跌");
+  });
+  it("the seat ruling EN chart-theme options are plain words", () => {
+    expect(WORKSPACE_SETTING_COPY.options.chart_theme[0][0]).toBe("Green means up, red means down");
+    expect(WORKSPACE_SETTING_COPY.options.chart_theme[1][0]).toBe("Red means up, green means down");
+  });
+});
+
 // --- Audit heal of t#514 appended tests (criterion (e) FAIL) --------------------------------
 // Two pieces of the merged packet shipped untested: the exported `listInvites` behind
 // GET /api/teams/invitations, and the `truncated` flag this packet's own round-2 m1 introduced,

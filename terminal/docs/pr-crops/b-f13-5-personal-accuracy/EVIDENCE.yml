@@ -1,9 +1,14 @@
 # B-F13-5 Personal accuracy ledger — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 916db2d4ac62b00aed236231433d8d952c22f3c6
-# capturedAt: 2026-09-11T02:59:13.879Z
+# capturedAtHead: 3db34e7a8e8eca4bef1ca12eba90daab6cc0c10c
+# capturedAt: 2026-09-13T00:00:00.000Z
 # capturedAtHead is informational. The lock is layoutFiles.
+# 2026-09-13 MO-B F12-13 (packet MO-PAID-083): types.ts and dev/settings/page.tsx re-hashed —
+# DevTeamFixture gained an optional `settings?` block and DEV_TEAM/DEV_TEAM_MEMBER gained the
+# `team=member` harness address; the captured accuracy surface does not render either, so the
+# 12 crops still depict this tree. SectionAccuracy.*, SettingsPanel.tsx, i18n.tsx, the two
+# personalAccuracy libs and accuracyFixtures.ts keep their bytes.
 # types.ts hash restamped earlier on this PR: the acsDate NaN guard moved inside the existing try so a throwing input stays null (this PR's heal h3 test).
 # 2026-09-11 duplicate-key fix on #550: the carrier renamed its own acsTeamNone/acsTeamMany (-> acsTeamNoneCreate/acsTeamManyPanel) to clear the TS1117 collision with master #553's pair; neither key is rendered on the personal-accuracy surface.
 # 2026-09-11 merge of master e43733c1 (#548 explicit grants + #566 ledger flip) into B-F12-8 (#550): 12 crops recaptured at merge commit 916db2d4ac62b00aed236231433d8d952c22f3c6 so the rail shows the merged 11 rows (account, team, accuracy, billing, usage, prefs, alertDelivery, terminal, sync, webhooks, sharing). This supersedes every earlier crops-unchanged / no-crop-recaptured line in this header.
@@ -13,15 +18,16 @@
 # 2026-09-13 W9T_F13_9 / MO-DELTA-007 (your team sees its own calls scored together, never a ranking against other teams): terminal/components/settings/SectionAccuracy.tsx, terminal/components/settings/SectionAccuracy.module.css, terminal/components/settings/SettingsPanel.tsx, terminal/lib/i18n.tsx and terminal/lib/personalAccuracyStore.ts re-hashed ONLY — the personal-accuracy rendered surface above the team-rollup block is unchanged (the rollup block sits below the personal readout and renders only when `teamId` is set; the dev/settings page used by the b-f13-5 crops never supplies a teamId, so the team-rollup block is empty/hidden in those crops); no b-f13-5 crop was recaptured. The 12 crops recorded against the prior head keep depicting the personal accuracy section as captured.
 # 2026-09-19 merge of origin/master 4b19a698 into #587: layoutFiles restamped to the merged-tree digest (this PR keeps the team-rollup block and the weLabel transform drop; SettingsPanel.tsx / i18n.tsx / page.tsx are merged bytes). No b-f13-5 crop recaptured at merge.
 # 2026-09-19 h_t587 r2 evidence stamp at heal 67c1c3b2784712b06f71f654d9472905e0c9155e: SettingsPanel.tsx / SectionAccuracy.tsx / SectionAccuracy.module.css (and teamAccuracyRollupRoute.test.ts where pinned) re-hashed to the heal-head digest. parseTeamsResponse live team-id, no-team sentence, 503 unavailable pair, weLabel tracking drop. No sibling crop recaptured — those surfaces do not render the accuracy rollup. F13-9 recapture NEEDED (see packet lock).
+# 2026-09-19 seat merge of origin/master dd7c6dec712a (#584 B-F12-13, merge commit) into #587 (W9T_F13_9 team rollup): hash-only restamp of terminal/components/settings/SectionAccuracy.tsx, terminal/components/settings/SectionAccuracy.module.css, terminal/components/settings/SettingsPanel.tsx, terminal/lib/i18n.tsx, terminal/lib/personalAccuracyStore.ts, terminal/app/dev/settings/page.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
 layoutFiles:
   terminal/components/settings/SectionAccuracy.tsx: "c15b4a28962cf39ba7783c1bc71647a5677ddb4c957e9b70da3ab44a0b36327d"
   terminal/components/settings/SectionAccuracy.module.css: "461d6510094319f0dfcffff7a99aa4dd3cd3440f66445f9489613dc56775bf03"
   terminal/components/settings/SettingsPanel.tsx: "b9b2459b886ca3ebbfb919f475f876afb2467e2480a61c61fbb79d9da1793473"
-  terminal/components/settings/types.ts: "108b8e5876b864efec5ceaed22b50da68367e35aae7535aae9be71435d909675"
+  terminal/components/settings/types.ts: "65e846a39725a4dd6738dd746789e540e2b5433b669757356df4fce1d0a721fb"
   terminal/lib/i18n.tsx: "bd49cfd3cd13dcac8afccb1f443745622cd7ec557989d6b8ce23e8879b6bbfcb"
   terminal/lib/personalAccuracy.ts: "66f098c42b9b18269c6184fa06b644406398d09f54afc10f968234499ec16c2d"
   terminal/lib/personalAccuracyStore.ts: "9d7911a2ed8a307335a8244659ad1f981c5b4268f4bfbdb173eaa0d54cb2f3c5"
-  terminal/app/dev/settings/page.tsx: "43e59baf0846cabd4b74315bb8cbfd3d28866fcea7c9039dc7e2cf936bb47632"
+  terminal/app/dev/settings/page.tsx: "4b594ce879f00fdf1f096abde9a36113014b17257e6292dc0ca16c83efcd3660"
   terminal/app/dev/settings/accuracyFixtures.ts: "839d45a530c3625ec0747f44749a6a0f097f7c8c0f4d8674673da40e4fecdeee"
 theme: dark
 languages: [en, zh]

@@ -7,9 +7,10 @@
 # capturedAtHead is the code commit the pixels depict. The lock is layoutFiles.
 # Seat ruling: "Team sees its own scores; never a cross-team rank (hard gate, test pinned)." Every crop depicts the rollup block the hard gate is rendered into. The ceiling sentence at the bottom of every block is the gate in plain words.
 # 2026-09-19 recapture: NEEDED at code head 67c1c3b2784712b06f71f654d9472905e0c9155e. WHY: three next-dev servers were already running in other worktrees; the F13-9 capture tool starts its own next on :3548 and a Playwright run, which the CPU-modest ruling forbids stacking. Crops still depict 503d36556 (weLabel was uppercase at capture). layoutFiles restamped so readFileSync locks pass at HEAD.
+# 2026-09-19 seat merge of origin/master dd7c6dec712a (#584 B-F12-13, merge commit) into #587 (W9T_F13_9 team rollup): hash-only restamp of terminal/app/dev/settings/page.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
 layoutFiles:
   terminal/app/api/teams/[id]/accuracy/rollup/route.ts: "9639c3fa10effb075699c42f84e5c1cf636a4e3e47293894a06dbb366b7c9031"
-  terminal/app/dev/settings/page.tsx: "43e59baf0846cabd4b74315bb8cbfd3d28866fcea7c9039dc7e2cf936bb47632"
+  terminal/app/dev/settings/page.tsx: "4b594ce879f00fdf1f096abde9a36113014b17257e6292dc0ca16c83efcd3660"
   terminal/app/dev/settings/teamRollupFixtures.ts: "c9410a936be6f6e3147956dfc91893416c5cbce37c1bbd93eba45689e3803b05"
   terminal/components/settings/SectionAccuracy.tsx: "c15b4a28962cf39ba7783c1bc71647a5677ddb4c957e9b70da3ab44a0b36327d"
   terminal/components/settings/SectionAccuracy.module.css: "461d6510094319f0dfcffff7a99aa4dd3cd3440f66445f9489613dc56775bf03"
