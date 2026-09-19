@@ -99,6 +99,17 @@ function asRows(value: unknown): Record<string, unknown>[] {
     : [];
 }
 
+function sqlCursorOf(
+  rows: Record<string, unknown>[],
+  limit: number,
+  stampKey: string,
+  idKey: string,
+): string | null {
+  const boundary = rows[limit - 1];
+  if (!boundary) return null;
+  return encodeCursor(String(boundary[stampKey] ?? ""), String(boundary[idKey] ?? ""));
+}
+
 export async function authenticateApiKey(
   request: Request,
   deps?: ApiV1Deps,
@@ -180,9 +191,8 @@ function pageOf(rows: Record<string, unknown>[], limit: number, stampKey: string
 } {
   const hasMore = rows.length > limit;
   const pageRows = hasMore ? rows.slice(0, limit) : rows;
-  const last = pageRows[pageRows.length - 1];
-  const next = hasMore && last
-    ? encodeCursor(String(last[stampKey] ?? ""), String(last[idKey] ?? ""))
+  const next = hasMore
+    ? sqlCursorOf(rows, limit, stampKey, idKey)
     : null;
   return { pageRows, page: { next_cursor: next, limit } };
 }
@@ -272,7 +282,7 @@ function mapPosition(row: Record<string, unknown>): ApiV1Position | null {
   return rowToPosition(row);
 }
 
-export async function handleV1Get(
+async function handleV1GetInternal(
   request: Request,
   resource: string,
   opts: { id?: string; extraArgs?: Record<string, unknown> } = {},
@@ -302,6 +312,7 @@ export async function handleV1Get(
   if (!read.ok) {
     return jsonError(read.code, { limit: auth.limit, remaining: auth.remaining });
   }
+  for (const row of read.rows) assertNoForbiddenFields(row);
 
   let data: unknown;
   let page: ApiV1Page = { next_cursor: null, limit };
@@ -322,6 +333,9 @@ export async function handleV1Get(
       return jsonError("not_found", { limit: auth.limit, remaining: auth.remaining });
     }
     const versions = await readAsUser(auth, "thesis_versions", { id: opts.id, limit: 500 }, deps);
+    if (versions.ok) {
+      for (const version of versions.rows) assertNoForbiddenFields(version);
+    }
     const head = read.rows[0];
     const summary = mapThesisSummary(head);
     if (!summary) return jsonError("not_found", { limit: auth.limit, remaining: auth.remaining });
@@ -447,6 +461,19 @@ export async function handleV1Get(
     status: 200,
     headers: { ...rateHeaders(auth.limit, auth.remaining), ETag: etag },
   });
+}
+
+export async function handleV1Get(
+  request: Request,
+  resource: string,
+  opts: { id?: string; extraArgs?: Record<string, unknown> } = {},
+  deps?: ApiV1Deps,
+): Promise<NextResponse> {
+  try {
+    return await handleV1GetInternal(request, resource, opts, deps);
+  } catch {
+    return jsonError("server_error");
+  }
 }
 
 export async function handleV1Index(request: Request, deps?: ApiV1Deps): Promise<NextResponse> {

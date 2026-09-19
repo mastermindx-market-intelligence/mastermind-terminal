@@ -15,6 +15,7 @@ Env: F12_API_V1_DATABASE_URL (required). Optional expected-commit / run metadata
 from __future__ import annotations
 
 import argparse
+import base64
 import hashlib
 import json
 import os
@@ -99,6 +100,7 @@ def bootstrap(conn: "psycopg.Connection") -> None:
             "  current_version int not null default 1,"
             "  lifecycle_state text not null default 'active',"
             "  subject_ref jsonb,"
+            "  subject_digest bytea not null default '\\\\x',"
             "  created_at timestamptz not null default now(),"
             "  updated_at timestamptz not null default now()"
             ")"
@@ -115,6 +117,7 @@ def bootstrap(conn: "psycopg.Connection") -> None:
             "  subject_ref jsonb,"
             "  content jsonb,"
             "  client_request_id text,"
+            "  request_fingerprint bytea not null default '\\\\x',"
             "  system_recorded_at timestamptz,"
             "  effective_at timestamptz"
             ")"
@@ -134,7 +137,8 @@ def bootstrap(conn: "psycopg.Connection") -> None:
             "  watchlist_id uuid not null,"
             "  symbol text not null,"
             "  section text,"
-            "  position int not null default 0"
+            "  position int not null default 0,"
+            "  created_at timestamptz not null default now()"
             ")"
         )
         cur.execute(
@@ -150,11 +154,15 @@ def bootstrap(conn: "psycopg.Connection") -> None:
         cur.execute(
             "create table if not exists public.alert_outbox ("
             "  id uuid primary key default gen_random_uuid(),"
+            "  user_id uuid not null,"
             "  alert_id uuid not null,"
-            "  fire_event_id uuid,"
+            "  fire_event_id text not null,"
             "  channel text not null default 'email',"
             "  status text not null default 'pending',"
-            "  payload jsonb,"
+            "  payload jsonb not null,"
+            "  attempts int not null default 0,"
+            "  last_error text,"
+            "  deliver_after timestamptz,"
             "  created_at timestamptz not null default now(),"
             "  delivered_at timestamptz"
             ")"
@@ -172,7 +180,8 @@ def bootstrap(conn: "psycopg.Connection") -> None:
             "  evidence jsonb,"
             "  status text,"
             "  resolution jsonb,"
-            "  supersedes jsonb"
+            "  supersedes text,"
+            "  created_at timestamptz not null default now()"
             ")"
         )
         cur.execute(
@@ -314,14 +323,14 @@ def main() -> int:
 
             # Alert fires
             cur.execute(
-                "insert into public.alert_outbox (alert_id, fire_event_id, payload, status) "
-                "values (%s, %s, %s, 'delivered')",
-                (alert_a_id, str(uuid.uuid4()), '{"triggered": true}'),
+                "insert into public.alert_outbox (user_id, alert_id, fire_event_id, payload, status) "
+                "values (%s, %s, %s, %s, 'delivered')",
+                (user_a, alert_a_id, str(uuid.uuid4()), '{"triggered": true}'),
             )
             cur.execute(
-                "insert into public.alert_outbox (alert_id, fire_event_id, payload, status) "
-                "values (%s, %s, %s, 'delivered')",
-                (alert_b_id, str(uuid.uuid4()), '{"triggered": true}'),
+                "insert into public.alert_outbox (user_id, alert_id, fire_event_id, payload, status) "
+                "values (%s, %s, %s, %s, 'delivered')",
+                (user_b, alert_b_id, str(uuid.uuid4()), '{"triggered": true}'),
             )
 
             # --- Claims ---
@@ -360,7 +369,7 @@ def main() -> int:
                 (key_id, user_a, "a" * 64),
             )
             # Revoke it first
-            cur.execute("select revoke_api_key(%s)", (key_id,))
+            cur.execute("select revoke_api_key(%s, %s)", (key_id, user_a))
             # Try to unrevoke — should be blocked by trigger
             try:
                 cur.execute(
@@ -368,7 +377,7 @@ def main() -> int:
                     (key_id,),
                 )
                 proof.check("unrevoke:blocked", False, "update did not raise")
-            except psycopg.errors.GenericError as e:
+            except psycopg.errors.RaiseException as e:
                 proof.check(
                     "unrevoke:blocked",
                     "cannot unrevoke" in str(e),
@@ -434,22 +443,27 @@ def main() -> int:
                 f"A's own thesis {thesis_a_id} not found in {own_ids}",
             )
 
+            # Keep the pagination fixture independent of the isolation fixture.
+            cur.execute("delete from public.watchlist_symbols where watchlist_id = %s", (wl_a_id,))
+            cur.execute("delete from public.watchlists where id = %s", (wl_a_id,))
+
             # Watchlist cursor pagination: insert 51 watchlists for user_a and verify
             # the SQL function returns v_limit+1=51 rows (the TypeScript pageOf slice is separate).
             # MAJOR-canary-3 fix: verify the function returns exactly 51 rows, and that
             # next_cursor is present at the top level of the SQL function's JSON response
-            # (encoded from the 51st row's position+id by the SQL function itself).
+            # (encoded from the fiftieth row's position and id by the SQL function itself).
             for i in range(51):
                 cur.execute(
                     "insert into public.watchlists (user_id, name, position) values (%s, %s, %s)",
                     (user_a, f"WL{i}", i),
                 )
 
-            def read_full(user_id: str, resource: str) -> dict:
+            def read_full(user_id: str, resource: str, cursor: str | None = None) -> dict:
                 """Return the full api_v1_read_as_user response dict (not just rows)."""
+                args = json.dumps({"limit": 50, **({"cursor": cursor} if cursor else {})})
                 cur.execute(
                     CALL_READ,
-                    (user_id, resource, '{"limit": 50}'),
+                    (user_id, resource, args),
                 )
                 row = cur.fetchone()
                 if row is None:
@@ -467,19 +481,39 @@ def main() -> int:
                 len(rows_51) == 51,
                 f"expected 51 rows from SQL function, got {len(rows_51)}",
             )
-            # 51st row (WL50) must NOT appear in the page-1 response (TypeScript pageOf slices it out)
-            wl_names = {str(r.get("name", "")) for r in rows_51}
-            proof.check(
-                "pagination:watchlists:51st_not_in_page1",
-                "WL50" not in wl_names,
-                f"WL50 found in page 1: {wl_names}",
-            )
+            # The SQL contract deliberately returns the 51st row as the lookahead row.
+            # The route/pageOf layer below slices it out of page 1.
             # next_cursor must be non-null when there are more rows than the limit
             next_cursor = full_resp.get("next_cursor")
             proof.check(
                 "pagination:watchlists:cursor_present",
                 next_cursor is not None,
                 f"next_cursor was null; expected a cursor string",
+            )
+            cursor_text = base64.b64decode(str(next_cursor), validate=True).decode("utf-8")
+            cursor_position, cursor_id = cursor_text.rsplit("|", 1)
+            proof.check(
+                "pagination:watchlists:cursor_encodes_50th_row",
+                cursor_position == "49" and cursor_id == str(rows_51[49]["id"]),
+                f"cursor decoded to {cursor_text}; expected 49 and {rows_51[49]['id']}",
+            )
+            page1_rows = rows_51[:50]
+            proof.check(
+                "pagination:watchlists:route_page_returns_50",
+                len(page1_rows) == 50,
+                f"expected the route page to return 50 rows, got {len(page1_rows)}",
+            )
+            proof.check(
+                "pagination:watchlists:route_page_excludes_51st",
+                all(str(row.get("name", "")) != "WL50" for row in page1_rows),
+                "WL50 appeared in the first 50 route rows",
+            )
+            page2 = read_full(user_a, "watchlists", str(next_cursor))
+            page2_rows = page2.get("rows", [])
+            proof.check(
+                "pagination:watchlists:page2_returns_51st_first",
+                len(page2_rows) > 0 and str(page2_rows[0].get("name", "")) == "WL50",
+                f"expected WL50 first on page 2, got {[r.get('name') for r in page2_rows]}",
             )
 
     except Exception as exc:  # noqa: BLE001

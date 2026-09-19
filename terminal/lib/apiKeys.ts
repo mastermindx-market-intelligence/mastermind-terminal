@@ -161,7 +161,7 @@ export async function revokeApiKey(
   userId: string,
   keyId: string,
   callerId: string,
-  service?: { rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown; error: { message?: string } | null }> },
+  service?: { rpc: (fn: string, args: Record<string, unknown>) => unknown },
 ): Promise<RevokeResult> {
   const id = typeof keyId === "string" ? keyId.trim() : "";
   if (!id) return { ok: false, status: "not_found", error: "not_found" };
@@ -170,10 +170,12 @@ export async function revokeApiKey(
     return { ok: false, status: "unavailable", error: "service_unavailable" };
   }
 
-  const result = await service.rpc("revoke_api_key", { p_key_id: id, p_caller: callerId }) as {
-    data: { ok?: boolean; error?: string } | null;
-    error: { message?: string } | null;
-  };
+  const raw = await service.rpc("revoke_api_key", { p_key_id: id, p_caller: callerId });
+  const result = (
+    raw && typeof raw === "object" && "then" in raw
+      ? await raw
+      : raw
+  ) as { data?: { ok?: boolean; error?: string } | null; error?: { message?: string } | null };
 
   if (result.error) {
     return { ok: false, status: "unavailable", error: result.error.message || "unavailable" };

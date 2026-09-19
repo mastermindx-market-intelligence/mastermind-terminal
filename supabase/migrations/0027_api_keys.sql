@@ -204,7 +204,7 @@ grant execute on function public.revoke_api_key(uuid, uuid) to authenticated;
 
 -- BEFORE UPDATE trigger: reject any attempt to set revoked_at from non-null to null.
 create or replace function public.api_keys_no_unrevoke() returns trigger
-  language plpgsql security definer set search_path = pg_catalog, public, auth as $$
+  language plpgsql set search_path = pg_catalog, public, auth as $$
 begin
   if old.revoked_at is not null and new.revoked_at is null then
     raise exception 'cannot unrevoke an API key' using errcode = 'P0001';
@@ -336,8 +336,8 @@ $$;
 revoke all on function public.api_key_authenticate(text) from public, anon, authenticated;
 grant execute on function public.api_key_authenticate(text) to service_role;
 
--- Impersonating read. Sets request.jwt.claims then queries under RLS as authenticated.
--- The route must never select user tables with the service role outside this function.
+-- Impersonating read. Sets request.jwt.claims for owner-policy evaluation while retaining
+-- the service-role caller. The route must never select user tables outside this function.
 --
 -- TENANT ISOLATION: every resource branch carries an explicit owner predicate
 -- (user_id = p_user_id). RLS alone is not authoritative; the SQL predicate is the
@@ -368,7 +368,6 @@ begin
     true
   );
   perform set_config('request.jwt.claim.sub', p_user_id::text, true);
-  perform set_config('role', 'authenticated', true);
 
   v_limit := least(greatest(coalesce((p_args->>'limit')::int, 50), 1), 200);
   v_cursor := nullif(p_args->>'cursor', '');
@@ -436,24 +435,31 @@ begin
           from public.watchlists w
          where w.user_id = p_user_id
            and (v_cursor is null or (w.position, w.id) > (
-                  (split_part(convert_from(decode(v_cursor, 'base64'), 'utf8'), '|', 1))::int,
-                  (split_part(convert_from(decode(v_cursor, 'base64'), 'utf8'), '|', 2))::uuid
+                  (split_part(convert_from(decode(
+                    rpad(translate(v_cursor, '-_', '+/'), ((length(v_cursor) + 3) / 4) * 4, '='), 'base64'
+                  ), 'utf8'), '|', 1))::int,
+                  (split_part(convert_from(decode(
+                    rpad(translate(v_cursor, '-_', '+/'), ((length(v_cursor) + 3) / 4) * 4, '='), 'base64'
+                  ), 'utf8'), '|', 2))::uuid
                 ))
          order by w.position, w.id
          limit v_limit + 1
       ) t;
-    -- MAJOR-canary-3 fix: when more rows exist than the limit, encode the v_limit'th row
-    -- (index v_limit = 51st row at limit=50) as the next_cursor for the next page.
+    -- When more rows exist than the limit, encode the last page-1 row so page 2
+    -- starts with the extra row and the cursor matches the TypeScript parser.
     if jsonb_array_length(v_rows) > v_limit then
       declare
-        last_row jsonb;
+        boundary_row jsonb;
         last_pos int;
         last_id uuid;
       begin
-        last_row := v_rows->v_limit;
-        last_pos := (last_row->>'position')::int;
-        last_id := (last_row->>'id')::uuid;
-        v_next_cursor := encode(last_pos::text::bytea, 'base64') || '|' || encode(last_id::text::bytea, 'base64');
+        boundary_row := v_rows->(v_limit - 1);
+        last_pos := (boundary_row->>'position')::int;
+        last_id := (boundary_row->>'id')::uuid;
+        v_next_cursor := encode(
+          convert_to(last_pos::text || '|' || last_id::text, 'UTF8'),
+          'base64'
+        );
       end;
     end if;
   elsif p_resource = 'watchlist' then
@@ -514,8 +520,8 @@ begin
           from public.user_claims c
          where c.user_id = p_user_id
            and (v_cursor is null or (c.stated_at, c.claim_id) > (
-                  split_part(convert_from(decode(v_cursor, 'base64'), 'utf8'), '|', 1),
-                  split_part(convert_from(decode(v_cursor, 'base64'), 'utf8'), '|', 2)
+                  (split_part(convert_from(decode(v_cursor, 'base64'), 'utf8'), '|', 1))::timestamptz,
+                  (split_part(convert_from(decode(v_cursor, 'base64'), 'utf8'), '|', 2))::uuid
                 ))
          order by c.stated_at, c.claim_id
          limit v_limit + 1

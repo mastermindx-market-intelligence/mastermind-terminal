@@ -1,6 +1,9 @@
 name: f12-api-v1-postgres-canary
 
 on:
+  push:
+    branches:
+      - "claude/mo-b-f12-10-public-api-v1"
   pull_request:
     paths:
       - "supabase/migrations/0027_api_keys.sql"

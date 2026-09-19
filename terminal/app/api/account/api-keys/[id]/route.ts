@@ -28,7 +28,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   const service = createServiceClient();
   // BLOCKER fix: pass userId as p_caller so revoke_api_key can enforce auth.uid() = userId.
   // SECURITY DEFINER bypasses RLS but not the intra-function ownership check.
-  const result = await revokeApiKey(session.db, session.userId, id, session.userId, service);
+  const result = await revokeApiKey(session.db, session.userId, id, session.userId, service ?? undefined);
   if (!result.ok) {
     if (result.status === "not_found") {
       return fail(

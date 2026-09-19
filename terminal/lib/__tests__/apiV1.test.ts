@@ -15,6 +15,7 @@ import {
   API_V1_TRUTH_ZH,
   API_V1_VERSION,
   coverageOf,
+  decodeCursor,
   encodeCursor,
   envelope,
   errorBody,
@@ -189,7 +190,7 @@ describe("impersonation path", () => {
   function depsFor(userId: string, rows: Record<string, unknown>[]): ApiV1Deps {
     return {
       service: {
-        rpc: async (fn, args) => {
+        rpc: async (fn: string, args: Record<string, unknown>) => {
           rpcCalls.push({ fn, args });
           if (fn === "api_key_authenticate") {
             const presented = args.p_key_hash as string;
@@ -365,7 +366,7 @@ describe("ETag, cursor pagination, rate limit", () => {
     let n = 0;
     const deps: ApiV1Deps = {
       service: {
-        rpc: async (fn) => {
+        rpc: async (fn: string, args: Record<string, unknown>) => {
           if (fn !== "api_key_authenticate") return { data: { ok: true, rows: [] }, error: null };
           n += 1;
           if (n >= 61) {
@@ -516,7 +517,7 @@ describe("MAJOR-1+4 \u2014 forbidden-field walker in handleV1Get", () => {
   it("handleV1Get throws when a thesis row carries a forbidden field (score)", async () => {
     const depsWithForbiddenThesis: ApiV1Deps = {
       service: {
-        rpc: async (fn) => {
+        rpc: async (fn: string, args: Record<string, unknown>) => {
           if (fn === "api_key_authenticate") {
             return { data: { user_id: USER_A, key_id: "ka", rate_limited: false, limit: 60, remaining: 59 }, error: null };
           }
@@ -607,15 +608,15 @@ describe("MAJOR-1+4 \u2014 forbidden-field walker in handleV1Get", () => {
     // Patch the second call for thesis_versions
     const patchedDeps: ApiV1Deps = {
       service: {
-        rpc: async (fn) => {
+        rpc: async (fn: string, args: Record<string, unknown>) => {
           if (fn === "api_key_authenticate") {
             return { data: { user_id: USER_A, key_id: "ka", rate_limited: false, limit: 60, remaining: 59 }, error: null };
           }
-          if (fn === "api_v1_read_as_user") {
+          if (fn === "api_v1_read_as_user" && args.p_resource === "thesis") {
             // thesis row
             return { data: { ok: true, rows: [{ id: THESIS_ID, current_version: 1, lifecycle_state: "active", subject_ref: null, created_at: "2026-09-01T00:00:00.000Z", updated_at: "2026-09-01T00:00:00.000Z" }] }, error: null };
           }
-          if (fn === "api_v1_read_as_user") {
+          if (fn === "api_v1_read_as_user" && args.p_resource === "thesis_versions") {
             // thesis_versions row with forbidden field
             return {
               data: {
@@ -733,35 +734,53 @@ describe("MAJOR-1+4 \u2014 forbidden-field walker in handleV1Get", () => {
 });
 
 describe("MAJOR-1+4 \u2014 watchlist cursor pagination (LIMIT v_limit + 1, 51st row excluded)", () => {
-  it("handleV1Get watchlists returns 50 rows + next_cursor when 51 exist", async () => {
-    // Build 51 watchlist rows
-    const watchlistRows = Array.from({ length: 51 }, (_, i) => ({
-      id: `wl-${String(i).padStart(3, "0")}`,
-      name: `WL${i}`,
-      position: i,
-      created_at: "2026-09-01T00:00:00.000Z",
-      symbols: [],
-    }));
+  const watchlistRows = Array.from({ length: 52 }, (_, i) => ({
+    id: `wl-${String(i).padStart(3, "0")}`,
+    name: `WL${i}`,
+    position: i,
+    created_at: "2026-09-01T00:00:00.000Z",
+    symbols: [],
+  }));
 
-    const depsWith51Watchlists: ApiV1Deps = {
+  function depsWithWatchlists(): ApiV1Deps {
+    return {
       service: {
-        rpc: async (fn) => {
+        rpc: async (fn: string, args: Record<string, unknown>) => {
           if (fn === "api_key_authenticate") {
             return { data: { user_id: USER_A, key_id: "ka", rate_limited: false, limit: 60, remaining: 59 }, error: null };
           }
           if (fn === "api_v1_read_as_user") {
-            return { data: { ok: true, rows: watchlistRows }, error: null };
+            const argsRecord = args as Record<string, unknown>;
+            const readArgs = (argsRecord.p_args ?? {}) as { cursor?: string };
+            const suppliedCursor = String(readArgs.cursor ?? "");
+            const remaining = suppliedCursor
+              ? watchlistRows.filter((row) => row.position > Number(decodeCursor(suppliedCursor)!.stamp))
+              : watchlistRows.slice(0, 51);
+            return { data: { ok: true, rows: remaining }, error: null };
           }
           return { data: { ok: true, rows: [] }, error: null };
         },
       },
     };
+  }
+
+  it("accepts the cursor format emitted by the SQL function", () => {
+    const migration = readFileSync(join(__dirname, "../../../supabase/migrations/0027_api_keys.sql"), "utf8");
+    expect(migration).toContain("convert_to(last_pos::text || '|' || last_id::text, 'UTF8')");
+    expect(migration).not.toContain("encode(encode(convert_to(last_pos::text, 'UTF8'), 'base64') || '|'");
+
+    const row = watchlistRows[49];
+    const sqlCursor = Buffer.from(`${row.position}|${row.id}`, "utf8").toString("base64");
+    expect(decodeCursor(sqlCursor)).toEqual({ stamp: String(row.position), id: row.id });
+  });
+
+  it("handleV1Get watchlists returns 50 rows + next_cursor when 51 exist", async () => {
 
     const r = await handleV1Get(
       new Request("http://localhost/api/v1/watchlists?limit=50", { headers: { authorization: `Bearer ${KEY_A}` } }),
       "watchlists",
       {},
-      depsWith51Watchlists,
+      depsWithWatchlists(),
     );
 
     expect(r.status).toBe(200);
@@ -778,6 +797,31 @@ describe("MAJOR-1+4 \u2014 watchlist cursor pagination (LIMIT v_limit + 1, 51st 
     expect(body.page.next_cursor).not.toBeNull();
   });
 
+  it("uses page 2 to return the 51st row first", async () => {
+    const first = await handleV1Get(
+      new Request("http://localhost/api/v1/watchlists?limit=50", { headers: { authorization: `Bearer ${KEY_A}` } }),
+      "watchlists",
+      {},
+      depsWithWatchlists(),
+    );
+    const firstBody = await first.json();
+    const cursor = firstBody.page.next_cursor;
+    expect(cursor).toBeTruthy();
+
+    const second = await handleV1Get(
+      new Request(`http://localhost/api/v1/watchlists?limit=50&cursor=${encodeURIComponent(cursor)}`, {
+        headers: { authorization: `Bearer ${KEY_A}` },
+      }),
+      "watchlists",
+      {},
+      depsWithWatchlists(),
+    );
+    expect(second.status).toBe(200);
+    const secondBody = await second.json();
+    expect(secondBody.data.map((w: { name?: string }) => w.name)).toEqual(["WL50", "WL51"]);
+    expect(secondBody.page.next_cursor).toBeNull();
+  });
+
   it("handleV1Get returns exactly 50 watchlists (no more) for a 51-row result set", async () => {
     const watchlistRows = Array.from({ length: 51 }, (_, i) => ({
       id: `wl-${String(i).padStart(3, "0")}`,
@@ -789,7 +833,7 @@ describe("MAJOR-1+4 \u2014 watchlist cursor pagination (LIMIT v_limit + 1, 51st 
 
     const deps: ApiV1Deps = {
       service: {
-        rpc: async (fn) => {
+        rpc: async (fn, _args) => {
           if (fn === "api_key_authenticate") {
             return { data: { user_id: USER_A, key_id: "ka", rate_limited: false, limit: 60, remaining: 59 }, error: null };
           }

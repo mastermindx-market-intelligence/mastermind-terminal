@@ -36,7 +36,8 @@ export type ApiV1ErrorCode =
   | "forbidden"
   | "not_found"
   | "rate_limited"
-  | "invalid_request";
+  | "invalid_request"
+  | "server_error";
 
 export const API_V1_ERROR_MESSAGES: Record<ApiV1ErrorCode, [string, string]> = {
   unauthorized: [
@@ -58,6 +59,10 @@ export const API_V1_ERROR_MESSAGES: Record<ApiV1ErrorCode, [string, string]> = {
   invalid_request: [
     "This request could not be read. Check the path, the cursor and the limit.",
     "无法读取这次请求。请检查路径、游标和条数上限。",
+  ],
+  server_error: [
+    "The API could not prepare a safe response. Try again later.",
+    "接口无法准备安全的响应。请稍后再试。",
   ],
 };
 
@@ -243,6 +248,7 @@ export function errorStatus(code: ApiV1ErrorCode): number {
   if (code === "forbidden") return 403;
   if (code === "not_found") return 404;
   if (code === "rate_limited") return 429;
+  if (code === "server_error") return 500;
   return 400;
 }
 
