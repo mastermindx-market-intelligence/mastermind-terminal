@@ -36,6 +36,11 @@ import {
   type ScreenerHotView,
   type ScreenerPreset,
 } from "@/lib/optionsScreener";
+import {
+  buildOptionsTickerCandidates,
+  isOptionsTickerQuery,
+  normalizeOptionsTickerQuery,
+} from "@/lib/optionsTickerSearch";
 import { VolRegimeChip } from "@/components/eodcontext/VolRegimeChip";
 import { OptionsCsvExportButton } from "@/components/options/OptionsCsvExportButton";
 import { OptionsFlowBoardView } from "@/components/options/OptionsFlowBoardView";
@@ -1843,7 +1848,10 @@ export default function OptionsHubView({
     ? `${activeSessionDate ? activeSessionDate + " · " : ""}${fmtAsof(activeAsof)} ET`
     : "";
 
-  // Ticker search candidates from tide top_net_impact + unusual names
+  // Session leaders power discovery, but they are not the lookup universe boundary.
+  // A valid exact ticker remains selectable so the root-keyed endpoint can answer
+  // authoritatively (published drill vs honest unavailable) instead of the sidebar
+  // incorrectly turning "not a leader" into "no results".
   const tickerCandidates: string[] = useMemo(() => {
     const set = new Set<string>();
     (tideData?.top_net_impact ?? []).forEach((n) => set.add(n.root));
@@ -1851,9 +1859,10 @@ export default function OptionsHubView({
     return Array.from(set).sort();
   }, [tideData, feed]);
 
-  const filteredCandidates = tickerSearch.trim()
-    ? tickerCandidates.filter((r) => r.includes(tickerSearch.toUpperCase()))
-    : tickerCandidates.slice(0, 20);
+  const filteredCandidates = useMemo(
+    () => buildOptionsTickerCandidates(tickerCandidates, tickerSearch),
+    [tickerCandidates, tickerSearch],
+  );
 
   // ── Screener fetch ────────────────────────────────────────────────────────
   const [oiData, setOiData] = useState<OiMoversPayload | null>(null);
@@ -2992,6 +3001,12 @@ export default function OptionsHubView({
                     placeholder={lang === "zh" ? "搜索代码…" : "Search ticker…"}
                     value={tickerSearch}
                     onChange={(e) => setTickerSearch(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key !== "Enter" || !isOptionsTickerQuery(tickerSearch)) return;
+                      const root = normalizeOptionsTickerQuery(tickerSearch);
+                      trackSearch(root, "flow-tickers", tickerSearch.trim());
+                      setSelectedTicker(root);
+                    }}
                     style={{
                       width: "100%", height: 30, padding: "0 10px",
                       borderRadius: "var(--r-md)", background: "var(--inset)",
@@ -3037,10 +3052,12 @@ export default function OptionsHubView({
                       {/* Why: the list is session-scoped, not a universe search. */}
                       <div className="fin-empty-why" style={{ marginTop: 5 }}>
                         {tickerCandidates.length === 0
-                          ? t("ohNoFlowNames")
+                          ? (lang === "zh"
+                              ? "当前没有时段领涨/异动代码。输入有效代码并按回车，可直接查询已发布的个股期权流。"
+                              : "No session leaders are listed yet. Enter a valid ticker and press Enter to query its published drill directly.")
                           : (lang === "zh"
-                              ? `仅列出本时段有期权流的 ${tickerCandidates.length} 个标的。`
-                              : `Only the ${tickerCandidates.length} names with flow this session are listed.`)}
+                              ? `当前侧栏含 ${tickerCandidates.length} 个时段领涨/异动代码；输入有效代码并按回车，可直接查询其他代码。`
+                              : `The sidebar has ${tickerCandidates.length} session leaders. Enter a valid ticker and press Enter to query another root directly.`)}
                       </div>
                     </div>
                   )}
@@ -3074,11 +3091,11 @@ export default function OptionsHubView({
                       <div className="fin-empty-why">
                         {marketOpenNow
                           ? (lang === "zh"
-                              ? `${selectedTicker} 本时段暂无达标的期权成交；一旦出现即会显示。`
-                              : `${selectedTicker} has no qualifying options prints this session — the drill fills in as they cross.`)
+                              ? `${selectedTicker} 本时段尚未发布盘中个股明细。它可能不在当前实时轮询／发布覆盖内、上游数据暂不可用，或尚无可发布成交；这里的空白不等于“零期权流”。`
+                              : `No intraday drill has been published for ${selectedTicker} this session. It may be outside current live polling/publish coverage, its source may be unavailable, or no qualifying prints may have been published; this blank does not mean zero options flow.`)
                           : (lang === "zh"
-                              ? `市场休市 — ${selectedTicker} 在上一交易时段没有达标的期权成交。`
-                              : `Market closed — ${selectedTicker} carried no qualifying options prints in the last session.`)}
+                              ? `市场休市 — 上一交易时段未发布 ${selectedTicker} 的盘中个股明细。覆盖、上游可用性或成交门槛都可能导致空白；这不等于“零期权流”。`
+                              : `Market closed — no intraday drill was published for ${selectedTicker} in the last session. Coverage, source availability, or qualification thresholds may explain the blank; it does not mean zero options flow.`)}
                       </div>
                     </div>
                   </div>
