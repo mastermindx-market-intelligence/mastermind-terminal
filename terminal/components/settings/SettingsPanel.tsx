@@ -10,6 +10,7 @@ import { SETTINGS_SECTIONS } from "./SettingsProvider";
 import type { AcsPlan, AcsUsage, DevTeamFixture, SectionProps } from "./types";
 import type { AccuracyReadout } from "@/lib/personalAccuracy";
 import type { TeamRollupResult } from "@/lib/teamRollup";
+import { parseTeamsResponse } from "@/lib/teamSummary";
 import {
   IconAccount, IconAlertDelivery, IconBilling, IconDeveloper, IconPrefs, IconSharing, IconSignOut, IconSync, IconTeam, IconTerminal, IconUsage,
   IconWebhooks, IconX,
@@ -231,26 +232,27 @@ export default function SettingsPanel(props: SettingsPanelProps) {
   const accuracyLoadErr = props.devAccuracy === undefined && isAccountOwner(owner) && accuracyErr;
 
   // ── W9T_F13_9 BLOCKER fix: resolve the caller's team id in the live path ──
-  // The panel used to derive activeTeamId only from props.devTeam (dev harness).
-  // In the live app there is no devTeam, so activeTeamId was always null and the
-  // rollup block never rendered. Fix: resolve the caller's team id the same way
-  // the existing team routes do — GET /api/teams, find the first team where the
-  // caller has a membership, use its id. If no team, activeTeamId is null and the
-  // rollup block is hidden (correct "no team yet" state). Re-runs on every open
-  // so the panel picks up a newly-joined team.
-  const [activeTeamIdLive, setActiveTeamIdLive] = useState<string | null>(null);
+  // GET /api/teams returns { teams, truncated }, the same shape SectionTeam and
+  // parseTeamsResponse already handle. A bare-array parse leaves activeTeamIdLive
+  // null, so the rollup never renders. undefined = membership still loading
+  // (do not flash the no-team sentence); null = resolved no team; string = id.
+  const [activeTeamIdLive, setActiveTeamIdLive] = useState<string | null | undefined>(undefined);
   useEffect(() => {
     if (props.devTeam) return;           // dev harness: use the fixture id
-    if (!visible || !isAccountOwner(owner)) { setActiveTeamIdLive(null); return; }
+    if (!visible || !isAccountOwner(owner)) { setActiveTeamIdLive(undefined); return; }
     let cancelled = false;
     void (async () => {
       try {
         const res = await fetch("/api/teams");
-        if (!res.ok || cancelled) return;
-        const teams = await res.json() as Array<{ id: string; role: string }>;
         if (cancelled) return;
-        const first = teams.find((t) => t.role != null);
-        setActiveTeamIdLive(first?.id ?? null);
+        if (!res.ok) { setActiveTeamIdLive(null); return; }
+        const parsed = parseTeamsResponse(await res.json());
+        if (cancelled) return;
+        if (parsed.status !== "ok" || parsed.teams.length === 0) {
+          setActiveTeamIdLive(null);
+          return;
+        }
+        setActiveTeamIdLive(parsed.teams[0].teamId);
       } catch {
         if (!cancelled) setActiveTeamIdLive(null);
       }
@@ -294,8 +296,11 @@ export default function SettingsPanel(props: SettingsPanelProps) {
     email;
   const avatarChar = (displayName || email || "U").trim().charAt(0).toUpperCase() || "U";
   // W9T_F13_9 team-accuracy rollup: dev harness uses devTeam.id; live uses the
-  // activeTeamIdLive resolved from /api/teams (null when caller has no team).
-  const activeTeamId: string | null = props.devTeam?.team?.id ?? activeTeamIdLive;
+  // activeTeamIdLive resolved from /api/teams (null when the caller has no team,
+  // undefined while that membership read is still in flight).
+  const activeTeamId: string | null | undefined = props.devTeam
+    ? (props.devTeam.team?.id ?? null)
+    : activeTeamIdLive;
 
   const node = (
     <div

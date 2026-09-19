@@ -134,12 +134,11 @@
   color: var(--muted);
   font-style: italic;
 }
-/* MAJOR-1 fix (h_t587): text-transform removed — accTeamWeLabel is a plain
-   sentence, not a label. Letter-spacing kept for readability. */
+/* MAJOR-1 (h_t587 r2): accTeamWeLabel is a plain sentence — no uppercase, no tracking. */
 .weLabel {
   margin: 6px 0 0;
   font-size: 11.5px;
-  font-weight: 700;
-  letter-spacing: .04em;
+  font-weight: 400;
+  letter-spacing: normal;
   color: var(--muted);
 }

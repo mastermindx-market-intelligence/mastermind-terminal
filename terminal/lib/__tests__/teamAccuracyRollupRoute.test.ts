@@ -6,6 +6,7 @@
 // a per-member ranking, a cross-team field, or a leaked row from outside the team.
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { TEAM_ROUTE_MESSAGES } from "@/lib/teams";
 
 // vi.hoisted + vi.mock("@/lib/supabase/server") is the same idiom teamsRoute.test.ts uses;
 // teamMembers and userClaims are mocked as if they were the real Supabase tables, so the test
@@ -281,9 +282,9 @@ describe("GET /api/teams/[id]/accuracy/rollup — hard gate: never a cross-team 
     // Must be 503 — not 200.
     expect(res.status).toBe(503);
     const body = await res.json();
-    // The unavailable sentence in both languages.
-    expect(body.message).toBeTruthy();
-    expect(body.messageZh).toBeTruthy();
+    // The unavailable sentence in both languages, verbatim.
+    expect(body.message).toBe(TEAM_ROUTE_MESSAGES.unavailable[0]);
+    expect(body.messageZh).toBe(TEAM_ROUTE_MESSAGES.unavailable[1]);
     // No readout with personal figures: the response must NOT be a "kind":"ok" or "kind":"no_rows"
     // with memberCount implying the team was scored.
     expect(body.kind).toBeUndefined();
