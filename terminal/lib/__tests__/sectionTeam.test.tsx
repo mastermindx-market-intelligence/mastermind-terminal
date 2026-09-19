@@ -12,7 +12,16 @@ import { createRoot, type Root } from "react-dom/client";
 import SectionTeam from "@/components/settings/SectionTeam";
 import { acsDate, type DevTeamFixture } from "@/components/settings/types";
 import { LEX } from "@/lib/i18n";
-import { INVITE_MESSAGES, SETTING_MESSAGES, TEAM_ROUTE_MESSAGES, WORKSPACE_SETTING_COPY } from "@/lib/teams";
+import {
+  INVITE_EMAIL_DELIVERY_CHECKED_AT,
+  INVITE_MESSAGES,
+  INVITE_TTL_DAYS,
+  SETTING_MESSAGES,
+  TEAM_ROUTE_MESSAGES,
+  WORKSPACE_SETTING_COPY,
+  inviteCheckedOn,
+  noEmailDeliveryLine,
+} from "@/lib/teams";
 import { accountIdentity } from "@/lib/accountIdentity";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -287,25 +296,61 @@ describe("R4(h): a failed roster read says what actually happened", () => {
   });
 });
 
-describe("R3: the no-email-delivery sentence never appears in the Team section", () => {
-  it.each(["en", "zh"] as const)("%s: zero-team, roster, and invitations states omit the copy-the-link sentence", async (lang) => {
-    const idx = lang === "zh" ? 1 : 0;
-    const delivery = INVITE_MESSAGES.no_email_delivery[idx];
+/**
+ * R3, amended by packet W9T_F12_17 (MO-PAID-081). R3 kept an apology about mail off a panel that
+ * offered no way to invite anyone: the sentence was noise there, and it was the route's whole
+ * answer dumped into the panel. This packet adds the invitation surface the seat ruled for
+ * (link-only), so the line now belongs — but only where an invitation can actually be created,
+ * and as its own dated sentence rather than as the route's response body. What R3 was really
+ * about still holds and is still asserted: no delivery line on the zero-team state, on an
+ * unreadable roster, or for a caller who cannot invite anyone.
+ */
+describe("R3 as amended (W9T_F12_17): the dated no-mail line appears only where an invitation can be created", () => {
+  it.each(["en", "zh"] as const)("%s: the zero-team state and an unreadable roster carry no delivery line", async (lang) => {
     stubFetch({ "/api/teams": { status: 200, body: { teams: [] } } });
     await mount(lang);
-    expect(text()).not.toContain(delivery);
+    expect(container.querySelector('[data-testid="team-delivery"]')).toBeNull();
+    expect(container.querySelector('[data-testid="team-invite-form"]')).toBeNull();
+    expect(text()).not.toContain(noEmailDeliveryLine(lang));
     await act(async () => {
       root.unmount();
     });
     container.remove();
 
+    stubFetch({ "/api/teams": { status: 500, body: {} } });
+    await mount(lang);
+    expect(container.querySelector('[data-testid="team-delivery"]')).toBeNull();
+    expect(text()).not.toContain(noEmailDeliveryLine(lang));
+    await act(async () => {
+      root.unmount();
+    });
+    container.remove();
+
+    // A pending list on its own still explains nothing about mail: only the invite surface does.
     const withInvites: DevTeamFixture = {
       ...ROSTER_FIXTURE,
+      callerRole: "member",
       invites: [{ id: "inv-1", email: "pending@example.com", role: "member", expiresAt: "2026-09-23T00:00:00.000Z" }],
     };
     await mount(lang, withInvites);
-    expect(text()).not.toContain(delivery);
     expect(container.querySelector('[data-testid="team-delivery"]')).toBeNull();
+    expect(text()).not.toContain(noEmailDeliveryLine(lang));
+  });
+
+  it.each(["en", "zh"] as const)("%s: the owner's panel prints the dated line, never the raw route answer", async (lang) => {
+    const idx = lang === "zh" ? 1 : 0;
+    await mount(lang, ROSTER_FIXTURE);
+    const line = container.querySelector('[data-testid="team-delivery"]');
+    expect(line).not.toBeNull();
+    expect(line?.textContent).toBe(noEmailDeliveryLine(lang));
+    expect(line?.textContent).toContain(inviteCheckedOn(INVITE_EMAIL_DELIVERY_CHECKED_AT, lang));
+    // The panel prints the sentence, not the API body: the route's longer answer (line plus
+    // instruction) is never dumped verbatim into the section.
+    expect(text()).not.toContain(INVITE_MESSAGES.no_email_delivery[idx]);
+    if (lang === "zh") {
+      expect(line?.textContent).toMatch(/[一-鿿]/);
+      expect(line?.textContent).not.toMatch(/[A-Za-z]{2,}/);
+    }
   });
 });
 
@@ -803,6 +848,7 @@ function liveDesk(overrides?: {
   members?: unknown[];
   callerRole?: string;
   invites?: { status: number; body?: unknown } | "throw";
+  create?: { status: number; body?: unknown } | "throw";
   settings?: { status: number; body?: unknown };
 }) {
   const teams = overrides?.teams ?? [{ id: "team-1", name: "Desk" }];
@@ -811,6 +857,7 @@ function liveDesk(overrides?: {
     { userId: "a1b2c3d4-1111-4e6a-9c03-5b71ee0a4d22", role: "admin", displayName: "Alex Chen", createdAt: null },
   ];
   const invites = overrides?.invites ?? { status: 200, body: { invites: [] } };
+  const create = overrides?.create ?? { status: 201, body: {} };
   const settings = overrides?.settings ?? {
     status: 200,
     body: {
@@ -824,6 +871,15 @@ function liveDesk(overrides?: {
   };
   const impl = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
+    const method = (init?.method || "GET").toUpperCase();
+    if (url.startsWith("/api/teams/invitations") && method === "POST") {
+      if (create === "throw") throw new Error("invitations down");
+      return {
+        ok: create.status >= 200 && create.status < 300,
+        status: create.status,
+        json: async () => create.body ?? {},
+      } as unknown as Response;
+    }
     if (url.startsWith("/api/teams/invitations")) {
       if (invites === "throw") throw new Error("invitations down");
       return {
@@ -1217,6 +1273,282 @@ describe("heal h3: standing-law 你 — no 您 in acsTeam*/acsRole* keys", () =>
     expect(LEX.acsTeamCreated[1]).toBe("你的团队已创建。");
     expect(TEAM_ROUTE_MESSAGES.no_self_role[1]).toBe("你无法更改自己的角色。请联系团队所有者。");
     expect(TEAM_ROUTE_MESSAGES.same_owner[1]).toBe("你已经是所有者。");
+  });
+});
+
+// --- Packet W9T_F12_17 (MO-PAID-081, seat pick: honest link-only) ---
+describe("W9T_F12_17: an invitation becomes a link the owner copies, because no mail is sent", () => {
+  const TOKEN = "a".repeat(64);
+  const LINK = `https://app.mastermind-x.com/invite?token=${TOKEN}`;
+  const CREATE_OK = {
+    invite: { id: "inv-9", email: "friend@example.com", role: "member", expiresAt: null, acceptedAt: null },
+    token: TOKEN,
+    inviteUrl: LINK,
+    acceptWith: { action: "accept" },
+    delivery: {
+      code: "no_email_delivery",
+      sent: false,
+      checkedAt: INVITE_EMAIL_DELIVERY_CHECKED_AT,
+      message: INVITE_MESSAGES.no_email_delivery[0],
+      messageZh: INVITE_MESSAGES.no_email_delivery[1],
+    },
+  };
+
+  function stubClipboard(writeText: (text: string) => Promise<void>) {
+    Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true, writable: true });
+  }
+  function dropClipboard() {
+    Object.defineProperty(navigator, "clipboard", { value: undefined, configurable: true, writable: true });
+  }
+
+  async function typeEmail(value: string) {
+    const input = container.querySelector('[data-testid="team-invite-email"]') as HTMLInputElement;
+    expect(input, "the invitation email field is missing").not.toBeNull();
+    await act(async () => {
+      const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")!.set!;
+      setter.call(input, value);
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+  }
+
+  async function clickCreate() {
+    await act(async () => {
+      (container.querySelector('[data-testid="team-invite-create"]') as HTMLButtonElement).click();
+    });
+  }
+
+  /** Type an address, press the create control, and hand back every request the section sent. */
+  async function createLink(
+    lang: "en" | "zh",
+    create: { status: number; body?: unknown } | "throw",
+    email = "friend@example.com",
+  ) {
+    liveDesk({ create });
+    const inner = globalThis.fetch as unknown as (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+    const seen: { url: string; method: string; body: string | null }[] = [];
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      seen.push({
+        url: String(input),
+        method: (init?.method || "GET").toUpperCase(),
+        body: typeof init?.body === "string" ? init.body : null,
+      });
+      return inner(input, init);
+    }));
+    await mount(lang);
+    await typeEmail(email);
+    await clickCreate();
+    return seen;
+  }
+
+  afterEach(() => {
+    dropClipboard();
+  });
+
+  it.each(["en", "zh"] as const)("%s: the form asks for an address and a role, and waits for an address", async (lang) => {
+    const idx = lang === "zh" ? 1 : 0;
+    liveDesk();
+    await mount(lang);
+    expect(container.querySelector('[data-testid="team-invite-form"]')).not.toBeNull();
+    const create = container.querySelector('[data-testid="team-invite-create"]') as HTMLButtonElement;
+    expect(create.textContent?.trim()).toBe(LEX.acsTeamInviteCreate[idx]);
+    expect(create.disabled).toBe(true);
+    await typeEmail("friend@example.com");
+    expect((container.querySelector('[data-testid="team-invite-create"]') as HTMLButtonElement).disabled).toBe(false);
+    const select = container.querySelector('[data-testid="team-invite-role"]') as HTMLSelectElement;
+    expect(select).not.toBeNull();
+    expect(Array.from(select.options).map((option) => option.textContent?.trim())).toEqual([
+      LEX.acsRoleMember[idx],
+      LEX.acsRoleAdmin[idx],
+    ]);
+    expect(text()).toContain(LEX.acsTeamInviteEmail[idx]);
+    expect(text()).toContain(LEX.acsTeamInviteRole[idx]);
+    expect(text()).toContain(LEX.acsTeamInviteEmailHint[idx]);
+  });
+
+  it.each(["en", "zh"] as const)("%s: a created invitation shows the copyable link and the send-it-yourself line", async (lang) => {
+    const idx = lang === "zh" ? 1 : 0;
+    const seen = await createLink(lang, { status: 201, body: CREATE_OK });
+    const post = seen.find((call) => call.method === "POST" && call.url.startsWith("/api/teams/invitations"));
+    expect(post, "the section never posted the invitation").toBeTruthy();
+    expect(JSON.parse(post!.body!)).toEqual({
+      action: "create",
+      teamId: "team-1",
+      email: "friend@example.com",
+      role: "member",
+    });
+
+    expect(container.querySelector('[data-testid="team-invite-link"]')).not.toBeNull();
+    expect(container.querySelector('[data-testid="team-invite-form"]')).toBeNull();
+    const field = container.querySelector('[data-testid="team-invite-url"]') as HTMLInputElement;
+    expect(field.value).toBe(LINK);
+    expect(field.readOnly).toBe(true);
+    expect(container.querySelector('[data-testid="team-invite-link-label"]')?.textContent).toBe(
+      LEX.acsTeamInviteFor[idx].replace("{email}", "friend@example.com"),
+    );
+    expect(container.querySelector('[data-testid="team-invite-copy"]')?.textContent?.trim()).toBe(LEX.acsTeamInviteCopy[idx]);
+    expect(container.querySelector('[data-testid="team-invite-send"]')?.textContent).toBe(
+      LEX.acsTeamInviteSend[idx].replace("{days}", String(INVITE_TTL_DAYS)),
+    );
+    expect(text()).toContain(LEX.acsTeamInviteCreated[idx]);
+    // The token rides in the field a person copies from; it is never printed as prose.
+    expect(text()).not.toContain(TOKEN);
+  });
+
+  it("Copy link puts the link on the clipboard and then says so", async () => {
+    const writeText = vi.fn(async () => {});
+    stubClipboard(writeText);
+    await createLink("en", { status: 201, body: CREATE_OK });
+    await act(async () => {
+      (container.querySelector('[data-testid="team-invite-copy"]') as HTMLButtonElement).click();
+    });
+    expect(writeText).toHaveBeenCalledTimes(1);
+    expect(writeText).toHaveBeenCalledWith(LINK);
+    expect(container.querySelector('[data-testid="team-invite-copy"]')?.textContent?.trim()).toBe(LEX.acsTeamInviteCopied[0]);
+    expect(container.querySelector('[data-testid="team-invite-copy-fail"]')).toBeNull();
+  });
+
+  it.each(["en", "zh"] as const)("%s: a blocked clipboard never claims the link was copied", async (lang) => {
+    const idx = lang === "zh" ? 1 : 0;
+    dropClipboard();
+    await createLink(lang, { status: 201, body: CREATE_OK });
+    await act(async () => {
+      (container.querySelector('[data-testid="team-invite-copy"]') as HTMLButtonElement).click();
+    });
+    expect(container.querySelector('[data-testid="team-invite-copy"]')?.textContent?.trim()).toBe(LEX.acsTeamInviteCopy[idx]);
+    expect(container.querySelector('[data-testid="team-invite-copy-fail"]')?.textContent).toBe(LEX.acsTeamInviteCopyFail[idx]);
+    // The link is still on screen to select by hand.
+    expect((container.querySelector('[data-testid="team-invite-url"]') as HTMLInputElement).value).toBe(LINK);
+  });
+
+  it("a refused invitation shows the server's own sentence and no link", async () => {
+    const seen = await createLink("zh", {
+      status: 409,
+      body: {
+        error: "DUPLICATE_INVITE",
+        message: INVITE_MESSAGES.duplicate_invite[0],
+        messageZh: INVITE_MESSAGES.duplicate_invite[1],
+      },
+    });
+    expect(seen.some((call) => call.method === "POST")).toBe(true);
+    expect(container.querySelector('[data-testid="team-invite-link"]')).toBeNull();
+    expect(container.querySelector('[data-testid="team-invite-form"]')).not.toBeNull();
+    expect(text()).toContain(INVITE_MESSAGES.duplicate_invite[1]);
+    expect(text()).not.toContain(INVITE_MESSAGES.duplicate_invite[0]);
+    expect(text()).not.toContain("DUPLICATE_INVITE");
+  });
+
+  // MAJOR-1 (h_t588_r2): a 201 invite survives a failed follow-up roster read.
+  // Strategy: the invitations route's own GET /api/teams (for listing invites) is also
+  // made during the POST response, before the component's loadLive is called.
+  // We track how many times each URL is called to distinguish them.
+  it("a created invite stays visible when the follow-up roster read fails (201, then GET /api/teams 500)", async () => {
+    const seen: { url: string; method: string; body: string | null }[] = [];
+    const callCount: Record<string, number> = {};
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input);
+        const method = (init?.method || "GET").toUpperCase();
+        seen.push({ url, method, body: typeof init?.body === "string" ? init.body : null });
+        callCount[url] = (callCount[url] || 0) + 1;
+
+        if (url === "/api/teams/invitations" && method === "GET") {
+          // This is the invitations list call during POST handling; must succeed.
+          return {
+            ok: true,
+            status: 200,
+            json: async () => ({ invites: [], callerRole: "owner" }),
+          } as unknown as Response;
+        }
+        if (url === "/api/teams/invitations" && method === "POST") {
+          return { ok: true, status: 201, json: async () => CREATE_OK } as unknown as Response;
+        }
+        if ((url.startsWith("/api/teams/team-1/members") || url.startsWith("/api/teams/team-2/members")) && method === "GET") {
+          return {
+            ok: true,
+            status: 200,
+            json: async () => ({
+              members: [
+                { userId: CALLER, role: "owner", displayName: "Chris Wong", createdAt: "2026-02-14T09:12:00.000Z" },
+                { userId: "a1b2c3d4-1111-4e6a-9c03-5b71ee0a4d22", role: "admin", displayName: "Alex Chen", createdAt: null },
+              ],
+              callerRole: "owner",
+            }),
+          } as unknown as Response;
+        }
+        if ((url.startsWith("/api/teams/team-1/settings") || url.startsWith("/api/teams/team-2/settings")) && method === "GET") {
+          return {
+            ok: true,
+            status: 200,
+            json: async () => ({
+              teamId: "team-1",
+              role: "owner",
+              settings: [
+                { key: "default_chart_theme", value: "green_up", updatedAt: null },
+                { key: "share_layouts_by_default", value: false, updatedAt: null },
+              ],
+            }),
+          } as unknown as Response;
+        }
+        if (url === "/api/teams" && method === "GET") {
+          // callCount["/api/teams"] === 1 -> initial component loadLive (must succeed)
+          // callCount["/api/teams"] === 2 -> follow-up loadLive after 201 (500)
+          return callCount[url] === 1
+            ? ({ ok: true, status: 200, json: async () => ({ teams: [{ id: "team-1", name: "Desk" }] }) } as unknown as Response)
+            : ({ ok: false, status: 500, json: async () => ({}) } as unknown as Response);
+        }
+        throw new Error(`unstubbed fetch: ${url}`);
+      }),
+    );
+    await mount("en");
+    await typeEmail("friend@example.com");
+    await act(async () => {
+      (container.querySelector('[data-testid="team-invite-create"]') as HTMLButtonElement).click();
+    });
+    // The invite link survived the failed reload.
+    expect(container.querySelector('[data-testid="team-invite-link"]')).not.toBeNull();
+    const field = container.querySelector('[data-testid="team-invite-url"]') as HTMLInputElement;
+    expect(field.value).toBe(LINK);
+    // The roster-fail sentence is shown (second loadLive got 500, set rosterFail).
+    expect(text()).toContain(TEAM_ROUTE_MESSAGES.read_failed[0]);
+    // The create form is not shown.
+    expect(container.querySelector('[data-testid="team-invite-form"]')).toBeNull();
+    void seen;
+  });
+
+  it("a success answer carrying no link is treated as a failure, never shown as an empty link", async () => {
+    await createLink("en", { status: 201, body: { invite: CREATE_OK.invite, token: TOKEN } });
+    expect(container.querySelector('[data-testid="team-invite-link"]')).toBeNull();
+    expect(container.querySelector('[data-testid="team-invite-url"]')).toBeNull();
+    expect(text()).toContain(TEAM_ROUTE_MESSAGES.write_failed[0]);
+  });
+
+  it("an administrator is not offered the administrator role the route would refuse", async () => {
+    liveDesk({ callerRole: "admin" });
+    await mount("en");
+    const select = container.querySelector('[data-testid="team-invite-role"]') as HTMLSelectElement;
+    expect(select).not.toBeNull();
+    expect(Array.from(select.options).map((option) => option.textContent?.trim())).toEqual([LEX.acsRoleMember[0]]);
+  });
+
+  it("inviting someone else clears the shown link and returns to the form", async () => {
+    await createLink("en", { status: 201, body: CREATE_OK });
+    expect(container.querySelector('[data-testid="team-invite-link"]')).not.toBeNull();
+    await act(async () => {
+      (container.querySelector('[data-testid="team-invite-another"]') as HTMLButtonElement).click();
+    });
+    expect(container.querySelector('[data-testid="team-invite-link"]')).toBeNull();
+    expect(container.querySelector('[data-testid="team-invite-form"]')).not.toBeNull();
+    expect((container.querySelector('[data-testid="team-invite-email"]') as HTMLInputElement).value).toBe("");
+  });
+
+  it("the fixture-mounted owner panel shows the same form and dated line with no network at all", async () => {
+    dropClipboard();
+    const calls = stubFetch({});
+    await mount("en", ROSTER_FIXTURE);
+    expect(calls.length).toBe(0);
+    expect(container.querySelector('[data-testid="team-invite-form"]')).not.toBeNull();
+    expect(container.querySelector('[data-testid="team-delivery"]')?.textContent).toBe(noEmailDeliveryLine("en"));
   });
 });
 
