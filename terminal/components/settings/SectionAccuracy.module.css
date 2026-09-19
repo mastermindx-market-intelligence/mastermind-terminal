@@ -102,3 +102,43 @@
   .stance { font-size: 18px; }
   .stats { grid-template-columns: 1fr; }
 }
+
+/* W9T_F13_9 / MO-DELTA-007 — team-accuracy rollup. Sits below the personal
+   readout; same tokens, smaller heading. The ceiling sentence is rendered
+   every read so the reader sees the hard gate in plain words. */
+.team {
+  margin: 18px 0 0;
+  padding: 14px 14px 14px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--line) 80%, transparent);
+  background: color-mix(in srgb, var(--panel-3) 70%, transparent);
+}
+.teamTitle {
+  margin: 0 0 4px;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -.01em;
+  line-height: 1.3;
+  color: var(--text);
+}
+.teamSub {
+  margin: 0 0 10px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+.teamGate {
+  margin: 10px 0 0;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--muted);
+  font-style: italic;
+}
+/* MAJOR-1 (h_t587 r2): accTeamWeLabel is a plain sentence — no uppercase, no tracking. */
+.weLabel {
+  margin: 6px 0 0;
+  font-size: 11.5px;
+  font-weight: 400;
+  letter-spacing: normal;
+  color: var(--muted);
+}

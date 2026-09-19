@@ -9,8 +9,10 @@ import type { AcsUser, SettingsSection } from "./SettingsProvider";
 import { SETTINGS_SECTIONS } from "./SettingsProvider";
 import type { AcsPlan, AcsUsage, DevTeamFixture, SectionProps } from "./types";
 import type { AccuracyReadout } from "@/lib/personalAccuracy";
+import type { TeamRollupResult } from "@/lib/teamRollup";
+import { parseTeamsResponse } from "@/lib/teamSummary";
 import {
-  IconAccount, IconAlertDelivery, IconBilling, IconPrefs, IconSharing, IconSignOut, IconSync, IconTeam, IconTerminal, IconUsage,
+  IconAccount, IconAlertDelivery, IconBilling, IconDeveloper, IconPrefs, IconSharing, IconSignOut, IconSync, IconTeam, IconTerminal, IconUsage,
   IconWebhooks, IconX,
 } from "./icons";
 import SectionAccount from "./SectionAccount";
@@ -23,6 +25,7 @@ import SectionTerminal from "./SectionTerminal";
 import SectionSync from "./SectionSync";
 import SectionTeam from "./SectionTeam";
 import SectionWebhooks from "./SectionWebhooks";
+import SectionDeveloper from "./SectionDeveloper";
 import SectionSharing from "./SectionSharing";
 
 function IconAccuracy() {
@@ -56,6 +59,7 @@ const NAV: { id: SettingsSection; icon: React.ReactNode; key: string }[] = [
   { id: "terminal", icon: <IconTerminal />, key: "acsTerminal" },
   { id: "sync", icon: <IconSync />, key: "acsSyncT" },
   { id: "webhooks", icon: <IconWebhooks />, key: "acsWebhooks" },
+  { id: "developer", icon: <IconDeveloper />, key: "acsDeveloper" },
   { id: "sharing", icon: <IconSharing />, key: "acsSharing" },
 ];
 
@@ -70,6 +74,7 @@ const HEAD_KEY: Record<SettingsSection, string> = {
   terminal: "acsTerminal",
   sync: "acsSyncT",
   webhooks: "acsWebhooks",
+  developer: "acsDeveloper",
   sharing: "acsSharing",
 };
 
@@ -92,6 +97,8 @@ export interface SettingsPanelProps {
   devUsage?: AcsUsage;
   devTeam?: DevTeamFixture;
   devAccuracy?: AccuracyReadout | null;
+  /** W9T_F13_9 / MO-DELTA-007 — dev-only team-rollup fixture for the /dev/settings harness. */
+  devRollup?: TeamRollupResult | null;
 }
 
 export default function SettingsPanel(props: SettingsPanelProps) {
@@ -224,6 +231,35 @@ export default function SettingsPanel(props: SettingsPanelProps) {
     : (isAccountOwner(owner) ? accuracyLive : null);
   const accuracyLoadErr = props.devAccuracy === undefined && isAccountOwner(owner) && accuracyErr;
 
+  // ── W9T_F13_9 BLOCKER fix: resolve the caller's team id in the live path ──
+  // GET /api/teams returns { teams, truncated }, the same shape SectionTeam and
+  // parseTeamsResponse already handle. A bare-array parse leaves activeTeamIdLive
+  // null, so the rollup never renders. undefined = membership still loading
+  // (do not flash the no-team sentence); null = resolved no team; string = id.
+  const [activeTeamIdLive, setActiveTeamIdLive] = useState<string | null | undefined>(undefined);
+  useEffect(() => {
+    if (props.devTeam) return;           // dev harness: use the fixture id
+    if (!visible || !isAccountOwner(owner)) { setActiveTeamIdLive(undefined); return; }
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await fetch("/api/teams");
+        if (cancelled) return;
+        if (!res.ok) { setActiveTeamIdLive(null); return; }
+        const parsed = parseTeamsResponse(await res.json());
+        if (cancelled) return;
+        if (parsed.status !== "ok" || parsed.teams.length === 0) {
+          setActiveTeamIdLive(null);
+          return;
+        }
+        setActiveTeamIdLive(parsed.teams[0].teamId);
+      } catch {
+        if (!cancelled) setActiveTeamIdLive(null);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [visible, openSeq, owner, props.devTeam]);
+
   // ── freshness on RE-OPEN and on focus ─────────────────────────────────────
   // The panel is mounted once and hidden between uses, so "open it again" is not a
   // remount and used to revalidate nothing: a user could upgrade through onboarding
@@ -259,6 +295,12 @@ export default function SettingsPanel(props: SettingsPanelProps) {
     [user?.meta?.first_name, user?.meta?.last_name].filter((v) => typeof v === "string" && v).join(" ") ||
     email;
   const avatarChar = (displayName || email || "U").trim().charAt(0).toUpperCase() || "U";
+  // W9T_F13_9 team-accuracy rollup: dev harness uses devTeam.id; live uses the
+  // activeTeamIdLive resolved from /api/teams (null when the caller has no team,
+  // undefined while that membership read is still in flight).
+  const activeTeamId: string | null | undefined = props.devTeam
+    ? (props.devTeam.team?.id ?? null)
+    : activeTeamIdLive;
 
   const node = (
     <div
@@ -326,7 +368,7 @@ export default function SettingsPanel(props: SettingsPanelProps) {
             {section === "account" && <SectionAccount {...shared} />}
             {section === "team" && <SectionTeam {...shared} devTeam={props.devTeam} />}
             {section === "accuracy" && (
-              <SectionAccuracy {...shared} readout={accuracy} loadErr={accuracyLoadErr} />
+              <SectionAccuracy {...shared} readout={accuracy} loadErr={accuracyLoadErr} teamId={activeTeamId} devRollup={props.devRollup ?? undefined} />
             )}
             {section === "billing" && (
               <SectionBilling {...shared} plan={plan} planErr={planErr} planStale={planStale} onRefreshPlan={entitlement.refresh} />
@@ -339,6 +381,7 @@ export default function SettingsPanel(props: SettingsPanelProps) {
             {section === "terminal" && <SectionTerminal {...shared} />}
             {section === "sync" && <SectionSync {...shared} />}
             {section === "webhooks" && <SectionWebhooks {...shared} />}
+            {section === "developer" && <SectionDeveloper {...shared} />}
             {section === "sharing" && <SectionSharing {...shared} />}
           </div>
         </section>

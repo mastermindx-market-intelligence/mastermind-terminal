@@ -39,7 +39,9 @@ type DbResult = { data?: unknown; error?: { message?: string } | null };
 export type AccuracyQuery = PromiseLike<DbResult> & {
   select: (cols: string) => AccuracyQuery;
   eq: (column: string, value: unknown) => AccuracyQuery;
+  in: (column: string, values: readonly unknown[]) => AccuracyQuery;
   order: (column: string, options?: { ascending?: boolean }) => AccuracyQuery;
+  limit: (count: number) => AccuracyQuery;
 };
 
 export type AccuracyDb = { from: (table: string) => AccuracyQuery };
