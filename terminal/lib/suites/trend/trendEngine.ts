@@ -281,9 +281,9 @@ function compute(ctx: ModuleCtx): ModuleResult {
   const tpMode = selOpt(s.tpMode, "dynamic" as const, ["off", "dynamic", "fixed"] as const);
   const tpCount = Math.round(numOpt(s.tpCount, 3, 1, 6));
   const tpFixed = [
-    numOpt(s.tpFixed1, 2, 0.1, 100),
-    numOpt(s.tpFixed2, 4, 0.1, 200),
-    numOpt(s.tpFixed3, 8, 0.1, 400),
+    numOpt(s.tpFixed1, 2, 0.1, 90),
+    numOpt(s.tpFixed2, 4, 0.1, 90),
+    numOpt(s.tpFixed3, 8, 0.1, 90),
   ];
   const slMode = selOpt(s.slMode, "trailing" as const, ["off", "fixed", "trailing"] as const);
   const slFixed = numOpt(s.slFixed, 3, 0.1, 50);
