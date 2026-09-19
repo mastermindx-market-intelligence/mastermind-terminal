@@ -40,7 +40,7 @@ import { drawingToolFromShortcut, getDrawingTool, FREEHAND_DRAWING_KINDS, type D
 import { DRAWING_RENDERER_FAMILY, materializeSemanticPoints } from "@/lib/drawing-engine/geometry";
 import { calculateAnchoredVwap, calculateFixedRangeVolumeProfile, calculateRegressionChannel, generateGhostFeed } from "@/lib/drawing-engine/analytics";
 import { cloneDrawing, constrainScreenAngle, translateDrawingAnchors } from "@/lib/drawing-engine/interaction";
-import { calculatePositionMetrics, fibonacciSettings, positionSettings, type FibonacciLabelMode } from "@/lib/drawing-engine/settings";
+import { calculatePositionMetrics, calculatePositionOpportunity, fibonacciSettings, positionSettings, type FibonacciLabelMode } from "@/lib/drawing-engine/settings";
 import { registerPane, broadcastCrosshair, broadcastRange } from "@/lib/paneSync";
 import {
   PRICE_TAG_ROW_HEIGHT,
@@ -5264,7 +5264,49 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         const rr = metrics?.rewardRisk ?? 0, targetProfit = metrics?.targetProfit ?? 0, riskBudget = metrics?.riskBudget ?? 0;
         pill((x1 + x2) / 2, targetY - 15, `${tPlain("drawingTarget")} ${B.p.toFixed(prec)} (${((B.p - A.p) / A.p * 100).toFixed(2)}%) · +${compact(targetProfit)}`);
         pill((x1 + x2) / 2, stopY + 15, `${tPlain("drawingStop")} ${C.p.toFixed(prec)} (${((C.p - A.p) / A.p * 100).toFixed(2)}%) · -${compact(riskBudget)}`);
-        pill((x1 + x2) / 2, entryY, `${tPlain("drawingRiskReward")} ${rr.toFixed(2)} · ${compact(metrics?.quantity ?? 0)} @ ${compact(metrics?.positionValue ?? 0)}`); return done(anchorXY, true);
+        pill((x1 + x2) / 2, entryY, `${tPlain("drawingRiskReward")} ${rr.toFixed(2)} · ${compact(metrics?.quantity ?? 0)} @ ${compact(metrics?.positionValue ?? 0)}`);
+        // Derived from this chart's original OHLC prefix (including replay), never from
+        // transformed display candles, a selected hover bar, or an assumed actual fill.
+        const reference = barsRef.current[barsRef.current.length - 1];
+        const opportunity = calculatePositionOpportunity(d.kind === "shortposition" ? "shortposition" : "longposition", d.points, reference?.c);
+        const plan = opportunity.originalR === null ? "—" : `${opportunity.originalR.toFixed(2)}R`;
+        const remaining = opportunity.remainingR !== null ? `${tPlain("drawingRemainingR")} ${opportunity.remainingR.toFixed(2)}R`
+          : opportunity.state === "at_target" ? tPlain("drawingAtTarget")
+          : opportunity.state === "beyond_stop" ? tPlain("drawingBeyondStop")
+          : opportunity.state === "invalid_geometry" ? tPlain("drawingGeometryUnavailable")
+          : tPlain("drawingReferenceUnavailable");
+        const summary = `${tPlain("drawingPlanR")} ${plan} · ${remaining}`;
+        const basis = `${tPlain("drawingLastChartPrice")} · ${tPlain("drawingBeforeCosts")}`;
+        const detail = `${summary}. ${basis}: ${opportunity.referencePrice?.toFixed(prec) ?? "—"} (${String(reference?.time ?? "—")}). ${tPlain("drawingPlanningOnly")}`;
+        const chipW = Math.max(1, Math.min(300, W - 8)), chipH = 42;
+        const chipX = Math.max(4, Math.min(W - chipW - 4, (x1 + x2) / 2 - chipW / 2));
+        const chipY = Math.max(4, Math.min(H - chipH - 4, entryY + 17));
+        const chip = mk("g", {
+          "data-position-opportunity": "1", "data-original-r": opportunity.originalR ?? "",
+          "data-remaining-r": opportunity.remainingR ?? "", "data-reference-price": opportunity.referencePrice ?? "",
+          "data-reference-bar": String(reference?.time ?? ""), "data-opportunity-state": opportunity.state,
+          "pointer-events": "none", role: "img", "aria-label": detail,
+        });
+        chip.appendChild(mk("rect", { x: chipX, y: chipY, width: chipW, height: chipH, rx: 7,
+          fill: "var(--panel)", stroke: "var(--line)", "stroke-width": 1 }));
+        const fit = (value: string) => {
+          let width = 0, out = "";
+          for (const c of value) {
+            width += c.charCodeAt(0) > 255 ? 11 : 5.8;
+            if (width > chipW - 24) return out + "…";
+            out += c;
+          }
+          return out;
+        };
+        const summaryNode = mk("text", { x: chipX + 10, y: chipY + 16, fill: "var(--text)",
+          "font-size": 11, "font-weight": 650, "font-family": "var(--font-num)", "data-opportunity-summary": "1" });
+        summaryNode.textContent = fit(summary); chip.appendChild(summaryNode);
+        const basisNode = mk("text", { x: chipX + 10, y: chipY + 32, fill: "var(--muted)",
+          "font-size": 10, "font-family": "var(--font-ui)", "data-opportunity-basis": "1" });
+        basisNode.textContent = fit(basis); chip.appendChild(basisNode);
+        g.appendChild(chip);
+        const opportunityTitle = mk("title", {}); opportunityTitle.textContent = detail; g.appendChild(opportunityTitle);
+        return done(anchorXY, true);
       }
 
       if (family === "forecast") {
