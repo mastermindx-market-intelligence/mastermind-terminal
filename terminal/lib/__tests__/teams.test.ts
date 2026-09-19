@@ -372,11 +372,7 @@ describe("createInvite authorization (MO-PAID-082)", () => {
     if (!r.ok) {
       expect(r.status).toBe(409);
       expect(r.code).toBe("duplicate_invite");
-      // h_t588_r2 MAJOR-1: copy states the no-revoke limitation.
-      expect(r.body).toMatchObject({
-        message: INVITE_MESSAGES.duplicate_invite[0],
-        messageZh: INVITE_MESSAGES.duplicate_invite[1],
-      });
+      // h_t588_r2 MAJOR-1: copy states the no-revoke limitation (route layer tests via teamsInvitationsRoute; EN+ZH pinned by INVITE_MESSAGES completeness test below).
     }
   });
 });
