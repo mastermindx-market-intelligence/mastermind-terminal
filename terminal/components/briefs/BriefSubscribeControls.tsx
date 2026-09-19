@@ -28,6 +28,7 @@ export default function BriefSubscribeControls({
   const [resolvedId, setResolvedId] = useState<string | null>(targetId ?? null);
   const [subs, setSubs] = useState<SubRow[] | null>(null);
   const [busy, setBusy] = useState<BriefCadence | null>(null);
+  const [unavailable, setUnavailable] = useState(false);
 
   const resolveWatchlist = useCallback(async () => {
     if (targetKind !== "watchlist" || !listName) return targetId ?? null;
@@ -45,13 +46,25 @@ export default function BriefSubscribeControls({
   const load = useCallback(async (id: string) => {
     try {
       const r = await fetch(
-        `/api/briefs/subscriptions?target_kind=${encodeURIComponent(targetKind)}&target_id=${encodeURIComponent(id)}`,
+        "/api/briefs/subscriptions?target_kind=" + encodeURIComponent(targetKind)
+          + "&target_id=" + encodeURIComponent(id),
       );
-      if (!r.ok) { setSubs([]); return; }
+      if (r.status === 401) {
+        setSubs([]);
+        setUnavailable(false);
+        return;
+      }
+      if (!r.ok) {
+        setSubs(null);
+        setUnavailable(true);
+        return;
+      }
       const body = await r.json() as { subscriptions?: SubRow[] };
       setSubs(body.subscriptions || []);
+      setUnavailable(false);
     } catch {
-      setSubs([]);
+      setSubs(null);
+      setUnavailable(true);
     }
   }, [targetKind]);
 
@@ -62,12 +75,27 @@ export default function BriefSubscribeControls({
       if (!alive) return;
       setResolvedId(id);
       if (id) void load(id);
-      else setSubs([]);
+      else {
+        setSubs([]);
+        setUnavailable(false);
+      }
     })();
     return () => { alive = false; };
   }, [targetKind, targetId, resolveWatchlist, load]);
 
   if (!resolvedId) return null;
+
+  if (unavailable) {
+    return (
+      <div className={s.controls} data-testid="brief-subscribe" data-brief-subscribe-state="unavailable">
+        <div className={s.controlsHead}>{briefCopy("controlsTitle", L)}</div>
+        <p className={s.controlsNote}>{briefCopy("unavailable", L)}</p>
+        <button type="button" className={s.retryButton} onClick={() => void load(resolvedId)}>
+          {briefCopy("retry", L)}
+        </button>
+      </div>
+    );
+  }
 
   const byCadence = (cadence: BriefCadence) => (subs || []).find((row) => row.cadence === cadence);
 

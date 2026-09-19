@@ -293,6 +293,19 @@ describe("BriefSubscribeControls", () => {
     vi.unstubAllGlobals();
   });
 
+  it("does not turn a subscription-read outage into an empty Add state", async () => {
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("/api/briefs/subscriptions")) return jsonRes(503, {});
+      return jsonRes(404, {});
+    }));
+    await mountSubscribe("en");
+    expect(container?.querySelector('[data-brief-subscribe-state="unavailable"]')).not.toBeNull();
+    expect(text()).toContain(briefCopy("unavailable", "en"));
+    expect(text()).toContain(briefCopy("retry", "en"));
+    expect(text()).not.toContain(briefCopy("add", "en"));
+  });
+
   it("offers explicit schedules and tells the user exactly where briefs arrive", async () => {
     await mountSubscribe("en");
     expect(text()).toContain(briefCopy("controlsTitle", "en"));
