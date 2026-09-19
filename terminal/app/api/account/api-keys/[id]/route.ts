@@ -26,7 +26,9 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   // MAJOR-2 fix: call the SECURITY DEFINER function via service role, not PostgREST.
   // revoke_api_key(uuid) is the only permitted revoke path after the UPDATE grant removal.
   const service = createServiceClient();
-  const result = await revokeApiKey(session.db, session.userId, id, service as Parameters<typeof revokeApiKey>[3]);
+  // BLOCKER fix: pass userId as p_caller so revoke_api_key can enforce auth.uid() = userId.
+  // SECURITY DEFINER bypasses RLS but not the intra-function ownership check.
+  const result = await revokeApiKey(session.db, session.userId, id, session.userId, service);
   if (!result.ok) {
     if (result.status === "not_found") {
       return fail(

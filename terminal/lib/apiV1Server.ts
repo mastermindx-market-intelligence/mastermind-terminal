@@ -413,6 +413,7 @@ export async function handleV1Get(
   } else if (resource === "claims") {
     const sliced = pageOf(read.rows, limit, "stated_at", "claim_id");
     const mapped = sliced.pageRows.map(mapClaim).filter((v): v is ApiV1Claim => v != null);
+    for (const c of mapped) assertNoForbiddenFields(c);
     data = mapped;
     page = sliced.page;
     coverageRows = mapped as unknown as Record<string, unknown>[];
@@ -420,6 +421,7 @@ export async function handleV1Get(
   } else if (resource === "positions") {
     const sliced = pageOf(read.rows, limit, "created_at", "id");
     const mapped = sliced.pageRows.map(mapPosition).filter((v): v is ApiV1Position => v != null);
+    for (const p of mapped) assertNoForbiddenFields(p);
     data = mapped;
     page = sliced.page;
     coverageRows = mapped as unknown as Record<string, unknown>[];
@@ -460,6 +462,7 @@ export async function handleV1Index(request: Request, deps?: ApiV1Deps): Promise
     version: API_V1_VERSION,
     resources: API_V1_RESOURCES,
   };
+  assertNoForbiddenFields(data);
   const body = envelope(schemaFor("index"), data, { next_cursor: null, limit: API_V1_DEFAULT_LIMIT }, { rows: 1, nulls: [] });
   const etag = etagFor({ schema: body.schema, version: body.version, data: body.data });
   if (ifNoneMatchHits(request.headers.get("if-none-match"), etag)) {

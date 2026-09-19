@@ -652,6 +652,84 @@ describe("MAJOR-1+4 \u2014 forbidden-field walker in handleV1Get", () => {
     // The versions sub-call has rank \u2192 500
     expect(r.status).toBe(500);
   });
+
+  it("handleV1Get throws when a claim row carries a forbidden field (confidence)", async () => {
+    const depsWithForbiddenClaim: ApiV1Deps = {
+      service: {
+        rpc: async (fn) => {
+          if (fn === "api_key_authenticate") {
+            return { data: { user_id: USER_A, key_id: "ka", rate_limited: false, limit: 60, remaining: 59 }, error: null };
+          }
+          if (fn === "api_v1_read_as_user") {
+            return {
+              data: {
+                ok: true,
+                rows: [{
+                  claim_id: "cl-001",
+                  ticker: "NVDA",
+                  stated_probability: 0.75,
+                  resolution: "pending",
+                  stated_at: "2026-09-01T00:00:00.000Z",
+                  confidence: 0.9, // confidence is forbidden
+                }],
+              },
+              error: null,
+            };
+          }
+          return { data: { ok: true, rows: [] }, error: null };
+        },
+      },
+    };
+    const r = await handleV1Get(
+      new Request("http://localhost/api/v1/claims", { headers: { authorization: `Bearer ${KEY_A}` } }),
+      "claims",
+      {},
+      depsWithForbiddenClaim,
+    );
+    // The walker throws 500 before data reaches the response
+    expect(r.status).toBe(500);
+    const body = await r.json();
+    expect(body.error.code).toBe("server_error");
+  });
+
+  it("handleV1Get throws when a position row carries a forbidden field (rank)", async () => {
+    const depsWithForbiddenPosition: ApiV1Deps = {
+      service: {
+        rpc: async (fn) => {
+          if (fn === "api_key_authenticate") {
+            return { data: { user_id: USER_A, key_id: "ka", rate_limited: false, limit: 60, remaining: 59 }, error: null };
+          }
+          if (fn === "api_v1_read_as_user") {
+            return {
+              data: {
+                ok: true,
+                rows: [{
+                  id: "pos-001",
+                  ticker: "NVDA",
+                  shares: 100,
+                  entry_price: 120.5,
+                  entry_date: "2026-09-01",
+                  notes: "Test position",
+                  rank: 1, // rank is forbidden
+                }],
+              },
+              error: null,
+            };
+          }
+          return { data: { ok: true, rows: [] }, error: null };
+        },
+      },
+    };
+    const r = await handleV1Get(
+      new Request("http://localhost/api/v1/positions", { headers: { authorization: `Bearer ${KEY_A}` } }),
+      "positions",
+      {},
+      depsWithForbiddenPosition,
+    );
+    expect(r.status).toBe(500);
+    const body = await r.json();
+    expect(body.error.code).toBe("server_error");
+  });
 });
 
 describe("MAJOR-1+4 \u2014 watchlist cursor pagination (LIMIT v_limit + 1, 51st row excluded)", () => {

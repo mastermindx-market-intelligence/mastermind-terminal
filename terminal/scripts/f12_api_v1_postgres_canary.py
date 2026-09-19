@@ -375,11 +375,10 @@ def main() -> int:
                     f"got: {e}",
                 )
 
-            # MAJOR-1+4: the SQL function api_v1_read_as_user has explicit user_id = p_user_id
-            # predicates (verified by the isolation tests above). The TypeScript layer
-            # additionally runs firstForbiddenField on every mapped object before returning.
-            # Here we insert a thesis version with a forbidden field to confirm the SQL
-            # function itself handles it without error (the walker is TypeScript-side).
+            # MINOR-2 fix: insert a thesis version with a forbidden field (confidence) to confirm
+            # the SQL function does not crash on it. The TypeScript firstForbiddenField walker
+            # (tested in apiV1.test.ts) is what actually filters forbidden fields on the read path.
+            # The isolation tests above already verify the user_id = p_user_id predicates.
             cur.execute(
                 "insert into public.thesis_versions (thesis_id, user_id, version, content) "
                 "values (%s, %s, 2, %s)",
@@ -438,8 +437,8 @@ def main() -> int:
             # Watchlist cursor pagination: insert 51 watchlists for user_a and verify
             # the SQL function returns v_limit+1=51 rows (the TypeScript pageOf slice is separate).
             # MAJOR-canary-3 fix: verify the function returns exactly 51 rows, and that
-            # next_cursor is present in the response (the TypeScript layer encodes it from
-            # the 51st row's position+id).
+            # next_cursor is present at the top level of the SQL function's JSON response
+            # (encoded from the 51st row's position+id by the SQL function itself).
             for i in range(51):
                 cur.execute(
                     "insert into public.watchlists (user_id, name, position) values (%s, %s, %s)",

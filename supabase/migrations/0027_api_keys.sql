@@ -1,5 +1,5 @@
 -- Ledger row: 0027_api_keys / PR #581 (open, packet B-F12-10); not applied
--- Rollback: drop function if exists public.api_v1_read_as_user(uuid, text, jsonb); drop function if exists public.api_key_authenticate(text); drop function if exists public.api_key_hash_eq(text, text); drop trigger if exists api_keys_audit on public.api_keys; drop trigger if exists api_keys_active_limit on public.api_keys; drop trigger if exists api_keys_no_unrevoke on public.api_keys; drop function if exists public.log_api_key_event(); drop function if exists public.api_keys_enforce_active_limit(); drop function if exists public.revoke_api_key(uuid); drop table if exists public.api_key_events; drop table if exists public.api_key_usage; drop table if exists public.api_keys;
+-- Rollback: drop function if exists public.api_v1_read_as_user(uuid, text, jsonb); drop function if exists public.api_key_authenticate(text); drop function if exists public.api_key_hash_eq(text, text); drop trigger if exists api_keys_audit on public.api_keys; drop trigger if exists api_keys_active_limit on public.api_keys; drop trigger if exists api_keys_no_unrevoke on public.api_keys; drop function if exists public.log_api_key_event(); drop function if exists public.api_keys_enforce_active_limit(); drop function if exists public.revoke_api_key(uuid, uuid); drop table if exists public.api_key_events; drop table if exists public.api_key_usage; drop table if exists public.api_keys;
 -- 0027: personal read-only API keys (packet B-F12-10, MO-PAID-055).
 --
 -- ============================ MUST NOT BE APPLIED BY THIS PACKET ============================
@@ -164,7 +164,7 @@ create trigger api_keys_active_limit
 -- Owner check: auth.uid() must match the key's user_id, enforced inside the function
 -- (SECURITY DEFINER bypasses RLS but not intra-function logic). The api_keys_update_own
 -- policy is redundant for this function's use of service_role but documents the intent.
-create or replace function public.revoke_api_key(p_key_id uuid)
+create or replace function public.revoke_api_key(p_key_id uuid, p_caller uuid default null)
 returns jsonb
 language plpgsql
 security definer
@@ -175,7 +175,9 @@ declare
   v_key_prefix text;
   v_caller uuid;
 begin
-  v_caller := auth.uid();
+  -- BLOCKER fix: prefer the callerId passed from the route; fall back to auth.uid() for
+  -- direct service-role calls. auth.uid() may be null when the route uses a bearer key.
+  v_caller := coalesce(p_caller, auth.uid());
   if v_caller is null then
     return jsonb_build_object('ok', false, 'error', 'unauthorized');
   end if;
@@ -197,8 +199,8 @@ begin
 end;
 $$;
 
-revoke all on function public.revoke_api_key(uuid) from public, anon, authenticated;
-grant execute on function public.revoke_api_key(uuid) to authenticated;
+revoke all on function public.revoke_api_key(uuid, uuid) from public, anon, authenticated;
+grant execute on function public.revoke_api_key(uuid, uuid) to authenticated;
 
 -- BEFORE UPDATE trigger: reject any attempt to set revoked_at from non-null to null.
 create or replace function public.api_keys_no_unrevoke() returns trigger
@@ -354,6 +356,7 @@ declare
   v_cursor text;
   v_id uuid;
   v_rows jsonb := '[]'::jsonb;
+  v_next_cursor text; -- MAJOR-canary-3: cursor encoded from the v_limit'th row when more rows exist
 begin
   if p_user_id is null then
     return jsonb_build_object('ok', false, 'error', 'unauthorized');
@@ -439,6 +442,20 @@ begin
          order by w.position, w.id
          limit v_limit + 1
       ) t;
+    -- MAJOR-canary-3 fix: when more rows exist than the limit, encode the v_limit'th row
+    -- (index v_limit = 51st row at limit=50) as the next_cursor for the next page.
+    if jsonb_array_length(v_rows) > v_limit then
+      declare
+        last_row jsonb;
+        last_pos int;
+        last_id uuid;
+      begin
+        last_row := v_rows->v_limit;
+        last_pos := (last_row->>'position')::int;
+        last_id := (last_row->>'id')::uuid;
+        v_next_cursor := encode(last_pos::text::bytea, 'base64') || '|' || encode(last_id::text::bytea, 'base64');
+      end;
+    end if;
   elsif p_resource = 'watchlist' then
     if v_id is null then
       return jsonb_build_object('ok', false, 'error', 'not_found');
@@ -523,7 +540,11 @@ begin
     return jsonb_build_object('ok', false, 'error', 'not_found');
   end if;
 
-  return jsonb_build_object('ok', true, 'rows', coalesce(v_rows, '[]'::jsonb));
+  return jsonb_build_object(
+    'ok', true,
+    'rows', coalesce(v_rows, '[]'::jsonb),
+    'next_cursor', v_next_cursor
+  );
 end;
 $$;
 

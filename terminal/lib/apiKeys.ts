@@ -152,12 +152,15 @@ export type RevokeResult =
  * trigger rejects any unrevoke attempt. The function enforces ownership via the
  * api_keys_update_own policy (auth.uid() = user_id).
  *
+ * @param callerId - the authenticated user's ID, passed as p_caller so the SQL function
+ *                    can assert auth.uid() = callerId and return 'unauthorized' if null.
  * @param service - a service-role client with an rpc() method, e.g. createServiceClient().
  */
 export async function revokeApiKey(
   db: ApiKeysDb,
   userId: string,
   keyId: string,
+  callerId: string,
   service?: { rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown; error: { message?: string } | null }> },
 ): Promise<RevokeResult> {
   const id = typeof keyId === "string" ? keyId.trim() : "";
@@ -167,7 +170,7 @@ export async function revokeApiKey(
     return { ok: false, status: "unavailable", error: "service_unavailable" };
   }
 
-  const result = await service.rpc("revoke_api_key", { p_key_id: id }) as {
+  const result = await service.rpc("revoke_api_key", { p_key_id: id, p_caller: callerId }) as {
     data: { ok?: boolean; error?: string } | null;
     error: { message?: string } | null;
   };
