@@ -1,12 +1,15 @@
+# recapture: NEEDED — crops depict the pre-heal LONG sentence; SectionPortfolioTargets.tsx changed
+# at the h_t586 heal (shapeReadoutVisible=false); recapture before PROVEN_LIVE.
+# 2026-09-19 h_t586 round 2: hash-only restamp; crops NOT recaptured.
 {
-  "capturedAtHead": "3db34e7a8e8eca4bef1ca12eba90daab6cc0c10c",
+  "capturedAtHead": "2c8d4a7c02aefb2af0ef4cb3e82e60bcd8f04e3d",
   "capturedAt": "2026-09-13T23:14:52.434Z",
   "layoutFiles": {
-    "terminal/components/settings/SectionPortfolioTargets.tsx": "0b969ee1e9a15651a088b5ba1e2172a2dc8094e8ff8cdf6693c954ea33bb908a",
-    "terminal/components/settings/SettingsPanel.tsx": "a3701c4d2556554a8efd19e0c420c1b1d75a5f7ca0e1aa50d3d7d9fee412620d",
-    "terminal/components/settings/SettingsProvider.tsx": "e406bee3b95bdb0cdb17024d84c0599aa347bdc2b58900956fd592048fee12e8",
-    "terminal/components/settings/icons.tsx": "77bba71d251cb9cf5d1c2a2b276856e4fc5f0eb043184233467c0337fce6202a",
-    "terminal/lib/i18n.tsx": "12c508207ae03f1ee533275682645c30907bbcbffcfa1a6c07fc602067d2f56b"
+    "terminal/components/settings/SectionPortfolioTargets.tsx": "42efc4318fe724c0315b065b2833862ff241f9bc612aae976d32518ba523371b",
+    "terminal/components/settings/SettingsPanel.tsx": "a7cad95d493b6e714fa8ea7af55c255d90a190b97413338caafb8228e09395bc",
+    "terminal/components/settings/SettingsProvider.tsx": "a4c829c956ca7ffd89bbc3158009b1148bb613569a9716b092dd9a27d449d910",
+    "terminal/components/settings/icons.tsx": "7f3e17e45cb92545437ade898fe47a92cf6a65d1682cec9b9cea7a5bb8bd4d83",
+    "terminal/lib/i18n.tsx": "ac2c0b03aa16f40539b248a788af960e17f30bbd92f35d46732e8ca7cee63b7c"
   },
   "theme": "dark",
   "languages": [

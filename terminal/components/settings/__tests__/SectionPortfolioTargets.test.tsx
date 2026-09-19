@@ -258,4 +258,25 @@ describe("SectionPortfolioTargets (B-F08-13 / MO-DELTA-003)", () => {
     // LONG must NOT appear in Settings (it cross-references "the shape readout above" which is not there)
     expect(text()).not.toContain("same as the shape readout above");
   });
+
+  // MINOR-2 (h_t586 round 2): ZH SHORT must also render on the Settings surface.
+  // RED-first: this would fail if ZH copy were the LONG sentence
+  // "按你的建仓成本加权，与上方的持仓构成保持一致。" (which references the shape readout).
+  it("renders the ZH SHORT basis sentence in Settings (shapeReadoutVisible=false)", async () => {
+    const driftRow = {
+      ticker: "AAPL", currentWeightPct: 35, targetWeightPct: 40,
+      bandPct: 5, driftPct: -5, status: "within_band" as const,
+    };
+    const plan: FetchPlan = {
+      calls: [],
+      nextGet: async () => jsonRes(200, { summary: summary([driftRow]) }),
+    };
+    restoreFetch = installFetch(plan);
+    mount(baseProps("zh"));
+    await flush();
+    // SHORT (Settings, ZH): "按你的建仓成本加权。" — no cross-reference to the shape readout
+    expect(text()).toContain("按你的建仓成本加权。");
+    // LONG (ZH) must NOT appear in Settings — it cross-references "the shape readout above" which is not there
+    expect(text()).not.toContain("按你的建仓成本加权，与上方的持仓构成保持一致。");
+  });
 });
