@@ -486,7 +486,7 @@ describe("INVITE_MESSAGES plain-word completeness (acceptance #6)", () => {
   const allCodes: InviteCode[] = [
     "not_signed_in", "invalid_token", "already_used", "expired", "email_unknown", "email_mismatch",
     "invalid_email", "invalid_role", "not_admin", "team_not_found", "duplicate_invite",
-    "no_email_delivery", "unavailable", "failed",
+    "no_email_delivery", "unavailable", "read_failed", "failed",
   ];
   it("every InviteCode has a non-empty, distinct EN/ZH pair with no banned vocabulary", () => {
     for (const code of allCodes) {
@@ -694,3 +694,275 @@ describe("TEAM_ROUTE_MESSAGES and LEX plain-word completeness (B-F12-8)", () => 
   });
 });
 
+// --- Audit heal of t#514 appended tests (criterion (e) FAIL) --------------------------------
+// Two pieces of the merged packet shipped untested: the exported `listInvites` behind
+// GET /api/teams/invitations, and the `truncated` flag this packet's own round-2 m1 introduced,
+// which was never asserted TRUE from any of the three producers that compute it.
+import {
+  MAX_INVITES,
+  MAX_MEMBERS,
+  MAX_TEAMS,
+  TEAM_INVITES_TABLE,
+  TEAM_MEMBERS_TABLE,
+  TEAMS_TABLE,
+  listInvites,
+  listMembers,
+} from "@/lib/teams";
+
+type CapRow = Record<string, unknown>;
+type CapCalls = { table: string; eqs: Array<[string, unknown]>; limits: number[] };
+
+// `fakeDb` above drops the limit argument; the cap invariant is about that exact number
+// (MAX_INVITES + 1), so this twin records every eq/limit each table was asked for.
+function fakeDbCapturing(
+  responder: (table: string, calls: string[]) => { data?: unknown; error?: { code?: string; message?: string } | null },
+): { db: TenancyDb; calls: CapCalls[] } {
+  const calls: CapCalls[] = [];
+  const make = (table: string, seen: string[] = [], rec?: CapCalls): any => {
+    const record = rec ?? (() => {
+      const fresh: CapCalls = { table, eqs: [], limits: [] };
+      calls.push(fresh);
+      return fresh;
+    })();
+    const q: any = {
+      select: () => make(table, [...seen, "select"], record),
+      eq: (col: string, value: unknown) => {
+        record.eqs.push([col, value]);
+        return make(table, [...seen, "eq"], record);
+      },
+      in: () => make(table, [...seen, "in"], record),
+      order: () => make(table, [...seen, "order"], record),
+      limit: (n: number) => {
+        record.limits.push(n);
+        return make(table, [...seen, "limit"], record);
+      },
+      maybeSingle: async () => responder(table, [...seen, "maybeSingle"]),
+      then: (resolve: (v: unknown) => unknown) => Promise.resolve(responder(table, seen)).then(resolve),
+    };
+    return q;
+  };
+  return { db: { from: (table: string) => make(table) } as unknown as TenancyDb, calls };
+}
+
+function inviteRowsFor(count: number): CapRow[] {
+  return Array.from({ length: count }, (_, i) => ({
+    id: `i${i + 1}`,
+    team_id: "t1",
+    email: `person${i + 1}@example.com`,
+    role: i % 2 === 0 ? "member" : "admin",
+    expires_at: "2026-09-20T00:00:00.000Z",
+    accepted_at: null,
+  }));
+}
+
+/** team_members answers the caller-role read; team_invites answers the list read. */
+function invitesDb(opts: {
+  role?: "owner" | "admin" | "member" | null;
+  rows?: CapRow[];
+  invitesError?: { code?: string; message?: string } | null;
+  roleError?: { code?: string; message?: string } | null;
+  malformed?: boolean;
+}) {
+  return fakeDbCapturing((table, calls) => {
+    if (table === TEAM_MEMBERS_TABLE) {
+      if (opts.roleError) return { data: null, error: opts.roleError };
+      if (calls.includes("maybeSingle")) return { data: opts.role ? { role: opts.role } : null, error: null };
+      return { data: [], error: null };
+    }
+    if (table === TEAM_INVITES_TABLE) {
+      if (opts.invitesError) return { data: null, error: opts.invitesError };
+      if (opts.malformed) return { data: {} as unknown };
+      return { data: opts.rows ?? [], error: null };
+    }
+    return { data: [], error: null };
+  });
+}
+
+describe("listInvites (audit heal of t#514: the invitations read leg)", () => {
+  it("a plain member -> forbidden, never an ok:true empty list", async () => {
+    const { db } = invitesDb({ role: "member", rows: inviteRowsFor(3) });
+    const r = await listInvites(db, "u1", "t1");
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.reason).toBe("forbidden");
+  });
+
+  it("no membership row for that team -> not_found, distinct from forbidden", async () => {
+    const { db } = invitesDb({ role: null, rows: inviteRowsFor(3) });
+    const r = await listInvites(db, "u1", "t1");
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.reason).toBe("not_found");
+  });
+
+  it("an owner and an administrator both read the list, and the body names the caller's own role", async () => {
+    for (const role of ["owner", "admin"] as const) {
+      const { db } = invitesDb({ role, rows: inviteRowsFor(2) });
+      const r = await listInvites(db, "u1", "t1");
+      expect(r.ok).toBe(true);
+      if (r.ok) {
+        expect(r.callerRole).toBe(role);
+        expect(r.invites.length).toBe(2);
+      }
+    }
+  });
+
+  it("reads only the team it was asked about, one row past the cap", async () => {
+    const { db, calls } = invitesDb({ role: "owner", rows: inviteRowsFor(1) });
+    await listInvites(db, "u1", "t1");
+    const invitesCall = calls.find((c) => c.table === TEAM_INVITES_TABLE);
+    expect(invitesCall?.eqs).toEqual([["team_id", "t1"]]);
+    expect(invitesCall?.limits).toEqual([MAX_INVITES + 1]);
+  });
+
+  it("maps a database row to the invite shape: text id and email, camelCase dates, a missing role reads as member", async () => {
+    const { db } = invitesDb({
+      role: "owner",
+      rows: [
+        { id: 7, email: "SEVEN@Example.com", role: "admin", expires_at: "2026-10-01T00:00:00.000Z", accepted_at: "2026-09-02T00:00:00.000Z" },
+        { id: "i8", email: "eight@example.com" },
+      ],
+    });
+    const r = await listInvites(db, "u1", "t1");
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.invites).toEqual([
+        { id: "7", email: "SEVEN@Example.com", role: "admin", expiresAt: "2026-10-01T00:00:00.000Z", acceptedAt: "2026-09-02T00:00:00.000Z" },
+        { id: "i8", email: "eight@example.com", role: "member", expiresAt: null, acceptedAt: null },
+      ]);
+    }
+  });
+
+  it("an absent invitations table -> unavailable, by code only (42P01 and PGRST205)", async () => {
+    for (const code of ["42P01", "PGRST205"]) {
+      const { db } = invitesDb({ role: "owner", invitesError: { code, message: "schema cache" } });
+      const r = await listInvites(db, "u1", "t1");
+      expect(r.ok).toBe(false);
+      if (!r.ok) expect(r.reason).toBe("unavailable");
+    }
+  });
+
+  it("any other read error -> failed, and absence is never collapsed into it", async () => {
+    const { db } = invitesDb({ role: "owner", invitesError: { code: "08006", message: "connection failure" } });
+    const r = await listInvites(db, "u1", "t1");
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.reason).toBe("failed");
+
+    const { db: absentDb } = invitesDb({ role: "owner", invitesError: { code: "42P01", message: "gone" } });
+    const absent = await listInvites(absentDb, "u1", "t1");
+    if (!absent.ok) expect(absent.reason).not.toBe("failed");
+  });
+
+  it("a malformed non-array answer -> failed, never ok:true with an empty list", async () => {
+    const { db } = invitesDb({ role: "owner", malformed: true });
+    const r = await listInvites(db, "u1", "t1");
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.reason).toBe("failed");
+  });
+
+  it("a caller-role read error is passed through with its own classification", async () => {
+    const { db } = invitesDb({ role: "owner", roleError: { code: "PGRST205", message: "schema cache" } });
+    const r = await listInvites(db, "u1", "t1");
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.reason).toBe("unavailable");
+
+    const { db: brokeDb } = invitesDb({ role: "owner", roleError: { code: "08006", message: "connection failure" } });
+    const broke = await listInvites(brokeDb, "u1", "t1");
+    expect(broke.ok).toBe(false);
+    if (!broke.ok) expect(broke.reason).toBe("failed");
+  });
+
+  it("one row past the cap -> the cap is returned and truncated is TRUE", async () => {
+    const { db } = invitesDb({ role: "owner", rows: inviteRowsFor(MAX_INVITES + 1) });
+    const r = await listInvites(db, "u1", "t1");
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.invites.length).toBe(MAX_INVITES);
+      expect(r.truncated).toBe(true);
+    }
+  });
+
+  it("exactly the cap -> truncated is FALSE, so a full page is not reported as cut short", async () => {
+    const { db } = invitesDb({ role: "owner", rows: inviteRowsFor(MAX_INVITES) });
+    const r = await listInvites(db, "u1", "t1");
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.invites.length).toBe(MAX_INVITES);
+      expect(r.truncated).toBe(false);
+    }
+  });
+});
+
+describe("truncated is asserted TRUE on the producer that computes it (round-2 m1)", () => {
+  function memberRowsFor(count: number): CapRow[] {
+    return Array.from({ length: count }, (_, i) => ({
+      team_id: `t${i + 1}`,
+      user_id: `u${i + 1}`,
+      role: "member",
+      invited_by: null,
+      created_at: null,
+    }));
+  }
+
+  it(`listTeams at MAX_TEAMS (${MAX_TEAMS}) says truncated, and one fewer does not`, async () => {
+    const atCap = fakeDb((table) =>
+      table === TEAM_MEMBERS_TABLE
+        ? { data: memberRowsFor(MAX_TEAMS).map((r) => ({ team_id: r.team_id, role: r.role })), error: null }
+        : {
+            data: Array.from({ length: MAX_TEAMS }, (_, i) => ({ id: `t${i + 1}`, name: `Team ${i + 1}`, created_at: null })),
+            error: null,
+          },
+    );
+    const full = await listTeams(atCap, "u1");
+    expect(full.ok).toBe(true);
+    if (full.ok) {
+      expect(full.teams.length).toBe(MAX_TEAMS);
+      expect(full.truncated).toBe(true);
+    }
+
+    const underCap = fakeDb((table) =>
+      table === TEAM_MEMBERS_TABLE
+        ? { data: memberRowsFor(MAX_TEAMS - 1).map((r) => ({ team_id: r.team_id, role: r.role })), error: null }
+        : {
+            data: Array.from({ length: MAX_TEAMS - 1 }, (_, i) => ({ id: `t${i + 1}`, name: `Team ${i + 1}`, created_at: null })),
+            error: null,
+          },
+    );
+    const under = await listTeams(underCap, "u1");
+    expect(under.ok).toBe(true);
+    if (under.ok) expect(under.truncated).toBe(false);
+  });
+
+  it(`listMembers at MAX_MEMBERS (${MAX_MEMBERS}) says truncated, and one fewer does not`, async () => {
+    const withCaller = (rows: CapRow[]) =>
+      fakeDb((table, calls) => {
+        if (table !== TEAM_MEMBERS_TABLE) return { data: [], error: null };
+        if (calls.includes("maybeSingle")) return { data: { role: "owner" }, error: null };
+        return { data: rows, error: null };
+      });
+
+    const full = await listMembers(withCaller(memberRowsFor(MAX_MEMBERS)), "u1", "t1");
+    expect(full.ok).toBe(true);
+    if (full.ok) {
+      expect(full.members.length).toBe(MAX_MEMBERS);
+      expect(full.callerRole).toBe("owner");
+      expect(full.truncated).toBe(true);
+    }
+
+    const under = await listMembers(withCaller(memberRowsFor(MAX_MEMBERS - 1)), "u1", "t1");
+    expect(under.ok).toBe(true);
+    if (under.ok) expect(under.truncated).toBe(false);
+  });
+
+  it(`listInvites at MAX_INVITES + 1 (${MAX_INVITES + 1}) says truncated`, async () => {
+    const { db } = invitesDb({ role: "owner", rows: inviteRowsFor(MAX_INVITES + 1) });
+    const r = await listInvites(db, "u1", "t1");
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(r.truncated).toBe(true);
+  });
+
+  it("the three caps the producers read against are the exported ones", () => {
+    expect(MAX_TEAMS).toBe(200);
+    expect(MAX_MEMBERS).toBe(500);
+    expect(MAX_INVITES).toBe(200);
+    expect(TEAMS_TABLE).toBe("teams");
+  });
+});

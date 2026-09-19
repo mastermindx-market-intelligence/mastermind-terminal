@@ -95,17 +95,17 @@ Rows are stored rows, unchanged — no scoring, no derived judgement, no LLM-wri
    **why** (EN) "This is a record that an email address asked not to receive marketing mail, kept for compliance rather than as account content." / (ZH) "这是某邮箱要求不再接收营销邮件的记录，出于合规目的保留，不属于账户内容。"
    **how_to_ask** (EN) "Contact support if you want to confirm your unsubscribe status." / (ZH) "如需确认退订状态，请联系客服。"
 
-CSV/zip is explicitly deferred; copy says "JSON only for now". MO-PAID-086's "CSV/JSON snapshot" is therefore **partially** closed: JSON ships, CSV is a named null.
+CSV/zip is explicitly deferred; copy says "JSON only for now" / "目前仅提供 JSON 格式。" MO-PAID-086's "CSV/JSON snapshot" is therefore **partially** closed: JSON ships, CSV is a named null.
 
 ### 2.4 Plain-language copy (account panel, EN / ZH)
-Button: "Download my data" / "下载我的数据". Subtext: "A single file with your watchlists, layouts, drawings, alerts, positions, saved scripts and chat threads." / "一个文件，包含你的自选、布局、画线、提醒、持仓、脚本和对话记录。" Running: "Preparing your file…" / "正在准备文件…" Failure: "We could not build your file. Nothing was changed. Try again in a few minutes." / "暂时无法生成文件。你的数据没有任何改动。请几分钟后再试。" Banned: "export job", "payload", "schema", "RLS", any table name.
+Button: "Download my data" / "下载我的数据". Subtext: "A single file with your watchlists, layouts, drawings, alerts, positions, saved scripts and chat threads." / "一个文件，包含你的自选、布局、画线、提醒、持仓、脚本和对话记录。" Running: "Preparing your file…" / "正在准备文件…" Failure: "We could not build your file. Nothing was changed. Try again in a few minutes." / "暂时无法生成文件。你的数据没有任何改动。请几分钟后再试。" Deferred format: "JSON only for now" / "目前仅提供 JSON 格式。" Banned: "export job", "payload", "schema", "RLS", any table name.
 
 ### 2.5 Export — not done unless (macro `tests/test_account_export.py`)
 1. Owner isolation (round 3 fix for MINOR 1, which found this vacuous for the two parent-keyed collections; round-5 adds `profiles`): seeded user B present in every collection; for the eleven collections with a direct user-identifying column — the ten with `user_id`, plus `profiles` whose own `id` IS the user's auth id (`0001_init.sql:10`) — user A's bundle has zero rows/values belonging to B; for the two parent-keyed collections (`watchlist_symbols` via `watchlists`, `brain_messages` via `brain_threads`, neither of which carries `user_id`), zero rows whose parent does not belong to A.
 2. No token, no bundle: absent/expired/other-project token → 401, empty body, no Supabase call.
 3. Counts match rows per collection; zero-row collections show `0`, not omitted.
 4. A failed collection is disclosed, not dropped: injected read failure → 200, that collection in `unavailable`, absent from `counts`, others intact.
-5. `not_included` complete: all seven entries present (round 3 adds items 6-7, MAJOR 5), non-empty `what`/`why`/`how_to_ask` in both languages.
+5. `not_included` complete: all seven entries present (round 3 adds items 6-7, MAJOR 5), non-empty `what`/`why`/`how_to_ask` in both languages; the deferred-format string from §2.4 is non-empty in both languages.
 6. No fabricated field: every key in `collections.*` maps to a §1-asserted column; a golden fixture pins the key set.
 7. Rate limit holds: second call inside 15 min → 429, no Supabase round trip.
 

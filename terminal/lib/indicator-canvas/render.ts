@@ -26,7 +26,7 @@ import type {
   ProfilePrim, BgShadePrim, ColumnsPrim, XRef, CoordMapper, SuiteRenderBundle, TooltipDef,
 } from "./types";
 import {
-  hitTestMarkers, isTapGesture, MARKER_HOVER_SLACK, MARKER_TAP_SLACK,
+  gestureStamp, hitTestMarkers, isTapSample, MARKER_HOVER_SLACK, MARKER_TAP_SLACK,
 } from "../markerTooltip";
 
 const NS = "http://www.w3.org/2000/svg";
@@ -185,8 +185,10 @@ function wireTooltipHitTest(wrap: HTMLElement): void {
 
   /** A tapped tooltip stays put until the next pointerdown; a hovered one follows the cursor. */
   let pinned = false;
-  /** Suppresses the tooltip for the whole of a press-drag, so it can never chase a pan. */
-  let down: { x: number; y: number; t: number; id: number } | null = null;
+  /** Suppresses the tooltip for the whole of a press-drag, so it can never chase a pan. `ts` is
+   *  the event's own time — see markerTooltip.gestureStamp for why the handler clock cannot
+   *  classify this gesture on a busy thread. */
+  let down: { x: number; y: number; t: number; ts: number | null; id: number } | null = null;
   /** Touch emits a synthetic mouse-ish move right after a tap; it must not un-pin the tap. */
   let lastTouchTs = 0;
   /** What the shared node is currently showing. Keyed on the def OBJECT as well as the id: bundles
@@ -254,7 +256,7 @@ function wireTooltipHitTest(wrap: HTMLElement): void {
     // Unconditional: a press anywhere dismisses an open tooltip BEFORE the gesture it starts.
     // This is also what makes the pinned (tapped) tooltip dismissable by a tap elsewhere.
     hide();
-    down = { x: e.clientX, y: e.clientY, t: now(), id: e.pointerId };
+    down = { x: e.clientX, y: e.clientY, t: now(), ts: gestureStamp(e), id: e.pointerId };
   };
 
   const onUp = (e: PointerEvent) => {
@@ -264,8 +266,11 @@ function wireTooltipHitTest(wrap: HTMLElement): void {
     if (e.pointerType === "mouse") return;        // a mouse click is not a tooltip gesture
     lastTouchTs = now();
     // TOUCH: a tap on a prim must not dead-end. Same thresholds as ChartPanel's double-tap
-    // detector, so one gesture can never be a tap here and a drag for the chart.
-    if (!isTapGesture(d, { x: e.clientX, y: e.clientY, t: now() })) return;
+    // detector, so one gesture can never be a tap here and a drag for the chart. Timed on the
+    // EVENTS, not on when this handler ran: a thread held for 300ms+ between down and up (a phone
+    // mid-repaint, a saturated runner) made a fingertip flick read as a long press and the tooltip
+    // dead-ended. markerTooltip.gestureStamp carries the measurements.
+    if (!isTapSample(d, { x: e.clientX, y: e.clientY, t: now(), ts: gestureStamp(e) })) return;
     // Hit-tested at the DOWN point — where the finger actually landed — and with the larger touch
     // slack, because these prims are a few px across and a fingertip has no hover to correct with.
     const hit = hitAt(d.x, d.y, MARKER_TAP_SLACK);

@@ -247,6 +247,16 @@
       "applied_date": "2026-09-13",
       "note": "portfolio target weights + bands, user-typed, RLS own-row; ships UNAPPLIED -- the builder never runs DDL against production and the seat applies with receipts. Merged to master 2026-09-10T15:19Z via merge-on-green (#552). Applied in production 2026-09-13T06:57:13Z by the seat, after 0019/0020/0021/0022 in ledger order; readback receipt held in the seat's handoff kit at ddl/receipt_0023.json; the project ref is never written."
     },
+    "0024": {
+      "state": "taken",
+      "file": "0024_brief_subscriptions.sql",
+      "packet": "B-F11-7",
+      "pr": 579,
+      "pr_state": "open",
+      "applied_in_production": false,
+      "applied_date": null,
+      "note": "packet B-F11-7 recurring briefs (MO-PAID-032 Terminal half). Prefix 0024 is taken by this open pull request because it ships 0024_brief_subscriptions.sql unapplied; the seat applies with a receipt after 0023 in ledger order. applied_in_production is false and applied_date is null because there is no application yet, never because a real date was lost and not recorded."
+    },
     "0026": {
       "state": "taken",
       "file": "0026_webhook_rotation_alert_fires.sql",
@@ -256,6 +266,7 @@
       "applied_in_production": false,
       "applied_date": null,
       "note": "outbound signed webhooks — signing-key rotation, dead-letter redrive, alert-fire producer wiring, per-team consent row (MO-PAID-056 + MO-DELTA-038). Builds on 0018 (webhook_endpoints/webhook_deliveries), 0013 (alert_outbox) and 0014 (teams/team_members/is_team_member/team_role); does not edit 0018; widens its event_filter vocabulary via a fresh named constraint that supersedes 0018's narrower one. Every statement is idempotent so re-running against an already-applied schema is a no-op. Shipped unapplied in draft PR #582 (claude/mo-b-f12-11-signed-webhooks); the seat applies with a receipt after merge, in ledger order after 0017–0023. applied_in_production is false and applied_date is null, not recorded because the DDL has not been applied to production yet, never because a real date was lost."
+
     }
   }
 }

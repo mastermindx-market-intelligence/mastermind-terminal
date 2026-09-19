@@ -21,6 +21,21 @@ sessions were rsync'ing working trees straight to the box and silently overwriti
 That's it. Because everyone deploys the same committed `master`, nobody's work can be reverted by
 another session's deploy.
 
+## Canonical source preflight — W2A status
+
+`ops/terminal_release_preflight.py` plus
+`ops/terminal_source_audit.production.json` now define the reviewed read-only
+entrance gate for the GitHub-canonical deployment program (#483). The preflight
+requires the live marker, clean canonical checkout, accepted ref, all application
+and runtime-code projections, and both installed wrappers to agree on one SHA. It
+publishes an immutable receipt and mutates no source, service, build, or data.
+
+**The incumbent `terminal-build.sh` does not call this gate yet.** W2A must first
+merge and produce a `CLEAN` production receipt. W2B then owns binding the gate to
+exact-target build/deploy/rollback behavior. Until that integration lands, do not
+claim that running the build command below has produced a W2A preflight receipt.
+See [`ops/TERMINAL_RELEASE_PREFLIGHT.md`](ops/TERMINAL_RELEASE_PREFLIGHT.md).
+
 ## What the build script does (`terminal-build.sh`)
 
 `git fetch && reset --hard origin/master` in `/opt/terminal/.gitsrc` (a read-only-deploy-key checkout)
@@ -54,10 +69,16 @@ stay on the previous state.
 **Overlay = `git archive origin/master <dirs> \| tar -x`: tracked files are overwritten; box-only
 untracked files are preserved.** As of 2026-07-10 every cron-run script in `ingest/` and the whole
 `signal_layer/` (incl. the GC-v2 `confluence_v2.py`) are committed — **origin/master is the source
-of truth for all deployed code**. The only box-only files left are runtime caches
-(`ingest/hk_universe_cache.json`, `ingest/zh_cache.json`, `ingest/.polygon_*.json`) and `*.bak-*`
-backups (all gitignored so a stale copy can't be committed and clobber the box) — that is why the
-sync must never become `rsync --delete`.
+of truth for all deployed code**. Known host-owned exceptions are narrow runtime caches, generated
+bundles/dependencies, and exact observed backup files; the production source-audit policy classifies
+them explicitly and blocks any new unexplained path. `ingest/hk_universe_cache.json` is one temporary
+special case: its producer and rsync path own the live bytes, but a historical Git snapshot remains, so
+the policy pins that exact blob until W2B removes the snapshot without touching the live cache.
+`terminal/public/data` is a separate
+host-owned runtime-data class: Git contains reviewed fixtures/snapshots under the same path, while the
+live tree is continuously refreshed. The policy pins the exact Git tree shape, validates live metadata,
+and never treats mutable data content as implementation source. None of these exceptions permits an
+`rsync --delete` over host-owned runtime state.
 
 ### Suite-event alerts cron (`ingest/suite_alerts.ts` → `ingest/dist/suite_alerts.mjs`)
 
@@ -163,12 +184,14 @@ The settings › Webhooks panel (`SAFE_ENDPOINT_COLUMNS` in `terminal/lib/webhoo
 
 - `api/`, `docs/`, `indicator_engine/`, `tests/`, `web/`, `supabase/`, `requirements.txt` — not
   consumed on the box.
-- `terminal/public/data/` (gitignored) — market/intel data, refreshed by crons, preserved across deploys.
+- `terminal/public/data/` — the live host-owned market/intel tree is preserved rather than synchronized by the deploy; the bounded tracked fixtures/snapshots beneath this path are policy-pinned evidence, not deployment inputs.
 
 ## Notes
 
-- `public/data/*.json` (market/intel data) is **not** in git — it's refreshed on the box by the nightly
-  data crons and preserved across deploys. Do not commit it.
+- The live `terminal/public/data` tree is host-owned market/intel runtime data, refreshed by cron and
+  preserved across deploys. Git also contains a bounded set of reviewed fixtures/snapshots beneath that
+  path. Do not infer that live bytes are canonical Git source, and do not add/remove tracked files there
+  without updating and reviewing the pinned `canonical_git_tree` in the production source-audit policy.
 - Secrets live in `/opt/terminal/.env` / `terminal/.env.local` on the box (gitignored) — preserved across deploys.
 - `next.config.ts` sets `typescript.ignoreBuildErrors` + `eslint.ignoreDuringBuilds`, so the build won't
   catch type errors — run `tsc --noEmit` yourself before merging.

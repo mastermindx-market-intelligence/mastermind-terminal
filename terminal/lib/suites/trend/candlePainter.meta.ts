@@ -29,8 +29,8 @@ const DEFAULTS: Record<string, any> = {
 
 export const CANDLE_PAINTER_META: SuiteModuleMeta = {
   key: "cp",
-  label: "Candle Painter",
-  tag: "CP",
+  label: "Mastermind Candles",
+  tag: "MC",
   tier: "free",
   defaultOn: true,
   fields: FIELDS,
