@@ -49,12 +49,11 @@ test("settings Webhooks section is reachable in EN and ZH", async ({ page }, tes
   const dialog = page.locator(".acs-overlay.open .acs-card");
   await expect(dialog).toBeVisible({ timeout: 45_000 });
   const tabs = dialog.getByRole("tab");
-  // Sharing is last after this packet kept #549's Webhooks tab and #548's
-  // Sharing tab. Accuracy (#547) sits after Account and does not change last.
-  // Asserting Webhooks as "last" would redden any later section the same way
-  // a hard count would.
-  await expect(tabs.last()).toHaveText("Sharing");
-  expect(await tabs.count()).toBeGreaterThanOrEqual(10);
+  // The rail now has 13 rows (developer from master + portfolioTargets is the new last tab, added by #586).
+  // Assert Sharing is present and the new row is also present — order-independent.
+  await expect(dialog.getByRole("tab", { name: "Sharing" })).toBeVisible();
+  await expect(dialog.getByRole("tab", { name: "Portfolio targets" })).toBeVisible();
+  expect(await tabs.count()).toBeGreaterThanOrEqual(11);
   await expect(dialog.getByRole("tab", { name: "Webhooks" })).toBeVisible();
   await expect(dialog.getByRole("tab", { name: "Webhooks" })).toHaveAttribute("aria-selected", "true");
   await expect(page.getByRole("heading", { name: "Webhooks" })).toBeVisible();
@@ -69,8 +68,9 @@ test("settings Webhooks section is reachable in EN and ZH", async ({ page }, tes
   await page.goto("/dev/settings?s=webhooks&lang=zh");
   const zhDialog = page.locator(".acs-overlay.open .acs-card");
   await expect(zhDialog).toBeVisible({ timeout: 45_000 });
-  await expect(zhDialog.getByRole("tab").last()).toHaveText("共享");
-  expect(await zhDialog.getByRole("tab").count()).toBeGreaterThanOrEqual(10);
+  await expect(zhDialog.getByRole("tab", { name: "共享" })).toBeVisible();
+  await expect(zhDialog.getByRole("tab", { name: "组合目标权重" })).toBeVisible();
+  expect(await zhDialog.getByRole("tab").count()).toBeGreaterThanOrEqual(11);
   await expect(zhDialog.getByRole("tab", { name: "Webhook 回调" })).toBeVisible();
   await expect(zhDialog.getByRole("tab", { name: "Webhook 回调" })).toHaveAttribute("aria-selected", "true");
   await expect(page.getByRole("heading", { name: "Webhook 回调" })).toBeVisible();

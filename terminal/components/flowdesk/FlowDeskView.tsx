@@ -237,7 +237,7 @@ function ChainCampaignRow({
       <div className="obs-fd-chain-row1">
         <span className="obs-fd-chain-ticker">{campaign.ticker}</span>
         <span className={`obs-fd-chain-cp ${isCall ? "call" : "put"}`}>
-          {campaign.type}
+          {isCall ? t("chainHeatCall") : t("chainHeatPut")}
         </span>
         <span className="obs-fd-chain-strike">${campaign.strike} · {campaign.expiry.slice(5)}</span>
         <span className="obs-fd-chain-prem num" style={{ color: isBig ? "var(--signal)" : "var(--text)" }}>

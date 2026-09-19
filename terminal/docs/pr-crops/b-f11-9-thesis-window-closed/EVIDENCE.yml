@@ -1,0 +1,31 @@
+# B-F11-9 thesis window-closed — capture evidence
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
+capturedAtHead: 83a69d5e613c020f5bef24050acb18784de47015
+# capturedAt: 2026-09-19T19:33:50.275Z
+# capturedAtHead is informational. The lock is layoutFiles.
+layoutFiles:
+  terminal/lib/alertsView.ts: "ee48893ed7706de4d6fa306b237a5df647166acb6737dc4b9dd3b23c350b1d0f"
+  terminal/components/alerts/AlertsCockpit.tsx: "d0052d5922f880d651e8d5cf1d6a20d0b05626a9d7066dc9daf754c25955e950"
+  terminal/components/alerts/AlertTimeline.tsx: "22395c8972c8fc88f80fae1f72a0c9d546a1fd6e8354e0ef6a8ae62211514d96"
+  terminal/components/alerts/AlertDetail.tsx: "74bbdd5f0f5106b97fa56d67b6966caa86f32e65649eaef0d811f6ae6ef2485f"
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: mobile, width: 390, height: 844 }
+surfaces: [recent-activity, thesis-detail]
+capture_flag: TERMINAL_E2E_FIXTURE
+capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
+command: |
+  cd terminal
+  node e2e/tools/capture_b_f11_9_thesis_window_closed.cjs
+files:
+  - recent-activity-1440-zh.png
+  - recent-activity-1440.png
+  - recent-activity-390-zh.png
+  - recent-activity-390.png
+  - thesis-detail-1440-zh.png
+  - thesis-detail-1440.png
+  - thesis-detail-390-zh.png
+  - thesis-detail-390.png

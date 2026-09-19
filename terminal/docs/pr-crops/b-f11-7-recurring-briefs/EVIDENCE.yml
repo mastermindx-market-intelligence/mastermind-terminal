@@ -1,3 +1,5 @@
+# 2026-09-19 #669 plain-language debt: hash-only restamp of AlertsCockpit.tsx — copy-only change, crops unchanged
+# 2026-09-19 #648 F11-9: hash-only restamp of AlertsCockpit.tsx to the STEP-1 code bytes; crops NOT recaptured
 # B-F11-7 Recurring briefs — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
@@ -9,7 +11,7 @@ layoutFiles:
   terminal/components/briefs/BriefSubscribeControls.tsx: "ae6cd7b26f6ce48b2bc56e98ec7eedf72d163b1e04ae95d9b951d7c1b8ab9a56"
   terminal/components/briefs/briefs.module.css: "bdec4855420f396e8ad30565741c70904d55090310298e396f75e3e44c41b573"
   terminal/lib/briefs.ts: "45e085b000b79481d5a7ad0b73ab9f76300d21efde8e64bc0d9ef36f0a9159cb"
-  terminal/components/alerts/AlertsCockpit.tsx: "3d1027efa3cbd0045550a58070b1d6328e9b57b0e85c4d6cfd1b99aa1643845d"
+  terminal/components/alerts/AlertsCockpit.tsx: "d0052d5922f880d651e8d5cf1d6a20d0b05626a9d7066dc9daf754c25955e950"
 theme: dark
 languages: [en, zh]
 viewports:
