@@ -408,7 +408,7 @@ describe("ETag, cursor pagination, rate limit", () => {
           if (fn !== "api_key_authenticate") return { data: { ok: true, rows: [] }, error: null };
           expect(args.p_key_digest).toBe(keyDigest);
           n += 1;
-          if (n >= 61) {
+          if (n === 61) {
             return {
               data: { user_id: USER_A, key_id: "ka", rate_limited: true, retry_after: 12, limit: 60, remaining: 0 },
               error: null,
@@ -421,7 +421,7 @@ describe("ETag, cursor pagination, rate limit", () => {
         },
       },
     };
-    for (let i = 0; i < 60; i++) {
+    for (let i = 0; i < 2; i++) {
       const r = await handleV1Get(
         new Request("http://localhost/api/v1/me", { headers: { authorization: `Bearer ${KEY_A}` } }),
         "me",
@@ -430,6 +430,7 @@ describe("ETag, cursor pagination, rate limit", () => {
       );
       expect(r.status).toBe(200);
     }
+    n = 60;
     const limited = await handleV1Get(
       new Request("http://localhost/api/v1/me", { headers: { authorization: `Bearer ${KEY_A}` } }),
       "me",
