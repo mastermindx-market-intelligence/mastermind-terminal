@@ -1316,6 +1316,52 @@ test("HK-O1: a structure stop and a refused entry are labelled for what they are
   expect(overflow.document).toBeLessThanOrEqual(overflow.viewport + 1);
 });
 
+test("Exposure desk renders expiry VEX and CHEX from the enriched owner payload", async ({ page }, testInfo) => {
+  await page.goto("/options?tab=gex");
+
+  const vanna = page.getByRole("button", { name: "Vanna exposure", exact: true });
+  await expect(vanna).toBeVisible({ timeout: 15_000 });
+  await vanna.click();
+
+  const axis = page.getByRole("group", { name: "Exposure axis" });
+  await axis.getByRole("button", { name: "By Expiration", exact: true }).click();
+
+  const expiryRegion = page.locator(".obs-gexdesk-ladder-region");
+  await expect(expiryRegion).toBeVisible();
+  await expect(expiryRegion.getByText("-2.4M", { exact: true })).toBeVisible();
+  await expect(expiryRegion.getByText("+2.1M", { exact: true })).toBeVisible();
+  await expect(page.getByText("This snapshot does not provide Vanna or Charm by expiration."))
+    .toHaveCount(0);
+
+  const drawerHeader = page.locator(".obs-xdrawer-hd");
+  await expect(drawerHeader).toContainText("11 exp");
+  await drawerHeader.click();
+
+  const term = page.getByRole("img", { name: "Exposure by expiry term structure" });
+  await expect(term).toBeVisible();
+  await expect(term.getByText("-2.4M", { exact: true })).toBeVisible();
+  await expect(term.getByText("+2.1M", { exact: true })).toBeVisible();
+
+  const charm = page.getByRole("button", { name: "Charm exposure", exact: true });
+  await charm.click();
+  await expect(expiryRegion.getByText("+700K", { exact: true })).toBeVisible();
+  await expect(expiryRegion.getByText("-400K", { exact: true })).toBeVisible();
+  await expect(term.getByText("+700K", { exact: true })).toBeVisible();
+  await expect(page.getByText("This snapshot does not provide Vanna or Charm by expiration."))
+    .toHaveCount(0);
+
+  const overflow = await page.evaluate(() => ({
+    viewport: window.innerWidth,
+    document: document.documentElement.scrollWidth,
+  }));
+  expect(overflow.document).toBeLessThanOrEqual(overflow.viewport + 1);
+
+  await page.screenshot({
+    path: testInfo.outputPath(`${testInfo.project.name}-expiry-vex-chex.png`),
+    fullPage: false,
+  });
+});
+
 test("Exposure desk replays an archived session's full ladder at every supported width", async ({ page }, testInfo) => {
   await page.goto("/options?tab=gex");
 
