@@ -1,3 +1,4 @@
+# 2026-09-19 #669 plain-language debt: hash-only restamp of i18n.tsx — copy-only change, crops unchanged
 # recapture: NEEDED — crops depict f72c33fa; SectionTeam.tsx / teams.ts changed after the capture (seat merge 567fbf31 + h_t588 r2); recapture before PROVEN_LIVE.
 # W9T_F12_17 / MO-PAID-081 — copyable invitation link + the dated no-email-delivery line
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
@@ -14,7 +15,7 @@ capturedAt: 2026-09-14T00:36:30.324Z
 layoutFiles:
   terminal/components/settings/SectionTeam.tsx: "00f61441215f0cdb8c6b40536e66e243d0ae83ffa54d6f19ae8a67dd99d7a79d"
   terminal/components/settings/SectionTeam.module.css: "069056ff7ac4274a57ae9a835a0fdda178e9625a591b4374e855b9d41a3fd5bc"
-  terminal/lib/i18n.tsx: "440da61d2fe18d819c46503ec0c95be25bc893cf63300a32837133301dfb3a50"
+  terminal/lib/i18n.tsx: "c21e5974e091e4c9d8dd06c5efb2834363120f69a96aebf9476dc85f51fc10e7"
   terminal/lib/teams.ts: "e518afe4bc58b5f82638539f03b3063dc7ef35905c2807601eca9c71ac55e5b3"
   terminal/app/api/teams/invitations/route.ts: "d1daea2a77249e0b5246d5c1d6a3f0b40acecc1b5e1d1f3bfff51a4c2dba1618"
   terminal/app/invite/page.tsx: "1e9e766f3551978a9e0e7f4f4fdace0db07fbd4661e45426576d180d8db94716"
