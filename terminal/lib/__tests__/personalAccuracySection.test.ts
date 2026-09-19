@@ -3,7 +3,7 @@
 // Round 3: loadErr prints accDetLoadErr at the glance (R2). Unread is a
 // fourth glance state (R1). Unscorable glance prints call count + claim
 // count (R3). This mounts the real SectionAccuracy (no test double).
-import { describe, expect, it, beforeEach, afterEach } from "vitest";
+import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { act } from "react";
@@ -19,6 +19,7 @@ import {
   unscorableAccuracyFixture,
 } from "@/app/dev/settings/accuracyFixtures";
 import type { AccuracyProps } from "@/components/settings/SectionAccuracy";
+import { TEAM_ROUTE_MESSAGES } from "@/lib/teams";
 
 const OWNER = accountIdentity("8f2c41ba-7d19-4e6a-9c03-5b71ee0a4d22", "a@example.com");
 
@@ -820,6 +821,68 @@ describe("SectionAccuracy date and resolver honesty (META-CEO B round 7 R9)", ()
     const detail = openDetail();
     expect(detail).not.toContain(LEX.accDetResolverKnown[0]);
     expect(detail).not.toContain(LEX.accDetHowChecked[0]);
+  });
+});
+
+describe("SectionAccuracy team rollup 503 is the unavailable pair (h_t587 r2 MAJOR-2)", () => {
+  let container: HTMLDivElement;
+  let root: Root | undefined;
+
+  beforeEach(() => {
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(JSON.stringify({
+        error: "READ_UNAVAILABLE",
+        message: TEAM_ROUTE_MESSAGES.unavailable[0],
+        messageZh: TEAM_ROUTE_MESSAGES.unavailable[1],
+      }), { status: 503, headers: { "content-type": "application/json" } })),
+    );
+  });
+
+  afterEach(() => {
+    act(() => {
+      root?.unmount();
+    });
+    root = undefined;
+    container.remove();
+    vi.unstubAllGlobals();
+  });
+
+  async function flushUntil(pred: () => boolean, label: string) {
+    const start = Date.now();
+    while (!pred()) {
+      if (Date.now() - start > 2500) throw new Error(`timed out waiting for ${label}`);
+      await act(async () => {
+        await Promise.resolve();
+        await new Promise((r) => setTimeout(r, 15));
+      });
+    }
+  }
+
+  it("mock 503 renders TEAM_ROUTE_MESSAGES.unavailable EN and ZH verbatim, never accDetLoadErr", async () => {
+    await act(async () => {
+      root = createRoot(container);
+      root.render(React.createElement(SectionAccuracy, baseProps("en", { teamId: "t1" })));
+    });
+    await flushUntil(
+      () => (container.textContent || "").includes(TEAM_ROUTE_MESSAGES.unavailable[0])
+        || (container.textContent || "").includes(LEX.accDetLoadErr[0]),
+      "503 copy",
+    );
+    expect(container.textContent).toContain(TEAM_ROUTE_MESSAGES.unavailable[0]);
+    expect(container.textContent).toContain(TEAM_ROUTE_MESSAGES.unavailable[1]);
+    expect(container.textContent).not.toContain(LEX.accDetLoadErr[0]);
+  });
+
+  it("no teamId in the live path renders accTeamNoneCreate", () => {
+    act(() => {
+      root = createRoot(container);
+      root.render(React.createElement(SectionAccuracy, baseProps("en", { teamId: null })));
+    });
+    expect(container.textContent).toContain(LEX.accTeamNoneCreate[0]);
+    expect(container.querySelector("[data-acc-team-state='none']")?.textContent).toBe(LEX.accTeamNoneCreate[0]);
   });
 });
 
