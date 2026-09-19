@@ -82,7 +82,9 @@ export function atr(bars: Bar[], len: number): (number | null)[] {
   return rma(tr, len);
 }
 
-/** Rolling percentile rank of value in a window (0–100). */
+/** Rolling percentile rank of value in a complete finite window (0–100).
+ *  A partial window created by upstream warmup/nulls stays null instead of silently
+ *  shrinking the requested lookback. */
 export function rollingPercentile(src: (number | null)[], win: number): (number | null)[] {
   const out: (number | null)[] = Array(src.length).fill(null);
   for (let i = win - 1; i < src.length; i++) {
@@ -91,11 +93,11 @@ export function rollingPercentile(src: (number | null)[], win: number): (number 
     let below = 0, total = 0;
     for (let j = i - win + 1; j <= i; j++) {
       const x = src[j];
-      if (x == null) continue;
+      if (x == null || !isFinite(x)) continue;
       total++;
       if (x <= v) below++;
     }
-    out[i] = total ? (below / total) * 100 : null;
+    if (total === win) out[i] = (below / win) * 100;
   }
   return out;
 }
@@ -329,10 +331,14 @@ export function rollingVwap(bars: Bar[], n = 20): (number | null)[] {
   return out;
 }
 
-/** Bucket key for a 'YYYY-MM-DD' date under pandas W-FRI (week ending Friday):
- *  the date of the Friday that closes this date's Sat..Fri window. */
-function weekEndFriKey(dateStr: string): string {
-  const dt = new Date(dateStr + "T00:00:00Z");
+/** Bucket key under pandas W-FRI (week ending Friday):
+ *  the date of the Friday that closes this bar's Sat..Fri window.
+ *  Daily bars carry YYYY-MM-DD strings; intraday ChartPanel bars carry numeric
+ *  display-epoch seconds, whose UTC date is the intended market-local display date. */
+function weekEndFriKey(time: string | number): string {
+  const dt = typeof time === "number"
+    ? new Date(time * 1000)
+    : new Date(time + "T00:00:00Z");
   const w = dt.getUTCDay();          // Sun=0 .. Sat=6
   const add = (5 - w + 7) % 7;       // Fri→0, Sat→6, Sun→5, … Thu→1
   const fri = new Date(dt.getTime() + add * 86400_000);
@@ -342,8 +348,9 @@ function weekEndFriKey(dateStr: string): string {
 /** Week-anchored VWAP: cumulative Σ(TP·V)/Σ(V) within each calendar week (pandas
  *  W-FRI period — weeks end Friday), reset at the first session of each week.
  *  The first session of a week has VWAP = that bar's TP (if volume > 0); a zero
- *  cumulative-volume span yields null. Assumes ascending, deduplicated daily bars.
- *  Daily-bar approximation over typical price (H+L+C)/3 — not intraday-true VWAP. */
+ *  cumulative-volume span yields null. Assumes ascending, deduplicated bars.
+ *  Daily inputs are a daily-bar approximation; numeric intraday inputs accumulate
+ *  from their intraday typical-price/volume observations. */
 export function weekAnchoredVwap(bars: Bar[]): (number | null)[] {
   const out: (number | null)[] = Array(bars.length).fill(null);
   let curKey: string | null = null, cumTP = 0, cumV = 0;

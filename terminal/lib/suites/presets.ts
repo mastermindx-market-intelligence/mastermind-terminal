@@ -75,7 +75,7 @@ const PRESETS: Readonly<Record<string, readonly SuitePresetRecipe[]>> = {
       id: "focused",
       name: { en: "Candle State", zh: "蜡烛状态" },
       description: {
-        en: "Candle Painter only — the lightest one-glance trend read.",
+        en: "Mastermind Candles only — the lightest one-glance trend read.",
         zh: "仅启用蜡烛着色——最轻量的一眼趋势判断。",
       },
       modules: ["cp"],

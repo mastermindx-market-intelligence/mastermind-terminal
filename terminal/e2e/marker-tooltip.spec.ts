@@ -241,6 +241,24 @@ async function primeVisibleTooltip(page: Page, marker: Marker) {
   }, { t: marker.t, title: marker.title });
 }
 
+/** Hold the renderer's main thread for `ms` at the very END of the next pointerdown's propagation
+ *  path — after every product handler on the wrapper has recorded its own start time.
+ *
+ *  This is the shape of the defect, not a contrivance: the browser queues input behind whatever
+ *  the thread is already doing, so on a phone mid-repaint (or a saturated CI runner) a fingertip
+ *  that was down for a few milliseconds has its pointerup DISPATCHED hundreds of milliseconds
+ *  later. Measured on this chart before #619: with the thread held 400ms the tap dead-ended on
+ *  both touch viewports and both overlay layers, while the two events were stamped <1ms apart.
+ *  `once` so exactly one gesture is affected and the page is never left wedged. */
+async function stallNextGesture(page: Page, ms: number) {
+  await page.evaluate((hold) => {
+    window.addEventListener("pointerdown", () => {
+      const end = performance.now() + hold;
+      while (performance.now() < end) { /* hold the main thread */ }
+    }, { once: true });
+  }, ms);
+}
+
 /** Hover a marker and wait for its tooltip — polled on the tooltip's own `data-marker-at`, so the
  *  wait is for the state being asserted rather than for a timeout. */
 async function hoverMarker(page: Page, m: Marker) {
@@ -480,6 +498,29 @@ test("tapping a marker opens its tooltip, and tapping away dismisses it", async 
 
   // A tapped tooltip has no hover to dismiss it, so the next press must — otherwise it is litter
   // pinned over the chart. Tapped well clear of every marker.
+  const box = await page.locator("[data-sig-layer]").first().boundingBox();
+  await page.touchscreen.tap((box?.x ?? 0) + 20, (box?.y ?? 0) + 20);
+  await expect(tip(page)).toBeHidden();
+});
+
+test("a tap still opens the tooltip when the thread stalls between down and up", async ({ page }, testInfo) => {
+  test.skip(!["tablet", "mobile"].includes(testInfo.project.name), "touch viewports only");
+  await openTerminal(page);
+  const target = pick(await settledMarkers(page), RETRO_TS);
+
+  // The gesture is a TAP by every physical measure — zero travel, its two events stamped under a
+  // millisecond apart — and the only thing between them is a busy main thread. Classified on when
+  // the handlers ran, it read as a 400ms long press and the tooltip never opened; classified on
+  // the events, which is what lib/markerTooltip.isTapSample does, it is the tap it always was.
+  // Revert that clock and this test goes red on both touch viewports.
+  await stallNextGesture(page, 400);
+  await page.touchscreen.tap(target.cx, target.cy);
+
+  await expect(tip(page)).toBeVisible({ timeout: 10_000 });
+  await expect(tip(page)).toHaveAttribute("data-marker-at", target.t);
+
+  // The threshold itself is NOT loosened — a press that really lasts is still a long press, and
+  // the same shared law still refuses it. (Unit-level: lib/__tests__/markerTooltip.test.ts.)
   const box = await page.locator("[data-sig-layer]").first().boundingBox();
   await page.touchscreen.tap((box?.x ?? 0) + 20, (box?.y ?? 0) + 20);
   await expect(tip(page)).toBeHidden();

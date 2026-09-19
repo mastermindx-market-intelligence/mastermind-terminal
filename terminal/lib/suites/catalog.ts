@@ -177,7 +177,7 @@ const META: Record<SuiteModuleId, PickerMetadata> = {
   "suite:trend/cp": {
     description: "Paints candles by trend, momentum, volume, or combined market state.",
     descriptionZh: "按趋势、动量、成交量或综合市场状态为蜡烛着色。",
-    aliases: ["bar color", "candle colors", "paint bars", "trend candles"],
+    aliases: ["Candle Painter", "bar color", "candle colors", "paint bars", "trend candles"],
     aliasesZh: ["蜡烛着色", "K线颜色", "趋势蜡烛"],
     surface: "candles",
   },
