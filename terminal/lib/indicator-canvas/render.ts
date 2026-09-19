@@ -22,7 +22,7 @@
 // lib/markerTooltip.ts documents at length why this is a JS hit test and not `pointer-events:auto`.
 
 import type {
-  Prim, ZonePrim, LinePrim, PolyPrim, CloudPrim, GradLinePrim, LabelPrim, MarkerPrim,
+  ZonePrim, LinePrim, PolyPrim, CloudPrim, GradLinePrim, LabelPrim, MarkerPrim,
   ProfilePrim, BgShadePrim, ColumnsPrim, XRef, CoordMapper, SuiteRenderBundle, TooltipDef,
 } from "./types";
 import {
@@ -200,8 +200,39 @@ function wireTooltipHitTest(wrap: HTMLElement): void {
   const now = () => (typeof performance !== "undefined" ? performance.now() : Date.now());
   const tipOf = () => wrap.querySelector(":scope > .ic-tip") as HTMLElement | null;
 
+  // First-show placement stays synchronous so a newly opened tooltip never flashes at the wrapper
+  // origin. Once visible, high-Hz pointer streams only need the latest sample that can actually
+  // reach the display: defer cursor-follow geometry to one requestAnimationFrame per paint.
+  let positionFrame: number | null = null;
+  let pendingPosition: { tip: HTMLElement; clientX: number; clientY: number } | null = null;
+  const flushPosition = () => {
+    positionFrame = null;
+    const next = pendingPosition;
+    pendingPosition = null;
+    if (!next || next.tip.style.display !== "block" || !next.tip.isConnected || !wrap.isConnected) return;
+    placeTip(next.tip, wrap, next);
+  };
+  const cancelPosition = () => {
+    pendingPosition = null;
+    if (positionFrame == null) return;
+    if (typeof cancelAnimationFrame === "function") {
+      try { cancelAnimationFrame(positionFrame); } catch {}
+    }
+    positionFrame = null;
+  };
+  const schedulePosition = (tip: HTMLElement, clientX: number, clientY: number) => {
+    pendingPosition = { tip, clientX, clientY };
+    if (positionFrame != null) return;
+    if (typeof requestAnimationFrame !== "function") {
+      flushPosition();
+      return;
+    }
+    positionFrame = requestAnimationFrame(flushPosition);
+  };
+
   const hide = () => {
     pinned = false;
+    cancelPosition();
     const tip = tipOf();
     if (tip && tip.style.display !== "none") tip.style.display = "none";
   };
@@ -224,8 +255,14 @@ function wireTooltipHitTest(wrap: HTMLElement): void {
       tip.dataset.icTipFor = hit.tid;
       shownTid = hit.tid; shownDef = def;
     }
-    if (tip.style.display !== "block") tip.style.display = "block";
-    placeTip(tip, wrap, { clientX, clientY });
+    const alreadyVisible = tip.style.display === "block";
+    if (!alreadyVisible) {
+      cancelPosition();
+      tip.style.display = "block";
+      placeTip(tip, wrap, { clientX, clientY });
+      return;
+    }
+    schedulePosition(tip, clientX, clientY);
   };
 
   const defOf = (tid: string): TooltipDef | null => TIP_DEFS.get(wrap)?.get(tid) ?? null;
