@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { BrandLockup, BrandMark } from "@/components/BrandMark";
 import DashboardBackButton from "@/components/DashboardBackButton";
@@ -38,6 +38,8 @@ export interface MobileNavProps {
   /** Retained for call-site compatibility; the drawer no longer special-cases the
    *  fundamentals pane (Analyst is gone from the nav). */
   isTerminal?: boolean;
+  /** Disable viewport prefetch and warm a destination only after hover/focus/touch intent. */
+  intentPrefetch?: boolean;
 }
 
 export default function MobileNav({
@@ -47,9 +49,11 @@ export default function MobileNav({
   onOpenCopilot,
   activeKey: activeKeyProp,
   isTerminal: _isTerminal = false,
+  intentPrefetch = false,
 }: MobileNavProps) {
   const [drawer, setDrawer] = useState(false);
   const navPath = usePathname();
+  const router = useRouter();
   const t = useT();
   // Carries the company you are looking at through the drawer — see lib/navSymbol. This drawer
   // is the surface the gap was reported on: tapping Analysis while charting SMR opened NVDA.
@@ -114,10 +118,16 @@ export default function MobileNav({
         <nav className="m-nav">
           {TOP.map((it) => {
             const on = it.k === derivedKey;
+            const href = navHref(it, activeSymbol, navPath);
+            const prefetchOnIntent = intentPrefetch ? () => router.prefetch(href) : undefined;
             return (
               <Link
                 key={it.k}
-                href={navHref(it, activeSymbol, navPath)}
+                href={href}
+                prefetch={intentPrefetch ? false : undefined}
+                onMouseEnter={prefetchOnIntent}
+                onFocus={prefetchOnIntent}
+                onTouchStart={prefetchOnIntent}
                 className={on ? "on" : ""}
                 onClick={() => setDrawer(false)}
               >
