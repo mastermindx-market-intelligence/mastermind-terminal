@@ -375,22 +375,25 @@ function r5ExpiryAggregate(rows: readonly MscExpiryRow[]): AggregateResult {
   let vannaMn = 0;
   let charmMn = 0;
   let deltaMn = 0;
-  let vSeen = false;
-  let cSeen = false;
-  let dSeen = false;
+  let vCount = 0;
+  let cCount = 0;
+  let dCount = 0;
 
   for (const row of rows) {
     if (isNum(row.gamma_net)) gammaMn += row.gamma_net;
-    if (isNum(row.vanna_net)) { vannaMn += row.vanna_net; vSeen = true; }
-    if (isNum(row.charm_net)) { charmMn += row.charm_net; cSeen = true; }
-    if (isNum(row.delta_net)) { deltaMn += row.delta_net; dSeen = true; }
+    if (isNum(row.vanna_net)) { vannaMn += row.vanna_net; vCount += 1; }
+    if (isNum(row.charm_net)) { charmMn += row.charm_net; cCount += 1; }
+    if (isNum(row.delta_net)) { deltaMn += row.delta_net; dCount += 1; }
   }
 
+  // Research aggregation is stricter than the display consumer: a missing expiry
+  // cannot silently become a zero contribution inside a tenor. Either every row in
+  // the population carries the lens or that aggregate is unavailable.
   return {
     gammaMn,
-    vannaMn: vSeen ? vannaMn : null,
-    charmMn: cSeen ? charmMn : null,
-    deltaMn: dSeen ? deltaMn : null,
+    vannaMn: vCount === rows.length ? vannaMn : null,
+    charmMn: cCount === rows.length ? charmMn : null,
+    deltaMn: dCount === rows.length ? deltaMn : null,
     // by-expiry is Net-only. R5 does not manufacture call/put decomposition.
     callAbsMn: 0,
     putAbsMn: 0,
