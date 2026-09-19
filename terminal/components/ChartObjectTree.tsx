@@ -36,11 +36,24 @@ const SQUIGGLE = "M3 12c2-3 4-3 6 0s4 3 6 0 4-3 6 0";
 const CANDLE = "M9 4v16M9 7h6v10H9zM6 9v6M15 9v6";
 const CLOSE_X = "M6 6l12 12M18 6L6 18";
 
-function EyeBtn({ hidden: off, onToggle }: { hidden: boolean; onToggle: () => void }) {
+function EyeBtn({
+  hidden: off,
+  onToggle,
+  showLabel,
+  hideLabel,
+}: {
+  hidden: boolean;
+  onToggle: () => void;
+  showLabel: string;
+  hideLabel: string;
+}) {
+  const label = off ? showLabel : hideLabel;
   return (
     <button
+      type="button"
       className="icbtn ot-eye"
-      title={off ? "Show" : "Hide"}
+      title={label}
+      aria-label={label}
       onClick={(e) => { e.stopPropagation(); onToggle(); }}
       style={{ opacity: off ? 0.35 : 1 }}
     >
@@ -62,7 +75,13 @@ export default function ChartObjectTree({ symbol, entries, onEye, onRemove, onCl
     <div className="ot-root">
       <div className="ot-head">
         <span className="ot-title">{t("objectTree")}</span>
-        <button className="icbtn" onClick={onClose} title={t("remove")}>
+        <button
+          type="button"
+          className="icbtn"
+          onClick={onClose}
+          title={t("sheetClose")}
+          aria-label={t("sheetClose")}
+        >
           {I(CLOSE_X)}
         </button>
       </div>
@@ -85,11 +104,18 @@ export default function ChartObjectTree({ symbol, entries, onEye, onRemove, onCl
                   {I(SQUIGGLE, 2)}
                 </span>
                 <span className="ot-name">{e.label}</span>
-                <EyeBtn hidden={e.hidden} onToggle={() => onEye(e.key)} />
+                <EyeBtn
+                  hidden={e.hidden}
+                  onToggle={() => onEye(e.key)}
+                  showLabel={t("lgShow")}
+                  hideLabel={t("lgHide")}
+                />
                 {!e.noRemove && (
                   <button
+                    type="button"
                     className="icbtn ot-remove"
-                    title={t("remove")}
+                    title={t("lgRemove")}
+                    aria-label={t("lgRemove")}
                     onClick={(ev) => { ev.stopPropagation(); onRemove(e.key); }}
                   >
                     {I(CLOSE_X, 1.5)}
@@ -110,11 +136,18 @@ export default function ChartObjectTree({ symbol, entries, onEye, onRemove, onCl
                   {I(SQUIGGLE, 2)}
                 </span>
                 <span className="ot-name">{e.label}</span>
-                <EyeBtn hidden={e.hidden} onToggle={() => onEye(e.key)} />
+                <EyeBtn
+                  hidden={e.hidden}
+                  onToggle={() => onEye(e.key)}
+                  showLabel={t("lgShow")}
+                  hideLabel={t("lgHide")}
+                />
                 {!e.noRemove && (
                   <button
+                    type="button"
                     className="icbtn ot-remove"
-                    title={t("remove")}
+                    title={t("lgRemove")}
+                    aria-label={t("lgRemove")}
                     onClick={(ev) => { ev.stopPropagation(); onRemove(e.key); }}
                   >
                     {I(CLOSE_X, 1.5)}
