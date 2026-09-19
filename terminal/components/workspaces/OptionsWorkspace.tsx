@@ -131,7 +131,8 @@ export default function OptionsWorkspace() {
   return (
     <main
       className="main2 options-workspace"
-      data-options-ia="job-first-r6"
+      data-options-ia="seven-category-stage-a"
+      data-options-job-surface="job-first-r6"
       style={{ overflow: "hidden", display: "flex", flexDirection: "column" }}
     >
       <header className="options-ia-nav">
