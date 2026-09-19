@@ -40,6 +40,7 @@ const PORT = Number(process.env.TERMINAL_CROP_PORT || 3537);
 const BASE = `http://127.0.0.1:${PORT}`;
 const VIEWPORTS = {
   1440: { width: 1440, height: 900 },
+  820: { width: 820, height: 1180 },
   390: { width: 390, height: 844 },
 };
 
@@ -290,7 +291,7 @@ async function main() {
     await waitForServer(180_000);
     const browser = await chromium.launch({ headless: true });
     try {
-      for (const width of [1440, 390]) {
+      for (const width of [1440, 820, 390]) {
         for (const lang of ["en", "zh"]) {
           for (const surface of SURFACES) {
             if (!shouldCapture(surface.name, width, lang)) continue;
@@ -334,6 +335,7 @@ async function main() {
     "languages: [en, zh]",
     "viewports:",
     "  - { name: desktop, width: 1440, height: 900 }",
+    "  - { name: tablet, width: 820, height: 1180 }",
     "  - { name: mobile, width: 390, height: 844 }",
     "surfaces: [GuidePanel, LevelsView, LevelsLearn, ChartConductor]",
     "capture_flag: TERMINAL_E2E_FIXTURE",
