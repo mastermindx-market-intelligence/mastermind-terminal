@@ -438,7 +438,7 @@ export default function AdminView({ authorityUnavailable = false }: { email: str
                           <td role="cell" data-col="src"><span className="pill" style={{ color: "var(--text-2)", background: "var(--panel-2)" }}>{e.source}</span></td>
                           <td role="cell" data-col="vis">
                             {vid
-                              ? <span title={vid} style={{ color: "var(--brand-2)", cursor: "pointer" }} onClick={() => setVisitor(vid)}>{label}</span>
+                              ? <button type="button" className="adm-visitor-link" title={vid} onClick={() => setVisitor(vid)}>{label}</button>
                               : <span style={{ color: "var(--muted)" }}>—</span>}
                           </td>
                           <td role="cell" data-col="ip"><span className="num" style={{ fontFamily: "var(--font-num)", fontSize: 12, color: "var(--muted)" }}>{e.ip ?? "—"}</span></td>

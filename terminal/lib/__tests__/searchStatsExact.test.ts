@@ -109,6 +109,25 @@ describe("exact aggregates come from the database when the function exists", () 
     expect(H.calls.filter((c) => c.startsWith("rpc:"))).toHaveLength(1);
   });
 
+  it("falls back instead of returning a malformed RPC payload with a valid-looking total", async () => {
+    H.rpcResult = {
+      data: {
+        total: 999,
+        today: "not-a-number",
+        visitors7d: 4,
+        topSymbols7d: [],
+        perDay14d: [],
+      },
+      error: null,
+    };
+    H.countResult = { count: 5, error: null };
+    H.windowRows = [row(), row({ symbol: "AAPL" })];
+
+    const s = unwrap(await searchStats());
+    expect(s.total).toBe(5);
+    expect(typeof s.today).toBe("number");
+  });
+
   it("uses the browser-local midnight boundary for the Today KPI when provided", async () => {
     H.rpcResult = {
       data: {

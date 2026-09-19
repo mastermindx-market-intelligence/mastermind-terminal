@@ -131,6 +131,18 @@ describe("AdminView — recovery and pagination races", () => {
     expect(container.textContent).toContain("AAPL");
   });
 
+  it("exposes visitor filtering as a real keyboard-focusable button", async () => {
+    globalThis.fetch = vi.fn(async () =>
+      response({ events: [row(2, "AAPL", "search")], nextBefore: null, userMap: {}, stats }),
+    ) as typeof globalThis.fetch;
+
+    await mount();
+
+    const visitorButton = container.querySelector('button[title="anon-2"]');
+    expect(visitorButton).not.toBeNull();
+    expect(visitorButton?.textContent).toContain("anon:anon-2");
+  });
+
   it("clears the authority notice when the gate passed but the events store returned 503", async () => {
     globalThis.fetch = vi.fn(async () =>
       response({ error: "events_unavailable" }, 503),

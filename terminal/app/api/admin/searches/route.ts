@@ -66,12 +66,16 @@ export async function GET(req: Request) {
   const events = read.events.slice(0, limit);
   const hasMore = read.events.length > limit;
   const nextBefore = hasMore && events.length ? events[events.length - 1].id : null;
-  const userMap = await resolveUserEmails(
-    events.map((e) => e.user_id).filter(Boolean) as string[],
-    { budgetMs: EMAIL_ENRICH_BUDGET_MS },
-  );
-
-  const stats = sp.get("stats") === "1" ? await searchStats(todayStart) : null;
+  // Email labels and global aggregates depend only on the already-read rows / store, not on
+  // each other. Run them concurrently so the optional enrichment budget is not paid before KPI
+  // work even starts.
+  const [userMap, stats] = await Promise.all([
+    resolveUserEmails(
+      events.map((e) => e.user_id).filter(Boolean) as string[],
+      { budgetMs: EMAIL_ENRICH_BUDGET_MS },
+    ),
+    sp.get("stats") === "1" ? searchStats(todayStart) : Promise.resolve(null),
+  ]);
 
   return NextResponse.json(
     {

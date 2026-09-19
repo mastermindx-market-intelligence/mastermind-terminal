@@ -328,6 +328,28 @@ function isMissingRpc(error: { code?: string; message?: string } | null | undefi
 /** Shape the SQL function returns — identical to SearchStats minus the `partial` flag. */
 type RpcStats = Omit<SearchStats, "partial">;
 
+const isCount = (v: unknown): v is number =>
+  typeof v === "number" && Number.isSafeInteger(v) && v >= 0;
+
+function isRpcStats(value: unknown): value is RpcStats {
+  if (!value || typeof value !== "object") return false;
+  const s = value as Record<string, unknown>;
+  if (!isCount(s.total) || !isCount(s.today) || !isCount(s.visitors7d)) return false;
+  if (!Array.isArray(s.topSymbols7d) || !Array.isArray(s.perDay14d)) return false;
+
+  const topOk = s.topSymbols7d.every((entry) => {
+    if (!entry || typeof entry !== "object") return false;
+    const e = entry as Record<string, unknown>;
+    return typeof e.symbol === "string" && e.symbol.length > 0 && isCount(e.count);
+  });
+  const daysOk = s.perDay14d.every((entry) => {
+    if (!entry || typeof entry !== "object") return false;
+    const e = entry as Record<string, unknown>;
+    return typeof e.day === "string" && isCount(e.count);
+  });
+  return topOk && daysOk;
+}
+
 export async function searchStats(todayStartIso?: string): Promise<StatsResult> {
   const supabase = createServiceClient();
   const since14 = new Date(Date.now() - 14 * 86_400_000).toISOString();
@@ -348,8 +370,8 @@ export async function searchStats(todayStartIso?: string): Promise<StatsResult> 
     // Exact, uncapped, computed where the rows live.
     const rpc = await supabase.rpc("search_event_stats");
     if (!rpc.error) {
-      const s = rpc.data as RpcStats | null;
-      if (s && typeof s.total === "number") {
+      const s = rpc.data;
+      if (isRpcStats(s)) {
         let today = s.today;
         if (Number.isFinite(requestedTodayStartMs)) {
           const localToday = await supabase
