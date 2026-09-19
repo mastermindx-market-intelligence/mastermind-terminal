@@ -6090,7 +6090,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
 
       {/* ── Signals dashboard overlay (Golden Oracle scorecard · research read · signal history) ── */}
       {signalsOpen && (
-        <OracleDash sym={active} row={m} slice={slice} intel={intel} bars={bars} zh={lang === "zh"} onClose={() => setSignalsOpen(false)} onOpenFull={() => { setSignalsOpen(false); setPaneOpen("overview"); }} />
+        <OracleDash sym={active} paneId={activePane} row={m} slice={slice} intel={intel} bars={bars} zh={lang === "zh"} onClose={() => setSignalsOpen(false)} onOpenFull={() => { setSignalsOpen(false); setPaneOpen("overview"); }} />
       )}
 
       {/* ── D2 Save-template-as modal ─── */}
