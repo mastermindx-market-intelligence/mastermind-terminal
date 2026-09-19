@@ -46,10 +46,12 @@ function errorBody(
 ) {
   if (code === "not_signed_in" || code === "team_not_found") {
     const [message, messageZh] = TEAM_ROUTE_MESSAGES[code];
-    return { error, message, messageZh };
+    // Additive `code` is the catalogue key the route already distinguished internally
+    // (invalid_key vs invalid_value, not_admin, …). `error` stays the HTTP-class token.
+    return { error, code, message, messageZh };
   }
   const [message, messageZh] = SETTING_MESSAGES[code];
-  return { error, message, messageZh };
+  return { error, code, message, messageZh };
 }
 
 function unauthenticated() {

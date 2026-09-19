@@ -120,6 +120,7 @@ describe("/api/teams/[id]/settings — GET", () => {
     const res = await GET({} as Request, ctx("t1"));
     expect(res.status).toBe(401);
     const body = await res.json();
+    expect((body as { code?: string }).code).toBe("not_signed_in");
     expect(body.message).toBeTruthy();
     expect(body.messageZh).toBeTruthy();
     expect(body.message).not.toContain("falsifier");
@@ -137,6 +138,7 @@ describe("/api/teams/[id]/settings — GET", () => {
     const res = await GET({} as Request, ctx("t1"));
     expect(res.status).toBe(404);
     const body = await res.json();
+    expect((body as { code?: string }).code).toBe("team_not_found");
     expect(body.message).toBeTruthy();
     expect(body.messageZh).toBeTruthy();
   });
@@ -193,6 +195,7 @@ describe("/api/teams/[id]/settings — GET", () => {
     const res = await GET({} as Request, ctx("t1"));
     expect(res.status).toBe(404);
     const body = await res.json();
+    expect((body as { code?: string }).code).toBe("team_not_found");
     expect(body.message).toBeTruthy();
     expect(body.messageZh).toBeTruthy();
   });
@@ -204,6 +207,7 @@ describe("/api/teams/[id]/settings — GET", () => {
     const res = await GET({} as Request, ctx("t1"));
     expect(res.status).toBe(503);
     const body = await res.json();
+    expect((body as { code?: string }).code).toBe("unavailable");
     expect(body.message).toBeTruthy();
     expect(body.messageZh).toBeTruthy();
   });
@@ -241,6 +245,7 @@ describe("/api/teams/[id]/settings — PATCH", () => {
     const res = await PATCH(patchBody("default_chart_theme", "green_up"), ctx("t1"));
     expect(res.status).toBe(403);
     const body = await res.json();
+    expect((body as { code?: string }).code).toBe("not_admin");
     expect(body.message).toBeTruthy();
     expect(body.messageZh).toBeTruthy();
     // No row was written
@@ -261,6 +266,7 @@ describe("/api/teams/[id]/settings — PATCH", () => {
     const res = await PATCH(patchBody("bogus_key", "anything"), ctx("t1"));
     expect(res.status).toBe(400);
     const body = await res.json();
+    expect((body as { code?: string }).code).toBe("invalid_key");
     expect(body.message).toBeTruthy();
     expect(body.messageZh).toBeTruthy();
     expect(transport.state.workspace_settings).toHaveLength(0);
@@ -272,6 +278,7 @@ describe("/api/teams/[id]/settings — PATCH", () => {
     const res = await PATCH(patchBody("default_chart_theme", "purple_up"), ctx("t1"));
     expect(res.status).toBe(400);
     const body = await res.json();
+    expect((body as { code?: string }).code).toBe("invalid_value");
     expect(body.message).toBeTruthy();
     expect(body.messageZh).toBeTruthy();
     expect(transport.state.workspace_settings).toHaveLength(0);
@@ -283,6 +290,7 @@ describe("/api/teams/[id]/settings — PATCH", () => {
     const res = await PATCH(patchBody("share_layouts_by_default", "true"), ctx("t1"));
     expect(res.status).toBe(400);
     const body = await res.json();
+    expect((body as { code?: string }).code).toBe("invalid_value");
     expect(body.message).toBeTruthy();
     expect(body.messageZh).toBeTruthy();
     expect(transport.state.workspace_settings).toHaveLength(0);
@@ -299,11 +307,12 @@ describe("/api/teams/[id]/settings — PATCH", () => {
     const res = await PATCH(req, ctx("t1"));
     expect(res.status).toBe(400);
     const body = await res.json();
-    // MAJOR-2: asserts the specific invalid_key catalogue (not just 400 + truthy message).
-    // At round-1 tip 0f08446bc the route returned invalid_value for missing key; at head it returns
-    // invalid_key — the normalize-first fix makes the closed catalogue own the branch.
-    // The route uses "INVALID" as its error token; the message pair is what identifies the catalogue.
+    // MAJOR-2 / M1: the route distinguishes invalid_key internally; the body now exposes that
+    // catalogue key as `code` alongside the existing `error` token. Round-1 tip 0f08446bc
+    // returned invalid_value for a missing key; MiniMax pinned the message pair; this heal
+    // pins `code === "invalid_key"`.
     expect((body as { error?: string }).error).toBe("INVALID");
+    expect((body as { code?: string }).code).toBe("invalid_key");
     expect((body as { message?: string }).message).toBe("That setting name is not valid.");
     expect((body as { messageZh?: string }).messageZh).toBe("该设置名称无效。");
   });

@@ -146,7 +146,7 @@ export default function SectionTeam({
     devTeam?.settings?.share_layouts_by_default ?? (defaults[1].value as boolean),
   );
   const [settingsLoaded, setSettingsLoaded] = useState(Boolean(devTeam));
-  const [settingsError, setSettingsError] = useState<string | null>(null);
+  const [settingsError, setSettingsError] = useState<[string, string] | null>(null);
   const [settingsBusyKey, setSettingsBusyKey] = useState<WorkspaceSettingKey | null>(null);
   const [settingsMsg, setSettingsMsg] = useState<{ key: WorkspaceSettingKey; tone: "ok" | "err"; text: string } | null>(null);
 
@@ -295,16 +295,13 @@ export default function SectionTeam({
       };
       if (!res.ok) {
         // Surface the failure with a plain sentence so the block does not silently paint the
-        // closed defaults as "the team's saved values". Use the route's own EN/ZH message via
-        // routeMessage (same way PATCH does); fall back to read_failed only if the body carries
-        // no sentence.
-        setSettingsError(
-          (() => {
-            const msg = routeMessage(body, lang);
-            if (msg) return msg;
-            return TEAM_ROUTE_MESSAGES.read_failed[lang === "zh" ? 1 : 0];
-          })(),
-        );
+        // closed defaults as "the team's saved values". Keep the route's EN/ZH pair and pick
+        // the sentence from `lang` at render so a live language change does not leave the old
+        // language on screen. Fall back to read_failed only if the body carries no sentence.
+        setSettingsError([
+          routeMessage(body, "en") || TEAM_ROUTE_MESSAGES.read_failed[0],
+          routeMessage(body, "zh") || TEAM_ROUTE_MESSAGES.read_failed[1],
+        ]);
         setSettingsLoaded(true);
         return;
       }
@@ -315,12 +312,9 @@ export default function SectionTeam({
       if (share && typeof share.value === "boolean") setShareLayouts(share.value);
       setSettingsLoaded(true);
     } catch {
-      setSettingsError(
-        (() => {
-          // routeMessage needs a body; on network failure there is none — use the catalogue.
-          return TEAM_ROUTE_MESSAGES.read_failed[lang === "zh" ? 1 : 0];
-        })(),
-      );
+      // Network failure has no body; keep the catalogue pair and pick at render.
+      setSettingsError(TEAM_ROUTE_MESSAGES.read_failed);
+      setSettingsLoaded(true);
     }
   }, [devTeam, teamId]);
 
@@ -816,7 +810,7 @@ export default function SectionTeam({
             <div className={s.settings} data-testid="team-settings">
               {settingsError ? (
                 <p className="acs-note" data-testid="team-settings-fail">
-                  {settingsError}
+                  {settingsError[lang === "zh" ? 1 : 0]}
                 </p>
               ) : null}
               {!settingsError ? (
