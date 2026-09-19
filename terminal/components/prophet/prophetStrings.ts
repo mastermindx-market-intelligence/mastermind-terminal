@@ -49,7 +49,7 @@ const PROPHET_LEX = {
 
   // ── Cadence / authority chips ──────────────────────────────────────────────
   cadenceLabel:     ["nightly EOD — updates after close", "每日收盘后更新"],
-  authorityLabel:   ["display-only — forward ledger accruing", "仅供展示 — 前向账本积累中"],
+  authorityLabel:   ["Research view — performance history building", "研究视图 — 绩效记录积累中"],
 
   // ── Contract structure receipt (OEU T-E) ───────────────────────────────────
   // The receipt answers the three questions a reader has about a NAMED contract: what the
@@ -74,12 +74,12 @@ const PROPHET_LEX = {
 
   // ── Signal stream ──────────────────────────────────────────────────────────
   signalStreamTitle:["Signal Stream", "信号流"],
-  noPlans:          ["No active prophecies — ledger accruing.", "暂无活跃预测 — 账本积累中。"],
+  noPlans:          ["No active plans right now.", "当前暂无活跃计划。"],
   // An empty desk must say WHICH empty it is: the run happened and published nothing,
   // rather than "still loading" or "broken".
   noPlansWhy: [
-    "The nightly EOD run published no active plans. The forward ledger keeps accruing.",
-    "每日收盘运行未发布活跃计划。前向账本持续积累。",
+    "Tonight's close produced no active plans. Performance tracking continues in the background.",
+    "今日收盘后没有新的活跃计划。绩效记录会在后台继续积累。",
   ],
   sortNew:          ["NEW", "最新"],
   sortBest:         ["BEST", "最优"],
@@ -154,8 +154,8 @@ const PROPHET_LEX = {
   ],
   // Live payloads carry no last_price — say so rather than letting plan levels read as current.
   noLastNote: [
-    "No intraday price in this payload — entry, stop and targets are plan levels, marked nightly.",
-    "此数据包不含盘中价格 — 入场、止损与目标均为计划价位，按每日收盘更新。",
+    "Intraday price isn't available here — entry, stop and targets are plan levels updated after the close.",
+    "此处暂无盘中价格 — 入场、止损与目标均为计划价位，并在收盘后更新。",
   ],
 
   // ── Confidence panel ────────────────────────────────────────────────────────
@@ -219,7 +219,7 @@ const PROPHET_LEX = {
 
   // ── Analysis center / thesis ──────────────────────────────────────────────
   thesisLabel:      ["Signal Thesis", "信号论点"],
-  thesisCaption:    ["Machine-generated from engine fields — display only", "由引擎字段自动生成 — 仅供展示"],
+  thesisCaption:    ["Built from the plan's published signal inputs", "基于计划已发布的信号输入生成"],
   // The dealer-positioning sentence is context appended by the options overlay, not a
   // driver of the signal — it is lifted out of the prose so it cannot read as one.
   positioningLabel: ["Dealer positioning — context overlay", "做市商持仓 — 背景叠加"],
@@ -247,8 +247,8 @@ const PROPHET_LEX = {
   dossierConviction:["Conviction", "信心分"],
   // Component surfaces are honest about absence — the live payload publishes neither.
   verdictNoScore: [
-    "No management score in this payload.",
-    "此数据包未提供管理评分。",
+    "Management score isn't available for this plan.",
+    "该计划暂无管理评分。",
   ],
   componentMixLabel:  ["Component mix", "分项构成"],
   componentMixCaption:[
@@ -256,15 +256,15 @@ const PROPHET_LEX = {
     "分段宽度为各分项占五项分数之和的比重。",
   ],
   componentsAbsent: [
-    "Component scores are not published in this payload — only the headline score is.",
-    "此数据包未发布分项评分 — 仅提供总分。",
+    "Only the headline score is available for this plan.",
+    "该计划仅提供总分，暂无分项评分。",
   ],
 
   // ── PERF sub-tab placeholder ───────────────────────────────────────────────
-  perfPlaceholderTitle:  ["Outcome Ledger", "结果账本"],
+  perfPlaceholderTitle:  ["Performance History", "绩效记录"],
   perfPlaceholderBody:   [
-    "Outcome ledger accruing — performance will appear here once the forward ledger has sufficient closed trades.",
-    "结果账本积累中 — 前向账本积累足够的已平仓交易后，绩效数据将在此显示。",
+    "Performance will appear here after enough plans have closed.",
+    "有足够的计划平仓后，绩效记录将在此显示。",
   ],
 
   // ── Options Alpha shadow lane ─────────────────────────────────────────────
