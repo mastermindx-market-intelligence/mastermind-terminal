@@ -45,6 +45,7 @@ const measured = (overrides: Record<string, unknown> = {}) => ({
 const feed = (events: unknown[]) => ({
   schema: OPTIONS_ALPHA_MEASURED_FEED_SCHEMA,
   asof: "2026-09-19T14:00:05Z",
+  source_asof: "2026-09-19T14:00:04Z",
   session_date: "2026-09-19",
   events,
 });
@@ -53,6 +54,11 @@ describe("Options Alpha measured-flow evidence", () => {
   it("parses the canonical measured microstructure block without inferring direction", () => {
     const parsed = normalizeOptionsAlphaMeasuredFeed(feed([measured()]));
 
+    expect(parsed).toMatchObject({
+      asof: "2026-09-19T14:00:05Z",
+      source_asof: "2026-09-19T14:00:04Z",
+      session_date: "2026-09-19",
+    });
     expect(parsed?.events).toHaveLength(1);
     expect(parsed?.events[0]).toMatchObject({
       root: "NVDA",
@@ -140,6 +146,7 @@ describe("Options Alpha measured-flow evidence", () => {
   it("rejects unreviewed root schemas and malformed root clocks", () => {
     expect(normalizeOptionsAlphaMeasuredFeed({ ...feed([]), schema: "live_flow.feed/v2" })).toBeNull();
     expect(normalizeOptionsAlphaMeasuredFeed({ ...feed([]), asof: "today" })).toBeNull();
+    expect(normalizeOptionsAlphaMeasuredFeed({ ...feed([]), source_asof: "today" })).toBeNull();
     expect(normalizeOptionsAlphaMeasuredFeed({ ...feed([]), session_date: "2026-02-31" })).toBeNull();
   });
 
