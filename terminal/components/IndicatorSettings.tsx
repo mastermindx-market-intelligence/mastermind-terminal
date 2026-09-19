@@ -13,7 +13,17 @@ import type { SuiteField, SuiteModuleMeta, SuiteTier } from "@/lib/indicator-can
 import { useT } from "@/lib/i18n";
 
 const SWATCHES = ["#4d82ff", "#26c281", "#f0566b", "#e8b339", "#e8a33d", "#9d86ff", "#19c2c2", "#d6dae3", "#868d9c", "#ff8a3d"];
-const hexOf = (c: string) => (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(c) ? c : "#888888");
+const hexOf = (c: string) => {
+  const s = c.trim();
+  const hex = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(s);
+  if (hex) {
+    const h = hex[1].length === 3 ? hex[1].split("").map((x) => x + x).join("") : hex[1];
+    return `#${h.toLowerCase()}`;
+  }
+  const rgb = /^rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})/i.exec(s);
+  if (!rgb) return "#888888";
+  return `#${rgb.slice(1, 4).map((part) => Math.max(0, Math.min(255, Number(part))).toString(16).padStart(2, "0")).join("")}`;
+};
 // preserve any alpha the current color carries, so translucent fills (volume/MACD histograms) stay translucent
 const alphaOf = (c: string) => { const m = /rgba?\([^)]*,\s*([\d.]+)\s*\)/i.exec(c); return m ? parseFloat(m[1]) : 1; };
 const hexToRgba = (hex: string, a: number) => { let h = hex.replace("#", ""); if (h.length === 3) h = h.split("").map((x) => x + x).join(""); const n = parseInt(h, 16); const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255; return a >= 1 ? `#${h}` : `rgba(${r}, ${g}, ${b}, ${a})`; };
@@ -35,7 +45,7 @@ function ColorField({ value, onChange }: { value: string; onChange: (v: string) 
   return (
     <span className="is-color">
       <span className="is-sw-cur" style={{ background: value }} />
-      {SWATCHES.map((s) => <button key={s} className={`is-sw${value === s ? " on" : ""}`} style={{ background: s }} title={s} onClick={() => apply(s)} />)}
+      {SWATCHES.map((s) => <button key={s} className={`is-sw${hexOf(value) === s.toLowerCase() ? " on" : ""}`} style={{ background: s }} title={s} onClick={() => apply(s)} />)}
       <input type="color" value={hexOf(value)} onChange={(e) => apply(e.target.value)} aria-label={t("customColor")} />
     </span>
   );
@@ -47,7 +57,8 @@ function Row({ f, val, onChange }: { f: IndField; val: any; onChange: (v: any) =
       <span className="is-label">{f.label}</span>
       {f.type === "number" && <NumberField value={typeof val === "number" ? val : 0} min={f.min} max={f.max} step={f.step} onChange={onChange} />}
       {f.type === "color" && <ColorField value={String(val ?? "#888888")} onChange={onChange} />}
-      {f.type === "bool" && <span className={`is-switch${val ? " on" : ""}`} onClick={() => onChange(!val)} role="switch" aria-checked={!!val} />}
+      {f.type === "bool" && <span className={`is-switch${val ? " on" : ""}`} onClick={() => onChange(!val)} role="switch" aria-checked={!!val} tabIndex={0}
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onChange(!val); } }} />}
     </div>
   );
 }
@@ -58,7 +69,8 @@ function VisRow({ label, unitMax, val, onChange }: { label: string; unitMax: num
   const clampMax = (v: number) => Math.max(val.min, Math.min(unitMax, Math.round(v)));
   return (
     <div className="vis-row">
-      <span className={`is-cbx${val.on ? " on" : ""}`} onClick={() => onChange({ on: !val.on })} role="checkbox" aria-checked={val.on}>
+      <span className={`is-cbx${val.on ? " on" : ""}`} onClick={() => onChange({ on: !val.on })} role="checkbox" aria-checked={val.on} tabIndex={0}
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onChange({ on: !val.on }); } }}>
         <svg viewBox="0 0 24 24"><path d="M4 12l5 5L20 6" /></svg>
       </span>
       <span className="vis-name">{label}</span>
@@ -286,6 +298,12 @@ export default function IndicatorSettings({ indKey, moduleTarget, params, onChan
     else onChange(snap.current);   // snapshot has all fields → merge restores the open-time state
     onClose();
   };
+  const resetSettings = () => {
+    setDefOpen(false);
+    if (isPine) cancel();
+    else if (directModule) onChange(moduleScopedReset(directModule));
+    else onReset?.();
+  };
 
   // Suite modules currently store visual fields alongside their inputs and only have suite-wide
   // visibility. Direct mode therefore exposes one honest, module-scoped tab; the legacy suite
@@ -308,7 +326,8 @@ export default function IndicatorSettings({ indKey, moduleTarget, params, onChan
       >
         <div className="is-head">
           <b id="indicator-settings-title">{title}</b>
-          <span className="x" onClick={onClose} aria-label="Close">✕</span>
+          <span className="x" onClick={onClose} role="button" tabIndex={0} aria-label="Close"
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClose(); } }}>✕</span>
         </div>
         <div className="is-tabs">
           {TABS.map(([k, l]) => <button key={k} className={`is-tab${activeTab === k ? " on" : ""}`} onClick={() => setTab(k)}>{l}</button>)}
@@ -350,7 +369,8 @@ export default function IndicatorSettings({ indKey, moduleTarget, params, onChan
                 <div key={k} className="is-row">
                   <span className="is-label">{k}</span>
                   {typeof v === "boolean"
-                    ? <span className={`is-switch${v ? " on" : ""}`} onClick={() => onPineChange?.({ [k]: !v })} role="switch" aria-checked={v} />
+                    ? <span className={`is-switch${v ? " on" : ""}`} onClick={() => onPineChange?.({ [k]: !v })} role="switch" aria-checked={v} tabIndex={0}
+                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onPineChange?.({ [k]: !v }); } }} />
                     : typeof v === "number"
                       ? <NumberField value={v} step={Number.isInteger(v) ? 1 : 0.1} onChange={(nv) => onPineChange?.({ [k]: nv })} />
                       : <input className="is-text" value={String(v)} onChange={(e) => onPineChange?.({ [k]: e.target.value })} />}
@@ -377,12 +397,10 @@ export default function IndicatorSettings({ indKey, moduleTarget, params, onChan
           <div className="is-def pophost" onClick={(e) => e.stopPropagation()}>
             <button className="is-def-btn" onClick={() => setDefOpen((o) => !o)}>{t("isDefaults", "Defaults")} <svg viewBox="0 0 24 24" style={{ width: 12, height: 12, stroke: "currentColor", fill: "none", strokeWidth: 2, transform: defOpen ? "rotate(180deg)" : "none" }}><path d="M6 15l6-6 6 6" /></svg></button>
             {defOpen && <div className="is-def-menu">
-              <div className="is-def-row" onClick={() => {
-                setDefOpen(false);
-                if (isPine) cancel();
-                else if (directModule) onChange(moduleScopedReset(directModule));
-                else onReset?.();
-              }}>{t("isResetSettings", "Reset settings")}</div>
+              <div className="is-def-row" role="button" tabIndex={0} onClick={resetSettings}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); resetSettings(); } }}>
+                {t("isResetSettings", "Reset settings")}
+              </div>
             </div>}
           </div>
           <div className="spacer" />
