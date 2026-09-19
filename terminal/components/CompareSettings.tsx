@@ -14,19 +14,43 @@ function ColorField({ value, onChange }: { value: string; onChange: (v: string) 
   return (
     <span className="is-color">
       <span className="is-sw-cur" style={{ background: value }} />
-      {SWATCHES.map((s) => <button key={s} className={`is-sw${value === s ? " on" : ""}`} style={{ background: s }} title={s} onClick={() => apply(s)} />)}
+      {SWATCHES.map((s) => (
+        <button
+          key={s}
+          type="button"
+          className={`is-sw${value === s ? " on" : ""}`}
+          style={{ background: s }}
+          title={s}
+          aria-label={`${t("cmpColor")} ${s}`}
+          onClick={() => apply(s)}
+        />
+      ))}
       <input type="color" value={hexOf(value)} onChange={(e) => apply(e.target.value)} aria-label={t("customColor")} />
     </span>
   );
 }
 
-function NumberField({ value, min, max, step = 1, onChange }: { value: number; min?: number; max?: number; step?: number; onChange: (v: number) => void }) {
+function NumberField({
+  value,
+  min,
+  max,
+  step = 1,
+  onChange,
+  label,
+}: {
+  value: number;
+  min?: number;
+  max?: number;
+  step?: number;
+  onChange: (v: number) => void;
+  label: string;
+}) {
   const clamp = (v: number) => Math.max(min ?? -Infinity, Math.min(max ?? Infinity, Math.round(v)));
   return (
     <span className="is-stepper">
-      <button onClick={() => onChange(clamp(value - step))} aria-label="decrease">−</button>
-      <input type="number" value={value} step={step} min={min} max={max} onChange={(e) => { const v = parseInt(e.target.value); if (!isNaN(v)) onChange(clamp(v)); }} />
-      <button onClick={() => onChange(clamp(value + step))} aria-label="increase">+</button>
+      <button type="button" onClick={() => onChange(clamp(value - step))} aria-label={`${label} −`}>−</button>
+      <input aria-label={label} type="number" value={value} step={step} min={min} max={max} onChange={(e) => { const v = parseInt(e.target.value); if (!isNaN(v)) onChange(clamp(v)); }} />
+      <button type="button" onClick={() => onChange(clamp(value + step))} aria-label={`${label} +`}>+</button>
     </span>
   );
 }
@@ -42,8 +66,17 @@ export default function CompareSettings({ sym, cfg, onChange, onClose }: { sym: 
 
   return (
     <div className="scrim" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="ind-set" onClick={(e) => e.stopPropagation()}>
-        <div className="is-head"><b>{sym}</b><span className="x" onClick={onClose} aria-label="Close">✕</span></div>
+      <div
+        className="ind-set"
+        role="dialog"
+        aria-modal="true"
+        aria-label={`${sym} ${t("settings")}`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="is-head">
+          <b>{sym}</b>
+          <button type="button" className="x" onClick={onClose} aria-label={t("sheetClose")}>✕</button>
+        </div>
         <div className="is-body">
           <div className="is-row">
             <span className="is-label">{t("cmpColor")}</span>
@@ -59,7 +92,7 @@ export default function CompareSettings({ sym, cfg, onChange, onClose }: { sym: 
           </div>
           <div className="is-row">
             <span className="is-label">{t("cmpThickness")}</span>
-            <NumberField value={cfg.lineWidth} min={1} max={4} step={1} onChange={(lineWidth) => onChange({ lineWidth })} />
+            <NumberField value={cfg.lineWidth} min={1} max={4} step={1} label={t("cmpThickness")} onChange={(lineWidth) => onChange({ lineWidth })} />
           </div>
           <div className="is-row">
             <span className="is-label">{t("cmpScaleMode")}</span>
@@ -71,7 +104,7 @@ export default function CompareSettings({ sym, cfg, onChange, onClose }: { sym: 
         </div>
         <div className="is-foot">
           <div className="spacer" />
-          <button className="ai" onClick={onClose}>Ok</button>
+          <button type="button" className="ai" onClick={onClose}>{t("sheetClose")}</button>
         </div>
       </div>
     </div>
