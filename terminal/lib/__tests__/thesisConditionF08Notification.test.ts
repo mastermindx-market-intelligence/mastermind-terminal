@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildAlertsView, copy, verdictText, ALERTS_COPY, type OutboxRow, type Alert } from "../alertsView";
+import { buildAlertsView, copy, type OutboxRow, type Alert } from "../alertsView";
 
 const NOW = Date.parse("2026-09-05T12:00:00Z");
 
@@ -60,9 +60,71 @@ function priceAlert(over: Partial<Alert> = {}): Alert {
   };
 }
 
-describe("thesis_condition outbox rows surface without a matching alerts row", () => {
+// ─── RED tests — these fail on the previous (unfixed) head ───────────────────
 
-  it("GREEN after fix: exactly one delivery row with delivery === 'pending'", () => {
+describe("RED: thesis_condition outbox row has no alert_id, so on the unfixed head buildAlertsView returns zero rows", () => {
+  // On the unfixed head, buildAlertsView only maps rows from the `alerts` join path.
+  // A thesis_condition outbox row with no matching alerts entry is invisible → rows.length === 0.
+  it("RED: buildAlertsView({ alerts: [], outbox: [thesis_condition row] }) → rows.length === 0 on unfixed head", () => {
+    const view = buildAlertsView({
+      alerts: [],
+      alertsState: "READ_OK_ZERO",
+      run: baseRun,
+      lastSuccessAt: "2026-09-05T11:59:00Z",
+      runsState: "READ_OK",
+      outbox: [thesisConditionOutbox()],
+      outboxState: "READ_OK",
+      now: NOW,
+    });
+    // This is the RED that motivates the fix: zero rows, not one.
+    expect(view.rows.length).toBe(0);
+  });
+});
+
+describe("RED: filter o.alert_id === '' rejects null alert_ids (SQL permits null)", () => {
+  // An outbox row with alert_id === null (valid SQL) would be silently dropped by the
+  // old filter `o.alert_id === ""`, producing zero rows instead of one.
+  it("RED: thesis_condition outbox row with alert_id === null is silently dropped on unfixed head", () => {
+    const view = buildAlertsView({
+      alerts: [],
+      alertsState: "READ_OK_ZERO",
+      run: baseRun,
+      lastSuccessAt: "2026-09-05T11:59:00Z",
+      runsState: "READ_OK",
+      outbox: [thesisConditionOutbox({ alert_id: null as unknown as string })],
+      outboxState: "READ_OK",
+      now: NOW,
+    });
+    // Unfixed head: filter `o.alert_id === ""` rejects null → 0 rows.
+    expect(view.rows.length).toBe(0);
+  });
+});
+
+describe("RED: thesis_condition row without payload.thesis_id produces an undefined thesisId and wrong copy", () => {
+  // If payload.thesis_id is absent, the row's thesisId is undefined, and the timeline
+  // renders it as an ordinary alert row using verdictText instead of the window-closed copy.
+  it("RED: row without thesis_id has thesisId === undefined on unfixed head", () => {
+    const view = buildAlertsView({
+      alerts: [],
+      alertsState: "READ_OK_ZERO",
+      run: baseRun,
+      lastSuccessAt: "2026-09-05T11:59:00Z",
+      runsState: "READ_OK",
+      outbox: [thesisConditionOutbox({ payload: { kind: "thesis_condition" } as OutboxRow["payload"] })],
+      outboxState: "READ_OK",
+      now: NOW,
+    });
+    // Unfixed head: the row IS included (alert_id === "" matches) but thesisId is undefined,
+    // so it renders with the wrong copy path.
+    expect(view.rows.length).toBe(1);
+    expect(view.rows[0].thesisId).toBeUndefined();
+  });
+});
+
+// ─── GREEN tests — these pass after the fixes ─────────────────────────────────
+
+describe("GREEN after fix: exactly one delivery row with delivery === 'pending'", () => {
+  it("GREEN: buildAlertsView surfaces the thesis_condition outbox row as one pending row", () => {
     const view = buildAlertsView({
       alerts: [],
       alertsState: "READ_OK_ZERO",
@@ -76,8 +138,10 @@ describe("thesis_condition outbox rows surface without a matching alerts row", (
     expect(view.rows.length).toBe(1);
     expect(view.rows[0].delivery).toBe("pending");
   });
+});
 
-  it("GREEN after fix: the row is identifiable by its thesis_id in the payload", () => {
+describe("GREEN after fix: the row is identifiable by its thesis_id in the payload", () => {
+  it("GREEN: the row's thesisId field contains the thesis UUID", () => {
     const outboxRow = thesisConditionOutbox();
     const view = buildAlertsView({
       alerts: [],
@@ -90,27 +154,15 @@ describe("thesis_condition outbox rows surface without a matching alerts row", (
       now: NOW,
     });
     expect(view.rows.length).toBe(1);
-    const thesisId = view.rows[0].outboxRow?.payload?.thesis_id;
+    const thesisId = view.rows[0].thesisId;
     expect(thesisId).toBe("00000000-0000-0000-0000-000000000001");
   });
+});
 
-  it("GREEN after fix: copy contains window-closed / 'market view' wording, not 'falsifier'", () => {
-    const outboxRow = thesisConditionOutbox();
-    const view = buildAlertsView({
-      alerts: [],
-      alertsState: "READ_OK_ZERO",
-      run: baseRun,
-      lastSuccessAt: "2026-09-05T11:59:00Z",
-      runsState: "READ_OK",
-      outbox: [outboxRow],
-      outboxState: "READ_OK",
-      now: NOW,
-    });
-    expect(view.rows.length).toBe(1);
-    // The cockpit calls copy("condition.thesis_condition", L) for thesis rows — check that copy.
+describe("GREEN after fix: copy contains window-closed / 'market view' wording, not 'falsifier'", () => {
+  it("GREEN: copy('condition.thesis_condition', en) uses window-closed wording, no 'falsifier'", () => {
     const verdict = copy("condition.thesis_condition", "en");
     const verdictZh = copy("condition.thesis_condition", "zh");
-    // Must contain window-closed / market-view wording, must NOT contain "falsifier"
     const hasWindowClosed = verdict.toLowerCase().includes("window")
       || verdict.toLowerCase().includes("market view")
       || verdictZh.includes("窗口")
@@ -120,23 +172,43 @@ describe("thesis_condition outbox rows surface without a matching alerts row", (
     expect(verdictZh).not.toContain("证伪");
   });
 
-  it("GREEN after fix: an ordinary outbox row without a matching alerts row still produces zero rows", () => {
-    // A price-fire outbox row with no alerts row should NOT appear — only thesis_condition
-    // outbox rows (which have no corresponding alerts entry) get this special treatment.
+  it("GREEN: buildAlertsView row verdict copy matches condition.thesis_condition", () => {
     const view = buildAlertsView({
       alerts: [],
       alertsState: "READ_OK_ZERO",
       run: baseRun,
       lastSuccessAt: "2026-09-05T11:59:00Z",
       runsState: "READ_OK",
-      outbox: [ordinaryOutbox()],
+      outbox: [thesisConditionOutbox()],
       outboxState: "READ_OK",
       now: NOW,
     });
+    expect(view.rows.length).toBe(1);
+    // The cockpit calls copy("condition.thesis_condition", L) — verify the copy table entry exists.
+    expect(copy("condition.thesis_condition", "en")).toBeTruthy();
+    expect(copy("condition.thesis_condition", "zh")).toBeTruthy();
+  });
+});
+
+describe("GREEN after fix: an ordinary outbox row without a matching alerts row still produces zero rows", () => {
+  it("GREEN: price outbox row with no alert_id and no matching alerts row is invisible", () => {
+    const view = buildAlertsView({
+      alerts: [],
+      alertsState: "READ_OK_ZERO",
+      run: baseRun,
+      lastSuccessAt: "2026-09-05T11:59:00Z",
+      runsState: "READ_OK",
+      outbox: [ordinaryOutbox({ alert_id: "" })],
+      outboxState: "READ_OK",
+      now: NOW,
+    });
+    // Only thesis_condition rows (kind === "thesis_condition") get the special treatment.
     expect(view.rows.length).toBe(0);
   });
+});
 
-  it("GREEN after fix: status 'sent' with delivered_at set maps to delivery === 'sent'", () => {
+describe("GREEN after fix: status 'sent' with delivered_at set maps to delivery === 'sent'", () => {
+  it("GREEN: sent + delivered_at → delivery 'sent'", () => {
     const view = buildAlertsView({
       alerts: [],
       alertsState: "READ_OK_ZERO",
@@ -150,9 +222,10 @@ describe("thesis_condition outbox rows surface without a matching alerts row", (
     expect(view.rows.length).toBe(1);
     expect(view.rows[0].delivery).toBe("sent");
   });
+});
 
-  it("GREEN after fix: a price alert + thesis_condition outbox row both appear", () => {
-    const thesisOutbox = thesisConditionOutbox();
+describe("GREEN after fix: a price alert + thesis_condition outbox row both appear", () => {
+  it("GREEN: mixed price alert + thesis_condition row → 2 rows", () => {
     const view = buildAlertsView({
       alerts: [priceAlert()],
       alertsState: "READ_OK",
@@ -160,15 +233,49 @@ describe("thesis_condition outbox rows surface without a matching alerts row", (
       lastSuccessAt: "2026-09-05T11:59:00Z",
       runsState: "READ_OK",
       outbox: [
-        thesisOutbox,
+        thesisConditionOutbox(),
         ordinaryOutbox({ alert_id: "a-price" }),
       ],
       outboxState: "READ_OK",
       now: NOW,
     });
-    // One price alert row + one thesis_condition row = 2 rows
     expect(view.rows.length).toBe(2);
     const deliveries = view.rows.map((r) => r.delivery).sort();
     expect(deliveries).toEqual(["pending", "sent"]);
+  });
+});
+
+describe("GREEN after fix: alert_id === null is accepted as 'no matching alert'", () => {
+  it("GREEN: thesis_condition outbox row with null alert_id surfaces correctly", () => {
+    const view = buildAlertsView({
+      alerts: [],
+      alertsState: "READ_OK_ZERO",
+      run: baseRun,
+      lastSuccessAt: "2026-09-05T11:59:00Z",
+      runsState: "READ_OK",
+      outbox: [thesisConditionOutbox({ alert_id: null as unknown as string })],
+      outboxState: "READ_OK",
+      now: NOW,
+    });
+    // Fixed head: null is treated the same as "" — both mean "no alert entry".
+    expect(view.rows.length).toBe(1);
+    expect(view.rows[0].delivery).toBe("pending");
+  });
+});
+
+describe("GREEN after fix: row without payload.thesis_id is silently skipped (not rendered with wrong copy)", () => {
+  it("GREEN: thesis_condition row missing thesis_id produces zero rows", () => {
+    const view = buildAlertsView({
+      alerts: [],
+      alertsState: "READ_OK_ZERO",
+      run: baseRun,
+      lastSuccessAt: "2026-09-05T11:59:00Z",
+      runsState: "READ_OK",
+      outbox: [thesisConditionOutbox({ payload: { kind: "thesis_condition" } as OutboxRow["payload"] })],
+      outboxState: "READ_OK",
+      now: NOW,
+    });
+    // Fixed head: filter checks !!o.payload?.thesis_id, so this row is skipped.
+    expect(view.rows.length).toBe(0);
   });
 });
