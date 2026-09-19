@@ -154,10 +154,17 @@ describe("BriefSubscribeControls", () => {
   });
 });
 
-describe("watchlist chrome does not advertise recurring briefs", () => {
+describe("unfinished recurring briefs stay out of primary Terminal chrome", () => {
   it("keeps BriefSubscribeControls out of TerminalShell until the producer is live", () => {
     const src = readFileSync(join(__dirname, "../../components/TerminalShell.tsx"), "utf8");
     expect(src).not.toContain('from "@/components/briefs/BriefSubscribeControls"');
     expect(src).not.toContain("<BriefSubscribeControls");
+  });
+
+  it("does not advertise dormant Briefs delivery in Terminal settings", () => {
+    const src = readFileSync(join(__dirname, "../../components/settings/SectionTerminal.tsx"), "utf8");
+    expect(src).not.toContain('from "@/lib/briefs"');
+    expect(src).not.toContain('briefCopy("title"');
+    expect(src).not.toContain('briefCopy("emailNull"');
   });
 });
