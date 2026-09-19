@@ -147,7 +147,7 @@ export default function SectionPortfolioTargets({ t, lang, onClose, email, user 
             <PortfolioTargetsReadout
               summary={state.summary}
               lang={lang}
-              shapeReadoutVisible={true}
+              shapeReadoutVisible={false}
               onSetTarget={setTarget}
               onClearTarget={clearTarget}
             />

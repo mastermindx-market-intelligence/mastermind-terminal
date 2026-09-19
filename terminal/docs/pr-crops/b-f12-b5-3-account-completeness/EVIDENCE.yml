@@ -1,7 +1,7 @@
 # B-F12-B5-3b Account completeness — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 525157b13eb5530515f083d836f63d12f55553d2
+# capturedAtHead: 1cb8c36c0fa28f9d884b767d789585ba8fc40686
 # capturedAt: 2026-09-11T09:04:55.211Z
 # capturedAtHead is the code commit the pixels depict. The lock is layoutFiles.
 # Merge-heal (master b7aa0981): SectionAccount.tsx re-hashed for the B-F08-7b write-fence wrap; i18n.tsx re-hashed for master's auto-merged LEX keys. No packet key moved, no crop recaptured.
@@ -15,12 +15,13 @@
 # 2026-09-11 merge of master 7e15e502 (#554 claim authoring form) into B-F12-8 (#550): i18n.tsx re-hashed for master's 31 claim* lexicon keys. SectionAccount.tsx and teamSummary.ts are untouched by both sides and no claim* key renders on this surface, so no crop was recaptured.
 # 2026-09-11 recapture at master 525157b13eb5530515f083d836f63d12f55553d2: rail now pinned via SettingsPanel.tsx + SettingsProvider.tsx; 8 crops recaptured so the frame shows the 11-row rail (account, team, accuracy, billing, usage, prefs, alertDelivery, terminal, sync, webhooks, sharing)
 # 2026-09-11 MO-B PL-NI-1 (packet T-PL-NI-1, 您→你 sweep of Terminal master): terminal/lib/i18n.tsx re-hashed — plain-language 您→你 only; layout unchanged; no recapture.
+# Heal h_t586 (#586): i18n.tsx re-hashed for the new acsPortfolioTargets LEX keys; rail shows 11 rows in crop; tree paints 12 since #586 — no recapture needed.
 layoutFiles:
   terminal/components/settings/SectionAccount.tsx: "d2c3828c286bbaac321881d5a6562efdd4f30e580f4200d49c5165c0fa7ef9a4"
   terminal/lib/teamSummary.ts: "7bd3b3f1d5251490e42399be1dd77e977b2626c1714efbece2f7139c584e0f15"
-  terminal/lib/i18n.tsx: "b5723f6e6a4bbf32b74219e0fc51612b1f2b16727b5beaa730e58817f51e4617"
-  terminal/components/settings/SettingsPanel.tsx: "378811617e0de2feed0d8bc1c6e01ae55d8e763204fe0d1c1829bc44fff1e1a4"
-  terminal/components/settings/SettingsProvider.tsx: "4ac330d429de63c5a3e431aaa1a1b41e4a7905cf2a08bc260b68afa0bc604bed"
+  terminal/lib/i18n.tsx: "12c508207ae03f1ee533275682645c30907bbcbffcfa1a6c07fc602067d2f56b"
+  terminal/components/settings/SettingsPanel.tsx: "a3701c4d2556554a8efd19e0c420c1b1d75a5f7ca0e1aa50d3d7d9fee412620d"
+  terminal/components/settings/SettingsProvider.tsx: "e406bee3b95bdb0cdb17024d84c0599aa347bdc2b58900956fd592048fee12e8"
 theme: dark
 languages: [en, zh]
 viewports:

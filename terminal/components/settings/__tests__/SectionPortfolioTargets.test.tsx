@@ -237,4 +237,25 @@ describe("SectionPortfolioTargets (B-F08-13 / MO-DELTA-003)", () => {
     const targetsCalls = calls.filter((c) => c.url.endsWith("/api/portfolio/targets") && c.method === "GET");
     expect(targetsCalls.length).toBe(1);
   });
+
+  // MAJOR-3 (h_t586): Settings passes shapeReadoutVisible={false}, so the SHORT basis
+  // sentence renders. The LONG sentence (which names the shape readout above) may only be
+  // used where that readout is actually on the page — PortfolioView holdings page, not Settings.
+  it("renders the SHORT basis sentence in Settings (shapeReadoutVisible=false)", async () => {
+    const driftRow = {
+      ticker: "AAPL", currentWeightPct: 35, targetWeightPct: 40,
+      bandPct: 5, driftPct: -5, status: "within_band" as const,
+    };
+    const plan: FetchPlan = {
+      calls: [],
+      nextGet: async () => jsonRes(200, { summary: summary([driftRow]) }),
+    };
+    restoreFetch = installFetch(plan);
+    mount(baseProps("en"));
+    await flush();
+    // SHORT (Settings): "Weighted by what you paid." — no cross-reference to the shape readout
+    expect(text()).toContain("Weighted by what you paid.");
+    // LONG must NOT appear in Settings (it cross-references "the shape readout above" which is not there)
+    expect(text()).not.toContain("same as the shape readout above");
+  });
 });
