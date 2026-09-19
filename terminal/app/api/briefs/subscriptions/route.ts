@@ -94,6 +94,9 @@ export async function POST(req: Request) {
       target_kind: targetKind,
       target_id: targetId,
       cadence,
+      ...(targetKind === "thesis"
+        ? { target_thesis_id: targetId }
+        : { target_watchlist_id: targetId }),
     })
     .select("subscription_id, user_id, target_kind, target_id, cadence, delivery, state, created_at")
     .single();

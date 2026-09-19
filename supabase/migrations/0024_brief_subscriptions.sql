@@ -105,10 +105,9 @@ do $$ begin
 exception when duplicate_object then null; end $$;
 
 do $$ begin
-  create policy brief_subscriptions_service_role_all on public.brief_subscriptions
-    for all to service_role
-    using (true)
-    with check (true);
+  create policy brief_subscriptions_service_role_select on public.brief_subscriptions
+    for select to service_role
+    using (true);
 exception when duplicate_object then null; end $$;
 
 do $$ begin
