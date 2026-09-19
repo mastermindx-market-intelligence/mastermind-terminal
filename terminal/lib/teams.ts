@@ -647,6 +647,96 @@ export type InviteCode =
   | "not_admin" | "team_not_found" | "duplicate_invite"
   | "no_email_delivery" | "unavailable" | "read_failed" | "failed";
 
+// ── MO-PAID-081, seat ruling W9T_F12_17 (2026-09-13): honest link-only ─────────────────────
+// The Terminal has no mailer and this packet provisions no mail provider, so an invitation is
+// never emailed. What a team owner gets instead is a link they copy and send themselves, plus a
+// sentence that says plainly that we do not send the mail — and that sentence carries the date
+// the absence was checked, so a stale promise cannot read as current. When a provider is ever
+// provisioned, move this date and retire the sentence in the same change; never leave the old
+// date standing over a claim that stopped being true.
+export const INVITE_EMAIL_DELIVERY_CHECKED_AT = "2026-09-13";
+
+/** Where an invitation link lands: the public accept page (`app/invite/page.tsx`). */
+export const INVITE_ACCEPT_PATH = "/invite";
+
+const MONTHS_EN = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
+/**
+ * "2026-09-13" -> "13 September 2026" (EN) / "2026年9月13日" (ZH).
+ *
+ * Hand-formatted on purpose. This one sentence is produced twice — by the API route under Node's
+ * ICU and by the browser under its own — and `toLocaleDateString` is free to disagree between
+ * them, which would be a hydration mismatch and two different dates on one screen. Unreadable
+ * input falls back to the raw date string, never "Invalid Date".
+ */
+export function inviteCheckedOn(iso: string, lang: "en" | "zh"): string {
+  const value = String(iso || "").trim();
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
+  if (!m) return value;
+  const month = Number(m[2]);
+  const day = Number(m[3]);
+  if (month < 1 || month > 12 || day < 1 || day > 31) return value;
+  return lang === "zh" ? `${m[1]}年${month}月${day}日` : `${day} ${MONTHS_EN[month - 1]} ${m[1]}`;
+}
+
+const NO_EMAIL_HEAD: [string, string] = [
+  "We do not send invitation emails: this server has no email delivery set up.",
+  "我们不会发送邀请邮件：此服务器尚未设置邮件发送功能。",
+];
+const NO_EMAIL_CHECKED: [string, string] = ["Last checked on {date}.", "最近核查于 {date}。"];
+const NO_EMAIL_INSTRUCT: [string, string] = [
+  "Copy the invitation link and send it to them yourself — it works for 14 days and can be used once.",
+  "请复制邀请链接自行发送给对方——该链接 14 天内有效，且只能使用一次。",
+];
+
+/** The dated honesty line by itself — what the Team section prints above the invitation form. */
+export function noEmailDeliveryLine(
+  lang: "en" | "zh",
+  checkedAt: string = INVITE_EMAIL_DELIVERY_CHECKED_AT,
+): string {
+  const i = lang === "zh" ? 1 : 0;
+  const checked = NO_EMAIL_CHECKED[i].replace("{date}", inviteCheckedOn(checkedAt, lang));
+  // Two English sentences take a space between them; two Chinese ones do not. A Latin space after
+  // a CJK full stop reads as a typo, which is exactly what the crop harness caught here.
+  return i === 1 ? `${NO_EMAIL_HEAD[1]}${checked}` : `${NO_EMAIL_HEAD[0]} ${checked}`;
+}
+
+/** The same line plus what to do instead — the route's `no_email_delivery` answer. */
+export function noEmailDeliveryPair(
+  checkedAt: string = INVITE_EMAIL_DELIVERY_CHECKED_AT,
+): [string, string] {
+  return [
+    `${noEmailDeliveryLine("en", checkedAt)} ${NO_EMAIL_INSTRUCT[0]}`,
+    `${noEmailDeliveryLine("zh", checkedAt)}${NO_EMAIL_INSTRUCT[1]}`,
+  ];
+}
+
+/**
+ * The delivery block every `/api/teams/invitations` answer carries. `sent: false` is not a
+ * failure state to recover from — it is the truth about this server, so it is stated on the
+ * read path too, where nobody asked for a link and an invitation is still sitting unsent.
+ */
+export function inviteDeliveryBlock(checkedAt: string = INVITE_EMAIL_DELIVERY_CHECKED_AT) {
+  const [message, messageZh] = noEmailDeliveryPair(checkedAt);
+  return { sent: false, checkedAt, message, messageZh };
+}
+
+/** Absolute invitation link for a public origin. The raw token appears in the link only. */
+export function buildInviteUrl(origin: string, token: string): string {
+  const base = String(origin || "").replace(/\/+$/, "");
+  return `${base}${INVITE_ACCEPT_PATH}?token=${encodeURIComponent(token)}`;
+}
+
+/** The shape `newInviteToken()` mints: 64 hex characters. Anything else never reaches the database. */
+const INVITE_TOKEN_RE = /^[0-9a-f]{64}$/;
+
+export function isInviteToken(value: unknown): value is string {
+  return typeof value === "string" && INVITE_TOKEN_RE.test(value);
+}
+
 // [en, zh] tuples -- same shape as lib/i18n.tsx:18 `LEX: Record<string, [string, string]>`.
 // UI-facing labels live in LEX (packet B-F12-8). Route messages stay here.
 // Plain-word law: complete sentences, no role slugs, no table/function names, no status codes,
@@ -662,8 +752,13 @@ export const INVITE_MESSAGES: Record<InviteCode, [string, string]> = {
   invalid_role: ["Choose a valid role for this person.", "请为此人选择一个有效角色。"],
   not_admin: ["Only a team owner or an administrator can invite people.", "只有团队所有者或管理员才能邀请他人。"],
   team_not_found: ["We could not find that team.", "找不到该团队。"],
-  duplicate_invite: ["There is already a pending invitation for this email address.", "该邮箱地址已有一份待处理的邀请。"],
-  no_email_delivery: ["We cannot send invitation emails yet. Copy the invitation link below and send it to them yourself — it works for 14 days.", "我们暂时无法发送邀请邮件。请复制下方邀请链接自行发送给对方——该链接 14 天内有效。"],
+  duplicate_invite: [
+    "There is already a pending invitation for this email address. Its link cannot be shown or regenerated; wait for it to expire or invite a different address.",
+    "该邮箱地址已有一份待处理的邀请。其链接无法再次显示或重新生成；请等待其过期，或邀请另一个地址。",
+  ],
+  // Dated on purpose (MO-PAID-081): the reader learns both that no mail is sent and when that
+  // was last checked, so the line cannot outlive the fact it states.
+  no_email_delivery: noEmailDeliveryPair(),
   unavailable: ["Team accounts are not set up on this server yet, so we cannot answer. Nothing was changed.", "此服务器尚未启用团队账户，因此我们无法作答。未更改任何内容。"],
   // Audit heal of t#514 (H2): absence is a FACT and is never collapsed into a failure. A read that
   // broke for any other reason says so, instead of telling the reader the server has no team
