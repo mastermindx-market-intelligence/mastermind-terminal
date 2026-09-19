@@ -10,6 +10,7 @@ code_head: e83e7402fbcf873c9a794bbd0ad6ce5ebfa5d1bc
 identity_check: |
   git diff --quiet e83e7402fbcf873c9a794bbd0ad6ce5ebfa5d1bc HEAD -- terminal/components/settings/SectionDeveloper.tsx terminal/lib/apiKeyLabels.ts terminal/components/settings/SettingsPanel.tsx terminal/components/settings/icons.tsx terminal/components/settings/SettingsProvider.tsx terminal/app/dev/settings/page.tsx terminal/app/settings.css terminal/app/globals.css
 # Commit this manifest last. A later change outside terminal/docs/pr-crops reopens it.
+# 2026-09-19 seat merge of master 1c46b277 into #584 (B-F12-13): hash-only restamp of terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit.
 layoutFiles:
   terminal/components/settings/SectionDeveloper.tsx: "df606f2196301b32cabe74071559464b368b1c08e9b2ccd227509012f4101539"
   terminal/lib/apiKeyLabels.ts: "7f00e420fe2ec20bab481f19d077c7977df3877d4f71d3ed5da3de0b8d0b33be"
@@ -17,7 +18,7 @@ layoutFiles:
   terminal/components/settings/icons.tsx: "2611fcf38aed2595c976386d5510d44b62fb1b86cb0f11b46717e4b0a3dae510"
 informationalFiles:
   asserted: false
-  terminal/lib/i18n.tsx: "271f79cdcde627b22b9ba864227a24221f98a262ceef64a228d520155b8f68c7"
+  terminal/lib/i18n.tsx: "1d571257006431cc4d58e16df261af64ae243fd06e3ec55a57a7fec0ddc735b7"
 theme: dark
 languages: [en, zh]
 viewports:

@@ -9,8 +9,9 @@
 # fan-out cap never requested is typed). That file is not a layoutFile, and no rendered
 # sentence or layout changed, so these twelve pixels still depict the head and the
 # layoutFiles sha256 lock below still holds against the files on disk.
+# 2026-09-19 seat merge of master 1c46b277 into #584 (B-F12-13): hash-only restamp of terminal/components/PortfolioView.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit.
 layoutFiles:
-  terminal/components/PortfolioView.tsx: "1a11ed505141c5f49c64b6726759abc42be2865b4773da4a5c59c7c7d281812e"
+  terminal/components/PortfolioView.tsx: "26cc1d903906d7e38fd276558699b0d49d301c1202a58e7b8e0eb11d4473cadc"
   terminal/lib/portfolioRiskHistory.ts: "1f260800522bc61e54c4cd8731b95583aedc3dbd7214ccd5c66e6a3e5498f871"
   terminal/components/PortfolioRiskHistory.module.css: "8627eca665ea7115ce929fad67d453cb7e715ea5e6cdfe1541a2ee4216b48796"
 theme: dark
