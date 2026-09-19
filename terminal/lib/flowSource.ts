@@ -44,6 +44,7 @@ const MATRIX_FIXTURE_FILE = path.join(process.cwd(), "public", "data", "matrix_f
 const MATRIX_UNUSUAL_FIXTURE_FILE = path.join(process.cwd(), "public", "data", "matrix_unusual_fixture.json");
 const MANIFEST_FIXTURE_FILE = path.join(process.cwd(), "public", "data", "manifest.json");
 const PROPHET_FIXTURE_FILE = path.join(process.cwd(), "public", "data", "prophet_fixture.json");
+const PROPHET_PERF_FIXTURE_FILE = path.join(process.cwd(), "public", "data", "prophet_perf_fixture.json");
 const PROPHET_MARKS_FIXTURE_FILE = path.join(process.cwd(), "public", "data", "prophet_marks_fixture.json");
 const OPTIONS_PROPHET_FIXTURE_FILE = path.join(process.cwd(), "public", "data", "options_prophet_fixture.json");
 const ENRICH_FIXTURE_FILE = path.join(process.cwd(), "public", "data", "enrich_fixture.json");
@@ -190,6 +191,7 @@ export function isValidF(f: string): boolean {
   if (f === "manifest") return true;
   if (f === "flow_idx") return true;
   if (f === "prophet_idx") return true;
+  if (f === "prophet_perf") return true;
   if (f === "prophet_marks") return true;
   if (f === "options_prophet_idx") return true;
   if (f === "enrich") return true;
@@ -260,6 +262,7 @@ export function backendPath(f: string): string {
   if (f === "manifest") return "/api/flow/manifest";
   if (f === "flow_idx") return "/api/flow/flow_idx";
   if (f === "prophet_idx") return "/api/hub/prophet";
+  if (f === "prophet_perf") return "/api/hub/prophet/perf";
   if (f === "prophet_marks") return "/api/hub/prophet_marks";
   if (f === "options_prophet_idx") return "/api/hub/options_prophet";
   if (f === "enrich") return "/api/flow/enrich";
@@ -825,6 +828,54 @@ export async function fixtureFor(f: string): Promise<Record<string, unknown>> {
       return JSON.parse(raw) as Record<string, unknown>;
     } catch { return { schema: "prophet.index/v1", asof: "", plans: [] }; }
   }
+  if (f === "prophet_perf") {
+    try {
+      const raw = await fs.readFile(PROPHET_PERF_FIXTURE_FILE, "utf8");
+      return JSON.parse(raw) as Record<string, unknown>;
+    } catch {
+      return {
+        schema: "prophet.perf_projection/v1",
+        source: {
+          path: "data/prophet/ledger.jsonl",
+          schema: "prophet.ledger/v1",
+          projection: "canonical_effective_ledger",
+          latest_asof: null,
+          latest_close_date: null,
+          freshness_unavailable_reason: "fixture_unavailable",
+        },
+        summary: {
+          terminal_plan_count: 0,
+          closed_plan_count: 0,
+          no_entry_count: 0,
+          outcome_counts: {
+            T1_HIT: 0, T2_HIT: 0, INVALIDATED: 0,
+            EXPIRED: 0, CLOSED_EARLY: 0, NO_ENTRY: 0,
+          },
+          raw_stock_return: {
+            label: "Raw underlying return (unweighted per entered plan)",
+            available_count: 0, unavailable_count: 0,
+            mean_pct: null, median_pct: null, min_pct: null, max_pct: null,
+            positive_count: 0, negative_count: 0, zero_count: 0,
+            unavailable_reason: "no_canonical_stock_return_values",
+          },
+          benchmarked_performance: {
+            available: false, benchmark_return_pct: null, excess_return_pct: null,
+            unavailable_reason: "canonical_effective_ledger_has_no_benchmark_return_evidence",
+          },
+        },
+        integrity: {
+          canonical_row_count: 0, effective_row_count: 0,
+          quarantined_excluded_count: 0, quarantined_id_count: 0,
+          corrected_row_count: 0, correction_application_count: 0,
+        },
+        semantics: {
+          outcome_count_basis: "Terminal ledger outcome labels only.",
+          raw_stock_return_basis: "Unweighted per-plan underlying returns for entered plans.",
+        },
+        plans: [],
+      };
+    }
+  }
   if (f === "prophet_marks") {
     try {
       const raw = await fs.readFile(PROPHET_MARKS_FIXTURE_FILE, "utf8");
@@ -994,10 +1045,9 @@ export async function tryFetchUpstream(f: string): Promise<Record<string, unknow
   }
   for (const source of upstreamSourceOrder(f)) {
     // DEC:B1-PROPHET-PUBLIC-SPLIT (Sol Day-5, 2026-08-21): the full US Prophet
-    // plan book is premium/private. prophet_idx must never fall through to the
-    // anonymous public R2 object — when the backend is unavailable the caller
-    // fails closed (503 / stale in-memory cache), never anonymous fallthrough.
-    if (source === "r2" && f === "prophet_idx") continue;
+    // plan book and its closed-plan history are premium/private. Neither private
+    // feed may fall through to anonymous public R2; backend failure stays closed.
+    if (source === "r2" && (f === "prophet_idx" || f === "prophet_perf")) continue;
     try {
       const url = source === "r2"
         ? `${R2_BASE}/${r2Key(f)}`

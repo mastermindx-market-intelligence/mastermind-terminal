@@ -21,7 +21,7 @@
  *   - GAINERS is hidden until the producer publishes last_price.
  *   - No "validated", no predictive copy
  *   - Empty state: "No active prophecies — ledger accruing."
- *   - PERF sub-tab: placeholder only ("outcome ledger accruing")
+ *   - PERF sub-tab: private canonical forward-ledger history; raw underlying returns only
  *   - Content blocks (what_to_do_now, profit_plan) hide gracefully when absent
  */
 
@@ -36,6 +36,7 @@ import type { ConfidenceComponents } from "./ConfidencePanel";
 import { GeometryRail } from "./GeometryRail";
 import { OptionCard } from "./OptionCard";
 import type { LiveMark } from "./OptionCard";
+import { ProphetPerfPanel } from "./ProphetPerfPanel";
 
 // ── API payload types ─────────────────────────────────────────────────────────
 
@@ -275,34 +276,36 @@ export function ProphetView() {
             <span>{t("provSource")}</span>
           </div>
         </div>
-        <div className="obs-prophet-status">
-          <div className="obs-prophet-stat">
-            <span>{t("mastheadActive")}</span>
-            <b>{activePlans}</b>
-          </div>
-          <div className="obs-prophet-stat">
-            <span>{t("mastheadFocus")}</span>
-            <b>{selected?.asset ?? "—"}</b>
-          </div>
-          <div className="obs-prophet-stat">
-            <span>{t("mastheadUpdated")}</span>
-            <b>{asofLabel}</b>
-          </div>
-          {marksFresh && (
+        {subTab === "signals" && (
+          <div className="obs-prophet-status">
             <div className="obs-prophet-stat">
-              <span>{t("mastheadMarks")}</span>
-              <b style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                <span className="obs-live-dot" aria-hidden />
-                {t("mastheadMarksLive")}
-              </b>
+              <span>{t("mastheadActive")}</span>
+              <b>{activePlans}</b>
             </div>
-          )}
-        </div>
+            <div className="obs-prophet-stat">
+              <span>{t("mastheadFocus")}</span>
+              <b>{selected?.asset ?? "—"}</b>
+            </div>
+            <div className="obs-prophet-stat">
+              <span>{t("mastheadUpdated")}</span>
+              <b>{asofLabel}</b>
+            </div>
+            {marksFresh && (
+              <div className="obs-prophet-stat">
+                <span>{t("mastheadMarks")}</span>
+                <b style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                  <span className="obs-live-dot" aria-hidden />
+                  {t("mastheadMarksLive")}
+                </b>
+              </div>
+            )}
+          </div>
+        )}
       </header>
 
       <div className="obs-prophet-grid">
       {/* ── LEFT — alert stream ── */}
-      <div className="obs-card obs-prophet-pane obs-prophet-left" style={LEFT_PANE}>
+      <div className="obs-card obs-prophet-pane obs-prophet-left" style={subTab === "perf" ? PERF_PANE : LEFT_PANE}>
         {/* Sub-tabs */}
         <div style={SUBTAB_ROW}>
           <nav className="obs-pillnav" style={{ padding: "3px", gap: 2 }}>
@@ -368,31 +371,30 @@ export function ProphetView() {
           </>
         )}
 
-        {subTab === "perf" && (
-          <div style={PERF_PLACEHOLDER}>
-            <div style={PERF_TITLE}>{t("perfPlaceholderTitle")}</div>
-            <div style={PERF_BODY}>{t("perfPlaceholderBody")}</div>
+        {subTab === "perf" && <ProphetPerfPanel lang={lang} />}
+      </div>
+
+      {subTab === "signals" && (
+        <>
+          {/* ── CENTER — analysis ── */}
+          <div className="obs-card obs-prophet-pane obs-prophet-center" style={CENTER_PANE}>
+            {!selected ? (
+              <EmptyColumn t={t} center />
+            ) : (
+              <AnalysisPanel plan={selected} lang={lang} t={t} />
+            )}
           </div>
-        )}
-      </div>
 
-      {/* ── CENTER — analysis ── */}
-      <div className="obs-card obs-prophet-pane obs-prophet-center" style={CENTER_PANE}>
-        {!selected ? (
-          <EmptyColumn t={t} center />
-        ) : (
-          <AnalysisPanel plan={selected} lang={lang} t={t} />
-        )}
-      </div>
-
-      {/* ── RIGHT — confidence index ── */}
-      <div className="obs-card obs-prophet-pane obs-prophet-right" style={RIGHT_PANE}>
-        {!selected ? (
-          <EmptyColumn t={t} center />
-        ) : (
-          <ConfidenceColumn plan={selected} lang={lang} t={t} marks={marks} />
-        )}
-      </div>
+          {/* ── RIGHT — confidence index ── */}
+          <div className="obs-card obs-prophet-pane obs-prophet-right" style={RIGHT_PANE}>
+            {!selected ? (
+              <EmptyColumn t={t} center />
+            ) : (
+              <ConfidenceColumn plan={selected} lang={lang} t={t} marks={marks} />
+            )}
+          </div>
+        </>
+      )}
       </div>
     </div>
   );
@@ -823,6 +825,11 @@ const LEFT_PANE: React.CSSProperties = {
   minWidth: 0,
 };
 
+const PERF_PANE: React.CSSProperties = {
+  ...LEFT_PANE,
+  gridColumn: "1 / -1",
+};
+
 const CENTER_PANE: React.CSSProperties = {
   display: "flex",
   flexDirection: "column",
@@ -904,28 +911,6 @@ const EMPTY_WHY: React.CSSProperties = {
   color: "var(--muted)",
   maxWidth: 420,
   margin: "0 auto",
-};
-
-const PERF_PLACEHOLDER: React.CSSProperties = {
-  flex: 1,
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  justifyContent: "center",
-  padding: "32px 24px",
-  textAlign: "center",
-  gap: 12,
-};
-
-const PERF_TITLE: React.CSSProperties = {
-  font: "600 13px/1 var(--font-ui)",
-  color: "var(--text-2)",
-};
-
-const PERF_BODY: React.CSSProperties = {
-  font: "500 11px/1.6 var(--font-ui)",
-  color: "var(--muted)",
-  maxWidth: 260,
 };
 
 // ── Analysis panel styles ─────────────────────────────────────────────────────

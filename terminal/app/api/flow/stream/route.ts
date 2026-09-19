@@ -26,9 +26,9 @@ export async function GET(req: Request): Promise<Response> {
 
   const requestedFeed = new URL(req.url).searchParams.get("f") ?? "feed";
 
-  // The full US Prophet plan book is request/response only. It must never
-  // enter a long-lived or process-shared SSE producer.
-  if (requestedFeed === "prophet_idx") {
+  // The full US Prophet plan book and its closed-plan history are request/response
+  // only. Neither may enter a long-lived or process-shared SSE producer.
+  if (requestedFeed === "prophet_idx" || requestedFeed === "prophet_perf") {
     return new Response("bad f param", {
       status: 400,
       headers: {
