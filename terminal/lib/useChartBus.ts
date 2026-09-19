@@ -96,16 +96,28 @@ export function useChartBus(host: ChartBusHost): ChartBus {
       },
       acks,
     };
-    // Fire-and-forget through the session-verified proxy. Failures are non-fatal (the gateway re-reads
-    // on the next change); we never surface a network error into the chart.
+    // Fire-and-forget through the session-verified proxy. The session snapshot itself is best-effort,
+    // but command acknowledgements are not: the gateway needs them to close/reject command steps.
+    // We remove this batch optimistically above, then restore it ahead of any newer acks when the
+    // request fails or returns non-2xx so the next scheduled state write retries it.
+    let restored = false;
+    const restoreAcks = () => {
+      if (restored || !acks.length) return;
+      restored = true;
+      acksRef.current = [...acks, ...acksRef.current];
+    };
     try {
-      fetch("/api/brain/chart/state", {
+      void fetch("/api/brain/chart/state", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify(body),
-      }).catch(() => {});
-    } catch { /* ignore */ }
+      }).then((response) => {
+        if (!response.ok) restoreAcks();
+      }, restoreAcks);
+    } catch {
+      restoreAcks();
+    }
   }, []);
 
   const scheduleState = useCallback(() => {
