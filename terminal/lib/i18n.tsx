@@ -2863,6 +2863,16 @@ export const LEX: Record<string, [string, string]> = {
   acsPortfolioTargetsEmptyTitle: ["No targets yet", "尚未设定目标权重"],
   acsPortfolioTargetsEmptyBody: ["Targets are yours to set. Add one for any holding and the drift will appear here and on your holdings page.", "目标权重由你自行设定。任一持仓都可以添加，偏离度将同时显示在此处和持仓页。"],
   acsPortfolioTargetsOpenHoldings: ["Open holdings page", "打开持仓页"],
+  // alerts cockpit
+  recentActivityCockpit: ["Recent activity", "近期活动"],
+  // could-not-watch
+  whatWeCouldNotWatch: ["What we could not watch today", "今天未能监控的内容"],
+  // watching list
+  whatWeAreWatching: ["What we're watching for you", "正在为你监控"],
+  // feed pane elite chip
+  eliteTop2: ["Elite — top 2% of tape", "精英 — 成交带前2%"],
+  // watchlist rail tutorial
+  openTutorial: ["Open tutorial", "打开教程"],
 };
 
 // Non-hook LEX lookup for imperative contexts (e.g. chart legend meta assembled outside React render).
