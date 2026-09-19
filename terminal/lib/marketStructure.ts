@@ -412,8 +412,13 @@ function r5Alignment(
   if (gammaFlowMn == null || vannaFlowMn == null) {
     return { state: "unavailable", strength: null };
   }
-  const gMaterial = Math.abs(gammaFlowMn) > materialityMn;
-  const vMaterial = Math.abs(vannaFlowMn) > materialityMn;
+  // Contract says "below" the frozen threshold is non-material. Equality is
+  // therefore material, but exact zero must never become material when the
+  // declared threshold is zero.
+  const gAbs = Math.abs(gammaFlowMn);
+  const vAbs = Math.abs(vannaFlowMn);
+  const gMaterial = gAbs > 0 && gAbs >= materialityMn;
+  const vMaterial = vAbs > 0 && vAbs >= materialityMn;
   if (!gMaterial && !vMaterial) return { state: "immaterial", strength: null };
   if (gMaterial !== vMaterial) return { state: "one_factor_dominant", strength: null };
 
@@ -463,9 +468,16 @@ function r5AlignmentRow(
   const charmFlowMn = agg.charmMn == null
     ? null
     : r5OneCell({ ...agg, gammaMn: 0, vannaMn: null }, 0, 0, scenario.dtDays);
-  const totalFlowMn = r5OneCell(
-    agg, scenario.spotPct, scenario.volPts, scenario.dtDays,
-  );
+  // scenarioGrid intentionally treats a missing lens as zero for its generic UI
+  // surface and exposes hasVanna/hasCharm separately. R5 cannot collapse that
+  // uncertainty: when a non-zero requested shock needs a missing lens, the combined
+  // flow is unknown. A missing lens is irrelevant only when its requested shock is 0.
+  const totalKnown =
+    (scenario.volPts === 0 || vannaFlowMn != null) &&
+    (scenario.dtDays === 0 || charmFlowMn != null);
+  const totalFlowMn = totalKnown
+    ? r5OneCell(agg, scenario.spotPct, scenario.volPts, scenario.dtDays)
+    : null;
   const alignment = r5Alignment(gammaFlowMn, vannaFlowMn, scenario.materialityMn);
 
   return {
