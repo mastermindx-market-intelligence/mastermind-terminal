@@ -334,7 +334,7 @@ describe("BriefSubscribeControls", () => {
       createdAt: "2026-09-11T20:00:00.000Z",
     }];
     await mountSubscribe("en");
-    const inboxLink = container?.querySelector('a[href="/alerts"]');
+    const inboxLink = container?.querySelector('a[href="/alerts#briefs"]');
     expect(inboxLink?.textContent).toBe(briefCopy("openInbox", "en"));
     expect(text()).toContain(briefCopy("on", "en"));
 

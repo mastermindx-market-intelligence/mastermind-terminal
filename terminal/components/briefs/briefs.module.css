@@ -1,5 +1,11 @@
 /* Brief scheduling and inbox rows. Delivery location is explicit: Terminal → Alerts → Briefs. */
 
+/* Direct /alerts#briefs links should land below the shared app chrome. */
+:global(#briefs) {
+  scroll-margin-top: 72px;
+}
+
+
 .controls {
   display: grid;
   gap: 9px;

@@ -183,7 +183,7 @@ export default function BriefsInbox({ lang }: { lang: BriefLang }) {
   }
 
   return (
-    <div className={s.module} data-testid="briefs-inbox" data-briefs-module="inbox">
+    <div id="briefs" className={s.module} data-testid="briefs-inbox" data-briefs-module="inbox">
       <div className={s.moduleHead}>
         <span>{briefCopy("title", L)}</span>
         {rows && rows.length > 0 && (

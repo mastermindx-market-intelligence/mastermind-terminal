@@ -172,7 +172,7 @@ export default function BriefSubscribeControls({
       <div className={s.controlsHead}>{briefCopy("controlsTitle", L)}</div>
       <p className={s.controlsNote}>{briefCopy("scheduleHelp", L)}</p>
       <p className={s.deliveryNote} data-testid="briefs-subscribe-delivery">
-        {briefCopy("emailNull", L)} <a href="/alerts">{briefCopy("openInbox", L)}</a>
+        {briefCopy("emailNull", L)} <a href="/alerts#briefs">{briefCopy("openInbox", L)}</a>
       </p>
       {row("daily_after_us_close", "subscribeDaily")}
       {row("weekly_saturday", "subscribeWeekly")}
