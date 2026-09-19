@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { fetchIntraday, isIntradayTf, isSecondTf, classify } from "@/lib/intradaySources";
 import { isMacroSymbol } from "@/lib/macroSymbols";
 import { withStoredHistory } from "@/lib/intradayStore";
+import { buildIntradaySourceEvidence, type IntradayAssemblyTrace } from "@/lib/intradayEvidence";
 import { filterBarsToSessionDate, type Bar6 } from "@/lib/intradayShared";
 import { intradayFixture } from "@/lib/flowSource";
 import { rateLimit, tooMany } from "@/lib/rateLimit";
@@ -24,8 +25,16 @@ type IntradayResponse = {
   note?: string;
   error?: string;
   session_date?: string;
+  source_evidence?: ReturnType<typeof buildIntradaySourceEvidence>;
 };
-type Entry = { at: number; data: IntradayResponse };
+type EvidenceState = {
+  trace: IntradayAssemblyTrace;
+  assembledAtMs: number;
+  symbol: string;
+  timeframe: string;
+  extended: boolean;
+};
+type Entry = { at: number; data: IntradayResponse; evidence: EvidenceState | null };
 const CACHE = new Map<string, Entry>();
 const TTL = 45_000; // delayed data doesn't move faster than this; also bounds upstream call volume
 // The second band is the live-zoom lane: a 45s cache would make a 1s chart visibly stale while
@@ -45,12 +54,31 @@ function isValidSessionDate(date: string): boolean {
  * cache entry. The cache intentionally stays date-agnostic: one provider/store read can
  * serve the full chart and any single-session study during the same TTL.
  */
-function responseForSession(data: IntradayResponse, date: string): IntradayResponse {
-  if (!date) return data;
-  const bars = Array.isArray(data.bars)
+function responseForSession(
+  data: IntradayResponse,
+  date: string,
+  evidence: EvidenceState | null = null,
+  cacheState: "new_assembly" | "cache" | "stale_cache" = "new_assembly",
+): IntradayResponse {
+  const bars = date && Array.isArray(data.bars)
     ? filterBarsToSessionDate(data.bars as Bar6[], date)
-    : [];
-  return { ...data, bars, session_date: date };
+    : data.bars;
+  const response: IntradayResponse = date
+    ? { ...data, bars, session_date: date }
+    : { ...data, bars };
+  if (!evidence) return response;
+  return {
+    ...response,
+    source_evidence: buildIntradaySourceEvidence(bars, evidence.trace, {
+      symbol: evidence.symbol,
+      timeframe: evidence.timeframe,
+      extended: evidence.extended,
+      sessionDate: date,
+      assembledAtMs: evidence.assembledAtMs,
+      servedAtMs: Date.now(),
+      cacheState,
+    }),
+  };
 }
 
 function errorMessage(error: unknown, fallback: string): string {
@@ -128,7 +156,7 @@ export async function GET(req: Request) {
   const ckey = `${sym}|${tf}|${ext ? 1 : 0}|${source}|${basis}${seconds ? `|${date || "latest"}` : ""}`;
   const hit = CACHE.get(ckey);
   if (hit && Date.now() - hit.at < (seconds ? SECOND_TTL : TTL)) {
-    return NextResponse.json(seconds ? hit.data : responseForSession(hit.data, date));
+    return NextResponse.json(seconds ? hit.data : responseForSession(hit.data, date, hit.evidence, "cache"));
   }
 
   // ── Second band: single-session live window, no store ────────────────────────────────────
@@ -160,7 +188,7 @@ export async function GET(req: Request) {
         ? "no second-resolution bars for this window"
         : "second resolution is entitled for US equities only";
     }
-    CACHE.set(ckey, { at: Date.now(), data: served });
+    CACHE.set(ckey, { at: Date.now(), data: served, evidence: null });
     return NextResponse.json(served, { headers: { "Cache-Control": "no-store" } });
   }
 
@@ -175,17 +203,21 @@ export async function GET(req: Request) {
   }
 
   let bars: Bar6[];
+  let trace: IntradayAssemblyTrace | null = null;
+  const sourceEvidenceEligible = market === "us" && !isMacroSymbol(sym);
   try {
-    bars = await withStoredHistory(sym, tf, ext, live);
+    bars = await withStoredHistory(sym, tf, ext, live, sourceEvidenceEligible
+      ? (captured) => { trace = captured; }
+      : undefined);
   } catch (error: unknown) {
     // store read failed entirely (unlikely; readStore swallows its own errors)
-    if (hit) return NextResponse.json(responseForSession(hit.data, date));
+    if (hit) return NextResponse.json(responseForSession(hit.data, date, hit.evidence, "stale_cache"));
     return NextResponse.json({ t: sym, tf, bars: [], error: errorMessage(error, "store error") });
   }
 
   if (bars.length === 0 && liveErr) {
     // nothing at all — propagate the live error; stale cache wins if present
-    if (hit) return NextResponse.json(responseForSession(hit.data, date));
+    if (hit) return NextResponse.json(responseForSession(hit.data, date, hit.evidence, "stale_cache"));
     return NextResponse.json({ t: sym, tf, bars: [], error: liveErr });
   }
 
@@ -193,6 +225,10 @@ export async function GET(req: Request) {
   // so the client can label freshness without treating it as a hard error.
   const data: IntradayResponse = { t: sym, tf, bars };
   if (liveErr) data.note = "store-only: " + liveErr;
-  CACHE.set(ckey, { at: Date.now(), data });
-  return NextResponse.json(responseForSession(data, date), { headers: { "Cache-Control": "no-store" } });
+  const assembledAtMs = Date.now();
+  const evidence: EvidenceState | null = trace ? {
+    trace, assembledAtMs, symbol: sym, timeframe: tf, extended: ext,
+  } : null;
+  CACHE.set(ckey, { at: assembledAtMs, data, evidence });
+  return NextResponse.json(responseForSession(data, date, evidence, "new_assembly"), { headers: { "Cache-Control": "no-store" } });
 }

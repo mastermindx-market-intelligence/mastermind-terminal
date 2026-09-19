@@ -49,6 +49,7 @@ import type {
 } from "@/lib/rmsViews";
 import styles from "./ThesisWorkspace.module.css";
 import ClaimAuthoringForm from "./ClaimAuthoringForm";
+import BriefSubscribeControls from "@/components/briefs/BriefSubscribeControls";
 
 export interface ThesisWorkspaceProps {
   ownerKey: string;
@@ -2177,6 +2178,13 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
                       <div><small>{detail ? statusLabel(lifecycle, copy) : copy.newThesis}</small><h1>{detail ? (detail.subject.identityState === "listing_scoped" ? `${detail.subject.key} · ${copy.listingScoped}` : detail.subject.display) : (subjectDraft || copy.newThesis)}</h1><p>{detail?.subject.identityState === "listing_scoped" || !detail ? copy.listingScoped : detail.subject.owner}</p></div>
                       {detail && <span className={styles.versionBadge}>{copy.version} {detail.currentVersion} · {copy.current}</span>}
                     </div>
+                    {detail && (
+                      <BriefSubscribeControls
+                        targetKind="thesis"
+                        targetId={detail.id}
+                        lang={lang === "zh" ? "zh" : "en"}
+                      />
+                    )}
                     {detail && detailCondition && (
                       <p className={styles.conditionLine} data-testid="thesis-condition"
                         data-source={detailCondition.source}

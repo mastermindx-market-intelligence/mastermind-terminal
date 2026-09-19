@@ -458,6 +458,16 @@ def test_reservations_records_the_known_collision_surface():
     assert prefixes["0023"]["pr_state"] == "merged"
     assert prefixes["0023"]["merged_sha"] == "9022e0138"
 
+    assert prefixes["0024"]["state"] == "taken"
+    assert prefixes["0024"]["file"] == "0024_brief_subscriptions.sql"
+    assert prefixes["0024"]["packet"] == "B-F11-7"
+    assert prefixes["0024"]["pr"] == 579
+    assert prefixes["0024"]["pr_state"] == "merged"
+    assert prefixes["0024"]["merged_sha"] == "82bee14b"
+    # 2026-09-19: 0024 applied in production by the seat (receipt in the seat kit).
+    assert prefixes["0024"]["applied_in_production"] is True
+    assert prefixes["0024"]["applied_date"] == "2026-09-19"
+
     assert doc["claim_before_you_write"].strip() != ""
 
 

@@ -18,9 +18,9 @@
 layoutFiles:
   terminal/components/settings/SectionAccount.tsx: "d2c3828c286bbaac321881d5a6562efdd4f30e580f4200d49c5165c0fa7ef9a4"
   terminal/lib/teamSummary.ts: "7bd3b3f1d5251490e42399be1dd77e977b2626c1714efbece2f7139c584e0f15"
-  terminal/lib/i18n.tsx: "b5723f6e6a4bbf32b74219e0fc51612b1f2b16727b5beaa730e58817f51e4617"
-  terminal/components/settings/SettingsPanel.tsx: "378811617e0de2feed0d8bc1c6e01ae55d8e763204fe0d1c1829bc44fff1e1a4"
-  terminal/components/settings/SettingsProvider.tsx: "4ac330d429de63c5a3e431aaa1a1b41e4a7905cf2a08bc260b68afa0bc604bed"
+  terminal/lib/i18n.tsx: "1d571257006431cc4d58e16df261af64ae243fd06e3ec55a57a7fec0ddc735b7"
+  terminal/components/settings/SettingsPanel.tsx: "67657d686f304adf292d263007701852fa2bc28cd7f4dabbeca92d7453884eed"
+  terminal/components/settings/SettingsProvider.tsx: "097dc689f3794e0cb7c05588bbc3bdfd473f313c1c66676bb4f4fd564db8c919"
 theme: dark
 languages: [en, zh]
 viewports:
