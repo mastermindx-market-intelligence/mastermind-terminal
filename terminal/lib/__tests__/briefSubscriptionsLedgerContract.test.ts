@@ -27,8 +27,8 @@ const row = reservationRow(PREFIX);
 const sql = readMigration(FILE);
 
 describe("0024 brief subscriptions ledger contract", () => {
-  it("claims prefix 0024 in RESERVATIONS.json as taken and not yet applied", () => {
-    expect(row.state).toBe("taken");
+  it("claims prefix 0024 in RESERVATIONS.json as reserved and not yet applied", () => {
+    expect(row.state).toBe("reserved");
     expect(row.file).toBe(FILE);
     expect(row.packet).toBe("B-F11-7");
     expect(row.pr).toBe(579);

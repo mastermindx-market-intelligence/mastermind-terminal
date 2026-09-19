@@ -261,8 +261,14 @@ def validate_reservations(doc: dict) -> list[Finding]:
             if pr_state_v not in ("merged", "open"):
                 findings.append(Finding("RESERVATION_SCHEMA", key, "state=taken requires pr_state 'merged' or 'open'"))
         elif state == "reserved":
-            if file_v is not None:
-                findings.append(Finding("RESERVATION_SCHEMA", key, "state=reserved requires 'file' to be null"))
+            if file_v is not None and not _non_empty_str(file_v):
+                findings.append(
+                    Finding(
+                        "RESERVATION_SCHEMA",
+                        key,
+                        "state=reserved requires 'file' to be null or a non-empty string",
+                    )
+                )
             if not _non_empty_str(packet_v):
                 findings.append(Finding("RESERVATION_WITHOUT_OWNER", key, "state=reserved requires a non-empty 'packet' owner id"))
             if pr_v is None:
@@ -415,26 +421,6 @@ def check_files_are_reserved(filenames: Sequence[str], doc: dict) -> list[Findin
             findings.append(Finding("FREE_PREFIX_HAS_FILE", prefix, f"'{name}' sits at prefix {prefix}, which RESERVATIONS.json marks free"))
             continue
 
-        if state == "reserved":
-            # `reserved` legitimately carries file=null (schema-enforced in
-            # validate_reservations) -- the owning packet has claimed the prefix
-            # but has not written the .sql yet. So *any* on-disk file at this
-            # prefix is a collision: either the true owner has landed and the
-            # ledger is stale (should have flipped to state=taken with this
-            # file), or a different lane has occupied a prefix it does not own.
-            # Either way this must fail loudly rather than silently pass a null
-            # 'file' through the equality check below.
-            findings.append(
-                Finding(
-                    "RESERVED_PREFIX_OCCUPIED",
-                    prefix,
-                    f"'{name}' occupies prefix {prefix}, which RESERVATIONS.json marks reserved "
-                    f"(not yet taken) for packet '{entry.get('packet')}'; flip the ledger entry to "
-                    "state=taken naming this file and its owning PR before this can pass",
-                )
-            )
-            continue
-
         if state == "released":
             # A released number is retired, not recycled: README.md's release path
             # says the row keeps counting toward max() precisely so the number is
@@ -452,6 +438,16 @@ def check_files_are_reserved(filenames: Sequence[str], doc: dict) -> list[Findin
             continue
 
         expected_file = entry.get("file")
+        if state == "reserved" and expected_file is None:
+            findings.append(
+                Finding(
+                    "RESERVED_PREFIX_OCCUPIED",
+                    prefix,
+                    f"'{name}' occupies prefix {prefix}, which RESERVATIONS.json marks reserved "
+                    f"for packet '{entry.get('packet')}' without a file name",
+                )
+            )
+            continue
         if expected_file is None:
             findings.append(
                 Finding(
@@ -575,7 +571,9 @@ def check_open_pr_state_for_present_files(
                             "or this branch is carrying a file it does not own",
                         )
                     )
-            elif entry.get("state") != "taken" or not isinstance(entry.get("pr"), int):
+            elif entry.get("state") not in ("reserved", "taken") or not isinstance(
+                entry.get("pr"), int
+            ):
                 findings.append(
                     Finding(
                         "OPEN_PR_STATE_WITHOUT_OWNING_PR",

@@ -98,6 +98,19 @@ vi.mock("@/lib/supabase/server", () => ({
 
       function finishSingle(allowEmpty: boolean) {
         if (table === "brief_subscriptions" && q._pendingInsert) {
+          const thesisId = q._pendingInsert.target_thesis_id ?? null;
+          const watchlistId = q._pendingInsert.target_watchlist_id ?? null;
+          const kind = q._pendingInsert.target_kind;
+          const targetCount = [thesisId, watchlistId].filter((id) => id !== null).length;
+          if (targetCount !== 1) {
+            throw new Error("brief subscriptions must set exactly one target foreign key");
+          }
+          if (kind === "thesis" && thesisId !== q._pendingInsert.target_id) {
+            throw new Error("a thesis subscription must set target_thesis_id to target_id");
+          }
+          if (kind === "watchlist" && watchlistId !== q._pendingInsert.target_id) {
+            throw new Error("a watchlist subscription must set target_watchlist_id to target_id");
+          }
           if (H.insertError) return { data: null, error: H.insertError };
           const row = {
             subscription_id: "sub-1",
@@ -172,6 +185,7 @@ function req(url: string, init?: RequestInit) {
 }
 
 const THESIS = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+const WATCHLIST = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
 const SUB = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
 
 describe("/api/briefs routes", () => {
@@ -270,6 +284,34 @@ describe("/api/briefs routes", () => {
     expect(body.messageZh).toBe(BRIEFS_ROUTE_MESSAGES.duplicate[1]);
     expect(JSON.stringify(body)).not.toContain("23505");
     expect(JSON.stringify(body)).not.toContain("brief_subscriptions_user_id");
+  });
+
+  it("POST writes the matching target foreign key for a thesis and a watchlist", async () => {
+    H.user = { id: "u-1" };
+    H.theses = [{ id: THESIS, user_id: "u-1" }];
+    H.watchlists = [{ id: WATCHLIST, user_id: "u-1" }];
+
+    const rThesis = await POST_SUB(
+      req("http://localhost/api/briefs/subscriptions", {
+        method: "POST",
+        body: JSON.stringify({ target_kind: "thesis", target_id: THESIS, cadence: "daily_after_us_close" }),
+      }),
+    );
+    expect(rThesis.status).toBe(201);
+    expect(H.lastInsert).toMatchObject({
+      target_thesis_id: THESIS,
+    });
+
+    const rWatchlist = await POST_SUB(
+      req("http://localhost/api/briefs/subscriptions", {
+        method: "POST",
+        body: JSON.stringify({ target_kind: "watchlist", target_id: WATCHLIST, cadence: "weekly_saturday" }),
+      }),
+    );
+    expect(rWatchlist.status).toBe(201);
+    expect(H.lastInsert).toMatchObject({
+      target_watchlist_id: WATCHLIST,
+    });
   });
 
   it("pause then resume flips the row state", async () => {

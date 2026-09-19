@@ -120,7 +120,7 @@ exception when duplicate_object then null; end $$;
 -- down:
 -- begin;
 -- drop policy if exists brief_deliveries_service_role_all on public.brief_deliveries;
--- drop policy if exists brief_subscriptions_service_role_all on public.brief_subscriptions;
+-- drop policy if exists brief_subscriptions_service_role_select on public.brief_subscriptions;
 -- drop policy if exists brief_deliveries_select_owner on public.brief_deliveries;
 -- drop policy if exists brief_subscriptions_delete_own on public.brief_subscriptions;
 -- drop policy if exists brief_subscriptions_update_own on public.brief_subscriptions;
