@@ -22,7 +22,8 @@ import { fmtDate, fmtNum, pick } from "../../lib/finFormat";
 import { ArcGauge } from "../ui/ArcGauge";
 import { intradayCapable } from "../ChartPanel";
 import { classify, isIntradayTf } from "../../lib/intradaySources";
-import { Disclaimer, readingToArc } from "./ForecastPage";
+import { Disclaimer } from "./ForecastPage";
+import { readingToArc } from "../../lib/analystRating";
 
 interface TechnicalsPageProps {
   sym: string;
