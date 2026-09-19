@@ -21,8 +21,10 @@ const H = vi.hoisted(() => ({
   countResult: { count: 0 as number | null, error: null as unknown },
   windowRows: [] as Row[],
   windowError: null as unknown,
-  getUserById: (_id: string): Promise<{ data: { user: { email?: string | null } | null } | null; error?: unknown }> =>
-    Promise.resolve({ data: { user: { email: "unset@example.com" } } }),
+  getUserById: (id: string): Promise<{ data: { user: { email?: string | null } | null } | null; error?: unknown }> => {
+    void id;
+    return Promise.resolve({ data: { user: { email: "unset@example.com" } } });
+  },
   calls: [] as string[],
 }));
 
@@ -183,6 +185,28 @@ describe("email cache is bounded and expires", () => {
     H.getUserById = async () => ({ data: null, error: { message: "gotrue 503" } });
     expect(await resolveUserEmails([ID])).toEqual({});
     expect(__emailCacheSize()).toBe(0);
+  });
+
+  it("bounds distinct-id GoTrue fan-out across concurrent admin pages", async () => {
+    let inflight = 0;
+    let peak = 0;
+    H.getUserById = async (id: string) => {
+      inflight++;
+      peak = Math.max(peak, inflight);
+      await new Promise((r) => setTimeout(r, 2));
+      inflight--;
+      return { data: { user: { email: `${id}@example.com` } } };
+    };
+
+    const pages = Array.from({ length: 3 }, (_, page) =>
+      Array.from({ length: 80 }, (_, i) => `page-${page}-user-${i}`),
+    );
+    await Promise.all(pages.map((ids) => resolveUserEmails(ids)));
+
+    // This is a process-wide ceiling, not merely a per-request pool: simultaneous admin page
+    // reads must not multiply auth-admin pressure. Before the limiter this peaks at all 240.
+    expect(peak).toBeLessThanOrEqual(12);
+    expect(peak).toBeGreaterThan(1);
   });
 
   it("HIGH CARDINALITY: stays bounded across 50,000 distinct user ids", async () => {

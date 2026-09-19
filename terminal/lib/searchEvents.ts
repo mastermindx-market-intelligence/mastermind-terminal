@@ -149,6 +149,42 @@ const emailCache = new Map<string, EmailEntry>();
 // id -> the single outstanding lookup for that id (request coalescing).
 const emailInFlight = new Map<string, Promise<string | null>>();
 
+// GoTrue's admin lookup is one HTTP request per distinct user id. A page can hold hundreds of
+// distinct users, and multiple owner tabs/refreshes can arrive together, so Promise.all without a
+// process-wide gate turns one dashboard read into a burst of hundreds of auth-admin requests.
+// Keep enough parallelism for a fast page while bounding pressure across ALL concurrent requests.
+const EMAIL_LOOKUP_CONCURRENCY = 12;
+let emailLookupActive = 0;
+const emailLookupWaiters: Array<() => void> = [];
+
+async function acquireEmailLookupSlot(): Promise<void> {
+  if (emailLookupActive < EMAIL_LOOKUP_CONCURRENCY) {
+    emailLookupActive++;
+    return;
+  }
+  // A released slot is transferred directly to exactly one waiter; active stays at the ceiling
+  // during the hand-off, so a new caller cannot steal the slot between resolve() and its microtask.
+  await new Promise<void>((resolve) => emailLookupWaiters.push(resolve));
+}
+
+function releaseEmailLookupSlot(): void {
+  const next = emailLookupWaiters.shift();
+  if (next) {
+    next(); // transfer this occupied slot to the waiter; active remains unchanged
+  } else {
+    emailLookupActive--;
+  }
+}
+
+async function withEmailLookupSlot<T>(read: () => Promise<T>): Promise<T> {
+  await acquireEmailLookupSlot();
+  try {
+    return await read();
+  } finally {
+    releaseEmailLookupSlot();
+  }
+}
+
 function emailCacheGet(id: string, now: number): { hit: boolean; email: string | null } {
   const entry = emailCache.get(id);
   if (!entry) return { hit: false, email: null };
@@ -191,7 +227,7 @@ function lookupEmail(supabase: AdminAuth, id: string): Promise<string | null> {
 
   const pending = (async () => {
     try {
-      const { data, error } = await supabase.auth.admin.getUserById(id);
+      const { data, error } = await withEmailLookupSlot(() => supabase.auth.admin.getUserById(id));
       // Cache a DEFINITIVE answer only. `error`, a throw, or a missing user all mean the authority
       // did not answer, and memoising that as "no email" would blank the column until the TTL
       // expired for a reason that had nothing to do with the user.
