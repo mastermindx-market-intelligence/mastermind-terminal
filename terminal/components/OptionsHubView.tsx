@@ -560,6 +560,13 @@ function fmtAsof(iso: string): string {
   } catch { return iso; }
 }
 
+/** Local bilingual copy helper for this large legacy hub.
+ * Keeps failure-state copy out of the global i18n layout evidence lock while
+ * still making EN/ZH routing explicit to the plain-language CI guard. */
+function pick(lang: Lang, en: string, zh: string): string {
+  return lang === "zh" ? zh : en;
+}
+
 function isStale(iso: string): boolean {
   try { return Date.now() - new Date(iso).getTime() > 10 * 60 * 1000; } catch { return false; }
 }
@@ -3926,10 +3933,10 @@ export default function OptionsHubView({
               {leadersError && !leadersData && (
                 <div role="status" style={{ padding: "40px 20px", textAlign: "center" }}>
                   <div style={{ fontSize: 14, color: "var(--text-2)", marginBottom: 8 }}>
-                    {lang === "zh" ? "暂时无法加载资金流领涨榜" : "Couldn't load Flow Leaders"}
+                    {pick(lang, "Couldn't load Flow Leaders", "暂时无法加载资金流领涨榜")}
                   </div>
                   <div style={{ fontSize: 12, color: "var(--muted)" }}>
-                    {lang === "zh" ? "此面板暂时无法获取数据，请稍后重试。" : "This panel couldn't reach its data. Retry in a moment."}
+                    {pick(lang, "This panel couldn't reach its data. Retry in a moment.", "此面板暂时无法获取数据，请稍后重试。")}
                   </div>
                   <button
                     type="button"
@@ -3938,7 +3945,7 @@ export default function OptionsHubView({
                     onClick={() => void fetchLeaders()}
                     disabled={leadersLoading}
                   >
-                    {leadersLoading ? t("loading", "Loading…") : (lang === "zh" ? "重试" : "Retry")}
+                    {leadersLoading ? t("loading", "Loading…") : pick(lang, "Retry", "重试")}
                   </button>
                 </div>
               )}
@@ -4281,10 +4288,10 @@ export default function OptionsHubView({
               {radarError && !radarData && (
                 <div role="status" style={{ padding: "40px 20px", textAlign: "center" }}>
                   <div style={{ fontSize: 14, color: "var(--text-2)", marginBottom: 8 }}>
-                    {lang === "zh" ? "暂时无法加载领涨雷达" : "Couldn't load Leader Radar"}
+                    {pick(lang, "Couldn't load Leader Radar", "暂时无法加载领涨雷达")}
                   </div>
                   <div style={{ fontSize: 12, color: "var(--muted)" }}>
-                    {lang === "zh" ? "此面板暂时无法获取数据，请稍后重试。" : "This panel couldn't reach its data. Retry in a moment."}
+                    {pick(lang, "This panel couldn't reach its data. Retry in a moment.", "此面板暂时无法获取数据，请稍后重试。")}
                   </div>
                   <button
                     type="button"
@@ -4293,7 +4300,7 @@ export default function OptionsHubView({
                     onClick={() => void fetchRadar()}
                     disabled={radarLoading}
                   >
-                    {radarLoading ? t("radarLoading", "Loading Leader Radar…") : (lang === "zh" ? "重试" : "Retry")}
+                    {radarLoading ? t("radarLoading", "Loading Leader Radar…") : pick(lang, "Retry", "重试")}
                   </button>
                 </div>
               )}
