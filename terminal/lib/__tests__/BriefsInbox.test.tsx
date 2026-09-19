@@ -154,14 +154,10 @@ describe("BriefSubscribeControls", () => {
   });
 });
 
-describe("watchlist subscribe mount is outside the nowrap wl-bar", () => {
-  it("places BriefSubscribeControls after the wl-bar closes", () => {
+describe("watchlist chrome does not advertise recurring briefs", () => {
+  it("keeps BriefSubscribeControls out of TerminalShell until the producer is live", () => {
     const src = readFileSync(join(__dirname, "../../components/TerminalShell.tsx"), "utf8");
-    const mount = src.indexOf("<BriefSubscribeControls");
-    expect(mount).toBeGreaterThan(0);
-    const before = src.slice(Math.max(0, mount - 250), mount);
-    expect(before).not.toMatch(/wl-acts/);
-    const after = src.slice(mount, mount + 500);
-    expect(after).toMatch(/BriefSubscribeControls[\s\S]{0,450}className="wl-scroll"/);
+    expect(src).not.toContain('from "@/components/briefs/BriefSubscribeControls"');
+    expect(src).not.toContain("<BriefSubscribeControls");
   });
 });
