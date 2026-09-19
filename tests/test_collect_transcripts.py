@@ -41,6 +41,17 @@ def _transcript_row(text: str):
     )
 
 
+
+def test_parquet_source_tracks_defeatbeta_us_namespace() -> None:
+    """The live provider moved the US corpus under data/US on 2026-09-18."""
+
+    assert collect.PARQUET_URL.endswith(
+        "/resolve/main/data/US/stock_earning_call_transcripts.parquet"
+    )
+    assert "/resolve/main/data/stock_earning_call_transcripts.parquet" not in (
+        collect.PARQUET_URL
+    )
+
 def test_unchanged_upstream_revision_skips_download_even_when_cache_is_old(
     tmp_path, monkeypatch,
 ) -> None:
