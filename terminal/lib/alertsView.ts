@@ -48,6 +48,10 @@ export interface OutboxRow {
     condition_plain?: string;
     evidence_url?: string | null;
     fired_at?: string;
+    /** Set when kind === "thesis_condition": the thesis that had its window close. */
+    thesis_id?: string;
+    /** "thesis_condition" when this row was written by the thesis-condition monitor. */
+    kind?: string;
   };
 }
 
@@ -83,6 +87,8 @@ export interface AlertsView {
 
 export interface AlertRowView {
   alertId: string;
+  /** Present only for thesis_condition rows (no matching alerts entry). */
+  thesisId?: string;
   delivery: DeliveryState;
   foldedRows: number;
   outboxRow: OutboxRow | null;
@@ -331,6 +337,32 @@ export function buildAlertsView(input: {
     .filter(({ d }) => d.fired)
     .map(({ a, d }) => ({ alertId: a.id, delivery: d.delivery, foldedRows: d.foldedRows, outboxRow: d.outboxRow }));
 
+  // MO-PAID-047: surface thesis_condition outbox rows (written by macro's thesis-condition
+  // monitor) as delivery rows even when there is no matching alerts entry. The filter keeps
+  // rows whose kind === "thesis_condition", whose alert_id is null or "", and whose payload
+  // carries thesis_id. A row with a non-empty alert_id stays on the alerts path above.
+  const thesisRows: AlertRowView[] = (input.outbox ?? [])
+    .filter((o) => {
+      if (o.payload?.kind !== "thesis_condition") return false;
+      if (o.alert_id != null && o.alert_id !== "") return false;
+      if (!o.payload?.thesis_id) return false;
+      return true;
+    })
+    .map((o) => {
+      const status = o.status as string;
+      // Same mapping as deliveryFor's alerts path (status === "sent" && delivered_at == null
+      // → "pending"; otherwise KNOWN_DELIVERY[status] ?? "unconfirmed").
+      const delivery: DeliveryState =
+        status === "sent" && o.delivered_at == null ? "pending" : (KNOWN_DELIVERY[status] ?? "unconfirmed");
+      return {
+        alertId: `thesis:${o.payload.thesis_id}`,
+        thesisId: o.payload.thesis_id,
+        delivery,
+        foldedRows: 0,
+        outboxRow: o,
+      };
+    });
+
   // `input.alertsState` is the frozen four-state read vocabulary (§5), decided by the caller —
   // this view model never invents READ_NO_COVERAGE from a fabricated signal, it only ever
   // reports what the caller determined. `unevaluable_n` on the run receipt is the AUTHORITATIVE
@@ -365,7 +397,7 @@ export function buildAlertsView(input: {
     noCoverageCount: input.monitorLanes
       ? noCoverageAcross(input.monitorLanes.map((l) => l.run))
       : input.run?.unevaluable_n ?? null,
-    rows,
+    rows: [...rows, ...thesisRows],
     emptyAction,
   };
 }
@@ -476,6 +508,10 @@ export const ALERTS_COPY: Record<string, [string, string]> = {
   // "触发时数值 {value}" — a value, not a claimed price.
   "alertFired.withValueGeneric": ["Fired at {value}.", "触发时数值 {value}"],
   "alertFired.noValue": ["Fired; no value recorded.", "已触发，未记录触发价"],
+  // MO-PAID-047: thesis_condition rows surface on the Alerts page as "window closed" notices.
+  // Copy reused from acsAlertCatThes + rmsViews.ts "window closed" wording — no "falsifier"
+  // language per spec constraint 3. thesisId is in the row so the cockpit can link to the thesis.
+  "condition.thesis_condition": ["The window you were watching has closed", "你关注的观察窗口已结束"],
 };
 
 export function copy(key: string, lang: "en" | "zh", vars?: Record<string, string | number>): string {

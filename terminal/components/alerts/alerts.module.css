@@ -76,7 +76,7 @@
   box-shadow: 0 24px 64px -16px rgba(0,0,0,.6); position: relative;
 }
 .detailClose {
-  position: absolute; top: 12px; right: 12px; background: var(--panel-3); border: 1px solid var(--line-3);
+  position: static; align-self: flex-end; background: var(--panel-3); border: 1px solid var(--line-3);
   border-radius: var(--r-md); color: var(--text); font: 600 var(--fs-label)/1 var(--font-ui);
   padding: 5px 10px; cursor: pointer;
 }
