@@ -74,12 +74,19 @@ describe("Stock Intelligence workspace", () => {
     expect(tab("Research").getAttribute("aria-selected")).toBe("true")
     expect(document.activeElement).toBe(tab("Research"))
   })
-  it("retains the two source dates in one clearly actionable launcher", async () => {
+  it("presents one Stock Intelligence launcher while retaining both source states and dates", async () => {
     const view = vi.fn()
     await act(async () => root.render(<SignalButton oracle={{ label: "Starter", color: "var(--signal)", sub: "Sep 10" }} desk={{ label: "Neutral", color: "var(--muted)", sub: "Sep 14" }} oracleLabel="Golden Oracle" deskLabel="Research Desk" viewLabel="View" onView={view} />))
-    const launcher = document.querySelector('button[aria-haspopup="dialog"]')!
-    expect(launcher).not.toBeNull(); expect(launcher.textContent).toContain("Sep 10")
-    expect(launcher.textContent).toContain("Sep 14"); expect(document.querySelector(".sig-btn-seam")).toBeNull()
+    const launcher = document.querySelector<HTMLButtonElement>('button[aria-haspopup="dialog"]')!
+    expect(launcher).not.toBeNull()
+    expect(launcher.getAttribute("aria-label")).toMatch(/^Stock Intelligence\./)
+    expect(launcher.querySelector('[data-stock-intelligence-launcher-title]')?.textContent).toBe("Stock Intelligence")
+    expect(launcher.querySelectorAll(".sig-btn-half")).toHaveLength(2)
+    expect(launcher.textContent).toContain("Golden Oracle")
+    expect(launcher.textContent).toContain("Research Desk")
+    expect(launcher.textContent).toContain("Sep 10")
+    expect(launcher.textContent).toContain("Sep 14")
+    expect(document.querySelector(".sig-btn-seam")).toBeNull()
     await click(launcher); expect(view).toHaveBeenCalledOnce()
   })
 })
