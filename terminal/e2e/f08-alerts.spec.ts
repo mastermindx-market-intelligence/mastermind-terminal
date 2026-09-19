@@ -171,7 +171,10 @@ test("create an alert through the real form, see it in the list, and delete it",
   await setLang(page, "en");
   let stored: Array<{ id: string; symbol: string; active: boolean; created_at: string; condition: unknown }> = [];
   await page.route("**/data/manifest.json**", (route) => route.fulfill({ json: MANIFEST }));
-  await page.route("**/api/alerts", async (route) => {
+  // A RegExp, not the "**/api/alerts" glob: Playwright anchors globs (`^(.*/)api/alerts$`), so the
+  // glob never matched the DELETE `/api/alerts?id=…` call — that request reached the real server
+  // and the test only passed while that 401 arrived after the optimistic empty state (CI run 35414140742).
+  await page.route(/\/api\/alerts(\?.*)?$/, async (route) => {
     const req = route.request();
     if (req.method() === "POST") {
       const body = JSON.parse(req.postData() || "{}");
@@ -206,9 +209,15 @@ test("create an alert through the real form, see it in the list, and delete it",
   // Step 4: delete it (two-step confirm), asserting the visible confirmation prompt too.
   await row.locator(".icbtn").click();
   await expect(row.getByText("Delete this alert?", { exact: false })).toBeVisible({ timeout: 45_000 });
+  // The empty copy below appears optimistically before the DELETE answers, so also wait for the
+  // mocked DELETE itself: a real-server 401 here rolls the row back ("Could not delete that alert").
+  const deleted = page.waitForResponse((r) => r.request().method() === "DELETE" && /\/api\/alerts\?id=/.test(r.url()));
   await row.locator(".arow-confirm .btn-danger").click();
+  expect((await deleted).status()).toBe(200);
+  expect(stored).toHaveLength(0);
   await expect(row).toHaveCount(0);
   await expect(page.getByText("No alerts yet", { exact: false })).toBeVisible({ timeout: 45_000 });
+  await expect(page.getByText("Could not delete that alert", { exact: false })).toHaveCount(0);
 });
 
 // --- Visual evidence crops (spec §9) -------------------------------------------------
