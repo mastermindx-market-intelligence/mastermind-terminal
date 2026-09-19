@@ -11,6 +11,7 @@ import { briefCopy, degradedLine } from "@/lib/briefs";
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 const THESIS = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+const WATCHLIST = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
 const validBody = {
   target: { kind: "thesis", id: THESIS, name: "NVDA cycle", version_or_asof: "v3" },
   market_read: [
@@ -51,8 +52,49 @@ function installFetch() {
       });
       return jsonRes(200, { ok: true });
     }
+    if (url.includes("/api/briefs/subscriptions") && init?.method === "POST") {
+      const body = JSON.parse(String(init.body || "{}")) as {
+        target_kind?: "thesis" | "watchlist";
+        target_id?: string;
+        cadence?: "daily_after_us_close" | "weekly_saturday";
+      };
+      subscriptions = [
+        ...subscriptions,
+        {
+          subscriptionId: "33333333-3333-4333-8333-333333333333",
+          userId: "u-1",
+          targetKind: body.target_kind,
+          targetId: body.target_id,
+          targetName: body.target_kind === "watchlist" ? "Semis" : "NVDA cycle",
+          cadence: body.cadence,
+          delivery: "in_product_inbox",
+          state: "active",
+          createdAt: "2026-09-11T20:00:00.000Z",
+        },
+      ];
+      return jsonRes(201, { ok: true });
+    }
     if (url.includes("/api/briefs/subscriptions")) {
       return jsonRes(200, { subscriptions });
+    }
+    if (url.endsWith("/api/watchlist")) {
+      return jsonRes(200, {
+        lists: [{ id: WATCHLIST, name: "Semis", position: 0, symbols: [] }],
+        sharedWithMe: [],
+      });
+    }
+    if (url.endsWith("/api/theses")) {
+      return jsonRes(200, {
+        theses: [{
+          id: THESIS,
+          currentVersion: 3,
+          lifecycleState: "active",
+          subject: {},
+          title: "NVDA cycle",
+          updatedAt: "2026-09-11T20:00:00.000Z",
+        }],
+        truncated: false,
+      });
     }
     return jsonRes(404, {});
   }));
@@ -106,6 +148,47 @@ describe("BriefsInbox rendering", () => {
     unmount();
     await mountInbox("zh");
     expect(text()).toContain(briefCopy("empty", "zh"));
+  });
+
+  it("can create a watchlist schedule from the central Briefs surface", async () => {
+    await mountInbox("en");
+    const target = container?.querySelector<HTMLSelectElement>(
+      'select[aria-label="' + briefCopy("scheduleTarget", "en") + '"]',
+    );
+    const cadence = container?.querySelector<HTMLSelectElement>(
+      'select[aria-label="' + briefCopy("scheduleCadence", "en") + '"]',
+    );
+    expect(target).not.toBeNull();
+    expect(cadence).not.toBeNull();
+
+    await act(async () => {
+      target!.value = "watchlist:" + WATCHLIST;
+      target!.dispatchEvent(new Event("change", { bubbles: true }));
+      cadence!.value = "weekly_saturday";
+      cadence!.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+
+    const add = Array.from(container?.querySelectorAll("button") ?? [])
+      .find((button) => button.textContent === briefCopy("addSchedule", "en"));
+    expect(add).toBeDefined();
+    await act(async () => { add!.dispatchEvent(new MouseEvent("click", { bubbles: true })); });
+    await act(async () => { await Promise.resolve(); await Promise.resolve(); });
+
+    const fetchMock = vi.mocked(fetch);
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/briefs/subscriptions",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({
+          target_kind: "watchlist",
+          target_id: WATCHLIST,
+          cadence: "weekly_saturday",
+        }),
+      }),
+    );
+    expect(text()).toContain("Semis");
+    expect(text()).toContain(briefCopy("subscribeWeekly", "en"));
+    expect(container?.querySelectorAll("[data-brief-schedule]").length).toBe(1);
   });
 
   it("shows and manages scheduled briefs from the same Alerts surface", async () => {

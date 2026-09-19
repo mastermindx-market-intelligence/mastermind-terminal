@@ -36,6 +36,7 @@ const VIEWPORTS = {
   mobile: { width: 390, height: 844 },
 };
 const THESIS = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+const WATCHLIST = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
 const READY_BODY = {
   target: { kind: "thesis", id: THESIS, name: "NVDA cycle", version_or_asof: "v3" },
   market_read: [
@@ -220,6 +221,33 @@ async function mockBriefs(page, deliveries, subscriptions = []) {
       return;
     }
     await route.continue();
+  });
+  await page.route("**/api/watchlist", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        lists: [{ id: WATCHLIST, name: "Semis", position: 0, symbols: [] }],
+        sharedWithMe: [],
+      }),
+    });
+  });
+  await page.route("**/api/theses", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        theses: [{
+          id: THESIS,
+          currentVersion: 3,
+          lifecycleState: "active",
+          subject: {},
+          title: "NVDA cycle",
+          updatedAt: "2026-09-11T20:00:00.000Z",
+        }],
+        truncated: false,
+      }),
+    });
   });
 }
 

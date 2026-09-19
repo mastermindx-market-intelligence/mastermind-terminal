@@ -150,6 +150,33 @@
   font-family: var(--font-num);
   font-variant-numeric: tabular-nums;
 }
+.scheduleComposer {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(150px, .9fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+.scheduleComposer select,
+.scheduleComposer button {
+  min-height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--text);
+  font: 600 12px/1.2 var(--font-ui);
+}
+.scheduleComposer select {
+  min-width: 0;
+  padding: 0 9px;
+}
+.scheduleComposer button {
+  padding: 0 12px;
+  cursor: pointer;
+}
+.scheduleComposer button:disabled {
+  cursor: default;
+  opacity: .55;
+}
 .scheduleList {
   border-top: 1px solid var(--line-2, var(--line));
 }
@@ -178,6 +205,13 @@
   color: var(--muted);
 }
 @media (max-width: 640px) {
+  .scheduleComposer {
+    grid-template-columns: 1fr;
+  }
+  .scheduleComposer select,
+  .scheduleComposer button {
+    min-height: 44px;
+  }
   .scheduleRow {
     grid-template-columns: minmax(0, 1fr) auto;
   }

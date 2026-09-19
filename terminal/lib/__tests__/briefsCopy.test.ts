@@ -23,6 +23,8 @@ describe("briefs copy is a plain sentence in EN and ZH", () => {
     expect(briefCopy("subscribeDaily", "en")).toBe("After each US close");
     expect(briefCopy("subscribeWeekly", "en")).toBe("Every Saturday");
     expect(briefCopy("add", "en")).toBe("Add");
+    expect(briefCopy("addSchedule", "en")).toBe("Add schedule");
+    expect(briefCopy("newScheduleTitle", "en")).toBe("New schedule");
     expect(briefCopy("openInbox", "en")).toBe("Open Briefs inbox");
     expect(Object.values(BRIEFS_COPY).flat().join("\n")).not.toMatch(/Send me a brief|给我一份简报/);
   });

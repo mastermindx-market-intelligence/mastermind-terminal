@@ -2,6 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { briefCopy, degradedLine } from "@/lib/briefs";
 
 const THESIS = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+const WATCHLIST = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
 const readyBody = {
   target: { kind: "thesis", id: THESIS, name: "NVDA cycle", version_or_asof: "v3" },
   market_read: [
@@ -13,6 +14,7 @@ const readyBody = {
 };
 
 async function mockBriefs(page: Page, deliveries: unknown[], subscriptions: unknown[] = []) {
+  let currentSubscriptions = [...subscriptions];
   await page.route("**/api/briefs/deliveries**", async (route) => {
     await route.fulfill({
       status: 200,
@@ -21,15 +23,66 @@ async function mockBriefs(page: Page, deliveries: unknown[], subscriptions: unkn
     });
   });
   await page.route("**/api/briefs/subscriptions**", async (route) => {
-    if (route.request().method() === "GET") {
+    const method = route.request().method();
+    if (method === "GET") {
       await route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify({ subscriptions }),
+        body: JSON.stringify({ subscriptions: currentSubscriptions }),
       });
       return;
     }
+    if (method === "POST") {
+      const body = route.request().postDataJSON() as {
+        target_kind: "thesis" | "watchlist";
+        target_id: string;
+        cadence: "daily_after_us_close" | "weekly_saturday";
+      };
+      currentSubscriptions = [
+        ...currentSubscriptions,
+        {
+          subscriptionId: "33333333-3333-4333-8333-333333333333",
+          userId: "u-1",
+          targetKind: body.target_kind,
+          targetId: body.target_id,
+          targetName: body.target_kind === "watchlist" ? "Semis" : "NVDA cycle",
+          cadence: body.cadence,
+          delivery: "in_product_inbox",
+          state: "active",
+          createdAt: "2026-09-11T20:00:00.000Z",
+        },
+      ];
+      await route.fulfill({ status: 201, contentType: "application/json", body: JSON.stringify({ ok: true }) });
+      return;
+    }
     await route.continue();
+  });
+  await page.route("**/api/watchlist", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        lists: [{ id: WATCHLIST, name: "Semis", position: 0, symbols: [] }],
+        sharedWithMe: [],
+      }),
+    });
+  });
+  await page.route("**/api/theses", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        theses: [{
+          id: THESIS,
+          currentVersion: 3,
+          lifecycleState: "active",
+          subject: {},
+          title: "NVDA cycle",
+          updatedAt: "2026-09-11T20:00:00.000Z",
+        }],
+        truncated: false,
+      }),
+    });
   });
 }
 
@@ -44,6 +97,26 @@ test("empty inbox names the in-product destination without promising external de
   await expect(inbox).toBeVisible();
   await expect(inbox.getByText(briefCopy("empty", "en"))).toBeVisible();
   await expect(inbox.getByTestId("briefs-email-null")).toHaveText(briefCopy("emailNull", "en"));
+});
+
+test("a watchlist schedule can be created from Alerts without returning to watchlist chrome", async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem("mm.lang", "en");
+    localStorage.setItem("theme", "dark");
+  });
+  await mockBriefs(page, []);
+  await page.goto("/alerts");
+
+  const composer = page.getByTestId("briefs-new-schedule");
+  await composer.getByLabel(briefCopy("scheduleTarget", "en")).selectOption("watchlist:" + WATCHLIST);
+  await composer.getByLabel(briefCopy("scheduleCadence", "en")).selectOption("weekly_saturday");
+  await composer.getByRole("button", { name: briefCopy("addSchedule", "en") }).click();
+
+  const schedules = page.getByTestId("briefs-schedules");
+  await expect(schedules.locator("[data-brief-schedule]")).toHaveCount(1);
+  await expect(schedules.getByText("Semis")).toBeVisible();
+  await expect(schedules.getByText(briefCopy("subscribeWeekly", "en"))).toBeVisible();
+  await expect(composer.getByRole("button", { name: briefCopy("alreadyScheduled", "en") })).toBeDisabled();
 });
 
 test("scheduled briefs show their target, cadence, and state on the Alerts surface", async ({ page }) => {
