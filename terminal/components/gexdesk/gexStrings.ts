@@ -47,8 +47,8 @@ const GEX_LEX = {
   viewByStrike:   ["By Strike", "按行权价"],
   viewByExpiry:   ["By Expiration", "按到期日"],
   expiryLensNA:   [
-    "Vanna & Charm aren't provided per-expiration yet — gamma & delta only.",
-    "Vanna 与 Charm 暂未提供按到期日数据 — 仅伽马与德尔塔。",
+    "This snapshot does not provide Vanna or Charm by expiration.",
+    "此快照未提供按到期日的 Vanna 或 Charm 数据。",
   ],
   expiryNoData:   ["No expiration breakdown for this ticker yet.", "该品种暂无按到期日数据。"],
   // Column headers for the by-expiration bars (the table shipped without any).
@@ -349,8 +349,8 @@ const GEX_LEX = {
     "仅净值——数据未按到期日提供认购/认沽拆分。收盘结构快照，非盘中。",
   ],
   xdrawerNA:       [
-    "Vanna & Charm aren't provided per-expiration yet — gamma & delta only.",
-    "Vanna 与 Charm 暂未提供按到期日数据 — 仅伽马与德尔塔。",
+    "This snapshot does not provide Vanna or Charm by expiration.",
+    "此快照未提供按到期日的 Vanna 或 Charm 数据。",
   ],
   xdrawerEmpty:    ["No expiration breakdown for this ticker yet.", "该品种暂无按到期日数据。"],
 
