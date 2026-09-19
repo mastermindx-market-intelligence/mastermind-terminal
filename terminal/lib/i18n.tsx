@@ -1983,6 +1983,24 @@ export const LEX: Record<string, [string, string]> = {
   ],
   acsTeamTransferSuccess: ["Ownership transferred to {name}.", "所有权已转移给 {name}。"],
   acsTeamTransferRetry: ["Try again", "重试"],
+  // MO-PAID-081 (packet W9T_F12_17, link-only): the Team section hands the owner a link to copy
+  // and says plainly, with a date, that no invitation mail is sent. The dated sentence itself is
+  // catalogued in lib/teams.ts beside the route answer it also serves, so the API body and the
+  // panel can never drift apart.
+  acsTeamInviteTitle: ["Invite someone", "邀请成员"],
+  acsTeamInviteEmail: ["Their email address", "对方的邮箱地址"],
+  acsTeamInviteEmailHint: ["They will need this address to sign in with.", "对方需要用这个地址登录。"],
+  acsTeamInviteRole: ["Their role", "对方的角色"],
+  acsTeamInviteCreate: ["Create invitation link", "创建邀请链接"],
+  acsTeamInviteCreating: ["Creating the link…", "正在创建链接…"],
+  acsTeamInviteCreated: ["The invitation link is ready.", "邀请链接已生成。"],
+  acsTeamInviteFor: ["Invitation link for {email}", "{email} 的邀请链接"],
+  acsTeamInviteCopy: ["Copy link", "复制链接"],
+  acsTeamInviteCopied: ["Link copied", "链接已复制"],
+  acsTeamInviteCopyFail: ["We could not copy it. Select the link and copy it yourself.", "我们无法自动复制。请选中链接后自行复制。"],
+  acsTeamInviteSend: ["Send this link to them yourself. It works for {days} days and can be used once.", "请自行把这个链接发送给对方。链接 {days} 天内有效，且只能使用一次。"],
+  acsTeamInviteAnother: ["Invite someone else", "邀请其他人"],
+  acsTeamInviteNeedEmail: ["Enter their email address first.", "请先填写对方的邮箱地址。"],
   acsWebhooks: ["Webhooks", "Webhook 回调"],
   acsWebhooksSub: ["Send signed events to an HTTPS address your team owns. Only test events are available today.", "把已签名的事件发送到团队拥有的 HTTPS 地址。目前仅支持测试事件。"],
   acsDeveloper: ["Developer access", "开发者访问"],
@@ -2511,6 +2529,16 @@ export const LEX: Record<string, [string, string]> = {
 
   xChartSnapshot: ["Chart snapshot", "图表快照"],
   xCreatedWith: ["Created with", "使用以下工具制作"],
+  // /invite — the public page an invitation link opens (MO-PAID-081, packet W9T_F12_17).
+  invTitle: ["Team invitation", "团队邀请"],
+  invIntro: ["You have been invited to join a team on Mastermind Terminal.", "有人邀请你加入 Mastermind Terminal 上的一个团队。"],
+  invChecking: ["Checking your invitation…", "正在核对你的邀请…"],
+  invAccept: ["Accept invitation", "接受邀请"],
+  invAccepting: ["Accepting…", "正在接受…"],
+  invSignIn: ["Sign in", "登录"],
+  invSignInReturn: ["After you sign in, open this invitation link again to join the team.", "登录之后，请再次打开这个邀请链接来加入团队。"],
+  invOpenTerminal: ["Open Mastermind Terminal", "打开 Mastermind Terminal"],
+  invLinkLife: ["An invitation link works for {days} days and can be used once.", "邀请链接 {days} 天内有效，且只能使用一次。"],
 
   ciQaStructure: ["Structure is verified. Topic labels are not available yet.", "结构已验证。主题标签暂不可用。"],
   ciOpenInTranscript: ["Open in the earnings call", "在电话会中查看"],
@@ -2825,6 +2853,16 @@ export const LEX: Record<string, [string, string]> = {
   wsTeamEmpty: ["Your team has not shared a workspace yet.", "你的团队还没有共享任何工作区。"],
   wsTeamReadOnly: ["Only an owner or an administrator can change a workspace the team shares.", "只有团队所有者或管理员才能修改团队共享的工作区。"],
   wsTakeCopy: ["Take your own copy", "复制一份到我的工作区"],
+  // Portfolio construction-targets settings section (MO-DELTA-003 / B-F08-13).
+  // Plain-language copy: no internal study names, no untranslated stats, no raw slugs.
+  // Settings mirrors the Holdings readout; it never trades, scores, or recommends.
+  acsPortfolioTargets: ["Portfolio targets", "组合目标权重"],
+  acsPortfolioTargetsSub: ["Your typed weight targets and drift, over the holdings you actually carry.", "针对你实际持有的仓位，查看你设定的目标权重与偏离度。"],
+  acsPortfolioTargetsLoading: ["Reading your targets…", "正在读取你的目标权重……"],
+  acsPortfolioTargetsUnreadable: ["Your targets could not be read just now. They will reappear when the read lands.", "目前无法读取你的目标权重。下次成功读取后会重新显示。"],
+  acsPortfolioTargetsEmptyTitle: ["No targets yet", "尚未设定目标权重"],
+  acsPortfolioTargetsEmptyBody: ["Targets are yours to set. Add one for any holding and the drift will appear here and on your holdings page.", "目标权重由你自行设定。任一持仓都可以添加，偏离度将同时显示在此处和持仓页。"],
+  acsPortfolioTargetsOpenHoldings: ["Open holdings page", "打开持仓页"],
 };
 
 // Non-hook LEX lookup for imperative contexts (e.g. chart legend meta assembled outside React render).
