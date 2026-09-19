@@ -474,9 +474,10 @@ def test_reservations_records_the_known_collision_surface():
     assert prefixes["0025"]["file"] == "0025_thesis_amendment_proposals.sql"
     assert prefixes["0025"]["packet"] == "B-F11-5"
     assert prefixes["0025"]["pr"] == 577
-    assert prefixes["0025"]["pr_state"] == "open"
-    assert prefixes["0025"]["applied_in_production"] is False
-    assert prefixes["0025"]["applied_date"] is None
+    assert prefixes["0025"]["pr_state"] == "merged"
+    assert prefixes["0025"]["merged_sha"] == "4169e0cf"
+    assert prefixes["0025"]["applied_in_production"] is True
+    assert prefixes["0025"]["applied_date"] == "2026-09-19"
 
     assert doc["claim_before_you_write"].strip() != ""
 
