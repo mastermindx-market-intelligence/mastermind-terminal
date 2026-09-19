@@ -566,8 +566,14 @@ function applyThesisVersionFixture(store: Store, args: Record<string, unknown>):
       store.alertOutbox.push({
         id: crypto.randomUUID(),
         user_id: userId,
+        alert_id: null,
+        fire_event_id: crypto.randomUUID(),
         status: "pending",
-        payload: { thesis_id: id, kind: "thesis_condition" },
+        attempts: 0,
+        last_error: null,
+        deliver_after: null,
+        delivered_at: null,
+        payload: { thesis_id: id, kind: "thesis_condition", fired_at: now },
         created_at: now,
       });
     }
