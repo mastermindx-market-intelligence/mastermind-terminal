@@ -11,7 +11,7 @@
 //   • legend { count, hidden, toggleHidden, clear } → the "AI layer · N" chip
 //   • report a session snapshot (symbol/tf/indicators/capabilities/user-drawings) so state POSTs are complete
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { Drawing } from "@/lib/drawings";
 import {
   CommandQueue, applyToStore, isV2Envelope, translate, validateEnvelope,
@@ -49,9 +49,11 @@ export function useChartBus(host: ChartBusHost): ChartBus {
   const [aiStore, setAiStore] = useState<Record<string, AiObject[]>>({});
   const [hiddenSyms, setHiddenSyms] = useState<Set<string>>(new Set()); // symbols whose AI layer is eye-toggled off
 
-  // Keep a live ref of the host so the queue's deferred jobs read fresh values, not mount-time closures.
+  // Keep a live ref of the COMMITTED host so synchronous queue jobs cannot run against the prior
+  // symbol/timeframe during the render→passive-effect gap. Layout effects refresh this before any
+  // layout-phase command consumer can fire, without exposing an uncommitted concurrent render.
   const hostRef = useRef(host);
-  useEffect(() => { hostRef.current = host; }, [host]);
+  useLayoutEffect(() => { hostRef.current = host; }, [host]);
   // aiStoreRef is the SYNCHRONOUS working copy of the AI store — updated immediately in dispatch so a
   // burst of queued draws in one tick each see the prior draw's result (React state timing would lag).
   // setAiStore mirrors it for rendering. The legend/aiDrawingsFor read the React state (aiStore).
