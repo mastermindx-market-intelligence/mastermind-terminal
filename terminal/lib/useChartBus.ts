@@ -11,7 +11,7 @@
 //   • legend { count, hidden, toggleHidden, clear } → the "AI layer · N" chip
 //   • report a session snapshot (symbol/tf/indicators/capabilities/user-drawings) so state POSTs are complete
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { Drawing } from "@/lib/drawings";
 import {
   CommandQueue, applyToStore, isV2Envelope, translate, validateEnvelope,
@@ -49,9 +49,11 @@ export function useChartBus(host: ChartBusHost): ChartBus {
   const [aiStore, setAiStore] = useState<Record<string, AiObject[]>>({});
   const [hiddenSyms, setHiddenSyms] = useState<Set<string>>(new Set()); // symbols whose AI layer is eye-toggled off
 
-  // Keep a live ref of the host so the queue's deferred jobs read fresh values, not mount-time closures.
+  // Keep a live ref of the COMMITTED host so synchronous queue jobs cannot run against the prior
+  // symbol/timeframe during the render→passive-effect gap. Layout effects refresh this before any
+  // layout-phase command consumer can fire, without exposing an uncommitted concurrent render.
   const hostRef = useRef(host);
-  useEffect(() => { hostRef.current = host; }, [host]);
+  useLayoutEffect(() => { hostRef.current = host; }, [host]);
   // aiStoreRef is the SYNCHRONOUS working copy of the AI store — updated immediately in dispatch so a
   // burst of queued draws in one tick each see the prior draw's result (React state timing would lag).
   // setAiStore mirrors it for rendering. The legend/aiDrawingsFor read the React state (aiStore).
@@ -75,7 +77,7 @@ export function useChartBus(host: ChartBusHost): ChartBus {
         if (o.caption) base.caption = o.caption;
         return base;
       }),
-      ...h.userDrawings.map((d) => ({ id: d.id, by: "user", op: "draw." + d.kind, args: userArgs(d) })),
+      ...h.userDrawings.map(userDrawingState),
     ];
     const acks = acksRef.current;
     acksRef.current = [];
@@ -94,16 +96,28 @@ export function useChartBus(host: ChartBusHost): ChartBus {
       },
       acks,
     };
-    // Fire-and-forget through the session-verified proxy. Failures are non-fatal (the gateway re-reads
-    // on the next change); we never surface a network error into the chart.
+    // Fire-and-forget through the session-verified proxy. The session snapshot itself is best-effort,
+    // but command acknowledgements are not: the gateway needs them to close/reject command steps.
+    // We remove this batch optimistically above, then restore it ahead of any newer acks when the
+    // request fails or returns non-2xx so the next scheduled state write retries it.
+    let restored = false;
+    const restoreAcks = () => {
+      if (restored || !acks.length) return;
+      restored = true;
+      acksRef.current = [...acks, ...acksRef.current];
+    };
     try {
-      fetch("/api/brain/chart/state", {
+      void fetch("/api/brain/chart/state", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify(body),
-      }).catch(() => {});
-    } catch { /* ignore */ }
+      }).then((response) => {
+        if (!response.ok) restoreAcks();
+      }, restoreAcks);
+    } catch {
+      restoreAcks();
+    }
   }, []);
 
   const scheduleState = useCallback(() => {
@@ -112,7 +126,11 @@ export function useChartBus(host: ChartBusHost): ChartBus {
   }, [postState]);
 
   // POST on symbol / tf / indicator / user-drawing changes (contract: "also POST on … changes").
-  const changeSig = `${host.activeSymbol}|${host.currentTf}|${host.sessionIndicators.map((s) => s.name + JSON.stringify(s.params || {})).join(",")}|${host.userDrawings.length}`;
+  // Count alone misses edits that preserve collection size (dragging a line, resizing a zone, undoing
+  // geometry in place). Sign the exact user-drawing projection sent by postState instead. This also
+  // avoids false positives from TerminalShell's per-render `.filter(isUserDrawing)` array allocation.
+  const userDrawingSig = JSON.stringify(host.userDrawings.map(userDrawingState));
+  const changeSig = `${host.activeSymbol}|${host.currentTf}|${host.sessionIndicators.map((s) => s.name + JSON.stringify(s.params || {})).join(",")}|${userDrawingSig}`;
   const firstSig = useRef(true);
   useEffect(() => {
     if (firstSig.current) { firstSig.current = false; return; } // no POST on mount
@@ -202,6 +220,10 @@ function userArgs(d: Drawing): Record<string, unknown> {
   if (d.kind === "hline" && d.points[0]) out.p = d.points[0].p;
   else out.points = d.points.map((p) => ({ t: Number(p.t) || p.t, p: p.p }));
   return out;
+}
+
+function userDrawingState(d: Drawing): Record<string, unknown> {
+  return { id: d.id, by: "user", op: "draw." + d.kind, args: userArgs(d) };
 }
 
 // visible_range from the loaded series (first↔last bar epoch-seconds).

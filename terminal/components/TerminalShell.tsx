@@ -86,6 +86,7 @@ import { useGateEntitlement } from "@/lib/entitlementStore";
 import { normalizeDevTierOverride } from "@/lib/subscriptionTier";
 import { useChartBus } from "@/lib/useChartBus";
 import { isV2Envelope, type IndicatorSpec } from "@/lib/chartBus";
+import { dispatchTerminalChartRange } from "@/lib/chartRange";
 import SeasonalityCard from "@/components/SeasonalityCard";
 // Code-split the conditionally-mounted heavies out of the /terminal first-paint bundle (task 9).
 // TerminalShell is a Client Component, so ssr:false is allowed — none of these render on any SSR
@@ -1107,9 +1108,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
   // workspace later in the mount pass, so wait for that restore before counting the chart view;
   // otherwise the brief fallback seed would pollute Recent ahead of the actual restored ticker.
   const [workspaceRestored, setWorkspaceRestored] = useState(!!initialSymbol);
-  // Whether the mount effect below has applied this browser's PERSISTED prefs — specifically the
-  // startup timeframe. Distinct from `workspaceRestored`, which starts TRUE on any deep link and
-  // therefore cannot answer "is paneTfs the user's timeframe yet?".
+  // Whether the mount restore below has applied this browser's PERSISTED chart prefs as one
+  // authority batch (indicators/params/hidden state plus the resolved startup context). Distinct
+  // from `workspaceRestored`, which starts TRUE on any deep link and cannot gate chart readiness.
   const [prefsHydrated, setPrefsHydrated] = useState(false);
   // THE startup timeframe, resolved once, synchronously, on the client's first render.
   //
@@ -1742,17 +1743,28 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
       window.removeEventListener(TERMINAL_VISUAL_READY_EVENT, loadManifest);
     };
   }, []);
-  useEffect(() => {
-    // Settings → Terminal → Default timeframe (3D unless changed). Resolved against the landing
-    // symbol's functional set, since the workspace restore below can land on a symbol other than seed0.
+  // Startup timeframe is display authority, not just a data-fetch hint. Publish it in a layout
+  // effect so the SSR-safe 3D shell can never paint (or remain starved) after the browser has
+  // already resolved a different persisted timeframe. This is the same scheduling class as the
+  // watchlist restore below: a passive-effect state update can be repeatedly pre-empted by the
+  // shell's boot traffic on a loaded runner, while ChartPanel has already consumed startTfRef
+  // out-of-band. That creates a split brain: 1s data under 3D chrome. The timeframe is the only
+  // value that must publish before paint; the semantic prefs gate stays in the passive restore
+  // below so it commits in the same React batch as saved indicators/params/hidden state.
+  useLayoutEffect(() => {
     const savedStartTf = readStartTf();
     const startTf = startTfRef.current ?? resolveStartTf(savedStartTf, functionalSet(seed0, secondBarsEnabled));
     btMark(`startup-tf=${startTf}`);
-    // Publish the resolved timeframe and release the chart BEFORE the rest of this effect: every
-    // read below is a persisted-state read, and one throwing on corrupt localStorage must never
-    // strand the chart unloaded. A multi-pane workspace restore further down may still overwrite
-    // paneTfs — same effect, same React batch, so the chart sees one commit either way.
     setPaneTfs([startTf]);
+  }, []);
+  useEffect(() => {
+    // Settings → Terminal → Default timeframe (3D unless changed). Resolved again here only for
+    // workspace-restoration fallbacks; the visible startup state was already committed above.
+    const savedStartTf = readStartTf();
+    const startTf = startTfRef.current ?? resolveStartTf(savedStartTf, functionalSet(seed0, secondBarsEnabled));
+    // Keep this gate in the SAME passive-effect batch as the persisted indicator/parameter restore
+    // below. Publishing it from the earlier layout effect lets ChartPanel announce a default
+    // indicator generation before saved studies (for example _oracle) have become authoritative.
     setPrefsHydrated(true);
     {
       const savedInds = load("mm.inds", ["ema", "vol", "macd", "stochrsi"]) as string[];
@@ -4283,9 +4295,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
       const withParams = specs.filter((s) => s.params && isIndKey(s.name));
       if (withParams.length) setIndParams((p) => { const n = { ...p }; for (const s of withParams) n[s.name] = { ...(n[s.name] || {}), ...s.params }; return n; });
     },
-    // MVP: jump the chart to the range start via the existing mm:chart-jump consumer. A precise
-    // setVisibleRange is a follow-up via the onChartApi seam (see PR body).
-    setRange: (from) => { try { window.dispatchEvent(new CustomEvent("mm:chart-jump", { detail: { ts: from } })); } catch {} },
+    // Chart Bus ranges are exact epoch-second bounds. Preserve both ends and the active pane owner;
+    // ChartPanel translates them to the axis's real time type (business-day string vs epoch second).
+    setRange: (from, to) => { dispatchTerminalChartRange({ sym: active, paneId: activePane, from, to }); },
   });
 
   // ── DeepVue W1-C: typed ai-context provider ────────────────────────────────────────────────
@@ -6085,7 +6097,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
 
       {/* ── Signals dashboard overlay (Golden Oracle scorecard · research read · signal history) ── */}
       {signalsOpen && (
-        <OracleDash sym={active} row={m} slice={slice} intel={intel} bars={bars} zh={lang === "zh"} onClose={() => setSignalsOpen(false)} onJump={(ts: string) => { window.dispatchEvent(new CustomEvent("mm:chart-jump", { detail: { ts } })); setSignalsOpen(false); }} onOpenFull={() => { setSignalsOpen(false); setPaneOpen("overview"); }} />
+        <OracleDash sym={active} paneId={activePane} row={m} slice={slice} intel={intel} bars={bars} zh={lang === "zh"} onClose={() => setSignalsOpen(false)} onOpenFull={() => { setSignalsOpen(false); setPaneOpen("overview"); }} />
       )}
 
       {/* ── D2 Save-template-as modal ─── */}

@@ -1186,16 +1186,22 @@ test("Golden Oracle shows the session a 3D signal became knowable", async ({ pag
 
   // The visible/actionable date changed, but chart navigation still targets the bar-open date.
   await page.evaluate(() => {
-    (window as Window & { __oracleJumpTs?: string }).__oracleJumpTs = "";
+    const w = window as Window & { __oracleJumpTs?: string; __oracleJumpPane?: number };
+    w.__oracleJumpTs = "";
+    w.__oracleJumpPane = -1;
     window.addEventListener("mm:chart-jump", (event) => {
-      const detail = (event as CustomEvent<{ ts?: string }>).detail;
-      (window as Window & { __oracleJumpTs?: string }).__oracleJumpTs = detail?.ts ?? "";
+      const detail = (event as CustomEvent<{ ts?: string; paneId?: number }>).detail;
+      w.__oracleJumpTs = detail?.ts ?? "";
+      w.__oracleJumpPane = detail?.paneId ?? -1;
     }, { once: true });
   });
   await latest.click();
   await expect.poll(
     () => page.evaluate(() => (window as Window & { __oracleJumpTs?: string }).__oracleJumpTs),
   ).toBe("2026-07-24");
+  await expect.poll(
+    () => page.evaluate(() => (window as Window & { __oracleJumpPane?: number }).__oracleJumpPane),
+  ).toBe(0);
 });
 
 test("HK-O1: a structure stop and a refused entry are labelled for what they are", async ({ page }, testInfo) => {

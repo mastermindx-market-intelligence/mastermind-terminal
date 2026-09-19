@@ -74,6 +74,8 @@ export type TerminalVisualReadyDetail = {
   timeframe: string;
   generation: number;
   state: "data" | "empty";
+  /** Pane-local owner. Present for Terminal grid charts so global listeners cannot cross-settle panes. */
+  paneId?: number | null;
 };
 
 export type TerminalVisualReadyDiagnosticDetail = {
@@ -88,6 +90,8 @@ export type TerminalVisualReadyDiagnosticDetail = {
 export type TerminalVisualReadyIdentity = {
   timeframe: string;
   generation: number;
+  /** Optional because non-grid consumers/tests also use the helper; ChartPanel supplies it in Terminal. */
+  paneId?: number | null;
   /** Rechecked at emit time so a delayed frame from a superseded load cannot announce. */
   isCurrent: () => boolean;
   /** React/data ownership gate. A false value waits for an explicit owner reevaluation. */
@@ -161,6 +165,7 @@ export function announceTerminalVisualReady(
     timeframe: identity.timeframe,
     generation: identity.generation,
     state,
+    ...(identity.paneId !== undefined ? { paneId: identity.paneId } : {}),
   };
 
   const isCurrent = () => {

@@ -12,11 +12,15 @@ import { useLang } from "@/lib/i18n";
 import { displayName } from "@/lib/markets";
 import AssetLogo from "@/components/AssetLogo";
 import { classify, isIntradayTf } from "@/lib/intradaySources";
+import { isLiveFeedBasis } from "@/lib/feedFreshness";
+import type { TerminalVisualReadyDetail } from "@/lib/terminalBoot";
+import statusStyles from "./ChartPaneStatus.module.css";
 import { isMacroSymbol } from "@/lib/macroSymbols";
 
 const f = (n: number | null | undefined, d = 2) => (n == null || !isFinite(n) ? "—" : n.toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d }));
 
 const SETTINGS_KEY = "mm.chartSettings";
+const SETTINGS_SYNC_EVENT = "mm:chart-settings";
 const load = (d: ChartSettings): ChartSettings => { try { const v = localStorage.getItem(SETTINGS_KEY); return v ? { ...d, ...JSON.parse(v) } : d; } catch { return d; } };
 
 // One pane of the chart grid. Hand-drawn drawings are owned by TerminalShell (a shared per-symbol
@@ -65,6 +69,19 @@ export default function ChartPane({ idx, symbol, drawingOwnerKey, isActive, onAc
     window.addEventListener("mm:settings-tab", h);
     return () => window.removeEventListener("mm:settings-tab", h);
   }, []);
+  // `mm.chartSettings` is one persisted owner for the whole Terminal, not one owner per pane.
+  // Keep every mounted pane on the same live value as soon as any sibling patches that owner;
+  // the browser `storage` event does not fire back into the document that performed the write.
+  useEffect(() => {
+    const sync = (event: Event) => {
+      const patch = (event as CustomEvent<{ patch?: Partial<ChartSettings> }>).detail?.patch;
+      if (!patch || typeof patch !== "object") return;
+      setChartSettings((current) => ({ ...current, ...patch }));
+    };
+    window.addEventListener(SETTINGS_SYNC_EVENT, sync);
+    return () => window.removeEventListener(SETTINGS_SYNC_EVENT, sync);
+  }, []);
+
   // The default render is not an authoritative setting. In development StrictMode the initial
   // effects are replayed, so an "ignore the first effect" ref can write that stale default during
   // the replay and destroy an existing localStorage owner. Persist only after hydration commits.
@@ -74,7 +91,8 @@ export default function ChartPane({ idx, symbol, drawingOwnerKey, isActive, onAc
   }, [chartSettingsReady, chartSettings]);
 
   const patchSettings = useCallback((patch: Partial<ChartSettings>) => {
-    setChartSettings((s) => ({ ...s, ...patch }));
+    setChartSettings((current) => ({ ...current, ...patch }));
+    window.dispatchEvent(new CustomEvent(SETTINGS_SYNC_EVENT, { detail: { patch } }));
   }, []);
 
   // Day Trade Mode: listen for mm:set-eth events dispatched by TerminalShell (D lane §5b interface contract).
@@ -101,8 +119,8 @@ export default function ChartPane({ idx, symbol, drawingOwnerKey, isActive, onAc
     if (!swappedOnce.current) { swappedOnce.current = true; return; }
     setSwapping(true);
     const settle = (event: Event) => {
-      const painted = (event as CustomEvent<{ symbol?: string }>).detail?.symbol;
-      if (!painted || painted === symbol) setSwapping(false);
+      const detail = (event as CustomEvent<TerminalVisualReadyDetail>).detail;
+      if (detail?.paneId === idx && detail.symbol === symbol) setSwapping(false);
     };
     window.addEventListener("mm:terminal-visual-ready", settle);
     // A symbol that never announces (a dead feed, a failed fetch) must not dim the chart forever.
@@ -112,7 +130,7 @@ export default function ChartPane({ idx, symbol, drawingOwnerKey, isActive, onAc
       window.clearTimeout(failsafe);
       setSwapping(false);
     };
-  }, [symbol]);
+  }, [idx, symbol]);
   useEffect(() => { onDetectedDrawingCount?.(auto.length); }, [auto.length, onDetectedDrawingCount]);
   const merged = useMemo(() => {
     if (!drawingsVisible) return [];
@@ -145,7 +163,7 @@ export default function ChartPane({ idx, symbol, drawingOwnerKey, isActive, onAc
       : displayLabel;
 
   return (
-    <div className={`pane${isActive ? " on" : ""}${swapping ? " is-swapping" : ""}`} data-swapping={swapping ? "1" : undefined} onPointerDownCapture={() => { if (!isActive) onActivate(idx); }}>
+    <div className={`pane${isActive ? " on" : ""}${swapping ? " is-swapping" : ""}${isLiveFeedBasis(liveQuote?.basis) ? ` ${statusStyles.liveFeed}` : ""}`} data-swapping={swapping ? "1" : undefined} onPointerDownCapture={() => { if (!isActive) onActivate(idx); }}>
       <div className="pane-hd">
         {chartSettings.showLogo && <AssetLogo className="pic" symbol={symbol} name={displayLabel} market={marketLabel} color={row?.col} size={18} />}
         {chartSettings.showSymbolName && <b>{title}</b>}

@@ -45,6 +45,7 @@ describe("Terminal visual-ready generation contract", () => {
     announceTerminalVisualReady("COST", "data", {
       timeframe: "D",
       generation: 7,
+      paneId: 2,
       isCurrent: () => true,
       renderVisuals: () => {
         phases.push("signals-rendered");
@@ -57,7 +58,7 @@ describe("Terminal visual-ready generation contract", () => {
     expect(phases).toEqual(["signals-rendered"]);
     expect(events).toEqual([]);
     frames.shift()!(16);
-    expect(events).toEqual([{ symbol: "COST", timeframe: "D", generation: 7, state: "data" }]);
+    expect(events).toEqual([{ symbol: "COST", timeframe: "D", generation: 7, state: "data", paneId: 2 }]);
   });
 
   it("drops a rendered-frame callback from a superseded load generation", () => {

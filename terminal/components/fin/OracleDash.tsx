@@ -17,6 +17,7 @@ import { oracleVerdict, deskVerdict, signalKnownTs, isBlockedSignal, isBottomWat
 import { computeTrendState } from "../../lib/trend"
 import { computeRatings, verdictFromScore } from "../../lib/techRating"
 import type { Bar } from "../../lib/fund"
+import { dispatchTerminalChartJump } from "../../lib/chartJump"
 
 /* ── staleness helper: days since intel.asof (returns 0 when missing/unparseable) ── */
 function intelStaleDays(asof?: string | null): number {
@@ -190,6 +191,7 @@ interface Intel {
 
 export interface OracleDashProps {
   sym: string
+  paneId: number
   row?: ManifestRow | null
   slice?: Slice | null
   intel?: Intel | null
@@ -466,7 +468,7 @@ function MarketRiskChip({ zh }: { zh: boolean }) {
 
 /* ── main component ───────────────────────────────────────────────────── */
 
-export default function OracleDash({ sym, row, slice, intel, bars, zh = false, onClose, onJump, onOpenFull }: OracleDashProps) {
+export default function OracleDash({ sym, paneId, row, slice, intel, bars, zh = false, onClose, onJump, onOpenFull }: OracleDashProps) {
   const dockRef = useRef<HTMLDivElement>(null)
 
   // Rail-left measurement for web positioning
@@ -597,8 +599,9 @@ export default function OracleDash({ sym, row, slice, intel, bars, zh = false, o
     latestWarn && (!latestSig || latestWarn.ts > (signalKnownTs(latestSig) ?? latestSig.ts)) ? latestWarn : null
 
   const handleJump = (ts: string) => {
-    // Dispatch the standard CustomEvent that ChartPanel listens for (R14)
-    window.dispatchEvent(new CustomEvent("mm:chart-jump", { detail: { sym, ts } }))
+    // The same ticker can occupy multiple panes. Carry the pane owner so a signal click moves only
+    // the chart the operator acted on instead of every same-symbol daily-derived chart.
+    dispatchTerminalChartJump({ sym, ts, paneId })
     onJump?.(ts)
     onClose?.()
   }

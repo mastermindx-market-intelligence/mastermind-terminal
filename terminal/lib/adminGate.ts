@@ -34,14 +34,24 @@ function isMissingSession(err: { name?: string; status?: number } | null): boole
   return err.name === "AuthSessionMissingError" || err.status === 400 || err.status === 401;
 }
 
+const errorMessage = (err: unknown) => err instanceof Error ? err.message : String(err);
+
 export async function isAdminRequest(): Promise<AdminVerdict> {
   // Require a POSITIVE dev signal (=== "development"), not merely "not production": a stray
   // process launched without NODE_ENV pinned (custom node server, PM2) must NOT satisfy this.
   if (process.env.NODE_ENV === "development" && process.env.ADMIN_DEV === "1") {
     return { status: "admin", email: "dev@local" };
   }
-  const supabase = await createClient();
-  const { data: userData, error: userErr } = await supabase.auth.getUser();
+  let supabase: Awaited<ReturnType<typeof createClient>>;
+  let userData: Awaited<ReturnType<Awaited<ReturnType<typeof createClient>>["auth"]["getUser"]>>["data"];
+  let userErr: Awaited<ReturnType<Awaited<ReturnType<typeof createClient>>["auth"]["getUser"]>>["error"];
+  try {
+    supabase = await createClient();
+    ({ data: userData, error: userErr } = await supabase.auth.getUser());
+  } catch (err) {
+    console.error("[adminGate] auth transport failed:", errorMessage(err));
+    return { status: "unavailable", email: null };
+  }
   const user = userData?.user ?? null;
   if (!user) {
     if (userErr && !isMissingSession(userErr)) {
@@ -62,7 +72,14 @@ export async function isAdminRequest(): Promise<AdminVerdict> {
   if (email && allow.includes(email)) return { status: "admin", email };
 
   // RLS profiles_self lets a user read their own row with the cookie-auth'd client.
-  const { data, error } = await supabase.from("profiles").select("is_admin").eq("id", user.id).single();
+  let profileResult;
+  try {
+    profileResult = await supabase.from("profiles").select("is_admin").eq("id", user.id).single();
+  } catch (err) {
+    console.error("[adminGate] is_admin transport failed:", errorMessage(err));
+    return { status: "unavailable", email };
+  }
+  const { data, error } = profileResult;
   if (error) {
     // PGRST116 = "no rows returned" from .single(). That IS a definitive answer: the user has no
     // profile row, so they are not an admin. Anything else — connection refused, 5xx, timeout —

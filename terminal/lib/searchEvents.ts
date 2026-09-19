@@ -93,6 +93,13 @@ export async function recordSearchEvent(evt: SearchEventInput): Promise<void> {
   if (error) console.error("[searchEvents] insert failed:", error.message);
 }
 
+// PostgREST logical filters are raw syntax. Quoting the value preserves reserved characters
+// (comma, dot, colon, parentheses, etc.) rather than deleting them, while escaping the two
+// characters that are special inside a quoted value itself.
+function postgrestQuoted(value: string): string {
+  return `"${value.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
+}
+
 // ---------- read (admin) ----------
 export async function listSearchEvents(f: ListFilters): Promise<EventsResult> {
   const supabase = createServiceClient();
@@ -110,12 +117,15 @@ export async function listSearchEvents(f: ListFilters): Promise<EventsResult> {
   if (f.symbol) q = q.eq("symbol", f.symbol);
   if (f.source) q = q.eq("source", f.source);
   if (f.visitor) {
-    // Strip PostgREST or() syntax chars, and only compare against the uuid-typed user_id
-    // when the value IS a uuid — a bare IP/anon string there is a Postgres cast error.
-    const v = f.visitor.replace(/[,()]/g, "");
-    const parts = [`anon_id.eq.${v}`, `ip.eq.${v}`];
+    // .or() consumes raw PostgREST grammar, so the VALUE must be quoted/escaped rather than
+    // mutilated. Legacy mm_aid cookies can contain reserved characters and must still round-trip
+    // from a clicked admin row back into an exact filter. Only compare against uuid-typed user_id
+    // when the value really is a UUID; otherwise Postgres would reject the cast.
+    const v = f.visitor;
+    const quoted = postgrestQuoted(v);
+    const parts = [`anon_id.eq.${quoted}`, `ip.eq.${quoted}`];
     if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v)) {
-      parts.unshift(`user_id.eq.${v}`);
+      parts.unshift(`user_id.eq.${quoted}`);
     }
     q = q.or(parts.join(","));
   }
@@ -148,6 +158,42 @@ type EmailEntry = { email: string | null; expires: number };
 const emailCache = new Map<string, EmailEntry>();
 // id -> the single outstanding lookup for that id (request coalescing).
 const emailInFlight = new Map<string, Promise<string | null>>();
+
+// GoTrue's admin lookup is one HTTP request per distinct user id. A page can hold hundreds of
+// distinct users, and multiple owner tabs/refreshes can arrive together, so Promise.all without a
+// process-wide gate turns one dashboard read into a burst of hundreds of auth-admin requests.
+// Keep enough parallelism for a fast page while bounding pressure across ALL concurrent requests.
+const EMAIL_LOOKUP_CONCURRENCY = 12;
+let emailLookupActive = 0;
+const emailLookupWaiters: Array<() => void> = [];
+
+async function acquireEmailLookupSlot(): Promise<void> {
+  if (emailLookupActive < EMAIL_LOOKUP_CONCURRENCY) {
+    emailLookupActive++;
+    return;
+  }
+  // A released slot is transferred directly to exactly one waiter; active stays at the ceiling
+  // during the hand-off, so a new caller cannot steal the slot between resolve() and its microtask.
+  await new Promise<void>((resolve) => emailLookupWaiters.push(resolve));
+}
+
+function releaseEmailLookupSlot(): void {
+  const next = emailLookupWaiters.shift();
+  if (next) {
+    next(); // transfer this occupied slot to the waiter; active remains unchanged
+  } else {
+    emailLookupActive--;
+  }
+}
+
+async function withEmailLookupSlot<T>(read: () => Promise<T>): Promise<T> {
+  await acquireEmailLookupSlot();
+  try {
+    return await read();
+  } finally {
+    releaseEmailLookupSlot();
+  }
+}
 
 function emailCacheGet(id: string, now: number): { hit: boolean; email: string | null } {
   const entry = emailCache.get(id);
@@ -191,7 +237,7 @@ function lookupEmail(supabase: AdminAuth, id: string): Promise<string | null> {
 
   const pending = (async () => {
     try {
-      const { data, error } = await supabase.auth.admin.getUserById(id);
+      const { data, error } = await withEmailLookupSlot(() => supabase.auth.admin.getUserById(id));
       // Cache a DEFINITIVE answer only. `error`, a throw, or a missing user all mean the authority
       // did not answer, and memoising that as "no email" would blank the column until the TTL
       // expired for a reason that had nothing to do with the user.
@@ -210,18 +256,40 @@ function lookupEmail(supabase: AdminAuth, id: string): Promise<string | null> {
   return pending;
 }
 
-export async function resolveUserEmails(ids: string[]): Promise<Record<string, string>> {
+export async function resolveUserEmails(
+  ids: string[],
+  opts: { budgetMs?: number } = {},
+): Promise<Record<string, string>> {
   const supabase = createServiceClient();
   const out: Record<string, string> = {};
   if (!supabase) return out;
   const distinct = [...new Set(ids)].filter(Boolean);
-  await Promise.all(
+  const all = Promise.all(
     distinct.map(async (id) => {
       const email = await lookupEmail(supabase as unknown as AdminAuth, id);
       if (email) out[id] = email;
     }),
   );
-  return out;
+
+  if (opts.budgetMs == null) {
+    await all;
+    return out;
+  }
+
+  // Email labels are enrichment, not authority for the event rows. Let fast/cache-hit lookups make
+  // the response, but do not hold the whole admin log behind a slow GoTrue admin endpoint. The
+  // unfinished tasks keep running under the process-wide concurrency cap and may populate cache
+  // for the next refresh; return a snapshot so later completions cannot mutate the response object.
+  const budget = Math.max(0, opts.budgetMs);
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  await Promise.race([
+    all.then(() => undefined),
+    new Promise<void>((resolve) => {
+      timer = setTimeout(resolve, budget);
+    }),
+  ]);
+  if (timer) clearTimeout(timer);
+  return { ...out };
 }
 
 /** Test seams for the cache bound and TTL. Not part of the runtime contract. */
@@ -240,12 +308,11 @@ export function __emailCacheSize(): number {
 // Fallback path: pull the trailing 14 days and aggregate in process, bounded by STATS_FETCH_CAP.
 // The cap is a CORRECTNESS limit, not a performance knob. Rows come back `order by id desc`, so
 // once the window exceeds the cap the newest 20k are kept and the OLDEST days of perDay14d decay
-// toward zero — a tidy, entirely fictional ramp with nothing in the payload admitting it.
+// toward zero — a tidy, entirely fictional ramp unless the payload admits truncation.
 //
-// So the fallback reports whether it was actually truncated. Note that hitting the fallback does
-// NOT by itself make the numbers approximate: below the cap the in-process aggregate is exact, and
-// production today holds 686 rows total. `partial` is true only when the window really did hit the
-// cap — claiming approximation when the answer is exact would be its own small lie.
+// To distinguish "exactly 20k rows exist" from "more than 20k exist", the fallback requests ONE
+// sentinel row beyond the cap. Only seeing that 20,001st row proves truncation; `length === cap`
+// does not. This avoids falsely labelling an exactly-full but complete window as approximate.
 const STATS_FETCH_CAP = 20_000;
 
 // PostgREST's "function not found in the schema cache" — the migration has not been applied yet.
@@ -261,11 +328,38 @@ function isMissingRpc(error: { code?: string; message?: string } | null | undefi
 /** Shape the SQL function returns — identical to SearchStats minus the `partial` flag. */
 type RpcStats = Omit<SearchStats, "partial">;
 
-export async function searchStats(): Promise<StatsResult> {
+const isCount = (v: unknown): v is number =>
+  typeof v === "number" && Number.isSafeInteger(v) && v >= 0;
+
+function isRpcStats(value: unknown): value is RpcStats {
+  if (!value || typeof value !== "object") return false;
+  const s = value as Record<string, unknown>;
+  if (!isCount(s.total) || !isCount(s.today) || !isCount(s.visitors7d)) return false;
+  if (!Array.isArray(s.topSymbols7d) || !Array.isArray(s.perDay14d)) return false;
+
+  const topOk = s.topSymbols7d.every((entry) => {
+    if (!entry || typeof entry !== "object") return false;
+    const e = entry as Record<string, unknown>;
+    return typeof e.symbol === "string" && e.symbol.length > 0 && isCount(e.count);
+  });
+  const daysOk = s.perDay14d.every((entry) => {
+    if (!entry || typeof entry !== "object") return false;
+    const e = entry as Record<string, unknown>;
+    return typeof e.day === "string" && isCount(e.count);
+  });
+  return topOk && daysOk;
+}
+
+export async function searchStats(todayStartIso?: string): Promise<StatsResult> {
   const supabase = createServiceClient();
   const since14 = new Date(Date.now() - 14 * 86_400_000).toISOString();
+  const requestedTodayStartMs = todayStartIso ? Date.parse(todayStartIso) : Number.NaN;
+  const todayStartMs = Number.isFinite(requestedTodayStartMs)
+    ? requestedTodayStartMs
+    : Date.parse(new Date().toISOString().slice(0, 10) + "T00:00:00.000Z");
 
   let total = 0;
+  let fallbackTruncated = false;
   let recent: Pick<SearchEvent, "created_at" | "symbol" | "user_id" | "anon_id" | "ip">[];
 
   if (!supabase) {
@@ -276,9 +370,30 @@ export async function searchStats(): Promise<StatsResult> {
     // Exact, uncapped, computed where the rows live.
     const rpc = await supabase.rpc("search_event_stats");
     if (!rpc.error) {
-      const s = rpc.data as RpcStats | null;
-      if (s && typeof s.total === "number") {
-        return { ok: true, stats: { ...s, topSymbols7d: s.topSymbols7d ?? [], perDay14d: s.perDay14d ?? [], partial: false } };
+      const s = rpc.data;
+      if (isRpcStats(s)) {
+        let today = s.today;
+        if (Number.isFinite(requestedTodayStartMs)) {
+          const localToday = await supabase
+            .from("search_events")
+            .select("*", { count: "exact", head: true })
+            .gte("created_at", new Date(todayStartMs).toISOString());
+          if (localToday.error) {
+            console.error("[searchEvents] local-today count failed:", localToday.error.message);
+            return { ok: false, error: localToday.error.message };
+          }
+          today = localToday.count ?? 0;
+        }
+        return {
+          ok: true,
+          stats: {
+            ...s,
+            today,
+            topSymbols7d: s.topSymbols7d ?? [],
+            perDay14d: s.perDay14d ?? [],
+            partial: false,
+          },
+        };
       }
       console.error("[searchEvents] search_event_stats returned an unusable shape; falling back");
     } else if (!isMissingRpc(rpc.error)) {
@@ -294,7 +409,7 @@ export async function searchStats(): Promise<StatsResult> {
         .select("created_at,symbol,user_id,anon_id,ip")
         .gte("created_at", since14)
         .order("id", { ascending: false })
-        .limit(STATS_FETCH_CAP),
+        .limit(STATS_FETCH_CAP + 1),
     ]);
     // BOTH queries are load-bearing and BOTH can fail independently. The count error used to be
     // dropped on the floor entirely (`{ count }` destructured without `error`), so a failed count
@@ -305,15 +420,18 @@ export async function searchStats(): Promise<StatsResult> {
       return { ok: false, error: failure.message };
     }
     total = countRes.count ?? 0;
-    recent = (windowRes.data || []) as typeof recent;
+    const fetched = (windowRes.data || []) as typeof recent;
+    // Keep the in-process work strictly bounded at the advertised cap. The extra row exists only
+    // to answer the yes/no question "was anything omitted?".
+    recent = fetched.slice(0, STATS_FETCH_CAP);
+    fallbackTruncated = fetched.length > STATS_FETCH_CAP;
   }
 
   const now = Date.now();
   const since7 = new Date(now - 7 * 86_400_000).toISOString();
-  const todayStart = new Date().toISOString().slice(0, 10); // UTC midnight prefix
 
   const last7 = recent.filter((r) => r.created_at >= since7);
-  const today = recent.filter((r) => r.created_at.slice(0, 10) >= todayStart).length;
+  const today = recent.filter((r) => Date.parse(r.created_at) >= todayStartMs).length;
 
   const visitors = new Set(last7.map(visitorKey));
 
@@ -335,8 +453,8 @@ export async function searchStats(): Promise<StatsResult> {
     perDay14d.push({ day, count: dayCounts.get(day) || 0 });
   }
 
-  // Truncated only if the window fetch actually reached the cap. The dev ring never does.
-  const partial = recent.length >= STATS_FETCH_CAP;
+  // Truncated only when the CAP+1 sentinel was actually present. The dev ring never does.
+  const partial = fallbackTruncated;
   if (partial) {
     console.warn(
       `[searchEvents] the 14-day window hit STATS_FETCH_CAP (${STATS_FETCH_CAP}); per-day counts for the `
