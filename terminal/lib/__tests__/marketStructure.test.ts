@@ -236,6 +236,21 @@ describe("R5 Stage 0 scenario-conditioned alignment", () => {
     expect(got.outcomeLabelsOpened).toBe(false);
   });
 
+  it("fails a tenor Vanna aggregate closed when only some expiries publish it", () => {
+    const got = r5Stage0Alignment([
+      { exp: "2026-09-19", gamma_net: 10, vanna_net: 3, charm_net: 1 },
+      { exp: "2026-09-20", gamma_net: 5, charm_net: 2 },
+    ], ASOF, scenario);
+    const row = got.buckets.find((r) => r.bucket === "1-2DTE")!;
+    expect(row.present).toBe(true);
+    expect(row.expirations).toBe(2);
+    expect(row.gammaMn).toBe(15);
+    expect(row.vannaMn).toBeNull();
+    expect(row.vannaFlowMn).toBeNull();
+    expect(row.alignment).toBe("unavailable");
+    expect(got.coverage.vannaRows).toBe(1);
+  });
+
   it("keeps missing vanna unavailable and never turns it into a zero-flow factor", () => {
     const got = r5Stage0Alignment([
       { exp: "2026-09-19", gamma_net: 10, charm_net: 2 },
