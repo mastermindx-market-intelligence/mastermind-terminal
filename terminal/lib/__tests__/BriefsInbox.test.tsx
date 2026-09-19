@@ -149,13 +149,8 @@ describe("BriefsInbox rendering", () => {
     await act(async () => { await Promise.resolve(); await Promise.resolve(); });
     expect(container?.querySelectorAll('[data-brief-schedule] [data-state="paused"]').length).toBe(2);
 
-    const removes = Array.from(container?.querySelectorAll("button") ?? [])
-      .filter((button) => button.textContent === briefCopy("removeSchedule", "en"));
-    expect(removes).toHaveLength(2);
-    await act(async () => { removes[1].dispatchEvent(new MouseEvent("click", { bubbles: true })); });
-    await act(async () => { await Promise.resolve(); await Promise.resolve(); });
-    expect(container?.querySelectorAll("[data-brief-schedule]").length).toBe(1);
-    expect(text()).not.toContain("Semis");
+    expect(container?.querySelectorAll("[data-brief-schedule]").length).toBe(2);
+    expect(text()).toContain("Semis");
   });
 
   it("renders a ready row and a degraded row, pinning the last good brief", async () => {
@@ -231,7 +226,7 @@ describe("BriefSubscribeControls", () => {
     expect(text()).toContain(briefCopy("subscribeWeekly", "zh"));
   });
 
-  it("links to the real inbox and lets an existing schedule be removed", async () => {
+  it("links to the real inbox and lets an existing schedule be paused without deleting history", async () => {
     subscriptions = [{
       subscriptionId: "11111111-1111-4111-8111-111111111111",
       userId: "22222222-2222-4222-8222-222222222222",
@@ -246,21 +241,32 @@ describe("BriefSubscribeControls", () => {
     const inboxLink = container?.querySelector('a[href="/alerts"]');
     expect(inboxLink?.textContent).toBe(briefCopy("openInbox", "en"));
     expect(text()).toContain(briefCopy("on", "en"));
-    expect(text()).toContain(briefCopy("removeSchedule", "en"));
 
-    const remove = Array.from(container?.querySelectorAll("button") ?? [])
-      .find((button) => button.textContent === briefCopy("removeSchedule", "en"));
-    expect(remove).toBeDefined();
-    await act(async () => { remove!.dispatchEvent(new MouseEvent("click", { bubbles: true })); });
+    const pause = Array.from(container?.querySelectorAll("button") ?? [])
+      .find((button) => button.textContent === briefCopy("pause", "en"));
+    expect(pause).toBeDefined();
+    await act(async () => { pause!.dispatchEvent(new MouseEvent("click", { bubbles: true })); });
     await act(async () => { await Promise.resolve(); await Promise.resolve(); });
 
     const fetchMock = vi.mocked(fetch);
     expect(fetchMock).toHaveBeenCalledWith(
       "/api/briefs/subscriptions/11111111-1111-4111-8111-111111111111",
-      { method: "DELETE" },
+      expect.objectContaining({ method: "PATCH" }),
     );
-    expect(text()).not.toContain(briefCopy("on", "en"));
-    expect(text()).toContain(briefCopy("add", "en"));
+    expect(text()).toContain(briefCopy("paused", "en"));
+    expect(text()).toContain(briefCopy("resume", "en"));
+    expect(container?.querySelectorAll('button')).not.toBeNull();
+  });
+});
+
+describe("brief schedule deletion stays out of casual UI", () => {
+  it("does not expose the destructive DELETE path in either Brief surface", () => {
+    const contextual = readFileSync(join(__dirname, "../../components/briefs/BriefSubscribeControls.tsx"), "utf8");
+    const inbox = readFileSync(join(__dirname, "../../components/briefs/BriefsInbox.tsx"), "utf8");
+    expect(contextual).not.toContain('method: "DELETE"');
+    expect(inbox).not.toContain('method: "DELETE"');
+    expect(contextual).not.toContain("removeSchedule");
+    expect(inbox).not.toContain("removeSchedule");
   });
 });
 

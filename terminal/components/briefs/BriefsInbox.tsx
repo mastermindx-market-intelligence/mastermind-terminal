@@ -57,21 +57,16 @@ export default function BriefsInbox({ lang }: { lang: BriefLang }) {
     void loadSubscriptions();
   }, [load, loadSubscriptions]);
 
-  async function changeSubscription(sub: BriefSubscription, action: "pause" | "resume" | "remove") {
+  async function changeSubscription(sub: BriefSubscription, action: "pause" | "resume") {
     setBusy(sub.subscriptionId);
     try {
       const r = await fetch("/api/briefs/subscriptions/" + encodeURIComponent(sub.subscriptionId), {
-        method: action === "remove" ? "DELETE" : "PATCH",
-        ...(action === "remove"
-          ? {}
-          : {
-            headers: { "content-type": "application/json" },
-            body: JSON.stringify({ state: action }),
-          }),
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ state: action }),
       });
       if (r.ok) {
         await loadSubscriptions();
-        if (action === "remove") await load();
       }
     } finally {
       setBusy(null);
@@ -126,14 +121,6 @@ export default function BriefsInbox({ lang }: { lang: BriefLang }) {
                       onClick={() => void changeSubscription(sub, paused ? "resume" : "pause")}
                     >
                       {briefCopy(paused ? "resume" : "pause", L)}
-                    </button>
-                    <button
-                      type="button"
-                      className={b.removeButton}
-                      disabled={disabled}
-                      onClick={() => void changeSubscription(sub, "remove")}
-                    >
-                      {briefCopy("removeSchedule", L)}
                     </button>
                   </div>
                 </div>

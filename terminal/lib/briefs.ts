@@ -99,7 +99,6 @@ export const BRIEFS_COPY = {
   openInbox: ["Open Briefs inbox", "打开简报收件箱"],
   pause: ["Pause", "暂停"],
   resume: ["Resume", "恢复"],
-  removeSchedule: ["Remove", "移除"],
   paused: ["Paused", "已暂停"],
   on: ["Scheduled", "已安排"],
   empty: [

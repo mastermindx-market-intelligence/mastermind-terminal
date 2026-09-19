@@ -100,18 +100,6 @@ export default function BriefSubscribeControls({
     }
   }
 
-  async function remove(id: string, cadence: BriefCadence) {
-    setBusy(cadence);
-    try {
-      const r = await fetch("/api/briefs/subscriptions/" + encodeURIComponent(id), {
-        method: "DELETE",
-      });
-      if (r.ok && resolvedId) await load(resolvedId);
-    } finally {
-      setBusy(null);
-    }
-  }
-
   function row(cadence: BriefCadence, labelKey: "subscribeDaily" | "subscribeWeekly") {
     const existing = byCadence(cadence);
     const disabled = busy === cadence;
@@ -145,14 +133,6 @@ export default function BriefSubscribeControls({
             onClick={() => void patch(existing.subscriptionId, paused ? "resume" : "pause", cadence)}
           >
             {paused ? briefCopy("resume", L) : briefCopy("pause", L)}
-          </button>
-          <button
-            type="button"
-            className={s.removeButton}
-            disabled={disabled}
-            onClick={() => void remove(existing.subscriptionId, cadence)}
-          >
-            {briefCopy("removeSchedule", L)}
           </button>
         </div>
       </div>

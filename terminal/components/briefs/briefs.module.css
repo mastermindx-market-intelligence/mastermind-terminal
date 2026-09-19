@@ -79,9 +79,6 @@
   align-items: center;
   gap: 6px;
 }
-.removeButton {
-  color: var(--muted) !important;
-}
 .deliveryNote a {
   color: var(--link, var(--text));
   font-weight: 700;
