@@ -1,4 +1,4 @@
-# 2026-09-19 #669 plain-language debt: hash-only restamp of heatmapStrings.ts, flowdeskStrings.ts, plainLabels.ts, i18n.tsx — copy-only change, crops unchanged
+# 2026-09-19 m_f119_detail: hash-only restamp of AlertDetail.tsx (adds kind prop; gates Symbol/What-changed rows for thesis detail), alerts.module.css (detailClose flows to its own row) — crops unchanged
 # B-PL-6 batch 3 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
@@ -17,7 +17,8 @@ layoutFiles:
   terminal/components/options/OptionsFlowBoardView.tsx: "96e0d1d0a4e7eaed7f2d2bbec6722725afacc093e205defa280a483bc6e14b8e"
   terminal/components/flowdesk/FiltersPanel.tsx: "57ac663475b95a569f62d4c08e83a111f6137c920c78f13f1c9dfad1aa61708b"
   terminal/components/flowdesk/FlowCard.tsx: "155aff67c1f2ec50fd396d2e7c2739d6400bad5ed37387df8a1b1d450f1b118d"
-  terminal/components/alerts/AlertDetail.tsx: "74bbdd5f0f5106b97fa56d67b6966caa86f32e65649eaef0d811f6ae6ef2485f"
+  terminal/components/alerts/AlertDetail.tsx: "b628caa9aadcab4a9b161b69657cf9485fc4da7d345623b03079847e07e3bdcf"
+  terminal/components/alerts/alerts.module.css: "20fcccdd05b6ff84a48402434176e1e565dff733b7033c3a436462333616be32"
   terminal/components/heatmap/HeatmapView.tsx: "be15853db764caec8b985323c24e621152fcb533548307bb8e3ee54673d6ac8f"
   terminal/components/heatmap/Treemap.tsx: "0c5a7f2fd990c41f725d96b9aecb83f5f73eb6a42fbc66c811b43cd722947a0d"
   terminal/lib/heatmapStrings.ts: "201e49991d2b47daaa3e5b490352c61137e020868855959087d67af82e5f346d"
