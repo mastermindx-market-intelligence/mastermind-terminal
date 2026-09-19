@@ -119,10 +119,10 @@ export const OPTIONS_IA_CATEGORIES = [
  * compatibility/architecture taxonomy and continues to own every legacy deep link.
  */
 export const OPTIONS_IA_JOBS = [
-  { key: "command", labelKey: "optionsJobCommand", defaultView: "desk", views: ["desk"] },
-  { key: "flow", labelKey: "optionsJobFlow", defaultView: "tape", views: ["tape", "tide", "zero_dte", "largest", "screener", "tickers"] },
-  { key: "positioning", labelKey: "optionsJobPositioning", defaultView: "gex", views: ["gex", "surface", "positioning", "levels"] },
-  { key: "research", labelKey: "optionsJobResearch", defaultView: "structure", views: ["structure", "volatility", "prophet", "statistics"] },
+  { key: "command", labelKey: "optionsCategoryCommand", defaultView: "desk", views: ["desk"] },
+  { key: "flow", labelKey: "optionsCategoryFlow", defaultView: "tape", views: ["tape", "tide", "zero_dte", "largest", "screener", "tickers"] },
+  { key: "positioning", labelKey: "wtPositioning", defaultView: "gex", views: ["gex", "surface", "positioning", "levels"] },
+  { key: "research", labelKey: "research", defaultView: "structure", views: ["structure", "volatility", "prophet", "statistics"] },
 ] as const satisfies readonly OptionsIaJob[];
 
 export const OPTIONS_IA_BY_JOB: Record<OptionsJobKey, OptionsIaJob> = {
