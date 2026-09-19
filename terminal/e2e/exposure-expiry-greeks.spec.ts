@@ -95,7 +95,7 @@ test("Exposure desk carries expiry Vanna/Charm through bars and drawer", async (
   await expect(page.getByText("+2.4M", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("-1.2M", { exact: true }).first()).toBeVisible();
   await expect(
-    page.getByText("Vanna & Charm aren't provided per-expiration yet — gamma & delta only.", { exact: true }),
+    page.getByText("This snapshot does not provide Vanna or Charm by expiration.", { exact: true }),
   ).toHaveCount(0);
 
   // Open the existing term-structure drawer: it must consume the SAME selected
