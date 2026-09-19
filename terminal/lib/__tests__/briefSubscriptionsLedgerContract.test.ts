@@ -27,15 +27,15 @@ const row = reservationRow(PREFIX);
 const sql = readMigration(FILE);
 
 describe("0024 brief subscriptions ledger contract", () => {
-  it("claims prefix 0024 in RESERVATIONS.json as taken, merged (#579) and not yet applied", () => {
+  it("claims prefix 0024 in RESERVATIONS.json as taken, merged and applied 2026-09-19", () => {
     expect(row.state).toBe("taken");
     expect(row.file).toBe(FILE);
     expect(row.packet).toBe("B-F11-7");
     expect(row.pr).toBe(579);
     expect(row.pr_state).toBe("merged");
-    expect(row.merged_sha).toBe("82bee14ba");
-    expect(row.applied_in_production).toBe(false);
-    expect(row.applied_date).toBeNull();
+    expect(row.merged_sha).toBe("82bee14b");
+    expect(row.applied_in_production).toBe(true);
+    expect(row.applied_date).toBe("2026-09-19");
   });
 
   it("ships the .sql file the row names", () => {
@@ -71,11 +71,11 @@ describe("0024 brief subscriptions ledger contract", () => {
     expect(sql).toMatch(/-- readback:/);
   });
 
-  it("README carries 0024 as open and not applied", () => {
+  it("README carries 0024 as merged and applied", () => {
     const readme = readFileSync(readmePath, "utf8");
     const resRow = readme.split("\n").find((line) => line.startsWith("| `0024` |"));
     expect(resRow, "reservations table is missing the 0024 row").toBeTruthy();
     expect(resRow!).toContain("B-F11-7");
-    expect(resRow!).toMatch(/open — not applied/);
+    expect(resRow!).toMatch(/merged \+ applied 2026-09-19/);
   });
 });
