@@ -6,15 +6,17 @@
 # capturedAtHead is informational. The lock is layoutFiles (hash-only).
 # 2026-09-19 seat merge of master 1c46b277 into #584 (B-F12-13): hash-only restamp of terminal/app/dev/settings/page.tsx, terminal/components/settings/SettingsPanel.tsx, terminal/components/settings/SettingsProvider.tsx, terminal/lib/teams.ts to the merged-tree bytes; crops NOT recaptured by this merge commit.
 # 2026-09-19 seat merge of origin/master dd7c6dec712a (#584 B-F12-13, merge commit) into #586 (W9T_F08_13 targets readout): hash-only restamp of terminal/components/settings/SettingsPanel.tsx, terminal/components/settings/SettingsProvider.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
+# 2026-09-19 seat merge of origin/master dd7c6dec712a (#584 B-F12-13, merge commit) into #587 (W9T_F13_9 team rollup): hash-only restamp of terminal/components/settings/SettingsPanel.tsx, terminal/app/dev/settings/page.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
+# 2026-09-19 seat merge of origin/master 5a48b845 (13 commits incl. #587 B-F13-9 team rollup, merge commit) into #586 (W9T/B-F08-13 targets readout): hash-only restamp to the merged working-tree bytes; crops NOT recaptured. Files: terminal/components/settings/SettingsPanel.tsx, terminal/components/settings/SettingsProvider.tsx
 layoutFiles:
   terminal/components/settings/SectionTeam.tsx: "70be77e6750ca73a57d019c5c2d7d04c99317b7c18297d20755d18f6e511a45d"
   terminal/components/settings/SectionTeam.module.css: "f1fe2aea3c2634800603113a95abadedc7b9e1031335d11e95e2b0fa48a656e3"
-  terminal/components/settings/SettingsPanel.tsx: "a7cad95d493b6e714fa8ea7af55c255d90a190b97413338caafb8228e09395bc"
+  terminal/components/settings/SettingsPanel.tsx: "956aeac1636ae4891b1009c8e266840244c19da085ba52e77c78171317c4ffaf"
   terminal/components/settings/SettingsProvider.tsx: "a4c829c956ca7ffd89bbc3158009b1148bb613569a9716b092dd9a27d449d910"
   terminal/app/settings.css: "3189163136d943431cbf52e4b5d241c105b695ba5af94c4c2e29151d537b5ef5"
   terminal/lib/teams.ts: "6b04d4897f925f79daf50d24b7c55825c0c10a343189098d0674e8b6f54c0b34"
   terminal/components/settings/types.ts: "65e846a39725a4dd6738dd746789e540e2b5433b669757356df4fce1d0a721fb"
-  terminal/app/dev/settings/page.tsx: "1af17c049db2447195fa978e2547d6ffed767d7f9c9534446b2ad8d50c25f137"
+  terminal/app/dev/settings/page.tsx: "4b594ce879f00fdf1f096abde9a36113014b17257e6292dc0ca16c83efcd3660"
 theme: dark
 languages: [en, zh]
 viewports:
