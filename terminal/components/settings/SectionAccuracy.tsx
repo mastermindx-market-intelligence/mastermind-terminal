@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { SectionHead } from "./icons";
 import { acsDate, type SectionProps } from "./types";
 import { identityOwnerKey, isAccountOwner } from "@/lib/accountIdentity";
@@ -11,11 +11,27 @@ import {
   type ClaimStatus,
   type Stance,
 } from "@/lib/personalAccuracy";
+import type { TeamRollupResult } from "@/lib/teamRollup";
+import { TEAM_ROUTE_MESSAGES } from "@/lib/teams";
 import s from "./SectionAccuracy.module.css";
 
 export interface AccuracyProps extends SectionProps {
   readout: AccuracyReadout | null;
   loadErr: boolean;
+  /**
+   * W9T_F13_9 / MO-DELTA-007 — team-accuracy rollup. When set, the section fetches
+   * `/api/teams/{id}/accuracy/rollup` and renders the team's row set scored together as a
+   * sibling block below the personal readout. The hard gate (no cross-team rank, no per-member
+   * leaderboard) is enforced server-side and pinned by tests; the UI just renders the response.
+   */
+  teamId?: string | null;
+  /**
+   * W9T_F13_9 — dev-only fixture seam. When the page is the dev settings harness (`/dev/settings`)
+   * there is no signed-in session and no real Supabase backend, so the rollup fetch would always
+   * fail. The harness supplies a fixture directly so crops can depict every rollup state. In the
+   * live app this prop is never set — the live TeamRollupBlock fetches the real route.
+   */
+  devRollup?: TeamRollupResult | null;
 }
 
 export type AccuracyGlanceState = "unread" | "empty" | "unscorable" | "readout";
@@ -181,7 +197,7 @@ function reasonCopy(t: (key: string) => string, reason: AccuracyClaimRow["unscor
   return null;
 }
 
-export default function SectionAccuracy({ t, lang, onClose, readout, loadErr, identity }: AccuracyProps) {
+export default function SectionAccuracy({ t, lang, onClose, readout, loadErr, identity, teamId, devRollup }: AccuracyProps) {
   const [open, setOpen] = useState(false);
   const owner = isAccountOwner(identityOwnerKey(identity));
   const nResolved = readout?.resolvedEpisodes ?? 0;
@@ -331,7 +347,173 @@ export default function SectionAccuracy({ t, lang, onClose, readout, loadErr, id
             ) : null}
           </div>
         ) : null}
+
+        {/* W9T_F13_9 / MO-DELTA-007 — team-accuracy rollup. A team can see its own calls scored
+            together — never a ranking against other teams. This block renders below the personal
+            readout: the team's row when a team id is present, and the no-team sentence when
+            the caller has none. The hard gate is server-side; the UI just renders the response,
+            and the ceiling sentence is on every scored read so the reader sees it. */}
+        <TeamRollupBlock t={t} lang={lang} teamId={teamId} devRollup={devRollup ?? undefined} />
       </div>
     </>
+  );
+}
+
+/** W9T_F13_9 / MO-DELTA-007 — team-accuracy rollup, fetched inline. Pure read; no ranker. */
+function TeamRollupBlock({ t, lang, teamId, devRollup }: {
+  t: (key: string, fallback?: string) => string;
+  lang: "en" | "zh";
+  /** undefined = membership still loading; null = caller has no team; string = fetch. */
+  teamId?: string | null;
+  /**
+   * Dev-harness seam. Semantics:
+   *   - `undefined`: live fetch (the production path).
+   *   - `null`: hide the block — used by the dev page when the URL has no `rollup` param, so
+   *     the b-f13-5 personal-accuracy crops stay unchanged.
+   *   - `TeamRollupResult`: render the fixture directly, no fetch.
+   */
+  devRollup?: TeamRollupResult | null;
+}) {
+  const [body, setBody] = useState<null | TeamRollupResult>(null);
+  const [loadErr, setLoadErr] = useState(false);
+  const [unavailable, setUnavailable] = useState(false);
+
+  useEffect(() => {
+    if (devRollup !== undefined) {
+      setBody(devRollup); // null OR a fixture — either way, no fetch.
+      setLoadErr(false);
+      setUnavailable(false);
+      return;
+    }
+    if (teamId === undefined || !teamId) {
+      setBody(null);
+      setLoadErr(false);
+      setUnavailable(false);
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await fetch(`/api/teams/${encodeURIComponent(teamId)}/accuracy/rollup`, { cache: "no-store" });
+        if (!res.ok) {
+          if (!cancelled) {
+            setBody(null);
+            setUnavailable(res.status === 503);
+            setLoadErr(res.status !== 503);
+          }
+          return;
+        }
+        const data = (await res.json()) as TeamRollupResult;
+        if (!cancelled) { setBody(data); setLoadErr(false); setUnavailable(false); }
+      } catch {
+        if (!cancelled) { setBody(null); setLoadErr(true); setUnavailable(false); }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [teamId, devRollup]);
+
+  // Dev harness with no rollup param: hide so b-f13-5 crops stay unchanged.
+  if (devRollup === null) return null;
+  // Live path, membership still loading: hide rather than flash the no-team sentence.
+  if (devRollup === undefined && teamId === undefined) return null;
+  // Live path, caller has no team: the no-team sentence (accTeamNoneCreate).
+  if (devRollup === undefined && !teamId) {
+    return (
+      <p className={s.line} data-acc-team-state="none">{t("accTeamNoneCreate")}</p>
+    );
+  }
+  if (unavailable) {
+    return (
+      <div className={s.team} data-acc-team-state="unavailable">
+        <p className={s.line} lang="en">{TEAM_ROUTE_MESSAGES.unavailable[0]}</p>
+        <p className={s.line} lang="zh">{TEAM_ROUTE_MESSAGES.unavailable[1]}</p>
+      </div>
+    );
+  }
+  if (loadErr) {
+    return (
+      <p className={s.line} data-acc-team-state="load-err">{t("accDetLoadErr")}</p>
+    );
+  }
+  if (!body) {
+    return <p className={s.empty} data-acc-team-state="loading">{t("accUnread")}</p>;
+  }
+
+  // The hard gate is rendered as a sentence the reader can see and copy. It says: your team
+  // sees its own calls scored together, never compared to another team. It carries both
+  // languages from the LEX entry, with CJK punctuation in the ZH twin.
+  if (body.kind === "empty_members") {
+    return (
+      <div className={s.team} data-acc-team-state="empty_members">
+        <p className={s.teamTitle} lang={lang}>{t("accTeamTitle")}</p>
+        <p className={s.teamSub} lang={lang}>{t("accTeamSub")}</p>
+        <p className={s.line} data-acc-team-state="empty-members">{t("accTeamEmptyMembers")}</p>
+        <p className={s.teamGate} lang={lang} data-acc-team-gate="true">{t("accTeamCeiling")}</p>
+      </div>
+    );
+  }
+  if (body.kind === "no_rows") {
+    return (
+      <div className={s.team} data-acc-team-state="no_rows">
+        <p className={s.teamTitle} lang={lang}>{t("accTeamTitle")}</p>
+        <p className={s.teamSub} lang={lang}>{t("accTeamSub")}</p>
+        <p className={s.line} data-acc-team-state="no-rows">
+          {interpolate(t("accTeamMembersNone"), { n: body.memberCount })}
+        </p>
+        <p className={s.teamGate} lang={lang} data-acc-team-gate="true">{t("accTeamCeiling")}</p>
+      </div>
+    );
+  }
+  return (
+    <div className={s.team} data-acc-team-state={body.kind}>
+      <p className={s.teamTitle} lang={lang}>{t("accTeamTitle")}</p>
+      <p className={s.teamSub} lang={lang}>{t("accTeamSub")}</p>
+      {body.readout ? (
+        <RollupReadout
+          t={t}
+          lang={lang}
+          readout={body.readout}
+          memberCount={body.memberCount}
+          membersWithClaims={body.membersWithClaims}
+        />
+      ) : null}
+      <p className={s.teamGate} lang={lang} data-acc-team-gate="true">{t("accTeamCeiling")}</p>
+    </div>
+  );
+}
+
+function RollupReadout({ t, lang, readout, memberCount, membersWithClaims }: {
+  t: (key: string, fallback?: string) => string;
+  lang: "en" | "zh";
+  readout: AccuracyReadout;
+  memberCount: number;
+  membersWithClaims: number;
+}) {
+  void lang;
+  const nResolved = readout.resolvedEpisodes;
+  const showEarly = nResolved > 0 && nResolved < HIT_RATE_MIN_EPISODES;
+  return (
+    <div data-acc-team-state="readout">
+      {showEarly ? null : (
+        <p className={`${s.stance} ${stanceClass(readout.stance)}`}>{t(STANCE_KEY[readout.stance])}</p>
+      )}
+      <p className={s.line}>
+        {showEarly
+          ? countPhrase(t, nResolved, "accEarlyN", "accEarly1")
+          : interpolate(t("accCheckedN"), { n: nResolved })}
+        {" "}
+        {claimCountPhrase(t, readout.claimCount)}
+      </p>
+      <p className={s.line} data-acc-team-members="true">
+        {interpolate(t("accTeamMembersNWithN"), { n: memberCount, m: membersWithClaims })}
+      </p>
+      {readout.brierPairs < BRIER_MIN_PAIRS ? (
+        <>
+          <p className={s.line}>{t("accCalibWithheld")}</p>
+          <p className={s.line}>{interpolate(t("accCalibProgress"), { n: readout.brierPairs })}</p>
+        </>
+      ) : null}
+      <p className={s.weLabel} lang={lang}>{t("accTeamWeLabel")}</p>
+    </div>
   );
 }

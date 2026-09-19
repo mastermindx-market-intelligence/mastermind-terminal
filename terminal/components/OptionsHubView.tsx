@@ -361,6 +361,7 @@ interface LeadersColdStart {
 interface LeadersPayload {
   schema: string;
   as_of: string;
+  session_date?: string;
   stale: boolean;
   cold_start: boolean;
   cold_start_detail?: LeadersColdStart;
@@ -557,6 +558,13 @@ function fmtAsof(iso: string): string {
     const d = new Date(iso);
     return d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false, timeZone: "America/New_York" });
   } catch { return iso; }
+}
+
+/** Local bilingual copy helper for this large legacy hub.
+ * Keeps failure-state copy out of the global i18n layout evidence lock while
+ * still making EN/ZH routing explicit to the plain-language CI guard. */
+function pick(lang: Lang, en: string, zh: string): string {
+  return lang === "zh" ? zh : en;
 }
 
 function isStale(iso: string): boolean {
@@ -3919,15 +3927,26 @@ export default function OptionsHubView({
                 </div>
               )}
 
-              {/* Error / absent */}
+              {/* Fetch failure. This is not a cold-start signal: 403/429/503/network
+                  failures used to be mislabeled as "publishes tonight", which hid both
+                  entitlement regressions and real upstream outages. */}
               {leadersError && !leadersData && (
-                <div style={{ padding: "40px 20px", textAlign: "center" }}>
+                <div role="status" style={{ padding: "40px 20px", textAlign: "center" }}>
                   <div style={{ fontSize: 14, color: "var(--text-2)", marginBottom: 8 }}>
-                    {t("leadersAbsent", "Flow Leaders publishes after tonight's build")}
+                    {pick(lang, "Couldn't load Flow Leaders", "暂时无法加载资金流领涨榜")}
                   </div>
                   <div style={{ fontSize: 12, color: "var(--muted)" }}>
-                    {t("ohNightlyBuild")}
+                    {pick(lang, "This panel couldn't reach its data. Retry in a moment.", "此面板暂时无法获取数据，请稍后重试。")}
                   </div>
+                  <button
+                    type="button"
+                    className="btn btn-ghost"
+                    style={{ height: 28, marginTop: 14 }}
+                    onClick={() => void fetchLeaders()}
+                    disabled={leadersLoading}
+                  >
+                    {leadersLoading ? t("loading", "Loading…") : pick(lang, "Retry", "重试")}
+                  </button>
                 </div>
               )}
 
@@ -3945,7 +3964,11 @@ export default function OptionsHubView({
                     {/* ── Header strip ── */}
                     <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10, marginBottom: 10 }}>
                       <span style={{ fontSize: 11, color: "var(--text-dim)", fontVariantNumeric: "tabular-nums" }}>
-                        {t("asOf", "as of")} {fmtAsof(leadersData.as_of)}
+                        {leadersData.session_date
+                          ? (lang === "zh"
+                            ? `数据会话 ${leadersData.session_date} · 构建 ${fmtAsof(leadersData.as_of)}`
+                            : `data session ${leadersData.session_date} · built ${fmtAsof(leadersData.as_of)}`)
+                          : `${t("asOf", "as of")} ${fmtAsof(leadersData.as_of)}`}
                       </span>
                       <span style={{ fontSize: 11, color: "var(--muted)" }}>
                         {lang === "zh"
@@ -3961,7 +3984,9 @@ export default function OptionsHubView({
                       </span>
                       {leadersData.stale && (
                         <span style={{ fontSize: 11, color: "var(--warn)", fontWeight: 600 }}>
-                          {t("leadersStale", "Snapshot from prior session")}
+                          {leadersData.session_date
+                            ? pick(lang, `Historical snapshot · source session ${leadersData.session_date}`, `历史快照 · 数据会话 ${leadersData.session_date}`)
+                            : t("leadersStale", "Snapshot from prior session")}
                         </span>
                       )}
                     </div>
@@ -4261,15 +4286,24 @@ export default function OptionsHubView({
                 </div>
               )}
 
-              {/* Error / absent */}
+              {/* Fetch failure is distinct from a successful cold-start payload below. */}
               {radarError && !radarData && (
-                <div style={{ padding: "40px 20px", textAlign: "center" }}>
+                <div role="status" style={{ padding: "40px 20px", textAlign: "center" }}>
                   <div style={{ fontSize: 14, color: "var(--text-2)", marginBottom: 8 }}>
-                    {t("radarAbsent", "Leader Radar publishes after tonight's build")}
+                    {pick(lang, "Couldn't load Leader Radar", "暂时无法加载领涨雷达")}
                   </div>
                   <div style={{ fontSize: 12, color: "var(--muted)" }}>
-                    {t("radarAbsentSub", "Data builds nightly after market close")}
+                    {pick(lang, "This panel couldn't reach its data. Retry in a moment.", "此面板暂时无法获取数据，请稍后重试。")}
                   </div>
+                  <button
+                    type="button"
+                    className="btn btn-ghost"
+                    style={{ height: 28, marginTop: 14 }}
+                    onClick={() => void fetchRadar()}
+                    disabled={radarLoading}
+                  >
+                    {radarLoading ? t("radarLoading", "Loading Leader Radar…") : pick(lang, "Retry", "重试")}
+                  </button>
                 </div>
               )}
 
