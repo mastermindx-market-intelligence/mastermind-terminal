@@ -320,6 +320,14 @@ describe("R5 Stage 0 scenario-conditioned alignment", () => {
     expect(got.buckets.find((r) => r.bucket === "0DTE")!.present).toBe(false);
   });
 
+  it("refuses duplicate expiry rows instead of double-counting the book", () => {
+    const rows: MscExpiryRow[] = [
+      { exp: "2026-09-19", gamma_net: 1, vanna_net: 1, charm_net: 1 },
+      { exp: "2026-09-19", gamma_net: 2, vanna_net: 2, charm_net: 2 },
+    ];
+    expect(() => r5Stage0Alignment(rows, ASOF, scenario)).toThrow(/unique expiration/);
+  });
+
   it("requires explicit bounded shocks, materiality and a position-tier label", () => {
     const rows: MscExpiryRow[] = [
       { exp: "2026-09-19", gamma_net: 1, vanna_net: 1, charm_net: 1 },
