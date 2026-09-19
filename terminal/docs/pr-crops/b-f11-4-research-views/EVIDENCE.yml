@@ -10,7 +10,7 @@
 # 2026-09-11 MO-B PL-NI-1 (packet T-PL-NI-1, 您→你 sweep of Terminal master): terminal/lib/i18n.tsx re-hashed — plain-language 您→你 only; layout unchanged; no recapture.
 # 2026-09-13 H4b #565 history-preserving merge of origin/master 3db34e7a8 (PR #580 ledger flip atop #576 / #573 / #572 / #571 / #570): i18n.tsx re-hashed — auto-merge of master's PL-NI-1 (您→你 + DEEP_RESEARCH_MONTHLY template removal) with PR #565's H4b (DEEP_RESEARCH_MONTHLY template re-introduction) yields bytes 130d2ef1. Pinned below. No B-F11-4 string or layout changed; no crop recaptured.
 layoutFiles:
-  terminal/components/workspaces/ThesisWorkspace.tsx: "51b6a96909a53373ca3ce160605960bc03615a89d296fcc6dfdd28461e987445"
+  terminal/components/workspaces/ThesisWorkspace.tsx: "82f81d4f7f7c7758c9258640d49d75bcf646feb3c954189f3170feff3a44e39d"
   terminal/components/workspaces/ThesisWorkspace.module.css: "ac9547b1b7cf4a5d51f4838a40983f55d489483bef1e237ee2b5e81c8e10d37c"
   terminal/lib/rmsViews.ts: "fd5f025806c5a4b1b27e7d99a026e82f555767f0d96b6a2766a5b363961897cb"
   terminal/lib/savedViews.ts: "16e2914a032cba50cce999d1802c53e51098ce76dd82931925ef41b8e0f7af54"
