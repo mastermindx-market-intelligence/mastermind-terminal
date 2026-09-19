@@ -5,7 +5,7 @@
 // so a $192 NVDA crosshair lands on BTC's candle at the same date, not at $192, and a
 // window over June 2024 lands on June 2024 rather than on whatever bar happens to sit at
 // the same array position. See lib/timeWindow.ts for why logical indexes cannot be shared.
-import type { IChartApi, ISeriesApi, Time } from "lightweight-charts";
+import type { IChartApi, ISeriesApi, SeriesType, Time } from "lightweight-charts";
 import {
   clampLogicalRange, sameLogicalRange, sampleStep, timeToMs, toLogicalRange, toTimeWindow,
   type AxisClock, type LogicalRange,
@@ -16,7 +16,7 @@ import {
 // own crosshair (such as its foreground price label) would never hear about a mirrored one.
 export type PaneRegistration = {
   chart: IChartApi;
-  series: ISeriesApi<any>;
+  series: ISeriesApi<SeriesType>;
   valueAt: (t: Time) => number | null;
   tf: string;
   onCrosshair?: (price: number | null, time: Time | null) => void;
@@ -39,11 +39,47 @@ const NEAREST_RIGHT = 1;
 const peers = new Map<number, Peer>();
 let enabled = false;
 let applying = false; // crosshair re-entrancy guard (range uses the operation token below)
+let crosshairFrame: number | null = null;
+let pendingCrosshair: { fromId: number; time: Time | null } | null = null;
 let opSeq = 0;        // monotonic range-operation token
+
+function cancelPendingCrosshair() {
+  pendingCrosshair = null;
+  if (crosshairFrame == null) return;
+  if (typeof cancelAnimationFrame === "function") {
+    try { cancelAnimationFrame(crosshairFrame); } catch {}
+  }
+  crosshairFrame = null;
+}
+
+function applyCrosshair(fromId: number, time: Time | null) {
+  if (!enabled || applying) return;
+  const self = peers.get(fromId);
+  if (!self) return;
+  applying = true;
+  try {
+    peers.forEach((p, id) => {
+      if (id === fromId || p.tf !== self.tf) return;
+      try {
+        const v = time == null ? null : p.valueAt(time);
+        if (time == null || v == null) { p.chart.clearCrosshairPosition(); p.onCrosshair?.(null, null); }
+        else { p.chart.setCrosshairPosition(v, time, p.series); p.onCrosshair?.(v, time); }
+      } catch {}
+    });
+  } finally { applying = false; }
+}
+
+function flushCrosshairFrame() {
+  crosshairFrame = null;
+  const next = pendingCrosshair;
+  pendingCrosshair = null;
+  if (next) applyCrosshair(next.fromId, next.time);
+}
 
 export function setPaneSync(on: boolean) {
   enabled = on;
   if (!on) {
+    cancelPendingCrosshair();
     peers.forEach((p) => {
       // Drop the echo bookkeeping too: a `lastTarget` left over from the previous session would
       // suppress the first mirror after sync is switched back on.
@@ -62,21 +98,18 @@ export function registerPane(id: number, registration: PaneRegistration) {
   return () => { if (peers.get(id) === peer) peers.delete(id); };
 }
 
-// time === null means the pointer left the source chart → clear peers' crosshairs
+// time === null means the pointer left the source chart → clear peers' crosshairs.
+// Input devices can emit many moves inside one display frame. Only the latest sample can become
+// visible, so peer crosshair + foreground-label work is bounded to one flush per paint.
 export function broadcastCrosshair(fromId: number, time: Time | null) {
   if (!enabled || applying) return;
-  const self = peers.get(fromId);
-  applying = true;
-  try {
-    peers.forEach((p, id) => {
-      if (id === fromId || (self && p.tf !== self.tf)) return;   // only mirror same-timeframe panes
-      try {
-        const v = time == null ? null : p.valueAt(time);
-        if (time == null || v == null) { p.chart.clearCrosshairPosition(); p.onCrosshair?.(null, null); }
-        else { p.chart.setCrosshairPosition(v, time, p.series); p.onCrosshair?.(v, time); }
-      } catch { /* peer may be mid-teardown */ }
-    });
-  } finally { applying = false; }
+  pendingCrosshair = { fromId, time };
+  if (crosshairFrame != null) return;
+  if (typeof requestAnimationFrame !== "function") {
+    flushCrosshairFrame();
+    return;
+  }
+  crosshairFrame = requestAnimationFrame(flushCrosshairFrame);
 }
 
 /**
