@@ -8,7 +8,7 @@
 # capturedAtHead: 35e9f60c895ae9c1e0ebb803bc16d48bd5962f86
 # 2026-09-19 release unblock: #581 (B-F12-10 public API v1) was squash-merged to c938159320e57ff9d42399de5ed6a7130ff1b49a, which orphaned the pre-squash merge pointer df3435bd3ad740eecacaa3bece9c33b645e7d815 (a commit on that PR branch only).
 # capturedAtHead is this PR's code commit 23ca3fde8 (W9T_F13_9 implementation). Master's squash-safe pointer c938159320e57ff9d42399de5ed6a7130ff1b49a remains an ancestor of the merge. Hashes below are the merged tree and will be restamped after the heal; the evidence-stamp commit moves capturedAtHead to that heal.
-capturedAtHead: 23ca3fde8c6c562f948d18027229b7d242f35b6b
+capturedAtHead: 67c1c3b2784712b06f71f654d9472905e0c9155e
 capturedAt: 2026-09-13T17:24:00.000Z
 # capturedAtHead is master commit d812eba5cc082de66565a740d7217392650d397c — the squash-merge of #572 (T-PL-NI-1) that landed the i18n.tsx re-hash; the bytes of every layoutFiles row at d812eba5cc082de66565a740d7217392650d397c equal the pinned hashes. This pointer previously named aedfbf4de5b5a0f3e12d9994b219010b83ae7a9f, #572's own branch commit, which the squash made unreachable from master (capturedAtHead freshness law / squash law), so the pointer moves to the squash commit itself; no row hash changes and no crop was recaptured. The i18n.tsx change is plain-language 您→你 in the layouts*, alerts* and ws* keys, none of which renders on the ownership-transfer surface, so the 8 crops still depict this tree.
 # Pinned i18n.tsx last changed by master #572 (T-PL-NI-1 您→你 sweep, squash d812eba5cc082de66565a740d7217392650d397c) and before that for master #554's claim* keys; the captured surface (team section + rail) renders neither change; crops unchanged from 916db2d4ac62b00aed236231433d8d952c22f3c6.
@@ -22,10 +22,11 @@ capturedAt: 2026-09-13T17:24:00.000Z
 # 2026-09-11 merge of master d812eba5cc082de66565a740d7217392650d397c (PL-NI-1 squash #572): capturedAtHead pointer moves forward to d812eba5cc082de66565a740d7217392650d397c so the i18n.tsx re-hash captures the plain-language 您→你 sweep.
 # 2026-09-13 H4b #565 history-preserving merge of origin/master 3db34e7a8: i18n.tsx re-hashed — auto-merge of master's PL-NI-1 with PR #565's H4b. No B-F12-9 string or layout changed; no crop recaptured.
 # 2026-09-19 merge of origin/master 4b19a698 into #587: SettingsPanel.tsx and i18n.tsx re-hashed to the merged-tree digest. No ownership-transfer crop recaptured.
+# 2026-09-19 h_t587 r2 evidence stamp at heal 67c1c3b2784712b06f71f654d9472905e0c9155e: SettingsPanel.tsx / SectionAccuracy.tsx / SectionAccuracy.module.css (and teamAccuracyRollupRoute.test.ts where pinned) re-hashed to the heal-head digest. parseTeamsResponse live team-id, no-team sentence, 503 unavailable pair, weLabel tracking drop. No sibling crop recaptured — those surfaces do not render the accuracy rollup. F13-9 recapture NEEDED (see packet lock).
 layoutFiles:
   terminal/components/settings/SectionTeam.tsx: "fec63ed61b300fbfc6f745b1d8f8a605ad459304f10009bd68023b859b245595"
   terminal/components/settings/SectionTeam.module.css: "924ab5b81d4f0e11ef2138557e92c43a0d1fa21b78622567fb6ccddcf6c146a8"
-  terminal/components/settings/SettingsPanel.tsx: "e85854c8c2402e40deac368a3c419896c0c1efd3ec8843458fc0253cf795cfed"
+  terminal/components/settings/SettingsPanel.tsx: "b9b2459b886ca3ebbfb919f475f876afb2467e2480a61c61fbb79d9da1793473"
   terminal/app/settings.css: "3189163136d943431cbf52e4b5d241c105b695ba5af94c4c2e29151d537b5ef5"
   terminal/lib/i18n.tsx: "bd49cfd3cd13dcac8afccb1f443745622cd7ec557989d6b8ce23e8879b6bbfcb"
 

@@ -10,10 +10,11 @@ code_head: e83e7402fbcf873c9a794bbd0ad6ce5ebfa5d1bc
 identity_check: |
   git diff --quiet e83e7402fbcf873c9a794bbd0ad6ce5ebfa5d1bc HEAD -- terminal/components/settings/SectionDeveloper.tsx terminal/lib/apiKeyLabels.ts terminal/components/settings/SettingsPanel.tsx terminal/components/settings/icons.tsx terminal/components/settings/SettingsProvider.tsx terminal/app/dev/settings/page.tsx terminal/app/settings.css terminal/app/globals.css
 # Commit this manifest last. A later change outside terminal/docs/pr-crops reopens it.
+# 2026-09-19 h_t587 r2 evidence stamp at heal 67c1c3b2784712b06f71f654d9472905e0c9155e: SettingsPanel.tsx / SectionAccuracy.tsx / SectionAccuracy.module.css (and teamAccuracyRollupRoute.test.ts where pinned) re-hashed to the heal-head digest. parseTeamsResponse live team-id, no-team sentence, 503 unavailable pair, weLabel tracking drop. No sibling crop recaptured — those surfaces do not render the accuracy rollup. F13-9 recapture NEEDED (see packet lock).
 layoutFiles:
   terminal/components/settings/SectionDeveloper.tsx: "df606f2196301b32cabe74071559464b368b1c08e9b2ccd227509012f4101539"
   terminal/lib/apiKeyLabels.ts: "7f00e420fe2ec20bab481f19d077c7977df3877d4f71d3ed5da3de0b8d0b33be"
-  terminal/components/settings/SettingsPanel.tsx: "67657d686f304adf292d263007701852fa2bc28cd7f4dabbeca92d7453884eed"
+  terminal/components/settings/SettingsPanel.tsx: "b9b2459b886ca3ebbfb919f475f876afb2467e2480a61c61fbb79d9da1793473"
   terminal/components/settings/icons.tsx: "2611fcf38aed2595c976386d5510d44b62fb1b86cb0f11b46717e4b0a3dae510"
 informationalFiles:
   asserted: false

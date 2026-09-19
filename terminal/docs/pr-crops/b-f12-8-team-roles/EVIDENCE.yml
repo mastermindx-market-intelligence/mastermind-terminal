@@ -10,10 +10,11 @@
 # 2026-09-11 MO-B PL-NI-1 (packet T-PL-NI-1, 您→你 sweep of Terminal master): terminal/lib/i18n.tsx re-hashed — plain-language 您→你 only; layout unchanged; no recapture.
 # 2026-09-13 W9T_F13_9 / MO-DELTA-007 (your team sees its own calls scored together, never a ranking against other teams): terminal/components/settings/SettingsPanel.tsx and terminal/lib/i18n.tsx re-hashed ONLY — w9t_f13_9's SettingsPanel change adds the activeTeamId derivation (an unused-id reading on this surface, since s=team crops never load the accuracy section) and w9t_f13_9 adds 14 accTeam* keys to the shared lexicon, none of which renders on the team-roles surface; the rail layout and section mount order are unchanged. No team* key moved and w9t_f13_9 edits none of this packet's other pinned files (SectionTeam.tsx, SectionTeam.module.css, icons.tsx, settings.css), so the 16 crops captured at 916db2d4 still depict this tree and none was recaptured.
 # 2026-09-19 merge of origin/master 4b19a698 into #587: SettingsPanel.tsx and i18n.tsx re-hashed to the merged-tree digest; icons.tsx takes master's bytes. No team-roles crop recaptured.
+# 2026-09-19 h_t587 r2 evidence stamp at heal 67c1c3b2784712b06f71f654d9472905e0c9155e: SettingsPanel.tsx / SectionAccuracy.tsx / SectionAccuracy.module.css (and teamAccuracyRollupRoute.test.ts where pinned) re-hashed to the heal-head digest. parseTeamsResponse live team-id, no-team sentence, 503 unavailable pair, weLabel tracking drop. No sibling crop recaptured — those surfaces do not render the accuracy rollup. F13-9 recapture NEEDED (see packet lock).
 layoutFiles:
   terminal/components/settings/SectionTeam.tsx: "fec63ed61b300fbfc6f745b1d8f8a605ad459304f10009bd68023b859b245595"
   terminal/components/settings/SectionTeam.module.css: "924ab5b81d4f0e11ef2138557e92c43a0d1fa21b78622567fb6ccddcf6c146a8"
-  terminal/components/settings/SettingsPanel.tsx: "e85854c8c2402e40deac368a3c419896c0c1efd3ec8843458fc0253cf795cfed"
+  terminal/components/settings/SettingsPanel.tsx: "b9b2459b886ca3ebbfb919f475f876afb2467e2480a61c61fbb79d9da1793473"
   terminal/components/settings/icons.tsx: "2611fcf38aed2595c976386d5510d44b62fb1b86cb0f11b46717e4b0a3dae510"
   terminal/app/settings.css: "3189163136d943431cbf52e4b5d241c105b695ba5af94c4c2e29151d537b5ef5"
   terminal/lib/i18n.tsx: "bd49cfd3cd13dcac8afccb1f443745622cd7ec557989d6b8ce23e8879b6bbfcb"

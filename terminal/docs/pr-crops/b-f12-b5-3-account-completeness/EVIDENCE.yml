@@ -17,11 +17,12 @@
 # 2026-09-11 MO-B PL-NI-1 (packet T-PL-NI-1, 您→你 sweep of Terminal master): terminal/lib/i18n.tsx re-hashed — plain-language 您→你 only; layout unchanged; no recapture.
 # 2026-09-13 W9T_F13_9 / MO-DELTA-007 (your team sees its own calls scored together, never a ranking against other teams): terminal/components/settings/SettingsPanel.tsx and terminal/lib/i18n.tsx re-hashed ONLY — the team-rail activeTeamId derivation and the 14 accTeam* lexicon keys added by w9t_f13_9 do not change the account-completeness surface (no accTeam* key is rendered on this surface, and SettingsPanel.tsx's rail layout and section mount order are unchanged); no crop was recaptured. The 8 crops recaptured at 525157b13eb5530515f083d836f63d12f55553d2 still depict this tree.
 # 2026-09-19 merge of origin/master 4b19a698 into #587: SettingsPanel.tsx and i18n.tsx re-hashed to the merged-tree digest; SettingsProvider.tsx takes master's bytes. No account-completeness crop recaptured.
+# 2026-09-19 h_t587 r2 evidence stamp at heal 67c1c3b2784712b06f71f654d9472905e0c9155e: SettingsPanel.tsx / SectionAccuracy.tsx / SectionAccuracy.module.css (and teamAccuracyRollupRoute.test.ts where pinned) re-hashed to the heal-head digest. parseTeamsResponse live team-id, no-team sentence, 503 unavailable pair, weLabel tracking drop. No sibling crop recaptured — those surfaces do not render the accuracy rollup. F13-9 recapture NEEDED (see packet lock).
 layoutFiles:
   terminal/components/settings/SectionAccount.tsx: "d2c3828c286bbaac321881d5a6562efdd4f30e580f4200d49c5165c0fa7ef9a4"
   terminal/lib/teamSummary.ts: "7bd3b3f1d5251490e42399be1dd77e977b2626c1714efbece2f7139c584e0f15"
   terminal/lib/i18n.tsx: "bd49cfd3cd13dcac8afccb1f443745622cd7ec557989d6b8ce23e8879b6bbfcb"
-  terminal/components/settings/SettingsPanel.tsx: "e85854c8c2402e40deac368a3c419896c0c1efd3ec8843458fc0253cf795cfed"
+  terminal/components/settings/SettingsPanel.tsx: "b9b2459b886ca3ebbfb919f475f876afb2467e2480a61c61fbb79d9da1793473"
   terminal/components/settings/SettingsProvider.tsx: "097dc689f3794e0cb7c05588bbc3bdfd473f313c1c66676bb4f4fd564db8c919"
 
 theme: dark
