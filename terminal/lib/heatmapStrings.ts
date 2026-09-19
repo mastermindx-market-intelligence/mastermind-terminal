@@ -128,6 +128,7 @@ const HM_LEX = {
   dataNote:         ["EOD/nightly — no live price tick available", "每日收盘数据，无实时行情"],
   capSizingDeferred: ["Cap-weighted sizing: coming soon", "市值加权面积：即将上线"],
   flowDirSoft:      ["Flow direction is soft — magnitude is the reliable read", "资金流方向为软性读数 — 权利金规模是可靠依据"],
+  dolVolCapFormula: ["DolVol~Cap = price × vol (proxy, no mcap in manifest yet)", "成交额~市值 = 价格 × 成交量（代理指标）"],
 
   // ── Empty / loading ──────────────────────────────────────────────────────────
   loading:          ["Loading…", "加载中…"],
