@@ -459,8 +459,13 @@ def test_reservations_records_the_known_collision_surface():
     assert prefixes["0023"]["merged_sha"] == "9022e0138"
 
     assert prefixes["0024"]["state"] == "taken"
-    # 0024 is taken by a different PR (seat ruling 2026-09-18T23:40Z)
-    assert prefixes["0024"]["file"] != "0024_thesis_amendment_proposals.sql" or prefixes["0024"]["packet"] != "B-F11-5"
+    # 0024 is taken by PR #579 (seat ruling 2026-09-18T23:40Z reassigned 0024 to B-F11-7)
+    assert prefixes["0024"]["file"] == "0024_brief_subscriptions.sql"
+    assert prefixes["0024"]["packet"] == "B-F11-7"
+    assert prefixes["0024"]["pr"] == 579
+    assert prefixes["0024"]["pr_state"] == "open"
+    assert prefixes["0024"]["applied_in_production"] is False
+    assert prefixes["0024"]["applied_date"] is None
 
     # 0025: thesis_amendment_proposals — this PR (#577)
     assert prefixes["0025"]["state"] == "taken"

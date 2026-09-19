@@ -1644,7 +1644,7 @@ describe("contract hygiene", () => {
       ["sfp", "Swing Failure", "SFP", "pro", false],
       ["te", "Trend Engine", "TE", "essential", true],
       ["vb", "Volt Bands", "VB", "essential", false],
-      ["cp", "Candle Painter", "CP", "free", true],
+      ["cp", "Mastermind Candles", "MC", "free", true],
       ["fb", "Flow Band", "FB", "essential", false],
     ]);
     expect(new Set(ALL_MODULES.map((m) => m.key)).size).toBe(ALL_MODULES.length);

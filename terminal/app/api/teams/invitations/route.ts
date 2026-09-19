@@ -42,7 +42,11 @@ export async function GET(req: Request) {
   if (!result.ok) {
     if (result.reason === "forbidden") return NextResponse.json(bodyFor("not_admin"), { status: 403 });
     if (result.reason === "not_found") return NextResponse.json(bodyFor("team_not_found"), { status: 404 });
-    return NextResponse.json(bodyFor("unavailable"), { status: 503 });
+    // Audit heal of t#514 (H2): name the cause. Absence (this server has no team tables) stays
+    // UNAVAILABLE; any other read failure is READ_FAILED. They are never collapsed into one
+    // sentence, and `result.error` — which may embed raw Postgres text — is logged, never returned.
+    console.error("teams invitations GET failed:", result.error);
+    return NextResponse.json(bodyFor(result.reason === "unavailable" ? "unavailable" : "read_failed"), { status: 503 });
   }
   return NextResponse.json({ invites: result.invites, callerRole: result.callerRole, truncated: result.truncated });
 }

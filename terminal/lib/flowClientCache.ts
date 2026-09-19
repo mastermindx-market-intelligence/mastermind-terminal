@@ -84,6 +84,26 @@ export async function flowGet(f: string): Promise<unknown> {
 }
 
 /**
+ * flowGetFresh — use the SAME cache owner, but wait for revalidation when the
+ * cached value is stale. This is for long-lived mounted consumers that must
+ * actually consume a nightly artifact after it advances rather than merely
+ * trigger SWR in the background and keep rendering the previous value.
+ */
+export async function flowGetFresh(f: string): Promise<unknown> {
+  const url = buildUrl(f);
+  const now = Date.now();
+  const entry = store.get(url);
+
+  if (entry) {
+    if (entry.inflight !== null) return entry.inflight;
+    if (now - entry.ts < TTL_MS) return Promise.resolve(entry.data);
+    return doFetch(url, { data: entry.data, ts: entry.ts, inflight: null });
+  }
+
+  return doFetch(url, { data: null, ts: 0, inflight: null });
+}
+
+/**
  * flowPrefetch — warm the cache without blocking the caller.
  * No-op on server.
  */

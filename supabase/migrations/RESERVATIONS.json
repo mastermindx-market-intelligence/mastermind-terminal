@@ -249,13 +249,13 @@
     },
     "0024": {
       "state": "taken",
-      "file": "0024_pending.sql",
-      "packet": "B-F12-B5-3",
+      "file": "0024_brief_subscriptions.sql",
+      "packet": "B-F11-7",
       "pr": 579,
       "pr_state": "open",
       "applied_in_production": false,
       "applied_date": null,
-      "note": "prefix 0024 taken by PR #579 (seat ruling 2026-09-18T23:40Z); file named by owning PR."
+      "note": "packet B-F11-7 recurring briefs (MO-PAID-032 Terminal half). Prefix 0024 is taken by this open pull request because it ships 0024_brief_subscriptions.sql unapplied; the seat applies with a receipt after 0023 in ledger order. applied_in_production is false and applied_date is null because there is no application yet, never because a real date was lost and not recorded."
     },
     "0025": {
       "state": "taken",
