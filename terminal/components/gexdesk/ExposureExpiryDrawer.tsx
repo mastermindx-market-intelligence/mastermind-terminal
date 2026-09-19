@@ -111,7 +111,7 @@ export function ExposureExpiryDrawer({ byExpiry, greek, asOf, lang }: Props) {
           ) : count === 0 ? (
             <div className="obs-xdrawer-empty">{t("xdrawerEmpty")}</div>
           ) : view === "bubbles" ? (
-            <BubbleField ts={ts} />
+            <BubbleField ts={ts} t={t} />
           ) : (
             // Bars view reuses the existing ExpiryBars component unchanged.
             <div style={{ display: "flex", flexDirection: "column", maxHeight: 168, overflowY: "auto" }}>
