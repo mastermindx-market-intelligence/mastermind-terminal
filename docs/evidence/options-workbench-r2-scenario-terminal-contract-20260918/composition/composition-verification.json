@@ -19,6 +19,8 @@
   ],
   "operation": "options-workbench-r2-scenario-terminal-contract-20260918-sol-001",
   "pre_composition_head": "da9fd7ab6b705c81f1319cd024b7d3d6975209c6",
+  "local_composition_commit": "55518af71666cdbfcd00d18eec32eb98fd7ca615",
+  "local_integrated_proof_head": "1f65e05370678a265cd492745fdd76bafaa3fddb",
   "protected_master_checked": "82bee14ba3d7812b78fedd92b351318b575a9a81",
   "schema": "mastermind.options_workbench.scenario_terminal_composition.v1",
   "skillpack_sha": "55473bb43c3ae1908f53ddd4ccfe724643dd6c69",
@@ -36,6 +38,10 @@
     },
     "diff_check_exit": 0,
     "owner_pack": {
+      "failed": 0,
+      "passed": 136
+    },
+    "integrated_owner_pack": {
       "failed": 0,
       "passed": 136
     },
