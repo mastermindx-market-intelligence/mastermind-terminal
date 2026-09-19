@@ -645,7 +645,7 @@ export type InviteCode =
   | "not_signed_in" | "invalid_token" | "already_used" | "expired"
   | "email_unknown" | "email_mismatch" | "invalid_email" | "invalid_role"
   | "not_admin" | "team_not_found" | "duplicate_invite"
-  | "no_email_delivery" | "unavailable" | "failed";
+  | "no_email_delivery" | "unavailable" | "read_failed" | "failed";
 
 // [en, zh] tuples -- same shape as lib/i18n.tsx:18 `LEX: Record<string, [string, string]>`.
 // UI-facing labels live in LEX (packet B-F12-8). Route messages stay here.
@@ -665,6 +665,10 @@ export const INVITE_MESSAGES: Record<InviteCode, [string, string]> = {
   duplicate_invite: ["There is already a pending invitation for this email address.", "该邮箱地址已有一份待处理的邀请。"],
   no_email_delivery: ["We cannot send invitation emails yet. Copy the invitation link below and send it to them yourself — it works for 14 days.", "我们暂时无法发送邀请邮件。请复制下方邀请链接自行发送给对方——该链接 14 天内有效。"],
   unavailable: ["Team accounts are not set up on this server yet, so we cannot answer. Nothing was changed.", "此服务器尚未启用团队账户，因此我们无法作答。未更改任何内容。"],
+  // Audit heal of t#514 (H2): absence is a FACT and is never collapsed into a failure. A read that
+  // broke for any other reason says so, instead of telling the reader the server has no team
+  // accounts — the same split the sibling routes pin as READ_UNAVAILABLE vs READ_FAILED.
+  read_failed: ["We could not read the invitations just now. Please try again.", "我们暂时无法读取邀请列表，请稍后重试。"],
   failed: ["We could not complete that action just now.", "我们暂时无法完成该操作。"],
 };
 
@@ -773,7 +777,7 @@ const INVITE_STATUS: Record<InviteCode, number> = {
   not_signed_in: 401, invalid_token: 404, already_used: 409, expired: 410,
   email_unknown: 403, email_mismatch: 403, invalid_email: 400, invalid_role: 400,
   not_admin: 403, team_not_found: 404, duplicate_invite: 409,
-  no_email_delivery: 200, unavailable: 503, failed: 500,
+  no_email_delivery: 200, unavailable: 503, read_failed: 503, failed: 500,
 };
 
 export type Setting = { scope: "user" | "workspace"; teamId: string | null; key: string; value: unknown; updatedAt: string | null };
