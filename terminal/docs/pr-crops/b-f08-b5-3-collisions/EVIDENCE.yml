@@ -1,5 +1,4 @@
-# 2026-09-19 #669 plain-language debt: hash-only restamp of AlertsCockpit.tsx, WatchingList.tsx, CouldNotWatch.tsx — copy-only change, crops unchanged
-# 2026-09-19 #648 F11-9: hash-only restamp of AlertsCockpit.tsx, alertsView.ts to the STEP-1 code bytes; crops NOT recaptured
+# 2026-09-19 m_f119_detail: hash-only restamp of AlertsCockpit.tsx (adds kind:"thesis" to thesis detail return) — crops unchanged
 # B-F08-B5-3 collisions — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
@@ -8,7 +7,7 @@
 # 2026-09-13 B-F11-7: AlertsCockpit.tsx re-hashed for BriefsInbox mounted below the existing alerts children. Collision crops photograph the top of the cockpit (AnswerLine / watching / degraded); the new inbox sits under the legacy list; no crop recaptured.
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/alerts/AlertsCockpit.tsx: "d0052d5922f880d651e8d5cf1d6a20d0b05626a9d7066dc9daf754c25955e950"
+  terminal/components/alerts/AlertsCockpit.tsx: "468a506890408b90a5621982a178fcef4ebf711e0d8bbb9428de78a4abd3f8a7"
   terminal/components/alerts/WatchingList.tsx: "642c8c76062fefb5ff06d8496bfea50f45de5af1aaf7a989e82e10f7b36d483b"
   terminal/components/alerts/AnswerLine.tsx: "f3bf1f587566c521b66d210b84ec316ed1e5809f2f5ce758c6c0c81f77e4dbdb"
   terminal/components/alerts/CouldNotWatch.tsx: "bedf3678d07a9c1f767df5b87a59648e69e8167df493d63412210a088d95d3a8"

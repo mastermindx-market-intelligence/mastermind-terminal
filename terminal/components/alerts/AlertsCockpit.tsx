@@ -162,6 +162,7 @@ export default function AlertsCockpit({ email, children }: { email: string; chil
     if (row.thesisId != null) {
       const thesisRow = row;
       return {
+        kind: "thesis" as const,
         conditionText: copy("condition.thesis_condition", L),
         holdingSymbol: null,
         summaryPlain: null,
