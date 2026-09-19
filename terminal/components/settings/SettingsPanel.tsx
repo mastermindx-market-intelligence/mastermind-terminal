@@ -12,7 +12,7 @@ import type { AccuracyReadout } from "@/lib/personalAccuracy";
 import type { TeamRollupResult } from "@/lib/teamRollup";
 import { parseTeamsResponse } from "@/lib/teamSummary";
 import {
-  IconAccount, IconAlertDelivery, IconBilling, IconDeveloper, IconPrefs, IconSharing, IconSignOut, IconSync, IconTeam, IconTerminal, IconUsage,
+  IconAccount, IconAlertDelivery, IconBilling, IconDeveloper, IconPortfolioTargets, IconPrefs, IconSharing, IconSignOut, IconSync, IconTeam, IconTerminal, IconUsage,
   IconWebhooks, IconX,
 } from "./icons";
 import SectionAccount from "./SectionAccount";
@@ -27,6 +27,7 @@ import SectionTeam from "./SectionTeam";
 import SectionWebhooks from "./SectionWebhooks";
 import SectionDeveloper from "./SectionDeveloper";
 import SectionSharing from "./SectionSharing";
+import SectionPortfolioTargets from "./SectionPortfolioTargets";
 
 function IconAccuracy() {
   return (
@@ -61,6 +62,7 @@ const NAV: { id: SettingsSection; icon: React.ReactNode; key: string }[] = [
   { id: "webhooks", icon: <IconWebhooks />, key: "acsWebhooks" },
   { id: "developer", icon: <IconDeveloper />, key: "acsDeveloper" },
   { id: "sharing", icon: <IconSharing />, key: "acsSharing" },
+  { id: "portfolioTargets", icon: <IconPortfolioTargets />, key: "acsPortfolioTargets" },
 ];
 
 const HEAD_KEY: Record<SettingsSection, string> = {
@@ -76,6 +78,7 @@ const HEAD_KEY: Record<SettingsSection, string> = {
   webhooks: "acsWebhooks",
   developer: "acsDeveloper",
   sharing: "acsSharing",
+  portfolioTargets: "acsPortfolioTargets",
 };
 
 export interface SettingsPanelProps {
@@ -383,6 +386,7 @@ export default function SettingsPanel(props: SettingsPanelProps) {
             {section === "webhooks" && <SectionWebhooks {...shared} />}
             {section === "developer" && <SectionDeveloper {...shared} />}
             {section === "sharing" && <SectionSharing {...shared} />}
+            {section === "portfolioTargets" && <SectionPortfolioTargets {...shared} />}
           </div>
         </section>
       </div>
