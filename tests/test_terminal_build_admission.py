@@ -447,12 +447,12 @@ def test_preflight_is_before_every_source_or_build_mutation() -> None:
     preflight = body.index("run_release_preflight")
     mutation_tokens = (
         'fetch_accepted_ref "$SRC"',
-        'git -C "$SRC" reset',
-        'git -C "$SRC" clean',
-        "npm ci",
-        "npm run build",
-        "rsync -a --delete",
-        "systemctl restart terminal",
+        "materialize_build_projection",
+        'run_isolated_terminal_build "$STAGE"',
+        '"$EXPECTED_GIT_PATH" -C "$SRC" reset',
+        '"$EXPECTED_GIT_PATH" -C "$SRC" clean',
+        '"$EXPECTED_RSYNC_PATH" -a --delete',
+        '"$EXPECTED_SYSTEMCTL_PATH" restart terminal',
     )
     for token in mutation_tokens:
         assert preflight < body.index(token), f"preflight occurs after {token}"
@@ -460,9 +460,9 @@ def test_preflight_is_before_every_source_or_build_mutation() -> None:
 
 def test_deploy_resets_only_to_the_explicit_target_sha() -> None:
     body = _deploy_body(code_only=True)
-    assert 'git -C "$SRC" reset -q --hard "$TARGET_SHA"' in body
-    assert 'git -C "$SRC" reset -q --hard "origin/$BRANCH"' not in body
-    assert 'FULL_SHA=$(git -C "$SRC" rev-parse HEAD)' in body
+    assert '"$EXPECTED_GIT_PATH" -C "$SRC" reset -q --hard "$TARGET_SHA"' in body
+    assert '"$EXPECTED_GIT_PATH" -C "$SRC" reset -q --hard "origin/$BRANCH"' not in body
+    assert 'FULL_SHA=$("$EXPECTED_GIT_PATH" -C "$SRC" rev-parse HEAD)' in body
     assert '[ "$FULL_SHA" = "$TARGET_SHA" ]' in body
 
 
@@ -704,8 +704,8 @@ def test_real_w2a_through_owner_never_writes_runtime_bytecode(tmp_path: Path) ->
 
 def test_python_trust_decisions_use_isolated_interpreters() -> None:
     library = SCRIPT.read_text(encoding="utf-8")
-    assert 'python3 -B -E -s "$script"' in library
-    assert 'python3 -I - "$stdout_file" "$receipt_dir"' in library
+    assert '"$EXPECTED_PYTHON_PATH" -B -E -s "$script"' in library
+    assert '"$EXPECTED_PYTHON_PATH" -I - "$stdout_file" "$receipt_dir"' in library
 
 
 @pytest.mark.parametrize("untrusted_part", ["directory", "policy", "runtime-file"])

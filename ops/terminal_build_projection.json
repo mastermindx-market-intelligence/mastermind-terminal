@@ -1,0 +1,41 @@
+{
+  "controller_evidence": {
+    "package_json": "terminal/package.json",
+    "package_lock": "terminal/package-lock.json",
+    "projection_helper": "ops/terminal_build_projection.py",
+    "projection_policy": "ops/terminal_build_projection.json",
+    "receipt_helper": "ops/terminal_build_receipt.py"
+  },
+  "excluded_roots": [
+    ".claude",
+    ".gitattributes",
+    ".github",
+    ".gitignore",
+    "AGENTS.md",
+    "CLAUDE.md",
+    "DEPLOY.md",
+    "HANDOFF.md",
+    "README.md",
+    "SECURITY.md",
+    "api",
+    "apps",
+    "config",
+    "contracts",
+    "docs",
+    "hub",
+    "indicator_engine",
+    "macro-site-link",
+    "ops",
+    "requirements.txt",
+    "scripts",
+    "signal_layer",
+    "supabase",
+    "tests",
+    "web"
+  ],
+  "included_roots": [
+    "ingest",
+    "terminal"
+  ],
+  "schema": "mastermind.terminal.build_projection_policy.v1"
+}

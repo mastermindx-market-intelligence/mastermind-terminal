@@ -30,15 +30,29 @@ Every nonzero preflight result is propagated unchanged and stops the release.
 
 ## Deploy-owner integration (W2B-A)
 
-The deploy owner now accepts exactly one explicit release intent:
+The deploy owner now accepts exactly one explicit release intent from the
+W2B-C-qualified unprivileged release operator:
 
 ```bash
 /opt/terminal/terminal-build.sh \
   --target-sha <full-lowercase-40-hex-commit>
 ```
 
-There is no environment-variable fallback and no branch-tip inference. The
-owner performs these gates in order:
+The first pass validates the argument without privilege, then may execute only
+the reviewed setuid boundary:
+
+```text
+/usr/bin/sudo -n -- /usr/bin/env -i <closed environment> \
+  /usr/bin/bash -p /opt/terminal/terminal-build.sh --target-sha <sha>
+```
+
+Direct root invocation is refused. The privileged pass requires its explicit
+clean-entry marker, uid 0, and the canonical controller path before it may acquire
+the deploy lock or run preflight. W2B-C owns the exact sudoers rule and operator
+provisioning; neither is installed or production-proven by W2B-B.
+
+There is no environment-variable target fallback and no branch-tip inference.
+The owner performs these gates in order:
 
 1. validate the exact target syntax before Node or Git access;
 2. select one complete preflight bundle (script, policy, and real non-symlink
@@ -51,17 +65,37 @@ owner performs these gates in order:
    contained by the freshly observed `refs/remotes/origin/master`, then
    reset/clean only to that SHA.
 
-For first adoption, release orchestration must execute `ops/terminal-build.sh`
-from one exact protected `ops/` archive that also contains the reviewed
-preflight script, policy, and audit package. The script later installs itself
-through the existing owner path; subsequent runs may use the same artifacts in
-the currently deployed canonical checkout. This is one lifecycle, not a second
-deployer.
+For first adoption, W2B-C must bootstrap the exact reviewed controller bytes
+to `/opt/terminal/terminal-build.sh`, provision the static build principal and
+one exact least-privilege sudoers command, verify their identities, and publish a
+bootstrap receipt **without** deploying the application. Only then may the
+unprivileged release operator invoke the canonical path above. The controller
+selects one complete preflight bundle from its authoring `ops/` directory when
+present, otherwise from the currently deployed canonical checkout; subsequent
+successful releases self-install the same controller through the incumbent path.
+This is one lifecycle, not a second deployer, and a temporary archive path is not
+an accepted privileged controller entry.
 
-W2B-A proves only current-source cleanliness and exact target admission. It does
-not yet make dependency installation reproducible, bind a build-tree digest,
-make all runtime overlays transactional, or prove deployment, browser behavior,
-rollback, or continuous drift. Those remain later #483 waves.
+W2B-A proves current-source cleanliness and exact target admission. W2B-B adds
+the next bounded gate before live-generation mutation: the sanitized sudo/root
+entry above; exact production runtime admission including the canonical
+`/etc/os-release` alias and the measured root-owned `python3` / `npm` / `npx`
+package aliases; a no-login build principal whose effective group set contains no
+authority beyond its declared primary GID; exact Git-object source materialization
+with full symlink-graph resolution; fresh `npm ci`; read-only in-root dependency binding and deterministic
+`next-env.d.ts`; a network-disabled Next build; a closed public build environment;
+explicit Next preview/RSC key identities; the stable SHA-256 of the
+canonical controller bytes that actually executed; and an immutable
+`mastermind.terminal.build_receipt.v1` receipt. All metadata/key reads use
+no-follow nonblocking descriptors, and nested projection evidence is a closed
+schema. The receipt binds the complete build-input fingerprint—including the
+controller-entry and sandbox contracts—plus BUILD_ID and canonical serving-output
+digest; identical complete inputs with divergent serving output fail closed.
+
+W2B-B does **not** make the inherited live swap/runtime overlays a transactional
+whole-release deployment and is not independently production-adoptable. W2B-C
+still owns live-generation transaction/rollback receipts; W2C still owes served
+browser/runtime identity and continuous drift proof.
 
 ## Inputs and authority
 
@@ -212,10 +246,11 @@ W2A is accepted only after:
 4. the production result is `CLEAN` and its policy digest matches the reviewed artifact;
 5. the immutable receipt is read back from the host.
 
-Even then, the overall #483 program remains active. W2B/W2C must still bind an
-exact target SHA and dependency lock to a reproducible build, capture rollback
-inputs, deploy through the existing owner, prove the served browser/runtime SHA,
-prove rollback, and arm continuous drift detection.
+Even then, the overall #483 program remains active. W2B-B supplies the isolated
+exact-runtime build and immutable build receipt; W2B-C must still make the live
+generation/runtime overlays one provable transaction with durable rollback
+evidence. W2C must then prove the served browser/runtime SHA and arm continuous
+drift detection.
 
 ## Focused verification
 
