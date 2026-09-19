@@ -54,6 +54,7 @@ export type BriefSubscription = {
   delivery: BriefDeliveryChannel;
   state: BriefSubscriptionState;
   createdAt: string;
+  targetName?: string;
 };
 
 export type BriefDelivery = {
@@ -78,6 +79,11 @@ export type BriefPatchState = (typeof PATCH_STATES)[number];
 
 export const BRIEFS_COPY = {
   title: ["Briefs", "简报"],
+  scheduledTitle: ["Scheduled", "已安排"],
+  deliveredTitle: ["Delivered", "已送达"],
+  noSchedules: ["No brief schedules yet.", "还没有简报安排。"],
+  thesisKind: ["Thesis", "论点"],
+  watchlistKind: ["Watchlist", "观察列表"],
   controlsTitle: ["Schedule brief", "安排简报"],
   scheduleHelp: [
     "Choose when this thesis or watchlist should appear in your Briefs inbox.",

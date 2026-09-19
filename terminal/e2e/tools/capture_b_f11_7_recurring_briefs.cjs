@@ -72,6 +72,31 @@ const LIST_DELIVERIES = [
     },
   },
 ];
+const LIST_SUBSCRIPTIONS = [
+  {
+    subscriptionId: "11111111-1111-4111-8111-111111111111",
+    userId: "fixture-user",
+    targetKind: "thesis",
+    targetId: THESIS,
+    targetName: "NVDA cycle",
+    cadence: "daily_after_us_close",
+    delivery: "in_product_inbox",
+    state: "active",
+    createdAt: "2026-09-11T20:00:00.000Z",
+  },
+  {
+    subscriptionId: "22222222-2222-4222-8222-222222222222",
+    userId: "fixture-user",
+    targetKind: "watchlist",
+    targetId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+    targetName: "Semis",
+    cadence: "weekly_saturday",
+    delivery: "in_product_inbox",
+    state: "paused",
+    createdAt: "2026-09-10T20:00:00.000Z",
+  },
+];
+
 const SHOTS = [
   { viewport: "desktop", lang: "en", kind: "list", file: "list-1440.png" },
   { viewport: "desktop", lang: "zh", kind: "list", file: "list-1440-zh.png" },
@@ -177,7 +202,7 @@ async function assertNoNextIndicator(page, file) {
   }
 }
 
-async function mockBriefs(page, deliveries) {
+async function mockBriefs(page, deliveries, subscriptions = []) {
   await page.route("**/api/briefs/deliveries**", async (route) => {
     await route.fulfill({
       status: 200,
@@ -190,7 +215,7 @@ async function mockBriefs(page, deliveries) {
       await route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify({ subscriptions: [] }),
+        body: JSON.stringify({ subscriptions }),
       });
       return;
     }
@@ -198,9 +223,9 @@ async function mockBriefs(page, deliveries) {
   });
 }
 
-async function openAlerts(page, lang, viewport, deliveries) {
+async function openAlerts(page, lang, viewport, deliveries, subscriptions = []) {
   await page.setViewportSize(viewport);
-  await mockBriefs(page, deliveries);
+  await mockBriefs(page, deliveries, subscriptions);
   await page.addInitScript((l) => {
     localStorage.setItem("mm.lang", l);
     localStorage.setItem("theme", "dark");
@@ -329,7 +354,13 @@ async function main() {
           if (shot.kind === "subscribe") {
             await openSubscribe(page, shot.lang, VIEWPORTS[shot.viewport]);
           } else {
-            await openAlerts(page, shot.lang, VIEWPORTS[shot.viewport], shot.kind === "list" ? LIST_DELIVERIES : []);
+            await openAlerts(
+              page,
+              shot.lang,
+              VIEWPORTS[shot.viewport],
+              shot.kind === "list" ? LIST_DELIVERIES : [],
+              shot.kind === "list" ? LIST_SUBSCRIPTIONS : [],
+            );
           }
           await shoot(page, shot.file, shot.kind);
           files.push(shot.file);

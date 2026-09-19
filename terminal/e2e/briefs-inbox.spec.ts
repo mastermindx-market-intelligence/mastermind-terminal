@@ -12,7 +12,7 @@ const readyBody = {
   artifact: { name: "US session digest", asof: "2026-09-11T20:05:00.000Z" },
 };
 
-async function mockBriefs(page: Page, deliveries: unknown[]) {
+async function mockBriefs(page: Page, deliveries: unknown[], subscriptions: unknown[] = []) {
   await page.route("**/api/briefs/deliveries**", async (route) => {
     await route.fulfill({
       status: 200,
@@ -25,7 +25,7 @@ async function mockBriefs(page: Page, deliveries: unknown[]) {
       await route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify({ subscriptions: [] }),
+        body: JSON.stringify({ subscriptions }),
       });
       return;
     }
@@ -44,6 +44,47 @@ test("empty inbox names the in-product destination without promising external de
   await expect(inbox).toBeVisible();
   await expect(inbox.getByText(briefCopy("empty", "en"))).toBeVisible();
   await expect(inbox.getByTestId("briefs-email-null")).toHaveText(briefCopy("emailNull", "en"));
+});
+
+test("scheduled briefs show their target, cadence, and state on the Alerts surface", async ({ page }) => {
+  const subscriptions = [
+    {
+      subscriptionId: "11111111-1111-4111-8111-111111111111",
+      userId: "u-1",
+      targetKind: "thesis",
+      targetId: THESIS,
+      targetName: "NVDA cycle",
+      cadence: "daily_after_us_close",
+      delivery: "in_product_inbox",
+      state: "active",
+      createdAt: "2026-09-11T20:00:00.000Z",
+    },
+    {
+      subscriptionId: "22222222-2222-4222-8222-222222222222",
+      userId: "u-1",
+      targetKind: "watchlist",
+      targetId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      targetName: "Semis",
+      cadence: "weekly_saturday",
+      delivery: "in_product_inbox",
+      state: "paused",
+      createdAt: "2026-09-10T20:00:00.000Z",
+    },
+  ];
+  await page.addInitScript(() => {
+    localStorage.setItem("mm.lang", "en");
+    localStorage.setItem("theme", "dark");
+  });
+  await mockBriefs(page, [], subscriptions);
+  await page.goto("/alerts");
+  const schedules = page.getByTestId("briefs-schedules");
+  await expect(schedules.locator("[data-brief-schedule]")).toHaveCount(2);
+  await expect(schedules.getByText("NVDA cycle")).toBeVisible();
+  await expect(schedules.getByText("Semis")).toBeVisible();
+  await expect(schedules.getByText(briefCopy("subscribeDaily", "en"))).toBeVisible();
+  await expect(schedules.getByText(briefCopy("subscribeWeekly", "en"))).toBeVisible();
+  await expect(schedules).not.toContainText("daily_after_us_close");
+  await expect(schedules).not.toContainText("11111111");
 });
 
 test("ready and degraded rows render verbatim EN/ZH sentences, never a cadence slug", async ({ page }) => {

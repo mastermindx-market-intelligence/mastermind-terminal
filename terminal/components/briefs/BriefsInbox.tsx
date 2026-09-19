@@ -12,13 +12,17 @@ import {
   deliveryIsMiss,
   validateBriefBody,
   type BriefLang,
+  type BriefSubscription,
   type PinnedDelivery,
 } from "@/lib/briefs";
 
 export default function BriefsInbox({ lang }: { lang: BriefLang }) {
   const L: BriefLang = lang === "zh" ? "zh" : "en";
   const [rows, setRows] = useState<PinnedDelivery[] | null>(null);
+  const [subs, setSubs] = useState<BriefSubscription[] | null>(null);
   const [unavailable, setUnavailable] = useState(false);
+  const [subsUnavailable, setSubsUnavailable] = useState(false);
+  const [busy, setBusy] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -34,7 +38,50 @@ export default function BriefsInbox({ lang }: { lang: BriefLang }) {
     }
   }, []);
 
-  useEffect(() => { void load(); }, [load]);
+  const loadSubscriptions = useCallback(async () => {
+    try {
+      const r = await fetch("/api/briefs/subscriptions");
+      if (r.status === 401) { setSubs([]); setSubsUnavailable(false); return; }
+      if (!r.ok) { setSubs(null); setSubsUnavailable(true); return; }
+      const body = await r.json() as { subscriptions?: BriefSubscription[] };
+      setSubs(body.subscriptions || []);
+      setSubsUnavailable(false);
+    } catch {
+      setSubs(null);
+      setSubsUnavailable(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    void load();
+    void loadSubscriptions();
+  }, [load, loadSubscriptions]);
+
+  async function changeSubscription(sub: BriefSubscription, action: "pause" | "resume" | "remove") {
+    setBusy(sub.subscriptionId);
+    try {
+      const r = await fetch("/api/briefs/subscriptions/" + encodeURIComponent(sub.subscriptionId), {
+        method: action === "remove" ? "DELETE" : "PATCH",
+        ...(action === "remove"
+          ? {}
+          : {
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ state: action }),
+          }),
+      });
+      if (r.ok) {
+        await loadSubscriptions();
+        if (action === "remove") await load();
+      }
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  function targetLabel(sub: BriefSubscription): string {
+    return sub.targetName
+      || briefCopy(sub.targetKind === "watchlist" ? "watchlistKind" : "thesisKind", L);
+  }
 
   return (
     <div className={s.module} data-testid="briefs-inbox" data-briefs-module="inbox">
@@ -45,6 +92,59 @@ export default function BriefsInbox({ lang }: { lang: BriefLang }) {
         )}
       </div>
       <p className={b.deliveryNote} data-testid="briefs-email-null">{briefCopy("emailNull", L)}</p>
+
+      <section className={b.briefSection} data-testid="briefs-schedules">
+        <div className={b.sectionHead}>
+          <span>{briefCopy("scheduledTitle", L)}</span>
+          {subs && subs.length > 0 && <span>{subs.length}</span>}
+        </div>
+        {subsUnavailable && (
+          <p className={s.calmBody}>{briefCopy("unavailable", L)}</p>
+        )}
+        {!subsUnavailable && subs && subs.length === 0 && (
+          <p className={s.calmBody} data-briefs-schedules-state="empty">{briefCopy("noSchedules", L)}</p>
+        )}
+        {!subsUnavailable && subs && subs.length > 0 && (
+          <div className={b.scheduleList}>
+            {subs.map((sub) => {
+              const paused = sub.state === "paused";
+              const disabled = busy === sub.subscriptionId;
+              return (
+                <div className={b.scheduleRow} key={sub.subscriptionId} data-brief-schedule="">
+                  <div className={b.scheduleIdentity}>
+                    <strong data-brief-schedule-name="">{targetLabel(sub)}</strong>
+                    <span>{briefCopy(sub.targetKind === "watchlist" ? "watchlistKind" : "thesisKind", L)}</span>
+                  </div>
+                  <span className={b.cadence}>{briefCadenceLabel(sub.cadence, L)}</span>
+                  <span className={b.stateChip} data-state={paused ? "paused" : "active"}>
+                    {briefCopy(paused ? "paused" : "on", L)}
+                  </span>
+                  <div className={b.cadenceActions}>
+                    <button
+                      type="button"
+                      disabled={disabled}
+                      onClick={() => void changeSubscription(sub, paused ? "resume" : "pause")}
+                    >
+                      {briefCopy(paused ? "resume" : "pause", L)}
+                    </button>
+                    <button
+                      type="button"
+                      className={b.removeButton}
+                      disabled={disabled}
+                      onClick={() => void changeSubscription(sub, "remove")}
+                    >
+                      {briefCopy("removeSchedule", L)}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
+      <section className={b.briefSection} data-testid="briefs-delivered">
+        <div className={b.sectionHead}><span>{briefCopy("deliveredTitle", L)}</span></div>
       {unavailable && (
         <>
           <p className={s.calmBody}>{briefCopy("unavailable", L)}</p>
@@ -88,6 +188,7 @@ export default function BriefsInbox({ lang }: { lang: BriefLang }) {
           })}
         </div>
       )}
+      </section>
     </div>
   );
 }
