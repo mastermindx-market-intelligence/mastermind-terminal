@@ -451,6 +451,19 @@ function ExactSideUnusualRail({
     ? t("mtxUnusualFlagged").replace("{n}", String(model.flags.length))
     : t(stateCopyKey(model.state));
 
+  /** CSS class suffix for the rail's unusual state. Maps every state value to a safe
+   * literal; unknown API values fall back to "unknown" rather than leaking raw slugs. */
+  function stateClass(): string {
+    const MAP: Record<string, string> = {
+      unavailable: "unavailable",
+      insufficient: "insufficient",
+      clear: "clear",
+      flagged: "flagged",
+      malformed: "malformed",
+    };
+    return MAP[model.state] ?? "unknown";
+  }
+
   return (
     <section
       className="obs-mtx-unusual"
@@ -485,7 +498,7 @@ function ExactSideUnusualRail({
           ))}
         </div>
       ) : (
-        <div className={`obs-mtx-unusual-state ${model.state}`} aria-live="polite">
+        <div className={`obs-mtx-unusual-state ${stateClass()}`} aria-live="polite">
           {stateText}
         </div>
       )}

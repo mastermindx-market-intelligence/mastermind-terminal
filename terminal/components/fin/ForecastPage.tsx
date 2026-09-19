@@ -623,6 +623,24 @@ function GrowthStrip({ est, zh }: { est: Fund["estimates"]; zh: boolean }) {
   );
 }
 
+/**
+ * Guidance type → localized label. The raw string values are opaque slugs from the API
+ * (e.g. "预增", "预减", "续盈"). Map every value to a human-readable EN/ZH pair, with
+ * a fallback for any unexpected values the API may still return.
+ */
+function guidanceTypeLabel(type: string, zh: boolean): string {
+  const MAP: Record<string, [string, string]> = {
+    "预增": ["Guidance raised", "业绩预增"],
+    "预减": ["Guidance lowered", "业绩预减"],
+    "预平": ["Guidance flat", "业绩预平"],
+    "预亏": ["Guidance loss", "业绩预亏"],
+    "续盈": ["Profit maintained", "续盈"],
+    "扭亏": ["Profit swing", "扭亏"],
+  };
+  const pair = MAP[type];
+  return pair ? (zh ? pair[1] : pair[0]) : (zh ? `预判：${type}` : type);
+}
+
 /* CN / no-coverage empty state; surfaces company guidance chip when present. */
 function AnalystEmpty({ fund, zh }: { fund: Fund | null; zh: boolean }) {
   const g = fund?.guidance ?? null;
@@ -644,7 +662,7 @@ function AnalystEmpty({ fund, zh }: { fund: Fund | null; zh: boolean }) {
       </div>
       {g && (
         <div className="fin-fc-guidance">
-          <span className="fin-tag" style={{ "--c": "var(--brand-2)" } as React.CSSProperties}>{g.type}</span>
+          <span className="fin-tag" style={{ "--c": "var(--brand-2)" } as React.CSSProperties}>{guidanceTypeLabel(g.type, !!zh)}</span>
           <span className="txt">
             {pick(zh, "Company guidance", "公司业绩预告")}
             {g.chg_min != null && g.chg_max != null && (
