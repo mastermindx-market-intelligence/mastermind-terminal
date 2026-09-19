@@ -486,7 +486,7 @@ describe("INVITE_MESSAGES plain-word completeness (acceptance #6)", () => {
   const allCodes: InviteCode[] = [
     "not_signed_in", "invalid_token", "already_used", "expired", "email_unknown", "email_mismatch",
     "invalid_email", "invalid_role", "not_admin", "team_not_found", "duplicate_invite",
-    "no_email_delivery", "unavailable", "failed",
+    "no_email_delivery", "unavailable", "read_failed", "failed",
   ];
   it("every InviteCode has a non-empty, distinct EN/ZH pair with no banned vocabulary", () => {
     for (const code of allCodes) {
@@ -694,7 +694,6 @@ describe("TEAM_ROUTE_MESSAGES and LEX plain-word completeness (B-F12-8)", () => 
   });
 });
 
-// --- Packet W9T_F12_17 (MO-PAID-081, seat pick: honest link-only) appended tests ---
 import {
   INVITE_ACCEPT_PATH,
   INVITE_EMAIL_DELIVERY_CHECKED_AT,

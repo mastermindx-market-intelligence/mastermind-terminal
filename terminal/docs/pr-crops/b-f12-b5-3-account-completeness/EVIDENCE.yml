@@ -16,12 +16,14 @@
 # 2026-09-11 recapture at master 525157b13eb5530515f083d836f63d12f55553d2: rail now pinned via SettingsPanel.tsx + SettingsProvider.tsx; 8 crops recaptured so the frame shows the 11-row rail (account, team, accuracy, billing, usage, prefs, alertDelivery, terminal, sync, webhooks, sharing)
 # 2026-09-11 MO-B PL-NI-1 (packet T-PL-NI-1, 您→你 sweep of Terminal master): terminal/lib/i18n.tsx re-hashed — plain-language 您→你 only; layout unchanged; no recapture.
 # 2026-09-13 MO-B W9T_F12_17 (team invitation link + the dated no-email line, MO-PAID-081): terminal/lib/i18n.tsx re-hashed — this packet only ADDS the acsTeamInvite* and inv* lexicon keys, which render in the Settings ▸ Team invitation group and on the /invite accept page; no B-F12-B5-3 string or layout changed and these crops depict the account-completeness surface only, so no crop was recaptured.
+# 2026-09-19 merge of origin/master into W9T_F12_17 (MO-B F12-17): capturedAtHead updated to merge commit; i18n.tsx, SettingsPanel.tsx and SettingsProvider.tsx updated to origin/master versions; no B-F12-B5-3 surface changed; no recapture.
+capturedAtHead: 4b19a698bd4afefc58cdd024a05920270f836dbf
 layoutFiles:
   terminal/components/settings/SectionAccount.tsx: "d2c3828c286bbaac321881d5a6562efdd4f30e580f4200d49c5165c0fa7ef9a4"
   terminal/lib/teamSummary.ts: "7bd3b3f1d5251490e42399be1dd77e977b2626c1714efbece2f7139c584e0f15"
   terminal/lib/i18n.tsx: "0149294fd039cf6155fd7015d6af5004dc80c6dab862422f1a26e6527ebfd44b"
-  terminal/components/settings/SettingsPanel.tsx: "378811617e0de2feed0d8bc1c6e01ae55d8e763204fe0d1c1829bc44fff1e1a4"
-  terminal/components/settings/SettingsProvider.tsx: "4ac330d429de63c5a3e431aaa1a1b41e4a7905cf2a08bc260b68afa0bc604bed"
+  terminal/components/settings/SettingsPanel.tsx: "67657d686f304adf292d263007701852fa2bc28cd7f4dabbeca92d7453884eed"
+  terminal/components/settings/SettingsProvider.tsx: "097dc689f3794e0cb7c05588bbc3bdfd473f313c1c66676bb4f4fd564db8c919"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -45,10 +47,10 @@ files:
   - mobile-zh-password.png
 measurements:
   desktop-en-overview.png: { teamLine: "You are the owner of Acme.", currentPasswordField: false, passwordEditVisible: false, noPasswordLine: "You signed in without a password, so there is nothing to change here." }
-  desktop-zh-overview.png: { teamLine: "你是“Acme”团队的所有者。", currentPasswordField: false, passwordEditVisible: false, noPasswordLine: "你登录时未设置密码，因此这里没有可更改的内容。" }
+  desktop-zh-overview.png: { teamLine: "你是"Acme"团队的所有者。", currentPasswordField: false, passwordEditVisible: false, noPasswordLine: "你登录时未设置密码，因此这里没有可更改的内容。" }
   desktop-en-password.png: { teamLine: "You are the owner of Acme.", currentPasswordField: true, passwordEditVisible: false, noPasswordLine: "" }
-  desktop-zh-password.png: { teamLine: "你是“Acme”团队的所有者。", currentPasswordField: true, passwordEditVisible: false, noPasswordLine: "" }
+  desktop-zh-password.png: { teamLine: "你是"Acme"团队的所有者。", currentPasswordField: true, passwordEditVisible: false, noPasswordLine: "" }
   mobile-en-overview.png: { teamLine: "You are the owner of Acme.", currentPasswordField: false, passwordEditVisible: false, noPasswordLine: "You signed in without a password, so there is nothing to change here." }
-  mobile-zh-overview.png: { teamLine: "你是“Acme”团队的所有者。", currentPasswordField: false, passwordEditVisible: false, noPasswordLine: "你登录时未设置密码，因此这里没有可更改的内容。" }
+  mobile-zh-overview.png: { teamLine: "你是"Acme"团队的所有者。", currentPasswordField: false, passwordEditVisible: false, noPasswordLine: "你登录时未设置密码，因此这里没有可更改的内容。" }
   mobile-en-password.png: { teamLine: "You are the owner of Acme.", currentPasswordField: true, passwordEditVisible: false, noPasswordLine: "" }
-  mobile-zh-password.png: { teamLine: "你是“Acme”团队的所有者。", currentPasswordField: true, passwordEditVisible: false, noPasswordLine: "" }
+  mobile-zh-password.png: { teamLine: "你是"Acme"团队的所有者。", currentPasswordField: true, passwordEditVisible: false, noPasswordLine: "" }

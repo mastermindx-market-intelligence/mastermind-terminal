@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { type IChartApi, PriceScaleMode } from "lightweight-charts";
 import { DEFAULT_CHART_RIGHT_OFFSET, withChartFutureOffset } from "@/lib/chart-engine/viewReset";
 import { isIntradayTf } from "@/lib/intradaySources";
+import { VISUAL_INTELLIGENCE_DEFAULTS, type VisualIntelligenceSettings } from "@/lib/visualIntelligence";
 import { useT } from "@/lib/i18n";
 
 // Chart scale/display settings persisted alongside user prefs (key: mm.chartSettings).
@@ -64,8 +65,9 @@ export type ChartSettings = {
   preMarketColor: string;
   postMarketColor: string;
   overnightColor: string;
-};
+} & VisualIntelligenceSettings;
 export const DEFAULT_CHART_SETTINGS: ChartSettings = {
+  ...VISUAL_INTELLIGENCE_DEFAULTS,
   mode: PriceScaleMode.Normal,
   invertScale: false,
   scaleLeft: false,

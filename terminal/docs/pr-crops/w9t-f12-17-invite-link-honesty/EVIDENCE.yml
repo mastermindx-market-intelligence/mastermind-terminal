@@ -3,8 +3,8 @@
 # Seat ruling 2026-09-13: honest link-only. No mail provider is provisioned by this lane.
 # layoutFiles carry sha256 hashes of the files they name; proof of which code generated each crop.
 # Rebuild any crop and recompute its layoutFiles, or the evidence lock will fail and the PR will not land.
-# capturedAtHead: f72c33fa4efc6c35bc83e7a9bae9b0363c6f7ab8
-capturedAtHead: f72c33fa4efc6c35bc83e7a9bae9b0363c6f7ab8
+# capturedAtHead: 4b19a698bd4afefc58cdd024a05920270f836dbf
+capturedAtHead: 4b19a698bd4afefc58cdd024a05920270f836dbf
 capturedAt: 2026-09-14T00:36:30.324Z
 layoutFiles:
   terminal/components/settings/SectionTeam.tsx: "ddb269dd8cd42a68731102ea7b5d8133832f50412b1799e7ffdf6ea1f76c4944"

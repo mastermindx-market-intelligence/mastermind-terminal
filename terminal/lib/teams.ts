@@ -645,7 +645,7 @@ export type InviteCode =
   | "not_signed_in" | "invalid_token" | "already_used" | "expired"
   | "email_unknown" | "email_mismatch" | "invalid_email" | "invalid_role"
   | "not_admin" | "team_not_found" | "duplicate_invite"
-  | "no_email_delivery" | "unavailable" | "failed";
+  | "no_email_delivery" | "unavailable" | "read_failed" | "failed";
 
 // ── MO-PAID-081, seat ruling W9T_F12_17 (2026-09-13): honest link-only ─────────────────────
 // The Terminal has no mailer and this packet provisions no mail provider, so an invitation is
@@ -757,6 +757,10 @@ export const INVITE_MESSAGES: Record<InviteCode, [string, string]> = {
   // was last checked, so the line cannot outlive the fact it states.
   no_email_delivery: noEmailDeliveryPair(),
   unavailable: ["Team accounts are not set up on this server yet, so we cannot answer. Nothing was changed.", "此服务器尚未启用团队账户，因此我们无法作答。未更改任何内容。"],
+  // Audit heal of t#514 (H2): absence is a FACT and is never collapsed into a failure. A read that
+  // broke for any other reason says so, instead of telling the reader the server has no team
+  // accounts — the same split the sibling routes pin as READ_UNAVAILABLE vs READ_FAILED.
+  read_failed: ["We could not read the invitations just now. Please try again.", "我们暂时无法读取邀请列表，请稍后重试。"],
   failed: ["We could not complete that action just now.", "我们暂时无法完成该操作。"],
 };
 
@@ -865,7 +869,7 @@ const INVITE_STATUS: Record<InviteCode, number> = {
   not_signed_in: 401, invalid_token: 404, already_used: 409, expired: 410,
   email_unknown: 403, email_mismatch: 403, invalid_email: 400, invalid_role: 400,
   not_admin: 403, team_not_found: 404, duplicate_invite: 409,
-  no_email_delivery: 200, unavailable: 503, failed: 500,
+  no_email_delivery: 200, unavailable: 503, read_failed: 503, failed: 500,
 };
 
 export type Setting = { scope: "user" | "workspace"; teamId: string | null; key: string; value: unknown; updatedAt: string | null };
