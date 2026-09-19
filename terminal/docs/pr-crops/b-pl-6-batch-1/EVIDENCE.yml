@@ -5,6 +5,7 @@
 # capturedAt: 2026-09-09T05:56:50.842Z
 # capturedAtHead is informational. The lock is layoutFiles.
 # 2026-09-19 seat merge of master 1c46b277 into #584 (B-F12-13): hash-only restamp of terminal/components/ChartPanel.tsx, terminal/components/workspaces/AnalysisWorkspace.tsx, terminal/lib/i18n.tsx, terminal/lib/plainLabels.ts to the merged-tree bytes; crops NOT recaptured by this merge commit.
+# 2026-09-19 seat merge of origin/master dd7c6dec712a (#584 B-F12-13, merge commit) into #587 (W9T_F13_9 team rollup): hash-only restamp of terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
 layoutFiles:
   terminal/components/OptionsHubView.tsx: "37c67a26b3833275834c4ba0267040161fab9c6ea543fa23a7cddf7eb60accf9"
   terminal/components/SearchModal.tsx: "ed4545abe5d31c5f79e7eab96bad45b76b06694bf4d1994901dd6defd195bbc0"
@@ -13,7 +14,7 @@ layoutFiles:
   terminal/components/ChartPanel.tsx: "97cd543d99a06901ecd1825cb8ddcdc6e727685561f5d1da5fd6c43dbabd254f"
   terminal/components/DayRange.tsx: "c84724652783da1897ab4eeb98550eaf3dbd7942eefe3ce127b6ada2b16dd672"
   terminal/lib/plainLabels.ts: "8f69818feca65a5f28c590460c52e4f06c04c25cc4f3da8643eff9050161b588"
-  terminal/lib/i18n.tsx: "1d571257006431cc4d58e16df261af64ae243fd06e3ec55a57a7fec0ddc735b7"
+  terminal/lib/i18n.tsx: "bd49cfd3cd13dcac8afccb1f443745622cd7ec557989d6b8ce23e8879b6bbfcb"
 theme: dark
 languages: [en, zh]
 viewports:
