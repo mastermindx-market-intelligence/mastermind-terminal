@@ -18,7 +18,7 @@ test("job-first Options IA stays addressable, honest, and contained", async ({ p
   }
 
   await page.goto("/options");
-  const workspace = page.locator('[data-options-ia="job-first-r6"]');
+  const workspace = page.locator('[data-options-job-surface="job-first-r6"]');
   await expect(workspace).toBeVisible({ timeout: 15_000 });
   await expect(page.getByRole("tablist", { name: zh ? "期权交易任务" : "Options trader jobs" })).toBeVisible();
   await expect(page.getByRole("tablist", { name: zh ? "期权子视图" : "Options views" })).toBeVisible();
