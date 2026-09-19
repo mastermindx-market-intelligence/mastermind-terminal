@@ -26,6 +26,7 @@ test("Prophet PERF renders the private forward ledger truthfully at every suppor
 
   await expect(panel).toContainText("Closed plans");
   await expect(panel).toContainText("Raw underlying · mean");
+  await expect(page.getByTestId("prophet-perf-raw-coverage")).toContainText("3 / 3");
   await expect(page.getByTestId("prophet-perf-raw-return-note")).toContainText(
     "Not option-contract return, portfolio return, benchmarked return, or alpha.",
   );
@@ -68,6 +69,7 @@ test("Prophet PERF renders the private forward ledger truthfully at every suppor
   await setLanguage(page, "zh");
   await expect(panel.getByRole("heading", { name: "前向记录" })).toBeVisible();
   await expect(panel).toContainText("已平仓计划");
+  await expect(page.getByTestId("prophet-perf-raw-coverage")).toContainText("原始收益覆盖");
   await expect(page.getByTestId("prophet-perf-raw-return-note")).toContainText(
     "不是期权合约收益、投资组合收益、基准收益或阿尔法",
   );
@@ -185,4 +187,122 @@ test("Prophet PERF distinguishes an empty effective ledger from an outage", asyn
   await expect(page.getByTestId("prophet-perf-benchmark")).toContainText(
     "benchmark and excess returns are not shown",
   );
+});
+
+
+test("Prophet PERF makes partial raw-result coverage explicit", async ({ page }) => {
+  const partial = {
+    schema: "prophet.perf_projection/v1",
+    source: {
+      path: "data/prophet/ledger.jsonl",
+      schema: "prophet.ledger/v1",
+      projection: "canonical_effective_ledger",
+      latest_asof: "2026-09-18",
+      latest_close_date: "2026-09-18",
+      freshness_unavailable_reason: null,
+    },
+    summary: {
+      terminal_plan_count: 2,
+      closed_plan_count: 2,
+      no_entry_count: 0,
+      outcome_counts: {
+        T1_HIT: 1,
+        T2_HIT: 0,
+        INVALIDATED: 0,
+        EXPIRED: 1,
+        CLOSED_EARLY: 0,
+        NO_ENTRY: 0,
+      },
+      raw_stock_return: {
+        label: "Raw underlying return (unweighted per entered plan)",
+        available_count: 1,
+        unavailable_count: 1,
+        mean_pct: 5,
+        median_pct: 5,
+        min_pct: 5,
+        max_pct: 5,
+        positive_count: 1,
+        negative_count: 0,
+        zero_count: 0,
+        unavailable_reason: null,
+      },
+      benchmarked_performance: {
+        available: false,
+        benchmark_return_pct: null,
+        excess_return_pct: null,
+        unavailable_reason: "canonical_effective_ledger_has_no_benchmark_return_evidence",
+      },
+    },
+    integrity: {
+      canonical_row_count: 2,
+      effective_row_count: 2,
+      quarantined_excluded_count: 0,
+      quarantined_id_count: 0,
+      corrected_row_count: 0,
+      correction_application_count: 0,
+    },
+    semantics: {
+      outcome_count_basis: "Terminal ledger outcome labels only.",
+      raw_stock_return_basis: "Unweighted per-plan underlying returns for entered plans.",
+    },
+    plans: [
+      {
+        id: "PARTIAL-A-BULL-20260901",
+        ticker: "PRA",
+        direction: "BULL",
+        signal_date: "2026-09-01",
+        signal_date_unavailable_reason: null,
+        entry_date: "2026-09-02",
+        entry_date_unavailable_reason: null,
+        close_date: "2026-09-18",
+        outcome: "T1_HIT",
+        days_held: 16,
+        plan_adherence: "Canonical terminal outcome.",
+        stock_result_pct: 5,
+        stock_result_pct_unavailable_reason: null,
+        option_result_pct: null,
+        option_result_pct_unavailable_reason: "canonical_ledger_null",
+        asof: "2026-09-18",
+      },
+      {
+        id: "PARTIAL-B-BULL-20260903",
+        ticker: "PRB",
+        direction: "BULL",
+        signal_date: "2026-09-03",
+        signal_date_unavailable_reason: null,
+        entry_date: "2026-09-04",
+        entry_date_unavailable_reason: null,
+        close_date: "2026-09-17",
+        outcome: "EXPIRED",
+        days_held: 13,
+        plan_adherence: "Canonical terminal outcome.",
+        stock_result_pct: null,
+        stock_result_pct_unavailable_reason: "canonical_ledger_null",
+        option_result_pct: null,
+        option_result_pct_unavailable_reason: "canonical_ledger_null",
+        asof: "2026-09-17",
+      },
+    ],
+  };
+
+  await page.route("**/api/flow?f=prophet_perf", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(partial),
+    });
+  });
+
+  await page.goto("/options?tab=prophet");
+  const prophet = page.locator(".obs-prophet");
+  await expect(prophet).toBeVisible({ timeout: 15_000 });
+  await prophet.getByRole("button", { name: "PERF", exact: true }).click();
+
+  const panel = page.getByTestId("prophet-perf-panel");
+  await expect(panel).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByTestId("prophet-perf-raw-coverage")).toContainText("Raw result coverage");
+  await expect(page.getByTestId("prophet-perf-raw-coverage")).toContainText("1 / 2");
+  await expect(page.getByTestId("prophet-perf-history-row")).toHaveCount(2);
+  await expect(page.getByTestId("prophet-perf-history-row").nth(1)).toContainText("Not published");
+  await expect(page.getByTestId("prophet-perf-unavailable")).toHaveCount(0);
 });

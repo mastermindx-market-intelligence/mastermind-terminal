@@ -67,7 +67,7 @@
 
 .summaryGrid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 8px;
   margin-top: 12px;
 }
@@ -360,10 +360,6 @@
 
   .summaryGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .summaryGrid > :last-child {
-    grid-column: 1 / -1;
   }
 
   .truthGrid {

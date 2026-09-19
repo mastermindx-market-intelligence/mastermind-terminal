@@ -149,6 +149,10 @@ function Summary({
           <span>{t("rawRange")}</span>
           <b>{rawRange}</b>
         </div>
+        <div className={styles.metricCard} data-testid="prophet-perf-raw-coverage">
+          <span>{t("rawCoverage")}</span>
+          <b>{raw.available_count} / {payload.summary.closed_plan_count}</b>
+        </div>
       </div>
 
       <div className={styles.truthGrid}>

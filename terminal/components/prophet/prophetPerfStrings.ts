@@ -11,6 +11,7 @@ const PERF_LEX = {
   rawMean: ["Raw underlying · mean", "原始标的收益 · 平均"],
   rawMedian: ["Raw underlying · median", "原始标的收益 · 中位数"],
   rawRange: ["Raw underlying · range", "原始标的收益 · 区间"],
+  rawCoverage: ["Raw result coverage", "原始收益覆盖"],
   rawTitle: ["Raw underlying returns", "原始标的收益"],
   rawBody: [
     "Unweighted per-plan underlying price moves. Not adjusted for BULL/BEAR direction: a positive number means the underlying rose, including on BEAR plans. Not option-contract return, portfolio return, benchmarked return, or alpha.",
