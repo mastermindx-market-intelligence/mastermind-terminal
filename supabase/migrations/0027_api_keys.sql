@@ -1,4 +1,4 @@
--- Ledger row: 0027_api_keys / PR #581 (open, packet B-F12-10); not applied
+-- Ledger row: 0027_api_keys / PR #581 (merged c9381593, packet B-F12-10); applied 2026-09-19
 -- Rollback: drop function if exists public.api_v1_read_as_user(uuid, text, jsonb); drop function if exists public.api_key_authenticate(text, text); drop function if exists public.api_key_salt_for_prefix(text); drop trigger if exists api_keys_audit on public.api_keys; drop trigger if exists api_keys_active_limit on public.api_keys; drop trigger if exists api_keys_no_unrevoke on public.api_keys; drop function if exists public.log_api_key_event(); drop function if exists public.api_keys_enforce_active_limit(); drop function if exists public.revoke_api_key(uuid, uuid); drop table if exists public.api_key_events; drop table if exists public.api_key_usage; drop table if exists public.api_keys;
 -- 0027: personal read-only API keys (packet B-F12-10, MO-PAID-055).
 --
