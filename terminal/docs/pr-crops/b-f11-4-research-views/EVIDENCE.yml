@@ -12,8 +12,8 @@
 # 2026-09-13 B-F11-5 heal 1: ThesisWorkspace.tsx re-hashed — data-state attribute on the proposal state chip inside the detail pane; the B-F11-4 thesis-list-pane clip does not contain it; no recapture.
 # 2026-09-13 H4b #565 history-preserving merge of origin/master 3db34e7a8 (PR #580 ledger flip atop #576 / #573 / #572 / #571 / #570): i18n.tsx re-hashed — auto-merge of master's PL-NI-1 (您→你 + DEEP_RESEARCH_MONTHLY template removal) with PR #565's H4b (DEEP_RESEARCH_MONTHLY template re-introduction) yields bytes 130d2ef1. Pinned below. No B-F11-4 string or layout changed; no crop recaptured.
 layoutFiles:
-  terminal/components/workspaces/ThesisWorkspace.tsx: "82f81d4f7f7c7758c9258640d49d75bcf646feb3c954189f3170feff3a44e39d"
-  terminal/components/workspaces/ThesisWorkspace.module.css: "ac9547b1b7cf4a5d51f4838a40983f55d489483bef1e237ee2b5e81c8e10d37c"
+  terminal/components/workspaces/ThesisWorkspace.tsx: "111e04dc1b303f3e18eb847197187236b190cd20c58f3c990f9ebe3c2bf9f1ff"
+  terminal/components/workspaces/ThesisWorkspace.module.css: "72a791c76ae3a6d7fad66f387a140c163d689c74b4957af8644f1068404c0a4b"
   terminal/lib/rmsViews.ts: "fd5f025806c5a4b1b27e7d99a026e82f555767f0d96b6a2766a5b363961897cb"
   terminal/lib/savedViews.ts: "16e2914a032cba50cce999d1802c53e51098ce76dd82931925ef41b8e0f7af54"
   terminal/lib/plainLabels.ts: "8f69818feca65a5f28c590460c52e4f06c04c25cc4f3da8643eff9050161b588"
