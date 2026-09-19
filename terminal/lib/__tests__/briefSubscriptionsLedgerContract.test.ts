@@ -27,12 +27,13 @@ const row = reservationRow(PREFIX);
 const sql = readMigration(FILE);
 
 describe("0024 brief subscriptions ledger contract", () => {
-  it("claims prefix 0024 in RESERVATIONS.json as taken and not yet applied", () => {
+  it("claims prefix 0024 in RESERVATIONS.json as taken, merged (#579) and not yet applied", () => {
     expect(row.state).toBe("taken");
     expect(row.file).toBe(FILE);
     expect(row.packet).toBe("B-F11-7");
     expect(row.pr).toBe(579);
-    expect(row.pr_state).toBe("open");
+    expect(row.pr_state).toBe("merged");
+    expect(row.merged_sha).toBe("82bee14ba");
     expect(row.applied_in_production).toBe(false);
     expect(row.applied_date).toBeNull();
   });
