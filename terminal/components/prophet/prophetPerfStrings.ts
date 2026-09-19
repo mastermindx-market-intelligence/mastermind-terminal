@@ -4,6 +4,8 @@ const PERF_LEX = {
   source: ["Source", "来源"],
   ledgerAsOf: ["Ledger as of", "账本截至"],
   latestClose: ["Latest close", "最近平仓"],
+  sourceStatus: ["Source status", "来源状态"],
+  cachedResponse: ["Cached response", "缓存响应"],
   closedPlans: ["Closed plans", "已平仓计划"],
   noEntry: ["No entry", "未入场"],
   rawMean: ["Raw underlying · mean", "原始标的收益 · 平均"],

@@ -32,6 +32,7 @@ export interface ProphetPerfPlan {
 
 export interface ProphetPerfPayload {
   schema: typeof PROPHET_PERF_SCHEMA;
+  stale: boolean;
   source: {
     path: string;
     schema: "prophet.ledger/v1";
@@ -192,6 +193,8 @@ function parsePlan(value: unknown): ProphetPerfPlan | null {
 export function normalizeProphetPerfPayload(value: unknown): ProphetPerfPayload | null {
   const root = record(value);
   if (!root || root.schema !== PROPHET_PERF_SCHEMA) return null;
+  if (root.stale !== undefined && typeof root.stale !== "boolean") return null;
+  const stale = root.stale === true;
 
   const source = record(root.source);
   const summary = record(root.summary);
@@ -335,6 +338,7 @@ export function normalizeProphetPerfPayload(value: unknown): ProphetPerfPayload 
 
   return {
     schema: PROPHET_PERF_SCHEMA,
+    stale,
     source: {
       path: sourcePath,
       schema: "prophet.ledger/v1",
