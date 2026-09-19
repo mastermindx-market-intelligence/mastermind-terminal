@@ -17,7 +17,7 @@ export type BriefTarget = {
   kind: BriefTargetKind;
   id: string;
   name: string;
-  version_or_asof: string;
+  version_or_asof: string | null;
 };
 
 export type BriefMarketRead = {
@@ -232,8 +232,14 @@ export function validateBriefBody(raw: unknown): BriefBody | null {
   const target = raw.target;
   if (!isPlainObject(target)) return null;
   if (!isBriefTargetKind(target.kind)) return null;
-  if (!isNonEmptyString(target.id) || !isNonEmptyString(target.name) || !isNonEmptyString(target.version_or_asof)) {
-    return null;
+  if (!isNonEmptyString(target.id) || !isNonEmptyString(target.name)) return null;
+  let versionOrAsof: string | null;
+  if (target.kind === "thesis") {
+    if (!isNonEmptyString(target.version_or_asof)) return null;
+    versionOrAsof = target.version_or_asof;
+  } else {
+    if (target.version_or_asof !== null && !isNonEmptyString(target.version_or_asof)) return null;
+    versionOrAsof = target.version_or_asof === null ? null : target.version_or_asof;
   }
   if (!Array.isArray(raw.market_read)) return null;
   const market_read: BriefMarketRead[] = [];
@@ -272,7 +278,7 @@ export function validateBriefBody(raw: unknown): BriefBody | null {
       kind: target.kind,
       id: target.id,
       name: target.name,
-      version_or_asof: target.version_or_asof,
+      version_or_asof: versionOrAsof,
     },
     market_read,
     monitors,
