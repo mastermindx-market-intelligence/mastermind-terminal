@@ -47,9 +47,9 @@ test("seven-category Options IA stays addressable, honest, and contained", async
   await expect(freshness.locator('[data-flow-transport="connected"]')).toContainText(zh ? "已连接" : "Connected");
   await expect(freshness).toContainText(zh ? "市场休市" : "Market closed");
   await expect(freshness).toContainText(zh ? "上一交易时段" : "Last session");
-  await expect(freshness).toContainText(zh ? "快照" : "Snapshot");
-  await expect(freshness).toContainText(zh ? "源响应" : "Source responses");
-  await expect(freshness).toContainText(zh ? "实测周期" : "Observed cycle");
+  await expect(freshness).toContainText(zh ? "更新" : "Updated");
+  await expect(freshness).toContainText(zh ? "源数据" : "Source data");
+  await expect(freshness).toContainText(zh ? "更新周期" : "Refresh cycle");
   await expect(freshness).not.toContainText("2-min");
   await expect(freshness).not.toContainText("120");
   const freshnessContainment = await page.evaluate(() => {

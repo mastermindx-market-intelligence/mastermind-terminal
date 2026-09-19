@@ -71,7 +71,7 @@ const EOD_LEX = {
   ],
   tipMaxPain: [
     "The strike where the most open contracts would expire worthless. Published by the structure snapshot; display-only.",
-    "使最多未平仓合约到期归零的行权价。由结构快照发布；仅供展示。",
+    "使最多未平仓合约到期归零的行权价。基于最新的已结算结构数据。",
   ],
   tipIvPct: [
     "Where this name's at-the-money implied vol sits within its own range over the past trading year. High = its options are dear for this name, not dear in absolute terms.",
@@ -82,7 +82,7 @@ const EOD_LEX = {
     "上一交易日有多少笔大额成交被隔夜未平仓量增加所印证——即新开仓而非平仓。",
   ],
   // The two stores can run different sessions; the fallback is disclosed, never silent.
-  srcFallback:    ["from the ladder snapshot", "取自梯图快照"],
+  srcFallback:    ["from the options ladder", "取自期权梯图"],
 
   // ── Dark Pool mini-panel ───────────────────────────────────────────────────
   dpTitle:        ["Dark pool", "暗池"],
@@ -146,7 +146,7 @@ const EOD_LEX = {
   ],
   dpUnavailable:  ["Off-exchange panel unavailable", "场外成交面板不可用"],
   dpUnavailableWhy: [
-    "The settled dark-pool artifact hasn't published yet. Nothing is being estimated in its place.",
+    "Dark-pool data for the latest settled close isn't available yet. We don't estimate a replacement.",
     "已结算的暗池数据尚未发布。此处不会以任何估算值替代。",
   ],
 
@@ -155,7 +155,7 @@ const EOD_LEX = {
   volChipAria:    ["Market volatility regime", "市场波动率体制"],
   volChipAbsent:  ["Vol regime unavailable", "波动率体制不可用"],
   volChipAbsentWhy: [
-    "The settled vol-regime artifact hasn't published yet.",
+    "Volatility-regime data for the latest settled close isn't available yet.",
     "已结算的波动率体制数据尚未发布。",
   ],
   volChipCadence: ["Index vol regime · settled close", "指数波动率体制 · 结算收盘"],

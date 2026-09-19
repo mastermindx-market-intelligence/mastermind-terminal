@@ -109,9 +109,6 @@ function plainBaseline(source: string): string {
     .replace(/252[-\s]?(session|day|trading day)s?/gi, "past trading year");
 }
 
-const TICK_CAVEAT_EN = "Lean is tick-rule derived — magnitude is the reliable read. Display-only; forward ledger accruing.";
-const TICK_CAVEAT_ZH = "方向倾向基于逐笔规则推断——大小才是可靠的读取。仅供参考；前瞻账本累积中。";
-
 // ─── Component ────────────────────────────────────────────────────────────
 
 export function InspectorPane({ event, tickerCtx, enrichEv, lang }: InspectorPaneProps) {
@@ -231,7 +228,7 @@ function EventDetail({ event, zh, lang, tickerCtx, enrichEv }: { event: FlowEven
           </span>
         )}
       </div>
-      <div className="obs-note">{pick(zh, TICK_CAVEAT_EN, TICK_CAVEAT_ZH)}</div>
+      <div className="obs-note">{pick(zh, FD.leanHeuristic.en, FD.leanHeuristic.zh)}</div>
 
       {/* ── Detections section (v2 enrich badges with why strings) ── */}
       {enrichEv && enrichEv.badges.length > 0 && (
