@@ -252,17 +252,18 @@
       "file": "0024_brief_subscriptions.sql",
       "packet": "B-F11-7",
       "pr": 579,
-      "pr_state": "open",
+      "pr_state": "merged",
+      "merged_sha": "82bee14b",
       "applied_in_production": false,
       "applied_date": null,
-      "note": "packet B-F11-7 recurring briefs (MO-PAID-032 Terminal half). Prefix 0024 is taken by this open pull request because it ships 0024_brief_subscriptions.sql unapplied; the seat applies with a receipt after 0023 in ledger order. applied_in_production is false and applied_date is null because there is no application yet, never because a real date was lost and not recorded."
+      "note": "packet B-F11-7 recurring briefs (MO-PAID-032 Terminal half). Merged to master in pull request 579. The migration still ships unapplied; the seat applies with a receipt after 0023 in ledger order. applied_in_production is false and applied_date is null because there is no application yet, never because a real date was lost and not recorded."
     },
     "0025": {
       "state": "reserved",
       "file": null,
       "packet": "B-F12-10",
-      "pr": 577,
-      "pr_state": "open",
+      "pr": null,
+      "pr_state": null,
       "applied_in_production": false,
       "applied_date": null,
       "note": "Seat ruling h_t581 2026-09-18: #579 owns 0024, #577 owns 0025, #582 owns 0026, #581 owns 0027."
@@ -271,8 +272,8 @@
       "state": "reserved",
       "file": null,
       "packet": "B-F12-10",
-      "pr": 582,
-      "pr_state": "open",
+      "pr": null,
+      "pr_state": null,
       "applied_in_production": false,
       "applied_date": null,
       "note": "Seat ruling h_t581 2026-09-18: #579 owns 0024, #577 owns 0025, #582 owns 0026, #581 owns 0027."
