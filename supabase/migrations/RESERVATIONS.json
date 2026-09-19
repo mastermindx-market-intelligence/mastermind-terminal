@@ -248,7 +248,7 @@
       "note": "portfolio target weights + bands, user-typed, RLS own-row; ships UNAPPLIED -- the builder never runs DDL against production and the seat applies with receipts, so applied_in_production is false and the date is not recorded because there is no application yet, never because a real date was lost. Merged to master 2026-09-10T15:19Z via merge-on-green (#552); not yet applied — waits for 0017–0022 in ledger order."
     },
     "0024": {
-      "state": "reserved",
+      "state": "taken",
       "file": "0024_brief_subscriptions.sql",
       "packet": "B-F11-7",
       "pr": 579,

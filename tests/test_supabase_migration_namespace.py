@@ -458,7 +458,7 @@ def test_reservations_records_the_known_collision_surface():
     assert prefixes["0023"]["pr_state"] == "merged"
     assert prefixes["0023"]["merged_sha"] == "9022e0138"
 
-    assert prefixes["0024"]["state"] == "reserved"
+    assert prefixes["0024"]["state"] == "taken"
     assert prefixes["0024"]["file"] == "0024_brief_subscriptions.sql"
     assert prefixes["0024"]["packet"] == "B-F11-7"
     assert prefixes["0024"]["pr"] == 579
@@ -987,12 +987,12 @@ def test_real_migrations_markdown_carries_no_literal_ref():
 # --- 23 (review round 2, FIX-2: open-while-present is a MASTER-scope rule) ---
 
 
-def _present_open_doc(pr=514, state="taken", file="0014_tenancy_foundation.sql"):
+def _present_open_doc(pr=514, state="taken"):
     return reservations_doc(
         prefixes={
             "0014": {
                 "state": state,
-                "file": file,
+                "file": "0014_tenancy_foundation.sql",
                 "packet": "B-F12-1",
                 "pr": pr,
                 "pr_state": "open",
@@ -1036,12 +1036,12 @@ def test_lenient_mode_still_requires_a_taken_entry_with_a_pr_number():
         f.code == "OPEN_PR_STATE_WITHOUT_OWNING_PR" and f.prefix == "0014" for f in findings
     )
 
-    unowned = check_files_are_reserved(
-        ["0014_tenancy_foundation.sql"],
-        _present_open_doc(state="reserved", file=None),
+    not_taken = _present_open_doc(state="reserved")
+    findings = check_open_pr_state_for_present_files(
+        ["0014_tenancy_foundation.sql"], not_taken, strict_master=False
     )
     assert any(
-        f.code == "RESERVED_PREFIX_OCCUPIED" and f.prefix == "0014" for f in unowned
+        f.code == "OPEN_PR_STATE_WITHOUT_OWNING_PR" and f.prefix == "0014" for f in findings
     )
 
 
