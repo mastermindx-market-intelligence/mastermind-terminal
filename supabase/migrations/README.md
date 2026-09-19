@@ -204,6 +204,7 @@ amendment, only a README edit.
 | `0022` | `chart_layouts_team_sharing` | PR #555 (merged as `6cdbaa0a8` on 2026-09-09, packet B-F12-B5-2) | merged + applied 2026-09-13 (readback receipt held in the seat's handoff kit at `ddl/receipt_0022.json`; the project ref is never written) |
 | `0023` | `portfolio_targets` | PR #552 (merged as `9022e0138` on 2026-09-10, packet B-F08-B5-1) | merged + applied 2026-09-13 (readback receipt held in the seat's handoff kit at `ddl/receipt_0023.json`; the project ref is never written) |
 | `0024` | `brief_subscriptions` | PR #579 (packet B-F11-7, MO-PAID-032 Terminal half; two nullable FK columns `target_thesis_id`/`target_watchlist_id` and a CHECK-constrained pair enforcing exactly-one alignment with `target_kind`; API enforces ownership before insert per constraint 1) | open — not applied |
+| `0025` | `thesis_amendment_proposals` | PR #577 (packet B-F11-5, MO-PAID-054 write-back) | open PR — not applied |
 
 `0001`–`0007` and `0010` are **historical**: they predate this ledger, their creating pull
 requests were never recorded in-repo, and so their `pr` and `pr_state` fields in

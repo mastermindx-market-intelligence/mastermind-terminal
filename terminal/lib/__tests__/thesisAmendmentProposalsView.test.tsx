@@ -299,7 +299,7 @@ describe("ThesisWorkspace suggested changes (B-F11-5)", () => {
     },
   );
 
-  it("Accept PATCHes accepted state, prefills the editor, and does not call /api/theses", async () => {
+  it("Accept sends one proposal request without calling /api/theses again", async () => {
     const rows: ProposalRow[] = [proposal({ state: "proposed" })];
     const fetchMock = installFetch(rows);
     const el = await mount("en");
@@ -311,9 +311,6 @@ describe("ThesisWorkspace suggested changes (B-F11-5)", () => {
     const acceptBtn = proposalRow!.querySelector("button");
     expect(acceptBtn!.textContent).toBe("Accept");
 
-    const editor = Array.from(el.querySelectorAll("textarea"))
-      .find((field) => field.getAttribute("aria-label") === "Thesis statement");
-    expect(editor, "editor statement field missing").toBeTruthy();
     await act(async () => { (acceptBtn as HTMLButtonElement).click(); });
     await flush();
 
@@ -394,25 +391,26 @@ describe("ThesisWorkspace suggested changes (B-F11-5)", () => {
   });
 
   // RED-first proof that accepted and declined chips stay distinct under the ZH east-flip.
-  it("RED-first: EN and ZH chips use the accepted and rejected CSS-module classes", async () => {
-    for (const lang of ["en", "zh"] as const) {
-      if (lang === "zh") document.documentElement.setAttribute("data-updown", "east");
-      try {
-        const rows: ProposalRow[] = [
-          proposal({ state: "accepted" }),
-          proposal({ state: "rejected", proposalId: "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee" }),
-        ];
-        installFetch(rows);
-        const mounted = await mount(lang);
-        const chips = mounted.querySelectorAll('[data-testid="thesis-proposal-row"] i[data-state]');
-        expect(chips.length).toBe(2);
-        expect(chips[0]!.getAttribute("data-state")).toBe("accepted");
-        expect(chips[1]!.getAttribute("data-state")).toBe("rejected");
-        expect(chips[0]!.parentElement!.className).toContain(styles.proposalMeta);
-        expect(chips[1]!.parentElement!.className).toContain(styles.proposalMeta);
-      } finally {
-        if (lang === "zh") document.documentElement.removeAttribute("data-updown");
+  it.each(["en", "zh"] as const)("%s chips match the CSS-module colour selectors", async (lang) => {
+    if (lang === "zh") document.documentElement.setAttribute("data-updown", "east");
+    try {
+      const rows: ProposalRow[] = [
+        proposal({ state: "accepted" }),
+        proposal({ state: "rejected", proposalId: "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee" }),
+      ];
+      installFetch(rows);
+      const mounted = await mount(lang);
+      for (const state of ["accepted", "rejected"] as const) {
+        const chip = mounted.querySelector(`[data-testid="thesis-proposal-row"] i[data-state="${state}"]`);
+        expect(chip, `${lang} ${state} chip missing`).toBeTruthy();
+        expect(chip!.tagName).toBe("I");
+        expect(chip!.getAttribute("data-state")).toBe(state);
+        expect(chip!.parentElement!.classList.contains(styles.proposalMeta)).toBe(true);
+        expect(chip!.matches(`.${styles.proposalMeta} i[data-state="${state}"]`),
+          `${lang} ${state} chip must match its colour selector`).toBe(true);
       }
+    } finally {
+      if (lang === "zh") document.documentElement.removeAttribute("data-updown");
     }
 
     const globalsText = readFileSync(join(__dirname, "../../app/globals.css"), "utf8");

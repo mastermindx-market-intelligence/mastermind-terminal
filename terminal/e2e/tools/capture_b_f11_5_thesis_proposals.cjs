@@ -165,6 +165,7 @@ async function seedThesis(page, populated, lang) {
   const payload = await detail.json();
   const versionId = payload.thesis?.current?.id;
   if (!versionId) throw new Error("created thesis has no current version id");
+  const proposals = [];
   if (populated) {
     // H2 (Round-1 heal): seed accepted, then rejected, then a still-proposed
     // row. Accepting first avoids the function superseding the later proposed
@@ -184,33 +185,59 @@ async function seedThesis(page, populated, lang) {
     if (accepted.status() !== 201) {
       throw new Error(`create proposal (accepted) failed: ${accepted.status()} ${await accepted.text()}`);
     }
-    const acceptedId = (await accepted.json()).proposal?.proposalId;
+    const acceptedRow = (await accepted.json()).proposal;
+    const acceptedId = acceptedRow?.proposalId;
     const accept = await page.request.patch(`${BASE}/api/thesis/${thesisId}/proposals/${acceptedId}`, {
       data: { state: "accepted" },
     });
     if (accept.status() !== 200) {
       throw new Error(`accept proposal failed: ${accept.status()} ${await accept.text()}`);
     }
+    const acceptedState = await accept.json();
+    if (acceptedState.proposalId !== acceptedId || acceptedState.state !== "accepted") {
+      throw new Error("accepted proposal fixture did not confirm the transition");
+    }
+    proposals.push({ ...acceptedRow, state: acceptedState.state });
     const declined = await page.request.post(`${BASE}/api/thesis/${thesisId}/proposals`, {
       data: { amended_from: versionId, body: declinedBody, evidence_refs: [] },
     });
     if (declined.status() !== 201) {
       throw new Error(`create proposal (declined) failed: ${declined.status()} ${await declined.text()}`);
     }
-    const declinedId = (await declined.json()).proposal?.proposalId;
+    const declinedRow = (await declined.json()).proposal;
+    const declinedId = declinedRow?.proposalId;
     const decline = await page.request.patch(`${BASE}/api/thesis/${thesisId}/proposals/${declinedId}`, {
       data: { state: "rejected" },
     });
     if (decline.status() !== 200) {
       throw new Error(`decline proposal failed: ${decline.status()} ${await decline.text()}`);
     }
+    const declinedState = await decline.json();
+    if (declinedState.proposalId !== declinedId || declinedState.state !== "rejected") {
+      throw new Error("declined proposal fixture did not confirm the transition");
+    }
+    proposals.push({ ...declinedRow, state: declinedState.state });
     const proposed = await page.request.post(`${BASE}/api/thesis/${thesisId}/proposals`, {
       data: { amended_from: versionId, body: proposedBody, evidence_refs: [] },
     });
     if (proposed.status() !== 201) {
       throw new Error(`create proposal (proposed) failed: ${proposed.status()} ${await proposed.text()}`);
     }
+    const proposedRow = (await proposed.json()).proposal;
+    if (!proposedRow?.proposalId || proposedRow.state !== "proposed") {
+      throw new Error("suggested proposal fixture did not return a proposed row");
+    }
+    proposals.push(proposedRow);
   }
+  // The server fixture's list query treats its internal __order marker as a
+  // row filter, so GET returns [] even after successful POST/PATCH seeding.
+  // Keep this visual fixture local to the capture: use the returned rows and
+  // confirmed transitions, newest first, without changing the application.
+  // This adapter proves rendering, not production list persistence.
+  await page.route(`${BASE}/api/thesis/${thesisId}/proposals`, async (route) => {
+    if (route.request().method() !== "GET") return route.continue();
+    await route.fulfill({ json: { proposals: [...proposals].reverse() } });
+  });
   return thesisId;
 }
 
@@ -220,9 +247,13 @@ async function openPanel(page, lang, viewport, populated) {
     localStorage.setItem("mm.lang", l);
     localStorage.setItem("theme", "dark");
     localStorage.setItem("theme_auto", "0");
-    document.documentElement.setAttribute("data-theme", "dark");
-    document.documentElement.setAttribute("data-lang", l);
-    document.documentElement.setAttribute("lang", l === "zh" ? "zh-CN" : "en");
+    const applyAttributes = () => {
+      document.documentElement.setAttribute("data-theme", "dark");
+      document.documentElement.setAttribute("data-lang", l);
+      document.documentElement.setAttribute("lang", l === "zh" ? "zh-CN" : "en");
+    };
+    if (document.documentElement) applyAttributes();
+    else document.addEventListener("DOMContentLoaded", applyAttributes, { once: true });
   }, lang);
   await page.goto(`${BASE}/analysis?view=theses&symbol=${SYM}&lang=${lang}`, {
     waitUntil: "domcontentloaded",
