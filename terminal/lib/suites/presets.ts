@@ -359,3 +359,81 @@ export function matchSuitePreset(
   }
   return null;
 }
+
+
+// Cross-suite task recipes stay in this existing presentation-preset owner. They
+// are not technical species, forecasts, signal scores or an execution policy.
+export interface ChartWorkflowPreset {
+  id: "reversal-reclaim";
+  name: SuitePresetCopy;
+  minTier: SuiteTier;
+  suites: Readonly<Record<string, readonly string[]>>;
+  classics: readonly string[];
+  display: Readonly<Record<string, Readonly<Record<string, unknown>>>>;
+}
+export const CHART_WORKFLOW_PRESETS: readonly ChartWorkflowPreset[] = [{
+  id: "reversal-reclaim", name: { en: "Reversal & Reclaim", zh: "转折与收复" }, minTier: "pro",
+  suites: { structure: ["sr", "sfp", "pat"], trend: ["te", "cp"], rsix: ["eng", "sig", "div"] },
+  classics: ["gaps"],
+  display: {
+    structure: { "sr.showLast": 4, "sr.bufferZone": true, "pat.showLast": 1, "pat.targets": false, "sfp.showLast": 2, "sfp.showInvalid": true },
+    trend: { "te.autoOpt": false, "te.bands": true, "te.shadow": false, "te.bgTint": false, "te.pills": false, "te.tiers": false, "te.retests": true, "te.tpMode": "off", "te.slMode": "off", "te.showLast": 1 },
+    rsix: { "sig.signals": true, "sig.deviations": false, "sig.crossDots": false, "sig.showLast": 4, "div.hidden": false, "div.showLast": 3 },
+    gaps: { showGaps: true, hideFilled: true },
+  },
+}];
+export interface ChartWorkflowState {
+  active: ReadonlySet<string>;
+  hidden: ReadonlySet<string>;
+  params: Readonly<Record<string, Readonly<Record<string, unknown>> | undefined>>;
+}
+export interface ChartWorkflowApplied {
+  active: Set<string>;
+  hidden: Set<string>;
+  params: Record<string, Record<string, unknown>>;
+}
+export function resolveChartWorkflowPreset(id: string): ChartWorkflowPreset | null {
+  return CHART_WORKFLOW_PRESETS.find(recipe => recipe.id === id) ?? null;
+}
+export function applyChartWorkflowPreset(id: string, current: ChartWorkflowState, classicKeys: ReadonlySet<string>): ChartWorkflowApplied | null {
+  const recipe = resolveChartWorkflowPreset(id);
+  if (!recipe) return null;
+  // Noncatalogue extensions (e.g. comparisons/Pine) are not ours to remove.
+  const active = new Set([...current.active].filter(key => !SUITE_DEFS[key] && !classicKeys.has(key)));
+  const hidden = new Set(current.hidden);
+  const params: Record<string, Record<string, unknown>> = {};
+  for (const [key, fields] of Object.entries(current.params)) params[key] = { ...fields };
+  for (const [suiteKey, moduleKeys] of Object.entries(recipe.suites)) {
+    const suite = SUITE_DEFS[suiteKey];
+    if (!suite || moduleKeys.some(key => !suite.modules.some(mod => mod.key === key))) return null;
+    const selected = new Set(moduleKeys);
+    const fields = { ...params[suiteKey] };
+    for (const mod of suite.modules) fields[`${mod.key}.on`] = selected.has(mod.key);
+    params[suiteKey] = fields;
+    active.add(suiteKey); hidden.delete(suiteKey);
+    for (const key of selected) hidden.delete(`suite:${suiteKey}/${key}`);
+  }
+  for (const key of recipe.classics) {
+    if (!classicKeys.has(key)) return null;
+    active.add(key); hidden.delete(key);
+  }
+  for (const [key, fields] of Object.entries(recipe.display)) params[key] = { ...params[key], ...fields };
+  return { active, hidden, params };
+}
+function sameSavedValue(a: unknown, b: unknown): boolean {
+  if (Object.is(a, b)) return true;
+  if (a === null || b === null || typeof a !== "object" || typeof b !== "object") return false;
+  if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((value, i) => sameSavedValue(value, b[i]));
+  const left = a as Record<string, unknown>, right = b as Record<string, unknown>;
+  const keys = Object.keys(left);
+  return keys.length === Object.keys(right).length && keys.every(key => Object.prototype.hasOwnProperty.call(right, key) && sameSavedValue(left[key], right[key]));
+}
+/** Ephemeral one-step UI undo guard: later custom edits must not be overwritten. */
+export function sameChartWorkflowState(a: ChartWorkflowState, b: ChartWorkflowState): boolean {
+  const sameSet = (x: ReadonlySet<string>, y: ReadonlySet<string>) => x.size === y.size && [...x].every(key => y.has(key));
+  return sameSet(a.active, b.active) && sameSet(a.hidden, b.hidden) && sameSavedValue(a.params, b.params);
+}
+export function matchesChartWorkflowPreset(id: string, current: ChartWorkflowState, classicKeys: ReadonlySet<string>): boolean {
+  const applied = applyChartWorkflowPreset(id, current, classicKeys);
+  return applied !== null && sameChartWorkflowState(current, applied);
+}

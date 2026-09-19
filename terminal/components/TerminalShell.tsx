@@ -54,6 +54,12 @@ import {
 } from "@/lib/suites/catalog";
 import {
   applySuitePresetParams,
+  applyChartWorkflowPreset,
+  resolveChartWorkflowPreset,
+  matchesChartWorkflowPreset,
+  sameChartWorkflowState,
+  CHART_WORKFLOW_PRESETS,
+  type ChartWorkflowApplied,
   resolveSuitePreset,
   type SuitePresetId,
 } from "@/lib/suites/presets";
@@ -1174,6 +1180,14 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
   const [inds, setInds] = useState<Set<string>>(new Set(["ema", "vol", "macd", "stochrsi"]));
   const [hidden, setHidden] = useState<Set<string>>(new Set());                       // indicators the eye has hidden
   const [indParams, setIndParams] = useState<Record<string, any>>(allDefaults());      // per-indicator params (Settings dialog)
+  const [chartWorkflowUndo, setChartWorkflowUndo] = useState<{ before: ChartWorkflowApplied; after: ChartWorkflowApplied } | null>(null);
+  useEffect(() => {
+    // One-step undo expires on the first committed custom edit. Returning later
+    // to an equivalent arrangement must not resurrect the old saved workspace.
+    if (chartWorkflowUndo && !sameChartWorkflowState({ active: inds, hidden, params: indParams }, chartWorkflowUndo.after)) {
+      setChartWorkflowUndo(current => current === chartWorkflowUndo ? null : current);
+    }
+  }, [inds, hidden, indParams, chartWorkflowUndo]);
   const [settingsKey, setSettingsKey] = useState<string | null>(null);
   const [guide, setGuide] = useState<
     { suite: string; mod: string; label: string } | null
@@ -3802,6 +3816,28 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
       });
     }
   };
+  const workflowClassicKeys = new Set(Object.keys(IND_DEFS));
+  const workflowState = { active: inds, hidden, params: indParams };
+  const activeChartWorkflow = CHART_WORKFLOW_PRESETS.find(recipe => matchesChartWorkflowPreset(recipe.id, workflowState, workflowClassicKeys))?.id;
+  const canUndoChartWorkflow = chartWorkflowUndo !== null && sameChartWorkflowState(workflowState, chartWorkflowUndo.after);
+  const applyChartWorkflow = (id: string) => {
+    const recipe = resolveChartWorkflowPreset(id);
+    const tierRank = (tier: "free" | "essential" | "pro") => tier === "pro" ? 2 : tier === "essential" ? 1 : 0;
+    if (!recipe || tierRank(userTier) < tierRank(recipe.minTier)) return;
+    const count = Object.values(recipe.suites).reduce((n, modules) => n + modules.length, recipe.classics.length) - 1;
+    if (!loggedIn && count > MAX_ANON_IND) { showGateNudge(t("gateIndCap")); return; }
+    const next = applyChartWorkflowPreset(id, { active: inds, hidden, params: indParams }, workflowClassicKeys);
+    if (!next) return;
+    const before: ChartWorkflowApplied = { active: new Set(inds), hidden: new Set(hidden), params: Object.fromEntries(Object.entries(indParams).map(([key, value]) => [key, { ...value }])) };
+    setChartWorkflowUndo({ before, after: next });
+    setInds(next.active); setHidden(next.hidden); setIndParams(next.params);
+  };
+  const undoChartWorkflow = () => {
+    if (!chartWorkflowUndo || !sameChartWorkflowState({ active: inds, hidden, params: indParams }, chartWorkflowUndo.after)) return;
+    setInds(new Set(chartWorkflowUndo.before.active)); setHidden(new Set(chartWorkflowUndo.before.hidden));
+    setIndParams(chartWorkflowUndo.before.params); setChartWorkflowUndo(null);
+  };
+
   const applySuitePreset = (k: string, presetId: SuitePresetId) => {
     if (!isSuiteKey(k)) return;
     const profile = resolveSuitePreset(k, presetId);
@@ -6033,6 +6069,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
       {indOpen && (
         <IndicatorsModal open suspended={!!guide} active={inds} onClose={() => setIndOpen(false)} onToggle={toggleInd}
           onApplyPreset={applySuitePreset} suiteParams={indParams} userTier={userTier}
+          onApplyChartWorkflow={applyChartWorkflow} activeChartWorkflow={activeChartWorkflow}
+          onUndoChartWorkflow={canUndoChartWorkflow ? undoChartWorkflow : undefined}
           activeModules={activeSuiteModuleIds} onToggleModule={toggleSuiteModule} onOpenModuleSettings={openSettings}
           onOpenGuide={(id) => {
             const entry = getSuiteModuleCatalogEntry(id);
