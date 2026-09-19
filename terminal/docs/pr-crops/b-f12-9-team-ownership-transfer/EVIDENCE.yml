@@ -7,7 +7,8 @@
 # capturedAtHead: 35e9f60c895ae9c1e0ebb803bc16d48bd5962f86
 # 2026-09-19 release unblock: #581 (B-F12-10 public API v1) was squash-merged to c938159320e57ff9d42399de5ed6a7130ff1b49a, which orphaned the pre-squash merge pointer df3435bd3ad740eecacaa3bece9c33b645e7d815 (a commit on that PR branch only). All five layoutFiles hashes below match that protected-master commit exactly; this repairs the pointer and is NOT a fresh capture or a team-feature change.
 # 2026-09-19 seat merge of master 1c46b277 into #584 (B-F12-13): master side kept whole (capturedAtHead c9381593 + its hashes); the branch pointer 7689b151 would be orphaned by a squash. Transfer-ownership crops unchanged.
-capturedAtHead: c938159320e57ff9d42399de5ed6a7130ff1b49a
+# 2026-09-19 C2 (seat): capturedAtHead -> merge commit d7e34db4924ae8f580d2aa3031017b9345ee8909 (master 1c46b277 into #584); hash-only restamp of terminal/components/settings/SectionTeam.tsx, terminal/components/settings/SectionTeam.module.css to that tree; transfer-ownership crops unchanged, not recaptured. MERGE THIS PR WITH A MERGE COMMIT (a squash would orphan this pointer).
+capturedAtHead: d7e34db4924ae8f580d2aa3031017b9345ee8909
 capturedAt: 2026-09-11T03:00:17.565Z
 # capturedAtHead is merge commit 35e9f60c895ae9c1e0ebb803bc16d48bd5962f86 (H4b #565 onto master 908540b79). layoutFiles hashes are that commit's bytes except i18n.tsx, which this PR restamps for DEEP_RESEARCH_MONTHLY quota copy (obInsider2/obPro1/acsFeatInsider4/acsFeatPro3). Those strings are not rendered on the ownership-transfer surface; no crop recaptured. The previous pointer 3cdcd746b86d478ff139dd5fea408b66fce065af remains an ancestor; the ancestry guard requires capturedAtHead to name a commit whose i18n blob matches the restamped hash.
 # Pinned i18n.tsx last changed on this carrier for master #554's claim* keys; the captured surface (team section + rail) does not render them; crops unchanged from 916db2d4ac62b00aed236231433d8d952c22f3c6.
@@ -18,8 +19,8 @@ capturedAt: 2026-09-11T03:00:17.565Z
 # 2026-09-11 merge of master d812eba5cc082de66565a740d7217392650d397c (PL-NI-1 squash #572): capturedAtHead pointer moves forward to d812eba5cc082de66565a740d7217392650d397c so the i18n.tsx re-hash captures the plain-language 您→你 sweep. Pinned i18n.tsx bytes 130d2ef1 below equal the post-merge i18n.tsx (this branch's H4b DEEP_RESEARCH_MONTHLY template re-introduction combined with master's PL-NI-1 您→你 sweep via auto-merge).
 # 2026-09-13 H4b #565 history-preserving merge of origin/master 3db34e7a8: capturedAtHead pointer moves forward to the merge commit (placeholder 0000...0000 will be replaced by the iterative fixed-point commit SHA); i18n.tsx re-hashed — auto-merge of master's PL-NI-1 (您→你 + DEEP_RESEARCH_MONTHLY template removal) with PR #565's H4b (DEEP_RESEARCH_MONTHLY template re-introduction) yields bytes 130d2ef1. Pinned below. No B-F12-9 string or layout changed; no crop recaptured.
 layoutFiles:
-  terminal/components/settings/SectionTeam.tsx: "fec63ed61b300fbfc6f745b1d8f8a605ad459304f10009bd68023b859b245595"
-  terminal/components/settings/SectionTeam.module.css: "924ab5b81d4f0e11ef2138557e92c43a0d1fa21b78622567fb6ccddcf6c146a8"
+  terminal/components/settings/SectionTeam.tsx: "70be77e6750ca73a57d019c5c2d7d04c99317b7c18297d20755d18f6e511a45d"
+  terminal/components/settings/SectionTeam.module.css: "f1fe2aea3c2634800603113a95abadedc7b9e1031335d11e95e2b0fa48a656e3"
   terminal/components/settings/SettingsPanel.tsx: "67657d686f304adf292d263007701852fa2bc28cd7f4dabbeca92d7453884eed"
   terminal/app/settings.css: "3189163136d943431cbf52e4b5d241c105b695ba5af94c4c2e29151d537b5ef5"
   terminal/lib/i18n.tsx: "1d571257006431cc4d58e16df261af64ae243fd06e3ec55a57a7fec0ddc735b7"
