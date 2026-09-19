@@ -1,0 +1,49 @@
+# 2026-09-19 #669 plain-language debt: hash-only restamp of AlertsCockpit.tsx — copy-only change, crops unchanged
+# B-F11-7 Recurring briefs — capture evidence
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
+# capturedAtHead: ec790e040d1f0fce5c6df7b64aa2692228a1df13
+# capturedAt: 2026-09-13T06:44:08.252Z
+# capturedAtHead is informational. The lock is layoutFiles.
+layoutFiles:
+  terminal/components/briefs/BriefsInbox.tsx: "7ab9a0c9ffcad73e430593e7fd7eec72de56cab22d65344c0346875b4b66cde5"
+  terminal/components/briefs/BriefSubscribeControls.tsx: "ae6cd7b26f6ce48b2bc56e98ec7eedf72d163b1e04ae95d9b951d7c1b8ab9a56"
+  terminal/components/briefs/briefs.module.css: "bdec4855420f396e8ad30565741c70904d55090310298e396f75e3e44c41b573"
+  terminal/lib/briefs.ts: "45e085b000b79481d5a7ad0b73ab9f76300d21efde8e64bc0d9ef36f0a9159cb"
+  terminal/components/alerts/AlertsCockpit.tsx: "bb762a5380d08e6a4bc96ab8cbdbcfbda2ca4081bd20d00dcc29ec665b0cf730"
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: mobile, width: 390, height: 844 }
+harness:
+  list-1440.png: { kind: list, lang: en, viewport: desktop }
+  list-1440-zh.png: { kind: list, lang: zh, viewport: desktop }
+  list-390.png: { kind: list, lang: en, viewport: mobile }
+  list-390-zh.png: { kind: list, lang: zh, viewport: mobile }
+  empty-1440.png: { kind: empty, lang: en, viewport: desktop }
+  empty-1440-zh.png: { kind: empty, lang: zh, viewport: desktop }
+  empty-390.png: { kind: empty, lang: en, viewport: mobile }
+  empty-390-zh.png: { kind: empty, lang: zh, viewport: mobile }
+  subscribe-1440.png: { kind: subscribe, lang: en, viewport: desktop }
+  subscribe-1440-zh.png: { kind: subscribe, lang: zh, viewport: desktop }
+  subscribe-390.png: { kind: subscribe, lang: en, viewport: mobile }
+  subscribe-390-zh.png: { kind: subscribe, lang: zh, viewport: mobile }
+capture_flag: TERMINAL_E2E_FIXTURE
+capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.
+command: |
+  cd terminal
+  node e2e/tools/capture_b_f11_7_recurring_briefs.cjs
+files:
+  - list-1440.png
+  - list-1440-zh.png
+  - list-390.png
+  - list-390-zh.png
+  - empty-1440.png
+  - empty-1440-zh.png
+  - empty-390.png
+  - empty-390-zh.png
+  - subscribe-1440.png
+  - subscribe-1440-zh.png
+  - subscribe-390.png
+  - subscribe-390-zh.png

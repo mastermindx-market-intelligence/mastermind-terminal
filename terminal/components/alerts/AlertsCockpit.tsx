@@ -12,7 +12,8 @@ import {
   lanesForArmedAlerts, monitorFor, rowChipKey,
   type Alert, type ReadState, type RunReceipt, type OutboxRow,
 } from "@/lib/alertsView";
-import { useLang } from "@/lib/i18n";
+import { useLang, useT } from "@/lib/i18n";
+import BriefsInbox from "@/components/briefs/BriefsInbox";
 
 interface AlertsResp { alerts?: Alert[]; error?: string }
 interface ReceiptsResp {
@@ -32,6 +33,7 @@ const UNAVAILABLE_RECEIPTS: ReceiptsResp = {
 export default function AlertsCockpit({ email, children }: { email: string; children?: ReactNode }) {
   const { lang } = useLang();
   const L = lang === "zh" ? "zh" : "en";
+  const t = useT();
   const [alerts, setAlerts] = useState<Alert[] | null>(null);
   const [alertsState, setAlertsState] = useState<ReadState>("READ_UNAVAILABLE");
   const [receipts, setReceipts] = useState<ReceiptsResp | null>(null);
@@ -374,7 +376,7 @@ export default function AlertsCockpit({ email, children }: { email: string; chil
               WatchingList/CouldNotWatch already use, so the two body lines stay subordinate to
               one real heading, matching every other module on this page. */}
           <div className={s.moduleHead}>
-            <span>{L === "zh" ? "近期活动" : "Recent activity"}</span>
+            <span>{L === "zh" ? t("recentActivityCockpit", "近期活动") : t("recentActivityCockpit", "Recent activity")}</span>
           </div>
           <p className={s.calmBody}>{copy("activity.empty", L)}</p>
           <p className={s.calmBody}>{copy("activity.lastSuccess", L, { t: fmtLastSuccess() })}</p>
@@ -415,6 +417,7 @@ export default function AlertsCockpit({ email, children }: { email: string; chil
           disconnected page compositions) and never wrapped in an extra .pg of its own (a nested
           scroll container broke the deterministic e2e). See page.tsx for what is passed in. */}
       {children}
+      <BriefsInbox lang={L} />
       {detail && <AlertDetail data={detail} lang={L} onClose={() => setOpenId(null)} />}
     </div></main>
   );

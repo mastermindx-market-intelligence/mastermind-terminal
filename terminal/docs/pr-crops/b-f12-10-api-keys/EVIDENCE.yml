@@ -1,0 +1,65 @@
+# 2026-09-19 #669 plain-language debt: hash-only restamp of i18n.tsx — copy-only change, crops unchanged
+# B-F12-10 Public API v1 — developer access capture evidence
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
+# capturedAtHead: 0c1adc8ef696bf6596e7cd16b161fc03e0d3ddab
+# capturedAt: 2026-09-13T06:47:52.310Z
+# capturedAtHead records the original capture. No crops were recaptured for this heal.
+# The layoutFiles hashes still match the rendered sources at code_head.
+# code_head is the last commit touching a non-evidence path, as required by h3b_t581.
+code_head: e83e7402fbcf873c9a794bbd0ad6ce5ebfa5d1bc
+identity_check: |
+  git diff --quiet e83e7402fbcf873c9a794bbd0ad6ce5ebfa5d1bc HEAD -- terminal/components/settings/SectionDeveloper.tsx terminal/lib/apiKeyLabels.ts terminal/components/settings/SettingsPanel.tsx terminal/components/settings/icons.tsx terminal/components/settings/SettingsProvider.tsx terminal/app/dev/settings/page.tsx terminal/app/settings.css terminal/app/globals.css
+# Commit this manifest last. A later change outside terminal/docs/pr-crops reopens it.
+# 2026-09-19 h_t587 r2 evidence stamp at heal 67c1c3b2784712b06f71f654d9472905e0c9155e: SettingsPanel.tsx / SectionAccuracy.tsx / SectionAccuracy.module.css (and teamAccuracyRollupRoute.test.ts where pinned) re-hashed to the heal-head digest. parseTeamsResponse live team-id, no-team sentence, 503 unavailable pair, weLabel tracking drop. No sibling crop recaptured — those surfaces do not render the accuracy rollup. F13-9 recapture NEEDED (see packet lock).
+# 2026-09-19 seat merge of master 1c46b277 into #584 (B-F12-13): hash-only restamp of terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit.
+# 2026-09-19 seat merge of origin/master dd7c6dec712a (#584 B-F12-13, merge commit) into #586 (W9T_F08_13 targets readout): hash-only restamp of terminal/components/settings/SettingsPanel.tsx, terminal/components/settings/icons.tsx, terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
+# 2026-09-19 seat merge of origin/master 5a48b845 (13 commits incl. #587 B-F13-9 team rollup, merge commit) into #586 (W9T/B-F08-13 targets readout): hash-only restamp to the merged working-tree bytes; crops NOT recaptured. Files: terminal/components/settings/SettingsPanel.tsx, terminal/components/settings/icons.tsx, terminal/lib/i18n.tsx
+# 2026-09-19 seat merge of origin/master dafc016e (#588 B-F12-17 invite-link honesty, #664, #666) into #586 (W9T/B-F08-13 targets readout): hash-only restamp to the merged working-tree bytes; crops NOT recaptured. Files: terminal/components/settings/SettingsPanel.tsx, terminal/components/settings/icons.tsx, terminal/lib/i18n.tsx
+layoutFiles:
+  terminal/components/settings/SectionDeveloper.tsx: "df606f2196301b32cabe74071559464b368b1c08e9b2ccd227509012f4101539"
+  terminal/lib/apiKeyLabels.ts: "7f00e420fe2ec20bab481f19d077c7977df3877d4f71d3ed5da3de0b8d0b33be"
+  terminal/components/settings/SettingsPanel.tsx: "956aeac1636ae4891b1009c8e266840244c19da085ba52e77c78171317c4ffaf"
+  terminal/components/settings/icons.tsx: "7f3e17e45cb92545437ade898fe47a92cf6a65d1682cec9b9cea7a5bb8bd4d83"
+# 2026-09-19 seat merge of origin/master dd7c6dec712a (#584 B-F12-13, merge commit) into #588 (W9T_F12_17 invite link): hash-only restamp of terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
+# 2026-09-19 seat merge of origin/master dd7c6dec712a (#584 B-F12-13, merge commit) into #587 (W9T_F13_9 team rollup): hash-only restamp of terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
+# 2026-09-19 seat merge of origin/master 4c7a2eeb6f58 (#587 B-F13-9 team rollup + #659 + #660, merge commit) into #588 (B-F12-17 invite-link honesty): hash-only restamp of terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
+informationalFiles:
+  asserted: false
+  terminal/lib/i18n.tsx: "c21e5974e091e4c9d8dd06c5efb2834363120f69a96aebf9476dc85f51fc10e7"
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: mobile, width: 390, height: 844 }
+harness:
+  desktop-en-empty.png: { url: "/dev/settings?s=developer&lang=en", state: empty }
+  desktop-zh-empty.png: { url: "/dev/settings?s=developer&lang=zh", state: empty }
+  desktop-en-minted.png: { url: "/dev/settings?s=developer&lang=en", state: minted }
+  desktop-zh-minted.png: { url: "/dev/settings?s=developer&lang=zh", state: minted }
+  desktop-en-revoked.png: { url: "/dev/settings?s=developer&lang=en", state: revoked }
+  desktop-zh-revoked.png: { url: "/dev/settings?s=developer&lang=zh", state: revoked }
+  mobile-en-empty.png: { url: "/dev/settings?s=developer&lang=en", state: empty }
+  mobile-zh-empty.png: { url: "/dev/settings?s=developer&lang=zh", state: empty }
+  mobile-en-minted.png: { url: "/dev/settings?s=developer&lang=en", state: minted }
+  mobile-zh-minted.png: { url: "/dev/settings?s=developer&lang=zh", state: minted }
+  mobile-en-revoked.png: { url: "/dev/settings?s=developer&lang=en", state: revoked }
+  mobile-zh-revoked.png: { url: "/dev/settings?s=developer&lang=zh", state: revoked }
+capture_flag: TERMINAL_E2E_FIXTURE
+capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.
+command: |
+  cd terminal
+  node e2e/tools/capture_f12_10_api_keys.cjs
+files:
+  - desktop-en-empty.png
+  - desktop-en-minted.png
+  - desktop-en-revoked.png
+  - desktop-zh-empty.png
+  - desktop-zh-minted.png
+  - desktop-zh-revoked.png
+  - mobile-en-empty.png
+  - mobile-en-minted.png
+  - mobile-en-revoked.png
+  - mobile-zh-empty.png
+  - mobile-zh-minted.png
+  - mobile-zh-revoked.png
