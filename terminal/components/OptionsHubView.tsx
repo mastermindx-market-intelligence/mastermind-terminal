@@ -3984,7 +3984,9 @@ export default function OptionsHubView({
                       </span>
                       {leadersData.stale && (
                         <span style={{ fontSize: 11, color: "var(--warn)", fontWeight: 600 }}>
-                          {t("leadersStale", "Snapshot from prior session")}
+                          {leadersData.session_date
+                            ? pick(lang, `Historical snapshot · source session ${leadersData.session_date}`, `历史快照 · 数据会话 ${leadersData.session_date}`)
+                            : t("leadersStale", "Snapshot from prior session")}
                         </span>
                       )}
                     </div>
