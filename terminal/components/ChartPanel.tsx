@@ -84,6 +84,7 @@ import ChartTables from "@/components/ChartTables";
 import { crossUps, crossDowns, crossUpsBelow, crossDownsAbove } from "@/lib/crossSignals";
 import { SOFT_Q, anchorSignal, isBlockedSignal, isOverrideCandidate, isReclaimOverrideTake, isRetroOverride, isStopSweepReclaim, isStructureStop, isWaivedEntry, markerTooltipCopy, opportunityMarkerGlyph, sliceSignalBasis } from "@/lib/signalVerdict";
 import { makeNearestBarIndex } from "@/lib/barSnap";
+import { chartAxisRange, TERMINAL_CHART_RANGE_EVENT, type TerminalChartRangeDetail } from "@/lib/chartRange";
 import { ichimoku, supertrend, avwap as computeAvwap, rollingVwap, weekAnchoredVwap, vprofile, volbox, rsiStack, accumPct, trendRibbon, buyShare as mfBuyShare } from "@/lib/indicatorMath";
 import ChartOverlays, { type PaneInfo, type LegendEntry } from "@/components/ChartOverlays";
 import DayStatsStrip from "@/components/DayStatsStrip";
@@ -8319,6 +8320,24 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     applyExtendedPriceLine();
     // eslint-disable-next-line
   }, [liveSig]);
+
+  // ────────────────────────────────────────────────────────────────────────────
+  // EFFECT 8a — exact Chart Bus viewport range. The bus contract is epoch seconds, while LWC's
+  // daily-derived axis is business-day strings; keep the conversion at the renderer boundary.
+  // Pane identity matters when a workspace contains the same symbol more than once.
+  // ────────────────────────────────────────────────────────────────────────────
+  useEffect(() => {
+    const onRange = (event: Event) => {
+      const detail = (event as CustomEvent<TerminalChartRangeDetail>).detail;
+      if (!detail || detail.sym !== symbol || detail.paneId !== syncIdRef.current) return;
+      const range = chartAxisRange(detail, isIntradayRef.current);
+      const chart = chartRef.current;
+      if (!range || !chart) return;
+      try { chart.timeScale().setVisibleRange(range as any); } catch {}
+    };
+    window.addEventListener(TERMINAL_CHART_RANGE_EVENT, onRange);
+    return () => window.removeEventListener(TERMINAL_CHART_RANGE_EVENT, onRange);
+  }, [symbol]);
 
   // ────────────────────────────────────────────────────────────────────────────
   // EFFECT 8 — jump-to-signal [mount]. R14: window `mm:chart-jump` {sym, ts}. If this pane's active

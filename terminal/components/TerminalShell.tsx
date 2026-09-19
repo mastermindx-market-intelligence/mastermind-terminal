@@ -86,6 +86,7 @@ import { useGateEntitlement } from "@/lib/entitlementStore";
 import { normalizeDevTierOverride } from "@/lib/subscriptionTier";
 import { useChartBus } from "@/lib/useChartBus";
 import { isV2Envelope, type IndicatorSpec } from "@/lib/chartBus";
+import { dispatchTerminalChartRange } from "@/lib/chartRange";
 import SeasonalityCard from "@/components/SeasonalityCard";
 // Code-split the conditionally-mounted heavies out of the /terminal first-paint bundle (task 9).
 // TerminalShell is a Client Component, so ssr:false is allowed — none of these render on any SSR
@@ -4293,9 +4294,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
       const withParams = specs.filter((s) => s.params && isIndKey(s.name));
       if (withParams.length) setIndParams((p) => { const n = { ...p }; for (const s of withParams) n[s.name] = { ...(n[s.name] || {}), ...s.params }; return n; });
     },
-    // MVP: jump the chart to the range start via the existing mm:chart-jump consumer. A precise
-    // setVisibleRange is a follow-up via the onChartApi seam (see PR body).
-    setRange: (from) => { try { window.dispatchEvent(new CustomEvent("mm:chart-jump", { detail: { ts: from } })); } catch {} },
+    // Chart Bus ranges are exact epoch-second bounds. Preserve both ends and the active pane owner;
+    // ChartPanel translates them to the axis's real time type (business-day string vs epoch second).
+    setRange: (from, to) => { dispatchTerminalChartRange({ sym: active, paneId: activePane, from, to }); },
   });
 
   // ── DeepVue W1-C: typed ai-context provider ────────────────────────────────────────────────
@@ -6089,7 +6090,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
 
       {/* ── Signals dashboard overlay (Golden Oracle scorecard · research read · signal history) ── */}
       {signalsOpen && (
-        <OracleDash sym={active} row={m} slice={slice} intel={intel} bars={bars} zh={lang === "zh"} onClose={() => setSignalsOpen(false)} onJump={(ts: string) => { window.dispatchEvent(new CustomEvent("mm:chart-jump", { detail: { ts } })); setSignalsOpen(false); }} onOpenFull={() => { setSignalsOpen(false); setPaneOpen("overview"); }} />
+        <OracleDash sym={active} row={m} slice={slice} intel={intel} bars={bars} zh={lang === "zh"} onClose={() => setSignalsOpen(false)} onOpenFull={() => { setSignalsOpen(false); setPaneOpen("overview"); }} />
       )}
 
       {/* ── D2 Save-template-as modal ─── */}
