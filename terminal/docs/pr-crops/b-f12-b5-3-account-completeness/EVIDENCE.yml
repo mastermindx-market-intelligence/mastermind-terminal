@@ -16,12 +16,14 @@
 # 2026-09-11 recapture at master 525157b13eb5530515f083d836f63d12f55553d2: rail now pinned via SettingsPanel.tsx + SettingsProvider.tsx; 8 crops recaptured so the frame shows the 11-row rail (account, team, accuracy, billing, usage, prefs, alertDelivery, terminal, sync, webhooks, sharing)
 # 2026-09-11 MO-B PL-NI-1 (packet T-PL-NI-1, 您→你 sweep of Terminal master): terminal/lib/i18n.tsx re-hashed — plain-language 您→你 only; layout unchanged; no recapture.
 # 2026-09-13 W9T_F13_9 / MO-DELTA-007 (your team sees its own calls scored together, never a ranking against other teams): terminal/components/settings/SettingsPanel.tsx and terminal/lib/i18n.tsx re-hashed ONLY — the team-rail activeTeamId derivation and the 14 accTeam* lexicon keys added by w9t_f13_9 do not change the account-completeness surface (no accTeam* key is rendered on this surface, and SettingsPanel.tsx's rail layout and section mount order are unchanged); no crop was recaptured. The 8 crops recaptured at 525157b13eb5530515f083d836f63d12f55553d2 still depict this tree.
+# 2026-09-19 merge of origin/master 4b19a698 into #587: SettingsPanel.tsx and i18n.tsx re-hashed to the merged-tree digest; SettingsProvider.tsx takes master's bytes. No account-completeness crop recaptured.
 layoutFiles:
   terminal/components/settings/SectionAccount.tsx: "d2c3828c286bbaac321881d5a6562efdd4f30e580f4200d49c5165c0fa7ef9a4"
   terminal/lib/teamSummary.ts: "7bd3b3f1d5251490e42399be1dd77e977b2626c1714efbece2f7139c584e0f15"
-  terminal/lib/i18n.tsx: "72b7e44987c90741dfaed5989f720a65accd7ccbf4ebc04b7039652a46171a9c"
-  terminal/components/settings/SettingsPanel.tsx: "944c5f6cb215eadd094f61bba66ddc95ec414d2e0b68b130dde60960211b5119"
-  terminal/components/settings/SettingsProvider.tsx: "4ac330d429de63c5a3e431aaa1a1b41e4a7905cf2a08bc260b68afa0bc604bed"
+  terminal/lib/i18n.tsx: "bd49cfd3cd13dcac8afccb1f443745622cd7ec557989d6b8ce23e8879b6bbfcb"
+  terminal/components/settings/SettingsPanel.tsx: "e85854c8c2402e40deac368a3c419896c0c1efd3ec8843458fc0253cf795cfed"
+  terminal/components/settings/SettingsProvider.tsx: "097dc689f3794e0cb7c05588bbc3bdfd473f313c1c66676bb4f4fd564db8c919"
+
 theme: dark
 languages: [en, zh]
 viewports:

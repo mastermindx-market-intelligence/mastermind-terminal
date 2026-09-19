@@ -19,6 +19,13 @@ class Allowance:
     path: str
     classification: str
     sensitive: bool = False
+    allow_tracked_absence: bool = False
+    allow_tracked_runtime_subtree: bool = False
+    allow_tracked_runtime_file: bool = False
+    canonical_git_tree: str | None = None
+    canonical_git_blob: str | None = None
+    canonical_git_mode: str | None = None
+    expected_live_type: str | None = None
 
 
 @dataclass(frozen=True)
@@ -40,7 +47,9 @@ class TreeEntry:
 
 class GitCommandError(RuntimeError):
     def __init__(self, args: Sequence[str], returncode: int, stderr: str) -> None:
-        super().__init__(f"git command failed ({returncode}): {' '.join(args)}: {stderr.strip()}")
+        super().__init__(
+            f"git command failed ({returncode}): {' '.join(args)}: {stderr.strip()}"
+        )
         self.returncode = returncode
         self.stderr = stderr
 
@@ -74,5 +83,7 @@ def receipt_id(receipt: Mapping[str, Any]) -> str:
         for key, value in receipt.items()
         if key not in {"generated_at", "receipt_id"}
     }
-    encoded = json.dumps(canonical, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    encoded = json.dumps(canonical, sort_keys=True, separators=(",", ":")).encode(
+        "utf-8"
+    )
     return hashlib.sha256(encoded).hexdigest()
