@@ -328,9 +328,11 @@ def main() -> int:
     #
     # DRIVE THROUGH THE TRIGGER PATH: 0013 adds a unique index on alert_outbox.fire_event_id,
     # so inserting the same fire_id_1 again hits that constraint before the trigger fires —
-    # it never exercises 0026's on conflict (dedupe_key) do nothing.  Bypass the unique index
-    # by dropping and recreating it inside the transaction, so the alert_outbox insert succeeds
-    # and the trigger's dedupe is what the proof measures.
+    # it never exercises 0026's on conflict (dedupe_key) do nothing.  Fix: drop the unique
+    # index, insert the replay row so the trigger's dedupe fires, delete the Phase 4 outbox
+    # row (leaving only the Phase 5 replay row), then recreate the unique index cleanly.
+    # The index recreation is deferred to Phase 6 (which inserts a fresh fire_id_2) so the
+    # duplicate doesn't block index creation.
     # ---------------------------------------------------------------
     try:
         with admin.cursor() as cur:
@@ -341,13 +343,17 @@ def main() -> int:
                 (owner, fire_id_1, json.dumps(payload_1)),
             )
             cur.execute(
-                "create unique index if not exists alert_outbox_fire_event_id on public.alert_outbox (fire_event_id)"
-            )
-            cur.execute(
                 "select count(*) from public.webhook_deliveries where event_id = %s and event_type = 'alert.fired'",
                 (fire_id_1,),
             )
             count_after = cur.fetchone()[0]
+            # Remove Phase 4's outbox row so the unique index can be recreated.
+            # Phase 5's row (with the same fire_event_id) remains as the single outbox entry.
+            cur.execute(
+                "delete from public.alert_outbox where fire_event_id = %s and id != "
+                "(select id from public.alert_outbox where fire_event_id = %s order by created_at desc limit 1)",
+                (fire_id_1, fire_id_1),
+            )
         proof.check(
             "alert-fire:replay-idempotent",
             count_after == 1,
@@ -359,11 +365,17 @@ def main() -> int:
     # ---------------------------------------------------------------
     # Phase 6 — non-opted-in user yields zero deliveries (R2 fourth gate).
     # Add a second team member without an optin and insert an alert fire for them.
+    # Also recreate the 0013 unique index that Phase 5 dropped (Phase 5 deferred
+    # recreation because the duplicate fire_event_id would have blocked it).
     # ---------------------------------------------------------------
     try:
         non_optin_user = str(uuid.uuid4())
         fire_id_2 = str(uuid.uuid4())
         with admin.cursor() as cur:
+            cur.execute(
+                "create unique index if not exists alert_outbox_fire_event_id "
+                "on public.alert_outbox (fire_event_id)"
+            )
             cur.execute("insert into auth.users (id, email) values (%s, 'noopt@a.example')", (non_optin_user,))
             cur.execute(
                 "insert into public.team_members (team_id, user_id, role, invited_by) values (%s, %s, 'member', %s)",
