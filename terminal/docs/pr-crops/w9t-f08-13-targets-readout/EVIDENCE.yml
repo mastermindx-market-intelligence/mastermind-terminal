@@ -1,8 +1,13 @@
 # recapture: NEEDED — crops depict the pre-heal LONG sentence; SectionPortfolioTargets.tsx changed
 # at the h_t586 heal (shapeReadoutVisible=false); recapture before PROVEN_LIVE.
 # 2026-09-19 h_t586 round 2: hash-only restamp; crops NOT recaptured.
+# 2026-09-19 h_t586 round 3: capturedAtHead was the invented SHA
+# 2c8d4a7c02aefb2af0ef4cb3e82e60bcd8f04e3d (git cat-file -t → not an object).
+# Real heal commit is 2c8d4a7cbe4325aa188dbae03d8adec16fb919cd, but its
+# SettingsPanel/SettingsProvider/icons/i18n blobs do not equal the pins.
+# Pins equal the 068a8358eef235063164d4a846fb8291ae03a173 tree (and HEAD).
 {
-  "capturedAtHead": "2c8d4a7c02aefb2af0ef4cb3e82e60bcd8f04e3d",
+  "capturedAtHead": "068a8358eef235063164d4a846fb8291ae03a173",
   "capturedAt": "2026-09-13T23:14:52.434Z",
   "layoutFiles": {
     "terminal/components/settings/SectionPortfolioTargets.tsx": "42efc4318fe724c0315b065b2833862ff241f9bc612aae976d32518ba523371b",

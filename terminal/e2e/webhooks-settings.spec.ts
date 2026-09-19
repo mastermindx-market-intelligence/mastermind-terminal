@@ -49,7 +49,7 @@ test("settings Webhooks section is reachable in EN and ZH", async ({ page }, tes
   const dialog = page.locator(".acs-overlay.open .acs-card");
   await expect(dialog).toBeVisible({ timeout: 45_000 });
   const tabs = dialog.getByRole("tab");
-  // The rail now has 12 rows (portfolio targets is the new last tab, added by #586).
+  // The rail now has 13 rows (developer from master + portfolioTargets is the new last tab, added by #586).
   // Assert Sharing is present and the new row is also present — order-independent.
   await expect(dialog.getByRole("tab", { name: "Sharing" })).toBeVisible();
   await expect(dialog.getByRole("tab", { name: "Portfolio targets" })).toBeVisible();
