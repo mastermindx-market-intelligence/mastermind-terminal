@@ -38,6 +38,12 @@ import {
 } from "@/lib/portfolio";
 import { riskCopy, riskAvailability, failedRereadDisposition, T_RISK_UNAVAILABLE, type PortfolioRisk, type Lang } from "@/lib/portfolioRisk";
 import {
+  historyCopy,
+  historyAvailability,
+  T_HISTORY_UNAVAILABLE,
+  type PortfolioRiskHistory,
+} from "@/lib/portfolioRiskHistory";
+import {
   targetsCopy,
   targetsAvailability,
   apiErrorCopy,
@@ -59,6 +65,7 @@ import {
 } from "@/lib/portfolioTargets";
 import s from "@/components/PortfolioRisk.module.css";
 import tg from "@/components/PortfolioTargets.module.css";
+import rh from "@/components/PortfolioRiskHistory.module.css";
 
 type Quote = { last?: number; chg?: number } | null | undefined;
 type ManifestRow = { name?: string; zh?: string; col?: string; last?: number; chg?: number };
@@ -122,6 +129,8 @@ export default function PortfolioView(
   const [riskAttempted, setRiskAttempted] = useState(false);
   const [targets, setTargets] = useState<PortfolioTargetsSummary | null>(null);
   const [targetsAttempted, setTargetsAttempted] = useState(false);
+  const [history, setHistory] = useState<PortfolioRiskHistory | null>(null);
+  const [historyAttempted, setHistoryAttempted] = useState(false);
   // The server could not read the book. `positions` is [] here because there is nothing to show
   // — NOT because the user holds nothing. Everything that would assert a count or a total is
   // suppressed while this is true, and it clears the moment a read lands.
@@ -200,6 +209,18 @@ export default function PortfolioView(
       }
     } catch { setTargets(null); }
     finally { setTargetsAttempted(true); }
+
+    void (async () => {
+      try {
+        const historyResponse = await fetch("/api/portfolio/risk-history", { headers: { Accept: "application/json" } });
+        if (!historyResponse.ok) setHistory(null);
+        else {
+          const payload = await historyResponse.json();
+          setHistory((payload?.history ?? null) as PortfolioRiskHistory | null);
+        }
+      } catch { setHistory(null); }
+      finally { setHistoryAttempted(true); }
+    })();
 
     return authoritative;
   }, []);
@@ -506,6 +527,14 @@ export default function PortfolioView(
         })()}
 
         {(() => {
+          switch (historyAvailability(historyAttempted, history)) {
+            case "ready": return <PortfolioRiskHistoryReadout history={history!} lang={lang as Lang} />;
+            case "unavailable": return <HistoryUnavailableNotice lang={lang as Lang} />;
+            default: return null;
+          }
+        })()}
+
+        {(() => {
           // R1 (BLOCKER): the targets section used `riskAvailability`, which returns "hidden" the
           // moment the open book is empty — so closing the last holding hid every saved target on
           // a closed position with no disclosure at all. `targetsAvailability` is this section's
@@ -651,6 +680,96 @@ function RiskUnavailableNotice({ lang }: { lang: Lang }) {
   return (
     <section className={s.shape} data-testid="portfolio-shape-unavailable">
       <p className={s.unread}>{lang === "zh" ? T_RISK_UNAVAILABLE.zh : T_RISK_UNAVAILABLE.en}</p>
+    </section>
+  );
+}
+
+function HistoryUnavailableNotice({ lang }: { lang: Lang }) {
+  return (
+    <section className={rh.section} data-testid="portfolio-risk-history-unavailable">
+      <p className={rh.notice}>{lang === "zh" ? T_HISTORY_UNAVAILABLE.zh : T_HISTORY_UNAVAILABLE.en}</p>
+    </section>
+  );
+}
+
+export function PortfolioRiskHistoryReadout({ history, lang }: { history: PortfolioRiskHistory; lang: Lang }) {
+  const c = historyCopy(history);
+  const pick = (b: { en: string; zh: string } | null | undefined) => (b ? (lang === "zh" ? b.zh : b.en) : null);
+  const metric = (
+    key: "sharpe" | "sortino" | "beta",
+    card: { label: { en: string; zh: string }; value: { en: string; zh: string } | null; unread: { en: string; zh: string } | null },
+  ) => (
+    <article className={rh.card} data-card={key}>
+      <span className={rh.lbl}>{pick(card.label)}</span>
+      {card.value
+        ? <b className={rh.hero}>{pick(card.value)}</b>
+        : <p className={rh.unread}>{pick(card.unread) ?? "—"}</p>}
+    </article>
+  );
+  return (
+    <section
+      className={rh.section}
+      data-testid="portfolio-risk-history"
+      data-coverage-status={history.coverageStatus}
+      data-coverage-source={history.coverageSource}
+      data-history-n={history.window.n}
+      aria-labelledby="pf-risk-history-h"
+    >
+      <header className={rh.head}>
+        <h3 id="pf-risk-history-h" className={rh.title}>{pick(c.title)}</h3>
+        <p className={rh.standing}>{pick(c.standing)}</p>
+        <p className={rh.basis}>{pick(c.basis)}</p>
+        <p className={rh.metaLine}>{pick(c.window)}</p>
+        <p className={rh.metaLine}>{pick(c.benchmark)}</p>
+        <p className={rh.metaLine}>{pick(c.riskFree)}</p>
+        <p className={rh.metaLine}>{pick(c.asOf)}</p>
+      </header>
+      {c.empty && <p className={rh.empty} data-testid="risk-history-empty">{pick(c.empty)}</p>}
+      {c.unreadBook && <p className={rh.empty} data-testid="risk-history-unread-book">{pick(c.unreadBook)}</p>}
+      <div className={rh.metrics}>
+        {metric("sharpe", c.sharpe)}
+        {metric("sortino", c.sortino)}
+        {metric("beta", c.beta)}
+      </div>
+      {!!c.included.length && (
+        <>
+          <p className={rh.listHead}>{pick(c.includedHeader)}</p>
+          <ul className={rh.list} data-testid="risk-history-included">
+            {c.included.map((row) => (
+              <li key={row.ticker} className={rh.row}>
+                <span className={rh.tk}>{row.ticker}</span>
+                <span className={rh.why}>{pick(row.text)}</span>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+      {!!c.excluded.length && (
+        <>
+          <p className={rh.listHead}>{pick(c.excludedHeader)}</p>
+          <ul className={rh.list} data-testid="risk-history-excluded">
+            {c.excluded.map((row) => (
+              <li key={`${row.ticker}-${row.text.en}`} className={rh.row}>
+                <span className={rh.tk}>{row.ticker}</span>
+                <span className={rh.why}>{pick(row.text)}</span>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+      {!!c.gapLines.length && (
+        <details className={rh.gaps} data-testid="risk-history-gaps" open={c.gapLines.length <= 8}>
+          <summary className={rh.gapsSummary}>{pick(c.gapsSummary)}</summary>
+          <ul className={rh.list}>
+            {c.gapLines.map((g, i) => (
+              <li key={`${g.ticker ?? "book"}-${g.text.en}-${i}`} className={rh.row}>
+                {g.ticker && <span className={rh.tk}>{g.ticker}</span>}
+                <span className={rh.why}>{pick(g.text)}</span>
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
     </section>
   );
 }
