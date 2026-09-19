@@ -1,0 +1,210 @@
+{
+  "sourceHead": "a5ba156f2a31c9d7b96a75484e22ab1138720ace",
+  "scope": "Deterministic adversarial fixtures through the actual local Terminal route; not live market or production-deployment evidence. Prior real-published-source captures remain separately attributed.",
+  "browserResult": "30 passed across desktop/tablet/mobile; 21 migrated legacy cases plus 9 unified-workspace cases. No retries or skips added.",
+  "unitResult": "125 passed",
+  "sourceBlobs": {
+    "terminal/components/SignalButton.tsx": "8a68d9f9e289dd69c5e3928a09d8415d168d3e00",
+    "terminal/components/fin/OracleDash.tsx": "46e8a6f69b2c517399929850bca9275958d382f6",
+    "terminal/components/fin/StockIntelligence.module.css": "d887e7d4f468c1548517b7f75225110b67103c73",
+    "terminal/e2e/stock-intelligence.spec.ts": "54209566c202f4f6262f247cc93a74d8512607de",
+    "terminal/lib/__tests__/stockIntelligence.test.tsx": "3dd0ac05970f113ed924afd6969171b338163ff7",
+    "terminal/e2e/responsive.spec.ts": "950403a9f9e23cfe444b62ca6063d221b6ef4052",
+    "terminal/e2e/washout-override.spec.ts": "db246dcc5b82527ec570012338837a64b458e8fb",
+    "terminal/e2e/washout-retro.spec.ts": "1eda3cde267261677c1c6659435c3f5dd4382c21"
+  },
+  "semanticAssertionAudit": {
+    "comparedHead": "986c205491e0787a86bd506343bdebf007aca1a8",
+    "method": "TypeScript AST: exact matcher arguments retained for text, disclosure titles, semantic colours, numerical proximity, equality and object expectations; unchanged named test inventory",
+    "results": [
+      {
+        "file": "responsive.spec.ts",
+        "retainedSemanticAssertions": 78,
+        "testInventoryUnchanged": true,
+        "skipFixmeOnlyInventoryUnchanged": true
+      },
+      {
+        "file": "washout-override.spec.ts",
+        "retainedSemanticAssertions": 19,
+        "testInventoryUnchanged": true,
+        "skipFixmeOnlyInventoryUnchanged": true
+      },
+      {
+        "file": "washout-retro.spec.ts",
+        "retainedSemanticAssertions": 30,
+        "testInventoryUnchanged": true,
+        "skipFixmeOnlyInventoryUnchanged": true
+      }
+    ]
+  },
+  "screenshots": [
+    {
+      "path": "docs/pr-crops/stock-intelligence-20260917/continuation/desktop-desktop-washout-take-en-card.png",
+      "viewport": "desktop",
+      "sha256": "9263b799b63645fb6867dc07772f00011bed82c673f8d03f3d852b16d376e6c0",
+      "testCase": "washout-override-a-TAKEN-w-c90c9-dinary-entry-outlined-amber-desktop"
+    },
+    {
+      "path": "docs/pr-crops/stock-intelligence-20260917/continuation/desktop-desktop-washout-take-zh-card.png",
+      "viewport": "desktop",
+      "sha256": "3a30b0086669ff5ca4b6bb7ae1005bb6010d40d26dd195957f0fd9835bce5a59",
+      "testCase": "washout-override-a-TAKEN-w-c90c9-dinary-entry-outlined-amber-desktop"
+    },
+    {
+      "path": "docs/pr-crops/stock-intelligence-20260917/continuation/mobile-mobile-washout-take-en-card.png",
+      "viewport": "mobile",
+      "sha256": "c464ada804794af6b4914f0af52303ce1649b13343d016d4c0e50109471465da",
+      "testCase": "washout-override-a-TAKEN-w-c90c9-dinary-entry-outlined-amber-mobile"
+    },
+    {
+      "path": "docs/pr-crops/stock-intelligence-20260917/continuation/tablet-tablet-washout-take-zh-card.png",
+      "viewport": "tablet",
+      "sha256": "9f6e667b104c910bccd47d8c918ec3b13ec15d98d2ae0a28907f7bcdfaa544a8",
+      "testCase": "washout-override-a-TAKEN-w-c90c9-dinary-entry-outlined-amber-tablet"
+    },
+    {
+      "path": "docs/pr-crops/stock-intelligence-20260917/continuation/desktop-desktop-washout-plain-card.png",
+      "viewport": "desktop",
+      "sha256": "3e0f52d998be2a81930f1ed897e886a4875c8b7cb35ef29a25a143cff2e6c383",
+      "testCase": "washout-override-a-non-qua-b3e18-rs-exactly-as-it-does-today-desktop"
+    },
+    {
+      "path": "docs/pr-crops/stock-intelligence-20260917/continuation/mobile-mobile-washout-plain-card.png",
+      "viewport": "mobile",
+      "sha256": "595dea98eee545a6fb004aa43601a2b67650e77d04dcb7a782d9d7ed3533c512",
+      "testCase": "washout-override-a-non-qua-b3e18-rs-exactly-as-it-does-today-mobile"
+    },
+    {
+      "path": "docs/pr-crops/stock-intelligence-20260917/continuation/tablet-tablet-washout-plain-card.png",
+      "viewport": "tablet",
+      "sha256": "753f4bc9d922306a78b59603929d426583853be902eab1185222d140284b2944",
+      "testCase": "washout-override-a-non-qua-b3e18-rs-exactly-as-it-does-today-tablet"
+    },
+    {
+      "path": "docs/pr-crops/stock-intelligence-20260917/continuation/desktop-desktop-washout-override-card.png",
+      "viewport": "desktop",
+      "sha256": "7d6a71eeea470a95fc56ffedb4538c0a49f3b67fb307547beb306ebd362337ee",
+      "testCase": "washout-override-a-qualify-c2272-ass-on-card-hover-and-chart-desktop"
+    },
+    {
+      "path": "docs/pr-crops/stock-intelligence-20260917/continuation/desktop-desktop-washout-override-history.png",
+      "viewport": "desktop",
+      "sha256": "e5cac9a1f0daabf69f02a3b7d41a9947b12fed895dd7d133f72ab83b4d00eae2",
+      "testCase": "washout-override-a-qualify-c2272-ass-on-card-hover-and-chart-desktop"
+    },
+    {
+      "path": "docs/pr-crops/stock-intelligence-20260917/continuation/mobile-mobile-washout-override-card.png",
+      "viewport": "mobile",
+      "sha256": "d649306ada5edd8e84cbe6a362e8b3e53daa3d0bda9c7c4bf43b75bf91a7d031",
+      "testCase": "washout-override-a-qualify-c2272-ass-on-card-hover-and-chart-mobile"
+    },
+    {
+      "path": "docs/pr-crops/stock-intelligence-20260917/continuation/mobile-mobile-washout-override-history.png",
+      "viewport": "mobile",
+      "sha256": "ce730971731ac915c26bdb9316d0f8359a9aae2746a3fab9ab823cd40ac54e80",
+      "testCase": "washout-override-a-qualify-c2272-ass-on-card-hover-and-chart-mobile"
+    },
+    {
+      "path": "docs/pr-crops/stock-intelligence-20260917/continuation/tablet-tablet-washout-override-card.png",
+      "viewport": "tablet",
+      "sha256": "606fdbc10739c90f950d4c8f2ecd0e6c564d9b951fe6e3989e1469ab18d5ed7f",
+      "testCase": "washout-override-a-qualify-c2272-ass-on-card-hover-and-chart-tablet"
+    },
+    {
+      "path": "docs/pr-crops/stock-intelligence-20260917/continuation/tablet-tablet-washout-override-history.png",
+      "viewport": "tablet",
+      "sha256": "9d0a6fc3bd9038c6d676ba78cd0d1d92bff92fd8fb494a5ba61c6ac9c82049bf",
+      "testCase": "washout-override-a-qualify-c2272-ass-on-card-hover-and-chart-tablet"
+    },
+    {
+      "path": "docs/pr-crops/stock-intelligence-20260917/continuation/desktop-retro-en-card-reclaim-waived.png",
+      "viewport": "desktop",
+      "sha256": "3950c87cd108c2b6ff0bd0a49d7c9112c63bf9b64cfa1d261c4d34fd25e0330d",
+      "testCase": "washout-retro-a-retro-proj-3ac07-d-as-three-different-things-desktop"
+    },
+    {
+      "path": "docs/pr-crops/stock-intelligence-20260917/continuation/desktop-retro-en-history-rows.png",
+      "viewport": "desktop",
+      "sha256": "876622dc4995d1dd2e386674a529ed88705874b8d21eca676a95c4bc5b51b709",
+      "testCase": "washout-retro-a-retro-proj-3ac07-d-as-three-different-things-desktop"
+    },
+    {
+      "path": "docs/pr-crops/stock-intelligence-20260917/continuation/desktop-retro-zh-card-reclaim-waived.png",
+      "viewport": "desktop",
+      "sha256": "635095afb661c5b279715897a4f0b8ff6bf7c8bf46f1ce7c50c215f79ead2e8c",
+      "testCase": "washout-retro-a-retro-proj-3ac07-d-as-three-different-things-desktop"
+    },
+    {
+      "path": "docs/pr-crops/stock-intelligence-20260917/continuation/desktop-retro-zh-history-rows.png",
+      "viewport": "desktop",
+      "sha256": "1e88e6937136c5b34084e24420972b53b6934283600b4be0f64b11375402b57a",
+      "testCase": "washout-retro-a-retro-proj-3ac07-d-as-three-different-things-desktop"
+    },
+    {
+      "path": "docs/pr-crops/stock-intelligence-20260917/continuation/mobile-retro-en-card-reclaim-waived.png",
+      "viewport": "mobile",
+      "sha256": "dbae0af7c8ffec93d38bccb428c884e17a46b2f22ec96dcf5d0e1426f15ac33e",
+      "testCase": "washout-retro-a-retro-proj-3ac07-d-as-three-different-things-mobile"
+    },
+    {
+      "path": "docs/pr-crops/stock-intelligence-20260917/continuation/mobile-retro-en-history-rows.png",
+      "viewport": "mobile",
+      "sha256": "a061d2b76263c4b756774c8e0441a2a4c0abdc459ea5741de874feba872ba42d",
+      "testCase": "washout-retro-a-retro-proj-3ac07-d-as-three-different-things-mobile"
+    },
+    {
+      "path": "docs/pr-crops/stock-intelligence-20260917/continuation/tablet-retro-zh-card-reclaim-waived.png",
+      "viewport": "tablet",
+      "sha256": "01c4410a23f56fdadc80c685695d10024d4f09e460d10703d8ff2b714a228537",
+      "testCase": "washout-retro-a-retro-proj-3ac07-d-as-three-different-things-tablet"
+    },
+    {
+      "path": "docs/pr-crops/stock-intelligence-20260917/continuation/tablet-retro-zh-history-rows.png",
+      "viewport": "tablet",
+      "sha256": "8b07271d98b6ad7d7e94d52b0dc0ff32fb31b5bcc694b3a5c316118da80eb35e",
+      "testCase": "washout-retro-a-retro-proj-3ac07-d-as-three-different-things-tablet"
+    }
+  ],
+  "typecheckResult": {
+    "command": "npx tsc --noEmit --incremental false",
+    "exitCode": 0,
+    "generatedRouteTypes": "Regenerated successfully with the installed Next typegen after the browser-owned dev server had stopped. The malformed prior dev-generated type tree was preserved locally for diagnosis; no tsconfig exclusions or source typing checks were removed."
+  },
+  "baseCompatibility": {
+    "baseline": "75c22083249e7a1529be3d6baf819b9ad5ea509f",
+    "observedProtectedMaster": "6f2e23951c8981acfc68609526d74d3e8ffbe5b5",
+    "movement": "One protected commit modifies only vertical-cursor ownership/unlock behavior and its context-menu styles within the shared ChartPanel/globals dependencies. No owned implementation/test path or research/signal contract changes. Fresh GitHub integration CI remains required; no ancestry-only merge performed."
+  },
+  "logs": [
+    {
+      "path": "docs/pr-crops/stock-intelligence-20260917/continuation/stock-intelligence-legacy-green.log",
+      "rawSha256": "b4042499131ab114d3d74e782dc2a03f2331f7b4ad399d150d91eaaffccb72b1",
+      "committedSha256": "b4042499131ab114d3d74e782dc2a03f2331f7b4ad399d150d91eaaffccb72b1",
+      "normalization": "ANSI colour codes, trailing spaces and terminal blank lines removed; original raw logs retained in the existing worktree."
+    },
+    {
+      "path": "docs/pr-crops/stock-intelligence-20260917/continuation/stock-intelligence-legacy-navigation.log",
+      "rawSha256": "9edee802550ed35be09d105b2eccdd1fe6824367f38c3a2b6b7fbbb959e4d975",
+      "committedSha256": "ce961e754aff86c0b61c85b5c7ae9f9a6a09a971686db43849ceb8c85d310fcc",
+      "normalization": "ANSI colour codes, trailing spaces and terminal blank lines removed; original raw logs retained in the existing worktree."
+    },
+    {
+      "path": "docs/pr-crops/stock-intelligence-20260917/continuation/stock-intelligence-continuation-typegen.log",
+      "rawSha256": "adba4af9194e10e47dda75ff0fd0f8c2b756474896d0eba5612799c527ff372a",
+      "committedSha256": "adba4af9194e10e47dda75ff0fd0f8c2b756474896d0eba5612799c527ff372a",
+      "normalization": "ANSI colour codes, trailing spaces and terminal blank lines removed; original raw logs retained in the existing worktree."
+    },
+    {
+      "path": "docs/pr-crops/stock-intelligence-20260917/continuation/stock-intelligence-continuation-types-final.log",
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "committedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "normalization": "ANSI colour codes, trailing spaces and terminal blank lines removed; original raw logs retained in the existing worktree."
+    },
+    {
+      "path": "docs/pr-crops/stock-intelligence-20260917/continuation/stock-intelligence-continuation-unit.log",
+      "rawSha256": "edc27df5f14a7705196f6126e218fd27b6ed11eb92d0caa7a87cd860575b3c9f",
+      "committedSha256": "4bc52df9e7072a5ed1475c91baa1debc1ac24f2910654d2bce986cb2e443bb86",
+      "normalization": "ANSI colour codes, trailing spaces and terminal blank lines removed; original raw logs retained in the existing worktree."
+    }
+  ]
+}

@@ -474,9 +474,9 @@ async function assertThreeStates(page: Page, zh: boolean, tag: string, testInfo:
 
   // ── the card: entry verdict, ONE disclosure line, the recipe's grade beside it ──────────
   await signalButton.click();
-  const dialog = page.locator(".sd-scrim");
+  const dialog = page.getByRole("dialog", { name: zh ? "个股情报" : "Stock Intelligence" });
   await expect(dialog).toBeVisible();
-  const go = dialog.locator(".sd-go");
+  const go = dialog.getByRole("tabpanel");
   await expect(go.locator(".od-verdict")).toHaveText(zh ? "买入" : "Buy");
   // dated from the LIVE entry — the retro fire is 12 bars older and never anchors
   await expect(go.locator(".od-vsub")).toHaveText(fmtSub(TAKE_TS, zh));
@@ -509,6 +509,7 @@ async function assertThreeStates(page: Page, zh: boolean, tag: string, testInfo:
   await expect(go.locator(".sig-conflict")).toHaveCount(0);
   await go.locator(".sig-card").screenshot({ path: out("card-reclaim-waived") });
 
+  await dialog.getByRole("tab", { name: zh ? /^信号/ : /^Signals/ }).click();
   // ── the signal history: three rows, three different rows ────────────────────────────────
   const rows = go.locator(".sd-siglist .sd-sigrow");
   await expect(rows).toHaveCount(3);                    // newest first: waived, retro, refusal
@@ -565,7 +566,7 @@ async function assertThreeStates(page: Page, zh: boolean, tag: string, testInfo:
   // container on both sides, so an element screenshot clips the price column AND the legend's
   // first word. This crop is the visual receipt for the whole disclosure argument — the
   // "(retro)" label and the sentence that resolves it have to be legible in one frame.
-  await cropUnion(page, ".sd-go .od-sig-section", out("history-rows"));
+  await cropUnion(page, "dialog[open] [role=tabpanel] .od-sig-section", out("history-rows"));
 
   await page.keyboard.press("Escape");
   await expect(dialog).toBeHidden();
@@ -641,8 +642,10 @@ test("the retro legend renders only when a re-marked fire is actually in the lis
   const signalButton = page.locator(".sig-btn");
   await signalButton.scrollIntoViewIfNeeded();
   await signalButton.click();
-  const go = page.locator(".sd-scrim .sd-go");
-  await expect(go).toBeVisible();
+  const dialog = page.getByRole("dialog", { name: zh ? "个股情报" : "Stock Intelligence" });
+  await expect(dialog).toBeVisible();
+  const go = dialog.getByRole("tabpanel");
+  await dialog.getByRole("tab", { name: zh ? /^信号/ : /^Signals/ }).click();
 
   // the same two survivors, still rendering exactly as they do in the three-fire card
   const rows = go.locator(".sd-siglist .sd-sigrow");
@@ -653,6 +656,7 @@ test("the retro legend renders only when a re-marked fire is actually in the lis
   await expect(go.locator(".sd-siglist .sd-sig-q", { hasText: zh ? "（事后重标）" : "(retro)" }))
     .toHaveCount(0);
   await expect(go.locator(".sd-sig-legend")).toHaveCount(0);
+  await dialog.getByRole("tab").first().click();
   // and the verdict is unchanged — removing the counterfactual moved nothing about the read
   await expect(go.locator(".od-verdict")).toHaveText(zh ? "买入" : "Buy");
   await expect(go.locator(".od-vsub")).toHaveText(fmtSub(TAKE_TS, zh));
