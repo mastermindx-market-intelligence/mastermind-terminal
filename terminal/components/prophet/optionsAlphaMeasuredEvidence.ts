@@ -41,6 +41,7 @@ export interface OptionsAlphaMeasuredEvent {
 export interface OptionsAlphaMeasuredFeed {
   schema: typeof OPTIONS_ALPHA_MEASURED_FEED_SCHEMA;
   asof: string | null;
+  source_asof: string | null;
   session_date: string | null;
   events: OptionsAlphaMeasuredEvent[];
 }
@@ -245,6 +246,9 @@ export function normalizeOptionsAlphaMeasuredFeed(value: unknown): OptionsAlphaM
   const asof = value.asof == null ? null : timestamp(value.asof);
   if (value.asof != null && asof == null) return null;
 
+  const sourceAsof = value.source_asof == null ? null : timestamp(value.source_asof);
+  if (value.source_asof != null && sourceAsof == null) return null;
+
   const events = value.events
     .map(normalizeMeasuredEvent)
     .filter((event): event is OptionsAlphaMeasuredEvent => event != null)
@@ -256,6 +260,7 @@ export function normalizeOptionsAlphaMeasuredFeed(value: unknown): OptionsAlphaM
   return {
     schema: OPTIONS_ALPHA_MEASURED_FEED_SCHEMA,
     asof,
+    source_asof: sourceAsof,
     session_date: sessionDate,
     events,
   };
