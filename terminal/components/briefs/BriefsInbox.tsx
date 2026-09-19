@@ -5,6 +5,7 @@ import s from "@/components/alerts/alerts.module.css";
 import b from "./briefs.module.css";
 import {
   briefCopy,
+  briefCadenceLabel,
   degradedLine,
   marketReadSentences,
   monitorsSummary,
@@ -72,6 +73,7 @@ export default function BriefsInbox({ lang }: { lang: BriefLang }) {
               >
                 <span className={b.briefName} data-brief-name="">{name}</span>
                 <span className={b.briefDate} data-brief-date="">{row.slotAsof}</span>
+                <span className={b.cadence} data-brief-cadence="">{briefCadenceLabel(row.subscription.cadence, L)}</span>
                 {row.pinned && <span className={b.pinned}>{briefCopy("lastGood", L)}</span>}
                 {miss ? (
                   <span className={b.sentence} data-brief-sentence="">{degradedLine(row.subscription.cadence, L)}</span>

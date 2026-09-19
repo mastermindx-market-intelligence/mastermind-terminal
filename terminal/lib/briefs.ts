@@ -300,6 +300,10 @@ export function degradedLine(cadence: BriefCadence, lang: BriefLang): string {
   return briefCopy(cadence === "weekly_saturday" ? "degradedWeekly" : "degradedDaily", lang);
 }
 
+export function briefCadenceLabel(cadence: BriefCadence, lang: BriefLang): string {
+  return briefCopy(cadence === "weekly_saturday" ? "subscribeWeekly" : "subscribeDaily", lang);
+}
+
 export function marketReadSentences(body: BriefBody, lang: BriefLang, n = 2): string[] {
   return body.market_read.slice(0, n).map((row) => (lang === "zh" ? row.sentence_zh : row.sentence_en));
 }

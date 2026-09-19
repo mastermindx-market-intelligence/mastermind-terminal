@@ -79,6 +79,7 @@ test("ready and degraded rows render verbatim EN/ZH sentences, never a cadence s
   await expect(inbox.getByText("The close held above last week's range.")).toBeVisible();
   await expect(inbox.getByText(briefCopy("lastGood", "en"))).toBeVisible();
   await expect(inbox.locator("[data-brief-name]").first()).toHaveText("NVDA cycle");
+  await expect(inbox.locator("[data-brief-cadence]").first()).toHaveText(briefCopy("subscribeDaily", "en"));
   await expect(inbox).not.toContainText("daily_after_us_close");
 });
 

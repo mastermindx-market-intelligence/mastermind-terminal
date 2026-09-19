@@ -123,6 +123,8 @@ describe("BriefsInbox rendering", () => {
     expect(text()).toContain("The close held above last week's range.");
     expect(text()).toContain("Call buying stayed in the front week.");
     expect(text()).toContain(briefCopy("lastGood", "en"));
+    expect(text()).toContain(briefCopy("subscribeDaily", "en"));
+    expect(container?.querySelector("[data-brief-cadence]")?.textContent).toBe(briefCopy("subscribeDaily", "en"));
     expect(text()).toContain("1 monitor");
     expect(text()).not.toContain("1 monitors");
     expect(container?.querySelectorAll("[data-brief-name]").length).toBe(2);

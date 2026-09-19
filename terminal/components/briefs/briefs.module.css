@@ -112,6 +112,16 @@
   white-space: nowrap;
   flex-shrink: 0;
 }
+.cadence {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border: 1px solid var(--line-2, var(--line));
+  border-radius: 999px;
+  font: 700 10px/1.2 var(--font-ui);
+  color: var(--muted);
+  white-space: nowrap;
+}
 .pinned {
   font: 700 10px/1.2 var(--font-num);
   letter-spacing: .08em;
