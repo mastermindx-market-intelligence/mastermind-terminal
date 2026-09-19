@@ -122,7 +122,7 @@ test("an outage notice wraps instead of being cut off", async ({ page }) => {
   // phone it read "The search log could not be…" with its Retry button clipped off the panel.
   await page.route("**/api/admin/searches**", (route) =>
     route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ error: "events_unavailable" }) }));
-  await page.locator(".adm-filters input").fill("ZZZZ");
+  await page.getByRole("textbox").fill("ZZZZ");
 
   const notice = page.locator(".adm-log tr.empty-row td");
   await expect(notice).toBeVisible({ timeout: 30_000 });

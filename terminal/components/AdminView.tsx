@@ -46,7 +46,8 @@ export default function AdminView({ authorityUnavailable = false }: { email: str
   const [busy, setBusy] = useState(false);
   const [symInput, setSymInput] = useState("");
   const [symbol, setSymbol] = useState(""); // committed (uppercased) symbol filter
-  const [source, setSource] = useState("");
+  const [sourceInput, setSourceInput] = useState("");
+  const [source, setSource] = useState(""); // committed exact source filter
   const [visitor, setVisitor] = useState("");
   const [tick, setTick] = useState(0); // manual Refresh / Retry
 
@@ -77,11 +78,18 @@ export default function AdminView({ authorityUnavailable = false }: { email: str
     return fetch("/api/admin/searches?" + p.toString(), { cache: "no-store", signal });
   }, [symbol, source, visitor]);
 
-  // commit symbol filter 400ms after typing stops (Enter commits immediately)
+  // Commit text filters after typing stops; Enter commits immediately. Source used to be a
+  // closed <select> populated only from the current page, which made a valid older/rare source
+  // impossible to query until enough unrelated pages happened to be loaded first.
   useEffect(() => {
     const id = setTimeout(() => setSymbol(symInput.trim().toUpperCase()), 400);
     return () => clearTimeout(id);
   }, [symInput]);
+
+  useEffect(() => {
+    const id = setTimeout(() => setSource(sourceInput.trim()), 400);
+    return () => clearTimeout(id);
+  }, [sourceInput]);
 
   useEffect(() => {
     let alive = true;
@@ -346,10 +354,19 @@ export default function AdminView({ authorityUnavailable = false }: { email: str
                     onKeyDown={(e) => { if (e.key === "Enter") setSymbol(symInput.trim().toUpperCase()); }}
                     style={{ width: 120 }}
                   />
-                  <select aria-label={t("admSource", "Source")} value={source} onChange={(e) => setSource(e.target.value)}>
-                    <option value="">{t("admAllSources", "all sources")}</option>
-                    {sources.map((s) => <option key={s} value={s}>{s}</option>)}
-                  </select>
+                  <input
+                    aria-label={t("admSource", "Source")}
+                    list="adm-source-options"
+                    placeholder={t("admAllSources", "all sources")}
+                    value={sourceInput}
+                    onChange={(e) => setSourceInput(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") setSource(sourceInput.trim()); }}
+                    autoComplete="off"
+                    style={{ width: 160 }}
+                  />
+                  <datalist id="adm-source-options">
+                    {sources.map((s) => <option key={s} value={s} />)}
+                  </datalist>
                   {visitor && (
                     <button className="chip on" title={visitor} onClick={() => setVisitor("")}>
                       {t("admVisitor", "visitor")} <span className="v">{vLabel}</span> ✕

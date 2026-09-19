@@ -99,6 +99,21 @@ describe("AdminView — recovery and pagination races", () => {
     await flush();
   }
 
+  async function commitSource(value: string) {
+    const input = container.querySelector('input[aria-label="Source"]') as HTMLInputElement | null;
+    expect(input).toBeTruthy();
+    const nativeValueSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
+    expect(nativeValueSetter).toBeTruthy();
+    await act(async () => {
+      nativeValueSetter!.call(input, value);
+      input!.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    await act(async () => {
+      input!.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+    });
+    await flush();
+  }
+
   it("clears a server authority-outage notice after a successful client re-check", async () => {
     globalThis.fetch = vi.fn(async () =>
       response({ events: [row(2, "AAPL", "search")], nextBefore: null, userMap: {}, stats }),
@@ -131,6 +146,37 @@ describe("AdminView — recovery and pagination races", () => {
     expect(container.textContent).toContain("Couldn't verify admin access");
   });
 
+  it("can filter an exact source that is absent from the currently loaded page", async () => {
+    let hiddenRequested = false;
+    globalThis.fetch = vi.fn((input: RequestInfo | URL) => {
+      const url = new URL(String(input), "https://x.test");
+      if (url.searchParams.get("source") === "archived-source") {
+        hiddenRequested = true;
+        return Promise.resolve(response({
+          events: [row(40, "HIDDEN_SOURCE", "archived-source")],
+          nextBefore: null,
+          userMap: {},
+          stats,
+        }));
+      }
+      return Promise.resolve(response({
+        events: [row(100, "LATEST_ONLY", "recent-source")],
+        nextBefore: null,
+        userMap: {},
+        stats,
+      }));
+    }) as typeof globalThis.fetch;
+
+    await mount();
+    expect(container.textContent).toContain("LATEST_ONLY");
+    expect(container.textContent).not.toContain("archived-source");
+
+    await commitSource("archived-source");
+
+    expect(hiddenRequested).toBe(true);
+    expect(container.textContent).toContain("HIDDEN_SOURCE");
+  });
+
   it("does not label the global stats total as the total for a filtered log", async () => {
     globalThis.fetch = vi.fn((input: RequestInfo | URL) => {
       const url = new URL(String(input), "https://x.test");
@@ -149,12 +195,7 @@ describe("AdminView — recovery and pagination races", () => {
       [...container.querySelectorAll(".ph")].find((el) => el.textContent?.startsWith("Log"));
     expect(logHeader()?.textContent).toContain("1 loaded · 999 total");
 
-    const select = container.querySelector('select[aria-label="Source"]') as HTMLSelectElement;
-    act(() => {
-      select.value = "new";
-      select.dispatchEvent(new Event("change", { bubbles: true }));
-    });
-    await flush();
+    await commitSource("new");
 
     expect(logHeader()?.textContent).toContain("1 loaded");
     expect(logHeader()?.textContent).not.toContain("999 total");
@@ -187,13 +228,7 @@ describe("AdminView — recovery and pagination races", () => {
     expect(more).toBeTruthy();
     act(() => { more!.click(); });
 
-    const select = container.querySelector('select[aria-label="Source"]') as HTMLSelectElement;
-    expect(select).toBeTruthy();
-    act(() => {
-      select.value = "new";
-      select.dispatchEvent(new Event("change", { bubbles: true }));
-    });
-    await flush();
+    await commitSource("new");
     expect(container.textContent).toContain("NEW_FILTER");
 
     page2.resolve(response({
