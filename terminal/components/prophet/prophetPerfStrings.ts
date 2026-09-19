@@ -11,8 +11,8 @@ const PERF_LEX = {
   rawRange: ["Raw underlying · range", "原始标的收益 · 区间"],
   rawTitle: ["Raw underlying returns", "原始标的收益"],
   rawBody: [
-    "Unweighted per-plan underlying price returns. Not option-contract return, portfolio return, benchmarked return, or alpha.",
-    "按每个已入场计划等权显示标的价格原始收益。它不是期权合约收益、投资组合收益、基准收益或阿尔法。",
+    "Unweighted per-plan underlying price moves. Not adjusted for BULL/BEAR direction: a positive number means the underlying rose, including on BEAR plans. Not option-contract return, portfolio return, benchmarked return, or alpha.",
+    "按每个已入场计划等权显示标的价格原始变动。不按看多/看空方向调整：正数只表示标的上涨，包括看空计划。它不是期权合约收益、投资组合收益、基准收益或阿尔法。",
   ],
   benchmarkTitle: ["Benchmark context", "基准对照"],
   benchmarkUnavailable: [

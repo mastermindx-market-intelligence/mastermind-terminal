@@ -89,12 +89,16 @@ describe("Prophet PERF schema admission", () => {
     const en = makeProphetPerfT("en");
     const zh = makeProphetPerfT("zh");
 
+    expect(en("rawBody")).toContain("Not adjusted for BULL/BEAR direction");
+    expect(en("rawBody")).toContain("positive number means the underlying rose");
     expect(en("rawBody")).toContain("Not option-contract return");
     expect(en("rawBody")).toContain("portfolio return");
     expect(en("rawBody")).toContain("alpha");
     expect(en("benchmarkUnavailable")).toContain("not shown");
     expect(en("historyBody")).toContain("not “ever reached target” frequencies");
 
+    expect(zh("rawBody")).toContain("不按看多/看空方向调整");
+    expect(zh("rawBody")).toContain("正数只表示标的上涨");
     expect(zh("rawBody")).toContain("不是期权合约收益");
     expect(zh("benchmarkUnavailable")).toContain("不显示基准收益或超额收益");
     expect(zh("historyBody")).toContain("不代表“曾经触及目标”的频率");
