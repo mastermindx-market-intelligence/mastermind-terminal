@@ -203,10 +203,10 @@ amendment, only a README edit.
 | `0021` | `resource_grants` | PR #548 (merged as `bad423f5` on 2026-09-11, packet B-F12-B5-1 explicit grants; prefix ruled by the seat 2026-09-09) | merged + applied 2026-09-11 (readback receipt on PR #548 comment `5630176531`) |
 | `0022` | `chart_layouts_team_sharing` | PR #555 (merged as `6cdbaa0a8` on 2026-09-09, packet B-F12-B5-2) | merged + applied 2026-09-13 (readback receipt held in the seat's handoff kit at `ddl/receipt_0022.json`; the project ref is never written) |
 | `0023` | `portfolio_targets` | PR #552 (merged as `9022e0138` on 2026-09-10, packet B-F08-B5-1) | merged + applied 2026-09-13 (readback receipt held in the seat's handoff kit at `ddl/receipt_0023.json`; the project ref is never written) |
-| `0024` | `brief_subscriptions` | PR #579 (merged as `82bee14b`, packet B-F11-7, MO-PAID-032 Terminal half; two nullable FK columns `target_thesis_id`/`target_watchlist_id` and a CHECK-constrained pair enforcing exactly-one alignment with `target_kind`; API enforces ownership before insert per constraint 1) | merged — not applied |
+| `0024` | `brief_subscriptions` | PR #579 (merged as `82bee14b`, packet B-F11-7, MO-PAID-032 Terminal half; two nullable FK columns `target_thesis_id`/`target_watchlist_id` and a CHECK-constrained pair enforcing exactly-one alignment with `target_kind`; API enforces ownership before insert per constraint 1) | merged + applied 2026-09-19 (readback receipt held in the seat's handoff kit at `ddl/receipt_0024.json`; the project ref is never written) |
 | `0025` | — | Reserved for packet B-F12-10 (seat ruling h_t581 2026-09-18) | reserved — not applied |
 | `0026` | — | Reserved for packet B-F12-10 (seat ruling h_t581 2026-09-18) | reserved — not applied |
-| `0027` | `api_keys` | PR #581 (open, packet B-F12-10, personal read-only API keys) | open PR — not applied |
+| `0027` | `api_keys` | PR #581 (merged as `c9381593` on 2026-09-19, packet B-F12-10, personal read-only API keys) | merged + applied 2026-09-19 (readback receipt held in the seat's handoff kit at `ddl/receipt_0027.json`; the project ref is never written) |
 
 `0001`–`0007` and `0010` are **historical**: they predate this ledger, their creating pull
 requests were never recorded in-repo, and so their `pr` and `pr_state` fields in
