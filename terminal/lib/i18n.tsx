@@ -1983,6 +1983,24 @@ export const LEX: Record<string, [string, string]> = {
   ],
   acsTeamTransferSuccess: ["Ownership transferred to {name}.", "所有权已转移给 {name}。"],
   acsTeamTransferRetry: ["Try again", "重试"],
+  // MO-PAID-081 (packet W9T_F12_17, link-only): the Team section hands the owner a link to copy
+  // and says plainly, with a date, that no invitation mail is sent. The dated sentence itself is
+  // catalogued in lib/teams.ts beside the route answer it also serves, so the API body and the
+  // panel can never drift apart.
+  acsTeamInviteTitle: ["Invite someone", "邀请成员"],
+  acsTeamInviteEmail: ["Their email address", "对方的邮箱地址"],
+  acsTeamInviteEmailHint: ["They will need this address to sign in with.", "对方需要用这个地址登录。"],
+  acsTeamInviteRole: ["Their role", "对方的角色"],
+  acsTeamInviteCreate: ["Create invitation link", "创建邀请链接"],
+  acsTeamInviteCreating: ["Creating the link…", "正在创建链接…"],
+  acsTeamInviteCreated: ["The invitation link is ready.", "邀请链接已生成。"],
+  acsTeamInviteFor: ["Invitation link for {email}", "{email} 的邀请链接"],
+  acsTeamInviteCopy: ["Copy link", "复制链接"],
+  acsTeamInviteCopied: ["Link copied", "链接已复制"],
+  acsTeamInviteCopyFail: ["We could not copy it. Select the link and copy it yourself.", "我们无法自动复制。请选中链接后自行复制。"],
+  acsTeamInviteSend: ["Send this link to them yourself. It works for {days} days and can be used once.", "请自行把这个链接发送给对方。链接 {days} 天内有效，且只能使用一次。"],
+  acsTeamInviteAnother: ["Invite someone else", "邀请其他人"],
+  acsTeamInviteNeedEmail: ["Enter their email address first.", "请先填写对方的邮箱地址。"],
   acsWebhooks: ["Webhooks", "Webhook 回调"],
   acsWebhooksSub: ["Send signed events to an HTTPS address your team owns. Only test events are available today.", "把已签名的事件发送到团队拥有的 HTTPS 地址。目前仅支持测试事件。"],
   acsDeveloper: ["Developer access", "开发者访问"],
@@ -2511,6 +2529,16 @@ export const LEX: Record<string, [string, string]> = {
 
   xChartSnapshot: ["Chart snapshot", "图表快照"],
   xCreatedWith: ["Created with", "使用以下工具制作"],
+  // /invite — the public page an invitation link opens (MO-PAID-081, packet W9T_F12_17).
+  invTitle: ["Team invitation", "团队邀请"],
+  invIntro: ["You have been invited to join a team on Mastermind Terminal.", "有人邀请你加入 Mastermind Terminal 上的一个团队。"],
+  invChecking: ["Checking your invitation…", "正在核对你的邀请…"],
+  invAccept: ["Accept invitation", "接受邀请"],
+  invAccepting: ["Accepting…", "正在接受…"],
+  invSignIn: ["Sign in", "登录"],
+  invSignInReturn: ["After you sign in, open this invitation link again to join the team.", "登录之后，请再次打开这个邀请链接来加入团队。"],
+  invOpenTerminal: ["Open Mastermind Terminal", "打开 Mastermind Terminal"],
+  invLinkLife: ["An invitation link works for {days} days and can be used once.", "邀请链接 {days} 天内有效，且只能使用一次。"],
 
   ciQaStructure: ["Structure is verified. Topic labels are not available yet.", "结构已验证。主题标签暂不可用。"],
   ciOpenInTranscript: ["Open in the earnings call", "在电话会中查看"],

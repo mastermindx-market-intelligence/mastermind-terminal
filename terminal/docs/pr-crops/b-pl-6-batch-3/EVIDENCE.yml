@@ -5,7 +5,9 @@
 # capturedAt: 2026-09-09T20:17:12.930Z
 # capturedAtHead is informational. The lock is layoutFiles.
 # 2026-09-19 seat merge of master 1c46b277 into #584 (B-F12-13): hash-only restamp of terminal/components/heatmap/HeatmapView.tsx, terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit.
+# 2026-09-19 seat merge of origin/master dd7c6dec712a (#584 B-F12-13, merge commit) into #588 (W9T_F12_17 invite link): hash-only restamp of terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
 # 2026-09-19 seat merge of origin/master dd7c6dec712a (#584 B-F12-13, merge commit) into #587 (W9T_F13_9 team rollup): hash-only restamp of terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
+# 2026-09-19 seat merge of origin/master 4c7a2eeb6f58 (#587 B-F13-9 team rollup + #659 + #660, merge commit) into #588 (B-F12-17 invite-link honesty): hash-only restamp of terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
 layoutFiles:
   terminal/components/options/OptionsFlowBoardView.tsx: "96e0d1d0a4e7eaed7f2d2bbec6722725afacc093e205defa280a483bc6e14b8e"
   terminal/components/flowdesk/FiltersPanel.tsx: "57ac663475b95a569f62d4c08e83a111f6137c920c78f13f1c9dfad1aa61708b"
@@ -16,7 +18,7 @@ layoutFiles:
   terminal/lib/heatmapStrings.ts: "f401976a6d2f998ad4b9bb63baad57950166410252c084b3f5ea536137b81e09"
   terminal/lib/flowdeskStrings.ts: "ca5f6b819c004c85d167a8db34a8ad5b9a2ef7bbf7b7fc3e86cc3046408da8be"
   terminal/lib/plainLabels.ts: "8f69818feca65a5f28c590460c52e4f06c04c25cc4f3da8643eff9050161b588"
-  terminal/lib/i18n.tsx: "bd49cfd3cd13dcac8afccb1f443745622cd7ec557989d6b8ce23e8879b6bbfcb"
+  terminal/lib/i18n.tsx: "cd1123bd9a9a7d992c974bf9fd9400f1a7e42b859faa4e3a31a6f014b60dacd0"
   terminal/components/PineEditor.tsx: "e48a009b44f32f9501d2890602cd5096257ad57b83bac59147d691e221a69f63"
 theme: dark
 languages: [en, zh]
