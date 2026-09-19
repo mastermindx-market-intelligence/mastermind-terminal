@@ -333,6 +333,242 @@ test("renaming a watchlist preserves its empty and collapsed section dividers", 
   await expect(row(page, "NVDA")).toBeHidden();
 });
 
+test("a Shift range moves as one visual-order bundle", async ({ page, baseURL }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "The sortable rail is desktop chrome.");
+  test.slow();
+  await boot(page, testInfo, baseURL);
+
+  await row(page, "AAPL").click();
+  await row(page, "NVDA").click({ modifiers: ["Shift"] });
+  await expect(page.locator("[data-testid='watchlist-selection-count']")).toHaveText("3 tickers selected");
+
+  const source = row(page, "MSFT");
+  const target = row(page, "AMD");
+  const from = await source.boundingBox();
+  expect(from).not.toBeNull();
+  const viewportWidth = page.viewportSize()?.width ?? from!.x + from!.width;
+  const visibleLeft = Math.max(0, from!.x);
+  const visibleRight = Math.min(viewportWidth, from!.x + from!.width);
+  const sourceX = visibleLeft + (visibleRight - visibleLeft) / 2;
+  await page.mouse.move(sourceX, from!.y + from!.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(sourceX, from!.y + from!.height / 2 + 9, { steps: 3 });
+
+  const bundle = page.locator('[data-watchlist-drag-group="true"]');
+  await expect(bundle).toHaveAttribute("data-watchlist-drag-count", "3");
+  await expect.poll(() => bundle.locator("[data-watchlist-drag-symbol]").evaluateAll((elements) =>
+    elements.map((element) => element.getAttribute("data-watchlist-drag-symbol")))).toEqual(["AAPL", "MSFT", "NVDA"]);
+
+  const to = await target.boundingBox();
+  expect(to).not.toBeNull();
+  await page.mouse.move(to!.x + to!.width / 2, to!.y + to!.height * 0.8, { steps: 12 });
+  await page.waitForTimeout(120);
+  const settled = await target.boundingBox();
+  expect(settled).not.toBeNull();
+  await page.mouse.move(settled!.x + settled!.width / 2, settled!.y + settled!.height * 0.8, { steps: 4 });
+  await expect(target.locator(".wl-drop-marker")).toHaveAttribute("data-watchlist-drop-edge", "after");
+  await page.mouse.up();
+
+  await expect.poll(() => page.locator(".wl-row").evaluateAll((elements) =>
+    elements.map((element) => element.getAttribute("data-watchlist-symbol")))).toEqual(["AMD", "AAPL", "MSFT", "NVDA"]);
+  await expect(row(page, "AAPL")).toHaveAttribute("data-watchlist-section", "Growth");
+  await expect(row(page, "MSFT")).toHaveAttribute("data-watchlist-section", "Growth");
+  await expect(row(page, "NVDA")).toHaveAttribute("data-watchlist-section", "Growth");
+  await expect(page.locator("[data-testid='watchlist-selection-count']")).toHaveText("3 tickers selected");
+});
+
+test("dragging any selected ticker lifts the whole selection into one compact bundle", async ({ page, baseURL }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "The sortable rail is desktop chrome.");
+  test.slow();
+  await boot(page, testInfo, baseURL);
+
+  await row(page, "AAPL").click({ modifiers: ["ControlOrMeta"] });
+  await row(page, "NVDA").click({ modifiers: ["ControlOrMeta"] });
+  await expect(page.locator("[data-testid='watchlist-selection-count']")).toHaveText("2 tickers selected");
+
+  const source = row(page, "AAPL");
+  const target = row(page, "AMD");
+  const from = await source.boundingBox();
+  expect(from).not.toBeNull();
+  const viewportWidth = page.viewportSize()?.width ?? from!.x + from!.width;
+  const visibleLeft = Math.max(0, from!.x);
+  const visibleRight = Math.min(viewportWidth, from!.x + from!.width);
+  const sourceX = visibleLeft + (visibleRight - visibleLeft) / 2;
+
+  await page.mouse.move(sourceX, from!.y + from!.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(sourceX, from!.y + from!.height / 2 + 9, { steps: 3 });
+  await expect(source).toHaveClass(/dragging/);
+  await expect(row(page, "NVDA")).toHaveClass(/group-dragging/);
+
+  const bundle = page.locator('[data-watchlist-drag-group="true"]');
+  await expect(bundle).toHaveAttribute("data-watchlist-drag-count", "2");
+  await expect(bundle.locator("[data-watchlist-drag-symbol]")).toHaveCount(2);
+  await expect.poll(() => bundle.locator("[data-watchlist-drag-symbol]").evaluateAll((elements) =>
+    elements.map((element) => element.getAttribute("data-watchlist-drag-symbol")))).toEqual(["AAPL", "NVDA"]);
+
+  const to = await target.boundingBox();
+  expect(to).not.toBeNull();
+  await page.mouse.move(to!.x + to!.width / 2, to!.y + to!.height * 0.8, { steps: 12 });
+  await page.waitForTimeout(120);
+  const settled = await target.boundingBox();
+  expect(settled).not.toBeNull();
+  await page.mouse.move(settled!.x + settled!.width / 2, settled!.y + settled!.height * 0.8, { steps: 4 });
+  await expect(target.locator(".wl-drop-marker")).toHaveAttribute("data-watchlist-drop-edge", "after");
+  await page.mouse.up();
+
+  await expect(page.locator('[data-watchlist-drag-group="true"]')).toHaveCount(0);
+  await expect(page.locator(".wl-row.group-dragging")).toHaveCount(0);
+  await expect(page.locator("[data-testid='watchlist-selection-count']")).toHaveText("2 tickers selected");
+  await expect.poll(() => page.locator(".wl-row").evaluateAll((elements) =>
+    elements.map((element) => element.getAttribute("data-watchlist-symbol")))).toEqual(["MSFT", "AMD", "AAPL", "NVDA"]);
+  await expect(row(page, "AAPL")).toHaveAttribute("data-watchlist-section", "Growth");
+  await expect(row(page, "NVDA")).toHaveAttribute("data-watchlist-section", "Growth");
+  await expect.poll(async () => (await savedState(page)).lists["Bulk Test"]).toEqual([
+    { symbol: "MSFT", section: "Core" },
+    { symbol: "AMD", section: "Growth" },
+    { symbol: "AAPL", section: "Growth" },
+    { symbol: "NVDA", section: "Growth" },
+  ]);
+});
+
+test("an empty section advertises and receives the selected bundle as its first block", async ({ page, baseURL }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "The sortable rail is desktop chrome.");
+  test.slow();
+  await boot(page, testInfo, baseURL);
+
+  await row(page, "AAPL").click({ modifiers: ["ControlOrMeta"] });
+  await row(page, "NVDA").click({ modifiers: ["ControlOrMeta"] });
+  const source = row(page, "AAPL");
+  const target = page.locator('[data-watchlist-section-header="Archive"]');
+  await target.scrollIntoViewIfNeeded();
+  const from = await source.boundingBox();
+  expect(from).not.toBeNull();
+  const viewportWidth = page.viewportSize()?.width ?? from!.x + from!.width;
+  const visibleLeft = Math.max(0, from!.x);
+  const visibleRight = Math.min(viewportWidth, from!.x + from!.width);
+  const sourceX = visibleLeft + (visibleRight - visibleLeft) / 2;
+
+  await page.mouse.move(sourceX, from!.y + from!.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(sourceX, from!.y + from!.height / 2 + 9, { steps: 3 });
+  await expect(source).toHaveClass(/dragging/);
+  const to = await target.boundingBox();
+  expect(to).not.toBeNull();
+  await page.mouse.move(to!.x + to!.width / 2, to!.y + to!.height / 2, { steps: 12 });
+  await page.waitForTimeout(120);
+
+  const marker = target.locator(".wl-drop-marker");
+  await expect(marker).toHaveAttribute("data-watchlist-drop-edge", "start");
+  await expect(marker).toContainText("Move 2 here");
+  await page.mouse.up();
+
+  await expect.poll(() => page.locator(".wl-row").evaluateAll((elements) =>
+    elements.map((element) => element.getAttribute("data-watchlist-symbol")))).toEqual(["MSFT", "AMD", "AAPL", "NVDA"]);
+  await expect(row(page, "AAPL")).toHaveAttribute("data-watchlist-section", "Archive");
+  await expect(row(page, "NVDA")).toHaveAttribute("data-watchlist-section", "Archive");
+  await expect(page.locator("[data-testid='watchlist-selection-count']")).toHaveText("2 tickers selected");
+});
+
+test("dropping a selected bundle back onto one of its carried rows is a no-op", async ({ page, baseURL }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "The sortable rail is desktop chrome.");
+  await boot(page, testInfo, baseURL);
+
+  await row(page, "AAPL").click({ modifiers: ["ControlOrMeta"] });
+  await row(page, "NVDA").click({ modifiers: ["ControlOrMeta"] });
+  await dragRow(page, "AAPL", row(page, "NVDA"));
+
+  await expect.poll(() => page.locator(".wl-row").evaluateAll((elements) =>
+    elements.map((element) => element.getAttribute("data-watchlist-symbol")))).toEqual(["AAPL", "MSFT", "NVDA", "AMD"]);
+  await expect(page.locator("[data-testid='watchlist-selection-count']")).toHaveText("2 tickers selected");
+});
+
+test("dragging an unselected ticker stays single-item and clears stale bulk selection", async ({ page, baseURL }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "The sortable rail is desktop chrome.");
+  await boot(page, testInfo, baseURL);
+
+  await row(page, "AAPL").click({ modifiers: ["ControlOrMeta"] });
+  await row(page, "NVDA").click({ modifiers: ["ControlOrMeta"] });
+  await expect(page.locator("[data-testid='watchlist-selection-count']")).toHaveText("2 tickers selected");
+
+  const source = row(page, "MSFT");
+  const from = await source.boundingBox();
+  expect(from).not.toBeNull();
+  const viewportWidth = page.viewportSize()?.width ?? from!.x + from!.width;
+  const visibleLeft = Math.max(0, from!.x);
+  const visibleRight = Math.min(viewportWidth, from!.x + from!.width);
+  const sourceX = visibleLeft + (visibleRight - visibleLeft) / 2;
+  await page.mouse.move(sourceX, from!.y + from!.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(sourceX, from!.y + from!.height / 2 + 9, { steps: 3 });
+  await expect(source).toHaveClass(/dragging/);
+  await expect(page.locator('[data-watchlist-drag-group="true"]')).toHaveCount(0);
+  await expect(page.locator('[data-watchlist-drag-visual="MSFT"]')).toBeVisible();
+  await expect(page.locator("[data-testid='watchlist-selection-count']")).toHaveCount(0);
+
+  const target = row(page, "AMD");
+  const to = await target.boundingBox();
+  expect(to).not.toBeNull();
+  await page.mouse.move(to!.x + to!.width / 2, to!.y + to!.height * 0.8, { steps: 12 });
+  await page.waitForTimeout(120);
+  await page.mouse.up();
+  await expect.poll(() => page.locator(".wl-row").evaluateAll((elements) =>
+    elements.map((element) => element.getAttribute("data-watchlist-symbol")))).toEqual(["AAPL", "NVDA", "AMD", "MSFT"]);
+});
+
+test("keyboard lift uses the same selected bundle and Escape cancels it intact", async ({ page, baseURL }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "The sortable rail is desktop chrome.");
+  await boot(page, testInfo, baseURL);
+
+  await row(page, "AAPL").click({ modifiers: ["ControlOrMeta"] });
+  await row(page, "NVDA").click({ modifiers: ["ControlOrMeta"] });
+  const handle = row(page, "AAPL").locator(".wl-drag-handle");
+  await expect(handle).toHaveAttribute("aria-label", "Drag 2 selected tickers");
+  await handle.focus();
+  await handle.press("Space");
+  await expect(page.locator('[id^="DndLiveRegion"]')).toHaveText("Picked up 2-ticker selection.");
+
+  const bundle = page.locator('[data-watchlist-drag-group="true"]');
+  await expect(bundle).toHaveAttribute("data-watchlist-drag-count", "2");
+  await expect.poll(() => bundle.locator("[data-watchlist-drag-symbol]").evaluateAll((elements) =>
+    elements.map((element) => element.getAttribute("data-watchlist-drag-symbol")))).toEqual(["AAPL", "NVDA"]);
+  await handle.press("Escape");
+  await expect(page.getByRole("status").filter({ hasText: "Move cancelled; 2-ticker selection stayed in place." })).toBeVisible();
+
+  await expect(bundle).toHaveCount(0);
+  await expect(page.locator(".wl-row.group-dragging")).toHaveCount(0);
+  await expect(page.locator("[data-testid='watchlist-selection-count']")).toHaveText("2 tickers selected");
+  await expect.poll(() => page.locator(".wl-row").evaluateAll((elements) =>
+    elements.map((element) => element.getAttribute("data-watchlist-symbol")))).toEqual(["AAPL", "MSFT", "NVDA", "AMD"]);
+});
+
+test("keyboard drop commits the selected bundle as one ordered block", async ({ page, baseURL }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "The sortable rail is desktop chrome.");
+  await boot(page, testInfo, baseURL);
+
+  await row(page, "AAPL").click({ modifiers: ["ControlOrMeta"] });
+  await row(page, "NVDA").click({ modifiers: ["ControlOrMeta"] });
+  const handle = row(page, "AAPL").locator(".wl-drag-handle");
+  await handle.focus();
+  await handle.press("Space");
+  await expect(page.getByRole("status").filter({ hasText: "Picked up 2-ticker selection." })).toBeVisible();
+  await expect(page.locator('[data-watchlist-drag-group="true"]')).toBeVisible();
+  await handle.press("ArrowDown");
+
+  const marker = row(page, "MSFT").locator(".wl-drop-marker");
+  await expect(marker).toHaveAttribute("data-watchlist-drop-edge", "after");
+  await expect(page.getByRole("status").filter({ hasText: "Move 2-ticker selection after MSFT." })).toBeVisible();
+  await handle.press("Space");
+  await expect(page.getByRole("status").filter({ hasText: "Dropped 2-ticker selection." })).toBeVisible();
+
+  await expect(page.locator('[data-watchlist-drag-group="true"]')).toHaveCount(0);
+  await expect.poll(() => page.locator(".wl-row").evaluateAll((elements) =>
+    elements.map((element) => element.getAttribute("data-watchlist-symbol")))).toEqual(["MSFT", "AAPL", "NVDA", "AMD"]);
+  await expect(row(page, "AAPL")).toHaveAttribute("data-watchlist-section", "Core");
+  await expect(row(page, "NVDA")).toHaveAttribute("data-watchlist-section", "Core");
+  await expect(page.locator("[data-testid='watchlist-selection-count']")).toHaveText("2 tickers selected");
+});
+
 test("the full ticker row freely reorders and crosses sections without selecting text", async ({ page, baseURL }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "The sortable rail is desktop chrome.");
   test.slow();
@@ -419,7 +655,7 @@ test("the lifted ticker stays anchored to the exact pointer grab point", async (
   await page.mouse.move(pointerDown.x, pointerDown.y + 8);
   await expect(source).toHaveClass(/dragging/);
   await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => resolve())));
-  const activatedGeometry = await source.evaluate((element) => {
+  const activatedGeometry = await source.evaluate(() => {
     const visual = document.querySelector<HTMLElement>('[data-watchlist-drag-visual="AAPL"]')!;
     const rect = visual.getBoundingClientRect();
     const pointer = (window as Window & { __wlPointer?: { x: number; y: number } }).__wlPointer!;
