@@ -100,6 +100,18 @@ export default function BriefSubscribeControls({
     }
   }
 
+  async function remove(id: string, cadence: BriefCadence) {
+    setBusy(cadence);
+    try {
+      const r = await fetch("/api/briefs/subscriptions/" + encodeURIComponent(id), {
+        method: "DELETE",
+      });
+      if (r.ok && resolvedId) await load(resolvedId);
+    } finally {
+      setBusy(null);
+    }
+  }
+
   function row(cadence: BriefCadence, labelKey: "subscribeDaily" | "subscribeWeekly") {
     const existing = byCadence(cadence);
     const disabled = busy === cadence;
@@ -125,14 +137,24 @@ export default function BriefSubscribeControls({
             {briefCopy(paused ? "paused" : "on", L)}
           </span>
         </div>
-        <button
-          type="button"
-          disabled={disabled}
-          data-paused={paused ? "true" : undefined}
-          onClick={() => void patch(existing.subscriptionId, paused ? "resume" : "pause", cadence)}
-        >
-          {paused ? briefCopy("resume", L) : briefCopy("pause", L)}
-        </button>
+        <div className={s.cadenceActions}>
+          <button
+            type="button"
+            disabled={disabled}
+            data-paused={paused ? "true" : undefined}
+            onClick={() => void patch(existing.subscriptionId, paused ? "resume" : "pause", cadence)}
+          >
+            {paused ? briefCopy("resume", L) : briefCopy("pause", L)}
+          </button>
+          <button
+            type="button"
+            className={s.removeButton}
+            disabled={disabled}
+            onClick={() => void remove(existing.subscriptionId, cadence)}
+          >
+            {briefCopy("removeSchedule", L)}
+          </button>
+        </div>
       </div>
     );
   }
@@ -141,7 +163,9 @@ export default function BriefSubscribeControls({
     <div className={s.controls} data-testid="brief-subscribe">
       <div className={s.controlsHead}>{briefCopy("controlsTitle", L)}</div>
       <p className={s.controlsNote}>{briefCopy("scheduleHelp", L)}</p>
-      <p className={s.deliveryNote} data-testid="briefs-subscribe-delivery">{briefCopy("emailNull", L)}</p>
+      <p className={s.deliveryNote} data-testid="briefs-subscribe-delivery">
+        {briefCopy("emailNull", L)} <a href="/alerts">{briefCopy("openInbox", L)}</a>
+      </p>
       {row("daily_after_us_close", "subscribeDaily")}
       {row("weekly_saturday", "subscribeWeekly")}
     </div>

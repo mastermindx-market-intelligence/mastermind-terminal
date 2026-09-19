@@ -24,19 +24,24 @@ const validBody = {
 let container: HTMLDivElement | null = null;
 let root: Root | null = null;
 let deliveries: unknown[] = [];
+let subscriptions: unknown[] = [];
 
 function jsonRes(status: number, body: unknown): Response {
   return new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
 }
 
 function installFetch() {
-  vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+  vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
     if (url.includes("/api/briefs/deliveries")) {
       return jsonRes(200, { deliveries });
     }
+    if (url.includes("/api/briefs/subscriptions/") && init?.method === "DELETE") {
+      subscriptions = [];
+      return jsonRes(200, { ok: true, deleted: true });
+    }
     if (url.includes("/api/briefs/subscriptions")) {
-      return jsonRes(200, { subscriptions: [] });
+      return jsonRes(200, { subscriptions });
     }
     return jsonRes(404, {});
   }));
@@ -137,7 +142,10 @@ describe("BriefsInbox rendering", () => {
 });
 
 describe("BriefSubscribeControls", () => {
-  beforeEach(() => installFetch());
+  beforeEach(() => {
+    subscriptions = [];
+    installFetch();
+  });
   afterEach(() => {
     unmount();
     vi.unstubAllGlobals();
@@ -157,6 +165,38 @@ describe("BriefSubscribeControls", () => {
     expect(text()).toContain(briefCopy("emailNull", "zh"));
     expect(text()).toContain(briefCopy("subscribeDaily", "zh"));
     expect(text()).toContain(briefCopy("subscribeWeekly", "zh"));
+  });
+
+  it("links to the real inbox and lets an existing schedule be removed", async () => {
+    subscriptions = [{
+      subscriptionId: "11111111-1111-4111-8111-111111111111",
+      userId: "22222222-2222-4222-8222-222222222222",
+      targetKind: "thesis",
+      targetId: THESIS,
+      cadence: "daily_after_us_close",
+      delivery: "in_product_inbox",
+      state: "active",
+      createdAt: "2026-09-11T20:00:00.000Z",
+    }];
+    await mountSubscribe("en");
+    const inboxLink = container?.querySelector('a[href="/alerts"]');
+    expect(inboxLink?.textContent).toBe(briefCopy("openInbox", "en"));
+    expect(text()).toContain(briefCopy("on", "en"));
+    expect(text()).toContain(briefCopy("removeSchedule", "en"));
+
+    const remove = Array.from(container?.querySelectorAll("button") ?? [])
+      .find((button) => button.textContent === briefCopy("removeSchedule", "en"));
+    expect(remove).toBeDefined();
+    await act(async () => { remove!.dispatchEvent(new MouseEvent("click", { bubbles: true })); });
+    await act(async () => { await Promise.resolve(); await Promise.resolve(); });
+
+    const fetchMock = vi.mocked(fetch);
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/briefs/subscriptions/11111111-1111-4111-8111-111111111111",
+      { method: "DELETE" },
+    );
+    expect(text()).not.toContain(briefCopy("on", "en"));
+    expect(text()).toContain(briefCopy("add", "en"));
   });
 });
 

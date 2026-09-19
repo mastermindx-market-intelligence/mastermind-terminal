@@ -90,8 +90,10 @@ export const BRIEFS_COPY = {
   subscribeDaily: ["After each US close", "每个美股收盘后"],
   subscribeWeekly: ["Every Saturday", "每周六"],
   add: ["Add", "添加"],
+  openInbox: ["Open Briefs inbox", "打开简报收件箱"],
   pause: ["Pause", "暂停"],
   resume: ["Resume", "恢复"],
+  removeSchedule: ["Remove", "移除"],
   paused: ["Paused", "已暂停"],
   on: ["Scheduled", "已安排"],
   empty: [
