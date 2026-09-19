@@ -806,19 +806,43 @@ function drawColumns(f: DocumentFragment, cp: ColumnsPrim, m: CoordMapper): Elem
   const w = Math.max(1, clamp(cp.widthFrac ?? 0.6, 0.1, 1) * barW);
   const half = w / 2;
 
-  const g = mk("g", {});
+  // A histogram can carry hundreds of visible bars. One DOM <rect> per bar makes pan/zoom
+  // spend most of its frame budget allocating and attaching nodes that all share a tiny style set.
+  // SVG compound paths preserve the exact same rectangular geometry while collapsing every
+  // (fill, opacity) style into one node. Group order follows first appearance; bars do not overlap
+  // horizontally (widthFrac <= 1), so grouping cannot change visible z-order.
+  const groups: Array<{ color: string; alpha: number | null; parts: string[] }> = [];
+  const groupByStyle = new Map<string, Map<number | null, number>>();
   for (let k = s; k < e; k++) {
     const it = items[k];
     if (!it || !fin(it.v)) continue;
     const x = m.xi(it.i), yv = m.y(it.v);
     if (!fin(x) || !fin(yv)) continue;
-    const rect = mk("rect", {
-      x: x - half, y: Math.min(yv, yBase),
-      width: w, height: Math.max(Math.abs(yv - yBase), 0.5), // flat bars still print a hairline
-      fill: it.color,
-    });
-    if (it.alpha != null) rect.setAttribute("fill-opacity", String(clamp(it.alpha, 0, 1)));
-    g.appendChild(rect);
+    const y = Math.min(yv, yBase);
+    const h = Math.max(Math.abs(yv - yBase), 0.5); // flat bars still print a hairline
+    const alpha = it.alpha != null ? clamp(it.alpha, 0, 1) : null;
+    let byAlpha = groupByStyle.get(it.color);
+    if (!byAlpha) {
+      byAlpha = new Map<number | null, number>();
+      groupByStyle.set(it.color, byAlpha);
+    }
+    let gi = byAlpha.get(alpha);
+    if (gi == null) {
+      gi = groups.length;
+      byAlpha.set(alpha, gi);
+      groups.push({ color: it.color, alpha, parts: [] });
+    }
+    const x1 = x - half, x2 = x + half, y2 = y + h;
+    groups[gi].parts.push(`M${x1} ${y}H${x2}V${y2}H${x1}Z`);
+  }
+
+  if (!groups.length) return null;
+  const g = mk("g", {});
+  for (const group of groups) {
+    if (!group.parts.length) continue;
+    const path = mk("path", { d: group.parts.join(""), fill: group.color });
+    if (group.alpha != null) path.setAttribute("fill-opacity", String(group.alpha));
+    g.appendChild(path);
   }
   if (!g.firstChild) return null;
   f.appendChild(g);
