@@ -134,23 +134,16 @@ export default function AlertsCockpit({ email, children }: { email: string; chil
   const timelineRows: TimelineRow[] = view.rows.map((r) => {
     const alert = alerts?.find((a) => a.id === r.alertId);
     const t = r.outboxRow?.payload?.fired_at ? new Date(r.outboxRow.payload.fired_at).toLocaleTimeString(L === "zh" ? "zh-CN" : "en-US", { hour: "2-digit", minute: "2-digit" }) : "—";
+    // MO-PAID-047: thesis_condition outbox rows have no matching alerts entry.
+    // Use the window-closed copy for these rows; do not show "falsifier" language.
+    const isThesisRow = r.thesisId != null;
+    const verdict = isThesisRow
+      ? copy("condition.thesis_condition", L)
+      : verdictText(r.outboxRow?.payload?.condition_plain, alert?.condition, L);
     return {
       id: r.alertId, time: t,
-      subject: r.outboxRow?.payload?.ticker || alert?.symbol || "—",
-      // Minor: a fired-event payload's own plain-language description wins when present (EN
-      // only, see verdictText); the fallback must describe the actual condition (conditionText),
-      // never the content-free literal "Condition"/"条件" this used to render for every row
-      // lacking a payload. Minor 4 (round-6 review): the EN-only payload must never leak
-      // straight into a ZH page — verdictText gates it on `L`.
-      // MAJOR-2 (r10 review, META-CEO B ruling): `verdictText`'s ZH branch (`conditionText`)
-      // used to prefix its OWN symbol onto the price-condition phrasing ("NVDA 价格低于 150") —
-      // and this row's own `.subject` cell (above) already shows the ticker, so passing `alert?.
-      // symbol` here doubled it on the row ("NVDA" + "NVDA 价格低于 150"), the same defect
-      // minor-4 (r9 review) fixed in WatchingList but not here. Minor-2 (r11 review):
-      // `verdictText` no longer takes a symbol parameter at all (see lib/alertsView.ts) — the
-      // ticker appears exactly once per row, in `.subject`, and no future caller here can
-      // reintroduce the doubling by passing one back in.
-      verdict: verdictText(r.outboxRow?.payload?.condition_plain, alert?.condition, L),
+      subject: r.outboxRow?.payload?.ticker || alert?.symbol || (isThesisRow ? "—" : "—"),
+      verdict,
       delivery: r.delivery, foldedRows: r.foldedRows,
     };
   });
