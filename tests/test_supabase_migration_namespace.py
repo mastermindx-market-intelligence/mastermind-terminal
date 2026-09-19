@@ -462,7 +462,11 @@ def test_reservations_records_the_known_collision_surface():
     assert prefixes["0024"]["file"] == "0024_brief_subscriptions.sql"
     assert prefixes["0024"]["packet"] == "B-F11-7"
     assert prefixes["0024"]["pr"] == 579
-    assert prefixes["0024"]["pr_state"] == "open"
+    # 2026-09-19 (seat records PR): #579 merged; the row was updated from the stale
+    # pr_state="open" this test used to assert, which broke the open-while-present
+    # rule on every later PR branch carrying 0024 (seen on #577).
+    assert prefixes["0024"]["pr_state"] == "merged"
+    assert prefixes["0024"]["merged_sha"] == "82bee14ba"
     assert prefixes["0024"]["applied_in_production"] is False
     assert prefixes["0024"]["applied_date"] is None
 

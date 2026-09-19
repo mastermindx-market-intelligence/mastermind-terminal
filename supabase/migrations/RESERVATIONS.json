@@ -252,10 +252,11 @@
       "file": "0024_brief_subscriptions.sql",
       "packet": "B-F11-7",
       "pr": 579,
-      "pr_state": "open",
+      "pr_state": "merged",
       "applied_in_production": false,
       "applied_date": null,
-      "note": "packet B-F11-7 recurring briefs (MO-PAID-032 Terminal half). Prefix 0024 is taken by this open pull request because it ships 0024_brief_subscriptions.sql unapplied; the seat applies with a receipt after 0023 in ledger order. applied_in_production is false and applied_date is null because there is no application yet, never because a real date was lost and not recorded."
+      "note": "packet B-F11-7 recurring briefs (MO-PAID-032 Terminal half). Prefix 0024 is taken by this open pull request because it ships 0024_brief_subscriptions.sql unapplied; the seat applies with a receipt after 0023 in ledger order. applied_in_production is false and applied_date is null because there is no application yet, never because a real date was lost and not recorded. Seat 2026-09-19 04:5xZ: PR #579 merged (merge commit 82bee14ba) and deployed 2026-09-19 03:15Z; pr_state open→merged (the open-while-present rule made every later PR branch that carries 0024 fail test_pr_state_matches_file_presence_on_the_real_tree in pull_request mode, e.g. #577). applied_in_production stays false until the seat applies 0024 with a receipt.",
+      "merged_sha": "82bee14ba"
     }
   }
 }
