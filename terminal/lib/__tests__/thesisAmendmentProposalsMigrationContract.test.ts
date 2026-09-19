@@ -15,6 +15,7 @@ import {
   readMigration,
   readmePath,
   reservationRow,
+  ledgerHeaderLineFromRow,
 } from "./helpers/reservations";
 
 const PREFIX = "0025";
@@ -82,10 +83,10 @@ describe("0025 thesis amendment proposals migration contract", () => {
     expect(head).toMatch(/^-- Ledger row:/m);
     expect(head).toMatch(/^-- Rollback:/m);
     const line = ledgerRowHeaderLine(sql);
-    expect(line, "0024 carries no -- Ledger row: header line").toBeTruthy();
-    expect(line!).toContain("MO-PAID-054");
+    expect(line, "0025 carries no -- Ledger row: header line").toBeTruthy();
+    expect(line!).toBe(ledgerHeaderLineFromRow(row));
     expect(line!).toContain("B-F11-5");
-    expect(headerPrNumber(line!)).toBeNull();
+    expect(headerPrNumber(line!)).toBe(577);
   });
 
   it("down and readback blocks name every object the up block creates", () => {
@@ -103,22 +104,25 @@ describe("0025 thesis amendment proposals migration contract", () => {
     }
   });
 
-  it("claims prefix 0024 in RESERVATIONS.json as taken and not applied", () => {
+  it("claims prefix 0025 in RESERVATIONS.json as taken, merged and applied (seat records 2026-09-19)", () => {
     expect(migrationExists(FILE)).toBe(true);
     expect(row.state).toBe("taken");
     expect(row.file).toBe(FILE);
     expect(row.packet).toBe("B-F11-5");
     expect(row.pr).toBe(577);
-    expect(row.pr_state).toBe("open");
-    expect(row.applied_in_production).toBe(false);
-    expect(row.applied_date).toBeNull();
+    expect(row.pr_state).toBe("merged");
+    expect(row.merged_sha).toBe("4169e0cf");
+    expect(row.applied_in_production).toBe(true);
+    expect(row.applied_date).toBe("2026-09-19");
   });
 
-  it("README reservations table carries 0025 as an open claim, not applied", () => {
+  it("README reservations table carries 0025 as merged + applied with the kit receipt pointer", () => {
     const readme = readFileSync(readmePath, "utf8");
     const resRow = readme.split("\n").find((line) => line.startsWith("| `0025` |"));
     expect(resRow, "README is missing the 0025 row").toBeTruthy();
     expect(resRow!).toContain("B-F11-5");
-    expect(resRow!.toLowerCase()).toMatch(/not applied|open/);
+    expect(resRow!).toContain("merged as `4169e0cf`");
+    expect(resRow!).toMatch(/merged \+ applied 2026-09-19/);
+    expect(resRow!).toContain("ddl/receipt_0025.json");
   });
 });
