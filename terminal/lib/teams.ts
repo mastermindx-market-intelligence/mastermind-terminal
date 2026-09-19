@@ -645,7 +645,7 @@ export type InviteCode =
   | "not_signed_in" | "invalid_token" | "already_used" | "expired"
   | "email_unknown" | "email_mismatch" | "invalid_email" | "invalid_role"
   | "not_admin" | "team_not_found" | "duplicate_invite"
-  | "no_email_delivery" | "unavailable" | "failed";
+  | "no_email_delivery" | "unavailable" | "read_failed" | "failed";
 
 // [en, zh] tuples -- same shape as lib/i18n.tsx:18 `LEX: Record<string, [string, string]>`.
 // UI-facing labels live in LEX (packet B-F12-8). Route messages stay here.
@@ -665,6 +665,10 @@ export const INVITE_MESSAGES: Record<InviteCode, [string, string]> = {
   duplicate_invite: ["There is already a pending invitation for this email address.", "该邮箱地址已有一份待处理的邀请。"],
   no_email_delivery: ["We cannot send invitation emails yet. Copy the invitation link below and send it to them yourself — it works for 14 days.", "我们暂时无法发送邀请邮件。请复制下方邀请链接自行发送给对方——该链接 14 天内有效。"],
   unavailable: ["Team accounts are not set up on this server yet, so we cannot answer. Nothing was changed.", "此服务器尚未启用团队账户，因此我们无法作答。未更改任何内容。"],
+  // Audit heal of t#514 (H2): absence is a FACT and is never collapsed into a failure. A read that
+  // broke for any other reason says so, instead of telling the reader the server has no team
+  // accounts — the same split the sibling routes pin as READ_UNAVAILABLE vs READ_FAILED.
+  read_failed: ["We could not read the invitations just now. Please try again.", "我们暂时无法读取邀请列表，请稍后重试。"],
   failed: ["We could not complete that action just now.", "我们暂时无法完成该操作。"],
 };
 
@@ -769,11 +773,63 @@ export const SETTING_MESSAGES: Record<"saved" | "not_admin" | "invalid_key" | "i
   unavailable: ["Team accounts are not set up on this server yet, so we cannot answer. Nothing was changed.", "此服务器尚未启用团队账户，因此我们无法作答。未更改任何内容。"],
 };
 
+// --- Packet MO-B F12-13: closed workspace-settings contract (R1). Keys are co-located with
+// SETTING_MESSAGES so the catalogues that back the same surface sit in one place. ---
+export type WorkspaceSettingKey = "default_chart_theme" | "share_layouts_by_default";
+
+export const WORKSPACE_SETTING_KEYS = {
+  default_chart_theme: {
+    kind: "enum" as const,
+    values: ["green_up", "red_up"] as const,
+    default: "green_up",
+  },
+  share_layouts_by_default: {
+    kind: "boolean" as const,
+    default: false,
+  },
+} as const;
+
+export type NormalizeWorkspaceSettingResult =
+  | { ok: true; key: WorkspaceSettingKey; value: string | boolean }
+  | { ok: false; code: "invalid_key" | "invalid_value" };
+
+/**
+ * Closed-validate a (key, value) pair against WORKSPACE_SETTING_KEYS. Any key outside the constant
+ * is `invalid_key`; any value outside its closed shape is `invalid_value`. Never persists, never
+ * coerces — the route is the only caller and it stops on `{ ok: false }`.
+ */
+export function normalizeWorkspaceSetting(key: unknown, value: unknown): NormalizeWorkspaceSettingResult {
+  if (key !== "default_chart_theme" && key !== "share_layouts_by_default") {
+    return { ok: false, code: "invalid_key" };
+  }
+  if (key === "default_chart_theme") {
+    if (value !== "green_up" && value !== "red_up") {
+      return { ok: false, code: "invalid_value" };
+    }
+    return { ok: true, key, value };
+  }
+  // share_layouts_by_default: must be a JSON boolean. A string "true"/"false" is rejected — the
+  // spec is explicit that a non-boolean shape is `invalid_value` (R7 test "string 'true' for the
+  // boolean -> 400 invalid_value").
+  if (typeof value !== "boolean") {
+    return { ok: false, code: "invalid_value" };
+  }
+  return { ok: true, key, value };
+}
+
+/** The closed defaults in key order (R1). */
+export function workspaceSettingDefaults(): { key: WorkspaceSettingKey; value: string | boolean }[] {
+  return [
+    { key: "default_chart_theme", value: WORKSPACE_SETTING_KEYS.default_chart_theme.default },
+    { key: "share_layouts_by_default", value: WORKSPACE_SETTING_KEYS.share_layouts_by_default.default },
+  ];
+}
+
 const INVITE_STATUS: Record<InviteCode, number> = {
   not_signed_in: 401, invalid_token: 404, already_used: 409, expired: 410,
   email_unknown: 403, email_mismatch: 403, invalid_email: 400, invalid_role: 400,
   not_admin: 403, team_not_found: 404, duplicate_invite: 409,
-  no_email_delivery: 200, unavailable: 503, failed: 500,
+  no_email_delivery: 200, unavailable: 503, read_failed: 503, failed: 500,
 };
 
 export type Setting = { scope: "user" | "workspace"; teamId: string | null; key: string; value: unknown; updatedAt: string | null };
@@ -997,3 +1053,47 @@ export async function writeSetting(
   if (!setting) return { ok: false, reason: "failed", error: "write returned no row", status: 500 };
   return { ok: true, value: setting };
 }
+
+// --- Packet MO-B F12-13: closed workspace-settings contract (R1) ---
+// The Terminal chart only ever expresses the green-up/red-down vs red-up/green-down choice
+// (terminal/components/ChartFrameBar.tsx ChartSettings.candleUpColor / candleDownColor), and a
+// boolean "share new layouts by default" choice. No other workspace setting has an honest
+// consumer. Both values live under the workspace scope (terminal/lib/teams.ts WORKSPACE_SETTINGS_TABLE)
+// so personal settings on the same key never collide with them.
+
+// UI-facing copy for the team-settings block (R3). All [EN, ZH] tuples so the section can index
+// by lang like SETTING_MESSAGES / rosterFailPair. None of these strings carry a slug, snake_case,
+// status code, table/function name, or the words falsifier/refuted/证伪.
+export const WORKSPACE_SETTING_COPY = {
+  heading: ["Team settings", "团队设置"],
+  caption: {
+    // Plain-word chart-colour labels (R1). The tokens "green_up" / "red_up" never render.
+    default_chart_theme: ["Chart colours", "图表颜色"],
+    share_layouts_by_default: [
+      "Share new chart layouts with the team automatically",
+      "新建的图表布局自动与团队共享",
+    ],
+  },
+  explainer: {
+    share_layouts_by_default: [
+      "Owners and administrators can still change sharing for each layout in Layouts.",
+      "所有者和管理员仍可在“布局”中单独更改每个布局的共享设置。",
+    ],
+  },
+  options: {
+    chart_theme: [
+      ["Green means up, red means down", "绿涨红跌"],
+      ["Red means up, green means down", "红涨绿跌"],
+    ],
+  },
+  // The member-only read-only value sentences for the boolean share setting. Plain words, never
+  // a token — same catalogue law as `caption`. Spec MAJOR: previously inlined in SectionTeam.tsx.
+  shareValue: {
+    on: ["Sharing new layouts is on.", "已开启自动共享新建布局。"],
+    off: ["Sharing new layouts is off.", "已关闭自动共享新建布局。"],
+  },
+  memberReadOnly: [
+    "Only owners and administrators can change these.",
+    "只有团队所有者和管理员才能更改这些设置。",
+  ],
+} as const;
