@@ -171,7 +171,7 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
     let alive = true;
     const load = async () => {
       try {
-        const r = await fetch(`/api/quote?syms=${encodeURIComponent(sym)}`, { cache: "no-store" });
+        const r = await fetch(`/api/quote?view=regular&syms=${encodeURIComponent(sym)}`, { cache: "no-store" });
         if (!r.ok) return;
         const j = await r.json();
         const px = j?.quotes?.[sym]?.last;

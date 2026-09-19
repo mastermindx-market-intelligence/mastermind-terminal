@@ -1,0 +1,40 @@
+# B-F11-5 Suggested changes to your thesis — capture evidence
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
+# capturedAtHead: a7bda2eb2e7b9fd7c568f2e8fe983eeaf61f4986
+# capturedAt: 2026-09-19T04:15:11.413Z
+# capturedAtHead is informational. The lock is layoutFiles.
+# Heal h3_t577: recaptured at a7bda2eb after the fd47ef52 CSS change and the 274c5eae master merge.
+# Proposal-list GET uses capture-local fixture rows from successful seed POST/PATCH responses; this proves rendering, not production persistence.
+layoutFiles:
+  terminal/components/workspaces/ThesisWorkspace.tsx: "111e04dc1b303f3e18eb847197187236b190cd20c58f3c990f9ebe3c2bf9f1ff"
+  terminal/components/workspaces/ThesisWorkspace.module.css: "72a791c76ae3a6d7fad66f387a140c163d689c74b4957af8644f1068404c0a4b"
+  terminal/lib/thesisAmendmentProposals.ts: "f82b472f87e9c098fd1752ed357447e1462be5e5dee26bc4a0c110c15ada0d9b"
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: mobile, width: 390, height: 844 }
+harness:
+  desktop-en-empty.png: { url: "/analysis?view=theses&lang=en", state: empty }
+  desktop-zh-empty.png: { url: "/analysis?view=theses&lang=zh", state: empty }
+  mobile-en-empty.png: { url: "/analysis?view=theses&lang=en", state: empty }
+  mobile-zh-empty.png: { url: "/analysis?view=theses&lang=zh", state: empty }
+  desktop-en-populated.png: { url: "/analysis?view=theses&lang=en", state: populated }
+  desktop-zh-populated.png: { url: "/analysis?view=theses&lang=zh", state: populated }
+  mobile-en-populated.png: { url: "/analysis?view=theses&lang=en", state: populated }
+  mobile-zh-populated.png: { url: "/analysis?view=theses&lang=zh", state: populated }
+capture_flag: TERMINAL_E2E_FIXTURE
+capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.
+command: |
+  cd terminal
+  node e2e/tools/capture_b_f11_5_thesis_proposals.cjs
+files:
+  - desktop-en-empty.png
+  - desktop-zh-empty.png
+  - mobile-en-empty.png
+  - mobile-zh-empty.png
+  - desktop-en-populated.png
+  - desktop-zh-populated.png
+  - mobile-en-populated.png
+  - mobile-zh-populated.png

@@ -5,11 +5,13 @@
 # capturedAt: 2026-09-10T21:59:37.220Z
 # capturedAtHead is informational. The lock is layoutFiles.
 # 2026-09-10 merge-heal 2 on PR #548: origin/master eab65ff7 (includes #547 b7aa0981 Accuracy). SettingsPanel.tsx and i18n.tsx re-hashed; 12 crops recaptured at merge commit c926a0cb so the rail shows Accuracy and Sharing.
+# 2026-09-19 seat merge of master 1c46b277 into #584 (B-F12-13): hash-only restamp of terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit.
+# 2026-09-19 seat merge of origin/master dd7c6dec712a (#584 B-F12-13, merge commit) into #586 (W9T_F08_13 targets readout): hash-only restamp of terminal/components/settings/SettingsPanel.tsx, terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
 layoutFiles:
   terminal/components/settings/SectionSharing.tsx: "29fd9b355d50ecb3d3284b6d117b6ed50a461c7b7d45ea3d8588575fe5eca56a"
-  terminal/components/settings/SettingsPanel.tsx: "0624427f94d2e35014dc5b419cea832cc60cd69de1e15c18a1feb387112acf5a"
+  terminal/components/settings/SettingsPanel.tsx: "a7cad95d493b6e714fa8ea7af55c255d90a190b97413338caafb8228e09395bc"
   terminal/app/settings.css: "3189163136d943431cbf52e4b5d241c105b695ba5af94c4c2e29151d537b5ef5"
-  terminal/lib/i18n.tsx: "41b96ef78208fca0979e2db4b3f1cc3c8ea8e3d46412097c1b0d3e9599791440"
+  terminal/lib/i18n.tsx: "ac2c0b03aa16f40539b248a788af960e17f30bbd92f35d46732e8ca7cee63b7c"
 theme: dark
 languages: [en, zh]
 viewports:

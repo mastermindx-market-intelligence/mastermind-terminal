@@ -1,0 +1,53 @@
+# Terminal Visual Intelligence Layer — release-candidate browser evidence
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
+# capturedAtHead: 06c23bfb3b87ed475d1f242770fb7c2c980a4c59
+# capturedAt: 2026-09-18T13:39:39Z
+# capturedAtHead is informational. The lock is layoutFiles + cropFiles.
+layoutFiles:
+  terminal/components/ChartPanel.tsx: "97cd543d99a06901ecd1825cb8ddcdc6e727685561f5d1da5fd6c43dbabd254f"
+  terminal/components/ChartSettingsModal.tsx: "6c59eb27cc3c6db3613d592a8796f894cd87e144016ab1130a24389cba299d6b"
+  terminal/components/VisualIntelligencePanel.tsx: "dd20b00a0c57613679dcb7ac3905b7b3e0589400935807724a5aea221f0020ec"
+  terminal/components/VisualIntelligencePanel.module.css: "29a8fc3d37c55b701a5fe6484948901c00199fac3b5f0e120f7657d1cbd1c9cd"
+  terminal/components/ChartTableView.tsx: "30765a6d30b998277019109c98f68671c6fca33f3dcd6f53a9d015a8e04a6b9b"
+  terminal/lib/visualIntelligence.ts: "ae2bdd1f804e34f966ed5fde72cad9eabdfc1bbcb0d33d8a3390d158d6950970"
+  terminal/lib/visualIntelligenceCopy.ts: "65403ce8bf3885a80573ce4799f884d3cc14a1ca377c24a6e12407dc928f235c"
+  terminal/lib/suites/trend/candlePainter.ts: "8384d2bce3af939a51e88584b1436ee2898a89f0fbf1aedc09ffee624a3e12e1"
+  terminal/lib/indicator-canvas/host.ts: "4f2949efb22b8c378cab1ff9d176466c4857073c14a36ee4f0eeab4ec1015a25"
+cropFiles:
+  desktop-context.png: "f11f023a42e8d6fd399a897a63eb98180a7fdf4a5e626d5e4f924b201a30bd25"
+  desktop-context-zh.png: "79a4affb128920543e689f63e310ff10fa2fa65dcd321c8016bdc176b112c212"
+  tablet-context.png: "8a30125b9c0fec4f808fa114a2ba1ee1a1aaba3d6bcee9d65c8d9529cb9e1b78"
+  tablet-context-zh.png: "5540488fa9171f6384221a8853f80ee176f899f4e4ef69aa86803bc85f1761fa"
+  mobile-context.png: "771d95fec0e966ac708ea32c52395c06e56c4c728f87437c79012cc6e04a1774"
+  mobile-context-zh.png: "eab8ffbc3d9472dafced1f2cf8dbd6622343346405d25b741ba30578202701ed"
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: tablet, width: 820, height: 1180 }
+  - { name: mobile, width: 390, height: 844 }
+surface: Terminal Chart context
+harness: /terminal?symbol=NVDA
+capture_flag: TERMINAL_E2E_FIXTURE
+capture_flag_law: playwright.config.ts gives the e2e dev server TERMINAL_E2E_FIXTURE=1, which also disables the Next.js dev indicator.
+commands:
+  - TERMINAL_E2E_PORT=35911 npx playwright test e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --reporter=list
+  - TERMINAL_E2E_PORT=35911 npx playwright test e2e/crosshair-price-label.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --reporter=list
+  - TERMINAL_E2E_PORT=35911 npx playwright test e2e/chart-view-reset.spec.ts --project=mobile --workers=1 --retries=0 --repeat-each=5 --reporter=list --grep 'New chart tickers reserve space'
+browserResults:
+  desktop: 10/10 passed
+  tablet: 10/10 passed
+  mobile: 10/10 passed
+  mobileCrosshairRegression: 1/1 passed
+localGates:
+  typecheck: PASS
+  plainLanguage: PASS
+  vitest: 339 files passed; 5605 tests passed; 4 todo
+files:
+  - desktop-context.png
+  - desktop-context-zh.png
+  - tablet-context.png
+  - tablet-context-zh.png
+  - mobile-context.png
+  - mobile-context-zh.png

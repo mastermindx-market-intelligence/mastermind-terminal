@@ -16,12 +16,13 @@
 # 2026-09-11 recapture at master 525157b13eb5530515f083d836f63d12f55553d2: rail now pinned via SettingsPanel.tsx + SettingsProvider.tsx; 8 crops recaptured so the frame shows the 11-row rail (account, team, accuracy, billing, usage, prefs, alertDelivery, terminal, sync, webhooks, sharing)
 # 2026-09-11 MO-B PL-NI-1 (packet T-PL-NI-1, 您→你 sweep of Terminal master): terminal/lib/i18n.tsx re-hashed — plain-language 您→你 only; layout unchanged; no recapture.
 # Heal h_t586 (#586): i18n.tsx re-hashed for the new acsPortfolioTargets LEX keys; rail shows 11 rows in crop; tree paints 12 since #586 — no recapture needed.
+# 2026-09-19 seat merge of origin/master dd7c6dec712a (#584 B-F12-13, merge commit) into #586 (W9T_F08_13 targets readout): hash-only restamp of terminal/lib/i18n.tsx, terminal/components/settings/SettingsPanel.tsx, terminal/components/settings/SettingsProvider.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
 layoutFiles:
   terminal/components/settings/SectionAccount.tsx: "d2c3828c286bbaac321881d5a6562efdd4f30e580f4200d49c5165c0fa7ef9a4"
   terminal/lib/teamSummary.ts: "7bd3b3f1d5251490e42399be1dd77e977b2626c1714efbece2f7139c584e0f15"
-  terminal/lib/i18n.tsx: "12c508207ae03f1ee533275682645c30907bbcbffcfa1a6c07fc602067d2f56b"
-  terminal/components/settings/SettingsPanel.tsx: "a3701c4d2556554a8efd19e0c420c1b1d75a5f7ca0e1aa50d3d7d9fee412620d"
-  terminal/components/settings/SettingsProvider.tsx: "e406bee3b95bdb0cdb17024d84c0599aa347bdc2b58900956fd592048fee12e8"
+  terminal/lib/i18n.tsx: "ac2c0b03aa16f40539b248a788af960e17f30bbd92f35d46732e8ca7cee63b7c"
+  terminal/components/settings/SettingsPanel.tsx: "a7cad95d493b6e714fa8ea7af55c255d90a190b97413338caafb8228e09395bc"
+  terminal/components/settings/SettingsProvider.tsx: "a4c829c956ca7ffd89bbc3158009b1148bb613569a9716b092dd9a27d449d910"
 theme: dark
 languages: [en, zh]
 viewports:

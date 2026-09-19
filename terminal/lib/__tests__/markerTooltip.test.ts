@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  hitTestMarkers, placeMarkerTip, isTapGesture,
+  hitTestMarkers, placeMarkerTip, isTapGesture, gestureStamp, isTapSample,
   MARKER_HOVER_SLACK, MARKER_TAP_SLACK, type MarkerHit,
 } from "../markerTooltip";
 
@@ -124,5 +124,84 @@ describe("isTapGesture", () => {
     expect(isTapGesture(down, { x: 100, y: 100, t: 1301 })).toBe(false);
     expect(isTapGesture(down, { x: 112, y: 100, t: 1100 })).toBe(true);
     expect(isTapGesture(down, { x: 113, y: 100, t: 1100 })).toBe(false);
+  });
+});
+
+describe("gestureStamp", () => {
+  it("takes the event's own platform time", () => {
+    expect(gestureStamp({ timeStamp: 1234.5 })).toBe(1234.5);
+  });
+
+  it("refuses a zero stamp — a pair of them would make every press look instantaneous", () => {
+    // Some synthetic events carry no platform time at all. Reading 0 from both ends of a gesture
+    // would produce a delta of 0, i.e. a five-second press classified as a tap. Better to fall
+    // back to the handler clock, which is at least monotonic.
+    expect(gestureStamp({ timeStamp: 0 })).toBeNull();
+  });
+
+  it("refuses a missing or non-finite stamp", () => {
+    expect(gestureStamp({})).toBeNull();
+    expect(gestureStamp({ timeStamp: NaN })).toBeNull();
+    expect(gestureStamp({ timeStamp: Infinity })).toBeNull();
+    expect(gestureStamp({ timeStamp: "120" })).toBeNull();
+  });
+});
+
+describe("isTapSample", () => {
+  // THE DEFECT THIS EXISTS FOR. A physically instantaneous tap — zero travel, two events stamped
+  // 8ms apart — whose pointerup was DISPATCHED 400ms late because the main thread was busy laying
+  // out the chart. Timed on the handler clock it is a 400ms long press and the tooltip dead-ends;
+  // timed on the events it is what it actually was. Reproduced in the browser on both touch
+  // viewports and both overlay layers (e2e marker-tooltip / indicator-prim-tooltip).
+  it("classifies on the events, not on when the handlers happened to run", () => {
+    const down = { x: 100, y: 100, t: 1000, ts: 5000 };
+    const up = { x: 101, y: 100, t: 1400, ts: 5008 };
+    expect(isTapSample(down, up)).toBe(true);
+    // …and the same gesture is refused by the handler clock, which is the shipped behaviour it
+    // replaces. If this ever flips, the fix has been undone.
+    expect(isTapGesture({ x: down.x, y: down.y, t: down.t }, { x: up.x, y: up.y, t: up.t })).toBe(false);
+  });
+
+  it("still refuses a press that was genuinely long", () => {
+    // The threshold is NOT loosened. A finger that really rested for 600ms is still a long press:
+    // the events say so, and the events are what is read.
+    expect(isTapSample(
+      { x: 100, y: 100, t: 1000, ts: 5000 },
+      { x: 100, y: 100, t: 1050, ts: 5600 },
+    )).toBe(false);
+  });
+
+  it("still refuses a press that travelled, whatever the clock says", () => {
+    // The load-bearing case: a drag STARTING on a marker belongs to the chart. Distance is not a
+    // timing question, so no clock choice can turn a pan into a tap.
+    expect(isTapSample(
+      { x: 100, y: 100, t: 1000, ts: 5000 },
+      { x: 180, y: 100, t: 1010, ts: 5010 },
+    )).toBe(false);
+  });
+
+  it("falls back to the handler clock when either end cannot date itself", () => {
+    expect(isTapSample(
+      { x: 100, y: 100, t: 1000, ts: null },
+      { x: 100, y: 100, t: 1120, ts: 5008 },
+    )).toBe(true);
+    expect(isTapSample(
+      { x: 100, y: 100, t: 1000, ts: 5000 },
+      { x: 100, y: 100, t: 1400, ts: null },
+    )).toBe(false);
+  });
+
+  it("falls back when the two stamps are out of order — a mismatched pair means nothing", () => {
+    expect(isTapSample(
+      { x: 100, y: 100, t: 1000, ts: 9000 },
+      { x: 100, y: 100, t: 1120, ts: 5000 },
+    )).toBe(true);    // handler clock: 120ms → a tap
+  });
+
+  it("keeps the one definition of a tap — same thresholds, only the clock is resolved here", () => {
+    expect(isTapSample({ x: 0, y: 0, t: 0, ts: 100 }, { x: 0, y: 0, t: 0, ts: 400 })).toBe(true);
+    expect(isTapSample({ x: 0, y: 0, t: 0, ts: 100 }, { x: 0, y: 0, t: 0, ts: 401 })).toBe(false);
+    expect(isTapSample({ x: 0, y: 0, t: 0, ts: 100 }, { x: 12, y: 0, t: 0, ts: 200 })).toBe(true);
+    expect(isTapSample({ x: 0, y: 0, t: 0, ts: 100 }, { x: 13, y: 0, t: 0, ts: 200 })).toBe(false);
   });
 });

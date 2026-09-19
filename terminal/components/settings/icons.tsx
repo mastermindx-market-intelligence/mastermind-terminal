@@ -90,6 +90,13 @@ export function IconWebhooks() {
     </svg>
   );
 }
+export function IconDeveloper() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" {...S}>
+      <path d="M8 9 5 12l3 3M16 9l3 3-3 3M13 7l-2 10" />
+    </svg>
+  );
+}
 export function IconSharing() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" {...S}>

@@ -36,7 +36,7 @@ export type IndRowsAt = (barTime: string | number) => Record<string, number | nu
 type Props = {
   symbol: string;
   timeframe: string;
-  bars: Bar[];
+  bars: readonly Bar[];
   indCols: IndCol[];       // indicator columns (ordered by legend)
   indRowsAt?: IndRowsAt;  // optional: returns value map at a bar time
   onBack: () => void;

@@ -6,6 +6,7 @@ import { ALL_MARKETS, MARKET_TKEY } from "@/lib/markets";
 import { TF_CANONICAL_ORDER } from "@/lib/startTf";
 import { DeliveryNote, Group, IconCheck, Row, SectionHead } from "./icons";
 import type { SectionProps } from "./types";
+import { briefCopy } from "@/lib/briefs";
 
 // ── Terminal ─────────────────────────────────────────────────────────────────
 // NEW section — no macro counterpart. This is where the old SettingsMenu's
@@ -16,7 +17,7 @@ import type { SectionProps } from "./types";
 // user_metadata), so there is no save button and nothing to wire beyond the
 // store calls.
 
-export default function SectionTerminal({ t, identity, onClose }: SectionProps) {
+export default function SectionTerminal({ t, lang, identity, onClose }: SectionProps) {
   const { prefs, terminal, toggle, setStartTf, setUpDown, sync, owner, retrySync } = useAccountPrefs(identity);
   const guest = !isAccountOwner(owner);
   // E2: these controls apply locally the moment they are clicked, but "Saved" is a claim about
@@ -116,6 +117,9 @@ export default function SectionTerminal({ t, identity, onClose }: SectionProps) 
             {note(touched.chart)}
           </Group>
         </div>
+        <Group title={briefCopy("title", lang === "zh" ? "zh" : "en")}>
+          <Row desc={briefCopy("emailNull", lang === "zh" ? "zh" : "en")} />
+        </Group>
       </div>
     </>
   );

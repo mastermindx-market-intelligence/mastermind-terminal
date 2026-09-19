@@ -11,6 +11,9 @@ import {
   rsiStack,
   accumPct,
   trendRibbon,
+  rollingPercentile,
+  volbox,
+  weekAnchoredVwap,
   type Bar,
 } from "../indicatorMath";
 
@@ -113,6 +116,45 @@ describe("rma", () => {
     const lastVal = result[result.length - 1];
     expect(lastVal).not.toBeNull();
     expect(Math.abs(lastVal! - constant)).toBeLessThan(0.001);
+  });
+});
+
+// ─── Rolling percentile / Volatility Box warmup ───────────────────────────────
+
+describe("rollingPercentile", () => {
+  it("does not emit a percentile until the whole rolling window is finite", () => {
+    const src: (number | null)[] = [null, null, 1, 2, 3, 4];
+    const result = rollingPercentile(src, 3);
+
+    expect(result.slice(0, 4)).toEqual([null, null, null, null]);
+    expect(result[4]).toBe(100);
+    expect(result[5]).toBe(100);
+  });
+
+  it("keeps Volatility Box out of squeeze state until pctileWin bandwidth observations exist", () => {
+    const bars = constBars(12, 100);
+    const result = volbox(bars, 3, 2, 5, 100, 3);
+
+    // BB bandwidth itself warms at index 2. A five-observation percentile window is not
+    // complete until index 6 (2,3,4,5,6), so no squeeze classification may appear earlier.
+    expect(result.inSqueeze.slice(0, 6)).toEqual(Array(6).fill(false));
+    expect(result.inSqueeze[6]).toBe(true);
+  });
+});
+
+// ─── Weekly VWAP timestamp compatibility ──────────────────────────────────────
+
+describe("weekAnchoredVwap", () => {
+  it("accepts numeric display-epoch intraday timestamps and resets at the next W-FRI week", () => {
+    const at = (y: number, m: number, d: number, hour = 10) =>
+      Math.floor(Date.UTC(y, m - 1, d, hour, 0, 0) / 1000);
+    const numericBars = [
+      { time: at(2024, 1, 2), o: 100, h: 100, l: 100, c: 100, v: 1 },
+      { time: at(2024, 1, 3), o: 110, h: 110, l: 110, c: 110, v: 1 },
+      { time: at(2024, 1, 8), o: 200, h: 200, l: 200, c: 200, v: 1 },
+    ] as unknown as Bar[];
+
+    expect(weekAnchoredVwap(numericBars)).toEqual([100, 105, 200]);
   });
 });
 
