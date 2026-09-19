@@ -361,6 +361,7 @@ interface LeadersColdStart {
 interface LeadersPayload {
   schema: string;
   as_of: string;
+  session_date?: string;
   stale: boolean;
   cold_start: boolean;
   cold_start_detail?: LeadersColdStart;
@@ -3919,15 +3920,26 @@ export default function OptionsHubView({
                 </div>
               )}
 
-              {/* Error / absent */}
+              {/* Fetch failure. This is not a cold-start signal: 403/429/503/network
+                  failures used to be mislabeled as "publishes tonight", which hid both
+                  entitlement regressions and real upstream outages. */}
               {leadersError && !leadersData && (
-                <div style={{ padding: "40px 20px", textAlign: "center" }}>
+                <div role="status" style={{ padding: "40px 20px", textAlign: "center" }}>
                   <div style={{ fontSize: 14, color: "var(--text-2)", marginBottom: 8 }}>
-                    {t("leadersAbsent", "Flow Leaders publishes after tonight's build")}
+                    {t("leadersAbsent", "Couldn't load Flow Leaders")}
                   </div>
                   <div style={{ fontSize: 12, color: "var(--muted)" }}>
-                    {t("ohNightlyBuild")}
+                    {t("leadersAbsentSub", "This panel couldn't reach its data. Retry in a moment.")}
                   </div>
+                  <button
+                    type="button"
+                    className="btn btn-ghost"
+                    style={{ height: 28, marginTop: 14 }}
+                    onClick={() => void fetchLeaders()}
+                    disabled={leadersLoading}
+                  >
+                    {leadersLoading ? t("loading", "Loading…") : t("flowRetry", "Retry")}
+                  </button>
                 </div>
               )}
 
@@ -3945,7 +3957,11 @@ export default function OptionsHubView({
                     {/* ── Header strip ── */}
                     <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10, marginBottom: 10 }}>
                       <span style={{ fontSize: 11, color: "var(--text-dim)", fontVariantNumeric: "tabular-nums" }}>
-                        {t("asOf", "as of")} {fmtAsof(leadersData.as_of)}
+                        {leadersData.session_date
+                          ? (lang === "zh"
+                            ? `数据会话 ${leadersData.session_date} · 构建 ${fmtAsof(leadersData.as_of)}`
+                            : `data session ${leadersData.session_date} · built ${fmtAsof(leadersData.as_of)}`)
+                          : `${t("asOf", "as of")} ${fmtAsof(leadersData.as_of)}`}
                       </span>
                       <span style={{ fontSize: 11, color: "var(--muted)" }}>
                         {lang === "zh"
@@ -4261,15 +4277,24 @@ export default function OptionsHubView({
                 </div>
               )}
 
-              {/* Error / absent */}
+              {/* Fetch failure is distinct from a successful cold-start payload below. */}
               {radarError && !radarData && (
-                <div style={{ padding: "40px 20px", textAlign: "center" }}>
+                <div role="status" style={{ padding: "40px 20px", textAlign: "center" }}>
                   <div style={{ fontSize: 14, color: "var(--text-2)", marginBottom: 8 }}>
-                    {t("radarAbsent", "Leader Radar publishes after tonight's build")}
+                    {t("radarAbsent", "Couldn't load Leader Radar")}
                   </div>
                   <div style={{ fontSize: 12, color: "var(--muted)" }}>
-                    {t("radarAbsentSub", "Data builds nightly after market close")}
+                    {t("radarAbsentSub", "This panel couldn't reach its data. Retry in a moment.")}
                   </div>
+                  <button
+                    type="button"
+                    className="btn btn-ghost"
+                    style={{ height: 28, marginTop: 14 }}
+                    onClick={() => void fetchRadar()}
+                    disabled={radarLoading}
+                  >
+                    {radarLoading ? t("radarLoading", "Loading Leader Radar…") : t("flowRetry", "Retry")}
+                  </button>
                 </div>
               )}
 
