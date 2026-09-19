@@ -1437,6 +1437,85 @@ describe("W9T_F12_17: an invitation becomes a link the owner copies, because no 
     expect(text()).not.toContain("DUPLICATE_INVITE");
   });
 
+  // MAJOR-1 (h_t588_r2): a 201 invite survives a failed follow-up roster read.
+  // Strategy: the invitations route's own GET /api/teams (for listing invites) is also
+  // made during the POST response, before the component's loadLive is called.
+  // We track how many times each URL is called to distinguish them.
+  it("a created invite stays visible when the follow-up roster read fails (201, then GET /api/teams 500)", async () => {
+    const seen: { url: string; method: string; body: string | null }[] = [];
+    const callCount: Record<string, number> = {};
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input);
+        const method = (init?.method || "GET").toUpperCase();
+        seen.push({ url, method, body: typeof init?.body === "string" ? init.body : null });
+        callCount[url] = (callCount[url] || 0) + 1;
+
+        if (url === "/api/teams/invitations" && method === "GET") {
+          // This is the invitations list call during POST handling; must succeed.
+          return {
+            ok: true,
+            status: 200,
+            json: async () => ({ invites: [], callerRole: "owner" }),
+          } as unknown as Response;
+        }
+        if (url === "/api/teams/invitations" && method === "POST") {
+          return { ok: true, status: 201, json: async () => CREATE_OK } as unknown as Response;
+        }
+        if ((url.startsWith("/api/teams/team-1/members") || url.startsWith("/api/teams/team-2/members")) && method === "GET") {
+          return {
+            ok: true,
+            status: 200,
+            json: async () => ({
+              members: [
+                { userId: CALLER, role: "owner", displayName: "Chris Wong", createdAt: "2026-02-14T09:12:00.000Z" },
+                { userId: "a1b2c3d4-1111-4e6a-9c03-5b71ee0a4d22", role: "admin", displayName: "Alex Chen", createdAt: null },
+              ],
+              callerRole: "owner",
+            }),
+          } as unknown as Response;
+        }
+        if ((url.startsWith("/api/teams/team-1/settings") || url.startsWith("/api/teams/team-2/settings")) && method === "GET") {
+          return {
+            ok: true,
+            status: 200,
+            json: async () => ({
+              teamId: "team-1",
+              role: "owner",
+              settings: [
+                { key: "default_chart_theme", value: "green_up", updatedAt: null },
+                { key: "share_layouts_by_default", value: false, updatedAt: null },
+              ],
+            }),
+          } as unknown as Response;
+        }
+        if (url === "/api/teams" && method === "GET") {
+          // callCount["/api/teams"] === 1 -> initial component loadLive (must succeed)
+          // callCount["/api/teams"] === 2 -> follow-up loadLive after 201 (500)
+          return callCount[url] === 1
+            ? ({ ok: true, status: 200, json: async () => ({ teams: [{ id: "team-1", name: "Desk" }] }) } as unknown as Response)
+            : ({ ok: false, status: 500, json: async () => ({}) } as unknown as Response);
+        }
+        throw new Error(`unstubbed fetch: ${url}`);
+      }),
+    );
+    await mount("en");
+    await typeEmail("friend@example.com");
+    await act(async () => {
+      (container.querySelector('[data-testid="team-invite-create"]') as HTMLButtonElement).click();
+    });
+    // The invite link survived the failed reload.
+    expect(container.querySelector('[data-testid="team-invite-link"]')).not.toBeNull();
+    const field = container.querySelector('[data-testid="team-invite-url"]') as HTMLInputElement;
+    expect(field.value).toBe(LINK);
+    // The roster-fail sentence is shown (second loadLive got 500, set rosterFail).
+    expect(text()).toContain(TEAM_ROUTE_MESSAGES.read_failed[0]);
+    // The create form is not shown.
+    expect(container.querySelector('[data-testid="team-invite-form"]')).toBeNull();
+    void seen;
+  });
+
   it("a success answer carrying no link is treated as a failure, never shown as an empty link", async () => {
     await createLink("en", { status: 201, body: { invite: CREATE_OK.invite, token: TOKEN } });
     expect(container.querySelector('[data-testid="team-invite-link"]')).toBeNull();

@@ -696,11 +696,13 @@ export default function SectionTeam({
           <Row label={t("acsRoleMember")} desc={t("acsRoleMemberWhat")} />
         </Group>
 
-        {canInvite ? (
+        {canInvite || inviteLink ? (
           <Group title={t("acsTeamInviteTitle")}>
-            <p className="acs-note" data-testid="team-delivery">
-              {noEmailDeliveryLine(lang)}
-            </p>
+            {canInvite ? (
+              <p className="acs-note" data-testid="team-delivery">
+                {noEmailDeliveryLine(lang)}
+              </p>
+            ) : null}
             {inviteLink ? (
               <div className={s.inviteLink} data-testid="team-invite-link">
                 <label className={s.createLabel} htmlFor="acs-invite-link" data-testid="team-invite-link-label">
