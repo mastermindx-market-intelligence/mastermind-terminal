@@ -120,6 +120,43 @@ const DEV_TEAM: DevTeamFixture = {
       expiresAt: null,
     },
   ],
+  // MO-PAID-083 — packet MO-B F12-13. Owner fixture carries saved workspace settings so the
+  // controls paint the persisted state; the member fixture (below) omits them so the read-only
+  // path is what the crop captures for /dev/settings?s=team&team=member.
+  settings: {
+    default_chart_theme: "red_up",
+    share_layouts_by_default: true,
+  },
+};
+
+// MO-PAID-083 — packet MO-B F12-13. Same roster as the owner fixture, but the caller is a member
+// (not the owner) and the harness carries no settings block — the section paints the closed
+// defaults in their read-only shape plus the owner-only sentence.
+const DEV_TEAM_MEMBER: DevTeamFixture = {
+  team: { id: "team-desk", name: "Desk" },
+  callerRole: "member",
+  callerUserId: "b2c3d4e5-2222-4e6a-9c03-5b71ee0a4d22",
+  members: [
+    {
+      userId: MOCK_USER.id,
+      role: "owner",
+      displayName: "Chris Wong",
+      createdAt: "2026-02-14T09:12:00.000Z",
+    },
+    {
+      userId: "a1b2c3d4-1111-4e6a-9c03-5b71ee0a4d22",
+      role: "admin",
+      displayName: "Alex Chen",
+      createdAt: "2026-03-01T12:00:00.000Z",
+    },
+    {
+      userId: "b2c3d4e5-2222-4e6a-9c03-5b71ee0a4d22",
+      role: "member",
+      displayName: "Jordan Lee",
+      createdAt: "2026-04-02T15:30:00.000Z",
+    },
+  ],
+  invites: [],
 };
 
 // The zero-team default state (round-4 ruling R3): a signed-in account that belongs to no team.
@@ -180,7 +217,13 @@ function Harness() {
   const [signedIn, setSignedIn] = useState(q.get("out") !== "1");
   const teamParam = q.get("team");
   const teamFixture =
-    teamParam === "none" ? DEV_TEAM_NONE : teamParam === "truncated" ? DEV_TEAM_TRUNCATED : DEV_TEAM;
+    teamParam === "none"
+      ? DEV_TEAM_NONE
+      : teamParam === "truncated"
+        ? DEV_TEAM_TRUNCATED
+        : teamParam === "member"
+          ? DEV_TEAM_MEMBER
+          : DEV_TEAM;
   const [seq, setSeq] = useState(1);
   // Real open/close, so Escape / backdrop / the header X can be exercised here.
   const [open, setOpen] = useState(true);

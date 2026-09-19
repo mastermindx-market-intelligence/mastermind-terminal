@@ -4,13 +4,15 @@
 # capturedAtHead: a5045c08748a0be32e9b07866110af83837975ea
 # capturedAt: 2026-09-09T07:38:03.471Z
 # capturedAtHead is informational. The lock is layoutFiles.
+# 2026-09-19 seat merge of master 1c46b277 into #584 (B-F12-13): hash-only restamp of terminal/lib/i18n.tsx, terminal/lib/plainLabels.ts to the merged-tree bytes; crops NOT recaptured by this merge commit.
+# 2026-09-19 seat merge of origin/master dd7c6dec712a (#584 B-F12-13, merge commit) into #588 (W9T_F12_17 invite link): hash-only restamp of terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
 layoutFiles:
   terminal/components/GuidePanel.tsx: "edf89e1861d998371bfd7bdf67939228d3b194f57222d8b12aab3115633c2d41"
   terminal/components/levels/LevelsView.tsx: "0f3ed4ea7d5ae64265301bebf893b038977ea25637aac176d771eb18ea04dcf8"
   terminal/components/levels/LevelsLearn.tsx: "ca8923e68f511cb525db2bac1b41e9e1d93c3c1492cb345162085de1412cee05"
   terminal/components/ChartConductor.tsx: "6592289cd32f6e92f58c280507d3ed853533ba03364c8ced9bab6037f60cc1ad"
-  terminal/lib/plainLabels.ts: "718526665dd6899a3b726540a775645d37ab512cc603b77c5b37d966663a0e58"
-  terminal/lib/i18n.tsx: "271f79cdcde627b22b9ba864227a24221f98a262ceef64a228d520155b8f68c7"
+  terminal/lib/plainLabels.ts: "8f69818feca65a5f28c590460c52e4f06c04c25cc4f3da8643eff9050161b588"
+  terminal/lib/i18n.tsx: "2f98660dc1a5fbcccdfe1ec8d3b0dff4b4478683b7d5f87a472cf29c3f186e5e"
 theme: dark
 languages: [en, zh]
 viewports:

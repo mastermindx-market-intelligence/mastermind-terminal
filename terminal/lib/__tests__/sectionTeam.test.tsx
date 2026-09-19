@@ -16,7 +16,9 @@ import {
   INVITE_EMAIL_DELIVERY_CHECKED_AT,
   INVITE_MESSAGES,
   INVITE_TTL_DAYS,
+  SETTING_MESSAGES,
   TEAM_ROUTE_MESSAGES,
+  WORKSPACE_SETTING_COPY,
   inviteCheckedOn,
   noEmailDeliveryLine,
 } from "@/lib/teams";
@@ -37,10 +39,7 @@ function tFor(lang: "en" | "zh") {
 let container: HTMLDivElement;
 let root: Root;
 
-async function mount(lang: "en" | "zh", devTeam?: DevTeamFixture) {
-  container = document.createElement("div");
-  document.body.appendChild(container);
-  root = createRoot(container);
+async function renderSection(lang: "en" | "zh", devTeam?: DevTeamFixture) {
   await act(async () => {
     root.render(
       <SectionTeam
@@ -56,6 +55,13 @@ async function mount(lang: "en" | "zh", devTeam?: DevTeamFixture) {
       />,
     );
   });
+}
+
+async function mount(lang: "en" | "zh", devTeam?: DevTeamFixture) {
+  container = document.createElement("div");
+  document.body.appendChild(container);
+  root = createRoot(container);
+  await renderSection(lang, devTeam);
   // The section defers its first read by one microtask before fetching.
   await act(async () => {
     await Promise.resolve();
@@ -843,6 +849,7 @@ function liveDesk(overrides?: {
   callerRole?: string;
   invites?: { status: number; body?: unknown } | "throw";
   create?: { status: number; body?: unknown } | "throw";
+  settings?: { status: number; body?: unknown };
 }) {
   const teams = overrides?.teams ?? [{ id: "team-1", name: "Desk" }];
   const members = overrides?.members ?? [
@@ -851,47 +858,64 @@ function liveDesk(overrides?: {
   ];
   const invites = overrides?.invites ?? { status: 200, body: { invites: [] } };
   const create = overrides?.create ?? { status: 201, body: {} };
-  vi.stubGlobal(
-    "fetch",
-    vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
-      const url = String(input);
-      const method = (init?.method || "GET").toUpperCase();
-      if (url.startsWith("/api/teams/invitations") && method === "POST") {
-        if (create === "throw") throw new Error("invitations down");
-        return {
-          ok: create.status >= 200 && create.status < 300,
-          status: create.status,
-          json: async () => create.body ?? {},
-        } as unknown as Response;
-      }
-      if (url.startsWith("/api/teams/invitations")) {
-        if (invites === "throw") throw new Error("invitations down");
-        return {
-          ok: invites.status >= 200 && invites.status < 300,
-          status: invites.status,
-          json: async () => invites.body ?? {},
-        } as unknown as Response;
-      }
-      if (url.startsWith("/api/teams/team-1/members") || url.startsWith("/api/teams/team-2/members")) {
-        return {
-          ok: true,
-          status: 200,
-          json: async () => ({
-            members,
-            callerRole: overrides?.callerRole ?? "owner",
-          }),
-        } as unknown as Response;
-      }
-      if (url === "/api/teams") {
-        return {
-          ok: true,
-          status: 200,
-          json: async () => ({ teams, truncated: overrides?.truncated === true }),
-        } as unknown as Response;
-      }
-      throw new Error(`unstubbed fetch: ${url}`);
-    }),
-  );
+  const settings = overrides?.settings ?? {
+    status: 200,
+    body: {
+      teamId: "team-1",
+      role: overrides?.callerRole ?? "owner",
+      settings: [
+        { key: "default_chart_theme", value: "green_up", updatedAt: null },
+        { key: "share_layouts_by_default", value: false, updatedAt: null },
+      ],
+    },
+  };
+  const impl = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = String(input);
+    const method = (init?.method || "GET").toUpperCase();
+    if (url.startsWith("/api/teams/invitations") && method === "POST") {
+      if (create === "throw") throw new Error("invitations down");
+      return {
+        ok: create.status >= 200 && create.status < 300,
+        status: create.status,
+        json: async () => create.body ?? {},
+      } as unknown as Response;
+    }
+    if (url.startsWith("/api/teams/invitations")) {
+      if (invites === "throw") throw new Error("invitations down");
+      return {
+        ok: invites.status >= 200 && invites.status < 300,
+        status: invites.status,
+        json: async () => invites.body ?? {},
+      } as unknown as Response;
+    }
+    if (url.startsWith("/api/teams/team-1/members") || url.startsWith("/api/teams/team-2/members")) {
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({
+          members,
+          callerRole: overrides?.callerRole ?? "owner",
+        }),
+      } as unknown as Response;
+    }
+    if (url.startsWith("/api/teams/team-1/settings") || url.startsWith("/api/teams/team-2/settings")) {
+      return {
+        ok: settings.status >= 200 && settings.status < 300,
+        status: settings.status,
+        json: async () => settings.body ?? {},
+      } as unknown as Response;
+    }
+    if (url === "/api/teams") {
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({ teams, truncated: overrides?.truncated === true }),
+      } as unknown as Response;
+    }
+    throw new Error(`unstubbed fetch: ${url} ${init?.method || "GET"}`);
+  });
+  vi.stubGlobal("fetch", impl);
+  return impl;
 }
 
 describe("heal h3: a failed invitations read paints the invitations group, never an empty list", () => {
@@ -1446,5 +1470,307 @@ describe("W9T_F12_17: an invitation becomes a link the owner copies, because no 
     expect(calls.length).toBe(0);
     expect(container.querySelector('[data-testid="team-invite-form"]')).not.toBeNull();
     expect(container.querySelector('[data-testid="team-delivery"]')?.textContent).toBe(noEmailDeliveryLine("en"));
+  });
+});
+
+
+// --- Packet MO-B F12-13 (MO-PAID-083) tests ---
+
+describe("F12-13 (MO-PAID-083): the Team settings block (R3)", () => {
+  it("owner: both controls render and the dev fixture's settings drive the select + checkbox", async () => {
+    const ownerWithSettings: DevTeamFixture = {
+      ...ROSTER_FIXTURE,
+      settings: { default_chart_theme: "red_up", share_layouts_by_default: true },
+    };
+    await mount("en", ownerWithSettings);
+    expect(text()).toContain(WORKSPACE_SETTING_COPY.heading[0]);
+    expect(container.querySelector('[data-testid="team-settings"]')).toBeTruthy();
+    const select = container.querySelector('[data-testid="team-settings-chart"]') as HTMLSelectElement;
+    expect(select).toBeTruthy();
+    expect(select.value).toBe("red_up");
+    const share = container.querySelector('[data-testid="team-settings-share"] input[type="checkbox"]') as HTMLInputElement;
+    expect(share).toBeTruthy();
+    expect(share.checked).toBe(true);
+    // Heading is plain words; raw tokens never appear.
+    expect(text()).not.toContain("default_chart_theme");
+    expect(text()).not.toContain("share_layouts_by_default");
+    expect(text()).not.toContain("green_up");
+    expect(text()).not.toContain("red_up");
+  });
+
+  it("member: read-only values plus the owner-only sentence, never controls", async () => {
+    const member: DevTeamFixture = {
+      ...ROSTER_FIXTURE,
+      callerRole: "member",
+      callerUserId: ROSTER_FIXTURE.members[2]?.userId || "b2c3d4e5-2222-4e6a-9c03-5b71ee0a4d22",
+      settings: null,
+    };
+    await mount("en", member);
+    expect(container.querySelector('[data-testid="team-settings"]')).toBeTruthy();
+    expect(container.querySelector('[data-testid="team-settings-chart"]')).toBeNull();
+    expect(container.querySelector('[data-testid="team-settings-share"] input[type="checkbox"]')).toBeNull();
+    // Closed default paints as a plain sentence.
+    expect(text()).toContain(WORKSPACE_SETTING_COPY.options.chart_theme[0][0]);
+    expect(text()).toContain(WORKSPACE_SETTING_COPY.memberReadOnly[0]);
+    expect(container.querySelector('[data-testid="team-settings-readonly"]')).toBeTruthy();
+    expect(container.querySelector('[data-testid="team-settings-readonly-note"]')).toBeTruthy();
+  });
+
+  it("ZH: member sees the read-only sentence and ZH chart-theme labels", async () => {
+    const member: DevTeamFixture = {
+      ...ROSTER_FIXTURE,
+      callerRole: "member",
+      callerUserId: ROSTER_FIXTURE.members[2]?.userId || "b2c3d4e5-2222-4e6a-9c03-5b71ee0a4d22",
+      settings: null,
+    };
+    await mount("zh", member);
+    expect(text()).toContain(WORKSPACE_SETTING_COPY.heading[1]);
+    expect(text()).toContain(WORKSPACE_SETTING_COPY.memberReadOnly[1]);
+    expect(text()).toContain(WORKSPACE_SETTING_COPY.options.chart_theme[0][1]);
+  });
+
+  it("owner: changing the chart-theme control flips the local state and shows the saved copy", async () => {
+    const ownerWithSettings: DevTeamFixture = {
+      ...ROSTER_FIXTURE,
+      settings: { default_chart_theme: "green_up", share_layouts_by_default: false },
+    };
+    await mount("en", ownerWithSettings);
+    const select = container.querySelector('[data-testid="team-settings-chart"]') as HTMLSelectElement;
+    await act(async () => {
+      const setter = Object.getOwnPropertyDescriptor(window.HTMLSelectElement.prototype, "value")!.set!;
+      setter.call(select, "red_up");
+      select.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+    expect((container.querySelector('[data-testid="team-settings-chart"]') as HTMLSelectElement).value).toBe("red_up");
+    expect(text()).toContain("Your setting was saved.");
+  });
+
+  it("owner: toggling share-layouts calls the live PATCH endpoint and shows SETTING_MESSAGES.saved", async () => {
+    let patchedBody: unknown = null;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input);
+        const method = init?.method || "GET";
+        if (url === "/api/teams" && method === "GET") {
+          return { ok: true, status: 200, json: async () => ({ teams: [{ id: "team-1", name: "Desk" }] }) } as unknown as Response;
+        }
+        if (url.startsWith("/api/teams/team-1/members")) {
+          return {
+            ok: true,
+            status: 200,
+            json: async () => ({
+              members: ROSTER_FIXTURE.members.map((m) => ({ ...m })),
+              callerRole: "owner",
+            }),
+          } as unknown as Response;
+        }
+        if (url.startsWith("/api/teams/invitations")) {
+          return { ok: true, status: 200, json: async () => ({ invites: [] }) } as unknown as Response;
+        }
+        if (url.startsWith("/api/teams/team-1/settings")) {
+          if (method === "PATCH") {
+            patchedBody = JSON.parse(String(init?.body || "{}"));
+            return {
+              ok: true,
+              status: 200,
+              json: async () => ({
+                saved: true,
+                setting: { key: "share_layouts_by_default", value: true, updatedAt: null },
+                message: "Your setting was saved.",
+                messageZh: "你的设置已保存。",
+              }),
+            } as unknown as Response;
+          }
+          return {
+            ok: true,
+            status: 200,
+            json: async () => ({
+              teamId: "team-1",
+              role: "owner",
+              settings: [
+                { key: "default_chart_theme", value: "green_up", updatedAt: null },
+                { key: "share_layouts_by_default", value: false, updatedAt: null },
+              ],
+            }),
+          } as unknown as Response;
+        }
+        throw new Error(`unstubbed ${method} ${url}`);
+      }),
+    );
+    await mount("en");
+    // Wait for the roster + settings fetch + populate.
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    const share = container.querySelector('[data-testid="team-settings-share"] input[type="checkbox"]') as HTMLInputElement;
+    expect(share).toBeTruthy();
+    await act(async () => {
+      share.click();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(patchedBody).toEqual({ key: "share_layouts_by_default", value: true });
+    expect(text()).toContain("Your setting was saved.");
+  });
+
+  it("owner: a 403 PATCH shows SETTING_MESSAGES.not_admin", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input);
+        const method = init?.method || "GET";
+        if (url === "/api/teams" && method === "GET") {
+          return { ok: true, status: 200, json: async () => ({ teams: [{ id: "team-1", name: "Desk" }] }) } as unknown as Response;
+        }
+        if (url.startsWith("/api/teams/team-1/members")) {
+          return {
+            ok: true,
+            status: 200,
+            json: async () => ({
+              members: ROSTER_FIXTURE.members.map((m) => ({ ...m })),
+              callerRole: "owner",
+            }),
+          } as unknown as Response;
+        }
+        if (url.startsWith("/api/teams/invitations")) {
+          return { ok: true, status: 200, json: async () => ({ invites: [] }) } as unknown as Response;
+        }
+        if (url.startsWith("/api/teams/team-1/settings")) {
+          if (method === "PATCH") {
+            return {
+              ok: false,
+              status: 403,
+              json: async () => ({
+                error: "FORBIDDEN",
+                message: SETTING_MESSAGES.not_admin[0],
+                messageZh: SETTING_MESSAGES.not_admin[1],
+            }),
+          } as unknown as Response;
+          }
+          return {
+            ok: true,
+            status: 200,
+            json: async () => ({
+              teamId: "team-1",
+              role: "owner",
+              settings: [
+                { key: "default_chart_theme", value: "green_up", updatedAt: null },
+                { key: "share_layouts_by_default", value: false, updatedAt: null },
+              ],
+            }),
+          } as unknown as Response;
+        }
+        throw new Error(`unstubbed ${method} ${url}`);
+      }),
+    );
+    await mount("en");
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    const share = container.querySelector('[data-testid="team-settings-share"] input[type="checkbox"]') as HTMLInputElement;
+    await act(async () => {
+      share.click();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(text()).toContain(SETTING_MESSAGES.not_admin[0]);
+  });
+
+  it("zero-team: the block is hidden (R3 gate, mirrors the roster)", async () => {
+    stubFetch({ "/api/teams": { status: 200, body: { teams: [] } } });
+    await mount("en");
+    expect(container.querySelector('[data-testid="team-settings"]')).toBeNull();
+  });
+
+  describe("MAJOR-1: GET /settings fails → failure sentence, no controls, no PATCH possible", () => {
+    it("500 → failure sentence, no chart select, no share switch, no PATCH sent", async () => {
+      // liveDesk defaults: teams=[{id:"team-1"}], settings=200. Override settings to 500.
+      const fetchMock = liveDesk({ settings: { status: 500, body: { error: "SERVER_ERROR", message: "We could not load the workspace settings just now.", messageZh: "我们暂时无法加载工作区设置。" } } });
+      await mount("en");
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      // The failure sentence renders.
+      expect(text()).toContain("We could not load the workspace settings just now.");
+      expect(container.querySelector('[data-testid="team-settings-fail"]')?.textContent).toBe(
+        "We could not load the workspace settings just now.",
+      );
+      // No chart select or share switch is painted — the !settingsError guard kept them out.
+      expect(container.querySelector('[data-testid="team-settings-chart"]')).toBeNull();
+      expect(container.querySelector('[data-testid="team-settings-share"]')).toBeNull();
+      // The block still renders (settingsLoaded=true even on failure), but with error content only.
+      expect(container.querySelector('[data-testid="team-settings"]')).toBeTruthy();
+      const patchCalls = fetchMock.mock.calls.filter((call) => {
+        const init = call[1] as RequestInit | undefined;
+        return String(init?.method || "GET").toUpperCase() === "PATCH";
+      });
+      expect(patchCalls).toHaveLength(0);
+    });
+
+    it("GET fail then a live language change shows the ZH sentence", async () => {
+      liveDesk({
+        settings: {
+          status: 500,
+          body: {
+            error: "SERVER_ERROR",
+            message: "We could not load the workspace settings just now.",
+            messageZh: "我们暂时无法加载工作区设置。",
+          },
+        },
+      });
+      await mount("en");
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      expect(container.querySelector('[data-testid="team-settings-fail"]')?.textContent).toBe(
+        "We could not load the workspace settings just now.",
+      );
+      await renderSection("zh");
+      expect(container.querySelector('[data-testid="team-settings-fail"]')?.textContent).toBe(
+        "我们暂时无法加载工作区设置。",
+      );
+      expect(container.querySelector('[data-testid="team-settings-chart"]')).toBeNull();
+      expect(container.querySelector('[data-testid="team-settings-share"]')).toBeNull();
+    });
+
+    it("503 from the route surface → the route's own sentence, not read_failed", async () => {
+      liveDesk({
+        settings: {
+          status: 503,
+          body: {
+            error: "UNAVAILABLE",
+            message: "Team accounts are not set up on this server yet, so we cannot answer. Nothing was changed.",
+            messageZh: "此服务器尚未启用团队账户，因此我们无法作答。未更改任何内容。",
+          },
+        },
+      });
+      await mount("en");
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      // The route's own 503 sentence is shown (routeMessage picks it up).
+      expect(container.querySelector('[data-testid="team-settings-fail"]')?.textContent).toBe(
+        "Team accounts are not set up on this server yet, so we cannot answer. Nothing was changed.",
+      );
+      // No controls.
+      expect(container.querySelector('[data-testid="team-settings-chart"]')).toBeNull();
+      expect(container.querySelector('[data-testid="team-settings-share"]')).toBeNull();
+    });
   });
 });
