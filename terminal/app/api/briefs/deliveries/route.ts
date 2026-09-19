@@ -6,7 +6,6 @@ import {
   parseLimit,
   pinLastReady,
   targetNameFromBody,
-  targetNameKey,
   validateBriefBody,
   type BriefCadence,
   type BriefDelivery,
@@ -15,6 +14,7 @@ import {
   type BriefTargetKind,
   type BriefsRouteCode,
 } from "@/lib/briefs";
+import { lookupBriefTargetNames } from "@/lib/briefTargetNamesServer";
 
 export const runtime = "nodejs";
 
@@ -60,57 +60,6 @@ function mapDelivery(row: Record<string, unknown>): BriefDelivery | null {
   };
 }
 
-async function lookupTargetNames(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  userId: string,
-  refs: Array<{ kind: BriefTargetKind; id: string }>,
-): Promise<Map<string, string>> {
-  const out = new Map<string, string>();
-  const thesisIds = [...new Set(refs.filter((r) => r.kind === "thesis").map((r) => r.id))];
-  const watchlistIds = [...new Set(refs.filter((r) => r.kind === "watchlist").map((r) => r.id))];
-  if (watchlistIds.length) {
-    const { data } = await supabase
-      .from("watchlists")
-      .select("id,name")
-      .eq("user_id", userId)
-      .in("id", watchlistIds);
-    for (const row of data || []) {
-      if (typeof row.id === "string" && typeof row.name === "string" && row.name.trim()) {
-        out.set(targetNameKey("watchlist", row.id), row.name.trim());
-      }
-    }
-  }
-  if (thesisIds.length) {
-    const { data: heads } = await supabase
-      .from("theses")
-      .select("id,current_version")
-      .eq("user_id", userId)
-      .in("id", thesisIds);
-    const pairs = (heads || []).filter(
-      (h): h is { id: string; current_version: number } =>
-        typeof h.id === "string" && typeof h.current_version === "number",
-    );
-    if (pairs.length) {
-      const { data: versions } = await supabase
-        .from("thesis_versions")
-        .select("thesis_id,version,content")
-        .eq("user_id", userId)
-        .in("thesis_id", pairs.map((p) => p.id));
-      const wanted = new Map(pairs.map((p) => [`${p.id}:${p.current_version}`, p.id]));
-      for (const v of versions || []) {
-        const id = wanted.get(`${v.thesis_id}:${v.version}`);
-        if (!id || !isPlain(v.content) || typeof v.content.title !== "string") continue;
-        const title = v.content.title.trim();
-        if (title) out.set(targetNameKey("thesis", id), title);
-      }
-    }
-  }
-  return out;
-}
-
-function isPlain(v: unknown): v is Record<string, unknown> {
-  return !!v && typeof v === "object" && !Array.isArray(v);
-}
 
 export async function GET(req: Request) {
   if (process.env.TERMINAL_E2E_FIXTURE === "1") {
@@ -140,7 +89,7 @@ export async function GET(req: Request) {
   let named = withSiblings;
   if (missing.length) {
     try {
-      const joined = await lookupTargetNames(
+      const joined = await lookupBriefTargetNames(
         supabase,
         user.id,
         missing.map((row) => ({ kind: row.subscription.targetKind, id: row.subscription.targetId })),

@@ -17,7 +17,7 @@ export type BriefTarget = {
   kind: BriefTargetKind;
   id: string;
   name: string;
-  version_or_asof: string;
+  version_or_asof: string | null;
 };
 
 export type BriefMarketRead = {
@@ -54,6 +54,7 @@ export type BriefSubscription = {
   delivery: BriefDeliveryChannel;
   state: BriefSubscriptionState;
   createdAt: string;
+  targetName?: string;
 };
 
 export type BriefDelivery = {
@@ -78,22 +79,38 @@ export type BriefPatchState = (typeof PATCH_STATES)[number];
 
 export const BRIEFS_COPY = {
   title: ["Briefs", "简报"],
+  scheduledTitle: ["Scheduled", "已安排"],
+  deliveredTitle: ["Delivered", "已送达"],
+  noSchedules: ["No brief schedules yet.", "还没有简报安排。"],
+  newScheduleTitle: ["New schedule", "新建安排"],
+  scheduleTarget: ["Thesis or watchlist", "论点或观察列表"],
+  scheduleCadence: ["Schedule", "安排"],
+  addSchedule: ["Add schedule", "添加安排"],
+  alreadyScheduled: ["Already scheduled", "已安排"],
+  noTargets: ["No thesis or watchlist is available to schedule yet.", "暂无可安排的论点或观察列表。"],
+  targetsUnavailable: ["Targets could not load right now.", "暂时无法加载论点或观察列表。"],
+  thesisKind: ["Thesis", "论点"],
+  watchlistKind: ["Watchlist", "观察列表"],
+  controlsTitle: ["Schedule brief", "安排简报"],
+  scheduleHelp: [
+    "Choose when this thesis or watchlist should appear in your Briefs inbox.",
+    "选择这份论点或观察列表何时出现在简报收件箱中。",
+  ],
   emailNull: [
-    "Briefs appear here in the Terminal. Email delivery isn't available yet.",
-    "简报会出现在终端里。邮件送达尚未开通。",
+    "Delivery: Terminal → Alerts → Briefs. Email and push aren't available yet.",
+    "送达位置：终端 → 提醒 → 简报。邮件和推送尚未开通。",
   ],
-  subscribeDaily: [
-    "Send me a brief after each US close",
-    "每个美股收盘后给我一份简报",
-  ],
-  subscribeWeekly: ["Send me a brief every Saturday", "每周六给我一份简报"],
+  subscribeDaily: ["After each US close", "每个美股收盘后"],
+  subscribeWeekly: ["Every Saturday", "每周六"],
+  add: ["Add", "添加"],
+  openInbox: ["Open Briefs inbox", "打开简报收件箱"],
   pause: ["Pause", "暂停"],
   resume: ["Resume", "恢复"],
   paused: ["Paused", "已暂停"],
-  on: ["On", "已开启"],
+  on: ["Scheduled", "已安排"],
   empty: [
-    "No briefs yet — subscribe a thesis or watchlist to get one after the next close.",
-    "还没有简报。订阅一份论点或观察列表，下次收盘后就会收到。",
+    "No delivered briefs yet. When a scheduled brief runs, it will appear here.",
+    "还没有已送达的简报。定时简报运行后会显示在这里。",
   ],
   degradedDaily: [
     "Tonight's brief didn't run — the market read it uses wasn't rebuilt. Nothing has been recalculated.",
@@ -229,8 +246,14 @@ export function validateBriefBody(raw: unknown): BriefBody | null {
   const target = raw.target;
   if (!isPlainObject(target)) return null;
   if (!isBriefTargetKind(target.kind)) return null;
-  if (!isNonEmptyString(target.id) || !isNonEmptyString(target.name) || !isNonEmptyString(target.version_or_asof)) {
-    return null;
+  if (!isNonEmptyString(target.id) || !isNonEmptyString(target.name)) return null;
+  let versionOrAsof: string | null;
+  if (target.kind === "thesis") {
+    if (!isNonEmptyString(target.version_or_asof)) return null;
+    versionOrAsof = target.version_or_asof;
+  } else {
+    if (target.version_or_asof !== null && !isNonEmptyString(target.version_or_asof)) return null;
+    versionOrAsof = target.version_or_asof === null ? null : target.version_or_asof;
   }
   if (!Array.isArray(raw.market_read)) return null;
   const market_read: BriefMarketRead[] = [];
@@ -269,7 +292,7 @@ export function validateBriefBody(raw: unknown): BriefBody | null {
       kind: target.kind,
       id: target.id,
       name: target.name,
-      version_or_asof: target.version_or_asof,
+      version_or_asof: versionOrAsof,
     },
     market_read,
     monitors,
@@ -287,6 +310,10 @@ export function subscriptionIsPaused(row: { state: BriefSubscriptionState }): bo
 
 export function degradedLine(cadence: BriefCadence, lang: BriefLang): string {
   return briefCopy(cadence === "weekly_saturday" ? "degradedWeekly" : "degradedDaily", lang);
+}
+
+export function briefCadenceLabel(cadence: BriefCadence, lang: BriefLang): string {
+  return briefCopy(cadence === "weekly_saturday" ? "subscribeWeekly" : "subscribeDaily", lang);
 }
 
 export function marketReadSentences(body: BriefBody, lang: BriefLang, n = 2): string[] {

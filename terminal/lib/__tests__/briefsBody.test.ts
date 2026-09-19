@@ -24,6 +24,20 @@ describe("brief body schema guard", () => {
     expect(validateBriefBody(valid)).toEqual(valid);
   });
 
+  it("accepts a watchlist body without a version while keeping thesis versions required", () => {
+    const watchlist = {
+      ...valid,
+      target: {
+        kind: "watchlist" as const,
+        id: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+        name: "Semis",
+        version_or_asof: null,
+      },
+    };
+    expect(validateBriefBody(watchlist)).toEqual(watchlist);
+    expect(validateBriefBody({ ...valid, target: { ...valid.target, version_or_asof: null } })).toBeNull();
+  });
+
   it("rejects numeric judgement keys", () => {
     expect(validateBriefBody({ ...valid, score: 0.81 })).toBeNull();
     expect(validateBriefBody({ ...valid, target: { ...valid.target, confidence: 12 } })).toBeNull();

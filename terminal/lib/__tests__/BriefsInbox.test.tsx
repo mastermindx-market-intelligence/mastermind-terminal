@@ -11,6 +11,7 @@ import { briefCopy, degradedLine } from "@/lib/briefs";
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 const THESIS = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+const WATCHLIST = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
 const validBody = {
   target: { kind: "thesis", id: THESIS, name: "NVDA cycle", version_or_asof: "v3" },
   market_read: [
@@ -24,19 +25,76 @@ const validBody = {
 let container: HTMLDivElement | null = null;
 let root: Root | null = null;
 let deliveries: unknown[] = [];
+let subscriptions: unknown[] = [];
 
 function jsonRes(status: number, body: unknown): Response {
   return new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
 }
 
 function installFetch() {
-  vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+  vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
     if (url.includes("/api/briefs/deliveries")) {
       return jsonRes(200, { deliveries });
     }
+    if (url.includes("/api/briefs/subscriptions/") && init?.method === "DELETE") {
+      const id = url.split("/").pop();
+      subscriptions = subscriptions.filter((row) => (row as { subscriptionId?: string }).subscriptionId !== id);
+      return jsonRes(200, { ok: true, deleted: true });
+    }
+    if (url.includes("/api/briefs/subscriptions/") && init?.method === "PATCH") {
+      const id = url.split("/").pop();
+      const body = JSON.parse(String(init.body || "{}")) as { state?: "pause" | "resume" };
+      subscriptions = subscriptions.map((row) => {
+        const sub = row as { subscriptionId?: string; state?: string };
+        if (sub.subscriptionId !== id) return row;
+        return { ...sub, state: body.state === "pause" ? "paused" : "active" };
+      });
+      return jsonRes(200, { ok: true });
+    }
+    if (url.includes("/api/briefs/subscriptions") && init?.method === "POST") {
+      const body = JSON.parse(String(init.body || "{}")) as {
+        target_kind?: "thesis" | "watchlist";
+        target_id?: string;
+        cadence?: "daily_after_us_close" | "weekly_saturday";
+      };
+      subscriptions = [
+        ...subscriptions,
+        {
+          subscriptionId: "33333333-3333-4333-8333-333333333333",
+          userId: "u-1",
+          targetKind: body.target_kind,
+          targetId: body.target_id,
+          targetName: body.target_kind === "watchlist" ? "Semis" : "NVDA cycle",
+          cadence: body.cadence,
+          delivery: "in_product_inbox",
+          state: "active",
+          createdAt: "2026-09-11T20:00:00.000Z",
+        },
+      ];
+      return jsonRes(201, { ok: true });
+    }
     if (url.includes("/api/briefs/subscriptions")) {
-      return jsonRes(200, { subscriptions: [] });
+      return jsonRes(200, { subscriptions });
+    }
+    if (url.endsWith("/api/watchlist")) {
+      return jsonRes(200, {
+        lists: [{ id: WATCHLIST, name: "Semis", position: 0, symbols: [] }],
+        sharedWithMe: [],
+      });
+    }
+    if (url.endsWith("/api/theses")) {
+      return jsonRes(200, {
+        theses: [{
+          id: THESIS,
+          currentVersion: 3,
+          lifecycleState: "active",
+          subject: {},
+          title: "NVDA cycle",
+          updatedAt: "2026-09-11T20:00:00.000Z",
+        }],
+        truncated: false,
+      });
     }
     return jsonRes(404, {});
   }));
@@ -76,6 +134,7 @@ function text(): string {
 describe("BriefsInbox rendering", () => {
   beforeEach(() => {
     deliveries = [];
+    subscriptions = [];
     installFetch();
   });
   afterEach(() => {
@@ -89,6 +148,92 @@ describe("BriefsInbox rendering", () => {
     unmount();
     await mountInbox("zh");
     expect(text()).toContain(briefCopy("empty", "zh"));
+  });
+
+  it("can create a watchlist schedule from the central Briefs surface", async () => {
+    await mountInbox("en");
+    const target = container?.querySelector<HTMLSelectElement>(
+      'select[aria-label="' + briefCopy("scheduleTarget", "en") + '"]',
+    );
+    const cadence = container?.querySelector<HTMLSelectElement>(
+      'select[aria-label="' + briefCopy("scheduleCadence", "en") + '"]',
+    );
+    expect(target).not.toBeNull();
+    expect(cadence).not.toBeNull();
+
+    await act(async () => {
+      target!.value = "watchlist:" + WATCHLIST;
+      target!.dispatchEvent(new Event("change", { bubbles: true }));
+      cadence!.value = "weekly_saturday";
+      cadence!.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+
+    const add = Array.from(container?.querySelectorAll("button") ?? [])
+      .find((button) => button.textContent === briefCopy("addSchedule", "en"));
+    expect(add).toBeDefined();
+    await act(async () => { add!.dispatchEvent(new MouseEvent("click", { bubbles: true })); });
+    await act(async () => { await Promise.resolve(); await Promise.resolve(); });
+
+    const fetchMock = vi.mocked(fetch);
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/briefs/subscriptions",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({
+          target_kind: "watchlist",
+          target_id: WATCHLIST,
+          cadence: "weekly_saturday",
+        }),
+      }),
+    );
+    expect(text()).toContain("Semis");
+    expect(text()).toContain(briefCopy("subscribeWeekly", "en"));
+    expect(container?.querySelectorAll("[data-brief-schedule]").length).toBe(1);
+  });
+
+  it("shows and manages scheduled briefs from the same Alerts surface", async () => {
+    subscriptions = [
+      {
+        subscriptionId: "11111111-1111-4111-8111-111111111111",
+        userId: "u-1",
+        targetKind: "thesis",
+        targetId: THESIS,
+        targetName: "NVDA cycle",
+        cadence: "daily_after_us_close",
+        delivery: "in_product_inbox",
+        state: "active",
+        createdAt: "2026-09-11T20:00:00.000Z",
+      },
+      {
+        subscriptionId: "22222222-2222-4222-8222-222222222222",
+        userId: "u-1",
+        targetKind: "watchlist",
+        targetId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+        targetName: "Semis",
+        cadence: "weekly_saturday",
+        delivery: "in_product_inbox",
+        state: "paused",
+        createdAt: "2026-09-10T20:00:00.000Z",
+      },
+    ];
+    await mountInbox("en");
+    expect(container?.querySelectorAll("[data-brief-schedule]").length).toBe(2);
+    expect(text()).toContain("NVDA cycle");
+    expect(text()).toContain("Semis");
+    expect(text()).toContain(briefCopy("subscribeDaily", "en"));
+    expect(text()).toContain(briefCopy("subscribeWeekly", "en"));
+    expect(text()).toContain(briefCopy("on", "en"));
+    expect(text()).toContain(briefCopy("paused", "en"));
+
+    const pause = Array.from(container?.querySelectorAll("button") ?? [])
+      .find((button) => button.textContent === briefCopy("pause", "en"));
+    expect(pause).toBeDefined();
+    await act(async () => { pause!.dispatchEvent(new MouseEvent("click", { bubbles: true })); });
+    await act(async () => { await Promise.resolve(); await Promise.resolve(); });
+    expect(container?.querySelectorAll('[data-brief-schedule] [data-state="paused"]').length).toBe(2);
+
+    expect(container?.querySelectorAll("[data-brief-schedule]").length).toBe(2);
+    expect(text()).toContain("Semis");
   });
 
   it("renders a ready row and a degraded row, pinning the last good brief", async () => {
@@ -118,6 +263,8 @@ describe("BriefsInbox rendering", () => {
     expect(text()).toContain("The close held above last week's range.");
     expect(text()).toContain("Call buying stayed in the front week.");
     expect(text()).toContain(briefCopy("lastGood", "en"));
+    expect(text()).toContain(briefCopy("subscribeDaily", "en"));
+    expect(container?.querySelector("[data-brief-cadence]")?.textContent).toBe(briefCopy("subscribeDaily", "en"));
     expect(text()).toContain("1 monitor");
     expect(text()).not.toContain("1 monitors");
     expect(container?.querySelectorAll("[data-brief-name]").length).toBe(2);
@@ -137,20 +284,85 @@ describe("BriefsInbox rendering", () => {
 });
 
 describe("BriefSubscribeControls", () => {
-  beforeEach(() => installFetch());
+  beforeEach(() => {
+    subscriptions = [];
+    installFetch();
+  });
   afterEach(() => {
     unmount();
     vi.unstubAllGlobals();
   });
 
-  it("offers the two cadence sentences in EN and ZH", async () => {
+  it("does not turn a subscription-read outage into an empty Add state", async () => {
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("/api/briefs/subscriptions")) return jsonRes(503, {});
+      return jsonRes(404, {});
+    }));
     await mountSubscribe("en");
+    expect(container?.querySelector('[data-brief-subscribe-state="unavailable"]')).not.toBeNull();
+    expect(text()).toContain(briefCopy("unavailable", "en"));
+    expect(text()).toContain(briefCopy("retry", "en"));
+    expect(text()).not.toContain(briefCopy("add", "en"));
+  });
+
+  it("offers explicit schedules and tells the user exactly where briefs arrive", async () => {
+    await mountSubscribe("en");
+    expect(text()).toContain(briefCopy("controlsTitle", "en"));
+    expect(text()).toContain(briefCopy("scheduleHelp", "en"));
+    expect(text()).toContain(briefCopy("emailNull", "en"));
     expect(text()).toContain(briefCopy("subscribeDaily", "en"));
     expect(text()).toContain(briefCopy("subscribeWeekly", "en"));
+    expect(text()).not.toContain("Send me a brief");
     unmount();
     await mountSubscribe("zh");
+    expect(text()).toContain(briefCopy("controlsTitle", "zh"));
+    expect(text()).toContain(briefCopy("emailNull", "zh"));
     expect(text()).toContain(briefCopy("subscribeDaily", "zh"));
     expect(text()).toContain(briefCopy("subscribeWeekly", "zh"));
+  });
+
+  it("links to the real inbox and lets an existing schedule be paused without deleting history", async () => {
+    subscriptions = [{
+      subscriptionId: "11111111-1111-4111-8111-111111111111",
+      userId: "22222222-2222-4222-8222-222222222222",
+      targetKind: "thesis",
+      targetId: THESIS,
+      cadence: "daily_after_us_close",
+      delivery: "in_product_inbox",
+      state: "active",
+      createdAt: "2026-09-11T20:00:00.000Z",
+    }];
+    await mountSubscribe("en");
+    const inboxLink = container?.querySelector('a[href="/alerts#briefs"]');
+    expect(inboxLink?.textContent).toBe(briefCopy("openInbox", "en"));
+    expect(text()).toContain(briefCopy("on", "en"));
+
+    const pause = Array.from(container?.querySelectorAll("button") ?? [])
+      .find((button) => button.textContent === briefCopy("pause", "en"));
+    expect(pause).toBeDefined();
+    await act(async () => { pause!.dispatchEvent(new MouseEvent("click", { bubbles: true })); });
+    await act(async () => { await Promise.resolve(); await Promise.resolve(); });
+
+    const fetchMock = vi.mocked(fetch);
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/briefs/subscriptions/11111111-1111-4111-8111-111111111111",
+      expect.objectContaining({ method: "PATCH" }),
+    );
+    expect(text()).toContain(briefCopy("paused", "en"));
+    expect(text()).toContain(briefCopy("resume", "en"));
+    expect(container?.querySelectorAll('button')).not.toBeNull();
+  });
+});
+
+describe("brief schedule deletion stays out of casual UI", () => {
+  it("does not expose the destructive DELETE path in either Brief surface", () => {
+    const contextual = readFileSync(join(__dirname, "../../components/briefs/BriefSubscribeControls.tsx"), "utf8");
+    const inbox = readFileSync(join(__dirname, "../../components/briefs/BriefsInbox.tsx"), "utf8");
+    expect(contextual).not.toContain('method: "DELETE"');
+    expect(inbox).not.toContain('method: "DELETE"');
+    expect(contextual).not.toContain("removeSchedule");
+    expect(inbox).not.toContain("removeSchedule");
   });
 });
 
