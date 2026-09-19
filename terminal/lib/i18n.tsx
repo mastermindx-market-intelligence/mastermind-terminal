@@ -2278,6 +2278,49 @@ export const LEX: Record<string, [string, string]> = {
   accDetAttributionNull: ["Why a call was right or wrong is not recorded yet.", "对错原因尚未记录。"],
   accDetLoadErr: ["We could not load your record. Nothing was changed.", "无法加载你的记录。没有任何改动。"],
 
+  // W9T_F13_9 / MO-DELTA-007 — team-accuracy rollup of the personal ledger (F13). The section
+  // shares its copy with the personal section (same ScoreFamily); only the team-facing sentence
+  // is new, and the ceiling makes the hard gate (no cross-team rank) visible to the reader.
+  // EN/ZH verbatim, no raw enums or internal ids.
+  accTeamNav: ["Your team's calls", "团队判断"],
+  accTeamTitle: ["Your team's calls, scored together.", "你的团队判断，一起打分。"],
+  accTeamSub: [
+    "Everyone on your team whose calls were written down — added together, never compared to another team.",
+    "团队中写下判断的所有人——只把判断合在一起看，从不和别的团队比较。",
+  ],
+  accTeamNoneCreate: [
+    "You are not on a team yet, so there is no team rollup to show.",
+    "你还没有加入任何团队，因此没有可显示的团队汇总。",
+  ],
+  accTeamEmptyMembers: [
+    "Your team has no members yet, so there is nothing to roll up.",
+    "你的团队还没有成员，因此没有可汇总的内容。",
+  ],
+  accTeamMembersNone: [
+    "Your team has {n} members, but no one has written down a call yet.",
+    "你的团队有 {n} 位成员，但还没有人写下判断。",
+  ],
+  accTeamMembersNWithN: [
+    "Of {n} team members, {m} have written down at least one call.",
+    "在 {n} 位团队成员中，有 {m} 位至少写下了一条判断。",
+  ],
+  accTeamMembersOn: ["Members on the team", "团队成员数"],
+  accTeamWithClaims: ["Members with at least one call", "写下至少一条判断的成员"],
+  accTeamEpisodes: ["Groups of calls on the team", "团队的判断组数"],
+  accTeamHitRate: ["Hits among checked groups", "已核对判断组中的命中"],
+  accTeamBrier: ["How well the team's odds matched", "团队把握与实际的吻合程度"],
+  accTeamNMembers: ["{n} people", "{n} 人"],
+  accTeamNMembersWithCalls: ["{n} people", "{n} 人"],
+  accTeamWeLabel: [
+    "These figures are your team's row, scored together — never a ranking against other teams.",
+    "这些数字是你们团队的一行——只把判断合在一起看，不与其他团队排名。",
+  ],
+  accTeamCeiling: [
+    "Your team sees its own calls scored together. It never compares your team to another team.",
+    "你的团队只把自己的判断合在一起打分。它永远不把你的团队与其他团队比较。",
+  ],
+
+
   // B-F13-6 claim authoring form — EN/ZH verbatim from the frozen spec §2.4 / §2.7.
   // ZH uses CJK punctuation throughout. No raw error code, enum, or field name is rendered.
   claimEntryButton: ["Make a call", "记录一条判断"],

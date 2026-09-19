@@ -143,13 +143,21 @@ async function fetchEntitlementCached(
   return p;
 }
 
-/** The live-options feature flag (config/plans.yml — essential + pro, incl. trial). */
+/** Live-options read gate: catalog feature for customers + the private operator/unlimited overlay. */
 const LIVE_OPTIONS = {
   id: "live_options",
-  ok: (e: Entitlement) => e.features.includes("terminal_live_options"),
+  // Macro /api/me applies the private operator/comp allowlist by overriding the
+  // effective tier to `unlimited` after reading the billing row; it deliberately
+  // does not synthesize customer feature keys into that row. `unlimited` is
+  // already the Terminal's Pro-equivalent operator tier (see isProTier below),
+  // so it must carry read access here too. Keep the exception exact: ordinary
+  // free/essential/pro callers still require the explicit feature authority.
+  ok: (e: Entitlement) =>
+    e.features.includes("terminal_live_options")
+    || e.tier.trim().toLowerCase() === "unlimited",
 };
 
-/** Live-options surface — the `terminal_live_options` feature (essential + pro, incl. trial). */
+/** Live-options surface — customer feature entitlement plus the private unlimited operator tier. */
 export async function hasLiveOptions(): Promise<boolean> {
   const e = await fetchEntitlementCached(LIVE_OPTIONS);
   return !!e && LIVE_OPTIONS.ok(e);
