@@ -120,6 +120,11 @@ vi.mock("@/lib/supabase/server", () => ({
           const row = H.subscriptions.find(matches) ?? null;
           return { data: row, error: H.selectError };
         }
+        // Ownership-check queries for theses/watchlists (used by POST ownership guard)
+        if (table === "theses" || table === "watchlists") {
+          const rows = (table === "theses" ? H.theses : H.watchlists).filter(matches);
+          return { data: rows[0] ?? null, error: null };
+        }
         return { data: null, error: H.selectError };
       }
 
@@ -251,6 +256,7 @@ describe("/api/briefs routes", () => {
 
   it("duplicate POST is 409 with a plain reason", async () => {
     H.user = { id: "u-1" };
+    H.theses = [{ id: THESIS, user_id: "u-1" }];
     H.insertError = { code: "23505", message: "duplicate key value violates unique constraint \"brief_subscriptions_user_id_target_kind_target_id_cadence_key\"" };
     const r = await POST_SUB(
       req("http://localhost/api/briefs/subscriptions", {
@@ -425,5 +431,63 @@ describe("/api/briefs routes", () => {
     expect(r.status).toBe(200);
     const body = await r.json();
     expect(body.deliveries[0].subscription.targetName).toBe("NVDA cycle");
+  });
+
+  // RED-first ownership tests (heal h_t579 MAJOR constraint 3)
+  it("POST with a well-formed UUID belonging to another tenant → 404 and zero rows inserted", async () => {
+    H.user = { id: "u-1" };
+    // Another user's thesis — exists but not owned by caller
+    H.theses = [{ id: THESIS, user_id: "u-other" }];
+    const r = await POST_SUB(
+      req("http://localhost/api/briefs/subscriptions", {
+        method: "POST",
+        body: JSON.stringify({ target_kind: "thesis", target_id: THESIS, cadence: "daily_after_us_close" }),
+      }),
+    );
+    expect(r.status).toBe(404);
+    expect((await r.json()).message).toBe(BRIEFS_ROUTE_MESSAGES.not_found[0]);
+    // No subscription was created
+    expect(H.subscriptions).toHaveLength(0);
+  });
+
+  it("POST with a non-existent UUID → 404 and zero rows inserted", async () => {
+    H.user = { id: "u-1" };
+    // No theses or watchlists at all — target does not exist
+    const r = await POST_SUB(
+      req("http://localhost/api/briefs/subscriptions", {
+        method: "POST",
+        body: JSON.stringify({ target_kind: "thesis", target_id: THESIS, cadence: "weekly_saturday" }),
+      }),
+    );
+    expect(r.status).toBe(404);
+    expect((await r.json()).messageZh).toBe(BRIEFS_ROUTE_MESSAGES.not_found[1]);
+    expect(H.subscriptions).toHaveLength(0);
+  });
+
+  it("POST with the caller's own thesis → 201", async () => {
+    H.user = { id: "u-1" };
+    H.theses = [{ id: THESIS, user_id: "u-1" }];
+    const r = await POST_SUB(
+      req("http://localhost/api/briefs/subscriptions", {
+        method: "POST",
+        body: JSON.stringify({ target_kind: "thesis", target_id: THESIS, cadence: "daily_after_us_close" }),
+      }),
+    );
+    expect(r.status).toBe(201);
+    expect((await r.json()).subscription.targetId).toBe(THESIS);
+  });
+
+  it("POST with the caller's own watchlist → 201", async () => {
+    H.user = { id: "u-1" };
+    const WL = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
+    H.watchlists = [{ id: WL, user_id: "u-1" }];
+    const r = await POST_SUB(
+      req("http://localhost/api/briefs/subscriptions", {
+        method: "POST",
+        body: JSON.stringify({ target_kind: "watchlist", target_id: WL, cadence: "weekly_saturday" }),
+      }),
+    );
+    expect(r.status).toBe(201);
+    expect((await r.json()).subscription.targetId).toBe(WL);
   });
 });

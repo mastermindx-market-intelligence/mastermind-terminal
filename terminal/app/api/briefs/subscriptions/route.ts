@@ -75,6 +75,18 @@ export async function POST(req: Request) {
   if (!isBriefTargetKind(targetKind) || !isUuid(targetId) || !isBriefCadence(cadence)) {
     return NextResponse.json(errorBody("bad_request"), { status: 400 });
   }
+  // MAJOR (heal h_t579): verify the caller owns this target before inserting.
+  // maybeSingle() scoped to auth.uid() — same pattern as thesis/watchlist routes.
+  // Returns 404 (never 403) to avoid leaking existence.
+  const { data: ownerRow, error: ownerError } = await supabase
+    .from(targetKind === "thesis" ? "theses" : "watchlists")
+    .select("id")
+    .eq("id", targetId)
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (ownerError || !ownerRow) {
+    return NextResponse.json(errorBody("not_found"), { status: 404 });
+  }
   const { data, error } = await supabase
     .from("brief_subscriptions")
     .insert({

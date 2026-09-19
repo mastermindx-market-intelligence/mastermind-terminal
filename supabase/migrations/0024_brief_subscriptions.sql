@@ -11,17 +11,34 @@
 -- executor is created here. Inserts into brief_deliveries come ONLY from the
 -- macro nightly/weekly producer (service client — the same privilege path
 -- engine/thesis_condition_monitor.py uses for public.alert_outbox).
+--
+-- SERVICE_ROLE JUSTIFICATION (constraint 2 of heal h_t579): brief_deliveries is
+-- written exclusively by the macro producer (service_role), not by authenticated users
+-- (they only have SELECT). Keeping service_role write is required for the producer path.
+--
+-- TENANCY / OWNERSHIP: brief_subscriptions has no FK from target_id to its owner table.
+-- Instead, two nullable FK columns (target_thesis_id, target_watchlist_id) and a
+-- CHECK-constrained pair enforce that exactly one is set per target_kind, keeping
+-- the model honest at the schema level. The API enforces ownership before insert
+-- (see MAJOR constraint 1 of heal h_t579).
 
 create table if not exists public.brief_subscriptions (
-  subscription_id uuid primary key default gen_random_uuid(),
-  user_id         uuid not null default auth.uid(),
-  target_kind     text not null check (target_kind in ('thesis', 'watchlist')),
-  target_id       uuid not null,
-  cadence         text not null check (cadence in ('daily_after_us_close', 'weekly_saturday')),
-  delivery        text not null default 'in_product_inbox' check (delivery = 'in_product_inbox'),
-  state           text not null default 'active' check (state in ('active', 'paused')),
-  created_at      timestamptz not null default now(),
-  unique (user_id, target_kind, target_id, cadence)
+  subscription_id   uuid primary key default gen_random_uuid(),
+  user_id           uuid not null default auth.uid(),
+  target_kind       text not null check (target_kind in ('thesis', 'watchlist')),
+  target_id         uuid not null,
+  target_thesis_id    uuid references public.theses (id),
+  target_watchlist_id uuid references public.watchlists (id),
+  cadence           text not null check (cadence in ('daily_after_us_close', 'weekly_saturday')),
+  delivery          text not null default 'in_product_inbox' check (delivery = 'in_product_inbox'),
+  state             text not null default 'active' check (state in ('active', 'paused')),
+  created_at        timestamptz not null default now(),
+  unique (user_id, target_kind, target_id, cadence),
+  -- Exactly one FK is set, aligned with target_kind
+  check (
+    (target_kind = 'thesis'   and target_thesis_id    is not null and target_watchlist_id is null) or
+    (target_kind = 'watchlist' and target_watchlist_id is not null and target_thesis_id    is null)
+  )
 );
 
 create index if not exists brief_subscriptions_user
