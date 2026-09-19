@@ -3,7 +3,7 @@
 # B-PL-6 batch 3 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 48a135af52d7fef64a5c365f3a30d8b4edc8528f
+# capturedAtHead: 62f2782f0c63607e3fdf4acfea4bd65e853e0b62
 # capturedAt: 2026-09-19T23:36:16.989Z
 # capturedAtHead is informational. The lock is layoutFiles.
 # 2026-09-19 seat merge of master 1c46b277 into #584 (B-F12-13): hash-only restamp of terminal/components/heatmap/HeatmapView.tsx, terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit.
@@ -14,7 +14,6 @@
 # 2026-09-19 seat merge of origin/master dd7c6dec712a (#584 B-F12-13, merge commit) into #587 (W9T_F13_9 team rollup): hash-only restamp of terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
 # 2026-09-19 seat merge of origin/master 4c7a2eeb6f58 (#587 B-F13-9 team rollup + #659 + #660, merge commit) into #588 (B-F12-17 invite-link honesty): hash-only restamp of terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
 # 2026-09-19 seat merge of origin/master dafc016e (#588 B-F12-17 invite-link honesty, #664, #666) into #586 (W9T/B-F08-13 targets readout): hash-only restamp to the merged working-tree bytes; crops NOT recaptured. Files: terminal/lib/i18n.tsx
-# 2026-09-19 seat recapture at master 62f2782f (#670 AlertDetail follow-on merged + live): AlertDetail-1440/390 EN+ZH crops regenerated with CAPTURE_ONLY=AlertDetail; layoutFiles hashes unchanged (already restamped in 05de3537); capturedAtHead informational
 # 2026-09-19 seat recapture at master 62f2782f (#670 AlertDetail follow-on merged + live): AlertDetail-1440/390 EN+ZH crops regenerated with CAPTURE_ONLY=AlertDetail; layoutFiles hashes unchanged (already restamped in 05de3537); capturedAtHead informational
 layoutFiles:
   terminal/components/options/OptionsFlowBoardView.tsx: "96e0d1d0a4e7eaed7f2d2bbec6722725afacc093e205defa280a483bc6e14b8e"
