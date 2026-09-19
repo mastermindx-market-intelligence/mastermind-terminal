@@ -4,17 +4,20 @@
 # capturedAtHead: b2f53e45d2a4babaf37f7062d86860b79e7f9770
 # capturedAt: 2026-09-09T14:59:49.815Z
 # capturedAtHead is informational. The lock is layoutFiles.
+# 2026-09-19 h_t587 r2 evidence stamp at heal 67c1c3b2784712b06f71f654d9472905e0c9155e: SettingsPanel.tsx / SectionAccuracy.tsx / SectionAccuracy.module.css (and teamAccuracyRollupRoute.test.ts where pinned) re-hashed to the heal-head digest. parseTeamsResponse live team-id, no-team sentence, 503 unavailable pair, weLabel tracking drop. No sibling crop recaptured — those surfaces do not render the accuracy rollup. F13-9 recapture NEEDED (see packet lock).
 # 2026-09-19 seat merge of master 1c46b277 into #584 (B-F12-13): hash-only restamp of terminal/app/dev/settings/page.tsx, terminal/lib/i18n.tsx, terminal/lib/plainLabels.ts to the merged-tree bytes; crops NOT recaptured by this merge commit.
 # 2026-09-19 seat merge of origin/master dd7c6dec712a (#584 B-F12-13, merge commit) into #588 (W9T_F12_17 invite link): hash-only restamp of terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
+# 2026-09-19 seat merge of origin/master dd7c6dec712a (#584 B-F12-13, merge commit) into #587 (W9T_F13_9 team rollup): hash-only restamp of terminal/lib/i18n.tsx, terminal/app/dev/settings/page.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
+# 2026-09-19 seat merge of origin/master 4c7a2eeb6f58 (#587 B-F13-9 team rollup + #659 + #660, merge commit) into #588 (B-F12-17 invite-link honesty): hash-only restamp of terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
 layoutFiles:
   terminal/components/settings/SectionAlertDelivery.tsx: "9c770be9ef78bc2bb9f1fa3c0b21824632ba63bc061f852264e3bc412d719aa0"
-  terminal/components/settings/SettingsPanel.tsx: "67657d686f304adf292d263007701852fa2bc28cd7f4dabbeca92d7453884eed"
+  terminal/components/settings/SettingsPanel.tsx: "b9b2459b886ca3ebbfb919f475f876afb2467e2480a61c61fbb79d9da1793473"
   terminal/components/settings/icons.tsx: "2611fcf38aed2595c976386d5510d44b62fb1b86cb0f11b46717e4b0a3dae510"
-  terminal/lib/i18n.tsx: "2f98660dc1a5fbcccdfe1ec8d3b0dff4b4478683b7d5f87a472cf29c3f186e5e"
+  terminal/lib/i18n.tsx: "cd1123bd9a9a7d992c974bf9fd9400f1a7e42b859faa4e3a31a6f014b60dacd0"
   terminal/lib/plainLabels.ts: "8f69818feca65a5f28c590460c52e4f06c04c25cc4f3da8643eff9050161b588"
   terminal/app/settings.css: "3189163136d943431cbf52e4b5d241c105b695ba5af94c4c2e29151d537b5ef5"
   terminal/components/settings/SettingsProvider.tsx: "097dc689f3794e0cb7c05588bbc3bdfd473f313c1c66676bb4f4fd564db8c919"
-  terminal/app/dev/settings/page.tsx: "1af17c049db2447195fa978e2547d6ffed767d7f9c9534446b2ad8d50c25f137"
+  terminal/app/dev/settings/page.tsx: "4b594ce879f00fdf1f096abde9a36113014b17257e6292dc0ca16c83efcd3660"
 theme: dark
 languages: [en, zh]
 viewports:

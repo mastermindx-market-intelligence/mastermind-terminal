@@ -6,15 +6,17 @@
 # capturedAtHead is informational. The lock is layoutFiles.
 # 2026-09-19 seat merge of master 1c46b277 into #584 (B-F12-13): hash-only restamp of terminal/components/ChartPanel.tsx, terminal/components/workspaces/AnalysisWorkspace.tsx, terminal/lib/i18n.tsx, terminal/lib/plainLabels.ts to the merged-tree bytes; crops NOT recaptured by this merge commit.
 # 2026-09-19 seat merge of origin/master dd7c6dec712a (#584 B-F12-13, merge commit) into #588 (W9T_F12_17 invite link): hash-only restamp of terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
+# 2026-09-19 seat merge of origin/master dd7c6dec712a (#584 B-F12-13, merge commit) into #587 (W9T_F13_9 team rollup): hash-only restamp of terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
+# 2026-09-19 seat merge of origin/master 4c7a2eeb6f58 (#587 B-F13-9 team rollup + #659 + #660, merge commit) into #588 (B-F12-17 invite-link honesty): hash-only restamp of terminal/components/OptionsHubView.tsx, terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
 layoutFiles:
-  terminal/components/OptionsHubView.tsx: "37c67a26b3833275834c4ba0267040161fab9c6ea543fa23a7cddf7eb60accf9"
+  terminal/components/OptionsHubView.tsx: "bc6201d94f709956b4ee70f52900db4431433c5f3dcef1606628900babf73f2a"
   terminal/components/SearchModal.tsx: "ed4545abe5d31c5f79e7eab96bad45b76b06694bf4d1994901dd6defd195bbc0"
   terminal/components/StockAnalysis.tsx: "7657d401a22f79d2b9649ce561545cb0a703e8c95d37a8b5d4e9388e0bda65f8"
   terminal/components/workspaces/AnalysisWorkspace.tsx: "e4a1c6e8a144828cd4573736eac3ba2496b11c1e24cfb8cddea4d55963af20d4"
   terminal/components/ChartPanel.tsx: "97cd543d99a06901ecd1825cb8ddcdc6e727685561f5d1da5fd6c43dbabd254f"
   terminal/components/DayRange.tsx: "c84724652783da1897ab4eeb98550eaf3dbd7942eefe3ce127b6ada2b16dd672"
   terminal/lib/plainLabels.ts: "8f69818feca65a5f28c590460c52e4f06c04c25cc4f3da8643eff9050161b588"
-  terminal/lib/i18n.tsx: "2f98660dc1a5fbcccdfe1ec8d3b0dff4b4478683b7d5f87a472cf29c3f186e5e"
+  terminal/lib/i18n.tsx: "cd1123bd9a9a7d992c974bf9fd9400f1a7e42b859faa4e3a31a6f014b60dacd0"
 theme: dark
 languages: [en, zh]
 viewports:

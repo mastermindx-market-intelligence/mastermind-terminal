@@ -15,15 +15,20 @@
 # 2026-09-11 MO-B PL-NI-1 (packet T-PL-NI-1, 您→你 sweep of Terminal master): terminal/lib/i18n.tsx re-hashed — plain-language 您→你 only; layout unchanged; no recapture.
 # 2026-09-13 MO-B W9T_F12_17 (team invitation link + the dated no-email line, MO-PAID-081): terminal/lib/i18n.tsx re-hashed — this packet only ADDS the acsTeamInvite* and inv* lexicon keys, which render in the Settings ▸ Team invitation group and on the /invite accept page; no B-F11-4 string or layout changed and the crops clip to [data-testid="thesis-list-pane"], which renders none of the new keys, so no crop was recaptured.
 # 2026-09-19 merge of origin/master into W9T_F12_17 (MO-B F12-17): capturedAtHead updated to merge commit; i18n.tsx re-hashed — origin/master's version (1d571257...) incorporates #565/#589 DEEP_RESEARCH_MONTHLY changes plus PL-NI-1 您→你 sweep; the F12-17 invitation keys are unaffected and B-F11-4 crops remain unchanged.
-capturedAtHead: 4b19a698bd4afefc58cdd024a05920270f836dbf
 # 2026-09-19 seat merge of origin/master dd7c6dec712a (#584 B-F12-13, merge commit) into #588 (W9T_F12_17 invite link): hash-only restamp of terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
+# 2026-09-13 W9T_F13_9 / MO-DELTA-007 (your team sees its own calls scored together, never a ranking against other teams): terminal/lib/i18n.tsx re-hashed ONLY — w9t_f13_9 adds 14 accTeam* keys to the shared lexicon, none of which renders on the B-F11-4 thesis-list-pane (the surface this packet crops to). No B-F11-4 string or layout changed; no crop was recaptured.
+# 2026-09-12 B-F11-5 (thesis amendment proposals): restamped ThesisWorkspace.tsx and ThesisWorkspace.module.css layoutFiles hashes. This packet adds a Suggested changes / assistant-notes panel inside the detail pane (data-testid=thesis-amendment-panel). B-F11-4 crops clip to [data-testid="thesis-list-pane"], which does not contain that panel, so no B-F11-4 crop was recaptured.
+# 2026-09-13 B-F11-5 heal 1: ThesisWorkspace.tsx re-hashed — data-state attribute on the proposal state chip inside the detail pane; the B-F11-4 thesis-list-pane clip does not contain it; no recapture.
+# 2026-09-13 H4b #565 history-preserving merge of origin/master 3db34e7a8 (PR #580 ledger flip atop #576 / #573 / #572 / #571 / #570): i18n.tsx re-hashed — auto-merge of master's PL-NI-1 (您→你 + DEEP_RESEARCH_MONTHLY template removal) with PR #565's H4b (DEEP_RESEARCH_MONTHLY template re-introduction) yields bytes 130d2ef1. Pinned below. No B-F11-4 string or layout changed; no crop recaptured.
+# 2026-09-19 merge of origin/master 4b19a698 into #587: i18n.tsx re-hashed to the merged-tree digest (neither side's bytes). No B-F11-4 string or layout changed; no crop recaptured.
+# 2026-09-19 seat merge of origin/master 4c7a2eeb6f58 (#587 B-F13-9 team rollup + #659 + #660, merge commit) into #588 (B-F12-17 invite-link honesty): hash-only restamp of terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
 layoutFiles:
   terminal/components/workspaces/ThesisWorkspace.tsx: "111e04dc1b303f3e18eb847197187236b190cd20c58f3c990f9ebe3c2bf9f1ff"
   terminal/components/workspaces/ThesisWorkspace.module.css: "72a791c76ae3a6d7fad66f387a140c163d689c74b4957af8644f1068404c0a4b"
   terminal/lib/rmsViews.ts: "fd5f025806c5a4b1b27e7d99a026e82f555767f0d96b6a2766a5b363961897cb"
   terminal/lib/savedViews.ts: "16e2914a032cba50cce999d1802c53e51098ce76dd82931925ef41b8e0f7af54"
   terminal/lib/plainLabels.ts: "8f69818feca65a5f28c590460c52e4f06c04c25cc4f3da8643eff9050161b588"
-  terminal/lib/i18n.tsx: "2f98660dc1a5fbcccdfe1ec8d3b0dff4b4478683b7d5f87a472cf29c3f186e5e"
+  terminal/lib/i18n.tsx: "cd1123bd9a9a7d992c974bf9fd9400f1a7e42b859faa4e3a31a6f014b60dacd0"
 theme: dark
 languages: [en, zh]
 viewports:
