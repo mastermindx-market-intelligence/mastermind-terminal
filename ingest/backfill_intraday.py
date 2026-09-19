@@ -75,6 +75,7 @@ POLY = _polygon_key()
 
 
 def _get(url: str, tries: int = 5) -> dict:
+    last_error: Exception | None = None
     for attempt in range(tries):
         try:
             req = urllib.request.Request(url, headers={"User-Agent": "terminal-intraday/1.0"})
@@ -82,15 +83,18 @@ def _get(url: str, tries: int = 5) -> dict:
                 return json.loads(r.read())
         except urllib.error.HTTPError as e:
             if e.code == 429:                       # rate limited — back off and retry
+                last_error = e
                 time.sleep(2.0 * (attempt + 1))
                 continue
             if 500 <= e.code < 600:
+                last_error = e
                 time.sleep(1.5 * (attempt + 1))
                 continue
             raise
-        except Exception:
+        except Exception as e:
+            last_error = e
             time.sleep(1.5 * (attempt + 1))
-    return {}
+    raise RuntimeError(f"Polygon aggregate retries exhausted after {tries} attempts") from last_error
 
 
 def _disp_epoch(ms: int) -> int:
@@ -112,8 +116,10 @@ def fetch_polygon_intraday(sym: str, tf: str, frm: dt.date | None = None) -> lis
     pages = 0
     while url and pages < 400:
         d = _get(url)
-        if d.get("status") not in ("OK", "DELAYED"):
-            break
+        status = d.get("status")
+        if status not in ("OK", "DELAYED"):
+            raise RuntimeError(
+                f"invalid aggregate response status={status!r} after {pages} completed page(s)")
         for b in d.get("results") or []:
             rows.append([_disp_epoch(b["t"]), b.get("o"), b.get("h"), b.get("l"),
                          b.get("c"), int(b.get("v") or 0)])
@@ -122,6 +128,8 @@ def fetch_polygon_intraday(sym: str, tf: str, frm: dt.date | None = None) -> lis
         pages += 1
         if url:
             time.sleep(0.1)
+    if url:
+        raise RuntimeError(f"pagination incomplete after {pages} pages")
     # ascending + de-dupe by epoch (pagination can overlap a boundary bar)
     rows.sort(key=lambda r: r[0])
     out: list[list] = []

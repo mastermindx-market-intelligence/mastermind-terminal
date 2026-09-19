@@ -450,3 +450,89 @@ def test_backfill_existing_only_not_in_manifest_dependency():
                     "backfill_intraday --existing-only is preceded by TERMINAL_MANIFEST export; "
                     "it must run independently before the staging manifest moves"
                 )
+
+# -----------------------------------------------------------------------------------------------
+# TTI review repair spike: internal transport/pagination failures must remain failures
+# -----------------------------------------------------------------------------------------------
+
+def test_tti_internal_get_exhausted_503_raises_instead_of_empty(monkeypatch):
+    calls = []
+    monkeypatch.setattr(mod.time, "sleep", lambda _seconds: None)
+
+    def fail(req, timeout=45):
+        calls.append(getattr(req, "full_url", str(req)))
+        raise mod.urllib.error.HTTPError(calls[-1], 503, "synthetic", None, None)
+
+    monkeypatch.setattr(mod.urllib.request, "urlopen", fail)
+    with pytest.raises(RuntimeError, match="retries exhausted"):
+        mod._get("https://example.invalid/test", tries=3)
+    assert len(calls) == 3
+
+
+def test_tti_fetch_rejects_non_ok_later_page_instead_of_returning_prefix(monkeypatch):
+    first_ms = 1_789_660_800_000
+    pages = [
+        {"status": "OK", "results": [{"t": first_ms, "o": 100, "h": 101,
+                                         "l": 99, "c": 100.5, "v": 1000}],
+         "next_url": "https://example.invalid/page2"},
+        {},
+    ]
+    monkeypatch.setattr(mod, "_get", lambda _url: pages.pop(0))
+    monkeypatch.setattr(mod.time, "sleep", lambda _seconds: None)
+    with pytest.raises(RuntimeError, match="invalid aggregate response"):
+        mod.fetch_polygon_intraday("TST", "5m")
+
+
+def test_tti_fetch_refuses_unfinished_pagination_limit(monkeypatch):
+    calls = {"n": 0}
+
+    def endless(_url):
+        calls["n"] += 1
+        return {"status": "OK", "results": [], "next_url": "https://example.invalid/next"}
+
+    monkeypatch.setattr(mod, "_get", endless)
+    monkeypatch.setattr(mod.time, "sleep", lambda _seconds: None)
+    with pytest.raises(RuntimeError, match="pagination incomplete"):
+        mod.fetch_polygon_intraday("TST", "5m")
+    assert calls["n"] == 400
+
+
+def test_tti_valid_ok_empty_response_remains_a_lawful_empty(monkeypatch):
+    monkeypatch.setattr(mod, "_get", lambda _url: {"status": "OK", "results": []})
+    assert mod.fetch_polygon_intraday("TST", "5m") == []
+
+
+def test_tti_existing_only_exhausted_transport_preserves_store_and_counts_failed(
+        intraday_env, monkeypatch):
+    target = intraday_env / "FAIL.5m.json"
+    make_store(target, "FAIL", "5m", n=30)
+    before = target.read_bytes()
+    monkeypatch.setattr(mod.time, "sleep", lambda _seconds: None)
+
+    def fail(req, timeout=45):
+        url = getattr(req, "full_url", str(req))
+        raise mod.urllib.error.HTTPError(url, 503, "synthetic", None, None)
+
+    monkeypatch.setattr(mod.urllib.request, "urlopen", fail)
+    rc = mod.main(["--existing-only", "--tf", "5m", "--workers", "1"])
+    assert rc == 1
+    assert target.read_bytes() == before
+
+
+def test_tti_existing_only_failed_second_page_preserves_store_and_counts_failed(
+        intraday_env, monkeypatch):
+    target = intraday_env / "PART.5m.json"
+    make_store(target, "PART", "5m", n=30)
+    before = target.read_bytes()
+    ms = 1_789_660_800_000
+    pages = [
+        {"status": "OK", "results": [{"t": ms, "o": 100, "h": 101,
+                                         "l": 99, "c": 100.5, "v": 1000}],
+         "next_url": "https://example.invalid/page2"},
+        {},
+    ]
+    monkeypatch.setattr(mod, "_get", lambda _url: pages.pop(0))
+    monkeypatch.setattr(mod.time, "sleep", lambda _seconds: None)
+    rc = mod.main(["--existing-only", "--tf", "5m", "--workers", "1"])
+    assert rc == 1
+    assert target.read_bytes() == before
