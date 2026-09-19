@@ -534,6 +534,13 @@ export function r5Stage0Alignment(
   const grouped = new Map<R5DteBucket, MscExpiryRow[]>();
   for (const bucket of R5_DTE_BUCKETS) grouped.set(bucket, []);
 
+  const expiryKeys = (rows ?? [])
+    .map((row) => typeof row?.exp === "string" ? row.exp.slice(0, 10) : "")
+    .filter(Boolean);
+  if (new Set(expiryKeys).size !== expiryKeys.length) {
+    throw new RangeError("R5 by-expiry input must contain unique expiration rows");
+  }
+
   const qualified: MscExpiryRow[] = [];
   let invalidOrExpiredRows = 0;
   let vannaRows = 0;
