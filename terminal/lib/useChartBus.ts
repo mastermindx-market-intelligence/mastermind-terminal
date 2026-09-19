@@ -77,7 +77,7 @@ export function useChartBus(host: ChartBusHost): ChartBus {
         if (o.caption) base.caption = o.caption;
         return base;
       }),
-      ...h.userDrawings.map((d) => ({ id: d.id, by: "user", op: "draw." + d.kind, args: userArgs(d) })),
+      ...h.userDrawings.map(userDrawingState),
     ];
     const acks = acksRef.current;
     acksRef.current = [];
@@ -114,7 +114,11 @@ export function useChartBus(host: ChartBusHost): ChartBus {
   }, [postState]);
 
   // POST on symbol / tf / indicator / user-drawing changes (contract: "also POST on … changes").
-  const changeSig = `${host.activeSymbol}|${host.currentTf}|${host.sessionIndicators.map((s) => s.name + JSON.stringify(s.params || {})).join(",")}|${host.userDrawings.length}`;
+  // Count alone misses edits that preserve collection size (dragging a line, resizing a zone, undoing
+  // geometry in place). Sign the exact user-drawing projection sent by postState instead. This also
+  // avoids false positives from TerminalShell's per-render `.filter(isUserDrawing)` array allocation.
+  const userDrawingSig = JSON.stringify(host.userDrawings.map(userDrawingState));
+  const changeSig = `${host.activeSymbol}|${host.currentTf}|${host.sessionIndicators.map((s) => s.name + JSON.stringify(s.params || {})).join(",")}|${userDrawingSig}`;
   const firstSig = useRef(true);
   useEffect(() => {
     if (firstSig.current) { firstSig.current = false; return; } // no POST on mount
@@ -204,6 +208,10 @@ function userArgs(d: Drawing): Record<string, unknown> {
   if (d.kind === "hline" && d.points[0]) out.p = d.points[0].p;
   else out.points = d.points.map((p) => ({ t: Number(p.t) || p.t, p: p.p }));
   return out;
+}
+
+function userDrawingState(d: Drawing): Record<string, unknown> {
+  return { id: d.id, by: "user", op: "draw." + d.kind, args: userArgs(d) };
 }
 
 // visible_range from the loaded series (first↔last bar epoch-seconds).
