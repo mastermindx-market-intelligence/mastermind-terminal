@@ -19,6 +19,7 @@ type Row = { created_at: string; symbol: string; user_id: string | null; anon_id
 const H = vi.hoisted(() => ({
   rpcResult: { data: null as unknown, error: null as { code?: string; message?: string } | null },
   countResult: { count: 0 as number | null, error: null as unknown },
+  todayCountResult: { count: 0 as number | null, error: null as unknown },
   windowRows: [] as Row[],
   windowError: null as unknown,
   getUserById: (id: string): Promise<{ data: { user: { email?: string | null } | null } | null; error?: unknown }> => {
@@ -33,22 +34,28 @@ vi.mock("@/lib/supabase/service", () => ({
     rpc: vi.fn(async (name: string) => { H.calls.push(`rpc:${name}`); return H.rpcResult; }),
     from: vi.fn(() => {
       const chain: Record<string, unknown> = {};
-      let isWindow = false;
-      chain.select = vi.fn((_c?: string, opts?: { head?: boolean }) =>
-        opts?.head
-          ? { then: (r: (v: unknown) => unknown) => Promise.resolve(H.countResult).then(r) }
-          : chain);
-      chain.gte = vi.fn(() => { isWindow = true; return chain; });
-      for (const m of ["order", "limit", "lt", "eq", "or"]) chain[m] = vi.fn(() => chain);
-      chain.then = (res: (v: unknown) => unknown, rej?: (e: unknown) => unknown) =>
-        Promise.resolve(isWindow ? { data: H.windowRows, error: H.windowError } : { data: [], error: null }).then(res, rej);
+      let isHeadCount = false;
+      let hasGte = false;
+      chain.select = vi.fn((_c?: string, opts?: { head?: boolean }) => {
+        isHeadCount = Boolean(opts?.head);
+        return chain;
+      });
+      chain.gte = vi.fn(() => { hasGte = true; return chain; });
+      for (const m of ["order", "limit", "lt", "eq"]) chain[m] = vi.fn(() => chain);
+      chain.or = vi.fn((filter: string) => { H.calls.push(`or:${filter}`); return chain; });
+      chain.then = (res: (v: unknown) => unknown, rej?: (e: unknown) => unknown) => {
+        if (isHeadCount) {
+          return Promise.resolve(hasGte ? H.todayCountResult : H.countResult).then(res, rej);
+        }
+        return Promise.resolve(hasGte ? { data: H.windowRows, error: H.windowError } : { data: [], error: null }).then(res, rej);
+      };
       return chain;
     }),
     auth: { admin: { getUserById: vi.fn((id: string) => { H.calls.push(`gotrue:${id}`); return H.getUserById(id); }) } },
   })),
 }));
 
-import { __emailCacheSize, __resetEmailCache, resolveUserEmails, searchStats } from "@/lib/searchEvents";
+import { __emailCacheSize, __resetEmailCache, listSearchEvents, resolveUserEmails, searchStats } from "@/lib/searchEvents";
 
 const iso = (msAgo: number) => new Date(Date.now() - msAgo).toISOString();
 const row = (over: Partial<Row> = {}): Row =>
@@ -62,6 +69,7 @@ const unwrap = (r: Awaited<ReturnType<typeof searchStats>>) => {
 beforeEach(() => {
   H.rpcResult = { data: null, error: { code: "PGRST202", message: "Could not find the function" } };
   H.countResult = { count: 0, error: null };
+  H.todayCountResult = { count: 0, error: null };
   H.windowRows = [];
   H.windowError = null;
   H.getUserById = async () => ({ data: { user: { email: "old@example.com" } } });
@@ -72,6 +80,15 @@ beforeEach(() => {
   vi.spyOn(console, "warn").mockImplementation(() => {});
 });
 afterEach(() => vi.useRealTimers());
+
+describe("production visitor filtering", () => {
+  it("quotes reserved PostgREST characters instead of deleting them from legacy visitor ids", async () => {
+    await listSearchEvents({ limit: 10, visitor: "legacy,aid.v1(blue)" });
+    expect(H.calls).toContain(
+      'or:anon_id.eq."legacy,aid.v1(blue)",ip.eq."legacy,aid.v1(blue)"',
+    );
+  });
+});
 
 describe("exact aggregates come from the database when the function exists", () => {
   it("uses the RPC result verbatim and marks it exact", async () => {
@@ -92,6 +109,20 @@ describe("exact aggregates come from the database when the function exists", () 
     expect(H.calls.filter((c) => c.startsWith("rpc:"))).toHaveLength(1);
   });
 
+  it("uses the browser-local midnight boundary for the Today KPI when provided", async () => {
+    H.rpcResult = {
+      data: {
+        total: 100, today: 999, visitors7d: 5,
+        topSymbols7d: [],
+        perDay14d: [],
+      },
+      error: null,
+    };
+    H.todayCountResult = { count: 7, error: null };
+    const s = unwrap(await searchStats("2026-09-18T07:00:00.000Z"));
+    expect(s.today).toBe(7);
+  });
+
   it("a REAL rpc failure is a store failure, not a silent downgrade to the capped path", async () => {
     H.rpcResult = { data: null, error: { code: "57014", message: "statement timeout" } };
     const r = await searchStats();
@@ -108,32 +139,48 @@ describe("deploy order: the app works before the migration is applied", () => {
     expect(s.topSymbols7d.map((x) => x.symbol).sort()).toEqual(["AAPL", "NVDA"]);
   });
 
+  it("fallback Today also respects the supplied local-midnight instant", async () => {
+    H.countResult = { count: 3, error: null };
+    H.windowRows = [
+      row({ created_at: "2026-09-18T06:59:59.999Z" }),
+      row({ created_at: "2026-09-18T07:00:00.000Z" }),
+      row({ created_at: "2026-09-18T12:00:00.000Z" }),
+    ];
+    expect(unwrap(await searchStats("2026-09-18T07:00:00.000Z")).today).toBe(2);
+  });
+
   it("a fallback BELOW the cap is exact — it must not cry approximate when it is right", async () => {
     H.countResult = { count: 3, error: null };
     H.windowRows = [row(), row(), row()];
     expect(unwrap(await searchStats()).partial).toBe(false);
   });
 
-  it("MANDATORY >20k acceptance: at the cap the payload admits it is understated", async () => {
-    // 20,000 rows is exactly what the fetch returns when the real window is larger — the DB gave us
-    // the newest 20k and silently dropped the rest. This is the case that used to draw a fake ramp.
+  it("exactly 20,000 rows is still exact — hitting capacity is not proof of truncation", async () => {
+    H.countResult = { count: 20_000, error: null };
+    H.windowRows = Array.from({ length: 20_000 }, (_, i) =>
+      row({ symbol: `S${i % 7}`, anon_id: `v${i % 500}` }),
+    );
+    expect(unwrap(await searchStats()).partial).toBe(false);
+  });
+
+  it("MANDATORY >20k acceptance: the sentinel row proves the fallback is understated", async () => {
+    // The reader asks for CAP+1. Seeing the extra row proves there is more history than we are
+    // willing to aggregate in-process; unlike `length === CAP`, this has no exact-cap false positive.
     const day = 86_400_000;
     H.countResult = { count: 250_000, error: null };
-    H.windowRows = Array.from({ length: 20_000 }, (_, i) =>
-      row({ created_at: iso(Math.floor((i / 20_000) * 2 * day)), symbol: `S${i % 7}`, anon_id: `v${i % 500}` }),
+    H.windowRows = Array.from({ length: 20_001 }, (_, i) =>
+      row({ created_at: iso(Math.floor((i / 20_001) * 2 * day)), symbol: `S${i % 7}`, anon_id: `v${i % 500}` }),
     );
     const s = unwrap(await searchStats());
     expect(s.partial).toBe(true);
-    // The truncation is real and visible: 20k newest rows all landed in the last ~2 days, so the
-    // older buckets read zero even though the true window holds 250k rows.
     const oldest = s.perDay14d.slice(0, 10).reduce((a, b) => a + b.count, 0);
     expect(oldest).toBe(0);
-    expect(s.total).toBe(250_000);   // total is a real COUNT and stays right
+    expect(s.total).toBe(250_000);
   });
 
-  it("does not claim exactness anywhere in the fallback payload", async () => {
+  it("does not claim exactness anywhere in a provably truncated fallback payload", async () => {
     H.countResult = { count: 999_999, error: null };
-    H.windowRows = Array.from({ length: 20_000 }, () => row());
+    H.windowRows = Array.from({ length: 20_001 }, () => row());
     const s = unwrap(await searchStats());
     expect(s.partial).toBe(true);
   });
@@ -185,6 +232,22 @@ describe("email cache is bounded and expires", () => {
     H.getUserById = async () => ({ data: null, error: { message: "gotrue 503" } });
     expect(await resolveUserEmails([ID])).toEqual({});
     expect(__emailCacheSize()).toBe(0);
+  });
+
+  it("can return partial email labels on a response budget without waiting for a slow authority", async () => {
+    vi.useFakeTimers();
+    H.getUserById = async (id: string) => {
+      const delay = id === "fast" ? 20 : 5_000;
+      await new Promise((resolve) => setTimeout(resolve, delay));
+      return { data: { user: { email: `${id}@example.com` } } };
+    };
+
+    const pending = resolveUserEmails(["fast", "slow"], { budgetMs: 100 });
+    await vi.advanceTimersByTimeAsync(100);
+    await expect(pending).resolves.toEqual({ fast: "fast@example.com" });
+
+    // Let the slow background lookup finish so this test leaves no occupied concurrency slot.
+    await vi.advanceTimersByTimeAsync(5_000);
   });
 
   it("bounds distinct-id GoTrue fan-out across concurrent admin pages", async () => {

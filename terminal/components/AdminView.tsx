@@ -67,11 +67,20 @@ export default function AdminView({ authorityUnavailable = false }: { email: str
   const listGenerationRef = useRef(0);
   const pageRequestRef = useRef(0);
   const pageAbortRef = useRef<AbortController | null>(null);
+  // Global KPIs do not depend on log filters. Once one aggregate read succeeds, filter-only row
+  // reads can skip that work; a manual Refresh (same filter) still refreshes the KPIs.
+  const statsReadyRef = useRef(false);
 
-  const query = useCallback((before?: number | null, signal?: AbortSignal) => {
+  const query = useCallback((before?: number | null, signal?: AbortSignal, includeStats = false) => {
     const p = new URLSearchParams({ limit: "100" });
-    if (before != null) p.set("before", String(before));
-    else p.set("stats", "1"); // stats only on first page — cursor pages skip the aggregate
+    if (before != null) {
+      p.set("before", String(before));
+    } else if (includeStats) {
+      p.set("stats", "1");
+      const localMidnight = new Date();
+      localMidnight.setHours(0, 0, 0, 0);
+      p.set("todayStart", localMidnight.toISOString());
+    }
     if (symbol) p.set("symbol", symbol);
     if (source) p.set("source", source);
     if (visitor) p.set("visitor", visitor);
@@ -135,7 +144,8 @@ export default function AdminView({ authorityUnavailable = false }: { email: str
       setStatsState((s) => (s === "data" ? "data" : "unavailable"));
     };
 
-    query().then(async (r) => {
+    const includeStats = sameFilter || !statsReadyRef.current;
+    query(null, undefined, includeStats).then(async (r) => {
       if (!alive) return;
       // 404 is the ONLY denial: a reachable authority checked and said no. It also proves the
       // authority itself answered, so an SSR-time authority outage is no longer current.
@@ -171,8 +181,14 @@ export default function AdminView({ authorityUnavailable = false }: { email: str
       setStale(false);
       setFeed(rows.length ? "data" : "empty");
 
-      if (d.stats) { setStats(d.stats); setStatsState("data"); }
-      else if (d.statsUnavailable) setStatsState("unavailable");
+      if (d.stats) {
+        statsReadyRef.current = true;
+        setStats(d.stats);
+        setStatsState("data");
+      } else if (d.statsUnavailable) {
+        statsReadyRef.current = false;
+        setStatsState("unavailable");
+      }
     }).catch(() => { if (alive) fail(); });
 
     return () => { alive = false; };

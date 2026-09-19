@@ -177,6 +177,27 @@ describe("GET /api/admin/searches — the status code carries the state", () => 
     expect(await res.json()).toMatchObject({ events: [] });
   });
 
+  it("does not advertise a next page when exactly the requested limit exists", async () => {
+    H.listResult = {
+      data: Array.from({ length: 100 }, (_, i) => row(100 - i)),
+      error: null,
+    };
+    const body = await (await get("?limit=100")).json();
+    expect(body.events).toHaveLength(100);
+    expect(body.nextBefore).toBeNull();
+  });
+
+  it("uses one lookahead row to prove a next page without returning the sentinel", async () => {
+    H.listResult = {
+      data: Array.from({ length: 101 }, (_, i) => row(101 - i)),
+      error: null,
+    };
+    const body = await (await get("?limit=100")).json();
+    expect(body.events).toHaveLength(100);
+    expect(body.events.at(-1).id).toBe(2);
+    expect(body.nextBefore).toBe(2);
+  });
+
   it("503s — NOT 200 {events:[]} — when the events read fails", async () => {
     H.listResult = { data: null, error: { code: "57014", message: "statement timeout" } };
     const res = await get();

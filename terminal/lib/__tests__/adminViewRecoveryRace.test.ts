@@ -177,6 +177,32 @@ describe("AdminView — recovery and pagination races", () => {
     expect(requestedSources.at(-1)).toBe("typed-but-not-debounced");
   });
 
+  it("does not recompute global stats on a filter change, but explicit Refresh still does", async () => {
+    const statsFlags: string[] = [];
+    globalThis.fetch = vi.fn((input: RequestInfo | URL) => {
+      const url = new URL(String(input), "https://x.test");
+      statsFlags.push(url.searchParams.get("stats") || "");
+      return Promise.resolve(response({
+        events: [row(100, "ROOT", url.searchParams.get("source") || "recent-source")],
+        nextBefore: null,
+        userMap: {},
+        ...(url.searchParams.get("stats") === "1" ? { stats } : {}),
+      }));
+    }) as typeof globalThis.fetch;
+
+    await mount();
+    expect(statsFlags).toEqual(["1"]);
+
+    await commitSource("archived-source");
+    expect(statsFlags.at(-1)).toBe("");
+
+    const refresh = [...container.querySelectorAll("button")].find((b) => b.textContent === "Refresh");
+    expect(refresh).toBeTruthy();
+    await act(async () => { refresh!.click(); });
+    await flush();
+    expect(statsFlags.at(-1)).toBe("1");
+  });
+
   it("can filter an exact source that is absent from the currently loaded page", async () => {
     let hiddenRequested = false;
     globalThis.fetch = vi.fn((input: RequestInfo | URL) => {
