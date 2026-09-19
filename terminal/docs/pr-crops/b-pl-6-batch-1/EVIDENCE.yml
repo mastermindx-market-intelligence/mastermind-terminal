@@ -1,3 +1,4 @@
+# 2026-09-19 #669 plain-language debt: hash-only restamp of plainLabels.ts, i18n.tsx — copy-only change, crops unchanged
 # B-PL-6 batch 1 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
@@ -19,8 +20,8 @@ layoutFiles:
   terminal/components/workspaces/AnalysisWorkspace.tsx: "e4a1c6e8a144828cd4573736eac3ba2496b11c1e24cfb8cddea4d55963af20d4"
   terminal/components/ChartPanel.tsx: "97cd543d99a06901ecd1825cb8ddcdc6e727685561f5d1da5fd6c43dbabd254f"
   terminal/components/DayRange.tsx: "c84724652783da1897ab4eeb98550eaf3dbd7942eefe3ce127b6ada2b16dd672"
-  terminal/lib/plainLabels.ts: "8f69818feca65a5f28c590460c52e4f06c04c25cc4f3da8643eff9050161b588"
-  terminal/lib/i18n.tsx: "440da61d2fe18d819c46503ec0c95be25bc893cf63300a32837133301dfb3a50"
+  terminal/lib/plainLabels.ts: "711f94db978d842b8051e9a975ef772308dab45ba08b3f1859537b5747d372d1"
+  terminal/lib/i18n.tsx: "c21e5974e091e4c9d8dd06c5efb2834363120f69a96aebf9476dc85f51fc10e7"
 theme: dark
 languages: [en, zh]
 viewports:

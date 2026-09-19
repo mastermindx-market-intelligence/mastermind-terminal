@@ -1,3 +1,4 @@
+# 2026-09-19 #669 plain-language debt: hash-only restamp of i18n.tsx — copy-only change, crops unchanged
 # B-F12-B5-3b Account completeness — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
@@ -32,7 +33,7 @@
 layoutFiles:
   terminal/components/settings/SectionAccount.tsx: "d2c3828c286bbaac321881d5a6562efdd4f30e580f4200d49c5165c0fa7ef9a4"
   terminal/lib/teamSummary.ts: "7bd3b3f1d5251490e42399be1dd77e977b2626c1714efbece2f7139c584e0f15"
-  terminal/lib/i18n.tsx: "440da61d2fe18d819c46503ec0c95be25bc893cf63300a32837133301dfb3a50"
+  terminal/lib/i18n.tsx: "c21e5974e091e4c9d8dd06c5efb2834363120f69a96aebf9476dc85f51fc10e7"
   terminal/components/settings/SettingsPanel.tsx: "956aeac1636ae4891b1009c8e266840244c19da085ba52e77c78171317c4ffaf"
   terminal/components/settings/SettingsProvider.tsx: "a4c829c956ca7ffd89bbc3158009b1148bb613569a9716b092dd9a27d449d910"
 
