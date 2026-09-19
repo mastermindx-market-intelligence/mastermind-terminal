@@ -8,15 +8,17 @@
 # Seat ruling: "Team sees its own scores; never a cross-team rank (hard gate, test pinned)." Every crop depicts the rollup block the hard gate is rendered into. The ceiling sentence at the bottom of every block is the gate in plain words.
 # 2026-09-19 recapture: NEEDED at code head 67c1c3b2784712b06f71f654d9472905e0c9155e. WHY: three next-dev servers were already running in other worktrees; the F13-9 capture tool starts its own next on :3548 and a Playwright run, which the CPU-modest ruling forbids stacking. Crops still depict 503d36556 (weLabel was uppercase at capture). layoutFiles restamped so readFileSync locks pass at HEAD.
 # 2026-09-19 seat merge of origin/master dd7c6dec712a (#584 B-F12-13, merge commit) into #587 (W9T_F13_9 team rollup): hash-only restamp of terminal/app/dev/settings/page.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
+# 2026-09-19 seat merge of origin/master 5a48b845 (13 commits incl. #587 B-F13-9 team rollup, merge commit) into #586 (W9T/B-F08-13 targets readout): hash-only restamp to the merged working-tree bytes; crops NOT recaptured. Files: terminal/components/settings/SettingsPanel.tsx, terminal/lib/i18n.tsx
 # 2026-09-19 seat merge of origin/master 4c7a2eeb6f58 (#587 B-F13-9 team rollup + #659 + #660, merge commit) into #588 (B-F12-17 invite-link honesty): hash-only restamp of terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
+# 2026-09-19 seat merge of origin/master dafc016e (#588 B-F12-17 invite-link honesty, #664, #666) into #586 (W9T/B-F08-13 targets readout): hash-only restamp to the merged working-tree bytes; crops NOT recaptured. Files: terminal/components/settings/SettingsPanel.tsx, terminal/lib/i18n.tsx
 layoutFiles:
   terminal/app/api/teams/[id]/accuracy/rollup/route.ts: "9639c3fa10effb075699c42f84e5c1cf636a4e3e47293894a06dbb366b7c9031"
   terminal/app/dev/settings/page.tsx: "4b594ce879f00fdf1f096abde9a36113014b17257e6292dc0ca16c83efcd3660"
   terminal/app/dev/settings/teamRollupFixtures.ts: "c9410a936be6f6e3147956dfc91893416c5cbce37c1bbd93eba45689e3803b05"
   terminal/components/settings/SectionAccuracy.tsx: "c15b4a28962cf39ba7783c1bc71647a5677ddb4c957e9b70da3ab44a0b36327d"
   terminal/components/settings/SectionAccuracy.module.css: "461d6510094319f0dfcffff7a99aa4dd3cd3440f66445f9489613dc56775bf03"
-  terminal/components/settings/SettingsPanel.tsx: "b9b2459b886ca3ebbfb919f475f876afb2467e2480a61c61fbb79d9da1793473"
-  terminal/lib/i18n.tsx: "cd1123bd9a9a7d992c974bf9fd9400f1a7e42b859faa4e3a31a6f014b60dacd0"
+  terminal/components/settings/SettingsPanel.tsx: "956aeac1636ae4891b1009c8e266840244c19da085ba52e77c78171317c4ffaf"
+  terminal/lib/i18n.tsx: "440da61d2fe18d819c46503ec0c95be25bc893cf63300a32837133301dfb3a50"
   terminal/lib/personalAccuracyStore.ts: "9d7911a2ed8a307335a8244659ad1f981c5b4268f4bfbdb173eaa0d54cb2f3c5"
   terminal/lib/teamRollup.ts: "80123be06c55db182aeeead19ea6ce737f517268887a4b1dfff71cac02f28b4d"
   terminal/lib/__tests__/teamRollup.test.ts: "d99fc2ed65b1f3b243f1ef87e16a25512f53ab2565995b9089674fdb3ce2c50c"
