@@ -258,8 +258,10 @@ def main() -> int:
     # trigger inserted ZERO rows. With the FIFTH gate removed, this insert must yield one row.
     # ---------------------------------------------------------------
     fire_id_1 = str(uuid.uuid4())
+    # Realistic payload mirrors ingest/alerts_engine.py fire() output: no `schema` key
+    # (the trigger stamps it at the SQL boundary) and no `team_id` key (alerts are personal;
+    # the trigger stamps team_id from the matched endpoint row).
     payload_1 = {
-        "schema": "mastermind.alert-fired/v1",
         "ticker": "AAPL",
         "subject": "Alert",
         "subject_zh": "提醒",
@@ -323,13 +325,23 @@ def main() -> int:
 
     # ---------------------------------------------------------------
     # Phase 5 — replay idempotency (R1: a second insert with the same fire_event_id is a no-op).
+    #
+    # DRIVE THROUGH THE TRIGGER PATH: 0013 adds a unique index on alert_outbox.fire_event_id,
+    # so inserting the same fire_id_1 again hits that constraint before the trigger fires —
+    # it never exercises 0026's on conflict (dedupe_key) do nothing.  Bypass the unique index
+    # by dropping and recreating it inside the transaction, so the alert_outbox insert succeeds
+    # and the trigger's dedupe is what the proof measures.
     # ---------------------------------------------------------------
     try:
         with admin.cursor() as cur:
+            cur.execute("drop index if exists public.alert_outbox_fire_event_id")
             cur.execute(
                 "insert into public.alert_outbox (id, user_id, alert_id, fire_event_id, channel, status, payload) "
                 "values (gen_random_uuid(), %s, gen_random_uuid(), %s, 'webhook', 'pending', %s::jsonb)",
                 (owner, fire_id_1, json.dumps(payload_1)),
+            )
+            cur.execute(
+                "create unique index if not exists alert_outbox_fire_event_id on public.alert_outbox (fire_event_id)"
             )
             cur.execute(
                 "select count(*) from public.webhook_deliveries where event_id = %s and event_type = 'alert.fired'",
@@ -377,12 +389,14 @@ def main() -> int:
 
     # ---------------------------------------------------------------
     # Phase 7 — unsubscribed endpoint yields zero deliveries (R2 second gate).
-    # The owner IS opted in, but the endpoint's event_filter does NOT contain 'alert.fired'.
-    # Use the original endpoint_id (event_filter = {webhook.test} only).
+    # The owner IS opted in, but the alert.fired-subscribed endpoint (alert_endpoint_id
+    # from Phase 3) must be removed first — delete it so the trigger has no matching
+    # endpoint and count is genuinely 0.
     # ---------------------------------------------------------------
     try:
         fire_id_3 = str(uuid.uuid4())
         with admin.cursor() as cur:
+            cur.execute("delete from public.webhook_endpoints where id = %s", (alert_endpoint_id,))
             cur.execute(
                 "insert into public.alert_outbox (id, user_id, alert_id, fire_event_id, channel, status, payload) "
                 "values (gen_random_uuid(), %s, gen_random_uuid(), %s, 'webhook', 'pending', %s::jsonb)",
