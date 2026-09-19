@@ -7,22 +7,22 @@ import OptionsWorkflowGuide from "@/components/options/OptionsWorkflowGuide";
 import { useLang, useT } from "@/lib/i18n";
 import {
   OPTIONS_HUB_WORKSPACE_VIEWS,
-  OPTIONS_IA_BY_CATEGORY,
-  OPTIONS_IA_CATEGORIES,
+  OPTIONS_IA_BY_JOB,
+  OPTIONS_IA_JOBS,
   OPTIONS_IA_VIEW_BY_KEY,
-  optionsCategoryForView,
-  type OptionsCategoryKey,
+  optionsJobForView,
   type OptionsHubWorkspaceViewKey,
+  type OptionsJobKey,
   type OptionsWorkspaceViewKey,
 } from "@/lib/optionsIa";
 
 /**
  * Options workspace composer — the `/options` body.
  *
- * R5 Stage A replaces the flat twelve-pill rail with the roadmap's seven
- * categories. The category row chooses a deterministic home; the view row keeps
- * every existing pane, component, fetch, and `?tab=` contract intact. This is an
- * IA layer only: OptionsHubView remains the one implementation of every live pane.
+ * R6 adds a trader-job command surface over the accepted seven-category registry.
+ * The visible first row answers what the trader is doing (Command / Flow / Positioning /
+ * Research); the second row keeps every existing pane, component, fetch, and `?tab=`
+ * contract intact. The seven-category map remains compatibility/architecture metadata.
  *
  * Reads resolve synchronously from `?tab=` on first render. Writes stay shallow
  * through history.replaceState. `statistics` is a category home with an explicit
@@ -50,17 +50,17 @@ const ROUTE_VIEW: Record<string, OptionsWorkspaceViewKey> = {
   statistics: "statistics",
 };
 
-const CATEGORY_TABS: WorkspaceTab[] = OPTIONS_IA_CATEGORIES.map((category) => ({
-  key: `cat-${category.key}`,
-  labelKey: category.labelKey,
+const JOB_TABS: WorkspaceTab[] = OPTIONS_IA_JOBS.map((job) => ({
+  key: `job-${job.key}`,
+  labelKey: job.labelKey,
 }));
 
-const CATEGORY_BY_TAB = Object.fromEntries(
-  OPTIONS_IA_CATEGORIES.map((category) => [`cat-${category.key}`, category.key]),
-) as Record<string, OptionsCategoryKey>;
+const JOB_BY_TAB = Object.fromEntries(
+  OPTIONS_IA_JOBS.map((job) => [`job-${job.key}`, job.key]),
+) as Record<string, OptionsJobKey>;
 
 const RESEARCH_ALLOWED: TabKey[] = [...OPTIONS_HUB_WORKSPACE_VIEWS];
-const DEFAULT_VIEW: OptionsHubWorkspaceViewKey = "tape";
+const DEFAULT_VIEW: OptionsHubWorkspaceViewKey = "desk";
 const FUNDAMENTALS_HREF = "/analysis";
 
 function writeTabToUrl(pageKey: string) {
@@ -94,15 +94,15 @@ export default function OptionsWorkspace() {
     writeTabToUrl(pageKey);
   }, []);
 
-  const onCategorySelect = useCallback((categoryTab: string) => {
-    const category = CATEGORY_BY_TAB[categoryTab];
-    if (!category) return;
-    selectView(OPTIONS_IA_BY_CATEGORY[category].defaultView);
+  const onJobSelect = useCallback((jobTab: string) => {
+    const job = JOB_BY_TAB[jobTab];
+    if (!job) return;
+    selectView(OPTIONS_IA_BY_JOB[job].defaultView);
   }, [selectView]);
 
   const onViewSelect = useCallback((pageKey: string) => {
     const view = ROUTE_VIEW[pageKey];
-    if (!view || view === "statistics") return;
+    if (!view) return;
     selectView(view);
   }, [selectView]);
 
@@ -115,32 +115,35 @@ export default function OptionsWorkspace() {
     selectView(tab);
   }, [selectView]);
 
-  const activeCategory = optionsCategoryForView(activeView);
-  const activeCategoryConfig = OPTIONS_IA_BY_CATEGORY[activeCategory];
+  const activeJob = optionsJobForView(activeView);
+  const activeJobConfig = OPTIONS_IA_BY_JOB[activeJob];
   const activePageKey = activeView === "statistics"
     ? "statistics"
     : OPTIONS_IA_VIEW_BY_KEY[activeView].pageKey;
-  const viewTabs: WorkspaceTab[] = activeCategoryConfig.views.map((view) => ({
-    key: view.pageKey,
-    labelKey: view.labelKey,
-  }));
+  const viewTabs: WorkspaceTab[] = activeJobConfig.views.map((view) => {
+    if (view === "statistics") {
+      return { key: "statistics", labelKey: "optionsCategoryStatistics" };
+    }
+    const config = OPTIONS_IA_VIEW_BY_KEY[view];
+    return { key: config.pageKey, labelKey: config.labelKey };
+  });
 
   return (
     <main
       className="main2 options-workspace"
-      data-options-ia="seven-category-stage-a"
+      data-options-ia="job-first-r6"
       style={{ overflow: "hidden", display: "flex", flexDirection: "column" }}
     >
       <header className="options-ia-nav">
-        <div className="options-ia-row options-ia-category-row">
-          <span className="options-ia-row-label">{t("optionsIaCategoryLabel", "Category")}</span>
+        <div className="options-ia-row options-ia-category-row options-ia-job-row">
+          <span className="options-ia-row-label">{lang === "zh" ? "任务" : "Job"}</span>
           <div className="options-ia-main">
             <WorkspaceTabs
-              tabs={CATEGORY_TABS}
-              active={`cat-${activeCategory}`}
-              onSelect={onCategorySelect}
-              aria-label={t("optionsCategoriesAria")}
-              className="options-category-tabs"
+              tabs={JOB_TABS}
+              active={`job-${activeJob}`}
+              onSelect={onJobSelect}
+              aria-label={lang === "zh" ? "期权交易任务" : "Options trader jobs"}
+              className="options-category-tabs options-job-tabs"
             />
             <OptionsWorkflowGuide activeView={activeView} onOpenView={selectView} />
           </div>
