@@ -1432,4 +1432,55 @@ describe("F12-13 (MO-PAID-083): the Team settings block (R3)", () => {
     await mount("en");
     expect(container.querySelector('[data-testid="team-settings"]')).toBeNull();
   });
+
+  describe("MAJOR-1: GET /settings fails → failure sentence, no controls, no PATCH possible", () => {
+    it("500 → failure sentence, no chart select, no share switch, no PATCH sent", async () => {
+      // liveDesk defaults: teams=[{id:"team-1"}], settings=200. Override settings to 500.
+      liveDesk({ settings: { status: 500, body: { error: "SERVER_ERROR", message: "We could not load the workspace settings just now.", messageZh: "我们暂时无法加载工作区设置。" } } });
+      await mount("en");
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      // The failure sentence renders.
+      expect(text()).toContain("We could not load the workspace settings just now.");
+      expect(container.querySelector('[data-testid="team-settings-fail"]')?.textContent).toBe(
+        "We could not load the workspace settings just now.",
+      );
+      // No chart select or share switch is painted — the !settingsError guard kept them out.
+      expect(container.querySelector('[data-testid="team-settings-chart"]')).toBeNull();
+      expect(container.querySelector('[data-testid="team-settings-share"]')).toBeNull();
+      // The block still renders (settingsLoaded=true even on failure), but with error content only.
+      expect(container.querySelector('[data-testid="team-settings"]')).toBeTruthy();
+    });
+
+    it("503 from the route surface → the route's own sentence, not read_failed", async () => {
+      liveDesk({
+        settings: {
+          status: 503,
+          body: {
+            error: "UNAVAILABLE",
+            message: "Team accounts are not set up on this server yet, so we cannot answer. Nothing was changed.",
+            messageZh: "此服务器尚未启用团队账户，因此我们无法作答。未更改任何内容。",
+          },
+        },
+      });
+      await mount("en");
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      // The route's own 503 sentence is shown (routeMessage picks it up).
+      expect(container.querySelector('[data-testid="team-settings-fail"]')?.textContent).toBe(
+        "Team accounts are not set up on this server yet, so we cannot answer. Nothing was changed.",
+      );
+      // No controls.
+      expect(container.querySelector('[data-testid="team-settings-chart"]')).toBeNull();
+      expect(container.querySelector('[data-testid="team-settings-share"]')).toBeNull();
+    });
+  });
 });

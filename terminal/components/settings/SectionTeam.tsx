@@ -146,7 +146,7 @@ export default function SectionTeam({
     devTeam?.settings?.share_layouts_by_default ?? (defaults[1].value as boolean),
   );
   const [settingsLoaded, setSettingsLoaded] = useState(Boolean(devTeam));
-  const [settingsError, setSettingsError] = useState<[string, string] | null>(null);
+  const [settingsError, setSettingsError] = useState<string | null>(null);
   const [settingsBusyKey, setSettingsBusyKey] = useState<WorkspaceSettingKey | null>(null);
   const [settingsMsg, setSettingsMsg] = useState<{ key: WorkspaceSettingKey; tone: "ok" | "err"; text: string } | null>(null);
 
@@ -290,12 +290,22 @@ export default function SectionTeam({
       const res = await fetch(`/api/teams/${encodeURIComponent(teamId)}/settings`);
       const body = (await res.json().catch(() => ({}))) as {
         settings?: Array<{ key: WorkspaceSettingKey; value: string | boolean; updatedAt?: string | null }>;
+        message?: unknown;
+        messageZh?: unknown;
       };
       if (!res.ok) {
         // Surface the failure with a plain sentence so the block does not silently paint the
-        // closed defaults as "the team's saved values". The roster's failure-disclosure idiom
-        // already names the cause; we follow it here.
-        setSettingsError(TEAM_ROUTE_MESSAGES.read_failed);
+        // closed defaults as "the team's saved values". Use the route's own EN/ZH message via
+        // routeMessage (same way PATCH does); fall back to read_failed only if the body carries
+        // no sentence.
+        setSettingsError(
+          (() => {
+            const msg = routeMessage(body, lang);
+            if (msg) return msg;
+            return TEAM_ROUTE_MESSAGES.read_failed[lang === "zh" ? 1 : 0];
+          })(),
+        );
+        setSettingsLoaded(true);
         return;
       }
       const next = body.settings || [];
@@ -303,10 +313,14 @@ export default function SectionTeam({
       const share = next.find((r) => r.key === "share_layouts_by_default");
       if (theme && (theme.value === "green_up" || theme.value === "red_up")) setChartTheme(theme.value);
       if (share && typeof share.value === "boolean") setShareLayouts(share.value);
-    } catch {
-      setSettingsError(TEAM_ROUTE_MESSAGES.read_failed);
-    } finally {
       setSettingsLoaded(true);
+    } catch {
+      setSettingsError(
+        (() => {
+          // routeMessage needs a body; on network failure there is none — use the catalogue.
+          return TEAM_ROUTE_MESSAGES.read_failed[lang === "zh" ? 1 : 0];
+        })(),
+      );
     }
   }, [devTeam, teamId]);
 
@@ -802,13 +816,15 @@ export default function SectionTeam({
             <div className={s.settings} data-testid="team-settings">
               {settingsError ? (
                 <p className="acs-note" data-testid="team-settings-fail">
-                  {settingsError[lang === "zh" ? 1 : 0]}
+                  {settingsError}
                 </p>
               ) : null}
-              <p className="acs-note" data-testid="team-settings-chart-caption">
-                {WORKSPACE_SETTING_COPY.caption.default_chart_theme[lang === "zh" ? 1 : 0]}
-              </p>
-              {callerRole === "owner" || callerRole === "admin" ? (
+              {!settingsError ? (
+                <>
+                  <p className="acs-note" data-testid="team-settings-chart-caption">
+                    {WORKSPACE_SETTING_COPY.caption.default_chart_theme[lang === "zh" ? 1 : 0]}
+                  </p>
+                  {callerRole === "owner" || callerRole === "admin" ? (
                 <select
                   className={s.settingsSelect}
                   data-testid="team-settings-chart"
@@ -874,6 +890,8 @@ export default function SectionTeam({
                 <p className={s.settingsValue} data-testid="team-settings-readonly-note">
                   {WORKSPACE_SETTING_COPY.memberReadOnly[lang === "zh" ? 1 : 0]}
                 </p>
+              ) : null}
+                </>
               ) : null}
             </div>
           </Group>

@@ -299,8 +299,13 @@ describe("/api/teams/[id]/settings — PATCH", () => {
     const res = await PATCH(req, ctx("t1"));
     expect(res.status).toBe(400);
     const body = await res.json();
-    expect(body.message).toBeTruthy();
-    expect(body.messageZh).toBeTruthy();
+    // MAJOR-2: asserts the specific invalid_key catalogue (not just 400 + truthy message).
+    // At round-1 tip 0f08446bc the route returned invalid_value for missing key; at head it returns
+    // invalid_key — the normalize-first fix makes the closed catalogue own the branch.
+    // The route uses "INVALID" as its error token; the message pair is what identifies the catalogue.
+    expect((body as { error?: string }).error).toBe("INVALID");
+    expect((body as { message?: string }).message).toBe("That setting name is not valid.");
+    expect((body as { messageZh?: string }).messageZh).toBe("该设置名称无效。");
   });
 
   it("lib 42501 -> 403 not_admin (RLS refusal at write time)", async () => {
