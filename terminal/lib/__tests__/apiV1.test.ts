@@ -398,6 +398,7 @@ describe("ETag, cursor pagination, rate limit", () => {
 
   it("the 61st request is 429 with Retry-After", async () => {
     let n = 0;
+    const keyDigest = apiKeyDigest(KEY_A, KEY_A_SALT);
     const deps: ApiV1Deps = {
       service: {
         rpc: async (fn: string, args: Record<string, unknown>) => {
@@ -405,6 +406,7 @@ describe("ETag, cursor pagination, rate limit", () => {
             return { data: { key_salt: KEY_A_SALT }, error: null };
           }
           if (fn !== "api_key_authenticate") return { data: { ok: true, rows: [] }, error: null };
+          expect(args.p_key_digest).toBe(keyDigest);
           n += 1;
           if (n >= 61) {
             return {
