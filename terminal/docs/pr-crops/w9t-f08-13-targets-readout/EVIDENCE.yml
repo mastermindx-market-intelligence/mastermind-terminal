@@ -7,7 +7,7 @@
 # SettingsPanel/SettingsProvider/icons/i18n blobs do not equal the pins.
 # Pins equal the 068a8358eef235063164d4a846fb8291ae03a173 tree (and HEAD).
 {
-  "capturedAtHead": "068a8358eef235063164d4a846fb8291ae03a173",
+  "capturedAtHead": "4d3b0ece4cf7d6cfad916cd9bcfbe9d5a1537cd2",
   "capturedAt": "2026-09-13T23:14:52.434Z",
   "layoutFiles": {
     "terminal/components/settings/SectionPortfolioTargets.tsx": "42efc4318fe724c0315b065b2833862ff241f9bc612aae976d32518ba523371b",
