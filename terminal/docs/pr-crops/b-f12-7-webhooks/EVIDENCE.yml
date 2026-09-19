@@ -19,11 +19,13 @@ layoutFiles:
   terminal/lib/webhookUrl.ts: "e1928132afa22ba3f3f5c5ad00c1f5cd7c66eee06a95ad49e6d25008117e18cf"
   terminal/components/settings/SettingsPanel.tsx: "b9b2459b886ca3ebbfb919f475f876afb2467e2480a61c61fbb79d9da1793473"
   terminal/components/settings/icons.tsx: "2611fcf38aed2595c976386d5510d44b62fb1b86cb0f11b46717e4b0a3dae510"
+# 2026-09-19 seat merge of origin/master dd7c6dec712a (#584 B-F12-13, merge commit) into #588 (W9T_F12_17 invite link): hash-only restamp of terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
 
 # 2026-09-19 seat merge of origin/master dd7c6dec712a (#584 B-F12-13, merge commit) into #587 (W9T_F13_9 team rollup): hash-only restamp of terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
+# 2026-09-19 seat merge of origin/master 4c7a2eeb6f58 (#587 B-F13-9 team rollup + #659 + #660, merge commit) into #588 (B-F12-17 invite-link honesty): hash-only restamp of terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
 informationalFiles:
   asserted: false
-  terminal/lib/i18n.tsx: "bd49cfd3cd13dcac8afccb1f443745622cd7ec557989d6b8ce23e8879b6bbfcb"
+  terminal/lib/i18n.tsx: "cd1123bd9a9a7d992c974bf9fd9400f1a7e42b859faa4e3a31a6f014b60dacd0"
 theme: dark
 languages: [en, zh]
 viewports:
