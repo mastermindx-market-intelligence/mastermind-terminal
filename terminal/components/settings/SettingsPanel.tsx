@@ -227,6 +227,34 @@ export default function SettingsPanel(props: SettingsPanelProps) {
     : (isAccountOwner(owner) ? accuracyLive : null);
   const accuracyLoadErr = props.devAccuracy === undefined && isAccountOwner(owner) && accuracyErr;
 
+  // ── W9T_F13_9 BLOCKER fix: resolve the caller's team id in the live path ──
+  // The panel used to derive activeTeamId only from props.devTeam (dev harness).
+  // In the live app there is no devTeam, so activeTeamId was always null and the
+  // rollup block never rendered. Fix: resolve the caller's team id the same way
+  // the existing team routes do — GET /api/teams, find the first team where the
+  // caller has a membership, use its id. If no team, activeTeamId is null and the
+  // rollup block is hidden (correct "no team yet" state). Re-runs on every open
+  // so the panel picks up a newly-joined team.
+  const [activeTeamIdLive, setActiveTeamIdLive] = useState<string | null>(null);
+  useEffect(() => {
+    if (props.devTeam) return;           // dev harness: use the fixture id
+    if (!visible || !isAccountOwner(owner)) { setActiveTeamIdLive(null); return; }
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await fetch("/api/teams");
+        if (!res.ok || cancelled) return;
+        const teams = await res.json() as Array<{ id: string; role: string }>;
+        if (cancelled) return;
+        const first = teams.find((t) => t.role != null);
+        setActiveTeamIdLive(first?.id ?? null);
+      } catch {
+        if (!cancelled) setActiveTeamIdLive(null);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [visible, openSeq, owner, props.devTeam]);
+
   // ── freshness on RE-OPEN and on focus ─────────────────────────────────────
   // The panel is mounted once and hidden between uses, so "open it again" is not a
   // remount and used to revalidate nothing: a user could upgrade through onboarding
@@ -262,11 +290,9 @@ export default function SettingsPanel(props: SettingsPanelProps) {
     [user?.meta?.first_name, user?.meta?.last_name].filter((v) => typeof v === "string" && v).join(" ") ||
     email;
   const avatarChar = (displayName || email || "U").trim().charAt(0).toUpperCase() || "U";
-  // W9T_F13_9 team-accuracy rollup: the section reads from the team whose roster the rest of
-  // the panel is already displaying. In dev/crop mode that is `props.devTeam.team.id`. The live
-  // panel shares the same id once the existing SectionTeam fetch has settled; rendering this
-  // section before that fetch lands shows the empty-members state, which is the correct read.
-  const activeTeamId: string | null = props.devTeam?.team?.id ?? null;
+  // W9T_F13_9 team-accuracy rollup: dev harness uses devTeam.id; live uses the
+  // activeTeamIdLive resolved from /api/teams (null when caller has no team).
+  const activeTeamId: string | null = props.devTeam?.team?.id ?? activeTeamIdLive;
 
   const node = (
     <div

@@ -15,7 +15,10 @@ const H = vi.hoisted(() => ({
   teamMembers: [] as Array<Record<string, unknown>>,
   userClaims: [] as Array<Record<string, unknown>>,
   serviceFault: null as { code: string; message: string } | null,
-  readOnly: false as boolean,
+  // MAJOR-2 fix (h_t587): when true, createServiceClient returns null instead of a
+  // working client. This simulates a misconfigured deployment and verifies the route
+  // returns 503 with the unavailable sentence — never personal figures as team rollup.
+  serviceClientNull: false as boolean,
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
@@ -56,39 +59,44 @@ vi.mock("@/lib/supabase/server", () => ({
 
 // A minimal service client that answers the `from("user_claims").select(...).in(...).order(...).limit(...)`
 // the route composes. No .rpc — the route does not need one.
+// MAJOR-2 fix (h_t587): createServiceClient returns null when H.serviceClientNull is set,
+// simulating a misconfigured deployment with no service key.
 vi.mock("@/lib/supabase/service", () => ({
-  createServiceClient: () => ({
-    from(table: string) {
-      const inFilter: { col: string; values: unknown[] } | null = { col: "user_id", values: [] };
-      let orderAsc = true;
-      const q: Record<string, unknown> = {};
-      q.select = () => q;
-      q.in = (_col: string, vals: unknown[]) => {
-        inFilter.values = vals as unknown[];
+  createServiceClient: () => {
+    if (H.serviceClientNull) return null;
+    return {
+      from(table: string) {
+        const inFilter: { col: string; values: unknown[] } | null = { col: "user_id", values: [] };
+        let orderAsc = true;
+        const q: Record<string, unknown> = {};
+        q.select = () => q;
+        q.in = (_col: string, vals: unknown[]) => {
+          inFilter.values = vals as unknown[];
+          return q;
+        };
+        q.order = (_col: string, opts?: { ascending?: boolean }) => {
+          orderAsc = opts?.ascending !== false;
+          return q;
+        };
+        q.limit = (n: number) => {
+          if (table !== "user_claims") return Promise.resolve({ data: [], error: null });
+          if (H.serviceFault) return Promise.resolve({ data: null, error: H.serviceFault });
+          const rows = H.userClaims
+            .filter((r) => inFilter.values.includes(r["user_id"]))
+            .sort((a, b) => {
+              const av = String(a["stated_at"] ?? "");
+              const bv = String(b["stated_at"] ?? "");
+              return orderAsc ? av.localeCompare(bv) : bv.localeCompare(av);
+            })
+            .slice(0, n);
+          return Promise.resolve({ data: rows, error: null });
+        };
+        q.eq = () => q;
+        q.maybeSingle = async () => ({ data: null, error: null });
         return q;
-      };
-      q.order = (_col: string, opts?: { ascending?: boolean }) => {
-        orderAsc = opts?.ascending !== false;
-        return q;
-      };
-      q.limit = (n: number) => {
-        if (table !== "user_claims") return Promise.resolve({ data: [], error: null });
-        if (H.serviceFault) return Promise.resolve({ data: null, error: H.serviceFault });
-        const rows = H.userClaims
-          .filter((r) => inFilter.values.includes(r["user_id"]))
-          .sort((a, b) => {
-            const av = String(a["stated_at"] ?? "");
-            const bv = String(b["stated_at"] ?? "");
-            return orderAsc ? av.localeCompare(bv) : bv.localeCompare(av);
-          })
-          .slice(0, n);
-        return Promise.resolve({ data: rows, error: null });
-      };
-      q.eq = () => q;
-      q.maybeSingle = async () => ({ data: null, error: null });
-      return q;
-    },
-  }),
+      },
+    };
+  },
 }));
 
 import { GET } from "@/app/api/teams/[id]/accuracy/rollup/route";
@@ -126,7 +134,7 @@ beforeEach(() => {
   H.teamMembers = [];
   H.userClaims = [];
   H.serviceFault = null;
-  H.readOnly = false;
+  H.serviceClientNull = false;
   vi.clearAllMocks();
 });
 
@@ -254,5 +262,34 @@ describe("GET /api/teams/[id]/accuracy/rollup — hard gate: never a cross-team 
     const body = await res.json();
     expect(typeof body.message).toBe("string");
     expect(typeof body.messageZh).toBe("string");
+  });
+
+  // MAJOR-2 RED-first test (h_t587): service client null → 503, no personal figures leak.
+  // At 898d80a4 (pre-fix) the route fell back to listOwnClaimsOnly when createServiceClient()
+  // was null, returning 200 with the caller's personal row set and memberCount reported as
+  // scored. The fix removes that fallback so a misconfigured deployment returns 503 with the
+  // unavailable sentence instead.
+  it("MAJOR-2 RED: service client null returns 503 — no personal figures, memberCount not scored", async () => {
+    // Alice has personal claims in user_claims.
+    H.teamMembers = [{ team_id: TEAM_ID, user_id: ALICE, role: "owner" }];
+    H.userClaims = [
+      claimRow({ claim_id: "alice-personal-1", user_id: ALICE, claim_text: "Alice personal call" }),
+    ];
+    // Simulate service-client unavailable (misconfigured deployment).
+    H.serviceClientNull = true;
+    const res = await call(TEAM_ID);
+    // Must be 503 — not 200.
+    expect(res.status).toBe(503);
+    const body = await res.json();
+    // The unavailable sentence in both languages.
+    expect(body.message).toBeTruthy();
+    expect(body.messageZh).toBeTruthy();
+    // No readout with personal figures: the response must NOT be a "kind":"ok" or "kind":"no_rows"
+    // with memberCount implying the team was scored.
+    expect(body.kind).toBeUndefined();
+    expect(body.readout).toBeUndefined();
+    // memberCount must not appear as scored team figures.
+    expect(body.memberCount).toBeUndefined();
+    expect(body.membersWithClaims).toBeUndefined();
   });
 });

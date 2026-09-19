@@ -17,7 +17,6 @@ import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { getCallerRole, TEAM_ROUTE_MESSAGES, type TenancyDb } from "@/lib/teams";
 import { scorePersonalAccuracy, type UserClaim } from "@/lib/personalAccuracy";
-import { listOwnClaims, type AccuracyDb } from "@/lib/personalAccuracyStore";
 import { rollupTeamAccuracy } from "@/lib/teamRollup";
 
 export const runtime = "nodejs";
@@ -56,13 +55,11 @@ const notFound = () =>
 const MAX_MEMBERS_FOR_ROLLUP = 500;
 const MAX_CLAIMS_FOR_ROLLUP = 5000;
 
-async function resolveCallerDb(): Promise<{ db: AccuracyDb & TenancyDb; userId: string } | null> {
+async function resolveCallerDb(): Promise<{ db: TenancyDb; userId: string } | null> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
-  // AccuracyDb and TenancyDb are both narrow structural views over the same Supabase client;
-  // they are mutually compatible at runtime, so a single cast covers the whole route.
-  return { db: supabase as unknown as AccuracyDb & TenancyDb, userId: user.id };
+  return { db: supabase as unknown as TenancyDb, userId: user.id };
 }
 
 /**
@@ -72,7 +69,7 @@ async function resolveCallerDb(): Promise<{ db: AccuracyDb & TenancyDb; userId: 
  * `[]` when the caller is not a member of any team with this id, and the member list otherwise.
  */
 async function listMemberUserIds(
-  db: AccuracyDb & TenancyDb,
+  db: TenancyDb,
   callerUserId: string,
   teamId: string,
 ): Promise<{ ok: true; memberIds: string[] } | { ok: false; reason: "unavailable" | "failed" | "not_member" | "not_found"; error: string }> {
@@ -122,6 +119,10 @@ async function listMemberUserIds(
  * with that member's session, which is impossible from a server-side handler. The seat ruling
  * therefore requires a service-role read here, and the read filters the rows by the team-member
  * list we already verified.
+ *
+ * MAJOR-2 fix (h_t587): when createServiceClient() is null, this function returns
+ * {ok: false, reason: "unavailable"} rather than falling back to a per-member read.
+ * Returning personal rows as "team" rollup would violate the hard gate.
  */
 async function listClaimsForMembers(
   memberIds: readonly string[],
@@ -130,6 +131,9 @@ async function listClaimsForMembers(
 
   const service = createServiceClient();
   if (!service) {
+    // MAJOR-2 fix (h_t587): do NOT fall back to a per-member read here.
+    // A service-null environment (malconfigured deployment) must return an explicit
+    // unavailable state — never personal figures as team rollup.
     return { ok: false, reason: "unavailable", error: "service client unavailable" };
   }
 
@@ -158,17 +162,6 @@ async function listClaimsForMembers(
   return { ok: true, claims };
 }
 
-/**
- * Build a per-member read for the caller's own rows. Used as a fallback when no service-role
- * client is available (guest-mode dev), and pinned by tests: the response shape and the contract
- * never depend on the role of the read.
- */
-async function listOwnClaimsOnly(db: AccuracyDb, userId: string): Promise<UserClaim[]> {
-  const result = await listOwnClaims(db, userId);
-  if (!result.ok) return [];
-  return result.claims;
-}
-
 export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> }) {
   void _req;
   let session: Awaited<ReturnType<typeof resolveCallerDb>>;
@@ -191,20 +184,15 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
   }
 
   const claimsRead = await listClaimsForMembers(members.memberIds);
-  let claims: UserClaim[];
   if (!claimsRead.ok) {
-    // Guest-mode dev has no service key: fall back to the caller's own rows. This is the same
-    // shape the personal accuracy route returns, but routed through the rollup so the contract
-    // (and the test pins) hold in both modes. The shape of the response is unchanged either way.
-    if (claimsRead.reason === "unavailable" && !createServiceClient()) {
-      claims = await listOwnClaimsOnly(session.db, session.userId);
-    } else {
-      console.error("team rollup read failed:", claimsRead.error);
-      return readFail(claimsRead.reason, claimsRead.error);
-    }
-  } else {
-    claims = claimsRead.claims;
+    // MAJOR-2 fix (h_t587): when createServiceClient() is null, listClaimsForMembers
+    // now returns {ok: false, reason: "unavailable"} instead of falling back to
+    // listOwnClaimsOnly. The caller gets a 503 with the unavailable sentence — never
+    // a rollup built from personal rows that leaks memberCount as scored figures.
+    console.error("team rollup read failed:", claimsRead.error);
+    return readFail(claimsRead.reason, claimsRead.error);
   }
+  const claims = claimsRead.claims;
 
   const result = rollupTeamAccuracy(members.memberIds, claims);
 
