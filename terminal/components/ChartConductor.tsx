@@ -233,8 +233,8 @@ export default function ChartConductor({ queue, count }: ChartConductorProps) {
           type="button"
           className={`cmx-orb ${orbPhase}${dockCls}`}
           key={pulsing ? `pulse-${pulseKey}` : "orb"}
-          title="Mastermind AI"
-          aria-label="Mastermind AI"
+          title={railOpen ? t("cmxHideSteps") : t("cmxToggleSteps")}
+          aria-label={railOpen ? t("cmxHideSteps") : t("cmxToggleSteps")}
           aria-expanded={railOpen}
           onClick={() => setRailOpen((o) => !o)}
         />
@@ -279,9 +279,7 @@ export default function ChartConductor({ queue, count }: ChartConductorProps) {
               <div className={`cmx-row${r.ok ? "" : " rej"}`} key={r.seq}>
                 <span className="ico" aria-hidden="true">{FAMILY_ICON[r.family] ?? FAMILY_ICON.line}</span>
                 <span className="cap">{r.caption}</span>
-                {r.fit && (
-                  <span className="fit">{r.fit.touches} touches · {r.fit.max_dev_atr} ATR</span>
-                )}
+
               </div>
             ))}
           </div>

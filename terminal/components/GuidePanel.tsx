@@ -139,19 +139,21 @@ function GuideSettings({ entry, zh }: { entry: SuiteModuleCatalogEntry; zh: bool
   return (
     <div className="gp-settings-schema">
       <p className="gp-schema-note">
-        {t("gpSchemaNote")}
+        {zh ? "这里列出图表“设置”中实际可调的选项。" : "These are the controls you can change in chart Settings."}
       </p>
       <div className="gp-settings-grid" aria-label={t("gpSchemaAria")}>
         {entry.module.fields.map((field) => {
           const range = fieldRange(field, zh);
-          const dependency = field.showIf
-            ? `${zh ? "显示条件" : "Shown when"} ${field.showIf.key} = ${String(field.showIf.eq)}`
+          const dependencyField = field.showIf
+            ? entry.module.fields.find((candidate) => candidate.key === field.showIf?.key)
+            : undefined;
+          const dependency = field.showIf && dependencyField
+            ? `${zh ? "仅在" : "Shown when"} ${dependencyField.label} ${zh ? "为" : "is"} ${fieldDefault(dependencyField, field.showIf.eq, zh)}`
             : null;
           return (
             <div className="gp-setting-card" key={field.key}>
               <div className="gp-setting-title">
                 <strong lang={zh ? "en" : undefined}>{field.label}</strong>
-                <code>{field.key}</code>
               </div>
               <div className="gp-setting-meta">
                 <span>{zh ? "默认" : "Default"} <b>{fieldDefault(field, entry.module.defaults[field.key], zh)}</b></span>
@@ -646,7 +648,7 @@ export default function GuidePanel({
             <div className="gp-toc-note">
               <span aria-hidden="true">M</span>
               <p>
-                {zh ? "指南描述的是 Mastermind 当前实际实现与默认值。" : "Guides describe the current Mastermind implementation and live defaults."}
+                {zh ? "这里的设置与图表中的实际控件一致。" : "Settings here match the controls on your chart."}
               </p>
             </div>
           </aside>

@@ -117,6 +117,10 @@ describe("plain-language call sites — batch 2", () => {
     const src = readOwned("ChartConductor.tsx");
     expect(src).not.toContain('title={railOpen ? "Hide live steps" : "Show live steps"}');
     expect(src).not.toContain('title="Skip animations"');
+    expect(src).not.toContain('title="Mastermind AI"');
+    expect(src).not.toContain(" touches · ");
+    expect(src).not.toContain('className="fit"');
+    expect(src).toContain('title={railOpen ? t("cmxHideSteps") : t("cmxToggleSteps")}');
     const toggle = lineContaining(src, "cmxHideSteps", "hide-steps");
     expect(toggle).toMatch(/\bt\(/);
   });
@@ -151,11 +155,14 @@ describe("plain-language call sites — batch 2", () => {
     expect(src).toContain('t("lgSignupPitch")');
   });
 
-  it("GuidePanel.tsx: academy chrome and teaching labels route through t(); tier uses planTierLabel", () => {
+  it("GuidePanel.tsx: academy chrome stays user-facing, never exposes schema keys", () => {
     const src = readOwned("GuidePanel.tsx");
     expect(src).not.toContain('"Indicator Academy"');
     expect(src).not.toContain('"At a glance"');
     expect(src).not.toContain("{candidate.tier}");
+    expect(src).not.toContain("<code>{field.key}</code>");
+    expect(src).not.toContain('"${field.showIf.key} = ${String(field.showIf.eq)}"');
+    expect(src).toContain("dependencyField.label");
     expect(src).toContain('t("gpAcademy")');
     expect(src).toContain("planTierLabel(");
   });
@@ -169,13 +176,16 @@ describe("plain-language call sites — batch 2", () => {
     expect(src).toContain('t("lvLearnCta")');
   });
 
-  it("LevelsLearn.tsx: teaching copy routes through t(), never English-only JSX", () => {
+  it("LevelsLearn.tsx: teaching copy is localized and collapsed for scanning", () => {
     const src = readOwned("levels/LevelsLearn.tsx");
     expect(src).not.toContain("Why price gets sticky or slippery");
     expect(src).not.toContain("The gamma weather map, in six reads");
     expect(src).not.toContain("leans against");
     expect(src).toContain('t("llHeroTitle")');
     expect(src).toContain('t("ll1title")');
+    expect(src).toContain("<details");
+    expect(src).toContain("open={i === 0}");
+    expect(src).toContain("<summary");
   });
 });
 
