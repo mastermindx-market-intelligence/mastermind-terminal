@@ -22,7 +22,7 @@ import { describe, expect, it, beforeEach, afterEach } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import React from "react";
-import BrainWidget from "@/components/BrainWidget";
+import BrainWidget from "@/components/BrainWidgetImpl";
 import {
   resolveShellBrainSymbol,
   announceShellBrainSymbol,
