@@ -20,6 +20,7 @@ import { isMacroSymbol } from "@/lib/macroSymbols";
 const f = (n: number | null | undefined, d = 2) => (n == null || !isFinite(n) ? "—" : n.toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d }));
 
 const SETTINGS_KEY = "mm.chartSettings";
+const SETTINGS_SYNC_EVENT = "mm:chart-settings";
 const load = (d: ChartSettings): ChartSettings => { try { const v = localStorage.getItem(SETTINGS_KEY); return v ? { ...d, ...JSON.parse(v) } : d; } catch { return d; } };
 
 // One pane of the chart grid. Hand-drawn drawings are owned by TerminalShell (a shared per-symbol
@@ -68,6 +69,19 @@ export default function ChartPane({ idx, symbol, drawingOwnerKey, isActive, onAc
     window.addEventListener("mm:settings-tab", h);
     return () => window.removeEventListener("mm:settings-tab", h);
   }, []);
+  // `mm.chartSettings` is one persisted owner for the whole Terminal, not one owner per pane.
+  // Keep every mounted pane on the same live value as soon as any sibling patches that owner;
+  // the browser `storage` event does not fire back into the document that performed the write.
+  useEffect(() => {
+    const sync = (event: Event) => {
+      const patch = (event as CustomEvent<{ patch?: Partial<ChartSettings> }>).detail?.patch;
+      if (!patch || typeof patch !== "object") return;
+      setChartSettings((current) => ({ ...current, ...patch }));
+    };
+    window.addEventListener(SETTINGS_SYNC_EVENT, sync);
+    return () => window.removeEventListener(SETTINGS_SYNC_EVENT, sync);
+  }, []);
+
   // The default render is not an authoritative setting. In development StrictMode the initial
   // effects are replayed, so an "ignore the first effect" ref can write that stale default during
   // the replay and destroy an existing localStorage owner. Persist only after hydration commits.
@@ -77,7 +91,8 @@ export default function ChartPane({ idx, symbol, drawingOwnerKey, isActive, onAc
   }, [chartSettingsReady, chartSettings]);
 
   const patchSettings = useCallback((patch: Partial<ChartSettings>) => {
-    setChartSettings((s) => ({ ...s, ...patch }));
+    setChartSettings((current) => ({ ...current, ...patch }));
+    window.dispatchEvent(new CustomEvent(SETTINGS_SYNC_EVENT, { detail: { patch } }));
   }, []);
 
   // Day Trade Mode: listen for mm:set-eth events dispatched by TerminalShell (D lane §5b interface contract).
