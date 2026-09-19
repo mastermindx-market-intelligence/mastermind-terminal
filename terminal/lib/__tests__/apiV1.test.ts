@@ -22,11 +22,13 @@ import {
   etagFor,
   firstForbiddenField,
   generateApiKeySecret,
-  hashApiKey,
-  hashesEqual,
+  apiKeyDigest,
+  apiKeyDigestEqual,
   ifNoneMatchHits,
   isWellFormedApiKey,
+  newApiKeySalt,
   parseLimit,
+  apiKeyPrefix,
   schemaFor,
 } from "@/lib/apiV1";
 import { mintApiKey, assertNoHashInSelect } from "@/lib/apiKeys";
@@ -39,6 +41,8 @@ const USER_A = "11111111-1111-4111-8111-111111111111";
 const USER_B = "22222222-2222-4222-8222-222222222222";
 const KEY_A = "mmx_" + "A".repeat(40);
 const KEY_B = "mmx_" + "B".repeat(40);
+const KEY_A_SALT = newApiKeySalt();
+const KEY_B_SALT = newApiKeySalt();
 const THESIS_ID = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 
 function chain(result: { data?: unknown; error?: { message?: string } | null }) {
@@ -56,14 +60,17 @@ function chain(result: { data?: unknown; error?: { message?: string } | null }) 
 }
 
 describe("key minting", () => {
-  it("shows mmx_ plus 40 url-safe characters once and stores only the SHA-256 hex plus 8-char prefix", async () => {
+  it("shows mmx_ plus 40 url-safe characters once and stores only a random salt and scrypt digest", async () => {
     const secret = generateApiKeySecret();
     expect(isWellFormedApiKey(secret)).toBe(true);
     expect(secret.startsWith(API_KEY_HEAD)).toBe(true);
     expect(secret.slice(4)).toHaveLength(API_KEY_SECRET_LEN);
-    const hash = hashApiKey(secret);
-    expect(hash).toMatch(/^[0-9a-f]{64}$/);
-    expect(hash).not.toBe(secret);
+    const salt = newApiKeySalt();
+    const digest = apiKeyDigest(secret, salt);
+    expect(salt).toMatch(/^[A-Za-z0-9+/]{22}==$/);
+    expect(digest).toMatch(/^[A-Za-z0-9+/]{43}=$/);
+    expect(digest).not.toBe(secret);
+    expect(digest).not.toBe(apiKeyDigest(secret, newApiKeySalt()));
 
     let inserted: Record<string, unknown> | null = null;
     const db = {
@@ -121,12 +128,18 @@ describe("key minting", () => {
     };
     const minted = await mintApiKey(listingDb as any, USER_A, "Research laptop");
     expect(minted.ok).toBe(true);
+    const mintedValues = (inserted ?? {}) as Record<string, unknown>;
+    const mintedKeySalt = String(mintedValues.key_salt ?? "");
+    const mintedKeyDigest = String(mintedValues.key_digest ?? "");
     if (!minted.ok) return;
     expect(minted.secret.startsWith("mmx_")).toBe(true);
     expect(inserted).toBeTruthy();
-    expect(inserted!.key_hash).toMatch(/^[0-9a-f]{64}$/);
+    expect(inserted!.key_salt).toMatch(/^[A-Za-z0-9+/]{22}==$/);
+    expect(inserted!.key_digest).toMatch(/^[A-Za-z0-9+/]{43}=$/);
+    expect(apiKeyDigestEqual(minted.secret, mintedKeySalt, mintedKeyDigest)).toBe(true);
     expect(String(inserted!.key_prefix)).toHaveLength(8);
-    expect(JSON.stringify(minted.key)).not.toContain(inserted!.key_hash);
+    expect(JSON.stringify(minted.key)).not.toContain(inserted!.key_digest);
+    expect(JSON.stringify(minted.key)).not.toContain(inserted!.key_salt);
   });
 
   it("refuses a sixth active key", async () => {
@@ -172,14 +185,20 @@ describe("authenticate", () => {
     expect(body.error.message_zh).toBe(API_V1_ERROR_MESSAGES.unauthorized[1]);
   });
 
-  it("compares hashes with a constant-time function", () => {
-    const a = hashApiKey(KEY_A);
-    const b = hashApiKey(KEY_B);
-    expect(hashesEqual(a, a)).toBe(true);
-    expect(hashesEqual(a, b)).toBe(false);
+  it("compares salted scrypt digests with a constant-time function and authenticates by prefix", () => {
+    const a = apiKeyDigest(KEY_A, KEY_A_SALT);
+    const b = apiKeyDigest(KEY_B, KEY_B_SALT);
+    expect(apiKeyDigestEqual(KEY_A, KEY_A_SALT, a)).toBe(true);
+    expect(apiKeyDigestEqual(KEY_A, KEY_A_SALT, b)).toBe(false);
     const sql = readMigration("0027_api_keys.sql");
-    expect(sql).toContain("api_key_hash_eq");
-    expect(sql).toContain("hmac");
+    const server = readFileSync(join(REPO, "terminal/lib/apiV1.ts"), "utf8");
+    expect(server).toContain("scryptSync");
+    expect(server).toContain("N: 16384, r: 8, p: 1");
+    expect(server).toContain("timingSafeEqual");
+    expect(sql).toContain("scrypt");
+    expect(sql).toContain("p_key_prefix");
+    expect(sql).toContain("p_key_digest");
+    expect(sql).not.toContain("p_key_hash");
   });
 });
 
@@ -192,12 +211,24 @@ describe("impersonation path", () => {
       service: {
         rpc: async (fn: string, args: Record<string, unknown>) => {
           rpcCalls.push({ fn, args });
+          if (fn === "api_key_salt_for_prefix") {
+            return { data: { key_salt: args.p_key_prefix === apiKeyPrefix(KEY_A) ? KEY_A_SALT : KEY_B_SALT }, error: null };
+          }
           if (fn === "api_key_authenticate") {
-            const presented = args.p_key_hash as string;
-            if (presented === hashApiKey(KEY_A) && userId === USER_A) {
+            const presentedPrefix = args.p_key_prefix as string;
+            const presentedDigest = args.p_key_digest as string;
+            if (
+              presentedPrefix === apiKeyPrefix(KEY_A)
+              && presentedDigest === apiKeyDigest(KEY_A, KEY_A_SALT)
+              && userId === USER_A
+            ) {
               return { data: { user_id: USER_A, key_id: "ka", rate_limited: false, limit: 60, remaining: 59 }, error: null };
             }
-            if (presented === hashApiKey(KEY_B) && userId === USER_B) {
+            if (
+              presentedPrefix === apiKeyPrefix(KEY_B)
+              && presentedDigest === apiKeyDigest(KEY_B, KEY_B_SALT)
+              && userId === USER_B
+            ) {
               return { data: { user_id: USER_B, key_id: "kb", rate_limited: false, limit: 60, remaining: 59 }, error: null };
             }
             return { data: null, error: null };
@@ -256,7 +287,7 @@ describe("impersonation path", () => {
     );
     expect(other.status).toBe(404);
     expect(fromCalls).toEqual([]);
-    expect(rpcCalls.every((c) => c.fn === "api_key_authenticate" || c.fn === "api_v1_read_as_user")).toBe(true);
+    expect(rpcCalls.every((c) => ["api_key_salt_for_prefix", "api_key_authenticate", "api_v1_read_as_user"].includes(c.fn))).toBe(true);
   });
 
   it("route source never queries a user table without the impersonating function", () => {
@@ -285,8 +316,11 @@ const ENDPOINTS: Array<{ resource: string; schema: string; path: string; id?: st
 function okDeps(rows: Record<string, unknown>[] = []): ApiV1Deps {
   return {
     service: {
-      rpc: async (fn) => {
-        if (fn === "api_key_authenticate") {
+        rpc: async (fn) => {
+          if (fn === "api_key_salt_for_prefix") {
+            return { data: { key_salt: KEY_A_SALT }, error: null };
+          }
+          if (fn === "api_key_authenticate") {
           return { data: { user_id: USER_A, key_id: "ka", rate_limited: false, limit: 60, remaining: 59 }, error: null };
         }
         return { data: { ok: true, rows }, error: null };
@@ -367,6 +401,9 @@ describe("ETag, cursor pagination, rate limit", () => {
     const deps: ApiV1Deps = {
       service: {
         rpc: async (fn: string, args: Record<string, unknown>) => {
+          if (fn === "api_key_salt_for_prefix") {
+            return { data: { key_salt: KEY_A_SALT }, error: null };
+          }
           if (fn !== "api_key_authenticate") return { data: { ok: true, rows: [] }, error: null };
           n += 1;
           if (n >= 61) {
@@ -409,8 +446,14 @@ describe("openapi covers all routes", () => {
   it("documents every v1 route file", () => {
     const paths = documentedPaths();
     for (const res of API_V1_RESOURCES) {
-      const openPath = res.path.replace("{id}", "{id}");
-      expect(paths).toContain(openPath);
+      expect(paths).toContain(res.path);
+    }
+    for (const relative of API_V1_ROUTE_FILES) {
+      const routePath = `/${relative
+        .replace(/^terminal\/app\//, "")
+        .replace(/\/route\.ts$/, "")
+        .replace(/\[id\]/g, "{id}")}`;
+      expect(paths).toContain(routePath);
     }
     for (const rel of API_V1_ROUTE_FILES) {
       expect(existsSync(join(REPO, rel)), rel).toBe(true);
@@ -518,6 +561,9 @@ describe("MAJOR-1+4 \u2014 forbidden-field walker in handleV1Get", () => {
     const depsWithForbiddenThesis: ApiV1Deps = {
       service: {
         rpc: async (fn: string, args: Record<string, unknown>) => {
+          if (fn === "api_key_salt_for_prefix") {
+            return { data: { key_salt: KEY_A_SALT }, error: null };
+          }
           if (fn === "api_key_authenticate") {
             return { data: { user_id: USER_A, key_id: "ka", rate_limited: false, limit: 60, remaining: 59 }, error: null };
           }
@@ -559,6 +605,9 @@ describe("MAJOR-1+4 \u2014 forbidden-field walker in handleV1Get", () => {
     const depsWithForbiddenAlert: ApiV1Deps = {
       service: {
         rpc: async (fn) => {
+          if (fn === "api_key_salt_for_prefix") {
+            return { data: { key_salt: KEY_A_SALT }, error: null };
+          }
           if (fn === "api_key_authenticate") {
             return { data: { user_id: USER_A, key_id: "ka", rate_limited: false, limit: 60, remaining: 59 }, error: null };
           }
@@ -594,6 +643,9 @@ describe("MAJOR-1+4 \u2014 forbidden-field walker in handleV1Get", () => {
     const depsWithForbiddenVersion: ApiV1Deps = {
       service: {
         rpc: async (fn) => {
+          if (fn === "api_key_salt_for_prefix") {
+            return { data: { key_salt: KEY_A_SALT }, error: null };
+          }
           if (fn === "api_key_authenticate") {
             return { data: { user_id: USER_A, key_id: "ka", rate_limited: false, limit: 60, remaining: 59 }, error: null };
           }
@@ -609,6 +661,9 @@ describe("MAJOR-1+4 \u2014 forbidden-field walker in handleV1Get", () => {
     const patchedDeps: ApiV1Deps = {
       service: {
         rpc: async (fn: string, args: Record<string, unknown>) => {
+          if (fn === "api_key_salt_for_prefix") {
+            return { data: { key_salt: KEY_A_SALT }, error: null };
+          }
           if (fn === "api_key_authenticate") {
             return { data: { user_id: USER_A, key_id: "ka", rate_limited: false, limit: 60, remaining: 59 }, error: null };
           }
@@ -658,6 +713,9 @@ describe("MAJOR-1+4 \u2014 forbidden-field walker in handleV1Get", () => {
     const depsWithForbiddenClaim: ApiV1Deps = {
       service: {
         rpc: async (fn) => {
+          if (fn === "api_key_salt_for_prefix") {
+            return { data: { key_salt: KEY_A_SALT }, error: null };
+          }
           if (fn === "api_key_authenticate") {
             return { data: { user_id: USER_A, key_id: "ka", rate_limited: false, limit: 60, remaining: 59 }, error: null };
           }
@@ -696,28 +754,31 @@ describe("MAJOR-1+4 \u2014 forbidden-field walker in handleV1Get", () => {
   it("handleV1Get throws when a position row carries a forbidden field (rank)", async () => {
     const depsWithForbiddenPosition: ApiV1Deps = {
       service: {
-        rpc: async (fn) => {
-          if (fn === "api_key_authenticate") {
-            return { data: { user_id: USER_A, key_id: "ka", rate_limited: false, limit: 60, remaining: 59 }, error: null };
-          }
-          if (fn === "api_v1_read_as_user") {
-            return {
-              data: {
-                ok: true,
-                rows: [{
-                  id: "pos-001",
-                  ticker: "NVDA",
-                  shares: 100,
-                  entry_price: 120.5,
-                  entry_date: "2026-09-01",
-                  notes: "Test position",
-                  rank: 1, // rank is forbidden
-                }],
-              },
-              error: null,
-            };
-          }
-          return { data: { ok: true, rows: [] }, error: null };
+      rpc: async (fn) => {
+        if (fn === "api_key_salt_for_prefix") {
+          return { data: { key_salt: KEY_A_SALT }, error: null };
+        }
+        if (fn === "api_key_authenticate") {
+          return { data: { user_id: USER_A, key_id: "ka", rate_limited: false, limit: 60, remaining: 59 }, error: null };
+        }
+        if (fn === "api_v1_read_as_user") {
+          return {
+            data: {
+              ok: true,
+              rows: [{
+                id: "pos-001",
+                ticker: "NVDA",
+                shares: 100,
+                entry_price: 120.5,
+                entry_date: "2026-09-01",
+                notes: "Test position",
+                rank: 1, // rank is forbidden
+              }],
+            },
+            error: null,
+          };
+        }
+        return { data: { ok: true, rows: [] }, error: null };
         },
       },
     };
@@ -746,6 +807,9 @@ describe("MAJOR-1+4 \u2014 watchlist cursor pagination (LIMIT v_limit + 1, 51st 
     return {
       service: {
         rpc: async (fn: string, args: Record<string, unknown>) => {
+          if (fn === "api_key_salt_for_prefix") {
+            return { data: { key_salt: KEY_A_SALT }, error: null };
+          }
           if (fn === "api_key_authenticate") {
             return { data: { user_id: USER_A, key_id: "ka", rate_limited: false, limit: 60, remaining: 59 }, error: null };
           }
@@ -834,6 +898,9 @@ describe("MAJOR-1+4 \u2014 watchlist cursor pagination (LIMIT v_limit + 1, 51st 
     const deps: ApiV1Deps = {
       service: {
         rpc: async (fn, _args) => {
+          if (fn === "api_key_salt_for_prefix") {
+            return { data: { key_salt: KEY_A_SALT }, error: null };
+          }
           if (fn === "api_key_authenticate") {
             return { data: { user_id: USER_A, key_id: "ka", rate_limited: false, limit: 60, remaining: 59 }, error: null };
           }

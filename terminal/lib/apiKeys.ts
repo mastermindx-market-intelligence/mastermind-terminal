@@ -1,9 +1,10 @@
 import type { DbResult, WatchlistDb, WatchlistQuery } from "@/lib/watchlists";
 import {
   API_KEY_MAX_ACTIVE,
+  apiKeyDigest,
   apiKeyPrefix,
   generateApiKeySecret,
-  hashApiKey,
+  newApiKeySalt,
   isWellFormedApiKey,
 } from "@/lib/apiV1";
 
@@ -111,13 +112,15 @@ export async function mintApiKey(
   if (!isWellFormedApiKey(secret)) {
     return { ok: false, status: "unavailable", error: "key_generate_failed" };
   }
-  const key_hash = hashApiKey(secret);
+  const key_salt = newApiKeySalt();
+  const key_digest = apiKeyDigest(secret, key_salt);
   const key_prefix = apiKeyPrefix(secret);
 
   const insert = await (db.from("api_keys") as WatchlistQuery)
     .insert({
       user_id: userId,
-      key_hash,
+      key_digest,
+      key_salt,
       key_prefix,
       label,
       scopes: ["read"],

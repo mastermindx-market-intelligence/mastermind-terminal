@@ -1,5 +1,5 @@
 -- Ledger row: 0027_api_keys / PR #581 (open, packet B-F12-10); not applied
--- Rollback: drop function if exists public.api_v1_read_as_user(uuid, text, jsonb); drop function if exists public.api_key_authenticate(text); drop function if exists public.api_key_hash_eq(text, text); drop trigger if exists api_keys_audit on public.api_keys; drop trigger if exists api_keys_active_limit on public.api_keys; drop trigger if exists api_keys_no_unrevoke on public.api_keys; drop function if exists public.log_api_key_event(); drop function if exists public.api_keys_enforce_active_limit(); drop function if exists public.revoke_api_key(uuid, uuid); drop table if exists public.api_key_events; drop table if exists public.api_key_usage; drop table if exists public.api_keys;
+-- Rollback: drop function if exists public.api_v1_read_as_user(uuid, text, jsonb); drop function if exists public.api_key_authenticate(text, text); drop function if exists public.api_key_salt_for_prefix(text); drop trigger if exists api_keys_audit on public.api_keys; drop trigger if exists api_keys_active_limit on public.api_keys; drop trigger if exists api_keys_no_unrevoke on public.api_keys; drop function if exists public.log_api_key_event(); drop function if exists public.api_keys_enforce_active_limit(); drop function if exists public.revoke_api_key(uuid, uuid); drop table if exists public.api_key_events; drop table if exists public.api_key_usage; drop table if exists public.api_keys;
 -- 0027: personal read-only API keys (packet B-F12-10, MO-PAID-055).
 --
 -- ============================ MUST NOT BE APPLIED BY THIS PACKET ============================
@@ -39,22 +39,27 @@ create extension if not exists pgcrypto with schema extensions;
 create table if not exists public.api_keys (
   key_id        uuid primary key default gen_random_uuid(),
   user_id       uuid not null references auth.users(id) on delete cascade,
-  key_hash      text unique not null,
+  key_digest    text not null,
+  key_salt      text not null,
   key_prefix    text not null,
   label         text not null,
   scopes        text[] not null default '{read}',
   created_at    timestamptz not null default now(),
   last_used_at  timestamptz,
   revoked_at    timestamptz,
-  constraint api_keys_hash_sha256 check (key_hash ~ '^[0-9a-f]{64}$'),
+  constraint api_keys_key_digest_scrypt_base64 check (key_digest ~ '^[A-Za-z0-9+/]{43}=$'),
+  constraint api_keys_key_salt_base64_16 check (key_salt ~ '^[A-Za-z0-9+/]{22}==$'),
+  constraint api_keys_one_active_digest_per_prefix unique (key_prefix, key_digest),
   constraint api_keys_prefix_len check (char_length(key_prefix) = 8),
   constraint api_keys_scopes_read check (scopes = array['read']::text[])
 );
 
 comment on table public.api_keys is
   'Personal read-only API keys. The hash is never returned to any client. A key acts as the user who minted it.';
-comment on column public.api_keys.key_hash is
-  'SHA-256 hex of the full mmx_ key. Column privilege excludes this from SELECT for authenticated.';
+comment on column public.api_keys.key_digest is
+  'Base64 scrypt digest of the full mmx_ key using its key_salt. Column privilege excludes this from SELECT for authenticated.';
+comment on column public.api_keys.key_salt is
+  'Random 16-byte base64 salt used with the key digest. Column privilege excludes this from SELECT for authenticated.';
 comment on column public.api_keys.key_prefix is
   'First 8 characters of the random part, shown in the settings list. Not a secret.';
 
@@ -86,7 +91,7 @@ exception when duplicate_object then null; end $$;
 revoke all on table public.api_keys from public, anon, authenticated;
 grant select (key_id, user_id, key_prefix, label, scopes, created_at, last_used_at, revoked_at)
   on public.api_keys to authenticated;
-grant insert (key_id, user_id, key_hash, key_prefix, label, scopes, created_at)
+grant insert (key_id, user_id, key_prefix, key_digest, key_salt, label, scopes, created_at)
   on public.api_keys to authenticated;
 -- No GRANT UPDATE: MAJOR-2 fix. Revoke is one-way — performed exclusively through
 -- the SECURITY DEFINER function revoke_api_key(uuid), which also calls log_api_key_event.
@@ -239,24 +244,37 @@ create trigger api_keys_audit
   after insert or update of revoked_at on public.api_keys
   for each row execute function public.log_api_key_event();
 
--- Constant-time-ish compare of two SHA-256 hex strings via HMAC (fixed-length output).
-create or replace function public.api_key_hash_eq(a text, b text) returns boolean
-  language sql immutable parallel safe set search_path = pg_catalog, extensions as $$
-  select extensions.hmac(coalesce(a, ''), 'mmx-api-key-eq', 'sha256')
-       = extensions.hmac(coalesce(b, ''), 'mmx-api-key-eq', 'sha256')
-     and coalesce(a, '') = coalesce(b, '');
+-- Lookup by key prefix only. The service derives a per-key scrypt digest in TypeScript
+-- after this call and sends both prefix and digest to api_key_authenticate.
+create or replace function public.api_key_salt_for_prefix(p_key_prefix text)
+returns jsonb
+language sql
+security definer
+stable
+set search_path = pg_catalog, public, extensions
+as $$
+  select jsonb_build_object('key_salt', k.key_salt)
+    from public.api_keys k
+   where k.key_prefix = p_key_prefix
+     and k.revoked_at is null
+   order by k.created_at desc
+   limit 1;
 $$;
 
--- ONE authenticate function. Looks up by hash, constant-time compares, upserts usage,
--- returns {user_id, key_id} or null. Rate-limited keys still resolve so the route can 429.
-create or replace function public.api_key_authenticate(p_key_hash text)
+revoke all on function public.api_key_salt_for_prefix(text) from public, anon, authenticated;
+grant execute on function public.api_key_salt_for_prefix(text) to service_role;
+
+-- ONE authenticate function. Looks up by prefix, verifies the supplied scrypt digest in
+-- TypeScript before this call, upserts usage, and returns {user_id, key_id} or null.
+-- Rate-limited keys still resolve so the route can 429.
+create or replace function public.api_key_authenticate(p_key_prefix text, p_key_digest text)
 returns jsonb
 language plpgsql
 security definer
 set search_path = pg_catalog, public, auth, extensions
 as $$
 declare
-  stored text;
+  stored_digest text;
   kid uuid;
   uid uuid;
   rev timestamptz;
@@ -268,20 +286,18 @@ declare
   retry_after int;
   matched boolean;
 begin
-  if p_key_hash is null or p_key_hash !~ '^[0-9a-f]{64}$' then
+  if p_key_prefix is null or char_length(p_key_prefix) <> 8
+     or p_key_digest is null or p_key_digest !~ '^[A-Za-z0-9+/]{43}=$' then
     return null;
   end if;
 
-  select k.key_hash, k.key_id, k.user_id, k.revoked_at
-    into stored, kid, uid, rev
+  select k.key_digest, k.key_id, k.user_id, k.revoked_at
+    into stored_digest, kid, uid, rev
     from public.api_keys k
-   where k.key_hash = p_key_hash;
+   where k.key_prefix = p_key_prefix
+     and k.key_digest = p_key_digest;
 
-  -- Always run the compare, even on a miss, so the comparison cost does not
-  -- advertise whether a row existed.
-  matched := public.api_key_hash_eq(coalesce(stored, p_key_hash), p_key_hash)
-             and stored is not null
-             and rev is null;
+  matched := stored_digest is not null and rev is null;
 
   if not matched then
     return null;
@@ -333,8 +349,8 @@ begin
 end;
 $$;
 
-revoke all on function public.api_key_authenticate(text) from public, anon, authenticated;
-grant execute on function public.api_key_authenticate(text) to service_role;
+revoke all on function public.api_key_authenticate(text, text) from public, anon, authenticated;
+grant execute on function public.api_key_authenticate(text, text) to service_role;
 
 -- Impersonating read. Sets request.jwt.claims for owner-policy evaluation while retaining
 -- the service-role caller. The route must never select user tables outside this function.
@@ -560,8 +576,8 @@ grant execute on function public.api_v1_read_as_user(uuid, text, jsonb) to servi
 -- down:
 -- begin;
 -- drop function if exists public.api_v1_read_as_user(uuid, text, jsonb);
--- drop function if exists public.api_key_authenticate(text);
--- drop function if exists public.api_key_hash_eq(text, text);
+-- drop function if exists public.api_key_authenticate(text, text);
+-- drop function if exists public.api_key_salt_for_prefix(text);
 -- drop trigger if exists api_keys_audit on public.api_keys;
 -- drop trigger if exists api_keys_active_limit on public.api_keys;
 -- drop function if exists public.log_api_key_event();

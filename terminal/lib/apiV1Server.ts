@@ -22,8 +22,9 @@ import {
   errorBody,
   errorStatus,
   etagFor,
-  hashApiKey,
-  hashesEqual,
+  apiKeyDigest,
+  apiKeyDigestEqual,
+  apiKeyPrefix,
   ifNoneMatchHits,
   isWellFormedApiKey,
   parseLimit,
@@ -62,6 +63,7 @@ export type ApiV1Deps = {
 
 const AUTHENTICATE_FN = "api_key_authenticate";
 const READ_FN = "api_v1_read_as_user";
+const KEY_SALT_FN = "api_key_salt_for_prefix";
 
 function rateHeaders(limit: number, remaining: number, retryAfter?: number | null): HeadersInit {
   const headers: Record<string, string> = {
@@ -118,12 +120,21 @@ export async function authenticateApiKey(
   if (!token || !isWellFormedApiKey(token)) {
     return { ok: false, response: jsonError("unauthorized") };
   }
-  const presented = hashApiKey(token);
   const service = deps?.service ?? createServiceClient();
   if (!service) {
     return { ok: false, response: jsonError("unauthorized") };
   }
-  const result = await service.rpc(AUTHENTICATE_FN, { p_key_hash: presented });
+  const saltResult = await service.rpc(KEY_SALT_FN, { p_key_prefix: apiKeyPrefix(token) });
+  const saltRow = asRecord(saltResult.data);
+  const salt = typeof saltRow?.key_salt === "string" ? saltRow.key_salt : "";
+  if (saltResult.error || !salt || !/^[A-Za-z0-9+/]{22}==$/.test(salt)) {
+    return { ok: false, response: jsonError("unauthorized") };
+  }
+  const digest = apiKeyDigest(token, salt);
+  const result = await service.rpc(AUTHENTICATE_FN, {
+    p_key_prefix: apiKeyPrefix(token),
+    p_key_digest: digest,
+  });
   if (result.error || result.data == null) {
     return { ok: false, response: jsonError("unauthorized") };
   }
@@ -136,8 +147,8 @@ export async function authenticateApiKey(
   if (!userId || !keyId) {
     return { ok: false, response: jsonError("unauthorized") };
   }
-  const storedHash = typeof row.key_hash === "string" ? row.key_hash : presented;
-  if (!hashesEqual(presented, storedHash)) {
+  const storedDigest = typeof row.key_digest === "string" ? row.key_digest : digest;
+  if (!apiKeyDigestEqual(token, salt, storedDigest)) {
     return { ok: false, response: jsonError("unauthorized") };
   }
   const limit = typeof row.limit === "number" ? row.limit : API_V1_RATE_LIMIT_MINUTE;

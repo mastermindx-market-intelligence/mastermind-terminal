@@ -364,9 +364,14 @@ def main() -> int:
             # MAJOR-2: verify unrevoke is blocked
             key_id = str(uuid.uuid4())
             cur.execute(
-                "insert into public.api_keys (key_id, user_id, key_hash, key_prefix, label) "
-                "values (%s, %s, %s, 'test1234', 'test key')",
-                (key_id, user_a, "a" * 64),
+                "insert into public.api_keys (key_id, user_id, key_digest, key_salt, key_prefix, label) "
+                "values (%s, %s, %s, %s, 'test1234', 'test key')",
+                (
+                    key_id,
+                    user_a,
+                    base64.b64encode(hashlib.scrypt(b"mmx_" + b"a" * 40, salt=b"s" * 16, n=16384, r=8, p=1, dklen=32)).decode("ascii"),
+                    base64.b64encode(b"s" * 16).decode("ascii"),
+                ),
             )
             # Revoke it first
             cur.execute("select revoke_api_key(%s, %s)", (key_id, user_a))

@@ -1,4 +1,4 @@
-import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
+import { createHash, randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 import type { ThesisDetail, ThesisSummary, ThesisVersion } from "@/lib/theses";
 import type { ServerWatchlist } from "@/lib/watchlists";
 import type { UserClaim } from "@/lib/personalAccuracy";
@@ -144,7 +144,8 @@ export const FORBIDDEN_API_FIELDS = [
 ] as const;
 
 const URL_SAFE = /^[A-Za-z0-9_-]+$/;
-const SHA256_HEX = /^[0-9a-f]{64}$/;
+const BASE64_SALT = /^[A-Za-z0-9+/]{22}==$/;
+const BASE64_DIGEST = /^[A-Za-z0-9+/]{43}=$/;
 
 export function generateApiKeySecret(): string {
   // 30 bytes → 40 base64url characters. Prefix is mmx_.
@@ -157,18 +158,23 @@ export function isWellFormedApiKey(value: string): boolean {
   return secret.length === API_KEY_SECRET_LEN && URL_SAFE.test(secret);
 }
 
-export function hashApiKey(fullKey: string): string {
-  return createHash("sha256").update(fullKey, "utf8").digest("hex");
+export function newApiKeySalt(): string {
+  return randomBytes(16).toString("base64");
 }
 
 export function apiKeyPrefix(fullKey: string): string {
   return fullKey.slice(API_KEY_HEAD.length, API_KEY_HEAD.length + API_KEY_PREFIX_LEN);
 }
 
-/** Constant-time compare of two SHA-256 hex hashes. Length mismatch is false. */
-export function hashesEqual(a: string, b: string): boolean {
-  if (!SHA256_HEX.test(a) || !SHA256_HEX.test(b)) return false;
-  return timingSafeEqual(Buffer.from(a, "utf8"), Buffer.from(b, "utf8"));
+export function apiKeyDigest(fullKey: string, salt: string): string {
+  return scryptSync(fullKey, salt, 32, { N: 16384, r: 8, p: 1 }).toString("base64");
+}
+
+/** Constant-time compare of two salted scrypt digests. Length mismatch is false. */
+export function apiKeyDigestEqual(fullKey: string, salt: string, expected: string): boolean {
+  if (!BASE64_SALT.test(salt) || !BASE64_DIGEST.test(expected)) return false;
+  const actual = Buffer.from(apiKeyDigest(fullKey, salt), "base64");
+  return timingSafeEqual(actual, Buffer.from(expected, "base64"));
 }
 
 export function rfc3339Utc(date: Date = new Date()): string {
