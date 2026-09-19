@@ -25,7 +25,7 @@
 # 2026-09-19 C2 (seat): capturedAtHead -> merge commit 567fbf312f4068e748289bb0d24d001892837fbb (master dd7c6dec #584 into #588); the bytes of every layoutFiles row at that commit equal the pins below. Transfer-ownership crops unchanged, not recaptured. MERGE THIS PR WITH A MERGE COMMIT.
 # 2026-09-19 h_t588 r2 (C2): capturedAtHead -> 6f29872 (C1 of h_t588 r2); SectionTeam.tsx bytes at that commit equal the pins; crops unchanged, not recaptured.
 # 2026-09-19 C2 (seat): capturedAtHead -> merge commit 93398595f02f73c4dbd49b985130efdcae4552dc (master dd7c6dec #584 into #587); the bytes of every layoutFiles row at that commit equal the pins below (SettingsPanel.tsx restamped in the merge; SectionTeam.* unchanged from master). Transfer-ownership crops unchanged, not recaptured. MERGE THIS PR WITH A MERGE COMMIT.
-capturedAtHead: 204e7c919ca214084963ebcf7d03135d8134f11c
+capturedAtHead: 1cc3a5216defcbb2e56df53c67d7883488e77c3f
 capturedAt: 2026-09-11T03:00:17.565Z
 # capturedAtHead is merge commit 35e9f60c895ae9c1e0ebb803bc16d48bd5962f86 (H4b #565 onto master 908540b79). layoutFiles hashes are that commit's bytes except i18n.tsx, which this PR restamps for DEEP_RESEARCH_MONTHLY quota copy (obInsider2/obPro1/acsFeatInsider4/acsFeatPro3). Those strings are not rendered on the ownership-transfer surface; no crop recaptured. The previous pointer 3cdcd746b86d478ff139dd5fea408b66fce065af remains an ancestor; the ancestry guard requires capturedAtHead to name a commit whose i18n blob matches the restamped hash.
 # Pinned i18n.tsx last changed on this carrier for master #554's claim* keys; the captured surface (team section + rail) does not render them; crops unchanged from 916db2d4ac62b00aed236231433d8d952c22f3c6.
