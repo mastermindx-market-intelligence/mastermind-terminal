@@ -4,8 +4,11 @@ import {
   OPTIONS_HUB_WORKSPACE_VIEWS,
   OPTIONS_IA_BY_CATEGORY,
   OPTIONS_IA_CATEGORIES,
+  OPTIONS_IA_JOBS,
   OPTIONS_IA_VIEW_BY_KEY,
+  OPTIONS_JOB_KEYS,
   optionsCategoryForView,
+  optionsJobForView,
 } from "@/lib/optionsIa";
 
 describe("Options seven-category IA", () => {
@@ -41,6 +44,47 @@ describe("Options seven-category IA", () => {
       "volatility",
       "zero_dte",
     ]);
+  });
+
+  it("adds a four-job trader surface without deleting the seven-category compatibility registry", () => {
+    expect(OPTIONS_JOB_KEYS).toEqual([
+      "command",
+      "flow",
+      "positioning",
+      "research",
+    ]);
+    expect(OPTIONS_IA_JOBS.map((job) => job.key)).toEqual(OPTIONS_JOB_KEYS);
+
+    const jobViews = OPTIONS_IA_JOBS.flatMap((job) => job.views);
+    expect(jobViews).toHaveLength(15);
+    expect(new Set(jobViews).size).toBe(15);
+    expect([...jobViews].sort()).toEqual([
+      "desk",
+      "gex",
+      "largest",
+      "levels",
+      "positioning",
+      "prophet",
+      "screener",
+      "statistics",
+      "structure",
+      "surface",
+      "tape",
+      "tickers",
+      "tide",
+      "volatility",
+      "zero_dte",
+    ]);
+
+    expect(OPTIONS_IA_JOBS[0].defaultView).toBe("desk");
+    expect(optionsJobForView("desk")).toBe("command");
+    expect(optionsJobForView("tape")).toBe("flow");
+    expect(optionsJobForView("surface")).toBe("positioning");
+    expect(optionsJobForView("positioning")).toBe("positioning");
+    expect(optionsJobForView("structure")).toBe("research");
+    expect(optionsJobForView("volatility")).toBe("research");
+    expect(optionsJobForView("prophet")).toBe("research");
+    expect(optionsJobForView("statistics")).toBe("research");
   });
 
   it("gives each category a deterministic home without inventing Statistics data", () => {
