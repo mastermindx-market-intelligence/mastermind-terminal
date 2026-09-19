@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
 import { revokeApiKey, type ApiKeysDb } from "@/lib/apiKeys";
 import { apiKeyCopy } from "@/lib/apiKeyLabels";
 
@@ -22,7 +23,10 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     return fail(apiKeyCopy("notSignedIn", "en"), apiKeyCopy("notSignedIn", "zh"), 401, "not_signed_in");
   }
   const { id } = await ctx.params;
-  const result = await revokeApiKey(session.db, session.userId, id);
+  // MAJOR-2 fix: call the SECURITY DEFINER function via service role, not PostgREST.
+  // revoke_api_key(uuid) is the only permitted revoke path after the UPDATE grant removal.
+  const service = createServiceClient();
+  const result = await revokeApiKey(session.db, session.userId, id, service as Parameters<typeof revokeApiKey>[3]);
   if (!result.ok) {
     if (result.status === "not_found") {
       return fail(
@@ -30,6 +34,14 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
         "此账户上没有该密钥。",
         404,
         "not_found",
+      );
+    }
+    if (result.status === "forbidden") {
+      return fail(
+        "You do not have permission to revoke this key.",
+        "您没有撤销此密钥的权限。",
+        403,
+        "forbidden",
       );
     }
     return fail(apiKeyCopy("revokeFailed", "en"), apiKeyCopy("revokeFailed", "zh"), 503, "revoke_failed");

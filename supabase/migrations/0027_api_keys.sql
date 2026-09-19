@@ -12,13 +12,11 @@
 -- #582 owns 0026, #581 owns 0027). Shipped UNAPPLIED.
 --
 -- TENANT ISOLATION (BLOCKER fix):
--- api_v1_read_as_user sets RLS claims then queries theses / watchlists / alerts /
--- user_claims / portfolio_positions under RLS. The set_config approach alone is not
--- authoritative: every resource branch carries an explicit owner predicate
--- (user_id = p_user_id / the team scoping already used by the product's own RLS
--- policies). The five read tables are marked FORCE ROW LEVEL SECURITY so RLS cannot
--- be disabled per-session, and a dedicated role (api_key_accessor) is used behind
--- the SECURITY DEFINER function rather than the caller's role directly.
+-- api_v1_read_as_user is SECURITY DEFINER and runs as the supabase service_role.
+-- set_config sets RLS claims, but every resource branch carries an explicit SQL
+-- predicate (user_id = p_user_id) as the authoritative isolation layer. RLS alone
+-- is not the proof — the SQL predicate is. The five read tables are NOT marked
+-- FORCE ROW LEVEL SECURITY; they use standard RLS with existing product policies.
 --
 -- REVOKE IS ONE-WAY (MAJOR-2 fix):
 -- The authenticated role no longer has GRANT UPDATE (revoked_at). Revoke is performed
@@ -163,6 +161,9 @@ create trigger api_keys_active_limit
 
 -- MAJOR-2 fix: one-way revoke. No direct UPDATE on revoked_at for authenticated.
 -- Revoke is only through this SECURITY DEFINER function, which also fires log_api_key_event.
+-- Owner check: auth.uid() must match the key's user_id, enforced inside the function
+-- (SECURITY DEFINER bypasses RLS but not intra-function logic). The api_keys_update_own
+-- policy is redundant for this function's use of service_role but documents the intent.
 create or replace function public.revoke_api_key(p_key_id uuid)
 returns jsonb
 language plpgsql
@@ -172,11 +173,20 @@ as $$
 declare
   v_user_id uuid;
   v_key_prefix text;
+  v_caller uuid;
 begin
+  v_caller := auth.uid();
+  if v_caller is null then
+    return jsonb_build_object('ok', false, 'error', 'unauthorized');
+  end if;
   select k.user_id, k.key_prefix into v_user_id, v_key_prefix
     from public.api_keys k where k.key_id = p_key_id;
   if not found then
     return jsonb_build_object('ok', false, 'error', 'not_found');
+  end if;
+  -- MAJOR-SQL-2 fix: enforce that the caller owns this key
+  if v_caller <> v_user_id then
+    return jsonb_build_object('ok', false, 'error', 'forbidden');
   end if;
   -- log_api_key_event fires via the trigger on update of revoked_at
   update public.api_keys

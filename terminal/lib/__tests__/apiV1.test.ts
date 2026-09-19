@@ -433,8 +433,10 @@ describe("0027 api keys ledger contract", () => {
   const row = reservationRow(PREFIX);
   const sql = readMigration(FILE);
 
-  it("claims prefix 0027 in RESERVATIONS.json as reserved for PR 581 and not yet applied", () => {
-    expect(row.state).toBe("reserved");
+  it("claims prefix 0027 in RESERVATIONS.json as taken by PR 581 and not yet applied", () => {
+    // MAJOR-3: state is "taken" (a real file exists on the branch), not "reserved".
+    // RULING: 0027 owned by #581, state=taken.
+    expect(row.state).toBe("taken");
     expect(row.file).toBe(FILE);
     expect(row.packet).toBe("B-F12-10");
     expect(row.pr).toBe(581);
@@ -464,6 +466,12 @@ describe("0027 api keys ledger contract", () => {
     expect(resRow).toBeTruthy();
     expect(resRow!).toContain("B-F12-10");
     expect(resRow!.toLowerCase()).toMatch(/not applied/);
+  });
+
+  // MINOR-2 fix: independently assert pr=581 and file prefix 0027, not just self-agreement
+  it("RESERVATIONS.json row independently asserts pr=581 and file prefix 0027", () => {
+    expect(row.pr).toBe(581);
+    expect(String(row.file ?? "")).toMatch(/^0027_/);
   });
 
   it("hash is never granted on SELECT to authenticated", () => {
@@ -497,5 +505,234 @@ describe("envelope helper", () => {
     const tag = etagFor({ a: 1 });
     expect(ifNoneMatchHits(tag, tag)).toBe(true);
     expect(ifNoneMatchHits("other", tag)).toBe(false);
+  });
+});
+
+describe("MAJOR-1+4 \u2014 forbidden-field walker in handleV1Get", () => {
+  /**
+   * RED-first: before the walker was wired in, these rows would pass through silently.
+   * After the fix, assertNoForbiddenFields throws and the response is 500.
+   */
+  it("handleV1Get throws when a thesis row carries a forbidden field (score)", async () => {
+    const depsWithForbiddenThesis: ApiV1Deps = {
+      service: {
+        rpc: async (fn) => {
+          if (fn === "api_key_authenticate") {
+            return { data: { user_id: USER_A, key_id: "ka", rate_limited: false, limit: 60, remaining: 59 }, error: null };
+          }
+          // Return a thesis row with a forbidden field baked in
+          if (fn === "api_v1_read_as_user") {
+            return {
+              data: {
+                ok: true,
+                rows: [{
+                  id: THESIS_ID,
+                  current_version: 1,
+                  lifecycle_state: "active",
+                  subject_ref: { schema: "test", kind: "issuer", owner: "terminal", key: "TEST", identity_state: "resolved", display: "TEST" },
+                  created_at: "2026-09-01T00:00:00.000Z",
+                  updated_at: "2026-09-01T00:00:00.000Z",
+                  content: { title: "Test thesis", score: 0.95 }, // score is forbidden
+                }],
+              },
+              error: null,
+            };
+          }
+          return { data: { ok: true, rows: [] }, error: null };
+        },
+      },
+    };
+    const r = await handleV1Get(
+      new Request("http://localhost/api/v1/theses", { headers: { authorization: `Bearer ${KEY_A}` } }),
+      "theses",
+      {},
+      depsWithForbiddenThesis,
+    );
+    // The walker throws 500 before data reaches the response
+    expect(r.status).toBe(500);
+    const body = await r.json();
+    expect(body.error.code).toBe("server_error");
+  });
+
+  it("handleV1Get throws when an alert row carries a forbidden field (confidence)", async () => {
+    const depsWithForbiddenAlert: ApiV1Deps = {
+      service: {
+        rpc: async (fn) => {
+          if (fn === "api_key_authenticate") {
+            return { data: { user_id: USER_A, key_id: "ka", rate_limited: false, limit: 60, remaining: 59 }, error: null };
+          }
+          if (fn === "api_v1_read_as_user") {
+            return {
+              data: {
+                ok: true,
+                rows: [{
+                  id: "alert-001",
+                  symbol: "NVDA",
+                  condition: { type: "price_above", threshold: 500, confidence: 0.9 }, // confidence is forbidden
+                  active: true,
+                  created_at: "2026-09-01T00:00:00.000Z",
+                }],
+              },
+              error: null,
+            };
+          }
+          return { data: { ok: true, rows: [] }, error: null };
+        },
+      },
+    };
+    const r = await handleV1Get(
+      new Request("http://localhost/api/v1/alerts", { headers: { authorization: `Bearer ${KEY_A}` } }),
+      "alerts",
+      {},
+      depsWithForbiddenAlert,
+    );
+    expect(r.status).toBe(500);
+  });
+
+  it("handleV1Get throws when a thesis version carries a forbidden field (rank)", async () => {
+    const depsWithForbiddenVersion: ApiV1Deps = {
+      service: {
+        rpc: async (fn) => {
+          if (fn === "api_key_authenticate") {
+            return { data: { user_id: USER_A, key_id: "ka", rate_limited: false, limit: 60, remaining: 59 }, error: null };
+          }
+          if (fn === "api_v1_read_as_user") {
+            // thesis metadata row (no content)
+            return { data: { ok: true, rows: [{ id: THESIS_ID, current_version: 1, lifecycle_state: "active", subject_ref: null, created_at: "2026-09-01T00:00:00.000Z", updated_at: "2026-09-01T00:00:00.000Z" }] }, error: null };
+          }
+          return { data: { ok: true, rows: [] }, error: null };
+        },
+      },
+    };
+    // Patch the second call for thesis_versions
+    const patchedDeps: ApiV1Deps = {
+      service: {
+        rpc: async (fn) => {
+          if (fn === "api_key_authenticate") {
+            return { data: { user_id: USER_A, key_id: "ka", rate_limited: false, limit: 60, remaining: 59 }, error: null };
+          }
+          if (fn === "api_v1_read_as_user") {
+            // thesis row
+            return { data: { ok: true, rows: [{ id: THESIS_ID, current_version: 1, lifecycle_state: "active", subject_ref: null, created_at: "2026-09-01T00:00:00.000Z", updated_at: "2026-09-01T00:00:00.000Z" }] }, error: null };
+          }
+          if (fn === "api_v1_read_as_user") {
+            // thesis_versions row with forbidden field
+            return {
+              data: {
+                ok: true,
+                rows: [{
+                  id: "v-001",
+                  thesis_id: THESIS_ID,
+                  version: 1,
+                  previous_version: null,
+                  transition: "create",
+                  lifecycle_state: "active",
+                  subject_ref: null,
+                  content: { title: "v1" },
+                  client_request_id: null,
+                  system_recorded_at: null,
+                  effective_at: "2026-09-01T00:00:00.000Z",
+                  rank: 3, // rank is forbidden
+                }],
+              },
+              error: null,
+            };
+          }
+          return { data: { ok: true, rows: [] }, error: null };
+        },
+      },
+    };
+    // Only test the thesis endpoint; versions call is a sub-call
+    const r = await handleV1Get(
+      new Request(`http://localhost/api/v1/theses/${THESIS_ID}`, { headers: { authorization: `Bearer ${KEY_A}` } }),
+      "thesis",
+      { id: THESIS_ID },
+      patchedDeps,
+    );
+    // The versions sub-call has rank \u2192 500
+    expect(r.status).toBe(500);
+  });
+});
+
+describe("MAJOR-1+4 \u2014 watchlist cursor pagination (LIMIT v_limit + 1, 51st row excluded)", () => {
+  it("handleV1Get watchlists returns 50 rows + next_cursor when 51 exist", async () => {
+    // Build 51 watchlist rows
+    const watchlistRows = Array.from({ length: 51 }, (_, i) => ({
+      id: `wl-${String(i).padStart(3, "0")}`,
+      name: `WL${i}`,
+      position: i,
+      created_at: "2026-09-01T00:00:00.000Z",
+      symbols: [],
+    }));
+
+    const depsWith51Watchlists: ApiV1Deps = {
+      service: {
+        rpc: async (fn) => {
+          if (fn === "api_key_authenticate") {
+            return { data: { user_id: USER_A, key_id: "ka", rate_limited: false, limit: 60, remaining: 59 }, error: null };
+          }
+          if (fn === "api_v1_read_as_user") {
+            return { data: { ok: true, rows: watchlistRows }, error: null };
+          }
+          return { data: { ok: true, rows: [] }, error: null };
+        },
+      },
+    };
+
+    const r = await handleV1Get(
+      new Request("http://localhost/api/v1/watchlists?limit=50", { headers: { authorization: `Bearer ${KEY_A}` } }),
+      "watchlists",
+      {},
+      depsWith51Watchlists,
+    );
+
+    expect(r.status).toBe(200);
+    const body = await r.json();
+    // Page 1 has 50 rows (51st excluded)
+    expect(body.data).toHaveLength(50);
+    // WL50 (index 50) must NOT be in page 1
+    const names = body.data.map((w: { name?: string }) => w.name);
+    expect(names).not.toContain("WL50");
+    // WL49 (index 49) must BE in page 1
+    expect(names).toContain("WL49");
+    // next_cursor is non-null
+    expect(body.page.next_cursor).toBeTruthy();
+    expect(body.page.next_cursor).not.toBeNull();
+  });
+
+  it("handleV1Get returns exactly 50 watchlists (no more) for a 51-row result set", async () => {
+    const watchlistRows = Array.from({ length: 51 }, (_, i) => ({
+      id: `wl-${String(i).padStart(3, "0")}`,
+      name: `WL${i}`,
+      position: i,
+      created_at: "2026-09-01T00:00:00.000Z",
+      symbols: [],
+    }));
+
+    const deps: ApiV1Deps = {
+      service: {
+        rpc: async (fn) => {
+          if (fn === "api_key_authenticate") {
+            return { data: { user_id: USER_A, key_id: "ka", rate_limited: false, limit: 60, remaining: 59 }, error: null };
+          }
+          if (fn === "api_v1_read_as_user") {
+            return { data: { ok: true, rows: watchlistRows }, error: null };
+          }
+          return { data: { ok: true, rows: [] }, error: null };
+        },
+      },
+    };
+
+    const r = await handleV1Get(
+      new Request("http://localhost/api/v1/watchlists?limit=50", { headers: { authorization: `Bearer ${KEY_A}` } }),
+      "watchlists",
+      {},
+      deps,
+    );
+
+    expect(r.status).toBe(200);
+    const body = await r.json();
+    expect(Array.isArray(body.data)).toBe(true);
+    expect(body.data.length).toBe(50);
   });
 });

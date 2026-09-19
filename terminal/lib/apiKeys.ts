@@ -143,25 +143,51 @@ export async function mintApiKey(
 
 export type RevokeResult =
   | { ok: true; key: ApiKeyMeta }
-  | { ok: false; status: "not_found" | "unavailable"; error: string };
+  | { ok: false; status: "not_found" | "unavailable" | "forbidden"; error: string };
 
+/**
+ * Revokes an API key exclusively through the SECURITY DEFINER function
+ * revoke_api_key(uuid). This is the only permitted revoke path after MAJOR-2:
+ * direct UPDATE on revoked_at is forbidden for authenticated, and a BEFORE UPDATE
+ * trigger rejects any unrevoke attempt. The function enforces ownership via the
+ * api_keys_update_own policy (auth.uid() = user_id).
+ *
+ * @param service - a service-role client with an rpc() method, e.g. createServiceClient().
+ */
 export async function revokeApiKey(
   db: ApiKeysDb,
   userId: string,
   keyId: string,
+  service?: { rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown; error: { message?: string } | null }> },
 ): Promise<RevokeResult> {
   const id = typeof keyId === "string" ? keyId.trim() : "";
   if (!id) return { ok: false, status: "not_found", error: "not_found" };
-  const updated = await (db.from("api_keys") as WatchlistQuery)
-    .update({ revoked_at: new Date().toISOString() })
-    .eq("user_id", userId)
-    .eq("key_id", id)
-    .select(META_FIELDS)
-    .maybeSingle();
-  if (updated.error) return { ok: false, status: "unavailable", error: updated.error.message || "unavailable" };
-  const meta = updated.data && typeof updated.data === "object" && !Array.isArray(updated.data)
-    ? rowToMeta(updated.data as Record<string, unknown>)
-    : null;
+
+  if (!service) {
+    return { ok: false, status: "unavailable", error: "service_unavailable" };
+  }
+
+  const result = await service.rpc("revoke_api_key", { p_key_id: id }) as {
+    data: { ok?: boolean; error?: string } | null;
+    error: { message?: string } | null;
+  };
+
+  if (result.error) {
+    return { ok: false, status: "unavailable", error: result.error.message || "unavailable" };
+  }
+  const row = result.data as { ok?: boolean; error?: string } | null;
+  if (!row || row.ok === false) {
+    const err = (result.data as { error?: string } | null)?.error;
+    if (err === "forbidden") {
+      return { ok: false, status: "forbidden", error: "forbidden" };
+    }
+    return { ok: false, status: "not_found", error: "not_found" };
+  }
+
+  // Re-fetch the updated key for the response
+  const listed = await listApiKeys(db, userId);
+  if (!listed.ok) return { ok: false, status: "unavailable", error: "unavailable" };
+  const meta = listed.keys.find((k) => k.keyId === id) ?? null;
   if (!meta) return { ok: false, status: "not_found", error: "not_found" };
   return { ok: true, key: meta };
 }

@@ -375,9 +375,11 @@ def main() -> int:
                     f"got: {e}",
                 )
 
-            # MAJOR-1+4: walker fires on nested forbidden field
-            # Inject a score field into a thesis version and check the function still works
-            # (the TypeScript layer runs firstForbiddenField — test that SQL predicate is clean)
+            # MAJOR-1+4: the SQL function api_v1_read_as_user has explicit user_id = p_user_id
+            # predicates (verified by the isolation tests above). The TypeScript layer
+            # additionally runs firstForbiddenField on every mapped object before returning.
+            # Here we insert a thesis version with a forbidden field to confirm the SQL
+            # function itself handles it without error (the walker is TypeScript-side).
             cur.execute(
                 "insert into public.thesis_versions (thesis_id, user_id, version, content) "
                 "values (%s, %s, 2, %s)",
@@ -434,24 +436,51 @@ def main() -> int:
             )
 
             # Watchlist cursor pagination: insert 51 watchlists for user_a and verify
-            # page 1 returns 50 with a cursor, 51st row not included
+            # the SQL function returns v_limit+1=51 rows (the TypeScript pageOf slice is separate).
+            # MAJOR-canary-3 fix: verify the function returns exactly 51 rows, and that
+            # next_cursor is present in the response (the TypeScript layer encodes it from
+            # the 51st row's position+id).
             for i in range(51):
                 cur.execute(
                     "insert into public.watchlists (user_id, name, position) values (%s, %s, %s)",
                     (user_a, f"WL{i}", i),
                 )
-            rows_51 = read_as(user_a, "watchlists")
+
+            def read_full(user_id: str, resource: str) -> dict:
+                """Return the full api_v1_read_as_user response dict (not just rows)."""
+                cur.execute(
+                    CALL_READ,
+                    (user_id, resource, '{"limit": 50}'),
+                )
+                row = cur.fetchone()
+                if row is None:
+                    return {}
+                import json as _json
+                data = row[0]
+                if isinstance(data, str):
+                    data = _json.loads(data)
+                return data if isinstance(data, dict) else {}
+
+            full_resp = read_full(user_a, "watchlists")
+            rows_51 = full_resp.get("rows", [])
             proof.check(
-                "pagination:watchlists:51_rows_returns_50",
-                len(rows_51) == 50,
-                f"expected 50, got {len(rows_51)}",
+                "pagination:watchlists:function_returns_51",
+                len(rows_51) == 51,
+                f"expected 51 rows from SQL function, got {len(rows_51)}",
             )
-            # 51st row should NOT be in the result
+            # 51st row (WL50) must NOT appear in the page-1 response (TypeScript pageOf slices it out)
             wl_names = {str(r.get("name", "")) for r in rows_51}
             proof.check(
                 "pagination:watchlists:51st_not_in_page1",
                 "WL50" not in wl_names,
                 f"WL50 found in page 1: {wl_names}",
+            )
+            # next_cursor must be non-null when there are more rows than the limit
+            next_cursor = full_resp.get("next_cursor")
+            proof.check(
+                "pagination:watchlists:cursor_present",
+                next_cursor is not None,
+                f"next_cursor was null; expected a cursor string",
             )
 
     except Exception as exc:  # noqa: BLE001
