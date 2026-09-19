@@ -1,16 +1,13 @@
 import { expect, test } from "@playwright/test";
 
-const CATEGORY_IDS = [
+const JOB_IDS = [
   "command",
   "flow",
-  "exposure",
-  "structure",
-  "volatility",
-  "statistics",
-  "prophet",
+  "positioning",
+  "research",
 ] as const;
 
-test("seven-category Options IA stays addressable, honest, and contained", async ({ page }, testInfo) => {
+test("job-first Options IA stays addressable, honest, and contained", async ({ page }, testInfo) => {
   const zh = testInfo.project.name === "tablet";
   if (zh) {
     await page.addInitScript(() => {
@@ -20,21 +17,27 @@ test("seven-category Options IA stays addressable, honest, and contained", async
     });
   }
 
-  await page.goto("/options?tab=tape");
-  const workspace = page.locator('[data-options-ia="seven-category-stage-a"]');
+  await page.goto("/options");
+  const workspace = page.locator('[data-options-ia="job-first-r6"]');
   await expect(workspace).toBeVisible({ timeout: 15_000 });
-  await expect(page.getByRole("tablist", { name: zh ? "期权类别" : "Options categories" })).toBeVisible();
+  await expect(page.getByRole("tablist", { name: zh ? "期权交易任务" : "Options trader jobs" })).toBeVisible();
   await expect(page.getByRole("tablist", { name: zh ? "期权子视图" : "Options views" })).toBeVisible();
 
-  for (const category of CATEGORY_IDS) {
-    await expect(page.locator(`#wtab-cat-${category}`)).toHaveCount(1);
+  for (const job of JOB_IDS) {
+    await expect(page.locator(`#wtab-job-${job}`)).toHaveCount(1);
   }
-  await expect(page.locator("#wtab-cat-flow")).toHaveAttribute("aria-selected", "true");
+  await expect(page.locator("#wtab-job-command")).toHaveAttribute("aria-selected", "true");
+  await expect(page.locator("#wtab-desk")).toHaveAttribute("aria-selected", "true");
+
+  // Existing deep links retain identity while selecting the trader job around them.
+  await page.goto("/options?tab=tape");
+  await expect(page.locator("#wtab-job-flow")).toHaveAttribute("aria-selected", "true");
   await expect(page.locator("#wtab-tape")).toHaveAttribute("aria-selected", "true");
   await expect(page.locator("#wtab-0dte")).toBeVisible();
   await expect(page.locator("#wtab-largest")).toBeVisible();
   await expect(page.locator("#wtab-vol")).toBeVisible();
-  await expect(page.locator("#wtab-surface")).toBeVisible();
+  await expect(page.locator("#wtab-tickers")).toBeVisible();
+  await expect(page.locator("#wtab-surface")).toHaveCount(0);
 
   // Flow timing is display-only provenance. An open EventSource says Connected;
   // snapshot/source age and cycle come only from strict live_flow.meta/v2 clocks.
@@ -67,21 +70,25 @@ test("seven-category Options IA stays addressable, honest, and contained", async
     fullPage: false,
   });
 
-  // A category selects its deterministic home and exposes only its owned views.
-  await page.locator("#wtab-cat-exposure").click();
+  // A trader job selects its deterministic home and exposes only its owned views.
+  await page.locator("#wtab-job-positioning").click();
   await expect(page).toHaveURL(/\/options\?tab=gex$/);
   await expect(page.locator("#wtab-gex")).toHaveAttribute("aria-selected", "true");
+  await expect(page.locator("#wtab-surface")).toBeVisible();
   await expect(page.locator("#wtab-positioning")).toBeVisible();
   await expect(page.locator("#wtab-levels")).toBeVisible();
   await expect(page.locator("#wtab-tape")).toHaveCount(0);
 
   await page.screenshot({
-    path: testInfo.outputPath(`${testInfo.project.name}-options-seven-category-exposure.png`),
+    path: testInfo.outputPath(`${testInfo.project.name}-options-job-positioning.png`),
     fullPage: false,
   });
 
   // Statistics is a real IA destination, but it cannot imply an unbuilt feed.
-  await page.locator("#wtab-cat-statistics").click();
+  await page.locator("#wtab-job-research").click();
+  await expect(page).toHaveURL(/\/options\?tab=structure$/);
+  await expect(page.locator("#wtab-statistics")).toBeVisible();
+  await page.locator("#wtab-statistics").click();
   await expect(page).toHaveURL(/\/options\?tab=statistics$/);
   await expect(page.locator('[data-options-ia-gate="statistics-r3"]')).toContainText(
     zh ? "不使用合成数值" : "no synthetic values",
@@ -98,7 +105,7 @@ test("seven-category Options IA stays addressable, honest, and contained", async
   // R5 P/C history is a strict read-only derivation over the Structure pane's
   // existing nightly oi_time payload. It retains the source contract and t-1
   // timing law, with no new fetch or directional interpretation.
-  await page.locator("#wtab-cat-structure").click();
+  await page.locator("#wtab-structure").click();
   await expect(page).toHaveURL(/\/options\?tab=structure$/);
   const pcHistory = page.locator('[data-options-pc-oi-history="r5-v1"]');
   await expect(pcHistory).toBeVisible({ timeout: 15_000 });
@@ -126,7 +133,7 @@ test("seven-category Options IA stays addressable, honest, and contained", async
   });
 
   // #380/#382 remain the same pane-level contracts after navigation through the IA.
-  await page.locator("#wtab-cat-flow").click();
+  await page.locator("#wtab-job-flow").click();
   await expect(page).toHaveURL(/\/options\?tab=tape$/);
   await expect(page.locator('[data-options-export="tape-csv-v1"]')).toHaveAttribute(
     "data-export-contract",
