@@ -46,6 +46,9 @@ export interface MscExpiryRow {
   exp: string;
   gamma_net: number;
   delta_net?: number;
+  /** Additive owner-native fields from options_hub.gex/v1; absent on older archives. */
+  vanna_net?: number;
+  charm_net?: number;
 }
 
 /** Subset of `options_hub.moves/v1` this module reads. */
@@ -285,6 +288,301 @@ export function scenarioGrid(agg: AggregateResult, opts: ScenarioOpts = {}): Sce
     maxAbs,
     hasVanna: agg.vannaMn != null,
     hasCharm: agg.charmMn != null,
+  };
+}
+
+// ─── R5 Stage 0 — scenario-conditioned alignment by absolute DTE ────────────────────
+
+export type R5DteBucket =
+  | "0DTE"
+  | "1-2DTE"
+  | "3-7DTE"
+  | "8-30DTE"
+  | "31-90DTE"
+  | "91D+";
+
+const R5_DTE_BUCKETS: readonly R5DteBucket[] = [
+  "0DTE", "1-2DTE", "3-7DTE", "8-30DTE", "31-90DTE", "91D+",
+];
+
+export type R5AlignmentState =
+  | "aligned_positive"
+  | "aligned_negative"
+  | "opposed"
+  | "one_factor_dominant"
+  | "immaterial"
+  | "unavailable";
+
+export interface R5ScenarioSpec {
+  /** Explicit spot shock in percent. Must stay inside scenarioGrid's documented ±3% envelope. */
+  spotPct: number;
+  /** Explicit ATM-IV shock in vol points. Must stay inside scenarioGrid's documented ±5pt envelope. */
+  volPts: number;
+  /** Calendar-day time step for charm. */
+  dtDays: number;
+  /** Absolute $mn hedge-flow floor below which a gamma/vanna leg is non-material. */
+  materialityMn: number;
+  /** Upstream position/sign convention label. R5 never averages tiers. */
+  positionTier: string;
+}
+
+export interface R5AlignmentRow {
+  bucket: R5DteBucket | "ALL";
+  present: boolean;
+  expirations: number;
+  gammaMn: number | null;
+  vannaMn: number | null;
+  charmMn: number | null;
+  gammaFlowMn: number | null;
+  vannaFlowMn: number | null;
+  charmFlowMn: number | null;
+  totalFlowMn: number | null;
+  alignment: R5AlignmentState;
+  /** Signed descriptive agreement in [-1,+1]; null without both nonzero flow legs. */
+  alignmentStrength: number | null;
+}
+
+export interface R5Stage0Alignment {
+  researchAuthority: "research_only";
+  outcomeLabelsOpened: false;
+  population: "full_book_by_expiry";
+  asof: string;
+  scenario: R5ScenarioSpec;
+  wholeBook: R5AlignmentRow;
+  buckets: R5AlignmentRow[];
+  coverage: {
+    inputRows: number;
+    qualifiedRows: number;
+    invalidOrExpiredRows: number;
+    vannaRows: number;
+    charmRows: number;
+    bucketsPresent: number;
+  };
+}
+
+export function r5DteBucket(dte: number): R5DteBucket | null {
+  if (!Number.isFinite(dte) || dte < 0) return null;
+  if (dte === 0) return "0DTE";
+  if (dte <= 2) return "1-2DTE";
+  if (dte <= 7) return "3-7DTE";
+  if (dte <= 30) return "8-30DTE";
+  if (dte <= 90) return "31-90DTE";
+  return "91D+";
+}
+
+function r5ExpiryAggregate(rows: readonly MscExpiryRow[]): AggregateResult {
+  let gammaMn = 0;
+  let vannaMn = 0;
+  let charmMn = 0;
+  let deltaMn = 0;
+  let vCount = 0;
+  let cCount = 0;
+  let dCount = 0;
+
+  for (const row of rows) {
+    if (isNum(row.gamma_net)) gammaMn += row.gamma_net;
+    if (isNum(row.vanna_net)) { vannaMn += row.vanna_net; vCount += 1; }
+    if (isNum(row.charm_net)) { charmMn += row.charm_net; cCount += 1; }
+    if (isNum(row.delta_net)) { deltaMn += row.delta_net; dCount += 1; }
+  }
+
+  // Research aggregation is stricter than the display consumer: a missing expiry
+  // cannot silently become a zero contribution inside a tenor. Either every row in
+  // the population carries the lens or that aggregate is unavailable.
+  return {
+    gammaMn,
+    vannaMn: vCount === rows.length ? vannaMn : null,
+    charmMn: cCount === rows.length ? charmMn : null,
+    deltaMn: dCount === rows.length ? deltaMn : null,
+    // by-expiry is Net-only. R5 does not manufacture call/put decomposition.
+    callAbsMn: 0,
+    putAbsMn: 0,
+    nStrikes: rows.length,
+    nStrikesFull: null,
+    windowed: false,
+  };
+}
+
+function r5OneCell(agg: AggregateResult, spotPct: number, volPts: number, dtDays: number): number {
+  return scenarioGrid(agg, { dsPct: [spotPct], dVolPts: [volPts], dtDays }).cells[0][0];
+}
+
+function r5Alignment(
+  gammaFlowMn: number | null,
+  vannaFlowMn: number | null,
+  materialityMn: number,
+): { state: R5AlignmentState; strength: number | null } {
+  if (gammaFlowMn == null || vannaFlowMn == null) {
+    return { state: "unavailable", strength: null };
+  }
+  // Contract says "below" the frozen threshold is non-material. Equality is
+  // therefore material, but exact zero must never become material when the
+  // declared threshold is zero.
+  const gAbs = Math.abs(gammaFlowMn);
+  const vAbs = Math.abs(vannaFlowMn);
+  const gMaterial = gAbs > 0 && gAbs >= materialityMn;
+  const vMaterial = vAbs > 0 && vAbs >= materialityMn;
+  if (!gMaterial && !vMaterial) return { state: "immaterial", strength: null };
+  if (gMaterial !== vMaterial) return { state: "one_factor_dominant", strength: null };
+
+  const product = gammaFlowMn * vannaFlowMn;
+  const denom = Math.abs(gammaFlowMn) * Math.abs(vannaFlowMn);
+  const strength = denom > 0 ? product / (denom + 1e-12) : null;
+  if (product > 0) {
+    return {
+      state: gammaFlowMn > 0 ? "aligned_positive" : "aligned_negative",
+      strength,
+    };
+  }
+  if (product < 0) return { state: "opposed", strength };
+  return { state: "one_factor_dominant", strength: null };
+}
+
+function r5AlignmentRow(
+  bucket: R5DteBucket | "ALL",
+  rows: readonly MscExpiryRow[],
+  scenario: R5ScenarioSpec,
+): R5AlignmentRow {
+  if (rows.length === 0) {
+    return {
+      bucket,
+      present: false,
+      expirations: 0,
+      gammaMn: null,
+      vannaMn: null,
+      charmMn: null,
+      gammaFlowMn: null,
+      vannaFlowMn: null,
+      charmFlowMn: null,
+      totalFlowMn: null,
+      alignment: "unavailable",
+      alignmentStrength: null,
+    };
+  }
+
+  const agg = r5ExpiryAggregate(rows);
+  const gammaFlowMn = r5OneCell(
+    { ...agg, vannaMn: null, charmMn: null },
+    scenario.spotPct, 0, 0,
+  );
+  const vannaFlowMn = agg.vannaMn == null
+    ? null
+    : r5OneCell({ ...agg, gammaMn: 0, charmMn: null }, 0, scenario.volPts, 0);
+  const charmFlowMn = agg.charmMn == null
+    ? null
+    : r5OneCell({ ...agg, gammaMn: 0, vannaMn: null }, 0, 0, scenario.dtDays);
+  // scenarioGrid intentionally treats a missing lens as zero for its generic UI
+  // surface and exposes hasVanna/hasCharm separately. R5 cannot collapse that
+  // uncertainty: when a non-zero requested shock needs a missing lens, the combined
+  // flow is unknown. A missing lens is irrelevant only when its requested shock is 0.
+  const totalKnown =
+    (scenario.volPts === 0 || vannaFlowMn != null) &&
+    (scenario.dtDays === 0 || charmFlowMn != null);
+  const totalFlowMn = totalKnown
+    ? r5OneCell(agg, scenario.spotPct, scenario.volPts, scenario.dtDays)
+    : null;
+  const alignment = r5Alignment(gammaFlowMn, vannaFlowMn, scenario.materialityMn);
+
+  return {
+    bucket,
+    present: true,
+    expirations: rows.length,
+    gammaMn: agg.gammaMn,
+    vannaMn: agg.vannaMn,
+    charmMn: agg.charmMn,
+    gammaFlowMn,
+    vannaFlowMn,
+    charmFlowMn,
+    totalFlowMn,
+    alignment: alignment.state,
+    alignmentStrength: alignment.strength,
+  };
+}
+
+/**
+ * R5's construction-only object. It never reads future returns/prices and it never
+ * rebuilds the scenario engine: every component flow is evaluated through scenarioGrid().
+ *
+ * Absolute DTE buckets are deliberately separate from tenorBand(), which describes the
+ * GAP between consecutive expirations for UI sampling density.
+ */
+export function r5Stage0Alignment(
+  rows: readonly MscExpiryRow[] | null | undefined,
+  asof: string,
+  scenario: R5ScenarioSpec,
+): R5Stage0Alignment {
+  if (!isNum(scenario.spotPct) || Math.abs(scenario.spotPct) > 3) {
+    throw new RangeError("R5 spotPct must be finite and within scenarioGrid's ±3% envelope");
+  }
+  if (!isNum(scenario.volPts) || Math.abs(scenario.volPts) > 5) {
+    throw new RangeError("R5 volPts must be finite and within scenarioGrid's ±5pt envelope");
+  }
+  if (!isNum(scenario.dtDays) || scenario.dtDays < 0) {
+    throw new RangeError("R5 dtDays must be finite and non-negative");
+  }
+  if (!isNum(scenario.materialityMn) || scenario.materialityMn < 0) {
+    throw new RangeError("R5 materialityMn must be finite and non-negative");
+  }
+  if (!scenario.positionTier?.trim()) {
+    throw new RangeError("R5 positionTier must be declared");
+  }
+
+  const asofDay = asof.slice(0, 10);
+  const base = Date.parse(`${asofDay}T00:00:00Z`);
+  if (!Number.isFinite(base)) throw new RangeError("R5 asof must contain a valid YYYY-MM-DD date");
+
+  const grouped = new Map<R5DteBucket, MscExpiryRow[]>();
+  for (const bucket of R5_DTE_BUCKETS) grouped.set(bucket, []);
+
+  const expiryKeys = (rows ?? [])
+    .map((row) => typeof row?.exp === "string" ? row.exp.slice(0, 10) : "")
+    .filter(Boolean);
+  if (new Set(expiryKeys).size !== expiryKeys.length) {
+    throw new RangeError("R5 by-expiry input must contain unique expiration rows");
+  }
+
+  const qualified: MscExpiryRow[] = [];
+  let invalidOrExpiredRows = 0;
+  let vannaRows = 0;
+  let charmRows = 0;
+  for (const row of rows ?? []) {
+    const expiry = typeof row?.exp === "string" ? Date.parse(`${row.exp.slice(0, 10)}T00:00:00Z`) : NaN;
+    if (!Number.isFinite(expiry) || !isNum(row?.gamma_net)) {
+      invalidOrExpiredRows += 1;
+      continue;
+    }
+    const dte = Math.round((expiry - base) / 86_400_000);
+    const bucket = r5DteBucket(dte);
+    if (bucket == null) {
+      invalidOrExpiredRows += 1;
+      continue;
+    }
+    qualified.push(row);
+    grouped.get(bucket)!.push(row);
+    if (isNum(row.vanna_net)) vannaRows += 1;
+    if (isNum(row.charm_net)) charmRows += 1;
+  }
+
+  const buckets = R5_DTE_BUCKETS.map((bucket) =>
+    r5AlignmentRow(bucket, grouped.get(bucket)!, scenario)
+  );
+
+  return {
+    researchAuthority: "research_only",
+    outcomeLabelsOpened: false,
+    population: "full_book_by_expiry",
+    asof: asofDay,
+    scenario: { ...scenario, positionTier: scenario.positionTier.trim() },
+    wholeBook: r5AlignmentRow("ALL", qualified, scenario),
+    buckets,
+    coverage: {
+      inputRows: (rows ?? []).length,
+      qualifiedRows: qualified.length,
+      invalidOrExpiredRows,
+      vannaRows,
+      charmRows,
+      bucketsPresent: buckets.filter((row) => row.present).length,
+    },
   };
 }
 
