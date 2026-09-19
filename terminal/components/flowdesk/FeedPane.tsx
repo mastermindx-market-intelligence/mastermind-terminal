@@ -22,7 +22,7 @@ import { pick } from "@/lib/finFormat";
 import { FD } from "@/lib/flowdeskStrings";
 import { usOptionsSessionState } from "@/lib/flowFreshness";
 import { FlowFreshnessReceipt } from "./FlowFreshnessReceipt";
-import { useLang, useT } from "@/lib/i18n";
+import { useT } from "@/lib/i18n";
 
 // ── Re-export shared types so FlowCard / FiltersPanel import from one place ──
 

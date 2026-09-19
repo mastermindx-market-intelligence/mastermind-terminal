@@ -218,11 +218,6 @@ export default function SectionAccount({ t, lang, email, user, onClose, onPatchM
   // fetches, checks the status, and only ever hands the browser a real file on 200.
   const [dlBusy, setDlBusy] = useState<ExportFormat | null>(null);
   const [dlMsg, setDlMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
-
-  /** Maps the download-message kind to the CSS class suffix used by the `Msg` component. */
-  function dlMsgKindClass(kind: "ok" | "err"): "ok" | "err" {
-    return kind;
-  }
   async function downloadExport(format: ExportFormat) {
     setDlBusy(format);
     setDlMsg(null);
@@ -544,7 +539,7 @@ export default function SectionAccount({ t, lang, email, user, onClose, onPatchM
                 </>
               )}
             />
-            {dlMsg ? <Msg text={dlMsg.text} kind={dlMsgKindClass(dlMsg.kind)} /> : null}
+            {dlMsg ? <Msg text={dlMsg.text} kind={dlMsg.kind} /> : null}
             {filed && isActiveDeletionStatus(filed.status) ? (
               <Row label={t("acsDeleteFiled")} value={filed.receipt_code} desc={stepText(filed)} />
             ) : (

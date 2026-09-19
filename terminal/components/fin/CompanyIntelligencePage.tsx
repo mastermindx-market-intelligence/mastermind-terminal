@@ -78,12 +78,6 @@ function sourceStateLabel(status: CompanyIntelligenceSource["status"] | undefine
   return pick(zh, "Missing", "缺失");
 }
 
-function topicStateLabel(status: "added" | "persistent" | "dropped", zh: boolean): string {
-  if (status === "added") return pick(zh, "Added", "新增");
-  if (status === "dropped") return pick(zh, "Dropped", "退出");
-  return pick(zh, "Persistent", "延续");
-}
-
 function warningLabel(code: string, zh: boolean): string {
   const labels: Record<string, [string, string]> = {
     earnings_history_metadata_only: [

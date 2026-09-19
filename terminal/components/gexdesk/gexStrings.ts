@@ -576,13 +576,6 @@ const GEX_LEX = {
   ],
   // SVG aria-label for the expiry term-structure chart
   exposureByExpiry: ["Exposure by expiry term structure", "按到期期限结构显示敞口"],
-  // Exact-side receipt states for aria-label
-  mtxReceiptLoading: ["Loading…", "加载中……"],
-  mtxReceiptNoData: ["No data", "暂无数据"],
-  mtxReceiptStale: ["Stale", "数据过期"],
-  mtxReceiptError: ["Error", "错误"],
-  mtxReceiptFlagged: ["Flagged: {n}", "已标记：{n}"],
-  mtxReceiptUnknown: ["Unknown", "未知"],
 } as const;
 
 type GexDeskKey = keyof typeof GEX_LEX;
