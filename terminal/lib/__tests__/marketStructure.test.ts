@@ -245,9 +245,17 @@ describe("R5 Stage 0 scenario-conditioned alignment", () => {
     expect(row.vannaMn).toBeNull();
     expect(row.vannaFlowMn).toBeNull();
     expect(row.alignment).toBe("unavailable");
-    // Existing scenarioGrid semantics still permit a total from the lenses that exist.
-    expect(row.totalFlowMn).toBeCloseTo(-12, 10);
+    // The requested +2 vol-point shock needs Vanna. Missing Vanna therefore makes
+    // the combined flow unknown rather than silently treating that leg as zero.
+    expect(row.totalFlowMn).toBeNull();
     expect(got.coverage.vannaRows).toBe(0);
+
+    // If the scenario explicitly asks for no IV shock, the missing Vanna lens is
+    // irrelevant and the known gamma + charm legs can still close.
+    const noVolShock = r5Stage0Alignment([
+      { exp: "2026-09-19", gamma_net: 10, charm_net: 2 },
+    ], ASOF, { ...scenario, volPts: 0 });
+    expect(noVolShock.wholeBook.totalFlowMn).toBeCloseTo(-12, 10);
   });
 
   it("distinguishes one-factor dominance from both-factors-immaterial", () => {
@@ -260,6 +268,16 @@ describe("R5 Stage 0 scenario-conditioned alignment", () => {
       { exp: "2026-09-19", gamma_net: 1, vanna_net: 1, charm_net: 0 },
     ], ASOF, { ...scenario, materialityMn: 5 });
     expect(tiny.wholeBook.alignment).toBe("immaterial");
+  });
+
+  it("treats equality with the frozen materiality threshold as material", () => {
+    const got = r5Stage0Alignment([
+      // gamma flow = -5 at +1% spot; vanna flow = -6 at +2 vol points.
+      { exp: "2026-09-19", gamma_net: 5, vanna_net: 3, charm_net: 0 },
+    ], ASOF, { ...scenario, materialityMn: 5 });
+    expect(got.wholeBook.gammaFlowMn).toBeCloseTo(-5, 10);
+    expect(got.wholeBook.vannaFlowMn).toBeCloseTo(-6, 10);
+    expect(got.wholeBook.alignment).toBe("aligned_negative");
   });
 
   it("preserves all six buckets and marks empty ones absent rather than zero", () => {
