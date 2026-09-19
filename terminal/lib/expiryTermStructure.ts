@@ -35,13 +35,15 @@ export interface ExpiryRow {
 /** Which owner-native per-expiration net exposure lens the drawer plots. */
 export type ExpiryLens = "gamma" | "delta" | "vanna" | "charm";
 
+export type ExposureSign = -1 | 0 | 1;
+
 export interface ExpiryNode {
   exp: string; // raw expiry key (e.g. "2026-07-11")
   label: string; // MM-DD display label
   dte: number; // days-to-expiry from the snapshot's session date
   dteLabel: string; // "0DTE" | "3d" | …
   net: number; // net exposure under the active lens
-  isPos: boolean; // net >= 0 (sign colour selects var(--up)/var(--down))
+  sign: ExposureSign; // exact zero is neutral — never painted as + or − exposure
   mag: number; // |net|
   frac: number; // |net| / maxAbs across nodes, 0..1 (bubble size / bar length driver)
 }
@@ -52,6 +54,11 @@ export interface ExpiryTermStructure {
   splitAvailable: false; // by_expiry never carries a calls/puts split → always Net-only
   nodes: ExpiryNode[]; // sorted nearest-expiration first; empty when no data
   maxAbs: number; // max |net| across nodes (0 when empty)
+}
+
+/** Signed exposure polarity. Exact zero is intentionally neutral. */
+export function exposureSign(net: number): ExposureSign {
+  return net > 0 ? 1 : net < 0 ? -1 : 0;
 }
 
 /** Net exposure for a row under the active lens. Missing fields stay null, never zero. */
@@ -112,7 +119,7 @@ export function byExpiryToTermStructure(
       dte,
       dteLabel: dteLabel(dte),
       net,
-      isPos: net >= 0,
+      sign: exposureSign(net),
       mag: Math.abs(net),
       frac: Math.abs(net) / denom,
     };

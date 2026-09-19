@@ -18,7 +18,7 @@ import type { Lang } from "@/lib/i18n";
 import type { GexPayload, GreekLens } from "./GexDeskView";
 import { dteLabelFor, expLabel } from "@/lib/dte";
 import { fmtMn } from "@/lib/gexLadder";
-import { expiryNetFor, type ExpiryRow } from "@/lib/expiryTermStructure";
+import { exposureSign, expiryNetFor, type ExpiryRow } from "@/lib/expiryTermStructure";
 
 interface ExpiryBarsProps {
   byExpiry: GexPayload["by_expiry"] | null;
@@ -62,7 +62,9 @@ export function ExpiryBars({ byExpiry, greek, asOf = null, lang }: ExpiryBarsPro
       <div style={CENTER_LINE} />
       {rows.map((r) => {
         const net = expiryNetFor(r, greek) ?? 0;
-        const isPos = net >= 0;
+        const sign = exposureSign(net);
+        const isPos = sign > 0;
+        const isNeg = sign < 0;
         const pct = Math.abs(net) / maxAbs;
         const shaped = Math.pow(pct, 0.7);
         const barW = Math.max(shaped * 46, pct > 0 ? 2 : 0);
@@ -74,14 +76,20 @@ export function ExpiryBars({ byExpiry, greek, asOf = null, lang }: ExpiryBarsPro
               <span style={DTE_LABEL}>{dteLabelFor(r.exp, asOf)}</span>
             </div>
             <div style={BAR_AREA}>
-              {!isPos && barW > 0 && (
+              {isNeg && barW > 0 && (
                 <div style={{ ...BAR_NEG, width: `${barW}%`, opacity: isBig ? 1 : 0.75 }} />
               )}
               {isPos && barW > 0 && (
                 <div style={{ ...BAR_POS, width: `${barW}%`, opacity: isBig ? 1 : 0.75 }} />
               )}
             </div>
-            <span className="num" style={{ ...VAL, color: isPos ? "var(--up)" : "var(--down)" }}>
+            <span
+              className="num"
+              style={{
+                ...VAL,
+                color: sign > 0 ? "var(--up)" : sign < 0 ? "var(--down)" : "var(--muted)",
+              }}
+            >
               {fmtMn(net)}
             </span>
           </div>
