@@ -27,7 +27,9 @@ Fresh targeted GREEN:
 - Alert Center `sr_hold → BOS` sequence creation;
 - EN + 中文;
 - 1440×900, 820×1180, and 390×844;
-- component-cell overflow and document horizontal overflow assertions.Fresh recovery result: **12 / 12 passed** with `--retries=0`.
+- component-cell overflow and document horizontal overflow assertions.
+
+Fresh recovery result: **12 / 12 passed** with `--retries=0`.
 
 The test uses deterministic synthetic NVDA OHLC and mocks alert-row persistence at the network boundary. It proves UI/consumer behavior; it is not a production-backend or notification-delivery receipt.
 
@@ -46,7 +48,20 @@ A separate pure module probe found current native Structure geometry:
 - Premium/Discount: discount 85.14–91.605; GP 92.6825–93.3721; EQ 95.915; OTE 89.7517; premium 100.225–106.69.
 - FVG: active/recent zones including 92.37–100.35, 100.48–104.70, 104.42–106.40.
 - Market Structure: nearby marks including 89.59 BOS, 98.33 CHoCH, 102.40 CHoCH, 106.69 CHoCH.
-- Smart S/R default: strongest displayed intact support 32.73, so it is explicitly **not** treated as the vendor Gold Zone.## Screenshots
+- Smart S/R default: strongest displayed intact support 32.73, so it is explicitly **not** treated as the vendor Gold Zone.
+
+## Repository-wide responsive run
+
+The complete local responsive command ran from the same candidate worktree with no retries and finished **835 passed / 291 skipped / 1 failed**. The only failure was the pre-existing desktop pointer journey `chart-view-reset.spec.ts:90` after ticker replacement: the context menu did not reopen within its 5-second assertion.
+
+That failure is not hidden or relabelled green. It was adjudicated with a discriminating follow-up:
+- current candidate: the exact failing test passed **3/3** serial repeats;
+- exact protected base `02e082b…`: the same test passed **3/3** serial repeats;
+- this PR does not change `ChartPanel`, chart context-menu code, symbol-switch code, or the failing spec.
+
+The full-suite failure is therefore a nondiscriminating contention/timing failure rather than evidence that this support-context delta broke ticker-lock behavior. Protected exact-head E2E shards remain the release gate.
+
+## Screenshots
 
 The PNGs in this directory are fixture-driven local browser captures. Their source type is synthetic by design and must never be represented as production market-data proof.
 
@@ -63,4 +78,4 @@ TERMINAL_E2E_PORT=3197 npx playwright test e2e/support-context.spec.ts \
   --project=desktop --project=tablet --project=mobile --workers=1 --retries=0
 ```
 
-Full repository verification and protected CI remain separately required before release.
+Protected exact-head CI remains required before release; the local full-suite result and its single adjudicated non-owned failure are preserved above.

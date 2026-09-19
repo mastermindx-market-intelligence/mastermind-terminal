@@ -50,7 +50,9 @@ Smart S/R now projects the nearest **displayed, intact** support and resistance 
 - an explicit `At price` state instead of arbitrarily calling equality support or resistance;
 - honest warmup, no-confirmed-level, and latest-bar-unavailable states;
 - EN / 中文;
-- an explicit “latest bar may be open; not a trade signal” caveat.Broken levels may linger as dashed historical geometry but are excluded from the intact Support Context immediately.
+- an explicit “latest bar may be open; not a trade signal” caveat.
+
+Broken levels may linger as dashed historical geometry but are excluded from the intact Support Context immediately.
 
 The panel consumes the exact levels Smart S/R already selected for display. It does not maintain another support calculation.
 
@@ -80,7 +82,9 @@ Sequence semantics stay honest:
 - it does not automatically cancel on an intervening support failure;
 - it is not a new validated “Launchpad signal.”
 
-Server-side suite alerts continue to use published daily bars and module defaults. A user's custom chart settings do not silently become server alert settings.## Real INTC finding: existing geometry already covers the screenshot's neighborhood
+Server-side suite alerts continue to use published daily bars and module defaults. A user's custom chart settings do not silently become server alert settings. The existing daily-file owner remains responsible for completed-bar qualification; this PR does not create another session-close classifier.
+
+## Real INTC finding: existing geometry already covers the screenshot's neighborhood
 
 A fresh real-path read on 2026-09-18 used the production-published `INTC.json`:
 - 11,722 daily bars;
@@ -105,7 +109,9 @@ Default Structure Core calculations on that exact payload show important nearby 
 **Market Structure**
 - nearby structural marks include `89.59 BOS`, `98.33 CHoCH`, `102.40 CHoCH`, and `106.69 CHoCH`.
 
-This is a material result: Mastermind does **not** need a guessed proprietary Gold Zone formula to render a useful support-base neighborhood around the motivating INTC chart. Existing independently implemented owners already describe much of the same price region from different structural lenses.## Real INTC finding: Smart S/R is not itself the screenshot's Gold Zone
+This is a material result: Mastermind does **not** need a guessed proprietary Gold Zone formula to render a useful support-base neighborhood around the motivating INTC chart. Existing independently implemented owners already describe much of the same price region from different structural lenses.
+
+## Real INTC finding: Smart S/R is not itself the screenshot's Gold Zone
 
 The same real payload also falsifies a tempting shortcut.
 
@@ -127,7 +133,9 @@ The clean product direction is a **Support Base workspace/composition**, not a h
 3. optional existing confirmation events: Golden Pocket touch / FVG retest / support hold followed by BOS or CHoCH;
 4. later, once scientific gates exist, Forming / Armed / Triggered / Confirmed setup state can come from the canonical Technical Opportunity Intelligence / Setup Species owner rather than Terminal heuristics.
 
-The existing open Chart Reclaim PR #606 owns cross-suite “Start with a workflow” composition and currently changes `terminal/lib/suites/presets.ts` and `IndicatorsModal.tsx`. This operation does **not** edit those files or create a parallel workflow plane. The Support Base recipe should be integrated there or after that carrier resolves, not raced in a competing PR.## Scientific authority boundary
+The existing open Chart Reclaim PR #606 owns cross-suite “Start with a workflow” composition and currently changes `terminal/lib/suites/presets.ts` and `IndicatorsModal.tsx`. This operation does **not** edit those files or create a parallel workflow plane. The Support Base recipe should be integrated there or after that carrier resolves, not raced in a competing PR.
+
+## Scientific authority boundary
 
 The broader setup research remains owned by Macro Agent OS workstream `WS:TECHNICAL-OPPORTUNITY-INTELLIGENCE`.
 
@@ -138,6 +146,8 @@ Its current law still applies:
 - Setup Species owns scientific setup identity;
 - Live Entry Radar owns tactical intraday events;
 - no LLM-originated signal, ranking, gate, position size, numeric confidence, or trade authority.
+
+GitHub also has current bounded predecessor carriers outside this Terminal PR: W1 PR #7107 is a repaired evidence-census HOLD awaiting bounded rereview, while W2-0 PR #7094 is a PARTIAL / HOLD data-clock admission whose own record calls out early-close, fallback, same-basis, correction, and historical-denominator gaps. This slice does not rewrite either carrier or mark either accepted. The INTC structure finding is an input for those owners, not a substitute for their gates.
 
 This Terminal slice does not claim those research gates are complete.
 
