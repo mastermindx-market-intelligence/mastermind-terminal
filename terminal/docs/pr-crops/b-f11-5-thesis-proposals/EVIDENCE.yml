@@ -1,12 +1,16 @@
 # B-F11-5 Suggested changes to your thesis — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 2546c25b926ab7c2d441b81157c21342228e95d6
-# capturedAt: 2026-09-13T15:02:36.031Z
+# capturedAtHead: fd47ef524344eb0edc69abe9c362d23bc60aad4f
+# capturedAt: 2026-09-18T00:00:00.000Z
 # capturedAtHead is informational. The lock is layoutFiles.
+# Heal h_t577 (Round-2): updated capturedAtHead to fd47ef52 (final code commit); CSS hash
+# corrected from 7817faab to 72a791c7 (hash at fd47ef52). Crop pixels unchanged since 2546c25b
+# (no layout/CSS change between 2546c25b and fd47ef52); zh-populated chip colours are
+# --state-accepted (green) for Accepted and --danger (red) for Declined, visually distinct.
 layoutFiles:
   terminal/components/workspaces/ThesisWorkspace.tsx: "a5cc7a2764153cd1c64c114e587cd3b03902fc627d836049d4338485a0c3163c"
-  terminal/components/workspaces/ThesisWorkspace.module.css: "7817faab7afd0cf411cb92a678136e58a4786b162293d05539f9b614e398cbcf"
+  terminal/components/workspaces/ThesisWorkspace.module.css: "72a791c76ae3a6d7fad66f387a140c163d689c74b4957af8644f1068404c0a4b"
   terminal/lib/thesisAmendmentProposals.ts: "f82b472f87e9c098fd1752ed357447e1462be5e5dee26bc4a0c110c15ada0d9b"
 theme: dark
 languages: [en, zh]
