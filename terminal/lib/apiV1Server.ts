@@ -21,7 +21,6 @@ import {
   envelope,
   errorBody,
   errorStatus,
-  etagFor,
   apiKeyDigest,
   apiKeyDigestEqual,
   apiKeyPrefix,
@@ -64,6 +63,13 @@ export type ApiV1Deps = {
 const AUTHENTICATE_FN = "api_key_authenticate";
 const READ_FN = "api_v1_read_as_user";
 const KEY_SALT_FN = "api_key_salt_for_prefix";
+
+async function etagFor(payload: unknown): Promise<string> {
+  const json = JSON.stringify(payload);
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(json));
+  const bytes = Array.from(new Uint8Array(digest));
+  return `"${bytes.map((byte) => byte.toString(16).padStart(2, "0")).join("")}"`;
+}
 
 function rateHeaders(limit: number, remaining: number, retryAfter?: number | null): HeadersInit {
   const headers: Record<string, string> = {
@@ -461,7 +467,7 @@ async function handleV1GetInternal(
   }
 
   const body = envelope(schema, data, page, coverageOf(coverageRows, coverageFields));
-  const etag = etagFor({ schema: body.schema, version: body.version, data: body.data, page: body.page, coverage: body.coverage });
+  const etag = await etagFor({ schema: body.schema, version: body.version, data: body.data, page: body.page, coverage: body.coverage });
   if (ifNoneMatchHits(request.headers.get("if-none-match"), etag)) {
     return new NextResponse(null, {
       status: 304,
@@ -502,7 +508,7 @@ export async function handleV1Index(request: Request, deps?: ApiV1Deps): Promise
   };
   assertNoForbiddenFields(data);
   const body = envelope(schemaFor("index"), data, { next_cursor: null, limit: API_V1_DEFAULT_LIMIT }, { rows: 1, nulls: [] });
-  const etag = etagFor({ schema: body.schema, version: body.version, data: body.data });
+  const etag = await etagFor({ schema: body.schema, version: body.version, data: body.data });
   if (ifNoneMatchHits(request.headers.get("if-none-match"), etag)) {
     return new NextResponse(null, {
       status: 304,
