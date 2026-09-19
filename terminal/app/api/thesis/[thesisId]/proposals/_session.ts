@@ -48,7 +48,13 @@ function createProposalsFixtureDb(key: string): AmendmentDb {
           q._filters = [...(q._filters ?? []), [col, val]];
           return q;
         },
-        order() { return q; },
+        order(col: string, opts?: { ascending?: boolean }) {
+          // Mirror production: order by created_at descending (newest first)
+          if (col === "created_at") {
+            q._filters = [...(q._filters ?? []), ["__order", opts?.ascending === true ? "asc" : "desc"]];
+          }
+          return q;
+        },
         insert(row) {
           q._pending = row;
           return q;
@@ -75,9 +81,20 @@ function createProposalsFixtureDb(key: string): AmendmentDb {
           return { data: match ?? null, error: null };
         },
         then(resolve, reject) {
-          const list = rows.filter((row) =>
-            (q._filters ?? []).every(([col, val]) => (row as Record<string, unknown>)[col] === val),
-          );
+          const orderDir = (() => {
+            const f = q._filters ?? [];
+            const o = f.find(([k]) => k === "__order");
+            return o ? (o[1] as string) : "desc";
+          })();
+          const list = rows
+            .filter((row) =>
+              (q._filters ?? []).every(([col, val]) => col !== "__order" && (row as Record<string, unknown>)[col] === val),
+            )
+            .sort((a, b) => {
+              const av = (a as Record<string, unknown>).created_at as string;
+              const bv = (b as Record<string, unknown>).created_at as string;
+              return orderDir === "asc" ? av.localeCompare(bv) : bv.localeCompare(av);
+            });
           return Promise.resolve({ data: list, error: null }).then(resolve, reject);
         },
       };

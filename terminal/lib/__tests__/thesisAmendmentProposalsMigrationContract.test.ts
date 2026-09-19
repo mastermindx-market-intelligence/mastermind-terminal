@@ -1,7 +1,7 @@
 /**
- * 0024 thesis amendment proposals — migration + ledger contract (B-F11-5 / MO-PAID-054).
+ * 0025 thesis amendment proposals — migration + ledger contract (B-F11-5 / MO-PAID-054).
  *
- * Pins the next prefix after 0023, the .sql the row names, the 0015+ header lines, and the
+ * Pins the next prefix after 0024, the .sql the row names, the 0015+ header lines, and the
  * agreement between that file and supabase/migrations/RESERVATIONS.json. The ledger is read
  * through helpers/reservations.ts, which never logs the document, so the project reference
  * cannot reach a test log.
@@ -17,8 +17,8 @@ import {
   reservationRow,
 } from "./helpers/reservations";
 
-const PREFIX = "0024";
-const FILE = "0024_thesis_amendment_proposals.sql";
+const PREFIX = "0025";
+const FILE = "0025_thesis_amendment_proposals.sql";
 
 const row = reservationRow(PREFIX);
 const sql = readMigration(FILE);
@@ -26,7 +26,7 @@ const flat = sql.replace(/--[^\n]*/g, " ").replace(/\s+/g, " ").toLowerCase();
 const readbackBlock = (sql.split(/^-- readback:/m)[1] ?? "").split(/^-- down:/m)[0].toLowerCase();
 const downBlock = (sql.split(/^-- down:/m)[1] ?? "").toLowerCase();
 
-describe("0024 thesis amendment proposals migration contract", () => {
+describe("0025 thesis amendment proposals migration contract", () => {
   it("creates exactly one table, thesis_amendment_proposals, with the frozen columns", () => {
     expect([...flat.matchAll(/create table if not exists public\.([a-z_]+)/g)].map((m) => m[1]))
       .toEqual(["thesis_amendment_proposals"]);
@@ -114,10 +114,10 @@ describe("0024 thesis amendment proposals migration contract", () => {
     expect(row.applied_date).toBeNull();
   });
 
-  it("README reservations table carries 0024 as an open claim, not applied", () => {
+  it("README reservations table carries 0025 as an open claim, not applied", () => {
     const readme = readFileSync(readmePath, "utf8");
-    const resRow = readme.split("\n").find((line) => line.startsWith("| `0024` |"));
-    expect(resRow, "reservations table is missing the 0024 row").toBeTruthy();
+    const resRow = readme.split("\n").find((line) => line.startsWith("| `0025` |"));
+    expect(resRow, "README is missing the 0025 row").toBeTruthy();
     expect(resRow!).toContain("B-F11-5");
     expect(resRow!.toLowerCase()).toMatch(/not applied|open/);
   });

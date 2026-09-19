@@ -1,13 +1,13 @@
 -- Ledger row: MO-PAID-054 (B-F11-5, Market Ontology F11 lane)
 -- Rollback: drop function if exists public.set_thesis_amendment_state(uuid, text); drop trigger if exists thesis_amendment_proposals_guard on public.thesis_amendment_proposals; drop function if exists public.thesis_amendment_proposals_guard(); drop table if exists public.thesis_amendment_proposals;
 --
--- 0024: thesis_amendment_proposals — propose-only assistant amendments (packet B-F11-5).
+-- 0025: thesis_amendment_proposals — propose-only assistant amendments (packet B-F11-5).
 -- Binding contract: MO-PAID-054 write-back. A chat turn may INSERT a proposed row; it may not
 -- UPDATE or DELETE a theses head, a published thesis_versions row, or any evidence row.
 -- Accepting a proposal NEVER publishes a version: it marks state=accepted. Publishing stays
 -- the human's existing apply_thesis_version_v1 path (ARCHITECTURE §7.3 immutability).
 --
--- Prefix 0024 (next free after 0023 on master). Shipped UNAPPLIED — the seat applies after merge.
+-- Prefix 0025 (next free after 0024 on master). Shipped UNAPPLIED — the seat applies after merge.
 -- Idempotent per supabase/migrations/README.md. Never logs body text. Never prints the project
 -- reference.
 

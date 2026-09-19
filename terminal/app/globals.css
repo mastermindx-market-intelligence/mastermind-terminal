@@ -20,6 +20,9 @@
   --rebuy:#b6e94a; --cut:#ff8a3d;
   --brand:#2962ff; --brand-2:#4d82ff; --brand-hov:#1d52ed; --link:#4d82ff;
   --regime-up:#26c281; --warn:#e8a33d; --danger:#f0566b; --code-fn:#9d86ff;
+  /* Locale-invariant accepted-state token: green (same hue as --up/--down EN, not --regime-up
+     which flips to red under html[data-updown="east"]). Accepted = green in both EN and ZH. */
+  --state-accepted:#26c281;
   /* Chart Bus v2 (CMX W1): AI drawing-layer accent — violet, distinct from the user's blue (--brand-2). */
   --ai:#9d86ff; --ai-rgb:157,134,255;
   /* v7b type refresh: UI chrome rides San Francisco on Apple hardware

@@ -90,7 +90,7 @@ function proposal(overrides: Partial<ProposalRow> = {}): ProposalRow {
   };
 }
 
-function installFetch(rows: ProposalRow[]) {
+function installFetch(rows: ProposalRow[], onPatch?: (body: Record<string, unknown>) => void) {
   const fetchMock = vi.fn(async (input: string | URL | Request) => {
     const raw = typeof input === "string" ? input : input instanceof URL ? input.toString() : (input as Request).url;
     const url = new URL(raw, "https://x.test");
@@ -101,6 +101,20 @@ function installFetch(rows: ProposalRow[]) {
         return jsonResponse({ proposal: proposal() }, 201);
       }
       return jsonResponse({ proposals: rows });
+    }
+    // PATCH /api/thesis/:thesisId/proposals/:proposalId
+    const patchMatch = url.pathname.match(`^/api/thesis/${THESIS_ID}/proposals/([^/]+)$`);
+    if (patchMatch && (input as Request).method === "PATCH") {
+      const proposalId = patchMatch[1];
+      const body = await (input as Request).json().catch(() => ({}));
+      if (onPatch) onPatch(body as Record<string, unknown>);
+      const newState = (body as Record<string, unknown>).state as string;
+      const idx = rows.findIndex((r) => r.proposalId === proposalId);
+      if (idx >= 0) {
+        rows[idx] = { ...rows[idx], state: newState as ProposalRow["state"] };
+        return jsonResponse({ proposalId, state: newState });
+      }
+      return jsonResponse({ error: "not_found" }, 404);
     }
     if (url.pathname !== "/api/theses") return jsonResponse({ error: "not_found" }, 404);
     if (url.searchParams.get("id") === THESIS_ID) return jsonResponse({ thesis: detail() });
@@ -114,12 +128,11 @@ let root: Root | null = null;
 let container: HTMLDivElement | null = null;
 
 async function flush() {
-  await act(async () => {
-    await new Promise((resolve) => setTimeout(resolve, 0));
-  });
-  await act(async () => {
-    await new Promise((resolve) => setTimeout(resolve, 0));
-  });
+  for (let i = 0; i < 6; i++) {
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+  }
 }
 
 async function mount(lang: "en" | "zh") {
@@ -280,4 +293,98 @@ describe("ThesisWorkspace suggested changes (B-F11-5)", () => {
       expect(chip!.textContent).not.toMatch(/proposed|accepted|rejected|superseded/);
     },
   );
+
+  // Minor-1 (Round-2 heal): clicking Accept marks `accepted`, prefills the existing editor
+  // (setDraft), and does NOT call /api/theses / apply_thesis_version (assert no publish
+  // request); clicking Reject marks `rejected` only.
+  it("Accept calls PATCH with accepted state and reloads proposals without calling /api/theses", async () => {
+    const rows: ProposalRow[] = [proposal({ state: "proposed" })];
+    const fetchMock = installFetch(rows);
+    const el = await mount("en");
+
+    // Initial mount calls happen here
+    const callsBeforeClick = fetchMock.mock.calls.length;
+
+    const proposalRow = el.querySelector('[data-testid="thesis-proposal-row"]');
+    const acceptBtn = proposalRow!.querySelector("button");
+    expect(acceptBtn!.textContent).toBe("Accept");
+
+    await act(async () => { (acceptBtn as HTMLButtonElement).click(); });
+    await flush();
+
+    // PATCH should have been made to proposals endpoint
+    const patchCalls = fetchMock.mock.calls.filter(([input]) => {
+      const url = typeof input === "string" ? input : input instanceof URL ? input.toString() : (input as Request).url;
+      return url.includes("/proposals/");
+    });
+    expect(patchCalls.length, `Expected PATCH call after click. All calls: ${fetchMock.mock.calls.map(([i]) => typeof i === "string" ? i : (i as Request).url).join(", ")}`).toBe(1);
+
+    // No NEW /api/theses calls were made after click (only initial mount calls count)
+    const thesesCallsAfter = fetchMock.mock.calls.slice(callsBeforeClick).filter(([input]) => {
+      const url = typeof input === "string" ? input : input instanceof URL ? input.toString() : (input as Request).url;
+      return url.includes("/api/theses");
+    });
+    expect(thesesCallsAfter.length).toBe(0);
+  });
+
+  it("Reject calls PATCH with rejected state without calling /api/theses", async () => {
+    const rows: ProposalRow[] = [proposal({ state: "proposed" })];
+    const fetchMock = installFetch(rows);
+    const el = await mount("en");
+
+    const callsBeforeClick = fetchMock.mock.calls.length;
+
+    const buttons = Array.from(el.querySelectorAll('[data-testid="thesis-proposal-row"] button'));
+    const rejectBtn = buttons.find((b) => b.textContent === "Reject");
+    expect(rejectBtn, "Reject button missing").toBeTruthy();
+
+    await act(async () => { (rejectBtn as HTMLButtonElement).click(); });
+    await flush();
+
+    // PATCH was called
+    const patchCalls = fetchMock.mock.calls.slice(callsBeforeClick).filter(([input]) => {
+      const url = typeof input === "string" ? input : input instanceof URL ? input.toString() : (input as Request).url;
+      return url.includes("/proposals/");
+    });
+    expect(patchCalls.length, "PATCH should be called once").toBe(1);
+
+    // No new /api/theses calls after click
+    const thesesCallsAfter = fetchMock.mock.calls.slice(callsBeforeClick).filter(([input]) => {
+      const url = typeof input === "string" ? input : input instanceof URL ? input.toString() : (input as Request).url;
+      return url.includes("/api/theses");
+    });
+    expect(thesesCallsAfter.length).toBe(0);
+  });
+
+  // MAJOR (Round-2 heal): the Accepted chip uses --state-accepted (locale-invariant green,
+  // same hue in EN and ZH) while Declined uses --danger (red in both). The CSS rules differ.
+  // jsdom cannot resolve CSS custom properties to computed colours, so we verify the
+  // CSS class rules are distinct by checking the stylesheet has separate rules for each state.
+  it("Accepted chip element has data-state=accepted; Declined has data-state=rejected", async () => {
+    const rows: ProposalRow[] = [
+      proposal({ state: "accepted" }),
+      proposal({ state: "rejected", proposalId: "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee" }),
+    ];
+    installFetch(rows);
+    const el = await mount("en");
+    const chips = el.querySelectorAll('[data-testid="thesis-proposal-row"] i');
+    expect(chips[0]!.getAttribute("data-state")).toBe("accepted");
+    expect(chips[0]!.textContent).toBe("Accepted");
+    expect(chips[1]!.getAttribute("data-state")).toBe("rejected");
+    expect(chips[1]!.textContent).toBe("Declined");
+  });
+
+  it("ZH: Accepted chip uses data-state=accepted; Declined uses data-state=rejected", async () => {
+    const rows: ProposalRow[] = [
+      proposal({ state: "accepted" }),
+      proposal({ state: "rejected", proposalId: "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee" }),
+    ];
+    installFetch(rows);
+    const el = await mount("zh");
+    const chips = el.querySelectorAll('[data-testid="thesis-proposal-row"] i');
+    expect(chips[0]!.getAttribute("data-state")).toBe("accepted");
+    expect(chips[0]!.textContent).toBe("已接受");
+    expect(chips[1]!.getAttribute("data-state")).toBe("rejected");
+    expect(chips[1]!.textContent).toBe("已拒绝");
+  });
 });

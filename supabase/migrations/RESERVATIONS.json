@@ -249,13 +249,23 @@
     },
     "0024": {
       "state": "taken",
-      "file": "0024_thesis_amendment_proposals.sql",
+      "file": "0024_pending.sql",
+      "packet": "B-F12-B5-3",
+      "pr": 579,
+      "pr_state": "open",
+      "applied_in_production": false,
+      "applied_date": null,
+      "note": "prefix 0024 taken by PR #579 (seat ruling 2026-09-18T23:40Z); file named by owning PR."
+    },
+    "0025": {
+      "state": "taken",
+      "file": "0025_thesis_amendment_proposals.sql",
       "packet": "B-F11-5",
       "pr": 577,
       "pr_state": "open",
       "applied_in_production": false,
       "applied_date": null,
-      "note": "packet B-F11-5 thesis amendment proposals (MO-PAID-054 write-back). Shipped UNAPPLIED; the seat applies after merge. Prefix 0024 is the next free number after 0023 on master. applied_in_production is false and applied_date is null because there is no application yet — the date is not recorded, never because a real date was lost. Open draft PR #577."
+      "note": "packet B-F11-5 thesis amendment proposals (MO-PAID-054 write-back). Shipped UNAPPLIED; the seat applies after merge. Prefix 0025 is ruled by seat 026851bd (2026-09-18T23:40Z). applied_in_production is false and applied_date is null because there is no application yet — the date is not recorded, never because a real date was lost. Open draft PR #577."
     }
   }
 }

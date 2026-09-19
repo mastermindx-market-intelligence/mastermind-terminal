@@ -63,7 +63,7 @@
 .proposalBody { margin: 0; font-size: 13px; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; }
 .proposalMeta { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 .proposalMeta i { font-style: normal; font-size: 11px; font-weight: 700; color: var(--brand-2); }
-.proposalMeta i[data-state="accepted"] { color: var(--regime-up); }
+.proposalMeta i[data-state="accepted"] { color: var(--state-accepted); }
 .proposalMeta i[data-state="rejected"] { color: var(--danger); }
 .proposalMeta i[data-state="superseded"] { color: var(--muted); }
 .proposalMeta time { color: var(--muted); font-size: 11px; }
