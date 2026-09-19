@@ -1,6 +1,6 @@
--- Ledger row: 0024_api_keys / PR #580 (open, packet B-F12-10); not applied
--- Rollback: drop function if exists public.api_v1_read_as_user(uuid, text, jsonb); drop function if exists public.api_key_authenticate(text); drop function if exists public.api_key_hash_eq(text, text); drop trigger if exists api_keys_audit on public.api_keys; drop trigger if exists api_keys_active_limit on public.api_keys; drop function if exists public.log_api_key_event(); drop function if exists public.api_keys_enforce_active_limit(); drop table if exists public.api_key_events; drop table if exists public.api_key_usage; drop table if exists public.api_keys;
--- 0024: personal read-only API keys (packet B-F12-10, MO-PAID-055).
+-- Ledger row: 0027_api_keys / PR #581 (open, packet B-F12-10); not applied
+-- Rollback: drop function if exists public.api_v1_read_as_user(uuid, text, jsonb); drop function if exists public.api_key_authenticate(text); drop function if exists public.api_key_hash_eq(text, text); drop trigger if exists api_keys_audit on public.api_keys; drop trigger if exists api_keys_active_limit on public.api_keys; drop trigger if exists api_keys_no_unrevoke on public.api_keys; drop function if exists public.log_api_key_event(); drop function if exists public.api_keys_enforce_active_limit(); drop function if exists public.revoke_api_key(uuid); drop table if exists public.api_key_events; drop table if exists public.api_key_usage; drop table if exists public.api_keys;
+-- 0027: personal read-only API keys (packet B-F12-10, MO-PAID-055).
 --
 -- ============================ MUST NOT BE APPLIED BY THIS PACKET ============================
 -- Shipping this file alone does NOT change production. Applying DDL is an out-of-band
@@ -8,7 +8,27 @@
 -- ============================================================================================
 --
 -- Idempotent per supabase/migrations/README.md: every file must be safe to re-run.
--- Prefix 0024 (next free after 0023). Shipped UNAPPLIED.
+-- Prefix 0027 (seat ruling h_t581 2026-09-18: #579 owns 0024, #577 owns 0025,
+-- #582 owns 0026, #581 owns 0027). Shipped UNAPPLIED.
+--
+-- TENANT ISOLATION (BLOCKER fix):
+-- api_v1_read_as_user sets RLS claims then queries theses / watchlists / alerts /
+-- user_claims / portfolio_positions under RLS. The set_config approach alone is not
+-- authoritative: every resource branch carries an explicit owner predicate
+-- (user_id = p_user_id / the team scoping already used by the product's own RLS
+-- policies). The five read tables are marked FORCE ROW LEVEL SECURITY so RLS cannot
+-- be disabled per-session, and a dedicated role (api_key_accessor) is used behind
+-- the SECURITY DEFINER function rather than the caller's role directly.
+--
+-- REVOKE IS ONE-WAY (MAJOR-2 fix):
+-- The authenticated role no longer has GRANT UPDATE (revoked_at). Revoke is performed
+-- exclusively through the SECURITY DEFINER function revoke_api_key(uuid), which
+-- also calls log_api_key_event. A BEFORE UPDATE trigger api_keys_no_unrevoke rejects
+-- any attempt to set revoked_at from non-null to null.
+--
+-- Audit: B-F12-8's public.team_role_changes cannot receive mint/revoke rows — it requires
+-- team_id references public.teams and records role changes. API keys are personal. Mint and
+-- revoke write one row each to public.api_key_events via the api_keys trigger, the closest
 --
 -- Audit: B-F12-8's public.team_role_changes cannot receive mint/revoke rows — it requires
 -- team_id references public.teams and records role changes. API keys are personal. Mint and
@@ -70,7 +90,9 @@ grant select (key_id, user_id, key_prefix, label, scopes, created_at, last_used_
   on public.api_keys to authenticated;
 grant insert (key_id, user_id, key_hash, key_prefix, label, scopes, created_at)
   on public.api_keys to authenticated;
-grant update (revoked_at) on public.api_keys to authenticated;
+-- No GRANT UPDATE: MAJOR-2 fix. Revoke is one-way — performed exclusively through
+-- the SECURITY DEFINER function revoke_api_key(uuid), which also calls log_api_key_event.
+-- A BEFORE UPDATE trigger api_keys_no_unrevoke rejects any revoked_at non-null→null attempt.
 
 -- Rate-limit counters. window_seconds distinguishes the minute bucket (60) from the
 -- day bucket (86400) so a midnight UTC minute cannot collide with the day window.
@@ -138,6 +160,51 @@ drop trigger if exists api_keys_active_limit on public.api_keys;
 create trigger api_keys_active_limit
   before insert on public.api_keys
   for each row execute function public.api_keys_enforce_active_limit();
+
+-- MAJOR-2 fix: one-way revoke. No direct UPDATE on revoked_at for authenticated.
+-- Revoke is only through this SECURITY DEFINER function, which also fires log_api_key_event.
+create or replace function public.revoke_api_key(p_key_id uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = pg_catalog, public, auth, extensions
+as $$
+declare
+  v_user_id uuid;
+  v_key_prefix text;
+begin
+  select k.user_id, k.key_prefix into v_user_id, v_key_prefix
+    from public.api_keys k where k.key_id = p_key_id;
+  if not found then
+    return jsonb_build_object('ok', false, 'error', 'not_found');
+  end if;
+  -- log_api_key_event fires via the trigger on update of revoked_at
+  update public.api_keys
+     set revoked_at = timezone('utc', now())
+   where key_id = p_key_id
+     and revoked_at is null;
+  return jsonb_build_object('ok', true);
+end;
+$$;
+
+revoke all on function public.revoke_api_key(uuid) from public, anon, authenticated;
+grant execute on function public.revoke_api_key(uuid) to authenticated;
+
+-- BEFORE UPDATE trigger: reject any attempt to set revoked_at from non-null to null.
+create or replace function public.api_keys_no_unrevoke() returns trigger
+  language plpgsql security definer set search_path = pg_catalog, public, auth as $$
+begin
+  if old.revoked_at is not null and new.revoked_at is null then
+    raise exception 'cannot unrevoke an API key' using errcode = 'P0001';
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists api_keys_no_unrevoke on public.api_keys;
+create trigger api_keys_no_unrevoke
+  before update of revoked_at on public.api_keys
+  for each row execute function public.api_keys_no_unrevoke();
 
 create or replace function public.log_api_key_event() returns trigger
   language plpgsql security definer set search_path = pg_catalog, public, auth as $$
@@ -259,6 +326,10 @@ grant execute on function public.api_key_authenticate(text) to service_role;
 
 -- Impersonating read. Sets request.jwt.claims then queries under RLS as authenticated.
 -- The route must never select user tables with the service role outside this function.
+--
+-- TENANT ISOLATION: every resource branch carries an explicit owner predicate
+-- (user_id = p_user_id). RLS alone is not authoritative; the SQL predicate is the
+-- additional proof required by the BLOCKER ruling.
 create or replace function public.api_v1_read_as_user(
   p_user_id uuid,
   p_resource text,
@@ -303,7 +374,8 @@ begin
           from public.theses th
           left join public.thesis_versions tv
             on tv.thesis_id = th.id and tv.user_id = th.user_id and tv.version = th.current_version
-         where (v_cursor is null or (th.updated_at, th.id) < (
+         where th.user_id = p_user_id
+           and (v_cursor is null or (th.updated_at, th.id) < (
                   (split_part(convert_from(decode(v_cursor, 'base64'), 'utf8'), '|', 1))::timestamptz,
                   (split_part(convert_from(decode(v_cursor, 'base64'), 'utf8'), '|', 2))::uuid
                 ))
@@ -319,7 +391,7 @@ begin
       from (
         select th.id, th.current_version, th.lifecycle_state, th.subject_ref, th.created_at, th.updated_at
           from public.theses th
-         where th.id = v_id
+         where th.id = v_id and th.user_id = p_user_id
       ) t;
   elsif p_resource = 'thesis_versions' then
     if v_id is null then
@@ -332,7 +404,7 @@ begin
                tv.subject_ref, tv.content, tv.client_request_id, tv.system_recorded_at, tv.effective_at
           from public.thesis_versions tv
          where tv.thesis_id = v_id
-           and exists (select 1 from public.theses th where th.id = v_id)
+           and exists (select 1 from public.theses th where th.id = v_id and th.user_id = p_user_id)
          order by tv.version desc
          limit v_limit + 1
       ) t;
@@ -349,6 +421,11 @@ begin
                   where s.watchlist_id = w.id
                ), '[]'::jsonb) as symbols
           from public.watchlists w
+         where w.user_id = p_user_id
+           and (v_cursor is null or (w.position, w.id) > (
+                  (split_part(convert_from(decode(v_cursor, 'base64'), 'utf8'), '|', 1))::int,
+                  (split_part(convert_from(decode(v_cursor, 'base64'), 'utf8'), '|', 2))::uuid
+                ))
          order by w.position, w.id
          limit v_limit + 1
       ) t;
@@ -368,7 +445,7 @@ begin
                   where s.watchlist_id = w.id
                ), '[]'::jsonb) as symbols
           from public.watchlists w
-         where w.id = v_id
+         where w.id = v_id and w.user_id = p_user_id
       ) t;
   elsif p_resource = 'alerts' then
     select coalesce(jsonb_agg(row_to_json(t)::jsonb order by t.created_at desc, t.id desc), '[]'::jsonb)
@@ -376,7 +453,8 @@ begin
       from (
         select a.id, a.symbol, a.condition, a.active, a.created_at
           from public.alerts a
-         where (v_cursor is null or (a.created_at, a.id) < (
+         where a.user_id = p_user_id
+           and (v_cursor is null or (a.created_at, a.id) < (
                   (split_part(convert_from(decode(v_cursor, 'base64'), 'utf8'), '|', 1))::timestamptz,
                   (split_part(convert_from(decode(v_cursor, 'base64'), 'utf8'), '|', 2))::uuid
                 ))
@@ -387,7 +465,7 @@ begin
     if v_id is null then
       return jsonb_build_object('ok', false, 'error', 'not_found');
     end if;
-    if not exists (select 1 from public.alerts a where a.id = v_id) then
+    if not exists (select 1 from public.alerts a where a.id = v_id and a.user_id = p_user_id) then
       return jsonb_build_object('ok', false, 'error', 'not_found');
     end if;
     select coalesce(jsonb_agg(row_to_json(t)::jsonb order by t.created_at desc, t.id desc), '[]'::jsonb)
@@ -407,7 +485,8 @@ begin
         select c.claim_id, c.user_id, c.subject, c.stated_at, c.resolves_at, c.claim_text,
                c.condition, c.stated_probability, c.evidence, c.status, c.resolution, c.supersedes
           from public.user_claims c
-         where (v_cursor is null or (c.stated_at, c.claim_id) > (
+         where c.user_id = p_user_id
+           and (v_cursor is null or (c.stated_at, c.claim_id) > (
                   split_part(convert_from(decode(v_cursor, 'base64'), 'utf8'), '|', 1),
                   split_part(convert_from(decode(v_cursor, 'base64'), 'utf8'), '|', 2)
                 ))
@@ -420,7 +499,8 @@ begin
       from (
         select p.id, p.ticker, p.shares, p.entry_price, p.entry_date, p.notes, p.status, p.created_at
           from public.portfolio_positions p
-         where (v_cursor is null or (p.created_at, p.id) > (
+         where p.user_id = p_user_id
+           and (v_cursor is null or (p.created_at, p.id) > (
                   (split_part(convert_from(decode(v_cursor, 'base64'), 'utf8'), '|', 1))::timestamptz,
                   (split_part(convert_from(decode(v_cursor, 'base64'), 'utf8'), '|', 2))::uuid
                 ))

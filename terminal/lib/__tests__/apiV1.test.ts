@@ -176,7 +176,7 @@ describe("authenticate", () => {
     const b = hashApiKey(KEY_B);
     expect(hashesEqual(a, a)).toBe(true);
     expect(hashesEqual(a, b)).toBe(false);
-    const sql = readMigration("0024_api_keys.sql");
+    const sql = readMigration("0027_api_keys.sql");
     expect(sql).toContain("api_key_hash_eq");
     expect(sql).toContain("hmac");
   });
@@ -427,20 +427,20 @@ describe("no forbidden fields", () => {
   });
 });
 
-describe("0024 api keys ledger contract", () => {
-  const PREFIX = "0024";
-  const FILE = "0024_api_keys.sql";
+describe("0027 api keys ledger contract", () => {
+  const PREFIX = "0027";
+  const FILE = "0027_api_keys.sql";
   const row = reservationRow(PREFIX);
   const sql = readMigration(FILE);
 
-  it("claims prefix 0024 in RESERVATIONS.json as taken and not yet applied", () => {
-    expect(row.state).toBe("taken");
+  it("claims prefix 0027 in RESERVATIONS.json as reserved for PR 581 and not yet applied", () => {
+    expect(row.state).toBe("reserved");
     expect(row.file).toBe(FILE);
     expect(row.packet).toBe("B-F12-10");
+    expect(row.pr).toBe(581);
     expect(row.pr_state).toBe("open");
     expect(row.applied_in_production).toBe(false);
     expect(row.applied_date).toBeNull();
-    expect(typeof row.pr).toBe("number");
   });
 
   it("ships the .sql file the row names", () => {
@@ -458,9 +458,9 @@ describe("0024 api keys ledger contract", () => {
     expect(ledgerRowHeaderLine(sql)).toBe(ledgerHeaderLineFromRow(row));
   });
 
-  it("README reservations table names 0024 as open and not applied", () => {
+  it("README reservations table names 0027 as open and not applied", () => {
     const readme = readFileSync(readmePath, "utf8");
-    const resRow = readme.split("\n").find((line) => line.startsWith("| `0024` |"));
+    const resRow = readme.split("\n").find((line) => line.startsWith("| `0027` |"));
     expect(resRow).toBeTruthy();
     expect(resRow!).toContain("B-F12-10");
     expect(resRow!.toLowerCase()).toMatch(/not applied/);
@@ -469,6 +469,20 @@ describe("0024 api keys ledger contract", () => {
   it("hash is never granted on SELECT to authenticated", () => {
     expect(sql).toMatch(/grant select \(key_id, user_id, key_prefix, label, scopes, created_at, last_used_at, revoked_at\)/);
     expect(sql).not.toMatch(/grant select on table public\.api_keys to authenticated/);
+  });
+
+  it("revoke is one-way: no direct UPDATE grant and unrevoke trigger exists", () => {
+    expect(sql).not.toMatch(/grant update \(revoked_at\) on public\.api_keys to authenticated/);
+    expect(sql).toContain("api_keys_no_unrevoke");
+    expect(sql).toContain("revoke_api_key");
+  });
+
+  it("every resource branch carries an explicit owner predicate", () => {
+    expect(sql).toMatch(/th\.user_id = p_user_id/);
+    expect(sql).toMatch(/w\.user_id = p_user_id/);
+    expect(sql).toMatch(/a\.user_id = p_user_id/);
+    expect(sql).toMatch(/c\.user_id = p_user_id/);
+    expect(sql).toMatch(/p\.user_id = p_user_id/);
   });
 });
 

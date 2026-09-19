@@ -16,6 +16,7 @@ import {
   bearerToken,
   coverageOf,
   decodeCursor,
+  firstForbiddenField,
   encodeCursor,
   envelope,
   errorBody,
@@ -190,6 +191,14 @@ function text(value: unknown): string {
   return typeof value === "string" ? value : "";
 }
 
+/** Throw if any forbidden field is present in the value (MAJOR-1+4 fix). */
+function assertNoForbiddenFields(value: unknown): void {
+  const hit = firstForbiddenField(value);
+  if (hit) {
+    throw new Error(`forbidden field: ${hit}`);
+  }
+}
+
 function mapThesisSummary(row: Record<string, unknown>): ApiV1Thesis | null {
   const id = text(row.id);
   if (!id) return null;
@@ -303,6 +312,7 @@ export async function handleV1Get(
   if (resource === "theses") {
     const sliced = pageOf(read.rows, limit, "updated_at", "id");
     const mapped = sliced.pageRows.map(mapThesisSummary).filter((v): v is ApiV1Thesis => v != null);
+    for (const t of mapped) assertNoForbiddenFields(t);
     data = mapped;
     page = sliced.page;
     coverageRows = mapped as unknown as Record<string, unknown>[];
@@ -330,6 +340,7 @@ export async function handleV1Get(
         effectiveAt: text(row.effective_at) || null,
       }))
       : [];
+    for (const h of history) assertNoForbiddenFields(h);
     const current = history[0] ?? null;
     data = {
       ...summary,
@@ -361,12 +372,16 @@ export async function handleV1Get(
       systemRecordedAt: text(row.system_recorded_at),
       effectiveAt: text(row.effective_at) || null,
     }));
+    for (const v of data as Record<string, unknown>[]) assertNoForbiddenFields(v);
     page = sliced.page;
     coverageRows = data as Record<string, unknown>[];
     coverageFields = ["effectiveAt", "previousVersion"];
   } else if (resource === "watchlists") {
-    const mapped = read.rows.map(mapWatchlist).filter((v): v is ApiV1Watchlist => v != null);
+    const sliced = pageOf(read.rows, limit, "position", "id");
+    const mapped = sliced.pageRows.map(mapWatchlist).filter((v): v is ApiV1Watchlist => v != null);
+    for (const w of mapped) assertNoForbiddenFields(w);
     data = mapped;
+    page = sliced.page;
     coverageRows = mapped as unknown as Record<string, unknown>[];
     coverageFields = ["id", "name", "symbols"];
   } else if (resource === "watchlist") {
@@ -375,12 +390,14 @@ export async function handleV1Get(
     }
     const mapped = mapWatchlist(read.rows[0]);
     if (!mapped) return jsonError("not_found", { limit: auth.limit, remaining: auth.remaining });
+    assertNoForbiddenFields(mapped);
     data = mapped;
     coverageRows = [mapped as unknown as Record<string, unknown>];
     coverageFields = ["symbols"];
   } else if (resource === "alerts") {
     const sliced = pageOf(read.rows, limit, "created_at", "id");
     const mapped = sliced.pageRows.map(mapAlert).filter((v): v is ApiV1Alert => v != null);
+    for (const a of mapped) assertNoForbiddenFields(a);
     data = mapped;
     page = sliced.page;
     coverageRows = mapped as unknown as Record<string, unknown>[];
@@ -388,6 +405,7 @@ export async function handleV1Get(
   } else if (resource === "alert_fires") {
     const sliced = pageOf(read.rows, limit, "created_at", "id");
     const mapped = sliced.pageRows.map(mapFire).filter((v): v is ApiV1AlertFire => v != null);
+    for (const f of mapped) assertNoForbiddenFields(f);
     data = mapped;
     page = sliced.page;
     coverageRows = mapped as unknown as Record<string, unknown>[];

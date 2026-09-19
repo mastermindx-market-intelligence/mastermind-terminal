@@ -248,14 +248,44 @@
       "note": "portfolio target weights + bands, user-typed, RLS own-row; ships UNAPPLIED -- the builder never runs DDL against production and the seat applies with receipts. Merged to master 2026-09-10T15:19Z via merge-on-green (#552). Applied in production 2026-09-13T06:57:13Z by the seat, after 0019/0020/0021/0022 in ledger order; readback receipt held in the seat's handoff kit at ddl/receipt_0023.json; the project ref is never written."
     },
     "0024": {
-      "state": "taken",
-      "file": "0024_api_keys.sql",
+      "state": "reserved",
+      "file": null,
       "packet": "B-F12-10",
-      "pr": 580,
+      "pr": 579,
       "pr_state": "open",
       "applied_in_production": false,
       "applied_date": null,
-      "note": "personal read-only API keys (packet B-F12-10, MO-PAID-055). Claimed per claim_before_you_write as the next free prefix after 0023. Shipped UNAPPLIED — the builder never runs DDL against production; the seat applies with a receipt. pr number is the owning draft pull request; flip to merged and record merged_sha when it lands. applied_in_production is false and applied_date is null, not recorded because there is no application yet, never because a real date was lost."
+      "note": "Seat ruling h_t581 2026-09-18: #579 owns 0024, #577 owns 0025, #582 owns 0026, #581 owns 0027."
+    },
+    "0025": {
+      "state": "reserved",
+      "file": null,
+      "packet": "B-F12-10",
+      "pr": 577,
+      "pr_state": "open",
+      "applied_in_production": false,
+      "applied_date": null,
+      "note": "Seat ruling h_t581 2026-09-18: #579 owns 0024, #577 owns 0025, #582 owns 0026, #581 owns 0027."
+    },
+    "0026": {
+      "state": "reserved",
+      "file": null,
+      "packet": "B-F12-10",
+      "pr": 582,
+      "pr_state": "open",
+      "applied_in_production": false,
+      "applied_date": null,
+      "note": "Seat ruling h_t581 2026-09-18: #579 owns 0024, #577 owns 0025, #582 owns 0026, #581 owns 0027."
+    },
+    "0027": {
+      "state": "taken",
+      "file": "0027_api_keys.sql",
+      "packet": "B-F12-10",
+      "pr": 581,
+      "pr_state": "open",
+      "applied_in_production": false,
+      "applied_date": null,
+      "note": "personal read-only API keys (packet B-F12-10, MO-PAID-055). Seat ruling h_t581 2026-09-18: #579 owns 0024, #577 owns 0025, #582 owns 0026, #581 owns 0027. Shipped UNAPPLIED — applied_in_production is false and applied_date is null, not recorded because there is no application yet."
     }
   }
 }
