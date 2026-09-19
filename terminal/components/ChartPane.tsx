@@ -13,6 +13,7 @@ import { displayName } from "@/lib/markets";
 import AssetLogo from "@/components/AssetLogo";
 import { classify, isIntradayTf } from "@/lib/intradaySources";
 import { isLiveFeedBasis } from "@/lib/feedFreshness";
+import type { TerminalVisualReadyDetail } from "@/lib/terminalBoot";
 import statusStyles from "./ChartPaneStatus.module.css";
 import { isMacroSymbol } from "@/lib/macroSymbols";
 
@@ -103,8 +104,8 @@ export default function ChartPane({ idx, symbol, drawingOwnerKey, isActive, onAc
     if (!swappedOnce.current) { swappedOnce.current = true; return; }
     setSwapping(true);
     const settle = (event: Event) => {
-      const painted = (event as CustomEvent<{ symbol?: string }>).detail?.symbol;
-      if (!painted || painted === symbol) setSwapping(false);
+      const detail = (event as CustomEvent<TerminalVisualReadyDetail>).detail;
+      if (detail?.paneId === idx && detail.symbol === symbol) setSwapping(false);
     };
     window.addEventListener("mm:terminal-visual-ready", settle);
     // A symbol that never announces (a dead feed, a failed fetch) must not dim the chart forever.
@@ -114,7 +115,7 @@ export default function ChartPane({ idx, symbol, drawingOwnerKey, isActive, onAc
       window.clearTimeout(failsafe);
       setSwapping(false);
     };
-  }, [symbol]);
+  }, [idx, symbol]);
   useEffect(() => { onDetectedDrawingCount?.(auto.length); }, [auto.length, onDetectedDrawingCount]);
   const merged = useMemo(() => {
     if (!drawingsVisible) return [];

@@ -7574,6 +7574,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       generationReady = announceTerminalVisualReady(symbol, state, {
         timeframe: effectiveTimeframe,
         generation: epoch,
+        paneId: syncIdRef.current,
         isCurrent: () => !cancelled && epochRef.current === epoch,
         ...(state === "data" ? {
           isReady: () => isTerminalIndicatorSetBuilt(
