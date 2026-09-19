@@ -144,7 +144,7 @@ export default function AlertsCockpit({ email, children }: { email: string; chil
       : verdictText(r.outboxRow?.payload?.condition_plain, alert?.condition, L);
     return {
       id: r.alertId, time: t,
-      subject: r.outboxRow?.payload?.ticker || alert?.symbol || (isThesisRow ? "—" : "—"),
+      subject: r.outboxRow?.payload?.ticker || alert?.symbol || "—",
       verdict,
       delivery: r.delivery, foldedRows: r.foldedRows,
     };

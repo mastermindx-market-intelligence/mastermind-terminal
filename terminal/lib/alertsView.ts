@@ -338,23 +338,20 @@ export function buildAlertsView(input: {
     .map(({ a, d }) => ({ alertId: a.id, delivery: d.delivery, foldedRows: d.foldedRows, outboxRow: d.outboxRow }));
 
   // MO-PAID-047: surface thesis_condition outbox rows (written by macro's thesis-condition
-  // monitor) as delivery rows even when there is no matching alerts entry. These rows have
-  // kind === "thesis_condition" and no alert_id (null or "" both pass the filter). Only rows
-  // without a corresponding alerts entry are added — a thesis that also has an alerts row is
-  // already covered by the alerts path above and must not be double-counted.
-  const alertIds = new Set(alerts.map((a) => a.id));
+  // monitor) as delivery rows even when there is no matching alerts entry. The filter keeps
+  // rows whose kind === "thesis_condition", whose alert_id is null or "", and whose payload
+  // carries thesis_id. A row with a non-empty alert_id stays on the alerts path above.
   const thesisRows: AlertRowView[] = (input.outbox ?? [])
     .filter((o) => {
       if (o.payload?.kind !== "thesis_condition") return false;
-      // MINOR-1 fix: alert_id may be null (valid SQL shape) or "" — either means no alert row.
       if (o.alert_id != null && o.alert_id !== "") return false;
-      // Also guard against a payload missing thesis_id entirely (MINOR-2 fix).
       if (!o.payload?.thesis_id) return false;
       return true;
     })
     .map((o) => {
       const status = o.status as string;
-      // thesis_condition rows: missing delivered_at means still pending, same as price alerts
+      // Same mapping as deliveryFor's alerts path (status === "sent" && delivered_at == null
+      // → "pending"; otherwise KNOWN_DELIVERY[status] ?? "unconfirmed").
       const delivery: DeliveryState =
         status === "sent" && o.delivered_at == null ? "pending" : (KNOWN_DELIVERY[status] ?? "unconfirmed");
       return {
