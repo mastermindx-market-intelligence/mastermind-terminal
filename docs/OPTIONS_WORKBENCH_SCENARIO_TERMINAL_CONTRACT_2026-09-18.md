@@ -44,8 +44,9 @@ The saved lawful Quanted renderer recon shows one combined visual field with rea
 
 1. existing observed `SurfaceFrame` stays the realized-history owner;
 2. this scenario contract stays a distinct right-of-NOW conditional field;
-3. a later SurfacePane integration explicitly composes the two under one selected metric and shared replay context;
-4. zero contours are drawn only over the scenario side.
+3. `surfaceScenarioComposition.ts` now explicitly composes those two types without merging their epistemic identities;
+4. the composition keeps realized bars through NOW, removes scenario horizon-0 from the heat bars so NOW is not painted twice, and begins scenario paint strictly to the right;
+5. metric-local scenario zero crossings remain available from horizon 0 so the later renderer can start its contour at the NOW boundary while clipping the painted scenario field to the future side.
 
 This contract alone does **not** claim that the Quanted proprietary projection method is reproduced. Macro #7306 declares our assumptions: fixed OI, frozen sticky-strike IV, deterministic time roll-forward, scenario price axis, incumbent dealer-sign assumption.
 
@@ -78,11 +79,16 @@ GREEN after bounded hardening:
 - live trade/NBBO envelopes are preserved and must be ordered, fully-known or fully-null, and no later than market observation;
 - exact producer time/dealer-sign/unit semantics are pinned.
 
+Composition TDD:
+- RED: importing `surfaceScenarioComposition` failed because the module did not exist;
+- GREEN: **3/3** composition tests prove observed-history/scenario type separation, strict right-of-NOW scenario paint, no double-rendered horizon-0 column, and fail-closed root/session/metric/time identity.
+
 Fresh final owner pack:
 - `scenarioSurfaceContract.test.ts`
+- `surfaceScenarioComposition.test.ts`
 - `surfaceContract.test.ts`
 - `heatSeries.test.ts`
-- **133 passed / 0 failed**
+- **136 passed / 0 failed**
 - TypeScript `--noEmit`: exit 0;
 - `git diff --check`: clean.
 
@@ -104,9 +110,9 @@ This carrier must remain new-file-only relative to the incumbent Surface UI. It 
 Therefore it cannot conflict with Terminal #608's release/review carrier.
 
 After #608 and Macro #7306 are accepted, the next UI slice may import this adapter into the existing SurfacePane and compose:
-- realized observed field left of selected NOW;
-- conditional scenario field right of NOW;
-- metric-local zero contours right of NOW only;
+- realized observed field through selected NOW via the existing composition contract;
+- conditional scenario bars strictly right of NOW, with horizon 0 kept as the boundary rather than painted twice;
+- metric-local zero contours clipped to the scenario side while retaining the boundary point;
 - explicit scenario/model label and source clocks;
 - existing selected expiry scope;
 - existing shared replay and price-axis owners.
