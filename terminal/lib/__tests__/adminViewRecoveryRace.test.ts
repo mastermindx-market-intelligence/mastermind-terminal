@@ -83,6 +83,7 @@ describe("AdminView — recovery and pagination races", () => {
     container.remove();
     globalThis.fetch = realFetch;
     vi.restoreAllMocks();
+    vi.useRealTimers();
   });
 
   async function mount(authorityUnavailable = false) {
@@ -99,7 +100,7 @@ describe("AdminView — recovery and pagination races", () => {
     await flush();
   }
 
-  async function commitSource(value: string) {
+  async function typeSource(value: string) {
     const input = container.querySelector('input[aria-label="Source"]') as HTMLInputElement | null;
     expect(input).toBeTruthy();
     const nativeValueSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
@@ -108,8 +109,13 @@ describe("AdminView — recovery and pagination races", () => {
       nativeValueSetter!.call(input, value);
       input!.dispatchEvent(new Event("input", { bubbles: true }));
     });
+    return input!;
+  }
+
+  async function commitSource(value: string) {
+    const input = await typeSource(value);
     await act(async () => {
-      input!.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+      input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
     });
     await flush();
   }
@@ -144,6 +150,31 @@ describe("AdminView — recovery and pagination races", () => {
     await mount(true);
 
     expect(container.textContent).toContain("Couldn't verify admin access");
+  });
+
+  it("Refresh commits the source text immediately instead of querying the previous debounce value", async () => {
+    vi.useFakeTimers();
+    const requestedSources: string[] = [];
+    globalThis.fetch = vi.fn((input: RequestInfo | URL) => {
+      const url = new URL(String(input), "https://x.test");
+      requestedSources.push(url.searchParams.get("source") || "");
+      return Promise.resolve(response({
+        events: [row(100, "ROOT", url.searchParams.get("source") || "recent-source")],
+        nextBefore: null,
+        userMap: {},
+        stats,
+      }));
+    }) as typeof globalThis.fetch;
+
+    await mount();
+    await typeSource("typed-but-not-debounced");
+
+    const refresh = [...container.querySelectorAll("button")].find((b) => b.textContent === "Refresh");
+    expect(refresh).toBeTruthy();
+    await act(async () => { refresh!.click(); });
+    await flush();
+
+    expect(requestedSources.at(-1)).toBe("typed-but-not-debounced");
   });
 
   it("can filter an exact source that is absent from the currently loaded page", async () => {

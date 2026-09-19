@@ -231,7 +231,16 @@ export default function AdminView({ authorityUnavailable = false }: { email: str
     }
   }
 
-  const retry = () => setTick((x) => x + 1);
+  const retry = () => {
+    // Refresh/Retry means "run what is visibly in the controls now", not "run whatever happened
+    // to finish its 400ms debounce last". React batches these commits with the tick, so the effect
+    // observes one coherent filter snapshot and issues one root request.
+    const nextSymbol = symInput.trim().toUpperCase();
+    const nextSource = sourceInput.trim();
+    if (nextSymbol !== symbol) setSymbol(nextSymbol);
+    if (nextSource !== source) setSource(nextSource);
+    setTick((x) => x + 1);
+  };
 
   const filtersActive = Boolean(symbol || source || visitor);
 
