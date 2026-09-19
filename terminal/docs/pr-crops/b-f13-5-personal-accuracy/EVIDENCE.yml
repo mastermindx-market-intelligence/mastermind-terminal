@@ -1,3 +1,4 @@
+# 2026-09-19 #669 plain-language debt: hash-only restamp of i18n.tsx — copy-only change, crops unchanged
 # B-F13-5 Personal accuracy ledger — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
@@ -32,7 +33,7 @@ layoutFiles:
   terminal/components/settings/SectionAccuracy.module.css: "461d6510094319f0dfcffff7a99aa4dd3cd3440f66445f9489613dc56775bf03"
   terminal/components/settings/SettingsPanel.tsx: "956aeac1636ae4891b1009c8e266840244c19da085ba52e77c78171317c4ffaf"
   terminal/components/settings/types.ts: "65e846a39725a4dd6738dd746789e540e2b5433b669757356df4fce1d0a721fb"
-  terminal/lib/i18n.tsx: "440da61d2fe18d819c46503ec0c95be25bc893cf63300a32837133301dfb3a50"
+  terminal/lib/i18n.tsx: "c21e5974e091e4c9d8dd06c5efb2834363120f69a96aebf9476dc85f51fc10e7"
   terminal/lib/personalAccuracy.ts: "66f098c42b9b18269c6184fa06b644406398d09f54afc10f968234499ec16c2d"
   terminal/lib/personalAccuracyStore.ts: "9d7911a2ed8a307335a8244659ad1f981c5b4268f4bfbdb173eaa0d54cb2f3c5"
   terminal/app/dev/settings/page.tsx: "4b594ce879f00fdf1f096abde9a36113014b17257e6292dc0ca16c83efcd3660"
