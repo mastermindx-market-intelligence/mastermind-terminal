@@ -752,7 +752,10 @@ export const INVITE_MESSAGES: Record<InviteCode, [string, string]> = {
   invalid_role: ["Choose a valid role for this person.", "请为此人选择一个有效角色。"],
   not_admin: ["Only a team owner or an administrator can invite people.", "只有团队所有者或管理员才能邀请他人。"],
   team_not_found: ["We could not find that team.", "找不到该团队。"],
-  duplicate_invite: ["There is already a pending invitation for this email address.", "该邮箱地址已有一份待处理的邀请。"],
+  duplicate_invite: [
+    "There is already a pending invitation for this email address. Its link cannot be shown or regenerated; wait for it to expire or invite a different address.",
+    "该邮箱地址已有一份待处理的邀请。其链接无法再次显示或重新生成；请等待其过期，或邀请另一个地址。",
+  ],
   // Dated on purpose (MO-PAID-081): the reader learns both that no mail is sent and when that
   // was last checked, so the line cannot outlive the fact it states.
   no_email_delivery: noEmailDeliveryPair(),
