@@ -79,9 +79,10 @@ an accepted privileged controller entry.
 W2B-A proves current-source cleanliness and exact target admission. W2B-B adds
 the next bounded gate before live-generation mutation: the sanitized sudo/root
 entry above; exact production runtime admission including the canonical
-`/etc/os-release` alias; a no-login build principal with zero supplementary
-groups; exact Git-object source materialization with full symlink-graph
-resolution; fresh `npm ci`; read-only in-root dependency binding and deterministic
+`/etc/os-release` alias and the measured root-owned `python3` / `npm` / `npx`
+package aliases; a no-login build principal whose effective group set contains no
+authority beyond its declared primary GID; exact Git-object source materialization
+with full symlink-graph resolution; fresh `npm ci`; read-only in-root dependency binding and deterministic
 `next-env.d.ts`; a network-disabled Next build; a closed public build environment;
 explicit Next preview/RSC key identities; the stable SHA-256 of the
 canonical controller bytes that actually executed; and an immutable

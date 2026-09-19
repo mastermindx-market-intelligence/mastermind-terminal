@@ -369,6 +369,31 @@ def test_identical_inputs_refuse_changed_serving_output(tmp_path: Path) -> None:
         receipt.publish_receipt(receipts, second)
 
 
+def test_reproducibility_key_ignores_next_key_acquisition_label(tmp_path: Path) -> None:
+    root, public, keys, projection, sandbox, receipts = _fixture(tmp_path)
+    first = receipt.build_receipt(
+        _args(root, public, keys, projection, sandbox, receipts),
+        now=datetime(2026, 9, 18, 3, 1, 30, tzinfo=timezone.utc),
+    )
+    receipt.publish_receipt(receipts, first)
+
+    key_payload = json.loads(keys.read_text(encoding="utf-8"))
+    key_payload["source"] = "rotated"
+    keys.write_text(json.dumps(key_payload), encoding="utf-8")
+    (root / ".next" / "static" / "chunk.js").write_text(
+        "console.log('different under identical key bytes');\n", encoding="utf-8"
+    )
+    second = receipt.build_receipt(
+        _args(root, public, keys, projection, sandbox, receipts),
+        now=datetime(2026, 9, 18, 3, 1, 45, tzinfo=timezone.utc),
+    )
+    assert first["next_build_keys"]["source"] == "retained"
+    assert second["next_build_keys"]["source"] == "rotated"
+    assert second["input_fingerprint"] == first["input_fingerprint"]
+    with pytest.raises(ValueError, match="non-reproducible serving output"):
+        receipt.publish_receipt(receipts, second)
+
+
 def test_publish_rereads_immutable_receipt_before_success(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -469,6 +494,43 @@ def test_next_key_cache_directory_must_be_real_and_trusted(tmp_path: Path) -> No
 
 
 
+def test_projection_manifest_accepts_legitimate_excluded_file_and_symlink_roots(tmp_path: Path) -> None:
+    root, public, keys, projection, sandbox, receipts = _fixture(tmp_path)
+    payload = json.loads(projection.read_text(encoding="utf-8"))
+    payload["excluded_roots"] = [
+        {"path": "README.md", "mode": "100644", "type": "blob", "oid": "d" * 40},
+        {"path": "macro-site-link", "mode": "120000", "type": "blob", "oid": "e" * 40},
+    ]
+    payload["projection_sha256"] = _sha(
+        json.dumps(
+            {key: value for key, value in payload.items() if key != "projection_sha256"},
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode()
+    )
+    projection.write_text(json.dumps(payload), encoding="utf-8")
+    built = receipt.build_receipt(_args(root, public, keys, projection, sandbox, receipts))
+    assert built["projection"]["projection_sha256"] == payload["projection_sha256"]
+
+
+def test_projection_manifest_rejects_excluded_gitlink_root(tmp_path: Path) -> None:
+    root, public, keys, projection, sandbox, receipts = _fixture(tmp_path)
+    payload = json.loads(projection.read_text(encoding="utf-8"))
+    payload["excluded_roots"] = [
+        {"path": "foreign-submodule", "mode": "160000", "type": "commit", "oid": "d" * 40},
+    ]
+    payload["projection_sha256"] = _sha(
+        json.dumps(
+            {key: value for key, value in payload.items() if key != "projection_sha256"},
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode()
+    )
+    projection.write_text(json.dumps(payload), encoding="utf-8")
+    with pytest.raises(ValueError, match="excluded_roots|mode|type"):
+        receipt.build_receipt(_args(root, public, keys, projection, sandbox, receipts))
+
+
 def test_receipt_binds_exact_projection_identity(tmp_path: Path) -> None:
     root, public, keys, projection, sandbox, receipts = _fixture(tmp_path)
     built = receipt.build_receipt(_args(root, public, keys, projection, sandbox, receipts))
@@ -492,6 +554,33 @@ def test_next_key_cache_custody_is_bound_to_declared_build_principal(tmp_path: P
     with pytest.raises(ValueError, match="cache directory.*owner|build principal|owner/group"):
         receipt.build_receipt(args)
 
+
+
+def test_next_key_leaf_owner_must_match_declared_build_principal(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    root, public, keys, projection, sandbox, receipts = _fixture(tmp_path)
+    original_stat = receipt.os.stat
+
+    def altered_stat(path, *args, **kwargs):
+        value = original_stat(path, *args, **kwargs)
+        if path == ".previewinfo" and kwargs.get("dir_fd") is not None:
+            fields = list(value)
+            fields[4] = value.st_uid + 1
+            return os.stat_result(fields)
+        return value
+
+    monkeypatch.setattr(receipt.os, "stat", altered_stat)
+    with pytest.raises(ValueError, match="cache entry owner/group.*build principal"):
+        receipt.build_receipt(_args(root, public, keys, projection, sandbox, receipts))
+
+
+def test_next_key_leaf_must_not_be_group_or_other_writable(tmp_path: Path) -> None:
+    root, public, keys, projection, sandbox, receipts = _fixture(tmp_path)
+    leaf = root / ".next" / "cache" / ".previewinfo"
+    leaf.chmod(0o666)
+    with pytest.raises(ValueError, match="cache entry.*writable|owner/group|custody"):
+        receipt.build_receipt(_args(root, public, keys, projection, sandbox, receipts))
 
 
 def test_receipt_binds_builder_sandbox_and_application_root(tmp_path: Path) -> None:
@@ -594,7 +683,13 @@ module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
 fd, _ = module._open_trusted_directory(Path({str(cache)!r}), expected_uid=os.getuid(), expected_gid=os.getgid())
 try:
-    module._stable_regular_bytes_at(fd, '.previewinfo', limit=4096)
+    module._stable_regular_bytes_at(
+        fd,
+        '.previewinfo',
+        limit=4096,
+        expected_uid=os.getuid(),
+        expected_gid=os.getgid(),
+    )
 except ValueError as exc:
     print(exc)
     raise SystemExit(0)

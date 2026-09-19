@@ -87,6 +87,15 @@ def _load_module():
     return module
 
 
+def _load_receipt_module():
+    receipt_path = REPO / "ops" / "terminal_build_receipt.py"
+    receipt_spec = importlib.util.spec_from_file_location("terminal_build_receipt_projection_probe", receipt_path)
+    assert receipt_spec and receipt_spec.loader
+    module = importlib.util.module_from_spec(receipt_spec)
+    receipt_spec.loader.exec_module(module)
+    return module
+
+
 def test_policy_is_closed_and_names_the_exact_current_projection() -> None:
     payload = json.loads(POLICY_PATH.read_text(encoding="utf-8"))
     assert set(payload) == {
@@ -130,6 +139,33 @@ def test_projection_materializes_exact_git_objects_and_controller_evidence(tmp_p
     assert (evidence / "receipt-helper.py").read_text() == "SCHEMA = 'receipt'\n"
     assert (evidence / "package.json").read_text() == '{"name":"terminal"}\n'
     assert (evidence / "package-lock.json").read_text() == '{"lockfileVersion":3}\n'
+
+
+def test_projection_manifest_with_excluded_file_and_symlink_is_accepted_by_receipt(tmp_path: Path) -> None:
+    projection = _load_module()
+    receipt = _load_receipt_module()
+    repo, target = _repo(tmp_path)
+    destination = tmp_path / "projection"
+    evidence = tmp_path / "evidence"
+    destination.mkdir(mode=0o755)
+    evidence.mkdir(mode=0o700)
+    result = projection.materialize_projection(
+        repository=repo,
+        target_sha=target,
+        destination=destination,
+        evidence_dir=evidence,
+        policy_path=_policy(tmp_path, repo),
+        git_path=_git(),
+    )
+    excluded = {row["path"]: (row["mode"], row["type"]) for row in result["excluded_roots"]}
+    assert excluded["README.md"] == ("100644", "blob")
+    assert excluded["macro-site-link"] == ("120000", "blob")
+    identity = receipt._projection_identity(
+        evidence / "projection-manifest.json",
+        target_sha=target,
+        target_tree=result["target_tree"],
+    )
+    assert identity["projection_sha256"] == result["projection_sha256"]
 
 
 def test_repository_local_archive_attributes_cannot_omit_an_accepted_blob(tmp_path: Path) -> None:

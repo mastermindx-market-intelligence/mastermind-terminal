@@ -47,8 +47,9 @@ root entry: the accepted path is an unprivileged release operator crossing one
 reviewed `/usr/bin/sudo` boundary into `/usr/bin/env -i /usr/bin/bash -p` and the
 canonical controller path. The clean root pass holds one root-owned process lock,
 requires the exact production build runtime (`/usr/bin/node` 20.20.2,
-`/usr/bin/npm` 10.8.2, Ubuntu 24.04 / glibc 2.39 / x86_64), materializes the exact
-admitted Git objects into an isolated application root, and runs install/build as
+`/usr/bin/npm` 10.8.2, Ubuntu 24.04 / glibc 2.39 / x86_64), including the measured
+root-owned Ubuntu package aliases for `python3`, `npm`, and `npx` and their exact
+resolved targets, materializes the exact admitted Git objects into an isolated application root, and runs install/build as
 the static no-login `mastermind-terminal-build` principal through a closed
 `systemd-run` sandbox. Fresh `npm ci` writes only the external dependency root;
 Next receives that tree through a read-only bind at the real

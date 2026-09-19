@@ -800,6 +800,40 @@ def test_build_principal_and_sandbox_close_supplementary_group_and_socket_access
     assert "verify_sandbox_principal" in text
 
 
+def test_effective_sandbox_groups_allow_only_the_primary_gid() -> None:
+    text = _text()
+    start = text.index("verify_sandbox_principal(){")
+    end = text.index("\n\nprepare_sandbox_identity(){", start)
+    body = text[start:end]
+    assert "if group != gid" in body
+    assert "extras" in body
+    assert "or groups:" not in body
+
+
+def test_runtime_alias_contract_is_exact_and_custody_bound() -> None:
+    text = _text()
+    start = text.index("verify_runtime_executable(){")
+    end = text.index("\nprepare_build_receipt_dir(){", start)
+    body = text[start:end]
+    for declaration in (
+        'EXPECTED_PYTHON_PATH="/usr/bin/python3"',
+        'EXPECTED_PYTHON_REAL_PATH="/usr/bin/python3.12"',
+        'EXPECTED_NPM_PATH="/usr/bin/npm"',
+        'EXPECTED_NPX_PATH="/usr/bin/npx"',
+    ):
+        assert declaration in text
+    assert '"python3.12" "$EXPECTED_PYTHON_REAL_PATH"' in body
+    for link, resolved in (
+        ("../lib/node_modules/npm/bin/npm-cli.js", "/usr/lib/node_modules/npm/bin/npm-cli.js"),
+        ("../lib/node_modules/npm/bin/npx-cli.js", "/usr/lib/node_modules/npm/bin/npx-cli.js"),
+    ):
+        assert link in body
+        assert resolved in body
+    assert "st_uid" in body and "st_gid" in body
+    assert "S_IWGRP" in body and "S_IWOTH" in body
+    assert "resolve(strict=True)" in body
+
+
 def test_os_release_contract_binds_the_canonical_etc_alias() -> None:
     text = _text()
     assert 'EXPECTED_OS_RELEASE_ALIAS="/etc/os-release"' in text
@@ -833,6 +867,14 @@ def test_authority_binaries_are_absolute_and_path_is_closed() -> None:
     assert " tar -x" not in executable
     assert re.search(r"(?m)(?:^|[;&|()]\s*)(?:if\s+!\s+)?systemctl(?:\s|$)", executable) is None
     assert "curl -" not in executable
+
+
+def test_build_receipt_directory_exists_before_first_sandbox_probe() -> None:
+    body = _main()
+    prepare = body.index("prepare_build_receipt_dir")
+    roots = body.index("prepare_build_roots")
+    sandbox = body.index("verify_sandbox_principal")
+    assert prepare < roots < sandbox
 
 
 def test_sandbox_identity_and_input_sidecars_precede_dependency_code() -> None:

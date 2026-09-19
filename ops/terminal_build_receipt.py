@@ -323,10 +323,21 @@ def _open_trusted_directory(path: Path, *, expected_uid: int, expected_gid: int)
     return fd, actual
 
 
-def _stable_regular_bytes_at(directory_fd: int, name: str, *, limit: int) -> bytes:
+def _stable_regular_bytes_at(
+    directory_fd: int,
+    name: str,
+    *,
+    limit: int,
+    expected_uid: int,
+    expected_gid: int,
+) -> bytes:
     expected = os.stat(name, dir_fd=directory_fd, follow_symlinks=False)
     if stat.S_ISLNK(expected.st_mode) or not stat.S_ISREG(expected.st_mode):
         raise ValueError(f"cache entry is not a bounded regular file: {name}")
+    if expected.st_uid != expected_uid or expected.st_gid != expected_gid:
+        raise ValueError(f"cache entry owner/group differs from declared build principal: {name}")
+    if expected.st_mode & (stat.S_IWGRP | stat.S_IWOTH):
+        raise ValueError(f"cache entry is group/other writable: {name}")
     flags = (
         os.O_RDONLY | getattr(os, "O_CLOEXEC", 0)
         | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0)
@@ -467,6 +478,13 @@ def _input_fingerprint(payload: Mapping[str, Any]) -> str:
         canonical = {key: payload[key] for key in keys}
     except KeyError as exc:
         raise ValueError(f"build receipt missing input field: {exc.args[0]}") from exc
+    key_identity = canonical["next_build_keys"]
+    if not isinstance(key_identity, Mapping) or set(key_identity) != {"schema", "source", "files"}:
+        raise ValueError("next_build_keys identity is invalid for reproducibility")
+    canonical["next_build_keys"] = {
+        "schema": key_identity["schema"],
+        "files": key_identity["files"],
+    }
     return _sha256(
         json.dumps(canonical, sort_keys=True, separators=(",", ":")).encode("utf-8")
     )
@@ -650,7 +668,34 @@ def _projection_identity(path: Path, *, target_sha: str, target_tree: str) -> Ma
     included_objects = tree_rows(value.get("included_root_objects"), "included_root_objects")
     if [str(row["path"]) for row in included_objects] != included:
         raise ValueError("projection included root objects disagree with included_roots")
-    excluded_objects = tree_rows(value.get("excluded_roots"), "excluded_roots")
+
+    def excluded_rows(raw: Any) -> list[Mapping[str, Any]]:
+        if not isinstance(raw, list):
+            raise ValueError("projection excluded_roots is invalid")
+        rows: list[Mapping[str, Any]] = []
+        allowed_pairs = {
+            ("040000", "tree"),
+            ("100644", "blob"),
+            ("100755", "blob"),
+            ("120000", "blob"),
+        }
+        for row in raw:
+            if not isinstance(row, Mapping) or set(row) != {"path", "mode", "type", "oid"}:
+                raise ValueError("projection excluded_roots row has unknown or missing fields")
+            if (
+                not isinstance(row.get("path"), str)
+                or not _SAFE_ROOT.fullmatch(str(row["path"]))
+                or (str(row.get("mode")), str(row.get("type"))) not in allowed_pairs
+                or not isinstance(row.get("oid"), str)
+                or not _FULL_SHA.fullmatch(str(row["oid"]))
+            ):
+                raise ValueError("projection excluded_roots row has invalid mode/type or identity")
+            rows.append(row)
+        if [str(row["path"]) for row in rows] != sorted({str(row["path"]) for row in rows}):
+            raise ValueError("projection excluded_roots rows must be sorted and unique")
+        return rows
+
+    excluded_objects = excluded_rows(value.get("excluded_roots"))
     if set(included).intersection(str(row["path"]) for row in excluded_objects):
         raise ValueError("projection root sets overlap")
 
@@ -768,7 +813,13 @@ def build_receipt(args: argparse.Namespace, *, now: datetime | None = None) -> d
     try:
         for name in _KEY_FILES:
             expected = key_files[name]["sha256"]
-            payload = _stable_regular_bytes_at(cache_fd, name, limit=4096)
+            payload = _stable_regular_bytes_at(
+                cache_fd,
+                name,
+                limit=4096,
+                expected_uid=build_uid,
+                expected_gid=build_gid,
+            )
             if _sha256(payload) != expected:
                 raise ValueError(f"Next build key cache changed during build: {name}")
         cache_after = os.fstat(cache_fd)

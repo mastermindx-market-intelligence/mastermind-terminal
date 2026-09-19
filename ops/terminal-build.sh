@@ -83,6 +83,7 @@ EXPECTED_FLOCK_PATH="/usr/bin/flock"
 EXPECTED_SYSTEMD_RUN_PATH="/usr/bin/systemd-run"
 EXPECTED_GIT_PATH="/usr/bin/git"
 EXPECTED_PYTHON_PATH="/usr/bin/python3"
+EXPECTED_PYTHON_REAL_PATH="/usr/bin/python3.12"
 EXPECTED_ENV_PATH="/usr/bin/env"
 EXPECTED_SUDO_PATH="/usr/bin/sudo"
 EXPECTED_BASH_PATH="/usr/bin/bash"
@@ -786,13 +787,71 @@ acquire_deploy_lock(){
   fi
 }
 
+verify_runtime_executable(){
+  local runtime_path=$1 expected_link=${2:--} expected_resolved=${3:-$1}
+  [ -x "$EXPECTED_PYTHON_REAL_PATH" ] && [ -f "$EXPECTED_PYTHON_REAL_PATH" ] && [ ! -L "$EXPECTED_PYTHON_REAL_PATH" ] || {
+    log "FATAL: canonical Python validator is unavailable: $EXPECTED_PYTHON_REAL_PATH"
+    return 69
+  }
+  "$EXPECTED_PYTHON_REAL_PATH" -I - "$runtime_path" "$expected_link" "$expected_resolved" <<'PY_RUNTIME_PATH'
+import os
+import stat
+import sys
+from pathlib import Path
+
+requested = Path(sys.argv[1])
+expected_link = None if sys.argv[2] == "-" else sys.argv[2]
+expected_resolved = Path(sys.argv[3])
+metadata = os.lstat(requested)
+if expected_link is None:
+    if stat.S_ISLNK(metadata.st_mode) or not stat.S_ISREG(metadata.st_mode):
+        raise SystemExit("runtime executable must be one real regular file")
+    resolved = requested.resolve(strict=True)
+    if resolved != expected_resolved or resolved != requested:
+        raise SystemExit("runtime executable resolved path is not canonical")
+else:
+    if not stat.S_ISLNK(metadata.st_mode) or os.readlink(requested) != expected_link:
+        raise SystemExit("runtime executable alias is not the reviewed package alias")
+    if metadata.st_uid != 0 or metadata.st_gid != 0:
+        raise SystemExit("runtime executable alias custody is invalid")
+    resolved = requested.resolve(strict=True)
+    if resolved != expected_resolved:
+        raise SystemExit("runtime executable alias resolves to an unexpected target")
+
+target = os.lstat(resolved)
+if not stat.S_ISREG(target.st_mode):
+    raise SystemExit("runtime executable target is not a regular file")
+if target.st_uid != 0 or target.st_gid != 0:
+    raise SystemExit("runtime executable target custody is invalid")
+if target.st_mode & (stat.S_IWGRP | stat.S_IWOTH):
+    raise SystemExit("runtime executable target is group/other writable")
+if not target.st_mode & stat.S_IXUSR:
+    raise SystemExit("runtime executable target is not executable")
+
+parent = resolved.parent
+while True:
+    parent_meta = os.lstat(parent)
+    if stat.S_ISLNK(parent_meta.st_mode) or not stat.S_ISDIR(parent_meta.st_mode):
+        raise SystemExit("runtime executable parent is aliased or not a directory")
+    if parent_meta.st_uid != 0 or parent_meta.st_gid != 0:
+        raise SystemExit("runtime executable parent custody is invalid")
+    if parent_meta.st_mode & (stat.S_IWGRP | stat.S_IWOTH):
+        raise SystemExit("runtime executable parent is group/other writable")
+    if parent == parent.parent:
+        break
+    parent = parent.parent
+PY_RUNTIME_PATH
+}
+
 verify_build_runtime(){
   local runtime_env os_values
-  for runtime_path in     "$EXPECTED_NODE_PATH" "$EXPECTED_NPM_PATH" "$EXPECTED_GETCONF_PATH"     "$EXPECTED_UNAME_PATH" "$EXPECTED_FLOCK_PATH" "$EXPECTED_SYSTEMD_RUN_PATH"     "$EXPECTED_GIT_PATH" "$EXPECTED_PYTHON_PATH" "$EXPECTED_ENV_PATH"     "$EXPECTED_TAR_PATH" "$EXPECTED_SYSTEMCTL_PATH" "$EXPECTED_CURL_PATH"     "$EXPECTED_RSYNC_PATH" "$EXPECTED_SHA256SUM_PATH" "$EXPECTED_NPX_PATH"; do
-    [ -x "$runtime_path" ] && [ -f "$runtime_path" ] && [ ! -L "$runtime_path" ] || {
-      log "FATAL: required build runtime is unavailable or aliased: $runtime_path"
-      return 69
-    }
+  verify_runtime_executable "$EXPECTED_NODE_PATH" || return 69
+  verify_runtime_executable "$EXPECTED_NPM_PATH" "../lib/node_modules/npm/bin/npm-cli.js" "/usr/lib/node_modules/npm/bin/npm-cli.js" || return 69
+  verify_runtime_executable "$EXPECTED_NPX_PATH" "../lib/node_modules/npm/bin/npx-cli.js" "/usr/lib/node_modules/npm/bin/npx-cli.js" || return 69
+  verify_runtime_executable "$EXPECTED_PYTHON_REAL_PATH" || return 69
+  verify_runtime_executable "$EXPECTED_PYTHON_PATH" "python3.12" "$EXPECTED_PYTHON_REAL_PATH" || return 69
+  for runtime_path in     "$EXPECTED_GETCONF_PATH" "$EXPECTED_UNAME_PATH" "$EXPECTED_FLOCK_PATH"     "$EXPECTED_SYSTEMD_RUN_PATH" "$EXPECTED_GIT_PATH" "$EXPECTED_ENV_PATH"     "$EXPECTED_TAR_PATH" "$EXPECTED_SYSTEMCTL_PATH" "$EXPECTED_CURL_PATH"     "$EXPECTED_RSYNC_PATH" "$EXPECTED_SHA256SUM_PATH"; do
+    verify_runtime_executable "$runtime_path" || return 69
   done
   [ -f "$EXPECTED_OS_RELEASE_FILE" ] && [ ! -L "$EXPECTED_OS_RELEASE_FILE" ] || {
     log "FATAL: build OS release identity is unavailable or aliased: $EXPECTED_OS_RELEASE_FILE"
@@ -1656,9 +1715,10 @@ import sys
 uid = int(sys.argv[1])
 gid = int(sys.argv[2])
 groups = sorted(set(os.getgroups()))
-if os.getuid() != uid or os.getgid() != gid or groups:
+extras = sorted(group for group in groups if group != gid)
+if os.getuid() != uid or os.getgid() != gid or extras:
     raise SystemExit(77)
-print(f"{os.getuid()}\t{os.getgid()}\t{len(groups)}")
+print(f"{os.getuid()}\t{os.getgid()}\t{len(extras)}")
 PY_SANDBOX_PRINCIPAL
   ); then
     log "FATAL: could not execute the effective build-principal sandbox probe"
@@ -2168,6 +2228,7 @@ log "GIT-GATED: building accepted target $FULL_SHA from captured origin/$BRANCH 
 # 2) EXACT SOURCE PROJECTION + ISOLATED DEPENDENCIES — materialize the admitted
 # Git tree path-by-path under one deterministic application root. Repository-local
 # archive attributes and unrelated accepted roots cannot alter the build input.
+prepare_build_receipt_dir || exit $?
 prepare_build_roots || exit $?
 verify_sandbox_principal || exit $?
 bootstrap_controller_evidence || exit $?
