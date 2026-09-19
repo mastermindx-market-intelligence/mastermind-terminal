@@ -3926,10 +3926,10 @@ export default function OptionsHubView({
               {leadersError && !leadersData && (
                 <div role="status" style={{ padding: "40px 20px", textAlign: "center" }}>
                   <div style={{ fontSize: 14, color: "var(--text-2)", marginBottom: 8 }}>
-                    {t("leadersAbsent", "Couldn't load Flow Leaders")}
+                    {lang === "zh" ? "暂时无法加载资金流领涨榜" : "Couldn't load Flow Leaders"}
                   </div>
                   <div style={{ fontSize: 12, color: "var(--muted)" }}>
-                    {t("leadersAbsentSub", "This panel couldn't reach its data. Retry in a moment.")}
+                    {lang === "zh" ? "此面板暂时无法获取数据，请稍后重试。" : "This panel couldn't reach its data. Retry in a moment."}
                   </div>
                   <button
                     type="button"
@@ -3938,7 +3938,7 @@ export default function OptionsHubView({
                     onClick={() => void fetchLeaders()}
                     disabled={leadersLoading}
                   >
-                    {leadersLoading ? t("loading", "Loading…") : t("flowRetry", "Retry")}
+                    {leadersLoading ? t("loading", "Loading…") : (lang === "zh" ? "重试" : "Retry")}
                   </button>
                 </div>
               )}
@@ -4281,10 +4281,10 @@ export default function OptionsHubView({
               {radarError && !radarData && (
                 <div role="status" style={{ padding: "40px 20px", textAlign: "center" }}>
                   <div style={{ fontSize: 14, color: "var(--text-2)", marginBottom: 8 }}>
-                    {t("radarAbsent", "Couldn't load Leader Radar")}
+                    {lang === "zh" ? "暂时无法加载领涨雷达" : "Couldn't load Leader Radar"}
                   </div>
                   <div style={{ fontSize: 12, color: "var(--muted)" }}>
-                    {t("radarAbsentSub", "This panel couldn't reach its data. Retry in a moment.")}
+                    {lang === "zh" ? "此面板暂时无法获取数据，请稍后重试。" : "This panel couldn't reach its data. Retry in a moment."}
                   </div>
                   <button
                     type="button"
@@ -4293,7 +4293,7 @@ export default function OptionsHubView({
                     onClick={() => void fetchRadar()}
                     disabled={radarLoading}
                   >
-                    {radarLoading ? t("radarLoading", "Loading Leader Radar…") : t("flowRetry", "Retry")}
+                    {radarLoading ? t("radarLoading", "Loading Leader Radar…") : (lang === "zh" ? "重试" : "Retry")}
                   </button>
                 </div>
               )}
