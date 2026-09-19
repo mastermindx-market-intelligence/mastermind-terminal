@@ -3,7 +3,13 @@
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
 # capturedAtHead: 0c1adc8ef696bf6596e7cd16b161fc03e0d3ddab
 # capturedAt: 2026-09-13T06:47:52.310Z
-# capturedAtHead is informational. The lock is layoutFiles.
+# capturedAtHead records the original capture. No crops were recaptured for this heal.
+# The layoutFiles hashes still match the rendered sources at code_head.
+# code_head is the last commit touching a non-evidence path, as required by h3b_t581.
+code_head: e83e7402fbcf873c9a794bbd0ad6ce5ebfa5d1bc
+identity_check: |
+  git diff --quiet e83e7402fbcf873c9a794bbd0ad6ce5ebfa5d1bc HEAD -- terminal/components/settings/SectionDeveloper.tsx terminal/lib/apiKeyLabels.ts terminal/components/settings/SettingsPanel.tsx terminal/components/settings/icons.tsx terminal/components/settings/SettingsProvider.tsx terminal/app/dev/settings/page.tsx terminal/app/settings.css terminal/app/globals.css
+# Commit this manifest last. A later change outside terminal/docs/pr-crops reopens it.
 layoutFiles:
   terminal/components/settings/SectionDeveloper.tsx: "df606f2196301b32cabe74071559464b368b1c08e9b2ccd227509012f4101539"
   terminal/lib/apiKeyLabels.ts: "7f00e420fe2ec20bab481f19d077c7977df3877d4f71d3ed5da3de0b8d0b33be"
