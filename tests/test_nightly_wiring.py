@@ -198,6 +198,30 @@ def test_the_history_bridge_leaves_the_old_file_alone_when_no_source_is_reachabl
 # -> coverage still says XYZ has no intel -> an open tab refuses to ask for it. Pinning the step
 # here is the producer half; the consumer half is the bounded TTL in terminal/lib/dataCache.ts.
 
+INTRADAY_REFRESH = 'run "$PY" -m ingest.backfill_intraday --existing-only --tf 1h,5m --workers 8'
+
+
+def test_the_nightly_runs_the_bounded_existing_intraday_refresh():
+    body = NIGHTLY.read_text().splitlines()
+    assert any(line.strip() == INTRADAY_REFRESH for line in body), (
+        "existing intraday stores have an incremental refresher but ops/terminal-data does not run it"
+    )
+
+
+def test_intraday_refresh_runs_after_core_publish_and_before_coverage_index():
+    body = NIGHTLY.read_text().splitlines()
+    def line_of(exact: str) -> int:
+        for i, line in enumerate(body):
+            if line.strip() == exact:
+                return i
+        raise AssertionError(f"{exact} not found in ops/terminal-data")
+    swap = line_of('mv -f "$STAGE" "$LIVE"')
+    refresh = line_of(INTRADAY_REFRESH)
+    coverage = next(i for i, line in enumerate(body)
+                    if line.strip().startswith('run "$PY" scripts/build_data_coverage.py'))
+    assert swap < refresh < coverage
+
+
 COVERAGE_STEP = "scripts/build_data_coverage.py"
 
 
