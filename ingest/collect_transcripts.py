@@ -62,7 +62,11 @@ TX_OUT    = CA_ROOT / "terminal" / "public" / "data" / "tx"
 TX_INDEX  = US_FUND / "_tx_index.json"
 MANIFEST  = CA_ROOT / "terminal" / "public" / "data" / "manifest.json"
 
-PARQUET_URL   = "https://huggingface.co/datasets/defeatbeta/yahoo-finance-data/resolve/main/data/stock_earning_call_transcripts.parquet"
+# DefeatBeta split the compacted dataset by market on 2026-09-18.  The US
+# transcript corpus moved from data/<file> to data/US/<file>; the retired root
+# path returns Hugging Face EntryNotFound even though the dataset is healthy.
+# Keep this lane US-scoped: HK transcript ownership is separate.
+PARQUET_URL   = "https://huggingface.co/datasets/defeatbeta/yahoo-finance-data/resolve/main/data/US/stock_earning_call_transcripts.parquet"
 LOCAL_PARQUET = TX_CACHE / "stock_earning_call_transcripts.parquet"
 PARQUET_REVISION_MARKER = TX_CACHE / ".stock_earning_call_transcripts.applied_revision"
 PARQUET_CACHE_REVISION_MARKER = TX_CACHE / ".stock_earning_call_transcripts.cache_revision"
