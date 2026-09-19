@@ -3944,6 +3944,12 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
     const dragSession = wlDrag;
     const pointerMode = wlPointerDragRef.current;
     const keyboardTarget = pointerMode ? null : wlKeyboardTargetRef.current;
+    // onDragOver is the last live collision edge we rendered to the user. A sortable
+    // target can transform into the source slot before pointer-up, at which point
+    // dnd-kit may report `over: null` even though the pointer never left that target.
+    // Capture our already-proven pointer target before reset clears the refs.
+    const pointerTarget = pointerMode ? wlDropTargetRef.current : null;
+    const commitTarget = keyboardTarget ?? pointerTarget;
     const pointer = pointerMode ? wlPointerRef.current : null;
     const pointerEverLeftInitial = wlPointerLeftInitialRef.current;
     const pointerInitialRect = wlPointerInitialRectRef.current;
@@ -3951,7 +3957,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
     const { active: dragActive, over } = event;
     const activeId = String(dragActive.id);
     const initialRect = dragActive.rect.current.initial ?? pointerInitialRect;
-    if (!over && !keyboardTarget) return;
+    if (!over && !commitTarget) return;
     if (pointer && initialRect && !pointerEverLeftInitial) return;
     const dragSymbols = (dragSession?.activeId === activeId && dragSession.symbols.length
       ? dragSession.symbols
@@ -3976,7 +3982,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
       });
       if (overActiveOrigin || overOtherCarried) return;
     }
-    let overId = keyboardTarget?.id ?? String(over!.id);
+    let overId = commitTarget?.id ?? String(over!.id);
     // Re-resolve against live transformed rows, excluding the complete carried
     // group rather than only the row that activated the sensor.
     if (pointer && !activeId.startsWith(SEC_DROP_PREFIX)) {
@@ -4019,7 +4025,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
         : wl.find((row) => row.symbol === overId)?.section;
     if (targetSection == null) return;
 
-    let edge: "before" | "after" | "start" = keyboardTarget?.edge ?? "start";
+    let edge: "before" | "after" | "start" = commitTarget?.edge ?? "start";
     const targetSymbol = overId === ROOT_DROP_ID || overId.startsWith(SEC_DROP_PREFIX) ? null : overId;
     if (targetSymbol && !keyboardTarget) {
       const translated = dragActive.rect.current.translated;
