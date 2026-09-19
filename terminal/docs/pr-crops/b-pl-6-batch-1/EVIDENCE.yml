@@ -12,7 +12,7 @@ layoutFiles:
   terminal/components/ChartPanel.tsx: "94a56f94bc442112817170bfac5f6080c595f26c5dc70ea8d82b9e30ec076258"
   terminal/components/DayRange.tsx: "c84724652783da1897ab4eeb98550eaf3dbd7942eefe3ce127b6ada2b16dd672"
   terminal/lib/plainLabels.ts: "39f1b5ad8e817d98c0a67f709ed303e1940dbc9ea3a44b6a078a9c10992487e7"
-  terminal/lib/i18n.tsx: "537185c5f3c31f6355a3fb140b27dba43687af5f9336634266105abea12bfa21"
+  terminal/lib/i18n.tsx: "271f79cdcde627b22b9ba864227a24221f98a262ceef64a228d520155b8f68c7"
 theme: dark
 languages: [en, zh]
 viewports:
