@@ -372,7 +372,9 @@ describe("createInvite authorization (MO-PAID-082)", () => {
     if (!r.ok) {
       expect(r.status).toBe(409);
       expect(r.code).toBe("duplicate_invite");
-      // h_t588_r2 MAJOR-1: copy states the no-revoke limitation (route layer tests via teamsInvitationsRoute; EN+ZH pinned by INVITE_MESSAGES completeness test below).
+      // h_t588_r3 MAJOR-1: 409 mapping only. Exact EN+ZH duplicate_invite literals are pinned
+      // in "duplicate_invite EN/ZH states the no-revoke limitation" below — not here, and not
+      // by the INVITE_MESSAGES completeness test (non-empty/distinct/banned-word only).
     }
   });
 });
@@ -505,6 +507,16 @@ describe("INVITE_MESSAGES plain-word completeness (acceptance #6)", () => {
       // the banned-vocabulary law is about internal slugs/state names/status codes, not this.
       expect(en).not.toMatch(/\b\d{3}\b/);
     }
+  });
+
+  it("duplicate_invite EN/ZH states the no-revoke limitation", () => {
+    const [en, zh] = INVITE_MESSAGES.duplicate_invite;
+    expect(en).toBe(
+      "There is already a pending invitation for this email address. Its link cannot be shown or regenerated; wait for it to expire or invite a different address.",
+    );
+    expect(zh).toBe(
+      "该邮箱地址已有一份待处理的邀请。其链接无法再次显示或重新生成；请等待其过期，或邀请另一个地址。",
+    );
   });
 });
 
