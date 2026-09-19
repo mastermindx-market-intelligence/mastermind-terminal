@@ -32,7 +32,8 @@ describe("0024 brief subscriptions ledger contract", () => {
     expect(row.file).toBe(FILE);
     expect(row.packet).toBe("B-F11-7");
     expect(row.pr).toBe(579);
-    expect(row.pr_state).toBe("open");
+    expect(row.pr_state).toBe("merged");
+    expect(row.merged_sha).toBe("82bee14ba");
     expect(row.applied_in_production).toBe(false);
     expect(row.applied_date).toBeNull();
   });
@@ -70,11 +71,11 @@ describe("0024 brief subscriptions ledger contract", () => {
     expect(sql).toMatch(/-- readback:/);
   });
 
-  it("README carries 0024 as open and not applied", () => {
+  it("README carries 0024 as merged and not applied", () => {
     const readme = readFileSync(readmePath, "utf8");
     const resRow = readme.split("\n").find((line) => line.startsWith("| `0024` |"));
     expect(resRow, "reservations table is missing the 0024 row").toBeTruthy();
     expect(resRow!).toContain("B-F11-7");
-    expect(resRow!).toMatch(/open — not applied/);
+    expect(resRow!).toMatch(/merged — not applied/);
   });
 });
