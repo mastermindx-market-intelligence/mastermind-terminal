@@ -1,9 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { flowGet } from "@/lib/flowClientCache";
+import { flowGet, flowGetFresh } from "@/lib/flowClientCache";
 import { useLang, type Lang } from "@/lib/i18n";
 import { makeProphetT } from "./prophetStrings";
+import {
+  normalizeOptionsAlphaMeasuredFeed,
+  type OptionsAlphaMeasuredFeed,
+  type OptionsAlphaMeasuredEvent,
+} from "./optionsAlphaMeasuredEvidence";
 import {
   OPTIONS_ALPHA_OUTCOME_HORIZONS,
   normalizeOptionsAlphaPayload,
@@ -44,6 +49,11 @@ function fmtNorm(value: number | null): string {
   if (absolute >= 100) return value.toFixed(0);
   if (absolute >= 1) return value.toFixed(2);
   return value.toPrecision(3);
+}
+
+function fmtPct(value: number | null): string {
+  if (value == null) return "—";
+  return `${(value * 100).toFixed(1)}%`;
 }
 
 function exactClock(value: string | null, t: T): string {
@@ -437,10 +447,143 @@ function Guardrails({ payload, lang, t }: { payload: OptionsAlphaPayload; lang: 
   );
 }
 
+
+function measuredCopy(lang: Lang) {
+  return lang === "zh" ? {
+    title: "实测资金流证据",
+    note: "成交位置与 NBBO 覆盖率仅为实测背景，不代表买方身份、客户意图、方向概率或交易评分。",
+    unavailable: "当前快照没有可用的实测 NBBO 事件。",
+    sourceClock: "来源时间",
+    buildClock: "快照时间",
+    coverage: "NBBO 权利金覆盖",
+    prints: "有效报价成交",
+    atAsk: "成交于卖价",
+    atBid: "成交于买价",
+    inside: "价差内成交",
+    outside: "报价外成交",
+    spread: "中位价差",
+    quoteAge: "中位报价时延",
+    volOi: "成交量 / 前一日 OI",
+    available: "可用时间",
+    contract: "精确合约",
+    recent: "按可用时间显示最近事件，不按分数排序",
+    loadFailed: "实测资金流来源暂不可用；研究影子数据仍可独立显示。",
+  } : {
+    title: "Measured flow evidence",
+    note: "Trade location and NBBO coverage are measured context only — not buyer identity, customer intent, directional probability, or a trading score.",
+    unavailable: "No measured NBBO events are available in this snapshot.",
+    sourceClock: "Source as of",
+    buildClock: "Snapshot as of",
+    coverage: "NBBO premium coverage",
+    prints: "Valid-NBBO prints",
+    atAsk: "At ask",
+    atBid: "At bid",
+    inside: "Inside spread",
+    outside: "Outside quote",
+    spread: "Median spread",
+    quoteAge: "Median quote age",
+    volOi: "Volume / prior OI",
+    available: "Available at",
+    contract: "Exact contract",
+    recent: "Latest by availability; not ranked or scored",
+    loadFailed: "Measured-flow source is unavailable; the research shadow view remains independent.",
+  };
+}
+
+function MeasuredEvidenceCard({
+  event,
+  lang,
+}: {
+  event: OptionsAlphaMeasuredEvent;
+  lang: Lang;
+}) {
+  const copy = measuredCopy(lang);
+  const micro = event.microstructure;
+  const contract = event.root + " " + event.right + " " + fmtNumber(event.strike, 3)
+    + " · " + fmtDate(event.expiration, lang);
+  const printCoverage = String(micro.nbbo_valid_print_count) + "/" + String(micro.source_print_count);
+  return (
+    <article className="obs-card obs-options-alpha-candidate" data-testid="options-alpha-measured-event">
+      <div className="obs-options-alpha-candidate-head">
+        <strong>{event.root}</strong>
+        <span className="obs-tag" style={{ "--c": "var(--muted)" } as React.CSSProperties}>
+          {lang === "zh" ? "实测" : "Measured"}
+        </span>
+      </div>
+      <div className="obs-options-alpha-candidate-meta">
+        <span>{copy.contract} {contract}</span>
+      </div>
+      <div className="obs-options-alpha-metrics">
+        <Metric label={copy.coverage} value={fmtPct(micro.nbbo_premium_coverage)} />
+        <Metric label={copy.prints} value={printCoverage} />
+        <Metric label={copy.atAsk} value={fmtPct(micro.at_ask_share)} />
+        <Metric label={copy.atBid} value={fmtPct(micro.at_bid_share)} />
+        <Metric label={copy.inside} value={fmtPct(micro.inside_share)} />
+        <Metric label={copy.outside} value={fmtPct(micro.outside_share)} />
+        <Metric
+          label={copy.spread}
+          value={micro.spread_median_usd == null ? "—" : "$" + fmtNumber(micro.spread_median_usd, 3)}
+        />
+        <Metric
+          label={copy.quoteAge}
+          value={micro.quote_age_median_ms == null ? "—" : fmtNumber(micro.quote_age_median_ms, 0) + " ms"}
+        />
+        <Metric label={copy.volOi} value={event.vol_gt_oi_ratio == null ? "—" : fmtNumber(event.vol_gt_oi_ratio, 2) + "×"} />
+      </div>
+      <div className="obs-options-alpha-clocks">
+        <div>
+          <span>{copy.available}</span>
+          <time dateTime={event.available_at}>{event.available_at}</time>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function MeasuredEvidenceSection({
+  feed,
+  failed,
+  lang,
+}: {
+  feed: OptionsAlphaMeasuredFeed | null;
+  failed: boolean;
+  lang: Lang;
+}) {
+  const copy = measuredCopy(lang);
+  const visible = feed?.events.slice(0, 6) ?? [];
+  return (
+    <section className="obs-options-alpha-section" data-testid="options-alpha-measured-evidence">
+      <div className="obs-options-alpha-section-head">
+        <div>
+          <h3>{copy.title}</h3>
+          <small>{copy.recent}</small>
+        </div>
+        <span>{visible.length}</span>
+      </div>
+      <p className="obs-options-alpha-footnote">{copy.note}</p>
+      {feed && (
+        <div className="obs-options-alpha-accrual-events">
+          <Metric label={copy.sourceClock} value={feed.source_asof ?? "—"} />
+          <Metric label={copy.buildClock} value={feed.asof ?? "—"} />
+        </div>
+      )}
+      {visible.length > 0 ? (
+        <div className="obs-options-alpha-candidate-grid">
+          {visible.map((event) => <MeasuredEvidenceCard key={event.id} event={event} lang={lang} />)}
+        </div>
+      ) : (
+        <p className="obs-options-alpha-empty">{failed ? copy.loadFailed : copy.unavailable}</p>
+      )}
+    </section>
+  );
+}
+
 export function OptionsAlphaView() {
   const { lang } = useLang();
   const t = makeProphetT(lang);
   const [payload, setPayload] = useState<OptionsAlphaPayload | null>(null);
+  const [measuredFeed, setMeasuredFeed] = useState<OptionsAlphaMeasuredFeed | null>(null);
+  const [measuredError, setMeasuredError] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -458,11 +601,25 @@ export function OptionsAlphaView() {
     }
   }, []);
 
+  const fetchMeasured = useCallback(async () => {
+    try {
+      const normalized = normalizeOptionsAlphaMeasuredFeed(await flowGetFresh("feed"));
+      if (!normalized) throw new Error("invalid measured-flow feed");
+      setMeasuredFeed(normalized);
+      setMeasuredError(false);
+    } catch {
+      setMeasuredError(true);
+    }
+  }, []);
+
   useEffect(() => {
-    // Initializing the external evidence feed is the purpose of this effect.
+    // Initializing the external evidence feeds is the purpose of this effect.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchData();
-  }, [fetchData]);
+    fetchMeasured();
+    const timer = window.setInterval(fetchMeasured, 30_000);
+    return () => window.clearInterval(timer);
+  }, [fetchData, fetchMeasured]);
 
   if (loading && !payload) return <div className="obs-options-alpha-state">{t("loading")}</div>;
   if (error && !payload) {
@@ -527,6 +684,8 @@ export function OptionsAlphaView() {
             </div>
           ) : <p className="obs-options-alpha-empty">{t("optionsNoFires")}</p>}
         </section>
+
+        <MeasuredEvidenceSection feed={measuredFeed} failed={measuredError} lang={lang} />
 
         <AccrualSection payload={payload} lang={lang} t={t} />
 
