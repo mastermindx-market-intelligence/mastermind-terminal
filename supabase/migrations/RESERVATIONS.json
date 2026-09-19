@@ -254,19 +254,19 @@
       "pr": 579,
       "pr_state": "merged",
       "merged_sha": "82bee14b",
-      "applied_in_production": false,
-      "applied_date": null,
-      "note": "packet B-F11-7 recurring briefs (MO-PAID-032 Terminal half). Merged to master in pull request 579. The migration still ships unapplied; the seat applies with a receipt after 0023 in ledger order. applied_in_production is false and applied_date is null because there is no application yet, never because a real date was lost and not recorded."
+      "applied_in_production": true,
+      "applied_date": "2026-09-19",
+      "note": "packet B-F11-7 recurring briefs (MO-PAID-032 Terminal half). Merged to master in pull request 579. The migration still ships unapplied; the seat applies with a receipt after 0023 in ledger order. applied_in_production is false and applied_date is null because there is no application yet, never because a real date was lost and not recorded. Applied in production 2026-09-19T05:00:54Z by the seat with scripts/supabase_apply.py (17/17 statements ok; receipt ddl/receipt_0024.json in the seat handoff kit; direct catalog readback confirmed both tables, RLS, 7 policies, indexes brief_subscriptions_user + brief_deliveries_slot)."
     },
     "0025": {
-      "state": "reserved",
-      "file": null,
-      "packet": "B-F12-10",
-      "pr": null,
-      "pr_state": null,
+      "state": "taken",
+      "file": "0025_thesis_amendment_proposals.sql",
+      "packet": "B-F11-5",
+      "pr": 577,
+      "pr_state": "open",
       "applied_in_production": false,
       "applied_date": null,
-      "note": "Seat ruling h_t581 2026-09-18: #579 owns 0024, #577 owns 0025, #582 owns 0026, #581 owns 0027."
+      "note": "packet B-F11-5 thesis amendment proposals (MO-PAID-054 write-back). Shipped UNAPPLIED; the seat applies after merge. Prefix 0025 is ruled by seat 026851bd (2026-09-18T23:40Z). applied_in_production is false and applied_date is null because there is no application yet — the date is not recorded, never because a real date was lost. Open draft PR #577."
     },
     "0026": {
       "state": "reserved",
@@ -283,10 +283,11 @@
       "file": "0027_api_keys.sql",
       "packet": "B-F12-10",
       "pr": 581,
-      "pr_state": "open",
-      "applied_in_production": false,
-      "applied_date": null,
-      "note": "personal read-only API keys (packet B-F12-10, MO-PAID-055). Seat ruling h_t581 2026-09-18: #579 owns 0024, #577 owns 0025, #582 owns 0026, #581 owns 0027. Shipped UNAPPLIED — applied_in_production is false and applied_date is null, not recorded because there is no application yet."
+      "pr_state": "merged",
+      "applied_in_production": true,
+      "applied_date": "2026-09-19",
+      "note": "personal read-only API keys (packet B-F12-10, MO-PAID-055). Seat ruling h_t581 2026-09-18: #579 owns 0024, #577 owns 0025, #582 owns 0026, #581 owns 0027. Shipped UNAPPLIED — applied_in_production is false and applied_date is null, not recorded because there is no application yet. Seat 2026-09-19: PR #581 merged (squash c9381593, 04:58Z); applied in production 2026-09-19T05:02:24Z with scripts/supabase_apply.py (46/46 statements ok; receipt ddl/receipt_0027.json in the seat handoff kit; direct catalog readback confirmed api_keys/api_key_events/api_key_usage with RLS, indexes api_keys_user_active + api_key_events_user, triggers api_keys_active_limit/api_keys_audit/api_keys_no_unrevoke, and all 7 functions).",
+      "merged_sha": "c9381593"
     }
   }
 }

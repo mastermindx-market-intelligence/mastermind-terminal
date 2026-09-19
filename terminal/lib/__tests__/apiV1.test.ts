@@ -480,16 +480,17 @@ describe("0027 api keys ledger contract", () => {
   const row = reservationRow(PREFIX);
   const sql = readMigration(FILE);
 
-  it("claims prefix 0027 in RESERVATIONS.json as taken by PR 581 and not yet applied", () => {
+  it("claims prefix 0027 in RESERVATIONS.json as taken by PR 581, merged and applied 2026-09-19", () => {
     // MAJOR-3: state is "taken" (a real file exists on the branch), not "reserved".
     // RULING: 0027 owned by #581, state=taken.
     expect(row.state).toBe("taken");
     expect(row.file).toBe(FILE);
     expect(row.packet).toBe("B-F12-10");
     expect(row.pr).toBe(581);
-    expect(row.pr_state).toBe("open");
-    expect(row.applied_in_production).toBe(false);
-    expect(row.applied_date).toBeNull();
+    expect(row.pr_state).toBe("merged");
+    expect(row.merged_sha).toBe("c9381593");
+    expect(row.applied_in_production).toBe(true);
+    expect(row.applied_date).toBe("2026-09-19");
   });
 
   it("ships the .sql file the row names", () => {
@@ -507,12 +508,12 @@ describe("0027 api keys ledger contract", () => {
     expect(ledgerRowHeaderLine(sql)).toBe(ledgerHeaderLineFromRow(row));
   });
 
-  it("README reservations table names 0027 as open and not applied", () => {
+  it("README reservations table names 0027 as merged and applied", () => {
     const readme = readFileSync(readmePath, "utf8");
     const resRow = readme.split("\n").find((line) => line.startsWith("| `0027` |"));
     expect(resRow).toBeTruthy();
     expect(resRow!).toContain("B-F12-10");
-    expect(resRow!.toLowerCase()).toMatch(/not applied/);
+    expect(resRow!.toLowerCase()).toMatch(/merged \+ applied 2026-09-19/);
   });
 
   // MINOR-2 fix: independently assert pr=581 and file prefix 0027, not just self-agreement
