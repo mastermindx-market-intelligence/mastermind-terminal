@@ -59,15 +59,15 @@ export const TOP = [
 // useSearchParams() forces a CSR bailout during static prerender; the primary nav no longer
 // reads params (active key is pure path-prefix), but the Suspense boundary is retained so the
 // nav keeps rendering a stable fallback while the shell hydrates.
-export function AppNav() {
+export function AppNav({ intentPrefetch = false }: { intentPrefetch?: boolean } = {}) {
   return (
     <Suspense fallback={<nav className="appnav" aria-label="Primary" />}>
-      <AppNavInner />
+      <AppNavInner intentPrefetch={intentPrefetch} />
     </Suspense>
   );
 }
 
-function AppNavInner() {
+function AppNavInner({ intentPrefetch }: { intentPrefetch: boolean }) {
   const path = usePathname();
   const router = useRouter();
   const t = useT();
@@ -87,10 +87,16 @@ function AppNavInner() {
     <nav className="appnav" aria-label="Primary">
       {TOP.map((it) => {
         const on = it.k === activeKey;
+        const href = navHref(it, activeSymbol, path);
+        const prefetchOnIntent = intentPrefetch ? () => router.prefetch(href) : undefined;
         return (
           <Tip key={it.k} label={t(it.k, it.label)} side="right" size="mini">
             <Link
-              href={navHref(it, activeSymbol, path)}
+              href={href}
+              prefetch={intentPrefetch ? false : undefined}
+              onMouseEnter={prefetchOnIntent}
+              onFocus={prefetchOnIntent}
+              onTouchStart={prefetchOnIntent}
               onClick={path.startsWith("/terminal") && it.k === "chart" ? () => window.dispatchEvent(new CustomEvent("mm:close-pane")) : undefined}
               className={`navbtn${on ? " on" : ""}`}
               aria-current={on ? "page" : undefined}
