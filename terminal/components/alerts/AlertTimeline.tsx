@@ -2,6 +2,7 @@
 import s from "./alerts.module.css";
 import { pick } from "@/lib/finFormat";
 import { copy, type DeliveryState } from "@/lib/alertsView";
+import { verdictLabel } from "@/lib/plainLabels";
 
 export interface TimelineRow {
   id: string; time: string; subject: string; verdict: string;
@@ -42,7 +43,7 @@ export default function AlertTimeline({
             <span className={s.dot} />
             <span className={s.time}>{r.time}</span>
             <span className={s.subject}>{r.subject}</span>
-            <span className={s.verdict}>{r.verdict}</span>
+            <span className={s.verdict}>{verdictLabel(r.verdict, lang === "zh" ? "zh" : "en")}</span>
             <span className={`${s.chip} ${CHIP_CLASS[r.delivery]}`}>{copy(`delivery.${r.delivery}`, lang)}</span>
             {r.foldedRows > 0 && <span className={s.moduleCount}>{copy("folded.note", lang, { n: r.foldedRows })}</span>}
           </div>

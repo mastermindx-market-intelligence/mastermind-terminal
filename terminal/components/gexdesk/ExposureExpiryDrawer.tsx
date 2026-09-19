@@ -133,7 +133,7 @@ export function ExposureExpiryDrawer({ byExpiry, greek, asOf, lang }: Props) {
 // (plain <text>) with values also shown as node labels so the read never depends on font
 // metrics. Colours via var(--up)/var(--down) (East-Asian flip aware) — no direction hex.
 
-function BubbleField({ ts }: { ts: ReturnType<typeof byExpiryToTermStructure> }) {
+function BubbleField({ ts, t }: { ts: ReturnType<typeof byExpiryToTermStructure>; t: ReturnType<typeof makeGexT> }) {
   // Give every expiry a real slot. A fixed 680px viewBox put 20–30 labels on top of
   // one another; this expands horizontally and lets the drawer scroll instead.
   const slotW = 68;
@@ -163,7 +163,7 @@ function BubbleField({ ts }: { ts: ReturnType<typeof byExpiryToTermStructure> })
           container's 204px, so every bubble rendered as a 7%-tall ellipse and the value
           labels were sheared. The field still scrolls horizontally at its natural width. */}
       <svg viewBox={`0 0 ${W} ${H}`} width={W} height={H} style={{ display: "block" }} role="img"
-        aria-label="Exposure by expiry term structure">
+        aria-label={t("exposureByExpiry")}>
         {/* Quiet horizontal guides keep positive/negative distance legible. */}
         {[0.25, 0.75].map((p) => (
           <line key={p} x1={padL} y1={padT + plotH * p} x2={W - padR} y2={padT + plotH * p}

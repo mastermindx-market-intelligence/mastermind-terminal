@@ -11,6 +11,7 @@ import "../../app/company-intelligence.css";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLang } from "../../lib/i18n";
 import { fmtDate, pick } from "../../lib/finFormat";
+import { topicStatusLabel } from "../../lib/plainLabels";
 import {
   getCompanyIntelligence,
   type CompanyIntelligenceContext,
@@ -614,7 +615,7 @@ export default function CompanyIntelligencePage({ sym, name, onOpenTx, onEvidenc
             <section className="ci-lens-panel">
               <div className="ci-lens-heading"><div><span className="fin-eyebrow">{pick(zh, "TOPIC MEMORY", "主题记忆")}</span><h3>{pick(zh, "What entered, persisted, or dropped", "新增、延续与退出的主题")}</h3></div><span>{activeContext.topics.timeline.length} {pick(zh, "tracked", "个追踪主题")}</span></div>
               {activeContext.topics.timeline.length ? (
-                <ul className="ci-topic-list">{activeContext.topics.timeline.map((topic) => <li key={topic.tag}><span className={`ci-topic-status ${topic.status}`} aria-hidden /><div><strong>{topicTagLabel(topic.tag, zh)}</strong></div><span className="fin-tag" style={{ "--c": topic.status === "added" ? "var(--up)" : topic.status === "dropped" ? "var(--down)" : "var(--brand-2)" } as React.CSSProperties}>{topicStateLabel(topic.status, zh)}</span><b className="num">{topic.event_count}</b></li>)}</ul>
+                <ul className="ci-topic-list">{activeContext.topics.timeline.map((topic) => <li key={topic.tag}><span className={`ci-topic-status ${topic.status}`} aria-hidden /><div><strong>{topicTagLabel(topic.tag, zh)}</strong></div><span className="fin-tag" style={{ "--c": topic.status === "added" ? "var(--up)" : topic.status === "dropped" ? "var(--down)" : "var(--brand-2)" } as React.CSSProperties}>{topicStatusLabel(topic.status, zh ? "zh" : "en")}</span><b className="num">{topic.event_count}</b></li>)}</ul>
               ) : (
                 <EmptyState title={pick(zh, "No repeated topics yet", "暂无重复主题")} why={pick(zh, "The structured history does not yet contain enough tagged events to establish a topic timeline.", "结构化历史中的标记事件尚不足以形成主题时间线。")} />
               )}

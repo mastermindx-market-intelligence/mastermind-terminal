@@ -16,6 +16,7 @@ type FlowLang = "en" | "zh";
 const LEX = {
   connected: ["Connected", "已连接"],
   timingUnavailable: ["Timing unavailable", "时间信息不可用"],
+  liveFlowTimingUnavailable: ["live_flow.meta/v2 timing clocks unavailable", "live_flow.meta/v2 计时时钟不可用"],
   marketClosed: ["Market closed", "市场休市"],
   lastSession: ["Last session", "上一交易时段"],
   snapshot: ["Snapshot", "快照"],
@@ -84,7 +85,7 @@ export function FlowFreshnessReceipt({
       data-flow-session={sessionState}
       title={parsed
         ? `snapshot ${parsed.snapshotAt}; source responses ${parsed.sourceResponseAtFirst} — ${parsed.sourceResponseAtLast}`
-        : "live_flow.meta/v2 timing clocks unavailable"}
+        : word("liveFlowTimingUnavailable", lang)}
     >
       {connected && (
         <span className="flow-freshness-item flow-freshness-connected" data-flow-transport="connected">
