@@ -1516,7 +1516,7 @@ export default function OptionsHubView({
 
   // Tabs the hub is permitted to render. `tickers` is always reachable when
   // leaders/radar are allowed so their row → ticker-drill cross-jump survives
-  // (those tables call switchTab("tickers") + setSelectedTicker internally).
+  // (those tables call switchTab("tickers") + openTicker internally).
   const renderableTabs = useMemo<Set<TabKey>>(() => {
     if (!allowedTabs) return new Set<TabKey>(TABS.map((tb) => tb.key));
     const s = new Set<TabKey>(allowedTabs);
@@ -1870,26 +1870,6 @@ export default function OptionsHubView({
     () => rootCatalog?.filter((row) => row.activityRank !== null).length ?? 0,
     [rootCatalog],
   );
-  const selectedTickerCoverageState = selectedTickerCatalog
-    ? (selectedTickerCatalog.hasSessionData ? "data" : "empty")
-    : "unknown";
-
-  // Fetch only when an artifact can exist. A catalog row with no accumulated
-  // session data is already an authoritative empty state; probing its absent
-  // ticker object would manufacture a noisy 404 without adding information.
-  // The existing vol useEffect below remains independent and may still provide
-  // nightly volatility context for the selected covered root.
-  useEffect(() => {
-    if (!selectedTicker) return;
-    if (selectedTickerCoverageState === "empty") {
-      setTickerData(null);
-      setTickerLoading(false);
-    } else {
-      void fetchTicker(selectedTicker);
-    }
-    setSelectedVolRoot(selectedTicker);
-  }, [fetchTicker, selectedTicker, selectedTickerCoverageState]);
-
   // ── Screener fetch ────────────────────────────────────────────────────────
   const [oiData, setOiData] = useState<OiMoversPayload | null>(null);
   const [hotData, setHotData] = useState<HotPayload | null>(null);
@@ -2076,6 +2056,22 @@ export default function OptionsHubView({
   useEffect(() => {
     if (selectedVolRoot) fetchVol(selectedVolRoot);
   }, [selectedVolRoot, fetchVol]);
+
+  // One selection entry point keeps the existing cross-tab drill-ins and the
+  // catalog rail on the same fetch law. Known-empty catalog roots render their
+  // authoritative state directly; roots that can own an artifact use the
+  // established ticker flow path. Volatility context remains independently lazy.
+  const openTicker = useCallback((root: string) => {
+    const catalogEntry = rootCatalog?.find((entry) => entry.root === root) ?? null;
+    setSelectedTicker(root);
+    if (catalogEntry && !catalogEntry.hasSessionData) {
+      setTickerData(null);
+      setTickerLoading(false);
+    } else {
+      void fetchTicker(root);
+    }
+    setSelectedVolRoot(root);
+  }, [fetchTicker, rootCatalog]);
 
   // ── Hub context (ctx) fetch — consumed by Tide + GEX tabs, lazy on activate ──
   const [ctxData, setCtxData] = useState<CtxPayload | null>(null);
@@ -2760,7 +2756,7 @@ export default function OptionsHubView({
               unavailable={Boolean(fetchError && !feed)}
               onOpenTicker={(root) => {
                 switchTab("tickers");
-                setSelectedTicker(root);
+                openTicker(root);
               }}
             />
           )}
@@ -3081,7 +3077,7 @@ export default function OptionsHubView({
                       <button
                         key={root}
                         aria-label={lang === "zh" ? `打开 ${root} 期权详情` : `Open ${root} ticker drill`}
-                        onClick={() => { if (tickerSearch.trim()) trackSearch(root, "flow-tickers", tickerSearch.trim()); setSelectedTicker(root); }}
+                        onClick={() => { if (tickerSearch.trim()) trackSearch(root, "flow-tickers", tickerSearch.trim()); openTicker(root); }}
                         style={{
                           display: "flex", alignItems: "center", gap: 8,
                           width: "100%", padding: "8px 12px", textAlign: "left",
@@ -3635,7 +3631,7 @@ export default function OptionsHubView({
                           {rows.map((u) => (
                             <tr key={u.root}
                               style={{ cursor: "pointer" }}
-                              onClick={() => { switchTab("tickers"); setSelectedTicker(u.root); }}
+                              onClick={() => { switchTab("tickers"); openTicker(u.root); }}
                             >
                               <td style={{ textAlign: "left", fontWeight: 700 }}>{u.root}</td>
                               <td style={{ textAlign: "left", color: "var(--text-2)", fontSize: 11 }}>
@@ -3696,7 +3692,7 @@ export default function OptionsHubView({
                           {rows.map((u) => {
                             const absZ = Math.abs(u.prem_z ?? 0);
                             return (
-                              <tr key={u.root} style={{ cursor: "pointer" }} onClick={() => { switchTab("tickers"); setSelectedTicker(u.root); }}>
+                              <tr key={u.root} style={{ cursor: "pointer" }} onClick={() => { switchTab("tickers"); openTicker(u.root); }}>
                                 <td style={{ textAlign: "left", fontWeight: 700 }}>{u.root}</td>
                                 <td style={{ textAlign: "left", color: "var(--text-2)", fontSize: 11 }}>
                                   {lang === "zh" ? u.group_zh : abbrevSector(u.group)}
@@ -3752,7 +3748,7 @@ export default function OptionsHubView({
                         </thead>
                         <tbody>
                           {rows.map((r) => (
-                            <tr key={r.root} style={{ cursor: "pointer" }} onClick={() => { switchTab("tickers"); setSelectedTicker(r.root); }}>
+                            <tr key={r.root} style={{ cursor: "pointer" }} onClick={() => { switchTab("tickers"); openTicker(r.root); }}>
                               <td style={{ textAlign: "left", fontWeight: 700 }}>{r.root}</td>
                               <td style={{ textAlign: "left", color: "var(--text-2)", fontSize: 11 }}>
                                 {lang === "zh" ? r.group_zh : abbrevSector(r.group)}
@@ -3807,7 +3803,7 @@ export default function OptionsHubView({
                           {rows.map((m, i) => {
                             const isAdd = m.d_oi > 0;
                             return (
-                              <tr key={i} style={{ cursor: "pointer" }} onClick={() => { switchTab("tickers"); setSelectedTicker(m.root); }}>
+                              <tr key={i} style={{ cursor: "pointer" }} onClick={() => { switchTab("tickers"); openTicker(m.root); }}>
                                 <td style={{ textAlign: "left", fontWeight: 700 }}>{m.root}</td>
                                 <td style={{ textAlign: "left" }}>
                                   <span style={{ color: m.right === "C" ? "var(--up)" : "var(--down)", fontWeight: 700 }}>{m.right}</span>
@@ -3861,7 +3857,7 @@ export default function OptionsHubView({
                         </thead>
                         <tbody>
                           {rows.map((r) => (
-                            <tr key={r.root} style={{ cursor: "pointer" }} onClick={() => { switchTab("tickers"); setSelectedTicker(r.root); }}>
+                            <tr key={r.root} style={{ cursor: "pointer" }} onClick={() => { switchTab("tickers"); openTicker(r.root); }}>
                               <td style={{ textAlign: "left", fontWeight: 700 }}>{r.root}</td>
                               <td style={{ textAlign: "left", color: "var(--text-2)", fontSize: 11 }}>
                                 {lang === "zh" ? r.group_zh : abbrevSector(r.group)}
@@ -3925,7 +3921,7 @@ export default function OptionsHubView({
                       </thead>
                       <tbody>
                         {hotRows.map((c, i) => (
-                          <tr key={i} style={{ cursor: "pointer" }} onClick={() => { switchTab("tickers"); setSelectedTicker(c.root); }}>
+                          <tr key={i} style={{ cursor: "pointer" }} onClick={() => { switchTab("tickers"); openTicker(c.root); }}>
                             <td style={{ textAlign: "left", fontWeight: 700 }}>{c.root}</td>
                             <td style={{ textAlign: "left" }}>
                               <span style={{ color: c.right === "C" ? "var(--up)" : "var(--down)", fontWeight: 700 }}>{c.right}</span>
@@ -4216,7 +4212,7 @@ export default function OptionsHubView({
                                   style={{ cursor: "pointer" }}
                                   onClick={() => {
                                     switchTab("tickers");
-                                    setSelectedTicker(row.ticker);
+                                    openTicker(row.ticker);
                                   }}
                                 >
                                   {/* Ticker */}
@@ -4604,7 +4600,7 @@ export default function OptionsHubView({
                                       style={{ cursor: "pointer" }}
                                       onClick={() => {
                                         switchTab("tickers");
-                                        setSelectedTicker(row.ticker);
+                                        openTicker(row.ticker);
                                       }}
                                     >
                                       {/* Ticker + state chip */}
@@ -4775,7 +4771,7 @@ export default function OptionsHubView({
                                   style={{ cursor: "pointer" }}
                                   onClick={() => {
                                     switchTab("tickers");
-                                    setSelectedTicker(rr.ticker);
+                                    openTicker(rr.ticker);
                                   }}
                                 >
                                   <td style={{ fontWeight: 700 }}>{rr.ticker}</td>
