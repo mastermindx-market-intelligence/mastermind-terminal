@@ -5,6 +5,7 @@ import {
   scenarioGrid,
   r5DteBucket,
   r5Stage0Alignment,
+  r5EmpiricalExpectation,
   emFrame,
   topology,
   expiryConcentration,
@@ -338,6 +339,95 @@ describe("R5 Stage 0 scenario-conditioned alignment", () => {
     expect(() => r5Stage0Alignment(rows, ASOF, { ...scenario, materialityMn: -1 })).toThrow(/non-negative/);
     expect(() => r5Stage0Alignment(rows, ASOF, { ...scenario, positionTier: " " })).toThrow(/declared/);
     expect(() => r5Stage0Alignment(rows, "not-a-date", scenario)).toThrow(/valid YYYY-MM-DD/);
+  });
+});
+
+describe("R5 empirical probability weighting", () => {
+  const ASOF = "2026-09-18T20:00:00Z";
+  const rows: MscExpiryRow[] = [
+    { exp: "2026-09-19", gamma_net: 10, vanna_net: 4, charm_net: 1 },
+  ];
+  const expectation = {
+    dtDays: 1,
+    materialityMn: 1,
+    positionTier: "naive_dealer_long_calls_short_puts/v1",
+  };
+
+  it("reproduces exact weighted scenario arithmetic when all mass is supported", () => {
+    const got = r5EmpiricalExpectation(rows, ASOF, [
+      { spot_pct: 1, vol_pts: 2, empirical_weight: 0.5 },
+      { spot_pct: -1, vol_pts: -2, empirical_weight: 0.5 },
+    ], expectation);
+
+    expect(got.distributionWeight).toBeCloseTo(1);
+    expect(got.supportedWeight).toBeCloseTo(1);
+    expect(got.unsupportedWeight).toBeCloseTo(0);
+    expect(got.tailRenormalized).toBe(false);
+
+    // Gamma and vanna cancel across the symmetric shock pair; charm is -1 in
+    // both scenarios. Because all probability mass is supported, conditional
+    // and full-distribution expectations are identical.
+    expect(got.wholeBook.conditionalExpectedGammaFlowMn).toBeCloseTo(0, 10);
+    expect(got.wholeBook.conditionalExpectedVannaFlowMn).toBeCloseTo(0, 10);
+    expect(got.wholeBook.conditionalExpectedCharmFlowMn).toBeCloseTo(-1, 10);
+    expect(got.wholeBook.conditionalExpectedTotalFlowMn).toBeCloseTo(-1, 10);
+    expect(got.wholeBook.fullExpectedTotalFlowMn).toBeCloseTo(-1, 10);
+    expect(got.wholeBook.alignmentMass.aligned_negative).toBeCloseTo(0.5);
+    expect(got.wholeBook.alignmentMass.aligned_positive).toBeCloseTo(0.5);
+    expect(got.outcomeLabelsOpened).toBe(false);
+  });
+
+  it("keeps unsupported empirical tail mass explicit and nulls full expectation", () => {
+    const got = r5EmpiricalExpectation(rows, ASOF, [
+      { spot_pct: 1, vol_pts: 2, empirical_weight: 0.75 },
+      { spot_pct: 4, vol_pts: 1, empirical_weight: 0.25 },
+    ], expectation);
+
+    expect(got.supportedWeight).toBeCloseTo(0.75);
+    expect(got.unsupportedWeight).toBeCloseTo(0.25);
+    expect(got.tailRenormalized).toBe(false);
+    expect(got.wholeBook.conditionalExpectedTotalFlowMn).not.toBeNull();
+    expect(got.wholeBook.fullExpectedGammaFlowMn).toBeNull();
+    expect(got.wholeBook.fullExpectedVannaFlowMn).toBeNull();
+    expect(got.wholeBook.fullExpectedCharmFlowMn).toBeNull();
+    expect(got.wholeBook.fullExpectedTotalFlowMn).toBeNull();
+    expect(got.wholeBook.alignmentMass.aligned_negative).toBeCloseTo(0.75);
+  });
+
+  it("preserves missing Greek coverage inside supported probability mass", () => {
+    const missingVanna: MscExpiryRow[] = [
+      { exp: "2026-09-19", gamma_net: 10, charm_net: 1 },
+    ];
+    const got = r5EmpiricalExpectation(missingVanna, ASOF, [
+      { spot_pct: 1, vol_pts: 2, empirical_weight: 1 },
+    ], expectation);
+
+    expect(got.wholeBook.missingVannaWeight).toBeCloseTo(1);
+    expect(got.wholeBook.missingTotalWeight).toBeCloseTo(1);
+    expect(got.wholeBook.conditionalExpectedVannaFlowMn).toBeNull();
+    expect(got.wholeBook.conditionalExpectedTotalFlowMn).toBeNull();
+    expect(got.wholeBook.alignmentMass.unavailable).toBeCloseTo(1);
+  });
+
+  it("refuses malformed probability laws instead of normalizing them silently", () => {
+    expect(() => r5EmpiricalExpectation(rows, ASOF, [
+      { spot_pct: 1, vol_pts: 1, empirical_weight: 0.8 },
+    ], expectation)).toThrow(/sum to 1/);
+
+    expect(() => r5EmpiricalExpectation(rows, ASOF, [
+      { spot_pct: 1, vol_pts: 1, empirical_weight: 0 },
+      { spot_pct: -1, vol_pts: -1, empirical_weight: 1 },
+    ], expectation)).toThrow(/positive/);
+  });
+
+  it("keeps absent DTE buckets absent under the weighted law", () => {
+    const got = r5EmpiricalExpectation(rows, ASOF, [
+      { spot_pct: 1, vol_pts: 1, empirical_weight: 1 },
+    ], expectation);
+    const far = got.buckets.find((row) => row.bucket === "91D+")!;
+    expect(far.present).toBe(false);
+    expect(far.conditionalExpectedTotalFlowMn).toBeNull();
+    expect(far.missingTotalWeight).toBeCloseTo(1);
   });
 });
 
