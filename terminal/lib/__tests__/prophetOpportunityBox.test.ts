@@ -82,4 +82,15 @@ describe("Prophet opportunity box", () => {
     expect(html).not.toContain("obs-prophet-entry-zone");
     expect(html).not.toContain("$48.52");
   });
+
+  it("does not override a HOLD action with an unfilled historical entry band", () => {
+    const html = render({
+      ...BASE,
+      phase: "triggered_pre_t1",
+      recommended_action: "hold",
+      entry_zone_state: { state: "live", stance: "wait", sessions_remaining: 6 },
+    }, "en");
+    expect(html).not.toContain("obs-prophet-entry-zone");
+    expect(html).not.toContain("Opportunity box");
+  });
 });

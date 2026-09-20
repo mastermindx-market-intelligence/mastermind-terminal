@@ -264,7 +264,10 @@ function entryZoneView(plan: PlanSummary, lang: Lang): {
   const state = plan.entry_zone_state;
   // A converted zone is an expired band that the move skipped; it may license a
   // starter elsewhere, but its old prices are not a current opportunity box.
+  // Likewise, once management has advanced to HOLD/TRAIL/INVALIDATED, a still-live
+  // unfilled band is historical entry context, not the user's current action.
   if (!zone || !state || state.state !== "live") return null;
+  if (planRecommendedAction(plan) !== "wait") return null;
   if (zone.high == null || !Number.isFinite(zone.high)) return null;
 
   const low = zone.low != null && Number.isFinite(zone.low) ? zone.low : zone.high;
