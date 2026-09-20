@@ -599,10 +599,16 @@ export interface R5EmpiricalShockSample {
   empirical_weight: number;
 }
 
+export const R5_ADV_METHOD = "engine.validation.dollar_adv(window=21)" as const;
+
 export interface R5ExpectationSpec {
   dtDays: number;
   materialityMn: number;
   positionTier: string;
+  /** Optional owner-computed 21-session rolling-median dollar ADV denominator. */
+  advDollars?: number;
+  /** Required exact owner/method receipt whenever advDollars is supplied. */
+  advMethod?: typeof R5_ADV_METHOD;
 }
 
 export interface R5WeightedAlignmentRow {
@@ -619,11 +625,19 @@ export interface R5WeightedAlignmentRow {
   conditionalExpectedVannaFlowMn: number | null;
   conditionalExpectedCharmFlowMn: number | null;
   conditionalExpectedTotalFlowMn: number | null;
+  /** E[|total hedge flow|] over supported shock mass; does not cancel opposite shocks. */
+  conditionalExpectedAbsTotalFlowMn: number | null;
+  /** Signed and absolute total flow as % of canonical dollar ADV when supplied. */
+  conditionalExpectedTotalFlowPctAdv: number | null;
+  conditionalExpectedAbsTotalFlowPctAdv: number | null;
   /** Full-distribution expectations exist only when no empirical tail is unsupported. */
   fullExpectedGammaFlowMn: number | null;
   fullExpectedVannaFlowMn: number | null;
   fullExpectedCharmFlowMn: number | null;
   fullExpectedTotalFlowMn: number | null;
+  fullExpectedAbsTotalFlowMn: number | null;
+  fullExpectedTotalFlowPctAdv: number | null;
+  fullExpectedAbsTotalFlowPctAdv: number | null;
   /** Raw probability mass on the ORIGINAL 1.0 distribution, never renormalized. */
   alignmentMass: Record<R5AlignmentState, number>;
   /** Same states conditional on supported mass; null when supported mass is zero. */
@@ -636,6 +650,10 @@ export interface R5EmpiricalExpectation {
   population: "full_book_by_expiry";
   asof: string;
   expectation: R5ExpectationSpec;
+  liquidity: {
+    advDollars: number | null;
+    method: typeof R5_ADV_METHOD | null;
+  };
   distributionWeight: number;
   supportedWeight: number;
   unsupportedWeight: number;
@@ -670,9 +688,10 @@ function r5WeightedRow(
   supported: readonly { weight: number; row: R5AlignmentRow }[],
   supportedWeight: number,
   unsupportedWeight: number,
+  advDollars: number | null,
 ): R5WeightedAlignmentRow {
   const mass = r5EmptyAlignmentMass();
-  let gamma = 0, vanna = 0, charm = 0, total = 0;
+  let gamma = 0, vanna = 0, charm = 0, total = 0, absTotal = 0;
   let missingGammaWeight = 0;
   let missingVannaWeight = 0;
   let missingCharmWeight = 0;
@@ -688,7 +707,10 @@ function r5WeightedRow(
     if (row.charmFlowMn == null) missingCharmWeight += weight;
     else charm += weight * row.charmFlowMn;
     if (row.totalFlowMn == null) missingTotalWeight += weight;
-    else total += weight * row.totalFlowMn;
+    else {
+      total += weight * row.totalFlowMn;
+      absTotal += weight * Math.abs(row.totalFlowMn);
+    }
   }
 
   const tol = 1e-12;
@@ -696,6 +718,10 @@ function r5WeightedRow(
     supportedWeight > tol && missing <= tol ? sum / supportedWeight : null;
   const full = (sum: number, missing: number): number | null =>
     unsupportedWeight <= tol && missing <= tol ? sum : null;
+  const pctAdv = (flowMn: number | null): number | null =>
+    flowMn != null && advDollars != null
+      ? (flowMn * 1_000_000 / advDollars) * 100
+      : null;
 
   const conditionalAlignmentShare = r5EmptyAlignmentMass() as Record<
     R5AlignmentState, number | null
@@ -718,10 +744,16 @@ function r5WeightedRow(
     conditionalExpectedVannaFlowMn: conditional(vanna, missingVannaWeight),
     conditionalExpectedCharmFlowMn: conditional(charm, missingCharmWeight),
     conditionalExpectedTotalFlowMn: conditional(total, missingTotalWeight),
+    conditionalExpectedAbsTotalFlowMn: conditional(absTotal, missingTotalWeight),
+    conditionalExpectedTotalFlowPctAdv: pctAdv(conditional(total, missingTotalWeight)),
+    conditionalExpectedAbsTotalFlowPctAdv: pctAdv(conditional(absTotal, missingTotalWeight)),
     fullExpectedGammaFlowMn: full(gamma, missingGammaWeight),
     fullExpectedVannaFlowMn: full(vanna, missingVannaWeight),
     fullExpectedCharmFlowMn: full(charm, missingCharmWeight),
     fullExpectedTotalFlowMn: full(total, missingTotalWeight),
+    fullExpectedAbsTotalFlowMn: full(absTotal, missingTotalWeight),
+    fullExpectedTotalFlowPctAdv: pctAdv(full(total, missingTotalWeight)),
+    fullExpectedAbsTotalFlowPctAdv: pctAdv(full(absTotal, missingTotalWeight)),
     alignmentMass: mass,
     conditionalAlignmentShare,
   };
@@ -749,6 +781,16 @@ export function r5EmpiricalExpectation(
   if (!expectation.positionTier?.trim()) {
     throw new RangeError("R5 expectation positionTier must be declared");
   }
+  const hasAdv = expectation.advDollars != null || expectation.advMethod != null;
+  if (hasAdv) {
+    if (!isNum(expectation.advDollars) || expectation.advDollars <= 0) {
+      throw new RangeError("R5 advDollars must be finite and positive when liquidity normalization is supplied");
+    }
+    if (expectation.advMethod !== R5_ADV_METHOD) {
+      throw new RangeError(`R5 advMethod must equal ${R5_ADV_METHOD}`);
+    }
+  }
+  const advDollars = hasAdv ? expectation.advDollars! : null;
   if (!Array.isArray(samples) || samples.length === 0) {
     throw new RangeError("R5 empirical distribution must contain at least one sample");
   }
@@ -814,6 +856,7 @@ export function r5EmpiricalExpectation(
       bucketSupported.get(baseRow.bucket as R5DteBucket)!,
       supportedWeight,
       unsupportedWeight,
+      advDollars,
     )
   );
 
@@ -826,6 +869,10 @@ export function r5EmpiricalExpectation(
       ...expectation,
       positionTier: expectation.positionTier.trim(),
     },
+    liquidity: {
+      advDollars,
+      method: advDollars != null ? R5_ADV_METHOD : null,
+    },
     distributionWeight: weightTotal,
     supportedWeight,
     unsupportedWeight,
@@ -836,6 +883,7 @@ export function r5EmpiricalExpectation(
       wholeSupported,
       supportedWeight,
       unsupportedWeight,
+      advDollars,
     ),
     buckets,
   };
