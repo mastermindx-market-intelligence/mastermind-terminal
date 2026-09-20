@@ -28,6 +28,7 @@ import type {
 import {
   gestureStamp, hitTestMarkers, isTapSample, MARKER_HOVER_SLACK, MARKER_TAP_SLACK,
 } from "../markerTooltip";
+import { planIndexedSeriesSlice } from "./indexedSeriesSlice";
 import {
   planSquareMarkerBatch, sameSquareMarkerBatchStyle, type SquareMarkerBatchPlan,
 } from "./squareMarkerBatch";
@@ -510,24 +511,37 @@ function drawCloud(f: DocumentFragment, c: CloudPrim, m: CoordMapper): Element |
   const alpha = clamp(c.fillAlpha ?? 0.12, 0, 0.5);
   const fallback = (c.segColors && c.segColors[0]) || "var(--brand-2)";
   const g = mk("g", {});
-  // Precompute px points; null coords break color runs.
-  const px: Array<[number, number, number] | null> = new Array(n);
-  for (let i = 0; i < n; i++) {
+
+  // Clouds use upper/lower points at the same bar index. Canonical suite output keeps both arrays
+  // aligned and monotonic; slice those immutable histories exactly like gradlines. A malformed
+  // length mismatch stays on the legacy full-range path so defensive behavior does not narrow.
+  const slice = c.upper.length === c.lower.length
+    ? planIndexedSeriesSlice(c.upper, m.i0, m.i1, m.barW, CULL_PAD)
+    : { start: 0, end: n, optimized: false };
+  const start = Math.min(slice.start, n), end = Math.min(slice.end, n);
+  if (end - start < 2) return null;
+
+  // Precompute only visible/padded points; null coords still break color runs.
+  const px: Array<[number, number, number] | null> = new Array(end - start);
+  for (let i = start; i < end; i++) {
     const x = m.xi(c.upper[i].i), yu = m.y(c.upper[i].p), yl = m.y(c.lower[i].p);
-    px[i] = fin(x) && fin(yu) && fin(yl) ? [x, yu, yl] : null;
+    px[i - start] = fin(x) && fin(yu) && fin(yl) ? [x, yu, yl] : null;
   }
-  // Merge consecutive same-color segments into one polygon (node economy).
-  let s = 0;
-  while (s < n - 1) {
-    if (!px[s]) { s++; continue; }
+
+  // Merge consecutive same-color segments into one polygon (node economy). Segment colors remain
+  // indexed in ORIGINAL history space, so viewport slicing cannot shift a regime boundary.
+  let s = start;
+  while (s < end - 1) {
+    if (!px[s - start]) { s++; continue; }
     const color = (c.segColors && c.segColors[s]) || fallback;
     let e = s + 1;
     while (
-      e < n - 1 && px[e] &&
+      e < end - 1 && px[e - start] &&
       ((c.segColors && c.segColors[e]) || fallback) === color
     ) e++;
-    if (!px[e]) { s = e + 1; continue; } // run must end on a valid point
-    const seg = px.slice(s, e + 1) as Array<[number, number, number]>;
+    if (!px[e - start]) { s = e + 1; continue; } // run must end on a valid point
+    const seg: Array<[number, number, number]> = [];
+    for (let i = s; i <= e; i++) seg.push(px[i - start] as [number, number, number]);
     if (xVisible(m, seg[0][0], seg[seg.length - 1][0])) {
       let pts = "";
       for (let i = 0; i < seg.length; i++) pts += `${seg[i][0]},${seg[i][1]} `;
@@ -546,23 +560,37 @@ function drawGradLine(f: DocumentFragment, gl: GradLinePrim, m: CoordMapper): El
   if (n < 2) return null;
   const fallback = gl.colors[0] || "var(--brand-2)";
   const g = mk("g", {});
-  const px: Array<[number, number] | null> = new Array(n);
-  for (let i = 0; i < n; i++) {
+
+  // Full-history gradlines are immutable inside memoized suite bundles, but pan/zoom changes only
+  // the visible logical window. Prove monotonicity once per points-array identity, then binary-slice
+  // to the padded viewport plus one crossing endpoint on each side. Non-canonical unsorted input
+  // falls back to [0,n), preserving the old renderer path exactly.
+  const slice = planIndexedSeriesSlice(gl.pts, m.i0, m.i1, m.barW, CULL_PAD);
+  const start = slice.start, end = slice.end;
+  if (end - start < 2) return null;
+
+  const px: Array<[number, number] | null> = new Array(end - start);
+  for (let i = start; i < end; i++) {
     const x = m.xi(gl.pts[i].i), y = m.y(gl.pts[i].p);
-    px[i] = fin(x) && fin(y) ? [x, y] : null;
+    px[i - start] = fin(x) && fin(y) ? [x, y] : null;
   }
-  // Merge consecutive same-color segments into single <path>s.
-  let s = 0;
-  while (s < n - 1) {
-    if (!px[s]) { s++; continue; }
+
+  // Merge consecutive same-color segments into single <path>s. Color lookup stays in ORIGINAL
+  // point-index space so slicing cannot shift a segment's style by one bar.
+  let s = start;
+  while (s < end - 1) {
+    if (!px[s - start]) { s++; continue; }
     const color = gl.colors[s] || fallback;
     let e = s + 1;
-    while (e < n - 1 && px[e] && (gl.colors[e] || fallback) === color) e++;
-    if (!px[e]) { s = e + 1; continue; }
-    const first = px[s] as [number, number], last = px[e] as [number, number];
+    while (e < end - 1 && px[e - start] && (gl.colors[e] || fallback) === color) e++;
+    if (!px[e - start]) { s = e + 1; continue; }
+    const first = px[s - start] as [number, number], last = px[e - start] as [number, number];
     if (xVisible(m, first[0], last[0])) {
       let d = `M${first[0]} ${first[1]}`;
-      for (let i = s + 1; i <= e; i++) { const p = px[i] as [number, number]; d += `L${p[0]} ${p[1]}`; }
+      for (let i = s + 1; i <= e; i++) {
+        const p = px[i - start] as [number, number];
+        d += `L${p[0]} ${p[1]}`;
+      }
       const glAttrs: Record<string, string | number> = {
         d, fill: "none", stroke: color, "stroke-width": gl.w ?? 1.5,
         "stroke-linejoin": "round", "stroke-linecap": "round", "vector-effect": "non-scaling-stroke",
