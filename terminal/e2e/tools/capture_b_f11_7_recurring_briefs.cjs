@@ -261,7 +261,7 @@ async function openAlerts(page, lang, viewport, deliveries, subscriptions = []) 
     document.documentElement.setAttribute("data-lang", l);
     document.documentElement.setAttribute("lang", l === "zh" ? "zh-CN" : "en");
   }, lang);
-  await page.goto(`${BASE}/alerts?lang=${lang}`, { waitUntil: "domcontentloaded", timeout: 90_000 });
+  await page.goto(`${BASE}/alerts?lang=${lang}#briefs`, { waitUntil: "domcontentloaded", timeout: 90_000 });
   await page.getByTestId("briefs-inbox").waitFor({ state: "visible", timeout: 45_000 });
   await stripDevOverlay(page);
 }

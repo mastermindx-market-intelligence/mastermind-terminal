@@ -38,6 +38,7 @@ export default function AlertsCockpit({ email, children }: { email: string; chil
   const [alertsState, setAlertsState] = useState<ReadState>("READ_UNAVAILABLE");
   const [receipts, setReceipts] = useState<ReceiptsResp | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
+  const [surface, setSurface] = useState<"alerts" | "briefs">("alerts");
 
   const load = useCallback(async () => {
     try {
@@ -60,6 +61,17 @@ export default function AlertsCockpit({ email, children }: { email: string; chil
   }, []);
 
   useEffect(() => { load(); }, [load]);
+
+  useEffect(() => {
+    const syncSurface = () => setSurface(window.location.hash === "#briefs" ? "briefs" : "alerts");
+    syncSurface();
+    window.addEventListener("hashchange", syncSurface);
+    window.addEventListener("popstate", syncSurface);
+    return () => {
+      window.removeEventListener("hashchange", syncSurface);
+      window.removeEventListener("popstate", syncSurface);
+    };
+  }, []);
 
   // The create form (NewAlertPanel below) and the separate existing-alerts management panel
   // (passed in as `children`, see page.tsx) are two independent AlertsView instances with two
@@ -306,7 +318,9 @@ export default function AlertsCockpit({ email, children }: { email: string; chil
         monitor={view.monitor} lastAttemptAt={view.lastAttemptAt} lastAttemptState={view.lastAttemptState}
         lastSuccessAt={view.lastSuccessAt} lastSuccessState={view.lastSuccessState}
         coverageCount={view.coverage.count} lang={L}
+        surface={surface}
       />
+      {surface === "alerts" && (<>
       {/* Every empty/degraded module below is exactly one calm paragraph + exactly one wired
           action, in a real button variant (btn-primary for a constructive action, btn-ghost for
           a recovery retry — never a bare `.btn` with only margin, which rendered as unstyled text
@@ -418,8 +432,9 @@ export default function AlertsCockpit({ email, children }: { email: string; chil
           disconnected page compositions) and never wrapped in an extra .pg of its own (a nested
           scroll container broke the deterministic e2e). See page.tsx for what is passed in. */}
       {children}
-      <BriefsInbox lang={L} />
       {detail && <AlertDetail data={detail} lang={L} onClose={() => setOpenId(null)} />}
+      </>)}
+      {surface === "briefs" && <BriefsInbox lang={L} />}
     </div></main>
   );
 }

@@ -86,13 +86,26 @@ async function mockBriefs(page: Page, deliveries: unknown[], subscriptions: unkn
   });
 }
 
-test("empty inbox names the in-product destination without promising external delivery", async ({ page }) => {
+test("Alerts opens on Alerts and switches to Briefs without stacking both surfaces", async ({ page }) => {
   await page.addInitScript(() => {
     localStorage.setItem("mm.lang", "en");
     localStorage.setItem("theme", "dark");
   });
   await mockBriefs(page, []);
   await page.goto("/alerts");
+  await expect(page.getByTestId("briefs-inbox")).toHaveCount(0);
+  await page.getByRole("link", { name: "Briefs", exact: true }).click();
+  await expect(page.getByTestId("briefs-inbox")).toBeVisible();
+  await expect(page).toHaveURL(/#briefs$/);
+});
+
+test("empty inbox names the in-product destination without promising external delivery", async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem("mm.lang", "en");
+    localStorage.setItem("theme", "dark");
+  });
+  await mockBriefs(page, []);
+  await page.goto("/alerts#briefs");
   const inbox = page.getByTestId("briefs-inbox");
   await expect(inbox).toBeVisible();
   await expect(inbox.getByText(briefCopy("empty", "en"))).toBeVisible();
@@ -105,7 +118,7 @@ test("a watchlist schedule can be created from Alerts without returning to watch
     localStorage.setItem("theme", "dark");
   });
   await mockBriefs(page, []);
-  await page.goto("/alerts");
+  await page.goto("/alerts#briefs");
 
   const composer = page.getByTestId("briefs-new-schedule");
   await composer.getByLabel(briefCopy("scheduleTarget", "en")).selectOption("watchlist:" + WATCHLIST);
@@ -149,7 +162,7 @@ test("scheduled briefs show their target, cadence, and state on the Alerts surfa
     localStorage.setItem("theme", "dark");
   });
   await mockBriefs(page, [], subscriptions);
-  await page.goto("/alerts");
+  await page.goto("/alerts#briefs");
   const schedules = page.getByTestId("briefs-schedules");
   await expect(schedules.locator("[data-brief-schedule]")).toHaveCount(2);
   await expect(schedules.getByText("NVDA cycle")).toBeVisible();
@@ -187,7 +200,7 @@ test("ready and degraded rows render verbatim EN/ZH sentences, never a cadence s
     localStorage.setItem("theme", "dark");
   });
   await mockBriefs(page, deliveries);
-  await page.goto("/alerts");
+  await page.goto("/alerts#briefs");
   const inbox = page.getByTestId("briefs-inbox");
   await expect(inbox.getByText(degradedLine("daily_after_us_close", "en"))).toBeVisible();
   await expect(inbox.getByText("The close held above last week's range.")).toBeVisible();
@@ -222,7 +235,7 @@ test("390 list sentences occupy the row width instead of one English word per li
   });
   await mockBriefs(page, deliveries);
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/alerts");
+  await page.goto("/alerts#briefs");
   const inbox = page.getByTestId("briefs-inbox");
   await expect(inbox.getByText("The close held above last week's range.")).toBeVisible();
   const sentence = inbox.locator("[data-brief-sentence]");

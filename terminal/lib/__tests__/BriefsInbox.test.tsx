@@ -272,6 +272,14 @@ describe("BriefsInbox rendering", () => {
   });
 });
 
+describe("Briefs scheduling is centralized in Alerts", () => {
+  it("does not mount BriefSubscribeControls in ThesisWorkspace", () => {
+    const src = readFileSync(join(__dirname, "../../components/workspaces/ThesisWorkspace.tsx"), "utf8");
+    expect(src).not.toContain('from "@/components/briefs/BriefSubscribeControls"');
+    expect(src).not.toContain("<BriefSubscribeControls");
+  });
+});
+
 describe("brief schedule deletion stays out of the central management UI", () => {
   it("does not expose the destructive DELETE path from Alerts → Briefs", () => {
     const inbox = readFileSync(join(__dirname, "../../components/briefs/BriefsInbox.tsx"), "utf8");
