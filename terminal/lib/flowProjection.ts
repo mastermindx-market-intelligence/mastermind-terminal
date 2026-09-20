@@ -72,11 +72,16 @@ export function buildFlowProjection<T extends FlowProjectionSource>(
 ): FlowProjection {
   const byStart = new Map<number, T[]>();
   let invalidTimestampCount = 0;
+  let invalidValueCount = 0;
 
   for (const event of events) {
     const tsMs = Date.parse(event.ts);
     if (!Number.isFinite(tsMs)) {
       invalidTimestampCount += 1;
+      continue;
+    }
+    if (!validMagnitude(event)) {
+      invalidValueCount += 1;
       continue;
     }
     const startMs = flowProjectionBucketKey(tsMs, intervalMinutes);
