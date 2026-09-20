@@ -44,6 +44,7 @@ export interface FlowProjection {
   inputEventCount: number;
   validEventCount: number;
   invalidTimestampCount: number;
+  invalidValueCount: number;
   buckets: FlowProjectionBucket[];
 }
 
