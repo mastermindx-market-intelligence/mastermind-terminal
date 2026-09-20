@@ -510,13 +510,25 @@ function drawCloud(f: DocumentFragment, c: CloudPrim, m: CoordMapper): Element |
   const alpha = clamp(c.fillAlpha ?? 0.12, 0, 0.5);
   const fallback = (c.segColors && c.segColors[0]) || "var(--brand-2)";
   const g = mk("g", {});
-  // Precompute px points; null coords break color runs.
+  // Precompute px points; null coords break color runs. Repeated color runs may share one
+  // compound path only when projected X is strictly monotonic: then distinct runs occupy
+  // disjoint horizontal intervals, so regrouping cannot change fill z-order at a seam.
   const px: Array<[number, number, number] | null> = new Array(n);
+  let monotonicX = true;
+  let prevX = -Infinity;
   for (let i = 0; i < n; i++) {
     const x = m.xi(c.upper[i].i), yu = m.y(c.upper[i].p), yl = m.y(c.lower[i].p);
-    px[i] = fin(x) && fin(yu) && fin(yl) ? [x, yu, yl] : null;
+    const point = fin(x) && fin(yu) && fin(yl) ? [x, yu, yl] as [number, number, number] : null;
+    px[i] = point;
+    if (point) {
+      if (!(point[0] > prevX)) monotonicX = false;
+      prevX = point[0];
+    }
   }
-  // Merge consecutive same-color segments into one polygon (node economy).
+
+  type CloudRun = { color: string; seg: Array<[number, number, number]> };
+  const runs: CloudRun[] = [];
+  // Preserve the historical run segmentation exactly, including the valid-endpoint rule.
   let s = 0;
   while (s < n - 1) {
     if (!px[s]) { s++; continue; }
@@ -526,17 +538,45 @@ function drawCloud(f: DocumentFragment, c: CloudPrim, m: CoordMapper): Element |
       e < n - 1 && px[e] &&
       ((c.segColors && c.segColors[e]) || fallback) === color
     ) e++;
-    if (!px[e]) { s = e + 1; continue; } // run must end on a valid point
+    if (!px[e]) { s = e + 1; continue; }
     const seg = px.slice(s, e + 1) as Array<[number, number, number]>;
-    if (xVisible(m, seg[0][0], seg[seg.length - 1][0])) {
+    if (xVisible(m, seg[0][0], seg[seg.length - 1][0])) runs.push({ color, seg });
+    s = e;
+  }
+  if (!runs.length) return null;
+
+  if (!monotonicX) {
+    // Generic fallback: retain historical polygon order when projected runs may overlap.
+    for (const { color, seg } of runs) {
       let pts = "";
       for (let i = 0; i < seg.length; i++) pts += `${seg[i][0]},${seg[i][1]} `;
       for (let i = seg.length - 1; i >= 0; i--) pts += `${seg[i][0]},${seg[i][2]} `;
       g.appendChild(mk("polygon", { points: pts.trimEnd(), fill: color, "fill-opacity": alpha, stroke: "none" }));
     }
-    s = e;
+  } else {
+    const groups: Array<{ color: string; parts: string[] }> = [];
+    const groupByColor = new Map<string, number>();
+    for (const { color, seg } of runs) {
+      let gi = groupByColor.get(color);
+      if (gi == null) {
+        gi = groups.length;
+        groupByColor.set(color, gi);
+        groups.push({ color, parts: [] });
+      }
+      let d = `M${seg[0][0]} ${seg[0][1]}`;
+      for (let i = 1; i < seg.length; i++) d += `L${seg[i][0]} ${seg[i][1]}`;
+      for (let i = seg.length - 1; i >= 0; i--) d += `L${seg[i][0]} ${seg[i][2]}`;
+      groups[gi].parts.push(`${d}Z`);
+    }
+    for (const group of groups) {
+      g.appendChild(mk("path", {
+        d: group.parts.join(""),
+        fill: group.color,
+        "fill-opacity": alpha,
+        stroke: "none",
+      }));
+    }
   }
-  if (!g.firstChild) return null;
   f.appendChild(g);
   return g;
 }
