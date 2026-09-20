@@ -1628,16 +1628,27 @@ export default function OptionsHubView({
   const [selectedTicker, setSelectedTicker] = useState<string | null>(null);
   const [tickerData, setTickerData] = useState<TickerPayload | null>(null);
   const [tickerLoading, setTickerLoading] = useState(false);
+  // Request order is part of the root-identity contract. A slow old-root response
+  // must never clobber a newer selection or wear the newer ticker's header.
+  const tickerReqRef = useRef(0);
 
   const fetchTicker = useCallback(async (root: string) => {
-    setTickerLoading(true); setTickerData(null);
+    const request = ++tickerReqRef.current;
+    setTickerLoading(true);
+    setTickerData(null);
     try {
       const d = await flowGet(`ticker:${root}`);
-      // A payload without `day` (fixture honest-empty {}, malformed upstream) is
-      // "no drill data", not a renderable drill — the render path derefs day.gross.
-      if (d && (d as TickerPayload).day) setTickerData(d as TickerPayload);
-    } catch {}
-    setTickerLoading(false);
+      if (tickerReqRef.current !== request) return;
+      const payload = d as TickerPayload | null;
+      // Honest-empty/malformed/wrong-root payloads are not renderable drills.
+      if (payload?.day && payload.root.toUpperCase() === root.toUpperCase()) {
+        setTickerData(payload);
+      }
+    } catch {
+      // The selected root retains its honest empty state.
+    } finally {
+      if (tickerReqRef.current === request) setTickerLoading(false);
+    }
   }, []);
 
   // ── Filter state (Tape tab) ───────────────────────────────────────────────
@@ -2065,6 +2076,8 @@ export default function OptionsHubView({
     const catalogEntry = rootCatalog?.find((entry) => entry.root === root) ?? null;
     setSelectedTicker(root);
     if (catalogEntry && !catalogEntry.hasSessionData) {
+      // Invalidate any old-root request before rendering this producer-owned empty.
+      ++tickerReqRef.current;
       setTickerData(null);
       setTickerLoading(false);
     } else {

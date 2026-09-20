@@ -140,6 +140,7 @@ Render all catalog-backed rows and only the old 20-row fallback preview. Active 
 - [ ] **Step 5: Make empty and no-data states source-aware**
 
 For no search match under a valid catalog, say no covered root matches. Under fallback, say the coverage catalog is unavailable and the list is session-scoped. For a selected catalog row with no payload, distinguish awaiting first refresh, checked-but-quiet, and artifact pending according to the spec. When `has_session_data=false`, render that authoritative state without issuing a doomed `ticker:{ROOT}` request.
+Guard the existing ticker fetch with a request counter and payload-root match. A delayed prior-root response must be dropped, and selecting a catalog-owned empty state must invalidate any request still in flight.
 
 - [ ] **Step 6: Run unit and type checks**
 
@@ -180,7 +181,8 @@ The test must:
 4. select it and verify the truthful no-data state;
 5. repeat at desktop, tablet and mobile viewport projects;
 6. switch to Chinese and verify the rotating/status and no-data copy are localized;
-7. assert document scroll width does not exceed client width.
+7. assert document scroll width does not exceed client width;
+8. delay a prior SPY drill response, switch to quiet HYG, and prove the HYG state survives after the old response completes.
 
 - [ ] **Step 2: Run Playwright RED**
 

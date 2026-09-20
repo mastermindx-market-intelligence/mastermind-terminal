@@ -25,6 +25,14 @@ test("covered ticker catalog keeps quiet roots searchable and honest", async ({ 
     }
   });
 
+  let signalSpyRequest!: () => void;
+  const spyRequestStarted = new Promise<void>((resolve) => { signalSpyRequest = resolve; });
+  await page.route(/\/api\/flow\?f=ticker(?:%3A|:)SPY$/, async (route) => {
+    signalSpyRequest();
+    await new Promise((resolve) => setTimeout(resolve, 700));
+    await route.continue();
+  });
+
   await page.goto("/options?tab=tickers");
   const workspace = page.locator('[data-options-ia="seven-category-stage-a"]');
   await expect(workspace).toBeVisible({ timeout: 15_000 });
@@ -38,6 +46,14 @@ test("covered ticker catalog keeps quiet roots searchable and honest", async ({ 
   const search = page.getByRole("searchbox", {
     name: zh ? "搜索期权覆盖代码" : "Search covered options tickers",
   });
+
+  // A slow prior-root response must never replace the authoritative empty state
+  // of the newer HYG selection.
+  await search.fill("$spy");
+  await page.getByRole("button", {
+    name: zh ? "打开 SPY 期权详情" : "Open SPY ticker drill",
+  }).click();
+  await spyRequestStarted;
   await search.fill("$hyg");
 
   const hyg = page.getByRole("button", {
@@ -54,6 +70,9 @@ test("covered ticker catalog keeps quiet roots searchable and honest", async ({ 
     zh ? "本时段尚未积累达标的期权成交" : "no qualifying options prints have accumulated this session",
   );
   expect(absentTickerFetches).toEqual([]);
+  await page.waitForTimeout(850);
+  await expect(empty).toBeVisible();
+  await expect(empty).toContainText(zh ? "HYG 已覆盖" : "HYG is covered");
 
   const containment = await page.evaluate(() => ({
     viewport: window.innerWidth,

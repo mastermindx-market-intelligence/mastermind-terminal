@@ -61,6 +61,7 @@ When the catalog is absent or invalid, fallback candidates remain the union of `
 - No-match copy says no covered root matches the query.
 - Fallback copy explicitly says the catalog is unavailable and the list is session-scoped.
 - Selecting a catalog root with `has_session_data=true` still uses the existing `ticker:{ROOT}` flow path. A catalog root with `has_session_data=false` renders the authoritative empty state directly and does not probe an artifact that the producer says cannot exist.
+- Per-root drill requests carry a monotonic request identity and validate the returned payload root. A slow prior-root response, malformed payload, or wrong-root object cannot replace the newer selection. Selecting an authoritative empty root invalidates any older request before rendering its empty state.
 
 No-data copy is truthful by entry state:
 
