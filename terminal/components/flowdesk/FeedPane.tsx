@@ -662,6 +662,24 @@ export function FeedPane({
         />
       )}
 
+      {feed !== null && filtered.length > 0 && (
+        <FlowProjectionStrip
+          projection={flowProjection}
+          selectedKey={projectionBucketKey}
+          interval={projectionInterval}
+          lang={lang}
+          onSelect={(key) => {
+            setProjectionBucketKey(key);
+            setVisibleCount(PAGE_SIZE);
+          }}
+          onInterval={(minutes) => {
+            setProjectionInterval(minutes);
+            setProjectionBucketKey(null);
+            setVisibleCount(PAGE_SIZE);
+          }}
+        />
+      )}
+
       {/* ── Feed list ── */}
       <div className="obs-fd-list obs-scroll" data-tut="flow-feed">
         {/* Loading state */}
