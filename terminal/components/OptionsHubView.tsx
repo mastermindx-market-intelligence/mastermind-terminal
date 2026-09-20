@@ -4022,7 +4022,7 @@ export default function OptionsHubView({
                     )}
 
                     {/* ── Board toggle ── */}
-                    <div style={{ display: "flex", gap: 6, marginBottom: 14, alignItems: "center" }}>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 14, alignItems: "center" }}>
                       <button
                         className={`chip${leadersBoard === "a" ? " on" : ""}`}
                         style={{ height: 26, fontSize: 11 }}
@@ -4037,6 +4037,20 @@ export default function OptionsHubView({
                       >
                         {t("leadersBoardBLbl", "Washout Turn")}
                       </button>
+                      {allRows.length > LEADERS_PREVIEW_ROWS && (
+                        <button
+                          type="button"
+                          className="btn btn-ghost"
+                          style={{ height: 28, fontSize: 11, marginLeft: "auto" }}
+                          aria-controls="flow-leaders-board"
+                          aria-expanded={leadersExpanded}
+                          onClick={() => setLeadersExpanded((v) => !v)}
+                        >
+                          {leadersExpanded
+                            ? pick(lang, `Show top ${LEADERS_PREVIEW_ROWS}`, `显示前 ${LEADERS_PREVIEW_ROWS} 个`)
+                            : pick(lang, `Show all ${allRows.length}`, `显示全部 ${allRows.length} 个`)}
+                        </button>
+                      )}
                     </div>
 
                     {/* ── Table ── */}
@@ -4045,7 +4059,7 @@ export default function OptionsHubView({
                         {leaderEmptyLabel(lang)}
                       </div>
                     ) : (
-                      <div className="obs-scroll" style={{ overflowX: "auto" }}>
+                      <div id="flow-leaders-board" className="obs-scroll" style={{ overflowX: "auto" }}>
                         <table className="scr" style={{ fontSize: 12, minWidth: 680 }}>
                           <thead>
                             <tr>
@@ -4269,22 +4283,6 @@ export default function OptionsHubView({
                             })}
                           </tbody>
                         </table>
-                      </div>
-                    )}
-
-                    {allRows.length > LEADERS_PREVIEW_ROWS && (
-                      <div style={{ display: "flex", justifyContent: "center", marginTop: 10 }}>
-                        <button
-                          type="button"
-                          className="btn btn-ghost"
-                          style={{ height: 28, fontSize: 11 }}
-                          aria-expanded={leadersExpanded}
-                          onClick={() => setLeadersExpanded((v) => !v)}
-                        >
-                          {leadersExpanded
-                            ? pick(lang, `Show top ${LEADERS_PREVIEW_ROWS}`, `显示前 ${LEADERS_PREVIEW_ROWS} 个`)
-                            : pick(lang, `Show all ${allRows.length}`, `显示全部 ${allRows.length} 个`)}
-                        </button>
                       </div>
                     )}
 
