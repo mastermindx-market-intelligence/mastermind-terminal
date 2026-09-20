@@ -137,7 +137,6 @@ import { OnboardingProvider } from "@/components/onboarding/OnboardingProvider";
 import DrawingSidebar from "@/components/DrawingSidebar";
 import DayRange from "@/components/DayRange";
 import { useT, useLang } from "@/lib/i18n";
-import BriefSubscribeControls from "@/components/briefs/BriefSubscribeControls";
 import { displayName } from "@/lib/markets";
 import { useFromMacro, backToMacro } from "@/lib/originNav";
 import { getJSON, prefetch, loadCoverage } from "@/lib/dataCache";
@@ -2610,10 +2609,23 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
   const chartQuoteSymsKeyRef = useRef(chartQuoteSymsKey);
   chartQuoteSymsKeyRef.current = chartQuoteSymsKey;
   const chartQuoteAliveRef = useRef(true);
+  // A one-second cadence must never mean multiple simultaneous requests. If the local quote
+  // route stalls past one tick, remember that a refresh was requested and run exactly one
+  // trailing catch-up as soon as the current flight settles. This preserves freshness without
+  // letting a degraded upstream turn into an ever-growing fetch/JSON/React workload on the same
+  // main thread that owns pan, zoom, crosshair and pane-resize interactions.
+  const chartQuoteInFlightRef = useRef(false);
+  const chartQuoteTrailingRef = useRef(false);
+  const chartQuoteTrailingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pollChartQuotes = useCallback(() => {
     if (typeof document !== "undefined" && document.hidden) return;
     const key = chartQuoteSymsKeyRef.current;
     if (!key) return;
+    if (chartQuoteInFlightRef.current) {
+      chartQuoteTrailingRef.current = true;
+      return;
+    }
+    chartQuoteInFlightRef.current = true;
     fetch(`/api/quote?view=regular&cadence=chart&syms=${encodeURIComponent(key)}`, { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
@@ -2628,7 +2640,17 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
           return changed ? next : prev;
         });
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => {
+        chartQuoteInFlightRef.current = false;
+        if (!chartQuoteAliveRef.current || !chartQuoteTrailingRef.current) return;
+        chartQuoteTrailingRef.current = false;
+        if (chartQuoteTrailingTimerRef.current != null) clearTimeout(chartQuoteTrailingTimerRef.current);
+        chartQuoteTrailingTimerRef.current = setTimeout(() => {
+          chartQuoteTrailingTimerRef.current = null;
+          pollChartQuotes();
+        }, 0);
+      });
   }, []);
   useEffect(() => {
     chartQuoteAliveRef.current = true;
@@ -2637,6 +2659,11 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
     document.addEventListener("visibilitychange", onVis);
     return () => {
       chartQuoteAliveRef.current = false;
+      chartQuoteTrailingRef.current = false;
+      if (chartQuoteTrailingTimerRef.current != null) {
+        clearTimeout(chartQuoteTrailingTimerRef.current);
+        chartQuoteTrailingTimerRef.current = null;
+      }
       clearInterval(id);
       document.removeEventListener("visibilitychange", onVis);
     };
@@ -5682,13 +5709,6 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
                 {([["symbol", t("dispSymbol")], ["name", t("dispName")], ["both", t("dispBoth")]] as [string, string][]).map(([d, l]) => <div key={d} className={`set-row${set.disp === d ? " on" : ""}`} onClick={() => setSet((s) => ({ ...s, disp: d }))}><span className="rdo" />{l}</div>)}
               </div>
             </div>
-              {loggedIn && (
-                <BriefSubscribeControls
-                  targetKind="watchlist"
-                  listName={activeList}
-                  lang={lang === "zh" ? "zh" : "en"}
-                />
-              )}
             <div className="wl-scroll">
               <div className="wl-cols" style={{ gridTemplateColumns: wlGrid, minWidth: wlMinW }}>
                 <span className="wl-col">{t("symbol")}<i className="wl-rz" title={t("resizeCol")} onMouseDown={(e) => startResize("sym", e)} /></span>
