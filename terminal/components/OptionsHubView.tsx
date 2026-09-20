@@ -18,6 +18,10 @@ import { usOptionsSessionState } from "@/lib/flowFreshness";
 import { trackSearch } from "@/lib/searchTrack";
 import { normalizeVolUnits } from "@/lib/eodContext";
 import {
+  buildTickerCandidateRows,
+  parseLiveFlowRootCatalog,
+} from "@/lib/liveFlowRootCatalog";
+import {
   OPTIONS_SCREENER_EXPORT_SCHEMA,
   buildOptionsScreenerCsv,
   buildOptionsScreenerCsvFilename,
@@ -1579,7 +1583,7 @@ export default function OptionsHubView({
   // `feed` also drives cross-tab consumers (unusual_names → ticker candidates)
   // and the shared freshness chrome, so it must stay fresh off the Tape tab too.
   const { data: feed, connected: feedConnected, error: fetchError } = useFlowStream<FeedPayload>("feed");
-  const flowTimingTab = activeTab === "tape" || activeTab === "zero_dte" || activeTab === "largest" || activeTab === "tide";
+  const flowTimingTab = activeTab === "tape" || activeTab === "zero_dte" || activeTab === "largest" || activeTab === "tide" || activeTab === "tickers";
   const { data: flowMeta } = useFlowStream<unknown>(flowTimingTab ? "meta" : null, { pollMs: 60_000 });
   const lastFeedTs = feed?.asof ?? "";
   const [heat, setHeat] = useState<HeatPayload | null>(null);
@@ -1851,17 +1855,32 @@ export default function OptionsHubView({
     ? `${activeSessionDate ? activeSessionDate + " · " : ""}${fmtAsof(activeAsof)} ET`
     : "";
 
-  // Ticker search candidates from tide top_net_impact + unusual names
-  const tickerCandidates: string[] = useMemo(() => {
+  // The producer-owned catalog defines COVERAGE. Session impact only annotates and
+  // orders the producer rows; it must never decide whether a quiet root exists.
+  const rootCatalog = useMemo(() => parseLiveFlowRootCatalog(flowMeta), [flowMeta]);
+  const fallbackTickerCandidates = useMemo(() => {
     const set = new Set<string>();
     (tideData?.top_net_impact ?? []).forEach((n) => set.add(n.root));
     (feed?.unusual_names ?? []).forEach((n) => set.add(n.root));
     return Array.from(set).sort();
   }, [tideData, feed]);
-
-  const filteredCandidates = tickerSearch.trim()
-    ? tickerCandidates.filter((r) => r.includes(tickerSearch.toUpperCase()))
-    : tickerCandidates.slice(0, 20);
+  const tickerImpacts = useMemo(() => new Map(
+    (tideData?.top_net_impact ?? []).map((row) => [row.root, row.net_prem_soft] as const),
+  ), [tideData]);
+  const tickerCandidateRows = useMemo(() => buildTickerCandidateRows({
+    catalog: rootCatalog,
+    impacts: tickerImpacts,
+    fallbackRoots: fallbackTickerCandidates,
+    query: tickerSearch,
+  }), [rootCatalog, tickerImpacts, fallbackTickerCandidates, tickerSearch]);
+  const selectedTickerCatalog = useMemo(
+    () => rootCatalog?.find((row) => row.root === selectedTicker) ?? null,
+    [rootCatalog, selectedTicker],
+  );
+  const activeCatalogCount = useMemo(
+    () => rootCatalog?.filter((row) => row.activityRank !== null).length ?? 0,
+    [rootCatalog],
+  );
 
   // ── Screener fetch ────────────────────────────────────────────────────────
   const [oiData, setOiData] = useState<OiMoversPayload | null>(null);
@@ -2996,9 +3015,11 @@ export default function OptionsHubView({
               >
                 <div style={{ padding: "10px 10px 8px" }}>
                   <input
-                    type="text"
+                    type="search"
+                    aria-label={lang === "zh" ? "搜索期权覆盖代码" : "Search covered options tickers"}
                     placeholder={lang === "zh" ? "搜索代码…" : "Search ticker…"}
                     value={tickerSearch}
+                    maxLength={12}
                     onChange={(e) => setTickerSearch(e.target.value)}
                     style={{
                       width: "100%", height: 30, padding: "0 10px",
@@ -3007,14 +3028,49 @@ export default function OptionsHubView({
                       font: "13px var(--font-ui)",
                     }}
                   />
+                  <div
+                    data-testid="ticker-coverage-summary"
+                    style={{
+                      marginTop: 7, color: "var(--muted)", fontSize: 9.5,
+                      letterSpacing: ".04em", textTransform: "uppercase",
+                      whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                    }}
+                  >
+                    {rootCatalog
+                      ? (lang === "zh"
+                          ? `${rootCatalog.length} 个覆盖 · ${activeCatalogCount} 个活跃`
+                          : `${rootCatalog.length} covered · ${activeCatalogCount} active`)
+                      : (lang === "zh"
+                          ? `${fallbackTickerCandidates.length} 个时段标的`
+                          : `${fallbackTickerCandidates.length} session names`)}
+                  </div>
                 </div>
-                <div style={{ flex: 1, overflow: "auto" }}>
-                  {filteredCandidates.map((root) => {
-                    const imp = tideData?.top_net_impact.find((x) => x.root === root);
-                    const isPos = imp ? imp.net_prem_soft > 0 : null;
+                <div
+                  style={{ flex: 1, overflow: "auto" }}
+                  aria-label={lang === "zh" ? "期权覆盖代码" : "Covered options tickers"}
+                >
+                  {tickerCandidateRows.map((candidate) => {
+                    const { root, impact, catalog } = candidate;
+                    const isPos = impact !== null ? impact > 0 : null;
+                    const tierLabel = catalog?.tier === "core"
+                      ? (lang === "zh" ? "核心" : "CORE")
+                      : (lang === "zh" ? "轮询" : "ROT");
+                    const coverageTitle = catalog
+                      ? (catalog.lastSourceSuccess
+                          ? (lang === "zh"
+                              ? `${tierLabel}${catalog.activityRank !== null ? ` · 活跃 #${catalog.activityRank}` : ""} · 最近成功 ${fmtAsof(catalog.lastSourceSuccess)} ET`
+                              : `${tierLabel}${catalog.activityRank !== null ? ` · active #${catalog.activityRank}` : ""} · last successful source ${fmtAsof(catalog.lastSourceSuccess)} ET`)
+                          : (lang === "zh"
+                              ? `${tierLabel} · 等待本时段首次成功刷新`
+                              : `${tierLabel} · awaiting first successful session refresh`))
+                      : undefined;
+                    const coverageTag = catalog?.activityRank !== null && catalog?.activityRank !== undefined
+                      ? `#${catalog.activityRank}`
+                      : tierLabel;
                     return (
                       <button
                         key={root}
+                        aria-label={lang === "zh" ? `打开 ${root} 期权详情` : `Open ${root} ticker drill`}
                         onClick={() => { if (tickerSearch.trim()) trackSearch(root, "flow-tickers", tickerSearch.trim()); setSelectedTicker(root); }}
                         style={{
                           display: "flex", alignItems: "center", gap: 8,
@@ -3028,27 +3084,40 @@ export default function OptionsHubView({
                         onMouseEnter={(e) => { if (selectedTicker !== root) e.currentTarget.style.background = "var(--panel-2)"; }}
                         onMouseLeave={(e) => { if (selectedTicker !== root) e.currentTarget.style.background = "none"; }}
                       >
-                        {root}
-                        {imp && (
+                        <span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis" }}>{root}</span>
+                        {impact !== null ? (
                           <span style={{ marginLeft: "auto", fontSize: 11, color: isPos ? "var(--up)" : "var(--down)", fontVariantNumeric: "tabular-nums" }}>
-                            {fmtPremSigned(imp.net_prem_soft)}
+                            {fmtPremSigned(impact)}
                           </span>
-                        )}
+                        ) : catalog ? (
+                          <span
+                            title={coverageTitle}
+                            style={{
+                              marginLeft: "auto", fontSize: 8.5, color: "var(--muted)",
+                              letterSpacing: ".07em", fontWeight: 700,
+                            }}
+                          >
+                            {coverageTag}
+                          </span>
+                        ) : null}
                       </button>
                     );
                   })}
-                  {filteredCandidates.length === 0 && (
+                  {tickerCandidateRows.length === 0 && (
                     <div style={{ padding: "20px 12px" }}>
                       <div className="fin-empty-title" style={{ fontSize: 12 }}>
                         {t("ohNoResults")}
                       </div>
-                      {/* Why: the list is session-scoped, not a universe search. */}
                       <div className="fin-empty-why" style={{ marginTop: 5 }}>
-                        {tickerCandidates.length === 0
-                          ? t("ohNoFlowNames")
-                          : (lang === "zh"
-                              ? `仅列出本时段有期权流的 ${tickerCandidates.length} 个标的。`
-                              : `Only the ${tickerCandidates.length} names with flow this session are listed.`)}
+                        {rootCatalog
+                          ? (lang === "zh"
+                              ? `${rootCatalog.length} 个覆盖标的中没有匹配“${tickerSearch.trim()}”的代码。`
+                              : `No covered root matches “${tickerSearch.trim()}” across ${rootCatalog.length} tickers.`)
+                          : fallbackTickerCandidates.length === 0
+                            ? t("ohNoFlowNames")
+                            : (lang === "zh"
+                                ? `覆盖目录暂不可用；当前仅显示本时段有期权流的 ${fallbackTickerCandidates.length} 个标的。`
+                                : `Coverage catalog unavailable; showing only ${fallbackTickerCandidates.length} names with flow this session.`)}
                       </div>
                     </div>
                   )}
@@ -3064,7 +3133,11 @@ export default function OptionsHubView({
                         {t("tickersSelectPrompt", "Select a ticker from the list or search above")}
                       </div>
                       <div className="fin-empty-why">
-                        {t("ohListRankedByPremium")}
+                        {rootCatalog
+                          ? (lang === "zh"
+                              ? "活跃标的优先；核心与轮询覆盖代码始终可搜索。"
+                              : "Active roots appear first; core and rotating coverage remain searchable.")
+                          : t("ohListRankedByPremium")}
                       </div>
                     </div>
                   </div>
@@ -3074,19 +3147,36 @@ export default function OptionsHubView({
                 )}
                 {selectedTicker && !tickerLoading && !tickerData && (
                   <div style={{ padding: "24px 16px" }}>
-                    <div className="fin-empty fin-empty-lg" role="status">
+                    <div
+                      className="fin-empty fin-empty-lg"
+                      role="status"
+                      data-testid="ticker-drill-empty"
+                    >
                       <div className="fin-empty-title">
-                        {t("tickersNoData", "No flow data for this ticker yet")}
+                        {selectedTickerCatalog?.hasSessionData
+                          ? (lang === "zh" ? "个股期权详情尚未可用" : "Ticker drill is not available yet")
+                          : t("tickersNoData", "No flow data for this ticker yet")}
                       </div>
-                      {/* Why: quiet name vs closed market — both derivable from state already here. */}
                       <div className="fin-empty-why">
-                        {marketOpenNow
-                          ? (lang === "zh"
-                              ? `${selectedTicker} 本时段暂无达标的期权成交；一旦出现即会显示。`
-                              : `${selectedTicker} has no qualifying options prints this session — the drill fills in as they cross.`)
-                          : (lang === "zh"
-                              ? `市场休市 — ${selectedTicker} 在上一交易时段没有达标的期权成交。`
-                              : `Market closed — ${selectedTicker} carried no qualifying options prints in the last session.`)}
+                        {selectedTickerCatalog
+                          ? selectedTickerCatalog.lastSourceSuccess === null
+                            ? (lang === "zh"
+                                ? `${selectedTicker} 已纳入${selectedTickerCatalog.tier === "core" ? "核心" : "轮询"}覆盖，正等待本时段首次成功刷新。`
+                                : `${selectedTicker} is configured in ${selectedTickerCatalog.tier} coverage and is awaiting its first successful session refresh.`)
+                            : !selectedTickerCatalog.hasSessionData
+                              ? (lang === "zh"
+                                  ? `${selectedTicker} 已覆盖，最近于 ${fmtAsof(selectedTickerCatalog.lastSourceSuccess)} ET 成功检查；本时段尚未积累达标的期权成交。`
+                                  : `${selectedTicker} is covered and was last checked successfully at ${fmtAsof(selectedTickerCatalog.lastSourceSuccess)} ET; no qualifying options prints have accumulated this session.`)
+                              : (lang === "zh"
+                                  ? `${selectedTicker} 的覆盖目录显示已有本时段数据，但个股详情文件尚未到达；不会把它误报为安静标的。`
+                                  : `${selectedTicker} has session data in the coverage catalog, but its per-root drill artifact has not arrived yet; it is not being labeled quiet.`)
+                          : marketOpenNow
+                            ? (lang === "zh"
+                                ? `${selectedTicker} 本时段暂无达标的期权成交；一旦出现即会显示。`
+                                : `${selectedTicker} has no qualifying options prints this session — the drill fills in as they cross.`)
+                            : (lang === "zh"
+                                ? `市场休市 — ${selectedTicker} 在上一交易时段没有达标的期权成交。`
+                                : `Market closed — ${selectedTicker} carried no qualifying options prints in the last session.`)}
                       </div>
                     </div>
                   </div>

@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
 import { describe, expect, it } from "vitest";
 
 import {
@@ -150,5 +153,32 @@ describe("ticker candidate rows", () => {
       fallbackRoots,
       query: "f24",
     }).map((row) => row.root)).toEqual(["F24"]);
+  });
+
+
+  it("fixture catalog exposes a quiet root absent from session activity", () => {
+    const flowFixture = JSON.parse(readFileSync(
+      resolve(process.cwd(), "public/data/flow_fixture.json"),
+      "utf8",
+    )) as { meta?: unknown; feed?: { unusual_names?: { root?: string }[] } };
+    const tideFixture = JSON.parse(readFileSync(
+      resolve(process.cwd(), "public/data/tide_fixture.json"),
+      "utf8",
+    )) as { top_net_impact?: { root?: string; net_prem_soft?: number }[] };
+    const fallbackRoots = [
+      ...(tideFixture.top_net_impact ?? []).map((row) => row.root ?? ""),
+      ...(flowFixture.feed?.unusual_names ?? []).map((row) => row.root ?? ""),
+    ];
+    expect(fallbackRoots).not.toContain("HYG");
+
+    const catalog = parseLiveFlowRootCatalog(flowFixture.meta);
+    const rows = buildTickerCandidateRows({
+      catalog,
+      impacts: new Map(),
+      fallbackRoots,
+      query: "$hyg",
+    });
+    expect(rows.map((row) => row.root)).toEqual(["HYG"]);
+    expect(rows[0].catalog?.hasSessionData).toBe(false);
   });
 });
