@@ -28,6 +28,9 @@ import type {
 import {
   gestureStamp, hitTestMarkers, isTapSample, MARKER_HOVER_SLACK, MARKER_TAP_SLACK,
 } from "../markerTooltip";
+import {
+  planSquareMarkerBatch, sameSquareMarkerBatchStyle, type SquareMarkerBatchPlan,
+} from "./squareMarkerBatch";
 
 const NS = "http://www.w3.org/2000/svg";
 const CULL_PAD = 40;
@@ -698,6 +701,18 @@ function drawMarker(f: DocumentFragment, mk_: MarkerPrim, m: CoordMapper): Eleme
   return el;
 }
 
+function drawSquareMarkerBatch(f: DocumentFragment, plan: SquareMarkerBatchPlan): void {
+  for (const d of plan.paths) {
+    const path = mk("path", { d, fill: plan.fill });
+    if (plan.stroke) {
+      path.setAttribute("stroke", plan.stroke);
+      path.setAttribute("stroke-width", "1");
+    }
+    if (plan.alpha != null) path.setAttribute("opacity", String(plan.alpha));
+    f.appendChild(path);
+  }
+}
+
 function drawProfile(f: DocumentFragment, pr: ProfilePrim, m: CoordMapper): Element | null {
   const maxPx = pr.maxPx ?? 120;
   let anchorX: number, dir: 1 | -1, capPx = maxPx;
@@ -895,8 +910,34 @@ export function renderPrims(
   });
 
   const frag = document.createDocumentFragment();
-  for (const p of sorted) {
+  for (let index = 0; index < sorted.length; index++) {
+    const p = sorted[index];
     if (p.minPxPerBar != null && m.barW < p.minPxPerBar) continue; // density gate
+
+    // Phase ribbons and similar regimes can contain hundreds of same-style squares. Preserve every
+    // tooltip-bearing node and every intervening primitive, but collapse each contiguous safe run
+    // to the planner's minimum non-overlapping path layers. A null plan is an explicit instruction
+    // to retain ordinary one-marker/one-node rendering.
+    if (p.kind === "marker" && p.shape === "square" && !p.tooltipId) {
+      let end = index + 1;
+      while (end < sorted.length) {
+        const next = sorted[end];
+        if (
+          next.kind !== "marker" || next.shape !== "square" || next.tooltipId ||
+          !sameSquareMarkerBatchStyle(p, next, m.barW)
+        ) break;
+        end++;
+      }
+      if (end - index >= 2) {
+        const plan = planSquareMarkerBatch(sorted.slice(index, end) as MarkerPrim[], m);
+        if (plan) {
+          drawSquareMarkerBatch(frag, plan);
+          index = end - 1;
+          continue;
+        }
+      }
+    }
+
     let el: Element | null = null;
     switch (p.kind) {
       case "bgshade": el = drawBgShade(frag, p, m); break;
