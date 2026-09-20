@@ -58,6 +58,7 @@ When the catalog is absent or invalid, fallback candidates remain the union of `
 - Active rows keep signed net-premium annotation.
 - Quiet rows show compact `CORE` or `ROTATING` coverage annotation.
 - Search always spans all catalog roots.
+- Exposure, Structure, Volatility, and Positioning receive one merged root-choice list: producer catalog order first, then static EOD-only/index fallbacks, deduplicated.
 - No-match copy says no covered root matches the query.
 - Fallback copy explicitly says the catalog is unavailable and the list is session-scoped.
 - Selecting a catalog root with `has_session_data=true` still uses the existing `ticker:{ROOT}` flow path. A catalog root with `has_session_data=false` renders the authoritative empty state directly and does not probe an artifact that the producer says cannot exist.
@@ -77,7 +78,7 @@ The existing 180-pixel sidebar remains the layout owner. Catalog status text is 
 
 ## Tests
 
-RED-first unit tests cover valid parsing, malformed-row fail-closed fallback, duplicate roots, optional `$` search, preserved producer order, full catalog visibility, and fallback slicing. Browser fixture proof adds a quiet root that is absent from tide/unusual lists, searches it, selects it and verifies the truthful no-data state on desktop/tablet/mobile plus Chinese labels.
+RED-first unit tests cover valid parsing, malformed-row fail-closed fallback, duplicate roots, optional `$` search, preserved producer order, full catalog visibility, and fallback slicing. Browser fixture proof adds a quiet root that is absent from tide/unusual lists, searches it, selects it and verifies the truthful no-data state on desktop/tablet/mobile plus Chinese labels. The same proof verifies that the quiet root appears in all four per-root selector datalists while SPX remains available as an EOD-only index root.
 
 ## Collision boundary
 

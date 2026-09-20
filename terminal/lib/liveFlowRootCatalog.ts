@@ -103,6 +103,28 @@ export function normalizeRootQuery(value: string): string {
   return trimmed.startsWith("$") ? trimmed.slice(1) : trimmed;
 }
 
+/**
+ * Root choices shared by the per-root options surfaces. Live-flow coverage leads
+ * so active/core/rotating order is preserved; static roots remain as an EOD-only
+ * fallback and retain index products that the intraday collector does not poll.
+ */
+export function buildOptionsRootChoices(
+  catalog: readonly LiveFlowRootCatalogEntry[] | null,
+  fallbackRoots: readonly string[],
+): string[] {
+  const seen = new Set<string>();
+  const roots: string[] = [];
+  const add = (value: string) => {
+    const root = value.trim().toUpperCase();
+    if (!ROOT_PATTERN.test(root) || seen.has(root)) return;
+    seen.add(root);
+    roots.push(root);
+  };
+  for (const entry of catalog ?? []) add(entry.root);
+  for (const root of fallbackRoots) add(root);
+  return roots;
+}
+
 function normalizeFallbackRoots(values: readonly string[]): string[] {
   const seen = new Set<string>();
   const roots: string[] = [];

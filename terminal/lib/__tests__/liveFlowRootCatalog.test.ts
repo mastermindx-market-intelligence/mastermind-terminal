@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
+  buildOptionsRootChoices,
   buildTickerCandidateRows,
   normalizeRootQuery,
   parseLiveFlowRootCatalog,
@@ -180,5 +181,20 @@ describe("ticker candidate rows", () => {
     });
     expect(rows.map((row) => row.root)).toEqual(["HYG"]);
     expect(rows[0].catalog?.hasSessionData).toBe(false);
+  });
+});
+
+describe("shared per-root options choices", () => {
+  it("puts the live coverage catalog ahead of EOD-only fallback roots without dropping either", () => {
+    const catalog = parseLiveFlowRootCatalog(VALID_META);
+    expect(buildOptionsRootChoices(catalog, ["SPY", "SPX", "NDX", "TLT", "SPX"])).toEqual([
+      "AMD", "SPY", "TLT", "SPX", "NDX",
+    ]);
+  });
+
+  it("keeps the static EOD fallback when live coverage metadata is absent", () => {
+    expect(buildOptionsRootChoices(null, ["SPY", "SPX", "SPY", "bad root"])).toEqual([
+      "SPY", "SPX",
+    ]);
   });
 });

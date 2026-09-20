@@ -18,9 +18,11 @@ import { usOptionsSessionState } from "@/lib/flowFreshness";
 import { trackSearch } from "@/lib/searchTrack";
 import { normalizeVolUnits } from "@/lib/eodContext";
 import {
+  buildOptionsRootChoices,
   buildTickerCandidateRows,
   parseLiveFlowRootCatalog,
 } from "@/lib/liveFlowRootCatalog";
+import { GEX_AUTOCOMPLETE_ROOTS } from "@/lib/optionsRoots";
 import {
   OPTIONS_SCREENER_EXPORT_SCHEMA,
   buildOptionsScreenerCsv,
@@ -1583,7 +1585,10 @@ export default function OptionsHubView({
   // `feed` also drives cross-tab consumers (unusual_names → ticker candidates)
   // and the shared freshness chrome, so it must stay fresh off the Tape tab too.
   const { data: feed, connected: feedConnected, error: fetchError } = useFlowStream<FeedPayload>("feed");
-  const flowTimingTab = activeTab === "tape" || activeTab === "zero_dte" || activeTab === "largest" || activeTab === "tide" || activeTab === "tickers";
+  const flowTimingTab = [
+    "tape", "zero_dte", "largest", "tide", "tickers",
+    "gex", "structure", "volatility", "positioning",
+  ].includes(activeTab);
   const { data: flowMeta } = useFlowStream<unknown>(flowTimingTab ? "meta" : null, { pollMs: 60_000 });
   const lastFeedTs = feed?.asof ?? "";
   const [heat, setHeat] = useState<HeatPayload | null>(null);
@@ -1625,30 +1630,33 @@ export default function OptionsHubView({
 
   // ── Ticker drill ─────────────────────────────────────────────────────────
   const [tickerSearch, setTickerSearch] = useState("");
-  const [selectedTicker, setSelectedTicker] = useState<string | null>(null);
-  const [tickerData, setTickerData] = useState<TickerPayload | null>(null);
-  const [tickerLoading, setTickerLoading] = useState(false);
-  // Request order is part of the root-identity contract. A slow old-root response
-  // must never clobber a newer selection or wear the newer ticker's header.
-  const tickerReqRef = useRef(0);
+  const [tickerDrill, setTickerDrill] = useState<{
+    selectedTicker: string | null;
+    tickerData: TickerPayload | null;
+    tickerLoading: boolean;
+    requestToken: symbol | null;
+  }>({ selectedTicker: null, tickerData: null, tickerLoading: false, requestToken: null });
+  const { selectedTicker, tickerData, tickerLoading } = tickerDrill;
 
-  const fetchTicker = useCallback(async (root: string) => {
-    const request = ++tickerReqRef.current;
-    setTickerLoading(true);
-    setTickerData(null);
+  // Request identity lives in the same state atom as the selected root and its
+  // payload. A slow old-root response can therefore no-op atomically instead of
+  // wearing the newer ticker's header.
+  const fetchTicker = useCallback(async (root: string, requestToken: symbol) => {
+    let payload: TickerPayload | null = null;
     try {
       const d = await flowGet(`ticker:${root}`);
-      if (tickerReqRef.current !== request) return;
-      const payload = d as TickerPayload | null;
+      const candidate = d as TickerPayload | null;
       // Honest-empty/malformed/wrong-root payloads are not renderable drills.
-      if (payload?.day && payload.root.toUpperCase() === root.toUpperCase()) {
-        setTickerData(payload);
+      if (candidate?.day && candidate.root.toUpperCase() === root.toUpperCase()) {
+        payload = candidate;
       }
     } catch {
       // The selected root retains its honest empty state.
-    } finally {
-      if (tickerReqRef.current === request) setTickerLoading(false);
     }
+    setTickerDrill((current) => {
+      if (current.requestToken !== requestToken || current.selectedTicker !== root) return current;
+      return { ...current, tickerData: payload, tickerLoading: false };
+    });
   }, []);
 
   // ── Filter state (Tape tab) ───────────────────────────────────────────────
@@ -1858,6 +1866,10 @@ export default function OptionsHubView({
   // The producer-owned catalog defines COVERAGE. Session impact only annotates and
   // orders the producer rows; it must never decide whether a quiet root exists.
   const rootCatalog = useMemo(() => parseLiveFlowRootCatalog(flowMeta), [flowMeta]);
+  const optionsRootChoices = useMemo(
+    () => buildOptionsRootChoices(rootCatalog, GEX_AUTOCOMPLETE_ROOTS),
+    [rootCatalog],
+  );
   const fallbackTickerCandidates = useMemo(() => {
     const set = new Set<string>();
     (tideData?.top_net_impact ?? []).forEach((n) => set.add(n.root));
@@ -2074,14 +2086,22 @@ export default function OptionsHubView({
   // established ticker flow path. Volatility context remains independently lazy.
   const openTicker = useCallback((root: string) => {
     const catalogEntry = rootCatalog?.find((entry) => entry.root === root) ?? null;
-    setSelectedTicker(root);
+    const requestToken = Symbol(root);
     if (catalogEntry && !catalogEntry.hasSessionData) {
-      // Invalidate any old-root request before rendering this producer-owned empty.
-      ++tickerReqRef.current;
-      setTickerData(null);
-      setTickerLoading(false);
+      setTickerDrill({
+        selectedTicker: root,
+        tickerData: null,
+        tickerLoading: false,
+        requestToken,
+      });
     } else {
-      void fetchTicker(root);
+      setTickerDrill({
+        selectedTicker: root,
+        tickerData: null,
+        tickerLoading: true,
+        requestToken,
+      });
+      void fetchTicker(root, requestToken);
     }
     setSelectedVolRoot(root);
   }, [fetchTicker, rootCatalog]);
@@ -3979,7 +3999,7 @@ export default function OptionsHubView({
               ──────────────────────────────────────────────────────────────────── */}
           {(activeTab === "gex" || visitedTabs.has("gex")) && (
             <div style={{ flex: 1, overflow: "hidden", display: activeTab === "gex" ? "flex" : "none", minHeight: 0 }}>
-              <GexDeskView />
+              <GexDeskView rootChoices={optionsRootChoices} />
             </div>
           )}
 
@@ -3994,21 +4014,21 @@ export default function OptionsHubView({
           {/* ═══ STRUCTURE TAB (R3 — OI ladder / OI-time / max pain / OI change) ═ */}
           {(activeTab === "structure" || visitedTabs.has("structure")) && (
             <div style={{ flex: 1, overflow: "hidden", display: activeTab === "structure" ? "flex" : "none", minHeight: 0 }}>
-              <StructureView />
+              <StructureView rootChoices={optionsRootChoices} />
             </div>
           )}
 
           {/* ═══ VOLATILITY TAB (R3 — IV rank / term structure / skew) ═════ */}
           {(activeTab === "volatility" || visitedTabs.has("volatility")) && (
             <div style={{ flex: 1, overflow: "hidden", display: activeTab === "volatility" ? "flex" : "none", minHeight: 0 }}>
-              <VolView />
+              <VolView rootChoices={optionsRootChoices} />
             </div>
           )}
 
           {/* ═══ POSITIONING TAB (MSC R0 — dealer-positioning mechanics) ═══ */}
           {(activeTab === "positioning" || visitedTabs.has("positioning")) && (
             <div style={{ flex: 1, overflow: "hidden", display: activeTab === "positioning" ? "flex" : "none", minHeight: 0 }}>
-              <PositioningView />
+              <PositioningView rootChoices={optionsRootChoices} />
             </div>
           )}
 

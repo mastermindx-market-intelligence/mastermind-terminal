@@ -193,6 +193,7 @@ Expected: FAIL before any remaining selectors/copy/responsive details are comple
 - [ ] **Step 3: Implement the minimum browser-facing adjustments**
 
 Add stable accessible labels only where the browser test demonstrates a real missing contract. Do not refactor unrelated Options Hub layout or Flow Leaders code.
+Pass one catalog-plus-EOD-fallback root list into Exposure, Structure, Volatility, and Positioning; do not create independent subscriptions or per-surface copies.
 
 - [ ] **Step 4: Run Playwright GREEN**
 

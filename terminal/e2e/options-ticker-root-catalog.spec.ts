@@ -107,3 +107,20 @@ test("covered ticker catalog keeps quiet roots searchable and honest", async ({ 
     fullPage: false,
   });
 });
+
+test("live coverage expands every per-root options selector", async ({ page }) => {
+  const selectors = [
+    { tab: "gex", datalist: "gex-roots" },
+    { tab: "structure", datalist: "structure-roots" },
+    { tab: "volatility", datalist: "vol-roots" },
+    { tab: "positioning", datalist: "msc-roots" },
+  ] as const;
+
+  for (const { tab, datalist } of selectors) {
+    await page.goto(`/options?tab=${tab}`);
+    await expect(page.locator(`#${datalist}`)).toBeAttached({ timeout: 15_000 });
+    await expect(page.locator(`#${datalist} option[value="HYG"]`)).toHaveCount(1);
+    // Index roots remain available even though they are not in the intraday catalog.
+    await expect(page.locator(`#${datalist} option[value="SPX"]`)).toHaveCount(1);
+  }
+});
