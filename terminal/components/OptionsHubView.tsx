@@ -1717,17 +1717,6 @@ export default function OptionsHubView({
     if (activeTab === "desk") flowPrefetch("tide");
   }, [activeTab]);
 
-  // Fetch ticker data when selected; also sync vol surface for the merged right column.
-  // The existing vol useEffect (below) triggers fetchVol when selectedVolRoot changes.
-  useEffect(() => {
-    if (selectedTicker) {
-      fetchTicker(selectedTicker);
-      // Sync vol root → triggers the existing vol useEffect which calls fetchVol
-      setSelectedVolRoot(selectedTicker);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedTicker]);
-
   // ── Filtered events (Tape) ────────────────────────────────────────────────
   // Deferred so typing in the ticker filter doesn't block on re-filtering ~2k events.
   const deferredTapeSearch = useDeferredValue(tapeTickerSearch);
@@ -1881,6 +1870,25 @@ export default function OptionsHubView({
     () => rootCatalog?.filter((row) => row.activityRank !== null).length ?? 0,
     [rootCatalog],
   );
+  const selectedTickerCoverageState = selectedTickerCatalog
+    ? (selectedTickerCatalog.hasSessionData ? "data" : "empty")
+    : "unknown";
+
+  // Fetch only when an artifact can exist. A catalog row with no accumulated
+  // session data is already an authoritative empty state; probing its absent
+  // ticker object would manufacture a noisy 404 without adding information.
+  // The existing vol useEffect below remains independent and may still provide
+  // nightly volatility context for the selected covered root.
+  useEffect(() => {
+    if (!selectedTicker) return;
+    if (selectedTickerCoverageState === "empty") {
+      setTickerData(null);
+      setTickerLoading(false);
+    } else {
+      void fetchTicker(selectedTicker);
+    }
+    setSelectedVolRoot(selectedTicker);
+  }, [fetchTicker, selectedTicker, selectedTickerCoverageState]);
 
   // ── Screener fetch ────────────────────────────────────────────────────────
   const [oiData, setOiData] = useState<OiMoversPayload | null>(null);

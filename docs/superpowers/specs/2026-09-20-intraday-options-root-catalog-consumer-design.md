@@ -60,7 +60,7 @@ When the catalog is absent or invalid, fallback candidates remain the union of `
 - Search always spans all catalog roots.
 - No-match copy says no covered root matches the query.
 - Fallback copy explicitly says the catalog is unavailable and the list is session-scoped.
-- Selecting a catalog root still uses the existing `ticker:{ROOT}` flow path.
+- Selecting a catalog root with `has_session_data=true` still uses the existing `ticker:{ROOT}` flow path. A catalog root with `has_session_data=false` renders the authoritative empty state directly and does not probe an artifact that the producer says cannot exist.
 
 No-data copy is truthful by entry state:
 

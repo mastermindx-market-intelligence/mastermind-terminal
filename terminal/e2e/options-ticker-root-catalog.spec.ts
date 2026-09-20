@@ -11,12 +11,18 @@ test("covered ticker catalog keeps quiet roots searchable and honest", async ({ 
   const consoleErrors: string[] = [];
   const pageErrors: string[] = [];
   const httpErrors: string[] = [];
+  const absentTickerFetches: string[] = [];
   page.on("console", (message) => {
     if (message.type() === "error") consoleErrors.push(message.text());
   });
   page.on("pageerror", (error) => pageErrors.push(error.message));
   page.on("response", (response) => {
     if (response.status() >= 400) httpErrors.push(`${response.status()} ${response.url()}`);
+  });
+  page.on("request", (request) => {
+    if (request.url().includes("f=ticker%3AHYG") || request.url().includes("f=ticker:HYG")) {
+      absentTickerFetches.push(request.url());
+    }
   });
 
   await page.goto("/options?tab=tickers");
@@ -47,6 +53,7 @@ test("covered ticker catalog keeps quiet roots searchable and honest", async ({ 
   await expect(empty).toContainText(
     zh ? "本时段尚未积累达标的期权成交" : "no qualifying options prints have accumulated this session",
   );
+  expect(absentTickerFetches).toEqual([]);
 
   const containment = await page.evaluate(() => ({
     viewport: window.innerWidth,
