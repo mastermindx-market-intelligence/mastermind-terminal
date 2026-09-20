@@ -526,6 +526,35 @@ test("a tap still opens the tooltip when the thread stalls between down and up",
   await expect(tip(page)).toBeHidden();
 });
 
+test("a tap keeps the marker identity it started on across a chart reflow", async ({ page }, testInfo) => {
+  test.skip(!["tablet", "mobile"].includes(testInfo.project.name), "touch viewports only");
+  await openTerminal(page);
+  const target = pick(await settledMarkers(page), RETRO_TS);
+
+  // A responsive/pane reflow can move the SVG marker while the main thread is between the
+  // physical down/up samples. The tap belongs to the marker under the DOWN sample; release
+  // validates the gesture, it must not re-resolve identity from the new geometry.
+  await page.locator("[data-sig-layer]").first().evaluate((svg, at) => {
+    const original = (svg as SVGSVGElement).style.transform;
+    const send = (type: string, buttons: number) => svg.dispatchEvent(new PointerEvent(type, {
+      pointerId: 71, pointerType: "touch", isPrimary: true, bubbles: true, cancelable: true,
+      button: 0, buttons, clientX: at.x, clientY: at.y,
+    }));
+
+    send("pointerdown", 1);
+    const before = svg.getBoundingClientRect();
+    (svg as SVGSVGElement).style.transform = "translateY(-180px)";
+    const after = svg.getBoundingClientRect();
+    if (Math.abs(after.y - before.y) < 100) throw new Error("fixture failed to move marker geometry");
+    send("pointerup", 0);
+    (svg as SVGSVGElement).style.transform = original;
+  }, { x: target.cx, y: target.cy });
+
+  await expect(tip(page)).toBeVisible({ timeout: 5_000 });
+  await expect(tip(page)).toHaveAttribute("data-marker-at", target.t);
+  expect(await tip(page).textContent()).toBe(target.title);
+});
+
 test("a touch press that travels is a pan, not a tooltip tap", async ({ page }, testInfo) => {
   test.skip(!["tablet", "mobile"].includes(testInfo.project.name), "touch viewports only");
   await openTerminal(page);

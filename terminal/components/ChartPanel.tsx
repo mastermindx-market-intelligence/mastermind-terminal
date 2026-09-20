@@ -3640,7 +3640,12 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // Suppresses the tooltip for the whole of a press-drag, so it can never chase a pan. `ts` is
     // the event's own time — see markerTooltip.gestureStamp for why the handler clock cannot
     // classify this gesture on a busy thread.
-    let sigPointerDown: { x: number; y: number; t: number; ts: number | null; id: number } | null = null;
+    let sigPointerDown: {
+      x: number; y: number; t: number; ts: number | null; id: number;
+      // Marker identity belongs to the physical DOWN sample. A responsive/pane reflow can move
+      // every SVG box before pointerup is dispatched; re-hit-testing then would lose a valid tap.
+      hit: MarkerHit | null;
+    } | null = null;
     // Declared HERE, beside the state it owns, rather than down with the handlers: renderSignals
     // calls it and runs synchronously during this effect's setup, which would put a
     // handler-block declaration in the temporal dead zone.
@@ -7051,7 +7056,14 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       // This is also what makes the pinned (tapped) tooltip dismissable by a tap elsewhere.
       sigTipHide();
       sigPointerDown = {
-        x: e.clientX, y: e.clientY, t: performance.now(), ts: gestureStamp(e), id: e.pointerId,
+        x: e.clientX,
+        y: e.clientY,
+        t: performance.now(),
+        ts: gestureStamp(e),
+        id: e.pointerId,
+        // Mouse keeps its hover path and should not pay a marker-layout read on every drag start.
+        // Touch/pen snapshot the marker now; pointerup only decides whether the gesture stayed a tap.
+        hit: e.pointerType === "mouse" ? null : sigHitAt(e.clientX, e.clientY, MARKER_TAP_SLACK),
       };
     };
     onSigUp = (e: PointerEvent) => {
@@ -7068,11 +7080,11 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       if (!isTapSample(down, {
         x: e.clientX, y: e.clientY, t: performance.now(), ts: gestureStamp(e),
       })) return;
-      // Hit-tested at the DOWN point — where the finger actually landed — and with the larger
-      // touch slack, because a ⊘ ring is ~11px across and a fingertip has no hover to correct with.
-      const hit = sigHitAt(down.x, down.y, MARKER_TAP_SLACK);
-      if (!hit) return;
-      sigTipShow(hit, down.x, down.y);
+      // The marker was hit-tested at DOWN — where the finger actually landed — with the larger
+      // touch slack. Do not resolve it again now: pane/responsive layout may have moved the SVG
+      // while the event queue was blocked, but that cannot change which marker began the tap.
+      if (!down.hit) return;
+      sigTipShow(down.hit, down.x, down.y);
       sigTipPinned = true;   // stays until the next pointerdown; there is no hover to dismiss it
     };
     onSigCancel = () => { sigPointerDown = null; sigTipHide(); };
