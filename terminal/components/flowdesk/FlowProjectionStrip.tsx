@@ -44,6 +44,11 @@ export function FlowProjectionStrip({ projection, selectedKey, interval, lang, o
             {projection.invalidTimestampCount} {pick(zh, "invalid time", "时间无效")}
           </span>
         )}
+        {projection.invalidValueCount > 0 && (
+          <span className="obs-lbl">
+            {projection.invalidValueCount} {pick(zh, "invalid value", "数值无效")}
+          </span>
+        )}
       </div>
       <div className="obs-fd-preset-bar" aria-label={pick(zh, "Flow buckets", "时间桶")}>
         {projection.buckets.map((bucket) => {
