@@ -19,7 +19,9 @@ import {
   LEADERS_PREVIEW_ROWS,
   leaderCountLabel,
   leaderCoverageFootnote,
+  leaderDirectionCaveat,
   leaderEmptyLabel,
+  leaderHistoryLabel,
   leaderMissingRecurrenceLabel,
   visibleLeaderRows,
 } from "@/lib/leadersPresentation";
@@ -3973,28 +3975,20 @@ export default function OptionsHubView({
                   <>
                     {/* ── Header strip ── */}
                     <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10, marginBottom: 10 }}>
-                      <span style={{ fontSize: 11, color: "var(--text-dim)", fontVariantNumeric: "tabular-nums" }}>
-                        {leadersData.session_date
-                          ? (lang === "zh"
-                            ? `数据会话 ${leadersData.session_date} · 构建 ${fmtAsof(leadersData.as_of)}`
-                            : `data session ${leadersData.session_date} · built ${fmtAsof(leadersData.as_of)}`)
-                          : `${t("asOf", "as of")} ${fmtAsof(leadersData.as_of)}`}
-                      </span>
                       <span style={{ fontSize: 11, color: "var(--muted)" }}>
                         {leaderCountLabel(lang, displayRows.length, allRows.length, cov.n_universe)}
                         {" · "}
-                        {(() => {
-                          const reqSessions = leadersData.cold_start_detail?.required_for_recurrence ?? 5;
-                          return lang === "zh"
-                            ? `会话 ${cov.n_flow_sessions}/${reqSessions}`
-                            : `sessions ${cov.n_flow_sessions}/${reqSessions}`;
-                        })()}
+                        {leaderHistoryLabel(lang, cov.n_flow_sessions)}
                       </span>
-                      {leadersData.stale && (
+                      {leadersData.stale ? (
                         <span style={{ fontSize: 11, color: "var(--warn)", fontWeight: 600 }}>
                           {leadersData.session_date
                             ? pick(lang, `Historical snapshot · source session ${leadersData.session_date}`, `历史快照 · 数据会话 ${leadersData.session_date}`)
                             : t("leadersStale", "Snapshot from prior session")}
+                        </span>
+                      ) : (
+                        <span style={{ fontSize: 11, color: "var(--text-dim)", fontVariantNumeric: "tabular-nums" }}>
+                          {pick(lang, `Updated ${fmtAsof(leadersData.as_of)} ET`, `更新于 ${fmtAsof(leadersData.as_of)}（美东）`)}
                         </span>
                       )}
                     </div>
@@ -4016,8 +4010,8 @@ export default function OptionsHubView({
 
                     {/* Direction note */}
                     {leadersData.direction_note && (
-                      <div style={{ fontSize: 11, color: "var(--text-dim)", marginBottom: 10, fontStyle: "italic" }}>
-                        {leadersData.direction_note}
+                      <div style={{ fontSize: 11, color: "var(--text-dim)", marginBottom: 10 }}>
+                        {leaderDirectionCaveat(lang)}
                       </div>
                     )}
 

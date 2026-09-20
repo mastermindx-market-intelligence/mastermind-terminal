@@ -3,6 +3,8 @@ import {
   LEADERS_PREVIEW_ROWS,
   leaderCountLabel,
   leaderCoverageFootnote,
+  leaderDirectionCaveat,
+  leaderHistoryLabel,
   leaderEmptyLabel,
   leaderMissingRecurrenceLabel,
   visibleLeaderRows,
@@ -32,10 +34,21 @@ describe("Flow Leaders presentation", () => {
     expect(leaderMissingRecurrenceLabel("en", false)).toBe("accruing");
   });
 
+  it("translates source mechanics into reader-facing history and confidence copy", () => {
+    expect(leaderHistoryLabel("en", 145)).toBe("145 sessions of history");
+    expect(leaderHistoryLabel("en", 1)).toBe("1 session of history");
+    expect(leaderHistoryLabel("zh", 145)).toBe("145 个历史会话");
+    expect(leaderDirectionCaveat("en")).toBe(
+      "Magnitude is more reliable than direction in this snapshot.",
+    );
+    expect(leaderDirectionCaveat("zh")).toBe("此快照中，幅度比方向更可靠。");
+  });
+
   it("summarizes coverage instead of dumping hundreds of ticker names", () => {
     const copy = leaderCoverageFootnote("en", 349);
     expect(copy).toContain("349 names");
     expect(copy).not.toContain("AAPL");
-    expect(copy.length).toBeLessThan(140);
+    expect(copy).not.toContain("Direction is approximate");
+    expect(copy.length).toBeLessThan(120);
   });
 });

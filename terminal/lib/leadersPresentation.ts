@@ -24,8 +24,19 @@ export function leaderMissingRecurrenceLabel(lang: "en" | "zh", stale: boolean):
   return lang === "zh" ? "累积中" : "accruing";
 }
 
+export function leaderHistoryLabel(lang: "en" | "zh", sessions: number): string {
+  if (lang === "zh") return `${sessions} 个历史会话`;
+  return `${sessions} session${sessions === 1 ? "" : "s"} of history`;
+}
+
+export function leaderDirectionCaveat(lang: "en" | "zh"): string {
+  return lang === "zh"
+    ? "此快照中，幅度比方向更可靠。"
+    : "Magnitude is more reliable than direction in this snapshot.";
+}
+
 export function leaderCoverageFootnote(lang: "en" | "zh", tapeNames: number): string {
   return lang === "zh"
-    ? `方向为近似值。Tape 签名覆盖 ${tapeNames} 个标的。仅供展示，不构成投资建议。`
-    : `Direction is approximate. Tape-signed coverage: ${tapeNames} names. Display only — not investment advice.`;
+    ? `Tape 签名覆盖 ${tapeNames} 个标的。仅供展示，不构成投资建议。`
+    : `Tape-signed coverage: ${tapeNames} names. Display only — not investment advice.`;
 }

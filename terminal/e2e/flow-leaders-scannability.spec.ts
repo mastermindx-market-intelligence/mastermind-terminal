@@ -30,6 +30,7 @@ function leadersFixture(): LeadersFixture {
     coverage: {
       ...fixture.coverage,
       n_universe: 368,
+      n_flow_sessions: 145,
       tape_names: Array.from({ length: 387 }, (_, index) => `S${index}`),
     },
   };
@@ -49,6 +50,12 @@ test("expanded Flow Leaders keeps its collapse control in reach and a board swit
   const showAll = page.getByRole("button", { name: "Show all 133", exact: true });
   await expect(showAll).toBeVisible({ timeout: 20_000 });
   await expect(page.locator("table.scr tbody tr")).toHaveCount(12);
+  await expect(page.getByText("145 sessions of history", { exact: false })).toBeVisible();
+  await expect(page.getByText(
+    "Magnitude is more reliable than direction in this snapshot.",
+    { exact: true },
+  )).toBeVisible();
+  await expect(page.getByText(/data session|sessions 145\/5|FL-R3/i)).toHaveCount(0);
   const before = await showAll.boundingBox();
   expect(before).not.toBeNull();
 
@@ -77,6 +84,9 @@ test("the compact Flow Leaders controls and coverage remain bilingual", async ({
   await page.goto("/discover?tab=leaders");
   await expect(page.locator("html")).toHaveAttribute("data-lang", "zh");
   await expect(page.getByText("显示 12 / 133 · 368 标的范围", { exact: false })).toBeVisible();
+  await expect(page.getByText("145 个历史会话", { exact: false })).toBeVisible();
+  await expect(page.getByText("此快照中，幅度比方向更可靠。", { exact: true })).toBeVisible();
+  await expect(page.getByText(/数据会话 2026-08-12 · 构建|会话 145\/5|FL-R3/)).toHaveCount(0);
   await expect(page.getByText(/Tape 签名覆盖 387 个标的/)).toBeVisible();
 
   const showAll = page.getByRole("button", { name: "显示全部 133 个", exact: true });
