@@ -505,26 +505,35 @@ function drawPoly(f: DocumentFragment, p: PolyPrim, m: CoordMapper): Element | n
 }
 
 function drawCloud(f: DocumentFragment, c: CloudPrim, m: CoordMapper): Element | null {
-  const n = Math.min(c.upper.length, c.lower.length);
+  const total = Math.min(c.upper.length, c.lower.length);
+  if (total < 2) return null;
+  // Cloud pairs are contract-shaped as parallel arrays. If a malformed/custom primitive breaks
+  // that shape, preserve the old full-history behavior rather than indexing a partial range.
+  const [offset, limit] = c.upper.length === c.lower.length
+    ? sortedSeriesProjectionBounds(c.upper, m)
+    : [0, total];
+  const n = Math.min(limit, total) - offset;
   if (n < 2) return null;
   const alpha = clamp(c.fillAlpha ?? 0.12, 0, 0.5);
   const fallback = (c.segColors && c.segColors[0]) || "var(--brand-2)";
   const g = mk("g", {});
-  // Precompute px points; null coords break color runs.
+  // Precompute only the viewport slice; null coords still break color runs exactly as before.
   const px: Array<[number, number, number] | null> = new Array(n);
   for (let i = 0; i < n; i++) {
-    const x = m.xi(c.upper[i].i), yu = m.y(c.upper[i].p), yl = m.y(c.lower[i].p);
+    const src = offset + i;
+    const x = m.xi(c.upper[src].i), yu = m.y(c.upper[src].p), yl = m.y(c.lower[src].p);
     px[i] = fin(x) && fin(yu) && fin(yl) ? [x, yu, yl] : null;
   }
-  // Merge consecutive same-color segments into one polygon (node economy).
+  // Merge consecutive same-color segments into one polygon (node economy). Colors remain indexed
+  // in source-space when the projected slice begins mid-series.
   let s = 0;
   while (s < n - 1) {
     if (!px[s]) { s++; continue; }
-    const color = (c.segColors && c.segColors[s]) || fallback;
+    const color = (c.segColors && c.segColors[offset + s]) || fallback;
     let e = s + 1;
     while (
       e < n - 1 && px[e] &&
-      ((c.segColors && c.segColors[e]) || fallback) === color
+      ((c.segColors && c.segColors[offset + e]) || fallback) === color
     ) e++;
     if (!px[e]) { s = e + 1; continue; } // run must end on a valid point
     const seg = px.slice(s, e + 1) as Array<[number, number, number]>;
@@ -541,23 +550,59 @@ function drawCloud(f: DocumentFragment, c: CloudPrim, m: CoordMapper): Element |
   return g;
 }
 
+function sortedSeriesProjectionBounds(
+  pts: Array<{ i: number }>, m: CoordMapper,
+): [start: number, end: number] {
+  const n = pts.length;
+  if (n < 2 || !fin(m.i0) || !fin(m.i1)) return [0, n];
+
+  // Gradline producers are normally chronological, but the frozen primitive type does not require
+  // it. Validate ordering with cheap scalar reads; if a custom/module producer is unusual, retain
+  // the old full-history projection rather than binary-searching the wrong order.
+  let prev = pts[0]?.i;
+  if (!fin(prev)) return [0, n];
+  for (let i = 1; i < n; i++) {
+    const cur = pts[i]?.i;
+    if (!fin(cur) || cur < prev) return [0, n];
+    prev = cur;
+  }
+
+  const left = Math.min(m.i0, m.i1);
+  const right = Math.max(m.i0, m.i1);
+  // Keep the same two-bar render cushion as columns, plus one extra source point on either side so
+  // a segment that crosses into the viewport remains continuous at the edge.
+  const lo = Math.floor(left) - 2;
+  const hi = Math.ceil(right) + 2;
+  const start = Math.max(0, lowerBoundByI(pts, lo) - 1);
+  const end = Math.min(n, lowerBoundByI(pts, hi + 1) + 1);
+  return end - start >= 2 ? [start, end] : [0, n];
+}
+
 function drawGradLine(f: DocumentFragment, gl: GradLinePrim, m: CoordMapper): Element | null {
-  const n = gl.pts.length;
+  const total = gl.pts.length;
+  if (total < 2) return null;
+  const [offset, limit] = sortedSeriesProjectionBounds(gl.pts, m);
+  const n = limit - offset;
   if (n < 2) return null;
   const fallback = gl.colors[0] || "var(--brand-2)";
   const g = mk("g", {});
   const px: Array<[number, number] | null> = new Array(n);
   for (let i = 0; i < n; i++) {
-    const x = m.xi(gl.pts[i].i), y = m.y(gl.pts[i].p);
+    const src = gl.pts[offset + i];
+    const x = m.xi(src.i), y = m.y(src.p);
     px[i] = fin(x) && fin(y) ? [x, y] : null;
   }
-  // Merge consecutive same-color segments into single <path>s.
+  // Merge consecutive same-color segments into single <path>s. Color indexes stay in source-space
+  // even when the projected window starts in the middle of a full-history series.
   let s = 0;
   while (s < n - 1) {
     if (!px[s]) { s++; continue; }
-    const color = gl.colors[s] || fallback;
+    const color = gl.colors[offset + s] || fallback;
     let e = s + 1;
-    while (e < n - 1 && px[e] && (gl.colors[e] || fallback) === color) e++;
+    while (
+      e < n - 1 && px[e] &&
+      (gl.colors[offset + e] || fallback) === color
+    ) e++;
     if (!px[e]) { s = e + 1; continue; }
     const first = px[s] as [number, number], last = px[e] as [number, number];
     if (xVisible(m, first[0], last[0])) {
