@@ -5,7 +5,6 @@ import { join } from "node:path";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import BriefsInbox from "@/components/briefs/BriefsInbox";
-import BriefSubscribeControls from "@/components/briefs/BriefSubscribeControls";
 import { briefCopy, degradedLine } from "@/lib/briefs";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -106,16 +105,6 @@ async function mountInbox(lang: "en" | "zh") {
   root = createRoot(container);
   await act(async () => {
     root!.render(<BriefsInbox lang={lang} />);
-  });
-  await act(async () => { await Promise.resolve(); });
-}
-
-async function mountSubscribe(lang: "en" | "zh") {
-  container = document.createElement("div");
-  document.body.appendChild(container);
-  root = createRoot(container);
-  await act(async () => {
-    root!.render(<BriefSubscribeControls targetKind="thesis" targetId={THESIS} lang={lang} />);
   });
   await act(async () => { await Promise.resolve(); });
 }
@@ -283,85 +272,10 @@ describe("BriefsInbox rendering", () => {
   });
 });
 
-describe("BriefSubscribeControls", () => {
-  beforeEach(() => {
-    subscriptions = [];
-    installFetch();
-  });
-  afterEach(() => {
-    unmount();
-    vi.unstubAllGlobals();
-  });
-
-  it("does not turn a subscription-read outage into an empty Add state", async () => {
-    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
-      const url = String(input);
-      if (url.includes("/api/briefs/subscriptions")) return jsonRes(503, {});
-      return jsonRes(404, {});
-    }));
-    await mountSubscribe("en");
-    expect(container?.querySelector('[data-brief-subscribe-state="unavailable"]')).not.toBeNull();
-    expect(text()).toContain(briefCopy("unavailable", "en"));
-    expect(text()).toContain(briefCopy("retry", "en"));
-    expect(text()).not.toContain(briefCopy("add", "en"));
-  });
-
-  it("offers explicit schedules and tells the user exactly where briefs arrive", async () => {
-    await mountSubscribe("en");
-    expect(text()).toContain(briefCopy("controlsTitle", "en"));
-    expect(text()).toContain(briefCopy("scheduleHelp", "en"));
-    expect(text()).toContain(briefCopy("emailNull", "en"));
-    expect(text()).toContain(briefCopy("subscribeDaily", "en"));
-    expect(text()).toContain(briefCopy("subscribeWeekly", "en"));
-    expect(text()).not.toContain("Send me a brief");
-    unmount();
-    await mountSubscribe("zh");
-    expect(text()).toContain(briefCopy("controlsTitle", "zh"));
-    expect(text()).toContain(briefCopy("emailNull", "zh"));
-    expect(text()).toContain(briefCopy("subscribeDaily", "zh"));
-    expect(text()).toContain(briefCopy("subscribeWeekly", "zh"));
-  });
-
-  it("links to the real inbox and lets an existing schedule be paused without deleting history", async () => {
-    subscriptions = [{
-      subscriptionId: "11111111-1111-4111-8111-111111111111",
-      userId: "22222222-2222-4222-8222-222222222222",
-      targetKind: "thesis",
-      targetId: THESIS,
-      cadence: "daily_after_us_close",
-      delivery: "in_product_inbox",
-      state: "active",
-      createdAt: "2026-09-11T20:00:00.000Z",
-    }];
-    await mountSubscribe("en");
-    const inboxLink = container?.querySelector('a[href="/alerts#briefs"]');
-    expect(inboxLink?.textContent).toBe(briefCopy("openInbox", "en"));
-    expect(text()).toContain(briefCopy("on", "en"));
-
-    const pause = Array.from(container?.querySelectorAll("button") ?? [])
-      .find((button) => button.textContent === briefCopy("pause", "en"));
-    expect(pause).toBeDefined();
-    await act(async () => { pause!.dispatchEvent(new MouseEvent("click", { bubbles: true })); });
-    await act(async () => { await Promise.resolve(); await Promise.resolve(); });
-
-    const fetchMock = vi.mocked(fetch);
-    expect(fetchMock).toHaveBeenCalledWith(
-      "/api/briefs/subscriptions/11111111-1111-4111-8111-111111111111",
-      expect.objectContaining({ method: "PATCH" }),
-    );
-    expect(text()).toContain(briefCopy("paused", "en"));
-    expect(text()).toContain(briefCopy("resume", "en"));
-    expect(container?.querySelectorAll('button')).not.toBeNull();
-  });
-});
-
-describe("brief schedule deletion stays out of casual UI", () => {
-  it("does not expose the destructive DELETE path in either Brief surface", () => {
-    const contextual = readFileSync(join(__dirname, "../../components/briefs/BriefSubscribeControls.tsx"), "utf8");
+describe("brief schedule deletion stays out of the central management UI", () => {
+  it("does not expose the destructive DELETE path from Alerts → Briefs", () => {
     const inbox = readFileSync(join(__dirname, "../../components/briefs/BriefsInbox.tsx"), "utf8");
-    expect(contextual).not.toContain('method: "DELETE"');
     expect(inbox).not.toContain('method: "DELETE"');
-    expect(contextual).not.toContain("removeSchedule");
     expect(inbox).not.toContain("removeSchedule");
   });
 });

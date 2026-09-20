@@ -28,7 +28,6 @@ export default function BriefSubscribeControls({
   const [resolvedId, setResolvedId] = useState<string | null>(targetId ?? null);
   const [subs, setSubs] = useState<SubRow[] | null>(null);
   const [busy, setBusy] = useState<BriefCadence | null>(null);
-  const [unavailable, setUnavailable] = useState(false);
 
   const resolveWatchlist = useCallback(async () => {
     if (targetKind !== "watchlist" || !listName) return targetId ?? null;
@@ -46,25 +45,13 @@ export default function BriefSubscribeControls({
   const load = useCallback(async (id: string) => {
     try {
       const r = await fetch(
-        "/api/briefs/subscriptions?target_kind=" + encodeURIComponent(targetKind)
-          + "&target_id=" + encodeURIComponent(id),
+        `/api/briefs/subscriptions?target_kind=${encodeURIComponent(targetKind)}&target_id=${encodeURIComponent(id)}`,
       );
-      if (r.status === 401) {
-        setSubs([]);
-        setUnavailable(false);
-        return;
-      }
-      if (!r.ok) {
-        setSubs(null);
-        setUnavailable(true);
-        return;
-      }
+      if (!r.ok) { setSubs([]); return; }
       const body = await r.json() as { subscriptions?: SubRow[] };
       setSubs(body.subscriptions || []);
-      setUnavailable(false);
     } catch {
-      setSubs(null);
-      setUnavailable(true);
+      setSubs([]);
     }
   }, [targetKind]);
 
@@ -75,27 +62,12 @@ export default function BriefSubscribeControls({
       if (!alive) return;
       setResolvedId(id);
       if (id) void load(id);
-      else {
-        setSubs([]);
-        setUnavailable(false);
-      }
+      else setSubs([]);
     })();
     return () => { alive = false; };
   }, [targetKind, targetId, resolveWatchlist, load]);
 
   if (!resolvedId) return null;
-
-  if (unavailable) {
-    return (
-      <div className={s.controls} data-testid="brief-subscribe" data-brief-subscribe-state="unavailable">
-        <div className={s.controlsHead}>{briefCopy("controlsTitle", L)}</div>
-        <p className={s.controlsNote}>{briefCopy("unavailable", L)}</p>
-        <button type="button" className={s.retryButton} onClick={() => void load(resolvedId)}>
-          {briefCopy("retry", L)}
-        </button>
-      </div>
-    );
-  }
 
   const byCadence = (cadence: BriefCadence) => (subs || []).find((row) => row.cadence === cadence);
 
@@ -135,11 +107,8 @@ export default function BriefSubscribeControls({
     if (!existing) {
       return (
         <div className={s.cadenceRow} key={labelKey}>
-          <div className={s.cadenceCopy}>
-            <p>{sentence}</p>
-          </div>
           <button type="button" disabled={disabled} onClick={() => void subscribe(cadence)}>
-            {briefCopy("add", L)}
+            {sentence}
           </button>
         </div>
       );
@@ -147,33 +116,22 @@ export default function BriefSubscribeControls({
     const paused = subscriptionIsPaused(existing);
     return (
       <div className={s.cadenceRow} key={labelKey}>
-        <div className={s.cadenceCopy}>
-          <p>{sentence}</p>
-          <span className={s.stateChip} data-state={paused ? "paused" : "active"}>
-            {briefCopy(paused ? "paused" : "on", L)}
-          </span>
-        </div>
-        <div className={s.cadenceActions}>
-          <button
-            type="button"
-            disabled={disabled}
-            data-paused={paused ? "true" : undefined}
-            onClick={() => void patch(existing.subscriptionId, paused ? "resume" : "pause", cadence)}
-          >
-            {paused ? briefCopy("resume", L) : briefCopy("pause", L)}
-          </button>
-        </div>
+        <p>{sentence}</p>
+        <button
+          type="button"
+          disabled={disabled}
+          data-paused={paused ? "true" : undefined}
+          onClick={() => void patch(existing.subscriptionId, paused ? "resume" : "pause", cadence)}
+        >
+          {paused ? briefCopy("resume", L) : briefCopy("pause", L)}
+        </button>
       </div>
     );
   }
 
   return (
     <div className={s.controls} data-testid="brief-subscribe">
-      <div className={s.controlsHead}>{briefCopy("controlsTitle", L)}</div>
-      <p className={s.controlsNote}>{briefCopy("scheduleHelp", L)}</p>
-      <p className={s.deliveryNote} data-testid="briefs-subscribe-delivery">
-        {briefCopy("emailNull", L)} <a href="/alerts#briefs">{briefCopy("openInbox", L)}</a>
-      </p>
+      <div className={s.controlsHead}>{briefCopy("title", L)}</div>
       {row("daily_after_us_close", "subscribeDaily")}
       {row("weekly_saturday", "subscribeWeekly")}
     </div>
