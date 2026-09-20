@@ -47,8 +47,10 @@ export interface FlowProjection {
   buckets: FlowProjectionBucket[];
 }
 
-function finiteNonNegative(value: number): number {
-  return Number.isFinite(value) && value >= 0 ? value : 0;
+function validMagnitude(event: FlowProjectionSource): boolean {
+  return Number.isFinite(event.premium) && event.premium >= 0
+    && Number.isFinite(event.size) && event.size >= 0
+    && Number.isFinite(event.n_prints) && event.n_prints >= 0;
 }
 
 export function flowProjectionBucketKey(tsMs: number, intervalMinutes: FlowProjectionIntervalMinutes): number {
