@@ -1,14 +1,14 @@
 # B-F11-7 Recurring briefs — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: b2f61d4ebe9b8cf7871adeb0462361035ee29dc8
-# capturedAt: 2026-09-20T03:03:21.017Z
+# capturedAtHead: 365fb45d7aa4fbb00a1f5c0058db018487eebab1
+# capturedAt: 2026-09-20T04:13:30.167Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/components/briefs/BriefsInbox.tsx: "6c5632a294325c2b7f9464a84a4fc53c9312956378222136924089ff9194faac"
   terminal/components/briefs/briefs.module.css: "659fda1d0b0eeef68545c47862a90b4357a49a34249515d18d6e502f6dd6d55a"
   terminal/lib/briefs.ts: "cfa98488ea3d56aac20316c07de8bc045ffa712cb4d0db639e6ef0e570faf122"
-  terminal/components/alerts/AlertsCockpit.tsx: "468a506890408b90a5621982a178fcef4ebf711e0d8bbb9428de78a4abd3f8a7"
+  terminal/components/alerts/AlertsCockpit.tsx: "8b2282a15601664de1204f1593002c53f1c6d0420a92e5b4f4eb2e850b050c79"
 theme: dark
 languages: [en, zh]
 viewports:
