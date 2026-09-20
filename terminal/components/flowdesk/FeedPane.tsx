@@ -562,7 +562,7 @@ export function FeedPane({
     );
     io.observe(el);
     return () => io.disconnect();
-  }, [filtered.length, visibleCount]);
+  }, [projectedEvents.length, visibleCount]);
 
 
   // ── Render ──────────────────────────────────────────────────────────────────
