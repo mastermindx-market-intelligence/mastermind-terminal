@@ -3637,6 +3637,47 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     let sigHits: MarkerHit[] | null = null;
     // A tapped tooltip stays put until the next pointerdown; a hovered one follows the cursor.
     let sigTipPinned = false;
+    // A layout change that begins while a fingertip is physically down may deliver its
+    // ResizeObserver callback just after pointerup. Preserve that one freshly pinned tooltip
+    // through the current rendering turn; any later pane resize still dismisses a stale anchor.
+    let sigTipResizeGrace = false;
+    let sigTipResizeGraceRaf: number | null = null;
+    const clearSigTipResizeGrace = () => {
+      sigTipResizeGrace = false;
+      if (sigTipResizeGraceRaf != null) cancelAnimationFrame(sigTipResizeGraceRaf);
+      sigTipResizeGraceRaf = null;
+    };
+    const armSigTipResizeGrace = () => {
+      clearSigTipResizeGrace();
+      sigTipResizeGrace = true;
+      sigTipResizeGraceRaf = requestAnimationFrame(() => {
+        sigTipResizeGraceRaf = requestAnimationFrame(() => {
+          sigTipResizeGrace = false;
+          sigTipResizeGraceRaf = null;
+        });
+      });
+    };
+    type SigLayoutSnapshot = {
+      layerX: number; layerY: number; layerW: number; layerH: number;
+      paneX: number; paneY: number; paneW: number; paneH: number;
+    } | null;
+    const sigLayoutSnapshot = (): SigLayoutSnapshot => {
+      const layer = sigRef.current;
+      let paneEl: HTMLElement | null = null;
+      try { paneEl = panesMeta.current.find((meta) => meta.isPrice)?.pane.getHTMLElement() ?? null; } catch {}
+      if (!layer || !paneEl) return null;
+      const lr = layer.getBoundingClientRect();
+      const pr = paneEl.getBoundingClientRect();
+      return {
+        layerX: lr.x, layerY: lr.y, layerW: lr.width, layerH: lr.height,
+        paneX: pr.x, paneY: pr.y, paneW: pr.width, paneH: pr.height,
+      };
+    };
+    const sigLayoutMoved = (a: SigLayoutSnapshot, b: SigLayoutSnapshot) => {
+      if (!a || !b) return false;
+      return (Object.keys(a) as (keyof NonNullable<SigLayoutSnapshot>)[])
+        .some((key) => Math.abs(a[key] - b[key]) > 1);
+    };
     // Suppresses the tooltip for the whole of a press-drag, so it can never chase a pan. `ts` is
     // the event's own time — see markerTooltip.gestureStamp for why the handler clock cannot
     // classify this gesture on a busy thread.
@@ -3645,11 +3686,14 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       // Marker identity belongs to the physical DOWN sample. A responsive/pane reflow can move
       // every SVG box before pointerup is dispatched; re-hit-testing then would lose a valid tap.
       hit: MarkerHit | null;
+      layout: SigLayoutSnapshot;
+      layoutShifted: boolean;
     } | null = null;
     // Declared HERE, beside the state it owns, rather than down with the handlers: renderSignals
     // calls it and runs synchronously during this effect's setup, which would put a
     // handler-block declaration in the temporal dead zone.
     const sigTipHide = () => {
+      clearSigTipResizeGrace();
       sigTipPinned = false;
       if (sigTip && sigTip.style.display !== "none") sigTip.style.display = "none";
     };
@@ -7064,6 +7108,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         // Mouse keeps its hover path and should not pay a marker-layout read on every drag start.
         // Touch/pen snapshot the marker now; pointerup only decides whether the gesture stayed a tap.
         hit: e.pointerType === "mouse" ? null : sigHitAt(e.clientX, e.clientY, MARKER_TAP_SLACK),
+        layout: e.pointerType === "mouse" ? null : sigLayoutSnapshot(),
+        layoutShifted: false,
       };
     };
     onSigUp = (e: PointerEvent) => {
@@ -7084,8 +7130,10 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       // touch slack. Do not resolve it again now: pane/responsive layout may have moved the SVG
       // while the event queue was blocked, but that cannot change which marker began the tap.
       if (!down.hit) return;
+      const layoutShifted = down.layoutShifted || sigLayoutMoved(down.layout, sigLayoutSnapshot());
       sigTipShow(down.hit, down.x, down.y);
       sigTipPinned = true;   // stays until the next pointerdown; there is no hover to dismiss it
+      if (layoutShifted) armSigTipResizeGrace();
     };
     onSigCancel = () => { sigPointerDown = null; sigTipHide(); };
     onSigLeave = (e: PointerEvent) => {
@@ -7110,15 +7158,21 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // changes the price pane's height (→ priceToCoordinate) WITHOUT resizing the chart container, so the
     // container `ro` below never fires — without this the BUY/SELL/CUT/REBUY badges lag at stale Y coords
     // until an unrelated pan/hover triggers a render.
-    // A PINNED (tapped) tooltip has no cursor to dismiss it, so a RELAYOUT that moves its marker
-    // out from under it leaves litter pointing at nothing — the reachable case being a double-tap
-    // ON a marker, where the second tap re-pins while the same gesture maximizes the pane. Hooked
-    // to the pane observer and NOT to renderSignals: a repaint is far too broad a trigger. Markers
-    // repaint on every visible-range frame and, measurably, on something that lands right after a
-    // touch tap — hiding there dismissed the tooltip the tap had just opened, and took the tap
-    // tests red on both touch viewports. A pane resize/maximize is the event that actually
-    // invalidates the anchor, and a tap does not cause one.
-    paneRO = new ResizeObserver(() => { if (dead) return; sigTipHide(); captureNormal(); scheduleMeasure(); scheduleRender(); });
+    // A PINNED (tapped) tooltip has no cursor to dismiss it, so a later RELAYOUT that moves its
+    // marker must still clear the stale anchor. The narrow exception is a layout change that began
+    // while the same fingertip was physically down: its ResizeObserver delivery can arrive just
+    // after pointerup and must not erase the tooltip that tap established. `sigTipResizeGrace`
+    // protects only that rendering turn when the down/up layout snapshots changed (or this observer
+    // fired while the down sample was active); every later resize/maximize follows the normal hide.
+    // This belongs here, not in renderSignals: repainting is far too broad a dismissal trigger.
+    paneRO = new ResizeObserver(() => {
+      if (dead) return;
+      if (sigPointerDown) sigPointerDown.layoutShifted = true;
+      if (!(sigTipPinned && sigTipResizeGrace)) sigTipHide();
+      captureNormal();
+      scheduleMeasure();
+      scheduleRender();
+    });
     paneRORef.current = paneRO;
 
     const rectXY = (ev: PointerEvent) => { const r = svg.getBoundingClientRect(); return { x: ev.clientX - r.left, y: ev.clientY - r.top }; };
@@ -8032,6 +8086,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       if (optionTagHostRef.current) { try { optionTagHostRef.current.remove(); } catch {} optionTagHostRef.current = null; }
       if (hoverTagRef.current) { try { hoverTagRef.current.remove(); } catch {} hoverTagRef.current = null; }
       if (sigTip) { try { sigTip.remove(); } catch {} sigTip = null; }
+      clearSigTipResizeGrace();
       sigHits = null; sigPointerDown = null; sigTipPinned = false;
       renderTagRef.current = null;
       renderHoverTagRef.current = null;

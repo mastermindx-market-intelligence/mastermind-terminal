@@ -533,26 +533,84 @@ test("a tap keeps the marker identity it started on across a chart reflow", asyn
 
   // A responsive/pane reflow can move the SVG marker while the main thread is between the
   // physical down/up samples. The tap belongs to the marker under the DOWN sample; release
-  // validates the gesture, it must not re-resolve identity from the new geometry.
-  await page.locator("[data-sig-layer]").first().evaluate((svg, at) => {
-    const original = (svg as SVGSVGElement).style.transform;
-    const send = (type: string, buttons: number) => svg.dispatchEvent(new PointerEvent(type, {
+  // validates the gesture, it must not re-resolve identity from the new geometry or let the
+  // ResizeObserver delivery erase the freshly pinned tooltip.
+  await page.locator("[data-sig-layer]").first().evaluate(async (svg, at) => {
+    const layer = svg as SVGSVGElement;
+    const chart = layer.closest<HTMLElement>(".chart-wrap");
+    const engine = chart?.querySelector<HTMLElement>(".tv-lightweight-charts");
+    const pane = engine
+      ? [...engine.querySelectorAll<HTMLTableRowElement>("tr")].find((row) => {
+        const rect = row.getBoundingClientRect();
+        return rect.width > 150 && rect.height > 100;
+      })
+      : undefined;
+    if (!chart || !engine || !pane) throw new Error("fixture could not find the observed price pane");
+
+    pane.dataset.testObservedPricePane = "1";
+    const originalTransform = layer.style.transform;
+    const marker = [...layer.querySelectorAll<SVGGElement>(":scope > g")].find((group) =>
+      group.querySelector(":scope > title")?.textContent?.startsWith(`${at.t} ·`),
+    );
+    if (!marker) throw new Error(`fixture lost marker ${at.t}`);
+    const markerRect = marker.getBoundingClientRect();
+    const x = markerRect.x + markerRect.width / 2;
+    const y = markerRect.y + markerRect.height / 2;
+    const originalPaneHeight = pane.style.height;
+    const send = (type: string, buttons: number) => layer.dispatchEvent(new PointerEvent(type, {
       pointerId: 71, pointerType: "touch", isPrimary: true, bubbles: true, cancelable: true,
-      button: 0, buttons, clientX: at.x, clientY: at.y,
+      button: 0, buttons, clientX: x, clientY: y,
     }));
 
     send("pointerdown", 1);
-    const before = svg.getBoundingClientRect();
-    (svg as SVGSVGElement).style.transform = "translateY(-180px)";
-    const after = svg.getBoundingClientRect();
-    if (Math.abs(after.y - before.y) < 100) throw new Error("fixture failed to move marker geometry");
+    const markerBefore = layer.getBoundingClientRect();
+    const paneBefore = pane.getBoundingClientRect();
+    layer.style.transform = "translateY(-180px)";
+    pane.style.height = `${paneBefore.height + 32}px`;
+    const markerAfter = layer.getBoundingClientRect();
+    const paneAfter = pane.getBoundingClientRect();
+    if (Math.abs(markerAfter.y - markerBefore.y) < 100) throw new Error("fixture failed to move marker geometry");
+    if (Math.abs(paneAfter.height - paneBefore.height) < 20) throw new Error("fixture failed to resize observed pane");
     send("pointerup", 0);
-    (svg as SVGSVGElement).style.transform = original;
-  }, { x: target.cx, y: target.cy });
+
+    // ResizeObserver delivery is asynchronous. Let the resize queued during the tap run after
+    // pointerup; it must not erase the marker identity the physical down sample established.
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    layer.dataset.testOriginalTransform = originalTransform;
+    layer.dataset.testOriginalPaneHeight = originalPaneHeight;
+  }, { t: target.t });
 
   await expect(tip(page)).toBeVisible({ timeout: 5_000 });
   await expect(tip(page)).toHaveAttribute("data-marker-at", target.t);
   expect(await tip(page).textContent()).toBe(target.title);
+
+  // The grace is bounded to the rendering turn that completed the physical tap. A later pane
+  // resize still invalidates the old anchor instead of leaving tooltip litter on the chart.
+  await page.locator("[data-sig-layer]").first().evaluate(async (svg) => {
+    const layer = svg as SVGSVGElement;
+    const engine = layer.closest<HTMLElement>(".chart-wrap")
+      ?.querySelector<HTMLElement>(".tv-lightweight-charts");
+    const pane = engine?.querySelector<HTMLTableRowElement>('tr[data-test-observed-price-pane="1"]');
+    if (!pane) throw new Error("fixture lost the observed price pane");
+    await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+    pane.style.height = `${pane.getBoundingClientRect().height + 24}px`;
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+  });
+  await expect(tip(page)).toBeHidden({ timeout: 5_000 });
+
+  await page.locator("[data-sig-layer]").first().evaluate((svg) => {
+    const layer = svg as SVGSVGElement;
+    const engine = layer.closest<HTMLElement>(".chart-wrap")
+      ?.querySelector<HTMLElement>(".tv-lightweight-charts");
+    const observedPane = engine?.querySelector<HTMLTableRowElement>('tr[data-test-observed-price-pane="1"]');
+    layer.style.transform = layer.dataset.testOriginalTransform || "";
+    if (observedPane) {
+      observedPane.style.height = layer.dataset.testOriginalPaneHeight || "";
+      delete observedPane.dataset.testObservedPricePane;
+    }
+    delete layer.dataset.testOriginalTransform;
+    delete layer.dataset.testOriginalPaneHeight;
+  });
 });
 
 test("a touch press that travels is a pan, not a tooltip tap", async ({ page }, testInfo) => {
