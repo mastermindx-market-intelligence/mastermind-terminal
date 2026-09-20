@@ -1,6 +1,7 @@
 "use client";
 
 import type { FlowProjection, FlowProjectionIntervalMinutes } from "@/lib/flowProjection";
+import { pick } from "@/lib/finFormat";
 
 type Props = {
   projection: FlowProjection;
@@ -22,8 +23,8 @@ export function FlowProjectionStrip({ projection, selectedKey, interval, lang, o
   const zh = lang === "zh";
   return (
     <div data-flow-projection="r8-v1">
-      <div className="obs-fd-preset-bar" aria-label={zh ? "资金流时间投影" : "Flow time projection"}>
-        <span className="obs-lbl">{zh ? "时间投影" : "TIME"}</span>
+      <div className="obs-fd-preset-bar" aria-label={pick(zh, "Flow time projection", "资金流时间投影")}>
+        <span className="obs-lbl">{pick(zh, "TIME", "时间投影")}</span>
         {([5, 15, 30, 60] as const).map((minutes) => (
           <button
             key={minutes}
@@ -36,15 +37,15 @@ export function FlowProjectionStrip({ projection, selectedKey, interval, lang, o
         ))}
         <span className="obs-lbl">
           {projection.validEventCount.toLocaleString("en-US")}
-          {zh ? " 事件" : " events"}
+          {pick(zh, " events", " 事件")}
         </span>
         {projection.invalidTimestampCount > 0 && (
           <span className="obs-lbl">
-            {projection.invalidTimestampCount} {zh ? "时间无效" : "invalid time"}
+            {projection.invalidTimestampCount} {pick(zh, "invalid time", "时间无效")}
           </span>
         )}
       </div>
-      <div className="obs-fd-preset-bar" aria-label={zh ? "时间桶" : "Flow buckets"}>
+      <div className="obs-fd-preset-bar" aria-label={pick(zh, "Flow buckets", "时间桶")}>
         {projection.buckets.map((bucket) => {
           const active = bucket.key === selectedKey;
           return (
@@ -61,7 +62,7 @@ export function FlowProjectionStrip({ projection, selectedKey, interval, lang, o
         })}
         {selectedKey && (
           <button type="button" className="obs-chip" onClick={() => onSelect(null)}>
-            {zh ? "清除时间桶" : "Clear bucket"}
+            {pick(zh, "Clear bucket", "清除时间桶")}
           </button>
         )}
       </div>
