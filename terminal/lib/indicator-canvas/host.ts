@@ -196,16 +196,33 @@ function warnOnce(seen: Set<string>, id: string, msg: string, extra?: unknown): 
 
 const MEMO_MAX = 32;
 // A memo hit must describe the same DATA, not merely the same row count and last timestamp.
-// Keep a bounded primitive snapshot alongside the existing result; equal payload copies still hit.
-// A numeric comparison is cheaper than serializing/hashing the full bar array on every pan frame.
-const MEMO = new Map<string, { result: SuiteComputeResult; bars: SuiteHostInput["bars"] }>();
-const BAR_FIELDS = ["time", "o", "h", "l", "c", "v"] as const;
+// Keep an exact bounded primitive snapshot alongside the result; equal payload copies still hit and
+// in-place historical corrections still miss. Five numeric fields live in one packed Float64Array
+// so the pan/zoom hot path avoids nested string-key property lookups across every bar and suite.
+type MemoBarsSnapshot = {
+  times: Array<string | number>;
+  values: Float64Array; // [o,h,l,c,v, o,h,l,c,v, ...]
+};
+const MEMO = new Map<string, { result: SuiteComputeResult; bars: MemoBarsSnapshot }>();
+
+// Runtime suite definitions are immutable module registries. Cache the two structural values that
+// used to be rebuilt for every cached frame: the owned-key set used to filter params and the module
+// sequence embedded in the memo key. Weak ownership keeps test-created definitions collectible.
+type SuiteMemoMeta = { ownedModuleKeys: ReadonlySet<string>; moduleKeySig: string };
+const SUITE_MEMO_META = new WeakMap<SuiteDef, SuiteMemoMeta>();
+function suiteMemoMeta(def: SuiteDef): SuiteMemoMeta {
+  const cached = SUITE_MEMO_META.get(def);
+  if (cached) return cached;
+  const keys = def.modules.map((module) => module.key);
+  const meta = { ownedModuleKeys: new Set(keys), moduleKeySig: keys.join(",") };
+  SUITE_MEMO_META.set(def, meta);
+  return meta;
+}
 
 /** Stable, order-independent signature of the flat params that belong to THIS suite's modules. */
 function paramSignature(def: SuiteDef, flat: Record<string, any> | undefined): string {
   if (!flat) return "";
-  const owned = new Set<string>();
-  for (const m of def.modules) owned.add(m.key);
+  const owned = suiteMemoMeta(def).ownedModuleKeys;
   const keys: string[] = [];
   for (const k in flat) {
     if (!Object.prototype.hasOwnProperty.call(flat, k)) continue;
@@ -241,7 +258,7 @@ function memoKey(
     colors.warn + "," + colors.brand + "," + colors.text + "," + colors.muted + "," + colors.neutral;
   return [
     def.key,
-    def.modules.map((module) => module.key).join(","),
+    suiteMemoMeta(def).moduleKeySig,
     input.symbol,
     input.tf,
     input.isIntraday ? "i" : "d",
@@ -254,11 +271,34 @@ function memoKey(
   ].join("|");
 }
 
+function snapshotBars(rows: SuiteHostInput["bars"]): MemoBarsSnapshot {
+  const times = new Array<string | number>(rows.length);
+  const values = new Float64Array(rows.length * 5);
+  for (let i = 0, j = 0; i < rows.length; i++) {
+    const row = rows[i];
+    times[i] = row.time;
+    values[j++] = row.o;
+    values[j++] = row.h;
+    values[j++] = row.l;
+    values[j++] = row.c;
+    values[j++] = row.v;
+  }
+  return { times, values };
+}
+
 function memoGet(key: string, rows: SuiteHostInput["bars"]): SuiteComputeResult | undefined {
   const hit = MEMO.get(key);
-  if (!hit || hit.bars.length !== rows.length) return undefined;
-  for (let i = 0; i < rows.length; i++) {
-    for (const field of BAR_FIELDS) if (!Object.is(hit.bars[i][field], rows[i][field])) return undefined;
+  const snapshot = hit?.bars;
+  if (!hit || !snapshot || snapshot.times.length !== rows.length) return undefined;
+  const values = snapshot.values;
+  for (let i = 0, j = 0; i < rows.length; i++) {
+    const row = rows[i];
+    if (!Object.is(snapshot.times[i], row.time)) return undefined;
+    if (!Object.is(values[j++], row.o)) return undefined;
+    if (!Object.is(values[j++], row.h)) return undefined;
+    if (!Object.is(values[j++], row.l)) return undefined;
+    if (!Object.is(values[j++], row.c)) return undefined;
+    if (!Object.is(values[j++], row.v)) return undefined;
   }
   MEMO.delete(key);
   MEMO.set(key, hit);
@@ -267,7 +307,7 @@ function memoGet(key: string, rows: SuiteHostInput["bars"]): SuiteComputeResult 
 
 function memoSet(key: string, val: SuiteComputeResult, rows: SuiteHostInput["bars"]): void {
   MEMO.delete(key);
-  MEMO.set(key, { result: val, bars: rows.map(({ time, o, h, l, c, v }) => ({ time, o, h, l, c, v })) });
+  MEMO.set(key, { result: val, bars: snapshotBars(rows) });
   while (MEMO.size > MEMO_MAX) {
     const oldest = MEMO.keys().next();
     if (oldest.done) break;
