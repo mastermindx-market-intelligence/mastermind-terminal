@@ -522,6 +522,23 @@ export function FeedPane({
     return events;
   }, [feed, enrich, search, effectiveFilters, preset, sort]);
 
+  const flowProjection = useMemo(
+    () => buildFlowProjection(filtered, projectionInterval),
+    [filtered, projectionInterval],
+  );
+  const projectionBucket = useMemo(
+    () => flowProjection.buckets.find((bucket) => bucket.key === projectionBucketKey) ?? null,
+    [flowProjection, projectionBucketKey],
+  );
+  const projectedEvents = useMemo(
+    () => selectFlowProjectionBucket(filtered, projectionBucket),
+    [filtered, projectionBucket],
+  );
+
+  useEffect(() => {
+    if (projectionBucketKey && !projectionBucket) setProjectionBucketKey(null);
+  }, [projectionBucket, projectionBucketKey]);
+
   // (Placed after `filtered` — the deps array evaluates at render time, so
   // referencing it above the declaration is a TDZ ReferenceError.)
   // Wire IntersectionObserver to sentinel so scrolling to the bottom auto-loads
