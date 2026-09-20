@@ -20,6 +20,7 @@ import type { Bar } from "../../lib/fund";
 import { computeRatings, type Ratings, type Vote, type PivotLevels } from "../../lib/techRating";
 import { fmtDate, fmtNum, pick } from "../../lib/finFormat";
 import { ArcGauge } from "../ui/ArcGauge";
+import { arcStateLabel } from "../../lib/plainLabels";
 import { intradayCapable } from "../ChartPanel";
 import { classify, isIntradayTf } from "../../lib/intradaySources";
 import { Disclaimer, readingToArc } from "./ForecastPage";
@@ -219,13 +220,16 @@ function Gauge({
     <div className="fin-tech-gauge">
       <div className="fin-tech-gauge-t">{title}</div>
       <div className="fin-arc-wrap">
-        {group ? (
+        {group ? (() => {
+          const arcState = arc.state;
+          return (
           <>
             <ArcGauge
               value={arc.value}
-              state={arc.state}
+              state={arcState}
               size={118}
               sublabel={verdictWord(group.verdict, zh)}
+              stateTitle={arcStateLabel(arcState, zh ? "zh" : "en")}
             />
             {/* vote tally demoted beneath the arc (was the old gauge's counts row) */}
             <div className="fin-gauge-counts">
@@ -234,7 +238,8 @@ function Gauge({
               <span className="up">{pick(zh, "Buy", "买")} {group.buy}</span>
             </div>
           </>
-        ) : (
+          );
+        })() : (
           // No bars yet → grey mid arc, numeral suppressed so an empty gauge can't
           // read as a real "50" score.
           <ArcGauge value={50} state="neutral" size={118} showValue={false} sublabel={pick(zh, "No signal", "无信号")} />

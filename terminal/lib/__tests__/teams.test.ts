@@ -372,6 +372,9 @@ describe("createInvite authorization (MO-PAID-082)", () => {
     if (!r.ok) {
       expect(r.status).toBe(409);
       expect(r.code).toBe("duplicate_invite");
+      // h_t588_r3 MAJOR-1: 409 mapping only. Exact EN+ZH duplicate_invite literals are pinned
+      // in "duplicate_invite EN/ZH states the no-revoke limitation" below — not here, and not
+      // by the INVITE_MESSAGES completeness test (non-empty/distinct/banned-word only).
     }
   });
 });
@@ -504,6 +507,16 @@ describe("INVITE_MESSAGES plain-word completeness (acceptance #6)", () => {
       // the banned-vocabulary law is about internal slugs/state names/status codes, not this.
       expect(en).not.toMatch(/\b\d{3}\b/);
     }
+  });
+
+  it("duplicate_invite EN/ZH states the no-revoke limitation", () => {
+    const [en, zh] = INVITE_MESSAGES.duplicate_invite;
+    expect(en).toBe(
+      "There is already a pending invitation for this email address. Its link cannot be shown or regenerated; wait for it to expire or invite a different address.",
+    );
+    expect(zh).toBe(
+      "该邮箱地址已有一份待处理的邀请。其链接无法再次显示或重新生成；请等待其过期，或邀请另一个地址。",
+    );
   });
 });
 
@@ -694,275 +707,288 @@ describe("TEAM_ROUTE_MESSAGES and LEX plain-word completeness (B-F12-8)", () => 
   });
 });
 
+
+// --- Packet MO-B F12-13 tests appended ---
+import {
+  WORKSPACE_SETTING_KEYS,
+  WORKSPACE_SETTING_COPY,
+  normalizeWorkspaceSetting,
+  workspaceSettingDefaults,
+} from "@/lib/teams";
+
+describe("WORKSPACE_SETTING_KEYS — exactly two closed keys (R1)", () => {
+  it("exposes exactly default_chart_theme and share_layouts_by_default", () => {
+    expect(Object.keys(WORKSPACE_SETTING_KEYS).sort()).toEqual(
+      ["default_chart_theme", "share_layouts_by_default"].sort(),
+    );
+  });
+  it("default_chart_theme is a closed enum of green_up/red_up with green_up as default", () => {
+    expect(WORKSPACE_SETTING_KEYS.default_chart_theme.kind).toBe("enum");
+    expect([...WORKSPACE_SETTING_KEYS.default_chart_theme.values].sort()).toEqual(["green_up", "red_up"]);
+    expect(WORKSPACE_SETTING_KEYS.default_chart_theme.default).toBe("green_up");
+  });
+  it("share_layouts_by_default is a boolean with false default", () => {
+    expect(WORKSPACE_SETTING_KEYS.share_layouts_by_default.kind).toBe("boolean");
+    expect(WORKSPACE_SETTING_KEYS.share_layouts_by_default.default).toBe(false);
+  });
+});
+
+describe("normalizeWorkspaceSetting accept/reject matrix (R1, R7)", () => {
+  it("accepts default_chart_theme green_up", () => {
+    expect(normalizeWorkspaceSetting("default_chart_theme", "green_up")).toEqual({
+      ok: true,
+      key: "default_chart_theme",
+      value: "green_up",
+    });
+  });
+  it("accepts default_chart_theme red_up", () => {
+    expect(normalizeWorkspaceSetting("default_chart_theme", "red_up")).toEqual({
+      ok: true,
+      key: "default_chart_theme",
+      value: "red_up",
+    });
+  });
+  it("rejects default_chart_theme purple_up as invalid_value", () => {
+    expect(normalizeWorkspaceSetting("default_chart_theme", "purple_up")).toEqual({
+      ok: false,
+      code: "invalid_value",
+    });
+  });
+  it("rejects default_chart_theme null / undefined as invalid_value", () => {
+    expect(normalizeWorkspaceSetting("default_chart_theme", null)).toEqual({ ok: false, code: "invalid_value" });
+    expect(normalizeWorkspaceSetting("default_chart_theme", undefined)).toEqual({ ok: false, code: "invalid_value" });
+  });
+  it("accepts share_layouts_by_default true / false", () => {
+    expect(normalizeWorkspaceSetting("share_layouts_by_default", true)).toEqual({
+      ok: true,
+      key: "share_layouts_by_default",
+      value: true,
+    });
+    expect(normalizeWorkspaceSetting("share_layouts_by_default", false)).toEqual({
+      ok: true,
+      key: "share_layouts_by_default",
+      value: false,
+    });
+  });
+  it("rejects string 'true' for the boolean as invalid_value", () => {
+    expect(normalizeWorkspaceSetting("share_layouts_by_default", "true")).toEqual({
+      ok: false,
+      code: "invalid_value",
+    });
+    expect(normalizeWorkspaceSetting("share_layouts_by_default", "false")).toEqual({
+      ok: false,
+      code: "invalid_value",
+    });
+  });
+  it("rejects unknown keys as invalid_key", () => {
+    expect(normalizeWorkspaceSetting("not_a_key", "x")).toEqual({ ok: false, code: "invalid_key" });
+    expect(normalizeWorkspaceSetting("", "x")).toEqual({ ok: false, code: "invalid_key" });
+    expect(normalizeWorkspaceSetting(null, "x")).toEqual({ ok: false, code: "invalid_key" });
+  });
+});
+
+describe("workspaceSettingDefaults — exactly two rows in key order (R2)", () => {
+  it("returns the two closed defaults in canonical order", () => {
+    expect(workspaceSettingDefaults()).toEqual([
+      { key: "default_chart_theme", value: "green_up" },
+      { key: "share_layouts_by_default", value: false },
+    ]);
+  });
+});
+
+describe("WORKSPACE_SETTING_COPY — plain-word catalogue (R3)", () => {
+  const BANNED = [
+    "falsifier",
+    "refuted",
+    "证伪",
+    "default_chart_theme",
+    "share_layouts_by_default",
+    "green_up",
+    "red_up",
+    "RLS",
+    "42501",
+    "team_settings",
+    "workspace_settings",
+  ];
+  // Labels: section heading, captions, and the select-options twins. Plain words, but they are
+  // noun phrases (e.g. "Chart colours") rather than full sentences — the seat ruling pins these
+  // exact strings, so the test checks EN starts with a capital, ZH has CJK, and neither twin
+  // carries banned vocabulary.
+  const labels: Array<readonly [string, string]> = [
+    WORKSPACE_SETTING_COPY.heading,
+    WORKSPACE_SETTING_COPY.caption.default_chart_theme,
+    WORKSPACE_SETTING_COPY.caption.share_layouts_by_default,
+    ...WORKSPACE_SETTING_COPY.options.chart_theme,
+  ];
+  // Sentences: the explainer, the member share read-only sentences, and the read-only gate
+  // sentence. Each MUST end with a sentence terminator in both languages per the plain-language
+  // law (R3).
+  const sentences: Array<readonly [string, string]> = [
+    WORKSPACE_SETTING_COPY.memberReadOnly,
+    WORKSPACE_SETTING_COPY.explainer.share_layouts_by_default,
+    WORKSPACE_SETTING_COPY.shareValue.on,
+    WORKSPACE_SETTING_COPY.shareValue.off,
+  ];
+  it("every [EN, ZH] label is distinct, has CJK, and avoids banned vocabulary", () => {
+    for (const [en, zh] of labels) {
+      expect(en.length).toBeGreaterThan(0);
+      expect(zh.length).toBeGreaterThan(0);
+      expect(en).not.toBe(zh);
+      expect(zh).toMatch(/[一-鿿]/);
+      expect(en).toMatch(/^[A-Z]/);
+      for (const banned of BANNED) {
+        expect(en).not.toContain(banned);
+        expect(zh).not.toContain(banned);
+      }
+    }
+  });
+  it("every [EN, ZH] sentence is distinct, ends with a terminator, and avoids banned vocabulary", () => {
+    for (const [en, zh] of sentences) {
+      expect(en.length).toBeGreaterThan(0);
+      expect(zh.length).toBeGreaterThan(0);
+      expect(en).not.toBe(zh);
+      expect(zh).toMatch(/[一-鿿]/);
+      expect(en).toMatch(/^[A-Z]/);
+      expect(en).toMatch(/[.!?。？]$/);
+      expect(zh).toMatch(/[.!?。？]$/);
+      for (const banned of BANNED) {
+        expect(en).not.toContain(banned);
+        expect(zh).not.toContain(banned);
+      }
+    }
+  });
+  it("the ZH chart-theme options match the seat ruling wording 绿涨红跌 / 红涨绿跌", () => {
+    expect(WORKSPACE_SETTING_COPY.options.chart_theme[0][1]).toBe("绿涨红跌");
+    expect(WORKSPACE_SETTING_COPY.options.chart_theme[1][1]).toBe("红涨绿跌");
+  });
+  it("the seat ruling EN chart-theme options are plain words", () => {
+    expect(WORKSPACE_SETTING_COPY.options.chart_theme[0][0]).toBe("Green means up, red means down");
+    expect(WORKSPACE_SETTING_COPY.options.chart_theme[1][0]).toBe("Red means up, green means down");
+  });
+});
+
 // --- Audit heal of t#514 appended tests (criterion (e) FAIL) --------------------------------
 // Two pieces of the merged packet shipped untested: the exported `listInvites` behind
 // GET /api/teams/invitations, and the `truncated` flag this packet's own round-2 m1 introduced,
 // which was never asserted TRUE from any of the three producers that compute it.
 import {
-  MAX_INVITES,
-  MAX_MEMBERS,
-  MAX_TEAMS,
-  TEAM_INVITES_TABLE,
-  TEAM_MEMBERS_TABLE,
-  TEAMS_TABLE,
-  listInvites,
-  listMembers,
+  INVITE_ACCEPT_PATH,
+  INVITE_EMAIL_DELIVERY_CHECKED_AT,
+  INVITE_TTL_DAYS,
+  buildInviteUrl,
+  inviteCheckedOn,
+  inviteDeliveryBlock,
+  isInviteToken,
+  noEmailDeliveryLine,
+  noEmailDeliveryPair,
 } from "@/lib/teams";
 
-type CapRow = Record<string, unknown>;
-type CapCalls = { table: string; eqs: Array<[string, unknown]>; limits: number[] };
+describe("MO-PAID-081 link-only copy (W9T_F12_17)", () => {
+  const BANNED_WORDS = ["falsifier", "refuted", "证伪", "no_email_delivery", "team_invites", "accept_team_invite", "RLS", "slug", "enum"];
 
-// `fakeDb` above drops the limit argument; the cap invariant is about that exact number
-// (MAX_INVITES + 1), so this twin records every eq/limit each table was asked for.
-function fakeDbCapturing(
-  responder: (table: string, calls: string[]) => { data?: unknown; error?: { code?: string; message?: string } | null },
-): { db: TenancyDb; calls: CapCalls[] } {
-  const calls: CapCalls[] = [];
-  const make = (table: string, seen: string[] = [], rec?: CapCalls): any => {
-    const record = rec ?? (() => {
-      const fresh: CapCalls = { table, eqs: [], limits: [] };
-      calls.push(fresh);
-      return fresh;
-    })();
-    const q: any = {
-      select: () => make(table, [...seen, "select"], record),
-      eq: (col: string, value: unknown) => {
-        record.eqs.push([col, value]);
-        return make(table, [...seen, "eq"], record);
-      },
-      in: () => make(table, [...seen, "in"], record),
-      order: () => make(table, [...seen, "order"], record),
-      limit: (n: number) => {
-        record.limits.push(n);
-        return make(table, [...seen, "limit"], record);
-      },
-      maybeSingle: async () => responder(table, [...seen, "maybeSingle"]),
-      then: (resolve: (v: unknown) => unknown) => Promise.resolve(responder(table, seen)).then(resolve),
-    };
-    return q;
-  };
-  return { db: { from: (table: string) => make(table) } as unknown as TenancyDb, calls };
-}
-
-function inviteRowsFor(count: number): CapRow[] {
-  return Array.from({ length: count }, (_, i) => ({
-    id: `i${i + 1}`,
-    team_id: "t1",
-    email: `person${i + 1}@example.com`,
-    role: i % 2 === 0 ? "member" : "admin",
-    expires_at: "2026-09-20T00:00:00.000Z",
-    accepted_at: null,
-  }));
-}
-
-/** team_members answers the caller-role read; team_invites answers the list read. */
-function invitesDb(opts: {
-  role?: "owner" | "admin" | "member" | null;
-  rows?: CapRow[];
-  invitesError?: { code?: string; message?: string } | null;
-  roleError?: { code?: string; message?: string } | null;
-  malformed?: boolean;
-}) {
-  return fakeDbCapturing((table, calls) => {
-    if (table === TEAM_MEMBERS_TABLE) {
-      if (opts.roleError) return { data: null, error: opts.roleError };
-      if (calls.includes("maybeSingle")) return { data: opts.role ? { role: opts.role } : null, error: null };
-      return { data: [], error: null };
-    }
-    if (table === TEAM_INVITES_TABLE) {
-      if (opts.invitesError) return { data: null, error: opts.invitesError };
-      if (opts.malformed) return { data: {} as unknown };
-      return { data: opts.rows ?? [], error: null };
-    }
-    return { data: [], error: null };
-  });
-}
-
-describe("listInvites (audit heal of t#514: the invitations read leg)", () => {
-  it("a plain member -> forbidden, never an ok:true empty list", async () => {
-    const { db } = invitesDb({ role: "member", rows: inviteRowsFor(3) });
-    const r = await listInvites(db, "u1", "t1");
-    expect(r.ok).toBe(false);
-    if (!r.ok) expect(r.reason).toBe("forbidden");
+  it("the checked date is a real ISO date and reads as words in both languages", () => {
+    expect(INVITE_EMAIL_DELIVERY_CHECKED_AT).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(inviteCheckedOn(INVITE_EMAIL_DELIVERY_CHECKED_AT, "en")).toBe("13 September 2026");
+    expect(inviteCheckedOn(INVITE_EMAIL_DELIVERY_CHECKED_AT, "zh")).toBe("2026年9月13日");
+    // A timestamp is read as its date, in UTC terms, with no locale library in the path.
+    expect(inviteCheckedOn("2026-09-13T09:00:00.000Z", "en")).toBe("13 September 2026");
+    expect(inviteCheckedOn("2026-01-05", "zh")).toBe("2026年1月5日");
   });
 
-  it("no membership row for that team -> not_found, distinct from forbidden", async () => {
-    const { db } = invitesDb({ role: null, rows: inviteRowsFor(3) });
-    const r = await listInvites(db, "u1", "t1");
-    expect(r.ok).toBe(false);
-    if (!r.ok) expect(r.reason).toBe("not_found");
-  });
-
-  it("an owner and an administrator both read the list, and the body names the caller's own role", async () => {
-    for (const role of ["owner", "admin"] as const) {
-      const { db } = invitesDb({ role, rows: inviteRowsFor(2) });
-      const r = await listInvites(db, "u1", "t1");
-      expect(r.ok).toBe(true);
-      if (r.ok) {
-        expect(r.callerRole).toBe(role);
-        expect(r.invites.length).toBe(2);
+  it("an unreadable date falls back to the raw string, never to 'Invalid Date'", () => {
+    for (const bad of ["", "not-a-date", "2026-13-45", "2026-00-10", "13/09/2026"]) {
+      for (const lang of ["en", "zh"] as const) {
+        const out = inviteCheckedOn(bad, lang);
+        expect(out, `${bad}/${lang}`).toBe(bad);
+        expect(out).not.toContain("Invalid");
+        expect(out).not.toContain("NaN");
       }
     }
   });
 
-  it("reads only the team it was asked about, one row past the cap", async () => {
-    const { db, calls } = invitesDb({ role: "owner", rows: inviteRowsFor(1) });
-    await listInvites(db, "u1", "t1");
-    const invitesCall = calls.find((c) => c.table === TEAM_INVITES_TABLE);
-    expect(invitesCall?.eqs).toEqual([["team_id", "t1"]]);
-    expect(invitesCall?.limits).toEqual([MAX_INVITES + 1]);
-  });
-
-  it("maps a database row to the invite shape: text id and email, camelCase dates, a missing role reads as member", async () => {
-    const { db } = invitesDb({
-      role: "owner",
-      rows: [
-        { id: 7, email: "SEVEN@Example.com", role: "admin", expires_at: "2026-10-01T00:00:00.000Z", accepted_at: "2026-09-02T00:00:00.000Z" },
-        { id: "i8", email: "eight@example.com" },
-      ],
-    });
-    const r = await listInvites(db, "u1", "t1");
-    expect(r.ok).toBe(true);
-    if (r.ok) {
-      expect(r.invites).toEqual([
-        { id: "7", email: "SEVEN@Example.com", role: "admin", expiresAt: "2026-10-01T00:00:00.000Z", acceptedAt: "2026-09-02T00:00:00.000Z" },
-        { id: "i8", email: "eight@example.com", role: "member", expiresAt: null, acceptedAt: null },
-      ]);
-    }
-  });
-
-  it("an absent invitations table -> unavailable, by code only (42P01 and PGRST205)", async () => {
-    for (const code of ["42P01", "PGRST205"]) {
-      const { db } = invitesDb({ role: "owner", invitesError: { code, message: "schema cache" } });
-      const r = await listInvites(db, "u1", "t1");
-      expect(r.ok).toBe(false);
-      if (!r.ok) expect(r.reason).toBe("unavailable");
-    }
-  });
-
-  it("any other read error -> failed, and absence is never collapsed into it", async () => {
-    const { db } = invitesDb({ role: "owner", invitesError: { code: "08006", message: "connection failure" } });
-    const r = await listInvites(db, "u1", "t1");
-    expect(r.ok).toBe(false);
-    if (!r.ok) expect(r.reason).toBe("failed");
-
-    const { db: absentDb } = invitesDb({ role: "owner", invitesError: { code: "42P01", message: "gone" } });
-    const absent = await listInvites(absentDb, "u1", "t1");
-    if (!absent.ok) expect(absent.reason).not.toBe("failed");
-  });
-
-  it("a malformed non-array answer -> failed, never ok:true with an empty list", async () => {
-    const { db } = invitesDb({ role: "owner", malformed: true });
-    const r = await listInvites(db, "u1", "t1");
-    expect(r.ok).toBe(false);
-    if (!r.ok) expect(r.reason).toBe("failed");
-  });
-
-  it("a caller-role read error is passed through with its own classification", async () => {
-    const { db } = invitesDb({ role: "owner", roleError: { code: "PGRST205", message: "schema cache" } });
-    const r = await listInvites(db, "u1", "t1");
-    expect(r.ok).toBe(false);
-    if (!r.ok) expect(r.reason).toBe("unavailable");
-
-    const { db: brokeDb } = invitesDb({ role: "owner", roleError: { code: "08006", message: "connection failure" } });
-    const broke = await listInvites(brokeDb, "u1", "t1");
-    expect(broke.ok).toBe(false);
-    if (!broke.ok) expect(broke.reason).toBe("failed");
-  });
-
-  it("one row past the cap -> the cap is returned and truncated is TRUE", async () => {
-    const { db } = invitesDb({ role: "owner", rows: inviteRowsFor(MAX_INVITES + 1) });
-    const r = await listInvites(db, "u1", "t1");
-    expect(r.ok).toBe(true);
-    if (r.ok) {
-      expect(r.invites.length).toBe(MAX_INVITES);
-      expect(r.truncated).toBe(true);
-    }
-  });
-
-  it("exactly the cap -> truncated is FALSE, so a full page is not reported as cut short", async () => {
-    const { db } = invitesDb({ role: "owner", rows: inviteRowsFor(MAX_INVITES) });
-    const r = await listInvites(db, "u1", "t1");
-    expect(r.ok).toBe(true);
-    if (r.ok) {
-      expect(r.invites.length).toBe(MAX_INVITES);
-      expect(r.truncated).toBe(false);
-    }
-  });
-});
-
-describe("truncated is asserted TRUE on the producer that computes it (round-2 m1)", () => {
-  function memberRowsFor(count: number): CapRow[] {
-    return Array.from({ length: count }, (_, i) => ({
-      team_id: `t${i + 1}`,
-      user_id: `u${i + 1}`,
-      role: "member",
-      invited_by: null,
-      created_at: null,
-    }));
-  }
-
-  it(`listTeams at MAX_TEAMS (${MAX_TEAMS}) says truncated, and one fewer does not`, async () => {
-    const atCap = fakeDb((table) =>
-      table === TEAM_MEMBERS_TABLE
-        ? { data: memberRowsFor(MAX_TEAMS).map((r) => ({ team_id: r.team_id, role: r.role })), error: null }
-        : {
-            data: Array.from({ length: MAX_TEAMS }, (_, i) => ({ id: `t${i + 1}`, name: `Team ${i + 1}`, created_at: null })),
-            error: null,
-          },
+  it("the dated line says plainly that no invitation mail is sent, and names the check date", () => {
+    const en = noEmailDeliveryLine("en");
+    const zh = noEmailDeliveryLine("zh");
+    expect(en).toBe(
+      `We do not send invitation emails: this server has no email delivery set up. Last checked on ${inviteCheckedOn(INVITE_EMAIL_DELIVERY_CHECKED_AT, "en")}.`,
     );
-    const full = await listTeams(atCap, "u1");
-    expect(full.ok).toBe(true);
-    if (full.ok) {
-      expect(full.teams.length).toBe(MAX_TEAMS);
-      expect(full.truncated).toBe(true);
+    expect(zh).toContain("我们不会发送邀请邮件");
+    expect(zh).toContain(inviteCheckedOn(INVITE_EMAIL_DELIVERY_CHECKED_AT, "zh"));
+    expect(en).toMatch(/^[A-Z].*\.$/);
+    expect(zh).toMatch(/[一-鿿]/);
+    // Real Chinese with CJK punctuation, and no transliteration: not one run of Latin letters.
+    expect(zh).toContain("。");
+    expect(zh).toContain("：");
+    expect(zh).not.toMatch(/[A-Za-z]{2,}/);
+    // CJK sentences run together: no Latin space after a full stop or a colon.
+    expect(zh).not.toMatch(/[。，：、] /);
+    expect(en).not.toBe(zh);
+    for (const banned of BANNED_WORDS) {
+      expect(en).not.toContain(banned);
+      expect(zh).not.toContain(banned);
     }
+    expect(en).not.toMatch(/\b\d{3}\b/);
+  });
 
-    const underCap = fakeDb((table) =>
-      table === TEAM_MEMBERS_TABLE
-        ? { data: memberRowsFor(MAX_TEAMS - 1).map((r) => ({ team_id: r.team_id, role: r.role })), error: null }
-        : {
-            data: Array.from({ length: MAX_TEAMS - 1 }, (_, i) => ({ id: `t${i + 1}`, name: `Team ${i + 1}`, created_at: null })),
-            error: null,
-          },
+  it("the catalogued route answer IS the dated pair, plus what to do instead", () => {
+    const [en, zh] = INVITE_MESSAGES.no_email_delivery;
+    expect(en).toBe(noEmailDeliveryPair()[0]);
+    expect(zh).toBe(noEmailDeliveryPair()[1]);
+    expect(en.startsWith(noEmailDeliveryLine("en"))).toBe(true);
+    expect(zh.startsWith(noEmailDeliveryLine("zh"))).toBe(true);
+    expect(zh).not.toMatch(/[。，：、] /);
+    // The instruction names the real lifetime, so the number cannot drift from the constant.
+    expect(en).toContain(`${INVITE_TTL_DAYS} days`);
+    expect(zh).toContain(`${INVITE_TTL_DAYS} 天`);
+    expect(en).toMatch(/^[A-Z].*\.$/);
+    for (const banned of BANNED_WORDS) {
+      expect(en).not.toContain(banned);
+      expect(zh).not.toContain(banned);
+    }
+  });
+
+  it("moving the checked date moves the sentence — the date is a claim, not decoration", () => {
+    expect(noEmailDeliveryLine("en", "2027-01-05")).toContain("5 January 2027");
+    expect(noEmailDeliveryLine("zh", "2027-01-05")).toContain("2027年1月5日");
+    expect(noEmailDeliveryPair("2027-01-05")[0]).not.toBe(noEmailDeliveryPair()[0]);
+    expect(noEmailDeliveryPair("2027-01-05")[1]).not.toBe(noEmailDeliveryPair()[1]);
+  });
+
+  it("the delivery block always reports sent:false and carries both languages and the date", () => {
+    const block = inviteDeliveryBlock();
+    expect(block.sent).toBe(false);
+    expect(block.checkedAt).toBe(INVITE_EMAIL_DELIVERY_CHECKED_AT);
+    expect(block.message).toBe(INVITE_MESSAGES.no_email_delivery[0]);
+    expect(block.messageZh).toBe(INVITE_MESSAGES.no_email_delivery[1]);
+    const moved = inviteDeliveryBlock("2027-01-05");
+    expect(moved.sent).toBe(false);
+    expect(moved.checkedAt).toBe("2027-01-05");
+    expect(moved.message).toContain("5 January 2027");
+  });
+
+  it("buildInviteUrl points at the public accept page and carries the token once", () => {
+    const token = newInviteToken();
+    expect(INVITE_ACCEPT_PATH).toBe("/invite");
+    expect(buildInviteUrl("https://app.mastermind-x.com", token)).toBe(
+      `https://app.mastermind-x.com${INVITE_ACCEPT_PATH}?token=${token}`,
     );
-    const under = await listTeams(underCap, "u1");
-    expect(under.ok).toBe(true);
-    if (under.ok) expect(under.truncated).toBe(false);
+    // A trailing slash on the origin must not double up in the link a person copies.
+    expect(buildInviteUrl("https://app.mastermind-x.com/", token)).toBe(
+      `https://app.mastermind-x.com${INVITE_ACCEPT_PATH}?token=${token}`,
+    );
+    expect(buildInviteUrl("", token)).toBe(`${INVITE_ACCEPT_PATH}?token=${token}`);
+    expect(buildInviteUrl("https://app.mastermind-x.com", token).split(token).length).toBe(2);
   });
 
-  it(`listMembers at MAX_MEMBERS (${MAX_MEMBERS}) says truncated, and one fewer does not`, async () => {
-    const withCaller = (rows: CapRow[]) =>
-      fakeDb((table, calls) => {
-        if (table !== TEAM_MEMBERS_TABLE) return { data: [], error: null };
-        if (calls.includes("maybeSingle")) return { data: { role: "owner" }, error: null };
-        return { data: rows, error: null };
-      });
-
-    const full = await listMembers(withCaller(memberRowsFor(MAX_MEMBERS)), "u1", "t1");
-    expect(full.ok).toBe(true);
-    if (full.ok) {
-      expect(full.members.length).toBe(MAX_MEMBERS);
-      expect(full.callerRole).toBe("owner");
-      expect(full.truncated).toBe(true);
+  it("isInviteToken accepts only the shape newInviteToken mints", () => {
+    const token = newInviteToken();
+    expect(token).toMatch(/^[0-9a-f]{64}$/);
+    expect(isInviteToken(token)).toBe(true);
+    for (const bad of [
+      "", "x".repeat(64), "G".repeat(64), token.slice(0, 63), `${token}0`, token.toUpperCase(),
+      `${token}&admin=1`, null, undefined, 12345, {},
+    ]) {
+      expect(isInviteToken(bad), String(bad)).toBe(false);
     }
-
-    const under = await listMembers(withCaller(memberRowsFor(MAX_MEMBERS - 1)), "u1", "t1");
-    expect(under.ok).toBe(true);
-    if (under.ok) expect(under.truncated).toBe(false);
-  });
-
-  it(`listInvites at MAX_INVITES + 1 (${MAX_INVITES + 1}) says truncated`, async () => {
-    const { db } = invitesDb({ role: "owner", rows: inviteRowsFor(MAX_INVITES + 1) });
-    const r = await listInvites(db, "u1", "t1");
-    expect(r.ok).toBe(true);
-    if (r.ok) expect(r.truncated).toBe(true);
-  });
-
-  it("the three caps the producers read against are the exported ones", () => {
-    expect(MAX_TEAMS).toBe(200);
-    expect(MAX_MEMBERS).toBe(500);
-    expect(MAX_INVITES).toBe(200);
-    expect(TEAMS_TABLE).toBe("teams");
   });
 });

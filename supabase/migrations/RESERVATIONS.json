@@ -263,10 +263,11 @@
       "file": "0025_thesis_amendment_proposals.sql",
       "packet": "B-F11-5",
       "pr": 577,
-      "pr_state": "open",
-      "applied_in_production": false,
-      "applied_date": null,
-      "note": "packet B-F11-5 thesis amendment proposals (MO-PAID-054 write-back). Shipped UNAPPLIED; the seat applies after merge. Prefix 0025 is ruled by seat 026851bd (2026-09-18T23:40Z). applied_in_production is false and applied_date is null because there is no application yet — the date is not recorded, never because a real date was lost. Open draft PR #577."
+      "pr_state": "merged",
+      "applied_in_production": true,
+      "applied_date": "2026-09-19",
+      "note": "packet B-F11-5 thesis amendment proposals (MO-PAID-054 write-back). Shipped UNAPPLIED; the seat applies after merge. Prefix 0025 is ruled by seat 026851bd (2026-09-18T23:40Z). applied_in_production is false and applied_date is null because there is no application yet — the date is not recorded, never because a real date was lost. Open draft PR #577. Seat 2026-09-19: PR #577 merged (squash 4169e0cf, 06:36Z); applied in production 2026-09-19T06:38:03Z with scripts/supabase_apply.py (20/20 statements ok; receipt ddl/receipt_0025.json in the seat handoff kit; direct catalog readback confirmed table thesis_amendment_proposals with RLS, indexes thesis_amendment_proposals_thesis + thesis_amendment_proposals_amended_from, trigger thesis_amendment_proposals_guard, security-definer functions set_thesis_amendment_state + thesis_amendment_proposals_guard, policies select_own + insert_own).",
+      "merged_sha": "4169e0cf"
     },
     "0026": {
       "state": "reserved",

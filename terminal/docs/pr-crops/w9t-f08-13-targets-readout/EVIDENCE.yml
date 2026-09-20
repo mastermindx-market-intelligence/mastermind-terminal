@@ -1,0 +1,51 @@
+# recapture: NEEDED — crops depict the pre-heal LONG sentence; SectionPortfolioTargets.tsx changed
+# at the h_t586 heal (shapeReadoutVisible=false); recapture before PROVEN_LIVE.
+# 2026-09-19 h_t586 round 2: hash-only restamp; crops NOT recaptured.
+# 2026-09-19 h_t586 round 3: capturedAtHead was the invented SHA
+# 2c8d4a7c02aefb2af0ef4cb3e82e60bcd8f04e3d (git cat-file -t → not an object).
+# Real heal commit is 2c8d4a7cbe4325aa188dbae03d8adec16fb919cd, but its
+# SettingsPanel/SettingsProvider/icons/i18n blobs do not equal the pins.
+# Pins equal the 068a8358eef235063164d4a846fb8291ae03a173 tree (and HEAD).
+{
+  "capturedAtHead": "1cc3a5216defcbb2e56df53c67d7883488e77c3f",
+  "capturedAt": "2026-09-13T23:14:52.434Z",
+  "layoutFiles": {
+    "terminal/components/settings/SectionPortfolioTargets.tsx": "42efc4318fe724c0315b065b2833862ff241f9bc612aae976d32518ba523371b",
+    "terminal/components/settings/SettingsPanel.tsx": "a7cad95d493b6e714fa8ea7af55c255d90a190b97413338caafb8228e09395bc",
+    "terminal/components/settings/SettingsProvider.tsx": "a4c829c956ca7ffd89bbc3158009b1148bb613569a9716b092dd9a27d449d910",
+    "terminal/components/settings/icons.tsx": "7f3e17e45cb92545437ade898fe47a92cf6a65d1682cec9b9cea7a5bb8bd4d83",
+    "terminal/lib/i18n.tsx": "ac2c0b03aa16f40539b248a788af960e17f30bbd92f35d46732e8ca7cee63b7c"
+  },
+  "theme": "dark",
+  "languages": [
+    "en",
+    "zh"
+  ],
+  "viewports": [
+    {
+      "name": "desktop",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "mobile",
+      "width": 390,
+      "height": 844
+    }
+  ],
+  "surfaces": [
+    "SectionPortfolioTargets"
+  ],
+  "capture_flag": "TERMINAL_E2E_FIXTURE",
+  "capture_flag_law": "next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.",
+  "files": [
+    "PortfolioTargetsSettings-empty-390-en.png",
+    "PortfolioTargetsSettings-empty-390-zh.png",
+    "PortfolioTargetsSettings-empty-1440-en.png",
+    "PortfolioTargetsSettings-empty-1440-zh.png",
+    "PortfolioTargetsSettings-populated-390-en.png",
+    "PortfolioTargetsSettings-populated-390-zh.png",
+    "PortfolioTargetsSettings-populated-1440-en.png",
+    "PortfolioTargetsSettings-populated-1440-zh.png"
+  ]
+}

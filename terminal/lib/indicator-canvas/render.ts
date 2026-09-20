@@ -22,7 +22,7 @@
 // lib/markerTooltip.ts documents at length why this is a JS hit test and not `pointer-events:auto`.
 
 import type {
-  Prim, ZonePrim, LinePrim, PolyPrim, CloudPrim, GradLinePrim, LabelPrim, MarkerPrim,
+  ZonePrim, LinePrim, PolyPrim, CloudPrim, GradLinePrim, LabelPrim, MarkerPrim,
   ProfilePrim, BgShadePrim, ColumnsPrim, XRef, CoordMapper, SuiteRenderBundle, TooltipDef,
 } from "./types";
 import {
@@ -200,8 +200,39 @@ function wireTooltipHitTest(wrap: HTMLElement): void {
   const now = () => (typeof performance !== "undefined" ? performance.now() : Date.now());
   const tipOf = () => wrap.querySelector(":scope > .ic-tip") as HTMLElement | null;
 
+  // First-show placement stays synchronous so a newly opened tooltip never flashes at the wrapper
+  // origin. Once visible, high-Hz pointer streams only need the latest sample that can actually
+  // reach the display: defer cursor-follow geometry to one requestAnimationFrame per paint.
+  let positionFrame: number | null = null;
+  let pendingPosition: { tip: HTMLElement; clientX: number; clientY: number } | null = null;
+  const flushPosition = () => {
+    positionFrame = null;
+    const next = pendingPosition;
+    pendingPosition = null;
+    if (!next || next.tip.style.display !== "block" || !next.tip.isConnected || !wrap.isConnected) return;
+    placeTip(next.tip, wrap, next);
+  };
+  const cancelPosition = () => {
+    pendingPosition = null;
+    if (positionFrame == null) return;
+    if (typeof cancelAnimationFrame === "function") {
+      try { cancelAnimationFrame(positionFrame); } catch {}
+    }
+    positionFrame = null;
+  };
+  const schedulePosition = (tip: HTMLElement, clientX: number, clientY: number) => {
+    pendingPosition = { tip, clientX, clientY };
+    if (positionFrame != null) return;
+    if (typeof requestAnimationFrame !== "function") {
+      flushPosition();
+      return;
+    }
+    positionFrame = requestAnimationFrame(flushPosition);
+  };
+
   const hide = () => {
     pinned = false;
+    cancelPosition();
     const tip = tipOf();
     if (tip && tip.style.display !== "none") tip.style.display = "none";
   };
@@ -224,8 +255,14 @@ function wireTooltipHitTest(wrap: HTMLElement): void {
       tip.dataset.icTipFor = hit.tid;
       shownTid = hit.tid; shownDef = def;
     }
-    if (tip.style.display !== "block") tip.style.display = "block";
-    placeTip(tip, wrap, { clientX, clientY });
+    const alreadyVisible = tip.style.display === "block";
+    if (!alreadyVisible) {
+      cancelPosition();
+      tip.style.display = "block";
+      placeTip(tip, wrap, { clientX, clientY });
+      return;
+    }
+    schedulePosition(tip, clientX, clientY);
   };
 
   const defOf = (tid: string): TooltipDef | null => TIP_DEFS.get(wrap)?.get(tid) ?? null;
@@ -769,19 +806,43 @@ function drawColumns(f: DocumentFragment, cp: ColumnsPrim, m: CoordMapper): Elem
   const w = Math.max(1, clamp(cp.widthFrac ?? 0.6, 0.1, 1) * barW);
   const half = w / 2;
 
-  const g = mk("g", {});
+  // A histogram can carry hundreds of visible bars. One DOM <rect> per bar makes pan/zoom
+  // spend most of its frame budget allocating and attaching nodes that all share a tiny style set.
+  // SVG compound paths preserve the exact same rectangular geometry while collapsing every
+  // (fill, opacity) style into one node. Group order follows first appearance; bars do not overlap
+  // horizontally (widthFrac <= 1), so grouping cannot change visible z-order.
+  const groups: Array<{ color: string; alpha: number | null; parts: string[] }> = [];
+  const groupByStyle = new Map<string, Map<number | null, number>>();
   for (let k = s; k < e; k++) {
     const it = items[k];
     if (!it || !fin(it.v)) continue;
     const x = m.xi(it.i), yv = m.y(it.v);
     if (!fin(x) || !fin(yv)) continue;
-    const rect = mk("rect", {
-      x: x - half, y: Math.min(yv, yBase),
-      width: w, height: Math.max(Math.abs(yv - yBase), 0.5), // flat bars still print a hairline
-      fill: it.color,
-    });
-    if (it.alpha != null) rect.setAttribute("fill-opacity", String(clamp(it.alpha, 0, 1)));
-    g.appendChild(rect);
+    const y = Math.min(yv, yBase);
+    const h = Math.max(Math.abs(yv - yBase), 0.5); // flat bars still print a hairline
+    const alpha = it.alpha != null ? clamp(it.alpha, 0, 1) : null;
+    let byAlpha = groupByStyle.get(it.color);
+    if (!byAlpha) {
+      byAlpha = new Map<number | null, number>();
+      groupByStyle.set(it.color, byAlpha);
+    }
+    let gi = byAlpha.get(alpha);
+    if (gi == null) {
+      gi = groups.length;
+      byAlpha.set(alpha, gi);
+      groups.push({ color: it.color, alpha, parts: [] });
+    }
+    const x1 = x - half, x2 = x + half, y2 = y + h;
+    groups[gi].parts.push(`M${x1} ${y}H${x2}V${y2}H${x1}Z`);
+  }
+
+  if (!groups.length) return null;
+  const g = mk("g", {});
+  for (const group of groups) {
+    if (!group.parts.length) continue;
+    const path = mk("path", { d: group.parts.join(""), fill: group.color });
+    if (group.alpha != null) path.setAttribute("fill-opacity", String(group.alpha));
+    g.appendChild(path);
   }
   if (!g.firstChild) return null;
   f.appendChild(g);

@@ -22,6 +22,7 @@ import { pick } from "@/lib/finFormat";
 import { FD } from "@/lib/flowdeskStrings";
 import { usOptionsSessionState } from "@/lib/flowFreshness";
 import { FlowFreshnessReceipt } from "./FlowFreshnessReceipt";
+import { useT } from "@/lib/i18n";
 
 // ── Re-export shared types so FlowCard / FiltersPanel import from one place ──
 
@@ -310,6 +311,7 @@ export function FeedPane({
   onFiltersChange,
 }: FeedPaneProps) {
   const zh = lang === "zh";
+  const t = useT();
 
   // Persist preset + sort across page loads
   const [prefs, setPrefs] = useState<PersistedPrefs>(() => loadPrefs());
@@ -618,7 +620,7 @@ export function FeedPane({
             onClick={() => updatePrefs({ preset: p })}
           >
             {p === "ALL"    ? (zh ? "全部" : "ALL")
-              : p === "ELITE"  ? (zh ? "精英 — 磁带前2%" : "Elite — top 2% of tape")
+              : p === "ELITE"  ? t("eliteTop2")
               : p === "WHALES" ? (zh ? "巨单" : "WHALES")
               : p === "0DTE"   ? "0DTE"
               : (zh ? "扫单" : "SWEEPS")}

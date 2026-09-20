@@ -12,7 +12,7 @@ import {
   lanesForArmedAlerts, monitorFor, rowChipKey,
   type Alert, type ReadState, type RunReceipt, type OutboxRow,
 } from "@/lib/alertsView";
-import { useLang } from "@/lib/i18n";
+import { useLang, useT } from "@/lib/i18n";
 import BriefsInbox from "@/components/briefs/BriefsInbox";
 
 interface AlertsResp { alerts?: Alert[]; error?: string }
@@ -33,6 +33,7 @@ const UNAVAILABLE_RECEIPTS: ReceiptsResp = {
 export default function AlertsCockpit({ email, children }: { email: string; children?: ReactNode }) {
   const { lang } = useLang();
   const L = lang === "zh" ? "zh" : "en";
+  const t = useT();
   const [alerts, setAlerts] = useState<Alert[] | null>(null);
   const [alertsState, setAlertsState] = useState<ReadState>("READ_UNAVAILABLE");
   const [receipts, setReceipts] = useState<ReceiptsResp | null>(null);
@@ -135,23 +136,16 @@ export default function AlertsCockpit({ email, children }: { email: string; chil
   const timelineRows: TimelineRow[] = view.rows.map((r) => {
     const alert = alerts?.find((a) => a.id === r.alertId);
     const t = r.outboxRow?.payload?.fired_at ? new Date(r.outboxRow.payload.fired_at).toLocaleTimeString(L === "zh" ? "zh-CN" : "en-US", { hour: "2-digit", minute: "2-digit" }) : "—";
+    // MO-PAID-047: thesis_condition outbox rows have no matching alerts entry.
+    // Use the window-closed copy for these rows; do not show "falsifier" language.
+    const isThesisRow = r.thesisId != null;
+    const verdict = isThesisRow
+      ? copy("condition.thesis_condition", L)
+      : verdictText(r.outboxRow?.payload?.condition_plain, alert?.condition, L);
     return {
       id: r.alertId, time: t,
       subject: r.outboxRow?.payload?.ticker || alert?.symbol || "—",
-      // Minor: a fired-event payload's own plain-language description wins when present (EN
-      // only, see verdictText); the fallback must describe the actual condition (conditionText),
-      // never the content-free literal "Condition"/"条件" this used to render for every row
-      // lacking a payload. Minor 4 (round-6 review): the EN-only payload must never leak
-      // straight into a ZH page — verdictText gates it on `L`.
-      // MAJOR-2 (r10 review, META-CEO B ruling): `verdictText`'s ZH branch (`conditionText`)
-      // used to prefix its OWN symbol onto the price-condition phrasing ("NVDA 价格低于 150") —
-      // and this row's own `.subject` cell (above) already shows the ticker, so passing `alert?.
-      // symbol` here doubled it on the row ("NVDA" + "NVDA 价格低于 150"), the same defect
-      // minor-4 (r9 review) fixed in WatchingList but not here. Minor-2 (r11 review):
-      // `verdictText` no longer takes a symbol parameter at all (see lib/alertsView.ts) — the
-      // ticker appears exactly once per row, in `.subject`, and no future caller here can
-      // reintroduce the doubling by passing one back in.
-      verdict: verdictText(r.outboxRow?.payload?.condition_plain, alert?.condition, L),
+      verdict,
       delivery: r.delivery, foldedRows: r.foldedRows,
     };
   });
@@ -159,8 +153,39 @@ export default function AlertsCockpit({ email, children }: { email: string; chil
   const detail: AlertDetailData | null = useMemo(() => {
     if (!openId) return null;
     const row = view.rows.find((r) => r.alertId === openId);
+    if (!row) return null;
+    // MAJOR-1 (round-2 review): thesis_condition rows have no matching alerts entry, so `!alert`
+    // used to always hide the detail surface. Build a thesis-detail directly from the outbox row:
+    // conditionText uses the window-closed copy, armedAt falls back to the outbox creation time,
+    // resolution is "open" (the fire is an unacknowledged event, same as a fired alert), and
+    // every alert-specific field is honestly null.
+    if (row.thesisId != null) {
+      const thesisRow = row;
+      return {
+        kind: "thesis" as const,
+        conditionText: copy("condition.thesis_condition", L),
+        holdingSymbol: null,
+        summaryPlain: null,
+        conditionPlain: null,
+        triggeredValue: null,
+        conditionType: null,
+        firedAt: thesisRow.outboxRow?.payload?.fired_at ?? null,
+        armedAt: thesisRow.outboxRow?.created_at ?? "",
+        evidenceUrl: null,
+        lastAttemptAt: view.lastAttemptAt,
+        lastAttemptState: view.lastAttemptState,
+        lastSuccessAt: view.lastSuccessAt,
+        lastSuccessState: view.lastSuccessState,
+        resolution: "open" as const,
+        delivery: thesisRow.delivery,
+        attempts: thesisRow.outboxRow?.attempts ?? 0,
+        lastError: thesisRow.outboxRow?.last_error ?? null,
+        deliverAfter: thesisRow.outboxRow?.deliver_after ?? null,
+      };
+    }
+    // For non-thesis rows, an alert entry must exist (price/suite alerts always have one).
     const alert = alerts?.find((a) => a.id === openId);
-    if (!row || !alert) return null;
+    if (!alert) return null;
     // Major 4 (round-6 review, follow-up): the real crossing value from the alert's own fired
     // stamp — distinct from the condition's threshold (already in conditionText) — so the ZH
     // "what happened" field below can describe an event instead of repeating the definition.
@@ -352,7 +377,7 @@ export default function AlertsCockpit({ email, children }: { email: string; chil
               WatchingList/CouldNotWatch already use, so the two body lines stay subordinate to
               one real heading, matching every other module on this page. */}
           <div className={s.moduleHead}>
-            <span>{L === "zh" ? "近期活动" : "Recent activity"}</span>
+            <span>{L === "zh" ? t("recentActivityCockpit", "近期活动") : t("recentActivityCockpit", "Recent activity")}</span>
           </div>
           <p className={s.calmBody}>{copy("activity.empty", L)}</p>
           <p className={s.calmBody}>{copy("activity.lastSuccess", L, { t: fmtLastSuccess() })}</p>

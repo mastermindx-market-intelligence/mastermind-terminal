@@ -65,7 +65,10 @@ test("settings Developer access section is reachable in EN and ZH", async ({ pag
   await page.goto("/dev/settings?s=developer&lang=en");
   const dialog = page.locator(".acs-overlay.open .acs-card");
   await expect(dialog).toBeVisible({ timeout: 45_000 });
-  await expect(dialog.getByRole("tab").last()).toHaveText("Sharing");
+  // The rail now has 13 rows (developer from master + portfolioTargets is the new last tab, added by #586).
+  // Assert Sharing is present — order-independent; do not assume it is last().
+  await expect(dialog.getByRole("tab", { name: "Sharing" })).toBeVisible();
+  await expect(dialog.getByRole("tab", { name: "Portfolio targets" })).toBeVisible();
   await expect(dialog.getByRole("tab", { name: "Developer access" })).toBeVisible();
   await expect(dialog.getByRole("tab", { name: "Developer access" })).toHaveAttribute("aria-selected", "true");
   await expect(page.getByRole("heading", { name: "Developer access" })).toBeVisible();
@@ -80,7 +83,8 @@ test("settings Developer access section is reachable in EN and ZH", async ({ pag
   await page.goto("/dev/settings?s=developer&lang=zh");
   const zhDialog = page.locator(".acs-overlay.open .acs-card");
   await expect(zhDialog).toBeVisible({ timeout: 45_000 });
-  await expect(zhDialog.getByRole("tab").last()).toHaveText("共享");
+  await expect(zhDialog.getByRole("tab", { name: "共享" })).toBeVisible();
+  await expect(zhDialog.getByRole("tab", { name: "组合目标权重" })).toBeVisible();
   await expect(zhDialog.getByRole("tab", { name: "开发者访问" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "开发者访问" })).toBeVisible();
   await expect(page.getByText("你还没有创建个人 API 密钥。")).toBeVisible();

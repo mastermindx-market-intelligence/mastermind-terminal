@@ -1,4 +1,4 @@
--- Ledger row: MO-PAID-054 (B-F11-5, Market Ontology F11 lane)
+-- Ledger row: 0025_thesis_amendment_proposals / PR #577 (merged 4169e0cf, packet B-F11-5); applied 2026-09-19
 -- Rollback: drop function if exists public.set_thesis_amendment_state(uuid, text); drop trigger if exists thesis_amendment_proposals_guard on public.thesis_amendment_proposals; drop function if exists public.thesis_amendment_proposals_guard(); drop table if exists public.thesis_amendment_proposals;
 --
 -- 0025: thesis_amendment_proposals — propose-only assistant amendments (packet B-F11-5).
