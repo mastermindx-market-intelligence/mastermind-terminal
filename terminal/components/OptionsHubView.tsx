@@ -1889,6 +1889,9 @@ export default function OptionsHubView({
     () => rootCatalog?.find((row) => row.root === selectedTicker) ?? null,
     [rootCatalog, selectedTicker],
   );
+  const selectedTickerTierLabel = selectedTickerCatalog?.tier === "core"
+    ? pick(lang, "core", "核心")
+    : pick(lang, "rotating", "轮询");
   const activeCatalogCount = useMemo(
     () => rootCatalog?.filter((row) => row.activityRank !== null).length ?? 0,
     [rootCatalog],
@@ -3055,7 +3058,7 @@ export default function OptionsHubView({
                 <div style={{ padding: "10px 10px 8px" }}>
                   <input
                     type="search"
-                    aria-label={lang === "zh" ? "搜索期权覆盖代码" : "Search covered options tickers"}
+                    aria-label={pick(lang, "Search covered options tickers", "搜索期权覆盖代码")}
                     placeholder={lang === "zh" ? "搜索代码…" : "Search ticker…"}
                     value={tickerSearch}
                     maxLength={12}
@@ -3086,7 +3089,7 @@ export default function OptionsHubView({
                 </div>
                 <div
                   style={{ flex: 1, overflow: "auto" }}
-                  aria-label={lang === "zh" ? "期权覆盖代码" : "Covered options tickers"}
+                  aria-label={pick(lang, "Covered options tickers", "期权覆盖代码")}
                 >
                   {tickerCandidateRows.map((candidate) => {
                     const { root, impact, catalog } = candidate;
@@ -3173,9 +3176,7 @@ export default function OptionsHubView({
                       </div>
                       <div className="fin-empty-why">
                         {rootCatalog
-                          ? (lang === "zh"
-                              ? "活跃标的优先；核心与轮询覆盖代码始终可搜索。"
-                              : "Active roots appear first; core and rotating coverage remain searchable.")
+                          ? pick(lang, "Active roots appear first; core and rotating coverage remain searchable.", "活跃标的优先；核心与轮询覆盖代码始终可搜索。")
                           : t("ohListRankedByPremium")}
                       </div>
                     </div>
@@ -3193,15 +3194,15 @@ export default function OptionsHubView({
                     >
                       <div className="fin-empty-title">
                         {selectedTickerCatalog?.hasSessionData
-                          ? (lang === "zh" ? "个股期权详情尚未可用" : "Ticker drill is not available yet")
+                          ? pick(lang, "Ticker drill is not available yet", "个股期权详情尚未可用")
                           : t("tickersNoData", "No flow data for this ticker yet")}
                       </div>
                       <div className="fin-empty-why">
                         {selectedTickerCatalog
                           ? selectedTickerCatalog.lastSourceSuccess === null
                             ? (lang === "zh"
-                                ? `${selectedTicker} 已纳入${selectedTickerCatalog.tier === "core" ? "核心" : "轮询"}覆盖，正等待本时段首次成功刷新。`
-                                : `${selectedTicker} is configured in ${selectedTickerCatalog.tier} coverage and is awaiting its first successful session refresh.`)
+                                ? `${selectedTicker} 已纳入${selectedTickerTierLabel}覆盖，正等待本时段首次成功刷新。`
+                                : `${selectedTicker} is configured in ${selectedTickerTierLabel} coverage and is awaiting its first successful session refresh.`)
                             : !selectedTickerCatalog.hasSessionData
                               ? (lang === "zh"
                                   ? `${selectedTicker} 已覆盖，最近于 ${fmtAsof(selectedTickerCatalog.lastSourceSuccess)} ET 成功检查；本时段尚未积累达标的期权成交。`
