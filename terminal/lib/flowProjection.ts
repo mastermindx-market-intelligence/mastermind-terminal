@@ -1,12 +1,6 @@
 /**
- * R8 flow projection — one deterministic view over canonical flow events.
- *
- * This module never creates a second flow identity. Callers pass an already-filtered
- * canonical event population; every valid event lands in exactly one wall-clock bucket,
- * and drilldown is expressed only as canonical event ids from that same input.
- *
- * Direction remains soft evidence. We preserve ~buy/~sell/mixed premium separately and
- * never collapse those fields into a conviction score.
+ * R8 flow projection — deterministic projection over canonical, already-filtered flow events.
+ * It creates no second event identity and no scoring authority.
  */
 
 export type FlowProjectionIntervalMinutes = 5 | 15 | 30 | 60;
@@ -54,18 +48,14 @@ function validMagnitude(event: FlowProjectionSource): boolean {
     && Number.isFinite(event.n_prints) && event.n_prints >= 0;
 }
 
-export function flowProjectionBucketKey(tsMs: number, intervalMinutes: FlowProjectionIntervalMinutes): number {
+export function flowProjectionBucketKey(
+  tsMs: number,
+  intervalMinutes: FlowProjectionIntervalMinutes,
+): number {
   const width = intervalMinutes * 60_000;
   return Math.floor(tsMs / width) * width;
 }
 
-/**
- * Project an already-filtered canonical event population into time buckets.
- *
- * The projection is intentionally order-independent: bucket membership depends only on
- * event timestamp; output buckets are chronological; event ids inside each bucket preserve
- * chronological order with id tie-break.
- */
 export function buildFlowProjection<T extends FlowProjectionSource>(
   events: readonly T[],
   intervalMinutes: FlowProjectionIntervalMinutes,
@@ -95,8 +85,8 @@ export function buildFlowProjection<T extends FlowProjectionSource>(
     .sort(([a], [b]) => a - b)
     .map(([startMs, members]): FlowProjectionBucket => {
       const ordered = [...members].sort((a, b) => {
-        const dt = Date.parse(a.ts) - Date.parse(b.ts);
-        return dt !== 0 ? dt : a.id.localeCompare(b.id);
+        const delta = Date.parse(a.ts) - Date.parse(b.ts);
+        return delta !== 0 ? delta : a.id.localeCompare(b.id);
       });
       const roots = new Set<string>();
       let printCount = 0;
@@ -110,15 +100,14 @@ export function buildFlowProjection<T extends FlowProjectionSource>(
 
       for (const event of ordered) {
         roots.add(event.root);
-        printCount += finiteNonNegative(event.n_prints);
-        contractCount += finiteNonNegative(event.size);
-        const premium = finiteNonNegative(event.premium);
-        grossPremium += premium;
-        if (event.right === "C") callPremium += premium;
-        else putPremium += premium;
-        if (event.side === "~buy") softBuyPremium += premium;
-        else if (event.side === "~sell") softSellPremium += premium;
-        else mixedPremium += premium;
+        printCount += event.n_prints;
+        contractCount += event.size;
+        grossPremium += event.premium;
+        if (event.right === "C") callPremium += event.premium;
+        else putPremium += event.premium;
+        if (event.side === "~buy") softBuyPremium += event.premium;
+        else if (event.side === "~sell") softSellPremium += event.premium;
+        else mixedPremium += event.premium;
       }
 
       return {
@@ -142,8 +131,9 @@ export function buildFlowProjection<T extends FlowProjectionSource>(
   return {
     intervalMinutes,
     inputEventCount: events.length,
-    validEventCount: events.length - invalidTimestampCount,
+    validEventCount: events.length - invalidTimestampCount - invalidValueCount,
     invalidTimestampCount,
+    invalidValueCount,
     buckets,
   };
 }
