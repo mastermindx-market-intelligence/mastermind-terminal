@@ -511,10 +511,10 @@ export function r5Stage0Alignment(
   asof: string,
   scenario: R5ScenarioSpec,
 ): R5Stage0Alignment {
-  if (!isNum(scenario.spotPct) || Math.abs(scenario.spotPct) > 3) {
+  if (!isNum(scenario.spotPct) || Math.abs(scenario.spotPct) > R5_LOCAL_SPOT_BOUND_PCT) {
     throw new RangeError("R5 spotPct must be finite and within scenarioGrid's ±3% envelope");
   }
-  if (!isNum(scenario.volPts) || Math.abs(scenario.volPts) > 5) {
+  if (!isNum(scenario.volPts) || Math.abs(scenario.volPts) > R5_LOCAL_VOL_BOUND_PTS) {
     throw new RangeError("R5 volPts must be finite and within scenarioGrid's ±5pt envelope");
   }
   if (!isNum(scenario.dtDays) || scenario.dtDays < 0) {
@@ -583,6 +583,261 @@ export function r5Stage0Alignment(
       charmRows,
       bucketsPresent: buckets.filter((row) => row.present).length,
     },
+  };
+}
+
+// ─── R5 Stage 0b — probability-weighted empirical shock evaluation ───────────────────
+
+export const R5_LOCAL_SPOT_BOUND_PCT = 3;
+export const R5_LOCAL_VOL_BOUND_PTS = 5;
+
+export interface R5EmpiricalShockSample {
+  from_session?: string;
+  to_session?: string;
+  spot_pct: number;
+  vol_pts: number;
+  empirical_weight: number;
+}
+
+export interface R5ExpectationSpec {
+  dtDays: number;
+  materialityMn: number;
+  positionTier: string;
+}
+
+export interface R5WeightedAlignmentRow {
+  bucket: R5DteBucket | "ALL";
+  present: boolean;
+  supportedWeight: number;
+  unsupportedWeight: number;
+  missingGammaWeight: number;
+  missingVannaWeight: number;
+  missingCharmWeight: number;
+  missingTotalWeight: number;
+  /** Conditional on the first-order envelope; null if that component is incomplete. */
+  conditionalExpectedGammaFlowMn: number | null;
+  conditionalExpectedVannaFlowMn: number | null;
+  conditionalExpectedCharmFlowMn: number | null;
+  conditionalExpectedTotalFlowMn: number | null;
+  /** Full-distribution expectations exist only when no empirical tail is unsupported. */
+  fullExpectedGammaFlowMn: number | null;
+  fullExpectedVannaFlowMn: number | null;
+  fullExpectedCharmFlowMn: number | null;
+  fullExpectedTotalFlowMn: number | null;
+  /** Raw probability mass on the ORIGINAL 1.0 distribution, never renormalized. */
+  alignmentMass: Record<R5AlignmentState, number>;
+  /** Same states conditional on supported mass; null when supported mass is zero. */
+  conditionalAlignmentShare: Record<R5AlignmentState, number | null>;
+}
+
+export interface R5EmpiricalExpectation {
+  researchAuthority: "research_only";
+  outcomeLabelsOpened: false;
+  population: "full_book_by_expiry";
+  asof: string;
+  expectation: R5ExpectationSpec;
+  distributionWeight: number;
+  supportedWeight: number;
+  unsupportedWeight: number;
+  tailRenormalized: false;
+  wholeBook: R5WeightedAlignmentRow;
+  buckets: R5WeightedAlignmentRow[];
+}
+
+const R5_ALIGNMENT_STATES: readonly R5AlignmentState[] = [
+  "aligned_positive",
+  "aligned_negative",
+  "opposed",
+  "one_factor_dominant",
+  "immaterial",
+  "unavailable",
+];
+
+function r5EmptyAlignmentMass(): Record<R5AlignmentState, number> {
+  return {
+    aligned_positive: 0,
+    aligned_negative: 0,
+    opposed: 0,
+    one_factor_dominant: 0,
+    immaterial: 0,
+    unavailable: 0,
+  };
+}
+
+function r5WeightedRow(
+  bucket: R5DteBucket | "ALL",
+  present: boolean,
+  supported: readonly { weight: number; row: R5AlignmentRow }[],
+  supportedWeight: number,
+  unsupportedWeight: number,
+): R5WeightedAlignmentRow {
+  const mass = r5EmptyAlignmentMass();
+  let gamma = 0, vanna = 0, charm = 0, total = 0;
+  let missingGammaWeight = 0;
+  let missingVannaWeight = 0;
+  let missingCharmWeight = 0;
+  let missingTotalWeight = 0;
+
+  for (const item of supported) {
+    const { weight, row } = item;
+    mass[row.alignment] += weight;
+    if (row.gammaFlowMn == null) missingGammaWeight += weight;
+    else gamma += weight * row.gammaFlowMn;
+    if (row.vannaFlowMn == null) missingVannaWeight += weight;
+    else vanna += weight * row.vannaFlowMn;
+    if (row.charmFlowMn == null) missingCharmWeight += weight;
+    else charm += weight * row.charmFlowMn;
+    if (row.totalFlowMn == null) missingTotalWeight += weight;
+    else total += weight * row.totalFlowMn;
+  }
+
+  const tol = 1e-12;
+  const conditional = (sum: number, missing: number): number | null =>
+    supportedWeight > tol && missing <= tol ? sum / supportedWeight : null;
+  const full = (sum: number, missing: number): number | null =>
+    unsupportedWeight <= tol && missing <= tol ? sum : null;
+
+  const conditionalAlignmentShare = r5EmptyAlignmentMass() as Record<
+    R5AlignmentState, number | null
+  >;
+  for (const state of R5_ALIGNMENT_STATES) {
+    conditionalAlignmentShare[state] =
+      supportedWeight > tol ? mass[state] / supportedWeight : null;
+  }
+
+  return {
+    bucket,
+    present,
+    supportedWeight,
+    unsupportedWeight,
+    missingGammaWeight,
+    missingVannaWeight,
+    missingCharmWeight,
+    missingTotalWeight,
+    conditionalExpectedGammaFlowMn: conditional(gamma, missingGammaWeight),
+    conditionalExpectedVannaFlowMn: conditional(vanna, missingVannaWeight),
+    conditionalExpectedCharmFlowMn: conditional(charm, missingCharmWeight),
+    conditionalExpectedTotalFlowMn: conditional(total, missingTotalWeight),
+    fullExpectedGammaFlowMn: full(gamma, missingGammaWeight),
+    fullExpectedVannaFlowMn: full(vanna, missingVannaWeight),
+    fullExpectedCharmFlowMn: full(charm, missingCharmWeight),
+    fullExpectedTotalFlowMn: full(total, missingTotalWeight),
+    alignmentMass: mass,
+    conditionalAlignmentShare,
+  };
+}
+
+/**
+ * Probability-weight the exact R5 scenario engine over a PIT empirical shock law.
+ *
+ * Unsupported tail mass is never clipped or treated as zero. We still provide a
+ * conditional-on-supported-envelope read, but a full expectation is null whenever
+ * any empirical probability mass lies beyond scenarioGrid's first-order envelope.
+ */
+export function r5EmpiricalExpectation(
+  rows: readonly MscExpiryRow[] | null | undefined,
+  asof: string,
+  samples: readonly R5EmpiricalShockSample[],
+  expectation: R5ExpectationSpec,
+): R5EmpiricalExpectation {
+  if (!isNum(expectation.dtDays) || expectation.dtDays < 0) {
+    throw new RangeError("R5 expectation dtDays must be finite and non-negative");
+  }
+  if (!isNum(expectation.materialityMn) || expectation.materialityMn < 0) {
+    throw new RangeError("R5 expectation materialityMn must be finite and non-negative");
+  }
+  if (!expectation.positionTier?.trim()) {
+    throw new RangeError("R5 expectation positionTier must be declared");
+  }
+  if (!Array.isArray(samples) || samples.length === 0) {
+    throw new RangeError("R5 empirical distribution must contain at least one sample");
+  }
+
+  let weightTotal = 0;
+  for (const sample of samples) {
+    if (!isNum(sample.spot_pct) || !isNum(sample.vol_pts)) {
+      throw new RangeError("R5 empirical sample shocks must be finite");
+    }
+    if (!isNum(sample.empirical_weight) || sample.empirical_weight <= 0) {
+      throw new RangeError("R5 empirical sample weights must be finite and positive");
+    }
+    weightTotal += sample.empirical_weight;
+  }
+  if (Math.abs(weightTotal - 1) > 1e-6) {
+    throw new RangeError("R5 empirical sample weights must sum to 1");
+  }
+
+  const baseline = r5Stage0Alignment(rows, asof, {
+    spotPct: 0,
+    volPts: 0,
+    dtDays: expectation.dtDays,
+    materialityMn: expectation.materialityMn,
+    positionTier: expectation.positionTier,
+  });
+
+  const wholeSupported: { weight: number; row: R5AlignmentRow }[] = [];
+  const bucketSupported = new Map<R5DteBucket, { weight: number; row: R5AlignmentRow }[]>();
+  for (const bucket of R5_DTE_BUCKETS) bucketSupported.set(bucket, []);
+
+  let supportedWeight = 0;
+  let unsupportedWeight = 0;
+  for (const sample of samples) {
+    const inside =
+      Math.abs(sample.spot_pct) <= R5_LOCAL_SPOT_BOUND_PCT &&
+      Math.abs(sample.vol_pts) <= R5_LOCAL_VOL_BOUND_PTS;
+    if (!inside) {
+      unsupportedWeight += sample.empirical_weight;
+      continue;
+    }
+
+    supportedWeight += sample.empirical_weight;
+    const aligned = r5Stage0Alignment(rows, asof, {
+      spotPct: sample.spot_pct,
+      volPts: sample.vol_pts,
+      dtDays: expectation.dtDays,
+      materialityMn: expectation.materialityMn,
+      positionTier: expectation.positionTier,
+    });
+    wholeSupported.push({ weight: sample.empirical_weight, row: aligned.wholeBook });
+    for (const row of aligned.buckets) {
+      bucketSupported.get(row.bucket as R5DteBucket)!.push({
+        weight: sample.empirical_weight,
+        row,
+      });
+    }
+  }
+
+  const buckets = baseline.buckets.map((baseRow) =>
+    r5WeightedRow(
+      baseRow.bucket,
+      baseRow.present,
+      bucketSupported.get(baseRow.bucket as R5DteBucket)!,
+      supportedWeight,
+      unsupportedWeight,
+    )
+  );
+
+  return {
+    researchAuthority: "research_only",
+    outcomeLabelsOpened: false,
+    population: "full_book_by_expiry",
+    asof: baseline.asof,
+    expectation: {
+      ...expectation,
+      positionTier: expectation.positionTier.trim(),
+    },
+    distributionWeight: weightTotal,
+    supportedWeight,
+    unsupportedWeight,
+    tailRenormalized: false,
+    wholeBook: r5WeightedRow(
+      "ALL",
+      baseline.wholeBook.present,
+      wholeSupported,
+      supportedWeight,
+      unsupportedWeight,
+    ),
+    buckets,
   };
 }
 
