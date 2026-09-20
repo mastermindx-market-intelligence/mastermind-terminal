@@ -726,43 +726,146 @@ function drawProfile(f: DocumentFragment, pr: ProfilePrim, m: CoordMapper): Elem
     anchorX = Math.min(bx1, bx2); dir = 1;
     capPx = Math.min(maxPx, Math.abs(bx2 - bx1)); // bars capped to box width
   }
-  const g = mk("g", {});
+
+  type PreparedProfileBin = {
+    y: number; h: number; x: number; len: number; color: string; alpha: number;
+    overlay?: { x: number; len: number; color: string };
+    label?: string;
+  };
+  const bins: PreparedProfileBin[] = [];
   for (const bin of pr.bins) {
     if (!fin(bin.p1) || !fin(bin.p2) || !fin(bin.frac)) continue;
     const y1 = m.y(bin.p1), y2 = m.y(bin.p2);
     if (!fin(y1) || !fin(y2)) continue;
-    const yT = Math.min(y1, y2), hRaw = Math.abs(y2 - y1);
+    const y = Math.min(y1, y2), hRaw = Math.abs(y2 - y1);
     const h = hRaw > 2 ? hRaw - 1 : hRaw; // 1px gap between bins when there's room
     if (h <= 0) continue;
     const len = clamp(bin.frac, 0, 1) * capPx;
     if (len < 0.5) continue;
-    const bx = dir === -1 ? anchorX - len : anchorX;
-    g.appendChild(mk("rect", {
-      x: bx, y: yT, width: len, height: h,
-      fill: bin.color, "fill-opacity": bin.alpha != null ? clamp(bin.alpha, 0, 1) : 0.55,
-    }));
+    const x = dir === -1 ? anchorX - len : anchorX;
+    let overlay: PreparedProfileBin["overlay"];
     if (bin.overlayFrac != null && bin.overlayColor) {
       const oLen = clamp(bin.overlayFrac, 0, 1) * capPx;
-      if (oLen >= 0.5) {
-        const ox = dir === -1 ? anchorX - oLen : anchorX;
-        g.appendChild(mk("rect", {
-          x: ox, y: yT, width: oLen, height: h,
-          fill: bin.overlayColor, "fill-opacity": 0.75,
+      if (oLen >= 0.5) overlay = {
+        x: dir === -1 ? anchorX - oLen : anchorX,
+        len: oLen,
+        color: bin.overlayColor,
+      };
+    }
+    bins.push({
+      y, h, x, len, color: bin.color,
+      alpha: bin.alpha != null ? clamp(bin.alpha, 0, 1) : 0.55,
+      overlay,
+      label: bin.label && h >= 8 ? bin.label : undefined,
+    });
+  }
+  if (!bins.length) return null;
+
+  // Current Money Flow Profile bins are a disjoint vertical partition. In that geometry, every
+  // base/overlay rectangle can be regrouped by visual style without changing z-order because bars
+  // from different bins never cover the same pixel. Keep ProfilePrim generic, though: any future
+  // producer that supplies overlapping bins falls through to the exact historical per-bin order.
+  const intervals = bins.map((b) => [b.y, b.y + b.h] as const).sort((a, b) => a[0] - b[0]);
+  const disjoint = intervals.every((r, i) => i === 0 || r[0] >= intervals[i - 1][1]);
+  const g = mk("g", {});
+
+  const appendLabel = (bin: PreparedProfileBin) => {
+    if (!bin.label) return;
+    const tipX = dir === -1 ? bin.x - 3 : bin.x + bin.len + 3;
+    const txt = mk("text", {
+      x: tipX, y: bin.y + bin.h / 2,
+      "text-anchor": dir === -1 ? "end" : "start", "dominant-baseline": "central",
+      fill: "var(--muted)", "font-size": 8.5, "font-family": "var(--font-num)",
+    }) as SVGTextElement;
+    txt.style.fontVariantNumeric = "tabular-nums";
+    txt.textContent = bin.label;
+    g.appendChild(txt);
+  };
+
+  const appendIndividual = (bin: PreparedProfileBin) => {
+    g.appendChild(mk("rect", {
+      x: bin.x, y: bin.y, width: bin.len, height: bin.h,
+      fill: bin.color, "fill-opacity": bin.alpha,
+    }));
+    if (bin.overlay) g.appendChild(mk("rect", {
+      x: bin.overlay.x, y: bin.y, width: bin.overlay.len, height: bin.h,
+      fill: bin.overlay.color, "fill-opacity": 0.75,
+    }));
+    appendLabel(bin);
+  };
+
+  if (!disjoint) {
+    for (const bin of bins) appendIndividual(bin);
+  } else {
+    type ProfilePathGroup = { color: string; alpha: number; parts: string[] };
+
+    const appendRun = (run: PreparedProfileBin[]) => {
+      if (!run.length) return;
+      const bases: ProfilePathGroup[] = [];
+      const baseIndex = new Map<string, Map<number, number>>();
+      const overlays: ProfilePathGroup[] = [];
+      const overlayIndex = new Map<string, number>();
+      let originalNodes = 0;
+
+      for (const bin of run) {
+        originalNodes += 1 + (bin.overlay ? 1 : 0);
+        let byAlpha = baseIndex.get(bin.color);
+        if (!byAlpha) { byAlpha = new Map(); baseIndex.set(bin.color, byAlpha); }
+        let bi = byAlpha.get(bin.alpha);
+        if (bi == null) {
+          bi = bases.length;
+          byAlpha.set(bin.alpha, bi);
+          bases.push({ color: bin.color, alpha: bin.alpha, parts: [] });
+        }
+        bases[bi].parts.push(`M${bin.x} ${bin.y}H${bin.x + bin.len}V${bin.y + bin.h}H${bin.x}Z`);
+
+        if (bin.overlay) {
+          let oi = overlayIndex.get(bin.overlay.color);
+          if (oi == null) {
+            oi = overlays.length;
+            overlayIndex.set(bin.overlay.color, oi);
+            overlays.push({ color: bin.overlay.color, alpha: 0.75, parts: [] });
+          }
+          overlays[oi].parts.push(
+            `M${bin.overlay.x} ${bin.y}H${bin.overlay.x + bin.overlay.len}V${bin.y + bin.h}H${bin.overlay.x}Z`,
+          );
+        }
+      }
+
+      const groups = [...bases, ...overlays];
+      // A one-bin or style-fragmented run can be node-neutral. Keep the historical rects there
+      // rather than changing representation for no performance gain.
+      if (groups.length >= originalNodes) {
+        for (const bin of run) appendIndividual(bin);
+        return;
+      }
+      for (const group of groups) {
+        if (!group.parts.length) continue;
+        g.appendChild(mk("path", {
+          d: group.parts.join(""), fill: group.color, "fill-opacity": group.alpha,
         }));
       }
+    };
+
+    // Labels are kept in their exact historical local order: base -> overlay -> text. We only
+    // collapse unlabeled runs between them, so a profile label can never jump in front of geometry
+    // that used to be painted later. This is stricter than globally batching the whole partition.
+    let run: PreparedProfileBin[] = [];
+    const flushRun = () => {
+      appendRun(run);
+      run = [];
+    };
+    for (const bin of bins) {
+      if (bin.label) {
+        flushRun();
+        appendIndividual(bin);
+      } else {
+        run.push(bin);
+      }
     }
-    if (bin.label && h >= 8) {
-      const tipX = dir === -1 ? anchorX - len - 3 : anchorX + len + 3;
-      const txt = mk("text", {
-        x: tipX, y: yT + h / 2,
-        "text-anchor": dir === -1 ? "end" : "start", "dominant-baseline": "central",
-        fill: "var(--muted)", "font-size": 8.5, "font-family": "var(--font-num)",
-      }) as SVGTextElement;
-      txt.style.fontVariantNumeric = "tabular-nums";
-      txt.textContent = bin.label;
-      g.appendChild(txt);
-    }
+    flushRun();
   }
+
   if (!g.firstChild) return null;
   f.appendChild(g);
   return g;
