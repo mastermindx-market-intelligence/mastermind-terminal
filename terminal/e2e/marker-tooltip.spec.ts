@@ -503,6 +503,43 @@ test("tapping a marker opens its tooltip, and tapping away dismisses it", async 
   await expect(tip(page)).toBeHidden();
 });
 
+test("a pane relayout after a tap re-anchors the tooltip instead of dismissing it", async ({ page }, testInfo) => {
+  test.skip(!["tablet", "mobile"].includes(testInfo.project.name), "touch viewports only");
+  await openTerminal(page);
+  const target = pick(await settledMarkers(page), RETRO_TS);
+
+  await page.touchscreen.tap(target.cx, target.cy);
+  await expect(tip(page)).toBeVisible({ timeout: 5_000 });
+  await expect(tip(page)).toHaveAttribute("data-marker-at", target.t);
+
+  // THE DEFECT. The chart keeps sizing well after hydration — panes lay out, the price axis takes
+  // its final width — so on a loaded machine a pane resize lands AFTER a tap that has already
+  // opened its tooltip. The pane ResizeObserver dismissed it unconditionally, which is invisible
+  // on desktop (the next pointermove re-opens the hover tooltip under a cursor that is still
+  // there) and TERMINAL on touch, where a tap has no cursor behind it. That asymmetry is why this
+  // went red on both touch viewports while desktop stayed green, and why it reached the `failed`
+  // bucket with the tooltip carrying the RIGHT marker's text and `display:none`.
+  //
+  // A viewport change drives that very same pane observer, deterministically and with no sleep —
+  // it is the trigger made reproducible, not a contrivance, and not a wait for a race to re-run.
+  const vp = page.viewportSize()!;
+  await page.setViewportSize({ width: vp.width, height: vp.height - 120 });
+
+  // Still open, still the SAME marker — the resize moved the anchor, not the reader's intent.
+  await expect(tip(page)).toBeVisible();
+  await expect(tip(page)).toHaveAttribute("data-marker-at", target.t);
+  expect(await tip(page).textContent()).toBe(target.title);
+
+  // …and re-anchored onto where that marker is NOW, rather than left behind at its old box. The
+  // anti-litter guarantee the dismissal was protecting is kept by MOVING the tooltip, not by
+  // destroying it: a tooltip is still never left pointing at empty chart.
+  const moved = pick(await settledMarkers(page), RETRO_TS);
+  const box = await tip(page).boundingBox();
+  expect(box, "the re-anchored tooltip should have a box").toBeTruthy();
+  expect(Math.hypot(box!.x - moved.cx, box!.y - moved.cy),
+    "the tooltip should sit beside the marker's NEW position").toBeLessThan(300);
+});
+
 test("a tap still opens the tooltip when the thread stalls between down and up", async ({ page }, testInfo) => {
   test.skip(!["tablet", "mobile"].includes(testInfo.project.name), "touch viewports only");
   await openTerminal(page);
