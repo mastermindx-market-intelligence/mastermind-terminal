@@ -5,6 +5,10 @@ import { copy, type MonitorState, type ReadState } from "@/lib/alertsView";
 // A null timestamp is ambiguous: it means either "genuinely never happened" (the read itself
 // succeeded and found nothing) or "we could not read this fact at all". Printing the same
 // "not recorded" copy for both hides the second case as if it were the calmer first one.
+function pick(lang: "en" | "zh", en: string, zh: string): string {
+  return lang === "zh" ? zh : en;
+}
+
 function fmtTime(iso: string | null, state: ReadState, lang: "en" | "zh"): string {
   if (iso) {
     const d = new Date(iso);
@@ -32,12 +36,12 @@ export default function AnswerLine({
   if (surface === "briefs") {
     return (
       <div className={s.answerLine} data-alerts-surface="briefs">
-        <span className={`${s.stance} ${s.stanceMuted}`}>{lang === "zh" ? "简报" : "Briefs"}</span>
+        <span className={`${s.stance} ${s.stanceMuted}`}>{pick(lang, "Briefs", "简报")}</span>
         <span className={s.facts}>
-          <span>{lang === "zh" ? "定时市场简报保存在提醒中的简报收件箱。" : "Scheduled market reports live in the Briefs inbox inside Alerts."}</span>
+          <span>{pick(lang, "Scheduled market reports live in the Briefs inbox inside Alerts.", "定时市场简报保存在提醒中的简报收件箱。")}</span>
         </span>
         <a className={s.surfaceToggle} href="/alerts">
-          {lang === "zh" ? "提醒" : "Alerts"}
+          {pick(lang, "Alerts", "提醒")}
         </a>
       </div>
     );
@@ -52,7 +56,7 @@ export default function AnswerLine({
       </span>
       <span className={s.coverage}>{coverageCount !== null ? coverageCount : copy("null.cannotRead", lang)} <span className={s.coverageLabel}>{copy("coverage.label", lang)}</span></span>
       <a className={s.surfaceToggle} href="#briefs">
-        {lang === "zh" ? "简报" : "Briefs"}
+        {pick(lang, "Briefs", "简报")}
       </a>
     </div>
   );
