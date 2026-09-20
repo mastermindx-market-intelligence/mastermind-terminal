@@ -273,10 +273,13 @@ describe("BriefsInbox rendering", () => {
 });
 
 describe("Briefs scheduling is centralized in Alerts", () => {
-  it("does not mount BriefSubscribeControls in ThesisWorkspace", () => {
-    const src = readFileSync(join(__dirname, "../../components/workspaces/ThesisWorkspace.tsx"), "utf8");
-    expect(src).not.toContain('from "@/components/briefs/BriefSubscribeControls"');
-    expect(src).not.toContain("<BriefSubscribeControls");
+  it("keeps the legacy contextual component inert with no subscription side effects", () => {
+    const src = readFileSync(join(__dirname, "../../components/briefs/BriefSubscribeControls.tsx"), "utf8");
+    expect(src).toContain("return null;");
+    expect(src).not.toContain("/api/briefs/subscriptions");
+    expect(src).not.toContain('method: "POST"');
+    expect(src).not.toContain('method: "PATCH"');
+    expect(src).not.toContain('data-testid="brief-subscribe"');
   });
 });
 
