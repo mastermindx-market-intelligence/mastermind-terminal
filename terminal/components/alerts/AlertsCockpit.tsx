@@ -13,6 +13,7 @@ import {
   type Alert, type ReadState, type RunReceipt, type OutboxRow,
 } from "@/lib/alertsView";
 import { useLang, useT } from "@/lib/i18n";
+import BriefsInbox from "@/components/briefs/BriefsInbox";
 
 interface AlertsResp { alerts?: Alert[]; error?: string }
 interface ReceiptsResp {
@@ -417,6 +418,7 @@ export default function AlertsCockpit({ email, children }: { email: string; chil
           disconnected page compositions) and never wrapped in an extra .pg of its own (a nested
           scroll container broke the deterministic e2e). See page.tsx for what is passed in. */}
       {children}
+      <BriefsInbox lang={L} />
       {detail && <AlertDetail data={detail} lang={L} onClose={() => setOpenId(null)} />}
     </div></main>
   );

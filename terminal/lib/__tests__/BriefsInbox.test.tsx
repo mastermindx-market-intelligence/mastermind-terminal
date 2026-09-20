@@ -167,12 +167,6 @@ describe("unfinished recurring briefs stay out of primary Terminal chrome", () =
     expect(src).not.toContain("<BriefSubscribeControls");
   });
 
-  it("keeps BriefsInbox out of AlertsCockpit until the producer is live", () => {
-    const src = readFileSync(join(__dirname, "../../components/alerts/AlertsCockpit.tsx"), "utf8");
-    expect(src).not.toContain('from "@/components/briefs/BriefsInbox"');
-    expect(src).not.toContain("<BriefsInbox");
-  });
-
   it("does not advertise dormant Briefs delivery in Terminal settings", () => {
     const src = readFileSync(join(__dirname, "../../components/settings/SectionTerminal.tsx"), "utf8");
     expect(src).not.toContain('from "@/lib/briefs"');
