@@ -677,7 +677,7 @@ export function FeedPane({
         )}
 
         {/* Cards — capped to visibleCount; sentinel triggers Load-more */}
-        {filtered.slice(0, visibleCount).map((ev) => (
+        {projectedEvents.slice(0, visibleCount).map((ev) => (
           <FlowCard
             key={ev.id}
             ev={ev}
