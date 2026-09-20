@@ -1,6 +1,6 @@
 # Options-level coverage and axis-label browser evidence
 
-Source head: `06c23bfb3b87ed475d1f242770fb7c2c980a4c59`
+Source head: `7acab645544a2ab87329cc722fe049f199aedf1f`
 
 ## Outcome under proof
 
