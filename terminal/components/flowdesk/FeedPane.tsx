@@ -343,6 +343,8 @@ export function FeedPane({
 
   // FiltersPanel open/close
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [projectionInterval, setProjectionInterval] = useState<FlowProjectionIntervalMinutes>(15);
+  const [projectionBucketKey, setProjectionBucketKey] = useState<string | null>(null);
 
   // ── Card expansion (v7b) ───────────────────────────────────────────────────
   // Expansion lives HERE, not inside FlowCard.
