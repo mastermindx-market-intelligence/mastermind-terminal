@@ -3008,6 +3008,8 @@ export default function OptionsHubView({
             <div style={{ flex: 1, overflow: "hidden", display: "flex", minHeight: 0 }}>
               {/* Left sidebar — ticker search + candidate list */}
               <div
+                data-options-root-source={rootCatalog ? "catalog" : "session-fallback"}
+                data-options-root-count={rootCatalog?.length ?? fallbackTickerCandidates.length}
                 style={{
                   width: 180, flexShrink: 0, borderRight: "1px solid var(--line)",
                   display: "flex", flexDirection: "column", minHeight: 0,
