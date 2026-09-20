@@ -15,6 +15,7 @@ import {
   useCallback, useEffect, useMemo, useRef, useState,
 } from "react";
 import { FlowCard } from "./FlowCard";
+import { FlowProjectionStrip } from "./FlowProjectionStrip";
 import { FiltersPanel, DEFAULT_FILTERS } from "./FiltersPanel";
 import type { FlowFilters } from "./FiltersPanel";
 import { trackSearch } from "@/lib/searchTrack";
