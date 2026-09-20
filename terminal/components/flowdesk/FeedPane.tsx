@@ -23,6 +23,11 @@ import { FD } from "@/lib/flowdeskStrings";
 import { usOptionsSessionState } from "@/lib/flowFreshness";
 import { FlowFreshnessReceipt } from "./FlowFreshnessReceipt";
 import { useT } from "@/lib/i18n";
+import {
+  buildFlowProjection,
+  selectFlowProjectionBucket,
+  type FlowProjectionIntervalMinutes,
+} from "@/lib/flowProjection";
 
 // ── Re-export shared types so FlowCard / FiltersPanel import from one place ──
 
