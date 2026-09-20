@@ -6,6 +6,7 @@ import {
   r5DteBucket,
   r5Stage0Alignment,
   r5EmpiricalExpectation,
+  R5_ADV_METHOD,
   emFrame,
   topology,
   expiryConcentration,
@@ -375,6 +376,40 @@ describe("R5 empirical probability weighting", () => {
     expect(got.wholeBook.alignmentMass.aligned_negative).toBeCloseTo(0.5);
     expect(got.wholeBook.alignmentMass.aligned_positive).toBeCloseTo(0.5);
     expect(got.outcomeLabelsOpened).toBe(false);
+  });
+
+  it("reports expected absolute flow and canonical ADV-normalized participation", () => {
+    const got = r5EmpiricalExpectation(rows, ASOF, [
+      { spot_pct: 1, vol_pts: 2, empirical_weight: 0.5 },
+      { spot_pct: -1, vol_pts: -2, empirical_weight: 0.5 },
+    ], {
+      ...expectation,
+      advDollars: 100_000_000,
+      advMethod: R5_ADV_METHOD,
+    });
+
+    // Scenario totals are -19 and +17, so signed expectation=-1 while
+    // expected absolute mechanical demand=18. $18mn / $100mn ADV = 18%.
+    expect(got.wholeBook.conditionalExpectedTotalFlowMn).toBeCloseTo(-1, 10);
+    expect(got.wholeBook.conditionalExpectedAbsTotalFlowMn).toBeCloseTo(18, 10);
+    expect(got.wholeBook.conditionalExpectedTotalFlowPctAdv).toBeCloseTo(-1, 10);
+    expect(got.wholeBook.conditionalExpectedAbsTotalFlowPctAdv).toBeCloseTo(18, 10);
+    expect(got.wholeBook.fullExpectedAbsTotalFlowPctAdv).toBeCloseTo(18, 10);
+    expect(got.liquidity.advDollars).toBe(100_000_000);
+    expect(got.liquidity.method).toBe(R5_ADV_METHOD);
+  });
+
+  it("refuses unlabeled or invalid ADV denominators", () => {
+    const samples = [{ spot_pct: 1, vol_pts: 1, empirical_weight: 1 }];
+    expect(() => r5EmpiricalExpectation(rows, ASOF, samples, {
+      ...expectation,
+      advDollars: 100_000_000,
+    })).toThrow(/advMethod/);
+    expect(() => r5EmpiricalExpectation(rows, ASOF, samples, {
+      ...expectation,
+      advDollars: 0,
+      advMethod: R5_ADV_METHOD,
+    })).toThrow(/advDollars/);
   });
 
   it("keeps unsupported empirical tail mass explicit and nulls full expectation", () => {
