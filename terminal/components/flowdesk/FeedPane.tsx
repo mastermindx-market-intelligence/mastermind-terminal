@@ -575,7 +575,7 @@ export function FeedPane({
         {/* N SIGNALS count */}
         <div className="obs-fd-count">
           <span style={{ color: "var(--signal)", fontWeight: 700 }}>
-            {filtered.length}
+            {projectedEvents.length}
           </span>{" "}
           {zh ? "信号" : "SIGNALS"}
           {feed?.stale && (
@@ -710,7 +710,7 @@ export function FeedPane({
         ))}
 
         {/* Load-more sentinel — only shown when more cards exist beyond the cap */}
-        {filtered.length > visibleCount && (
+        {projectedEvents.length > visibleCount && (
           <div
             ref={sentinelRef}
             style={LOAD_MORE_STYLE}
