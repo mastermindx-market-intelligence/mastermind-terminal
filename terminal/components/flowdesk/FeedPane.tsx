@@ -545,7 +545,7 @@ export function FeedPane({
   // Wire IntersectionObserver to sentinel so scrolling to the bottom auto-loads
   // the next page without requiring a button click.
   // deps=[filtered.length, visibleCount]: the sentinel div only exists in the DOM
-  // when filtered.length > visibleCount (line 566). At mount, feed is null so
+  // when projectedEvents.length > visibleCount (line 566). At mount, feed is null so
   // filtered.length === 0 and the sentinel is absent; sentinelRef.current is null
   // and a mount-only effect would return early without ever attaching the IO.
   // Re-running when filtered.length or visibleCount changes ensures the IO is
@@ -723,8 +723,8 @@ export function FeedPane({
               onClick={() => setVisibleCount((n) => n + PAGE_SIZE)}
             >
               {zh
-                ? `加载更多 — 已显示 ${visibleCount} / ${filtered.length}`
-                : `Load more — showing ${visibleCount} of ${filtered.length}`}
+                ? `加载更多 — 已显示 ${visibleCount} / ${projectedEvents.length}`
+                : `Load more — showing ${visibleCount} of ${projectedEvents.length}`}
             </button>
           </div>
         )}
