@@ -310,7 +310,7 @@ test("MM-008: touch, selector and keyboard expose visible English month detail",
     plot.getAttribute("aria-label"),
     selector.getAttribute("aria-label"),
   ]);
-  expect(selectorLabel).toContain("Apr");
+  expect(selectorLabel).toBe("Seasonality · avg monthly return · Jan–Dec");
   expect(selectorLabel).not.toBe(plotLabel);
   const selectorBox = await selector.boundingBox();
   const detailBox = await detail.boundingBox();
@@ -321,6 +321,7 @@ test("MM-008: touch, selector and keyboard expose visible English month detail",
   await selector.selectOption("4");
   const mayTitle = await may.getAttribute("title");
   await expect(detail).toHaveText(mayTitle!);
+  await expect(selector).toHaveAttribute("aria-label", "Seasonality · avg monthly return · Jan–Dec");
 
   await may.focus();
   await page.keyboard.press("ArrowLeft");
@@ -362,7 +363,9 @@ test("MM-008: live Chinese locale preserves values and translated semantics", as
   expect(title).not.toContain(" WR ");
   await touchCenter(page, september);
   await expect(card.getByTestId("seasonality-detail")).toHaveText(title!);
-  await expect(card.getByTestId("seasonality-month-select").locator("option").nth(8)).toContainText("月");
+  const selector = card.getByTestId("seasonality-month-select");
+  await expect(selector.locator("option").nth(8)).toContainText("月");
+  await expect(selector).toHaveAttribute("aria-label", "季节性 · 月均收益 · 1月–12月");
   await expect(card.getByTestId("seasonality-context"))
     .toHaveText("高亮为当前月份 · 基于 NVDA 历史（仅供参考）。");
   await expect(card.getByTestId("seasonality-context")).not.toContainText("悬停");
@@ -427,6 +430,7 @@ test("MM-008: desktop hover keeps native titles without overwriting the chosen m
   await selector.selectOption("8");
   const septemberTitle = await september.getAttribute("title");
   const octoberTitle = await october.getAttribute("title");
+  expect(octoberTitle).toMatch(/^Oct · [+-]?\d+\.\d% avg · WR \d+% · n=\d+$/);
   await expect(card.getByTestId("seasonality-detail")).toHaveText(septemberTitle!);
   await october.hover();
   await expect(october).toHaveAttribute("title", octoberTitle!);

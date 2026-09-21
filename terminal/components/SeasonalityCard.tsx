@@ -144,7 +144,7 @@ export default function SeasonalityCard({ symbol, onOpenPane }: { symbol: string
         <select
           className={styles.monthSelect}
           data-testid="seasonality-month-select"
-          aria-label={`${t("seasonalityTitle")} · ${monthNames[selectedMonth]}`}
+          aria-label={`${t("seasonalityTitle")} · ${monthNames[0]}–${monthNames[11]}`}
           value={selectedMonth}
           onChange={(event) => setSelectedMonth(Number(event.target.value))}
         >
