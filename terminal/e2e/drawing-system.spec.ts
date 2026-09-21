@@ -1663,3 +1663,62 @@ test("selecting a brush stroke shows its bounds, not a handle per sample", async
   await expect(brush.first().locator("[data-selection-bounds]")).toHaveCount(1);
   await expect(brush.first().locator("circle[data-handle]")).toHaveCount(2);
 });
+
+test("collapsing an indicator pane hides its plot and drawings until restore", async ({ page }) => {
+  test.skip((page.viewportSize()?.width ?? 1440) <= 860, DESKTOP_ONLY);
+  await openTerminal(page);
+
+  const layer = page.locator(".pane.on .drawing-layer");
+  const strokes = layer.locator('g[data-drawing-kind="trendline"]:not([data-id="_p"])');
+  const subPane = await page.evaluate(() => {
+    const boxes = [...document.querySelectorAll(".pane.on .chart-wrap canvas")]
+      .map((canvas) => canvas.getBoundingClientRect())
+      .filter((rect) => rect.width > 100 && rect.height > 40)
+      .sort((a, b) => a.top - b.top);
+    const last = boxes[boxes.length - 1];
+    return boxes.length > 1 ? { top: last.top, height: last.height, left: last.left, width: last.width } : null;
+  });
+  test.skip(!subPane, "This chart mounted no indicator sub-pane.");
+
+  const y = subPane!.top + subPane!.height * 0.52;
+  await page.getByTestId("drawing-group-lines-main").click();
+  await page.mouse.move(subPane!.left + subPane!.width * 0.34, y);
+  await page.mouse.down();
+  await page.mouse.move(subPane!.left + subPane!.width * 0.58, y + 5);
+  await page.mouse.up();
+  await expect(strokes).toHaveCount(1);
+
+  await page.mouse.move(subPane!.left + subPane!.width * 0.55, subPane!.top + 8);
+  const paneOps = page.locator(".pane-ops:visible");
+  await expect(paneOps).toBeVisible();
+  await paneOps.getByRole("button", { name: "Collapse pane" }).click();
+
+  const mask = page.locator('[data-collapsed-pane-mask]');
+  await expect(mask).toHaveCount(1);
+  const collapsed = await mask.boundingBox();
+  expect(collapsed).not.toBeNull();
+  expect(collapsed!.height).toBeGreaterThan(2);
+  expect(collapsed!.height).toBeLessThan(subPane!.height * 0.5);
+
+  const topmostAtCenter = await page.evaluate(({ x, y }) => {
+    const el = document.elementFromPoint(x, y);
+    return {
+      mask: el?.getAttribute("data-collapsed-pane-mask") ?? null,
+      tag: el?.tagName ?? null,
+    };
+  }, {
+    x: collapsed!.x + collapsed!.width * 0.62,
+    y: collapsed!.y + collapsed!.height * 0.5,
+  });
+  expect(topmostAtCenter.mask).not.toBeNull();
+
+  const collapsedOps = page.locator(".pane-ops:visible");
+  await collapsedOps.getByRole("button", { name: "Restore pane" }).click();
+  await expect(mask).toHaveCount(0);
+  await expect(strokes).toHaveCount(1);
+  await expect.poll(async () => {
+    const canvases = await page.locator(".pane.on .chart-wrap canvas").evaluateAll((nodes) =>
+      nodes.map((node) => node.getBoundingClientRect().height).filter((height) => height > 40));
+    return Math.max(...canvases);
+  }).toBeGreaterThan(collapsed!.height * 2);
+});
