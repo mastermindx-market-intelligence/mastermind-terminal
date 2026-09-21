@@ -148,7 +148,7 @@ test("covered ticker catalog keeps quiet roots searchable and honest", async ({ 
   });
 });
 
-test("an open drill fails closed when its catalog receipt advances", async ({ page }, testInfo) => {
+test("an open drill fails closed, then recovers when its catalog receipt advances", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "one transport-race proof is sufficient");
 
   await page.clock.install();
@@ -159,7 +159,10 @@ test("an open drill fails closed when its catalog receipt advances", async ({ pa
   const firstReceipt = "2026-07-05T15:41:00Z";
   const advancedReceipt = "2026-07-05T15:42:00Z";
   let catalogReceipt = firstReceipt;
+  let tickerReceipt = firstReceipt;
+  let tickerGross = 123_000;
   let metaRequests = 0;
+  let tickerRequests = 0;
 
   await page.route(/\/api\/flow\?f=meta$/, async (route) => {
     metaRequests += 1;
@@ -184,17 +187,18 @@ test("an open drill fails closed when its catalog receipt advances", async ({ pa
   });
 
   await page.route(/\/api\/flow\?f=ticker(?:%3A|:)MSFT$/, async (route) => {
+    tickerRequests += 1;
     await route.fulfill({
       status: 200,
       contentType: "application/json",
       body: JSON.stringify({
         schema: "live_flow.ticker/v1",
-        asof: firstReceipt,
+        asof: tickerReceipt,
         root: "MSFT",
         group: "Technology",
         group_zh: "科技",
         day: {
-          gross: 123_000,
+          gross: tickerGross,
           net_soft: 21_000,
           call_share: 0.6,
           n_events: 1,
@@ -226,6 +230,19 @@ test("an open drill fails closed when its catalog receipt advances", async ({ pa
   const empty = page.getByTestId("ticker-drill-empty");
   await expect(empty).toContainText("per-root drill artifact has not arrived yet");
   await expect(page.getByText("$123K", { exact: true })).toHaveCount(0);
+
+  // The matching artifact can land after metadata without changing the catalog
+  // receipt again. The next existing metadata poll must reuse the canonical
+  // ticker fetch path and recover the open drill without a manual re-selection.
+  tickerReceipt = advancedReceipt;
+  tickerGross = 456_000;
+  const metaBeforeRecovery = metaRequests;
+  const tickerBeforeRecovery = tickerRequests;
+  await page.clock.fastForward(60_100);
+  await expect.poll(() => metaRequests).toBeGreaterThan(metaBeforeRecovery);
+  await expect.poll(() => tickerRequests).toBeGreaterThan(tickerBeforeRecovery);
+  await expect(page.getByText("$456K", { exact: true })).toBeVisible();
+  await expect(empty).toHaveCount(0);
 });
 
 test("live coverage expands every per-root options selector", async ({ page }) => {

@@ -1912,6 +1912,42 @@ export default function OptionsHubView({
       ? tickerData
       : null;
   }, [selectedTickerCatalog, tickerData]);
+
+  const pendingTickerStreamKey = selectedTicker
+    && selectedTickerCatalog?.hasSessionData
+    && !tickerLoading
+    && !renderableTickerData
+    ? `ticker:${selectedTicker}`
+    : null;
+  const { data: pendingTickerData } = useFlowStream<TickerPayload>(pendingTickerStreamKey);
+
+  useEffect(() => {
+    if (!pendingTickerStreamKey
+        || !pendingTickerData?.day
+        || !selectedTicker
+        || !selectedTickerCatalog
+        || typeof pendingTickerData.root !== "string"
+        || pendingTickerData.root.toUpperCase() !== selectedTicker.toUpperCase()
+        || !tickerArtifactMatchesCatalogReceipt(
+          selectedTickerCatalog,
+          pendingTickerData.asof,
+        )) return;
+
+    // A selected drill enters this stream only after the normal click fetch has
+    // completed without a receipt-matching artifact. The existing shared flow
+    // transport then observes the canonical ticker key until its R2 object changes;
+    // no component-local interval, retry queue, or second publication owner exists.
+    setTickerDrill((current) => {
+      if (current.selectedTicker !== selectedTicker) return current;
+      return { ...current, tickerData: pendingTickerData, tickerLoading: false };
+    });
+  }, [
+    pendingTickerData,
+    pendingTickerStreamKey,
+    selectedTicker,
+    selectedTickerCatalog,
+  ]);
+
   const selectedTickerTierLabel = selectedTickerCatalog?.tier === "core"
     ? pick(lang, "core", "核心")
     : pick(lang, "rotating", "轮询");

@@ -5,8 +5,8 @@
  * Phase 1 live spine (client half). Opens ONE EventSource per FEED KEY to
  * /api/flow/stream?f=<f> and pushes updates into React state as the server sends
  * them. If SSE is unsupported or errors repeatedly, it degrades to the existing
- * flowGet() polling — so a consumer that swaps flowGet for useFlowStream never
- * ends up worse off than before.
+ * cache-owned fresh polling path — so a consumer that swaps flowGet for
+ * useFlowStream never ends up worse off than before.
  *
  * PER-KEY CONNECTION SHARING (v7b perf wave)
  * ------------------------------------------
@@ -32,7 +32,7 @@
  * SSR-safe: no EventSource touched on the server; the connection opens in useEffect.
  */
 import { useEffect, useState } from "react";
-import { flowGet } from "@/lib/flowClientCache";
+import { flowGetFresh } from "@/lib/flowClientCache";
 
 export interface FlowStreamResult<T> {
   data: T | null;
@@ -72,7 +72,10 @@ function publish(c: Conn, next: Partial<Snapshot>): void {
 function startPolling(f: string, c: Conn): void {
   if (c.pollTimer) return;
   const tick = async () => {
-    const d = await flowGet(f);
+    // A stream fallback is a long-lived consumer: when its cache entry is stale,
+    // wait for the canonical cache owner's revalidation instead of publishing the
+    // stale value and making the UI lag one complete polling interval.
+    const d = await flowGetFresh(f);
     if (CONNS.get(f) !== c) return; // connection was torn down mid-flight
     if (d != null) publish(c, { data: d, error: false });
   };
