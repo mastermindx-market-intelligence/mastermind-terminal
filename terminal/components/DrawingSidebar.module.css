@@ -1,0 +1,7 @@
+/* The tablet dock is absolute; reserve its strip once per workspace, not per pane.
+   Phones use the roller/Drawings sheet, and native shell geometry is unchanged. */
+@media (min-width: 641px) and (max-width: 860px) {
+  :global(.app:not(.shell-app) .chart-body):has(> .dock) {
+    padding-bottom: calc(62px + max(8px, var(--drawing-safe-bottom, 0px)));
+  }
+}
