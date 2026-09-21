@@ -297,10 +297,13 @@ test("phone: ••• opens the analysis hub at 60% and drags to full", async (
   await expect(page.locator(".smodal-cmp")).toBeVisible();
   await page.keyboard.press("Escape");
 
-  // The ghosts are marked, not silently dead.
+  // The canonical chart-type path is actionable; capabilities the audit did not establish stay
+  // truthful and noninteractive outside the tool grid instead of becoming dead keyboard stops.
   await page.getByTestId("roller-more").click();
-  await expect(page.getByTestId("hub-tile-objectTree")).toHaveAttribute("aria-disabled", "true");
-  await expect(page.getByTestId("hub-tile-objectTree")).toContainText("Not in this alpha");
+  await expect(page.getByTestId("hub-tile-chartType")).toBeEnabled();
+  await expect(page.getByTestId("hub-tile-objectTree")).toHaveCount(0);
+  await expect(page.getByTestId("hub-unavailable-tools")).toContainText("Object tree");
+  await expect(page.getByTestId("analysis-hub")).not.toContainText("Not in this alpha");
   await page.keyboard.press("Escape");
   await expect(page.getByTestId("analysis-hub")).toHaveCount(0);
 });
