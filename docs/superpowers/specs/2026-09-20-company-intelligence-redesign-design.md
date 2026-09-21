@@ -73,20 +73,20 @@ A bulk S&P 500 artwork programme is explicitly separate from the first implement
 
 ## 6. Navigation architecture
 
-The existing desktop research shell repeats essentially the same context across four stacked rows: global app header, Research Workspace selector, Back-to-chart/company breadcrumb, and a 13-item flat company-page tab row. Company Intelligence then adds its own Brief / Results / Transcript / Ownership / Sources controls far from the content they govern.
+The existing desktop research shell repeats essentially the same context across four stacked rows: global app header, Research Workspace selector, Back-to-chart/company breadcrumb, and a 13-item flat company-page tab row. Company Intelligence then adds its own Brief / Results / Call & Q&A / Sources controls far from the content they govern.
 
 The proposed Terminal hierarchy is:
 
 1. **Global app chrome** — Mastermind identity, global search, Watchlist / New chat / Saved / account. The separate Back to Dashboard button and Analysis label disappear; the Mastermind identity/home affordance owns app-level return.
 2. **Research Workspace context** — compact Back to chart, selected company/ticker, selected event, coverage/freshness, and quote context. Company identity appears once.
-3. **Compact research navigation dock** — one matte/glass row that contains both the grouped company-page navigation and the selected page's local views. Primary page families occupy the left side; local subpages sit after a divider; page actions sit at the far right. For Intelligence: Brief, Results & outlook, Transcript, Ownership, Sources.
+3. **Compact research navigation dock** — one matte/glass row that contains both the grouped company-page navigation and the selected page's local views. Primary page families occupy the left side; local subpages sit after a divider; page actions sit at the far right. For Intelligence: Brief, Results & outlook, Call & Q&A, Sources.
 
 The dock is the preferred desktop pattern because it preserves the page → subpage hierarchy without spending another full horizontal band. It should sit directly above the research canvas, aligned to the canvas edges, with no duplicate breadcrumb row between it and the content.
 
 Responsive projection keeps the hierarchy while changing the control shape:
 - **Desktop 1440** — show the full grouped company-page families plus page-local views in one compact dock.
 - **Tablet 820** — collapse the company-page families into a selected page-family selector (for example Intelligence ▾) while keeping the page-local views visible beside it.
-- **Mobile 390** — show the selected page family in the compact company context area and project the selected page's local views into bottom navigation. A `More` / page-family control opens a full-width bottom sheet containing Overview / Intelligence / Financials / Earnings / Market / Ownership / Lab, rather than forcing the whole family map into a horizontally scrolling permanent header. The bottom navigation is page-local: Intelligence uses Brief / Results / Transcript / Ownership / Sources, while Overview uses Snapshot / Fundamentals / Valuation / Capital structure.
+- **Mobile 390** — show the selected page family in the compact company context area and project the selected page's local views into bottom navigation. A `More` / page-family control opens a full-width bottom sheet containing Overview / Intelligence / Financials / Earnings / Market / Ownership / Lab, rather than forcing the whole family map into a horizontally scrolling permanent header. The bottom navigation is page-local: Intelligence uses Brief / Results / Call & Q&A / Sources, while Overview uses Snapshot / Fundamentals / Valuation / Capital structure.
 
 Company switching is a first-class Research Workspace interaction, not another page-level navigation layer. Activating the company identity opens a searchable company switcher with recent companies and direct ticker/company search. Switching company clears event-specific evidence selection and any event-only UI state before the new company context is rendered.
 
@@ -191,9 +191,9 @@ The Results lens is not another scorecard. It groups deterministic facts and qua
 
 The page must refuse beat/miss language when basis matching is absent.
 
-## 10. Transcript lens
+## 10. Call & Q&A lens
 
-The Transcript lens uses the existing normalized transcript and existing full reader.
+The Call & Q&A lens uses the existing normalized transcript and existing full reader. It is an Intelligence read-through surface, not a second transcript product.
 
 First frame:
 - search within the selected event;
@@ -205,20 +205,18 @@ First frame:
 
 No second transcript renderer is introduced.
 
-## 11. Ownership lens
+## 11. Ownership handoff and page-family boundary
 
-Ownership is a dedicated lens rather than a giant card inside the default Brief.
+Company Intelligence keeps only compact institutional context in the Brief. Expanded ownership analysis belongs to the shared top-level Ownership page family, not a duplicate Intelligence-local Ownership lens.
 
-First frame:
+The Brief may show current tracked holders, tracked value, buyer/trimmer summary and the filing clock, then link to Research Workspace → Ownership for:
 - reporting set completeness;
-- current tracked holders;
-- tracked market value;
-- filing snapshot clock;
-- manager tape with action, filing date, value, book weight, shares/move;
+- manager tape with action, filing date, value, book weight and shares/move;
 - aligned historical periods;
-- direction only when the existing institutional contract allows it.
+- institutional / insider / concentration / filing-history local views;
+- filing receipts and reporting-set gaps.
 
-The evidence rail for Ownership exposes manager filing receipts, filing dates, reporting-set gaps, and the rule that the roster does not equal total ownership.
+The shared Ownership page must preserve the rule that the tracked roster does not equal total ownership.
 
 ## 12. Sources & Method lens
 
@@ -305,7 +303,7 @@ Mobile 390×844:
 - only the highest-value result cards stay above the fold;
 - insights become stacked sections;
 - evidence becomes bottom sheet;
-- bottom navigation provides direct access to Brief / Results / Transcript / Sources.
+- bottom navigation provides direct access to Brief / Results / Call & Q&A / Sources.
 
 ## 17. Accessibility and internationalization
 
@@ -340,8 +338,8 @@ The preferred implementation shape is a shared presentation layer used by both v
 2. Recompose v2 Brief onto the shared presentation architecture.
 3. Recompose v1 fallback onto the same presentation architecture, preserving v1-only data differences.
 4. Build Results & outlook lens.
-5. Build Transcript lens and evidence-span interaction around the existing reader/search owner.
-6. Move expanded institutional content into Ownership lens and keep compact context in Brief.
+5. Build Call & Q&A lens and evidence-span interaction around the existing transcript reader/search owner.
+6. Keep only compact institutional context in Brief and hand expanded ownership analysis to the shared Research Workspace Ownership page family.
 7. Build Sources & Method trust center.
 8. Implement responsive evidence rail/sheet behavior and mobile/tablet composition.
 9. Implement EN/ZH parity across the dark-mode design.
