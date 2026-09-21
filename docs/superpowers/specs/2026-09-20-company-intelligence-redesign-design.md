@@ -50,14 +50,6 @@ Dark art direction:
 - selected surfaces may use very subtle translucency, blur, inner highlights, and ambient blue/green glow;
 - no habitual colored left-edge cards, neon framing, heavy gradients, or decorative glow for its own sake.
 
-Light art direction:
-- cool research-workspace ground;
-- white paper-like content surfaces;
-- dark ink hierarchy;
-- cobalt interaction accent;
-- hairline separation and restrained shadow rather than dark-mode glow;
-- not a token-only inversion of dark mode.
-
 Typography stays Inter. Large hierarchy comes from scale, weight, spacing, and editorial grouping, not ornament.
 
 ## 5. Company visual system
@@ -311,7 +303,7 @@ The preferred implementation shape is a shared presentation layer used by both v
 6. Move expanded institutional content into Ownership lens and keep compact context in Brief.
 7. Build Sources & Method trust center.
 8. Implement responsive evidence rail/sheet behavior and mobile/tablet composition.
-9. Implement light art direction and EN/ZH parity.
+9. Implement EN/ZH parity across the dark-mode design.
 10. Add/extend event-scoped Brain context only if the Brain contract is formally extended and tested.
 11. Add optional company-artwork resolver with graceful fallback; do not block the core redesign on bulk artwork generation.
 
@@ -328,7 +320,7 @@ Product acceptance requires all of the following:
 - Results never fabricates beat/miss, consensus or market reaction;
 - full transcript reader remains reachable;
 - Sources exposes provenance without taking over the Brief;
-- dark + light × EN + ZH;
+- dark mode × EN + ZH;
 - 1440×900, 820×1180, 390×844;
 - keyboard/focus/escape behavior and zero horizontal overflow;
 - focused/unit tests, TypeScript, responsive E2E, and existing Company Intelligence E2E pass;
@@ -349,7 +341,6 @@ Current Paper page contains these design states:
 - Company Intelligence · Ownership · Dark · 1440
 - Company Intelligence · Sources & Method · Dark · 1440
 - Company Intelligence · Last Verified · Dark · Desktop · 1440
-- Company Intelligence · Brief · Light · Desktop · 1440
 - Company Intelligence · Brief · Dark · Tablet · 820
 - Company Intelligence · Evidence Sheet · Dark · Tablet · 820
 - Company Intelligence · Brief · Dark · Mobile · 390
