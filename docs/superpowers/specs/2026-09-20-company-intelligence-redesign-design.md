@@ -86,7 +86,9 @@ The dock is the preferred desktop pattern because it preserves the page → subp
 Responsive projection keeps the hierarchy while changing the control shape:
 - **Desktop 1440** — show the full grouped company-page families plus page-local views in one compact dock.
 - **Tablet 820** — collapse the company-page families into a selected page-family selector (for example Intelligence ▾) while keeping the page-local views visible beside it.
-- **Mobile 390** — show a compact horizontally constrained page-family row in the company context area and project the selected page's local views into bottom navigation. For Intelligence that bottom navigation is Brief / Results / Transcript / Ownership / Sources.
+- **Mobile 390** — show the selected page family in the compact company context area and project the selected page's local views into bottom navigation. A `More` / page-family control opens a full-width bottom sheet containing Overview / Intelligence / Financials / Earnings / Market / Ownership / Lab, rather than forcing the whole family map into a horizontally scrolling permanent header. For Intelligence the local bottom navigation is Brief / Results / Transcript / Ownership / Sources.
+
+Company switching is a first-class Research Workspace interaction, not another page-level navigation layer. Activating the company identity opens a searchable company switcher with recent companies and direct ticker/company search. Switching company clears event-specific evidence selection and any event-only UI state before the new company context is rendered.
 
 The company-page groups replace the current 13 flat tabs:
 
@@ -381,6 +383,7 @@ Current Paper page contains these design states:
 - Company Intelligence · Focus Canvas · Evidence Open · Dark · 1440
 - Company Intelligence · Not Covered · Dark · 1440
 - Navigation Interaction · Financials Menu Open · Dark · 1440
+- Navigation Interaction · Company Switcher Open · Dark · 1440
 - Company Intelligence · Results & Outlook · Dark · 1440
 - Company Intelligence · Transcript & Q&A · Dark · 1440
 - Company Intelligence · Ownership · Dark · 1440
@@ -391,6 +394,7 @@ Current Paper page contains these design states:
 - Company Intelligence · Evidence Sheet · Dark · Tablet · 820
 - Company Intelligence · Brief · Dark · Mobile · 390
 - Company Intelligence · Navigation Preferred · Mobile · 390
+- Navigation Interaction · Mobile Page Families Open · 390
 - Company Intelligence · Evidence Sheet · Dark · Mobile · 390
 - Navigation Architecture · Research Workspace Hierarchy
 - Research Workspace · Page Family Map
