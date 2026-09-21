@@ -172,7 +172,7 @@ test("context can be restored through the existing chart settings without a new 
   await expect(page.locator("[data-visual-context]")).toHaveCount(0);
   await openChartMenu(page, "settings");
   const settings = page.getByRole("dialog", { name: "Chart Settings", exact: true });
-  await settings.getByRole("button", { name: "Canvas", exact: true }).click();
+  await settings.getByRole("tab", { name: "Canvas", exact: true }).click();
   await settings.getByRole("checkbox", { name: "Show chart context", exact: true }).check();
   await settings.locator(".sm-ok").click();
   await expect(page.getByRole("button", { name: "Chart context", exact: true })).toBeVisible();
