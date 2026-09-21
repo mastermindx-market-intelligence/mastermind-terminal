@@ -63,7 +63,11 @@ For NVIDIA the Paper reference uses a premium AI-accelerator/chipset image with 
 - missing artwork falls back to a quiet sector/company abstraction or neutral material background;
 - image crops must preserve text readability and work at desktop/tablet/mobile;
 - company artwork is presentation, not evidence;
-- imagery is versioned independently from event generations and must never imply data freshness.
+- imagery is versioned independently from event generations and must never imply data freshness;
+- hero edge treatment is implemented by the shared `CompanyVisual` presentation layer, not baked into generated issuer artwork;
+- desktop/tablet use a left-side opacity dissolve into the editorial surface plus transition-only blur; mobile uses a bottom dissolve;
+- the focal subject (for NVDA, the chip and NVIDIA mark) remains sharp while only the seam/background softens;
+- top/bottom/right vignettes stay subtle and exist only to remove the rectangular-photo seam.
 
 A bulk S&P 500 artwork programme is explicitly separate from the first implementation PR.
 
