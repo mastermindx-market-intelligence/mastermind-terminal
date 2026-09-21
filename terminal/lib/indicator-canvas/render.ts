@@ -28,6 +28,9 @@ import type {
 import {
   gestureStamp, hitTestMarkers, isTapSample, MARKER_HOVER_SLACK, MARKER_TAP_SLACK,
 } from "../markerTooltip";
+import {
+  planSquareMarkerBatch, sameSquareMarkerBatchStyle, type SquareMarkerBatchPlan,
+} from "./squareMarkerBatch";
 
 const NS = "http://www.w3.org/2000/svg";
 const CULL_PAD = 40;
@@ -507,13 +510,25 @@ function drawCloud(f: DocumentFragment, c: CloudPrim, m: CoordMapper): Element |
   const alpha = clamp(c.fillAlpha ?? 0.12, 0, 0.5);
   const fallback = (c.segColors && c.segColors[0]) || "var(--brand-2)";
   const g = mk("g", {});
-  // Precompute px points; null coords break color runs.
+  // Precompute px points; null coords break color runs. Repeated color runs may share one
+  // compound path only when projected X is strictly monotonic: then distinct runs occupy
+  // disjoint horizontal intervals, so regrouping cannot change fill z-order at a seam.
   const px: Array<[number, number, number] | null> = new Array(n);
+  let monotonicX = true;
+  let prevX = -Infinity;
   for (let i = 0; i < n; i++) {
     const x = m.xi(c.upper[i].i), yu = m.y(c.upper[i].p), yl = m.y(c.lower[i].p);
-    px[i] = fin(x) && fin(yu) && fin(yl) ? [x, yu, yl] : null;
+    const point = fin(x) && fin(yu) && fin(yl) ? [x, yu, yl] as [number, number, number] : null;
+    px[i] = point;
+    if (point) {
+      if (!(point[0] > prevX)) monotonicX = false;
+      prevX = point[0];
+    }
   }
-  // Merge consecutive same-color segments into one polygon (node economy).
+
+  type CloudRun = { color: string; seg: Array<[number, number, number]> };
+  const runs: CloudRun[] = [];
+  // Preserve the historical run segmentation exactly, including the valid-endpoint rule.
   let s = 0;
   while (s < n - 1) {
     if (!px[s]) { s++; continue; }
@@ -523,17 +538,45 @@ function drawCloud(f: DocumentFragment, c: CloudPrim, m: CoordMapper): Element |
       e < n - 1 && px[e] &&
       ((c.segColors && c.segColors[e]) || fallback) === color
     ) e++;
-    if (!px[e]) { s = e + 1; continue; } // run must end on a valid point
+    if (!px[e]) { s = e + 1; continue; }
     const seg = px.slice(s, e + 1) as Array<[number, number, number]>;
-    if (xVisible(m, seg[0][0], seg[seg.length - 1][0])) {
+    if (xVisible(m, seg[0][0], seg[seg.length - 1][0])) runs.push({ color, seg });
+    s = e;
+  }
+  if (!runs.length) return null;
+
+  if (!monotonicX) {
+    // Generic fallback: retain historical polygon order when projected runs may overlap.
+    for (const { color, seg } of runs) {
       let pts = "";
       for (let i = 0; i < seg.length; i++) pts += `${seg[i][0]},${seg[i][1]} `;
       for (let i = seg.length - 1; i >= 0; i--) pts += `${seg[i][0]},${seg[i][2]} `;
       g.appendChild(mk("polygon", { points: pts.trimEnd(), fill: color, "fill-opacity": alpha, stroke: "none" }));
     }
-    s = e;
+  } else {
+    const groups: Array<{ color: string; parts: string[] }> = [];
+    const groupByColor = new Map<string, number>();
+    for (const { color, seg } of runs) {
+      let gi = groupByColor.get(color);
+      if (gi == null) {
+        gi = groups.length;
+        groupByColor.set(color, gi);
+        groups.push({ color, parts: [] });
+      }
+      let d = `M${seg[0][0]} ${seg[0][1]}`;
+      for (let i = 1; i < seg.length; i++) d += `L${seg[i][0]} ${seg[i][1]}`;
+      for (let i = seg.length - 1; i >= 0; i--) d += `L${seg[i][0]} ${seg[i][2]}`;
+      groups[gi].parts.push(`${d}Z`);
+    }
+    for (const group of groups) {
+      g.appendChild(mk("path", {
+        d: group.parts.join(""),
+        fill: group.color,
+        "fill-opacity": alpha,
+        stroke: "none",
+      }));
+    }
   }
-  if (!g.firstChild) return null;
   f.appendChild(g);
   return g;
 }
@@ -698,6 +741,18 @@ function drawMarker(f: DocumentFragment, mk_: MarkerPrim, m: CoordMapper): Eleme
   return el;
 }
 
+function drawSquareMarkerBatch(f: DocumentFragment, plan: SquareMarkerBatchPlan): void {
+  for (const d of plan.paths) {
+    const path = mk("path", { d, fill: plan.fill });
+    if (plan.stroke) {
+      path.setAttribute("stroke", plan.stroke);
+      path.setAttribute("stroke-width", "1");
+    }
+    if (plan.alpha != null) path.setAttribute("opacity", String(plan.alpha));
+    f.appendChild(path);
+  }
+}
+
 function drawProfile(f: DocumentFragment, pr: ProfilePrim, m: CoordMapper): Element | null {
   const maxPx = pr.maxPx ?? 120;
   let anchorX: number, dir: 1 | -1, capPx = maxPx;
@@ -711,43 +766,146 @@ function drawProfile(f: DocumentFragment, pr: ProfilePrim, m: CoordMapper): Elem
     anchorX = Math.min(bx1, bx2); dir = 1;
     capPx = Math.min(maxPx, Math.abs(bx2 - bx1)); // bars capped to box width
   }
-  const g = mk("g", {});
+
+  type PreparedProfileBin = {
+    y: number; h: number; x: number; len: number; color: string; alpha: number;
+    overlay?: { x: number; len: number; color: string };
+    label?: string;
+  };
+  const bins: PreparedProfileBin[] = [];
   for (const bin of pr.bins) {
     if (!fin(bin.p1) || !fin(bin.p2) || !fin(bin.frac)) continue;
     const y1 = m.y(bin.p1), y2 = m.y(bin.p2);
     if (!fin(y1) || !fin(y2)) continue;
-    const yT = Math.min(y1, y2), hRaw = Math.abs(y2 - y1);
+    const y = Math.min(y1, y2), hRaw = Math.abs(y2 - y1);
     const h = hRaw > 2 ? hRaw - 1 : hRaw; // 1px gap between bins when there's room
     if (h <= 0) continue;
     const len = clamp(bin.frac, 0, 1) * capPx;
     if (len < 0.5) continue;
-    const bx = dir === -1 ? anchorX - len : anchorX;
-    g.appendChild(mk("rect", {
-      x: bx, y: yT, width: len, height: h,
-      fill: bin.color, "fill-opacity": bin.alpha != null ? clamp(bin.alpha, 0, 1) : 0.55,
-    }));
+    const x = dir === -1 ? anchorX - len : anchorX;
+    let overlay: PreparedProfileBin["overlay"];
     if (bin.overlayFrac != null && bin.overlayColor) {
       const oLen = clamp(bin.overlayFrac, 0, 1) * capPx;
-      if (oLen >= 0.5) {
-        const ox = dir === -1 ? anchorX - oLen : anchorX;
-        g.appendChild(mk("rect", {
-          x: ox, y: yT, width: oLen, height: h,
-          fill: bin.overlayColor, "fill-opacity": 0.75,
+      if (oLen >= 0.5) overlay = {
+        x: dir === -1 ? anchorX - oLen : anchorX,
+        len: oLen,
+        color: bin.overlayColor,
+      };
+    }
+    bins.push({
+      y, h, x, len, color: bin.color,
+      alpha: bin.alpha != null ? clamp(bin.alpha, 0, 1) : 0.55,
+      overlay,
+      label: bin.label && h >= 8 ? bin.label : undefined,
+    });
+  }
+  if (!bins.length) return null;
+
+  // Current Money Flow Profile bins are a disjoint vertical partition. In that geometry, every
+  // base/overlay rectangle can be regrouped by visual style without changing z-order because bars
+  // from different bins never cover the same pixel. Keep ProfilePrim generic, though: any future
+  // producer that supplies overlapping bins falls through to the exact historical per-bin order.
+  const intervals = bins.map((b) => [b.y, b.y + b.h] as const).sort((a, b) => a[0] - b[0]);
+  const disjoint = intervals.every((r, i) => i === 0 || r[0] >= intervals[i - 1][1]);
+  const g = mk("g", {});
+
+  const appendLabel = (bin: PreparedProfileBin) => {
+    if (!bin.label) return;
+    const tipX = dir === -1 ? bin.x - 3 : bin.x + bin.len + 3;
+    const txt = mk("text", {
+      x: tipX, y: bin.y + bin.h / 2,
+      "text-anchor": dir === -1 ? "end" : "start", "dominant-baseline": "central",
+      fill: "var(--muted)", "font-size": 8.5, "font-family": "var(--font-num)",
+    }) as SVGTextElement;
+    txt.style.fontVariantNumeric = "tabular-nums";
+    txt.textContent = bin.label;
+    g.appendChild(txt);
+  };
+
+  const appendIndividual = (bin: PreparedProfileBin) => {
+    g.appendChild(mk("rect", {
+      x: bin.x, y: bin.y, width: bin.len, height: bin.h,
+      fill: bin.color, "fill-opacity": bin.alpha,
+    }));
+    if (bin.overlay) g.appendChild(mk("rect", {
+      x: bin.overlay.x, y: bin.y, width: bin.overlay.len, height: bin.h,
+      fill: bin.overlay.color, "fill-opacity": 0.75,
+    }));
+    appendLabel(bin);
+  };
+
+  if (!disjoint) {
+    for (const bin of bins) appendIndividual(bin);
+  } else {
+    type ProfilePathGroup = { color: string; alpha: number; parts: string[] };
+
+    const appendRun = (run: PreparedProfileBin[]) => {
+      if (!run.length) return;
+      const bases: ProfilePathGroup[] = [];
+      const baseIndex = new Map<string, Map<number, number>>();
+      const overlays: ProfilePathGroup[] = [];
+      const overlayIndex = new Map<string, number>();
+      let originalNodes = 0;
+
+      for (const bin of run) {
+        originalNodes += 1 + (bin.overlay ? 1 : 0);
+        let byAlpha = baseIndex.get(bin.color);
+        if (!byAlpha) { byAlpha = new Map(); baseIndex.set(bin.color, byAlpha); }
+        let bi = byAlpha.get(bin.alpha);
+        if (bi == null) {
+          bi = bases.length;
+          byAlpha.set(bin.alpha, bi);
+          bases.push({ color: bin.color, alpha: bin.alpha, parts: [] });
+        }
+        bases[bi].parts.push(`M${bin.x} ${bin.y}H${bin.x + bin.len}V${bin.y + bin.h}H${bin.x}Z`);
+
+        if (bin.overlay) {
+          let oi = overlayIndex.get(bin.overlay.color);
+          if (oi == null) {
+            oi = overlays.length;
+            overlayIndex.set(bin.overlay.color, oi);
+            overlays.push({ color: bin.overlay.color, alpha: 0.75, parts: [] });
+          }
+          overlays[oi].parts.push(
+            `M${bin.overlay.x} ${bin.y}H${bin.overlay.x + bin.overlay.len}V${bin.y + bin.h}H${bin.overlay.x}Z`,
+          );
+        }
+      }
+
+      const groups = [...bases, ...overlays];
+      // A one-bin or style-fragmented run can be node-neutral. Keep the historical rects there
+      // rather than changing representation for no performance gain.
+      if (groups.length >= originalNodes) {
+        for (const bin of run) appendIndividual(bin);
+        return;
+      }
+      for (const group of groups) {
+        if (!group.parts.length) continue;
+        g.appendChild(mk("path", {
+          d: group.parts.join(""), fill: group.color, "fill-opacity": group.alpha,
         }));
       }
+    };
+
+    // Labels are kept in their exact historical local order: base -> overlay -> text. We only
+    // collapse unlabeled runs between them, so a profile label can never jump in front of geometry
+    // that used to be painted later. This is stricter than globally batching the whole partition.
+    let run: PreparedProfileBin[] = [];
+    const flushRun = () => {
+      appendRun(run);
+      run = [];
+    };
+    for (const bin of bins) {
+      if (bin.label) {
+        flushRun();
+        appendIndividual(bin);
+      } else {
+        run.push(bin);
+      }
     }
-    if (bin.label && h >= 8) {
-      const tipX = dir === -1 ? anchorX - len - 3 : anchorX + len + 3;
-      const txt = mk("text", {
-        x: tipX, y: yT + h / 2,
-        "text-anchor": dir === -1 ? "end" : "start", "dominant-baseline": "central",
-        fill: "var(--muted)", "font-size": 8.5, "font-family": "var(--font-num)",
-      }) as SVGTextElement;
-      txt.style.fontVariantNumeric = "tabular-nums";
-      txt.textContent = bin.label;
-      g.appendChild(txt);
-    }
+    flushRun();
   }
+
   if (!g.firstChild) return null;
   f.appendChild(g);
   return g;
@@ -806,19 +964,43 @@ function drawColumns(f: DocumentFragment, cp: ColumnsPrim, m: CoordMapper): Elem
   const w = Math.max(1, clamp(cp.widthFrac ?? 0.6, 0.1, 1) * barW);
   const half = w / 2;
 
-  const g = mk("g", {});
+  // A histogram can carry hundreds of visible bars. One DOM <rect> per bar makes pan/zoom
+  // spend most of its frame budget allocating and attaching nodes that all share a tiny style set.
+  // SVG compound paths preserve the exact same rectangular geometry while collapsing every
+  // (fill, opacity) style into one node. Group order follows first appearance; bars do not overlap
+  // horizontally (widthFrac <= 1), so grouping cannot change visible z-order.
+  const groups: Array<{ color: string; alpha: number | null; parts: string[] }> = [];
+  const groupByStyle = new Map<string, Map<number | null, number>>();
   for (let k = s; k < e; k++) {
     const it = items[k];
     if (!it || !fin(it.v)) continue;
     const x = m.xi(it.i), yv = m.y(it.v);
     if (!fin(x) || !fin(yv)) continue;
-    const rect = mk("rect", {
-      x: x - half, y: Math.min(yv, yBase),
-      width: w, height: Math.max(Math.abs(yv - yBase), 0.5), // flat bars still print a hairline
-      fill: it.color,
-    });
-    if (it.alpha != null) rect.setAttribute("fill-opacity", String(clamp(it.alpha, 0, 1)));
-    g.appendChild(rect);
+    const y = Math.min(yv, yBase);
+    const h = Math.max(Math.abs(yv - yBase), 0.5); // flat bars still print a hairline
+    const alpha = it.alpha != null ? clamp(it.alpha, 0, 1) : null;
+    let byAlpha = groupByStyle.get(it.color);
+    if (!byAlpha) {
+      byAlpha = new Map<number | null, number>();
+      groupByStyle.set(it.color, byAlpha);
+    }
+    let gi = byAlpha.get(alpha);
+    if (gi == null) {
+      gi = groups.length;
+      byAlpha.set(alpha, gi);
+      groups.push({ color: it.color, alpha, parts: [] });
+    }
+    const x1 = x - half, x2 = x + half, y2 = y + h;
+    groups[gi].parts.push(`M${x1} ${y}H${x2}V${y2}H${x1}Z`);
+  }
+
+  if (!groups.length) return null;
+  const g = mk("g", {});
+  for (const group of groups) {
+    if (!group.parts.length) continue;
+    const path = mk("path", { d: group.parts.join(""), fill: group.color });
+    if (group.alpha != null) path.setAttribute("fill-opacity", String(group.alpha));
+    g.appendChild(path);
   }
   if (!g.firstChild) return null;
   f.appendChild(g);
@@ -871,8 +1053,34 @@ export function renderPrims(
   });
 
   const frag = document.createDocumentFragment();
-  for (const p of sorted) {
+  for (let index = 0; index < sorted.length; index++) {
+    const p = sorted[index];
     if (p.minPxPerBar != null && m.barW < p.minPxPerBar) continue; // density gate
+
+    // Phase ribbons and similar regimes can contain hundreds of same-style squares. Preserve every
+    // tooltip-bearing node and every intervening primitive, but collapse each contiguous safe run
+    // to the planner's minimum non-overlapping path layers. A null plan is an explicit instruction
+    // to retain ordinary one-marker/one-node rendering.
+    if (p.kind === "marker" && p.shape === "square" && !p.tooltipId) {
+      let end = index + 1;
+      while (end < sorted.length) {
+        const next = sorted[end];
+        if (
+          next.kind !== "marker" || next.shape !== "square" || next.tooltipId ||
+          !sameSquareMarkerBatchStyle(p, next, m.barW)
+        ) break;
+        end++;
+      }
+      if (end - index >= 2) {
+        const plan = planSquareMarkerBatch(sorted.slice(index, end) as MarkerPrim[], m);
+        if (plan) {
+          drawSquareMarkerBatch(frag, plan);
+          index = end - 1;
+          continue;
+        }
+      }
+    }
+
     let el: Element | null = null;
     switch (p.kind) {
       case "bgshade": el = drawBgShade(frag, p, m); break;
