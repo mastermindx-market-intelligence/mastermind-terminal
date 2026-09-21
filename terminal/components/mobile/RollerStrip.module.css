@@ -26,5 +26,10 @@
 
 .action.action:global(.on) { background: transparent; }
 .action.action:global(.on) .actionSurface { background: #2a2a2a; }
+.action.action:focus-visible { outline: none; }
+.action.action:focus-visible .actionSurface {
+  outline: 2px solid var(--brand-2);
+  outline-offset: 2px;
+}
 .action.action:active:not(:disabled) { opacity: 1; transform: none; }
 .action.action:active:not(:disabled) .actionSurface { opacity: 0.45; transform: scale(0.9); }

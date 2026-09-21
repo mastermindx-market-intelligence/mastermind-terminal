@@ -117,8 +117,12 @@ for (const width of PHONE_WIDTHS) {
   test(`MM-007: roller actions own disjoint 44px point-hit regions at ${width}px`, async ({ page }) => {
     await openTerminal(page, width);
 
-    const wheelBefore = await page.getByTestId("roller-symbol").boundingBox();
-    expect(wheelBefore).not.toBeNull();
+    const [symbolBefore, intervalBefore] = await Promise.all([
+      page.getByTestId("roller-symbol").boundingBox(),
+      page.getByTestId("roller-interval").boundingBox(),
+    ]);
+    expect(symbolBefore).not.toBeNull();
+    expect(intervalBefore).not.toBeNull();
 
     for (const id of ACTION_IDS) {
       const metrics = await actionPointMetrics(page, id);
@@ -156,14 +160,53 @@ for (const width of PHONE_WIDTHS) {
     else expect(layout.scrollWidth).toBeGreaterThanOrEqual(layout.clientWidth);
 
     await page.getByTestId("roller-cluster").evaluate((cluster) => { cluster.scrollLeft = cluster.scrollWidth; });
-    const wheelAfter = await page.getByTestId("roller-symbol").boundingBox();
-    expect(wheelAfter).not.toBeNull();
-    expect(wheelAfter!.x).toBeCloseTo(wheelBefore!.x, 1);
+    const [symbolAfter, intervalAfter] = await Promise.all([
+      page.getByTestId("roller-symbol").boundingBox(),
+      page.getByTestId("roller-interval").boundingBox(),
+    ]);
+    expect(symbolAfter).not.toBeNull();
+    expect(intervalAfter).not.toBeNull();
+    expect(symbolAfter!.x).toBeCloseTo(symbolBefore!.x, 1);
+    expect(intervalAfter!.x).toBeCloseTo(intervalBefore!.x, 1);
 
     expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth))
       .toBeLessThanOrEqual(0);
   });
 }
+
+test("MM-007: keyboard focus remains visibly contained inside the clipped action cluster", async ({ page }) => {
+  await openTerminal(page, 390);
+  await centerAction(page, "roller-draw");
+  const draw = page.getByTestId("roller-draw");
+  await draw.focus();
+  await expect(draw).toBeFocused();
+
+  const indicators = await draw.evaluate((button) => {
+    const cluster = button.closest<HTMLElement>('[data-testid="roller-cluster"]');
+    if (!cluster) throw new Error("missing roller cluster");
+    const clip = cluster.getBoundingClientRect();
+    return [button, ...button.querySelectorAll<HTMLElement>("*")].flatMap((element) => {
+      const style = getComputedStyle(element);
+      const width = Number.parseFloat(style.outlineWidth) || 0;
+      if (width <= 0 || style.outlineStyle === "none") return [];
+      const offset = Math.max(0, Number.parseFloat(style.outlineOffset) || 0);
+      const expansion = width + offset;
+      const rect = element.getBoundingClientRect();
+      return [{
+        testMarker: element.getAttribute("data-roller-visual") ?? element.getAttribute("data-testid") ?? element.tagName,
+        fitsClip: rect.top - expansion >= clip.top
+          && rect.bottom + expansion <= clip.bottom
+          && rect.left - expansion >= clip.left
+          && rect.right + expansion <= clip.right,
+      }];
+    });
+  });
+
+  expect(indicators, "the focused action needs one fully visible focus indicator").toContainEqual({
+    testMarker: "true",
+    fitsClip: true,
+  });
+});
 
 test("MM-007: actual edge taps activate Draw, More and Share, and drawing history enables Undo/Redo", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name === "desktop", "Touch activation proof runs in touch projects.");
@@ -246,7 +289,8 @@ function sparseSeasonalityPayload() {
 
 test("MM-008: touch, selector and keyboard expose visible English month detail", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name === "desktop", "Touch interaction proof runs in touch projects.");
-  const card = await openSeasonality(page);
+  const tablet = testInfo.project.name === "tablet";
+  const card = await openSeasonality(page, tablet ? 820 : 390, tablet ? 1180 : 844);
   const detail = card.getByTestId("seasonality-detail");
   const april = card.getByTestId("seasonality-month-3");
   const may = card.getByTestId("seasonality-month-4");
@@ -280,7 +324,17 @@ test("MM-008: touch, selector and keyboard expose visible English month detail",
 
   expect(await card.locator('button[data-testid^="seasonality-month-"]').evaluateAll((buttons) =>
     buttons.filter((button) => (button as HTMLElement).tabIndex === 0).length)).toBe(1);
-  await expect(card.getByTestId("seasonality-context")).not.toContainText("hover a bar");
+
+  const context = card.getByTestId("seasonality-context");
+  await expect(context).toHaveText("Current month highlighted · from NVDA history (display-only context).");
+  await expect(context).not.toContainText("hover a bar");
+  const contextGap = await context.evaluate((node) => {
+    const controls = node.previousElementSibling;
+    if (!(controls instanceof HTMLElement)) throw new Error("missing seasonality detail controls");
+    const controlsRect = controls.getBoundingClientRect();
+    return node.getBoundingClientRect().top - controlsRect.bottom;
+  });
+  expect(contextGap, "source and freshness context should remain visually separated from the selector detail").toBeGreaterThanOrEqual(8);
   expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth))
     .toBeLessThanOrEqual(0);
 });
@@ -300,6 +354,8 @@ test("MM-008: live Chinese locale preserves values and translated semantics", as
   await touchCenter(page, september);
   await expect(card.getByTestId("seasonality-detail")).toHaveText(title!);
   await expect(card.getByTestId("seasonality-month-select").locator("option").nth(8)).toContainText("月");
+  await expect(card.getByTestId("seasonality-context"))
+    .toHaveText("高亮为当前月份 · 基于 NVDA 历史（仅供参考）。");
   await expect(card.getByTestId("seasonality-context")).not.toContainText("悬停");
   expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth))
     .toBeLessThanOrEqual(0);

@@ -150,3 +150,11 @@
   font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
 }
+
+.context {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
