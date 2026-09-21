@@ -109,7 +109,7 @@ Replace the audit-first inner navigation with five research lenses:
 
 Event history remains a persistent period selector rather than a full competing lens. Topics become a transcript/call-map capability rather than an isolated page tab. Existing deep functions remain reachable even when their first-frame position changes.
 
-## 7. Brief lens
+## 8. Brief lens
 
 ### 7.1 Company/event control strip
 
