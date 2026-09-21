@@ -383,8 +383,8 @@ Current Paper page contains these design states:
 - Navigation Interaction · Financials Menu Open · Dark · 1440
 - Navigation Interaction · Company Switcher Open · Dark · 1440
 - Company Intelligence · Results & Outlook · Dark · 1440
-- Company Intelligence · Transcript & Q&A · Dark · 1440
-- Company Intelligence · Ownership · Dark · 1440
+- Company Intelligence · Call & Q&A · Dark · 1440
+- Research Workspace · Ownership · Exploratory · Dark · 1440
 - Company Intelligence · Sources & Method · Dark · 1440
 - Company Intelligence · Last Verified · Dark · Desktop · 1440
 - Company Intelligence · Brief · Dark · Tablet · 820
