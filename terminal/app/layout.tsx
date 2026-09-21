@@ -7,7 +7,7 @@ import "./fin.css";
 // (components/fin/CompanyIntelligencePage + components/workspaces/AnalysisWorkspace) and no
 // longer blocks first paint on the routes that cannot render any of it. fin.css stays global:
 // its classes are shared across the options desks, screener and chart rail, not just fin/.
-import "./observatory.css";
+// observatory.css is shell-only and is imported by AppShell so the chart route does not pay for it.
 import "./onboarding.css";
 import "./settings.css";
 import { LangProvider } from "@/lib/i18n";

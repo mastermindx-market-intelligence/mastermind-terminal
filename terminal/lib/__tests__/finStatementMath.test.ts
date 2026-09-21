@@ -1056,8 +1056,8 @@ describe("no financials surface can reach a raw income series", () => {
   // component that went back to `set.income` would pass every value test in this file while
   // plotting a number the Statements tab never prints.
 
-  it("StockAnalysis's FinancialsMini reads only the normalized block", () => {
-    const code = componentSource("StockAnalysis.tsx");
+  it("StockAnalysisImpl's FinancialsMini reads only the normalized block", () => {
+    const code = componentSource("StockAnalysisImpl.tsx");
     expect(rawIncomeReads(code)).toEqual([]);
     expect(code).not.toMatch(/\bps\??\.income\b/);
     expect(code).toContain('incomeView(fund?.ticker, ps, timeframe)');

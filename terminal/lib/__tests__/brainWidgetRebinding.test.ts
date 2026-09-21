@@ -19,7 +19,7 @@ import { describe, expect, it, beforeEach, afterEach } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import React from "react";
-import BrainWidget from "@/components/BrainWidget";
+import BrainWidget from "@/components/BrainWidgetImpl";
 import type { MastermindBrainHost } from "@/lib/mastermindBrain";
 
 // No @testing-library/react's environment setup in this repo, so tell React directly that act()

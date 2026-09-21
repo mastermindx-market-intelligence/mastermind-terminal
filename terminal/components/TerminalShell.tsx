@@ -15,7 +15,6 @@ import DashboardBackButton from "@/components/DashboardBackButton";
 import { AppNav } from "@/components/AppNav";
 import { initShellBridge, postToShell } from "@/lib/platform/shellBridge";
 import MobileNav from "@/components/MobileNav";
-import PositionModal from "@/components/PositionModal";
 import { type DetectCmd } from "@/components/ChartPanel";
 import ChartPane from "@/components/ChartPane";
 import ChartConductor from "@/components/ChartConductor";
@@ -99,6 +98,11 @@ const GuidePanel = dynamic(() => import("@/components/GuidePanel"), { ssr: false
 const IndicatorSource = dynamic(() => import("@/components/IndicatorSource"), { ssr: false });
 const CompareSettings = dynamic(() => import("@/components/CompareSettings"), { ssr: false });
 const ChartObjectTree = dynamic(() => import("@/components/ChartObjectTree"), { ssr: false });
+// Closed interaction surfaces stay outside the first-paint graph. They load on first intent,
+// not while the browser is trying to hydrate the chart.
+const PositionModal = dynamic(() => import("@/components/PositionModal"), { ssr: false });
+const LayoutMenu = dynamic(() => import("@/components/LayoutMenu"), { ssr: false });
+const ChartTableView = dynamic(() => import("@/components/ChartTableView"), { ssr: false });
 // Phone-only chart chrome (R2): the bottom roller strip and the two sheets it raises. Never
 // server-rendered — the phone breakpoint is a client media query, and shell mode brings its own.
 const RollerStrip = dynamic(() => import("@/components/mobile/RollerStrip"), { ssr: false });
@@ -146,7 +150,7 @@ import { planQuoteBatch, type QuoteDemandGroup } from "@/lib/quoteDemand";
 import { pushRecentlyViewed } from "@/lib/recentlyViewed";
 import { writeActiveSymbol } from "@/lib/activeSymbol";
 import { listScripts, deleteScript as delScript, renameScript as renScript, enabledScriptIds, setEnabledScriptIds, pineParamStore, setPineParamStore, mergedParams, type UserScript } from "@/lib/userScripts";
-import LayoutMenu, { type LayoutFeedback, type LayoutStatus, type SavedWorkspace } from "@/components/LayoutMenu";
+import type { LayoutFeedback, LayoutStatus, SavedWorkspace } from "@/components/LayoutMenu";
 import WorkspaceTile from "@/components/WorkspaceTile";
 import { nextLayoutName, type SavedLayout } from "@/lib/layouts";
 import { applyLayoutConfig, captureLayoutConfig, type LayoutWorkspace } from "@/lib/layoutConfig";
@@ -157,7 +161,6 @@ import { type PineScript } from "@/components/ChartPanel";
 
 type ShellDrawingStyle = { color: string; width: number; dash: Dash };
 import { visualReadoutColumns, type ChartReadoutMeta } from "@/lib/visualIntelligence";
-import ChartTableView from "@/components/ChartTableView";
 import { type OTEntry } from "@/components/ChartObjectTree";
 import { listTemplates, saveTemplate } from "@/lib/chartTemplates";
 import { FLAG_DEFAULT, FLAG_COLORS } from "@/lib/flagPalette";
@@ -2762,7 +2765,15 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
     } catch { setLayoutStatus("unavailable"); return { ok: false }; }
   }, [lang]);
   const refreshLayouts = useCallback(async (): Promise<boolean> => (await fetchWorkspaceRows()).ok, [fetchWorkspaceRows]);
-  useEffect(() => { void refreshLayouts(); }, [refreshLayouts]);
+  // The saved-workspace library is not part of chart restoration (that comes from local persisted
+  // state above), so do not spend a database/API round trip while the first chart is hydrating.
+  // Warm it on user intent; click remains a fallback for touch/keyboard paths.
+  const layoutReadStartedRef = useRef(false);
+  const ensureLayoutsLoaded = useCallback(() => {
+    if (layoutReadStartedRef.current) return;
+    layoutReadStartedRef.current = true;
+    void refreshLayouts();
+  }, [refreshLayouts]);
   useEffect(() => {
     // Open the Brain widget. The script is deferred + cross-origin, so on early ?ai=1 deep-links
     // window.MMBrain may not exist yet — retry once after 800ms before giving up.
@@ -5078,6 +5089,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
       {!shellMode && (<>
       <MobileNav
         email={email}
+        intentPrefetch
         fromMacro={fromMacro}
         onBack={onBack}
         onOpenCopilot={() => openBrainReincluding(setBrainIncluded, () => (window as any).MMBrain?.open())}
@@ -5104,7 +5116,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
         </span>
       </div>
 
-      <AppNav />
+      <AppNav intentPrefetch />
       </>)}
 
       {/* Dossier mode renders NO chart workspace — the native sheet owns the chart above us. */}
@@ -5212,9 +5224,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
               </div>
             </div>
             <div className="pophost tool-adv toolbar-overflow-item" data-toolbar-item data-toolbar-action="layouts">
-              <button className="tbtn" onClick={(e) => { e.stopPropagation(); const willOpen = !layoutOpen; closeAll(); setLayoutOpen(willOpen); }}><svg viewBox="0 0 24 24"><path d="M4 5h16v14H4zM4 9h16M9 9v10" /></svg>{t("layouts")}<span style={{ color: "var(--muted)" }}>▾</span></button>
+              <button className="tbtn" onMouseEnter={ensureLayoutsLoaded} onFocus={ensureLayoutsLoaded} onClick={(e) => { e.stopPropagation(); ensureLayoutsLoaded(); const willOpen = !layoutOpen; closeAll(); setLayoutOpen(willOpen); }}><svg viewBox="0 0 24 24"><path d="M4 5h16v14H4zM4 9h16M9 9v10" /></svg>{t("layouts")}<span style={{ color: "var(--muted)" }}>▾</span></button>
               <div className={`pop${layoutOpen ? " show" : ""}`} style={{ top: 32, right: 0, minWidth: 300 }} onClick={(e) => e.stopPropagation()}>
-                <LayoutMenu {...layoutMenuProps} isOpen={layoutOpen} />
+                {layoutOpen && <LayoutMenu {...layoutMenuProps} isOpen={layoutOpen} />}
               </div>
             </div>
             <div className="pophost tool-adv toolbar-overflow-item" data-toolbar-item>
@@ -5301,7 +5313,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
                   <button type="button" role="menuitem" className="menu-row drill" data-toolbar-menu-action="detect" onClick={() => setToolbarMoreView("detect")}>
                     <svg viewBox="0 0 24 24"><path d="M3 17l5-5 4 4 8-8" /></svg>{t("detect")}<span>›</span>
                   </button>
-                  <button type="button" role="menuitem" className="menu-row drill" data-toolbar-menu-action="layouts" onClick={() => setToolbarMoreView("layouts")}>
+                  <button type="button" role="menuitem" className="menu-row drill" data-toolbar-menu-action="layouts" onMouseEnter={ensureLayoutsLoaded} onFocus={ensureLayoutsLoaded} onClick={() => { ensureLayoutsLoaded(); setToolbarMoreView("layouts"); }}>
                     <svg viewBox="0 0 24 24"><path d="M4 5h16v14H4zM4 9h16M9 9v10" /></svg>{t("layouts")}<span>›</span>
                   </button>
                   <button type="button" role="menuitem" className="menu-row drill" data-toolbar-menu-action="snapshot" onClick={() => setToolbarMoreView("snapshot")}>

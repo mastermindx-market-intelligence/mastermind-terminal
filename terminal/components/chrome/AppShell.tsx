@@ -1,4 +1,5 @@
 "use client";
+import "../../app/observatory.css";
 import { createContext, useCallback, useContext, useMemo } from "react";
 import { usePathname } from "next/navigation";
 import { BrandLockup } from "@/components/BrandMark";
