@@ -61,6 +61,14 @@ test("covered ticker catalog keeps quiet roots searchable and honest", async ({ 
     });
   });
 
+  // This case owns the initial click-path fail-closed contract. The separate
+  // receipt-race test below owns automatic recovery after the matching artifact
+  // arrives. A 204 tells EventSource not to reconnect, so stream recovery cannot
+  // race this assertion and make the transient pending state timing-dependent.
+  await page.route(/\/api\/flow\/stream\?f=ticker(?:%3A|:)MSFT$/, async (route) => {
+    await route.fulfill({ status: 204, body: "" });
+  });
+
   await page.goto("/options?tab=tickers");
   const workspace = page.locator('[data-options-ia="seven-category-stage-a"]');
   await expect(workspace).toBeVisible({ timeout: 15_000 });
