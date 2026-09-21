@@ -33,6 +33,34 @@ test("covered ticker catalog keeps quiet roots searchable and honest", async ({ 
     await route.continue();
   });
 
+  let staleMsftFetches = 0;
+  await page.route(/\/api\/flow\?f=ticker(?:%3A|:)MSFT$/, async (route) => {
+    staleMsftFetches += 1;
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        schema: "live_flow.ticker/v1",
+        asof: "2026-07-05T15:41:00Z",
+        root: "MSFT",
+        group: "Technology",
+        group_zh: "科技",
+        day: {
+          gross: 123_000,
+          net_soft: 21_000,
+          call_share: 0.6,
+          n_events: 1,
+          prem_z: 1.2,
+          baseline_source: "eod252",
+        },
+        minutes: [],
+        strikes: [],
+        expiries: [],
+        top_contracts: [],
+      }),
+    });
+  });
+
   await page.goto("/options?tab=tickers");
   const workspace = page.locator('[data-options-ia="seven-category-stage-a"]');
   await expect(workspace).toBeVisible({ timeout: 15_000 });
@@ -73,6 +101,18 @@ test("covered ticker catalog keeps quiet roots searchable and honest", async ({ 
   await page.waitForTimeout(850);
   await expect(empty).toBeVisible();
   await expect(empty).toContainText(zh ? "HYG 已覆盖" : "HYG is covered");
+
+  // A same-root artifact from the prior receipt is also stale. It must not render
+  // plausible MSFT statistics under the catalog's newer current-cycle claim.
+  await search.fill("$msft");
+  await page.getByRole("button", {
+    name: zh ? "打开 MSFT 期权详情" : "Open MSFT ticker drill",
+  }).click();
+  await expect(empty).toBeVisible();
+  await expect(empty).toContainText(
+    zh ? "个股详情文件尚未到达" : "per-root drill artifact has not arrived yet",
+  );
+  expect(staleMsftFetches).toBe(1);
 
   const containment = await page.evaluate(() => ({
     viewport: window.innerWidth,

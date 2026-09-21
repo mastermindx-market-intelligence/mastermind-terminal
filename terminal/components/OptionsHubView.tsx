@@ -21,6 +21,8 @@ import {
   buildOptionsRootChoices,
   buildTickerCandidateRows,
   parseLiveFlowRootCatalog,
+  tickerArtifactMatchesCatalogReceipt,
+  type LiveFlowRootCatalogEntry,
 } from "@/lib/liveFlowRootCatalog";
 import { GEX_AUTOCOMPLETE_ROOTS } from "@/lib/optionsRoots";
 import {
@@ -1641,13 +1643,24 @@ export default function OptionsHubView({
   // Request identity lives in the same state atom as the selected root and its
   // payload. A slow old-root response can therefore no-op atomically instead of
   // wearing the newer ticker's header.
-  const fetchTicker = useCallback(async (root: string, requestToken: symbol) => {
+  const fetchTicker = useCallback(async (
+    root: string,
+    requestToken: symbol,
+    catalogEntry: LiveFlowRootCatalogEntry | null,
+  ) => {
     let payload: TickerPayload | null = null;
     try {
-      const d = await flowGet(`ticker:${root}`);
+      const cacheKey = `ticker:${root}`;
+      // Catalog metadata can advance before its per-root R2 PUT. Bypass a
+      // recently cached older drill, then bind the response to the catalog's
+      // exact producer receipt so old same-root data renders as pending instead.
+      if (catalogEntry) flowInvalidate(cacheKey);
+      const d = await flowGet(cacheKey);
       const candidate = d as TickerPayload | null;
-      // Honest-empty/malformed/wrong-root payloads are not renderable drills.
-      if (candidate?.day && candidate.root.toUpperCase() === root.toUpperCase()) {
+      if (candidate?.day
+          && typeof candidate.root === "string"
+          && candidate.root.toUpperCase() === root.toUpperCase()
+          && tickerArtifactMatchesCatalogReceipt(catalogEntry, candidate.asof)) {
         payload = candidate;
       }
     } catch {
@@ -2104,7 +2117,7 @@ export default function OptionsHubView({
         tickerLoading: true,
         requestToken,
       });
-      void fetchTicker(root, requestToken);
+      void fetchTicker(root, requestToken, catalogEntry);
     }
     setSelectedVolRoot(root);
   }, [fetchTicker, rootCatalog]);

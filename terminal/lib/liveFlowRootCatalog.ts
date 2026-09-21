@@ -121,6 +121,22 @@ export function parseLiveFlowRootCatalog(
   return rows;
 }
 
+/**
+ * Bind a per-root drill to the same producer receipt advertised by the catalog.
+ * The producer publishes metadata before ticker artifacts, and R2 may still hold
+ * the prior artifact during that gap. Exact receipt equality prevents stale data
+ * from wearing a fresh catalog claim. Catalog-free fallback preserves the legacy
+ * session-derived behavior.
+ */
+export function tickerArtifactMatchesCatalogReceipt(
+  catalog: LiveFlowRootCatalogEntry | null,
+  artifactAsOf: unknown,
+): boolean {
+  if (catalog === null) return true;
+  if (!catalog.hasSessionData || catalog.lastSourceSuccess === null) return false;
+  return isUtcIso(artifactAsOf) && artifactAsOf === catalog.lastSourceSuccess;
+}
+
 export function normalizeRootQuery(value: string): string {
   const trimmed = value.trim().toUpperCase();
   return trimmed.startsWith("$") ? trimmed.slice(1) : trimmed;

@@ -8,6 +8,7 @@ import {
   buildTickerCandidateRows,
   normalizeRootQuery,
   parseLiveFlowRootCatalog,
+  tickerArtifactMatchesCatalogReceipt,
 } from "@/lib/liveFlowRootCatalog";
 
 const VALID_META = {
@@ -103,6 +104,36 @@ describe("parseLiveFlowRootCatalog", () => {
 
   it("fails closed when roots_configured disagrees with the rows", () => {
     expect(parseLiveFlowRootCatalog({ ...VALID_META, roots_configured: 99 })).toBeNull();
+  });
+});
+
+describe("ticker artifact receipt binding", () => {
+  const catalog = parseLiveFlowRootCatalog(VALID_META)!;
+  const current = catalog[0];
+
+  it("accepts the artifact only when its receipt matches the catalog source receipt", () => {
+    expect(tickerArtifactMatchesCatalogReceipt(
+      current,
+      "2026-09-20T15:42:00Z",
+    )).toBe(true);
+  });
+
+  it("rejects an older same-root artifact while the current artifact is still pending", () => {
+    expect(tickerArtifactMatchesCatalogReceipt(
+      current,
+      "2026-09-20T15:41:00Z",
+    )).toBe(false);
+  });
+
+  it.each([undefined, null, "not-a-time", "2026-09-20T15:42:00-04:00"])(
+    "rejects malformed or missing artifact receipt %s under catalog coverage",
+    (artifactAsOf) => {
+      expect(tickerArtifactMatchesCatalogReceipt(current, artifactAsOf)).toBe(false);
+    },
+  );
+
+  it("preserves the legacy session-derived fallback when no catalog claim exists", () => {
+    expect(tickerArtifactMatchesCatalogReceipt(null, undefined)).toBe(true);
   });
 });
 
