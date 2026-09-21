@@ -8,7 +8,7 @@ type TouchWindow = Window & {
   __mmShareCount?: number;
 };
 
-async function openTerminal(page: Page, width: number, height = 844) {
+async function openChart(page: Page, width: number, height = 844) {
   await page.setViewportSize({ width, height });
   await page.addInitScript(() => {
     const ready = window as TouchWindow;
@@ -26,6 +26,10 @@ async function openTerminal(page: Page, width: number, height = 844) {
     () => page.evaluate(() => Boolean((window as TouchWindow).__mmPhoneReady)),
     { message: "the interactive Terminal should finish hydrating", timeout: 20_000 },
   ).toBe(true);
+}
+
+async function openTerminal(page: Page, width: number, height = 844) {
+  await openChart(page, width, height);
   await expect(page.getByTestId("roller-strip")).toBeVisible();
 }
 
@@ -129,7 +133,8 @@ for (const width of PHONE_WIDTHS) {
   });
 }
 
-test("MM-007: actual edge taps activate Draw, More and Share, and drawing history enables Undo/Redo", async ({ page }) => {
+test("MM-007: actual edge taps activate Draw, More and Share, and drawing history enables Undo/Redo", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name === "desktop", "Touch activation proof runs in touch projects.");
   await openTerminal(page, 390);
 
   await tapActionEdge(page, "roller-draw", "left");
@@ -155,4 +160,149 @@ test("MM-007: actual edge taps activate Draw, More and Share, and drawing histor
   await expect(page.getByTestId("roller-undo")).toBeEnabled({ timeout: 20_000 });
   await page.getByTestId("roller-undo").click({ timeout: 20_000 });
   await expect(page.getByTestId("roller-redo")).toBeEnabled({ timeout: 20_000 });
+});
+
+
+const SEASONALITY_INTEL = {
+  symbol: "NVDA",
+  cards: { ai_judgment: { verdict: "HOLD", gloss: "fixture research context" } },
+  tape: { ai_lean: { dir: "NEUTRAL" } },
+};
+
+async function openSeasonality(page: Page, width = 390, height = 844) {
+  // The default responsive fixture intentionally has OHLC but no Intel artifact. StockAnalysis
+  // drops its injected `beforeIv` slot in that empty branch, so give this component-focused suite
+  // the smallest accepted Intel payload and keep production composition outside Session C scope.
+  await page.route(/\/data\/NVDA\.intel\.json(?:\?.*)?$/, (route) => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify(SEASONALITY_INTEL),
+  }));
+  await openChart(page, width, height);
+  const card = page.getByTestId("seasonality-card");
+  await card.scrollIntoViewIfNeeded();
+  await expect(card).toBeVisible({ timeout: 20_000 });
+  return card;
+}
+
+async function touchCenter(page: Page, locator: Locator) {
+  const box = await locator.boundingBox();
+  expect(box).not.toBeNull();
+  await page.touchscreen.tap(box!.x + box!.width / 2, box!.y + box!.height / 2);
+}
+
+async function switchLanguage(page: Page, lang: "en" | "zh") {
+  await page.evaluate((next) => {
+    localStorage.setItem("mm.lang", next);
+    document.documentElement.setAttribute("data-lang", next);
+    window.dispatchEvent(new CustomEvent("mm:lang"));
+  }, lang);
+}
+
+function sparseSeasonalityPayload() {
+  const bars: [string, number, number, number, number, number][] = [];
+  let close = 100;
+  for (const month of [1, 2]) {
+    for (let day = 1; day <= 20; day += 1) {
+      close += month === 1 ? 0.4 : -0.2;
+      const date = `2026-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+      bars.push([date, close - 0.5, close + 1, close - 1, close, 1_000_000 + day]);
+    }
+  }
+  return { t: "NVDA", o: 1, src: "session-c", bar_quality: "real_ohlc", bars };
+}
+
+test("MM-008: touch, selector and keyboard expose visible English month detail", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name === "desktop", "Touch interaction proof runs in touch projects.");
+  const card = await openSeasonality(page);
+  const detail = card.getByTestId("seasonality-detail");
+  const april = card.getByTestId("seasonality-month-3");
+  const may = card.getByTestId("seasonality-month-4");
+  await expect(card.locator('button[data-testid^="seasonality-month-"]')).toHaveCount(12);
+
+  const aprilTitle = await april.getAttribute("title");
+  expect(aprilTitle).toMatch(/^Apr · [+-]?\d+\.\d% avg · WR \d+% · n=\d+$/);
+  await touchCenter(page, april);
+  await expect(detail).toHaveText(aprilTitle!);
+  await expect(april).toHaveAttribute("aria-pressed", "true");
+
+  const selector = card.getByTestId("seasonality-month-select");
+  expect((await selector.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+  await selector.selectOption("4");
+  const mayTitle = await may.getAttribute("title");
+  await expect(detail).toHaveText(mayTitle!);
+
+  await may.focus();
+  await page.keyboard.press("ArrowLeft");
+  await expect(april).toBeFocused();
+  await expect(detail).toHaveText(aprilTitle!);
+  await page.keyboard.press("Home");
+  await expect(card.getByTestId("seasonality-month-0")).toBeFocused();
+  await page.keyboard.press("End");
+  await expect(card.getByTestId("seasonality-month-11")).toBeFocused();
+
+  expect(await card.locator('button[data-testid^="seasonality-month-"]').evaluateAll((buttons) =>
+    buttons.filter((button) => (button as HTMLElement).tabIndex === 0).length)).toBe(1);
+  await expect(card.getByTestId("seasonality-context")).not.toContainText("hover a bar");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth))
+    .toBeLessThanOrEqual(0);
+});
+
+test("MM-008: live Chinese locale preserves values and translated semantics", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name === "desktop", "Touch interaction proof runs in touch projects.");
+  const card = await openSeasonality(page);
+  await switchLanguage(page, "zh");
+  await expect(card).toContainText("季节性 · 月均收益");
+
+  const september = card.getByTestId("seasonality-month-8");
+  const title = await september.getAttribute("title");
+  expect(title).toContain("均值");
+  expect(title).toContain("胜率");
+  expect(title).not.toContain(" avg ");
+  expect(title).not.toContain(" WR ");
+  await touchCenter(page, september);
+  await expect(card.getByTestId("seasonality-detail")).toHaveText(title!);
+  await expect(card.getByTestId("seasonality-month-select").locator("option").nth(8)).toContainText("月");
+  await expect(card.getByTestId("seasonality-context")).not.toContainText("悬停");
+});
+
+test("MM-008: sparse history announces an understandable no-samples state", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name === "desktop", "Touch interaction proof runs in touch projects.");
+  await page.route(/\/data\/NVDA\.json(?:\?.*)?$/, async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(sparseSeasonalityPayload()),
+    });
+  });
+  const card = await openSeasonality(page);
+  const january = card.getByTestId("seasonality-month-0");
+  const february = card.getByTestId("seasonality-month-1");
+  const februaryTitle = await february.getAttribute("title");
+  expect(februaryTitle).toMatch(/^Feb · -\d+\.\d% avg · WR 0% · n=1$/);
+  await expect(february.locator('[data-direction="down"]')).toBeVisible();
+  await touchCenter(page, february);
+  await expect(card.getByTestId("seasonality-detail")).toHaveText(februaryTitle!);
+
+  const englishTitle = await january.getAttribute("title");
+  expect(englishTitle).toBe("Jan · no samples");
+  await touchCenter(page, january);
+  await expect(card.getByTestId("seasonality-detail")).toHaveText(englishTitle!);
+  await expect(card.getByTestId("seasonality-detail")).not.toContainText("0%");
+
+  await switchLanguage(page, "zh");
+  const chineseTitle = await january.getAttribute("title");
+  expect(chineseTitle).toContain("无样本");
+  await expect(card.getByTestId("seasonality-detail")).toHaveText(chineseTitle!);
+});
+
+test("MM-008: desktop hover keeps the native title and visible detail", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "Desktop hover proof runs once.");
+  const card = await openSeasonality(page, 1440, 900);
+  const october = card.getByTestId("seasonality-month-9");
+  const title = await october.getAttribute("title");
+  await october.hover();
+  await expect(card.getByTestId("seasonality-detail")).toHaveText(title!);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth))
+    .toBeLessThanOrEqual(0);
 });
