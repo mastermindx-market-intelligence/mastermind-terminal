@@ -6572,7 +6572,11 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
 
     let drawingPaneClipIds = new Map<string, string>();
     const applyDrawingPaneClip = <T extends SVGElement>(node: T, paneKey?: string | null): T => {
-      const clipId = drawingPaneClipIds.get(normalizedPaneKey(paneKey));
+      // Legacy price-pane drawings include tools such as vertical lines whose
+      // intentional geometry spans the full chart root. Preserve that contract;
+      // only a drawing explicitly bound to an indicator pane is pane-clipped.
+      if (!paneKey || paneKey === PRICE_PANE_KEY) return node;
+      const clipId = drawingPaneClipIds.get(paneKey);
       if (clipId) node.setAttribute("clip-path", `url(#${clipId})`);
       return node;
     };
