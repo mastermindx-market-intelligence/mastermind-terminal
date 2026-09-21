@@ -294,15 +294,24 @@ test("MM-008: touch, selector and keyboard expose visible English month detail",
   const detail = card.getByTestId("seasonality-detail");
   const april = card.getByTestId("seasonality-month-3");
   const may = card.getByTestId("seasonality-month-4");
-  await expect(card.locator('button[data-testid^="seasonality-month-"]')).toHaveCount(12);
+  const plot = card.getByRole("radiogroup", { name: "Seasonality · avg monthly return" });
+  await expect(plot.getByRole("radio")).toHaveCount(12);
 
   const aprilTitle = await april.getAttribute("title");
   expect(aprilTitle).toMatch(/^Apr · [+-]?\d+\.\d% avg · WR \d+% · n=\d+$/);
   await touchCenter(page, april);
   await expect(detail).toHaveText(aprilTitle!);
-  await expect(april).toHaveAttribute("aria-pressed", "true");
+  await expect(april).toHaveAttribute("role", "radio");
+  await expect(april).toHaveAttribute("aria-checked", "true");
+  await expect(april).not.toHaveAttribute("aria-pressed", /.+/);
 
   const selector = card.getByTestId("seasonality-month-select");
+  const [plotLabel, selectorLabel] = await Promise.all([
+    plot.getAttribute("aria-label"),
+    selector.getAttribute("aria-label"),
+  ]);
+  expect(selectorLabel).toContain("Apr");
+  expect(selectorLabel).not.toBe(plotLabel);
   const selectorBox = await selector.boundingBox();
   const detailBox = await detail.boundingBox();
   expect(selectorBox).not.toBeNull();
@@ -409,13 +418,20 @@ test("MM-008: 390x568 short-height keeps the selector and visible detail reachab
     .toBeLessThanOrEqual(0);
 });
 
-test("MM-008: desktop hover keeps the native title and visible detail", async ({ page }, testInfo) => {
+test("MM-008: desktop hover keeps native titles without overwriting the chosen month", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "Desktop hover proof runs once.");
   const card = await openSeasonality(page, 1440, 900);
+  const selector = card.getByTestId("seasonality-month-select");
+  const september = card.getByTestId("seasonality-month-8");
   const october = card.getByTestId("seasonality-month-9");
-  const title = await october.getAttribute("title");
+  await selector.selectOption("8");
+  const septemberTitle = await september.getAttribute("title");
+  const octoberTitle = await october.getAttribute("title");
+  await expect(card.getByTestId("seasonality-detail")).toHaveText(septemberTitle!);
   await october.hover();
-  await expect(card.getByTestId("seasonality-detail")).toHaveText(title!);
+  await expect(october).toHaveAttribute("title", octoberTitle!);
+  await expect(selector).toHaveValue("8");
+  await expect(card.getByTestId("seasonality-detail")).toHaveText(septemberTitle!);
   expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth))
     .toBeLessThanOrEqual(0);
 });

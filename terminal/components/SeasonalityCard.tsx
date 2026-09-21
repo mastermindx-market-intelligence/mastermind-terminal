@@ -72,9 +72,7 @@ export default function SeasonalityCard({ symbol, onOpenPane }: { symbol: string
     const sign = stat.avg >= 0 ? "+" : "";
     return `${monthNames[index]} · ${sign}${stat.avg.toFixed(1)}% ${t("avgShort")} · ${t("winRateShort")} ${stat.wr.toFixed(0)}% · n=${stat.n}`;
   };
-  const selectedStat = stats[selectedMonth];
   const selectedDetail = describeMonth(selectedMonth);
-  const selectedDirection = selectedStat == null ? "empty" : selectedStat.avg >= 0 ? "up" : "down";
   const sourceFoot = t("seasonalityFoot").replace("{sym}", symbol);
   const footParts = sourceFoot.split(" · ");
   const contextFoot = footParts.length >= 3
@@ -103,7 +101,7 @@ export default function SeasonalityCard({ symbol, onOpenPane }: { symbol: string
         {t("seasonalityTitle")}
         <span className={styles.years}>{MAX_YEARS}y</span>
       </div>
-      <div className={styles.plot} role="group" aria-label={t("seasonalityTitle")}>
+      <div className={styles.plot} role="radiogroup" aria-label={t("seasonalityTitle")}>
         {stats.map((stat, index) => {
           const direction = stat == null ? "empty" : stat.avg >= 0 ? "up" : "down";
           const detail = describeMonth(index);
@@ -118,12 +116,12 @@ export default function SeasonalityCard({ symbol, onOpenPane }: { symbol: string
               data-current={index === currentMonth ? "true" : "false"}
               data-selected={selected ? "true" : "false"}
               title={detail}
+              role="radio"
               aria-label={detail}
-              aria-pressed={selected}
+              aria-checked={selected}
               tabIndex={selected ? 0 : -1}
               onClick={() => setSelectedMonth(index)}
               onFocus={() => setSelectedMonth(index)}
-              onMouseEnter={() => setSelectedMonth(index)}
               onKeyDown={(event) => moveFocus(event, index)}
             >
               <span className={styles.barTrack} aria-hidden="true">
@@ -146,7 +144,7 @@ export default function SeasonalityCard({ symbol, onOpenPane }: { symbol: string
         <select
           className={styles.monthSelect}
           data-testid="seasonality-month-select"
-          aria-label={t("seasonalityTitle")}
+          aria-label={`${t("seasonalityTitle")} · ${monthNames[selectedMonth]}`}
           value={selectedMonth}
           onChange={(event) => setSelectedMonth(Number(event.target.value))}
         >
@@ -157,7 +155,6 @@ export default function SeasonalityCard({ symbol, onOpenPane }: { symbol: string
         <output
           className={styles.detail}
           data-testid="seasonality-detail"
-          data-direction={selectedDirection}
           aria-live="polite"
           aria-atomic="true"
         >
