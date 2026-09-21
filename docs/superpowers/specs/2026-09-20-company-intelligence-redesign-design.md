@@ -270,7 +270,7 @@ The redesign must treat degraded states as designed product states:
 - `partial`: useful available findings remain visible; source-specific gaps appear next to affected content.
 - `stale / last verified`: the last verified generation may remain visible, but current freshness is never implied.
 - `metadata_only`: clearly distinct from an exact source document/span.
-- `not_covered`: concise coverage boundary, not a processing spinner. Keep the shared Research Workspace navigation active, explain that no canonical event workspace/fallback exists, and route the user to truthful available surfaces such as Overview / Financials / ticker-scoped Ask Mastermind instead of presenting a giant empty panel.
+- `not_covered`: concise coverage boundary, not a processing spinner. Keep the shared Research Workspace navigation active, explain that no canonical event workspace/fallback exists, and route the user to truthful available surfaces such as Overview / Financials / ticker-scoped Ask Mastermind instead of presenting a giant empty panel. On mobile, the state replaces unavailable Intelligence-local bottom navigation with truthful available routes (for example Overview / Financials / Ask / More) rather than leaving dead Brief/Results tabs visible.
 - upstream error: explicit retryable/unavailable state; do not silently fall back unless the canonical v2 `not_found` rule permits v1.
 - institutional incomplete filing set: preserve filing lag and withhold invalid movement assertions.
 
@@ -395,6 +395,7 @@ Current Paper page contains these design states:
 - Company Intelligence · Brief · Dark · Mobile · 390
 - Company Intelligence · Navigation Preferred · Mobile · 390
 - Navigation Interaction · Mobile Page Families Open · 390
+- Company Intelligence · Not Covered · Mobile · 390
 - Company Intelligence · Evidence Sheet · Dark · Mobile · 390
 - Navigation Architecture · Research Workspace Hierarchy
 - Research Workspace · Page Family Map
