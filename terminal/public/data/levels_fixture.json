@@ -21,7 +21,7 @@
       },
       {
         "role": "call_wall",
-        "strike": 775.5,
+        "strike": 780,
         "weight": 0.84,
         "sticky": true,
         "brightness": 0.84,
@@ -45,7 +45,7 @@
       },
       {
         "role": "cluster",
-        "strike": 775.25,
+        "strike": 770,
         "weight": 0.63,
         "sticky": true,
         "brightness": 0.63,

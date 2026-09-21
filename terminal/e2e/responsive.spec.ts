@@ -558,6 +558,25 @@ test("Prophet fills its Options workspace at every supported width", async ({ pa
 });
 
 test("Levels keeps the gamma map and named-level rail reachable at every supported width", async ({ page }, testInfo) => {
+  await page.route("**/api/flow?**", async (route) => {
+    const url = new URL(route.request().url());
+    if (url.searchParams.get("f") !== "levels:SPY") {
+      await route.fallback();
+      return;
+    }
+    const response = await route.fetch();
+    const body = await response.json() as {
+      nodes?: Array<{ role?: string; strike?: number | null }>;
+      [key: string]: unknown;
+    };
+    const nodes = (body.nodes ?? []).map((node) => {
+      if (node.role === "call_wall") return { ...node, strike: 775.5 };
+      if (node.role === "cluster" && node.strike === 770) return { ...node, strike: 775.25 };
+      return node;
+    });
+    await route.fulfill({ response, json: { ...body, nodes } });
+  });
+
   await page.goto("/options?tab=levels");
 
   const levelsTab = page.locator("#wtab-levels");
@@ -602,7 +621,7 @@ test("Levels keeps the gamma map and named-level rail reachable at every support
   await keystone.click();
   await expect(rail).toContainText("The largest gamma concentration");
 
-  // The fixture deliberately crowds Ceiling/Cluster/Keystone within 0.5 points.
+  // The routed Levels payload crowds Ceiling/Cluster/Keystone within 0.5 points.
   // Their exact-price anchors stay put, while readable rungs must never overlap.
   const rungs = board.getByTestId("levels-rung");
   await expect(rungs).toHaveCount(8);
