@@ -1902,6 +1902,16 @@ export default function OptionsHubView({
     () => rootCatalog?.find((row) => row.root === selectedTicker) ?? null,
     [rootCatalog, selectedTicker],
   );
+  // Receipt validation is a render-time invariant, not only a fetch-time check.
+  // Meta can advance while this drill stays mounted; in that publication gap the
+  // prior same-root artifact must disappear immediately instead of wearing the
+  // newer catalog claim.
+  const renderableTickerData = useMemo(() => {
+    if (!tickerData) return null;
+    return tickerArtifactMatchesCatalogReceipt(selectedTickerCatalog, tickerData.asof)
+      ? tickerData
+      : null;
+  }, [selectedTickerCatalog, tickerData]);
   const selectedTickerTierLabel = selectedTickerCatalog?.tier === "core"
     ? pick(lang, "core", "核心")
     : pick(lang, "rotating", "轮询");
@@ -3195,10 +3205,10 @@ export default function OptionsHubView({
                     </div>
                   </div>
                 )}
-                {selectedTicker && (tickerLoading && !tickerData) && (
+                {selectedTicker && (tickerLoading && !renderableTickerData) && (
                   <div className="fin-empty" role="status">{t("loading", "Loading…")}</div>
                 )}
-                {selectedTicker && !tickerLoading && !tickerData && (
+                {selectedTicker && !tickerLoading && !renderableTickerData && (
                   <div style={{ padding: "24px 16px" }}>
                     <div
                       className="fin-empty fin-empty-lg"
@@ -3234,7 +3244,7 @@ export default function OptionsHubView({
                     </div>
                   </div>
                 )}
-                {selectedTicker && tickerData && (
+                {selectedTicker && renderableTickerData && (
                   <div style={{ padding: "14px 16px", display: "flex", flexDirection: "column", gap: 14 }}>
 
                     {/* ── Header: ticker + spot ref + IV chips ── */}
@@ -3244,17 +3254,17 @@ export default function OptionsHubView({
                     }}>
                       <div>
                         <div className="obs-lbl">
-                          {lang === "zh" ? tickerData.group_zh : abbrevSector(tickerData.group)}
+                          {lang === "zh" ? renderableTickerData.group_zh : abbrevSector(renderableTickerData.group)}
                         </div>
-                        <div style={{ fontWeight: 700, fontSize: 22, lineHeight: 1.1, marginTop: 5 }}>{tickerData.root}</div>
+                        <div style={{ fontWeight: 700, fontSize: 22, lineHeight: 1.1, marginTop: 5 }}>{renderableTickerData.root}</div>
                       </div>
                       {/* Flow stats chips */}
                       <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                         {[
-                          { lk: "tickersDayGross", lb: "Day Gross", v: fmtPremium(tickerData.day.gross) },
-                          { lk: "tickersNetSoft", lb: "Net", v: fmtPremSigned(tickerData.day.net_soft), color: tickerData.day.net_soft >= 0 ? "var(--up)" : "var(--down)" },
-                          { lk: "tickersCallShare", lb: "Call%", v: `${(tickerData.day.call_share * 100).toFixed(1)}%`, color: tickerData.day.call_share > 0.5 ? "var(--up)" : "var(--down)" },
-                          { lk: "tickersPremZ", lb: "Activity", v: activityBand(tickerData.day.prem_z, lang) },
+                          { lk: "tickersDayGross", lb: "Day Gross", v: fmtPremium(renderableTickerData.day.gross) },
+                          { lk: "tickersNetSoft", lb: "Net", v: fmtPremSigned(renderableTickerData.day.net_soft), color: renderableTickerData.day.net_soft >= 0 ? "var(--up)" : "var(--down)" },
+                          { lk: "tickersCallShare", lb: "Call%", v: `${(renderableTickerData.day.call_share * 100).toFixed(1)}%`, color: renderableTickerData.day.call_share > 0.5 ? "var(--up)" : "var(--down)" },
+                          { lk: "tickersPremZ", lb: "Activity", v: activityBand(renderableTickerData.day.prem_z, lang) },
                         ].map((kv) => (
                           <div key={kv.lk} style={{ border: "1px solid var(--line)", borderRadius: "var(--r-tile)", padding: "5px 10px", background: "var(--panel)" }}>
                             <div className="obs-lbl">{t(kv.lk, kv.lb)}</div>
@@ -3313,8 +3323,8 @@ export default function OptionsHubView({
                       {!activeUnavailable && !activeDelayed && <span className="obs-live-dot" />}
                       <span>
                         {lang === "zh"
-                          ? `盘中期权流 · 截至 ${fmtAsof(tickerData.asof)} ET`
-                          : `Intraday options flow · as of ${fmtAsof(tickerData.asof)} ET`}
+                          ? `盘中期权流 · 截至 ${fmtAsof(renderableTickerData.asof)} ET`
+                          : `Intraday options flow · as of ${fmtAsof(renderableTickerData.asof)} ET`}
                         {volData && volData.root === selectedTicker && (lang === "zh"
                           ? ` · 波动率面为夜间构建（${volData.asof.slice(0, 10)}）`
                           : ` · vol surface from the nightly build (${volData.asof.slice(0, 10)})`)}
@@ -3340,11 +3350,11 @@ export default function OptionsHubView({
                           <div className="obs-lbl" style={{ marginBottom: 8 }}>
                             {t("tickersMinChart", "Minute Net Prem")}
                           </div>
-                          <MinuteNetChart minutes={tickerData.minutes} height={160} />
+                          <MinuteNetChart minutes={renderableTickerData.minutes} height={160} />
                         </div>
 
                         {/* Top contracts list */}
-                        {tickerData.top_contracts.length > 0 && (
+                        {renderableTickerData.top_contracts.length > 0 && (
                           <div className="obs-card" style={{ overflow: "hidden" }}>
                             <div className="obs-lbl" style={{ padding: "11px 13px 9px", borderBottom: "1px solid var(--line)" }}>
                               {t("tickersTopContracts", "Top Contracts")}
@@ -3361,7 +3371,7 @@ export default function OptionsHubView({
                                 </tr>
                               </thead>
                               <tbody>
-                                {tickerData.top_contracts.map((c, i) => (
+                                {renderableTickerData.top_contracts.map((c, i) => (
                                   <tr key={i}>
                                     <td style={{ textAlign: "left" }}>
                                       <span style={{ color: c.right === "C" ? "var(--up)" : "var(--down)", fontWeight: 700 }}>{c.right}</span>
@@ -3383,12 +3393,12 @@ export default function OptionsHubView({
                         )}
 
                         {/* Expiry bars */}
-                        {tickerData.expiries.length > 0 && (
+                        {renderableTickerData.expiries.length > 0 && (
                           <div className="obs-card" style={{ padding: "12px 13px" }}>
                             <div className="obs-lbl" style={{ marginBottom: 8 }}>
                               {t("tickersExpBars", "By Expiry")}
                             </div>
-                            <ExpiryBars expiries={tickerData.expiries} lang={lang} />
+                            <ExpiryBars expiries={renderableTickerData.expiries} lang={lang} />
                           </div>
                         )}
                       </div>
@@ -3400,10 +3410,10 @@ export default function OptionsHubView({
                         </div>
 
                         {/* Strike ladder — fills full column width */}
-                        {tickerData.strikes.length > 0 && (
+                        {renderableTickerData.strikes.length > 0 && (
                           <div className="obs-card" style={{ padding: "12px 13px" }}>
                             <StrikeLadder
-                              strikes={tickerData.strikes}
+                              strikes={renderableTickerData.strikes}
                               lang={lang}
                               spotRef={volData && volData.root === selectedTicker ? (volData.spot_ref ?? null) : null}
                             />

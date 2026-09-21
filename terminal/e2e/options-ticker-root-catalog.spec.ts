@@ -148,6 +148,86 @@ test("covered ticker catalog keeps quiet roots searchable and honest", async ({ 
   });
 });
 
+test("an open drill fails closed when its catalog receipt advances", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "one transport-race proof is sufficient");
+
+  await page.clock.install();
+  await page.addInitScript(() => {
+    Reflect.deleteProperty(window, "EventSource");
+  });
+
+  const firstReceipt = "2026-07-05T15:41:00Z";
+  const advancedReceipt = "2026-07-05T15:42:00Z";
+  let catalogReceipt = firstReceipt;
+  let metaRequests = 0;
+
+  await page.route(/\/api\/flow\?f=meta$/, async (route) => {
+    metaRequests += 1;
+    const response = await route.fetch();
+    const meta = await response.json() as {
+      asof?: string;
+      built_at?: string;
+      root_catalog?: Array<Record<string, unknown>>;
+    };
+    const row = meta.root_catalog?.find((entry) => entry.root === "MSFT");
+    if (!row) throw new Error("fixture root catalog is missing MSFT");
+    row.last_source_success = catalogReceipt;
+    row.has_session_data = true;
+    row.source_ok_this_cycle = true;
+    meta.asof = catalogReceipt;
+    meta.built_at = catalogReceipt;
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(meta),
+    });
+  });
+
+  await page.route(/\/api\/flow\?f=ticker(?:%3A|:)MSFT$/, async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        schema: "live_flow.ticker/v1",
+        asof: firstReceipt,
+        root: "MSFT",
+        group: "Technology",
+        group_zh: "科技",
+        day: {
+          gross: 123_000,
+          net_soft: 21_000,
+          call_share: 0.6,
+          n_events: 1,
+          prem_z: 1.2,
+          baseline_source: "eod252",
+        },
+        minutes: [],
+        strikes: [],
+        expiries: [],
+        top_contracts: [],
+      }),
+    });
+  });
+
+  await page.goto("/options?tab=tickers");
+  await expect(page.locator('[data-options-root-source="catalog"]')).toBeVisible({ timeout: 15_000 });
+  const search = page.getByRole("searchbox", { name: "Search covered options tickers" });
+  await search.fill("$msft");
+  await page.getByRole("button", { name: "Open MSFT ticker drill" }).click();
+  await expect(page.getByText("$123K", { exact: true })).toBeVisible();
+
+  // Metadata is published before the replacement ticker artifact. A mounted drill
+  // must stop rendering the prior receipt as soon as the catalog advances.
+  catalogReceipt = advancedReceipt;
+  await page.clock.fastForward(60_100);
+  await expect.poll(() => metaRequests).toBeGreaterThanOrEqual(2);
+  await page.clock.fastForward(60_100);
+
+  const empty = page.getByTestId("ticker-drill-empty");
+  await expect(empty).toContainText("per-root drill artifact has not arrived yet");
+  await expect(page.getByText("$123K", { exact: true })).toHaveCount(0);
+});
+
 test("live coverage expands every per-root options selector", async ({ page }) => {
   const selectors = [
     { tab: "gex", datalist: "gex-roots" },
