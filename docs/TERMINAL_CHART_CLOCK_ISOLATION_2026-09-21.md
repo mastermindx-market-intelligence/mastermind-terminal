@@ -21,3 +21,14 @@ The actual parent-component RED/GREEN test changes from 4 failures / 1 pass to *
 TypeScript and the new component/test lint pass. Browser and whole-suite qualification are still pending at this checkpoint. Settings PR #701 is separate: no overlapping changed source file and no duplicate chart-settings rewrite.
 
 Current capability: `BUILT_NOT_PROVEN`. Parent mission complete: false. Next: complete real Terminal browser smoke and regression checks, preserve the immutable candidate in a separate PR, then consume CI and the existing git-gated release chain. Do not redo the settings redesign, replace the renderer or infer production speedup from this render-count test.
+
+## Completed local qualification
+
+- Whole Terminal unit suite: **377 files passed; 6,032 tests passed; 4 pre-existing todo** (`npm test -- --maxWorkers=2 --minWorkers=2`).
+- Real Terminal clock and chart-view/reset regression matrix: **10 passed; 8 existing viewport-specific skips; zero failures** at 1440×900, 820×1180 and 390×844.
+- Capture-enabled clock smoke: **3/3 passed**, with desktop, tablet and phone screenshots visually reviewed and content-addressed in `terminal/docs/pr-crops/chart-clock-isolation-20260921/EVIDENCE.json`.
+- All changed TypeScript/TSX files pass scoped ESLint and `tsc --noEmit`; focused clock tests remain 5/5. Removed five unnecessary pre-existing `any` date casts and documented the one-time external DOM-marker hydration boundary. Unminified emitted JavaScript before/after that type-only cleanup is byte-identical: `45a34d6621b83736ded50e5d5be01ff05531ed74349f93e516e891659ea66f15`. Identifier-minified output was not used for this comparison because source-character frequency changes local identifier names.
+
+Implementation carrier: Terminal PR #702. The source reviewed and browser-tested is `d7bde7d9c23a3aa2667a940064ef89a58d15402d`; the follow-up changes only screenshot recording, proof records, erased type casts and a lint comment. Settings PR #701 is the parallel UI/control-access carrier. Both preserve the same chart renderer and underlying data math.
+
+Local qualification is complete for this bounded change. Production remains unproven. Next: consume the required GitHub CI and protected merge result, then deploy merged master through the existing git-gated VPS owner and verify the live chart. No chat daemon or autonomous deployment is implied by native auto-merge.

@@ -1,0 +1,44 @@
+{
+  "renderedSourceHead": "d7bde7d9c23a3aa2667a940064ef89a58d15402d",
+  "captureHarness": "same head with screenshot output added to the existing real-route test",
+  "viewports": {
+    "desktop": [
+      1440,
+      900
+    ],
+    "tablet": [
+      820,
+      1180
+    ],
+    "mobile": [
+      390,
+      844
+    ]
+  },
+  "capturedAt": "2026-09-21T18:05:01.942556+00:00",
+  "tests": {
+    "unitFiles": 377,
+    "unitPassed": 6032,
+    "unitTodo": 4,
+    "browserRegressionPassed": 10,
+    "browserViewportSkips": 8,
+    "captureSmokePassed": 3,
+    "failures": 0
+  },
+  "componentMeasurement": {
+    "ticks": 60,
+    "parentRendersBefore": 60,
+    "parentRendersAfter": 0,
+    "scope": "real React component test with fake timers, not FPS"
+  },
+  "typeOnlyCleanup": {
+    "emittedJavaScriptIdentical": true,
+    "unminifiedEmitSha256": "45a34d6621b83736ded50e5d5be01ff05531ed74349f93e516e891659ea66f15"
+  },
+  "screenshots": {
+    "desktop.png": "0bcca0904d0dd0220ccb75431ded2ed3fa4e46c25e2e54888f1950de6e5584f0",
+    "mobile.png": "85c3bb40841880f9269d014da1222cad489353aa6a7d5a7d14d48e2a42711e50",
+    "tablet.png": "352596ce48df7644278761478528500b35395c577e4ab7b070690126f798c849"
+  },
+  "productionProof": false
+}

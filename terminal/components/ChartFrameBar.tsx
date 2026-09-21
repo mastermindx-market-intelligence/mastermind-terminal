@@ -179,7 +179,7 @@ function applyRange(
         case "5Y": fromDate = addYears(now, -5); break;
         default: return;
       }
-      ts.setVisibleRange({ from: isoDate(fromDate) as any, to: isoDate(now) as any });
+      ts.setVisibleRange({ from: isoDate(fromDate), to: isoDate(now) });
       const range = withChartFutureOffset(ts.getVisibleLogicalRange(), gutter);
       if (range) ts.setVisibleLogicalRange(range);
     }
@@ -219,6 +219,7 @@ export default function ChartFrameBar({
 
   // Client-only native-shell marker; wall-clock state belongs to ChartClock.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time external DOM-marker hydration; SSR remains web-neutral.
     setShellMode(document.documentElement.getAttribute("data-shell") === "app");
   }, []);
 
@@ -345,7 +346,7 @@ export default function ChartFrameBar({
       const ts = chartApi.timeScale();
       const logRange = ts.getVisibleLogicalRange();
       const width = logRange ? logRange.to - logRange.from : 120;
-      const coord = ts.timeToCoordinate(gotoDate as any);
+      const coord = ts.timeToCoordinate(gotoDate);
       if (coord != null) {
         const bar = ts.coordinateToLogical(coord);
         if (bar != null) ts.setVisibleLogicalRange({ from: bar - width / 2, to: bar + width / 2 });
@@ -353,7 +354,7 @@ export default function ChartFrameBar({
         // date not visible — use setVisibleRange to scroll there
         const from = isoDate(addDays(new Date(gotoDate), -30));
         const to = isoDate(addDays(new Date(gotoDate), 30));
-        ts.setVisibleRange({ from: from as any, to: to as any });
+        ts.setVisibleRange({ from: from, to: to });
       }
     } catch {}
     setGotoOpen(false);
