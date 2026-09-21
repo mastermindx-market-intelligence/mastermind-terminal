@@ -5,6 +5,7 @@ import { DEFAULT_CHART_RIGHT_OFFSET, withChartFutureOffset } from "@/lib/chart-e
 import { isIntradayTf } from "@/lib/intradaySources";
 import { VISUAL_INTELLIGENCE_DEFAULTS, type VisualIntelligenceSettings } from "@/lib/visualIntelligence";
 import { useT } from "@/lib/i18n";
+import ChartClock from "./ChartClock";
 
 // Chart scale/display settings persisted alongside user prefs (key: mm.chartSettings).
 export type ChartSettings = {
@@ -185,24 +186,6 @@ function applyRange(
   } catch {}
 }
 
-// Derive the UTC timezone offset label, e.g. "UTC+5:30" or "UTC-8".
-function utcOffsetLabel(): string {
-  const off = -new Date().getTimezoneOffset(); // minutes
-  const sign = off >= 0 ? "+" : "-";
-  const abs = Math.abs(off);
-  const h = Math.floor(abs / 60);
-  const m = abs % 60;
-  return `UTC${sign}${h}${m ? ":" + String(m).padStart(2, "0") : ""}`;
-}
-
-function fmtHHMMSS(d: Date): string {
-  return (
-    String(d.getHours()).padStart(2, "0") + ":" +
-    String(d.getMinutes()).padStart(2, "0") + ":" +
-    String(d.getSeconds()).padStart(2, "0")
-  );
-}
-
 type SubMenu = "labels" | "lines" | null;
 
 export default function ChartFrameBar({
@@ -221,11 +204,6 @@ export default function ChartFrameBar({
   extendedEligible?: boolean;
 }) {
   const t = useT();
-  // Client-only clock: render nothing until mounted to avoid SSR/hydration mismatch.
-  // The server renders at server-local time; the client's timezone may differ completely.
-  const [mounted, setMounted] = useState(false);
-  const [clock, setClock] = useState("");
-  const [tzLabel, setTzLabel] = useState("");
   const [gearOpen, setGearOpen] = useState(false);
   const [subMenu, setSubMenu] = useState<SubMenu>(null);
   const [gotoOpen, setGotoOpen] = useState(false);
@@ -239,18 +217,9 @@ export default function ChartFrameBar({
 
   const isIntraday = isIntradayTf(timeframe);
 
-  // Client-only mount gate: set initial clock + tz label, then tick every second.
-  // Nothing is rendered until mounted=true, preventing SSR time from leaking in.
+  // Client-only native-shell marker; wall-clock state belongs to ChartClock.
   useEffect(() => {
-    setClock(fmtHHMMSS(new Date()));
-    setTzLabel(utcOffsetLabel());
-    setMounted(true);
     setShellMode(document.documentElement.getAttribute("data-shell") === "app");
-    const id = setInterval(() => {
-      setClock(fmtHHMMSS(new Date()));
-      setTzLabel(utcOffsetLabel());
-    }, 1000);
-    return () => clearInterval(id);
   }, []);
 
   // Close gear popup when clicking outside
@@ -428,11 +397,7 @@ export default function ChartFrameBar({
 
       {/* RIGHT: clock + ETH + ADJ + gear */}
       <div className="cfb-right">
-        {mounted && (
-          <span className="cfb-clock num">
-            {clock} <span className="cfb-tz">{tzLabel}</span>
-          </span>
-        )}
+        <ChartClock />
         {/* ETH chip — active when on; muted+non-interactive on daily TFs (no tooltip per spec) */}
         <button
           className={`cfb-chip${s.extHours && extendedEligible ? " on" : ""}${!isIntraday || !extendedEligible ? " dis" : ""}`}
