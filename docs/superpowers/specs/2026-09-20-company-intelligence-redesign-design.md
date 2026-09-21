@@ -71,7 +71,33 @@ For NVIDIA the Paper reference uses a premium AI-accelerator/chipset image with 
 
 A bulk S&P 500 artwork programme is explicitly separate from the first implementation PR.
 
-## 6. Information architecture
+## 6. Navigation architecture
+
+The existing desktop research shell repeats essentially the same context across four stacked rows: global app header, Research Workspace selector, Back-to-chart/company breadcrumb, and a 13-item flat company-page tab row. Company Intelligence then adds its own Brief / Results / Transcript / Ownership / Sources controls far from the content they govern.
+
+The proposed Terminal hierarchy is:
+
+1. **Global app chrome** — Mastermind identity, global search, Watchlist / New chat / Saved / account. The separate Back to Dashboard button and Analysis label disappear; the Mastermind identity/home affordance owns app-level return.
+2. **Research Workspace context** — compact Back to chart, selected company/ticker, selected event, coverage/freshness, and quote context. Company identity appears once.
+3. **Company page navigation** — a scalable grouped menu: Overview, Intelligence, Financials, Earnings, Market, Ownership, Lab.
+4. **Page-local subnavigation** — owned by the selected company page and placed immediately above its content. For Intelligence: Brief, Results & outlook, Transcript, Ownership, Sources.
+
+The company-page groups replace the current 13 flat tabs:
+
+- Financials: Statements, Statistics, Revenue, Dividends.
+- Earnings: Earnings, Transcripts, Analyst.
+- Market: Technicals, Seasonal.
+- Ownership: Insider plus current/future institutional-holder surfaces.
+- Lab: experimental tools.
+- Overview and Intelligence remain first-class direct destinations.
+
+This pattern intentionally preserves the existing global left rail. Do not introduce a second company-research sidebar.
+
+The hierarchy is therefore **Research Workspace → company page → page-local subpage**. It reduces duplicated vertical chrome, moves local controls next to the dashboard they affect, and gives future research pages/subpages room to grow without another horizontal-tab cram problem.
+
+The Paper artboard Company Intelligence · Navigation vNext · Dark · 1440 is the visual reference for this navigation direction. Navigation Architecture · Research Workspace Hierarchy documents the grouping and implementation intent.
+
+## 7. Information architecture
 
 Replace the audit-first inner navigation with five research lenses:
 
@@ -145,7 +171,7 @@ Theme context shows the primary curated membership/read and a few coverage facts
 
 Institutional context shows current-holder count, tracked value, current filing snapshot, and buyer/trimmer summary. It always carries the 13F filing-lag clock and never claims total ownership.
 
-## 8. Results & outlook lens
+## 9. Results & outlook lens
 
 The Results lens is not another scorecard. It groups deterministic facts and qualified forward statements:
 
@@ -157,7 +183,7 @@ The Results lens is not another scorecard. It groups deterministic facts and qua
 
 The page must refuse beat/miss language when basis matching is absent.
 
-## 9. Transcript lens
+## 10. Transcript lens
 
 The Transcript lens uses the existing normalized transcript and existing full reader.
 
@@ -171,7 +197,7 @@ First frame:
 
 No second transcript renderer is introduced.
 
-## 10. Ownership lens
+## 11. Ownership lens
 
 Ownership is a dedicated lens rather than a giant card inside the default Brief.
 
@@ -186,7 +212,7 @@ First frame:
 
 The evidence rail for Ownership exposes manager filing receipts, filing dates, reporting-set gaps, and the rule that the roster does not equal total ownership.
 
-## 11. Sources & Method lens
+## 12. Sources & Method lens
 
 Sources becomes the trust center for the selected event/generation.
 
@@ -204,7 +230,7 @@ It shows:
 
 This lens must make absence understandable rather than burying it in warnings.
 
-## 12. Evidence interaction
+## 13. Evidence interaction
 
 Evidence is contextual, not the primary visual hierarchy.
 
@@ -226,7 +252,7 @@ Mobile 390×844:
 
 Every event/ticker switch clears stale evidence selection so a receipt cannot refer to another event.
 
-## 13. Degraded and partial states
+## 14. Degraded and partial states
 
 The redesign must treat degraded states as designed product states:
 
@@ -237,7 +263,7 @@ The redesign must treat degraded states as designed product states:
 - upstream error: explicit retryable/unavailable state; do not silently fall back unless the canonical v2 `not_found` rule permits v1.
 - institutional incomplete filing set: preserve filing lag and withhold invalid movement assertions.
 
-## 14. Ask Mastermind
+## 15. Ask Mastermind
 
 Current production behavior is ticker-scoped. The redesign may present an event-scoped future target, but implementation must not claim event/generation scoping until the Brain handoff contract actually carries it.
 
@@ -247,7 +273,7 @@ Preferred implementation outcome:
 
 This contract extension is implementation work, not assumed present state.
 
-## 15. Responsive behavior
+## 16. Responsive behavior
 
 One responsive application, one data contract.
 
@@ -270,7 +296,7 @@ Mobile 390×844:
 - evidence becomes bottom sheet;
 - bottom navigation provides direct access to Brief / Results / Transcript / Sources.
 
-## 16. Accessibility and internationalization
+## 17. Accessibility and internationalization
 
 - Preserve keyboard roving-tab semantics for research lenses.
 - Evidence close restores focus to the triggering claim/action.
@@ -280,7 +306,7 @@ Mobile 390×844:
 - Long Chinese strings, long company names, and long evidence excerpts must wrap without horizontal overflow.
 - Semantic colors are never the sole carrier of status meaning.
 
-## 17. Implementation seams
+## 18. Implementation seams
 
 Primary source seams:
 
@@ -297,7 +323,7 @@ Primary source seams:
 
 The preferred implementation shape is a shared presentation layer used by both v1 fallback and v2-current paths rather than duplicating the redesigned DOM twice.
 
-## 18. Implementation sequence
+## 19. Implementation sequence
 
 1. Extract/freeze shared presentation primitives and research-lens IA without changing data meaning.
 2. Recompose v2 Brief onto the shared presentation architecture.
@@ -311,7 +337,7 @@ The preferred implementation shape is a shared presentation layer used by both v
 10. Add/extend event-scoped Brain context only if the Brain contract is formally extended and tested.
 11. Add optional company-artwork resolver with graceful fallback; do not block the core redesign on bulk artwork generation.
 
-## 19. Acceptance and proof
+## 20. Acceptance and proof
 
 Product acceptance requires all of the following:
 
@@ -335,11 +361,12 @@ Product acceptance requires all of the following:
 
 CI green, merge, screenshots, and local fixture proof are not production acceptance by themselves.
 
-## 20. Paper design states frozen by this spec
+## 21. Paper design states frozen by this spec
 
 Current Paper page contains these design states:
 
 - Company Intelligence · Dark · Desktop · 1440
+- Company Intelligence · Navigation vNext · Dark · 1440
 - Company Intelligence · Results & Outlook · Dark · 1440
 - Company Intelligence · Transcript & Q&A · Dark · 1440
 - Company Intelligence · Ownership · Dark · 1440
@@ -349,5 +376,7 @@ Current Paper page contains these design states:
 - Company Intelligence · Evidence Sheet · Dark · Tablet · 820
 - Company Intelligence · Brief · Dark · Mobile · 390
 - Company Intelligence · Evidence Sheet · Dark · Mobile · 390
+- Navigation Architecture · Research Workspace Hierarchy
+- Implementation Note · Hero Artwork Edge Treatment
 
 Paper is the visual design reference; repository contracts remain the implementation authority for data, source, auth, lifecycle and deployment behavior.
