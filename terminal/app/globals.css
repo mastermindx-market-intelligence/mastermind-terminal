@@ -3828,6 +3828,13 @@ body.col-resizing .wl-rz::after{background:var(--brand)}
     white-space:nowrap;
   }
   .options-flow-board-card-main strong{color:var(--text);font:750 11px/1 var(--font-mono)}
+  .options-flow-board-card .options-flow-board-ticker{
+    min-width:44px;
+    min-height:44px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:flex-start;
+  }
   .options-flow-board-card-meta{
     display:flex;
     flex-wrap:wrap;
