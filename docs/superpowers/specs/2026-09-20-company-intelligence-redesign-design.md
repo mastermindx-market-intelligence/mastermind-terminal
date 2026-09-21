@@ -394,6 +394,7 @@ Current Paper page contains these design states:
 - Company Intelligence · Evidence Sheet · Dark · Mobile · 390
 - Navigation Architecture · Research Workspace Hierarchy
 - Research Workspace · Page Family Map
+- Research Workspace · Overview vNext · Dark · 1440
 - Implementation Note · Hero Artwork Edge Treatment
 
 Paper is the visual design reference; repository contracts remain the implementation authority for data, source, auth, lifecycle and deployment behavior.
