@@ -54,3 +54,9 @@ Direct continuation rationale: `LOWER_TOTAL_OVERHEAD` and `CRITICAL_PATH_SHORTCU
 Current capability: `BUILT_NOT_PROVEN`. Mission complete: **false**. The full-chart performance programme remains open; these changes do not establish a frame-rate, startup, API or renderer speedup.
 
 Next action: preserve this exact candidate remotely, run the real settings/context/price-label browser matrix, consume required CI, and only then use the existing protected merge and git-gated deployment chain. Do not redo the redesign, repeat the initial import edit, overwrite other chart PRs, or interpret screenshots/green tests as production proof.
+
+## Fresh exact-candidate browser result
+
+Source `4b07375a9e487631d3d3239f0cb3cf421332120e` completed the real settings / Visual Intelligence / price-label matrix: **73 passed, 8 existing viewport-specific skips, zero failures**, with one worker and no retries. English and Chinese settings screenshots and the Visual Intelligence crops were recaptured; their content digests are retained in the existing evidence directories. This verifies the responsive browser path, not an authenticated production release.
+
+Separate independent performance follow-on: `claude/terminal-chart-clock-isolation-20260921` isolates the footer wall clock. It does not change this PR's settings or drawing-source paths.

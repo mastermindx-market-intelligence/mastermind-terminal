@@ -1,8 +1,8 @@
 # Terminal Visual Intelligence Layer — chart-settings candidate recapture
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 749576c537284df43772d3cfd3fdd75ad7194a2d (base + candidate working tree)
-# capturedAt: 2026-09-21T14:55:27Z
+# capturedAtHead: 4b07375a9e487631d3d3239f0cb3cf421332120e (exact source candidate)
+# capturedAt: 2026-09-21T18:00:57.833048+00:00
 # Content-addressed layoutFiles + cropFiles, not ancestry, identify this capture.
 layoutFiles:
   terminal/components/ChartPanel.tsx: "97cd543d99a06901ecd1825cb8ddcdc6e727685561f5d1da5fd6c43dbabd254f"
@@ -19,12 +19,12 @@ layoutFiles:
   terminal/lib/suites/trend/candlePainter.ts: "8384d2bce3af939a51e88584b1436ee2898a89f0fbf1aedc09ffee624a3e12e1"
   terminal/lib/indicator-canvas/host.ts: "4f2949efb22b8c378cab1ff9d176466c4857073c14a36ee4f0eeab4ec1015a25"
 cropFiles:
-  desktop-context.png: "db8597c69757bc2342397162cce17ae0fa438dfae94f374867f68f5e852500f3"
-  desktop-context-zh.png: "dc48fa6716f807f5d838c1d548d547d9e37b191b2ca7223eb11c4e2a26e4aac0"
-  tablet-context.png: "6301c6d5046ae8d4dbbf590ad9c17ef0eaa1b2da5999b18c5136d8384df3c418"
-  tablet-context-zh.png: "039f6dd34363e5699f5637a2057e36e8f096b2269c7a7387600dfeb46fe238a2"
-  mobile-context.png: "1ff3563a498bfaf11bfa5c649be1261360a748839c691b4b2fad0de9641d728a"
-  mobile-context-zh.png: "53709b2f96757b5f5bc92d6e08896fc9da06c597a7e6e87589a5b14e77161a71"
+  desktop-context.png: "39b77c9f2baf4510265f18ba0629926fe404477e2afb11534f45400ccfddec35"
+  desktop-context-zh.png: "7a845ee7b5e993aead2d8905e8479570cbfa5f95d910d6e68b4538935bb8189e"
+  tablet-context.png: "d6438efaa8c28a946edbde068873731d9d635bdb5d15aa0e6a725765a9a726fa"
+  tablet-context-zh.png: "6623002a8b7f218e805de5b3f87f8aca143dd618f498f30e5eedde1489cdeb51"
+  mobile-context.png: "bf812eb4a13883ba25a8408bc0e0997623238400a8b310358e23037cf1f1d450"
+  mobile-context-zh.png: "3a7ce8327ff2982290df47d834f768f1d26e1c165c1e3bbd84710710809a7819"
 
 theme: dark
 languages: [en, zh]
