@@ -86,7 +86,7 @@ The dock is the preferred desktop pattern because it preserves the page → subp
 Responsive projection keeps the hierarchy while changing the control shape:
 - **Desktop 1440** — show the full grouped company-page families plus page-local views in one compact dock.
 - **Tablet 820** — collapse the company-page families into a selected page-family selector (for example Intelligence ▾) while keeping the page-local views visible beside it.
-- **Mobile 390** — show the selected page family in the compact company context area and project the selected page's local views into bottom navigation. A `More` / page-family control opens a full-width bottom sheet containing Overview / Intelligence / Financials / Earnings / Market / Ownership / Lab, rather than forcing the whole family map into a horizontally scrolling permanent header. For Intelligence the local bottom navigation is Brief / Results / Transcript / Ownership / Sources.
+- **Mobile 390** — show the selected page family in the compact company context area and project the selected page's local views into bottom navigation. A `More` / page-family control opens a full-width bottom sheet containing Overview / Intelligence / Financials / Earnings / Market / Ownership / Lab, rather than forcing the whole family map into a horizontally scrolling permanent header. The bottom navigation is page-local: Intelligence uses Brief / Results / Transcript / Ownership / Sources, while Overview uses Snapshot / Fundamentals / Valuation / Capital structure.
 
 Company switching is a first-class Research Workspace interaction, not another page-level navigation layer. Activating the company identity opens a searchable company switcher with recent companies and direct ticker/company search. Switching company clears event-specific evidence selection and any event-only UI state before the new company context is rendered.
 
@@ -400,6 +400,7 @@ Current Paper page contains these design states:
 - Navigation Architecture · Research Workspace Hierarchy
 - Research Workspace · Page Family Map
 - Research Workspace · Overview vNext · Dark · 1440
+- Research Workspace · Overview vNext · Mobile · 390
 - Implementation Note · Hero Artwork Edge Treatment
 
 Paper is the visual design reference; repository contracts remain the implementation authority for data, source, auth, lifecycle and deployment behavior.
