@@ -216,7 +216,7 @@ The Brief may show current tracked holders, tracked value, buyer/trimmer summary
 - institutional / insider / concentration / filing-history local views;
 - filing receipts and reporting-set gaps.
 
-The shared Ownership page must preserve the rule that the tracked roster does not equal total ownership.
+The shared Ownership page must preserve the rule that the tracked roster does not equal total ownership. The Paper artboard `Research Workspace · Ownership vNext · Dark · 1440` is the preferred proof for this page-family boundary and institutional layout.
 
 ## 12. Sources & Method lens
 
@@ -385,6 +385,7 @@ Current Paper page contains these design states:
 - Company Intelligence · Results & Outlook · Dark · 1440
 - Company Intelligence · Call & Q&A · Dark · 1440
 - Research Workspace · Ownership · Exploratory · Dark · 1440
+- Research Workspace · Ownership vNext · Dark · 1440
 - Company Intelligence · Sources & Method · Dark · 1440
 - Company Intelligence · Last Verified · Dark · Desktop · 1440
 - Company Intelligence · Brief · Dark · Tablet · 820
