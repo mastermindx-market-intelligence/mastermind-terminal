@@ -83,6 +83,11 @@ The proposed Terminal hierarchy is:
 
 The dock is the preferred desktop pattern because it preserves the page → subpage hierarchy without spending another full horizontal band. It should sit directly above the research canvas, aligned to the canvas edges, with no duplicate breadcrumb row between it and the content.
 
+Responsive projection keeps the hierarchy while changing the control shape:
+- **Desktop 1440** — show the full grouped company-page families plus page-local views in one compact dock.
+- **Tablet 820** — collapse the company-page families into a selected page-family selector (for example Intelligence ▾) while keeping the page-local views visible beside it.
+- **Mobile 390** — show a compact horizontally constrained page-family row in the company context area and project the selected page's local views into bottom navigation. For Intelligence that bottom navigation is Brief / Results / Transcript / Ownership / Sources.
+
 The company-page groups replace the current 13 flat tabs:
 
 - Financials: Statements, Statistics, Revenue, Dividends.
@@ -376,8 +381,10 @@ Current Paper page contains these design states:
 - Company Intelligence · Sources & Method · Dark · 1440
 - Company Intelligence · Last Verified · Dark · Desktop · 1440
 - Company Intelligence · Brief · Dark · Tablet · 820
+- Company Intelligence · Navigation Preferred · Tablet · 820
 - Company Intelligence · Evidence Sheet · Dark · Tablet · 820
 - Company Intelligence · Brief · Dark · Mobile · 390
+- Company Intelligence · Navigation Preferred · Mobile · 390
 - Company Intelligence · Evidence Sheet · Dark · Mobile · 390
 - Navigation Architecture · Research Workspace Hierarchy
 - Research Workspace · Page Family Map
