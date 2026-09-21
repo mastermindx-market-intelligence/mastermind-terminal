@@ -602,6 +602,27 @@ test("Levels keeps the gamma map and named-level rail reachable at every support
   await keystone.click();
   await expect(rail).toContainText("The largest gamma concentration");
 
+  // The fixture deliberately crowds Ceiling/Cluster/Keystone within 0.5 points.
+  // Their exact-price anchors stay put, while readable rungs must never overlap.
+  const rungs = board.getByTestId("levels-rung");
+  await expect(rungs).toHaveCount(8);
+  const rungGeometry = await rungs.evaluateAll((els) => els.map((el) => {
+    const rect = el.getBoundingClientRect();
+    return {
+      top: rect.top,
+      bottom: rect.bottom,
+      rawY: Number(el.getAttribute("data-raw-y")),
+      displayY: Number(el.getAttribute("data-display-y")),
+    };
+  }));
+  const orderedRungs = [...rungGeometry].sort((a, b) => a.top - b.top);
+  for (let i = 1; i < orderedRungs.length; i += 1) {
+    expect(orderedRungs[i].top).toBeGreaterThanOrEqual(orderedRungs[i - 1].bottom + 1);
+  }
+  expect(rungGeometry.some((r) => Math.abs(r.rawY - r.displayY) > 0.002)).toBe(true);
+  await expect(board.getByTestId("levels-rung-leader").first()).toBeVisible();
+  await expect(board.getByTestId("levels-rung-anchor")).toHaveCount(8);
+
   const viewportWidth = page.viewportSize()?.width ?? 1440;
   const pageWidth = await page.evaluate(() => ({
     client: document.documentElement.clientWidth,
