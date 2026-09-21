@@ -20,6 +20,7 @@ import { makeProphetT, phaseWhy } from "./prophetStrings";
 import { OptionCard } from "./OptionCard";
 import type { OptionContractPayload } from "./OptionCard";
 import { Tip } from "@/components/ui/Tip";
+import { pick } from "@/lib/finFormat";
 import type { Lang } from "@/lib/i18n";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -279,13 +280,13 @@ function entryZoneView(plan: PlanSummary, lang: Lang): {
     accumulate: ["Accumulate", "分批建仓"],
   };
   const stancePair = stanceMap[rawStance] ?? [rawStance, rawStance];
-  const stance = stancePair[lang === "zh" ? 1 : 0];
+  const stance = pick(lang === "zh", stancePair[0], stancePair[1]);
   const chase = zone.chase_above != null && Number.isFinite(zone.chase_above)
-    ? `${lang === "zh" ? "不追高" : "No chase"} > $${zone.chase_above.toFixed(2)}`
+    ? `${pick(lang === "zh", "No chase", "不追高")} > $${zone.chase_above.toFixed(2)}`
     : null;
   const remaining = state.sessions_remaining;
   const window = remaining != null && Number.isFinite(remaining) && remaining >= 0
-    ? (lang === "zh" ? `剩余 ${remaining} 个交易日` : `${remaining} sessions left`)
+    ? pick(lang === "zh", `${remaining} sessions left`, `剩余 ${remaining} 个交易日`)
     : null;
   const aria = (lang === "zh" ? zone.basis_zh : zone.basis) ?? undefined;
   const color = rawStance === "accumulate" ? "var(--up)"
@@ -399,7 +400,7 @@ export function SignalCard({ plan, lang, selected, onSelect }: SignalCardProps) 
       <div style={{ ...ROW, marginTop: 6, gap: 12, fontSize: 10.5 }}>
         <span style={FACT}>
           <span className="obs-lbl" style={FACT_LABEL}>
-            {entryZone ? (lang === "zh" ? "计划锚点" : "Plan anchor") : t("entryLabel")}
+            {entryZone ? pick(lang === "zh", "Plan anchor", "计划锚点") : t("entryLabel")}
           </span>
           <span className="num" style={FACT_VAL}>{plan.entry != null ? `$${plan.entry.toFixed(2)}` : "—"}</span>
         </span>
@@ -423,11 +424,11 @@ export function SignalCard({ plan, lang, selected, onSelect }: SignalCardProps) 
           className="obs-prophet-entry-zone"
           style={ENTRY_ZONE}
           aria-label={entryZone.aria
-            ? `${lang === "zh" ? "机会区间" : "Opportunity box"}. ${entryZone.aria}`
-            : (lang === "zh" ? "机会区间" : "Opportunity box")}
+            ? `${pick(lang === "zh", "Opportunity box", "机会区间")}. ${entryZone.aria}`
+            : pick(lang === "zh", "Opportunity box", "机会区间")}
         >
           <div style={ENTRY_ZONE_TOP}>
-            <span style={ENTRY_ZONE_LABEL}>{lang === "zh" ? "机会区间" : "Opportunity box"}</span>
+            <span style={ENTRY_ZONE_LABEL}>{pick(lang === "zh", "Opportunity box", "机会区间")}</span>
             <span
               className="obs-tag"
               style={{ ...ENTRY_ZONE_STANCE, "--c": entryZone.color } as React.CSSProperties}
