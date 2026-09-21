@@ -79,8 +79,9 @@ The proposed Terminal hierarchy is:
 
 1. **Global app chrome** — Mastermind identity, global search, Watchlist / New chat / Saved / account. The separate Back to Dashboard button and Analysis label disappear; the Mastermind identity/home affordance owns app-level return.
 2. **Research Workspace context** — compact Back to chart, selected company/ticker, selected event, coverage/freshness, and quote context. Company identity appears once.
-3. **Company page navigation** — a scalable grouped menu: Overview, Intelligence, Financials, Earnings, Market, Ownership, Lab.
-4. **Page-local subnavigation** — owned by the selected company page and placed immediately above its content. For Intelligence: Brief, Results & outlook, Transcript, Ownership, Sources.
+3. **Compact research navigation dock** — one matte/glass row that contains both the grouped company-page navigation and the selected page's local views. Primary page families occupy the left side; local subpages sit after a divider; page actions sit at the far right. For Intelligence: Brief, Results & outlook, Transcript, Ownership, Sources.
+
+The dock is the preferred desktop pattern because it preserves the page → subpage hierarchy without spending another full horizontal band. It should sit directly above the research canvas, aligned to the canvas edges, with no duplicate breadcrumb row between it and the content.
 
 The company-page groups replace the current 13 flat tabs:
 
@@ -95,7 +96,7 @@ This pattern intentionally preserves the existing global left rail. Do not intro
 
 The hierarchy is therefore **Research Workspace → company page → page-local subpage**. It reduces duplicated vertical chrome, moves local controls next to the dashboard they affect, and gives future research pages/subpages room to grow without another horizontal-tab cram problem.
 
-The Paper artboard Company Intelligence · Navigation vNext · Dark · 1440 is the visual reference for this navigation direction. Navigation Architecture · Research Workspace Hierarchy documents the grouping and implementation intent.
+The preferred Paper reference is Company Intelligence · Navigation Preferred · Compact Dock · Dark · 1440. Company Intelligence · Navigation vNext · Dark · 1440 is retained as an earlier exploration. Navigation Interaction · Financials Menu Open · Dark · 1440 shows the grouped-menu behavior, while Navigation Architecture · Research Workspace Hierarchy and Research Workspace · Page Family Map document the hierarchy and expansion model.
 
 ## 7. Information architecture
 
@@ -111,7 +112,7 @@ Event history remains a persistent period selector rather than a full competing 
 
 ## 8. Brief lens
 
-### 7.1 Company/event control strip
+### 8.1 Company/event control strip
 
 Show only high-value identity and state:
 - display name + ticker;
@@ -123,7 +124,7 @@ Show only high-value identity and state:
 
 Generation hashes and low-level authority vocabulary move into Sources/Evidence details. `context_only` remains visible in plain language near the research actions and evidence boundary.
 
-### 7.2 30-second brief
+### 8.2 30-second brief
 
 The hero is the dominant editorial object. It includes:
 - explicit `30-second brief / synthesis` labeling;
@@ -135,7 +136,7 @@ The hero is the dominant editorial object. It includes:
 
 Source-authored text and Mastermind synthesis must be visually and semantically distinguishable. The Brief must not silently relabel model synthesis as issuer language.
 
-### 7.3 First-frame result strip
+### 8.3 First-frame result strip
 
 Prefer four useful, available company-event facts. NVDA reference:
 - revenue growth;
@@ -145,7 +146,7 @@ Prefer four useful, available company-event facts. NVDA reference:
 
 Do not spend first-frame real estate on a missing metric when a more useful available deterministic field exists. Null stays null; missing never becomes zero.
 
-### 7.4 What changed / Why it matters / Key risks
+### 8.4 What changed / Why it matters / Key risks
 
 `What changed` contains source-backed event changes.
 
@@ -153,7 +154,7 @@ Do not spend first-frame real estate on a missing metric when a more useful avai
 
 `Key risks` contains retained negative facts, constraints, and unresolved conditions. It does not fabricate bearish probability.
 
-### 7.5 What to watch next
+### 8.5 What to watch next
 
 Add a compact research-monitor module with categories such as:
 - next earnings/event timing when known;
@@ -163,7 +164,7 @@ Add a compact research-monitor module with categories such as:
 
 Unknown future dates render as unknown/pending, not guessed calendar dates.
 
-### 7.6 Context band
+### 8.6 Context band
 
 Theme and institutional information stay available but become compact context rather than dominant default content.
 
@@ -367,6 +368,8 @@ Current Paper page contains these design states:
 
 - Company Intelligence · Dark · Desktop · 1440
 - Company Intelligence · Navigation vNext · Dark · 1440
+- Company Intelligence · Navigation Preferred · Compact Dock · Dark · 1440
+- Navigation Interaction · Financials Menu Open · Dark · 1440
 - Company Intelligence · Results & Outlook · Dark · 1440
 - Company Intelligence · Transcript & Q&A · Dark · 1440
 - Company Intelligence · Ownership · Dark · 1440
@@ -377,6 +380,7 @@ Current Paper page contains these design states:
 - Company Intelligence · Brief · Dark · Mobile · 390
 - Company Intelligence · Evidence Sheet · Dark · Mobile · 390
 - Navigation Architecture · Research Workspace Hierarchy
+- Research Workspace · Page Family Map
 - Implementation Note · Hero Artwork Edge Treatment
 
 Paper is the visual design reference; repository contracts remain the implementation authority for data, source, auth, lifecycle and deployment behavior.
