@@ -84,6 +84,17 @@ describe("parseLiveFlowRootCatalog", () => {
     expect(parseLiveFlowRootCatalog({ ...VALID_META, root_catalog: rows })).toBeNull();
   });
 
+  it.each([
+    "2026Z",
+    "2026-09-20Z",
+    "2026-09-20T15:42Z",
+    "2026-02-30T15:42:00Z",
+  ])("fails closed for malformed UTC timestamp %s", (timestamp) => {
+    const rows = VALID_META.root_catalog.map((row) => ({ ...row }));
+    (rows[0] as Record<string, unknown>).last_source_success = timestamp;
+    expect(parseLiveFlowRootCatalog({ ...VALID_META, root_catalog: rows })).toBeNull();
+  });
+
   it("fails closed for a non-positive activity rank", () => {
     const rows = VALID_META.root_catalog.map((row) => ({ ...row }));
     (rows[0] as Record<string, unknown>).activity_rank = 0;

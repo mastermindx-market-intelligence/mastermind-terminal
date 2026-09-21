@@ -25,15 +25,38 @@ interface CandidateArgs {
 }
 
 const ROOT_PATTERN = /^[A-Z][A-Z0-9.-]{0,9}$/;
+const UTC_ISO_PATTERN = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d{1,6})?Z$/;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function isUtcIso(value: unknown): value is string {
-  return typeof value === "string"
-    && value.endsWith("Z")
-    && Number.isFinite(Date.parse(value));
+  if (typeof value !== "string") return false;
+  const match = UTC_ISO_PATTERN.exec(value);
+  if (!match) return false;
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const hour = Number(match[4]);
+  const minute = Number(match[5]);
+  const second = Number(match[6]);
+  if (month < 1 || month > 12 || day < 1 || day > 31
+      || hour > 23 || minute > 59 || second > 59) return false;
+
+  // Date.parse normalizes impossible calendar values (for example February 30).
+  // Compare the parsed fields explicitly so a malformed receipt rejects the
+  // complete producer catalog instead of silently becoming a different instant.
+  const probe = new Date(0);
+  probe.setUTCFullYear(year, month - 1, day);
+  probe.setUTCHours(hour, minute, second, 0);
+  return probe.getUTCFullYear() === year
+    && probe.getUTCMonth() === month - 1
+    && probe.getUTCDate() === day
+    && probe.getUTCHours() === hour
+    && probe.getUTCMinutes() === minute
+    && probe.getUTCSeconds() === second;
 }
 
 function parseRow(value: unknown): LiveFlowRootCatalogEntry | null {
