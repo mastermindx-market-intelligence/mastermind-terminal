@@ -241,11 +241,14 @@ This lens must make absence understandable rather than burying it in warnings.
 Evidence is contextual, not the primary visual hierarchy.
 
 Desktop 1440×900:
-- sticky right rail;
+- the preferred Brief defaults to a full-width focus canvas with Evidence closed;
+- an Evidence action in the compact research dock shows the current related-evidence count when available;
+- selecting Evidence or a claim opens a fixed right-side overlay drawer without reflowing or narrowing the underlying research canvas;
 - selected claim/exchange visible;
 - quote/excerpt first;
 - source name/material/date second;
-- technical receipt/hash details below or progressively disclosed.
+- technical receipt/hash details below or progressively disclosed;
+- close restores focus to the triggering claim/action.
 
 Tablet 820×1180:
 - inspector closed by default;
@@ -265,7 +268,7 @@ The redesign must treat degraded states as designed product states:
 - `partial`: useful available findings remain visible; source-specific gaps appear next to affected content.
 - `stale / last verified`: the last verified generation may remain visible, but current freshness is never implied.
 - `metadata_only`: clearly distinct from an exact source document/span.
-- `not_covered`: concise coverage boundary, not a processing spinner.
+- `not_covered`: concise coverage boundary, not a processing spinner. Keep the shared Research Workspace navigation active, explain that no canonical event workspace/fallback exists, and route the user to truthful available surfaces such as Overview / Financials / ticker-scoped Ask Mastermind instead of presenting a giant empty panel.
 - upstream error: explicit retryable/unavailable state; do not silently fall back unless the canonical v2 `not_found` rule permits v1.
 - institutional incomplete filing set: preserve filing lag and withhold invalid movement assertions.
 
@@ -374,6 +377,9 @@ Current Paper page contains these design states:
 - Company Intelligence · Dark · Desktop · 1440
 - Company Intelligence · Navigation vNext · Dark · 1440
 - Company Intelligence · Navigation Preferred · Compact Dock · Dark · 1440
+- Company Intelligence · Preferred Focus Canvas · Dark · 1440
+- Company Intelligence · Focus Canvas · Evidence Open · Dark · 1440
+- Company Intelligence · Not Covered · Dark · 1440
 - Navigation Interaction · Financials Menu Open · Dark · 1440
 - Company Intelligence · Results & Outlook · Dark · 1440
 - Company Intelligence · Transcript & Q&A · Dark · 1440
