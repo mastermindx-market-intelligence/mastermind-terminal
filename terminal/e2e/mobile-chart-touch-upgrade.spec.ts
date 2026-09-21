@@ -71,6 +71,30 @@ async function actionPointMetrics(page: Page, testId: string) {
   });
 }
 
+async function adjacentGapMetrics(page: Page, leftId: string, rightId: string) {
+  const ids = { leftId, rightId };
+  await page.getByTestId("roller-cluster").evaluate((cluster, pair) => {
+    const left = cluster.querySelector<HTMLElement>(`[data-testid="${pair.leftId}"]`);
+    const right = cluster.querySelector<HTMLElement>(`[data-testid="${pair.rightId}"]`);
+    if (!left || !right) throw new Error(`missing adjacent actions ${pair.leftId}/${pair.rightId}`);
+    const leftCenter = left.offsetLeft + left.offsetWidth / 2;
+    const rightCenter = right.offsetLeft + right.offsetWidth / 2;
+    cluster.scrollLeft = (leftCenter + rightCenter) / 2 - cluster.clientWidth / 2;
+  }, ids);
+  await page.waitForTimeout(50);
+  return page.evaluate((pair) => {
+    const left = document.querySelector<HTMLElement>(`[data-testid="${pair.leftId}"]`);
+    const right = document.querySelector<HTMLElement>(`[data-testid="${pair.rightId}"]`);
+    if (!left || !right) throw new Error(`missing adjacent actions ${pair.leftId}/${pair.rightId}`);
+    const leftRect = left.getBoundingClientRect();
+    const rightRect = right.getBoundingClientRect();
+    const x = (leftRect.right + rightRect.left) / 2;
+    const y = (leftRect.top + leftRect.bottom) / 2;
+    const owner = document.elementFromPoint(x, y)?.closest<HTMLButtonElement>("button")?.dataset.testid ?? null;
+    return { gap: rightRect.left - leftRect.right, owner };
+  }, ids);
+}
+
 async function tapActionEdge(page: Page, testId: string, side: "left" | "right" = "left") {
   await centerAction(page, testId);
   const box = await page.getByTestId(testId).boundingBox();
@@ -108,6 +132,14 @@ for (const width of PHONE_WIDTHS) {
         top: id,
         bottom: id,
       });
+    }
+
+    for (let index = 1; index < ACTION_IDS.length; index += 1) {
+      const leftId = ACTION_IDS[index - 1];
+      const rightId = ACTION_IDS[index];
+      const midpoint = await adjacentGapMetrics(page, leftId, rightId);
+      expect(midpoint.gap, `${leftId}/${rightId} should retain a real dead gap`).toBeGreaterThanOrEqual(2);
+      expect([leftId, rightId], `${leftId}/${rightId} must not share their midpoint`).not.toContain(midpoint.owner);
     }
 
     const layout = await page.getByTestId("roller-cluster").evaluate((cluster, ids) => {
@@ -227,7 +259,12 @@ test("MM-008: touch, selector and keyboard expose visible English month detail",
   await expect(april).toHaveAttribute("aria-pressed", "true");
 
   const selector = card.getByTestId("seasonality-month-select");
-  expect((await selector.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+  const selectorBox = await selector.boundingBox();
+  const detailBox = await detail.boundingBox();
+  expect(selectorBox).not.toBeNull();
+  expect(detailBox).not.toBeNull();
+  expect(selectorBox!.height).toBeGreaterThanOrEqual(44);
+  expect(detailBox!.height).toBeGreaterThanOrEqual(44);
   await selector.selectOption("4");
   const mayTitle = await may.getAttribute("title");
   await expect(detail).toHaveText(mayTitle!);
@@ -264,6 +301,8 @@ test("MM-008: live Chinese locale preserves values and translated semantics", as
   await expect(card.getByTestId("seasonality-detail")).toHaveText(title!);
   await expect(card.getByTestId("seasonality-month-select").locator("option").nth(8)).toContainText("月");
   await expect(card.getByTestId("seasonality-context")).not.toContainText("悬停");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth))
+    .toBeLessThanOrEqual(0);
 });
 
 test("MM-008: sparse history announces an understandable no-samples state", async ({ page }, testInfo) => {
@@ -294,6 +333,24 @@ test("MM-008: sparse history announces an understandable no-samples state", asyn
   const chineseTitle = await january.getAttribute("title");
   expect(chineseTitle).toContain("无样本");
   await expect(card.getByTestId("seasonality-detail")).toHaveText(chineseTitle!);
+});
+
+test("MM-008: 390x568 short-height keeps the selector and visible detail reachable", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile", "Short-height phone stress runs once.");
+  const card = await openSeasonality(page, 390, 568);
+  const selector = card.getByTestId("seasonality-month-select");
+  const detail = card.getByTestId("seasonality-detail");
+  await selector.scrollIntoViewIfNeeded();
+  const [selectorBox, detailBox] = await Promise.all([selector.boundingBox(), detail.boundingBox()]);
+  expect(selectorBox).not.toBeNull();
+  expect(detailBox).not.toBeNull();
+  expect(selectorBox!.height).toBeGreaterThanOrEqual(44);
+  expect(detailBox!.height).toBeGreaterThanOrEqual(44);
+  expect(selectorBox!.y).toBeGreaterThanOrEqual(0);
+  expect(detailBox!.y).toBeGreaterThanOrEqual(0);
+  expect(Math.max(selectorBox!.y + selectorBox!.height, detailBox!.y + detailBox!.height)).toBeLessThanOrEqual(568);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth))
+    .toBeLessThanOrEqual(0);
 });
 
 test("MM-008: desktop hover keeps the native title and visible detail", async ({ page }, testInfo) => {
