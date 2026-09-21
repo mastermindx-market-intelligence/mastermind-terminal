@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { PriceScaleMode, type IChartApi } from "lightweight-charts";
 import { DEFAULT_CHART_SETTINGS, type ChartSettings } from "@/components/ChartFrameBar";
 import { visualText } from "@/lib/visualIntelligenceCopy";
 import { useLang, useT } from "@/lib/i18n";
+import { activateSettingsDialog, colorInputHex, commitNumber, parseSettingTemplates, previewNumber } from "@/lib/chartSettingsUi";
+import styles from "./ChartSettingsModal.module.css";
 
 export type ChartSettingsTab = "symbol" | "status" | "scales" | "canvas";
 type Patch = (patch: Partial<ChartSettings>) => void;
@@ -47,10 +49,18 @@ export default function ChartSettingsModal({
   intraday?: boolean;
 }) {
   const t = useT();
-  const backdropRef = useRef<HTMLDivElement>(null);
+  const backdropRef = useRef<HTMLDialogElement>(null);
+  const originRef = useRef<HTMLSpanElement>(null);
+  const contentRef = useRef<HTMLElement>(null);
+  const dialogId = useId();
   const initialRef = useRef<ChartSettings>(settings);
   const wasOpenRef = useRef(false);
   const [templateNonce, setTemplateNonce] = useState(0);
+  // Opening/saving is the storage boundary, not each live-preview render.
+  // The save revision intentionally invalidates this browser-storage snapshot.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const templates = useMemo<Record<string, Partial<ChartSettings>>>(() => open ? readTemplates() : {}, [open, templateNonce]);
+  const templateNames = useMemo(() => Object.keys(templates).sort(), [templates]);
 
   useEffect(() => {
     if (open && !wasOpenRef.current) initialRef.current = { ...settings };
@@ -63,15 +73,19 @@ export default function ChartSettingsModal({
   }
 
   useEffect(() => {
-    if (!open) return;
-    const handler = (event: KeyboardEvent) => { if (event.key === "Escape") cancel(); };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-    // Capture the settings snapshot only when the dialog opens.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (!open || !backdropRef.current) return;
+    // Keep fallback focus local to this chart, including pointer-opened transient menus.
+    const gear = originRef.current?.closest(".pane")?.querySelector<HTMLElement>(".cfb-gear");
+    // The phone intentionally replaces the hidden frame bar with its analysis hub.
+    const trigger = gear?.getClientRects().length ? gear
+      : originRef.current?.closest(".app")?.querySelector<HTMLElement>('[data-testid="roller-more"]');
+    return activateSettingsDialog(backdropRef.current, trigger);
   }, [open]);
 
-  if (!open) return null;
+  useEffect(() => { if (contentRef.current) contentRef.current.scrollTop = 0; }, [tab]);
+
+  const origin = <span hidden ref={originRef} />;
+  if (!open) return <>{origin}</>;
 
   const tabs: { key: ChartSettingsTab; label: string }[] = [
     { key: "symbol", label: t("smTabSymbol") },
@@ -79,9 +93,6 @@ export default function ChartSettingsModal({
     { key: "scales", label: t("smTabScales") },
     { key: "canvas", label: t("smTabCanvas") },
   ];
-
-  const templates = readTemplates();
-  void templateNonce;
 
   function selectTemplate(value: string) {
     if (value === "__save") {
@@ -93,7 +104,10 @@ export default function ChartSettingsModal({
       return;
     }
     if (value === "__default") onSettings({ ...DEFAULT_CHART_SETTINGS });
-    else if (templates[value]) onSettings({ ...DEFAULT_CHART_SETTINGS, ...templates[value] });
+    else if (value.startsWith("template:")) {
+      const name = value.slice("template:".length);
+      if (Object.hasOwn(templates, name)) onSettings({ ...DEFAULT_CHART_SETTINGS, ...templates[name] });
+    }
   }
 
   function resetTab() {
@@ -108,23 +122,42 @@ export default function ChartSettingsModal({
   }
 
   const node = (
-    <div className="sm-backdrop" ref={backdropRef} onMouseDown={(event) => { if (event.target === backdropRef.current) cancel(); }}>
-      <div className="sm-modal" role="dialog" aria-modal="true" aria-label={t("smTitle")}>
+    <dialog className={`sm-backdrop ${styles.dialog}`} ref={backdropRef} aria-labelledby={`${dialogId}-title`}
+      onCancel={(event) => { event.preventDefault(); cancel(); }}
+      onKeyDown={(event) => event.stopPropagation()}
+      onMouseDown={(event) => { if (event.target === backdropRef.current) cancel(); }}>
+      <div className="sm-modal">
         <div className="sm-header">
-          <span className="sm-title">{t("smTitle")}</span>
+          <span className="sm-title" id={`${dialogId}-title`}>{t("smTitle")}</span>
           <button className="sm-close" onClick={cancel} aria-label={t("smClose")}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 6l12 12M18 6L6 18" /></svg>
           </button>
         </div>
 
         <div className="sm-body">
-          <nav className="sm-tabs" aria-label={t("smSections")}>
+          <nav className="sm-tabs" role="tablist" aria-label={t("smSections")} onKeyDown={(event) => {
+            const index = tabs.findIndex(({ key }) => key === tab);
+            let next = index;
+            if (event.key === "ArrowRight" || event.key === "ArrowDown") next = (index + 1) % tabs.length;
+            else if (event.key === "ArrowLeft" || event.key === "ArrowUp") next = (index + tabs.length - 1) % tabs.length;
+            else if (event.key === "Home") next = 0;
+            else if (event.key === "End") next = tabs.length - 1;
+            else return;
+            event.preventDefault();
+            window.dispatchEvent(new CustomEvent("mm:settings-tab", { detail: tabs[next].key }));
+            event.currentTarget.querySelector<HTMLButtonElement>(`[data-settings-tab="${tabs[next].key}"]`)?.focus();
+          }}>
             {tabs.map(({ key, label }) => (
               <button
                 key={key}
                 className={`sm-tab${tab === key ? " on" : ""}`}
                 aria-label={label}
-                aria-pressed={tab === key}
+                role="tab"
+                id={`${dialogId}-${key}`}
+                data-settings-tab={key}
+                aria-selected={tab === key}
+                aria-controls={`${dialogId}-panel`}
+                tabIndex={tab === key ? 0 : -1}
                 onClick={() => window.dispatchEvent(new CustomEvent("mm:settings-tab", { detail: key }))}
               >
                 {tabIcon(key)}<span>{label}</span>
@@ -132,20 +165,20 @@ export default function ChartSettingsModal({
             ))}
           </nav>
 
-          <main className="sm-content">
+          <section className="sm-content" ref={contentRef} role="tabpanel" id={`${dialogId}-panel`} aria-labelledby={`${dialogId}-${tab}`}>
             {tab === "symbol" && <SymbolTab settings={settings} onSettings={onSettings} extendedEligible={extendedEligible} intraday={intraday} />}
             {tab === "status" && <StatusTab settings={settings} onSettings={onSettings} />}
             {tab === "scales" && <ScalesTab settings={settings} onSettings={onSettings} chartApi={chartApi} />}
             {tab === "canvas" && <CanvasTab settings={settings} onSettings={onSettings} />}
-          </main>
+          </section>
         </div>
 
         <footer className="sm-footer">
           <div className="sm-template-wrap">
-            <select className="sm-select sm-template" value="" onChange={(event) => { selectTemplate(event.target.value); event.currentTarget.value = ""; }}>
+            <select className="sm-select sm-template" aria-label={t("smTemplate")} value="" onChange={(event) => { selectTemplate(event.target.value); event.currentTarget.value = ""; }}>
               <option value="">{t("smTemplate")}</option>
               <option value="__default">{t("smRestoreDefaults")}</option>
-              {Object.keys(templates).sort().map((name) => <option key={name} value={name}>{name}</option>)}
+              {templateNames.map((name) => <option key={name} value={`template:${name}`}>{name}</option>)}
               <option value="__save">{t("smSaveCurrent")}</option>
             </select>
             <button className="sm-reset" onClick={resetTab}>{t("smResetTabBtn")}</button>
@@ -156,19 +189,17 @@ export default function ChartSettingsModal({
           </div>
         </footer>
       </div>
-    </div>
+    </dialog>
   );
   // This dialog must escape the chart pane's overflow/stacking context. On responsive layouts the
   // document rail follows the chart in flow; keeping a fixed modal inside .pane lets that sibling
   // become the pointer hit target even while the dialog is visibly on top.
-  return createPortal(node, document.body);
+  return <>{origin}{createPortal(node, document.body)}</>;
 }
 
-function readTemplates(): Record<string, ChartSettings> {
-  try {
-    const value = JSON.parse(localStorage.getItem(TEMPLATE_KEY) || "{}");
-    return value && typeof value === "object" ? value : {};
-  } catch { return {}; }
+function readTemplates(): Record<string, Partial<ChartSettings>> {
+  try { return parseSettingTemplates(localStorage.getItem(TEMPLATE_KEY), DEFAULT_CHART_SETTINGS); }
+  catch { return {}; }
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -200,10 +231,11 @@ function SelectRow({ label, value, onChange, options, disabled = false }: {
   options: { value: string | number; label: string }[];
   disabled?: boolean;
 }) {
+  const id = useId();
   return (
     <div className={`sm-row${disabled ? " disabled" : ""}`}>
-      <span className="sm-row-label">{label}</span>
-      <select className="sm-select" value={value} disabled={disabled} onChange={(event) => onChange(event.target.value)}>
+      <label className="sm-row-label" htmlFor={id}>{label}</label>
+      <select id={id} className="sm-select" value={value} disabled={disabled} onChange={(event) => onChange(event.target.value)}>
         {options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
       </select>
     </div>
@@ -214,18 +246,19 @@ function ColorControl({ value, fallback, onChange, title }: {
   value: string;
   fallback: string;
   onChange: (value: string) => void;
-  title?: string;
+  title: string;
 }) {
   const shown = value || fallback;
   return (
     <label className="sm-color-wrap" title={title}>
       <span className="sm-color-swatch" style={{ background: shown }} />
-      <input type="color" value={shown} onChange={(event) => onChange(event.target.value)} />
+      <input type="color" aria-label={title} value={colorInputHex(shown, fallback)} onChange={(event) => onChange(event.target.value)} />
     </label>
   );
 }
 
-function ColorPair({ first, second, onFirst, onSecond }: {
+function ColorPair({ first, second, onFirst, onSecond, label }: {
+  label: string;
   first: string;
   second: string;
   onFirst: (value: string) => void;
@@ -233,8 +266,8 @@ function ColorPair({ first, second, onFirst, onSecond }: {
 }) {
   const t = useT();
   return <div className="sm-color-pair">
-    <ColorControl value={first} fallback={cssToken("--up", "#26c281")} onChange={onFirst} title={t("smUpColor")} />
-    <ColorControl value={second} fallback={cssToken("--down", "#f23645")} onChange={onSecond} title={t("smDownColor")} />
+    <ColorControl value={first} fallback={cssToken("--up", "#26c281")} onChange={onFirst} title={`${label}: ${t("smUpColor")}`} />
+    <ColorControl value={second} fallback={cssToken("--down", "#f23645")} onChange={onSecond} title={`${label}: ${t("smDownColor")}`} />
   </div>;
 }
 
@@ -246,8 +279,23 @@ function NumberRow({ label, value, min, max, suffix, onChange }: {
   suffix?: string;
   onChange: (value: number) => void;
 }) {
-  return <div className="sm-row"><span className="sm-row-label">{label}</span><div className="sm-number-wrap">
-    <input className="sm-number" type="number" value={value} min={min} max={max} onChange={(event) => onChange(Math.max(min, Math.min(max, Number(event.target.value))))} />
+  const id = useId();
+  // Remember the value that owns this draft so a template/reset can supersede it.
+  const [draft, setDraft] = useState<{ text: string; owner: number } | null>(null);
+  const shown = draft?.owner === value ? draft.text : String(value);
+  function commit() {
+    const next = commitNumber(shown, value, min, max);
+    setDraft(null);
+    if (next !== value) onChange(next);
+  }
+  return <div className="sm-row"><label className="sm-row-label" htmlFor={id}>{label}</label><div className="sm-number-wrap">
+    <input id={id} className="sm-number" type="number" value={shown} min={min} max={max}
+      onChange={(event) => {
+        const text = event.target.value;
+        const next = previewNumber(text, min, max);
+        setDraft({ text, owner: next ?? value });
+        if (next !== null && next !== value) onChange(next);
+      }} onBlur={commit} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); event.currentTarget.blur(); } }} />
     {suffix && <span>{suffix}</span>}
   </div></div>;
 }
@@ -264,13 +312,13 @@ function SymbolTab({ settings, onSettings, extendedEligible, intraday }: {
     <Section title={t("smCandles")}>
       <CheckRow label={t("smColorPrevClose")} value={s.colorBarsPrevClose} onChange={(value) => onSettings({ colorBarsPrevClose: value })} />
       <CheckRow label={t("smBody")} value={s.candleBodyVisible} onChange={(value) => onSettings({ candleBodyVisible: value })}>
-        <ColorPair first={s.candleUpColor} second={s.candleDownColor} onFirst={(value) => onSettings({ candleUpColor: value })} onSecond={(value) => onSettings({ candleDownColor: value })} />
+        <ColorPair label={t("smBody")} first={s.candleUpColor} second={s.candleDownColor} onFirst={(value) => onSettings({ candleUpColor: value })} onSecond={(value) => onSettings({ candleDownColor: value })} />
       </CheckRow>
       <CheckRow label={t("smBorders")} value={s.candleBordersVisible} onChange={(value) => onSettings({ candleBordersVisible: value })}>
-        <ColorPair first={s.candleUpBorder} second={s.candleDownBorder} onFirst={(value) => onSettings({ candleUpBorder: value })} onSecond={(value) => onSettings({ candleDownBorder: value })} />
+        <ColorPair label={t("smBorders")} first={s.candleUpBorder} second={s.candleDownBorder} onFirst={(value) => onSettings({ candleUpBorder: value })} onSecond={(value) => onSettings({ candleDownBorder: value })} />
       </CheckRow>
       <CheckRow label={t("smWick")} value={s.candleWicksVisible} onChange={(value) => onSettings({ candleWicksVisible: value })}>
-        <ColorPair first={s.candleUpWick} second={s.candleDownWick} onFirst={(value) => onSettings({ candleUpWick: value })} onSecond={(value) => onSettings({ candleDownWick: value })} />
+        <ColorPair label={t("smWick")} first={s.candleUpWick} second={s.candleDownWick} onFirst={(value) => onSettings({ candleUpWick: value })} onSecond={(value) => onSettings({ candleDownWick: value })} />
       </CheckRow>
     </Section>
     <Section title={t("smDataMod")}>
@@ -295,7 +343,7 @@ function StatusTab({ settings: s, onSettings }: { settings: ChartSettings; onSet
     <Section title={t("smInstrument")}>
       <CheckRow label={t("smLogo")} value={s.showLogo} onChange={(value) => onSettings({ showLogo: value })} />
       <CheckRow label={t("smTitleRow")} value={s.showSymbolName} onChange={(value) => onSettings({ showSymbolName: value })}>
-        <select className="sm-select" value={s.titleMode} onChange={(event) => onSettings({ titleMode: event.target.value as ChartSettings["titleMode"] })}>
+        <select className="sm-select" aria-label={t("smTitleRow")} value={s.titleMode} onChange={(event) => onSettings({ titleMode: event.target.value as ChartSettings["titleMode"] })}>
           <option value="ticker">{t("smTicker")}</option><option value="name">{t("smName")}</option><option value="both">{t("smNameTicker")}</option>
         </select>
       </CheckRow>
@@ -307,7 +355,7 @@ function StatusTab({ settings: s, onSettings }: { settings: ChartSettings; onSet
     <Section title={t("smIndicators")}>
       <CheckRow label={t("smTitles")} value={s.showIndicatorTitles} onChange={(value) => onSettings({ showIndicatorTitles: value })} />
       <CheckRow label={t("smBackground")} value={s.indicatorBackgroundOpacity > 0} onChange={(value) => onSettings({ indicatorBackgroundOpacity: value ? 70 : 0 })}>
-        <input className="sm-range" type="range" min="0" max="100" value={s.indicatorBackgroundOpacity} onChange={(event) => onSettings({ indicatorBackgroundOpacity: Number(event.target.value) })} />
+        <input className="sm-range" aria-label={`${t("smIndicators")}: ${t("smBackground")}`} type="range" min="0" max="100" value={s.indicatorBackgroundOpacity} onChange={(event) => onSettings({ indicatorBackgroundOpacity: Number(event.target.value) })} />
       </CheckRow>
     </Section>
   </div>;
@@ -362,29 +410,29 @@ function CanvasTab({ settings: s, onSettings }: { settings: ChartSettings; onSet
       <SelectRow label={t("smBackground")} value={s.backgroundType} onChange={(value) => onSettings({ backgroundType: value as "solid" | "gradient" })}
         options={[{ value: "solid", label: t("smBgSolid") }, { value: "gradient", label: t("smBgGradient") }]} />
       <div className="sm-row"><span className="sm-row-label">{t("smBackgroundColors")}</span><div className="sm-color-pair">
-        <ColorControl value={s.backgroundTop} fallback={cssToken("--chart-bg", "#101521")} onChange={(value) => onSettings({ backgroundTop: value })} />
-        <ColorControl value={s.backgroundBottom} fallback={cssToken("--chart-bg", "#101521")} onChange={(value) => onSettings({ backgroundBottom: value })} />
+        <ColorControl title={t("smBackgroundColors") + " (1)"} value={s.backgroundTop} fallback={cssToken("--chart-bg", "#101521")} onChange={(value) => onSettings({ backgroundTop: value })} />
+        <ColorControl title={t("smBackgroundColors") + " (2)"} value={s.backgroundBottom} fallback={cssToken("--chart-bg", "#101521")} onChange={(value) => onSettings({ backgroundBottom: value })} />
       </div></div>
       <CheckRow label={t("smGridV")} value={s.gridVVisible} onChange={(value) => onSettings({ gridVVisible: value })}>
-        <ColorControl value={s.gridVColor} fallback={cssToken("--grid", "#202838")} onChange={(value) => onSettings({ gridVColor: value })} />
+        <ColorControl title={t("smGridV")} value={s.gridVColor} fallback={cssToken("--grid", "#202838")} onChange={(value) => onSettings({ gridVColor: value })} />
       </CheckRow>
       <CheckRow label={t("smGridH")} value={s.gridHVisible} onChange={(value) => onSettings({ gridHVisible: value })}>
-        <ColorControl value={s.gridHColor} fallback={cssToken("--grid", "#202838")} onChange={(value) => onSettings({ gridHColor: value })} />
+        <ColorControl title={t("smGridH")} value={s.gridHColor} fallback={cssToken("--grid", "#202838")} onChange={(value) => onSettings({ gridHColor: value })} />
       </CheckRow>
-      <div className="sm-row"><span className="sm-row-label">{t("smPaneSeparators")}</span><ColorControl value={s.paneSeparatorColor} fallback={cssToken("--line", "#2a3242")} onChange={(value) => onSettings({ paneSeparatorColor: value })} /></div>
-      <div className="sm-row"><span className="sm-row-label">{t("smCrosshair")}</span><ColorControl value={s.crosshairColor} fallback="#9598a1" onChange={(value) => onSettings({ crosshairColor: value })} /></div>
+      <div className="sm-row"><span className="sm-row-label">{t("smPaneSeparators")}</span><ColorControl title={t("smPaneSeparators")} value={s.paneSeparatorColor} fallback={cssToken("--line", "#2a3242")} onChange={(value) => onSettings({ paneSeparatorColor: value })} /></div>
+      <div className="sm-row"><span className="sm-row-label">{t("smCrosshair")}</span><ColorControl title={t("smCrosshair")} value={s.crosshairColor} fallback="#9598a1" onChange={(value) => onSettings({ crosshairColor: value })} /></div>
       <CheckRow label={t("smWatermark")} value={s.showWatermark} onChange={(value) => onSettings({ showWatermark: value })}>
-        <ColorControl value={s.watermarkColor} fallback="#788296" onChange={(value) => onSettings({ watermarkColor: value })} />
+        <ColorControl title={t("smWatermark")} value={s.watermarkColor} fallback="#788296" onChange={(value) => onSettings({ watermarkColor: value })} />
       </CheckRow>
     </Section>
     <Section title={t("smScales")}>
       <div className="sm-row"><span className="sm-row-label">{t("smText")}</span><div className="sm-inline">
-        <ColorControl value={s.scaleTextColor} fallback={cssToken("--muted", "#8b93a6")} onChange={(value) => onSettings({ scaleTextColor: value })} />
-        <select className="sm-select small" value={s.scaleFontSize} onChange={(event) => onSettings({ scaleFontSize: Number(event.target.value) })}>
+        <ColorControl title={t("smText")} value={s.scaleTextColor} fallback={cssToken("--muted", "#8b93a6")} onChange={(value) => onSettings({ scaleTextColor: value })} />
+        <select className="sm-select small" aria-label={t("smText")} value={s.scaleFontSize} onChange={(event) => onSettings({ scaleFontSize: Number(event.target.value) })}>
           {[10, 11, 12, 13, 14, 16].map((size) => <option key={size}>{size}</option>)}
         </select>
       </div></div>
-      <div className="sm-row"><span className="sm-row-label">{t("smLines")}</span><ColorControl value={s.scaleLineColor} fallback={cssToken("--line", "#2a3242")} onChange={(value) => onSettings({ scaleLineColor: value })} /></div>
+      <div className="sm-row"><span className="sm-row-label">{t("smLines")}</span><ColorControl title={t("smLines")} value={s.scaleLineColor} fallback={cssToken("--line", "#2a3242")} onChange={(value) => onSettings({ scaleLineColor: value })} /></div>
     </Section>
     <Section title={t("smButtons")}>
       <SelectRow label={t("smPane")} value={s.paneButtons} onChange={(value) => onSettings({ paneButtons: value as ChartSettings["paneButtons"] })} options={visibilityOptions(t)} />
