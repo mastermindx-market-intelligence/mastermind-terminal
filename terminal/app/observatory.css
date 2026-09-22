@@ -525,7 +525,7 @@
     min-height: 520px;
   }
 }
-@media (max-width: 640px) {
+@media (max-width: 640px), (pointer: coarse) {
   .obs-gex-mobile-target {
     min-width: 44px;
     min-height: 44px;

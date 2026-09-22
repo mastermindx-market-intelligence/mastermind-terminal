@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
-test("Exposure keeps GEX utility controls touchable on mobile", async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name !== "mobile", "mobile-only touch-target regression");
+test("Exposure keeps GEX utility controls touchable on touch layouts", async ({ page }, testInfo) => {
+  test.skip(!["mobile", "tablet"].includes(testInfo.project.name), "touch-layout regression");
 
   await page.goto("/options?tab=gex");
 
