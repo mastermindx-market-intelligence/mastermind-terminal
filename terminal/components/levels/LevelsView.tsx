@@ -157,6 +157,48 @@ function fmtStrike(x: number | null | undefined): string {
   return x >= 100 ? x.toFixed(2).replace(/\.00$/, "") : x.toFixed(2);
 }
 
+const LEVEL_RUNG_MIN_GAP = 26 / 360;
+const LEVEL_RUNG_EDGE_GUTTER = 14 / 360;
+
+/**
+ * Spread display labels apart while preserving each level's exact raw price Y.
+ * Raw positions are still rendered as anchor ticks; this only moves the readable
+ * rung/button when two prices project too close to fit without overlap.
+ */
+function spreadLevelYs(rawYs: readonly number[]): number[] {
+  if (rawYs.length === 0) return [];
+  const floor = LEVEL_RUNG_EDGE_GUTTER;
+  const ceiling = 1 - LEVEL_RUNG_EDGE_GUTTER;
+  const sorted = rawYs
+    .map((raw, index) => ({
+      index,
+      raw: Math.max(floor, Math.min(ceiling, Number.isFinite(raw) ? raw : 0.5)),
+    }))
+    .sort((a, b) => a.raw - b.raw || a.index - b.index);
+
+  if (sorted.length === 1) return [sorted[0].raw];
+
+  const gap = Math.min(
+    LEVEL_RUNG_MIN_GAP,
+    (ceiling - floor) / (sorted.length - 1),
+  );
+  const placed = new Array<number>(sorted.length);
+  placed[0] = sorted[0].raw;
+  for (let i = 1; i < sorted.length; i += 1) {
+    placed[i] = Math.max(sorted[i].raw, placed[i - 1] + gap);
+  }
+  if (placed[placed.length - 1] > ceiling) {
+    placed[placed.length - 1] = ceiling;
+    for (let i = placed.length - 2; i >= 0; i -= 1) {
+      placed[i] = Math.min(placed[i], placed[i + 1] - gap);
+    }
+  }
+
+  const out = new Array<number>(rawYs.length);
+  sorted.forEach((item, index) => { out[item.index] = placed[index]; });
+  return out;
+}
+
 /** Rounded band [min,max] across every located strike + spot, padded a touch. */
 function priceBand(payload: LevelsPayload | null): [number, number] | null {
   if (!payload) return null;
@@ -259,6 +301,16 @@ export function LevelsView() {
     ),
     [payload]
   );
+  const terrainLayout = useMemo(() => {
+    const rawYs = terrainNodes.map((n) => projY(n.strike as number));
+    const displayYs = spreadLevelYs(rawYs);
+    return terrainNodes.map((node, index) => ({
+      node,
+      index,
+      rawY: rawYs[index],
+      displayY: displayYs[index],
+    }));
+  }, [projY, terrainNodes]);
   const voidNodes = useMemo(
     () => (payload?.nodes ?? []).filter((n) => n.role === "void" && n.strike_lo != null && n.strike_hi != null),
     [payload]
@@ -425,39 +477,68 @@ export function LevelsView() {
                 );
               })}
 
-              {/* strike terrain rungs — one per located weighted node */}
-              {band && terrainNodes.map((n, i) => {
-                const y = projY(n.strike as number) * 100;
+              {/* strike terrain rungs — exact-price anchors + collision-free readable labels */}
+              {band && terrainLayout.map(({ node: n, index: i, rawY, displayY }) => {
                 const b = n.brightness ?? 0;
                 const rgb = n.sticky ? palette.stickyRGB : palette.slipperyRGB;
-                // intensity scales with brightness (bigger = brighter)
                 const fillA = 0.10 + b * 0.42;
-                const w = 30 + b * 60; // rung width % scales with magnitude
+                const w = 30 + b * 60;
+                const shifted = Math.abs(displayY - rawY) > 0.002;
+                const leaderTop = Math.min(rawY, displayY) * 100;
+                const leaderHeight = Math.abs(displayY - rawY) * 100;
                 return (
-                  <button
-                    key={`rung-${i}`}
-                    style={{
-                      ...RUNG,
-                      top: `${y}%`,
-                      width: `${w}%`,
-                      background: `linear-gradient(90deg, rgba(${rgb},${fillA}) 0%, rgba(${rgb},${fillA * 0.25}) 100%)`,
-                      borderLeft: `2px solid rgba(${rgb},${0.5 + b * 0.5})`,
-                    }}
-                    onClick={() => setSelected({
-                      key: `rung-${i}`,
-                      label: `${roleLabel(n.role, lang)} ${ROLE_GLYPH[n.role]}`,
-                      note: n.note,
-                    })}
-                    title={n.note}
-                  >
-                    <span style={{ ...RUNG_GLYPH, color: roleColor(n) }}>
-                      {ROLE_GLYPH[n.role]}
-                    </span>
-                    <span style={RUNG_STRIKE}>{fmtStrike(n.strike)}</span>
-                    <span style={{ ...RUNG_ROLE, color: roleColor(n) }}>
-                      {roleLabel(n.role, lang)}
-                    </span>
-                  </button>
+                  <React.Fragment key={`rung-${i}`}>
+                    {shifted && (
+                      <span
+                        aria-hidden="true"
+                        data-testid="levels-rung-leader"
+                        style={{
+                          ...RUNG_LEADER,
+                          top: `${leaderTop}%`,
+                          height: `${leaderHeight}%`,
+                          background: `rgba(${rgb},0.42)`,
+                        }}
+                      />
+                    )}
+                    <span
+                      aria-hidden="true"
+                      data-testid="levels-rung-anchor"
+                      style={{
+                        ...RUNG_ANCHOR,
+                        top: `${rawY * 100}%`,
+                        width: `${w}%`,
+                        background: `linear-gradient(90deg, rgba(${rgb},${0.64 + b * 0.28}) 0%, rgba(${rgb},0.16) 100%)`,
+                        borderLeft: `2px solid rgba(${rgb},${0.72 + b * 0.24})`,
+                      }}
+                    />
+                    <button
+                      data-testid="levels-rung"
+                      data-strike={fmtStrike(n.strike)}
+                      data-raw-y={rawY.toFixed(6)}
+                      data-display-y={displayY.toFixed(6)}
+                      style={{
+                        ...RUNG,
+                        top: `${displayY * 100}%`,
+                        width: `${w}%`,
+                        background: `linear-gradient(90deg, rgba(${rgb},${fillA}) 0%, rgba(${rgb},${fillA * 0.25}) 100%)`,
+                        borderLeft: `2px solid rgba(${rgb},${0.5 + b * 0.5})`,
+                      }}
+                      onClick={() => setSelected({
+                        key: `rung-${i}`,
+                        label: `${roleLabel(n.role, lang)} ${ROLE_GLYPH[n.role]}`,
+                        note: n.note,
+                      })}
+                      title={n.note}
+                    >
+                      <span style={{ ...RUNG_GLYPH, color: roleColor(n) }}>
+                        {ROLE_GLYPH[n.role]}
+                      </span>
+                      <span style={RUNG_STRIKE}>{fmtStrike(n.strike)}</span>
+                      <span style={{ ...RUNG_ROLE, color: roleColor(n) }}>
+                        {roleLabel(n.role, lang)}
+                      </span>
+                    </button>
+                  </React.Fragment>
                 );
               })}
 
@@ -628,10 +709,17 @@ const COLUMN_LOADING: React.CSSProperties = {
 };
 
 const RUNG: React.CSSProperties = {
-  position: "absolute", left: 0, height: 22, transform: "translateY(-50%)",
+  position: "absolute", left: 0, height: 22, transform: "translateY(-50%)", zIndex: 3,
   display: "flex", alignItems: "center", gap: 8, paddingLeft: 8,
   borderRadius: "0 var(--r) var(--r) 0", cursor: "pointer", textAlign: "left",
   fontFamily: "var(--font-num)",
+};
+const RUNG_LEADER: React.CSSProperties = {
+  position: "absolute", left: 0, width: 1, pointerEvents: "none", zIndex: 1,
+};
+const RUNG_ANCHOR: React.CSSProperties = {
+  position: "absolute", left: 0, height: 2, transform: "translateY(-50%)",
+  borderRadius: "0 2px 2px 0", pointerEvents: "none", zIndex: 2,
 };
 const RUNG_GLYPH: React.CSSProperties = { fontSize: 13, fontWeight: 700, width: 14, textAlign: "center" };
 const RUNG_STRIKE: React.CSSProperties = {

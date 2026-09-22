@@ -540,6 +540,55 @@ test("a pane relayout after a tap re-anchors the tooltip instead of dismissing i
     "the tooltip should sit beside the marker's NEW position").toBeLessThan(300);
 });
 
+test("a tap keeps the marker it started on when geometry moves before pointerup", async ({ page }, testInfo) => {
+  test.skip(!["tablet", "mobile"].includes(testInfo.project.name), "touch viewports only");
+  await openTerminal(page);
+  const target = pick(await settledMarkers(page), RETRO_TS);
+
+  // The physical DOWN establishes marker identity. A chart/pane reflow may move that marker before
+  // the browser dispatches pointerup; release validates whether the gesture stayed a tap, but must
+  // not re-decide what the fingertip originally landed on from the marker's new coordinates.
+  await page.locator("[data-sig-layer]").first().evaluate((svg, at) => {
+    const layer = svg as SVGSVGElement;
+    const marker = [...layer.querySelectorAll<SVGGElement>(":scope > g")].find((group) =>
+      group.querySelector(":scope > title")?.textContent?.startsWith(`${at.t} ·`),
+    );
+    if (!marker) throw new Error(`fixture lost marker ${at.t}`);
+    const before = marker.getBoundingClientRect();
+    const x = before.x + before.width / 2;
+    const y = before.y + before.height / 2;
+    const originalTransform = layer.style.transform;
+    const send = (type: string, buttons: number) => layer.dispatchEvent(new PointerEvent(type, {
+      pointerId: 71, pointerType: "touch", isPrimary: true, bubbles: true, cancelable: true,
+      button: 0, buttons, clientX: x, clientY: y,
+    }));
+
+    send("pointerdown", 1);
+    layer.style.transform = "translateY(-180px)";
+    const after = marker.getBoundingClientRect();
+    if (Math.abs(after.y - before.y) < 100) throw new Error("fixture failed to move marker geometry");
+    send("pointerup", 0);
+    layer.dataset.testOriginalTransform = originalTransform;
+  }, { t: target.t });
+
+  await expect(tip(page)).toBeVisible({ timeout: 5_000 });
+  await expect(tip(page)).toHaveAttribute("data-marker-at", target.t);
+  expect(await tip(page).textContent()).toBe(target.title);
+
+  // The tooltip is anchored beside the marker's CURRENT box, not the stale down coordinates.
+  const moved = pick(await settledMarkers(page), RETRO_TS);
+  const box = await tip(page).boundingBox();
+  expect(box, "the tap tooltip should have a box after the pre-up reflow").toBeTruthy();
+  expect(Math.hypot(box!.x - moved.cx, box!.y - moved.cy),
+    "the tooltip should sit beside the marker's current position").toBeLessThan(300);
+
+  await page.locator("[data-sig-layer]").first().evaluate((svg) => {
+    const layer = svg as SVGSVGElement;
+    layer.style.transform = layer.dataset.testOriginalTransform || "";
+    delete layer.dataset.testOriginalTransform;
+  });
+});
+
 test("a tap still opens the tooltip when the thread stalls between down and up", async ({ page }, testInfo) => {
   test.skip(!["tablet", "mobile"].includes(testInfo.project.name), "touch viewports only");
   await openTerminal(page);

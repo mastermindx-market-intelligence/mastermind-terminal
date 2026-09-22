@@ -1,0 +1,39 @@
+{
+  "sourceHead": "dbbac925c5e179b435e184f329793f6824d555e4",
+  "capturedAt": "2026-09-22T06:22:22Z",
+  "surface": "real /terminal?symbol=NVDA with existing Playwright fixtures",
+  "viewports": {
+    "desktop": [
+      1440,
+      900
+    ],
+    "tablet": [
+      820,
+      1180
+    ],
+    "mobile": [
+      390,
+      844
+    ]
+  },
+  "languages": [
+    "en",
+    "zh"
+  ],
+  "theme": "dark",
+  "command": "TERMINAL_E2E_PORT=3199 npx playwright test e2e/chart-settings-ux.spec.ts e2e/visual-intelligence.spec.ts e2e/crosshair-price-label.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0",
+  "result": {
+    "passed": 73,
+    "skipped": 8,
+    "failed": 0
+  },
+  "screenshots": {
+    "desktop-settings-en.png": "1214f68c5fd7b86adb123cf3dd3da2849dcc7c9dba87860b34c14101bcfa4176",
+    "desktop-settings-zh.png": "be3de1d209c7d22e2fd29f847dfa59a8cc81041dd1301a5f2e98e965b22ec9b2",
+    "mobile-settings-en.png": "65d48e3ea033b8ecbc4ae1386319214590ee2f4f64cb4715ede0dea2e22b7c76",
+    "mobile-settings-zh.png": "584938250e61c5ee7b36f4b1e563446f3e37a7bff5d94ebb829d43e3db77667f",
+    "tablet-settings-en.png": "3510b2e71139a83a17b78bff09ccdd2710e82e4da166a9feb9b3c522dacedbc4",
+    "tablet-settings-zh.png": "cec4cb1e51ce05a856658f6898628cf79386d149473ec6471b8ac608b0b4e6c5"
+  },
+  "productionProof": false
+}
