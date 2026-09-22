@@ -45,10 +45,12 @@ async function openSearchWithTwoLists(page: Page, query: string, testInfo: TestI
   // at 26 minutes' runtime). The persist effect re-writes `mm.wls` from the restored state, so two
   // keys there is the precondition itself, observed rather than assumed.
   await expect.poll(async () => Object.keys(await savedLists(page)).length, { timeout: 30_000 }).toBeGreaterThan(1);
-  await page.locator(".pair").first().click();
-  await page.locator(".sh input").click();
+  const phone = testInfo.project.name === "mobile";
+  await (phone ? page.locator(".m-symbar") : page.locator(".pair").first()).click();
+  const searchSurface = phone ? page.locator(".msheet-search") : page.locator(".smodal-hub");
+  await searchSurface.locator(".sh input").click();
   await page.keyboard.type(query);
-  await expect(page.locator(".sres .r").first()).toBeVisible({ timeout: 20_000 });
+  await expect(searchSurface.locator(".sres .r").first()).toBeVisible({ timeout: 20_000 });
 }
 
 test("the add-to-list picker is fully visible on a one-result search", async ({ page, baseURL }, testInfo) => {
@@ -78,6 +80,41 @@ test("the add-to-list picker is fully visible on a one-result search", async ({ 
   expect(state.rows).toBeGreaterThanOrEqual(3);   // two lists + "New watchlist…"
 
   // …and picking a list actually adds the symbol to it.
+  await page.locator(".s-pick-row", { hasText: "China" }).click();
+  await expect.poll(async () => (await savedLists(page)).China?.map((r: { symbol: string }) => r.symbol) ?? [],
+    { timeout: 10_000 }).toContain("AMD");
+});
+
+test("the add-to-list picker stays above the search sheet on mobile", async ({ page, baseURL }, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile", "Regression is the phone drawer stacking context.");
+
+  await openSearchWithTwoLists(page, "AMD", testInfo, baseURL);
+  expect(await page.locator(".sres .r").count()).toBe(1);
+
+  await page.locator(".sres .r .add").first().click();
+  const pick = page.locator(".s-pick");
+  await expect(pick).toBeVisible();
+
+  // The menu is portalled beside MobileSheet in <body>. Visibility alone is insufficient: the
+  // reported bug rendered it underneath the drawer, where the sheet won hit-testing. Pin both
+  // the layer ordering and the real pointer surface at the picker's centre.
+  const state = await page.evaluate(() => {
+    const picker = document.querySelector<HTMLElement>(".s-pick")!;
+    const sheet = document.querySelector<HTMLElement>(".msheet-search")!;
+    const r = picker.getBoundingClientRect();
+    const centre = document.elementFromPoint((r.left + r.right) / 2, (r.top + r.bottom) / 2);
+    return {
+      onScreen: r.top >= 0 && r.bottom <= window.innerHeight && r.left >= 0 && r.right <= window.innerWidth,
+      hitsPicker: !!centre?.closest(".s-pick"),
+      pickerZ: Number.parseInt(getComputedStyle(picker).zIndex, 10),
+      sheetZ: Number.parseInt(getComputedStyle(sheet).zIndex, 10),
+    };
+  });
+  expect(state.onScreen).toBe(true);
+  expect(state.hitsPicker).toBe(true);
+  expect(state.pickerZ).toBeGreaterThan(state.sheetZ);
+
+  // Prove the user's actual job, not just geometry: choosing a watchlist mutates that list.
   await page.locator(".s-pick-row", { hasText: "China" }).click();
   await expect.poll(async () => (await savedLists(page)).China?.map((r: { symbol: string }) => r.symbol) ?? [],
     { timeout: 10_000 }).toContain("AMD");
