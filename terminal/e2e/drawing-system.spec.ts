@@ -1629,7 +1629,8 @@ test("an indicator-pane drawing holds its place when the price scale rescales", 
 
 test("an indicator-pane drawing stays in its pane when that pane y-axis rescales", async ({ page }) => {
   test.skip((page.viewportSize()?.width ?? 1440) <= 860, DESKTOP_ONLY);
-  await openTerminal(page);
+  const saves: DrawingSavePayload[] = [];
+  await openTerminal(page, { onPut: (payload) => saves.push(payload) });
 
   const chart = page.locator(".pane.on .chart-wrap");
   const layer = chart.locator(".drawing-layer");
@@ -1655,6 +1656,10 @@ test("an indicator-pane drawing stays in its pane when that pane y-axis rescales
   await page.mouse.move(subPane!.left + subPane!.width * 0.55, anchorY + 8);
   await page.mouse.up();
   await expect(strokes).toHaveCount(1);
+  await expect.poll(() =>
+    saves.flatMap((payload) => payload.drawings ?? [])
+      .find((drawing) => drawing.kind === "trendline")?.meta?.paneCoordSpace,
+  ).toBe("pane-value-v2");
 
   const geometry = strokes.first().locator('line:not([stroke="transparent"])').first();
   const before = await geometry.boundingBox();
@@ -1677,6 +1682,36 @@ test("an indicator-pane drawing stays in its pane when that pane y-axis rescales
       && box.y + box.height <= subPane!.top + subPane!.height + 1;
   }, { message: "the rescaled drawing should settle inside its owning pane" }).toBe(true);
   await expect(strokes.first()).toHaveAttribute("clip-path", /drawing-pane-clip/);
+});
+
+test("legacy indicator-pane drawing coordinates migrate into pane value space", async ({ page }) => {
+  test.skip((page.viewportSize()?.width ?? 1440) <= 860, DESKTOP_ONLY);
+  const saves: DrawingSavePayload[] = [];
+  await openTerminal(page, {
+    drawings: [{
+      id: "legacy-macd-pane",
+      kind: "trendline",
+      points: [{ t: "2026-06-12", p: 0 }, { t: "2026-06-18", p: 1 }],
+      color: "#4d82ff",
+      width: 2,
+      dash: "solid",
+      meta: { pane: "macd" },
+    }],
+    onPut: (payload) => saves.push(payload),
+  });
+
+  await expect.poll(() =>
+    saves.flatMap((payload) => payload.drawings ?? [])
+      .find((drawing) => drawing.id === "legacy-macd-pane")?.meta?.paneCoordSpace,
+    { timeout: 5_000, message: "legacy pane drawings should be persisted in the corrected coordinate space" },
+  ).toBe("pane-value-v2");
+
+  const migrated = saves.flatMap((payload) => payload.drawings ?? [])
+    .find((drawing) => drawing.id === "legacy-macd-pane");
+  expect(migrated?.points).toHaveLength(2);
+  expect((migrated?.points?.[0] as { p?: number } | undefined)?.p).not.toBe(0);
+  await expect(page.locator('.pane.on .drawing-layer g[data-id="legacy-macd-pane"]'))
+    .toHaveAttribute("clip-path", /drawing-pane-clip/);
 });
 
 test("selecting a brush stroke shows its bounds, not a handle per sample", async ({ page }) => {

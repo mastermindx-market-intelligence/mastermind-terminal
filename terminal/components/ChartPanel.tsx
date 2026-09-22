@@ -4288,8 +4288,11 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     /** The pane an existing drawing belongs to; absent meta means the price pane. */
     const drawingPaneKey = (d: Pick<Drawing, "meta">): string | null =>
       typeof d.meta?.pane === "string" ? d.meta.pane : null;
+    const PANE_VALUE_SPACE = "pane-value-v2";
     const drawingMetaForPane = (meta: Drawing["meta"] | undefined, paneKey?: string | null): Drawing["meta"] | undefined =>
-      paneKey && paneKey !== PRICE_PANE_KEY ? { ...(meta ?? {}), pane: paneKey } : meta;
+      paneKey && paneKey !== PRICE_PANE_KEY
+        ? { ...(meta ?? {}), pane: paneKey, paneCoordSpace: PANE_VALUE_SPACE }
+        : meta;
     // Lightweight Charts series price coordinates are PANE-local. DrawLayer and
     // pointer coordinates are CHART-root-local. The original indicator-pane fix
     // bound anchors to the right series but passed root y straight through the
@@ -4312,6 +4315,39 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       if (!pane && normalizedPaneKey(paneKey) !== PRICE_PANE_KEY) return null;
       const localY = pane ? py - pane.top : py;
       return s.coordinateToPrice(localY) as number | null;
+    };
+    // PR #481 began persisting the owning pane before the root↔pane Y transform
+    // itself was corrected. Those documents have meta.pane but no coordinate-space
+    // marker, and their p values encode coordinateToPrice(ROOT_Y). Convert them
+    // once, at the first measured pane layout, while preserving their current
+    // on-screen position. Persisting the marker prevents repeat conversion.
+    const migrateLegacyPaneDrawings = () => {
+      let changed = false;
+      const next = drawRef.current.map((drawing) => {
+        const paneKey = drawingPaneKey(drawing);
+        if (!paneKey || drawing.meta?.paneCoordSpace === PANE_VALUE_SPACE) return drawing;
+        const pane = paneLayoutFor(paneKey);
+        const series = seriesForPane(paneKey);
+        if (!pane || !series || !(pane.height > 0)) return drawing;
+        const migrated: Drawing["points"] = [];
+        for (const point of drawing.points) {
+          const legacyRootY = series.priceToCoordinate(point.p) as number | null;
+          if (legacyRootY == null || !Number.isFinite(legacyRootY)) return drawing;
+          const corrected = series.coordinateToPrice(legacyRootY - pane.top) as number | null;
+          if (corrected == null || !Number.isFinite(corrected)) return drawing;
+          migrated.push({ ...point, p: corrected });
+        }
+        changed = true;
+        return {
+          ...drawing,
+          points: migrated,
+          meta: { ...(drawing.meta ?? {}), paneCoordSpace: PANE_VALUE_SPACE },
+        };
+      });
+      if (!changed) return false;
+      drawRef.current = next;
+      onChangeRef.current?.([...next]);
+      return true;
     };
     const yOf = (p: number) => yOfIn(p, null);
     const barIndex = (tm: string) => {
@@ -6807,7 +6843,10 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         });
       }
       layout.sort((a, b) => a.paneIndex - b.paneIndex);
-      paneLayoutRef.current = layout; setPaneLayout(layout);
+      paneLayoutRef.current = layout;
+      const migratedLegacyDrawings = migrateLegacyPaneDrawings();
+      setPaneLayout(layout);
+      if (migratedLegacyDrawings) renderDraw();
     };
     measureRef.current = measureImpl;
     const scheduleMeasure = () => { if (measRaf != null) return; measRaf = requestAnimationFrame(() => { measRaf = null; if (!dead) { measureImpl(); renderTagRef.current?.(); } }); };
