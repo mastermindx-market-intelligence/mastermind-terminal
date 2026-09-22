@@ -5,6 +5,7 @@ import WorkspaceTabs, { type WorkspaceTab } from "@/components/chrome/WorkspaceT
 import OptionsHubView, { type TabKey } from "@/components/OptionsHubView";
 import OptionsWorkflowGuide from "@/components/options/OptionsWorkflowGuide";
 import { useLang, useT } from "@/lib/i18n";
+import s from "./OptionsWorkspace.module.css";
 import {
   OPTIONS_HUB_WORKSPACE_VIEWS,
   OPTIONS_IA_BY_CATEGORY,
@@ -131,7 +132,7 @@ export default function OptionsWorkspace() {
       data-options-ia="seven-category-stage-a"
       style={{ overflow: "hidden", display: "flex", flexDirection: "column" }}
     >
-      <header className="options-ia-nav">
+      <header className={`options-ia-nav ${s.nav}`}>
         <div className="options-ia-row options-ia-category-row">
           <span className="options-ia-row-label">{t("optionsIaCategoryLabel", "Category")}</span>
           <div className="options-ia-main">
