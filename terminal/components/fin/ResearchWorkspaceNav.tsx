@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { FinPage } from "./finPages";
+import { pick } from "../../lib/finFormat";
 import {
   defaultPageForFamily,
   familyForPage,
@@ -105,8 +106,8 @@ export default function ResearchWorkspaceNav({ page, zh, onPage }: ResearchWorks
 
   return (
     <>
-      <nav className="fin-research-nav" aria-label={zh ? "公司研究导航" : "Company research navigation"}>
-        <div className="fin-family-tabs" aria-label={zh ? "公司页面" : "Company pages"}>
+      <nav className="fin-research-nav" aria-label={pick(zh, "Company research navigation", "公司研究导航")}>
+        <div className="fin-family-tabs" aria-label={pick(zh, "Company pages", "公司页面")}>
           {FIN_FAMILY_ORDER.map((family) => {
             const active = family === currentFamily;
             return (
@@ -132,7 +133,7 @@ export default function ResearchWorkspaceNav({ page, zh, onPage }: ResearchWorks
           <>
             <span className="fin-research-nav-divider" aria-hidden />
             <span className="fin-local-label">{familyLabel}</span>
-            <div className="fin-local-tabs fin-local-tabs--desktop" role="tablist" aria-label={`${familyLabel} ${zh ? "视图" : "views"}`}>
+            <div className="fin-local-tabs fin-local-tabs--desktop" role="tablist" aria-label={`${familyLabel} ${pick(zh, "views", "视图")}`}>
               {localPages.map((local) => (
                 <button
                   key={local}
@@ -170,7 +171,7 @@ export default function ResearchWorkspaceNav({ page, zh, onPage }: ResearchWorks
       </nav>
 
       {localPages.length > 1 && (
-        <div className="fin-local-tabs-mobile" role="tablist" aria-label={`${familyLabel} ${zh ? "视图" : "views"}`}>
+        <div className="fin-local-tabs-mobile" role="tablist" aria-label={`${familyLabel} ${pick(zh, "views", "视图")}`}>
           {localPages.map((local) => (
             <button
               key={local}
@@ -192,23 +193,23 @@ export default function ResearchWorkspaceNav({ page, zh, onPage }: ResearchWorks
           <button
             type="button"
             className="fin-family-sheet-scrim"
-            aria-label={zh ? "关闭公司页面菜单" : "Close company page menu"}
+            aria-label={pick(zh, "Close company page menu", "关闭公司页面菜单")}
             onClick={() => {
               setFamilySheetOpen(false);
               window.requestAnimationFrame(() => familyTriggerRef.current?.focus());
             }}
           />
-          <section className="fin-family-sheet" role="dialog" aria-modal="true" aria-label={zh ? "公司页面" : "Company pages"}>
+          <section className="fin-family-sheet" role="dialog" aria-modal="true" aria-label={pick(zh, "Company pages", "公司页面")}>
             <div className="fin-family-sheet-handle" aria-hidden />
             <header>
               <div>
-                <strong>{zh ? "公司页面" : "Company pages"}</strong>
-                <span>{zh ? "选择研究工作区页面" : "Choose a Research Workspace page"}</span>
+                <strong>{pick(zh, "Company pages", "公司页面")}</strong>
+                <span>{pick(zh, "Choose a Research Workspace page", "选择研究工作区页面")}</span>
               </div>
               <button
                 type="button"
                 className="fin-family-sheet-close"
-                aria-label={zh ? "关闭" : "Close"}
+                aria-label={pick(zh, "Close", "关闭")}
                 onClick={() => {
                   setFamilySheetOpen(false);
                   window.requestAnimationFrame(() => familyTriggerRef.current?.focus());
