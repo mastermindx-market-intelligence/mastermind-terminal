@@ -69,7 +69,18 @@ export default function CompareSettings({ sym, cfg, onChange, onClose }: {
   }, []);
   return <dialog ref={dialog} className={styles.dialog} aria-labelledby={`${id}-title`}
     onCancel={(event) => { event.preventDefault(); onClose(); }}
-    onKeyDown={(event) => event.stopPropagation()}
+    onKeyDown={(event) => {
+      event.stopPropagation();
+      if (event.key !== "Tab") return;
+      const controls = [...event.currentTarget.querySelectorAll<HTMLElement>("button:not([disabled]), input:not([disabled])")]
+        .filter((element) => element.getClientRects().length > 0);
+      const first = controls[0], last = controls.at(-1);
+      if (event.shiftKey && document.activeElement === first && last) {
+        event.preventDefault(); last.focus();
+      } else if (!event.shiftKey && document.activeElement === last && first) {
+        event.preventDefault(); first.focus();
+      }
+    }}
     onClick={(event) => { if (event.target === event.currentTarget) onClose(); }}>
     <div className={`ind-set ${styles.card}`}>
       <header className={styles.header}>

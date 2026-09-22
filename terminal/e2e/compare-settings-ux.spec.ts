@@ -1,9 +1,12 @@
 import { expect, test, type Page } from "@playwright/test";
 import { mkdirSync } from "node:fs";
+import { isolateLayoutStore } from "./layoutStore";
 
 async function openSettings(page: Page, touch: boolean) {
   const row = page.locator(".lg-row.is-cmp").filter({ hasText: "AAPL" }).first();
-  if (!await row.isVisible()) await page.locator(".lg-collapse").first().click();
+  await expect(row).toBeAttached();
+  const expand = page.getByTitle(/^(Show indicator list|展开指标列表)$/).first();
+  if (await expand.count()) await expand.click();
   await expect(row).toBeVisible();
   if (touch) await row.locator(".lg-name").click(); else await row.hover();
   await row.getByRole("button", { name: /^(Settings|设置)$/ }).click();
@@ -19,10 +22,11 @@ async function addComparison(page: Page, width: number) {
     await page.getByTestId("roller-more").click();
     await page.getByTestId("hub-tile-compare").click();
   } else {
-    const row = page.locator(".wl-row").filter({ has: page.locator(".tk", { hasText: "AAPL" }) }).first();
-    await row.press("Shift+F10");
-    await page.getByRole("menuitem").filter({ hasText: /Compare|对比/ }).click();
-    await page.locator(".chart-wrap").first().scrollIntoViewIfNeeded();
+    // Tablet comparison creation has a separate existing chrome gap. This case proves
+    // editing a comparison from the user's saved workspace, through the real layout owner.
+    await page.locator('.chart-tabs button').filter({ hasText: /More|更多/ }).click();
+    await page.locator('[data-toolbar-menu-action="layouts"]').click();
+    await page.locator('#chart-toolbar-overflow [data-layout-row="Comparison controls"] > [role="menuitem"]').click();
     return;
   }
   const picker = page.locator(".smodal");
@@ -34,11 +38,22 @@ async function addComparison(page: Page, width: number) {
 }
 
 for (const lang of ["en", "zh"] as const) {
-  test(`[${lang}] comparison settings edit the real overlay without losing modal or saved state`, async ({ page }, info) => {
+  test(`[${lang}] comparison settings edit the real overlay without losing modal or saved state`, async ({ page, baseURL }, info) => {
     await page.addInitScript((language) => localStorage.setItem("mm.lang", language), lang);
     const errors: string[] = [];
     page.on("pageerror", (error) => errors.push(error.message));
     const width = page.viewportSize()!.width;
+    if (width > 640 && width <= 860) {
+      await isolateLayoutStore(page, info, baseURL);
+      const saved = await page.request.post("/api/layouts", { data: {
+        name: "Comparison controls", mode: "create", config: {
+          schemaVersion: 2, panes: ["NVDA"], paneTfs: ["3D"], split: 1, activePane: 0,
+          sync: true, chartType: "candles", inds: ["ema", "vol"], indParams: {}, hidden: [],
+          compare: ["AAPL"], compareCfg: { AAPL: { color: "#e8a33d", lineWidth: 2, lineStyle: 0, mode: "percent" } }, lockedVLine: null,
+        },
+      } });
+      expect(saved.ok()).toBe(true);
+    }
     await addComparison(page, width);
     const dialog = await openSettings(page, width <= 860);
     expect(await dialog.evaluate((element) => element.matches(":modal"))).toBe(true);

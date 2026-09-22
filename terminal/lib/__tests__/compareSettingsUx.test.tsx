@@ -43,8 +43,10 @@ describe("comparison settings preserve color and interaction ownership", () => {
     await render(); await fill("number", "9"); expect(change).not.toHaveBeenCalled();
     await act(async () => input("number").dispatchEvent(new FocusEvent("focusout", { bubbles: true })));
     expect(change).toHaveBeenLastCalledWith({ lineWidth: 4 });
-    console.log("WIDTH_CONTROLS", [...host.querySelectorAll("button")].map(b => [b.getAttribute("aria-label"), b.disabled]));
-    expect(host.querySelector<HTMLButtonElement>('[aria-label="cmpThickness +"]')?.disabled).toBe(true);
+    const increment = [...host.querySelectorAll("button")]
+      .find((button) => button.getAttribute("aria-label") === "cmpThickness +");
+    expect(increment).toBeDefined();
+    expect(increment!.disabled).toBe(true);
   });
   it("owns a named native dialog, labels inputs and supplies a real Close button", async () => {
     await render(); const dialog = host.querySelector("dialog"); expect(dialog?.open).toBe(true);
