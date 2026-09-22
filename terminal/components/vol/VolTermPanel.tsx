@@ -112,7 +112,7 @@ export function VolTermPanel({
 
   return (
     <section className="fin-card" style={{ minWidth: 0 }}>
-      <div className="fin-card-h">
+      <div className="fin-card-h" style={{ flexWrap: "wrap" }}>
         <span>{t("termTitle")}</span>
         {structure && (
           <span
