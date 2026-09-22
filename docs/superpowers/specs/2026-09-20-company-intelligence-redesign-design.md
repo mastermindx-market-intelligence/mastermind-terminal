@@ -94,7 +94,7 @@ The company-page groups replace the current 13 flat tabs:
 
 - Financials: Statements, Statistics, Revenue, Dividends.
 - Earnings: Results, Estimates, Analyst, Transcripts.
-- Market: Technicals, Seasonal.
+- Market: Technicals, Seasonality.
 - Ownership: Insider plus current/future institutional-holder surfaces.
 - Lab: experimental tools.
 - Overview and Intelligence remain first-class direct destinations.
@@ -405,6 +405,8 @@ Current Paper page contains these design states:
 - Research Workspace · Financials vNext · Mobile · 390
 - Research Workspace · Earnings vNext · Dark · 1440
 - Research Workspace · Earnings vNext · Mobile · 390
+- Research Workspace · Market vNext · Dark · 1440
+- Research Workspace · Market vNext · Mobile · 390
 - Implementation Note · Hero Artwork Edge Treatment
 
 Paper is the visual design reference; repository contracts remain the implementation authority for data, source, auth, lifecycle and deployment behavior.
