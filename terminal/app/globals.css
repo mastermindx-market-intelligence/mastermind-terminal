@@ -3799,6 +3799,12 @@ body.col-resizing .wl-rz::after{background:var(--brand)}
   }
   .options-flow-board-receipts::-webkit-scrollbar{display:none}
   .options-flow-board-receipt{flex:0 0 108px;padding:8px}
+  .options-flow-board-receipt span{
+    min-height:20px;
+    overflow:visible;
+    text-overflow:clip;
+    white-space:normal;
+  }
   .options-flow-board-controls{
     align-items:end;
     gap:6px;
