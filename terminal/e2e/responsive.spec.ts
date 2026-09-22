@@ -558,6 +558,25 @@ test("Prophet fills its Options workspace at every supported width", async ({ pa
 });
 
 test("Levels keeps the gamma map and named-level rail reachable at every supported width", async ({ page }, testInfo) => {
+  await page.route("**/api/flow?**", async (route) => {
+    const url = new URL(route.request().url());
+    if (url.searchParams.get("f") !== "levels:SPY") {
+      await route.fallback();
+      return;
+    }
+    const response = await route.fetch();
+    const body = await response.json() as {
+      nodes?: Array<{ role?: string; strike?: number | null }>;
+      [key: string]: unknown;
+    };
+    const nodes = (body.nodes ?? []).map((node) => {
+      if (node.role === "call_wall") return { ...node, strike: 775.5 };
+      if (node.role === "cluster" && node.strike === 770) return { ...node, strike: 775.25 };
+      return node;
+    });
+    await route.fulfill({ response, json: { ...body, nodes } });
+  });
+
   await page.goto("/options?tab=levels");
 
   const levelsTab = page.locator("#wtab-levels");
@@ -601,6 +620,27 @@ test("Levels keeps the gamma map and named-level rail reachable at every support
   await expect(keystone).toContainText("775");
   await keystone.click();
   await expect(rail).toContainText("The largest gamma concentration");
+
+  // The routed Levels payload crowds Ceiling/Cluster/Keystone within 0.5 points.
+  // Their exact-price anchors stay put, while readable rungs must never overlap.
+  const rungs = board.getByTestId("levels-rung");
+  await expect(rungs).toHaveCount(8);
+  const rungGeometry = await rungs.evaluateAll((els) => els.map((el) => {
+    const rect = el.getBoundingClientRect();
+    return {
+      top: rect.top,
+      bottom: rect.bottom,
+      rawY: Number(el.getAttribute("data-raw-y")),
+      displayY: Number(el.getAttribute("data-display-y")),
+    };
+  }));
+  const orderedRungs = [...rungGeometry].sort((a, b) => a.top - b.top);
+  for (let i = 1; i < orderedRungs.length; i += 1) {
+    expect(orderedRungs[i].top).toBeGreaterThanOrEqual(orderedRungs[i - 1].bottom + 1);
+  }
+  expect(rungGeometry.some((r) => Math.abs(r.rawY - r.displayY) > 0.002)).toBe(true);
+  await expect(board.getByTestId("levels-rung-leader").first()).toBeVisible();
+  await expect(board.getByTestId("levels-rung-anchor")).toHaveCount(8);
 
   const viewportWidth = page.viewportSize()?.width ?? 1440;
   const pageWidth = await page.evaluate(() => ({
