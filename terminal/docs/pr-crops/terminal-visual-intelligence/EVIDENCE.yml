@@ -1,11 +1,11 @@
 # Terminal Visual Intelligence Layer — chart-settings candidate recapture
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 360b2b1dbdb14eb0b4155321de08544e815b5164 (exact source candidate)
-# capturedAt: 2026-09-22T02:49:10.193986+00:00
+# capturedAtHead: 3603ab2ac4d63b469183e4aa03d0a47bd982f5d7 (exact source candidate)
+# capturedAt: 2026-09-22T09:53:43.966707+00:00
 # Content-addressed layoutFiles + cropFiles, not ancestry, identify this capture.
 layoutFiles:
-  terminal/components/ChartPanel.tsx: "95663d55ea55110df924fe675d4988f57a240e55af8eb94d72d7e0ccd90f0582"
+  terminal/components/ChartPanel.tsx: "f256f64d6a95a3c93dc394fe70f7602b6d87f362065d62c6c975e5539b20d470"
   terminal/components/ChartSettingsModal.tsx: "f26bd7dcbb9bd23e96546e835dec4c62c593b9c4d7412c411511005e7418146e"
   terminal/components/ChartSettingsModal.module.css: "a1685d103511e11882f8d379b22570f018e47aed88266db5ca6fec8808100b0a"
   terminal/components/DrawingSidebar.tsx: "95910121c08efa2a41bcaac02ec626a48bc98021bbbf9e611ff0b61f7baaf6d9"
@@ -19,12 +19,12 @@ layoutFiles:
   terminal/lib/suites/trend/candlePainter.ts: "8384d2bce3af939a51e88584b1436ee2898a89f0fbf1aedc09ffee624a3e12e1"
   terminal/lib/indicator-canvas/host.ts: "4f2949efb22b8c378cab1ff9d176466c4857073c14a36ee4f0eeab4ec1015a25"
 cropFiles:
-  desktop-context.png: "a36cb7e49f72fa25f9e6cb4b371960fef396d961593585364410af0bee4b509b"
-  desktop-context-zh.png: "707cda3f08f74f0225feee01ed540a67ba23a16fbb9ebd1853b8bdbcb1c70b61"
-  tablet-context.png: "ae74511e3215bf76f6809f2b1625d0b2efeb328033345692572428221941c440"
-  tablet-context-zh.png: "242ec611fa129aaef3839ab9fab4875f4e9cc9c5c1b590aa7a9ea246c465ad08"
-  mobile-context.png: "8404c98b5ad63f3006f9236a2dce6b693ff1a9f4349275876f98ef35e8624865"
-  mobile-context-zh.png: "94aebd74808ed9407bb386c28cb5e46be3979b12d8dfd6d03a61fb5516472e33"
+  desktop-context.png: "699f789ca64e633b428c21fd9fb5932cab3772d76cf77358be42e70b2174783a"
+  desktop-context-zh.png: "50f253ff5f52ad8cb94e0d797fc709c3ca3bee89c9f05bd0b328a4d5f231ac4d"
+  tablet-context.png: "8a7be04a97d521651ae8e48abf1cd3fa7777ee6d95d0f54c7497a659536ed5e7"
+  tablet-context-zh.png: "af11a2dfdee036398bdc05a848c2121a6e69fd52963c1065569f6f8be010dd30"
+  mobile-context.png: "c0463ba1088b5f844d371e4ca8937eb5e57357ac3bbc4c1581201e74445f70c8"
+  mobile-context-zh.png: "7294acb2c3d5c13538667cf9a0d6bf76b7bc5bb6d18c9a96c83c5df4acf10038"
 
 theme: dark
 languages: [en, zh]
@@ -37,19 +37,19 @@ harness: /terminal?symbol=NVDA
 capture_flag: TERMINAL_E2E_FIXTURE
 capture_flag_law: Standard Playwright fixture also disables the Next.js dev indicator.
 commands:
-  - TERMINAL_E2E_PORT=3219 npx playwright test e2e/chart-settings-ux.spec.ts e2e/visual-intelligence.spec.ts e2e/crosshair-price-label.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --max-failures=1
-  - TERMINAL_E2E_PORT=3219 npx playwright test e2e/chart-view-reset.spec.ts --project=mobile --workers=1 --grep 'New chart tickers reserve space'
+  - TERMINAL_E2E_PORT=36931 npx playwright test e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --reporter=list
+  - TERMINAL_E2E_PORT=36931 npx playwright test e2e/chart-view-reset.spec.ts --project=mobile --workers=1 --retries=0 --grep 'New chart tickers reserve space'
 browserResults:
   desktop: 10/10 passed
   tablet: 10/10 passed
   mobile: 10/10 passed
   mobileCrosshairRegression: 1/1 passed
-  combinedSettingsContextPriceLabels: 73 passed; 8 viewport-specific skips; zero failures
+  visualIntelligenceMatrix: 30 passed; zero failures
 localGates:
   typecheck: PASS
-  scopedLint: PASS; zero warnings
+  scopedLint: NOT_RERUN; evidence refresh does not claim a new lint receipt
   plainLanguage: Existing localized copy retained; separate copy guard not rerun
-  vitest: 377 files passed; 6072 tests passed; 4 todo
+  vitest: 378 files passed; 6081 tests passed; 4 todo
 files:
   - desktop-context.png
   - desktop-context-zh.png
