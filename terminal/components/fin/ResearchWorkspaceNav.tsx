@@ -107,7 +107,7 @@ export default function ResearchWorkspaceNav({ page, zh, onPage }: ResearchWorks
   return (
     <>
       <nav className="fin-research-nav" aria-label={pick(zh, "Company research navigation", "公司研究导航")}>
-        <div className="fin-family-tabs" aria-label={pick(zh, "Company pages", "公司页面")}>
+        <div className="fin-family-tabs" role="tablist" aria-label={pick(zh, "Company pages", "公司页面")}>
           {FIN_FAMILY_ORDER.map((family) => {
             const active = family === currentFamily;
             return (
@@ -116,7 +116,10 @@ export default function ResearchWorkspaceNav({ page, zh, onPage }: ResearchWorks
                 id={`fin-family-${family}`}
                 type="button"
                 className={`fin-family-tab${active ? " on" : ""}`}
-                aria-current={active ? "page" : undefined}
+                role="tab"
+                aria-selected={active}
+                aria-controls="fin-active-panel"
+                tabIndex={active ? 0 : -1}
                 data-fin-family={family}
                 onClick={() => chooseFamily(family)}
                 onKeyDown={(event) => {
@@ -157,17 +160,22 @@ export default function ResearchWorkspaceNav({ page, zh, onPage }: ResearchWorks
           </>
         )}
 
-        <button
-          ref={familyTriggerRef}
-          type="button"
-          className="fin-family-mobile-trigger"
-          aria-haspopup="dialog"
-          aria-expanded={familySheetOpen}
-          onClick={() => setFamilySheetOpen(true)}
-        >
-          <span>{familyLabel}</span>
-          <span aria-hidden>⌄</span>
-        </button>
+        <div className="fin-family-mobile-tablist" role="tablist" aria-label={pick(zh, "Company pages", "公司页面")}>
+          <button
+            ref={familyTriggerRef}
+            type="button"
+            className="fin-family-mobile-trigger"
+            role="tab"
+            aria-selected="true"
+            aria-controls="fin-active-panel"
+            aria-haspopup="dialog"
+            aria-expanded={familySheetOpen}
+            onClick={() => setFamilySheetOpen(true)}
+          >
+            <span>{familyLabel}</span>
+            <span aria-hidden>⌄</span>
+          </button>
+        </div>
       </nav>
 
       {localPages.length > 1 && (

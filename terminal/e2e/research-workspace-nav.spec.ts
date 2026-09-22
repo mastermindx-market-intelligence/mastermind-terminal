@@ -15,7 +15,7 @@ test("company page families preserve exact FinPage deep links", async ({ page })
     await expect(page.locator(".fin-local-mobile-tab.on")).toHaveText("Statements");
     await page.locator(".fin-local-mobile-tab", { hasText: "Revenue" }).click();
   } else {
-    await expect(page.locator('[data-fin-family="financials"]')).toHaveAttribute("aria-current", "page");
+    await expect(page.locator('[data-fin-family="financials"]')).toHaveAttribute("aria-selected", "true");
     await expect(page.locator('[data-fin-local="statements"]')).toHaveAttribute("aria-selected", "true");
     await page.locator('[data-fin-local="revenue"]').click();
   }
