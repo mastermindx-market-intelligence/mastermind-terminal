@@ -93,7 +93,7 @@ Company switching is a first-class Research Workspace interaction, not another p
 The company-page groups replace the current 13 flat tabs:
 
 - Financials: Statements, Statistics, Revenue, Dividends.
-- Earnings: Earnings, Transcripts, Analyst.
+- Earnings: Results, Estimates, Analyst, Transcripts.
 - Market: Technicals, Seasonal.
 - Ownership: Insider plus current/future institutional-holder surfaces.
 - Lab: experimental tools.
@@ -107,13 +107,14 @@ The preferred Paper reference is Company Intelligence · Navigation Preferred ·
 
 ## 7. Information architecture
 
-Replace the audit-first inner navigation with five research lenses:
+Replace the audit-first inner navigation with four Intelligence-local views:
 
 - **Brief** — synthesis-first default.
-- **Results & outlook** — reported changes, comparable deltas, guidance, call read-through.
-- **Transcript** — searchable call, topics, analyst exchanges, source spans.
-- **Ownership** — point-in-time tracked-manager 13F context.
+- **Results & outlook** — reported changes, comparable deltas, guidance and qualified forward context.
+- **Call & Q&A** — searchable call, topics, analyst exchanges and source spans over the canonical transcript owner.
 - **Sources** — coverage, receipts, clocks, missingness, method and integrity boundaries.
+
+Expanded institutional/insider research is deliberately not a fifth Intelligence-local view; it belongs to the shared top-level Ownership page family.
 
 Event history remains a persistent period selector rather than a full competing lens. Topics become a transcript/call-map capability rather than an isolated page tab. Existing deep functions remain reachable even when their first-frame position changes.
 
@@ -400,6 +401,10 @@ Current Paper page contains these design states:
 - Research Workspace · Page Family Map
 - Research Workspace · Overview vNext · Dark · 1440
 - Research Workspace · Overview vNext · Mobile · 390
+- Research Workspace · Financials vNext · Dark · 1440
+- Research Workspace · Financials vNext · Mobile · 390
+- Research Workspace · Earnings vNext · Dark · 1440
+- Research Workspace · Earnings vNext · Mobile · 390
 - Implementation Note · Hero Artwork Edge Treatment
 
 Paper is the visual design reference; repository contracts remain the implementation authority for data, source, auth, lifecycle and deployment behavior.
