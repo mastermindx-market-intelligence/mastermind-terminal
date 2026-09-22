@@ -18,6 +18,7 @@ import type { Lang } from "@/lib/i18n";
 import { makeStructureT } from "./structureStrings";
 import type { OiChangePayload, OiChangeRow } from "./structureTypes";
 import { fmtOi, fmtDelta, ProvenanceLine, PanelEmpty, NEUTRAL_CHIP } from "./structureShared";
+import s from "./OiChangePanel.module.css";
 
 type SortKey = "d_oi" | "d_oi_pct" | "oi" | "oi_prev" | "dte";
 
@@ -88,11 +89,11 @@ export function OiChangePanel({
         {prev && <span style={{ ...NEUTRAL_CHIP, fontWeight: 500 }}>{t("changePrevCaption").replace("{date}", prev)}</span>}
         <span style={{ flex: 1 }} />
         <div role="group" aria-label={t("changeScopeAria")} style={{ display: "flex", gap: 6 }}>
-          <button className={`chip${scope === "root" ? " on" : ""}`} style={SCOPE_CHIP}
+          <button className={`chip ${s.scopeChip}${scope === "root" ? " on" : ""}`} style={SCOPE_CHIP}
             aria-pressed={scope === "root"} onClick={() => onScope("root")}>
             {t("changeScopeRoot")}
           </button>
-          <button className={`chip${scope === "all" ? " on" : ""}`} style={SCOPE_CHIP}
+          <button className={`chip ${s.scopeChip}${scope === "all" ? " on" : ""}`} style={SCOPE_CHIP}
             aria-pressed={scope === "all"} onClick={() => onScope("all")}>
             {t("changeScopeAll")}
           </button>
@@ -118,6 +119,7 @@ export function OiChangePanel({
                     {c.key ? (
                       <button
                         type="button"
+                        className={s.sortButton}
                         style={TH_BTN}
                         aria-label={t("sortAria").replace("{col}", c.label)}
                         onClick={() => onSort(c.key as SortKey)}
