@@ -10,10 +10,8 @@ test("a cached symbol picker stays usable during refresh and receives the correc
   const cached = structuredClone(current);
   cached.symbols.NVDA.name = "Cached NVIDIA company";
   current.symbols.NVDA.name = "Refreshed NVIDIA company";
-  // Warm the production cache through its normal HTTP read, then expire only wall time.
-  // setFixedTime keeps timers/animation running; no sleep or widened timeout is needed.
-  const startedAt = new Date("2026-09-21T18:00:00Z");
-  await page.clock.setFixedTime(startedAt);
+  // Let the real chart initialize on its real clock. This contract controls only the
+  // cache-expiry transition AFTER warm data and chart readiness have been observed.
   await page.addInitScript(() => {
     localStorage.setItem("mm.lang", "en");
     const state = window as Window & { __warmPickerChartReady?: boolean };
@@ -32,7 +30,8 @@ test("a cached symbol picker stays usable during refresh and receives the correc
     await expect(page.locator(".chart-wrap canvas").first()).toBeVisible({ timeout: 20_000 });
     await expect.poll(() => page.evaluate(() => (window as Window & { __warmPickerChartReady?: boolean }).__warmPickerChartReady)).toBe(true);
     await expect(page.locator(".app").first()).toContainText("Cached NVIDIA company");
-    await page.clock.setFixedTime(new Date(startedAt.getTime() + 90_000));
+    const warmedAt = await page.evaluate(() => Date.now());
+    await page.clock.setFixedTime(new Date(warmedAt + 90_000));
     // The first real client navigation starts a refresh; the second must not await it.
     await page.locator('.appnav a[href^="/portfolio"]').click();
     await expect(page).toHaveURL(/\/portfolio/);
