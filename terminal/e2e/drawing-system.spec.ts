@@ -1722,3 +1722,62 @@ test("collapsing an indicator pane hides its plot and drawings until restore", a
     return Math.max(...canvases);
   }).toBeGreaterThan(collapsed!.height * 2);
 });
+
+
+test("coarse pane collapse hides plot paint and remains restorable", async ({ page }) => {
+  test.skip((page.viewportSize()?.width ?? 1440) > 860, "Coarse legend path only.");
+  await page.addInitScript(() => {
+    localStorage.setItem("mm.inds", JSON.stringify(["stochrsi"]));
+    localStorage.setItem("mm.lang", "en");
+  });
+  await openTerminal(page);
+
+  const stoch = page.locator(".lg-row").filter({ hasText: /Stochastic RSI/i }).first();
+  const legendToggle = page.locator(".lg-collapse").first();
+  if (!(await stoch.isVisible().catch(() => false)) && await legendToggle.count()) {
+    await legendToggle.click();
+  }
+  await expect(stoch).toBeVisible({ timeout: 10_000 });
+
+  await stoch.locator(".lg-name").click();
+  await expect(stoch).toHaveClass(/is-armed/);
+  await stoch.getByRole("button", { name: "More" }).click();
+  const menu = page.locator(".lg-more:visible");
+  await expect(menu).toBeVisible();
+  await menu.getByText("Collapse pane", { exact: true }).click();
+
+  const mask = page.locator("[data-collapsed-pane-mask]");
+  await expect(mask).toHaveCount(1);
+  const collapsed = await mask.boundingBox();
+  expect(collapsed).not.toBeNull();
+  expect(collapsed!.height).toBeGreaterThan(2);
+  expect(collapsed!.height).toBeLessThan(40);
+
+  // LWC's pane separator deliberately owns the top paint slot while resizing. The opaque
+  // collapsed-pane mask must still paint above both pane canvases, which hides series and
+  // persisted drawing SVG output without disabling the separator.
+  const stack = await page.evaluate(({ x, y }) =>
+    document.elementsFromPoint(x, y).map((el) => ({
+      tag: el.tagName,
+      mask: el.getAttribute("data-collapsed-pane-mask"),
+    })),
+  {
+    x: collapsed!.x + collapsed!.width * 0.65,
+    y: collapsed!.y + collapsed!.height * 0.5,
+  });
+  const maskIndex = stack.findIndex((entry) => entry.mask != null);
+  const canvasIndex = stack.findIndex((entry) => entry.tag === "CANVAS");
+  expect(maskIndex).toBeGreaterThanOrEqual(0);
+  expect(canvasIndex).toBeGreaterThan(maskIndex);
+
+  const collapsedOps = page.locator(".pane-ops.is-collapsed:visible");
+  await expect(collapsedOps).toBeVisible();
+  const restore = collapsedOps.getByRole("button", { name: "Restore pane" });
+  await expect(restore).toBeVisible();
+  if (isPhone(page)) {
+    // Phone still retires ordinary pane ops; collapse exposes exactly one recovery affordance.
+    await expect(collapsedOps.locator("button:visible")).toHaveCount(1);
+  }
+  await restore.click();
+  await expect(mask).toHaveCount(0);
+});

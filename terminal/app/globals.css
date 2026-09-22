@@ -5036,9 +5036,16 @@ html[data-shell="app"] .mm-brandbug{
      (the strip's wheel), not two. Tablet and desktop keep the row. */
   .app:not(.shell-app) .chart-frame-bar{display:none}
   /* R2c — one expansion affordance on the phone. `.chart-fs-float` keeps the whole
-     workspace verb; the per-pane maximize/restore strip is retired here because a
-     double-tap on a pane already toggles it (ChartPanel's touch path). */
+     workspace verb; the per-pane maximize strip is retired here because a double-tap on a pane
+     already toggles it (ChartPanel's touch path). A deliberately collapsed pane is the exception:
+     collapse has no double-tap inverse, so expose only its Restore button until the pane returns. */
   .app:not(.shell-app) .pane-ops{display:none}
+  .app:not(.shell-app) .pane-ops.is-collapsed{display:inline-flex}
+  .app:not(.shell-app) .pane-ops.is-collapsed .po-ic:not(.on){display:none}
+  /* The coarse More menu is fixed inside the chart's stacking context. On a phone the detail rail
+     follows the workspace in normal flow and otherwise intercepts the lower menu rows. Raise the
+     workspace only while that menu exists; the fixed menu can then receive Collapse/other taps. */
+  .app:not(.shell-app) .workspace:has(.lg-more){z-index:31}
   /* R2.3 fold rule — the chart takes the whole band the toolbar row used to occupy
      (it now starts 48px higher) and the height is tuned so that at rest the fold
      lands JUST UNDER the GOLDEN ORACLE / RESEARCH DESK row with TREND below it. At

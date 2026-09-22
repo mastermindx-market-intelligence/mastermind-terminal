@@ -261,7 +261,7 @@ export default function ChartOverlays(props: {
             )}
 
             {showPaneOps && (
-              <div className="pane-ops" style={{ top: p.top + 3, right: 10 }}>
+              <div className={`pane-ops${p.collapsed ? " is-collapsed" : ""}`} style={{ top: p.top + 3, right: 10 }}>
                 {/* on coarse, hide move/remove — only restore affordance (collapse/maximize) */}
                 {!coarse && !priceRestoreOnly && <>
                   <button className="po-ic" data-tip={t("pmMovePaneUp")} disabled={!props.canMoveUp(p.paneIndex)} onClick={stop(() => { props.onMoveUp(p.paneIndex); doFlip(p.paneIndex + ":up"); })} aria-label={t("pmMovePaneUp")}>{flip?.key === p.paneIndex + ":up" ? <span key={flip.n} className="po-flip">{I(ICONS.up)}</span> : I(ICONS.up)}</button>
