@@ -1,0 +1,59 @@
+{
+  "schema": "mastermind.collapsed_pane_evidence/v1",
+  "sourceHead": "7e574284cb851058d0cd6627442d97de2a14776d",
+  "capturedAt": "2026-09-22T07:05:24.146Z",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "theme": "dark",
+  "browserReceipts": {
+    "en": {
+      "console": [],
+      "page": [],
+      "http": []
+    },
+    "zh": {
+      "console": [],
+      "page": [],
+      "http": []
+    }
+  },
+  "captures": [
+    {
+      "name": "desktop-expanded-en",
+      "file": "desktop-expanded-en.png",
+      "sha256": "f9522e51d58cc75f8824c47878414108b3ba3a6721556360c942620a5f97e1ff",
+      "paneHeight": 720,
+      "state": "expanded"
+    },
+    {
+      "name": "desktop-collapsed-en",
+      "file": "desktop-collapsed-en.png",
+      "sha256": "2df75ae6447dfe1430f20ff1da42b0e9ae2c856e458a64479048cd279adf73af",
+      "state": "collapsed",
+      "collapsedHeight": 12,
+      "originalHeight": 720,
+      "maskIsTopmost": true,
+      "drawingStillPersisted": true
+    },
+    {
+      "name": "desktop-restored-en",
+      "file": "desktop-restored-en.png",
+      "sha256": "bbafaba4e03086cbc995ac8314d02bfca7d952590ada46231bf905b5c86c9ffb",
+      "state": "restored"
+    },
+    {
+      "name": "desktop-collapsed-zh",
+      "file": "desktop-collapsed-zh.png",
+      "sha256": "2e38a2ddafde14a9d1b567359a6740456f4468e981b2b8be6310d03fa9e96919",
+      "state": "collapsed",
+      "collapsedHeight": 12
+    }
+  ],
+  "packagedAtHead": "95a5bbbf8f806f929b15eed79e65c2c1b506b0f8",
+  "sourceFiles": {
+    "components/ChartOverlays.tsx": "350d942fce28aa16b08a4165648507dcee2b20431dfe808ca169cec67fae7c29",
+    "e2e/drawing-system.spec.ts": "13a0c034a4be5e2ef49ff875b472564a064de24106a60fce8b21f8ac112d7df0"
+  }
+}
