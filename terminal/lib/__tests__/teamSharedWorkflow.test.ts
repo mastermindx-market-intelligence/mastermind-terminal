@@ -558,6 +558,73 @@ describe("team-shared workspaces — who can write", () => {
     expect(loaded.data ?? null).toBeNull();
   });
 
+  it("fixture RLS hides a foreign principal's private row from id reads and every mutation", async () => {
+    const suffix = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    const key = `wf-fix-private-${suffix}`;
+    const owner = fixtureLayoutUserId(key);
+    const foreign = fixtureLayoutUserId(key, "foreign");
+    const foreignTeam = `foreign-team-${suffix}`;
+    const ownerDb = createLayoutFixtureDb(key, "", null, owner);
+    const inserted = await ownerDb
+      .from("chart_layouts")
+      .insert({
+        user_id: owner,
+        name: "Private",
+        config: WS1,
+        visibility: "private",
+        team_id: null,
+        updated_at: "2026-01-02T00:00:00.000Z",
+      })
+      .select("id");
+    const id = (inserted.data as Row[] | undefined)?.[0]?.id;
+    expect(typeof id).toBe("string");
+
+    const foreignDb = createLayoutFixtureDb(
+      key,
+      "",
+      { teamId: foreignTeam, role: "owner", teamName: "Foreign Desk" },
+      foreign,
+    );
+    const loaded = await foreignDb.from("chart_layouts").select("id").eq("id", id).maybeSingle();
+    expect(loaded.data ?? null).toBeNull();
+
+    // Exercise the fixture DB directly: the application helpers below read before writing,
+    // so they cannot by themselves prove that an id-only raw mutation respects fixture RLS.
+    const rawUpdate = await foreignDb
+      .from("chart_layouts")
+      .update({ name: "Raw Stolen" })
+      .eq("id", id)
+      .select("id");
+    expect(rawUpdate.error).toBeUndefined();
+    expect(rawUpdate.data).toEqual([]);
+    const rawDelete = await foreignDb
+      .from("chart_layouts")
+      .delete()
+      .eq("id", id)
+      .select("id");
+    expect(rawDelete.error).toBeUndefined();
+    expect(rawDelete.data).toEqual([]);
+
+    expect(await saveWorkspace(foreignDb, foreign, "Private", WS1, 1, String(id)))
+      .toEqual({ ok: false, reason: "not_found" });
+    expect(await renameWorkspace(foreignDb, foreign, "Private", "Stolen", 1, String(id)))
+      .toEqual({ ok: false, reason: "not_found" });
+    expect(await duplicateWorkspace(foreignDb, foreign, "Private", "Stolen Copy", String(id)))
+      .toEqual({ ok: false, reason: "not_found" });
+    expect(await deleteLayout(foreignDb, foreign, String(id)))
+      .toEqual({ ok: false, reason: "not_found" });
+    const sharing = await setWorkspaceSharing(foreignDb as any, foreign, {
+      id,
+      sharing: "team",
+      teamId: foreignTeam,
+    });
+    expect(sharing.ok).toBe(false);
+    if (!sharing.ok) expect(sharing.code).toBe("workspace_not_found");
+
+    const ownerRows = await listVisibleWorkspaces(ownerDb as any, owner);
+    expect(ownerRows.ok && ownerRows.layouts.map((row) => row.name)).toContain("Private");
+  });
+
   it("a write that touches zero rows is a refusal, never a success", async () => {
     const { db } = makeDb({ layouts: [sharedRow(OWNER)], ...seedTeam(), updateZero: true });
     const result = await setWorkspaceSharing(db as any, OWNER, {

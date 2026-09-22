@@ -33,6 +33,15 @@ export async function joinLayoutTeam(
   ]);
 }
 
+/** Select a distinct synthetic identity while retaining the same fixture store/team. */
+export async function useLayoutIdentity(page: Page, identity: string, baseURL?: string) {
+  await page.context().addCookies([{
+    name: "mm_e2e_layout_user",
+    value: identity,
+    url: baseURL ?? DEFAULT_BASE,
+  }]);
+}
+
 /**
  * Make one class of layout statement fail, the way a Supabase outage would.
  *
