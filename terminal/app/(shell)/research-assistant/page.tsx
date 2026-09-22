@@ -6,11 +6,8 @@ import EvidenceToThesisWorkspace from "@/components/workspaces/EvidenceToThesisW
 export const metadata: Metadata = { title: "Research assistant · Mastermind Terminal" };
 
 export default async function ResearchAssistantPage() {
-  if (process.env.NODE_ENV !== "production" && process.env.ANALYSIS_LOCAL_PREVIEW === "1") {
-    return <EvidenceToThesisWorkspace />;
-  }
   const supabase = await createClient();
-  const { data } = await supabase.auth.getClaims();
-  if (typeof data?.claims?.sub !== "string") return <SignupGate surface="analysis" />;
-  return <EvidenceToThesisWorkspace />;
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return <SignupGate surface="analysis" />;
+  return <EvidenceToThesisWorkspace key={user.id} ownerId={user.id} />;
 }
