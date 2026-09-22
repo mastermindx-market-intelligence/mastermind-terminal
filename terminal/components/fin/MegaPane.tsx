@@ -40,6 +40,7 @@ import TechLabPanel from "./TechLabPanel";
 import TranscriptDrawer from "./TranscriptDrawer";
 import TranscriptsPage from "./TranscriptsPage";
 import CompanyIntelligencePage from "./CompanyIntelligencePage";
+import ResearchWorkspaceNav from "./ResearchWorkspaceNav";
 import { isTranscriptId } from "../../lib/transcripts";
 import type { TranscriptOpenTarget } from "../../lib/transcriptSearch";
 
@@ -49,7 +50,7 @@ import type { TranscriptOpenTarget } from "../../lib/transcriptSearch";
 // cancels the dynamic() split that mounts it. See finPages.ts for the full contract.
 // Re-exported so the fundamentals surfaces keep their single import site.
 export { FIN_PAGES, type FinPage } from "./finPages";
-import { FIN_PAGES, type FinPage } from "./finPages";
+import type { FinPage } from "./finPages";
 
 const PAGE_LABELS: Record<FinPage, [string, string]> = {
   overview: ["Overview", "概览"],
@@ -179,11 +180,25 @@ export default function MegaPane({
     };
   }, [workspace]);
 
-  // ── ?pane= deep-link sync (shallow, no navigation) ──
+  // ── legacy ?pane= deep-link sync (chart overlay only) ──
   useEffect(() => {
     if (typeof window === "undefined") return;
     const url = new URL(window.location.href);
-    // The parent hydrates `page` from the same incoming query string in its own
+
+    // /analysis owns one canonical URL key: ?page=. The server still accepts a
+    // legacy ?pane= deep link (analysisRoute.ts) and hydrates `page` from it,
+    // but once mounted the workspace removes the mirror instead of maintaining
+    // two independently-mutated URL authorities. The chart overlay keeps its
+    // historical ?pane= contract unchanged.
+    if (workspace) {
+      if (url.searchParams.has("pane")) {
+        url.searchParams.delete("pane");
+        window.history.replaceState(window.history.state, "", url.toString());
+      }
+      return;
+    }
+
+    // The chart parent may hydrate `page` from an incoming pane query in its own
     // effect. Preserve that first valid target instead of replacing it with the
     // component's default page before hydration has completed.
     if (!initialPaneSync.current) {
@@ -194,7 +209,7 @@ export default function MegaPane({
       url.searchParams.set("pane", page);
       window.history.replaceState(window.history.state, "", url.toString());
     }
-  }, [page]);
+  }, [page, workspace]);
   // Hydrate an optional transcript deep-link after the client URL is available.
   // Changing away from the archive closes the document and clears its URL key.
   useEffect(() => {
@@ -232,18 +247,6 @@ export default function MegaPane({
 
   const navigate = useCallback((p: FinPage) => onPage(p), [onPage]);
 
-  const moveTabFocus = useCallback((current: FinPage, key: string) => {
-    const index = FIN_PAGES.indexOf(current);
-    const next = key === "ArrowRight" ? (index + 1) % FIN_PAGES.length
-      : key === "ArrowLeft" ? (index - 1 + FIN_PAGES.length) % FIN_PAGES.length
-        : key === "Home" ? 0 : key === "End" ? FIN_PAGES.length - 1 : -1;
-    if (next < 0) return false;
-    const target = FIN_PAGES[next];
-    onPage(target);
-    window.requestAnimationFrame(() => document.getElementById(`fin-tab-${target}`)?.focus());
-    return true;
-  }, [onPage]);
-
   const pageTitle = pick(zh, PAGE_LABELS[page][0], PAGE_LABELS[page][1]);
 
   return (
@@ -255,42 +258,26 @@ export default function MegaPane({
         aria-modal={workspace ? undefined : true}
         aria-label={`${displayName} · ${pageTitle}`}
       >
-        {/* ── header ── */}
-        <div className="fin-head">
-          <button className="fin-head-back" onClick={closePane}>
-            <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden style={{ fill: "none", stroke: "currentColor", strokeWidth: 2 }}>
-              <path d="M15 18l-6-6 6-6" />
-            </svg>
-            {pick(zh, "Back to chart", "返回图表")}
-          </button>
-          <span className="fin-head-logo" aria-hidden>
-            {initial}
-          </span>
-          <span className="fin-head-title">
-            {displayName} <span className="fin-head-sub">· {pageTitle}</span>
-          </span>
-        </div>
-
-        {/* ── Financials and research tab bar ── */}
-        <div className="fin-tabs" role="tablist">
-          {FIN_PAGES.map((t) => (
-            <button
-              key={t}
-              className={"fin-tab" + (page === t ? " on" : "")}
-              id={`fin-tab-${t}`}
-              role="tab"
-              aria-selected={page === t}
-              aria-controls="fin-active-panel"
-              tabIndex={page === t ? 0 : -1}
-              onClick={() => onPage(t)}
-              onKeyDown={(event) => {
-                if (moveTabFocus(t, event.key)) event.preventDefault();
-              }}
-            >
-              {pick(zh, PAGE_LABELS[t][0], PAGE_LABELS[t][1])}
+        {/* The standalone /analysis workspace already owns company identity and Back-to-chart
+            in its context bar. Keep this legacy header only for the chart-hosted overlay. */}
+        {!workspace && (
+          <div className="fin-head">
+            <button className="fin-head-back" onClick={closePane}>
+              <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden style={{ fill: "none", stroke: "currentColor", strokeWidth: 2 }}>
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+              {pick(zh, "Back to chart", "返回图表")}
             </button>
-          ))}
-        </div>
+            <span className="fin-head-logo" aria-hidden>
+              {initial}
+            </span>
+            <span className="fin-head-title">
+              {displayName} <span className="fin-head-sub">· {pageTitle}</span>
+            </span>
+          </div>
+        )}
+
+        <ResearchWorkspaceNav page={page} zh={zh} onPage={onPage} />
 
         {/* ── body ── */}
         <div className="fin-body" key={page} id="fin-active-panel" role="tabpanel" aria-labelledby={`fin-tab-${page}`}>

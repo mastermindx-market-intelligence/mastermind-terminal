@@ -277,8 +277,9 @@ async function openCompanyIntelligence(page: Page, intelligenceLabel = "Intellig
   await routeThemeContext(page);
   await page.goto("/analysis?symbol=NVDA&page=intelligence");
   // This is a server-seeded deep link, not a client-side redirect from Overview.
-  await expect(page.locator(".fin-tabs").getByRole("tab", { name: intelligenceLabel, exact: true }))
-    .toHaveAttribute("aria-selected", "true");
+  const intelligenceFamily = page.locator('[data-fin-family="intelligence"]');
+  await expect(intelligenceFamily).toHaveAttribute("aria-current", "page");
+  await expect(intelligenceFamily).toHaveText(intelligenceLabel);
   await expect(page.locator(".ci-page")).toBeVisible({ timeout: 15_000 });
   await expect(page.getByRole("heading", { name: "NVIDIA Corporation" })).toBeVisible();
 }
@@ -783,8 +784,8 @@ test("Company Intelligence preserves its mobile workflow in Chinese", async ({ p
   });
   await routeThemeContext(page);
   await page.goto("/analysis?symbol=NVDA&page=intelligence");
-  await expect(page.locator(".fin-tabs").getByRole("tab", { name: "公司情报", exact: true }))
-    .toHaveAttribute("aria-selected", "true");
+  await expect(page.locator('[data-fin-family="intelligence"]')).toHaveAttribute("aria-current", "page");
+  await expect(page.locator('[data-fin-family="intelligence"]')).toHaveText("公司情报");
   await expect(page.locator(".ci-hero").getByRole("button", { name: "查看凭证" })).toBeVisible();
   await expect(page.getByRole("button", { name: "询问 Mastermind" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "策展篮子背景" })).toBeVisible();
