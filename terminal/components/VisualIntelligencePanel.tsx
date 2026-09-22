@@ -1,6 +1,7 @@
 "use client";
 
-import { forwardRef, useEffect, useId, useImperativeHandle, useRef, useState } from "react";
+import { forwardRef, useEffect, useId, useImperativeHandle, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { useLang } from "@/lib/i18n";
 import { getFund } from "@/lib/fund";
 import { track } from "@/lib/analytics";
@@ -28,6 +29,14 @@ interface Props {
 }
 const number = (value: number | null | undefined, decimals = 2) =>
   value == null || !Number.isFinite(value) ? "—" : value.toLocaleString("en-US", { maximumFractionDigits: decimals });
+const DESKTOP_DOCK_QUERY = "(min-width: 861px) and (pointer: fine)";
+const subscribeDesktopDock = (notify: () => void) => {
+  const media = window.matchMedia(DESKTOP_DOCK_QUERY);
+  media.addEventListener("change", notify);
+  return () => media.removeEventListener("change", notify);
+};
+const desktopDockSnapshot = () => window.matchMedia(DESKTOP_DOCK_QUERY).matches;
+const desktopDockServerSnapshot = () => false;
 
 /** A small, per-chart view. Crosshair updates never re-render the chart's parent or rerun analysis. */
 const VisualIntelligencePanel = forwardRef<VisualIntelligenceHandle, Props>(function VisualIntelligencePanel(props, ref) {
@@ -36,6 +45,7 @@ const VisualIntelligencePanel = forwardRef<VisualIntelligenceHandle, Props>(func
   const tx = (key: VisualCopyKey) => visualText(key, lang);
   const id = useId();
   const [open, setOpen] = useState(false);
+  const desktopDocking = useSyncExternalStore(subscribeDesktopDock, desktopDockSnapshot, desktopDockServerSnapshot);
   const openRef = useRef(false); openRef.current = open;
   const [availability, setAvailability] = useState<"loading" | "empty">("loading");
   const [frame, setFrame] = useState<VisualFrame | null>(null);
@@ -45,6 +55,7 @@ const VisualIntelligencePanel = forwardRef<VisualIntelligenceHandle, Props>(func
   const latestFrame = useRef<VisualFrame | null>(null);
   const callbacks = useRef(props); callbacks.current = props;
   const root = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   useImperativeHandle(ref, () => ({
     isInspecting: () => openRef.current,
@@ -81,11 +92,13 @@ const VisualIntelligencePanel = forwardRef<VisualIntelligenceHandle, Props>(func
   useEffect(() => {
     if (!open) return;
     const close = (event: KeyboardEvent) => {
-      if (event.key !== "Escape" || !root.current?.contains(event.target as Node)) return;
+      const target = event.target as Node;
+      if (event.key !== "Escape" || (!root.current?.contains(target) && !trigger.current?.contains(target) && !panelRef.current?.contains(target))) return;
       event.preventDefault(); event.stopPropagation(); setOpen(false); trigger.current?.focus();
     };
     const outside = (event: PointerEvent) => {
-      if (!root.current?.contains(event.target as Node)) setOpen(false);
+      const target = event.target as Node;
+      if (!root.current?.contains(target) && !trigger.current?.contains(target) && !panelRef.current?.contains(target)) setOpen(false);
     };
     window.addEventListener("keydown", close, true);
     window.addEventListener("pointerdown", outside);
@@ -119,16 +132,24 @@ const VisualIntelligencePanel = forwardRef<VisualIntelligenceHandle, Props>(func
   ];
   const recentEvents = [...calendar.events].reverse().slice(0, 5);
   const quoteCopy = visualQuoteCopyKey(current?.basis);
+  const desktopShell = desktopDocking && typeof document !== "undefined"
+    ? document.querySelector<HTMLElement>(".app:not(.fs):not(.shell-app)")
+    : null;
+  const desktopTriggerDock = desktopShell?.querySelector<HTMLElement>("#visual-context-trigger-dock") ?? null;
+  const desktopPanelDock = open ? desktopShell?.querySelector<HTMLElement>("#visual-context-panel-dock") ?? null : null;
+  const renderTrigger = (node: ReactNode) => desktopTriggerDock ? createPortal(node, desktopTriggerDock) : node;
+  const renderPanel = (node: ReactNode) => desktopPanelDock ? createPortal(node, desktopPanelDock) : node;
   return (
     <div className={styles.root} ref={root} data-visual-context data-context-symbol={symbol} data-context-timeframe={timeframe}>
-      <button ref={trigger} type="button" className={`${styles.trigger} ${stateClass}`} aria-expanded={open} aria-controls={id}
+      {renderTrigger(<button ref={trigger} type="button" className={`${styles.trigger} ${stateClass}${desktopTriggerDock ? ` ${styles.triggerDocked}` : ""}`} aria-expanded={open} aria-controls={id}
         aria-label={tx("title")} onClick={() => { setOpen((value) => !value); if (!open) { inspect(null); telemetry("open"); setFeedback(null); } }}>
         <span className={styles.spark} aria-hidden="true">◇</span>
         <span className={styles.triggerTitle}>{tx("title")}</span>
         <span className={styles.triggerState}>{fact ? candleStateText(state, lang) : tx(availability === "empty" ? "empty" : "loading")}</span>
         <span aria-hidden="true">{open ? "−" : "+"}</span>
-      </button>
-      {open && <section id={id} className={styles.panel} style={{ maxHeight: Math.max(120, availableHeight) }} aria-label={tx("title")}>
+      </button>)}
+      {open && renderPanel(<section ref={panelRef} id={id} className={`${styles.panel}${desktopPanelDock ? ` ${styles.docked}` : ""}`}
+        style={desktopPanelDock ? undefined : { maxHeight: Math.max(120, availableHeight) }} data-visual-context-panel aria-label={tx("title")}>
         <header className={styles.header}>
           <div><h3>{tx("title")}</h3><p>{symbol} <span aria-hidden="true">/</span> {timeframe}</p></div>
           <button type="button" className={styles.iconButton} aria-label={tx("close")} onClick={() => { setOpen(false); trigger.current?.focus(); }}>×</button>
@@ -192,7 +213,7 @@ const VisualIntelligencePanel = forwardRef<VisualIntelligenceHandle, Props>(func
             <button type="button" className={styles.textButton} onClick={() => setting("visualContext", false)}>{tx("hide")}</button>
           </footer>
         </>}
-      </section>}
+      </section>)}
     </div>
   );
 });
