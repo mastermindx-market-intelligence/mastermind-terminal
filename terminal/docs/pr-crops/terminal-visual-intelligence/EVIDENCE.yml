@@ -1,8 +1,8 @@
 # Terminal Visual Intelligence Layer — chart-settings candidate recapture
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 3603ab2ac4d63b469183e4aa03d0a47bd982f5d7 (exact source candidate)
-# capturedAt: 2026-09-22T09:53:43.966707+00:00
+# capturedAtHead: 381388d541a79b972737dd0778fe793d5e00a1bf (exact source candidate)
+# capturedAt: 2026-09-22T21:15:01+00:00
 # Content-addressed layoutFiles + cropFiles, not ancestry, identify this capture.
 layoutFiles:
   terminal/components/ChartPanel.tsx: "f256f64d6a95a3c93dc394fe70f7602b6d87f362065d62c6c975e5539b20d470"
@@ -19,12 +19,12 @@ layoutFiles:
   terminal/lib/suites/trend/candlePainter.ts: "8384d2bce3af939a51e88584b1436ee2898a89f0fbf1aedc09ffee624a3e12e1"
   terminal/lib/indicator-canvas/host.ts: "4f2949efb22b8c378cab1ff9d176466c4857073c14a36ee4f0eeab4ec1015a25"
 cropFiles:
-  desktop-context.png: "699f789ca64e633b428c21fd9fb5932cab3772d76cf77358be42e70b2174783a"
-  desktop-context-zh.png: "50f253ff5f52ad8cb94e0d797fc709c3ca3bee89c9f05bd0b328a4d5f231ac4d"
-  tablet-context.png: "8a7be04a97d521651ae8e48abf1cd3fa7777ee6d95d0f54c7497a659536ed5e7"
-  tablet-context-zh.png: "af11a2dfdee036398bdc05a848c2121a6e69fd52963c1065569f6f8be010dd30"
-  mobile-context.png: "c0463ba1088b5f844d371e4ca8937eb5e57357ac3bbc4c1581201e74445f70c8"
-  mobile-context-zh.png: "7294acb2c3d5c13538667cf9a0d6bf76b7bc5bb6d18c9a96c83c5df4acf10038"
+  desktop-context.png: "c04d900c12307f05b30dc0203e7fdfe4ca618d1610fd11b5be94152832b6e689"
+  desktop-context-zh.png: "86d4dce90a96c8db7350f843602adb2cb99f7f0fb454c3057c7fc243ec054150"
+  tablet-context.png: "98f414257f5b7ddaed4ae5c47581fa7f111d5947ee28b395ff6d10f7a29e60d2"
+  tablet-context-zh.png: "037833792af13acecc3e69bb7e2d5367d5c711d7c937e325ae29572fc664f537"
+  mobile-context.png: "568f4a2e5b02b04a52caf0e1dca94e01a9e757db320cfe765256566c40e5b22b"
+  mobile-context-zh.png: "95a724d368024ddf6ecf8f3b864835c05afb9d1daac6e1ff84260efa181134b6"
 
 theme: dark
 languages: [en, zh]
@@ -37,8 +37,8 @@ harness: /terminal?symbol=NVDA
 capture_flag: TERMINAL_E2E_FIXTURE
 capture_flag_law: Standard Playwright fixture also disables the Next.js dev indicator.
 commands:
-  - TERMINAL_E2E_PORT=36931 npx playwright test e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --reporter=list
-  - TERMINAL_E2E_PORT=36931 npx playwright test e2e/chart-view-reset.spec.ts --project=mobile --workers=1 --retries=0 --grep 'New chart tickers reserve space'
+  - TERMINAL_E2E_PORT=36941 npx playwright test e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --reporter=list
+  - TERMINAL_E2E_PORT=36941 npx playwright test e2e/chart-view-reset.spec.ts --project=mobile --workers=1 --retries=0 --grep 'New chart tickers reserve space'
 browserResults:
   desktop: 10/10 passed
   tablet: 10/10 passed
@@ -49,7 +49,7 @@ localGates:
   typecheck: PASS
   scopedLint: NOT_RERUN; evidence refresh does not claim a new lint receipt
   plainLanguage: Existing localized copy retained; separate copy guard not rerun
-  vitest: 378 files passed; 6081 tests passed; 4 todo
+  vitest: 379 files passed; 6088 tests passed; 4 todo
 files:
   - desktop-context.png
   - desktop-context-zh.png
