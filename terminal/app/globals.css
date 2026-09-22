@@ -372,6 +372,11 @@ svg{display:block}
 .visual-context-panel-dock{display:none;min-height:0}
 .visual-context-panel-dock:not(:empty){display:flex;flex:1;min-height:120px;overflow:hidden}
 .visual-context-panel-dock:not(:empty)+.detail-board{display:none}
+@media (min-width:861px) and (pointer:fine){
+  /* Hide the server-rendered chart-local launcher before hydration; once React portals the
+     button into the rail it is no longer a child of [data-visual-context], so it is visible. */
+  .app:not(.fs):not(.shell-app) [data-visual-context]>button{visibility:hidden}
+}
 .pf-board{height:52%;flex:none}
 .pf-board-ttl{font:650 11.5px/1 var(--font-ui);letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
 .pf-board-link{margin-left:auto;color:var(--brand-2);font:600 11px/1 var(--font-ui);text-decoration:none}
