@@ -15,7 +15,8 @@
  *     handler early-returns while a drawer is open — so Esc closes the drawer
  *     before the pane (belt-and-braces).
  *   - body scroll lock while open
- *   - shallow deep-link: ?pane=<page> synced via history.replaceState
+ *   - chart-overlay shallow deep-link: ?pane=<page>; standalone /analysis uses
+ *     the canonical ?page=<page> key owned by AnalysisWorkspace
  *
  * FE3 mounts this and passes {sym, fund, quote, bars}. Sibling page components
  * (FE2b/FE2c/FE2d) are imported by name — they land in parallel.
