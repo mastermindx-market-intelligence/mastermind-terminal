@@ -127,18 +127,18 @@ function w2Detail(readout: PrecisionEntryReadout, lang: Lang): string | null {
 
 function freshnessDetail(readout: PrecisionEntryReadout, lang: Lang): {
   text: string;
-  kind: "stale" | "partial" | "unavailable";
+  variant: "stale" | "partial" | "unavailable";
 } | null {
   const c = COPY[lang];
   if (readout.availability === "unavailable") {
-    return { text: c.unavailable, kind: "unavailable" };
+    return { text: c.unavailable, variant: "unavailable" };
   }
   if (readout.freshness === "stale") {
     const date = readout.asof.intel;
-    return { text: date ? `${c.stale} · ${c.asof} ${date}` : c.stale, kind: "stale" };
+    return { text: date ? `${c.stale} · ${c.asof} ${date}` : c.stale, variant: "stale" };
   }
   if (readout.availability === "partial") {
-    return { text: c.partial, kind: "partial" };
+    return { text: c.partial, variant: "partial" };
   }
   return null;
 }
@@ -218,9 +218,9 @@ export default function PrecisionEntryStrip({
 
       {freshness && (
         <div
-          className={`${styles.state} ${styles[freshness.kind]}`}
+          className={`${styles.badge} ${styles[freshness.variant]}`}
           data-testid="precision-data-state"
-          data-state={freshness.kind}
+          data-precision-data={freshness.variant}
         >
           {freshness.text}
         </div>
