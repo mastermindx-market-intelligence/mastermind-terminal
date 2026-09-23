@@ -39,7 +39,7 @@ const CAPABILITIES: {
     { id: "alerts", labelKey: "alerts", path: "M18 15V10a6 6 0 1 0-12 0v5l-2 3h16zM10 21h4", action: "alerts" },
     { id: "chartType", labelKey: "hubChartType", path: "M6 6v12M6 8h4M6 14h4M15 4v16M15 7h4M15 16h4", action: "chartType" },
     { id: "workspaces", labelKey: "layouts", path: "M4 5h16v14H4zM4 9h16M9 9v10", action: "workspaces" },
-    { id: "options", labelKey: "hubOptionsHeatmap", path: "M3 3h18v18H3zM3 9h18M3 15h18M9 3v18M15 3v18", action: "options" },
+    { id: "options", labelKey: "options", path: "M3 3h18v18H3zM3 9h18M3 15h18M9 3v18M15 3v18", action: "options" },
   ],
   unavailable: [
     { id: "objectTree", labelKey: "hubObjectTree" },
