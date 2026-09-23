@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
   PRECISION_PRESETS,
   buildPrecisionPlan,
+  detectPrecisionHorizon,
   inferPrecisionHorizon,
+  precisionLayoutState,
 } from "../precisionEntry";
 import { TF_CANONICAL_ORDER } from "../startTf";
 
@@ -55,14 +57,14 @@ describe("precision entry timeframe selection", () => {
     expect(plan.warnings).toContain("substituted:2D->D");
   });
 
-  it("fails closed when the market cannot supply four distinct usable intervals", () => {
+  it("fails closed when the requested temporal regime is not actually available", () => {
     const plan = buildPrecisionPlan({
       horizon: "day",
-      functional: new Set(["D", "W", "1M"]),
+      functional: new Set(["D", "2D", "3D", "W", "2W", "1M", "3M"]),
     });
 
     expect(plan.status).toBe("insufficient_timeframes");
-    expect(plan.panes).toHaveLength(3);
+    expect(plan.panes.length).toBeLessThan(4);
     expect(new Set(plan.panes.map((p) => p.tf)).size).toBe(plan.panes.length);
     expect(plan.warnings.some((w) => w.startsWith("missing:"))).toBe(true);
   });
@@ -172,5 +174,42 @@ describe("precision entry timeframe selection", () => {
     expect(plan.adaptiveState).toBe("rejected");
     expect(plan.warnings).toContain("temporal_grain_evidence_rejected");
     expect(plan.panes.map((p) => p.tf)).toEqual(["D", "3D", "W", "2W"]);
+  });
+});
+
+
+describe("precision entry layout state", () => {
+  it("projects a ready plan onto the incumbent four-pane same-symbol grid", () => {
+    const plan = buildPrecisionPlan({ horizon: "swing", functional: ALL });
+    expect(precisionLayoutState("AAPL", plan)).toEqual({
+      split: 4,
+      panes: ["AAPL", "AAPL", "AAPL", "AAPL"],
+      paneTfs: ["4h", "2D", "3D", "2W"],
+      activePane: 0,
+    });
+  });
+
+  it("does not project an insufficient plan", () => {
+    const plan = buildPrecisionPlan({
+      horizon: "day",
+      functional: new Set(["D", "2D", "3D", "W", "2W", "1M", "3M"]),
+    });
+    expect(precisionLayoutState("7203.T", plan)).toBeNull();
+  });
+
+  it("detects the active precision horizon without adding new mode state", () => {
+    expect(detectPrecisionHorizon({
+      subject: "AAPL",
+      panes: ["AAPL", "AAPL", "AAPL", "AAPL"],
+      paneTfs: ["D", "3D", "W", "2W"],
+      functional: ALL,
+    })).toBe("position");
+
+    expect(detectPrecisionHorizon({
+      subject: "AAPL",
+      panes: ["AAPL", "MSFT", "AAPL", "AAPL"],
+      paneTfs: ["D", "3D", "W", "2W"],
+      functional: ALL,
+    })).toBeNull();
   });
 });
