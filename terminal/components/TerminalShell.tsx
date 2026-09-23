@@ -5584,6 +5584,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
             else if (action === "compare") { setSearchMode("compare"); setSeed(""); setSearchOpen(true); }
             else if (action === "chartType") setCtOpen(true);
             else if (action === "workspaces") setPhoneWorkspacesOpen(true);
+            else if (action === "options") optionsRailRef.current?.open();
             else if (action === "alerts") window.location.assign(`/alerts?sym=${encodeURIComponent(active)}`);
             else if (action === "symbolDetails") {
               setFullChart(false);

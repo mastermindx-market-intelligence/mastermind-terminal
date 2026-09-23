@@ -43,6 +43,7 @@ export const OPTIONS_LEX = {
   premium: ["premium", "权利金"], call: ["Call", "看涨"], put: ["Put", "看跌"],
   openFlow: ["Open Flow desk", "打开资金流工作台"], untimed: ["Source timing unavailable", "源数据时间不可用"],
   old: ["Older snapshot", "较早快照"],
+  publishedOnly: ["published cells only", "仅已发布单元格"],
 } as const;
 export type OptionsWord = keyof typeof OPTIONS_LEX;
 export type OptionsT = (key: OptionsWord) => string;

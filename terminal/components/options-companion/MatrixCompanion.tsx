@@ -92,7 +92,7 @@ export function MatrixCompanion({ root, metric, prefs, onPrefs, t, ...pin }: Pin
     {data && grid && grid.strikes.length > 0 && grid.exps.length > 0 ? <>
       <div className={styles.summary}>
         <div><span>{t(headline)}</span><strong data-options-total className={metric === "gex" ? (Number(stats.total) < 0 ? styles.negative : styles.positive) : undefined}>
-          {stats.total == null ? "—" : fmtMatrixCell(stats.total, metric)}</strong><small>{units}</small></div>
+          {stats.total == null ? "—" : fmtMatrixCell(stats.total, metric)}</strong><small title={stats.missing ? t("partial") : undefined}>{units}{stats.missing ? ` · ${t("publishedOnly")}` : ""}</small></div>
         <div className={styles.reference}><span>{t("reference")}</span><b>{grid.spotRef?.toLocaleString("en-US", { maximumFractionDigits: 2 }) ?? "—"}</b><small>{t("notIntraday")}</small></div>
       </div>
       <div className={styles.legend}>

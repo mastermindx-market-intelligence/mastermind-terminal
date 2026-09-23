@@ -53,7 +53,7 @@ function validSession(value: unknown, nowMs: number): string | null {
 }
 
 export function readCompanionMatrix(raw: unknown, root: string, nowMs = Date.now()): Receipt<CompanionMatrix> {
-  if (raw == null) return { ok: false, reason: "unavailable" };
+  if (raw == null || (object(raw) && Object.keys(raw).length === 0)) return { ok: false, reason: "unavailable" };
   if (!isMatrixDocForRoot(raw, root)) return { ok: false, reason: "identity" };
   // asof is a BUILD clock. Require the existing producer's explicit cell-session stamp.
   const session = validSession(raw._build_meta?.asof_date, nowMs);
@@ -73,12 +73,20 @@ export function readCompanionMatrix(raw: unknown, root: string, nowMs = Date.now
     const gex = finite(cell.gex);
     if (gex == null) missingCells++;
     const magnitude = (v: unknown) => { const n = finite(v); return n !== null && n >= 0 ? n : null; };
+    const pair = (left: unknown, right: unknown): [number | null, number | null] => {
+      const a = magnitude(left), b = magnitude(right);
+      return a != null && b != null ? [a, b] : [null, null];
+    };
+    const [callOi, putOi] = pair(cell.call_oi, cell.put_oi);
+    const [callVol, putVol] = pair(cell.call_vol, cell.put_vol);
+    const deltaCall = object(cell.delta_oi) ? finite(cell.delta_oi.call) : null;
+    const deltaPut = object(cell.delta_oi) ? finite(cell.delta_oi.put) : null;
     const doi = object(cell.delta_oi)
-      ? { call: finite(cell.delta_oi.call), put: finite(cell.delta_oi.put) }
+      ? (deltaCall != null && deltaPut != null ? { call: deltaCall, put: deltaPut } : null)
       : finite(cell.delta_oi);
+    // A missing side cannot become a confident total, especially a false measured zero.
     cells.push({ strike: cell.strike, expiry: cell.expiry, gex,
-      call_oi: magnitude(cell.call_oi), put_oi: magnitude(cell.put_oi),
-      call_vol: magnitude(cell.call_vol), put_vol: magnitude(cell.put_vol), delta_oi: doi });
+      call_oi: callOi, put_oi: putOi, call_vol: callVol, put_vol: putVol, delta_oi: doi });
   }
   const spot = finite(raw.spot);
   return { ok: true, value: {
@@ -96,7 +104,7 @@ export function matrixForExpiry(receipt: CompanionMatrix, scope: "all" | "0dte")
 }
 
 export function readVannaProfile(raw: unknown, root: string, nowMs = Date.now()): Receipt<VannaProfile> {
-  if (raw == null) return { ok: false, reason: "unavailable" };
+  if (raw == null || (object(raw) && Object.keys(raw).length === 0)) return { ok: false, reason: "unavailable" };
   const candidate = object(raw) && object(raw[root]) ? raw[root] : raw;
   if (!object(candidate) || candidate.root !== root || candidate.schema !== "options_hub.gex/v1") return { ok: false, reason: "identity" };
   const session = validSession(typeof candidate.asof === "string" ? candidate.asof.slice(0, 10) : null, nowMs);

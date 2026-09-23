@@ -39,6 +39,7 @@ describe("companion source boundaries", () => {
     const r = readCompanionMatrix({ ...matrix(), cells: [{ ...cell(), gex: 0, call_oi: -5 }, { ...cell(194), gex: null }] }, "NVDA", now);
     expect(r.ok).toBe(true); if (!r.ok) return;
     expect(r.value.doc.cells?.[0].gex).toBe(0); expect(r.value.doc.cells?.[0].call_oi).toBeNull();
+    expect(matrixCellValue(r.value.doc.cells![0], "oi")).toBeNull();
     expect(r.value.doc.cells?.[1].gex).toBeNull(); expect(r.value.missingCells).toBe(1);
   });
   it("never substitutes a front expiry for a snapshot with no 0DTE", () => {

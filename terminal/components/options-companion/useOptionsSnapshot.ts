@@ -19,7 +19,7 @@ export function useOptionsSnapshot(feed: string) {
       inFlight = true;
       setState((previous) => ({ feed, data: previous.feed === feed ? previous.data : null, loading: true, failed: false }));
       let data: unknown = null;
-      try { data = await flowGetFresh(feed); } catch { /* shared source can be temporarily unavailable */ }
+      try { data = await flowGetFresh(feed, version > 0); } catch { /* shared source can be temporarily unavailable */ }
       inFlight = false;
       if (!active) return;
       setState((previous) => ({ feed, data: data ?? (previous.feed === feed ? previous.data : null), loading: false, failed: data == null }));

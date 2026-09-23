@@ -976,7 +976,8 @@ function RailMatrix({ grid, metric, interaction }: {
   const nearest = grid.strikes.reduce<number | null>((best, strike) =>
     best == null || (spot != null && Math.abs(strike - spot) < Math.abs(best - spot)) ? strike : best, null);
   const fallback = `${nearest ?? grid.strikes[0]}|${grid.exps[0]}`;
-  const activeKey = focused && grid.byKey.has(focused) ? focused : fallback;
+  const [focusedStrike, focusedExpiry] = (focused ?? "").split("|");
+  const activeKey = focused && grid.strikes.includes(Number(focusedStrike)) && grid.exps.includes(focusedExpiry) ? focused : fallback;
   const identity = `${grid.sessionDate}|${grid.exps.join(",")}|${grid.strikes.join(",")}`;
   useEffect(() => {
     const scroll = scrollRef.current;

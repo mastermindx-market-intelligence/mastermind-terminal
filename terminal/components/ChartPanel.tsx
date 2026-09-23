@@ -3044,7 +3044,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
     // drawn on it must be pooled for explicit removal — that is what this pair checks.
     let pricePaneLines = 0;
     try { pricePaneLines = priceSeriesRef.current?.priceLines().length ?? 0; } catch { pricePaneLines = 0; }
-    const trackedPricePaneLines = pooledPriceLines + (extendedPriceLineRef.current ? 1 : 0);
+    const trackedPricePaneLines = pooledPriceLines + (extendedPriceLineRef.current ? 1 : 0) + (optionsPricePinRef.current ? 1 : 0);
     return {
       engine: engine ? 1 : 0,
       live,
@@ -3464,6 +3464,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
             facts: visualSeriesRef.current?.facts.slice(-120),
             colors: resolveSuiteColors(),
           })),
+          optionsPin: g(() => optionsPricePinRef.current?.line.options() ?? null),
           timeframe: timeframeRef.current,
           visibleRange: g(() => c.timeScale().getVisibleLogicalRange()),
           priceVisibleRange: g(() => priceSeriesRef.current?.priceScale().getVisibleRange()),

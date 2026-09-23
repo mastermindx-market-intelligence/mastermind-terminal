@@ -42,7 +42,9 @@ export default function OptionsCompanion({ symbol, onClose, access, ...pin }: Pi
   const { onPin } = pin;
   useEffect(() => { onPin(null); return () => onPin(null); }, [symbol, access, onPin]);
   function perspective(next: OptionsPerspective) { setPrefs((p) => ({ ...p, perspective: next })); onPin(null); }
-  return <section className={styles.root} data-options-companion data-options-root={root ?? "unsupported"} aria-label={`${t("options")} ${symbol}`}>
+  return <section className={styles.root} data-options-companion data-options-root={root ?? "unsupported"} aria-label={`${t("options")} ${symbol}`} onKeyDown={(event) => {
+    if (event.key === "Escape" && !event.defaultPrevented) { event.preventDefault(); event.stopPropagation(); onClose(); }
+  }}>
     <header className={styles.header}><h2>{t("options")}</h2><span className={styles.rootSymbol}>↔ {symbol}</span>
       <button type="button" onClick={onClose} className={styles.close} aria-label={t("close")}>×</button></header>
     <div className={styles.tabs} role="tablist" aria-label={t("perspectives")}>

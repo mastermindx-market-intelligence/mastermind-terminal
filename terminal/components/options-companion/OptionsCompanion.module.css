@@ -80,3 +80,6 @@
 @media(max-width:860px){.overview{flex:none;overflow:visible}.railSwitch{padding:6px 10px}.root{padding:8px 12px}.sheet .root{height:100%}.summary strong{font-size:22px}}
 @media(pointer:coarse),(max-width:860px){.railSwitch button,.tabs button,.lens button,.action,.link,.deskLink,.method summary,.controls select,.close,.receipt button{min-height:44px}.receipt button{width:44px}.profile>button{min-height:44px}.tabs button{font-size:12px}.notice,.warning,.inspector p,.method p{font-size:11px}.controls label>span,.viewCaption{font-size:10px}}
 @media(prefers-reduced-motion:no-preference){.tabs button,.lens button,.action,.close{transition:background-color 120ms ease,border-color 120ms ease}}
+
+.railSwitch[hidden]{display:none}
+.sheetTitle{display:flex;align-items:center;justify-content:space-between;width:100%;gap:12px}

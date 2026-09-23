@@ -115,6 +115,7 @@ export const LEX: Record<string, [string, string]> = {
   hubTitle: ["Analysis hub", "分析中心"],
   hubTools: ["Tools", "工具"],
   hubInfo: ["Info", "信息"],
+  hubOptionsHeatmap: ["Options heatmap", "期权热力图"],
   hubChartType: ["Chart type", "图表类型"],
   hubObjectTree: ["Object tree", "对象树"],
   hubTemplates: ["Templates", "模板"],
