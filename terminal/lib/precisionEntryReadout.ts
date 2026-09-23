@@ -63,6 +63,11 @@ function num(value: unknown): number | null {
   return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
 
+function boundedNum(value: unknown, low: number, high: number): number | null {
+  const n = num(value);
+  return n !== null && n >= low && n <= high ? n : null;
+}
+
 function bool(value: unknown): boolean | null {
   return typeof value === "boolean" ? value : null;
 }
@@ -139,7 +144,7 @@ export function buildPrecisionEntryReadout(intel: unknown): PrecisionEntryReadou
       action: str(entry?.action),
       actionZh: str(entry?.action_zh),
     },
-    bottomConfidence: num(entry?.confidence),
+    bottomConfidence: boundedNum(entry?.confidence, 0, 100),
     trigger: {
       next: str(entry?.next_trigger),
       tier: str(confluence?.tier),
@@ -152,7 +157,7 @@ export function buildPrecisionEntryReadout(intel: unknown): PrecisionEntryReadou
     },
     structure: {
       w2Washout: bool(sniper?.w2_washout),
-      w2StochD: num(sniper?.w2_stoch_d),
+      w2StochD: boundedNum(sniper?.w2_stoch_d, 0, 100),
       daysSince63dLow: int(sniper?.days_since_63d_low),
       coiled: bool(sniper?.coiled),
     },
