@@ -1627,6 +1627,93 @@ test("an indicator-pane drawing holds its place when the price scale rescales", 
     .toBeCloseTo(before, 0);
 });
 
+test("an indicator-pane drawing stays in its pane when that pane y-axis rescales", async ({ page }) => {
+  test.skip((page.viewportSize()?.width ?? 1440) <= 860, DESKTOP_ONLY);
+  const saves: DrawingSavePayload[] = [];
+  await openTerminal(page, { onPut: (payload) => saves.push(payload) });
+
+  const chart = page.locator(".pane.on .chart-wrap");
+  const layer = chart.locator(".drawing-layer");
+  const strokes = layer.locator('g[data-drawing-kind="trendline"]:not([data-id="_p"])');
+
+  const subPane = await page.evaluate(() => {
+    const chart = document.querySelector(".pane.on .chart-wrap")?.getBoundingClientRect();
+    const boxes = [...document.querySelectorAll(".pane.on .chart-wrap canvas")]
+      .map((canvas) => canvas.getBoundingClientRect())
+      .filter((rect) => rect.width > 100 && rect.height > 40)
+      .sort((a, b) => a.top - b.top);
+    const last = boxes[boxes.length - 1];
+    return chart && boxes.length > 1
+      ? { chartTop: chart.top, top: last.top, height: last.height, left: last.left, width: last.width }
+      : null;
+  });
+  test.skip(!subPane, "This chart mounted no indicator sub-pane.");
+
+  const anchorY = subPane!.top + subPane!.height * 0.5;
+  await page.getByTestId("drawing-group-lines-main").click();
+  await page.mouse.move(subPane!.left + subPane!.width * 0.30, anchorY);
+  await page.mouse.down();
+  await page.mouse.move(subPane!.left + subPane!.width * 0.55, anchorY + 8);
+  await page.mouse.up();
+  await expect(strokes).toHaveCount(1);
+  await expect.poll(() =>
+    saves.flatMap((payload) => payload.drawings ?? [])
+      .find((drawing) => drawing.kind === "trendline")?.meta?.paneCoordSpace,
+  ).toBe("pane-value-v2");
+
+  const geometry = strokes.first().locator('line:not([stroke="transparent"])').first();
+  const before = await geometry.boundingBox();
+  expect(before).not.toBeNull();
+  expect(before!.y).toBeGreaterThanOrEqual(subPane!.top - 1);
+  expect(before!.y + before!.height).toBeLessThanOrEqual(subPane!.top + subPane!.height + 1);
+
+  // This is the reported gesture: change the INDICATOR pane's own y-axis range.
+  // The draw layer spans the whole chart, while LWC's priceToCoordinate values
+  // are pane-local. The drawing must remain translated + clipped to this pane.
+  const chartBox = await chart.boundingBox();
+  expect(chartBox).not.toBeNull();
+  await page.mouse.move(chartBox!.x + chartBox!.width - 6, anchorY);
+  for (let notch = 0; notch < 5; notch += 1) await page.mouse.wheel(0, -360);
+
+  await expect.poll(async () => {
+    const box = await geometry.boundingBox();
+    return box != null
+      && box.y >= subPane!.top - 1
+      && box.y + box.height <= subPane!.top + subPane!.height + 1;
+  }, { message: "the rescaled drawing should settle inside its owning pane" }).toBe(true);
+  await expect(strokes.first()).toHaveAttribute("clip-path", /drawing-pane-clip/);
+});
+
+test("legacy indicator-pane drawing coordinates migrate into pane value space", async ({ page }) => {
+  test.skip((page.viewportSize()?.width ?? 1440) <= 860, DESKTOP_ONLY);
+  const saves: DrawingSavePayload[] = [];
+  await openTerminal(page, {
+    drawings: [{
+      id: "legacy-macd-pane",
+      kind: "trendline",
+      points: [{ t: "2026-06-12", p: 0 }, { t: "2026-06-18", p: 1 }],
+      color: "#4d82ff",
+      width: 2,
+      dash: "solid",
+      meta: { pane: "macd" },
+    }],
+    onPut: (payload) => saves.push(payload),
+  });
+
+  await expect.poll(() =>
+    saves.flatMap((payload) => payload.drawings ?? [])
+      .find((drawing) => drawing.id === "legacy-macd-pane")?.meta?.paneCoordSpace,
+    { timeout: 5_000, message: "legacy pane drawings should be persisted in the corrected coordinate space" },
+  ).toBe("pane-value-v2");
+
+  const migrated = saves.flatMap((payload) => payload.drawings ?? [])
+    .find((drawing) => drawing.id === "legacy-macd-pane");
+  expect(migrated?.points).toHaveLength(2);
+  expect((migrated?.points?.[0] as { p?: number } | undefined)?.p).not.toBe(0);
+  await expect(page.locator('.pane.on .drawing-layer g[data-id="legacy-macd-pane"]'))
+    .toHaveAttribute("clip-path", /drawing-pane-clip/);
+});
+
 test("selecting a brush stroke shows its bounds, not a handle per sample", async ({ page }) => {
   test.skip((page.viewportSize()?.width ?? 1440) <= 860, DESKTOP_ONLY);
   await openTerminal(page);
