@@ -122,7 +122,7 @@ describe("precision entry timeframe selection", () => {
     expect(plan.source).toBe("horizon_default");
     expect(plan.adaptiveState).toBe("rejected");
     expect(plan.warnings).toContain("temporal_grain_evidence_rejected");
-    expect(plan.panes.map((p) => p.tf)).toEqual(["W", "2D", "3D", "2W"]);
+    expect(plan.panes.map((p) => p.tf)).toEqual(["D", "2D", "3D", "2W"]);
   });
 
   it("does not turn abstention or unproven evidence into adaptive selection", () => {
