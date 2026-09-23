@@ -5916,6 +5916,11 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
             )}
           </div>
 
+          {/* Desktop chart-context docks. The chart owns state; the compact launcher lives between
+              the watch source and detail read, while expansion temporarily takes the detail slot. */}
+          <div id="visual-context-trigger-dock" className="visual-context-trigger-dock" />
+          <div id="visual-context-panel-dock" className="visual-context-panel-dock" />
+
           <div className="board detail-board">
             {/* detail-hd: flex-wrap 2-row — top: icon+name, bottom: big price + status chip */}
             <div className="detail-hd">

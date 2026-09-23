@@ -365,6 +365,13 @@ svg{display:block}
 .rail-tab:focus-visible{outline:2px solid var(--brand-2);outline-offset:-2px}
 .rail-tab.on{color:var(--brand-2);background:color-mix(in srgb,var(--brand) 15%,transparent)}
 .board.rail-hidden{display:none}
+/* Chart context belongs to the desktop inspector rail, never on top of price. The launcher
+   gets a slim permanent slot under the watch source; expansion replaces only the detail read. */
+.visual-context-trigger-dock{display:none;flex:none;min-height:0}
+.visual-context-trigger-dock:not(:empty){display:flex;min-height:30px}
+.visual-context-panel-dock{display:none;min-height:0}
+.visual-context-panel-dock:not(:empty){display:flex;flex:1;min-height:120px;overflow:hidden}
+.visual-context-panel-dock:not(:empty)+.detail-board{display:none}
 .pf-board{height:52%;flex:none}
 .pf-board-ttl{font:650 11.5px/1 var(--font-ui);letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
 .pf-board-link{margin-left:auto;color:var(--brand-2);font:600 11px/1 var(--font-ui);text-decoration:none}
