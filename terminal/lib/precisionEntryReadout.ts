@@ -76,15 +76,15 @@ function buyZone(value: unknown): { low: number; high: number } | null {
   if (Array.isArray(value)) {
     const low = num(value[0]);
     const high = num(value[1]);
-    if (low === null || high === null) return null;
-    return low <= high ? { low, high } : { low: high, high: low };
+    if (low === null || high === null || low > high) return null;
+    return { low, high };
   }
   const band = obj(value);
   if (!band) return null;
   const low = num(band.low);
   const high = num(band.high);
-  if (low === null || high === null) return null;
-  return low <= high ? { low, high } : { low: high, high: low };
+  if (low === null || high === null || low > high) return null;
+  return { low, high };
 }
 
 function location(args: {
