@@ -20,7 +20,7 @@ async function waitForVisualReady(page: Page) {
 }
 
 test("MTF opens the inferred Precision swing ladder and collapses cleanly", async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name !== "desktop", "Desktop proves the four-pane Precision grid; phone gets a separate compact UX.");
+  test.skip(testInfo.project.name !== "desktop", "Desktop proves the four-pane Precision grid; <=860px gets a separate compact UX.");
 
   await armVisualReady(page);
   await page.goto("/terminal?symbol=NVDA");
@@ -55,4 +55,18 @@ test("MTF opens the inferred Precision swing ladder and collapses cleanly", asyn
   await expect(grid.locator(".pane")).toHaveCount(1);
   await expect(grid.locator(".pane-tf")).toHaveText(["4h"]);
   await expect(grid).not.toHaveAttribute("data-precision-horizon", /.+/);
+});
+
+
+test("Precision MTF is not exposed where the responsive shell hides extra panes", async ({ page }, testInfo) => {
+  test.skip(!["tablet", "mobile"].includes(testInfo.project.name), "Only the <=860px responsive shell owns this boundary.");
+
+  await armVisualReady(page);
+  await page.goto("/terminal?symbol=NVDA");
+  await waitForVisualReady(page);
+
+  await expect(page.locator(".pane-grid")).toHaveAttribute("data-n", "1");
+  await expect(page.locator('[data-toolbar-action="mtf"]')).toBeHidden();
+  await expect(page.locator('[data-toolbar-menu-action="mtf"]')).toBeHidden();
+  await expect(page.locator(".pane-grid .pane")).toHaveCount(1);
 });
