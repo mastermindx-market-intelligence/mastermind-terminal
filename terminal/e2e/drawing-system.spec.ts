@@ -1831,7 +1831,21 @@ test("coarse pane collapse hides plot paint and remains restorable", async ({ pa
   await stoch.getByRole("button", { name: "More" }).click();
   const menu = page.locator(".lg-more:visible");
   await expect(menu).toBeVisible();
-  await menu.getByText("Collapse pane", { exact: true }).click();
+  const collapseRow = menu.getByText("Collapse pane", { exact: true });
+  const collapseBox = await collapseRow.boundingBox();
+  expect(collapseBox).not.toBeNull();
+  const collapseHit = await page.evaluate(({ x, y }) => {
+    const hit = document.elementFromPoint(x, y);
+    return {
+      insideMenu: !!hit?.closest(".lg-more"),
+      className: (hit as HTMLElement | null)?.className ?? "",
+    };
+  }, {
+    x: collapseBox!.x + collapseBox!.width * 0.5,
+    y: collapseBox!.y + collapseBox!.height * 0.5,
+  });
+  expect(collapseHit.insideMenu).toBe(true);
+  await collapseRow.click();
 
   const mask = page.locator("[data-collapsed-pane-mask]");
   await expect(mask).toHaveCount(1);
