@@ -49,6 +49,7 @@ export const PRECISION_PRESETS: Readonly<Record<PrecisionHorizon, readonly strin
 };
 
 const tfIndex = (tf: string) => TF_CANONICAL_ORDER.indexOf(tf);
+const MAX_SUBSTITUTION_STEPS = 2;
 
 export function inferPrecisionHorizon(currentTf: string): PrecisionHorizon {
   const i = tfIndex(currentTf);
@@ -78,9 +79,13 @@ function nearestAvailableTf(
 
   const target = tfIndex(requestedTf);
   if (target < 0) return null;
-  const candidates = TF_CANONICAL_ORDER.filter(
-    (tf) => functional.has(tf) && !used.has(tf) && !reserved.has(tf),
-  );
+  const candidates = TF_CANONICAL_ORDER.filter((tf) => {
+    const i = tfIndex(tf);
+    return functional.has(tf)
+      && !used.has(tf)
+      && !reserved.has(tf)
+      && Math.abs(i - target) <= MAX_SUBSTITUTION_STEPS;
+  });
   if (!candidates.length) return null;
 
   return [...candidates].sort((a, b) => {
@@ -180,4 +185,45 @@ export function buildPrecisionPlan(args: {
     warnings,
     reason,
   };
+}
+
+
+export type PrecisionLayoutState = {
+  split: 4;
+  panes: [string, string, string, string];
+  paneTfs: [string, string, string, string];
+  activePane: 0;
+};
+
+export function precisionLayoutState(
+  subject: string,
+  plan: PrecisionPlan,
+): PrecisionLayoutState | null {
+  if (plan.status !== "ready" || plan.panes.length !== 4) return null;
+  return {
+    split: 4,
+    panes: [subject, subject, subject, subject],
+    paneTfs: [
+      plan.panes[0].tf,
+      plan.panes[1].tf,
+      plan.panes[2].tf,
+      plan.panes[3].tf,
+    ],
+    activePane: 0,
+  };
+}
+
+export function detectPrecisionHorizon(args: {
+  subject: string;
+  panes: readonly string[];
+  paneTfs: readonly string[];
+  functional: ReadonlySet<string>;
+}): PrecisionHorizon | null {
+  if (args.panes.length !== 4 || !args.panes.every((s) => s === args.subject)) return null;
+  for (const horizon of ["day", "swing", "position", "deep"] as const) {
+    const plan = buildPrecisionPlan({ horizon, functional: args.functional });
+    if (plan.status !== "ready") continue;
+    if (plan.panes.map((p) => p.tf).join(",") === args.paneTfs.slice(0, 4).join(",")) return horizon;
+  }
+  return null;
 }
