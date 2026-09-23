@@ -62,12 +62,15 @@ function nearestAvailableTf(
   requestedTf: string,
   functional: ReadonlySet<string>,
   used: ReadonlySet<string>,
+  reserved: ReadonlySet<string>,
 ): string | null {
   if (functional.has(requestedTf) && !used.has(requestedTf)) return requestedTf;
 
   const target = tfIndex(requestedTf);
   if (target < 0) return null;
-  const candidates = TF_CANONICAL_ORDER.filter((tf) => functional.has(tf) && !used.has(tf));
+  const candidates = TF_CANONICAL_ORDER.filter(
+    (tf) => functional.has(tf) && !used.has(tf) && !reserved.has(tf),
+  );
   if (!candidates.length) return null;
 
   return [...candidates].sort((a, b) => {
@@ -90,7 +93,8 @@ function resolvePanes(
   const used = new Set<string>();
 
   requested.forEach((requestedTf, idx) => {
-    const tf = nearestAvailableTf(requestedTf, functional, used);
+    const reserved = new Set(requested.slice(idx + 1).filter((tf) => functional.has(tf)));
+    const tf = nearestAvailableTf(requestedTf, functional, used, reserved);
     if (!tf) {
       warnings.push(`missing:${requestedTf}`);
       return;
