@@ -183,6 +183,31 @@ describe("Precision Entry intel readout", () => {
     expect(malformed.geometry.location).toBe("unknown");
   });
 
+  it("refuses non-positive or internally contradictory price geometry", () => {
+    const badSpot = buildPrecisionEntryReadout({
+      analysis: { entry: { spot: -1, buy_zone: { low: 90, high: 100 } } },
+    });
+    expect(badSpot.geometry.spot).toBeNull();
+    expect(badSpot.geometry.location).toBe("unknown");
+
+    const badZone = buildPrecisionEntryReadout({
+      analysis: { entry: { spot: 95, buy_zone: { low: 0, high: 100 } } },
+    });
+    expect(badZone.geometry.buyZone).toBeNull();
+    expect(badZone.geometry.location).toBe("unknown");
+
+    const crossedContracts = buildPrecisionEntryReadout({
+      analysis: {
+        entry: {
+          spot: 95,
+          buy_zone: { low: 90, high: 100 },
+          chase_above: 97,
+        },
+      },
+    });
+    expect(crossedContracts.geometry.location).toBe("unknown");
+  });
+
   it("reports literal chase geometry ahead of the broader zone relation", () => {
     const readout = buildPrecisionEntryReadout({
       analysis: {
