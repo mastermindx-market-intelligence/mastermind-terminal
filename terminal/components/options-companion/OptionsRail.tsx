@@ -56,7 +56,7 @@ const OptionsRail = forwardRef<OptionsRailHandle, Props>(function OptionsRail({ 
       {showing && !small && panel}
     </aside>
     {enabled && <MobileSheet open={showing && small} onClose={close} title={<span className={styles.sheetTitle}><span>{t("options")} · {symbol}</span><button type="button" className={styles.close} onClick={close} aria-label={t("close")}>×</button></span>} ariaLabel={t("open")}
-      detents={[60, 94]} maxHeight="94svh" initialFocus="sheet" className={styles.sheet}>
+      detents={[60, 94]} maxHeight="94svh" initialFocus="sheet" escapeKey="bubble" className={styles.sheet}>
       {small && panel}
     </MobileSheet>}
   </>;

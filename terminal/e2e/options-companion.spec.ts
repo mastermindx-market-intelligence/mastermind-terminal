@@ -49,7 +49,7 @@ for (const lang of ["en", "zh"] as const) {
     await expect(panel.locator("[data-options-inspector]")).toContainText("2026-07-10");
     await panel.getByRole("button", { name: lang === "zh" ? "在图表标记行权价" : "Pin strike on chart", exact: true }).click();
     await expect.poll(async () => !!(await chartPin(page))).toBe(true);
-    const pinned = await chartPin(page); expect(pinned.price).toBeGreaterThan(0); expect(pinned.lineStyle).toBe(2);
+    const pinned = await chartPin(page); if (!pinned) throw new Error("Missing native price pin"); expect(pinned.price).toBeGreaterThan(0); expect(pinned.lineStyle).toBe(2);
     expect(await page.evaluate(() => (window as ChartDebugWindow).__mmChartOwnership?.()?.orphanPricePaneLines)).toBe(0);
     expect(await originalCanvas!.evaluate((canvas) => canvas.isConnected)).toBe(true);
     mkdirSync(crops, { recursive: true });
@@ -151,9 +151,9 @@ test("switching the real chart symbol resets the pin and binds the new heatmap",
   await panel.getByRole("button", { name: "Pin strike on chart", exact: true }).click();
   await expect.poll(async () => !!(await chartPin(page))).toBe(true);
   await page.locator(".pair").click();
-  await page.getByRole("combobox").fill("QQQ");
+  await page.locator('input[role="combobox"]').fill("QQQ");
   await expect(page.getByRole("option").filter({ hasText: "QQQ" }).first()).toBeVisible();
-  await page.getByRole("combobox").press("Enter");
+  await page.locator('input[role="combobox"]').press("Enter");
   await expect(panel).toHaveAttribute("data-options-root", "QQQ");
   await expect(panel.locator("[data-options-grid] table")).toBeVisible();
   await expect.poll(() => chartPin(page)).toBeNull();
