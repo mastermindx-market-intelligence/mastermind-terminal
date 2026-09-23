@@ -188,6 +188,20 @@ describe("PrecisionEntryStrip", () => {
     expect(text).not.toContain("await_confluence");
   });
 
+  it("does not print a raw confluence tier when canonical trigger copy is absent", () => {
+    const el = mount({
+      analysis: {
+        entry: { headline: "Setup forming" },
+        confluence: { tier: "T3" },
+        sniper: { w2_washout: true },
+      },
+    });
+    const text = el.textContent ?? "";
+
+    expect(text).not.toContain("T3");
+    expect(el.querySelector("[data-testid='precision-trigger']")).toBeNull();
+  });
+
   it("does not leak raw status enums when canonical headline copy is absent", () => {
     const el = mount({
       analysis: {
