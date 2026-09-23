@@ -2967,6 +2967,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
     [active, panes, paneTfs, FUNCTIONAL],
   );
   const isMtf = precisionHorizon !== null;
+  const precisionRecipe = (isMtf ? paneTfs.slice(0, 4) : precisionPlan.panes.map((p) => p.tf)).join(" / ");
   // paneSync only mirrors same-timeframe peers, and the single replay slider assumes one bar count:
   // heterogeneous per-pane timeframes are incoherent for both, so Precision explicitly turns them off.
   const mixedTfs = panes.length > 1 && new Set(paneTfs.slice(0, panes.length)).size > 1;
@@ -5234,7 +5235,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
               {t("indicators")}
             </button>
             <div className="seg tool-adv toolbar-overflow-item" data-toolbar-item data-toolbar-action="split" title={t("splitLayout")}>{[1, 2, 4].map((n) => <button key={n} className={split === n ? "on" : ""} onClick={() => setGrid(n)}>{n}</button>)}</div>
-            <button className={`tbtn tool-adv toolbar-overflow-item${isMtf ? " on" : ""}`} data-toolbar-item data-toolbar-action="mtf" data-precision-horizon={precisionHorizon ?? precisionPlan.horizon} title={precisionLayout || isMtf ? `${t("mtfTip")} · ${precisionPlan.panes.map((p) => p.tf).join(" / ")}` : t("mtfUnavailableTip")} disabled={!precisionLayout && !isMtf} onClick={mtfLayout}><svg viewBox="0 0 24 24"><path d="M3 13h4v8H3zM10 8h4v13h-4zM17 3h4v18h-4z" /></svg>{t("mtf")}</button>
+            <button className={`tbtn tool-adv toolbar-overflow-item${isMtf ? " on" : ""}`} data-toolbar-item data-toolbar-action="mtf" data-precision-horizon={precisionHorizon ?? precisionPlan.horizon} title={precisionLayout || isMtf ? `${t("mtfTip")} · ${precisionRecipe}` : t("mtfUnavailableTip")} disabled={!precisionLayout && !isMtf} onClick={mtfLayout}><svg viewBox="0 0 24 24"><path d="M3 13h4v8H3zM10 8h4v13h-4zM17 3h4v18h-4z" /></svg>{t("mtf")}</button>
             <button className={`tbtn dtm toolbar-overflow-item${dtm ? " on" : ""}`} data-toolbar-item title={t("dtmTip")} onClick={toggleDtm}><svg viewBox="0 0 24 24" style={{ width: 13, height: 13 }} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" /></svg>{t("dtmBtn")}</button>
             {panes.length > 1 && <button className={`tbtn tool-adv toolbar-overflow-item${sync && !mixedTfs ? " on" : ""}`} data-toolbar-item data-toolbar-action="sync" data-sync-on={sync && !mixedTfs ? "1" : "0"} disabled={mixedTfs} title={mixedTfs ? t("syncMixedTip") : t("syncTip")} onClick={() => setSync((s) => !s)}><svg viewBox="0 0 24 24"><path d="M4 7h11M4 7l3-3M4 7l3 3M20 17H9M20 17l-3-3M20 17l-3 3" /></svg>{t("sync")}</button>}
             <button
@@ -5326,7 +5327,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
                       {[1, 2, 4].map((n) => <button key={n} className={split === n ? "on" : ""} onClick={() => { setGrid(n); setToolbarMoreOpen(false); }}>{n}</button>)}
                     </div>
                   </div>
-                  <button type="button" role="menuitem" className={`menu-row${isMtf ? " on" : ""}`} data-toolbar-menu-action="mtf" data-precision-horizon={precisionHorizon ?? precisionPlan.horizon} disabled={!precisionLayout && !isMtf} title={precisionLayout || isMtf ? `${t("mtfTip")} · ${precisionPlan.panes.map((p) => p.tf).join(" / ")}` : t("mtfUnavailableTip")} onClick={() => { mtfLayout(); setToolbarMoreOpen(false); }}>
+                  <button type="button" role="menuitem" className={`menu-row${isMtf ? " on" : ""}`} data-toolbar-menu-action="mtf" data-precision-horizon={precisionHorizon ?? precisionPlan.horizon} disabled={!precisionLayout && !isMtf} title={precisionLayout || isMtf ? `${t("mtfTip")} · ${precisionRecipe}` : t("mtfUnavailableTip")} onClick={() => { mtfLayout(); setToolbarMoreOpen(false); }}>
                     <svg viewBox="0 0 24 24"><path d="M3 13h4v8H3zM10 8h4v13h-4zM17 3h4v18h-4z" /></svg>{t("mtf")}
                   </button>
                   <button type="button" role="menuitem" className={`menu-row${dtm ? " on" : ""}`} data-toolbar-menu-action="day" onClick={() => { toggleDtm(); setToolbarMoreOpen(false); }}>
