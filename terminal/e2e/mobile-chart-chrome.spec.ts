@@ -301,6 +301,7 @@ test("phone: ••• opens the analysis hub at 60% and drags to full", async (
   // truthful and noninteractive outside the tool grid instead of becoming dead keyboard stops.
   await page.getByTestId("roller-more").click();
   await expect(page.getByTestId("hub-tile-chartType")).toBeEnabled();
+  await expect(page.getByTestId("hub-tile-workspaces")).toBeEnabled();
   await expect(page.getByTestId("hub-tile-objectTree")).toHaveCount(0);
   await expect(page.getByTestId("hub-unavailable-tools")).toContainText("Object tree");
   await expect(page.getByTestId("analysis-hub")).not.toContainText("Not in this alpha");
