@@ -104,8 +104,6 @@ function triggerDetail(readout: PrecisionEntryReadout, lang: Lang): string | nul
         ? c.crossing
         : `~${formatNumber(readout.trigger.barsToCross)} ${c.bars}`,
     );
-  } else if (readout.trigger.tier) {
-    bits.push(readout.trigger.tier);
   }
   return bits.length ? bits.join(" · ") : null;
 }
