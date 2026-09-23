@@ -55,7 +55,7 @@ export function inferPrecisionHorizon(currentTf: string): PrecisionHorizon {
   const i = tfIndex(currentTf);
   if (i < 0) return "swing";
   if (i <= tfIndex("1h")) return "day";
-  if (i <= tfIndex("D")) return "swing";
+  if (i <= tfIndex("3D")) return "swing";
   if (i <= tfIndex("W")) return "position";
   return "deep";
 }
