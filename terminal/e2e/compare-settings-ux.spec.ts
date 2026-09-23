@@ -1,6 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
 import { mkdirSync } from "node:fs";
-import { isolateLayoutStore } from "./layoutStore";
 
 async function openSettings(page: Page, touch: boolean) {
   const row = page.locator(".lg-row.is-cmp").filter({ hasText: "AAPL" }).first();
@@ -14,20 +13,25 @@ async function openSettings(page: Page, touch: boolean) {
   await expect(dialog).toBeVisible();
   return dialog;
 }
-async function addComparison(page: Page, width: number) {
+async function addComparison(page: Page, width: number, captureName: string) {
   await page.goto("/terminal?symbol=NVDA");
   await expect(page.locator(".chart-wrap canvas").first()).toBeVisible({ timeout: 20_000 });
+  await expect(page.locator(".lg-row.is-cmp")).toHaveCount(0);
   if (width > 860) await page.locator(".cmp-btn").first().click();
   else if (width <= 640) {
     await page.getByTestId("roller-more").click();
     await page.getByTestId("hub-tile-compare").click();
   } else {
-    // Tablet comparison creation has a separate existing chrome gap. This case proves
-    // editing a comparison from the user's saved workspace, through the real layout owner.
-    await page.locator('.chart-tabs button').filter({ hasText: /More|更多/ }).click();
-    await page.locator('[data-toolbar-menu-action="layouts"]').click();
-    await page.locator('#chart-toolbar-overflow [data-layout-row="Comparison controls"] > [role="menuitem"]').click();
-    return;
+    // Begin with an empty comparison workspace and use physical touch on tablet chrome.
+    await page.getByTestId("toolbar-more").tap();
+    const compare = page.locator('[data-toolbar-menu-action="compare"]');
+    await expect(compare).toBeVisible();
+    const rect = await compare.boundingBox();
+    expect(rect!.height).toBeGreaterThanOrEqual(44);
+    mkdirSync("docs/pr-crops/compare-settings-ux-20260922", { recursive: true });
+    await page.screenshot({ path: `docs/pr-crops/compare-settings-ux-20260922/${captureName}-entry.png` });
+    await compare.tap();
+    await expect(page.locator("#chart-toolbar-overflow")).not.toBeVisible();
   }
   const picker = page.locator(".smodal");
   await picker.getByRole("combobox").fill("AAPL");
@@ -38,23 +42,12 @@ async function addComparison(page: Page, width: number) {
 }
 
 for (const lang of ["en", "zh"] as const) {
-  test(`[${lang}] comparison settings edit the real overlay without losing modal or saved state`, async ({ page, baseURL }, info) => {
+  test(`[${lang}] comparison settings edit the real overlay without losing modal or saved state`, async ({ page }, info) => {
     await page.addInitScript((language) => localStorage.setItem("mm.lang", language), lang);
     const errors: string[] = [];
     page.on("pageerror", (error) => errors.push(error.message));
     const width = page.viewportSize()!.width;
-    if (width > 640 && width <= 860) {
-      await isolateLayoutStore(page, info, baseURL);
-      const saved = await page.request.post("/api/layouts", { data: {
-        name: "Comparison controls", mode: "create", config: {
-          schemaVersion: 2, panes: ["NVDA"], paneTfs: ["3D"], split: 1, activePane: 0,
-          sync: true, chartType: "candles", inds: ["ema", "vol"], indParams: {}, hidden: [],
-          compare: ["AAPL"], compareCfg: { AAPL: { color: "#e8a33d", lineWidth: 2, lineStyle: 0, mode: "percent" } }, lockedVLine: null,
-        },
-      } });
-      expect(saved.ok()).toBe(true);
-    }
-    await addComparison(page, width);
+    await addComparison(page, width, `${info.project.name}-${lang}`);
     const dialog = await openSettings(page, width <= 860);
     expect(await dialog.evaluate((element) => element.matches(":modal"))).toBe(true);
     const thickness = dialog.getByRole("spinbutton", { name: /Thickness|粗细/ });

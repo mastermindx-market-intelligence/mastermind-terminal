@@ -5280,6 +5280,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
                 </div>
 
                 {toolbarMoreView === "main" && (<>
+                  <button type="button" role="menuitem" className="menu-row" data-toolbar-menu-action="compare" aria-haspopup="dialog" style={{ minHeight: 44 }} onClick={() => { setToolbarMoreOpen(false); setSearchMode("compare"); setSeed(""); setSearchOpen(true); }}>
+                    <svg viewBox="0 0 24 24"><path d="M4 18l5-9 4 5 3-4 4 8" /></svg>{t("compare")}
+                  </button>
                   <div className="toolbar-overflow-group">
                     <span>{t("splitLayout")}</span>
                     <div className="seg" role="group" aria-label={t("splitLayout")}>

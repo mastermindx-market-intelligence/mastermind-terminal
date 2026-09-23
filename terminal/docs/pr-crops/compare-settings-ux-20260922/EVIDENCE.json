@@ -1,67 +1,83 @@
 {
-  "schema": "terminal.compare-settings.evidence.v1",
-  "captured_at": "2026-09-23T08:38:53.457Z",
-  "source_parent_head": "1f3a357b2b034c9a359d46b440a7bdd3777adb1c",
-  "uncommitted_source_delta_at_capture": [
-    "terminal/e2e/pane-sync-time-axis.spec.ts"
-  ],
-  "source_sha256": {
+  "schema": "terminal.comparison-settings-evidence.v1",
+  "scope": "Create a new comparison on tablet, then edit/persist comparison settings on all three viewports",
+  "sourceParent": "b57a7e823ff79d8f214127272b3cacd5a8af9dfe",
+  "binding": "Exact source SHA256 values identify the worktree candidate captured and subsequently committed; sourceParent alone is not the tested candidate.",
+  "skillpackPin": "bf764f494b9cd0ecede6234bb472c3344c8e77cc",
+  "theme": "Terminal dark-only; WebKit OS preference light",
+  "fixture": true,
+  "productionProof": false,
+  "sourceSha256": {
+    "terminal/components/TerminalShell.tsx": "090b43463eed2d577ef1c8c4a82f35170a350eaa17b497cf0825ccd88bb36a3a",
     "terminal/components/CompareSettings.tsx": "57fab6a18242ba8ca7b576cafa82cf81c89f175633de0e3e3b030908b7de58fd",
     "terminal/components/CompareSettings.module.css": "25a91e33e2929381e4bcaff03879469ad717c03aece13635792531319632c17a",
     "terminal/lib/chartSettingsUi.ts": "90dac0d31a86f0632520fc6863b894d4cfa665db2bc08c3f8ea95107c7e6c638",
     "terminal/lib/compare.ts": "a2356090ec8cf45c6eed1108ca963cba06f1dfa2a5dd96e4d6bc0610805d9757",
-    "terminal/components/TerminalShell.tsx": "1680bb46ef806ac0ceb3631f85d1c48dba37df3374216221e437628aa219d92b",
-    "terminal/components/ChartOverlays.tsx": "d689246643d6ed08ffd1537edfe578ca05f98913e9aa6502def579b3a652eeb7",
-    "terminal/app/globals.css": "8038b6fd941770f5b4d24861cbc788406fa893920cf5e68bcfc1ad8c5bab7aec",
-    "terminal/app/layout.tsx": "ff4990ac529a99651f15d4a8f6e8e0d118ab737f8e20dd5b364225e3ba125d90",
-    "terminal/e2e/compare-settings-ux.spec.ts": "697c1772e0f78ea72284f2188bfd2dfa97eea59a25d9c3847ceb4b133ab5aa53",
-    "terminal/e2e/layoutStore.ts": "18564914a45b6bb91e497644ef45cb27fb7d179de79c88699c80f37760af0399",
-    "terminal/e2e/pane-sync-time-axis.spec.ts": "721eff5eb1f5852e81a87ef7a856e2c84b775c4e2f6770bf4261d4ed07bccdbd"
+    "terminal/e2e/compare-settings-ux.spec.ts": "cbbb62a15db32eba2d14b2e289d037470d5487209179eb2124ecf8812bb9f493",
+    "terminal/lib/__tests__/compareSettingsUx.test.tsx": "6351da62dacc9aa36af049c575d32384e25bd4e58323dde6bba2ca9da6650830",
+    "terminal/playwright.config.ts": "c075c66531c8adbe369f525e20ed864c9d8594cc7ed81fb62ecb601659f857d3"
   },
-  "capture": "Fresh Chromium screenshots from the named native cold-server run; not restamped prior crops.",
-  "environment": {
-    "base_url": "http://127.0.0.1:3199",
-    "fixture": true,
-    "CI": true,
-    "reuse_existing_server": false,
-    "retries": 0,
-    "workers": 1
+  "screenshots": {
+    "desktop-en.png": "98b665e3106bcb392d0cdf870c05c7054f82f40d4aec751ba5d1de957cf9fdeb",
+    "desktop-zh.png": "9a7010f8d63cf38740a5f00ec83098ff8a63463f261b3d36d481f61ab7fde001",
+    "tablet-en.png": "4ed8a2dab2ee3415922b4c870490ef1609eecb846209f6788e3b6db0c88e2e0b",
+    "tablet-zh.png": "ee07b761777cb2b6f2c4ba6a19f36390efa070c061f5cf446debaaf1778c08b5",
+    "mobile-en.png": "af1e2a83281723a3436e058fda54ba8cffca1ce815f40c74919f69bdaa187d35",
+    "mobile-zh.png": "a06e6f0bfdd005b0ab83f8424aeac19a3facb2042736d0334ea053834dd73966",
+    "tablet-en-entry.png": "de862c0b881f9b3da8defd1f560ee9284852419d13ad8c1cdf3458f59b3fee77",
+    "tablet-zh-entry.png": "6bbd91034b3fb0e5b0b1cea139acb2b069ee5023f176134531a17bf3dcf017b5"
   },
-  "results": {
-    "comparison_en_zh": 6,
-    "pane_sync_desktop_tablet": 14,
-    "phone_pane_sync_unavailable_skips": 7,
-    "unexpected": 0
+  "browserResults": {
+    "chromium": {
+      "startTime": "2026-09-23T09:35:14.725Z",
+      "duration": 65559.776,
+      "expected": 6,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "webkit": {
+      "startTime": "2026-09-23T09:37:31.300Z",
+      "duration": 50919.816,
+      "expected": 6,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    }
   },
-  "report_sha256": "acffebb830e47786715a0d1d796eae370e2453ed2da2cbb59de8ee22d8534b54",
-  "log_sha256": "b802e44644b9aff5ad8d0295bdd50686aecaac578e88eae1ce8c1311a738213a",
-  "assertion_replay_sha256": "463dbd65340bc20059f48e17214be3e994a09322a600bb343357c49e66defca1",
-  "screenshots_sha256": {
-    "desktop-en.png": "02db00b18a2d4340d7ca8f576aaf3c60ab8c57b76d1ff97c1d4ceaf040d92376",
-    "desktop-zh.png": "264a68907233b578d43168f4af47ed7c60d9cb3d589742d0e2a783fe8c71329e",
-    "tablet-en.png": "9d0c0e012ea36075ea72c7a9f6aa5e3d5b7003032a7b65cffafeab7f1dab7748",
-    "tablet-zh.png": "7771aa31117c6fb2fc8d52cc280c1d19d528951270f4be31aeaa26830d99988c",
-    "mobile-en.png": "b3ef9b1c3eb55be7c25e2e7b71d96b46601a099ee221b60a338cbca8ffafbf7b",
-    "mobile-zh.png": "ba7a05e578740575c01fd81d18a219c2606dc4ecfcec2789bffc8f5f9a038afd"
+  "proofRoot": "/Volumes/Mastermind/evidence/terminal-compare-settings-ux-20260922/tablet-entry-20260923",
+  "reportsSha256": {
+    "red/report.json": "1eec30155516c150ac389d6c939dc1e6d05435740f7645bba9e53965b5c69c9e",
+    "chromium/report.json": "d822ca748b66119f3bab66c5403bc0d8bedf50037eb10127bd6d3101f380765c",
+    "chromium-touch-floor/report.json": "652f490e80a72cb20d6c82dadf66955d47a9707245c5985aed73aedfdd93aaff",
+    "chromium-touch-floor/run.log": "14c9fc6d06dcb4cf8edf323467b131b1e76acff7b25b9a743eeea71b14defc74",
+    "webkit/report.json": "32dfc1b6f4aa214a972339979777be76f566cf155103d94442e948a6310992d7",
+    "webkit/run.log": "8bc2b54e820fef886fe11082dc69ebb6a015332b600d57624f5efadd999f0d92",
+    "unit-final.log": "6777c53e62b3b4fdbbadba5165d42cf8d280319ea171a12046dede05774d2962",
+    "static.log": "4cb5c7e53daecb820e3139411795a2cc7ef2d36460aa90c8e1baec0268d17be7",
+    "lint-final.json": "f1225ba9a5746b135ce65852c34a231d9e9d766179d238c4bab700c128e74450",
+    "typecheck-final.log": "9ba9f78810d2d20b1946a27e06685b5137dbc2405348ff2b85d7912106a95bd7"
   },
-  "before_image": {
-    "file": "desktop-before.png",
-    "sha256": "f8bc5ed6b791234bc98a7571ab00295567007763eedbf634bde9364d54374bf5",
-    "historical": true,
-    "recaptured": false
+  "regressions": {
+    "before": "Physical tablet More tap reaches menu but Compare is absent.",
+    "intermediate": "New action is present but34.125px tall;44px threshold fails.",
+    "after": "Explicit44px action starts the existing picker; no preseeded layout or comparison. All six Chromium and six WebKit journeys pass with zero retries.",
+    "invariants": "Existing callbacks, preferences, RGB/alpha parsing, keyboard cycle, close/live-save behavior and marker/sync code unchanged."
   },
-  "limits": [
-    "Local fixture proof, not production acceptance or latest-base integration acceptance.",
-    "Tablet edits an existing saved comparison workspace; empty-tablet comparison creation remains unavailable.",
-    "Escape, Close and OK preserve live saves; none is Cancel/revert.",
-    "WebKit and physical Safari/iOS are not claimed by this Chromium receipt.",
-    "Terminal declares a dark-only root; no invented light palette is claimed."
-  ],
-  "static_and_focused": {
-    "eslint": "PASS",
-    "typecheck_no_emit_incremental_false": "PASS",
-    "focused_tests_passed": 53,
-    "exit": 0,
-    "log_sha256": "8d18455fefb96b028abf387797addbbd4b14b185a7f1f32e7c06d17898fe3372"
-  }
+  "unitResults": {
+    "files": 379,
+    "passed": 6089,
+    "todo": 4,
+    "exit": 0
+  },
+  "focusedResults": {
+    "passed": 101,
+    "exit": 0
+  },
+  "staticResults": {
+    "typecheck": "PASS",
+    "browserSpecLint": "PASS",
+    "TerminalShellChangedLinesLint": "PASS; whole file still has55 legacy errors/13 warnings"
+  },
+  "held": "Required hosted current-base integration, incumbent #688 marker dependency, protected merge and exact production comparison proof remain owed."
 }
