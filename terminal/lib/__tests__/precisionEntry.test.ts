@@ -27,7 +27,8 @@ describe("precision entry timeframe selection", () => {
       ["structure", "2W"],
     ]);
     expect(plan.split).toBe(4);
-    expect(plan.sync).toBe(true);
+    expect(plan.sync).toBe(false);
+    expect(plan.replay).toBe(false);
   });
 
   it("infers only a user-horizon default from the current chart timeframe", () => {
@@ -39,7 +40,7 @@ describe("precision entry timeframe selection", () => {
     expect(inferPrecisionHorizon("garbage")).toBe("swing");
   });
 
-  it("substitutes unavailable intervals deterministically without duplicating panes", () => {
+  it("substitutes unavailable default intervals without stealing later exact panes", () => {
     const functional = new Set(["1h", "2h", "4h", "D", "3D", "W", "2W", "1M"]);
     const plan = buildPrecisionPlan({ horizon: "swing", functional });
 
@@ -66,12 +67,14 @@ describe("precision entry timeframe selection", () => {
     expect(plan.warnings.some((w) => w.startsWith("missing:"))).toBe(true);
   });
 
-  it("accepts only an explicit accepted Temporal Grain four-timeframe contract", () => {
+  it("accepts only exact subject-bound, serveable Temporal Grain evidence", () => {
     const accepted = buildPrecisionPlan({
       horizon: "swing",
+      subjectKey: "security:AAPL",
       functional: ALL,
       evidence: {
         authority: "temporal-grain",
+        subjectKey: "security:AAPL",
         state: "accepted",
         timeframes: ["2h", "D", "W", "1M"],
         reason: "validated structural scale band",
@@ -84,11 +87,55 @@ describe("precision entry timeframe selection", () => {
     expect(accepted.reason).toBe("validated structural scale band");
   });
 
+  it("rejects accepted evidence for another subject", () => {
+    const plan = buildPrecisionPlan({
+      horizon: "position",
+      subjectKey: "security:MSFT",
+      functional: ALL,
+      evidence: {
+        authority: "temporal-grain",
+        subjectKey: "security:AAPL",
+        state: "accepted",
+        timeframes: ["2h", "D", "W", "1M"],
+      },
+    });
+
+    expect(plan.source).toBe("horizon_default");
+    expect(plan.adaptiveState).toBe("rejected");
+    expect(plan.warnings).toContain("temporal_grain_subject_mismatch");
+    expect(plan.panes.map((p) => p.tf)).toEqual(["D", "3D", "W", "2W"]);
+  });
+
+  it("rejects accepted evidence when its exact chart recipe cannot be served", () => {
+    const plan = buildPrecisionPlan({
+      horizon: "swing",
+      subjectKey: "security:AAPL",
+      functional: new Set(["D", "2D", "3D", "W", "2W", "1M"]),
+      evidence: {
+        authority: "temporal-grain",
+        subjectKey: "security:AAPL",
+        state: "accepted",
+        timeframes: ["2h", "D", "W", "1M"],
+      },
+    });
+
+    expect(plan.source).toBe("horizon_default");
+    expect(plan.adaptiveState).toBe("rejected");
+    expect(plan.warnings).toContain("temporal_grain_evidence_rejected");
+    expect(plan.panes.map((p) => p.tf)).toEqual(["W", "2D", "3D", "2W"]);
+  });
+
   it("does not turn abstention or unproven evidence into adaptive selection", () => {
     const abstain = buildPrecisionPlan({
       horizon: "deep",
+      subjectKey: "security:AAPL",
       functional: ALL,
-      evidence: { authority: "temporal-grain", state: "abstain", reason: "no stable scale" },
+      evidence: {
+        authority: "temporal-grain",
+        subjectKey: "security:AAPL",
+        state: "abstain",
+        reason: "no stable scale",
+      },
     });
     expect(abstain.source).toBe("horizon_default");
     expect(abstain.adaptiveState).toBe("abstained");
@@ -96,8 +143,13 @@ describe("precision entry timeframe selection", () => {
 
     const unproven = buildPrecisionPlan({
       horizon: "day",
+      subjectKey: "security:AAPL",
       functional: ALL,
-      evidence: { authority: "temporal-grain", state: "unproven" },
+      evidence: {
+        authority: "temporal-grain",
+        subjectKey: "security:AAPL",
+        state: "unproven",
+      },
     });
     expect(unproven.source).toBe("horizon_default");
     expect(unproven.adaptiveState).toBe("unproven");
@@ -106,9 +158,11 @@ describe("precision entry timeframe selection", () => {
   it("rejects malformed accepted evidence rather than silently granting authority", () => {
     const plan = buildPrecisionPlan({
       horizon: "position",
+      subjectKey: "security:AAPL",
       functional: ALL,
       evidence: {
         authority: "temporal-grain",
+        subjectKey: "security:AAPL",
         state: "accepted",
         timeframes: ["4h", "4h", "D", "W"],
       },
