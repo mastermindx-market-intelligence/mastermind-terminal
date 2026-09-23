@@ -123,6 +123,18 @@ describe("Precision Entry intel readout", () => {
     });
   });
 
+  it("refuses impossible bounded indicator values instead of displaying them", () => {
+    const readout = buildPrecisionEntryReadout({
+      analysis: {
+        entry: { confidence: 140 },
+        sniper: { w2_stoch_d: -3 },
+      },
+    });
+
+    expect(readout.bottomConfidence).toBeNull();
+    expect(readout.structure.w2StochD).toBeNull();
+  });
+
   it("preserves explicit false booleans because false is evidence, not absence", () => {
     const readout = buildPrecisionEntryReadout({
       tape: { stale: true },
