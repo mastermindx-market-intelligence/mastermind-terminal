@@ -64,7 +64,8 @@ export default function CompareSettings({ sym, cfg, onChange, onClose }: {
   const dialog = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     if (!dialog.current) return;
-    const opener = document.querySelector<HTMLElement>(".cmp-btn");
+    const opener = [...document.querySelectorAll<HTMLElement>(".cmp-btn, .lg-collapse")]
+      .find((element) => element.getClientRects().length > 0) ?? null;
     return activateSettingsDialog(dialog.current, opener);
   }, []);
   return <dialog ref={dialog} className={styles.dialog} aria-labelledby={`${id}-title`}

@@ -83,6 +83,7 @@ for (const lang of ["en", "zh"] as const) {
     mkdirSync("docs/pr-crops/compare-settings-ux-20260922", { recursive: true });
     await page.screenshot({ path: `docs/pr-crops/compare-settings-ux-20260922/${info.project.name}-${lang}.png` });
     await page.keyboard.press("Escape"); await expect(dialog).toHaveCount(0);
+    if (width <= 860) await expect(page.locator(".lg-collapse").first()).toBeFocused();
     const reopened = await openSettings(page, width <= 860);
     await expect(reopened.getByRole("spinbutton")).toHaveValue("4");
     await expect(reopened.getByRole("button", { name: /^(Dashed|虚线)$/ })).toHaveAttribute("aria-pressed", "true");
