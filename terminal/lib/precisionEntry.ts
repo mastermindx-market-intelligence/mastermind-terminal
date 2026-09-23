@@ -10,10 +10,16 @@ export type PrecisionPane = {
   substituted: boolean;
 };
 
+type PrecisionEvidenceBase = {
+  authority: "temporal-grain";
+  subjectKey: string;
+  reason?: string;
+};
+
 export type PrecisionEvidence =
-  | { authority: "temporal-grain"; state: "accepted"; timeframes: string[]; reason?: string }
-  | { authority: "temporal-grain"; state: "abstain"; reason?: string }
-  | { authority: "temporal-grain"; state: "unproven"; reason?: string };
+  | (PrecisionEvidenceBase & { state: "accepted"; timeframes: string[] })
+  | (PrecisionEvidenceBase & { state: "abstain" })
+  | (PrecisionEvidenceBase & { state: "unproven" });
 
 export type PrecisionPlan = {
   status: "ready" | "insufficient_timeframes";
@@ -21,7 +27,8 @@ export type PrecisionPlan = {
   source: "horizon_default" | "temporal_grain";
   adaptiveState: "not_requested" | "accepted" | "abstained" | "unproven" | "rejected";
   split: 4;
-  sync: true;
+  sync: false;
+  replay: false;
   panes: PrecisionPane[];
   warnings: string[];
   reason: string;
@@ -52,10 +59,13 @@ export function inferPrecisionHorizon(currentTf: string): PrecisionHorizon {
   return "deep";
 }
 
-function validEvidenceTimeframes(timeframes: readonly string[]): boolean {
+function validEvidenceTimeframes(
+  timeframes: readonly string[],
+  functional: ReadonlySet<string>,
+): boolean {
   return timeframes.length === 4
     && new Set(timeframes).size === 4
-    && timeframes.every((tf) => tfIndex(tf) >= 0);
+    && timeframes.every((tf) => tfIndex(tf) >= 0 && functional.has(tf));
 }
 
 function nearestAvailableTf(
@@ -115,6 +125,7 @@ function resolvePanes(
 export function buildPrecisionPlan(args: {
   horizon?: PrecisionHorizon;
   currentTf?: string;
+  subjectKey?: string;
   functional: ReadonlySet<string>;
   evidence?: PrecisionEvidence | null;
 }): PrecisionPlan {
@@ -125,25 +136,32 @@ export function buildPrecisionPlan(args: {
   const warnings: string[] = [];
   let reason = `${horizon} horizon default`;
 
-  if (args.evidence?.state === "accepted") {
-    if (validEvidenceTimeframes(args.evidence.timeframes)) {
-      requested = args.evidence.timeframes;
+  const evidence = args.evidence;
+  const subjectMatches = !evidence
+    || (!!args.subjectKey && evidence.subjectKey === args.subjectKey);
+
+  if (evidence && !subjectMatches) {
+    adaptiveState = "rejected";
+    warnings.push("temporal_grain_subject_mismatch");
+  } else if (evidence?.state === "accepted") {
+    if (validEvidenceTimeframes(evidence.timeframes, args.functional)) {
+      requested = evidence.timeframes;
       source = "temporal_grain";
       adaptiveState = "accepted";
-      reason = args.evidence.reason || "accepted temporal-grain evidence";
+      reason = evidence.reason || "accepted temporal-grain evidence";
     } else {
       adaptiveState = "rejected";
       warnings.push("temporal_grain_evidence_rejected");
     }
-  } else if (args.evidence?.state === "abstain") {
+  } else if (evidence?.state === "abstain") {
     adaptiveState = "abstained";
-    reason = args.evidence.reason
-      ? `${horizon} horizon default; temporal-grain abstained: ${args.evidence.reason}`
+    reason = evidence.reason
+      ? `${horizon} horizon default; temporal-grain abstained: ${evidence.reason}`
       : `${horizon} horizon default; temporal-grain abstained`;
-  } else if (args.evidence?.state === "unproven") {
+  } else if (evidence?.state === "unproven") {
     adaptiveState = "unproven";
-    reason = args.evidence.reason
-      ? `${horizon} horizon default; temporal-grain unproven: ${args.evidence.reason}`
+    reason = evidence.reason
+      ? `${horizon} horizon default; temporal-grain unproven: ${evidence.reason}`
       : `${horizon} horizon default; temporal-grain unproven`;
   }
 
@@ -156,7 +174,8 @@ export function buildPrecisionPlan(args: {
     source,
     adaptiveState,
     split: 4,
-    sync: true,
+    sync: false,
+    replay: false,
     panes: resolved.panes,
     warnings,
     reason,
