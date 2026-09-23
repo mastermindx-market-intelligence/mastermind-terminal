@@ -37,7 +37,9 @@ describe("precision entry timeframe selection", () => {
     expect(inferPrecisionHorizon("15m")).toBe("day");
     expect(inferPrecisionHorizon("4h")).toBe("swing");
     expect(inferPrecisionHorizon("D")).toBe("swing");
-    expect(inferPrecisionHorizon("3D")).toBe("position");
+    expect(inferPrecisionHorizon("2D")).toBe("swing");
+    expect(inferPrecisionHorizon("3D")).toBe("swing");
+    expect(inferPrecisionHorizon("W")).toBe("position");
     expect(inferPrecisionHorizon("2W")).toBe("deep");
     expect(inferPrecisionHorizon("garbage")).toBe("swing");
   });
