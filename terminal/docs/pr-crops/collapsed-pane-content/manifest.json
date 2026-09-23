@@ -1,0 +1,153 @@
+{
+  "schema": "mastermind.collapsed_pane_evidence/v2",
+  "sourceHead": "060445a253c57836178b0d8ea9a4e198e2fc7236",
+  "capturedAt": "2026-09-23T01:14:14.962Z",
+  "theme": "dark",
+  "terminalThemeLaw": "dark-only",
+  "classification": "LOCAL_BROWSER_WITH_DETERMINISTIC_CONTRACT_FIXTURES_NOT_PRODUCTION_DATA",
+  "browserReceipts": {
+    "desktop-en": {
+      "console": [],
+      "page": [],
+      "http": []
+    },
+    "tablet-en": {
+      "console": [],
+      "page": [],
+      "http": []
+    },
+    "mobile-en": {
+      "console": [],
+      "page": [],
+      "http": []
+    },
+    "desktop-zh": {
+      "console": [],
+      "page": [],
+      "http": []
+    },
+    "mobile-zh": {
+      "console": [],
+      "page": [],
+      "http": []
+    }
+  },
+  "sourceFiles": {
+    "components/ChartOverlays.tsx": "c53241e0387bbbbfa6bfaf82e24d923ac521b6c58f07888f8c1787f75a19eded",
+    "app/globals.css": "4eadbabcccf1d7ac5bc272dfbf98ff5c7c8cbb569d7b65f5846553115a91f6ca",
+    "e2e/drawing-system.spec.ts": "f52f533d9d32dcefd0d20cd210f84a5bbf41f567cccc1c4e91e7ed170cdb330e"
+  },
+  "captures": [
+    {
+      "name": "desktop-expanded-en",
+      "file": "desktop-expanded-en.png",
+      "sha256": "2e418ce752ea681a55a9ebc9cfedbbe0b4f26fb211f9d10a533647bd5d1d5b2f",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "lang": "en",
+      "state": "expanded",
+      "paneHeight": 133,
+      "drawingCount": 1
+    },
+    {
+      "name": "desktop-collapsed-en",
+      "file": "desktop-collapsed-en.png",
+      "sha256": "3952b6f0c264a2179fc19bc68f727992cfb9581da2317712b505aa50671f790c",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "lang": "en",
+      "state": "collapsed",
+      "originalHeight": 133,
+      "collapsedHeight": 12,
+      "drawingStillPersisted": true,
+      "maskAboveCanvas": true
+    },
+    {
+      "name": "desktop-restored-en",
+      "file": "desktop-restored-en.png",
+      "sha256": "b94c90fcef91abab3623292c10254f8f4bddf452456997f6cda56b585f43a8ae",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "lang": "en",
+      "state": "restored",
+      "drawingStillPersisted": true
+    },
+    {
+      "name": "tablet-collapsed-en",
+      "file": "tablet-collapsed-en.png",
+      "sha256": "115a427f8d25f1e12a266189255f237e1a72ef5e57401724177da04ad1ab599e",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "lang": "en",
+      "state": "collapsed",
+      "originalHeight": 67,
+      "collapsedHeight": 6,
+      "maskAboveCanvas": true,
+      "restoreAffordanceVisible": true
+    },
+    {
+      "name": "mobile-collapsed-en",
+      "file": "mobile-collapsed-en.png",
+      "sha256": "de47032f016a0a26e5478b21d4ca71b85f8917450180d3b2d80d7085a1d2ac5d",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "lang": "en",
+      "state": "collapsed",
+      "originalHeight": 60,
+      "collapsedHeight": 4,
+      "maskAboveCanvas": true,
+      "restoreAffordanceVisible": true
+    },
+    {
+      "name": "mobile-restored-en",
+      "file": "mobile-restored-en.png",
+      "sha256": "8a8f110710417303a69fbc3ef5f5485eb677cadf35f35d4a43b644bd01aa2aba",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "lang": "en",
+      "state": "restored"
+    },
+    {
+      "name": "desktop-collapsed-zh",
+      "file": "desktop-collapsed-zh.png",
+      "sha256": "bf28cca2102f860dd03538b766c7c01effc4354556a0b736018e2649e6d05963",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "lang": "zh",
+      "state": "collapsed",
+      "originalHeight": 163,
+      "collapsedHeight": 12,
+      "maskAboveCanvas": true,
+      "restoreAffordanceVisible": true
+    },
+    {
+      "name": "mobile-collapsed-zh",
+      "file": "mobile-collapsed-zh.png",
+      "sha256": "5b46b0b978cd22afd4b79f3190ae323f47b15417e37cddb1fee2951d2781886a",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "lang": "zh",
+      "state": "collapsed",
+      "originalHeight": 78,
+      "collapsedHeight": 6,
+      "maskAboveCanvas": true,
+      "restoreAffordanceVisible": true
+    }
+  ]
+}

@@ -4279,19 +4279,75 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       if (!info) return null;
       try { return chartRef.current?.panes()[info.paneIndex]?.getSeries()?.[0] ?? null; } catch { return null; }
     };
-    /** Pane key under a pane-space y, or null while the layout is unmeasured. */
+    const normalizedPaneKey = (paneKey?: string | null) => paneKey || PRICE_PANE_KEY;
+    const paneLayoutFor = (paneKey?: string | null) =>
+      paneLayoutRef.current.find((pane) => pane.key === normalizedPaneKey(paneKey)) ?? null;
+    /** Pane key under a chart-root y, or null while the layout is unmeasured. */
     const paneKeyAt = (py: number): string | null =>
       paneLayoutRef.current.find((pane) => py >= pane.top && py <= pane.top + pane.height)?.key ?? null;
     /** The pane an existing drawing belongs to; absent meta means the price pane. */
     const drawingPaneKey = (d: Pick<Drawing, "meta">): string | null =>
       typeof d.meta?.pane === "string" ? d.meta.pane : null;
+    const PANE_VALUE_SPACE = "pane-value-v2";
+    const drawingMetaForPane = (meta: Drawing["meta"] | undefined, paneKey?: string | null): Drawing["meta"] | undefined =>
+      paneKey && paneKey !== PRICE_PANE_KEY
+        ? { ...(meta ?? {}), pane: paneKey, paneCoordSpace: PANE_VALUE_SPACE }
+        : meta;
+    // Lightweight Charts series price coordinates are PANE-local. DrawLayer and
+    // pointer coordinates are CHART-root-local. The original indicator-pane fix
+    // bound anchors to the right series but passed root y straight through the
+    // pane-local API; inverse+forward projection happened to cancel until that
+    // pane's y-range changed, then the stored anchor shot out of the pane.
     const yOfIn = (p: number, paneKey?: string | null) => {
       const s = seriesForPane(paneKey);
-      return s ? (s.priceToCoordinate(p) as number | null) : null;
+      if (!s) return null;
+      const localY = s.priceToCoordinate(p) as number | null;
+      if (localY == null || !Number.isFinite(localY)) return null;
+      const pane = paneLayoutFor(paneKey);
+      // Before first layout measurement only pane 0 can be addressed safely.
+      if (!pane) return normalizedPaneKey(paneKey) === PRICE_PANE_KEY ? localY : null;
+      return pane.top + localY;
     };
     const priceAtIn = (py: number, paneKey?: string | null) => {
       const s = seriesForPane(paneKey);
-      return s ? (s.coordinateToPrice(py) as number | null) : null;
+      if (!s) return null;
+      const pane = paneLayoutFor(paneKey);
+      if (!pane && normalizedPaneKey(paneKey) !== PRICE_PANE_KEY) return null;
+      const localY = pane ? py - pane.top : py;
+      return s.coordinateToPrice(localY) as number | null;
+    };
+    // PR #481 began persisting the owning pane before the root↔pane Y transform
+    // itself was corrected. Those documents have meta.pane but no coordinate-space
+    // marker, and their p values encode coordinateToPrice(ROOT_Y). Convert them
+    // once, at the first measured pane layout, while preserving their current
+    // on-screen position. Persisting the marker prevents repeat conversion.
+    const migrateLegacyPaneDrawings = () => {
+      let changed = false;
+      const next = drawRef.current.map((drawing) => {
+        const paneKey = drawingPaneKey(drawing);
+        if (!paneKey || drawing.meta?.paneCoordSpace === PANE_VALUE_SPACE) return drawing;
+        const pane = paneLayoutFor(paneKey);
+        const series = seriesForPane(paneKey);
+        if (!pane || !series || !(pane.height > 0)) return drawing;
+        const migrated: Drawing["points"] = [];
+        for (const point of drawing.points) {
+          const legacyRootY = series.priceToCoordinate(point.p) as number | null;
+          if (legacyRootY == null || !Number.isFinite(legacyRootY)) return drawing;
+          const corrected = series.coordinateToPrice(legacyRootY - pane.top) as number | null;
+          if (corrected == null || !Number.isFinite(corrected)) return drawing;
+          migrated.push({ ...point, p: corrected });
+        }
+        changed = true;
+        return {
+          ...drawing,
+          points: migrated,
+          meta: { ...(drawing.meta ?? {}), paneCoordSpace: PANE_VALUE_SPACE },
+        };
+      });
+      if (!changed) return false;
+      drawRef.current = next;
+      onChangeRef.current?.([...next]);
+      return true;
     };
     const yOf = (p: number) => yOfIn(p, null);
     const barIndex = (tm: string) => {
@@ -5911,11 +5967,13 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       newPoints: Drawing["points"] = [at],
       newMeta?: Drawing["meta"],
       activation = toolActivationRef.current,
+      paneKey?: string | null,
     ) => {
       if (textEditEl) { try { textEditEl.remove(); } catch {} textEditEl = null; } textEditRef.current = null;
+      const textPaneKey = existing ? drawingPaneKey(existing) : paneKey;
       const paneAnchor = paneAnchorOf(existing?.meta ?? newMeta);
       const ax = paneAnchor ? paneAnchor.x * el!.clientWidth : xOf(at.t);
-      const ay = paneAnchor ? paneAnchor.y * el!.clientHeight : yOf(at.p);
+      const ay = paneAnchor ? paneAnchor.y * el!.clientHeight : yOfIn(at.p, textPaneKey);
       if (ax == null || ay == null) return;
       const fs = existing?.fontSize ?? 13;
       const inp = document.createElement("input");
@@ -5931,7 +5989,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         if (!save) return;
         if (existing) onChangeRef.current?.(val ? drawRef.current.map((d) => d.id === existing.id ? { ...d, text: val } : d) : drawRef.current.filter((d) => d.id !== existing.id));
         else if (val) {
-          const next: Drawing = { id: uid(), kind: newKind, points: newPoints, text: val, fontSize: fs, ...applyStyle(newKind), ...(newMeta ? { meta: newMeta } : {}) };
+          const withPane = drawingMetaForPane(newMeta, textPaneKey);
+          const next: Drawing = { id: uid(), kind: newKind, points: newPoints, text: val, fontSize: fs, ...applyStyle(newKind), ...(withPane ? { meta: withPane } : {}) };
           sel = drawingStickyRef.current ? null : next.id; drawRef.current = [...drawRef.current, next]; onChangeRef.current?.([...drawRef.current]); announceCommit(newKind, activation);
         }
       };
@@ -6547,10 +6606,35 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       flushTables();
     };
 
+    let drawingPaneClipIds = new Map<string, string>();
+    const applyDrawingPaneClip = <T extends SVGElement>(node: T, paneKey?: string | null): T => {
+      // Legacy price-pane drawings include tools such as vertical lines whose
+      // intentional geometry spans the full chart root. Preserve that contract;
+      // only a drawing explicitly bound to an indicator pane is pane-clipped.
+      if (!paneKey || paneKey === PRICE_PANE_KEY) return node;
+      const clipId = drawingPaneClipIds.get(paneKey);
+      if (clipId) node.setAttribute("clip-path", `url(#${clipId})`);
+      return node;
+    };
     const renderDraw = () => {
       const svgEl = svgRef.current; if (!svgEl) return;
       while (svgEl.firstChild) svgEl.removeChild(svgEl.firstChild);
+      drawingPaneClipIds = new Map();
       if (priceProjHidden()) { positionBar(); renderAllPriceTags(); return; }  // drawings stay cleared while a sub-pane is maximized
+      // DrawLayer is one root SVG over every LWC pane. Clip each drawing to its
+      // owning pane so an intentionally narrow/custom y-range cannot paint the
+      // off-range continuation across a separator into a neighbouring pane.
+      const clipDefs = mk("defs", {});
+      const clipPrefix = String(syncIdRef.current ?? "chart").replace(/[^a-zA-Z0-9_-]/g, "_");
+      paneLayoutRef.current.forEach((pane, index) => {
+        if (!(pane.height > 0)) return;
+        const clipId = `drawing-pane-clip-${clipPrefix}-${index}`;
+        const clip = mk("clipPath", { id: clipId, clipPathUnits: "userSpaceOnUse" });
+        clip.appendChild(mk("rect", { x: 0, y: pane.top, width: el!.clientWidth, height: pane.height }));
+        clipDefs.appendChild(clip);
+        drawingPaneClipIds.set(pane.key, clipId);
+      });
+      if (clipDefs.childNodes.length) svgEl.appendChild(clipDefs);
       // Build one projection context per document render. Logical-index X is
       // equivalent to snapped timeToCoordinate but materially cheaper for long
       // paths; the normal price scale is affine, so two chart-API samples give
@@ -6573,7 +6657,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         const y0 = series?.priceToCoordinate(base), y1 = series?.priceToCoordinate(base + step);
         if (mode === 0 && y0 != null && y1 != null && Number.isFinite(y0) && Number.isFinite(y1)) {
           const slope = (y1 - y0) / step;
-          affineY = (price) => y0 + (price - base) * slope;
+          const paneTop = paneLayoutFor(null)?.top ?? 0;
+          affineY = (price) => paneTop + y0 + (price - base) * slope;
         }
       } catch { /* use authoritative per-price projection below */ }
       const projectY = (price: number) => {
@@ -6589,7 +6674,10 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         if (!fn) { fn = (price: number) => yOfIn(price, key); paneProjectors.set(key, fn); }
         return fn;
       };
-      for (const d of [...drawRef.current].sort((a, b) => (a.z ?? 0) - (b.z ?? 0))) svgEl.appendChild(shape(d, false, projectX, projectYFor(d)));
+      for (const d of [...drawRef.current].sort((a, b) => (a.z ?? 0) - (b.z ?? 0))) {
+        const node = shape(d, false, projectX, projectYFor(d));
+        svgEl.appendChild(applyDrawingPaneClip(node, drawingPaneKey(d)));
+      }
       // ── D2 locked vertical line overlay ──
       const lvt = lockedVLineOwnerSymbolRef.current === symbolRef.current ? lockedVLineRef.current : null;
       if (lvt) {
@@ -6755,7 +6843,10 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         });
       }
       layout.sort((a, b) => a.paneIndex - b.paneIndex);
-      paneLayoutRef.current = layout; setPaneLayout(layout);
+      paneLayoutRef.current = layout;
+      const migratedLegacyDrawings = migrateLegacyPaneDrawings();
+      setPaneLayout(layout);
+      if (migratedLegacyDrawings) renderDraw();
     };
     measureRef.current = measureImpl;
     const scheduleMeasure = () => { if (measRaf != null) return; measRaf = requestAnimationFrame(() => { measRaf = null; if (!dead) { measureImpl(); renderTagRef.current?.(); } }); };
@@ -7163,7 +7254,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     ) => {
       // Only a non-price pane is recorded, so existing price-pane documents keep
       // their exact persisted shape and need no migration.
-      const withPane = paneKey && paneKey !== PRICE_PANE_KEY ? { ...(meta ?? {}), pane: paneKey } : meta;
+      const withPane = drawingMetaForPane(meta, paneKey);
       const next: Drawing = { id: uid(), kind, points: materializePoints(kind, points), ...applyStyle(kind), ...(withPane ? { meta: withPane } : {}) };
       sel = drawingStickyRef.current ? null : next.id; drawRef.current = [...drawRef.current, next]; onChangeRef.current?.([...drawRef.current]); announceCommit(kind, activation);
     };
@@ -7300,7 +7391,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       announceCommit(next.kind, activation);
     };
 
-    const openMediaChoicePicker = (kind: "emoji" | "icon", point: Drawing["points"][number], x: number, y: number, activation = toolActivationRef.current) => {
+    const openMediaChoicePicker = (kind: "emoji" | "icon", point: Drawing["points"][number], x: number, y: number, activation = toolActivationRef.current, paneKey?: string | null) => {
       const copy = mediaCopy();
       const { panel, body } = createMediaSurface(kind, kind === "emoji" ? copy.emojiTitle : copy.iconTitle, x, y);
       body.classList.add("drawing-media-choice-grid");
@@ -7320,7 +7411,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
             appendMediaDrawing({
               id: uid(), kind: "emoji", points: [point], ...applyStyle("emoji"),
               text: emoji.glyph, fontSize: 30,
-              meta: { mediaType: "emoji", emojiLabel: emoji.label },
+              meta: drawingMetaForPane({ mediaType: "emoji", emojiLabel: emoji.label }, paneKey),
             }, activation);
           });
         } else {
@@ -7331,7 +7422,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           button.append(glyph, caption);
           button.addEventListener("click", () => appendMediaDrawing({
             id: uid(), kind: "icon", points: [point], ...applyStyle("icon"), text: icon.id,
-            meta: { mediaType: "icon", iconId: icon.id, iconLabel: icon.label },
+            meta: drawingMetaForPane({ mediaType: "icon", iconId: icon.id, iconLabel: icon.label }, paneKey),
           }, activation));
         }
         buttons.push(button); body.appendChild(button);
@@ -7358,7 +7449,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       probe.src = src;
     });
 
-    const openImageUpload = (points: Drawing["points"], x: number, y: number, activation = toolActivationRef.current) => {
+    const openImageUpload = (points: Drawing["points"], x: number, y: number, activation = toolActivationRef.current, paneKey?: string | null) => {
       const copy = mediaCopy();
       const { panel, body, status } = createMediaSurface("image", copy.imageTitle, x, y);
       const help = document.createElement("p"); help.className = "drawing-media-picker-help"; help.textContent = copy.imageHelp;
@@ -7398,7 +7489,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
             const safeName = file.name.trim().slice(0, 96) || "image";
             const next: Drawing = {
               id: uid(), kind: "image", points, ...applyStyle("image"),
-              meta: { mediaType: "image", imageSrc: src, imageName: safeName, imageMime: file.type, imageWidth: dimensions.width, imageHeight: dimensions.height },
+              meta: drawingMetaForPane({ mediaType: "image", imageSrc: src, imageName: safeName, imageMime: file.type, imageWidth: dimensions.width, imageHeight: dimensions.height }, paneKey),
             };
             const payloadBytes = new TextEncoder().encode(JSON.stringify([...drawRef.current, next])).byteLength;
             if (payloadBytes > DRAWING_IMAGE_PAYLOAD_BUDGET) {
@@ -7704,7 +7795,10 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           guides.appendChild(mk("circle", { cx: snapTarget.x, cy: snapTarget.y, r: 2.5, fill: "var(--brand-2)" }));
         }
         svgEl.appendChild(guides);
-        svgEl.appendChild(shape({ id: "_p", kind: p0.kind, points: previewPoints, ...applyStyle(p0.kind), ...(p0.meta ? { meta: p0.meta } : {}) }, true, xOf, (price) => yOfIn(price, p0.paneKey)));
+        svgEl.appendChild(applyDrawingPaneClip(
+          shape({ id: "_p", kind: p0.kind, points: previewPoints, ...applyStyle(p0.kind), ...(p0.meta ? { meta: p0.meta } : {}) }, true, xOf, (price) => yOfIn(price, p0.paneKey)),
+          p0.paneKey,
+        ));
       });
     });
     svg.addEventListener("pointerup", (ev) => {
@@ -7732,10 +7826,10 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         return;
       }
       const currentMeta = getDrawingTool(current.kind)?.creation.anchorSpace === "pane" ? paneMetaAt(x, y, current.meta) : current.meta;
-      if (current.mode === "text") { pending = null; openTextEditor(b, undefined, current.kind, [b], currentMeta, current.activation); renderDraw(); return; }
+      if (current.mode === "text") { pending = null; openTextEditor(b, undefined, current.kind, [b], currentMeta, current.activation, current.paneKey); renderDraw(); return; }
       if (current.mode === "point") {
         pending = null;
-        if (current.kind === "emoji" || current.kind === "icon") openMediaChoicePicker(current.kind, b, x, y, current.activation);
+        if (current.kind === "emoji" || current.kind === "icon") openMediaChoicePicker(current.kind, b, x, y, current.activation, current.paneKey);
         else commitDrawing(current.kind, [b], currentMeta, current.activation, current.paneKey);
         renderDraw(); return;
       }
@@ -7778,9 +7872,9 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         : samePlacement(a, last, current.paneKey));
       if (degenerate) { current.pointerId = undefined; current.candidate = end; renderDraw(); return; }
       pending = null;
-      if (current.kind === "image") { openImageUpload(points, x, y, current.activation); renderDraw(); return; }
+      if (current.kind === "image") { openImageUpload(points, x, y, current.activation, current.paneKey); renderDraw(); return; }
       if (getDrawingTool(current.kind)?.capabilities.includes("textInput")) {
-        openTextEditor(last, undefined, current.kind, points, currentMeta, current.activation);
+        openTextEditor(last, undefined, current.kind, points, currentMeta, current.activation, current.paneKey);
         renderDraw();
         return;
       }
@@ -7808,7 +7902,10 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         const xy = rectXY(e), b = snap(xy.x, xy.y, e);
         scheduleDraw(() => {
           const svgEl = svgRef.current; if (!svgEl) return;
-          svgEl.appendChild(shape({ id: "_measure", kind: "measure", points: [a, b], ...applyStyle("measure") }, true, xOf, (price) => yOfIn(price, measurePane)));
+          svgEl.appendChild(applyDrawingPaneClip(
+            shape({ id: "_measure", kind: "measure", points: [a, b], ...applyStyle("measure") }, true, xOf, (price) => yOfIn(price, measurePane)),
+            measurePane,
+          ));
         });
       };
       const cleanupMeasure = () => {

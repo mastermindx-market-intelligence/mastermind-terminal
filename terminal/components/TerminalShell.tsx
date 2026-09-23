@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { useIsMobile, useIsPhone } from "@/lib/useMediaQuery";
+import { PHONE_QUERY, useIsMobile, useIsPhone } from "@/lib/useMediaQuery";
 import MobileSheet from "@/components/ui/MobileSheet";
 import { DndContext, DragOverlay, PointerSensor, KeyboardSensor, useDroppable, useSensor, useSensors, closestCenter, type CollisionDetection, type DragEndEvent, type DragStartEvent, type Modifier } from "@dnd-kit/core";
 import { SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
@@ -1549,6 +1549,18 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
   // ── phone chart chrome (R2): the roller strip's two sheets ──
   const [drawSheetOpen, setDrawSheetOpen] = useState(false);
   const [hubOpen, setHubOpen] = useState(false);
+  const [phoneWorkspacesOpen, setPhoneWorkspacesOpen] = useState(false);
+  // A phone-only sheet must not survive a breakpoint transition in component state. Without
+  // clearing it here, rotating to tablet/landscape unmounts the sheet while leaving `open=true`,
+  // so returning to the phone breakpoint unexpectedly reopens it.
+  useEffect(() => {
+    const query = window.matchMedia(PHONE_QUERY);
+    const closeOutsidePhone = (event: MediaQueryListEvent) => {
+      if (!event.matches) setPhoneWorkspacesOpen(false);
+    };
+    query.addEventListener("change", closeOutsidePhone);
+    return () => query.removeEventListener("change", closeOutsidePhone);
+  }, []);
   // Optimistic "seen" so the ••• badge cannot flash before localStorage is read on mount.
   const [hubSeen, setHubSeen] = useState(true);
   useEffect(() => { try { setHubSeen(localStorage.getItem("mm.hubSeen") === "1"); } catch {} }, []);
@@ -5004,6 +5016,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
   };
   const openAnalysisHub = () => {
     setDrawSheetOpen(false);
+    setPhoneWorkspacesOpen(false);
     setHubOpen(true);
     if (!hubSeen) { setHubSeen(true); try { localStorage.setItem("mm.hubSeen", "1"); } catch {} }
   };
@@ -5562,6 +5575,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
             if (action === "indicators") setIndOpen(true);
             else if (action === "compare") { setSearchMode("compare"); setSeed(""); setSearchOpen(true); }
             else if (action === "chartType") setCtOpen(true);
+            else if (action === "workspaces") setPhoneWorkspacesOpen(true);
             else if (action === "alerts") window.location.assign(`/alerts?sym=${encodeURIComponent(active)}`);
             else if (action === "symbolDetails") {
               setFullChart(false);
@@ -5571,6 +5585,19 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
             }
           }}
         />
+        <MobileSheet
+          open={phoneWorkspacesOpen}
+          onClose={() => setPhoneWorkspacesOpen(false)}
+          title={t("layouts")}
+          className="phone-workspaces-sheet"
+          detents={[60, 96]}
+        >
+          <LayoutMenu
+            {...layoutMenuProps}
+            onPicked={() => setPhoneWorkspacesOpen(false)}
+            isOpen={phoneWorkspacesOpen}
+          />
+        </MobileSheet>
       </>)}
 
       {/* The rail and the chart workspace are INDEPENDENT surfaces (the rail's intel/fund/opts
