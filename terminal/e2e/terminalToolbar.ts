@@ -1,4 +1,5 @@
 import { expect, type Locator, type Page } from "@playwright/test";
+import { isPhoneViewport } from "./phoneChrome";
 
 async function openOverflow(page: Page) {
   const menu = page.locator(".toolbar-overflow-pop.show");
@@ -74,10 +75,20 @@ export async function chooseToolbarSplit(page: Page, count: 1 | 2 | 4) {
 /**
  * Open the Saved-Layouts menu and return its body, at any viewport.
  *
- * Desktop shows the toolbar popover; the tablet/phone toolbars collapse it into "More ▸ Layouts".
- * Both render the SAME `LayoutMenu`, which is the point — the two used to be hand-copied markup.
+ * Desktop shows the toolbar popover; tablet collapses it into "More ▸ Layouts"; phone uses its
+ * canonical roller strip's Analysis hub ▸ Workspaces tile. All three render the SAME `LayoutMenu`.
  */
 export async function openLayoutMenu(page: Page) {
+  if (isPhoneViewport(page)) {
+    const sheet = page.locator(".phone-workspaces-sheet:has([data-layout-save])");
+    if (!(await sheet.isVisible())) {
+      const hub = page.getByTestId("analysis-hub");
+      if (!(await hub.isVisible())) await page.getByTestId("roller-more").click();
+      await page.getByTestId("hub-tile-workspaces").click();
+    }
+    await expect(sheet.locator("[data-layout-save]")).toBeVisible();
+    return sheet;
+  }
   const directPop = page.locator('[data-toolbar-action="layouts"] .pop.show');
   const overflowPop = page.locator(".toolbar-overflow-pop.show");
   const control = page.locator('[data-toolbar-action="layouts"] > button');
