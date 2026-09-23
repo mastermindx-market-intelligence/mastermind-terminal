@@ -125,7 +125,7 @@ describe("PrecisionEntryStrip", () => {
     const el = mount(intel);
     const state = el.querySelector("[data-testid='precision-data-state']");
 
-    expect(state?.getAttribute("data-state")).toBe("stale");
+    expect(state?.getAttribute("data-precision-data")).toBe("stale");
     expect(state?.textContent).toContain("Stale");
     expect(state?.textContent).toContain("2026-09-23");
     expect(el.querySelector("[data-testid='precision-entry-strip']")?.getAttribute("data-precision-freshness")).toBe("stale");
@@ -145,7 +145,7 @@ describe("PrecisionEntryStrip", () => {
     const state = el.querySelector("[data-testid='precision-data-state']");
     const text = el.textContent ?? "";
 
-    expect(state?.getAttribute("data-state")).toBe("partial");
+    expect(state?.getAttribute("data-precision-data")).toBe("partial");
     expect(state?.textContent).toContain("Partial data");
     expect(text).toContain("41");
     expect(text).not.toContain("Confirmed");
@@ -213,7 +213,7 @@ describe("PrecisionEntryStrip", () => {
     const text = strip?.textContent ?? "";
 
     expect(strip?.getAttribute("data-precision-availability")).toBe("unavailable");
-    expect(state?.getAttribute("data-state")).toBe("unavailable");
+    expect(state?.getAttribute("data-precision-data")).toBe("unavailable");
     expect(state?.textContent).toContain("Intel unavailable");
     expect(text).not.toContain("Buy");
     expect(el.querySelector("[data-testid='precision-posture']")).toBeNull();
