@@ -68,6 +68,11 @@ function boundedNum(value: unknown, low: number, high: number): number | null {
   return n !== null && n >= low && n <= high ? n : null;
 }
 
+function positiveNum(value: unknown): number | null {
+  const n = num(value);
+  return n !== null && n > 0 ? n : null;
+}
+
 function bool(value: unknown): boolean | null {
   return typeof value === "boolean" ? value : null;
 }
@@ -79,15 +84,15 @@ function int(value: unknown): number | null {
 
 function buyZone(value: unknown): { low: number; high: number } | null {
   if (Array.isArray(value)) {
-    const low = num(value[0]);
-    const high = num(value[1]);
+    const low = positiveNum(value[0]);
+    const high = positiveNum(value[1]);
     if (low === null || high === null || low > high) return null;
     return { low, high };
   }
   const band = obj(value);
   if (!band) return null;
-  const low = num(band.low);
-  const high = num(band.high);
+  const low = positiveNum(band.low);
+  const high = positiveNum(band.high);
   if (low === null || high === null || low > high) return null;
   return { low, high };
 }
@@ -99,6 +104,7 @@ function location(args: {
 }): PrecisionLocation {
   const { spot, zone, chaseAbove } = args;
   if (spot === null) return "unknown";
+  if (zone && chaseAbove !== null && chaseAbove < zone.high) return "unknown";
   if (chaseAbove !== null && spot > chaseAbove) return "above_chase";
   if (!zone) return "unknown";
   if (spot < zone.low) return "below_buy_zone";
@@ -121,9 +127,9 @@ export function buildPrecisionEntryReadout(intel: unknown): PrecisionEntryReadou
   const confluence = obj(analysis?.confluence);
   const sniper = obj(analysis?.sniper);
 
-  const spot = num(entry?.spot);
+  const spot = positiveNum(entry?.spot);
   const zone = buyZone(entry?.buy_zone);
-  const chaseAbove = num(entry?.chase_above);
+  const chaseAbove = positiveNum(entry?.chase_above);
 
   const present = [entry, confluence, sniper].filter(Boolean).length;
   const stale = bool(tape?.stale);
@@ -165,7 +171,7 @@ export function buildPrecisionEntryReadout(intel: unknown): PrecisionEntryReadou
       spot,
       buyZone: zone,
       chaseAbove,
-      stop: num(entry?.stop),
+      stop: positiveNum(entry?.stop),
       location: location({ spot, zone, chaseAbove }),
     },
   };
