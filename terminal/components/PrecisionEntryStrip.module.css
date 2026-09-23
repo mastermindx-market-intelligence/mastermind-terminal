@@ -75,7 +75,7 @@
   font-variant-numeric: tabular-nums;
 }
 
-.state {
+.badge {
   display: inline-flex;
   align-items: center;
   min-height: 18px;
@@ -113,7 +113,7 @@
     padding-inline: 8px;
   }
 
-  .state {
+  .badge {
     margin-left: 0;
   }
 }
