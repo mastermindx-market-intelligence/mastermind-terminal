@@ -151,9 +151,9 @@ describe("Precision Entry intel readout", () => {
     });
   });
 
-  it("accepts both buy-zone contract shapes and normalizes reversed endpoints only for display geometry", () => {
+  it("accepts both buy-zone contract shapes and refuses reversed endpoints", () => {
     const tuple = buildPrecisionEntryReadout({
-      analysis: { entry: { spot: 95, buy_zone: [100, 90] } },
+      analysis: { entry: { spot: 95, buy_zone: [90, 100] } },
     });
     expect(tuple.geometry.buyZone).toEqual({ low: 90, high: 100 });
     expect(tuple.geometry.location).toBe("inside_buy_zone");
@@ -163,6 +163,12 @@ describe("Precision Entry intel readout", () => {
     });
     expect(objectBand.geometry.buyZone).toEqual({ low: 90, high: 100 });
     expect(objectBand.geometry.location).toBe("below_buy_zone");
+
+    const malformed = buildPrecisionEntryReadout({
+      analysis: { entry: { spot: 95, buy_zone: [100, 90] } },
+    });
+    expect(malformed.geometry.buyZone).toBeNull();
+    expect(malformed.geometry.location).toBe("unknown");
   });
 
   it("reports literal chase geometry ahead of the broader zone relation", () => {
