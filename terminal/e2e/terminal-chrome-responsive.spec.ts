@@ -203,8 +203,9 @@ test("Precision MTF intelligence strip renders canonical context above the chart
   await expect(strip.locator('[data-role="trigger"]')).toContainText("T3 · ≈ 1.4 bars · Provisional");
   await expect(strip.locator('[data-role="durability"]')).toContainText("72/100");
   await expect(strip.locator('[data-role="durability"]')).toContainText("durability, not return");
-  await expect(strip.locator('[data-role="structure"]')).toContainText("Higher-TF confirm");
-  await expect(strip.locator('[data-role="structure"]')).toContainText("2W washout");
+  await expect(strip.locator('[data-role="structure"]')).toContainText("Higher-TF support");
+  await expect(strip.locator('[data-role="structure"]')).toContainText("2W washout ctx");
+  await expect(strip.locator('[data-role="structure"]')).toContainText("Context only · not a buy signal");
 
   const paneGrid = page.locator(".pane-grid");
   const horizonSelect = page.getByTestId("precision-horizon-select");
