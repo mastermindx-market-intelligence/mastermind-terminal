@@ -70,3 +70,7 @@ Produces: one recoverable PR with truthful BUILT_NOT_PROVEN state until release 
 - [ ] Request admitted independent review of the exact candidate; no self-authored APPROVE substitutes for review.
 - [ ] Release only after current-source compatibility, independent review, exact-head required CI and applicable source/production gates pass.
 - [ ] Deploy merged master through the existing git-gated owner and verify the real user path. Otherwise preserve the exact incomplete state; do not call a pushed branch or queued CI complete.
+
+## Current progress
+
+Task 1 source and focused tests pass; implementation commit 64701e45ceb62f8ade1ac2bfcac4ecd5ad7c0d77 is remotely verified. Task 2 consumer and six-case responsive fixture proof pass. Full unit: 6,137 passed / four TODOs. Independent exact-head review, hosted CI and production proof remain owed. See the evidence report for step-grid and mobile-density rulings; neither changes the native kernels.
