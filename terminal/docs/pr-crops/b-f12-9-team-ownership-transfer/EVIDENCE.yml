@@ -1,8 +1,8 @@
 # Ledger row: 0020_team_ownership_transfer / PR #550 (merged 3cdcd746; originated in #557, packet B-F12-9); applied 2026-09-11
 # layoutFiles carry sha256 hashes of the files they name; proof of which code generated each crop.
 # Rebuild any crop and recompute its layoutFiles, or the test will fail and the PR will not land.
-# capturedAtHead: 1edfc1b8d7fea9702d0b497bd818d1e197e4303a
-capturedAtHead: 1edfc1b8d7fea9702d0b497bd818d1e197e4303a
+# capturedAtHead: bd03d248f61cb95c511ba0c87d2a60525cd03db6
+capturedAtHead: bd03d248f61cb95c511ba0c87d2a60525cd03db6
 capturedAt: 2026-09-24T16:23:23.613Z
 # 2026-09-24 seat 026851bd (PR #742 master merge): capturedAtHead moved 0613e9a6 -> 1edfc1b8 -> bd03d248 because f12_9TeamOwnershipTransferEvidence.test.ts asserts the pointer is an ancestor of HEAD whose i18n.tsx blob equals the pin; the merged i18n.tsx (c8b5a076) exists only from the merge commit on. Hash-only restamp: crops NOT recaptured, so capturedAt (the last real capture) predates that commit on purpose.
 layoutFiles:
