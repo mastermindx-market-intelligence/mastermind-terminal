@@ -1,30 +1,30 @@
 {
-  "capturedAt": "2026-09-24T17:04:26.496Z",
+  "capturedAt": "2026-09-24T19:25:57.433Z",
   "base": "https://app.mastermind-x.com",
   "expectedRelease": "145bfbe4c8ea0da04658cbbe05879c84c990721b",
   "phaseA": [
     {
-      "case": "Analysis gate blocks the thesis workspace",
+      "case": "Analysis gate blocks the thesis workspace.",
       "status": 200,
       "ok": true
     },
     {
-      "case": "Theses view stays anonymous",
+      "case": "Theses view stays anonymous.",
       "status": 200,
       "ok": true
     },
     {
-      "case": "Anonymous thesis list is rejected",
+      "case": "Anonymous thesis list is rejected.",
       "status": 401,
       "ok": true
     },
     {
-      "case": "Anonymous thesis creation is rejected",
+      "case": "Anonymous thesis creation is rejected.",
       "status": 401,
       "ok": true
     },
     {
-      "case": "Anonymous saved views are rejected",
+      "case": "Anonymous saved views are rejected.",
       "status": 401,
       "ok": true
     }

@@ -15,8 +15,9 @@ cd terminal
 npx playwright codegen --save-storage=e2e/.live-state/state.json https://app.mastermind-x.com
 ```
 
-`terminal/.gitignore` already ignores `e2e/.live-state/`. The tool refuses a
-state file outside that directory and refuses a state file tracked by git.
+The tool accepts only a regular JSON storage-state file inside
+`terminal/e2e/.live-state`, requires the directory to be git-ignored, and refuses
+a file tracked by git. The tool checks these rules before Phase B starts.
 
 ## Run | 运行
 
@@ -36,17 +37,26 @@ PROOF_RELEASE=$(curl -s https://app.mastermind-x.com/terminal | grep -o 'data-dp
 ```
 
 `PROOF_BASE_URL` defaults to the production site. `PROOF_SYMBOL` defaults to
-`NVDA`. Run with the operator account in its chosen language; the tool requires
-English controls for its live assertions.
+`NVDA`. Run with the operator account set to English; the controls are located
+by role, label, state, or test id, while visible copy is recorded only when a
+screenshot captures it.
+
+Phase B enters directly through
+`https://app.mastermind-x.com/analysis?view=theses&symbol=NVDA`. It preflights
+every control before its first write. If that preflight fails, Phase B performs
+no write. After creation, the thesis id comes only from the page URL, every
+detail check must return that id, and each waiting assertion must settle before
+the next action. On any failure after creation, the tool makes a best-effort
+archive of that one URL-derived thesis and still exits non-zero.
 
 ## What each receipt proves | 每份收据证明什么
 
 `receipt-anonymous.json` proves that the exact release served five anonymous
-checks: three pages stay gated and two anonymous APIs return the required
-rejection. A successful anonymous proof requires all five cases to pass, the
-release id to match, and no browser error. Exit code `0` means that anonymous
-proof succeeded; `1` means an assertion failed; `2` means the required release
-id was missing or malformed.
+checks: two Analysis routes did not expose the thesis workspace, and three
+anonymous thesis APIs returned the required rejection. A valid receipt requires
+all five cases, the release id, and exactly zero browser errors. Exit code `0`
+means that anonymous proof succeeded; `1` means an assertion failed; `2` means
+the required release id was missing or malformed.
 
 `receipt-signed-in.json` exists only after Phase B passes. It proves that the
 operator created one proof thesis, revised that same thesis, confirmed a stale
