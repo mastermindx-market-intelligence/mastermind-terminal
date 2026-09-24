@@ -2971,6 +2971,11 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
     const plan = buildPrecisionPlan({ horizon, functional: FUNCTIONAL });
     return { horizon, ready: precisionLayoutState(active, plan) !== null };
   });
+  const activePrecisionRole = isMtf ? (activePrecisionPlan.panes[activePane]?.role ?? null) : null;
+  const selectPrecisionRole = (role: (typeof activePrecisionPlan.panes)[number]["role"]) => {
+    const nextPane = activePrecisionPlan.panes.findIndex((pane) => pane.role === role);
+    if (nextPane >= 0) setActivePane(nextPane);
+  };
   const precisionUnavailable = !isMtf && precisionLayout === null;
   const precisionMtfTip = lang === "zh"
     ? "精确多周期 — 根据当前图表周期选择四个时间层级"
@@ -5483,7 +5488,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
               style={isMtf ? { position: "relative", paddingTop: PRECISION_ENTRY_STRIP_HEIGHT } : undefined}
             >
               {isMtf && (
-                <PrecisionEntryStrip plan={activePrecisionPlan} intel={intel} lang={lang} horizonOptions={precisionHorizonOptions} onHorizonChange={applyPrecisionHorizon} />
+                <PrecisionEntryStrip plan={activePrecisionPlan} intel={intel} lang={lang} horizonOptions={precisionHorizonOptions} onHorizonChange={applyPrecisionHorizon} activeRole={activePrecisionRole} onRoleChange={selectPrecisionRole} />
               )}
               {panes.map((sym, i) => (
                 <ChartPane key={i} idx={i} symbol={sym} drawingOwnerKey={currentDrawingOwnerKey} isActive={i === activePane} onActivate={setActivePane} row={paneRows[i]} tf={paneTfs[i] ?? "D"} chartType={chartType} inds={inds} tool={drawingsReadyFor(sym) ? activeDrawingTool : null} toolActivation={toolState.activation} drawingSticky={drawingCreationDisabledReason ? false : drawingKeepsActive} drawingCreationDisabled={drawingCreationDisabledReason !== null} drawStyle={drawStyle} detectCmd={detectCmd} compare={compare} compareCfg={compareCfg} magnet={magnet} replayIdx={replayOn ? replayIdx : null} onMeta={(mm) => setTotal(mm.total)} drawings={[...(drawingOwnerMatches ? (drawStore[sym] ?? []) : []), ...chartBus.aiDrawingsFor(sym)]} drawingsVisible={drawingsVisible} onDrawingsChange={(d) => setSymbolDrawings(sym, d)} onDetectedDrawingCount={i === activePane ? setActivePaneDetectedDrawingCount : undefined} liveQuote={quotes[sym] ?? null} dataReady={prefsHydrated} initialTimeframe={startTfRef.current} indParams={indParams} hidden={hidden} onToggleHidden={toggleHidden} onRemoveInd={removeInd} onOpenSettings={openSettings} onOpenSource={openSource} pineScripts={pineScripts} dayMode={dtm} userTier={userTier}
@@ -5493,7 +5498,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
                   lockedVLine={lockedVLine}
                   onSetLockedVLine={(t2) => setLockedVLine(t2)}
                   onIndRowsAt={i === activePane ? (fn, meta) => { setIndRowsAt(() => fn); if (meta) setChartReadoutMeta(meta); } : undefined}
-                  onPaneCount={i === 0 ? onPaneCount : undefined}
+                  hostDisplay={isPhone && isMtf ? (i === activePane ? "block" : "none") : undefined} onPaneCount={i === 0 ? onPaneCount : undefined}
                 />
               ))}
             </div>
@@ -5612,11 +5617,13 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
         <AnalysisHubSheet
           open={hubOpen}
           onClose={() => setHubOpen(false)}
+          precisionActive={isMtf}
           onAction={(action) => {
             setHubOpen(false);
             if (action === "indicators") setIndOpen(true);
             else if (action === "compare") { setSearchMode("compare"); setSeed(""); setSearchOpen(true); }
             else if (action === "chartType") setCtOpen(true);
+            else if (action === "precisionMtf") mtfLayout();
             else if (action === "workspaces") setPhoneWorkspacesOpen(true);
             else if (action === "alerts") window.location.assign(`/alerts?sym=${encodeURIComponent(active)}`);
             else if (action === "symbolDetails") {
