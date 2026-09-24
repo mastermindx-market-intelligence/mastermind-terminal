@@ -255,8 +255,14 @@
     },
     "unit": {
       "file": "qualification/unit-label-reuse.log",
-      "sha256": "ef936263f1b6c091b1e48c01e73cde40efc4c00b0b05f5c5d0481d8bbeaff9ad",
-      "summary": "6117 passed"
+      "sha256": "cee0a97b35c076082c1a6880c71a6965cc8d52e40fcff33c9d6ec08de35740ae",
+      "summary": "6117 passed",
+      "projection": "COMPACT_HISTORICAL_TRANSCRIPT_RECEIPT",
+      "originalTranscript": {
+        "commit": "e6fa93f44d075a7cbf3082a582c1af7e3010f151",
+        "path": "terminal/docs/pr-crops/options-companion-20260923/qualification/unit-label-reuse.log",
+        "sha256": "ef936263f1b6c091b1e48c01e73cde40efc4c00b0b05f5c5d0481d8bbeaff9ad"
+      }
     },
     "tsc": {
       "file": "qualification/tsc-799ee3f.log",
