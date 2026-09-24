@@ -182,7 +182,7 @@ async function archiveBestEffort(request, thesisId) {
 }
 
 // Failure-path cleanup. By id when the URL surfaced it; otherwise — the create click was sent but the URL never
-// yielded ?thesis= (audit M1: a create that lands server-side while the client bails to its "ambiguous" message) —
+// yielded ?thesis= (audit M1: a create that lands server-side while the client bails before ?thesis= is observed) —
 // by the deterministic proof title through the list API, so a landed create is never orphaned silently. The title
 // is always printed as the operator's manual handle. Never throws.
 async function cleanupProofThesis(page, thesisId, createAttempted, title) {

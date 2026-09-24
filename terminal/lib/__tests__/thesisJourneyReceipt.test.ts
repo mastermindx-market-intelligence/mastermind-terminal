@@ -240,7 +240,7 @@ describe("archive failure safety", () => {
     const prefix = `const base = "https://app.mastermind-x.com";\nconst randomUUID = () => "99999999-9999-4999-8999-999999999999";\n${source.slice(functionStart, functionEnd)}\nexport { archiveBestEffort, cleanupProofThesis };`;
     const { cleanupProofThesis } = await import("data:text/javascript;base64," + Buffer.from(prefix).toString("base64"));
     const log = vi.spyOn(console, "log").mockImplementation(() => {});
-    const title = "Proof run for release aaaaaaaa · NVDA · 2026-09-24";
+    const title = buildProofTitle("aaaaaaaa", "NVDA", new Date("2026-09-24T12:00:00.000Z"));
     type Row = { id: string; title: string; lifecycleState: string; currentVersion?: number; current?: { subject: { key: string }; content: { title: string } } };
     type Call = [string, string, string?, string?];
     const active = (id: string): Row => ({ id, title, lifecycleState: "active", currentVersion: 1, current: { subject: { key: "NVDA" }, content: { title } } });
