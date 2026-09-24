@@ -26,7 +26,7 @@ layoutFiles:
 # 2026-09-19 seat merge of origin/master 4c7a2eeb6f58 (#587 B-F13-9 team rollup + #659 + #660, merge commit) into #588 (B-F12-17 invite-link honesty): hash-only restamp of terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
 informationalFiles:
   asserted: false
-  terminal/lib/i18n.tsx: "834aa429bb79699588277ffcdd7caaddcc990b82"
+  terminal/lib/i18n.tsx: "c8b5a0764f268c4e9387670b00dd0f5de9f40efe527b48b07efcaf954fa4d139"
 theme: dark
 languages: [en, zh]
 viewports:

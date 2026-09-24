@@ -14,7 +14,7 @@
     "terminal/components/settings/SettingsPanel.tsx": "a7cad95d493b6e714fa8ea7af55c255d90a190b97413338caafb8228e09395bc",
     "terminal/components/settings/SettingsProvider.tsx": "a4c829c956ca7ffd89bbc3158009b1148bb613569a9716b092dd9a27d449d910",
     "terminal/components/settings/icons.tsx": "7f3e17e45cb92545437ade898fe47a92cf6a65d1682cec9b9cea7a5bb8bd4d83",
-    "terminal/lib/i18n.tsx": "ac2c0b03aa16f40539b248a788af960e17f30bbd92f35d46732e8ca7cee63b7c"
+    "terminal/lib/i18n.tsx": "c8b5a0764f268c4e9387670b00dd0f5de9f40efe527b48b07efcaf954fa4d139"
   },
   "theme": "dark",
   "languages": [
