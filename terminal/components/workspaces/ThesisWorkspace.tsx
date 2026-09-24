@@ -56,6 +56,7 @@ import {
   proposalStateLabel,
   type ProposalRow,
 } from "@/lib/thesisAmendmentProposals";
+import { diffThesisVersions } from "@/lib/thesisDelta";
 
 export interface ThesisWorkspaceProps {
   ownerKey: string;
@@ -141,6 +142,9 @@ const COPY = {
     suggestNeedVersion: "Open a saved thesis before saving a suggestion.",
     acceptedIntoEditor: "This suggestion is in the editor. Publish it yourself when you are ready.",
     createdOn: "Saved on",
+    whatChangedLabel: "What changed",
+    whatChangedOrigin: "This is the first version; nothing before this.",
+    whatChangedTruncated: "The previous version is outside the loaded history.",
   },
   zh: {
     eyebrow: "研究工作区", title: "研究论点工作区", newThesis: "新建论点", list: "你的论点",
@@ -186,6 +190,9 @@ const COPY = {
     suggestNeedVersion: "请先打开一份已保存的论点，再保存建议。",
     acceptedIntoEditor: "这条建议已填入编辑器。准备好后请由你来发布。",
     createdOn: "保存于",
+    whatChangedLabel: "变更内容",
+    whatChangedOrigin: "这是第一版；此前没有版本。",
+    whatChangedTruncated: "上一版本不在已加载的历史记录中。",
   },
 } as const;
 
@@ -2439,6 +2446,44 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
                               <div><dt>{copy.subjectKind}</dt><dd>{subjectKindLabel(entry.subject.kind, lang)}</dd></div>
                               <div><dt>{copy.listing}</dt><dd>{entry.subject.listing?.symbol ?? copy.none}</dd></div>
                             </dl>
+                            {(() => {
+                              if (entry.previousVersion === null) {
+                                // Version 1 — origin sentence
+                                return (
+                                  <section aria-label={copy.whatChangedLabel} data-testid="thesis-version-delta">
+                                    <p className={styles.deltaNote}><span>{copy.whatChangedOrigin}</span></p>
+                                  </section>
+                                );
+                              }
+                              const prev = history.find((v) => v.version === entry.previousVersion) ?? null;
+                              if (!prev) {
+                                // Previous version not in loaded history
+                                return (
+                                  <section aria-label={copy.whatChangedLabel} data-testid="thesis-version-delta">
+                                    <p className={styles.deltaNote}><span>{copy.whatChangedTruncated}</span></p>
+                                  </section>
+                                );
+                              }
+                              const deltas = diffThesisVersions(prev, entry);
+                              if (deltas.length === 0) return null;
+                              return (
+                                <section aria-label={copy.whatChangedLabel} data-testid="thesis-version-delta">
+                                  <p className={styles.deltaNote}>
+                                    {deltas.map((delta) => {
+                                      if (delta.kind === "stringChanged") return <span key={`str-${delta.field}`}>{copy[delta.field]} changed</span>;
+                                      if (delta.kind === "listAdded") return <span key={`add-${delta.field}`}>{copy[delta.field]} added</span>;
+                                      if (delta.kind === "listRemoved") return <span key={`rem-${delta.field}`}>{copy[delta.field]} removed</span>;
+                                      if (delta.kind === "listReordered") return <span key={`reorder-${delta.field}`}>{copy[delta.field]} reordered</span>;
+                                      if (delta.kind === "horizonChanged") return <span key="horizon">{copy.horizon} changed</span>;
+                                      if (delta.kind === "effectiveAtChanged") return <span key="effectiveAt">{copy.effectiveHistory} changed</span>;
+                                      if (delta.kind === "revisionNoteChanged") return <span key="revisionNote">{copy.revision} changed</span>;
+                                      if (delta.kind === "transitionChanged") return <span key="transition">{copy.transitionLabel} changed</span>;
+                                      return null;
+                                    })}
+                                  </p>
+                                </section>
+                              );
+                            })()}
                             <div className={styles.snapshotGrid}>
                               <section><h4>{copy.titleLabel}</h4><p>{entry.content.title}</p></section>
                               <section className={styles.snapshotFull}><h4>{copy.statement}</h4><p>{entry.content.statement}</p></section>

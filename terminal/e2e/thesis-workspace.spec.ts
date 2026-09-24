@@ -131,6 +131,15 @@ test("create → deep link → reload → revise → conflict → archive/invali
   await expect(historical).toContainText("You");
   await expect(historical).toContainText("Software mix expands pricing power through the next platform cycle.");
   await expect(historical).toContainText("Data-center revenue compounds");
+  // B-F11-11a: What changed — version 2 has revised statement and title vs version 1
+  const delta2 = page.getByTestId("thesis-version-delta");
+  await expect(delta2).toBeVisible();
+  await expect(delta2).toContainText("Thesis statement changed");
+  // Version 1 shows the origin sentence
+  await page.getByRole("button", { name: "Inspect version 1" }).click();
+  const delta1 = page.getByTestId("thesis-version-delta");
+  await expect(delta1).toBeVisible();
+  await expect(delta1).toContainText("This is the first version; nothing before this.");
   await page.getByRole("button", { name: "Inspect version 7" }).click();
   await expect(historical).toHaveAttribute("data-posture", "current");
   await expect(historical).toContainText("Current snapshot");
