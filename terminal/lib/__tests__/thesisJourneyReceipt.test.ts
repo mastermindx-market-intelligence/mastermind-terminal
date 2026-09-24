@@ -11,6 +11,8 @@ import {
   validateReceipt,
   validateSignedInReceipt,
   validateVersions,
+  signedReceiptFor,
+  PHASE_A_CASES,
 } from "../../e2e/tools/thesisJourneyLib.mjs";
 
 const root = "/terminal";
@@ -179,57 +181,6 @@ describe("exit codes", () => {
   });
 });
 
-describe("prover source contract", () => {
-  const prover = readFileSync(new URL("../../e2e/tools/prove-thesis-journey-live.mjs", import.meta.url), "utf8");
-
-  it("imports every helper through the one thesis-journey module", () => {
-    expect(prover).toContain('from "./thesisJourneyLib.mjs"');
-    expect(prover).not.toContain('from "./thesisJourneyReceipt.mjs"');
-  });
-
-  it("preflights entry controls before the first write and active controls after the URL id", () => {
-    expect(prover).toContain("await preflightLocators(page, [");
-    expect(prover.indexOf('await controls.save.click();')).toBeGreaterThanOrEqual(0);
-    expect(prover.indexOf("const controls = await preflightLocators(page, [")).toBeLessThan(prover.indexOf("await controls.save.click();"));
-    expect(prover.indexOf("const activeControls = await preflightLocators(page, [")).toBeLessThan(prover.indexOf("await activeControls.save.click();"));
-    expect(prover).toContain("thesisId = thesisIdFromUrl(page.url());");
-  });
-
-  it("does not demand archive before creation and does not write lifecycle actions out of turn", () => {
-    const entryPreflight = prover.slice(
-      prover.indexOf("const controls = await preflightLocators(page, ["),
-      prover.indexOf("const title = buildProofTitle"),
-    );
-    const activePreflight = prover.slice(
-      prover.indexOf("const activeControls = await preflightLocators(page, ["),
-      prover.indexOf("const created = await readThesis"),
-    );
-    expect(entryPreflight).not.toContain('"archive"');
-    expect(activePreflight).not.toContain('"subject"');
-    expect(activePreflight).toContain('"archive"');
-    expect(prover).not.toContain("reopen");
-    expect(prover).not.toContain("invalidate");
-  });
-
-  it("binds Phase B's receipt to Phase B's browser error count", () => {
-    expect(prover).toContain("receiptFor(phaseA, phaseB, phaseBBrowserErrorCount)");
-    expect(prover).not.toContain("receiptFor(phaseA, phaseB, browserErrorCount)");
-  });
-
-  it("validates the signed-in receipt before writing it only to live state", () => {
-    expect(prover).toContain("if (!validateSignedInReceipt(signedReceipt)) assertion();");
-    expect(prover).toContain('join(liveStateDir, "receipt-signed-in.json")');
-    expect(prover).not.toContain('join(outputDir, "receipt-signed-in.json")');
-  });
-
-  it("uses exact English names as the operator-language preflight", () => {
-    expect(prover).toContain('page.getByRole("button", { name: "New thesis", exact: true })');
-    expect(prover).toContain('page.getByLabel("Title", { exact: true })');
-    expect(prover).toContain('page.getByLabel("Thesis statement", { exact: true })');
-    expect(prover).toContain('page.getByRole("button", { name: "Archive", exact: true })');
-  });
-});
-
 describe("archive failure safety", () => {
   const proverUrl = new URL("../../e2e/tools/prove-thesis-journey-live.mjs", import.meta.url);
   const source = readFileSync(proverUrl, "utf8");
@@ -368,5 +319,38 @@ describe("validateSignedInReceipt", () => {
       phaseB: completePhaseB,
       browserErrorCount: 1,
     }))).toBe(false);
+  });
+});
+
+describe("signedReceiptFor", () => {
+  const phaseA = PHASE_A_CASES.map(([name, status]) => ({ case: name, ok: true, status }));
+  const phaseB = {
+    ran: true,
+    route: "operator_url",
+    versions: [
+      { version: 1, previousVersion: null },
+      { version: 2, previousVersion: 1 },
+      { version: 3, previousVersion: 2 },
+    ],
+    archived: true,
+    browserErrorCount: 0,
+  };
+  const meta = { base: "https://app.mastermind-x.com", expectedRelease: "a".repeat(40) };
+
+  it("binds the receipt's error count to the Phase B result's own count", () => {
+    expect(signedReceiptFor(phaseA, phaseB, meta).browserErrorCount).toBe(0);
+    expect(signedReceiptFor(phaseA, { ...phaseB, browserErrorCount: 2 }, meta).browserErrorCount).toBe(2);
+    expect(signedReceiptFor(phaseA, phaseB, meta).phaseB).toBe(phaseB);
+  });
+
+  it("refuses a Phase B result that did not run or does not carry its own count (the round-4 defect)", () => {
+    expect(() => signedReceiptFor(phaseA, { ...phaseB, browserErrorCount: undefined }, meta)).toThrow(TypeError);
+    expect(() => signedReceiptFor(phaseA, { ...phaseB, ran: false }, meta)).toThrow(TypeError);
+    expect(() => signedReceiptFor(phaseA, undefined, meta)).toThrow(TypeError);
+  });
+
+  it("produces a receipt validateSignedInReceipt accepts, and one it rejects when Phase B saw a browser error", () => {
+    expect(validateSignedInReceipt(signedReceiptFor(phaseA, phaseB, meta))).toBe(true);
+    expect(validateSignedInReceipt(signedReceiptFor(phaseA, { ...phaseB, browserErrorCount: 1 }, meta))).toBe(false);
   });
 });

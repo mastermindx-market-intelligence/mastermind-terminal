@@ -15,6 +15,7 @@ import {
   validateReceipt,
   validateSignedInReceipt,
   validateVersions,
+  signedReceiptFor,
 } from "./thesisJourneyLib.mjs";
 
 const base = process.env.PROOF_BASE_URL || "https://app.mastermind-x.com";
@@ -338,6 +339,7 @@ async function runPhaseB(storageState) {
         route: "operator_url",
         versions,
         archived: archived.lifecycleState === "archived",
+        browserErrorCount: phaseBBrowserErrorCount,
       };
     } catch (error) {
       if (page && thesisId) await archiveBestEffort(page.request, thesisId);
@@ -351,6 +353,8 @@ async function runPhaseB(storageState) {
   }
 }
 
+// Phase B's receipt is built by thesisJourneyLib.signedReceiptFor from the Phase B RESULT (which carries its own
+// browser-error count) — never from a counter scoped inside runPhaseB (round-4 ReferenceError on the success path).
 function receiptFor(phaseA, phaseB, phaseBrowserErrorCount) {
   return {
     capturedAt: new Date().toISOString(),
@@ -373,7 +377,7 @@ async function main() {
     if (!blockedReason) {
       const storageState = JSON.parse(readFileSync(resolve(storageStateArgument), "utf8"));
       const phaseB = await runPhaseB(storageState);
-      const signedReceipt = receiptFor(phaseA, phaseB, phaseBBrowserErrorCount);
+      const signedReceipt = signedReceiptFor(phaseA, phaseB, { base, expectedRelease: release });
       if (!validateSignedInReceipt(signedReceipt)) assertion();
       writeFileSync(join(liveStateDir, "receipt-signed-in.json"), `${JSON.stringify(redactReceipt(signedReceipt), null, 2)}\n`);
     }

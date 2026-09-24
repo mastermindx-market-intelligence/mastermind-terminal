@@ -20,7 +20,7 @@ const SENSITIVE_KEYS = [
   /password/i,
   /cred/i,
 ];
-const PHASE_A_CASES = [
+export const PHASE_A_CASES = [
   ["Analysis gate blocks the thesis workspace.", 200],
   ["Theses view stays anonymous.", 200],
   ["Anonymous thesis list is rejected.", 401],
@@ -204,4 +204,24 @@ export function validateSignedInReceipt(value) {
   if (!versions.every((entry, index) => entry?.version === index + 1
     && entry.previousVersion === (index === 0 ? null : index))) return false;
   return true;
+}
+
+/**
+ * The signed-in receipt is built from the Phase B RESULT object. Phase B counts its own browser errors while it
+ * runs and must hand that count out on its result; a result without it is a programming error and throws here
+ * (this is the guard for the round-4 bug where main() read a counter scoped inside runPhaseB).
+ */
+export function signedReceiptFor(phaseA, phaseB, meta, now = new Date()) {
+  if (!phaseB || phaseB.ran !== true) throw new TypeError("signedReceiptFor needs a Phase B result that ran");
+  if (!Number.isInteger(phaseB.browserErrorCount) || phaseB.browserErrorCount < 0) {
+    throw new TypeError("Phase B result must carry its own non-negative integer browserErrorCount");
+  }
+  return {
+    capturedAt: now.toISOString(),
+    base: meta.base,
+    expectedRelease: meta.expectedRelease,
+    phaseA,
+    phaseB,
+    browserErrorCount: phaseB.browserErrorCount,
+  };
 }

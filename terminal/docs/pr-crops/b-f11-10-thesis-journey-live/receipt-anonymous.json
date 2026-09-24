@@ -1,7 +1,7 @@
 {
-  "capturedAt": "2026-09-24T20:30:44.373Z",
+  "capturedAt": "2026-09-24T21:52:48.356Z",
   "base": "https://app.mastermind-x.com",
-  "expectedRelease": "145bfbe4c8ea0da04658cbbe05879c84c990721b",
+  "expectedRelease": "65a24f294bed2ce7c5ecbf1999ec5cee1f9af20f",
   "phaseA": [
     {
       "case": "Analysis gate blocks the thesis workspace.",
