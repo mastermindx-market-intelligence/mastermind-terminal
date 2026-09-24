@@ -115,3 +115,40 @@ for (const entry of cases) {
     });
   });
 }
+
+
+test("Precision MTF maps the default 3D chart to the swing ladder and collapses cleanly", async ({ page }) => {
+  await page.setViewportSize({ width: 1180, height: 820 });
+  await armTerminalVisualReady(page, "en", ["D", "3D", "W", "1M"]);
+  await page.goto("/terminal?symbol=NVDA");
+  await waitForTerminalVisualReady(page);
+
+  const more = page.getByTestId("toolbar-more");
+  await more.click();
+  let overflow = page.locator(".toolbar-overflow-pop.show");
+  let mtf = overflow.locator('[data-toolbar-menu-action="mtf"]');
+  await expect(mtf).toBeVisible();
+  await expect(mtf).toHaveAttribute("data-precision-horizon", "swing");
+  await expect(mtf).toHaveAttribute("aria-pressed", "false");
+  await mtf.click();
+
+  const paneGrid = page.locator(".pane-grid");
+  const panes = paneGrid.locator(".pane");
+  await expect(paneGrid).toHaveAttribute("data-n", "4");
+  await expect(panes).toHaveCount(4);
+  await expect(paneGrid.locator(".pane-tf")).toHaveText(["4h", "2D", "3D", "2W"]);
+  const paneTitles = await paneGrid.locator(".pane-hd b").allTextContents();
+  expect(paneTitles).toHaveLength(4);
+  expect(new Set(paneTitles).size).toBe(1);
+
+  await more.click();
+  overflow = page.locator(".toolbar-overflow-pop.show");
+  mtf = overflow.locator('[data-toolbar-menu-action="mtf"]');
+  await expect(mtf).toHaveAttribute("data-precision-horizon", "swing");
+  await expect(mtf).toHaveAttribute("aria-pressed", "true");
+  await mtf.click();
+
+  await expect(paneGrid).toHaveAttribute("data-n", "1");
+  await expect(panes).toHaveCount(1);
+  await expect(paneGrid.locator(".pane-tf")).toHaveText(["4h"]);
+});
