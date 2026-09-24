@@ -360,7 +360,6 @@ async function makeLensSwitchScrollObservable(page: Page) {
     canvas.style.minHeight = `${body.clientHeight + 800}px`;
   });
 }
-}
 
 test("Company Intelligence keeps its context and evidence workflow responsive", async ({ page }, testInfo) => {
   await openCompanyIntelligence(page);
