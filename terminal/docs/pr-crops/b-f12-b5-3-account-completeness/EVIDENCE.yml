@@ -1,42 +1,15 @@
-# 2026-09-19 #669 plain-language debt: hash-only restamp of i18n.tsx — copy-only change, crops unchanged
 # B-F12-B5-3b Account completeness — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 068a8358eef235063164d4a846fb8291ae03a173
-# capturedAt: 2026-09-11T09:04:55.211Z
+# capturedAtHead: 0613e9a6423fc035f017772359e1bb786e881e59
+# capturedAt: 2026-09-24T16:22:38.163Z
 # capturedAtHead is the code commit the pixels depict. The lock is layoutFiles.
-# Merge-heal (master b7aa0981): SectionAccount.tsx re-hashed for the B-F08-7b write-fence wrap; i18n.tsx re-hashed for master's auto-merged LEX keys. No packet key moved, no crop recaptured.
-# Merge of master 64c05ff2 (#553) into B-F13-6 (#554): i18n.tsx re-hashed for the claim-authoring LEX keys this PR adds to the shared lexicon. No packet key moved, no crop recaptured — those keys are not rendered on the account-completeness surface.
-# 2026-09-11 merge of master bad423f5 (#548 explicit grants) into B-F13-6 (#554): i18n.tsx re-hashed again - the merged lexicon carries this PR's 31 claim* keys plus master's acsSharing and 28 shr* keys. SectionAccount.tsx and teamSummary.ts are untouched by both sides.
-# CORRECTION, replacing the #548 line this merge superseded ("i18n.tsx re-hashed for the explicit-grants and Sharing-tab LEX keys ... no crop recaptured - those keys are not rendered on the account-completeness surface"): acsSharing IS rendered on this surface, so that clause was false and COMMON forbids carrying a false header line forward.
-# Merge of master 64c05ff2 (#553) into B-F12-8 (#550): i18n.tsx re-hashed for the team-roles and ownership-transfer LEX keys this PR adds to the shared lexicon. No packet key moved, no crop recaptured.
-# 2026-09-11 duplicate-key fix on #550: the carrier renamed ITS OWN pair (acsTeamNone/acsTeamMany -> acsTeamNoneCreate/acsTeamManyPanel); this packet's acsTeamNone/acsTeamMany rows are untouched and, because the duplicate made them win at runtime anyway, the account-completeness copy is unchanged. i18n.tsx re-hashed; no crop recaptured.
-# 2026-09-11 merge of master e43733c1 (#548 explicit grants + #566 ledger flip) into B-F12-8 (#550): i18n.tsx re-hashed because master's Sharing-tab and explicit-grants lexicon keys merged into the shared file; no crop recaptured.
-# CORRECTION by the 2026-09-11 #554 merge, replacing the trailing clauses the two #550 merge lines above carried ("those keys are not rendered on the account-completeness surface" and "No B-F12-B5-3 string or layout changed"): this carrier's acsTeam IS rendered on this surface - it labels the Team rail row SettingsPanel.tsx:50 adds, and the rail is inside the captured frame - so those clauses were false and COMMON forbids carrying a false header line forward. The packet's own SectionAccount copy and its acsTeamNone/acsTeamMany rows are unchanged.
-# 2026-09-11 merge of master 7e15e502 (#554 claim authoring form) into B-F12-8 (#550): i18n.tsx re-hashed for master's 31 claim* lexicon keys. SectionAccount.tsx and teamSummary.ts are untouched by both sides and no claim* key renders on this surface, so no crop was recaptured.
-# 2026-09-11 recapture at master 525157b13eb5530515f083d836f63d12f55553d2: rail now pinned via SettingsPanel.tsx + SettingsProvider.tsx; 8 crops recaptured so the frame shows the 11-row rail (account, team, accuracy, billing, usage, prefs, alertDelivery, terminal, sync, webhooks, sharing)
-# 2026-09-11 MO-B PL-NI-1 (packet T-PL-NI-1, 您→你 sweep of Terminal master): terminal/lib/i18n.tsx re-hashed — plain-language 您→你 only; layout unchanged; no recapture.
-# Heal h_t586 (#586): i18n.tsx re-hashed for the new acsPortfolioTargets LEX keys; tree paints 13 since #586 (developer from master + portfolioTargets); sibling crops still show 11 rows (recapture NEEDED).
-# 2026-09-19 seat merge of origin/master dd7c6dec712a (#584 B-F12-13, merge commit) into #586 (W9T_F08_13 targets readout): hash-only restamp of terminal/lib/i18n.tsx, terminal/components/settings/SettingsPanel.tsx, terminal/components/settings/SettingsProvider.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
-# 2026-09-13 W9T_F13_9 / MO-DELTA-007 (your team sees its own calls scored together, never a ranking against other teams): terminal/components/settings/SettingsPanel.tsx and terminal/lib/i18n.tsx re-hashed ONLY — the team-rail activeTeamId derivation and the 14 accTeam* lexicon keys added by w9t_f13_9 do not change the account-completeness surface (no accTeam* key is rendered on this surface, and SettingsPanel.tsx's rail layout and section mount order are unchanged); no crop was recaptured. The 8 crops recaptured at 525157b13eb5530515f083d836f63d12f55553d2 still depict this tree.
-# 2026-09-19 merge of origin/master 4b19a698 into #587: SettingsPanel.tsx and i18n.tsx re-hashed to the merged-tree digest; SettingsProvider.tsx takes master's bytes. No account-completeness crop recaptured.
-# 2026-09-19 h_t587 r2 evidence stamp at heal 67c1c3b2784712b06f71f654d9472905e0c9155e: SettingsPanel.tsx / SectionAccuracy.tsx / SectionAccuracy.module.css (and teamAccuracyRollupRoute.test.ts where pinned) re-hashed to the heal-head digest. parseTeamsResponse live team-id, no-team sentence, 503 unavailable pair, weLabel tracking drop. No sibling crop recaptured — those surfaces do not render the accuracy rollup. F13-9 recapture NEEDED (see packet lock).
-# 2026-09-19 seat merge of origin/master 5a48b845 (13 commits incl. #587 B-F13-9 team rollup, merge commit) into #586 (W9T/B-F08-13 targets readout): hash-only restamp to the merged working-tree bytes; crops NOT recaptured. Files: terminal/lib/i18n.tsx, terminal/components/settings/SettingsPanel.tsx, terminal/components/settings/SettingsProvider.tsx
-# 2026-09-13 MO-B W9T_F12_17 (team invitation link + the dated no-email line, MO-PAID-081): terminal/lib/i18n.tsx re-hashed — this packet only ADDS the acsTeamInvite* and inv* lexicon keys, which render in the Settings ▸ Team invitation group and on the /invite accept page; no B-F12-B5-3 string or layout changed and these crops depict the account-completeness surface only, so no crop was recaptured.
-# 2026-09-19 merge of origin/master into W9T_F12_17 (MO-B F12-17): capturedAtHead updated to merge commit; i18n.tsx, SettingsPanel.tsx and SettingsProvider.tsx updated to origin/master versions; no B-F12-B5-3 surface changed; no recapture.
-# 2026-09-19 seat merge of origin/master dd7c6dec712a (#584 B-F12-13, merge commit) into #588 (W9T_F12_17 invite link): hash-only restamp of terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
-# 2026-09-13 W9T_F13_9 / MO-DELTA-007 (your team sees its own calls scored together, never a ranking against other teams): terminal/components/settings/SettingsPanel.tsx and terminal/lib/i18n.tsx re-hashed ONLY — the team-rail activeTeamId derivation and the 14 accTeam* lexicon keys added by w9t_f13_9 do not change the account-completeness surface (no accTeam* key is rendered on this surface, and SettingsPanel.tsx's rail layout and section mount order are unchanged); no crop was recaptured. The 8 crops recaptured at 525157b13eb5530515f083d836f63d12f55553d2 still depict this tree.
-# 2026-09-19 merge of origin/master 4b19a698 into #587: SettingsPanel.tsx and i18n.tsx re-hashed to the merged-tree digest; SettingsProvider.tsx takes master's bytes. No account-completeness crop recaptured.
-# 2026-09-19 h_t587 r2 evidence stamp at heal 67c1c3b2784712b06f71f654d9472905e0c9155e: SettingsPanel.tsx / SectionAccuracy.tsx / SectionAccuracy.module.css (and teamAccuracyRollupRoute.test.ts where pinned) re-hashed to the heal-head digest. parseTeamsResponse live team-id, no-team sentence, 503 unavailable pair, weLabel tracking drop. No sibling crop recaptured — those surfaces do not render the accuracy rollup. F13-9 recapture NEEDED (see packet lock).
-# 2026-09-19 seat merge of origin/master 4c7a2eeb6f58 (#587 B-F13-9 team rollup + #659 + #660, merge commit) into #588 (B-F12-17 invite-link honesty): hash-only restamp of terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
-# 2026-09-19 seat merge of origin/master dafc016e (#588 B-F12-17 invite-link honesty, #664, #666) into #586 (W9T/B-F08-13 targets readout): hash-only restamp to the merged working-tree bytes; crops NOT recaptured. Files: terminal/lib/i18n.tsx, terminal/components/settings/SettingsPanel.tsx, terminal/components/settings/SettingsProvider.tsx
 layoutFiles:
-  terminal/components/settings/SectionAccount.tsx: "d2c3828c286bbaac321881d5a6562efdd4f30e580f4200d49c5165c0fa7ef9a4"
+  terminal/components/settings/SectionAccount.tsx: "535ebd09a60c3477cca11c4f6851f2d4c35b3518404cab52b2039141f8a92acd"
   terminal/lib/teamSummary.ts: "7bd3b3f1d5251490e42399be1dd77e977b2626c1714efbece2f7139c584e0f15"
-  terminal/lib/i18n.tsx: "c21e5974e091e4c9d8dd06c5efb2834363120f69a96aebf9476dc85f51fc10e7"
+  terminal/lib/i18n.tsx: "51276ecc8db6956c6c4e5cc67c55eab029c0b468ccb61e34f8bb92f25e42b9f8"
   terminal/components/settings/SettingsPanel.tsx: "956aeac1636ae4891b1009c8e266840244c19da085ba52e77c78171317c4ffaf"
   terminal/components/settings/SettingsProvider.tsx: "a4c829c956ca7ffd89bbc3158009b1148bb613569a9716b092dd9a27d449d910"
-
 theme: dark
 languages: [en, zh]
 viewports:
@@ -60,10 +33,10 @@ files:
   - mobile-zh-password.png
 measurements:
   desktop-en-overview.png: { teamLine: "You are the owner of Acme.", currentPasswordField: false, passwordEditVisible: false, noPasswordLine: "You signed in without a password, so there is nothing to change here." }
-  desktop-zh-overview.png: { teamLine: "你是"Acme"团队的所有者。", currentPasswordField: false, passwordEditVisible: false, noPasswordLine: "你登录时未设置密码，因此这里没有可更改的内容。" }
+  desktop-zh-overview.png: { teamLine: "你是“Acme”团队的所有者。", currentPasswordField: false, passwordEditVisible: false, noPasswordLine: "你登录时未设置密码，因此这里没有可更改的内容。" }
   desktop-en-password.png: { teamLine: "You are the owner of Acme.", currentPasswordField: true, passwordEditVisible: false, noPasswordLine: "" }
-  desktop-zh-password.png: { teamLine: "你是"Acme"团队的所有者。", currentPasswordField: true, passwordEditVisible: false, noPasswordLine: "" }
+  desktop-zh-password.png: { teamLine: "你是“Acme”团队的所有者。", currentPasswordField: true, passwordEditVisible: false, noPasswordLine: "" }
   mobile-en-overview.png: { teamLine: "You are the owner of Acme.", currentPasswordField: false, passwordEditVisible: false, noPasswordLine: "You signed in without a password, so there is nothing to change here." }
-  mobile-zh-overview.png: { teamLine: "你是"Acme"团队的所有者。", currentPasswordField: false, passwordEditVisible: false, noPasswordLine: "你登录时未设置密码，因此这里没有可更改的内容。" }
+  mobile-zh-overview.png: { teamLine: "你是“Acme”团队的所有者。", currentPasswordField: false, passwordEditVisible: false, noPasswordLine: "你登录时未设置密码，因此这里没有可更改的内容。" }
   mobile-en-password.png: { teamLine: "You are the owner of Acme.", currentPasswordField: true, passwordEditVisible: false, noPasswordLine: "" }
-  mobile-zh-password.png: { teamLine: "你是"Acme"团队的所有者。", currentPasswordField: true, passwordEditVisible: false, noPasswordLine: "" }
+  mobile-zh-password.png: { teamLine: "你是“Acme”团队的所有者。", currentPasswordField: true, passwordEditVisible: false, noPasswordLine: "" }
