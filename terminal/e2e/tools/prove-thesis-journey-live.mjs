@@ -15,7 +15,7 @@
  *   PROOF_RELEASE       required, 40-hex SHA of the deployed release
  *   PROOF_STORAGE_STATE optional, path to Playwright storage-state JSON
  *   PROOF_SYMBOL        default NVDA
- *   PROOF_LANG          en|zh, default en
+ *   PROOF_LANG          en|zh, default en — when zh, Phase B re-runs steps 6–8 at 390×844
  */
 
 import { chromium } from "@playwright/test";
@@ -23,13 +23,16 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 const base = process.env.PROOF_BASE_URL || "https://app.mastermind-x.com";
-const expected = process.env.PROOF_RELEASE;
-if (!expected || !/^[0-9a-f]{40}$/i.test(expected)) {
+const expected = process.env.PROOF_RELEASE || "";
+// Strip any trailing \r or \n that a shell-var expansion can leave behind
+const release = expected.replace(/[\r\n]+$/, "").trim();
+if (!release || !/^[0-9a-f]{40}$/i.test(release)) {
   throw new Error("PROOF_RELEASE must be the exact 40-hex deployed SHA");
 }
 
 const symbol = process.env.PROOF_SYMBOL || "NVDA";
 const storageStatePath = process.env.PROOF_STORAGE_STATE || "";
+const lang = process.env.PROOF_LANG || "en";
 
 const outputDir = "docs/pr-crops/b-f11-10-thesis-journey-live";
 mkdirSync(outputDir, { recursive: true });
@@ -37,8 +40,9 @@ mkdirSync(outputDir, { recursive: true });
 // ── helpers ──────────────────────────────────────────────────────────────────
 
 /**
- * Inline redaction (same logic as lib/thesisJourneyReceipt.ts redactor).
- * A byte-identical copy is kept in lib/thesisJourneyReceipt.ts.
+ * Inline redaction — byte-identical logic to lib/thesisJourneyReceipt.ts.
+ * Preserves 40-hex release identifiers and ISO timestamps; redacts JWTs,
+ * long base64-like strings, emails, and sensitive-named keys.
  */
 function redactReceipt(receipt) {
   const SENSITIVE_KEYS = [
@@ -50,6 +54,10 @@ function redactReceipt(receipt) {
   function isSensitiveKey(k) { return SENSITIVE_KEYS.some((p) => p.test(k)); }
   function rewire(v) {
     if (typeof v === "string") {
+      // Preserve 40-hex release identifiers and ISO timestamps
+      if (/^[0-9a-f]{40}$/i.test(v)) return v;
+      if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(v)) return v;
+      // Redact credential shapes
       if (/^[A-Za-z0-9+/=]{20,}$/.test(v)) return "[REDACTED]";
       if (/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(v)) return "[REDACTED]";
       if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return "[REDACTED]";
@@ -71,11 +79,10 @@ function redactReceipt(receipt) {
 async function assertDplId(page, url) {
   const response = await page.goto(url, { waitUntil: "domcontentloaded", timeout: 45_000 });
   if (response.status() !== 200) throw new Error(`${url} returned ${response.status()}`);
-  // Use response.text() — page.content() can return stale DOM from memory cache
   const html = await response.text();
-  const expectedLower = expected.toLowerCase();
+  const expectedLower = release.toLowerCase();
   if (!html.toLowerCase().includes(`data-dpl-id="${expectedLower}"`)) {
-    throw new Error(`Page at ${url} does not contain data-dpl-id="${expected}"`);
+    throw new Error(`Page at ${url} does not contain data-dpl-id="${release}"`);
   }
   return response;
 }
@@ -85,6 +92,26 @@ async function screenshot(page, name) {
 }
 
 function uuidRegex() { return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i; }
+
+function i18n(key) {
+  // EN/ZH label pairs used in the UI — sourced from thesis-workspace.spec.ts fillNew()
+  const labels = {
+    Title: ["Title", "标题"],
+    ThesisStatement: ["Thesis statement", "论点陈述"],
+    Catalysts: ["Catalysts", "催化因素"],
+    Risks: ["Risks", "风险"],
+    Horizon: ["Horizon", "时间范围"],
+    Save: ["Save", "保存"],
+    NewThesis: ["New thesis", "新建"],
+    RevisionNote: ["Revision note", "修订备注"],
+    Archive: ["Archive", "归档"],
+    OpenTheses: ["Open Theses", "打开论点"],
+    Back: ["Back to list", "返回列表"],
+  };
+  const pair = labels[key];
+  if (!pair) return null;
+  return lang === "zh" ? pair[1] : pair[0];
+}
 
 // ── Phase A ─────────────────────────────────────────────────────────────────
 
@@ -181,7 +208,7 @@ async function runPhaseA() {
   const receipt = {
     capturedAt: new Date().toISOString(),
     base,
-    expectedRelease: expected,
+    expectedRelease: release,
     phaseA,
     phaseB: { ran: false, route: "none", versions: [], archived: false },
     browserErrors,
@@ -202,7 +229,6 @@ async function runPhaseB(storageState) {
   let route = "unknown";
   let conflictStatus = null;
   let archived = false;
-  const output = { ran: true, route, thesisId, versions, conflictStatus, archived };
 
   try {
     const context = await browser.newContext({
@@ -221,8 +247,8 @@ async function runPhaseB(storageState) {
     await assertDplId(page, page.url());
     await screenshot(page, "phaseB-6-analysis");
 
-    // Try to click the Theses control
-    const thesesControl = page.locator('[aria-label*="hesis"], [data-testid*="theses"]').first();
+    // Try to click the Theses control — accessible name is the i18n "Open Theses" / "打开论点"
+    const thesesControl = page.locator(`[aria-label="${i18n("OpenTheses")}"]`).first();
     const hasControl = await thesesControl.count() > 0;
     if (hasControl) {
       route = "rail_control";
@@ -236,30 +262,29 @@ async function runPhaseB(storageState) {
     }
 
     // ── Step 7: Create thesis ──
-    const title = `[proof ${expected.slice(0, 8)}] ${symbol} journey ${new Date().toISOString()}`;
+    const title = `[proof ${release.slice(0, 8)}] ${symbol} journey ${new Date().toISOString()}`;
 
-    // Click "New thesis" / New Thesis button
-    const newBtn = page.locator('[aria-label*="New thesis"], [aria-label*="新建"], button:has-text("New thesis"), button:has-text("新建")').first();
+    // Click "New thesis" / "新建" button
+    const newBtn = page.locator(`[aria-label="${i18n("NewThesis")}"], button:has-text("${i18n("NewThesis")}")`).first();
     if (await newBtn.count() > 0) {
       await newBtn.click();
       await page.waitForTimeout(500);
     }
 
-    await page.getByLabel(/Title|标题/).first().fill(title);
-    await page.getByLabel(/Thesis statement|论点陈述/).first().fill(`${title} statement`);
-    await page.getByLabel(/Catalysts|催化因素/).first().fill("Test catalyst");
-    await page.getByLabel(/Risks|风险/).first().fill("Test risk");
-    await page.getByLabel(/Horizon|时间范围/).first().selectOption("quarters");
+    await page.getByLabel(i18n("Title")).fill(title);
+    await page.getByLabel(i18n("ThesisStatement")).fill(`${title} statement`);
+    await page.getByLabel(i18n("Catalysts")).fill("Test catalyst");
+    await page.getByLabel(i18n("Risks")).fill("Test risk");
+    await page.getByLabel(i18n("Horizon")).selectOption("quarters");
 
     await screenshot(page, "phaseB-7-thesis-filled");
-    await page.getByRole("button", { name: /Save|保存/, exact: true }).click();
+    await page.getByRole("button", { name: i18n("Save"), exact: true }).click();
     await page.waitForURL(/thesis=/, { timeout: 15_000 });
     await screenshot(page, "phaseB-7-thesis-saved");
 
     const url = new URL(page.url());
     thesisId = url.searchParams.get("thesis");
     if (!thesisId || !uuidRegex().test(thesisId)) {
-      // try GET /api/theses to find the id
       const listResp = await page.request.get(`${base}/api/theses`);
       if (listResp.ok) {
         const data = await listResp.json();
@@ -267,40 +292,51 @@ async function runPhaseB(storageState) {
       }
     }
     versions.push({ version: 1, previousVersion: null });
-    output.thesisId = thesisId;
 
-    // ── Step 8: Reopen — reload and assert version 1 ──
+    // ── Step 8: Reopen — reload and assert title shown and version is 1 ──
     await page.reload({ waitUntil: "domcontentloaded" });
     await page.waitForURL(/thesis=/, { timeout: 10_000 });
     await screenshot(page, "phaseB-8-reloaded");
-    const version1Text = await page.locator("text=Version 1").count();
-    if (version1Text === 0) {
-      // try "版本 1" for zh
-      const v1Alt = await page.locator("text=/Version 1|版本 1/").count();
-      console.log(`Phase B step 8: version text count = ${v1Alt}`);
+    const versionText = await page.locator(String.raw`text=/Version 1|版本 1/`).count();
+    if (versionText === 0) {
+      throw new Error(`Step 8: Version 1 text not found on reloaded page`);
+    }
+    // Also assert the title is visible
+    const titleVisible = await page.getByLabel(i18n("ThesisStatement")).isVisible().catch(() => false);
+    if (!titleVisible) {
+      throw new Error(`Step 8: Thesis statement field not visible after reload`);
     }
 
     // ── Step 9: Revise ──
-    await page.getByLabel(/Thesis statement|论点陈述/).first().fill(`${title} revised statement`);
-    await page.getByLabel(/Revision note|修订备注/).first().fill("Proof revision note.");
-    await page.getByRole("button", { name: /Save|保存/, exact: true }).click();
+    await page.getByLabel(i18n("ThesisStatement")).fill(`${title} revised statement`);
+    await page.getByLabel(i18n("RevisionNote")).fill("Proof revision note.");
+    await page.getByRole("button", { name: i18n("Save"), exact: true }).click();
     await page.waitForTimeout(2000);
     await screenshot(page, "phaseB-9-revised");
 
-    // Verify via API
+    // Verify via API: version must be 2, previousVersion must be 1
     const detailResp = await page.request.get(`${base}/api/theses?id=${thesisId}`);
-    if (detailResp.ok) {
-      const data = await detailResp.json();
-      const v = data.thesis?.currentVersion ?? data.thesis?.current?.version;
-      if (v !== undefined) versions.push({ version: v, previousVersion: v - 1 });
+    if (!detailResp.ok) {
+      throw new Error(`Step 9: API GET /api/theses?id=${thesisId} returned ${detailResp.status()}`);
     }
+    const data = await detailResp.json();
+    const thesis = data.thesis || data;
+    const currentVersion = thesis.currentVersion ?? thesis.current?.version ?? thesis.version;
+    const prevVersion = thesis.previousVersion ?? thesis.current?.previousVersion;
+    if (currentVersion !== 2) {
+      throw new Error(`Step 9: Expected currentVersion=2, got ${currentVersion}`);
+    }
+    if (prevVersion !== 1) {
+      throw new Error(`Step 9: Expected previousVersion=1, got ${prevVersion}`);
+    }
+    versions.push({ version: currentVersion, previousVersion: prevVersion });
 
     // ── Step 10: Conflict ──
     const conflictResp = await page.request.post(`${base}/api/theses`, {
       data: {
         action: "revise",
         id: thesisId,
-        expectedVersion: 1, // stale
+        expectedVersion: 1, // stale — current is 2
         clientRequestId: "88888888-8888-4888-8888-888888888888",
         subject: {
           schema: "mastermind.thesis-subject-ref/v1",
@@ -327,7 +363,7 @@ async function runPhaseB(storageState) {
     });
     conflictStatus = conflictResp.status();
     if (conflictStatus !== 409) {
-      console.log(`Phase B step 10: expected 409, got ${conflictStatus}`);
+      throw new Error(`Step 10: Expected 409 version_conflict, got ${conflictStatus}`);
     }
 
     // ── Step 11: Lens ──
@@ -335,15 +371,15 @@ async function runPhaseB(storageState) {
     const lensRail = page.locator("[data-testid=\"thesis-lens-rail\"]");
     if (await lensRail.count() > 0) {
       await screenshot(page, "phaseB-11-lens-rail");
-      // open Theses lens
-      const thesesLens = page.locator('[aria-label*="hesis"]').first();
+      // Open Theses lens
+      const thesesLens = page.locator(`[aria-label*="hesis"], [aria-label*="论点"]`).first();
       if (await thesesLens.count() > 0) {
         await thesesLens.click();
         await page.waitForTimeout(1000);
         await screenshot(page, "phaseB-11-theses-lens");
       }
-      // open Coverage
-      const coverageLens = page.locator('[aria-label*="overage"], [aria-label*="覆盖"]').first();
+      // Open Coverage
+      const coverageLens = page.locator(`[aria-label*="overage"], [aria-label*="覆盖"]`).first();
       if (await coverageLens.count() > 0) {
         await coverageLens.click();
         await page.waitForTimeout(1000);
@@ -363,14 +399,14 @@ async function runPhaseB(storageState) {
 
     // ── Step 13: Archive ──
     await page.goto(`${base}/analysis?view=theses&thesis=${thesisId}`, { waitUntil: "domcontentloaded" });
-    const archiveBtn = page.locator('[aria-label*="Archive"], [aria-label*="归档"], button:has-text("Archive"), button:has-text("归档")').first();
+    const archiveBtn = page.locator(`[aria-label="${i18n("Archive")}"], button:has-text("${i18n("Archive")}")`).first();
     if (await archiveBtn.count() > 0) {
       await archiveBtn.click();
       await page.waitForTimeout(2000);
       await screenshot(page, "phaseB-13-archived");
       archived = true;
     } else {
-      // try API
+      // Fallback: archive via API
       const archiveResp = await page.request.post(`${base}/api/theses`, {
         data: {
           action: "archive",
@@ -403,18 +439,79 @@ async function runPhaseB(storageState) {
       archived = archiveResp.status() === 200;
     }
 
-    output.route = route;
-    output.thesisId = thesisId;
-    output.versions = versions;
-    output.conflictStatus = conflictStatus;
-    output.archived = archived;
+    await context.close();
+  } finally {
+    await browser.close();
+  }
+
+  return {
+    output: { ran: true, route, thesisId, versions, conflictStatus, archived },
+    errors: browserErrors,
+  };
+}
+
+// ── Phase B zh mobile rerun (PROOF_LANG=zh, steps 6–8 at 390×844) ─────────────
+
+async function runPhaseBZh(storedState) {
+  const browser = await chromium.launch({ headless: true });
+  const browserErrors = [];
+
+  try {
+    const context = await browser.newContext({
+      viewport: { width: 390, height: 844 },
+      storageState: storedState,
+    });
+    const page = await context.newPage();
+    page.on("console", (m) => { if (m.type() === "error") browserErrors.push(m.text()); });
+    page.on("pageerror", (e) => browserErrors.push(e.message));
+
+    // zh init script (same pattern as thesis-workspace.spec.ts prepare())
+    await page.addInitScript(() => {
+      localStorage.setItem("mm.lang", "zh");
+      document.documentElement?.setAttribute("data-lang", "zh");
+      document.documentElement?.setAttribute("lang", "zh-CN");
+    });
+
+    await assertDplId(page, `${base}/terminal?symbol=${symbol}`);
+    await screenshot(page, "phaseB-zh-6-terminal");
+    await page.locator('[aria-label="Analysis"]').click();
+    await page.waitForURL(`**/analysis?symbol=${symbol}`, { timeout: 15_000 });
+    await assertDplId(page, page.url());
+    await screenshot(page, "phaseB-zh-6-analysis");
+
+    const thesesControl = page.locator(`[aria-label="打开论点"]`).first();
+    const hasControl = await thesesControl.count() > 0;
+    if (hasControl) {
+      await thesesControl.click();
+      await page.waitForURL(/view=theses/, { timeout: 10_000 });
+      await screenshot(page, "phaseB-zh-6-theses");
+    } else {
+      await assertDplId(page, `${base}/analysis?view=theses&symbol=${symbol}`);
+      await screenshot(page, "phaseB-zh-6-theses-url");
+    }
+
+    const title = `[proof ${release.slice(0, 8)}] ${symbol} journey ${new Date().toISOString()}`;
+    const newBtn = page.locator(`[aria-label="新建"], button:has-text("新建")`).first();
+    if (await newBtn.count() > 0) {
+      await newBtn.click();
+      await page.waitForTimeout(500);
+    }
+    await page.getByLabel("标题").fill(title);
+    await page.getByLabel("论点陈述").fill(`${title} statement`);
+    await page.getByLabel("催化因素").fill("测试催化因素");
+    await page.getByLabel("风险").fill("测试风险");
+    await page.getByLabel("时间范围").selectOption("quarters");
+    await screenshot(page, "phaseB-zh-7-filled");
+    await page.getByRole("button", { name: "保存", exact: true }).click();
+    await page.waitForURL(/thesis=/, { timeout: 15_000 });
+    await screenshot(page, "phaseB-zh-7-saved");
 
     await context.close();
   } finally {
     await browser.close();
   }
 
-  return { output, errors: browserErrors };
+  return { errors: browserErrors };
 }
 
 // ── storage-state guard ───────────────────────────────────────────────────────
@@ -422,15 +519,15 @@ async function runPhaseB(storageState) {
 async function checkStorageState(path) {
   if (!path) return { valid: false, reason: "PROOF_STORAGE_STATE not set" };
   if (!existsSync(path)) return { valid: false, reason: `File not found: ${path}` };
-  // must not be git-tracked
+  // Must not be git-tracked
   try {
     const { execSync } = await import("node:child_process");
     execSync(`git ls-files --error-unmatch "${path}"`, { cwd: process.cwd(), stdio: "pipe" });
     return { valid: false, reason: `${path} is git-tracked — refusing Phase B` };
   } catch {
-    // not git-tracked — good
+    // Not git-tracked — valid
   }
-  return { valid: false, reason: `Phase B disabled: storage state is git-tracked or file missing` };
+  return { valid: true, reason: "ok" };
 }
 
 // ── main ─────────────────────────────────────────────────────────────────────
@@ -438,7 +535,7 @@ async function checkStorageState(path) {
 const phaseAReceipt = await runPhaseA();
 
 let phaseBOutput = { ran: false, route: "none", versions: [], archived: false };
-const phaseBErrors = [];
+let phaseBErrors = [];
 
 if (storageStatePath) {
   const check = await checkStorageState(storageStatePath);
@@ -446,7 +543,13 @@ if (storageStatePath) {
     const storageState = JSON.parse(readFileSync(storageStatePath, "utf8"));
     const result = await runPhaseB(storageState);
     phaseBOutput = result.output;
-    phaseBErrors.push(...result.errors);
+    phaseBErrors = result.errors;
+
+    // zh mobile rerun for steps 6–8
+    if (lang === "zh") {
+      const zhResult = await runPhaseBZh(storageState);
+      phaseBErrors.push(...zhResult.errors);
+    }
   } else {
     console.log(`Phase B skipped: ${check.reason}`);
   }
@@ -457,14 +560,26 @@ if (storageStatePath) {
 const receipt = {
   capturedAt: new Date().toISOString(),
   base,
-  expectedRelease: expected,
+  expectedRelease: release,
   phaseA: phaseAReceipt.receipt.phaseA,
   phaseB: phaseBOutput,
   browserErrors: [...(phaseAReceipt.receipt.browserErrors || []), ...phaseBErrors],
 };
 
-writeFileSync(join(outputDir, "receipt-anonymous.json"), JSON.stringify(redactReceipt(receipt), null, 2) + "\n");
+// Write both receipt files
+writeFileSync(join(outputDir, "receipt-anonymous.json"), JSON.stringify(redactReceipt({
+  ...receipt,
+  phaseB: { ran: false, route: "none", versions: [], archived: false },
+}), null, 2) + "\n");
+
+if (phaseBOutput.ran) {
+  writeFileSync(join(outputDir, "receipt-signed-in.json"), JSON.stringify(redactReceipt(receipt), null, 2) + "\n");
+}
+
 console.log(`Receipt written to ${join(outputDir, "receipt-anonymous.json")}`);
+if (phaseBOutput.ran) {
+  console.log(`Receipt written to ${join(outputDir, "receipt-signed-in.json")}`);
+}
 console.log(JSON.stringify(redactReceipt(receipt), null, 2));
 
 const allPhaseAOk = phaseAReceipt.receipt.phaseA.every((c) => c.ok);

@@ -16,6 +16,33 @@ describe("redactReceipt", () => {
     expect(redactReceipt(receipt)).toEqual(receipt);
   });
 
+  it("preserves a 40-hex release identifier verbatim", () => {
+    const receipt = {
+      capturedAt: "2026-09-24T10:00:00.000Z",
+      base: "https://app.mastermind-x.com",
+      expectedRelease: "1d2ac1e6da1e2b3c4d5e6f7a8b9c0d1e2f3a4b5c",
+      phaseA: [],
+      phaseB: { ran: false, route: "none", versions: [], archived: false },
+      browserErrors: [],
+    } as unknown as ThesisJourneyReceipt;
+    const redacted = redactReceipt(receipt);
+    expect((redacted as unknown as Record<string, unknown>).expectedRelease).toBe("1d2ac1e6da1e2b3c4d5e6f7a8b9c0d1e2f3a4b5c");
+  });
+
+  it("preserves ISO timestamps verbatim", () => {
+    const receipt = {
+      capturedAt: "2026-09-24T10:00:00.000Z",
+      base: "https://app.mastermind-x.com",
+      expectedRelease: "abc123def456abc123def456abc123def456abcd",
+      phaseA: [],
+      phaseB: { ran: false, route: "none", versions: [], archived: false },
+      browserErrors: [],
+      createdAt: "2026-09-24T12:00:00.000Z",
+    } as unknown as ThesisJourneyReceipt;
+    const redacted = redactReceipt(receipt) as unknown as Record<string, unknown>;
+    expect(redacted.createdAt).toBe("2026-09-24T12:00:00.000Z");
+  });
+
   it("redacts JWT-like tokens", () => {
     const receipt = {
       capturedAt: "2026-09-24T10:00:00.000Z",
@@ -98,16 +125,90 @@ describe("redactReceipt", () => {
 });
 
 describe("validateReceipt", () => {
-  it("returns true for a valid receipt", () => {
+  it("returns true for a valid receipt with a 40-hex release", () => {
     const receipt = {
       capturedAt: "2026-09-24T10:00:00.000Z",
       base: "https://app.mastermind-x.com",
       expectedRelease: "1d2ac1e6da1e2b3c4d5e6f7a8b9c0d1e2f3a4b5c",
-      phaseA: [],
+      phaseA: [
+        { case: "GET /analysis?symbol=NVDA", status: 200, ok: true },
+        { case: "GET /analysis?view=theses", status: 200, ok: true },
+        { case: "GET /api/theses (anonymous)", status: 401, ok: true },
+        { case: "POST /api/theses (anonymous create)", status: 401, ok: true },
+        { case: "GET /api/thesis-saved-views (anonymous)", status: 401, ok: true },
+      ],
       phaseB: { ran: false, route: "none", versions: [], archived: false },
       browserErrors: [],
     };
     expect(validateReceipt(receipt)).toBe(true);
+  });
+
+  it("returns true for a receipt with [REDACTED] release (post-redaction)", () => {
+    const receipt = {
+      capturedAt: "2026-09-24T10:00:00.000Z",
+      base: "https://app.mastermind-x.com",
+      expectedRelease: "[REDACTED]",
+      phaseA: [
+        { case: "GET /analysis?symbol=NVDA", status: 200, ok: true },
+        { case: "GET /analysis?view=theses", status: 200, ok: true },
+        { case: "GET /api/theses (anonymous)", status: 401, ok: true },
+        { case: "POST /api/theses (anonymous create)", status: 401, ok: true },
+        { case: "GET /api/thesis-saved-views (anonymous)", status: 401, ok: true },
+      ],
+      phaseB: { ran: false, route: "none", versions: [], archived: false },
+      browserErrors: [],
+    };
+    expect(validateReceipt(receipt)).toBe(true);
+  });
+
+  it("returns false when expectedRelease is not a 40-hex SHA or [REDACTED]", () => {
+    const receipt = {
+      capturedAt: "2026-09-24T10:00:00.000Z",
+      base: "https://app.mastermind-x.com",
+      expectedRelease: "not-a-hex",
+      phaseA: [
+        { case: "GET /analysis?symbol=NVDA", status: 200, ok: true },
+        { case: "GET /analysis?view=theses", status: 200, ok: true },
+        { case: "GET /api/theses (anonymous)", status: 401, ok: true },
+        { case: "POST /api/theses (anonymous create)", status: 401, ok: true },
+        { case: "GET /api/thesis-saved-views (anonymous)", status: 401, ok: true },
+      ],
+      phaseB: { ran: false, route: "none", versions: [], archived: false },
+      browserErrors: [],
+    };
+    expect(validateReceipt(receipt)).toBe(false);
+  });
+
+  it("returns false when Phase A does not have exactly 5 cases", () => {
+    const receipt = {
+      capturedAt: "2026-09-24T10:00:00.000Z",
+      base: "https://app.mastermind-x.com",
+      expectedRelease: "1d2ac1e6da1e2b3c4d5e6f7a8b9c0d1e2f3a4b5c",
+      phaseA: [
+        { case: "GET /analysis?symbol=NVDA", status: 200, ok: true },
+      ],
+      phaseB: { ran: false, route: "none", versions: [], archived: false },
+      browserErrors: [],
+    };
+    expect(validateReceipt(receipt)).toBe(false);
+  });
+
+  it("returns false when a Phase A case is malformed", () => {
+    const receipt = {
+      capturedAt: "2026-09-24T10:00:00.000Z",
+      base: "https://app.mastermind-x.com",
+      expectedRelease: "1d2ac1e6da1e2b3c4d5e6f7a8b9c0d1e2f3a4b5c",
+      phaseA: [
+        { case: "GET /analysis?symbol=NVDA", status: 200, ok: true },
+        { case: "GET /analysis?view=theses", status: 200, ok: true },
+        { case: "GET /api/theses (anonymous)", status: 401, ok: true },
+        { case: "POST /api/theses (anonymous create)", status: 401, ok: true },
+        { case: 123, status: 401, ok: true }, // case should be string
+      ],
+      phaseB: { ran: false, route: "none", versions: [], archived: false },
+      browserErrors: [],
+    };
+    expect(validateReceipt(receipt)).toBe(false);
   });
 
   it("returns false for a non-object", () => {

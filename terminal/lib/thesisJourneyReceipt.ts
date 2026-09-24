@@ -90,12 +90,21 @@ export function redactReceipt<T extends ThesisJourneyReceipt>(receipt: T): T {
 export function validateReceipt(receipt: unknown): receipt is ThesisJourneyReceipt {
   if (typeof receipt !== "object" || receipt === null) return false;
   const r = receipt as Record<string, unknown>;
-  return (
-    typeof r.capturedAt === "string" &&
-    typeof r.base === "string" &&
-    typeof r.expectedRelease === "string" &&
-    Array.isArray(r.phaseA) &&
-    typeof r.phaseB === "object" &&
-    Array.isArray(r.browserErrors)
-  );
+  if (typeof r.capturedAt !== "string") return false;
+  if (typeof r.base !== "string") return false;
+  // expectedRelease must be a 40-hex SHA (or "[REDACTED]" from a pre-pass)
+  if (typeof r.expectedRelease !== "string") return false;
+  if (!/^([0-9a-f]{40}|\[REDACTED\])$/i.test(r.expectedRelease)) return false;
+  if (!Array.isArray(r.phaseA)) return false;
+  // Phase A must have exactly 5 cases
+  if (r.phaseA.length !== 5) return false;
+  for (const c of r.phaseA) {
+    if (typeof c !== "object" || c === null) return false;
+    if (typeof (c as Record<string, unknown>).case !== "string") return false;
+    if (typeof (c as Record<string, unknown>).status !== "number") return false;
+    if (typeof (c as Record<string, unknown>).ok !== "boolean") return false;
+  }
+  if (typeof r.phaseB !== "object" || r.phaseB === null) return false;
+  if (!Array.isArray(r.browserErrors)) return false;
+  return true;
 }
