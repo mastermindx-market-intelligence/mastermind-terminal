@@ -7,7 +7,7 @@
 layoutFiles:
   terminal/components/settings/SectionAccount.tsx: "535ebd09a60c3477cca11c4f6851f2d4c35b3518404cab52b2039141f8a92acd"
   terminal/lib/teamSummary.ts: "7bd3b3f1d5251490e42399be1dd77e977b2626c1714efbece2f7139c584e0f15"
-  terminal/lib/i18n.tsx: "3979972cd4cf5d28350e3377af6b4704cadb004930249779077e30cb3e56a0ff"
+  terminal/lib/i18n.tsx: "51276ecc8db6956c6c4e5cc67c55eab029c0b468ccb61e34f8bb92f25e42b9f8"
   terminal/components/settings/SettingsPanel.tsx: "956aeac1636ae4891b1009c8e266840244c19da085ba52e77c78171317c4ffaf"
   terminal/components/settings/SettingsProvider.tsx: "a4c829c956ca7ffd89bbc3158009b1148bb613569a9716b092dd9a27d449d910"
 theme: dark

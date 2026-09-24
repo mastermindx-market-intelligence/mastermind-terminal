@@ -952,3 +952,27 @@ test("unavailable is not empty, and the Chinese mobile/tablet surface keeps hist
   await page.goto("/analysis?view=unknown");
   await expect(page.getByRole("heading", { name: "不支持此分析视图" })).toBeVisible();
 });
+
+test("the context-bar theses link opens the thesis workspace with the symbol pre-filled", async ({ page, baseURL }, testInfo) => {
+  // EN
+  await prepare(page, testInfo, baseURL);
+  await page.goto("/analysis?symbol=NVDA");
+  await expect(page.getByTestId("thesis-workspace")).toBeHidden();
+  await expect(page.getByRole("link", { name: "Your theses on NVDA" })).toBeVisible();
+  await page.getByLabel("Your theses on NVDA").click();
+  await expect(page).toHaveURL(/\/analysis\?view=theses&symbol=NVDA$/);
+  await expect(page.getByTestId("thesis-workspace").locator("header")).toContainText("NVDA");
+  await page.getByRole("button", { name: "New thesis" }).click();
+  await expect(page.getByLabel("Subject")).toHaveValue("NVDA");
+
+  // ZH
+  await prepare(page, testInfo, baseURL, true);
+  await page.goto("/analysis?symbol=NVDA");
+  await expect(page.getByTestId("thesis-workspace")).toBeHidden();
+  await expect(page.getByRole("link", { name: "你的研究论点：NVDA" })).toBeVisible();
+  await page.getByLabel("你的研究论点：NVDA").click();
+  await expect(page).toHaveURL(/\/analysis\?view=theses&symbol=NVDA$/);
+  await expect(page.getByTestId("thesis-workspace").locator("header")).toContainText("NVDA");
+  await page.getByRole("button", { name: "新建论点" }).click();
+  await expect(page.getByLabel("标的")).toHaveValue("NVDA");
+});
