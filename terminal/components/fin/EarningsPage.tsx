@@ -515,9 +515,7 @@ export default function EarningsPage({ fund, zh, sym }: EarningsPageProps) {
             <span>{pick(!!zh, "EPS result", "每股盈利结果")}</span>
             <strong className="num">{latestEpsPoint?.actual == null ? "—" : latestEpsPoint.actual.toFixed(2)}</strong>
             <small>
-              {epsMatched && latestEpsPoint?.surp_pct != null
-                ? pick(!!zh, `${formatSurprisePercent(latestEpsPoint.surp_pct)} vs matched estimate`, `较匹配预期 ${formatSurprisePercent(latestEpsPoint.surp_pct)}`)
-                : epsCoverage}
+              {epsCoverage}
             </small>
           </article>
           <article>
