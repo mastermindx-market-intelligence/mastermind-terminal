@@ -397,7 +397,14 @@ test("Company Intelligence keeps its context and evidence workflow responsive", 
   // stay in normal document flow. A sticky tab strip used to follow deep scrolling
   // and float through the middle of the research workspace, obscuring content.
   const topics = page.locator(".ci-lenses").getByRole("tab", { name: "Topics" });
-  await page.locator(".ci-lenses").getByRole("tab", { name: "Transcript" }).click();
+  await page.locator(".ci-lenses").getByRole("tab", { name: "Call + Q&A" }).click();
+  const paperCall = page.locator("[data-ci-paper-call]");
+  await expect(paperCall).toBeVisible();
+  await expect(paperCall).toContainText("CALL + Q&A");
+  await expect(paperCall).toContainText("TOPIC MAP UNAVAILABLE");
+  await expect(paperCall).toContainText("0 exchanges");
+  await expect(paperCall).toContainText("v1 fallback does not carry canonical normalized Q&A exchanges");
+  await expect(paperCall).toHaveAttribute("data-ci-call-event-id", "cie_d8488221fd8c710c53d6537d");
   await expect(page.locator(".ci-ts-explorer")).toBeVisible();
   await page.locator(".ci-ts-explorer").evaluate((element) => {
     const inner = element.closest<HTMLElement>(".fin-body");
@@ -447,7 +454,7 @@ test("literal transcript search and compare use the local revision-verified BFF"
     await route.fulfill({ body: gzipSync(JSON.stringify(drawerFixtureBody)), headers: { "content-type": "application/gzip" } });
   });
   await openCompanyIntelligence(page);
-  const transcript = page.locator(".ci-lenses").getByRole("tab", { name: "Transcript" });
+  const transcript = page.locator(".ci-lenses").getByRole("tab", { name: "Call + Q&A" });
   await transcript.click();
   await expect(page.locator(".ci-ts-hero h3")).toBeVisible();
 
@@ -588,7 +595,7 @@ test("editing a transcript query invalidates an older in-flight result", async (
   });
 
   await openCompanyIntelligence(page);
-  await page.locator(".ci-lenses").getByRole("tab", { name: "Transcript" }).click();
+  await page.locator(".ci-lenses").getByRole("tab", { name: "Call + Q&A" }).click();
   const search = page.locator(".ci-ts-search");
   await search.locator("input").fill("data center");
   await search.locator(".btn").click();
@@ -793,7 +800,7 @@ test("transcript search copy switches cleanly between English and Chinese", asyn
   test.skip(!testInfo.project.name.endsWith("mobile"), "one mobile bilingual interaction contract is sufficient");
   await page.addInitScript(() => window.localStorage.setItem("mm.lang", "zh"));
   await openCompanyIntelligence(page, "公司情报");
-  await page.locator(".ci-lenses").getByRole("tab", { name: "电话会", exact: true }).click();
+  await page.locator(".ci-lenses").getByRole("tab", { name: "电话会 + 问答", exact: true }).click();
   await expect(page.locator(".ci-ts-hero h3")).toHaveText("在电话会中找到准确出处");
   const search = page.locator(".ci-ts-search");
   await expect(search.getByRole("button", { name: "搜索准确短语" })).toBeVisible();
@@ -987,10 +994,14 @@ test("AAPL intelligence opens the verified FY2026 Q3 event workspace", async ({ 
   await page.screenshot({ path: testInfo.outputPath(`${testInfo.project.name}-aapl-sources.png`), fullPage: false });
 
   await closeEvidenceOverlay(page);
-  await page.locator(".ci-lenses").getByRole("tab", { name: "Transcript" }).click();
-  await expect(page.locator("#ci-panel-transcript")).toContainText(AAPL_EVENT_ID);
-  await expect(page.locator("#ci-panel-transcript")).toContainText("AAPL/2026Q3");
-  await expect(page.locator("#ci-panel-transcript")).toContainText("2026Q3");
+  await page.locator(".ci-lenses").getByRole("tab", { name: "Call + Q&A" }).click();
+  const paperCall = page.locator("[data-ci-paper-call]");
+  await expect(paperCall).toBeVisible();
+  await expect(paperCall).toHaveAttribute("data-ci-call-event-id", AAPL_EVENT_ID);
+  await expect(paperCall).toHaveAttribute("data-ci-call-event-alias", "AAPL/2026Q3");
+  await expect(paperCall).toHaveAttribute("data-ci-call-transcript-id", "2026Q3");
+  await expect(paperCall).toContainText("TOPIC MAP UNAVAILABLE");
+  await expect(paperCall).toContainText("Structured Q&A unavailable");
   await expectNoDocumentOverflow(page);
   expect(errors).toEqual([]);
   await page.screenshot({ path: testInfo.outputPath(`${testInfo.project.name}-aapl-event-workspace.png`), fullPage: false });
@@ -1177,6 +1188,32 @@ test("AAPL Results shows seven verified exchanges and opens the exact transcript
   await expect(target).toBeInViewport();
   await expect(target).toBeFocused();
   await page.screenshot({ path: testInfo.outputPath(`${testInfo.project.name}-aapl-qa-transcript.png`), fullPage: false });
+});
+
+test("AAPL Call + Q&A preserves verified exchanges without inventing a topic map", async ({ page }, testInfo) => {
+  await openAaplQaResults(page);
+  await page.locator(".ci-lenses").getByRole("tab", { name: "Call + Q&A" }).click();
+
+  const call = page.locator("[data-ci-paper-call]");
+  await expect(call).toBeVisible();
+  await expect(call).toContainText("CALL + Q&A");
+  await expect(call).toContainText("7 exchanges");
+  await expect(call).toContainText("Amit Daryanani · Evercore");
+  await expect(call.locator(".ci-paper-call-map")).toContainText("TOPIC MAP UNAVAILABLE");
+  await expect(call.locator(".ci-paper-call-map")).toContainText("No governed Q&A topic taxonomy is published");
+  await expect(call.locator(".ci-paper-call-map")).not.toContainText("Agentic AI / inference");
+  await expect(call.locator(".ci-paper-call-exchanges > button")).toHaveCount(7);
+  await expect(call).toHaveAttribute("data-ci-call-event-id", AAPL_EVENT_ID);
+  await expect(call).toHaveAttribute("data-ci-call-transcript-id", "2026Q3");
+  await expectNoDocumentOverflow(page);
+
+  await call.locator(".ci-paper-call-exchanges > button").first().click();
+  await expect(page.locator(".fin-tx-drawer")).toBeVisible();
+  const target = page.locator('.fin-tx-seg[data-segment="34"]');
+  await expect(target).toContainText("Amit Daryanani");
+  await expect(target).toBeInViewport();
+  await expect(target).toBeFocused();
+  await page.screenshot({ path: testInfo.outputPath(`${testInfo.project.name}-aapl-call-qa.png`), fullPage: false });
 });
 
 test("AAPL Results Q&A remains usable in Chinese at desktop and mobile", async ({ page }, testInfo) => {

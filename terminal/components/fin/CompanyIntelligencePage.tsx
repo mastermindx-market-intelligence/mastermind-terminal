@@ -22,6 +22,7 @@ import {
 import { getCurrentEventWorkspace, type EventWorkspaceResult } from "../../lib/eventWorkspace";
 import CompanyIntelligenceV2Current from "./CompanyIntelligenceV2Current";
 import CompanyIntelligenceBriefLayout, { type CompanyIntelligenceBriefItem } from "./CompanyIntelligenceBriefLayout";
+import CompanyIntelligenceCallLayout from "./CompanyIntelligenceCallLayout";
 import CompanyIntelligenceResultsLayout, {
   type CompanyIntelligenceResultsComparison,
   type CompanyIntelligenceResultsItem,
@@ -57,7 +58,7 @@ function lensLabel(lens: Lens, zh: boolean): string {
   const labels: Record<Lens, [string, string]> = {
     brief: ["Brief", "简报"],
     results: ["Results", "业绩"],
-    transcript: ["Transcript", "电话会"],
+    transcript: ["Call + Q&A", "电话会 + 问答"],
     history: ["History", "历史"],
     topics: ["Topics", "主题"],
     sources: ["Sources", "来源"],
@@ -76,12 +77,6 @@ function statusColor(state: CompanyIntelligenceContext["status"]): string {
   if (state === "ready") return "var(--up)";
   if (state === "partial" || state === "stale") return "var(--warn)";
   return "var(--muted)";
-}
-
-function sourceStateLabel(status: CompanyIntelligenceSource["status"] | undefined, zh: boolean): string {
-  if (status === "present") return pick(zh, "Present", "可用");
-  if (status === "metadata_only") return pick(zh, "Metadata only", "仅元数据");
-  return pick(zh, "Missing", "缺失");
 }
 
 function warningLabel(code: string, zh: boolean): string {
@@ -685,20 +680,32 @@ export default function CompanyIntelligencePage({ sym, name, onOpenTx, onEvidenc
           )}
 
           {lens === "transcript" && (
-            <section className="ci-lens-panel">
-              <div className="ci-lens-heading"><div><span className="fin-eyebrow">{pick(zh, "SELECTED EVENT", "当前事件")}</span><h3>{eventPeriod(event)} {pick(zh, "earnings call", "财报电话会")}</h3></div><span className="fin-tag" style={{ "--c": transcriptSource?.status === "present" ? "var(--up)" : "var(--warn)" } as React.CSSProperties}>{sourceStateLabel(transcriptSource?.status, zh)}</span></div>
-              {txId ? (
-                <div className="ci-transcript-launch"><div className="ci-transcript-glyph" aria-hidden><span>T</span><i /></div><div><strong>{pick(zh, "Normalized call record is available", "标准化电话会记录可用")}</strong><p>{pick(zh, "Open the event-selected transcript in Mastermind's existing reader with speaker and Q&A structure intact.", "在 Mastermind 现有阅读器中打开本事件电话会，并保留发言人与问答结构。")}</p></div><button className="btn btn-primary" onClick={() => onOpenTx(txId)}>{pick(zh, "Read transcript", "阅读电话会")}</button></div>
-              ) : (
-                <EmptyState title={pick(zh, "Transcript body unavailable", "电话会正文不可用")} why={pick(zh, "Event metadata is retained, but this fiscal period does not resolve to a transcript document.", "事件元数据已保留，但该财季尚未关联到电话会文档。")} />
-              )}
-              <TranscriptSearchWorkspace
-                ticker={ticker}
-                events={transcriptSearchEvents}
-                initialEventId={event.event_id}
-                onOpenTranscript={onOpenTx}
+            <section className="ci-lens-panel ci-call">
+              <CompanyIntelligenceCallLayout
+                zh={zh}
+                periodLabel={eventPeriod(event)}
+                eventDate={event.call_date}
+                transcriptId={txId}
+                transcriptAvailable={transcriptSource?.status === "present" && Boolean(txId)}
+                eventId={event.event_id}
+                eventAlias={eventPeriod(event)}
+                exchanges={[]}
+                onOpenFullTranscript={txId ? () => onOpenTx(txId) : undefined}
+                onOpenSources={() => selectLens("sources")}
+                fallbackNote={pick(
+                  zh,
+                  "v1 fallback does not carry canonical normalized Q&A exchanges. Score-overlay question counts and highlights are not promoted into this research layer.",
+                  "v1 回退路径不携带规范化标准问答轮次；不会将评分覆盖层的提问计数或摘要提升到此研究层。",
+                )}
+                searchContent={(
+                  <TranscriptSearchWorkspace
+                    ticker={ticker}
+                    events={transcriptSearchEvents}
+                    initialEventId={event.event_id}
+                    onOpenTranscript={onOpenTx}
+                  />
+                )}
               />
-              <CompanySourceManifest event={event} onOpenTranscript={onOpenTx} />
             </section>
           )}
 
