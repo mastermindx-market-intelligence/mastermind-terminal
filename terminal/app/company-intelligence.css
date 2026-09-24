@@ -376,11 +376,15 @@
 .ci-paper-takeaways>button:hover,.ci-paper-takeaways>button.selected{border-color:color-mix(in srgb,var(--brand-2) 40%,var(--line));background:color-mix(in srgb,var(--brand) 7%,var(--panel-2))}
 .ci-paper-takeaways span{color:var(--muted);font:620 8.5px/1 var(--font-ui);text-transform:uppercase;letter-spacing:.06em}
 .ci-paper-takeaways strong{overflow:hidden;color:var(--text-2);font:610 10.5px/1.25 var(--font-ui);text-overflow:ellipsis;white-space:nowrap}
-.ci-paper-company-visual{position:relative;display:grid;place-items:center;min-height:184px;border-left:1px solid color-mix(in srgb,var(--brand) 15%,var(--line));background:radial-gradient(circle at 50% 48%,color-mix(in srgb,var(--brand) 24%,transparent),transparent 35%),linear-gradient(145deg,transparent 35%,color-mix(in srgb,var(--brand-2) 6%,transparent))}
-.ci-paper-company-visual>span{position:relative;z-index:2;color:color-mix(in srgb,var(--text) 86%,var(--brand-2));font:760 27px/1 var(--font-num);letter-spacing:.12em;text-shadow:0 0 28px color-mix(in srgb,var(--brand) 50%,transparent)}
-.ci-paper-company-visual>i{position:absolute;inset:50% auto auto 50%;width:128px;height:128px;transform:translate(-50%,-50%);border:1px solid color-mix(in srgb,var(--brand-2) 18%,transparent);border-radius:50%}
-.ci-paper-company-visual>i:nth-of-type(2){width:190px;height:190px;border-color:color-mix(in srgb,var(--brand) 12%,transparent)}
-.ci-paper-company-visual>i:nth-of-type(3){width:260px;height:260px;border-color:color-mix(in srgb,var(--brand) 6%,transparent)}
+.ci-paper-company-visual{position:relative;display:grid;place-items:center;min-height:184px;isolation:isolate;overflow:hidden;border-left:1px solid color-mix(in srgb,var(--brand) 15%,var(--line));background:radial-gradient(circle at 56% 48%,color-mix(in srgb,var(--brand) 24%,transparent),transparent 35%),linear-gradient(145deg,transparent 35%,color-mix(in srgb,var(--brand-2) 6%,transparent));-webkit-mask-image:linear-gradient(to right,transparent 0,#000 30%,#000 100%);mask-image:linear-gradient(to right,transparent 0,#000 30%,#000 100%)}
+.ci-paper-company-visual::before{content:"";position:absolute;z-index:3;inset:0 auto 0 0;width:30%;background:linear-gradient(to right,color-mix(in srgb,var(--panel) 88%,transparent),transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);pointer-events:none}
+.ci-paper-company-visual::after{content:"";position:absolute;z-index:4;inset:0;background:linear-gradient(to bottom,color-mix(in srgb,var(--panel) 20%,transparent),transparent 22%,transparent 72%,color-mix(in srgb,var(--panel) 30%,transparent)),linear-gradient(to left,color-mix(in srgb,var(--panel) 18%,transparent),transparent 28%);pointer-events:none}
+.ci-paper-company-visual>img{position:absolute;z-index:0;inset:0;width:100%;height:100%;object-fit:cover;object-position:center}
+.ci-paper-company-visual-fallback{position:absolute;z-index:1;inset:0;display:grid;place-items:center}
+.ci-paper-company-visual-fallback>span{position:relative;z-index:2;color:color-mix(in srgb,var(--text) 86%,var(--brand-2));font:760 27px/1 var(--font-num);letter-spacing:.12em;text-shadow:0 0 28px color-mix(in srgb,var(--brand) 50%,transparent)}
+.ci-paper-company-visual-fallback>i{position:absolute;inset:50% auto auto 50%;width:128px;height:128px;transform:translate(-50%,-50%);border:1px solid color-mix(in srgb,var(--brand-2) 18%,transparent);border-radius:50%}
+.ci-paper-company-visual-fallback>i:nth-of-type(2){width:190px;height:190px;border-color:color-mix(in srgb,var(--brand) 12%,transparent)}
+.ci-paper-company-visual-fallback>i:nth-of-type(3){width:260px;height:260px;border-color:color-mix(in srgb,var(--brand) 6%,transparent)}
 .ci-paper-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
 .ci-paper-metrics>button{display:grid;align-content:space-between;gap:7px;min-height:94px;padding:11px 13px;text-align:left;border:1px solid var(--line);border-radius:var(--r-tile);background:linear-gradient(180deg,var(--panel),color-mix(in srgb,var(--panel-2) 93%,transparent));box-shadow:var(--shadow-card)}
 .ci-paper-metrics>button:hover,.ci-paper-metrics>button.selected{border-color:color-mix(in srgb,var(--brand-2) 42%,var(--line));background:color-mix(in srgb,var(--brand) 6%,var(--panel-2))}
@@ -426,7 +430,13 @@
 @media (max-width:760px){
   .ci-paper-brief-hero{grid-template-columns:1fr;min-height:0;border-radius:var(--r-tile)}
   .ci-paper-brief-copy{padding:16px}
-  .ci-paper-company-visual{display:none}
+  .ci-paper-company-visual{display:grid;min-height:118px;border-top:1px solid color-mix(in srgb,var(--brand) 15%,var(--line));border-left:0;-webkit-mask-image:linear-gradient(to bottom,#000 0,#000 52%,transparent 100%);mask-image:linear-gradient(to bottom,#000 0,#000 52%,transparent 100%)}
+  .ci-paper-company-visual::before{inset:auto 0 0;width:auto;height:42%;background:linear-gradient(to bottom,transparent,color-mix(in srgb,var(--panel) 88%,transparent));backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
+  .ci-paper-company-visual::after{background:linear-gradient(to right,color-mix(in srgb,var(--panel) 18%,transparent),transparent 18%,transparent 82%,color-mix(in srgb,var(--panel) 18%,transparent)),linear-gradient(to top,color-mix(in srgb,var(--panel) 24%,transparent),transparent 42%)}
+  .ci-paper-company-visual-fallback>span{font-size:24px}
+  .ci-paper-company-visual-fallback>i{width:92px;height:92px}
+  .ci-paper-company-visual-fallback>i:nth-of-type(2){width:138px;height:138px}
+  .ci-paper-company-visual-fallback>i:nth-of-type(3){width:190px;height:190px}
   .ci-paper-takeaways{overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
   .ci-paper-takeaways::-webkit-scrollbar{display:none}
   .ci-paper-takeaways>button{min-width:170px}
@@ -435,6 +445,11 @@
 @media (max-width:520px){
   .ci-paper-brief-copy h3{font-size:19px;line-height:1.18}
   .ci-paper-brief-meta>b{display:none}
+  .ci-paper-company-visual{min-height:104px}
+  .ci-paper-company-visual-fallback>span{font-size:22px}
+  .ci-paper-company-visual-fallback>i{width:78px;height:78px}
+  .ci-paper-company-visual-fallback>i:nth-of-type(2){width:116px;height:116px}
+  .ci-paper-company-visual-fallback>i:nth-of-type(3){width:160px;height:160px}
   .ci-paper-metrics{grid-template-columns:1fr 1fr}
   .ci-paper-metrics>button{min-height:84px;padding:10px}
   .ci-paper-metrics strong{font-size:16px}
