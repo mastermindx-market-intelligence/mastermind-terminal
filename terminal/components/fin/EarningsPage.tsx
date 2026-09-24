@@ -531,8 +531,8 @@ export default function EarningsPage({ fund, zh, sym }: EarningsPageProps) {
             <small>
               {pick(
                 !!zh,
-                `EPS estimate ${nextEps == null ? "—" : nextEps.toFixed(2)} · Revenue estimate ${fmtStatementEstimate(nextRev)}`,
-                `每股盈利预期 ${nextEps == null ? "—" : nextEps.toFixed(2)} · 营收预期 ${fmtStatementEstimate(nextRev)}`,
+                `${nextPeriod ? `Report period ${nextPeriod} · ` : ""}EPS estimate ${nextEps == null ? "—" : nextEps.toFixed(2)} · Revenue estimate ${fmtStatementEstimate(nextRev)}`,
+                `${nextPeriod ? `报告期 ${nextPeriod} · ` : ""}每股盈利预期 ${nextEps == null ? "—" : nextEps.toFixed(2)} · 营收预期 ${fmtStatementEstimate(nextRev)}`,
               )}
             </small>
           </article>
