@@ -103,17 +103,20 @@ export default function PrecisionEntryStrip({ plan, intel, lang }: PrecisionEntr
     : (entry?.grade ? (lang === "zh" ? `评级 ${entry.grade}` : `Grade ${entry.grade}`) : null);
 
   const structureParts: string[] = [];
-  if (confluence?.htfS1 === true) structureParts.push(lang === "zh" ? "高周期确认" : "Higher-TF confirm");
-  else if (confluence?.htfS1 === false) structureParts.push(lang === "zh" ? "高周期未确认" : "Higher-TF unconfirmed");
-  if (sniper?.w2Washout === true) structureParts.push(lang === "zh" ? "2周洗盘" : "2W washout");
+  if (confluence?.htfS1 === true) structureParts.push(lang === "zh" ? "高周期支撑" : "Higher-TF support");
+  if (sniper?.w2Washout === true) structureParts.push(lang === "zh" ? "2周洗盘背景" : "2W washout ctx");
   if (sniper?.coiled === true) structureParts.push(lang === "zh" ? "收缩蓄势" : "Coiled");
   if (sniper?.w2StochD != null) structureParts.push(`Stoch D ${fmtNumber(sniper.w2StochD)}`);
   const structureValue = structureParts.length ? structureParts.join(" · ") : "—";
-  const structureMeta = sniper?.daysSince63dLow != null
+  const structureAge = sniper?.daysSince63dLow != null
     ? (lang === "zh"
       ? `距63日低点 ${Math.round(sniper.daysSince63dLow)} 天`
       : `63d low ${Math.round(sniper.daysSince63dLow)}d ago`)
     : null;
+  const structureCaution = structureParts.length
+    ? (lang === "zh" ? "仅作背景 · 不是买入信号" : "Context only · not a buy signal")
+    : null;
+  const structureMeta = [structureAge, structureCaution].filter(Boolean).join(" · ") || null;
 
   const valueByRole: Record<PrecisionPaneRole, string> = {
     execution: executionValue,
