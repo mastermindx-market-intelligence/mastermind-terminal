@@ -1,32 +1,30 @@
 {
-  "capturedAt": "2026-09-24T14:24:30.506Z",
+  "capturedAt": "2026-09-24T16:33:58.921Z",
   "base": "https://app.mastermind-x.com",
-  "expectedRelease": "1d2ac1e64a21c957b229e2e2567fcc248d557a64",
+  "expectedRelease": "145bfbe4c8ea0da04658cbbe05879c84c990721b",
   "phaseA": [
     {
-      "case": "GET /analysis?symbol=<SYM>",
+      "case": "Analysis gate blocks the thesis workspace",
       "status": 200,
-      "ok": true,
-      "heading": "Sign up to open the Analysis desk"
+      "ok": true
     },
     {
-      "case": "GET /analysis?view=theses",
+      "case": "Theses view stays anonymous",
       "status": 200,
-      "ok": true,
-      "heading": "Sign up to open the Analysis desk"
+      "ok": true
     },
     {
-      "case": "GET /api/theses (anonymous)",
+      "case": "Anonymous thesis list is rejected",
       "status": 401,
       "ok": true
     },
     {
-      "case": "POST /api/theses (anonymous create)",
+      "case": "Anonymous thesis creation is rejected",
       "status": 401,
       "ok": true
     },
     {
-      "case": "GET /api/thesis-saved-views (anonymous)",
+      "case": "Anonymous saved views are rejected",
       "status": 401,
       "ok": true
     }

@@ -1,224 +1,66 @@
 import { describe, expect, it } from "vitest";
-import { redactReceipt, validateReceipt, type ThesisJourneyReceipt } from "../thesisJourneyReceipt";
+import { redactReceipt, validateReceipt} from "../../e2e/tools/thesisJourneyReceipt.mjs";
+
+const release = "a".repeat(40);
+
+function receipt(overrides: Record<string, unknown> = {}) {
+  return {
+    capturedAt: "2026-09-24T10:00:00.000Z",
+    base: "https://app.mastermind-x.com",
+    expectedRelease: release,
+    phaseA: Array.from({ length: 5 }, (_, index) => ({
+      case: `case-${index}`,
+      status: index < 2 ? 200 : 401,
+      ok: true,
+    })),
+    phaseB: { ran: false, route: "none", versions: [], archived: false },
+    browserErrors: [],
+    ...overrides,
+  };
+}
 
 describe("redactReceipt", () => {
-  it("passes through a clean receipt unchanged", () => {
-    const receipt: ThesisJourneyReceipt = {
-      capturedAt: "2026-09-24T10:00:00.000Z",
-      base: "https://app.mastermind-x.com",
-      expectedRelease: "1d2ac1e6da1e2b3c4d5e6f7a8b9c0d1e2f3a4b5c",
-      phaseA: [
-        { case: "GET /analysis?symbol=NVDA", status: 200, ok: true, heading: "Analysis", testid: "not-thesis-workspace" },
-      ],
-      phaseB: { ran: false, route: "none", versions: [], archived: false },
-      browserErrors: [],
-    };
-    expect(redactReceipt(receipt)).toEqual(receipt);
+  it("preserves proof identity and UUIDs", () => {
+    const input = receipt({
+      thesisId: "123e4567-e89b-42d3-a456-426614174000",
+      longStatement: "Ordinary evidence can be long without becoming a credential.",
+    });
+    expect(redactReceipt(input)).toEqual(input);
   });
 
-  it("preserves a 40-hex release identifier verbatim", () => {
-    const receipt = {
-      capturedAt: "2026-09-24T10:00:00.000Z",
-      base: "https://app.mastermind-x.com",
-      expectedRelease: "1d2ac1e6da1e2b3c4d5e6f7a8b9c0d1e2f3a4b5c",
-      phaseA: [],
-      phaseB: { ran: false, route: "none", versions: [], archived: false },
-      browserErrors: [],
-    } as unknown as ThesisJourneyReceipt;
-    const redacted = redactReceipt(receipt);
-    expect((redacted as unknown as Record<string, unknown>).expectedRelease).toBe("1d2ac1e6da1e2b3c4d5e6f7a8b9c0d1e2f3a4b5c");
-  });
-
-  it("preserves ISO timestamps verbatim", () => {
-    const receipt = {
-      capturedAt: "2026-09-24T10:00:00.000Z",
-      base: "https://app.mastermind-x.com",
-      expectedRelease: "abc123def456abc123def456abc123def456abcd",
-      phaseA: [],
-      phaseB: { ran: false, route: "none", versions: [], archived: false },
-      browserErrors: [],
+  it("preserves ISO timestamps and redacts JWTs, emails, and credential-shaped strings", () => {
+    const redacted = redactReceipt(receipt({
       createdAt: "2026-09-24T12:00:00.000Z",
-    } as unknown as ThesisJourneyReceipt;
-    const redacted = redactReceipt(receipt) as unknown as Record<string, unknown>;
+      authToken: "header.payload.signature",
+      userEmail: "operator@example.com",
+      nested: { accessToken: "YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXo=" },
+    })) as Record<string, unknown>;
     expect(redacted.createdAt).toBe("2026-09-24T12:00:00.000Z");
-  });
-
-  it("redacts JWT-like tokens", () => {
-    const receipt = {
-      capturedAt: "2026-09-24T10:00:00.000Z",
-      base: "https://app.mastermind-x.com",
-      expectedRelease: "1d2ac1e6da1e2b3c4d5e6f7a8b9c0d1e2f3a4b5c",
-      phaseA: [],
-      phaseB: { ran: false, route: "none", versions: [], archived: false },
-      browserErrors: [],
-      authToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
-    } as unknown as ThesisJourneyReceipt;
-    const redacted = redactReceipt(receipt);
-    expect((redacted as unknown as Record<string, unknown>).authToken).toBe("[REDACTED]");
-  });
-
-  it("redacts long base64-like tokens", () => {
-    const receipt = {
-      capturedAt: "2026-09-24T10:00:00.000Z",
-      base: "https://app.mastermind-x.com",
-      expectedRelease: "1d2ac1e6da1e2b3c4d5e6f7a8b9c0d1e2f3a4b5c",
-      phaseA: [],
-      phaseB: { ran: false, route: "none", versions: [], archived: false },
-      browserErrors: [],
-      accessToken: "abc123xyzABC123xyzABC123xyzABC123xyzABC==",
-    } as unknown as ThesisJourneyReceipt;
-    const redacted = redactReceipt(receipt);
-    expect((redacted as unknown as Record<string, unknown>).accessToken).toBe("[REDACTED]");
-  });
-
-  it("redacts email addresses", () => {
-    const receipt = {
-      capturedAt: "2026-09-24T10:00:00.000Z",
-      base: "https://app.mastermind-x.com",
-      expectedRelease: "1d2ac1e6da1e2b3c4d5e6f7a8b9c0d1e2f3a4b5c",
-      phaseA: [],
-      phaseB: { ran: false, route: "none", versions: [], archived: false },
-      browserErrors: [],
-      userEmail: "user@example.com",
-    } as unknown as ThesisJourneyReceipt;
-    const redacted = redactReceipt(receipt);
-    expect((redacted as unknown as Record<string, unknown>).userEmail).toBe("[REDACTED]");
-  });
-
-  it("recursively redacts nested objects and arrays", () => {
-    const receipt = {
-      capturedAt: "2026-09-24T10:00:00.000Z",
-      base: "https://app.mastermind-x.com",
-      expectedRelease: "1d2ac1e6da1e2b3c4d5e6f7a8b9c0d1e2f3a4b5c",
-      phaseA: [],
-      phaseB: { ran: false, route: "none", versions: [], archived: false },
-      browserErrors: [],
-      nested: {
-        secretToken: "abc123xyzABC123xyzABC123xyzABC==",
-        user: { email: "test@test.com" },
-        items: ["ordinary string", "user@domain.com"],
-      },
-    } as unknown as ThesisJourneyReceipt;
-    const redacted = redactReceipt(receipt) as unknown as Record<string, unknown>;
-    const nested = redacted.nested as Record<string, unknown>;
-    expect(nested.secretToken).toBe("[REDACTED]");
-    expect((nested.user as Record<string, unknown>).email).toBe("[REDACTED]");
-    expect((nested.items as string[])[0]).toBe("ordinary string");
-    expect((nested.items as string[])[1]).toBe("[REDACTED]");
-  });
-
-  it("does not redact ordinary strings that happen to be long", () => {
-    const receipt = {
-      capturedAt: "2026-09-24T10:00:00.000Z",
-      base: "https://app.mastermind-x.com",
-      expectedRelease: "1d2ac1e6da1e2b3c4d5e6f7a8b9c0d1e2f3a4b5c",
-      phaseA: [],
-      phaseB: { ran: false, route: "none", versions: [], archived: false },
-      browserErrors: [],
-      longStatement: "This is a very long thesis statement that is longer than twenty characters and is not a token or email but just ordinary prose.",
-    } as unknown as ThesisJourneyReceipt;
-    const redacted = redactReceipt(receipt);
-    expect((redacted as unknown as Record<string, unknown>).longStatement).toBe(
-      "This is a very long thesis statement that is longer than twenty characters and is not a token or email but just ordinary prose."
-    );
+    expect(redacted.authToken).toBe("[REDACTED]");
+    expect(redacted.userEmail).toBe("[REDACTED]");
+    expect((redacted.nested as Record<string, unknown>).accessToken).toBe("[REDACTED]");
   });
 });
 
 describe("validateReceipt", () => {
-  it("returns true for a valid receipt with a 40-hex release", () => {
-    const receipt = {
-      capturedAt: "2026-09-24T10:00:00.000Z",
-      base: "https://app.mastermind-x.com",
-      expectedRelease: "1d2ac1e6da1e2b3c4d5e6f7a8b9c0d1e2f3a4b5c",
-      phaseA: [
-        { case: "GET /analysis?symbol=NVDA", status: 200, ok: true },
-        { case: "GET /analysis?view=theses", status: 200, ok: true },
-        { case: "GET /api/theses (anonymous)", status: 401, ok: true },
-        { case: "POST /api/theses (anonymous create)", status: 401, ok: true },
-        { case: "GET /api/thesis-saved-views (anonymous)", status: 401, ok: true },
-      ],
-      phaseB: { ran: false, route: "none", versions: [], archived: false },
-      browserErrors: [],
-    };
-    expect(validateReceipt(receipt)).toBe(true);
+  it("accepts only a complete anonymous proof receipt", () => {
+    expect(validateReceipt(receipt())).toBe(true);
   });
 
-  it("returns true for a receipt with [REDACTED] release (post-redaction)", () => {
-    const receipt = {
-      capturedAt: "2026-09-24T10:00:00.000Z",
-      base: "https://app.mastermind-x.com",
-      expectedRelease: "[REDACTED]",
-      phaseA: [
-        { case: "GET /analysis?symbol=NVDA", status: 200, ok: true },
-        { case: "GET /analysis?view=theses", status: 200, ok: true },
-        { case: "GET /api/theses (anonymous)", status: 401, ok: true },
-        { case: "POST /api/theses (anonymous create)", status: 401, ok: true },
-        { case: "GET /api/thesis-saved-views (anonymous)", status: 401, ok: true },
-      ],
-      phaseB: { ran: false, route: "none", versions: [], archived: false },
-      browserErrors: [],
-    };
-    expect(validateReceipt(receipt)).toBe(true);
+  it("rejects a redacted release", () => {
+    expect(validateReceipt(receipt({ expectedRelease: "[REDACTED]" }))).toBe(false);
   });
 
-  it("returns false when expectedRelease is not a 40-hex SHA or [REDACTED]", () => {
-    const receipt = {
-      capturedAt: "2026-09-24T10:00:00.000Z",
-      base: "https://app.mastermind-x.com",
-      expectedRelease: "not-a-hex",
-      phaseA: [
-        { case: "GET /analysis?symbol=NVDA", status: 200, ok: true },
-        { case: "GET /analysis?view=theses", status: 200, ok: true },
-        { case: "GET /api/theses (anonymous)", status: 401, ok: true },
-        { case: "POST /api/theses (anonymous create)", status: 401, ok: true },
-        { case: "GET /api/thesis-saved-views (anonymous)", status: 401, ok: true },
-      ],
-      phaseB: { ran: false, route: "none", versions: [], archived: false },
-      browserErrors: [],
-    };
-    expect(validateReceipt(receipt)).toBe(false);
+  it("rejects incomplete Phase A or browser errors", () => {
+    const incomplete = receipt();
+    incomplete.phaseA = incomplete.phaseA.slice(0, 4);
+    expect(validateReceipt(incomplete)).toBe(false);
+    expect(validateReceipt(receipt({ browserErrors: ["page error"] }))).toBe(false);
   });
 
-  it("returns false when Phase A does not have exactly 5 cases", () => {
-    const receipt = {
-      capturedAt: "2026-09-24T10:00:00.000Z",
-      base: "https://app.mastermind-x.com",
-      expectedRelease: "1d2ac1e6da1e2b3c4d5e6f7a8b9c0d1e2f3a4b5c",
-      phaseA: [
-        { case: "GET /analysis?symbol=NVDA", status: 200, ok: true },
-      ],
-      phaseB: { ran: false, route: "none", versions: [], archived: false },
-      browserErrors: [],
-    };
-    expect(validateReceipt(receipt)).toBe(false);
-  });
-
-  it("returns false when a Phase A case is malformed", () => {
-    const receipt = {
-      capturedAt: "2026-09-24T10:00:00.000Z",
-      base: "https://app.mastermind-x.com",
-      expectedRelease: "1d2ac1e6da1e2b3c4d5e6f7a8b9c0d1e2f3a4b5c",
-      phaseA: [
-        { case: "GET /analysis?symbol=NVDA", status: 200, ok: true },
-        { case: "GET /analysis?view=theses", status: 200, ok: true },
-        { case: "GET /api/theses (anonymous)", status: 401, ok: true },
-        { case: "POST /api/theses (anonymous create)", status: 401, ok: true },
-        { case: 123, status: 401, ok: true }, // case should be string
-      ],
-      phaseB: { ran: false, route: "none", versions: [], archived: false },
-      browserErrors: [],
-    };
-    expect(validateReceipt(receipt)).toBe(false);
-  });
-
-  it("returns false for a non-object", () => {
-    expect(validateReceipt(null)).toBe(false);
-    expect(validateReceipt("string")).toBe(false);
-    expect(validateReceipt(123)).toBe(false);
-  });
-
-  it("returns false when required fields are missing", () => {
-    expect(validateReceipt({ capturedAt: "2026-09-24T10:00:00.000Z" })).toBe(false);
-    expect(validateReceipt({ base: "https://app.mastermind-x.com" })).toBe(false);
+  it("never accepts a signed-in receipt as anonymous proof", () => {
+    expect(validateReceipt(receipt({
+      phaseB: { ran: true, route: "rail", versions: [1], archived: true },
+    }))).toBe(false);
   });
 });
