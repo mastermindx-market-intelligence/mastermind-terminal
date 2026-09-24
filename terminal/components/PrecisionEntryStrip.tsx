@@ -1,6 +1,6 @@
 "use client";
 
-import type { PrecisionPaneRole, PrecisionPlan } from "@/lib/precisionEntry";
+import type { PrecisionHorizon, PrecisionPaneRole, PrecisionPlan } from "@/lib/precisionEntry";
 import { readPrecisionIntel, type PrecisionEntryIntel } from "@/lib/precisionIntel";
 import styles from "./PrecisionEntryStrip.module.css";
 
@@ -8,10 +8,17 @@ export const PRECISION_ENTRY_STRIP_HEIGHT = 58;
 
 type Lang = "en" | "zh";
 
+export interface PrecisionHorizonOption {
+  horizon: PrecisionHorizon;
+  ready: boolean;
+}
+
 export interface PrecisionEntryStripProps {
   plan: PrecisionPlan;
   intel: unknown;
   lang: Lang;
+  horizonOptions?: readonly PrecisionHorizonOption[];
+  onHorizonChange?: (horizon: PrecisionHorizon) => void;
 }
 
 const ROLE_COPY: Record<PrecisionPaneRole, [string, string]> = {
@@ -70,7 +77,7 @@ function compactExecutionMeta(
   return parts.length ? parts.join(" · ") : choose(lang, entry.action, entry.actionZh);
 }
 
-export default function PrecisionEntryStrip({ plan, intel, lang }: PrecisionEntryStripProps) {
+export default function PrecisionEntryStrip({ plan, intel, lang, horizonOptions, onHorizonChange }: PrecisionEntryStripProps) {
   const read = readPrecisionIntel(intel);
   const entry = read?.entry ?? null;
   const confluence = read?.confluence ?? null;
@@ -143,7 +150,30 @@ export default function PrecisionEntryStrip({ plan, intel, lang }: PrecisionEntr
     >
       <div className={styles.brand}>
         <strong>{lang === "zh" ? "精确多周期" : "PRECISION MTF"}</strong>
-        <span>{horizon} · {source}{read?.asof ? ` · ${read.asof}` : ""}</span>
+        {onHorizonChange && horizonOptions?.length ? (
+          <div className={styles.modeRow}>
+            <span className={styles.modeWrap}>
+              <select
+                className={styles.modeSelect}
+                data-testid="precision-horizon-select"
+                aria-label={lang === "zh" ? "精确多周期持有周期" : "Precision MTF holding horizon"}
+                value={plan.horizon}
+                onChange={(event) => onHorizonChange(event.target.value as PrecisionHorizon)}
+              >
+                {horizonOptions.map((option) => (
+                  <option key={option.horizon} value={option.horizon} disabled={!option.ready}>
+                    {HORIZON_COPY[option.horizon][lang === "zh" ? 1 : 0]}
+                  </option>
+                ))}
+              </select>
+            </span>
+            <span className={styles.sourceTag} title={read?.asof || undefined}>
+              {source}{read?.asof ? ` · ${read.asof}` : ""}
+            </span>
+          </div>
+        ) : (
+          <span>{horizon} · {source}{read?.asof ? ` · ${read.asof}` : ""}</span>
+        )}
       </div>
 
       <div className={styles.cells}>
