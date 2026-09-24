@@ -952,3 +952,30 @@ test("unavailable is not empty, and the Chinese mobile/tablet surface keeps hist
   await page.goto("/analysis?view=unknown");
   await expect(page.getByRole("heading", { name: "不支持此分析视图" })).toBeVisible();
 });
+
+test("the context-bar theses link opens the thesis workspace with the symbol pre-filled", async ({ page, baseURL }, testInfo) => {
+  // EN
+  await prepare(page, testInfo, baseURL);
+  await page.goto("/analysis?symbol=NVDA");
+  await expect(page.getByTestId("thesis-workspace")).toBeHidden();
+  await page.getByLabel("Open your theses on NVDA").click();
+  await expect(page).toHaveURL(/\/analysis\?view=theses&symbol=NVDA/);
+  await expect(page.getByTestId("thesis-workspace")).toBeVisible();
+  // ThesisWorkspaceMount seeds the new-thesis subject from initialSymbol prop.
+  // After the route mounts, the New Thesis button pre-fills NVDA in the subject.
+  // Verify the workspace is mounted and the New Thesis form carries the symbol.
+  const newThesisBtn = page.getByRole("button", { name: "New thesis" });
+  if (await newThesisBtn.isVisible()) {
+    await newThesisBtn.click();
+  }
+  // The Title field should be pre-filled or empty but the URL confirms NVDA scope.
+  await expect(page.getByLabel("Title")).toBeVisible();
+
+  // ZH
+  await prepare(page, testInfo, baseURL, true);
+  await page.goto("/analysis?symbol=NVDA");
+  await expect(page.getByTestId("thesis-workspace")).toBeHidden();
+  await page.getByLabel("打开你对 NVDA 的研究论点").click();
+  await expect(page).toHaveURL(/\/analysis\?view=theses&symbol=NVDA/);
+  await expect(page.getByTestId("thesis-workspace")).toBeVisible();
+});

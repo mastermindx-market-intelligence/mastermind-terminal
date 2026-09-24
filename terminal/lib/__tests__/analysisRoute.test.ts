@@ -50,4 +50,19 @@ describe("the closed /analysis route vocabulary", () => {
       kind: "unsupported", reason: "invalid_view",
     });
   });
+
+  it("navigating to theses from the company context bar carries the symbol through URL encoding", () => {
+    // Plain symbol round-trip
+    expect(parseAnalysisSearchParams(new URLSearchParams("view=theses&symbol=NVDA"))).toEqual({
+      kind: "theses", symbol: "NVDA",
+    });
+    // Dotted ticker that needs URL encoding round-trips exactly
+    expect(parseAnalysisSearchParams(new URLSearchParams("view=theses&symbol=BRK.B"))).toEqual({
+      kind: "theses", symbol: "BRK.B",
+    });
+    // The control href format: /analysis?view=theses&symbol=<encodeURIComponent(sym)>
+    const controlHref = `/analysis?view=theses&symbol=${encodeURIComponent("BRK.B")}`;
+    const params = new URLSearchParams(controlHref.split("?")[1]);
+    expect(parseAnalysisSearchParams(params)).toEqual({ kind: "theses", symbol: "BRK.B" });
+  });
 });
