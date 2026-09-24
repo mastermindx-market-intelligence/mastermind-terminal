@@ -35,7 +35,7 @@ const HORIZON_COPY: Record<PrecisionPlan["horizon"], [string, string]> = {
   deep: ["Deep", "深度"],
 };
 
-function choose(lang: Lang, en: string | null | undefined, zh: string | null | undefined): string | null {
+function pick(lang: Lang, en: string | null | undefined, zh: string | null | undefined): string | null {
   return (lang === "zh" ? zh : en) || en || zh || null;
 }
 
@@ -74,7 +74,7 @@ function compactExecutionMeta(
       ? `失效 ${fmtPrice(entry.stop)}`
       : `Invalidation ${fmtPrice(entry.stop)}`);
   }
-  return parts.length ? parts.join(" · ") : choose(lang, entry.action, entry.actionZh);
+  return parts.length ? parts.join(" · ") : pick(lang, entry.action, entry.actionZh);
 }
 
 export default function PrecisionEntryStrip({ plan, intel, lang, horizonOptions, onHorizonChange }: PrecisionEntryStripProps) {
@@ -83,8 +83,8 @@ export default function PrecisionEntryStrip({ plan, intel, lang, horizonOptions,
   const confluence = read?.confluence ?? null;
   const sniper = read?.sniper ?? null;
 
-  const executionValue = choose(lang, entry?.headline, entry?.headlineZh)
-    || choose(lang, entry?.action, entry?.actionZh)
+  const executionValue = pick(lang, entry?.headline, entry?.headlineZh)
+    || pick(lang, entry?.action, entry?.actionZh)
     || "—";
   const executionMeta = compactExecutionMeta(entry, lang);
 
@@ -146,17 +146,17 @@ export default function PrecisionEntryStrip({ plan, intel, lang, horizonOptions,
       data-testid="precision-entry-strip"
       data-horizon={plan.horizon}
       data-source={plan.source}
-      aria-label={lang === "zh" ? "精确多周期入场视图" : "Precision multi-timeframe entry view"}
+      aria-label={pick(lang, "Precision multi-timeframe entry view", "精确多周期入场视图") || undefined}
     >
       <div className={styles.brand}>
-        <strong>{lang === "zh" ? "精确多周期" : "PRECISION MTF"}</strong>
+        <strong>{pick(lang, "PRECISION MTF", "精确多周期")}</strong>
         {onHorizonChange && horizonOptions?.length ? (
           <div className={styles.modeRow}>
             <span className={styles.modeWrap}>
               <select
                 className={styles.modeSelect}
                 data-testid="precision-horizon-select"
-                aria-label={lang === "zh" ? "精确多周期持有周期" : "Precision MTF holding horizon"}
+                aria-label={pick(lang, "Precision MTF holding horizon", "精确多周期持有周期") || undefined}
                 value={plan.horizon}
                 onChange={(event) => onHorizonChange(event.target.value as PrecisionHorizon)}
               >
