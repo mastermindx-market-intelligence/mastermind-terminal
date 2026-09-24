@@ -45,6 +45,61 @@ export function redactReceipt(value) {
   ]));
 }
 
+export function storageStateError(path, dependencies) {
+  if (!path) return "operator storage state was not supplied";
+  const { existsSync, readFileSync, resolve, root, trackedPaths } = dependencies;
+  const statePath = resolve(path);
+  const liveStateRoot = `${root}/e2e/.live-state`;
+  if (!existsSync(statePath)) return "operator storage state file does not exist";
+  if (statePath !== `${liveStateRoot}${statePath.slice(liveStateRoot.length)}`) {
+    return "operator storage state must be inside the git-ignored live-state directory";
+  }
+  if (!readFileSync(`${root}/.gitignore`, "utf8").includes("e2e/.live-state/")) {
+    return "operator storage state directory is not git-ignored";
+  }
+  const tracked = trackedPaths();
+  if (!tracked) return "operator storage state git status is unavailable";
+  const relative = `e2e/.live-state${statePath.slice(liveStateRoot.length)}`;
+  return tracked.has(relative) ? "operator storage state is tracked by git" : null;
+}
+
+export function thesisIdFromUrl(rawUrl) {
+  const thesisId = new URL(rawUrl).searchParams.get("thesis");
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(thesisId || "")) {
+    throw new Error("Created proof thesis id was not returned through the URL.");
+  }
+  return thesisId.toLowerCase();
+}
+
+export function detailFromResponse(thesis, thesisId) {
+  if (thesis?.id !== thesisId) throw new Error("Detail response did not return the proof thesis.");
+  return thesis;
+}
+
+function isVersionSnapshot(value, expectedVersion, expectedPreviousVersion) {
+  return value?.version === expectedVersion && value?.previousVersion === expectedPreviousVersion;
+}
+
+export function validateVersions({ created, revised, archived }) {
+  return created?.currentVersion === 1
+    && created?.lifecycleState === "active"
+    && isVersionSnapshot(created?.current, 1, null)
+    && created?.history?.length === 1
+    && revised?.currentVersion === 2
+    && revised?.lifecycleState === "active"
+    && isVersionSnapshot(revised?.current, 2, 1)
+    && revised?.history?.length === 2
+    && archived?.currentVersion === 3
+    && archived?.lifecycleState === "archived"
+    && isVersionSnapshot(archived?.current, 3, 2)
+    && archived?.history?.length === 3;
+}
+
+export function exitCodeFor(failureKind) {
+  if (failureKind === "release") return 2;
+  return failureKind ? 1 : 0;
+}
+
 export function validateReceipt(value) {
   if (!value || typeof value !== "object") return false;
   if (!/^[0-9a-f]{40}$/i.test(value.expectedRelease || "")) return false;

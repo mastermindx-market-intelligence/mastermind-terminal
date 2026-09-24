@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-09-24T16:33:58.921Z",
+  "capturedAt": "2026-09-24T17:04:26.496Z",
   "base": "https://app.mastermind-x.com",
   "expectedRelease": "145bfbe4c8ea0da04658cbbe05879c84c990721b",
   "phaseA": [
@@ -35,5 +35,5 @@
     "versions": [],
     "archived": false
   },
-  "browserErrors": []
+  "browserErrorCount": 0
 }
