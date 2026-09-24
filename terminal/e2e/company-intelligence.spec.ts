@@ -313,6 +313,33 @@ async function expectNoDocumentOverflow(page: Page) {
   expect(width.document).toBeLessThanOrEqual(width.viewport + 1);
 }
 
+async function researchScrollState(page: Page) {
+  return page.evaluate(() => {
+    const body = document.querySelector<HTMLElement>(".fin-body");
+    const context = document.querySelector<HTMLElement>(".analysis-context-bar");
+    const researchNav = document.querySelector<HTMLElement>(".fin-research-nav");
+    return {
+      finBody: body?.scrollTop ?? -1,
+      windowX: window.scrollX,
+      windowY: window.scrollY,
+      documentElement: document.documentElement.scrollTop,
+      body: document.body.scrollTop,
+      contextTop: Math.round(context?.getBoundingClientRect().top ?? -1),
+      researchNavTop: Math.round(researchNav?.getBoundingClientRect().top ?? -1),
+    };
+  });
+}
+
+async function makeLensSwitchScrollObservable(page: Page) {
+  await page.locator(".ci-canvas").evaluate((canvas) => {
+    const body = canvas.closest<HTMLElement>(".fin-body");
+    if (!body) throw new Error("Company Intelligence must remain inside .fin-body");
+    body.style.scrollBehavior = "auto";
+    body.scrollTop = 0;
+    canvas.style.minHeight = `${body.clientHeight + 800}px`;
+  });
+}
+
 test("Company Intelligence keeps its context and evidence workflow responsive", async ({ page }, testInfo) => {
   await openCompanyIntelligence(page);
   await expectNoDocumentOverflow(page);
@@ -447,6 +474,24 @@ test("Company Intelligence keeps its context and evidence workflow responsive", 
     path: testInfo.outputPath(`${testInfo.project.name}-company-intelligence.png`),
     fullPage: false,
   });
+});
+
+test("Company Intelligence lens switching does not move the research shell", async ({ page }) => {
+  await openCompanyIntelligence(page);
+  await makeLensSwitchScrollObservable(page);
+
+  const before = await researchScrollState(page);
+  expect(before.finBody).toBe(0);
+  expect(before.windowY).toBe(0);
+
+  const transcript = page.locator(".ci-lenses").getByRole("tab", { name: "Transcript" });
+  await transcript.click();
+  await expect(transcript).toHaveAttribute("aria-selected", "true");
+  await expect(page.locator("#ci-panel-transcript")).toBeVisible();
+
+  await expect.poll(() => researchScrollState(page)).toEqual(before);
+  await expect(page.locator(".analysis-context-bar")).toBeVisible();
+  await expect(page.locator(".fin-research-nav")).toBeVisible();
 });
 
 test("literal transcript search and compare use the local revision-verified BFF", async ({ page }, testInfo) => {
@@ -905,6 +950,24 @@ async function openAaplWorkspace(page: Page, payload = aaplWorkspacePayload(), o
   await expect(page.locator(".ci-page")).toBeVisible({ timeout: 15_000 });
   return { releaseV1 };
 }
+
+test("verified event workspace lens switching does not move the research shell", async ({ page }) => {
+  await openAaplWorkspace(page);
+  await makeLensSwitchScrollObservable(page);
+
+  const before = await researchScrollState(page);
+  expect(before.finBody).toBe(0);
+  expect(before.windowY).toBe(0);
+
+  const transcript = page.locator(".ci-lenses").getByRole("tab", { name: "Transcript" });
+  await transcript.click();
+  await expect(transcript).toHaveAttribute("aria-selected", "true");
+  await expect(page.locator("#ci-panel-transcript")).toBeVisible();
+
+  await expect.poll(() => researchScrollState(page)).toEqual(before);
+  await expect(page.locator(".analysis-context-bar")).toBeVisible();
+  await expect(page.locator(".fin-research-nav")).toBeVisible();
+});
 
 test("AAPL intelligence opens the verified FY2026 Q3 event workspace", async ({ page }, testInfo) => {
   const errors: string[] = [];

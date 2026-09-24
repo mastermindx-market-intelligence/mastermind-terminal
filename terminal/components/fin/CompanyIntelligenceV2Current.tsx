@@ -301,11 +301,11 @@ export default function CompanyIntelligenceV2Current({
   const evidenceOverlay = true;
   const evidenceTriggerRef = useRef<HTMLElement | null>(null);
   const receiptsButtonRef = useRef<HTMLButtonElement>(null);
-  const workspaceRef = useRef<HTMLDivElement>(null);
 
   const selectLens = useCallback((next: Lens) => {
+    // Keep the outer research shell stable. The active lens swaps in place and
+    // must not scroll .fin-body (or any ancestor) as a side effect.
     setLens(next);
-    window.requestAnimationFrame(() => workspaceRef.current?.scrollIntoView({ block: "start", behavior: "auto" }));
   }, []);
 
   useEffect(() => {
@@ -552,7 +552,7 @@ export default function CompanyIntelligenceV2Current({
         ))}
       </nav>
 
-      <div ref={workspaceRef} className={`ci-workspace${evidenceOpen ? " evidence-open" : ""}`}>
+      <div className={`ci-workspace${evidenceOpen ? " evidence-open" : ""}`}>
         <main className="ci-canvas" id={`ci-panel-${lens}`} role="tabpanel" aria-labelledby={`ci-tab-${lens}`}>
           {lens === "brief" && (
             <CompanyIntelligenceBriefLayout
