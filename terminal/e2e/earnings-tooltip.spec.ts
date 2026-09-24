@@ -187,7 +187,7 @@ test("Earnings vNext separates matched EPS from statement-backed revenue", async
   const pulse = earnings.locator("[data-earnings-vnext-pulse]");
   await expect(pulse).toContainText("EARNINGS PULSE");
   await expect(pulse).toContainText("Latest event");
-  await expect(pulse).toContainText("Q3 2025");
+  await expect(pulse).toContainText("Q3 '25");
   await expect(pulse).toContainText("EPS result");
   await expect(pulse).toContainText("+3162.41%");
   await expect(pulse).toContainText("Revenue actual");
