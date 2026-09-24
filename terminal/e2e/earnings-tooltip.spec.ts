@@ -189,7 +189,9 @@ test("Earnings vNext separates matched EPS from statement-backed revenue", async
   await expect(pulse).toContainText("Latest event");
   await expect(pulse).toContainText("Q3 '25");
   await expect(pulse).toContainText("EPS result");
-  await expect(pulse).toContainText("+3162.41%");
+  await expect(pulse).toContainText("Matched actual and estimate");
+  await expect(pulse).not.toContainText("+3162.41%");
+  await expect(earnings).toContainText("+3162.41%");
   await expect(pulse).toContainText("Revenue actual");
   await expect(pulse).toContainText("15.00B");
   await expect(pulse).toContainText("Statement-backed");
