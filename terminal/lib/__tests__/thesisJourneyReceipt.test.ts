@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { readFileSync } from "node:fs";
 import {
   buildProofTitle,
@@ -232,6 +232,51 @@ describe("archive failure safety", () => {
 
   it("keeps the one helper import graph in the named module", () => {
     expect(source).toContain('from "./thesisJourneyLib.mjs"');
+  });
+
+  it("cleanup after a failed run archives by id, or by the deterministic title when the URL never yielded an id", async () => {
+    const functionStart = source.indexOf("async function archiveBestEffort");
+    const functionEnd = source.indexOf("\nasync function runPhaseA", functionStart);
+    const prefix = `const base = "https://app.mastermind-x.com";\nconst randomUUID = () => "99999999-9999-4999-8999-999999999999";\n${source.slice(functionStart, functionEnd)}\nexport { archiveBestEffort, cleanupProofThesis };`;
+    const { cleanupProofThesis } = await import("data:text/javascript;base64," + Buffer.from(prefix).toString("base64"));
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    const title = "Proof run for release aaaaaaaa · NVDA · 2026-09-24";
+    type Row = { id: string; title: string; lifecycleState: string; currentVersion?: number; current?: { subject: { key: string }; content: { title: string } } };
+    type Call = [string, string, string?, string?];
+    const active = (id: string): Row => ({ id, title, lifecycleState: "active", currentVersion: 1, current: { subject: { key: "NVDA" }, content: { title } } });
+    const stub = (rows: Row[]) => {
+      const calls: Call[] = [];
+      const request = {
+        get: async (url: string) => {
+          calls.push(["get", url]);
+          if (url.endsWith("/api/theses")) return { status: () => 200, json: async () => ({ theses: rows }) };
+          const id = url.split("id=")[1];
+          const row = rows.find((entry: Row) => entry.id === id);
+          return row ? { status: () => 200, json: async () => ({ thesis: row }) } : { status: () => 404, json: async () => ({}) };
+        },
+        post: async (url: string, options: { data: { action: string; id: string } }) => { calls.push(["post", url, options.data.action, options.data.id]); return { status: () => 200 }; },
+      };
+      return { page: { request }, calls };
+    };
+    try {
+      const byId = stub([active("11111111-1111-4111-8111-111111111111")]);
+      await expect(cleanupProofThesis(byId.page, "11111111-1111-4111-8111-111111111111", true, title)).resolves.toBe(true);
+      expect(byId.calls.filter((call: Call) => call[0] === "post")).toEqual([["post", "https://app.mastermind-x.com/api/theses", "archive", "11111111-1111-4111-8111-111111111111"]]);
+
+      const byTitle = stub([active("22222222-2222-4222-8222-222222222222"), { id: "33333333-3333-4333-8333-333333333333", title: "another", lifecycleState: "active" }]);
+      await expect(cleanupProofThesis(byTitle.page, null, true, title)).resolves.toBe(true);
+      expect(byTitle.calls.filter((call: Call) => call[0] === "post")).toEqual([["post", "https://app.mastermind-x.com/api/theses", "archive", "22222222-2222-4222-8222-222222222222"]]);
+
+      const ambiguous = stub([active("44444444-4444-4444-8444-444444444444"), active("55555555-5555-4555-8555-555555555555")]);
+      await expect(cleanupProofThesis(ambiguous.page, null, true, title)).resolves.toBe(false);
+      expect(ambiguous.calls.filter((call: Call) => call[0] === "post")).toEqual([]);
+
+      const untouched = stub([active("66666666-6666-4666-8666-666666666666")]);
+      await expect(cleanupProofThesis(untouched.page, null, false, title)).resolves.toBe(false);
+      expect(untouched.calls).toEqual([]);
+    } finally {
+      log.mockRestore();
+    }
   });
 
   it("rejects the previous implementation when a URL-derived UUID is passed directly", async () => {

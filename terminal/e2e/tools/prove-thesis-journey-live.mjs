@@ -181,6 +181,38 @@ async function archiveBestEffort(request, thesisId) {
   }
 }
 
+// Failure-path cleanup. By id when the URL surfaced it; otherwise — the create click was sent but the URL never
+// yielded ?thesis= (audit M1: a create that lands server-side while the client bails to its "ambiguous" message) —
+// by the deterministic proof title through the list API, so a landed create is never orphaned silently. The title
+// is always printed as the operator's manual handle. Never throws.
+async function cleanupProofThesis(page, thesisId, createAttempted, title) {
+  if (!page || !createAttempted) return false;
+  try {
+    if (thesisId) {
+      const ok = await archiveBestEffort(page.request, thesisId);
+      console.log(`Cleanup: proof thesis ${thesisId} archive-on-failure ${ok ? "succeeded" : "not needed or failed"}.`);
+      return ok;
+    }
+    console.log(`Cleanup: the URL never surfaced the proof thesis id; searching your theses for the title "${title}".`);
+    const listResponse = await page.request.get(`${base}/api/theses`);
+    if (listResponse.status() !== 200) {
+      console.log("Cleanup: the list request failed; archive the thesis with that title by hand.");
+      return false;
+    }
+    const rows = ((await listResponse.json())?.theses || []).filter((row) => row?.title === title && row?.lifecycleState === "active");
+    if (rows.length !== 1) {
+      console.log(`Cleanup: ${rows.length} active theses carry that title; nothing archived automatically.`);
+      return false;
+    }
+    const ok = await archiveBestEffort(page.request, rows[0].id);
+    console.log(`Cleanup: proof thesis ${rows[0].id} recovered by title; archive ${ok ? "succeeded" : "failed — archive it by hand"}.`);
+    return ok;
+  } catch {
+    console.log(`Cleanup could not run; find the proof thesis by its title "${title}" and archive it by hand.`);
+    return false;
+  }
+}
+
 async function runPhaseA() {
   const browser = await chromium.launch({ headless: true });
   let browserErrorCount = 0;
@@ -252,6 +284,8 @@ async function runPhaseB(storageState) {
 
     const title = buildProofTitle(release, symbol);
     let thesisId = null;
+    let createAttempted = false;
+    let completed = false;
     try {
       await controls.newThesis.click();
       await settle(controls.subject, "The create form subject field was not ready.");
@@ -266,6 +300,7 @@ async function runPhaseB(storageState) {
       await controls.catalysts.fill("The release marker matches the requested deployment. 发布标记与请求的部署一致。");
       await controls.risks.fill("A failed proof archives this one thesis. 失败的实测会归档这一个论点。");
       await controls.horizon.selectOption("quarters");
+      createAttempted = true;
       await controls.save.click();
       await page.waitForURL(/\/analysis\?view=theses&thesis=[0-9a-f-]{36}$/i, { timeout: 30_000 });
       thesisId = thesisIdFromUrl(page.url());
@@ -328,6 +363,7 @@ async function runPhaseB(storageState) {
       if (!validateVersions({ created, revised, archived })) assertion();
       if (afterConflict.currentVersion !== 2 || archived.currentVersion !== 3) assertion();
       if (phaseBBrowserErrorCount !== 0) assertion();
+      completed = true;
       await context.close();
       const versions = [
         { version: created.currentVersion, previousVersion: created.current.previousVersion },
@@ -342,11 +378,11 @@ async function runPhaseB(storageState) {
         browserErrorCount: phaseBBrowserErrorCount,
       };
     } catch (error) {
-      if (page && thesisId) await archiveBestEffort(page.request, thesisId);
       if (error instanceof ProofFailure) throw error;
       throw new ProofFailure();
     } finally {
-      if (thesisId && page) await archiveBestEffort(page.request, thesisId);
+      // Runs on every non-success exit after the create click was sent — by id when the URL surfaced it, else by title.
+      if (!completed) await cleanupProofThesis(page, thesisId, createAttempted, title);
     }
   } finally {
     await browser.close();
@@ -379,6 +415,7 @@ async function main() {
       const phaseB = await runPhaseB(storageState);
       const signedReceipt = signedReceiptFor(phaseA, phaseB, { base, expectedRelease: release });
       if (!validateSignedInReceipt(signedReceipt)) assertion();
+      mkdirSync(liveStateDir, { recursive: true });
       writeFileSync(join(liveStateDir, "receipt-signed-in.json"), `${JSON.stringify(redactReceipt(signedReceipt), null, 2)}\n`);
     }
   } catch (error) {

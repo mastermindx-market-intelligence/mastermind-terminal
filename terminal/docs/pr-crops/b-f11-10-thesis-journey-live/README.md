@@ -48,8 +48,10 @@ If that preflight fails, Phase B performs no write. After creation, the thesis
 id comes only from the page URL, every detail check must return that id, and
 the active detail controls and Archive control are preflighted before any
 revision. Each waiting assertion must settle before the next action. On any
-failure after creation, the tool sends the URL-derived id directly to a
-best-effort archive and still exits non-zero.
+failure after the create click was sent, the tool archives the proof thesis
+best-effort and still exits non-zero: by the URL-derived id when the URL surfaced
+one, otherwise by its unique deterministic title through the list API; the title
+is printed so you can find and archive the thesis by hand if that fails.
 
 ## What each receipt proves | 每份收据证明什么
 
