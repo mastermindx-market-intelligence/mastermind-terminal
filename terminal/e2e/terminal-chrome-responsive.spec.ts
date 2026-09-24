@@ -206,6 +206,18 @@ test("Precision MTF intelligence strip renders canonical context above the chart
   await expect(strip.locator('[data-role="structure"]')).toContainText("Higher-TF confirm");
   await expect(strip.locator('[data-role="structure"]')).toContainText("2W washout");
 
+  const paneGrid = page.locator(".pane-grid");
+  const horizonSelect = page.getByTestId("precision-horizon-select");
+  await expect(horizonSelect).toHaveValue("swing");
+
+  await horizonSelect.selectOption("deep");
+  await expect(strip).toHaveAttribute("data-horizon", "deep");
+  await expect(paneGrid.locator(".pane-tf")).toHaveText(["3D", "W", "2W", "1M"]);
+
+  await horizonSelect.selectOption("day");
+  await expect(strip).toHaveAttribute("data-horizon", "day");
+  await expect(paneGrid.locator(".pane-tf")).toHaveText(["5m", "15m", "1h", "4h"]);
+
   const geometry = await page.evaluate(() => {
     const strip = document.querySelector<HTMLElement>('[data-testid="precision-entry-strip"]')!;
     const firstPane = document.querySelector<HTMLElement>(".pane-grid > .pane")!;
