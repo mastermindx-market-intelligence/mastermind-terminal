@@ -17,6 +17,8 @@ describe("PrecisionEntryStrip", () => {
     const html = renderToStaticMarkup(createElement(PrecisionEntryStrip, {
       plan: swingPlan(),
       lang: "en",
+      activeRole: "execution",
+      onRoleChange: () => undefined,
       intel: {
         schema: "intel/v1",
         asof: "2026-09-23",
@@ -48,6 +50,8 @@ describe("PrecisionEntryStrip", () => {
     expect(html).toContain('data-testid="precision-entry-strip"');
     expect(html).toContain('data-horizon="swing"');
     expect(html).toContain('data-source="horizon_default"');
+    expect(html).toContain('data-role="execution" aria-pressed="true"');
+    expect(html).toContain('data-role="trigger" aria-pressed="false"');
     for (const role of ["execution", "trigger", "durability", "structure"]) {
       expect(html).toContain(`data-role="${role}"`);
     }
