@@ -549,19 +549,7 @@ export default function EarningsPage({ fund, zh, sym }: EarningsPageProps) {
           >
             {pick(!!zh, "EPS · reported vs estimate", "每股盈利 · 已报告值与预期")}
           </div>
-          <div className="fin-toggle">
-            <button className={epsMode === "annual" ? "on" : ""} onClick={() => setEpsMode("annual")}>
-              {pick(!!zh, "Annual", "年度")}
-            </button>
-            <button
-              className={epsMode === "quarterly" ? "on" : ""}
-              onClick={() => setEpsMode("quarterly")}
-              disabled={!epsInterimAvailable}
-              title={!epsInterimAvailable ? pick(!!zh, "No interim EPS available", "暂无中期每股盈利数据") : undefined}
-            >
-              {epsInterimLabel}
-            </button>
-          </div>
+
         </div>
 
         {/* Estimates-only state: no reported history but estimates available */}
