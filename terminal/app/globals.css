@@ -1612,6 +1612,7 @@ table.scr2 tbody tr.empty-row:hover,table.scr2 tbody tr.scr2-skel-row:hover,tabl
 
 /* Touch floors. Precedent: @media (pointer:coarse){.pf-act{min-height:44px}} — globals.css:1281. */
 @media (pointer:coarse){
+  .menu-save input,.menu-save button{min-height:44px}
   .ws-list .menu-row,.ws-subs .menu-row,.menu-row.ws-import{min-height:44px}
   .ws-more{width:44px;height:44px}
   .ws-fork button{height:44px;padding:0 14px}

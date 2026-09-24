@@ -178,25 +178,41 @@ async function markers(page: Page): Promise<Marker[]> {
   });
 }
 
-/** The marker field, once it has STOPPED MOVING.
+/** The marker field, once the REQUESTED pane topology and its geometry have stopped moving.
  *
- *  The chart keeps sizing after hydration — panes lay out, the price axis takes its final width,
- *  and every marker's coordinates move with it. Measuring mid-settle hands back positions that are
- *  already stale by the time a pointer lands on them, which on the 390px viewport is the whole
- *  difference between a tap that opens a tooltip and one that lands 20px away in empty chart. The
- *  interaction is fine there — proven by hand — so the wait belongs in the test, not a retry.
- *  Two consecutive identical reads, never a sleep. */
+ *  This fixture requests only the price-pane Golden Oracle overlay (`_oracle`), so the settled
+ *  shell has zero indicator subpanes. During preference hydration the shell can briefly render
+ *  inherited/default subpanes; two identical marker-coordinate samples inside that transient
+ *  layout are not a readiness proof. A later 2 -> 0 subpane commit moves the whole marker field
+ *  after those coordinates were returned, turning a physical tap into a stale-coordinate miss.
+ *
+ *  Bind readiness to the actual parent layout contract: zero requested subpanes plus two identical
+ *  reads of the parent host height and marker coordinates. This does not widen a hit target,
+ *  gesture threshold, timeout, or product behavior; it only refuses to measure the fixture while
+ *  its requested topology is still being committed. */
 async function settledMarkers(page: Page): Promise<Marker[]> {
   let prev = "";
   let list: Marker[] = [];
   await expect.poll(async () => {
     list = await markers(page);
-    const key = list.map((m) => `${m.t}@${Math.round(m.cx)},${Math.round(m.cy)}`).join("|");
-    const settled = list.length > 0 && key === prev;
+    const geometry = await page.locator(".chart-body").evaluate((node) => {
+      const style = getComputedStyle(node);
+      return {
+        subpanes: style.getPropertyValue("--subpanes").trim(),
+        hostHeight: style.getPropertyValue("--drawing-host-height").trim(),
+      };
+    });
+    const key = [
+      `subpanes=${geometry.subpanes}`,
+      `hostHeight=${geometry.hostHeight}`,
+      ...list.map((m) => `${m.t}@${Math.round(m.cx)},${Math.round(m.cy)}`),
+    ].join("|");
+    const requestedTopologyReady = geometry.subpanes === "0";
+    const settled = requestedTopologyReady && list.length > 0 && key === prev;
     prev = key;
     return settled;
   }, {
-    message: "the marker field should stop moving before it is measured",
+    message: "the requested zero-subpane marker geometry should stop moving before it is measured",
     timeout: 25_000,
     intervals: [150, 200, 300, 400, 500],
   }).toBe(true);
