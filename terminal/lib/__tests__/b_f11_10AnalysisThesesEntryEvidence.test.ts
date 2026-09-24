@@ -81,8 +81,9 @@ describe("B-F11-10a evidence lock is the sha256 of the layout sources", () => {
     for (const file of CROPS) {
       const lang = file.includes("-zh") ? "zh" : "en";
       const url = `/analysis?symbol=NVDA&lang=${lang}`;
-      expect(yml, file).toMatch(new RegExp(`${file}:\\s*\\{[^}]*url:\\s*"${url.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}"`));
-      expect(yml, file).toMatch(new RegExp(`${file}:\\s*\\{[^}]*state:\\s*context-bar-with-theses-control`));
+      const escaped = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      expect(yml, file).toMatch(new RegExp(`${escaped(file)}:\\s*\\{[^}]*url:\\s*"${escaped(url)}"`));
+      expect(yml, file).toMatch(new RegExp(`${escaped(file)}:\\s*\\{[^}]*state:\\s*context-bar-with-theses-control`));
     }
   });
 });
