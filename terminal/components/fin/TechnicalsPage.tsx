@@ -18,8 +18,9 @@
 import { memo, useEffect, useMemo, useState, type CSSProperties } from "react";
 import type { Bar } from "../../lib/fund";
 import { computeRatings, type Ratings, type Vote, type PivotLevels } from "../../lib/techRating";
-import { fmtDate, fmtNum, pick } from "../../lib/finFormat";
+import { fmtDate, fmtNum, fmtPct, pick } from "../../lib/finFormat";
 import { ArcGauge } from "../ui/ArcGauge";
+import { buildYears, monthlyStats, MONTHS_EN, MONTHS_ZH } from "../../lib/seasonal";
 import { arcStateLabel } from "../../lib/plainLabels";
 import { intradayCapable } from "../ChartPanel";
 import { classify, isIntradayTf } from "../../lib/intradaySources";
@@ -88,6 +89,25 @@ function toBars(rows: any[]): Bar[] {
 
 const voteClass = (v: Vote) => (v === "Buy" ? "up" : v === "Sell" ? "down" : "mut");
 
+function voteWord(vote: Vote | undefined, zh: boolean): string {
+  if (!vote) return pick(zh, "Unavailable", "不可用");
+  if (vote === "Buy") return pick(zh, "Buy-side technical read", "偏强技术读数");
+  if (vote === "Sell") return pick(zh, "Sell-side technical read", "偏弱技术读数");
+  return pick(zh, "Neutral technical read", "中性技术读数");
+}
+
+function distancePct(price: number | null, reference: number | null): number | null {
+  return price != null && reference != null && reference !== 0
+    ? (price / reference - 1) * 100
+    : null;
+}
+
+function levelDistancePct(price: number | null, level: number | null): number | null {
+  return price != null && level != null && price !== 0
+    ? (level / price - 1) * 100
+    : null;
+}
+
 /* Every section on this page rides the analytical (brand) rail. */
 const RAIL: CSSProperties = { "--rail": "var(--brand)" } as CSSProperties;
 
@@ -137,59 +157,175 @@ function TechnicalsPage({ sym, bars = [], zh = false }: TechnicalsPageProps) {
     }
   }, [active, tf]);
 
+
+  const close = active.length ? active[active.length - 1].c : null;
+  const oscRow = (name: string) => ratings?.oscillators.find((row) => row.name === name);
+  const maRow = (name: string) => ratings?.mas.find((row) => row.name === name);
+  const rsiRow = oscRow("RSI (14)");
+  const macdRow = oscRow("MACD (12, 26, 9)");
+  const sma20 = maRow("SMA (20)");
+  const sma50 = maRow("SMA (50)");
+  const sma200 = maRow("SMA (200)");
+  const technicalGlance = [
+    {
+      id: "rsi",
+      label: "RSI (14)",
+      value: rsiRow?.value == null ? "—" : fmtNum(rsiRow.value, { decimals: 1 }),
+      detail: voteWord(rsiRow?.vote, zh),
+    },
+    {
+      id: "macd",
+      label: "MACD (12, 26, 9)",
+      value: macdRow?.value == null ? "—" : fmtNum(macdRow.value, { decimals: 2 }),
+      detail: voteWord(macdRow?.vote, zh),
+    },
+    ...([
+      [20, sma20],
+      [50, sma50],
+      [200, sma200],
+    ] as const).map(([length, row]) => {
+      const distance = distancePct(close, row?.value ?? null);
+      return {
+        id: `sma-${length}`,
+        label: pick(zh, `vs SMA ${length}`, `较 SMA ${length}`),
+        value: distance == null ? "—" : fmtPct(distance, { alreadyPct: true, sign: true, decimals: 2 }),
+        detail: row?.value == null
+          ? pick(zh, "Average unavailable", "均线不可用")
+          : pick(zh, `SMA ${length} · ${fmtNum(row.value, { decimals: 2 })}`, `SMA ${length} · ${fmtNum(row.value, { decimals: 2 })}`),
+      };
+    }),
+  ];
+
+  const classic = ratings?.pivots.classic;
+  const pivotLevels = [
+    { key: "r2", label: "R2", value: classic?.r2 ?? null },
+    { key: "r1", label: "R1", value: classic?.r1 ?? null },
+    { key: "p", label: pick(zh, "Pivot", "枢轴"), value: classic?.p ?? null },
+    { key: "s1", label: "S1", value: classic?.s1 ?? null },
+    { key: "s2", label: "S2", value: classic?.s2 ?? null },
+  ];
+  const finiteLevels = pivotLevels.filter((level): level is typeof pivotLevels[number] & { value: number } => level.value != null && isFinite(level.value));
+  const support = close == null
+    ? null
+    : finiteLevels.filter((level) => level.value <= close).sort((a, b) => b.value - a.value)[0] ?? null;
+  const resistance = close == null
+    ? null
+    : finiteLevels.filter((level) => level.value >= close).sort((a, b) => a.value - b.value)[0] ?? null;
+
+  const seasonalYears = useMemo(() => buildYears(bars), [bars]);
+  const completedSeasonYears = useMemo(
+    () => seasonalYears
+      .filter((year) => !year.isCurrent && year.monthlyRet.every((value) => value != null && isFinite(value)))
+      .slice(-5),
+    [seasonalYears],
+  );
+  const seasonalMonths = useMemo(
+    () => monthlyStats(completedSeasonYears, () => true),
+    [completedSeasonYears],
+  );
+  const seasonMonthNames = zh ? MONTHS_ZH : MONTHS_EN;
+
   // provenance for the .fin-asof row: which bar basis fed the ratings, and how fresh it is.
   const tfMeta = [...INTRADAY_PILLS, ...DAILY_PILLS].find((p) => p.tf === tf);
   const tfLabel = tfMeta ? pick(zh, tfMeta.en, tfMeta.zh) : tf;
   const lastBar = active.length ? fmtDate(active[active.length - 1].time) : null;
 
   return (
-    <div className="fin-tech">
-      {/* TF pill row */}
-      <div className="fin-tf-row">
-        {canIntraday &&
-          INTRADAY_PILLS.map((p) => (
-            <button key={p.tf} className={"fin-tf-pill" + (tf === p.tf ? " on" : "")} onClick={() => setTf(p.tf)}>
-              {pick(zh, p.en, p.zh)}
-            </button>
+    <div className="fin-tech fin-market-vnext" data-market-vnext="">
+      <section className="fin-market-state" data-market-vnext-state="">
+        <header>
+          <div>
+            <span>{pick(zh, "MARKET TECHNICALS", "市场技术面")}</span>
+            <h2>{pick(zh, "Deterministic indicator state from the existing Technical Rating engine", "来自现有技术评级引擎的确定性指标状态")}</h2>
+            <p>
+              {lastBar
+                ? pick(zh, `${tfLabel} bars · through ${lastBar} · ${active.length} observations`, `${tfLabel} K线 · 截至 ${lastBar} · ${active.length} 个观测`)
+                : pick(zh, `${tfLabel} bars · no data loaded`, `${tfLabel} K线 · 暂无数据`)}
+            </p>
+          </div>
+          <div className="fin-tf-row">
+            {canIntraday &&
+              INTRADAY_PILLS.map((p) => (
+                <button key={p.tf} className={"fin-tf-pill" + (tf === p.tf ? " on" : "")} onClick={() => setTf(p.tf)}>
+                  {pick(zh, p.en, p.zh)}
+                </button>
+              ))}
+            {DAILY_PILLS.map((p) => (
+              <button key={p.tf} className={"fin-tf-pill" + (tf === p.tf ? " on" : "")} onClick={() => setTf(p.tf)}>
+                {pick(zh, p.en, p.zh)}
+              </button>
+            ))}
+          </div>
+        </header>
+
+        {loading && (
+          <div className="fin-skel fin-tech-loading">
+            <span className="fin-skel-sr" role="status">{pick(zh, "Loading intraday…", "加载盘中数据…")}</span>
+          </div>
+        )}
+
+        <div className="fin-market-glance">
+          {technicalGlance.map((item) => (
+            <article key={item.id}>
+              <span>{item.label}</span>
+              <strong className="num">{item.value}</strong>
+              <small>{item.detail}</small>
+            </article>
           ))}
-        {DAILY_PILLS.map((p) => (
-          <button key={p.tf} className={"fin-tf-pill" + (tf === p.tf ? " on" : "")} onClick={() => setTf(p.tf)}>
-            {pick(zh, p.en, p.zh)}
-          </button>
-        ))}
-      </div>
+        </div>
+      </section>
 
-      {loading && (
-        <div className="fin-skel fin-tech-loading">
-          <span className="fin-skel-sr" role="status">{pick(zh, "Loading intraday…", "加载盘中数据…")}</span>
-        </div>
-      )}
+      <div className="fin-market-primary-grid">
+        <section className="fin-market-rating-card" data-market-vnext-rating="">
+          <header>
+            <div>
+              <span>{pick(zh, "TECHNICAL RATING", "技术评级")}</span>
+              <strong>{pick(zh, "Oscillators and moving averages", "震荡指标与移动平均")}</strong>
+            </div>
+            <small>{pick(zh, "Descriptive · not a trade signal", "描述性指标 · 并非交易信号")}</small>
+          </header>
+          <div className="fin-tech-summary">
+            <Gauge title={pick(zh, "Oscillators", "震荡指标")} group={ratings?.summary[0]} zh={zh} />
+            <Gauge title={pick(zh, "Moving Averages", "移动平均")} group={ratings?.summary[1]} zh={zh} />
+          </div>
+        </section>
 
-      {/* The aggregate summary duplicated the two underlying signal groups. */}
-      <div className="fin-sec">
-        <div className="fin-eyebrow">{pick(zh, "SIGNAL SUMMARY", "信号总览")}</div>
-        <div className="fin-sec-h fin-rail fin-rule" style={RAIL}>
-          {pick(zh, "Technical rating", "技术评级")}
-        </div>
-        <div className="fin-tech-summary">
-          <Gauge title={pick(zh, "Oscillators", "震荡指标")} group={ratings?.summary[0]} zh={zh} />
-          <Gauge title={pick(zh, "Moving Averages", "移动平均")} group={ratings?.summary[1]} zh={zh} />
-        </div>
-        <div className="fin-asof">
-          <span className="num">
-            {lastBar
-              ? pick(
-                  zh,
-                  `${tfLabel} timeframe · computed client-side · last bar ${lastBar} · N=${active.length}`,
-                  `${tfLabel}周期 · 本地计算 · 最新K线 ${lastBar} · N=${active.length}`,
-                )
-              : pick(
-                  zh,
-                  `${tfLabel} timeframe · computed client-side · no bars loaded for this timeframe`,
-                  `${tfLabel}周期 · 本地计算 · 该周期暂无K线数据`,
-                )}
-          </span>
-        </div>
+        <section className="fin-market-pivot-card" data-market-vnext-pivots="">
+          <header>
+            <div>
+              <span>{pick(zh, "PIVOT MAP", "枢轴图")}</span>
+              <strong>{pick(zh, "Classic pivots from the prior completed bar", "基于上一根已完成K线的经典枢轴")}</strong>
+            </div>
+            <small>{close == null ? "—" : pick(zh, `Close ${fmtNum(close, { decimals: 2 })}`, `收盘 ${fmtNum(close, { decimals: 2 })}`)}</small>
+          </header>
+          <div className="fin-market-pivot-levels">
+            {pivotLevels.map((level) => (
+              <div key={level.key} data-level={level.key}>
+                <span>{level.label}</span>
+                <i />
+                <strong className="num">{level.value == null ? "—" : fmtNum(level.value, { decimals: 2 })}</strong>
+              </div>
+            ))}
+          </div>
+          <div className="fin-market-pivot-reads">
+            <div>
+              <span>{pick(zh, "Nearest support", "最近支撑")}</span>
+              <strong>{support ? `${support.label} · ${fmtNum(support.value, { decimals: 2 })}` : "—"}</strong>
+              <small>{support ? fmtPct(levelDistancePct(close, support.value) ?? 0, { alreadyPct: true, sign: true, decimals: 2 }) : "—"}</small>
+            </div>
+            <div>
+              <span>{pick(zh, "Classic pivot", "经典枢轴")}</span>
+              <strong>{classic?.p == null ? "—" : fmtNum(classic.p, { decimals: 2 })}</strong>
+              <small>{classic?.p == null ? "—" : fmtPct(levelDistancePct(close, classic.p) ?? 0, { alreadyPct: true, sign: true, decimals: 2 })}</small>
+            </div>
+            <div>
+              <span>{pick(zh, "Nearest resistance", "最近阻力")}</span>
+              <strong>{resistance ? `${resistance.label} · ${fmtNum(resistance.value, { decimals: 2 })}` : "—"}</strong>
+              <small>{resistance ? fmtPct(levelDistancePct(close, resistance.value) ?? 0, { alreadyPct: true, sign: true, decimals: 2 }) : "—"}</small>
+            </div>
+          </div>
+          <p>{pick(zh, "Pivots are deterministic price references, not forecasts.", "枢轴点是确定性的价格参考，而非预测。")}</p>
+        </section>
       </div>
 
       {/* Oscillators + Moving Averages tables */}
@@ -200,6 +336,43 @@ function TechnicalsPage({ sym, bars = [], zh = false }: TechnicalsPageProps) {
 
       {/* Pivots */}
       <PivotsTable pivots={ratings?.pivots} zh={zh} />
+
+      <section className="fin-market-seasonality" data-market-vnext-seasonality="">
+        <header>
+          <div>
+            <span>{pick(zh, "SEASONALITY SNAPSHOT", "季节性快照")}</span>
+            <strong>{pick(zh, "Average monthly return + positive-month frequency", "月均收益 + 正收益月份频率")}</strong>
+          </div>
+          <small>
+            {pick(
+              zh,
+              `${completedSeasonYears.length} completed yearly observation${completedSeasonYears.length === 1 ? "" : "s"}`,
+              `${completedSeasonYears.length} 个完整年度观测`,
+            )}
+          </small>
+        </header>
+        {completedSeasonYears.length > 0 ? (
+          <div className="fin-market-season-months">
+            {seasonalMonths.map((month) => (
+              <article key={month.month}>
+                <span>{seasonMonthNames[month.month]}</span>
+                <strong className={month.mean == null ? "" : month.mean >= 0 ? "up" : "down"}>
+                  {month.mean == null ? "—" : fmtPct(month.mean, { alreadyPct: true, sign: true, decimals: 1 })}
+                </strong>
+                <small>{month.wr == null ? "—" : pick(zh, `${Math.round(month.wr * 100)}% positive`, `${Math.round(month.wr * 100)}% 正收益`)}</small>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <div className="fin-empty fin-empty-lg" role="status">
+            <div className="fin-empty-title">{pick(zh, "No complete seasonal sample", "暂无完整季节性样本")}</div>
+            <div className="fin-empty-why">{pick(zh, "At least one fully observed prior calendar year is required for this snapshot.", "此快照至少需要一个完整观测的过往自然年。")}</div>
+          </div>
+        )}
+        <footer>
+          <span>{pick(zh, "Historical recurrence only; a small sample does not forecast the next move.", "仅描述历史重复性；小样本不能预测下一步走势。")}</span>
+        </footer>
+      </section>
 
       <Disclaimer zh={zh} />
     </div>
