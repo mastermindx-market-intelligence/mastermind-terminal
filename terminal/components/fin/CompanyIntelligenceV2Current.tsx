@@ -13,6 +13,7 @@ import {
 import type { EventWorkspaceQaExchange, EventWorkspaceResult } from "../../lib/eventWorkspace";
 import { tickerPeriodAliasFromWorkspace } from "../../lib/eventWorkspace";
 import CompanySourceManifest from "./CompanySourceManifest";
+import CompanyIntelligenceBriefLayout, { type CompanyIntelligenceBriefItem } from "./CompanyIntelligenceBriefLayout";
 import EvidenceRail, { type CompanyEvidenceSelection } from "./EvidenceRail";
 import TranscriptSearchWorkspace from "./TranscriptSearchWorkspace";
 import { openMastermindBrainForSymbol } from "../../lib/mastermindBrain";
@@ -133,6 +134,21 @@ function GlanceRow({
   );
 }
 
+function toBriefItem(item: EventWorkspacePresentedItem): CompanyIntelligenceBriefItem {
+  return { id: item.id, label: item.label, value: item.value, detail: item.detail };
+}
+
+function usableBriefItems(...groups: EventWorkspacePresentedItem[][]): EventWorkspacePresentedItem[] {
+  const seen = new Set<string>();
+  const items: EventWorkspacePresentedItem[] = [];
+  for (const item of groups.flat()) {
+    if (seen.has(item.id) || item.evidence.receipt_state !== "byte_replayed") continue;
+    if (!item.value || /^unavailable\b/i.test(item.value)) continue;
+    seen.add(item.id);
+    items.push(item);
+  }
+  return items;
+}
 
 function isOperatorSpan(exchange: EventWorkspaceQaExchange, kind: "question" | "answer", index: number): boolean {
   const span = (kind === "question" ? exchange.question_spans : exchange.answer_spans)[index];
@@ -237,7 +253,7 @@ export default function CompanyIntelligenceV2Current({
   const [lens, setLens] = useState<Lens>("brief");
   const [evidence, setEvidence] = useState<CompanyEvidenceSelection | null>(null);
   const [evidenceOpen, setEvidenceOpen] = useState(false);
-  const [evidenceOverlay, setEvidenceOverlay] = useState(false);
+  const evidenceOverlay = true;
   const evidenceTriggerRef = useRef<HTMLElement | null>(null);
   const receiptsButtonRef = useRef<HTMLButtonElement>(null);
   const workspaceRef = useRef<HTMLDivElement>(null);
@@ -255,17 +271,6 @@ export default function CompanyIntelligenceV2Current({
   useEffect(() => {
     setEvidence(null);
   }, [zh]);
-
-  useEffect(() => {
-    const desktop = window.matchMedia("(min-width: 1101px)");
-    const sync = () => {
-      setEvidenceOverlay(!desktop.matches);
-      setEvidenceOpen(desktop.matches);
-    };
-    sync();
-    desktop.addEventListener("change", sync);
-    return () => desktop.removeEventListener("change", sync);
-  }, [ticker]);
 
   useEffect(() => {
     onEvidenceOpenChange?.(evidenceOpen && evidenceOverlay);
@@ -337,6 +342,27 @@ export default function CompanyIntelligenceV2Current({
       : pick(zh, "Verified event", "已验证事件");
   const freshness = result.state === "stale" ? "stale" : "live";
   const eventAlias = tickerPeriodAliasFromWorkspace(result.workspace, ticker);
+  const briefMetrics = usableBriefItems(presented.facts, presented.reported, presented.guidance).slice(0, 4);
+  const briefChanges = usableBriefItems(presented.deltas).slice(0, 3);
+  const briefRisks = usableBriefItems(presented.watch).slice(0, 3);
+  const briefWatch = usableBriefItems(presented.guidance, presented.watch).slice(0, 4);
+  const briefTakeaways = usableBriefItems(presented.reported, presented.guidance, presented.watch).slice(0, 3);
+  const briefEvidenceItems = [
+    ...presented.facts,
+    ...presented.reported,
+    ...presented.guidance,
+    ...presented.watch,
+    ...presented.deltas,
+  ];
+  const briefHeadline = presented.reported[0]?.detail
+    || presented.reported[0]?.value
+    || presented.guidance[0]?.detail
+    || glance;
+  const briefSummary = presented.reported[0]?.detail ? presented.reported[0]?.value : null;
+  const chooseBriefItem = (item: CompanyIntelligenceBriefItem) => {
+    const evidenceItem = briefEvidenceItems.find((candidate) => candidate.id === item.id);
+    if (evidenceItem) chooseItem(evidenceItem);
+  };
 
   return (
     <div
@@ -435,41 +461,49 @@ export default function CompanyIntelligenceV2Current({
       <div ref={workspaceRef} className={`ci-workspace${evidenceOpen ? " evidence-open" : ""}`}>
         <main className="ci-canvas" id={`ci-panel-${lens}`} role="tabpanel" aria-labelledby={`ci-tab-${lens}`}>
           {lens === "brief" && (
-            <div className="ci-brief">
-              <section className="ci-stance">
-                <div className="ci-section-label">
-                  <span>{pick(zh, "EVENT", "事件")}</span>
-                  <small>{pick(zh, "Source-backed facts · not a model summary", "来源支持的事实 · 非模型摘要")}</small>
+            <CompanyIntelligenceBriefLayout
+              zh={zh}
+              ticker={ticker}
+              periodLabel={presented.period_label}
+              eventDate={presented.event_date}
+              headline={briefHeadline}
+              summary={briefSummary}
+              metrics={briefMetrics.map(toBriefItem)}
+              takeaways={briefTakeaways.map(toBriefItem)}
+              changes={briefChanges.map(toBriefItem)}
+              implications={[]}
+              risks={briefRisks.map(toBriefItem)}
+              watch={briefWatch.map(toBriefItem)}
+              selectedId={evidence?.id}
+              onSelect={chooseBriefItem}
+              footer={(
+                <div className="ci-paper-boundary">
+                  <section className="ci-honest" aria-label={pick(zh, "Typed absences", "类型化缺项")}>
+                    <div className="ci-section-label"><span>{pick(zh, "RESEARCH BOUNDARIES", "研究边界")}</span></div>
+                    <div className="ci-honest-grid">
+                      {presented.completeness.filter((item) => (
+                        item.id === "completeness:slides"
+                        || item.id === "completeness:consensus"
+                        || item.id === "completeness:reaction"
+                        || (item.id === "fact_questions_count" && result.workspace.qa_exchanges.length === 0)
+                      )).map((item) => (
+                        <button key={item.id} className={`ci-honest-chip${evidence?.id === item.id ? " selected" : ""}`} onClick={() => chooseItem(item)} aria-pressed={evidence?.id === item.id}>
+                          <span>{item.label}</span>
+                          <strong>{item.value}</strong>
+                        </button>
+                      ))}
+                    </div>
+                  </section>
+                  <section className="ci-coverage">
+                    <div>
+                      <strong>{pick(zh, "Current sources", "当期来源")}</strong>
+                      <p>{pick(zh, "Receipt-backed workspace objects. No v1 overlay is promoted into current-event authority.", "凭证支持的工作区对象。不会将 v1 覆盖层提升为当期事件权限。")}</p>
+                    </div>
+                    <CompanySourceManifest event={stubEvent} v2Sources={presented.sources} onOpenTranscript={(id) => onOpenTx({ id, expected_document_sha256: txSha })} compact />
+                  </section>
                 </div>
-                <p className="ci-glance-lede">{glance}</p>
-              </section>
-              <GlanceRow kicker={pick(zh, "REPORTED", "已报告")} items={presented.reported} selectedId={evidence?.id} onChoose={chooseItem} />
-              <GlanceRow kicker={pick(zh, "GUIDANCE", "指引")} items={presented.guidance} selectedId={evidence?.id} onChoose={chooseItem} />
-              <GlanceRow kicker={pick(zh, "WATCH", "关注")} items={presented.watch} selectedId={evidence?.id} onChoose={chooseItem} />
-              <section className="ci-honest" aria-label={pick(zh, "Typed absences", "类型化缺项")}>
-                <div className="ci-section-label"><span>{pick(zh, "HONEST STATES", "如实状态")}</span></div>
-                <div className="ci-honest-grid">
-                  {presented.completeness.filter((item) => (
-                    item.id === "completeness:slides"
-                    || item.id === "completeness:consensus"
-                    || item.id === "completeness:reaction"
-                    || (item.id === "fact_questions_count" && result.workspace.qa_exchanges.length === 0)
-                  )).map((item) => (
-                    <button key={item.id} className={`ci-honest-chip${evidence?.id === item.id ? " selected" : ""}`} onClick={() => chooseItem(item)} aria-pressed={evidence?.id === item.id}>
-                      <span>{item.label}</span>
-                      <strong>{item.value}</strong>
-                    </button>
-                  ))}
-                </div>
-              </section>
-              <section className="ci-coverage">
-                <div>
-                  <strong>{pick(zh, "Current sources", "当期来源")}</strong>
-                  <p>{pick(zh, "Receipt-backed workspace objects, not v1 overlay coverage.", "凭证支持的工作区对象，而非 v1 覆盖层。")}</p>
-                </div>
-                <CompanySourceManifest event={stubEvent} v2Sources={presented.sources} onOpenTranscript={(id) => onOpenTx({ id, expected_document_sha256: txSha })} compact />
-              </section>
-            </div>
+              )}
+            />
           )}
 
           {lens === "results" && (
