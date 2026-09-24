@@ -4,6 +4,7 @@
 # capturedAtHead: 1edfc1b8d7fea9702d0b497bd818d1e197e4303a
 capturedAtHead: 1edfc1b8d7fea9702d0b497bd818d1e197e4303a
 capturedAt: 2026-09-24T16:23:23.613Z
+# 2026-09-24 seat 026851bd (PR #742 master merge): capturedAtHead moved 0613e9a6 -> 1edfc1b8 because f12_9TeamOwnershipTransferEvidence.test.ts asserts the pointer is an ancestor of HEAD whose i18n.tsx blob equals the pin; the merged i18n.tsx (c8b5a076) exists only from the merge commit on. Hash-only restamp: crops NOT recaptured, so capturedAt (the last real capture) predates that commit on purpose.
 layoutFiles:
   terminal/components/settings/SectionTeam.tsx: "00f61441215f0cdb8c6b40536e66e243d0ae83ffa54d6f19ae8a67dd99d7a79d"
   terminal/components/settings/SectionTeam.module.css: "069056ff7ac4274a57ae9a835a0fdda178e9625a591b4374e855b9d41a3fd5bc"
