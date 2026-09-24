@@ -152,3 +152,76 @@ test("Precision MTF maps the default 3D chart to the swing ladder and collapses 
   await expect(panes).toHaveCount(1);
   await expect(paneGrid.locator(".pane-tf")).toHaveText(["4h"]);
 });
+
+
+test("Precision MTF intelligence strip renders canonical context above the chart grid", async ({ page }) => {
+  await page.setViewportSize({ width: 1180, height: 820 });
+  await armTerminalVisualReady(page, "en", ["D", "3D", "W", "1M"]);
+  await page.route("**/data/NVDA.intel.json", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        schema: "intel/v1",
+        ticker: "NVDA",
+        asof: "2026-09-23",
+        analysis: {
+          entry: {
+            headline: "Awaiting confluence",
+            confidence: 72.4,
+            next_trigger: "2D MACD cross with 3D confirmation",
+            buy_zone: [181.2, 185.4],
+            chase_above: 189.0,
+            stop: 176.8,
+          },
+          confluence: {
+            tier: "T3",
+            bars_to_cross: 1.4,
+            provisional: true,
+            htf_s1: true,
+          },
+          sniper: {
+            w2_washout: true,
+            w2_stoch_d: 22.4,
+            days_since_63d_low: 5,
+            coiled: true,
+          },
+        },
+      }),
+    });
+  });
+
+  await page.goto("/terminal?symbol=NVDA");
+  await waitForTerminalVisualReady(page);
+  await page.getByTestId("toolbar-more").click();
+  await page.locator('.toolbar-overflow-pop.show [data-toolbar-menu-action="mtf"]').click();
+
+  const strip = page.getByTestId("precision-entry-strip");
+  await expect(strip).toBeVisible();
+  await expect(strip).toHaveAttribute("data-horizon", "swing");
+  await expect(strip.locator('[data-role="execution"]')).toContainText("Awaiting confluence");
+  await expect(strip.locator('[data-role="trigger"]')).toContainText("T3 · ≈ 1.4 bars · Provisional");
+  await expect(strip.locator('[data-role="durability"]')).toContainText("72/100");
+  await expect(strip.locator('[data-role="durability"]')).toContainText("durability, not return");
+  await expect(strip.locator('[data-role="structure"]')).toContainText("Higher-TF confirm");
+  await expect(strip.locator('[data-role="structure"]')).toContainText("2W washout");
+
+  const geometry = await page.evaluate(() => {
+    const strip = document.querySelector<HTMLElement>('[data-testid="precision-entry-strip"]')!;
+    const firstPane = document.querySelector<HTMLElement>(".pane-grid > .pane")!;
+    const grid = document.querySelector<HTMLElement>(".pane-grid")!;
+    const stripBox = strip.getBoundingClientRect();
+    const paneBox = firstPane.getBoundingClientRect();
+    const gridBox = grid.getBoundingClientRect();
+    return {
+      stripTop: Math.round(stripBox.top),
+      stripBottom: Math.round(stripBox.bottom),
+      paneTop: Math.round(paneBox.top),
+      gridTop: Math.round(gridBox.top),
+      stripHeight: Math.round(stripBox.height),
+    };
+  });
+  expect(geometry.stripTop).toBe(geometry.gridTop);
+  expect(geometry.stripHeight).toBe(58);
+  expect(geometry.paneTop).toBeGreaterThanOrEqual(geometry.stripBottom - 1);
+});
