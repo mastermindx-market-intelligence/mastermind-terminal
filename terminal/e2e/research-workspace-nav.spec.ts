@@ -1,4 +1,86 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
+
+const financialsFundFixture = {
+  schema: "mastermind.fund/v1",
+  ticker: "NVDA",
+  asof: "2026-09-23",
+  quote_currency: "USD",
+  stmt_currency: "USD",
+  src: { statements: "fixture", estimates: null, dividends: "fixture" },
+  profile: {
+    website: "https://www.nvidia.com", employees: 36000, sector: "Technology", industry: "Semiconductors",
+    description: "Fixture company profile.", founded: 1993, hq: "Santa Clara, CA",
+  },
+  stats: {
+    mktcap: 4_000_000_000_000, shares_out: 24_000_000_000, float_shares: null, inst_pct: null,
+    insider_pct: null, beta: null, num_holders: null,
+  },
+  statements: {
+    annual: {
+      periods: ["FY2023", "FY2024", "FY2025"],
+      period_end: ["2024-01-28", "2025-01-26", "2026-01-25"],
+      source_market: "us",
+      source_family: "industrial",
+      source_family_by_period: ["industrial", "industrial", "industrial"],
+      reporting_cadence: "annual",
+      flow_basis: "as_reported",
+      normalization_method: ["as_reported", "as_reported", "as_reported"],
+      income: {
+        revenue: [60_000_000_000, 90_000_000_000, 130_000_000_000],
+        cogs: [18_000_000_000, 25_000_000_000, 32_000_000_000],
+        gross_profit: [42_000_000_000, 65_000_000_000, 98_000_000_000],
+        opex: [11_000_000_000, 15_000_000_000, 20_000_000_000],
+        op_income: [31_000_000_000, 50_000_000_000, 78_000_000_000],
+        nonop_income: [1_000_000_000, 1_100_000_000, 1_200_000_000],
+        pretax_income: [32_000_000_000, 51_100_000_000, 79_200_000_000],
+        taxes: [4_000_000_000, 6_000_000_000, 9_000_000_000],
+        net_income: [28_000_000_000, 45_100_000_000, 70_200_000_000],
+        eps_basic: [1.2, 1.9, 2.95],
+        eps_diluted: [1.18, 1.86, 2.9],
+        ebitda: [34_000_000_000, 54_000_000_000, 83_000_000_000],
+      },
+      balance: {
+        assets: [70_000_000_000, 95_000_000_000, 125_000_000_000],
+        assets_st: [35_000_000_000, 48_000_000_000, 65_000_000_000],
+        assets_lt: [35_000_000_000, 47_000_000_000, 60_000_000_000],
+        liabilities: [30_000_000_000, 38_000_000_000, 45_000_000_000],
+        liab_st: [12_000_000_000, 15_000_000_000, 18_000_000_000],
+        liab_lt: [18_000_000_000, 23_000_000_000, 27_000_000_000],
+        equity: [40_000_000_000, 57_000_000_000, 80_000_000_000],
+        debt: [11_000_000_000, 10_000_000_000, 9_000_000_000],
+        net_debt: [-3_000_000_000, -9_000_000_000, -18_000_000_000],
+        cash: [14_000_000_000, 19_000_000_000, 27_000_000_000],
+      },
+      cashflow: {
+        cfo: [25_000_000_000, 43_000_000_000, 69_000_000_000],
+        cfi: [-8_000_000_000, -11_000_000_000, -15_000_000_000],
+        cff: [-10_000_000_000, -14_000_000_000, -20_000_000_000],
+        capex: [4_000_000_000, 5_000_000_000, 7_000_000_000],
+        fcf: [21_000_000_000, 38_000_000_000, 62_000_000_000],
+      },
+    },
+    quarterly: null,
+  },
+  ratios: {
+    periods: [], pe: [], ps: [], pb: [], pcf: [], ev: [], ev_ebitda: [],
+    current: {
+      pe_ttm: null, pe_fwd: null, ps: null, pb: null, ev_ebitda: null, ev_sales: null,
+      ev_ebit: null, p_fcf: null, div_yield: null, payout: null, gross_margin: null,
+      net_margin: null, roe: null, roa: null, debt_to_equity: null, current_ratio: null,
+    },
+  },
+  earnings: { next_date: null, next_period: null, next_eps_est: null, next_rev_est: null, q: [], fy: [] },
+  estimates: null,
+  analyst: null,
+  dividends: { never_paid: true, yield_ttm: null, payout_ratio: null, events: [], splits: [] },
+  ownership: { free_float_pct: null, closely_held_pct: null, top_inst: [] },
+  guidance: null,
+  segments: null,
+};
+
+async function installFinancialsFixture(page: Page) {
+  await page.route("**/NVDA.fund.json**", async (route) => route.fulfill({ json: financialsFundFixture }));
+}
 
 /**
  * Research Workspace navigation vNext keeps the existing FinPage URL/deep-link
@@ -51,6 +133,7 @@ test("family selection lands on the existing family default without a second rou
 
 
 test("Financials vNext keeps statement summary, explorer and integrity on one canonical page", async ({ page }) => {
+  await installFinancialsFixture(page);
   await page.goto("/analysis?symbol=NVDA&page=statements");
   await expect(page.locator(".sym-pick strong")).toHaveText("NVDA", { timeout: 45_000 });
 
@@ -85,6 +168,7 @@ test("Financials vNext keeps statement summary, explorer and integrity on one ca
 test("Financials vNext remains bilingual and overflow-safe on mobile", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "mobile", "one mobile bilingual Financials contract is sufficient");
   await page.addInitScript(() => window.localStorage.setItem("mm.lang", "zh"));
+  await installFinancialsFixture(page);
   await page.goto("/analysis?symbol=NVDA&page=statements");
 
   const financials = page.locator("[data-financials-vnext]");
