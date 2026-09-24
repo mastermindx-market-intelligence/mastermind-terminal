@@ -339,6 +339,22 @@ test("Company Intelligence keeps its context and evidence workflow responsive", 
   await expect(paperResults).toContainText("Not asserted · no licensed pre-event consensus");
   await expect(paperResults).toContainText("Not asserted · context only");
   await expectNoDocumentOverflow(page);
+
+  await page.locator(".ci-lenses").getByRole("tab", { name: "Sources" }).click();
+  const fallbackSources = page.locator("[data-ci-paper-sources]");
+  await expect(fallbackSources).toBeVisible();
+  await expect(fallbackSources).toHaveAttribute("data-ci-sources-event-id", "cie_d8488221fd8c710c53d6537d");
+  await expect(fallbackSources).toHaveAttribute("data-ci-sources-generation-id", "aaaaaaaaaaaaaaaaaaaaaaaa");
+  await expect(fallbackSources).toContainText("SOURCES & METHOD");
+  await expect(fallbackSources).toContainText("Structured event");
+  await expect(fallbackSources).toContainText("Ready");
+  await expect(fallbackSources).toContainText("Consensus");
+  await expect(fallbackSources).toContainText("Not carried");
+  await expect(fallbackSources).toContainText("Exact source span");
+  await expect(fallbackSources).toContainText("Pending");
+  await expect(fallbackSources).toContainText("Transport lineage");
+  await expect(fallbackSources).toContainText("Context only");
+  await expectNoDocumentOverflow(page);
   await page.locator(".ci-lenses").getByRole("tab", { name: "Brief" }).click();
 
   await expect(page.getByRole("heading", { name: "Curated basket context" })).toBeVisible();
@@ -985,6 +1001,25 @@ test("AAPL intelligence opens the verified FY2026 Q3 event workspace", async ({ 
 
   await closeEvidenceOverlay(page);
   await page.locator(".ci-lenses").getByRole("tab", { name: "Sources" }).click();
+  const paperSources = page.locator("[data-ci-paper-sources]");
+  await expect(paperSources).toBeVisible();
+  await expect(paperSources).toHaveAttribute("data-ci-sources-event-id", AAPL_EVENT_ID);
+  await expect(paperSources).toHaveAttribute("data-ci-sources-generation-id", AAPL_GENERATION);
+  await expect(paperSources).toContainText("SOURCES & METHOD");
+  await expect(paperSources).toContainText("COVERAGE MATRIX");
+  await expect(paperSources).toContainText("Structured event");
+  await expect(paperSources).toContainText("Present");
+  await expect(paperSources).toContainText("Consensus");
+  await expect(paperSources).toContainText("Unlicensed");
+  await expect(paperSources).toContainText("Market reaction");
+  await expect(paperSources).toContainText("Not joined");
+  await expect(paperSources).toContainText("Presentation / slides");
+  await expect(paperSources).toContainText("Absent");
+  await expect(paperSources).toContainText("Pinned immutable context");
+  await expect(paperSources).toContainText("Consensus surprise");
+  await expect(paperSources).toContainText("Not asserted");
+  await expect(paperSources).toContainText("Trade authority");
+  await expect(paperSources).toContainText("Context only");
   await expect(page.locator("[data-ci-source-kind='issuer_release']")).toContainText("Company 8-K filing, exhibit 99.1");
   await expect(page.locator("[data-ci-source-kind='issuer_release']")).not.toContainText("8-K / Exhibit 99.1");
   await expect(page.locator("[data-ci-source-kind='issuer_release']")).not.toContainText("0000320193-26-000018");
@@ -1048,6 +1083,15 @@ test("AAPL workspace remains usable in Chinese without overflow", async ({ page 
   await expect(page.locator(".ci-evidence-note")).toContainText("生产者凭证");
   await expect(page.locator(".ci-evidence-note")).toContainText("并未根据文档字节重新计算");
   await expectTapTarget(close, { height: 44 });
+  await closeEvidenceOverlay(page);
+  await page.locator(".ci-lenses").getByRole("tab", { name: "来源" }).click();
+  const sources = page.locator("[data-ci-paper-sources]");
+  await expect(sources).toBeVisible();
+  await expect(sources).toContainText("来源与方法");
+  await expect(sources).toContainText("覆盖矩阵");
+  await expect(sources).toContainText("未授权");
+  await expect(sources).toContainText("未关联");
+  await expect(sources).toContainText("仅供背景参考");
   await expectNoDocumentOverflow(page);
   await page.screenshot({ path: testInfo.outputPath("mobile-aapl-event-workspace-zh.png"), fullPage: false });
 });
