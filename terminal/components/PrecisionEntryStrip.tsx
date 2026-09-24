@@ -93,7 +93,7 @@ export default function PrecisionEntryStrip({ plan, intel, lang }: PrecisionEntr
     || entry?.nextTrigger
     || confluence?.sub
     || "—";
-  const triggerMeta = triggerParts.length ? (entry?.nextTrigger || confluence?.sub) : null;
+  const triggerMeta = triggerParts.length ? (entry?.nextTrigger || confluence?.sub || null) : null;
 
   const durabilityValue = entry?.bottomConfidence != null
     ? `${Math.round(entry.bottomConfidence)}/100`
