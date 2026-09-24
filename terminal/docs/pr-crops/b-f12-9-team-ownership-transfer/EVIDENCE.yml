@@ -1,7 +1,7 @@
 # 2026-09-19 #669 plain-language debt: hash-only restamp of i18n.tsx — copy-only change, crops unchanged
 # B-F12-9 Team ownership transfer — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
-# capturedAtHead: 45577c39ff11df2c92963c79baff8e63f6fa5947
+# capturedAtHead: 5db7045375d6d724b3ce873a28f0ec484a048353
 # 2026-09-15 release unblock: #565 was squashed to 1aca671d93c965a7cc9c3a92c5d28b1ae836ee77.
 # All five unchanged layoutFiles hashes match that protected-master commit exactly.
 # This repairs the orphaned pre-squash efdbf23 pointer; it is NOT a fresh capture or a team-feature change.
@@ -26,7 +26,7 @@
 # 2026-09-19 C2 (seat): capturedAtHead -> merge commit 567fbf312f4068e748289bb0d24d001892837fbb (master dd7c6dec #584 into #588); the bytes of every layoutFiles row at that commit equal the pins below. Transfer-ownership crops unchanged, not recaptured. MERGE THIS PR WITH A MERGE COMMIT.
 # 2026-09-19 h_t588 r2 (C2): capturedAtHead -> 6f29872 (C1 of h_t588 r2); SectionTeam.tsx bytes at that commit equal the pins; crops unchanged, not recaptured.
 # 2026-09-19 C2 (seat): capturedAtHead -> merge commit 93398595f02f73c4dbd49b985130efdcae4552dc (master dd7c6dec #584 into #587); the bytes of every layoutFiles row at that commit equal the pins below (SettingsPanel.tsx restamped in the merge; SectionTeam.* unchanged from master). Transfer-ownership crops unchanged, not recaptured. MERGE THIS PR WITH A MERGE COMMIT.
-capturedAtHead: 2efcae1816808b77aee451cd0b98c46c85f599dd
+capturedAtHead: 5db7045375d6d724b3ce873a28f0ec484a048353
 capturedAt: 2026-09-11T03:00:17.565Z
 # capturedAtHead is merge commit 35e9f60c895ae9c1e0ebb803bc16d48bd5962f86 (H4b #565 onto master 908540b79). layoutFiles hashes are that commit's bytes except i18n.tsx, which this PR restamps for DEEP_RESEARCH_MONTHLY quota copy (obInsider2/obPro1/acsFeatInsider4/acsFeatPro3). Those strings are not rendered on the ownership-transfer surface; no crop recaptured. The previous pointer 3cdcd746b86d478ff139dd5fea408b66fce065af remains an ancestor; the ancestry guard requires capturedAtHead to name a commit whose i18n blob matches the restamped hash.
 # Pinned i18n.tsx last changed on this carrier for master #554's claim* keys; the captured surface (team section + rail) does not render them; crops unchanged from 916db2d4ac62b00aed236231433d8d952c22f3c6.
@@ -51,12 +51,13 @@ capturedAt: 2026-09-11T03:00:17.565Z
 # 2026-09-19 seat merge of origin/master 5a48b845 (13 commits incl. #587 B-F13-9 team rollup, merge commit) into #586 (W9T/B-F08-13 targets readout): hash-only restamp to the merged working-tree bytes; crops NOT recaptured. Files: terminal/components/settings/SettingsPanel.tsx, terminal/lib/i18n.tsx
 # 2026-09-19 seat merge of origin/master 4c7a2eeb6f58 (#587 B-F13-9 team rollup + #659 + #660, merge commit) into #588 (B-F12-17 invite-link honesty): hash-only restamp of terminal/components/settings/SectionTeam.tsx, terminal/components/settings/SectionTeam.module.css, terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
 # 2026-09-19 seat merge of origin/master dafc016e (#588 B-F12-17 invite-link honesty, #664, #666) into #586 (W9T/B-F08-13 targets readout): hash-only restamp to the merged working-tree bytes; crops NOT recaptured. Files: terminal/components/settings/SettingsPanel.tsx, terminal/lib/i18n.tsx
+# 2026-09-24 PR #742 merge refresh: i18n.tsx re-hashed and capturedAtHead updated for the Analysis context-bar theses lexicon keys; these packet surfaces do not render those keys and their crops remain representative, so no recapture.
 layoutFiles:
   terminal/components/settings/SectionTeam.tsx: "00f61441215f0cdb8c6b40536e66e243d0ae83ffa54d6f19ae8a67dd99d7a79d"
   terminal/components/settings/SectionTeam.module.css: "069056ff7ac4274a57ae9a835a0fdda178e9625a591b4374e855b9d41a3fd5bc"
   terminal/components/settings/SettingsPanel.tsx: "956aeac1636ae4891b1009c8e266840244c19da085ba52e77c78171317c4ffaf"
   terminal/app/settings.css: "3189163136d943431cbf52e4b5d241c105b695ba5af94c4c2e29151d537b5ef5"
-  terminal/lib/i18n.tsx: "c21e5974e091e4c9d8dd06c5efb2834363120f69a96aebf9476dc85f51fc10e7"
+  terminal/lib/i18n.tsx: "5343489dc1f0a711b1c87584c428fc141e037d35789058232c63dc4f1125c080"
 
 theme: dark
 languages: [en, zh]

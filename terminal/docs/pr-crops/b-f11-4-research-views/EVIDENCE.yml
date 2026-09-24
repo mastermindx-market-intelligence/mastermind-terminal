@@ -2,7 +2,7 @@
 # B-F11-4 research management views — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 3257006cb8a777437bf084738132583b9d3bf681
+# capturedAtHead: 5db7045375d6d724b3ce873a28f0ec484a048353
 # 2026-09-10 merge-only refresh onto master b7aa0981 (#547): i18n.tsx re-hashed because master's B-F13-5 lexicon keys merged into the shared file; no B-F11-4 string or layout changed; no crop recaptured.
 # 2026-09-10 merge-only refresh onto master 64c05ff2 (#553): i18n.tsx re-hashed again because master's B-F12-B5-3 account-completeness lexicon keys merged into the shared file; no B-F11-4 string or layout changed; no crop recaptured.
 # 2026-09-11 merge of master 9b7e7a41 (#546) into B-F13-6 (#554): ThesisWorkspace.tsx and ThesisWorkspace.module.css re-hashed. This PR adds a claim-entry button to the workspace context bar (styles.contextActions, inside <header>) and 31 claim* lexicon keys; the B-F11-4 crops clip to [data-testid="thesis-list-pane"], which contains neither, so no B-F11-4 surface renders differently and no crop was recaptured.
@@ -26,13 +26,14 @@
 # 2026-09-19 seat merge of origin/master 5a48b845 (13 commits incl. #587 B-F13-9 team rollup, merge commit) into #586 (W9T/B-F08-13 targets readout): hash-only restamp to the merged working-tree bytes; crops NOT recaptured. Files: terminal/lib/i18n.tsx
 # 2026-09-19 seat merge of origin/master 4c7a2eeb6f58 (#587 B-F13-9 team rollup + #659 + #660, merge commit) into #588 (B-F12-17 invite-link honesty): hash-only restamp of terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
 # 2026-09-19 seat merge of origin/master dafc016e (#588 B-F12-17 invite-link honesty, #664, #666) into #586 (W9T/B-F08-13 targets readout): hash-only restamp to the merged working-tree bytes; crops NOT recaptured. Files: terminal/lib/i18n.tsx
+# 2026-09-24 PR #742 merge refresh: i18n.tsx re-hashed and capturedAtHead updated for the Analysis context-bar theses lexicon keys; these packet surfaces do not render those keys and their crops remain representative, so no recapture.
 layoutFiles:
   terminal/components/workspaces/ThesisWorkspace.tsx: "111e04dc1b303f3e18eb847197187236b190cd20c58f3c990f9ebe3c2bf9f1ff"
   terminal/components/workspaces/ThesisWorkspace.module.css: "72a791c76ae3a6d7fad66f387a140c163d689c74b4957af8644f1068404c0a4b"
   terminal/lib/rmsViews.ts: "fd5f025806c5a4b1b27e7d99a026e82f555767f0d96b6a2766a5b363961897cb"
   terminal/lib/savedViews.ts: "16e2914a032cba50cce999d1802c53e51098ce76dd82931925ef41b8e0f7af54"
   terminal/lib/plainLabels.ts: "711f94db978d842b8051e9a975ef772308dab45ba08b3f1859537b5747d372d1"
-  terminal/lib/i18n.tsx: "c21e5974e091e4c9d8dd06c5efb2834363120f69a96aebf9476dc85f51fc10e7"
+  terminal/lib/i18n.tsx: "5343489dc1f0a711b1c87584c428fc141e037d35789058232c63dc4f1125c080"
 theme: dark
 languages: [en, zh]
 viewports:
