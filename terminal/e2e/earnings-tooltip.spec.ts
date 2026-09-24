@@ -126,8 +126,8 @@ async function installFixtureRoutes(page: Page) {
 }
 
 async function expectTooltipContained(page: Page, expectedPercent: string) {
-  const module = page.locator(".fin-earn-module").first();
-  const tip = module.locator(".fin-dumbtip");
+  const earningsModule = page.locator(".fin-earn-module").first();
+  const tip = earningsModule.locator(".fin-dumbtip");
   await expect(tip).toBeVisible();
   await expect(tip).toContainText(expectedPercent);
 
@@ -165,8 +165,8 @@ test("earnings tooltip contains four-digit surprise percentages at every respons
   const earningsTab = page.getByRole("tab", { name: "Earnings", exact: true });
   await expect(earningsTab).toHaveAttribute("aria-selected", "true");
 
-  const module = page.locator(".fin-earn-module").first();
-  const dots = module.locator(".fin-dot-act");
+  const earningsModule = page.locator(".fin-earn-module").first();
+  const dots = earningsModule.locator(".fin-dot-act");
   await expect(dots).toHaveCount(2);
 
   await dots.nth(0).click();
