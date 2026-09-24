@@ -186,3 +186,22 @@ export function validateReceipt(value) {
   if (value.phaseB?.ran === true) return false;
   return true;
 }
+
+export function validateSignedInReceipt(value) {
+  if (!value || typeof value !== "object") return false;
+  if (!/^[0-9a-f]{40}$/i.test(value.expectedRelease || "")) return false;
+  if (typeof value.capturedAt !== "string" || Number.isNaN(Date.parse(value.capturedAt))) return false;
+  if (!Array.isArray(value.phaseA) || value.phaseA.length !== PHASE_A_CASES.length) return false;
+  const validCases = value.phaseA.every((entry, index) => entry?.ok === true
+    && entry.case === PHASE_A_CASES[index][0]
+    && entry.status === PHASE_A_CASES[index][1]);
+  if (!validCases) return false;
+  if (!Number.isInteger(value.browserErrorCount) || value.browserErrorCount !== 0) return false;
+  if (value.phaseB?.ran !== true || value.phaseB.route !== "operator_url") return false;
+  if (value.phaseB.archived !== true) return false;
+  const versions = value.phaseB.versions;
+  if (!Array.isArray(versions) || versions.length !== 3) return false;
+  if (!versions.every((entry, index) => entry?.version === index + 1
+    && entry.previousVersion === (index === 0 ? null : index))) return false;
+  return true;
+}

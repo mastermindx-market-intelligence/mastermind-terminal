@@ -43,11 +43,13 @@ screenshot captures it.
 
 Phase B enters directly through
 `https://app.mastermind-x.com/analysis?view=theses&symbol=NVDA`. It preflights
-every control before its first write. If that preflight fails, Phase B performs
-no write. After creation, the thesis id comes only from the page URL, every
-detail check must return that id, and each waiting assertion must settle before
-the next action. On any failure after creation, the tool makes a best-effort
-archive of that one URL-derived thesis and still exits non-zero.
+the route, lenses, new-thesis control, and create form before its first write.
+If that preflight fails, Phase B performs no write. After creation, the thesis
+id comes only from the page URL, every detail check must return that id, and
+the active detail controls and Archive control are preflighted before any
+revision. Each waiting assertion must settle before the next action. On any
+failure after creation, the tool sends the URL-derived id directly to a
+best-effort archive and still exits non-zero.
 
 ## What each receipt proves | 每份收据证明什么
 
@@ -58,7 +60,8 @@ all five cases, the release id, and exactly zero browser errors. Exit code `0`
 means that anonymous proof succeeded; `1` means an assertion failed; `2` means
 the required release id was missing or malformed.
 
-`receipt-signed-in.json` exists only after Phase B passes. It proves that the
+The operator-only `e2e/.live-state/receipt-signed-in.json` exists only after
+Phase B passes. It proves that the
 operator created one proof thesis, revised that same thesis, confirmed a stale
 write returned a version conflict, checked the Theses and Coverage lenses, and
 archived that same thesis through version three. The proof thesis id comes only

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { randomUUID } from "node:crypto";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium } from "@playwright/test";
 import {
@@ -13,15 +13,17 @@ import {
   releaseFromHtml,
   thesisIdFromUrl,
   validateReceipt,
+  validateSignedInReceipt,
   validateVersions,
 } from "./thesisJourneyLib.mjs";
 
-const root = resolve(fileURLToPath(new URL("../..", import.meta.url)));
 const base = process.env.PROOF_BASE_URL || "https://app.mastermind-x.com";
 const release = (process.env.PROOF_RELEASE || "").trim();
 const symbol = process.env.PROOF_SYMBOL || "NVDA";
 const storageStateArgument = process.env.PROOF_STORAGE_STATE || "";
+const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const outputDir = join(root, "docs/pr-crops/b-f11-10-thesis-journey-live");
+const liveStateDir = join(root, "e2e/.live-state");
 const anonymousPhaseB = { ran: false, route: "none", versions: [], archived: false };
 
 class ProofFailure extends Error {
@@ -126,6 +128,11 @@ function proofLocators(page) {
   };
 }
 
+const INTERACTIVE_LOCATORS = new Set([
+  "newThesis", "subject", "title", "statement", "catalysts", "risks", "horizon",
+  "revisionNote", "save", "archive",
+]);
+
 async function preflightLocators(page, requestedLocators) {
   const locators = proofLocators(page);
   const failures = [];
@@ -134,9 +141,7 @@ async function preflightLocators(page, requestedLocators) {
       const locator = locators[name];
       await locator.waitFor({ state: "visible", timeout: 5_000 });
       if (await locator.count() !== 1) throw new Error();
-      if (["newThesis", "subject", "title", "statement", "catalysts", "risks", "horizon", "revisionNote", "save", "archive"].includes(name)) {
-        if (!(await locator.isEnabled())) throw new Error();
-      }
+      if (INTERACTIVE_LOCATORS.has(name) && !(await locator.isEnabled())) throw new Error();
     } catch {
       failures.push(name);
     }
@@ -153,13 +158,7 @@ async function settleVersion(page, version) {
   await settle(currentVersion, `Version ${version} did not become current.`);
 }
 
-async function archiveBestEffort(request, rawUrl) {
-  let thesisId;
-  try {
-    thesisId = thesisIdFromUrl(rawUrl);
-  } catch {
-    return false;
-  }
+async function archiveBestEffort(request, thesisId) {
   try {
     const detailResponse = await request.get(`${base}/api/theses?id=${thesisId}`);
     if (detailResponse.status() !== 200) return false;
@@ -235,18 +234,18 @@ async function runPhaseA() {
 
 async function runPhaseB(storageState) {
   const browser = await chromium.launch({ headless: true });
-  let browserErrorCount = 0;
+  let phaseBBrowserErrorCount = 0;
   let page;
   try {
     const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, storageState });
     page = await context.newPage();
-    page.on("console", (message) => { if (message.type() === "error") browserErrorCount += 1; });
-    page.on("pageerror", () => { browserErrorCount += 1; });
+    page.on("console", (message) => { if (message.type() === "error") phaseBBrowserErrorCount += 1; });
+    page.on("pageerror", () => { phaseBBrowserErrorCount += 1; });
 
     await assertResponse(page, `${base}/analysis?view=theses&symbol=${encodeURIComponent(symbol)}`);
     const controls = await preflightLocators(page, [
       "workspace", "rail", "thesesTab", "coverageTab", "newThesis", "subject", "title",
-      "statement", "catalysts", "risks", "horizon", "revisionNote", "save", "archive",
+      "statement", "catalysts", "risks", "horizon", "revisionNote", "save",
     ]);
     if (await controls.workspace.getAttribute("data-list-state") !== "ready") assertion();
 
@@ -262,15 +261,20 @@ async function runPhaseB(storageState) {
       await settle(controls.horizon, "The create form horizon field was not ready.");
       await controls.subject.fill(symbol);
       await controls.title.fill(title);
-      await controls.statement.fill("This live proof creates one thesis and then archives it.");
-      await controls.catalysts.fill("The release marker matches the requested deployment.");
-      await controls.risks.fill("A failed proof archives this one thesis.");
+      await controls.statement.fill("This live proof creates one thesis and then archives it. 这次实测创建一个论点，然后将其归档。");
+      await controls.catalysts.fill("The release marker matches the requested deployment. 发布标记与请求的部署一致。");
+      await controls.risks.fill("A failed proof archives this one thesis. 失败的实测会归档这一个论点。");
       await controls.horizon.selectOption("quarters");
       await controls.save.click();
       await page.waitForURL(/\/analysis\?view=theses&thesis=[0-9a-f-]{36}$/i, { timeout: 30_000 });
       thesisId = thesisIdFromUrl(page.url());
       await settle(page.getByTestId("thesis-detail-pane"), "The created thesis detail pane was not visible.");
       await settleVersion(page, 1);
+      const activeControls = await preflightLocators(page, [
+        "workspace", "rail", "thesesTab", "coverageTab", "title", "statement",
+        "catalysts", "risks", "horizon", "revisionNote", "save", "archive",
+      ]);
+      if (await activeControls.workspace.getAttribute("data-list-state") !== "ready") assertion();
       const created = await readThesis(page.request, thesisId);
 
       await page.reload({ waitUntil: "domcontentloaded" });
@@ -280,9 +284,9 @@ async function runPhaseB(storageState) {
       await settle(controls.statement, "The revision statement field was not ready.");
       await settle(controls.revisionNote, "The revision note field was not ready.");
       await settle(controls.save, "The revision save control was not ready.");
-      await controls.statement.fill("This revision stays attached to the thesis created for this proof.");
-      await controls.revisionNote.fill("This sentence records the live proof revision.");
-      await controls.save.click();
+      await activeControls.statement.fill("This revision stays attached to the one thesis created for this proof. 本修订仍属于为本次实测创建的同一论点。");
+      await activeControls.revisionNote.fill("This sentence records the live proof revision. 这句话记录实测修订。");
+      await activeControls.save.click();
       await settleVersion(page, 2);
       const revised = await readThesis(page.request, thesisId);
 
@@ -293,7 +297,7 @@ async function runPhaseB(storageState) {
           expectedVersion: 1,
           clientRequestId: randomUUID(),
           subject: subjectPayload(),
-          content: contentPayload(title, "A stale write must not change this thesis.", "Stale proof attempt"),
+          content: contentPayload(title, "A stale write must not change this thesis. 过期写入不得更改这个论点。", "Stale proof attempt. 过期实测尝试。"),
         },
       });
       if (conflictResponse.status() !== 409) assertion();
@@ -315,14 +319,14 @@ async function runPhaseB(storageState) {
       await assertResponse(page, `${base}/analysis?view=theses&thesis=${thesisId}`);
       await settle(page.getByTestId("thesis-detail-pane"), "The archived thesis detail pane was not visible.");
       await settleVersion(page, 2);
-      const archive = await settle(controls.archive, "The archive control was not ready.");
+      const archive = await settle(activeControls.archive, "The archive control was not ready.");
       await archive.click();
       await settleVersion(page, 3);
-      if (!(await controls.title.isDisabled())) assertion();
+      if (!(await activeControls.title.isDisabled())) assertion();
       const archived = await readThesis(page.request, thesisId);
       if (!validateVersions({ created, revised, archived })) assertion();
       if (afterConflict.currentVersion !== 2 || archived.currentVersion !== 3) assertion();
-      if (browserErrorCount !== 0) assertion();
+      if (phaseBBrowserErrorCount !== 0) assertion();
       await context.close();
       const versions = [
         { version: created.currentVersion, previousVersion: created.current.previousVersion },
@@ -347,14 +351,14 @@ async function runPhaseB(storageState) {
   }
 }
 
-function receiptFor(phaseA, phaseB, browserErrorCount) {
+function receiptFor(phaseA, phaseB, phaseBrowserErrorCount) {
   return {
     capturedAt: new Date().toISOString(),
     base,
     expectedRelease: release,
     phaseA,
     phaseB,
-    browserErrorCount,
+    browserErrorCount: phaseBrowserErrorCount,
   };
 }
 
@@ -369,8 +373,9 @@ async function main() {
     if (!blockedReason) {
       const storageState = JSON.parse(readFileSync(resolve(storageStateArgument), "utf8"));
       const phaseB = await runPhaseB(storageState);
-      const signedReceipt = receiptFor(phaseA, phaseB, browserErrorCount);
-      writeFileSync(join(outputDir, "receipt-signed-in.json"), `${JSON.stringify(redactReceipt(signedReceipt), null, 2)}\n`);
+      const signedReceipt = receiptFor(phaseA, phaseB, phaseBBrowserErrorCount);
+      if (!validateSignedInReceipt(signedReceipt)) assertion();
+      writeFileSync(join(liveStateDir, "receipt-signed-in.json"), `${JSON.stringify(redactReceipt(signedReceipt), null, 2)}\n`);
     }
   } catch (error) {
     anonymous = redactReceipt(anonymous);
@@ -385,7 +390,7 @@ async function main() {
   console.log(`Release: ${release}`);
   console.log(`Phase A: ${passed}/${anonymous.phaseA.length} cases passed`);
   console.log(`Browser errors: ${anonymous.browserErrorCount}`);
-  console.log(blockedReason ? `Phase B not run: ${blockedReason}` : "Phase B completed and the signed-in receipt was written.");
+  console.log(blockedReason ? `Phase B not run: ${blockedReason}` : "Phase B completed and its redacted receipt was written.");
   return exitCodeFor(null);
 }
 

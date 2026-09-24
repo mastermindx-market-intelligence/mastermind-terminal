@@ -9,6 +9,7 @@ import {
   releaseFromHtml,
   thesisIdFromUrl,
   validateReceipt,
+  validateSignedInReceipt,
   validateVersions,
 } from "../../e2e/tools/thesisJourneyLib.mjs";
 
@@ -181,13 +182,133 @@ describe("exit codes", () => {
 describe("prover source contract", () => {
   const prover = readFileSync(new URL("../../e2e/tools/prove-thesis-journey-live.mjs", import.meta.url), "utf8");
 
-  it("preflights locators before each write and archives the URL-derived thesis on failure", () => {
+  it("imports every helper through the one thesis-journey module", () => {
+    expect(prover).toContain('from "./thesisJourneyLib.mjs"');
+    expect(prover).not.toContain('from "./thesisJourneyReceipt.mjs"');
+  });
+
+  it("preflights entry controls before the first write and active controls after the URL id", () => {
     expect(prover).toContain("await preflightLocators(page, [");
-    expect(prover).toContain("await archiveBestEffort(page.request, thesisId);");
+    expect(prover.indexOf('await controls.save.click();')).toBeGreaterThanOrEqual(0);
+    expect(prover.indexOf("const controls = await preflightLocators(page, [")).toBeLessThan(prover.indexOf("await controls.save.click();"));
+    expect(prover.indexOf("const activeControls = await preflightLocators(page, [")).toBeLessThan(prover.indexOf("await activeControls.save.click();"));
     expect(prover).toContain("thesisId = thesisIdFromUrl(page.url());");
-    expect(prover).not.toContain("console.error(`Proof failed: ${error.message}`)");
+  });
+
+  it("does not demand archive before creation and does not write lifecycle actions out of turn", () => {
+    const entryPreflight = prover.slice(
+      prover.indexOf("const controls = await preflightLocators(page, ["),
+      prover.indexOf("const title = buildProofTitle"),
+    );
+    const activePreflight = prover.slice(
+      prover.indexOf("const activeControls = await preflightLocators(page, ["),
+      prover.indexOf("const created = await readThesis"),
+    );
+    expect(entryPreflight).not.toContain('"archive"');
+    expect(activePreflight).not.toContain('"subject"');
+    expect(activePreflight).toContain('"archive"');
     expect(prover).not.toContain("reopen");
     expect(prover).not.toContain("invalidate");
+  });
+
+  it("binds Phase B's receipt to Phase B's browser error count", () => {
+    expect(prover).toContain("receiptFor(phaseA, phaseB, phaseBBrowserErrorCount)");
+    expect(prover).not.toContain("receiptFor(phaseA, phaseB, browserErrorCount)");
+  });
+
+  it("validates the signed-in receipt before writing it only to live state", () => {
+    expect(prover).toContain("if (!validateSignedInReceipt(signedReceipt)) assertion();");
+    expect(prover).toContain('join(liveStateDir, "receipt-signed-in.json")');
+    expect(prover).not.toContain('join(outputDir, "receipt-signed-in.json")');
+  });
+
+  it("uses exact English names as the operator-language preflight", () => {
+    expect(prover).toContain('page.getByRole("button", { name: "New thesis", exact: true })');
+    expect(prover).toContain('page.getByLabel("Title", { exact: true })');
+    expect(prover).toContain('page.getByLabel("Thesis statement", { exact: true })');
+    expect(prover).toContain('page.getByRole("button", { name: "Archive", exact: true })');
+  });
+});
+
+describe("archive failure safety", () => {
+  const proverUrl = new URL("../../e2e/tools/prove-thesis-journey-live.mjs", import.meta.url);
+  const source = readFileSync(proverUrl, "utf8");
+
+  it("archival takes the URL-derived thesis id directly instead of parsing it as a URL", async () => {
+    expect(source).toContain("async function archiveBestEffort(request, thesisId)");
+    expect(source).toContain("await archiveBestEffort(page.request, thesisId);");
+    expect(source).not.toContain("await archiveBestEffort(page.request, thesisIdFromUrl");
+
+    const functionStart = source.indexOf("async function archiveBestEffort");
+    const functionEnd = source.indexOf("\nasync function runPhaseA", functionStart);
+    const prefix = `const base = "https://app.mastermind-x.com";\nconst randomUUID = () => "99999999-9999-4999-8999-999999999999";\n${source.slice(functionStart, functionEnd)}\nexport { archiveBestEffort };`;
+    const moduleNamespace = await import("data:text/javascript;base64," + Buffer.from(prefix).toString("base64"));
+    const archiveBestEffort = moduleNamespace.archiveBestEffort;
+    expect(archiveBestEffort).toBeTypeOf("function");
+
+    const id = "123e4567-e89b-42d3-a456-426614174000";
+    const calls: unknown[][] = [];
+    const response = (status: number, body: unknown) => ({ status: () => status, json: async () => body });
+    const request = {
+      get: async (url: string) => {
+        calls.push(["GET", url]);
+        return response(200, { thesis: {
+          id,
+          currentVersion: 2,
+          lifecycleState: "active",
+          current: { subject: { key: "NVDA" }, content: { title: "Proof thesis" } },
+        } });
+      },
+      post: async (url: string, options: { data: unknown }) => {
+        calls.push(["POST", url, options.data]);
+        return response(200, {});
+      },
+    };
+
+    await expect(archiveBestEffort(request, id)).resolves.toBe(true);
+    expect(calls).toEqual([
+      ["GET", "https://app.mastermind-x.com/api/theses?id=" + id],
+      ["POST", "https://app.mastermind-x.com/api/theses", {
+        action: "archive",
+        id,
+        expectedVersion: 2,
+        clientRequestId: expect.any(String),
+        subject: { key: "NVDA" },
+        content: { title: "Proof thesis" },
+      }],
+    ]);
+  });
+
+  it("keeps the one helper import graph in the named module", () => {
+    expect(source).toContain('from "./thesisJourneyLib.mjs"');
+  });
+
+  it("rejects the previous implementation when a URL-derived UUID is passed directly", async () => {
+    const oldSource = `
+async function archiveBestEffort(request, rawUrl) {
+  try {
+    const thesisId = thesisIdFromUrl(rawUrl);
+    const detailResponse = await request.get(\`\${base}/api/theses?id=\${thesisId}\`);
+    if (detailResponse.status() !== 200) return false;
+    const thesis = (await detailResponse.json())?.thesis;
+    if (!thesis || thesis.id !== thesisId || thesis.lifecycleState !== "active") return false;
+    const archiveResponse = await request.post(\`\${base}/api/theses\`, { data: { action: "archive", id: thesisId } });
+    return archiveResponse.status() === 200;
+  } catch {
+    return false;
+  }
+}
+`;
+    const functionStart = oldSource.indexOf("async function archiveBestEffort");
+    const functionEnd = oldSource.indexOf("\nasync function runPhaseA", functionStart);
+    const prefix = `const base = "https://app.mastermind-x.com";\nconst thesisIdFromUrl = () => { throw new Error("The URL parser failed."); };\n${oldSource.slice(functionStart, functionEnd)}\nexport { archiveBestEffort };`;
+    const oldArchiveBestEffort = (await import("data:text/javascript;base64," + Buffer.from(prefix).toString("base64"))).archiveBestEffort;
+    const request = {
+      get: () => { throw new Error("No HTTP call should be needed after the URL parser fails."); },
+      post: () => { throw new Error("No HTTP call should be needed after the URL parser fails."); },
+    };
+
+    await expect(oldArchiveBestEffort(request, "123e4567-e89b-42d3-a456-426614174000")).resolves.toBe(false);
   });
 });
 
@@ -216,6 +337,36 @@ describe("validateReceipt", () => {
   it("never accepts a signed-in receipt as anonymous proof", () => {
     expect(validateReceipt(receipt({
       phaseB: { ran: true, route: "operator_url", versions: [1], archived: true },
+    }))).toBe(false);
+  });
+});
+
+describe("validateSignedInReceipt", () => {
+  const completePhaseB = {
+    ran: true,
+    route: "operator_url",
+    versions: [
+      { version: 1, previousVersion: null },
+      { version: 2, previousVersion: 1 },
+      { version: 3, previousVersion: 2 },
+    ],
+    archived: true,
+  };
+
+  it("accepts only the complete operator journey with Phase B's own error count", () => {
+    expect(validateSignedInReceipt(receipt({ phaseB: completePhaseB }))).toBe(true);
+  });
+
+  it("rejects an unarchived journey, broken lineage, and a browser error", () => {
+    expect(validateSignedInReceipt(receipt({
+      phaseB: { ...completePhaseB, archived: false },
+    }))).toBe(false);
+    expect(validateSignedInReceipt(receipt({
+      phaseB: { ...completePhaseB, versions: completePhaseB.versions.slice(0, 2) },
+    }))).toBe(false);
+    expect(validateSignedInReceipt(receipt({
+      phaseB: completePhaseB,
+      browserErrorCount: 1,
     }))).toBe(false);
   });
 });
