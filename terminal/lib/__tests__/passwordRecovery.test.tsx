@@ -25,7 +25,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 import StepAccount from "@/components/onboarding/StepAccount";
-import ResetPasswordPage from "@/app/reset-password/page";
+import ResetPasswordClient from "@/app/reset-password/ResetPasswordClient";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -146,7 +146,7 @@ describe("reset-password page", () => {
 
     await act(async () => {
       root = createRoot(container);
-      root.render(React.createElement(ResetPasswordPage));
+      root.render(React.createElement(ResetPasswordClient, { recoveryAllowed: true }));
       await Promise.resolve();
     });
     await act(async () => { await Promise.resolve(); });
@@ -172,12 +172,27 @@ describe("reset-password page", () => {
     expect(nav.refresh).toHaveBeenCalledTimes(1);
   });
 
+  it("a normal signed-in session cannot bypass the recovery marker", async () => {
+    auth.getUser.mockResolvedValue({ data: { user: { id: "user-1" } }, error: null });
+
+    await act(async () => {
+      root = createRoot(container);
+      root.render(React.createElement(ResetPasswordClient, { recoveryAllowed: false }));
+      await Promise.resolve();
+    });
+
+    expect(container.textContent).toContain("This reset link is invalid or expired.");
+    expect(container.querySelectorAll('input[type="password"]')).toHaveLength(0);
+    expect(auth.getUser).not.toHaveBeenCalled();
+    expect(auth.updateUser).not.toHaveBeenCalled();
+  });
+
   it("fails closed when there is no recovery session", async () => {
     auth.getUser.mockResolvedValue({ data: { user: null }, error: { message: "Auth session missing" } });
 
     await act(async () => {
       root = createRoot(container);
-      root.render(React.createElement(ResetPasswordPage));
+      root.render(React.createElement(ResetPasswordClient, { recoveryAllowed: true }));
       await Promise.resolve();
     });
     await act(async () => { await Promise.resolve(); });
