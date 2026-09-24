@@ -63,8 +63,9 @@ describe("PrecisionEntryStrip", () => {
     expect(html).toContain("T3 · ≈ 1.4 bars · Provisional");
     expect(html).toContain("72/100");
     expect(html).toContain("Bottom confidence · durability, not return");
-    expect(html).toContain("Higher-TF confirm");
-    expect(html).toContain("2W washout");
+    expect(html).toContain("Higher-TF support");
+    expect(html).toContain("2W washout ctx");
+    expect(html).toContain("Context only · not a buy signal");
     expect(html).toContain("Coiled");
     expect(html).not.toContain("Precision score");
   });
