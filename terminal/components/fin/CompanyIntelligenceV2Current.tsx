@@ -514,7 +514,7 @@ export default function CompanyIntelligenceV2Current({
       label: pick(zh, "Issuer disclosure", "发行人披露"),
       displayStatus: sourceCoverageStatus(v2IssuerSource, zh),
       detail: v2IssuerSource
-        ? pick(zh, "Issuer filing or release material tracked by the event workspace.", "事件工作区追踪的发行人申报或发布材料。")
+        ? pick(zh, "Issuer filing or release material tracked by the event workspace.", "事件工作区追踪的发行人披露或发布材料。")
         : pick(zh, "No issuer disclosure source is carried by the selected event.", "当前事件未携带发行人披露来源。"),
       tone: sourceCoverageTone(v2IssuerSource),
     },
