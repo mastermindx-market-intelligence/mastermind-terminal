@@ -19,7 +19,7 @@ layoutFiles:
   terminal/components/settings/SectionAccuracy.tsx: "c15b4a28962cf39ba7783c1bc71647a5677ddb4c957e9b70da3ab44a0b36327d"
   terminal/components/settings/SectionAccuracy.module.css: "461d6510094319f0dfcffff7a99aa4dd3cd3440f66445f9489613dc56775bf03"
   terminal/components/settings/SettingsPanel.tsx: "956aeac1636ae4891b1009c8e266840244c19da085ba52e77c78171317c4ffaf"
-  terminal/lib/i18n.tsx: "c21e5974e091e4c9d8dd06c5efb2834363120f69a96aebf9476dc85f51fc10e7"
+  terminal/lib/i18n.tsx: "5343489dc1f0a711b1c87584c428fc141e037d35789058232c63dc4f1125c080"
   terminal/lib/personalAccuracyStore.ts: "9d7911a2ed8a307335a8244659ad1f981c5b4268f4bfbdb173eaa0d54cb2f3c5"
   terminal/lib/teamRollup.ts: "80123be06c55db182aeeead19ea6ce737f517268887a4b1dfff71cac02f28b4d"
   terminal/lib/__tests__/teamRollup.test.ts: "d99fc2ed65b1f3b243f1ef87e16a25512f53ab2565995b9089674fdb3ce2c50c"

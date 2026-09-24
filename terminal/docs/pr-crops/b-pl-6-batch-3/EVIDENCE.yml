@@ -26,7 +26,7 @@ layoutFiles:
   terminal/lib/heatmapStrings.ts: "201e49991d2b47daaa3e5b490352c61137e020868855959087d67af82e5f346d"
   terminal/lib/flowdeskStrings.ts: "18bd244dee82bdc01c865ec8fd3cf5a95fa258d1fd175f2001dbf3dcfb9e9888"
   terminal/lib/plainLabels.ts: "711f94db978d842b8051e9a975ef772308dab45ba08b3f1859537b5747d372d1"
-  terminal/lib/i18n.tsx: "c21e5974e091e4c9d8dd06c5efb2834363120f69a96aebf9476dc85f51fc10e7"
+  terminal/lib/i18n.tsx: "5343489dc1f0a711b1c87584c428fc141e037d35789058232c63dc4f1125c080"
   terminal/components/PineEditor.tsx: "e48a009b44f32f9501d2890602cd5096257ad57b83bac59147d691e221a69f63"
 theme: dark
 languages: [en, zh]

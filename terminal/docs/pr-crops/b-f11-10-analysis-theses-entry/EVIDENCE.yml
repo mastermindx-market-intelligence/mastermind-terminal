@@ -1,8 +1,8 @@
 # B-F11-10a Analysis context-bar theses entry — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 6b708b057382618587d74d7421b98967d447d48d
-# capturedAt: 2026-09-24T15:46:49.808Z
+# capturedAtHead: 933149b39b0d50fddfa98641da84e8997f118a39
+# capturedAt: 2026-09-24T17:26:37.283Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/components/workspaces/AnalysisWorkspace.tsx: "033686b154d3e0922e93bbf637354c84ace8b53ce2291e37548523527d588ff5"
@@ -12,10 +12,13 @@ theme: dark
 languages: [en, zh]
 viewports:
   - { name: desktop, width: 1440, height: 900 }
+  - { name: tablet, width: 820, height: 1180 }
   - { name: mobile, width: 390, height: 844 }
 harness:
   desktop-en.png: { url: "/analysis?symbol=NVDA&lang=en", state: context-bar-with-theses-control }
   desktop-zh.png: { url: "/analysis?symbol=NVDA&lang=zh", state: context-bar-with-theses-control }
+  tablet-en.png: { url: "/analysis?symbol=NVDA&lang=en", state: context-bar-with-theses-control }
+  tablet-zh.png: { url: "/analysis?symbol=NVDA&lang=zh", state: context-bar-with-theses-control }
   mobile-en.png: { url: "/analysis?symbol=NVDA&lang=en", state: context-bar-with-theses-control }
   mobile-zh.png: { url: "/analysis?symbol=NVDA&lang=zh", state: context-bar-with-theses-control }
 capture_flag: TERMINAL_E2E_FIXTURE
@@ -26,5 +29,7 @@ command: |
 files:
   - desktop-en.png
   - desktop-zh.png
+  - tablet-en.png
+  - tablet-zh.png
   - mobile-en.png
   - mobile-zh.png

@@ -2,7 +2,7 @@
 # B-F12-8 Team roles v1 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 5db7045375d6d724b3ce873a28f0ec484a048353
+# capturedAtHead: 3db34e7a8e8eca4bef1ca12eba90daab6cc0c10c
 # capturedAt: 2026-09-13T00:00:00.000Z
 # capturedAtHead is informational. The lock is layoutFiles (hash-only).
 # 2026-09-13 MO-B F12-13 C1 (packet MO-PAID-083): SectionTeam.tsx + SectionTeam.module.css re-hashed —
@@ -30,7 +30,6 @@
 # 2026-09-19 seat merge of origin/master 5a48b845 (13 commits incl. #587 B-F13-9 team rollup, merge commit) into #586 (W9T/B-F08-13 targets readout): hash-only restamp to the merged working-tree bytes; crops NOT recaptured. Files: terminal/components/settings/SettingsPanel.tsx, terminal/components/settings/icons.tsx, terminal/lib/i18n.tsx
 # 2026-09-19 seat merge of origin/master 4c7a2eeb6f58 (#587 B-F13-9 team rollup + #659 + #660, merge commit) into #588 (B-F12-17 invite-link honesty): hash-only restamp of terminal/components/settings/SectionTeam.tsx, terminal/components/settings/SectionTeam.module.css, terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
 # 2026-09-19 seat merge of origin/master dafc016e (#588 B-F12-17 invite-link honesty, #664, #666) into #586 (W9T/B-F08-13 targets readout): hash-only restamp to the merged working-tree bytes; crops NOT recaptured. Files: terminal/components/settings/SettingsPanel.tsx, terminal/components/settings/icons.tsx, terminal/lib/i18n.tsx
-# 2026-09-24 PR #742 merge refresh: i18n.tsx re-hashed and capturedAtHead updated for the Analysis context-bar theses lexicon keys; these packet surfaces do not render those keys and their crops remain representative, so no recapture.
 layoutFiles:
   terminal/components/settings/SectionTeam.tsx: "00f61441215f0cdb8c6b40536e66e243d0ae83ffa54d6f19ae8a67dd99d7a79d"
   terminal/components/settings/SectionTeam.module.css: "069056ff7ac4274a57ae9a835a0fdda178e9625a591b4374e855b9d41a3fd5bc"

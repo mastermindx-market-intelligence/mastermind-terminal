@@ -18,7 +18,7 @@ layoutFiles:
   terminal/components/settings/SectionAlertDelivery.tsx: "9c770be9ef78bc2bb9f1fa3c0b21824632ba63bc061f852264e3bc412d719aa0"
   terminal/components/settings/SettingsPanel.tsx: "956aeac1636ae4891b1009c8e266840244c19da085ba52e77c78171317c4ffaf"
   terminal/components/settings/icons.tsx: "7f3e17e45cb92545437ade898fe47a92cf6a65d1682cec9b9cea7a5bb8bd4d83"
-  terminal/lib/i18n.tsx: "c21e5974e091e4c9d8dd06c5efb2834363120f69a96aebf9476dc85f51fc10e7"
+  terminal/lib/i18n.tsx: "5343489dc1f0a711b1c87584c428fc141e037d35789058232c63dc4f1125c080"
   terminal/lib/plainLabels.ts: "711f94db978d842b8051e9a975ef772308dab45ba08b3f1859537b5747d372d1"
   terminal/app/settings.css: "3189163136d943431cbf52e4b5d241c105b695ba5af94c4c2e29151d537b5ef5"
   terminal/components/settings/SettingsProvider.tsx: "a4c829c956ca7ffd89bbc3158009b1148bb613569a9716b092dd9a27d449d910"

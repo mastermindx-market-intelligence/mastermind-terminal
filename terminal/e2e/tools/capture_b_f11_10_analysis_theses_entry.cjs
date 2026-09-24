@@ -35,11 +35,14 @@ const BASE = `http://127.0.0.1:${PORT}`;
 const SYM = "NVDA";
 const VIEWPORTS = {
   desktop: { width: 1440, height: 900 },
+  tablet: { width: 820, height: 1180 },
   mobile: { width: 390, height: 844 },
 };
 const SHOTS = [
   { viewport: "desktop", lang: "en", file: "desktop-en.png" },
   { viewport: "desktop", lang: "zh", file: "desktop-zh.png" },
+  { viewport: "tablet", lang: "en", file: "tablet-en.png" },
+  { viewport: "tablet", lang: "zh", file: "tablet-zh.png" },
   { viewport: "mobile", lang: "en", file: "mobile-en.png" },
   { viewport: "mobile", lang: "zh", file: "mobile-zh.png" },
 ];
@@ -210,6 +213,7 @@ async function main() {
     "languages: [en, zh]",
     "viewports:",
     "  - { name: desktop, width: 1440, height: 900 }",
+    "  - { name: tablet, width: 820, height: 1180 }",
     "  - { name: mobile, width: 390, height: 844 }",
     "harness:",
     ...SHOTS.map((s) => `  ${s.file}: { url: "/analysis?symbol=${SYM}&lang=${s.lang}", state: context-bar-with-theses-control }`),

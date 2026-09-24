@@ -17,7 +17,7 @@
 layoutFiles:
   terminal/components/LayoutMenu.tsx: "235bf33a22dc3b4d7d9b143f0ecf19818863b4352e9a7df3d0a787634d73116b"
   terminal/lib/teamSharedWorkflow.ts: "1604fbf4eb28e119211a55acb1f70278339876d30e56ff3cda0cad1de68312df"
-  terminal/lib/i18n.tsx: "c21e5974e091e4c9d8dd06c5efb2834363120f69a96aebf9476dc85f51fc10e7"
+  terminal/lib/i18n.tsx: "5343489dc1f0a711b1c87584c428fc141e037d35789058232c63dc4f1125c080"
   terminal/app/dev/workspaces/page.tsx: "320f7983a913e212249dbfc65a18c1807f1fca9f6de9305f595a855ad4b9f1b5"
 theme: dark
 languages: [en, zh]
