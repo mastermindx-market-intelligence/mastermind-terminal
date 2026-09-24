@@ -1,0 +1,41 @@
+{
+  "capturedAt": "2026-09-24T14:10:25.377Z",
+  "base": "https://app.mastermind-x.com",
+  "expectedRelease": "[REDACTED]",
+  "phaseA": [
+    {
+      "case": "GET /analysis?symbol=<SYM>",
+      "status": 200,
+      "ok": true,
+      "heading": "Sign up to open the Analysis desk"
+    },
+    {
+      "case": "GET /analysis?view=theses",
+      "status": 200,
+      "ok": true,
+      "heading": "Sign up to open the Analysis desk"
+    },
+    {
+      "case": "GET /api/theses (anonymous)",
+      "status": 401,
+      "ok": true
+    },
+    {
+      "case": "POST /api/theses (anonymous create)",
+      "status": 401,
+      "ok": true
+    },
+    {
+      "case": "GET /api/thesis-saved-views (anonymous)",
+      "status": 401,
+      "ok": true
+    }
+  ],
+  "phaseB": {
+    "ran": false,
+    "route": "none",
+    "versions": [],
+    "archived": false
+  },
+  "browserErrors": []
+}
