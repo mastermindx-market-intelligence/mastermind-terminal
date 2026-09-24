@@ -77,7 +77,7 @@ export default function OwnershipPage({ sym }: OwnershipPageProps) {
           <p>{pick(
             zh,
             "Point-in-time public filings from the tracked manager roster · not total ownership",
-            "追踪管理人名册的时点公开申报 · 并非总持股",
+            "追踪管理人名册的时点公开披露 · 并非总持股",
           )}</p>
         </div>
         <div className="ci-inst-card ci-inst-loading" aria-hidden>
@@ -96,7 +96,7 @@ export default function OwnershipPage({ sym }: OwnershipPageProps) {
           <p>{pick(
             zh,
             "Point-in-time public filings from the tracked manager roster · not total ownership",
-            "追踪管理人名册的时点公开申报 · 并非总持股",
+            "追踪管理人名册的时点公开披露 · 并非总持股",
           )}</p>
         </div>
         <div className="fin-empty fin-empty-lg" role="status">
@@ -124,7 +124,7 @@ export default function OwnershipPage({ sym }: OwnershipPageProps) {
           <p>{pick(
             zh,
             "Point-in-time public filings from the tracked manager roster · not total ownership",
-            "追踪管理人名册的时点公开申报 · 并非总持股",
+            "追踪管理人名册的时点公开披露 · 并非总持股",
           )}</p>
         </div>
         <div className="fin-empty fin-empty-lg" role="status">

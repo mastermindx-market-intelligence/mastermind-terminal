@@ -1209,7 +1209,8 @@ test("Ownership Institutional page remains truthful and usable in Chinese on mob
   await expect(ownership).toContainText("追踪机构持仓");
   await expect(ownership).toContainText("并非总持股");
   await expect(ownership).toContainText("仅限该名册的 HHI");
-  await expect(ownership).toContainText("仅完整申报季度可断言方向");
+  await expect(ownership).toContainText("对齐历史");
+  await expect(ownership).toContainText("持续积累");
   await expectNoDocumentOverflow(page);
 });
 
