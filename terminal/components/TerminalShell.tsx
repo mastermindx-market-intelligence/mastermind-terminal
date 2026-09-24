@@ -172,7 +172,7 @@ import {
 } from "@/lib/watchlistSettings";
 import { resolveRegularSessionDisplay } from "@/lib/quoteDisplay";
 import { useAdaptiveToolbar } from "@/lib/useAdaptiveToolbar";
-import { buildPrecisionPlan, detectPrecisionHorizon, precisionLayoutState } from "@/lib/precisionEntry";
+import { buildPrecisionPlan, detectPrecisionHorizon, PRECISION_HORIZONS, precisionLayoutState, type PrecisionHorizon } from "@/lib/precisionEntry";
 import PrecisionEntryStrip, { PRECISION_ENTRY_STRIP_HEIGHT } from "@/components/PrecisionEntryStrip";
 import {
   copyWatchlistSelection,
@@ -2967,6 +2967,10 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
   const activePrecisionPlan = precisionHorizon
     ? buildPrecisionPlan({ horizon: precisionHorizon, functional: FUNCTIONAL })
     : precisionPlan;
+  const precisionHorizonOptions = PRECISION_HORIZONS.map((horizon) => {
+    const plan = buildPrecisionPlan({ horizon, functional: FUNCTIONAL });
+    return { horizon, ready: precisionLayoutState(active, plan) !== null };
+  });
   const precisionUnavailable = !isMtf && precisionLayout === null;
   const precisionMtfTip = lang === "zh"
     ? "精确多周期 — 根据当前图表周期选择四个时间层级"
@@ -2977,6 +2981,15 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
   // paneSync only mirrors same-timeframe peers, and the single replay slider assumes one bar count: with
   // heterogeneous per-pane timeframes both are incoherent, so we disable Sync + replay in that case.
   const mixedTfs = panes.length > 1 && new Set(paneTfs.slice(0, panes.length)).size > 1;
+  function applyPrecisionHorizon(horizon: PrecisionHorizon) {
+    const plan = buildPrecisionPlan({ horizon, functional: FUNCTIONAL });
+    const layout = precisionLayoutState(active, plan);
+    if (!layout) return;
+    setSplit(layout.split);
+    setPanes(layout.panes);
+    setPaneTfs(layout.paneTfs);
+    setActivePane(layout.activePane);
+  }
   function mtfLayout() {
     if (isMtf) { setSplit(1); setPanes([active]); setPaneTfs([tf]); setActivePane(0); return; }
     if (!precisionLayout) return;
@@ -5470,7 +5483,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
               style={isMtf ? { position: "relative", paddingTop: PRECISION_ENTRY_STRIP_HEIGHT } : undefined}
             >
               {isMtf && (
-                <PrecisionEntryStrip plan={activePrecisionPlan} intel={intel} lang={lang} />
+                <PrecisionEntryStrip plan={activePrecisionPlan} intel={intel} lang={lang} horizonOptions={precisionHorizonOptions} onHorizonChange={applyPrecisionHorizon} />
               )}
               {panes.map((sym, i) => (
                 <ChartPane key={i} idx={i} symbol={sym} drawingOwnerKey={currentDrawingOwnerKey} isActive={i === activePane} onActivate={setActivePane} row={paneRows[i]} tf={paneTfs[i] ?? "D"} chartType={chartType} inds={inds} tool={drawingsReadyFor(sym) ? activeDrawingTool : null} toolActivation={toolState.activation} drawingSticky={drawingCreationDisabledReason ? false : drawingKeepsActive} drawingCreationDisabled={drawingCreationDisabledReason !== null} drawStyle={drawStyle} detectCmd={detectCmd} compare={compare} compareCfg={compareCfg} magnet={magnet} replayIdx={replayOn ? replayIdx : null} onMeta={(mm) => setTotal(mm.total)} drawings={[...(drawingOwnerMatches ? (drawStore[sym] ?? []) : []), ...chartBus.aiDrawingsFor(sym)]} drawingsVisible={drawingsVisible} onDrawingsChange={(d) => setSymbolDrawings(sym, d)} onDetectedDrawingCount={i === activePane ? setActivePaneDetectedDrawingCount : undefined} liveQuote={quotes[sym] ?? null} dataReady={prefsHydrated} initialTimeframe={startTfRef.current} indParams={indParams} hidden={hidden} onToggleHidden={toggleHidden} onRemoveInd={removeInd} onOpenSettings={openSettings} onOpenSource={openSource} pineScripts={pineScripts} dayMode={dtm} userTier={userTier}
