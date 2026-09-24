@@ -5498,7 +5498,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
                   lockedVLine={lockedVLine}
                   onSetLockedVLine={(t2) => setLockedVLine(t2)}
                   onIndRowsAt={i === activePane ? (fn, meta) => { setIndRowsAt(() => fn); if (meta) setChartReadoutMeta(meta); } : undefined}
-                  hostDisplay={isPhone && isMtf ? (i === activePane ? "block" : "none") : undefined} onPaneCount={i === 0 ? onPaneCount : undefined}
+                  hostDisplay={isPhone && isMtf ? (i === activePane ? "flex" : "none") : undefined} onPaneCount={i === 0 ? onPaneCount : undefined}
                 />
               ))}
             </div>
