@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* eslint-disable @typescript-eslint/no-require-imports -- This capture tool is intentionally CommonJS. */
 /**
  * B-F11-10a Analysis context-bar theses entry — dark evidence crops.
  *
@@ -16,7 +17,7 @@
 "use strict";
 
 const { spawn, execFileSync } = require("node:child_process");
-const { createHash, randomUUID } = require("node:crypto");
+const { createHash } = require("node:crypto");
 const { mkdirSync, readFileSync, writeFileSync } = require("node:fs");
 const { join } = require("node:path");
 const { chromium } = require("@playwright/test");

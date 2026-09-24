@@ -1,0 +1,30 @@
+# B-F11-10a Analysis context-bar theses entry — capture evidence
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
+# capturedAtHead: e0a87c883f5e67d1b55f0085bff944d24171acd3
+# capturedAt: 2026-09-24T15:09:16.477Z
+# capturedAtHead is informational. The lock is layoutFiles.
+layoutFiles:
+  terminal/components/workspaces/AnalysisWorkspace.tsx: "033686b154d3e0922e93bbf637354c84ace8b53ce2291e37548523527d588ff5"
+  terminal/app/company-intelligence.css: "7db225b9600f5922bc8d2e1a00a9b0269074979250541ca009f27394b543ccf0"
+  terminal/lib/i18n.tsx: "5343489dc1f0a711b1c87584c428fc141e037d35789058232c63dc4f1125c080"
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: mobile, width: 390, height: 844 }
+harness:
+  desktop-en.png: { url: "/analysis?symbol=NVDA&lang=en", state: context-bar-with-theses-control }
+  desktop-zh.png: { url: "/analysis?symbol=NVDA&lang=zh", state: context-bar-with-theses-control }
+  mobile-en.png: { url: "/analysis?symbol=NVDA&lang=en", state: context-bar-with-theses-control }
+  mobile-zh.png: { url: "/analysis?symbol=NVDA&lang=zh", state: context-bar-with-theses-control }
+capture_flag: TERMINAL_E2E_FIXTURE
+capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.
+command: |
+  cd terminal
+  node e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs
+files:
+  - desktop-en.png
+  - desktop-zh.png
+  - mobile-en.png
+  - mobile-zh.png
