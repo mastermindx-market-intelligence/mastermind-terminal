@@ -312,7 +312,7 @@ export default function StatementsPage({ sym, fund, onOpenTx }: StatementsPagePr
           <article key={metric.id}>
             <div>
               <strong>{metric.label}</strong>
-              {metric.change != null ? <span className={metric.change >= 0 ? "up" : "down"}>{fmtPct(metric.change, { alreadyPct: true })} YoY</span> : null}
+              {metric.change != null ? <span className={metric.change >= 0 ? "up" : "down"}>{pick(zh, `${fmtPct(metric.change, { alreadyPct: true })} year over year`, `同比 ${fmtPct(metric.change, { alreadyPct: true })}`)}</span> : null}
             </div>
             <b className="num">{metric.value == null ? "—" : fmtNum(metric.value)}</b>
             <small>{metric.detail}</small>
