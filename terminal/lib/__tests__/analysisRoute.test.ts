@@ -68,7 +68,7 @@ describe("the closed /analysis route vocabulary", () => {
     for (const symbol of ["^GSPC", "BRK.B"]) {
       const controlHref = `/analysis?view=theses&symbol=${encodeURIComponent(symbol)}`;
       const params = new URLSearchParams(controlHref.split("?")[1]);
-      expect(decodeURIComponent(params.get("symbol") ?? "")).toBe(symbol);
+      expect(params.get("symbol")).toBe(symbol); // URLSearchParams.get already decodes
       expect(parseAnalysisSearchParams(params)).toEqual({ kind: "theses", symbol });
     }
   });

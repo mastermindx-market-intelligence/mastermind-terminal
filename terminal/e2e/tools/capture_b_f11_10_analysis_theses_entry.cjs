@@ -148,7 +148,7 @@ async function openAnalysis(page, lang, viewport) {
     timeout: 90_000,
   });
   // Wait for the context bar and the theses control to be visible.
-  await page.getByLabel(lang === "zh" ? "打开你对 NVDA 的研究论点" : "Open your theses on NVDA")
+  await page.getByLabel(lang === "zh" ? "你的研究论点：NVDA" : "Your theses on NVDA")
     .waitFor({ state: "visible", timeout: 45_000 });
   await stripDevOverlay(page);
 }
@@ -172,7 +172,7 @@ async function main() {
         process.stdout.write(`capture ${shot.file} … `);
         const context = await browser.newContext({
           viewport: VIEWPORTS[shot.viewport],
-          hasTouch: shot.viewport === "mobile",
+          hasTouch: shot.viewport !== "desktop", // tablet + mobile: pointer:coarse, so the 44px floor is what the crops show
           locale: shot.lang === "zh" ? "zh-CN" : "en-US",
           colorScheme: "dark",
         });

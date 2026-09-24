@@ -9,7 +9,7 @@ layoutFiles:
   terminal/components/settings/SectionAccuracy.module.css: "461d6510094319f0dfcffff7a99aa4dd3cd3440f66445f9489613dc56775bf03"
   terminal/components/settings/SettingsPanel.tsx: "956aeac1636ae4891b1009c8e266840244c19da085ba52e77c78171317c4ffaf"
   terminal/components/settings/types.ts: "65e846a39725a4dd6738dd746789e540e2b5433b669757356df4fce1d0a721fb"
-  terminal/lib/i18n.tsx: "c8b5a0764f268c4e9387670b00dd0f5de9f40efe527b48b07efcaf954fa4d139"
+  terminal/lib/i18n.tsx: "51276ecc8db6956c6c4e5cc67c55eab029c0b468ccb61e34f8bb92f25e42b9f8"
   terminal/lib/personalAccuracy.ts: "66f098c42b9b18269c6184fa06b644406398d09f54afc10f968234499ec16c2d"
   terminal/lib/personalAccuracyStore.ts: "9d7911a2ed8a307335a8244659ad1f981c5b4268f4bfbdb173eaa0d54cb2f3c5"
   terminal/app/dev/settings/page.tsx: "4b594ce879f00fdf1f096abde9a36113014b17257e6292dc0ca16c83efcd3660"

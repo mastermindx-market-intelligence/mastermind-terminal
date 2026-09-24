@@ -19,7 +19,7 @@ layoutFiles:
   terminal/components/settings/SectionSharing.tsx: "29fd9b355d50ecb3d3284b6d117b6ed50a461c7b7d45ea3d8588575fe5eca56a"
   terminal/components/settings/SettingsPanel.tsx: "956aeac1636ae4891b1009c8e266840244c19da085ba52e77c78171317c4ffaf"
   terminal/app/settings.css: "3189163136d943431cbf52e4b5d241c105b695ba5af94c4c2e29151d537b5ef5"
-  terminal/lib/i18n.tsx: "c8b5a0764f268c4e9387670b00dd0f5de9f40efe527b48b07efcaf954fa4d139"
+  terminal/lib/i18n.tsx: "51276ecc8db6956c6c4e5cc67c55eab029c0b468ccb61e34f8bb92f25e42b9f8"
 theme: dark
 languages: [en, zh]
 viewports:

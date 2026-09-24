@@ -2669,7 +2669,7 @@ export const LEX: Record<string, [string, string]> = {
   // ---- B-PL-6 batch 1: shell, error, analysis, options hub ----
   errShellBody: ["An unexpected error occurred in the application.", "应用发生了意外错误。"],
   wsOpenTheses: ["Your theses", "你的研究论点"],
-  wsOpenThesesFor: ["Open your theses on {sym}", "打开你对 {sym} 的研究论点"],
+  wsOpenThesesFor: ["Your theses on {sym}", "你的研究论点：{sym}"],
   wsCompanyResearch: ["Company research", "公司研究"],
   wsUnresolvedSymbol: ["This symbol is not recognized", "无法识别该代码"],
   wsResearchNotOpened: ["This company research page was not opened", "无法打开该公司研究页"],

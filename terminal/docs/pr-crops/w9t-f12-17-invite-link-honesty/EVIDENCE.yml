@@ -9,7 +9,7 @@ capturedAt: 2026-09-24T16:23:50.597Z
 layoutFiles:
   terminal/components/settings/SectionTeam.tsx: "00f61441215f0cdb8c6b40536e66e243d0ae83ffa54d6f19ae8a67dd99d7a79d"
   terminal/components/settings/SectionTeam.module.css: "069056ff7ac4274a57ae9a835a0fdda178e9625a591b4374e855b9d41a3fd5bc"
-  terminal/lib/i18n.tsx: "c8b5a0764f268c4e9387670b00dd0f5de9f40efe527b48b07efcaf954fa4d139"
+  terminal/lib/i18n.tsx: "51276ecc8db6956c6c4e5cc67c55eab029c0b468ccb61e34f8bb92f25e42b9f8"
   terminal/lib/teams.ts: "e518afe4bc58b5f82638539f03b3063dc7ef35905c2807601eca9c71ac55e5b3"
   terminal/app/api/teams/invitations/route.ts: "d1daea2a77249e0b5246d5c1d6a3f0b40acecc1b5e1d1f3bfff51a4c2dba1618"
   terminal/app/invite/page.tsx: "1e9e766f3551978a9e0e7f4f4fdace0db07fbd4661e45426576d180d8db94716"
