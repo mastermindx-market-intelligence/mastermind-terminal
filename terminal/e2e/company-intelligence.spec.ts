@@ -1145,6 +1145,74 @@ test("AAPL v1 score overlay cannot populate current Brief, Results, or Sources",
   await expect(page.locator("#ci-panel-sources")).not.toContainText(/score overlay/i);
 });
 
+test("Ownership Institutional page uses the verified 13F owner without claiming total ownership", async ({ page }, testInfo) => {
+  await page.route("**/api/company-intelligence/NVDA**", async (route) => {
+    await route.fulfill({ json: { ok: true, state: "ready", context: contextFixture() } });
+  });
+
+  await page.goto("/analysis?symbol=NVDA&page=ownership");
+  await expect(page.locator(".sym-pick strong")).toHaveText("NVDA", { timeout: 45_000 });
+
+  const ownership = page.locator("[data-ownership-page]");
+  await expect(ownership).toBeVisible({ timeout: 15_000 });
+  await expect(ownership).toHaveAttribute("data-ownership-company-generation", "aaaaaaaaaaaaaaaaaaaaaaaa");
+  await expect(ownership).toHaveAttribute("data-ownership-event-id", "cie_d8488221fd8c710c53d6537d");
+  await expect(ownership).toContainText("OWNERSHIP · INSTITUTIONAL");
+  await expect(ownership).toContainText("Tracked institutional positioning");
+  await expect(ownership).toContainText("This is not total ownership, not a company rank, and not a trading signal.");
+  await expect(ownership).toContainText("does not estimate total ownership, rank the company, or issue a signal.");
+
+  const compact = page.viewportSize()!.width <= 860;
+  if (compact) {
+    await expect(page.locator(".fin-family-mobile-trigger")).toContainText("Ownership");
+    await expect(page.locator(".fin-local-mobile-tab.on")).toHaveText("Institutional");
+  } else {
+    await expect(page.locator('[data-fin-family="ownership"]')).toHaveAttribute("aria-selected", "true");
+    await expect(page.locator('[data-fin-local="ownership"]')).toHaveAttribute("aria-selected", "true");
+    await expect(page.locator('[data-fin-local="insider"]')).toContainText("Insider");
+  }
+
+  const card = ownership.locator(".ci-inst-card");
+  await expect(page.getByRole("heading", { name: "3 tracked managers reported a position" })).toBeVisible();
+  await expect(card).toContainText("Reporting set");
+  await expect(card).toContainText("3/3");
+  await expect(card).toContainText("Current holders");
+  await expect(card).toContainText("$28M");
+  await expect(card).toContainText("0.347");
+  await expect(card).toContainText("HHI within this roster");
+  await expect(card).toContainText("Alpha Capital");
+  await expect(card).toContainText("Gamma Investments");
+  await expect(card).toContainText("Beta Partners");
+  await expect(card).toContainText("Added");
+  await expect(card).toContainText("Held");
+  await expect(card).toContainText("Trimmed");
+  await expect(card).toContainText("Accumulating");
+  await expect(card).toContainText("Only fully reported quarters can assert direction");
+  await expect(card).toContainText("2026-05-15");
+  await expectNoDocumentOverflow(page);
+  await page.screenshot({ path: testInfo.outputPath(`${testInfo.project.name}-ownership-institutional.png`), fullPage: false });
+});
+
+test("Ownership Institutional page remains truthful and usable in Chinese on mobile", async ({ page }, testInfo) => {
+  test.skip(!testInfo.project.name.endsWith("mobile"), "one mobile bilingual ownership contract is sufficient");
+  await page.addInitScript(() => window.localStorage.setItem("mm.lang", "zh"));
+  await page.route("**/api/company-intelligence/NVDA**", async (route) => {
+    await route.fulfill({ json: { ok: true, state: "ready", context: contextFixture() } });
+  });
+
+  await page.goto("/analysis?symbol=NVDA&page=ownership");
+  const ownership = page.locator("[data-ownership-page]");
+  await expect(ownership).toBeVisible({ timeout: 15_000 });
+  await expect(page.locator(".fin-family-mobile-trigger")).toContainText("持仓");
+  await expect(page.locator(".fin-local-mobile-tab.on")).toHaveText("机构");
+  await expect(ownership).toContainText("持仓 · 机构");
+  await expect(ownership).toContainText("追踪机构持仓");
+  await expect(ownership).toContainText("并非总持股");
+  await expect(ownership).toContainText("仅限该名册的 HHI");
+  await expect(ownership).toContainText("仅完整申报季度可断言方向");
+  await expectNoDocumentOverflow(page);
+});
+
 function alignTranscriptRevisionSha<T extends { workspace: Record<string, unknown> }>(payload: T, sha: string): T {
   const next = structuredClone(payload);
   for (const source of next.workspace.sources as Array<Record<string, unknown>>) {
