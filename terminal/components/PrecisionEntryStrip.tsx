@@ -19,6 +19,8 @@ export interface PrecisionEntryStripProps {
   lang: Lang;
   horizonOptions?: readonly PrecisionHorizonOption[];
   onHorizonChange?: (horizon: PrecisionHorizon) => void;
+  activeRole?: PrecisionPaneRole | null;
+  onRoleChange?: (role: PrecisionPaneRole) => void;
 }
 
 const ROLE_COPY: Record<PrecisionPaneRole, [string, string]> = {
@@ -77,7 +79,7 @@ function compactExecutionMeta(
   return parts.length ? parts.join(" · ") : pick(lang, entry.action, entry.actionZh);
 }
 
-export default function PrecisionEntryStrip({ plan, intel, lang, horizonOptions, onHorizonChange }: PrecisionEntryStripProps) {
+export default function PrecisionEntryStrip({ plan, intel, lang, horizonOptions, onHorizonChange, activeRole, onRoleChange }: PrecisionEntryStripProps) {
   const read = readPrecisionIntel(intel);
   const entry = read?.entry ?? null;
   const confluence = read?.confluence ?? null;
@@ -177,18 +179,28 @@ export default function PrecisionEntryStrip({ plan, intel, lang, horizonOptions,
       </div>
 
       <div className={styles.cells}>
-        {plan.panes.map((pane) => (
-          <div className={styles.cell} data-role={pane.role} key={pane.role}>
-            <div className={styles.cellHead}>
-              <span>{ROLE_COPY[pane.role][lang === "zh" ? 1 : 0]}</span>
-              <b>{pane.tf}</b>
-            </div>
-            <div className={styles.value} title={valueByRole[pane.role]}>{valueByRole[pane.role]}</div>
-            {metaByRole[pane.role] && (
-              <div className={styles.meta} title={metaByRole[pane.role] || undefined}>{metaByRole[pane.role]}</div>
-            )}
-          </div>
-        ))}
+        {plan.panes.map((pane) => {
+          const active = pane.role === activeRole;
+          return (
+            <button
+              type="button"
+              className={`${styles.cell}${active ? ` ${styles.cellActive}` : ""}`}
+              data-role={pane.role}
+              key={pane.role}
+              aria-pressed={onRoleChange ? active : undefined}
+              onClick={() => onRoleChange?.(pane.role)}
+            >
+              <div className={styles.cellHead}>
+                <span>{ROLE_COPY[pane.role][lang === "zh" ? 1 : 0]}</span>
+                <b>{pane.tf}</b>
+              </div>
+              <div className={styles.value} title={valueByRole[pane.role]}>{valueByRole[pane.role]}</div>
+              {metaByRole[pane.role] && (
+                <div className={styles.meta} title={metaByRole[pane.role] || undefined}>{metaByRole[pane.role]}</div>
+              )}
+            </button>
+          );
+        })}
       </div>
     </section>
   );
