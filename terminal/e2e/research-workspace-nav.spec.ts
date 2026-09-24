@@ -1,4 +1,30 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
+
+function marketBarsFixture() {
+  const bars: [string, number, number, number, number, number][] = [];
+  let close = 100;
+  for (let year = 2020; year <= 2026; year++) {
+    const monthCount = year === 2026 ? 6 : 12;
+    for (let month = 1; month <= monthCount; month++) {
+      for (const day of [5, 12, 19, 26]) {
+        const seasonal = Math.sin((month / 12) * Math.PI * 2) * 0.004;
+        const drift = 0.0045 + seasonal + ((year - 2020) * 0.00008);
+        const open = close;
+        close = close * (1 + drift);
+        const high = Math.max(open, close) * 1.012;
+        const low = Math.min(open, close) * 0.988;
+        const date = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+        bars.push([date, open, high, low, close, 1_000_000 + bars.length * 2_500]);
+      }
+    }
+  }
+  return { bars };
+}
+
+async function installMarketBars(page: Page) {
+  const fixture = marketBarsFixture();
+  await page.route("**/data/NVDA.json**", async (route) => route.fulfill({ json: fixture }));
+}
 
 /**
  * Research Workspace navigation vNext keeps the existing FinPage URL/deep-link
@@ -44,6 +70,70 @@ test("family selection lands on the existing family default without a second rou
     await expect(page.locator('[data-fin-local="forecast"]')).toContainText("Analyst");
     await expect(page.locator('[data-fin-local="transcripts"]')).toContainText("Transcripts");
   }
+
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  expect(overflow).toBeLessThanOrEqual(1);
+});
+
+
+test("Market vNext projects canonical technicals, pivots and five-year seasonality", async ({ page }) => {
+  await installMarketBars(page);
+  await page.goto("/analysis?symbol=NVDA&page=technicals");
+  await expect(page.locator(".sym-pick strong")).toHaveText("NVDA", { timeout: 45_000 });
+
+  const market = page.locator("[data-market-vnext]");
+  await expect(market).toBeVisible({ timeout: 45_000 });
+
+  const state = market.locator("[data-market-vnext-state]");
+  await expect(state).toContainText("MARKET TECHNICALS");
+  await expect(state).toContainText("Deterministic indicator state");
+  await expect(state).toContainText("RSI (14)");
+  await expect(state).toContainText("MACD (12, 26, 9)");
+  await expect(state).toContainText("vs SMA 20");
+  await expect(state).toContainText("vs SMA 50");
+  await expect(state).toContainText("vs SMA 200");
+
+  const rating = market.locator("[data-market-vnext-rating]");
+  await expect(rating).toContainText("TECHNICAL RATING");
+  await expect(rating).toContainText("Oscillators");
+  await expect(rating).toContainText("Moving Averages");
+  await expect(rating).toContainText("not a trade signal");
+
+  const pivots = market.locator("[data-market-vnext-pivots]");
+  await expect(pivots).toContainText("PIVOT MAP");
+  await expect(pivots).toContainText("R1");
+  await expect(pivots).toContainText("S1");
+  await expect(pivots).toContainText("Nearest support");
+  await expect(pivots).toContainText("Nearest resistance");
+  await expect(pivots).toContainText("not forecasts");
+
+  const seasonality = market.locator("[data-market-vnext-seasonality]");
+  await expect(seasonality).toContainText("SEASONALITY SNAPSHOT");
+  await expect(seasonality).toContainText("5 completed yearly observations");
+  await expect(seasonality).toContainText("JAN");
+  await expect(seasonality).toContainText("DEC");
+  await expect(seasonality).toContainText("Historical recurrence only");
+
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  expect(overflow).toBeLessThanOrEqual(1);
+});
+
+test("Market vNext remains bilingual and overflow-safe on mobile", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile", "one mobile bilingual Market contract is sufficient");
+  await page.addInitScript(() => window.localStorage.setItem("mm.lang", "zh"));
+  await installMarketBars(page);
+  await page.goto("/analysis?symbol=NVDA&page=technicals");
+
+  const market = page.locator("[data-market-vnext]");
+  await expect(market).toBeVisible({ timeout: 45_000 });
+  await expect(market).toContainText("市场技术面");
+  await expect(market).toContainText("技术评级");
+  await expect(market).toContainText("枢轴图");
+  await expect(market).toContainText("季节性快照");
+  await expect(market).toContainText("5 个完整年度观测");
+  await expect(market).toContainText("并非交易信号");
+  await expect(market).toContainText("而非预测");
+  await expect(market).toContainText("小样本不能预测下一步走势");
 
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflow).toBeLessThanOrEqual(1);
