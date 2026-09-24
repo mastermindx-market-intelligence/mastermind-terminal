@@ -19,7 +19,7 @@ layoutFiles:
   terminal/components/levels/LevelsLearn.tsx: "ca8923e68f511cb525db2bac1b41e9e1d93c3c1492cb345162085de1412cee05"
   terminal/components/ChartConductor.tsx: "6592289cd32f6e92f58c280507d3ed853533ba03364c8ced9bab6037f60cc1ad"
   terminal/lib/plainLabels.ts: "711f94db978d842b8051e9a975ef772308dab45ba08b3f1859537b5747d372d1"
-  terminal/lib/i18n.tsx: "5343489dc1f0a711b1c87584c428fc141e037d35789058232c63dc4f1125c080"
+  terminal/lib/i18n.tsx: "834aa429bb79699588277ffcdd7caaddcc990b82"
 theme: dark
 languages: [en, zh]
 viewports:
