@@ -17,16 +17,54 @@ export type ThesisDelta =
   | { kind: "revisionNoteChanged"; old: string | null; next: string | null }
   | { kind: "transitionChanged"; old: string; next: string };
 
-function sameArrayItems(a: string[], b: string[]): boolean {
-  if (a.length !== b.length) return false;
-  const sortedA = [...a].sort();
-  const sortedB = [...b].sort();
-  return sortedA.every((item, i) => item === sortedB[i]);
-}
-
 function arraysEqual(a: string[], b: string[]): boolean {
   if (a.length !== b.length) return false;
   return a.every((item, i) => item === b[i]);
+}
+
+/** Returns multiset-difference deltas for a list field (caller adds field). */
+function diffListField(
+  prevItems: string[],
+  nextItems: string[],
+): Array<{ kind: "listAdded"; items: string[] } | { kind: "listRemoved"; items: string[] } | { kind: "listReordered" }> {
+  if (arraysEqual(prevItems, nextItems)) return [];
+
+  // Build item counts (multiset)
+  const prevCounts = new Map<string, number>();
+  const nextCounts = new Map<string, number>();
+  for (const item of prevItems) prevCounts.set(item, (prevCounts.get(item) ?? 0) + 1);
+  for (const item of nextItems) nextCounts.set(item, (nextCounts.get(item) ?? 0) + 1);
+
+  // Check if same multiset (same items with same counts) → pure reorder
+  const sameMultiset = Array.from(prevCounts.keys()).every(
+    (item) => prevCounts.get(item) === nextCounts.get(item),
+  ) && Array.from(nextCounts.keys()).every(
+    (item) => prevCounts.get(item) === nextCounts.get(item),
+  );
+
+  if (sameMultiset) {
+    // Same items, different order
+    return [{ kind: "listReordered" as const }];
+  }
+
+  const deltas: Array<{ kind: "listAdded"; items: string[] } | { kind: "listRemoved"; items: string[] } | { kind: "listReordered" }> = [];
+  // Compute net added: items whose count increased (multiset diff)
+  const added: string[] = [];
+  for (const [item, count] of nextCounts) {
+    const diff = count - (prevCounts.get(item) ?? 0);
+    for (let i = 0; i < diff; i++) added.push(item);
+  }
+  if (added.length > 0) deltas.push({ kind: "listAdded", items: added });
+
+  // Compute net removed: items whose count decreased
+  const removed: string[] = [];
+  for (const [item, count] of prevCounts) {
+    const diff = count - (nextCounts.get(item) ?? 0);
+    for (let i = 0; i < diff; i++) removed.push(item);
+  }
+  if (removed.length > 0) deltas.push({ kind: "listRemoved", items: removed });
+
+  return deltas;
 }
 
 export function diffThesisVersions(
@@ -53,29 +91,8 @@ export function diffThesisVersions(
 
   // List fields: catalysts, falsifiers, risks
   for (const field of ["catalysts", "falsifiers", "risks"] as const) {
-    const prevItems = prevContent[field];
-    const nextItems = nextContent[field];
-
-    if (arraysEqual(prevItems, nextItems)) continue;
-
-    // Check if same items but different order (reordered)
-    const sameItems = sameArrayItems(prevItems, nextItems);
-    if (sameItems) {
-      deltas.push({ kind: "listReordered", field });
-      continue;
-    }
-
-    // Added items (in next but not in prev)
-    const added = nextItems.filter((item) => !prevItems.includes(item));
-    if (added.length > 0) {
-      deltas.push({ kind: "listAdded", field, items: added });
-    }
-
-    // Removed items (in prev but not in next)
-    const removed = prevItems.filter((item) => !nextItems.includes(item));
-    if (removed.length > 0) {
-      deltas.push({ kind: "listRemoved", field, items: removed });
-    }
+    const listDeltas = diffListField(prevContent[field], nextContent[field]);
+    for (const d of listDeltas) deltas.push({ ...d, field });
   }
 
   // Horizon
@@ -93,7 +110,7 @@ export function diffThesisVersions(
     deltas.push({ kind: "revisionNoteChanged", old: prevContent.revisionNote, next: nextContent.revisionNote });
   }
 
-  // Transition (should always be present but include for completeness)
+  // Transition
   if (previous.transition !== next.transition) {
     deltas.push({ kind: "transitionChanged", old: previous.transition, next: next.transition });
   }

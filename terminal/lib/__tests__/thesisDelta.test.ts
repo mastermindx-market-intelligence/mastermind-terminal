@@ -164,12 +164,16 @@ describe("diffThesisVersions", () => {
   });
 
   describe("truncated previous", () => {
-    it("returns origin kind when caller passes null (caller handles truncation signal)", () => {
-      // The truncation signal (previousVersion not in loaded history) is handled
-      // by the caller before calling diffThesisVersions. The UI layer shows the
-      // "outside loaded history" sentence based on the historyTruncated flag.
-      const result = diffThesisVersions(null, { ...BASE, version: 999, previousVersion: 998 } as ThesisVersion);
-      expect(result).toEqual([{ kind: "origin" }]);
+    it("diffThesisVersions still computes diff when given a real previous (the caller shows truncated before calling this)", () => {
+      // The UI layer shows the "outside loaded history" sentence when
+      // prev === null (i.e. history.find() returned null). diffThesisVersions
+      // is only called when a real previous version is found, so null is only
+      // hit for version 1 (origin). This test verifies the normal diff path works.
+      const prev = { ...BASE, version: 1, previousVersion: null, transition: "revise" as const };
+      const next = { ...BASE, version: 2, previousVersion: 1, transition: "revise" as const };
+      const result = diffThesisVersions(prev, next);
+      // Identical content + same transition → empty
+      expect(result).toEqual([]);
     });
   });
 });

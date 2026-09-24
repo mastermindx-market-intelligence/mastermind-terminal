@@ -145,6 +145,14 @@ const COPY = {
     whatChangedLabel: "What changed",
     whatChangedOrigin: "This is the first version; nothing before this.",
     whatChangedTruncated: "The previous version is outside the loaded history.",
+    // Field labels for the "What changed" section
+    deltaTitle: "Title", deltaStatement: "Thesis statement", deltaCatalysts: "Catalysts",
+    deltaFalsifiers: "Falsifiers", deltaRisks: "Risks", deltaHorizon: "Horizon",
+    deltaEffectiveAt: "Effective as of", deltaRevisionNote: "Revision note",
+    deltaTransition: "Transition",
+    // Verb phrases for the "What changed" section
+    deltaChanged: "changed", deltaAdded: "added", deltaRemoved: "removed",
+    deltaReordered: "reordered",
   },
   zh: {
     eyebrow: "研究工作区", title: "研究论点工作区", newThesis: "新建论点", list: "你的论点",
@@ -193,6 +201,14 @@ const COPY = {
     whatChangedLabel: "变更内容",
     whatChangedOrigin: "这是第一版；此前没有版本。",
     whatChangedTruncated: "上一版本不在已加载的历史记录中。",
+    // Field labels for the "What changed" section
+    deltaTitle: "标题", deltaStatement: "论点陈述", deltaCatalysts: "催化因素",
+    deltaFalsifiers: "证伪因素", deltaRisks: "风险", deltaHorizon: "时间范围",
+    deltaEffectiveAt: "生效时间", deltaRevisionNote: "修订说明",
+    deltaTransition: "变更类型",
+    // Verb phrases for the "What changed" section
+    deltaChanged: "已更改", deltaAdded: "已添加", deltaRemoved: "已删除",
+    deltaReordered: "已重排",
   },
 } as const;
 
@@ -2466,18 +2482,33 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
                               }
                               const deltas = diffThesisVersions(prev, entry);
                               if (deltas.length === 0) return null;
+                              // Map delta field to the copy key for its label
+                              const FIELD_LABEL: Record<string, keyof typeof copy> = {
+                                title: "deltaTitle", statement: "deltaStatement",
+                                catalysts: "deltaCatalysts", falsifiers: "deltaFalsifiers",
+                                risks: "deltaRisks", horizon: "deltaHorizon",
+                                effectiveAt: "deltaEffectiveAt", revisionNote: "deltaRevisionNote",
+                                transition: "deltaTransition",
+                              };
+                              const VERB: Record<string, keyof typeof copy> = {
+                                stringChanged: "deltaChanged", listAdded: "deltaAdded",
+                                listRemoved: "deltaRemoved", listReordered: "deltaReordered",
+                                horizonChanged: "deltaChanged", effectiveAtChanged: "deltaChanged",
+                                revisionNoteChanged: "deltaChanged", transitionChanged: "deltaChanged",
+                              };
                               return (
                                 <section aria-label={copy.whatChangedLabel} data-testid="thesis-version-delta">
                                   <p className={styles.deltaNote}>
                                     {deltas.map((delta) => {
-                                      if (delta.kind === "stringChanged") return <span key={`str-${delta.field}`}>{copy[delta.field]} changed</span>;
-                                      if (delta.kind === "listAdded") return <span key={`add-${delta.field}`}>{copy[delta.field]} added</span>;
-                                      if (delta.kind === "listRemoved") return <span key={`rem-${delta.field}`}>{copy[delta.field]} removed</span>;
-                                      if (delta.kind === "listReordered") return <span key={`reorder-${delta.field}`}>{copy[delta.field]} reordered</span>;
-                                      if (delta.kind === "horizonChanged") return <span key="horizon">{copy.horizon} changed</span>;
-                                      if (delta.kind === "effectiveAtChanged") return <span key="effectiveAt">{copy.effectiveHistory} changed</span>;
-                                      if (delta.kind === "revisionNoteChanged") return <span key="revisionNote">{copy.revision} changed</span>;
-                                      if (delta.kind === "transitionChanged") return <span key="transition">{copy.transitionLabel} changed</span>;
+                                      const field = "field" in delta ? delta.field : null;
+                                      const label = field ? copy[FIELD_LABEL[field] ?? "deltaTitle"] : null;
+                                      const verbKey = VERB[delta.kind] ?? "deltaChanged";
+                                      const verb = copy[verbKey];
+                                      if (field && label) return <span key={`${delta.kind}-${field}`}>{label} {verb}</span>;
+                                      if (delta.kind === "horizonChanged") return <span key="horizon">{copy.deltaHorizon} {verb}</span>;
+                                      if (delta.kind === "effectiveAtChanged") return <span key="effectiveAt">{copy.deltaEffectiveAt} {verb}</span>;
+                                      if (delta.kind === "revisionNoteChanged") return <span key="revisionNote">{copy.deltaRevisionNote} {verb}</span>;
+                                      if (delta.kind === "transitionChanged") return <span key="transition">{copy.deltaTransition} {verb}</span>;
                                       return null;
                                     })}
                                   </p>

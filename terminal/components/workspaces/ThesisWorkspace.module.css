@@ -96,8 +96,7 @@
 .snapshotGrid p, .snapshotGrid ul { margin: 0; color: var(--text); font-size: 12px; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; }
 .snapshotGrid ul { padding-left: 18px; }
 .snapshotFull { grid-column: 1 / -1; }
-.deltaNote { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; color: var(--text); font-size: 12px; line-height: 1.55; }
-.deltaNote span { background: color-mix(in srgb, var(--brand) 16%, transparent); border: 1px solid color-mix(in srgb, var(--brand) 35%, var(--line)); border-radius: 6px; padding: 2px 8px; }
+.deltaNote { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; font-size: 12px; line-height: 1.55; }
 .centerState { min-height: 45vh; display: grid; place-items: center; align-content: center; gap: 10px; padding: 28px; text-align: center; }
 .centerState h1, .centerState p { margin: 0; }
 .centerState p { max-width: 520px; color: var(--muted); line-height: 1.55; }
