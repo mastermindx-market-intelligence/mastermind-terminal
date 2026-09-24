@@ -313,6 +313,33 @@ async function expectNoDocumentOverflow(page: Page) {
   expect(width.document).toBeLessThanOrEqual(width.viewport + 1);
 }
 
+async function researchScrollState(page: Page) {
+  return page.evaluate(() => {
+    const body = document.querySelector<HTMLElement>(".fin-body");
+    const context = document.querySelector<HTMLElement>(".analysis-context-bar");
+    const researchNav = document.querySelector<HTMLElement>(".fin-research-nav");
+    return {
+      finBody: body?.scrollTop ?? -1,
+      windowX: window.scrollX,
+      windowY: window.scrollY,
+      documentElement: document.documentElement.scrollTop,
+      body: document.body.scrollTop,
+      contextTop: Math.round(context?.getBoundingClientRect().top ?? -1),
+      researchNavTop: Math.round(researchNav?.getBoundingClientRect().top ?? -1),
+    };
+  });
+}
+
+async function makeLensSwitchScrollObservable(page: Page) {
+  await page.locator(".ci-canvas").evaluate((canvas) => {
+    const body = canvas.closest<HTMLElement>(".fin-body");
+    if (!body) throw new Error("Company Intelligence must remain inside .fin-body");
+    body.style.scrollBehavior = "auto";
+    body.scrollTop = 0;
+    canvas.style.minHeight = `${body.clientHeight + 800}px`;
+  });
+}
+
 test("Company Intelligence keeps its context and evidence workflow responsive", async ({ page }, testInfo) => {
   await openCompanyIntelligence(page);
   await expectNoDocumentOverflow(page);
@@ -327,6 +354,19 @@ test("Company Intelligence keeps its context and evidence workflow responsive", 
   const whyItMatters = paperBrief.locator(".ci-paper-insight").filter({ hasText: "Why it matters" });
   await expect(whyItMatters).toBeVisible();
   await expect(whyItMatters).toContainText("Not asserted");
+
+  await page.locator(".ci-lenses").getByRole("tab", { name: "Results" }).click();
+  const paperResults = page.locator("[data-ci-paper-results]");
+  await expect(paperResults).toBeVisible();
+  await expect(paperResults).toContainText("RESULTS & OUTLOOK");
+  await expect(paperResults).toContainText("18.4%");
+  await expect(paperResults).toContainText("16.3% prior");
+  await expect(paperResults).toContainText("+2.1% vs prior");
+  await expect(paperResults).toContainText("v1 fallback has no structured guidance object");
+  await expect(paperResults).toContainText("Not asserted · no licensed pre-event consensus");
+  await expect(paperResults).toContainText("Not asserted · context only");
+  await expectNoDocumentOverflow(page);
+  await page.locator(".ci-lenses").getByRole("tab", { name: "Brief" }).click();
 
   await expect(page.getByRole("heading", { name: "Curated basket context" })).toBeVisible();
   await expect(page.locator(".ci-theme-card")).toContainText("AI Infrastructure");
@@ -384,7 +424,7 @@ test("Company Intelligence keeps its context and evidence workflow responsive", 
   // stay in normal document flow. A sticky tab strip used to follow deep scrolling
   // and float through the middle of the research workspace, obscuring content.
   const topics = page.locator(".ci-lenses").getByRole("tab", { name: "Topics" });
-  await page.locator(".ci-lenses").getByRole("tab").nth(1).click();
+  await page.locator(".ci-lenses").getByRole("tab", { name: "Transcript" }).click();
   await expect(page.locator(".ci-ts-explorer")).toBeVisible();
   await page.locator(".ci-ts-explorer").evaluate((element) => {
     const inner = element.closest<HTMLElement>(".fin-body");
@@ -429,12 +469,30 @@ test("Company Intelligence keeps its context and evidence workflow responsive", 
   });
 });
 
+test("Company Intelligence lens switching does not move the research shell", async ({ page }) => {
+  await openCompanyIntelligence(page);
+  await makeLensSwitchScrollObservable(page);
+
+  const before = await researchScrollState(page);
+  expect(before.finBody).toBe(0);
+  expect(before.windowY).toBe(0);
+
+  const transcript = page.locator(".ci-lenses").getByRole("tab", { name: "Transcript" });
+  await transcript.click();
+  await expect(transcript).toHaveAttribute("aria-selected", "true");
+  await expect(page.locator("#ci-panel-transcript")).toBeVisible();
+
+  await expect.poll(() => researchScrollState(page)).toEqual(before);
+  await expect(page.locator(".analysis-context-bar")).toBeVisible();
+  await expect(page.locator(".fin-research-nav")).toBeVisible();
+});
+
 test("literal transcript search and compare use the local revision-verified BFF", async ({ page }, testInfo) => {
   await page.route("**/data/tx/NVDA/2026Q1.json.gz", async (route) => {
     await route.fulfill({ body: gzipSync(JSON.stringify(drawerFixtureBody)), headers: { "content-type": "application/gzip" } });
   });
   await openCompanyIntelligence(page);
-  const transcript = page.locator(".ci-lenses").getByRole("tab").nth(1);
+  const transcript = page.locator(".ci-lenses").getByRole("tab", { name: "Transcript" });
   await transcript.click();
   await expect(page.locator(".ci-ts-hero h3")).toBeVisible();
 
@@ -575,7 +633,7 @@ test("editing a transcript query invalidates an older in-flight result", async (
   });
 
   await openCompanyIntelligence(page);
-  await page.locator(".ci-lenses").getByRole("tab").nth(1).click();
+  await page.locator(".ci-lenses").getByRole("tab", { name: "Transcript" }).click();
   const search = page.locator(".ci-ts-search");
   await search.locator("input").fill("data center");
   await search.locator(".btn").click();
@@ -886,6 +944,24 @@ async function openAaplWorkspace(page: Page, payload = aaplWorkspacePayload(), o
   return { releaseV1 };
 }
 
+test("verified event workspace lens switching does not move the research shell", async ({ page }) => {
+  await openAaplWorkspace(page);
+  await makeLensSwitchScrollObservable(page);
+
+  const before = await researchScrollState(page);
+  expect(before.finBody).toBe(0);
+  expect(before.windowY).toBe(0);
+
+  const transcript = page.locator(".ci-lenses").getByRole("tab", { name: "Transcript" });
+  await transcript.click();
+  await expect(transcript).toHaveAttribute("aria-selected", "true");
+  await expect(page.locator("#ci-panel-transcript")).toBeVisible();
+
+  await expect.poll(() => researchScrollState(page)).toEqual(before);
+  await expect(page.locator(".analysis-context-bar")).toBeVisible();
+  await expect(page.locator(".fin-research-nav")).toBeVisible();
+});
+
 test("AAPL intelligence opens the verified FY2026 Q3 event workspace", async ({ page }, testInfo) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
@@ -936,8 +1012,16 @@ test("AAPL intelligence opens the verified FY2026 Q3 event workspace", async ({ 
 
   await closeEvidenceOverlay(page);
   await page.locator(".ci-lenses").getByRole("tab", { name: "Results" }).click();
+  const paperResults = page.locator("[data-ci-paper-results]");
+  await expect(paperResults).toBeVisible();
+  await expect(paperResults).toContainText("RESULTS & OUTLOOK");
+  await expect(paperResults).toContainText("$109.4B");
+  await expect(paperResults).toContainText("9–11%");
+  await expect(paperResults).toContainText("No comparable prior-event fields are bound");
+  await expect(paperResults).toContainText("Not asserted · No beat/miss · consensus unlicensed");
+  await expect(paperResults).toContainText("Not asserted · reaction not joined");
+  await expect(paperResults).toContainText("Not asserted · context only");
   await expect(page.locator("#ci-panel-results")).toContainText("No beat/miss");
-  await expect(page.locator("#ci-panel-results")).toContainText("$109.4B");
   const typedAbsences = page.locator('[data-ci-results-region="typed-absences"]');
   const coverageStates = page.locator('[data-ci-results-region="coverage-states"]');
   await expect(typedAbsences).toContainText("TYPED ABSENCES");
@@ -1131,6 +1215,10 @@ async function openAaplQaResults(page: Page, lang: "en" | "zh" = "en") {
 
 test("AAPL Results shows seven verified exchanges and opens the exact transcript segment", async ({ page }, testInfo) => {
   const qa = await openAaplQaResults(page);
+  const paperResults = page.locator("[data-ci-paper-results]");
+  await expect(paperResults).toContainText("Call read-through");
+  await expect(paperResults).toContainText("Amit Daryanani · Evercore");
+  await expect(paperResults).toContainText("9%-11% sort of growth");
   await expect(qa).toContainText("ANALYST Q&A · 7 exchanges");
   await expect(qa).toContainText("Structure is verified. Topic labels are not available yet.");
   await expect(qa).toContainText("Amit Daryanani · Evercore");
