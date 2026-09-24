@@ -1,6 +1,6 @@
 # Password recovery — responsive browser evidence
 # Captured from the implementation commit below with the real Terminal UI and fixture Supabase transport.
-capturedAtHead: 0613e9a6423fc035f017772359e1bb786e881e59
+capturedAtHead: 023830936fa93fd93fa4fa90a25a0ba65d8ade5f
 capture_date: 2026-09-24
 surface: /terminal?signin=1
 recovery_surface: /reset-password
