@@ -110,8 +110,8 @@ test("Market vNext projects canonical technicals, pivots and five-year seasonali
   const seasonality = market.locator("[data-market-vnext-seasonality]");
   await expect(seasonality).toContainText("SEASONALITY SNAPSHOT");
   await expect(seasonality).toContainText("5 completed yearly observations");
-  await expect(seasonality).toContainText("JAN");
-  await expect(seasonality).toContainText("DEC");
+  await expect(seasonality).toContainText("Jan");
+  await expect(seasonality).toContainText("Dec");
   await expect(seasonality).toContainText("Historical recurrence only");
 
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
