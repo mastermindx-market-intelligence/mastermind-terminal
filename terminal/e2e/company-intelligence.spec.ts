@@ -484,7 +484,7 @@ test("Company Intelligence lens switching does not move the research shell", asy
   expect(before.finBody).toBe(0);
   expect(before.windowY).toBe(0);
 
-  const transcript = page.locator(".ci-lenses").getByRole("tab", { name: "Transcript" });
+  const transcript = page.locator(".ci-lenses").getByRole("tab", { name: "Call + Q&A" });
   await transcript.click();
   await expect(transcript).toHaveAttribute("aria-selected", "true");
   await expect(page.locator("#ci-panel-transcript")).toBeVisible();
@@ -959,7 +959,7 @@ test("verified event workspace lens switching does not move the research shell",
   expect(before.finBody).toBe(0);
   expect(before.windowY).toBe(0);
 
-  const transcript = page.locator(".ci-lenses").getByRole("tab", { name: "Transcript" });
+  const transcript = page.locator(".ci-lenses").getByRole("tab", { name: "Call + Q&A" });
   await transcript.click();
   await expect(transcript).toHaveAttribute("aria-selected", "true");
   await expect(page.locator("#ci-panel-transcript")).toBeVisible();
