@@ -1,7 +1,7 @@
 "use client";
 
 import type { PrecisionPaneRole, PrecisionPlan } from "@/lib/precisionEntry";
-import { readPrecisionIntel } from "@/lib/precisionIntel";
+import { readPrecisionIntel, type PrecisionEntryIntel } from "@/lib/precisionIntel";
 import styles from "./PrecisionEntryStrip.module.css";
 
 export const PRECISION_ENTRY_STRIP_HEIGHT = 58;
@@ -47,9 +47,7 @@ function fmtPrice(value: number): string {
 }
 
 function compactExecutionMeta(
-  entry: ReturnType<typeof readPrecisionIntel> extends infer T
-    ? T extends { entry: infer E } ? E : never
-    : never,
+  entry: PrecisionEntryIntel | null,
   lang: Lang,
 ): string | null {
   if (!entry) return null;
