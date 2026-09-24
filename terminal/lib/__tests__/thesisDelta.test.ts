@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { diffThesisVersions } from "../thesisDelta";
+import { diffThesisVersions, thesisVersionDeltaForHistory } from "../thesisDelta";
 import type { ThesisVersion } from "../theses";
 
 const BASE: ThesisVersion = {
@@ -164,16 +164,10 @@ describe("diffThesisVersions", () => {
   });
 
   describe("truncated previous", () => {
-    it("diffThesisVersions still computes diff when given a real previous (the caller shows truncated before calling this)", () => {
-      // The UI layer shows the "outside loaded history" sentence when
-      // prev === null (i.e. history.find() returned null). diffThesisVersions
-      // is only called when a real previous version is found, so null is only
-      // hit for version 1 (origin). This test verifies the normal diff path works.
-      const prev = { ...BASE, version: 1, previousVersion: null, transition: "revise" as const };
-      const next = { ...BASE, version: 2, previousVersion: 1, transition: "revise" as const };
-      const result = diffThesisVersions(prev, next);
-      // Identical content + same transition → empty
-      expect(result).toEqual([]);
+    it("reports when the previous version is outside the loaded history", () => {
+      const next = makeNext(BASE);
+      const result = thesisVersionDeltaForHistory([], next);
+      expect(result).toEqual([{ kind: "truncated" }]);
     });
   });
 });

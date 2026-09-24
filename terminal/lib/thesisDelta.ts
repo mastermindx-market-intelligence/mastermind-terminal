@@ -117,3 +117,13 @@ export function diffThesisVersions(
 
   return deltas;
 }
+
+export function thesisVersionDeltaForHistory(
+  history: ThesisVersion[],
+  entry: ThesisVersion,
+): ThesisDelta[] {
+  if (entry.previousVersion === null) return [{ kind: "origin" }];
+  const previous = history.find((version) => version.version === entry.previousVersion) ?? null;
+  if (!previous) return [{ kind: "truncated" }];
+  return diffThesisVersions(previous, entry);
+}

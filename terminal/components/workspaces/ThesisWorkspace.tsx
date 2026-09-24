@@ -56,7 +56,7 @@ import {
   proposalStateLabel,
   type ProposalRow,
 } from "@/lib/thesisAmendmentProposals";
-import { diffThesisVersions } from "@/lib/thesisDelta";
+import { thesisVersionDeltaForHistory } from "@/lib/thesisDelta";
 
 export interface ThesisWorkspaceProps {
   ownerKey: string;
@@ -2463,24 +2463,21 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
                               <div><dt>{copy.listing}</dt><dd>{entry.subject.listing?.symbol ?? copy.none}</dd></div>
                             </dl>
                             {(() => {
-                              if (entry.previousVersion === null) {
-                                // Version 1 — origin sentence
+                              const deltas = thesisVersionDeltaForHistory(history, entry);
+                              if (deltas[0]?.kind === "origin") {
                                 return (
                                   <section aria-label={copy.whatChangedLabel} data-testid="thesis-version-delta">
                                     <p className={styles.deltaNote}><span>{copy.whatChangedOrigin}</span></p>
                                   </section>
                                 );
                               }
-                              const prev = history.find((v) => v.version === entry.previousVersion) ?? null;
-                              if (!prev) {
-                                // Previous version not in loaded history
+                              if (deltas[0]?.kind === "truncated") {
                                 return (
                                   <section aria-label={copy.whatChangedLabel} data-testid="thesis-version-delta">
                                     <p className={styles.deltaNote}><span>{copy.whatChangedTruncated}</span></p>
                                   </section>
                                 );
                               }
-                              const deltas = diffThesisVersions(prev, entry);
                               if (deltas.length === 0) return null;
                               // Map delta field to the copy key for its label
                               const FIELD_LABEL: Record<string, keyof typeof copy> = {
