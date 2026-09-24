@@ -44,15 +44,33 @@ export interface OutboxRow {
   payload: {
     subject?: string;
     summary_plain?: string;
+    summary_plain_zh?: string;
     ticker?: string;
     condition_plain?: string;
+    condition_plain_zh?: string;
     evidence_url?: string | null;
     fired_at?: string;
-    /** Set when kind === "thesis_condition": the thesis that had its window close. */
     thesis_id?: string;
-    /** "thesis_condition" when this row was written by the thesis-condition monitor. */
+    thesis_version?: number;
+    tripwire_id?: string;
+    tripwire_version?: number;
+    category?: string;
+    source?: string;
+    subject_zh?: string;
+    engine_window_plain?: string;
+    engine_window_plain_zh?: string;
+    requires_tier?: string;
+    coverage?: string;
+    /** "thesis_condition" — kept for legacy fixtures that still use it. */
     kind?: string;
   };
+}
+
+/** True when thesis_id is a well-formed UUID (any version — monitor writes uuid5, test fixtures use uuid4). */
+function isWellFormedThesisId(value: unknown): value is string {
+  if (typeof value !== "string") return false;
+  // Strict UUID regex (no namespace prefix on the value itself — alert_id carries "thesis:<uuid>", thesis_id is bare uuid).
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 }
 
 // The evaluator (ingest/alerts_engine.py Supa.fire) stamps `triggered` as an OBJECT — {at, value,
@@ -337,16 +355,24 @@ export function buildAlertsView(input: {
     .filter(({ d }) => d.fired)
     .map(({ a, d }) => ({ alertId: a.id, delivery: d.delivery, foldedRows: d.foldedRows, outboxRow: d.outboxRow }));
 
-  // MO-PAID-047: surface thesis_condition outbox rows (written by macro's thesis-condition
-  // monitor) as delivery rows even when there is no matching alerts entry. The filter keeps
-  // rows whose kind === "thesis_condition", whose alert_id is null or "", and whose payload
-  // carries thesis_id. A row with a non-empty alert_id stays on the alerts path above.
+  // MO-PAID-047 + F11-11b-pre: surface thesis-condition outbox rows written by macro's
+  // thesis-condition monitor as delivery rows. A row is a thesis-condition row when:
+  //   - payload.thesis_id is a well-formed UUID, AND
+  //   - (payload.kind === "thesis_condition" OR payload.source === "macro.thesis_condition_monitor"
+  //     OR payload.category === "thesis_window")
+  // Such a row takes the thesis path regardless of alert_id being the producer's synthetic
+  // uuid5 (a synthetic alert_id has no matching alerts entry — routing is handled above).
+  // Rows whose alert_id matches a real alerts entry stay on the alerts path (deliveryFor).
   const thesisRows: AlertRowView[] = (input.outbox ?? [])
     .filter((o) => {
-      if (o.payload?.kind !== "thesis_condition") return false;
-      if (o.alert_id != null && o.alert_id !== "") return false;
-      if (!o.payload?.thesis_id) return false;
-      return true;
+      if (!isWellFormedThesisId(o.payload?.thesis_id)) return false;
+      const kind = o.payload?.kind;
+      const source = o.payload?.source;
+      const category = o.payload?.category;
+      if (kind === "thesis_condition") return true;
+      if (source === "macro.thesis_condition_monitor") return true;
+      if (category === "thesis_window") return true;
+      return false;
     })
     .map((o) => {
       const status = o.status as string;

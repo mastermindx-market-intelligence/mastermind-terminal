@@ -7,7 +7,7 @@ import { buildAlertsView, copy, type OutboxRow, type Alert } from "../alertsView
 // behaviour only. Do not assert the unfixed behaviour here.
 
 const NOW = Date.parse("2026-09-05T12:00:00Z");
-const THESIS_ID = "00000000-0000-0000-0000-000000000001";
+const THESIS_ID = "00000000-0000-4000-8000-000000000001";
 
 const baseRun = {
   lane: "alerts_engine", run_id: "r1", started_at: "2026-09-05T11:58:00Z",
@@ -29,6 +29,44 @@ function thesisConditionOutbox(over: Partial<OutboxRow> = {}): OutboxRow {
     payload: {
       thesis_id: THESIS_ID,
       kind: "thesis_condition",
+    },
+    ...over,
+  };
+}
+
+// F11-11b-pre: producer's real shape — no kind, category + source, synthetic alert_id.
+// Mirrors engine/thesis_condition_monitor.py compose_payload exactly.
+function producerRealOutbox(over: Partial<OutboxRow> = {}): OutboxRow {
+  return {
+    alert_id: `thesis:${THESIS_ID}`,
+    fire_event_id: "fe-thesis-real",
+    status: "pending",
+    attempts: 0,
+    last_error: null,
+    deliver_after: null,
+    delivered_at: null,
+    created_at: "2026-09-05T11:59:30Z",
+    payload: {
+      thesis_id: THESIS_ID,
+      thesis_version: 1,
+      fired_at: "2026-09-05T11:58:00Z",
+      tripwire_id: "11111111-1111-1111-a111-111111111111",
+      tripwire_version: 1,
+      category: "thesis_window",
+      source: "macro.thesis_condition_monitor",
+      subject: "NVDA thesis",
+      subject_zh: "英伟达股票 thesis",
+      summary_plain: "Your NVDA thesis window has closed.",
+      summary_plain_zh: "你的 NVDA thesis 观察窗口已结束。",
+      condition_plain: "Your NVDA thesis window has closed.",
+      condition_plain_zh: "你的 NVDA thesis 观察窗口已结束。",
+      engine_window_plain: "The watch window expired.",
+      engine_window_plain_zh: "观察窗口已到期。",
+      evidence_url: null,
+      requires_tier: undefined,
+      coverage: undefined,
+      ticker: "NVDA",
+      ...(over.payload as Record<string, unknown> ?? {}),
     },
     ...over,
   };
@@ -140,5 +178,41 @@ describe("price alert and thesis_condition outbox row both appear", () => {
     );
     expect(view.rows.length).toBe(2);
     expect(view.rows.map((r) => r.delivery).sort()).toEqual(["pending", "sent"]);
+  });
+});
+
+// F11-11b-pre: producer's real row shape (category+source, no kind, synthetic alert_id)
+// also surfaces as a thesis row — proving the cockpit recognises the real contract.
+describe("F11-11b-pre producer real shape (category+source, no kind, synthetic alert_id)", () => {
+  it("producer-shaped row surfaces as a thesis row", () => {
+    const view = viewOf([producerRealOutbox()]);
+    expect(view.rows.length).toBe(1);
+    expect(view.rows[0].thesisId).toBe(THESIS_ID);
+    expect(view.rows[0].alertId).toBe(`thesis:${THESIS_ID}`);
+    expect(view.rows[0].delivery).toBe("pending");
+  });
+
+  it("producer row with category only (no kind, no source) also surfaces", () => {
+    const view = viewOf([producerRealOutbox({
+      payload: { ...producerRealOutbox().payload, source: undefined as unknown as string, category: "thesis_window" },
+    })]);
+    expect(view.rows.length).toBe(1);
+    expect(view.rows[0].thesisId).toBe(THESIS_ID);
+  });
+
+  it("producer row with source only (no kind, no category) also surfaces", () => {
+    const view = viewOf([producerRealOutbox({
+      payload: { ...producerRealOutbox().payload, category: undefined as unknown as string, source: "macro.thesis_condition_monitor" },
+    })]);
+    expect(view.rows.length).toBe(1);
+    expect(view.rows[0].thesisId).toBe(THESIS_ID);
+  });
+
+  it("producer row + ordinary fired alert → 2 rows", () => {
+    const view = viewOf(
+      [producerRealOutbox(), ordinaryOutbox({ alert_id: "a-price" })],
+      [priceAlert()],
+    );
+    expect(view.rows.length).toBe(2);
   });
 });

@@ -561,19 +561,42 @@ function applyThesisVersionFixture(store: Store, args: Record<string, unknown>):
     store.theses.push(head);
     store.thesisVersions.push(version);
     if (store.monitorFires && store.alertOutbox.length === 0) {
-      // Shaped like compose_payload()'s row in macro's thesis condition monitor: the
-      // route only reads user_id, status, created_at and payload->>thesis_id.
+      // Shaped like the real producer row from macro's thesis-condition monitor
+      // (engine/thesis_condition_monitor.py compose_payload). The producer NEVER writes
+      // payload.kind — it uses category + source to identify the row type, and the
+      // cockpit uses thesis_id well-formedness + (category || source || kind) to
+      // surface it. alert_id is the producer's synthetic uuid5, NOT null.
       store.alertOutbox.push({
         id: crypto.randomUUID(),
         user_id: userId,
-        alert_id: null,
+        alert_id: `thesis:${id}`,
         fire_event_id: crypto.randomUUID(),
         status: "pending",
         attempts: 0,
         last_error: null,
         deliver_after: null,
         delivered_at: null,
-        payload: { thesis_id: id, kind: "thesis_condition", fired_at: now },
+        payload: {
+          thesis_id: id,
+          thesis_version: 1,
+          fired_at: now,
+          tripwire_id: crypto.randomUUID(),
+          tripwire_version: 1,
+          category: "thesis_window",
+          source: "macro.thesis_condition_monitor",
+          subject: "NVDA thesis",
+          subject_zh: "英伟达股票 thesis",
+          summary_plain: "Your NVDA thesis window has closed.",
+          summary_plain_zh: "你的 NVDA thesis 观察窗口已结束。",
+          condition_plain: "Your NVDA thesis window has closed.",
+          condition_plain_zh: "你的 NVDA thesis 观察窗口已结束。",
+          engine_window_plain: "The watch window expired.",
+          engine_window_plain_zh: "观察窗口已到期。",
+          evidence_url: null,
+          requires_tier: null,
+          coverage: null,
+          ticker: "NVDA",
+        },
         created_at: now,
       });
     }

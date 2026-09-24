@@ -743,3 +743,168 @@ describe("coverage.count excludes unresolved rows (REQUIRED 4)", () => {
     expect(view.coverage.count).toBe(0);
   });
 });
+
+// F11-11b-pre: producer-shaped thesis-condition rows (category + source, no kind,
+// synthetic alert_id) surface as thesis rows. Real producer payload keys:
+// thesis_id, thesis_version, fired_at, tripwire_id, tripwire_version, category,
+// source, subject, subject_zh, summary_plain, summary_plain_zh, condition_plain,
+// condition_plain_zh, engine_window_plain, engine_window_plain_zh, evidence_url,
+// requires_tier, coverage, ticker.
+describe("F11-11b-pre producer-shaped thesis-condition rows (category+source, no kind, synthetic alert_id)", () => {
+  const PRODUCER_THESIS_ID = "00000000-0000-4000-8000-000000000001";
+
+  // Row shape matching the real producer's compose_payload() output exactly.
+  function producerRow(over: Partial<OutboxRow> = {}): OutboxRow {
+    return {
+      alert_id: `thesis:${PRODUCER_THESIS_ID}`,
+      fire_event_id: "fe-thesis-1",
+      status: "pending",
+      attempts: 0,
+      last_error: null,
+      deliver_after: null,
+      delivered_at: null,
+      created_at: "2026-09-05T11:59:30Z",
+      payload: {
+        thesis_id: PRODUCER_THESIS_ID,
+        thesis_version: 1,
+        fired_at: "2026-09-05T11:58:00Z",
+        tripwire_id: "11111111-1111-1111-a111-111111111111",
+        tripwire_version: 1,
+        category: "thesis_window",
+        source: "macro.thesis_condition_monitor",
+        subject: "NVDA thesis",
+        subject_zh: "英伟达股票 thesis",
+        summary_plain: "Your NVDA thesis window has closed.",
+        summary_plain_zh: "你的 NVDA thesis 观察窗口已结束。",
+        condition_plain: "Your NVDA thesis window has closed.",
+        condition_plain_zh: "你的 NVDA thesis 观察窗口已结束。",
+        engine_window_plain: "The watch window expired.",
+        engine_window_plain_zh: "观察窗口已到期。",
+        evidence_url: null,
+        requires_tier: undefined,
+        coverage: undefined,
+        ticker: "NVDA",
+        ...(over.payload as Record<string, unknown> ?? {}),
+      },
+      ...over,
+    };
+  }
+
+  function viewOf(outbox: OutboxRow[]) {
+    return buildAlertsView({
+      alerts: [], alertsState: "READ_OK_ZERO",
+      run: baseRun(), lastSuccessAt: "2026-09-05T11:59:00Z", runsState: "READ_OK",
+      outbox, outboxState: "READ_OK", now: NOW,
+    });
+  }
+
+  it("producer-shaped row (category+source, no kind, synthetic alert_id) renders as a thesis row", () => {
+    const view = viewOf([producerRow()]);
+    expect(view.rows.length).toBe(1);
+    expect(view.rows[0].thesisId).toBe(PRODUCER_THESIS_ID);
+    expect(view.rows[0].alertId).toBe(`thesis:${PRODUCER_THESIS_ID}`);
+    expect(view.rows[0].delivery).toBe("pending");
+  });
+
+  it("producer-shaped row with source only (no kind, no category) also renders as thesis row", () => {
+    const row = producerRow({ payload: { ...producerRow().payload, category: undefined as unknown as string, source: "macro.thesis_condition_monitor" } });
+    const view = viewOf([row]);
+    expect(view.rows.length).toBe(1);
+    expect(view.rows[0].thesisId).toBe(PRODUCER_THESIS_ID);
+  });
+
+  it("producer-shaped row with kind === 'thesis_condition' (legacy) still renders", () => {
+    const row = producerRow({ payload: { ...producerRow().payload, kind: "thesis_condition" } });
+    const view = viewOf([row]);
+    expect(view.rows.length).toBe(1);
+    expect(view.rows[0].thesisId).toBe(PRODUCER_THESIS_ID);
+  });
+
+  it("row with non-empty real alert_id that matches no alerts entry stays invisible", () => {
+    // alert_id is set but not empty and not a known alert — it is a different real
+    // alert's receipt, not a thesis-condition row. Without thesis_id the row is skipped.
+    const ordinaryRow: OutboxRow = {
+      alert_id: "a-real-alert-without-matching-entry",
+      fire_event_id: "fe-ordinary",
+      status: "pending",
+      attempts: 0,
+      last_error: null,
+      deliver_after: null,
+      delivered_at: null,
+      created_at: "2026-09-05T11:59:30Z",
+      payload: { ticker: "NVDA" },
+    };
+    const view = viewOf([ordinaryRow]);
+    expect(view.rows.length).toBe(0);
+  });
+
+  it("a row with a malformed thesis_id is skipped even when category+source are present", () => {
+    const badRow: OutboxRow = {
+      alert_id: `thesis:not-a-uuid`,
+      fire_event_id: "fe-bad-thesis",
+      status: "pending",
+      attempts: 0,
+      last_error: null,
+      deliver_after: null,
+      delivered_at: null,
+      created_at: "2026-09-05T11:59:30Z",
+      payload: {
+        thesis_id: "not-a-valid-uuid",
+        category: "thesis_window",
+        source: "macro.thesis_condition_monitor",
+        summary_plain: "Some text",
+      },
+    };
+    const view = viewOf([badRow]);
+    expect(view.rows.length).toBe(0);
+  });
+
+  it("a row with well-formed thesis_id but none of (kind, source, category) is skipped", () => {
+    const orphanRow: OutboxRow = {
+      alert_id: "",
+      fire_event_id: "fe-orphan",
+      status: "pending",
+      attempts: 0,
+      last_error: null,
+      deliver_after: null,
+      delivered_at: null,
+      created_at: "2026-09-05T11:59:30Z",
+      payload: {
+        thesis_id: PRODUCER_THESIS_ID,
+        ticker: "NVDA",
+        // none of kind, source, category
+      },
+    };
+    const view = viewOf([orphanRow]);
+    expect(view.rows.length).toBe(0);
+  });
+
+  it("producer-shaped row and a real fired alert both appear", () => {
+    const thesisRow = producerRow();
+    const priceAlertRow: OutboxRow = {
+      alert_id: "a-price",
+      fire_event_id: "fe-price-1",
+      status: "sent",
+      attempts: 1,
+      last_error: null,
+      deliver_after: null,
+      delivered_at: "2026-09-05T11:59:30Z",
+      created_at: "2026-09-05T11:59:30Z",
+      payload: { ticker: "NVDA", condition_plain: "Crossed your price line" },
+    };
+    const priceAlert: Alert = {
+      id: "a-price",
+      active: false,
+      symbol: "NVDA",
+      created_at: "2026-09-01T00:00:00Z",
+      condition: { type: "price", triggered: { at: "2026-09-05T11:58:30Z", value: 42, note: "crossed" } },
+    };
+    const view = buildAlertsView({
+      alerts: [priceAlert], alertsState: "READ_OK",
+      run: baseRun(), lastSuccessAt: "2026-09-05T11:59:00Z", runsState: "READ_OK",
+      outbox: [thesisRow, priceAlertRow], outboxState: "READ_OK", now: NOW,
+    });
+    expect(view.rows.length).toBe(2);
+    expect(view.rows.map((r) => r.alertId).sort()).toEqual(["a-price", `thesis:${PRODUCER_THESIS_ID}`]);
+  });
+});
