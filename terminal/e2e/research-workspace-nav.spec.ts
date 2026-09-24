@@ -174,9 +174,11 @@ test("Financials vNext remains bilingual and overflow-safe on mobile", async ({ 
   const financials = page.locator("[data-financials-vnext]");
   await expect(financials).toBeVisible({ timeout: 45_000 });
   await expect(financials).toContainText("财务报表");
-  await expect(financials).toContainText("财务摘要");
-  await expect(financials).toContainText("营业利润");
-  await expect(financials).toContainText("自由现金流");
+  const summary = financials.locator("[data-financials-vnext-summary]");
+  await expect(summary).toBeVisible();
+  await expect(summary).toContainText("营业收入");
+  await expect(summary).toContainText("营业利润");
+  await expect(summary).toContainText("自由现金流");
   await expect(financials).toContainText("报表浏览器");
   await expect(financials).toContainText("资产负债表快照");
   await expect(financials).toContainText("现金转换");
