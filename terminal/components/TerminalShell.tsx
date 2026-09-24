@@ -173,6 +173,7 @@ import {
 import { resolveRegularSessionDisplay } from "@/lib/quoteDisplay";
 import { useAdaptiveToolbar } from "@/lib/useAdaptiveToolbar";
 import { buildPrecisionPlan, detectPrecisionHorizon, precisionLayoutState } from "@/lib/precisionEntry";
+import PrecisionEntryStrip, { PRECISION_ENTRY_STRIP_HEIGHT } from "@/components/PrecisionEntryStrip";
 import {
   copyWatchlistSelection,
   moveWatchlistSelection,
@@ -2963,6 +2964,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
     functional: FUNCTIONAL,
   });
   const isMtf = precisionHorizon !== null;
+  const activePrecisionPlan = precisionHorizon
+    ? buildPrecisionPlan({ horizon: precisionHorizon, functional: FUNCTIONAL })
+    : precisionPlan;
   const precisionUnavailable = !isMtf && precisionLayout === null;
   // paneSync only mirrors same-timeframe peers, and the single replay slider assumes one bar count: with
   // heterogeneous per-pane timeframes both are incoherent, so we disable Sync + replay in that case.
@@ -5454,7 +5458,14 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
               }}
               onDrawStyle={patchDrawStyle}
             />
-            <div className="pane-grid" data-n={panes.length}>
+            <div
+              className={`pane-grid${isMtf ? " precision-mtf-grid" : ""}`}
+              data-n={panes.length}
+              style={isMtf ? { position: "relative", paddingTop: PRECISION_ENTRY_STRIP_HEIGHT } : undefined}
+            >
+              {isMtf && (
+                <PrecisionEntryStrip plan={activePrecisionPlan} intel={intel} lang={lang} />
+              )}
               {panes.map((sym, i) => (
                 <ChartPane key={i} idx={i} symbol={sym} drawingOwnerKey={currentDrawingOwnerKey} isActive={i === activePane} onActivate={setActivePane} row={paneRows[i]} tf={paneTfs[i] ?? "D"} chartType={chartType} inds={inds} tool={drawingsReadyFor(sym) ? activeDrawingTool : null} toolActivation={toolState.activation} drawingSticky={drawingCreationDisabledReason ? false : drawingKeepsActive} drawingCreationDisabled={drawingCreationDisabledReason !== null} drawStyle={drawStyle} detectCmd={detectCmd} compare={compare} compareCfg={compareCfg} magnet={magnet} replayIdx={replayOn ? replayIdx : null} onMeta={(mm) => setTotal(mm.total)} drawings={[...(drawingOwnerMatches ? (drawStore[sym] ?? []) : []), ...chartBus.aiDrawingsFor(sym)]} drawingsVisible={drawingsVisible} onDrawingsChange={(d) => setSymbolDrawings(sym, d)} onDetectedDrawingCount={i === activePane ? setActivePaneDetectedDrawingCount : undefined} liveQuote={quotes[sym] ?? null} dataReady={prefsHydrated} initialTimeframe={startTfRef.current} indParams={indParams} hidden={hidden} onToggleHidden={toggleHidden} onRemoveInd={removeInd} onOpenSettings={openSettings} onOpenSource={openSource} pineScripts={pineScripts} dayMode={dtm} userTier={userTier}
                   onAddAlert={(price) => { window.location.href = `/alerts?sym=${encodeURIComponent(active)}&price=${encodeURIComponent(price.toFixed(4))}&type=price_above`; }}
