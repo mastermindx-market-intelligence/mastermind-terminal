@@ -34,5 +34,5 @@ verification:
 boundaries:
   - Uses the incumbent normalized IncomeView and comparablePeriodChanges owners.
   - Balance-sheet snapshots are not differenced.
-  - Free cash flow remains unavailable when required source rows are unavailable.
+  - The page consumes the free-cash-flow field in the financials record and does not recompute a missing value; upstream producer derivation remains outside this page.
   - Full history and transcript controls remain below the compact first-frame snapshot.
