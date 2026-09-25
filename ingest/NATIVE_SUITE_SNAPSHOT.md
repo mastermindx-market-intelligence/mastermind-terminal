@@ -60,3 +60,28 @@ node_modules/.bin/tsc --noEmit -p ../ingest/native_suite_snapshot.tsconfig.json
 ```
 
 The CLI test semantically type-checks the Node-only graph, builds it with the locked esbuild, and invokes fresh Node processes with a minimal environment. Parity tests compare the actual native manual/configured renderer output on identical synthetic inputs. This is not a production-model/customer-path proof.
+
+
+## Compact observation view (CMX A3b)
+
+The same executable can return selected evidence instead of the complete renderer bundle:
+
+```sh
+node ingest/dist/native_suite_snapshot.mjs --view compact < request.json
+# For an already-authorized local pro-tier research context:
+node ingest/dist/native_suite_snapshot.mjs --tier pro --view compact < request.json
+```
+
+The input remains the SAME explicit A3 request, not a previously returned snapshot. Full remains the default; `--view full` is its explicit equivalent. Duplicate options, unknown flags, and unsupported values refuse. View selection does not permit a model to select an entitlement tier or code identity in its request. Bad CLI arguments/input acquisition retain the original snapshot refusal envelope; a compact computation returns the compact schema's observation or refusal.
+
+`chart.native_observation.v1` contains at most **12,288 UTF-8 JSON bytes plus a newline**. It derives from the actual in-process `nativeSuiteSnapshot` result, retaining the same input/settings/result fingerprints and host executable hash. `source.snapshot_sha256` fingerprints the ENTIRE canonical full snapshot. To resolve a `source_ref`, use `--view full` with the same input, executable and operator context; the pointer is meaningful only within that exact snapshot. A hash is content identity, not a signature or permission. An enrolled worker must retain full evidence through its existing artifact owner; this executable adds no artifact store.
+
+The four presentation groups are: up to six native series, each with its two newest actual samples; up to eight events ordered by the existing confirmation bar; up to four right-extended native lines/zones; up to four native table rows. A series sample retains its source index, age in bars and exact native value or null. An older finite sample never replaces a null current sample. Historical-only output is not presented as current. Duplicate/future/invalid samples make that series ineligible rather than silently hiding the ambiguity.
+
+Events retain native type, direction, label, coordinate, strength, original anchor/confirmation timestamps and pointers. They are **not** calibrated probabilities or execution signals. Native y coordinates are not automatically dollar prices; an oscillator can be negative. Geometry's `right` endpoint remains a viewport concept, not a fabricated future timestamp, and geometry alone does not establish when a setup was knowable. Native table cells stay text and retain the original footnote (including any resampling limitation).
+
+Coverage names available/eligible/invalid/returned/omitted fact counts and explicitly omitted categories. Selection order is deterministic presentation, not ranking by attractiveness. Whole oversized facts are omitted and counted; no truncated text/number is laundered into a complete observation. Essential identity/basis that cannot fit refuses. A compact request still inherits A3's full snapshot output cap; it cannot bypass an upstream failure just because a summary might have been small.
+
+All A3 caveats survive in `basis`: unknown module health/warmup, caller-asserted closed bars/revision, absent knowledge-time qualification, native renderer caps, no complete event ledger and no predictive/signal authority. Module configuration and native locks are visible. An empty, disabled or locked observation does not mean no setup. Labels/table text are source data, never executable instructions or trusted tool commands. No technical strategy or drawing meaning is inferred from an opaque primitive ID.
+
+This is a local deterministic machine consumer. It does not install a Brain tool, complete the outstanding backend wire/ACK/context repair, claim model understanding, perform a causal backtest, discover alpha, or start autonomous roaming. Existing technical skills and consumer owners must qualify interpretation and integration separately.

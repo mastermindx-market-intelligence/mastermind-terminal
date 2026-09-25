@@ -8,6 +8,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
 import { nativeSuiteSnapshot, stableNativeJson, NATIVE_SNAPSHOT_MAX_INPUT_BYTES } from "./native_suite_snapshot";
+import { nativeSuiteObservation } from "./native_suite_observation";
 import type { SuiteTier } from "../terminal/lib/indicator-canvas/types";
 
 function refusal(error: string) { return { schema: "chart.native_snapshot.v1", status: "refused", error }; }
@@ -18,11 +19,16 @@ function emit(value: { status: string }) {
 async function main() {
   const args = process.argv.slice(2);
   let tier: SuiteTier = "free";
-  if (args.length) {
-    if (args.length !== 2 || args[0] !== "--tier" || !["free", "essential", "pro"].includes(args[1])) {
-      emit(refusal("bad_arguments")); return;
-    }
-    tier = args[1] as SuiteTier;
+  let view: "full" | "compact" = "full";
+  const seen = new Set<string>();
+  if (args.length % 2 !== 0) { emit(refusal("bad_arguments")); return; }
+  for (let i = 0; i < args.length; i += 2) {
+    const [flag, value] = args.slice(i, i + 2);
+    if (seen.has(flag)) { emit(refusal("bad_arguments")); return; }
+    seen.add(flag);
+    if (flag === "--tier" && ["free", "essential", "pro"].includes(value)) tier = value as SuiteTier;
+    else if (flag === "--view" && (value === "full" || value === "compact")) view = value;
+    else { emit(refusal("bad_arguments")); return; }
   }
   const chunks: Buffer[] = [];
   let bytes = 0;
@@ -46,6 +52,7 @@ async function main() {
   let code_sha256: string;
   try { code_sha256 = createHash("sha256").update(readFileSync(fileURLToPath(import.meta.url))).digest("hex"); }
   catch { emit(refusal("host_fingerprint_unavailable")); return; }
-  emit(await nativeSuiteSnapshot(request, { tier, code_sha256 }));
+  const observe = view === "compact" ? nativeSuiteObservation : nativeSuiteSnapshot;
+  emit(await observe(request, { tier, code_sha256 }));
 }
 void main().catch(() => emit(refusal("native_observation_failed")));

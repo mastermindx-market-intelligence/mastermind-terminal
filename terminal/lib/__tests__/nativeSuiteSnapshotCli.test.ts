@@ -62,3 +62,45 @@ describe("native research snapshot real Node executable", () => {
     const r = invoke(JSON.stringify({ ...fixture(), timeframe: "15m" }), ["--tier", "pro"]); expect(r.exit).toBe(2); expect(r.output.error).toBe("unsupported_timeframe");
   });
 });
+
+
+describe("compact native view on the same executable", () => {
+  it("runs a compact view bound to the identical full computation without browser/model transport", () => {
+    const input=JSON.stringify({...fixture(),suite:"rsix",params:suiteDefaults("rsix")});
+    const full=invoke(input,["--tier","pro"]), small=invoke(input,["--tier","pro","--view","compact"]);
+    expect(small.exit).toBe(0); expect(small.output.schema).toBe("chart.native_observation.v1");
+    expect(small.output.source.snapshot_sha256).toBe(createHash("sha256").update(full.stdout.trim()).digest("hex"));
+    expect(small.output.source.fingerprints).toEqual(full.output.fingerprints);
+    expect(small.output.source.code_sha256).toBe(full.output.host.code_sha256);
+    expect(small.output.series.length).toBeGreaterThan(0);
+    expect(Buffer.byteLength(small.stdout)).toBeLessThanOrEqual(12288+1);
+    expect(Buffer.byteLength(small.stdout)).toBeLessThan(Buffer.byteLength(full.stdout)/2);
+    expect(small.stdout.trim().split("\n")).toHaveLength(1); expect(small.stderr).toBe("");
+  });
+  it("preserves default full behavior and accepts explicit full mode",()=>{
+    const input=JSON.stringify(fixture());
+    expect(invoke(input,["--view","full"]).output).toEqual(invoke(input).output);
+  });
+  it("keeps compact default tier free and treats flag order as irrelevant",()=>{
+    const input=JSON.stringify(fixture());const free=invoke(input,["--view","compact"]);
+    expect(free.exit).toBe(0); expect(free.output.modules.find((m:any)=>m.id==="structure/sr").locked).toBe(true);
+    expect(invoke(input,["--view","compact","--tier","pro"]).output)
+      .toEqual(invoke(input,["--tier","pro","--view","compact"]).output);
+  });
+  it.each([
+    ["--view","compact","--view","full"],
+    ["--tier","free","--tier","pro"],
+    ["--view","automatic"],
+    ["--view"],
+  ])("refuses ambiguous or unsupported options %j",(...args:string[])=>{
+    const r=invoke("{}",args); expect(r.exit).toBe(2);expect(r.output.error).toBe("bad_arguments");
+  });
+  it("does not accept view/host authority fields inside request JSON",()=>{
+    const r=invoke(JSON.stringify({...fixture(),view:"compact",tier:"pro"}),["--view","compact"]);
+    expect(r.exit).toBe(2);expect(r.output.error).toBe("bad_request_shape");
+  });
+  it("carries an upstream refusal through compact mode without a false observation",()=>{
+    const r=invoke(JSON.stringify({...fixture(),timeframe:"15m"}),["--view","compact"]);
+    expect(r.exit).toBe(2);expect(r.output).toEqual({schema:"chart.native_observation.v1",status:"refused",error:"unsupported_timeframe"});
+  });
+});
