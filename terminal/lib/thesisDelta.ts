@@ -5,6 +5,17 @@
  */
 import type { ThesisHorizon, ThesisVersion } from "./theses";
 
+export type ThesisDeltaField =
+  | "title"
+  | "statement"
+  | "catalysts"
+  | "falsifiers"
+  | "risks"
+  | "horizon"
+  | "effectiveAt"
+  | "revisionNote"
+  | "status";
+
 export type ThesisDelta =
   | { kind: "origin" }
   | { kind: "truncated" }
@@ -15,7 +26,22 @@ export type ThesisDelta =
   | { kind: "horizonChanged"; old: ThesisHorizon; next: ThesisHorizon }
   | { kind: "effectiveAtChanged"; old: string | null; next: string | null }
   | { kind: "revisionNoteChanged"; old: string | null; next: string | null }
-  | { kind: "transitionChanged"; old: string; next: string };
+  | { kind: "lifecycleChanged"; old: ThesisVersion["lifecycleState"]; next: ThesisVersion["lifecycleState"] };
+
+export type ThesisDeltaCopy = {
+  language: "en" | "zh";
+  origin: string;
+  truncated: string;
+  fields: Record<ThesisDeltaField, string>;
+  changed: string;
+  added: string;
+  removed: string;
+  reordered: string;
+  none: string;
+  formatHorizon: (horizon: ThesisHorizon) => string;
+  formatDate: (date: string | null) => string;
+  formatLifecycle: (lifecycle: ThesisVersion["lifecycleState"]) => string;
+};
 
 function arraysEqual(a: string[], b: string[]): boolean {
   if (a.length !== b.length) return false;
@@ -110,9 +136,9 @@ export function diffThesisVersions(
     deltas.push({ kind: "revisionNoteChanged", old: prevContent.revisionNote, next: nextContent.revisionNote });
   }
 
-  // Transition
-  if (previous.transition !== next.transition) {
-    deltas.push({ kind: "transitionChanged", old: previous.transition, next: next.transition });
+  // Lifecycle
+  if (previous.lifecycleState !== next.lifecycleState) {
+    deltas.push({ kind: "lifecycleChanged", old: previous.lifecycleState, next: next.lifecycleState });
   }
 
   return deltas;
@@ -126,4 +152,48 @@ export function thesisVersionDeltaForHistory(
   const previous = history.find((version) => version.version === entry.previousVersion) ?? null;
   if (!previous) return [{ kind: "truncated" }];
   return diffThesisVersions(previous, entry);
+}
+
+export function describeThesisDelta(delta: ThesisDelta, copy: ThesisDeltaCopy): string {
+  const join = copy.language === "zh" ? "" : " ";
+  const period = copy.language === "zh" ? "。" : ".";
+  const itemSeparator = copy.language === "zh" ? "；" : "; ";
+  const verbs = {
+    origin: copy.changed,
+    truncated: copy.changed,
+    stringChanged: copy.changed,
+    listAdded: copy.added,
+    listRemoved: copy.removed,
+    listReordered: copy.reordered,
+    horizonChanged: copy.changed,
+    effectiveAtChanged: copy.changed,
+    revisionNoteChanged: copy.changed,
+    lifecycleChanged: copy.changed,
+  } satisfies Record<ThesisDelta["kind"], string>;
+
+  const describe = (field: ThesisDeltaField, verb: string, value?: string) =>
+    `${copy.fields[field]}${join}${verb}${value === undefined ? "" : `${copy.language === "zh" ? "：" : ": "}${value}`}${period}`;
+
+  switch (delta.kind) {
+    case "origin":
+      return copy.origin;
+    case "truncated":
+      return copy.truncated;
+    case "stringChanged":
+      return describe(delta.field, verbs[delta.kind]);
+    case "listAdded":
+      return describe(delta.field, verbs[delta.kind], delta.items.join(itemSeparator));
+    case "listRemoved":
+      return describe(delta.field, verbs[delta.kind], delta.items.join(itemSeparator));
+    case "listReordered":
+      return describe(delta.field, verbs[delta.kind]);
+    case "horizonChanged":
+      return describe("horizon", verbs[delta.kind], `${copy.formatHorizon(delta.old)} → ${copy.formatHorizon(delta.next)}`);
+    case "effectiveAtChanged":
+      return describe("effectiveAt", verbs[delta.kind], `${copy.formatDate(delta.old)} → ${copy.formatDate(delta.next)}`);
+    case "revisionNoteChanged":
+      return describe("revisionNote", verbs[delta.kind]);
+    case "lifecycleChanged":
+      return describe("status", verbs[delta.kind], `${copy.formatLifecycle(delta.old)} → ${copy.formatLifecycle(delta.next)}`);
+  }
 }
