@@ -1,12 +1,12 @@
 # B-F12-5 Account page polish — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: af6f3b5032496ef1242c4823c397af0a99bff7e8
-# capturedAt: 2026-09-25T03:22:10.358Z
+# capturedAtHead: 1a5d03aff5b67f7d048bf52248439187f485b670
+# capturedAt: 2026-09-25T03:57:34.240Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/components/settings/SectionAccount.tsx: "535ebd09a60c3477cca11c4f6851f2d4c35b3518404cab52b2039141f8a92acd"
-  terminal/app/settings.css: "f1ae985fccaf3209df60e742e387fa2c4daf647bbb0e299ac767d1a83c2e22a1"
+  terminal/app/settings.css: "fbc9797f94e00bb7488af1120f47ba9836393b1d61d11839a7d101248695d587"
 theme: dark
 languages: [en, zh]
 viewports:
