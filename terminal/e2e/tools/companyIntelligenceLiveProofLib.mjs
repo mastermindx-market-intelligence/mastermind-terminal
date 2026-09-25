@@ -67,6 +67,12 @@ function validateViewport(proof, expectedRelease, viewport) {
     && proof.historyVisible === true
     && proof.historyMode === proof.eventHistoryMode
     && proof.historyContextSeparated === true
+    && proof.topicsVisible === true
+    && proof.topicsMode === (proof.plane === "event_workspace.v1"
+      ? "historical-context"
+      : "structured-context")
+    && proof.topicBuckets === 3
+    && proof.topicsContextSeparated === true
     && proof.resultsVisible === true
     && proof.callVisible === true
     && proof.sourcesVisible === true

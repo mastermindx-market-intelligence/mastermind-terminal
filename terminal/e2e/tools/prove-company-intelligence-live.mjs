@@ -194,6 +194,24 @@ async function proveIntelligenceViewport(browser, storageState, viewportName, vi
       fail(`The ${viewportName} History workspace did not separate current v2 truth from historical v1 context.`);
     }
 
+    await page.locator(".ci-lenses").getByRole("tab", { name: "Topics", exact: true }).click();
+    const topics = await visibleExactlyOnce(
+      page.locator("[data-ci-paper-topics]"),
+      "The Company Intelligence Topic Memory workspace",
+    );
+    const topicsVisible = await topics.isVisible();
+    const topicsMode = await topics.getAttribute("data-ci-topics-mode");
+    const expectedTopicsMode = plane === "event_workspace.v1"
+      ? "historical-context"
+      : "structured-context";
+    const topicBuckets = await topics.locator("[data-ci-topic-bucket]").count();
+    const topicsText = await topics.textContent();
+    const topicsContextSeparated = plane !== "event_workspace.v1"
+      || /HISTORICAL V1 CONTEXT/.test(topicsText || "");
+    if (topicsMode !== expectedTopicsMode || topicBuckets !== 3 || !topicsContextSeparated) {
+      fail(`The ${viewportName} Topic Memory authority contract was incomplete.`);
+    }
+
     await page.locator(".ci-lenses").getByRole("tab", { name: "Results", exact: true }).click();
     const resultsVisible = await page.locator("[data-ci-paper-results]").isVisible();
 
@@ -219,6 +237,8 @@ async function proveIntelligenceViewport(browser, storageState, viewportName, vi
       || !eventHistoryVisible
       || !historyVisible
       || !historyContextSeparated
+      || !topicsVisible
+      || !topicsContextSeparated
       || !overflowSafe
     ) {
       fail(`The ${viewportName} Company Intelligence contract was incomplete.`);
@@ -239,6 +259,10 @@ async function proveIntelligenceViewport(browser, storageState, viewportName, vi
       historyVisible,
       historyMode,
       historyContextSeparated,
+      topicsVisible,
+      topicsMode,
+      topicBuckets,
+      topicsContextSeparated,
       resultsVisible,
       callVisible,
       sourcesVisible,
