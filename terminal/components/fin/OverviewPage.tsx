@@ -484,7 +484,7 @@ export default function OverviewPage({ sym, fund, name, onNavigate }: OverviewPa
               <span>{pick(zh, "P/E TTM", "市盈率 TTM")}</span>
             </div>
             <div className="fin-overview-current-eps">
-              <span>{pick(zh, "Basic EPS", "基本每股收益")}</span>
+              <span>{pick(zh, "Basic EPS · latest FY", "基本每股收益 · 最近财年")}</span>
               <b className="num">{currentBasicEps == null ? "—" : fmtNum(currentBasicEps)}</b>
             </div>
             <button className="fin-overview-detail-link" onClick={() => onNavigate("statistics")}>

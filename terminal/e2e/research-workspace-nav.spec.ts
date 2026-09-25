@@ -180,6 +180,7 @@ test("Overview vNext keeps snapshot, ownership, capital and valuation in one res
   await expect(valuation).toContainText("Valuation");
   await expect(valuation).toContainText("CURRENT");
   await expect(valuation).toContainText("P/E TTM");
+  await expect(valuation.locator(".fin-overview-valuation-current")).toContainText("Basic EPS · latest FY");
   await expect(valuation).toContainText("Historical P/E");
   await expect(valuation).toContainText("Revenue-relative context");
 
@@ -201,6 +202,7 @@ test("Overview vNext remains bilingual and overflow-safe on mobile", async ({ pa
   await expect(overview).toContainText("资本结构");
   await expect(overview).toContainText("估值");
   await expect(overview).toContainText("当前");
+  await expect(overview.locator(".fin-overview-valuation-current")).toContainText("基本每股收益 · 最近财年");
 
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflow).toBeLessThanOrEqual(1);
