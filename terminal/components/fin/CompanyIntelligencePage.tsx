@@ -27,6 +27,11 @@ import CompanyIntelligenceResultsLayout, {
   type CompanyIntelligenceResultsComparison,
   type CompanyIntelligenceResultsItem,
 } from "./CompanyIntelligenceResultsLayout";
+import CompanyIntelligenceSourcesLayout, {
+  type CompanyIntelligenceCoverageItem,
+  type CompanyIntelligenceMethodItem,
+  type CompanyIntelligenceSourceTone,
+} from "./CompanyIntelligenceSourcesLayout";
 import CompanySourceManifest from "./CompanySourceManifest";
 import EvidenceRail, { type CompanyEvidenceSelection } from "./EvidenceRail";
 import TranscriptSearchWorkspace from "./TranscriptSearchWorkspace";
@@ -77,6 +82,18 @@ function statusColor(state: CompanyIntelligenceContext["status"]): string {
   if (state === "ready") return "var(--up)";
   if (state === "partial" || state === "stale") return "var(--warn)";
   return "var(--muted)";
+}
+
+function sourceStateLabel(status: CompanyIntelligenceSource["status"] | undefined, zh: boolean): string {
+  if (status === "present") return pick(zh, "Present", "可用");
+  if (status === "metadata_only") return pick(zh, "Metadata only", "仅元数据");
+  return pick(zh, "Missing", "缺失");
+}
+
+function sourceTone(source: CompanyIntelligenceSource | null | undefined): CompanyIntelligenceSourceTone {
+  if (source?.status === "present") return "present";
+  if (source?.status === "metadata_only") return "metadata";
+  return "missing";
 }
 
 function warningLabel(code: string, zh: boolean): string {
@@ -505,6 +522,131 @@ export default function CompanyIntelligencePage({ sym, name, onOpenTx, onEvidenc
     if (selection) chooseEvidence(selection);
   };
 
+  const historySource = preferredSource(event, "earnings_history");
+  const analysisSource = preferredSource(event, "score_overlay");
+  const structuredTone: CompanyIntelligenceSourceTone = activeContext.status === "ready"
+    ? "present"
+    : activeContext.status === "partial"
+      ? "partial"
+      : activeContext.status === "stale"
+        ? "metadata"
+        : "missing";
+  const sourcesCoverage: CompanyIntelligenceCoverageItem[] = [
+    {
+      id: "structured-event",
+      label: pick(zh, "Structured event", "结构化事件"),
+      displayStatus: stateLabel(activeContext.status, zh),
+      detail: pick(
+        zh,
+        "Generation-pinned v1 company event context. This fallback does not become v2 authority.",
+        "按版本固定的 v1 公司事件背景；此回退路径不会成为 v2 权限。",
+      ),
+      tone: structuredTone,
+    },
+    {
+      id: "earnings-history",
+      label: pick(zh, "Earnings history", "财报历史"),
+      displayStatus: sourceStateLabel(historySource?.status, zh),
+      detail: historySource
+        ? pick(zh, "Structured event history source state for the selected event.", "当前事件的结构化财报历史来源状态。")
+        : pick(zh, "No earnings-history source is attached to the selected event.", "当前事件未关联财报历史来源。"),
+      tone: sourceTone(historySource),
+    },
+    {
+      id: "transcript",
+      label: pick(zh, "Transcript", "电话会记录"),
+      displayStatus: sourceStateLabel(transcriptSource?.status, zh),
+      detail: transcriptSource
+        ? pick(zh, "Normalized transcript availability for this v1 event.", "此 v1 事件的标准化电话会可用性。")
+        : pick(zh, "No transcript source is attached to the selected event.", "当前事件未关联电话会来源。"),
+      tone: sourceTone(transcriptSource),
+    },
+    {
+      id: "event-analysis",
+      label: pick(zh, "Event analysis", "事件分析"),
+      displayStatus: sourceStateLabel(analysisSource?.status, zh),
+      detail: analysisSource
+        ? pick(zh, "Score-overlay context remains a v1 source and is not promoted into v2 truth.", "评分覆盖层仍是 v1 来源，不会提升为 v2 事实。")
+        : pick(zh, "No score-overlay context is attached to the selected event.", "当前事件未关联评分覆盖层背景。"),
+      tone: sourceTone(analysisSource),
+    },
+    {
+      id: "consensus",
+      label: pick(zh, "Consensus", "共识"),
+      displayStatus: pick(zh, "Not carried", "未携带"),
+      detail: pick(zh, "v1 fallback has no licensed matched pre-event consensus contract.", "v1 回退路径没有已授权且匹配的事件前共识契约。"),
+      tone: "boundary",
+    },
+    {
+      id: "reaction",
+      label: pick(zh, "Market reaction", "市场反应"),
+      displayStatus: pick(zh, "Not carried", "未携带"),
+      detail: pick(zh, "v1 fallback has no qualified event-price join.", "v1 回退路径没有合格的事件价格关联。"),
+      tone: "boundary",
+    },
+  ];
+  const sourceIdentity: CompanyIntelligenceMethodItem[] = [
+    {
+      id: "generation",
+      label: pick(zh, "Generation", "版本"),
+      value: pick(zh, "Pinned context generation", "固定上下文版本"),
+      detail: activeContext.generation_id.length > 12
+        ? `${activeContext.generation_id.slice(0, 12)}…`
+        : activeContext.generation_id,
+      tone: structuredTone,
+    },
+    {
+      id: "as-known-at",
+      label: pick(zh, "As known at", "截至"),
+      value: activeContext.generated_at.replace("T", " ").replace("Z", " UTC"),
+      detail: pick(zh, "v1 generation timestamp", "v1 版本时间戳"),
+      tone: structuredTone,
+    },
+    {
+      id: "selected-event",
+      label: pick(zh, "Selected event", "当前事件"),
+      value: eventPeriod(event),
+      detail: pick(zh, "v1 event identity preserved", "保留 v1 事件身份"),
+      tone: structuredTone,
+    },
+  ];
+  const sourceBoundaries: CompanyIntelligenceMethodItem[] = [
+    {
+      id: "source-span",
+      label: pick(zh, "Exact source span", "精确来源片段"),
+      value: event.claim_citations_pending
+        ? pick(zh, "Pending", "待补充")
+        : pick(zh, "Available", "可用"),
+      detail: pick(
+        zh,
+        "Source-family attribution is preserved; exact paragraph/span pinning is not upgraded by this fallback.",
+        "保留来源类别归因；此回退路径不会将其升级为精确段落/片段定位。",
+      ),
+      tone: event.claim_citations_pending ? "partial" : "present",
+    },
+    {
+      id: "consensus-surprise",
+      label: pick(zh, "Consensus surprise", "共识超预期/不及预期"),
+      value: pick(zh, "Not asserted", "未断言"),
+      detail: pick(zh, "No licensed matched pre-event consensus is carried by v1.", "v1 未携带已授权且匹配的事件前共识。"),
+      tone: "boundary",
+    },
+    {
+      id: "market-reaction",
+      label: pick(zh, "Market reaction", "市场反应"),
+      value: pick(zh, "Not asserted", "未断言"),
+      detail: pick(zh, "No qualified event-price join is carried by v1.", "v1 未携带合格的事件价格关联。"),
+      tone: "boundary",
+    },
+    {
+      id: "trade-authority",
+      label: pick(zh, "Trade authority", "交易权限"),
+      value: pick(zh, "Context only", "仅供背景参考"),
+      detail: pick(zh, "This fallback does not rank, gate or size trades.", "此回退路径不对交易进行排名、门控或仓位配置。"),
+      tone: "boundary",
+    },
+  ];
+
   return (
     <div className="ci-page">
       <header className="ci-hero">
@@ -725,10 +867,35 @@ export default function CompanyIntelligencePage({ sym, name, onOpenTx, onEvidenc
           )}
 
           {lens === "sources" && (
-            <section className="ci-lens-panel">
-              <div className="ci-lens-heading"><div><span className="fin-eyebrow">{pick(zh, "SOURCE MANIFEST", "来源清单")}</span><h3>{pick(zh, "Availability and receipts", "可用性与凭证")}</h3></div><span>{pick(zh, "No inferred availability", "不推测来源状态")}</span></div>
-              <CompanySourceManifest event={event} onOpenTranscript={onOpenTx} />
-              <div className="ci-lineage"><strong>{pick(zh, "Transport lineage", "传输链路")}</strong><dl><div><dt>{pick(zh, "Earnings generation", "财报版本")}</dt><dd><code>{activeContext.transport_lineage.earnings_manifest.generation_id}</code></dd></div><div><dt>{pick(zh, "Transcript index", "电话会索引")}</dt><dd><code>{activeContext.transport_lineage.tx_index.generation_id}</code></dd></div><div><dt>{pick(zh, "Builder", "构建器")}</dt><dd><code>{activeContext.transport_lineage.builder}</code></dd></div></dl></div>
+            <section className="ci-lens-panel ci-sources">
+              <CompanyIntelligenceSourcesLayout
+                zh={zh}
+                periodLabel={eventPeriod(event)}
+                eventDate={event.call_date}
+                eventId={event.event_id}
+                generationId={activeContext.generation_id}
+                coverage={sourcesCoverage}
+                identity={sourceIdentity}
+                boundaries={sourceBoundaries}
+                fallbackNote={pick(
+                  zh,
+                  "v1 fallback source states remain context-only and do not inherit v2 EventWorkspace completeness semantics.",
+                  "v1 回退路径的来源状态仍仅供背景参考，不会继承 v2 EventWorkspace 的完整性语义。",
+                )}
+                sourceContent={(
+                  <>
+                    <CompanySourceManifest event={event} onOpenTranscript={onOpenTx} />
+                    <div className="ci-lineage">
+                      <strong>{pick(zh, "Transport lineage", "传输链路")}</strong>
+                      <dl>
+                        <div><dt>{pick(zh, "Earnings generation", "财报版本")}</dt><dd><code>{activeContext.transport_lineage.earnings_manifest.generation_id}</code></dd></div>
+                        <div><dt>{pick(zh, "Transcript index", "电话会索引")}</dt><dd><code>{activeContext.transport_lineage.tx_index.generation_id}</code></dd></div>
+                        <div><dt>{pick(zh, "Builder", "构建器")}</dt><dd><code>{activeContext.transport_lineage.builder}</code></dd></div>
+                      </dl>
+                    </div>
+                  </>
+                )}
+              />
             </section>
           )}
         </main>
