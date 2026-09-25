@@ -49,6 +49,8 @@ PREFLIGHT_ACCEPTED_SHA=
 PREFLIGHT_RECEIPT_PATH=
 PREFLIGHT_RECEIPT_ID=
 PREFLIGHT_SOURCE_RECEIPT_ID=
+PREFLIGHT_CANONICAL_HEAD=
+PREFLIGHT_RECOVERY_CANDIDATE=0
 ACCEPTED_REF_BEFORE=
 ACCEPTED_REF_SHA=
 log(){ echo "[build] $*"; }
@@ -289,8 +291,10 @@ prepare_preflight_receipt_dir(){
 # successful summary is not enough: exactly one new receipt must appear, and its
 # complete content, policy digest and deterministic IDs must agree with summary.
 run_release_preflight(){
-  local script=$1 policy=$2 canonical_repo=$3 receipt_dir=$4
+  local script=$1 policy=$2 canonical_repo=$3 receipt_dir=$4 mode=${5:-clean}
   local temporary stdout_file stderr_file before_manifest rc parsed expected_policy_digest
+  PREFLIGHT_CANONICAL_HEAD=
+  PREFLIGHT_RECOVERY_CANDIDATE=0
   temporary=$(mktemp -d /tmp/terminal-build-preflight.XXXXXX) || return $?
   stdout_file="$temporary/stdout.json"
   stderr_file="$temporary/stderr.log"
@@ -372,13 +376,41 @@ PY_RECEIPT_BEFORE
     cat "$stderr_file" >&2
   fi
   if [ "$rc" -ne 0 ]; then
-    if [ -s "$stdout_file" ]; then cat "$stdout_file" >&2; fi
-    rm -rf "$temporary"
-    return "$rc"
+    if [ "$mode" = "clean" ] && [ "$rc" -eq 2 ] && [ -s "$stdout_file" ]; then
+      if python3 -I - "$stdout_file" <<'PY_RECOVERY_CANDIDATE'
+import json
+import re
+import sys
+from pathlib import Path
+
+try:
+    summary = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+except (OSError, UnicodeError, json.JSONDecodeError):
+    raise SystemExit(1)
+if not isinstance(summary, dict):
+    raise SystemExit(1)
+if summary.get("schema") != "mastermind.terminal.release_preflight_receipt.v1":
+    raise SystemExit(1)
+if summary.get("result") != "UNKNOWN_STOP":
+    raise SystemExit(1)
+if re.fullmatch(r"[0-9a-f]{40}", str(summary.get("accepted_sha", ""))) is None:
+    raise SystemExit(1)
+if not isinstance(summary.get("receipt_path"), str) or not summary["receipt_path"]:
+    raise SystemExit(1)
+PY_RECOVERY_CANDIDATE
+      then
+        PREFLIGHT_RECOVERY_CANDIDATE=1
+      fi
+    fi
+    if [ "$mode" != "canonical-head-mismatch" ] || [ "$rc" -ne 2 ]; then
+      if [ -s "$stdout_file" ]; then cat "$stdout_file" >&2; fi
+      rm -rf "$temporary"
+      return "$rc"
+    fi
   fi
 
   if ! parsed=$(python3 -I - "$stdout_file" "$receipt_dir" "$before_manifest" \
-    "$expected_policy_digest" <<'PY_RECEIPT'
+    "$expected_policy_digest" "$mode" <<'PY_RECEIPT'
 import hashlib
 import json
 import os
@@ -459,6 +491,11 @@ summary_path = Path(sys.argv[1])
 receipt_root = Path(sys.argv[2]).resolve(strict=True)
 before_names = set(load_json_bytes(Path(sys.argv[3]).read_bytes(), "before-manifest"))
 expected_policy_digest = sys.argv[4]
+mode = sys.argv[5]
+if mode not in {"clean", "canonical-head-mismatch"}:
+    raise SystemExit("invalid release-preflight validation mode")
+expected_result = "CLEAN" if mode == "clean" else "UNKNOWN_STOP"
+expected_status = "CLEAN" if mode == "clean" else "UNKNOWN_STOP"
 summary_bytes = summary_path.read_bytes()
 if len(summary_bytes) > MAX_SUMMARY_BYTES:
     raise SystemExit("release-preflight summary exceeds size bound")
@@ -478,8 +515,10 @@ for key in required:
     value = summary.get(key)
     if not isinstance(value, str) or not value or any(char in value for char in "\r\n\t"):
         raise SystemExit(f"invalid release-preflight summary field: {key}")
-if summary["result"] != "CLEAN":
-    raise SystemExit("release-preflight summary is not CLEAN")
+if summary["result"] != expected_result:
+    raise SystemExit(
+        f"release-preflight summary result {summary['result']!r} does not match mode {mode!r}"
+    )
 if re.fullmatch(r"[0-9a-f]{40}", summary["accepted_sha"]) is None:
     raise SystemExit("release-preflight accepted SHA is not one full lower-case commit")
 
@@ -504,8 +543,8 @@ if not isinstance(outer, dict):
     raise SystemExit("release-preflight receipt root must be an object")
 if outer.get("schema") != "mastermind.terminal.release_preflight_receipt.v1":
     raise SystemExit("release-preflight receipt schema is invalid")
-if outer.get("result") != "CLEAN":
-    raise SystemExit("release-preflight receipt result is not CLEAN")
+if outer.get("result") != expected_result:
+    raise SystemExit("release-preflight receipt result disagrees with validation mode")
 if outer.get("accepted_sha") != summary["accepted_sha"]:
     raise SystemExit("release-preflight receipt accepted SHA disagrees with summary")
 if outer.get("policy_digest") != expected_policy_digest:
@@ -520,8 +559,8 @@ if not isinstance(inner, dict):
     raise SystemExit("release-preflight receipt lacks source-audit evidence")
 if inner.get("schema") != "mastermind.terminal.source_audit_receipt.v1":
     raise SystemExit("source-audit receipt schema is invalid")
-if inner.get("status") != "CLEAN":
-    raise SystemExit("source-audit receipt is not CLEAN")
+if inner.get("status") != expected_status:
+    raise SystemExit("source-audit receipt status disagrees with validation mode")
 if inner.get("accepted_sha") != summary["accepted_sha"]:
     raise SystemExit("source-audit accepted SHA disagrees with summary")
 if inner.get("policy_digest") != expected_policy_digest:
@@ -532,11 +571,39 @@ if inner.get("receipt_id") != deterministic_id(inner):
     raise SystemExit("source-audit receipt ID is not deterministic")
 if outer.get("source_audit_receipt_id") != inner.get("receipt_id"):
     raise SystemExit("outer receipt does not bind the nested source-audit receipt")
-if inner.get("findings") != []:
-    raise SystemExit("CLEAN source-audit receipt contains findings")
+findings = inner.get("findings")
 inner_summary = inner.get("summary")
-if not isinstance(inner_summary, dict) or inner_summary.get("blocking_findings") != 0:
-    raise SystemExit("CLEAN source-audit receipt has blocking findings")
+canonical_head = inner.get("canonical_repo_head", "")
+
+if mode == "clean":
+    if findings != []:
+        raise SystemExit("CLEAN source-audit receipt contains findings")
+    if not isinstance(inner_summary, dict) or inner_summary.get("blocking_findings") != 0:
+        raise SystemExit("CLEAN source-audit receipt has blocking findings")
+elif mode == "canonical-head-mismatch":
+    if not isinstance(canonical_head, str) or re.fullmatch(r"[0-9a-f]{40}", canonical_head) is None:
+        raise SystemExit("recovery source-audit canonical HEAD is invalid")
+    if not isinstance(findings, list) or len(findings) != 1:
+        raise SystemExit("recovery requires exactly one source-audit finding")
+    finding = findings[0]
+    if not isinstance(finding, dict) or finding.get("code") != "CANONICAL_HEAD_MISMATCH":
+        raise SystemExit("recovery finding is not CANONICAL_HEAD_MISMATCH")
+    if finding.get("canonical_repo_head") != canonical_head:
+        raise SystemExit("recovery finding canonical HEAD disagrees with receipt")
+    if canonical_head == summary["accepted_sha"]:
+        raise SystemExit("recovery canonical HEAD already equals accepted generation")
+    if not isinstance(inner_summary, dict) or inner_summary.get("blocking_findings") != 1:
+        raise SystemExit("recovery receipt does not contain exactly one blocker")
+    deployment = inner.get("deployment")
+    if not isinstance(deployment, dict):
+        raise SystemExit("recovery receipt lacks deployment evidence")
+    if deployment.get("marker_state") != "VALID":
+        raise SystemExit("recovery deployment marker is not VALID")
+    if deployment.get("sha") != summary["accepted_sha"]:
+        raise SystemExit("recovery deployment marker disagrees with accepted generation")
+    accepted_ref = inner.get("accepted_ref")
+    if not isinstance(accepted_ref, dict) or accepted_ref.get("contains_sha") is not True:
+        raise SystemExit("recovery accepted ref does not contain the live generation")
 
 print(
     "\t".join(
@@ -546,6 +613,7 @@ print(
             outer["receipt_id"],
             inner["receipt_id"],
             expected_policy_digest,
+            canonical_head,
         )
     )
 )
@@ -557,9 +625,95 @@ PY_RECEIPT
 
   IFS=$'\t' read -r PREFLIGHT_ACCEPTED_SHA PREFLIGHT_RECEIPT_PATH \
     PREFLIGHT_RECEIPT_ID PREFLIGHT_SOURCE_RECEIPT_ID PREFLIGHT_POLICY_DIGEST \
-    <<< "$parsed"
+    PREFLIGHT_CANONICAL_HEAD <<< "$parsed"
   rm -rf "$temporary"
-  log "source preflight CLEAN: accepted=$PREFLIGHT_ACCEPTED_SHA receipt=$PREFLIGHT_RECEIPT_PATH policy_digest=$PREFLIGHT_POLICY_DIGEST"
+  if [ "$mode" = "clean" ]; then
+    log "source preflight CLEAN: accepted=$PREFLIGHT_ACCEPTED_SHA receipt=$PREFLIGHT_RECEIPT_PATH policy_digest=$PREFLIGHT_POLICY_DIGEST"
+  else
+    log "source preflight recovery evidence: accepted=$PREFLIGHT_ACCEPTED_SHA canonical_head=$PREFLIGHT_CANONICAL_HEAD receipt=$PREFLIGHT_RECEIPT_PATH"
+  fi
+}
+
+# Read the live deployment marker without following symlinks or trusting a
+# changing inode. This is used only after a W2A receipt has established the
+# marker as the deployment identity for the accepted generation.
+read_live_deployment_marker(){
+  python3 -I - "$1" <<'PY_LIVE_MARKER'
+import os
+import re
+import stat
+import sys
+
+path = sys.argv[1]
+flags = os.O_RDONLY | getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NOFOLLOW", 0)
+fd = os.open(path, flags)
+try:
+    before = os.fstat(fd)
+    if not stat.S_ISREG(before.st_mode) or before.st_size > 128:
+        raise SystemExit(65)
+    payload = os.read(fd, 129)
+    after = os.fstat(fd)
+    identity = lambda item: (
+        item.st_dev, item.st_ino, item.st_mode, item.st_uid, item.st_gid,
+        item.st_size, item.st_mtime_ns,
+    )
+    if identity(before) != identity(after):
+        raise SystemExit(65)
+finally:
+    os.close(fd)
+try:
+    value = payload.decode("ascii").strip()
+except UnicodeDecodeError:
+    raise SystemExit(65)
+if re.fullmatch(r"[0-9a-f]{40}", value) is None:
+    raise SystemExit(65)
+print(value)
+PY_LIVE_MARKER
+}
+
+# Recover only the one state produced by a failed post-admission/pre-swap build:
+# the live accepted generation is still coherent, while the canonical checkout
+# was advanced to the admitted target. The immutable W2A receipt must prove that
+# CANONICAL_HEAD_MISMATCH is the sole blocker before this owner moves HEAD.
+recover_canonical_head_mismatch(){
+  local script=$1 policy=$2 canonical_repo=$3 receipt_dir=$4 deployment_marker=$5
+  local current_head live_marker dirty restored_head
+
+  run_release_preflight "$script" "$policy" "$canonical_repo" "$receipt_dir" canonical-head-mismatch || return $?
+  current_head=$(git -C "$canonical_repo" rev-parse HEAD 2>/dev/null) || {
+    log "FATAL: cannot read canonical checkout HEAD during recovery"
+    return 65
+  }
+  if [ "$current_head" != "$PREFLIGHT_CANONICAL_HEAD" ]; then
+    log "FATAL: canonical checkout HEAD changed after recovery receipt publication"
+    return 65
+  fi
+  dirty=$(git -C "$canonical_repo" status --porcelain=v1 --untracked-files=all) || return $?
+  if [ -n "$dirty" ]; then
+    log "FATAL: canonical checkout became dirty after recovery receipt publication"
+    return 65
+  fi
+
+  if ! live_marker=$(read_live_deployment_marker "$deployment_marker"); then
+    log "FATAL: live deployment marker became unreadable during canonical recovery"
+    return 65
+  fi
+  if [ "$live_marker" != "$PREFLIGHT_ACCEPTED_SHA" ]; then
+    log "FATAL: live deployment marker changed after recovery receipt publication"
+    return 65
+  fi
+
+  log "canonical recovery admitted by receipt $PREFLIGHT_RECEIPT_PATH: head=$current_head live=$PREFLIGHT_ACCEPTED_SHA"
+  sanitize_git_environment
+  git -C "$canonical_repo" reset -q --hard "$PREFLIGHT_ACCEPTED_SHA" || return $?
+  git -C "$canonical_repo" clean -qfd || return $?
+  restored_head=$(git -C "$canonical_repo" rev-parse HEAD 2>/dev/null) || return $?
+  dirty=$(git -C "$canonical_repo" status --porcelain=v1 --untracked-files=all) || return $?
+  if [ "$restored_head" != "$PREFLIGHT_ACCEPTED_SHA" ] || [ -n "$dirty" ]; then
+    log "FATAL: canonical recovery did not converge to the live accepted generation"
+    return 65
+  fi
+  log "canonical checkout restored to live accepted generation $PREFLIGHT_ACCEPTED_SHA"
 }
 
 refuse_git_replace_refs(){
@@ -781,6 +935,49 @@ deploy_identity_line(){
   echo "intended=$want_sha marker=$marker BUILD_ID=$build"
 }
 
+# Before live identity begins moving, the current-generation W2A receipt owns the
+# recovery target. Any failure after target checkout mutation and before
+# deploy_generation_begin succeeds must put the canonical checkout back on that
+# live generation. This keeps a failed build from poisoning the next W2A.
+CANONICAL_RECOVERY_ARMED=0
+CANONICAL_RECOVERY_SHA=
+DEPLOYMENT_MARKER="$APP/.deployment-id"
+STAGE_ROOT=
+cleanup_deploy_attempt(){
+  local rc=$? live_marker restored_head dirty
+  trap - EXIT
+  set +e
+  if [ "$rc" -ne 0 ] && [ "${CANONICAL_RECOVERY_ARMED:-0}" = 1 ]; then
+    if live_marker=$(read_live_deployment_marker "$DEPLOYMENT_MARKER") \
+      && [ -n "${CANONICAL_RECOVERY_SHA:-}" ] \
+      && [ "$live_marker" = "$CANONICAL_RECOVERY_SHA" ]; then
+      log "pre-swap failure: restoring canonical checkout to live accepted generation $CANONICAL_RECOVERY_SHA"
+      sanitize_git_environment
+      if git -C "$SRC" reset -q --hard "$CANONICAL_RECOVERY_SHA" \
+        && git -C "$SRC" clean -qfd; then
+        restored_head=$(git -C "$SRC" rev-parse HEAD 2>/dev/null)
+        dirty=$(git -C "$SRC" status --porcelain=v1 --untracked-files=all 2>/dev/null)
+        if [ "$restored_head" = "$CANONICAL_RECOVERY_SHA" ] && [ -z "$dirty" ]; then
+          log "pre-swap canonical checkout recovery OK"
+        else
+          log "FATAL: pre-swap canonical checkout recovery verification failed"
+          rc=74
+        fi
+      else
+        log "FATAL: pre-swap canonical checkout recovery failed"
+        rc=74
+      fi
+    else
+      log "FATAL: pre-swap recovery refused because live identity changed or became unreadable"
+      rc=74
+    fi
+  fi
+  if [ -n "${STAGE_ROOT:-}" ] && [ -d "$STAGE_ROOT" ]; then
+    rm -rf "$STAGE_ROOT" || log "WARN: could not remove staging directory $STAGE_ROOT"
+  fi
+  exit "$rc"
+}
+
 # Sourced -> expose the library and stop. Executed -> deploy.
 # Gated on sourced-ness, NOT an environment variable: an inherited env var would
 # turn a real root deploy into a silent `exit 0` that shipped nothing while every
@@ -807,7 +1004,17 @@ fi
 select_preflight_artifacts 0 "$AUTHORING_OPS_DIR" "$SRC/ops"
 log "preflight bundle selected: script_sha256=$PREFLIGHT_SCRIPT_SHA256 policy_digest=$PREFLIGHT_POLICY_DIGEST runtime_sha256=$PREFLIGHT_RUNTIME_SHA256"
 prepare_preflight_receipt_dir "$PREFLIGHT_RECEIPT_DIR"
-run_release_preflight "$PREFLIGHT_SCRIPT" "$PREFLIGHT_POLICY" "$SRC" "$PREFLIGHT_RECEIPT_DIR"
+PREFLIGHT_RC=0
+run_release_preflight "$PREFLIGHT_SCRIPT" "$PREFLIGHT_POLICY" "$SRC" "$PREFLIGHT_RECEIPT_DIR" || PREFLIGHT_RC=$?
+if [ "$PREFLIGHT_RC" -ne 0 ]; then
+  if [ "$PREFLIGHT_RC" -ne 2 ] || [ "$PREFLIGHT_RECOVERY_CANDIDATE" != 1 ]; then
+    exit "$PREFLIGHT_RC"
+  fi
+  log "current-generation preflight is UNKNOWN_STOP; checking the one admitted failed-build recovery state"
+  recover_canonical_head_mismatch "$PREFLIGHT_SCRIPT" "$PREFLIGHT_POLICY" "$SRC" \
+    "$PREFLIGHT_RECEIPT_DIR" "$DEPLOYMENT_MARKER" || exit $?
+  run_release_preflight "$PREFLIGHT_SCRIPT" "$PREFLIGHT_POLICY" "$SRC" "$PREFLIGHT_RECEIPT_DIR"
+fi
 
 # 1) EXACT TARGET GATE — fetch the accepted ref, then pin every later step to
 # the caller's admitted full SHA. A later branch movement cannot change target.
@@ -815,6 +1022,9 @@ log "fetching accepted ref origin/$BRANCH for exact target admission ..."
 ACCEPTED_REF="refs/remotes/origin/$BRANCH"
 fetch_accepted_ref "$SRC" origin "$BRANCH" "$ACCEPTED_REF"
 admit_target_sha "$SRC" "$TARGET_SHA" "$ACCEPTED_REF_SHA"
+CANONICAL_RECOVERY_SHA=$PREFLIGHT_ACCEPTED_SHA
+CANONICAL_RECOVERY_ARMED=1
+trap cleanup_deploy_attempt EXIT
 git -C "$SRC" reset -q --hard "$TARGET_SHA"
 git -C "$SRC" clean -qfd
 FULL_SHA=$(git -C "$SRC" rev-parse HEAD)
@@ -846,7 +1056,6 @@ fi
 # scripts/ is deliberately a symlink to the live dir: the prebuild coverage script
 # writes next to its own resolved location, and that must remain the live app.
 STAGE_ROOT=$(mktemp -d "$(dirname "$APP")/.stage.XXXXXX")
-trap 'rm -rf "$STAGE_ROOT"' EXIT
 STAGE="$STAGE_ROOT/terminal"
 mkdir -p "$STAGE"
 # The gated dirs are archived to a file first: an EMPTY stream (a commit without them, or a
@@ -894,6 +1103,7 @@ log "new build OK: BUILD_ID=$NEW_BUILD_ID sha=$FULL_SHA"
 #    build swap — and open a deploy generation as it goes, so the prior marker is
 #    snapshotted and a failed health check can restore identity and build together.
 deploy_generation_begin "$APP" "$STAGE/.deployment-id"
+CANONICAL_RECOVERY_ARMED=0
 
 # 6) atomic swap (rename within one filesystem is atomic).
 #    Every move is guarded. A bare `set -e` abort here would end the deploy with the
