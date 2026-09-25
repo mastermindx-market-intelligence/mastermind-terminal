@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { SUITE_META, suiteDefaults } from "../lib/suites/meta";
+import type { NativeSuiteCapabilities } from "../lib/chartIndicatorParams";
 
 // The model/script transport and OHLC are explicit fixtures. TerminalShell, Chart Bus,
 // parameter storage, lazy suite computation, and SVG rendering are the real product.
@@ -15,7 +16,7 @@ for (const module of SUITE_META.structure.modules) structureParams[`${module.key
 Object.assign(structureParams, { "sr.on": true, "sr.sensitivity": "low", "sr.minTouches": 2,
   "sr.bufferZone": false, "sr.labels": true });
 
-type Mirror = { session?: { indicators?: Array<{ name: string; params?: Record<string, unknown> }>; capabilities?: { indicators?: string[] } }; acks?: Array<{ seq: number; ok: boolean; error?: string }> };
+type Mirror = { session?: { indicators?: Array<{ name: string; params?: Record<string, unknown> }>; capabilities?: { indicators?: string[]; native_parameters?: NativeSuiteCapabilities | null } }; acks?: Array<{ seq: number; ok: boolean; error?: string }> };
 async function dispatch(page: Page, params: Record<string, unknown>, seq: number) {
   await page.evaluate(({ params, seq }) => {
     const host = window as Window & { MM_BRAIN_CFG?: { onCommand?: (command: unknown) => void } };
@@ -62,6 +63,15 @@ for (const lang of ["en", "zh"] as const) {
     await dispatch(page, structureParams, 1);
     await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("mm.inds") || "[]")), { timeout: 15_000 }).toEqual(["structure"]);
     await expect.poll(() => mirrors.some(row => row.session?.capabilities?.indicators?.includes("structure")), { timeout: 10_000 }).toBe(true);
+    await expect.poll(() => mirrors.some(row => row.session?.capabilities?.native_parameters?.modules.some(m => m.id === "structure/sr")), {
+      message: "the real chart-state POST must publish the native setting description", timeout: 10_000,
+    }).toBe(true);
+    const packet = mirrors.find(row => row.session?.capabilities?.native_parameters?.modules.some(m => m.id === "structure/sr"))!.session!.capabilities!.native_parameters!;
+    expect(packet.authority).toBe("configuration_description_only");
+    const sr = packet.modules.find(m => m.id === "structure/sr")!;
+    expect(sr.parameters["sr.sensitivity"].enum).toEqual(["high", "medium", "low"]);
+    expect(sr.parameters["sr.bufferZone"]).toEqual({ type: "boolean", default: false });
+    expect(new TextEncoder().encode(JSON.stringify(packet)).byteLength).toBeLessThanOrEqual(4096);
     const tips = page.locator('svg [data-ic-tip^="sr-"]');
     // Native S/R chips intentionally hide below 2.5px/bar. Phone proof therefore
     // observes the actual price-level lines, not a label the renderer must suppress.

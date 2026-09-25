@@ -86,6 +86,7 @@ import { useGateEntitlement } from "@/lib/entitlementStore";
 import { normalizeDevTierOverride } from "@/lib/subscriptionTier";
 import { useChartBus } from "@/lib/useChartBus";
 import { isV2Envelope, type IndicatorSpec } from "@/lib/chartBus";
+import { describeNativeSuiteCapabilities } from "@/lib/chartIndicatorParams";
 import SeasonalityCard from "@/components/SeasonalityCard";
 // Code-split the conditionally-mounted heavies out of the /terminal first-paint bundle (task 9).
 // TerminalShell is a Client Component, so ssr:false is allowed — none of these render on any SSR
@@ -4304,10 +4305,17 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
     () => [...inds].map((k) => ({ name: k, params: indParams[k] as IndicatorSpec["params"] })),
     [inds, indParams],
   );
+  // Metadata only; the existing mirror forwards this exact object to Brain.
+  // Memoize off settings, not live price ticks. No second indicator catalog/compute.
+  const chartCapabilities = useMemo(() => ({
+    tfs: TF_CANONICAL_ORDER,
+    indicators: [...IND_ORDER, ...SUITE_ORDER],
+    native_parameters: describeNativeSuiteCapabilities([...inds], indParams),
+  }), [inds, indParams]);
   const chartBus = useChartBus({
     activeSymbol: active,
     bars,
-    capabilities: { tfs: TF_CANONICAL_ORDER, indicators: [...IND_ORDER, ...SUITE_ORDER] },
+    capabilities: chartCapabilities,
     sessionIndicators,
     currentTf: tf,
     // AI objects live in the bus's own store. Detector drawings do share the

@@ -74,3 +74,7 @@ Produces: one recoverable PR with truthful BUILT_NOT_PROVEN state until release 
 ## Current progress
 
 Task 1 source and focused tests pass; implementation commit 64701e45ceb62f8ade1ac2bfcac4ecd5ad7c0d77 is remotely verified. Task 2 consumer and six-case responsive fixture proof pass. Full unit: 6,137 passed / four TODOs. Independent exact-head review, hosted CI and production proof remain owed. See the evidence report for step-grid and mobile-density rulings; neither changes the native kernels.
+
+## A1b continuation — completed local implementation
+
+The approved program's machine-readable native setting descriptions are now added to the existing capability projection. The A1b specification is an addendum to the existing design. Helper and consumer were implemented test-first: eight missing-capability failures, a mounted missing-packet failure, then 102 focused tests, 6,145 full-unit passes (four existing TODOs), six responsive EN/ZH browser passes with no retries and sequential typecheck success. Exact evidence is in `docs/research/CMX_A1B_NATIVE_CAPABILITIES_EVIDENCE_2026-09-24.md`. Independent review is waived by the current Chairman directive (Macro #7151 comment5826034970), not claimed complete. Required fresh CI and paired backend/user-path proof remain outstanding.

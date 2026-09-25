@@ -59,3 +59,15 @@ No source, runtime, scientific, provider, account, or production authority is wi
 ## Implementation ruling — numeric step
 
 The first default round-trip test exposed Trend Waves defaults 2/4/8/3 with min 0.1 and step 0.5. Existing IndicatorSettings.NumberField clamps range and decimal display but does not quantize manually entered values. Therefore native validation enforces finite/min/max, not an invented min-anchored step grid. Keep canonical defaults and manual fractional inputs intact. This corrects the initial specification assumption; no indicator metadata or algorithm is changed.
+
+## A1b — bounded native parameter discovery
+
+Chairman review waiver: Macro #7151 comment 5826034970. Independent review is waived for this program, not completed; required tests, source protections and real-path acceptance remain. The backend wire repair remains blocked on its refused source-inspection action and is not bypassed here.
+
+This disjoint dependency extends the existing native metadata helper and TerminalShell capability projection on the same #740 carrier. Brain already reads the chart session, so its `capabilities.native_parameters` will describe settings from the existing catalog without a new endpoint, registry, calculator or model. No `useChartBus`, BrainWidget, ChartPanel or Macro edit.
+
+The packet covers active native suites only, prioritizes enabled modules, and publishes complete per-module descriptions: suite/module identity, display label, minimum renderer tier, canonical number/boolean/enum fields and defaults, unsupported field names, and the existing replace-set membership versus merge-existing-parameters semantics. Numeric step remains a UI increment. This is configuration description only, never a permission or predictive statement. Current values stay in the existing session indicator state; unrelated saved keys are not copied into metadata.
+
+Limit the additive packet to 4096 actual UTF-8 bytes. Admit or omit a whole module, retain every omitted module ID and explicit complete/partial status, and never silently truncate a parameter schema. Current selected modules have priority over inactive modules. A consumer receives detached metadata so it cannot change catalog definitions. No native suite means a null packet.
+
+Tests must verify schema/validator agreement across the current catalog, whole-module omission and UTF-8 bounds, no untrusted-setting leakage, and the actual mounted chart-state POST in the six existing responsive EN/ZH journeys. The model and market transports remain fixtures; this proves client publication, not backend delivery or model task effectiveness.
