@@ -6616,11 +6616,20 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     };
 
     let drawingPaneClipIds = new Map<string, string>();
+    const drawingClipPaneKey = (kind: Drawing["kind"], paneKey?: string | null): string | null => {
+      // Date-only ranges, vertical lines and cycle/time tools intentionally span
+      // the chart root. Price-bearing range tools do not: an off-scale price
+      // anchor must stop at the price-pane boundary instead of painting through
+      // Stoch/MACD (the range value still remains intact in data space).
+      if (paneKey) return paneKey;
+      return kind === "pricerange" || kind === "dateandpricerange" || kind === "measure"
+        ? PRICE_PANE_KEY
+        : null;
+    };
     const applyDrawingPaneClip = <T extends SVGElement>(node: T, paneKey?: string | null): T => {
-      // Legacy price-pane drawings include tools such as vertical lines whose
-      // intentional geometry spans the full chart root. Preserve that contract;
-      // only a drawing explicitly bound to an indicator pane is pane-clipped.
-      if (!paneKey || paneKey === PRICE_PANE_KEY) return node;
+      // Callers pass null for intentionally full-chart geometry. A concrete pane
+      // key — including the price pane — means the drawing is pane-local.
+      if (!paneKey) return node;
       const clipId = drawingPaneClipIds.get(paneKey);
       if (clipId) node.setAttribute("clip-path", `url(#${clipId})`);
       return node;
@@ -6685,7 +6694,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       };
       for (const d of [...drawRef.current].sort((a, b) => (a.z ?? 0) - (b.z ?? 0))) {
         const node = shape(d, false, projectX, projectYFor(d));
-        svgEl.appendChild(applyDrawingPaneClip(node, drawingPaneKey(d)));
+        svgEl.appendChild(applyDrawingPaneClip(node, drawingClipPaneKey(d.kind, drawingPaneKey(d))));
       }
       // ── D2 locked vertical line overlay ──
       const lvt = lockedVLineOwnerSymbolRef.current === symbolRef.current ? lockedVLineRef.current : null;
@@ -7832,7 +7841,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         svgEl.appendChild(guides);
         svgEl.appendChild(applyDrawingPaneClip(
           shape({ id: "_p", kind: p0.kind, points: previewPoints, ...applyStyle(p0.kind), ...(p0.meta ? { meta: p0.meta } : {}) }, true, xOf, (price) => yOfIn(price, p0.paneKey)),
-          p0.paneKey,
+          drawingClipPaneKey(p0.kind, p0.paneKey),
         ));
       });
     });
@@ -7939,7 +7948,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           const svgEl = svgRef.current; if (!svgEl) return;
           svgEl.appendChild(applyDrawingPaneClip(
             shape({ id: "_measure", kind: "measure", points: [a, b], ...applyStyle("measure") }, true, xOf, (price) => yOfIn(price, measurePane)),
-            measurePane,
+            drawingClipPaneKey("measure", measurePane),
           ));
         });
       };

@@ -1589,6 +1589,56 @@ test("a drag released in the future gutter finishes instead of following the cur
   expect(width).toBeGreaterThan(8);
 });
 
+test("price-bearing range drawings are clipped to the price pane while date-only ranges stay full-height", async ({ page }) => {
+  test.skip((page.viewportSize()?.width ?? 1440) <= 860, DESKTOP_ONLY);
+  await openTerminal(page, {
+    drawings: [
+      {
+        id: "date-price-range-price-pane",
+        kind: "dateandpricerange",
+        source: "user",
+        points: [{ t: "2026-06-12", p: 80 }, { t: "2026-06-18", p: 220 }],
+        color: "#26c281",
+        fillColor: "#26c281",
+        fillOpacity: 0.12,
+      },
+      {
+        id: "price-range-price-pane",
+        kind: "pricerange",
+        source: "user",
+        points: [{ t: "2026-06-12", p: 80 }, { t: "2026-06-18", p: 220 }],
+        color: "#26c281",
+        fillColor: "#26c281",
+        fillOpacity: 0.12,
+      },
+      {
+        id: "measure-price-pane",
+        kind: "measure",
+        source: "user",
+        points: [{ t: "2026-06-12", p: 80 }, { t: "2026-06-18", p: 220 }],
+        color: "#26c281",
+        fillColor: "#26c281",
+        fillOpacity: 0.12,
+      },
+      {
+        id: "date-range-full-height",
+        kind: "daterange",
+        source: "user",
+        points: [{ t: "2026-06-12", p: 180 }, { t: "2026-06-18", p: 190 }],
+        color: "#4d82ff",
+        fillColor: "#4d82ff",
+        fillOpacity: 0.12,
+      },
+    ],
+  });
+
+  const layer = page.locator(".pane.on .drawing-layer");
+  for (const id of ["date-price-range-price-pane", "price-range-price-pane", "measure-price-pane"]) {
+    await expect(layer.locator('g[data-id="' + id + '"]')).toHaveAttribute("clip-path", /drawing-pane-clip/);
+  }
+  await expect(layer.locator('g[data-id="date-range-full-height"]')).not.toHaveAttribute("clip-path", /drawing-pane-clip/);
+});
+
 test("an indicator-pane drawing holds its place when the price scale rescales", async ({ page }) => {
   test.skip((page.viewportSize()?.width ?? 1440) <= 860, DESKTOP_ONLY);
   await openTerminal(page);
