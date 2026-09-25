@@ -54,6 +54,7 @@ describe("useChartBus host rebinding", () => {
       capabilities: { tfs: ["D"], indicators: [] },
       sessionIndicators: [],
       currentTf: "3D",
+      activePaneId: 0,
       userDrawings: [],
       getContextIdentity: () => ({ origin_id: "origin-rebind", context_revision: 1 }),
       setSymbol: (symbol) => { calls.push(`${label}:symbol:${symbol}`); },

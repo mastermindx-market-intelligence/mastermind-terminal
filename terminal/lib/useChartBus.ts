@@ -13,6 +13,7 @@
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { Drawing } from "@/lib/drawings";
+import { timeToMs } from "@/lib/timeWindow";
 import {
   CommandQueue, applyToStore, isV2Envelope, translate, validateEnvelope,
   fitMetrics, type Ack, type AiObject, type Fit, type FitBar, type IndicatorSpec,
@@ -26,6 +27,7 @@ export type ChartBusHost = {
   capabilities: { tfs: string[]; indicators: string[] };
   sessionIndicators: IndicatorSpec[]; // current indicator set (name+params)
   currentTf: string;
+  activePaneId: number;
   userDrawings: Drawing[]; // the active symbol's user drawings (by:"user"), if enumerable
   // Existing DeepVue ai-context identity. Read at POST time so revision stays in lockstep
   // with the same provider the Brain widget sends on the chat request.
@@ -39,6 +41,8 @@ export type ChartBusHost = {
 
 export type ChartBus = {
   dispatchV2: (cmd: unknown) => void;
+  /** PaneSync calendar window in epoch ms; only active-pane changes trigger a mirror. */
+  noteViewport: (paneId: number, windowMs: { from: number; to: number } | null) => void;
   aiDrawingsFor: (symbol: string) => Drawing[];
   legend: { count: number; hidden: boolean; toggleHidden: () => void; clear: () => void };
   queue: CommandQueue; // exposed so W3 can subscribe to step events later
@@ -46,6 +50,7 @@ export type ChartBus = {
 
 // A rejected command still produces an ack (ok:false) — the gateway needs to see the rejection.
 const STATE_DEBOUNCE_MS = 2000;
+const VIEWPORT_DEBOUNCE_MS = 250;
 const ACK_DEBOUNCE_MS = 100;
 
 export function useChartBus(host: ChartBusHost): ChartBus {
@@ -65,9 +70,11 @@ export function useChartBus(host: ChartBusHost): ChartBus {
 
   const queue = useMemo(() => new CommandQueue(0), []); // default 0 = instant; W3 sets a pace + subscribes
   const acksRef = useRef<Ack[]>([]);
+  const viewportByPaneRef = useRef(new Map<number, { from: number; to: number }>());
 
   // ── debounced state mirror POST ────────────────────────────────────────────────────────────
   const stateTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const stateTimerDelay = useRef<number | null>(null);
   const postState = useCallback(() => {
     const h = hostRef.current;
     const sym = h.activeSymbol;
@@ -99,9 +106,11 @@ export function useChartBus(host: ChartBusHost): ChartBus {
       acksRef.current = [...acks, ...acksRef.current];
       return;
     }
-    // visible_range: the loaded-series span (first↔last bar epoch). NOTE: this is the data span, not
-    // the live pan/zoom viewport — see PR body; the clean follow-up is the existing onChartApi seam.
-    const span = seriesSpan(bars);
+    const dataRange = seriesSpan(bars);
+    const viewportMs = viewportByPaneRef.current.get(h.activePaneId) ?? null;
+    const visibleRange = viewportMs
+      ? { from: viewportMs.from / 1000, to: viewportMs.to / 1000 }
+      : null;
     const body = {
       client: "terminal",
       origin_id: identity.origin_id,
@@ -109,8 +118,12 @@ export function useChartBus(host: ChartBusHost): ChartBus {
       session: {
         symbol: sym,
         tf: h.currentTf,
+        pane_id: h.activePaneId,
         indicators: h.sessionIndicators,
-        visible_range: span,
+        // True live pan/zoom bounds from paneSync's calendar-window owner.
+        visible_range: visibleRange,
+        // Loaded-series availability is useful context but is not the viewport.
+        data_range: dataRange,
         capabilities: h.capabilities,
         drawings,
       },
@@ -142,25 +155,57 @@ export function useChartBus(host: ChartBusHost): ChartBus {
 
   const scheduleState = useCallback((delayMs = STATE_DEBOUNCE_MS) => {
     if (stateTimer.current) {
-      // ACK receipts are execution feedback, not ordinary telemetry. Let them preempt a
-      // slower pending state write; equal/slower requests simply coalesce.
-      if (delayMs >= STATE_DEBOUNCE_MS) return;
+      const currentDelay = stateTimerDelay.current ?? STATE_DEBOUNCE_MS;
+      // Smaller delay = higher priority: ACK (100ms) > viewport/context (250ms) > telemetry (2s).
+      // A lower-priority update may coalesce into a pending higher-priority flush, never postpone it.
+      if (delayMs >= currentDelay) return;
       clearTimeout(stateTimer.current);
       stateTimer.current = null;
+      stateTimerDelay.current = null;
     }
-    stateTimer.current = setTimeout(() => { stateTimer.current = null; postState(); }, delayMs);
+    stateTimerDelay.current = delayMs;
+    stateTimer.current = setTimeout(() => {
+      stateTimer.current = null;
+      stateTimerDelay.current = null;
+      postState();
+    }, delayMs);
   }, [postState]);
 
-  // POST on initial mount and on symbol / tf / indicator / user-drawing changes.
-  // Count alone misses edits that preserve collection size (dragging a line, resizing a zone, undoing
-  // geometry in place). Sign the exact user-drawing projection sent by postState instead. This also
-  // avoids false positives from TerminalShell's per-render `.filter(isUserDrawing)` array allocation.
+  // Context targeting (symbol/tf/active pane) mirrors promptly, including the initial mount.
+  const contextSig = `${host.activeSymbol}|${host.currentTf}|${host.activePaneId}`;
+  useEffect(() => {
+    scheduleState(VIEWPORT_DEBOUNCE_MS);
+  }, [contextSig, scheduleState]);
+
+  // Indicator/drawing telemetry can stay on the slower coalescing path.
   const userDrawingSig = JSON.stringify(host.userDrawings.map(userDrawingState));
-  const changeSig = `${host.activeSymbol}|${host.currentTf}|${host.sessionIndicators.map((s) => s.name + JSON.stringify(s.params || {})).join(",")}|${userDrawingSig}`;
+  const contentSig = `${host.sessionIndicators.map((s) => s.name + JSON.stringify(s.params || {})).join(",")}|${userDrawingSig}`;
   useEffect(() => {
     scheduleState();
-  }, [changeSig, scheduleState]);
-  useEffect(() => () => { if (stateTimer.current) clearTimeout(stateTimer.current); }, []);
+  }, [contentSig, scheduleState]);
+  useEffect(() => () => {
+    if (stateTimer.current) clearTimeout(stateTimer.current);
+    stateTimer.current = null;
+    stateTimerDelay.current = null;
+  }, []);
+
+  const noteViewport = useCallback((paneId: number, windowMs: { from: number; to: number } | null) => {
+    if (!Number.isInteger(paneId) || paneId < 0) return;
+    const next = windowMs
+      && Number.isFinite(windowMs.from)
+      && Number.isFinite(windowMs.to)
+      && windowMs.from < windowMs.to
+      ? { from: windowMs.from, to: windowMs.to }
+      : null;
+    const prev = viewportByPaneRef.current.get(paneId) ?? null;
+    if (
+      (prev == null && next == null)
+      || (prev != null && next != null && prev.from === next.from && prev.to === next.to)
+    ) return;
+    if (next) viewportByPaneRef.current.set(paneId, next);
+    else viewportByPaneRef.current.delete(paneId);
+    if (paneId === hostRef.current.activePaneId) scheduleState(VIEWPORT_DEBOUNCE_MS);
+  }, [scheduleState]);
 
   // ── ack helper ───────────────────────────────────────────────────────────────────────────
   const pushAck = useCallback((a: Ack) => {
@@ -229,7 +274,7 @@ export function useChartBus(host: ChartBusHost): ChartBus {
     clear: () => { const next = { ...aiStoreRef.current, [activeSym]: [] }; aiStoreRef.current = next; setAiStore(next); scheduleState(); },
   }), [aiStore, hiddenSyms, activeSym, scheduleState]);
 
-  return { dispatchV2, aiDrawingsFor, legend, queue };
+  return { dispatchV2, noteViewport, aiDrawingsFor, legend, queue };
 }
 
 // ── shape helpers for the state mirror ──────────────────────────────────────────────────────────
@@ -253,13 +298,12 @@ function userDrawingState(d: Drawing): Record<string, unknown> {
   return { id: d.id, by: "user", op: "draw." + d.kind, args: userArgs(d) };
 }
 
-// visible_range from the loaded series (first↔last bar epoch-seconds).
+// Loaded data availability, distinct from the live viewport. Uses the same time
+// interpretation as paneSync/timeWindow so daily bars are midnight UTC and intraday bars stay seconds.
 function seriesSpan(bars: FitBar[]): { from: number; to: number } | null {
   if (!bars.length) return null;
-  const toSec = (t: string | number): number => {
-    if (typeof t === "number") return t;
-    if (/^\d+$/.test(t)) return Number(t);
-    return Math.floor(+new Date(t + "T12:00:00Z") / 1000);
-  };
-  return { from: toSec(bars[0].time), to: toSec(bars[bars.length - 1].time) };
+  const fromMs = timeToMs(bars[0].time);
+  const toMs = timeToMs(bars[bars.length - 1].time);
+  if (!Number.isFinite(fromMs) || !Number.isFinite(toMs) || fromMs > toMs) return null;
+  return { from: fromMs / 1000, to: toMs / 1000 };
 }

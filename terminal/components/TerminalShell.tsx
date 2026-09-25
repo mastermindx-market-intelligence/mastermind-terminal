@@ -118,7 +118,7 @@ import WashoutTurnRow from "@/components/WashoutTurnRow";
 import { oracleVerdict, deskVerdict } from "@/lib/signalVerdict";
 import { computeTrendState } from "@/lib/trend";
 import { useLive } from "@/lib/live";
-import { setPaneSync } from "@/lib/paneSync";
+import { setPaneSync, subscribePaneVisibleWindow } from "@/lib/paneSync";
 import {
   MAX_DRAWINGS_PER_SYMBOL,
   type Dash,
@@ -4328,6 +4328,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
     capabilities: chartCapabilities,
     sessionIndicators,
     currentTf: tf,
+    activePaneId: activePane,
     // AI objects live in the bus's own store. Detector drawings do share the
     // durable drawing collection, so keep them out of the bus's user-authored
     // context rather than reporting generated levels as operator marks.
@@ -4348,6 +4349,13 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
     // setVisibleRange is a follow-up via the onChartApi seam (see PR body).
     setRange: (from) => { try { window.dispatchEvent(new CustomEvent("mm:chart-jump", { detail: { ts: from } })); } catch {} },
   });
+
+  // Observe the already-registered active pane's calendar viewport. paneSync remains the
+  // single logical-range→calendar owner; Chart Bus only mirrors the result into Brain state.
+  useEffect(() => subscribePaneVisibleWindow(
+    activePane,
+    (window) => chartBus.noteViewport(activePane, window),
+  ), [activePane, chartBus.noteViewport]);
 
   // Brain widget → chart command executor. Mirrors the retired CopilotPanel's FLAT single-command
   // contract EXACTLY ({action, symbol|tf|indicator+on|kind} at top level): every field is

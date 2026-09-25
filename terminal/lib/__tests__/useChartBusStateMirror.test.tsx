@@ -36,6 +36,7 @@ function hostWith(
     capabilities: { tfs: ["D"], indicators: [] },
     sessionIndicators: [],
     currentTf: "D",
+    activePaneId: 0,
     userDrawings,
     getContextIdentity: () => context,
     setSymbol: () => {},
@@ -79,7 +80,11 @@ describe("useChartBus state mirror", () => {
     expect(fetchMock).not.toHaveBeenCalled();
 
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(2_000);
+      await vi.advanceTimersByTimeAsync(249);
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1);
     });
     expect(fetchMock).toHaveBeenCalledTimes(1);
     const firstInit = fetchMock.mock.calls[0][1] as RequestInit;
@@ -105,7 +110,7 @@ describe("useChartBus state mirror", () => {
       }));
     });
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(2_000);
+      await vi.advanceTimersByTimeAsync(250);
     });
     expect(fetchMock).toHaveBeenCalledTimes(1);
     fetchMock.mockClear();
@@ -132,6 +137,82 @@ describe("useChartBus state mirror", () => {
         args: { p: 125 },
       },
     ]);
+  });
+
+  it("mirrors only the active pane viewport and preserves loaded data range separately", async () => {
+    const busRef = { current: null as ChartBus | null };
+    const host = {
+      ...hostWith([]),
+      bars: [
+        { time: "2026-01-02", h: 11, l: 9, c: 10 },
+        { time: "2026-01-05", h: 12, l: 10, c: 11 },
+      ],
+    };
+    await act(async () => {
+      root!.render(React.createElement(Harness, {
+        host,
+        onBus: (bus) => { busRef.current = bus; },
+      }));
+    });
+    await act(async () => { await vi.advanceTimersByTimeAsync(250); });
+    fetchMock.mockClear();
+
+    act(() => (busRef.current as any).noteViewport(1, {
+      from: Date.parse("2025-12-20T00:00:00Z"),
+      to: Date.parse("2026-01-03T00:00:00Z"),
+    }));
+    await act(async () => { await vi.advanceTimersByTimeAsync(300); });
+    expect(fetchMock).not.toHaveBeenCalled();
+
+    act(() => (busRef.current as any).noteViewport(0, {
+      from: Date.parse("2025-12-29T00:00:00Z"),
+      to: Date.parse("2026-01-07T00:00:00Z"),
+    }));
+    await act(async () => { await vi.advanceTimersByTimeAsync(249); });
+    expect(fetchMock).not.toHaveBeenCalled();
+    await act(async () => { await vi.advanceTimersByTimeAsync(1); });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    const init = fetchMock.mock.calls[0][1] as RequestInit;
+    const body = JSON.parse(String(init.body));
+    expect(body.session.pane_id).toBe(0);
+    expect(body.session.visible_range).toEqual({
+      from: Date.parse("2025-12-29T00:00:00Z") / 1000,
+      to: Date.parse("2026-01-07T00:00:00Z") / 1000,
+    });
+    expect(body.session.data_range).toEqual({
+      from: Date.parse("2026-01-02T00:00:00Z") / 1000,
+      to: Date.parse("2026-01-05T00:00:00Z") / 1000,
+    });
+  });
+
+  it("never lets a viewport update postpone a higher-priority ACK mirror", async () => {
+    const busRef = { current: null as ChartBus | null };
+    await act(async () => {
+      root!.render(React.createElement(Harness, {
+        host: hostWith([]),
+        onBus: (bus) => { busRef.current = bus; },
+      }));
+    });
+    await act(async () => { await vi.advanceTimersByTimeAsync(250); });
+    fetchMock.mockClear();
+
+    act(() => busRef.current!.dispatchV2({
+      on: true, v: 2, batch_id: "ack-priority", seq: 0,
+      op: "draw.hline", id: "ai_priority", args: { p: 100 },
+    }));
+    await act(async () => { await vi.advanceTimersByTimeAsync(50); });
+    act(() => (busRef.current as any).noteViewport(0, {
+      from: Date.parse("2026-01-01T00:00:00Z"),
+      to: Date.parse("2026-01-10T00:00:00Z"),
+    }));
+    await act(async () => { await vi.advanceTimersByTimeAsync(49); });
+    expect(fetchMock).not.toHaveBeenCalled();
+    await act(async () => { await vi.advanceTimersByTimeAsync(1); });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const body = JSON.parse(String((fetchMock.mock.calls[0][1] as RequestInit).body));
+    expect(body.acks[0]).toMatchObject({ batch_id: "ack-priority", seq: 0, ok: true });
+    expect(body.session.visible_range).not.toBeNull();
   });
 
   it("retains unsent command acknowledgements after a failed mirror POST", async () => {
