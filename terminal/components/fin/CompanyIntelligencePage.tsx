@@ -23,6 +23,9 @@ import { getCurrentEventWorkspace, type EventWorkspaceResult } from "../../lib/e
 import CompanyIntelligenceV2Current from "./CompanyIntelligenceV2Current";
 import CompanyIntelligenceBriefLayout, { type CompanyIntelligenceBriefItem } from "./CompanyIntelligenceBriefLayout";
 import CompanyIntelligenceEventHistoryStrip, { type CompanyIntelligenceEventHistoryItem } from "./CompanyIntelligenceEventHistoryStrip";
+import CompanyIntelligenceHistoryLayout, {
+  type CompanyIntelligenceHistoryEvent,
+} from "./CompanyIntelligenceHistoryLayout";
 import CompanyIntelligenceCallLayout from "./CompanyIntelligenceCallLayout";
 import CompanyIntelligenceResultsLayout, {
   type CompanyIntelligenceResultsComparison,
@@ -386,6 +389,55 @@ export default function CompanyIntelligencePage({ sym, name, onOpenTx, onEvidenc
   const txId = transcriptId(transcriptSource);
   const metrics = event.metrics;
   const deltas = event.previous_event_deltas;
+  const historyLayoutEvents: CompanyIntelligenceHistoryEvent[] = events.slice(0, 6).map((candidate) => ({
+    id: candidate.event_id,
+    label: eventPeriod(candidate),
+    date: candidate.call_date,
+    status: candidate.event_id === event.event_id
+      ? "selected"
+      : candidate.event_id === activeContext.latest_event_id
+        ? "latest"
+        : "historical",
+    summary: candidate.summary || candidate.highlights[0] || null,
+    metrics: [
+      {
+        id: "revenue_growth",
+        label: pick(zh, "Revenue growth", "营收增长"),
+        value: pct(candidate.metrics.revenue_growth_pct),
+        detail: candidate.previous_event_deltas.revenue_growth_pct == null
+          ? null
+          : `${pct(candidate.previous_event_deltas.revenue_growth_pct, true)} ${pick(zh, "vs prior", "较上期")}`,
+      },
+      {
+        id: "eps_growth",
+        label: pick(zh, "EPS growth", "每股盈利增长"),
+        value: pct(candidate.metrics.eps_growth_pct),
+        detail: candidate.previous_event_deltas.eps_growth_pct == null
+          ? null
+          : `${pct(candidate.previous_event_deltas.eps_growth_pct, true)} ${pick(zh, "vs prior", "较上期")}`,
+      },
+      {
+        id: "gross_margin",
+        label: pick(zh, "Gross margin", "毛利率"),
+        value: pct(candidate.metrics.gross_margin_pct),
+        detail: candidate.previous_event_deltas.gross_margin_pct == null
+          ? null
+          : `${pct(candidate.previous_event_deltas.gross_margin_pct, true)} ${pick(zh, "vs prior", "较上期")}`,
+      },
+      {
+        id: "questions",
+        label: pick(zh, "Analyst questions", "分析师提问"),
+        value: numeric(candidate.metrics.questions_count),
+        detail: candidate.previous_event_deltas.questions_count == null
+          ? null
+          : `${numeric(candidate.previous_event_deltas.questions_count, true)} ${pick(zh, "vs prior", "较上期")}`,
+      },
+    ],
+    onSelect: () => {
+      setEventState({ sym: ticker, id: candidate.event_id });
+      setEvidence(null);
+    },
+  }));
   const displayName = activeContext.company.display_name || name || ticker;
   // A general highlight has no polarity. Never relabel it as Constructive when
   // the producer did not retain an explicitly positive highlight for the event.
@@ -876,8 +928,14 @@ export default function CompanyIntelligencePage({ sym, name, onOpenTx, onEvidenc
 
           {lens === "history" && (
             <section className="ci-lens-panel">
-              <div className="ci-lens-heading"><div><span className="fin-eyebrow">{pick(zh, "EVENT HISTORY", "事件历史")}</span><h3>{pick(zh, "Quarter-over-quarter narrative", "季度叙事变化")}</h3></div><span>{events.length} {pick(zh, "events", "个事件")}</span></div>
-              <div className="ci-history-wrap"><table className="fin-table ci-history-table"><thead><tr><th>{pick(zh, "Period", "期间")}</th><th>{pick(zh, "Date", "日期")}</th><th>{pick(zh, "Revenue", "营收")}</th><th>{pick(zh, "EPS", "每股盈利")}</th><th>{pick(zh, "Margin", "毛利率")}</th><th>{pick(zh, "Questions", "提问")}</th></tr></thead><tbody>{events.map((candidate) => <tr key={candidate.event_id} className={candidate.event_id === event.event_id ? "selected" : ""} onClick={() => { setEventState({ sym: ticker, id: candidate.event_id }); setEvidence(null); }}><td><button>{eventPeriod(candidate)}</button></td><td className="num">{candidate.call_date}</td><td className="num">{pct(candidate.metrics.revenue_growth_pct)}</td><td className="num">{pct(candidate.metrics.eps_growth_pct)}</td><td className="num">{pct(candidate.metrics.gross_margin_pct)}</td><td className="num">{numeric(candidate.metrics.questions_count)}</td></tr>)}</tbody></table></div>
+              <CompanyIntelligenceHistoryLayout
+                zh={zh}
+                mode="selectable-history"
+                currentLabel={eventPeriod(event)}
+                currentDate={event.call_date}
+                events={historyLayoutEvents}
+                onOpenBrief={() => selectLens("brief")}
+              />
             </section>
           )}
 
