@@ -1,0 +1,39 @@
+{
+  "capturedAt": "2026-09-24T22:23:09.713Z",
+  "base": "https://app.mastermind-x.com",
+  "expectedRelease": "65a24f294bed2ce7c5ecbf1999ec5cee1f9af20f",
+  "phaseA": [
+    {
+      "case": "Analysis gate blocks the thesis workspace.",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "case": "Theses view stays anonymous.",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "case": "Anonymous thesis list is rejected.",
+      "status": 401,
+      "ok": true
+    },
+    {
+      "case": "Anonymous thesis creation is rejected.",
+      "status": 401,
+      "ok": true
+    },
+    {
+      "case": "Anonymous saved views are rejected.",
+      "status": 401,
+      "ok": true
+    }
+  ],
+  "phaseB": {
+    "ran": false,
+    "route": "none",
+    "versions": [],
+    "archived": false
+  },
+  "browserErrorCount": 0
+}
