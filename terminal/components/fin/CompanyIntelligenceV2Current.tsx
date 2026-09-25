@@ -15,6 +15,7 @@ import type { EventWorkspaceQaExchange, EventWorkspaceResult } from "../../lib/e
 import { tickerPeriodAliasFromWorkspace } from "../../lib/eventWorkspace";
 import CompanySourceManifest from "./CompanySourceManifest";
 import CompanyIntelligenceBriefLayout, { type CompanyIntelligenceBriefItem } from "./CompanyIntelligenceBriefLayout";
+import CompanyIntelligenceEventHistoryStrip, { type CompanyIntelligenceEventHistoryItem } from "./CompanyIntelligenceEventHistoryStrip";
 import CompanyIntelligenceCallLayout, { type CompanyIntelligenceCallExchange } from "./CompanyIntelligenceCallLayout";
 import CompanyIntelligenceResultsLayout, {
   type CompanyIntelligenceResultsComparison,
@@ -392,6 +393,26 @@ export default function CompanyIntelligenceV2Current({
       all.findIndex((candidate) => candidate.event_id === event.event_id) === index
     ))
     : [];
+  const historyStripItems: CompanyIntelligenceEventHistoryItem[] = [
+    {
+      id: presented.event_id,
+      label: presented.period_label,
+      date: presented.event_date,
+      status: "current",
+    },
+    ...historicalEvents
+      .filter((candidate) => !(
+        candidate.fiscal_year === result.workspace.fiscal_period.year
+        && candidate.fiscal_quarter === result.workspace.fiscal_period.quarter
+      ))
+      .slice(0, 3)
+      .map((candidate) => ({
+        id: candidate.event_id,
+        label: `Q${candidate.fiscal_quarter} FY${candidate.fiscal_year}`,
+        date: candidate.call_date,
+        status: "context" as const,
+      })),
+  ];
   const transcriptSearchEvents = [
     {
       event_id: presented.event_id,
@@ -753,6 +774,12 @@ export default function CompanyIntelligenceV2Current({
                     </div>
                     <CompanySourceManifest event={stubEvent} v2Sources={presented.sources} onOpenTranscript={(id) => onOpenTx({ id, expected_document_sha256: txSha })} compact />
                   </section>
+                  <CompanyIntelligenceEventHistoryStrip
+                    zh={zh}
+                    items={historyStripItems}
+                    contextOnly
+                    onOpenHistory={() => selectLens("history")}
+                  />
                 </div>
               )}
             />

@@ -514,6 +514,22 @@ test("Company Intelligence keeps its context and evidence workflow responsive", 
   });
 });
 
+test("Brief event history changes the selected v1 event without leaving the Brief", async ({ page }) => {
+  await openCompanyIntelligence(page);
+  const strip = page.locator("[data-ci-event-history-strip]");
+  await expect(strip).toBeVisible();
+  await expect(strip).toHaveAttribute("data-ci-event-history-mode", "selectable-history");
+  await expect(strip.locator("[data-ci-event-history-item]")).toHaveCount(2);
+
+  const prior = strip.locator('[data-ci-event-history-item="cie_4c0410e7c4358283cf37a557"]');
+  await prior.click();
+  await expect(prior).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator(".ci-event-select select")).toHaveValue("cie_4c0410e7c4358283cf37a557");
+  await expect(page.locator(".ci-paper-brief-meta")).toContainText("Q4 FY2025");
+  await expect(page.locator(".ci-lenses").getByRole("tab", { name: "Brief" })).toHaveAttribute("aria-selected", "true");
+  await expectNoDocumentOverflow(page);
+});
+
 test("Company Intelligence lens switching does not move the research shell", async ({ page }) => {
   await openCompanyIntelligence(page);
   await makeLensSwitchScrollObservable(page);
@@ -872,6 +888,8 @@ test("Company Intelligence preserves its mobile workflow in Chinese", async ({ p
   await expect(page.locator(".ci-theme-footer")).not.toContainText("stale");
   await expect(page.getByRole("heading", { name: "3 家追踪管理人披露持仓" })).toBeVisible();
   await expect(page.locator(".ci-inst-card")).toContainText("仅限该名册的 HHI");
+  await expect(page.locator("[data-ci-event-history-strip]")).toContainText("事件历史");
+  await expect(page.locator("[data-ci-event-history-strip]")).toContainText("无需离开简报即可选择期间");
   await expectNoDocumentOverflow(page);
   await page.screenshot({
     path: testInfo.outputPath("mobile-company-intelligence-zh.png"),
@@ -988,6 +1006,23 @@ async function openAaplWorkspace(page: Page, payload = aaplWorkspacePayload(), o
   await expect(page.locator(".ci-page")).toBeVisible({ timeout: 15_000 });
   return { releaseV1 };
 }
+
+test("verified event Brief keeps historical v1 rows context-only", async ({ page }) => {
+  await openAaplWorkspace(page, aaplWorkspacePayload(), { v1: "overlay" });
+  const strip = page.locator("[data-ci-event-history-strip]");
+  await expect(strip).toBeVisible();
+  await expect(strip).toHaveAttribute("data-ci-event-history-mode", "current-plus-context");
+  await expect(strip.locator('[data-ci-event-history-status="current"]')).toContainText("Q3 FY2026");
+  const historicalContext = strip.locator('[data-ci-event-history-status="context"]');
+  await expect(historicalContext).toHaveCount(1);
+  await expect(historicalContext).toContainText("Q4 FY2025");
+  await expect(historicalContext.locator("button")).toHaveCount(0);
+
+  await strip.getByRole("button", { name: "All events" }).click();
+  await expect(page.locator(".ci-lenses").getByRole("tab", { name: "History" })).toHaveAttribute("aria-selected", "true");
+  await expect(page.locator("#ci-panel-history")).toContainText("HISTORICAL V1 CONTEXT");
+  await expectNoDocumentOverflow(page);
+});
 
 test("verified event workspace lens switching does not move the research shell", async ({ page }) => {
   await openAaplWorkspace(page);
