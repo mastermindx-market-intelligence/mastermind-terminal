@@ -58,6 +58,12 @@ function validateViewport(proof, expectedRelease, viewport) {
     && proof.symbolMatched === true
     && proof.intelligenceFamilySelected === true
     && proof.briefVisible === true
+    && proof.eventHistoryVisible === true
+    && Number.isInteger(proof.eventHistoryItems)
+    && proof.eventHistoryItems >= 1
+    && proof.eventHistoryMode === (proof.plane === "event_workspace.v1"
+      ? "current-plus-context"
+      : "selectable-history")
     && proof.resultsVisible === true
     && proof.callVisible === true
     && proof.sourcesVisible === true

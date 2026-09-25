@@ -8,10 +8,11 @@ It proves two distinct boundaries:
 1. **Anonymous** — the exact requested deployment serves the Analysis route, the
    authentication gate is visible, and Company Intelligence does not leak before
    sign-in.
-2. **Signed in** — desktop and mobile render Brief, Results, Call + Q&A, Sources,
-   the fixed Evidence overlay and CompanyVisual; the chart-to-Intelligence entry
-   works; Institutional Ownership remains a separate deep link; and no document
-   overflow or browser exception occurs.
+2. **Signed in** — desktop and mobile render Brief, the compact Event History
+   strip, Results, Call + Q&A, Sources, the fixed Evidence overlay and
+   CompanyVisual; the Event History mode matches the active v1/v2 authority
+   plane; the chart-to-Intelligence entry works; Institutional Ownership remains
+   a separate deep link; and no document overflow or browser exception occurs.
 
 Run against one exact served release:
 

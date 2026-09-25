@@ -159,8 +159,22 @@ async function proveIntelligenceViewport(browser, storageState, viewportName, vi
       fail(`The ${viewportName} lens set was incomplete: ${lenses.join(", ")}.`);
     }
 
+    const plane = await workspace.getAttribute("data-ci-plane") || "company_intelligence_context.v1";
     const briefVisible = await page.locator("[data-ci-paper-brief]").isVisible();
     const companyVisual = await page.locator("[data-company-visual]").isVisible();
+    const eventHistory = await visibleExactlyOnce(
+      page.locator("[data-ci-event-history-strip]"),
+      "The Company Intelligence Event History strip",
+    );
+    const eventHistoryVisible = await eventHistory.isVisible();
+    const eventHistoryMode = await eventHistory.getAttribute("data-ci-event-history-mode");
+    const eventHistoryItems = await eventHistory.locator("[data-ci-event-history-item]").count();
+    const expectedHistoryMode = plane === "event_workspace.v1"
+      ? "current-plus-context"
+      : "selectable-history";
+    if (eventHistoryMode !== expectedHistoryMode || eventHistoryItems < 1) {
+      fail(`The ${viewportName} Event History contract was incomplete.`);
+    }
     const evidenceOverlay = await proveEvidenceOverlay(page);
 
     await page.locator(".ci-lenses").getByRole("tab", { name: "Results", exact: true }).click();
@@ -179,7 +193,15 @@ async function proveIntelligenceViewport(browser, storageState, viewportName, vi
     const screenshot = join(outputDir, `${viewportName}-company-intelligence.png`);
     await page.screenshot({ path: screenshot, fullPage: false });
 
-    if (!briefVisible || !resultsVisible || !callVisible || !sourcesVisible || !companyVisual || !overflowSafe) {
+    if (
+      !briefVisible
+      || !resultsVisible
+      || !callVisible
+      || !sourcesVisible
+      || !companyVisual
+      || !eventHistoryVisible
+      || !overflowSafe
+    ) {
       fail(`The ${viewportName} Company Intelligence contract was incomplete.`);
     }
     if (errors() !== 0) fail(`The ${viewportName} journey emitted a browser error.`);
@@ -190,8 +212,11 @@ async function proveIntelligenceViewport(browser, storageState, viewportName, vi
       symbolMatched,
       intelligenceFamilySelected,
       lenses,
-      plane: await workspace.getAttribute("data-ci-plane") || "company_intelligence_context.v1",
+      plane,
       briefVisible,
+      eventHistoryVisible,
+      eventHistoryMode,
+      eventHistoryItems,
       resultsVisible,
       callVisible,
       sourcesVisible,

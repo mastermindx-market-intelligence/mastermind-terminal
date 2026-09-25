@@ -19,6 +19,9 @@ function viewport(viewport: "desktop" | "mobile") {
     lenses: COMPANY_INTELLIGENCE_LENSES,
     plane: "event_workspace.v1",
     briefVisible: true,
+    eventHistoryVisible: true,
+    eventHistoryMode: "current-plus-context",
+    eventHistoryItems: 2,
     resultsVisible: true,
     callVisible: true,
     sourcesVisible: true,
@@ -67,6 +70,20 @@ describe("Company Intelligence live-proof contract", () => {
     expect(validateSignedInProof(signedIn(), RELEASE)).toBe(true);
     expect(validateSignedInProof({ ...signedIn(), ownershipJourney: false }, RELEASE)).toBe(false);
     expect(validateSignedInProof({ ...signedIn(), viewports: [viewport("desktop")] }, RELEASE)).toBe(false);
+    expect(validateSignedInProof({
+      ...signedIn(),
+      viewports: [
+        { ...viewport("desktop"), eventHistoryItems: 0 },
+        viewport("mobile"),
+      ],
+    }, RELEASE)).toBe(false);
+    expect(validateSignedInProof({
+      ...signedIn(),
+      viewports: [
+        { ...viewport("desktop"), eventHistoryMode: "selectable-history" },
+        viewport("mobile"),
+      ],
+    }, RELEASE)).toBe(false);
   });
 
   it("builds a release-bound receipt and makes the auth gate explicit", () => {
