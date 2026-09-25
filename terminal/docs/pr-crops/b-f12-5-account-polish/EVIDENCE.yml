@@ -1,12 +1,12 @@
 # B-F12-5 Account page polish — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 0613e9a6423fc035f017772359e1bb786e881e59
-# capturedAt: 2026-09-24T16:22:21.544Z
+# capturedAtHead: af6f3b5032496ef1242c4823c397af0a99bff7e8
+# capturedAt: 2026-09-25T03:22:10.358Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/components/settings/SectionAccount.tsx: "535ebd09a60c3477cca11c4f6851f2d4c35b3518404cab52b2039141f8a92acd"
-  terminal/app/settings.css: "3189163136d943431cbf52e4b5d241c105b695ba5af94c4c2e29151d537b5ef5"
+  terminal/app/settings.css: "f1ae985fccaf3209df60e742e387fa2c4daf647bbb0e299ac767d1a83c2e22a1"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -28,11 +28,11 @@ files:
   - mobile-en-delete-form.png
   - mobile-zh-delete-form.png
 measurements:
-  desktop-en-overview.png: { spanWidth: 842, gridWidth: 842, profileWidth: 410, confirmVisible: false, confirmClass: "", confirmBg: "", signOutClass: "acs-signout-m acs-btn ghost", signOutColor: "" }
-  desktop-zh-overview.png: { spanWidth: 831, gridWidth: 831, profileWidth: 405, confirmVisible: false, confirmClass: "", confirmBg: "", signOutClass: "acs-signout-m acs-btn ghost", signOutColor: "" }
+  desktop-en-overview.png: { spanWidth: 844, gridWidth: 844, profileWidth: 411, confirmVisible: false, confirmClass: "", confirmBg: "", signOutClass: "acs-signout-m acs-btn ghost", signOutColor: "" }
+  desktop-zh-overview.png: { spanWidth: 844, gridWidth: 844, profileWidth: 411, confirmVisible: false, confirmClass: "", confirmBg: "", signOutClass: "acs-signout-m acs-btn ghost", signOutColor: "" }
   desktop-en-delete-form.png: { spanWidth: 844, gridWidth: 844, profileWidth: 411, confirmVisible: true, confirmClass: "acs-btn btn-danger", confirmBg: "rgb(240, 86, 107)", signOutClass: "acs-signout-m acs-btn ghost", signOutColor: "" }
   desktop-zh-delete-form.png: { spanWidth: 844, gridWidth: 844, profileWidth: 411, confirmVisible: true, confirmClass: "acs-btn btn-danger", confirmBg: "rgb(240, 86, 107)", signOutClass: "acs-signout-m acs-btn ghost", signOutColor: "" }
-  mobile-en-overview.png: { spanWidth: 358, gridWidth: 358, profileWidth: 358, confirmVisible: false, confirmClass: "", confirmBg: "", signOutClass: "acs-signout-m acs-btn ghost", signOutColor: "rgb(214, 218, 227)" }
-  mobile-zh-overview.png: { spanWidth: 355, gridWidth: 355, profileWidth: 355, confirmVisible: false, confirmClass: "", confirmBg: "", signOutClass: "acs-signout-m acs-btn ghost", signOutColor: "rgb(214, 218, 227)" }
+  mobile-en-overview.png: { spanWidth: 360, gridWidth: 360, profileWidth: 360, confirmVisible: false, confirmClass: "", confirmBg: "", signOutClass: "acs-signout-m acs-btn ghost", signOutColor: "rgb(214, 218, 227)" }
+  mobile-zh-overview.png: { spanWidth: 360, gridWidth: 360, profileWidth: 360, confirmVisible: false, confirmClass: "", confirmBg: "", signOutClass: "acs-signout-m acs-btn ghost", signOutColor: "rgb(214, 218, 227)" }
   mobile-en-delete-form.png: { spanWidth: 360, gridWidth: 360, profileWidth: 360, confirmVisible: true, confirmClass: "acs-btn btn-danger", confirmBg: "rgb(240, 86, 107)", signOutClass: "acs-signout-m acs-btn ghost", signOutColor: "rgb(214, 218, 227)" }
   mobile-zh-delete-form.png: { spanWidth: 360, gridWidth: 360, profileWidth: 360, confirmVisible: true, confirmClass: "acs-btn btn-danger", confirmBg: "rgb(240, 86, 107)", signOutClass: "acs-signout-m acs-btn ghost", signOutColor: "rgb(214, 218, 227)" }

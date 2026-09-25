@@ -1,24 +1,15 @@
 # B-F12-16 Team settings block — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 9b32cbeb59a4e30f082fe15d0558ed9dcd291a31
-# capturedAt: 2026-09-19T06:22:09.875Z
+# capturedAtHead: af6f3b5032496ef1242c4823c397af0a99bff7e8
+# capturedAt: 2026-09-25T03:21:15.960Z
 # capturedAtHead is informational. The lock is layoutFiles (hash-only).
-# 2026-09-19 seat merge of master 1c46b277 into #584 (B-F12-13): hash-only restamp of terminal/app/dev/settings/page.tsx, terminal/components/settings/SettingsPanel.tsx, terminal/components/settings/SettingsProvider.tsx, terminal/lib/teams.ts to the merged-tree bytes; crops NOT recaptured by this merge commit.
-# 2026-09-19 seat merge of origin/master dd7c6dec712a (#584 B-F12-13, merge commit) into #586 (W9T_F08_13 targets readout): hash-only restamp of terminal/components/settings/SettingsPanel.tsx, terminal/components/settings/SettingsProvider.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
-# 2026-09-19 seat merge of origin/master dd7c6dec712a (#584 B-F12-13, merge commit) into #587 (W9T_F13_9 team rollup): hash-only restamp of terminal/components/settings/SettingsPanel.tsx, terminal/app/dev/settings/page.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
-# 2026-09-19 seat merge of origin/master 5a48b845 (13 commits incl. #587 B-F13-9 team rollup, merge commit) into #586 (W9T/B-F08-13 targets readout): hash-only restamp to the merged working-tree bytes; crops NOT recaptured. Files: terminal/components/settings/SettingsPanel.tsx, terminal/components/settings/SettingsProvider.tsx
-# 2026-09-19 seat merge of origin/master dd7c6dec712a (#584 B-F12-13, merge commit) into #588 (W9T_F12_17 invite link): hash-only restamp of terminal/components/settings/SectionTeam.tsx, terminal/components/settings/SectionTeam.module.css, terminal/lib/teams.ts to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
-# 2026-09-19 h_t588 round 2: hash-only restamp after the invite-link fix; crops NOT recaptured. Files: terminal/components/settings/SectionTeam.tsx, terminal/lib/teams.ts
-# 2026-09-19 seat merge of origin/master dd7c6dec712a (#584 B-F12-13, merge commit) into #587 (W9T_F13_9 team rollup): hash-only restamp of terminal/components/settings/SettingsPanel.tsx, terminal/app/dev/settings/page.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
-# 2026-09-19 seat merge of origin/master 4c7a2eeb6f58 (#587 B-F13-9 team rollup + #659 + #660, merge commit) into #588 (B-F12-17 invite-link honesty): hash-only restamp of terminal/components/settings/SectionTeam.tsx, terminal/components/settings/SectionTeam.module.css to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
-# 2026-09-19 seat merge of origin/master dafc016e (#588 B-F12-17 invite-link honesty, #664, #666) into #586 (W9T/B-F08-13 targets readout): hash-only restamp to the merged working-tree bytes; crops NOT recaptured. Files: terminal/components/settings/SettingsPanel.tsx, terminal/components/settings/SettingsProvider.tsx
 layoutFiles:
   terminal/components/settings/SectionTeam.tsx: "00f61441215f0cdb8c6b40536e66e243d0ae83ffa54d6f19ae8a67dd99d7a79d"
   terminal/components/settings/SectionTeam.module.css: "069056ff7ac4274a57ae9a835a0fdda178e9625a591b4374e855b9d41a3fd5bc"
   terminal/components/settings/SettingsPanel.tsx: "956aeac1636ae4891b1009c8e266840244c19da085ba52e77c78171317c4ffaf"
   terminal/components/settings/SettingsProvider.tsx: "a4c829c956ca7ffd89bbc3158009b1148bb613569a9716b092dd9a27d449d910"
-  terminal/app/settings.css: "3189163136d943431cbf52e4b5d241c105b695ba5af94c4c2e29151d537b5ef5"
+  terminal/app/settings.css: "f1ae985fccaf3209df60e742e387fa2c4daf647bbb0e299ac767d1a83c2e22a1"
   terminal/lib/teams.ts: "e518afe4bc58b5f82638539f03b3063dc7ef35905c2807601eca9c71ac55e5b3"
   terminal/components/settings/types.ts: "65e846a39725a4dd6738dd746789e540e2b5433b669757356df4fce1d0a721fb"
   terminal/app/dev/settings/page.tsx: "4b594ce879f00fdf1f096abde9a36113014b17257e6292dc0ca16c83efcd3660"
