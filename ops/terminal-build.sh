@@ -385,7 +385,7 @@ PY_RECEIPT_BEFORE
   fi
 
   if ! parsed=$(python3 -I - "$stdout_file" "$receipt_dir" "$before_manifest" \
-    "$expected_policy_digest" "$mode" <<'PY_RECEIPT'
+    "$expected_policy_digest" "$mode" "$rc" <<'PY_RECEIPT'
 import hashlib
 import json
 import os
@@ -467,6 +467,10 @@ receipt_root = Path(sys.argv[2]).resolve(strict=True)
 before_names = set(load_json_bytes(Path(sys.argv[3]).read_bytes(), "before-manifest"))
 expected_policy_digest = sys.argv[4]
 mode = sys.argv[5]
+try:
+    cli_rc = int(sys.argv[6])
+except ValueError:
+    raise SystemExit("release-preflight CLI status is invalid")
 if mode not in {"clean", "canonical-head-mismatch", "auto"}:
     raise SystemExit("invalid release-preflight validation mode")
 summary_bytes = summary_path.read_bytes()
@@ -497,6 +501,11 @@ else:
         raise SystemExit(f"release-preflight summary result is invalid for auto mode: {summary['result']!r}")
     expected_result = summary["result"]
 expected_status = expected_result
+expected_cli_rc = 0 if expected_result == "CLEAN" else 2
+if cli_rc != expected_cli_rc:
+    raise SystemExit(
+        f"release-preflight CLI status {cli_rc} disagrees with result {expected_result!r}"
+    )
 if summary["result"] != expected_result:
     raise SystemExit(
         f"release-preflight summary result {summary['result']!r} does not match mode {mode!r}"
