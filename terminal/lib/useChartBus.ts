@@ -27,6 +27,9 @@ export type ChartBusHost = {
   sessionIndicators: IndicatorSpec[]; // current indicator set (name+params)
   currentTf: string;
   userDrawings: Drawing[]; // the active symbol's user drawings (by:"user"), if enumerable
+  // Existing DeepVue ai-context identity. Read at POST time so revision stays in lockstep
+  // with the same provider the Brain widget sends on the chat request.
+  getContextIdentity: () => { origin_id: string; context_revision: number };
   // chart mutators (already exist in TerminalShell):
   setSymbol: (s: string) => void;
   setTf: (tf: string) => void;
@@ -43,6 +46,7 @@ export type ChartBus = {
 
 // A rejected command still produces an ack (ok:false) — the gateway needs to see the rejection.
 const STATE_DEBOUNCE_MS = 2000;
+const ACK_DEBOUNCE_MS = 100;
 
 export function useChartBus(host: ChartBusHost): ChartBus {
   // per-symbol AI objects. Keyed by symbol; NEVER reset on symbol switch (that's the whole point).
@@ -81,11 +85,27 @@ export function useChartBus(host: ChartBusHost): ChartBus {
     ];
     const acks = acksRef.current;
     acksRef.current = [];
+    const identity = h.getContextIdentity();
+    if (
+      !identity
+      || typeof identity.origin_id !== "string"
+      || !identity.origin_id
+      || identity.origin_id.length > 64
+      || !Number.isInteger(identity.context_revision)
+      || identity.context_revision < 0
+    ) {
+      // Exact origin is part of chart-state identity now. Do not silently fall back to
+      // the legacy shared key when the mounted Terminal provider is malformed.
+      acksRef.current = [...acks, ...acksRef.current];
+      return;
+    }
     // visible_range: the loaded-series span (first↔last bar epoch). NOTE: this is the data span, not
     // the live pan/zoom viewport — see PR body; the clean follow-up is the existing onChartApi seam.
     const span = seriesSpan(bars);
     const body = {
       client: "terminal",
+      origin_id: identity.origin_id,
+      context_revision: identity.context_revision,
       session: {
         symbol: sym,
         tf: h.currentTf,
@@ -120,26 +140,33 @@ export function useChartBus(host: ChartBusHost): ChartBus {
     }
   }, []);
 
-  const scheduleState = useCallback(() => {
-    if (stateTimer.current) return; // already pending — coalesce (≤1 per 2s)
-    stateTimer.current = setTimeout(() => { stateTimer.current = null; postState(); }, STATE_DEBOUNCE_MS);
+  const scheduleState = useCallback((delayMs = STATE_DEBOUNCE_MS) => {
+    if (stateTimer.current) {
+      // ACK receipts are execution feedback, not ordinary telemetry. Let them preempt a
+      // slower pending state write; equal/slower requests simply coalesce.
+      if (delayMs >= STATE_DEBOUNCE_MS) return;
+      clearTimeout(stateTimer.current);
+      stateTimer.current = null;
+    }
+    stateTimer.current = setTimeout(() => { stateTimer.current = null; postState(); }, delayMs);
   }, [postState]);
 
-  // POST on symbol / tf / indicator / user-drawing changes (contract: "also POST on … changes").
+  // POST on initial mount and on symbol / tf / indicator / user-drawing changes.
   // Count alone misses edits that preserve collection size (dragging a line, resizing a zone, undoing
   // geometry in place). Sign the exact user-drawing projection sent by postState instead. This also
   // avoids false positives from TerminalShell's per-render `.filter(isUserDrawing)` array allocation.
   const userDrawingSig = JSON.stringify(host.userDrawings.map(userDrawingState));
   const changeSig = `${host.activeSymbol}|${host.currentTf}|${host.sessionIndicators.map((s) => s.name + JSON.stringify(s.params || {})).join(",")}|${userDrawingSig}`;
-  const firstSig = useRef(true);
   useEffect(() => {
-    if (firstSig.current) { firstSig.current = false; return; } // no POST on mount
     scheduleState();
   }, [changeSig, scheduleState]);
   useEffect(() => () => { if (stateTimer.current) clearTimeout(stateTimer.current); }, []);
 
   // ── ack helper ───────────────────────────────────────────────────────────────────────────
-  const pushAck = useCallback((a: Ack) => { acksRef.current.push(a); scheduleState(); }, [scheduleState]);
+  const pushAck = useCallback((a: Ack) => {
+    acksRef.current.push(a);
+    scheduleState(ACK_DEBOUNCE_MS);
+  }, [scheduleState]);
 
   // ── the v2 dispatcher ──────────────────────────────────────────────────────────────────────
   const dispatchV2 = useCallback((j: unknown) => {

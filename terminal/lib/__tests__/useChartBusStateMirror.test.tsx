@@ -26,7 +26,10 @@ function drawing(price: number): Drawing {
   };
 }
 
-function hostWith(userDrawings: Drawing[]): ChartBusHost {
+function hostWith(
+  userDrawings: Drawing[],
+  context = { origin_id: "origin-test", context_revision: 4 },
+): ChartBusHost {
   return {
     activeSymbol: "NVDA",
     bars: [],
@@ -34,6 +37,7 @@ function hostWith(userDrawings: Drawing[]): ChartBusHost {
     sessionIndicators: [],
     currentTf: "D",
     userDrawings,
+    getContextIdentity: () => context,
     setSymbol: () => {},
     setTf: () => {},
     setIndicators: () => {},
@@ -66,12 +70,23 @@ describe("useChartBus state mirror", () => {
     vi.unstubAllGlobals();
   });
 
-  it("does not post merely because TerminalShell produced a fresh equivalent drawings array", async () => {
+  it("posts one exact-origin snapshot on initial mount and ignores an equivalent rerender", async () => {
     await act(async () => {
       root!.render(React.createElement(Harness, {
         host: hostWith([drawing(100)]),
       }));
     });
+    expect(fetchMock).not.toHaveBeenCalled();
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(2_000);
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const firstInit = fetchMock.mock.calls[0][1] as RequestInit;
+    const firstBody = JSON.parse(String(firstInit.body));
+    expect(firstBody.origin_id).toBe("origin-test");
+    expect(firstBody.context_revision).toBe(4);
+    expect(firstBody.session.symbol).toBe("NVDA");
 
     await act(async () => {
       root!.render(React.createElement(Harness, {
@@ -80,7 +95,7 @@ describe("useChartBus state mirror", () => {
       await vi.advanceTimersByTimeAsync(2_000);
     });
 
-    expect(fetchMock).not.toHaveBeenCalled();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it("posts an edited user drawing even when the drawing count is unchanged", async () => {
@@ -89,7 +104,11 @@ describe("useChartBus state mirror", () => {
         host: hostWith([drawing(100)]),
       }));
     });
-    expect(fetchMock).not.toHaveBeenCalled();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(2_000);
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    fetchMock.mockClear();
 
     await act(async () => {
       root!.render(React.createElement(Harness, {
@@ -136,18 +155,24 @@ describe("useChartBus state mirror", () => {
 
     act(() => busRef.current!.dispatchV2(rejectedTf(1)));
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(2_000);
+      await vi.advanceTimersByTimeAsync(99);
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1);
     });
     expect(fetchMock).toHaveBeenCalledTimes(1);
 
     act(() => busRef.current!.dispatchV2(rejectedTf(2)));
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(2_000);
+      await vi.advanceTimersByTimeAsync(100);
     });
     expect(fetchMock).toHaveBeenCalledTimes(2);
 
     const retryInit = fetchMock.mock.calls[1][1] as RequestInit;
     const retryBody = JSON.parse(String(retryInit.body));
+    expect(retryBody.origin_id).toBe("origin-test");
+    expect(retryBody.context_revision).toBe(4);
     expect(retryBody.acks.map((ack: { seq: number }) => ack.seq)).toEqual([1, 2]);
   });
 
@@ -172,13 +197,13 @@ describe("useChartBus state mirror", () => {
 
     act(() => busRef.current!.dispatchV2(rejectedTf(11)));
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(2_000);
+      await vi.advanceTimersByTimeAsync(100);
     });
     expect(fetchMock).toHaveBeenCalledTimes(1);
 
     act(() => busRef.current!.dispatchV2(rejectedTf(12)));
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(2_000);
+      await vi.advanceTimersByTimeAsync(100);
     });
     expect(fetchMock).toHaveBeenCalledTimes(2);
 
