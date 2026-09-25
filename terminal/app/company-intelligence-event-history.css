@@ -1,0 +1,38 @@
+/* Company Intelligence · compact Event History strip from the reviewed Brief canvas. */
+.ci-event-history-strip{display:grid;grid-template-columns:minmax(170px,.78fr) minmax(0,3fr) auto;align-items:stretch;min-width:0;min-height:60px;border:1px solid var(--hairline);border-radius:var(--r-card);background:linear-gradient(120deg,color-mix(in srgb,var(--brand) 4%,var(--panel)),var(--panel));box-shadow:var(--shadow-card);overflow:hidden}
+.ci-event-history-strip>header{display:grid;align-content:center;gap:4px;min-width:0;padding:9px 12px;border-right:1px solid var(--line-2)}
+.ci-event-history-strip>header>span{color:var(--brand-2);font:740 8.5px/1 var(--font-ui);letter-spacing:.11em}
+.ci-event-history-strip>header>strong{overflow:hidden;color:var(--text-2);font:620 9.5px/1.2 var(--font-ui);text-overflow:ellipsis;white-space:nowrap}
+.ci-event-history-strip>header>small{overflow:hidden;color:var(--muted);font:500 7.5px/1.25 var(--font-ui);text-overflow:ellipsis;white-space:nowrap}
+.ci-event-history-track{position:relative;display:grid;grid-template-columns:repeat(4,minmax(116px,1fr));min-width:0}
+.ci-event-history-track::before{content:"";position:absolute;z-index:0;left:13px;right:13px;top:21px;height:1px;background:var(--line-2);pointer-events:none}
+.ci-event-history-item{position:relative;z-index:1;display:grid;grid-template-columns:10px minmax(0,1fr);align-content:center;align-items:start;gap:7px;min-width:0;min-height:60px;padding:8px 10px;text-align:left;border-right:1px solid var(--line-2);background:transparent}
+.ci-event-history-item:last-child{border-right:0}
+button.ci-event-history-item:hover,button.ci-event-history-item:focus-visible{background:color-mix(in srgb,var(--brand) 6%,transparent)}
+.ci-event-history-item>i{width:8px;height:8px;margin-top:9px;border:2px solid var(--panel);border-radius:50%;background:var(--muted);box-shadow:0 0 0 1px var(--line)}
+.ci-event-history-item.current>i{background:var(--brand-2);box-shadow:0 0 0 2px color-mix(in srgb,var(--brand-2) 18%,transparent)}
+.ci-event-history-item.latest>i{background:var(--up)}
+.ci-event-history-item.context>i{background:var(--rcpt-meta)}
+.ci-event-history-item>span{display:grid;gap:3px;min-width:0}
+.ci-event-history-item strong{overflow:hidden;color:var(--text-2);font:650 9px/1.2 var(--font-ui);text-overflow:ellipsis;white-space:nowrap}
+.ci-event-history-item time{color:var(--muted);font:520 8px/1 var(--font-num);font-variant-numeric:tabular-nums}
+.ci-event-history-item>b{grid-column:2;justify-self:start;padding:3px 5px;border:1px solid var(--line);border-radius:var(--r-pill);color:var(--muted);font:620 7px/1 var(--font-ui);white-space:nowrap}
+.ci-event-history-item.current>b{border-color:color-mix(in srgb,var(--brand-2) 26%,var(--line));color:var(--brand-2)}
+.ci-event-history-item.latest>b{border-color:color-mix(in srgb,var(--up) 24%,var(--line));color:var(--up)}
+.ci-event-history-open{display:flex;align-items:center;justify-content:center;gap:6px;min-width:88px;padding:0 12px;border-left:1px solid var(--line-2);color:var(--brand-2);font:630 8.5px/1 var(--font-ui);white-space:nowrap}
+.ci-event-history-open:hover,.ci-event-history-open:focus-visible{background:color-mix(in srgb,var(--brand) 6%,transparent);color:var(--text)}
+.ci-event-history-open span{font-size:12px}
+@media (max-width:980px){
+  .ci-event-history-strip{grid-template-columns:150px minmax(0,1fr)}
+  .ci-event-history-open{grid-column:1/-1;min-height:34px;border-top:1px solid var(--line-2);border-left:0}
+  .ci-event-history-track{grid-template-columns:repeat(4,minmax(132px,1fr));overflow-x:auto;scrollbar-width:none}
+  .ci-event-history-track::-webkit-scrollbar{display:none}
+}
+@media (max-width:760px){
+  .ci-event-history-strip{grid-template-columns:1fr;border-radius:var(--r-tile)}
+  .ci-event-history-strip>header{padding:10px 11px;border-right:0;border-bottom:1px solid var(--line-2)}
+  .ci-event-history-strip>header>strong,.ci-event-history-strip>header>small{white-space:normal}
+  .ci-event-history-track{grid-template-columns:repeat(4,minmax(144px,1fr))}
+  .ci-event-history-item{min-height:64px;padding:9px 11px}
+  .ci-event-history-open{grid-column:auto;min-height:44px}
+}

@@ -22,6 +22,7 @@ import {
 import { getCurrentEventWorkspace, type EventWorkspaceResult } from "../../lib/eventWorkspace";
 import CompanyIntelligenceV2Current from "./CompanyIntelligenceV2Current";
 import CompanyIntelligenceBriefLayout, { type CompanyIntelligenceBriefItem } from "./CompanyIntelligenceBriefLayout";
+import CompanyIntelligenceEventHistoryStrip, { type CompanyIntelligenceEventHistoryItem } from "./CompanyIntelligenceEventHistoryStrip";
 import CompanyIntelligenceCallLayout from "./CompanyIntelligenceCallLayout";
 import CompanyIntelligenceResultsLayout, {
   type CompanyIntelligenceResultsComparison,
@@ -258,6 +259,13 @@ export default function CompanyIntelligencePage({ sym, name, onOpenTx, onEvidenc
   })), [events]);
   const selectedId = eventState.sym === ticker ? eventState.id : "";
   const event = events.find((candidate) => candidate.event_id === selectedId) ?? events[0] ?? null;
+  const historyStripEvents = useMemo(() => {
+    const visible = events.slice(0, 4);
+    if (event && !visible.some((candidate) => candidate.event_id === event.event_id)) {
+      visible.splice(Math.max(visible.length - 1, 0), 1, event);
+    }
+    return visible;
+  }, [event, events]);
 
   useEffect(() => {
     if (!event || evidence) return;
@@ -785,6 +793,24 @@ export default function CompanyIntelligencePage({ sym, name, onOpenTx, onEvidenc
                     <div><strong>{pick(zh, "What is missing", "缺失内容")}</strong><p>{activeContext.missing_sources.length ? activeContext.missing_sources.map((source) => missingSourceLabel(source, zh)).join(" · ") : pick(zh, "No required source family is marked missing for this view.", "本视图所需来源均未标记为缺失。")}</p></div>
                     <CompanySourceManifest event={event} onOpenTranscript={onOpenTx} compact />
                   </section>
+                  <CompanyIntelligenceEventHistoryStrip
+                    zh={zh}
+                    items={historyStripEvents.map<CompanyIntelligenceEventHistoryItem>((candidate) => ({
+                      id: candidate.event_id,
+                      label: eventPeriod(candidate),
+                      date: candidate.call_date,
+                      status: candidate.event_id === event.event_id
+                        ? "current"
+                        : candidate.event_id === activeContext.latest_event_id
+                          ? "latest"
+                          : "historical",
+                      onSelect: () => {
+                        setEventState({ sym: ticker, id: candidate.event_id });
+                        setEvidence(null);
+                      },
+                    }))}
+                    onOpenHistory={() => selectLens("history")}
+                  />
                 </div>
               )}
             />
