@@ -1,12 +1,14 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { serialize } from "cookie";
 import {
   applyAuthResponseHeaders,
   applySupabaseResponseCookies,
   authCookieOptions,
 } from "@/lib/supabase/cookies";
+import { PASSWORD_RECOVERY_COOKIE, PASSWORD_RECOVERY_MAX_AGE_SECONDS } from "@/lib/passwordRecovery";
 
-// Google OAuth PKCE callback. Supabase's signInWithOAuth redirects the browser here with a
+// Auth PKCE callback. Google OAuth and password recovery redirect the browser here with a
 // `?code=` param; we exchange it for a session (which sets the auth cookies) and then 303 to
 // the post-auth destination.
 //
@@ -49,6 +51,17 @@ export async function GET(request: NextRequest) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (error) {
       response.headers.set("Location", "/login?error=oauth");
+    } else if (next === "/reset-password") {
+      // A normal signed-in session is not enough to enter password recovery.
+      // This short-lived HttpOnly marker exists only after a fresh auth-code exchange
+      // whose destination was the recovery surface, so direct navigation fails closed.
+      response.headers.append("Set-Cookie", serialize(PASSWORD_RECOVERY_COOKIE, "1", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        path: "/reset-password",
+        maxAge: PASSWORD_RECOVERY_MAX_AGE_SECONDS,
+      }));
     }
   }
 
