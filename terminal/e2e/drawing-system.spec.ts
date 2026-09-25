@@ -1590,7 +1590,6 @@ test("a drag released in the future gutter finishes instead of following the cur
 });
 
 test("price-bearing range drawings are clipped to the price pane while date-only ranges stay full-height", async ({ page }) => {
-  test.skip((page.viewportSize()?.width ?? 1440) <= 860, DESKTOP_ONLY);
   await openTerminal(page, {
     drawings: [
       {
