@@ -152,7 +152,11 @@ test("Financials vNext keeps statement summary, explorer and integrity on one ca
   await expect(summary).toContainText("Operating income");
   await expect(summary).toContainText("Free cash flow");
 
-  await expect(financials.locator("[data-financials-vnext-explorer]")).toContainText("STATEMENT EXPLORER");
+  const explorer = financials.locator("[data-financials-vnext-explorer]");
+  await expect(explorer).toContainText("TRAJECTORY");
+  await expect(explorer).toContainText("Income trajectory");
+  await expect(explorer).toContainText("STATEMENT SNAPSHOT");
+  await expect(explorer).toContainText("Income statement");
   const integrity = financials.locator("[data-financials-vnext-integrity]");
   await expect(integrity).toContainText("Balance-sheet snapshot");
   await expect(integrity).toContainText("Cash conversion");
@@ -179,7 +183,8 @@ test("Financials vNext remains bilingual and overflow-safe on mobile", async ({ 
   await expect(summary).toContainText("营业收入");
   await expect(summary).toContainText("营业利润");
   await expect(summary).toContainText("自由现金流");
-  await expect(financials).toContainText("报表浏览器");
+  await expect(financials).toContainText("利润趋势");
+  await expect(financials).toContainText("报表快照");
   await expect(financials).toContainText("资产负债表快照");
   await expect(financials).toContainText("现金转换");
   await expect(financials).toContainText("来源与标准化");

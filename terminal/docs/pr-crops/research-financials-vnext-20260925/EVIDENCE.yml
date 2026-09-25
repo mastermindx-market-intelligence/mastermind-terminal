@@ -1,0 +1,38 @@
+schema: mastermind.terminal.ui_evidence.v1
+title: Research Workspace Financials vNext
+paper:
+  file_id: 01M2WGNCX9475G79JRKJTCM08P
+  page_id: p-4-1
+  artboard_id: MIB-0
+  artboard_title: Research Workspace · Financials vNext · Dark · 1440
+surface:
+  route: /analysis?symbol=NVDA&page=statements
+  theme: dark
+  light_mode: not_supported_by_terminal
+  note: Terminal is dark-only in current source; no light state was fabricated.
+captures:
+  - desktop-en.png
+  - tablet-en.png
+  - mobile-en.png
+  - mobile-zh.png
+verification:
+  visual_review: PASS
+  horizontal_overflow_px: 0
+  responsive_contract:
+    desktop: 1440x900
+    tablet: 820x1180
+    mobile: 390x844
+  browser_suite:
+    desktop: "4 passed, 1 intentional mobile-only skip"
+    tablet: "4 passed, 1 intentional mobile-only skip"
+    mobile: "5 passed"
+  static:
+    typescript: PASS
+    eslint: PASS
+    plain_language: PASS
+    diff_check: PASS
+boundaries:
+  - Uses the incumbent normalized IncomeView and comparablePeriodChanges owners.
+  - Balance-sheet snapshots are not differenced.
+  - Free cash flow remains unavailable when required source rows are unavailable.
+  - Full history and transcript controls remain below the compact first-frame snapshot.

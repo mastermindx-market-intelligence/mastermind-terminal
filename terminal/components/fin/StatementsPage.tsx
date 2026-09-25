@@ -176,7 +176,6 @@ export default function StatementsPage({ sym, fund, onOpenTx }: StatementsPagePr
   // takes annual sets to ~17 fiscal years — a 12-bar cap would hide the deep history that
   // is the whole point of the backfill, while 69 quarterly bars would crush the axis.
   const CHART_CAP = aq === "annual" ? 20 : 16;
-  const chartPeriods = periods.slice(-CHART_CAP);
 
   // ONE normalization for the whole tab. The chart used to read `set.income.*` raw while the
   // table read a differenced copy, so a cumulative-YTD name plotted 82.9B in the strip and
@@ -278,6 +277,79 @@ export default function StatementsPage({ sym, fund, onOpenTx }: StatementsPagePr
   const latestCfo = atIndex(set?.cashflow?.cfo, latestIndex);
   const latestCapex = atIndex(set?.cashflow?.capex, latestIndex);
 
+  type SnapshotRow = {
+    id: string;
+    label: string;
+    values: (number | null)[];
+    bold?: boolean;
+    fmt?: (value: number) => string;
+  };
+  const snapshotCount = Math.min(4, periods.length);
+  const snapshotPeriods = snapshotCount > 0 ? periods.slice(-snapshotCount) : [];
+  const snapshotValues = (values: (number | null | undefined)[] | undefined): (number | null)[] => (
+    snapshotCount > 0 ? (values ?? []).slice(-snapshotCount).map((value) => value ?? null) : []
+  );
+  const snapshotRows: SnapshotRow[] = stmt === "income"
+    ? [
+        {
+          id: "top-line",
+          label: incomeViewTopLineLabel(view, zh),
+          values: snapshotValues(view.income.revenue),
+          bold: true,
+        },
+        ...(isIndustrialIncomeView(view)
+          ? [{
+              id: "gross-profit",
+              label: pick(zh, "Gross profit", "毛利"),
+              values: snapshotValues(view.income.gross_profit),
+            }]
+          : []),
+        {
+          id: "operating-income",
+          label: pick(zh, "Operating income", "营业利润"),
+          values: snapshotValues(view.income.op_income),
+        },
+        {
+          id: "net-income",
+          label: pick(zh, "Net income", "净利润"),
+          values: snapshotValues(view.income.net_income),
+          bold: true,
+        },
+        ...(isIndustrialIncomeView(view)
+          ? [{
+              id: "ebitda",
+              label: pick(zh, "EBITDA", "EBITDA"),
+              values: snapshotValues(view.income.ebitda),
+            }]
+          : []),
+        {
+          id: "diluted-eps",
+          label: pick(zh, "Diluted EPS", "稀释每股收益"),
+          values: snapshotValues(view.income.eps_diluted),
+          fmt: (value: number) => fmtNum(value, { decimals: 2 }),
+        },
+      ]
+    : stmt === "balance"
+      ? [
+          { id: "assets", label: pick(zh, "Total assets", "总资产"), values: snapshotValues(set?.balance?.assets), bold: true },
+          { id: "liabilities", label: pick(zh, "Total liabilities", "总负债"), values: snapshotValues(set?.balance?.liabilities), bold: true },
+          { id: "equity", label: pick(zh, "Total equity", "股东权益"), values: snapshotValues(set?.balance?.equity) },
+          { id: "debt", label: pick(zh, "Total debt", "总债务"), values: snapshotValues(set?.balance?.debt) },
+          { id: "net-debt", label: pick(zh, "Net debt", "净债务"), values: snapshotValues(set?.balance?.net_debt) },
+          { id: "cash", label: pick(zh, "Cash & equivalents", "现金及等价物"), values: snapshotValues(set?.balance?.cash) },
+        ]
+      : [
+          { id: "cfo", label: pick(zh, "Operating cash flow", "经营现金流"), values: snapshotValues(set?.cashflow?.cfo), bold: true },
+          { id: "cfi", label: pick(zh, "Investing cash flow", "投资现金流"), values: snapshotValues(set?.cashflow?.cfi) },
+          { id: "cff", label: pick(zh, "Financing cash flow", "筹资现金流"), values: snapshotValues(set?.cashflow?.cff) },
+          { id: "capex", label: pick(zh, "Capital expenditure", "资本支出"), values: snapshotValues(set?.cashflow?.capex) },
+          { id: "fcf", label: pick(zh, "Free cash flow", "自由现金流"), values: snapshotValues(set?.cashflow?.fcf), bold: true },
+        ];
+  const trajectorySeries: Series[] = chartSeries.slice(0, 1).map((series) => ({
+    ...series,
+    values: snapshotValues(series.values),
+  }));
+
   return (
     <div className="fin-stmts" data-financials-vnext="">
       <section className="fin-financials-head" data-financials-vnext-head="">
@@ -320,18 +392,107 @@ export default function StatementsPage({ sym, fund, onOpenTx }: StatementsPagePr
         ))}
       </section>
 
-      <section className="fin-sec fin-financials-explorer" data-financials-vnext-explorer="">
-        <div className="fin-financials-explorer-head">
-          <div>
-            <span>{pick(zh, "STATEMENT EXPLORER", "报表浏览器")}</span>
-            <h3>{stmtTitle}</h3>
-          </div>
-          <small>{pick(zh, "Normalized reporting periods · oldest → latest", "标准化报告期 · 最早 → 最新")}</small>
-        </div>
-        <div className="fin-card">
-          <Bars labels={chartPeriods} series={chartSeries} fmtY={fmtNum} zh={zh} height={170} />
-        </div>
+      <section className="fin-financials-core-grid" data-financials-vnext-explorer="">
+        <article className="fin-card fin-financials-trajectory">
+          <header className="fin-financials-card-head">
+            <div>
+              <span>{pick(zh, "TRAJECTORY", "趋势")}</span>
+              <h3>
+                {stmt === "income"
+                  ? pick(zh, "Income trajectory", "利润趋势")
+                  : stmt === "balance"
+                    ? pick(zh, "Balance-sheet trajectory", "资产负债趋势")
+                    : pick(zh, "Cash-flow trajectory", "现金流趋势")}
+              </h3>
+            </div>
+            <small>{pick(zh, "Latest four normalized periods", "最近四个标准化报告期")}</small>
+          </header>
+          {snapshotPeriods.length > 0 && trajectorySeries.length > 0 ? (
+            <Bars labels={snapshotPeriods} series={trajectorySeries} fmtY={fmtNum} zh={zh} height={190} />
+          ) : (
+            <div className="fin-empty fin-empty-lg" role="status">
+              <div className="fin-empty-title">{pick(zh, "No trajectory available", "暂无趋势数据")}</div>
+              <div className="fin-empty-why">
+                {pick(zh, "The selected statement basis has no published periods.", "当前所选报表口径没有已发布报告期。")}
+              </div>
+            </div>
+          )}
+        </article>
+
+        <article className="fin-card fin-financials-statement-snapshot">
+          <header className="fin-financials-card-head">
+            <div>
+              <span>{pick(zh, "STATEMENT SNAPSHOT", "报表快照")}</span>
+              <h3>{stmtTitle}</h3>
+            </div>
+            <small>{pick(zh, "Normalized · oldest → latest", "标准化 · 最早 → 最新")}</small>
+          </header>
+          {snapshotPeriods.length > 0 ? (
+            <div className="fin-financials-snapshot-scroll">
+              <table className="fin-financials-snapshot-table">
+                <thead>
+                  <tr>
+                    <th scope="col">{pick(zh, "Metric", "指标")}</th>
+                    {snapshotPeriods.map((period) => <th scope="col" key={period}>{period}</th>)}
+                  </tr>
+                </thead>
+                <tbody>
+                  {snapshotRows.map((row) => (
+                    <tr key={row.id}>
+                      <th scope="row" className={row.bold ? "strong" : ""}>{row.label}</th>
+                      {row.values.map((value, index) => (
+                        <td className={row.bold ? "strong num" : "num"} key={snapshotPeriods[index] ?? index}>
+                          {value == null ? "—" : row.fmt ? row.fmt(value) : fmtNum(value)}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="fin-empty fin-empty-lg" role="status">
+              <div className="fin-empty-title">{pick(zh, "No statement snapshot", "暂无报表快照")}</div>
+              <div className="fin-empty-why">
+                {pick(zh, "The selected statement basis has no published periods.", "当前所选报表口径没有已发布报告期。")}
+              </div>
+            </div>
+          )}
+        </article>
       </section>
+
+      <section className="fin-financials-integrity" data-financials-vnext-integrity="">
+        <article>
+          <header><strong>{pick(zh, "Balance-sheet snapshot", "资产负债表快照")}</strong><span>{pick(zh, "latest selected period", "当前所选最新报告期")}</span></header>
+          <div className="fin-financials-integrity-metrics">
+            <span><small>{pick(zh, "Cash", "现金")}</small><b className="num">{latestCash == null ? "—" : fmtNum(latestCash)}</b></span>
+            <span><small>{pick(zh, "Debt", "债务")}</small><b className="num">{latestDebt == null ? "—" : fmtNum(latestDebt)}</b></span>
+            <span><small>{pick(zh, "Net debt", "净债务")}</small><b className="num">{latestNetDebt == null ? "—" : fmtNum(latestNetDebt)}</b></span>
+          </div>
+          <p>{pick(zh, "Balance rows are period-end snapshots; they are never differenced.", "资产负债表行是期末快照；绝不进行差分处理。")}</p>
+        </article>
+        <article>
+          <header><strong>{pick(zh, "Cash conversion", "现金转换")}</strong><span>{pick(zh, "cash-flow rows", "现金流行")}</span></header>
+          <div className="fin-financials-integrity-metrics">
+            <span><small>{pick(zh, "Operating cash flow", "经营现金流")}</small><b className="num">{latestCfo == null ? "—" : fmtNum(latestCfo)}</b></span>
+            <span><small>{pick(zh, "Capital expenditure", "资本支出")}</small><b className="num">{latestCapex == null ? "—" : fmtNum(latestCapex)}</b></span>
+            <span><small>{pick(zh, "Free cash flow", "自由现金流")}</small><b className="num">{freeCashFlow == null ? "—" : fmtNum(freeCashFlow)}</b></span>
+          </div>
+          <p>{pick(zh, "Missing source rows remain unavailable; Terminal does not estimate free cash flow here.", "来源行缺失时保持不可用；Terminal 不会在此估算自由现金流。")}</p>
+        </article>
+        <article>
+          <header><strong>{pick(zh, "Source & normalization", "来源与标准化")}</strong><span>{pick(zh, "selected basis", "当前所选口径")}</span></header>
+          <dl className="fin-financials-source">
+            <div><dt>{pick(zh, "Source market", "来源市场")}</dt><dd>{sourceMarketLabel(set?.source_market, zh)}</dd></div>
+            <div><dt>{pick(zh, "Statement family", "报表类型")}</dt><dd>{sourceFamilyLabel(view.sourceFamily, zh)}</dd></div>
+            <div><dt>{pick(zh, "Reporting cadence", "报告频率")}</dt><dd>{statementCadenceLabel(set, aq, zh)}</dd></div>
+            <div><dt>{pick(zh, "Normalization", "标准化")}</dt><dd>{normalizationLabel(latestNormalization, zh)}</dd></div>
+            <div><dt>{pick(zh, "Flow basis", "流量口径")}</dt><dd>{flowBasisLabel(set?.flow_basis, zh)}</dd></div>
+            <div><dt>{pick(zh, "Currency", "货币")}</dt><dd>{ccyLabel}</dd></div>
+          </dl>
+        </article>
+      </section>
+
 
       {/* ── documents row: doc-icon per period that has a transcript ── */}
       {periods.length > 0 && (
@@ -412,38 +573,6 @@ export default function StatementsPage({ sym, fund, onOpenTx }: StatementsPagePr
           zh={zh}
           cornerLabel={curLabel}
         />
-      </section>
-
-      <section className="fin-financials-integrity" data-financials-vnext-integrity="">
-        <article>
-          <header><strong>{pick(zh, "Balance-sheet snapshot", "资产负债表快照")}</strong><span>{pick(zh, "latest selected period", "当前所选最新报告期")}</span></header>
-          <div className="fin-financials-integrity-metrics">
-            <span><small>{pick(zh, "Cash", "现金")}</small><b className="num">{latestCash == null ? "—" : fmtNum(latestCash)}</b></span>
-            <span><small>{pick(zh, "Debt", "债务")}</small><b className="num">{latestDebt == null ? "—" : fmtNum(latestDebt)}</b></span>
-            <span><small>{pick(zh, "Net debt", "净债务")}</small><b className="num">{latestNetDebt == null ? "—" : fmtNum(latestNetDebt)}</b></span>
-          </div>
-          <p>{pick(zh, "Balance rows are period-end snapshots; they are never differenced.", "资产负债表行是期末快照；绝不进行差分处理。")}</p>
-        </article>
-        <article>
-          <header><strong>{pick(zh, "Cash conversion", "现金转换")}</strong><span>{pick(zh, "cash-flow rows", "现金流行")}</span></header>
-          <div className="fin-financials-integrity-metrics">
-            <span><small>{pick(zh, "Operating cash flow", "经营现金流")}</small><b className="num">{latestCfo == null ? "—" : fmtNum(latestCfo)}</b></span>
-            <span><small>{pick(zh, "Capital expenditure", "资本支出")}</small><b className="num">{latestCapex == null ? "—" : fmtNum(latestCapex)}</b></span>
-            <span><small>{pick(zh, "Free cash flow", "自由现金流")}</small><b className="num">{freeCashFlow == null ? "—" : fmtNum(freeCashFlow)}</b></span>
-          </div>
-          <p>{pick(zh, "Missing source rows remain unavailable; Terminal does not estimate free cash flow here.", "来源行缺失时保持不可用；Terminal 不会在此估算自由现金流。")}</p>
-        </article>
-        <article>
-          <header><strong>{pick(zh, "Source & normalization", "来源与标准化")}</strong><span>{pick(zh, "selected basis", "当前所选口径")}</span></header>
-          <dl className="fin-financials-source">
-            <div><dt>{pick(zh, "Source market", "来源市场")}</dt><dd>{sourceMarketLabel(set?.source_market, zh)}</dd></div>
-            <div><dt>{pick(zh, "Statement family", "报表类型")}</dt><dd>{sourceFamilyLabel(view.sourceFamily, zh)}</dd></div>
-            <div><dt>{pick(zh, "Reporting cadence", "报告频率")}</dt><dd>{statementCadenceLabel(set, aq, zh)}</dd></div>
-            <div><dt>{pick(zh, "Normalization", "标准化")}</dt><dd>{normalizationLabel(latestNormalization, zh)}</dd></div>
-            <div><dt>{pick(zh, "Flow basis", "流量口径")}</dt><dd>{flowBasisLabel(set?.flow_basis, zh)}</dd></div>
-            <div><dt>{pick(zh, "Currency", "货币")}</dt><dd>{ccyLabel}</dd></div>
-          </dl>
-        </article>
       </section>
 
       {/* single provenance row — the old right-aligned currency line, upgraded to

@@ -1417,12 +1417,24 @@
 .fin-financials-summary article>div span.down{color:var(--down)}
 .fin-financials-summary article>b{overflow:hidden;color:var(--text);font:690 20px/1 var(--font-num);font-variant-numeric:tabular-nums;text-overflow:ellipsis;white-space:nowrap}
 .fin-financials-summary article>small{overflow:hidden;color:var(--text-dim);font:510 8.5px/1.25 var(--font-ui);text-overflow:ellipsis;white-space:nowrap}
-.fin-financials-explorer{display:grid;gap:9px}
-.fin-financials-explorer-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
-.fin-financials-explorer-head>div{display:grid;gap:4px}
-.fin-financials-explorer-head h3{margin:0;color:var(--text);font:650 12px/1.2 var(--font-ui)}
-.fin-financials-explorer-head>small{color:var(--muted);font:510 8.5px/1.2 var(--font-ui)}
-.fin-financials-integrity{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px}
+.fin-financials-core-grid{display:grid;grid-template-columns:minmax(300px,.78fr) minmax(0,1.62fr);gap:10px;margin-bottom:10px;align-items:stretch}
+.fin-financials-core-grid>.fin-card{min-width:0;margin:0}
+.fin-financials-trajectory,.fin-financials-statement-snapshot{display:grid;align-content:start;overflow:hidden}
+.fin-financials-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin:-2px -2px 9px;padding:0 0 9px;border-bottom:1px solid var(--line-2)}
+.fin-financials-card-head>div{display:grid;gap:4px;min-width:0}
+.fin-financials-card-head>div>span{color:var(--brand-2);font:740 8px/1 var(--font-ui);letter-spacing:.1em}
+.fin-financials-card-head h3{margin:0;color:var(--text-2);font:650 11px/1.2 var(--font-ui)}
+.fin-financials-card-head>small{max-width:155px;color:var(--muted);font:500 7.5px/1.25 var(--font-ui);text-align:right}
+.fin-financials-trajectory .fin-svg-box{min-width:0}
+.fin-financials-snapshot-scroll{min-width:0;max-width:100%;overflow-x:auto}
+.fin-financials-snapshot-table{width:100%;min-width:520px;border-collapse:collapse;table-layout:fixed}
+.fin-financials-snapshot-table th,.fin-financials-snapshot-table td{padding:7px 8px;border-bottom:1px solid var(--line-2);color:var(--text-2);font:520 8.5px/1.2 var(--font-ui);text-align:right;white-space:nowrap}
+.fin-financials-snapshot-table thead th{color:var(--muted);font:600 7.5px/1.1 var(--font-ui)}
+.fin-financials-snapshot-table th:first-child{width:30%;text-align:left}
+.fin-financials-snapshot-table tbody tr:last-child th,.fin-financials-snapshot-table tbody tr:last-child td{border-bottom:0}
+.fin-financials-snapshot-table .strong{color:var(--text);font-weight:650}
+.fin-financials-snapshot-table td.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+.fin-financials-integrity{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:0 0 12px}
 .fin-financials-integrity>article{display:grid;align-content:start;gap:10px;min-width:0;padding:11px 12px;border:1px solid var(--line);border-radius:var(--r-card);background:var(--panel);box-shadow:var(--shadow-card)}
 .fin-financials-integrity header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
 .fin-financials-integrity header strong{color:var(--text-2);font:650 10px/1.2 var(--font-ui)}
@@ -1442,14 +1454,16 @@
   .fin-financials-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
   .fin-financials-summary article:nth-child(2){border-right:0}
   .fin-financials-summary article:nth-child(-n+2){border-bottom:1px solid var(--line)}
+  .fin-financials-core-grid{grid-template-columns:1fr}
   .fin-financials-integrity{grid-template-columns:1fr}
 }
 @media (max-width:760px){
   .fin-financials-head{display:grid;padding:12px;border-radius:var(--r-tile)}
   .fin-financials-head h2{font-size:15px}
   .fin-financials-controls{justify-items:start}
-  .fin-financials-explorer-head{display:grid}
-  .fin-financials-summary,.fin-financials-integrity>article{border-radius:var(--r-tile)}
+  .fin-financials-card-head{display:grid}
+  .fin-financials-card-head>small{text-align:left}
+  .fin-financials-summary,.fin-financials-core-grid>.fin-card,.fin-financials-integrity>article{border-radius:var(--r-tile)}
 }
 @media (max-width:520px){
   .fin-financials-summary article{min-height:84px;padding:10px}
