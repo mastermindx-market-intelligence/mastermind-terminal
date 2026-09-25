@@ -1,14 +1,12 @@
 # B-F11-5 Suggested changes to your thesis — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: a7bda2eb2e7b9fd7c568f2e8fe983eeaf61f4986
-# capturedAt: 2026-09-19T04:15:11.413Z
+# capturedAtHead: 21168c818212c4fe058f9d731f3be873f430c387
+# capturedAt: 2026-09-25T12:09:08.807Z
 # capturedAtHead is informational. The lock is layoutFiles.
-# Heal h3_t577: recaptured at a7bda2eb after the fd47ef52 CSS change and the 274c5eae master merge.
-# Proposal-list GET uses capture-local fixture rows from successful seed POST/PATCH responses; this proves rendering, not production persistence.
 layoutFiles:
-  terminal/components/workspaces/ThesisWorkspace.tsx: "111e04dc1b303f3e18eb847197187236b190cd20c58f3c990f9ebe3c2bf9f1ff"
-  terminal/components/workspaces/ThesisWorkspace.module.css: "72a791c76ae3a6d7fad66f387a140c163d689c74b4957af8644f1068404c0a4b"
+  terminal/components/workspaces/ThesisWorkspace.tsx: "d1c18da171f599360f44cb6024f88bcfe3a2a3c4faac135815844fd4481ca523"
+  terminal/components/workspaces/ThesisWorkspace.module.css: "3afaa5c0a5794f3fc2cdfb5c9b65257f703e7a3105e08009e602363d40690891"
   terminal/lib/thesisAmendmentProposals.ts: "f82b472f87e9c098fd1752ed357447e1462be5e5dee26bc4a0c110c15ada0d9b"
 theme: dark
 languages: [en, zh]
