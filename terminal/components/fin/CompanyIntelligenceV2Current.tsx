@@ -14,6 +14,7 @@ import type { EventWorkspaceQaExchange, EventWorkspaceResult } from "../../lib/e
 import { tickerPeriodAliasFromWorkspace } from "../../lib/eventWorkspace";
 import CompanySourceManifest from "./CompanySourceManifest";
 import CompanyIntelligenceBriefLayout, { type CompanyIntelligenceBriefItem } from "./CompanyIntelligenceBriefLayout";
+import CompanyIntelligenceCallLayout, { type CompanyIntelligenceCallExchange } from "./CompanyIntelligenceCallLayout";
 import CompanyIntelligenceResultsLayout, {
   type CompanyIntelligenceResultsComparison,
   type CompanyIntelligenceResultsItem,
@@ -42,7 +43,7 @@ function lensLabel(lens: Lens, zh: boolean): string {
   const labels: Record<Lens, [string, string]> = {
     brief: ["Brief", "简报"],
     results: ["Results", "业绩"],
-    transcript: ["Transcript", "电话会"],
+    transcript: ["Call + Q&A", "电话会 + 问答"],
     history: ["History", "历史"],
     topics: ["Topics", "主题"],
     sources: ["Sources", "来源"],
@@ -178,6 +179,20 @@ function qaReadthroughItems(exchanges: EventWorkspaceQaExchange[]): CompanyIntel
       detail: respondents || null,
     };
   });
+}
+
+function qaCallExchanges(exchanges: EventWorkspaceQaExchange[]): CompanyIntelligenceCallExchange[] {
+  return exchanges.map((exchange) => ({
+    id: exchange.exchange_id,
+    ordinal: exchange.ordinal,
+    analyst: exchange.questioner.name,
+    affiliation: exchange.questioner.affiliation?.trim() || null,
+    question: compactExcerpt(analystQuestionText(exchange), 230),
+    respondents: [...new Set(exchange.respondents.map((row) => (
+      row.role ? `${row.name} · ${row.role}` : row.name
+    )))],
+    segmentIndex: firstAnalystSegment(exchange) ?? null,
+  }));
 }
 
 function isOperatorSpan(exchange: EventWorkspaceQaExchange, kind: "question" | "answer", index: number): boolean {
@@ -433,6 +448,16 @@ export default function CompanyIntelligenceV2Current({
     if (evidenceItem) chooseItem(evidenceItem);
   };
 
+  const callExchanges = qaCallExchanges(result.workspace.qa_exchanges);
+  const openCallExchange = (exchange: CompanyIntelligenceCallExchange) => {
+    if (!txId || exchange.segmentIndex == null) return;
+    onOpenTx({
+      id: txId,
+      segment_index: exchange.segmentIndex,
+      expected_document_sha256: txSha,
+    });
+  };
+
   return (
     <div
       className="ci-page"
@@ -631,40 +656,29 @@ export default function CompanyIntelligenceV2Current({
           )}
 
           {lens === "transcript" && (
-            <section className="ci-lens-panel">
-              <div className="ci-lens-heading">
-                <div>
-                  <span className="fin-eyebrow">{pick(zh, "SAME EVENT", "同一事件")}</span>
-                  <h3>{presented.period_label} {pick(zh, "earnings call", "财报电话会")}</h3>
-                </div>
-                <span className="fin-tag" style={{ "--c": txId ? "var(--rcpt-exact)" : "var(--rcpt-absent)" } as React.CSSProperties}>
-                  {txId ?? pick(zh, "Unavailable", "不可用")}
-                </span>
-              </div>
-              <p className="ci-event-identity">
-                <code>{presented.event_id}</code>
-                <span>{eventAlias ?? presented.period_label}</span>
-              </p>
-              {txId ? (
-                <div className="ci-transcript-launch">
-                  <div className="ci-transcript-glyph" aria-hidden><span>T</span><i /></div>
-                  <div>
-                    <strong>{pick(zh, "This event's call record is available", "本事件电话会记录可用")}</strong>
-                    <p>{pick(zh, `Opens ${txId} for ${presented.event_id}, not another ${ticker} transcript.`, `打开 ${presented.event_id} 的 ${txId}，而非该标的的其他电话会。`)}</p>
-                  </div>
-                  <button className="btn btn-primary" onClick={openSameTranscript}>{pick(zh, "Read transcript", "阅读电话会")}</button>
-                </div>
-              ) : (
-                <div className="fin-empty fin-empty-lg ci-state" role="status">
-                  <div className="fin-empty-title">{pick(zh, "Transcript body unavailable", "电话会正文不可用")}</div>
-                  <div className="fin-empty-why">{pick(zh, "The workspace does not carry a transcript identity for this event.", "该工作区未携带本事件的电话会身份。")}</div>
-                </div>
-              )}
-              <TranscriptSearchWorkspace
-                ticker={ticker}
-                events={transcriptSearchEvents}
-                initialEventId={presented.event_id}
-                onOpenTranscript={(target) => onOpenTx(typeof target === "string" ? { id: target, expected_document_sha256: txSha } : { ...target, expected_document_sha256: target.expected_document_sha256 ?? txSha })}
+            <section className="ci-lens-panel ci-call">
+              <CompanyIntelligenceCallLayout
+                zh={zh}
+                periodLabel={presented.period_label}
+                eventDate={presented.event_date}
+                transcriptId={txId}
+                transcriptAvailable={Boolean(txId)}
+                eventId={presented.event_id}
+                eventAlias={eventAlias ?? presented.period_label}
+                exchanges={callExchanges}
+                onOpenExchange={openCallExchange}
+                onOpenFullTranscript={txId ? openSameTranscript : undefined}
+                onOpenSources={() => selectLens("sources")}
+                searchContent={(
+                  <TranscriptSearchWorkspace
+                    ticker={ticker}
+                    events={transcriptSearchEvents}
+                    initialEventId={presented.event_id}
+                    onOpenTranscript={(target) => onOpenTx(typeof target === "string"
+                      ? { id: target, expected_document_sha256: txSha }
+                      : { ...target, expected_document_sha256: target.expected_document_sha256 ?? txSha })}
+                  />
+                )}
               />
             </section>
           )}
