@@ -266,8 +266,8 @@ export default function StatementsPage({ sym, fund, onOpenTx }: StatementsPagePr
       value: freeCashFlow,
       change: summaryChange(set?.cashflow?.fcf),
       detail: freeCashFlow == null
-        ? pick(zh, "Source row unavailable", "来源行不可用")
-        : pick(zh, "Source-reported cash-flow row", "来源披露的现金流行"),
+        ? pick(zh, "Not available in the financials record", "财务记录中暂无该值")
+        : pick(zh, "From the financials record", "来自财务记录"),
     },
   ];
   const latestNormalization = latestIndex >= 0 ? set?.normalization_method?.[latestIndex] : undefined;
@@ -478,7 +478,7 @@ export default function StatementsPage({ sym, fund, onOpenTx }: StatementsPagePr
             <span><small>{pick(zh, "Capital expenditure", "资本支出")}</small><b className="num">{latestCapex == null ? "—" : fmtNum(latestCapex)}</b></span>
             <span><small>{pick(zh, "Free cash flow", "自由现金流")}</small><b className="num">{freeCashFlow == null ? "—" : fmtNum(freeCashFlow)}</b></span>
           </div>
-          <p>{pick(zh, "Missing source rows remain unavailable; Terminal does not estimate free cash flow here.", "来源行缺失时保持不可用；Terminal 不会在此估算自由现金流。")}</p>
+          <p>{pick(zh, "This page uses the free-cash-flow value in the financials record; it does not recompute a missing value.", "本页使用财务记录中的自由现金流值；字段缺失时不会在页面重算。")}</p>
         </article>
         <article>
           <header><strong>{pick(zh, "Source & normalization", "来源与标准化")}</strong><span>{pick(zh, "selected basis", "当前所选口径")}</span></header>

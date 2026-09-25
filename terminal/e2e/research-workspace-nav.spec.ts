@@ -151,6 +151,7 @@ test("Financials vNext keeps statement summary, explorer and integrity on one ca
   await expect(summary).toContainText("Gross profit");
   await expect(summary).toContainText("Operating income");
   await expect(summary).toContainText("Free cash flow");
+  await expect(summary).toContainText("From the financials record");
 
   const explorer = financials.locator("[data-financials-vnext-explorer]");
   await expect(explorer).toContainText("TRAJECTORY");
@@ -160,6 +161,7 @@ test("Financials vNext keeps statement summary, explorer and integrity on one ca
   const integrity = financials.locator("[data-financials-vnext-integrity]");
   await expect(integrity).toContainText("Balance-sheet snapshot");
   await expect(integrity).toContainText("Cash conversion");
+  await expect(integrity).toContainText("This page uses the free-cash-flow value in the financials record; it does not recompute a missing value.");
   await expect(integrity).toContainText("Source & normalization");
   await expect(integrity).toContainText("Reporting cadence");
   await expect(integrity).toContainText("Normalization");
@@ -187,6 +189,7 @@ test("Financials vNext remains bilingual and overflow-safe on mobile", async ({ 
   await expect(financials).toContainText("报表快照");
   await expect(financials).toContainText("资产负债表快照");
   await expect(financials).toContainText("现金转换");
+  await expect(financials).toContainText("本页使用财务记录中的自由现金流值；字段缺失时不会在页面重算。");
   await expect(financials).toContainText("来源与标准化");
 
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
