@@ -27,7 +27,7 @@ const visitorId = (e: Ev) => e.user_id || e.anon_id || e.ip || "";
 type Feed = "loading" | "data" | "empty" | "unavailable";
 type StatsState = "loading" | "data" | "unavailable";
 
-export default function AdminView({ email, authorityUnavailable = false }: { email: string; authorityUnavailable?: boolean }) {
+export default function AdminView({ authorityUnavailable = false }: { email: string; authorityUnavailable?: boolean }) {
   const t = useT();
   const [events, setEvents] = useState<Ev[]>([]);
   const [nextBefore, setNextBefore] = useState<number | null>(null);
@@ -36,13 +36,18 @@ export default function AdminView({ email, authorityUnavailable = false }: { ema
   const [feed, setFeed] = useState<Feed>("loading");
   const [statsState, setStatsState] = useState<StatsState>("loading");
   const [denied, setDenied] = useState(false);
+  // The server can mount this view while the authority is temporarily unreachable. That fact is
+  // not immutable: every client API response re-runs the same gate, so a later success (or an
+  // events_unavailable response, which proves the gate passed) must clear the outage banner.
+  const [authorityOutage, setAuthorityOutage] = useState(authorityUnavailable);
   // Rows are on screen but the most recent refresh did not land. They are still TRUE — they were
   // read successfully under this exact filter — so they stay, labelled.
   const [stale, setStale] = useState(false);
   const [busy, setBusy] = useState(false);
   const [symInput, setSymInput] = useState("");
   const [symbol, setSymbol] = useState(""); // committed (uppercased) symbol filter
-  const [source, setSource] = useState("");
+  const [sourceInput, setSourceInput] = useState("");
+  const [source, setSource] = useState(""); // committed exact source filter
   const [visitor, setVisitor] = useState("");
   const [tick, setTick] = useState(0); // manual Refresh / Retry
 
@@ -52,37 +57,76 @@ export default function AdminView({ email, authorityUnavailable = false }: { ema
   const filterKey = `${symbol}\u0000${source}\u0000${visitor}`;
   const rowsKeyRef = useRef<string | null>(null);
   const eventsRef = useRef<Ev[]>([]);
-  eventsRef.current = events;
+  useEffect(() => {
+    eventsRef.current = events;
+  }, [events]);
 
-  const query = useCallback((before?: number | null) => {
+  // A root read (filter change / Refresh) starts a new snapshot generation. Any in-flight cursor
+  // page from an older generation is forbidden from appending into that new snapshot. The abort
+  // controller also releases a superseded cursor fetch promptly instead of leaving its button busy.
+  const listGenerationRef = useRef(0);
+  const pageRequestRef = useRef(0);
+  const pageAbortRef = useRef<AbortController | null>(null);
+  // Global KPIs do not depend on log filters. Once one aggregate read succeeds, filter-only row
+  // reads can skip that work; a manual Refresh (same filter) still refreshes the KPIs.
+  const statsReadyRef = useRef(false);
+
+  const query = useCallback((before?: number | null, signal?: AbortSignal, includeStats = false) => {
     const p = new URLSearchParams({ limit: "100" });
-    if (before != null) p.set("before", String(before));
-    else p.set("stats", "1"); // stats only on first page — cursor pages skip the aggregate
+    if (before != null) {
+      p.set("before", String(before));
+    } else if (includeStats) {
+      p.set("stats", "1");
+      const localMidnight = new Date();
+      localMidnight.setHours(0, 0, 0, 0);
+      p.set("todayStart", localMidnight.toISOString());
+    }
     if (symbol) p.set("symbol", symbol);
     if (source) p.set("source", source);
     if (visitor) p.set("visitor", visitor);
-    return fetch("/api/admin/searches?" + p.toString(), { cache: "no-store" });
+    return fetch("/api/admin/searches?" + p.toString(), { cache: "no-store", signal });
   }, [symbol, source, visitor]);
 
-  // commit symbol filter 400ms after typing stops (Enter commits immediately)
+  // Commit text filters after typing stops; Enter commits immediately. Source used to be a
+  // closed <select> populated only from the current page, which made a valid older/rare source
+  // impossible to query until enough unrelated pages happened to be loaded first.
   useEffect(() => {
     const id = setTimeout(() => setSymbol(symInput.trim().toUpperCase()), 400);
     return () => clearTimeout(id);
   }, [symInput]);
 
   useEffect(() => {
+    const id = setTimeout(() => setSource(sourceInput.trim()), 400);
+    return () => clearTimeout(id);
+  }, [sourceInput]);
+
+  useEffect(() => {
     let alive = true;
     const key = filterKey;
     const sameFilter = rowsKeyRef.current === key;
 
-    // A NEW filter clears immediately: the old filter's rows are not an answer to the new
-    // question, so they must not survive even if the new request fails.
-    if (!sameFilter) {
-      setEvents([]);
-      setNextBefore(null);
-      setStale(false);
-    }
-    setFeed("loading");
+    // Every root read supersedes cursor pages from the previous snapshot, even when the filter is
+    // unchanged (manual Refresh). Invalidate and abort them before starting the new read. A real
+    // fetch settles its finally{} immediately on abort; the generation guard still protects mocks
+    // or transports that ignore AbortSignal.
+    ++listGenerationRef.current;
+    ++pageRequestRef.current;
+    pageAbortRef.current?.abort();
+    pageAbortRef.current = null;
+
+    // A NEW filter clears on the effect's next microtask: the old filter's rows are not an answer
+    // to the new question, so they must not survive even if the new request fails. Deferring the
+    // React state transition until after the effect returns avoids a synchronous cascading render;
+    // this microtask is queued before the fetch continuation below, so loading still wins first.
+    queueMicrotask(() => {
+      if (!alive) return;
+      if (!sameFilter) {
+        setEvents([]);
+        setNextBefore(null);
+        setStale(false);
+      }
+      setFeed("loading");
+    });
 
     const fail = () => {
       if (!alive) return;
@@ -100,18 +144,34 @@ export default function AdminView({ email, authorityUnavailable = false }: { ema
       setStatsState((s) => (s === "data" ? "data" : "unavailable"));
     };
 
-    query().then(async (r) => {
+    const includeStats = sameFilter || !statsReadyRef.current;
+    query(null, undefined, includeStats).then(async (r) => {
       if (!alive) return;
-      // 404 is the ONLY denial: a reachable authority checked and said no.
-      if (r.status === 404) { setDenied(true); return; }
-      // 503 (authority_unavailable / events_unavailable) and every other non-OK is an outage.
-      if (!r.ok) { fail(); return; }
+      // 404 is the ONLY denial: a reachable authority checked and said no. It also proves the
+      // authority itself answered, so an SSR-time authority outage is no longer current.
+      if (r.status === 404) {
+        setAuthorityOutage(false);
+        setDenied(true);
+        return;
+      }
+      if (!r.ok) {
+        // The 503 body matters. authority_unavailable means the gate still cannot answer, while
+        // events_unavailable means it DID answer admin and only the search-events store failed.
+        // Treating both as the same sticky banner makes a recovered authority look broken forever.
+        const d = await r.json().catch(() => null);
+        if (!alive) return;
+        if (d?.error === "authority_unavailable") setAuthorityOutage(true);
+        else if (d?.error === "events_unavailable") setAuthorityOutage(false);
+        fail();
+        return;
+      }
       const d = await r.json().catch(() => null);
       if (!alive) return;
       if (!d) { fail(); return; }
 
-      // A successful authority result clears an earlier denial — an admin flag can be granted
-      // mid-session, and a stale `denied` must not outlive it.
+      // A successful authority result clears both an earlier denial and an earlier outage — an
+      // admin flag can be granted mid-session, and stale authority UI must not outlive the proof.
+      setAuthorityOutage(false);
       setDenied(false);
       const rows: Ev[] = d.events || [];
       setEvents(rows);
@@ -121,8 +181,14 @@ export default function AdminView({ email, authorityUnavailable = false }: { ema
       setStale(false);
       setFeed(rows.length ? "data" : "empty");
 
-      if (d.stats) { setStats(d.stats); setStatsState("data"); }
-      else if (d.statsUnavailable) setStatsState("unavailable");
+      if (d.stats) {
+        statsReadyRef.current = true;
+        setStats(d.stats);
+        setStatsState("data");
+      } else if (d.statsUnavailable) {
+        statsReadyRef.current = false;
+        setStatsState("unavailable");
+      }
     }).catch(() => { if (alive) fail(); });
 
     return () => { alive = false; };
@@ -130,25 +196,69 @@ export default function AdminView({ email, authorityUnavailable = false }: { ema
 
   async function loadMore() {
     if (nextBefore == null || busy || feed === "loading") return;
+    const generation = listGenerationRef.current;
+    const request = ++pageRequestRef.current;
+    const cursor = nextBefore;
+    const controller = new AbortController();
+    pageAbortRef.current = controller;
     setBusy(true);
     try {
-      const r = await query(nextBefore);
-      if (r.status === 404) { setDenied(true); return; }
+      const r = await query(cursor, controller.signal);
+      // A filter change or Refresh can complete while this request is in flight. Its response
+      // belongs to the old snapshot and must not mutate rows, cursor, labels, auth UI, or stale.
+      if (generation !== listGenerationRef.current || request !== pageRequestRef.current) return;
+
+      if (r.status === 404) {
+        setAuthorityOutage(false);
+        setDenied(true);
+        return;
+      }
+
+      const d = await r.json().catch(() => null);
+      if (generation !== listGenerationRef.current || request !== pageRequestRef.current) return;
+
       // A failed page 2 must not destroy page 1. Keep the cursor so it can simply be retried.
-      if (!r.ok) { setStale(true); return; }
-      const d = await r.json();
+      if (!r.ok) {
+        if (d?.error === "authority_unavailable") setAuthorityOutage(true);
+        else if (d?.error === "events_unavailable") setAuthorityOutage(false);
+        setStale(true);
+        return;
+      }
+      if (!d) {
+        setStale(true);
+        return;
+      }
+
+      setAuthorityOutage(false);
+      setDenied(false);
       setEvents((ev) => [...ev, ...(d.events || [])]);
       setNextBefore(d.nextBefore ?? null);
       setUserMap((m) => ({ ...m, ...(d.userMap || {}) }));
       setStale(false);
     } catch {
-      setStale(true);
+      if (generation === listGenerationRef.current && request === pageRequestRef.current) {
+        setStale(true);
+      }
     } finally {
+      if (pageAbortRef.current === controller) pageAbortRef.current = null;
+      // A newer cursor request cannot start while this one owns busy=true, so this finally remains
+      // the single owner that releases the button even when a root read invalidated/aborted it.
       setBusy(false);
     }
   }
 
-  const retry = () => setTick((x) => x + 1);
+  const retry = () => {
+    // Refresh/Retry means "run what is visibly in the controls now", not "run whatever happened
+    // to finish its 400ms debounce last". React batches these commits with the tick, so the effect
+    // observes one coherent filter snapshot and issues one root request.
+    const nextSymbol = symInput.trim().toUpperCase();
+    const nextSource = sourceInput.trim();
+    if (nextSymbol !== symbol) setSymbol(nextSymbol);
+    if (nextSource !== source) setSource(nextSource);
+    setTick((x) => x + 1);
+  };
+
+  const filtersActive = Boolean(symbol || source || visitor);
 
   const sources = useMemo(() => {
     const s = new Set(events.map((e) => e.source));
@@ -202,7 +312,7 @@ export default function AdminView({ email, authorityUnavailable = false }: { ema
             <div className="pg">
               <div className="pg-head"><h2>{t("admSearchLog", "Search Log")}</h2><span className="sub">{t("admSearchLogSub", "every committed ticker search, by visitor")}</span></div>
 
-              {authorityUnavailable && (
+              {authorityOutage && (
                 <div className="panel" style={{ marginBottom: 12 }}>
                   <div style={noticeStyle}>{t("admAuthorityUnavailable", "Couldn't verify admin access — this is an outage, not a denial.")}</div>
                 </div>
@@ -245,7 +355,13 @@ export default function AdminView({ email, authorityUnavailable = false }: { ema
               </div>
 
               <div className="panel">
-                <div className="ph">{t("admLog", "Log")}<span className="sub">{events.length} {t("admLoaded", "loaded")} · {statsState === "data" && stats ? stats.total : "?"} {t("admTotal", "total")}</span></div>
+                <div className="ph">
+                  {t("admLog", "Log")}
+                  <span className="sub">
+                    {events.length} {t("admLoaded", "loaded")}
+                    {!filtersActive && <> · {statsState === "data" && stats ? stats.total : "?"} {t("admTotal", "total")}</>}
+                  </span>
+                </div>
 
                 {stale && (
                   <div style={noticeStyle}>
@@ -263,10 +379,19 @@ export default function AdminView({ email, authorityUnavailable = false }: { ema
                     onKeyDown={(e) => { if (e.key === "Enter") setSymbol(symInput.trim().toUpperCase()); }}
                     style={{ width: 120 }}
                   />
-                  <select aria-label={t("admSource", "Source")} value={source} onChange={(e) => setSource(e.target.value)}>
-                    <option value="">{t("admAllSources", "all sources")}</option>
-                    {sources.map((s) => <option key={s} value={s}>{s}</option>)}
-                  </select>
+                  <input
+                    aria-label={t("admSource", "Source")}
+                    list="adm-source-options"
+                    placeholder={t("admAllSources", "all sources")}
+                    value={sourceInput}
+                    onChange={(e) => setSourceInput(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") setSource(sourceInput.trim()); }}
+                    autoComplete="off"
+                    style={{ width: 160 }}
+                  />
+                  <datalist id="adm-source-options">
+                    {sources.map((s) => <option key={s} value={s} />)}
+                  </datalist>
                   {visitor && (
                     <button className="chip on" title={visitor} onClick={() => setVisitor("")}>
                       {t("admVisitor", "visitor")} <span className="v">{vLabel}</span> ✕
@@ -313,7 +438,7 @@ export default function AdminView({ email, authorityUnavailable = false }: { ema
                           <td role="cell" data-col="src"><span className="pill" style={{ color: "var(--text-2)", background: "var(--panel-2)" }}>{e.source}</span></td>
                           <td role="cell" data-col="vis">
                             {vid
-                              ? <span title={vid} style={{ color: "var(--brand-2)", cursor: "pointer" }} onClick={() => setVisitor(vid)}>{label}</span>
+                              ? <button type="button" className="adm-visitor-link" title={vid} onClick={() => setVisitor(vid)}>{label}</button>
                               : <span style={{ color: "var(--muted)" }}>—</span>}
                           </td>
                           <td role="cell" data-col="ip"><span className="num" style={{ fontFamily: "var(--font-num)", fontSize: 12, color: "var(--muted)" }}>{e.ip ?? "—"}</span></td>

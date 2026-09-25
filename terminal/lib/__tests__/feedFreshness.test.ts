@@ -7,7 +7,7 @@
 // confident than the Chinese.
 
 import { describe, it, expect } from "vitest";
-import { formatLag, freshnessLabel } from "@/lib/feedFreshness";
+import { formatLag, freshnessLabel, isLiveFeedBasis } from "@/lib/feedFreshness";
 import { LEX } from "@/lib/i18n";
 
 const NEW_KEYS = [
@@ -43,6 +43,16 @@ describe("formatLag", () => {
   it("localises the unit", () => {
     expect(formatLag(3_000, zh)).toBe("3秒");
     expect(formatLag(15 * 60_000, zh)).toBe("15分钟");
+  });
+});
+
+describe("isLiveFeedBasis", () => {
+  it("keeps both canonical real-time transports in the same live visual lane", () => {
+    expect(isLiveFeedBasis("REALTIME")).toBe(true);
+    expect(isLiveFeedBasis("LIVE")).toBe(true);
+    expect(isLiveFeedBasis("DELAYED_15M")).toBe(false);
+    expect(isLiveFeedBasis("EOD")).toBe(false);
+    expect(isLiveFeedBasis(undefined)).toBe(false);
   });
 });
 

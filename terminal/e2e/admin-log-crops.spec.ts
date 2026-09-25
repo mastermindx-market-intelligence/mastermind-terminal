@@ -88,7 +88,7 @@ test("search log — outage state", async ({ page }, testInfo) => {
   await open(page, "en");
   await page.route("**/api/admin/searches**", (route) =>
     route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ error: "events_unavailable" }) }));
-  await page.locator(".adm-filters input").fill("ZZZZ");
+  await page.getByRole("textbox").fill("ZZZZ");
   await expect(page.locator(".adm-log tr.empty-row td")).toBeVisible({ timeout: 30_000 });
   await shoot(page, join(OUT, `${testInfo.project.name}-en-unavailable.png`));
 });

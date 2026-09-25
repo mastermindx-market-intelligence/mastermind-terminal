@@ -87,6 +87,8 @@ import ChartTables from "@/components/ChartTables";
 import { crossUps, crossDowns, crossUpsBelow, crossDownsAbove } from "@/lib/crossSignals";
 import { SOFT_Q, anchorSignal, isBlockedSignal, isOverrideCandidate, isReclaimOverrideTake, isRetroOverride, isStopSweepReclaim, isStructureStop, isWaivedEntry, markerTooltipCopy, opportunityMarkerGlyph, sliceSignalBasis } from "@/lib/signalVerdict";
 import { makeNearestBarIndex } from "@/lib/barSnap";
+import { chartAxisRange, TERMINAL_CHART_RANGE_EVENT, type TerminalChartRangeDetail } from "@/lib/chartRange";
+import { TERMINAL_CHART_JUMP_EVENT, terminalChartJumpTargetsPane } from "@/lib/chartJump";
 import { ichimoku, supertrend, avwap as computeAvwap, rollingVwap, weekAnchoredVwap, vprofile, volbox, rsiStack, accumPct, trendRibbon, buyShare as mfBuyShare } from "@/lib/indicatorMath";
 import ChartOverlays, { type PaneInfo, type LegendEntry } from "@/components/ChartOverlays";
 import DayStatsStrip from "@/components/DayStatsStrip";
@@ -8234,6 +8236,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       generationReady = announceTerminalVisualReady(symbol, state, {
         timeframe: effectiveTimeframe,
         generation: epoch,
+        paneId: syncIdRef.current,
         isCurrent: () => !cancelled && epochRef.current === epoch,
         ...(state === "data" ? {
           isReady: () => isTerminalIndicatorSetBuilt(
@@ -9024,15 +9027,34 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   }, [liveSig]);
 
   // ────────────────────────────────────────────────────────────────────────────
-  // EFFECT 8 — jump-to-signal [mount]. R14: window `mm:chart-jump` {sym, ts}. If this pane's active
-  //   symbol matches and the TF is daily-derived, snap ts to the nearest bar (SAME makeNearestBarIndex
+  // EFFECT 8a — exact Chart Bus viewport range. The bus contract is epoch seconds, while LWC's
+  // daily-derived axis is business-day strings; keep the conversion at the renderer boundary.
+  // Pane identity matters when a workspace contains the same symbol more than once.
+  // ────────────────────────────────────────────────────────────────────────────
+  useEffect(() => {
+    const onRange = (event: Event) => {
+      const detail = (event as CustomEvent<TerminalChartRangeDetail>).detail;
+      if (!detail || detail.sym !== symbol || detail.paneId !== syncIdRef.current) return;
+      const range = chartAxisRange(detail, isIntradayRef.current);
+      const chart = chartRef.current;
+      if (!range || !chart) return;
+      try { chart.timeScale().setVisibleRange(range as any); } catch {}
+    };
+    window.addEventListener(TERMINAL_CHART_RANGE_EVENT, onRange);
+    return () => window.removeEventListener(TERMINAL_CHART_RANGE_EVENT, onRange);
+  }, [symbol]);
+
+  // ────────────────────────────────────────────────────────────────────────────
+  // EFFECT 8 — jump-to-signal [mount]. R14: pane-scoped `mm:chart-jump` {sym, ts, paneId}. If this
+  //   exact pane owns the receipt and the TF is daily-derived, snap ts to the nearest bar (SAME makeNearestBarIndex
   //   the marker resolver uses), center ±40 bars, and pulse the target sigMark ~2.5s (transient highlight flag),
   //   cleared on symbol/TF change (Effect 2 clears the timer) or when the next jump arrives.
   // ────────────────────────────────────────────────────────────────────────────
   useEffect(() => {
     const onJump = (e: Event) => {
-      const d = (e as CustomEvent).detail as { sym?: string; ts?: string } | undefined;
-      if (!d || d.sym !== symbol || !d.ts) return;
+      const d = (e as CustomEvent).detail;
+      const paneId = syncIdRef.current;
+      if (paneId == null || !terminalChartJumpTargetsPane(d, symbol, paneId)) return;
       if (isIntradayRef.current) return;                 // ts is a date string; intraday axis is epoch-sec
       const chart = chartRef.current; if (!chart) return;
       const bars = barsRef.current; if (!bars.length) return;
@@ -9052,8 +9074,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         renderSignalsRef.current();
       }, 2500);
     };
-    window.addEventListener("mm:chart-jump", onJump as EventListener);
-    return () => { window.removeEventListener("mm:chart-jump", onJump as EventListener); if (highlightTimerRef.current) { clearTimeout(highlightTimerRef.current); highlightTimerRef.current = null; } };
+    window.addEventListener(TERMINAL_CHART_JUMP_EVENT, onJump as EventListener);
+    return () => { window.removeEventListener(TERMINAL_CHART_JUMP_EVENT, onJump as EventListener); if (highlightTimerRef.current) { clearTimeout(highlightTimerRef.current); highlightTimerRef.current = null; } };
     // eslint-disable-next-line
   }, [symbol]);
 

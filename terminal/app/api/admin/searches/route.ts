@@ -19,6 +19,9 @@ export const dynamic = "force-dynamic";
 //   200  the events read succeeded. `stats` may still be absent with `statsUnavailable: true` —
 //        the aggregate is a SEPARATE read, and a failed KPI must not take a usable log down.
 const NO_STORE = { "cache-control": "no-store" } as const;
+// User-email labels are optional enrichment. A slow auth-admin endpoint must not stall rows that
+// the search-events store already returned successfully.
+const EMAIL_ENRICH_BUDGET_MS = 750;
 
 export async function GET(req: Request) {
   const authority = await isAdminRequest();
@@ -35,9 +38,20 @@ export async function GET(req: Request) {
   const symbol = (sp.get("symbol") || "").trim().toUpperCase();
   const source = (sp.get("source") || "").trim();
   const visitor = (sp.get("visitor") || "").trim();
+  const todayStartRaw = (sp.get("todayStart") || "").trim();
+  const todayStartMs = Date.parse(todayStartRaw);
+  const now = Date.now();
+  // Browser-local midnight is always in the recent past. Keep the parameter bounded so a malformed
+  // or hand-crafted admin URL cannot redefine "Today" to an arbitrary historical window.
+  const todayStart = Number.isFinite(todayStartMs) && todayStartMs <= now + 5 * 60_000 && todayStartMs >= now - 36 * 60 * 60_000
+    ? new Date(todayStartMs).toISOString()
+    : undefined;
 
   const read = await listSearchEvents({
-    limit,
+    // One sentinel row beyond the requested page is the only honest way to know whether "Load
+    // more" should exist. Returning a cursor merely because exactly `limit` rows arrived creates
+    // a false next page for result sets whose cardinality is exactly the page size.
+    limit: limit + 1,
     beforeId: Number.isFinite(before) ? before : undefined,
     symbol: symbol || undefined,
     source: source || undefined,
@@ -49,11 +63,19 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "events_unavailable" }, { status: 503, headers: NO_STORE });
   }
 
-  const events = read.events;
-  const nextBefore = events.length === limit ? events[events.length - 1].id : null;
-  const userMap = await resolveUserEmails(events.map((e) => e.user_id).filter(Boolean) as string[]);
-
-  const stats = sp.get("stats") === "1" ? await searchStats() : null;
+  const events = read.events.slice(0, limit);
+  const hasMore = read.events.length > limit;
+  const nextBefore = hasMore && events.length ? events[events.length - 1].id : null;
+  // Email labels and global aggregates depend only on the already-read rows / store, not on
+  // each other. Run them concurrently so the optional enrichment budget is not paid before KPI
+  // work even starts.
+  const [userMap, stats] = await Promise.all([
+    resolveUserEmails(
+      events.map((e) => e.user_id).filter(Boolean) as string[],
+      { budgetMs: EMAIL_ENRICH_BUDGET_MS },
+    ),
+    sp.get("stats") === "1" ? searchStats(todayStart) : Promise.resolve(null),
+  ]);
 
   return NextResponse.json(
     {

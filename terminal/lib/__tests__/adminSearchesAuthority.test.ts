@@ -24,8 +24,11 @@ const H = vi.hoisted(() => ({
   // auth.getUser() — the cookie-authenticated session behind the gate
   user: { id: "user-1", email: "owner@example.com" } as { id: string; email?: string } | null,
   userError: null as { name?: string; status?: number; message?: string } | null,
+  createClientThrow: false,
+  userThrow: false,
   // profiles.is_admin
   profileResult: { data: { is_admin: true }, error: null } as StoreResult,
+  profileThrow: false,
   // search_events reads, via the SERVICE client
   listResult: { data: [] as unknown[], error: null } as StoreResult,
   countResult: { count: 0, error: null } as { count: number | null; error: unknown },
@@ -34,21 +37,30 @@ const H = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
-  createClient: vi.fn(async () => ({
-    auth: {
-      getUser: vi.fn(async () => ({
-        data: { user: H.user },
-        error: H.userError,
-      })),
-    },
-    from: vi.fn(() => {
-      const q: Record<string, unknown> = {};
-      q.select = vi.fn(() => q);
-      q.eq = vi.fn(() => q);
-      q.single = vi.fn(async () => H.profileResult);
-      return q;
-    }),
-  })),
+  createClient: vi.fn(async () => {
+    if (H.createClientThrow) throw new Error("create client failed");
+    return {
+      auth: {
+        getUser: vi.fn(async () => {
+          if (H.userThrow) throw new Error("auth transport exploded");
+          return {
+            data: { user: H.user },
+            error: H.userError,
+          };
+        }),
+      },
+      from: vi.fn(() => {
+        const q: Record<string, unknown> = {};
+        q.select = vi.fn(() => q);
+        q.eq = vi.fn(() => q);
+        q.single = vi.fn(async () => {
+          if (H.profileThrow) throw new Error("profile transport exploded");
+          return H.profileResult;
+        });
+        return q;
+      }),
+    };
+  }),
 }));
 
 vi.mock("@/lib/supabase/service", () => ({
@@ -92,7 +104,10 @@ const row = (id: number) => ({
 beforeEach(() => {
   H.user = { id: "user-1", email: "owner@example.com" };
   H.userError = null;
+  H.createClientThrow = false;
+  H.userThrow = false;
   H.profileResult = { data: { is_admin: true }, error: null };
+  H.profileThrow = false;
   H.listResult = { data: [], error: null };
   H.countResult = { count: 0, error: null };
   H.windowResult = { data: [], error: null };
@@ -126,6 +141,21 @@ describe("adminGate — 'not an admin' and 'could not check' are different answe
     H.user = null;
     H.userError = { name: "AuthSessionMissingError", status: 400, message: "Auth session missing!" };
     expect(await isAdminRequest()).toMatchObject({ status: "anonymous" });
+  });
+
+  it("UNAVAILABLE when createClient itself throws", async () => {
+    H.createClientThrow = true;
+    expect(await isAdminRequest()).toMatchObject({ status: "unavailable" });
+  });
+
+  it("UNAVAILABLE when auth.getUser throws instead of returning an error object", async () => {
+    H.userThrow = true;
+    expect(await isAdminRequest()).toMatchObject({ status: "unavailable" });
+  });
+
+  it("UNAVAILABLE when the profiles query throws instead of returning an error object", async () => {
+    H.profileThrow = true;
+    expect(await isAdminRequest()).toMatchObject({ status: "unavailable" });
   });
 
   it("UNAVAILABLE when GoTrue itself is down — a 5xx is not a logged-out user", async () => {
@@ -163,6 +193,13 @@ describe("GET /api/admin/searches — the status code carries the state", () => 
     expect((await res.json()).error).toBe("authority_unavailable");
   });
 
+  it("503s when the auth transport throws outright", async () => {
+    H.userThrow = true;
+    const res = await get();
+    expect(res.status).toBe(503);
+    expect((await res.json()).error).toBe("authority_unavailable");
+  });
+
   it("200s with rows when the read succeeds", async () => {
     H.listResult = { data: [row(2), row(1)], error: null };
     const res = await get();
@@ -175,6 +212,27 @@ describe("GET /api/admin/searches — the status code carries the state", () => 
     const res = await get();
     expect(res.status).toBe(200);
     expect(await res.json()).toMatchObject({ events: [] });
+  });
+
+  it("does not advertise a next page when exactly the requested limit exists", async () => {
+    H.listResult = {
+      data: Array.from({ length: 100 }, (_, i) => row(100 - i)),
+      error: null,
+    };
+    const body = await (await get("?limit=100")).json();
+    expect(body.events).toHaveLength(100);
+    expect(body.nextBefore).toBeNull();
+  });
+
+  it("uses one lookahead row to prove a next page without returning the sentinel", async () => {
+    H.listResult = {
+      data: Array.from({ length: 101 }, (_, i) => row(101 - i)),
+      error: null,
+    };
+    const body = await (await get("?limit=100")).json();
+    expect(body.events).toHaveLength(100);
+    expect(body.events.at(-1).id).toBe(2);
+    expect(body.nextBefore).toBe(2);
   });
 
   it("503s — NOT 200 {events:[]} — when the events read fails", async () => {

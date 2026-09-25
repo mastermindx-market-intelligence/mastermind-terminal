@@ -2960,6 +2960,9 @@ body.col-resizing .wl-rz::after{background:var(--brand)}
 .adm-log col.c-vis{width:140px}
 .adm-log col.c-ip{width:120px}
 .adm-log tbody tr{cursor:default}
+.adm-visitor-link{border:0;background:none;padding:0;color:var(--brand-2);font:inherit;cursor:pointer;text-align:left}
+.adm-visitor-link:hover{text-decoration:underline}
+.adm-visitor-link:focus-visible{outline:1px solid var(--brand);outline-offset:2px;border-radius:2px}
 .adm-top-row{display:grid;grid-template-columns:26px 90px 56px 1fr;gap:10px;align-items:center;padding:9px 15px;border-bottom:1px solid var(--line-2);font-size:13px}
 .adm-top-row:last-child{border-bottom:0}
 .adm-top-row .bar{width:100%;max-width:240px;margin-left:0}

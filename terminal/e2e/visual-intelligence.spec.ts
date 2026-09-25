@@ -27,6 +27,8 @@ test("saved startup timeframe hydrates chart context without stale SSR attribute
   await page.goto("/terminal?symbol=NVDA");
   const context = page.locator("[data-visual-context]");
   await expect(context).toHaveAttribute("data-context-timeframe", "1s", { timeout: 20_000 });
+  await expect(page.locator(".pane-tf").first()).toHaveText("1s");
+  await expect(page.locator('[data-toolbar-timeframes] .tfbtn.on').first()).toHaveText("1s");
   await expect.poll(() => page.evaluate(() => (window as any).__mmChartAxisOpts?.()?.timeframe), { timeout: 20_000 }).toBe("1s");
   expect(hydration, "chart context must not hydrate against a different startup timeframe").toEqual([]);
 });

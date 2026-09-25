@@ -34,6 +34,7 @@ vi.mock("@/components/ChartFrameBar", async (importOriginal) => {
       onSettings: (patch: { scaleLeft: boolean }) => void;
     }) => ReactModule.createElement("button", {
       "data-chart-side-toggle": "",
+      "data-scale-left": props.settings.scaleLeft ? "1" : "0",
       onClick: () => props.onSettings({ scaleLeft: !props.settings.scaleLeft }),
     }),
   };
@@ -165,6 +166,29 @@ describe("ChartPane persisted chart-settings authority", () => {
       panelReceipts.some((receipt) => receipt.dataReady && !receipt.scaleLeft),
       "StrictMode replay must not expose or persist a current-ready default generation",
     ).toBe(false);
+  });
+
+  it("keeps one persisted chart-settings owner synchronized across mounted panes", async () => {
+    await act(async () => {
+      root!.render(React.createElement(
+        React.Fragment,
+        null,
+        React.createElement(ChartPane, paneProps()),
+        React.createElement(ChartPane, { ...paneProps(), idx: 1, symbol: "AAPL", isActive: false }),
+      ));
+    });
+
+    const toggles = [...container.querySelectorAll<HTMLButtonElement>("[data-chart-side-toggle]")];
+    expect(toggles).toHaveLength(2);
+    expect(toggles.map((button) => button.dataset.scaleLeft)).toEqual(["0", "0"]);
+
+    await act(async () => toggles[0].click());
+
+    expect(
+      [...container.querySelectorAll<HTMLButtonElement>("[data-chart-side-toggle]")]
+        .map((button) => button.dataset.scaleLeft),
+      "a global mm.chartSettings patch must not leave sibling panes on a different live value",
+    ).toEqual(["1", "1"]);
   });
 
   it("does not accept requested left state until the live series reports the left owner", () => {

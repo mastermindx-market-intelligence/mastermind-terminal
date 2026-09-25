@@ -1,0 +1,4 @@
+.liveFeed :global(.status-market-dot) {
+  background: var(--buy);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--buy) 18%, transparent);
+}

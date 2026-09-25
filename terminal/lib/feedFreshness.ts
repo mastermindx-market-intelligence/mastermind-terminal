@@ -31,6 +31,10 @@ export type FreshnessInput = {
   marketSession?: "pre" | "rth" | "post" | "overnight" | string | null;
 };
 
+export function isLiveFeedBasis(basis: FreshnessInput["basis"]): boolean {
+  return basis === "REALTIME" || basis === "LIVE";
+}
+
 export type FreshnessLabel = {
   /** className for the badge element */
   cls: string;
@@ -86,15 +90,15 @@ export function freshnessLabel(
     return { cls: "livebadge", label: t("historical"), tip: t("marketClosedFeed") };
   }
 
-  if (basis === "REALTIME") {
-    return {
-      cls: "livebadge live",
-      label: t("live"),
-      // "Real-time US stocks — last trade measured 3s" — the claim and its evidence together.
-      tip: lag ? `${t("realtimeTip")} ${lag}` : t("freshnessUnknown"),
-    };
-  }
-  if (basis === "LIVE") {
+  if (isLiveFeedBasis(basis)) {
+    if (basis === "REALTIME") {
+      return {
+        cls: "livebadge live",
+        label: t("live"),
+        // "Real-time US stocks — last trade measured 3s" — the claim and its evidence together.
+        tip: lag ? `${t("realtimeTip")} ${lag}` : t("freshnessUnknown"),
+      };
+    }
     return { cls: "livebadge live", label: t("live"), tip: lag ? `${t("realtimeTip")} ${lag}` : t("liveTip") };
   }
   if (basis === "DELAYED_15M") {

@@ -105,6 +105,7 @@ test("measured one-second packets reshape and roll the live candle at every supp
 
   const chart = page.locator(".chart-wrap").first();
   await expect(chart.locator("canvas").first()).toBeVisible();
+  await expect(page.locator(".status-market-dot").first()).toHaveCSS("background-color", "rgb(38, 194, 129)");
   for (let index = 0; index < ticks.length; index++) {
     liveTickIndex = index;
     // Each packet is picked up by the NEXT /api/quote poll, so this waits on a polling interval,

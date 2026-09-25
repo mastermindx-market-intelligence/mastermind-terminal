@@ -1514,6 +1514,13 @@ test("a symbol change keeps the renderer alive and never leaks the old symbol's 
   expect(await page.locator(".pane.on .chart-wrap").evaluate((el) => getComputedStyle(el).opacity)).toBe("0.45");
   expect(await page.locator(".pane.on .chart-wrap").evaluate((el) => getComputedStyle(el).filter)).toContain("saturate");
 
+  // Ready is a WINDOW-wide event. A different pane can legitimately finish the same symbol while
+  // this pane is still loading it; that foreign receipt must not undim the outgoing chart.
+  await page.evaluate(() => window.dispatchEvent(new CustomEvent("mm:terminal-visual-ready", {
+    detail: { symbol: "AAPL", timeframe: "3D", generation: 1, state: "data", paneId: 1 },
+  })));
+  await expect(pane).toHaveAttribute("data-swapping", "1");
+
   release();
   await expect.poll(() => page.locator(".pane.on .pane-hd b, .m-symbar").first().innerText()).toContain("AAPL");
 
