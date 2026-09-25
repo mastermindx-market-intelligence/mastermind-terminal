@@ -9,10 +9,12 @@ It proves two distinct boundaries:
    authentication gate is visible, and Company Intelligence does not leak before
    sign-in.
 2. **Signed in** — desktop and mobile render Brief, the compact Event History
-   strip, Results, Call + Q&A, Sources, the fixed Evidence overlay and
-   CompanyVisual; the Event History mode matches the active v1/v2 authority
-   plane; the chart-to-Intelligence entry works; Institutional Ownership remains
-   a separate deep link; and no document overflow or browser exception occurs.
+   strip, the detailed History & Comparison workflow, Results, Call + Q&A,
+   Sources, the fixed Evidence overlay and CompanyVisual; both history surfaces
+   match the active v1/v2 authority plane and verified v2 truth remains visibly
+   separate from historical v1 context; the chart-to-Intelligence entry works;
+   Institutional Ownership remains a separate deep link; and no document
+   overflow or browser exception occurs.
 
 Run against one exact served release:
 

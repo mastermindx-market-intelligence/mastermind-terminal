@@ -22,6 +22,9 @@ function viewport(viewport: "desktop" | "mobile") {
     eventHistoryVisible: true,
     eventHistoryMode: "current-plus-context",
     eventHistoryItems: 2,
+    historyVisible: true,
+    historyMode: "current-plus-context",
+    historyContextSeparated: true,
     resultsVisible: true,
     callVisible: true,
     sourcesVisible: true,
@@ -81,6 +84,13 @@ describe("Company Intelligence live-proof contract", () => {
       ...signedIn(),
       viewports: [
         { ...viewport("desktop"), eventHistoryMode: "selectable-history" },
+        viewport("mobile"),
+      ],
+    }, RELEASE)).toBe(false);
+    expect(validateSignedInProof({
+      ...signedIn(),
+      viewports: [
+        { ...viewport("desktop"), historyContextSeparated: false },
         viewport("mobile"),
       ],
     }, RELEASE)).toBe(false);

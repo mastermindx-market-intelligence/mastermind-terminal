@@ -177,6 +177,23 @@ async function proveIntelligenceViewport(browser, storageState, viewportName, vi
     }
     const evidenceOverlay = await proveEvidenceOverlay(page);
 
+    await page.locator(".ci-lenses").getByRole("tab", { name: "History", exact: true }).click();
+    const history = await visibleExactlyOnce(
+      page.locator("[data-ci-paper-history]"),
+      "The Company Intelligence History workspace",
+    );
+    const historyVisible = await history.isVisible();
+    const historyMode = await history.getAttribute("data-ci-history-mode");
+    if (historyMode !== expectedHistoryMode) {
+      fail(`The ${viewportName} History authority mode was ${historyMode || "missing"}, expected ${expectedHistoryMode}.`);
+    }
+    const historyText = await history.textContent();
+    const historyContextSeparated = plane !== "event_workspace.v1"
+      || (/CURRENT VERIFIED EVENT/.test(historyText || "") && /HISTORICAL V1 CONTEXT/.test(historyText || ""));
+    if (!historyContextSeparated) {
+      fail(`The ${viewportName} History workspace did not separate current v2 truth from historical v1 context.`);
+    }
+
     await page.locator(".ci-lenses").getByRole("tab", { name: "Results", exact: true }).click();
     const resultsVisible = await page.locator("[data-ci-paper-results]").isVisible();
 
@@ -200,6 +217,8 @@ async function proveIntelligenceViewport(browser, storageState, viewportName, vi
       || !sourcesVisible
       || !companyVisual
       || !eventHistoryVisible
+      || !historyVisible
+      || !historyContextSeparated
       || !overflowSafe
     ) {
       fail(`The ${viewportName} Company Intelligence contract was incomplete.`);
@@ -217,6 +236,9 @@ async function proveIntelligenceViewport(browser, storageState, viewportName, vi
       eventHistoryVisible,
       eventHistoryMode,
       eventHistoryItems,
+      historyVisible,
+      historyMode,
+      historyContextSeparated,
       resultsVisible,
       callVisible,
       sourcesVisible,

@@ -64,6 +64,9 @@ function validateViewport(proof, expectedRelease, viewport) {
     && proof.eventHistoryMode === (proof.plane === "event_workspace.v1"
       ? "current-plus-context"
       : "selectable-history")
+    && proof.historyVisible === true
+    && proof.historyMode === proof.eventHistoryMode
+    && proof.historyContextSeparated === true
     && proof.resultsVisible === true
     && proof.callVisible === true
     && proof.sourcesVisible === true
