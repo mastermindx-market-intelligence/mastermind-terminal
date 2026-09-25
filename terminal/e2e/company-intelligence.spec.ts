@@ -554,6 +554,25 @@ test("Detailed History compares structured events without creating another event
   await expectNoDocumentOverflow(page);
 });
 
+test("Topic Memory groups added and persistent themes without inferring importance", async ({ page }) => {
+  await openCompanyIntelligence(page);
+  await page.locator(".ci-lenses").getByRole("tab", { name: "Topics" }).click();
+
+  const topics = page.locator("[data-ci-paper-topics]");
+  await expect(topics).toBeVisible();
+  await expect(topics).toHaveAttribute("data-ci-topics-mode", "structured-context");
+  await expect(topics).toContainText("TOPIC MEMORY");
+  await expect(topics).toContainText("Data center");
+  await expect(topics).toContainText("Demand");
+  await expect(topics.locator('[data-ci-topic-bucket="persistent"]')).toContainText("Data center");
+  await expect(topics.locator('[data-ci-topic-bucket="added"]')).toContainText("Demand");
+  await expect(topics.locator('[data-ci-topic="data center"]')).toContainText("2");
+
+  await topics.getByRole("button", { name: "Open event history" }).click();
+  await expect(page.locator(".ci-lenses").getByRole("tab", { name: "History" })).toHaveAttribute("aria-selected", "true");
+  await expectNoDocumentOverflow(page);
+});
+
 test("Company Intelligence lens switching does not move the research shell", async ({ page }) => {
   await openCompanyIntelligence(page);
   await makeLensSwitchScrollObservable(page);
@@ -914,6 +933,9 @@ test("Company Intelligence preserves its mobile workflow in Chinese", async ({ p
   await expect(page.locator(".ci-inst-card")).toContainText("仅限该名册的 HHI");
   await expect(page.locator("[data-ci-event-history-strip]")).toContainText("事件历史");
   await expect(page.locator("[data-ci-event-history-strip]")).toContainText("无需离开简报即可选择期间");
+  await page.locator(".ci-lenses").getByRole("tab", { name: "主题" }).click();
+  await expect(page.locator("[data-ci-paper-topics]")).toContainText("主题记忆");
+  await expect(page.locator("[data-ci-paper-topics]")).toContainText("持续");
   await expectNoDocumentOverflow(page);
   await page.screenshot({
     path: testInfo.outputPath("mobile-company-intelligence-zh.png"),
@@ -1052,6 +1074,20 @@ test("verified event Brief keeps historical v1 rows context-only", async ({ page
   await expect(history).toContainText("HISTORICAL V1 CONTEXT");
   await expect(history).toContainText("cie_4c0410e7c4358283cf37a557");
   await expect(history.locator('[data-ci-history-status="context"] button')).toHaveCount(0);
+  await expectNoDocumentOverflow(page);
+});
+
+test("verified event Topic Memory remains historical v1 context", async ({ page }) => {
+  await openAaplWorkspace(page, aaplWorkspacePayload(), { v1: "overlay" });
+  await page.locator(".ci-lenses").getByRole("tab", { name: "Topics" }).click();
+
+  const topics = page.locator("[data-ci-paper-topics]");
+  await expect(topics).toBeVisible();
+  await expect(topics).toHaveAttribute("data-ci-topics-mode", "historical-context");
+  await expect(topics).toContainText("HISTORICAL V1 CONTEXT");
+  await expect(topics).toContainText("Data center");
+  await expect(topics).toContainText("Demand");
+  await expect(topics).toContainText("does not label, rank or explain the verified current event");
   await expectNoDocumentOverflow(page);
 });
 
