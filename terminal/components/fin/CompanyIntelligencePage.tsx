@@ -26,6 +26,9 @@ import CompanyIntelligenceEventHistoryStrip, { type CompanyIntelligenceEventHist
 import CompanyIntelligenceHistoryLayout, {
   type CompanyIntelligenceHistoryEvent,
 } from "./CompanyIntelligenceHistoryLayout";
+import CompanyIntelligenceTopicMemoryLayout, {
+  type CompanyIntelligenceTopicMemoryItem,
+} from "./CompanyIntelligenceTopicMemoryLayout";
 import CompanyIntelligenceCallLayout from "./CompanyIntelligenceCallLayout";
 import CompanyIntelligenceResultsLayout, {
   type CompanyIntelligenceResultsComparison,
@@ -438,6 +441,22 @@ export default function CompanyIntelligencePage({ sym, name, onOpenTx, onEvidenc
       setEvidence(null);
     },
   }));
+  const eventsById = new Map(events.map((candidate) => [candidate.event_id, candidate]));
+  const topicMemoryItems: CompanyIntelligenceTopicMemoryItem[] = activeContext.topics.timeline.map((topic) => {
+    const first = eventsById.get(topic.first_event_id);
+    const last = eventsById.get(topic.last_event_id);
+    return {
+      id: topic.tag,
+      label: topicTagLabel(topic.tag, zh),
+      status: topic.status,
+      statusLabel: topicStatusLabel(topic.status, zh ? "zh" : "en"),
+      eventCount: topic.event_count,
+      firstLabel: first ? eventPeriod(first) : null,
+      firstDate: first?.call_date ?? null,
+      lastLabel: last ? eventPeriod(last) : null,
+      lastDate: last?.call_date ?? null,
+    };
+  });
   const displayName = activeContext.company.display_name || name || ticker;
   // A general highlight has no polarity. Never relabel it as Constructive when
   // the producer did not retain an explicitly positive highlight for the event.
@@ -941,12 +960,14 @@ export default function CompanyIntelligencePage({ sym, name, onOpenTx, onEvidenc
 
           {lens === "topics" && (
             <section className="ci-lens-panel">
-              <div className="ci-lens-heading"><div><span className="fin-eyebrow">{pick(zh, "TOPIC MEMORY", "主题记忆")}</span><h3>{pick(zh, "What entered, persisted, or dropped", "新增、延续与退出的主题")}</h3></div><span>{activeContext.topics.timeline.length} {pick(zh, "tracked", "个追踪主题")}</span></div>
-              {activeContext.topics.timeline.length ? (
-                <ul className="ci-topic-list">{activeContext.topics.timeline.map((topic) => <li key={topic.tag}><span className={`ci-topic-status ${topic.status}`} aria-hidden /><div><strong>{topicTagLabel(topic.tag, zh)}</strong></div><span className="fin-tag" style={{ "--c": topic.status === "added" ? "var(--up)" : topic.status === "dropped" ? "var(--down)" : "var(--brand-2)" } as React.CSSProperties}>{topicStatusLabel(topic.status, zh ? "zh" : "en")}</span><b className="num">{topic.event_count}</b></li>)}</ul>
-              ) : (
-                <EmptyState title={pick(zh, "No repeated topics yet", "暂无重复主题")} why={pick(zh, "The structured history does not yet contain enough tagged events to establish a topic timeline.", "结构化历史中的标记事件尚不足以形成主题时间线。")} />
-              )}
+              <CompanyIntelligenceTopicMemoryLayout
+                zh={zh}
+                mode="structured-context"
+                currentLabel={eventPeriod(event)}
+                currentDate={event.call_date}
+                topics={topicMemoryItems}
+                onOpenHistory={() => selectLens("history")}
+              />
             </section>
           )}
 

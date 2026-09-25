@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { LEX, useLang } from "../../lib/i18n";
 import { fmtDate, pick } from "../../lib/finFormat";
+import { topicStatusLabel } from "../../lib/plainLabels";
 import type { CompanyIntelligenceContext, CompanyIntelligenceEvent } from "../../lib/companyIntelligence";
 import {
   eventWorkspaceGlanceTitle,
@@ -20,6 +21,9 @@ import CompanyIntelligenceHistoryLayout, {
   type CompanyIntelligenceHistoryEvent,
   type CompanyIntelligenceHistoryMetric,
 } from "./CompanyIntelligenceHistoryLayout";
+import CompanyIntelligenceTopicMemoryLayout, {
+  type CompanyIntelligenceTopicMemoryItem,
+} from "./CompanyIntelligenceTopicMemoryLayout";
 import CompanyIntelligenceCallLayout, { type CompanyIntelligenceCallExchange } from "./CompanyIntelligenceCallLayout";
 import CompanyIntelligenceResultsLayout, {
   type CompanyIntelligenceResultsComparison,
@@ -35,7 +39,6 @@ import TranscriptSearchWorkspace from "./TranscriptSearchWorkspace";
 import { openMastermindBrainForSymbol } from "../../lib/mastermindBrain";
 import type { TranscriptOpenTarget } from "../../lib/transcriptSearch";
 import { EVENT_WORKSPACE_ATTRIBUTION, topicTagLabel } from "../../lib/companyIntelligenceLabels";
-import { topicStatusLabel } from "../../lib/plainLabels";
 
 type Lens = "brief" | "results" | "transcript" | "history" | "topics" | "sources";
 
@@ -483,6 +486,22 @@ export default function CompanyIntelligenceV2Current({
         },
       ],
     }));
+  const historicalEventsById = new Map(historicalEvents.map((candidate) => [candidate.event_id, candidate]));
+  const topicMemoryItems: CompanyIntelligenceTopicMemoryItem[] = (v1?.topics.timeline ?? []).map((topic) => {
+    const first = historicalEventsById.get(topic.first_event_id);
+    const last = historicalEventsById.get(topic.last_event_id);
+    return {
+      id: topic.tag,
+      label: topicTagLabel(topic.tag, zh),
+      status: topic.status,
+      statusLabel: topicStatusLabel(topic.status, zh ? "zh" : "en"),
+      eventCount: topic.event_count,
+      firstLabel: first ? `Q${first.fiscal_quarter} FY${first.fiscal_year}` : null,
+      firstDate: first?.call_date ?? null,
+      lastLabel: last ? `Q${last.fiscal_quarter} FY${last.fiscal_year}` : null,
+      lastDate: last?.call_date ?? null,
+    };
+  });
   const briefChanges = usableBriefItems(presented.deltas).slice(0, 3);
   const briefRisks = usableBriefItems(presented.watch).slice(0, 3);
   const briefWatch = usableBriefItems(presented.guidance, presented.watch).slice(0, 4);
@@ -936,28 +955,14 @@ export default function CompanyIntelligenceV2Current({
 
           {lens === "topics" && (
             <section className="ci-lens-panel">
-              <div className="ci-lens-heading">
-                <div>
-                  <span className="fin-eyebrow">{pick(zh, "HISTORICAL V1 TOPICS", "历史 v1 主题")}</span>
-                  <h3>{pick(zh, "Not current-event evidence", "不是当期证据")}</h3>
-                </div>
-                <span>{v1?.topics.timeline.length ?? 0} {pick(zh, "tracked", "个追踪主题")}</span>
-              </div>
-              <p className="ci-v1-note">{pick(zh, "Topic memory remains v1 historical context. It does not overwrite v2 claims.", "主题记忆仍是 v1 历史背景，不会覆盖 v2 主张。")}</p>
-              {v1?.topics.timeline.length ? (
-                <ul className="ci-topic-list">
-                  {v1.topics.timeline.map((topic) => (
-                    <li key={topic.tag}>
-                      <span className={`ci-topic-status ${topic.status}`} aria-hidden data-plain-status={topicStatusLabel(topic.status, zh ? "zh" : "en")} />
-                      <div><strong>{topicTagLabel(topic.tag, zh)}</strong></div>
-                      <span className="fin-tag" style={{ "--c": "var(--rcpt-exact)" } as React.CSSProperties}>{topicStatusLabel(topic.status, zh ? "zh" : "en")}</span>
-                      <b className="num">{topic.event_count}</b>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="ci-inline-empty">{pick(zh, "No v1 topic timeline is attached.", "暂无 v1 主题时间线。")}</p>
-              )}
+              <CompanyIntelligenceTopicMemoryLayout
+                zh={zh}
+                mode="historical-context"
+                currentLabel={presented.period_label}
+                currentDate={presented.event_date}
+                topics={topicMemoryItems}
+                onOpenHistory={() => selectLens("history")}
+              />
             </section>
           )}
 
