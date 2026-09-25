@@ -1,11 +1,11 @@
-# Terminal Visual Intelligence Layer — options-companion candidate recapture
+# Terminal Visual Intelligence Layer — chart-settings candidate recapture
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 321ef80d8af78ed4c5f938b328ea24a9ccb29118 (exact source candidate)
-# capturedAt: 2026-09-23T23:29:40.443000+00:00
+# capturedAtHead: WORKTREE_MERGE_CANDIDATE (HEAD 83f14a56bbf6657916df2f9bc93498bacd94d833 + MERGE_HEAD 9aca42ee0047651856c8d7b632d8737b0dffd569)
+# capturedAt: 2026-09-25T08:13:17.551461+00:00
 # Content-addressed layoutFiles + cropFiles, not ancestry, identify this capture.
 layoutFiles:
-  terminal/components/ChartPanel.tsx: "b5ff42a1ab7948de4b2ad563cec75c2103297235bd83f90dcb16a70ce3e5be06"
+  terminal/components/ChartPanel.tsx: "4187ab3938dc14dc8e8cd276860f3e57f21f2e846d2c032d8abea49fd9def9a7"
   terminal/components/ChartSettingsModal.tsx: "f26bd7dcbb9bd23e96546e835dec4c62c593b9c4d7412c411511005e7418146e"
   terminal/components/ChartSettingsModal.module.css: "a1685d103511e11882f8d379b22570f018e47aed88266db5ca6fec8808100b0a"
   terminal/components/DrawingSidebar.tsx: "95910121c08efa2a41bcaac02ec626a48bc98021bbbf9e611ff0b61f7baaf6d9"
@@ -19,12 +19,12 @@ layoutFiles:
   terminal/lib/suites/trend/candlePainter.ts: "8384d2bce3af939a51e88584b1436ee2898a89f0fbf1aedc09ffee624a3e12e1"
   terminal/lib/indicator-canvas/host.ts: "4f2949efb22b8c378cab1ff9d176466c4857073c14a36ee4f0eeab4ec1015a25"
 cropFiles:
-  desktop-context.png: "a2c1a7737ba2c766224dec00aafbf3e81e4ccc44c903cecdd11e70a8e49ea730"
-  desktop-context-zh.png: "94922314e5e0062cf1ac5f3f4387644cd912e6971293ea8eed9c6d0672123a39"
-  tablet-context.png: "65622a7d98b9fcea94d7262d9a23b7e7c96c10717eea96f9681835866fbfed92"
-  tablet-context-zh.png: "62f694593f9ca2297a5529f8c92807df634b0db93f86472fe026187178f6794e"
-  mobile-context.png: "c41afd100037e6d1f585027f81e02e8f15de4196570c62bf1985906851c184b2"
-  mobile-context-zh.png: "44cc2092927c3535bc1141fb3cfe8e912072067b90b71cf9f7d2b29bb0f6c855"
+  desktop-context.png: "01b069bef6e09ab2f46020126c952996c19f49c3145b6932ed4c30620a0df638"
+  desktop-context-zh.png: "b2409944bdc2cb07e5c23478ea2790ed395d0f2e7a75ead0f2361628dda0adcb"
+  tablet-context.png: "fd41bb79270e91ea14bb467e4065bf2356bdf97ae7b45e4ec97e4ff6e01eee3f"
+  tablet-context-zh.png: "0acb462265a49457d8dcc51bb2ce6b69c35e1bc2e840afe4177ec3d3c1b82e5a"
+  mobile-context.png: "eb5de3015191a571045b7aa248dd61180fc6afa6a40d10c704202eeca94fff64"
+  mobile-context-zh.png: "7db1912e19feb905d1bee8ab000461630bc4730a91fcaa38ca8c4235b9ad2971"
 
 theme: dark
 languages: [en, zh]
@@ -37,8 +37,8 @@ harness: /terminal?symbol=NVDA
 capture_flag: TERMINAL_E2E_FIXTURE
 capture_flag_law: Standard Playwright fixture also disables the Next.js dev indicator.
 commands:
-  - TERMINAL_E2E_PORT=3219 npx playwright test e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --reporter=list
-  - TERMINAL_E2E_PORT=3219 npx playwright test e2e/chart-view-reset.spec.ts --project=mobile --workers=1 --retries=0 --grep 'New chart tickers reserve space'
+  - TERMINAL_E2E_PORT=3227 npx playwright test e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --reporter=list
+  - TERMINAL_E2E_PORT=3227 npx playwright test e2e/chart-view-reset.spec.ts --project=mobile --workers=1 --retries=0 --grep 'New chart tickers reserve space'
 browserResults:
   desktop: 10/10 passed
   tablet: 10/10 passed
@@ -47,14 +47,12 @@ browserResults:
   visualIntelligenceMatrix: 30 passed; zero failures
 localGates:
   typecheck: PASS
-  scopedLint: PASS; options companion and shared consumer scope
+  scopedLint: NOT_RERUN; evidence refresh does not claim a new lint receipt
   plainLanguage: Existing localized copy retained; separate copy guard not rerun
-  vitest: 382 files passed; 6117 tests passed; 4 todo
-  vitestHead: 799ee3f549c7c2e46055774a7d9ee203e71881f2
+  targetedVitest: 53 passed across markerTooltip/optionsCompanion/optionsCompanionUi on the pending integration
 historicalGates:
-  capturedAtHead: 381388d541a79b972737dd0778fe793d5e00a1bf
-  note: Historical only; not current acceptance.
-  vitest: 379 files passed; 6088 tests passed; 4 todo
+  vitest: 379 files passed; 6093 tests passed; 4 todo
+  note: prior chart-settings candidate evidence; retained as historical, not current integration qualification.
 files:
   - desktop-context.png
   - desktop-context-zh.png
@@ -62,8 +60,3 @@ files:
   - tablet-context-zh.png
   - mobile-context.png
   - mobile-context-zh.png
-
-currentRecaptureLogs:
-  visual-recapture-321ef80.log: "6581add96fafeaaedbf693e34c6f2cf8cdd4dcfecb06de75b8a6752ea6046214"
-  chart-view-recapture-321ef80.log: "5a6a42163d09f95acca9f4f21632bfc4f87810b253d8177ecefa5d7635ed3111"
-  unit-label-reuse.log: "ef936263f1b6c091b1e48c01e73cde40efc4c00b0b05f5c5d0481d8bbeaff9ad"

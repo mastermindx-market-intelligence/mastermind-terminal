@@ -71,7 +71,7 @@ import { deriveOptLevels, sessionsOldEt, type OptLevelKey, type OptLevelsResult 
 import { computeSuite, resolveSuiteColors } from "@/lib/indicator-canvas/host";
 import { renderPrims, ensureTooltipHost } from "@/lib/indicator-canvas/render";
 import {
-  hitTestMarkers, placeMarkerTip, gestureStamp, isTapSample,
+  hitTestMarkers, placeMarkerTip, gestureStamp, isTapSample, reanchorMarker,
   MARKER_HOVER_SLACK, MARKER_TAP_SLACK, type MarkerHit,
 } from "@/lib/markerTooltip";
 import { paintCandleData } from "@/lib/indicator-canvas/candlePaint";
@@ -3652,15 +3652,24 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
     let sigHits: MarkerHit[] | null = null;
     // A tapped tooltip stays put until the next pointerdown; a hovered one follows the cursor.
     let sigTipPinned = false;
+    // WHICH marker a pinned tooltip belongs to, so a relayout can put it back on that marker
+    // instead of destroying it. Null whenever nothing is pinned. See markerTooltip.reanchorMarker.
+    let sigTipAnchor: MarkerHit | null = null;
     // Suppresses the tooltip for the whole of a press-drag, so it can never chase a pan. `ts` is
     // the event's own time — see markerTooltip.gestureStamp for why the handler clock cannot
     // classify this gesture on a busy thread.
-    let sigPointerDown: { x: number; y: number; t: number; ts: number | null; id: number } | null = null;
+    let sigPointerDown: {
+      x: number; y: number; t: number; ts: number | null; id: number;
+      // The physical DOWN owns marker identity. Pointerup only decides whether the gesture stayed
+      // a tap; geometry may legitimately move in between on a responsive or still-settling chart.
+      hit: MarkerHit | null;
+    } | null = null;
     // Declared HERE, beside the state it owns, rather than down with the handlers: renderSignals
     // calls it and runs synchronously during this effect's setup, which would put a
     // handler-block declaration in the temporal dead zone.
     const sigTipHide = () => {
       sigTipPinned = false;
+      sigTipAnchor = null;
       if (sigTip && sigTip.style.display !== "none") sigTip.style.display = "none";
     };
     // C5 — shell brand bug. A DOM node, not the LWC watermark: the plugin has no offset field, so
@@ -7156,8 +7165,13 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
       // Unconditional: a press anywhere dismisses an open tooltip BEFORE the gesture it starts.
       // This is also what makes the pinned (tapped) tooltip dismissable by a tap elsewhere.
       sigTipHide();
+      // Touch/pen have no hover to repair a miss. Measure a fresh hit box at the physical DOWN;
+      // a later pane/render pass is allowed to move that marker before pointerup without changing
+      // what the fingertip actually landed on. Mouse keeps its existing hover-only path.
+      if (e.pointerType !== "mouse") sigHits = null;
       sigPointerDown = {
         x: e.clientX, y: e.clientY, t: performance.now(), ts: gestureStamp(e), id: e.pointerId,
+        hit: e.pointerType === "mouse" ? null : sigHitAt(e.clientX, e.clientY, MARKER_TAP_SLACK),
       };
     };
     onSigUp = (e: PointerEvent) => {
@@ -7174,12 +7188,16 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
       if (!isTapSample(down, {
         x: e.clientX, y: e.clientY, t: performance.now(), ts: gestureStamp(e),
       })) return;
-      // Hit-tested at the DOWN point — where the finger actually landed — and with the larger
-      // touch slack, because a ⊘ ring is ~11px across and a fingertip has no hover to correct with.
-      const hit = sigHitAt(down.x, down.y, MARKER_TAP_SLACK);
+      // Identity came from DOWN, where the finger actually landed. Resolve that SAME marker
+      // against the geometry that exists now: a responsive/pane reflow may have moved it before
+      // this handler ran. If it vanished entirely, there is nothing truthful to pin.
+      if (!down.hit) return;
+      sigHits = buildSigHits();
+      const hit = reanchorMarker(sigHits, down.hit);
       if (!hit) return;
-      sigTipShow(hit, down.x, down.y);
+      sigTipShow(hit, hit.x + hit.w / 2, hit.y + hit.h / 2);
       sigTipPinned = true;   // stays until the next pointerdown; there is no hover to dismiss it
+      sigTipAnchor = hit;    // later relayouts keep re-anchoring this exact marker identity
     };
     onSigCancel = () => { sigPointerDown = null; sigTipHide(); };
     onSigLeave = (e: PointerEvent) => {
@@ -7205,14 +7223,31 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
     // container `ro` below never fires — without this the BUY/SELL/CUT/REBUY badges lag at stale Y coords
     // until an unrelated pan/hover triggers a render.
     // A PINNED (tapped) tooltip has no cursor to dismiss it, so a RELAYOUT that moves its marker
-    // out from under it leaves litter pointing at nothing — the reachable case being a double-tap
-    // ON a marker, where the second tap re-pins while the same gesture maximizes the pane. Hooked
-    // to the pane observer and NOT to renderSignals: a repaint is far too broad a trigger. Markers
-    // repaint on every visible-range frame and, measurably, on something that lands right after a
-    // touch tap — hiding there dismissed the tooltip the tap had just opened, and took the tap
-    // tests red on both touch viewports. A pane resize/maximize is the event that actually
-    // invalidates the anchor, and a tap does not cause one.
-    paneRO = new ResizeObserver(() => { if (dead) return; sigTipHide(); captureNormal(); scheduleMeasure(); scheduleRender(); });
+    // out from under it would leave litter pointing at nothing. Hooked to the pane observer and
+    // NOT to renderSignals: a repaint is far too broad a trigger — markers repaint on every
+    // visible-range frame, and hiding there dismissed the tooltip the tap had just opened.
+    //
+    // Moving it to the pane observer narrowed that but did not close it, on a premise that reads
+    // true and is not: "a tap does not cause a pane resize". It does not CAUSE one — it does not
+    // have to. The chart keeps sizing well after hydration (panes lay out, the price axis takes
+    // its final width), so on a loaded machine a pane resize lands AFTER a tap that has already
+    // opened its tooltip, and dismissing there is the same defect one trigger further out. It is
+    // invisible on desktop, where the next pointermove re-opens the hover tooltip under a cursor
+    // that is still there, and TERMINAL on touch, where a tap leaves no cursor behind it — which
+    // is exactly why this went red on BOTH touch viewports while desktop stayed green.
+    //
+    // So a resize invalidates the ANCHOR, not the reader's intent. An unpinned (hover) tooltip is
+    // still dropped; a pinned one is put back on its marker's new box, and dismissed only when
+    // that marker is no longer painted at all — then, and only then, it really is litter.
+    const sigTipRelayout = () => {
+      if (!sigTipPinned || !sigTipAnchor || !sigTip) { sigTipHide(); return; }
+      sigHits = null;                                   // the boxes just moved; re-measure them
+      const moved = reanchorMarker(buildSigHits(), sigTipAnchor);
+      if (!moved) { sigTipHide(); return; }             // the marker is gone → the tip is litter
+      sigTipShow(moved, moved.x + moved.w / 2, moved.y + moved.h / 2);
+      sigTipPinned = true; sigTipAnchor = moved;        // sigTipShow does not touch the pin
+    };
+    paneRO = new ResizeObserver(() => { if (dead) return; sigTipRelayout(); captureNormal(); scheduleMeasure(); scheduleRender(); });
     paneRORef.current = paneRO;
 
     const rectXY = (ev: PointerEvent) => { const r = svg.getBoundingClientRect(); return { x: ev.clientX - r.left, y: ev.clientY - r.top }; };
@@ -8132,7 +8167,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
       if (optionTagHostRef.current) { try { optionTagHostRef.current.remove(); } catch {} optionTagHostRef.current = null; }
       if (hoverTagRef.current) { try { hoverTagRef.current.remove(); } catch {} hoverTagRef.current = null; }
       if (sigTip) { try { sigTip.remove(); } catch {} sigTip = null; }
-      sigHits = null; sigPointerDown = null; sigTipPinned = false;
+      sigHits = null; sigPointerDown = null; sigTipPinned = false; sigTipAnchor = null;
       renderTagRef.current = null;
       renderHoverTagRef.current = null;
       // DT teardown: countdown chip + shading primitive
