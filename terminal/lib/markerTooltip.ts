@@ -178,3 +178,32 @@ export function isTapSample(down: TapSample, up: TapSample): boolean {
     { x: up.x, y: up.y, t: paired ? up.ts as number : up.t },
   );
 }
+
+/** The same marker, found again after a RELAYOUT — or null when it is genuinely gone.
+ *
+ *  ── WHY A PINNED TOOLTIP IS RE-ANCHORED RATHER THAN DISMISSED ───────────────────────────────
+ *
+ *  A pane resize invalidates a tooltip's ANCHOR, not the reader's intent. The hover tooltip can
+ *  be dropped on a resize and never be missed, because the very next pointermove re-opens it
+ *  under the cursor that is still there. A TAPPED tooltip has no cursor behind it: dropping it
+ *  is final, and the reader who deliberately opened it watches it vanish for no reason they can
+ *  see. That asymmetry is the whole defect — it is invisible on desktop and terminal on touch.
+ *
+ *  The chart keeps sizing well after hydration (panes lay out, the price axis takes its final
+ *  width), so on a loaded machine a pane resize lands AFTER a tap that has already opened its
+ *  tooltip. The marker has not gone anywhere; it has MOVED. Matching it by identity and
+ *  re-placing the tooltip on its new box keeps the anti-litter guarantee — a tooltip is never
+ *  left pointing at empty chart — without destroying a deliberate tap.
+ *
+ *  Identity is the marker's `title`, the same key `sigTipShow` writes the node on: it is the one
+ *  string per marker class already in the DOM, and two markers on one bar carry different titles.
+ *  A marker whose title is no longer painted really is gone (the series changed, the study was
+ *  turned off), and THAT is the case the caller dismisses on. */
+export function reanchorMarker<T extends { title: string }>(
+  fresh: readonly T[],
+  anchor: { title: string } | null,
+): T | null {
+  if (!anchor) return null;
+  for (const m of fresh) if (m.title === anchor.title) return m;
+  return null;
+}
