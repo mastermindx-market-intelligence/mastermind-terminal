@@ -9,12 +9,20 @@ interface CompanyVisualProps {
   artworkSrc?: string | null;
 }
 
+function hasAsciiControl(value: string): boolean {
+  for (let index = 0; index < value.length; index += 1) {
+    const code = value.charCodeAt(index);
+    if (code <= 0x1f || code === 0x7f) return true;
+  }
+  return false;
+}
+
 function safeArtworkSource(value: string | null | undefined): string | null {
   const src = value?.trim();
-  if (!src) return null;
+  if (!src || hasAsciiControl(src)) return null;
 
-  // Only an absolute path on this origin is eligible. Protocol-relative URLs
-  // and backslashes can resolve to a network host in browser URL parsing.
+  // Only an absolute path on this origin is eligible. Protocol-relative URLs,
+  // backslashes and URL-stripped control characters can resolve to a network host.
   if (src.startsWith("/") && !src.startsWith("//") && !src.includes("\\")) return src;
 
   // Data artwork is deliberately raster-only. SVG can embed its own resource

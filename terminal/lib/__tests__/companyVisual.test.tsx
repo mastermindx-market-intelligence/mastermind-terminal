@@ -34,6 +34,9 @@ describe("CompanyVisual artwork boundary", () => {
       "https://images.example.com/nvda.webp",
       "//images.example.com/nvda.webp",
       "/\\images.example.com/nvda.webp",
+      "/\t/images.example.com/nvda.webp",
+      "/\n/images.example.com/nvda.webp",
+      "/\r/images.example.com/nvda.webp",
       "data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=",
     ]) {
       const node = render(source);
