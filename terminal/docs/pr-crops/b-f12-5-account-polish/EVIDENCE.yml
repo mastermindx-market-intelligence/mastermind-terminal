@@ -1,15 +1,12 @@
 # B-F12-5 Account page polish — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: e73e5bdc8d9ba55887b9d35a8936ac4966ade80b
-# capturedAt: 2026-09-09T02:37:16.733Z
+# capturedAtHead: 1a5d03aff5b67f7d048bf52248439187f485b670
+# capturedAt: 2026-09-25T03:57:34.240Z
 # capturedAtHead is informational. The lock is layoutFiles.
-# B-F08-7b: SectionAccount.tsx hash refreshed for a non-visual write-fence wrap
-# (saveName routes through sendScopedAccountWrite); not recaptured: the eight crops depict overview and delete-form states, none an error line.
-# Merge-heal (master b7aa0981, which contains 5fe8026b): SectionAccount.tsx re-hashed after merging that fence into this PR; no packet key moved, no crop recaptured.
 layoutFiles:
-  terminal/components/settings/SectionAccount.tsx: "d2c3828c286bbaac321881d5a6562efdd4f30e580f4200d49c5165c0fa7ef9a4"  # no visual change in this file (no JSX, class or string edit); crops unchanged from e73e5bdc
-  terminal/app/settings.css: "3189163136d943431cbf52e4b5d241c105b695ba5af94c4c2e29151d537b5ef5"
+  terminal/components/settings/SectionAccount.tsx: "535ebd09a60c3477cca11c4f6851f2d4c35b3518404cab52b2039141f8a92acd"
+  terminal/app/settings.css: "fbc9797f94e00bb7488af1120f47ba9836393b1d61d11839a7d101248695d587"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -31,11 +28,11 @@ files:
   - mobile-en-delete-form.png
   - mobile-zh-delete-form.png
 measurements:
-  desktop-en-overview.png: { spanWidth: 831, gridWidth: 831, profileWidth: 405, confirmVisible: false, confirmClass: "", confirmBg: "", signOutClass: "acs-signout-m acs-btn ghost", signOutColor: "" }
-  desktop-zh-overview.png: { spanWidth: 831, gridWidth: 831, profileWidth: 405, confirmVisible: false, confirmClass: "", confirmBg: "", signOutClass: "acs-signout-m acs-btn ghost", signOutColor: "" }
+  desktop-en-overview.png: { spanWidth: 844, gridWidth: 844, profileWidth: 411, confirmVisible: false, confirmClass: "", confirmBg: "", signOutClass: "acs-signout-m acs-btn ghost", signOutColor: "" }
+  desktop-zh-overview.png: { spanWidth: 844, gridWidth: 844, profileWidth: 411, confirmVisible: false, confirmClass: "", confirmBg: "", signOutClass: "acs-signout-m acs-btn ghost", signOutColor: "" }
   desktop-en-delete-form.png: { spanWidth: 844, gridWidth: 844, profileWidth: 411, confirmVisible: true, confirmClass: "acs-btn btn-danger", confirmBg: "rgb(240, 86, 107)", signOutClass: "acs-signout-m acs-btn ghost", signOutColor: "" }
   desktop-zh-delete-form.png: { spanWidth: 844, gridWidth: 844, profileWidth: 411, confirmVisible: true, confirmClass: "acs-btn btn-danger", confirmBg: "rgb(240, 86, 107)", signOutClass: "acs-signout-m acs-btn ghost", signOutColor: "" }
-  mobile-en-overview.png: { spanWidth: 358, gridWidth: 358, profileWidth: 358, confirmVisible: false, confirmClass: "", confirmBg: "", signOutClass: "acs-signout-m acs-btn ghost", signOutColor: "rgb(214, 218, 227)" }
-  mobile-zh-overview.png: { spanWidth: 357, gridWidth: 357, profileWidth: 357, confirmVisible: false, confirmClass: "", confirmBg: "", signOutClass: "acs-signout-m acs-btn ghost", signOutColor: "rgb(214, 218, 227)" }
+  mobile-en-overview.png: { spanWidth: 360, gridWidth: 360, profileWidth: 360, confirmVisible: false, confirmClass: "", confirmBg: "", signOutClass: "acs-signout-m acs-btn ghost", signOutColor: "rgb(214, 218, 227)" }
+  mobile-zh-overview.png: { spanWidth: 360, gridWidth: 360, profileWidth: 360, confirmVisible: false, confirmClass: "", confirmBg: "", signOutClass: "acs-signout-m acs-btn ghost", signOutColor: "rgb(214, 218, 227)" }
   mobile-en-delete-form.png: { spanWidth: 360, gridWidth: 360, profileWidth: 360, confirmVisible: true, confirmClass: "acs-btn btn-danger", confirmBg: "rgb(240, 86, 107)", signOutClass: "acs-signout-m acs-btn ghost", signOutColor: "rgb(214, 218, 227)" }
   mobile-zh-delete-form.png: { spanWidth: 360, gridWidth: 360, profileWidth: 360, confirmVisible: true, confirmClass: "acs-btn btn-danger", confirmBg: "rgb(240, 86, 107)", signOutClass: "acs-signout-m acs-btn ghost", signOutColor: "rgb(214, 218, 227)" }
