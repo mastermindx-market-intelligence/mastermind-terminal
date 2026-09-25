@@ -765,7 +765,7 @@ def test_mutant_ignoring_preflight_failure_reaches_downstream_effects(
 ) -> None:
     anchor = (
         'run_release_preflight "$PREFLIGHT_SCRIPT" "$PREFLIGHT_POLICY" '
-        '"$SRC" "$PREFLIGHT_RECEIPT_DIR"'
+        '"$SRC" "$PREFLIGHT_RECEIPT_DIR" auto'
     )
     mutant = _mutate(tmp_path, anchor, anchor + " || true  # MUTANT")
 
@@ -908,7 +908,8 @@ def test_canonical_mismatch_recovery_restores_only_the_receipted_live_generation
     r = run_gen(
         SCRIPT,
         f'''
-        recover_canonical_head_mismatch "{preflight}" "{policy}" "{repo}" "{receipts}" "{marker}"
+        run_release_preflight "{preflight}" "{policy}" "{repo}" "{receipts}" auto
+        recover_canonical_head_mismatch "{repo}" "{marker}"
         rc=$?
         echo "RC=$rc"
         exit "$rc"

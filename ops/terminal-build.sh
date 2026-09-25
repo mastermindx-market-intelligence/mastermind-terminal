@@ -50,7 +50,7 @@ PREFLIGHT_RECEIPT_PATH=
 PREFLIGHT_RECEIPT_ID=
 PREFLIGHT_SOURCE_RECEIPT_ID=
 PREFLIGHT_CANONICAL_HEAD=
-PREFLIGHT_RECOVERY_CANDIDATE=0
+PREFLIGHT_RECOVERY_REQUIRED=0
 ACCEPTED_REF_BEFORE=
 ACCEPTED_REF_SHA=
 log(){ echo "[build] $*"; }
@@ -294,7 +294,7 @@ run_release_preflight(){
   local script=$1 policy=$2 canonical_repo=$3 receipt_dir=$4 mode=${5:-clean}
   local temporary stdout_file stderr_file before_manifest rc parsed expected_policy_digest
   PREFLIGHT_CANONICAL_HEAD=
-  PREFLIGHT_RECOVERY_CANDIDATE=0
+  PREFLIGHT_RECOVERY_REQUIRED=0
   temporary=$(mktemp -d /tmp/terminal-build-preflight.XXXXXX) || return $?
   stdout_file="$temporary/stdout.json"
   stderr_file="$temporary/stderr.log"
@@ -376,33 +376,8 @@ PY_RECEIPT_BEFORE
     cat "$stderr_file" >&2
   fi
   if [ "$rc" -ne 0 ]; then
-    if [ "$mode" = "clean" ] && [ "$rc" -eq 2 ] && [ -s "$stdout_file" ]; then
-      if python3 -I - "$stdout_file" <<'PY_RECOVERY_CANDIDATE'
-import json
-import re
-import sys
-from pathlib import Path
-
-try:
-    summary = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
-except (OSError, UnicodeError, json.JSONDecodeError):
-    raise SystemExit(1)
-if not isinstance(summary, dict):
-    raise SystemExit(1)
-if summary.get("schema") != "mastermind.terminal.release_preflight_receipt.v1":
-    raise SystemExit(1)
-if summary.get("result") != "UNKNOWN_STOP":
-    raise SystemExit(1)
-if re.fullmatch(r"[0-9a-f]{40}", str(summary.get("accepted_sha", ""))) is None:
-    raise SystemExit(1)
-if not isinstance(summary.get("receipt_path"), str) or not summary["receipt_path"]:
-    raise SystemExit(1)
-PY_RECOVERY_CANDIDATE
-      then
-        PREFLIGHT_RECOVERY_CANDIDATE=1
-      fi
-    fi
-    if [ "$mode" != "canonical-head-mismatch" ] || [ "$rc" -ne 2 ]; then
+    if { [ "$mode" != "canonical-head-mismatch" ] && [ "$mode" != "auto" ]; } \
+      || [ "$rc" -ne 2 ] || [ ! -s "$stdout_file" ]; then
       if [ -s "$stdout_file" ]; then cat "$stdout_file" >&2; fi
       rm -rf "$temporary"
       return "$rc"
@@ -492,10 +467,8 @@ receipt_root = Path(sys.argv[2]).resolve(strict=True)
 before_names = set(load_json_bytes(Path(sys.argv[3]).read_bytes(), "before-manifest"))
 expected_policy_digest = sys.argv[4]
 mode = sys.argv[5]
-if mode not in {"clean", "canonical-head-mismatch"}:
+if mode not in {"clean", "canonical-head-mismatch", "auto"}:
     raise SystemExit("invalid release-preflight validation mode")
-expected_result = "CLEAN" if mode == "clean" else "UNKNOWN_STOP"
-expected_status = "CLEAN" if mode == "clean" else "UNKNOWN_STOP"
 summary_bytes = summary_path.read_bytes()
 if len(summary_bytes) > MAX_SUMMARY_BYTES:
     raise SystemExit("release-preflight summary exceeds size bound")
@@ -515,6 +488,15 @@ for key in required:
     value = summary.get(key)
     if not isinstance(value, str) or not value or any(char in value for char in "\r\n\t"):
         raise SystemExit(f"invalid release-preflight summary field: {key}")
+if mode == "clean":
+    expected_result = "CLEAN"
+elif mode == "canonical-head-mismatch":
+    expected_result = "UNKNOWN_STOP"
+else:
+    if summary["result"] not in {"CLEAN", "UNKNOWN_STOP"}:
+        raise SystemExit(f"release-preflight summary result is invalid for auto mode: {summary['result']!r}")
+    expected_result = summary["result"]
+expected_status = expected_result
 if summary["result"] != expected_result:
     raise SystemExit(
         f"release-preflight summary result {summary['result']!r} does not match mode {mode!r}"
@@ -575,12 +557,12 @@ findings = inner.get("findings")
 inner_summary = inner.get("summary")
 canonical_head = inner.get("canonical_repo_head", "")
 
-if mode == "clean":
+if expected_result == "CLEAN":
     if findings != []:
         raise SystemExit("CLEAN source-audit receipt contains findings")
     if not isinstance(inner_summary, dict) or inner_summary.get("blocking_findings") != 0:
         raise SystemExit("CLEAN source-audit receipt has blocking findings")
-elif mode == "canonical-head-mismatch":
+else:
     if not isinstance(canonical_head, str) or re.fullmatch(r"[0-9a-f]{40}", canonical_head) is None:
         raise SystemExit("recovery source-audit canonical HEAD is invalid")
     if not isinstance(findings, list) or len(findings) != 1:
@@ -613,7 +595,8 @@ print(
             outer["receipt_id"],
             inner["receipt_id"],
             expected_policy_digest,
-            canonical_head,
+            canonical_head if canonical_head else "-",
+            "1" if expected_result == "UNKNOWN_STOP" else "0",
         )
     )
 )
@@ -625,12 +608,12 @@ PY_RECEIPT
 
   IFS=$'\t' read -r PREFLIGHT_ACCEPTED_SHA PREFLIGHT_RECEIPT_PATH \
     PREFLIGHT_RECEIPT_ID PREFLIGHT_SOURCE_RECEIPT_ID PREFLIGHT_POLICY_DIGEST \
-    PREFLIGHT_CANONICAL_HEAD <<< "$parsed"
+    PREFLIGHT_CANONICAL_HEAD PREFLIGHT_RECOVERY_REQUIRED <<< "$parsed"
   rm -rf "$temporary"
-  if [ "$mode" = "clean" ]; then
-    log "source preflight CLEAN: accepted=$PREFLIGHT_ACCEPTED_SHA receipt=$PREFLIGHT_RECEIPT_PATH policy_digest=$PREFLIGHT_POLICY_DIGEST"
-  else
+  if [ "$PREFLIGHT_RECOVERY_REQUIRED" = 1 ]; then
     log "source preflight recovery evidence: accepted=$PREFLIGHT_ACCEPTED_SHA canonical_head=$PREFLIGHT_CANONICAL_HEAD receipt=$PREFLIGHT_RECEIPT_PATH"
+  else
+    log "source preflight CLEAN: accepted=$PREFLIGHT_ACCEPTED_SHA receipt=$PREFLIGHT_RECEIPT_PATH policy_digest=$PREFLIGHT_POLICY_DIGEST"
   fi
 }
 
@@ -676,10 +659,16 @@ PY_LIVE_MARKER
 # was advanced to the admitted target. The immutable W2A receipt must prove that
 # CANONICAL_HEAD_MISMATCH is the sole blocker before this owner moves HEAD.
 recover_canonical_head_mismatch(){
-  local script=$1 policy=$2 canonical_repo=$3 receipt_dir=$4 deployment_marker=$5
+  local canonical_repo=$1 deployment_marker=$2
   local current_head live_marker dirty restored_head
 
-  run_release_preflight "$script" "$policy" "$canonical_repo" "$receipt_dir" canonical-head-mismatch || return $?
+  if [ "$PREFLIGHT_RECOVERY_REQUIRED" != 1 ] \
+    || [ -z "$PREFLIGHT_ACCEPTED_SHA" ] \
+    || [ -z "$PREFLIGHT_CANONICAL_HEAD" ] \
+    || [ -z "$PREFLIGHT_RECEIPT_PATH" ]; then
+    log "FATAL: canonical recovery was not admitted by the current preflight receipt"
+    return 65
+  fi
   current_head=$(git -C "$canonical_repo" rev-parse HEAD 2>/dev/null) || {
     log "FATAL: cannot read canonical checkout HEAD during recovery"
     return 65
@@ -1004,15 +993,10 @@ fi
 select_preflight_artifacts 0 "$AUTHORING_OPS_DIR" "$SRC/ops"
 log "preflight bundle selected: script_sha256=$PREFLIGHT_SCRIPT_SHA256 policy_digest=$PREFLIGHT_POLICY_DIGEST runtime_sha256=$PREFLIGHT_RUNTIME_SHA256"
 prepare_preflight_receipt_dir "$PREFLIGHT_RECEIPT_DIR"
-PREFLIGHT_RC=0
-run_release_preflight "$PREFLIGHT_SCRIPT" "$PREFLIGHT_POLICY" "$SRC" "$PREFLIGHT_RECEIPT_DIR" || PREFLIGHT_RC=$?
-if [ "$PREFLIGHT_RC" -ne 0 ]; then
-  if [ "$PREFLIGHT_RC" -ne 2 ] || [ "$PREFLIGHT_RECOVERY_CANDIDATE" != 1 ]; then
-    exit "$PREFLIGHT_RC"
-  fi
-  log "current-generation preflight is UNKNOWN_STOP; checking the one admitted failed-build recovery state"
-  recover_canonical_head_mismatch "$PREFLIGHT_SCRIPT" "$PREFLIGHT_POLICY" "$SRC" \
-    "$PREFLIGHT_RECEIPT_DIR" "$DEPLOYMENT_MARKER" || exit $?
+run_release_preflight "$PREFLIGHT_SCRIPT" "$PREFLIGHT_POLICY" "$SRC" "$PREFLIGHT_RECEIPT_DIR" auto
+if [ "$PREFLIGHT_RECOVERY_REQUIRED" = 1 ]; then
+  log "current-generation preflight admitted the sole canonical-head mismatch recovery state"
+  recover_canonical_head_mismatch "$SRC" "$DEPLOYMENT_MARKER" || exit $?
   run_release_preflight "$PREFLIGHT_SCRIPT" "$PREFLIGHT_POLICY" "$SRC" "$PREFLIGHT_RECEIPT_DIR"
 fi
 
