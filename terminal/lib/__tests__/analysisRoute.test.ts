@@ -50,4 +50,26 @@ describe("the closed /analysis route vocabulary", () => {
       kind: "unsupported", reason: "invalid_view",
     });
   });
+
+  it("navigating to theses from the company context bar carries the symbol through URL encoding", () => {
+    // Plain symbol round-trip
+    expect(parseAnalysisSearchParams(new URLSearchParams("view=theses&symbol=NVDA"))).toEqual({
+      kind: "theses", symbol: "NVDA",
+    });
+    // The caret must survive context-bar encoding rather than introducing a query.
+    expect(parseAnalysisSearchParams(new URLSearchParams("view=theses&symbol=%5EGSPC"))).toEqual({
+      kind: "theses", symbol: "^GSPC",
+    });
+    // Dotted ticker that needs URL encoding round-trips exactly
+    expect(parseAnalysisSearchParams(new URLSearchParams("view=theses&symbol=BRK.B"))).toEqual({
+      kind: "theses", symbol: "BRK.B",
+    });
+    // The control href format: /analysis?view=theses&symbol=<encodeURIComponent(sym)>
+    for (const symbol of ["^GSPC", "BRK.B"]) {
+      const controlHref = `/analysis?view=theses&symbol=${encodeURIComponent(symbol)}`;
+      const params = new URLSearchParams(controlHref.split("?")[1]);
+      expect(params.get("symbol")).toBe(symbol); // URLSearchParams.get already decodes
+      expect(parseAnalysisSearchParams(params)).toEqual({ kind: "theses", symbol });
+    }
+  });
 });
