@@ -4,6 +4,7 @@ import { settledChartDrag, settledPanSample } from "./helpers/settled";
 // reason washout-retro.spec.ts imports `retroLegendCopy`. Sentence-level copy contracts live in
 // lib/__tests__/markerTooltipCopy.test.ts; this suite pins that they RENDER, and render wired.
 import { markerTooltipCopy } from "../lib/signalVerdict";
+import { placeMarkerTip } from "../lib/markerTooltip";
 
 // ── THE TOOLTIPS THAT SHIPPED TO NOBODY ────────────────────────────────────────────────────
 //
@@ -178,25 +179,41 @@ async function markers(page: Page): Promise<Marker[]> {
   });
 }
 
-/** The marker field, once it has STOPPED MOVING.
+/** The marker field, once the REQUESTED pane topology and its geometry have stopped moving.
  *
- *  The chart keeps sizing after hydration — panes lay out, the price axis takes its final width,
- *  and every marker's coordinates move with it. Measuring mid-settle hands back positions that are
- *  already stale by the time a pointer lands on them, which on the 390px viewport is the whole
- *  difference between a tap that opens a tooltip and one that lands 20px away in empty chart. The
- *  interaction is fine there — proven by hand — so the wait belongs in the test, not a retry.
- *  Two consecutive identical reads, never a sleep. */
+ *  This fixture requests only the price-pane Golden Oracle overlay (`_oracle`), so the settled
+ *  shell has zero indicator subpanes. During preference hydration the shell can briefly render
+ *  inherited/default subpanes; two identical marker-coordinate samples inside that transient
+ *  layout are not a readiness proof. A later 2 -> 0 subpane commit moves the whole marker field
+ *  after those coordinates were returned, turning a physical tap into a stale-coordinate miss.
+ *
+ *  Bind readiness to the actual parent layout contract: zero requested subpanes plus two identical
+ *  reads of the parent host height and marker coordinates. This does not widen a hit target,
+ *  gesture threshold, timeout, or product behavior; it only refuses to measure the fixture while
+ *  its requested topology is still being committed. */
 async function settledMarkers(page: Page): Promise<Marker[]> {
   let prev = "";
   let list: Marker[] = [];
   await expect.poll(async () => {
     list = await markers(page);
-    const key = list.map((m) => `${m.t}@${Math.round(m.cx)},${Math.round(m.cy)}`).join("|");
-    const settled = list.length > 0 && key === prev;
+    const geometry = await page.locator(".chart-body").evaluate((node) => {
+      const style = getComputedStyle(node);
+      return {
+        subpanes: style.getPropertyValue("--subpanes").trim(),
+        hostHeight: style.getPropertyValue("--drawing-host-height").trim(),
+      };
+    });
+    const key = [
+      `subpanes=${geometry.subpanes}`,
+      `hostHeight=${geometry.hostHeight}`,
+      ...list.map((m) => `${m.t}@${Math.round(m.cx)},${Math.round(m.cy)}`),
+    ].join("|");
+    const requestedTopologyReady = geometry.subpanes === "0";
+    const settled = requestedTopologyReady && list.length > 0 && key === prev;
     prev = key;
     return settled;
   }, {
-    message: "the marker field should stop moving before it is measured",
+    message: "the requested zero-subpane marker geometry should stop moving before it is measured",
     timeout: 25_000,
     intervals: [150, 200, 300, 400, 500],
   }).toBe(true);
@@ -226,6 +243,27 @@ function pick(list: Marker[], ts: string): Marker {
 }
 
 const tip = (page: Page) => page.locator(".mm-sig-tip");
+
+/** Prove the tooltip is at the product's actual placement for this marker, not merely "near" an
+ *  arbitrary corner. ChartPanel passes the marker centre through placeMarkerTip after every
+ *  relayout, so the browser box should reproduce that pure contract within subpixel rounding. */
+async function expectTipAnchoredToMarker(page: Page, marker: Marker) {
+  const [box, wrap] = await Promise.all([
+    tip(page).boundingBox(),
+    page.locator(".chart-wrap").first().boundingBox(),
+  ]);
+  expect(box, "the re-anchored tooltip should have a box").toBeTruthy();
+  expect(wrap, "the chart wrapper should have a box").toBeTruthy();
+  const expected = placeMarkerTip(
+    { x: marker.cx - wrap!.x, y: marker.cy - wrap!.y },
+    { w: box!.width, h: box!.height },
+    { w: wrap!.width, h: wrap!.height },
+  );
+  expect(Math.abs((box!.x - wrap!.x) - expected.left),
+    "tooltip left should match placeMarkerTip for the marker's current box").toBeLessThan(1);
+  expect(Math.abs((box!.y - wrap!.y) - expected.top),
+    "tooltip top should match placeMarkerTip for the marker's current box").toBeLessThan(1);
+}
 
 /** Give the pan test its visible-tooltip precondition without repeating the sibling tap test.
  *  Under a saturated full-suite runner, Playwright can split tap()'s down/up delivery beyond the
@@ -501,6 +539,86 @@ test("tapping a marker opens its tooltip, and tapping away dismisses it", async 
   const box = await page.locator("[data-sig-layer]").first().boundingBox();
   await page.touchscreen.tap((box?.x ?? 0) + 20, (box?.y ?? 0) + 20);
   await expect(tip(page)).toBeHidden();
+});
+
+test("a pane relayout after a tap re-anchors the tooltip instead of dismissing it", async ({ page }, testInfo) => {
+  test.skip(!["tablet", "mobile"].includes(testInfo.project.name), "touch viewports only");
+  await openTerminal(page);
+  const target = pick(await settledMarkers(page), RETRO_TS);
+
+  await page.touchscreen.tap(target.cx, target.cy);
+  await expect(tip(page)).toBeVisible({ timeout: 5_000 });
+  await expect(tip(page)).toHaveAttribute("data-marker-at", target.t);
+
+  // THE DEFECT. The chart keeps sizing well after hydration — panes lay out, the price axis takes
+  // its final width — so on a loaded machine a pane resize lands AFTER a tap that has already
+  // opened its tooltip. The pane ResizeObserver dismissed it unconditionally, which is invisible
+  // on desktop (the next pointermove re-opens the hover tooltip under a cursor that is still
+  // there) and TERMINAL on touch, where a tap has no cursor behind it. That asymmetry is why this
+  // went red on both touch viewports while desktop stayed green, and why it reached the `failed`
+  // bucket with the tooltip carrying the RIGHT marker's text and `display:none`.
+  //
+  // A viewport change drives that very same pane observer, deterministically and with no sleep —
+  // it is the trigger made reproducible, not a contrivance, and not a wait for a race to re-run.
+  const vp = page.viewportSize()!;
+  await page.setViewportSize({ width: vp.width, height: vp.height - 120 });
+
+  // Still open, still the SAME marker — the resize moved the anchor, not the reader's intent.
+  await expect(tip(page)).toBeVisible();
+  await expect(tip(page)).toHaveAttribute("data-marker-at", target.t);
+  expect(await tip(page).textContent()).toBe(target.title);
+
+  // …and re-anchored onto where that marker is NOW, rather than left behind at its old box. The
+  // anti-litter guarantee the dismissal was protecting is kept by MOVING the tooltip, not by
+  // destroying it: a tooltip is still never left pointing at empty chart.
+  const moved = pick(await settledMarkers(page), RETRO_TS);
+  await expectTipAnchoredToMarker(page, moved);
+});
+
+test("a tap keeps the marker it started on when geometry moves before pointerup", async ({ page }, testInfo) => {
+  test.skip(!["tablet", "mobile"].includes(testInfo.project.name), "touch viewports only");
+  await openTerminal(page);
+  const target = pick(await settledMarkers(page), RETRO_TS);
+
+  // The physical DOWN establishes marker identity. A chart/pane reflow may move that marker before
+  // the browser dispatches pointerup; release validates whether the gesture stayed a tap, but must
+  // not re-decide what the fingertip originally landed on from the marker's new coordinates.
+  await page.locator("[data-sig-layer]").first().evaluate((svg, at) => {
+    const layer = svg as SVGSVGElement;
+    const marker = [...layer.querySelectorAll<SVGGElement>(":scope > g")].find((group) =>
+      group.querySelector(":scope > title")?.textContent?.startsWith(`${at.t} ·`),
+    );
+    if (!marker) throw new Error(`fixture lost marker ${at.t}`);
+    const before = marker.getBoundingClientRect();
+    const x = before.x + before.width / 2;
+    const y = before.y + before.height / 2;
+    const originalTransform = layer.style.transform;
+    const send = (type: string, buttons: number) => layer.dispatchEvent(new PointerEvent(type, {
+      pointerId: 71, pointerType: "touch", isPrimary: true, bubbles: true, cancelable: true,
+      button: 0, buttons, clientX: x, clientY: y,
+    }));
+
+    send("pointerdown", 1);
+    layer.style.transform = "translateY(-180px)";
+    const after = marker.getBoundingClientRect();
+    if (Math.abs(after.y - before.y) < 100) throw new Error("fixture failed to move marker geometry");
+    send("pointerup", 0);
+    layer.dataset.testOriginalTransform = originalTransform;
+  }, { t: target.t });
+
+  await expect(tip(page)).toBeVisible({ timeout: 5_000 });
+  await expect(tip(page)).toHaveAttribute("data-marker-at", target.t);
+  expect(await tip(page).textContent()).toBe(target.title);
+
+  // The tooltip is anchored by the product's current-box placement, not stale down coordinates.
+  const moved = pick(await settledMarkers(page), RETRO_TS);
+  await expectTipAnchoredToMarker(page, moved);
+
+  await page.locator("[data-sig-layer]").first().evaluate((svg) => {
+    const layer = svg as SVGSVGElement;
+    layer.style.transform = layer.dataset.testOriginalTransform || "";
+    delete layer.dataset.testOriginalTransform;
+  });
 });
 
 test("a tap still opens the tooltip when the thread stalls between down and up", async ({ page }, testInfo) => {

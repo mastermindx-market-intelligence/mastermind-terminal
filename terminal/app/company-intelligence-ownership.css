@@ -1,0 +1,22 @@
+/* Research Workspace · Ownership vNext (FRV-0) — presentation over the existing 13F owner. */
+.fin-ownership-page{display:grid;gap:12px;min-width:0;padding:2px 0 18px}
+.fin-ownership-intro{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:6px 18px;padding:13px 15px;border:1px solid color-mix(in srgb,var(--brand) 17%,var(--hairline));border-radius:var(--r-card);background:linear-gradient(105deg,color-mix(in srgb,var(--brand) 5%,var(--panel)),var(--panel));box-shadow:var(--shadow-card)}
+.fin-ownership-intro>div:first-child{display:grid;gap:5px;min-width:0}
+.fin-ownership-intro>span,.fin-ownership-intro>div:first-child>span{color:var(--brand-2);font:740 9px/1 var(--font-ui);letter-spacing:.11em}
+.fin-ownership-intro h2{margin:0;color:var(--text);font:670 17px/1.2 var(--font-ui);letter-spacing:-.02em}
+.fin-ownership-intro>p{grid-column:1/-1;max-width:980px;margin:0;color:var(--muted);font:510 9.5px/1.45 var(--font-ui)}
+.fin-ownership-intro-meta{display:grid;justify-items:end;gap:4px;flex:none;padding:7px 9px;border:1px solid var(--line);border-radius:9px;background:var(--panel-2)}
+.fin-ownership-intro-meta strong{color:var(--text);font:650 10px/1 var(--font-ui)}
+.fin-ownership-intro-meta time{color:var(--muted);font:520 9px/1 var(--font-num)}
+.fin-ownership-page>.ci-inst-card{margin:0}
+.fin-ownership-page>.ci-inst-card .ci-inst-header h3{font-size:14px}
+@media (max-width:760px){
+  .fin-ownership-page{gap:10px}
+  .fin-ownership-intro{padding:12px;border-radius:var(--r-tile)}
+  .fin-ownership-intro h2{font-size:15px}
+}
+@media (max-width:520px){
+  .fin-ownership-intro{grid-template-columns:1fr}
+  .fin-ownership-intro-meta{justify-items:start}
+  .fin-ownership-intro>p{grid-column:auto}
+}
