@@ -15,6 +15,11 @@ import type { EventWorkspaceQaExchange, EventWorkspaceResult } from "../../lib/e
 import { tickerPeriodAliasFromWorkspace } from "../../lib/eventWorkspace";
 import CompanySourceManifest from "./CompanySourceManifest";
 import CompanyIntelligenceBriefLayout, { type CompanyIntelligenceBriefItem } from "./CompanyIntelligenceBriefLayout";
+import CompanyIntelligenceEventHistoryStrip, { type CompanyIntelligenceEventHistoryItem } from "./CompanyIntelligenceEventHistoryStrip";
+import CompanyIntelligenceHistoryLayout, {
+  type CompanyIntelligenceHistoryEvent,
+  type CompanyIntelligenceHistoryMetric,
+} from "./CompanyIntelligenceHistoryLayout";
 import CompanyIntelligenceCallLayout, { type CompanyIntelligenceCallExchange } from "./CompanyIntelligenceCallLayout";
 import CompanyIntelligenceResultsLayout, {
   type CompanyIntelligenceResultsComparison,
@@ -185,6 +190,16 @@ function compactExcerpt(text: string, limit = 190): string {
   const compact = text.replace(/\s+/g, " ").trim();
   if (compact.length <= limit) return compact;
   return `${compact.slice(0, Math.max(0, limit - 1)).trimEnd()}…`;
+}
+
+function historicalPct(value: number | null | undefined): string {
+  if (value == null || !Number.isFinite(value)) return "—";
+  return `${value.toFixed(1)}%`;
+}
+
+function historicalNumber(value: number | null | undefined): string {
+  if (value == null || !Number.isFinite(value)) return "—";
+  return Number.isInteger(value) ? String(value) : value.toFixed(1);
 }
 
 function qaReadthroughItems(exchanges: EventWorkspaceQaExchange[]): CompanyIntelligenceResultsItem[] {
@@ -392,6 +407,26 @@ export default function CompanyIntelligenceV2Current({
       all.findIndex((candidate) => candidate.event_id === event.event_id) === index
     ))
     : [];
+  const historyStripItems: CompanyIntelligenceEventHistoryItem[] = [
+    {
+      id: presented.event_id,
+      label: presented.period_label,
+      date: presented.event_date,
+      status: "current",
+    },
+    ...historicalEvents
+      .filter((candidate) => !(
+        candidate.fiscal_year === result.workspace.fiscal_period.year
+        && candidate.fiscal_quarter === result.workspace.fiscal_period.quarter
+      ))
+      .slice(0, 3)
+      .map((candidate) => ({
+        id: candidate.event_id,
+        label: `Q${candidate.fiscal_quarter} FY${candidate.fiscal_year}`,
+        date: candidate.call_date,
+        status: "context" as const,
+      })),
+  ];
   const transcriptSearchEvents = [
     {
       event_id: presented.event_id,
@@ -410,6 +445,44 @@ export default function CompanyIntelligenceV2Current({
   const freshness = result.state === "stale" ? "stale" : "live";
   const eventAlias = tickerPeriodAliasFromWorkspace(result.workspace, ticker);
   const briefMetrics = usableBriefItems(presented.facts, presented.reported, presented.guidance).slice(0, 4);
+  const historyCurrentFacts: CompanyIntelligenceHistoryMetric[] = briefMetrics.map((item) => ({
+    id: item.id,
+    label: item.label,
+    value: item.value,
+    detail: item.detail,
+  }));
+  const historyContextEvents: CompanyIntelligenceHistoryEvent[] = historicalEvents
+    .slice(0, 6)
+    .map((candidate) => ({
+      id: candidate.event_id,
+      label: `Q${candidate.fiscal_quarter} FY${candidate.fiscal_year}`,
+      date: candidate.call_date,
+      status: "context",
+      summary: candidate.summary || candidate.highlights[0] || null,
+      reference: candidate.event_id,
+      metrics: [
+        {
+          id: "revenue_growth",
+          label: pick(zh, "Revenue growth", "营收增长"),
+          value: historicalPct(candidate.metrics.revenue_growth_pct),
+        },
+        {
+          id: "eps_growth",
+          label: pick(zh, "EPS growth", "每股盈利增长"),
+          value: historicalPct(candidate.metrics.eps_growth_pct),
+        },
+        {
+          id: "gross_margin",
+          label: pick(zh, "Gross margin", "毛利率"),
+          value: historicalPct(candidate.metrics.gross_margin_pct),
+        },
+        {
+          id: "questions",
+          label: pick(zh, "Analyst questions", "分析师提问"),
+          value: historicalNumber(candidate.metrics.questions_count),
+        },
+      ],
+    }));
   const briefChanges = usableBriefItems(presented.deltas).slice(0, 3);
   const briefRisks = usableBriefItems(presented.watch).slice(0, 3);
   const briefWatch = usableBriefItems(presented.guidance, presented.watch).slice(0, 4);
@@ -753,6 +826,12 @@ export default function CompanyIntelligenceV2Current({
                     </div>
                     <CompanySourceManifest event={stubEvent} v2Sources={presented.sources} onOpenTranscript={(id) => onOpenTx({ id, expected_document_sha256: txSha })} compact />
                   </section>
+                  <CompanyIntelligenceEventHistoryStrip
+                    zh={zh}
+                    items={historyStripItems}
+                    contextOnly
+                    onOpenHistory={() => selectLens("history")}
+                  />
                 </div>
               )}
             />
@@ -843,38 +922,15 @@ export default function CompanyIntelligenceV2Current({
 
           {lens === "history" && (
             <section className="ci-lens-panel">
-              <div className="ci-lens-heading">
-                <div>
-                  <span className="fin-eyebrow">{pick(zh, "HISTORICAL V1 CONTEXT", "历史 v1 背景")}</span>
-                  <h3>{pick(zh, "Does not control the current event", "不控制当期事件")}</h3>
-                </div>
-                <span>{historicalEvents.length} {pick(zh, "rows", "行")}</span>
-              </div>
-              <p className="ci-v1-note">{pick(zh, "These older structured-history rows stay available for context. They cannot select the current event, derive current deltas, or stand in as v2 evidence.", "这些较早的结构化历史行仅作背景。它们不能选择当期事件、派生当期变动，或充当 v2 证据。")}</p>
-              {historicalEvents.length ? (
-                <div className="ci-history-wrap">
-                  <table className="fin-table ci-history-table ci-history-readonly">
-                    <thead>
-                      <tr>
-                        <th>{pick(zh, "Period", "期间")}</th>
-                        <th>{pick(zh, "Date", "日期")}</th>
-                        <th>{pick(zh, "v1 event", "v1 事件")}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {historicalEvents.map((candidate) => (
-                        <tr key={candidate.event_id}>
-                          <td>Q{candidate.fiscal_quarter} FY{candidate.fiscal_year}</td>
-                          <td className="num">{candidate.call_date}</td>
-                          <td><code>{candidate.event_id}</code></td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <p className="ci-inline-empty">{pick(zh, "No v1 historical rows are attached for this ticker.", "该标的暂无 v1 历史行。")}</p>
-              )}
+              <CompanyIntelligenceHistoryLayout
+                zh={zh}
+                mode="current-plus-context"
+                currentLabel={presented.period_label}
+                currentDate={presented.event_date}
+                currentFacts={historyCurrentFacts}
+                events={historyContextEvents}
+                onOpenBrief={() => selectLens("brief")}
+              />
             </section>
           )}
 
