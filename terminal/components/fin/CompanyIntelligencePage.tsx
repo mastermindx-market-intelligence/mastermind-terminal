@@ -22,6 +22,10 @@ import {
 import { getCurrentEventWorkspace, type EventWorkspaceResult } from "../../lib/eventWorkspace";
 import CompanyIntelligenceV2Current from "./CompanyIntelligenceV2Current";
 import CompanyIntelligenceBriefLayout, { type CompanyIntelligenceBriefItem } from "./CompanyIntelligenceBriefLayout";
+import CompanyIntelligenceResultsLayout, {
+  type CompanyIntelligenceResultsComparison,
+  type CompanyIntelligenceResultsItem,
+} from "./CompanyIntelligenceResultsLayout";
 import CompanySourceManifest from "./CompanySourceManifest";
 import EvidenceRail, { type CompanyEvidenceSelection } from "./EvidenceRail";
 import TranscriptSearchWorkspace from "./TranscriptSearchWorkspace";
@@ -31,7 +35,7 @@ import { openMastermindBrainForSymbol } from "../../lib/mastermindBrain";
 import type { TranscriptOpenTarget } from "../../lib/transcriptSearch";
 import { topicTagLabel } from "../../lib/companyIntelligenceLabels";
 
-type Lens = "brief" | "transcript" | "history" | "topics" | "sources";
+type Lens = "brief" | "results" | "transcript" | "history" | "topics" | "sources";
 
 export interface CompanyIntelligencePageProps {
   sym: string;
@@ -47,11 +51,12 @@ interface LoadState {
   v2: EventWorkspaceResult | null | undefined;
 }
 
-const LENSES: readonly Lens[] = ["brief", "transcript", "history", "topics", "sources"];
+const LENSES: readonly Lens[] = ["brief", "results", "transcript", "history", "topics", "sources"];
 
 function lensLabel(lens: Lens, zh: boolean): string {
   const labels: Record<Lens, [string, string]> = {
     brief: ["Brief", "简报"],
+    results: ["Results", "业绩"],
     transcript: ["Transcript", "电话会"],
     history: ["History", "历史"],
     topics: ["Topics", "主题"],
@@ -184,14 +189,11 @@ export default function CompanyIntelligencePage({ sym, name, onOpenTx, onEvidenc
   const evidenceOverlay = true;
   const evidenceTriggerRef = useRef<HTMLElement | null>(null);
   const receiptsButtonRef = useRef<HTMLButtonElement>(null);
-  const workspaceRef = useRef<HTMLDivElement>(null);
 
   const selectLens = useCallback((next: Lens) => {
+    // Lens navigation changes content only. The surrounding .fin-body owns
+    // scrolling, so a tab click must never reposition the research shell.
     setLens(next);
-    // The lens bar remains sticky while a reader is deep in a long transcript.
-    // Bring the newly-selected panel back beneath that bar so its first rows
-    // are never painted underneath the navigation surface.
-    window.requestAnimationFrame(() => workspaceRef.current?.scrollIntoView({ block: "start", behavior: "auto" }));
   }, []);
 
   useEffect(() => {
@@ -450,6 +452,64 @@ export default function CompanyIntelligencePage({ sym, name, onOpenTx, onEvidenc
     if (selection) chooseEvidence(selection);
   };
 
+  const resultsMetrics: CompanyIntelligenceResultsItem[] = briefMetrics.map((item) => ({
+    id: item.id,
+    label: item.label,
+    value: item.value,
+    detail: item.detail,
+  }));
+  const resultsComparisons: CompanyIntelligenceResultsComparison[] = [];
+  const addResultsComparison = (
+    suffix: string,
+    label: string,
+    current: number | null | undefined,
+    delta: number | null | undefined,
+    integer = false,
+  ) => {
+    if (current == null || delta == null || !Number.isFinite(current) || !Number.isFinite(delta)) return;
+    const prior = current - delta;
+    const renderValue = (value: number) => integer ? numeric(value) : pct(value);
+    const renderChange = integer ? numeric(delta, true) : pct(delta, true);
+    resultsComparisons.push({
+      id: `${event.event_id}:${suffix}`,
+      label,
+      current: renderValue(current),
+      prior: pick(zh, `${renderValue(prior)} prior`, `上期 ${renderValue(prior)}`),
+      change: pick(zh, `${renderChange} vs prior`, `较上期 ${renderChange}`),
+      detail: pick(
+        zh,
+        "Derived from current and prior structured-event values; not a consensus comparison.",
+        "由当期及上期结构化事件数值派生；并非共识比较。",
+      ),
+    });
+  };
+  addResultsComparison("revenue", pick(zh, "Revenue growth", "营收增长"), metrics.revenue_growth_pct, deltas.revenue_growth_pct);
+  addResultsComparison("eps", pick(zh, "EPS growth", "每股盈利增长"), metrics.eps_growth_pct, deltas.eps_growth_pct);
+  addResultsComparison("margin", pick(zh, "Gross margin", "毛利率"), metrics.gross_margin_pct, deltas.gross_margin_pct);
+  addResultsComparison("questions", pick(zh, "Analyst questions", "分析师提问"), metrics.questions_count, deltas.questions_count, true);
+
+  const resultsNonAssertions: CompanyIntelligenceResultsItem[] = [
+    {
+      id: "boundary:consensus",
+      label: pick(zh, "Consensus surprise", "共识超预期/不及预期"),
+      value: pick(zh, "Not asserted · no licensed pre-event consensus", "未断言 · 无已授权的事件前共识"),
+    },
+    {
+      id: "boundary:reaction",
+      label: pick(zh, "Event-price reaction", "事件价格反应"),
+      value: pick(zh, "Not asserted · no qualified price join", "未断言 · 无合格价格关联"),
+    },
+    {
+      id: "boundary:authority",
+      label: pick(zh, "Trade authority", "交易权限"),
+      value: pick(zh, "Not asserted · context only", "未断言 · 仅供背景参考"),
+    },
+  ];
+  const chooseResultsItem = (item: CompanyIntelligenceResultsItem) => {
+    const selection = briefEvidenceById.get(item.id);
+    if (selection) chooseEvidence(selection);
+  };
+
   return (
     <div className="ci-page">
       <header className="ci-hero">
@@ -529,7 +589,7 @@ export default function CompanyIntelligencePage({ sym, name, onOpenTx, onEvidenc
         ))}
       </nav>
 
-      <div ref={workspaceRef} className={`ci-workspace${evidenceOpen ? " evidence-open" : ""}`}>
+      <div className={`ci-workspace${evidenceOpen ? " evidence-open" : ""}`}>
         <main className="ci-canvas" id={`ci-panel-${lens}`} role="tabpanel" aria-labelledby={`ci-tab-${lens}`}>
           {lens === "brief" && (
             <CompanyIntelligenceBriefLayout
@@ -591,6 +651,34 @@ export default function CompanyIntelligencePage({ sym, name, onOpenTx, onEvidenc
                 </div>
               )}
             />
+          )}
+
+          {lens === "results" && (
+            <section className="ci-lens-panel ci-results">
+              <CompanyIntelligenceResultsLayout
+                zh={zh}
+                periodLabel={eventPeriod(event)}
+                eventDate={event.call_date}
+                metrics={resultsMetrics}
+                guidance={[]}
+                callReadthrough={[]}
+                comparisons={resultsComparisons}
+                nonAssertions={resultsNonAssertions}
+                selectedId={evidence?.id}
+                onSelect={chooseResultsItem}
+                onOpenCall={txId ? () => selectLens("transcript") : undefined}
+                guidanceNote={pick(
+                  zh,
+                  "v1 fallback has no structured guidance object; none is inferred from scores or highlights.",
+                  "v1 回退路径没有结构化指引对象；不会从评分或摘要中推断。",
+                )}
+                callNote={pick(
+                  zh,
+                  "The canonical transcript remains available separately; v1 carries no normalized Q&A read-through.",
+                  "规范电话会记录仍可单独打开；v1 不携带标准化问答解读。",
+                )}
+              />
+            </section>
           )}
 
           {lens === "transcript" && (

@@ -14,6 +14,10 @@ import type { EventWorkspaceQaExchange, EventWorkspaceResult } from "../../lib/e
 import { tickerPeriodAliasFromWorkspace } from "../../lib/eventWorkspace";
 import CompanySourceManifest from "./CompanySourceManifest";
 import CompanyIntelligenceBriefLayout, { type CompanyIntelligenceBriefItem } from "./CompanyIntelligenceBriefLayout";
+import CompanyIntelligenceResultsLayout, {
+  type CompanyIntelligenceResultsComparison,
+  type CompanyIntelligenceResultsItem,
+} from "./CompanyIntelligenceResultsLayout";
 import EvidenceRail, { type CompanyEvidenceSelection } from "./EvidenceRail";
 import TranscriptSearchWorkspace from "./TranscriptSearchWorkspace";
 import { openMastermindBrainForSymbol } from "../../lib/mastermindBrain";
@@ -150,6 +154,32 @@ function usableBriefItems(...groups: EventWorkspacePresentedItem[][]): EventWork
   return items;
 }
 
+function toResultsItem(item: EventWorkspacePresentedItem): CompanyIntelligenceResultsItem {
+  return { id: item.id, label: item.label, value: item.value, detail: item.detail };
+}
+
+function compactExcerpt(text: string, limit = 190): string {
+  const compact = text.replace(/\s+/g, " ").trim();
+  if (compact.length <= limit) return compact;
+  return `${compact.slice(0, Math.max(0, limit - 1)).trimEnd()}…`;
+}
+
+function qaReadthroughItems(exchanges: EventWorkspaceQaExchange[]): CompanyIntelligenceResultsItem[] {
+  return exchanges.map((exchange) => {
+    const question = analystQuestionText(exchange);
+    const affiliation = exchange.questioner.affiliation?.trim();
+    const respondents = [...new Set(exchange.respondents.map((row) => (
+      row.role ? `${row.name} · ${row.role}` : row.name
+    )))].join(" · ");
+    return {
+      id: exchange.exchange_id,
+      label: affiliation ? `${exchange.questioner.name} · ${affiliation}` : exchange.questioner.name,
+      value: question ? compactExcerpt(question) : "Verified Q&A exchange",
+      detail: respondents || null,
+    };
+  });
+}
+
 function isOperatorSpan(exchange: EventWorkspaceQaExchange, kind: "question" | "answer", index: number): boolean {
   const span = (kind === "question" ? exchange.question_spans : exchange.answer_spans)[index];
   const speaker = span?.locator.speaker?.trim().toLowerCase() ?? "";
@@ -256,11 +286,11 @@ export default function CompanyIntelligenceV2Current({
   const evidenceOverlay = true;
   const evidenceTriggerRef = useRef<HTMLElement | null>(null);
   const receiptsButtonRef = useRef<HTMLButtonElement>(null);
-  const workspaceRef = useRef<HTMLDivElement>(null);
 
   const selectLens = useCallback((next: Lens) => {
+    // Keep the outer research shell stable. The active lens swaps in place and
+    // must not scroll .fin-body (or any ancestor) as a side effect.
     setLens(next);
-    window.requestAnimationFrame(() => workspaceRef.current?.scrollIntoView({ block: "start", behavior: "auto" }));
   }, []);
 
   useEffect(() => {
@@ -364,6 +394,45 @@ export default function CompanyIntelligenceV2Current({
     if (evidenceItem) chooseItem(evidenceItem);
   };
 
+  const resultsMetrics = usableBriefItems(
+    presented.facts.filter((item) => item.id !== "fact_questions_count"),
+    presented.reported,
+  ).slice(0, 4).map(toResultsItem);
+  const resultsGuidance = usableBriefItems(presented.guidance).slice(0, 4).map(toResultsItem);
+  const resultsCallReadthrough = qaReadthroughItems(result.workspace.qa_exchanges);
+  const resultsComparisons: CompanyIntelligenceResultsComparison[] = [];
+  const resultsNonAssertions: CompanyIntelligenceResultsItem[] = [
+    {
+      id: "boundary:consensus",
+      label: pick(zh, "Consensus surprise", "共识超预期/不及预期"),
+      value: presented.honest.consensus_unlicensed || presented.honest.no_beat_miss
+        ? pick(zh, "Not asserted · No beat/miss · consensus unlicensed", "未断言 · 不显示超预期/不及预期 · 共识未授权")
+        : pick(zh, "Not asserted · no governed comparison in this view", "未断言 · 本视图无受治理的比较"),
+    },
+    {
+      id: "boundary:reaction",
+      label: pick(zh, "Event-price reaction", "事件价格反应"),
+      value: presented.honest.reaction_not_joined
+        ? pick(zh, "Not asserted · reaction not joined", "未断言 · 市场反应未关联")
+        : pick(zh, "Not asserted · no qualified event-price join in this view", "未断言 · 本视图无合格事件价格关联"),
+    },
+    {
+      id: "boundary:authority",
+      label: pick(zh, "Trade authority", "交易权限"),
+      value: pick(zh, "Not asserted · context only", "未断言 · 仅供背景参考"),
+    },
+  ];
+  const resultsEvidenceItems = [
+    ...presented.facts,
+    ...presented.reported,
+    ...presented.guidance,
+    ...presented.deltas,
+  ];
+  const chooseResultsItem = (item: CompanyIntelligenceResultsItem) => {
+    const evidenceItem = resultsEvidenceItems.find((candidate) => candidate.id === item.id);
+    if (evidenceItem) chooseItem(evidenceItem);
+  };
+
   return (
     <div
       className="ci-page"
@@ -458,7 +527,7 @@ export default function CompanyIntelligenceV2Current({
         ))}
       </nav>
 
-      <div ref={workspaceRef} className={`ci-workspace${evidenceOpen ? " evidence-open" : ""}`}>
+      <div className={`ci-workspace${evidenceOpen ? " evidence-open" : ""}`}>
         <main className="ci-canvas" id={`ci-panel-${lens}`} role="tabpanel" aria-labelledby={`ci-tab-${lens}`}>
           {lens === "brief" && (
             <CompanyIntelligenceBriefLayout
@@ -508,41 +577,56 @@ export default function CompanyIntelligenceV2Current({
 
           {lens === "results" && (
             <section className="ci-lens-panel ci-results">
-              <div className="ci-lens-heading">
-                <div>
-                  <span className="fin-eyebrow">{pick(zh, "RESULTS", "业绩")}</span>
-                  <h3>{presented.period_label}</h3>
-                </div>
-                <span>{pick(zh, "No beat/miss · consensus unlicensed", "不显示超预期或不及预期 · 共识未授权")}</span>
-              </div>
-              <GlanceRow kicker={pick(zh, "REPORTED FACTS", "已报告事实")} items={presented.facts.filter((item) => item.id !== "fact_questions_count")} selectedId={evidence?.id} onChoose={chooseItem} />
-              <GlanceRow kicker={pick(zh, "DELTAS", "变动")} items={presented.deltas} selectedId={evidence?.id} onChoose={chooseItem} />
-              <GlanceRow kicker={pick(zh, "GUIDANCE", "指引")} items={presented.guidance} selectedId={evidence?.id} onChoose={chooseItem} />
-              <AnalystQaBlock
-                exchanges={result.workspace.qa_exchanges}
-                txId={txId}
-                txSha={txSha}
+              <CompanyIntelligenceResultsLayout
                 zh={zh}
-                onOpen={onOpenTx}
-              />
-              <GlanceRow
-                kicker={pick(zh, "TYPED ABSENCES", "类型化缺项")}
-                region="typed-absences"
-                items={presented.completeness.filter((item) => item.evidence.receipt_state === "typed_absence")}
+                periodLabel={presented.period_label}
+                eventDate={presented.event_date}
+                metrics={resultsMetrics}
+                guidance={resultsGuidance}
+                callReadthrough={resultsCallReadthrough}
+                comparisons={resultsComparisons}
+                nonAssertions={resultsNonAssertions}
                 selectedId={evidence?.id}
-                onChoose={chooseItem}
+                onSelect={chooseResultsItem}
+                onOpenCall={() => selectLens("transcript")}
+                guidanceNote={pick(
+                  zh,
+                  "Producer-issued guidance only; no range is inferred from commentary.",
+                  "仅显示生产者签发的结构化指引；不会从评论中推断区间。",
+                )}
+                callNote={pick(
+                  zh,
+                  "Verified Q&A structure; topic labels are not inferred.",
+                  "问答结构已验证；不会推断主题标签。",
+                )}
               />
-              <GlanceRow
-                kicker={pick(zh, "COVERAGE STATES", "覆盖状态")}
-                region="coverage-states"
-                items={presented.completeness.filter((item) => (
-                  item.evidence.receipt_state === "status_only"
-                  && item.evidence.status_label !== "present"
-                  && item.evidence.status_label !== "bound"
-                ))}
-                selectedId={evidence?.id}
-                onChoose={chooseItem}
-              />
+              <div className="ci-paper-results-support">
+                <AnalystQaBlock
+                  exchanges={result.workspace.qa_exchanges}
+                  txId={txId}
+                  txSha={txSha}
+                  zh={zh}
+                  onOpen={onOpenTx}
+                />
+                <GlanceRow
+                  kicker={pick(zh, "TYPED ABSENCES", "类型化缺项")}
+                  region="typed-absences"
+                  items={presented.completeness.filter((item) => item.evidence.receipt_state === "typed_absence")}
+                  selectedId={evidence?.id}
+                  onChoose={chooseItem}
+                />
+                <GlanceRow
+                  kicker={pick(zh, "COVERAGE STATES", "覆盖状态")}
+                  region="coverage-states"
+                  items={presented.completeness.filter((item) => (
+                    item.evidence.receipt_state === "status_only"
+                    && item.evidence.status_label !== "present"
+                    && item.evidence.status_label !== "bound"
+                  ))}
+                  selectedId={evidence?.id}
+                  onChoose={chooseItem}
+                />
+              </div>
             </section>
           )}
 
