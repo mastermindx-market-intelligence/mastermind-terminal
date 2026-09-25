@@ -30,12 +30,23 @@ afterEach(() => {
 
 describe("CompanyVisual artwork boundary", () => {
   it("keeps external artwork URLs out and falls back to neutral company identity", () => {
-    const node = render("https://images.example.com/nvda.webp");
-    const visual = node.querySelector<HTMLElement>("[data-company-visual]");
-    expect(visual?.dataset.companyVisual).toBe("fallback");
-    expect(visual?.dataset.companyVisualTicker).toBe("NVDA");
-    expect(visual?.querySelector("img")).toBeNull();
-    expect(visual?.textContent).toContain("NVDA");
+    for (const source of [
+      "https://images.example.com/nvda.webp",
+      "//images.example.com/nvda.webp",
+      "/\\images.example.com/nvda.webp",
+      "data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=",
+    ]) {
+      const node = render(source);
+      const visual = node.querySelector<HTMLElement>("[data-company-visual]");
+      expect(visual?.dataset.companyVisual).toBe("fallback");
+      expect(visual?.dataset.companyVisualTicker).toBe("NVDA");
+      expect(visual?.querySelector("img")).toBeNull();
+      expect(visual?.textContent).toContain("NVDA");
+      act(() => root!.unmount());
+      host?.remove();
+      root = null;
+      host = null;
+    }
   });
 
   it("accepts optional same-origin artwork without changing the visual's decorative role", () => {

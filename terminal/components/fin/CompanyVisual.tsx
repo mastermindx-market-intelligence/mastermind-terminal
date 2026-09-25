@@ -12,7 +12,15 @@ interface CompanyVisualProps {
 function safeArtworkSource(value: string | null | undefined): string | null {
   const src = value?.trim();
   if (!src) return null;
-  if (src.startsWith("/") || src.startsWith("data:image/")) return src;
+
+  // Only an absolute path on this origin is eligible. Protocol-relative URLs
+  // and backslashes can resolve to a network host in browser URL parsing.
+  if (src.startsWith("/") && !src.startsWith("//") && !src.includes("\\")) return src;
+
+  // Data artwork is deliberately raster-only. SVG can embed its own resource
+  // references, which would violate the visual slot's no-network dependency.
+  if (/^data:image\/(?:png|jpe?g|webp|gif|avif);base64,/i.test(src)) return src;
+
   return null;
 }
 
