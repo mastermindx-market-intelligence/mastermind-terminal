@@ -4,6 +4,7 @@ import { settledChartDrag, settledPanSample } from "./helpers/settled";
 // reason washout-retro.spec.ts imports `retroLegendCopy`. Sentence-level copy contracts live in
 // lib/__tests__/markerTooltipCopy.test.ts; this suite pins that they RENDER, and render wired.
 import { markerTooltipCopy } from "../lib/signalVerdict";
+import { placeMarkerTip } from "../lib/markerTooltip";
 
 // ── THE TOOLTIPS THAT SHIPPED TO NOBODY ────────────────────────────────────────────────────
 //
@@ -242,6 +243,27 @@ function pick(list: Marker[], ts: string): Marker {
 }
 
 const tip = (page: Page) => page.locator(".mm-sig-tip");
+
+/** Prove the tooltip is at the product's actual placement for this marker, not merely "near" an
+ *  arbitrary corner. ChartPanel passes the marker centre through placeMarkerTip after every
+ *  relayout, so the browser box should reproduce that pure contract within subpixel rounding. */
+async function expectTipAnchoredToMarker(page: Page, marker: Marker) {
+  const [box, wrap] = await Promise.all([
+    tip(page).boundingBox(),
+    page.locator(".chart-wrap").first().boundingBox(),
+  ]);
+  expect(box, "the re-anchored tooltip should have a box").toBeTruthy();
+  expect(wrap, "the chart wrapper should have a box").toBeTruthy();
+  const expected = placeMarkerTip(
+    { x: marker.cx - wrap!.x, y: marker.cy - wrap!.y },
+    { w: box!.width, h: box!.height },
+    { w: wrap!.width, h: wrap!.height },
+  );
+  expect(Math.abs((box!.x - wrap!.x) - expected.left),
+    "tooltip left should match placeMarkerTip for the marker's current box").toBeLessThan(1);
+  expect(Math.abs((box!.y - wrap!.y) - expected.top),
+    "tooltip top should match placeMarkerTip for the marker's current box").toBeLessThan(1);
+}
 
 /** Give the pan test its visible-tooltip precondition without repeating the sibling tap test.
  *  Under a saturated full-suite runner, Playwright can split tap()'s down/up delivery beyond the
@@ -550,10 +572,7 @@ test("a pane relayout after a tap re-anchors the tooltip instead of dismissing i
   // anti-litter guarantee the dismissal was protecting is kept by MOVING the tooltip, not by
   // destroying it: a tooltip is still never left pointing at empty chart.
   const moved = pick(await settledMarkers(page), RETRO_TS);
-  const box = await tip(page).boundingBox();
-  expect(box, "the re-anchored tooltip should have a box").toBeTruthy();
-  expect(Math.hypot(box!.x - moved.cx, box!.y - moved.cy),
-    "the tooltip should sit beside the marker's NEW position").toBeLessThan(300);
+  await expectTipAnchoredToMarker(page, moved);
 });
 
 test("a tap keeps the marker it started on when geometry moves before pointerup", async ({ page }, testInfo) => {
@@ -591,12 +610,9 @@ test("a tap keeps the marker it started on when geometry moves before pointerup"
   await expect(tip(page)).toHaveAttribute("data-marker-at", target.t);
   expect(await tip(page).textContent()).toBe(target.title);
 
-  // The tooltip is anchored beside the marker's CURRENT box, not the stale down coordinates.
+  // The tooltip is anchored by the product's current-box placement, not stale down coordinates.
   const moved = pick(await settledMarkers(page), RETRO_TS);
-  const box = await tip(page).boundingBox();
-  expect(box, "the tap tooltip should have a box after the pre-up reflow").toBeTruthy();
-  expect(Math.hypot(box!.x - moved.cx, box!.y - moved.cy),
-    "the tooltip should sit beside the marker's current position").toBeLessThan(300);
+  await expectTipAnchoredToMarker(page, moved);
 
   await page.locator("[data-sig-layer]").first().evaluate((svg) => {
     const layer = svg as SVGSVGElement;
