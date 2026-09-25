@@ -1,6 +1,7 @@
 "use client";
 
 import "../../app/company-intelligence.css";
+import "../../app/company-intelligence-ownership.css";
 import { useEffect, useState } from "react";
 import { useLang } from "../../lib/i18n";
 import { pick } from "../../lib/finFormat";

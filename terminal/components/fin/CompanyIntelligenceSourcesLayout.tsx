@@ -1,5 +1,7 @@
 "use client";
 
+import "../../app/company-intelligence-sources.css";
+
 import type { ReactNode } from "react";
 import { pick } from "../../lib/finFormat";
 
