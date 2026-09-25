@@ -178,6 +178,25 @@ export default function ChartOverlays(props: {
         const showBlock = props.showTitles !== false && (p.entries.length > 0 || (p.isPrice && coarse));
         return (
           <div key={p.key}>
+            {p.collapsed && !p.isPrice && (
+              // Collapse keeps the pane mounted so Restore preserves its size/state, but the
+              // compressed LWC plot and shared drawing SVG are presentation noise. One opaque
+              // chart-local veil hides every underlying renderer without mutating indicator or
+              // drawing visibility; the legend + pane ops render after it and stay reachable.
+              <div
+                data-collapsed-pane-mask={p.key}
+                aria-hidden="true"
+                style={{
+                  position: "absolute",
+                  left: 0,
+                  right: 0,
+                  top: p.top,
+                  height: p.height,
+                  background: "var(--chart-bg)",
+                  pointerEvents: "auto",
+                }}
+              />
+            )}
             {showBlock && (
               <div className="lg-block" style={{ top: legendTop, left: 8 }}>
                 {p.entries.map((e) => {
@@ -242,7 +261,7 @@ export default function ChartOverlays(props: {
             )}
 
             {showPaneOps && (
-              <div className="pane-ops" style={{ top: p.top + 3, right: 10 }}>
+              <div className={`pane-ops${p.collapsed ? " is-collapsed" : ""}`} style={{ top: p.top + 3, right: 10 }}>
                 {/* on coarse, hide move/remove — only restore affordance (collapse/maximize) */}
                 {!coarse && !priceRestoreOnly && <>
                   <button className="po-ic" data-tip={t("pmMovePaneUp")} disabled={!props.canMoveUp(p.paneIndex)} onClick={stop(() => { props.onMoveUp(p.paneIndex); doFlip(p.paneIndex + ":up"); })} aria-label={t("pmMovePaneUp")}>{flip?.key === p.paneIndex + ":up" ? <span key={flip.n} className="po-flip">{I(ICONS.up)}</span> : I(ICONS.up)}</button>

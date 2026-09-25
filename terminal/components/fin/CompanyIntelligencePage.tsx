@@ -21,6 +21,7 @@ import {
 } from "../../lib/companyIntelligence";
 import { getCurrentEventWorkspace, type EventWorkspaceResult } from "../../lib/eventWorkspace";
 import CompanyIntelligenceV2Current from "./CompanyIntelligenceV2Current";
+import CompanyIntelligenceBriefLayout, { type CompanyIntelligenceBriefItem } from "./CompanyIntelligenceBriefLayout";
 import CompanySourceManifest from "./CompanySourceManifest";
 import EvidenceRail, { type CompanyEvidenceSelection } from "./EvidenceRail";
 import TranscriptSearchWorkspace from "./TranscriptSearchWorkspace";
@@ -159,26 +160,6 @@ function eventPeriod(event: CompanyIntelligenceEvent): string {
   return `Q${event.fiscal_quarter} FY${event.fiscal_year}`;
 }
 
-function MetricTile({
-  label,
-  value,
-  delta,
-  onEvidence,
-}: {
-  label: string;
-  value: string;
-  delta: string;
-  onEvidence: () => void;
-}) {
-  return (
-    <button className="ci-metric" onClick={onEvidence}>
-      <span>{label}</span>
-      <strong className="num">{value}</strong>
-      <small className="num">{delta}</small>
-    </button>
-  );
-}
-
 function EmptyState({ title, why, action }: { title: string; why: string; action?: React.ReactNode }) {
   return (
     <div className="fin-empty fin-empty-lg ci-state" role="status">
@@ -200,7 +181,7 @@ export default function CompanyIntelligencePage({ sym, name, onOpenTx, onEvidenc
   const [eventState, setEventState] = useState<{ sym: string; id: string }>({ sym: "", id: "" });
   const [evidence, setEvidence] = useState<CompanyEvidenceSelection | null>(null);
   const [evidenceOpen, setEvidenceOpen] = useState(false);
-  const [evidenceOverlay, setEvidenceOverlay] = useState(false);
+  const evidenceOverlay = true;
   const evidenceTriggerRef = useRef<HTMLElement | null>(null);
   const receiptsButtonRef = useRef<HTMLButtonElement>(null);
   const workspaceRef = useRef<HTMLDivElement>(null);
@@ -241,17 +222,6 @@ export default function CompanyIntelligencePage({ sym, name, onOpenTx, onEvidenc
   useEffect(() => {
     setEvidence(null);
   }, [zh]);
-
-  useEffect(() => {
-    const desktop = window.matchMedia("(min-width: 1101px)");
-    const sync = () => {
-      setEvidenceOverlay(!desktop.matches);
-      setEvidenceOpen(desktop.matches);
-    };
-    sync();
-    desktop.addEventListener("change", sync);
-    return () => desktop.removeEventListener("change", sync);
-  }, [ticker]);
 
   useEffect(() => {
     onEvidenceOpenChange?.(evidenceOpen && evidenceOverlay);
@@ -395,9 +365,6 @@ export default function CompanyIntelligencePage({ sym, name, onOpenTx, onEvidenc
   const metrics = event.metrics;
   const deltas = event.previous_event_deltas;
   const displayName = activeContext.company.display_name || name || ticker;
-  const summarySourceRef = event.summary
-    ? event.field_lineage.summary
-    : event.field_lineage.highlights[0] ?? null;
   // A general highlight has no polarity. Never relabel it as Constructive when
   // the producer did not retain an explicitly positive highlight for the event.
   const positiveItems = event.positive_highlights;
@@ -409,6 +376,79 @@ export default function CompanyIntelligencePage({ sym, name, onOpenTx, onEvidenc
       : activeContext.status === "stale"
         ? pick(zh, "Showing the last verified generation while the current source is unavailable.", "当前来源不可用，正在显示最近一次验证版本。")
         : "";
+
+  const briefEvidenceById = new Map<string, CompanyEvidenceSelection>();
+  const registerBriefItem = (
+    item: CompanyIntelligenceBriefItem,
+    selection: CompanyEvidenceSelection,
+  ): CompanyIntelligenceBriefItem => {
+    briefEvidenceById.set(item.id, selection);
+    return item;
+  };
+  const briefMetrics: CompanyIntelligenceBriefItem[] = [];
+  const addBriefMetric = (
+    suffix: string,
+    label: string,
+    value: number | null | undefined,
+    delta: number | null | undefined,
+    sourceRef: CompanyIntelligenceSource["source_ref"] | null | undefined,
+    integer = false,
+  ) => {
+    if (value == null || !Number.isFinite(value)) return;
+    const id = `${event.event_id}:${suffix}`;
+    const rendered = integer ? numeric(value) : pct(value);
+    const renderedDelta = delta == null || !Number.isFinite(delta)
+      ? null
+      : `${integer ? numeric(delta, true) : pct(delta, true)} ${pick(zh, "vs prior", "较上期")}`;
+    briefMetrics.push(registerBriefItem(
+      { id, label, value: rendered, detail: renderedDelta },
+      {
+        id,
+        kind: "metric",
+        label,
+        text: `${label}: ${rendered}.`,
+        derived_comparison: renderedDelta
+          ? `${renderedDelta}. ${pick(zh, "Derived from current and prior structured-event values; it is not attributed to the current metric source alone.", "由当期及上期结构化事件数值派生；不会仅归属于当前指标来源。")}`
+          : undefined,
+        source: sourceByRef(event, sourceRef),
+      },
+    ));
+  };
+  addBriefMetric("revenue", pick(zh, "Revenue growth", "营收增长"), metrics.revenue_growth_pct, deltas.revenue_growth_pct, event.field_lineage.metrics.revenue_growth_pct);
+  addBriefMetric("eps", pick(zh, "EPS growth", "每股盈利增长"), metrics.eps_growth_pct, deltas.eps_growth_pct, event.field_lineage.metrics.eps_growth_pct);
+  addBriefMetric("margin", pick(zh, "Gross margin", "毛利率"), metrics.gross_margin_pct, deltas.gross_margin_pct, event.field_lineage.metrics.gross_margin_pct);
+  addBriefMetric("questions", pick(zh, "Analyst questions", "分析师提问"), metrics.questions_count, deltas.questions_count, event.field_lineage.metrics.questions_count, true);
+
+  const briefHeadline = event.highlights[0]
+    || event.summary
+    || pick(zh, "No structured event context is present for this event.", "本事件暂无结构化事件背景。");
+  const briefSummary = event.summary && event.summary !== briefHeadline ? event.summary : null;
+  const briefTakeaways = event.highlights.slice(1, 4).map((text, offset) => {
+    const index = offset + 1;
+    const id = `${event.event_id}:highlight:${index}`;
+    return registerBriefItem(
+      { id, label: pick(zh, "Event fact", "事件事实"), value: text },
+      { id, kind: "highlight", label: pick(zh, "Event fact", "事件事实"), text, source: sourceByRef(event, event.field_lineage.highlights[index]) },
+    );
+  });
+  const briefChanges = positiveItems.slice(0, 3).map((text, index) => {
+    const id = `${event.event_id}:positive:${index}`;
+    return registerBriefItem(
+      { id, label: pick(zh, "Reported change", "报告变化"), value: text },
+      { id, kind: "highlight", label: pick(zh, "Reported change", "报告变化"), text, source: sourceByRef(event, positiveLineage[index]) },
+    );
+  });
+  const briefRisks = event.negative_highlights.slice(0, 3).map((text, index) => {
+    const id = `${event.event_id}:negative:${index}`;
+    return registerBriefItem(
+      { id, label: pick(zh, "Watch item", "关注项"), value: text },
+      { id, kind: "highlight", label: pick(zh, "Watch item", "关注项"), text, source: sourceByRef(event, event.field_lineage.negative_highlights[index]) },
+    );
+  });
+  const chooseBriefItem = (item: CompanyIntelligenceBriefItem) => {
+    const selection = briefEvidenceById.get(item.id);
+    if (selection) chooseEvidence(selection);
+  };
 
   return (
     <div className="ci-page">
@@ -492,92 +532,65 @@ export default function CompanyIntelligencePage({ sym, name, onOpenTx, onEvidenc
       <div ref={workspaceRef} className={`ci-workspace${evidenceOpen ? " evidence-open" : ""}`}>
         <main className="ci-canvas" id={`ci-panel-${lens}`} role="tabpanel" aria-labelledby={`ci-tab-${lens}`}>
           {lens === "brief" && (
-            <div className="ci-brief">
-              <section className="ci-stance">
-                <div className="ci-section-label"><span>{pick(zh, "STRUCTURED EVENT CONTEXT", "结构化事件背景")}</span><small>{pick(zh, "Source-authored event record · not a signal", "来源编制的事件记录 · 非交易信号")}</small></div>
-                <button
-                  className={`ci-claim ci-stance-copy${evidence?.id === `${event.event_id}:summary` ? " selected" : ""}`}
-                  onClick={() => chooseEvidence({ id: `${event.event_id}:summary`, kind: "summary", label: pick(zh, "Structured event context", "结构化事件背景"), text: event.summary || event.highlights[0] || pick(zh, "No structured event context is present for this event.", "本事件暂无结构化事件背景。"), source: sourceByRef(event, summarySourceRef) })}
-                  aria-pressed={evidence?.id === `${event.event_id}:summary`}
-                >
-                  <span>{event.summary || event.highlights[0] || pick(zh, "No structured event context is present for this event.", "本事件暂无结构化事件背景。")}</span>
-                  <i>{pick(zh, "Event receipt", "事件凭证")} ↗</i>
-                </button>
-              </section>
-
-              <CompanyThemeContextCard
-                ticker={ticker}
-                selectedEventId={event.event_id}
-                companyIntelligenceGenerationId={activeContext.generation_id}
-                latestEventId={activeContext.latest_event_id}
-                selectedEventLabel={eventPeriod(event)}
-                onUseLatest={activeContext.latest_event_id ? () => {
-                  const latest = events.find((candidate) => candidate.event_id === activeContext.latest_event_id);
-                  if (!latest) return;
-                  setEventState({ sym: ticker, id: latest.event_id });
-                  setEvidence(null);
-                } : undefined}
-              />
-
-              <CompanyInstitutionalContextCard
-                ticker={ticker}
-                selectedEventId={event.event_id}
-                companyIntelligenceGenerationId={activeContext.generation_id}
-                latestEventId={activeContext.latest_event_id}
-                selectedEventLabel={eventPeriod(event)}
-                onUseLatest={activeContext.latest_event_id ? () => {
-                  const latest = events.find((candidate) => candidate.event_id === activeContext.latest_event_id);
-                  if (!latest) return;
-                  setEventState({ sym: ticker, id: latest.event_id });
-                  setEvidence(null);
-                } : undefined}
-              />
-
-              <section className="ci-material">
-                <div className="ci-section-label"><span>{pick(zh, "REPORTED CHANGE", "报告变化")}</span><small>{pick(zh, "Deterministic event fields", "确定性事件字段")}</small></div>
-                <div className="ci-metrics">
-                  <MetricTile label={pick(zh, "Revenue growth", "营收增长")} value={pct(metrics.revenue_growth_pct)} delta={`${pct(deltas.revenue_growth_pct, true)} ${pick(zh, "vs prior", "较上期")}`} onEvidence={() => chooseEvidence({ id: `${event.event_id}:revenue`, kind: "metric", label: pick(zh, "Revenue growth", "营收增长"), text: `${pick(zh, "Reported revenue growth", "报告营收增长")}: ${pct(metrics.revenue_growth_pct)}.`, derived_comparison: `${pick(zh, "Change versus prior event", "较上期变化")}: ${pct(deltas.revenue_growth_pct, true)}. ${pick(zh, "Derived from current and prior structured-event values; it is not attributed to the current metric source alone.", "由当期及上期结构化事件数值派生；不会仅归属于当前指标来源。")}`, source: sourceByRef(event, event.field_lineage.metrics.revenue_growth_pct) })} />
-                  <MetricTile label={pick(zh, "EPS growth", "每股盈利增长")} value={pct(metrics.eps_growth_pct)} delta={`${pct(deltas.eps_growth_pct, true)} ${pick(zh, "vs prior", "较上期")}`} onEvidence={() => chooseEvidence({ id: `${event.event_id}:eps`, kind: "metric", label: pick(zh, "EPS growth", "每股盈利增长"), text: `${pick(zh, "Reported EPS growth", "报告每股盈利增长")}: ${pct(metrics.eps_growth_pct)}.`, derived_comparison: `${pick(zh, "Change versus prior event", "较上期变化")}: ${pct(deltas.eps_growth_pct, true)}. ${pick(zh, "Derived from current and prior structured-event values; it is not attributed to the current metric source alone.", "由当期及上期结构化事件数值派生；不会仅归属于当前指标来源。")}`, source: sourceByRef(event, event.field_lineage.metrics.eps_growth_pct) })} />
-                  <MetricTile label={pick(zh, "Gross margin", "毛利率")} value={pct(metrics.gross_margin_pct)} delta={`${pct(deltas.gross_margin_pct, true)} ${pick(zh, "vs prior", "较上期")}`} onEvidence={() => chooseEvidence({ id: `${event.event_id}:margin`, kind: "metric", label: pick(zh, "Gross margin", "毛利率"), text: `${pick(zh, "Reported gross margin", "报告毛利率")}: ${pct(metrics.gross_margin_pct)}.`, derived_comparison: `${pick(zh, "Change versus prior event", "较上期变化")}: ${pct(deltas.gross_margin_pct, true)}. ${pick(zh, "Derived from current and prior structured-event values; it is not attributed to the current metric source alone.", "由当期及上期结构化事件数值派生；不会仅归属于当前指标来源。")}`, source: sourceByRef(event, event.field_lineage.metrics.gross_margin_pct) })} />
-                  <MetricTile label={pick(zh, "Analyst questions", "分析师提问")} value={numeric(metrics.questions_count)} delta={`${numeric(deltas.questions_count, true)} ${pick(zh, "vs prior", "较上期")}`} onEvidence={() => chooseEvidence({ id: `${event.event_id}:questions`, kind: "metric", label: pick(zh, "Analyst questions", "分析师提问"), text: `${pick(zh, "Questions recorded", "记录提问数")}: ${numeric(metrics.questions_count)}.`, derived_comparison: `${pick(zh, "Change versus prior event", "较上期变化")}: ${numeric(deltas.questions_count, true)}. ${pick(zh, "Derived from current and prior structured-event values; it is not attributed to the current metric source alone.", "由当期及上期结构化事件数值派生；不会仅归属于当前指标来源。")}`, source: sourceByRef(event, event.field_lineage.metrics.questions_count) })} />
-                </div>
-              </section>
-
-              <section className="ci-changes">
-                <div className="ci-section-label"><span>{pick(zh, "MATERIAL READ-THROUGHS", "关键解读")}</span><small>{pick(zh, "Select any row to inspect its event/source-family receipt", "选择任一条目以检查事件或来源类别凭证")}</small></div>
-                <div className="ci-change-columns">
-                  <div>
-                    <h3><span className="ci-direction positive" />{pick(zh, "Constructive", "积极")}</h3>
-                    {positiveItems.map((item, index) => {
-                      const id = `${event.event_id}:positive:${index}`;
-                      return <button key={id} className={`ci-change-row${evidence?.id === id ? " selected" : ""}`} aria-pressed={evidence?.id === id} onClick={() => chooseEvidence({ id, kind: "highlight", label: pick(zh, "Constructive read-through", "积极解读"), text: item, source: sourceByRef(event, positiveLineage[index]) })}><span>{index + 1}</span><p>{item}</p><i>↗</i></button>;
-                    })}
-                    {positiveItems.length === 0 && <p className="ci-inline-empty">{pick(zh, "The structured record retained no explicitly constructive highlight for this event.", "结构化记录未保留本事件明确积极的要点。")}</p>}
+            <CompanyIntelligenceBriefLayout
+              zh={zh}
+              ticker={ticker}
+              periodLabel={eventPeriod(event)}
+              eventDate={event.call_date}
+              headline={briefHeadline}
+              summary={briefSummary}
+              metrics={briefMetrics}
+              takeaways={briefTakeaways}
+              changes={briefChanges}
+              implications={[]}
+              risks={briefRisks}
+              watch={[]}
+              selectedId={evidence?.id}
+              onSelect={chooseBriefItem}
+              footer={(
+                <div className="ci-paper-boundary">
+                  <div className="ci-paper-context-grid">
+                    <CompanyThemeContextCard
+                      ticker={ticker}
+                      selectedEventId={event.event_id}
+                      companyIntelligenceGenerationId={activeContext.generation_id}
+                      latestEventId={activeContext.latest_event_id}
+                      selectedEventLabel={eventPeriod(event)}
+                      onUseLatest={activeContext.latest_event_id ? () => {
+                        const latest = events.find((candidate) => candidate.event_id === activeContext.latest_event_id);
+                        if (!latest) return;
+                        setEventState({ sym: ticker, id: latest.event_id });
+                        setEvidence(null);
+                      } : undefined}
+                    />
+                    <CompanyInstitutionalContextCard
+                      ticker={ticker}
+                      selectedEventId={event.event_id}
+                      companyIntelligenceGenerationId={activeContext.generation_id}
+                      latestEventId={activeContext.latest_event_id}
+                      selectedEventLabel={eventPeriod(event)}
+                      onUseLatest={activeContext.latest_event_id ? () => {
+                        const latest = events.find((candidate) => candidate.event_id === activeContext.latest_event_id);
+                        if (!latest) return;
+                        setEventState({ sym: ticker, id: latest.event_id });
+                        setEvidence(null);
+                      } : undefined}
+                    />
                   </div>
-                  <div>
-                    <h3><span className="ci-direction negative" />{pick(zh, "Watch items", "关注项")}</h3>
-                    {(event.negative_highlights.length ? event.negative_highlights : []).map((item, index) => {
-                      const id = `${event.event_id}:negative:${index}`;
-                      return <button key={id} className={`ci-change-row${evidence?.id === id ? " selected" : ""}`} aria-pressed={evidence?.id === id} onClick={() => chooseEvidence({ id, kind: "highlight", label: pick(zh, "Watch item", "关注项"), text: item, source: sourceByRef(event, event.field_lineage.negative_highlights[index]) })}><span>{index + 1}</span><p>{item}</p><i>↗</i></button>;
-                    })}
-                    {event.negative_highlights.length === 0 && <p className="ci-inline-empty">{pick(zh, "No negative highlight was retained in the structured record.", "结构化记录中未保留负面要点。")}</p>}
-                  </div>
+                  {event.key_quote && (
+                    <section className="ci-quote">
+                      <button className={evidence?.id === `${event.event_id}:quote` ? "selected" : ""} onClick={() => chooseEvidence({ id: `${event.event_id}:quote`, kind: "quote", label: pick(zh, "Key quote", "关键引语"), text: event.key_quote || "", source: sourceByRef(event, event.field_lineage.key_quote) })} aria-pressed={evidence?.id === `${event.event_id}:quote`}>
+                        <span aria-hidden>“</span><blockquote>{event.key_quote}</blockquote><i>{pick(zh, "Event receipt", "事件凭证")} ↗</i>
+                      </button>
+                    </section>
+                  )}
+                  <section className="ci-coverage">
+                    <div><strong>{pick(zh, "What is missing", "缺失内容")}</strong><p>{activeContext.missing_sources.length ? activeContext.missing_sources.map((source) => missingSourceLabel(source, zh)).join(" · ") : pick(zh, "No required source family is marked missing for this view.", "本视图所需来源均未标记为缺失。")}</p></div>
+                    <CompanySourceManifest event={event} onOpenTranscript={onOpenTx} compact />
+                  </section>
                 </div>
-              </section>
-
-              {event.key_quote && (
-                <section className="ci-quote">
-                  <button className={evidence?.id === `${event.event_id}:quote` ? "selected" : ""} onClick={() => chooseEvidence({ id: `${event.event_id}:quote`, kind: "quote", label: pick(zh, "Key quote", "关键引语"), text: event.key_quote || "", source: sourceByRef(event, event.field_lineage.key_quote) })} aria-pressed={evidence?.id === `${event.event_id}:quote`}>
-                    <span aria-hidden>“</span><blockquote>{event.key_quote}</blockquote><i>{pick(zh, "Event receipt", "事件凭证")} ↗</i>
-                  </button>
-                </section>
               )}
-
-              <section className="ci-coverage">
-                <div><strong>{pick(zh, "What is missing", "缺失内容")}</strong><p>{activeContext.missing_sources.length ? activeContext.missing_sources.map((source) => missingSourceLabel(source, zh)).join(" · ") : pick(zh, "No required source family is marked missing for this view.", "本视图所需来源均未标记为缺失。")}</p></div>
-                <CompanySourceManifest event={event} onOpenTranscript={onOpenTx} compact />
-              </section>
-            </div>
+            />
           )}
 
           {lens === "transcript" && (

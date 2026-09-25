@@ -2475,6 +2475,11 @@ table.scr2 tbody tr.empty-row:hover,table.scr2 tbody tr.scr2-skel-row:hover,tabl
   /* drawer safe-area bottom */
   .m-drawer{padding-bottom:env(safe-area-inset-bottom,0px)}
   .workspace{grid-column:auto;grid-row:auto;border-right:0;flex:none}
+  /* The coarse legend More menu is fixed inside the chart stacking context. The responsive
+     detail rail follows the workspace in normal flow and can otherwise intercept lower menu
+     rows (including Collapse) on both tablet and phone. Raise the workspace only while the
+     menu exists so the action surface remains the pointer owner across the full <=860px shell. */
+  .app:not(.shell-app) .workspace:has(.lg-more){z-index:31}
   .chart-tabs{height:48px;width:100%;padding:0 6px;gap:4px;overflow:visible}
   .chart-tabs .ct{height:48px;margin-right:10px;font-size:12.5px;flex:none}
   /* every child remains intrinsic; AdaptiveToolbar moves overflow into More instead of scrolling */
@@ -5037,9 +5042,12 @@ html[data-shell="app"] .mm-brandbug{
      (the strip's wheel), not two. Tablet and desktop keep the row. */
   .app:not(.shell-app) .chart-frame-bar{display:none}
   /* R2c — one expansion affordance on the phone. `.chart-fs-float` keeps the whole
-     workspace verb; the per-pane maximize/restore strip is retired here because a
-     double-tap on a pane already toggles it (ChartPanel's touch path). */
+     workspace verb; the per-pane maximize strip is retired here because a double-tap on a pane
+     already toggles it (ChartPanel's touch path). A deliberately collapsed pane is the exception:
+     collapse has no double-tap inverse, so expose only its Restore button until the pane returns. */
   .app:not(.shell-app) .pane-ops{display:none}
+  .app:not(.shell-app) .pane-ops.is-collapsed{display:inline-flex}
+  .app:not(.shell-app) .pane-ops.is-collapsed .po-ic:not(.on){display:none}
   /* R2.3 fold rule — the chart takes the whole band the toolbar row used to occupy
      (it now starts 48px higher) and the height is tuned so that at rest the fold
      lands JUST UNDER the GOLDEN ORACLE / RESEARCH DESK row with TREND below it. At
