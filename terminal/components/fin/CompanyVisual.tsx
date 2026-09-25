@@ -1,3 +1,5 @@
+import "../../app/company-intelligence-visual.css";
+
 interface CompanyVisualProps {
   ticker: string;
   /**
@@ -18,7 +20,7 @@ export default function CompanyVisual({ ticker, artworkSrc }: CompanyVisualProps
   const artwork = safeArtworkSource(artworkSrc);
   return (
     <div
-      className={`ci-paper-company-visual${artwork ? " has-artwork" : " fallback"}`}
+      className={`ci-paper-company-visual ci-paper-company-visual-v2${artwork ? " has-artwork" : " fallback"}`}
       data-company-visual={artwork ? "artwork" : "fallback"}
       data-company-visual-ticker={ticker}
       aria-hidden="true"
