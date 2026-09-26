@@ -1,0 +1,151 @@
+The CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.
+
+ RUN  v2.1.9 /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r0-replay-20260917-sol-001/terminal
+
+ ❯ lib/__tests__/surfaceReplayMounted.test.tsx (17 tests | 2 failed) 842ms
+   × withdraws the old field while a different selected frame is still loading 40ms
+     → expected <div …(2)>…(6)</div> to be null
+   × keeps Gamma selected when the next snapshot does not carry Gamma 27ms
+     → expected false to be true // Object.is equality
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/surfaceReplayMounted.test.tsx > withdraws the old field while a different selected frame is still loading
+AssertionError: expected <div …(2)>…(6)</div> to be null
+
+- Expected:
+null
+
++ Received:
+<div
+  class="obs-surf-data-strip"
+  role="status"
+>
+  <span
+    class="obs-surf-data-item"
+  >
+    <span
+      class="obs-lbl"
+    >
+      Session
+    </span>
+    <strong
+      class="num"
+    >
+      2026-09-17
+    </strong>
+  </span>
+  <span
+    class="obs-surf-data-item"
+  >
+    <span
+      class="obs-lbl"
+    >
+      Surface
+    </span>
+    <strong
+      class="num"
+    >
+      2
+
+      observed frames
+    </strong>
+    <span
+      class="obs-surf-data-detail"
+    >
+      · ~1m observed
+    </span>
+  </span>
+  <span
+    class="obs-surf-data-item"
+  >
+    <span
+      class="obs-lbl"
+    >
+      Price
+    </span>
+    <strong
+      class="num"
+    >
+      5
+      m
+      candles
+    </strong>
+  </span>
+  <span
+    class="obs-surf-observed-badge"
+  >
+    <span
+      aria-hidden="true"
+      class="obs-live-dot"
+    />
+    Observed only · no interpolation
+  </span>
+  <span
+    class="obs-surf-data-legend"
+  >
+    <span
+      style="display: inline-flex; align-items: center; gap: var(--sp-1);"
+    >
+      <span
+        style="display: inline-block; width: 10px; height: 8px; border-radius: 2px; background: var(--metric-netprem-pos);"
+      />
+      <span
+        class="obs-lbl"
+      >
+        inflow
+      </span>
+    </span>
+    <span
+      style="display: inline-flex; align-items: center; gap: var(--sp-1);"
+    >
+      <span
+        style="display: inline-block; width: 10px; height: 8px; border-radius: 2px; background: var(--metric-netprem-neg);"
+      />
+      <span
+        class="obs-lbl"
+      >
+        outflow
+      </span>
+    </span>
+  </span>
+  <span
+    class="obs-surf-data-source"
+  >
+    OPRA per-strike flow
+  </span>
+</div>
+
+ ❯ lib/__tests__/surfaceReplayMounted.test.tsx:267:54
+    265|   delayedFrame = new Promise(resolve => { finish = resolve; });
+    266|   await first();
+    267|   expect(host.querySelector(".obs-surf-data-strip")).toBeNull();
+       |                                                      ^
+    268|   await act(async () => { finish(json(null)); });
+    269| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  lib/__tests__/surfaceReplayMounted.test.tsx > keeps Gamma selected when the next snapshot does not carry Gamma
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ lib/__tests__/surfaceReplayMounted.test.tsx:278:42
+    276|   expect(gamma.classList.contains("on")).toBe(true);
+    277|   emitGreek = false; await advance();
+    278|   expect(gamma.classList.contains("on")).toBe(true);
+       |                                          ^
+    279|   const premium = [...host.querySelectorAll<HTMLButtonElement>(".obs-s…
+    280|   expect(premium.classList.contains("on")).toBe(false);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 15 passed (17)
+   Start at  16:10:15
+   Duration  3.64s (transform 427ms, setup 0ms, collect 824ms, tests 842ms, environment 1.04s, prepare 91ms)

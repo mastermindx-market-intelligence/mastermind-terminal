@@ -1,0 +1,44 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r0-replay-20260917-sol-001/terminal
+
+ ❯ lib/__tests__/surfaceReplayMounted.test.tsx (25 tests | 2 failed | 23 skipped) 259ms
+   × shared replay read boundaries > retains the admitted current frame when only its same-stamp refresh fails 209ms
+     → expected null not to be null
+   × shared replay read boundaries > reports an initial frame transport failure as unavailable, not accrual 50ms
+     → expected 'YFit priceFit strikesNo surface data …' to contain 'Surface unavailable'
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/surfaceReplayMounted.test.tsx > shared replay read boundaries > retains the admitted current frame when only its same-stamp refresh fails
+AssertionError: expected null not to be null
+ ❯ lib/__tests__/surfaceReplayMounted.test.tsx:264:60
+    262|     failFrame = true;
+    263|     await advance();
+    264|     expect(host.querySelector(".obs-surf-data-strip")).not.toBeNull();
+       |                                                            ^
+    265|     expect(host.querySelector(".obs-surf-frame-refresh-error")?.textCo…
+    266|     expect(host.querySelector(".obs-surf-chart-area")?.textContent ?? …
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  lib/__tests__/surfaceReplayMounted.test.tsx > shared replay read boundaries > reports an initial frame transport failure as unavailable, not accrual
+AssertionError: expected 'YFit priceFit strikesNo surface data …' to contain 'Surface unavailable'
+
+Expected: "Surface unavailable"
+Received: "YFit priceFit strikesNo surface data yet — accruing.Stamps are written as the session runs — until the materializer has painted one there is nothing to shade. Nothing is hidden."
+
+ ❯ lib/__tests__/surfaceReplayMounted.test.tsx:274:69
+    272|     await mount();
+    273|     expect(host.querySelector(".obs-surf-data-strip")).toBeNull();
+    274|     expect(host.querySelector(".obs-surf-chart-area")?.textContent).to…
+       |                                                                     ^
+    275|     expect(host.querySelector(".obs-surf-chart-area")?.textContent ?? …
+    276|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 23 skipped (25)
+   Start at  02:02:34
+   Duration  2.50s (transform 377ms, setup 0ms, collect 583ms, tests 259ms, environment 1.14s, prepare 110ms)
