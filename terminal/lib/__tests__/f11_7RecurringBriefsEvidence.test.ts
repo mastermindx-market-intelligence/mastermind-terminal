@@ -8,7 +8,6 @@ const CROP_DIR = join(__dirname, "../../docs/pr-crops/b-f11-7-recurring-briefs")
 const EVIDENCE = join(CROP_DIR, "EVIDENCE.yml");
 const LAYOUT_FILES = [
   "terminal/components/briefs/BriefsInbox.tsx",
-  "terminal/components/briefs/BriefSubscribeControls.tsx",
   "terminal/components/briefs/briefs.module.css",
   "terminal/lib/briefs.ts",
   "terminal/components/alerts/AlertsCockpit.tsx",
@@ -22,10 +21,10 @@ const CROPS = [
   "empty-1440-zh.png",
   "empty-390.png",
   "empty-390-zh.png",
-  "subscribe-1440.png",
-  "subscribe-1440-zh.png",
-  "subscribe-390.png",
-  "subscribe-390-zh.png",
+  "schedule-1440.png",
+  "schedule-1440-zh.png",
+  "schedule-390.png",
+  "schedule-390-zh.png",
 ];
 
 function evidenceText(): string {
