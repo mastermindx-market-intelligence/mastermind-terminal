@@ -11,6 +11,7 @@ import { SECTOR_FEEDS, SECTOR_VIEWS, DEFAULT_SECTOR_STATE, object, text, number,
   formatValue, type FeedMap, type FeedPayload, type FeedStatus,
   type SectorFeed, type SectorState, type SectorView, type Row } from "@/lib/sectorIntelligence";
 import SectorGroupBrowser from "./SectorGroupBrowser";
+import SectorCentralDiscovery from "./SectorCentralDiscovery";
 import styles from "./SectorIntelligenceWorkspace.module.css";
 import SectorCompanyComparison from "./SectorCompanyComparison";
 
@@ -54,17 +55,40 @@ export default function SectorIntelligenceWorkspace() {
   const nav = useRef<HTMLElement>(null);
   const sourceTrigger = useRef<HTMLButtonElement>(null);
   const sourceReturn = useRef<string | null>(null);
+  const rootElement = useRef<HTMLElement>(null);
+  const currentWorkspace = useRef<SectorState["workspace"]>("discover");
+  const scrollPositions = useRef<Record<SectorState["workspace"], { inner: number; outer: number; focus: string | null }>>({
+    discover: { inner: 0, outer: 0, focus: null }, breadth: { inner: 0, outer: 0, focus: null }, detail: { inner: 0, outer: 0, focus: null },
+  });
+  const saveWorkspaceScroll = useCallback(() => {
+    scrollPositions.current[currentWorkspace.current] = {
+      inner: rootElement.current?.scrollTop || 0, outer: window.scrollY,
+      focus: document.activeElement?.getAttribute("data-sector-choice") || null,
+    };
+  }, []);
   // A changed account hides the previous account's data in the render itself,
   // before effects run. Nothing is persisted in browser storage or shared caches.
   const feeds = received.identity === identity && received.revision === revision ? received.feeds : {};
   useEffect(() => {
     const sync = () => {
-      setState(parseSectorState(new URLSearchParams(window.location.search)));
+      const next = parseSectorState(new URLSearchParams(window.location.search));
+      if (next.workspace !== currentWorkspace.current) saveWorkspaceScroll();
+      setState(next);
       setGroupBrowserOpen(false);
     };
     sync(); window.addEventListener("popstate", sync);
     return () => window.removeEventListener("popstate", sync);
-  }, []);
+  }, [saveWorkspaceScroll]);
+  useEffect(() => {
+    currentWorkspace.current = state.workspace;
+    const saved = scrollPositions.current[state.workspace];
+    const frame = window.requestAnimationFrame(() => {
+      if (rootElement.current) rootElement.current.scrollTop = saved.inner;
+      window.scrollTo({ top: saved.outer, behavior: "instant" });
+      if (saved.focus) rootElement.current?.querySelector<HTMLButtonElement>(`[data-sector-choice="${CSS.escape(saved.focus)}"]`)?.focus({ preventScroll: true });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [state.workspace]);
   useEffect(() => {
     const controller = new AbortController(); let alive = true;
     for (const source of SECTOR_FEEDS) {
@@ -115,11 +139,13 @@ export default function SectorIntelligenceWorkspace() {
   const localName = (r: Row, en = "name", zh = "name_zh") => text(lang === "zh" ? r[zh] : r[en]) || text(r[en]);
   const stateLabel = (v: unknown) => t(STATE_KEYS[text(v).toLowerCase()] || "siUnavailable");
   const change = useCallback((patch: Partial<SectorState>, push = false) => {
-    const next = { ...state, ...patch }; setState(next);
+    const next = { ...state, ...patch };
+    if (next.workspace !== state.workspace) saveWorkspaceScroll();
+    setState(next);
     const href = writeSectorState(new URL(window.location.href), next);
     if (push) window.history.pushState(window.history.state, "", href);
     else window.history.replaceState(window.history.state, "", href);
-  }, [state]);
+  }, [state, saveWorkspaceScroll]);
   const go = (view: SectorView) => change({ view, sourcesOpen: false }, true);
   const openSources = (opener?: HTMLElement) => {
     // WebKit does not reliably focus a pointer-activated button by itself.
@@ -164,7 +190,7 @@ export default function SectorIntelligenceWorkspace() {
     <p className={styles.note}>{cap ? t("siCohortCopy") : t("siConcentrationMissing")}</p>
   </Card>;
 
-  return <main className={`main2 ${styles.root}`} data-testid="sector-intelligence" data-sector-theme={state.theme}>
+  return <main ref={rootElement} className={`main2 ${styles.root}`} data-testid="sector-intelligence" data-sector-theme={state.theme} data-sector-workspace={state.workspace}>
     <SectorGroupBrowser open={groupBrowserOpen} groups={groups} selected={state.group}
       status={feeds.confluence?.receipt.status || "loading"} theme={state.theme}
       onClose={() => setGroupBrowserOpen(false)} onReviewSources={() => { setGroupBrowserOpen(false); window.requestAnimationFrame(() => openSources()); }}
@@ -176,7 +202,7 @@ export default function SectorIntelligenceWorkspace() {
       maxHeight="90dvh" initialFocus="sheet" className={`${styles.sourcePanel} ${state.theme === "light" ? styles.light : ""}`}>
       <div className={styles.sourceContent}>
         <header className={styles.sourcePanelHeader}><div><h2>{t("siSourcesPanel")}</h2>
-          <p>{groupName || state.group || sectorName} · {t(VIEW_KEYS[state.view])}</p></div>
+          <p>{state.workspace === "detail" ? `${groupName || state.group || sectorName} · ${t(VIEW_KEYS[state.view])}` : t(state.workspace === "breadth" ? "siMarketBreadth" : "siDiscoverSectors")}</p></div>
           <button type="button" className={styles.button} onClick={closeSources}>{t("siCloseSources")}</button></header>
         <div className={styles.sectionHeading}><h2>{t("siSourceRecord")}</h2><p>{t("siSourceRecordCopy")}</p></div><div className={styles.sourceGrid}>
           {SECTOR_FEEDS.map(source => { const receipt = feeds[source]?.receipt; return <Card key={source} title={t(FEED_KEYS[source])} action={<span className={styles.badge}>{t(STATUS_KEYS[receipt?.status || "loading"])}</span>}>
@@ -189,17 +215,30 @@ export default function SectorIntelligenceWorkspace() {
     <div className={styles.page}>
       <header className={styles.header}><div><p className={styles.eyebrow}>{t("siEyebrow")}</p><h1>{t("siTitle")}</h1><p className={styles.subtitle}>{t("siSubtitle")}</p></div>
         <div className={styles.controls}>
-          <label>{t("siSector")}<select aria-label={t("siSector")} value={state.sector} onChange={e => change({ sector: e.target.value, group: "", query: "", company: "", expanded: false })}>
+          {state.workspace === "detail" && <><label>{t("siSector")}<select aria-label={t("siSector")} value={state.sector} onChange={e => change({ sector: e.target.value, group: "", query: "", company: "", expanded: false })}>
             {!sectors.some(r => r.id === state.sector) && <option value={state.sector}>{state.sector.toUpperCase()}</option>}
             {sectors.map(r => <option key={text(r.id)} value={text(r.id)}>{localName(r)} · {text(r.ticker)}</option>)}
           </select></label>
           <label>{t("siGroup")}<button type="button" className={styles.button}
             aria-label={t("siBrowseGroups")} aria-haspopup="dialog" aria-expanded={groupBrowserOpen}
-            onClick={event => { event.currentTarget.focus({ preventScroll: true }); setGroupBrowserOpen(true); }}>{groupName || t("siChooseGroup")} ▾</button></label>
+            onClick={event => { event.currentTarget.focus({ preventScroll: true }); setGroupBrowserOpen(true); }}>{groupName || t("siChooseGroup")} ▾</button></label></>}
           <button type="button" className={styles.button} onClick={() => change({ theme: state.theme === "dark" ? "light" : "dark" })}>{t(state.theme === "dark" ? "siUseLight" : "siUseDark")}</button>
           <button type="button" className={styles.button} onClick={() => setRevision(n => n + 1)}>{t("siRefresh")}</button>
         </div>
       </header>
+      <nav className={styles.workspaceNavigation} aria-label={t("siWorkspaceViews")}>
+        {(["discover", "breadth", "detail"] as const).map(workspace => <button key={workspace} type="button"
+          aria-current={state.workspace === workspace ? "page" : undefined}
+          onClick={() => change({ workspace, sourcesOpen: false }, true)}>
+          {t(workspace === "discover" ? "siDiscoverSectors" : workspace === "breadth" ? "siMarketBreadth" : "siSectorResearch")}
+        </button>)}
+      </nav>
+      {state.workspace !== "detail" ? <SectorCentralDiscovery rows={sectors} status={status}
+        asOf={feeds.sector?.receipt.asOf || null} selected={state.sector} query={state.discoveryQuery}
+        sort={state.discoverySort} breadth={state.workspace === "breadth"}
+        onQuery={discoveryQuery => change({ discoveryQuery })} onSort={discoverySort => change({ discoverySort })}
+        onSources={() => openSources()}
+        onSelect={sector => change({ sector, workspace: "detail", view: "intelligence", group: "", company: "", query: "", expanded: false, sourcesOpen: false }, true)} /> : <>
       <div className={styles.navigation}><nav ref={nav} className={styles.tabs} role="tablist" aria-label={t("siViews")} onKeyDown={event => {
         const index = SECTOR_VIEWS.indexOf(state.view);
         const next = event.key === "ArrowRight" ? (index + 1) % SECTOR_VIEWS.length : event.key === "ArrowLeft" ? (index + SECTOR_VIEWS.length - 1) % SECTOR_VIEWS.length : event.key === "Home" ? 0 : event.key === "End" ? SECTOR_VIEWS.length - 1 : -1;
@@ -223,7 +262,10 @@ export default function SectorIntelligenceWorkspace() {
             <div className={styles.heroCopy}>
               <p className={styles.heroSubject}>{sectorName}</p><h2>{t(glanceKey)}</h2>
               <p>{t("siGlanceLimit")}</p>
-              <button className={styles.textButton} type="button" onClick={() => go("companies")}>{t("siSeeCompanies")} →</button>
+              <button className={styles.textButton} type="button" data-testid="sector-primary-action" onClick={event => {
+                if (group.key) go("companies");
+                else { event.currentTarget.focus({ preventScroll: true }); setGroupBrowserOpen(true); }
+              }}>{t(group.key ? "siSeeCompanies" : "siBrowseGroups")} →</button>
             </div>
             <div className={styles.metrics}>
               <Metric label={t("siRS")} value={rank(momentum.rs_21d_rank)} foot={`${t("siRS63")} ${rank(momentum.rs_rank)}`} />
@@ -266,6 +308,7 @@ export default function SectorIntelligenceWorkspace() {
           <p className={styles.note}>{t("siHistoryContext")}</p>{sourcesLink}
         </Card>}
       </div>
+      </>}
       <footer className={styles.footer}>{t("siResearchCopy")}</footer>
     </div>
   </main>;

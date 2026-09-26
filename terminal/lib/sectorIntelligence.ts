@@ -20,11 +20,15 @@ export type Row = Record<string, unknown>;
 export const SECTOR_VIEWS = ["intelligence", "companies", "signals", "drivers", "history"] as const;
 export type SectorView = typeof SECTOR_VIEWS[number];
 export type MemberSort = "source" | "return" | "relative" | "ticker";
+export type SectorWorkspace = "discover" | "breadth" | "detail";
+export type SectorDiscoverySort = "source" | "return" | "participation";
 export type SectorState = {
   view: SectorView; sector: string; group: string; sort: MemberSort; query: string; theme: "dark" | "light"; company: string; expanded: boolean; sourcesOpen: boolean;
+  workspace: SectorWorkspace; discoveryQuery: string; discoverySort: SectorDiscoverySort;
 };
 export const DEFAULT_SECTOR_STATE: SectorState = {
   view: "intelligence", sector: "xlk", group: "semiconductors", sort: "source", query: "", theme: "dark", company: "", expanded: false, sourcesOpen: false,
+  workspace: "discover", discoveryQuery: "", discoverySort: "source",
 };
 export function object(value: unknown): Row {
   return value !== null && typeof value === "object" && !Array.isArray(value) ? value as Row : {};
@@ -142,7 +146,12 @@ export function concentration(data: unknown, sectorName: string): {
 export function parseSectorState(params: URLSearchParams): SectorState {
   const view = params.get("sectorView") || "", sector = params.get("sector") || "", group = params.get("group") || "";
   const sort = params.get("sectorSort") || "";
+  const workspace = params.get("sectorWorkspace"), discoverySort = params.get("sectorDiscoverySort");
+  const legacyDetail = ["sectorView", "sector", "group", "sectorCompany", "sectorQuery"].some(key => params.has(key));
   return {
+    workspace: workspace === "discover" || workspace === "breadth" || workspace === "detail" ? workspace : legacyDetail ? "detail" : "discover",
+    discoveryQuery: (params.get("sectorDiscoveryQuery") || "").slice(0, 60),
+    discoverySort: discoverySort === "return" || discoverySort === "participation" ? discoverySort : "source",
     // Preserve old study URLs without keeping competing customer destinations.
     view: view === "dossier" ? "signals" : view === "themes" ? "drivers" :
       SECTOR_VIEWS.includes(view as SectorView) ? view as SectorView : "intelligence",
@@ -157,6 +166,9 @@ export function parseSectorState(params: URLSearchParams): SectorState {
 }
 export function writeSectorState(url: URL, state: SectorState): string {
   url.searchParams.set("tab", "sectors");
+  url.searchParams.set("sectorWorkspace", state.workspace);
+  url.searchParams.set("sectorDiscoverySort", state.discoverySort);
+  if (state.discoveryQuery) url.searchParams.set("sectorDiscoveryQuery", state.discoveryQuery); else url.searchParams.delete("sectorDiscoveryQuery");
   url.searchParams.set("sectorView", state.view);
   if (state.sourcesOpen) url.searchParams.set("sectorSources", "1"); else url.searchParams.delete("sectorSources");
   url.searchParams.set("sectorTheme", state.theme);

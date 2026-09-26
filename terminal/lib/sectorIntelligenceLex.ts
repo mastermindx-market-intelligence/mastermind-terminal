@@ -6,6 +6,8 @@ import { useLang, useT } from "./i18n";
  * route and preserves unrelated screen evidence. No mutable registration/store.
  */
 export const SECTOR_INTELLIGENCE_LEX: Record<string, [string, string]> = {
+  siDiscoverSectors: ["Discover", "发现"], siMarketBreadth: ["Market breadth", "市场广度"],
+  siSectorResearch: ["Sector research", "板块研究"], siWorkspaceViews: ["Sector workspace views", "板块工作区视图"],
   siSignals: ["Signals", "信号"], siDrivers: ["Drivers", "驱动因素"], siHistory: ["History", "历史"],
   siCompaniesTab: ["Companies", "公司"], siSourcesPanel: ["Sources", "来源"],
   siSourcesFor: ["Evidence for this view", "当前视图的证据"],
@@ -53,7 +55,7 @@ export const SECTOR_INTELLIGENCE_LEX: Record<string, [string, string]> = {
   siCompactPartial: ["Some sources are unavailable.", "部分来源暂不可用。"],
   siThemeFreshnessLimited: ["Some theme inputs are stale; freshness varies by source.", "部分主题输入已过期，各来源的新鲜度不同。"],
   siTab: ["Sector Central", "板块中心"],
-  siEyebrow: ["UNITED STATES · SECTOR INTELLIGENCE", "美国 · 板块情报"],
+  siEyebrow: ["UNITED STATES · SECTOR CENTRAL", "美国 · 板块中心"],
   siTitle: ["Sector Central", "板块中心"],
   siSubtitle: ["Leadership, timing and the companies behind it.", "领涨方向、时机与背后的公司。"],
   siIntelligence: ["Intelligence", "情报"], siDossier: ["Dossier", "档案"],
