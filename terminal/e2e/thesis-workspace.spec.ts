@@ -78,6 +78,7 @@ test("create → deep link → reload → revise → conflict → archive/invali
   await page.reload();
   await expect(page.getByLabel("Thesis statement")).toHaveValue("Demand will outrun supply through the next platform cycle.");
   await page.getByLabel("Thesis statement").fill("Software mix expands pricing power through the next platform cycle.");
+  await page.getByLabel("Catalysts").fill("A brand-new catalyst\nSoftware mix expands");
   await page.getByLabel("Revision note").fill("Refined the operating leverage mechanism.");
   await page.getByRole("button", { name: "Save", exact: true }).click();
   await expect(page.getByText("Version 2 · Current")).toBeVisible();
@@ -131,6 +132,20 @@ test("create → deep link → reload → revise → conflict → archive/invali
   await expect(historical).toContainText("You");
   await expect(historical).toContainText("Software mix expands pricing power through the next platform cycle.");
   await expect(historical).toContainText("Data-center revenue compounds");
+  // B-F11-11a: What changed — version 2 has revised statement and title vs version 1
+  const delta2 = page.getByTestId("thesis-version-delta");
+  await expect(delta2).toBeVisible();
+  await expect(delta2).toContainText("Thesis statement changed.");
+  await expect(delta2).toContainText("Catalysts added: A brand-new catalyst.");
+  await expect(delta2).toContainText("Catalysts removed: Data-center revenue compounds.");
+  await expect(delta2).toContainText("Revision note changed.");
+  // Version 1 shows the origin sentence
+  await page.getByRole("button", { name: "Inspect version 1" }).click();
+  const delta1 = page.getByTestId("thesis-version-delta");
+  await expect(delta1).toBeVisible();
+  await expect(delta1).toContainText("This is the first version; nothing before this.");
+  await page.getByRole("button", { name: "Inspect version 4" }).click();
+  await expect(page.getByTestId("thesis-version-delta")).toContainText("Status changed: Active → Archived.");
   await page.getByRole("button", { name: "Inspect version 7" }).click();
   await expect(historical).toHaveAttribute("data-posture", "current");
   await expect(historical).toContainText("Current snapshot");

@@ -56,6 +56,7 @@ import {
   proposalStateLabel,
   type ProposalRow,
 } from "@/lib/thesisAmendmentProposals";
+import { describeThesisDelta, thesisVersionDeltaForHistory, type ThesisDelta, type ThesisDeltaCopy } from "@/lib/thesisDelta";
 
 export interface ThesisWorkspaceProps {
   ownerKey: string;
@@ -141,6 +142,18 @@ const COPY = {
     suggestNeedVersion: "Open a saved thesis before saving a suggestion.",
     acceptedIntoEditor: "This suggestion is in the editor. Publish it yourself when you are ready.",
     createdOn: "Saved on",
+    whatChangedLabel: "What changed",
+    whatChangedOrigin: "This is the first version; nothing before this.",
+    whatChangedTruncated: "The previous version is outside the loaded history.",
+    // Field labels for the "What changed" section
+    deltaTitle: "Title", deltaStatement: "Thesis statement", deltaCatalysts: "Catalysts",
+    deltaFalsifiers: "Falsifiers", deltaRisks: "Risks", deltaHorizon: "Horizon",
+    deltaEffectiveAt: "Effective as of", deltaRevisionNote: "Revision note",
+    deltaStatus: "Status",
+    whatChangedUnchanged: "Nothing changed in this version.",
+    // Verb phrases for the "What changed" section
+    deltaChanged: "changed", deltaAdded: "added", deltaRemoved: "removed",
+    deltaReordered: "reordered",
   },
   zh: {
     eyebrow: "研究工作区", title: "研究论点工作区", newThesis: "新建论点", list: "你的论点",
@@ -186,6 +199,18 @@ const COPY = {
     suggestNeedVersion: "请先打开一份已保存的论点，再保存建议。",
     acceptedIntoEditor: "这条建议已填入编辑器。准备好后请由你来发布。",
     createdOn: "保存于",
+    whatChangedLabel: "变更内容",
+    whatChangedOrigin: "这是第一版；此前没有版本。",
+    whatChangedTruncated: "上一版本不在已加载的历史记录中。",
+    // Field labels for the "What changed" section
+    deltaTitle: "标题", deltaStatement: "论点陈述", deltaCatalysts: "催化因素",
+    deltaFalsifiers: "证伪因素", deltaRisks: "风险", deltaHorizon: "时间范围",
+    deltaEffectiveAt: "生效时间", deltaRevisionNote: "修订说明",
+    deltaStatus: "状态",
+    whatChangedUnchanged: "此版本没有内容变化。",
+    // Verb phrases for the "What changed" section
+    deltaChanged: "已更改", deltaAdded: "已添加", deltaRemoved: "已删除",
+    deltaReordered: "已重排",
   },
 } as const;
 
@@ -253,6 +278,41 @@ function localInputToUtcInstant(value: string): string | undefined {
 
 function statusLabel(state: ThesisLifecycle, copy: typeof COPY.en | typeof COPY.zh): string {
   return state === "active" ? copy.active : state === "archived" ? copy.archived : copy.invalidated;
+}
+
+function thesisDeltaCopy(
+  lang: "en" | "zh",
+  copy: typeof COPY.en | typeof COPY.zh,
+): ThesisDeltaCopy {
+  const dateLocale = lang === "zh" ? "zh-CN" : "en-CA";
+  return {
+    language: lang,
+    origin: copy.whatChangedOrigin,
+    truncated: copy.whatChangedTruncated,
+    fields: {
+      title: copy.deltaTitle,
+      statement: copy.deltaStatement,
+      catalysts: copy.deltaCatalysts,
+      falsifiers: copy.deltaFalsifiers,
+      risks: copy.deltaRisks,
+      horizon: copy.deltaHorizon,
+      effectiveAt: copy.deltaEffectiveAt,
+      revisionNote: copy.deltaRevisionNote,
+      status: copy.deltaStatus,
+    },
+    changed: copy.deltaChanged,
+    added: copy.deltaAdded,
+    removed: copy.deltaRemoved,
+    reordered: copy.deltaReordered,
+    none: copy.none,
+    formatHorizon: (horizon) => HORIZON_LABELS[lang][horizon],
+    formatDate: (date) => date === null ? copy.none : new Date(date).toLocaleString(dateLocale),
+    formatLifecycle: (lifecycle) => statusLabel(lifecycle, copy),
+  };
+}
+
+function deltaKey(delta: ThesisDelta): string {
+  return "field" in delta ? `${delta.kind}-${delta.field}` : delta.kind;
 }
 
 function builtinLabel(id: BuiltinViewId, rms: (typeof RMS_COPY)["en"]): string {
@@ -2439,6 +2499,26 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
                               <div><dt>{copy.subjectKind}</dt><dd>{subjectKindLabel(entry.subject.kind, lang)}</dd></div>
                               <div><dt>{copy.listing}</dt><dd>{entry.subject.listing?.symbol ?? copy.none}</dd></div>
                             </dl>
+                            {(() => {
+                              const deltas = thesisVersionDeltaForHistory(history, entry);
+                              const deltaCopy = thesisDeltaCopy(lang, copy);
+                              if (deltas.length === 0) {
+                                return (
+                                  <section aria-label={copy.whatChangedLabel} data-testid="thesis-version-delta">
+                                    <p className={styles.deltaNote}><span>{copy.whatChangedUnchanged}</span></p>
+                                  </section>
+                                );
+                              }
+                              return (
+                                <section aria-label={copy.whatChangedLabel} data-testid="thesis-version-delta">
+                                  <p className={styles.deltaNote}>
+                                    {deltas.map((delta) => (
+                                      <span key={deltaKey(delta)}>{describeThesisDelta(delta, deltaCopy)}</span>
+                                    ))}
+                                  </p>
+                                </section>
+                              );
+                            })()}
                             <div className={styles.snapshotGrid}>
                               <section><h4>{copy.titleLabel}</h4><p>{entry.content.title}</p></section>
                               <section className={styles.snapshotFull}><h4>{copy.statement}</h4><p>{entry.content.statement}</p></section>
