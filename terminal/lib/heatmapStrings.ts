@@ -25,7 +25,8 @@ const HM_LEX = {
   viewTable:        ["TABLE", "列表"],
 
   // ── Sizing modes ─────────────────────────────────────────────────────────────
-  sizeCap:          ["CAP", "市值"],
+  // Legacy key retained: this mode uses price * reported volume, not market cap.
+  sizeCap:          ["Price × volume", "价格 × 成交量"],
   sizeEqual:        ["EQUAL", "等面积"],
   sizeCapDeferred:  ["CAP (soon)", "市值（即将上线）"],
   sizePremium:      ["PREMIUM", "权利金"],
