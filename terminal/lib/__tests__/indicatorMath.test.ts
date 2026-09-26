@@ -309,6 +309,16 @@ describe("rsiStack", () => {
     }
   });
 
+  it("reads a flat market as neutral RSI 50 instead of overbought 100", () => {
+    const bars = constBars(80, 50);
+    const result = rsiStack(bars, 7, 14, 21);
+    for (const series of [result.r1, result.r2, result.r3]) {
+      const finite = series.filter((v): v is number => v != null);
+      expect(finite.length).toBeGreaterThan(0);
+      expect(new Set(finite)).toEqual(new Set([50]));
+    }
+  });
+
   it("uses periods 7, 14, 21 — r1 is more reactive than r3 (wider swing on stair)", () => {
     // On a strongly trending series r1(7) moves faster toward 100 than r3(21)
     const bars = stairBars(80, 50, 2); // steadily rising

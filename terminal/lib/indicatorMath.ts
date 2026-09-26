@@ -595,6 +595,7 @@ export function rsiStack(bars: Bar[], len1 = 7, len2 = 14, len3 = 21): RsiStackR
     return src.map((_, i) => {
       const g = ag[i], l = al[i];
       if (g == null || l == null) return null;
+      if (g === 0 && l === 0) return 50;
       if (l === 0) return 100;
       return 100 - 100 / (1 + g / l);
     });
