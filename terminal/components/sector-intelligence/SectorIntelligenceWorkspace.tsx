@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import MobileSheet from "@/components/ui/MobileSheet";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useLang } from "@/lib/i18n";
 import { useSectorT } from "@/lib/sectorIntelligenceLex";
@@ -14,7 +15,7 @@ import styles from "./SectorIntelligenceWorkspace.module.css";
 import SectorCompanyComparison from "./SectorCompanyComparison";
 
 const VIEW_KEYS: Record<SectorView, string> = {
-  intelligence: "siOverview", dossier: "siDossier", companies: "siCompanies", themes: "siThemes", sources: "siSources",
+  intelligence: "siOverview", companies: "siCompaniesTab", signals: "siSignals", drivers: "siDrivers", history: "siHistory",
 };
 const FEED_KEYS: Record<SectorFeed, string> = {
   sector: "siFeedSector", confluence: "siFeedConfluence", themes: "siFeedThemes", heatmap: "siFeedHeatmap",
@@ -51,6 +52,8 @@ export default function SectorIntelligenceWorkspace() {
   const [revision, setRevision] = useState(0);
   const [groupBrowserOpen, setGroupBrowserOpen] = useState(false);
   const nav = useRef<HTMLElement>(null);
+  const sourceTrigger = useRef<HTMLButtonElement>(null);
+  const sourceReturn = useRef<string | null>(null);
   // A changed account hides the previous account's data in the render itself,
   // before effects run. Nothing is persisted in browser storage or shared caches.
   const feeds = received.identity === identity && received.revision === revision ? received.feeds : {};
@@ -117,8 +120,21 @@ export default function SectorIntelligenceWorkspace() {
     if (push) window.history.pushState(window.history.state, "", href);
     else window.history.replaceState(window.history.state, "", href);
   }, [state]);
-  const go = (view: SectorView) => change({ view }, true);
-  const sourcesLink = <button type="button" className={styles.textButton} onClick={() => go("sources")}>{t("siOpenSources")} →</button>;
+  const go = (view: SectorView) => change({ view, sourcesOpen: false }, true);
+  const openSources = (opener?: HTMLElement) => {
+    // WebKit does not reliably focus a pointer-activated button by itself.
+    (opener || sourceTrigger.current)?.focus({ preventScroll: true });
+    sourceReturn.current = window.location.href;
+    change({ sourcesOpen: true }, true);
+  };
+  const closeSources = () => {
+    // A source panel opened here adds one history entry; dismissing consumes it.
+    // A direct/legacy bookmark has no local opener entry, so replace it safely.
+    if (sourceReturn.current) { sourceReturn.current = null; window.history.back(); }
+    else change({ sourcesOpen: false });
+  };
+  const sourcesLink = <button type="button" className={styles.textButton}
+    onClick={event => openSources(event.currentTarget)}>{t("siOpenSources")} →</button>;
   const glanceKey = !hasSector ? "siGlanceUnavailable" : text(momentum.lead).toLowerCase() !== "leading" ? "siGlanceMixed"
     : text(conviction.label_en).toLowerCase() === "cautious" || text(cycle.phaseLabel).toLowerCase() === "rolling over" ? "siGlanceLeading" : "siGlanceLeadingPlain";
   const comparison = <SectorCompanyComparison rows={visibleMembers} selected={state.company} expanded={state.expanded}
@@ -151,11 +167,25 @@ export default function SectorIntelligenceWorkspace() {
   return <main className={`main2 ${styles.root}`} data-testid="sector-intelligence" data-sector-theme={state.theme}>
     <SectorGroupBrowser open={groupBrowserOpen} groups={groups} selected={state.group}
       status={feeds.confluence?.receipt.status || "loading"} theme={state.theme}
-      onClose={() => setGroupBrowserOpen(false)} onReviewSources={() => { setGroupBrowserOpen(false); go("sources"); }}
+      onClose={() => setGroupBrowserOpen(false)} onReviewSources={() => { setGroupBrowserOpen(false); window.requestAnimationFrame(() => openSources()); }}
       onSelect={group => {
         setGroupBrowserOpen(false);
         if (group !== state.group) change({ group, view: "intelligence", query: "", sort: "source", company: "", expanded: false }, true);
       }} />
+    <MobileSheet open={state.sourcesOpen} onClose={closeSources} ariaLabel={t("siSourcesPanel")}
+      maxHeight="90dvh" initialFocus="sheet" className={`${styles.sourcePanel} ${state.theme === "light" ? styles.light : ""}`}>
+      <div className={styles.sourceContent}>
+        <header className={styles.sourcePanelHeader}><div><h2>{t("siSourcesPanel")}</h2>
+          <p>{groupName || state.group || sectorName} · {t(VIEW_KEYS[state.view])}</p></div>
+          <button type="button" className={styles.button} onClick={closeSources}>{t("siCloseSources")}</button></header>
+        <div className={styles.sectionHeading}><h2>{t("siSourceRecord")}</h2><p>{t("siSourceRecordCopy")}</p></div><div className={styles.sourceGrid}>
+          {SECTOR_FEEDS.map(source => { const receipt = feeds[source]?.receipt; return <Card key={source} title={t(FEED_KEYS[source])} action={<span className={styles.badge}>{t(STATUS_KEYS[receipt?.status || "loading"])}</span>}>
+            <dl className={styles.pairs}><div><dt>{t("siSnapshotDate")}</dt><dd>{receipt?.asOf || t("siUnknownDate")}</dd></div><div><dt>{t("siFetched")}</dt><dd>{receipt?.observedAt || "—"}</dd></div></dl>
+            {receipt?.stale && <p className={styles.note}>{t("siStale")}</p>}
+            <details className={styles.explanation}><summary>{t("siReceipt")}</summary><p>{t("siSourcePath")}</p><code>{receipt?.path || "—"}</code><p>{t("siHash")}</p><code>{receipt?.contentHash || "—"}</code></details>
+          </Card>; })}</div>
+      </div>
+    </MobileSheet>
     <div className={styles.page}>
       <header className={styles.header}><div><p className={styles.eyebrow}>{t("siEyebrow")}</p><h1>{t("siTitle")}</h1><p className={styles.subtitle}>{t("siSubtitle")}</p></div>
         <div className={styles.controls}>
@@ -170,7 +200,7 @@ export default function SectorIntelligenceWorkspace() {
           <button type="button" className={styles.button} onClick={() => setRevision(n => n + 1)}>{t("siRefresh")}</button>
         </div>
       </header>
-      <nav ref={nav} className={styles.tabs} role="tablist" aria-label={t("siViews")} onKeyDown={event => {
+      <div className={styles.navigation}><nav ref={nav} className={styles.tabs} role="tablist" aria-label={t("siViews")} onKeyDown={event => {
         const index = SECTOR_VIEWS.indexOf(state.view);
         const next = event.key === "ArrowRight" ? (index + 1) % SECTOR_VIEWS.length : event.key === "ArrowLeft" ? (index + SECTOR_VIEWS.length - 1) % SECTOR_VIEWS.length : event.key === "Home" ? 0 : event.key === "End" ? SECTOR_VIEWS.length - 1 : -1;
         if (next < 0) return;
@@ -180,7 +210,8 @@ export default function SectorIntelligenceWorkspace() {
         {SECTOR_VIEWS.map(view => <button type="button" key={view} id={`si-tab-${view}`} role="tab"
           aria-selected={state.view === view} aria-controls={`si-panel-${view}`} tabIndex={state.view === view ? 0 : -1}
           onClick={() => go(view)}>{t(VIEW_KEYS[view])}</button>)}
-      </nav>
+      </nav><button ref={sourceTrigger} type="button" className={styles.sourceTrigger} aria-haspopup="dialog"
+        aria-expanded={state.sourcesOpen} onClick={event => openSources(event.currentTarget)}>{t("siSourcesPanel")}</button></div>
       <div className={styles.contextLine}><span className={styles.badge}>{t("siResearchOnly")}</span><span>{t("siDated")} · {feeds.sector?.receipt.asOf || t("siUnknownDate")}</span></div>
       {completed === SECTOR_FEEDS.length && ready < SECTOR_FEEDS.length && <div className={styles.notice} role="status"><div><strong>{t("siCompactPartial")}</strong></div>{sourcesLink}</div>}
       <div role="tabpanel" id={`si-panel-${state.view}`} aria-labelledby={`si-tab-${state.view}`} tabIndex={0} className={styles.view}>
@@ -207,8 +238,8 @@ export default function SectorIntelligenceWorkspace() {
               <aside className={styles.stack}>{business}<Card title={t("siTaxonomy")}><p className={styles.note}>{t("siTaxonomyCopy")}</p></Card></aside></div>
           </details>
         </>}
-        {state.view === "dossier" && <div className={styles.columns}><div className={styles.stack}><Card title={`${sectorName || state.sector.toUpperCase()} · ${t("siDossier")}`} subtitle={t("siSeparate")}>{axes}</Card>
-          <Card title={t("siWhyDiffer")}><div className={styles.callout}><h3>{t("siSlow")} / {t("siFast")}</h3><p>{stateLabel(conviction.label_en)} / {stateLabel(rotation.state)}</p><span>{t("siClockCopy")}</span></div><div className={styles.callout}><h3>{t("siEntryOwner")} / {t("siRegimeOwner")}</h3><p>{text(entry.tier) || "—"} / {stateLabel(regime.state)}</p><span>{t("siSplitCopy")}</span></div></Card>{business}
+        {state.view === "signals" && <div className={styles.columns}><div className={styles.stack}><Card title={`${sectorName || state.sector.toUpperCase()} · ${t("siSectorSignals")}`} subtitle={t("siSeparate")}>{axes}</Card>
+          <Card title={t("siSignals")}><div className={styles.callout}><h3>{sectorName || state.sector.toUpperCase()} · {t("siSlow")} / {t("siFast")}</h3><p>{stateLabel(conviction.label_en)} / {stateLabel(rotation.state)}</p><span>{t("siClockCopy")}</span></div><div className={styles.callout}><h3>{groupName || t("siGroup")} · {t("siEntryOwner")} / {t("siRegimeOwner")}</h3><p>{text(entry.tier) || "—"} / {stateLabel(regime.state)}</p><span>{t("siSplitCopy")}</span></div></Card>{business}
         </div><aside className={styles.stack}>{concentrationCard}<Card title={t("siCohort")}><p className={styles.note}>{t("siMembershipCopy")}</p></Card></aside></div>}
         {state.view === "companies" && <Card title={groupName || t("siCompanies")} subtitle={`${formatValue(count(group.n_members), 0)} ${t("siMembers")} · ${feeds.confluence?.receipt.asOf || t("siUnknownDate")}`}>
           <p className={styles.note}>{t("siCompanyCaution")}</p>
@@ -227,15 +258,13 @@ export default function SectorIntelligenceWorkspace() {
           {!visibleMembers.length && <p className={styles.empty}>{roster.length ? t("siNoMatches") : t("siNoMembers")}</p>}
           <p className={styles.muted}>{t("siMembershipCopy")}</p>
         </Card>}
-        {state.view === "themes" && <><div className={styles.sectionHeading}><h2>{t("siThemeContext")}</h2><p>{t("siThemeScope")}</p>{themeStaleLegs(feeds.themes?.data).length > 0 && <p role="status">{t("siThemeFreshnessLimited")}</p>}</div><div className={styles.themeGrid}>
+        {state.view === "drivers" && <>{business}<details className={styles.studyDisclosure}><summary>{t("siThemesDisclosure")}</summary><div className={styles.sectionHeading}><h2>{t("siThemeContext")}</h2><p>{t("siThemeScope")}</p>{themeStaleLegs(feeds.themes?.data).length > 0 && <p role="status">{t("siThemeFreshnessLimited")}</p>}</div><div className={styles.themeGrid}>
           {themes.map(row => <Card key={text(row.theme_id)} title={localName(row, "name_en", "name_zh")}><dl className={styles.pairs}><div><dt>{t("siThemeStage")}</dt><dd>{stateLabel(object(row.foresight).stage)}</dd></div><div><dt>{t("siThemeReady")}</dt><dd>{themeEntryReady(row) === null ? t("siUnavailable") : themeEntryReady(row) ? t("siYes") : t("siNo")}</dd></div><div><dt>{t("siSnapshotDate")}</dt><dd>{feeds.themes?.receipt.asOf || t("siUnknownDate")}</dd></div></dl></Card>)}
-          {!themes.length && <p className={styles.empty}>{t("siNoThemes")}</p>}</div><div className={styles.columns}><Card title={t("siTaxonomy")}><p className={styles.note}>{t("siTaxonomyCopy")}</p></Card>{business}</div></>}
-        {state.view === "sources" && <><div className={styles.sectionHeading}><h2>{t("siSourceRecord")}</h2><p>{t("siSourceRecordCopy")}</p></div><div className={styles.sourceGrid}>
-          {SECTOR_FEEDS.map(source => { const receipt = feeds[source]?.receipt; return <Card key={source} title={t(FEED_KEYS[source])} action={<span className={styles.badge}>{t(STATUS_KEYS[receipt?.status || "loading"])}</span>}>
-            <dl className={styles.pairs}><div><dt>{t("siSnapshotDate")}</dt><dd>{receipt?.asOf || t("siUnknownDate")}</dd></div><div><dt>{t("siFetched")}</dt><dd>{receipt?.observedAt || "—"}</dd></div></dl>
-            {receipt?.stale && <p className={styles.note}>{t("siStale")}</p>}
-            <details className={styles.explanation}><summary>{t("siReceipt")}</summary><p>{t("siSourcePath")}</p><code>{receipt?.path || "—"}</code><p>{t("siHash")}</p><code>{receipt?.contentHash || "—"}</code></details>
-          </Card>; })}</div><div className={styles.columns}><Card title={t("siReplay")}><p className={styles.muted}>{t("siReplayCopy")}</p></Card><Card title={t("siEntry")}><p className={styles.muted}>{t("siEntryCopy")}</p><span className={styles.badge}>{t("siNotConnected")}</span></Card></div></>}
+          {!themes.length && <p className={styles.empty}>{t("siNoThemes")}</p>}</div><div className={styles.columns}><Card title={t("siTaxonomy")}><p className={styles.note}>{t("siTaxonomyCopy")}</p></Card></div></details></>}
+        {state.view === "history" && <Card title={t("siHistoryEmpty")}>
+          <p className={styles.muted}>{t("siReplayCopy")}</p>
+          <p className={styles.note}>{t("siHistoryContext")}</p>{sourcesLink}
+        </Card>}
       </div>
       <footer className={styles.footer}>{t("siResearchCopy")}</footer>
     </div>

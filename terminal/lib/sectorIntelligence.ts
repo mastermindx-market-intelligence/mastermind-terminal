@@ -17,14 +17,14 @@ export interface FeedReceipt {
 export interface FeedPayload { data: unknown; receipt: FeedReceipt }
 export type FeedMap = Partial<Record<SectorFeed, FeedPayload>>;
 export type Row = Record<string, unknown>;
-export const SECTOR_VIEWS = ["intelligence", "dossier", "companies", "themes", "sources"] as const;
+export const SECTOR_VIEWS = ["intelligence", "companies", "signals", "drivers", "history"] as const;
 export type SectorView = typeof SECTOR_VIEWS[number];
 export type MemberSort = "source" | "return" | "relative" | "ticker";
 export type SectorState = {
-  view: SectorView; sector: string; group: string; sort: MemberSort; query: string; theme: "dark" | "light"; company: string; expanded: boolean;
+  view: SectorView; sector: string; group: string; sort: MemberSort; query: string; theme: "dark" | "light"; company: string; expanded: boolean; sourcesOpen: boolean;
 };
 export const DEFAULT_SECTOR_STATE: SectorState = {
-  view: "intelligence", sector: "xlk", group: "semiconductors", sort: "source", query: "", theme: "dark", company: "", expanded: false,
+  view: "intelligence", sector: "xlk", group: "semiconductors", sort: "source", query: "", theme: "dark", company: "", expanded: false, sourcesOpen: false,
 };
 export function object(value: unknown): Row {
   return value !== null && typeof value === "object" && !Array.isArray(value) ? value as Row : {};
@@ -143,7 +143,10 @@ export function parseSectorState(params: URLSearchParams): SectorState {
   const view = params.get("sectorView") || "", sector = params.get("sector") || "", group = params.get("group") || "";
   const sort = params.get("sectorSort") || "";
   return {
-    view: SECTOR_VIEWS.includes(view as SectorView) ? view as SectorView : "intelligence",
+    // Preserve old study URLs without keeping competing customer destinations.
+    view: view === "dossier" ? "signals" : view === "themes" ? "drivers" :
+      SECTOR_VIEWS.includes(view as SectorView) ? view as SectorView : "intelligence",
+    sourcesOpen: view === "sources" || params.get("sectorSources") === "1",
     sector: KEY.test(sector) ? sector : "xlk", group: KEY.test(group) ? group : params.has("group") ? "" : "semiconductors",
     sort: ["source", "return", "relative", "ticker"].includes(sort) ? sort as MemberSort : "source",
     query: (params.get("sectorQuery") || "").slice(0, 40),
@@ -155,6 +158,7 @@ export function parseSectorState(params: URLSearchParams): SectorState {
 export function writeSectorState(url: URL, state: SectorState): string {
   url.searchParams.set("tab", "sectors");
   url.searchParams.set("sectorView", state.view);
+  if (state.sourcesOpen) url.searchParams.set("sectorSources", "1"); else url.searchParams.delete("sectorSources");
   url.searchParams.set("sectorTheme", state.theme);
   if (state.company) url.searchParams.set("sectorCompany", state.company); else url.searchParams.delete("sectorCompany");
   if (state.expanded) url.searchParams.set("sectorExpanded", "1"); else url.searchParams.delete("sectorExpanded");
