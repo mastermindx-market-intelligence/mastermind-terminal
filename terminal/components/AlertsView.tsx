@@ -14,6 +14,7 @@ import {
 import {
   SUITE_ALERT_EVENTS,
   suiteAlertPreview,
+  suiteEventName,
   suiteSequencePreview,
   type SuiteAlertCondition,
   type SuiteAlertEventDef,
@@ -456,7 +457,7 @@ export default function AlertsView({ email, panelOnly, listOnly }: { email: stri
   // indicator picker: never a silent absence.
   const suiteEvtOptions = suiteEvts.map((e) => {
     const locked = isLockedEvt(e);
-    const label = t(e.tkey, e.en);
+    const label = suiteEventName(e.event, lang === "zh" ? "zh" : "en");
     return (
       <option key={e.event} value={e.event} disabled={locked}>
         {locked ? `${label} · ${evtTier(e) === "pro" ? "PRO" : "INSIDER"}` : label}
