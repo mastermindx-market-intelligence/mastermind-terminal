@@ -138,3 +138,43 @@ test("Market vNext remains bilingual and overflow-safe on mobile", async ({ page
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflow).toBeLessThanOrEqual(1);
 });
+
+test("Ownership family defaults to Institutional and preserves Insider as its sibling", async ({ page }) => {
+  await page.route("**/api/company-intelligence/NVDA**", async (route) => {
+    await route.fulfill({
+      status: 404,
+      json: {
+        ok: false,
+        state: "error",
+        error: { code: "not_found", message: "Company context not covered in navigation fixture", retryable: false },
+      },
+    });
+  });
+  await page.goto("/analysis?symbol=NVDA&page=overview");
+  await expect(page.locator(".sym-pick strong")).toHaveText("NVDA", { timeout: 45_000 });
+
+  const compact = page.viewportSize()!.width <= 860;
+  if (compact) {
+    await page.locator(".fin-family-mobile-trigger").click();
+    const sheet = page.locator(".fin-family-sheet");
+    await expect(sheet).toBeVisible();
+    await sheet.locator('[data-fin-family-sheet="ownership"]').click();
+    await expect(page).toHaveURL(/[?&]page=ownership\b/);
+    await expect(page.locator(".fin-family-mobile-trigger")).toContainText("Ownership");
+    await expect(page.locator(".fin-local-mobile-tab.on")).toHaveText("Institutional");
+    await expect(page.locator(".fin-local-mobile-tab", { hasText: "Insider" })).toBeVisible();
+    await page.locator(".fin-local-mobile-tab", { hasText: "Insider" }).click();
+  } else {
+    await page.locator('[data-fin-family="ownership"]').click();
+    await expect(page).toHaveURL(/[?&]page=ownership\b/);
+    await expect(page.locator('[data-fin-family="ownership"]')).toHaveAttribute("aria-selected", "true");
+    await expect(page.locator('[data-fin-local="ownership"]')).toHaveAttribute("aria-selected", "true");
+    await expect(page.locator('[data-fin-local="ownership"]')).toContainText("Institutional");
+    await expect(page.locator('[data-fin-local="insider"]')).toContainText("Insider");
+    await page.locator('[data-fin-local="insider"]').click();
+  }
+
+  await expect(page).toHaveURL(/[?&]page=insider\b/);
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  expect(overflow).toBeLessThanOrEqual(1);
+});

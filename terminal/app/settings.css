@@ -108,25 +108,108 @@ html.acs-lock, html.acs-lock body { overflow: hidden; }
   .acs-card { background: var(--panel-2); }
 }
 
-/* laser hairline — brand-bar idiom; sweeps ONCE on open, then rests */
+/* Aurora rail — a seamless moving wave rather than a one-shot sweep.
+   The two pseudo-elements are three copies wide; translating exactly one copy
+   produces a true loop with no visual jump at the iteration boundary. */
 .acs-laser {
   position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
+  top: -4px;
+  left: 12px;
+  right: 12px;
+  height: 10px;
   z-index: 3;
   pointer-events: none;
-  background: linear-gradient(90deg, transparent 0%, var(--acs-accent) 30%, #9b5cff 62%, transparent 100%);
-  background-size: 220% 100%;
-  background-position: 120% 0;
+  overflow: hidden;
+  border-radius: 999px;
+  opacity: .94;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 2.5%, #000 97.5%, transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0%, #000 2.5%, #000 97.5%, transparent 100%);
+  will-change: opacity;
 }
-.acs-overlay.open .acs-laser { animation: acsLaser .9s cubic-bezier(.4, .1, .2, 1) .12s forwards; }
-@keyframes acsLaser { from { background-position: 120% 0; } to { background-position: 0% 0; } }
+.acs-laser::before,
+.acs-laser::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 300%;
+  height: 100%;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg,
+      #48b5ff 0%,
+      #4d7cff 16%,
+      #7b61ff 34%,
+      #b05cff 52%,
+      #6a7cff 70%,
+      #35c2ff 86%,
+      #48b5ff 100%);
+  background-size: 33.333333% 100%;
+  background-repeat: repeat-x;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 16'%3E%3Cpath d='M0 8 C7 2 16 13 25 8 S41 3 50 8 S67 13 75 8 S92 2 100 8' fill='none' stroke='white' stroke-width='1.7' stroke-linecap='round'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 16'%3E%3Cpath d='M0 8 C7 2 16 13 25 8 S41 3 50 8 S67 13 75 8 S92 2 100 8' fill='none' stroke='white' stroke-width='1.7' stroke-linecap='round'/%3E%3C/svg%3E");
+  -webkit-mask-size: 33.333333% 100%;
+  mask-size: 33.333333% 100%;
+  -webkit-mask-repeat: repeat-x;
+  mask-repeat: repeat-x;
+  will-change: transform, background-position, opacity;
+}
+.acs-laser::before {
+  opacity: .98;
+  filter:
+    drop-shadow(0 0 2px color-mix(in srgb, #4da2ff 88%, transparent))
+    drop-shadow(0 0 5px color-mix(in srgb, #865cff 58%, transparent));
+}
+.acs-laser::after {
+  opacity: .38;
+  filter:
+    blur(3.5px)
+    drop-shadow(0 1px 6px color-mix(in srgb, #6b8dff 56%, transparent));
+  transform-origin: 50% 50%;
+}
+.acs-overlay.open .acs-laser {
+  animation: acsAuroraBreathe 4.6s ease-in-out .15s infinite;
+}
+.acs-overlay.open .acs-laser::before {
+  animation:
+    acsAuroraFlow 6.4s linear .08s infinite,
+    acsAuroraChromaticDrift 9.6s ease-in-out .08s infinite;
+}
+.acs-overlay.open .acs-laser::after {
+  animation:
+    acsAuroraFlow 6.4s linear .08s infinite,
+    acsAuroraHalo 4.6s ease-in-out .15s infinite;
+}
+@keyframes acsAuroraFlow {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-33.333333%, 0, 0); }
+}
+@keyframes acsAuroraChromaticDrift {
+  0%, 100% { background-position: 0 0; opacity: .9; }
+  38% { background-position: 13% 0; opacity: 1; }
+  72% { background-position: -9% 0; opacity: .86; }
+}
+@keyframes acsAuroraBreathe {
+  0%, 100% { opacity: .78; }
+  48% { opacity: 1; }
+  68% { opacity: .91; }
+}
+@keyframes acsAuroraHalo {
+  0%, 100% { opacity: .24; }
+  48% { opacity: .52; }
+  70% { opacity: .38; }
+}
 
 @media (prefers-reduced-motion: reduce) {
   .acs-overlay, .acs-card { transition: opacity .15s ease; }
   .acs-card { transform: none; }
   .acs-overlay.open .acs-card { animation: none; }
-  .acs-overlay.open .acs-laser { animation: none; background-position: 0% 0; }
+  .acs-overlay.open .acs-laser,
+  .acs-overlay.open .acs-laser::before,
+  .acs-overlay.open .acs-laser::after { animation: none; }
+  .acs-overlay.open .acs-laser { opacity: .88; }
+  .acs-overlay.open .acs-laser::before { transform: translate3d(-8%, 0, 0); opacity: .92; }
+  .acs-overlay.open .acs-laser::after { transform: translate3d(-8%, 0, 0); opacity: .30; }
 }
 
 /* ── left rail ─────────────────────────────────────────────────────────── */

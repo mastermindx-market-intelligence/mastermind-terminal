@@ -37,6 +37,7 @@ restoration and the BUILD_ID comparison are load-bearing rather than decorative.
 
 from __future__ import annotations
 
+import json
 import os
 import re
 import shutil
@@ -764,7 +765,7 @@ def test_mutant_ignoring_preflight_failure_reaches_downstream_effects(
 ) -> None:
     anchor = (
         'run_release_preflight "$PREFLIGHT_SCRIPT" "$PREFLIGHT_POLICY" '
-        '"$SRC" "$PREFLIGHT_RECEIPT_DIR"'
+        '"$SRC" "$PREFLIGHT_RECEIPT_DIR" auto'
     )
     mutant = _mutate(tmp_path, anchor, anchor + " || true  # MUTANT")
 
@@ -805,6 +806,160 @@ def test_receipt_validator_still_blocks_if_directory_failure_is_ignored(
     assert "prepare_preflight_receipt_dir \"$PREFLIGHT_RECEIPT_DIR\" || true" not in _deploy_body(
         code_only=True
     )
+
+
+def _git(repo: Path, *args: str) -> str:
+    result = subprocess.run(
+        ["git", "-C", str(repo), *args],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return result.stdout.strip()
+
+
+def make_canonical_mismatch_fixture(tmp_path: Path, *, drift: bool = False):
+    repo = tmp_path / "canonical"
+    live = tmp_path / "live-terminal"
+    receipts = tmp_path / "receipts"
+    policy_path = tmp_path / "policy.json"
+    repo.mkdir()
+    live.mkdir()
+    receipts.mkdir(mode=0o750)
+    _git(repo, "init", "-q")
+    _git(repo, "config", "user.email", "deploy-test@example.com")
+    _git(repo, "config", "user.name", "Deploy Test")
+    source = repo / "terminal"
+    source.mkdir()
+    (source / "file.txt").write_text("old\n", encoding="utf-8")
+    _git(repo, "add", "terminal/file.txt")
+    _git(repo, "commit", "-q", "-m", "old generation")
+    old_sha = _git(repo, "rev-parse", "HEAD")
+
+    (source / "file.txt").write_text("new\n", encoding="utf-8")
+    _git(repo, "add", "terminal/file.txt")
+    _git(repo, "commit", "-q", "-m", "admitted target")
+    new_sha = _git(repo, "rev-parse", "HEAD")
+    _git(repo, "update-ref", "refs/remotes/origin/master", new_sha)
+
+    (live / "file.txt").write_text("drift\n" if drift else "old\n", encoding="utf-8")
+    marker = live / ".deployment-id"
+    marker.write_text(old_sha + "\n", encoding="ascii")
+    policy = {
+        "schema": "mastermind.terminal.source_audit_policy.v1",
+        "accepted_ref": "refs/remotes/origin/master",
+        "deployment_id_file": str(marker),
+        "mappings": [
+            {
+                "name": "terminal-app",
+                "repo_path": "terminal",
+                "live_path": str(live),
+                "allowances": [
+                    {
+                        "path": ".deployment-id",
+                        "classification": "deployment_marker",
+                        "expected_live_type": "file",
+                    }
+                ],
+            }
+        ],
+    }
+    policy_path.write_text(json.dumps(policy), encoding="utf-8")
+    return repo, live, marker, receipts, policy_path, old_sha, new_sha
+
+
+def test_recovery_receipt_accepts_only_the_single_canonical_head_mismatch(tmp_path):
+    repo, _, _, receipts, policy, old_sha, new_sha = make_canonical_mismatch_fixture(tmp_path)
+    preflight = REPO / "ops" / "terminal_release_preflight.py"
+    r = run_gen(
+        SCRIPT,
+        f'''
+        run_release_preflight "{preflight}" "{policy}" "{repo}" "{receipts}" canonical-head-mismatch
+        rc=$?
+        echo "RC=$rc ACCEPTED=$PREFLIGHT_ACCEPTED_SHA HEAD=$PREFLIGHT_CANONICAL_HEAD"
+        exit "$rc"
+        ''',
+    )
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert f"ACCEPTED={old_sha}" in r.stdout
+    assert f"HEAD={new_sha}" in r.stdout
+    assert _git(repo, "rev-parse", "HEAD") == new_sha, "evidence collection must be read-only"
+
+
+def test_recovery_receipt_refuses_any_second_source_finding(tmp_path):
+    repo, _, _, receipts, policy, _, new_sha = make_canonical_mismatch_fixture(tmp_path, drift=True)
+    preflight = REPO / "ops" / "terminal_release_preflight.py"
+    r = run_gen(
+        SCRIPT,
+        f'''
+        run_release_preflight "{preflight}" "{policy}" "{repo}" "{receipts}" canonical-head-mismatch
+        rc=$?
+        echo "RC=$rc"
+        exit "$rc"
+        ''',
+    )
+    assert r.returncode == 64, r.stdout + r.stderr
+    assert _git(repo, "rev-parse", "HEAD") == new_sha
+
+
+def test_canonical_mismatch_recovery_restores_only_the_receipted_live_generation(tmp_path):
+    repo, _, marker, receipts, policy, old_sha, new_sha = make_canonical_mismatch_fixture(tmp_path)
+    preflight = REPO / "ops" / "terminal_release_preflight.py"
+    r = run_gen(
+        SCRIPT,
+        f'''
+        run_release_preflight "{preflight}" "{policy}" "{repo}" "{receipts}" auto
+        recover_canonical_head_mismatch "{repo}" "{marker}"
+        rc=$?
+        echo "RC=$rc"
+        exit "$rc"
+        ''',
+    )
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert _git(repo, "rev-parse", "HEAD") == old_sha
+    assert _git(repo, "status", "--porcelain=v1", "--untracked-files=all") == ""
+    assert f"head={new_sha} live={old_sha}" in r.stdout
+
+
+def test_preswap_exit_recovery_returns_source_head_after_failed_build(tmp_path):
+    repo, live, marker, _, _, old_sha, _ = make_canonical_mismatch_fixture(tmp_path)
+    r = run_gen(
+        SCRIPT,
+        f'''
+        SRC="{repo}"
+        APP="{live}"
+        DEPLOYMENT_MARKER="{marker}"
+        CANONICAL_RECOVERY_SHA="{old_sha}"
+        CANONICAL_RECOVERY_ARMED=1
+        STAGE_ROOT=
+        false
+        cleanup_deploy_attempt
+        ''',
+    )
+    assert r.returncode == 1, r.stdout + r.stderr
+    assert _git(repo, "rev-parse", "HEAD") == old_sha
+    assert "pre-swap canonical checkout recovery OK" in r.stdout
+
+
+def test_preswap_exit_recovery_refuses_if_live_identity_changed(tmp_path):
+    repo, live, marker, _, _, old_sha, new_sha = make_canonical_mismatch_fixture(tmp_path)
+    marker.write_text(new_sha + "\n", encoding="ascii")
+    r = run_gen(
+        SCRIPT,
+        f'''
+        SRC="{repo}"
+        APP="{live}"
+        DEPLOYMENT_MARKER="{marker}"
+        CANONICAL_RECOVERY_SHA="{old_sha}"
+        CANONICAL_RECOVERY_ARMED=1
+        STAGE_ROOT=
+        false
+        cleanup_deploy_attempt
+        ''',
+    )
+    assert r.returncode == 74, r.stdout + r.stderr
+    assert _git(repo, "rev-parse", "HEAD") == new_sha
+    assert "pre-swap recovery refused" in r.stdout
 
 
 def test_empty_gated_archive_stages_the_app_alone(tmp_path):
