@@ -18,6 +18,35 @@ promises or “memory” recorded only inside one chat do not carry to another s
 4. When the task belongs to an existing Mastermind workstream, read its Agent OS
    record and latest handoff first — see § "Agent OS knowledge plane" below.
 
+## Human-first product acceptance
+
+For every user-facing design, mockup, build or review, load the existing shared
+`docs/DESIGN_DOCTRINE.md` and `research/MASTER_PRODUCT_DESIGN_SYSTEM_V1.md` from
+`mastermindx-market-intelligence/macro`. Pin the accepted Macro main revision and
+record it in the existing task/PR; an unmerged proposal is not published law.
+The doctrine owns content and human-comprehension rules. Terminal's own shared
+`terminal/app/globals.css`, `terminal/app/observatory.css` and accepted navigation
+remain its implementation owners; do not import a parallel token root or header.
+
+Mastermind does the synthesis; the user receives the understanding. The primary
+viewport should orient the intended reader to the subject, dominant assessment and
+useful next step in 3–4 seconds, with material limitations visible where they matter.
+Descriptions and subtext must earn their space. Organize full analytical depth through
+coherent destinations and accessible disclosure; preserve selection and return context.
+A chart workspace, a dense screener and a research page may use different compositions;
+shared grammar is not an identical card layout or a return to the rescinded locked idiom.
+
+Designer handoffs must name the reading order, preserved depth, copy demotions and
+navigation/return contract. Builders preserve that contract instead of inventing filler.
+Reviewers separate rendering, design assessment, actual cold-reader evidence and real
+journey tests. Green CI or a screenshot is not proof of human comprehension. Missing
+human testing stays not yet tested, not a pass; it does not block unrelated permitted
+source work. Do not invent trade authority to make a screen seem decisive.
+
+This applies to web and thin native-shell presentation. It adds no design system,
+review registry, lifecycle or data authority. Existing rights, security, source-custody
+and release obligations remain intact.
+
 ## Agent OS knowledge plane (organizational memory)
 
 - The canonical store is the Macro repo's `agentos/` directory
