@@ -1,0 +1,154 @@
+
+> terminal@0.1.0 test:e2e:responsive
+> playwright test e2e/responsive.spec.ts e2e/washout-override.spec.ts e2e/washout-retro.spec.ts --grep Golden Oracle shows|HK-O1:|a qualifying|a non-qualifying|a TAKEN|a retro projection|the retro legend --project=desktop --workers=1
+
+[warmup] /terminal?symbol=NVDA → 200 in 103ms
+[warmup] /options → 200 in 144ms
+[warmup] /portfolio → 200 in 106ms
+[warmup] /alerts → 200 in 101ms
+[warmup] /analysis → 200 in 149ms
+[warmup] /discover → 200 in 111ms
+[warmup] /admin → 200 in 81ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 87ms
+[warmup] /login → 200 in 121ms
+[warmup] /api/me → 200 in 85ms
+[warmup] /api/watchlist → 200 in 25ms
+[warmup] /api/layouts → 200 in 24ms
+[warmup] 12 routes compiled in 1s
+
+Running 7 tests using 1 worker
+
+  ✓  1 [desktop] › e2e/responsive.spec.ts:1084:5 › Golden Oracle shows the session a 3D signal became knowable (5.1s)
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓  2 [desktop] › e2e/responsive.spec.ts:1198:5 › HK-O1: a structure stop and a refused entry are labelled for what they are (5.1s)
+  ✘  3 [desktop] › e2e/washout-override.spec.ts:201:5 › a qualifying ⊘ wears the amber override class on card, hover and chart (9.3s)
+  ✓  4 [desktop] › e2e/washout-override.spec.ts:288:5 › a non-qualifying ⊘ renders exactly as it does today (4.5s)
+  ✘  5 [desktop] › e2e/washout-override.spec.ts:443:5 › a TAKEN washout override renders as an ordinary entry, outlined amber (10.2s)
+  ✘  6 [desktop] › e2e/washout-retro.spec.ts:618:5 › a retro projection, a refusal and a waived entry read as three different things (11.1s)
+  ✓  7 [desktop] › e2e/washout-retro.spec.ts:638:5 › the retro legend renders only when a re-marked fire is actually in the list (6.8s)
+
+
+  1) [desktop] › e2e/washout-override.spec.ts:201:5 › a qualifying ⊘ wears the amber override class on card, hover and chart
+
+    Error: expect(locator).toHaveCSS(expected) failed
+
+    Locator:  getByRole('dialog', { name: 'Stock Intelligence' }).locator('.od-vline2')
+    Expected: "rgb(232, 179, 57)"
+    Received: "rgb(155, 163, 180)"
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toHaveCSS" with timeout 5000ms
+      - waiting for getByRole('dialog', { name: 'Stock Intelligence' }).locator('.od-vline2')
+        14 × locator resolved to <div class="od-vline2" title="entry trigger blocked by the regime gate — not an entry · swing-timing overlay on 3D bars — not an investment view · @ 10.5 · bear_block: monthly-bear & below-200 & 2W-not-bull · still a refused entry — the washout flag is context, not a green light · in deep group washouts like this, these blocked signals averaged +22% per trade vs +3% otherwise (2019-2026, stop always honored) · most still stop out — the stop is the protection · current stance: Downtrend — stand asid…>Washout override candidate — Uranium miners −38% …</div>
+           - unexpected value "rgb(155, 163, 180)"
+
+
+      268 |        : "Washout override candidate — Uranium miners −38% from highs",
+      269 |   );
+    > 270 |   await expect(line2).toHaveCSS("color", AMBER_RGB);
+          |                       ^
+      271 |   await expect(dialog.locator(".od-verdict")).toHaveText(
+      272 |     zh ? "买点触发 — 趋势闸拦截" : "Entry trigger — regime-blocked",
+      273 |   );
+        at /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/stock-intelligence-20260917/terminal/e2e/washout-override.spec.ts:270:23
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/washout-override-a-qualify-c2272-ass-on-card-hover-and-chart-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/washout-override-a-qualify-c2272-ass-on-card-hover-and-chart-desktop/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/washout-override-a-qualify-c2272-ass-on-card-hover-and-chart-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/washout-override-a-qualify-c2272-ass-on-card-hover-and-chart-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [desktop] › e2e/washout-override.spec.ts:443:5 › a TAKEN washout override renders as an ordinary entry, outlined amber
+
+    Error: expect(locator).toHaveCSS(expected) failed
+
+    Locator:  getByRole('dialog', { name: 'Stock Intelligence' }).locator('.od-vline2')
+    Expected: "rgb(232, 179, 57)"
+    Received: "rgb(155, 163, 180)"
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toHaveCSS" with timeout 5000ms
+      - waiting for getByRole('dialog', { name: 'Stock Intelligence' }).locator('.od-vline2')
+        14 × locator resolved to <div class="od-vline2" title="swing-timing overlay on 3D bars — not an investment view · @ 10.5 · the regime gate would refuse this — the deep group washout is the one reason it stands · in deep group washouts like this, these blocked signals averaged +22% per trade vs +3% otherwise (2019-2026, stop always honored) · most still stop out — the stop is the protection · data lanes disagree (screener lane: CUT)">Washout override entry — Uranium miners −38% from…</div>
+           - unexpected value "rgb(155, 163, 180)"
+
+
+      428 |        : "Washout override entry — Uranium miners −38% from highs",
+      429 |   );
+    > 430 |   await expect(line2).toHaveCSS("color", AMBER_RGB);
+          |                       ^
+      431 |   // the quality chip names the class and wears the same amber, so the exception is findable
+      432 |   // from the card body too — and the TIER beside it proves the recipe graded this entry
+      433 |   // (a null tier there would mean the fire took the refused path after all).
+        at assertTakenEntry (/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/stock-intelligence-20260917/terminal/e2e/washout-override.spec.ts:430:23)
+        at /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/stock-intelligence-20260917/terminal/e2e/washout-override.spec.ts:450:3
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/washout-override-a-TAKEN-w-c90c9-dinary-entry-outlined-amber-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/washout-override-a-TAKEN-w-c90c9-dinary-entry-outlined-amber-desktop/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/washout-override-a-TAKEN-w-c90c9-dinary-entry-outlined-amber-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/washout-override-a-TAKEN-w-c90c9-dinary-entry-outlined-amber-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) [desktop] › e2e/washout-retro.spec.ts:618:5 › a retro projection, a refusal and a waived entry read as three different things
+
+    Error: expect(locator).toHaveCSS(expected) failed
+
+    Locator:  getByRole('dialog', { name: 'Stock Intelligence' }).getByRole('tabpanel').locator('.od-vline2')
+    Expected: "rgb(232, 179, 57)"
+    Received: "rgb(155, 163, 180)"
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toHaveCSS" with timeout 5000ms
+      - waiting for getByRole('dialog', { name: 'Stock Intelligence' }).getByRole('tabpanel').locator('.od-vline2')
+        14 × locator resolved to <div class="od-vline2" title="swing-timing overlay on 3D bars — not an investment view · @ 12.02 · the keeper would refuse this — it held the next bar but never reclaimed the 200-day; the deep group washout is the one reason it stands · in deep group washouts like this, these blocked signals averaged +22% per trade vs +3% otherwise (2019-2026, stop always honored) · most still stop out — the stop is the protection · data lanes disagree (screener lane: CUT)">Reclaim waived — entry — Uranium miners −38% from…</div>
+           - unexpected value "rgb(155, 163, 180)"
+
+
+      485 |   const line2 = go.locator(".od-vline2");
+      486 |   await expect(line2).toHaveCount(1);
+    > 487 |   await expect(line2).toHaveCSS("color", AMBER_RGB);
+          |                       ^
+      488 |   if (zh) {
+      489 |     // ZH reclaim wording is mid-correction — assert the SHAPE (see the vitest suite's note):
+      490 |     // the washout half is pinned, the head must simply not borrow the sibling class's name.
+        at assertThreeStates (/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/stock-intelligence-20260917/terminal/e2e/washout-retro.spec.ts:487:23)
+        at /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/stock-intelligence-20260917/terminal/e2e/washout-retro.spec.ts:625:3
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/washout-retro-a-retro-proj-3ac07-d-as-three-different-things-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/washout-retro-a-retro-proj-3ac07-d-as-three-different-things-desktop/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/washout-retro-a-retro-proj-3ac07-d-as-three-different-things-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/washout-retro-a-retro-proj-3ac07-d-as-three-different-things-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3 failed
+    [desktop] › e2e/washout-override.spec.ts:201:5 › a qualifying ⊘ wears the amber override class on card, hover and chart
+    [desktop] › e2e/washout-override.spec.ts:443:5 › a TAKEN washout override renders as an ordinary entry, outlined amber
+    [desktop] › e2e/washout-retro.spec.ts:618:5 › a retro projection, a refusal and a waived entry read as three different things
+  4 passed (1.1m)
