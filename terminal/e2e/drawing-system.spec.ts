@@ -1589,6 +1589,62 @@ test("a drag released in the future gutter finishes instead of following the cur
   expect(width).toBeGreaterThan(8);
 });
 
+test("price-range drag cannot sample an indicator value after crossing a pane separator", async ({ page }) => {
+  test.skip((page.viewportSize()?.width ?? 1440) <= 860, DESKTOP_ONLY);
+  const saves: DrawingSavePayload[] = [];
+  await openTerminal(page, { onPut: (payload) => saves.push(payload) });
+
+  const layer = page.locator(".pane.on .drawing-layer");
+  const panes = await page.evaluate(() => [...document.querySelectorAll(".pane.on .chart-wrap canvas")]
+    .map((canvas) => canvas.getBoundingClientRect())
+    .filter((rect) => rect.width > 100 && rect.height > 40)
+    .sort((a, b) => a.top - b.top)
+    .map((rect) => ({ top: rect.top, bottom: rect.bottom, height: rect.height, left: rect.left, width: rect.width })));
+  test.skip(panes.length < 2, "This chart mounted no indicator sub-pane.");
+
+  const pricePane = panes[0];
+  const indicatorPane = panes[panes.length - 1];
+  await page.getByTestId("drawing-group-forecasting-menu-trigger").click();
+  await page.getByTestId("drawing-tool-dateandpricerange").click();
+
+  const start = {
+    x: pricePane.left + pricePane.width * .30,
+    y: pricePane.top + pricePane.height * .52,
+  };
+  const crossed = {
+    x: indicatorPane.left + indicatorPane.width * .58,
+    y: indicatorPane.top + indicatorPane.height * .55,
+  };
+  await page.mouse.move(start.x, start.y);
+  await page.mouse.down();
+  await page.mouse.move(crossed.x, crossed.y);
+  await page.mouse.up();
+
+  const range = layer.locator('g[data-drawing-kind="dateandpricerange"]:not([data-id="_p"])');
+  await expect(range).toHaveCount(1);
+  await expect(range).toHaveAttribute("clip-path", /drawing-pane-clip/);
+
+  const saved = await expect.poll(() => {
+    const drawing = saves.flatMap((payload) => payload.drawings ?? [])
+      .find((item) => item.kind === "dateandpricerange");
+    return drawing?.points?.map((point) => point.p) ?? null;
+  }, { timeout: 5_000 }).not.toBeNull();
+  void saved;
+
+  const points = saves.flatMap((payload) => payload.drawings ?? [])
+    .find((item) => item.kind === "dateandpricerange")?.points ?? [];
+  expect(points).toHaveLength(2);
+  // The NVDA fixture trades around 180-220. Before the fix the crossed endpoint
+  // sampled the oscillator's 0-100 value and persisted it as a dollar price.
+  expect(Math.min(...points.map((point) => point.p))).toBeGreaterThan(120);
+
+  const rect = range.locator('rect[data-geometry="1"]').first();
+  const box = await rect.boundingBox();
+  expect(box).not.toBeNull();
+  expect(box!.y).toBeGreaterThanOrEqual(pricePane.top - 1);
+  expect(box!.y + box!.height).toBeLessThanOrEqual(pricePane.bottom + 1);
+});
+
 test("an indicator-pane drawing holds its place when the price scale rescales", async ({ page }) => {
   test.skip((page.viewportSize()?.width ?? 1440) <= 860, DESKTOP_ONLY);
   await openTerminal(page);
