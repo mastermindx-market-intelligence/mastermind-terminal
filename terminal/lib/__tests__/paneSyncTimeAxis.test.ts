@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from "vitest";
-import { broadcastCrosshair, broadcastRange, registerPane, setPaneSync, type PaneRegistration } from "../paneSync";
+import { broadcastCrosshair, broadcastRange, registerPane, setPaneSync, subscribePaneVisibleWindow, type PaneRegistration } from "../paneSync";
 import { toTimeWindow, type AxisClock, type LogicalRange } from "../timeWindow";
 
 // ── The defect this suite pins ───────────────────────────────────────────────────────────────
@@ -149,7 +149,10 @@ class FakePane {
 
 const cleanups: (() => void)[] = [];
 
-function mount(pane: FakePane) {
+function mount(
+  pane: FakePane,
+  onVisibleWindow?: (window: { from: number; to: number } | null) => void,
+) {
   const off = registerPane(pane.id, {
     chart: pane.chart,
     series: pane.series,
@@ -159,9 +162,13 @@ function mount(pane: FakePane) {
       return i >= 0 ? 100 + i : null;
     },
   });
+  const offViewport = onVisibleWindow
+    ? subscribePaneVisibleWindow(pane.id, onVisibleWindow)
+    : () => {};
   pane.onRange((r) => broadcastRange(pane.id, r));
-  cleanups.push(off);
-  return off;
+  const cleanup = () => { offViewport(); off(); };
+  cleanups.push(cleanup);
+  return cleanup;
 }
 
 /** Settle the bus: deliver queued events until nothing is left, or blow up on a feedback loop. */
@@ -183,6 +190,23 @@ function expectSameWindow(a: FakePane, b: FakePane, toleranceDays = 1.5) {
   expect(Math.abs(wa.from - wb.from) / DAY).toBeLessThan(toleranceDays);
   expect(Math.abs(wa.to - wb.to) / DAY).toBeLessThan(toleranceDays);
 }
+
+describe("paneSync visible-window observation", () => {
+  it("reports the real calendar viewport even when cross-pane sync is disabled", () => {
+    const pane = new FakePane(41, businessDays("2026-01-02", 120));
+    const seen: Array<{ from: number; to: number } | null> = [];
+    mount(pane, (window) => seen.push(window));
+    setPaneSync(false);
+
+    // Registration itself reports the current viewport.
+    expect(seen.length).toBe(1);
+    expect(seen[0]).toEqual(pane.window());
+
+    pane.userView({ from: -5, to: 20 }); // includes left-side whitespace
+    expect(seen.at(-1)).toEqual(pane.window());
+    expect((seen.at(-1)!.from)).toBeLessThan(ms(pane.bars[0]));
+  });
+});
 
 describe("paneSync range authority is the calendar, not the bar index", () => {
   it("RED: a peer with a shorter history lands on the same DATES, where bar numbers would not", () => {
@@ -261,7 +285,7 @@ describe("paneSync range authority is the calendar, not the bar index", () => {
       new FakePane(3, all.slice(600)),
       new FakePane(4, all.slice(900)),
     ];
-    panes.forEach(mount);
+    panes.forEach((pane) => mount(pane));
     setPaneSync(true);
 
     panes[0].userView({ from: 1000, to: 1200 });
