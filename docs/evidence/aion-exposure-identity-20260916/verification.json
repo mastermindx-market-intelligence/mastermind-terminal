@@ -1,0 +1,95 @@
+{
+  "source_base": "702d81bb35f2c900a5aa1215437bf968aa9e6d93",
+  "evidence_class": "existing_fixture_browser_regression_not_production",
+  "vitest": {
+    "files_passed": 328,
+    "tests_passed": 5446,
+    "todo": 4
+  },
+  "focused_tests_passed": 136,
+  "typecheck": "passed",
+  "existing_exposure_e2e": {
+    "passed": 8,
+    "existing_skipped": 1,
+    "retries": 0,
+    "cold_server": true
+  },
+  "mounted_reversed_response_test": {
+    "status": "passed",
+    "tests": 12,
+    "real_component": "GexDeskView",
+    "transport": "deferred synthetic promises",
+    "base_mutation_first_10": {
+      "failed": 8,
+      "passed": 2
+    },
+    "cleanup_mutation_targeted_test": "failed_before_restore"
+  },
+  "light_theme_proof": "unsupported_existing_terminal_capability_not_part_of_nonvisual_repair",
+  "production_proof": false,
+  "screenshots": [
+    {
+      "file": "desktop-exposure-matrix.png",
+      "sha256": "17f8bab70c71264ce85fc0051b72d3185eee465fcc23edf6920765ff6468d1c1",
+      "bytes": 263482,
+      "theme": "dark",
+      "language": "en"
+    },
+    {
+      "file": "tablet-exposure-matrix.png",
+      "sha256": "7d9a6728f16a2b5a012662376bc42065b77bcc3bba1c9f67af1b5684aab6d5d0",
+      "bytes": 208786,
+      "theme": "dark",
+      "language": "zh"
+    },
+    {
+      "file": "mobile-exposure-matrix.png",
+      "sha256": "bd757fc1fd81103cbf7ecf4d276bbc25d47eb6aa24910838056efcfe2d0ceb58",
+      "bytes": 91669,
+      "theme": "dark",
+      "language": "en"
+    }
+  ],
+  "semantic_source": "27a759373b3feced2f313358cc0ef507155eca6b",
+  "skillpack_pin": "a78b8fe23d8e1ed129880ac47e97ebe96afa8aea",
+  "independent_review": "unassigned",
+  "browser_reversed_response": {
+    "status": "passed",
+    "cases": 6,
+    "viewports": [
+      "1440x900",
+      "820x1180",
+      "390x844"
+    ],
+    "retries": 0,
+    "cold_server": true,
+    "actual_component_and_presentation": true,
+    "network_data": "synthetic fixture responses",
+    "baseline_desktop": "failed: selected QQQ rendered delayed SPY flip 760 instead of 701",
+    "screenshots": [
+      {
+        "file": "desktop-selected-qqq.png",
+        "sha256": "64c79814d904ebd73d94f7d5e4b36d5d301373a0ee29997e75851c8c7368ed44",
+        "bytes": 255247,
+        "language": "en"
+      },
+      {
+        "file": "tablet-selected-qqq.png",
+        "sha256": "fce4a33f48f1ddefa242718ea845cfda57c1894e95566759550bc65825d00c34",
+        "bytes": 207889,
+        "language": "zh"
+      },
+      {
+        "file": "mobile-selected-qqq.png",
+        "sha256": "e920af839bf4524c82059cdec496fdfb1a6e37a799c36d18e95cf82b35874704",
+        "bytes": 106101,
+        "language": "en"
+      }
+    ],
+    "baseline_screenshot": {
+      "file": "baseline-wrong-root.png",
+      "sha256": "5260053b5fb956ee1b667133139e39ae76cc973c95c70550a4b9aaab9ca7af4b",
+      "source": "702d81bb35f2c900a5aa1215437bf968aa9e6d93:GexDeskView"
+    }
+  }
+}
