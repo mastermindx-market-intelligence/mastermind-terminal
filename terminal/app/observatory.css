@@ -525,6 +525,16 @@
     min-height: 520px;
   }
 }
+@media (max-width: 640px), (pointer: coarse) {
+  .obs-gex-mobile-target {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
 @media (max-width: 760px) {
   .obs-prophet {
     overflow-y: auto;
