@@ -118,3 +118,40 @@ export function calculatePositionMetrics(
     rewardRisk: stopDistance > 0 ? rewardDistance / stopDistance : 0,
   };
 }
+
+
+export type PositionOpportunityState = "invalid_geometry" | "missing_reference" | "at_target" | "beyond_stop"
+  | "before_entry" | "at_entry" | "after_entry" | "unavailable";
+export type PositionOpportunity = {
+  originalR: number | null;
+  remainingR: number | null;
+  referencePrice: number | null;
+  state: PositionOpportunityState;
+};
+
+/** Planning geometry only: no fill, execution, probability or historical-outcome claim.
+ * points[0/1/2] remain the existing entry/target/stop controls. referencePrice must
+ * come from the current chart's original OHLC, not synthetic display candles. */
+export function calculatePositionOpportunity(
+  kind: "longposition" | "shortposition",
+  points: readonly Pt[],
+  referencePrice?: number | null,
+): PositionOpportunity {
+  const positive = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v) && v > 0;
+  const reference = positive(referencePrice) ? referencePrice : null;
+  const entry = points[0]?.p, target = points[1]?.p, stop = points[2]?.p;
+  const invalid: PositionOpportunity = { originalR: null, remainingR: null, referencePrice: reference, state: "invalid_geometry" };
+  if ((kind !== "longposition" && kind !== "shortposition") || !positive(entry) || !positive(target) || !positive(stop)) return invalid;
+  const direction = kind === "longposition" ? 1 : -1;
+  const risk = direction * (entry - stop), reward = direction * (target - entry);
+  if (!(risk > 0) || !(reward > 0) || !Number.isFinite(reward / risk)) return invalid;
+  const originalR = reward / risk;
+  const result: PositionOpportunity = { originalR, remainingR: null, referencePrice: reference, state: "missing_reference" };
+  if (reference === null) return result;
+  if (direction * (reference - target) >= 0) return { ...result, state: "at_target" };
+  if (direction * (reference - stop) <= 0) return { ...result, state: "beyond_stop" };
+  const remainingR = direction * (target - reference) / (direction * (reference - stop));
+  if (!Number.isFinite(remainingR)) return { ...result, state: "unavailable" };
+  const progress = direction * (reference - entry);
+  return { ...result, remainingR, state: progress === 0 ? "at_entry" : progress > 0 ? "after_entry" : "before_entry" };
+}
