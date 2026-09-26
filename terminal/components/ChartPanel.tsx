@@ -4734,11 +4734,13 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         y: clampUnit(y / Math.max(1, el!.clientHeight)),
       },
     });
+    type SnapPaneLock = { key: string | null };
     const snap = (
       px: number,
       py: number,
       modifier?: { ctrlKey?: boolean; metaKey?: boolean },
       forceMagnet?: "off",
+      paneLock?: SnapPaneLock,
     ) => {
       const prec = precRef.current;
       const bars = barsRef.current;
@@ -4752,13 +4754,22 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       const inFuture = bi >= bars.length && future.length > 0;
       const bar = inFuture ? undefined : bars[bi];
       const bt = inFuture ? future[Math.min(future.length - 1, bi - bars.length)] : (bar?.time ?? bars[bars.length - 1]?.time);
-      // Resolve the value in the pane under the cursor. Outside the price pane
-      // the number is an indicator reading, not a price, so it must be read and
-      // later re-projected through that pane's own scale.
-      const hitPane = paneKeyAt(py);
+      // A gesture owns the pane it started in. Without that lock, dragging a
+      // price-range endpoint across an indicator separator sampled (for example)
+      // Stoch 44 as though it were a $44 stock price. That produced the giant
+      // clipped rectangles + impossible +200% labels reported on INTC.
+      //
+      // New gestures hit-test once on pointerdown; every continuation supplies a
+      // paneLock. Clamp a locked gesture to that pane's visible band so crossing
+      // a separator cannot extrapolate an off-screen value either.
+      const hitPane = paneLock ? normalizedPaneKey(paneLock.key) : paneKeyAt(py);
       const inPricePane = !hitPane || hitPane === PRICE_PANE_KEY;
       snapPaneKey = inPricePane ? null : hitPane;
-      let p = priceAtIn(py, snapPaneKey);
+      const lockedLayout = paneLock ? paneLayoutFor(paneLock.key) : null;
+      const sampleY = lockedLayout && lockedLayout.height > 0
+        ? Math.max(lockedLayout.top, Math.min(lockedLayout.top + lockedLayout.height, py))
+        : py;
+      let p = priceAtIn(sampleY, snapPaneKey);
       if (p == null) p = inPricePane ? (bars[bars.length - 1]?.c ?? 0) : 0;
       const configuredMode = magnetRef.current === true ? "strong" : magnetRef.current === false ? "off" : magnetRef.current;
       // OpenMarket's precision modifier is deliberately reversible: Ctrl/Cmd
@@ -4776,7 +4787,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         // Weak magnet is intentionally forgiving but never \"teleports\" an anchor: it only
         // engages inside an 8px desktop / 14px coarse-pointer halo. Strong always snaps.
         const weakRadius = matchMedia("(pointer:coarse)").matches ? 14 : 8;
-        if (mode === "strong" || (bestY != null && Math.abs(bestY - py) <= weakRadius)) {
+        if (mode === "strong" || (bestY != null && Math.abs(bestY - sampleY) <= weakRadius)) {
           p = best;
           const sx = xOf(String(bt));
           if (sx != null && bestY != null) snapTarget = { x: sx, y: bestY };
@@ -4795,11 +4806,12 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       options: { forceMagnet?: "off"; paneKey?: string | null } = {},
     ) => {
       const { forceMagnet, paneKey } = options;
-      if (!origin || !modifier?.shiftKey) return snap(px, py, modifier, forceMagnet);
+      const paneLock = paneKey === undefined ? undefined : { key: paneKey };
+      if (!origin || !modifier?.shiftKey) return snap(px, py, modifier, forceMagnet, paneLock);
       const ox = xOf(origin.t), oy = yOfIn(origin.p, paneKey);
-      if (ox == null || oy == null) return snap(px, py, modifier, forceMagnet);
+      if (ox == null || oy == null) return snap(px, py, modifier, forceMagnet, paneLock);
       const constrained = constrainScreenAngle({ x: ox, y: oy }, { x: px, y: py });
-      return snap(constrained.x, constrained.y, modifier, forceMagnet);
+      return snap(constrained.x, constrained.y, modifier, forceMagnet, paneLock);
     };
     /**
      * Do two anchors land on the same spot on screen? An unprojectable anchor
@@ -6616,11 +6628,16 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     };
 
     let drawingPaneClipIds = new Map<string, string>();
+    const drawingClipPaneKey = (kind: Drawing["kind"], paneKey?: string | null): string | null => {
+      if (paneKey && paneKey !== PRICE_PANE_KEY) return paneKey;
+      // Price-bearing range tools are pane-local even though price-pane ownership
+      // is represented as null in persisted documents. Other legacy price tools
+      // (notably vertical/cross lines) intentionally span the chart root.
+      if (kind === "pricerange" || kind === "dateandpricerange" || kind === "measure") return PRICE_PANE_KEY;
+      return null;
+    };
     const applyDrawingPaneClip = <T extends SVGElement>(node: T, paneKey?: string | null): T => {
-      // Legacy price-pane drawings include tools such as vertical lines whose
-      // intentional geometry spans the full chart root. Preserve that contract;
-      // only a drawing explicitly bound to an indicator pane is pane-clipped.
-      if (!paneKey || paneKey === PRICE_PANE_KEY) return node;
+      if (!paneKey) return node;
       const clipId = drawingPaneClipIds.get(paneKey);
       if (clipId) node.setAttribute("clip-path", `url(#${clipId})`);
       return node;
@@ -6685,7 +6702,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       };
       for (const d of [...drawRef.current].sort((a, b) => (a.z ?? 0) - (b.z ?? 0))) {
         const node = shape(d, false, projectX, projectYFor(d));
-        svgEl.appendChild(applyDrawingPaneClip(node, drawingPaneKey(d)));
+        svgEl.appendChild(applyDrawingPaneClip(node, drawingClipPaneKey(d.kind, drawingPaneKey(d))));
       }
       // ── D2 locked vertical line overlay ──
       const lvt = lockedVLineOwnerSymbolRef.current === symbolRef.current ? lockedVLineRef.current : null;
@@ -7598,11 +7615,11 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
             const angleOrigin = d0.points.length === 2
               ? d0.points[handleIndex === 0 ? 1 : 0]
               : handleIndex > 0 ? d0.points[0] : undefined;
-            // A sub-pane object keeps reading its own scale even if the cursor
-            // strays into a neighbouring pane mid-drag.
+            // Keep reading the object's own pane even if the cursor strays
+            // across a separator. constrainedSnap also clamps to that pane's
+            // visible band, so the stored value stays representable there.
             const snapped = constrainedSnap(angleOrigin, m0.x, m0.y, e, { paneKey: editPane });
-            const paneValue = editPane ? priceAtIn(m0.y, editPane) : null;
-            const pt = paneValue == null ? snapped : { t: snapped.t, p: +paneValue.toFixed(editPrec) };
+            const pt = snapped;
             const paneAnchored = getDrawingTool(d0.kind)?.creation.anchorSpace === "pane" && handleIndex === 0;
             drawRef.current = drawRef.current.map((x) => x.id !== id ? x : {
               ...x,
@@ -7630,7 +7647,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           window.addEventListener("pointermove", moveHandle); window.addEventListener("pointerup", endHandle); window.addEventListener("pointercancel", cancelHandle); return;
         }
       }
-      const s0 = rectXY(ev); const start = snap(s0.x, s0.y, ev); const orig = d0.points.map((p) => ({ ...p }));
+      const s0 = rectXY(ev); const start = snap(s0.x, s0.y, ev, undefined, { key: editPane }); const orig = d0.points.map((p) => ({ ...p }));
       const origPaneAnchor = getDrawingTool(d0.kind)?.creation.anchorSpace === "pane" ? paneAnchorOf(d0.meta) : null;
       drawingTransactionRef.current = true;
       setInspectorMoving(true);
@@ -7638,7 +7655,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       const minOrigIndex = Math.min(...origIndices), maxOrigIndex = Math.max(...origIndices);
       const move = (e: PointerEvent) => {
         if (e.pointerId !== pointerId) return;
-        const m0 = rectXY(e), cur = snap(m0.x, m0.y, e), bars = barsRef.current;
+        const m0 = rectXY(e), cur = snap(m0.x, m0.y, e, undefined, { key: editPane }), bars = barsRef.current;
         if (origPaneAnchor) {
           const nextAnchor = {
             x: clampUnit(origPaneAnchor.x + (m0.x - s0.x) / Math.max(1, el!.clientWidth)),
@@ -7656,9 +7673,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         // Vertical translation is measured in the object's OWN pane, so a drag
         // that crosses a pane boundary cannot rewrite the anchors with a value
         // sampled from a different scale.
-        const startValue = editPane ? (priceAtIn(s0.y, editPane) ?? start.p) : start.p;
-        const currentValue = editPane ? (priceAtIn(m0.y, editPane) ?? cur.p) : cur.p;
-        const dp = currentValue - startValue;
+        const dp = cur.p - start.p;
         const requestedDi = barIndex(cur.t!) - barIndex(start.t!);
         // Clamp one shared translation delta so every anchor moves rigidly at
         // the data boundary instead of independently collapsing the geometry.
@@ -7832,7 +7847,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         svgEl.appendChild(guides);
         svgEl.appendChild(applyDrawingPaneClip(
           shape({ id: "_p", kind: p0.kind, points: previewPoints, ...applyStyle(p0.kind), ...(p0.meta ? { meta: p0.meta } : {}) }, true, xOf, (price) => yOfIn(price, p0.paneKey)),
-          p0.paneKey,
+          drawingClipPaneKey(p0.kind, p0.paneKey),
         ));
       });
     });
@@ -7934,12 +7949,12 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       const activation = toolActivationRef.current;
       ev.preventDefault(); ev.stopPropagation();
       const move = (e: PointerEvent) => {
-        const xy = rectXY(e), b = snap(xy.x, xy.y, e);
+        const xy = rectXY(e), b = snap(xy.x, xy.y, e, undefined, { key: measurePane });
         scheduleDraw(() => {
           const svgEl = svgRef.current; if (!svgEl) return;
           svgEl.appendChild(applyDrawingPaneClip(
             shape({ id: "_measure", kind: "measure", points: [a, b], ...applyStyle("measure") }, true, xOf, (price) => yOfIn(price, measurePane)),
-            measurePane,
+            drawingClipPaneKey("measure", measurePane),
           ));
         });
       };
@@ -7950,7 +7965,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       };
       const end = (e: PointerEvent) => {
         cleanupMeasure();
-        const xy = rectXY(e), b = snap(xy.x, xy.y, e);
+        const xy = rectXY(e), b = snap(xy.x, xy.y, e, undefined, { key: measurePane });
         if (!samePlacement(a, b, measurePane)) commitDrawing("measure", [a, b], undefined, activation, measurePane);
         else renderDraw();
       };
