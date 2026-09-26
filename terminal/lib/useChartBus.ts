@@ -220,14 +220,19 @@ export function useChartBus(host: ChartBusHost): ChartBus {
     if (!v.ok) { pushAck({ batch_id: v.batch_id, seq: v.seq, id: v.id, ok: false, error: v.error }); return; }
     const cmd = v.cmd;
     const h = hostRef.current;
-    const res = translate(cmd, h.capabilities);
+    const res = translate(cmd, h.capabilities, h.sessionIndicators);
     if (!res.ok) { pushAck({ batch_id: cmd.batch_id, seq: cmd.seq, id: cmd.id ?? null, ok: false, error: res.error }); return; }
 
     // Enqueue the side-effect. The queue applies sequentially (instant by default; W3 paces it later).
     queue.enqueue((): QueueStep => {
       // Run the PURE reducer against the synchronous working store, commit the result to both the ref
       // (so the next queued draw sees it) and React state (for render), then apply the chart.* effect.
-      const r = applyToStore(aiStoreRef.current, hostRef.current.activeSymbol, cmd, res);
+      // Rebase a patch on the committed host at EXECUTION time, not on a snapshot
+      // taken while a paced queue (or a human edit) was still ahead of this command.
+      const applied = cmd.op === "chart.set_indicators" && cmd.args?.mode === "patch"
+        ? translate(cmd, hostRef.current.capabilities, hostRef.current.sessionIndicators)
+        : res;
+      const r = applyToStore(aiStoreRef.current, hostRef.current.activeSymbol, cmd, applied);
       aiStoreRef.current = r.store;
       setAiStore(r.store);
       const e: StoreEffect = r.effect;
@@ -236,7 +241,17 @@ export function useChartBus(host: ChartBusHost): ChartBus {
         switch (e.kind) {
           case "setSymbol": h.setSymbol(e.symbol); break;
           case "setTf": h.setTf(e.tf); break;
-          case "setIndicators": h.setIndicators(e.indicators); break;
+          case "setIndicators":
+            try {
+              h.setIndicators(e.indicators);
+              // The next same-tick queued patch sees this accepted configuration even
+              // before React commits the corresponding host render. No second store.
+              hostRef.current = { ...h, sessionIndicators: e.indicators };
+            } catch {
+              pushAck({ ...r.ack, ok: false, error: "indicator_application_failed" });
+              return { op: cmd.op, id: null, ok: false };
+            }
+            break;
           case "setRange": h.setRange(e.from, e.to); break;
           case "scene": break; // markers only — inert now (W3 consumes)
         }

@@ -77,7 +77,7 @@ export type Applied =
       draw?: AiObject[]; // draw.* → objects to add
       setSymbol?: string; setTf?: string; setIndicators?: IndicatorSpec[];
       setRange?: { from: number; to: number };
-      clear?: true; undo?: number; scene?: "begin" | "end"; sceneTitle?: string; }
+      clear?: true; clearIds?: string[]; undo?: number; scene?: "begin" | "end"; sceneTitle?: string; }
   | { ok: false; op: string; id: string | null; error: string };
 
 export type IndicatorSpec = { name: string; params?: Record<string, IndicatorParam> };
@@ -192,6 +192,7 @@ const dashOf = (s: WireStyle): Drawing["dash"] => (s.kind === "dashed" ? "dashed
 export function translate(
   cmd: ChartCommandV2,
   caps: { tfs: string[]; indicators: string[] },
+  currentIndicators?: readonly IndicatorSpec[],
 ): Applied {
   const a = (isObj(cmd.args) ? cmd.args : {}) as Record<string, unknown>;
   const reject = (error: string): Applied => ({ ok: false, op: cmd.op, id: cmd.id ?? null, error });
@@ -209,23 +210,54 @@ export function translate(
       return { ok: true, op: cmd.op, id: null, setTf: a.tf };
     }
     case "chart.set_indicators": {
-      if (!Array.isArray(a.indicators)) return reject("bad_indicators");
+      const mode = a.mode ?? "replace";
+      if (mode !== "replace" && mode !== "patch") return reject("bad_indicator_mode");
+      if (!Array.isArray(a.indicators) || (mode === "patch" && a.indicators.length > 64)) return reject("bad_indicators");
+      if (mode === "replace" && a.remove !== undefined) return reject("remove_requires_patch");
+      if (mode === "patch" && !currentIndicators) return reject("indicator_state_unavailable");
       const specs: IndicatorSpec[] = [];
+      const edited = new Set<string>();
       for (const raw of a.indicators) {
         if (!isObj(raw) || !isStr(raw.name)) return reject("bad_indicator_entry");
         if (!caps.indicators.includes(raw.name)) return reject("unknown_indicator");
+        if (mode === "patch" && edited.has(raw.name)) return reject("duplicate_indicator_edit");
+        edited.add(raw.name);
         if (isSuiteKey(raw.name)) {
           const native = readNativeSuiteParams(raw.name, raw.params);
           if (!native.ok) return reject(native.error);
           specs.push({ name: raw.name, params: native.params });
           continue;
         }
-        // The legacy classic path remains numeric-only; native schemas are explicit above.
+        // Preserve legacy replace semantics. Patch edits refuse bad values instead of
+        // claiming a requested change succeeded after silently dropping that value.
+        if (mode === "patch" && raw.params !== undefined && !isObj(raw.params))
+          return reject("bad_indicator_params");
         const params: Record<string, number> = {};
-        if (isObj(raw.params)) for (const [k, v] of Object.entries(raw.params)) if (isFiniteNum(v)) params[k] = v;
+        if (isObj(raw.params)) for (const [k, v] of Object.entries(raw.params)) {
+          if (mode === "patch" && (!isFiniteNum(v) || ["__proto__", "constructor", "prototype"].includes(k)))
+            return reject("bad_indicator_params");
+          if (isFiniteNum(v)) params[k] = v;
+        }
         specs.push({ name: raw.name, params: Object.keys(params).length ? params : undefined });
       }
-      return { ok: true, op: cmd.op, id: null, setIndicators: specs };
+      if (mode === "replace") return { ok: true, op: cmd.op, id: null, setIndicators: specs };
+      const remove = a.remove ?? [];
+      if (!Array.isArray(remove) || remove.length > 64 || remove.some(name => !isStr(name)))
+        return reject("bad_indicator_removal");
+      const known = new Set([...caps.indicators, ...currentIndicators!.map(spec => spec.name)]);
+      if (remove.some(name => !known.has(name as string))) return reject("unknown_indicator");
+      if (remove.some(name => edited.has(name as string))) return reject("conflicting_indicator_edit");
+      if (!specs.length && !remove.length) return reject("empty_indicator_patch");
+      const removed = new Set(remove as string[]);
+      // Existing order and user scripts survive. Only named settings are overlaid.
+      const next = new Map<string, IndicatorSpec>(currentIndicators!.filter(spec => !removed.has(spec.name))
+        .map(spec => [spec.name, { ...spec, params: spec.params ? { ...spec.params } : undefined }]));
+      for (const spec of specs) {
+        const old = next.get(spec.name);
+        const params = { ...(old?.params ?? {}), ...(spec.params ?? {}) };
+        next.set(spec.name, { name: spec.name, params: Object.keys(params).length ? params : undefined });
+      }
+      return { ok: true, op: cmd.op, id: null, setIndicators: [...next.values()] };
     }
     case "chart.set_range": {
       if (!isSaneTime(a.from) || !isSaneTime(a.to) || (a.from as number) >= (a.to as number)) return reject("bad_range");
@@ -349,8 +381,13 @@ export function translate(
       return { ok: true, op: cmd.op, id: null, scene: "end" };
 
     // ── ai.* ────────────────────────────────────────────────────────────────────────────────
-    case "ai.clear":
-      return { ok: true, op: cmd.op, id: null, clear: true };
+    case "ai.clear": {
+      if (a.ids === undefined) return { ok: true, op: cmd.op, id: null, clear: true };
+      if (!Array.isArray(a.ids) || !a.ids.length || a.ids.length > AI_OBJECT_CAP
+          || a.ids.some(id => !isStr(id) || !/^ai_[A-Za-z0-9_-]{1,61}$/.test(id)))
+        return reject("bad_ai_clear_ids");
+      return { ok: true, op: cmd.op, id: null, clearIds: [...new Set(a.ids as string[])] };
+    }
     case "ai.undo": {
       const n = isFiniteNum(a.n) && a.n > 0 ? Math.min(Math.floor(a.n), 1000) : 1;
       return { ok: true, op: cmd.op, id: null, undo: n };
@@ -391,6 +428,16 @@ export function applyToStore(
   if (res.scene != null) return same({ kind: "scene", phase: res.scene, title: res.sceneTitle }, ackOk(null));
 
   const cur = store[activeSym] ?? [];
+
+  // Selective removal is atomic: an absent/stale id refuses the complete request.
+  // Human drawings and other symbols never enter this AI-owned collection.
+  if (res.clearIds) {
+    const ids = new Set(res.clearIds);
+    if (res.clearIds.some(id => !cur.some(object => object.id === id)))
+      return { store, ack: ackErr("unknown_ai_object"), effect: null };
+    return { store: { ...store, [activeSym]: cur.filter(object => !ids.has(object.id)) },
+      ack: ackOk(null), effect: null };
+  }
 
   // ai.clear — remove ONLY AI objects (the store holds only AI objects; user drawings live elsewhere).
   if (res.clear) return { store: { ...store, [activeSym]: [] }, ack: ackOk(null), effect: null };

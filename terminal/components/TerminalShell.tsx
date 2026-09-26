@@ -86,7 +86,7 @@ import { useGateEntitlement } from "@/lib/entitlementStore";
 import { normalizeDevTierOverride } from "@/lib/subscriptionTier";
 import { useChartBus } from "@/lib/useChartBus";
 import { isV2Envelope, type IndicatorSpec } from "@/lib/chartBus";
-import { describeNativeSuiteCapabilities } from "@/lib/chartIndicatorParams";
+import { describeNativeSuiteCapabilities, describeNativeStudyContext } from "@/lib/chartIndicatorParams";
 import SeasonalityCard from "@/components/SeasonalityCard";
 // Code-split the conditionally-mounted heavies out of the /terminal first-paint bundle (task 9).
 // TerminalShell is a Client Component, so ssr:false is allowed — none of these render on any SSR
@@ -4321,6 +4321,16 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
     tfs: TF_CANONICAL_ORDER,
     indicators: [...IND_ORDER, ...SUITE_ORDER],
     native_parameters: describeNativeSuiteCapabilities([...inds], indParams),
+    native_study_context: describeNativeStudyContext([...inds], indParams),
+    indicator_edit: {
+      op: "chart.set_indicators", modes: ["replace", "patch"],
+      patch_membership: "preserve_unmentioned", parameters: "merge_existing",
+      removal: "explicit_remove_names", undo: "drawings_only_not_indicator_settings",
+    },
+    ai_drawing_edit: {
+      clear_ids: true, id_source: "session.drawings", ownership: "ai_only",
+      missing_id: "reject_whole_request", omitted_ids: "clear_all_ai_on_active_symbol",
+    },
   }), [inds, indParams]);
   const chartBus = useChartBus({
     activeSymbol: active,
