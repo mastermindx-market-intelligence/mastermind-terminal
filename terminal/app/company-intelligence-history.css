@@ -46,7 +46,7 @@ button.ci-history-vnext-event:hover,button.ci-history-vnext-event:focus-visible{
 .ci-history-vnext-table tbody th time{color:var(--muted);font:500 8px/1 var(--font-num)}
 .ci-history-vnext-table td strong{display:block;color:var(--text);font:650 10px/1.2 var(--font-num);white-space:nowrap}
 .ci-history-vnext-table td small{display:block;margin-top:3px;color:var(--muted);font:500 7.5px/1.2 var(--font-ui)}
-.ci-history-vnext-table tr[data-status="selected"] td{background:color-mix(in srgb,var(--brand) 4%,transparent)}
+.ci-history-vnext-table tr.selected td{background:color-mix(in srgb,var(--brand) 4%,transparent)}
 .ci-history-vnext-empty{margin:0;padding:18px 13px;color:var(--muted);font:520 9px/1.4 var(--font-ui)}
 .ci-history-vnext-boundary{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 12px}
 .ci-history-vnext-boundary>div{display:grid;gap:4px;min-width:0}

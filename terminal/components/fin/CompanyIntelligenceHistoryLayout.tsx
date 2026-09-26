@@ -175,7 +175,7 @@ export default function CompanyIntelligenceHistoryLayout({
                 </thead>
                 <tbody>
                   {events.map((event) => (
-                    <tr key={event.id} data-status={event.status}>
+                    <tr key={event.id} className={event.status === "selected" ? "selected" : undefined}>
                       <th scope="row">
                         <strong>{event.label}</strong>
                         <time dateTime={event.date}>{event.date}</time>
