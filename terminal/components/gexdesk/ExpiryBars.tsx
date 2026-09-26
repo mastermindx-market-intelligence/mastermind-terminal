@@ -3,12 +3,13 @@
  * ExpiryBars — per-expiration signed net-exposure bar chart ("Exposure by Expiration").
  *
  * Companion to StrikeLadder: same greek lens, same bar aesthetic, but bucketed by
- * expiration date instead of strike. Reads `by_expiry[{exp, gamma_net, delta_net}]`
+ * expiration date instead of strike. Reads the owner-native `by_expiry` net exposures
  * from the GEX payload — data we already fetch but only ever used as a filter dropdown.
  *
- * HONESTY: the by_expiry array carries gamma & delta only (no vanna/charm), so the
- * VEX/CHEX lenses render an honest "not provided per-expiration" state rather than
- * faking zeros. Bar direction (dealer-sign) is an assumption; magnitude is the read.
+ * HONESTY: current payloads may carry gamma/delta/vanna/charm; older archived payloads
+ * legitimately omit VEX/CHEX. A missing lens renders the existing "not provided
+ * per-expiration" state rather than faking zeros. Bar direction (dealer-sign) is an
+ * assumption; magnitude is the read.
  */
 
 import React from "react";
@@ -17,8 +18,7 @@ import type { Lang } from "@/lib/i18n";
 import type { GexPayload, GreekLens } from "./GexDeskView";
 import { dteLabelFor, expLabel } from "@/lib/dte";
 import { fmtMn } from "@/lib/gexLadder";
-
-type ExpiryRow = NonNullable<GexPayload["by_expiry"]>[number];
+import { exposureSign, expiryNetFor, type ExpiryRow } from "@/lib/expiryTermStructure";
 
 interface ExpiryBarsProps {
   byExpiry: GexPayload["by_expiry"] | null;
@@ -33,34 +33,27 @@ interface ExpiryBarsProps {
 // (engine/options_hub.py divides by 1e6), and every DTE on the desk is anchored to the
 // snapshot's own session day.
 
-/** Net exposure for an expiry under the active lens. by_expiry carries gamma+delta only. */
-function expiryNet(r: ExpiryRow, greek: GreekLens): number | null {
-  if (greek === "gamma") return Number.isFinite(r.gamma_net) ? r.gamma_net : null;
-  if (greek === "delta") return r.delta_net != null && Number.isFinite(r.delta_net) ? r.delta_net : null;
-  return null; // vanna / charm not provided per-expiration
-}
-
 // ─── Component ──────────────────────────────────────────────────────────────────
 
 export function ExpiryBars({ byExpiry, greek, asOf = null, lang }: ExpiryBarsProps) {
   const t = makeGexT(lang);
 
-  // Vanna/charm aren't available per-expiration — honest state, not faked zeros.
-  if (greek === "vanna" || greek === "charm") {
-    return <div style={EMPTY}>{t("expiryLensNA")}</div>;
+  const sourceRows = (byExpiry ?? []) as ExpiryRow[];
+  if (sourceRows.length < 1) {
+    return <div style={EMPTY}>{t("expiryNoData")}</div>;
   }
 
-  const rows = (byExpiry ?? [])
-    .filter((r) => expiryNet(r, greek) != null)
+  const rows = sourceRows
+    .filter((r) => expiryNetFor(r, greek) != null)
     .slice()
     .sort((a, b) => a.exp.localeCompare(b.exp)); // nearest expiration first (top)
 
   if (rows.length < 1) {
-    return <div style={EMPTY}>{t("expiryNoData")}</div>;
+    return <div style={EMPTY}>{t("expiryLensNA")}</div>;
   }
 
   const maxAbs = rows.reduce((m, r) => {
-    const v = expiryNet(r, greek);
+    const v = expiryNetFor(r, greek);
     return v != null ? Math.max(m, Math.abs(v)) : m;
   }, 0.001);
 
@@ -68,8 +61,10 @@ export function ExpiryBars({ byExpiry, greek, asOf = null, lang }: ExpiryBarsPro
     <div style={SCROLL} className="obs-scroll">
       <div style={CENTER_LINE} />
       {rows.map((r) => {
-        const net = expiryNet(r, greek) ?? 0;
-        const isPos = net >= 0;
+        const net = expiryNetFor(r, greek) ?? 0;
+        const sign = exposureSign(net);
+        const isPos = sign > 0;
+        const isNeg = sign < 0;
         const pct = Math.abs(net) / maxAbs;
         const shaped = Math.pow(pct, 0.7);
         const barW = Math.max(shaped * 46, pct > 0 ? 2 : 0);
@@ -81,14 +76,20 @@ export function ExpiryBars({ byExpiry, greek, asOf = null, lang }: ExpiryBarsPro
               <span style={DTE_LABEL}>{dteLabelFor(r.exp, asOf)}</span>
             </div>
             <div style={BAR_AREA}>
-              {!isPos && barW > 0 && (
+              {isNeg && barW > 0 && (
                 <div style={{ ...BAR_NEG, width: `${barW}%`, opacity: isBig ? 1 : 0.75 }} />
               )}
               {isPos && barW > 0 && (
                 <div style={{ ...BAR_POS, width: `${barW}%`, opacity: isBig ? 1 : 0.75 }} />
               )}
             </div>
-            <span className="num" style={{ ...VAL, color: isPos ? "var(--up)" : "var(--down)" }}>
+            <span
+              className="num"
+              style={{
+                ...VAL,
+                color: sign > 0 ? "var(--up)" : sign < 0 ? "var(--down)" : "var(--muted)",
+              }}
+            >
               {fmtMn(net)}
             </span>
           </div>

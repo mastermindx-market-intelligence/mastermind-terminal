@@ -4,10 +4,11 @@
  * by_expiry → plot-node mapping (incl. the missing calls/puts-split → Net-only fallback)
  * without rendering a chart.
  *
- * The GEX payload's `by_expiry` carries per-expiration NET exposure only: `gamma_net` and
- * (optionally) `delta_net`. There is NO calls/puts split in the payload today, so the drawer
- * ships a single Net track and labels it honestly — it must never imply a call/put breakdown
- * it doesn't have. Bar direction (dealer-sign) is an assumption; magnitude is the read.
+ * The GEX payload's `by_expiry` carries per-expiration NET exposure only. Current payloads
+ * may carry gamma/delta/vanna/charm; older archived payloads legitimately carry only
+ * gamma/delta. There is NO calls/puts split in the payload, so the drawer ships a single Net
+ * track and labels it honestly — it must never imply a call/put breakdown it doesn't have.
+ * Bar direction (dealer-sign) is an assumption; magnitude is the read.
  *
  * This is an EOD structural read (the by_expiry snapshot), NOT an intraday series — the
  * drawer stamps its own as-of and does not participate in the replay scrubber.
@@ -27,10 +28,14 @@ export interface ExpiryRow {
   exp: string;
   gamma_net: number;
   delta_net?: number;
+  vanna_net?: number;
+  charm_net?: number;
 }
 
-/** Which per-expiration lens the drawer plots. by_expiry only carries gamma + delta. */
+/** Which owner-native per-expiration net exposure lens the drawer plots. */
 export type ExpiryLens = "gamma" | "delta" | "vanna" | "charm";
+
+export type ExposureSign = -1 | 0 | 1;
 
 export interface ExpiryNode {
   exp: string; // raw expiry key (e.g. "2026-07-11")
@@ -38,32 +43,40 @@ export interface ExpiryNode {
   dte: number; // days-to-expiry from the snapshot's session date
   dteLabel: string; // "0DTE" | "3d" | …
   net: number; // net exposure under the active lens
-  isPos: boolean; // net >= 0 (sign colour selects var(--up)/var(--down))
+  sign: ExposureSign; // exact zero is neutral — never painted as + or − exposure
   mag: number; // |net|
   frac: number; // |net| / maxAbs across nodes, 0..1 (bubble size / bar length driver)
 }
 
 export interface ExpiryTermStructure {
   lens: ExpiryLens;
-  available: boolean; // false when the lens isn't carried per-expiration (vanna/charm)
+  available: boolean; // gamma/delta are schema-native; vanna/charm require a published row
   splitAvailable: false; // by_expiry never carries a calls/puts split → always Net-only
   nodes: ExpiryNode[]; // sorted nearest-expiration first; empty when no data
   maxAbs: number; // max |net| across nodes (0 when empty)
 }
 
-/** Net exposure for a row under the active lens. by_expiry carries gamma + delta only. */
+/** Signed exposure polarity. Exact zero is intentionally neutral. */
+export function exposureSign(net: number): ExposureSign {
+  return net > 0 ? 1 : net < 0 ? -1 : 0;
+}
+
+/** Net exposure for a row under the active lens. Missing fields stay null, never zero. */
 export function expiryNetFor(r: ExpiryRow, lens: ExpiryLens): number | null {
-  if (lens === "gamma") return Number.isFinite(r.gamma_net) ? r.gamma_net : null;
-  if (lens === "delta")
-    return r.delta_net != null && Number.isFinite(r.delta_net) ? r.delta_net : null;
-  return null; // vanna / charm not provided per-expiration
+  const raw =
+    lens === "gamma" ? r.gamma_net
+      : lens === "delta" ? r.delta_net
+      : lens === "vanna" ? r.vanna_net
+      : r.charm_net;
+  return raw != null && Number.isFinite(raw) ? raw : null;
 }
 
 /**
  * Transform a payload's `by_expiry` into the drawer's plot nodes for one lens.
  *
- * - Rows whose lens value is null/non-finite are dropped (vanna/charm → every row drops →
- *   `available:false`, empty nodes — the drawer shows an honest "not per-expiration" state).
+ * - Rows whose lens value is null/non-finite are dropped. An old payload that lacks
+ *   vanna/charm therefore stays `available:false` and renders the existing honest
+ *   "not per-expiration" state instead of inventing zeros.
  * - `frac` normalizes each node's magnitude to the max |net| so bubbles/bars share one scale.
  * - Nodes are sorted nearest-expiration first (ascending exp) so the term structure reads
  *   left→right / top→bottom by tenor.
@@ -76,7 +89,11 @@ export function byExpiryToTermStructure(
   lens: ExpiryLens,
   asOf: string | null | undefined,
 ): ExpiryTermStructure {
-  const available = lens === "gamma" || lens === "delta";
+  const rows = byExpiry ?? [];
+  const available =
+    lens === "gamma" || lens === "delta"
+      ? true
+      : rows.some((r) => expiryNetFor(r, lens) != null);
   const base: ExpiryTermStructure = {
     lens,
     available,
@@ -84,9 +101,9 @@ export function byExpiryToTermStructure(
     nodes: [],
     maxAbs: 0,
   };
-  if (!available || !byExpiry || byExpiry.length === 0) return base;
+  if (!available || rows.length === 0) return base;
 
-  const kept = byExpiry
+  const kept = rows
     .map((r) => ({ r, net: expiryNetFor(r, lens) }))
     .filter((x): x is { r: ExpiryRow; net: number } => x.net != null)
     .sort((a, b) => a.r.exp.localeCompare(b.r.exp));
@@ -102,7 +119,7 @@ export function byExpiryToTermStructure(
       dte,
       dteLabel: dteLabel(dte),
       net,
-      isPos: net >= 0,
+      sign: exposureSign(net),
       mag: Math.abs(net),
       frac: Math.abs(net) / denom,
     };

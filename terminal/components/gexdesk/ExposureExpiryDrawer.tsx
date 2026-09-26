@@ -10,9 +10,10 @@
  *
  * HONESTY: by_expiry carries NET only (no call/put split) → the drawer is labelled Net-only.
  * It is an EOD structural read (the by_expiry snapshot), NOT intraday — it does not
- * participate in the replay scrubber and stamps its as-of as EOD. Vanna/charm aren't provided
- * per-expiration → an honest "not per-expiration" state, never faked zeros. Bar/bubble
- * direction (dealer-sign) is an assumption; magnitude is the read.
+ * participate in the replay scrubber and stamps its as-of as EOD. Current payloads may carry
+ * Vanna/Charm by expiration; older archived payloads do not, and therefore keep the existing
+ * honest "not per-expiration" state rather than faked zeros. Bar/bubble direction
+ * (dealer-sign) is an assumption; magnitude is the read.
  *
  * T-B: that "does not participate" is now VISIBLE rather than implicit. While the workspace
  * scrubber is off the live head, the drawer wears EodReplayTag — it keeps showing the close
@@ -154,7 +155,7 @@ function BubbleField({ ts, t }: { ts: ReturnType<typeof byExpiryToTermStructure>
     return midY - (net / ts.maxAbs) * (plotH / 2 - 10);
   };
   const xFor = (i: number) => (n <= 1 ? padL + plotW / 2 : padL + (i / (n - 1)) * plotW);
-  const rFor = (frac: number) => 5 + Math.sqrt(Math.max(0, frac)) * 17;
+  const rFor = (frac: number, sign: -1 | 0 | 1) => sign === 0 ? 3.5 : 5 + Math.sqrt(Math.max(0, frac)) * 17;
 
   return (
     <div className="obs-xdrawer-plot obs-scroll">
@@ -174,18 +175,18 @@ function BubbleField({ ts, t }: { ts: ReturnType<typeof byExpiryToTermStructure>
         {ts.nodes.map((node, i) => {
           const cx = xFor(i);
           const cy = yFor(node.net);
-          const r = rFor(node.frac);
-          const col = node.isPos ? "var(--up)" : "var(--down)";
+          const r = rFor(node.frac, node.sign);
+          const col = node.sign > 0 ? "var(--up)" : node.sign < 0 ? "var(--down)" : "var(--muted)";
           return (
             <g key={node.exp}>
               <circle
                 cx={cx} cy={cy} r={r}
-                fill={col} fillOpacity={0.28}
+                fill={col} fillOpacity={node.sign === 0 ? 0 : 0.28}
                 stroke={col} strokeOpacity={0.9} strokeWidth={1.2}
               />
               {/* value label above/below the bubble depending on sign */}
               <text
-                x={cx} y={node.isPos ? Math.max(12, cy - r - 5) : Math.min(H - padB + 4, cy + r + 12)}
+                x={cx} y={node.sign > 0 ? Math.max(12, cy - r - 5) : Math.min(H - padB + 4, cy + r + 12)}
                 textAnchor="middle" fontSize={10} fontWeight={650} fill={col}
                 style={{ fontVariantNumeric: "tabular-nums" }}
               >
