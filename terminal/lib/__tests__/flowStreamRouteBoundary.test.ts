@@ -90,13 +90,15 @@ describe("SSE route — producer lifecycle under disconnect (no leak)", () => {
   });
 });
 
-describe("Prophet full-plan transport boundary", () => {
+describe("Prophet private request/response transport boundary", () => {
   it.each([
-    ["normal mode", undefined],
-    ["fixture mode", "1"],
+    ["prophet_idx", "normal mode", undefined],
+    ["prophet_idx", "fixture mode", "1"],
+    ["prophet_perf", "normal mode", undefined],
+    ["prophet_perf", "fixture mode", "1"],
   ])(
-    "rejects prophet_idx before auth, upstream, or stream creation in %s",
-    async (_label, fixture) => {
+    "rejects %s before auth, upstream, or stream creation in %s",
+    async (feed, _label, fixture) => {
       if (fixture === undefined) delete process.env.FLOW_FIXTURE;
       else process.env.FLOW_FIXTURE = fixture;
 
@@ -110,7 +112,7 @@ describe("Prophet full-plan transport boundary", () => {
             // rejection body. Permit only that internal stream; the route's
             // explicit SSE source has no `type: "bytes"` and must never exist.
             if (source?.type !== "bytes") {
-              throw new Error("prophet_idx must be rejected before SSE stream creation");
+              throw new Error(feed + " must be rejected before SSE stream creation");
             }
             return Reflect.construct(target, args, newTarget);
           },
@@ -118,7 +120,7 @@ describe("Prophet full-plan transport boundary", () => {
       );
 
       const res = await GET(
-        new Request("https://terminal.test/api/flow/stream?f=prophet_idx"),
+        new Request("https://terminal.test/api/flow/stream?f=" + feed),
       );
 
       expect(res.status).toBe(400);
