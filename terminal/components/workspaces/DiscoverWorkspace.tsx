@@ -1,5 +1,7 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
+import dynamic from "next/dynamic";
+const SectorIntelligenceWorkspace = dynamic(() => import("@/components/sector-intelligence/SectorIntelligenceWorkspace"));
 import WorkspaceTabs, { type WorkspaceTab } from "@/components/chrome/WorkspaceTabs";
 import ScreenerView from "@/components/ScreenerView";
 import HeatmapPageRoot from "@/components/heatmap/HeatmapPageRoot";
@@ -31,11 +33,12 @@ import { useT } from "@/lib/i18n";
 const TABS: WorkspaceTab[] = [
   { key: "screener", labelKey: "wtStockScreener" },
   { key: "heatmap", labelKey: "wtHeatmap" },
+  { key: "sectors", labelKey: "siTab" },
   { key: "leaders", labelKey: "wtLeaders" },
   { key: "radar", labelKey: "wtRadar" },
 ];
 
-const KEYS = new Set(["screener", "heatmap", "leaders", "radar"]);
+const KEYS = new Set(["screener", "heatmap", "sectors", "leaders", "radar"]);
 const DEFAULT_TAB = "screener";
 
 export default function DiscoverWorkspace() {
@@ -78,6 +81,7 @@ export default function DiscoverWorkspace() {
       <div className="ws-body">
         {tab === "screener" && <ScreenerView identity={identity} />}
         {tab === "heatmap" && <HeatmapPageRoot />}
+        {tab === "sectors" && <SectorIntelligenceWorkspace />}
         {tab === "leaders" && <DiscoverLeadersMount key={`leaders-${nonce}`} />}
         {tab === "radar" && <DiscoverRadarMount key={`radar-${nonce}`} />}
       </div>
