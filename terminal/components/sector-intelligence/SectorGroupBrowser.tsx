@@ -73,7 +73,7 @@ export default function SectorGroupBrowser({ open, groups, selected, status, the
               const priced = supplied !== null && (total === null || supplied <= total) ? supplied : null;
               return <button type="button" key={key} className={styles.choice} data-group-choice={key}
                 aria-pressed={selected === key} onClick={() => onSelect(key)}>
-                <span><strong>{name}</strong><small>{total ?? "—"} {t("siGroupCompanies")} · {priced ?? "—"} {t("siPriced")}</small></span>
+                <span><strong>{name}</strong><small>{total ?? "—"} {t(total === 1 ? "siGroupCompany" : "siGroupCompanies")} · {priced ?? "—"} {t("siPriced")}</small></span>
                 <span className={styles.selected}>{selected === key ? t("siGroupSelected") : "→"}</span>
               </button>;
             })}

@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/rateLimit";
 import { NW_BASE } from "@/lib/upstreams";
-import { object, sourceDate, type FeedReceipt, type SectorFeed } from "@/lib/sectorIntelligence";
+import { object, sourceDate, readableOwnerEnvelope, type FeedReceipt, type SectorFeed } from "@/lib/sectorIntelligence";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -91,6 +91,7 @@ export async function GET(req: Request): Promise<Response> {
     if (!response.ok) return failure(503, "error");
     let parsed: { data: unknown; hash: string };
     try { parsed = await readJson(response); } catch { return failure(502, "invalid"); }
+    if (!readableOwnerEnvelope(key, parsed.data)) return failure(502, "invalid");
     const receipt: FeedReceipt = { ...baseReceipt, status: "ready", asOf: sourceDate(parsed.data),
       observedAt: new Date().toISOString(), stale: object(parsed.data).stale === true, contentHash: parsed.hash };
     return NextResponse.json({ data: parsed.data, receipt }, { headers: HEADERS });

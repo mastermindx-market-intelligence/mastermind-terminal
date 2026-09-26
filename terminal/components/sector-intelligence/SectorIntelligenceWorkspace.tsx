@@ -6,7 +6,7 @@ import { useLang } from "@/lib/i18n";
 import { useSectorT } from "@/lib/sectorIntelligenceLex";
 import { useShellIdentity } from "@/components/chrome/AppShell";
 import { SECTOR_FEEDS, SECTOR_VIEWS, DEFAULT_SECTOR_STATE, object, text, number, sectorRows,
-  groupRows, themeRows, members, concentration, sortMembers, parseSectorState, writeSectorState,
+  groupRows, themeRows, themeEntryReady, themeStaleLegs, members, concentration, sortMembers, parseSectorState, writeSectorState,
   formatValue, type FeedMap, type FeedPayload, type FeedStatus,
   type SectorFeed, type SectorState, type SectorView, type Row } from "@/lib/sectorIntelligence";
 import SectorGroupBrowser from "./SectorGroupBrowser";
@@ -55,7 +55,10 @@ export default function SectorIntelligenceWorkspace() {
   // before effects run. Nothing is persisted in browser storage or shared caches.
   const feeds = received.identity === identity && received.revision === revision ? received.feeds : {};
   useEffect(() => {
-    const sync = () => setState(parseSectorState(new URLSearchParams(window.location.search)));
+    const sync = () => {
+      setState(parseSectorState(new URLSearchParams(window.location.search)));
+      setGroupBrowserOpen(false);
+    };
     sync(); window.addEventListener("popstate", sync);
     return () => window.removeEventListener("popstate", sync);
   }, []);
@@ -224,8 +227,8 @@ export default function SectorIntelligenceWorkspace() {
           {!visibleMembers.length && <p className={styles.empty}>{roster.length ? t("siNoMatches") : t("siNoMembers")}</p>}
           <p className={styles.muted}>{t("siMembershipCopy")}</p>
         </Card>}
-        {state.view === "themes" && <><div className={styles.sectionHeading}><h2>{t("siThemeContext")}</h2><p>{t("siThemeScope")}</p></div><div className={styles.themeGrid}>
-          {themes.map(row => <Card key={text(row.theme_id)} title={localName(row, "name_en", "name_zh")}><dl className={styles.pairs}><div><dt>{t("siThemeStage")}</dt><dd>{stateLabel(row.stage)}</dd></div><div><dt>{t("siThemeReady")}</dt><dd>{row.entry_ready === true ? t("siYes") : t("siNo")}</dd></div><div><dt>{t("siSnapshotDate")}</dt><dd>{feeds.themes?.receipt.asOf || t("siUnknownDate")}</dd></div></dl></Card>)}
+        {state.view === "themes" && <><div className={styles.sectionHeading}><h2>{t("siThemeContext")}</h2><p>{t("siThemeScope")}</p>{themeStaleLegs(feeds.themes?.data).length > 0 && <p role="status">{t("siThemeFreshnessLimited")}</p>}</div><div className={styles.themeGrid}>
+          {themes.map(row => <Card key={text(row.theme_id)} title={localName(row, "name_en", "name_zh")}><dl className={styles.pairs}><div><dt>{t("siThemeStage")}</dt><dd>{stateLabel(object(row.foresight).stage)}</dd></div><div><dt>{t("siThemeReady")}</dt><dd>{themeEntryReady(row) === null ? t("siUnavailable") : themeEntryReady(row) ? t("siYes") : t("siNo")}</dd></div><div><dt>{t("siSnapshotDate")}</dt><dd>{feeds.themes?.receipt.asOf || t("siUnknownDate")}</dd></div></dl></Card>)}
           {!themes.length && <p className={styles.empty}>{t("siNoThemes")}</p>}</div><div className={styles.columns}><Card title={t("siTaxonomy")}><p className={styles.note}>{t("siTaxonomyCopy")}</p></Card>{business}</div></>}
         {state.view === "sources" && <><div className={styles.sectionHeading}><h2>{t("siSourceRecord")}</h2><p>{t("siSourceRecordCopy")}</p></div><div className={styles.sourceGrid}>
           {SECTOR_FEEDS.map(source => { const receipt = feeds[source]?.receipt; return <Card key={source} title={t(FEED_KEYS[source])} action={<span className={styles.badge}>{t(STATUS_KEYS[receipt?.status || "loading"])}</span>}>

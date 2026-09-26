@@ -28,6 +28,8 @@ test("group discovery uses the real shared modal and returns focus on Escape", a
   await expect(dialog.locator('[data-group-choice="semiconductors"]')).toHaveAttribute("aria-pressed", "true");
   await dialog.getByLabel("Find a group", { exact: true }).focus();
   for (let i = 0; i < 8; i++) { await page.keyboard.press("Tab"); expect(await dialog.evaluate(el => el.contains(document.activeElement))).toBe(true); }
+  // Check the settled layout, without disabling the shared sheet's entrance animation.
+  await dialog.evaluate(async el => { await Promise.all(el.getAnimations().map(animation => animation.finished)); });
   const size = await dialog.evaluate(el => ({ width: el.clientWidth, scroll: el.scrollWidth, bottom: el.getBoundingClientRect().bottom, height: window.innerHeight }));
   expect(size.scroll).toBeLessThanOrEqual(size.width + 1); expect(size.bottom).toBeLessThanOrEqual(size.height + 1);
   await page.keyboard.press("Escape"); await expect(dialog).not.toBeVisible(); await expect(trigger).toBeFocused();
@@ -82,4 +84,33 @@ test("denied group feed never presents stale group choices", async ({ page }) =>
   await expect(dialog.getByRole("link", { name: "Sign in", exact: true })).toHaveAttribute("href", "/login");
   await dialog.getByRole("button", { name: "Review sources", exact: true }).click();
   await expect(dialog).not.toBeVisible(); await expect(page).toHaveURL(/sectorView=sources/);
+});
+
+
+test("history navigation closes the open group dialog and restores the prior company context", async ({ page }) => {
+  await prepare(page); await page.goto(url);
+  const root = page.getByTestId("sector-intelligence");
+  await root.locator('[data-company-choice="MU"]').click();
+  await expect(page).toHaveURL(/sectorCompany=MU/);
+  const trigger = root.getByRole("button", { name: "Browse company groups", exact: true });
+  await trigger.click();
+  const dialog = page.getByRole("dialog", { name: "Browse company groups", exact: true });
+  await expect(dialog).toBeVisible();
+  await page.goBack();
+  await expect(dialog).not.toBeVisible();
+  await expect(trigger).toHaveAttribute("aria-expanded", "false");
+  await expect(root.getByTestId("sector-company-inspector")).toContainText("Select a company");
+  expect(new URL(page.url()).searchParams.get("sectorCompany")).toBeNull();
+  expect(await page.evaluate(() => document.body.style.overflow)).not.toBe("hidden");
+  await page.goForward();
+  await expect(root.getByTestId("sector-company-inspector")).toContainText("MU");
+  await expect(dialog).not.toBeVisible();
+});
+
+test("single-company coverage uses singular copy and keeps zero priced visible", async ({ page }) => {
+  await prepare(page); await page.goto(url);
+  await page.getByRole("button", { name: "Browse company groups", exact: true }).click();
+  const dialog = page.getByRole("dialog", { name: "Browse company groups", exact: true });
+  await expect(dialog.locator('[data-group-choice="fixture-hardware"]')).toContainText("1 company · 0 priced");
+  await expect(dialog.locator('[data-group-choice="semiconductors"]')).toContainText("14 companies · 14 priced");
 });

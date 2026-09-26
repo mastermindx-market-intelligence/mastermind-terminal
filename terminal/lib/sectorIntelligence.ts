@@ -39,42 +39,52 @@ export function sourceDate(data: unknown): string | null {
   const day = value.slice(0, 10), parsed = new Date(day + "T00:00:00Z");
   return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === day ? day : null;
 }
-/** Bounded structural discovery tolerates owner envelope changes, not field meaning changes.
- * Ambiguous duplicate identities are rejected by uniqueRows rather than first-match-wins.
+/** Exact read-only owner envelopes, qualified against Macro's published source files.
+ * Never recursively discover a look-alike record inside rankings, metadata or a basket.
+ * This is a consumer boundary, not a dossier/schema producer or authority manifest.
  */
-function rows(data: unknown, match: (row: Row) => boolean): Row[] {
-  const found: Row[] = [], stack: Array<[unknown, number]> = [[data, 0]];
-  let visited = 0;
-  while (stack.length) {
-    const [v, depth] = stack.pop()!;
-    if (++visited > 30_000) return [];
-    if (Array.isArray(v)) {
-      if (depth < 6) for (let i = v.length - 1; i >= 0; i--) stack.push([v[i], depth + 1]);
-    } else if (v && typeof v === "object") {
-      const r = v as Row;
-      if (match(r)) found.push(r);
-      else if (depth < 6) for (const k of Object.keys(r).reverse()) stack.push([r[k], depth + 1]);
-    }
-  }
-  return found;
+export function readableOwnerEnvelope(source: SectorFeed, data: unknown): boolean {
+  const root = object(data);
+  const bounded = (value: unknown) => Array.isArray(value) && value.length <= 10_000;
+  if (source === "sector") return bounded(root.sectors);
+  if (source === "confluence") return root.ok === true && bounded(root.subsectors) && bounded(root.sectors);
+  if (source === "themes") return root.schema === "neuralweb.theme_state.v1" && bounded(root.themes);
+  return root.size_basis === "marketcap" && bounded(root.tiles) && root.n_tiles === (root.tiles as unknown[]).length;
 }
 function uniqueRows(found: Row[], key: string): Row[] {
   const ids = found.map(r => text(r[key]));
   return ids.every(Boolean) && new Set(ids).size === ids.length ? found : [];
 }
+function ownerRows(value: unknown, match: (row: Row) => boolean, key: string): Row[] {
+  if (!Array.isArray(value) || value.length > 10_000) return [];
+  const found = value.map(object);
+  // A malformed row does not silently shrink the population or change its rank/order.
+  return found.every(match) ? uniqueRows(found, key) : [];
+}
 const SYMBOL = /^[A-Z][A-Z0-9]*(?:[.-][A-Z0-9]+)?$/;
 const KEY = /^[a-z][a-z0-9_-]{0,79}$/;
 export function sectorRows(data: unknown): Row[] {
-  return uniqueRows(rows(data, r => KEY.test(text(r.id)) && SYMBOL.test(text(r.ticker))
-    && !!text(r.name) && !!r.momentum && !!r.heat), "id");
+  if (!readableOwnerEnvelope("sector", data)) return [];
+  return ownerRows(object(data).sectors, r => KEY.test(text(r.id)) && SYMBOL.test(text(r.ticker))
+    && !!text(r.name) && (r.kind === undefined || r.kind === "sector"), "id");
 }
 export function groupRows(data: unknown): Row[] {
-  return uniqueRows(rows(data, r => KEY.test(text(r.key)) && !!text(r.label)
-    && Array.isArray(r.members) && !!r.entry && !!r.regime), "key");
+  if (!readableOwnerEnvelope("confluence", data)) return [];
+  const root = object(data);
+  return ownerRows([...(root.subsectors as unknown[]), ...(root.sectors as unknown[])],
+    r => KEY.test(text(r.key)) && !!text(r.label) && Array.isArray(r.members), "key");
 }
 export function themeRows(data: unknown): Row[] {
-  return uniqueRows(rows(data, r => KEY.test(text(r.theme_id)) && !!text(r.name_en)
-    && typeof r.entry_ready === "boolean" && !!text(r.stage)), "theme_id");
+  if (!readableOwnerEnvelope("themes", data)) return [];
+  return ownerRows(object(data).themes, r => KEY.test(text(r.theme_id)) && !!text(r.name_en), "theme_id");
+}
+export function themeEntryReady(row: Row): boolean | null {
+  const value = object(row.foresight).entry_ready;
+  return typeof value === "boolean" ? value : null;
+}
+export function themeStaleLegs(data: unknown): string[] {
+  const legs = object(data).stale_legs;
+  return Array.isArray(legs) ? legs.filter((leg): leg is string => typeof leg === "string") : [];
 }
 export function marketContext(data: unknown): Row {
   const root = object(data);
@@ -115,16 +125,19 @@ export function sortMembers(input: readonly SectorMember[], sort: MemberSort, qu
 export function concentration(data: unknown, sectorName: string): {
   share: number; count: number; names: string[];
 } | null {
-  if (!sectorName) return null;
-  const tiles = uniqueRows(rows(data, r => text(r.sector) === sectorName
-    && SYMBOL.test(text(r.ticker)) && number(r.size) !== null), "ticker");
-  // Exact source taxonomy only; equal counts never establish a breadth/heatmap join.
-  if (tiles.length < 5 || tiles.some(r => number(r.size)! <= 0)) return null;
-  const total = tiles.reduce((sum, r) => sum + number(r.size)!, 0);
-  const top = [...tiles].sort((a, b) => number(b.size)! - number(a.size)!).slice(0, 5);
+  if (!sectorName || !readableOwnerEnvelope("heatmap", data)) return null;
+  const root = object(data), raw = (root.tiles as unknown[]).map(object);
+  if (raw.some(row => !SYMBOL.test(text(row.t)) || !text(row.sector))
+    || uniqueRows(raw, "t").length !== raw.length) return null;
+  const tiles = raw.filter(row => row.sector === sectorName);
+  // Heatmap t is its documented ticker field. Missing cap sizes invalidate the
+  // whole selected denominator; dropping them would invent a complete cohort.
+  if (tiles.length < 5 || tiles.some(row => number(row.size) === null || number(row.size)! <= 0)) return null;
+  const total = tiles.reduce((sum, row) => sum + number(row.size)!, 0);
   if (!Number.isFinite(total) || total <= 0) return null;
-  return { share: top.reduce((sum, r) => sum + number(r.size)!, 0) / total,
-    count: tiles.length, names: top.map(r => text(r.ticker)) };
+  const top = [...tiles].sort((a, b) => number(b.size)! - number(a.size)!).slice(0, 5);
+  return { share: top.reduce((sum, row) => sum + number(row.size)!, 0) / total,
+    count: tiles.length, names: top.map(row => text(row.t)) };
 }
 export function parseSectorState(params: URLSearchParams): SectorState {
   const view = params.get("sectorView") || "", sector = params.get("sector") || "", group = params.get("group") || "";

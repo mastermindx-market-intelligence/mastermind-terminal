@@ -13,7 +13,7 @@ const file = path.resolve("e2e/fixtures/sector-company-v3.ts");
 const compiled = require("esbuild").transformSync(fs.readFileSync(file, "utf8"), { loader: "ts", format: "cjs" }).code;
 const fixture = new Module(file); fixture.filename = file; fixture._compile(compiled, file);
 const { sectorFixture } = fixture.exports;
-const out = path.resolve("../docs/pr-crops/sector-intelligence-r2"); fs.mkdirSync(out, { recursive: true });
+const out = path.resolve(process.argv[4] || "../docs/pr-crops/sector-intelligence-r2"); fs.mkdirSync(out, { recursive: true });
 const report = { engine, source: "native-Terminal-UI-with-historical-design-fixture", production: false,
   authenticatedOwnerData: false, independentHumanAcceptance: false, fixturesInProduction: false,
   heatmap: "unavailable: full source cohort not in the reference archive", checks: [], screenshots: [], pageErrors: [] };
