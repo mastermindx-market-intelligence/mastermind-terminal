@@ -1,0 +1,106 @@
+{
+  "scope": "New group-browser visual and settled-animation diagnostic",
+  "production": false,
+  "authenticatedOwnerData": false,
+  "independentUsabilityAcceptance": false,
+  "fixture": "Historical Semiconductor rows plus explicitly synthetic Hardware test group; not current membership.",
+  "regressionGate": "The separate persistent suite remains 25/27 until its premature animation-bound check is repaired. These diagnostics do not waive that gate.",
+  "checks": [
+    {
+      "name": "chromium-desktop-en-light: settled bounds",
+      "passed": true,
+      "detail": {
+        "top": 493,
+        "bottom": 884,
+        "height": 900,
+        "overflow": 0,
+        "transform": "matrix(1, 0, 0, 1, 0, 0)",
+        "background": "rgb(255, 255, 255)"
+      }
+    },
+    {
+      "name": "chromium-desktop-en-light: two groups",
+      "passed": true
+    },
+    {
+      "name": "chromium-desktop-en-light: search finds exact source key",
+      "passed": true
+    },
+    {
+      "name": "chromium-desktop-en-light: focus restored",
+      "passed": true
+    },
+    {
+      "name": "chromium-desktop-en-light: selected company preserved",
+      "passed": true
+    },
+    {
+      "name": "chromium-desktop-en-light: body scroll restored",
+      "passed": true
+    },
+    {
+      "name": "chromium-mobile-en-light: settled bounds",
+      "passed": true,
+      "detail": {
+        "top": 453,
+        "bottom": 836,
+        "height": 844,
+        "overflow": 0,
+        "transform": "matrix(1, 0, 0, 1, 0, 0)",
+        "background": "rgb(255, 255, 255)"
+      }
+    },
+    {
+      "name": "chromium-mobile-en-light: two groups",
+      "passed": true
+    },
+    {
+      "name": "chromium-mobile-en-light: search finds exact source key",
+      "passed": true
+    },
+    {
+      "name": "chromium-mobile-en-light: focus restored",
+      "passed": true
+    },
+    {
+      "name": "chromium-mobile-en-light: selected company preserved",
+      "passed": true
+    },
+    {
+      "name": "chromium-mobile-en-light: body scroll restored",
+      "passed": true
+    },
+    {
+      "name": "webkit-desktop-en-dark: settled bounds",
+      "passed": true,
+      "detail": {
+        "top": 493,
+        "bottom": 884,
+        "height": 900,
+        "overflow": 0,
+        "transform": "matrix(1, 0, 0, 1, 0, 0)",
+        "background": "rgb(13, 15, 19)"
+      }
+    },
+    {
+      "name": "webkit-desktop-en-dark: two groups",
+      "passed": true
+    },
+    {
+      "name": "webkit-desktop-en-dark: search finds exact source key",
+      "passed": true
+    },
+    {
+      "name": "webkit-desktop-en-dark: focus restored",
+      "passed": false
+    }
+  ],
+  "captures": [
+    "chromium-desktop-en-light-groups.png",
+    "chromium-mobile-en-light-groups.png",
+    "webkit-desktop-en-dark-groups.png"
+  ],
+  "pageErrors": [],
+  "passed": false,
+  "error": "AssertionError [ERR_ASSERTION]: webkit-desktop-en-dark: focus restored\n    at check ([stdin]:5:78)\n    at [stdin]:31:79\n    at runNextTicks (node:internal/process/task_queues:65:5)\n    at process.processImmediate (node:internal/timers:502:9)"
+}

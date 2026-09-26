@@ -1,0 +1,10 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/sector-intelligence-terminal-20260926-sol-001/terminal
+
+ ✓ lib/__tests__/sectorOwnerGateway.test.ts (8 tests) 15ms
+
+ Test Files  1 passed (1)
+      Tests  8 passed (8)
+   Start at  05:07:47
+   Duration  712ms (transform 75ms, setup 0ms, collect 142ms, tests 15ms, environment 0ms, prepare 132ms)
