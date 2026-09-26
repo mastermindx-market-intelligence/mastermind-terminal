@@ -170,21 +170,9 @@ export default function StatementsPage({ sym, fund, onOpenTx }: StatementsPagePr
     return best;
   };
 
-  // ── mini bar-chart strip: series swap with statement type ──
-  // Cap the plotted window so the x-axis stays readable; the full-history MiniTable below
-  // stays paged. Annual gets a deeper window than quarterly because the Massive backfill
-  // takes annual sets to ~17 fiscal years — a 12-bar cap would hide the deep history that
-  // is the whole point of the backfill, while 69 quarterly bars would crush the axis.
-  const CHART_CAP = aq === "annual" ? 20 : 16;
-
-  // ONE normalization for the whole tab. The chart used to read `set.income.*` raw while the
-  // table read a differenced copy, so a cumulative-YTD name plotted 82.9B in the strip and
-  // printed 1.6B in the row beneath it. Both now read this object — see
-  // lib/finStatementMath.incomeChartValues, whose arrays ARE the table's arrays.
-  const chartSeries: Series[] = buildChartSeries(stmt, set, view, zh).map((s) => ({
-    ...s,
-    values: s.values.slice(-CHART_CAP),
-  }));
+  // Keep canonical array positions intact until the compact snapshot selects its period window.
+  // Both the trajectory and table below use the same normalized source; full history remains paged.
+  const chartSeries: Series[] = buildChartSeries(stmt, set, view, zh);
 
   // ── table rows: TV taxonomy per statement ──
   const rows: MiniRow[] = buildRows(stmt, set, view, aq, zh);
@@ -286,8 +274,11 @@ export default function StatementsPage({ sym, fund, onOpenTx }: StatementsPagePr
   };
   const snapshotCount = Math.min(4, periods.length);
   const snapshotPeriods = snapshotCount > 0 ? periods.slice(-snapshotCount) : [];
+  // Select by the statement's period index, not by each metric's array length.
+  // Short or absent rows must keep their missing cells; tail-aligning them moves values between years.
+  const snapshotStart = periods.length - snapshotCount;
   const snapshotValues = (values: (number | null | undefined)[] | undefined): (number | null)[] => (
-    snapshotCount > 0 ? (values ?? []).slice(-snapshotCount).map((value) => value ?? null) : []
+    snapshotPeriods.map((_, index) => values?.[snapshotStart + index] ?? null)
   );
   const snapshotRows: SnapshotRow[] = stmt === "income"
     ? [

@@ -235,3 +235,24 @@ test("Ownership family defaults to Institutional and preserves Insider as its si
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflow).toBeLessThanOrEqual(1);
 });
+
+
+test("Financials snapshot preserves period columns when a metric is incomplete", async ({ page }) => {
+  const annual = financialsFundFixture.statements.annual;
+  const fund = { ...financialsFundFixture, statements: { ...financialsFundFixture.statements, annual: {
+    ...annual, periods: ["FY2020", "FY2021", "FY2022", "FY2023", "FY2024", "FY2025"],
+    income: { ...annual.income, revenue: [60e9, 90e9, 130e9, 140e9, 150e9, 160e9],
+      gross_profit: [42e9, 65e9, 98e9], eps_diluted: [] },
+  } } };
+  await page.route("**/NVDA.fund.json**", async (route) => route.fulfill({ json: fund }));
+  await page.goto("/analysis?symbol=NVDA&page=statements");
+  const table = page.locator(".fin-financials-snapshot-table");
+  await expect(table).toBeVisible({ timeout: 45_000 });
+  await expect(table.locator("thead th")).toHaveText(["Metric", "FY2022", "FY2023", "FY2024", "FY2025"]);
+  const gross = table.locator("tbody tr").filter({ has: page.getByRole("rowheader", { name: "Gross profit", exact: true }) });
+  await expect(gross.locator("td")).toHaveText(["98.00B", "—", "—", "—"]);
+  const eps = table.locator("tbody tr").filter({ has: page.getByRole("rowheader", { name: "Diluted EPS", exact: true }) });
+  await expect(eps.locator("td")).toHaveText(["—", "—", "—", "—"]);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth))
+    .toBeLessThanOrEqual(1);
+});
