@@ -41,7 +41,7 @@ import { accountIdentity } from "@/lib/accountIdentity";
 import { FIN_PAGES, type FinPage } from "@/components/fin/finPages";
 import { getFund, getOpts, getBars, type Fund, type Bar } from "@/lib/fund";
 import { allDefaults, indDefaults, withDefaults, IND_ORDER, IND_DEFS, isIndKey } from "@/lib/indicators";
-import { isSuiteKey, suiteDefaults } from "@/lib/suites/registry";
+import { isSuiteKey, suiteDefaults, SUITE_ORDER } from "@/lib/suites/registry";
 import { isAmbientCandleSuite, migrateMastermindCandlesDefault, MASTERMIND_CANDLES_MIGRATION_KEY, MASTERMIND_CANDLES_MODULE_ID, MASTERMIND_CANDLES_SUITE_KEY } from "@/lib/mastermindCandlesDefault";
 import {
   enabledModulesForSuite,
@@ -86,6 +86,7 @@ import { useGateEntitlement } from "@/lib/entitlementStore";
 import { normalizeDevTierOverride } from "@/lib/subscriptionTier";
 import { useChartBus } from "@/lib/useChartBus";
 import { isV2Envelope, type IndicatorSpec } from "@/lib/chartBus";
+import { describeNativeSuiteCapabilities } from "@/lib/chartIndicatorParams";
 import SeasonalityCard from "@/components/SeasonalityCard";
 // Code-split the conditionally-mounted heavies out of the /terminal first-paint bundle (task 9).
 // TerminalShell is a Client Component, so ssr:false is allowed — none of these render on any SSR
@@ -4301,13 +4302,20 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
   // envelope routes here. The bus owns the in-memory per-symbol AI drawing layer, acks, and the
   // debounced state-mirror POST. capabilities report the REAL enums (kills hallucinated names).
   const sessionIndicators: IndicatorSpec[] = useMemo(
-    () => [...inds].map((k) => ({ name: k, params: indParams[k] as Record<string, number> | undefined })),
+    () => [...inds].map((k) => ({ name: k, params: indParams[k] as IndicatorSpec["params"] })),
     [inds, indParams],
   );
+  // Metadata only; the existing mirror forwards this exact object to Brain.
+  // Memoize off settings, not live price ticks. No second indicator catalog/compute.
+  const chartCapabilities = useMemo(() => ({
+    tfs: TF_CANONICAL_ORDER,
+    indicators: [...IND_ORDER, ...SUITE_ORDER],
+    native_parameters: describeNativeSuiteCapabilities([...inds], indParams),
+  }), [inds, indParams]);
   const chartBus = useChartBus({
     activeSymbol: active,
     bars,
-    capabilities: { tfs: TF_CANONICAL_ORDER, indicators: [...IND_ORDER] },
+    capabilities: chartCapabilities,
     sessionIndicators,
     currentTf: tf,
     // AI objects live in the bus's own store. Detector drawings do share the
@@ -4317,9 +4325,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
     setSymbol: (s) => pick(s),
     setTf: (t2) => setTf(t2),
     setIndicators: (specs) => {
-      const keys = specs.map((s) => s.name).filter((k) => isIndKey(k) || scriptById[k]);
+      const keys = specs.map((s) => s.name).filter((k) => isIndKey(k) || isSuiteKey(k) || scriptById[k]);
       setInds(new Set(keys));
-      const withParams = specs.filter((s) => s.params && isIndKey(s.name));
+      const withParams = specs.filter((s) => s.params && (isIndKey(s.name) || isSuiteKey(s.name)));
       if (withParams.length) setIndParams((p) => { const n = { ...p }; for (const s of withParams) n[s.name] = { ...(n[s.name] || {}), ...s.params }; return n; });
     },
     // MVP: jump the chart to the range start via the existing mm:chart-jump consumer. A precise

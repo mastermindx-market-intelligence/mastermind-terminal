@@ -1,0 +1,309 @@
+{
+  "schema": "cmx.native_snapshot.recorded_input_proof.v1",
+  "node": "v26.5.0",
+  "esbuild": "0.21.5",
+  "code_sha256": "41f40171c6c2610b9a25facf8793b8140f620637a2e0de535d9691290fe54f6e",
+  "basis": "pinned repository bar files; source asserts polygon/real_ohlc, not independently revalidated; explicit trailing window, not current-market data or historical point-in-time backtest",
+  "results": [
+    {
+      "symbol": "NVDA",
+      "suite": "structure",
+      "source_ref": "78a421373cfa04746ef4e60e1ac1de91ca87052e:terminal/public/data/NVDA.json",
+      "source_sha256": "5e35090abe17b18e7baf64c9f27323d11d3eb6fcfdff32d8954724e1a4525447",
+      "source_asserts": {
+        "src": "polygon",
+        "bar_quality": "real_ohlc"
+      },
+      "window": {
+        "selection": "explicit_trailing_420_rows",
+        "first": "2024-10-22",
+        "last": "2026-06-26",
+        "count": 420
+      },
+      "exit": 0,
+      "status": "observed",
+      "stdout_bytes": 44444,
+      "request_sha256": "a0503805bc902bef40fcae0c74871c65307540496f6879a30f5fafa9e322a02f",
+      "stdout_sha256": "cc276ed086f54a714b5c23e7953fac1bfe3aef41b761458af10e7668843ffcca",
+      "stderr": "",
+      "fingerprints": {
+        "input_sha256": "d62890a3d96152e89f908bf2cd45b031432bda72109f451afca4565ab742dc6d",
+        "result_sha256": "cc0e53ff5a122973d65fb7155f71b5ba81e01c28e0ebcb24e7b119bcce6e8197",
+        "settings_sha256": "81ac34872530419836dfe6a784c79f7b46b1d2343bb4bc657fa9b3e463c7087f"
+      },
+      "primitives": 92,
+      "events": 114,
+      "invalid_event_timing_count": 0
+    },
+    {
+      "symbol": "NVDA",
+      "suite": "trend",
+      "source_ref": "78a421373cfa04746ef4e60e1ac1de91ca87052e:terminal/public/data/NVDA.json",
+      "source_sha256": "5e35090abe17b18e7baf64c9f27323d11d3eb6fcfdff32d8954724e1a4525447",
+      "source_asserts": {
+        "src": "polygon",
+        "bar_quality": "real_ohlc"
+      },
+      "window": {
+        "selection": "explicit_trailing_420_rows",
+        "first": "2024-10-22",
+        "last": "2026-06-26",
+        "count": 420
+      },
+      "exit": 0,
+      "status": "observed",
+      "stdout_bytes": 79856,
+      "request_sha256": "3481ebeea5f68fb4ca8c384601f8ea7e5400fa0d281137957129d9b1b816603a",
+      "stdout_sha256": "f8843171020492ed9e07950f010232837e305916b9766ad7a41024237867dcfd",
+      "stderr": "",
+      "fingerprints": {
+        "input_sha256": "d62890a3d96152e89f908bf2cd45b031432bda72109f451afca4565ab742dc6d",
+        "result_sha256": "e6b9efaac3a8d634b23303970085216b02914461bb62dec96033420665c2fe13",
+        "settings_sha256": "1189a7ca38667be9479bd9430d741a7d34690ea2fd63ed0901d1d796342b0d13"
+      },
+      "primitives": 104,
+      "events": 56,
+      "invalid_event_timing_count": 0
+    },
+    {
+      "symbol": "NVDA",
+      "suite": "pulse",
+      "source_ref": "78a421373cfa04746ef4e60e1ac1de91ca87052e:terminal/public/data/NVDA.json",
+      "source_sha256": "5e35090abe17b18e7baf64c9f27323d11d3eb6fcfdff32d8954724e1a4525447",
+      "source_asserts": {
+        "src": "polygon",
+        "bar_quality": "real_ohlc"
+      },
+      "window": {
+        "selection": "explicit_trailing_420_rows",
+        "first": "2024-10-22",
+        "last": "2026-06-26",
+        "count": 420
+      },
+      "exit": 0,
+      "status": "observed",
+      "stdout_bytes": 85588,
+      "request_sha256": "6066d348663f3207e06bd4cfa9b179dc38b004e5b879875158d093ab806b325b",
+      "stdout_sha256": "ba7814b25cc3b5f44a5e9aa532a25d02d6f3b63622e9dc9a85f730c1c4525db2",
+      "stderr": "",
+      "fingerprints": {
+        "input_sha256": "d62890a3d96152e89f908bf2cd45b031432bda72109f451afca4565ab742dc6d",
+        "result_sha256": "b5486e03e8c4e797365827fb364c48cc7a75df6c7fd5a436dc095504da18b53a",
+        "settings_sha256": "0131d5edc07dc35b143f0a03997909cee2dd3676fc7e50c732cfbd9ae8fd2848"
+      },
+      "primitives": 40,
+      "events": 72,
+      "invalid_event_timing_count": 0
+    },
+    {
+      "symbol": "NVDA",
+      "suite": "rsix",
+      "source_ref": "78a421373cfa04746ef4e60e1ac1de91ca87052e:terminal/public/data/NVDA.json",
+      "source_sha256": "5e35090abe17b18e7baf64c9f27323d11d3eb6fcfdff32d8954724e1a4525447",
+      "source_asserts": {
+        "src": "polygon",
+        "bar_quality": "real_ohlc"
+      },
+      "window": {
+        "selection": "explicit_trailing_420_rows",
+        "first": "2024-10-22",
+        "last": "2026-06-26",
+        "count": 420
+      },
+      "exit": 0,
+      "status": "observed",
+      "stdout_bytes": 104922,
+      "request_sha256": "b7cbfdaaf24742c46decdf342116d288a6550e64ccbe556aaf6fdb02f780d4aa",
+      "stdout_sha256": "8faac91a42f798dcbba15ffd19c6f92415fdc5891690fcc234e159675c824711",
+      "stderr": "",
+      "fingerprints": {
+        "input_sha256": "d62890a3d96152e89f908bf2cd45b031432bda72109f451afca4565ab742dc6d",
+        "result_sha256": "31470d9d86674b3f6ec2cd857c326708341be579b494a835bee0367e7ecf97ef",
+        "settings_sha256": "bfca2f5481bd854f6db45fe2858c02a56f66f84af57d3654b42481876521cf46"
+      },
+      "primitives": 139,
+      "events": 164,
+      "invalid_event_timing_count": 0
+    },
+    {
+      "symbol": "NVDA",
+      "suite": "macdx",
+      "source_ref": "78a421373cfa04746ef4e60e1ac1de91ca87052e:terminal/public/data/NVDA.json",
+      "source_sha256": "5e35090abe17b18e7baf64c9f27323d11d3eb6fcfdff32d8954724e1a4525447",
+      "source_asserts": {
+        "src": "polygon",
+        "bar_quality": "real_ohlc"
+      },
+      "window": {
+        "selection": "explicit_trailing_420_rows",
+        "first": "2024-10-22",
+        "last": "2026-06-26",
+        "count": 420
+      },
+      "exit": 0,
+      "status": "observed",
+      "stdout_bytes": 96584,
+      "request_sha256": "b73c9eb57345feeb4154788b2228062adb01c908964f4856c164ac6c5aa59067",
+      "stdout_sha256": "c320837c135165055e9f9e7963c6abd5bd9a2b927c56917cfccdf81869f85af5",
+      "stderr": "",
+      "fingerprints": {
+        "input_sha256": "d62890a3d96152e89f908bf2cd45b031432bda72109f451afca4565ab742dc6d",
+        "result_sha256": "7a81461a313fb46fb67daab07d11e3e8b314d6621657bb4f471df14ff1abd7bb",
+        "settings_sha256": "9db14d572b143d02f406b0d24b97802b2cd3f31b46a66e0eeffff30a8283c14c"
+      },
+      "primitives": 56,
+      "events": 65,
+      "invalid_event_timing_count": 0
+    },
+    {
+      "symbol": "AAPL",
+      "suite": "structure",
+      "source_ref": "78a421373cfa04746ef4e60e1ac1de91ca87052e:terminal/public/data/AAPL.json",
+      "source_sha256": "229fcb0eb3d0fee4d55a40e31c4057a5998b773db1d92942a9fc7ecb2ae545f6",
+      "source_asserts": {
+        "src": "polygon",
+        "bar_quality": "real_ohlc"
+      },
+      "window": {
+        "selection": "explicit_trailing_420_rows",
+        "first": "2024-10-22",
+        "last": "2026-06-26",
+        "count": 420
+      },
+      "exit": 0,
+      "status": "observed",
+      "stdout_bytes": 44360,
+      "request_sha256": "39d1809dd2030a61ad0a65604bc19bec6708e70737b2eb8e1cf8aa1d1f651d6e",
+      "stdout_sha256": "adc6e1f491329537432324a27525323b1db01b602139d9340c4a80b585daa572",
+      "stderr": "",
+      "fingerprints": {
+        "input_sha256": "164c04c55159a17474089df7238c1a16806272f961cef179c1f57d93e24f40dc",
+        "result_sha256": "a444024f60d24ca8e5c511a7b347d24202d9e8119b511cb59b1aed246143a777",
+        "settings_sha256": "81ac34872530419836dfe6a784c79f7b46b1d2343bb4bc657fa9b3e463c7087f"
+      },
+      "primitives": 98,
+      "events": 107,
+      "invalid_event_timing_count": 0
+    },
+    {
+      "symbol": "AAPL",
+      "suite": "trend",
+      "source_ref": "78a421373cfa04746ef4e60e1ac1de91ca87052e:terminal/public/data/AAPL.json",
+      "source_sha256": "229fcb0eb3d0fee4d55a40e31c4057a5998b773db1d92942a9fc7ecb2ae545f6",
+      "source_asserts": {
+        "src": "polygon",
+        "bar_quality": "real_ohlc"
+      },
+      "window": {
+        "selection": "explicit_trailing_420_rows",
+        "first": "2024-10-22",
+        "last": "2026-06-26",
+        "count": 420
+      },
+      "exit": 0,
+      "status": "observed",
+      "stdout_bytes": 77652,
+      "request_sha256": "fce28d8ce47f4f8034c2cd072f3fc2fd61eb21313f2d0da89b616736d3079f2c",
+      "stdout_sha256": "c11239b8bace675db387f6a030772a824409741bba13cf5d3db6db5f599bb318",
+      "stderr": "",
+      "fingerprints": {
+        "input_sha256": "164c04c55159a17474089df7238c1a16806272f961cef179c1f57d93e24f40dc",
+        "result_sha256": "ddef578d6cd3531c563bd7b7282f247ef491a0e450b304b953a5bc07a07ffc44",
+        "settings_sha256": "1189a7ca38667be9479bd9430d741a7d34690ea2fd63ed0901d1d796342b0d13"
+      },
+      "primitives": 91,
+      "events": 58,
+      "invalid_event_timing_count": 0
+    },
+    {
+      "symbol": "AAPL",
+      "suite": "pulse",
+      "source_ref": "78a421373cfa04746ef4e60e1ac1de91ca87052e:terminal/public/data/AAPL.json",
+      "source_sha256": "229fcb0eb3d0fee4d55a40e31c4057a5998b773db1d92942a9fc7ecb2ae545f6",
+      "source_asserts": {
+        "src": "polygon",
+        "bar_quality": "real_ohlc"
+      },
+      "window": {
+        "selection": "explicit_trailing_420_rows",
+        "first": "2024-10-22",
+        "last": "2026-06-26",
+        "count": 420
+      },
+      "exit": 0,
+      "status": "observed",
+      "stdout_bytes": 79925,
+      "request_sha256": "8bd3e98d9c458ca4dc1abfffc3aa9c20923911d2ce218592d8367ba73ea782eb",
+      "stdout_sha256": "51813198371486fa108597c712f3c821999e7dd2455b01c012263992decb6fd5",
+      "stderr": "",
+      "fingerprints": {
+        "input_sha256": "164c04c55159a17474089df7238c1a16806272f961cef179c1f57d93e24f40dc",
+        "result_sha256": "949af4bb61072c89478d58a746705dd6ec3f20af3925ccba0a17031c971a4af2",
+        "settings_sha256": "0131d5edc07dc35b143f0a03997909cee2dd3676fc7e50c732cfbd9ae8fd2848"
+      },
+      "primitives": 34,
+      "events": 51,
+      "invalid_event_timing_count": 0
+    },
+    {
+      "symbol": "AAPL",
+      "suite": "rsix",
+      "source_ref": "78a421373cfa04746ef4e60e1ac1de91ca87052e:terminal/public/data/AAPL.json",
+      "source_sha256": "229fcb0eb3d0fee4d55a40e31c4057a5998b773db1d92942a9fc7ecb2ae545f6",
+      "source_asserts": {
+        "src": "polygon",
+        "bar_quality": "real_ohlc"
+      },
+      "window": {
+        "selection": "explicit_trailing_420_rows",
+        "first": "2024-10-22",
+        "last": "2026-06-26",
+        "count": 420
+      },
+      "exit": 0,
+      "status": "observed",
+      "stdout_bytes": 107689,
+      "request_sha256": "28460a27169bdcd656f28a5963e91b27e9822624346521ce5c89c9b0e0bdff03",
+      "stdout_sha256": "50ca2d560bf393d1b5f580ce7cccbd745a19c93f5a7718d831d518e7ef6cfe1b",
+      "stderr": "",
+      "fingerprints": {
+        "input_sha256": "164c04c55159a17474089df7238c1a16806272f961cef179c1f57d93e24f40dc",
+        "result_sha256": "d74448816f78896828c13ad1389b889869a11313087a16f2ac43efd4e1b7bbf6",
+        "settings_sha256": "bfca2f5481bd854f6db45fe2858c02a56f66f84af57d3654b42481876521cf46"
+      },
+      "primitives": 146,
+      "events": 159,
+      "invalid_event_timing_count": 0
+    },
+    {
+      "symbol": "AAPL",
+      "suite": "macdx",
+      "source_ref": "78a421373cfa04746ef4e60e1ac1de91ca87052e:terminal/public/data/AAPL.json",
+      "source_sha256": "229fcb0eb3d0fee4d55a40e31c4057a5998b773db1d92942a9fc7ecb2ae545f6",
+      "source_asserts": {
+        "src": "polygon",
+        "bar_quality": "real_ohlc"
+      },
+      "window": {
+        "selection": "explicit_trailing_420_rows",
+        "first": "2024-10-22",
+        "last": "2026-06-26",
+        "count": 420
+      },
+      "exit": 0,
+      "status": "observed",
+      "stdout_bytes": 96679,
+      "request_sha256": "5fe6b091426d71b3094f7e6b0617e010101fba6ee359691c5a5c1dc655ec9d00",
+      "stdout_sha256": "a40e36e642506571ce0106365685f17999384d25bedb21a67cb45dbb5b482296",
+      "stderr": "",
+      "fingerprints": {
+        "input_sha256": "164c04c55159a17474089df7238c1a16806272f961cef179c1f57d93e24f40dc",
+        "result_sha256": "ee266acf33ea2da48acf5b65416e1d7d1e6e32fc6ee74f6c81a9c68c7353825c",
+        "settings_sha256": "9db14d572b143d02f406b0d24b97802b2cd3f31b46a66e0eeffff30a8283c14c"
+      },
+      "primitives": 57,
+      "events": 64,
+      "invalid_event_timing_count": 0
+    }
+  ]
+}
