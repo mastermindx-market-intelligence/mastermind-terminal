@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  PRECISION_HORIZONS,
   PRECISION_PRESETS,
   buildPrecisionPlan,
   detectPrecisionHorizon,
@@ -12,6 +13,7 @@ const ALL = new Set(TF_CANONICAL_ORDER);
 
 describe("precision entry timeframe selection", () => {
   it("keeps the four horizon defaults explicit and ordered by role", () => {
+    expect(PRECISION_HORIZONS).toEqual(["day", "swing", "position", "deep"]);
     expect(PRECISION_PRESETS).toEqual({
       day: ["5m", "15m", "1h", "4h"],
       swing: ["4h", "2D", "3D", "2W"],
