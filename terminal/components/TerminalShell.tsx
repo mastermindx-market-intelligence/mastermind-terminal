@@ -173,6 +173,8 @@ import {
 } from "@/lib/watchlistSettings";
 import { resolveRegularSessionDisplay } from "@/lib/quoteDisplay";
 import { useAdaptiveToolbar } from "@/lib/useAdaptiveToolbar";
+import { buildPrecisionPlan, detectPrecisionHorizon, PRECISION_HORIZONS, precisionLayoutState, type PrecisionHorizon } from "@/lib/precisionEntry";
+import PrecisionEntryStrip, { PRECISION_ENTRY_STRIP_HEIGHT } from "@/components/PrecisionEntryStrip";
 import {
   copyWatchlistSelection,
   moveWatchlistSelection,
@@ -2951,15 +2953,56 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
     setPaneTfs((tfs) => next.map((_, i) => tfs[i] ?? tf));
     setActivePane((a) => Math.min(a, next.length - 1));
   }
-  // one-click multi-timeframe: the active symbol across D / 3D / W / 1M (drawings are shared per-symbol).
-  // Clicking again while already in the MTF layout collapses back to a single pane on the active symbol.
-  const isMtf = panes.length === 4 && panes.every((s) => s === active) && paneTfs.slice(0, 4).join(",") === "D,3D,W,1M";
+  // One-click Precision MTF: reuse the incumbent four-pane chart state, but let the
+  // canonical selector choose the four grains from the active chart's horizon. No extra
+  // mode store: a precision layout is recognized from the real pane/symbol/timeframe state.
+  const precisionPlan = buildPrecisionPlan({ currentTf: tf, functional: FUNCTIONAL });
+  const precisionLayout = precisionLayoutState(active, precisionPlan);
+  const precisionHorizon = detectPrecisionHorizon({
+    subject: active,
+    panes,
+    paneTfs,
+    functional: FUNCTIONAL,
+  });
+  const isMtf = precisionHorizon !== null;
+  const activePrecisionPlan = precisionHorizon
+    ? buildPrecisionPlan({ horizon: precisionHorizon, functional: FUNCTIONAL })
+    : precisionPlan;
+  const precisionHorizonOptions = PRECISION_HORIZONS.map((horizon) => {
+    const plan = buildPrecisionPlan({ horizon, functional: FUNCTIONAL });
+    return { horizon, ready: precisionLayoutState(active, plan) !== null };
+  });
+  const activePrecisionRole = isMtf ? (activePrecisionPlan.panes[activePane]?.role ?? null) : null;
+  const selectPrecisionRole = (role: (typeof activePrecisionPlan.panes)[number]["role"]) => {
+    const nextPane = activePrecisionPlan.panes.findIndex((pane) => pane.role === role);
+    if (nextPane >= 0) setActivePane(nextPane);
+  };
+  const precisionUnavailable = !isMtf && precisionLayout === null;
+  const precisionMtfTip = lang === "zh"
+    ? "精确多周期 — 根据当前图表周期选择四个时间层级"
+    : "Precision MTF — four timeframes selected from the active chart horizon";
+  const precisionMtfUnavailableTip = lang === "zh"
+    ? "此市场和周期暂不支持精确多周期"
+    : "Precision MTF is unavailable for this market and timeframe";
   // paneSync only mirrors same-timeframe peers, and the single replay slider assumes one bar count: with
   // heterogeneous per-pane timeframes both are incoherent, so we disable Sync + replay in that case.
   const mixedTfs = panes.length > 1 && new Set(paneTfs.slice(0, panes.length)).size > 1;
+  function applyPrecisionHorizon(horizon: PrecisionHorizon) {
+    const plan = buildPrecisionPlan({ horizon, functional: FUNCTIONAL });
+    const layout = precisionLayoutState(active, plan);
+    if (!layout) return;
+    setSplit(layout.split);
+    setPanes(layout.panes);
+    setPaneTfs(layout.paneTfs);
+    setActivePane(layout.activePane);
+  }
   function mtfLayout() {
     if (isMtf) { setSplit(1); setPanes([active]); setPaneTfs([tf]); setActivePane(0); return; }
-    const sym = active; setSplit(4); setPanes([sym, sym, sym, sym]); setPaneTfs(["D", "3D", "W", "1M"]); setActivePane(0);
+    if (!precisionLayout) return;
+    setSplit(precisionLayout.split);
+    setPanes(precisionLayout.panes);
+    setPaneTfs(precisionLayout.paneTfs);
+    setActivePane(precisionLayout.activePane);
   }
   function toggleReplay() {
     setReplayOn((on) => {
@@ -5215,7 +5258,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
               {t("indicators")}
             </button>
             <div className="seg tool-adv toolbar-overflow-item" data-toolbar-item data-toolbar-action="split" title={t("splitLayout")}>{[1, 2, 4].map((n) => <button key={n} className={split === n ? "on" : ""} onClick={() => setGrid(n)}>{n}</button>)}</div>
-            <button className={`tbtn tool-adv toolbar-overflow-item${isMtf ? " on" : ""}`} data-toolbar-item title={t("mtfTip")} onClick={mtfLayout}><svg viewBox="0 0 24 24"><path d="M3 13h4v8H3zM10 8h4v13h-4zM17 3h4v18h-4z" /></svg>{t("mtf")}</button>
+            <button className={`tbtn tool-adv toolbar-overflow-item${isMtf ? " on" : ""}`} data-toolbar-item data-toolbar-action="mtf" data-precision-horizon={precisionHorizon ?? precisionPlan.horizon} aria-pressed={isMtf} disabled={precisionUnavailable} title={precisionUnavailable ? precisionMtfUnavailableTip : precisionMtfTip} onClick={mtfLayout}><svg viewBox="0 0 24 24"><path d="M3 13h4v8H3zM10 8h4v13h-4zM17 3h4v18h-4z" /></svg>{t("mtf")}</button>
             <button className={`tbtn dtm toolbar-overflow-item${dtm ? " on" : ""}`} data-toolbar-item title={t("dtmTip")} onClick={toggleDtm}><svg viewBox="0 0 24 24" style={{ width: 13, height: 13 }} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" /></svg>{t("dtmBtn")}</button>
             {panes.length > 1 && <button className={`tbtn tool-adv toolbar-overflow-item${sync && !mixedTfs ? " on" : ""}`} data-toolbar-item data-toolbar-action="sync" data-sync-on={sync && !mixedTfs ? "1" : "0"} disabled={mixedTfs} title={mixedTfs ? t("syncMixedTip") : t("syncTip")} onClick={() => setSync((s) => !s)}><svg viewBox="0 0 24 24"><path d="M4 7h11M4 7l3-3M4 7l3 3M20 17H9M20 17l-3-3M20 17l-3 3" /></svg>{t("sync")}</button>}
             <button
@@ -5307,7 +5350,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
                       {[1, 2, 4].map((n) => <button key={n} className={split === n ? "on" : ""} onClick={() => { setGrid(n); setToolbarMoreOpen(false); }}>{n}</button>)}
                     </div>
                   </div>
-                  <button type="button" role="menuitem" className={`menu-row${isMtf ? " on" : ""}`} data-toolbar-menu-action="mtf" onClick={() => { mtfLayout(); setToolbarMoreOpen(false); }}>
+                  <button type="button" role="menuitem" className={`menu-row${isMtf ? " on" : ""}`} data-toolbar-menu-action="mtf" data-precision-horizon={precisionHorizon ?? precisionPlan.horizon} aria-pressed={isMtf} disabled={precisionUnavailable} title={precisionUnavailable ? precisionMtfUnavailableTip : precisionMtfTip} onClick={() => { mtfLayout(); setToolbarMoreOpen(false); }}>
                     <svg viewBox="0 0 24 24"><path d="M3 13h4v8H3zM10 8h4v13h-4zM17 3h4v18h-4z" /></svg>{t("mtf")}
                   </button>
                   <button type="button" role="menuitem" className={`menu-row${dtm ? " on" : ""}`} data-toolbar-menu-action="day" onClick={() => { toggleDtm(); setToolbarMoreOpen(false); }}>
@@ -5447,7 +5490,14 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
               }}
               onDrawStyle={patchDrawStyle}
             />
-            <div className="pane-grid" data-n={panes.length}>
+            <div
+              className={`pane-grid${isMtf ? " precision-mtf-grid" : ""}`}
+              data-n={panes.length}
+              style={isMtf ? { position: "relative", paddingTop: PRECISION_ENTRY_STRIP_HEIGHT } : undefined}
+            >
+              {isMtf && (
+                <PrecisionEntryStrip plan={activePrecisionPlan} intel={intel} lang={lang} horizonOptions={precisionHorizonOptions} onHorizonChange={applyPrecisionHorizon} activeRole={activePrecisionRole} onRoleChange={selectPrecisionRole} />
+              )}
               {panes.map((sym, i) => (
                 <ChartPane key={i} idx={i} symbol={sym} drawingOwnerKey={currentDrawingOwnerKey} isActive={i === activePane} onActivate={setActivePane} row={paneRows[i]} tf={paneTfs[i] ?? "D"} chartType={chartType} inds={inds} tool={drawingsReadyFor(sym) ? activeDrawingTool : null} toolActivation={toolState.activation} drawingSticky={drawingCreationDisabledReason ? false : drawingKeepsActive} drawingCreationDisabled={drawingCreationDisabledReason !== null} drawStyle={drawStyle} detectCmd={detectCmd} compare={compare} compareCfg={compareCfg} magnet={magnet} replayIdx={replayOn ? replayIdx : null} onMeta={(mm) => setTotal(mm.total)} drawings={[...(drawingOwnerMatches ? (drawStore[sym] ?? []) : []), ...chartBus.aiDrawingsFor(sym)]} drawingsVisible={drawingsVisible} onDrawingsChange={(d) => setSymbolDrawings(sym, d)} onDetectedDrawingCount={i === activePane ? setActivePaneDetectedDrawingCount : undefined} liveQuote={quotes[sym] ?? null} dataReady={prefsHydrated} initialTimeframe={startTfRef.current} indParams={indParams} hidden={hidden} onToggleHidden={toggleHidden} onRemoveInd={removeInd} onOpenSettings={openSettings} onOpenSource={openSource} pineScripts={pineScripts} dayMode={dtm} userTier={userTier}
                   onAddAlert={(price) => { window.location.href = `/alerts?sym=${encodeURIComponent(active)}&price=${encodeURIComponent(price.toFixed(4))}&type=price_above`; }}
@@ -5456,7 +5506,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
                   lockedVLine={lockedVLine}
                   onSetLockedVLine={(t2) => setLockedVLine(t2)}
                   onIndRowsAt={i === activePane ? (fn, meta) => { setIndRowsAt(() => fn); if (meta) setChartReadoutMeta(meta); } : undefined}
-                  onPaneCount={i === 0 ? onPaneCount : undefined}
+                  hostDisplay={isPhone && isMtf ? (i === activePane ? "flex" : "none") : undefined} onPaneCount={i === 0 ? onPaneCount : undefined}
                 />
               ))}
             </div>
@@ -5575,11 +5625,13 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
         <AnalysisHubSheet
           open={hubOpen}
           onClose={() => setHubOpen(false)}
+          precisionActive={isMtf}
           onAction={(action) => {
             setHubOpen(false);
             if (action === "indicators") setIndOpen(true);
             else if (action === "compare") { setSearchMode("compare"); setSeed(""); setSearchOpen(true); }
             else if (action === "chartType") setCtOpen(true);
+            else if (action === "precisionMtf") mtfLayout();
             else if (action === "workspaces") setPhoneWorkspacesOpen(true);
             else if (action === "alerts") window.location.assign(`/alerts?sym=${encodeURIComponent(active)}`);
             else if (action === "symbolDetails") {

@@ -35,6 +35,7 @@ function supportedHubControls(hub: Locator) {
     hub.getByTestId("hub-tile-compare"),
     hub.getByTestId("hub-tile-alerts"),
     hub.getByTestId("hub-tile-chartType"),
+    hub.getByTestId("hub-tile-precisionMtf"),
     hub.getByTestId("hub-tile-workspaces"),
     hub.getByTestId("hub-tile-symbolDetails"),
   ];
@@ -117,7 +118,7 @@ test("MM-006: only supported tools are actionable and chart type uses canonical 
   await openTerminal(page);
   const { hub, trigger } = await openHub(page);
 
-  await expect(hub.locator(".mhub-grid .mhub-tile")).toHaveCount(6);
+  await expect(hub.locator(".mhub-grid .mhub-tile")).toHaveCount(7);
   await expect(hub.getByTestId("hub-tile-objectTree")).toHaveCount(0);
   await expect(hub.getByTestId("hub-tile-templates")).toHaveCount(0);
   await expect(hub.getByTestId("hub-unavailable-tools")).toContainText("This panel isn't available in this version");
@@ -173,6 +174,46 @@ test("MM-006: only supported tools are actionable and chart type uses canonical 
   const mobileAgain = await openHub(page);
   await mobileAgain.hub.getByTestId("hub-tile-chartType").click();
   await expect(page.getByRole("dialog", { name: "Chart type" }).getByRole("button", { name: /^Line(?: ✓)?$/ })).toHaveClass(/\bon\b/);
+});
+
+test("Precision MTF is operable end-to-end from the phone hub and role strip", async ({ page }) => {
+  await openTerminal(page, "en", "NVDA");
+  const { hub } = await openHub(page);
+
+  const precision = hub.getByTestId("hub-tile-precisionMtf");
+  await expect(precision).toContainText("Precision MTF");
+  await expect(precision).toHaveAttribute("aria-pressed", "false");
+  await precision.tap();
+  await expect(hub).toHaveCount(0);
+
+  const strip = page.getByTestId("precision-entry-strip");
+  const grid = page.locator(".pane-grid");
+  await expect(strip).toBeVisible();
+  await expect(strip).toHaveAttribute("data-horizon", "swing");
+  await expect(grid).toHaveAttribute("data-n", "4");
+  await expect(page.locator(".pane-grid > .pane:visible")).toHaveCount(1);
+  await expect(page.locator(".pane-grid > .pane:visible .pane-tf")).toHaveText("4h");
+  await expect(strip.locator('[data-role="execution"]')).toHaveAttribute("aria-pressed", "true");
+
+  await strip.locator('[data-role="trigger"]').tap();
+  await expect(strip.locator('[data-role="trigger"]')).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator(".pane-grid > .pane:visible")).toHaveCount(1);
+  await expect(page.locator(".pane-grid > .pane:visible .pane-tf")).toHaveText("2D");
+
+  await strip.locator('[data-role="structure"]').tap();
+  await expect(strip.locator('[data-role="structure"]')).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator(".pane-grid > .pane:visible .pane-tf")).toHaveText("2W");
+
+  const reopened = await openHub(page);
+  const exitPrecision = reopened.hub.getByTestId("hub-tile-precisionMtf");
+  await expect(exitPrecision).toContainText("Exit Precision MTF");
+  await expect(exitPrecision).toHaveAttribute("aria-pressed", "true");
+  await exitPrecision.tap();
+
+  await expect(reopened.hub).toHaveCount(0);
+  await expect(strip).toHaveCount(0);
+  await expect(grid).toHaveAttribute("data-n", "1");
+  await expect(page.locator(".pane-grid > .pane:visible")).toHaveCount(1);
 });
 
 test("MM-006: Alerts and Symbol details act on the current symbol", async ({ page }) => {
