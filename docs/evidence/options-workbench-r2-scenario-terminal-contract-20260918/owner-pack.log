@@ -1,0 +1,12 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r2-scenario-terminal-contract-20260918-sol-001/terminal
+
+ ✓ lib/__tests__/heatSeries.test.ts (31 tests) 9ms
+ ✓ lib/__tests__/surfaceContract.test.ts (93 tests) 24ms
+ ✓ lib/__tests__/scenarioSurfaceContract.test.ts (8 tests) 9ms
+
+ Test Files  3 passed (3)
+      Tests  132 passed (132)
+   Start at  04:34:09
+   Duration  5.25s (transform 791ms, setup 0ms, collect 1.58s, tests 42ms, environment 0ms, prepare 1.93s)
