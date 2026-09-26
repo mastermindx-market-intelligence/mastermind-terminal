@@ -2,16 +2,18 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { useLang, useT } from "@/lib/i18n";
+import { useLang } from "@/lib/i18n";
+import { useSectorT } from "@/lib/sectorIntelligenceLex";
 import { useShellIdentity } from "@/components/chrome/AppShell";
 import { SECTOR_FEEDS, SECTOR_VIEWS, DEFAULT_SECTOR_STATE, object, text, number, sectorRows,
   groupRows, themeRows, members, concentration, sortMembers, parseSectorState, writeSectorState,
-  companyHref, formatValue, type FeedMap, type FeedPayload, type FeedStatus,
+  formatValue, type FeedMap, type FeedPayload, type FeedStatus,
   type SectorFeed, type SectorState, type SectorView, type Row } from "@/lib/sectorIntelligence";
 import styles from "./SectorIntelligenceWorkspace.module.css";
+import SectorCompanyComparison from "./SectorCompanyComparison";
 
 const VIEW_KEYS: Record<SectorView, string> = {
-  intelligence: "siIntelligence", dossier: "siDossier", companies: "siCompanies", themes: "siThemes", sources: "siSources",
+  intelligence: "siOverview", dossier: "siDossier", companies: "siCompanies", themes: "siThemes", sources: "siSources",
 };
 const FEED_KEYS: Record<SectorFeed, string> = {
   sector: "siFeedSector", confluence: "siFeedConfluence", themes: "siFeedThemes", heatmap: "siFeedHeatmap",
@@ -42,7 +44,7 @@ function Metric({ label, value, foot }: { label: string; value: string; foot: st
 }
 
 export default function SectorIntelligenceWorkspace() {
-  const t = useT(), { lang } = useLang(), identity = useShellIdentity();
+  const t = useSectorT(), { lang } = useLang(), identity = useShellIdentity();
   const [state, setState] = useState<SectorState>(DEFAULT_SECTOR_STATE);
   const [received, setReceived] = useState<{ identity: typeof identity; revision: number; feeds: FeedMap }>({ identity, revision: 0, feeds: {} });
   const [revision, setRevision] = useState(0);
@@ -93,7 +95,6 @@ export default function SectorIntelligenceWorkspace() {
   const group = useMemo(() => groups.find(r => r.key === state.group) || {}, [groups, state.group]);
   const roster = useMemo(() => members(group), [group]);
   const visibleMembers = useMemo(() => sortMembers(roster, state.sort, state.query), [roster, state.sort, state.query]);
-  const dispersion = useMemo(() => sortMembers(roster, "return").slice(0, 6), [roster]);
   const cap = useMemo(() => concentration(feeds.heatmap?.data, text(sector.name)), [feeds.heatmap, sector.name]);
   const momentum = object(sector.momentum), heat = object(sector.heat), cycle = object(sector.cycle);
   const rotation = object(sector.rotation), conviction = object(sector.conviction), entry = object(group.entry), regime = object(group.regime);
@@ -113,7 +114,12 @@ export default function SectorIntelligenceWorkspace() {
   }, [state]);
   const go = (view: SectorView) => change({ view }, true);
   const sourcesLink = <button type="button" className={styles.textButton} onClick={() => go("sources")}>{t("siOpenSources")} →</button>;
-  const uncertainty = <p className={styles.note}>{t("siResearchCopy")}</p>;
+  const glanceKey = !hasSector ? "siGlanceUnavailable" : text(momentum.lead).toLowerCase() !== "leading" ? "siGlanceMixed"
+    : text(conviction.label_en).toLowerCase() === "cautious" || text(cycle.phaseLabel).toLowerCase() === "rolling over" ? "siGlanceLeading" : "siGlanceLeadingPlain";
+  const comparison = <SectorCompanyComparison rows={visibleMembers} selected={state.company} expanded={state.expanded}
+    groupName={groupName} asOf={feeds.confluence?.receipt.asOf || null}
+    onSelect={company => change({ company }, true)} onExpand={() => change({ expanded: !state.expanded })}
+    onOpenTable={() => go("companies")} />;
   const counts = `${formatValue(count(heat.adv), 0)} ${t("siAdvancing")} / ${formatValue(count(heat.dec), 0)} ${t("siDeclining")}`;
   const axes = <div className={styles.axes}>
     <div><h3>{t("siStrength")}</h3><p>{t("siRS")} {rank(momentum.rs_21d_rank)} · {t("siRS63")} {rank(momentum.rs_rank)}</p><span>{momentum.above_200d === true ? t("siAbove200") : momentum.above_200d === false ? t("siBelow200") : t("siTrendUnknown")}</span></div>
@@ -141,11 +147,11 @@ export default function SectorIntelligenceWorkspace() {
     <div className={styles.page}>
       <header className={styles.header}><div><p className={styles.eyebrow}>{t("siEyebrow")}</p><h1>{t("siTitle")}</h1><p className={styles.subtitle}>{t("siSubtitle")}</p></div>
         <div className={styles.controls}>
-          <label>{t("siSector")}<select aria-label={t("siSector")} value={state.sector} onChange={e => change({ sector: e.target.value, group: "", query: "" })}>
+          <label>{t("siSector")}<select aria-label={t("siSector")} value={state.sector} onChange={e => change({ sector: e.target.value, group: "", query: "", company: "", expanded: false })}>
             {!sectors.some(r => r.id === state.sector) && <option value={state.sector}>{state.sector.toUpperCase()}</option>}
             {sectors.map(r => <option key={text(r.id)} value={text(r.id)}>{localName(r)} · {text(r.ticker)}</option>)}
           </select></label>
-          <label>{t("siGroup")}<select aria-label={t("siGroup")} value={state.group} onChange={e => change({ group: e.target.value, query: "", sort: "source" })}>
+          <label>{t("siGroup")}<select aria-label={t("siGroup")} value={state.group} onChange={e => change({ group: e.target.value, query: "", sort: "source", company: "", expanded: false })}>
             <option value="">{t("siChooseGroup")}</option>
             {!groups.some(r => r.key === state.group) && !!state.group && <option value={state.group}>{t("siUnavailable")}</option>}
             {groups.map(r => <option key={text(r.key)} value={text(r.key)}>{localName(r, "label", "label_zh")}</option>)}
@@ -166,15 +172,17 @@ export default function SectorIntelligenceWorkspace() {
           onClick={() => go(view)}>{t(VIEW_KEYS[view])}</button>)}
       </nav>
       <div className={styles.contextLine}><span className={styles.badge}>{t("siResearchOnly")}</span><span>{t("siDated")} · {feeds.sector?.receipt.asOf || t("siUnknownDate")}</span></div>
-      {completed === SECTOR_FEEDS.length && ready < SECTOR_FEEDS.length && <div className={styles.notice} role="status"><div><strong>{t("siPartial")}</strong><p>{t("siPartialCopy")}</p></div>{sourcesLink}</div>}
+      {completed === SECTOR_FEEDS.length && ready < SECTOR_FEEDS.length && <div className={styles.notice} role="status"><div><strong>{t("siCompactPartial")}</strong></div>{sourcesLink}</div>}
       <div role="tabpanel" id={`si-panel-${state.view}`} aria-labelledby={`si-tab-${state.view}`} tabIndex={0} className={styles.view}>
         {state.view === "intelligence" && <>
           {status === "loading" ? <div className={styles.empty} role="status">{t("siLoading")}</div> : !hasSector ? <div className={styles.empty} role="status">
             <h2>{status === "access" ? t("siAccess") : t("siMissingTitle")}</h2><p>{status === "access" ? t("siAccessCopy") : status === "invalid" || status === "ready" ? t("siInvalidCopy") : t("siMissingCopy")}</p>
             {status === "access" && <Link className={styles.button} href="/login">{t("siSignIn")}</Link>}{sourcesLink}
           </div> : <section className={styles.hero}>
-            <div className={styles.heroCopy}><div className={styles.chips}><span className={styles.badge}>{stateLabel(momentum.lead)}</span><span className={styles.badge}>{t("siSlow")}: {stateLabel(conviction.label_en)}</span></div>
-              <h2>{sectorName} <span>{t("siAtGlance")}</span></h2><p>{t("siFast")}: {stateLabel(rotation.state)}.<br />{t("siSlow")}: {stateLabel(cycle.phaseLabel)}.</p>{uncertainty}
+            <div className={styles.heroCopy}>
+              <p className={styles.heroSubject}>{sectorName}</p><h2>{t(glanceKey)}</h2>
+              <p>{t("siGlanceLimit")}</p>
+              <button className={styles.textButton} type="button" onClick={() => go("companies")}>{t("siSeeCompanies")} →</button>
             </div>
             <div className={styles.metrics}>
               <Metric label={t("siRS")} value={rank(momentum.rs_21d_rank)} foot={`${t("siRS63")} ${rank(momentum.rs_rank)}`} />
@@ -183,11 +191,11 @@ export default function SectorIntelligenceWorkspace() {
               <Metric label={t("siTop5")} value={formatValue(cap ? cap.share * 100 : null, 1, "%")} foot={cap ? `${cap.count} ${t("siTiles")}` : t("siNotConnected")} />
             </div>
           </section>}
-          <div className={styles.columns}><div className={styles.stack}><Card title={t("siFocus")} subtitle={t("siSeparate")}>{axes}</Card>{pocket}</div><aside className={styles.stack}>
-            <Card title={t("siDispersion")} subtitle={t("siDispersionCopy")}>
-              {dispersion.length ? <table className={styles.miniTable}><thead><tr><th>{t("siTicker")}</th><th>{t("siReturn20")}</th><th>{t("siRelative")}</th></tr></thead><tbody>{dispersion.map(row => <tr key={row.ticker}><td><Link href={companyHref(row.ticker)!} aria-label={`${t("siOpenCompany")}: ${row.ticker}`}>{row.ticker}</Link></td><td data-sign={row.return20d === null || row.return20d === 0 ? undefined : row.return20d < 0 ? "down" : "up"}>{formatValue(row.return20d, 1, "%", true)}</td><td>{formatValue(row.relative, 1, "pp", true)}</td></tr>)}</tbody></table> : <p className={styles.muted}>{t("siNoMembers")}</p>}
-              <button type="button" className={styles.textButton} onClick={() => go("companies")}>{t("siSeeCompanies")} →</button>
-            </Card><Card title={t("siTaxonomy")}><p className={styles.note}>{t("siTaxonomyCopy")}</p></Card>{business}</aside></div>
+          {comparison}
+          <details className={styles.studyDisclosure}><summary>{t("siShowEvidence")}</summary>
+            <div className={styles.columns}><div className={styles.stack}><Card title={t("siFocus")} subtitle={t("siSeparate")}>{axes}</Card>{pocket}</div>
+              <aside className={styles.stack}>{business}<Card title={t("siTaxonomy")}><p className={styles.note}>{t("siTaxonomyCopy")}</p></Card></aside></div>
+          </details>
         </>}
         {state.view === "dossier" && <div className={styles.columns}><div className={styles.stack}><Card title={`${sectorName || state.sector.toUpperCase()} · ${t("siDossier")}`} subtitle={t("siSeparate")}>{axes}</Card>
           <Card title={t("siWhyDiffer")}><div className={styles.callout}><h3>{t("siSlow")} / {t("siFast")}</h3><p>{stateLabel(conviction.label_en)} / {stateLabel(rotation.state)}</p><span>{t("siClockCopy")}</span></div><div className={styles.callout}><h3>{t("siEntryOwner")} / {t("siRegimeOwner")}</h3><p>{text(entry.tier) || "—"} / {stateLabel(regime.state)}</p><span>{t("siSplitCopy")}</span></div></Card>{business}
@@ -200,7 +208,8 @@ export default function SectorIntelligenceWorkspace() {
             </select></label><span aria-live="polite">{visibleMembers.length} / {roster.length} {t("siShowing")}</span></div>
           <div className={styles.tableWrap}><table className={styles.companyTable}><thead><tr>{["siTicker", "siPrice", "siReturn20", "siRelative", "siTier", "siTicks", "siSourceFlag", "siState"].map(key => <th key={key}>{t(key)}</th>)}</tr></thead>
             <tbody>{visibleMembers.map(row => <tr key={row.ticker} data-testid="sector-company-row">
-              <td data-label={t("siTicker")}><Link href={companyHref(row.ticker)!} aria-label={`${t("siOpenCompany")}: ${row.ticker}`}>{row.ticker} ↗</Link></td>
+              <td data-label={t("siTicker")}><button type="button" className={styles.tableSelect} aria-pressed={state.company === row.ticker}
+                aria-label={`${t("siSelectCompany")}: ${row.ticker}`} onClick={() => change({ company: row.ticker, view: "intelligence", expanded: true, query: "" }, true)}>{row.ticker} →</button></td>
               <td data-label={t("siPrice")}>{formatValue(row.price, 2)}</td><td data-label={t("siReturn20")} data-sign={row.return20d === null || row.return20d === 0 ? undefined : row.return20d < 0 ? "down" : "up"}>{formatValue(row.return20d, 1, "%", true)}</td>
               <td data-label={t("siRelative")}>{formatValue(row.relative, 1, "pp", true)}</td><td data-label={t("siTier")}>{row.tier || t("siSourceUnrated")}</td>
               <td data-label={t("siTicks")}>{formatValue(row.ticks, 0)}</td><td data-label={t("siSourceFlag")}>{row.buyable === null ? "—" : row.buyable ? t("siYes") : t("siNo")}</td><td data-label={t("siState")}>{stateLabel(row.state)}</td>

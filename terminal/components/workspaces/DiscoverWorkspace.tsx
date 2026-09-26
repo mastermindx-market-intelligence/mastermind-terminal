@@ -8,6 +8,7 @@ import HeatmapPageRoot from "@/components/heatmap/HeatmapPageRoot";
 import { DiscoverLeadersMount, DiscoverRadarMount } from "@/components/workspaces/DiscoverFlowMounts";
 import { useShellIdentity } from "@/components/chrome/AppShell";
 import { useT } from "@/lib/i18n";
+import { SECTOR_INTELLIGENCE_LEX } from "@/lib/sectorIntelligenceLex";
 
 /**
  * Discover workspace composer (Wave-2 IA) — the `/discover` body.
@@ -33,7 +34,7 @@ import { useT } from "@/lib/i18n";
 const TABS: WorkspaceTab[] = [
   { key: "screener", labelKey: "wtStockScreener" },
   { key: "heatmap", labelKey: "wtHeatmap" },
-  { key: "sectors", labelKey: "siTab" },
+  { key: "sectors", labelKey: SECTOR_INTELLIGENCE_LEX.siTab[0], zhLabel: SECTOR_INTELLIGENCE_LEX.siTab[1] },
   { key: "leaders", labelKey: "wtLeaders" },
   { key: "radar", labelKey: "wtRadar" },
 ];

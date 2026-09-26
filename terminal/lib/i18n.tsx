@@ -1,7 +1,6 @@
 "use client";
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { DEEP_RESEARCH_MONTHLY } from "./chatQuotas";
-import { SECTOR_INTELLIGENCE_LEX } from "./sectorIntelligenceLex";
 
 export type Lang = "en" | "zh";
 
@@ -18,7 +17,6 @@ export type Lang = "en" | "zh";
 // Exported for tests that hold a feature's new strings to EN+ZH parity by key (see
 // lib/__tests__/feedFreshness.test.ts). Runtime call sites use `useT`/`tPlain`, never LEX directly.
 export const LEX: Record<string, [string, string]> = {
-  ...SECTOR_INTELLIGENCE_LEX,
   // settings
   settings: ["Settings", "设置"],
   updownColors: ["Up / Down colors", "涨跌颜色"],

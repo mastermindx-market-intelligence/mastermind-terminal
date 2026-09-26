@@ -21,10 +21,10 @@ export const SECTOR_VIEWS = ["intelligence", "dossier", "companies", "themes", "
 export type SectorView = typeof SECTOR_VIEWS[number];
 export type MemberSort = "source" | "return" | "relative" | "ticker";
 export type SectorState = {
-  view: SectorView; sector: string; group: string; sort: MemberSort; query: string; theme: "dark" | "light";
+  view: SectorView; sector: string; group: string; sort: MemberSort; query: string; theme: "dark" | "light"; company: string; expanded: boolean;
 };
 export const DEFAULT_SECTOR_STATE: SectorState = {
-  view: "intelligence", sector: "xlk", group: "semiconductors", sort: "source", query: "", theme: "dark",
+  view: "intelligence", sector: "xlk", group: "semiconductors", sort: "source", query: "", theme: "dark", company: "", expanded: false,
 };
 export function object(value: unknown): Row {
   return value !== null && typeof value === "object" && !Array.isArray(value) ? value as Row : {};
@@ -135,12 +135,16 @@ export function parseSectorState(params: URLSearchParams): SectorState {
     sort: ["source", "return", "relative", "ticker"].includes(sort) ? sort as MemberSort : "source",
     query: (params.get("sectorQuery") || "").slice(0, 40),
     theme: params.get("sectorTheme") === "light" ? "light" : "dark",
+    company: SYMBOL.test(params.get("sectorCompany") || "") && (params.get("sectorCompany") || "").length <= 20 ? params.get("sectorCompany")! : "",
+    expanded: params.get("sectorExpanded") === "1",
   };
 }
 export function writeSectorState(url: URL, state: SectorState): string {
   url.searchParams.set("tab", "sectors");
   url.searchParams.set("sectorView", state.view);
   url.searchParams.set("sectorTheme", state.theme);
+  if (state.company) url.searchParams.set("sectorCompany", state.company); else url.searchParams.delete("sectorCompany");
+  if (state.expanded) url.searchParams.set("sectorExpanded", "1"); else url.searchParams.delete("sectorExpanded");
   url.searchParams.set("sector", state.sector);
   url.searchParams.set("group", state.group);
   url.searchParams.set("sectorSort", state.sort);

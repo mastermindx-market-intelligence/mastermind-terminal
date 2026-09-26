@@ -1,6 +1,36 @@
-/** Sector Intelligence chrome, enrolled in the shared LEX. */
+"use client";
+import { useCallback } from "react";
+import { useLang, useT } from "./i18n";
+/** Feature-local EN/ZH tuples. Language state remains the shared LangProvider.
+ * Keeping feature copy out of global LEX avoids loading this workspace on every
+ * route and preserves unrelated screen evidence. No mutable registration/store.
+ */
 export const SECTOR_INTELLIGENCE_LEX: Record<string, [string, string]> = {
   siUseLight: ["Use light view", "使用浅色视图"], siUseDark: ["Use dark view", "使用深色视图"],
+  siCompareTitle: ["Compare the companies", "比较公司"],
+  siCompareWindow: ["20 trading days · versus the selected group", "20个交易日 · 相对所选分组"],
+  siSelectCompany: ["Select company", "选择公司"],
+  siSelectedCompany: ["Selected company", "所选公司"],
+  siCompanyPrompt: ["Select a company to inspect its performance.", "选择公司以查看其表现。"],
+  siCompareAll: ["Show all companies", "显示全部公司"],
+  siCompareLess: ["Show fewer", "收起"],
+  siFullCompanyTable: ["Open company table", "打开公司列表"],
+  siCompareAbsolute: ["Company return", "公司收益"],
+  siCompareRelative: ["Versus group", "相对分组"],
+  siCompareMethods: ["Comparison details", "比较详情"],
+  siCompareMethodsBody: ["Dots use the same percentage-point scale. Company return and relative performance are different measures. Missing values stay blank; selecting or sorting a company does not change its source signal.", "各点使用相同的百分点刻度，公司收益与相对表现是不同指标。缺失值保持为空；选择或排序公司不会改变其来源信号。"],
+  siSourceSignalDetails: ["Signal details", "信号详情"],
+  siComparisonMissing: ["No comparable values are available.", "暂无可比较数值。"],
+  siGroupClock: ["Group snapshot", "分组快照"],
+  siOverview: ["Overview", "概览"],
+  siGlanceLeading: ["Leading, with mixed timing", "领先，但时机信号不一致"],
+  siGlanceLeadingPlain: ["Leading the sector set", "领先于其他板块"],
+  siGlanceMixed: ["Read the signals separately", "分别查看各项信号"],
+  siGlanceUnavailable: ["Evidence is incomplete", "证据尚不完整"],
+  siGlanceLimit: ["Entry timing is not confirmed here.", "此处尚未确认入场时机。"],
+  siDataDetails: ["Data details", "数据详情"],
+  siShowEvidence: ["Read the evidence", "查看证据"],
+  siCompactPartial: ["Some sources are unavailable.", "部分来源暂不可用。"],
   siTab: ["Sector Intelligence", "板块情报"],
   siEyebrow: ["UNITED STATES · SECTOR INTELLIGENCE", "美国 · 板块情报"],
   siTitle: ["Sector Intelligence", "板块情报"],
@@ -87,3 +117,12 @@ export const SECTOR_INTELLIGENCE_LEX: Record<string, [string, string]> = {
   siStateImproving: ["Improving", "改善"], siStateConstructive: ["Constructive", "偏积极"],
   siSelectSources: ["Read source details", "阅读来源详情"],
 };
+
+export function useSectorT() {
+  const { lang } = useLang();
+  const sharedT = useT();
+  return useCallback((key: string, fallback?: string): string => {
+    const pair = SECTOR_INTELLIGENCE_LEX[key];
+    return pair ? pair[lang === "zh" ? 1 : 0] : sharedT(key, fallback);
+  }, [lang, sharedT]);
+}

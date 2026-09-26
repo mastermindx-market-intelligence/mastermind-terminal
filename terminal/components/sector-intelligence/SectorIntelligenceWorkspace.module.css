@@ -160,3 +160,13 @@
   .companyTable td:first-child a { font-size: 15px; }
   .empty { padding: 24px 16px; }
 }
+
+/* R2: answer first, coordinated comparison second; methodology stays disclosed. */
+.heroSubject { font-size: 13px !important; font-weight: 650; color: var(--text) !important; }
+.heroCopy h2 { font-size: 26px; line-height: 1.22; margin-top: 8px; max-width: 450px; }
+.studyDisclosure { border-top: 1px solid var(--line); margin-top: 18px; padding-top: 3px; }
+.studyDisclosure > summary { min-height: 44px; align-content: center; cursor: pointer; color: var(--text-2); font-size: 12px; font-weight: 600; }
+.studyDisclosure > div { padding-top: 10px; }
+.tableSelect { min-height: 44px; border: 0; border-radius: 5px; background: transparent; padding: 0 8px; color: var(--text); cursor: pointer; font-size: 12px; font-weight: 650; }
+.tableSelect:hover, .tableSelect[aria-pressed="true"] { background: var(--panel-2); color: var(--link); }
+@media(max-width: 560px) { .heroCopy h2 { font-size: 24px; } .hero { gap: 10px; } .metrics { padding-top: 0; } .metric { padding: 10px; } }
