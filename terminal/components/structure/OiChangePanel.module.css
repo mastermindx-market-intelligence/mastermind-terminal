@@ -1,0 +1,21 @@
+.scopeChip,
+.sortButton {
+  box-sizing: border-box;
+}
+
+@media (max-width: 640px) {
+  .scopeChip {
+    min-width: 44px;
+    min-height: 44px !important;
+    height: 44px !important;
+  }
+
+  .sortButton {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-inline: 6px !important;
+  }
+}
