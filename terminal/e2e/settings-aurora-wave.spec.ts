@@ -45,11 +45,14 @@ test("settings aurora is full-width, unclipped, and morphs its wave geometry", a
   expect(geometry.core.bottom).toBeGreaterThan(geometry.card.top);
   expect(geometry.pageOverflow).toBe(0);
 
-  const sample = () => core.evaluate((path) => ({
-    d: path.getAttribute("d"),
-    height: path.getBBox().height,
-    transform: getComputedStyle(path).transform,
-  }));
+  const sample = () => core.evaluate((element) => {
+    const path = element as SVGPathElement;
+    return {
+      d: path.getAttribute("d"),
+      height: path.getBBox().height,
+      transform: getComputedStyle(path).transform,
+    };
+  });
 
   const first = await sample();
   await page.waitForTimeout(700);
