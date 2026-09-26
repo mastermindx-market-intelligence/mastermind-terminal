@@ -89,14 +89,14 @@ export async function flowGet(f: string): Promise<unknown> {
  * actually consume a nightly artifact after it advances rather than merely
  * trigger SWR in the background and keep rendering the previous value.
  */
-export async function flowGetFresh(f: string): Promise<unknown> {
+export async function flowGetFresh(f: string, force = false): Promise<unknown> {
   const url = buildUrl(f);
   const now = Date.now();
   const entry = store.get(url);
 
   if (entry) {
     if (entry.inflight !== null) return entry.inflight;
-    if (now - entry.ts < TTL_MS) return Promise.resolve(entry.data);
+    if (!force && now - entry.ts < TTL_MS) return Promise.resolve(entry.data);
     return doFetch(url, { data: entry.data, ts: entry.ts, inflight: null });
   }
 

@@ -1,8 +1,8 @@
 {
   "schema": "mastermind.options_level_axis_evidence/v1",
-  "capturedAt": "2026-09-24T11:54:39.029Z",
-  "sourceHead": "37772d50750ede7292a3ea84d8a899b056aa4723",
-  "baseURL": "http://127.0.0.1:36949",
+  "capturedAt": "2026-09-25T08:08:57.479Z",
+  "sourceHead": "83f14a56bbf6657916df2f9bc93498bacd94d833",
+  "baseURL": "http://127.0.0.1:3227",
   "classification": "LOCAL_BROWSER_WITH_INTERCEPTED_OPTIONS_CONTRACT_PAYLOADS_NOT_PRODUCTION_DATA",
   "expectedLinePrices": [
     192.42,
@@ -13,7 +13,7 @@
     192.6
   ],
   "sourceFiles": {
-    "components/ChartPanel.tsx": "7a9364c28284b8b0e02c39a73069b8b02b9c092ca656298bf35cab90d15b0a58",
+    "components/ChartPanel.tsx": "4187ab3938dc14dc8e8cd276860f3e57f21f2e846d2c032d8abea49fd9def9a7",
     "lib/optionsLevels.ts": "ba5268ff0097eca172ae2192c4ad1659e597acdb5934e27f165f022754a93efd",
     "lib/priceTagPlacement.ts": "75798f32a3b1cf6432c38e076b4a9fac580e2ef402cb862596525a86a09465ff"
   },
@@ -23,7 +23,7 @@
       "width": 1440,
       "height": 900,
       "screenshot": "desktop.png",
-      "sha256": "57194ffe5d60e9bc52c0d2da6d8edb9e7a3d7b0a7e8de5530f127be4ad35bfa1",
+      "sha256": "89b023f5ec24bd8d09ff1e0800f9db4b9ae1f53ede66747f7643fc14975a1b4e",
       "proof": {
         "labels": {
           "primaryTop": 106,
@@ -75,7 +75,7 @@
               "anchorY": 203.67478586995082,
               "docked": true,
               "lane": 0,
-              "text": "ABS γ 192.46"
+              "text": "ABS \u03b3 192.46"
             },
             {
               "key": "em_lo",
@@ -85,7 +85,7 @@
               "anchorY": 203.73452942070855,
               "docked": true,
               "lane": 0,
-              "text": "EM− 192.44"
+              "text": "EM\u2212 192.44"
             },
             {
               "key": "em_hi",
@@ -132,26 +132,26 @@
       "width": 820,
       "height": 1180,
       "screenshot": "tablet.png",
-      "sha256": "461d48254242c7349a8050bd541352343d9928ea8fad191b19d65d14373fc089",
+      "sha256": "a7f69541b4ed2855f3230d6195d2f210e59205362436cad4c9674957f66d6400",
       "proof": {
         "labels": {
-          "primaryTop": 38,
-          "primaryNaturalTop": 110,
-          "primaryAnchorY": 118.02957579443512,
+          "primaryTop": 87,
+          "primaryNaturalTop": 177,
+          "primaryAnchorY": 184.79421620799758,
           "primaryDocked": true,
           "pricePaneTop": 0,
-          "extendedTop": 110,
-          "extendedNaturalTop": 110,
-          "extendedAnchorY": 118.08153869545384,
+          "extendedTop": 177,
+          "extendedNaturalTop": 177,
+          "extendedAnchorY": 184.8756028584461,
           "extendedDocked": false,
           "timerOwner": "extended",
           "optionTags": [
             {
               "key": "call_wall",
               "price": 192.6,
-              "top": 2,
-              "naturalTop": 110,
-              "anchorY": 117.90832902539154,
+              "top": 51,
+              "naturalTop": 177,
+              "anchorY": 184.6043140236177,
               "docked": true,
               "lane": 0,
               "text": "CW 192.60"
@@ -159,9 +159,9 @@
             {
               "key": "put_wall",
               "price": 192.42,
-              "top": 142,
-              "naturalTop": 110,
-              "anchorY": 118.22010643150372,
+              "top": 159,
+              "naturalTop": 177,
+              "anchorY": 185.09263392630885,
               "docked": true,
               "lane": 0,
               "text": "PW 192.42"
@@ -169,9 +169,9 @@
             {
               "key": "gamma_flip",
               "price": 192.52,
-              "top": 56,
-              "naturalTop": 110,
-              "anchorY": 118.04689676144136,
+              "top": 105,
+              "naturalTop": 177,
+              "anchorY": 184.8213450914804,
               "docked": true,
               "lane": 0,
               "text": "FLIP 192.52"
@@ -179,29 +179,29 @@
             {
               "key": "abs_gamma",
               "price": 192.46,
-              "top": 74,
-              "naturalTop": 110,
-              "anchorY": 118.15082256347876,
+              "top": 123,
+              "naturalTop": 177,
+              "anchorY": 184.98411839237747,
               "docked": true,
               "lane": 0,
-              "text": "ABS γ 192.46"
+              "text": "ABS \u03b3 192.46"
             },
             {
               "key": "em_lo",
               "price": 192.44,
-              "top": 92,
-              "naturalTop": 110,
-              "anchorY": 118.1854644974913,
+              "top": 141,
+              "naturalTop": 177,
+              "anchorY": 185.03837615934316,
               "docked": true,
               "lane": 0,
-              "text": "EM− 192.44"
+              "text": "EM\u2212 192.44"
             },
             {
               "key": "em_hi",
               "price": 192.58,
-              "top": 20,
-              "naturalTop": 110,
-              "anchorY": 117.94297095940397,
+              "top": 69,
+              "naturalTop": 177,
+              "anchorY": 184.65857179058332,
               "docked": true,
               "lane": 0,
               "text": "EM+ 192.58"
@@ -227,9 +227,9 @@
           "left": 0,
           "right": 820,
           "top": 160,
-          "bottom": 606.796875,
+          "bottom": 842.796875,
           "width": 820,
-          "height": 446.796875
+          "height": 682.796875
         }
       },
       "consoleErrors": [],
@@ -241,7 +241,7 @@
       "width": 390,
       "height": 844,
       "screenshot": "mobile.png",
-      "sha256": "2d6cf5c96f2e0b7ffd9ec8954abca36c89d7c357d9088cdf281d7c024131b484",
+      "sha256": "d461f06ce98c6702a4580cc6ba50e8e54b4123597be0f03f77ea753947e2f9d3",
       "proof": {
         "labels": {
           "primaryTop": 43,
@@ -293,7 +293,7 @@
               "anchorY": 123.2482773300897,
               "docked": true,
               "lane": 0,
-              "text": "ABS γ 192.46"
+              "text": "ABS \u03b3 192.46"
             },
             {
               "key": "em_lo",
@@ -303,7 +303,7 @@
               "anchorY": 123.28441538695455,
               "docked": true,
               "lane": 0,
-              "text": "EM− 192.44"
+              "text": "EM\u2212 192.44"
             },
             {
               "key": "em_hi",
@@ -352,7 +352,7 @@
       "left": true,
       "percentage": true,
       "screenshot": "desktop-left-percentage.png",
-      "sha256": "ccd868f455ba583c77e2c513d890c571b699aaff2e7e98b8a1b3dc0da79db515",
+      "sha256": "c8e7d2bd7e04f8df6b22edb02820e9d75ecc6d1d23480f674e44bbc54b48c51f",
       "proof": {
         "labels": {
           "primaryTop": 106,
@@ -404,7 +404,7 @@
               "anchorY": 203.67478586995082,
               "docked": true,
               "lane": 0,
-              "text": "ABS γ 344.49%"
+              "text": "ABS \u03b3 344.49%"
             },
             {
               "key": "em_lo",
@@ -414,7 +414,7 @@
               "anchorY": 203.73452942070855,
               "docked": true,
               "lane": 0,
-              "text": "EM− 344.44%"
+              "text": "EM\u2212 344.44%"
             },
             {
               "key": "em_hi",
@@ -461,7 +461,7 @@
       "width": 1440,
       "height": 430,
       "screenshot": "desktop-compact.png",
-      "sha256": "ac1229110b3eb1d0025be812e5f33c8282efc5b826641e0486a0d6f9d3b57409",
+      "sha256": "2b8343787558ac007cf6507fcda4b5523bf3c690be820d551a5f71787f53bdb1",
       "proof": {
         "labels": {
           "primaryTop": 36,
@@ -513,7 +513,7 @@
               "anchorY": 79.6367198824185,
               "docked": true,
               "lane": 0,
-              "text": "ABS γ 192.46"
+              "text": "ABS \u03b3 192.46"
             },
             {
               "key": "em_lo",
@@ -523,7 +523,7 @@
               "anchorY": 79.660057777102,
               "docked": true,
               "lane": 0,
-              "text": "EM− 192.44"
+              "text": "EM\u2212 192.44"
             },
             {
               "key": "em_hi",
@@ -565,5 +565,7 @@
       "pageErrors": [],
       "httpErrors": []
     }
-  ]
+  ],
+  "worktreeMergeHead": "9aca42ee0047651856c8d7b632d8737b0dffd569",
+  "sourceState": "PENDING_MERGE_WORKTREE_CONTENT_ADDRESSED_BY_SOURCEFILES"
 }

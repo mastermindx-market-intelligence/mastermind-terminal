@@ -1,0 +1,61 @@
+[warmup] /terminal?symbol=NVDA → 200 in 210ms
+[warmup] /options → 200 in 222ms
+[warmup] /portfolio → 200 in 95ms
+[warmup] /alerts → 200 in 88ms
+[warmup] /analysis → 200 in 107ms
+[warmup] /discover → 200 in 82ms
+[warmup] /admin → 200 in 67ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 61ms
+[warmup] /login → 200 in 124ms
+[warmup] /api/me → 200 in 134ms
+[warmup] /api/watchlist → 200 in 15ms
+[warmup] /api/layouts → 200 in 14ms
+[warmup] 12 routes compiled in 1s
+
+Running 42 tests using 1 worker
+
+  -   1 [desktop] › e2e/mobile-chart-hub-upgrade.spec.ts:63:5 › MM-005: the hub owns the complete keyboard cycle and returns focus on dismissal
+  -   2 [desktop] › e2e/mobile-chart-hub-upgrade.spec.ts:94:5 › MM-005: focus hands into supported overlays without racing back to the dismissed hub
+  -   3 [desktop] › e2e/mobile-chart-hub-upgrade.spec.ts:117:5 › MM-006: only supported tools are actionable and chart type uses canonical persistent state
+  -   4 [desktop] › e2e/mobile-chart-hub-upgrade.spec.ts:180:5 › MM-006: Alerts and Symbol details act on the current symbol
+  -   5 [desktop] › e2e/mobile-chart-hub-upgrade.spec.ts:203:5 › MM-006: EN and ZH expose the same truthful capability decisions
+  -   6 [desktop] › e2e/mobile-chart-hub-upgrade.spec.ts:215:5 › MM-005/MM-006: hub controls stay nonoverlapping and reachable across phone widths
+  ✓   7 [desktop] › e2e/options-companion.spec.ts:35:7 › [en] real chart + options companion, controls, native pins and restoration (6.5s)
+  ✓   8 [desktop] › e2e/options-companion.spec.ts:35:7 › [zh] real chart + options companion, controls, native pins and restoration (5.9s)
+  ✓   9 [desktop] › e2e/options-companion.spec.ts:87:5 › wrong-root source is refused; explicit refresh recovers without a page reload (3.2s)
+  ✓  10 [desktop] › e2e/options-companion.spec.ts:99:5 › 0DTE never silently becomes the nearest later expiry (3.2s)
+  ✓  11 [desktop] › e2e/options-companion.spec.ts:108:5 › uncovered symbol does not inherit an index heatmap (3.3s)
+  ✓  12 [desktop] › e2e/options-companion.spec.ts:117:5 › unentitled account never mounts an options data consumer (3.1s)
+  ✓  13 [desktop] › e2e/options-companion.spec.ts:128:5 › keyboard grid inspection clears without closing, then Escape restores the opener (3.7s)
+  ✓  14 [desktop] › e2e/options-companion.spec.ts:146:5 › switching the real chart symbol resets the pin and binds the new heatmap (6.2s)
+  -  15 [tablet] › e2e/mobile-chart-hub-upgrade.spec.ts:63:5 › MM-005: the hub owns the complete keyboard cycle and returns focus on dismissal
+  -  16 [tablet] › e2e/mobile-chart-hub-upgrade.spec.ts:94:5 › MM-005: focus hands into supported overlays without racing back to the dismissed hub
+  -  17 [tablet] › e2e/mobile-chart-hub-upgrade.spec.ts:117:5 › MM-006: only supported tools are actionable and chart type uses canonical persistent state
+  -  18 [tablet] › e2e/mobile-chart-hub-upgrade.spec.ts:180:5 › MM-006: Alerts and Symbol details act on the current symbol
+  -  19 [tablet] › e2e/mobile-chart-hub-upgrade.spec.ts:203:5 › MM-006: EN and ZH expose the same truthful capability decisions
+  -  20 [tablet] › e2e/mobile-chart-hub-upgrade.spec.ts:215:5 › MM-005/MM-006: hub controls stay nonoverlapping and reachable across phone widths
+  ✓  21 [tablet] › e2e/options-companion.spec.ts:35:7 › [en] real chart + options companion, controls, native pins and restoration (7.8s)
+  ✓  22 [tablet] › e2e/options-companion.spec.ts:35:7 › [zh] real chart + options companion, controls, native pins and restoration (7.0s)
+  ✓  23 [tablet] › e2e/options-companion.spec.ts:87:5 › wrong-root source is refused; explicit refresh recovers without a page reload (4.6s)
+  ✓  24 [tablet] › e2e/options-companion.spec.ts:99:5 › 0DTE never silently becomes the nearest later expiry (4.5s)
+  ✓  25 [tablet] › e2e/options-companion.spec.ts:108:5 › uncovered symbol does not inherit an index heatmap (4.6s)
+  ✓  26 [tablet] › e2e/options-companion.spec.ts:117:5 › unentitled account never mounts an options data consumer (4.5s)
+  ✓  27 [tablet] › e2e/options-companion.spec.ts:128:5 › keyboard grid inspection clears without closing, then Escape restores the opener (6.2s)
+  -  28 [tablet] › e2e/options-companion.spec.ts:146:5 › switching the real chart symbol resets the pin and binds the new heatmap
+  ✓  29 [mobile] › e2e/mobile-chart-hub-upgrade.spec.ts:63:5 › MM-005: the hub owns the complete keyboard cycle and returns focus on dismissal (5.2s)
+  ✓  30 [mobile] › e2e/mobile-chart-hub-upgrade.spec.ts:94:5 › MM-005: focus hands into supported overlays without racing back to the dismissed hub (5.5s)
+  ✓  31 [mobile] › e2e/mobile-chart-hub-upgrade.spec.ts:117:5 › MM-006: only supported tools are actionable and chart type uses canonical persistent state (10.6s)
+  ✓  32 [mobile] › e2e/mobile-chart-hub-upgrade.spec.ts:180:5 › MM-006: Alerts and Symbol details act on the current symbol (5.6s)
+  ✓  33 [mobile] › e2e/mobile-chart-hub-upgrade.spec.ts:203:5 › MM-006: EN and ZH expose the same truthful capability decisions (3.2s)
+  ✓  34 [mobile] › e2e/mobile-chart-hub-upgrade.spec.ts:215:5 › MM-005/MM-006: hub controls stay nonoverlapping and reachable across phone widths (5.5s)
+  ✓  35 [mobile] › e2e/options-companion.spec.ts:35:7 › [en] real chart + options companion, controls, native pins and restoration (5.9s)
+  ✓  36 [mobile] › e2e/options-companion.spec.ts:35:7 › [zh] real chart + options companion, controls, native pins and restoration (6.3s)
+  ✓  37 [mobile] › e2e/options-companion.spec.ts:87:5 › wrong-root source is refused; explicit refresh recovers without a page reload (4.0s)
+  ✓  38 [mobile] › e2e/options-companion.spec.ts:99:5 › 0DTE never silently becomes the nearest later expiry (4.2s)
+  ✓  39 [mobile] › e2e/options-companion.spec.ts:108:5 › uncovered symbol does not inherit an index heatmap (4.6s)
+  ✓  40 [mobile] › e2e/options-companion.spec.ts:117:5 › unentitled account never mounts an options data consumer (3.8s)
+  ✓  41 [mobile] › e2e/options-companion.spec.ts:128:5 › keyboard grid inspection clears without closing, then Escape restores the opener (4.3s)
+  -  42 [mobile] › e2e/options-companion.spec.ts:146:5 › switching the real chart symbol resets the pin and binds the new heatmap
+
+  14 skipped
+  28 passed (2.5m)

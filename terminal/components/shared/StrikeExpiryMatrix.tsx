@@ -36,7 +36,9 @@
  * Everything PRISM did better is opt-in.
  */
 
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { formatExposureMn } from "@/lib/optionsCompanion";
+import railStyles from "./StrikeExpiryMatrixRail.module.css";
 
 // ─── Payload types ────────────────────────────────────────────────────────────
 
@@ -64,6 +66,8 @@ export interface StrikeExpiryDoc {
 }
 
 export type MatrixMetric = "hedge" | "oi" | "vol" | "doi";
+/** Raw exposure is an explicit opt-in; legacy desk selectors keep their original four metrics. */
+export type MatrixDisplayMetric = MatrixMetric | "gex";
 
 /** Structural levels the badge column marks, in badge precedence order. */
 export interface MatrixLevels {
@@ -102,8 +106,8 @@ export const MATRIX_METRICS: { key: MatrixMetric; signed: boolean }[] = [
   { key: "doi", signed: true },
 ];
 
-export function isSignedMetric(m: MatrixMetric): boolean {
-  return m === "hedge" || m === "doi";
+export function isSignedMetric(m: MatrixDisplayMetric): boolean {
+  return m === "hedge" || m === "doi" || m === "gex";
 }
 
 // ─── Value / format / colour law ──────────────────────────────────────────────
@@ -133,8 +137,12 @@ function pctile(sorted: number[], p: number): number {
  * transacts per +1% spot, matching `hedgeProfile` (lib/marketStructure.ts). Rendering
  * raw GEX instead is what put two opposite colourings of one strike on one screen.
  */
-export function matrixCellValue(c: MatrixHeatCell, m: MatrixMetric): number | null {
+export function matrixCellValue(c: MatrixHeatCell, m: MatrixDisplayMetric): number | null {
   switch (m) {
+    case "gex": {
+      const g = num(c.gex);
+      return g == null ? null : g / 1e6; // raw exposure, NOT the hedge transaction below
+    }
     case "hedge": {
       const g = num(c.gex);
       // matrix gex is WHOLE DOLLARS of exposure; every surface speaks $mn of hedge.
@@ -155,7 +163,8 @@ export function matrixCellValue(c: MatrixHeatCell, m: MatrixMetric): number | nu
   }
 }
 
-export function fmtMatrixCell(v: number, m: MatrixMetric): string {
+export function fmtMatrixCell(v: number, m: MatrixDisplayMetric): string {
+  if (m === "gex") return formatExposureMn(v);
   const a = Math.abs(v);
   const sign = v < 0 ? "−" : m === "hedge" || m === "doi" ? "+" : "";
   if (m === "hedge") {
@@ -174,7 +183,8 @@ export function fmtMatrixCell(v: number, m: MatrixMetric): string {
  * the html[data-updown="east"] flip; ΔOI rides the neutral structure pair; magnitudes
  * ride one neutral ramp.
  */
-export function matrixCellTone(v: number, m: MatrixMetric): string {
+export function matrixCellTone(v: number, m: MatrixDisplayMetric): string {
+  if (m === "gex") return v > 0 ? "var(--exposure-positive)" : "var(--exposure-negative)";
   if (!isSignedMetric(m)) return "var(--brand-2)";
   if (m === "doi") return v > 0 ? "var(--brand-2)" : "var(--ai)";
   return v > 0 ? "var(--flow-buy)" : "var(--flow-sell)";
@@ -187,7 +197,7 @@ export interface BuildMatrixGridOpts {
   spot?: number | null;
   callWall?: number | null;
   putWall?: number | null;
-  metric: MatrixMetric;
+  metric: MatrixDisplayMetric;
   windowPct?: number;
   maxRows?: number;
   maxCols?: number;
@@ -195,6 +205,8 @@ export interface BuildMatrixGridOpts {
   scope?: MatrixScope;
   /** Compute the Σ-across-visible-expiries column. Off by default (Positioning). */
   withSigma?: boolean;
+  /** Companion cells can be pinned on a chart: never invent a rounded strike. */
+  exactStrikes?: boolean;
 }
 
 export interface MatrixScale {
@@ -244,6 +256,7 @@ export function buildMatrixGrid(opts: BuildMatrixGridOpts): MatrixGridModel | nu
     normalization = "global",
     scope = "default",
     withSigma = false,
+    exactStrikes = false,
   } = opts;
 
   const signed = isSignedMetric(metric);
@@ -276,7 +289,7 @@ export function buildMatrixGrid(opts: BuildMatrixGridOpts): MatrixGridModel | nu
   // raw rows would either overflow or cover ±2% of spot. Pick the smallest round bucket
   // that fits the ±windowPct window in ~maxRows.
   let bucket = 0;
-  {
+  if (!exactStrikes) {
     const windowed = spotRef
       ? allStrikes.filter((k) => Math.abs(k - spotRef) / spotRef <= windowPct / 100)
       : allStrikes;
@@ -294,7 +307,7 @@ export function buildMatrixGrid(opts: BuildMatrixGridOpts): MatrixGridModel | nu
   let strikes = spotRef
     ? [...new Set(allStrikes.filter((k) => Math.abs(k - spotRef) / spotRef <= windowPct / 100).map(toBucket))]
     : [...new Set(allStrikes.map(toBucket))];
-  if (strikes.length < 5) strikes = [...new Set(allStrikes.map(toBucket))];
+  if (!exactStrikes && strikes.length < 5) strikes = [...new Set(allStrikes.map(toBucket))];
   if (strikes.length > maxRows) {
     strikes = spotRef
       ? strikes.sort((a, b) => Math.abs(a - spotRef) - Math.abs(b - spotRef)).slice(0, maxRows)
@@ -400,9 +413,9 @@ function intensity(v: number, scale: MatrixScale, signed: boolean): number {
     : Math.min(1, Math.max(0, (a - scale.lo) / ((scale.hi - scale.lo) || 1)));
 }
 
-export function matrixCellBg(v: number, scale: MatrixScale, metric: MatrixMetric): string {
+export function matrixCellBg(v: number, scale: MatrixScale, metric: MatrixDisplayMetric): string {
   const t01 = intensity(v, scale, isSignedMetric(metric));
-  const alpha = Math.max(4, Math.sqrt(t01) * 78);
+  const alpha = Math.max(4, Math.sqrt(t01) * (metric === "gex" ? 48 : 78));
   return `color-mix(in srgb, ${matrixCellTone(v, metric)} ${alpha.toFixed(1)}%, transparent)`;
 }
 
@@ -490,13 +503,15 @@ export function buildLevelBadgeMap(
 
 export interface StrikeExpiryMatrixProps {
   grid: MatrixGridModel;
-  metric: MatrixMetric;
+  metric: MatrixDisplayMetric;
   /**
    * "card" — Positioning's dense hover-reveal grid (the DEFAULT; byte-identical to
    * MatrixHeatCard's original markup). "desk" — the Exposure matrix view: taller rows,
    * always-visible values, a level-badge column and the Σ column.
    */
-  variant?: "card" | "desk";
+  variant?: "card" | "desk" | "rail";
+  /** Rail-only interaction contract. Existing card/desk markup is unchanged. */
+  rail?: MatrixRailInteraction;
   /** CSS-module class names for the card variant's scroll/table/strike cell. */
   classes?: { scroll?: string; table?: string; strike?: string };
   /** Desk variant only — structural levels for the badge column. */
@@ -524,7 +539,9 @@ export function StrikeExpiryMatrix({
   sigmaAria,
   spotLabel,
   strikeLabel,
+  rail,
 }: StrikeExpiryMatrixProps) {
+  if (variant === "rail" && rail) return <RailMatrix grid={grid} metric={metric} interaction={rail} />;
   const globalScale: MatrixScale = { hi: grid.scaleHi, lo: grid.scaleLo };
   const scaleFor = (exp: string): MatrixScale => grid.perCol?.get(exp) ?? globalScale;
 
@@ -936,3 +953,87 @@ const CELL_TEXT: React.CSSProperties = {
   fontVariantNumeric: "tabular-nums",
   letterSpacing: "-0.01em",
 };
+
+
+export interface MatrixCellSelection { strike: number; expiry: string }
+export interface MatrixRailInteraction {
+  selected: MatrixCellSelection | null;
+  onSelect: (cell: MatrixCellSelection | null) => void;
+  name: string;
+  strikeLabel: string;
+  missingLabel: string;
+  spotLabel: string;
+  units: string;
+}
+
+/** The compact presentation of the SAME model and color/value laws, not another heatmap engine. */
+function RailMatrix({ grid, metric, interaction }: {
+  grid: MatrixGridModel; metric: MatrixDisplayMetric; interaction: MatrixRailInteraction;
+}) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [focused, setFocused] = useState<string | null>(null);
+  const spot = grid.spotRef;
+  const nearest = grid.strikes.reduce<number | null>((best, strike) =>
+    best == null || (spot != null && Math.abs(strike - spot) < Math.abs(best - spot)) ? strike : best, null);
+  const fallback = `${nearest ?? grid.strikes[0]}|${grid.exps[0]}`;
+  const [focusedStrike, focusedExpiry] = (focused ?? "").split("|");
+  const activeKey = focused && grid.strikes.includes(Number(focusedStrike)) && grid.exps.includes(focusedExpiry) ? focused : fallback;
+  const identity = `${grid.sessionDate}|${grid.exps.join(",")}|${grid.strikes.join(",")}`;
+  useEffect(() => {
+    const scroll = scrollRef.current;
+    const row = scroll?.querySelector<HTMLTableRowElement>('[data-reference-row="true"]');
+    if (scroll && row) scroll.scrollTop = Math.max(0, row.offsetTop - scroll.clientHeight / 2);
+  }, [identity]);
+
+  function navigate(event: React.KeyboardEvent<HTMLButtonElement>, row: number, col: number) {
+    if (event.key === "Escape") {
+      event.preventDefault(); event.stopPropagation(); interaction.onSelect(null); return;
+    }
+    let r = row, c = col;
+    switch (event.key) {
+      case "ArrowUp": r--; break;
+      case "ArrowDown": r++; break;
+      case "ArrowLeft": c--; break;
+      case "ArrowRight": c++; break;
+      case "Home": c = 0; if (event.ctrlKey || event.metaKey) r = 0; break;
+      case "End": c = grid.exps.length - 1; if (event.ctrlKey || event.metaKey) r = grid.strikes.length - 1; break;
+      default: return;
+    }
+    event.preventDefault(); event.stopPropagation();
+    r = Math.max(0, Math.min(grid.strikes.length - 1, r));
+    c = Math.max(0, Math.min(grid.exps.length - 1, c));
+    scrollRef.current?.querySelector<HTMLButtonElement>(`[data-row="${r}"][data-col="${c}"]`)?.focus();
+  }
+
+  return <div className={railStyles.scroll} ref={scrollRef} data-options-grid>
+    <table className={railStyles.table} aria-label={interaction.name}>
+      <thead><tr><th scope="col">{interaction.strikeLabel}</th>{grid.exps.map((exp) =>
+        <th scope="col" key={exp}><time dateTime={exp}>{exp.slice(5)}</time><small>{dteLabel(exp, grid.sessionDate)}</small></th>)}</tr></thead>
+      <tbody>{grid.strikes.map((strike, row) => <tr key={strike} data-reference-row={strike === nearest}>
+        <th scope="row" title={strike === nearest && spot != null ? `${interaction.spotLabel} ${spot}` : undefined}>
+          <span>{strike.toLocaleString("en-US", { maximumFractionDigits: 2 })}</span>
+          {strike === nearest && spot != null && <small>{interaction.spotLabel}</small>}
+        </th>
+        {grid.exps.map((expiry, col) => {
+          const key = `${strike}|${expiry}`;
+          const cell = grid.byKey.get(key);
+          const value = cell ? matrixCellValue(cell, metric) : null;
+          const selected = interaction.selected?.strike === strike && interaction.selected?.expiry === expiry;
+          const scale = grid.perCol?.get(expiry) ?? { hi: grid.scaleHi, lo: grid.scaleLo };
+          return <td key={expiry}>
+            <button type="button" data-row={row} data-col={col} data-selected={selected}
+              data-value={value ?? "missing"} aria-pressed={selected}
+              tabIndex={key === activeKey ? 0 : -1}
+              className={railStyles.cell}
+              style={{ background: value == null || value === 0 ? undefined : matrixCellBg(value, scale, metric) }}
+              aria-label={`${strike}, ${expiry}: ${value == null ? interaction.missingLabel : `${fmtMatrixCell(value, metric)} ${interaction.units}`}`}
+              onFocus={() => setFocused(key)} onKeyDown={(event) => navigate(event, row, col)}
+              onClick={() => interaction.onSelect(selected ? null : { strike, expiry })}>
+              {value == null ? "—" : value === 0 ? "0" : fmtMatrixCell(value, metric)}
+            </button>
+          </td>;
+        })}
+      </tr>)}</tbody>
+    </table>
+  </div>;
+}

@@ -1,3 +1,4 @@
+import { optionsReadAccess } from "./optionsAccess";
 import { cache } from "react";
 import { createHash } from "node:crypto";
 import { billingAuth, BILLING_BASE } from "@/app/api/billing/gateway";
@@ -152,9 +153,7 @@ const LIVE_OPTIONS = {
   // already the Terminal's Pro-equivalent operator tier (see isProTier below),
   // so it must carry read access here too. Keep the exception exact: ordinary
   // free/essential/pro callers still require the explicit feature authority.
-  ok: (e: Entitlement) =>
-    e.features.includes("terminal_live_options")
-    || e.tier.trim().toLowerCase() === "unlimited",
+  ok: (e: Entitlement) => optionsReadAccess(e),
 };
 
 /** Live-options surface — customer feature entitlement plus the private unlimited operator tier. */
