@@ -6,6 +6,18 @@ import { useLang, useT } from "./i18n";
  * route and preserves unrelated screen evidence. No mutable registration/store.
  */
 export const SECTOR_INTELLIGENCE_LEX: Record<string, [string, string]> = {
+  siBrowseGroups: ["Browse company groups", "浏览公司分组"],
+  siGroupBrowserClose: ["Close", "关闭"],
+  siGroupsIndependent: ["Groups are shown independently of the sector selection.", "公司分组独立于当前板块选择展示。"],
+  siFindGroup: ["Find a group", "搜索分组"],
+  siGroupsLoading: ["Loading groups…", "正在加载分组…"],
+  siGroupsAccess: ["Sign in to read the company groups.", "登录后查看公司分组。"],
+  siGroupsUnavailable: ["Company groups are unavailable right now.", "公司分组暂不可用。"],
+  siGroupMatch: ["group", "个分组"], siGroupMatches: ["groups", "个分组"],
+  siClearGroupSearch: ["Clear search", "清除搜索"],
+  siGroupCompanies: ["companies", "家公司"], siGroupSelected: ["Selected", "已选择"],
+  siNoGroupMatches: ["No groups match this search.", "没有匹配的分组。"],
+  siMoreGroups: ["Show more groups", "显示更多分组"],
   siUseLight: ["Use light view", "使用浅色视图"], siUseDark: ["Use dark view", "使用深色视图"],
   siCompareTitle: ["Compare the companies", "比较公司"],
   siCompareWindow: ["20 trading days · versus the selected group", "20个交易日 · 相对所选分组"],

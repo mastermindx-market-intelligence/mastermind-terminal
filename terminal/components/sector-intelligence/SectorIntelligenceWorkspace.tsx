@@ -9,6 +9,7 @@ import { SECTOR_FEEDS, SECTOR_VIEWS, DEFAULT_SECTOR_STATE, object, text, number,
   groupRows, themeRows, members, concentration, sortMembers, parseSectorState, writeSectorState,
   formatValue, type FeedMap, type FeedPayload, type FeedStatus,
   type SectorFeed, type SectorState, type SectorView, type Row } from "@/lib/sectorIntelligence";
+import SectorGroupBrowser from "./SectorGroupBrowser";
 import styles from "./SectorIntelligenceWorkspace.module.css";
 import SectorCompanyComparison from "./SectorCompanyComparison";
 
@@ -48,6 +49,7 @@ export default function SectorIntelligenceWorkspace() {
   const [state, setState] = useState<SectorState>(DEFAULT_SECTOR_STATE);
   const [received, setReceived] = useState<{ identity: typeof identity; revision: number; feeds: FeedMap }>({ identity, revision: 0, feeds: {} });
   const [revision, setRevision] = useState(0);
+  const [groupBrowserOpen, setGroupBrowserOpen] = useState(false);
   const nav = useRef<HTMLElement>(null);
   // A changed account hides the previous account's data in the render itself,
   // before effects run. Nothing is persisted in browser storage or shared caches.
@@ -144,6 +146,13 @@ export default function SectorIntelligenceWorkspace() {
   </Card>;
 
   return <main className={`main2 ${styles.root}`} data-testid="sector-intelligence" data-sector-theme={state.theme}>
+    <SectorGroupBrowser open={groupBrowserOpen} groups={groups} selected={state.group}
+      status={feeds.confluence?.receipt.status || "loading"} theme={state.theme}
+      onClose={() => setGroupBrowserOpen(false)} onReviewSources={() => { setGroupBrowserOpen(false); go("sources"); }}
+      onSelect={group => {
+        setGroupBrowserOpen(false);
+        if (group !== state.group) change({ group, view: "intelligence", query: "", sort: "source", company: "", expanded: false }, true);
+      }} />
     <div className={styles.page}>
       <header className={styles.header}><div><p className={styles.eyebrow}>{t("siEyebrow")}</p><h1>{t("siTitle")}</h1><p className={styles.subtitle}>{t("siSubtitle")}</p></div>
         <div className={styles.controls}>
@@ -151,11 +160,9 @@ export default function SectorIntelligenceWorkspace() {
             {!sectors.some(r => r.id === state.sector) && <option value={state.sector}>{state.sector.toUpperCase()}</option>}
             {sectors.map(r => <option key={text(r.id)} value={text(r.id)}>{localName(r)} · {text(r.ticker)}</option>)}
           </select></label>
-          <label>{t("siGroup")}<select aria-label={t("siGroup")} value={state.group} onChange={e => change({ group: e.target.value, query: "", sort: "source", company: "", expanded: false })}>
-            <option value="">{t("siChooseGroup")}</option>
-            {!groups.some(r => r.key === state.group) && !!state.group && <option value={state.group}>{t("siUnavailable")}</option>}
-            {groups.map(r => <option key={text(r.key)} value={text(r.key)}>{localName(r, "label", "label_zh")}</option>)}
-          </select></label>
+          <label>{t("siGroup")}<button type="button" className={styles.button}
+            aria-label={t("siBrowseGroups")} aria-haspopup="dialog" aria-expanded={groupBrowserOpen}
+            onClick={event => { event.currentTarget.focus({ preventScroll: true }); setGroupBrowserOpen(true); }}>{groupName || t("siChooseGroup")} ▾</button></label>
           <button type="button" className={styles.button} onClick={() => change({ theme: state.theme === "dark" ? "light" : "dark" })}>{t(state.theme === "dark" ? "siUseLight" : "siUseDark")}</button>
           <button type="button" className={styles.button} onClick={() => setRevision(n => n + 1)}>{t("siRefresh")}</button>
         </div>
