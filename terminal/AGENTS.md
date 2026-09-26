@@ -10,6 +10,28 @@ This version has breaking changes — APIs, conventions, and file structure may 
 ## Model routing
 Opus builds and reviews code. Design choices are judgment work — made in the session's main loop (or an Opus designer agent), never delegated to Sonnet; builders only implement fully-specified designs (exact markup/classes handed to them). Sonnet = mechanical non-code sweeps only; Haiku = trivial extraction.
 
+## Human-first design, mockup and build contract
+
+Read root `AGENTS.md` §Human-first product acceptance and the shared Macro
+`docs/DESIGN_DOCTRINE.md` plus `research/MASTER_PRODUCT_DESIGN_SYSTEM_V1.md` before
+user-facing work. Pin the accepted source revision; do not treat a candidate PR as law.
+This is the same doctrine, not a Terminal-local copy or a new design system.
+
+The primary viewport must orient the intended user to the subject, main assessment
+and useful next step in 3–4 seconds, with important limitations visible. Do not make
+the reader synthesize scattered panels or decode raw internal fields. Descriptions
+and subtext are optional. Preserve analytical depth, dense grids and evidence through
+coherent disclosure and navigation, including a reliable return to the prior selection.
+Builders preserve the supplied reading contract; an incomplete or contradictory spec
+returns to its design owner rather than becoming an improvised card wall. Reviewers
+separate rendered output, design critique, actual human testing and real journey proof.
+Missing human evidence is not yet tested, not a pass or a block on independent work.
+
+This adds human-consumption requirements to the 2026-08-02 design direction below;
+it does not reinstate the rescinded locked-layout rule. Use Terminal's current tokens,
+primitives and shared shell. Do not transplant Macro's theme.css, invent trade authority,
+or weaken source, rights, privacy or release boundaries.
+
 ## Design direction (user-facing surfaces)
 - **OPERATOR RESCISSION 2026-08-02:** the former "design system is REAL and locked /
   house idiom wins" law and the former "paraphrase only — never copy their copy"
