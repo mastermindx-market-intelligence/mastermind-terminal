@@ -1,14 +1,14 @@
 # Ledger row: 0020_team_ownership_transfer / PR #550 (merged 3cdcd746; originated in #557, packet B-F12-9); applied 2026-09-11
 # layoutFiles carry sha256 hashes of the files they name; proof of which code generated each crop.
 # Rebuild any crop and recompute its layoutFiles, or the test will fail and the PR will not land.
-# capturedAtHead: e6f8323b94dad05617b60390b3887013d88fedcf
-capturedAtHead: e6f8323b94dad05617b60390b3887013d88fedcf
-capturedAt: 2026-09-25T03:58:36.590Z
+# capturedAtHead: fa0f286540098e5e00500b19631611d2f27dad99
+capturedAtHead: fa0f286540098e5e00500b19631611d2f27dad99
+capturedAt: 2026-09-26T12:15:04.864Z
 layoutFiles:
   terminal/components/settings/SectionTeam.tsx: "00f61441215f0cdb8c6b40536e66e243d0ae83ffa54d6f19ae8a67dd99d7a79d"
   terminal/components/settings/SectionTeam.module.css: "069056ff7ac4274a57ae9a835a0fdda178e9625a591b4374e855b9d41a3fd5bc"
-  terminal/components/settings/SettingsPanel.tsx: "956aeac1636ae4891b1009c8e266840244c19da085ba52e77c78171317c4ffaf"
-  terminal/app/settings.css: "fbc9797f94e00bb7488af1120f47ba9836393b1d61d11839a7d101248695d587"
+  terminal/components/settings/SettingsPanel.tsx: "4a0fc6c7b7e2b3c3ca69cdf77f61754a413cc05096a057b5aaf410124969eabc"
+  terminal/app/settings.css: "dc6e5310a8842d4a28ea0f5f3de1d2306969af76f6c50ddb375b8962b9ed6670"
   terminal/lib/i18n.tsx: "51276ecc8db6956c6c4e5cc67c55eab029c0b468ccb61e34f8bb92f25e42b9f8"
 theme: dark
 languages: [en, zh]
