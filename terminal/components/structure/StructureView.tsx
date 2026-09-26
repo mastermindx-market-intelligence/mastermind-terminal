@@ -69,7 +69,11 @@ function guardRoot<T extends { root?: string }>(data: unknown, root: string): T 
   return typeof rec.root === "string" && rec.root.toUpperCase() === root ? rec : null;
 }
 
-export function StructureView() {
+export interface StructureViewProps {
+  rootChoices?: readonly string[];
+}
+
+export function StructureView({ rootChoices = GEX_AUTOCOMPLETE_ROOTS }: StructureViewProps = {}) {
   const { lang } = useLang();
   const t = makeStructureT(lang);
 
@@ -198,7 +202,7 @@ export function StructureView() {
             maxLength={12}
           />
           <datalist id="structure-roots">
-            {GEX_AUTOCOMPLETE_ROOTS.map((r) => <option key={r} value={r} />)}
+            {rootChoices.map((r) => <option key={r} value={r} />)}
           </datalist>
         </div>
         <div style={CONTROLS_RIGHT}>

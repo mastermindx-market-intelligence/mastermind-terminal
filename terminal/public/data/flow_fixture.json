@@ -493,6 +493,279 @@
     "roots_requested": 53,
     "roots_with_source_payload": 53,
     "delta_mode": "time_window",
-    "notes": ["Fixture timing contract — display only"]
+    "notes": [
+      "Fixture timing contract — display only"
+    ],
+    "roots_configured": 27,
+    "roots_with_source_payload_names": [
+      "AMD",
+      "QQQ",
+      "PLTR",
+      "MSFT",
+      "NVDA",
+      "SMCI",
+      "AVGO",
+      "MU",
+      "MSTR",
+      "ARM",
+      "CRM",
+      "META",
+      "AAPL",
+      "NFLX",
+      "TSLA",
+      "AMZN",
+      "SPY",
+      "COIN",
+      "ORCL",
+      "GOOGL",
+      "GLD",
+      "XLF",
+      "XLV"
+    ],
+    "root_catalog": [
+      {
+        "root": "AMD",
+        "tier": "rotating",
+        "scheduled_this_cycle": true,
+        "source_ok_this_cycle": true,
+        "last_source_success": "2026-07-05T15:42:00Z",
+        "has_session_data": true,
+        "activity_rank": 1
+      },
+      {
+        "root": "QQQ",
+        "tier": "core",
+        "scheduled_this_cycle": true,
+        "source_ok_this_cycle": true,
+        "last_source_success": "2026-07-05T15:42:00Z",
+        "has_session_data": true,
+        "activity_rank": 2
+      },
+      {
+        "root": "PLTR",
+        "tier": "rotating",
+        "scheduled_this_cycle": true,
+        "source_ok_this_cycle": true,
+        "last_source_success": "2026-07-05T15:42:00Z",
+        "has_session_data": true,
+        "activity_rank": 3
+      },
+      {
+        "root": "MSFT",
+        "tier": "core",
+        "scheduled_this_cycle": true,
+        "source_ok_this_cycle": true,
+        "last_source_success": "2026-07-05T15:42:00Z",
+        "has_session_data": true,
+        "activity_rank": 4
+      },
+      {
+        "root": "NVDA",
+        "tier": "core",
+        "scheduled_this_cycle": true,
+        "source_ok_this_cycle": true,
+        "last_source_success": "2026-07-05T15:42:00Z",
+        "has_session_data": true,
+        "activity_rank": 5
+      },
+      {
+        "root": "SMCI",
+        "tier": "rotating",
+        "scheduled_this_cycle": true,
+        "source_ok_this_cycle": true,
+        "last_source_success": "2026-07-05T15:42:00Z",
+        "has_session_data": true,
+        "activity_rank": 6
+      },
+      {
+        "root": "AVGO",
+        "tier": "rotating",
+        "scheduled_this_cycle": true,
+        "source_ok_this_cycle": true,
+        "last_source_success": "2026-07-05T15:42:00Z",
+        "has_session_data": true,
+        "activity_rank": 7
+      },
+      {
+        "root": "MU",
+        "tier": "core",
+        "scheduled_this_cycle": true,
+        "source_ok_this_cycle": true,
+        "last_source_success": "2026-07-05T15:42:00Z",
+        "has_session_data": true,
+        "activity_rank": 8
+      },
+      {
+        "root": "MSTR",
+        "tier": "rotating",
+        "scheduled_this_cycle": true,
+        "source_ok_this_cycle": true,
+        "last_source_success": "2026-07-05T15:42:00Z",
+        "has_session_data": true,
+        "activity_rank": 9
+      },
+      {
+        "root": "ARM",
+        "tier": "rotating",
+        "scheduled_this_cycle": true,
+        "source_ok_this_cycle": true,
+        "last_source_success": "2026-07-05T15:42:00Z",
+        "has_session_data": true,
+        "activity_rank": 10
+      },
+      {
+        "root": "CRM",
+        "tier": "rotating",
+        "scheduled_this_cycle": true,
+        "source_ok_this_cycle": true,
+        "last_source_success": "2026-07-05T15:42:00Z",
+        "has_session_data": true,
+        "activity_rank": 11
+      },
+      {
+        "root": "META",
+        "tier": "core",
+        "scheduled_this_cycle": true,
+        "source_ok_this_cycle": true,
+        "last_source_success": "2026-07-05T15:42:00Z",
+        "has_session_data": true,
+        "activity_rank": 12
+      },
+      {
+        "root": "AAPL",
+        "tier": "core",
+        "scheduled_this_cycle": true,
+        "source_ok_this_cycle": true,
+        "last_source_success": "2026-07-05T15:42:00Z",
+        "has_session_data": true,
+        "activity_rank": 13
+      },
+      {
+        "root": "NFLX",
+        "tier": "rotating",
+        "scheduled_this_cycle": true,
+        "source_ok_this_cycle": true,
+        "last_source_success": "2026-07-05T15:42:00Z",
+        "has_session_data": true,
+        "activity_rank": 14
+      },
+      {
+        "root": "TSLA",
+        "tier": "core",
+        "scheduled_this_cycle": true,
+        "source_ok_this_cycle": true,
+        "last_source_success": "2026-07-05T15:42:00Z",
+        "has_session_data": true,
+        "activity_rank": 15
+      },
+      {
+        "root": "AMZN",
+        "tier": "core",
+        "scheduled_this_cycle": true,
+        "source_ok_this_cycle": true,
+        "last_source_success": "2026-07-05T15:42:00Z",
+        "has_session_data": true,
+        "activity_rank": 16
+      },
+      {
+        "root": "SPY",
+        "tier": "core",
+        "scheduled_this_cycle": true,
+        "source_ok_this_cycle": true,
+        "last_source_success": "2026-07-05T15:42:00Z",
+        "has_session_data": true,
+        "activity_rank": 17
+      },
+      {
+        "root": "COIN",
+        "tier": "rotating",
+        "scheduled_this_cycle": true,
+        "source_ok_this_cycle": true,
+        "last_source_success": "2026-07-05T15:42:00Z",
+        "has_session_data": true,
+        "activity_rank": 18
+      },
+      {
+        "root": "ORCL",
+        "tier": "rotating",
+        "scheduled_this_cycle": true,
+        "source_ok_this_cycle": true,
+        "last_source_success": "2026-07-05T15:42:00Z",
+        "has_session_data": true,
+        "activity_rank": 19
+      },
+      {
+        "root": "GOOGL",
+        "tier": "core",
+        "scheduled_this_cycle": true,
+        "source_ok_this_cycle": true,
+        "last_source_success": "2026-07-05T15:42:00Z",
+        "has_session_data": true,
+        "activity_rank": 20
+      },
+      {
+        "root": "GLD",
+        "tier": "core",
+        "scheduled_this_cycle": true,
+        "source_ok_this_cycle": true,
+        "last_source_success": "2026-07-05T15:42:00Z",
+        "has_session_data": true,
+        "activity_rank": 21
+      },
+      {
+        "root": "XLF",
+        "tier": "core",
+        "scheduled_this_cycle": true,
+        "source_ok_this_cycle": true,
+        "last_source_success": "2026-07-05T15:42:00Z",
+        "has_session_data": true,
+        "activity_rank": 22
+      },
+      {
+        "root": "XLV",
+        "tier": "core",
+        "scheduled_this_cycle": true,
+        "source_ok_this_cycle": true,
+        "last_source_success": "2026-07-05T15:42:00Z",
+        "has_session_data": true,
+        "activity_rank": 23
+      },
+      {
+        "root": "HYG",
+        "tier": "core",
+        "scheduled_this_cycle": true,
+        "source_ok_this_cycle": true,
+        "last_source_success": "2026-07-05T15:42:00Z",
+        "has_session_data": false,
+        "activity_rank": null
+      },
+      {
+        "root": "TLT",
+        "tier": "core",
+        "scheduled_this_cycle": false,
+        "source_ok_this_cycle": false,
+        "last_source_success": null,
+        "has_session_data": false,
+        "activity_rank": null
+      },
+      {
+        "root": "KRE",
+        "tier": "core",
+        "scheduled_this_cycle": false,
+        "source_ok_this_cycle": false,
+        "last_source_success": "2026-07-05T14:34:51Z",
+        "has_session_data": false,
+        "activity_rank": null
+      },
+      {
+        "root": "XBI",
+        "tier": "core",
+        "scheduled_this_cycle": false,
+        "source_ok_this_cycle": false,
+        "last_source_success": "2026-07-05T14:35:10Z",
+        "has_session_data": false,
+        "activity_rank": null
+      }
+    ]
   }
 }
