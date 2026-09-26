@@ -1631,8 +1631,8 @@ test("price-range drag cannot sample an indicator value after crossing a pane se
   }, { timeout: 5_000 }).not.toBeNull();
   void saved;
 
-  const points = saves.flatMap((payload) => payload.drawings ?? [])
-    .find((item) => item.kind === "dateandpricerange")?.points ?? [];
+  const points = (saves.flatMap((payload) => payload.drawings ?? [])
+    .find((item) => item.kind === "dateandpricerange")?.points ?? []) as Array<{ p: number }>;
   expect(points).toHaveLength(2);
   // The NVDA fixture trades around 180-220. Before the fix the crossed endpoint
   // sampled the oscillator's 0-100 value and persisted it as a dollar price.
