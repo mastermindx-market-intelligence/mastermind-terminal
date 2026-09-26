@@ -178,3 +178,23 @@ test("Ownership family defaults to Institutional and preserves Insider as its si
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflow).toBeLessThanOrEqual(1);
 });
+
+
+test("Market summary keeps seasonality ahead of deep indicator tables", async ({ page }) => {
+  await installMarketBars(page);
+  await page.goto("/analysis?symbol=NVDA&page=technicals");
+  const market = page.locator("[data-market-vnext]");
+  const seasonality = market.locator("[data-market-vnext-seasonality]");
+  await expect(seasonality).toContainText("5 completed yearly observations", { timeout: 45_000 });
+  const summaryBox = await seasonality.boundingBox();
+  const detailsBox = await market.locator(":scope > .fin-grid2").boundingBox();
+  expect(summaryBox).not.toBeNull();
+  expect(detailsBox).not.toBeNull();
+  // The overview must be discoverable before scrolling through the full metric tables.
+  expect(summaryBox!.y).toBeLessThan(page.viewportSize()!.height - 72);
+  expect(summaryBox!.y + summaryBox!.height).toBeLessThanOrEqual(detailsBox!.y);
+  if (page.viewportSize()!.width <= 760) {
+    const pivotsBox = await market.locator("[data-market-vnext-pivots]").boundingBox();
+    expect(pivotsBox!.y).toBeGreaterThanOrEqual(summaryBox!.y + summaryBox!.height);
+  }
+});

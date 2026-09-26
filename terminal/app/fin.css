@@ -1414,7 +1414,10 @@
 .fin-market-glance span{color:var(--muted);font:620 8.5px/1.2 var(--font-ui)}
 .fin-market-glance strong{overflow:hidden;color:var(--text);font:680 17px/1 var(--font-num);font-variant-numeric:tabular-nums;text-overflow:ellipsis;white-space:nowrap}
 .fin-market-glance small{overflow:hidden;color:var(--text-2);font:510 8px/1.3 var(--font-ui);text-overflow:ellipsis;white-space:nowrap}
-.fin-market-primary-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.fin-market-primary-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-areas:"rating pivots" "seasonality seasonality";gap:10px}
+.fin-market-rating-card{grid-area:rating}
+.fin-market-pivot-card{grid-area:pivots}
+.fin-market-seasonality{grid-area:seasonality}
 .fin-market-rating-card,.fin-market-pivot-card,.fin-market-seasonality{min-width:0;border:1px solid var(--line);border-radius:var(--r-card);background:var(--panel);box-shadow:var(--shadow-card);overflow:hidden}
 .fin-market-rating-card>header,.fin-market-pivot-card>header,.fin-market-seasonality>header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:10px 12px;border-bottom:1px solid var(--line-2)}
 .fin-market-rating-card>header>div,.fin-market-pivot-card>header>div,.fin-market-seasonality>header>div{display:grid;gap:4px;min-width:0}
@@ -1450,7 +1453,7 @@
   .fin-market-glance article:nth-child(3){border-right:0}
   .fin-market-glance article:nth-child(-n+3){border-bottom:1px solid var(--line)}
   .fin-market-glance article:nth-child(5){border-right:0}
-  .fin-market-primary-grid{grid-template-columns:1fr}
+  .fin-market-primary-grid{grid-template-columns:1fr;grid-template-areas:"rating" "seasonality" "pivots"}
   .fin-market-season-months{grid-template-columns:repeat(6,minmax(0,1fr))}
   .fin-market-season-months article:nth-child(6){border-right:0}
   .fin-market-season-months article:nth-child(-n+6){border-bottom:1px solid var(--line-2)}
@@ -1469,9 +1472,11 @@
 }
 @media (max-width:520px){
   .fin-market-glance{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .fin-market-glance article,.fin-market-glance article:nth-child(3),.fin-market-glance article:nth-child(5){border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
-  .fin-market-glance article:nth-child(2n){border-right:0}
-  .fin-market-glance article:last-child{border-bottom:0}
+  /* OG8-0 keeps four overview metrics; SMA 20 remains in the full moving-average table. */
+  .fin-market-glance article[data-metric="sma-20"]{display:none}
+  .fin-market-glance article[data-metric]{min-height:70px;border-right:0;border-bottom:0}
+  .fin-market-glance article[data-metric="rsi"],.fin-market-glance article[data-metric="sma-50"]{border-right:1px solid var(--line)}
+  .fin-market-glance article[data-metric="rsi"],.fin-market-glance article[data-metric="macd"]{border-bottom:1px solid var(--line)}
   .fin-market-pivot-reads{grid-template-columns:1fr}
   .fin-market-pivot-reads>div{border-right:0;border-bottom:1px solid var(--line-2)}
   .fin-market-pivot-reads>div:last-child{border-bottom:0}

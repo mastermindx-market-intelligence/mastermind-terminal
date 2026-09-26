@@ -236,7 +236,7 @@ function TechnicalsPage({ sym, bars = [], zh = false }: TechnicalsPageProps) {
         <header>
           <div>
             <span>{pick(zh, "MARKET TECHNICALS", "市场技术面")}</span>
-            <h2>{pick(zh, "Deterministic indicator state from the existing Technical Rating engine", "来自现有技术评级引擎的确定性指标状态")}</h2>
+            <h2>{pick(zh, "Deterministic indicator state", "确定性指标状态")}</h2>
             <p>
               {lastBar
                 ? pick(zh, `${tfLabel} bars · through ${lastBar} · ${active.length} observations`, `${tfLabel} K线 · 截至 ${lastBar} · ${active.length} 个观测`)
@@ -266,7 +266,7 @@ function TechnicalsPage({ sym, bars = [], zh = false }: TechnicalsPageProps) {
 
         <div className="fin-market-glance">
           {technicalGlance.map((item) => (
-            <article key={item.id}>
+            <article key={item.id} data-metric={item.id}>
               <span>{item.label}</span>
               <strong className="num">{item.value}</strong>
               <small>{item.detail}</small>
@@ -289,6 +289,43 @@ function TechnicalsPage({ sym, bars = [], zh = false }: TechnicalsPageProps) {
             <Gauge title={pick(zh, "Moving Averages", "移动平均")} group={ratings?.summary[1]} zh={zh} />
           </div>
         </section>
+
+      <section className="fin-market-seasonality" data-market-vnext-seasonality="">
+        <header>
+          <div>
+            <span>{pick(zh, "SEASONALITY SNAPSHOT", "季节性快照")}</span>
+            <strong>{pick(zh, "Average monthly return + positive-month frequency", "月均收益 + 正收益月份频率")}</strong>
+          </div>
+          <small>
+            {pick(
+              zh,
+              `${completedSeasonYears.length} completed yearly observation${completedSeasonYears.length === 1 ? "" : "s"}`,
+              `${completedSeasonYears.length} 个完整年度观测`,
+            )}
+          </small>
+        </header>
+        {completedSeasonYears.length > 0 ? (
+          <div className="fin-market-season-months">
+            {seasonalMonths.map((month) => (
+              <article key={month.month}>
+                <span>{seasonMonthNames[month.month]}</span>
+                <strong className={month.mean == null ? "" : month.mean >= 0 ? "up" : "down"}>
+                  {month.mean == null ? "—" : fmtPct(month.mean, { alreadyPct: true, sign: true, decimals: 1 })}
+                </strong>
+                <small>{month.wr == null ? "—" : pick(zh, `${Math.round(month.wr * 100)}% positive`, `${Math.round(month.wr * 100)}% 正收益`)}</small>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <div className="fin-empty fin-empty-lg" role="status">
+            <div className="fin-empty-title">{pick(zh, "No complete seasonal sample", "暂无完整季节性样本")}</div>
+            <div className="fin-empty-why">{pick(zh, "At least one fully observed prior calendar year is required for this snapshot.", "此快照至少需要一个完整观测的过往自然年。")}</div>
+          </div>
+        )}
+        <footer>
+          <span>{pick(zh, "Historical recurrence only; a small sample does not forecast the next move.", "仅描述历史重复性；小样本不能预测下一步走势。")}</span>
+        </footer>
+      </section>
 
         <section className="fin-market-pivot-card" data-market-vnext-pivots="">
           <header>
@@ -337,42 +374,7 @@ function TechnicalsPage({ sym, bars = [], zh = false }: TechnicalsPageProps) {
       {/* Pivots */}
       <PivotsTable pivots={ratings?.pivots} zh={zh} />
 
-      <section className="fin-market-seasonality" data-market-vnext-seasonality="">
-        <header>
-          <div>
-            <span>{pick(zh, "SEASONALITY SNAPSHOT", "季节性快照")}</span>
-            <strong>{pick(zh, "Average monthly return + positive-month frequency", "月均收益 + 正收益月份频率")}</strong>
-          </div>
-          <small>
-            {pick(
-              zh,
-              `${completedSeasonYears.length} completed yearly observation${completedSeasonYears.length === 1 ? "" : "s"}`,
-              `${completedSeasonYears.length} 个完整年度观测`,
-            )}
-          </small>
-        </header>
-        {completedSeasonYears.length > 0 ? (
-          <div className="fin-market-season-months">
-            {seasonalMonths.map((month) => (
-              <article key={month.month}>
-                <span>{seasonMonthNames[month.month]}</span>
-                <strong className={month.mean == null ? "" : month.mean >= 0 ? "up" : "down"}>
-                  {month.mean == null ? "—" : fmtPct(month.mean, { alreadyPct: true, sign: true, decimals: 1 })}
-                </strong>
-                <small>{month.wr == null ? "—" : pick(zh, `${Math.round(month.wr * 100)}% positive`, `${Math.round(month.wr * 100)}% 正收益`)}</small>
-              </article>
-            ))}
-          </div>
-        ) : (
-          <div className="fin-empty fin-empty-lg" role="status">
-            <div className="fin-empty-title">{pick(zh, "No complete seasonal sample", "暂无完整季节性样本")}</div>
-            <div className="fin-empty-why">{pick(zh, "At least one fully observed prior calendar year is required for this snapshot.", "此快照至少需要一个完整观测的过往自然年。")}</div>
-          </div>
-        )}
-        <footer>
-          <span>{pick(zh, "Historical recurrence only; a small sample does not forecast the next move.", "仅描述历史重复性；小样本不能预测下一步走势。")}</span>
-        </footer>
-      </section>
+
 
       <Disclaimer zh={zh} />
     </div>
@@ -400,7 +402,7 @@ function Gauge({
             <ArcGauge
               value={arc.value}
               state={arcState}
-              size={118}
+              size={88}
               sublabel={verdictWord(group.verdict, zh)}
               stateTitle={arcStateLabel(arcState, zh ? "zh" : "en")}
             />
@@ -415,7 +417,7 @@ function Gauge({
         })() : (
           // No bars yet → grey mid arc, numeral suppressed so an empty gauge can't
           // read as a real "50" score.
-          <ArcGauge value={50} state="neutral" size={118} showValue={false} sublabel={pick(zh, "No signal", "无信号")} />
+          <ArcGauge value={50} state="neutral" size={88} showValue={false} sublabel={pick(zh, "No signal", "无信号")} />
         )}
       </div>
     </div>
