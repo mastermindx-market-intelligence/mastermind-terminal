@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import CompanyVisual from "./CompanyVisual";
 
 export interface CompanyIntelligenceBriefItem {
   id: string;
@@ -145,12 +146,7 @@ export default function CompanyIntelligenceBriefLayout({
             </div>
           )}
         </div>
-        <div className="ci-paper-company-visual" aria-hidden>
-          <span>{ticker}</span>
-          <i />
-          <i />
-          <i />
-        </div>
+        <CompanyVisual ticker={ticker} />
       </section>
 
       {!!metrics.length && (
