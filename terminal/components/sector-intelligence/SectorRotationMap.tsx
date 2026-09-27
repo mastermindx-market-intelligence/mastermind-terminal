@@ -309,6 +309,6 @@ function RotationInspector({ point, name, quadrantName, t, lang, onOpen }: {
       <div><dt>{t("monthReturn")}</dt><dd>{sign(point.heat1m, 2)}</dd></div>
       <div><dt>{t("participation")}</dt><dd>{formatValue(point.breadth, 0, "%")}<small>{counts}</small></dd></div>
     </dl>
-    <button type="button" onClick={() => onOpen(point.id)}>{t("openResearch")} →</button>
+    <button type="button" data-sector-return-focus={`rotation-open-${point.id}`} onClick={event => { event.currentTarget.focus({ preventScroll: true }); onOpen(point.id); }}>{t("openResearch")} →</button>
   </aside>;
 }

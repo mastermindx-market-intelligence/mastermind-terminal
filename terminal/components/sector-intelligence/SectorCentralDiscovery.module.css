@@ -1,11 +1,14 @@
 .root { min-width: 0; color: var(--text); }
-.header { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; padding: 22px 0; }
+.representations { display: flex; width: fit-content; gap: 4px; margin-top: 18px; padding: 3px; border: 1px solid var(--line); border-radius: var(--r-ctl); background: var(--panel-2); }
+.representations button { min-height: 38px; padding: 7px 14px; border: 1px solid transparent; border-radius: calc(var(--r-ctl) - 2px); background: transparent; color: var(--text-2); font: 600 12px var(--font-ui); cursor: pointer; }
+.representations button[aria-pressed="true"] { border-color: var(--line); background: var(--panel); color: var(--link); }
+.header { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; padding: 18px 0 10px; }
 .header h2 { margin: 4px 0 8px; font-size: clamp(25px, 2.2vw, 34px); line-height: 1.15; letter-spacing: -.8px; font-weight: 700; }
-.scope, .date { color: var(--text-2); font-size: 12px; }
-.summary { flex-shrink: 0; text-align: right; }
-.summary strong { font: 700 34px/1.1 var(--font-num); letter-spacing: -1px; }
-.summary strong span { font-size: 21px; color: var(--text-2); }
-.summary p { margin-top: 5px; color: var(--text-2); font-size: 12px; }
+.scope, .date, .receipt { color: var(--text-2); font-size: 12px; }
+.receipt { flex-shrink: 0; margin: 0; font-variant-numeric: tabular-nums; }
+.answer { margin: 0 0 16px; padding: 14px 16px; border: 1px solid var(--line); border-left: 3px solid var(--brand); border-radius: var(--r-card); background: var(--panel); }
+.answer span { display: block; margin-bottom: 5px; color: var(--text-2); font-size: 10px; font-weight: 650; letter-spacing: .08em; text-transform: uppercase; }
+.answer p { margin: 0; max-width: 980px; font-size: clamp(16px, 1.45vw, 19px); font-weight: 620; line-height: 1.45; letter-spacing: -.15px; }
 .controls { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px; padding: 0 0 18px; }
 .controls label { display: flex; flex-direction: column; gap: 6px; color: var(--text-2); font-size: 11px; }
 .controls input, .controls select { min-height: 44px; padding: 9px 12px; border: 1px solid var(--line); border-radius: var(--r-ctl); background: var(--panel); color: var(--text); font: 13px var(--font-ui); }
@@ -34,15 +37,21 @@
 .track { display: block; position: relative; height: 7px; overflow: hidden; background: var(--panel-2); border-radius: 4px; }
 .track > span { display: block; height: 100%; background: var(--brand); }
 .coverage, .note { color: var(--text-2); font-size: 11px; line-height: 1.5; }
+.selectedBar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 14px; padding: 12px 15px; border: 1px solid var(--line); border-radius: var(--r-card); background: var(--panel); }
+.selectedBar > div { display: grid; gap: 3px; }
+.selectedBar span { color: var(--text-2); font-size: 10px; letter-spacing: .05em; text-transform: uppercase; }
+.selectedBar strong { font-size: 13px; }
+.selectedBar button { min-height: 44px; padding: 8px 12px; border: 0; background: transparent; color: var(--link); font: 600 12px var(--font-ui); cursor: pointer; }
 .note { padding-top: 15px; }
 .empty { padding: 30px 20px; border: 1px dashed var(--line); border-radius: var(--r-card); background: var(--panel); color: var(--text-2); }
 .root :is(button,input,select):focus-visible { outline: 2px solid var(--brand-2); outline-offset: 3px; }
 @media (max-width: 950px) { .breadthGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 560px) {
+  .representations { margin-top: 14px; }
   .header { align-items: flex-start; gap: 16px; padding-top: 14px; }
-  .summary strong { font-size: 28px; }
-  .summary { max-width: 104px; }
-  .summary p { font-size: 10px; }
+  .receipt { max-width: 118px; text-align: right; line-height: 1.45; }
+  .answer { padding: 12px 13px; }
+  .answer p { font-size: 16px; line-height: 1.42; }
   .controls { gap: 12px; }
   .controls label { flex: 1; min-width: 0; }
   .controls input, .controls select { width: 100%; max-width: 100%; }

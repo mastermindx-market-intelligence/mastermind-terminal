@@ -49,3 +49,16 @@ Independent new discovery/breadth source writes and tests succeeded on the origi
 Keep the same PR and worktree. Consume the existing native Sector designer's actual unified board return once the original parent/custody read is lawfully available; retain the richer Rotation/bubbles/Matrix/theme-heatmap work and19GV scope/scale/disagreement repair. Do not duplicate its native assignment. Separately recover the original historical-fixture/label action through a genuinely permitted same-carrier change, then rerun the full persistent responsive suite. Finish authenticated publication-to-Terminal, canonical dossier/exposure/entry/history/save bindings, independent design/comprehension acceptance and exact-head release checks before normal non-Vercel deployment.
 
 Protected Skillpack: `Mastermind@a31f49f4056943124cc0e7e42349e46feee444c7`, freshly read compatible INDEX1.0.1/bootstrap1 and same-pinned companion bodies. Direct work rationale: lower integration/review overhead in the already-owned consumer, independent of the held native/fixture lanes. No worker, watcher or autonomous wake was commissioned; no served-mode telemetry inferred. Retain the working mode and carrier; modes do not grant denied permissions.
+
+
+## R10 regression addendum — answer-first selection and explicit depth
+
+R10 supersedes two R6 presentation behaviors without replacing the underlying exact-owner journey:
+
+- Discover now leads with a derived current read rather than the instruction-only `Find the leadership` hero.
+- Market breadth now summarizes supplied `breadth_pct` participation rather than positive 1M sector returns.
+- Clicking a sector selects it **inside** Discover or Market breadth. The explicit `Open sector intelligence` action enters selected-object depth; research is no longer conflated with selection.
+- Explicit return restores the complete outer state, scroll and the opening action's focus. Browser history remains independently valid.
+- Discover's admitted Table and selected-sector Matrix are representations of the same job and use the incumbent URL state plane.
+
+The updated exact-owner regression is `journey-r10-regression-r2`: **106/106 PASS**, ten captures and zero page exceptions. The preceding `journey-r10-regression` report is retained because it exposed missing explicit-open focus restoration. Full current evidence and the Industry × Market Cap owner contract are in `docs/pr-crops/sector-matrix-20260927/`.

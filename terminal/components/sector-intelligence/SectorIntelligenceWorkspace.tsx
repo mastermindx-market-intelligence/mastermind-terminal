@@ -73,9 +73,11 @@ export default function SectorIntelligenceWorkspace() {
     breadth: { inner: 0, outer: 0, focus: null }, detail: { inner: 0, outer: 0, focus: null },
   });
   const saveWorkspaceScroll = useCallback(() => {
+    const active = document.activeElement;
+    const returnFocus = active?.getAttribute("data-sector-return-focus"), choiceFocus = active?.getAttribute("data-sector-choice");
     scrollPositions.current[currentWorkspace.current] = {
       inner: rootElement.current?.scrollTop || 0, outer: window.scrollY,
-      focus: document.activeElement?.getAttribute("data-sector-choice") || null,
+      focus: returnFocus ? `return:${returnFocus}` : choiceFocus ? `choice:${choiceFocus}` : null,
     };
   }, []);
   // A changed account hides the previous account's data in the render itself,
@@ -98,7 +100,11 @@ export default function SectorIntelligenceWorkspace() {
     const frame = window.requestAnimationFrame(() => {
       if (rootElement.current) rootElement.current.scrollTop = saved.inner;
       window.scrollTo({ top: saved.outer, behavior: "instant" });
-      if (saved.focus) rootElement.current?.querySelector<HTMLButtonElement>(`[data-sector-choice="${CSS.escape(saved.focus)}"]`)?.focus({ preventScroll: true });
+      if (saved.focus) {
+        const [kind, value] = saved.focus.split(":", 2);
+        const attribute = kind === "return" ? "data-sector-return-focus" : "data-sector-choice";
+        rootElement.current?.querySelector<HTMLButtonElement>(`[${attribute}="${CSS.escape(value || "")}"]`)?.focus({ preventScroll: true });
+      }
     });
     return () => window.cancelAnimationFrame(frame);
   }, [state.workspace]);
@@ -147,7 +153,8 @@ export default function SectorIntelligenceWorkspace() {
   const hasSector = !!sector.id;
   const completed = SECTOR_FEEDS.filter(k => feeds[k]).length;
   const ready = SECTOR_FEEDS.filter(k => feeds[k]?.receipt.status === "ready").length;
-  const sectorName = text(lang === "zh" ? sector.name_zh : sector.name) || text(sector.name) || text(sector.ticker);
+  const sectorSourceName = text(sector.name);
+  const sectorName = text(lang === "zh" ? sector.name_zh : sector.name) || sectorSourceName || text(sector.ticker);
   const groupName = text(lang === "zh" ? group.label_zh : group.label) || text(group.label);
   const localName = (r: Row, en = "name", zh = "name_zh") => text(lang === "zh" ? r[zh] : r[en]) || text(r[en]);
   const stateLabel = (v: unknown) => t(STATE_KEYS[text(v).toLowerCase()] || "siUnavailable");
@@ -268,10 +275,18 @@ export default function SectorIntelligenceWorkspace() {
         onSources={() => openSources()} onSelect={sector => change({ sector }, true)}
         onOpenResearch={openSectorResearch} />
         : state.workspace !== "detail" ? <SectorCentralDiscovery rows={sectors} status={status}
-        asOf={feeds.sector?.receipt.asOf || null} selected={state.sector} query={state.discoveryQuery}
-        sort={state.discoverySort} breadth={state.workspace === "breadth"}
+        asOf={feeds.sector?.receipt.asOf || null} selected={state.sector} selectedSourceName={sectorSourceName} query={state.discoveryQuery}
+        sort={state.discoverySort} breadth={state.workspace === "breadth"} mode={state.discoveryMode}
+        heatmapData={feeds.heatmap?.data} heatmapStatus={feeds.heatmap?.receipt.status || "loading"}
+        heatmapAsOf={feeds.heatmap?.receipt.asOf || null} matrixTimeframe={state.matrixTimeframe}
+        matrixIndustry={state.matrixIndustry} matrixBand={state.matrixBand}
         onQuery={discoveryQuery => change({ discoveryQuery })} onSort={discoverySort => change({ discoverySort })}
-        onSources={() => openSources()} onSelect={openSectorResearch} /> : <>
+        onMode={discoveryMode => change({ discoveryMode, matrixIndustry: "", matrixBand: "" })}
+        onTimeframe={matrixTimeframe => change({ matrixTimeframe })}
+        onMatrixCell={(matrixIndustry, matrixBand) => change({ matrixIndustry, matrixBand }, true)}
+        onSources={() => openSources()}
+        onSelect={sector => change({ sector, matrixIndustry: "", matrixBand: "" }, true)}
+        onOpenResearch={openSectorResearch} /> : <>
       <div className={styles.navigation}><nav ref={nav} className={styles.tabs} role="tablist" aria-label={t("siViews")} onKeyDown={event => {
         const index = SECTOR_VIEWS.indexOf(state.view);
         const next = event.key === "ArrowRight" ? (index + 1) % SECTOR_VIEWS.length : event.key === "ArrowLeft" ? (index + SECTOR_VIEWS.length - 1) % SECTOR_VIEWS.length : event.key === "Home" ? 0 : event.key === "End" ? SECTOR_VIEWS.length - 1 : -1;

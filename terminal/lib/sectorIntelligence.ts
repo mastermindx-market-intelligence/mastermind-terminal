@@ -22,15 +22,20 @@ export type SectorView = typeof SECTOR_VIEWS[number];
 export type MemberSort = "source" | "return" | "relative" | "ticker";
 export type SectorWorkspace = "rotation" | "discover" | "breadth" | "detail";
 export type SectorDiscoverySort = "source" | "return" | "participation";
+export type SectorDiscoveryMode = "table" | "matrix";
+export type SectorMatrixTimeframe = "1D" | "1W" | "MTD" | "1M" | "3M" | "6M" | "YTD" | "1Y";
+export type SectorCapBand = "mega" | "large" | "mid" | "smaller";
 export type SectorRotationMode = "map" | "list";
 export type SectorState = {
   view: SectorView; sector: string; group: string; sort: MemberSort; query: string; theme: "dark" | "light"; company: string; expanded: boolean; sourcesOpen: boolean;
   workspace: SectorWorkspace; discoveryQuery: string; discoverySort: SectorDiscoverySort;
+  discoveryMode: SectorDiscoveryMode; matrixTimeframe: SectorMatrixTimeframe; matrixIndustry: string; matrixBand: SectorCapBand | "";
   rotationMode: SectorRotationMode; rotationQuery: string;
 };
 export const DEFAULT_SECTOR_STATE: SectorState = {
   view: "intelligence", sector: "xlk", group: "semiconductors", sort: "source", query: "", theme: "dark", company: "", expanded: false, sourcesOpen: false,
-  workspace: "discover", discoveryQuery: "", discoverySort: "source", rotationMode: "map", rotationQuery: "",
+  workspace: "discover", discoveryQuery: "", discoverySort: "source", discoveryMode: "table", matrixTimeframe: "1D", matrixIndustry: "", matrixBand: "",
+  rotationMode: "map", rotationQuery: "",
 };
 export function object(value: unknown): Row {
   return value !== null && typeof value === "object" && !Array.isArray(value) ? value as Row : {};
@@ -149,12 +154,17 @@ export function parseSectorState(params: URLSearchParams): SectorState {
   const view = params.get("sectorView") || "", sector = params.get("sector") || "", group = params.get("group") || "";
   const sort = params.get("sectorSort") || "";
   const workspace = params.get("sectorWorkspace"), discoverySort = params.get("sectorDiscoverySort");
-  const rotationMode = params.get("sectorRotationMode");
+  const discoveryMode = params.get("sectorDiscoveryMode"), matrixTimeframe = params.get("sectorMatrixTimeframe");
+  const matrixBand = params.get("sectorMatrixBand"), rotationMode = params.get("sectorRotationMode");
   const legacyDetail = ["sectorView", "sector", "group", "sectorCompany", "sectorQuery"].some(key => params.has(key));
   return {
     workspace: workspace === "rotation" || workspace === "discover" || workspace === "breadth" || workspace === "detail" ? workspace : legacyDetail ? "detail" : "discover",
     discoveryQuery: (params.get("sectorDiscoveryQuery") || "").slice(0, 60),
     discoverySort: discoverySort === "return" || discoverySort === "participation" ? discoverySort : "source",
+    discoveryMode: discoveryMode === "matrix" ? "matrix" : "table",
+    matrixTimeframe: ["1D", "1W", "MTD", "1M", "3M", "6M", "YTD", "1Y"].includes(matrixTimeframe || "") ? matrixTimeframe as SectorMatrixTimeframe : "1D",
+    matrixIndustry: (params.get("sectorMatrixIndustry") || "").slice(0, 120),
+    matrixBand: ["mega", "large", "mid", "smaller"].includes(matrixBand || "") ? matrixBand as SectorCapBand : "",
     rotationMode: rotationMode === "list" ? "list" : "map",
     rotationQuery: (params.get("sectorRotationQuery") || "").slice(0, 60),
     // Preserve old study URLs without keeping competing customer destinations.
@@ -174,6 +184,10 @@ export function writeSectorState(url: URL, state: SectorState): string {
   url.searchParams.set("sectorWorkspace", state.workspace);
   url.searchParams.set("sectorDiscoverySort", state.discoverySort);
   if (state.discoveryQuery) url.searchParams.set("sectorDiscoveryQuery", state.discoveryQuery); else url.searchParams.delete("sectorDiscoveryQuery");
+  url.searchParams.set("sectorDiscoveryMode", state.discoveryMode);
+  url.searchParams.set("sectorMatrixTimeframe", state.matrixTimeframe);
+  if (state.matrixIndustry) url.searchParams.set("sectorMatrixIndustry", state.matrixIndustry); else url.searchParams.delete("sectorMatrixIndustry");
+  if (state.matrixBand) url.searchParams.set("sectorMatrixBand", state.matrixBand); else url.searchParams.delete("sectorMatrixBand");
   url.searchParams.set("sectorRotationMode", state.rotationMode);
   if (state.rotationQuery) url.searchParams.set("sectorRotationQuery", state.rotationQuery); else url.searchParams.delete("sectorRotationQuery");
   url.searchParams.set("sectorView", state.view);

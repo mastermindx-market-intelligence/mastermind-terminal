@@ -2,7 +2,7 @@
 import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import SectorCentralDiscovery, { discoveryRows, type SectorCentralDiscoveryProps } from "@/components/sector-intelligence/SectorCentralDiscovery";
+import SectorCentralDiscovery, { breadthRead, discoveryRead, discoveryRows, type SectorCentralDiscoveryProps } from "@/components/sector-intelligence/SectorCentralDiscovery";
 import { LangProvider, applyLang } from "../i18n";
 import { DEFAULT_SECTOR_STATE, parseSectorState, writeSectorState, type Row } from "../sectorIntelligence";
 
@@ -16,10 +16,13 @@ const rows: Row[] = [
 
 describe("Sector Central discovery and breadth", () => {
   let root: Root, host: HTMLDivElement;
-  const select = vi.fn(), query = vi.fn(), sort = vi.fn(), sources = vi.fn();
+  const select = vi.fn(), open = vi.fn(), query = vi.fn(), sort = vi.fn(), mode = vi.fn(), timeframe = vi.fn(), cell = vi.fn(), sources = vi.fn();
   const render = async (patch: Partial<SectorCentralDiscoveryProps> = {}) => {
     await act(async () => root.render(<LangProvider><SectorCentralDiscovery rows={rows} status="ready" asOf="2026-09-25"
-      selected="xlk" query="" sort="source" breadth={false} onQuery={query} onSort={sort} onSelect={select} onSources={sources} {...patch} /></LangProvider>));
+      selected="xlk" selectedSourceName="Technology" query="" sort="source" breadth={false} mode="table" heatmapData={null} heatmapStatus="unavailable"
+      heatmapAsOf={null} matrixTimeframe="1D" matrixIndustry="" matrixBand=""
+      onQuery={query} onSort={sort} onMode={mode} onTimeframe={timeframe} onMatrixCell={cell}
+      onSelect={select} onOpenResearch={open} onSources={sources} {...patch} /></LangProvider>));
   };
   beforeEach(() => {
     vi.clearAllMocks(); document.documentElement.setAttribute("data-lang", "en");
@@ -38,20 +41,28 @@ describe("Sector Central discovery and breadth", () => {
   it.each(["tech", "XLK", "科技", " ＸＬＫ "])("matches the source identity for %s", value => {
     expect(discoveryRows(rows, value, "source").map(row => row.id)).toEqual(["xlk"]);
   });
-  it("renders all sectors and counts observed gains rather than manufacturing breadth", async () => {
+  it("derives answer-first discovery and breadth reads from exact sector rows", () => {
+    expect(discoveryRead(rows, "en")).toBe("Technology leads 1M returns (+7.40%); 1 of 3 observed sectors have majority participation.");
+    expect(breadthRead(rows, "en")).toBe("Breadth is narrow; Technology is the only sector with majority participation.");
+    expect(discoveryRead([{ ...rows[0], heat: {} }], "en")).toBeNull();
+  });
+  it("renders all sectors with the answer before mechanics", async () => {
     await render();
     expect(host.querySelectorAll("[data-sector-choice]")).toHaveLength(4);
-    expect(host.textContent).toContain("1 / 3"); expect(host.textContent).toContain("sectors gained over 1M");
+    expect(host.textContent).toContain("Technology leads 1M returns (+7.40%)");
     expect(host.textContent).toContain("2026-09-25"); expect(host.textContent).toContain("+7.40%");
     expect(host.textContent).toContain("0.00%"); expect(select).not.toHaveBeenCalled();
   });
-  it("selects the exact sector key without inventing a company-group mapping", async () => {
-    await render(); await act(async () => (host.querySelector('[data-sector-choice="xlk"]') as HTMLButtonElement).click());
-    expect(select).toHaveBeenCalledTimes(1); expect(select).toHaveBeenCalledWith("xlk");
+  it("selects in place and opens research only from the explicit action", async () => {
+    await render(); await act(async () => (host.querySelector('[data-sector-choice="xlf"]') as HTMLButtonElement).click());
+    expect(select).toHaveBeenCalledWith("xlf"); expect(open).not.toHaveBeenCalled();
+    await act(async () => (host.querySelector('[data-testid="sector-discovery-selection"] button') as HTMLButtonElement).click());
+    expect(open).toHaveBeenCalledWith("xlk");
   });
-  it("encodes the supplied share on a common zero-to-one-hundred bar", async () => {
+  it("encodes the supplied share on a common zero-to-one-hundred bar and gives the breadth answer", async () => {
     await render({ breadth: true });
     const selected = host.querySelector('[data-sector-choice="xlk"]')!;
+    expect(host.textContent).toContain("Breadth is narrow; Technology is the only sector with majority participation.");
     expect(selected.textContent).toContain("59%"); expect(selected.textContent).toContain("47 advancing · 32 declining");
     expect(selected.querySelector<HTMLElement>('span[style]')!.style.width).toBe("59%");
     expect(selected.getAttribute("aria-pressed")).toBe("true");
@@ -62,6 +73,14 @@ describe("Sector Central discovery and breadth", () => {
     await render({ breadth: true, rows: [{ ...rows[0], heat: { breadth_pct: 150, adv: -1, dec: false } }] });
     expect(host.querySelector('[data-sector-choice] span[style]')).toBeNull();
     expect(host.textContent).not.toContain("150%"); expect(host.textContent).not.toContain("-1 advancing");
+  });
+  it("switches the admitted Discover representation without adding another workspace", async () => {
+    await render();
+    const matrix = Array.from(host.querySelectorAll("button")).find(button => button.textContent === "Matrix")!;
+    await act(async () => matrix.click()); expect(mode).toHaveBeenCalledWith("matrix");
+    await render({ mode: "matrix" });
+    expect(host.querySelector('[data-testid="sector-industry-matrix"]')).not.toBeNull();
+    expect(host.textContent).toContain("Industry matrix data is unavailable.");
   });
   it.each(["access", "loading", "invalid", "error", "unavailable"] as const)("hides retained source rows after %s", async status => {
     await render(); await render({ status });
@@ -75,8 +94,8 @@ describe("Sector Central discovery and breadth", () => {
   });
   it("uses the shared language provider for the same component", async () => {
     await render(); await act(async () => applyLang("zh"));
-    expect(host.textContent).toContain("科技"); expect(host.textContent).toContain("搜索板块");
-    expect(host.textContent).not.toContain("Find a sector");
+    expect(host.textContent).toContain("科技的1个月收益领先"); expect(host.textContent).toContain("搜索板块");
+    expect(host.textContent).not.toContain("Sector discovery");
   });
 });
 
@@ -87,16 +106,18 @@ describe("Discovery to detail URL continuity", () => {
   it.each(["sectorView=companies", "sector=xlk&group=semiconductors", "sectorCompany=MU", "sectorView=dossier"])("keeps the old detail URL %s", value => {
     expect(parseSectorState(new URLSearchParams(value)).workspace).toBe("detail");
   });
-  it.each(["rotation", "discover", "breadth", "detail"] as const)("retains %s, query, display order and the selected object", workspace => {
+  it.each(["rotation", "discover", "breadth", "detail"] as const)("retains %s, representations, matrix context and the selected object", workspace => {
     const state = { ...DEFAULT_SECTOR_STATE, workspace, discoveryQuery: "Tech", discoverySort: "participation" as const,
+      discoveryMode: "matrix" as const, matrixTimeframe: "1M" as const, matrixIndustry: "Semiconductors", matrixBand: "mega" as const,
       rotationMode: "list" as const, rotationQuery: "Technology", view: "companies" as const, company: "MU", query: "MU", sourcesOpen: true };
     const href = writeSectorState(new URL("https://example.test/discover?from=map"), state);
     const url = new URL(href, "https://example.test"); expect(parseSectorState(url.searchParams)).toEqual(state);
     expect(url.searchParams.get("from")).toBe("map");
   });
-  it("bounds new search state and refuses unknown view/sort tokens", () => {
-    const state = parseSectorState(new URLSearchParams(`sectorWorkspace=unknown&sectorDiscoverySort=score&sectorDiscoveryQuery=${"x".repeat(90)}&sectorRotationMode=tiles&sectorRotationQuery=${"y".repeat(90)}`));
+  it("bounds new state and refuses unknown representation, timeframe and band tokens", () => {
+    const state = parseSectorState(new URLSearchParams(`sectorWorkspace=unknown&sectorDiscoverySort=score&sectorDiscoveryMode=bubbles&sectorMatrixTimeframe=2Y&sectorMatrixBand=giant&sectorMatrixIndustry=${"z".repeat(150)}&sectorDiscoveryQuery=${"x".repeat(90)}&sectorRotationMode=tiles&sectorRotationQuery=${"y".repeat(90)}`));
     expect(state.workspace).toBe("discover"); expect(state.discoverySort).toBe("source"); expect(state.discoveryQuery).toHaveLength(60);
+    expect(state.discoveryMode).toBe("table"); expect(state.matrixTimeframe).toBe("1D"); expect(state.matrixBand).toBe(""); expect(state.matrixIndustry).toHaveLength(120);
     expect(state.rotationMode).toBe("map"); expect(state.rotationQuery).toHaveLength(60);
   });
 });
