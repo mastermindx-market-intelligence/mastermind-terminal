@@ -22,19 +22,20 @@ export type SectorView = typeof SECTOR_VIEWS[number];
 export type MemberSort = "source" | "return" | "relative" | "ticker";
 export type SectorWorkspace = "rotation" | "discover" | "breadth" | "detail";
 export type SectorDiscoverySort = "source" | "return" | "participation";
+export type SectorCompanyTableSort = "source" | "performance" | "marketcap" | "ticker";
 export type SectorDiscoveryMode = "table" | "heatmap" | "matrix";
 export type SectorMatrixTimeframe = "1D" | "1W" | "MTD" | "1M" | "3M" | "6M" | "YTD" | "1Y";
 export type SectorCapBand = "mega" | "large" | "mid" | "smaller";
 export type SectorRotationMode = "map" | "list";
 export type SectorState = {
   view: SectorView; sector: string; group: string; sort: MemberSort; query: string; theme: "dark" | "light"; company: string; expanded: boolean; sourcesOpen: boolean;
-  workspace: SectorWorkspace; discoveryQuery: string; discoverySort: SectorDiscoverySort;
+  workspace: SectorWorkspace; discoveryQuery: string; discoverySort: SectorDiscoverySort; companyTableQuery: string; companyTableSort: SectorCompanyTableSort;
   discoveryMode: SectorDiscoveryMode; matrixTimeframe: SectorMatrixTimeframe; matrixIndustry: string; matrixBand: SectorCapBand | "";
   rotationMode: SectorRotationMode; rotationQuery: string;
 };
 export const DEFAULT_SECTOR_STATE: SectorState = {
   view: "intelligence", sector: "xlk", group: "semiconductors", sort: "source", query: "", theme: "dark", company: "", expanded: false, sourcesOpen: false,
-  workspace: "discover", discoveryQuery: "", discoverySort: "source", discoveryMode: "table", matrixTimeframe: "1D", matrixIndustry: "", matrixBand: "",
+  workspace: "discover", discoveryQuery: "", discoverySort: "source", companyTableQuery: "", companyTableSort: "source", discoveryMode: "table", matrixTimeframe: "1D", matrixIndustry: "", matrixBand: "",
   rotationMode: "map", rotationQuery: "",
 };
 export function object(value: unknown): Row {
@@ -154,6 +155,7 @@ export function parseSectorState(params: URLSearchParams): SectorState {
   const view = params.get("sectorView") || "", sector = params.get("sector") || "", group = params.get("group") || "";
   const sort = params.get("sectorSort") || "";
   const workspace = params.get("sectorWorkspace"), discoverySort = params.get("sectorDiscoverySort");
+  const companyTableSort = params.get("sectorCompanyTableSort");
   const discoveryMode = params.get("sectorDiscoveryMode"), matrixTimeframe = params.get("sectorMatrixTimeframe");
   const matrixBand = params.get("sectorMatrixBand"), rotationMode = params.get("sectorRotationMode");
   const legacyDetail = ["sectorView", "sector", "group", "sectorCompany", "sectorQuery"].some(key => params.has(key));
@@ -161,6 +163,8 @@ export function parseSectorState(params: URLSearchParams): SectorState {
     workspace: workspace === "rotation" || workspace === "discover" || workspace === "breadth" || workspace === "detail" ? workspace : legacyDetail ? "detail" : "discover",
     discoveryQuery: (params.get("sectorDiscoveryQuery") || "").slice(0, 60),
     discoverySort: discoverySort === "return" || discoverySort === "participation" ? discoverySort : "source",
+    companyTableQuery: (params.get("sectorCompanyTableQuery") || "").slice(0, 60),
+    companyTableSort: ["source", "performance", "marketcap", "ticker"].includes(companyTableSort || "") ? companyTableSort as SectorCompanyTableSort : "source",
     discoveryMode: discoveryMode === "heatmap" || discoveryMode === "matrix" ? discoveryMode : "table",
     matrixTimeframe: ["1D", "1W", "MTD", "1M", "3M", "6M", "YTD", "1Y"].includes(matrixTimeframe || "") ? matrixTimeframe as SectorMatrixTimeframe : "1D",
     matrixIndustry: (params.get("sectorMatrixIndustry") || "").slice(0, 120),
@@ -183,7 +187,9 @@ export function writeSectorState(url: URL, state: SectorState): string {
   url.searchParams.set("tab", "sectors");
   url.searchParams.set("sectorWorkspace", state.workspace);
   url.searchParams.set("sectorDiscoverySort", state.discoverySort);
+  url.searchParams.set("sectorCompanyTableSort", state.companyTableSort);
   if (state.discoveryQuery) url.searchParams.set("sectorDiscoveryQuery", state.discoveryQuery); else url.searchParams.delete("sectorDiscoveryQuery");
+  if (state.companyTableQuery) url.searchParams.set("sectorCompanyTableQuery", state.companyTableQuery); else url.searchParams.delete("sectorCompanyTableQuery");
   url.searchParams.set("sectorDiscoveryMode", state.discoveryMode);
   url.searchParams.set("sectorMatrixTimeframe", state.matrixTimeframe);
   if (state.matrixIndustry) url.searchParams.set("sectorMatrixIndustry", state.matrixIndustry); else url.searchParams.delete("sectorMatrixIndustry");

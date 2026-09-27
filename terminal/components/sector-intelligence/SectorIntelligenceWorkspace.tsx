@@ -276,12 +276,18 @@ export default function SectorIntelligenceWorkspace() {
         onOpenResearch={openSectorResearch} />
         : state.workspace !== "detail" ? <SectorCentralDiscovery rows={sectors} status={status}
         asOf={feeds.sector?.receipt.asOf || null} selected={state.sector} selectedSourceName={sectorSourceName}
-        selectedCompany={state.company} query={state.discoveryQuery}
-        sort={state.discoverySort} breadth={state.workspace === "breadth"} mode={state.discoveryMode}
+        selectedCompany={state.company} query={state.discoveryQuery} companyTableQuery={state.companyTableQuery}
+        sort={state.discoverySort} companyTableSort={state.companyTableSort}
+        breadth={state.workspace === "breadth"} mode={state.discoveryMode}
         heatmapData={feeds.heatmap?.data} heatmapStatus={feeds.heatmap?.receipt.status || "loading"}
         heatmapAsOf={feeds.heatmap?.receipt.asOf || null} matrixTimeframe={state.matrixTimeframe}
         matrixIndustry={state.matrixIndustry} matrixBand={state.matrixBand}
-        onQuery={discoveryQuery => change({ discoveryQuery })} onSort={discoverySort => change({ discoverySort })}
+        onQuery={discoveryQuery => change({ discoveryQuery })}
+        onCompanyTableQuery={companyTableQuery => change({ companyTableQuery })}
+        onSort={discoverySort => change({ discoverySort })}
+        onCompanyTableSort={companyTableSort => change({ companyTableSort })}
+        onClearCompanyFilters={() => change({ companyTableQuery: "", matrixIndustry: "", matrixBand: "" }, true)}
+        onClearScope={() => change({ matrixIndustry: "", matrixBand: "" }, true)}
         onMode={discoveryMode => change({ discoveryMode })}
         onTimeframe={matrixTimeframe => change({ matrixTimeframe })}
         onIndustry={matrixIndustry => change({ matrixIndustry }, true)}

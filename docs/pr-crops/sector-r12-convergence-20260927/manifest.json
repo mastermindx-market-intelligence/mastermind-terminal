@@ -1,0 +1,540 @@
+{
+  "schema": "mastermind.sector_r12_convergence_evidence.v1",
+  "operation": "sector-intelligence-terminal-20260926-sol-001",
+  "parent": "macro#7646 / sector-central-redesign-20260921-sol-001",
+  "repository": "mastermindx-market-intelligence/mastermind-terminal",
+  "pullRequest": 754,
+  "predecessorHead": "6016f174366cd06807f9ee876bf54fbdcd4376dc",
+  "protectedProcedure": {
+    "repository": "mastermindx-market-intelligence/Mastermind",
+    "revision": "3c35c5f8c4609c5bbaa4db424521facb6ad3757d",
+    "indexBlob": "94d1af402598894372858793a5b1931019c5fa77",
+    "skillpackVersion": "1.0.1",
+    "minimumBootstrapMajor": 1
+  },
+  "capabilityState": "BUILT_NOT_PROVEN",
+  "missionComplete": false,
+  "owner": {
+    "repository": "mastermindx-market-intelligence/macro",
+    "revision": "f94256971e49b6372645af3d329080d6e3747ea9",
+    "files": [
+      {
+        "key": "sector",
+        "path": "site/sectordata/sector_central.json",
+        "asOf": "2026-09-25",
+        "sha256": "61a45950781430f66fe00a93f64325819d226f6f36b704f9f899dd106b0b2dc1",
+        "bytes": 167883
+      },
+      {
+        "key": "confluence",
+        "path": "site/marketdata/subsector_confluence.json",
+        "asOf": "2026-09-25",
+        "sha256": "2dffa7eb83891a8dc7d12a6aecaf0669bb2cd66a7764667f2694a9c6c446bdde",
+        "bytes": 176646
+      },
+      {
+        "key": "themes",
+        "path": "site/neuralwebdata/theme_state.json",
+        "asOf": "2026-09-26",
+        "sha256": "70018e4ba78680a6510e80e770873957295f1eccd07879cf101d3928d9124e32",
+        "bytes": 39878
+      },
+      {
+        "key": "heatmap",
+        "path": "site/marketdata/sp500_heatmap.json",
+        "asOf": "2026-09-25",
+        "sha256": "beeadcf92f52b363ebed2ae458acf658702a8d0822e84ef3cc3531b278129961",
+        "bytes": 118755
+      }
+    ],
+    "transport": "immutable exact-owner local interception for browser proof; authenticated production transport not proven"
+  },
+  "provenanceCorrection": {
+    "originalHeatmapQualificationRevision": "79dbe3f2431b9e21cabf23071f02eab5add57eb4",
+    "incorrectlyProjectedRevision": "f94256971e49b6372645af3d329080d6e3747ea9",
+    "currentProofUsesActualCurrentRevision": true,
+    "changedHeatmapTiles": 499,
+    "changedTechnologyTiles": 79,
+    "oldRunsRetainedAsChronologyOnly": true
+  },
+  "capabilities": {
+    "discoverRepresentations": [
+      "table",
+      "heatmap",
+      "matrix"
+    ],
+    "outerWorkspaces": [
+      "rotation",
+      "discover",
+      "breadth"
+    ],
+    "selectedDepth": [
+      "intelligence",
+      "companies",
+      "signals",
+      "drivers",
+      "history"
+    ],
+    "technologyPopulation": 79,
+    "technologyCapBands": {
+      "mega": 24,
+      "large": 26,
+      "mid": 29,
+      "smaller": 0
+    },
+    "canonicalLocalizedIdentitySeparated": true,
+    "companyTableSearchSeparateFromSectorSearch": true,
+    "atomicCombinedFilterClears": true,
+    "authCredential": "filtered shared Supabase sb-*-auth-token Cookie chunks",
+    "authRedirectPolicy": "manual"
+  },
+  "implementation": {
+    "aggregateSha256": "6f0620499d19c72d746262e94118f8621fd92ce7a0547297aa842bf271635f01",
+    "files": [
+      {
+        "path": "terminal/app/api/sector-intelligence/route.ts",
+        "sha256": "6e595d6b2fd7e465295c0ddedc4cbd9a12ff707a7d57b4224c9dfbcbe085f8f9",
+        "bytes": 6310
+      },
+      {
+        "path": "terminal/components/sector-intelligence/SectorCentralDiscovery.module.css",
+        "sha256": "65666f326be555899a426075d3ff2e1736e68549bee5914cac09b6434ad45450",
+        "bytes": 7025
+      },
+      {
+        "path": "terminal/components/sector-intelligence/SectorCentralDiscovery.tsx",
+        "sha256": "8fc749e8e58a259e982a225e3df55a1905d8a5180abacc9703f268a251d1d63b",
+        "bytes": 15173
+      },
+      {
+        "path": "terminal/components/sector-intelligence/SectorCompanyTable.module.css",
+        "sha256": "b479fab8ec44a7f51b6704e97e728451ec53cd8a6d8be790e2f7707e68ac1ab1",
+        "bytes": 5836
+      },
+      {
+        "path": "terminal/components/sector-intelligence/SectorCompanyTable.tsx",
+        "sha256": "2364b7aaeb7b5c4b161d93742a20010851e57476903121e530292766799191b5",
+        "bytes": 13070
+      },
+      {
+        "path": "terminal/components/sector-intelligence/SectorCompanyHeatmap.module.css",
+        "sha256": "7807f492829ea636f323428a4f87802c8d7c45d9bdba8f52d4fc66908c07e121",
+        "bytes": 7779
+      },
+      {
+        "path": "terminal/components/sector-intelligence/SectorCompanyHeatmap.tsx",
+        "sha256": "0bf89291cfffd60351878c8c4c1ed7d266561ff3e6ce3fb4b173a311ee803fe1",
+        "bytes": 21773
+      },
+      {
+        "path": "terminal/components/sector-intelligence/SectorIndustryMatrix.module.css",
+        "sha256": "4513e76bdd0ebdcdbb8a862ea550c46444390a3427827b8681e5bc47720e4580",
+        "bytes": 7760
+      },
+      {
+        "path": "terminal/components/sector-intelligence/SectorIndustryMatrix.tsx",
+        "sha256": "e3a3d6a1d66359e2a1e51cc1cbb977d5112b1f8865c6f73ea07c919e9f5fcabb",
+        "bytes": 15157
+      },
+      {
+        "path": "terminal/components/sector-intelligence/SectorIntelligenceWorkspace.tsx",
+        "sha256": "17c20bca7fdc2d401700ba4bde225eac9407884a6263cd1cb3572dea6bd15da4",
+        "bytes": 31264
+      },
+      {
+        "path": "terminal/lib/sectorIntelligence.ts",
+        "sha256": "bde5c1dbf48c964fb32bcff71479bde01857cb497e86dc197529d252f6f52844",
+        "bytes": 14381
+      },
+      {
+        "path": "terminal/lib/__tests__/sectorCentralDiscovery.test.tsx",
+        "sha256": "cbafbffb0e9c6e3281757f366f9c4e503647f79abeeaa447eba12c11ee8ee765",
+        "bytes": 11977
+      },
+      {
+        "path": "terminal/lib/__tests__/sectorCompanyTable.test.tsx",
+        "sha256": "a63875d3ac8f7cea1e058576fa5f5a9da24de0eff47b85aba1d316dbc1583cc0",
+        "bytes": 9580
+      },
+      {
+        "path": "terminal/lib/__tests__/sectorCompanyHeatmap.test.tsx",
+        "sha256": "4f4fe31f13639f6416606ef3086e866d7c2604f59a9dbe4874c84b83d6ce93a3",
+        "bytes": 11367
+      },
+      {
+        "path": "terminal/lib/__tests__/sectorIndustryMatrix.test.tsx",
+        "sha256": "6024a1302c845cb6d4cf5c76d3878c44ff8036196c60030b07a5b8d8781925a6",
+        "bytes": 8131
+      },
+      {
+        "path": "terminal/lib/__tests__/sectorOwnerGateway.test.ts",
+        "sha256": "c21af6bf2e751c7d43d1e0945f77084f4b1639dad13fdfb40e0f732744d40e95",
+        "bytes": 7904
+      },
+      {
+        "path": "terminal/e2e/tools/qualify_sector_company_table.cjs",
+        "sha256": "478f5460a4ca6ee5cba8827cf2963c580d80b59f77415244c4936a72c6ab7fc7",
+        "bytes": 13549
+      },
+      {
+        "path": "terminal/e2e/tools/qualify_sector_heatmap.cjs",
+        "sha256": "dc7b36847e656e385ee94f1ef35edd4433863cf9b3ee7e66a719db19054dd2a4",
+        "bytes": 13890
+      },
+      {
+        "path": "terminal/e2e/tools/qualify_sector_matrix.cjs",
+        "sha256": "966255974554e8ecc61e91f500c7e9a54e2b1c5267e56e9371a76bd820ec4d56",
+        "bytes": 12549
+      },
+      {
+        "path": "terminal/e2e/tools/qualify_sector_discovery.cjs",
+        "sha256": "072ec482a2bc71b3e4294647507e333ebe9eb54c456023c3a61ad0c7f8a07ab5",
+        "bytes": 11726
+      }
+    ]
+  },
+  "validation": {
+    "fullTerminalUnit": {
+      "files": 401,
+      "passed": 6476,
+      "todo": 4
+    },
+    "completeSectorSurface": {
+      "files": 11,
+      "passed": 205,
+      "total": 205
+    },
+    "targetedGatewayTableHeatmapMatrixRotation": {
+      "files": 6,
+      "passed": 114,
+      "total": 114
+    },
+    "sectorGatewayRoute": {
+      "passed": 15,
+      "total": 15
+    },
+    "routeTypegen": "PASS",
+    "typescript": "PASS",
+    "scopedEslint": "PASS",
+    "plainLanguageSelfCheck": "PASS",
+    "forwardAddedLinesGuard": "PASS_ZERO_NEW_BLOCKERS",
+    "addedLinesDiffSha256": "56cbbcaf3bcf2be16e06f7f35390d2c4864d66224e242a2559bf4202b2e538de",
+    "diffHygiene": "PASS",
+    "finalBrowser": {
+      "companyTable": {
+        "path": "docs/pr-crops/sector-company-table-20260927/exact-owner-r8-current-atomic-final/qualification.json",
+        "passed": true,
+        "sourceRevision": "f94256971e49b6372645af3d329080d6e3747ea9",
+        "checks": 101,
+        "screenshots": 5,
+        "pageErrors": 0,
+        "error": null
+      },
+      "companyHeatmap": {
+        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r14-current-atomic-final/qualification.json",
+        "passed": true,
+        "sourceRevision": "f94256971e49b6372645af3d329080d6e3747ea9",
+        "checks": 98,
+        "screenshots": 5,
+        "pageErrors": 0,
+        "error": null
+      },
+      "industryCapMatrix": {
+        "path": "docs/pr-crops/sector-matrix-20260927/exact-owner-r14-current-atomic-final/qualification.json",
+        "passed": true,
+        "sourceRevision": "f94256971e49b6372645af3d329080d6e3747ea9",
+        "checks": 81,
+        "screenshots": 5,
+        "pageErrors": 0,
+        "error": null
+      },
+      "discoverBreadth": {
+        "path": "docs/pr-crops/sector-discovery-20260926/journey-r16-current-atomic-final/qualification.json",
+        "passed": true,
+        "sourceRevision": "f94256971e49b6372645af3d329080d6e3747ea9",
+        "checks": 86,
+        "screenshots": 10,
+        "pageErrors": 0,
+        "error": null
+      }
+    }
+  },
+  "evidence": {
+    "aggregateSha256": "5e69a3359ef085827aa9a97b48264b051860a4641f648350d72d24f46098543e",
+    "files": [
+      {
+        "path": "docs/pr-crops/sector-auth-transport-20260927/README.md",
+        "sha256": "ed5c29a0efe4a58868d49a8d6538febfc38026744176b0039e893101d8fafe08",
+        "bytes": 3190
+      },
+      {
+        "path": "docs/pr-crops/sector-auth-transport-20260927/manifest.json",
+        "sha256": "c7503c6426ea738632887ce9df82e7e9d60aad8b629a45d2ef568a56dc5c541b",
+        "bytes": 1873
+      },
+      {
+        "path": "docs/pr-crops/sector-company-table-20260927/README.md",
+        "sha256": "98f7c7addd758465b60d6662f73a8f5272055f31621e03d84a2fa217fd9955d9",
+        "bytes": 3257
+      },
+      {
+        "path": "docs/pr-crops/sector-company-table-20260927/manifest.json",
+        "sha256": "6b15ce7e00882620b76232e396f5909f108f332d3a056f4015d4c7870925d821",
+        "bytes": 7914
+      },
+      {
+        "path": "docs/pr-crops/sector-heatmap-20260927/README.md",
+        "sha256": "0f0f1d2444a85f2c9d913aabcb6f7984848b6b0605a9b354630be0fea0301389",
+        "bytes": 4881
+      },
+      {
+        "path": "docs/pr-crops/sector-heatmap-20260927/manifest.json",
+        "sha256": "94ca686b352074c4ed22efe75f466d9032e3f163019d3609f94aa3ba33bf0c0a",
+        "bytes": 7634
+      },
+      {
+        "path": "docs/pr-crops/sector-company-table-20260927/history/current-owner-f942-r6.json",
+        "sha256": "dbe13efb1232ffa38955678948b9c0694e0097a1affc4ce917071f7af8994151",
+        "bytes": 48180
+      },
+      {
+        "path": "docs/pr-crops/sector-company-table-20260927/history/old-owner-79d-r1.json",
+        "sha256": "a124d087d05e068714d4e7439923709530abd49f41738b6af24f54351e2b2965",
+        "bytes": 9735
+      },
+      {
+        "path": "docs/pr-crops/sector-company-table-20260927/history/old-owner-79d-r2.json",
+        "sha256": "810f7b25418248e24a42f20824e52c5586d8935f5fac933ecf2c6524bee6ed3c",
+        "bytes": 37409
+      },
+      {
+        "path": "docs/pr-crops/sector-company-table-20260927/history/old-owner-79d-r3.json",
+        "sha256": "8005020c1e846bf2d6ba7cebd627363a0e66ca437f975a9f9ef276b67dd6ccae",
+        "bytes": 48180
+      },
+      {
+        "path": "docs/pr-crops/sector-company-table-20260927/history/old-owner-79d-r4.json",
+        "sha256": "38329a03f5c4e84d56cf6daa3f58ad07422924814149f63537dc1c0082dec402",
+        "bytes": 10883
+      },
+      {
+        "path": "docs/pr-crops/sector-company-table-20260927/history/old-owner-79d-r5.json",
+        "sha256": "d2d96ac019f5c108a806579bf5ce92d8e14f8fd84ffa285dc442e4403008cafb",
+        "bytes": 48180
+      },
+      {
+        "path": "docs/pr-crops/sector-company-table-20260927/history/old-owner-79d-r6.json",
+        "sha256": "d2d96ac019f5c108a806579bf5ce92d8e14f8fd84ffa285dc442e4403008cafb",
+        "bytes": 48180
+      },
+      {
+        "path": "docs/pr-crops/sector-company-table-20260927/exact-owner-r8-current-atomic-final/chromium-1440-en-light-table.png",
+        "sha256": "879b552dd7adc6856e358a5875ba7c81949684b92acc769bda2349e1bfff25d2",
+        "bytes": 149960
+      },
+      {
+        "path": "docs/pr-crops/sector-company-table-20260927/exact-owner-r8-current-atomic-final/chromium-390-en-light-table.png",
+        "sha256": "67409833df1b1106a1c98047fe3d033d215c512f12b665c345e00e416f6ea246",
+        "bytes": 906437
+      },
+      {
+        "path": "docs/pr-crops/sector-company-table-20260927/exact-owner-r8-current-atomic-final/chromium-820-en-dark-table.png",
+        "sha256": "ca69549eb8915d058286b9f6b03da25e659f12951dfe05949ac6f510868cb53b",
+        "bytes": 665873
+      },
+      {
+        "path": "docs/pr-crops/sector-company-table-20260927/exact-owner-r8-current-atomic-final/qualification.json",
+        "sha256": "dbe13efb1232ffa38955678948b9c0694e0097a1affc4ce917071f7af8994151",
+        "bytes": 48180
+      },
+      {
+        "path": "docs/pr-crops/sector-company-table-20260927/exact-owner-r8-current-atomic-final/webkit-1440-en-dark-table.png",
+        "sha256": "33771c4acba4d8b78a1207a615ab0facd66955958600c03bf868d859de72798c",
+        "bytes": 216830
+      },
+      {
+        "path": "docs/pr-crops/sector-company-table-20260927/exact-owner-r8-current-atomic-final/webkit-390-zh-light-table.png",
+        "sha256": "331e4a2c5e79cff2c936a6d561b91cafcf75bc6bb4736ad26e58404ce838a8ab",
+        "bytes": 1059457
+      },
+      {
+        "path": "docs/pr-crops/sector-heatmap-20260927/current-source-history/r7-stale-next.json",
+        "sha256": "a5c99678655becdaaba98c9415233088b78aac69f238229aee3172b67990a00c",
+        "bytes": 1405
+      },
+      {
+        "path": "docs/pr-crops/sector-heatmap-20260927/current-source-history/r8-stale-next.json",
+        "sha256": "a5c99678655becdaaba98c9415233088b78aac69f238229aee3172b67990a00c",
+        "bytes": 1405
+      },
+      {
+        "path": "docs/pr-crops/sector-heatmap-20260927/current-source-history/r9-current-pass.json",
+        "sha256": "7658fee9fa2bec0d97bd765f154f685f61af669fdf4ae1d4c213847fc3d965b2",
+        "bytes": 20060
+      },
+      {
+        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r14-current-atomic-final/chromium-1440-en-light-heatmap.png",
+        "sha256": "1aa8f476686a9707ccff3150e8420984bb10b5b9362c6a80bd04c107d8b1e717",
+        "bytes": 153237
+      },
+      {
+        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r14-current-atomic-final/chromium-390-en-light-heatmap.png",
+        "sha256": "591e6a3d017e3351a40bccc27ccdd4dfc49143f92c94e251f94e0a0219cb198e",
+        "bytes": 106499
+      },
+      {
+        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r14-current-atomic-final/chromium-820-en-dark-heatmap.png",
+        "sha256": "6e0c312f22a735f421d1517064d49863380cfe5ac3acfe32ff839ae5258f5104",
+        "bytes": 145047
+      },
+      {
+        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r14-current-atomic-final/qualification.json",
+        "sha256": "7658fee9fa2bec0d97bd765f154f685f61af669fdf4ae1d4c213847fc3d965b2",
+        "bytes": 20060
+      },
+      {
+        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r14-current-atomic-final/webkit-1440-en-dark-heatmap.png",
+        "sha256": "d650c45244362196d6696d6d2391619922dca3e71f9708de1a3646a7f25bad84",
+        "bytes": 221894
+      },
+      {
+        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r14-current-atomic-final/webkit-390-zh-light-heatmap.png",
+        "sha256": "9283c8f859392acbba08591a6b3eddfc720dfdfa228ed8dcf241117efb55b9ad",
+        "bytes": 124068
+      },
+      {
+        "path": "docs/pr-crops/sector-matrix-20260927/current-source-history/r12-current-pass.json",
+        "sha256": "24ec192f01eb86747fedc343b27f01bf117096967e49c0432fdb910466819366",
+        "bytes": 18538
+      },
+      {
+        "path": "docs/pr-crops/sector-matrix-20260927/exact-owner-r14-current-atomic-final/chromium-1440-en-light-matrix.png",
+        "sha256": "3afcbc90390b14620ca07b0738feff0f30f25f22628e90dc0b7343bb4ca08bb1",
+        "bytes": 160129
+      },
+      {
+        "path": "docs/pr-crops/sector-matrix-20260927/exact-owner-r14-current-atomic-final/chromium-390-en-light-matrix.png",
+        "sha256": "1f0a4a96b1b33635562b7a5afcae1b241fcd892e014e28a79d1c88d44ef7d79c",
+        "bytes": 106719
+      },
+      {
+        "path": "docs/pr-crops/sector-matrix-20260927/exact-owner-r14-current-atomic-final/chromium-820-en-dark-matrix.png",
+        "sha256": "29d625a19fa14c3b7b117044762b189529579d5554f59063987b5bd36d9ced0d",
+        "bytes": 197095
+      },
+      {
+        "path": "docs/pr-crops/sector-matrix-20260927/exact-owner-r14-current-atomic-final/qualification.json",
+        "sha256": "ea3c17908d387eed8f2055c1a893ec97d19479dab94ed31fc4d0198e7f08c1fc",
+        "bytes": 18538
+      },
+      {
+        "path": "docs/pr-crops/sector-matrix-20260927/exact-owner-r14-current-atomic-final/webkit-1440-en-dark-matrix.png",
+        "sha256": "cfd221b3525564d61666bd270fbdec11e113c44bf56193ef7d7cd5811eaccc52",
+        "bytes": 230792
+      },
+      {
+        "path": "docs/pr-crops/sector-matrix-20260927/exact-owner-r14-current-atomic-final/webkit-390-zh-light-matrix.png",
+        "sha256": "5bf5405d038ff92580c0428abdd61d825162e9e02cbe5a917304989be5d2f2b8",
+        "bytes": 127564
+      },
+      {
+        "path": "docs/pr-crops/sector-discovery-20260926/current-source-history/r12-current-startup-failure.json",
+        "sha256": "1075135543651ad49ca19e83e739eeab5e0ad3673d9cd9982c3ef4d99a52d053",
+        "bytes": 1468
+      },
+      {
+        "path": "docs/pr-crops/sector-discovery-20260926/current-source-history/r13-current-webkit-measurement.json",
+        "sha256": "e30b54e803891b7e7926b8678e0646675201550f73fb78148e86a574ef6cd80d",
+        "bytes": 8755
+      },
+      {
+        "path": "docs/pr-crops/sector-discovery-20260926/current-source-history/r14-current-pass.json",
+        "sha256": "96ff8e56b2f40a0cb33f1c5f0e483a0b74ab5bf7728daa07244232aa5d55453e",
+        "bytes": 12436
+      },
+      {
+        "path": "docs/pr-crops/sector-discovery-20260926/journey-r16-current-atomic-final/chromium-1440-en-light-breadth.png",
+        "sha256": "6509ccfe1d880e812e83c3f088f3ce43061d1223444d30e590611fe6028d27dc",
+        "bytes": 153210
+      },
+      {
+        "path": "docs/pr-crops/sector-discovery-20260926/journey-r16-current-atomic-final/chromium-1440-en-light-discover.png",
+        "sha256": "3b8ae4d4a50e1f8942a333d770a555356a506780ce85f4a1915e1a69d33cbb76",
+        "bytes": 152621
+      },
+      {
+        "path": "docs/pr-crops/sector-discovery-20260926/journey-r16-current-atomic-final/chromium-390-en-light-breadth.png",
+        "sha256": "28a7086939db4b2a6348df1512d8cdcf9a0f1fa25711ae854d421d28f1b34773",
+        "bytes": 171888
+      },
+      {
+        "path": "docs/pr-crops/sector-discovery-20260926/journey-r16-current-atomic-final/chromium-390-en-light-discover.png",
+        "sha256": "415f55bc4f6c379dc947c57382be9bb64747a85ab0a6d1887201e7dd18cedc9e",
+        "bytes": 904062
+      },
+      {
+        "path": "docs/pr-crops/sector-discovery-20260926/journey-r16-current-atomic-final/chromium-820-en-dark-breadth.png",
+        "sha256": "73f8ca55091b923181d4b200c42b760aa7bd0d05e74173e82de6adfe31411ce3",
+        "bytes": 167623
+      },
+      {
+        "path": "docs/pr-crops/sector-discovery-20260926/journey-r16-current-atomic-final/chromium-820-en-dark-discover.png",
+        "sha256": "5f042828750a420c2e0416fed9b050a6035d3a7619358f992644e98e8c45ae4d",
+        "bytes": 665385
+      },
+      {
+        "path": "docs/pr-crops/sector-discovery-20260926/journey-r16-current-atomic-final/qualification.json",
+        "sha256": "40f7cf8d538f1db6d31cd52ba3343f30261ee0509a681fe1cc40fd8d5e8046c1",
+        "bytes": 12436
+      },
+      {
+        "path": "docs/pr-crops/sector-discovery-20260926/journey-r16-current-atomic-final/webkit-1440-en-dark-breadth.png",
+        "sha256": "3e0607e99c5daa4833d48dbf477540ffe847ae61377ab04aed64df9d87b7ccd3",
+        "bytes": 219932
+      },
+      {
+        "path": "docs/pr-crops/sector-discovery-20260926/journey-r16-current-atomic-final/webkit-1440-en-dark-discover.png",
+        "sha256": "e7d5ff192a59adb02d3be78881c70621ccbc77c2025073260a51c8e90d33e87d",
+        "bytes": 218789
+      },
+      {
+        "path": "docs/pr-crops/sector-discovery-20260926/journey-r16-current-atomic-final/webkit-390-zh-light-breadth.png",
+        "sha256": "c85bf13087427f3798d0e7b34a15514b8ad924765a72820cacc4c8521ee433ba",
+        "bytes": 193397
+      },
+      {
+        "path": "docs/pr-crops/sector-discovery-20260926/journey-r16-current-atomic-final/webkit-390-zh-light-discover.png",
+        "sha256": "9214349ac0bf42d935f52e6e22540f3ed22ab2550b25ce165999b1eefa6e02f3",
+        "bytes": 1055811
+      },
+      {
+        "path": "docs/pr-crops/sector-r12-convergence-20260927/README.md",
+        "sha256": "4b19cc1d70a811e8d3289beb573c7b1d4654f469b8464892d9d4fcc0349368a4",
+        "bytes": 9115
+      }
+    ]
+  },
+  "authTransport": {
+    "singleGateway": "terminal/app/api/sector-intelligence/route.ts",
+    "localUserAdmissionPreserved": true,
+    "sameUserSessionCheckPreserved": true,
+    "forwardsOnlySupabaseAuthCookieChunks": true,
+    "forwardsAuthorizationHeader": false,
+    "forwardsUnrelatedCookies": false,
+    "upstreamRequestWithoutFilteredCookie": false,
+    "redirectPolicy": "manual",
+    "fixedHttpsOwnerHostOnly": true,
+    "productionEntitledSessionProof": false
+  },
+  "review": {
+    "independentReviewRequiredForContinuation": false,
+    "chairmanWaiverApplies": true
+  },
+  "release": {
+    "draft": true,
+    "merged": false,
+    "deployed": false,
+    "productionProven": false,
+    "vercelPermitted": false
+  }
+}

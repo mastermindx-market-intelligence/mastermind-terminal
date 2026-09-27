@@ -1,4 +1,4 @@
-# Sector Central R11 — exact selected-sector Company Heatmap
+# Sector Central Company Heatmap — current-source correction and final proof
 
 `BUILT_NOT_PROVEN / DRAFT / UNMERGED / NOT DEPLOYED`
 
@@ -6,79 +6,78 @@ Operation: `sector-intelligence-terminal-20260926-sol-001`
 
 Parent: `macro#7646 / sector-central-redesign-20260921-sol-001`
 
-Predecessor: `b7d42c263fe8524c232b68e47b3c16680756410f`
+Original implementation head: `6016f174366cd06807f9ee876bf54fbdcd4376dc`
 
 ## Capability
 
-Discover now has three coordinated representations inside the existing `sectorWorkspace=discover` job:
+The selected-sector Company Heatmap uses the exact readable `sp500_heatmap.json` population, grouped by owner industry, sized by source market cap and coloured by one selected performance window. It shares sector, timeframe, industry, market-cap band and selected-company state with the Company Table and Industry × Market Cap Matrix.
 
-- **Table** — the exact eleven-sector owner population and existing sector measurements.
-- **Heatmap** — the selected sector's exact S&P 500 company population, grouped by owner-supplied industry, sized by market cap and coloured by one selected performance window.
-- **Matrix** — the same selected-sector population crossed by owner industry and deterministic market-cap bands.
+It provides:
 
-The Heatmap consumes the incumbent `heatmap` BFF and the already-bound `site/marketdata/sp500_heatmap.json` owner. It creates no collector, endpoint, publisher, cache, taxonomy, source identity, history store, save/alert store or browser-computed market authority.
-
-For the selected sector it provides:
-
-- exact canonical sector-label matching, separate from translated display labels;
-- deterministic nested industry/company layout over the complete readable owner population;
-- company area driven by source market cap and a disclosed 0.1% industry visibility floor so a small source industry cannot disappear below a display pixel;
-- a fixed symmetric colour domain computed from the complete selected-sector population; industry/cap filters cannot rescale it;
+- exact source-sector matching separate from translated display names;
+- complete company reachability in a deterministic nested industry/company layout;
+- a disclosed 0.1% industry visibility floor so a tiny source industry remains selectable without changing source values;
+- a fixed symmetric colour domain computed from the complete selected-sector population, unaffected by filters;
 - durable `1D / 1W / MTD / 1M / 3M / 6M / YTD / 1Y` state;
 - missing observations distinct from exact zero;
-- one plain answer derived from largest industry market-cap share plus broadest observed participation;
-- URL-bound industry, cap-band and company selection, with the selected company inspector and existing Company Intelligence link;
-- explicit selected-sector depth and exact return to prior representation, filters, timeframe, company, independent group identity, scroll position and opening-action focus;
-- desktop one-canvas + inspector, tablet stacking and mobile selected-insight-first behavior with the dense map behind a deliberate disclosure;
+- a current answer derived from largest industry market-cap share and broadest observed participation;
+- selected-company inspector, Company Intelligence link and exact representation/detail return;
+- desktop one-canvas + inspector, tablet stacking and mobile selected-insight-first disclosure;
 - EN/ZH, light/dark, contextual Sources and access-loss clearing.
 
-Sector, timeframe, industry and cap filters preserve the selected company identity. If that company is outside the visible scope, the inspector temporarily serves the largest visible company; clearing the filter restores the exact selected company rather than deleting its state.
+No collector, publisher, taxonomy, score, forecast, history store, save/alert store or browser market authority is introduced.
 
-## Exact owner boundary
+## Provenance correction
 
-Macro revision: `f94256971e49b6372645af3d329080d6e3747ea9`
+The original Heatmap qualification runs `exact-owner-r1` through `exact-owner-r6` used Macro revision:
 
-| Owner file | Date | SHA-256 | Use |
-|---|---|---|---|
-| `site/sectordata/sector_central.json` | 2026-09-25 | `61a45950781430f66fe00a93f64325819d226f6f36b704f9f899dd106b0b2dc1` | selected sector identity and outer workspace context |
-| `site/marketdata/sp500_heatmap.json` | 2026-09-25 | `beeadcf92f52b363ebed2ae458acf658702a8d0822e84ef3cc3531b278129961` | exact company, industry, market-cap and performance observations |
+`79dbe3f2431b9e21cabf23071f02eab5add57eb4`
 
-The exact Technology scope remains **79 names**. The separate `Information Technology` source row remains excluded rather than silently aliased. The current exact 1D colour domain is **±6.3%**; the final proof also verifies that filtering does not change this domain.
+The first manifest incorrectly projected those runs as proof of later Macro revision `f942569...`. The source population identity stayed stable, but the observations did not: 499/503 heatmap tiles changed, including all 79 Technology tiles, and all eleven Sector Central rows changed material measured fields. The original runs remain valid only for their immutable `79dbe3f...` input.
 
-This vertical does **not** admit the separately rights-held Finviz theme/bubble plane. Bubbles, full-family selection, nested theme/subtheme heatmaps, overlap/evidence/compare and historical trails remain separate owner-gated work.
+Current-source proof uses Macro revision:
 
-## Verification
+`f94256971e49b6372645af3d329080d6e3747ea9`
 
-- Full Terminal unit suite: **400 files / 6,453 passed / 4 todo**.
-- Complete related Sector surface: **181/181 PASS** across ten files before the final full-suite confirmation.
-- Targeted Heatmap + Discover + Matrix + Rotation: **82/82 PASS** before the final layout repair; final Heatmap/Discover retest: **47/47 PASS**.
-- Next route generation, TypeScript, scoped TypeScript/TSX ESLint: **PASS**.
-- Plain-language self-check: **PASS**.
-- Exact-owner Heatmap browser qualification `exact-owner-r6`: **98/98 PASS**, five captures, zero page exceptions.
-- Matrix regression `exact-owner-r11-regression`: **81/81 PASS**, five captures, zero page exceptions.
-- Discover/Breadth regression `journey-r11-regression`: **106/106 PASS**, ten captures, zero page exceptions.
+| Owner file | Date | SHA-256 |
+|---|---:|---|
+| `site/sectordata/sector_central.json` | 2026-09-25 | `61a45950781430f66fe00a93f64325819d226f6f36b704f9f899dd106b0b2dc1` |
+| `site/marketdata/sp500_heatmap.json` | 2026-09-25 | `beeadcf92f52b363ebed2ae458acf658702a8d0822e84ef3cc3531b278129961` |
 
-Browser coverage includes Chromium desktop/tablet/mobile and WebKit desktop/mobile; English and Chinese; light and dark; exact population; exact source date; canonical-vs-localized identity; fixed colour scale; complete company reachability; answer derivation; filters; selected company; Table/Heatmap continuity; explicit detail return; focus restoration; contextual Sources; access-loss clearing and horizontal-overflow checks.
+Technology remains exactly 79 names with cap-band counts `24 / 26 / 29 / 0`; the separate `Information Technology` label remains excluded.
 
-Browser evidence uses immutable exact-owner files through local interception. It is **not** authenticated publication-to-Terminal or served production proof.
+## Final current-source browser proof
 
-## Failure chronology retained
+`exact-owner-r14-current-atomic-final/qualification.json`
 
-The unsuccessful proof runs are preserved rather than overwritten:
+- **98/98 checks pass**;
+- five Chromium/WebKit desktop/tablet/mobile EN/ZH light/dark captures;
+- zero page exceptions;
+- exact population, date and canonical/localized identity;
+- fixed full-population colour scale;
+- all companies reachable;
+- answer derivation, filters, selected company and representation continuity;
+- explicit detail return, focus restoration, Sources, access loss and no horizontal overflow.
+- combined industry/cap scope clears through one atomic state transition.
 
-1. `exact-owner-r1` exposed a real population defect: fixed industry title/padding consumed the smallest source block and only 78 of 79 names were reachable. R11 now applies a disclosed industry visibility floor plus adaptive chrome/insets; a dedicated unit regression proves a tiny exact-owner industry remains present.
-2. `exact-owner-r2` exposed a proof-harness Promise/string conversion mistake in the fixed-domain assertion; no product change.
-3. `exact-owner-r3` exposed that a native closed `<details>` hides its body despite desktop CSS. The map is now explicitly open on desktop and closed on mobile through viewport-aware state.
-4. `exact-owner-r4` exposed a real state defect: filtering cleared the selected company, so switching representations did not restore it. Company identity now survives presentation filters and Matrix cells.
-5. `exact-owner-r5` exposed an over-strict URL-string assertion: identical state was serialized in a different query-parameter order. Final proof compares the semantic parameter set.
-6. `exact-owner-r6` is the final green exact-owner proof.
+`current-source-history/` retains qualification-only receipts for the stale `.next` startup failures and the first passing current-source run. Repeated screenshot sets were archived outside the repository; the final directory above is the current-source screenshot evidence.
+
+## Original implementation failure chronology
+
+The original `79dbe3f...` qualification preserved these useful product findings:
+
+1. the smallest industry block initially hid one of 79 names; adaptive layout plus the disclosed visibility floor repaired it;
+2. a proof Promise/string conversion error was corrected without a product change;
+3. closed native `<details>` hid the desktop map; viewport-aware disclosure repaired it;
+4. filtering erased selected-company continuity; identity is now preserved across presentation filters;
+5. an over-strict query-string order assertion was replaced by semantic parameter comparison;
+6. `exact-owner-r6` passed for the original immutable snapshot.
 
 ## Boundaries
 
-- The 0.1% industry floor is presentation-only and disclosed. Source market caps, answers, receipts, company inspectors and filtering use unmodified owner values.
-- Heatmap colour is descriptive source performance, not a forecast, rank, entry signal or position-size instruction.
-- Missing performance remains unavailable, not neutral or zero.
-- No theme/bubble rights decision is inferred from the admitted S&P 500 heatmap owner.
-- Existing Paper boards and incumbent native design custody were not modified.
-- The separately held historical responsive-fixture/label action was not replayed or routed around.
-- Independent review is not a gate under the Chairman's current instruction; this does not authorize merge, deployment, rights expansion or production acceptance.
+- The visibility floor is display-only; answers, receipts, inspectors and filters use unmodified owner values.
+- Colour is descriptive performance, not a recommendation, forecast, entry signal or position size.
+- Missing performance stays unavailable.
+- Theme/bubble rights are not inferred from the S&P 500 heatmap owner.
+- Browser proof uses local interception and is not authenticated production transport.
+- The aggregate current result, auth repair and exact continuation are recorded in `../sector-r12-convergence-20260927/README.md`.

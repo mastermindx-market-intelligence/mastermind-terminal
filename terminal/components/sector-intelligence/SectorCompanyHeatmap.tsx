@@ -67,6 +67,7 @@ export interface SectorCompanyHeatmapProps {
   onTimeframe: (timeframe: SectorMatrixTimeframe) => void;
   onIndustry: (industry: string) => void;
   onBand: (band: SectorCapBand | "") => void;
+  onClearScope: () => void;
   onCompany: (ticker: string) => void;
   onOpenResearch: (sector: string) => void;
   onSources: () => void;
@@ -313,7 +314,7 @@ export default function SectorCompanyHeatmap(props: SectorCompanyHeatmapProps) {
       <label>{t("capBand")}<select value={props.band} onChange={event => props.onBand(event.target.value as SectorCapBand | "")}>
         <option value="">{t("allBands")}</option>{MATRIX_CAP_BANDS.map(item => <option key={item.key} value={item.key}>{bandLabel(item.key)}</option>)}
       </select></label>
-      {(props.industry || props.band) && <button type="button" onClick={() => { props.onIndustry(""); props.onBand(""); }}>{t("clearScope")}</button>}
+      {(props.industry || props.band) && <button type="button" onClick={props.onClearScope}>{t("clearScope")}</button>}
       <button type="button" onClick={props.onSources}>{t("sources")} →</button>
     </div>
 

@@ -1,0 +1,59 @@
+{
+  "schema": "mastermind.sector_auth_transport_evidence.v1",
+  "operation": "sector-intelligence-terminal-20260926-sol-001",
+  "capabilityState": "BUILT_NOT_PROVEN",
+  "ownerRevision": "f94256971e49b6372645af3d329080d6e3747ea9",
+  "files": [
+    {
+      "path": "terminal/app/api/sector-intelligence/route.ts",
+      "sha256": "6e595d6b2fd7e465295c0ddedc4cbd9a12ff707a7d57b4224c9dfbcbe085f8f9",
+      "bytes": 6310
+    },
+    {
+      "path": "terminal/lib/__tests__/sectorOwnerGateway.test.ts",
+      "sha256": "c21af6bf2e751c7d43d1e0945f77084f4b1639dad13fdfb40e0f732744d40e95",
+      "bytes": 7904
+    },
+    {
+      "path": "docs/pr-crops/sector-auth-transport-20260927/README.md",
+      "sha256": "ed5c29a0efe4a58868d49a8d6538febfc38026744176b0039e893101d8fafe08",
+      "bytes": 3190
+    }
+  ],
+  "aggregateSha256": "a67ca49b505ca304e384a76900278339d185bfc6a94fc25d0e987d6ae4ae5f71",
+  "tests": {
+    "route": {
+      "passed": 15,
+      "total": 15
+    },
+    "completeSectorSurface": {
+      "files": 11,
+      "passed": 205,
+      "total": 205
+    },
+    "fullTerminalUnit": {
+      "files": 401,
+      "passed": 6476,
+      "todo": 4
+    },
+    "routeTypegen": "PASS",
+    "typescript": "PASS",
+    "scopedEslint": "PASS",
+    "plainLanguageSelfCheck": "PASS",
+    "forwardAddedLinesGuard": "PASS_ZERO_NEW_BLOCKERS",
+    "diffHygiene": "PASS"
+  },
+  "credential": {
+    "singleGateway": "terminal/app/api/sector-intelligence/route.ts",
+    "localUserAdmissionPreserved": true,
+    "sameUserSessionCheckPreserved": true,
+    "forwardsOnlySupabaseAuthCookieChunks": true,
+    "forwardsAuthorizationHeader": false,
+    "forwardsUnrelatedCookies": false,
+    "upstreamRequestWithoutFilteredCookie": false,
+    "redirectPolicy": "manual",
+    "fixedHttpsOwnerHostOnly": true,
+    "productionEntitledSessionProof": false
+  },
+  "productionEntitledSessionProof": false
+}

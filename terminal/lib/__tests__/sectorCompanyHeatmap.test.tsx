@@ -103,13 +103,13 @@ describe("selected-sector company heatmap projection", () => {
 describe("SectorCompanyHeatmap", () => {
   let root: Root, host: HTMLDivElement;
   const sector = vi.fn(), timeframe = vi.fn(), industry = vi.fn(), band = vi.fn();
-  const company = vi.fn(), open = vi.fn(), sources = vi.fn();
+  const clearScope = vi.fn(), company = vi.fn(), open = vi.fn(), sources = vi.fn();
   const render = async (patch: Partial<SectorCompanyHeatmapProps> = {}) => {
     const props: SectorCompanyHeatmapProps = {
       data: heatmap, status: "ready", asOf: "2026-09-25", sectors,
       selectedSector: "xlk", selectedSectorName: "Technology", selectedSectorSourceName: "Technology",
       timeframe: "1D", industry: "", band: "", selectedCompany: "",
-      onSector: sector, onTimeframe: timeframe, onIndustry: industry, onBand: band,
+      onSector: sector, onTimeframe: timeframe, onIndustry: industry, onBand: band, onClearScope: clearScope,
       onCompany: company, onOpenResearch: open, onSources: sources, ...patch,
     };
     await act(async () => root.render(<LangProvider><SectorCompanyHeatmap {...props} /></LangProvider>));
@@ -165,6 +165,13 @@ describe("SectorCompanyHeatmap", () => {
     expect(host.textContent).toContain("No exact names match this scope.");
   });
 
+  it("clears combined heatmap scope through one atomic callback", async () => {
+    await render({ industry: "Hardware", band: "mega" });
+    const button = Array.from(host.querySelectorAll("button")).find(item => item.textContent === "Clear scope")!;
+    await act(async () => button.click());
+    expect(clearScope).toHaveBeenCalledTimes(1);
+    expect(industry).not.toHaveBeenCalled(); expect(band).not.toHaveBeenCalled();
+  });
   it.each(["loading", "access", "invalid", "error", "unavailable"] as const)("clears retained heatmap names after %s", async status => {
     await render(); await render({ status });
     expect(host.querySelectorAll("[data-company-heatmap-tile]")).toHaveLength(0);

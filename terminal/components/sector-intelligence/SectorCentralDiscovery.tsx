@@ -10,10 +10,12 @@ import {
   type FeedStatus,
   type Row,
   type SectorCapBand,
+  type SectorCompanyTableSort,
   type SectorDiscoveryMode,
   type SectorMatrixTimeframe,
 } from "@/lib/sectorIntelligence";
 import SectorCompanyHeatmap from "./SectorCompanyHeatmap";
+import SectorCompanyTable from "./SectorCompanyTable";
 import SectorIndustryMatrix from "./SectorIndustryMatrix";
 import styles from "./SectorCentralDiscovery.module.css";
 
@@ -26,7 +28,9 @@ export interface SectorCentralDiscoveryProps {
   selectedSourceName: string;
   selectedCompany: string;
   query: string;
+  companyTableQuery: string;
   sort: DiscoverySort;
+  companyTableSort: SectorCompanyTableSort;
   breadth: boolean;
   mode: SectorDiscoveryMode;
   heatmapData: unknown;
@@ -36,7 +40,11 @@ export interface SectorCentralDiscoveryProps {
   matrixIndustry: string;
   matrixBand: SectorCapBand | "";
   onQuery: (query: string) => void;
+  onCompanyTableQuery: (query: string) => void;
   onSort: (sort: DiscoverySort) => void;
+  onCompanyTableSort: (sort: SectorCompanyTableSort) => void;
+  onClearCompanyFilters: () => void;
+  onClearScope: () => void;
   onMode: (mode: SectorDiscoveryMode) => void;
   onTimeframe: (timeframe: SectorMatrixTimeframe) => void;
   onIndustry: (industry: string) => void;
@@ -136,6 +144,19 @@ export default function SectorCentralDiscovery(props: SectorCentralDiscoveryProp
     {(["table", "heatmap", "matrix"] as const).map(mode => <button type="button" key={mode} aria-pressed={props.mode === mode} onClick={() => props.onMode(mode)}>{t(mode)}</button>)}
   </div>;
 
+  if (!props.breadth && props.mode === "table") return <section className={styles.root} data-testid="sector-discovery">
+    {representationNavigation}
+    <SectorCompanyTable data={props.heatmapData} status={props.heatmapStatus} asOf={props.heatmapAsOf}
+      sectors={readyRows} selectedSector={props.selected} selectedSectorName={selectedName}
+      selectedSectorSourceName={props.selectedSourceName} selectedCompany={props.selectedCompany}
+      timeframe={props.matrixTimeframe} industry={props.matrixIndustry} band={props.matrixBand}
+      query={props.companyTableQuery} sort={props.companyTableSort}
+      onSector={props.onSelect} onTimeframe={props.onTimeframe} onIndustry={props.onIndustry} onBand={props.onBand}
+      onCompany={props.onCompany} onQuery={props.onCompanyTableQuery} onSort={props.onCompanyTableSort}
+      onClearFilters={props.onClearCompanyFilters}
+      onOpenResearch={props.onOpenResearch} onSources={props.onSources} />
+  </section>;
+
   if (!props.breadth && props.mode === "heatmap") return <section className={styles.root} data-testid="sector-discovery">
     {representationNavigation}
     <SectorCompanyHeatmap data={props.heatmapData} status={props.heatmapStatus} asOf={props.heatmapAsOf}
@@ -143,6 +164,7 @@ export default function SectorCentralDiscovery(props: SectorCentralDiscoveryProp
       selectedSectorSourceName={props.selectedSourceName} selectedCompany={props.selectedCompany}
       timeframe={props.matrixTimeframe} industry={props.matrixIndustry} band={props.matrixBand}
       onSector={props.onSelect} onTimeframe={props.onTimeframe} onIndustry={props.onIndustry} onBand={props.onBand}
+      onClearScope={props.onClearScope}
       onCompany={props.onCompany} onOpenResearch={props.onOpenResearch} onSources={props.onSources} />
   </section>;
 

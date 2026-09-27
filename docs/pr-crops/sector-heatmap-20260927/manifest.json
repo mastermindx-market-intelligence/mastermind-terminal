@@ -1,40 +1,78 @@
 {
-  "schema": "mastermind.sector_heatmap_r11_evidence.v1",
+  "schema": "mastermind.sector_company_heatmap_evidence.v1",
   "operation": "sector-intelligence-terminal-20260926-sol-001",
   "parent": "macro#7646 / sector-central-redesign-20260921-sol-001",
-  "predecessor": "b7d42c263fe8524c232b68e47b3c16680756410f",
+  "capabilityState": "BUILT_NOT_PROVEN",
+  "originalImplementationHead": "6016f174366cd06807f9ee876bf54fbdcd4376dc",
   "owner": {
     "repository": "mastermindx-market-intelligence/macro",
     "revision": "f94256971e49b6372645af3d329080d6e3747ea9",
     "files": [
       {
+        "key": "sector",
         "path": "site/sectordata/sector_central.json",
         "asOf": "2026-09-25",
-        "sha256": "61a45950781430f66fe00a93f64325819d226f6f36b704f9f899dd106b0b2dc1"
+        "sha256": "61a45950781430f66fe00a93f64325819d226f6f36b704f9f899dd106b0b2dc1",
+        "bytes": 167883
       },
       {
+        "key": "confluence",
+        "path": "site/marketdata/subsector_confluence.json",
+        "asOf": "2026-09-25",
+        "sha256": "2dffa7eb83891a8dc7d12a6aecaf0669bb2cd66a7764667f2694a9c6c446bdde",
+        "bytes": 176646
+      },
+      {
+        "key": "themes",
+        "path": "site/neuralwebdata/theme_state.json",
+        "asOf": "2026-09-26",
+        "sha256": "70018e4ba78680a6510e80e770873957295f1eccd07879cf101d3928d9124e32",
+        "bytes": 39878
+      },
+      {
+        "key": "heatmap",
         "path": "site/marketdata/sp500_heatmap.json",
         "asOf": "2026-09-25",
-        "sha256": "beeadcf92f52b363ebed2ae458acf658702a8d0822e84ef3cc3531b278129961"
+        "sha256": "beeadcf92f52b363ebed2ae458acf658702a8d0822e84ef3cc3531b278129961",
+        "bytes": 118755
       }
     ],
-    "transport": "immutable exact-owner local interception",
-    "productionProof": false,
-    "themeBubbleRightsAdmitted": false
+    "transport": "immutable exact-owner local interception for browser proof; authenticated production transport not proven"
+  },
+  "provenanceCorrection": {
+    "originalQualificationRevision": "79dbe3f2431b9e21cabf23071f02eab5add57eb4",
+    "incorrectlyProjectedRevision": "f94256971e49b6372645af3d329080d6e3747ea9",
+    "currentProofUsesActualCurrentRevision": true,
+    "changedHeatmapTiles": 499,
+    "changedTechnologyTiles": 79,
+    "historicalOriginalRuns": [
+      "exact-owner-r1",
+      "exact-owner-r2",
+      "exact-owner-r3",
+      "exact-owner-r4",
+      "exact-owner-r5",
+      "exact-owner-r6"
+    ]
   },
   "capability": {
-    "technologyNames": 79,
-    "separateInformationTechnologyNames": 1,
-    "current1dDomain": 6.3,
-    "industryVisibilityFloorShare": 0.001
+    "technologyPopulation": 79,
+    "technologyCapBands": {
+      "mega": 24,
+      "large": 26,
+      "mid": 29,
+      "smaller": 0
+    },
+    "fixedCompletePopulationColourDomain": true,
+    "atomicCombinedScopeClear": true,
+    "layoutOnlyTinyIndustryFloor": 0.001
   },
   "implementation": {
-    "aggregateSha256": "a5cbc0f5ac89d4f09e6dd0f66ca6314799af47d0737298cd1b60c0ced36ffcf7",
+    "aggregateSha256": "f0875042027192297cca7251806ef1fe679df85bf32374f8bba64f08aaed37a0",
     "files": [
       {
         "path": "terminal/components/sector-intelligence/SectorCompanyHeatmap.tsx",
-        "sha256": "11bf35d1b21b654266288e59efed0ae276a6e5a2d7eaa53a536e5d702b3884b1",
-        "bytes": 21776
+        "sha256": "0bf89291cfffd60351878c8c4c1ed7d266561ff3e6ce3fb4b173a311ee803fe1",
+        "bytes": 21773
       },
       {
         "path": "terminal/components/sector-intelligence/SectorCompanyHeatmap.module.css",
@@ -42,271 +80,128 @@
         "bytes": 7779
       },
       {
-        "path": "terminal/components/sector-intelligence/SectorCentralDiscovery.tsx",
-        "sha256": "77fb420e8f73bc3e351f32f3aa4ae1dfe94e435c5779186b90fe21555df3fb84",
-        "bytes": 13830
-      },
-      {
-        "path": "terminal/components/sector-intelligence/SectorIntelligenceWorkspace.tsx",
-        "sha256": "93c97a18af0fb38958fcdad0d4d2184b7cb815814bf50507abd8a972642085a2",
-        "bytes": 30807
-      },
-      {
-        "path": "terminal/lib/sectorIntelligence.ts",
-        "sha256": "e9f1f0f5138ded24576e12580da07bcf2d84ef6febfa595a71091ad0c61952ed",
-        "bytes": 13628
-      },
-      {
-        "path": "terminal/lib/__tests__/sectorCompanyHeatmap.test.tsx",
-        "sha256": "e793892dd38e0359b1bbba2f9c6099a7d8bdd026328a3abd2d4d0e74d6ae2ba3",
-        "bytes": 10887
-      },
-      {
-        "path": "terminal/lib/__tests__/sectorCentralDiscovery.test.tsx",
-        "sha256": "bec475d3cddbbf619710157ef5c89de848096d9f00a7eed5e811f88f269cfb1a",
-        "bytes": 10307
-      },
-      {
         "path": "terminal/e2e/tools/qualify_sector_heatmap.cjs",
         "sha256": "dc7b36847e656e385ee94f1ef35edd4433863cf9b3ee7e66a719db19054dd2a4",
         "bytes": 13890
+      },
+      {
+        "path": "terminal/lib/__tests__/sectorCompanyHeatmap.test.tsx",
+        "sha256": "4f4fe31f13639f6416606ef3086e866d7c2604f59a9dbe4874c84b83d6ce93a3",
+        "bytes": 11367
+      },
+      {
+        "path": "terminal/components/sector-intelligence/SectorCentralDiscovery.tsx",
+        "sha256": "8fc749e8e58a259e982a225e3df55a1905d8a5180abacc9703f268a251d1d63b",
+        "bytes": 15173
+      },
+      {
+        "path": "terminal/components/sector-intelligence/SectorIntelligenceWorkspace.tsx",
+        "sha256": "17c20bca7fdc2d401700ba4bde225eac9407884a6263cd1cb3572dea6bd15da4",
+        "bytes": 31264
+      },
+      {
+        "path": "terminal/lib/__tests__/sectorCentralDiscovery.test.tsx",
+        "sha256": "cbafbffb0e9c6e3281757f366f9c4e503647f79abeeaa447eba12c11ee8ee765",
+        "bytes": 11977
+      },
+      {
+        "path": "terminal/lib/sectorIntelligence.ts",
+        "sha256": "bde5c1dbf48c964fb32bcff71479bde01857cb497e86dc197529d252f6f52844",
+        "bytes": 14381
       }
     ]
   },
   "qualification": {
-    "heatmapRuns": [
-      {
-        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r1/qualification.json",
-        "passed": false,
-        "checks": 0,
-        "screenshots": 0,
-        "errors": 0,
-        "error": "Error: expect(locator).toHaveCount(expected) failed"
-      },
-      {
-        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r2/qualification.json",
-        "passed": false,
-        "checks": 4,
-        "screenshots": 0,
-        "errors": 0,
-        "error": "AssertionError [ERR_ASSERTION]: chromium-1440-en-light: full-population fixed domain"
-      },
-      {
-        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r3/qualification.json",
-        "passed": false,
-        "checks": 6,
-        "screenshots": 0,
-        "errors": 0,
-        "error": "Error: expect(locator).toBeVisible() failed"
-      },
-      {
-        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r4/qualification.json",
-        "passed": false,
-        "checks": 13,
-        "screenshots": 0,
-        "errors": 0,
-        "error": "AssertionError [ERR_ASSERTION]: chromium-1440-en-light: Heatmap restores selected sector, company and timeframe"
-      },
-      {
-        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r5/qualification.json",
-        "passed": false,
-        "checks": 14,
-        "screenshots": 0,
-        "errors": 0,
-        "error": "Error: expect(page).toHaveURL(expected) failed"
-      },
-      {
-        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r6/qualification.json",
-        "passed": true,
-        "checks": 98,
-        "screenshots": 5,
-        "errors": 0,
-        "error": null
-      }
-    ],
-    "matrixRegression": {
-      "path": "docs/pr-crops/sector-matrix-20260927/exact-owner-r11-regression/qualification.json",
-      "passed": true,
-      "checks": 81,
-      "screenshots": 5,
-      "errors": 0,
-      "error": null
-    },
-    "discoveryRegression": {
-      "path": "docs/pr-crops/sector-discovery-20260926/journey-r11-regression/qualification.json",
-      "passed": true,
-      "checks": 106,
-      "screenshots": 10,
-      "errors": 0,
-      "error": null
-    },
-    "fullUnit": {
-      "files": 400,
-      "passed": 6453,
+    "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r14-current-atomic-final/qualification.json",
+    "passed": true,
+    "sourceRevision": "f94256971e49b6372645af3d329080d6e3747ea9",
+    "checks": 98,
+    "screenshots": 5,
+    "pageErrors": 0,
+    "error": null
+  },
+  "validation": {
+    "fullTerminalUnit": {
+      "files": 401,
+      "passed": 6476,
       "todo": 4
     },
-    "relatedSector": {
-      "files": 10,
-      "passed": 181
-    }
+    "completeSectorSurface": {
+      "files": 11,
+      "passed": 205,
+      "total": 205
+    },
+    "targetedGatewayTableHeatmapMatrixRotation": {
+      "files": 6,
+      "passed": 114,
+      "total": 114
+    },
+    "sectorGatewayRoute": {
+      "passed": 15,
+      "total": 15
+    },
+    "routeTypegen": "PASS",
+    "typescript": "PASS",
+    "scopedEslint": "PASS",
+    "plainLanguageSelfCheck": "PASS",
+    "forwardAddedLinesGuard": "PASS_ZERO_NEW_BLOCKERS",
+    "addedLinesDiffSha256": "56cbbcaf3bcf2be16e06f7f35390d2c4864d66224e242a2559bf4202b2e538de",
+    "diffHygiene": "PASS"
   },
   "evidence": {
-    "aggregateSha256": "43571a688dc7055d217706a84588224758df6b07429839db7cac747013d3a8b7",
+    "aggregateSha256": "832607139fa52c6fb55cb6bacad6951502197b8f7524acc89fb3c3b694551d78",
     "files": [
       {
         "path": "docs/pr-crops/sector-heatmap-20260927/README.md",
-        "sha256": "4958784795418d57be70114c94398117c18dbfaba8b149885d4aa21f183d9ad2",
-        "bytes": 6942
+        "sha256": "0f0f1d2444a85f2c9d913aabcb6f7984848b6b0605a9b354630be0fea0301389",
+        "bytes": 4881
       },
       {
-        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r1/qualification.json",
-        "sha256": "182c1bcd22b0d12c70ee296111cfc41d161fc191a2d936ed129f79e25a02ddf9",
-        "bytes": 1527
+        "path": "docs/pr-crops/sector-heatmap-20260927/current-source-history/r7-stale-next.json",
+        "sha256": "a5c99678655becdaaba98c9415233088b78aac69f238229aee3172b67990a00c",
+        "bytes": 1405
       },
       {
-        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r2/qualification.json",
-        "sha256": "85b9b3063a6a2e5bf4e743e0eaa49c1eeea69481c1e9b47afd2154585590d1c4",
-        "bytes": 2521
+        "path": "docs/pr-crops/sector-heatmap-20260927/current-source-history/r8-stale-next.json",
+        "sha256": "a5c99678655becdaaba98c9415233088b78aac69f238229aee3172b67990a00c",
+        "bytes": 1405
       },
       {
-        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r3/qualification.json",
-        "sha256": "bdd0e1129345fb9892c075e70097b754036271c35fc907bfd7ae9c31ab2a5211",
-        "bytes": 3751
-      },
-      {
-        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r4/qualification.json",
-        "sha256": "fac00389f75a55373821b912d7063c9638132b117464e605f92be4f4f50c0c8d",
-        "bytes": 4303
-      },
-      {
-        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r5/qualification.json",
-        "sha256": "575e33e033c3fe0a7f6d71035568f3e208ab272d95b18cd61202beebe22cf33e",
-        "bytes": 5769
-      },
-      {
-        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r6/chromium-1440-en-light-heatmap.png",
-        "sha256": "f2704a3a6ae0103e9925bc3c66db56f046129ac862d77245a9164207cfefc7cc",
-        "bytes": 153621
-      },
-      {
-        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r6/chromium-390-en-light-heatmap.png",
-        "sha256": "0735ee79f369098b9c6fe6272933792679ac1ec2bbe15ebf0336819b661e6ed0",
-        "bytes": 106621
-      },
-      {
-        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r6/chromium-820-en-dark-heatmap.png",
-        "sha256": "de616e4d2d61afbf282c174a5581703d5d9491f7a899788fbee8c5d25f4fa752",
-        "bytes": 144777
-      },
-      {
-        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r6/qualification.json",
-        "sha256": "6bd17bde0abe44915fa5e8a61e3f87089f7d94efc1c1cc3a240adfcb8e1e77a8",
+        "path": "docs/pr-crops/sector-heatmap-20260927/current-source-history/r9-current-pass.json",
+        "sha256": "7658fee9fa2bec0d97bd765f154f685f61af669fdf4ae1d4c213847fc3d965b2",
         "bytes": 20060
       },
       {
-        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r6/webkit-1440-en-dark-heatmap.png",
-        "sha256": "c794f9cf5926aab755e837bb53c781eb437b3006a65be9c01c80765a7f3d21df",
-        "bytes": 221612
+        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r14-current-atomic-final/chromium-1440-en-light-heatmap.png",
+        "sha256": "1aa8f476686a9707ccff3150e8420984bb10b5b9362c6a80bd04c107d8b1e717",
+        "bytes": 153237
       },
       {
-        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r6/webkit-390-zh-light-heatmap.png",
-        "sha256": "6966c9b3f8b89b4cc086cd6250440848f33e5b18d49da0240431feafd22c1620",
-        "bytes": 124533
+        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r14-current-atomic-final/chromium-390-en-light-heatmap.png",
+        "sha256": "591e6a3d017e3351a40bccc27ccdd4dfc49143f92c94e251f94e0a0219cb198e",
+        "bytes": 106499
       },
       {
-        "path": "docs/pr-crops/sector-matrix-20260927/exact-owner-r11-regression/chromium-1440-en-light-matrix.png",
-        "sha256": "f6e8630e672918f4957a0b98c7e105e0b726e0d1b7135c2a69860178d81e9ee8",
-        "bytes": 161014
+        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r14-current-atomic-final/chromium-820-en-dark-heatmap.png",
+        "sha256": "6e0c312f22a735f421d1517064d49863380cfe5ac3acfe32ff839ae5258f5104",
+        "bytes": 145047
       },
       {
-        "path": "docs/pr-crops/sector-matrix-20260927/exact-owner-r11-regression/chromium-390-en-light-matrix.png",
-        "sha256": "ddad34ac325ce62d6b8202ae2482997078db6801c498be4976d475e2937936d2",
-        "bytes": 106583
+        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r14-current-atomic-final/qualification.json",
+        "sha256": "7658fee9fa2bec0d97bd765f154f685f61af669fdf4ae1d4c213847fc3d965b2",
+        "bytes": 20060
       },
       {
-        "path": "docs/pr-crops/sector-matrix-20260927/exact-owner-r11-regression/chromium-820-en-dark-matrix.png",
-        "sha256": "2da7a42fc7db05e1f419de02fc889c6abd7146c64b38fbf91de5a2bd0b45d08a",
-        "bytes": 198453
+        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r14-current-atomic-final/webkit-1440-en-dark-heatmap.png",
+        "sha256": "d650c45244362196d6696d6d2391619922dca3e71f9708de1a3646a7f25bad84",
+        "bytes": 221894
       },
       {
-        "path": "docs/pr-crops/sector-matrix-20260927/exact-owner-r11-regression/qualification.json",
-        "sha256": "cf633cb6bebf8d2d1e2295d6a89a5c4f52d357d39e9c93d9a45f52a23db934d0",
-        "bytes": 18538
-      },
-      {
-        "path": "docs/pr-crops/sector-matrix-20260927/exact-owner-r11-regression/webkit-1440-en-dark-matrix.png",
-        "sha256": "ff2019f5297f122e00359cd0ed8a45679e9411ddf9d254fcabf6e3d0b00e4344",
-        "bytes": 230785
-      },
-      {
-        "path": "docs/pr-crops/sector-matrix-20260927/exact-owner-r11-regression/webkit-390-zh-light-matrix.png",
-        "sha256": "1fedbfaf0c96a5e5594ddb857de1f6cf2e56a979161ff3a435960251f671f85e",
-        "bytes": 128316
-      },
-      {
-        "path": "docs/pr-crops/sector-discovery-20260926/journey-r11-regression/chromium-1440-en-light-breadth.png",
-        "sha256": "ee4637f636e2de9fbf2a4fd8dc26d01580b6417cad1ecdf1306c723576f1df3f",
-        "bytes": 153136
-      },
-      {
-        "path": "docs/pr-crops/sector-discovery-20260926/journey-r11-regression/chromium-1440-en-light-discover.png",
-        "sha256": "e96a8724d3a26888e67c0036ef8415c45024b142e1690446143e66881bb17504",
-        "bytes": 143969
-      },
-      {
-        "path": "docs/pr-crops/sector-discovery-20260926/journey-r11-regression/chromium-390-en-light-breadth.png",
-        "sha256": "25237537d141353662a26233a98a0604660e9c459cd25cf27375031544a40a30",
-        "bytes": 73560
-      },
-      {
-        "path": "docs/pr-crops/sector-discovery-20260926/journey-r11-regression/chromium-390-en-light-discover.png",
-        "sha256": "ad2ba4f902d55e7152823c72d468865b753c6b4bfe8b3a0bf4f218f5f7a9b365",
-        "bytes": 74194
-      },
-      {
-        "path": "docs/pr-crops/sector-discovery-20260926/journey-r11-regression/chromium-820-en-dark-breadth.png",
-        "sha256": "87dbc81489880c678389eebfd2534322c628b2bc7b1527d4f9fd116de6b36bf3",
-        "bytes": 114164
-      },
-      {
-        "path": "docs/pr-crops/sector-discovery-20260926/journey-r11-regression/chromium-820-en-dark-discover.png",
-        "sha256": "4dfb676c269e5739d615f27c4cffb22f543abba90d2a82074039558a20fce66e",
-        "bytes": 120875
-      },
-      {
-        "path": "docs/pr-crops/sector-discovery-20260926/journey-r11-regression/qualification.json",
-        "sha256": "d558db1c43061a899811ca060faf1fd091acaa4ac2b8de5a88ec5c9fd3668140",
-        "bytes": 13942
-      },
-      {
-        "path": "docs/pr-crops/sector-discovery-20260926/journey-r11-regression/webkit-1440-en-dark-breadth.png",
-        "sha256": "98cc27cdfeaf97ce784ebcc91e8690b238b1d2e1ef651906bdf3bf9de010f4e2",
-        "bytes": 221699
-      },
-      {
-        "path": "docs/pr-crops/sector-discovery-20260926/journey-r11-regression/webkit-1440-en-dark-discover.png",
-        "sha256": "2e4d8230d73b64fef72b0995321980eb7733a0915e5d57442028936e7a87d7c2",
-        "bytes": 211954
-      },
-      {
-        "path": "docs/pr-crops/sector-discovery-20260926/journey-r11-regression/webkit-390-zh-light-breadth.png",
-        "sha256": "c8a467f67f20070f05d080853b26e0af3d8d71afaab0cd3fec391d4304c99b38",
-        "bytes": 87151
-      },
-      {
-        "path": "docs/pr-crops/sector-discovery-20260926/journey-r11-regression/webkit-390-zh-light-discover.png",
-        "sha256": "01b2c5fd405cf633a55fe4153384b0e0fbbde6edcd41db20799f82ec93dd9341",
-        "bytes": 91679
+        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r14-current-atomic-final/webkit-390-zh-light-heatmap.png",
+        "sha256": "9283c8f859392acbba08591a6b3eddfc720dfdfa228ed8dcf241117efb55b9ad",
+        "bytes": 124068
       }
     ]
   },
-  "review": {
-    "independentReviewRequired": false,
-    "chairmanWaiverApplies": true
-  },
-  "release": {
-    "merged": false,
-    "deployed": false,
-    "productionProven": false
-  }
+  "productionProof": false
 }

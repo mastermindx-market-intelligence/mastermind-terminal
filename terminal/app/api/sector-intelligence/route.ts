@@ -7,7 +7,7 @@ import { object, sourceDate, readableOwnerEnvelope, type FeedReceipt, type Secto
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-const HEADERS = { "Cache-Control": "private, no-store", Vary: "Cookie, Authorization" };
+const HEADERS = { "Cache-Control": "private, no-store", Vary: "Cookie" };
 // Transport of existing owner outputs only. No dossier composition or inference.
 const PATHS: Record<SectorFeed, string> = {
   sector: "/sectordata/sector_central.json",
@@ -16,6 +16,28 @@ const PATHS: Record<SectorFeed, string> = {
   heatmap: "/marketdata/sp500_heatmap.json",
 };
 const MAX_BYTES = 4 * 1024 * 1024;
+
+const SUPABASE_AUTH_COOKIE = /^sb-[A-Za-z0-9_-]+-auth-token(?:\.\d+)?$/;
+function isSupabaseAuthCookie(name: string): boolean {
+  return SUPABASE_AUTH_COOKIE.test(name);
+}
+
+/** Forward only the caller's shared Supabase session cookie chunks.
+ * Macro's static regwall/paywall consumes this cookie, not an Authorization bearer.
+ * No unrelated Terminal cookie ever leaves this route.
+ */
+export function filteredSupabaseCookieHeader(req: Request): string | null {
+  const raw = req.headers.get("cookie");
+  if (!raw) return null;
+  const pairs: string[] = [];
+  for (const part of raw.split(";")) {
+    const cookie = part.trim(), separator = cookie.indexOf("=");
+    if (separator <= 0) continue;
+    const name = cookie.slice(0, separator).trim(), value = cookie.slice(separator + 1);
+    if (isSupabaseAuthCookie(name) && value) pairs.push(`${name}=${value}`);
+  }
+  return pairs.length ? pairs.join("; ") : null;
+}
 
 async function readJson(response: Response): Promise<{ data: unknown; hash: string }> {
   const length = Number(response.headers.get("content-length"));
@@ -57,18 +79,21 @@ export async function GET(req: Request): Promise<Response> {
   if (!rl.ok) return NextResponse.json({ data: null, receipt: { ...baseReceipt, status: "error" } }, {
     status: 429, headers: { ...HEADERS, "Retry-After": String(rl.retryAfterSec) },
   });
-  let token: string;
+
+  const authCookie = filteredSupabaseCookieHeader(req);
+  if (!authCookie) return failure(401, "access");
   try {
     const client = await createClient();
     const { data: { user }, error } = await client.auth.getUser();
     if (error || !user) return failure(401, "access");
+    // This access-token check is local session consistency only. The Macro static
+    // owner gate authenticates the filtered shared cookie forwarded below.
     const { data: { session } } = await client.auth.getSession();
     if (!session?.access_token || session.user.id !== user.id) return failure(401, "access");
-    token = session.access_token;
   } catch { return failure(401, "access"); }
 
   // The established Neural Web origin also owns these static Macro outputs.
-  // Never send a user's bearer to arbitrary env hosts, redirects, R2, or a sidecar.
+  // Never send a caller cookie to arbitrary env hosts, redirects, R2, or a sidecar.
   let url: URL;
   try {
     const base = new URL(NW_BASE);
@@ -84,7 +109,7 @@ export async function GET(req: Request): Promise<Response> {
   try {
     const response = await fetch(url, {
       signal: controller.signal, redirect: "manual", cache: "no-store",
-      headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+      headers: { Cookie: authCookie, Accept: "application/json" },
     });
     if (response.status === 401 || response.status === 403) return failure(response.status, "access");
     if (response.status === 404) return failure(404, "unavailable");
