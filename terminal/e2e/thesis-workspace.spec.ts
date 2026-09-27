@@ -78,6 +78,7 @@ test("create → deep link → reload → revise → conflict → archive/invali
   await page.reload();
   await expect(page.getByLabel("Thesis statement")).toHaveValue("Demand will outrun supply through the next platform cycle.");
   await page.getByLabel("Thesis statement").fill("Software mix expands pricing power through the next platform cycle.");
+  await page.getByLabel("Catalysts").fill("A brand-new catalyst\nSoftware mix expands");
   await page.getByLabel("Revision note").fill("Refined the operating leverage mechanism.");
   await page.getByRole("button", { name: "Save", exact: true }).click();
   await expect(page.getByText("Version 2 · Current")).toBeVisible();
@@ -130,7 +131,36 @@ test("create → deep link → reload → revise → conflict → archive/invali
   await expect(historical).toContainText("Recorded by");
   await expect(historical).toContainText("You");
   await expect(historical).toContainText("Software mix expands pricing power through the next platform cycle.");
-  await expect(historical).toContainText("Data-center revenue compounds");
+  // R4-1: scope snapshot catalyst assertions to the snapshot grid, not the whole inspector
+  // Version 2 snapshot catalysts: "A brand-new catalyst" and "Software mix expands"
+  // Version 2 delta says "Catalysts removed: Data-center revenue compounds." — that text lives in the delta, not the snapshot
+  // snapshotGrid is a CSS Module class (mangled at runtime), so locate by heading text instead
+  const v2Catalysts = historical.getByRole("heading", { name: "Catalysts" }).locator("..").locator("ul").getByRole("listitem");
+  await expect(v2Catalysts).toHaveCount(2);
+  const v2Texts = await v2Catalysts.allTextContents();
+  expect(v2Texts).toContain("A brand-new catalyst");
+  expect(v2Texts).toContain("Software mix expands");
+  expect(v2Texts).not.toContain("Data-center revenue compounds");
+  // B-F11-11a: What changed — version 2 has revised statement and title vs version 1
+  const delta2 = page.getByTestId("thesis-version-delta");
+  await expect(delta2).toBeVisible();
+  await expect(delta2).toContainText("Thesis statement changed.");
+  await expect(delta2).toContainText("Catalysts added: A brand-new catalyst.");
+  await expect(delta2).toContainText("Catalysts removed: Data-center revenue compounds.");
+  await expect(delta2).toContainText("Revision note changed.");
+  // Version 1 snapshot contains "Data-center revenue compounds" and "Software mix expands" (the original catalysts)
+  await page.getByRole("button", { name: "Inspect version 1" }).click();
+  const v1Catalysts = historical.getByRole("heading", { name: "Catalysts" }).locator("..").locator("ul").getByRole("listitem");
+  await expect(v1Catalysts).toHaveCount(2);
+  const v1Texts = await v1Catalysts.allTextContents();
+  expect(v1Texts).toContain("Data-center revenue compounds");
+  expect(v1Texts).toContain("Software mix expands");
+  // Version 1 delta shows the origin sentence (inspector is already on version 1)
+  const delta1 = page.getByTestId("thesis-version-delta");
+  await expect(delta1).toBeVisible();
+  await expect(delta1).toContainText("This is the first version; nothing before this.");
+  await page.getByRole("button", { name: "Inspect version 4" }).click();
+  await expect(page.getByTestId("thesis-version-delta")).toContainText("Status changed: Active → Archived.");
   await page.getByRole("button", { name: "Inspect version 7" }).click();
   await expect(historical).toHaveAttribute("data-posture", "current");
   await expect(historical).toContainText("Current snapshot");
@@ -948,6 +978,50 @@ test("unavailable is not empty, and the Chinese mobile/tablet surface keeps hist
   await expect(page.getByRole("button", { name: "复制链接" })).toBeVisible();
   await expect(page.locator("[aria-label='版本历史'] article").first()).toContainText("创建");
   await expect(page.getByTestId("thesis-detail-pane")).not.toContainText("listing scoped");
+
+  // R4-3b: zh assertion on thesis-version-delta after inspecting a historical version
+  // Create a thesis via API, save version 2 via API, then inspect version 1
+  const zhThesis = await page.request.post("/api/theses", {
+    data: {
+      action: "create",
+      clientRequestId: "f0000000-0000-4000-8000-000000000100",
+      subject: {
+        schema: "mastermind.thesis-subject-ref/v1", kind: "issuer", owner: "terminal.analysis_symbol",
+        key: "AAPL", identityState: "listing_scoped", listing: { symbol: "AAPL", mic: null, securityId: null },
+        companyId: null, display: "AAPL · listing scoped",
+      },
+      content: {
+        schema: "mastermind.thesis-content/v1", title: "ZH历史测试",
+        statement: "原始论点陈述。", catalysts: [], falsifiers: [], risks: [],
+        horizon: "unspecified", effectiveAt: null, revisionNote: null,
+      },
+    },
+  });
+  expect(zhThesis.status()).toBe(201);
+  const zhThesisId = (await zhThesis.json()).thesisId as string;
+  // Save version 2 with a changed statement
+  const zhDetail = await page.request.get(`/api/theses?id=${zhThesisId}`);
+  const zhThesisData = (await zhDetail.json()).thesis;
+  const zhRevise = await page.request.post("/api/theses", {
+    data: {
+      action: "revise", id: zhThesisId, expectedVersion: 1,
+      clientRequestId: "f0000000-0000-4000-8000-000000000101",
+      subject: zhThesisData.subject,
+      content: { ...zhThesisData.current.content, statement: "已修正的论点陈述。" },
+    },
+  });
+  expect(zhRevise.status()).toBe(200);
+  await page.goto(`/analysis?view=theses&thesis=${zhThesisId}`);
+  // Verify version 2 was written before inspecting it
+  await expect(page.getByText("版本 2 · 当前")).toBeVisible();
+  // R4-3b: assert a changed-field zh delta sentence (not just the origin sentence)
+  // Inspect version 2 — its delta vs version 1 is the statement change: "论点陈述已更改。"
+  await page.getByRole("button", { name: "查看版本 2" }).click();
+  const zhDelta = page.getByTestId("thesis-version-delta");
+  await expect(zhDelta).toContainText("论点陈述已更改。");
+  // Also verify the origin sentence when inspecting version 1
+  await page.getByRole("button", { name: "查看版本 1" }).click();
+  await expect(page.getByTestId("thesis-version-delta")).toContainText("这是第一版；此前没有版本。");
 
   await page.goto("/analysis?view=unknown");
   await expect(page.getByRole("heading", { name: "不支持此分析视图" })).toBeVisible();
