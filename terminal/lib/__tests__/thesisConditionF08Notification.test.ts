@@ -65,14 +65,13 @@ function producerRealOutbox(over: Partial<OutboxRow> = {}): OutboxRow {
       engine_window_plain_zh: "观察窗口已到期。",
       evidence_url: null,
       requires_tier: undefined,
-      coverage: undefined,
+      coverage: "full",
       ticker: "NVDA",
       ...(over.payload as Record<string, unknown> ?? {}),
     },
     ...over,
   };
 }
-
 
 function ordinaryOutbox(over: Partial<OutboxRow> = {}): OutboxRow {
   return {
@@ -154,6 +153,13 @@ describe("copy(condition.thesis_condition) is window-closed wording", () => {
     expect(zh).toBe("你关注的观察窗口已结束");
     expect(en.toLowerCase()).not.toContain("falsifier");
     expect(zh).not.toContain("证伪");
+  });
+});
+
+describe("ordinary outbox row with no matching alerts row stays invisible", () => {
+  it("zero extra rows", () => {
+    const view = viewOf([ordinaryOutbox({ alert_id: "" })]);
+    expect(view.rows.length).toBe(0);
   });
 });
 

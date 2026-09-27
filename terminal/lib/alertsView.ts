@@ -59,17 +59,19 @@ export interface OutboxRow {
     subject_zh?: string;
     engine_window_plain?: string;
     engine_window_plain_zh?: string;
-    requires_tier?: string;
+    requires_tier?: string | null;
     coverage?: string;
     /** "thesis_condition" — kept for legacy fixtures that still use it. */
     kind?: string;
   };
 }
 
-/** True when thesis_id is any well-formed RFC 4122-shaped UUID, regardless of version. */
+/** True when thesis_id is a canonical UUID-shaped string with hexadecimal groups. */
 function isWellFormedThesisId(value: unknown): value is string {
   if (typeof value !== "string") return false;
-  // Any version is accepted because thesis_id comes from Postgres, not the synthetic alert_id.
+  // This deliberately accepts any version and deliberately does not impose the stricter
+  // version/variant rules used by the theses and fire-status surfaces: producer payload must
+  // still render when a thesis identifier is carried as a UUID-shaped legacy test value.
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
 }
 

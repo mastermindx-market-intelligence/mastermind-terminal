@@ -897,6 +897,22 @@ describe("F11-11b-pre producer-shaped thesis-condition rows (category+source, no
     expect(view.rows[0].thesisId).toBe(PRODUCER_THESIS_ID);
   });
 
+  it("row with non-empty real alert_id that matches no alerts entry stays invisible", () => {
+    const ordinaryRow: OutboxRow = {
+      alert_id: "a-real-alert-without-matching-entry",
+      fire_event_id: "fe-ordinary",
+      status: "pending",
+      attempts: 0,
+      last_error: null,
+      deliver_after: null,
+      delivered_at: null,
+      created_at: "2026-09-05T11:59:30Z",
+      payload: { ticker: "NVDA" },
+    };
+    const view = viewOf([ordinaryRow]);
+    expect(view.rows).toHaveLength(0);
+  });
+
   it("two fires of one thesis fold to one row using the newest fire", () => {
     const older = producerRow({ fire_event_id: "fe-thesis-old", created_at: "2026-09-05T11:58:00Z" });
     const newer = producerRow({ fire_event_id: "fe-thesis-new", created_at: "2026-09-05T11:59:30Z" });

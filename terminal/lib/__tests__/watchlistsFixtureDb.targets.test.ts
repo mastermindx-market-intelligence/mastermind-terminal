@@ -47,7 +47,26 @@ describe("fixture thesis monitor outbox", () => {
       summary_plain_zh: "你的英伟达论点观察窗口已结束。",
       coverage: "full",
     });
+    expect((row.payload as { ticker?: string }).ticker).toBe("NVDA");
     expect(row.payload).not.toHaveProperty("kind");
+  });
+});
+
+describe("fixture thesis monitor subject fidelity", () => {
+  it("uses the created thesis subject", async () => {
+    const key = `${FIXTURE_MONITOR_FIRED_TOKEN}-subject`;
+    const db = createFixtureDb(key);
+    await db.rpc("apply_thesis_version_v1", {
+      p_thesis_id: null,
+      p_expected_version: 0,
+      p_transition: "create",
+      p_subject_ref: { schema: "mastermind.thesis-subject-ref/v1", kind: "ticker", owner: "terminal.analysis_symbol", key: "AAPL", display: "Apple" },
+      p_content: { schema: "mastermind.thesis-content/v1", title: "closed window", statement: "s" },
+      p_client_request_id: "req-monitor-subject",
+      p_effective_at: null,
+    });
+    const row = fixtureStore(key).alertOutbox[0];
+    expect(row.payload).toMatchObject({ subject: "Your Apple thesis window has closed.", subject_zh: "你的Apple论点观察窗口已结束。", ticker: "AAPL" });
   });
 });
 

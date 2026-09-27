@@ -485,6 +485,7 @@ function thesisRpcResult(row: DbRow): Promise<DbResult> {
 }
 
 export function uuid5ThesisAlertId(thesisId: string): string {
+  // Mirrors macro engine/thesis_condition_monitor.py:123-126,318-323.
   const namespace = "6f1e6cf4-6e9b-5f2a-9d0a-6d0f6a5b6c00";
   const namespaceBytes = Buffer.from(namespace.replace(/-/g, ""), "hex");
   const digest = createHash("sha1").update(namespaceBytes).update(`thesis:${thesisId}`, "utf8").digest();
@@ -575,6 +576,12 @@ function applyThesisVersionFixture(store: Store, args: Record<string, unknown>):
     store.thesisVersions.push(version);
     if (store.monitorFires && store.alertOutbox.length === 0) {
       const alertId = uuid5ThesisAlertId(id);
+      const subjectRefRecord = subjectRef as { display?: unknown; key?: unknown };
+      const rawDisplay = subjectRefRecord.display;
+      const subjectDisplay = typeof rawDisplay === "string" && rawDisplay.trim() ? rawDisplay.trim() : String(subjectRefRecord.key);
+      const subjectDisplayZh = subjectDisplay === "NVDA" ? "英伟达" : subjectDisplay;
+      const subject = `Your ${subjectDisplay} thesis window has closed.`;
+      const subjectZh = `你的${subjectDisplayZh}论点观察窗口已结束。`;
       store.alertOutbox.push({
         id: crypto.randomUUID(),
         user_id: userId,
@@ -593,18 +600,18 @@ function applyThesisVersionFixture(store: Store, args: Record<string, unknown>):
           tripwire_version: 1,
           category: "thesis_window",
           source: "macro.thesis_condition_monitor",
-          subject: "Your NVDA thesis window has closed.",
-          subject_zh: "你的英伟达论点观察窗口已结束。",
-          summary_plain: "Your NVDA thesis window has closed.",
-          summary_plain_zh: "你的英伟达论点观察窗口已结束。",
-          condition_plain: "Your NVDA thesis window has closed.",
-          condition_plain_zh: "你的英伟达论点观察窗口已结束。",
+          subject: subject,
+          subject_zh: subjectZh,
+          summary_plain: subject,
+          summary_plain_zh: subjectZh,
+          condition_plain: subject,
+          condition_plain_zh: subjectZh,
           engine_window_plain: "The watch window expired.",
           engine_window_plain_zh: "观察窗口已到期。",
           evidence_url: null,
           requires_tier: null,
           coverage: "full",
-          ticker: "NVDA",
+          ticker: String(subjectRefRecord.key),
         },
         created_at: now,
       });
