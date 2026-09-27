@@ -64,15 +64,18 @@
     },
     "fixedCompletePopulationColourDomain": true,
     "atomicCombinedScopeClear": true,
-    "layoutOnlyTinyIndustryFloor": 0.001
+    "layoutOnlyTinyIndustryFloor": 0.001,
+    "honestEmptyScopeRecovery": true,
+    "deterministicIndustrySizeClusterJobServedHere": true,
+    "separateDuplicateClusterModeRequired": false
   },
   "implementation": {
-    "aggregateSha256": "f0875042027192297cca7251806ef1fe679df85bf32374f8bba64f08aaed37a0",
+    "aggregateSha256": "01a8ee98c747dca42dec11af022bff0043fcd14357181d5d0d618cf2ccf1f7b6",
     "files": [
       {
         "path": "terminal/components/sector-intelligence/SectorCompanyHeatmap.tsx",
-        "sha256": "0bf89291cfffd60351878c8c4c1ed7d266561ff3e6ce3fb4b173a311ee803fe1",
-        "bytes": 21773
+        "sha256": "1bbe175137afb4fa0278225dffb169f6857bf237231d82e1b6174fa92a3c2e7a",
+        "bytes": 21742
       },
       {
         "path": "terminal/components/sector-intelligence/SectorCompanyHeatmap.module.css",
@@ -81,13 +84,13 @@
       },
       {
         "path": "terminal/e2e/tools/qualify_sector_heatmap.cjs",
-        "sha256": "dc7b36847e656e385ee94f1ef35edd4433863cf9b3ee7e66a719db19054dd2a4",
-        "bytes": 13890
+        "sha256": "0a1cfc5e971aacc72f3478c291800a562cbbfd5f2a445960731a4ec124ef0052",
+        "bytes": 15071
       },
       {
         "path": "terminal/lib/__tests__/sectorCompanyHeatmap.test.tsx",
-        "sha256": "4f4fe31f13639f6416606ef3086e866d7c2604f59a9dbe4874c84b83d6ce93a3",
-        "bytes": 11367
+        "sha256": "75bafd91749f80dcb09b79622f6f026e89056ac4daea60e3b4b1c6de36ce7313",
+        "bytes": 11951
       },
       {
         "path": "terminal/components/sector-intelligence/SectorCentralDiscovery.tsx",
@@ -112,49 +115,53 @@
     ]
   },
   "qualification": {
-    "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r14-current-atomic-final/qualification.json",
+    "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r17-current-empty-atomic-final/qualification.json",
     "passed": true,
     "sourceRevision": "f94256971e49b6372645af3d329080d6e3747ea9",
-    "checks": 98,
+    "checks": 108,
     "screenshots": 5,
     "pageErrors": 0,
     "error": null
   },
   "validation": {
-    "fullTerminalUnit": {
-      "files": 401,
-      "passed": 6476,
-      "todo": 4
+    "targetedRefreshTransportAndEmptyScope": {
+      "files": 2,
+      "passed": 36,
+      "total": 36
+    },
+    "heatmapUnit": {
+      "passed": 19,
+      "total": 19
     },
     "completeSectorSurface": {
       "files": 11,
-      "passed": 205,
-      "total": 205
+      "passed": 208,
+      "total": 208
     },
-    "targetedGatewayTableHeatmapMatrixRotation": {
-      "files": 6,
-      "passed": 114,
-      "total": 114
+    "fullTerminalUnit": {
+      "files": 401,
+      "passed": 6479,
+      "todo": 4
     },
     "sectorGatewayRoute": {
-      "passed": 15,
-      "total": 15
+      "passed": 17,
+      "total": 17
     },
     "routeTypegen": "PASS",
     "typescript": "PASS",
     "scopedEslint": "PASS",
     "plainLanguageSelfCheck": "PASS",
     "forwardAddedLinesGuard": "PASS_ZERO_NEW_BLOCKERS",
-    "addedLinesDiffSha256": "56cbbcaf3bcf2be16e06f7f35390d2c4864d66224e242a2559bf4202b2e538de",
+    "addedLinesDiffSha256": "1f4777efd59609c42974572c4a31cf3c0fa1b9929834653a83313b9a87a7f0ad",
     "diffHygiene": "PASS"
   },
   "evidence": {
-    "aggregateSha256": "832607139fa52c6fb55cb6bacad6951502197b8f7524acc89fb3c3b694551d78",
+    "aggregateSha256": "7a7dff3aef981015de7b112cc411d9430cad99f12716fcb33bcc56544dac9efe",
     "files": [
       {
         "path": "docs/pr-crops/sector-heatmap-20260927/README.md",
-        "sha256": "0f0f1d2444a85f2c9d913aabcb6f7984848b6b0605a9b354630be0fea0301389",
-        "bytes": 4881
+        "sha256": "e52b642e81c0f70717149eae0ed1074c5a2f32cc251e5fc2aeeea0179f721a5c",
+        "bytes": 5535
       },
       {
         "path": "docs/pr-crops/sector-heatmap-20260927/current-source-history/r7-stale-next.json",
@@ -172,32 +179,42 @@
         "bytes": 20060
       },
       {
-        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r14-current-atomic-final/chromium-1440-en-light-heatmap.png",
+        "path": "docs/pr-crops/sector-heatmap-20260927/current-source-history/r15-startup-missing-env.json",
+        "sha256": "7171c12e71a5d1583e0dee6e1d5750c25e8a4dc0cabd27fc5c1cd4ba9ce9b552",
+        "bytes": 1405
+      },
+      {
+        "path": "docs/pr-crops/sector-heatmap-20260927/current-source-history/r16-zh-copy-assumption.json",
+        "sha256": "839a6d417e671741e6103054d9565ca36f47bb47f84781b58358516aa79a669d",
+        "bytes": 25151
+      },
+      {
+        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r17-current-empty-atomic-final/chromium-1440-en-light-heatmap.png",
         "sha256": "1aa8f476686a9707ccff3150e8420984bb10b5b9362c6a80bd04c107d8b1e717",
         "bytes": 153237
       },
       {
-        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r14-current-atomic-final/chromium-390-en-light-heatmap.png",
+        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r17-current-empty-atomic-final/chromium-390-en-light-heatmap.png",
         "sha256": "591e6a3d017e3351a40bccc27ccdd4dfc49143f92c94e251f94e0a0219cb198e",
         "bytes": 106499
       },
       {
-        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r14-current-atomic-final/chromium-820-en-dark-heatmap.png",
+        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r17-current-empty-atomic-final/chromium-820-en-dark-heatmap.png",
         "sha256": "6e0c312f22a735f421d1517064d49863380cfe5ac3acfe32ff839ae5258f5104",
         "bytes": 145047
       },
       {
-        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r14-current-atomic-final/qualification.json",
-        "sha256": "7658fee9fa2bec0d97bd765f154f685f61af669fdf4ae1d4c213847fc3d965b2",
-        "bytes": 20060
+        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r17-current-empty-atomic-final/qualification.json",
+        "sha256": "e40e1978c3c8a4b24b496f5e3970f34adf17893f1070dddcfe7ee55a46fbf1f8",
+        "bytes": 26280
       },
       {
-        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r14-current-atomic-final/webkit-1440-en-dark-heatmap.png",
+        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r17-current-empty-atomic-final/webkit-1440-en-dark-heatmap.png",
         "sha256": "d650c45244362196d6696d6d2391619922dca3e71f9708de1a3646a7f25bad84",
         "bytes": 221894
       },
       {
-        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r14-current-atomic-final/webkit-390-zh-light-heatmap.png",
+        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r17-current-empty-atomic-final/webkit-390-zh-light-heatmap.png",
         "sha256": "9283c8f859392acbba08591a6b3eddfc720dfdfa228ed8dcf241117efb55b9ad",
         "bytes": 124068
       }

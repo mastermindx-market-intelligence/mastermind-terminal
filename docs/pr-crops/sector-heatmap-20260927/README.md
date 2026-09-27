@@ -25,6 +25,8 @@ It provides:
 - desktop one-canvas + inspector, tablet stacking and mobile selected-insight-first disclosure;
 - EN/ZH, light/dark, contextual Sources and access-loss clearing.
 
+This Heatmap already serves the deterministic industry-and-size cluster job from the accepted Paper design. A second circle-based Clusters mode would duplicate that decision capability rather than add one.
+
 No collector, publisher, taxonomy, score, forecast, history store, save/alert store or browser market authority is introduced.
 
 ## Provenance correction
@@ -46,32 +48,35 @@ Current-source proof uses Macro revision:
 
 Technology remains exactly 79 names with cap-band counts `24 / 26 / 29 / 0`; the separate `Information Technology` label remains excluded.
 
+## Empty-scope defect and repair
+
+The ordinary **Clear scope** control used one atomic callback, but the honest-empty recovery button performed sequential `onIndustry("")` and `onBand("")` writes. Both callbacks entered the workspace's closure-based state update; the second stale write could restore the first filter and leave the user trapped in an empty scope.
+
+A discriminating unit regression first failed red: clicking the empty-state button did not call the atomic callback. The repaired empty state now invokes the same `onClearScope` path exactly once. The exact-owner browser proof selects a real empty industry/cap combination, observes zero tiles, clears it and verifies all 79 names return with both URL parameters removed.
+
 ## Final current-source browser proof
 
-`exact-owner-r14-current-atomic-final/qualification.json`
+`exact-owner-r17-current-empty-atomic-final/qualification.json`
 
-- **98/98 checks pass**;
+- **108/108 checks pass**;
 - five Chromium/WebKit desktop/tablet/mobile EN/ZH light/dark captures;
 - zero page exceptions;
 - exact population, date and canonical/localized identity;
 - fixed full-population colour scale;
 - all companies reachable;
 - answer derivation, filters, selected company and representation continuity;
-- explicit detail return, focus restoration, Sources, access loss and no horizontal overflow.
-- combined industry/cap scope clears through one atomic state transition.
+- explicit detail return, focus restoration, Sources, access loss and no horizontal overflow;
+- a measured empty industry/cap scope remains honest and clears atomically to the full population.
 
-`current-source-history/` retains qualification-only receipts for the stale `.next` startup failures and the first passing current-source run. Repeated screenshot sets were archived outside the repository; the final directory above is the current-source screenshot evidence.
+`current-source-history/` retains qualification-only chronology for stale `.next` startup failures, the first current-source pass, the missing fixture-env startup failure and one proof-only Chinese-copy assumption. Repeated failed-run screenshot sets are not retained.
 
-## Original implementation failure chronology
+## Validation on the final bytes
 
-The original `79dbe3f...` qualification preserved these useful product findings:
-
-1. the smallest industry block initially hid one of 79 names; adaptive layout plus the disclosed visibility floor repaired it;
-2. a proof Promise/string conversion error was corrected without a product change;
-3. closed native `<details>` hid the desktop map; viewport-aware disclosure repaired it;
-4. filtering erased selected-company continuity; identity is now preserved across presentation filters;
-5. an over-strict query-string order assertion was replaced by semantic parameter comparison;
-6. `exact-owner-r6` passed for the original immutable snapshot.
+- Heatmap unit suite: **19/19 passed**;
+- route + Heatmap repair slice: **2 files / 36 passed**;
+- complete Sector unit surface: **11 files / 208 passed**;
+- complete Terminal unit suite: **401 files / 6,479 passed / 4 todo**;
+- route type generation, TypeScript, scoped TypeScript/TSX ESLint and diff hygiene: **PASS**.
 
 ## Boundaries
 
@@ -80,4 +85,4 @@ The original `79dbe3f...` qualification preserved these useful product findings:
 - Missing performance stays unavailable.
 - Theme/bubble rights are not inferred from the S&P 500 heatmap owner.
 - Browser proof uses local interception and is not authenticated production transport.
-- The aggregate current result, auth repair and exact continuation are recorded in `../sector-r12-convergence-20260927/README.md`.
+- The aggregate current result, refreshed-cookie auth repair and exact continuation are recorded in `../sector-r12-convergence-20260927/README.md`.

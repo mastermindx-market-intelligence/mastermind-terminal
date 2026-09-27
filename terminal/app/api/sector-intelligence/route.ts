@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/rateLimit";
@@ -18,8 +19,15 @@ const PATHS: Record<SectorFeed, string> = {
 const MAX_BYTES = 4 * 1024 * 1024;
 
 const SUPABASE_AUTH_COOKIE = /^sb-[A-Za-z0-9_-]+-auth-token(?:\.\d+)?$/;
+type CookieValue = { name: string; value: string };
 function isSupabaseAuthCookie(name: string): boolean {
   return SUPABASE_AUTH_COOKIE.test(name);
+}
+function filteredSupabaseCookieValues(values: readonly CookieValue[]): string | null {
+  const pairs = values
+    .filter(cookie => isSupabaseAuthCookie(cookie.name) && cookie.value)
+    .map(cookie => `${cookie.name}=${cookie.value}`);
+  return pairs.length ? pairs.join("; ") : null;
 }
 
 /** Forward only the caller's shared Supabase session cookie chunks.
@@ -29,14 +37,18 @@ function isSupabaseAuthCookie(name: string): boolean {
 export function filteredSupabaseCookieHeader(req: Request): string | null {
   const raw = req.headers.get("cookie");
   if (!raw) return null;
-  const pairs: string[] = [];
+  const values: CookieValue[] = [];
   for (const part of raw.split(";")) {
     const cookie = part.trim(), separator = cookie.indexOf("=");
     if (separator <= 0) continue;
-    const name = cookie.slice(0, separator).trim(), value = cookie.slice(separator + 1);
-    if (isSupabaseAuthCookie(name) && value) pairs.push(`${name}=${value}`);
+    values.push({ name: cookie.slice(0, separator).trim(), value: cookie.slice(separator + 1) });
   }
-  return pairs.length ? pairs.join("; ") : null;
+  return filteredSupabaseCookieValues(values);
+}
+
+async function currentSupabaseCookieHeader(): Promise<string | null> {
+  const store = await cookies();
+  return filteredSupabaseCookieValues(store.getAll());
 }
 
 async function readJson(response: Response): Promise<{ data: unknown; hash: string }> {
@@ -80,17 +92,22 @@ export async function GET(req: Request): Promise<Response> {
     status: 429, headers: { ...HEADERS, "Retry-After": String(rl.retryAfterSec) },
   });
 
-  const authCookie = filteredSupabaseCookieHeader(req);
-  if (!authCookie) return failure(401, "access");
+  // Fail closed before authentication work when the request carries no shared
+  // session credential at all. The current cookie is re-read after Supabase may
+  // refresh it during lazy session initialization below.
+  if (!filteredSupabaseCookieHeader(req)) return failure(401, "access");
+  let authCookie: string | null = null;
   try {
     const client = await createClient();
     const { data: { user }, error } = await client.auth.getUser();
     if (error || !user) return failure(401, "access");
     // This access-token check is local session consistency only. The Macro static
-    // owner gate authenticates the filtered shared cookie forwarded below.
+    // owner gate authenticates the current filtered shared cookie forwarded below.
     const { data: { session } } = await client.auth.getSession();
     if (!session?.access_token || session.user.id !== user.id) return failure(401, "access");
+    authCookie = await currentSupabaseCookieHeader();
   } catch { return failure(401, "access"); }
+  if (!authCookie) return failure(401, "access");
 
   // The established Neural Web origin also owns these static Macro outputs.
   // Never send a caller cookie to arbitrary env hosts, redirects, R2, or a sidecar.

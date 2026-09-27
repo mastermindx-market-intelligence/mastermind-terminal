@@ -6,34 +6,39 @@
   "files": [
     {
       "path": "terminal/app/api/sector-intelligence/route.ts",
-      "sha256": "6e595d6b2fd7e465295c0ddedc4cbd9a12ff707a7d57b4224c9dfbcbe085f8f9",
-      "bytes": 6310
+      "sha256": "34ff421e4b8485dee0aac2852a3028127b65cff36cf87dd704d763050db91b06",
+      "bytes": 7125
     },
     {
       "path": "terminal/lib/__tests__/sectorOwnerGateway.test.ts",
-      "sha256": "c21af6bf2e751c7d43d1e0945f77084f4b1639dad13fdfb40e0f732744d40e95",
-      "bytes": 7904
+      "sha256": "7d99dc3fc4cc03d0abc74b4228166c116e91c03224851d6347f327cc26b4e70f",
+      "bytes": 9992
     },
     {
       "path": "docs/pr-crops/sector-auth-transport-20260927/README.md",
-      "sha256": "ed5c29a0efe4a58868d49a8d6538febfc38026744176b0039e893101d8fafe08",
-      "bytes": 3190
+      "sha256": "48c391ba8a01189c835ac9e635e54b55754f4430cfffa3fada87a5ba35efc914",
+      "bytes": 4476
     }
   ],
-  "aggregateSha256": "a67ca49b505ca304e384a76900278339d185bfc6a94fc25d0e987d6ae4ae5f71",
+  "aggregateSha256": "3933bdbba20066f671d4257341b4a0759ceb3f80e7fb8314a6b1e216d619d409",
   "tests": {
     "route": {
-      "passed": 15,
-      "total": 15
+      "passed": 17,
+      "total": 17
+    },
+    "targetedRefreshTransportAndEmptyScope": {
+      "files": 2,
+      "passed": 36,
+      "total": 36
     },
     "completeSectorSurface": {
       "files": 11,
-      "passed": 205,
-      "total": 205
+      "passed": 208,
+      "total": 208
     },
     "fullTerminalUnit": {
       "files": 401,
-      "passed": 6476,
+      "passed": 6479,
       "todo": 4
     },
     "routeTypegen": "PASS",
@@ -41,6 +46,7 @@
     "scopedEslint": "PASS",
     "plainLanguageSelfCheck": "PASS",
     "forwardAddedLinesGuard": "PASS_ZERO_NEW_BLOCKERS",
+    "addedLinesDiffSha256": "1f4777efd59609c42974572c4a31cf3c0fa1b9929834653a83313b9a87a7f0ad",
     "diffHygiene": "PASS"
   },
   "credential": {
@@ -53,7 +59,11 @@
     "upstreamRequestWithoutFilteredCookie": false,
     "redirectPolicy": "manual",
     "fixedHttpsOwnerHostOnly": true,
-    "productionEntitledSessionProof": false
+    "productionEntitledSessionProof": false,
+    "initialIncomingCookieRequired": true,
+    "reReadsCurrentCookieAfterSessionInitialization": true,
+    "forwardsOnlyCurrentSupabaseAuthCookieChunks": true,
+    "forwardsStalePreRefreshCookie": false
   },
   "productionEntitledSessionProof": false
 }

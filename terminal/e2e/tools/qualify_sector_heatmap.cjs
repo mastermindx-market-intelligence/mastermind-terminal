@@ -40,7 +40,10 @@ for (const row of technology) {
 }
 const industryRows = [...industries.values()], largestIndustry = [...industryRows].sort((a,b)=>b.size-a.size || a.order-b.order)[0];
 const observedIndustries = industryRows.filter(row => row.observed > 0), broadestIndustry = [...observedIndustries].sort((a,b)=>b.advancing/b.observed-a.advancing/a.observed || b.observed-a.observed || a.order-b.order)[0];
-const largestShare = Math.round(largestIndustry.size/totalCap*100);
+const largestShare = Math.round(largestIndustry.size/totalCap*100), bands = ["mega","large","mid","smaller"];
+const emptyScope = industryRows.flatMap(row => bands.map(band => ({ industry: row.industry, band })))
+ .find(scope => !technology.some(row => row.industry === scope.industry && capBand(row.size) === scope.band));
+assert(emptyScope, "Expected at least one honest empty industry/cap scope");
 const cases = [["chromium",1440,900,"en","light"],["chromium",820,1180,"en","dark"],["chromium",390,844,"en","light"],["webkit",1440,900,"en","dark"],["webkit",390,844,"zh","light"]];
 let browser;
 (async () => {
@@ -94,7 +97,14 @@ let browser;
   await industrySelect.selectOption(""); await bandSelect.selectOption(targetBand); await expect(heatmap.locator("[data-company-heatmap-tile]")).toHaveCount(targetBandCount);
   check(label + ": cap filter is exact and URL-bound", new URL(page.url()).searchParams.get("sectorMatrixBand") === targetBand);
   check(label + ": cap filter never rescales color", Number(await heatmap.getAttribute("data-domain")) === domain1d);
-  await bandSelect.selectOption("");
+  await industrySelect.selectOption(emptyScope.industry); await bandSelect.selectOption(emptyScope.band);
+  await expect(heatmap.locator("[data-company-heatmap-tile]")).toHaveCount(0);
+  const empty = heatmap.getByRole("status"), clearScope = empty.getByRole("button", { name: lang === "zh" ? "清除范围" : "Clear scope", exact: true });
+  await expect(empty).toContainText(lang === "zh" ? "此范围没有精确匹配的公司" : "No exact names match this scope");
+  check(label + ": empty combined scope remains honest", true, emptyScope);
+  await clearScope.click(); await expect(heatmap.locator("[data-company-heatmap-tile]")).toHaveCount(technology.length);
+  const cleared = new URL(page.url()).searchParams;
+  check(label + ": empty scope clears industry and cap atomically", !cleared.has("sectorMatrixIndustry") && !cleared.has("sectorMatrixBand"), [...cleared.entries()]);
   const timeframe = selects.nth(1); await timeframe.selectOption("1M");
   check(label + ": timeframe is durable URL state", new URL(page.url()).searchParams.get("sectorMatrixTimeframe") === "1M");
   const rep = discovery.getByRole("group", { name: lang === "zh" ? "发现视图" : "Discover representation", exact: true });

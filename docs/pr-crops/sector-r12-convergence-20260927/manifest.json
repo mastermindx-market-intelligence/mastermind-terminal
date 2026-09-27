@@ -85,16 +85,20 @@
     "canonicalLocalizedIdentitySeparated": true,
     "companyTableSearchSeparateFromSectorSearch": true,
     "atomicCombinedFilterClears": true,
-    "authCredential": "filtered shared Supabase sb-*-auth-token Cookie chunks",
-    "authRedirectPolicy": "manual"
+    "authCredential": "current filtered shared Supabase sb-*-auth-token Cookie chunks after session initialization",
+    "authRedirectPolicy": "manual",
+    "honestEmptyScopeRecovery": true,
+    "heatmapServesDeterministicClusterJob": true,
+    "duplicateClusterModeRejected": true,
+    "nextMissingRepresentation": "denominator-aware industry summary"
   },
   "implementation": {
-    "aggregateSha256": "6f0620499d19c72d746262e94118f8621fd92ce7a0547297aa842bf271635f01",
+    "aggregateSha256": "aec7342a32165c7bbe4bbd119453d442a9cd5b632251285f00035dcfbde1ed12",
     "files": [
       {
         "path": "terminal/app/api/sector-intelligence/route.ts",
-        "sha256": "6e595d6b2fd7e465295c0ddedc4cbd9a12ff707a7d57b4224c9dfbcbe085f8f9",
-        "bytes": 6310
+        "sha256": "34ff421e4b8485dee0aac2852a3028127b65cff36cf87dd704d763050db91b06",
+        "bytes": 7125
       },
       {
         "path": "terminal/components/sector-intelligence/SectorCentralDiscovery.module.css",
@@ -123,8 +127,8 @@
       },
       {
         "path": "terminal/components/sector-intelligence/SectorCompanyHeatmap.tsx",
-        "sha256": "0bf89291cfffd60351878c8c4c1ed7d266561ff3e6ce3fb4b173a311ee803fe1",
-        "bytes": 21773
+        "sha256": "1bbe175137afb4fa0278225dffb169f6857bf237231d82e1b6174fa92a3c2e7a",
+        "bytes": 21742
       },
       {
         "path": "terminal/components/sector-intelligence/SectorIndustryMatrix.module.css",
@@ -158,8 +162,8 @@
       },
       {
         "path": "terminal/lib/__tests__/sectorCompanyHeatmap.test.tsx",
-        "sha256": "4f4fe31f13639f6416606ef3086e866d7c2604f59a9dbe4874c84b83d6ce93a3",
-        "bytes": 11367
+        "sha256": "75bafd91749f80dcb09b79622f6f026e89056ac4daea60e3b4b1c6de36ce7313",
+        "bytes": 11951
       },
       {
         "path": "terminal/lib/__tests__/sectorIndustryMatrix.test.tsx",
@@ -168,8 +172,8 @@
       },
       {
         "path": "terminal/lib/__tests__/sectorOwnerGateway.test.ts",
-        "sha256": "c21af6bf2e751c7d43d1e0945f77084f4b1639dad13fdfb40e0f732744d40e95",
-        "bytes": 7904
+        "sha256": "7d99dc3fc4cc03d0abc74b4228166c116e91c03224851d6347f327cc26b4e70f",
+        "bytes": 9992
       },
       {
         "path": "terminal/e2e/tools/qualify_sector_company_table.cjs",
@@ -178,8 +182,8 @@
       },
       {
         "path": "terminal/e2e/tools/qualify_sector_heatmap.cjs",
-        "sha256": "dc7b36847e656e385ee94f1ef35edd4433863cf9b3ee7e66a719db19054dd2a4",
-        "bytes": 13890
+        "sha256": "0a1cfc5e971aacc72f3478c291800a562cbbfd5f2a445960731a4ec124ef0052",
+        "bytes": 15071
       },
       {
         "path": "terminal/e2e/tools/qualify_sector_matrix.cjs",
@@ -196,29 +200,24 @@
   "validation": {
     "fullTerminalUnit": {
       "files": 401,
-      "passed": 6476,
+      "passed": 6479,
       "todo": 4
     },
     "completeSectorSurface": {
       "files": 11,
-      "passed": 205,
-      "total": 205
-    },
-    "targetedGatewayTableHeatmapMatrixRotation": {
-      "files": 6,
-      "passed": 114,
-      "total": 114
+      "passed": 208,
+      "total": 208
     },
     "sectorGatewayRoute": {
-      "passed": 15,
-      "total": 15
+      "passed": 17,
+      "total": 17
     },
     "routeTypegen": "PASS",
     "typescript": "PASS",
     "scopedEslint": "PASS",
     "plainLanguageSelfCheck": "PASS",
     "forwardAddedLinesGuard": "PASS_ZERO_NEW_BLOCKERS",
-    "addedLinesDiffSha256": "56cbbcaf3bcf2be16e06f7f35390d2c4864d66224e242a2559bf4202b2e538de",
+    "addedLinesDiffSha256": "1f4777efd59609c42974572c4a31cf3c0fa1b9929834653a83313b9a87a7f0ad",
     "diffHygiene": "PASS",
     "finalBrowser": {
       "companyTable": {
@@ -231,10 +230,10 @@
         "error": null
       },
       "companyHeatmap": {
-        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r14-current-atomic-final/qualification.json",
+        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r17-current-empty-atomic-final/qualification.json",
         "passed": true,
         "sourceRevision": "f94256971e49b6372645af3d329080d6e3747ea9",
-        "checks": 98,
+        "checks": 108,
         "screenshots": 5,
         "pageErrors": 0,
         "error": null
@@ -257,20 +256,25 @@
         "pageErrors": 0,
         "error": null
       }
+    },
+    "targetedRefreshTransportAndEmptyScope": {
+      "files": 2,
+      "passed": 36,
+      "total": 36
     }
   },
   "evidence": {
-    "aggregateSha256": "5e69a3359ef085827aa9a97b48264b051860a4641f648350d72d24f46098543e",
+    "aggregateSha256": "ffc50c793a18ff34c1a724650b9dccd33278ca35e49d953bfd222641f4c40377",
     "files": [
       {
         "path": "docs/pr-crops/sector-auth-transport-20260927/README.md",
-        "sha256": "ed5c29a0efe4a58868d49a8d6538febfc38026744176b0039e893101d8fafe08",
-        "bytes": 3190
+        "sha256": "48c391ba8a01189c835ac9e635e54b55754f4430cfffa3fada87a5ba35efc914",
+        "bytes": 4476
       },
       {
         "path": "docs/pr-crops/sector-auth-transport-20260927/manifest.json",
-        "sha256": "c7503c6426ea738632887ce9df82e7e9d60aad8b629a45d2ef568a56dc5c541b",
-        "bytes": 1873
+        "sha256": "9a07cbc3296302decd23f3207c5230c4f3798895fbd765eb4927e6b7a91c4902",
+        "bytes": 2283
       },
       {
         "path": "docs/pr-crops/sector-company-table-20260927/README.md",
@@ -284,13 +288,13 @@
       },
       {
         "path": "docs/pr-crops/sector-heatmap-20260927/README.md",
-        "sha256": "0f0f1d2444a85f2c9d913aabcb6f7984848b6b0605a9b354630be0fea0301389",
-        "bytes": 4881
+        "sha256": "e52b642e81c0f70717149eae0ed1074c5a2f32cc251e5fc2aeeea0179f721a5c",
+        "bytes": 5535
       },
       {
         "path": "docs/pr-crops/sector-heatmap-20260927/manifest.json",
-        "sha256": "94ca686b352074c4ed22efe75f466d9032e3f163019d3609f94aa3ba33bf0c0a",
-        "bytes": 7634
+        "sha256": "0aa5246568e077d2c6991b2bdacd31d094da8e66cf7a4e4522c148a621357feb",
+        "bytes": 8353
       },
       {
         "path": "docs/pr-crops/sector-company-table-20260927/history/current-owner-f942-r6.json",
@@ -373,32 +377,42 @@
         "bytes": 20060
       },
       {
-        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r14-current-atomic-final/chromium-1440-en-light-heatmap.png",
+        "path": "docs/pr-crops/sector-heatmap-20260927/current-source-history/r15-startup-missing-env.json",
+        "sha256": "7171c12e71a5d1583e0dee6e1d5750c25e8a4dc0cabd27fc5c1cd4ba9ce9b552",
+        "bytes": 1405
+      },
+      {
+        "path": "docs/pr-crops/sector-heatmap-20260927/current-source-history/r16-zh-copy-assumption.json",
+        "sha256": "839a6d417e671741e6103054d9565ca36f47bb47f84781b58358516aa79a669d",
+        "bytes": 25151
+      },
+      {
+        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r17-current-empty-atomic-final/chromium-1440-en-light-heatmap.png",
         "sha256": "1aa8f476686a9707ccff3150e8420984bb10b5b9362c6a80bd04c107d8b1e717",
         "bytes": 153237
       },
       {
-        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r14-current-atomic-final/chromium-390-en-light-heatmap.png",
+        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r17-current-empty-atomic-final/chromium-390-en-light-heatmap.png",
         "sha256": "591e6a3d017e3351a40bccc27ccdd4dfc49143f92c94e251f94e0a0219cb198e",
         "bytes": 106499
       },
       {
-        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r14-current-atomic-final/chromium-820-en-dark-heatmap.png",
+        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r17-current-empty-atomic-final/chromium-820-en-dark-heatmap.png",
         "sha256": "6e0c312f22a735f421d1517064d49863380cfe5ac3acfe32ff839ae5258f5104",
         "bytes": 145047
       },
       {
-        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r14-current-atomic-final/qualification.json",
-        "sha256": "7658fee9fa2bec0d97bd765f154f685f61af669fdf4ae1d4c213847fc3d965b2",
-        "bytes": 20060
+        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r17-current-empty-atomic-final/qualification.json",
+        "sha256": "e40e1978c3c8a4b24b496f5e3970f34adf17893f1070dddcfe7ee55a46fbf1f8",
+        "bytes": 26280
       },
       {
-        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r14-current-atomic-final/webkit-1440-en-dark-heatmap.png",
+        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r17-current-empty-atomic-final/webkit-1440-en-dark-heatmap.png",
         "sha256": "d650c45244362196d6696d6d2391619922dca3e71f9708de1a3646a7f25bad84",
         "bytes": 221894
       },
       {
-        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r14-current-atomic-final/webkit-390-zh-light-heatmap.png",
+        "path": "docs/pr-crops/sector-heatmap-20260927/exact-owner-r17-current-empty-atomic-final/webkit-390-zh-light-heatmap.png",
         "sha256": "9283c8f859392acbba08591a6b3eddfc720dfdfa228ed8dcf241117efb55b9ad",
         "bytes": 124068
       },
@@ -509,8 +523,8 @@
       },
       {
         "path": "docs/pr-crops/sector-r12-convergence-20260927/README.md",
-        "sha256": "4b19cc1d70a811e8d3289beb573c7b1d4654f469b8464892d9d4fcc0349368a4",
-        "bytes": 9115
+        "sha256": "1ae585f2124e29aaef7aee4152667e4235d76f8655d517e9ac222a6d88745ed0",
+        "bytes": 10151
       }
     ]
   },
@@ -524,7 +538,10 @@
     "upstreamRequestWithoutFilteredCookie": false,
     "redirectPolicy": "manual",
     "fixedHttpsOwnerHostOnly": true,
-    "productionEntitledSessionProof": false
+    "productionEntitledSessionProof": false,
+    "initialIncomingCookieRequired": true,
+    "reReadsCurrentCookieAfterSessionInitialization": true,
+    "forwardsStalePreRefreshCookie": false
   },
   "review": {
     "independentReviewRequiredForContinuation": false,

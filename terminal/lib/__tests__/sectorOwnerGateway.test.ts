@@ -4,6 +4,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 // Synthetic authentication exists only inside this unit test. No account/session
 // is installed, no network is used, and these cases are not production auth proof.
 const auth = vi.hoisted(() => ({ getUser: vi.fn(), getSession: vi.fn() }));
+const currentCookieStore = vi.hoisted(() => {
+  const state = { values: [] as { name: string; value: string }[] };
+  return { state, getAll: vi.fn(() => state.values) };
+});
+vi.mock("next/headers", () => ({
+  cookies: vi.fn(async () => ({ getAll: currentCookieStore.getAll })),
+}));
 vi.mock("@/lib/supabase/server", () => ({ createClient: vi.fn(async () => ({ auth })) }));
 vi.mock("@/lib/rateLimit", () => ({ rateLimit: vi.fn(() => ({ ok: true })) }));
 vi.mock("@/lib/upstreams", () => ({ NW_BASE: "https://mastermind-x.com" }));
@@ -19,6 +26,11 @@ const payload = { as_of: "2026-09-25", sectors: [] };
 let upstream: ReturnType<typeof vi.fn>;
 beforeEach(() => {
   vi.clearAllMocks();
+  currentCookieStore.state.values = [
+    { name: "sb-fsldfzlxyavsuwqbceod-auth-token.0", value: "base64-part-0" },
+    { name: "theme", value: "dark" },
+    { name: "sb-fsldfzlxyavsuwqbceod-auth-token.1", value: "part-1" },
+  ];
   auth.getUser.mockResolvedValue({ data: { user: { id: "test-owner" } }, error: null });
   auth.getSession.mockResolvedValue({ data: { session: { user: { id: "test-owner" }, access_token: "synthetic-unit-token" } } });
   upstream = vi.fn(); vi.stubGlobal("fetch", upstream);
@@ -74,6 +86,38 @@ describe("sector gateway owner-envelope admission", () => {
     expect(headers.get("authorization")).toBeNull();
     expect(headers.get("accept")).toBe("application/json");
     expect(headers.get("cookie")).not.toContain("theme=dark");
+  });
+
+  it("forwards the refreshed current cookie instead of the stale incoming snapshot", async () => {
+    const stale = "sb-fsldfzlxyavsuwqbceod-auth-token.0=stale-0; sb-fsldfzlxyavsuwqbceod-auth-token.1=stale-1";
+    auth.getUser.mockImplementation(async () => {
+      currentCookieStore.state.values = [
+        { name: "sb-fsldfzlxyavsuwqbceod-auth-token.0", value: "fresh-0" },
+        { name: "theme", value: "light" },
+        { name: "sb-fsldfzlxyavsuwqbceod-auth-token.1", value: "fresh-1" },
+      ];
+      return { data: { user: { id: "test-owner" } }, error: null };
+    });
+    upstream.mockResolvedValue(Response.json(payload));
+
+    expect((await GET(request("sector", stale))).status).toBe(200);
+    const headers = new Headers((upstream.mock.calls[0][1] as RequestInit).headers);
+    expect(headers.get("cookie")).toBe(
+      "sb-fsldfzlxyavsuwqbceod-auth-token.0=fresh-0; sb-fsldfzlxyavsuwqbceod-auth-token.1=fresh-1",
+    );
+    expect(headers.get("cookie")).not.toContain("stale");
+    expect(headers.get("cookie")).not.toContain("theme=light");
+  });
+
+  it("does not fetch when session initialization leaves no current auth cookie", async () => {
+    auth.getUser.mockImplementation(async () => {
+      currentCookieStore.state.values = [{ name: "theme", value: "dark" }];
+      return { data: { user: { id: "test-owner" } }, error: null };
+    });
+    const response = await GET(request("sector"));
+    expect(response.status).toBe(401);
+    expect((await response.json()).receipt.status).toBe("access");
+    expect(upstream).not.toHaveBeenCalled();
   });
 
   it("rejects an unknown source before any owner request", async () => {

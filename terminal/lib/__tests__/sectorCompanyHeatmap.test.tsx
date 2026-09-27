@@ -172,6 +172,17 @@ describe("SectorCompanyHeatmap", () => {
     expect(clearScope).toHaveBeenCalledTimes(1);
     expect(industry).not.toHaveBeenCalled(); expect(band).not.toHaveBeenCalled();
   });
+
+  it("clears an empty combined scope through the same atomic callback", async () => {
+    await render({ industry: "Missing industry", band: "mega" });
+    const empty = host.querySelector('[role="status"]')!;
+    expect(empty.textContent).toContain("No exact names match this scope.");
+    const button = Array.from(empty.querySelectorAll("button")).find(item => item.textContent === "Clear scope")!;
+    await act(async () => button.click());
+    expect(clearScope).toHaveBeenCalledTimes(1);
+    expect(industry).not.toHaveBeenCalled(); expect(band).not.toHaveBeenCalled();
+  });
+
   it.each(["loading", "access", "invalid", "error", "unavailable"] as const)("clears retained heatmap names after %s", async status => {
     await render(); await render({ status });
     expect(host.querySelectorAll("[data-company-heatmap-tile]")).toHaveLength(0);

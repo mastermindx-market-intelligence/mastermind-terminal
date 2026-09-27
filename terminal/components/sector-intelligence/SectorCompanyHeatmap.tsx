@@ -319,7 +319,7 @@ export default function SectorCompanyHeatmap(props: SectorCompanyHeatmapProps) {
     </div>
 
     {props.status !== "ready" || population.status !== "ready" ? <div className={styles.empty} role="status"><p>{statusCopy}</p><button type="button" onClick={props.onSources}>{t("sources")} →</button></div>
-      : !layout.visible.length ? <div className={styles.empty} role="status"><p>{t("empty")}</p>{(props.industry || props.band) && <button type="button" onClick={() => { props.onIndustry(""); props.onBand(""); }}>{t("clearScope")}</button>}</div>
+      : !layout.visible.length ? <div className={styles.empty} role="status"><p>{t("empty")}</p>{(props.industry || props.band) && <button type="button" onClick={props.onClearScope}>{t("clearScope")}</button>}</div>
         : <div className={styles.layout}>
           <aside className={styles.inspector} data-testid="heatmap-inspector">
             {selectedTile ? <>
