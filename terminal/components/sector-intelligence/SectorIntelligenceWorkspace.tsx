@@ -275,17 +275,20 @@ export default function SectorIntelligenceWorkspace() {
         onSources={() => openSources()} onSelect={sector => change({ sector }, true)}
         onOpenResearch={openSectorResearch} />
         : state.workspace !== "detail" ? <SectorCentralDiscovery rows={sectors} status={status}
-        asOf={feeds.sector?.receipt.asOf || null} selected={state.sector} selectedSourceName={sectorSourceName} query={state.discoveryQuery}
+        asOf={feeds.sector?.receipt.asOf || null} selected={state.sector} selectedSourceName={sectorSourceName}
+        selectedCompany={state.company} query={state.discoveryQuery}
         sort={state.discoverySort} breadth={state.workspace === "breadth"} mode={state.discoveryMode}
         heatmapData={feeds.heatmap?.data} heatmapStatus={feeds.heatmap?.receipt.status || "loading"}
         heatmapAsOf={feeds.heatmap?.receipt.asOf || null} matrixTimeframe={state.matrixTimeframe}
         matrixIndustry={state.matrixIndustry} matrixBand={state.matrixBand}
         onQuery={discoveryQuery => change({ discoveryQuery })} onSort={discoverySort => change({ discoverySort })}
-        onMode={discoveryMode => change({ discoveryMode, matrixIndustry: "", matrixBand: "" })}
+        onMode={discoveryMode => change({ discoveryMode })}
         onTimeframe={matrixTimeframe => change({ matrixTimeframe })}
+        onIndustry={matrixIndustry => change({ matrixIndustry }, true)}
+        onBand={matrixBand => change({ matrixBand }, true)}
         onMatrixCell={(matrixIndustry, matrixBand) => change({ matrixIndustry, matrixBand }, true)}
-        onSources={() => openSources()}
-        onSelect={sector => change({ sector, matrixIndustry: "", matrixBand: "" }, true)}
+        onCompany={company => change({ company }, true)} onSources={() => openSources()}
+        onSelect={sector => change({ sector, matrixIndustry: "", matrixBand: "", company: "" }, true)}
         onOpenResearch={openSectorResearch} /> : <>
       <div className={styles.navigation}><nav ref={nav} className={styles.tabs} role="tablist" aria-label={t("siViews")} onKeyDown={event => {
         const index = SECTOR_VIEWS.indexOf(state.view);

@@ -158,3 +158,20 @@ Exact owner boundary remains Macro `f94256971e49b6372645af3d329080d6e3747ea9`, `
 Current local proof: full Terminal **399 files / 6,435 pass / 4 todo**; TypeScript/scoped lint/diff hygiene/plain-language gates pass. Matrix `exact-owner-r7` is **81/81**, five captures, zero page exceptions. Discover/Breadth `journey-r10-regression-r2` is **106/106**, ten captures, zero page exceptions. Evidence and retained failure chronology: `docs/pr-crops/sector-matrix-20260927/`.
 
 Chairman explicitly waived independent review as a gate for this continuation. This does not imply production acceptance. Keep PR#754 draft/unmerged until exact-head CI, authenticated source delivery and normal non-Vercel production/browser proof. Finviz/theme Bubbles, full-family selection, nested theme/subtheme heatmaps, overlap/evidence/compare and historical trails remain separately rights/owner gated.
+
+
+## R11 — exact selected-sector Company Heatmap
+
+R11 adds **Heatmap** as a third representation inside the existing Discover job, alongside Table and Matrix. It reuses the incumbent `heatmap` BFF and exact `sp500_heatmap.json` owner; no new endpoint, publisher, taxonomy, identity, source cache, persistence plane or browser market authority.
+
+The selected-sector Heatmap groups the complete exact company population by owner industry, sizes companies from source market cap, colours one selected owner performance window on a symmetric domain fixed over the complete sector population, and keeps missing observations distinct from zero. Industry/cap filters and representation changes preserve the selected company, timeframe and outer state. The answer-first read names the largest industry by market-cap share and the broadest observed industry participation; it is descriptive, not a rank or trade signal.
+
+A disclosed 0.1% layout-only visibility floor prevents the smallest source industry from disappearing below one display pixel. Underlying owner market caps, answers, receipts, filters and inspectors remain unmodified. The first browser run materially proved this requirement by exposing only 78 of the exact 79 Technology names under fixed title/padding. Adaptive chrome/insets and the visibility floor restore the complete population; a unit regression pins a tiny source industry.
+
+Desktop serves one heatmap canvas plus selected-company inspector. Mobile serves the selected insight first and keeps the dense map behind a deliberate disclosure. Exact selected company, industry, cap band and timeframe are URL-bound; entering selected-sector depth and returning restores semantic URL state, scroll and opening-action focus. EN/ZH presentation remains separate from the canonical `Technology` join.
+
+Exact owner boundary remains Macro `f94256971e49b6372645af3d329080d6e3747ea9`, `sector_central.json` SHA256 `61a45950781430f66fe00a93f64325819d226f6f36b704f9f899dd106b0b2dc1` and `sp500_heatmap.json` SHA256 `beeadcf92f52b363ebed2ae458acf658702a8d0822e84ef3cc3531b278129961`, both dated 2026-09-25. Technology remains 79 names; the separate `Information Technology` row is excluded. Current exact 1D colour domain is ±6.3%.
+
+Local exact-candidate proof: full Terminal **400 files / 6,453 pass / 4 todo**; related Sector **181/181**; type generation, TypeScript, scoped lint and plain-language self-check pass. Final Heatmap `exact-owner-r6` is **98/98**, five captures and zero page exceptions; Matrix regression is **81/81**; Discover/Breadth regression is **106/106**. Failure chronology and evidence are under `docs/pr-crops/sector-heatmap-20260927/`; implementation aggregate SHA256 `a5cbc0f5ac89d4f09e6dd0f66ca6314799af47d0737298cd1b60c0ced36ffcf7`, evidence aggregate `43571a688dc7055d217706a84588224758df6b07429839db7cac747013d3a8b7`.
+
+Browser proof remains immutable exact-owner local interception, not authenticated production transport. Chairman's independent-review waiver remains in force for continuation only. Keep PR#754 draft/unmerged. Bubbles, full-family theme selection, nested theme/subtheme heatmaps, overlap/evidence/compare, historical trails, canonical saves/alerts and normal non-Vercel production proof remain unfinished and owner gated.

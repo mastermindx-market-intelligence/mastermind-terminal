@@ -13,6 +13,7 @@ import {
   type SectorDiscoveryMode,
   type SectorMatrixTimeframe,
 } from "@/lib/sectorIntelligence";
+import SectorCompanyHeatmap from "./SectorCompanyHeatmap";
 import SectorIndustryMatrix from "./SectorIndustryMatrix";
 import styles from "./SectorCentralDiscovery.module.css";
 
@@ -23,6 +24,7 @@ export interface SectorCentralDiscoveryProps {
   asOf: string | null;
   selected: string;
   selectedSourceName: string;
+  selectedCompany: string;
   query: string;
   sort: DiscoverySort;
   breadth: boolean;
@@ -37,7 +39,10 @@ export interface SectorCentralDiscoveryProps {
   onSort: (sort: DiscoverySort) => void;
   onMode: (mode: SectorDiscoveryMode) => void;
   onTimeframe: (timeframe: SectorMatrixTimeframe) => void;
+  onIndustry: (industry: string) => void;
+  onBand: (band: SectorCapBand | "") => void;
   onMatrixCell: (industry: string, band: SectorCapBand) => void;
+  onCompany: (ticker: string) => void;
   onSelect: (id: string) => void;
   onOpenResearch: (id: string) => void;
   onSources: () => void;
@@ -46,7 +51,7 @@ const COPY = {
   title: ["Sector discovery", "板块发现"],
   breadthTitle: ["Market breadth", "市场广度"],
   marketRead: ["Market read", "市场解读"],
-  table: ["Table", "表格"], matrix: ["Matrix", "矩阵"], representation: ["Discover representation", "发现视图"],
+  table: ["Table", "表格"], heatmap: ["Heatmap", "热图"], matrix: ["Matrix", "矩阵"], representation: ["Discover representation", "发现视图"],
   query: ["Find a sector", "搜索板块"],
   sort: ["Display order", "显示顺序"],
   source: ["Source order", "来源顺序"],
@@ -127,11 +132,22 @@ export default function SectorCentralDiscovery(props: SectorCentralDiscoveryProp
   const selectedName = selectedRow ? text(language === "zh" ? selectedRow.name_zh : selectedRow.name) || text(selectedRow.name) : "";
   const read = props.breadth ? breadthRead(readyRows, language) : discoveryRead(readyRows, language);
   const name = (row: Row) => text(language === "zh" ? row.name_zh : row.name) || text(row.name);
+  const representationNavigation = !props.breadth && <div className={styles.representations} role="group" aria-label={t("representation")}>
+    {(["table", "heatmap", "matrix"] as const).map(mode => <button type="button" key={mode} aria-pressed={props.mode === mode} onClick={() => props.onMode(mode)}>{t(mode)}</button>)}
+  </div>;
+
+  if (!props.breadth && props.mode === "heatmap") return <section className={styles.root} data-testid="sector-discovery">
+    {representationNavigation}
+    <SectorCompanyHeatmap data={props.heatmapData} status={props.heatmapStatus} asOf={props.heatmapAsOf}
+      sectors={readyRows} selectedSector={props.selected} selectedSectorName={selectedName}
+      selectedSectorSourceName={props.selectedSourceName} selectedCompany={props.selectedCompany}
+      timeframe={props.matrixTimeframe} industry={props.matrixIndustry} band={props.matrixBand}
+      onSector={props.onSelect} onTimeframe={props.onTimeframe} onIndustry={props.onIndustry} onBand={props.onBand}
+      onCompany={props.onCompany} onOpenResearch={props.onOpenResearch} onSources={props.onSources} />
+  </section>;
 
   if (!props.breadth && props.mode === "matrix") return <section className={styles.root} data-testid="sector-discovery">
-    <div className={styles.representations} role="group" aria-label={t("representation")}>
-      {(["table", "matrix"] as const).map(mode => <button type="button" key={mode} aria-pressed={props.mode === mode} onClick={() => props.onMode(mode)}>{t(mode)}</button>)}
-    </div>
+    {representationNavigation}
     <SectorIndustryMatrix data={props.heatmapData} status={props.heatmapStatus} asOf={props.heatmapAsOf}
       sectors={readyRows} selectedSector={props.selected} selectedSectorName={selectedName}
       selectedSectorSourceName={props.selectedSourceName}
@@ -141,9 +157,7 @@ export default function SectorCentralDiscovery(props: SectorCentralDiscoveryProp
   </section>;
 
   return <section className={styles.root} data-testid="sector-discovery">
-    {!props.breadth && <div className={styles.representations} role="group" aria-label={t("representation")}>
-      {(["table", "matrix"] as const).map(mode => <button type="button" key={mode} aria-pressed={props.mode === mode} onClick={() => props.onMode(mode)}>{t(mode)}</button>)}
-    </div>}
+    {representationNavigation}
     <header className={styles.header}>
       <div><p className={styles.scope}>{t("scope")}</p><h2>{t(props.breadth ? "breadthTitle" : "title")}</h2>
         <p className={styles.date}>{t("dated")}: {props.asOf || t("unknownDate")}</p></div>

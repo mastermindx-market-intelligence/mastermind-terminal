@@ -1,0 +1,35 @@
+{
+  "sourceRevision": "79dbe3f2431b9e21cabf23071f02eab5add57eb4",
+  "sourceBodiesChanged": false,
+  "transport": "local interception",
+  "productionProof": false,
+  "independentReviewRequired": false,
+  "themeRightsAdmitted": false,
+  "checks": [
+    {
+      "name": "chromium-1440-en-light: exact Technology population",
+      "passed": true,
+      "details": "Technology\n\nCompany heatmap · Area = market cap · color = performance\n\n2026-09-25 · 79 names · 1D\n\nMARKET READ\n\nSemiconductors holds 41% of market cap; Computer Hardware has the broadest participation (7/7 up).\n\nSector\nTechnology · XLK\nCommunication Services · XLC\nHealth Care · XLV\nEnergy · XLE\nConsumer Discretionary · XLY\nUtilities · XLU\nFinancials · XLF\nConsumer Staples · XLP\nIndustrials · XLI\nReal Estate · XLRE\nMaterials · XLB\nPerformance window\n1D\n1W\nMTD\n1M\n3M\n6M\nYTD\n1Y\nIndustry\nAll industries\nInformation Technology Services\nSoftware - Infrastructure\nSemiconductors\nElectronic Components\nConsumer Electronics\nSemiconductor Equipment & Materials\nSoftware - Application\nCommunication Equipment\nComputer Hardware\nSolar\nScientific & Technical Instruments\nMarket-cap band\nAll market caps\n≥ $200B\n$50–200B\n$10–50B\n< $10B\nReview sources →\nLARGEST COMPANY IN SCOPE\nNVDA\n\nNvidia\n\nIndustry\nSemiconductors\nMarket cap\n$5.42T\n1D Performance\n+0.22%\nOpen company intelligence →\nOpen sector intelligence →\n-6.3%\n+6.3%\n\nExact owner labels only. Filters never rescale color; the smallest industry blocks receive a visibility floor so no source name disappears."
+    },
+    {
+      "name": "chromium-1440-en-light: exact source date",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: distinct Information Technology row excluded",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: full-population fixed domain",
+      "passed": false,
+      "details": {
+        "expected": 6.3,
+        "actual": "6.3"
+      }
+    }
+  ],
+  "screenshots": [],
+  "errors": [],
+  "passed": false,
+  "error": "AssertionError [ERR_ASSERTION]: chromium-1440-en-light: full-population fixed domain\n    at check (/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/sector-intelligence-terminal-20260926-sol-001/terminal/e2e/tools/qualify_sector_heatmap.cjs:22:90)\n    at /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/sector-intelligence-terminal-20260926-sol-001/terminal/e2e/tools/qualify_sector_heatmap.cjs:74:3"
+}

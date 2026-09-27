@@ -16,13 +16,14 @@ const rows: Row[] = [
 
 describe("Sector Central discovery and breadth", () => {
   let root: Root, host: HTMLDivElement;
-  const select = vi.fn(), open = vi.fn(), query = vi.fn(), sort = vi.fn(), mode = vi.fn(), timeframe = vi.fn(), cell = vi.fn(), sources = vi.fn();
+  const select = vi.fn(), open = vi.fn(), query = vi.fn(), sort = vi.fn(), mode = vi.fn(), timeframe = vi.fn();
+  const industry = vi.fn(), band = vi.fn(), cell = vi.fn(), company = vi.fn(), sources = vi.fn();
   const render = async (patch: Partial<SectorCentralDiscoveryProps> = {}) => {
     await act(async () => root.render(<LangProvider><SectorCentralDiscovery rows={rows} status="ready" asOf="2026-09-25"
-      selected="xlk" selectedSourceName="Technology" query="" sort="source" breadth={false} mode="table" heatmapData={null} heatmapStatus="unavailable"
+      selected="xlk" selectedSourceName="Technology" selectedCompany="" query="" sort="source" breadth={false} mode="table" heatmapData={null} heatmapStatus="unavailable"
       heatmapAsOf={null} matrixTimeframe="1D" matrixIndustry="" matrixBand=""
-      onQuery={query} onSort={sort} onMode={mode} onTimeframe={timeframe} onMatrixCell={cell}
-      onSelect={select} onOpenResearch={open} onSources={sources} {...patch} /></LangProvider>));
+      onQuery={query} onSort={sort} onMode={mode} onTimeframe={timeframe} onIndustry={industry} onBand={band}
+      onMatrixCell={cell} onCompany={company} onSelect={select} onOpenResearch={open} onSources={sources} {...patch} /></LangProvider>));
   };
   beforeEach(() => {
     vi.clearAllMocks(); document.documentElement.setAttribute("data-lang", "en");
@@ -74,7 +75,13 @@ describe("Sector Central discovery and breadth", () => {
     expect(host.querySelector('[data-sector-choice] span[style]')).toBeNull();
     expect(host.textContent).not.toContain("150%"); expect(host.textContent).not.toContain("-1 advancing");
   });
-  it("switches the admitted Discover representation without adding another workspace", async () => {
+  it("switches admitted Discover representations without adding another workspace", async () => {
+    await render();
+    const heatmap = Array.from(host.querySelectorAll("button")).find(button => button.textContent === "Heatmap")!;
+    await act(async () => heatmap.click()); expect(mode).toHaveBeenCalledWith("heatmap");
+    await render({ mode: "heatmap" });
+    expect(host.querySelector('[data-testid="sector-company-heatmap"]')).not.toBeNull();
+    expect(host.textContent).toContain("Company heatmap data is unavailable.");
     await render();
     const matrix = Array.from(host.querySelectorAll("button")).find(button => button.textContent === "Matrix")!;
     await act(async () => matrix.click()); expect(mode).toHaveBeenCalledWith("matrix");
@@ -105,6 +112,9 @@ describe("Discovery to detail URL continuity", () => {
   });
   it.each(["sectorView=companies", "sector=xlk&group=semiconductors", "sectorCompany=MU", "sectorView=dossier"])("keeps the old detail URL %s", value => {
     expect(parseSectorState(new URLSearchParams(value)).workspace).toBe("detail");
+  });
+  it("admits Heatmap as a durable Discover representation", () => {
+    expect(parseSectorState(new URLSearchParams("sectorDiscoveryMode=heatmap")).discoveryMode).toBe("heatmap");
   });
   it.each(["rotation", "discover", "breadth", "detail"] as const)("retains %s, representations, matrix context and the selected object", workspace => {
     const state = { ...DEFAULT_SECTOR_STATE, workspace, discoveryQuery: "Tech", discoverySort: "participation" as const,

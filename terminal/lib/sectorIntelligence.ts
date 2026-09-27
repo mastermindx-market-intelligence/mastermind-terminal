@@ -22,7 +22,7 @@ export type SectorView = typeof SECTOR_VIEWS[number];
 export type MemberSort = "source" | "return" | "relative" | "ticker";
 export type SectorWorkspace = "rotation" | "discover" | "breadth" | "detail";
 export type SectorDiscoverySort = "source" | "return" | "participation";
-export type SectorDiscoveryMode = "table" | "matrix";
+export type SectorDiscoveryMode = "table" | "heatmap" | "matrix";
 export type SectorMatrixTimeframe = "1D" | "1W" | "MTD" | "1M" | "3M" | "6M" | "YTD" | "1Y";
 export type SectorCapBand = "mega" | "large" | "mid" | "smaller";
 export type SectorRotationMode = "map" | "list";
@@ -161,7 +161,7 @@ export function parseSectorState(params: URLSearchParams): SectorState {
     workspace: workspace === "rotation" || workspace === "discover" || workspace === "breadth" || workspace === "detail" ? workspace : legacyDetail ? "detail" : "discover",
     discoveryQuery: (params.get("sectorDiscoveryQuery") || "").slice(0, 60),
     discoverySort: discoverySort === "return" || discoverySort === "participation" ? discoverySort : "source",
-    discoveryMode: discoveryMode === "matrix" ? "matrix" : "table",
+    discoveryMode: discoveryMode === "heatmap" || discoveryMode === "matrix" ? discoveryMode : "table",
     matrixTimeframe: ["1D", "1W", "MTD", "1M", "3M", "6M", "YTD", "1Y"].includes(matrixTimeframe || "") ? matrixTimeframe as SectorMatrixTimeframe : "1D",
     matrixIndustry: (params.get("sectorMatrixIndustry") || "").slice(0, 120),
     matrixBand: ["mega", "large", "mid", "smaller"].includes(matrixBand || "") ? matrixBand as SectorCapBand : "",
