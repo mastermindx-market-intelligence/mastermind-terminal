@@ -444,8 +444,8 @@ describe("negativeCaseOutcome", () => {
   it("not a leak when revise returns 400 (validation error, not existence)", () => {
     const result = negativeCaseOutcome({ ...all404, revise: 400 });
     expect(result.leak).toBe(false);
-    // A 400 is not a leak, so ok is true when listExcludes && uiNotFound are also true
-    expect(result.ok).toBe(true);
+    // A 400 is not a leak, but ok requires exact 404 on all three calls
+    expect(result.ok).toBe(false);
   });
 });
 
@@ -537,21 +537,8 @@ describe("validateNegativeCaseReceipt", () => {
     expect(validateNegativeCaseReceipt(bad)).toBe(false);
   });
 
-  it("still accepts a Phase-B-only receipt when a valid phaseC block is also present", () => {
-    const withPhaseC = {
-      ...base,
-      phaseC: {
-        ran: true,
-        route: "operator_url",
-        read: 404,
-        revise: 404,
-        archive: 404,
-        listExcludes: true,
-        uiNotFound: true,
-        browserErrorCount: 0,
-        ok: true,
-      },
-    };
-    expect(validateNegativeCaseReceipt(withPhaseC)).toBe(true);
+  it("accepts a receipt with no phaseC block (validateNegativeCaseReceipt is indifferent to phaseB contents)", () => {
+    // validateSignedInReceipt validates phaseB; validateNegativeCaseReceipt accepts an absent phaseC
+    expect(validateNegativeCaseReceipt(base)).toBe(true);
   });
 });

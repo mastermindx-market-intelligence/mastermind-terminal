@@ -206,11 +206,21 @@ export function validateSignedInReceipt(value) {
   return true;
 }
 
-/**
- * The signed-in receipt is built from the Phase B RESULT object. Phase B counts its own browser errors while it
- * runs and must hand that count out on its result; a result without it is a programming error and throws here
- * (this is the guard for the round-4 bug where main() read a counter scoped inside runPhaseB).
- */
+export function signedReceiptFor(phaseA, phaseB, meta, now = new Date()) {
+  if (!phaseB || phaseB.ran !== true) throw new TypeError("signedReceiptFor needs a Phase B result that ran");
+  if (!Number.isInteger(phaseB.browserErrorCount) || phaseB.browserErrorCount < 0) {
+    throw new TypeError("Phase B result must carry its own non-negative integer browserErrorCount");
+  }
+  return {
+    capturedAt: now.toISOString(),
+    base: meta.base,
+    expectedRelease: meta.expectedRelease,
+    phaseA,
+    phaseB,
+    browserErrorCount: phaseB.browserErrorCount,
+  };
+}
+
 /**
  * Evaluates the five wrong-user negative-case outcomes.
  * leak = any of read/revise/archive returned 200, 201, or 409 (existence confirmed).
@@ -218,7 +228,7 @@ export function validateSignedInReceipt(value) {
  */
 export function negativeCaseOutcome({ read, revise, archive, listExcludes, uiNotFound }) {
   const leak = [read, revise, archive].some((s) => s === 200 || s === 201 || s === 409);
-  const ok = !leak && listExcludes && uiNotFound;
+  const ok = read === 404 && revise === 404 && archive === 404 && listExcludes && uiNotFound;
   return { ok, leak };
 }
 
@@ -241,6 +251,9 @@ export function validateNegativeCaseReceipt(value) {
     uiNotFound: pc.uiNotFound,
   });
   return (
+    typeof pc.read === "number" &&
+    typeof pc.revise === "number" &&
+    typeof pc.archive === "number" &&
     typeof pc.browserErrorCount === "number" &&
     typeof pc.listExcludes === "boolean" &&
     typeof pc.uiNotFound === "boolean" &&
@@ -248,19 +261,4 @@ export function validateNegativeCaseReceipt(value) {
     pc.ok === expectedOk &&
     !leak
   );
-}
-
-export function signedReceiptFor(phaseA, phaseB, meta, now = new Date()) {
-  if (!phaseB || phaseB.ran !== true) throw new TypeError("signedReceiptFor needs a Phase B result that ran");
-  if (!Number.isInteger(phaseB.browserErrorCount) || phaseB.browserErrorCount < 0) {
-    throw new TypeError("Phase B result must carry its own non-negative integer browserErrorCount");
-  }
-  return {
-    capturedAt: now.toISOString(),
-    base: meta.base,
-    expectedRelease: meta.expectedRelease,
-    phaseA,
-    phaseB,
-    browserErrorCount: phaseB.browserErrorCount,
-  };
 }

@@ -399,15 +399,16 @@ async function runPhaseB(storageState, otherStorageState) {
               let c4ListExcludes = false;
               if (c4Status === 200) {
                 const c4Body = await c4.json().catch(() => null);
-                c4ListExcludes = !Array.isArray(c4Body?.theses) || !c4Body.theses.some((r) => r?.id === thesisId);
+                c4ListExcludes = Array.isArray(c4Body?.theses) && !c4Body.theses.some((r) => r?.id === thesisId);
               }
 
               // C5: UI — not_found state
               let c5UiNotFound = false;
               try {
                 await otherPage.goto(`${base}/analysis?view=theses&symbol=${encodeURIComponent(symbol)}&thesis=${thesisId}`, { waitUntil: "domcontentloaded", timeout: 30_000 });
-                await otherPage.waitForSelector('[data-testid="thesis-not-found"]', { timeout: 10_000 }).catch(() => null);
-                c5UiNotFound = (await otherPage.getByRole("heading", { name: "Thesis not found" }).count()) > 0;
+                const notFoundLocator = otherPage.locator('[data-testid="thesis-not-found"]');
+                await notFoundLocator.waitFor({ timeout: 10_000 }).catch(() => null);
+                c5UiNotFound = (await notFoundLocator.count()) > 0;
               } catch {
                 c5UiNotFound = false;
               }
@@ -423,6 +424,7 @@ async function runPhaseB(storageState, otherStorageState) {
               console.log(`Phase C: read=${c1Status} revise=${c2Status} archive=${c3Status} listExcludes=${c4ListExcludes} uiNotFound=${c5UiNotFound}`);
               console.log(`Phase C: wrong-user negative case ${ok ? "PROVEN" : (leak ? "FAILED (leak)" : "FAILED")}`);
 
+              if (phaseCBrowserErrorCount !== 0) assertion();
               phaseC = {
                 ran: true,
                 route: "operator_url",
@@ -437,8 +439,9 @@ async function runPhaseB(storageState, otherStorageState) {
             } finally {
               if (otherContext) await otherContext.close();
             }
-          } catch {
-            phaseC = { ran: false, route: "none", reason: "phase_b_not_run" };
+          } catch (err) {
+            console.error(`Phase C internal error: ${err instanceof Error ? err.message : String(err)}`);
+            phaseC = { ran: false, route: "none", reason: "phase_c_internal_error" };
           }
         }
       } else {
@@ -533,6 +536,7 @@ async function main() {
       if (!validateNegativeCaseReceipt(signedReceipt)) assertion();
       mkdirSync(liveStateDir, { recursive: true });
       writeFileSync(join(liveStateDir, "receipt-signed-in.json"), `${JSON.stringify(redactReceipt(signedReceipt), null, 2)}\n`);
+      if (signedReceipt.phaseC?.ran === true && signedReceipt.phaseC.ok !== true) assertion();
     }
   } catch (error) {
     anonymous = redactReceipt(anonymous);
@@ -549,14 +553,19 @@ async function main() {
   console.log(`Browser errors: ${anonymous.browserErrorCount}`);
   if (blockedReason) {
     console.log(`Phase B not run: ${blockedReason}`);
-    // Phase C cannot run when Phase B didn't; use the canonical reason
-    console.log("Phase C not run: phase_b_not_run");
+    console.log("Phase C not run: Phase B did not run.");
   } else {
     console.log("Phase B completed and its redacted receipt was written.");
   }
-  // Phase C reason is printed inside runPhaseB when it runs; when it doesn't run the reason is surfaced here
-  if (!blockedReason && otherBlockedReason) {
-    console.log(`Phase C not run: ${otherBlockedReason}`);
+  // Print Phase C non-run reason when Phase B ran but Phase C didn't
+  if (!blockedReason && signedReceipt?.phaseC?.ran === false && signedReceipt.phaseC.reason) {
+    const reasons = {
+      no_other_state: "No other-account storage state was provided.",
+      other_state_invalid: "The other-account storage state was invalid.",
+      phase_c_internal_error: "An internal error occurred during Phase C.",
+      phase_b_not_run: "Phase B did not run.",
+    };
+    console.log(`Phase C not run: ${reasons[signedReceipt.phaseC.reason] ?? signedReceipt.phaseC.reason}`);
   }
   return exitCodeFor(null);
 }
