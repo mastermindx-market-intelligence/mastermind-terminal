@@ -613,18 +613,16 @@ function applyThesisVersionFixture(store: Store, args: Record<string, unknown>):
       const subjectZh = `你关注的“${subjectDisplay}”窗口已关闭`;
       const closedPrefix = `${subject}.`;
       const closedPrefixZh = `${subjectZh}。`;
-      const translationPending = "（翻译待补）";
       const summaryPlain = condition
         ? `${closedPrefix} Your thesis "${title}" lists: ${closeSentence(condition)}`
         : `${closedPrefix} Your thesis lists no conditions yet.`;
-      const summaryPlainZh = condition
-        ? `${closedPrefixZh}你的论点《${title}》列出的条件：${condition}${translationPending}`
-        : `${closedPrefixZh}你的论点尚未列出任何条件。`;
+      const summaryPlainZh = `${closedPrefixZh}你的论点还没有中文条件句子。`;
       store.alertOutbox.push({
         id: crypto.randomUUID(),
         user_id: userId,
         alert_id: uuid5ThesisAlertId(id),
         fire_event_id: producerThesisFireEventId(id, tripwireId, tripwireVersion, firedOn),
+        channel: "email",
         status: "pending",
         attempts: 0,
         last_error: null,
@@ -643,10 +641,10 @@ function applyThesisVersionFixture(store: Store, args: Record<string, unknown>):
           summary_plain: summaryPlain,
           summary_plain_zh: summaryPlainZh,
           condition_plain: condition,
-          condition_plain_zh: condition ? `${condition}${translationPending}` : "",
+          condition_plain_zh: "",
           engine_window_plain: "The watch window closed.",
           engine_window_plain_zh: "观察窗口已关闭。",
-          evidence_url: "https://example.com/cycle.html",
+          evidence_url: null,
           requires_tier: null,
           coverage: "full",
           ticker: subjectRefRecord.kind === "ticker" ? String(subjectRefRecord.key) : null,

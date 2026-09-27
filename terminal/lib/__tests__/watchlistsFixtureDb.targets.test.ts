@@ -53,12 +53,14 @@ describe("fixture thesis monitor outbox", () => {
       subject: "A window we watch for NVDA has closed",
       subject_zh: "你关注的“NVDA”窗口已关闭",
       summary_plain: 'A window we watch for NVDA has closed. Your thesis "Closed window" lists: Gross margin falls below 65%.',
-      summary_plain_zh: "你关注的“NVDA”窗口已关闭。你的论点《Closed window》列出的条件：Gross margin falls below 65%（翻译待补）",
+      summary_plain_zh: "你关注的“NVDA”窗口已关闭。你的论点还没有中文条件句子。",
       condition_plain: "Gross margin falls below 65%",
-      condition_plain_zh: "Gross margin falls below 65%（翻译待补）",
+      condition_plain_zh: "",
+      evidence_url: null,
       coverage: "full",
       ticker: "NVDA",
     });
+    expect(row.channel).toBe("email");
     expect(row.payload).not.toHaveProperty("kind");
   });
 });

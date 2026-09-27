@@ -73,6 +73,24 @@ function isWellFormedThesisId(value: unknown): value is string {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 }
 
+function compareThesisRowsNewestFirst(left: AlertRowView, right: AlertRowView): number {
+  const leftCreated = Date.parse(left.outboxRow?.created_at ?? "");
+  const rightCreated = Date.parse(right.outboxRow?.created_at ?? "");
+  if (!Number.isNaN(leftCreated) || !Number.isNaN(rightCreated)) {
+    if (Number.isNaN(leftCreated)) return 1;
+    if (Number.isNaN(rightCreated)) return -1;
+    if (rightCreated !== leftCreated) return rightCreated - leftCreated;
+  }
+  const leftFired = Date.parse(left.outboxRow?.payload.fired_at ?? "");
+  const rightFired = Date.parse(right.outboxRow?.payload.fired_at ?? "");
+  if (!Number.isNaN(leftFired) || !Number.isNaN(rightFired)) {
+    if (Number.isNaN(leftFired)) return 1;
+    if (Number.isNaN(rightFired)) return -1;
+    if (rightFired !== leftFired) return rightFired - leftFired;
+  }
+  return (left.alertId < right.alertId ? -1 : left.alertId > right.alertId ? 1 : 0);
+}
+
 // The evaluator (ingest/alerts_engine.py Supa.fire) stamps `triggered` as an OBJECT — {at, value,
 // note} — never a bare boolean. `true` is kept as an accepted shape too (fixtures/back-compat),
 // but the object shape is the one production alerts actually carry; see deliveryFor's `fired` gate.
@@ -362,37 +380,31 @@ export function buildAlertsView(input: {
   // payload.category identifies it as a thesis condition. A row whose alert_id matches a real
   // alerts entry stays on the alerts path only; null, empty, and unmatched synthetic ids take
   // the thesis path.
-  const thesisRows: AlertRowView[] = (input.outbox ?? [])
-    .filter((row) => {
-      if (!isWellFormedThesisId(row.payload?.thesis_id)) return false;
-      if (row.alert_id && alertIds.has(row.alert_id)) return false;
-      const kind = row.payload?.kind;
-      const source = row.payload?.source;
-      const category = row.payload?.category;
-      return kind === "thesis_condition"
-        || source === "macro.thesis_condition_monitor"
-        || category === "thesis_window";
-    })
-    .map((row) => {
-      const thesisId = row.payload.thesis_id as string;
-      const fireKey = row.fire_event_id && row.fire_event_id.trim() ? row.fire_event_id : row.created_at;
-      const status = row.status as string;
-      const delivery: DeliveryState =
-        status === "sent" && row.delivered_at == null ? "pending" : (KNOWN_DELIVERY[status] ?? "unconfirmed");
-      return {
-        alertId: `thesis:${thesisId}:${fireKey}`,
-        thesisId,
-        delivery,
-        foldedRows: 0,
-        outboxRow: row,
-      };
-    })
-    .sort((left, right) => {
-      const leftCreated = Date.parse(left.outboxRow?.created_at ?? "");
-      const rightCreated = Date.parse(right.outboxRow?.created_at ?? "");
-      if (rightCreated !== leftCreated) return rightCreated - leftCreated;
-      return Date.parse(right.outboxRow?.payload.fired_at ?? "") - Date.parse(left.outboxRow?.payload.fired_at ?? "");
-    });
+  const thesisFireRows = [...folded.values()].filter(({ row }) => {
+    if (!isWellFormedThesisId(row.payload?.thesis_id)) return false;
+    if (row.alert_id && alertIds.has(row.alert_id)) return false;
+    const kind = row.payload?.kind;
+    const source = row.payload?.source;
+    const category = row.payload?.category;
+    return kind === "thesis_condition"
+      || source === "macro.thesis_condition_monitor"
+      || category === "thesis_window";
+  });
+  const thesisRows: AlertRowView[] = thesisFireRows.map(({ row, folded: duplicates }) => {
+    const thesisId = row.payload.thesis_id as string;
+    const rawFireKey = row.fire_event_id?.trim() || row.created_at?.trim();
+    const fireKey = rawFireKey || "unknown-fire";
+    const status = row.status as string;
+    const delivery: DeliveryState =
+      status === "sent" && row.delivered_at == null ? "pending" : (KNOWN_DELIVERY[status] ?? "unconfirmed");
+    return {
+      alertId: `thesis:${thesisId}:${fireKey}`,
+      thesisId,
+      delivery,
+      foldedRows: duplicates,
+      outboxRow: row,
+    };
+  }).sort(compareThesisRowsNewestFirst);
 
   // `input.alertsState` is the frozen four-state read vocabulary (§5), decided by the caller —
   // this view model never invents READ_NO_COVERAGE from a fabricated signal, it only ever
