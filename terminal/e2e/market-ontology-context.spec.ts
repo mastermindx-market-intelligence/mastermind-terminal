@@ -53,7 +53,13 @@ function expectContextParams(url: URL) {
   expect(url.searchParams.get("mo_kc")).toBe("2026-08-31");
 }
 
+function expectCapturedThesisPayloads(payloads: string[]) {
+  expect(payloads.length).toBeGreaterThan(0);
+  expect(payloads.join("\n")).not.toContain("mo_");
+}
+
 test("MarketOntology context carries through Analysis and Thesis workspaces without entering API payloads", async ({ page, baseURL }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "The MarketOntology context contract is scoped to the desktop project.");
   await prepare(page, testInfo, baseURL);
   const thesisPayloads: string[] = [];
   page.on("request", (request) => {
@@ -106,10 +112,11 @@ test("MarketOntology context carries through Analysis and Thesis workspaces with
   await expect(page.getByText("Version 2 · Current")).toBeVisible({ timeout: 30_000 });
   expectContextParams(new URL(page.url()));
   await expect(page.getByTestId("mo-context-strip")).toBeVisible();
-  await expect(thesisPayloads.join("\n")).not.toContain("mo_");
+  expectCapturedThesisPayloads(thesisPayloads);
 });
 
 test("same-route Analysis navigation reparses URL context", async ({ page, baseURL }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "The MarketOntology context contract is scoped to the desktop project.");
   await prepare(page, testInfo, baseURL);
   await openAnalysis(page, `symbol=NVDA&page=intelligence&${CONTEXT_QUERY}`);
   await expect(page.getByTestId("mo-context-strip")).toBeVisible();
@@ -121,6 +128,7 @@ test("same-route Analysis navigation reparses URL context", async ({ page, baseU
 });
 
 test("changing the symbol clears every MarketOntology key and removes the strip", async ({ page, baseURL }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "The MarketOntology context contract is scoped to the desktop project.");
   await prepare(page, testInfo, baseURL);
   await openAnalysis(page, `symbol=NVDA&page=intelligence&${CONTEXT_QUERY}&mo_channel=context-channel&mo_unknown=yes`);
   await expect(page.getByTestId("mo-context-strip")).toBeVisible();
@@ -174,6 +182,7 @@ for (const [name, query] of [
   ["wrong source", "symbol=NVDA&page=intelligence&mo_from=transmission&mo_chain=context-chain"],
 ] as const) {
   test(`malformed ${name} context opens company research without a strip`, async ({ page, baseURL }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "The MarketOntology context contract is scoped to the desktop project.");
     await prepare(page, testInfo, baseURL);
     await openAnalysis(page, query);
     await expect(page.locator(".analysis-context-bar")).toBeVisible();
@@ -182,6 +191,7 @@ for (const [name, query] of [
 }
 
 test("a refreshed Thesis deep link reconstructs the strip and return link", async ({ page, baseURL }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "The MarketOntology context contract is scoped to the desktop project.");
   await prepare(page, testInfo, baseURL);
   const createResponse = await page.request.post("/api/theses", { data: {
     action: "create",
@@ -206,6 +216,7 @@ test("a refreshed Thesis deep link reconstructs the strip and return link", asyn
 });
 
 test("leaving Analysis and returning without context shows no persisted strip", async ({ page, baseURL }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "The MarketOntology context contract is scoped to the desktop project.");
   await prepare(page, testInfo, baseURL);
   await openAnalysis(page, `symbol=NVDA&page=intelligence&${CONTEXT_QUERY}`);
   await expect(page.getByTestId("mo-context-strip")).toBeVisible();
