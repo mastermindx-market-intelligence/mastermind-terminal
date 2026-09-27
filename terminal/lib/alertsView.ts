@@ -69,7 +69,7 @@ export interface OutboxRow {
 /** True when thesis_id is a well-formed UUID (any version — monitor writes uuid5, test fixtures use uuid4). */
 function isWellFormedThesisId(value: unknown): value is string {
   if (typeof value !== "string") return false;
-  // Strict UUID regex (no namespace prefix on the value itself — alert_id carries "thesis:<uuid>", thesis_id is bare uuid).
+  // Strict UUID regex — thesis_id is a bare UUID (monitor writes uuid5 of "thesis:<id>").
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 }
 
@@ -360,12 +360,17 @@ export function buildAlertsView(input: {
   //   - payload.thesis_id is a well-formed UUID, AND
   //   - (payload.kind === "thesis_condition" OR payload.source === "macro.thesis_condition_monitor"
   //     OR payload.category === "thesis_window")
-  // Such a row takes the thesis path regardless of alert_id being the producer's synthetic
-  // uuid5 of "thesis:<id>" (a bare UUID that matches no alerts entry — routing is handled above).
-  // Rows whose alert_id matches a real alerts entry stay on the alerts path (deliveryFor).
+  // A row is a thesis-condition row when:
+  //   - payload.thesis_id is a well-formed UUID, AND
+  //   - (payload.kind === "thesis_condition" OR payload.source === "macro.thesis_condition_monitor"
+  //     OR payload.category === "thesis_window")
+  // A row whose alert_id matches a real alerts entry stays on the alerts path only — the thesis
+  // path must not double-surface it. The producer's synthetic uuid5 alert_id matches no alerts entry,
+  // so such rows are free to take the thesis path.
   const thesisRows: AlertRowView[] = (input.outbox ?? [])
     .filter((o) => {
       if (!isWellFormedThesisId(o.payload?.thesis_id)) return false;
+      if (alerts.some((a) => a.id === o.alert_id)) return false;
       const kind = o.payload?.kind;
       const source = o.payload?.source;
       const category = o.payload?.category;

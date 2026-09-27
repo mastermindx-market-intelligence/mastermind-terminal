@@ -924,10 +924,10 @@ describe("F11-11b-pre producer-shaped thesis-condition rows (category+source, no
   });
 
   // F1: a row whose alert_id DOES match a real alerts entry must stay on the alerts path.
-  // The thesis filter sees the same outbox row, but deliveryFor must claim it first — no double row.
-  it("row with alert_id matching a real alerts entry stays on alerts path (no double row)", () => {
-    // Use the same alert_id as the real fired price alert; the outbox row has no thesis_id so
-    // it cannot accidentally enter the thesis path. This proves the routing is exclusive.
+  // The thesis filter must exclude it so it cannot double-surface with the alerts path.
+  it("row with alert_id matching a real alerts entry + thesis shape stays on alerts path only (no double row)", () => {
+    // This row has thesis_id + category + source (producer shape) AND its alert_id matches
+    // a real alerts entry. It must appear exactly once on the alerts path, not twice.
     const matchedRow: OutboxRow = {
       alert_id: "a-price",
       fire_event_id: "fe-matched",
@@ -937,7 +937,12 @@ describe("F11-11b-pre producer-shaped thesis-condition rows (category+source, no
       deliver_after: null,
       delivered_at: null,
       created_at: "2026-09-05T11:59:30Z",
-      payload: { ticker: "NVDA", condition_plain: "Crossed your price line" },
+      payload: {
+        thesis_id: PRODUCER_THESIS_ID,
+        category: "thesis_window",
+        source: "macro.thesis_condition_monitor",
+        ticker: "NVDA",
+      },
     };
     const priceAlert: Alert = {
       id: "a-price",
@@ -951,8 +956,9 @@ describe("F11-11b-pre producer-shaped thesis-condition rows (category+source, no
       run: baseRun(), lastSuccessAt: "2026-09-05T11:59:00Z", runsState: "READ_OK",
       outbox: [matchedRow], outboxState: "READ_OK", now: NOW,
     });
-    // Only one row — deliveryFor's alerts path, not doubled with thesis path.
+    // Only one row — the alerts path claims it; thesis filter correctly excludes it.
     expect(view.rows.length).toBe(1);
     expect(view.rows[0].alertId).toBe("a-price");
+    expect(view.rows[0].thesisId).toBeUndefined();
   });
 });

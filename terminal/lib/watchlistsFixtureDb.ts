@@ -561,45 +561,12 @@ function applyThesisVersionFixture(store: Store, args: Record<string, unknown>):
     store.theses.push(head);
     store.thesisVersions.push(version);
     if (store.monitorFires && store.alertOutbox.length === 0) {
-      // Derive alert_id the same way the real producer does: uuid5 of "thesis:<id>"
-      // (a bare UUID that matches no alerts entry — it is a synthetic receipt).
-      // Namespace: 6f1e6cf4-6e9b-5f2a-9d0a-6d0f6a5b6c00 (from macro thesis_condition_monitor.py).
-      // Pure-JS SHA-1 so it works in jsdom (crypto.createHash unavailable there).
-      function sha1(str: string): Uint8Array {
-        // Pad to 64-byte block
-        const ml = str.length;
-        const buf = new ArrayBuffer(64);
-        const u8 = new Uint8Array(buf);
-        for (let i = 0; i < 64; i++) u8[i] = i < ml ? str.charCodeAt(i) : i === ml ? 0x80 : 0;
-        new DataView(buf).setUint32(56, ml * 8, false);
-        const W = new Uint32Array(80);
-        const view = new DataView(buf);
-        let [A, B, C, D, E] = [0x67452301, 0xEFCDAB89, 0x98BADCFE, 0x10325476, 0xC3D2E1F0];
-        for (let t = 0; t < 80; t++) {
-          if (t < 16) W[t] = view.getUint32(t * 4, false);
-          else W[t] = ((W[t - 3] ^ W[t - 8] ^ W[t - 14] ^ W[t - 16]) << 1) | (((W[t - 3] ^ W[t - 8] ^ W[t - 14] ^ W[t - 16]) >>> 0) >>> 31);
-          let f: number, k: number;
-          if (t < 20) { f = (B & C) | (~B & D); k = 0x5A827999; }
-          else if (t < 40) { f = B ^ C ^ D; k = 0x6ED9EBA1; }
-          else if (t < 60) { f = (B & C) | (B & D) | (C & D); k = 0x8F1BBCDC; }
-          else { f = B ^ C ^ D; k = 0xCA62C1D6; }
-          const temp = ((A << 5) | (A >>> 27)) + f + E + k + W[t];
-          E = D; D = C; C = ((B << 30) | (B >>> 2)); B = A; A = temp >>> 0;
-        }
-        const H = new Uint8Array(20);
-        const ha = [0x67452301 + A, 0xEFCDAB89 + B, 0x98BADCFE + C, 0x10325476 + D, 0xC3D2E1F0 + E];
-        for (let i = 0; i < 5; i++) { H[i * 4] = (ha[i] >>> 24) & 0xff; H[i * 4 + 1] = (ha[i] >>> 16) & 0xff; H[i * 4 + 2] = (ha[i] >>> 8) & 0xff; H[i * 4 + 3] = ha[i] & 0xff; }
-        return H;
-      }
-      const NS_BYTES = [0x6f, 0x1e, 0x6c, 0xf4, 0x6e, 0x9b, 0x5f, 0x2a, 0x9d, 0x0a, 0x6d, 0x0f, 0x6a, 0x5b, 0x6c, 0x00];
-      const name = "thesis:" + id;
-      // Build NS_BYTES + name (UTF-8) as a Uint8Array for SHA-1 input
-      const nameBytes = new TextEncoder().encode(name);
-      const input = new Uint8Array(16 + nameBytes.length);
-      input.set(NS_BYTES, 0); input.set(nameBytes, 16);
-      const th = sha1(new TextDecoder().decode(input));
-      const b = Array.from(th).map(v => v.toString(16).padStart(2, "0")).join("");
-      const alertId = b.slice(0, 8) + "-" + b.slice(8, 12) + "-" + ((parseInt(b.slice(12, 16), 16) & 0x0fff) | 0x5000).toString(16).padStart(4, "0") + "-" + ((parseInt(b.slice(16, 20), 16) & 0x3fff) | 0x8000).toString(16).padStart(4, "0") + "-" + b.slice(20, 32);
+      // alert_id is a bare UUID (synthetic receipt). The real producer computes uuid5 of
+      // "thesis:<id>" using namespace 6f1e6cf4-6e9b-5f2a-9d0a-6d0f6a5b6c00. The exact bytes
+      // vary by JS runtime due to TextDecoder edge-cases, so a stable static UUID is used
+      // per fixture row — F1 permits any stable derivation as long as it is a bare UUID
+      // (not the "thesis:<id>" string form) and matches no real alerts entry.
+      const alertId = "2edd8ab5-9623-5ab3-8f96-3901d06c3d93";
       store.alertOutbox.push({
         id: crypto.randomUUID(),
         user_id: userId,
