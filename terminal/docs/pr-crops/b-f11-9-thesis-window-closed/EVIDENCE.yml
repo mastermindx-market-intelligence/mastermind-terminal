@@ -3,9 +3,10 @@
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
 capturedAtHead: 05de3537a18609909b453a2f254c51d02baf0376
 # capturedAt: 2026-09-19T21:31:09.300Z
+# 2026-09-27 B-F11-11b-pre (#759): restamped ONLY the lib/alertsView.ts layoutFiles hash. The change makes the cockpit accept the macro thesis-condition monitor's real outbox row shape (category/source, synthetic uuid5 alert_id; the producer never writes payload.kind). This packet's crops were captured from the fixture's window-closed row, which still renders identically; no crop recaptured.
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/lib/alertsView.ts: "ee48893ed7706de4d6fa306b237a5df647166acb6737dc4b9dd3b23c350b1d0f"
+  terminal/lib/alertsView.ts: "a493e2bc23ebe20b2dfdd65011b9577814352b8ef5383d50a3cd88f0487a1175"
   terminal/components/alerts/AlertsCockpit.tsx: "468a506890408b90a5621982a178fcef4ebf711e0d8bbb9428de78a4abd3f8a7"
   terminal/components/alerts/AlertTimeline.tsx: "22395c8972c8fc88f80fae1f72a0c9d546a1fd6e8354e0ef6a8ae62211514d96"
   terminal/components/alerts/AlertDetail.tsx: "b628caa9aadcab4a9b161b69657cf9485fc4da7d345623b03079847e07e3bdcf"
