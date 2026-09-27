@@ -16,6 +16,9 @@ export type NativeObservationFactGroup = (typeof NATIVE_OBSERVATION_FACT_GROUPS)
 export const NATIVE_OBSERVATION_FACT_LIMITS: Record<NativeObservationFactGroup, number> = {
   series: 6, events: 8, geometry: 4, tables: 4,
 };
+// A short raw window lets Copilot see slope/turning behavior without requesting or
+// transporting full native history. The packet byte budget remains the final owner.
+export const NATIVE_OBSERVATION_SERIES_SAMPLE_LIMIT = 6;
 export const NATIVE_OBSERVATION_OMITTED_CATEGORIES = [
   "full_series_history",
   "non_right_extended_geometry",
@@ -116,7 +119,7 @@ export function extractNativeObservationFacts(
           || new Set(samples.map((v: any) => v.i)).size !== samples.length) continue;
       const ordered = samples.map((sample: any, sourceIndex: number) => ({ sample, sourceIndex }))
         .sort((a: any, b: any) => b.sample.i - a.sample.i || a.sourceIndex - b.sourceIndex)
-        .slice(0, 2);
+        .slice(0, NATIVE_OBSERVATION_SERIES_SAMPLE_LIMIT);
       const row: Fact = {
         id: prim.id, kind: prim.kind,
         samples: ordered.map(({ sample, sourceIndex }: any) => ({
@@ -327,6 +330,7 @@ export function buildLiveNativeObservations(
       geometry_knowability: "not_established_by_geometry",
       empty_result: "not_a_no_setup_judgment",
       selection: "deterministic_presentation_not_opportunity_ranking",
+      recent_series: "up_to_6_newest_source_samples_per_returned_series",
       configured_not_rendered: "omitted_not_negative_evidence",
     },
     suites: [],

@@ -4346,6 +4346,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
     native_observations: { schema: LIVE_NATIVE_OBSERVATION_SCHEMA,
       source: "same_computeSuite_bundle_used_by_renderer", max_bytes: LIVE_NATIVE_OBSERVATION_MAX_BYTES,
       coverage: "only_suites_rendered_in_current_chart_pass", missing: "omitted_not_negative_evidence",
+      series_samples: "up_to_6_recent_plus_exact_locked_bar_when_available",
       strength: "native_score_not_probability", freshness: "chart_loaded_not_live_attested" },
     pane_contexts: { schema: CHART_PANE_CONTEXT_SCHEMA, max_panes: 4,
       observation: "read_only_mounted_panes", control_authority: "active_pane_only",

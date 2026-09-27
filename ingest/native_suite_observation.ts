@@ -51,6 +51,7 @@ export async function nativeSuiteObservation(request: unknown, host: unknown) {
         geometry_knowability: "not_established_by_geometry",
         empty_result: "not_a_no_setup_judgment",
         selection: "deterministic_presentation_not_opportunity_ranking",
+        recent_series: "up_to_6_newest_source_samples_per_returned_series",
       },
       modules: suite.modules.map((m) => ({
         id: `${suite.key}/${m.key}`,

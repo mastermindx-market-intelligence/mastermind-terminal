@@ -377,3 +377,18 @@ Brain qualification law:
 Deferred combined acceptance must cover at minimum: 2-pane different-symbol comparison; 4-pane same-symbol MTF comparison; inactive pane native observed/partial/unavailable; symbol/timeframe/settings/replay/locked-bar staleness; pane removal/reuse; active-row/root-native disagreement; duplicate/out-of-range pane ids; malformed/nonfinite viewport; payload-budget withholding before active native evidence; pane viewport refresh without context revision bump; active-pane changes preserving inactive read-only rows; and proof that a model comparison does not mutate or activate an inactive pane unless a separate explicit user command lawfully changes the active target.
 
 No local test runner, typecheck/compiler, browser/model qualification or CI acceptance is claimed by this section.
+
+
+## 2026-09-27 — bounded recent native-series window
+
+The existing native observation packet now permits **up to six newest raw source samples per returned series**, newest first, instead of only two. This is an observation-depth improvement, not a new historical-data API and not a model-derived score.
+
+Law:
+- samples come from the same exact `SuiteRenderBundle` already used by the renderer/headless adapter; no recomputation or alternate history store;
+- each row remains `{index,value,age_bars}`; null stays null and is never backfilled from an older bar;
+- returned sample indices must be unique and strictly decreasing (newest → older); server qualification rejects duplicates, reordered windows, future/out-of-range indices, nonfinite values, and windows above six;
+- an exact `selected_sample` remains separate and may point outside this short recent window when the user locked an older bar;
+- the live packet remains capped at 7168 bytes and the qualified Brain packet at 8192 bytes. A larger series row can therefore cause the existing whole-row budget selector to return fewer series; coverage/omission counts remain authoritative;
+- the six-bar path is descriptive raw evidence only. It may support statements such as “this native value rose across the last four observed samples” but never a calibrated trend forecast, probability, or substitute for the working horizon.
+
+Deferred acceptance adds producer six-sample newest-first/null preservation, full source_ref fidelity in headless mode, server acceptance of 1–6 ordered samples, rejection of duplicate/reordered/>6 windows, selected-sample independence, Unicode/packet-budget behavior, and legacy 1–2 sample compatibility. No test runner/compiler/model qualification is claimed here.
