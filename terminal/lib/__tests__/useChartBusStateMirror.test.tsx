@@ -215,6 +215,39 @@ describe("useChartBus state mirror", () => {
     expect(body.session.visible_range).not.toBeNull();
   });
 
+  it("mirrors the existing Data Window projection without turning failure into a market conclusion", async () => {
+    const readout = {
+      schema: "chart.data_readout.v1",
+      status: "partial",
+      reason: "readout_lookup_unavailable",
+      basis: { empty_result: "not_a_no_setup_judgment" },
+    };
+    await act(async () => {
+      root!.render(React.createElement(Harness, {
+        host: { ...hostWith([]), getReadoutSnapshot: () => readout },
+      }));
+    });
+    await act(async () => { await vi.advanceTimersByTimeAsync(250); });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    let body = JSON.parse(String((fetchMock.mock.calls[0][1] as RequestInit).body));
+    expect(body.session.data_readout).toEqual(readout);
+
+    fetchMock.mockClear();
+    await act(async () => {
+      root!.render(React.createElement(Harness, {
+        host: {
+          ...hostWith([], { origin_id: "origin-test", context_revision: 5 }),
+          activeSymbol: "AAPL",
+          getReadoutSnapshot: () => { throw new Error("stale readout owner"); },
+        },
+      }));
+    });
+    await act(async () => { await vi.advanceTimersByTimeAsync(250); });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    body = JSON.parse(String((fetchMock.mock.calls[0][1] as RequestInit).body));
+    expect(body.session.data_readout).toBeNull();
+  });
+
   it("retains unsent command acknowledgements after a failed mirror POST", async () => {
     const busRef = { current: null as ChartBus | null };
     await act(async () => {
