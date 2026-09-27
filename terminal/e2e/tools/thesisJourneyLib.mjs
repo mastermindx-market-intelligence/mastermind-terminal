@@ -211,6 +211,45 @@ export function validateSignedInReceipt(value) {
  * runs and must hand that count out on its result; a result without it is a programming error and throws here
  * (this is the guard for the round-4 bug where main() read a counter scoped inside runPhaseB).
  */
+/**
+ * Evaluates the five wrong-user negative-case outcomes.
+ * leak = any of read/revise/archive returned 200, 201, or 409 (existence confirmed).
+ * A 400 is refused by validation and is not a leak.
+ */
+export function negativeCaseOutcome({ read, revise, archive, listExcludes, uiNotFound }) {
+  const leak = [read, revise, archive].some((s) => s === 200 || s === 201 || s === 409);
+  const ok = !leak && listExcludes && uiNotFound;
+  return { ok, leak };
+}
+
+/**
+ * Validates a negative-case block on the signed-in receipt.
+ * phaseC absent or ran:false → true (Phase-B-only receipts are still valid).
+ * ran:true → every field typed correctly and ok === negativeCaseOutcome(...).ok
+ */
+export function validateNegativeCaseReceipt(value) {
+  if (!value || typeof value !== "object") return false;
+  const pc = value.phaseC;
+  if (!pc) return true;
+  if (pc.ran === false) return true;
+  if (pc.ran !== true) return false;
+  const { ok: expectedOk, leak } = negativeCaseOutcome({
+    read: pc.read,
+    revise: pc.revise,
+    archive: pc.archive,
+    listExcludes: pc.listExcludes,
+    uiNotFound: pc.uiNotFound,
+  });
+  return (
+    typeof pc.browserErrorCount === "number" &&
+    typeof pc.listExcludes === "boolean" &&
+    typeof pc.uiNotFound === "boolean" &&
+    typeof pc.ok === "boolean" &&
+    pc.ok === expectedOk &&
+    !leak
+  );
+}
+
 export function signedReceiptFor(phaseA, phaseB, meta, now = new Date()) {
   if (!phaseB || phaseB.ran !== true) throw new TypeError("signedReceiptFor needs a Phase B result that ran");
   if (!Number.isInteger(phaseB.browserErrorCount) || phaseB.browserErrorCount < 0) {

@@ -1,3 +1,27 @@
+# Wrong-user negative case (optional Phase C)
+
+A second permitted account's session can be exported with the same `codegen` command used for
+`PROOF_STORAGE_STATE`, but saved to a different file under `e2e/.live-state/`:
+
+```bash
+npx playwright codegen --save-storage=e2e/.live-state/other-account-state.json https://app.mastermind-x.com
+```
+
+Pass both states when running the prover:
+
+```bash
+PROOF_STORAGE_STATE=e2e/.live-state/owner-state.json \
+PROOF_STORAGE_STATE_OTHER=e2e/.live-state/other-account-state.json \
+PROOF_RELEASE=<id> \
+PROOF_SYMBOL=NVDA \
+node e2e/tools/prove-thesis-journey-live.mjs
+```
+
+The second session must be a different file from `PROOF_STORAGE_STATE` (same-path is rejected).
+No bytes or values from `PROOF_STORAGE_STATE_OTHER` are ever printed or written to the receipt.
+When Phase C runs it validates that the other account cannot read, revise, or archive the owner's
+thesis; the receipt is written to `e2e/.live-state/receipt-signed-in.json`.
+
 # Bundle measurement (B6 / B7)
 
 Bundle weight is only meaningful against a PRODUCTION build. `npm run dev` splits chunks

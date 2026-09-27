@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { randomUUID } from "node:crypto";
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium } from "@playwright/test";
@@ -9,9 +9,11 @@ import {
   checkStorageState,
   detailFromResponse,
   exitCodeFor,
+  negativeCaseOutcome,
   redactReceipt,
   releaseFromHtml,
   thesisIdFromUrl,
+  validateNegativeCaseReceipt,
   validateReceipt,
   validateSignedInReceipt,
   validateVersions,
@@ -265,10 +267,13 @@ async function runPhaseA() {
   return { phaseA, browserErrorCount };
 }
 
-async function runPhaseB(storageState) {
+async function runPhaseB(storageState, otherStorageState) {
   const browser = await chromium.launch({ headless: true });
   let phaseBBrowserErrorCount = 0;
   let page;
+  let completed = false;
+  // phaseC is built here so it is always present on the result, even when not run
+  let phaseC = { ran: false, route: "none", reason: "none" };
   try {
     const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, storageState });
     page = await context.newPage();
@@ -285,7 +290,6 @@ async function runPhaseB(storageState) {
     const title = buildProofTitle(release, symbol);
     let thesisId = null;
     let createAttempted = false;
-    let completed = false;
     try {
       await controls.newThesis.click();
       await settle(controls.subject, "The create form subject field was not ready.");
@@ -341,6 +345,106 @@ async function runPhaseB(storageState) {
       if (conflictBody.error !== "version_conflict" || conflictBody.currentVersion !== 2) assertion();
       const afterConflict = await readThesis(page.request, thesisId);
 
+      // ── Phase C: wrong-user negative case (S2: only when Phase B ran and other state is valid) ──
+      if (otherStorageState) {
+        const otherParsed = JSON.parse(readFileSync(resolve(otherStorageState), "utf8"));
+        // S1: same-path check
+        const samePath = realpathSync(resolve(storageStateArgument)) === realpathSync(resolve(otherStorageState));
+        if (samePath) {
+          phaseC = { ran: false, route: "none", reason: "other_state_invalid" };
+        } else {
+          try {
+            let otherContext;
+            let otherPage;
+            let phaseCBrowserErrorCount = 0;
+            try {
+              otherContext = await browser.newContext({ viewport: { width: 1440, height: 900 }, storageState: otherParsed });
+              otherPage = await otherContext.newPage();
+              otherPage.on("console", (message) => { if (message.type() === "error") phaseCBrowserErrorCount += 1; });
+              otherPage.on("pageerror", () => { phaseCBrowserErrorCount += 1; });
+
+              // C1: GET by id → 404
+              const c1 = await otherPage.request.get(`${base}/api/theses?id=${thesisId}`);
+              const c1Status = c1.status();
+
+              // C2: revise → 404 (a 409 is a leak)
+              const c2 = await otherPage.request.post(`${base}/api/theses`, {
+                data: {
+                  action: "revise",
+                  id: thesisId,
+                  expectedVersion: 2,
+                  clientRequestId: randomUUID(),
+                  subject: subjectPayload(),
+                  content: revised.current.content,
+                },
+              });
+              const c2Status = c2.status();
+
+              // C3: archive → 404
+              const c3 = await otherPage.request.post(`${base}/api/theses`, {
+                data: {
+                  action: "archive",
+                  id: thesisId,
+                  expectedVersion: 2,
+                  clientRequestId: randomUUID(),
+                  subject: revised.current.subject,
+                  content: revised.current.content,
+                },
+              });
+              const c3Status = c3.status();
+
+              // C4: list — must not contain the thesisId
+              const c4 = await otherPage.request.get(`${base}/api/theses`);
+              const c4Status = c4.status();
+              let c4ListExcludes = false;
+              if (c4Status === 200) {
+                const c4Body = await c4.json().catch(() => null);
+                c4ListExcludes = !Array.isArray(c4Body?.theses) || !c4Body.theses.some((r) => r?.id === thesisId);
+              }
+
+              // C5: UI — not_found state
+              let c5UiNotFound = false;
+              try {
+                await otherPage.goto(`${base}/analysis?view=theses&symbol=${encodeURIComponent(symbol)}&thesis=${thesisId}`, { waitUntil: "domcontentloaded", timeout: 30_000 });
+                await otherPage.waitForSelector('[data-testid="thesis-not-found"]', { timeout: 10_000 }).catch(() => null);
+                c5UiNotFound = (await otherPage.getByRole("heading", { name: "Thesis not found" }).count()) > 0;
+              } catch {
+                c5UiNotFound = false;
+              }
+
+              const { ok, leak } = negativeCaseOutcome({
+                read: c1Status,
+                revise: c2Status,
+                archive: c3Status,
+                listExcludes: c4ListExcludes,
+                uiNotFound: c5UiNotFound,
+              });
+
+              console.log(`Phase C: read=${c1Status} revise=${c2Status} archive=${c3Status} listExcludes=${c4ListExcludes} uiNotFound=${c5UiNotFound}`);
+              console.log(`Phase C: wrong-user negative case ${ok ? "PROVEN" : (leak ? "FAILED (leak)" : "FAILED")}`);
+
+              phaseC = {
+                ran: true,
+                route: "operator_url",
+                read: c1Status,
+                revise: c2Status,
+                archive: c3Status,
+                listExcludes: c4ListExcludes,
+                uiNotFound: c5UiNotFound,
+                browserErrorCount: phaseCBrowserErrorCount,
+                ok,
+              };
+            } finally {
+              if (otherContext) await otherContext.close();
+            }
+          } catch {
+            phaseC = { ran: false, route: "none", reason: "phase_b_not_run" };
+          }
+        }
+      } else {
+        phaseC = { ran: false, route: "none", reason: "no_other_state" };
+      }
+
       await assertResponse(page, `${base}/analysis?view=theses&symbol=${encodeURIComponent(symbol)}`);
       await settle(controls.rail, "The thesis lens rail was not visible.");
       const selectedTheses = controls.thesesTab.and(page.locator('[aria-selected="true"]'));
@@ -376,6 +480,7 @@ async function runPhaseB(storageState) {
         versions,
         archived: archived.lifecycleState === "archived",
         browserErrorCount: phaseBBrowserErrorCount,
+        phaseC,
       };
     } catch (error) {
       if (error instanceof ProofFailure) throw error;
@@ -409,12 +514,23 @@ async function main() {
   const blockedReason = storageStateArgument
     ? checkStorageState(storageStateArgument, { root })
     : "The operator storage state was not supplied.";
+  const otherStorageStateArg = process.env.PROOF_STORAGE_STATE_OTHER || "";
+  const otherBlockedReason = otherStorageStateArg
+    ? checkStorageState(otherStorageStateArg, { root })
+    : null;
+
   try {
     if (!blockedReason) {
       const storageState = JSON.parse(readFileSync(resolve(storageStateArgument), "utf8"));
-      const phaseB = await runPhaseB(storageState);
-      const signedReceipt = signedReceiptFor(phaseA, phaseB, { base, expectedRelease: release });
+      // Pass the other storage state only when it passed its own validity check
+      const phaseB = await runPhaseB(storageState, otherBlockedReason === null ? otherStorageStateArg : null);
+      // Strip phaseC off before the library helper (which does not know about it), then reattach
+      const { phaseC: phaseCBlock, ...phaseBBare } = phaseB;
+      const signedReceipt = signedReceiptFor(phaseA, phaseBBare, { base, expectedRelease: release });
+      // Augment with phaseC after the library call
+      signedReceipt.phaseC = phaseCBlock;
       if (!validateSignedInReceipt(signedReceipt)) assertion();
+      if (!validateNegativeCaseReceipt(signedReceipt)) assertion();
       mkdirSync(liveStateDir, { recursive: true });
       writeFileSync(join(liveStateDir, "receipt-signed-in.json"), `${JSON.stringify(redactReceipt(signedReceipt), null, 2)}\n`);
     }
@@ -431,7 +547,17 @@ async function main() {
   console.log(`Release: ${release}`);
   console.log(`Phase A: ${passed}/${anonymous.phaseA.length} cases passed`);
   console.log(`Browser errors: ${anonymous.browserErrorCount}`);
-  console.log(blockedReason ? `Phase B not run: ${blockedReason}` : "Phase B completed and its redacted receipt was written.");
+  if (blockedReason) {
+    console.log(`Phase B not run: ${blockedReason}`);
+    // Phase C cannot run when Phase B didn't; use the canonical reason
+    console.log("Phase C not run: phase_b_not_run");
+  } else {
+    console.log("Phase B completed and its redacted receipt was written.");
+  }
+  // Phase C reason is printed inside runPhaseB when it runs; when it doesn't run the reason is surfaced here
+  if (!blockedReason && otherBlockedReason) {
+    console.log(`Phase C not run: ${otherBlockedReason}`);
+  }
   return exitCodeFor(null);
 }
 
