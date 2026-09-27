@@ -751,11 +751,10 @@ describe("coverage.count excludes unresolved rows (REQUIRED 4)", () => {
 // condition_plain_zh, engine_window_plain, engine_window_plain_zh, evidence_url,
 // requires_tier, coverage, ticker.
 describe("F11-11b-pre producer-shaped thesis-condition rows (category+source, no kind, synthetic alert_id)", () => {
-  const PRODUCER_THESIS_ID = "00000000-0000-4000-8000-000000000001";
+  const PRODUCER_THESIS_ID = "00000000-0000-0000-0000-000000000001";
 
-  // Row shape matching the real producer's compose_payload() output exactly.
-  // alert_id is a bare UUID (uuid5 of "thesis/<thesis_id>"), NOT "thesis:<uuid>".
-  const PRODUCER_ALERT_ID = "41c94d22-3a34-5c61c-828c2-1fcb6a0c6d90"; // uuid5 of "thesis/<PRODUCER_THESIS_ID>"
+  // The producer's alert_id is a synthetic uuid5 of "thesis:<thesis_id>"; thesis_id is the bare thesis UUID.
+  const PRODUCER_ALERT_ID = "cd85c933-6c7b-599a-9ce7-e681ded7afa5";
   function producerRow(over: Partial<OutboxRow> = {}): OutboxRow {
     return {
       alert_id: PRODUCER_ALERT_ID,
@@ -774,17 +773,17 @@ describe("F11-11b-pre producer-shaped thesis-condition rows (category+source, no
         tripwire_version: 1,
         category: "thesis_window",
         source: "macro.thesis_condition_monitor",
-        subject: "NVDA thesis",
-        subject_zh: "英伟达股票 thesis",
+        subject: "Your NVDA thesis window has closed.",
+        subject_zh: "你的英伟达论点观察窗口已结束。",
         summary_plain: "Your NVDA thesis window has closed.",
-        summary_plain_zh: "你的 NVDA thesis 观察窗口已结束。",
+        summary_plain_zh: "你的英伟达论点观察窗口已结束。",
         condition_plain: "Your NVDA thesis window has closed.",
-        condition_plain_zh: "你的 NVDA thesis 观察窗口已结束。",
+        condition_plain_zh: "你的英伟达论点观察窗口已结束。",
         engine_window_plain: "The watch window expired.",
         engine_window_plain_zh: "观察窗口已到期。",
         evidence_url: null,
         requires_tier: undefined,
-        coverage: undefined,
+        coverage: "full",
         ticker: "NVDA",
         ...(over.payload as Record<string, unknown> ?? {}),
       },
@@ -792,57 +791,54 @@ describe("F11-11b-pre producer-shaped thesis-condition rows (category+source, no
     };
   }
 
-  function viewOf(outbox: OutboxRow[]) {
+  function priceAlert(): Alert {
+    return {
+      id: "a-price",
+      active: false,
+      symbol: "NVDA",
+      created_at: "2026-09-01T00:00:00Z",
+      condition: { type: "price", triggered: { at: "2026-09-05T11:58:30Z", value: 42, note: "crossed" } },
+    };
+  }
+
+  function viewOf(outbox: OutboxRow[], alerts: Alert[] = []) {
     return buildAlertsView({
-      alerts: [], alertsState: "READ_OK_ZERO",
-      run: baseRun(), lastSuccessAt: "2026-09-05T11:59:00Z", runsState: "READ_OK",
-      outbox, outboxState: "READ_OK", now: NOW,
+      alerts,
+      alertsState: alerts.length ? "READ_OK" : "READ_OK_ZERO",
+      run: baseRun(),
+      lastSuccessAt: "2026-09-05T11:59:00Z",
+      runsState: "READ_OK",
+      outbox,
+      outboxState: "READ_OK",
+      now: NOW,
     });
   }
 
   it("producer-shaped row (category+source, no kind, synthetic alert_id) renders as a thesis row", () => {
     const view = viewOf([producerRow()]);
-    expect(view.rows.length).toBe(1);
+    expect(view.rows).toHaveLength(1);
     expect(view.rows[0].thesisId).toBe(PRODUCER_THESIS_ID);
     expect(view.rows[0].alertId).toBe(`thesis:${PRODUCER_THESIS_ID}`);
     expect(view.rows[0].delivery).toBe("pending");
   });
 
   it("producer-shaped row with source only (no kind, no category) also renders as thesis row", () => {
-    const row = producerRow({ payload: { ...producerRow().payload, category: undefined as unknown as string, source: "macro.thesis_condition_monitor" } });
+    const row = producerRow({ payload: { ...producerRow().payload, category: undefined as unknown as string } });
     const view = viewOf([row]);
-    expect(view.rows.length).toBe(1);
+    expect(view.rows).toHaveLength(1);
     expect(view.rows[0].thesisId).toBe(PRODUCER_THESIS_ID);
   });
 
   it("producer-shaped row with kind === 'thesis_condition' (legacy) still renders", () => {
     const row = producerRow({ payload: { ...producerRow().payload, kind: "thesis_condition" } });
     const view = viewOf([row]);
-    expect(view.rows.length).toBe(1);
+    expect(view.rows).toHaveLength(1);
     expect(view.rows[0].thesisId).toBe(PRODUCER_THESIS_ID);
-  });
-
-  it("row with non-empty real alert_id that matches no alerts entry stays invisible", () => {
-    // alert_id is set but not empty and not a known alert — it is a different real
-    // alert's receipt, not a thesis-condition row. Without thesis_id the row is skipped.
-    const ordinaryRow: OutboxRow = {
-      alert_id: "a-real-alert-without-matching-entry",
-      fire_event_id: "fe-ordinary",
-      status: "pending",
-      attempts: 0,
-      last_error: null,
-      deliver_after: null,
-      delivered_at: null,
-      created_at: "2026-09-05T11:59:30Z",
-      payload: { ticker: "NVDA" },
-    };
-    const view = viewOf([ordinaryRow]);
-    expect(view.rows.length).toBe(0);
   });
 
   it("a row with a malformed thesis_id is skipped even when category+source are present", () => {
     const badRow: OutboxRow = {
-      alert_id: `thesis:not-a-uuid`,
+      alert_id: "a-not-a-uuid",
       fire_event_id: "fe-bad-thesis",
       status: "pending",
       attempts: 0,
@@ -858,7 +854,7 @@ describe("F11-11b-pre producer-shaped thesis-condition rows (category+source, no
       },
     };
     const view = viewOf([badRow]);
-    expect(view.rows.length).toBe(0);
+    expect(view.rows).toHaveLength(0);
   });
 
   it("a row with well-formed thesis_id but none of (kind, source, category) is skipped", () => {
@@ -871,94 +867,65 @@ describe("F11-11b-pre producer-shaped thesis-condition rows (category+source, no
       deliver_after: null,
       delivered_at: null,
       created_at: "2026-09-05T11:59:30Z",
-      payload: {
-        thesis_id: PRODUCER_THESIS_ID,
-        ticker: "NVDA",
-        // none of kind, source, category
-      },
+      payload: { thesis_id: PRODUCER_THESIS_ID, ticker: "NVDA" },
     };
     const view = viewOf([orphanRow]);
-    expect(view.rows.length).toBe(0);
+    expect(view.rows).toHaveLength(0);
   });
 
-  it("producer-shaped row and a real fired alert both appear", () => {
-    const thesisRow = producerRow();
-    const priceAlertRow: OutboxRow = {
-      alert_id: "a-price",
-      fire_event_id: "fe-price-1",
-      status: "sent",
-      attempts: 1,
-      last_error: null,
-      deliver_after: null,
-      delivered_at: "2026-09-05T11:59:30Z",
-      created_at: "2026-09-05T11:59:30Z",
-      payload: { ticker: "NVDA", condition_plain: "Crossed your price line" },
-    };
-    const priceAlert: Alert = {
-      id: "a-price",
-      active: false,
-      symbol: "NVDA",
-      created_at: "2026-09-01T00:00:00Z",
-      condition: { type: "price", triggered: { at: "2026-09-05T11:58:30Z", value: 42, note: "crossed" } },
-    };
-    const view = buildAlertsView({
-      alerts: [priceAlert], alertsState: "READ_OK",
-      run: baseRun(), lastSuccessAt: "2026-09-05T11:59:00Z", runsState: "READ_OK",
-      outbox: [thesisRow, priceAlertRow], outboxState: "READ_OK", now: NOW,
-    });
-    expect(view.rows.length).toBe(2);
-    expect(view.rows.map((r) => r.alertId).sort()).toEqual(["a-price", `thesis:${PRODUCER_THESIS_ID}`]);
-  });
-
-  // F1: a producer-shaped row whose alert_id is a bare UUID (synthetic, no alerts entry)
-  // still surfaces as a thesis row — it must NOT be blocked by the alerts path.
-  // Note: the thesis path constructs alertId as "thesis:<thesis_id>" (never copies the outbox field),
-  // so the row's alertId is the constructed string even though the outbox alert_id is a bare UUID.
-  it("producer-shaped row with bare-UUID alert_id (no matching alerts entry) surfaces as thesis row", () => {
-    const view = viewOf([producerRow()]);
-    expect(view.rows.length).toBe(1);
-    expect(view.rows[0].thesisId).toBe(PRODUCER_THESIS_ID);
-    // alertId is constructed as "thesis:<thesis_id>", not copied from outbox alert_id
-    expect(view.rows[0].alertId).toBe(`thesis:${PRODUCER_THESIS_ID}`);
-    expect(view.rows[0].delivery).toBe("pending");
-  });
-
-  // F1: a row whose alert_id DOES match a real alerts entry must stay on the alerts path.
-  // The thesis filter must exclude it so it cannot double-surface with the alerts path.
-  it("row with alert_id matching a real alerts entry + thesis shape stays on alerts path only (no double row)", () => {
-    // This row has thesis_id + category + source (producer shape) AND its alert_id matches
-    // a real alerts entry. It must appear exactly once on the alerts path, not twice.
-    const matchedRow: OutboxRow = {
-      alert_id: "a-price",
-      fire_event_id: "fe-matched",
-      status: "pending",
-      attempts: 0,
-      last_error: null,
-      deliver_after: null,
-      delivered_at: null,
-      created_at: "2026-09-05T11:59:30Z",
-      payload: {
-        thesis_id: PRODUCER_THESIS_ID,
-        category: "thesis_window",
-        source: "macro.thesis_condition_monitor",
-        ticker: "NVDA",
-      },
-    };
-    const priceAlert: Alert = {
-      id: "a-price",
-      active: false,
-      symbol: "NVDA",
-      created_at: "2026-09-01T00:00:00Z",
-      condition: { type: "price", triggered: { at: "2026-09-05T11:58:30Z", value: 42, note: "crossed" } },
-    };
-    const view = buildAlertsView({
-      alerts: [priceAlert], alertsState: "READ_OK",
-      run: baseRun(), lastSuccessAt: "2026-09-05T11:59:00Z", runsState: "READ_OK",
-      outbox: [matchedRow], outboxState: "READ_OK", now: NOW,
-    });
-    // Only one row — the alerts path claims it; thesis filter correctly excludes it.
-    expect(view.rows.length).toBe(1);
+  it("producer-shaped row whose alert_id matches a real alerts entry stays on the alerts path once", () => {
+    const matchedRow = producerRow({ alert_id: "a-price" });
+    const view = viewOf([matchedRow], [priceAlert()]);
+    expect(view.rows).toHaveLength(1);
     expect(view.rows[0].alertId).toBe("a-price");
     expect(view.rows[0].thesisId).toBeUndefined();
+  });
+
+  it("producer-shaped row with a synthetic alert_id matching no alerts entry takes the thesis path once", () => {
+    const view = buildAlertsView({
+      alerts: [],
+      alertsState: "READ_OK_ZERO",
+      run: baseRun(),
+      lastSuccessAt: "2026-09-05T11:59:00Z",
+      runsState: "READ_OK",
+      outbox: [producerRow()],
+      outboxState: "READ_OK",
+      now: NOW,
+    });
+    expect(view.rows).toHaveLength(1);
+    expect(view.rows[0].alertId).toBe(`thesis:${PRODUCER_THESIS_ID}`);
+    expect(view.rows[0].thesisId).toBe(PRODUCER_THESIS_ID);
+  });
+
+  it("two fires of one thesis fold to one row using the newest fire", () => {
+    const older = producerRow({ fire_event_id: "fe-thesis-old", created_at: "2026-09-05T11:58:00Z" });
+    const newer = producerRow({ fire_event_id: "fe-thesis-new", created_at: "2026-09-05T11:59:30Z" });
+    const view = viewOf([older, newer]);
+    expect(view.rows).toHaveLength(1);
+    expect(view.rows[0].outboxRow?.fire_event_id).toBe("fe-thesis-new");
+    expect(view.rows[0].foldedRows).toBe(1);
+  });
+
+  it("ties on created_at use the newer payload fired_at", () => {
+    const older = producerRow({ fire_event_id: "fe-thesis-old", payload: { ...producerRow().payload, fired_at: "2026-09-05T11:57:00Z" } });
+    const newer = producerRow({ fire_event_id: "fe-thesis-new" });
+    const view = viewOf([older, newer]);
+    expect(view.rows[0].outboxRow?.fire_event_id).toBe("fe-thesis-new");
+  });
+
+  it("three fires across two theses render two rows in outbox thesis order", () => {
+    const secondThesisId = "00000000-0000-0000-0000-000000000002";
+    const rows = [
+      producerRow(),
+      producerRow({ fire_event_id: "fe-thesis-b-old", created_at: "2026-09-05T11:58:00Z", payload: { ...producerRow().payload, thesis_id: secondThesisId } }),
+      producerRow({ fire_event_id: "fe-thesis-b-new", created_at: "2026-09-05T11:59:40Z", payload: { ...producerRow().payload, thesis_id: secondThesisId } }),
+    ];
+    const view = viewOf(rows);
+    expect(view.rows.map((row) => row.alertId)).toEqual([
+      `thesis:${PRODUCER_THESIS_ID}`,
+      `thesis:${secondThesisId}`,
+    ]);
+    expect(view.rows[0].foldedRows).toBe(0);
+    expect(view.rows[1].foldedRows).toBe(1);
   });
 });

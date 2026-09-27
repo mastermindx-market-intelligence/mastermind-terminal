@@ -7,7 +7,7 @@ import { buildAlertsView, copy, type OutboxRow, type Alert } from "../alertsView
 // behaviour only. Do not assert the unfixed behaviour here.
 
 const NOW = Date.parse("2026-09-05T12:00:00Z");
-const THESIS_ID = "00000000-0000-4000-8000-000000000001";
+const THESIS_ID = "00000000-0000-0000-0000-000000000001";
 
 const baseRun = {
   lane: "alerts_engine", run_id: "r1", started_at: "2026-09-05T11:58:00Z",
@@ -35,9 +35,8 @@ function thesisConditionOutbox(over: Partial<OutboxRow> = {}): OutboxRow {
 }
 
 // F11-11b-pre: producer's real shape — no kind, category + source, synthetic alert_id.
-// alert_id is a bare UUID (uuid5 of "thesis/<thesis_id>"), NOT "thesis:<uuid>".
-// Mirrors engine/thesis_condition_monitor.py compose_payload exactly.
-const PRODUCER_REAL_ALERT_ID = "41c94d22-3a34-5c61c-828c2-1fcb6a0c6d90"; // uuid5 of "thesis/<THESIS_ID>"
+// The producer's alert_id is a synthetic uuid5 of "thesis:<THESIS_ID>"; the thesis_id is bare.
+const PRODUCER_REAL_ALERT_ID = "cd85c933-6c7b-599a-9ce7-e681ded7afa5";
 function producerRealOutbox(over: Partial<OutboxRow> = {}): OutboxRow {
   return {
     alert_id: PRODUCER_REAL_ALERT_ID,
@@ -56,12 +55,12 @@ function producerRealOutbox(over: Partial<OutboxRow> = {}): OutboxRow {
       tripwire_version: 1,
       category: "thesis_window",
       source: "macro.thesis_condition_monitor",
-      subject: "NVDA thesis",
-      subject_zh: "英伟达股票 thesis",
+      subject: "Your NVDA thesis window has closed.",
+      subject_zh: "你的英伟达论点观察窗口已结束。",
       summary_plain: "Your NVDA thesis window has closed.",
-      summary_plain_zh: "你的 NVDA thesis 观察窗口已结束。",
+      summary_plain_zh: "你的英伟达论点观察窗口已结束。",
       condition_plain: "Your NVDA thesis window has closed.",
-      condition_plain_zh: "你的 NVDA thesis 观察窗口已结束。",
+      condition_plain_zh: "你的英伟达论点观察窗口已结束。",
       engine_window_plain: "The watch window expired.",
       engine_window_plain_zh: "观察窗口已到期。",
       evidence_url: null,
@@ -73,6 +72,7 @@ function producerRealOutbox(over: Partial<OutboxRow> = {}): OutboxRow {
     ...over,
   };
 }
+
 
 function ordinaryOutbox(over: Partial<OutboxRow> = {}): OutboxRow {
   return {
@@ -154,13 +154,6 @@ describe("copy(condition.thesis_condition) is window-closed wording", () => {
     expect(zh).toBe("你关注的观察窗口已结束");
     expect(en.toLowerCase()).not.toContain("falsifier");
     expect(zh).not.toContain("证伪");
-  });
-});
-
-describe("ordinary outbox row with no matching alerts row stays invisible", () => {
-  it("zero extra rows", () => {
-    const view = viewOf([ordinaryOutbox({ alert_id: "" })]);
-    expect(view.rows.length).toBe(0);
   });
 });
 

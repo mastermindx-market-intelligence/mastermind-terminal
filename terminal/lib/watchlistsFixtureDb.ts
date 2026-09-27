@@ -19,6 +19,7 @@
 // The positions table is seeded EMPTY: a new book has nothing in it, and every spec that wants
 // rows creates them through the real route.
 
+import { createHash } from "node:crypto";
 import type { DbResult, DbRow, WatchlistDb, WatchlistQuery } from "@/lib/watchlists";
 
 export const FIXTURE_STORE_COOKIE = "mm_e2e_wl";
@@ -483,6 +484,18 @@ function thesisRpcResult(row: DbRow): Promise<DbResult> {
   });
 }
 
+export function uuid5ThesisAlertId(thesisId: string): string {
+  const namespace = "6f1e6cf4-6e9b-5f2a-9d0a-6d0f6a5b6c00";
+  const namespaceBytes = Buffer.from(namespace.replace(/-/g, ""), "hex");
+  const digest = createHash("sha1").update(namespaceBytes).update(`thesis:${thesisId}`, "utf8").digest();
+  digest[6] = (digest[6] & 0x0f) | 0x50;
+  digest[8] = (digest[8] & 0x3f) | 0x80;
+  const hex = digest.toString("hex");
+  return [
+    hex.slice(0, 8), hex.slice(8, 12), hex.slice(12, 16), hex.slice(16, 20), hex.slice(20, 32),
+  ].join("-").toLowerCase();
+}
+
 function thesisSubstance(value: unknown): unknown {
   if (!value || typeof value !== "object" || Array.isArray(value)) return value;
   const substance = { ...value as Record<string, unknown> };
@@ -561,12 +574,7 @@ function applyThesisVersionFixture(store: Store, args: Record<string, unknown>):
     store.theses.push(head);
     store.thesisVersions.push(version);
     if (store.monitorFires && store.alertOutbox.length === 0) {
-      // alert_id is a bare UUID (synthetic receipt). The real producer computes uuid5 of
-      // "thesis:<id>" using namespace 6f1e6cf4-6e9b-5f2a-9d0a-6d0f6a5b6c00. The exact bytes
-      // vary by JS runtime due to TextDecoder edge-cases, so a stable static UUID is used
-      // per fixture row — F1 permits any stable derivation as long as it is a bare UUID
-      // (not the "thesis:<id>" string form) and matches no real alerts entry.
-      const alertId = "2edd8ab5-9623-5ab3-8f96-3901d06c3d93";
+      const alertId = uuid5ThesisAlertId(id);
       store.alertOutbox.push({
         id: crypto.randomUUID(),
         user_id: userId,
@@ -585,17 +593,17 @@ function applyThesisVersionFixture(store: Store, args: Record<string, unknown>):
           tripwire_version: 1,
           category: "thesis_window",
           source: "macro.thesis_condition_monitor",
-          subject: "NVDA thesis",
-          subject_zh: "英伟达股票 thesis",
+          subject: "Your NVDA thesis window has closed.",
+          subject_zh: "你的英伟达论点观察窗口已结束。",
           summary_plain: "Your NVDA thesis window has closed.",
-          summary_plain_zh: "你的 NVDA thesis 观察窗口已结束。",
+          summary_plain_zh: "你的英伟达论点观察窗口已结束。",
           condition_plain: "Your NVDA thesis window has closed.",
-          condition_plain_zh: "你的 NVDA thesis 观察窗口已结束。",
+          condition_plain_zh: "你的英伟达论点观察窗口已结束。",
           engine_window_plain: "The watch window expired.",
           engine_window_plain_zh: "观察窗口已到期。",
           evidence_url: null,
           requires_tier: null,
-          coverage: null,
+          coverage: "full",
           ticker: "NVDA",
         },
         created_at: now,

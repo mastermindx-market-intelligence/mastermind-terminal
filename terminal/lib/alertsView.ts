@@ -66,11 +66,11 @@ export interface OutboxRow {
   };
 }
 
-/** True when thesis_id is a well-formed UUID (any version — monitor writes uuid5, test fixtures use uuid4). */
+/** True when thesis_id is any well-formed RFC 4122-shaped UUID, regardless of version. */
 function isWellFormedThesisId(value: unknown): value is string {
   if (typeof value !== "string") return false;
-  // Strict UUID regex — thesis_id is a bare UUID (monitor writes uuid5 of "thesis:<id>").
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+  // Any version is accepted because thesis_id comes from Postgres, not the synthetic alert_id.
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
 }
 
 // The evaluator (ingest/alerts_engine.py Supa.fire) stamps `triggered` as an OBJECT — {at, value,
@@ -345,6 +345,7 @@ export function buildAlertsView(input: {
     : monitorFor(input.run, input.runsState, input.now);
   const folded = foldOutbox(input.outbox ?? []);
   const alerts = input.alerts ?? [];
+  const alertIds = new Set(alerts.map((alert) => alert.id));
   // Only alerts that have actually FIRED get a delivery-timeline row — an alert that has never
   // fired has no delivery outcome and must not render one. "Fired" is decided in deliveryFor by
   // receipt existence (or, absent readable receipts, condition.triggered), never by the alert's
@@ -356,21 +357,15 @@ export function buildAlertsView(input: {
     .map(({ a, d }) => ({ alertId: a.id, delivery: d.delivery, foldedRows: d.foldedRows, outboxRow: d.outboxRow }));
 
   // MO-PAID-047 + F11-11b-pre: surface thesis-condition outbox rows written by macro's
-  // thesis-condition monitor as delivery rows. A row is a thesis-condition row when:
-  //   - payload.thesis_id is a well-formed UUID, AND
-  //   - (payload.kind === "thesis_condition" OR payload.source === "macro.thesis_condition_monitor"
-  //     OR payload.category === "thesis_window")
-  // A row is a thesis-condition row when:
-  //   - payload.thesis_id is a well-formed UUID, AND
-  //   - (payload.kind === "thesis_condition" OR payload.source === "macro.thesis_condition_monitor"
-  //     OR payload.category === "thesis_window")
-  // A row whose alert_id matches a real alerts entry stays on the alerts path only — the thesis
-  // path must not double-surface it. The producer's synthetic uuid5 alert_id matches no alerts entry,
-  // so such rows are free to take the thesis path.
-  const thesisRows: AlertRowView[] = (input.outbox ?? [])
+  // thesis-condition monitor as delivery rows. A row is a thesis-condition row when
+  // payload.thesis_id is a well-formed UUID AND any of payload.kind, payload.source, or
+  // payload.category identifies it as a thesis condition. A row whose alert_id matches a real
+  // alerts entry stays on the alerts path only; null, empty, and unmatched synthetic ids take
+  // the thesis path.
+  const thesisOutboxRows = (input.outbox ?? [])
     .filter((o) => {
       if (!isWellFormedThesisId(o.payload?.thesis_id)) return false;
-      if (alerts.some((a) => a.id === o.alert_id)) return false;
+      if (o.alert_id && alertIds.has(o.alert_id)) return false;
       const kind = o.payload?.kind;
       const source = o.payload?.source;
       const category = o.payload?.category;
@@ -379,20 +374,33 @@ export function buildAlertsView(input: {
       if (category === "thesis_window") return true;
       return false;
     })
-    .map((o) => {
-      const status = o.status as string;
-      // Same mapping as deliveryFor's alerts path (status === "sent" && delivered_at == null
-      // → "pending"; otherwise KNOWN_DELIVERY[status] ?? "unconfirmed").
-      const delivery: DeliveryState =
-        status === "sent" && o.delivered_at == null ? "pending" : (KNOWN_DELIVERY[status] ?? "unconfirmed");
-      return {
-        alertId: `thesis:${o.payload.thesis_id}`,
-        thesisId: o.payload.thesis_id,
-        delivery,
-        foldedRows: 0,
-        outboxRow: o,
-      };
+    .reduce((groups, row) => {
+      const thesisId = row.payload.thesis_id as string;
+      const group = groups.get(thesisId) ?? { rows: [] };
+      group.rows.push(row);
+      groups.set(thesisId, group);
+      return groups;
+    }, new Map<string, { rows: OutboxRow[] }>());
+  const thesisRows: AlertRowView[] = [...thesisOutboxRows].map(([thesisId, group]) => {
+    const newest = group.rows.reduce((left, right) => {
+      const leftTime = Date.parse(left.created_at);
+      const rightTime = Date.parse(right.created_at);
+      if (rightTime !== leftTime) return rightTime > leftTime ? right : left;
+      return Date.parse(right.payload.fired_at ?? "") > Date.parse(left.payload.fired_at ?? "") ? right : left;
     });
+    const status = newest.status as string;
+    // Same mapping as deliveryFor's alerts path (status === "sent" && delivered_at == null
+    // → "pending"; otherwise KNOWN_DELIVERY[status] ?? "unconfirmed").
+    const delivery: DeliveryState =
+      status === "sent" && newest.delivered_at == null ? "pending" : (KNOWN_DELIVERY[status] ?? "unconfirmed");
+    return {
+      alertId: `thesis:${thesisId}`,
+      thesisId,
+      delivery,
+      foldedRows: group.rows.length - 1,
+      outboxRow: newest,
+    };
+  });
 
   // `input.alertsState` is the frozen four-state read vocabulary (§5), decided by the caller —
   // this view model never invents READ_NO_COVERAGE from a fabricated signal, it only ever

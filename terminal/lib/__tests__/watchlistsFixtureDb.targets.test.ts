@@ -4,6 +4,8 @@ import {
   fixtureStore,
   fixtureUserId,
   resetFixtureStores,
+  uuid5ThesisAlertId,
+  FIXTURE_MONITOR_FIRED_TOKEN,
 } from "@/lib/watchlistsFixtureDb";
 
 // Heal round h3 REQUIRED 6: the upsert branch used to push the already-stored row onto `accepted`
@@ -14,6 +16,40 @@ const owner = fixtureUserId(KEY);
 const db = () => createFixtureDb(KEY);
 
 beforeEach(() => resetFixtureStores());
+
+describe("fixture thesis monitor outbox", () => {
+  it("seeds the producer's UUIDv5 alert id and payload contract", async () => {
+    const vectorThesisId = "00000000-0000-0000-0000-000000000001";
+    expect(uuid5ThesisAlertId(vectorThesisId)).toBe("cd85c933-6c7b-599a-9ce7-e681ded7afa5");
+
+    const key = `${FIXTURE_MONITOR_FIRED_TOKEN}-vector`;
+    const db = createFixtureDb(key);
+    const result = await db.rpc("apply_thesis_version_v1", {
+      p_thesis_id: null,
+      p_expected_version: 0,
+      p_transition: "create",
+      p_subject_ref: { schema: "mastermind.thesis-subject-ref/v1", kind: "issuer", owner: "terminal.analysis_symbol", key: "NVDA", display: "NVDA" },
+      p_content: { schema: "mastermind.thesis-content/v1", title: "closed window", statement: "s" },
+      p_client_request_id: "req-monitor-vector",
+      p_effective_at: null,
+    });
+    const thesisId = String(Array.isArray(result.data) ? result.data?.[0]?.thesis_id : null);
+    const row = fixtureStore(key).alertOutbox[0];
+    expect(row.alert_id).toBe(uuid5ThesisAlertId(thesisId));
+    expect(row.payload).toMatchObject({
+      thesis_id: thesisId,
+      thesis_version: 1,
+      category: "thesis_window",
+      source: "macro.thesis_condition_monitor",
+      subject: "Your NVDA thesis window has closed.",
+      subject_zh: "你的英伟达论点观察窗口已结束。",
+      summary_plain: "Your NVDA thesis window has closed.",
+      summary_plain_zh: "你的英伟达论点观察窗口已结束。",
+      coverage: "full",
+    });
+    expect(row.payload).not.toHaveProperty("kind");
+  });
+});
 
 describe("fixture portfolio_targets upsert", () => {
   it("a clashing upsert stores one row, not two", async () => {
