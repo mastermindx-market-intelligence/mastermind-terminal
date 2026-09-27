@@ -361,7 +361,7 @@ export function buildAlertsView(input: {
   //   - (payload.kind === "thesis_condition" OR payload.source === "macro.thesis_condition_monitor"
   //     OR payload.category === "thesis_window")
   // Such a row takes the thesis path regardless of alert_id being the producer's synthetic
-  // uuid5 (a synthetic alert_id has no matching alerts entry — routing is handled above).
+  // uuid5 of "thesis:<id>" (a bare UUID that matches no alerts entry — routing is handled above).
   // Rows whose alert_id matches a real alerts entry stay on the alerts path (deliveryFor).
   const thesisRows: AlertRowView[] = (input.outbox ?? [])
     .filter((o) => {

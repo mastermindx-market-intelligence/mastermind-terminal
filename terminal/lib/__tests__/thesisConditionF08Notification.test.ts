@@ -35,10 +35,12 @@ function thesisConditionOutbox(over: Partial<OutboxRow> = {}): OutboxRow {
 }
 
 // F11-11b-pre: producer's real shape — no kind, category + source, synthetic alert_id.
+// alert_id is a bare UUID (uuid5 of "thesis/<thesis_id>"), NOT "thesis:<uuid>".
 // Mirrors engine/thesis_condition_monitor.py compose_payload exactly.
+const PRODUCER_REAL_ALERT_ID = "41c94d22-3a34-5c61c-828c2-1fcb6a0c6d90"; // uuid5 of "thesis/<THESIS_ID>"
 function producerRealOutbox(over: Partial<OutboxRow> = {}): OutboxRow {
   return {
-    alert_id: `thesis:${THESIS_ID}`,
+    alert_id: PRODUCER_REAL_ALERT_ID,
     fire_event_id: "fe-thesis-real",
     status: "pending",
     attempts: 0,

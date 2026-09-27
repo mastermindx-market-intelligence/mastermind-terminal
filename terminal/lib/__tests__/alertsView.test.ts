@@ -754,9 +754,11 @@ describe("F11-11b-pre producer-shaped thesis-condition rows (category+source, no
   const PRODUCER_THESIS_ID = "00000000-0000-4000-8000-000000000001";
 
   // Row shape matching the real producer's compose_payload() output exactly.
+  // alert_id is a bare UUID (uuid5 of "thesis/<thesis_id>"), NOT "thesis:<uuid>".
+  const PRODUCER_ALERT_ID = "41c94d22-3a34-5c61c-828c2-1fcb6a0c6d90"; // uuid5 of "thesis/<PRODUCER_THESIS_ID>"
   function producerRow(over: Partial<OutboxRow> = {}): OutboxRow {
     return {
-      alert_id: `thesis:${PRODUCER_THESIS_ID}`,
+      alert_id: PRODUCER_ALERT_ID,
       fire_event_id: "fe-thesis-1",
       status: "pending",
       attempts: 0,
@@ -906,5 +908,51 @@ describe("F11-11b-pre producer-shaped thesis-condition rows (category+source, no
     });
     expect(view.rows.length).toBe(2);
     expect(view.rows.map((r) => r.alertId).sort()).toEqual(["a-price", `thesis:${PRODUCER_THESIS_ID}`]);
+  });
+
+  // F1: a producer-shaped row whose alert_id is a bare UUID (synthetic, no alerts entry)
+  // still surfaces as a thesis row — it must NOT be blocked by the alerts path.
+  // Note: the thesis path constructs alertId as "thesis:<thesis_id>" (never copies the outbox field),
+  // so the row's alertId is the constructed string even though the outbox alert_id is a bare UUID.
+  it("producer-shaped row with bare-UUID alert_id (no matching alerts entry) surfaces as thesis row", () => {
+    const view = viewOf([producerRow()]);
+    expect(view.rows.length).toBe(1);
+    expect(view.rows[0].thesisId).toBe(PRODUCER_THESIS_ID);
+    // alertId is constructed as "thesis:<thesis_id>", not copied from outbox alert_id
+    expect(view.rows[0].alertId).toBe(`thesis:${PRODUCER_THESIS_ID}`);
+    expect(view.rows[0].delivery).toBe("pending");
+  });
+
+  // F1: a row whose alert_id DOES match a real alerts entry must stay on the alerts path.
+  // The thesis filter sees the same outbox row, but deliveryFor must claim it first — no double row.
+  it("row with alert_id matching a real alerts entry stays on alerts path (no double row)", () => {
+    // Use the same alert_id as the real fired price alert; the outbox row has no thesis_id so
+    // it cannot accidentally enter the thesis path. This proves the routing is exclusive.
+    const matchedRow: OutboxRow = {
+      alert_id: "a-price",
+      fire_event_id: "fe-matched",
+      status: "pending",
+      attempts: 0,
+      last_error: null,
+      deliver_after: null,
+      delivered_at: null,
+      created_at: "2026-09-05T11:59:30Z",
+      payload: { ticker: "NVDA", condition_plain: "Crossed your price line" },
+    };
+    const priceAlert: Alert = {
+      id: "a-price",
+      active: false,
+      symbol: "NVDA",
+      created_at: "2026-09-01T00:00:00Z",
+      condition: { type: "price", triggered: { at: "2026-09-05T11:58:30Z", value: 42, note: "crossed" } },
+    };
+    const view = buildAlertsView({
+      alerts: [priceAlert], alertsState: "READ_OK",
+      run: baseRun(), lastSuccessAt: "2026-09-05T11:59:00Z", runsState: "READ_OK",
+      outbox: [matchedRow], outboxState: "READ_OK", now: NOW,
+    });
+    // Only one row — deliveryFor's alerts path, not doubled with thesis path.
+    expect(view.rows.length).toBe(1);
+    expect(view.rows[0].alertId).toBe("a-price");
   });
 });
