@@ -192,6 +192,7 @@ export default function SectorIntelligenceWorkspace() {
 
   return <main ref={rootElement} className={`main2 ${styles.root}`} data-testid="sector-intelligence" data-sector-theme={state.theme} data-sector-workspace={state.workspace}>
     <SectorGroupBrowser open={groupBrowserOpen} groups={groups} selected={state.group}
+      sourceSectorName={text(sector.name) || null} sectorLabel={sectorName} asOf={feeds.confluence?.receipt.asOf || null}
       status={feeds.confluence?.receipt.status || "loading"} theme={state.theme}
       onClose={() => setGroupBrowserOpen(false)} onReviewSources={() => { setGroupBrowserOpen(false); window.requestAnimationFrame(() => openSources()); }}
       onSelect={group => {

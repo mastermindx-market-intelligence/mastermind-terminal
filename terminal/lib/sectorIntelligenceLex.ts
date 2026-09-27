@@ -6,6 +6,14 @@ import { useLang, useT } from "./i18n";
  * route and preserves unrelated screen evidence. No mutable registration/store.
  */
 export const SECTOR_INTELLIGENCE_LEX: Record<string, [string, string]> = {
+  siGroupScope: ["Group classification scope", "分组分类范围"],
+  siAllSourceGroups: ["All source groups", "全部来源分组"],
+  siBrowseAllGroups: ["Browse all groups", "浏览全部分组"],
+  siGroupClassificationBasis: ["Source sector classification—not fund holdings or business exposure.", "按来源板块分类，不代表基金持仓或业务敞口。"],
+  siSelectedOtherSector: ["Selected group belongs to a different source sector.", "所选分组属于另一来源板块。"],
+  siSelectedUnclassified: ["The source does not identify this selection as a subgroup of this sector.", "来源未将当前选择归类为此板块的子分组。"],
+  siClassificationUnknown: ["Sector classification unavailable", "板块分类不可用"],
+  siNoExactSectorGroups: ["No exact source classification matches this sector. Other group names may use a different classification.", "没有与此板块精确匹配的来源分类，其他分组名称可能采用不同分类。"],
   siDiscoverSectors: ["Discover", "发现"], siMarketBreadth: ["Market breadth", "市场广度"],
   siSectorResearch: ["Sector research", "板块研究"], siWorkspaceViews: ["Sector workspace views", "板块工作区视图"],
   siSignals: ["Signals", "信号"], siDrivers: ["Drivers", "驱动因素"], siHistory: ["History", "历史"],
