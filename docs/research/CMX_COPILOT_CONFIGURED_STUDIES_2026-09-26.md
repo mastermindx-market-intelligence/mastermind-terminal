@@ -115,3 +115,35 @@ Next: the incumbent backend writer must be reconciled and consume the target con
 
 FINALIZATION_CLASSIFICATION at verified publication: CHECKPOINTED_CONTINUATION.
 MISSION_COMPLETE: false. EFFECT_UNKNOWN: none for this turn's observed Terminal effects; the refused write was pre-dispatch/EFFECT_NONE. Concurrent backend custody remains unresolved and is not transferred by this checkpoint. Resume in the current Pro surface for source-owner reconciliation and independent feature work; do not use a mode/carrier change to bypass a refused action.
+
+
+## Continuation — visible chart-action results (2026-09-26, New York)
+
+Status: newly authored source; local tests, TypeScript, browser, model and visual qualification remain deferred by Chairman direction. Persistence/source inspection is not execution proof. No merge/deployment or feature acceptance is claimed.
+
+### Bounded capability and existing owners
+
+The ChartConductor now consumes local refusal notifications through the existing CommandQueue step/lifecycle channel. Previously a v2 envelope, target or translation refusal could generate an ACK but never enter the animation queue, leaving no on-chart explanation. `reportRejection` emits a refusal notification without enqueueing an action or running a chart setter. It is not a retry, extra command, backend ACK, receipt store or additional controller. `unknown` is an observation-only label for a rejected malformed op, never an admitted wire operation.
+
+The receiver forwards the same bounded error codes into both pre-queue and queued feedback. User-facing explanations are fixed EN/ZH copy, not raw exception strings or failed-command captions. A failure opens the existing action rail and updates the caption. Rejected events carry no success-fit chip or cursor animation. A throwing context/indicator/range setter is shown as **unconfirmed**, because it may have begun a change; no unchanged-chart assertion or automatic retry is added. The backend's existing ACK contract is unchanged by these local UI distinctions.
+
+The summary counts accepted, rejected and unconfirmed actions separately. Scene markers are not counted as mutations. The actual current AI-object count remains distinct and zero remains zero after a clear; it is never replaced with a previous drawn-object tally. Adjacent notifications inside the existing 1.2-second settle window remain one visible sequence so a later success does not erase an immediately preceding refusal. These are local sequence counts, not a new durable per-Brain-turn action ledger.
+
+Operation-specific fallback text distinguishes symbol switches, timeframe switches, study edits, range edits, clear and undo. The existing animation bypass now says **Skip animations**, including its accessible label; it is not a cancellation control. Existing classes, colors, token owners, overlay layout and motion timings are reused. The rail exposes explicit text outcomes and polite screen-reader updates.
+
+### Source/custody reconciliation
+
+This unit starts on Terminal `867af1c91850e4a8078df9ede1c44bdbbba20c79`. Its preceding concurrent test-source work became both local and remote with a clean tracked/index state; it is preserved, not attributed to this session or rerun. No matching cwd process was found in the bounded host observation. Product file preimages and local/remote HEAD are fenced before mutation/publication. Scope pickup: #757 comment 5851371231. No STARTed delegated child or source lease is displaced by a new dispatch; no new worker was submitted.
+
+Macro independently published target-production source at `99d363a3d4b99cfc58812cc7c06b51a2d39a5130`. That is a source-identity observation, not a reviewed compatibility result. This turn's compound read of that new target diff and native numerical-observation sources was blocked before dispatch; it was not retried, split or routed elsewhere. EFFECT_NONE for that read. The backend and native-observation lanes were left unchanged while this separate ChartConductor capability advanced. Earlier denied source actions and unresolved producer/receiver/selector qualifications remain held; a new commit title does not settle them.
+
+### Deferred acceptance additions — specifications only
+
+1. A first-command validation/unknown-op/target/translation refusal opens the existing rail, emits exactly one refusal notification and retains exactly one canonical ACK. It must enqueue no action and call no setter.
+2. A queued target rejection and reducer refusal show their fixed reason without a successful model caption, fit chip or cursor pulse. An unsupported local error string remains generic and cannot become HTML or privileged instructions.
+3. All-rejected, all-accepted, mixed and setter-unconfirmed sequences settle honestly. A clear that leaves zero objects must report zero even after preceding draws; scene-only traffic must not claim chart edits.
+4. Follow-on work inside the settle window preserves earlier outcomes; a genuinely new visible sequence after the completed window resets them. Notification callbacks must not alter execution order, pacing, ACK timing or command counts.
+5. Context, indicator and range setter throws are unconfirmed, not proven no-effect. No automatic retry or hidden retarget follows.
+6. EN/ZH × dark/light × desktop/tablet/mobile, reduced motion, long failure text, rail auto-open/manual close, keyboard/screen reader and Skip animations behavior require actual browser/visual proof. Existing CSS reuse does not constitute that proof.
+
+Finish exact targeting and full-native numerical observation qualification through their incumbent owners, then execute the deferred combined validation before release. Do not substitute this action-feedback feature or historical ancestor tests for those outcomes.

@@ -11,7 +11,7 @@
 // one reducer, no timers of its own (the view owns the 1.2s done-delay + the 650ms pace and feeds a
 // "drain"/"doneTimer" event when they fire). Determinism here is what makes the whole overlay testable.
 
-import type { ChartOp, QueueStep, Fit } from "@/lib/chartBus";
+import type { QueueStep, Fit } from "@/lib/chartBus";
 import type { Lang } from "@/lib/i18n";
 
 // ── phases ──────────────────────────────────────────────────────────────────────────────────────
@@ -26,11 +26,12 @@ export type Phase = "idle" | "summoned" | "thinking" | "acting" | "done";
 export type OpFamily = "chart" | "line" | "zone" | "fib" | "label" | "ai" | "scene";
 export type RailRow = {
   seq: number;      // monotonic per-session index (rail key + ordering)
-  op: ChartOp;
+  op: QueueStep["op"];
   family: OpFamily;
   caption: string;  // resolved caption (model caption, or the plain per-family fallback)
   fit?: Fit;        // {touches, max_dev_atr} — shown as a mono chip, raw numbers only
   ok: boolean;
+  error?: string; // bounded machine code, never arbitrary exception prose
 };
 
 export type ConductorState = {
@@ -52,8 +53,9 @@ export const initialConductorState = (): ConductorState => ({
 // ── op family classification ──────────────────────────────────────────────────────────────────
 // Maps a chartBus op to its rail-icon family. Kept exhaustive over the op vocabulary so a new op
 // surfaces here as a compile prompt rather than silently defaulting.
-export function opFamily(op: ChartOp): OpFamily {
+export function opFamily(op: QueueStep["op"]): OpFamily {
   switch (op) {
+    case "unknown":
     case "chart.set_symbol":
     case "chart.set_tf":
     case "chart.set_indicators":
@@ -97,18 +99,93 @@ const FAMILY_FALLBACK: Record<OpFamily, [string, string]> = {
   scene: ["Setting the scene", "布置场景"],
 };
 
-export function captionFor(step: Pick<QueueStep, "op" | "caption">, lang: Lang): string {
+export type StepOutcome = "accepted" | "rejected" | "unconfirmed";
+
+function errorCode(value: unknown): string | undefined {
+  return typeof value === "string" && /^[a-z][a-z0-9_]{0,79}$/.test(value) ? value : undefined;
+}
+
+/** A throwing setter may already have changed the chart; never label it a no-effect refusal. */
+export function stepOutcome(step: Pick<QueueStep, "ok" | "error">): StepOutcome {
+  if (step.ok) return "accepted";
+  return errorCode(step.error)?.endsWith("_application_failed") ? "unconfirmed" : "rejected";
+}
+
+export function outcomeLabel(outcome: StepOutcome, lang: Lang): string {
+  const labels: Record<StepOutcome, [string, string]> = {
+    accepted: ["Accepted", "已接受"], rejected: ["Not applied", "未执行"],
+    unconfirmed: ["Unconfirmed", "结果未确认"],
+  };
+  return labels[outcome][lang === "zh" ? 1 : 0];
+}
+
+/** Fixed product copy only: client captions/errors cannot impersonate a successful action. */
+export function rejectionCaption(error: unknown, lang: Lang): string {
+  const code = errorCode(error);
+  const pair: [string, string] = code?.endsWith("_application_failed")
+    ? ["Could not confirm the change. Inspect the chart before trying again.", "无法确认更改结果。请先检查图表，再决定是否重试。"]
+    : code === "command_target_transition_pending"
+      ? ["The chart is still switching. Read it again before sending this action.", "图表仍在切换。请重新读取图表后再发出此操作。"]
+    : code?.startsWith("command_target_") && code.endsWith("_mismatch")
+      ? ["The chart changed. This action was not applied to the new view.", "图表已改变。此操作未在新视图中执行。"]
+    : code === "command_target_required" || code === "command_target_unavailable" || code === "bad_command_target"
+      ? ["The intended chart could not be confirmed. Reconnect and read the chart first.", "无法确认目标图表。请先重新连接并读取图表。"]
+    : code === "command_receiver_unmounted"
+      ? ["The chart was closed before this action could run.", "图表已关闭，此操作未执行。"]
+    : code === "unknown_ai_object"
+      ? ["An AI mark in this selection is no longer present. Refresh the selection.", "所选 AI 标注已不存在。请更新选择。"]
+    : code === "object_cap_exceeded" || code === "batch_cap_exceeded"
+      ? ["The chart's annotation limit was reached. Use fewer AI marks.", "已达到图表标注上限。请减少 AI 标注数量。"]
+    : code?.includes("indicator") || code?.includes("native_setting") || code === "bad_native_params"
+      ? ["The requested study edit is not supported or has invalid settings.", "不支持此指标编辑，或参数无效。"]
+    : code === "bad_range"
+      ? ["The requested chart range is invalid. Choose a valid start and end.", "请求的图表范围无效。请选择有效的起止时间。"]
+    : ["This chart action was rejected. Read the chart before changing the request.", "图表拒绝了此操作。请先读取图表，再修改请求。"];
+  return pair[lang === "zh" ? 1 : 0];
+}
+
+export function captionFor(
+  step: Pick<QueueStep, "op" | "caption"> & Partial<Pick<QueueStep, "ok" | "error">>, lang: Lang,
+): string {
+  if (step.ok === false) return rejectionCaption(step.error, lang);
   const c = (step.caption ?? "").trim();
-  if (c) return c; // model caption — already language-matched, shown as-is
-  const fam = opFamily(step.op);
-  const pair = FAMILY_FALLBACK[fam];
-  return lang === "zh" ? pair[1] : pair[0];
+  if (c) return c;
+  // The old family fallback called every chart command a timeframe change and every
+  // AI command a clear. Describe the actual op without inventing a symbol or value.
+  const specific: Partial<Record<QueueStep["op"], [string, string]>> = {
+    "chart.set_symbol": ["Changing the chart symbol", "切换图表标的"],
+    "chart.set_tf": ["Setting the timeframe", "调整时间周期"],
+    "chart.set_indicators": ["Updating chart studies", "更新图表指标"],
+    "chart.set_range": ["Adjusting the chart view", "调整图表视图"],
+    "ai.clear": ["Removing AI marks", "移除 AI 标注"],
+    "ai.undo": ["Reverting the latest AI drawing group", "撤回最近一组 AI 绘图"],
+    unknown: ["Unsupported chart action", "不支持的图表操作"],
+  };
+  const pair = specific[step.op] ?? FAMILY_FALLBACK[opFamily(step.op)];
+  return pair[lang === "zh" ? 1 : 0];
+}
+
+/** Counts command results, not pixels. Zero live marks must remain zero after a clear. */
+export function conductorSummary(state: Pick<ConductorState, "rows">, count: number, lang: Lang): string {
+  const totals: Record<StepOutcome, number> = { accepted: 0, rejected: 0, unconfirmed: 0 };
+  for (const row of state.rows) {
+    if (row.ok && opFamily(row.op) === "scene") continue; // scene markers are not chart mutations
+    totals[stepOutcome(row)] += 1;
+  }
+  const parts: string[] = [];
+  if (totals.accepted) parts.push(lang === "zh" ? `${totals.accepted} 项已接受` : `${totals.accepted} accepted`);
+  if (totals.rejected) parts.push(lang === "zh" ? `${totals.rejected} 项未执行` : `${totals.rejected} not applied`);
+  if (totals.unconfirmed) parts.push(lang === "zh" ? `${totals.unconfirmed} 项结果未确认` : `${totals.unconfirmed} unconfirmed`);
+  const marks = Number.isFinite(count) ? Math.max(0, Math.floor(count)) : null;
+  if (!parts.length) parts.push(lang === "zh" ? "无图表操作" : "No chart actions");
+  if (marks !== null) parts.push(lang === "zh" ? `${marks} 个 AI 标注` : `${marks} AI marks`);
+  return parts.join(" · ");
 }
 
 // Whether an applied step counts toward the done "N on chart" tally + the acting pulse. Draw ops that
 // put an object on the chart count; chart.* view changes and scene markers do not (nothing is "on
 // chart" from them), and rejects (ok:false) never count. ai.clear/undo are not additive either.
-export function isChartObjectOp(op: ChartOp): boolean {
+export function isChartObjectOp(op: QueueStep["op"]): boolean {
   return opFamily(op) === "line" || opFamily(op) === "zone" || opFamily(op) === "fib" || opFamily(op) === "label";
 }
 
@@ -123,9 +200,9 @@ export type ConductorEvent =
 export function conductorReducer(s: ConductorState, ev: ConductorEvent): ConductorState {
   switch (ev.type) {
     case "start": {
-      // A fresh session always starts from a clean slate — a previous session's done-state is cleared
-      // the instant new work arrives (spec: "If the rail is open it stays until closed" is a VIEW
-      // concern; the machine's rows reset so the new session's rail is its own).
+      // Follow-on notifications inside the existing settle window belong to the same
+      // visible sequence. Do not erase an immediate rejection when the next command arrives.
+      if (s.phase !== "idle" && s.phase !== "done") return { ...s, phase: "thinking" };
       return { phase: "summoned", caption: "", rows: [], applied: 0, captionSwapKey: s.captionSwapKey + 1 };
     }
     case "step": {
@@ -136,15 +213,17 @@ export function conductorReducer(s: ConductorState, ev: ConductorEvent): Conduct
         op: step.op,
         family: opFamily(step.op),
         caption,
-        fit: step.fit,
+        fit: step.ok ? step.fit : undefined,
         ok: step.ok,
+        error: errorCode(step.error),
       };
       const applied = s.applied + (step.ok && isChartObjectOp(step.op) ? 1 : 0);
       // An applied step lands the orb in "acting"; a rejected step doesn't pulse but is still logged.
       const phase: Phase = step.ok ? "acting" : (s.phase === "idle" ? "summoned" : s.phase);
-      // Only advance the caption for an ok step — a reject shouldn't blank the last good caption.
-      const nextCaption = step.ok ? caption : s.caption;
-      const swap = step.ok && caption !== s.caption ? s.captionSwapKey + 1 : s.captionSwapKey;
+      // A refusal must be visible even when no action succeeded. Its fixed reason replaces
+      // a model caption that might incorrectly say the rejected edit was already done.
+      const nextCaption = caption;
+      const swap = caption !== s.caption ? s.captionSwapKey + 1 : s.captionSwapKey;
       return { phase, caption: nextCaption, rows: [...s.rows, row], applied, captionSwapKey: swap };
     }
     case "drain": {

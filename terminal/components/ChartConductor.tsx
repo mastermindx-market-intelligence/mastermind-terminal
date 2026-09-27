@@ -16,7 +16,7 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import type { CommandQueue, QueueStep } from "@/lib/chartBus";
 import {
-  conductorReducer, initialConductorState, opFamily, type OpFamily,
+  conductorReducer, initialConductorState, conductorSummary, stepOutcome, outcomeLabel, type OpFamily,
   PACE_MS, DONE_SETTLE_MS, DONE_WINDOW_MS, ORB_LINGER_MS,
 } from "@/lib/conductorState";
 import { getActivePaneCoords } from "@/lib/paneCoords";
@@ -75,9 +75,6 @@ export default function ChartConductor({ queue, count }: ChartConductorProps) {
     for (const r of [settleTimer, windowTimer, lingerTimer]) { if (r.current) { clearTimeout(r.current); r.current = null; } }
   }, []);
 
-  // Keep a live handle on the latest count so the drain handler reads the true on-chart total.
-  const countRef = useRef(count); countRef.current = count;
-
   // ── the <html data-cmx-anim> flag ChartPanel's shape() reads to gate stroke animations ──
   const setAnimFlag = useCallback((on: boolean) => {
     if (typeof document === "undefined") return;
@@ -125,6 +122,7 @@ export default function ChartConductor({ queue, count }: ChartConductorProps) {
     });
     const offStep = queue.on((step) => {
       dispatch({ type: "step", step, lang: langRef.current });
+      if (!step.ok) setRailOpen(true); // a refused edit must not vanish behind a closed rail
       if (step.ok) { setPulseKey((k) => k + 1); setPulsing(true); glideCursor(step); }
     });
     const offDrain = queue.onDrain(() => {
@@ -197,9 +195,12 @@ export default function ChartConductor({ queue, count }: ChartConductorProps) {
   }, [queue, setAnimFlag]);
 
   const doneLine = useMemo(
-    () => t("cmxDone").replace("{n}", String(countRef.current || state.applied)),
-    [t, state.phase, state.applied],
+    () => conductorSummary(state, count, lang),
+    [state.rows, count, lang],
   );
+  const receiptNote = lang === "zh"
+    ? "此处记录图表命令结果；并非图像渲染或分析正确性的证明。"
+    : "These are chart-command results, not proof of rendered pixels or analytical correctness.";
   // plate copy: the current caption, or the done line while in done phase.
   const plateText = state.phase === "done" ? doneLine : state.caption;
   const plateShow = active && (!!plateText || state.phase === "done");
@@ -248,8 +249,8 @@ export default function ChartConductor({ queue, count }: ChartConductorProps) {
             <span className="cmx-cap" key={state.captionSwapKey}>{plateText}</span>
           </span>
           <span className="cmx-plate-ctl">
-            <button type="button" className="cmx-btn cmx-skip" onClick={skip} title={t("cmxSkipAnim")} aria-label={t("cmxSkip")}>
-              <span className="chv" aria-hidden="true">»</span>{t("cmxSkip")}
+            <button type="button" className="cmx-btn cmx-skip" onClick={skip} title={t("cmxSkipAnim")} aria-label={t("cmxSkipAnim")}>
+              <span className="chv" aria-hidden="true">»</span>{t("cmxSkipAnim")}
             </button>
             <button
               type="button"
@@ -268,18 +269,18 @@ export default function ChartConductor({ queue, count }: ChartConductorProps) {
       {/* Step rail — thinking in full view. Stays openable while the orb lingers or rows remain from a
           just-finished session, so a rail opened after the sequence still shows what was drawn. */}
       {railOpen && (orbVisible || state.rows.length > 0) && (
-        <div className={`cmx-rail${dockCls}`} role="log" aria-label={t("cmxLiveSteps")}>
+        <div className={`cmx-rail${dockCls}`} role="log" aria-label={t("cmxLiveSteps")} aria-live="polite" aria-relevant="additions text" title={receiptNote}>
           <div className="cmx-rail-hd">
             <span className="dot" aria-hidden="true" />
-            {t("cmxLiveSteps")}
+            {lang === "zh" ? "图表操作" : "Chart actions"}
             <span className="n">{state.rows.length}</span>
           </div>
           <div className="cmx-rail-body" ref={railBodyRef}>
             {state.rows.map((r) => (
-              <div className={`cmx-row${r.ok ? "" : " rej"}`} key={r.seq}>
+              <div className={`cmx-row${r.ok ? "" : " rej"}`} key={r.seq} data-outcome={stepOutcome(r)}>
                 <span className="ico" aria-hidden="true">{FAMILY_ICON[r.family] ?? FAMILY_ICON.line}</span>
-                <span className="cap">{r.caption}</span>
-                {r.fit && (
+                <span className="cap">{outcomeLabel(stepOutcome(r), lang)}: {r.caption}</span>
+                {r.ok && r.fit && (
                   <span className="fit">{r.fit.touches} touches · {r.fit.max_dev_atr} ATR</span>
                 )}
               </div>

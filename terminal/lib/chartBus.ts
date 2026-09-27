@@ -679,7 +679,8 @@ export function fitMetrics(obj: { kind: string; points: Pt[] }, bars: FitBar[]):
 // for the object that step produced (populated by the dispatch job, which owns the bar series).
 // `anchor` (epoch-seconds t + price p of the object's FIRST point) rides the step so W3's ghost cursor
 // can glide to the exact pane pixel via the DrawLayer transform — the step is otherwise geometry-free.
-export type QueueStep = { op: ChartOp; id: string | null; caption?: string; ok: boolean; fit?: Fit; anchor?: { t: number; p: number } };
+// "unknown" describes a rejected local input in the UI only; it is NOT an accepted wire op.
+export type QueueStep = { op: ChartOp | "unknown"; id: string | null; caption?: string; ok: boolean; error?: string; fit?: Fit; anchor?: { t: number; p: number } };
 export type StepListener = (step: QueueStep) => void;
 export type LifecycleListener = () => void;
 
@@ -714,6 +715,16 @@ export class CommandQueue {
   onDrain(fn: LifecycleListener): () => void {
     this.drainListeners.add(fn);
     return () => this.drainListeners.delete(fn);
+  }
+
+  /** Surface a pre-queue refusal through the existing step/lifecycle listeners.
+   * No job is enqueued, no chart effect is executed and no retry is introduced.
+   */
+  reportRejection(step: { op: string; id: string | null; error?: string }) {
+    if (!this.active) { this.active = true; this.emitStart(); }
+    this.emit({ op: OP_SET.has(step.op) ? step.op as ChartOp : "unknown",
+      id: step.id, ok: false, error: step.error });
+    this.settleDrain();
   }
 
   private emit(step: QueueStep) {

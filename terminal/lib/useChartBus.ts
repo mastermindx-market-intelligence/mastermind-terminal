@@ -240,7 +240,11 @@ export function useChartBus(host: ChartBusHost): ChartBus {
     if (!mountedRef.current) return; // an unmounted chart has no execution authority
     if (!isV2Envelope(j)) return; // not a v2 envelope — caller handles v1 fallback
     const v = validateEnvelope(j);
-    if (!v.ok) { pushAck({ batch_id: v.batch_id, seq: v.seq, id: v.id, ok: false, error: v.error }); return; }
+    if (!v.ok) {
+      pushAck({ batch_id: v.batch_id, seq: v.seq, id: v.id, ok: false, error: v.error });
+      queue.reportRejection({ op: v.op, id: v.id, error: v.error });
+      return;
+    }
     const cmd = v.cmd;
     const targetRequired = requiresExactChartTarget(cmd);
     const checkTarget = (): string | null => {
@@ -250,19 +254,23 @@ export function useChartBus(host: ChartBusHost): ChartBus {
     };
     const rejectTarget = (error: string): QueueStep => {
       pushAck({ batch_id: cmd.batch_id, seq: cmd.seq, id: cmd.id ?? null, ok: false, error });
-      return { op: cmd.op, id: cmd.id ?? null, ok: false };
+      return { op: cmd.op, id: cmd.id ?? null, ok: false, error };
     };
     const targetError = checkTarget();
-    if (targetError) { rejectTarget(targetError); return; }
+    if (targetError) { queue.reportRejection(rejectTarget(targetError)); return; }
     const h = hostRef.current;
     const res = translate(cmd, h.capabilities, h.sessionIndicators);
-    if (!res.ok) { pushAck({ batch_id: cmd.batch_id, seq: cmd.seq, id: cmd.id ?? null, ok: false, error: res.error }); return; }
+    if (!res.ok) {
+      pushAck({ batch_id: cmd.batch_id, seq: cmd.seq, id: cmd.id ?? null, ok: false, error: res.error });
+      queue.reportRejection({ op: cmd.op, id: cmd.id ?? null, error: res.error });
+      return;
+    }
 
     // Enqueue the side-effect. The queue applies sequentially (instant by default; W3 paces it later).
     queue.enqueue((): QueueStep => {
       // No auto-retargeting, requeue or replay. A valid receipt-time target may have
       // changed while this command waited; refuse BEFORE any store or host mutation.
-      if (!mountedRef.current) return { op: cmd.op, id: cmd.id ?? null, ok: false };
+      if (!mountedRef.current) return { op: cmd.op, id: cmd.id ?? null, ok: false, error: "command_receiver_unmounted" };
       const targetError = checkTarget();
       if (targetError) return rejectTarget(targetError);
       // Run the PURE reducer against the synchronous working store, commit the result to both the ref
@@ -303,10 +311,13 @@ export function useChartBus(host: ChartBusHost): ChartBus {
               hostRef.current = { ...h, sessionIndicators: e.indicators };
             } catch {
               pushAck({ ...r.ack, ok: false, error: "indicator_application_failed" });
-              return { op: cmd.op, id: null, ok: false };
+              return { op: cmd.op, id: null, ok: false, error: "indicator_application_failed" };
             }
             break;
-          case "setRange": h.setRange(e.from, e.to); break;
+          case "setRange":
+            try { h.setRange(e.from, e.to); }
+            catch { return rejectTarget("chart_range_application_failed"); }
+            break;
           case "scene": break; // markers only — inert now (W3 consumes)
         }
       }
@@ -324,7 +335,7 @@ export function useChartBus(host: ChartBusHost): ChartBus {
         const p0 = obj.points[0];
         if (p0) { const tSec = Number(p0.t); if (Number.isFinite(tSec)) anchor = { t: tSec, p: p0.p }; }
       }
-      return { op: cmd.op, id: cmd.id ?? null, caption: res.ok ? res.caption : undefined, ok: r.ack.ok, fit, anchor };
+      return { op: cmd.op, id: cmd.id ?? null, caption: res.ok ? res.caption : undefined, ok: r.ack.ok, error: r.ack.error, fit, anchor };
     });
   }, [queue, pushAck]);
 
