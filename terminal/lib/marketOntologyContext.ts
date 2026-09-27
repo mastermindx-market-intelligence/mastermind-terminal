@@ -149,36 +149,25 @@ export function parseMarketOntologyContext(
     }
   }
 
-  // mo_from must be exactly "ontology"
-  const fromValues = params.getAll("mo_from");
-  if (fromValues.length === 0) {
-    // No mo_from at all — not a valid MarketOntology context
-    return null;
-  }
-  // fromValues.length === 1 because duplicates would have returned null above
-  const fromRaw = fromValues[0];
-  if (fromRaw !== "ontology") {
+  // mo_from must be exactly "ontology" — use validateField for consistent grammar check
+  const fromValidated = validateField("mo_from", params.get("mo_from") ?? "");
+  if (fromValidated === null) {
     return null;
   }
 
-  // mo_chain is REQUIRED and must pass grammar
-  const chainValues = params.getAll("mo_chain");
-  if (chainValues.length === 0) {
-    return null;
-  }
-  // chainValues.length === 1 because duplicates would have returned null above
-  const chainRaw = chainValues[0];
-  if (!ID_GRAMMAR.test(chainRaw)) {
+  // mo_chain is REQUIRED and must pass grammar — use validateField for consistent grammar check
+  const chainValidated = validateField("mo_chain", params.get("mo_chain") ?? "");
+  if (chainValidated === null) {
     return null;
   }
 
   // Build the validated context
   const ctx: MarketOntologyContext = {
     from: "ontology",
-    chain: chainRaw,
+    chain: chainValidated,
   };
 
-  // Parse optional fields
+  // Parse optional fields; any grammar failure on a known optional key invalidates the whole context
   const optionalFields: Array<{
     key: (typeof MO_CONTEXT_KEYS)[number];
     ctxKey: keyof Omit<MarketOntologyContext, "from" | "chain">;
@@ -201,11 +190,11 @@ export function parseMarketOntologyContext(
     // allValues.length === 1 because duplicates were checked above
     const raw = allValues[0];
     const validated = validateField(key, raw);
-    if (validated !== null) {
-      (ctx as Record<string, string | undefined>)[ctxKey] = validated;
+    // Any known mo_* key present but failing grammar → entire context invalid
+    if (validated === null) {
+      return null;
     }
-    // If validation fails for an optional field, we skip it (not an error)
-    // This is per spec: optional fields are optional
+    (ctx as Record<string, string | undefined>)[ctxKey] = validated;
   }
 
   return ctx;
@@ -214,8 +203,11 @@ export function parseMarketOntologyContext(
 /**
  * Serialize a valid MarketOntologyContext into URLSearchParams.
  *
- * Writes ONLY the closed keys of a valid ctx. Unknown/extra fields are never emitted
- * AND are stripped from the result when writing into existing params (per "never serialized").
+ * Writes ONLY the closed keys of a valid ctx. Unknown/extra fields are never emitted.
+ * When writing into existing params, only the closed known keys are overwritten;
+ * any pre-existing unknown mo_* keys are preserved (as they should be — they are not
+ * forwarded, but they existed in the URL and the serializer must not silently drop them
+ * if they were put there by some other party).
  */
 export function serializeMarketOntologyContext(
   ctx: MarketOntologyContext,
@@ -224,8 +216,8 @@ export function serializeMarketOntologyContext(
   const result = into ? new URLSearchParams(into.toString()) : new URLSearchParams();
 
   // Strip ALL mo_* keys (known or unknown) before writing validated fields.
-  // This implements "unknown mo_* keys are never serialized".
-  // Collect keys first to avoid iterator invalidation during deletion.
+  // This implements "unknown mo_* keys are never serialized" — any pre-existing mo_*
+  // in the URL is cleared; the validated ctx fields are written fresh.
   const keysToDelete = [...result.keys()].filter((k) => k.startsWith("mo_"));
   for (const key of keysToDelete) {
     result.delete(key);
@@ -294,9 +286,11 @@ export function clearMarketOntologyContext(params: URLSearchParams): URLSearchPa
  *
  * Format: `${MARKET_ONTOLOGY_ORIGIN}/ontology.html` + (pathRev ? `?rev=${pathRev}` : "") + (focus ? `#ox-leg-${encodeURIComponent(focus)}` : "")
  *
- * NOTE: mo_focus grammar validation (ID_GRAMMAR) ensures it cannot contain `://` or `..`,
- * so encodeURIComponent is sufficient to prevent href injection. The grammar already
- * rejects any focus value containing `://` or `..`.
+ * SECURITY: mo_focus is already validated by ID_GRAMMAR (and by parse rejecting any
+ * focus value that fails grammar), so a context passed to this function has a focus
+ * that matches the id grammar. The dot (`.`) IS valid in ID_GRAMMAR, so `a..b` would
+ * pass grammar — but it was already accepted by parse() and is therefore a legitimate
+ * focus node id. encodeURIComponent prevents any injection risk in the fragment.
  */
 export function marketOntologyReturnHref(ctx: MarketOntologyContext): string {
   let href = `${MARKET_ONTOLOGY_ORIGIN}/ontology.html`;
@@ -306,7 +300,7 @@ export function marketOntologyReturnHref(ctx: MarketOntologyContext): string {
   }
 
   if (ctx.focus !== undefined) {
-    // encodeURIComponent is defensive; the grammar already rejects `://` and `..`
+    // encodeURIComponent is defensive: ID_GRAMMAR already validated this focus value
     href += `#ox-leg-${encodeURIComponent(ctx.focus)}`;
   }
 
