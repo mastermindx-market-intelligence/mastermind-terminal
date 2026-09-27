@@ -102,6 +102,18 @@ describe("diffThesisVersions", () => {
       expect(result).toContainEqual({ kind: "listReordered", field: "catalysts" });
     });
 
+    // R4-4: reorder is reported only when membership is unchanged
+    it("reports listAdded and listRemoved, not listReordered, when membership changes", () => {
+      // [A,B] → [B,C]: B stays, A removed, C added — NO listReordered
+      const prev = makeNext(BASE, { catalysts: ["Cat A", "Cat B"] });
+      const next = makeNext(prev, { catalysts: ["Cat B", "Cat C"] });
+      const result = diffThesisVersions(prev, next);
+      expect(result).toContainEqual({ kind: "listAdded", field: "catalysts", items: ["Cat C"] });
+      expect(result).toContainEqual({ kind: "listRemoved", field: "catalysts", items: ["Cat A"] });
+      const kinds = result.map((d) => d.kind);
+      expect(kinds).not.toContain("listReordered");
+    });
+
     it("reports falsifiers added/removed", () => {
       const next = makeNext(BASE, { falsifiers: ["Fal A", "Fal B"] });
       const result = diffThesisVersions(BASE, next);
@@ -174,6 +186,30 @@ describe("diffThesisVersions", () => {
     });
   });
 
+  describe("unchanged version", () => {
+    it("returns empty array when content and lifecycleState are identical", () => {
+      // Two consecutive versions differing only in id/version/previousVersion/systemRecordedAt/transition
+      const v2: ThesisVersion = {
+        ...BASE,
+        id: "00000000-0000-0000-0000-000000000002",
+        version: 2,
+        previousVersion: 1,
+        transition: "revise",
+        systemRecordedAt: "2026-01-02T00:00:00.000Z",
+      };
+      const v3: ThesisVersion = {
+        ...BASE,
+        id: "00000000-0000-0000-0000-000000000003",
+        version: 3,
+        previousVersion: 2,
+        transition: "revise",
+        systemRecordedAt: "2026-01-03T00:00:00.000Z",
+      };
+      const result = diffThesisVersions(v2, v3);
+      expect(result).toEqual([]);
+    });
+  });
+
   describe("truncated previous", () => {
     it("reports when the previous version is outside the loaded history", () => {
       const next = makeNext(BASE);
@@ -242,5 +278,165 @@ describe("describeThesisDelta", () => {
       .toBe("生效时间已更改：无 → 2026-01-01T00:00:00.000Z。");
     expect(describeThesisDelta({ kind: "lifecycleChanged", old: "active", next: "archived" }, copy))
       .toBe("状态已更改：状态-active → 状态-archived。");
+  });
+
+  // R4-3a: EN assertions covering every delta kind with exact COPY.en strings
+  it("renders origin and truncated as plain sentences in EN", () => {
+    const copy: ThesisDeltaCopy = {
+      language: "en",
+      origin: "This is the first version; nothing before this.",
+      truncated: "The previous version is outside the loaded history.",
+      fields: {
+        title: "Title", statement: "Thesis statement", catalysts: "Catalysts",
+        falsifiers: "Falsifiers", risks: "Risks", horizon: "Horizon",
+        effectiveAt: "Effective as of", revisionNote: "Revision note", status: "Status",
+      },
+      changed: "changed", added: "added", removed: "removed", reordered: "reordered",
+      none: "None",
+      formatHorizon: (h) => h,
+      formatDate: (d) => d ?? "None",
+      formatLifecycle: (s) => s,
+    };
+    expect(describeThesisDelta({ kind: "origin" }, copy)).toBe("This is the first version; nothing before this.");
+    expect(describeThesisDelta({ kind: "truncated" }, copy)).toBe("The previous version is outside the loaded history.");
+  });
+
+  it("renders stringChanged (title, statement) as plain EN sentences", () => {
+    const copy: ThesisDeltaCopy = {
+      language: "en",
+      origin: "", truncated: "",
+      fields: {
+        title: "Title", statement: "Thesis statement", catalysts: "Catalysts",
+        falsifiers: "Falsifiers", risks: "Risks", horizon: "Horizon",
+        effectiveAt: "Effective as of", revisionNote: "Revision note", status: "Status",
+      },
+      changed: "changed", added: "added", removed: "removed", reordered: "reordered",
+      none: "None",
+      formatHorizon: (h) => h,
+      formatDate: (d) => d ?? "None",
+      formatLifecycle: (s) => s,
+    };
+    expect(describeThesisDelta({ kind: "stringChanged", field: "title", old: "Old Title", next: "New Title" }, copy))
+      .toBe("Title changed.");
+    expect(describeThesisDelta({ kind: "stringChanged", field: "statement", old: "Old statement.", next: "New statement." }, copy))
+      .toBe("Thesis statement changed.");
+  });
+
+  it("renders listAdded/listRemoved with two items joined by '; ' in EN", () => {
+    const copy: ThesisDeltaCopy = {
+      language: "en",
+      origin: "", truncated: "",
+      fields: {
+        title: "Title", statement: "Thesis statement", catalysts: "Catalysts",
+        falsifiers: "Falsifiers", risks: "Risks", horizon: "Horizon",
+        effectiveAt: "Effective as of", revisionNote: "Revision note", status: "Status",
+      },
+      changed: "changed", added: "added", removed: "removed", reordered: "reordered",
+      none: "None",
+      formatHorizon: (h) => h,
+      formatDate: (d) => d ?? "None",
+      formatLifecycle: (s) => s,
+    };
+    expect(describeThesisDelta({ kind: "listAdded", field: "catalysts", items: ["New catalyst", "Second item"] }, copy))
+      .toBe("Catalysts added: New catalyst; Second item.");
+    expect(describeThesisDelta({ kind: "listRemoved", field: "falsifiers", items: ["Old falsifier", "Another"] }, copy))
+      .toBe("Falsifiers removed: Old falsifier; Another.");
+  });
+
+  it("renders listReordered as plain EN sentence", () => {
+    const copy: ThesisDeltaCopy = {
+      language: "en",
+      origin: "", truncated: "",
+      fields: {
+        title: "Title", statement: "Thesis statement", catalysts: "Catalysts",
+        falsifiers: "Falsifiers", risks: "Risks", horizon: "Horizon",
+        effectiveAt: "Effective as of", revisionNote: "Revision note", status: "Status",
+      },
+      changed: "changed", added: "added", removed: "removed", reordered: "reordered",
+      none: "None",
+      formatHorizon: (h) => h,
+      formatDate: (d) => d ?? "None",
+      formatLifecycle: (s) => s,
+    };
+    expect(describeThesisDelta({ kind: "listReordered", field: "catalysts" }, copy))
+      .toBe("Catalysts reordered.");
+  });
+
+  it("renders horizonChanged with 'old → next' in EN", () => {
+    const copy: ThesisDeltaCopy = {
+      language: "en",
+      origin: "", truncated: "",
+      fields: {
+        title: "Title", statement: "Thesis statement", catalysts: "Catalysts",
+        falsifiers: "Falsifiers", risks: "Risks", horizon: "Horizon",
+        effectiveAt: "Effective as of", revisionNote: "Revision note", status: "Status",
+      },
+      changed: "changed", added: "added", removed: "removed", reordered: "reordered",
+      none: "None",
+      formatHorizon: (h) => h,
+      formatDate: (d) => d ?? "None",
+      formatLifecycle: (s) => s,
+    };
+    expect(describeThesisDelta({ kind: "horizonChanged", old: "quarters", next: "years" }, copy))
+      .toBe("Horizon changed: quarters → years.");
+  });
+
+  it("renders effectiveAtChanged as plain EN sentence", () => {
+    const copy: ThesisDeltaCopy = {
+      language: "en",
+      origin: "", truncated: "",
+      fields: {
+        title: "Title", statement: "Thesis statement", catalysts: "Catalysts",
+        falsifiers: "Falsifiers", risks: "Risks", horizon: "Horizon",
+        effectiveAt: "Effective as of", revisionNote: "Revision note", status: "Status",
+      },
+      changed: "changed", added: "added", removed: "removed", reordered: "reordered",
+      none: "None",
+      formatDate: (d) => d ?? "None",
+      formatHorizon: (h) => h,
+      formatLifecycle: (s) => s,
+    };
+    expect(describeThesisDelta({ kind: "effectiveAtChanged", old: null, next: "2026-06-01T00:00:00.000Z" }, copy))
+      .toBe("Effective as of changed: None → 2026-06-01T00:00:00.000Z.");
+    expect(describeThesisDelta({ kind: "effectiveAtChanged", old: "2026-01-01T00:00:00.000Z", next: "2026-06-01T00:00:00.000Z" }, copy))
+      .toBe("Effective as of changed: 2026-01-01T00:00:00.000Z → 2026-06-01T00:00:00.000Z.");
+  });
+
+  it("renders revisionNoteChanged as plain EN sentence", () => {
+    const copy: ThesisDeltaCopy = {
+      language: "en",
+      origin: "", truncated: "",
+      fields: {
+        title: "Title", statement: "Thesis statement", catalysts: "Catalysts",
+        falsifiers: "Falsifiers", risks: "Risks", horizon: "Horizon",
+        effectiveAt: "Effective as of", revisionNote: "Revision note", status: "Status",
+      },
+      changed: "changed", added: "added", removed: "removed", reordered: "reordered",
+      none: "None",
+      formatHorizon: (h) => h,
+      formatDate: (d) => d ?? "None",
+      formatLifecycle: (s) => s,
+    };
+    expect(describeThesisDelta({ kind: "revisionNoteChanged", old: null, next: "Initial revision." }, copy))
+      .toBe("Revision note changed.");
+  });
+
+  it("renders lifecycleChanged as plain EN sentence", () => {
+    const copy: ThesisDeltaCopy = {
+      language: "en",
+      origin: "", truncated: "",
+      fields: {
+        title: "Title", statement: "Thesis statement", catalysts: "Catalysts",
+        falsifiers: "Falsifiers", risks: "Risks", horizon: "Horizon",
+        effectiveAt: "Effective as of", revisionNote: "Revision note", status: "Status",
+      },
+      changed: "changed", added: "added", removed: "removed", reordered: "reordered",
+      none: "None",
+      formatHorizon: (h) => h,
+      formatDate: (d) => d ?? "None",
+      formatLifecycle: (s) => s,
+    };
+    expect(describeThesisDelta({ kind: "lifecycleChanged", old: "active", next: "archived" }, copy))
+      .toBe("Status changed: active → archived.");
   });
 });
