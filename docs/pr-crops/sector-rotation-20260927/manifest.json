@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "operation": "sector-intelligence-terminal-20260926-sol-001",
+  "parentHead": "5391f0479e66e48c1b66c58c2121608a43a3fbe1",
+  "macroSource": {
+    "repository": "mastermindx-market-intelligence/macro",
+    "revision": "f94256971e49b6372645af3d329080d6e3747ea9",
+    "path": "site/sectordata/sector_central.json",
+    "sha256": "61a45950781430f66fe00a93f64325819d226f6f36b704f9f899dd106b0b2dc1",
+    "asOf": "2026-09-25"
+  },
+  "qualification": {
+    "r1": {
+      "passed": true,
+      "checks": 76,
+      "screenshots": 5
+    },
+    "r2": {
+      "passed": true,
+      "checks": 76,
+      "screenshots": 5,
+      "supersedes": "r1 visual label placement and capture scroll only"
+    }
+  },
+  "files": [
+    {
+      "path": "qualification-r2/chromium-1440-en-light-rotation.png",
+      "bytes": 157815,
+      "sha256": "0cb9233f58859b8464de9ca687c8640f540cdc7686edce7bc40d47f51498a04a"
+    },
+    {
+      "path": "qualification-r2/chromium-390-en-light-rotation.png",
+      "bytes": 131628,
+      "sha256": "1fd17774f67e1299f02d4124308c185a8a1b01f761a94fc82569e65802fa5eeb"
+    },
+    {
+      "path": "qualification-r2/chromium-820-en-dark-rotation.png",
+      "bytes": 151325,
+      "sha256": "1b61ff9813a46d3dd61ca400f4c229d81af1401e35fa109967a91b8614e8c965"
+    },
+    {
+      "path": "qualification-r2/qualification.json",
+      "bytes": 12362,
+      "sha256": "0ea7dcc0e29c4a56b0170a480a2abd449045da086e4490449c94d16aab39705e"
+    },
+    {
+      "path": "qualification-r2/webkit-1440-en-dark-rotation.png",
+      "bytes": 228021,
+      "sha256": "eb3e51f2fc14ddaf70a778ac07fd46a726120a3c478a7e85376fa75d5f207bff"
+    },
+    {
+      "path": "qualification-r2/webkit-390-zh-light-rotation.png",
+      "bytes": 159578,
+      "sha256": "3487caec323a796f5950910cbe4b8d64b75893df43bb564a3a79e1cdf51f9a84"
+    },
+    {
+      "path": "qualification-r1/chromium-1440-en-light-rotation.png",
+      "bytes": 144508,
+      "sha256": "d2792e42ecb9c1a1cc439483a17863396a78b01a8821a9effc477866dcccde5d"
+    },
+    {
+      "path": "qualification-r1/chromium-390-en-light-rotation.png",
+      "bytes": 123204,
+      "sha256": "f31e9c2b4716716427b7b9e87744cd9a085ab7428c1ab4192a9002c17e183942"
+    },
+    {
+      "path": "qualification-r1/chromium-820-en-dark-rotation.png",
+      "bytes": 138688,
+      "sha256": "0359693a91a8b6149b2d48d4bd7956e6bfe47c912e7fc33401b543dc854ffb05"
+    },
+    {
+      "path": "qualification-r1/qualification.json",
+      "bytes": 12362,
+      "sha256": "8c4e2f8d723e44c273461934be2aa15bb60e93bc524c51feabc0f4b0dcbf53ad"
+    },
+    {
+      "path": "qualification-r1/webkit-1440-en-dark-rotation.png",
+      "bytes": 216195,
+      "sha256": "62b20f3566c717d61f168aefceb2cbc263cdcb83f441071eac0c91887acceb5c"
+    },
+    {
+      "path": "qualification-r1/webkit-390-zh-light-rotation.png",
+      "bytes": 147934,
+      "sha256": "ff35a80b6541839f9df7c5af633bd42906d98c68d2ddc09b93184d469c2c53c8"
+    }
+  ]
+}

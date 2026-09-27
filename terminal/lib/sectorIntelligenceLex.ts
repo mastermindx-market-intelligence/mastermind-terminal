@@ -14,7 +14,7 @@ export const SECTOR_INTELLIGENCE_LEX: Record<string, [string, string]> = {
   siSelectedUnclassified: ["The source does not identify this selection as a subgroup of this sector.", "来源未将当前选择归类为此板块的子分组。"],
   siClassificationUnknown: ["Sector classification unavailable", "板块分类不可用"],
   siNoExactSectorGroups: ["No exact source classification matches this sector. Other group names may use a different classification.", "没有与此板块精确匹配的来源分类，其他分组名称可能采用不同分类。"],
-  siDiscoverSectors: ["Discover", "发现"], siMarketBreadth: ["Market breadth", "市场广度"],
+  siRotation: ["Rotation", "轮动"], siDiscoverSectors: ["Discover", "发现"], siMarketBreadth: ["Market breadth", "市场广度"],
   siSectorResearch: ["Sector research", "板块研究"], siWorkspaceViews: ["Sector workspace views", "板块工作区视图"],
   siSignals: ["Signals", "信号"], siDrivers: ["Drivers", "驱动因素"], siHistory: ["History", "历史"],
   siCompaniesTab: ["Companies", "公司"], siSourcesPanel: ["Sources", "来源"],

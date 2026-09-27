@@ -12,6 +12,7 @@ import { SECTOR_FEEDS, SECTOR_VIEWS, DEFAULT_SECTOR_STATE, object, text, number,
   type SectorFeed, type SectorState, type SectorView, type Row } from "@/lib/sectorIntelligence";
 import SectorGroupBrowser from "./SectorGroupBrowser";
 import SectorCentralDiscovery from "./SectorCentralDiscovery";
+import SectorRotationMap from "./SectorRotationMap";
 import styles from "./SectorIntelligenceWorkspace.module.css";
 import SectorCompanyComparison from "./SectorCompanyComparison";
 
@@ -58,7 +59,8 @@ export default function SectorIntelligenceWorkspace() {
   const rootElement = useRef<HTMLElement>(null);
   const currentWorkspace = useRef<SectorState["workspace"]>("discover");
   const scrollPositions = useRef<Record<SectorState["workspace"], { inner: number; outer: number; focus: string | null }>>({
-    discover: { inner: 0, outer: 0, focus: null }, breadth: { inner: 0, outer: 0, focus: null }, detail: { inner: 0, outer: 0, focus: null },
+    rotation: { inner: 0, outer: 0, focus: null }, discover: { inner: 0, outer: 0, focus: null },
+    breadth: { inner: 0, outer: 0, focus: null }, detail: { inner: 0, outer: 0, focus: null },
   });
   const saveWorkspaceScroll = useCallback(() => {
     scrollPositions.current[currentWorkspace.current] = {
@@ -203,7 +205,8 @@ export default function SectorIntelligenceWorkspace() {
       maxHeight="90dvh" initialFocus="sheet" className={`${styles.sourcePanel} ${state.theme === "light" ? styles.light : ""}`}>
       <div className={styles.sourceContent}>
         <header className={styles.sourcePanelHeader}><div><h2>{t("siSourcesPanel")}</h2>
-          <p>{state.workspace === "detail" ? `${groupName || state.group || sectorName} · ${t(VIEW_KEYS[state.view])}` : t(state.workspace === "breadth" ? "siMarketBreadth" : "siDiscoverSectors")}</p></div>
+          <p>{state.workspace === "detail" ? `${groupName || state.group || sectorName} · ${t(VIEW_KEYS[state.view])}`
+            : t(state.workspace === "rotation" ? "siRotation" : state.workspace === "breadth" ? "siMarketBreadth" : "siDiscoverSectors")}</p></div>
           <button type="button" className={styles.button} onClick={closeSources}>{t("siCloseSources")}</button></header>
         <div className={styles.sectionHeading}><h2>{t("siSourceRecord")}</h2><p>{t("siSourceRecordCopy")}</p></div><div className={styles.sourceGrid}>
           {SECTOR_FEEDS.map(source => { const receipt = feeds[source]?.receipt; return <Card key={source} title={t(FEED_KEYS[source])} action={<span className={styles.badge}>{t(STATUS_KEYS[receipt?.status || "loading"])}</span>}>
@@ -228,13 +231,18 @@ export default function SectorIntelligenceWorkspace() {
         </div>
       </header>
       <nav className={styles.workspaceNavigation} aria-label={t("siWorkspaceViews")}>
-        {(["discover", "breadth", "detail"] as const).map(workspace => <button key={workspace} type="button"
+        {(["rotation", "discover", "breadth", "detail"] as const).map(workspace => <button key={workspace} type="button"
           aria-current={state.workspace === workspace ? "page" : undefined}
           onClick={() => change({ workspace, sourcesOpen: false }, true)}>
-          {t(workspace === "discover" ? "siDiscoverSectors" : workspace === "breadth" ? "siMarketBreadth" : "siSectorResearch")}
+          {t(workspace === "rotation" ? "siRotation" : workspace === "discover" ? "siDiscoverSectors" : workspace === "breadth" ? "siMarketBreadth" : "siSectorResearch")}
         </button>)}
       </nav>
-      {state.workspace !== "detail" ? <SectorCentralDiscovery rows={sectors} status={status}
+      {state.workspace === "rotation" ? <SectorRotationMap rows={sectors} status={status}
+        asOf={feeds.sector?.receipt.asOf || null} selected={state.sector} mode={state.rotationMode} query={state.rotationQuery}
+        onMode={rotationMode => change({ rotationMode })} onQuery={rotationQuery => change({ rotationQuery })}
+        onSources={() => openSources()} onSelect={sector => change({ sector }, true)}
+        onOpenResearch={sector => change({ sector, workspace: "detail", view: "intelligence", group: "", company: "", query: "", expanded: false, sourcesOpen: false }, true)} />
+        : state.workspace !== "detail" ? <SectorCentralDiscovery rows={sectors} status={status}
         asOf={feeds.sector?.receipt.asOf || null} selected={state.sector} query={state.discoveryQuery}
         sort={state.discoverySort} breadth={state.workspace === "breadth"}
         onQuery={discoveryQuery => change({ discoveryQuery })} onSort={discoverySort => change({ discoverySort })}

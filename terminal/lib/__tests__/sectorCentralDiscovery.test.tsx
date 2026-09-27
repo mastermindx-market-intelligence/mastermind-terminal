@@ -87,15 +87,16 @@ describe("Discovery to detail URL continuity", () => {
   it.each(["sectorView=companies", "sector=xlk&group=semiconductors", "sectorCompany=MU", "sectorView=dossier"])("keeps the old detail URL %s", value => {
     expect(parseSectorState(new URLSearchParams(value)).workspace).toBe("detail");
   });
-  it.each(["discover", "breadth", "detail"] as const)("retains %s, query, display order and the selected object", workspace => {
+  it.each(["rotation", "discover", "breadth", "detail"] as const)("retains %s, query, display order and the selected object", workspace => {
     const state = { ...DEFAULT_SECTOR_STATE, workspace, discoveryQuery: "Tech", discoverySort: "participation" as const,
-      view: "companies" as const, company: "MU", query: "MU", sourcesOpen: true };
+      rotationMode: "list" as const, rotationQuery: "Technology", view: "companies" as const, company: "MU", query: "MU", sourcesOpen: true };
     const href = writeSectorState(new URL("https://example.test/discover?from=map"), state);
     const url = new URL(href, "https://example.test"); expect(parseSectorState(url.searchParams)).toEqual(state);
     expect(url.searchParams.get("from")).toBe("map");
   });
   it("bounds new search state and refuses unknown view/sort tokens", () => {
-    const state = parseSectorState(new URLSearchParams(`sectorWorkspace=unknown&sectorDiscoverySort=score&sectorDiscoveryQuery=${"x".repeat(90)}`));
+    const state = parseSectorState(new URLSearchParams(`sectorWorkspace=unknown&sectorDiscoverySort=score&sectorDiscoveryQuery=${"x".repeat(90)}&sectorRotationMode=tiles&sectorRotationQuery=${"y".repeat(90)}`));
     expect(state.workspace).toBe("discover"); expect(state.discoverySort).toBe("source"); expect(state.discoveryQuery).toHaveLength(60);
+    expect(state.rotationMode).toBe("map"); expect(state.rotationQuery).toHaveLength(60);
   });
 });
