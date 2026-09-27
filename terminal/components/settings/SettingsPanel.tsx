@@ -28,6 +28,7 @@ import SectionWebhooks from "./SectionWebhooks";
 import SectionDeveloper from "./SectionDeveloper";
 import SectionSharing from "./SectionSharing";
 import SectionPortfolioTargets from "./SectionPortfolioTargets";
+import SettingsAuroraWave from "./SettingsAuroraWave";
 
 function IconAccuracy() {
   return (
@@ -41,7 +42,8 @@ function IconAccuracy() {
 // ── The settings dashboard shell ─────────────────────────────────────────────
 // Ported from the Macro Dashboard's `_buildSDash` / `_wireSDash` / `_sdShow` /
 // `_openSDash`. Same card (min(1140px,94vw) × min(772px,100dvh-40px), r22), same
-// 238px rail, same one-shot laser sweep, same ≤640px full-sheet collapse.
+// 238px rail, same ≤640px full-sheet collapse. The top accent is intentionally
+// upgraded from the original one-shot laser into Terminal's dynamic aurora wave.
 //
 // Two upstream bugs are deliberately NOT reproduced:
 //   1. macro's desktop header close button (`.sd-x`) has no click handler — ours
@@ -311,17 +313,17 @@ export default function SettingsPanel(props: SettingsPanelProps) {
       onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
       aria-hidden={visible ? undefined : true}
     >
-      <div
-        className="acs-card"
-        role="dialog"
-        aria-modal="true"
-        aria-label={t(HEAD_KEY[section])}
-        ref={cardRef}
-        onKeyDown={onCardKeyDown}
-      >
-        <span className="acs-laser" aria-hidden="true" key={openSeq} />
-
-        <aside className="acs-rail">
+      <div className="acs-card-shell">
+        <SettingsAuroraWave active={visible} openSeq={openSeq} />
+        <div
+          className="acs-card"
+          role="dialog"
+          aria-modal="true"
+          aria-label={t(HEAD_KEY[section])}
+          ref={cardRef}
+          onKeyDown={onCardKeyDown}
+        >
+          <aside className="acs-rail">
           <div className="acs-me">
             <span className="acs-me-av">{avatarChar}</span>
             <span className="acs-me-main">
@@ -388,7 +390,8 @@ export default function SettingsPanel(props: SettingsPanelProps) {
             {section === "sharing" && <SectionSharing {...shared} />}
             {section === "portfolioTargets" && <SectionPortfolioTargets {...shared} />}
           </div>
-        </section>
+          </section>
+        </div>
       </div>
     </div>
   );

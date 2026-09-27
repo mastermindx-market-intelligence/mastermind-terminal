@@ -1,33 +1,20 @@
-# 2026-09-19 #669 plain-language debt: hash-only restamp of i18n.tsx — copy-only change, crops unchanged
 # B-F12-7 Outbound signed webhooks — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 916db2d4ac62b00aed236231433d8d952c22f3c6
-# capturedAt: 2026-09-11T02:58:28.624Z
+# capturedAtHead: 599ce417f53e0d5f972d7dbb58d45b03a33ee70b
+# capturedAt: 2026-09-26T12:18:01.021Z
 # capturedAtHead is informational. The lock is layoutFiles.
 # layoutFiles are packet-local and ARE asserted by
 # terminal/lib/__tests__/f12_7WebhooksEvidence.test.ts. informationalFiles
 # are recorded for provenance only: terminal/lib/i18n.tsx is the repo-wide
 # bilingual lexicon every UI packet extends, and asserting it here would
 # redden master for unrelated LEX-adding work.
-# 2026-09-11 merge of master e43733c1 (#548 explicit grants + #566 ledger flip) into B-F12-8 (#550): 18 crops recaptured at merge commit 916db2d4ac62b00aed236231433d8d952c22f3c6 so the rail shows the merged 11 rows (account, team, accuracy, billing, usage, prefs, alertDelivery, terminal, sync, webhooks, sharing). This supersedes every earlier crops-unchanged / no-crop-recaptured line in this header.
-# Heal h_t586 (#586): icons.tsx + i18n.tsx re-hashed for #586's new row; tree paints 13 since #586 (developer from master + portfolioTargets); sibling crops still show 11 rows (recapture NEEDED).
-# 2026-09-19 merge of origin/master 4b19a698 into #587: SettingsPanel.tsx re-hashed to the merged-tree digest (this PR's live team-id fetch plus master's rail). icons.tsx takes master's bytes. No webhook crop recaptured.
-# 2026-09-19 h_t587 r2 evidence stamp at heal 67c1c3b2784712b06f71f654d9472905e0c9155e: SettingsPanel.tsx / SectionAccuracy.tsx / SectionAccuracy.module.css (and teamAccuracyRollupRoute.test.ts where pinned) re-hashed to the heal-head digest. parseTeamsResponse live team-id, no-team sentence, 503 unavailable pair, weLabel tracking drop. No sibling crop recaptured — those surfaces do not render the accuracy rollup. F13-9 recapture NEEDED (see packet lock).
-# 2026-09-19 seat merge of master 1c46b277 into #584 (B-F12-13): hash-only restamp of terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit.
-# 2026-09-19 seat merge of origin/master dd7c6dec712a (#584 B-F12-13, merge commit) into #586 (W9T_F08_13 targets readout): hash-only restamp of terminal/components/settings/SettingsPanel.tsx, terminal/components/settings/icons.tsx, terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
-# 2026-09-19 seat merge of origin/master 5a48b845 (13 commits incl. #587 B-F13-9 team rollup, merge commit) into #586 (W9T/B-F08-13 targets readout): hash-only restamp to the merged working-tree bytes; crops NOT recaptured. Files: terminal/components/settings/SettingsPanel.tsx, terminal/components/settings/icons.tsx, terminal/lib/i18n.tsx
-# 2026-09-19 seat merge of origin/master dafc016e (#588 B-F12-17 invite-link honesty, #664, #666) into #586 (W9T/B-F08-13 targets readout): hash-only restamp to the merged working-tree bytes; crops NOT recaptured. Files: terminal/components/settings/SettingsPanel.tsx, terminal/components/settings/icons.tsx, terminal/lib/i18n.tsx
 layoutFiles:
   terminal/components/settings/SectionWebhooks.tsx: "042cfc46c2a8bdfc967e1360333269d1a50e48fed87f85d8d4597dd23379a60b"
   terminal/lib/webhookLabels.ts: "e9d8bb808f09e88eb9ed31582915b9cc281986e714cdec86442708a7da8689eb"
   terminal/lib/webhookUrl.ts: "e1928132afa22ba3f3f5c5ad00c1f5cd7c66eee06a95ad49e6d25008117e18cf"
-  terminal/components/settings/SettingsPanel.tsx: "956aeac1636ae4891b1009c8e266840244c19da085ba52e77c78171317c4ffaf"
+  terminal/components/settings/SettingsPanel.tsx: "4a0fc6c7b7e2b3c3ca69cdf77f61754a413cc05096a057b5aaf410124969eabc"
   terminal/components/settings/icons.tsx: "7f3e17e45cb92545437ade898fe47a92cf6a65d1682cec9b9cea7a5bb8bd4d83"
-# 2026-09-19 seat merge of origin/master dd7c6dec712a (#584 B-F12-13, merge commit) into #588 (W9T_F12_17 invite link): hash-only restamp of terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
-
-# 2026-09-19 seat merge of origin/master dd7c6dec712a (#584 B-F12-13, merge commit) into #587 (W9T_F13_9 team rollup): hash-only restamp of terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
-# 2026-09-19 seat merge of origin/master 4c7a2eeb6f58 (#587 B-F13-9 team rollup + #659 + #660, merge commit) into #588 (B-F12-17 invite-link honesty): hash-only restamp of terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
 informationalFiles:
   asserted: false
   terminal/lib/i18n.tsx: "51276ecc8db6956c6c4e5cc67c55eab029c0b468ccb61e34f8bb92f25e42b9f8"
