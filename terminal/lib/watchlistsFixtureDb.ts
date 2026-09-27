@@ -602,7 +602,9 @@ function applyThesisVersionFixture(store: Store, args: Record<string, unknown>):
       const contentRecord = content as { title?: unknown; falsifiers?: unknown };
       const subjectRefRecord = subjectRef as { display?: unknown; key?: unknown; kind?: unknown };
       const rawDisplay = subjectRefRecord.display;
-      const subjectDisplay = typeof rawDisplay === "string" && rawDisplay.trim() ? rawDisplay.trim() : String(subjectRefRecord.key);
+      const rawKey = subjectRefRecord.key;
+      const subjectDisplay = typeof rawDisplay === "string" && rawDisplay.trim() ? rawDisplay.trim()
+        : typeof rawKey === "string" && rawKey.trim() ? rawKey.trim() : "";
       const title = typeof contentRecord.title === "string" && contentRecord.title.trim() ? contentRecord.title.trim() : "your thesis";
       const condition = userConditionText(contentRecord.falsifiers);
       const tripwireId = "11111111-1111-4111-8111-111111111111";

@@ -947,6 +947,17 @@ describe("F11-11b-pre producer-shaped thesis-condition rows (category+source, no
     expect(view.rows[0].alertId).toBe("thesis:11111111-1111-4111-8111-111111111111:unknown-fire");
   });
 
+  it("a row without a fire id uses its creation time as the fire key", () => {
+    const row = producerRow({
+      fire_event_id: "",
+      created_at: "2026-09-05T12:00:00Z",
+    });
+    const view = viewOf([row]);
+    expect(view.rows).toHaveLength(1);
+    expect(view.rows[0].alertId).toBe("thesis:11111111-1111-4111-8111-111111111111:2026-09-05T12:00:00Z");
+    expect(view.rows[0].foldedRows).toBe(0);
+  });
+
   it("ties on created_at order by the newer payload fired_at", () => {
     const older = producerRow({ fire_event_id: "fe-thesis-old", payload: { ...producerRow().payload, fired_at: "2026-09-05T11:57:00Z" } });
     const newer = producerRow({ fire_event_id: "fe-thesis-new" });

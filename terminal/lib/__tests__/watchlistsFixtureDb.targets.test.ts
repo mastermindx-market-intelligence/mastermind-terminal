@@ -66,6 +66,25 @@ describe("fixture thesis monitor outbox", () => {
 });
 
 describe("fixture thesis monitor subject fidelity", () => {
+  it("uses the subject key when the display name is absent", async () => {
+    const key = `${FIXTURE_MONITOR_FIRED_TOKEN}-subject-key`;
+    const db = createFixtureDb(key);
+    await db.rpc("apply_thesis_version_v1", {
+      p_thesis_id: null,
+      p_expected_version: 0,
+      p_transition: "create",
+      p_subject_ref: { schema: "mastermind.thesis-subject-ref/v1", kind: "theme", owner: "macro.user_topic", key: "macro-env" },
+      p_content: { schema: "mastermind.thesis-content/v1", title: "Macro shift", statement: "s", falsifiers: ["GDP growth turns negative"] },
+      p_client_request_id: "req-monitor-subject-key",
+      p_effective_at: null,
+    });
+    const row = fixtureStore(key).alertOutbox[0];
+    expect(row.payload).toMatchObject({
+      subject: "A window we watch for macro-env has closed",
+      subject_zh: '你关注的“macro-env”窗口已关闭',
+    });
+  });
+
   it("emits ticker: null for a theme subject (no issuer mapping)", async () => {
     const key = `${FIXTURE_MONITOR_FIRED_TOKEN}-theme`;
     const db = createFixtureDb(key);
