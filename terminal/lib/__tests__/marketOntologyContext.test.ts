@@ -13,7 +13,7 @@ import {
 /**
  * Unit tests for MarketOntologyContext — mastermind.market-ontology-context/v1
  *
- * Sol's tests 1-8:
+ * Sol's tests 1-10:
  * 1. complete valid context round-trips (parse → serialize → parse equal)
  * 2. missing optional fields allowed
  * 3. duplicate mo_* invalidates
@@ -33,6 +33,10 @@ const VALID_DATE = "2026-09-23";
 
 function makeParams(entries: Record<string, string>): URLSearchParams {
   return new URLSearchParams(entries as Record<string, string>);
+}
+
+function makeRawParams(query: string): URLSearchParams {
+  return new URLSearchParams(query);
 }
 
 describe("parseMarketOntologyContext", () => {
@@ -150,6 +154,20 @@ describe("parseMarketOntologyContext", () => {
     expect(parseMarketOntologyContext(params)).toBeNull();
   });
 
+  it.each([
+    ["mo_focus", "node with prose"],
+    ["mo_path_rev", "1e9"],
+    ["mo_channel", "bad channel"],
+    ["mo_theme", "bad theme!"],
+    ["mo_company", "bad company!"],
+    ["mo_security", "bad security!"],
+    ["mo_asof", "2026-02-30"],
+    ["mo_kc", "2026-02-30"],
+  ] as const)("returns null when present optional %s is invalid", (key, value) => {
+    const params = makeParams({ mo_from: "ontology", mo_chain: VALID_CHAIN, [key]: value });
+    expect(parseMarketOntologyContext(params)).toBeNull();
+  });
+
   // Test 4: overlength / non-ASCII / control chars / encoded separators / malformed or impossible dates invalidate
   describe("grammar validation", () => {
     it("returns null when mo_chain starts with underscore", () => {
@@ -250,39 +268,53 @@ describe("parseMarketOntologyContext", () => {
       expect(result!.pathRev).toBe("123456789");
     });
 
-    // Encoded separators — URLSearchParams decodes these, then grammar should fail
-    it("returns null when encoded separator %26 (&) in chain value", () => {
-      // mo_chain=foo%26bar gets decoded by URLSearchParams to "foo&bar" which fails ID_GRAMMAR
-      const params = new URLSearchParams();
-      params.set("mo_from", "ontology");
-      params.set("mo_chain", "foo&bar");
+    it("returns null when a raw query decodes %26 into an ampersand", () => {
+      expect(parseMarketOntologyContext(makeRawParams("mo_from=ontology&mo_chain=a%26b"))).toBeNull();
+    });
+
+    it("returns null when a raw query decodes %3D into an equals sign", () => {
+      expect(parseMarketOntologyContext(makeRawParams("mo_from=ontology&mo_chain=a%3Db"))).toBeNull();
+    });
+
+    it("returns null when a raw query decodes %2F into a slash", () => {
+      expect(parseMarketOntologyContext(makeRawParams("mo_from=ontology&mo_chain=a%2Fb"))).toBeNull();
+    });
+
+    it("returns null when a raw query decodes %E8%8A%82 into a non-ASCII focus", () => {
+      expect(parseMarketOntologyContext(makeRawParams("mo_from=ontology&mo_chain=a&mo_focus=%E8%8A%82%E7%82%B9"))).toBeNull();
+    });
+
+    it("returns null when a raw query decodes %C3%A9 into a non-ASCII chain", () => {
+      expect(parseMarketOntologyContext(makeRawParams("mo_from=ontology&mo_chain=abc%C3%A9"))).toBeNull();
+    });
+
+    it.each([
+      ["2024-02-29", true],
+      ["2026-02-29", false],
+      ["2026-04-31", false],
+    ] as const)("treats %s as a %s calendar date", (date, isValid) => {
+      const result = parseMarketOntologyContext(
+        makeRawParams(`mo_from=ontology&mo_chain=a&mo_asof=${date}`)
+      );
+      expect(result === null).toBe(!isValid);
+    });
+
+    it.each([
+      "prose with spaces",
+      "javascript:alert(1)",
+      "https://evil.example/x",
+      "../..",
+      "#",
+      "?",
+      "&",
+    ])("returns null when focus is the adversarial value %s", (focus) => {
+      const params = makeParams({ mo_from: "ontology", mo_chain: VALID_CHAIN, mo_focus: focus });
       expect(parseMarketOntologyContext(params)).toBeNull();
     });
 
-    it("returns null when encoded equals %3D in chain value", () => {
-      // mo_chain=foo%3Dbar gets decoded to "foo=bar" which fails ID_GRAMMAR
-      const params = new URLSearchParams();
-      params.set("mo_from", "ontology");
-      params.set("mo_chain", "foo=bar");
-      expect(parseMarketOntologyContext(params)).toBeNull();
-    });
-
-    it("returns null when encoded slash %2F in chain value", () => {
-      // mo_chain=foo%2Fbar gets decoded to "foo/bar" which fails ID_GRAMMAR (slash not in grammar)
-      const params = new URLSearchParams();
-      params.set("mo_from", "ontology");
-      params.set("mo_chain", "foo/bar");
-      expect(parseMarketOntologyContext(params)).toBeNull();
-    });
-
-    it("returns null when mo_focus contains non-ASCII characters", () => {
-      const params = makeParams({ mo_from: "ontology", mo_chain: VALID_CHAIN, mo_focus: "node中" });
-      expect(parseMarketOntologyContext(params)).toBeNull();
-    });
-
-    it("returns null when mo_chain contains non-ASCII characters", () => {
-      const params = makeParams({ mo_from: "ontology", mo_chain: "chainé" });
-      expect(parseMarketOntologyContext(params)).toBeNull();
+    it("returns null when a present optional field is empty", () => {
+      expect(parseMarketOntologyContext(makeRawParams("mo_from=ontology&mo_chain=a&mo_focus="))).toBeNull();
+      expect(parseMarketOntologyContext(makeRawParams("mo_from=ontology&mo_chain=a&mo_asof="))).toBeNull();
     });
   });
 
@@ -302,6 +334,23 @@ describe("parseMarketOntologyContext", () => {
     });
     const result = parseMarketOntologyContext(params);
     expect(result).toEqual({ from: "ontology", chain: VALID_CHAIN });
+  });
+
+  it("ignores a non-ASCII unknown mo_* key", () => {
+    const result = parseMarketOntologyContext(
+      makeRawParams("mo_from=ontology&mo_chain=a&mo_%E8%8A%82=x")
+    );
+    expect(result).toEqual({ from: "ontology", chain: "a" });
+  });
+
+  it("round-trips a raw valid context through parse and serialize", () => {
+    const raw = "symbol=NVDA&mo_from=ontology&mo_chain=a&mo_focus=node_42&mo_path_rev=3";
+    const params = makeRawParams(raw);
+    const parsed = parseMarketOntologyContext(params);
+    expect(parsed).not.toBeNull();
+    expect(serializeMarketOntologyContext(parsed!, params).toString()).toBe(
+      "symbol=NVDA&mo_from=ontology&mo_chain=a&mo_focus=node_42&mo_path_rev=3"
+    );
   });
 });
 
@@ -377,6 +426,33 @@ describe("serializeMarketOntologyContext", () => {
     const allKeys = Array.from(params.keys());
     expect(allKeys).toEqual(["mo_from", "mo_chain"]);
   });
+
+  it("removes known and unknown mo_* keys absent from the context", () => {
+    const ctx: MarketOntologyContext = { from: "ontology", chain: VALID_CHAIN };
+    const existing = makeParams({
+      symbol: "NVDA",
+      page: "intelligence",
+      mo_focus: "pre_existing_focus",
+      mo_asof: VALID_DATE,
+      mo_unknown: "u",
+    });
+    const result = serializeMarketOntologyContext(ctx, existing);
+
+    expect(result.has("mo_focus")).toBe(false);
+    expect(result.has("mo_asof")).toBe(false);
+    expect(result.has("mo_unknown")).toBe(false);
+    expect([...result.keys()]).toEqual(["symbol", "page", "mo_from", "mo_chain"]);
+  });
+
+  it.each([
+    ["focus", "a b"],
+    ["pathRev", "1e9"],
+    ["asof", "2026-02-30"],
+  ] as const)("omits an illegal forged %s field", (field, value) => {
+    const ctx = { from: "ontology", chain: VALID_CHAIN, [field]: value } as unknown as MarketOntologyContext;
+    const result = serializeMarketOntologyContext(ctx);
+    expect([...result.keys()]).toEqual(["mo_from", "mo_chain"]);
+  });
 });
 
 describe("marketOntologyReturnHref", () => {
@@ -406,19 +482,46 @@ describe("marketOntologyReturnHref", () => {
     expect(marketOntologyReturnHref(ctx)).toBe(`${MARKET_ONTOLOGY_ORIGIN}/ontology.html?rev=3#ox-leg-node_42`);
   });
 
-  // Test 7: encodeURIComponent prevents href injection; a..b passes ID_GRAMMAR so it is
-  // a legitimate focus value that was accepted by parse(); encodeURIComponent handles it safely
-  it("encodes focus value with special characters", () => {
-    const ctx: MarketOntologyContext = { from: "ontology", chain: VALID_CHAIN, focus: "node/with/slashes" };
-    const result = marketOntologyReturnHref(ctx);
-    expect(result).toBe(`${MARKET_ONTOLOGY_ORIGIN}/ontology.html#ox-leg-node%2Fwith%2Fslashes`);
+  it("returns the bare href when an empty pathRev or focus is forged", () => {
+    const ctx = { from: "ontology", chain: VALID_CHAIN, pathRev: "", focus: "" } as unknown as MarketOntologyContext;
+    expect(marketOntologyReturnHref(ctx)).toBe(`${MARKET_ONTOLOGY_ORIGIN}/ontology.html`);
   });
 
-  it("encodes focus value containing dots (valid ID_GRAMMAR, must not break href)", () => {
+  it("percent-encodes a legal focus into one opaque fragment token", () => {
     const ctx: MarketOntologyContext = { from: "ontology", chain: VALID_CHAIN, focus: "a..b" };
     const result = marketOntologyReturnHref(ctx);
-    // dots are valid in ID_GRAMMAR; encodeURIComponent encodes them as %2E
+    // Dots are legal in the id grammar and pass through unencoded.
     expect(result).toBe(`${MARKET_ONTOLOGY_ORIGIN}/ontology.html#ox-leg-a..b`);
+  });
+
+  it("percent-encodes a legal colon in focus", () => {
+    const ctx: MarketOntologyContext = { from: "ontology", chain: VALID_CHAIN, focus: "a:b" };
+    const result = marketOntologyReturnHref(ctx);
+    expect(result).toBe(`${MARKET_ONTOLOGY_ORIGIN}/ontology.html#ox-leg-a%3Ab`);
+  });
+
+  it.each([
+    ["pathRev", "3&x=1"],
+    ["pathRev", "1e9"],
+    ["focus", "a b"],
+    ["focus", "https://evil.example/x"],
+    ["asof", "2026-02-30"],
+  ] as const)("returns the bare href when forged %s is illegal", (field, value) => {
+    const ctx = { from: "ontology", chain: VALID_CHAIN, [field]: value } as unknown as MarketOntologyContext;
+    const result = marketOntologyReturnHref(ctx);
+    expect(result).toBe(`${MARKET_ONTOLOGY_ORIGIN}/ontology.html`);
+    expect(result).not.toContain("?rev=");
+    expect(result).not.toContain("#ox-leg-");
+  });
+
+  it("ignores an unknown mo_origin key when building the return href", () => {
+    const withoutUnknown = parseMarketOntologyContext(makeRawParams("mo_from=ontology&mo_chain=a&mo_focus=node"));
+    const withUnknown = parseMarketOntologyContext(
+      makeRawParams("mo_from=ontology&mo_chain=a&mo_focus=node&mo_origin=https%3A%2F%2Fevil.example")
+    );
+    const expected = `${MARKET_ONTOLOGY_ORIGIN}/ontology.html#ox-leg-node`;
+    expect(marketOntologyReturnHref(withoutUnknown!)).toBe(expected);
+    expect(marketOntologyReturnHref(withUnknown!)).toBe(expected);
   });
 });
 
@@ -481,6 +584,12 @@ describe("clearMarketOntologyContext", () => {
     expect(result.has("mo_unknown1")).toBe(false);
     expect(result.has("mo_unknown2")).toBe(false);
   });
+
+  it("clears an uppercase MO_ prefix case-insensitively", () => {
+    const result = clearMarketOntologyContext(makeRawParams("symbol=NVDA&MO_CHAIN=x"));
+    expect(result.has("MO_CHAIN")).toBe(false);
+    expect(result.get("symbol")).toBe("NVDA");
+  });
 });
 
 describe("hasMarketOntologyContext", () => {
@@ -502,6 +611,11 @@ describe("hasMarketOntologyContext", () => {
   it("returns false for empty params", () => {
     const params = new URLSearchParams();
     expect(hasMarketOntologyContext(params)).toBe(false);
+  });
+
+  it("counts an uppercase MO_ prefix case-insensitively", () => {
+    expect(hasMarketOntologyContext(makeRawParams("MO_CHAIN=x"))).toBe(true);
+    expect(hasMarketOntologyContext(makeRawParams("symbol=NVDA"))).toBe(false);
   });
 });
 
@@ -528,24 +642,20 @@ describe("MARKET_ONTOLOGY_ORIGIN", () => {
   });
 });
 
-describe("MarketOntologyContext type", () => {
-  it("accepts a valid context object", () => {
-    const ctx: MarketOntologyContext = {
+describe("MarketOntologyContext round-trip", () => {
+  it("deep-equals the original after serialize then parse", () => {
+    const original: MarketOntologyContext = {
       from: "ontology",
       chain: VALID_CHAIN,
       focus: VALID_FOCUS,
       pathRev: VALID_PATH_REV,
+      channel: "ch_1",
+      theme: "theme_x",
+      company: "co_y",
+      security: "sec_z",
+      asof: VALID_DATE,
+      kc: "2026-08-01",
     };
-    expect(ctx.from).toBe("ontology");
-    expect(ctx.chain).toBe(VALID_CHAIN);
-    expect(ctx.focus).toBe(VALID_FOCUS);
-    expect(ctx.pathRev).toBe(VALID_PATH_REV);
-  });
-
-  it("from field is always 'ontology' type", () => {
-    const ctx: MarketOntologyContext = { from: "ontology", chain: VALID_CHAIN };
-    // This is a TypeScript check — from can only be 'ontology'
-    const _typeCheck: "ontology" = ctx.from;
-    expect(_typeCheck).toBe("ontology");
+    expect(parseMarketOntologyContext(serializeMarketOntologyContext(original))).toEqual(original);
   });
 });
