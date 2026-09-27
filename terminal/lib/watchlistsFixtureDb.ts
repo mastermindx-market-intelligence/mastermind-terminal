@@ -614,9 +614,11 @@ function applyThesisVersionFixture(store: Store, args: Record<string, unknown>):
       const closedPrefix = `${subject}.`;
       const closedPrefixZh = `${subjectZh}。`;
       const summaryPlain = condition
-        ? `${closedPrefix} Your thesis "${title}" lists: ${closeSentence(condition)}`
+        ? `${closedPrefix} Your thesis “${title}” lists: ${closeSentence(condition)}`
         : `${closedPrefix} Your thesis lists no conditions yet.`;
-      const summaryPlainZh = `${closedPrefixZh}你的论点还没有中文条件句子。`;
+      const summaryPlainZh = condition
+        ? `${closedPrefixZh}你的论点《${title}》列出的条件：${closeSentence(condition)}（翻译待补）`
+        : `${closedPrefixZh}你的论点尚未列出任何条件。（翻译待补）`;
       store.alertOutbox.push({
         id: crypto.randomUUID(),
         user_id: userId,
@@ -641,13 +643,14 @@ function applyThesisVersionFixture(store: Store, args: Record<string, unknown>):
           summary_plain: summaryPlain,
           summary_plain_zh: summaryPlainZh,
           condition_plain: condition,
-          condition_plain_zh: "",
+          condition_plain_zh: condition ? `${condition}.（翻译待补）` : "",
+          // Fixture-only (not a producer field — macro's engine copies the tripwire claim here).
           engine_window_plain: "The watch window closed.",
           engine_window_plain_zh: "观察窗口已关闭。",
-          evidence_url: null,
+          evidence_url: "https://www.mastermind-x.com/cycle.html",
           requires_tier: null,
           coverage: "full",
-          ticker: subjectRefRecord.kind === "ticker" ? String(subjectRefRecord.key) : null,
+          ticker: subjectRefRecord.kind === "issuer" ? String(subjectRefRecord.key) : null,
         },
         created_at: now,
       });

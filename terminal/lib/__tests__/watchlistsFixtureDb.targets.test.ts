@@ -35,7 +35,7 @@ describe("fixture thesis monitor outbox", () => {
       p_thesis_id: null,
       p_expected_version: 0,
       p_transition: "create",
-      p_subject_ref: { schema: "mastermind.thesis-subject-ref/v1", kind: "ticker", owner: "terminal.analysis_symbol", key: "NVDA", display: "NVDA" },
+      p_subject_ref: { schema: "mastermind.thesis-subject-ref/v1", kind: "issuer", owner: "terminal.analysis_symbol", key: "NVDA", display: "NVDA" },
       p_content: { schema: "mastermind.thesis-content/v1", title: "Closed window", statement: "s", falsifiers: ["Gross margin falls below 65%"] },
       p_client_request_id: "req-monitor-vector",
       p_effective_at: null,
@@ -51,12 +51,12 @@ describe("fixture thesis monitor outbox", () => {
       category: "thesis_window",
       source: "macro.thesis_condition_monitor",
       subject: "A window we watch for NVDA has closed",
-      subject_zh: "你关注的“NVDA”窗口已关闭",
-      summary_plain: 'A window we watch for NVDA has closed. Your thesis "Closed window" lists: Gross margin falls below 65%.',
-      summary_plain_zh: "你关注的“NVDA”窗口已关闭。你的论点还没有中文条件句子。",
-      condition_plain: "Gross margin falls below 65%",
-      condition_plain_zh: "",
-      evidence_url: null,
+      subject_zh: '你关注的“NVDA”窗口已关闭',
+      summary_plain: 'A window we watch for NVDA has closed. Your thesis “Closed window” lists: Gross margin falls below 65%.',
+      summary_plain_zh: '你关注的“NVDA”窗口已关闭。你的论点《Closed window》列出的条件：Gross margin falls below 65%.（翻译待补）',
+      condition_plain: 'Gross margin falls below 65%',
+      condition_plain_zh: 'Gross margin falls below 65%.（翻译待补）',
+      evidence_url: 'https://www.mastermind-x.com/cycle.html',
       coverage: "full",
       ticker: "NVDA",
     });
@@ -66,14 +66,34 @@ describe("fixture thesis monitor outbox", () => {
 });
 
 describe("fixture thesis monitor subject fidelity", () => {
-  it("uses the created thesis subject and only emits ticker for ticker subjects", async () => {
+  it("emits ticker: null for a theme subject (no issuer mapping)", async () => {
+    const key = `${FIXTURE_MONITOR_FIRED_TOKEN}-theme`;
+    const db = createFixtureDb(key);
+    await db.rpc("apply_thesis_version_v1", {
+      p_thesis_id: null,
+      p_expected_version: 0,
+      p_transition: "create",
+      p_subject_ref: { schema: "mastermind.thesis-subject-ref/v1", kind: "theme", owner: "macro.user_topic", key: "macro-env", display: "Macro environment" },
+      p_content: { schema: "mastermind.thesis-content/v1", title: "Macro shift", statement: "s", falsifiers: ["GDP growth turns negative"] },
+      p_client_request_id: "req-monitor-theme",
+      p_effective_at: null,
+    });
+    const row = fixtureStore(key).alertOutbox[0];
+    expect(row.payload).toMatchObject({
+      subject: "A window we watch for Macro environment has closed",
+      subject_zh: '你关注的“Macro environment”窗口已关闭',
+      ticker: null,
+    });
+  });
+
+  it("uses the created thesis subject and emits ticker for issuer subjects", async () => {
     const key = `${FIXTURE_MONITOR_FIRED_TOKEN}-subject`;
     const db = createFixtureDb(key);
     await db.rpc("apply_thesis_version_v1", {
       p_thesis_id: null,
       p_expected_version: 0,
       p_transition: "create",
-      p_subject_ref: { schema: "mastermind.thesis-subject-ref/v1", kind: "ticker", owner: "terminal.analysis_symbol", key: "AAPL", display: "Apple" },
+      p_subject_ref: { schema: "mastermind.thesis-subject-ref/v1", kind: "issuer", owner: "terminal.analysis_symbol", key: "AAPL", display: "Apple" },
       p_content: { schema: "mastermind.thesis-content/v1", title: "Closed window", statement: "s", falsifiers: ["Revenue growth stops"] },
       p_client_request_id: "req-monitor-subject",
       p_effective_at: null,
@@ -81,7 +101,7 @@ describe("fixture thesis monitor subject fidelity", () => {
     const row = fixtureStore(key).alertOutbox[0];
     expect(row.payload).toMatchObject({
       subject: "A window we watch for Apple has closed",
-      subject_zh: "你关注的“Apple”窗口已关闭",
+      subject_zh: '你关注的“Apple”窗口已关闭',
       ticker: "AAPL",
     });
   });
