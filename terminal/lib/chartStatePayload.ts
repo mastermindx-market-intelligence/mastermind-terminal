@@ -78,7 +78,7 @@ export function prepareChartStatePayload(
   };
   const result = (): PreparedChartState => ({ ok: true, text,
     sentAcks: allAcks.slice(0, ackCount), remainingAcks: allAcks.slice(ackCount), sizeUpperBound });
-  const omit = (key: "native_observations" | "data_readout", schema: string) => {
+  const omit = (key: "pane_contexts" | "native_observations" | "data_readout", schema: string) => {
     if (session[key] == null) return;
     session[key] = { schema, status: "unavailable", reason: "chart_state_budget" };
     omittedFields.push(key);
@@ -132,6 +132,10 @@ export function prepareChartStatePayload(
       }
     }
 
+    // Cross-pane comparison is useful but subordinate to the active chart and ACKs.
+    // Under pressure, withhold it before active-pane native/Data Window evidence.
+    omit("pane_contexts", "chart.pane_contexts.v1");
+    if (fits()) return result();
     omit("native_observations", "chart.native_live_observations.v1");
     if (fits()) return result();
     omit("data_readout", "chart.data_readout.v1");

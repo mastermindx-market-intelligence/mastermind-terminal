@@ -187,7 +187,9 @@ export default function ChartPane({ idx, symbol, drawingOwnerKey, isActive, onAc
         lockedVLine={lockedVLine}
         onSetLockedVLine={onSetLockedVLine}
         onIndRowsAt={isActive ? onIndRowsAt : undefined}
-        onNativeObservations={isActive ? onNativeObservations : undefined}
+        // Native evidence is read-only and pane-local. Keep it available for all mounted
+        // panes so Copilot can compare layouts without activating or mutating them.
+        onNativeObservations={onNativeObservations}
         dayMode={_dayMode}
         onPaneCount={onPaneCount}
       />

@@ -22,6 +22,16 @@ import {
   CHART_COMMAND_TARGET_SCHEMA, requiresExactChartTarget, readChartCommandTarget, chartCommandTargetError,
 } from "@/lib/chartBus";
 
+export const CHART_PANE_CONTEXT_SCHEMA = "chart.pane_contexts.v1" as const;
+export const CHART_PANE_CONTEXT_MAX = 4;
+
+export type ChartPaneContextSnapshot = {
+  pane_id: number;
+  symbol: string;
+  tf: string;
+  native_observations: unknown;
+};
+
 // What TerminalShell must supply so the bus can act on the chart + build a complete state snapshot.
 export type ChartBusHost = {
   activeSymbol: string;
@@ -35,7 +45,8 @@ export type ChartBusHost = {
   // with the same provider the Brain widget sends on the chat request.
   getContextIdentity: () => { origin_id: string; context_revision: number };
   getReadoutSnapshot?: () => unknown; // existing Data Window projection, never new calculation
-  getNativeObservationSnapshot?: () => unknown; // exact renderer-bundle projection, never a second compute
+  getNativeObservationSnapshot?: () => unknown; // active pane's exact renderer-bundle projection
+  getPaneContextSnapshots?: () => readonly ChartPaneContextSnapshot[]; // mounted panes, read-only evidence
   // chart mutators (already exist in TerminalShell):
   setSymbol: (s: string) => void;
   setTf: (tf: string) => void;
@@ -47,7 +58,7 @@ export type ChartBus = {
   dispatchV2: (cmd: unknown) => void;
   noteReadoutChange: () => void; // reuse ordinary state coalescing; ACK priority remains higher
   noteNativeObservationChange: () => void;
-  /** PaneSync calendar window in epoch ms; only active-pane changes trigger a mirror. */
+  /** PaneSync calendar window in epoch ms; mounted panes share the existing mirror. */
   noteViewport: (paneId: number, windowMs: { from: number; to: number } | null) => void;
   aiDrawingsFor: (symbol: string) => Drawing[];
   legend: { count: number; hidden: boolean; toggleHidden: () => void; clear: () => void };
@@ -144,6 +155,60 @@ export function useChartBus(host: ChartBusHost): ChartBus {
     let nativeObservations: unknown = null;
     try { nativeObservations = h.getNativeObservationSnapshot?.() ?? null; }
     catch { /* absent/failed native evidence is not an empty/no-setup conclusion */ }
+
+    // Read-only multi-pane evidence rides the SAME state mirror. It never changes
+    // the active pane or grants mutation authority to an inactive pane.
+    let paneContexts: unknown = null;
+    try {
+      const rows = h.getPaneContextSnapshots?.() ?? [];
+      if (rows.length > CHART_PANE_CONTEXT_MAX) throw new Error("pane_context_limit");
+      const seen = new Set<number>();
+      const panes: Array<Record<string, unknown>> = [];
+      for (const row of rows) {
+        if (
+          !row
+          || !Number.isSafeInteger(row.pane_id)
+          || row.pane_id < 0
+          || row.pane_id >= CHART_PANE_CONTEXT_MAX
+          || seen.has(row.pane_id)
+          || typeof row.symbol !== "string"
+          || !row.symbol
+          || row.symbol.length > 64
+          || typeof row.tf !== "string"
+          || !row.tf
+          || row.tf.length > 32
+        ) throw new Error("pane_context_identity");
+        seen.add(row.pane_id);
+        const windowMs = viewportByPaneRef.current.get(row.pane_id) ?? null;
+        panes.push({
+          pane_id: row.pane_id,
+          symbol: row.symbol,
+          tf: row.tf,
+          visible_range: windowMs
+            ? { from: windowMs.from / 1000, to: windowMs.to / 1000 }
+            : null,
+          native_observations: row.native_observations,
+        });
+      }
+      if (panes.length > 1) {
+        paneContexts = {
+          schema: CHART_PANE_CONTEXT_SCHEMA,
+          status: "observed",
+          active_pane_id: h.activePaneId,
+          pane_count: panes.length,
+          control_authority: "active_pane_only",
+          panes,
+        };
+      }
+    } catch {
+      // Cross-pane evidence is optional, but absence must be explicit rather than
+      // silently looking like a complete smaller layout.
+      paneContexts = {
+        schema: CHART_PANE_CONTEXT_SCHEMA,
+        status: "unavailable",
+        reason: "pane_context_snapshot_invalid",
+      };
+    }
     const body = {
       client: "terminal",
       origin_id: identity.origin_id,
@@ -159,6 +224,7 @@ export function useChartBus(host: ChartBusHost): ChartBus {
         data_range: dataRange,
         data_readout: dataReadout,
         native_observations: nativeObservations,
+        pane_contexts: paneContexts,
         capabilities: h.capabilities,
         drawings,
       },
@@ -258,7 +324,9 @@ export function useChartBus(host: ChartBusHost): ChartBus {
     ) return;
     if (next) viewportByPaneRef.current.set(paneId, next);
     else viewportByPaneRef.current.delete(paneId);
-    if (paneId === hostRef.current.activePaneId) scheduleState(VIEWPORT_DEBOUNCE_MS);
+    // Up to four mounted panes share one bounded mirror. A viewport read does not
+    // change active-pane identity or context revision; it only refreshes evidence.
+    scheduleState(VIEWPORT_DEBOUNCE_MS);
   }, [scheduleState]);
 
   // ── ack helper ───────────────────────────────────────────────────────────────────────────

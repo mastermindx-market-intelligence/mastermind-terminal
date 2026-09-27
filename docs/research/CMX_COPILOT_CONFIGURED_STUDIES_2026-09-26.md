@@ -350,3 +350,30 @@ Implementation plan (inline, current user assignment; tests are authored first a
 5. Preserve source/readback receipts on the same PRs and handoff. Run no tests/compilers/browser/model calls in this feature-building slice.
 
 Deferred acceptance: Stop before any chart event retains existing prompt retraction; Stop after command/annotation handoff keeps the user row even without text; callback throws stay uncertain; matching queued work is cancelled once and unrelated batches remain; late chunks and late run responses cannot mutate a stopped or superseded reply; cold replay emits no chart commands and explains that limit; same live reconnect remains supported; old hosts disclose missing cancellation support; callback remount/cleanup cannot reach a stale host; server cancellation failure is not local replay permission; dark/light/EN/ZH/responsive/keyboard behavior stays on existing surfaces.
+
+
+## 2026-09-27 — read-only mounted-pane context
+
+This feature batch extends the existing chart-state mirror with `chart.pane_contexts.v1` for multi-chart and MTF layouts. It is an observation extension only. The existing active pane remains the sole chart-control target; reading another pane never activates it, changes its symbol/timeframe, grants mutation authority, or increments `ai_context_client.v1.context_revision`.
+
+Producer law:
+- at most four currently mounted pane indices are reported;
+- each row keeps exact pane id, symbol, timeframe, its paneSync calendar viewport, and the existing renderer-native observation packet when current;
+- ChartPanel continues to own native computation. Inactive panes reuse the same already-rendered `computeSuite()` bundles through the existing projector; there is no second indicator calculation, poller, endpoint, pane registry, or persistence store;
+- stale pane packets fail to an explicit unavailable native marker when symbol, timeframe, indicator settings, replay state, or locked-bar selection no longer matches;
+- single-pane layouts keep the established active session shape and do not pay a multi-pane payload cost.
+
+Transport law:
+- `pane_contexts` shares `/api/brain/chart/state` and the current context origin/revision;
+- the existing 60 KiB receipt-first payload reducer withholds `pane_contexts` before active-pane native/Data Window evidence when the upload is under pressure, recording `pane_contexts` in `mirror_coverage.omitted_fields`;
+- ACK identity, active chart identity, indicator settings, and the actual chart stores are never truncated or mutated to preserve cross-pane evidence.
+
+Brain qualification law:
+- the gateway checks schema, active pane id, pane count, unique bounded pane ids, symbol/timeframe text, finite viewport ordering, and the existing exact origin/revision;
+- every pane's native packet is qualified by the same `_qualified_native_live_observations` owner against a synthetic view of that pane while retaining the shared current indicator/capability census;
+- the active pane row must agree with the separately qualified root `session.native_observations`; model output references that root packet rather than duplicating a potentially large payload;
+- inactive pane output is explicitly read-only evidence. Missing/partial evidence is not neutral/bearish evidence and does not authorize a command against that pane.
+
+Deferred combined acceptance must cover at minimum: 2-pane different-symbol comparison; 4-pane same-symbol MTF comparison; inactive pane native observed/partial/unavailable; symbol/timeframe/settings/replay/locked-bar staleness; pane removal/reuse; active-row/root-native disagreement; duplicate/out-of-range pane ids; malformed/nonfinite viewport; payload-budget withholding before active native evidence; pane viewport refresh without context revision bump; active-pane changes preserving inactive read-only rows; and proof that a model comparison does not mutate or activate an inactive pane unless a separate explicit user command lawfully changes the active target.
+
+No local test runner, typecheck/compiler, browser/model qualification or CI acceptance is claimed by this section.

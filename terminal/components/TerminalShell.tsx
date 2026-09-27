@@ -84,7 +84,7 @@ import {
 } from "@/lib/watchlistOwner";
 import { useGateEntitlement } from "@/lib/entitlementStore";
 import { normalizeDevTierOverride } from "@/lib/subscriptionTier";
-import { useChartBus } from "@/lib/useChartBus";
+import { CHART_PANE_CONTEXT_SCHEMA, useChartBus } from "@/lib/useChartBus";
 import { isV2Envelope, type IndicatorSpec } from "@/lib/chartBus";
 import { describeNativeSuiteCapabilities, describeNativeStudyContext } from "@/lib/chartIndicatorParams";
 import SeasonalityCard from "@/components/SeasonalityCard";
@@ -1380,11 +1380,19 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
       settingsKey: string; replayOn: boolean; replayIdx: number | null };
   }) | null>(null);
   const [indRowsAt, setIndRowsAt] = useState<((barTime: string | number) => Record<string, number | null>) | null>(null);
-  const [nativeObservationState, setNativeObservationState] = useState<{
+  type NativePaneObservationState = {
     packet: Record<string, unknown>;
-    binding: { origin_id: string; context_revision: number; pane_id: number; symbol: string; tf: string;
-      settings_key: string; replay_on: boolean; replay_idx: number | null; selected_time: string | null };
-  } | null>(null);
+    pane_id: number;
+    symbol: string;
+    tf: string;
+    settings_key: string;
+    replay_on: boolean;
+    replay_idx: number | null;
+    selected_time: string | null;
+  };
+  // Read-only native evidence by mounted chart pane. ai_context origin/revision remains
+  // owned once at the active Terminal context and is attached only when the state is mirrored.
+  const [nativeObservationByPane, setNativeObservationByPane] = useState<Record<number, NativePaneObservationState>>({});
   // B3: sub-pane count for mobile chart-body height formula (--subpanes CSS var)
   const [subPanes, setSubPanes] = useState(0);
   const onPaneCount = useCallback((n: number) => setSubPanes(n), []);
@@ -4339,6 +4347,10 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
       source: "same_computeSuite_bundle_used_by_renderer", max_bytes: LIVE_NATIVE_OBSERVATION_MAX_BYTES,
       coverage: "only_suites_rendered_in_current_chart_pass", missing: "omitted_not_negative_evidence",
       strength: "native_score_not_probability", freshness: "chart_loaded_not_live_attested" },
+    pane_contexts: { schema: CHART_PANE_CONTEXT_SCHEMA, max_panes: 4,
+      observation: "read_only_mounted_panes", control_authority: "active_pane_only",
+      native_source: "same_renderer_bundle_when_available",
+      context_revision: "read_does_not_increment" },
     command_target: {
       schema: "chart.command_target.v1", author: "server_only",
       match: ["origin_id", "context_revision", "pane_id", "symbol", "tf"],
@@ -4358,6 +4370,37 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
       target_required_for_ids: "chart.command_target.v1",
     },
   }), [inds, indParams]);
+
+  const nativeObservationForPane = useCallback((
+    paneId: number,
+    symbol: string,
+    paneTf: string,
+    paneReplayOn: boolean,
+    paneReplayIdx: number | null,
+  ): Record<string, unknown> => {
+    const state = nativeObservationByPane[paneId];
+    const identity = aiContextProviderRef.current!.getAiContext();
+    const settingsKey = JSON.stringify(sessionIndicators);
+    if (!prefsHydrated || !state || state.pane_id !== paneId
+      || state.symbol !== symbol || state.tf !== paneTf || state.settings_key !== settingsKey
+      || state.replay_on !== paneReplayOn || state.replay_idx !== paneReplayIdx
+      || state.selected_time !== lockedVLine) {
+      return { schema: LIVE_NATIVE_OBSERVATION_SCHEMA, status: "unavailable",
+        reason: "native_observation_context_not_current" };
+    }
+    return { ...state.packet, binding: {
+      origin_id: identity.origin_id,
+      context_revision: identity.context_revision,
+      pane_id: paneId,
+      symbol,
+      tf: paneTf,
+      settings_key: settingsKey,
+      replay_on: paneReplayOn,
+      replay_idx: paneReplayIdx,
+      selected_time: lockedVLine,
+    } };
+  }, [nativeObservationByPane, prefsHydrated, sessionIndicators, lockedVLine]);
+
   const chartBus = useChartBus({
     activeSymbol: active,
     bars,
@@ -4385,21 +4428,22 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
       }
       return captureChartReadout(chartReadoutMeta, indRowsAt, active, tf, lockedVLine, replayOn);
     },
-    getNativeObservationSnapshot: () => {
-      const state = nativeObservationState;
-      const identity = aiContextProviderRef.current!.getAiContext();
-      const settingsKey = JSON.stringify(sessionIndicators);
-      const binding = state?.binding;
-      if (!prefsHydrated || !state || !binding || binding.origin_id !== identity.origin_id
-        || binding.context_revision !== identity.context_revision || binding.pane_id !== activePane
-        || binding.symbol !== active || binding.tf !== tf || binding.settings_key !== settingsKey
-        || binding.replay_on !== replayOn || binding.replay_idx !== (replayOn ? replayIdx : null)
-        || binding.selected_time !== lockedVLine) {
-        return { schema: LIVE_NATIVE_OBSERVATION_SCHEMA, status: "unavailable",
-          reason: "native_observation_context_not_current" };
-      }
-      return { ...state.packet, binding };
-    },
+    getNativeObservationSnapshot: () => nativeObservationForPane(
+      activePane, active, tf, replayOn, replayOn ? replayIdx : null,
+    ),
+    getPaneContextSnapshots: () => panes.slice(0, 4).map((symbol, pane_id) => {
+      const paneTf = paneTfs[pane_id] ?? "D";
+      const paneReplayOn = pane_id === activePane && replayOn;
+      const paneReplayIdx = paneReplayOn ? replayIdx : null;
+      return {
+        pane_id,
+        symbol,
+        tf: paneTf,
+        native_observations: nativeObservationForPane(
+          pane_id, symbol, paneTf, paneReplayOn, paneReplayIdx,
+        ),
+      };
+    }),
     setSymbol: (s) => pick(s),
     setTf: (t2) => setTf(t2),
     setIndicators: (specs) => {
@@ -4417,14 +4461,17 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
   useEffect(() => { chartBus.noteReadoutChange(); }, [chartReadoutMeta, indRowsAt,
     lockedVLine, replayOn, replayIdx, chartBus.noteReadoutChange]);
   useEffect(() => { chartBus.noteNativeObservationChange(); },
-    [nativeObservationState, chartBus.noteNativeObservationChange]);
+    [nativeObservationByPane, chartBus.noteNativeObservationChange]);
 
-  // Observe the already-registered active pane's calendar viewport. paneSync remains the
-  // single logical-range→calendar owner; Chart Bus only mirrors the result into Brain state.
-  useEffect(() => subscribePaneVisibleWindow(
-    activePane,
-    (window) => chartBus.noteViewport(activePane, window),
-  ), [activePane, chartBus.noteViewport]);
+  // Observe every mounted chart pane through paneSync's existing calendar owner.
+  // This is evidence collection only: subscriptions never activate a pane or bump ai_context.
+  useEffect(() => {
+    const unsubs = panes.slice(0, 4).map((_, paneId) => subscribePaneVisibleWindow(
+      paneId,
+      (window) => chartBus.noteViewport(paneId, window),
+    ));
+    return () => { for (const unsub of unsubs) unsub(); };
+  }, [panes.length, chartBus.noteViewport]);
 
   // Brain widget → chart command executor. Mirrors the retired CopilotPanel's FLAT single-command
   // contract EXACTLY ({action, symbol|tf|indicator+on|kind} at top level): every field is
@@ -5543,17 +5590,29 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
                       replayOn, replayIdx: replayOn ? replayIdx : null,
                     } } : null);
                   } : undefined}
-                  onNativeObservations={i === activePane ? (packet) => {
-                    if (!packet) { setNativeObservationState(null); return; }
-                    const identity = aiContextProviderRef.current!.getAiContext();
-                    setNativeObservationState({ packet, binding: {
-                      origin_id: identity.origin_id, context_revision: identity.context_revision,
-                      pane_id: i, symbol: sym, tf: paneTfs[i] ?? "D",
-                      settings_key: JSON.stringify(sessionIndicators),
-                      replay_on: replayOn, replay_idx: replayOn ? replayIdx : null,
-                      selected_time: lockedVLine,
-                    } });
-                  } : undefined}
+                  onNativeObservations={(packet) => {
+                    const paneTf = paneTfs[i] ?? "D";
+                    const paneReplayOn = i === activePane && replayOn;
+                    const paneReplayIdx = paneReplayOn ? replayIdx : null;
+                    setNativeObservationByPane((current) => {
+                      if (!packet) {
+                        if (!(i in current)) return current;
+                        const next = { ...current }; delete next[i]; return next;
+                      }
+                      const nextState: NativePaneObservationState = {
+                        packet,
+                        pane_id: i,
+                        symbol: sym,
+                        tf: paneTf,
+                        settings_key: JSON.stringify(sessionIndicators),
+                        replay_on: paneReplayOn,
+                        replay_idx: paneReplayIdx,
+                        selected_time: lockedVLine,
+                      };
+                      // ChartPanel already signature-deduplicates packets before this callback.
+                      return { ...current, [i]: nextState };
+                    });
+                  }}
                   onPaneCount={i === 0 ? onPaneCount : undefined}
                 />
               ))}
