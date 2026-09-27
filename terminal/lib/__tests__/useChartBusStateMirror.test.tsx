@@ -186,6 +186,55 @@ describe("useChartBus state mirror", () => {
     });
   });
 
+  it("mirrors replay-safe rendered price bars and uses the active viewport tail", async () => {
+    const busRef = { current: null as ChartBus | null };
+    const rendered = Array.from({ length: 20 }, (_, i) => ({
+      time: "2026-02-" + String(i + 1).padStart(2, "0"),
+      o: 100 + i, h: 102 + i, l: 99 + i, c: 101 + i, v: 1000 + i,
+    }));
+    const host: ChartBusHost = {
+      ...hostWith([]),
+      getRenderedPriceWindowSource: () => ({ bars: rendered.slice(0, 15), replay: true }),
+    };
+    await act(async () => {
+      root!.render(React.createElement(Harness, {
+        host,
+        onBus: (bus) => { busRef.current = bus; },
+      }));
+    });
+    await act(async () => { await vi.advanceTimersByTimeAsync(250); });
+    fetchMock.mockClear();
+
+    act(() => busRef.current!.noteViewport(0, {
+      from: Date.parse("2026-02-05T00:00:00Z"),
+      to: Date.parse("2026-02-11T00:00:00Z"),
+    }));
+    await act(async () => { await vi.advanceTimersByTimeAsync(250); });
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const body = JSON.parse(String((fetchMock.mock.calls[0][1] as RequestInit).body));
+    expect(body.session.price_window).toMatchObject({
+      schema: "chart.price_window.v1",
+      status: "observed",
+      symbol: "NVDA",
+      tf: "D",
+      source_bar_count: 15,
+      selection: {
+        scope: "visible_tail",
+        eligible_bars: 7,
+        returned_bars: 7,
+        omitted_older_bars: 0,
+        order: "oldest_to_newest",
+      },
+      basis: { data_status: "replay_slice", last_bar_closed: "unknown" },
+    });
+    expect(body.session.price_window.bars.map((row: any) => row.time)).toEqual([
+      "2026-02-05", "2026-02-06", "2026-02-07", "2026-02-08",
+      "2026-02-09", "2026-02-10", "2026-02-11",
+    ]);
+    expect(body.session.price_window.bars.at(-1).age_bars_from_loaded_end).toBe(4);
+  });
+
   it("never lets a viewport update postpone a higher-priority ACK mirror", async () => {
     const busRef = { current: null as ChartBus | null };
     await act(async () => {

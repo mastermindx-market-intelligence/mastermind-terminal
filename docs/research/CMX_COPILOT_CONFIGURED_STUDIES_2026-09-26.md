@@ -392,3 +392,25 @@ Law:
 - the six-bar path is descriptive raw evidence only. It may support statements such as “this native value rose across the last four observed samples” but never a calibrated trend forecast, probability, or substitute for the working horizon.
 
 Deferred acceptance adds producer six-sample newest-first/null preservation, full source_ref fidelity in headless mode, server acceptance of 1–6 ordered samples, rejection of duplicate/reordered/>6 windows, selected-sample independence, Unicode/packet-budget behavior, and legacy 1–2 sample compatibility. No test runner/compiler/model qualification is claimed here.
+
+
+## 2026-09-27 — viewport-aware active price window
+
+Copilot's existing chart-state mirror gains `chart.price_window.v1`, a compact read-only OHLCV projection from the exact active ChartPanel bar set. This closes a critical observation gap: chart_digest is daily/weekly external structure and native packets are indicator evidence; neither is the raw active rendered price path, especially on intraday or replay views.
+
+Source and scope law:
+- source is the same replay-aware `ChartReadoutMeta.bars` emitted by the active ChartPanel/Data Window owner; no new fetch, resample, bar store or calculation plane;
+- at most 12 bars are returned, oldest→newest;
+- when paneSync has an actual viewport, selection is `visible_tail`: only bars whose source time lies inside that viewport are eligible, and a no-overlap viewport returns unavailable rather than substituting off-screen latest bars;
+- without a viewport, selection is `loaded_tail`, ending exactly at the accepted rendered series tail;
+- each row carries exact source index/time/OHLCV and `age_bars_from_loaded_end`; server qualification recomputes age rather than trusting client annotations;
+- replay survives qualification as `basis.data_status = replay_slice`, so replay/history evidence cannot be described as the current market;
+- newest-bar closed status is explicitly unknown. Raw bars support descriptive observations only; they are not a signal, forecast or calibrated probability.
+
+Transport and qualification law:
+- `price_window` shares the existing chart-state POST and exact origin/context revision;
+- under the existing state budget it is withheld after cross-pane comparison but before established native/Data Window packets, and `mirror_coverage.omitted_fields` names the omission;
+- the Brain qualifier checks exact symbol/timeframe, schema/status/size, source count, selection arithmetic, max-bar/order declaration, strict consecutive source indices, strictly increasing source times, finite OHLC, nonnegative/nullable volume, viewport containment, replay/load status and loaded-tail ending at the actual source tail;
+- server output replaces client basis prose with fixed semantics and sets `predictive_validation:false` / `signal_authority:false`.
+
+Deferred combined acceptance adds loaded-tail and visible-tail projections, no-overlap refusal, replay-slice labeling, live-splice refresh, intraday numeric times, daily ISO times, malformed/nonmonotone bars, source-index gaps/cherry-picking, viewport containment, state-budget omission, old-client missing packet behavior, and real `read_chart_state` replacement. Tests are authored but intentionally not run during feature construction.

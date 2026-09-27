@@ -15,6 +15,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import type { Drawing } from "@/lib/drawings";
 import { timeToMs } from "@/lib/timeWindow";
 import { prepareChartStatePayload } from "@/lib/chartStatePayload";
+import { buildChartPriceWindow, type ChartPriceWindowSource } from "@/lib/chartPriceWindow";
 import {
   CommandQueue, applyToStore, isV2Envelope, translate, validateEnvelope,
   fitMetrics, type Ack, type AiObject, type Fit, type FitBar, type IndicatorSpec,
@@ -45,6 +46,7 @@ export type ChartBusHost = {
   // with the same provider the Brain widget sends on the chat request.
   getContextIdentity: () => { origin_id: string; context_revision: number };
   getReadoutSnapshot?: () => unknown; // existing Data Window projection, never new calculation
+  getRenderedPriceWindowSource?: () => ChartPriceWindowSource | null; // accepted renderer bars, replay-safe
   getNativeObservationSnapshot?: () => unknown; // active pane's exact renderer-bundle projection
   getPaneContextSnapshots?: () => readonly ChartPaneContextSnapshot[]; // mounted panes, read-only evidence
   // chart mutators (already exist in TerminalShell):
@@ -152,6 +154,13 @@ export function useChartBus(host: ChartBusHost): ChartBus {
     let dataReadout: unknown = null;
     try { dataReadout = h.getReadoutSnapshot?.() ?? null; }
     catch { /* absent/failed readout is not an empty market conclusion */ }
+    let priceWindow: unknown = null;
+    try {
+      const priceSource = h.getRenderedPriceWindowSource?.() ?? null;
+      if (priceSource) priceWindow = buildChartPriceWindow(
+        priceSource, sym, h.currentTf, visibleRange,
+      );
+    } catch { /* absent/failed price window is missing evidence, never a market conclusion */ }
     let nativeObservations: unknown = null;
     try { nativeObservations = h.getNativeObservationSnapshot?.() ?? null; }
     catch { /* absent/failed native evidence is not an empty/no-setup conclusion */ }
@@ -223,6 +232,7 @@ export function useChartBus(host: ChartBusHost): ChartBus {
         // Loaded-series availability is useful context but is not the viewport.
         data_range: dataRange,
         data_readout: dataReadout,
+        price_window: priceWindow,
         native_observations: nativeObservations,
         pane_contexts: paneContexts,
         capabilities: h.capabilities,
@@ -324,9 +334,15 @@ export function useChartBus(host: ChartBusHost): ChartBus {
     ) return;
     if (next) viewportByPaneRef.current.set(paneId, next);
     else viewportByPaneRef.current.delete(paneId);
-    // Up to four mounted panes share one bounded mirror. A viewport read does not
-    // change active-pane identity or context revision; it only refreshes evidence.
-    scheduleState(VIEWPORT_DEBOUNCE_MS);
+    // Up to four MOUNTED panes share one bounded mirror. Ignore stray/stale pane ids:
+    // they may update this local cache but cannot create network churn or evidence.
+    const h = hostRef.current;
+    let mounted = paneId === h.activePaneId;
+    if (!mounted) {
+      try { mounted = (h.getPaneContextSnapshots?.() ?? []).some((row) => row.pane_id === paneId); }
+      catch { mounted = false; }
+    }
+    if (mounted) scheduleState(VIEWPORT_DEBOUNCE_MS);
   }, [scheduleState]);
 
   // ── ack helper ───────────────────────────────────────────────────────────────────────────

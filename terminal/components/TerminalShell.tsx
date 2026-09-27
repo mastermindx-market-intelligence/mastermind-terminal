@@ -159,6 +159,7 @@ import { type PineScript } from "@/components/ChartPanel";
 type ShellDrawingStyle = { color: string; width: number; dash: Dash };
 import { visualReadoutColumns, type ChartReadoutMeta } from "@/lib/visualIntelligence";
 import { captureChartReadout, CHART_READOUT_SCHEMA } from "@/lib/chartReadoutSnapshot";
+import { CHART_PRICE_WINDOW_MAX_BARS, CHART_PRICE_WINDOW_SCHEMA } from "@/lib/chartPriceWindow";
 import { LIVE_NATIVE_OBSERVATION_SCHEMA, LIVE_NATIVE_OBSERVATION_MAX_BYTES } from "@/lib/nativeObservationProjection";
 import ChartTableView from "@/components/ChartTableView";
 import { type OTEntry } from "@/components/ChartObjectTree";
@@ -4343,6 +4344,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
     data_readout: { schema: CHART_READOUT_SCHEMA, source: "existing_chart_data_window",
       samples: ["latest_loaded", "locked_bar"], max_bytes: 4096,
       coverage: "not_all_native_studies", freshness: "not_live_attested" },
+    price_window: { schema: CHART_PRICE_WINDOW_SCHEMA, source: "existing_active_chart_rendered_bars",
+      max_bars: CHART_PRICE_WINDOW_MAX_BARS, selection: "visible_tail_else_loaded_tail",
+      order: "oldest_to_newest", replay: "renderer_slice", freshness: "not_live_attested" },
     native_observations: { schema: LIVE_NATIVE_OBSERVATION_SCHEMA,
       source: "same_computeSuite_bundle_used_by_renderer", max_bytes: LIVE_NATIVE_OBSERVATION_MAX_BYTES,
       coverage: "only_suites_rendered_in_current_chart_pass", missing: "omitted_not_negative_evidence",
@@ -4428,6 +4432,16 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
         return { schema: CHART_READOUT_SCHEMA, status: "unavailable", reason: "readout_context_not_current" };
       }
       return captureChartReadout(chartReadoutMeta, indRowsAt, active, tf, lockedVLine, replayOn);
+    },
+    getRenderedPriceWindowSource: () => {
+      const binding = chartReadoutMeta?.copilotBinding;
+      const identity = aiContextProviderRef.current!.getAiContext();
+      const settingsKey = JSON.stringify(sessionIndicators);
+      if (!prefsHydrated || !chartReadoutMeta || !binding || binding.origin_id !== identity.origin_id
+        || binding.context_revision !== identity.context_revision || binding.paneId !== activePane
+        || binding.settingsKey !== settingsKey || binding.replayOn !== replayOn
+        || binding.replayIdx !== (replayOn ? replayIdx : null)) return null;
+      return { bars: chartReadoutMeta.bars, replay: replayOn };
     },
     getNativeObservationSnapshot: () => nativeObservationForPane(
       activePane, active, tf, replayOn, replayOn ? replayIdx : null,
