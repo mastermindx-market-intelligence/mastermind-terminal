@@ -116,7 +116,12 @@ export async function GET(req: Request): Promise<Response> {
     const base = new URL(NW_BASE);
     if (base.protocol !== "https:" || !["mastermind-x.com", "www.mastermind-x.com"].includes(base.hostname)
       || base.username || base.password || base.port) return failure(503, "unavailable");
-    url = new URL(PATHS[key], base.origin);
+    // Production canonicalizes the bare host to www. Resolve that known redirect
+    // before fetch so redirect:"manual" can continue rejecting every response redirect.
+    const ownerOrigin = base.hostname === "mastermind-x.com"
+      ? "https://www.mastermind-x.com"
+      : base.origin;
+    url = new URL(PATHS[key], ownerOrigin);
   } catch { return failure(503, "unavailable"); }
   const controller = new AbortController();
   const abort = () => controller.abort();

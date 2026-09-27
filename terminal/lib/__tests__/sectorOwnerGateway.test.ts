@@ -70,7 +70,7 @@ describe("sector gateway owner-envelope admission", () => {
     expect((await GET(request("sector"))).status).toBe(401); expect(upstream).not.toHaveBeenCalled();
   });
 
-  it("forwards only the filtered cookie to the fixed owner host", async () => {
+  it("forwards only the filtered cookie to the canonical fixed owner host", async () => {
     const raw = JSON.stringify(payload);
     upstream.mockResolvedValue(new Response(raw, { headers: { "Content-Type": "application/json" } }));
     const response = await GET(request("sector")), result = await response.json();
@@ -79,7 +79,7 @@ describe("sector gateway owner-envelope admission", () => {
     expect(result.receipt.contentHash).toBe(createHash("sha256").update(raw).digest("hex"));
     expect(response.headers.get("cache-control")).toBe("private, no-store");
     expect(response.headers.get("vary")).toBe("Cookie");
-    expect(String(upstream.mock.calls[0][0])).toBe("https://mastermind-x.com/sectordata/sector_central.json");
+    expect(String(upstream.mock.calls[0][0])).toBe("https://www.mastermind-x.com/sectordata/sector_central.json");
     const init = upstream.mock.calls[0][1] as RequestInit, headers = new Headers(init.headers);
     expect(init).toMatchObject({ redirect: "manual", cache: "no-store" });
     expect(headers.get("cookie")).toBe(FILTERED_COOKIE);
