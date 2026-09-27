@@ -4,17 +4,25 @@
 // here and in components/fin/CompanyIntelligencePage so only the two surfaces that use it pay
 // for it. See the note in that file.
 import "../../app/company-intelligence.css";
-import { useCallback, useEffect, useLayoutEffect, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import MegaPane, { FIN_PAGES as FIN_PAGE_LIST, type FinPage } from "@/components/fin/MegaPane";
 import { getFund, getBars, type Fund, type Bar } from "@/lib/fund";
 import { getJSON } from "@/lib/dataCache";
 import { useLang, useT } from "@/lib/i18n";
+import {
+  clearMarketOntologyContext,
+  hasMarketOntologyContext,
+  parseMarketOntologyContext,
+  serializeMarketOntologyContext,
+  type MarketOntologyContext,
+} from "@/lib/marketOntologyContext";
 import { ANALYSIS_DEFAULT_SYMBOL, normalizeAnalysisSymbol } from "@/lib/analysisSymbol";
 import { announceShellBrainSymbol } from "@/lib/shellBrainSymbol";
 import { readActiveSymbol, writeActiveSymbol } from "@/lib/activeSymbol";
 import SymbolPicker from "@/components/SymbolPicker";
+import MarketOntologyContextStrip from "./MarketOntologyContextStrip";
 
 /**
  * Analysis workspace composer (Wave-2 IA) — the `/analysis` body.
@@ -90,6 +98,7 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
   );
   const [page, setPage] = useState<FinPage>(seededPage);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [marketOntologyContext, setMarketOntologyContext] = useState<MarketOntologyContext | null>(null);
 
   const [intel, setIntel] = useState<any | null>(null);
   const [fund, setFund] = useState<Fund | null>(null);
@@ -131,6 +140,11 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
     if (u.searchParams.get(key) === value) return;
     u.searchParams.set(key, value);
     window.history.replaceState(null, "", u.toString());
+  }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMarketOntologyContext(parseMarketOntologyContext(new URLSearchParams(window.location.search)));
   }, []);
 
   // ── symbol change → rewrite ?symbol= shallowly, and tell AppShell's Brain host ──
@@ -193,6 +207,13 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
   const openSymbol = useCallback((next: string) => {
     const valid = normalizeAnalysisSymbol(next);
     if (!valid) return;   // the picker only ever yields manifest symbols; belt and braces
+    const params = new URLSearchParams(window.location.search);
+    if (hasMarketOntologyContext(params)) {
+      const url = new URL(window.location.href);
+      url.search = clearMarketOntologyContext(params).toString();
+      window.history.replaceState(null, "", url.toString());
+    }
+    setMarketOntologyContext(null);
     setInvalidSymbol(null);
     setSym(valid);
   }, []);
@@ -204,6 +225,14 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
 
   const zh = lang === "zh";
   const contextSymbol = invalidSymbol ?? sym;
+  const thesesHref = useMemo(() => {
+    if (!marketOntologyContext) return `/analysis?view=theses&symbol=${encodeURIComponent(sym)}`;
+    const params = serializeMarketOntologyContext(
+      marketOntologyContext,
+      new URLSearchParams({ view: "theses", symbol: sym }),
+    );
+    return `/analysis?${params.toString()}`;
+  }, [marketOntologyContext, sym]);
 
   return (
     // Root IS the (shell) .app2 grid cell (like DiscoverWorkspace). Flex-column so
@@ -212,6 +241,7 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
     // otherwise fall back to a fixed full-screen overlay and bury this bar and the app's mobile
     // nav underneath itself — see the scoped block in app/fin.css.
     <div className="main2 ws-shell analysis-shell">
+      {marketOntologyContext && <MarketOntologyContextStrip context={marketOntologyContext} />}
       <div className="analysis-context-bar">
         <button type="button" className="analysis-context-back" onClick={onClose}>
           <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden>
@@ -239,7 +269,7 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
         </div>
         {!invalidSymbol && (
           <Link
-            href={`/analysis?view=theses&symbol=${encodeURIComponent(sym)}`}
+            href={thesesHref}
             className="analysis-context-theses"
             aria-label={t("wsOpenThesesFor", "Your theses on {sym}").replace("{sym}", sym)}
           >

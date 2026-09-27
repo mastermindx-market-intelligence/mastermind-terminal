@@ -5,6 +5,7 @@ import { useLang, useT } from "@/lib/i18n";
 import { subjectKindLabel } from "@/lib/plainLabels";
 import { parseAnalysisSearchParams } from "@/lib/analysisRoute";
 import { normalizeAnalysisSymbol } from "@/lib/analysisSymbol";
+import { parseMarketOntologyContext, type MarketOntologyContext } from "@/lib/marketOntologyContext";
 import { isUuid, normalizeThesisContent, normalizeThesisSubject } from "@/lib/theses";
 import type {
   ThesisAction,
@@ -48,6 +49,7 @@ import type {
   ViewFilter,
 } from "@/lib/rmsViews";
 import styles from "./ThesisWorkspace.module.css";
+import MarketOntologyContextStrip from "./MarketOntologyContextStrip";
 import ClaimAuthoringForm from "./ClaimAuthoringForm";
 import BriefSubscribeControls from "@/components/briefs/BriefSubscribeControls";
 import {
@@ -525,6 +527,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   const [proposals, setProposals] = useState<ProposalRow[]>([]);
   const [assistantText, setAssistantText] = useState("");
   const [proposalBusy, setProposalBusy] = useState(false);
+  const [marketOntologyContext, setMarketOntologyContext] = useState<MarketOntologyContext | null>(null);
   const [subjectDraft, setSubjectDraft] = useState(seededSymbol);
   const [draft, setDraft] = useState<Draft>(EMPTY_DRAFT);
   const [baseline, setBaseline] = useState<{ subject: string; draft: Draft }>(() => ({
@@ -792,6 +795,8 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     if (existing === null) {
       window.history.replaceState(historyState(0), "", window.location.href);
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMarketOntologyContext(parseMarketOntologyContext(new URLSearchParams(window.location.search)));
   }, []);
 
   useEffect(() => {
@@ -1510,9 +1515,10 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       const next = historyPositionRef.current + 1;
       window.history.pushState(historyState(next), "", url.toString());
       historyPositionRef.current = next;
-      return;
+    } else {
+      window.history.replaceState(historyState(historyPositionRef.current), "", url.toString());
     }
-    window.history.replaceState(historyState(historyPositionRef.current), "", url.toString());
+    setMarketOntologyContext(parseMarketOntologyContext(url.searchParams));
   }, []);
 
   const openDetail = useCallback((id: string, historyMode: "push" | "none" = "push") => {
@@ -1697,6 +1703,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
         window.setTimeout(() => { routeDiscardAuthorized.current = false; }, 1000);
       }
       if (nextPosition !== null) historyPositionRef.current = nextPosition;
+      setMarketOntologyContext(parseMarketOntologyContext(new URLSearchParams(window.location.search)));
       if (window.location.pathname !== "/analysis") return;
       const route = parseAnalysisSearchParams(new URLSearchParams(window.location.search));
       if (route.kind === "invalid_thesis") {
@@ -2013,6 +2020,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
           <button type="button" className={styles.primaryButton} disabled={carrierLocked} onClick={startNew}>{copy.newThesis}</button>
         </div>
       </header>
+      {marketOntologyContext && <MarketOntologyContextStrip context={marketOntologyContext} />}
       {claimFormOpen && (
         <ClaimAuthoringForm
           open={claimFormOpen}
