@@ -236,3 +236,43 @@ Final combined qualification must discriminate at least:
 - all previous target/cancellation/ACK/old-client/dark-light/EN-ZH/responsive/browser cases.
 
 This source remains BUILT_NOT_PROVEN / UNTESTED / NOT_RELEASED until that deferred combined qualification and required live/model/browser proof are performed.
+
+
+## 2026-09-26 continuation — receipt-first bounded chart-state delivery
+
+Status: source implemented; tests authored but NOT RUN; no typecheck/compiler/browser/model qualification, merge or deployment. Current Chairman direction remains feature-first with a combined validation pass deferred. This work is on the existing #757 carrier and same Chart Bus/state route, not another telemetry or command queue.
+
+### User and machine capability
+
+A heavily annotated chart must not lose all Brain context and command acknowledgement delivery merely because its state JSON exceeds the existing API body limit. Preserve exact origin/revision, requested settings and receipt identifiers. Reduce only the wire projection, explicitly, without deleting actual drawings or manufacturing an empty native-study assessment.
+
+`chartStatePayload.ts` prepares a conservative 60 KiB envelope beneath the server's 64 KiB validator. The size bound accounts for ASCII-escaped Unicode, JSON separator spacing and numeric printer differences, rather than assuming browser UTF-8 size equals Python's validator size.
+
+Small states retain their previous shape. Under size pressure the projector:
+1. Reduces drawing geometry/captions to an identity/ownership roster; the chart stores are unchanged.
+2. Can withhold verbose native parameter descriptions while preserving settings, configured identities and command/target capabilities.
+3. Bounds the drawing roster in its original order, publishing available/returned/omitted/detail-omitted counts.
+4. Marks native observations or Data Window evidence unavailable with `chart_state_budget` when those optional packets cannot fit. Missing observations are not negative market evidence.
+5. Keeps FIFO ACK identities intact, sends at most 32 per batch, and retains every unsent receipt. It can reduce a batch further when necessary; an unfittable first receipt or essential context fails closed, never silently truncates identities or settings.
+
+`session.mirror_coverage` describes the projection, not deletion from the chart. A reduced roster is not a complete inventory. Compact command-receipt drawing counts can describe returned rows only; re-read coverage before making whole-chart inventory claims. No retry with omitted ids or broad-clear substitution is authorized.
+
+### Existing transport integration
+
+`useChartBus` now prepares the bounded payload before consuming ACKs, so identity-getter or serialization failures leave the accumulator intact. It uses one in-flight request for this mirror and coalesces an actual newer update into the current scheduling owner. Remaining ACK batches drain after successful delivery without requiring another market tick. A failed/non-2xx/aborted batch is restored once ahead of later receipts. Another attempt after failure requires an actual new/coalesced input; there is no periodic retry loop. A four-second request deadline releases a stalled upload and is not proof of server non-execution or receipt delivery. ACK replay is existing idempotent receipt transport, never replay of chart mutations. Unmounted receivers do not launch deferred requests.
+
+Delivery is still not guaranteed during network or authentication failure. A timeout is not cancellation of the underlying chart action. The collective Brain ACK deadline and late-command targeting remain separate acceptance obligations; this transport change does not grant a stronger command-result or pixel-proof claim.
+
+### Authored, unexecuted acceptance cases
+
+`terminal/lib/__tests__/chartStatePayload.test.ts` covers unchanged small snapshots, Unicode/server accounting, string punctuation, exact FIFO receipt batching, drawing-detail immutability, incomplete roster coverage, optional parameter/native-evidence omission, large receipt batches, an unfittable first receipt and serialization failure.
+
+`terminal/lib/__tests__/useChartBusDelivery.test.tsx` covers single-flight latest-context coalescing, draining 70 receipts without another data tick, exactly-once restoration, throwing identity lookup, stalled-request release, absence of a periodic retry and unmount behavior. These are source specifications, not test results.
+
+### Native/target boundaries preserved
+
+The paired native renderer/qualifier implementation at Terminal `dd8cb762bcae66b7613837d9a16e4762669ad5f3` / Macro `28437b9b02bf13ee4a2f58ec92d49f0b256dbcc8` is retained, not rebuilt. Current source inspection found that target selection occurs after model processing and revision adoption is broader than only accepted intended context transitions. Its attempted deeper inspection was refused before dispatch; no repair is claimed here.
+
+A separate selected-candle event/projection write was refused before dispatch; its implementation is unchanged. Proposed acceptance cases are preserved as specification-only text in `CMX_NATIVE_SELECTION_DEFERRED_TESTS_2026-09-26.ts.txt`, outside executable test discovery. The future capability must separate events confirmed by a selected bar from recent events, preserve numeric gaps and bound candidate selection; it must not claim point-in-time feed history from a renderer snapshot.
+
+A concurrent Macro writer added native settings-format equality and boundary hardening while this continuation was active. That work and its `tests/test_brain_native_evidence_boundary.py` are preserved and not staged or executed by this session. An independently inserted redundant helper was removed by exact text, leaving the incumbent implementation as the single owner. The foreign Terminal browser specification remains excluded. No denied action was retried through another tool or carrier.

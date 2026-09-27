@@ -14,6 +14,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { Drawing } from "@/lib/drawings";
 import { timeToMs } from "@/lib/timeWindow";
+import { prepareChartStatePayload } from "@/lib/chartStatePayload";
 import {
   CommandQueue, applyToStore, isV2Envelope, translate, validateEnvelope,
   fitMetrics, type Ack, type AiObject, type Fit, type FitBar, type IndicatorSpec,
@@ -57,6 +58,7 @@ export type ChartBus = {
 const STATE_DEBOUNCE_MS = 2000;
 const VIEWPORT_DEBOUNCE_MS = 250;
 const ACK_DEBOUNCE_MS = 100;
+const STATE_POST_TIMEOUT_MS = 4000;
 
 export function useChartBus(host: ChartBusHost): ChartBus {
   // per-symbol AI objects. Keyed by symbol; NEVER reset on symbol switch (that's the whole point).
@@ -93,7 +95,15 @@ export function useChartBus(host: ChartBusHost): ChartBus {
   // ── debounced state mirror POST ────────────────────────────────────────────────────────────
   const stateTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const stateTimerDelay = useRef<number | null>(null);
+  // Request state for this existing mirror only, not another queue or retry owner.
+  const stateRequestRef = useRef({ inFlight: false, pending: false });
+  const scheduleStateRef = useRef<((delayMs: number) => void) | null>(null);
   const postState = useCallback(() => {
+    if (!mountedRef.current) return;
+    if (stateRequestRef.current.inFlight) {
+      stateRequestRef.current.pending = true;
+      return;
+    }
     const h = hostRef.current;
     const sym = h.activeSymbol;
     const aiObjs = aiStoreRef.current[sym] ?? [];
@@ -109,19 +119,18 @@ export function useChartBus(host: ChartBusHost): ChartBus {
       ...h.userDrawings.map(userDrawingState),
     ];
     const acks = acksRef.current;
-    acksRef.current = [];
-    const identity = h.getContextIdentity();
+    // Do not consume receipts before identity lookup and payload preparation succeed.
+    let identity: ReturnType<ChartBusHost["getContextIdentity"]>;
+    try { identity = h.getContextIdentity(); } catch { return; }
     if (
       !identity
       || typeof identity.origin_id !== "string"
       || !identity.origin_id
       || identity.origin_id.length > 64
-      || !Number.isInteger(identity.context_revision)
+      || !Number.isSafeInteger(identity.context_revision)
       || identity.context_revision < 0
     ) {
-      // Exact origin is part of chart-state identity now. Do not silently fall back to
-      // the legacy shared key when the mounted Terminal provider is malformed.
-      acksRef.current = [...acks, ...acksRef.current];
+      // Keep every ACK in the incumbent accumulator. No shared-key fallback.
       return;
     }
     const dataRange = seriesSpan(bars);
@@ -155,27 +164,39 @@ export function useChartBus(host: ChartBusHost): ChartBus {
       },
       acks,
     };
-    // Fire-and-forget through the session-verified proxy. The session snapshot itself is best-effort,
-    // but command acknowledgements are not: the gateway needs them to close/reject command steps.
-    // We remove this batch optimistically above, then restore it ahead of any newer acks when the
-    // request fails or returns non-2xx so the next scheduled state write retries it.
-    let restored = false;
-    const restoreAcks = () => {
-      if (restored || !acks.length) return;
-      restored = true;
-      acksRef.current = [...acks, ...acksRef.current];
+    const prepared = prepareChartStatePayload(body);
+    if (!prepared.ok) return; // essential identity/receipts stay intact, not truncated to fit
+    acksRef.current = prepared.remainingAcks;
+    stateRequestRef.current = { inFlight: true, pending: false };
+    let finished = false;
+    let deadline: ReturnType<typeof setTimeout> | null = null;
+    const finish = (delivered: boolean) => {
+      if (finished) return;
+      finished = true;
+      if (deadline) clearTimeout(deadline);
+      if (!delivered && prepared.sentAcks.length)
+        acksRef.current = [...prepared.sentAcks, ...acksRef.current];
+      const pending = stateRequestRef.current.pending;
+      stateRequestRef.current = { inFlight: false, pending: false };
+      // Drain remaining receipt batches after success. After a failure, only an
+      // actual new coalesced update justifies another attempt; no periodic retry loop.
+      if (mountedRef.current && (pending || (delivered && acksRef.current.length > 0)))
+        scheduleStateRef.current?.(acksRef.current.length ? ACK_DEBOUNCE_MS : VIEWPORT_DEBOUNCE_MS);
     };
     try {
+      const controller = new AbortController();
+      // A stalled telemetry request must not hold the sole mirror forever. A failed
+      // or aborted POST is not a delivered ACK; preserve its original batch identities.
+      deadline = setTimeout(() => { controller.abort(); finish(false); }, STATE_POST_TIMEOUT_MS);
       void fetch("/api/brain/chart/state", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify(body),
-      }).then((response) => {
-        if (!response.ok) restoreAcks();
-      }, restoreAcks);
+        signal: controller.signal,
+        body: prepared.text,
+      }).then((response) => finish(response.ok), () => finish(false));
     } catch {
-      restoreAcks();
+      finish(false);
     }
   }, []);
 
@@ -196,6 +217,10 @@ export function useChartBus(host: ChartBusHost): ChartBus {
       postState();
     }, delayMs);
   }, [postState]);
+  useLayoutEffect(() => {
+    scheduleStateRef.current = scheduleState;
+    return () => { scheduleStateRef.current = null; };
+  }, [scheduleState]);
 
   const noteReadoutChange = useCallback(() => scheduleState(), [scheduleState]);
   const noteNativeObservationChange = useCallback(() => scheduleState(VIEWPORT_DEBOUNCE_MS), [scheduleState]);
