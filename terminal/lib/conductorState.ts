@@ -99,7 +99,7 @@ const FAMILY_FALLBACK: Record<OpFamily, [string, string]> = {
   scene: ["Setting the scene", "布置场景"],
 };
 
-export type StepOutcome = "accepted" | "rejected" | "unconfirmed";
+export type StepOutcome = "accepted" | "rejected" | "unconfirmed" | "cancelled";
 
 function errorCode(value: unknown): string | undefined {
   return typeof value === "string" && /^[a-z][a-z0-9_]{0,79}$/.test(value) ? value : undefined;
@@ -108,13 +108,15 @@ function errorCode(value: unknown): string | undefined {
 /** A throwing setter may already have changed the chart; never label it a no-effect refusal. */
 export function stepOutcome(step: Pick<QueueStep, "ok" | "error">): StepOutcome {
   if (step.ok) return "accepted";
-  return errorCode(step.error)?.endsWith("_application_failed") ? "unconfirmed" : "rejected";
+  const code = errorCode(step.error);
+  if (code === "command_cancelled_by_user" || code === "command_cancel_receipt_failed") return "cancelled";
+  return code?.endsWith("_application_failed") ? "unconfirmed" : "rejected";
 }
 
 export function outcomeLabel(outcome: StepOutcome, lang: Lang): string {
   const labels: Record<StepOutcome, [string, string]> = {
     accepted: ["Accepted", "已接受"], rejected: ["Not applied", "未执行"],
-    unconfirmed: ["Unconfirmed", "结果未确认"],
+    unconfirmed: ["Unconfirmed", "结果未确认"], cancelled: ["Cancelled", "已取消"],
   };
   return labels[outcome][lang === "zh" ? 1 : 0];
 }
@@ -122,7 +124,11 @@ export function outcomeLabel(outcome: StepOutcome, lang: Lang): string {
 /** Fixed product copy only: client captions/errors cannot impersonate a successful action. */
 export function rejectionCaption(error: unknown, lang: Lang): string {
   const code = errorCode(error);
-  const pair: [string, string] = code?.endsWith("_application_failed")
+  const pair: [string, string] = code === "command_cancelled_by_user"
+    ? ["Cancelled before execution. Changes already applied were kept.", "已在执行前取消。之前已执行的更改保留。"]
+    : code === "command_cancel_receipt_failed"
+      ? ["Cancelled locally; the acknowledgement could not be recorded.", "已在本地取消，但未能记录确认回执。"]
+    : code?.endsWith("_application_failed")
     ? ["Could not confirm the change. Inspect the chart before trying again.", "无法确认更改结果。请先检查图表，再决定是否重试。"]
     : code === "command_target_transition_pending"
       ? ["The chart is still switching. Read it again before sending this action.", "图表仍在切换。请重新读取图表后再发出此操作。"]
@@ -167,7 +173,7 @@ export function captionFor(
 
 /** Counts command results, not pixels. Zero live marks must remain zero after a clear. */
 export function conductorSummary(state: Pick<ConductorState, "rows">, count: number, lang: Lang): string {
-  const totals: Record<StepOutcome, number> = { accepted: 0, rejected: 0, unconfirmed: 0 };
+  const totals: Record<StepOutcome, number> = { accepted: 0, rejected: 0, unconfirmed: 0, cancelled: 0 };
   for (const row of state.rows) {
     if (row.ok && opFamily(row.op) === "scene") continue; // scene markers are not chart mutations
     totals[stepOutcome(row)] += 1;
@@ -176,6 +182,7 @@ export function conductorSummary(state: Pick<ConductorState, "rows">, count: num
   if (totals.accepted) parts.push(lang === "zh" ? `${totals.accepted} 项已接受` : `${totals.accepted} accepted`);
   if (totals.rejected) parts.push(lang === "zh" ? `${totals.rejected} 项未执行` : `${totals.rejected} not applied`);
   if (totals.unconfirmed) parts.push(lang === "zh" ? `${totals.unconfirmed} 项结果未确认` : `${totals.unconfirmed} unconfirmed`);
+  if (totals.cancelled) parts.push(lang === "zh" ? `${totals.cancelled} 项已取消` : `${totals.cancelled} cancelled`);
   const marks = Number.isFinite(count) ? Math.max(0, Math.floor(count)) : null;
   if (!parts.length) parts.push(lang === "zh" ? "无图表操作" : "No chart actions");
   if (marks !== null) parts.push(lang === "zh" ? `${marks} 个 AI 标注` : `${marks} AI marks`);

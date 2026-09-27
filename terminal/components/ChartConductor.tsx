@@ -194,6 +194,17 @@ export default function ChartConductor({ queue, count }: ChartConductorProps) {
     setAnimFlag(false);
   }, [queue, setAnimFlag]);
 
+  const cancelQueued = useCallback(() => {
+    const cancelled = queue.cancelPending();
+    if (!cancelled) return;
+    setRailOpen(true);
+    animatingRef.current = false;
+    setAnimFlag(false);
+    setPulsing(false);
+    if (cursorTimer.current) { clearTimeout(cursorTimer.current); cursorTimer.current = null; }
+    cursorRef.current?.classList.remove("on");
+  }, [queue, setAnimFlag]);
+
   const doneLine = useMemo(
     () => conductorSummary(state, count, lang),
     [state.rows, count, lang],
@@ -202,7 +213,11 @@ export default function ChartConductor({ queue, count }: ChartConductorProps) {
     ? "此处记录图表命令结果；并非图像渲染或分析正确性的证明。"
     : "These are chart-command results, not proof of rendered pixels or analytical correctness.";
   // plate copy: the current caption, or the done line while in done phase.
-  const plateText = state.phase === "done" ? doneLine : state.caption;
+  const pendingLine = queue.size > 0
+    ? (lang === "zh" ? `${queue.size} 项图表操作排队中` : `${queue.size} chart actions queued`)
+    : "";
+  // Expose cancellation during the FIRST paced delay, before any command has run.
+  const plateText = state.phase === "done" ? doneLine : (state.caption || pendingLine);
   const plateShow = active && (!!plateText || state.phase === "done");
 
   // orb phase class. Priority: a transient per-op pulse overrides everything for its 180ms; otherwise
@@ -249,6 +264,14 @@ export default function ChartConductor({ queue, count }: ChartConductorProps) {
             <span className="cmx-cap" key={state.captionSwapKey}>{plateText}</span>
           </span>
           <span className="cmx-plate-ctl">
+            <button type="button" className="cmx-btn" onClick={cancelQueued}
+              disabled={queue.size === 0}
+              title={lang === "zh"
+                ? "只取消当前排队的图表操作。保留已执行的更改，不停止 AI 回复。"
+                : "Cancel currently queued chart actions only. Keep applied changes; do not stop the AI reply."}
+              aria-label={lang === "zh" ? "取消排队的图表操作" : "Cancel queued chart actions"}>
+              {lang === "zh" ? "取消排队操作" : "Cancel queued"}
+            </button>
             <button type="button" className="cmx-btn cmx-skip" onClick={skip} title={t("cmxSkipAnim")} aria-label={t("cmxSkipAnim")}>
               <span className="chv" aria-hidden="true">»</span>{t("cmxSkipAnim")}
             </button>

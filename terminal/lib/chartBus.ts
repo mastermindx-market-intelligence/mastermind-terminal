@@ -684,8 +684,10 @@ export type QueueStep = { op: ChartOp | "unknown"; id: string | null; caption?: 
 export type StepListener = (step: QueueStep) => void;
 export type LifecycleListener = () => void;
 
+type PendingChartCommand = { run: () => QueueStep; cancel?: () => QueueStep };
+
 export class CommandQueue {
-  private q: Array<() => QueueStep> = [];
+  private q: PendingChartCommand[] = [];
   private listeners = new Set<StepListener>();
   private startListeners = new Set<LifecycleListener>();
   private drainListeners = new Set<LifecycleListener>();
@@ -740,20 +742,24 @@ export class CommandQueue {
   // Enqueue a unit of work. `run` performs the side-effect and returns the step descriptor to emit.
   // The batch-start edge is the transition into an active session — detected BEFORE the job runs so
   // W3 can arm the overlay ahead of the first stroke.
-  enqueue(run: () => QueueStep) {
+  enqueue(run: () => QueueStep, cancel?: () => QueueStep) {
     if (!this.active) { this.active = true; this.emitStart(); }
-    this.q.push(run);
+    this.q.push({ run, cancel });
     this.pump();
   }
 
   private pump() {
     if (this.running || this.timer) return;
+    if (!this.q.length) { this.settleDrain(); return; }
     const step = () => {
       this.timer = null;
       const job = this.q.shift();
       if (!job) { this.settleDrain(); return; }
-      const desc = job();
-      this.emit(desc);
+      // Listener callbacks may enqueue or cancel pending work. Keep this operation
+      // non-reentrant until its result has reached the existing step listeners.
+      this.running = true;
+      try { this.emit(job.run()); }
+      finally { this.running = false; }
       if (this.q.length) {
         if (this.delayMs > 0) this.timer = setTimeout(step, this.delayMs);
         else step();
@@ -767,7 +773,7 @@ export class CommandQueue {
 
   // Fire the drain edge exactly once per active session, only when genuinely empty.
   private settleDrain() {
-    if (this.active && this.q.length === 0 && !this.timer) {
+    if (this.active && this.q.length === 0 && !this.timer && !this.running) {
       this.active = false;
       this.emitDrain();
     }
@@ -775,15 +781,48 @@ export class CommandQueue {
 
   // Drain everything synchronously right now, ignoring the pace delay (the W3 "skip" escape).
   applyInstantly() {
+    if (this.running) return;
     if (this.timer) { clearTimeout(this.timer); this.timer = null; }
     this.running = true;
     try {
-      let job: (() => QueueStep) | undefined;
-      while ((job = this.q.shift())) this.emit(job());
+      let job: PendingChartCommand | undefined;
+      while ((job = this.q.shift())) this.emit(job.run());
     } finally {
       this.running = false;
     }
     this.settleDrain();
+  }
+
+  /** Cancel only work still pending at this call. Never invoke its run callback.
+   * Accepted changes are not undone; later streamed commands are not a cancelled reply.
+   * The existing host supplies one negative ACK callback per real chart command.
+   */
+  cancelPending(): number {
+    if (!this.q.length) return 0;
+    if (this.timer) { clearTimeout(this.timer); this.timer = null; }
+    const pending = this.q.splice(0);
+    const wasRunning = this.running;
+    this.running = true;
+    try {
+      for (const job of pending) {
+        let result: QueueStep;
+        try {
+          result = job.cancel?.() ?? {
+            op: "unknown", id: null, ok: false, error: "command_cancelled_by_user",
+          };
+        } catch {
+          // The pending run was removed even if its ACK callback failed. Do not run
+          // it as a recovery or invent a successfully delivered cancellation receipt.
+          result = { op: "unknown", id: null, ok: false, error: "command_cancel_receipt_failed" };
+        }
+        this.emit(result);
+      }
+    } finally { this.running = wasRunning; }
+    if (!this.running) {
+      if (this.q.length) this.pump();
+      else this.settleDrain();
+    }
+    return pending.length;
   }
 
   get size() { return this.q.length; }

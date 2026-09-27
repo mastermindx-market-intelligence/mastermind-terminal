@@ -336,6 +336,13 @@ export function useChartBus(host: ChartBusHost): ChartBus {
         if (p0) { const tSec = Number(p0.t); if (Number.isFinite(tSec)) anchor = { t: tSec, p: p0.p }; }
       }
       return { op: cmd.op, id: cmd.id ?? null, caption: res.ok ? res.caption : undefined, ok: r.ack.ok, error: r.ack.error, fit, anchor };
+    }, () => {
+      // User cancellation consumes this pending command without calling a chart setter
+      // or the AI drawing reducer. Reuse the same exact batch/seq ACK transport.
+      if (!mountedRef.current) return {
+        op: cmd.op, id: cmd.id ?? null, ok: false, error: "command_receiver_unmounted",
+      };
+      return rejectTarget("command_cancelled_by_user");
     });
   }, [queue, pushAck]);
 
