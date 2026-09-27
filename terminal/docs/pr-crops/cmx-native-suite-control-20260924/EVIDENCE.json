@@ -1,0 +1,54 @@
+{
+  "schema": "cmx.native-suite-control.evidence.v1",
+  "basis": "Synthetic OHLC, fixture account, stubbed model script and chart-state transport; real TerminalShell, Chart Bus, suite computation and SVG renderer. No production-model, market-performance, or live-user acceptance claim.",
+  "base": "1d2ac1e64a21c957b229e2e2567fcc248d557a64",
+  "viewports": {
+    "desktop": [
+      1440,
+      900
+    ],
+    "tablet": [
+      820,
+      1180
+    ],
+    "mobile": [
+      390,
+      844
+    ]
+  },
+  "languages": [
+    "en",
+    "zh"
+  ],
+  "browser_result": {
+    "passed": 6,
+    "failed": 0,
+    "retries": 0
+  },
+  "screenshots": [
+    {
+      "path": "terminal/docs/pr-crops/cmx-native-suite-control-20260924/desktop-en-native-sr.png",
+      "sha256": "f8a90322fb34f073536035bd4aefaa5091ad4e2af41c0c3127bcd2422da7c331"
+    },
+    {
+      "path": "terminal/docs/pr-crops/cmx-native-suite-control-20260924/mobile-en-native-sr.png",
+      "sha256": "615a4d8a677a475b20a79e47d2afa6d1b234d8ce070860bc6548fc8ea078d1d9"
+    },
+    {
+      "path": "terminal/docs/pr-crops/cmx-native-suite-control-20260924/tablet-en-native-sr.png",
+      "sha256": "6ab046cbc6080f8b242e424207547623e885de22586c185d0a44c75bbe211144"
+    },
+    {
+      "path": "terminal/docs/pr-crops/cmx-native-suite-control-20260924/desktop-zh-native-sr.png",
+      "sha256": "ba131b81310744404e6926a52daa3e8b4cf426e90f5c62969b5ed93357cde541"
+    },
+    {
+      "path": "terminal/docs/pr-crops/cmx-native-suite-control-20260924/mobile-zh-native-sr.png",
+      "sha256": "6a6880132d2268ae8a22c6c1f31069071554ca30e8d31c196d94fe17236ab484"
+    },
+    {
+      "path": "terminal/docs/pr-crops/cmx-native-suite-control-20260924/tablet-zh-native-sr.png",
+      "sha256": "965c29f480219c4724d56f03fb07fdf4990b6b1489fe63f67d597fac8a4e0795"
+    }
+  ]
+}

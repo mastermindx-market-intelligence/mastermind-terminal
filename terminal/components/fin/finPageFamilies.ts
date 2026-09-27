@@ -25,7 +25,7 @@ export const FIN_FAMILY_PAGES: Readonly<Record<FinFamily, readonly FinPage[]>> =
   financials: ["statements", "statistics", "revenue", "dividends"],
   earnings: ["earnings", "forecast", "transcripts"],
   market: ["technicals", "seasonals"],
-  ownership: ["insider"],
+  ownership: ["ownership", "insider"],
   lab: ["lab"],
 } as const;
 

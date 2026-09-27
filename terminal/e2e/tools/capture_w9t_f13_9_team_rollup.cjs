@@ -146,6 +146,8 @@ async function assertNoNextIndicator(page, file) {
 
 async function openRollup(page, lang, viewport, rollup) {
   await page.setViewportSize(viewport);
+  // The product aurora is intentionally continuous; evidence crops freeze ambient motion.
+  await page.emulateMedia({ reducedMotion: "reduce" });
   await page.addInitScript((l) => {
     localStorage.setItem("mm.lang", l);
     localStorage.setItem("theme", "dark");
@@ -162,8 +164,7 @@ async function openRollup(page, lang, viewport, rollup) {
   const title = lang === "zh" ? "你的判断，逐条核对。" : "Your calls, checked.";
   await page.getByRole("heading", { name: title, exact: true }).waitFor({ state: "visible", timeout: 15_000 });
   await stripDevOverlay(page);
-  // Laser sweep is 0.9s; wait it out so crops are not a mid-animation smear.
-  await page.waitForTimeout(1100);
+  // Reduced motion makes the ambient aurora deterministic for evidence capture.
   await stripDevOverlay(page);
 }
 
