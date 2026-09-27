@@ -34,16 +34,18 @@ export type ChartBusHost = {
   // with the same provider the Brain widget sends on the chat request.
   getContextIdentity: () => { origin_id: string; context_revision: number };
   getReadoutSnapshot?: () => unknown; // existing Data Window projection, never new calculation
+  getNativeObservationSnapshot?: () => unknown; // exact renderer-bundle projection, never a second compute
   // chart mutators (already exist in TerminalShell):
   setSymbol: (s: string) => void;
   setTf: (tf: string) => void;
   setIndicators: (specs: IndicatorSpec[]) => void;
-  setRange: (from: number, to: number) => void;
+  setRange: (from: number, to: number) => void | boolean;
 };
 
 export type ChartBus = {
   dispatchV2: (cmd: unknown) => void;
   noteReadoutChange: () => void; // reuse ordinary state coalescing; ACK priority remains higher
+  noteNativeObservationChange: () => void;
   /** PaneSync calendar window in epoch ms; only active-pane changes trigger a mirror. */
   noteViewport: (paneId: number, windowMs: { from: number; to: number } | null) => void;
   aiDrawingsFor: (symbol: string) => Drawing[];
@@ -130,6 +132,9 @@ export function useChartBus(host: ChartBusHost): ChartBus {
     let dataReadout: unknown = null;
     try { dataReadout = h.getReadoutSnapshot?.() ?? null; }
     catch { /* absent/failed readout is not an empty market conclusion */ }
+    let nativeObservations: unknown = null;
+    try { nativeObservations = h.getNativeObservationSnapshot?.() ?? null; }
+    catch { /* absent/failed native evidence is not an empty/no-setup conclusion */ }
     const body = {
       client: "terminal",
       origin_id: identity.origin_id,
@@ -144,6 +149,7 @@ export function useChartBus(host: ChartBusHost): ChartBus {
         // Loaded-series availability is useful context but is not the viewport.
         data_range: dataRange,
         data_readout: dataReadout,
+        native_observations: nativeObservations,
         capabilities: h.capabilities,
         drawings,
       },
@@ -192,6 +198,7 @@ export function useChartBus(host: ChartBusHost): ChartBus {
   }, [postState]);
 
   const noteReadoutChange = useCallback(() => scheduleState(), [scheduleState]);
+  const noteNativeObservationChange = useCallback(() => scheduleState(VIEWPORT_DEBOUNCE_MS), [scheduleState]);
 
   // Context targeting (symbol/tf/active pane) mirrors promptly, including the initial mount.
   const contextSig = `${host.activeSymbol}|${host.currentTf}|${host.activePaneId}`;
@@ -315,8 +322,10 @@ export function useChartBus(host: ChartBusHost): ChartBus {
             }
             break;
           case "setRange":
-            try { h.setRange(e.from, e.to); }
-            catch { return rejectTarget("chart_range_application_failed"); }
+            try {
+              if (h.setRange(e.from, e.to) === false)
+                return rejectTarget("chart_range_not_representable");
+            } catch { return rejectTarget("chart_range_application_failed"); }
             break;
           case "scene": break; // markers only — inert now (W3 consumes)
         }
@@ -361,7 +370,7 @@ export function useChartBus(host: ChartBusHost): ChartBus {
     clear: () => { const next = { ...aiStoreRef.current, [activeSym]: [] }; aiStoreRef.current = next; setAiStore(next); scheduleState(); },
   }), [aiStore, hiddenSyms, activeSym, scheduleState]);
 
-  return { dispatchV2, noteViewport, noteReadoutChange, aiDrawingsFor, legend, queue };
+  return { dispatchV2, noteViewport, noteReadoutChange, noteNativeObservationChange, aiDrawingsFor, legend, queue };
 }
 
 // Read only the incumbent provider/host. A failed identity read cannot silently fall

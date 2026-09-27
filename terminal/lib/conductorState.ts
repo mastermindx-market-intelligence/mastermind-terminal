@@ -146,6 +146,8 @@ export function rejectionCaption(error: unknown, lang: Lang): string {
       ? ["The requested study edit is not supported or has invalid settings.", "不支持此指标编辑，或参数无效。"]
     : code === "bad_range"
       ? ["The requested chart range is invalid. Choose a valid start and end.", "请求的图表范围无效。请选择有效的起止时间。"]
+    : code === "chart_range_not_representable"
+      ? ["That exact time window is outside this chart's loaded history. The view was not changed.", "该精确时间窗口超出当前图表已加载历史范围。视图未更改。"]
     : ["This chart action was rejected. Read the chart before changing the request.", "图表拒绝了此操作。请先读取图表，再修改请求。"];
   return pair[lang === "zh" ? 1 : 0];
 }

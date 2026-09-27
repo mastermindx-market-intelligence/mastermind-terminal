@@ -118,7 +118,7 @@ import WashoutTurnRow from "@/components/WashoutTurnRow";
 import { oracleVerdict, deskVerdict } from "@/lib/signalVerdict";
 import { computeTrendState } from "@/lib/trend";
 import { useLive } from "@/lib/live";
-import { setPaneSync, subscribePaneVisibleWindow } from "@/lib/paneSync";
+import { setPaneSync, setPaneVisibleWindow, subscribePaneVisibleWindow } from "@/lib/paneSync";
 import {
   MAX_DRAWINGS_PER_SYMBOL,
   type Dash,
@@ -159,6 +159,7 @@ import { type PineScript } from "@/components/ChartPanel";
 type ShellDrawingStyle = { color: string; width: number; dash: Dash };
 import { visualReadoutColumns, type ChartReadoutMeta } from "@/lib/visualIntelligence";
 import { captureChartReadout, CHART_READOUT_SCHEMA } from "@/lib/chartReadoutSnapshot";
+import { LIVE_NATIVE_OBSERVATION_SCHEMA, LIVE_NATIVE_OBSERVATION_MAX_BYTES } from "@/lib/nativeObservationProjection";
 import ChartTableView from "@/components/ChartTableView";
 import { type OTEntry } from "@/components/ChartObjectTree";
 import { listTemplates, saveTemplate } from "@/lib/chartTemplates";
@@ -1379,6 +1380,11 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
       settingsKey: string; replayOn: boolean; replayIdx: number | null };
   }) | null>(null);
   const [indRowsAt, setIndRowsAt] = useState<((barTime: string | number) => Record<string, number | null>) | null>(null);
+  const [nativeObservationState, setNativeObservationState] = useState<{
+    packet: Record<string, unknown>;
+    binding: { origin_id: string; context_revision: number; pane_id: number; symbol: string; tf: string;
+      settings_key: string; replay_on: boolean; replay_idx: number | null; selected_time: string | null };
+  } | null>(null);
   // B3: sub-pane count for mobile chart-body height formula (--subpanes CSS var)
   const [subPanes, setSubPanes] = useState(0);
   const onPaneCount = useCallback((n: number) => setSubPanes(n), []);
@@ -4329,6 +4335,10 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
     data_readout: { schema: CHART_READOUT_SCHEMA, source: "existing_chart_data_window",
       samples: ["latest_loaded", "locked_bar"], max_bytes: 4096,
       coverage: "not_all_native_studies", freshness: "not_live_attested" },
+    native_observations: { schema: LIVE_NATIVE_OBSERVATION_SCHEMA,
+      source: "same_computeSuite_bundle_used_by_renderer", max_bytes: LIVE_NATIVE_OBSERVATION_MAX_BYTES,
+      coverage: "only_suites_rendered_in_current_chart_pass", missing: "omitted_not_negative_evidence",
+      strength: "native_score_not_probability", freshness: "chart_loaded_not_live_attested" },
     command_target: {
       schema: "chart.command_target.v1", author: "server_only",
       match: ["origin_id", "context_revision", "pane_id", "symbol", "tf"],
@@ -4375,6 +4385,21 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
       }
       return captureChartReadout(chartReadoutMeta, indRowsAt, active, tf, lockedVLine, replayOn);
     },
+    getNativeObservationSnapshot: () => {
+      const state = nativeObservationState;
+      const identity = aiContextProviderRef.current!.getAiContext();
+      const settingsKey = JSON.stringify(sessionIndicators);
+      const binding = state?.binding;
+      if (!prefsHydrated || !state || !binding || binding.origin_id !== identity.origin_id
+        || binding.context_revision !== identity.context_revision || binding.pane_id !== activePane
+        || binding.symbol !== active || binding.tf !== tf || binding.settings_key !== settingsKey
+        || binding.replay_on !== replayOn || binding.replay_idx !== (replayOn ? replayIdx : null)
+        || binding.selected_time !== lockedVLine) {
+        return { schema: LIVE_NATIVE_OBSERVATION_SCHEMA, status: "unavailable",
+          reason: "native_observation_context_not_current" };
+      }
+      return { ...state.packet, binding };
+    },
     setSymbol: (s) => pick(s),
     setTf: (t2) => setTf(t2),
     setIndicators: (specs) => {
@@ -4383,14 +4408,16 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
       const withParams = specs.filter((s) => s.params && (isIndKey(s.name) || isSuiteKey(s.name)));
       if (withParams.length) setIndParams((p) => { const n = { ...p }; for (const s of withParams) n[s.name] = { ...(n[s.name] || {}), ...s.params }; return n; });
     },
-    // MVP: jump the chart to the range start via the existing mm:chart-jump consumer. A precise
-    // setVisibleRange is a follow-up via the onChartApi seam (see PR body).
-    setRange: (from) => { try { window.dispatchEvent(new CustomEvent("mm:chart-jump", { detail: { ts: from } })); } catch {} },
+    // Convert the command's epoch-seconds calendar window through the existing paneSync owner.
+    // False means the exact window was not representable; callers must reject rather than ACK drift.
+    setRange: (from, to) => setPaneVisibleWindow(activePane, { from: from * 1000, to: to * 1000 }),
   });
 
   // The existing readout owner drives refresh. No timer, data fetch or indicator rerun.
   useEffect(() => { chartBus.noteReadoutChange(); }, [chartReadoutMeta, indRowsAt,
     lockedVLine, replayOn, replayIdx, chartBus.noteReadoutChange]);
+  useEffect(() => { chartBus.noteNativeObservationChange(); },
+    [nativeObservationState, chartBus.noteNativeObservationChange]);
 
   // Observe the already-registered active pane's calendar viewport. paneSync remains the
   // single logical-range→calendar owner; Chart Bus only mirrors the result into Brain state.
@@ -5515,6 +5542,17 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
                       paneId: i, settingsKey: JSON.stringify(sessionIndicators),
                       replayOn, replayIdx: replayOn ? replayIdx : null,
                     } } : null);
+                  } : undefined}
+                  onNativeObservations={i === activePane ? (packet) => {
+                    if (!packet) { setNativeObservationState(null); return; }
+                    const identity = aiContextProviderRef.current!.getAiContext();
+                    setNativeObservationState({ packet, binding: {
+                      origin_id: identity.origin_id, context_revision: identity.context_revision,
+                      pane_id: i, symbol: sym, tf: paneTfs[i] ?? "D",
+                      settings_key: JSON.stringify(sessionIndicators),
+                      replay_on: replayOn, replay_idx: replayOn ? replayIdx : null,
+                      selected_time: lockedVLine,
+                    } });
                   } : undefined}
                   onPaneCount={i === 0 ? onPaneCount : undefined}
                 />

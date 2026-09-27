@@ -83,6 +83,7 @@ import {
   type SuiteModuleCatalogEntry,
 } from "@/lib/suites/catalog";
 import type { SuiteRenderBundle, SuiteTier, SuiteColors, CoordMapper, TableSpec } from "@/lib/indicator-canvas/types";
+import { buildLiveNativeObservations, type LiveNativeSuiteProjectionInput } from "@/lib/nativeObservationProjection";
 import ChartTables from "@/components/ChartTables";
 import { crossUps, crossDowns, crossUpsBelow, crossDownsAbove } from "@/lib/crossSignals";
 import { SOFT_Q, anchorSignal, isBlockedSignal, isOverrideCandidate, isReclaimOverrideTake, isRetroOverride, isStopSweepReclaim, isStructureStop, isWaivedEntry, markerTooltipCopy, opportunityMarkerGlyph, sliceSignalBasis } from "@/lib/signalVerdict";
@@ -514,7 +515,7 @@ import { candleVolumeRank } from "@/lib/suites/trend/candlePainter";
 
 export default function ChartPanel({ symbol, chartType = "candles", indicators, timeframe = "D", replayIdx = null, onMeta, tool = null, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, drawings = [], onDrawingsChange, detectCmd = null, magnet = "off", compare = [], compareCfg = EMPTY_OBJ, isActive = true, syncId = null, liveQuote = null,
   indParams = EMPTY_OBJ, hidden = EMPTY_SET, onToggleHidden, onRemoveInd, onOpenSettings, onOpenSource, pineScripts = EMPTY_PINE, chartSettings, onVisualSettings, onChartApi, extHours = false,
-  instrumentName, instrumentMarket, instrumentColor, onAddAlert, onTableView, onObjectTree, onOpenSettingsModal, lockedVLine = null, onSetLockedVLine, onIndRowsAt, dayMode = false, onPaneCount, companyName = "", userTier = "free", dataReady = true, initialTimeframe = null }:
+  instrumentName, instrumentMarket, instrumentColor, onAddAlert, onTableView, onObjectTree, onOpenSettingsModal, lockedVLine = null, onSetLockedVLine, onIndRowsAt, onNativeObservations, dayMode = false, onPaneCount, companyName = "", userTier = "free", dataReady = true, initialTimeframe = null }:
   { symbol: string; companyName?: string; chartType?: string; indicators: Set<string>; timeframe?: string; replayIdx?: number | null; onMeta?: (m: { total: number }) => void;
     /** False until the shell has COMMITTED its persisted prefs. See `effectiveTimeframe`. */
     dataReady?: boolean;
@@ -536,6 +537,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     onSetLockedVLine?: (time: string | null) => void;
     /** Called once after each data load with a function that returns per-key indicator values at a bar time. */
     onIndRowsAt?: (fn: ((barTime: string | number) => Record<string, number | null>) | null, meta?: ChartReadoutMeta) => void;
+    /** Exact compact facts from the SAME native bundles this panel actually rendered. */
+    onNativeObservations?: (packet: Record<string, unknown> | null) => void;
     /** Day Trade Mode — enables session shading + countdown chip + stats strip. */
     dayMode?: boolean;
     /** B3: fires whenever the number of non-price sub-panes changes, so TerminalShell can grow the container. */
@@ -842,6 +845,12 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   // painting on sibling panes or a different ticker after navigation.
   const lockedVLineOwnerSymbolRef = useRef<string | null>(null);
   const onIndRowsAtRef = useRef(onIndRowsAt); onIndRowsAtRef.current = onIndRowsAt;
+  const onNativeObservationsRef = useRef(onNativeObservations); onNativeObservationsRef.current = onNativeObservations;
+  const nativeObservationSigRef = useRef("");
+  useEffect(() => {
+    nativeObservationSigRef.current = "";
+    if (isActive) scheduleRenderRef.current?.();
+  }, [isActive, lockedVLine]);
   // B2/B3/B5: mobile breakpoint ref (drives applyStretch) + reactive state (drives ChartOverlays coarse prop)
   const isMobileRef = useRef<boolean>(typeof window !== "undefined" && window.matchMedia("(max-width:860px)").matches);
   const [isMobile, setIsMobile] = useState<boolean>(() =>
@@ -6228,6 +6237,74 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       while (svgEl.firstChild) svgEl.removeChild(svgEl.firstChild);
       // dashboards collected from every suite bundle this frame; flushed to React only on change
       const collectedTables: TableSpec[] = [];
+      const configuredNativeSuites = Object.keys(SUITE_DEFS)
+        .filter((key) => indicatorsRef.current.has(key));
+      const observedNativeSuites = new Map<string, LiveNativeSuiteProjectionInput>();
+      const omittedNativeSuites = new Map<string, string>();
+      const omitNativeSuite = (suite: string, reason: string) => {
+        if (!observedNativeSuites.has(suite) && !omittedNativeSuites.has(suite))
+          omittedNativeSuites.set(suite, reason);
+      };
+      const rememberNativeSuite = (
+        suite: string,
+        def: (typeof SUITE_DEFS)[string],
+        renderedParams: Record<string, any> | undefined,
+        bundle: SuiteRenderBundle & { lockedModules?: Array<{ key: string }> },
+      ) => {
+        observedNativeSuites.set(suite, {
+          suite,
+          bundle,
+          bars: barsRef.current,
+          modules: def.modules.map((module) => ({ key: module.key, defaultOn: module.defaultOn })),
+          configuredParams: indParamsRef.current[suite] as Record<string, unknown> | undefined,
+          renderedParams,
+        });
+        omittedNativeSuites.delete(suite);
+      };
+      const flushNativeObservations = () => {
+        const callback = onNativeObservationsRef.current;
+        if (!callback) return;
+        const paneId = syncIdRef.current;
+        if (!configuredNativeSuites.length || !barsRef.current.length
+            || !Number.isInteger(paneId) || (paneId as number) < 0) {
+          if (nativeObservationSigRef.current !== "") {
+            nativeObservationSigRef.current = "";
+            callback(null);
+          }
+          return;
+        }
+        const omitted = configuredNativeSuites
+          .filter((suite) => !observedNativeSuites.has(suite))
+          .map((suite) => ({
+            suite,
+            reason: omittedNativeSuites.get(suite) ?? "not_rendered_this_pass",
+          }));
+        const rows = barsRef.current;
+        const lockedTime = lockedVLineOwnerSymbolRef.current === symbolRef.current
+          ? lockedVLineRef.current : null;
+        const selectedIndex = lockedTime == null
+          ? -1 : rows.findIndex((row) => String(row.time) === String(lockedTime));
+        const packet = buildLiveNativeObservations(
+          {
+            symbol: symbolRef.current,
+            timeframe: timeframeRef.current,
+            pane_id: paneId as number,
+            replay: { active: replayIdxRef.current !== null, index: replayIdxRef.current },
+            bar_count: rows.length,
+            first_bar: rows[0]?.time ?? null,
+            last_bar: rows[rows.length - 1]?.time ?? null,
+            selected_bar: selectedIndex >= 0
+              ? { index: selectedIndex, time: rows[selectedIndex].time } : null,
+          },
+          configuredNativeSuites,
+          [...observedNativeSuites.values()],
+          omitted,
+        );
+        const sig = JSON.stringify(packet);
+        if (sig === nativeObservationSigRef.current) return;
+        nativeObservationSigRef.current = sig;
+        callback(packet);
+      };
       const flushTables = () => {
         const nextTables = collectedTables.slice();
         suiteTablesRef.current = nextTables;
@@ -6255,14 +6332,21 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           const wrapRect = wrapElRef.current?.getBoundingClientRect();
           const langP = typeof document !== "undefined" && document.documentElement.getAttribute("data-lang") === "zh" ? "zh" as const : "en" as const;
           for (const k of paneKeys) {
-            const def = peekSuiteRuntime(k, suiteRuntimeProfile(k)); if (!def) { requestSuiteRuntime(k); continue; }   // fetch + repaint when it lands
-            const anchor = indSeriesRef.current.get(k)?.[0]; if (!anchor || !wrapRect) continue;
+            const def = peekSuiteRuntime(k, suiteRuntimeProfile(k));
+            if (!def) { omitNativeSuite(k, "runtime_pending"); requestSuiteRuntime(k); continue; }
+            const anchor = indSeriesRef.current.get(k)?.[0];
+            if (!anchor || !wrapRect) { omitNativeSuite(k, "pane_unavailable"); continue; }
             let paneTop = 0, paneH = 0;
-            try { const paneEl = anchor.getPane().getHTMLElement(); if (!paneEl) continue; const rct = paneEl.getBoundingClientRect(); paneTop = rct.top - wrapRect.top; paneH = rct.height; } catch { continue; }
-            if (paneH < 12) continue;   // collapsed/hidden pane
+            try {
+              const paneEl = anchor.getPane().getHTMLElement();
+              if (!paneEl) { omitNativeSuite(k, "pane_unavailable"); continue; }
+              const rct = paneEl.getBoundingClientRect(); paneTop = rct.top - wrapRect.top; paneH = rct.height;
+            } catch { omitNativeSuite(k, "pane_unavailable"); continue; }
+            if (paneH < 12) { omitNativeSuite(k, "pane_collapsed"); continue; }
             const yP = (pv: number): number | null => { try { const v = anchor.priceToCoordinate(pv); return v == null || !isFinite(v as number) ? null : (v as number) + paneTop; } catch { return null; } };
             try {
-              const bundle = computeSuite(def, suiteRenderParams(k), {
+              const renderedParams = suiteRenderParams(k);
+              const bundle = computeSuite(def, renderedParams, {
                 bars: barsRef.current as any, tf: timeframeRef.current, symbol: symbolRef.current,
                 isIntraday: isIntradayRef.current, lang: langP,
               }, userTierRef.current, suiteColorsRef.current!);
@@ -6277,7 +6361,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
               svgEl.appendChild(defsEl); svgEl.appendChild(g);
               renderPrims(g, bundle, { xi: xiP, y: yP, W: WP, H: paneH, i0: lrP ? lrP.from : 0, i1: lrP ? lrP.to : barsRef.current.length - 1, barW: barWP });
               if (bundle.tables.length) collectedTables.push(...bundle.tables);
-            } catch (e) { console.warn(`[suite:${k}] pane render skipped:`, e); }
+              rememberNativeSuite(k, def, renderedParams, bundle);
+            } catch (e) { omitNativeSuite(k, "compute_or_render_failed"); console.warn(`[suite:${k}] pane render skipped:`, e); }
           }
         }
       }
@@ -6294,9 +6379,11 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           if (!suiteColorsRef.current) suiteColorsRef.current = resolveSuiteColors();
           const lang = typeof document !== "undefined" && document.documentElement.getAttribute("data-lang") === "zh" ? "zh" as const : "en" as const;
           for (const k of tableOnlyKeys) {
-            const def = peekSuiteRuntime(k, suiteRuntimeProfile(k)); if (!def) { requestSuiteRuntime(k); continue; }   // fetch + repaint when it lands
+            const def = peekSuiteRuntime(k, suiteRuntimeProfile(k));
+            if (!def) { omitNativeSuite(k, "runtime_pending"); requestSuiteRuntime(k); continue; }
             try {
-              const bundle = computeSuite(def, suiteRenderParams(k), {
+              const renderedParams = suiteRenderParams(k);
+              const bundle = computeSuite(def, renderedParams, {
                 bars: barsRef.current as any,
                 tf: timeframeRef.current,
                 symbol: symbolRef.current,
@@ -6304,15 +6391,16 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
                 lang,
               }, userTierRef.current, suiteColorsRef.current!);
               if (bundle.tables.length) collectedTables.push(...bundle.tables);
-            } catch (e) { console.warn(`[suite:${k}] dashboard render skipped:`, e); }
+              rememberNativeSuite(k, def, renderedParams, bundle);
+            } catch (e) { omitNativeSuite(k, "compute_or_render_failed"); console.warn(`[suite:${k}] dashboard render skipped:`, e); }
           }
         }
       }
-      if (priceProjHidden()) { flushTables(); return; }   // sub-pane maximized → price-anchored fills stay cleared
+      if (priceProjHidden()) { flushTables(); flushNativeObservations(); return; }   // sub-pane maximized → price-anchored fills stay cleared
       const inds = indicatorsRef.current;
       const W = el!.clientWidth, H = el!.clientHeight;
       const priceS = priceSeriesRef.current;
-      if (!priceS) return;
+      if (!priceS) { flushTables(); flushNativeObservations(); return; }
       const p2y = (p: number): number | null => { try { const v = priceS.priceToCoordinate(p); return (v == null || !isFinite(v as number)) ? null : v as number; } catch { return null; } };
       const t2x = (tm: string | number): number | null => { try { const v = chart.timeScale().timeToCoordinate(tm as any); return (v == null || !isFinite(v as number)) ? null : v as number; } catch { return null; } };
 
@@ -6599,20 +6687,24 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
             renderPrims(group, bundle, { ...m, W: chart.timeScale().width() });
           }
           for (const k of activeSuites) {
-            const def = peekSuiteRuntime(k, suiteRuntimeProfile(k)); if (!def) { requestSuiteRuntime(k); continue; }   // fetch + repaint when it lands
+            const def = peekSuiteRuntime(k, suiteRuntimeProfile(k));
+            if (!def) { omitNativeSuite(k, "runtime_pending"); requestSuiteRuntime(k); continue; }
             try {
-              const bundle = computeSuite(def, suiteRenderParams(k), {
+              const renderedParams = suiteRenderParams(k);
+              const bundle = computeSuite(def, renderedParams, {
                 bars: barsRef.current as any, tf: timeframeRef.current, symbol: symbolRef.current,
                 isIntraday: isIntradayRef.current, lang,
               }, userTierRef.current, suiteColorsRef.current);
               renderPrims(priceSuiteGroup, bundle, m);
               if (bundle.tables.length) collectedTables.push(...bundle.tables);
-            } catch (e) { console.warn(`[suite:${k}] render skipped:`, e); }
+              rememberNativeSuite(k, def, renderedParams, bundle);
+            } catch (e) { omitNativeSuite(k, "compute_or_render_failed"); console.warn(`[suite:${k}] render skipped:`, e); }
           }
         }
         applySuitePaint();   // key-guarded no-op unless suite candle paint actually changed
       }
       flushTables();
+      flushNativeObservations();
     };
 
     let drawingPaneClipIds = new Map<string, string>();

@@ -168,3 +168,71 @@ Queue metadata remains in the incumbent queue; no second queue, cancellation sto
 Cancel before the first paced action; cancel after one accepted action; mixed accepted/cancelled/rejected summaries; zero-pending disabled/no-op behavior; all pending run/setter/reducer callbacks remain uncalled after cancellation; exact one negative ACK per cancelled real command; cancellation ACK network failure retains the existing transport behavior; cancellation callback failure disclosure; no undo of already-applied edits; manual drawings preserved; reentrant step-listener cancellation/enqueue/drain order; later streamed commands explicitly outside scope; Skip animations still applies rather than cancels; reduced-motion zero-delay limitations; narrow/light/dark/EN/ZH/keyboard/accessibility behavior; model follows no-retry instruction after cancellation; old tests and real producer/receiver integration before release.
 
 No local test, compiler, browser, model run or CI poll was performed for this continuation. Candidate remains Draft/HOLD/BUILT_NOT_PROVEN. The independently authored backend target producer and Data Window consumer are recorded at #8014 `84f60fb43cc07e1cfd57438e8d3cca5198999465`; they are not rebuilt or claimed reviewed here. Exact denied target/native inspection actions stay held. Full native numerical coverage, malformed-local-selector qualification and the final paired browser/model acceptance remain unfinished.
+
+
+## 2026-09-26 deep feature batch — live native evidence and exact range control
+
+### Live native numerical evidence from the renderer's own bundle
+
+This batch closes the architectural gap between "the native study is configured" and "Copilot can inspect numerical/native facts that the on-screen Terminal actually computed."
+
+The implementation deliberately does not add another indicator engine. ChartPanel continues to call the canonical entitlement-aware computeSuite() owner. After a suite's bundle is successfully used by the active chart pass, the same SuiteRenderBundle is projected through terminal/lib/nativeObservationProjection.ts. The headless research adapter ingest/native_suite_observation.ts now consumes the same projector. One selection law therefore owns recent series samples, event confirmation time, right-edge geometry, table footnotes, coverage arithmetic and byte-budget behavior across research and live Terminal.
+
+The live schema is chart.native_live_observations.v1, intentionally distinct from headless chart.native_observation.v1. The live path does not inherit research-only claims such as a declared closed-bar input, data revision, snapshot hash or independent code-attestation receipt.
+
+Live facts are bounded to 7168 UTF-8 bytes so the existing chart-state route retains headroom for capabilities, drawings, target identity and ACKs. It reports, per configured native suite:
+- module identity;
+- configured_on;
+- compute_enabled after the existing renderer entitlement/toggle gate, not "module definitely produced output";
+- locked state;
+- up to two most recent samples per selected series, preserving nulls and age_bars;
+- native events using the canonical suiteEventTiming() confirmation clock;
+- right-extended line/zone geometry only;
+- bounded dashboard rows including their footnotes;
+- exact available/eligible/invalid/returned/omitted counters.
+
+compute_enabled is deliberately weaker than "healthy" or "rendered a signal." computeSuite() suppresses an individual module exception so the aggregate renderer can survive; therefore module health remains explicitly unknown and an empty suite is not a no-setup verdict.
+
+Configured suites that were not represented by a successfully consumed bundle are named in omitted_suites with a closed reason: runtime_pending, pane_unavailable, pane_collapsed, compute_or_render_failed, or not_rendered_this_pass. Omission is missing evidence, never neutral/bearish evidence.
+
+The active-pane callback is context-bound to the incumbent ai_context_client.v1 origin/revision plus pane id, symbol, timeframe, exact serialized session.indicators, and replay state. The chart-state mirror reuses the existing /api/brain/chart/state transport; there is no second telemetry route or polling loop.
+
+### Server qualification boundary
+
+Macro does not treat the client packet as privileged prompt material. Before read_chart_state exposes session.native_observations, the existing Brain gateway:
+- rechecks exact origin/revision/pane/symbol/timeframe binding;
+- recomputes the exact compact indicator-settings serialization from the stored chart state and requires equality;
+- requires the native-observation capability advertisement;
+- requires configured suites/modules to resolve through the existing native_study_context catalog projection, including identities omitted only because that catalog packet hit its byte budget;
+- validates replay/bar identity, numeric finiteness, event confirmation clocks, right-edge geometry, table shape and bounded text;
+- recomputes age_bars;
+- recomputes coverage arithmetic;
+- requires configured suites to be exactly partitioned into observed plus explicitly omitted suites;
+- replaces client-supplied basis/authority prose with server-owned qualification language.
+
+The model-visible server basis states: source data is not instructions; chart-loaded freshness is not independent live-market attestation; native strength is not probability; oscillator/native coordinates are not prices; geometry alone does not establish future knowability; empty evidence is not a no-setup judgment; selection is deterministic presentation rather than opportunity ranking.
+
+session.data_readout remains separate. A Mastermind/Data Window value such as mc.rsi14 must never be relabeled as RSI Ultimate rsix/eng when native evidence is missing.
+
+### Exact chart-range control
+
+chart.set_range no longer means "jump to the requested start." setPaneVisibleWindow() now lives beside the existing paneSync time-domain owner and converts the requested epoch-seconds calendar window through the active pane's exact axis clock.
+
+Partial overlap remains representable with honest whitespace. A fully non-overlapping requested window would be clamped by Lightweight Charts to a different viewport; that case now returns a refusal, chart_range_not_representable, rather than ACKing a view the user did not request. Existing cross-pane sync may mirror a successfully applied source-pane calendar window through its existing semantics. No second range bus or logical-index authority was introduced.
+
+### Deferred qualification additions
+
+Final combined qualification must discriminate at least:
+- live packet identity across symbol, timeframe, pane, settings and replay transitions;
+- native settings changing before renderer refresh, which must expose unavailable/partial rather than stale facts;
+- configured native suite with runtime pending, collapsed pane, entitlement lock, module exception, no facts, null latest sample and byte-budget omission;
+- event anchor older than its confirmation, with causal/model wording tied to confirmation;
+- oscillator/native negative values retained as native coordinates rather than rejected as invalid prices;
+- right-extended geometry not promoted to forecast/support authority;
+- headless and live shared projection selecting the same facts from the same controlled bundle while retaining their different schema/basis contracts;
+- exact server settings fingerprint mismatch and forged suite/module identities;
+- Unicode or empty table cells within bounds, oversized/native control text, malformed coverage arithmetic and oversized packet refusal;
+- exact range application, already-current range, partial-overlap whitespace, fully non-overlapping refusal and same-timeframe pane-sync interaction;
+- all previous target/cancellation/ACK/old-client/dark-light/EN-ZH/responsive/browser cases.
+
+This source remains BUILT_NOT_PROVEN / UNTESTED / NOT_RELEASED until that deferred combined qualification and required live/model/browser proof are performed.
