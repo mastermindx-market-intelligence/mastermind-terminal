@@ -745,7 +745,8 @@ export type QueueStep = { op: ChartOp | "unknown"; id: string | null; caption?: 
 export type StepListener = (step: QueueStep) => void;
 export type LifecycleListener = () => void;
 
-type PendingChartCommand = { run: () => QueueStep; cancel?: () => QueueStep };
+// Batch identity is supplied by the existing dispatcher, not minted by the queue.
+type PendingChartCommand = { run: () => QueueStep; cancel?: () => QueueStep; batchId?: string };
 
 export class CommandQueue {
   private q: PendingChartCommand[] = [];
@@ -803,9 +804,9 @@ export class CommandQueue {
   // Enqueue a unit of work. `run` performs the side-effect and returns the step descriptor to emit.
   // The batch-start edge is the transition into an active session — detected BEFORE the job runs so
   // W3 can arm the overlay ahead of the first stroke.
-  enqueue(run: () => QueueStep, cancel?: () => QueueStep) {
+  enqueue(run: () => QueueStep, cancel?: () => QueueStep, batchId?: string) {
     if (!this.active) { this.active = true; this.emitStart(); }
-    this.q.push({ run, cancel });
+    this.q.push({ run, cancel, batchId });
     this.pump();
   }
 
@@ -859,9 +860,28 @@ export class CommandQueue {
    * The existing host supplies one negative ACK callback per real chart command.
    */
   cancelPending(): number {
-    if (!this.q.length) return 0;
-    if (this.timer) { clearTimeout(this.timer); this.timer = null; }
-    const pending = this.q.splice(0);
+    return this.cancelWhere(() => true);
+  }
+
+  /** A stopped reply cancels only its already-received batches. Malformed or
+   * empty scope is a no-op, never permission to clear another reply's work. */
+  cancelBatches(batchIds: readonly string[]): number {
+    if (!Array.isArray(batchIds) || !batchIds.length || batchIds.length > 64
+        || batchIds.some(id => typeof id !== "string" || !id.length || id.length > 40
+          || /[\u0000-\u001f\u007f]/.test(id))) return 0;
+    const wanted = new Set(batchIds);
+    return this.cancelWhere(job => job.batchId !== undefined && wanted.has(job.batchId));
+  }
+
+  private cancelWhere(matches: (job: PendingChartCommand) => boolean): number {
+    const pending: PendingChartCommand[] = [];
+    const kept: PendingChartCommand[] = [];
+    for (const job of this.q) (matches(job) ? pending : kept).push(job);
+    if (!pending.length) return 0;
+    this.q = kept;
+    // Preserve the existing due time of unrelated work. Cancelling one reply
+    // must not restart another reply's animation delay or change FIFO order.
+    if (!kept.length && this.timer) { clearTimeout(this.timer); this.timer = null; }
     const wasRunning = this.running;
     this.running = true;
     try {

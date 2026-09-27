@@ -6232,6 +6232,10 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
           active={active}
           onCommand={handleBrainCommand}
           onAnnotate={(j) => annotateChart(j.symbol || active, j.annotations || [])}
+          onChartStop={(request) => {
+            if (request?.scope !== "received_batches") return undefined;
+            return { scope: "received_batches", cancelled: chartBus.queue.cancelBatches(request.batch_ids) };
+          }}
           onAuthRequired={() => window.location.assign("/login")}
           getAiContext={() => aiContextProviderRef.current!.getAiContext()}
         />

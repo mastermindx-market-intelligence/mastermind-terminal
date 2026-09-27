@@ -334,3 +334,19 @@ CI poll, merge or deployment was invoked. Final compatibility and real-path proo
 Original-pane freezing/broad revision adoption and selected-candle causal event projection are still
 held on their previously refused actions. This work neither retries those actions nor closes those
 gaps. Existing queue cancellation remains pending-at-click only; no future SSE/provider stop is added.
+
+
+## Effect-aware Stop and cold reply recovery — implementation slice
+
+Goal: stopping a reply must not erase evidence that chart work may already have happened; replaying an older reply must not silently repeat chart changes. This is independent of the held original-pane and historical-native projection work.
+
+Architecture: reuse the widget's existing per-turn holder, run id/cursor and sessionStorage record. Record only whether a chart callback was invoked and up to 64 existing batch ids, not a second command log. The existing queue gains scoped removal of pending entries by those batch ids. A typed optional `onChartStop({scope:"received_batches", batch_ids})` host callback returns `{scope:"received_batches", cancelled}`; it reports local queue removals, not ACK delivery, undo or provider termination.
+
+Implementation plan (inline, current user assignment; tests are authored first and run only at the deferred combined pass):
+1. Add scoped queue cancellation using the current cancel callbacks and preserve other batches/FIFO ordering/timers. Wire exact batch metadata at enqueue; expose no new wire action.
+2. Bind the optional Stop callback through the existing BrainWidget config lifecycle and TerminalShell. Older widgets/hosts may ignore it; an absent/failed callback is an explicit unconfirmed stop, never a fabricated cancellation count.
+3. Fence widget event forwarding on its existing stopped/done/retracted and current-turn state. Preserve prompt and a fixed bilingual note after any chart callback, even if the callback threw or answer text has not arrived. Clear the existing run through the unchanged server cancellation route, but do not claim its in-flight work ceased.
+4. Mark cold reconstructed turns read-only for chart actions. Same live turn reconnect keeps its cursor behavior; a reconstructed transcript must require a fresh explicit user request for new chart edits. Restore known handoff/batch metadata only from the same existing run record. Never use cold reply restoration as target authority.
+5. Preserve source/readback receipts on the same PRs and handoff. Run no tests/compilers/browser/model calls in this feature-building slice.
+
+Deferred acceptance: Stop before any chart event retains existing prompt retraction; Stop after command/annotation handoff keeps the user row even without text; callback throws stay uncertain; matching queued work is cancelled once and unrelated batches remain; late chunks and late run responses cannot mutate a stopped or superseded reply; cold replay emits no chart commands and explains that limit; same live reconnect remains supported; old hosts disclose missing cancellation support; callback remount/cleanup cannot reach a stale host; server cancellation failure is not local replay permission; dark/light/EN/ZH/responsive/keyboard behavior stays on existing surfaces.

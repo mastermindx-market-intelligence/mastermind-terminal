@@ -377,7 +377,7 @@ export function useChartBus(host: ChartBusHost): ChartBus {
         op: cmd.op, id: cmd.id ?? null, ok: false, error: "command_receiver_unmounted",
       };
       return rejectTarget("command_cancelled_by_user");
-    });
+    }, cmd.batch_id);
   }, [queue, pushAck]);
 
   // ── AI drawings for a symbol (merged into ChartPane), respecting the eye-toggle ──────────────
