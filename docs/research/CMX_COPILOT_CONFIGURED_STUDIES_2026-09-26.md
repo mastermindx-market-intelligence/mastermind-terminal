@@ -414,3 +414,25 @@ Transport and qualification law:
 - server output replaces client basis prose with fixed semantics and sets `predictive_validation:false` / `signal_authority:false`.
 
 Deferred combined acceptance adds loaded-tail and visible-tail projections, no-overlap refusal, replay-slice labeling, live-splice refresh, intraday numeric times, daily ISO times, malformed/nonmonotone bars, source-index gaps/cherry-picking, viewport containment, state-budget omission, old-client missing packet behavior, and real `read_chart_state` replacement. Tests are authored but intentionally not run during feature construction.
+
+
+## 2026-09-27 — mounted-pane raw price context
+
+The read-only `chart.pane_contexts.v1` comparison view now carries each inactive pane's own bounded `chart.price_window.v1` in addition to renderer-native observations. This lets Copilot compare actual price action across 2/4-chart or MTF layouts without activating those panes or enabling their Data Window callback.
+
+Ownership and transport:
+- every ChartPanel publishes the exact accepted rendered bar array it already owns after symbol/timeframe identity is accepted; no fetch, resample, duplicate bar store or indicator calculation is introduced;
+- a compact signature suppresses duplicate callbacks while still republishing on a new accepted array, replay transition, or live change in the recent rendered tail;
+- symbol/timeframe changes and unmount explicitly retire that pane's prior source; late callbacks whose symbol/timeframe/replay identity no longer matches the pane are ignored;
+- Terminal stores these sources only in a pane-indexed ref and builds the existing bounded price-window projection at state-POST time using that pane's paneSync viewport;
+- the active pane does NOT duplicate its already-carried root price/native packets inside `pane_contexts`; it emits exact references `session.price_window` and `session.native_observations`. Only inactive panes embed their separately projected evidence.
+
+Brain qualification:
+- active row must use both exact root references and may not include duplicate active price/native packets;
+- inactive rows may not point at root references and are independently qualified through the existing price/native owners;
+- a qualified pane price window must describe the SAME viewport as that pane-context row: a pane with a viewport requires `visible_tail` with equal range; a pane without a viewport requires `loaded_tail` with no declared visible range;
+- pane-context status becomes partial if root or inactive price/native evidence is unavailable/partial, never a false complete comparison;
+- inactive price/native evidence remains read-only and grants no chart-command authority;
+- doctrine v10 tells the model to keep each pane's symbol/timeframe/viewport/price/native basis separate and to follow active price-window replay/visibility/close-status rules on every inactive pane.
+
+Deferred combined acceptance adds active-root reference deduplication, inactive-pane raw-price qualification, exact pane viewport binding, late source retirement, pane reuse with the same symbol/timeframe, live/replay transitions, 4-pane payload behavior, inactive unavailable price evidence, and proof that observation never activates or mutates an inactive pane. Test/spec files are authored/updated but intentionally not executed during feature construction.

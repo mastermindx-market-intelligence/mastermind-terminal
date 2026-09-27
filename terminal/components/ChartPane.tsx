@@ -1,6 +1,7 @@
 "use client";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { ChartReadoutMeta } from "@/lib/visualIntelligence";
+import type { ChartPriceWindowSource } from "@/lib/chartPriceWindow";
 import ChartPanel, { type DetectCmd, type LiveQuote, type PineScript } from "@/components/ChartPanel";
 import ChartFrameBar, { DEFAULT_CHART_SETTINGS, type ChartSettings } from "@/components/ChartFrameBar";
 import ChartSettingsModal, { type ChartSettingsTab } from "@/components/ChartSettingsModal";
@@ -25,12 +26,13 @@ const load = (d: ChartSettings): ChartSettings => { try { const v = localStorage
 // stay pane-local and are merged in only for this pane's own render.
 export default function ChartPane({ idx, symbol, drawingOwnerKey, isActive, onActivate, row, tf, chartType, dataReady = true, initialTimeframe = null, inds, tool, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, detectCmd, compare, compareCfg, magnet, replayIdx, onMeta, drawings, drawingsVisible = true, onDrawingsChange, liveQuote, indParams, hidden, onToggleHidden, onRemoveInd, onOpenSettings, onOpenSource, pineScripts,
   onDetectedDrawingCount,
-  onAddAlert, onTableView, onObjectTree, lockedVLine, onSetLockedVLine, onIndRowsAt, onNativeObservations, dayMode: _dayMode, onPaneCount, userTier }:
+  onAddAlert, onTableView, onObjectTree, lockedVLine, onSetLockedVLine, onIndRowsAt, onRenderedPriceSource, onNativeObservations, dayMode: _dayMode, onPaneCount, userTier }:
   { idx: number; symbol: string; drawingOwnerKey: string; isActive: boolean; onActivate: (i: number) => void; dataReady?: boolean; initialTimeframe?: string | null; row?: { name?: string; zh?: string; sec?: string; mkt?: string; col?: string; last?: number; chg?: number } | null; tf: string; chartType: string; inds: Set<string>; tool: DrawKind | null; toolActivation?: number; drawingSticky?: boolean; drawingCreationDisabled?: boolean; drawStyle?: { color: string; width: number; dash: "solid" | "dashed" | "dotted" }; detectCmd: DetectCmd; compare: string[]; compareCfg?: Record<string, CmpCfg>; magnet: "off" | "weak" | "strong"; replayIdx: number | null; onMeta: (m: { total: number }) => void; drawings: Drawing[]; drawingsVisible?: boolean; onDrawingsChange: (d: Drawing[]) => void; onDetectedDrawingCount?: (count: number) => void; liveQuote?: LiveQuote;
     indParams?: Record<string, any>; hidden?: Set<string>; onToggleHidden?: (key: string) => void; onRemoveInd?: (key: string) => void; onOpenSettings?: (key: string) => void; onOpenSource?: (key: string) => void; pineScripts?: PineScript[];
     onAddAlert?: (price: number) => void; onTableView?: () => void; onObjectTree?: () => void;
     lockedVLine?: string | null; onSetLockedVLine?: (t: string | null) => void;
     onIndRowsAt?: (fn: ((barTime: string | number) => Record<string, number | null>) | null, meta?: ChartReadoutMeta) => void;
+    onRenderedPriceSource?: (source: ChartPriceWindowSource | null) => void;
     onNativeObservations?: (packet: Record<string, unknown> | null) => void;
     /** Day Trade Mode — enables session shading, countdown, and stats strip (C lane wires the impl). */
     dayMode?: boolean;
@@ -187,6 +189,9 @@ export default function ChartPane({ idx, symbol, drawingOwnerKey, isActive, onAc
         lockedVLine={lockedVLine}
         onSetLockedVLine={onSetLockedVLine}
         onIndRowsAt={isActive ? onIndRowsAt : undefined}
+        // Raw rendered bars are read-only and pane-local; all mounted panes may publish
+        // them without enabling their Data Window/indicator-value callback.
+        onRenderedPriceSource={onRenderedPriceSource}
         // Native evidence is read-only and pane-local. Keep it available for all mounted
         // panes so Copilot can compare layouts without activating or mutating them.
         onNativeObservations={onNativeObservations}

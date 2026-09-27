@@ -11,6 +11,8 @@ export const CHART_PRICE_WINDOW_MAX_BYTES = 4096;
 export type ChartPriceWindowRange = { from: number; to: number } | null;
 
 export type ChartPriceWindowSource = {
+  symbol: string;
+  tf: string;
   bars: readonly Bar[];
   replay: boolean;
 };
@@ -72,7 +74,8 @@ export function buildChartPriceWindow(
   visibleRange: ChartPriceWindowRange,
 ): Record<string, unknown> {
   const bars = source?.bars;
-  if (!token(symbol, 64) || !token(tf, 32))
+  if (!token(symbol, 64) || !token(tf, 32)
+      || source?.symbol !== symbol || source?.tf !== tf)
     return unavailable("price_window_identity_invalid", symbol, tf, Array.isArray(bars) ? bars.length : 0);
   if (!Array.isArray(bars) || bars.length === 0)
     return unavailable("price_window_bars_unavailable", symbol, tf, 0);

@@ -194,7 +194,9 @@ describe("useChartBus state mirror", () => {
     }));
     const host: ChartBusHost = {
       ...hostWith([]),
-      getRenderedPriceWindowSource: () => ({ bars: rendered.slice(0, 15), replay: true }),
+      getRenderedPriceWindowSource: () => ({
+        symbol: "NVDA", tf: "D", bars: rendered.slice(0, 15), replay: true,
+      }),
     };
     await act(async () => {
       root!.render(React.createElement(Harness, {

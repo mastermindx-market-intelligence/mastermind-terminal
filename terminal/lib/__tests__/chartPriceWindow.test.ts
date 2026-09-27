@@ -13,10 +13,11 @@ const bars = Array.from({ length: 20 }, (_, i) => ({
   c: 101 + i,
   v: 1000 + i,
 }));
+const source = (rows = bars, replay = false) => ({ symbol: "NVDA", tf: "D", bars: rows, replay });
 
 describe("Copilot active rendered price window", () => {
   it("returns the loaded tail in chronological order when viewport is unavailable", () => {
-    const out: any = buildChartPriceWindow({ bars, replay: false }, "NVDA", "D", null);
+    const out: any = buildChartPriceWindow(source(), "NVDA", "D", null);
     expect(out.schema).toBe(CHART_PRICE_WINDOW_SCHEMA);
     expect(out.status).toBe("observed");
     expect(out.selection.scope).toBe("loaded_tail");
@@ -40,7 +41,7 @@ describe("Copilot active rendered price window", () => {
     const from = Date.parse("2026-09-04T00:00:00Z") / 1000;
     const to = Date.parse("2026-09-09T00:00:00Z") / 1000;
     const out: any = buildChartPriceWindow(
-      { bars, replay: false }, "NVDA", "D", { from, to },
+      source(), "NVDA", "D", { from, to },
     );
     expect(out.selection).toMatchObject({
       scope: "visible_tail",
@@ -57,7 +58,7 @@ describe("Copilot active rendered price window", () => {
 
   it("does not fall back to latest bars when the visible window has no loaded overlap", () => {
     const out: any = buildChartPriceWindow(
-      { bars, replay: false }, "NVDA", "D",
+      source(), "NVDA", "D",
       {
         from: Date.parse("2025-01-01T00:00:00Z") / 1000,
         to: Date.parse("2025-01-10T00:00:00Z") / 1000,
@@ -72,7 +73,7 @@ describe("Copilot active rendered price window", () => {
 
   it("labels replay-sliced source data without claiming market liveness", () => {
     const out: any = buildChartPriceWindow(
-      { bars: bars.slice(0, 7), replay: true }, "NVDA", "D", null,
+      source(bars.slice(0, 7), true), "NVDA", "D", null,
     );
     expect(out.source_bar_count).toBe(7);
     expect(out.basis.data_status).toBe("replay_slice");
@@ -80,15 +81,26 @@ describe("Copilot active rendered price window", () => {
     expect(out.bars.at(-1).source_index).toBe(6);
   });
 
+  it("rejects a rendered source whose chart identity no longer matches the pane", () => {
+    const out: any = buildChartPriceWindow(
+      { ...source(), symbol: "AAPL" }, "NVDA", "D", null,
+    );
+    expect(out).toMatchObject({
+      schema: CHART_PRICE_WINDOW_SCHEMA,
+      status: "unavailable",
+      reason: "price_window_identity_invalid",
+    });
+  });
+
   it("fails closed on malformed or non-monotone rendered bars", () => {
     const malformed = [...bars.slice(0, 4), { ...bars[4], h: Number.NaN }];
     expect((buildChartPriceWindow(
-      { bars: malformed, replay: false }, "NVDA", "D", null,
+      source(malformed), "NVDA", "D", null,
     ) as any).reason).toBe("price_window_ohlc_invalid");
 
     const reordered = [bars[0], bars[2], bars[1]];
     expect((buildChartPriceWindow(
-      { bars: reordered, replay: false }, "NVDA", "D", null,
+      source(reordered), "NVDA", "D", null,
     ) as any).reason).toBe("price_window_time_order_invalid");
   });
 });

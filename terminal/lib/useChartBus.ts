@@ -15,7 +15,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import type { Drawing } from "@/lib/drawings";
 import { timeToMs } from "@/lib/timeWindow";
 import { prepareChartStatePayload } from "@/lib/chartStatePayload";
-import { buildChartPriceWindow, type ChartPriceWindowSource } from "@/lib/chartPriceWindow";
+import { buildChartPriceWindow, CHART_PRICE_WINDOW_SCHEMA, type ChartPriceWindowSource } from "@/lib/chartPriceWindow";
 import {
   CommandQueue, applyToStore, isV2Envelope, translate, validateEnvelope,
   fitMetrics, type Ack, type AiObject, type Fit, type FitBar, type IndicatorSpec,
@@ -30,6 +30,7 @@ export type ChartPaneContextSnapshot = {
   pane_id: number;
   symbol: string;
   tf: string;
+  price_window_source: ChartPriceWindowSource | null;
   native_observations: unknown;
 };
 
@@ -189,15 +190,29 @@ export function useChartBus(host: ChartBusHost): ChartBus {
         ) throw new Error("pane_context_identity");
         seen.add(row.pane_id);
         const windowMs = viewportByPaneRef.current.get(row.pane_id) ?? null;
-        panes.push({
+        const paneVisibleRange = windowMs
+          ? { from: windowMs.from / 1000, to: windowMs.to / 1000 }
+          : null;
+        const activeRow = row.pane_id === h.activePaneId;
+        const paneRow: Record<string, unknown> = {
           pane_id: row.pane_id,
           symbol: row.symbol,
           tf: row.tf,
-          visible_range: windowMs
-            ? { from: windowMs.from / 1000, to: windowMs.to / 1000 }
-            : null,
-          native_observations: row.native_observations,
-        });
+          visible_range: paneVisibleRange,
+        };
+        if (activeRow) {
+          // Root active packets are already carried and separately qualified. References
+          // prevent multi-pane context from paying their JSON size twice.
+          paneRow.price_window_ref = "session.price_window";
+          paneRow.native_observations_ref = "session.native_observations";
+        } else {
+          paneRow.price_window = row.price_window_source
+            ? buildChartPriceWindow(row.price_window_source, row.symbol, row.tf, paneVisibleRange)
+            : { schema: CHART_PRICE_WINDOW_SCHEMA, status: "unavailable",
+                reason: "price_window_source_not_current" };
+          paneRow.native_observations = row.native_observations;
+        }
+        panes.push(paneRow);
       }
       if (panes.length > 1) {
         paneContexts = {

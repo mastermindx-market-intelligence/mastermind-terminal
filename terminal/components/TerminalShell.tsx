@@ -159,7 +159,7 @@ import { type PineScript } from "@/components/ChartPanel";
 type ShellDrawingStyle = { color: string; width: number; dash: Dash };
 import { visualReadoutColumns, type ChartReadoutMeta } from "@/lib/visualIntelligence";
 import { captureChartReadout, CHART_READOUT_SCHEMA } from "@/lib/chartReadoutSnapshot";
-import { CHART_PRICE_WINDOW_MAX_BARS, CHART_PRICE_WINDOW_SCHEMA } from "@/lib/chartPriceWindow";
+import { CHART_PRICE_WINDOW_MAX_BARS, CHART_PRICE_WINDOW_SCHEMA, type ChartPriceWindowSource } from "@/lib/chartPriceWindow";
 import { LIVE_NATIVE_OBSERVATION_SCHEMA, LIVE_NATIVE_OBSERVATION_MAX_BYTES } from "@/lib/nativeObservationProjection";
 import ChartTableView from "@/components/ChartTableView";
 import { type OTEntry } from "@/components/ChartObjectTree";
@@ -1391,8 +1391,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
     replay_idx: number | null;
     selected_time: string | null;
   };
-  // Read-only native evidence by mounted chart pane. ai_context origin/revision remains
+  // Read-only renderer evidence by mounted chart pane. ai_context origin/revision remains
   // owned once at the active Terminal context and is attached only when the state is mirrored.
+  const panePriceSourceRef = useRef<Record<number, ChartPriceWindowSource>>({});
   const [nativeObservationByPane, setNativeObservationByPane] = useState<Record<number, NativePaneObservationState>>({});
   // B3: sub-pane count for mobile chart-body height formula (--subpanes CSS var)
   const [subPanes, setSubPanes] = useState(0);
@@ -4355,6 +4356,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
     pane_contexts: { schema: CHART_PANE_CONTEXT_SCHEMA, max_panes: 4,
       observation: "read_only_mounted_panes", control_authority: "active_pane_only",
       native_source: "same_renderer_bundle_when_available",
+      price_source: "same_rendered_bar_owner_when_available",
       context_revision: "read_does_not_increment" },
     command_target: {
       schema: "chart.command_target.v1", author: "server_only",
@@ -4441,7 +4443,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
         || binding.context_revision !== identity.context_revision || binding.paneId !== activePane
         || binding.settingsKey !== settingsKey || binding.replayOn !== replayOn
         || binding.replayIdx !== (replayOn ? replayIdx : null)) return null;
-      return { bars: chartReadoutMeta.bars, replay: replayOn };
+      return { symbol: chartReadoutMeta.symbol, tf: chartReadoutMeta.timeframe,
+        bars: chartReadoutMeta.bars, replay: replayOn };
     },
     getNativeObservationSnapshot: () => nativeObservationForPane(
       activePane, active, tf, replayOn, replayOn ? replayIdx : null,
@@ -4450,10 +4453,14 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
       const paneTf = paneTfs[pane_id] ?? "D";
       const paneReplayOn = pane_id === activePane && replayOn;
       const paneReplayIdx = paneReplayOn ? replayIdx : null;
+      const priceSource = panePriceSourceRef.current[pane_id] ?? null;
       return {
         pane_id,
         symbol,
         tf: paneTf,
+        price_window_source: priceSource
+          && priceSource.symbol === symbol && priceSource.tf === paneTf
+          && priceSource.replay === paneReplayOn ? priceSource : null,
         native_observations: nativeObservationForPane(
           pane_id, symbol, paneTf, paneReplayOn, paneReplayIdx,
         ),
@@ -5605,6 +5612,22 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
                       replayOn, replayIdx: replayOn ? replayIdx : null,
                     } } : null);
                   } : undefined}
+                  onRenderedPriceSource={(source) => {
+                    const paneTf = paneTfs[i] ?? "D";
+                    const paneReplayOn = i === activePane && replayOn;
+                    if (!source) {
+                      if (panePriceSourceRef.current[i]) {
+                        delete panePriceSourceRef.current[i];
+                        chartBus.noteReadoutChange();
+                      }
+                      return;
+                    }
+                    // A late callback from the pane's previous symbol/timeframe/replay epoch
+                    // cannot replace current evidence.
+                    if (source.symbol !== sym || source.tf !== paneTf || source.replay !== paneReplayOn) return;
+                    panePriceSourceRef.current[i] = source;
+                    chartBus.noteReadoutChange();
+                  }}
                   onNativeObservations={(packet) => {
                     const paneTf = paneTfs[i] ?? "D";
                     const paneReplayOn = i === activePane && replayOn;

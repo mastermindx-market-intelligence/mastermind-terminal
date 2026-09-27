@@ -84,6 +84,7 @@ import {
 } from "@/lib/suites/catalog";
 import type { SuiteRenderBundle, SuiteTier, SuiteColors, CoordMapper, TableSpec } from "@/lib/indicator-canvas/types";
 import { buildLiveNativeObservations, type LiveNativeSuiteProjectionInput } from "@/lib/nativeObservationProjection";
+import type { ChartPriceWindowSource } from "@/lib/chartPriceWindow";
 import ChartTables from "@/components/ChartTables";
 import { crossUps, crossDowns, crossUpsBelow, crossDownsAbove } from "@/lib/crossSignals";
 import { SOFT_Q, anchorSignal, isBlockedSignal, isOverrideCandidate, isReclaimOverrideTake, isRetroOverride, isStopSweepReclaim, isStructureStop, isWaivedEntry, markerTooltipCopy, opportunityMarkerGlyph, sliceSignalBasis } from "@/lib/signalVerdict";
@@ -515,7 +516,7 @@ import { candleVolumeRank } from "@/lib/suites/trend/candlePainter";
 
 export default function ChartPanel({ symbol, chartType = "candles", indicators, timeframe = "D", replayIdx = null, onMeta, tool = null, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, drawings = [], onDrawingsChange, detectCmd = null, magnet = "off", compare = [], compareCfg = EMPTY_OBJ, isActive = true, syncId = null, liveQuote = null,
   indParams = EMPTY_OBJ, hidden = EMPTY_SET, onToggleHidden, onRemoveInd, onOpenSettings, onOpenSource, pineScripts = EMPTY_PINE, chartSettings, onVisualSettings, onChartApi, extHours = false,
-  instrumentName, instrumentMarket, instrumentColor, onAddAlert, onTableView, onObjectTree, onOpenSettingsModal, lockedVLine = null, onSetLockedVLine, onIndRowsAt, onNativeObservations, dayMode = false, onPaneCount, companyName = "", userTier = "free", dataReady = true, initialTimeframe = null }:
+  instrumentName, instrumentMarket, instrumentColor, onAddAlert, onTableView, onObjectTree, onOpenSettingsModal, lockedVLine = null, onSetLockedVLine, onIndRowsAt, onRenderedPriceSource, onNativeObservations, dayMode = false, onPaneCount, companyName = "", userTier = "free", dataReady = true, initialTimeframe = null }:
   { symbol: string; companyName?: string; chartType?: string; indicators: Set<string>; timeframe?: string; replayIdx?: number | null; onMeta?: (m: { total: number }) => void;
     /** False until the shell has COMMITTED its persisted prefs. See `effectiveTimeframe`. */
     dataReady?: boolean;
@@ -537,6 +538,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     onSetLockedVLine?: (time: string | null) => void;
     /** Called once after each data load with a function that returns per-key indicator values at a bar time. */
     onIndRowsAt?: (fn: ((barTime: string | number) => Record<string, number | null>) | null, meta?: ChartReadoutMeta) => void;
+    /** Exact accepted rendered bars for read-only Copilot price context; never a second fetch/store. */
+    onRenderedPriceSource?: (source: ChartPriceWindowSource | null) => void;
     /** Exact compact facts from the SAME native bundles this panel actually rendered. */
     onNativeObservations?: (packet: Record<string, unknown> | null) => void;
     /** Day Trade Mode — enables session shading + countdown chip + stats strip. */
@@ -840,6 +843,10 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   const onOpenSettingsModalRef = useRef(onOpenSettingsModal); onOpenSettingsModalRef.current = onOpenSettingsModal;
   const onSetLockedVLineRef = useRef(onSetLockedVLine); onSetLockedVLineRef.current = onSetLockedVLine;
   const lockedVLineRef = useRef(lockedVLine); lockedVLineRef.current = lockedVLine;
+  const onRenderedPriceSourceRef = useRef(onRenderedPriceSource);
+  onRenderedPriceSourceRef.current = onRenderedPriceSource;
+  const renderedPriceRowsRef = useRef<readonly Bar[] | null>(null);
+  const renderedPriceTailSigRef = useRef("");
   // A cursor lock belongs to the exact chart/ticker that created it. The shell still carries the
   // historical workspace field for compatibility, but this ref prevents that global value from
   // painting on sibling panes or a different ticker after navigation.
@@ -851,6 +858,14 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     nativeObservationSigRef.current = "";
     if (isActive) scheduleRenderRef.current?.();
   }, [isActive, lockedVLine]);
+  useEffect(() => {
+    // A renderer identity change retires the prior pane source immediately; the
+    // newly accepted bars will republish through paintStatus/refreshVisualContext.
+    renderedPriceRowsRef.current = null;
+    renderedPriceTailSigRef.current = "";
+    onRenderedPriceSourceRef.current?.(null);
+  }, [symbol, timeframe]);
+  useEffect(() => () => { onRenderedPriceSourceRef.current?.(null); }, []);
   // B2/B3/B5: mobile breakpoint ref (drives applyStretch) + reactive state (drives ChartOverlays coarse prop)
   const isMobileRef = useRef<boolean>(typeof window !== "undefined" && window.matchMedia("(max-width:860px)").matches);
   const [isMobile, setIsMobile] = useState<boolean>(() =>
@@ -2669,10 +2684,50 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     const prefs = visualSettings(chartSettingsRef.current);
     if (prefs.visualLevels || prefs.visualEvents) scheduleRenderRef.current?.();
   };
+  const publishRenderedPriceSource = (rows: Bar[]) => {
+    const source = visualSourceRef.current;
+    if (!source || source.symbol !== symbolRef.current || source.timeframe !== timeframeRef.current) {
+      if (renderedPriceRowsRef.current !== null || renderedPriceTailSigRef.current) {
+        renderedPriceRowsRef.current = null;
+        renderedPriceTailSigRef.current = "";
+        onRenderedPriceSourceRef.current?.(null);
+      }
+      return;
+    }
+    if (!rows.length) {
+      if (renderedPriceRowsRef.current !== null || renderedPriceTailSigRef.current) {
+        renderedPriceRowsRef.current = null;
+        renderedPriceTailSigRef.current = "";
+        onRenderedPriceSourceRef.current?.(null);
+      }
+      return;
+    }
+    const tailSig = rows.slice(-12).map((bar) =>
+      `${String(bar.time)}:${bar.o}:${bar.h}:${bar.l}:${bar.c}:${bar.v}`,
+    ).join("|");
+    const signature = `${source.symbol}|${source.timeframe}|${replayIdxRef.current == null ? "live" : "replay"}|${rows.length}|${tailSig}`;
+    if (rows === renderedPriceRowsRef.current && signature === renderedPriceTailSigRef.current) return;
+    renderedPriceRowsRef.current = rows;
+    renderedPriceTailSigRef.current = signature;
+    onRenderedPriceSourceRef.current?.({
+      symbol: source.symbol,
+      tf: source.timeframe,
+      bars: rows,
+      replay: replayIdxRef.current !== null,
+    });
+  };
+
   const refreshVisualContext = (rows: Bar[]) => {
     const source = visualSourceRef.current;
-    if (!source || source.symbol !== symbolRef.current || source.timeframe !== timeframeRef.current) return;
-    if (!rows.length) { visualSeriesRef.current = null; visualPanelRef.current?.reset("empty"); return; }
+    if (!source || source.symbol !== symbolRef.current || source.timeframe !== timeframeRef.current) {
+      publishRenderedPriceSource(rows);
+      return;
+    }
+    if (!rows.length) {
+      publishRenderedPriceSource(rows);
+      visualSeriesRef.current = null; visualPanelRef.current?.reset("empty"); return;
+    }
+    publishRenderedPriceSource(rows);
     const series = buildVisualSeries(source.symbol, source.timeframe, rows, indParamsRef.current.trend?.["cp.mode"]);
     visualSeriesRef.current = series;
     if (visualSelectedTimeRef.current !== null && !series.indexByTime.has(visualSelectedTimeRef.current)) visualSelectedTimeRef.current = null;
