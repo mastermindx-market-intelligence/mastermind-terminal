@@ -30,7 +30,9 @@
  *   invalidates the whole context.
  */
 
-// Measured 2026-09-27: the apex host redirects to this www URL, which lib/originNav.ts MACRO_HOSTS serves as canonical.
+// Measured 2026-09-27: the apex ontology URL redirects to this www URL. The
+// pure helper stays on the served www host; lib/originNav.ts separately allows
+// both macro hosts without canonicalizing them.
 export const MARKET_ONTOLOGY_ORIGIN = "https://www.mastermind-x.com";
 
 export const MO_CONTEXT_KEYS = [

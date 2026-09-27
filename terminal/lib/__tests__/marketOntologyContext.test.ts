@@ -336,6 +336,14 @@ describe("parseMarketOntologyContext", () => {
     expect(result).toEqual({ from: "ontology", chain: VALID_CHAIN });
   });
 
+  it("treats only exact lowercase known keys as parse vocabulary", () => {
+    const result = parseMarketOntologyContext(
+      makeRawParams("MO_CHAIN=evil&mo_chain=ok&mo_from=ontology")
+    );
+
+    expect(result).toEqual({ from: "ontology", chain: "ok" });
+  });
+
   it("ignores a non-ASCII unknown mo_* key", () => {
     const result = parseMarketOntologyContext(
       makeRawParams("mo_from=ontology&mo_chain=a&mo_%E8%8A%82=x")
@@ -444,14 +452,30 @@ describe("serializeMarketOntologyContext", () => {
     expect([...result.keys()]).toEqual(["symbol", "page", "mo_from", "mo_chain"]);
   });
 
+  it("removes pre-existing mo_* keys case-insensitively", () => {
+    const result = serializeMarketOntologyContext(
+      { from: "ontology", chain: "abc" },
+      makeRawParams("symbol=NVDA&MO_CHAIN=evil")
+    );
+
+    expect(result.has("MO_CHAIN")).toBe(false);
+    expect([...result.keys()]).toEqual(["symbol", "mo_from", "mo_chain"]);
+  });
+
   it.each([
     ["focus", "a b"],
     ["pathRev", "1e9"],
     ["asof", "2026-02-30"],
+    ["chain", "a b"],
+    ["from", "transmission"],
   ] as const)("omits an illegal forged %s field", (field, value) => {
     const ctx = { from: "ontology", chain: VALID_CHAIN, [field]: value } as unknown as MarketOntologyContext;
     const result = serializeMarketOntologyContext(ctx);
-    expect([...result.keys()]).toEqual(["mo_from", "mo_chain"]);
+    const keys = [...result.keys()];
+    expect(keys).not.toContain(`mo_${field === "pathRev" ? "path_rev" : field}`);
+    if (field === "from" || field === "chain") {
+      expect(parseMarketOntologyContext(result)).toBeNull();
+    }
   });
 });
 
@@ -487,7 +511,7 @@ describe("marketOntologyReturnHref", () => {
     expect(marketOntologyReturnHref(ctx)).toBe(`${MARKET_ONTOLOGY_ORIGIN}/ontology.html`);
   });
 
-  it("percent-encodes a legal focus into one opaque fragment token", () => {
+  it("passes legal focus dots through and keeps the fragment one token", () => {
     const ctx: MarketOntologyContext = { from: "ontology", chain: VALID_CHAIN, focus: "a..b" };
     const result = marketOntologyReturnHref(ctx);
     // Dots are legal in the id grammar and pass through unencoded.
