@@ -65,6 +65,19 @@ const NAV: { id: SettingsSection; icon: React.ReactNode; key: string }[] = [
   { id: "portfolioTargets", icon: <IconPortfolioTargets />, key: "acsPortfolioTargets" },
 ];
 
+// Flame-crown geometry for the settings shell. The path intentionally has uneven
+// peaks/troughs rather than repeated sine periods: it should read as living energy,
+// not a translated decorative rail. Every state uses the same command topology so
+// SVG interpolation is deterministic across Chromium/WebKit/Gecko.
+const AURORA_STATES = [
+  "M0 26 C38 26 70 24 104 25 C132 26 144 12 166 11 C188 11 199 32 230 33 C262 34 274 13 306 14 C338 15 351 30 382 29 C414 28 431 9 463 11 C494 13 509 35 542 32 C574 29 594 14 626 16 C658 18 675 30 707 28 C739 26 754 11 786 13 C818 15 835 30 868 28 C903 26 944 24 1000 26",
+  "M0 26 C40 26 68 19 103 20 C132 21 151 32 181 31 C211 30 226 10 257 12 C289 14 305 34 338 32 C369 30 386 15 418 17 C449 19 464 8 496 11 C528 14 545 31 577 29 C609 27 625 11 657 13 C689 15 706 33 738 31 C770 29 787 14 819 16 C851 18 870 10 902 13 C935 16 964 24 1000 26",
+  "M0 26 C42 27 71 18 107 20 C136 22 151 9 180 10 C210 11 226 31 259 32 C291 33 309 15 340 16 C372 17 390 6 421 10 C454 14 469 34 502 31 C534 28 552 12 584 14 C616 16 635 30 668 28 C700 26 718 8 750 11 C782 14 799 33 832 30 C864 27 882 14 914 17 C946 20 974 25 1000 26",
+  "M0 26 C35 25 60 14 95 16 C126 18 143 30 176 30 C207 30 224 11 256 13 C288 15 306 34 338 32 C370 30 389 16 421 18 C453 20 469 6 501 9 C533 12 551 31 583 30 C615 29 634 15 666 17 C698 19 715 7 747 10 C779 13 798 32 830 31 C862 30 882 17 914 18 C946 20 975 25 1000 26",
+  "M0 26 C38 26 70 24 104 25 C132 26 144 12 166 11 C188 11 199 32 230 33 C262 34 274 13 306 14 C338 15 351 30 382 29 C414 28 431 9 463 11 C494 13 509 35 542 32 C574 29 594 14 626 16 C658 18 675 30 707 28 C739 26 754 11 786 13 C818 15 835 30 868 28 C903 26 944 24 1000 26",
+] as const;
+const AURORA_VALUES = AURORA_STATES.join("; ");
+
 const HEAD_KEY: Record<SettingsSection, string> = {
   account: "acsAccount",
   team: "acsTeam",
@@ -323,59 +336,77 @@ export default function SettingsPanel(props: SettingsPanelProps) {
           className="acs-aurora"
           aria-hidden="true"
           key={openSeq}
-          viewBox="0 0 1000 28"
+          viewBox="0 0 1000 48"
           preserveAspectRatio="none"
         >
           <defs>
-            <linearGradient id={`acsAuroraGradient-${openSeq}`} x1="0" y1="0" x2="1000" y2="0" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stopColor="#39c6ff" />
-              <stop offset="18%" stopColor="#3b82ff" />
-              <stop offset="38%" stopColor="#6366ff" />
-              <stop offset="58%" stopColor="#a855f7" />
-              <stop offset="78%" stopColor="#5577ff" />
-              <stop offset="100%" stopColor="#38c7ff" />
+            <linearGradient id={"acsAuroraGradient-" + openSeq} x1="0" y1="0" x2="1000" y2="0" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stopColor="#22d3ff" />
+              <stop offset="17%" stopColor="#4fb4ff" />
+              <stop offset="34%" stopColor="#4d67ff" />
+              <stop offset="52%" stopColor="#c05cff" />
+              <stop offset="68%" stopColor="#7c58ff" />
+              <stop offset="84%" stopColor="#3f9fff" />
+              <stop offset="100%" stopColor="#20d6ff" />
+              <animateTransform
+                attributeName="gradientTransform"
+                type="translate"
+                values="-70 0; 70 0; -70 0"
+                dur="9.5s"
+                repeatCount="indefinite"
+              />
             </linearGradient>
-            <filter id={`acsAuroraGlow-${openSeq}`} x="-8%" y="-180%" width="116%" height="460%">
-              <feGaussianBlur stdDeviation="3.8" />
+            <filter id={"acsAuroraBloom-" + openSeq} x="-8%" y="-220%" width="116%" height="540%">
+              <feGaussianBlur stdDeviation="7.2" />
+            </filter>
+            <filter id={"acsAuroraGlow-" + openSeq} x="-8%" y="-170%" width="116%" height="440%">
+              <feGaussianBlur stdDeviation="2.7" />
             </filter>
           </defs>
           <g className="acs-aurora-live">
             <path
+              className="acs-aurora-bloom"
+              pathLength="1000"
+              d={AURORA_STATES[0]}
+              stroke={"url(#acsAuroraGradient-" + openSeq + ")"}
+              filter={"url(#acsAuroraBloom-" + openSeq + ")"}
+            >
+              <animate attributeName="d" dur="7.4s" repeatCount="indefinite" values={AURORA_VALUES} />
+            </path>
+            <path
               className="acs-aurora-glow"
               pathLength="1000"
-              d="M0 14 C70 4 130 24 200 14 C270 4 330 24 400 14 C470 4 530 24 600 14 C670 4 730 24 800 14 C870 4 930 24 1000 14"
-              stroke={`url(#acsAuroraGradient-${openSeq})`}
-              filter={`url(#acsAuroraGlow-${openSeq})`}
+              d={AURORA_STATES[0]}
+              stroke={"url(#acsAuroraGradient-" + openSeq + ")"}
+              filter={"url(#acsAuroraGlow-" + openSeq + ")"}
             >
-              <animate attributeName="d" dur="6.8s" repeatCount="indefinite"
-                values="M0 14 C70 4 130 24 200 14 C270 4 330 24 400 14 C470 4 530 24 600 14 C670 4 730 24 800 14 C870 4 930 24 1000 14;
-                        M0 14 C55 22 135 2 205 13 C285 25 340 6 410 15 C485 23 545 2 615 13 C685 25 750 7 820 15 C890 23 950 4 1000 14;
-                        M0 14 C80 1 145 19 215 12 C290 5 355 26 425 15 C500 3 565 20 635 12 C710 5 775 25 845 15 C915 4 965 20 1000 14;
-                        M0 14 C60 21 125 6 195 15 C265 22 335 2 405 13 C475 24 540 7 610 15 C680 22 745 3 815 13 C885 24 945 6 1000 14;
-                        M0 14 C70 4 130 24 200 14 C270 4 330 24 400 14 C470 4 530 24 600 14 C670 4 730 24 800 14 C870 4 930 24 1000 14" />
+              <animate attributeName="d" dur="7.4s" repeatCount="indefinite" values={AURORA_VALUES} />
             </path>
             <path
               className="acs-aurora-core"
               pathLength="1000"
-              d="M0 14 C70 4 130 24 200 14 C270 4 330 24 400 14 C470 4 530 24 600 14 C670 4 730 24 800 14 C870 4 930 24 1000 14"
-              stroke={`url(#acsAuroraGradient-${openSeq})`}
+              d={AURORA_STATES[0]}
+              stroke={"url(#acsAuroraGradient-" + openSeq + ")"}
             >
-              <animate attributeName="d" dur="6.8s" repeatCount="indefinite"
-                values="M0 14 C70 4 130 24 200 14 C270 4 330 24 400 14 C470 4 530 24 600 14 C670 4 730 24 800 14 C870 4 930 24 1000 14;
-                        M0 14 C55 22 135 2 205 13 C285 25 340 6 410 15 C485 23 545 2 615 13 C685 25 750 7 820 15 C890 23 950 4 1000 14;
-                        M0 14 C80 1 145 19 215 12 C290 5 355 26 425 15 C500 3 565 20 635 12 C710 5 775 25 845 15 C915 4 965 20 1000 14;
-                        M0 14 C60 21 125 6 195 15 C265 22 335 2 405 13 C475 24 540 7 610 15 C680 22 745 3 815 13 C885 24 945 6 1000 14;
-                        M0 14 C70 4 130 24 200 14 C270 4 330 24 400 14 C470 4 530 24 600 14 C670 4 730 24 800 14 C870 4 930 24 1000 14" />
+              <animate attributeName="d" dur="7.4s" repeatCount="indefinite" values={AURORA_VALUES} />
+            </path>
+            <path
+              className="acs-aurora-hot"
+              pathLength="1000"
+              d={AURORA_STATES[0]}
+            >
+              <animate attributeName="d" dur="7.4s" repeatCount="indefinite" values={AURORA_VALUES} />
             </path>
           </g>
           <path
             className="acs-aurora-static"
-            d="M0 14 C70 4 130 24 200 14 C270 4 330 24 400 14 C470 4 530 24 600 14 C670 4 730 24 800 14 C870 4 930 24 1000 14"
-            stroke={`url(#acsAuroraGradient-${openSeq})`}
+            d={AURORA_STATES[0]}
+            stroke={"url(#acsAuroraGradient-" + openSeq + ")"}
           />
         </svg>
 
-        <aside className="acs-rail">
+        <div className="acs-card-surface">
+          <aside className="acs-rail">
           <div className="acs-me">
             <span className="acs-me-av">{avatarChar}</span>
             <span className="acs-me-main">
@@ -443,6 +474,7 @@ export default function SettingsPanel(props: SettingsPanelProps) {
             {section === "portfolioTargets" && <SectionPortfolioTargets {...shared} />}
           </div>
         </section>
+        </div>
       </div>
     </div>
   );
