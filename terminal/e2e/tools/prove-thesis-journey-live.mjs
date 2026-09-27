@@ -12,6 +12,7 @@ import {
   detailFromResponse,
   exitCodeFor,
   negativeCaseExitRequired,
+  negativeCaseListExcludes,
   negativeCaseOutcome,
   notFoundHeadingMatches,
   redactReceipt,
@@ -404,11 +405,8 @@ async function runPhaseB(storageState, otherStorageState) {
             const archiveStatus = archiveResponse.status();
             const listResponse = await otherPage.request.get(`${base}/api/theses`);
             const listStatus = listResponse.status();
-            let listExcludes = false;
-            if (listStatus === 200) {
-              const listBody = await listResponse.json().catch(() => null);
-              listExcludes = Array.isArray(listBody?.theses) && !listBody.theses.some((thesis) => thesis?.id === thesisId);
-            }
+            const listBody = await listResponse.json().catch(() => null);
+            const listExcludes = listStatus === 200 && negativeCaseListExcludes(listBody, thesisId);
 
             let uiNotFound = false;
             await otherPage.goto(`${base}/analysis?view=theses&symbol=${encodeURIComponent(symbol)}&thesis=${thesisId}`, { waitUntil: "domcontentloaded", timeout: 30_000 });
@@ -453,7 +451,13 @@ async function runPhaseB(storageState, otherStorageState) {
               leak: outcome.leak,
             };
           } finally {
-            if (otherContext) await otherContext.close();
+            if (otherContext) {
+              try {
+                await otherContext.close();
+              } catch {
+                phaseC.reason = "phase_c_error";
+              }
+            }
           }
         }
       } catch (error) {

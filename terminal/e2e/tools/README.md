@@ -1,3 +1,5 @@
+# Live thesis journey prover
+
 ## Wrong-user negative case (Phase C) | 错误用户反向用例（阶段 C）
 
 A second permitted account's session can be exported with the same `codegen` command used for
@@ -22,8 +24,8 @@ No bytes or values from `PROOF_STORAGE_STATE_OTHER` are ever printed or written 
 When Phase C runs it validates that the other account cannot read, revise, or archive the owner's
 thesis; the receipt is written to `e2e/.live-state/receipt-signed-in.json`.
 The list check proves only that the thesis is absent from the returned page, because the API caps that page at 200 records.
-A skipped Phase C exits neutrally for the three documented skip reasons; an internal Phase C error, failed outcome, leak, or browser error writes the honest signed receipt first and then exits with the assertion code.
-阶段 C 由获得许可的人工操作员执行，本次代码检查不证明真实跨账号结果。
+A skipped Phase C exits neutrally for the three documented skip reasons. An internal Phase C error, failed outcome, leak, or browser error writes the honest signed receipt first and then exits with the assertion code.
+The internal error is reported as `phase_c_error`. 阶段 C 的内部错误报告为 `phase_c_error`；阶段 C 由获得许可的人工操作员执行，本次代码检查不证明真实跨账号结果。
 
 # Bundle measurement (B6 / B7)
 

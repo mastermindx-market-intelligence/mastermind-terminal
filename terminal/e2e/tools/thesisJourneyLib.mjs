@@ -241,11 +241,17 @@ export function admitOtherStorageState({ path, blockedReason, samePath }) {
 }
 
 export function negativeCaseExitRequired(phaseC) {
-  return phaseC?.ran === true && (
-    phaseC.reason === "phase_c_error"
-    || phaseC.ok !== true
-    || phaseC.browserErrorCount !== 0
+  return (
+    phaseC?.reason === "phase_c_error"
+    || (phaseC?.ran === true && (
+      phaseC.ok !== true
+      || phaseC.browserErrorCount !== 0
+    ))
   );
+}
+
+export function negativeCaseListExcludes(body, thesisId) {
+  return Array.isArray(body?.theses) && !body.theses.some((thesis) => thesis?.id === thesisId);
 }
 
 export function notFoundHeadingMatches(text) {

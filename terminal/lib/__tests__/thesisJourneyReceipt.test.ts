@@ -8,6 +8,7 @@ import {
   describeNegativeCaseReason,
   exitCodeFor,
   negativeCaseExitRequired,
+  negativeCaseListExcludes,
   negativeCaseOutcome,
   notFoundHeadingMatches,
   redactReceipt,
@@ -23,6 +24,8 @@ import {
 
 const root = "/terminal";
 const release = "a".repeat(40);
+const proverUrl = new URL("../../e2e/tools/prove-thesis-journey-live.mjs", import.meta.url);
+const proverSource = readFileSync(proverUrl, "utf8");
 
 function baseReceipt() {
   return {
@@ -201,8 +204,7 @@ describe("exit codes", () => {
 });
 
 describe("archive failure safety", () => {
-  const proverUrl = new URL("../../e2e/tools/prove-thesis-journey-live.mjs", import.meta.url);
-  const source = readFileSync(proverUrl, "utf8");
+  const source = proverSource;
 
   it("archival takes the URL-derived thesis id directly instead of parsing it as a URL", async () => {
     expect(source).toContain("async function archiveBestEffort(request, thesisId)");
@@ -460,8 +462,8 @@ describe("negative-case helpers", () => {
     })).toEqual({ run: false, reason: "other_state_invalid" });
   });
 
-  it("requires an assertion exit for every failed Phase C run and no skipped run", () => {
-    expect(negativeCaseExitRequired({ ran: true, reason: "phase_c_error" })).toBe(true);
+  it("requires an assertion exit for the emitted internal-error shape and every failed run", () => {
+    expect(negativeCaseExitRequired({ ran: false, route: "none", reason: "phase_c_error" })).toBe(true);
     expect(negativeCaseExitRequired({ ran: true, ok: false, browserErrorCount: 0 })).toBe(true);
     expect(negativeCaseExitRequired({ ran: true, ok: true, browserErrorCount: 1 })).toBe(true);
     for (const reason of ["no_other_state", "other_state_invalid", "phase_b_not_run"]) {
@@ -672,7 +674,19 @@ describe("validateNegativeCaseReceipt", () => {
     expect(validateNegativeCaseReceipt(bad)).toBe(false);
   });
 
-  it("accepts a receipt with no phaseC block (validateNegativeCaseReceipt is indifferent to phaseB contents)", () => {
-      expect(validateNegativeCaseReceipt(base)).toBe(true);
+  it("fails closed for a successful list body that is not shaped like a thesis page", () => {
+    const thesisId = "123e4567-e89b-42d3-a456-426614174000";
+    expect(negativeCaseListExcludes({ theses: [] }, thesisId)).toBe(true);
+    expect(negativeCaseListExcludes({ theses: [{ id: thesisId }] }, thesisId)).toBe(false);
+    expect(negativeCaseListExcludes(null, thesisId)).toBe(false);
+    expect(negativeCaseListExcludes({ items: [] }, thesisId)).toBe(false);
+  });
+
+  it("keeps the prover exit decision after the signed receipt is written", () => {
+    const receiptWrite = proverSource.indexOf("writeFileSync(join(liveStateDir, \"receipt-signed-in.json\")");
+    const phaseCExit = proverSource.indexOf("negativeCaseExitRequired(signedReceipt.phaseC)");
+    expect(receiptWrite).toBeGreaterThanOrEqual(0);
+    expect(phaseCExit).toBeGreaterThan(receiptWrite);
+    expect(proverSource).not.toContain("if (phaseCBrowserErrorCount !== 0) assertion();");
   });
 });
