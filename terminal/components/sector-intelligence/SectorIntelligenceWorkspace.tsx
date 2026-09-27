@@ -19,6 +19,14 @@ import SectorCompanyComparison from "./SectorCompanyComparison";
 const VIEW_KEYS: Record<SectorView, string> = {
   intelligence: "siOverview", companies: "siCompaniesTab", signals: "siSignals", drivers: "siDrivers", history: "siHistory",
 };
+type OuterWorkspace = Exclude<SectorState["workspace"], "detail">;
+const OUTER_WORKSPACES: readonly OuterWorkspace[] = ["rotation", "discover", "breadth"];
+const WORKSPACE_KEYS: Record<OuterWorkspace, string> = {
+  rotation: "siRotation", discover: "siDiscoverSectors", breadth: "siMarketBreadth",
+};
+const RETURN_KEYS: Record<OuterWorkspace, string> = {
+  rotation: "siReturnToRotation", discover: "siReturnToDiscover", breadth: "siReturnToBreadth",
+};
 const FEED_KEYS: Record<SectorFeed, string> = {
   sector: "siFeedSector", confluence: "siFeedConfluence", themes: "siFeedThemes", heatmap: "siFeedHeatmap",
 };
@@ -53,6 +61,8 @@ export default function SectorIntelligenceWorkspace() {
   const [received, setReceived] = useState<{ identity: typeof identity; revision: number; feeds: FeedMap }>({ identity, revision: 0, feeds: {} });
   const [revision, setRevision] = useState(0);
   const [groupBrowserOpen, setGroupBrowserOpen] = useState(false);
+  const [returnWorkspace, setReturnWorkspace] = useState<OuterWorkspace>("rotation");
+  const [returnState, setReturnState] = useState<SectorState | null>(null);
   const nav = useRef<HTMLElement>(null);
   const sourceTrigger = useRef<HTMLButtonElement>(null);
   const sourceReturn = useRef<string | null>(null);
@@ -75,6 +85,7 @@ export default function SectorIntelligenceWorkspace() {
     const sync = () => {
       const next = parseSectorState(new URLSearchParams(window.location.search));
       if (next.workspace !== currentWorkspace.current) saveWorkspaceScroll();
+      if (next.workspace !== "detail") { setReturnWorkspace(next.workspace); setReturnState(null); }
       setState(next);
       setGroupBrowserOpen(false);
     };
@@ -148,6 +159,18 @@ export default function SectorIntelligenceWorkspace() {
     if (push) window.history.pushState(window.history.state, "", href);
     else window.history.replaceState(window.history.state, "", href);
   }, [state, saveWorkspaceScroll]);
+  const openOuterWorkspace = (workspace: OuterWorkspace) => {
+    setReturnWorkspace(workspace); setReturnState(null);
+    change({ workspace, sourcesOpen: false }, true);
+  };
+  const openSectorResearch = (sectorId: string) => {
+    if (state.workspace !== "detail") { setReturnWorkspace(state.workspace); setReturnState(state); }
+    change({ sector: sectorId, workspace: "detail", view: "intelligence", group: "", company: "", query: "", expanded: false, sourcesOpen: false }, true);
+  };
+  const returnToOuterWorkspace = () => {
+    const target = returnState ? { ...returnState, sourcesOpen: false } : { workspace: returnWorkspace, sourcesOpen: false };
+    setReturnState(null); change(target, true);
+  };
   const go = (view: SectorView) => change({ view, sourcesOpen: false }, true);
   const openSources = (opener?: HTMLElement) => {
     // WebKit does not reliably focus a pointer-activated button by itself.
@@ -218,7 +241,7 @@ export default function SectorIntelligenceWorkspace() {
     </MobileSheet>
     <div className={styles.page}>
       <header className={styles.header}><div><p className={styles.eyebrow}>{t("siEyebrow")}</p><h1>{t("siTitle")}</h1><p className={styles.subtitle}>{t("siSubtitle")}</p></div>
-        <div className={styles.controls}>
+        <div className={`${styles.controls} ${state.workspace === "detail" ? styles.detailControls : styles.utilityControls}`}>
           {state.workspace === "detail" && <><label>{t("siSector")}<select aria-label={t("siSector")} value={state.sector} onChange={e => change({ sector: e.target.value, group: "", query: "", company: "", expanded: false })}>
             {!sectors.some(r => r.id === state.sector) && <option value={state.sector}>{state.sector.toUpperCase()}</option>}
             {sectors.map(r => <option key={text(r.id)} value={text(r.id)}>{localName(r)} · {text(r.ticker)}</option>)}
@@ -231,23 +254,24 @@ export default function SectorIntelligenceWorkspace() {
         </div>
       </header>
       <nav className={styles.workspaceNavigation} aria-label={t("siWorkspaceViews")}>
-        {(["rotation", "discover", "breadth", "detail"] as const).map(workspace => <button key={workspace} type="button"
+        {OUTER_WORKSPACES.map(workspace => <button key={workspace} type="button"
           aria-current={state.workspace === workspace ? "page" : undefined}
-          onClick={() => change({ workspace, sourcesOpen: false }, true)}>
-          {t(workspace === "rotation" ? "siRotation" : workspace === "discover" ? "siDiscoverSectors" : workspace === "breadth" ? "siMarketBreadth" : "siSectorResearch")}
-        </button>)}
+          onClick={() => openOuterWorkspace(workspace)}>{t(WORKSPACE_KEYS[workspace])}</button>)}
       </nav>
+      {state.workspace === "detail" && <div className={styles.depthNavigation} data-testid="sector-detail-depth">
+        <button type="button" data-testid="sector-detail-return" onClick={returnToOuterWorkspace}>← {t(RETURN_KEYS[returnWorkspace])}</button>
+        <span>{t("siResearchDepth")} · {sectorName || state.sector.toUpperCase()}</span>
+      </div>}
       {state.workspace === "rotation" ? <SectorRotationMap rows={sectors} status={status}
         asOf={feeds.sector?.receipt.asOf || null} selected={state.sector} mode={state.rotationMode} query={state.rotationQuery}
         onMode={rotationMode => change({ rotationMode })} onQuery={rotationQuery => change({ rotationQuery })}
         onSources={() => openSources()} onSelect={sector => change({ sector }, true)}
-        onOpenResearch={sector => change({ sector, workspace: "detail", view: "intelligence", group: "", company: "", query: "", expanded: false, sourcesOpen: false }, true)} />
+        onOpenResearch={openSectorResearch} />
         : state.workspace !== "detail" ? <SectorCentralDiscovery rows={sectors} status={status}
         asOf={feeds.sector?.receipt.asOf || null} selected={state.sector} query={state.discoveryQuery}
         sort={state.discoverySort} breadth={state.workspace === "breadth"}
         onQuery={discoveryQuery => change({ discoveryQuery })} onSort={discoverySort => change({ discoverySort })}
-        onSources={() => openSources()}
-        onSelect={sector => change({ sector, workspace: "detail", view: "intelligence", group: "", company: "", query: "", expanded: false, sourcesOpen: false }, true)} /> : <>
+        onSources={() => openSources()} onSelect={openSectorResearch} /> : <>
       <div className={styles.navigation}><nav ref={nav} className={styles.tabs} role="tablist" aria-label={t("siViews")} onKeyDown={event => {
         const index = SECTOR_VIEWS.indexOf(state.view);
         const next = event.key === "ArrowRight" ? (index + 1) % SECTOR_VIEWS.length : event.key === "ArrowLeft" ? (index + SECTOR_VIEWS.length - 1) % SECTOR_VIEWS.length : event.key === "Home" ? 0 : event.key === "End" ? SECTOR_VIEWS.length - 1 : -1;

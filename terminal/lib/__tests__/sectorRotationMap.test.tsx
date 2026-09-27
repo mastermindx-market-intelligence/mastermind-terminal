@@ -2,7 +2,7 @@
 import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import SectorRotationMap, { filterRotationPoints, rotationDomain, rotationQuadrant, sectorRotationPoints, type SectorRotationMapProps } from "@/components/sector-intelligence/SectorRotationMap";
+import SectorRotationMap, { filterRotationPoints, rotationDomain, rotationQuadrant, rotationReceipt, rotationSynthesis, sectorRotationPoints, type SectorRotationMapProps } from "@/components/sector-intelligence/SectorRotationMap";
 import { LangProvider, applyLang } from "../i18n";
 import type { Row } from "../sectorIntelligence";
 
@@ -39,6 +39,17 @@ describe("source-native sector rotation math", () => {
     expect(filterRotationPoints(points, " XL ").map(point => point.id)).toEqual(points.map(point => point.id));
     expect(points[3].rs63).toBe(3);
   });
+  it("derives the answer-first read from current coordinates instead of hard-coding names", () => {
+    const points = sectorRotationPoints(rows).map(point => point.id === "xle" ? { ...point, rs63: 9 } : point);
+    expect(rotationSynthesis(points, "en")).toBe("Technology is the only sector positive on both 21D and 63D relative strength. Energy has the strongest 63D relative strength, but its 21D trend is negative.");
+    expect(rotationSynthesis(points, "zh")).toBe("科技是唯一在21日和63日相对强度均为正的板块。 能源的63日相对强度最强，但其21日趋势为负。");
+    expect(rotationSynthesis(points.map(point => ({ ...point, rs21: null, rs63: null })), "en")).toBeNull();
+  });
+  it("renders a compact dated source receipt without using fetch time", () => {
+    expect(rotationReceipt("2026-09-25", 11, "en")).toBe("Sep 25 · 11 sectors");
+    expect(rotationReceipt("2026-09-25", 11, "zh")).toBe("9月25日 · 11个板块");
+    expect(rotationReceipt(null, 11, "en")).toBe("11 sectors");
+  });
 });
 
 describe("SectorRotationMap", () => {
@@ -54,16 +65,19 @@ describe("SectorRotationMap", () => {
   });
   afterEach(async () => { await act(async () => root.unmount()); host.remove(); vi.restoreAllMocks(); });
 
-  it("plots only complete coordinates while keeping the full denominator and selected record", async () => {
+  it("serves the current answer before controls while keeping methodology disclosed", async () => {
     await render();
     expect(host.querySelectorAll("[data-sector-rotation-point]")).toHaveLength(5);
-    expect(host.textContent).toContain("5 / 6");
-    expect(host.textContent).toContain("Current source snapshot · no historical trail is inferred");
-    expect(host.textContent).toContain("Historical trail is not connected");
+    expect(host.querySelector('[data-testid="rotation-receipt"]')?.textContent).toBe("Sep 25 · 6 sectors");
+    expect(host.querySelector('[data-testid="rotation-answer"]')?.textContent).toContain("Technology is the only sector positive on both 21D and 63D relative strength.");
+    const method = host.querySelector<HTMLDetailsElement>("[data-rotation-method]")!;
+    expect(method.open).toBe(false); expect(method.textContent).toContain("5 / 6 coordinates available");
+    expect(method.textContent).toContain("Historical trail is not connected");
     expect(host.querySelector('[data-sector-rotation-point="xlk"]')?.getAttribute("data-quadrant")).toBe("leading");
     expect(host.querySelector('[data-sector-rotation-point="xli"]')?.getAttribute("style")).toContain("left: 50%");
     expect(host.querySelector('[data-sector-rotation-point="xli"]')?.getAttribute("style")).toContain("top: 50%");
     expect(host.querySelector('[data-testid="rotation-inspector"]')?.textContent).toContain("Technology");
+    expect(host.querySelector('[data-testid="rotation-inspector"]')?.textContent).toContain("Tactical statewatching for entry");
     expect(host.querySelector('[data-testid="rotation-inspector"]')?.textContent).toContain("+7.0%");
   });
   it("selects exact source ids and opens the same selected sector research", async () => {
@@ -103,9 +117,10 @@ describe("SectorRotationMap", () => {
     expect(host.querySelectorAll("[data-sector-rotation-point]")).toHaveLength(0);
     expect(host.textContent).not.toContain("+7.0%");
   });
-  it("uses the shared language provider for map, list and method copy", async () => {
+  it("uses the shared language provider for answer, map, tactical state and method copy", async () => {
     await render(); await act(async () => applyLang("zh"));
-    expect(host.textContent).toContain("轮动图"); expect(host.textContent).toContain("科技");
-    expect(host.textContent).toContain("不推断历史轨迹"); expect(host.textContent).not.toContain("Rotation map");
+    expect(host.textContent).toContain("轮动"); expect(host.textContent).toContain("科技是唯一在21日和63日相对强度均为正的板块");
+    expect(host.textContent).toContain("战术状态关注入场"); expect(host.textContent).toContain("不推断历史轨迹");
+    expect(host.textContent).not.toContain("Market read");
   });
 });

@@ -42,14 +42,16 @@ export interface SectorRotationMapProps {
 }
 
 const COPY = {
-  title: ["Rotation map", "轮动图"],
-  subtitle: ["Fast and quarter relative strength versus SPY", "相对SPY的快速与季度强度"],
-  currentOnly: ["Current source snapshot · no historical trail is inferred", "当前来源快照 · 不推断历史轨迹"],
+  title: ["Rotation", "轮动"],
+  answerLabel: ["Market read", "市场解读"],
   map: ["Map", "图表"], list: ["List", "列表"],
   viewMode: ["Rotation display", "轮动显示"],
+  filter: ["Filter sectors", "筛选板块"],
   query: ["Find a sector", "搜索板块"], clear: ["Clear search", "清除搜索"],
   sourceDate: ["Source date", "来源日期"], unknownDate: ["Date unavailable", "日期不可用"],
-  shown: ["shown", "已显示"], plotted: ["plotted", "已绘制"],
+  sectors: ["sectors", "个板块"], shown: ["shown", "已显示"],
+  coordinates: ["coordinates available", "个坐标可用"],
+  currentOnly: ["Current source snapshot; no historical trail is inferred.", "当前来源快照；不推断历史轨迹。"],
   displayOnly: ["Display filtering never changes the source population or axis scale.", "显示筛选不会改变来源样本或坐标尺度。"],
   faster: ["21-session RS vs SPY", "相对SPY的21个交易日强度"],
   quarter: ["63-session RS vs SPY", "相对SPY的63个交易日强度"],
@@ -62,6 +64,7 @@ const COPY = {
   selected: ["Selected sector", "所选板块"],
   selectPrompt: ["Select a sector to inspect its current source record.", "选择板块以查看当前来源记录。"],
   openResearch: ["Open sector research", "打开板块研究"],
+  tactical: ["Tactical state", "战术状态"],
   trend: ["200-day trend", "200日趋势"], above: ["Above", "上方"], below: ["Below", "下方"], unavailable: ["Unavailable", "不可用"],
   monthReturn: ["1M sector return", "板块1个月收益"],
   participation: ["Advancing participation", "上涨参与度"],
@@ -69,7 +72,7 @@ const COPY = {
   rankCopy: ["21-session / 63-session", "21个交易日 / 63个交易日"],
   noTrail: ["Historical trail is not connected", "尚未连接历史轨迹"],
   noTrailCopy: ["This surface plots one dated owner snapshot. It does not manufacture prior positions, turns or forecasts.", "此界面仅绘制一个带日期的来源快照，不生成历史位置、转折或预测。"],
-  method: ["Method", "方法"],
+  method: ["Method and source", "方法与来源"],
   methodCopy: ["Horizontal: 63-session change in the sector/SPY relative-strength ratio. Vertical: 21-session change in the same ratio. Quadrants are sign-based and descriptive, not entry permission.", "横轴：板块/SPY相对强度比率的63个交易日变化；纵轴：同一比率的21个交易日变化。象限按正负划分，仅作描述，不授予入场资格。"],
   sector: ["Sector", "板块"], quadrant: ["Quadrant", "象限"],
   loading: ["Loading the rotation snapshot…", "正在加载轮动快照…"],
@@ -79,7 +82,7 @@ const COPY = {
   noMatches: ["No sectors match this display filter.", "没有板块符合此显示筛选。"],
   sources: ["Review sources", "查看来源"],
   missingCoordinates: ["missing one or both relative-strength coordinates", "缺少一个或两个相对强度坐标"],
-  sourceBoundary: ["Sector snapshots · focus lens, not a forecast or ranking mandate", "板块快照 · 聚焦视角，非预测或排名指令"],
+  sourceBoundary: ["This is a focus lens, not a forecast or ranking mandate.", "这是聚焦视角，不是预测或排名指令。"],
 } as const;
 
 const integer = (value: unknown): number | null => {
@@ -132,6 +135,49 @@ export function filterRotationPoints(points: readonly SectorRotationPoint[], que
     .some(value => value.normalize("NFKC").toLocaleLowerCase("en-US").includes(token)));
 }
 
+export function rotationSynthesis(points: readonly SectorRotationPoint[], lang: "en" | "zh"): string | null {
+  const complete = points.filter((point): point is SectorRotationPoint & { rs21: number; rs63: number } => point.rs21 !== null && point.rs63 !== null);
+  if (!complete.length) return null;
+  const localName = (point: SectorRotationPoint) => lang === "zh" ? point.nameZh || point.name : point.name;
+  const positiveBoth = complete.filter(point => point.rs21 > 0 && point.rs63 > 0);
+  const strongestQuarter = complete.reduce((best, point) => point.rs63 > best.rs63 ? point : best);
+  const sentences: string[] = [];
+  if (positiveBoth.length === 1) {
+    sentences.push(lang === "zh"
+      ? `${localName(positiveBoth[0])}是唯一在21日和63日相对强度均为正的板块。`
+      : `${localName(positiveBoth[0])} is the only sector positive on both 21D and 63D relative strength.`);
+  } else if (positiveBoth.length > 1) {
+    sentences.push(lang === "zh"
+      ? `${positiveBoth.length}个板块的21日和63日相对强度均为正。`
+      : `${positiveBoth.length} sectors are positive on both 21D and 63D relative strength.`);
+  } else {
+    sentences.push(lang === "zh"
+      ? "目前没有板块的21日和63日相对强度同时为正。"
+      : "No sector is currently positive on both 21D and 63D relative strength.");
+  }
+  if (strongestQuarter.rs63 > 0 && (positiveBoth.length !== 1 || strongestQuarter.id !== positiveBoth[0].id)) {
+    const fastState = strongestQuarter.rs21 < 0
+      ? lang === "zh" ? "但其21日趋势为负。" : "but its 21D trend is negative."
+      : strongestQuarter.rs21 > 0
+        ? lang === "zh" ? "且其21日趋势仍为正。" : "and its 21D trend remains positive."
+        : lang === "zh" ? "而其21日趋势持平。" : "while its 21D trend is flat.";
+    sentences.push(lang === "zh"
+      ? `${localName(strongestQuarter)}的63日相对强度最强，${fastState}`
+      : `${localName(strongestQuarter)} has the strongest 63D relative strength, ${fastState}`);
+  }
+  return sentences.join(" ");
+}
+
+export function rotationReceipt(asOf: string | null, total: number, lang: "en" | "zh"): string {
+  const match = asOf?.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const count = lang === "zh" ? `${total}个板块` : `${total} sectors`;
+  if (!match) return count;
+  const month = Number(match[2]), day = Number(match[3]);
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const date = lang === "zh" ? `${month}月${day}日` : `${months[month - 1]} ${day}`;
+  return `${date} · ${count}`;
+}
+
 function sign(value: number | null, digits = 1, suffix = "%"): string {
   return formatValue(value, digits, suffix, true);
 }
@@ -145,6 +191,9 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
   const allPlotted = points.filter(point => point.rs21 !== null && point.rs63 !== null);
   const domain = rotationDomain(points);
   const selected = points.find(point => point.id === props.selected) || null;
+  const language = lang === "zh" ? "zh" : "en";
+  const synthesis = useMemo(() => rotationSynthesis(points, language), [points, language]);
+  const receipt = rotationReceipt(props.asOf, points.length, language);
   const refs = useRef<Record<string, HTMLButtonElement | null>>({});
   const name = (point: SectorRotationPoint) => lang === "zh" ? point.nameZh || point.name : point.name;
   const quadrantName = (point: SectorRotationPoint) => point.quadrant ? t(point.quadrant) : t("unavailable");
@@ -165,24 +214,31 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
     : props.status === "invalid" || props.status === "error" ? t("invalid") : t("empty");
 
   if (props.status !== "ready" || !points.length) return <section className={styles.root} data-testid="sector-rotation">
-    <div className={styles.header}><div><span className={styles.scope}>{t("sourceBoundary")}</span><h2>{t("title")}</h2><p>{t("subtitle")}</p></div></div>
+    <div className={styles.header}><h2>{t("title")}</h2></div>
     <div className={styles.empty} role="status"><p>{emptyCopy}</p><button type="button" onClick={props.onSources}>{t("sources")} →</button></div>
   </section>;
 
   return <section className={styles.root} data-testid="sector-rotation">
     <header className={styles.header}>
-      <div><span className={styles.scope}>{t("sourceBoundary")}</span><h2>{t("title")}</h2><p>{t("subtitle")}</p></div>
-      <div className={styles.headerMeta}><strong>{allPlotted.length}<span> / {points.length}</span></strong><p>{t("plotted")} · {t("sourceDate")} {props.asOf || t("unknownDate")}</p></div>
+      <h2>{t("title")}</h2>
+      <p className={styles.receipt} data-testid="rotation-receipt">{receipt}</p>
     </header>
+    {synthesis && <div className={styles.answer} data-testid="rotation-answer">
+      <span>{t("answerLabel")}</span><p>{synthesis}</p>
+    </div>}
     <div className={styles.controls}>
       <div className={styles.mode} role="group" aria-label={t("viewMode")}>
         {(["map", "list"] as const).map(mode => <button type="button" key={mode} aria-pressed={props.mode === mode} onClick={() => props.onMode(mode)}>{t(mode)}</button>)}
       </div>
-      <label>{t("query")}<input type="search" aria-label={t("query")} value={props.query} maxLength={60} autoComplete="off" onChange={event => props.onQuery(event.target.value)} /></label>
-      <span aria-live="polite">{filtered.length} / {points.length} {t("shown")}</span>
-      {props.query && <button type="button" className={styles.clear} onClick={() => props.onQuery("")}>{t("clear")}</button>}
+      <details className={styles.filter} data-rotation-filter open={props.query ? true : undefined}>
+        <summary>{t("filter")}{props.query ? ` · ${filtered.length}/${points.length}` : ""}</summary>
+        <div className={styles.filterBody}>
+          <label>{t("query")}<input type="search" aria-label={t("query")} value={props.query} maxLength={60} autoComplete="off" onChange={event => props.onQuery(event.target.value)} /></label>
+          <span aria-live="polite">{filtered.length} / {points.length} {t("shown")}</span>
+          {props.query && <button type="button" className={styles.clear} onClick={() => props.onQuery("")}>{t("clear")}</button>}
+        </div>
+      </details>
     </div>
-    <p className={styles.filterNote}>{t("currentOnly")} · {t("displayOnly")}</p>
 
     {filtered.length === 0 ? <div className={styles.empty} role="status"><p>{t("noMatches")}</p><button type="button" onClick={() => props.onQuery("")}>{t("clear")}</button></div>
       : props.mode === "map" ? <div className={styles.mapLayout}>
@@ -220,9 +276,12 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
       </div>}
 
     <div className={styles.disclosures}>
-      <details><summary>{t("method")}</summary><p>{t("methodCopy")}</p></details>
-      <div><strong>{t("noTrail")}</strong><p>{t("noTrailCopy")}</p></div>
-      {points.some(point => point.quadrant === null) && <p>{points.filter(point => point.quadrant === null).length} {t("missingCoordinates")}.</p>}
+      <details data-rotation-method><summary>{t("method")}</summary><div className={styles.methodBody}>
+        <p>{t("methodCopy")}</p><p>{t("sourceBoundary")}</p><p>{t("currentOnly")} {t("displayOnly")}</p>
+        <p><strong>{t("noTrail")}</strong> · {t("noTrailCopy")}</p>
+        <p>{allPlotted.length} / {points.length} {t("coordinates")}{points.some(point => point.quadrant === null)
+          ? ` · ${points.filter(point => point.quadrant === null).length} ${t("missingCoordinates")}` : ""}.</p>
+      </div></details>
       <button type="button" onClick={props.onSources}>{t("sources")} →</button>
     </div>
   </section>;
@@ -241,7 +300,7 @@ function RotationInspector({ point, name, quadrantName, t, lang, onOpen }: {
   const counts = point.advancing !== null && point.declining !== null ? `${point.advancing} / ${point.declining}` : "—";
   return <aside className={styles.inspector} data-testid="rotation-inspector">
     <span>{t("selected")}</span><div className={styles.inspectorTitle}><div><h3>{name(point)}</h3><p>{point.ticker} · {quadrantName(point)}</p></div><i style={{ "--rotation-accent": point.accent || "var(--brand)" } as CSSProperties} aria-hidden="true" /></div>
-    {read && <p className={styles.sourceRead}>{read}</p>}
+    {read && <p className={styles.sourceRead}><strong>{t("tactical")}</strong><span>{read}</span></p>}
     <dl>
       <div><dt>{t("faster")}</dt><dd>{sign(point.rs21)}</dd></div>
       <div><dt>{t("quarter")}</dt><dd>{sign(point.rs63)}</dd></div>
