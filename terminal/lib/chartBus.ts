@@ -185,40 +185,100 @@ export type ValidateResult =
 
 // Validate the envelope shell (v/on/batch_id/seq/op/id/caption). Arg-level validation happens in
 // translate() per op-family so the reject carries the right id/seq.
+/** Capture plain JSON data without invoking accessors/toJSON or losing a selector.
+ * The same v2 boundary owns this snapshot; it adds no command queue or identity store.
+ * Optional root fields may be omitted by typed local callers, but undefined arguments,
+ * sparse arrays and nonfinite/functional data are not a valid chart edit.
+ */
+function chartCommandSnapshot(input: unknown): Record<string, unknown> {
+  let remaining = 4096;
+  const ancestors = new Set<object>();
+  const optionalRoot = new Set(["id", "caption", "target"]);
+  const copy = (value: unknown, depth: number): unknown => {
+    if (--remaining < 0 || depth > 12) throw new Error("command_payload_limit");
+    if (value === null || typeof value === "string" || typeof value === "boolean") return value;
+    if (typeof value === "number" && Number.isFinite(value)) return value;
+    if (typeof value !== "object" || value === null || ancestors.has(value))
+      throw new Error("not_plain_command_data");
+    const prototype = Object.getPrototypeOf(value);
+    if (!Array.isArray(value) && prototype !== Object.prototype && prototype !== null)
+      throw new Error("not_plain_command_object");
+    if (Object.getOwnPropertySymbols(value).length) throw new Error("symbol_command_property");
+    const descriptors = Object.getOwnPropertyDescriptors(value);
+    ancestors.add(value);
+    try {
+      if (Array.isArray(value)) {
+        const length = descriptors.length?.value;
+        if (!Number.isSafeInteger(length) || length > 4096 || length < 0
+            || Object.keys(descriptors).length !== length + 1)
+          throw new Error("non_dense_command_array");
+        const out: unknown[] = [];
+        for (let i = 0; i < length; i++) {
+          const item = descriptors[String(i)];
+          if (!item || !item.enumerable || !("value" in item))
+            throw new Error("non_data_command_array");
+          out.push(copy(item.value, depth + 1));
+        }
+        return out;
+      }
+      const out: Record<string, unknown> = Object.create(null);
+      for (const [key, property] of Object.entries(descriptors)) {
+        if (!property.enumerable) throw new Error("non_enumerable_command_property");
+        if (!("value" in property) || ["__proto__", "prototype", "constructor"].includes(key))
+          throw new Error("non_data_command_property");
+        if (depth === 0 && property.value === undefined && optionalRoot.has(key)) continue;
+        out[key] = copy(property.value, depth + 1);
+      }
+      return out;
+    } finally { ancestors.delete(value); }
+  };
+  const snapshot = copy(input, 0);
+  if (!isObj(snapshot) || new TextEncoder().encode(JSON.stringify(snapshot)).byteLength > 64 * 1024)
+    throw new Error("command_payload_limit");
+  return snapshot;
+}
+
 export function validateEnvelope(j: unknown): ValidateResult {
   if (!isObj(j)) return { ok: false, op: "", id: null, seq: -1, batch_id: "", error: "not_an_object" };
-  const idOf = (x: Record<string, unknown>): string | null => (isStr(x.id) ? x.id : null);
-  const seqOf = (x: Record<string, unknown>): number => (isFiniteNum(x.seq) ? x.seq : -1);
-  const batchOf = (x: Record<string, unknown>): string => (isStr(x.batch_id) ? x.batch_id : "");
-  const op = isStr(j.op) ? j.op : "";
-  const base = { op, id: idOf(j), seq: seqOf(j), batch_id: batchOf(j) };
-  if (j.v !== 2) return { ok: false, ...base, error: "bad_version" };
-  if (j.on !== true) return { ok: false, ...base, error: "not_on" };
-  if (!isStr(j.batch_id) || !j.batch_id) return { ok: false, ...base, error: "bad_batch_id" };
-  if (!isFiniteNum(j.seq)) return { ok: false, ...base, error: "bad_seq" };
+  // Salvage only inert own identity fields for a refusal. Never evaluate a local getter
+  // just to describe an invalid request; real JSON wire messages have data properties.
+  const own = (key: string): unknown => {
+    try { const d = Object.getOwnPropertyDescriptor(j, key); return d && "value" in d ? d.value : undefined; }
+    catch { return undefined; }
+  };
+  const rawOp = own("op"), rawId = own("id"), rawSeq = own("seq"), rawBatch = own("batch_id");
+  const base = { op: isStr(rawOp) ? rawOp : "", id: isStr(rawId) ? rawId : null,
+    seq: isFiniteNum(rawSeq) ? rawSeq : -1, batch_id: isStr(rawBatch) ? rawBatch : "" };
+  let value: Record<string, unknown>;
+  try { value = chartCommandSnapshot(j); }
+  catch { return { ok: false, ...base, error: "bad_command_payload" }; }
+  const op = isStr(value.op) ? value.op : "";
+  if (value.v !== 2) return { ok: false, ...base, error: "bad_version" };
+  if (value.on !== true) return { ok: false, ...base, error: "not_on" };
+  if (!isStr(value.batch_id) || !value.batch_id || value.batch_id.length > 40
+      || /[\u0000-\u001f\u007f]/.test(value.batch_id))
+    return { ok: false, ...base, error: "bad_batch_id" };
+  if (!isFiniteNum(value.seq) || !Number.isSafeInteger(value.seq) || value.seq < 0)
+    return { ok: false, ...base, error: "bad_seq" };
   if (!OP_SET.has(op)) return { ok: false, ...base, error: "unknown_op" };
-  // id, when present, MUST be an ai_* namespaced string (contract). draw.* ops require an id.
-  if (j.id != null && (!isStr(j.id) || !j.id.startsWith("ai_")))
+  if (Object.hasOwn(value, "args") && !isObj(value.args))
+    return { ok: false, ...base, error: "bad_command_args" };
+  if (value.id != null && (!isStr(value.id) || !value.id.startsWith("ai_")
+      || value.id.length > 64 || /[\u0000-\u001f\u007f]/.test(value.id)))
     return { ok: false, ...base, error: "bad_id_namespace" };
-  if (op.startsWith("draw.") && (!isStr(j.id) || !j.id.startsWith("ai_")))
+  if (op.startsWith("draw.") && (!isStr(value.id) || !value.id.startsWith("ai_")))
     return { ok: false, ...base, error: "draw_requires_ai_id" };
-  const targetRequired = requiresExactChartTarget({ op, args: j.args });
-  if (targetRequired && j.target === undefined)
+  const targetRequired = requiresExactChartTarget({ op, args: value.args });
+  if (targetRequired && value.target === undefined)
     return { ok: false, ...base, error: "command_target_required" };
-  if (j.target !== undefined) {
-    const target = readChartCommandTarget(j.target);
+  if (value.target !== undefined) {
+    const target = readChartCommandTarget(value.target);
     if (!target) return { ok: false, ...base, error: "bad_command_target" };
-    // Incoming wire messages are JSON. Detach targeted commands so later caller mutation
-    // cannot change their target/patch/selection while the existing paced queue waits.
-    try {
-      const detached = JSON.parse(JSON.stringify(j)) as ChartCommandV2;
-      detached.target = target;
-      return { ok: true, cmd: detached };
-    } catch {
-      return { ok: false, ...base, error: "bad_command_payload" };
-    }
+    value.target = target;
   }
-  return { ok: true, cmd: j as unknown as ChartCommandV2 };
+  // All accepted v2 commands now refer to this inert snapshot, not a caller-owned object
+  // which could change while the existing queue waits. Target comparison semantics stay intact.
+  return { ok: true, cmd: value as unknown as ChartCommandV2 };
 }
 
 // ── op → Drawing translation ──────────────────────────────────────────────────────────────────
@@ -263,6 +323,7 @@ export function translate(
 ): Applied {
   const a = (isObj(cmd.args) ? cmd.args : {}) as Record<string, unknown>;
   const reject = (error: string): Applied => ({ ok: false, op: cmd.op, id: cmd.id ?? null, error });
+  if (Object.hasOwn(cmd, "args") && !isObj(cmd.args)) return reject("bad_command_args");
   const okDraw = (objs: AiObject[]): Applied => ({ ok: true, op: cmd.op, id: cmd.id ?? null, caption: cleanCaption(cmd.caption), draw: objs });
 
   switch (cmd.op) {
@@ -277,7 +338,7 @@ export function translate(
       return { ok: true, op: cmd.op, id: null, setTf: a.tf };
     }
     case "chart.set_indicators": {
-      const mode = a.mode ?? "replace";
+      const mode = Object.hasOwn(a, "mode") ? a.mode : "replace";
       if (mode !== "replace" && mode !== "patch") return reject("bad_indicator_mode");
       if (!Array.isArray(a.indicators) || (mode === "patch" && a.indicators.length > 64)) return reject("bad_indicators");
       if (mode === "replace" && a.remove !== undefined) return reject("remove_requires_patch");
@@ -449,7 +510,7 @@ export function translate(
 
     // ── ai.* ────────────────────────────────────────────────────────────────────────────────
     case "ai.clear": {
-      if (a.ids === undefined) return { ok: true, op: cmd.op, id: null, clear: true };
+      if (!Object.hasOwn(a, "ids")) return { ok: true, op: cmd.op, id: null, clear: true };
       if (!Array.isArray(a.ids) || !a.ids.length || a.ids.length > AI_OBJECT_CAP
           || a.ids.some(id => !isStr(id) || !/^ai_[A-Za-z0-9_-]{1,61}$/.test(id)))
         return reject("bad_ai_clear_ids");

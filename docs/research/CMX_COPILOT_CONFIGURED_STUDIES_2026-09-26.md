@@ -276,3 +276,61 @@ The paired native renderer/qualifier implementation at Terminal `dd8cb762bcae66b
 A separate selected-candle event/projection write was refused before dispatch; its implementation is unchanged. Proposed acceptance cases are preserved as specification-only text in `CMX_NATIVE_SELECTION_DEFERRED_TESTS_2026-09-26.ts.txt`, outside executable test discovery. The future capability must separate events confirmed by a selected bar from recent events, preserve numeric gaps and bound candidate selection; it must not claim point-in-time feed history from a renderer snapshot.
 
 A concurrent Macro writer added native settings-format equality and boundary hardening while this continuation was active. That work and its `tests/test_brain_native_evidence_boundary.py` are preserved and not staged or executed by this session. An independently inserted redundant helper was removed by exact text, leaving the incumbent implementation as the single owner. The foreign Terminal browser specification remains excluded. No denied action was retried through another tool or carrier.
+
+
+## Continuation — native-boundary integration, receipt precision and inert command input
+
+### Native-boundary consolidation
+
+Counterpart return Macro #8014 comment 5851985582 explicitly froze its local gateway/native-boundary
+regressions for the continuing Sol writer. The exact returned source hashes were consumed and
+published unchanged in Macro 55999405ece25b512db879f2916f9004061a2eea. The new source compares
+settings by bounded JSON values rather than JavaScript/Python printer spelling, checks the complete
+configured suite/module census, and refuses malformed enum containers, numeric overflow and boolean
+chart identities. No parallel equality helper remains. This is published source, not passing tests.
+
+### Matched receipts preserve the effect boundary
+
+The paired gateway retains its accepted/rejected/unverified status vocabulary and adds a more precise
+command_outcome: accepted, rejected, cancelled, unconfirmed or unverified. A setter/application failure
+or failed receipt recording is unconfirmed with effect_state unknown, even when a negative ACK was
+received. Cancellation describes a pending action that did not run, not undo or the whole reply ending.
+No ACK still means unknown execution, not proof nothing happened. All receipts explicitly disallow
+automatic replay as a model instruction; no new turn-level cancellation/retry enforcement is claimed.
+
+The compact receipt carries a structurally checked mirror_coverage, explicit received-snapshot drawing
+count basis, and omitted identity count. Oversized/nonfinite ranges cannot crash receipt generation.
+Long drawing ids are omitted with a count instead of truncated into different actionable ids.
+read_chart_state uses that SAME coverage qualifier; client basis prose and unchecked completeness
+arithmetic are not elevated to server-owned claims. Reported availability is still client-reported,
+not an independently reconstructed inventory.
+
+### The original command intake cannot lose a destructive selector
+
+A supplied malformed ids/mode/args value is now refused, not defaulted to clear-all or replace-all.
+Intentional legacy clear-all with a genuinely absent selector and legitimate indicator replace mode
+remain available. Valid patch and selective removal continue through the incumbent translator and
+existing exact-target requirements.
+
+The v2 validator snapshots inert JSON-shaped data before accepting it. It does not invoke getters or
+toJSON, rejects non-plain objects, non-enumerable/symbol/prototype properties, functions, nonfinite
+numbers, cycles and sparse arrays, and bounds depth (12), values (4096) and UTF-8 payload (64 KiB).
+Only optional root id/caption/target undefined properties may be omitted for typed local compatibility;
+undefined argument values may not disappear. Every admitted command refers to the detached snapshot,
+so later caller mutation cannot silently change its operation or arguments while queued. Batch ids
+and sequence numbers now fit the existing receipt owner's 40-character/nonnegative safe-integer
+contract. This is an input boundary, not a sandbox for already-compromised JavaScript or a new queue.
+
+### Deferred qualification
+
+New executable specification files: Terminal chartCommandInputBoundary.test.ts; Macro
+ test_brain_chart_receipt_outcomes.py (under their existing tests directories). They cover selector
+loss, malformed/null input, accessor/toJSON side effects, inert snapshots, payload bounds, namespace
+and receipt identity, cancellation/unconfirmed outcomes, missing ACKs, coverage shape/arithmetic,
+exact drawing ids, invalid ranges and unchanged input records. The returned native-boundary test
+file is now published but remains unexecuted by this continuation. No test, compiler, browser/model,
+CI poll, merge or deployment was invoked. Final compatibility and real-path proof remain owed.
+
+Original-pane freezing/broad revision adoption and selected-candle causal event projection are still
+held on their previously refused actions. This work neither retries those actions nor closes those
+gaps. Existing queue cancellation remains pending-at-click only; no future SSE/provider stop is added.
