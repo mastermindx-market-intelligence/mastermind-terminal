@@ -1002,7 +1002,7 @@ test("unavailable is not empty, and the Chinese mobile/tablet surface keeps hist
   // Save version 2 with a changed statement
   const zhDetail = await page.request.get(`/api/theses?id=${zhThesisId}`);
   const zhThesisData = (await zhDetail.json()).thesis;
-  await page.request.post("/api/theses", {
+  const zhRevise = await page.request.post("/api/theses", {
     data: {
       action: "revise", id: zhThesisId, expectedVersion: 1,
       clientRequestId: "f0000000-0000-4000-8000-000000000101",
@@ -1010,7 +1010,16 @@ test("unavailable is not empty, and the Chinese mobile/tablet surface keeps hist
       content: { ...zhThesisData.current.content, statement: "已修正的论点陈述。" },
     },
   });
+  expect(zhRevise.status()).toBe(200);
   await page.goto(`/analysis?view=theses&thesis=${zhThesisId}`);
+  // Verify version 2 was written before inspecting it
+  await expect(page.getByText("版本 2 · 当前")).toBeVisible();
+  // R4-3b: assert a changed-field zh delta sentence (not just the origin sentence)
+  // Inspect version 2 — its delta vs version 1 is the statement change: "论点陈述已更改。"
+  await page.getByRole("button", { name: "查看版本 2" }).click();
+  const zhDelta = page.getByTestId("thesis-version-delta");
+  await expect(zhDelta).toContainText("论点陈述已更改。");
+  // Also verify the origin sentence when inspecting version 1
   await page.getByRole("button", { name: "查看版本 1" }).click();
   await expect(page.getByTestId("thesis-version-delta")).toContainText("这是第一版；此前没有版本。");
 
