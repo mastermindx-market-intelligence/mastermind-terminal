@@ -2,12 +2,13 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { ChartReadoutMeta } from "@/lib/visualIntelligence";
 import type { ChartPriceWindowSource } from "@/lib/chartPriceWindow";
+import { buildChartPresentation } from "@/lib/chartPresentation";
 import ChartPanel, { type DetectCmd, type LiveQuote, type PineScript } from "@/components/ChartPanel";
 import ChartFrameBar, { DEFAULT_CHART_SETTINGS, type ChartSettings } from "@/components/ChartFrameBar";
 import ChartSettingsModal, { type ChartSettingsTab } from "@/components/ChartSettingsModal";
 import { type Drawing, type DrawKind } from "@/lib/drawings";
 import { drawingPanelInstanceKey } from "@/lib/drawingOwnership";
-import { type CmpCfg } from "@/lib/compare";
+import { cmpKey, defaultCmpCfg, type CmpCfg } from "@/lib/compare";
 import { type IChartApi } from "lightweight-charts";
 import { useLang } from "@/lib/i18n";
 import { displayName } from "@/lib/markets";
@@ -26,13 +27,14 @@ const load = (d: ChartSettings): ChartSettings => { try { const v = localStorage
 // stay pane-local and are merged in only for this pane's own render.
 export default function ChartPane({ idx, symbol, drawingOwnerKey, isActive, onActivate, row, tf, chartType, dataReady = true, initialTimeframe = null, inds, tool, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, detectCmd, compare, compareCfg, magnet, replayIdx, onMeta, drawings, drawingsVisible = true, onDrawingsChange, liveQuote, indParams, hidden, onToggleHidden, onRemoveInd, onOpenSettings, onOpenSource, pineScripts,
   onDetectedDrawingCount,
-  onAddAlert, onTableView, onObjectTree, lockedVLine, onSetLockedVLine, onIndRowsAt, onRenderedPriceSource, onNativeObservations, dayMode: _dayMode, onPaneCount, userTier }:
+  onAddAlert, onTableView, onObjectTree, lockedVLine, onSetLockedVLine, onIndRowsAt, onRenderedPriceSource, onPresentationState, onNativeObservations, dayMode: _dayMode, onPaneCount, userTier }:
   { idx: number; symbol: string; drawingOwnerKey: string; isActive: boolean; onActivate: (i: number) => void; dataReady?: boolean; initialTimeframe?: string | null; row?: { name?: string; zh?: string; sec?: string; mkt?: string; col?: string; last?: number; chg?: number } | null; tf: string; chartType: string; inds: Set<string>; tool: DrawKind | null; toolActivation?: number; drawingSticky?: boolean; drawingCreationDisabled?: boolean; drawStyle?: { color: string; width: number; dash: "solid" | "dashed" | "dotted" }; detectCmd: DetectCmd; compare: string[]; compareCfg?: Record<string, CmpCfg>; magnet: "off" | "weak" | "strong"; replayIdx: number | null; onMeta: (m: { total: number }) => void; drawings: Drawing[]; drawingsVisible?: boolean; onDrawingsChange: (d: Drawing[]) => void; onDetectedDrawingCount?: (count: number) => void; liveQuote?: LiveQuote;
     indParams?: Record<string, any>; hidden?: Set<string>; onToggleHidden?: (key: string) => void; onRemoveInd?: (key: string) => void; onOpenSettings?: (key: string) => void; onOpenSource?: (key: string) => void; pineScripts?: PineScript[];
     onAddAlert?: (price: number) => void; onTableView?: () => void; onObjectTree?: () => void;
     lockedVLine?: string | null; onSetLockedVLine?: (t: string | null) => void;
     onIndRowsAt?: (fn: ((barTime: string | number) => Record<string, number | null>) | null, meta?: ChartReadoutMeta) => void;
     onRenderedPriceSource?: (source: ChartPriceWindowSource | null) => void;
+    onPresentationState?: (packet: Record<string, unknown> | null) => void;
     onNativeObservations?: (packet: Record<string, unknown> | null) => void;
     /** Day Trade Mode — enables session shading, countdown, and stats strip (C lane wires the impl). */
     dayMode?: boolean;
@@ -140,6 +142,30 @@ export default function ChartPane({ idx, symbol, drawingOwnerKey, isActive, onAc
 
   const extendedEligible = classify(symbol) === "us" && !isMacroSymbol(symbol);
   const panelSettings = useMemo(() => ({ ...chartSettings }), [chartSettings]);
+  const presentation = useMemo(() => !dataReady || !chartSettingsReady ? null : buildChartPresentation({
+    symbol,
+    tf,
+    paneId: idx,
+    chartType,
+    settings: chartSettings,
+    extendedEligible: extendedEligible && isIntradayTf(tf),
+    replay: isActive && replayIdx !== null,
+    dayTradeMode: !!_dayMode,
+    comparisons: isActive
+      ? compare.filter((s) => s !== symbol).slice(0, 4).map((s, i) => ({
+          symbol: s,
+          ...(compareCfg?.[s] ?? defaultCmpCfg(i)),
+          visible: !hidden?.has(cmpKey(s)),
+        }))
+      : [],
+  }), [
+    dataReady, chartSettingsReady, symbol, tf, idx, chartType, chartSettings, extendedEligible,
+    replayIdx, _dayMode, isActive, compare, compareCfg, hidden,
+  ]);
+  const onPresentationStateRef = useRef(onPresentationState);
+  onPresentationStateRef.current = onPresentationState;
+  useEffect(() => { onPresentationStateRef.current?.(presentation); }, [presentation]);
+  useEffect(() => () => { onPresentationStateRef.current?.(null); }, []);
   const displayLabel = displayName(row, lang) || symbol;
   const title = chartSettings.titleMode === "ticker"
     ? symbol

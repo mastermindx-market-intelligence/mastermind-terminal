@@ -160,6 +160,7 @@ type ShellDrawingStyle = { color: string; width: number; dash: Dash };
 import { visualReadoutColumns, type ChartReadoutMeta } from "@/lib/visualIntelligence";
 import { captureChartReadout, CHART_READOUT_SCHEMA } from "@/lib/chartReadoutSnapshot";
 import { CHART_PRICE_WINDOW_MAX_BARS, CHART_PRICE_WINDOW_SCHEMA, type ChartPriceWindowSource } from "@/lib/chartPriceWindow";
+import { CHART_PRESENTATION_SCHEMA } from "@/lib/chartPresentation";
 import { LIVE_NATIVE_OBSERVATION_SCHEMA, LIVE_NATIVE_OBSERVATION_MAX_BYTES } from "@/lib/nativeObservationProjection";
 import ChartTableView from "@/components/ChartTableView";
 import { type OTEntry } from "@/components/ChartObjectTree";
@@ -1394,6 +1395,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
   // Read-only renderer evidence by mounted chart pane. ai_context origin/revision remains
   // owned once at the active Terminal context and is attached only when the state is mirrored.
   const panePriceSourceRef = useRef<Record<number, ChartPriceWindowSource>>({});
+  const panePresentationRef = useRef<Record<number, Record<string, unknown>>>({});
   const [nativeObservationByPane, setNativeObservationByPane] = useState<Record<number, NativePaneObservationState>>({});
   // B3: sub-pane count for mobile chart-body height formula (--subpanes CSS var)
   const [subPanes, setSubPanes] = useState(0);
@@ -4348,6 +4350,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
     price_window: { schema: CHART_PRICE_WINDOW_SCHEMA, source: "existing_active_chart_rendered_bars",
       max_bars: CHART_PRICE_WINDOW_MAX_BARS, selection: "visible_tail_else_loaded_tail",
       order: "oldest_to_newest", replay: "renderer_slice", freshness: "not_live_attested" },
+    presentation: { schema: CHART_PRESENTATION_SCHEMA,
+      source: "committed_chart_settings_and_render_mode", control_authority: "none",
+      scope: ["chart_type", "scale", "session", "display", "visual_intelligence", "comparisons"] },
     native_observations: { schema: LIVE_NATIVE_OBSERVATION_SCHEMA,
       source: "same_computeSuite_bundle_used_by_renderer", max_bytes: LIVE_NATIVE_OBSERVATION_MAX_BYTES,
       coverage: "only_suites_rendered_in_current_chart_pass", missing: "omitted_not_negative_evidence",
@@ -4357,6 +4362,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
       observation: "read_only_mounted_panes", control_authority: "active_pane_only",
       native_source: "same_renderer_bundle_when_available",
       price_source: "same_rendered_bar_owner_when_available",
+      presentation_source: "committed_pane_chart_settings_when_available",
       context_revision: "read_does_not_increment" },
     command_target: {
       schema: "chart.command_target.v1", author: "server_only",
@@ -4446,6 +4452,17 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
       return { symbol: chartReadoutMeta.symbol, tf: chartReadoutMeta.timeframe,
         bars: chartReadoutMeta.bars, replay: replayOn };
     },
+    getPresentationSnapshot: () => {
+      const packet = panePresentationRef.current[activePane] ?? null;
+      if (!packet
+        || packet.symbol !== active
+        || packet.tf !== tf
+        || packet.pane_id !== activePane) {
+        return { schema: CHART_PRESENTATION_SCHEMA, status: "unavailable",
+          reason: "presentation_source_not_current" };
+      }
+      return packet;
+    },
     getNativeObservationSnapshot: () => nativeObservationForPane(
       activePane, active, tf, replayOn, replayOn ? replayIdx : null,
     ),
@@ -4454,6 +4471,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
       const paneReplayOn = pane_id === activePane && replayOn;
       const paneReplayIdx = paneReplayOn ? replayIdx : null;
       const priceSource = panePriceSourceRef.current[pane_id] ?? null;
+      const presentation = panePresentationRef.current[pane_id] ?? null;
       return {
         pane_id,
         symbol,
@@ -4461,6 +4479,10 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
         price_window_source: priceSource
           && priceSource.symbol === symbol && priceSource.tf === paneTf
           && priceSource.replay === paneReplayOn ? priceSource : null,
+        presentation: presentation
+          && presentation.symbol === symbol
+          && presentation.tf === paneTf
+          && presentation.pane_id === pane_id ? presentation : null,
         native_observations: nativeObservationForPane(
           pane_id, symbol, paneTf, paneReplayOn, paneReplayIdx,
         ),
@@ -5626,6 +5648,25 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
                     // cannot replace current evidence.
                     if (source.symbol !== sym || source.tf !== paneTf || source.replay !== paneReplayOn) return;
                     panePriceSourceRef.current[i] = source;
+                    chartBus.noteReadoutChange();
+                  }}
+                  onPresentationState={(packet) => {
+                    const paneTf = paneTfs[i] ?? "D";
+                    if (!packet) {
+                      if (panePresentationRef.current[i]) {
+                        delete panePresentationRef.current[i];
+                        chartBus.noteReadoutChange();
+                      }
+                      return;
+                    }
+                    const packetSession = packet.session && typeof packet.session === "object"
+                      ? packet.session as Record<string, unknown> : null;
+                    const paneReplayOn = i === activePane && replayOn;
+                    if (packet.symbol !== sym || packet.tf !== paneTf || packet.pane_id !== i
+                      || packet.chart_type !== chartType
+                      || packetSession?.replay !== paneReplayOn
+                      || packetSession?.day_trade_mode !== dtm) return;
+                    panePresentationRef.current[i] = packet;
                     chartBus.noteReadoutChange();
                   }}
                   onNativeObservations={(packet) => {

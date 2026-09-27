@@ -86,6 +86,27 @@ describe("bounded chart-state mirror", () => {
     expect(body.origin_id).toBe(original.origin_id);
     expect(body.context_revision).toBe(3);
   });
+  it("withholds presentation before numerical evidence when the transport budget is pressured", () => {
+    const original = input();
+    original.session.presentation = {
+      schema: "chart.presentation.v1",
+      status: "observed",
+      data: "x".repeat(7000),
+    };
+    original.session.price_window = {
+      schema: "chart.price_window.v1",
+      status: "unavailable",
+      reason: "fixture_price_kept",
+    };
+    const body = JSON.parse(prepared(original, 2500).text);
+    expect(body.session.presentation).toEqual({
+      schema: "chart.presentation.v1", status: "unavailable", reason: "chart_state_budget",
+    });
+    expect(body.session.price_window.reason).toBe("fixture_price_kept");
+    expect(body.session.native_observations).toEqual(original.session.native_observations);
+    expect(body.session.mirror_coverage.omitted_fields).toContain("presentation");
+    expect(body.acks).toEqual(original.acks);
+  });
   it("sends an explicit unavailable marker when native evidence itself cannot fit", () => {
     const original = input();
     original.session.native_observations = { schema: "chart.native_live_observations.v1", data: "中文".repeat(10000) };

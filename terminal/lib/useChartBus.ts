@@ -16,6 +16,7 @@ import type { Drawing } from "@/lib/drawings";
 import { timeToMs } from "@/lib/timeWindow";
 import { prepareChartStatePayload } from "@/lib/chartStatePayload";
 import { buildChartPriceWindow, CHART_PRICE_WINDOW_SCHEMA, type ChartPriceWindowSource } from "@/lib/chartPriceWindow";
+import { CHART_PRESENTATION_SCHEMA } from "@/lib/chartPresentation";
 import {
   CommandQueue, applyToStore, isV2Envelope, translate, validateEnvelope,
   fitMetrics, type Ack, type AiObject, type Fit, type FitBar, type IndicatorSpec,
@@ -31,6 +32,7 @@ export type ChartPaneContextSnapshot = {
   symbol: string;
   tf: string;
   price_window_source: ChartPriceWindowSource | null;
+  presentation: unknown;
   native_observations: unknown;
 };
 
@@ -48,6 +50,7 @@ export type ChartBusHost = {
   getContextIdentity: () => { origin_id: string; context_revision: number };
   getReadoutSnapshot?: () => unknown; // existing Data Window projection, never new calculation
   getRenderedPriceWindowSource?: () => ChartPriceWindowSource | null; // accepted renderer bars, replay-safe
+  getPresentationSnapshot?: () => unknown; // committed chart presentation, read-only
   getNativeObservationSnapshot?: () => unknown; // active pane's exact renderer-bundle projection
   getPaneContextSnapshots?: () => readonly ChartPaneContextSnapshot[]; // mounted panes, read-only evidence
   // chart mutators (already exist in TerminalShell):
@@ -162,6 +165,9 @@ export function useChartBus(host: ChartBusHost): ChartBus {
         priceSource, sym, h.currentTf, visibleRange,
       );
     } catch { /* absent/failed price window is missing evidence, never a market conclusion */ }
+    let presentation: unknown = null;
+    try { presentation = h.getPresentationSnapshot?.() ?? null; }
+    catch { /* absent/failed presentation is missing view evidence, never a chart conclusion */ }
     let nativeObservations: unknown = null;
     try { nativeObservations = h.getNativeObservationSnapshot?.() ?? null; }
     catch { /* absent/failed native evidence is not an empty/no-setup conclusion */ }
@@ -204,12 +210,17 @@ export function useChartBus(host: ChartBusHost): ChartBus {
           // Root active packets are already carried and separately qualified. References
           // prevent multi-pane context from paying their JSON size twice.
           paneRow.price_window_ref = "session.price_window";
+          paneRow.presentation_ref = "session.presentation";
           paneRow.native_observations_ref = "session.native_observations";
         } else {
           paneRow.price_window = row.price_window_source
             ? buildChartPriceWindow(row.price_window_source, row.symbol, row.tf, paneVisibleRange)
             : { schema: CHART_PRICE_WINDOW_SCHEMA, status: "unavailable",
                 reason: "price_window_source_not_current" };
+          paneRow.presentation = row.presentation ?? {
+            schema: CHART_PRESENTATION_SCHEMA, status: "unavailable",
+            reason: "presentation_source_not_current",
+          };
           paneRow.native_observations = row.native_observations;
         }
         panes.push(paneRow);
@@ -248,6 +259,7 @@ export function useChartBus(host: ChartBusHost): ChartBus {
         data_range: dataRange,
         data_readout: dataReadout,
         price_window: priceWindow,
+        presentation,
         native_observations: nativeObservations,
         pane_contexts: paneContexts,
         capabilities: h.capabilities,

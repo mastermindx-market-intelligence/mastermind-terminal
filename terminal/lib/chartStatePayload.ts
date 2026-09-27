@@ -78,7 +78,7 @@ export function prepareChartStatePayload(
   };
   const result = (): PreparedChartState => ({ ok: true, text,
     sentAcks: allAcks.slice(0, ackCount), remainingAcks: allAcks.slice(ackCount), sizeUpperBound });
-  const omit = (key: "pane_contexts" | "price_window" | "native_observations" | "data_readout", schema: string) => {
+  const omit = (key: "pane_contexts" | "presentation" | "price_window" | "native_observations" | "data_readout", schema: string) => {
     if (session[key] == null) return;
     session[key] = { schema, status: "unavailable", reason: "chart_state_budget" };
     omittedFields.push(key);
@@ -135,6 +135,10 @@ export function prepareChartStatePayload(
     // Cross-pane comparison is useful but subordinate to the active chart and ACKs.
     // Under pressure, withhold it before active-pane native/Data Window evidence.
     omit("pane_contexts", "chart.pane_contexts.v1");
+    if (fits()) return result();
+    // Presentation is useful interpretive context but cheaper to lose than numerical
+    // evidence or receipts under pressure.
+    omit("presentation", "chart.presentation.v1");
     if (fits()) return result();
     // Active raw price context is useful but still subordinate to receipts and the
     // established exact native/Data Window packets under transport pressure.

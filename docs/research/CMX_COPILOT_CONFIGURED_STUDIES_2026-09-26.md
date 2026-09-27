@@ -436,3 +436,40 @@ Brain qualification:
 - doctrine v10 tells the model to keep each pane's symbol/timeframe/viewport/price/native basis separate and to follow active price-window replay/visibility/close-status rules on every inactive pane.
 
 Deferred combined acceptance adds active-root reference deduplication, inactive-pane raw-price qualification, exact pane viewport binding, late source retirement, pane reuse with the same symbol/timeframe, live/replay transitions, 4-pane payload behavior, inactive unavailable price evidence, and proof that observation never activates or mutates an inactive pane. Test/spec files are authored/updated but intentionally not executed during feature construction.
+
+
+## 2026-09-27 — chart presentation context
+
+Copilot's chart-state mirror gains `chart.presentation.v1`, a bounded read-only projection of interpretation-relevant chart presentation. This closes a distinct gap from market/native evidence: raw OHLCV and indicator facts do not tell the model whether the user is looking at candles, Heikin-Ashi, a line/area chart, log/percent/inverted scale, replay, extended hours, hidden comparison overlays, or Visual Intelligence layers.
+
+Projection law:
+- the source is committed ChartPane/ChartFrameBar state already driving the renderer, not DOM text, screenshot OCR or another UI store;
+- root single-pane and active multi-pane state carries one `session.presentation`; the active row inside `pane_contexts` references it as `session.presentation` rather than duplicating it;
+- every inactive mounted pane carries its own independently projected presentation packet; observing it grants no pane activation, mutation or context-revision authority;
+- presentation is withheld until Terminal shell preferences and pane-local settings have both hydrated, so persisted user settings cannot be preceded by a default-state telemetry claim;
+- symbol/timeframe/pane identity is explicit; stale or late pane callbacks are rejected by Terminal's current source census;
+- chart type is closed to candles/hollow/heikin/bars/line/line-markers/step/area/baseline;
+- price-scale projection is closed to normal/log/percent/indexed_to_100 + inverted/side/auto;
+- session projection carries replay, day-trade mode and extended-hours requested/eligible/effective. Extended-hours eligibility passed to the projector is renderer-effective intraday eligibility, not just market capability;
+- display projection keeps only booleans/precision that affect what the user can see (OHLC/volume/indicator titles/grid/watermark/candle body-border-wicks/price line/last value/extended price line);
+- Visual Intelligence projection carries only its five boolean layer toggles;
+- active comparison overlays are capped at four and preserve symbol, price-vs-percent mode, fixed hex color, line style/width and current visible/hidden state. Inactive panes report no active compare overlays because the renderer receives none there;
+- arbitrary titles, labels, background/theme strings and other UI prose are excluded. Comparison color is the only retained color because it identifies a plotted overlay.
+
+Brain qualification law:
+- exact origin/revision plus root symbol/timeframe/pane identity remain required;
+- every enum, boolean, comparison symbol/style/color/width/visibility and extended-hours consistency rule is structurally revalidated server-side;
+- arbitrary client prose/basis fields are discarded and replaced with fixed `control_authority:none` + `render_application:committed_settings_not_pixel_attestation`;
+- root and pane presentation replay state must agree with that same pane's qualified price-window replay/load basis. Contradiction fails presentation closed rather than choosing one packet;
+- active pane-context row must use exact presentation/price/native root references and may not duplicate embedded active packets; inactive rows may not borrow root references;
+- pane-context completeness becomes partial when any presentation/price/native evidence is unavailable or partial.
+
+Interpretation law (technician protocol v11):
+- scale transformations change visual geometry, never raw-price arithmetic;
+- line/area/baseline views do not visibly expose candle bodies/wicks even though raw OHLCV remains available;
+- Heikin-Ashi is transformed visual candle presentation; `price_window` stays underlying raw OHLCV and must not be relabeled as the Heikin open/close;
+- percent comparison overlays can be rescaled onto the active chart and are not direct compared-symbol price coordinates;
+- comparison `visible:false` means configured-but-hidden, not absent;
+- presentation is evidence about the current view and does not authorize changing that view.
+
+Deferred combined acceptance adds single-pane presentation, settings hydration, chart-type/scale modes, active-vs-inactive replay, extended-hours intraday gating, comparison defaults/configuration/hidden state, stale callback retirement, 2/4-pane root-reference deduplication, malformed enums/styles/colors, replay-vs-price contradiction, arbitrary UI prose stripping, payload bounds and old-client missing-presentation compatibility. Specs are authored/updated but intentionally not executed during feature construction.

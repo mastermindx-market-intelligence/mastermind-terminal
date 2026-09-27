@@ -266,6 +266,42 @@ describe("useChartBus state mirror", () => {
     expect(body.session.visible_range).not.toBeNull();
   });
 
+  it("mirrors committed presentation on a single-pane chart without inventing pane context", async () => {
+    const presentation = {
+      schema: "chart.presentation.v1",
+      status: "observed",
+      symbol: "NVDA",
+      tf: "D",
+      pane_id: 0,
+      chart_type: "line",
+      price_scale: { mode: "log", inverted: false, side: "right", auto: true },
+      session: {
+        replay: false, day_trade_mode: false,
+        extended_hours: { requested: false, eligible: true, effective: false },
+      },
+      display: {
+        price_line: true, last_value: true, grid_h: true, grid_v: true,
+        ohlc: true, volume: false, indicator_titles: true, watermark: true,
+        candle_body: true, candle_borders: true, candle_wicks: true,
+        extended_price_line: true, precision: "auto",
+      },
+      visual_intelligence: {
+        context: true, regime: false, volume: false, levels: false, events: false,
+      },
+      comparisons: [],
+    };
+    await act(async () => {
+      root!.render(React.createElement(Harness, {
+        host: { ...hostWith([]), getPresentationSnapshot: () => presentation },
+      }));
+      await vi.advanceTimersByTimeAsync(250);
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const body = JSON.parse(String((fetchMock.mock.calls[0][1] as RequestInit).body));
+    expect(body.session.presentation).toEqual(presentation);
+    expect(body.session.pane_contexts).toBeNull();
+  });
+
   it("mirrors the existing Data Window projection without turning failure into a market conclusion", async () => {
     const readout = {
       schema: "chart.data_readout.v1",

@@ -33,6 +33,26 @@ function hostWithPanes(count = 2): ChartBusHost {
     reason: "fixture_native_unavailable",
     pane_id,
   });
+  const presentation = (pane_id: number) => ({
+    schema: "chart.presentation.v1",
+    status: "observed",
+    ...identity(pane_id),
+    pane_id,
+    chart_type: pane_id === 0 ? "candles" : "line",
+    price_scale: { mode: "normal", inverted: false, side: "right", auto: true },
+    session: {
+      replay: false, day_trade_mode: false,
+      extended_hours: { requested: false, eligible: false, effective: false },
+    },
+    display: {
+      price_line: true, last_value: true, grid_h: true, grid_v: true,
+      ohlc: true, volume: false, indicator_titles: true, watermark: true,
+      candle_body: true, candle_borders: true, candle_wicks: true,
+      extended_price_line: true, precision: "auto",
+    },
+    visual_intelligence: { context: true, regime: false, volume: false, levels: false, events: false },
+    comparisons: [],
+  });
   const price = (pane_id: number) => ({
     ...identity(pane_id),
     replay: false,
@@ -48,11 +68,13 @@ function hostWithPanes(count = 2): ChartBusHost {
     userDrawings: [],
     getContextIdentity: () => ({ origin_id: "origin-pane-test", context_revision: 4 }),
     getRenderedPriceWindowSource: () => price(0),
+    getPresentationSnapshot: () => presentation(0),
     getNativeObservationSnapshot: () => marker(0),
     getPaneContextSnapshots: () => Array.from({ length: count }, (_, pane_id) => ({
       pane_id,
       ...identity(pane_id),
       price_window_source: price(pane_id),
+      presentation: presentation(pane_id),
       native_observations: marker(pane_id),
     })),
     setSymbol: () => {},
@@ -119,16 +141,24 @@ describe("useChartBus mounted-pane context mirror", () => {
         pane_id: 0, symbol: "NVDA", tf: "D",
         visible_range: { from: 1000, to: 2000 },
         price_window_ref: "session.price_window",
+        presentation_ref: "session.presentation",
         native_observations_ref: "session.native_observations",
       }),
       expect.objectContaining({
         pane_id: 1, symbol: "AAPL", tf: "W",
         visible_range: { from: 3000, to: 4000 },
+        presentation: expect.objectContaining({
+          schema: "chart.presentation.v1", status: "observed", chart_type: "line",
+        }),
         price_window: expect.objectContaining({
           schema: "chart.price_window.v1", status: "observed", symbol: "AAPL", tf: "W",
         }),
       }),
     ]);
+    expect(body.session.presentation).toMatchObject({
+      schema: "chart.presentation.v1", status: "observed", chart_type: "candles",
+    });
+    expect(body.session.pane_contexts.panes[0]).not.toHaveProperty("presentation");
     expect(body.session.pane_contexts.panes[0]).not.toHaveProperty("price_window");
     expect(body.session.pane_contexts.panes[0]).not.toHaveProperty("native_observations");
   });
