@@ -485,7 +485,8 @@ function thesisRpcResult(row: DbRow): Promise<DbResult> {
 }
 
 export function uuid5ThesisAlertId(thesisId: string): string {
-  // Mirrors macro engine/thesis_condition_monitor.py:123-126,318-323.
+  // PROVEN producer namespace: engine/thesis_condition_monitor.py:126.
+  // uuid5("thesis:<id>"): engine/thesis_condition_monitor.py:318-323.
   const namespace = "6f1e6cf4-6e9b-5f2a-9d0a-6d0f6a5b6c00";
   const namespaceBytes = Buffer.from(namespace.replace(/-/g, ""), "hex");
   const digest = createHash("sha1").update(namespaceBytes).update(`thesis:${thesisId}`, "utf8").digest();
@@ -495,6 +496,29 @@ export function uuid5ThesisAlertId(thesisId: string): string {
   return [
     hex.slice(0, 8), hex.slice(8, 12), hex.slice(12, 16), hex.slice(16, 20), hex.slice(20, 32),
   ].join("-").toLowerCase();
+}
+
+export function producerThesisFireEventId(
+  thesisId: string,
+  tripwireId: string,
+  tripwireVersion: number,
+  firedOn: string,
+): string {
+  // Mirrors engine/thesis_condition_monitor.py:296-315.
+  const digest = createHash("sha256")
+    .update([thesisId, tripwireId, String(tripwireVersion), firedOn].join("|"), "utf8")
+    .digest("hex")
+    .slice(0, 32);
+  return `thesis:${digest}`;
+}
+
+function userConditionText(value: unknown): string {
+  if (!Array.isArray(value)) return typeof value === "string" ? value : "";
+  return value.filter((item): item is string => typeof item === "string" && item.length > 0).join("; ");
+}
+
+function closeSentence(text: string): string {
+  return text && ".!?".includes(text.slice(-1)) ? text : `${text}.`;
 }
 
 function thesisSubstance(value: unknown): unknown {
@@ -575,18 +599,32 @@ function applyThesisVersionFixture(store: Store, args: Record<string, unknown>):
     store.theses.push(head);
     store.thesisVersions.push(version);
     if (store.monitorFires && store.alertOutbox.length === 0) {
-      const alertId = uuid5ThesisAlertId(id);
-      const subjectRefRecord = subjectRef as { display?: unknown; key?: unknown };
+      const contentRecord = content as { title?: unknown; falsifiers?: unknown };
+      const subjectRefRecord = subjectRef as { display?: unknown; key?: unknown; kind?: unknown };
       const rawDisplay = subjectRefRecord.display;
       const subjectDisplay = typeof rawDisplay === "string" && rawDisplay.trim() ? rawDisplay.trim() : String(subjectRefRecord.key);
-      const subjectDisplayZh = subjectDisplay === "NVDA" ? "英伟达" : subjectDisplay;
-      const subject = `Your ${subjectDisplay} thesis window has closed.`;
-      const subjectZh = `你的${subjectDisplayZh}论点观察窗口已结束。`;
+      const title = typeof contentRecord.title === "string" && contentRecord.title.trim() ? contentRecord.title.trim() : "your thesis";
+      const condition = userConditionText(contentRecord.falsifiers);
+      const tripwireId = "11111111-1111-4111-8111-111111111111";
+      const tripwireVersion = 1;
+      const firedOn = "2026-09-25";
+      const firedAt = `${firedOn}T00:00:00Z`;
+      const subject = `A window we watch for ${subjectDisplay} has closed`;
+      const subjectZh = `你关注的“${subjectDisplay}”窗口已关闭`;
+      const closedPrefix = `${subject}.`;
+      const closedPrefixZh = `${subjectZh}。`;
+      const translationPending = "（翻译待补）";
+      const summaryPlain = condition
+        ? `${closedPrefix} Your thesis "${title}" lists: ${closeSentence(condition)}`
+        : `${closedPrefix} Your thesis lists no conditions yet.`;
+      const summaryPlainZh = condition
+        ? `${closedPrefixZh}你的论点《${title}》列出的条件：${condition}${translationPending}`
+        : `${closedPrefixZh}你的论点尚未列出任何条件。`;
       store.alertOutbox.push({
         id: crypto.randomUUID(),
         user_id: userId,
-        alert_id: alertId,
-        fire_event_id: crypto.randomUUID(),
+        alert_id: uuid5ThesisAlertId(id),
+        fire_event_id: producerThesisFireEventId(id, tripwireId, tripwireVersion, firedOn),
         status: "pending",
         attempts: 0,
         last_error: null,
@@ -595,23 +633,23 @@ function applyThesisVersionFixture(store: Store, args: Record<string, unknown>):
         payload: {
           thesis_id: id,
           thesis_version: 1,
-          fired_at: now,
-          tripwire_id: crypto.randomUUID(),
-          tripwire_version: 1,
+          fired_at: firedAt,
+          tripwire_id: tripwireId,
+          tripwire_version: tripwireVersion,
           category: "thesis_window",
           source: "macro.thesis_condition_monitor",
-          subject: subject,
+          subject,
           subject_zh: subjectZh,
-          summary_plain: subject,
-          summary_plain_zh: subjectZh,
-          condition_plain: subject,
-          condition_plain_zh: subjectZh,
-          engine_window_plain: "The watch window expired.",
-          engine_window_plain_zh: "观察窗口已到期。",
-          evidence_url: null,
+          summary_plain: summaryPlain,
+          summary_plain_zh: summaryPlainZh,
+          condition_plain: condition,
+          condition_plain_zh: condition ? `${condition}${translationPending}` : "",
+          engine_window_plain: "The watch window closed.",
+          engine_window_plain_zh: "观察窗口已关闭。",
+          evidence_url: "https://example.com/cycle.html",
           requires_tier: null,
           coverage: "full",
-          ticker: String(subjectRefRecord.key),
+          ticker: subjectRefRecord.kind === "ticker" ? String(subjectRefRecord.key) : null,
         },
         created_at: now,
       });

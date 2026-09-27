@@ -3,6 +3,7 @@ import {
   createFixtureDb,
   fixtureStore,
   fixtureUserId,
+  producerThesisFireEventId,
   resetFixtureStores,
   uuid5ThesisAlertId,
   FIXTURE_MONITOR_FIRED_TOKEN,
@@ -21,6 +22,12 @@ describe("fixture thesis monitor outbox", () => {
   it("seeds the producer's UUIDv5 alert id and payload contract", async () => {
     const vectorThesisId = "00000000-0000-0000-0000-000000000001";
     expect(uuid5ThesisAlertId(vectorThesisId)).toBe("cd85c933-6c7b-599a-9ce7-e681ded7afa5");
+    expect(producerThesisFireEventId(
+      "11111111-1111-4111-8111-111111111111",
+      "11111111-1111-4111-8111-111111111111",
+      1,
+      "2026-09-25",
+    )).toBe("thesis:18604d1b8f57758f6d192a2259fd97af");
 
     const key = `${FIXTURE_MONITOR_FIRED_TOKEN}-vector`;
     const db = createFixtureDb(key);
@@ -28,32 +35,36 @@ describe("fixture thesis monitor outbox", () => {
       p_thesis_id: null,
       p_expected_version: 0,
       p_transition: "create",
-      p_subject_ref: { schema: "mastermind.thesis-subject-ref/v1", kind: "issuer", owner: "terminal.analysis_symbol", key: "NVDA", display: "NVDA" },
-      p_content: { schema: "mastermind.thesis-content/v1", title: "closed window", statement: "s" },
+      p_subject_ref: { schema: "mastermind.thesis-subject-ref/v1", kind: "ticker", owner: "terminal.analysis_symbol", key: "NVDA", display: "NVDA" },
+      p_content: { schema: "mastermind.thesis-content/v1", title: "Closed window", statement: "s", falsifiers: ["Gross margin falls below 65%"] },
       p_client_request_id: "req-monitor-vector",
       p_effective_at: null,
     });
     const thesisId = String(Array.isArray(result.data) ? result.data?.[0]?.thesis_id : null);
     const row = fixtureStore(key).alertOutbox[0];
     expect(row.alert_id).toBe(uuid5ThesisAlertId(thesisId));
+    expect(row.fire_event_id).toBe(producerThesisFireEventId(thesisId, "11111111-1111-4111-8111-111111111111", 1, "2026-09-25"));
+    expect(row.fire_event_id).toMatch(/^thesis:[0-9a-f]{32}$/);
     expect(row.payload).toMatchObject({
       thesis_id: thesisId,
       thesis_version: 1,
       category: "thesis_window",
       source: "macro.thesis_condition_monitor",
-      subject: "Your NVDA thesis window has closed.",
-      subject_zh: "你的英伟达论点观察窗口已结束。",
-      summary_plain: "Your NVDA thesis window has closed.",
-      summary_plain_zh: "你的英伟达论点观察窗口已结束。",
+      subject: "A window we watch for NVDA has closed",
+      subject_zh: "你关注的“NVDA”窗口已关闭",
+      summary_plain: 'A window we watch for NVDA has closed. Your thesis "Closed window" lists: Gross margin falls below 65%.',
+      summary_plain_zh: "你关注的“NVDA”窗口已关闭。你的论点《Closed window》列出的条件：Gross margin falls below 65%（翻译待补）",
+      condition_plain: "Gross margin falls below 65%",
+      condition_plain_zh: "Gross margin falls below 65%（翻译待补）",
       coverage: "full",
+      ticker: "NVDA",
     });
-    expect((row.payload as { ticker?: string }).ticker).toBe("NVDA");
     expect(row.payload).not.toHaveProperty("kind");
   });
 });
 
 describe("fixture thesis monitor subject fidelity", () => {
-  it("uses the created thesis subject", async () => {
+  it("uses the created thesis subject and only emits ticker for ticker subjects", async () => {
     const key = `${FIXTURE_MONITOR_FIRED_TOKEN}-subject`;
     const db = createFixtureDb(key);
     await db.rpc("apply_thesis_version_v1", {
@@ -61,12 +72,16 @@ describe("fixture thesis monitor subject fidelity", () => {
       p_expected_version: 0,
       p_transition: "create",
       p_subject_ref: { schema: "mastermind.thesis-subject-ref/v1", kind: "ticker", owner: "terminal.analysis_symbol", key: "AAPL", display: "Apple" },
-      p_content: { schema: "mastermind.thesis-content/v1", title: "closed window", statement: "s" },
+      p_content: { schema: "mastermind.thesis-content/v1", title: "Closed window", statement: "s", falsifiers: ["Revenue growth stops"] },
       p_client_request_id: "req-monitor-subject",
       p_effective_at: null,
     });
     const row = fixtureStore(key).alertOutbox[0];
-    expect(row.payload).toMatchObject({ subject: "Your Apple thesis window has closed.", subject_zh: "你的Apple论点观察窗口已结束。", ticker: "AAPL" });
+    expect(row.payload).toMatchObject({
+      subject: "A window we watch for Apple has closed",
+      subject_zh: "你关注的“Apple”窗口已关闭",
+      ticker: "AAPL",
+    });
   });
 });
 

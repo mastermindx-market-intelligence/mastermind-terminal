@@ -7,7 +7,7 @@ import { buildAlertsView, copy, type OutboxRow, type Alert } from "../alertsView
 // behaviour only. Do not assert the unfixed behaviour here.
 
 const NOW = Date.parse("2026-09-05T12:00:00Z");
-const THESIS_ID = "00000000-0000-0000-0000-000000000001";
+const THESIS_ID = "11111111-1111-4111-8111-111111111111";
 
 const baseRun = {
   lane: "alerts_engine", run_id: "r1", started_at: "2026-09-05T11:58:00Z",
@@ -36,7 +36,7 @@ function thesisConditionOutbox(over: Partial<OutboxRow> = {}): OutboxRow {
 
 // F11-11b-pre: producer's real shape — no kind, category + source, synthetic alert_id.
 // The producer's alert_id is a synthetic uuid5 of "thesis:<THESIS_ID>"; the thesis_id is bare.
-const PRODUCER_REAL_ALERT_ID = "cd85c933-6c7b-599a-9ce7-e681ded7afa5";
+const PRODUCER_REAL_ALERT_ID = "e8e75107-3228-56c2-997c-05c4961bd088";
 function producerRealOutbox(over: Partial<OutboxRow> = {}): OutboxRow {
   return {
     alert_id: PRODUCER_REAL_ALERT_ID,
@@ -118,12 +118,16 @@ function viewOf(outbox: OutboxRow[], alerts: Alert[] = []) {
   });
 }
 
+function thesisRowId(fireEventId = "fe-thesis-1"): string {
+  return `thesis:${THESIS_ID}:${fireEventId}`;
+}
+
 describe("alert_id null thesis_condition row surfaces as one delivery notice", () => {
   it("exactly one row whose thesisId is the payload thesis_id and whose alertId is thesis:<uuid>", () => {
     const view = viewOf([thesisConditionOutbox({ alert_id: null as unknown as string })]);
     expect(view.rows.length).toBe(1);
     expect(view.rows[0].thesisId).toBe(THESIS_ID);
-    expect(view.rows[0].alertId).toBe(`thesis:${THESIS_ID}`);
+    expect(view.rows[0].alertId).toBe(thesisRowId());
     expect(view.rows[0].delivery).toBe("pending");
   });
 });
@@ -140,7 +144,7 @@ describe("one pending row identifiable by thesis id", () => {
     const view = viewOf([thesisConditionOutbox()]);
     expect(view.rows.length).toBe(1);
     expect(view.rows[0].thesisId).toBe(THESIS_ID);
-    expect(view.rows[0].alertId).toBe(`thesis:${THESIS_ID}`);
+    expect(view.rows[0].alertId).toBe(thesisRowId());
     expect(view.rows[0].delivery).toBe("pending");
   });
 });
@@ -189,7 +193,7 @@ describe("F11-11b-pre producer real shape (category+source, no kind, synthetic a
     const view = viewOf([producerRealOutbox()]);
     expect(view.rows.length).toBe(1);
     expect(view.rows[0].thesisId).toBe(THESIS_ID);
-    expect(view.rows[0].alertId).toBe(`thesis:${THESIS_ID}`);
+    expect(view.rows[0].alertId).toBe(thesisRowId("fe-thesis-real"));
     expect(view.rows[0].delivery).toBe("pending");
   });
 

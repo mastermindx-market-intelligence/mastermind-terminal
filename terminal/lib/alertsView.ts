@@ -66,13 +66,11 @@ export interface OutboxRow {
   };
 }
 
-/** True when thesis_id is a canonical UUID-shaped string with hexadecimal groups. */
+/** True when thesis_id passes the house UUID version/variant gate. */
 function isWellFormedThesisId(value: unknown): value is string {
   if (typeof value !== "string") return false;
-  // This deliberately accepts any version and deliberately does not impose the stricter
-  // version/variant rules used by the theses and fire-status surfaces: producer payload must
-  // still render when a thesis identifier is carried as a UUID-shaped legacy test value.
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
+  // Same pattern as THESIS_ID_UUID in lib/rmsViews.ts:114 — keep the two gates identical.
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 }
 
 // The evaluator (ingest/alerts_engine.py Supa.fire) stamps `triggered` as an OBJECT — {at, value,
@@ -364,45 +362,37 @@ export function buildAlertsView(input: {
   // payload.category identifies it as a thesis condition. A row whose alert_id matches a real
   // alerts entry stays on the alerts path only; null, empty, and unmatched synthetic ids take
   // the thesis path.
-  const thesisOutboxRows = (input.outbox ?? [])
-    .filter((o) => {
-      if (!isWellFormedThesisId(o.payload?.thesis_id)) return false;
-      if (o.alert_id && alertIds.has(o.alert_id)) return false;
-      const kind = o.payload?.kind;
-      const source = o.payload?.source;
-      const category = o.payload?.category;
-      if (kind === "thesis_condition") return true;
-      if (source === "macro.thesis_condition_monitor") return true;
-      if (category === "thesis_window") return true;
-      return false;
+  const thesisRows: AlertRowView[] = (input.outbox ?? [])
+    .filter((row) => {
+      if (!isWellFormedThesisId(row.payload?.thesis_id)) return false;
+      if (row.alert_id && alertIds.has(row.alert_id)) return false;
+      const kind = row.payload?.kind;
+      const source = row.payload?.source;
+      const category = row.payload?.category;
+      return kind === "thesis_condition"
+        || source === "macro.thesis_condition_monitor"
+        || category === "thesis_window";
     })
-    .reduce((groups, row) => {
+    .map((row) => {
       const thesisId = row.payload.thesis_id as string;
-      const group = groups.get(thesisId) ?? { rows: [] };
-      group.rows.push(row);
-      groups.set(thesisId, group);
-      return groups;
-    }, new Map<string, { rows: OutboxRow[] }>());
-  const thesisRows: AlertRowView[] = [...thesisOutboxRows].map(([thesisId, group]) => {
-    const newest = group.rows.reduce((left, right) => {
-      const leftTime = Date.parse(left.created_at);
-      const rightTime = Date.parse(right.created_at);
-      if (rightTime !== leftTime) return rightTime > leftTime ? right : left;
-      return Date.parse(right.payload.fired_at ?? "") > Date.parse(left.payload.fired_at ?? "") ? right : left;
+      const fireKey = row.fire_event_id && row.fire_event_id.trim() ? row.fire_event_id : row.created_at;
+      const status = row.status as string;
+      const delivery: DeliveryState =
+        status === "sent" && row.delivered_at == null ? "pending" : (KNOWN_DELIVERY[status] ?? "unconfirmed");
+      return {
+        alertId: `thesis:${thesisId}:${fireKey}`,
+        thesisId,
+        delivery,
+        foldedRows: 0,
+        outboxRow: row,
+      };
+    })
+    .sort((left, right) => {
+      const leftCreated = Date.parse(left.outboxRow?.created_at ?? "");
+      const rightCreated = Date.parse(right.outboxRow?.created_at ?? "");
+      if (rightCreated !== leftCreated) return rightCreated - leftCreated;
+      return Date.parse(right.outboxRow?.payload.fired_at ?? "") - Date.parse(left.outboxRow?.payload.fired_at ?? "");
     });
-    const status = newest.status as string;
-    // Same mapping as deliveryFor's alerts path (status === "sent" && delivered_at == null
-    // → "pending"; otherwise KNOWN_DELIVERY[status] ?? "unconfirmed").
-    const delivery: DeliveryState =
-      status === "sent" && newest.delivered_at == null ? "pending" : (KNOWN_DELIVERY[status] ?? "unconfirmed");
-    return {
-      alertId: `thesis:${thesisId}`,
-      thesisId,
-      delivery,
-      foldedRows: group.rows.length - 1,
-      outboxRow: newest,
-    };
-  });
 
   // `input.alertsState` is the frozen four-state read vocabulary (§5), decided by the caller —
   // this view model never invents READ_NO_COVERAGE from a fabricated signal, it only ever

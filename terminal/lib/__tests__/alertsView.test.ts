@@ -751,10 +751,10 @@ describe("coverage.count excludes unresolved rows (REQUIRED 4)", () => {
 // condition_plain_zh, engine_window_plain, engine_window_plain_zh, evidence_url,
 // requires_tier, coverage, ticker.
 describe("F11-11b-pre producer-shaped thesis-condition rows (category+source, no kind, synthetic alert_id)", () => {
-  const PRODUCER_THESIS_ID = "00000000-0000-0000-0000-000000000001";
+  const PRODUCER_THESIS_ID = "11111111-1111-4111-8111-111111111111";
 
   // The producer's alert_id is a synthetic uuid5 of "thesis:<thesis_id>"; thesis_id is the bare thesis UUID.
-  const PRODUCER_ALERT_ID = "cd85c933-6c7b-599a-9ce7-e681ded7afa5";
+  const PRODUCER_ALERT_ID = "e8e75107-3228-56c2-997c-05c4961bd088";
   function producerRow(over: Partial<OutboxRow> = {}): OutboxRow {
     return {
       alert_id: PRODUCER_ALERT_ID,
@@ -818,7 +818,7 @@ describe("F11-11b-pre producer-shaped thesis-condition rows (category+source, no
     const view = viewOf([producerRow()]);
     expect(view.rows).toHaveLength(1);
     expect(view.rows[0].thesisId).toBe(PRODUCER_THESIS_ID);
-    expect(view.rows[0].alertId).toBe(`thesis:${PRODUCER_THESIS_ID}`);
+    expect(view.rows[0].alertId).toBe(`thesis:${PRODUCER_THESIS_ID}:fe-thesis-1`);
     expect(view.rows[0].delivery).toBe("pending");
   });
 
@@ -854,6 +854,14 @@ describe("F11-11b-pre producer-shaped thesis-condition rows (category+source, no
       },
     };
     const view = viewOf([badRow]);
+    expect(view.rows).toHaveLength(0);
+  });
+
+  it("a producer-shaped row with a zero-version house-invalid thesis_id is skipped", () => {
+    const legacyDatum = producerRow({
+      payload: { ...producerRow().payload, thesis_id: "00000000-0000-0000-0000-000000000001" },
+    });
+    const view = viewOf([legacyDatum]);
     expect(view.rows).toHaveLength(0);
   });
 
@@ -893,44 +901,39 @@ describe("F11-11b-pre producer-shaped thesis-condition rows (category+source, no
       now: NOW,
     });
     expect(view.rows).toHaveLength(1);
-    expect(view.rows[0].alertId).toBe(`thesis:${PRODUCER_THESIS_ID}`);
+    expect(view.rows[0].alertId).toBe(`thesis:${PRODUCER_THESIS_ID}:fe-thesis-1`);
     expect(view.rows[0].thesisId).toBe(PRODUCER_THESIS_ID);
   });
 
-  it("row with non-empty real alert_id that matches no alerts entry stays invisible", () => {
-    const ordinaryRow: OutboxRow = {
-      alert_id: "a-real-alert-without-matching-entry",
-      fire_event_id: "fe-ordinary",
-      status: "pending",
-      attempts: 0,
-      last_error: null,
-      deliver_after: null,
-      delivered_at: null,
-      created_at: "2026-09-05T11:59:30Z",
-      payload: { ticker: "NVDA" },
-    };
-    const view = viewOf([ordinaryRow]);
-    expect(view.rows).toHaveLength(0);
-  });
-
-  it("two fires of one thesis fold to one row using the newest fire", () => {
+  it("two fires of one thesis render one row per fire, newest first", () => {
     const older = producerRow({ fire_event_id: "fe-thesis-old", created_at: "2026-09-05T11:58:00Z" });
     const newer = producerRow({ fire_event_id: "fe-thesis-new", created_at: "2026-09-05T11:59:30Z" });
     const view = viewOf([older, newer]);
-    expect(view.rows).toHaveLength(1);
-    expect(view.rows[0].outboxRow?.fire_event_id).toBe("fe-thesis-new");
-    expect(view.rows[0].foldedRows).toBe(1);
+    expect(view.rows).toHaveLength(2);
+    expect(view.rows.map((row) => row.alertId)).toEqual([
+      `thesis:${PRODUCER_THESIS_ID}:fe-thesis-new`,
+      `thesis:${PRODUCER_THESIS_ID}:fe-thesis-old`,
+    ]);
+    expect(view.rows.map((row) => row.thesisId)).toEqual([PRODUCER_THESIS_ID, PRODUCER_THESIS_ID]);
+    expect(view.rows.map((row) => row.foldedRows)).toEqual([0, 0]);
   });
 
-  it("ties on created_at use the newer payload fired_at", () => {
+  it("ties on created_at order by the newer payload fired_at", () => {
     const older = producerRow({ fire_event_id: "fe-thesis-old", payload: { ...producerRow().payload, fired_at: "2026-09-05T11:57:00Z" } });
     const newer = producerRow({ fire_event_id: "fe-thesis-new" });
-    const view = viewOf([older, newer]);
-    expect(view.rows[0].outboxRow?.fire_event_id).toBe("fe-thesis-new");
+    const view = viewOf([newer, older]);
+    expect(view.rows.map((row) => row.outboxRow?.fire_event_id)).toEqual(["fe-thesis-new", "fe-thesis-old"]);
   });
 
-  it("three fires across two theses render two rows in outbox thesis order", () => {
-    const secondThesisId = "00000000-0000-0000-0000-000000000002";
+  it("one fire uses the producer fire identity in its row id", () => {
+    const view = viewOf([producerRow()]);
+    expect(view.rows[0].alertId).toBe(`thesis:${PRODUCER_THESIS_ID}:fe-thesis-1`);
+    expect(view.rows[0].foldedRows).toBe(0);
+  });
+
+
+  it("three fires across two theses render three globally newest-first rows", () => {
+    const secondThesisId = "22222222-2222-4222-8222-222222222222";
     const rows = [
       producerRow(),
       producerRow({ fire_event_id: "fe-thesis-b-old", created_at: "2026-09-05T11:58:00Z", payload: { ...producerRow().payload, thesis_id: secondThesisId } }),
@@ -938,10 +941,10 @@ describe("F11-11b-pre producer-shaped thesis-condition rows (category+source, no
     ];
     const view = viewOf(rows);
     expect(view.rows.map((row) => row.alertId)).toEqual([
-      `thesis:${PRODUCER_THESIS_ID}`,
-      `thesis:${secondThesisId}`,
+      `thesis:${secondThesisId}:fe-thesis-b-new`,
+      `thesis:${PRODUCER_THESIS_ID}:fe-thesis-1`,
+      `thesis:${secondThesisId}:fe-thesis-b-old`,
     ]);
-    expect(view.rows[0].foldedRows).toBe(0);
-    expect(view.rows[1].foldedRows).toBe(1);
+    expect(view.rows.every((row) => row.foldedRows === 0)).toBe(true);
   });
 });
