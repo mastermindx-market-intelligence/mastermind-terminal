@@ -17,7 +17,8 @@ import { timeToMs } from "@/lib/timeWindow";
 import {
   CommandQueue, applyToStore, isV2Envelope, translate, validateEnvelope,
   fitMetrics, type Ack, type AiObject, type Fit, type FitBar, type IndicatorSpec,
-  type QueueStep, type StoreEffect,
+  type QueueStep, type StoreEffect, type ChartCommandTarget,
+  CHART_COMMAND_TARGET_SCHEMA, requiresExactChartTarget, readChartCommandTarget, chartCommandTargetError,
 } from "@/lib/chartBus";
 
 // What TerminalShell must supply so the bus can act on the chart + build a complete state snapshot.
@@ -32,6 +33,7 @@ export type ChartBusHost = {
   // Existing DeepVue ai-context identity. Read at POST time so revision stays in lockstep
   // with the same provider the Brain widget sends on the chat request.
   getContextIdentity: () => { origin_id: string; context_revision: number };
+  getReadoutSnapshot?: () => unknown; // existing Data Window projection, never new calculation
   // chart mutators (already exist in TerminalShell):
   setSymbol: (s: string) => void;
   setTf: (tf: string) => void;
@@ -41,6 +43,7 @@ export type ChartBusHost = {
 
 export type ChartBus = {
   dispatchV2: (cmd: unknown) => void;
+  noteReadoutChange: () => void; // reuse ordinary state coalescing; ACK priority remains higher
   /** PaneSync calendar window in epoch ms; only active-pane changes trigger a mirror. */
   noteViewport: (paneId: number, windowMs: { from: number; to: number } | null) => void;
   aiDrawingsFor: (symbol: string) => Drawing[];
@@ -62,7 +65,20 @@ export function useChartBus(host: ChartBusHost): ChartBus {
   // symbol/timeframe during the render→passive-effect gap. Layout effects refresh this before any
   // layout-phase command consumer can fire, without exposing an uncommitted concurrent render.
   const hostRef = useRef(host);
-  useLayoutEffect(() => { hostRef.current = host; }, [host]);
+  const mountedRef = useRef(true);
+  // A context-changing setter schedules React work. Targeted edits must not slip
+  // through in that same tick against the still-committed OLD chart.
+  const pendingContextRef = useRef<{ symbol: string; tf: string } | null>(null);
+  useLayoutEffect(() => {
+    hostRef.current = host;
+    const pending = pendingContextRef.current;
+    if (pending && (host.activeSymbol !== pending.symbol || host.currentTf !== pending.tf))
+      pendingContextRef.current = null;
+  }, [host]);
+  useLayoutEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
   // aiStoreRef is the SYNCHRONOUS working copy of the AI store — updated immediately in dispatch so a
   // burst of queued draws in one tick each see the prior draw's result (React state timing would lag).
   // setAiStore mirrors it for rendering. The legend/aiDrawingsFor read the React state (aiStore).
@@ -111,6 +127,9 @@ export function useChartBus(host: ChartBusHost): ChartBus {
     const visibleRange = viewportMs
       ? { from: viewportMs.from / 1000, to: viewportMs.to / 1000 }
       : null;
+    let dataReadout: unknown = null;
+    try { dataReadout = h.getReadoutSnapshot?.() ?? null; }
+    catch { /* absent/failed readout is not an empty market conclusion */ }
     const body = {
       client: "terminal",
       origin_id: identity.origin_id,
@@ -124,6 +143,7 @@ export function useChartBus(host: ChartBusHost): ChartBus {
         visible_range: visibleRange,
         // Loaded-series availability is useful context but is not the viewport.
         data_range: dataRange,
+        data_readout: dataReadout,
         capabilities: h.capabilities,
         drawings,
       },
@@ -171,6 +191,8 @@ export function useChartBus(host: ChartBusHost): ChartBus {
     }, delayMs);
   }, [postState]);
 
+  const noteReadoutChange = useCallback(() => scheduleState(), [scheduleState]);
+
   // Context targeting (symbol/tf/active pane) mirrors promptly, including the initial mount.
   const contextSig = `${host.activeSymbol}|${host.currentTf}|${host.activePaneId}`;
   useEffect(() => {
@@ -215,16 +237,34 @@ export function useChartBus(host: ChartBusHost): ChartBus {
 
   // ── the v2 dispatcher ──────────────────────────────────────────────────────────────────────
   const dispatchV2 = useCallback((j: unknown) => {
+    if (!mountedRef.current) return; // an unmounted chart has no execution authority
     if (!isV2Envelope(j)) return; // not a v2 envelope — caller handles v1 fallback
     const v = validateEnvelope(j);
     if (!v.ok) { pushAck({ batch_id: v.batch_id, seq: v.seq, id: v.id, ok: false, error: v.error }); return; }
     const cmd = v.cmd;
+    const targetRequired = requiresExactChartTarget(cmd);
+    const checkTarget = (): string | null => {
+      if (!cmd.target && !targetRequired) return null; // retained legacy behavior
+      if (pendingContextRef.current) return "command_target_transition_pending";
+      return chartCommandTargetError(cmd.target, currentCommandTarget(hostRef.current), targetRequired);
+    };
+    const rejectTarget = (error: string): QueueStep => {
+      pushAck({ batch_id: cmd.batch_id, seq: cmd.seq, id: cmd.id ?? null, ok: false, error });
+      return { op: cmd.op, id: cmd.id ?? null, ok: false };
+    };
+    const targetError = checkTarget();
+    if (targetError) { rejectTarget(targetError); return; }
     const h = hostRef.current;
     const res = translate(cmd, h.capabilities, h.sessionIndicators);
     if (!res.ok) { pushAck({ batch_id: cmd.batch_id, seq: cmd.seq, id: cmd.id ?? null, ok: false, error: res.error }); return; }
 
     // Enqueue the side-effect. The queue applies sequentially (instant by default; W3 paces it later).
     queue.enqueue((): QueueStep => {
+      // No auto-retargeting, requeue or replay. A valid receipt-time target may have
+      // changed while this command waited; refuse BEFORE any store or host mutation.
+      if (!mountedRef.current) return { op: cmd.op, id: cmd.id ?? null, ok: false };
+      const targetError = checkTarget();
+      if (targetError) return rejectTarget(targetError);
       // Run the PURE reducer against the synchronous working store, commit the result to both the ref
       // (so the next queued draw sees it) and React state (for render), then apply the chart.* effect.
       // Rebase a patch on the committed host at EXECUTION time, not on a snapshot
@@ -239,8 +279,22 @@ export function useChartBus(host: ChartBusHost): ChartBus {
       if (e) {
         const h = hostRef.current;
         switch (e.kind) {
-          case "setSymbol": h.setSymbol(e.symbol); break;
-          case "setTf": h.setTf(e.tf); break;
+          case "setSymbol":
+            if (e.symbol.trim().toUpperCase() !== h.activeSymbol.trim().toUpperCase())
+              pendingContextRef.current = { symbol: h.activeSymbol, tf: h.currentTf };
+            try { h.setSymbol(e.symbol); }
+            catch {
+              // A throwing setter may have started a transition. Keep the guard closed
+              // until a committed context change; an error is not proof of no effect.
+              return rejectTarget("chart_context_application_failed");
+            }
+            break;
+          case "setTf":
+            if (e.tf !== h.currentTf)
+              pendingContextRef.current = { symbol: h.activeSymbol, tf: h.currentTf };
+            try { h.setTf(e.tf); }
+            catch { return rejectTarget("chart_context_application_failed"); }
+            break;
           case "setIndicators":
             try {
               h.setIndicators(e.indicators);
@@ -289,7 +343,18 @@ export function useChartBus(host: ChartBusHost): ChartBus {
     clear: () => { const next = { ...aiStoreRef.current, [activeSym]: [] }; aiStoreRef.current = next; setAiStore(next); scheduleState(); },
   }), [aiStore, hiddenSyms, activeSym, scheduleState]);
 
-  return { dispatchV2, noteViewport, aiDrawingsFor, legend, queue };
+  return { dispatchV2, noteViewport, noteReadoutChange, aiDrawingsFor, legend, queue };
+}
+
+// Read only the incumbent provider/host. A failed identity read cannot silently fall
+// back to legacy targeting, and no new origin, revision counter or pane registry is created.
+function currentCommandTarget(host: ChartBusHost): ChartCommandTarget | null {
+  try {
+    const identity = host.getContextIdentity();
+    return readChartCommandTarget({ schema: CHART_COMMAND_TARGET_SCHEMA,
+      origin_id: identity.origin_id, context_revision: identity.context_revision,
+      pane_id: host.activePaneId, symbol: host.activeSymbol, tf: host.currentTf });
+  } catch { return null; }
 }
 
 // ── shape helpers for the state mirror ──────────────────────────────────────────────────────────

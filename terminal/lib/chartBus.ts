@@ -48,6 +48,17 @@ const STYLE_KINDS = new Set(["solid", "dashed", "dotted"]);
 // ── wire types ────────────────────────────────────────────────────────────────────────────────
 export type WirePt = { t: number; p: number };
 export type WireStyle = { kind?: "solid" | "dashed" | "dotted"; width?: number; color?: string };
+// An equality precondition over EXISTING chart identity. This is neither an auth token
+// nor a second session/revision owner. The paired server must author it, never the model.
+export const CHART_COMMAND_TARGET_SCHEMA = "chart.command_target.v1" as const;
+export type ChartCommandTarget = {
+  schema: typeof CHART_COMMAND_TARGET_SCHEMA;
+  origin_id: string;
+  context_revision: number;
+  pane_id: number;
+  symbol: string;
+  tf: string;
+};
 export type ChartCommandV2 = {
   on: true;
   v: 2;
@@ -57,6 +68,7 @@ export type ChartCommandV2 = {
   id?: string;
   args?: Record<string, unknown>;
   caption?: string;
+  target?: ChartCommandTarget;
 };
 
 // A drawing produced by the AI layer. Extends Drawing with provenance the state mirror + caps read.
@@ -121,6 +133,45 @@ function readStyle(v: unknown): WireStyle {
   return out;
 }
 
+// The two additive edit extensions may never degrade to the legacy untargeted path.
+export function requiresExactChartTarget(cmd: { op: string; args?: unknown }): boolean {
+  const args = isObj(cmd.args) ? cmd.args : {};
+  return (cmd.op === "chart.set_indicators" && args.mode === "patch")
+    || (cmd.op === "ai.clear" && Object.prototype.hasOwnProperty.call(args, "ids"));
+}
+
+/** Read a detached, closed target value. No coercion, normalization or inferred defaults. */
+export function readChartCommandTarget(value: unknown): ChartCommandTarget | null {
+  if (!isObj(value) || value.schema !== CHART_COMMAND_TARGET_SCHEMA) return null;
+  const keys = ["schema", "origin_id", "context_revision", "pane_id", "symbol", "tf"];
+  if (Object.keys(value).some(key => !keys.includes(key))) return null;
+  const token = (v: unknown, max: number): v is string => typeof v === "string"
+    && v.length > 0 && v.length <= max && v.trim() === v
+    && ![...v].some(ch => ch.charCodeAt(0) < 32 || ch.charCodeAt(0) === 127);
+  if (!token(value.origin_id, 64) || !token(value.symbol, 64) || !token(value.tf, 32)) return null;
+  if (typeof value.context_revision !== "number" || !Number.isSafeInteger(value.context_revision)
+    || value.context_revision < 0 || typeof value.pane_id !== "number"
+    || !Number.isSafeInteger(value.pane_id) || value.pane_id < 0) return null;
+  return { schema: CHART_COMMAND_TARGET_SCHEMA, origin_id: value.origin_id,
+    context_revision: value.context_revision, pane_id: value.pane_id,
+    symbol: value.symbol, tf: value.tf };
+}
+
+/** Equality only; a mismatch is a refused edit, never a request to switch the chart. */
+export function chartCommandTargetError(
+  target: ChartCommandTarget | undefined,
+  current: ChartCommandTarget | null,
+  required: boolean,
+): string | null {
+  if (!target) return required ? "command_target_required" : null;
+  if (!current) return "command_target_unavailable";
+  if (target.origin_id !== current.origin_id) return "command_target_origin_mismatch";
+  if (target.context_revision !== current.context_revision) return "command_target_revision_mismatch";
+  if (target.pane_id !== current.pane_id) return "command_target_pane_mismatch";
+  if (target.symbol !== current.symbol || target.tf !== current.tf) return "command_target_chart_mismatch";
+  return null;
+}
+
 // ── validation ────────────────────────────────────────────────────────────────────────────────
 // Returns a discriminated result. NEVER throws. `isV2` lets the caller decide whether to fall back to
 // the v1 dispatcher (an envelope without v:2 is not our concern).
@@ -151,6 +202,22 @@ export function validateEnvelope(j: unknown): ValidateResult {
     return { ok: false, ...base, error: "bad_id_namespace" };
   if (op.startsWith("draw.") && (!isStr(j.id) || !j.id.startsWith("ai_")))
     return { ok: false, ...base, error: "draw_requires_ai_id" };
+  const targetRequired = requiresExactChartTarget({ op, args: j.args });
+  if (targetRequired && j.target === undefined)
+    return { ok: false, ...base, error: "command_target_required" };
+  if (j.target !== undefined) {
+    const target = readChartCommandTarget(j.target);
+    if (!target) return { ok: false, ...base, error: "bad_command_target" };
+    // Incoming wire messages are JSON. Detach targeted commands so later caller mutation
+    // cannot change their target/patch/selection while the existing paced queue waits.
+    try {
+      const detached = JSON.parse(JSON.stringify(j)) as ChartCommandV2;
+      detached.target = target;
+      return { ok: true, cmd: detached };
+    } catch {
+      return { ok: false, ...base, error: "bad_command_payload" };
+    }
+  }
   return { ok: true, cmd: j as unknown as ChartCommandV2 };
 }
 

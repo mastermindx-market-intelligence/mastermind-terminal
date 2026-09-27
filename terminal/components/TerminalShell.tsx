@@ -158,6 +158,7 @@ import { type PineScript } from "@/components/ChartPanel";
 
 type ShellDrawingStyle = { color: string; width: number; dash: Dash };
 import { visualReadoutColumns, type ChartReadoutMeta } from "@/lib/visualIntelligence";
+import { captureChartReadout, CHART_READOUT_SCHEMA } from "@/lib/chartReadoutSnapshot";
 import ChartTableView from "@/components/ChartTableView";
 import { type OTEntry } from "@/components/ChartObjectTree";
 import { listTemplates, saveTemplate } from "@/lib/chartTemplates";
@@ -1373,7 +1374,10 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
   // D4: object tree panel
   const [objectTreeOpen, setObjectTreeOpen] = useState(false);
   // D1: indicator value lookup by bar time — populated by the active ChartPane after each data load
-  const [chartReadoutMeta, setChartReadoutMeta] = useState<ChartReadoutMeta | null>(null);
+  const [chartReadoutMeta, setChartReadoutMeta] = useState<(ChartReadoutMeta & {
+    copilotBinding?: { origin_id: string; context_revision: number; paneId: number;
+      settingsKey: string; replayOn: boolean; replayIdx: number | null };
+  }) | null>(null);
   const [indRowsAt, setIndRowsAt] = useState<((barTime: string | number) => Record<string, number | null>) | null>(null);
   // B3: sub-pane count for mobile chart-body height formula (--subpanes CSS var)
   const [subPanes, setSubPanes] = useState(0);
@@ -4322,14 +4326,26 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
     indicators: [...IND_ORDER, ...SUITE_ORDER],
     native_parameters: describeNativeSuiteCapabilities([...inds], indParams),
     native_study_context: describeNativeStudyContext([...inds], indParams),
+    data_readout: { schema: CHART_READOUT_SCHEMA, source: "existing_chart_data_window",
+      samples: ["latest_loaded", "locked_bar"], max_bytes: 4096,
+      coverage: "not_all_native_studies", freshness: "not_live_attested" },
+    command_target: {
+      schema: "chart.command_target.v1", author: "server_only",
+      match: ["origin_id", "context_revision", "pane_id", "symbol", "tf"],
+      check: ["receipt", "execution"], mismatch: "reject_without_retarget_or_retry",
+      required_for: ["indicator_patch", "selective_ai_clear"],
+      legacy_untargeted: "unchanged", authentication: "existing_session_not_this_precondition",
+    },
     indicator_edit: {
       op: "chart.set_indicators", modes: ["replace", "patch"],
       patch_membership: "preserve_unmentioned", parameters: "merge_existing",
       removal: "explicit_remove_names", undo: "drawings_only_not_indicator_settings",
+      target_required: "chart.command_target.v1",
     },
     ai_drawing_edit: {
       clear_ids: true, id_source: "session.drawings", ownership: "ai_only",
       missing_id: "reject_whole_request", omitted_ids: "clear_all_ai_on_active_symbol",
+      target_required_for_ids: "chart.command_target.v1",
     },
   }), [inds, indParams]);
   const chartBus = useChartBus({
@@ -4347,6 +4363,18 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
       const ctx = aiContextProviderRef.current!.getAiContext();
       return { origin_id: ctx.origin_id, context_revision: ctx.context_revision };
     },
+    getReadoutSnapshot: () => {
+      const binding = chartReadoutMeta?.copilotBinding;
+      const identity = aiContextProviderRef.current!.getAiContext();
+      const settingsKey = JSON.stringify(sessionIndicators);
+      if (!prefsHydrated || !binding || binding.origin_id !== identity.origin_id
+        || binding.context_revision !== identity.context_revision || binding.paneId !== activePane
+        || binding.settingsKey !== settingsKey || binding.replayOn !== replayOn
+        || binding.replayIdx !== (replayOn ? replayIdx : null)) {
+        return { schema: CHART_READOUT_SCHEMA, status: "unavailable", reason: "readout_context_not_current" };
+      }
+      return captureChartReadout(chartReadoutMeta, indRowsAt, active, tf, lockedVLine, replayOn);
+    },
     setSymbol: (s) => pick(s),
     setTf: (t2) => setTf(t2),
     setIndicators: (specs) => {
@@ -4359,6 +4387,10 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
     // setVisibleRange is a follow-up via the onChartApi seam (see PR body).
     setRange: (from) => { try { window.dispatchEvent(new CustomEvent("mm:chart-jump", { detail: { ts: from } })); } catch {} },
   });
+
+  // The existing readout owner drives refresh. No timer, data fetch or indicator rerun.
+  useEffect(() => { chartBus.noteReadoutChange(); }, [chartReadoutMeta, indRowsAt,
+    lockedVLine, replayOn, replayIdx, chartBus.noteReadoutChange]);
 
   // Observe the already-registered active pane's calendar viewport. paneSync remains the
   // single logical-range→calendar owner; Chart Bus only mirrors the result into Brain state.
@@ -5475,7 +5507,15 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
                   onObjectTree={() => setObjectTreeOpen((o) => !o)}
                   lockedVLine={lockedVLine}
                   onSetLockedVLine={(t2) => setLockedVLine(t2)}
-                  onIndRowsAt={i === activePane ? (fn, meta) => { setIndRowsAt(() => fn); if (meta) setChartReadoutMeta(meta); } : undefined}
+                  onIndRowsAt={i === activePane ? (fn, meta) => {
+                    setIndRowsAt(() => fn);
+                    const identity = aiContextProviderRef.current!.getAiContext();
+                    setChartReadoutMeta(meta ? { ...meta, copilotBinding: {
+                      origin_id: identity.origin_id, context_revision: identity.context_revision,
+                      paneId: i, settingsKey: JSON.stringify(sessionIndicators),
+                      replayOn, replayIdx: replayOn ? replayIdx : null,
+                    } } : null);
+                  } : undefined}
                   onPaneCount={i === 0 ? onPaneCount : undefined}
                 />
               ))}
