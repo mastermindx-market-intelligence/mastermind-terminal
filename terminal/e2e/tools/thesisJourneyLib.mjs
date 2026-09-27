@@ -221,10 +221,42 @@ export function signedReceiptFor(phaseA, phaseB, meta, now = new Date()) {
   };
 }
 
+const NEGATIVE_CASE_REASONS = {
+  no_other_state: "No other-account storage state was provided.",
+  other_state_invalid: "The other-account storage state was invalid.",
+  phase_b_not_run: "Phase B did not run.",
+  phase_c_error: "An internal error occurred during Phase C.",
+};
+
+export function describeNegativeCaseReason(reason) {
+  const sentence = NEGATIVE_CASE_REASONS[reason];
+  if (!sentence) throw new TypeError("The Phase C reason is not documented.");
+  return sentence;
+}
+
+export function admitOtherStorageState({ path, blockedReason, samePath }) {
+  if (!path) return { run: false, reason: "no_other_state" };
+  if (blockedReason || samePath) return { run: false, reason: "other_state_invalid" };
+  return { run: true, reason: null };
+}
+
+export function negativeCaseExitRequired(phaseC) {
+  return phaseC?.ran === true && (
+    phaseC.reason === "phase_c_error"
+    || phaseC.ok !== true
+    || phaseC.browserErrorCount !== 0
+  );
+}
+
+export function notFoundHeadingMatches(text) {
+  const heading = typeof text === "string" ? text.trim() : "";
+  return heading === "Thesis not found" || heading === "未找到论点";
+}
+
 /**
  * Evaluates the five wrong-user negative-case outcomes.
  * leak = any of read/revise/archive returned 200, 201, or 409 (existence confirmed).
- * A 400 is refused by validation and is not a leak.
+ * A 400, 401, 403, 500, or other failure is not proven and is not a leak.
  */
 export function negativeCaseOutcome({ read, revise, archive, listExcludes, uiNotFound }) {
   const leak = [read, revise, archive].some((s) => s === 200 || s === 201 || s === 409);
@@ -233,17 +265,19 @@ export function negativeCaseOutcome({ read, revise, archive, listExcludes, uiNot
 }
 
 /**
- * Validates a negative-case block on the signed-in receipt.
- * phaseC absent or ran:false → true (Phase-B-only receipts are still valid).
- * ran:true → every field typed correctly and ok === negativeCaseOutcome(...).ok
+ * Validates a negative-case block on the signed-in receipt. An honest leak receipt is
+ * valid evidence even though the prover exits non-zero after writing it.
  */
 export function validateNegativeCaseReceipt(value) {
   if (!value || typeof value !== "object") return false;
   const pc = value.phaseC;
   if (!pc) return true;
-  if (pc.ran === false) return true;
+  if (pc.ran === false) {
+    return pc.reason === undefined || Object.prototype.hasOwnProperty.call(NEGATIVE_CASE_REASONS, pc.reason);
+  }
   if (pc.ran !== true) return false;
-  const { ok: expectedOk, leak } = negativeCaseOutcome({
+  const integerStatus = (status) => Number.isInteger(status) && status >= 0;
+  const { ok: expectedOk, leak: expectedLeak } = negativeCaseOutcome({
     read: pc.read,
     revise: pc.revise,
     archive: pc.archive,
@@ -251,14 +285,15 @@ export function validateNegativeCaseReceipt(value) {
     uiNotFound: pc.uiNotFound,
   });
   return (
-    typeof pc.read === "number" &&
-    typeof pc.revise === "number" &&
-    typeof pc.archive === "number" &&
-    typeof pc.browserErrorCount === "number" &&
-    typeof pc.listExcludes === "boolean" &&
-    typeof pc.uiNotFound === "boolean" &&
-    typeof pc.ok === "boolean" &&
-    pc.ok === expectedOk &&
-    !leak
+    integerStatus(pc.read)
+    && integerStatus(pc.revise)
+    && integerStatus(pc.archive)
+    && integerStatus(pc.browserErrorCount)
+    && typeof pc.listExcludes === "boolean"
+    && typeof pc.uiNotFound === "boolean"
+    && typeof pc.ok === "boolean"
+    && typeof pc.leak === "boolean"
+    && pc.ok === expectedOk
+    && pc.leak === expectedLeak
   );
 }
