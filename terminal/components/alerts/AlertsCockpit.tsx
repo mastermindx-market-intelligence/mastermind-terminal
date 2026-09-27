@@ -138,8 +138,11 @@ export default function AlertsCockpit({ email, children }: { email: string; chil
   // summary_plain_zh is not on OutboxRow.payload (per spec); narrow via type cast.
   const thesisSentence = (payload: OutboxRow["payload"] | undefined, lang: "en" | "zh") => {
     if (lang === "zh") {
-      const zh = typeof (payload as { summary_plain_zh?: string })?.summary_plain_zh === "string"
+      const rawZh = typeof (payload as { summary_plain_zh?: string })?.summary_plain_zh === "string"
         ? (payload as { summary_plain_zh: string }).summary_plain_zh.trim() : "";
+      // MINOR-2 (macro producer ruling): upstream may stamp translation-pending on untranslated
+      // EN text; render the fixed sentence instead so ZH users never see internal markers.
+      const zh = rawZh && !rawZh.includes("（翻译待补）") ? rawZh : "";
       return zh || copy("condition.thesis_condition", "zh");
     }
     const en = typeof payload?.summary_plain === "string" ? payload!.summary_plain.trim() : "";

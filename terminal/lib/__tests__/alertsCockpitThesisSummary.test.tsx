@@ -273,16 +273,15 @@ describe("AlertsCockpit — thesis row producer summary (B-F11-11b-pre-2)", () =
     expect(rows[0].textContent ?? "", "ZH screen must not show EN-only summary").not.toContain("EN only summary here");
   });
 
-  it("RED-first ZH: translation-pending marker in summary_plain_zh renders verbatim (macro MINOR-2); ZH screen renders upstream content AS-IS", async () => {
+  it("RED-first ZH: translation-pending marker in summary_plain_zh triggers fallback to fixed sentence (macro MINOR-2); ZH users never see internal markers", async () => {
     mockFetch(THESIS_OUTBOX_PENDING_MARKER);
     await mount("zh");
 
     const rows = timelineRows();
     expect(rows.length).toBe(1);
-    // The ZH summary (including the upstream translation-pending marker) renders AS-IS —
-    // terminal renders upstream content verbatim, not a terminal copy.
-    expect(rows[0].textContent ?? "", "ZH row should render the translation-pending marker verbatim").toContain("（翻译待补）");
-    // The ZH fallback (fixed sentence) is NOT shown when summary_plain_zh is present.
-    expect(rows[0].textContent ?? "", "ZH row with summary_plain_zh must not fall back to fixed sentence").not.toContain("你关注的观察窗口已结束");
+    // When summary_plain_zh carries the translation-pending marker the ZH screen falls back
+    // to the fixed sentence — internal upstream markers must not surface to users.
+    expect(rows[0].textContent ?? "", "ZH row with pending marker must fall back to fixed sentence").toContain("你关注的观察窗口已结束");
+    expect(rows[0].textContent ?? "", "ZH row must not surface the pending marker to users").not.toContain("（翻译待补）");
   });
 });
