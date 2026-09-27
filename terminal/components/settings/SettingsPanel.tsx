@@ -41,7 +41,7 @@ function IconAccuracy() {
 // ── The settings dashboard shell ─────────────────────────────────────────────
 // Ported from the Macro Dashboard's `_buildSDash` / `_wireSDash` / `_sdShow` /
 // `_openSDash`. Same card (min(1140px,94vw) × min(772px,100dvh-40px), r22), same
-// 238px rail, same one-shot laser sweep, same ≤640px full-sheet collapse.
+// 238px rail, same premium top accent placement, same ≤640px full-sheet collapse.
 //
 // Two upstream bugs are deliberately NOT reproduced:
 //   1. macro's desktop header close button (`.sd-x`) has no click handler — ours
@@ -83,7 +83,7 @@ const HEAD_KEY: Record<SettingsSection, string> = {
 
 export interface SettingsPanelProps {
   visible: boolean;
-  /** Increments on every open() — re-keys the laser so its sweep replays. */
+  /** Increments on every open() — re-keys the aurora so its vector motion restarts cleanly. */
   openSeq: number;
   section: SettingsSection;
   onSection: (s: SettingsSection) => void;
@@ -319,7 +319,61 @@ export default function SettingsPanel(props: SettingsPanelProps) {
         ref={cardRef}
         onKeyDown={onCardKeyDown}
       >
-        <span className="acs-laser" aria-hidden="true" key={openSeq} />
+        <svg
+          className="acs-aurora"
+          aria-hidden="true"
+          key={openSeq}
+          viewBox="0 0 1000 28"
+          preserveAspectRatio="none"
+        >
+          <defs>
+            <linearGradient id={`acsAuroraGradient-${openSeq}`} x1="0" y1="0" x2="1000" y2="0" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stopColor="#39c6ff" />
+              <stop offset="18%" stopColor="#3b82ff" />
+              <stop offset="38%" stopColor="#6366ff" />
+              <stop offset="58%" stopColor="#a855f7" />
+              <stop offset="78%" stopColor="#5577ff" />
+              <stop offset="100%" stopColor="#38c7ff" />
+            </linearGradient>
+            <filter id={`acsAuroraGlow-${openSeq}`} x="-8%" y="-180%" width="116%" height="460%">
+              <feGaussianBlur stdDeviation="3.8" />
+            </filter>
+          </defs>
+          <g className="acs-aurora-live">
+            <path
+              className="acs-aurora-glow"
+              pathLength="1000"
+              d="M0 14 C70 4 130 24 200 14 C270 4 330 24 400 14 C470 4 530 24 600 14 C670 4 730 24 800 14 C870 4 930 24 1000 14"
+              stroke={`url(#acsAuroraGradient-${openSeq})`}
+              filter={`url(#acsAuroraGlow-${openSeq})`}
+            >
+              <animate attributeName="d" dur="6.8s" repeatCount="indefinite"
+                values="M0 14 C70 4 130 24 200 14 C270 4 330 24 400 14 C470 4 530 24 600 14 C670 4 730 24 800 14 C870 4 930 24 1000 14;
+                        M0 14 C55 22 135 2 205 13 C285 25 340 6 410 15 C485 23 545 2 615 13 C685 25 750 7 820 15 C890 23 950 4 1000 14;
+                        M0 14 C80 1 145 19 215 12 C290 5 355 26 425 15 C500 3 565 20 635 12 C710 5 775 25 845 15 C915 4 965 20 1000 14;
+                        M0 14 C60 21 125 6 195 15 C265 22 335 2 405 13 C475 24 540 7 610 15 C680 22 745 3 815 13 C885 24 945 6 1000 14;
+                        M0 14 C70 4 130 24 200 14 C270 4 330 24 400 14 C470 4 530 24 600 14 C670 4 730 24 800 14 C870 4 930 24 1000 14" />
+            </path>
+            <path
+              className="acs-aurora-core"
+              pathLength="1000"
+              d="M0 14 C70 4 130 24 200 14 C270 4 330 24 400 14 C470 4 530 24 600 14 C670 4 730 24 800 14 C870 4 930 24 1000 14"
+              stroke={`url(#acsAuroraGradient-${openSeq})`}
+            >
+              <animate attributeName="d" dur="6.8s" repeatCount="indefinite"
+                values="M0 14 C70 4 130 24 200 14 C270 4 330 24 400 14 C470 4 530 24 600 14 C670 4 730 24 800 14 C870 4 930 24 1000 14;
+                        M0 14 C55 22 135 2 205 13 C285 25 340 6 410 15 C485 23 545 2 615 13 C685 25 750 7 820 15 C890 23 950 4 1000 14;
+                        M0 14 C80 1 145 19 215 12 C290 5 355 26 425 15 C500 3 565 20 635 12 C710 5 775 25 845 15 C915 4 965 20 1000 14;
+                        M0 14 C60 21 125 6 195 15 C265 22 335 2 405 13 C475 24 540 7 610 15 C680 22 745 3 815 13 C885 24 945 6 1000 14;
+                        M0 14 C70 4 130 24 200 14 C270 4 330 24 400 14 C470 4 530 24 600 14 C670 4 730 24 800 14 C870 4 930 24 1000 14" />
+            </path>
+          </g>
+          <path
+            className="acs-aurora-static"
+            d="M0 14 C70 4 130 24 200 14 C270 4 330 24 400 14 C470 4 530 24 600 14 C670 4 730 24 800 14 C870 4 930 24 1000 14"
+            stroke={`url(#acsAuroraGradient-${openSeq})`}
+          />
+        </svg>
 
         <aside className="acs-rail">
           <div className="acs-me">
