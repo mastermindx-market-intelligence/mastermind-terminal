@@ -30,8 +30,8 @@ function formatDate(value: string, locale: string) {
     month: "long",
     day: "numeric",
     timeZone: "UTC",
-  }).format(new Date(Date.UTC(2000, Number(month) - 1, Number(day))));
-  return formatted.replace("2000", year);
+  }).format(new Date(Date.UTC(Number(year), Number(month) - 1, Number(day))));
+  return formatted;
 }
 
 export default function MarketOntologyContextStrip({ context }: { context: MarketOntologyContext }) {
@@ -41,7 +41,7 @@ export default function MarketOntologyContextStrip({ context }: { context: Marke
 
   return (
     <section className={styles.strip} data-testid="mo-context-strip">
-      <div>
+      <div className={styles.copy}>
         <p className={styles.title}>{labels.title}</p>
         <p className={styles.body}>{labels.body}</p>
         {(context.asof || context.kc) && (

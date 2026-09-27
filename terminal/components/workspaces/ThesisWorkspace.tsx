@@ -628,6 +628,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     // Round-2 review r3 minor 5: a prior owner's stale fault must not survive into a
     // new owner's hydration — otherwise switching `ownerKey` within one mount could
     // render the fault notice before that owner's own first batch has even run.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setHydrationUnavailable(false);
     // Meta-CEO B ruling r4 MAJOR: an `ownerKey` change with no remount must reset
     // EVERY per-owner piece of state, not only the fault flag above — otherwise a
@@ -844,6 +845,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   useEffect(() => {
     try {
       const stored = window.localStorage.getItem(`mm.thesis.lens.v1:${ownerKey}`);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       if (stored && RMS_VIEWS.some((v) => v.id === stored)) setView(stored as RmsViewId);
       else setView(RMS_DEFAULT_VIEW);
     } catch {
@@ -1571,6 +1573,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     // `RMS_HYDRATION_BATCH` uses for content hydration.
     const ids = theses.map((row) => row.id).filter((id) => isUuid(id));
     if (ids.length === 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFireStates(new Map());
       setFireStatusUnavailable(false);
       return;

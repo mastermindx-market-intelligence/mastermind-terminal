@@ -5,7 +5,7 @@
 // for it. See the note in that file.
 import "../../app/company-intelligence.css";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import MegaPane, { FIN_PAGES as FIN_PAGE_LIST, type FinPage } from "@/components/fin/MegaPane";
 import { getFund, getBars, type Fund, type Bar } from "@/lib/fund";
@@ -84,6 +84,7 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
   const { lang } = useLang();
   const t = useT();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const requestedSymbol = initialSymbol?.trim().toUpperCase() || "";
   const normalizedInitialSymbol = normalizeAnalysisSymbol(initialSymbol);
@@ -100,7 +101,7 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
   const [pickerOpen, setPickerOpen] = useState(false);
   const [marketOntologyContext, setMarketOntologyContext] = useState<MarketOntologyContext | null>(null);
 
-  const [intel, setIntel] = useState<any | null>(null);
+  const [intel, setIntel] = useState<unknown | null>(null);
   const [fund, setFund] = useState<Fund | null>(null);
   const [fundLoading, setFundLoading] = useState(true);
   const [bars, setBars] = useState<Bar[]>([]);
@@ -119,6 +120,7 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
   useLayoutEffect(() => {
     if (symbolSettled) return;
     const cursor = normalizeAnalysisSymbol(readActiveSymbol() ?? undefined);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (cursor && cursor !== sym) setSym(cursor);
     setSymbolSettled(true);
     // Mount-only: once settled, the picker owns the symbol and re-running would undo a pick.
@@ -142,10 +144,16 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
     window.history.replaceState(null, "", u.toString());
   }, []);
 
+  const contextParams = useMemo(() => {
+    const params = new URLSearchParams();
+    for (const [key, value] of searchParams.entries()) params.append(key, value);
+    return params;
+  }, [searchParams]);
+
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMarketOntologyContext(parseMarketOntologyContext(new URLSearchParams(window.location.search)));
-  }, []);
+    setMarketOntologyContext(parseMarketOntologyContext(contextParams));
+  }, [contextParams]);
 
   // ── symbol change → rewrite ?symbol= shallowly, and tell AppShell's Brain host ──
   // `writeParam` uses `history.replaceState`, which fires no Next.js navigation and no
@@ -168,6 +176,7 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
   useEffect(() => {
     if (invalidSymbol || !symbolSettled) return;
     let alive = true;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIntel(null); setFund(null); setBars([]); setLast(null); setFundLoading(true);
     getJSON(`/data/${sym}.intel.json`).then((d) => { if (alive) setIntel(d); }).catch(() => {});
     getBars(sym).then((b) => { if (alive) setBars(b); }).catch(() => {});

@@ -4,11 +4,11 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin: 0 0 10px;
-  padding: 9px 12px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--panel);
+  margin: 12px 14px 10px;
+  padding: 10px 14px;
+  border: 1px solid color-mix(in srgb, var(--line) 85%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--panel) 92%, transparent);
   color: var(--text);
 }
 
@@ -16,6 +16,10 @@
   margin: 0;
   color: var(--muted);
   font: 700 11px/1.2 var(--font-ui);
+}
+
+.copy {
+  min-width: 0;
 }
 
 .body {
@@ -33,6 +37,7 @@
 .dates time {
   color: var(--muted);
   font: 700 11px/1.2 var(--font-num);
+  font-variant-numeric: tabular-nums;
 }
 
 .return {
@@ -55,6 +60,8 @@
   .strip {
     align-items: flex-start;
     flex-direction: column;
+    margin-right: 18px;
+    margin-left: 18px;
   }
 
   .return {
