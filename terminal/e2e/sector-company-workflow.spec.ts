@@ -47,7 +47,7 @@ test("table selection and browser Back restore exact comparison context", async 
   await root.getByRole("button", { name: "Select company: INTC", exact: true }).click();
   await expect(root.getByTestId("sector-company-inspector")).toContainText("INTC");
   await page.goBack();
-  await expect(root.getByRole("tab", { name: "Companies & exposure", exact: true })).toHaveAttribute("aria-selected", "true");
+  await expect(root.getByRole("tab", { name: "Companies", exact: true })).toHaveAttribute("aria-selected", "true");
   await expect(root.getByLabel("Find a ticker", { exact: true })).toHaveValue("INTC");
   await expect(root.getByLabel("Display order", { exact: true })).toHaveValue("relative");
   await page.goBack();

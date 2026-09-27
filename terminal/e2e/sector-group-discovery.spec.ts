@@ -5,14 +5,14 @@ test.setTimeout(90000);
 const url = "/discover?tab=sectors&sector=xlk&group=semiconductors&sectorTheme=light";
 // An explicitly synthetic second group tests identity/return navigation, not current membership.
 const groups = [
-  { key: "semiconductors", label: "Semiconductors", label_zh: "半导体", n_members: 14, n_priced: 14, entry: { tier: "T1" }, regime: { state: "EXTENDED" }, members: archivedMembers },
-  { key: "fixture-hardware", label: "Hardware test group", label_zh: "硬件测试分组", n_members: 1, n_priced: 0, entry: {}, regime: {}, members: [{ ticker: "TEST", price: null, ret_20d: null, vs_basket: null, stock_buyable: false }] },
+  { key: "semiconductors", kind: "subsector", sector: "Technology", sector_zh: "科技", label: "Semiconductors", label_zh: "半导体", n_members: 14, n_priced: 14, entry: { tier: "T1" }, regime: { state: "EXTENDED" }, members: archivedMembers },
+  { key: "fixture-hardware", kind: "subsector", sector: "Technology", sector_zh: "科技", label: "Hardware test group", label_zh: "硬件测试分组", n_members: 1, n_priced: 0, entry: {}, regime: {}, members: [{ ticker: "TEST", price: null, ret_20d: null, vs_basket: null, stock_buyable: false }] },
 ];
 async function prepare(page: Page, language = "en", denied = false) {
   await page.addInitScript(lang => { localStorage.setItem("mm.lang", lang); document.documentElement?.setAttribute("data-lang", lang); }, language);
   await page.route("**/api/sector-intelligence?**", route => {
     if (new URL(route.request().url()).searchParams.get("source") !== "confluence") return sectorFixture(route);
-    return route.fulfill({ status: denied ? 401 : 200, json: { data: denied ? null : { as_of: "2026-09-23", groups }, receipt: {
+    return route.fulfill({ status: denied ? 401 : 200, json: { data: denied ? null : { ok: true, as_of: "2026-09-23", subsectors: groups, sectors: [] }, receipt: {
       source: "confluence", status: denied ? "access" : "ready", path: "/marketdata/subsector_confluence.json", asOf: denied ? null : "2026-09-23", observedAt: "2026-09-26T10:00:00Z", stale: false, contentHash: null,
     } } });
   });
@@ -23,7 +23,7 @@ test("group discovery uses the real shared modal and returns focus on Escape", a
   const trigger = page.getByRole("button", { name: "Browse company groups", exact: true });
   await trigger.click(); const dialog = page.getByRole("dialog", { name: "Browse company groups", exact: true });
   await expect(dialog).toBeVisible();
-  await expect(dialog).toContainText("Groups are shown independently of the sector selection.");
+  await expect(dialog).toContainText("Source sector classification—not fund holdings or business exposure.");
   await expect(dialog.locator("[data-group-choice]")).toHaveCount(2);
   await expect(dialog.locator('[data-group-choice="semiconductors"]')).toHaveAttribute("aria-pressed", "true");
   await dialog.getByLabel("Find a group", { exact: true }).focus();
@@ -83,7 +83,8 @@ test("denied group feed never presents stale group choices", async ({ page }) =>
   await expect(dialog).toContainText("Sign in to read the company groups."); await expect(dialog.locator("[data-group-choice]")).toHaveCount(0);
   await expect(dialog.getByRole("link", { name: "Sign in", exact: true })).toHaveAttribute("href", "/login");
   await dialog.getByRole("button", { name: "Review sources", exact: true }).click();
-  await expect(dialog).not.toBeVisible(); await expect(page).toHaveURL(/sectorView=sources/);
+  await expect(dialog).not.toBeVisible(); await expect(page).toHaveURL(/sectorSources=1/);
+  expect(new URL(page.url()).searchParams.get("sectorView")).toBe("intelligence");
 });
 
 

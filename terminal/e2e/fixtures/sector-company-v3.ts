@@ -29,9 +29,9 @@ const data: Record<string, unknown> = {
     momentum: { rs_21d_rank: 1, rs_rank: 3, above_200d: true, lead: "leading" },
     heat: { breadth_pct: 58, adv: 46, dec: 33, heat_1M: 7.01 },
     cycle: { phaseLabel: "Rolling over" }, conviction: { label_en: "Cautious" }, rotation: { state: "TURN SIGNALED" } }] },
-  confluence: { as_of: "2026-09-23", groups: [{ key: "semiconductors", label: "Semiconductors", n_members: 14, n_priced: 14,
-    entry: { tier: "T1" }, regime: { state: "EXTENDED" }, members: archivedMembers }] },
-  themes: { as_of: "2026-09-23", themes: [{ theme_id: "memory_storage", name_en: "Memory, HBM & Storage", name_zh: "存储与HBM", stage: "WATCH", entry_ready: false }] },
+  confluence: { ok: true, as_of: "2026-09-23", subsectors: [{ key: "semiconductors", label: "Semiconductors", n_members: 14, n_priced: 14,
+    entry: { tier: "T1" }, regime: { state: "EXTENDED" }, members: archivedMembers }], sectors: [] },
+  themes: { schema: "neuralweb.theme_state.v1", as_of: "2026-09-23", themes: [{ theme_id: "memory_storage", name_en: "Memory, HBM & Storage", name_zh: "存储与HBM", stage: "WATCH", entry_ready: false }] },
 };
 const paths: Record<string, string> = { sector: "/sectordata/sector_central.json", confluence: "/marketdata/subsector_confluence.json", themes: "/neuralwebdata/theme_state.json", heatmap: "/marketdata/sp500_heatmap.json" };
 export async function sectorFixture(route: Route, mode: "ready" | "access" = "ready") {
