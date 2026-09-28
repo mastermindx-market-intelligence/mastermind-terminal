@@ -1,0 +1,136 @@
+{
+  "schema": "options-r3-integration-evidence/v1",
+  "date": "2026-09-28",
+  "session_id": "01a0e767-25f1-7982-a044-351295749fb6",
+  "status": "SOURCE_QUALIFIED_RELEASE_HELD",
+  "parent_mission_complete": false,
+  "source": {
+    "terminal_master": "b9828842d2c2129d1dbefa8213296001a3139eef",
+    "companion_723": "e1835187f3e7882f7761f000c98fe05be4db5569",
+    "identity_592": "87969fb4aff5836410ffd166cc39289b562a41bc",
+    "integration_base": "af8880f198c57eb60de41d823656ad9fcc35a3fa",
+    "reviewed_files": {
+      "terminal/components/gexdesk/GexDeskView.tsx": "b0294205e351177fae9be5e5638759c696a15acf5bda5fcb2da4802d3ad188a7",
+      "terminal/components/gexdesk/GexSummaryBar.tsx": "b7444c35a505ef4ddb9b6ca9a75ac0cb64ba6e11fbb3aaf7f5d79f1aba05502d",
+      "terminal/components/gexdesk/StrikeLadder.tsx": "04b7ffe359e760b56a080f22b9d27e7aa5fea271438c18f09f7d4bb934d4234a",
+      "terminal/components/gexdesk/gexStrings.ts": "d76c43111c379e73645a53ab67f794b2c9546c6d5001ba1556b43c980f5b4ac0",
+      "terminal/components/gexdesk/matrixDoc.ts": "da3e7c60927e52146589e428d6efa998bdc1ed2d10a215f47c3067232b1c1cf4",
+      "terminal/lib/__tests__/gexDeskPartialData.test.tsx": "4e983a867956da6c02787a9bbd121ce46aef5d914058576e91ec998b42a76975",
+      "terminal/lib/__tests__/gexDeskStateRace.test.tsx": "fb5b753788bf216b1555de2ae6d324ada0ff8b52ccfe7bf0ad65977e9f6bd27a",
+      "terminal/lib/__tests__/gexLadder.test.ts": "ce9047dad350becdcd65a5fb6ce43c44f41a6cdb649c9b90a6a0d555d7ae696d",
+      "terminal/lib/__tests__/gexLensCompleteness.test.ts": "e46f285a85c107c7608576104998dc50a39b793c4160efad116e685342d8ee3f",
+      "terminal/lib/dte.ts": "6ba5e5b601d33b504bc2c10aea6ded66f221c10d2c0867cc99763985ff2dfa3b",
+      "terminal/lib/gexLadder.ts": "40153bf34579d0730dc3f01d08da0a7255835df5cc442671f967d93c79d9e38c",
+      "terminal/lib/optionsCompanion.ts": "06342e461b634ee27001b33786d802e75d0baa3948d0370417beb511c23011b0"
+    },
+    "browser_test_sha256": "0ebfd44125c09017af2ef3838dc135d05567e7cadb016f19c04ef213caf4c602"
+  },
+  "checks": {
+    "full_vitest": {
+      "files": 412,
+      "passed": 6714,
+      "todo": 4,
+      "exit": 0
+    },
+    "focused_vitest": {
+      "files": 7,
+      "passed": 130,
+      "exit": 0
+    },
+    "next_typegen_tsc": {
+      "exit": 0
+    },
+    "existing_browser": {
+      "passed": 34,
+      "skipped": 2,
+      "note": "identity and companion cases in first scoped run; new test harness failures retained separately"
+    },
+    "new_browser": {
+      "passed": 12,
+      "failed": 0,
+      "retries": 0,
+      "viewports": [
+        [
+          1440,
+          900
+        ],
+        [
+          820,
+          1180
+        ],
+        [
+          390,
+          844
+        ]
+      ],
+      "locales": [
+        "en",
+        "zh"
+      ],
+      "log": "browser-completeness-r4.log"
+    },
+    "plain_language_added": {
+      "exit": 0
+    },
+    "scoped_lint": {
+      "new_diagnostics": 0,
+      "inherited_errors": 1,
+      "inherited_warnings": 1,
+      "note": "same set-state-in-effect and exhaustive-deps diagnostics reproduced from integration-base GexDeskView.tsx"
+    }
+  },
+  "review": {
+    "model": "glm-5.3",
+    "host": "mb",
+    "run_id": "rs_20260928T095934Z_80503",
+    "verdict": "PASS",
+    "scope": "12 hash-bound source/test files; no runtime or provider-methodology acceptance",
+    "inputs_unchanged": true,
+    "returncode": 0,
+    "residual_processes": 0,
+    "lease_id": "bda0e3b851bc",
+    "lease_state": "released",
+    "report_sha256": "f8fdb11a9946a317a4a4d19476d14556d20c3ac4708878ed5f545b144183a226"
+  },
+  "data": "Synthetic HTTP/SSE fixtures; no authenticated production data or upstream completeness proof.",
+  "captures": {
+    "captures/desktop-exposure-zh-partial.png": "7d33ef035820405e0deb4d408e07fc8ca185008ad34b3ee9204fed37b3d111ef",
+    "captures/tablet-exposure-zh-complete.png": "1662bb681470ef52cc1393b2ba161d3cb5d0444038d51b18b4c39a36e2323bde",
+    "captures/mobile-exposure-en-complete.png": "62c1031af057bfb9003a6ff2b0875195815e84e0fd759e9e6719b206a995528c",
+    "captures/desktop-exposure-en-complete.png": "9d1c4913c0ab1f923002c723770fca0c7491a0ff8459a47efcdf9827655f0487",
+    "captures/mobile-exposure-en-partial.png": "03b7825bd3d7842d9af7864abc7e709f1ec2d4bc6a2500deabdb00ca68b4d38d",
+    "captures/mobile-exposure-zh-partial.png": "2ab59f888e564000f83b0b8f2c8df80e75b511c35365e944c06122704ae8c4db",
+    "captures/desktop-exposure-zh-complete.png": "4f9942f94f425436df874e5896e2ac6ae95ff83e9e99b9cdec2f62152abc725b",
+    "captures/tablet-exposure-en-complete.png": "5bbeb64a1eabc50bb67b585a60203f35c33180fe02f1e6fad27795795e960bff",
+    "captures/desktop-exposure-en-partial.png": "aed29d9e27971d1e9e3b651ac6794f1569d3f5c78831c36d7f5f068e5bb97c3a",
+    "captures/mobile-exposure-zh-complete.png": "3262d6026bfe8846b94d1afc32f7d07f34b3689f125eaa3c97c362f554ad20c6",
+    "captures/tablet-exposure-zh-partial.png": "395f300f355ea085ff1b70b69960cb65fff2618a4ce4ef15b1559dca5aea0a8a",
+    "captures/tablet-exposure-en-partial.png": "476007daa7073b87af7560a27b7e494a33d23c55fb995662fc88d3bc2ab0082c"
+  },
+  "external_evidence": "/Volumes/Mastermind/evidence/options-r3-integration-20260928-01a0e767",
+  "logs_sha256": {
+    "plain-language.log": "3e72e1b5bb10e8c4fde2a6aa781c0b8a58a273bda13c8aa3dea7cceb416db31f",
+    "typecheck-final.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lint.log": "a8677ca4730529e2e43a953302cd7744bd2809e9593435b6d29c83cf3827d74a",
+    "browser-completeness.log": "c072e80844299cfc688a5f5b69a4f284ff340d9842dc78efbeea6c9a9359e080",
+    "typecheck.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "browser-completeness-final.log": "ad861a46d5e677f4772433ad5d4c363cacd4448fdc10eb73af69632ff2cd0cc6",
+    "browser-scoped.log": "9dbab1b3b40b148d4e606c0be55a9bb7ed5b4e6ab6c26b1f2c2622b113f69501",
+    "vitest.log": "d25808c8c4791c8e3fdc96b84d630b9f5cd1014981f5a991ae488b5af5e52243",
+    "lint-baseline.log": "4deea8bb903ca020ecc5b7bc354fefdf48dacce438632bb5ab42b53298d91ec0",
+    "browser-completeness-r4.log": "53e2022ca9e5a73dc9b4c12128b76819780112e026c0609d1d2a4998f81b63ec"
+  },
+  "limits": [
+    "Hosted CI and full responsive suite not yet qualified at this checkpoint.",
+    "Production data and release holds on #723/#7861 remain.",
+    "Existing source workspaces and branches retained; contribution does not transfer ownership.",
+    "Dark Exposure captures only; existing companion light-panel fixtures are not a Terminal-wide light design.",
+    "No inactive alert draft persistence, provider/Greek methodology certification, production deploy or live acceptance."
+  ],
+  "failure_history": [
+    "First scoped run: 12 new harness failures plus 34 existing passes/2 skips; expected aria-disabled=false on the matrix control.",
+    "Second new-test run: 12 failures from targeting matrix 0DTE instead of the ladder expiry lens.",
+    "Third run: two English passes and one Chinese failure; corrected localized ladder label, remaining cases not run.",
+    "Fourth run: all 12 new cases passed without retry."
+  ]
+}

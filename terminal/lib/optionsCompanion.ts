@@ -1,3 +1,4 @@
+import { isoSession } from "./dte";
 /** Read-only adapters for the chart's options companion. No financial formula lives here.
  * Matrix GEX is dollars / +1% spot; the canonical GEX ladder's Vanna is millions /
  * +1 absolute vol point. Legacy matrix vex_mn is NOT dealer-signed and is never used.
@@ -39,11 +40,7 @@ export function optionsRoot(symbol: string): string | null {
   return value.length <= 12 && /^[A-Z][A-Z0-9]*(?:\.[A-Z0-9]+)?$/.test(value) ? value : null;
 }
 
-export function isoSession(value: unknown): string | null {
-  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
-  const ms = Date.parse(`${value}T00:00:00Z`);
-  return Number.isFinite(ms) && new Date(ms).toISOString().slice(0, 10) === value ? value : null;
-}
+export { isoSession } from "./dte";
 
 /** UTC is used only to reject impossible future source sessions, not to infer 0DTE. */
 function validSession(value: unknown, nowMs: number): string | null {
