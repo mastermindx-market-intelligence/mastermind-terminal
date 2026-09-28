@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { StrikeExpiryMatrix, buildMatrixGrid, matrixExactScopeStats, matrixCellValue, fmtMatrixCell,
+import { StrikeExpiryMatrix, buildMatrixGrid, matrixExactScopeStats, matrixSelectedNodeContext, matrixCellValue, fmtMatrixCell,
   type MatrixCellSelection, type MatrixDisplayMetric, type MatrixNorm } from "@/components/shared/StrikeExpiryMatrix";
 import { readCompanionMatrix, matrixForExpiry, type CompanionIssue, type OptionsChartLevel } from "@/lib/optionsCompanion";
 import { useOptionsSnapshot } from "./useOptionsSnapshot";
@@ -43,10 +43,15 @@ export function MatrixCompanion({ root, metric, prefs, onPrefs, t, ...pin }: Pin
   const snapshot = useOptionsSnapshot(`matrix:${root}`);
   const receipt = useMemo(() => readCompanionMatrix(snapshot.data, root), [snapshot.data, root]);
   const data = receipt.ok ? receipt.value : null;
-  const grid = useMemo(() => data ? buildMatrixGrid({ matrix: matrixForExpiry(data, prefs.expiries === "0dte" ? "0dte" : "all"),
-    metric, maxCols: prefs.expiries === "0dte" ? 1 : Number(prefs.expiries), windowPct: prefs.window,
+  const scopedDoc = useMemo(() => data ? matrixForExpiry(data, prefs.expiries === "0dte" ? "0dte" : "all") : null,
+    [data, prefs.expiries]);
+  const maxCols = prefs.expiries === "0dte" ? 1 : Number(prefs.expiries);
+  const grid = useMemo(() => scopedDoc ? buildMatrixGrid({ matrix: scopedDoc, metric, maxCols, windowPct: prefs.window,
     maxRows: 101, exactStrikes: true, normalization: prefs.norm, scope: "all", withSigma: true }) : null,
-  [data, metric, prefs.expiries, prefs.norm, prefs.window]);
+  [scopedDoc, metric, maxCols, prefs.norm, prefs.window]);
+  const scopeGrid = useMemo(() => scopedDoc ? buildMatrixGrid({ matrix: scopedDoc, metric, maxCols, windowPct: prefs.window,
+    maxRows: 10_000, exactStrikes: true, normalization: prefs.norm, scope: "all" }) : null,
+  [scopedDoc, metric, maxCols, prefs.norm, prefs.window]);
   const [selection, setSelection] = useState<(MatrixCellSelection & { session: string }) | null>(null);
   const [scopeOpen, setScopeOpen] = useState(false);
   const [draftPrefs, setDraftPrefs] = useState<MatrixPreferences>(prefs);
@@ -63,13 +68,13 @@ export function MatrixCompanion({ root, metric, prefs, onPrefs, t, ...pin }: Pin
   function openScope() { setDraftPrefs(prefs); setScopeOpen(true); }
   function cancelScope() { setDraftPrefs(prefs); setScopeOpen(false); }
   function applyScope() { if (!samePrefs(draftPrefs, prefs)) onPrefs(draftPrefs); setScopeOpen(false); }
-  const stats = useMemo(() => data ? matrixExactScopeStats(
-    matrixForExpiry(data, prefs.expiries === "0dte" ? "0dte" : "all"), metric, prefs.window,
-    prefs.expiries === "0dte" ? 1 : Number(prefs.expiries),
-  ) : { total: null, missing: false, known: 0, expected: 0 }, [data, metric, prefs]);
+  const stats = useMemo(() => scopedDoc ? matrixExactScopeStats(scopedDoc, metric, prefs.window, maxCols)
+    : { total: null, missing: false, known: 0, expected: 0 }, [scopedDoc, metric, prefs.window, maxCols]);
   const units = t(metric === "gex" ? "unitsGex" : "contracts");
   const selectedCell = selectionCurrent ? data?.doc.cells?.find((cell) => cell.strike === selectionCurrent.strike && cell.expiry === selectionCurrent.expiry) : null;
   const selectedValue = selectedCell ? matrixCellValue(selectedCell, metric) : null;
+  const nodeContext = useMemo(() => selectedVisible && scopeGrid ? matrixSelectedNodeContext(scopeGrid, metric, selectedVisible) : null,
+    [selectedVisible, scopeGrid, metric]);
   const headline = metric === "gex" ? "scopeGex" : metric === "oi" ? "scopeOi" : metric === "doi" ? "scopeDoi" : "scopeVolume";
   const note = t(metric === "gex" ? "estimate" : metric === "vol" ? "volumeNote" : "oiNote");
   const scopeMeta = `${prefs.expiries === "0dte" ? "0DTE" : `${prefs.expiries} ${t("expiry")}`} · ±${prefs.window}% · ${t(prefs.norm === "global" ? "global" : "column")}`;
@@ -123,7 +128,27 @@ export function MatrixCompanion({ root, metric, prefs, onPrefs, t, ...pin }: Pin
         {selectionCurrent ? <>
           <div className={styles.inspectorTitle}><strong>{selectionCurrent.strike} · {selectionCurrent.expiry}</strong><b>{selectedValue == null ? "—" : fmtMatrixCell(selectedValue, metric)}</b></div>
           <p>{units} · {data.session}</p><p>{selectedValue == null ? t("missing") : note}</p>
-          {selectionOutside && <p className={styles.warning} data-testid="options-selection-outside">{t("outsideView")}</p>}
+          {selectionOutside && <><p className={styles.warning} data-testid="options-selection-outside">{t("outsideView")}</p><p>{t("contextUnavailable")}</p></>}
+          {nodeContext && <section className={styles.nodeContext} aria-label={t("nodeContext")} data-testid="options-node-context">
+            <span className={styles.nodeContextTitle}>{t("nodeContext")}</span>
+            <div className={styles.nodeStats}>
+              <div><span>{t("strikeTotal")}</span><b>{nodeContext.strikeTotal == null ? "—" : fmtMatrixCell(nodeContext.strikeTotal, metric)}</b></div>
+              <div><span>{t("ex0dte")}</span><b>{nodeContext.ex0dteTotal == null ? "—" : fmtMatrixCell(nodeContext.ex0dteTotal, metric)}</b></div>
+              <div><span>{t("scopeRank")}</span><b>{nodeContext.rank == null ? "—" : `#${nodeContext.rank} / ${nodeContext.scopeKnown}`}</b></div>
+              <div><span>{t("strikeShare")}</span><b>{nodeContext.strikeSharePct == null ? "—" : `${nodeContext.strikeSharePct.toFixed(1)}%`}</b></div>
+            </div>
+            <div className={styles.expiryMix}><span>{t("expiryMix")}</span>
+              {nodeContext.expiryRows.map((row) => {
+                const width = row.value == null || nodeContext.maxStrikeAbs <= 0 ? 0 : Math.abs(row.value) / nodeContext.maxStrikeAbs * 50;
+                const barStyle = row.value == null ? undefined : row.value >= 0 ? { left: "50%", width: `${width}%` } : { right: "50%", width: `${width}%` };
+                return <div className={styles.expiryRow} key={row.expiry}>
+                  <time dateTime={row.expiry}>{row.expiry.slice(5)}</time><span className={styles.expiryTrack} aria-hidden="true">
+                    {row.value != null && row.value !== 0 && <i className={row.value > 0 ? styles.nodeBarPositive : styles.nodeBarNegative} style={barStyle} />}
+                  </span><b>{row.value == null ? "—" : fmtMatrixCell(row.value, metric)}</b>
+                </div>;
+              })}
+            </div>
+          </section>}
           <div className={styles.actions}><PinButton {...pin} root={root} strike={selectionCurrent.strike} session={data.session} label={`${t("strike")} ${selectionCurrent.strike} · EOD`} t={t} />
             <button type="button" onClick={() => select(null)} className={styles.link}>{t("clear")}</button></div>
         </> : <><strong>{t("select")}</strong><p>{t("keyboard")}</p></>}

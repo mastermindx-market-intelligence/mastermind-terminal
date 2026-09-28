@@ -56,6 +56,8 @@ for (const lang of ["en", "zh"] as const) {
     const laterExpiry = panel.locator('[data-options-grid] button[aria-label*="2026-07-13"][data-value]:not([data-value="missing"]):not([data-value="0"])').first();
     await expect(laterExpiry).toBeVisible(); await laterExpiry.click();
     await expect(panel.locator("[data-options-inspector]")).toContainText("2026-07-10");
+    await expect(panel.getByTestId("options-node-context")).toContainText(lang === "zh" ? "行权价合计" : "Strike Σ");
+    await expect(panel.getByTestId("options-node-context")).toContainText(lang === "zh" ? "范围排名" : "Scope rank");
     await panel.getByRole("button", { name: lang === "zh" ? "在图表标记行权价" : "Pin strike on chart", exact: true }).click();
     await expect.poll(async () => !!(await chartPin(page))).toBe(true);
     const pinned = await chartPin(page); if (!pinned) throw new Error("Missing native price pin"); expect(pinned.price).toBeGreaterThan(0); expect(pinned.lineStyle).toBe(2);

@@ -101,6 +101,9 @@ describe("transactional companion scope", () => {
     await act(async () => { await Promise.resolve(); await Promise.resolve(); });
     const oct = element.querySelector<HTMLButtonElement>('button[aria-label^="194, 2026-10-02:"]')!;
     expect(oct).toBeTruthy(); await act(async () => oct.click()); expect(oct.getAttribute("aria-pressed")).toBe("true");
+    const context = element.querySelector('[data-testid="options-node-context"]');
+    expect(context?.textContent).toContain("Node context"); expect(context?.textContent).toContain("Strike Σ");
+    expect(context?.textContent).toContain("Scope rank"); expect(context?.textContent).toContain("Expiry mix at this strike");
     const open = element.querySelector<HTMLButtonElement>('[data-testid="options-scope-toggle"]')!;
     await act(async () => open.click());
     const expiries = element.querySelector<HTMLSelectElement>('[data-testid="options-scope-expiries"]')!;

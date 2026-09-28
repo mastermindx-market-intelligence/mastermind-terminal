@@ -3,7 +3,7 @@ import { optionsRoot, isoSession, readCompanionMatrix, readVannaProfile, matrixF
 import { optionsReadAccess } from "../optionsAccess";
 import { gateEntitlement, type EntitlementSnapshot } from "../entitlementStore";
 import { syncOptionsPricePin, removeOptionsPricePin } from "../optionsChartPin";
-import { buildMatrixGrid, matrixExactScopeStats, matrixCellValue, matrixCellTone, fmtMatrixCell } from "@/components/shared/StrikeExpiryMatrix";
+import { buildMatrixGrid, matrixExactScopeStats, matrixSelectedNodeContext, matrixCellValue, matrixCellTone, fmtMatrixCell } from "@/components/shared/StrikeExpiryMatrix";
 
 const now = Date.parse("2026-09-23T15:00:00Z");
 const cell = (strike = 192, expiry = "2026-09-25") => ({ strike, expiry, gex: 2_500_000, call_oi: 3, put_oi: 5 });
@@ -77,6 +77,18 @@ describe("companion source boundaries", () => {
     expect(stats).toEqual({ total: 161, missing: false, known: 161, expected: 161 });
     const grid = buildMatrixGrid({ matrix: receipt.value.doc, metric: "gex", exactStrikes: true, windowPct: 25, maxRows: 101, maxCols: 3 })!;
     expect(grid.strikes).toHaveLength(101);
+  });
+  it("derives selected-node strike totals, ex-0DTE context, rank and net-share without price semantics", () => {
+    const doc = { ...matrix(), spot: 193, _build_meta: { asof_date: "2026-09-25" }, cells: [
+      { ...cell(192, "2026-09-25"), gex: 2_500_000 }, { ...cell(192, "2026-10-02"), gex: -500_000 },
+      { ...cell(194, "2026-09-25"), gex: 5_000_000 }, { ...cell(194, "2026-10-02"), gex: 1_000_000 },
+    ] };
+    const grid = buildMatrixGrid({ matrix: doc, metric: "gex", exactStrikes: true, windowPct: 25, maxRows: 10_000, maxCols: 3 })!;
+    const context = matrixSelectedNodeContext(grid, "gex", { strike: 192, expiry: "2026-09-25" });
+    expect(context.strikeTotal).toBe(2); expect(context.ex0dteTotal).toBe(-.5);
+    expect(context.rank).toBe(2); expect(context.scopeKnown).toBe(4);
+    expect(context.strikeSharePct).toBeCloseTo(83.333333, 5); expect(context.maxStrikeAbs).toBe(2.5);
+    expect(context.expiryRows).toEqual([{ expiry: "2026-09-25", value: 2.5 }, { expiry: "2026-10-02", value: -.5 }]);
   });
   it("validates canonical Vanna profiles, preserving nulls and the all-expiry basis", () => {
     const r = readVannaProfile({ NVDA: profile() }, "NVDA", now); expect(r.ok).toBe(true);

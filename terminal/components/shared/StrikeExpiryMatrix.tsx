@@ -191,6 +191,37 @@ export function matrixExactScopeStats(matrix: StrikeExpiryDoc, metric: MatrixDis
   return { total: known ? total : null, missing: known < expected, known, expected };
 }
 
+export interface MatrixSelectedNodeContext {
+  strikeTotal: number | null;
+  ex0dteTotal: number | null;
+  rank: number | null;
+  scopeKnown: number;
+  strikeSharePct: number | null;
+  expiryRows: Array<{ expiry: string; value: number | null }>;
+  maxStrikeAbs: number;
+}
+
+/** Deterministic selected-node context over the exact analytical scope; never a price forecast. */
+export function matrixSelectedNodeContext(
+  grid: MatrixGridModel, metric: MatrixDisplayMetric, selected: MatrixCellSelection,
+): MatrixSelectedNodeContext {
+  const expiryRows = grid.exps.map((expiry) => {
+    const cell = grid.byKey.get(`${selected.strike}|${expiry}`);
+    return { expiry, value: cell ? matrixCellValue(cell, metric) : null };
+  });
+  const knownAtStrike = expiryRows.filter((row): row is { expiry: string; value: number } => row.value != null);
+  const strikeTotal = knownAtStrike.length ? knownAtStrike.reduce((sum, row) => sum + row.value, 0) : null;
+  const ex0dte = knownAtStrike.filter((row) => row.expiry.slice(0, 10) !== grid.sessionDate);
+  const ex0dteTotal = ex0dte.length ? ex0dte.reduce((sum, row) => sum + row.value, 0) : null;
+  const selectedValue = expiryRows.find((row) => row.expiry === selected.expiry)?.value ?? null;
+  const strikeAbs = knownAtStrike.reduce((sum, row) => sum + Math.abs(row.value), 0);
+  const strikeSharePct = selectedValue != null && strikeAbs > 0 ? Math.abs(selectedValue) / strikeAbs * 100 : null;
+  const scopeValues = [...grid.byKey.values()].map((cell) => matrixCellValue(cell, metric)).filter((value): value is number => value != null);
+  const rank = selectedValue == null ? null : 1 + scopeValues.filter((value) => Math.abs(value) > Math.abs(selectedValue)).length;
+  return { strikeTotal, ex0dteTotal, rank, scopeKnown: scopeValues.length, strikeSharePct, expiryRows,
+    maxStrikeAbs: knownAtStrike.reduce((max, row) => Math.max(max, Math.abs(row.value)), 0) };
+}
+
 export function fmtMatrixCell(v: number, m: MatrixDisplayMetric): string {
   if (m === "gex") return formatExposureMn(v);
   const a = Math.abs(v);
