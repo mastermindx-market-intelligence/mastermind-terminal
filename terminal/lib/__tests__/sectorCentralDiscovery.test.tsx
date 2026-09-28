@@ -25,7 +25,7 @@ describe("Sector Central discovery and breadth", () => {
   let root: Root, host: HTMLDivElement;
   const select = vi.fn(), open = vi.fn(), query = vi.fn(), companyQuery = vi.fn(), sort = vi.fn(), companySort = vi.fn(), mode = vi.fn(), timeframe = vi.fn();
   const clearCompanyFilters = vi.fn(), clearScope = vi.fn();
-  const industry = vi.fn(), band = vi.fn(), cell = vi.fn(), company = vi.fn(), sources = vi.fn();
+  const industry = vi.fn(), band = vi.fn(), cell = vi.fn(), inspect = vi.fn(), company = vi.fn(), sources = vi.fn();
   const render = async (patch: Partial<SectorCentralDiscoveryProps> = {}) => {
     await act(async () => root.render(<LangProvider><SectorCentralDiscovery rows={rows} status="ready" asOf="2026-09-25"
       selected="xlk" selectedSourceName="Technology" selectedCompany="" query="" companyTableQuery="" sort="source" companyTableSort="source"
@@ -34,7 +34,7 @@ describe("Sector Central discovery and breadth", () => {
       onQuery={query} onCompanyTableQuery={companyQuery} onSort={sort} onCompanyTableSort={companySort}
       onClearCompanyFilters={clearCompanyFilters} onClearScope={clearScope}
       onMode={mode} onTimeframe={timeframe} onIndustry={industry} onBand={band}
-      onMatrixCell={cell} onCompany={company} onSelect={select} onOpenResearch={open} onSources={sources} {...patch} /></LangProvider>));
+      onMatrixCell={cell} onInspectIndustry={inspect} onCompany={company} onSelect={select} onOpenResearch={open} onSources={sources} {...patch} /></LangProvider>));
   };
   beforeEach(() => {
     vi.clearAllMocks(); document.documentElement.setAttribute("data-lang", "en");
@@ -57,6 +57,15 @@ describe("Sector Central discovery and breadth", () => {
     expect(discoveryRead(rows, "en")).toBe("Technology leads 1M returns (+7.40%); 1 of 3 observed sectors have majority participation.");
     expect(breadthRead(rows, "en")).toBe("Breadth is narrow; Technology is the only sector with majority participation.");
     expect(discoveryRead([{ ...rows[0], heat: {} }], "en")).toBeNull();
+  });
+  it("renders Summary as an answer-first representation over the same exact population", async () => {
+    await render({ mode: "summary" });
+    expect(host.querySelector('[data-testid="sector-industry-summary"]')).not.toBeNull();
+    expect(host.querySelectorAll("[data-summary-industry-row]")).toHaveLength(2);
+    expect(host.textContent).toContain("Hardware leads cap-weighted 1D performance (+3.25% on 2/2 names observed)");
+    const action = host.querySelector('[data-summary-industry-action="Hardware"]') as HTMLButtonElement;
+    await act(async () => action.click());
+    expect(inspect).toHaveBeenCalledWith("Hardware");
   });
   it("renders the complete selected-sector company table with the answer before mechanics", async () => {
     await render();
@@ -87,8 +96,11 @@ describe("Sector Central discovery and breadth", () => {
     expect(host.querySelector('[data-sector-choice] span[style]')).toBeNull();
     expect(host.textContent).not.toContain("150%"); expect(host.textContent).not.toContain("-1 advancing");
   });
-  it("switches the same exact company population across Discover representations", async () => {
+  it("switches the same exact company population across four distinct Discover representations", async () => {
     await render(); expect(host.querySelectorAll("[data-company-table-row]")).toHaveLength(4);
+    expect(host.querySelectorAll('[role="group"] button')).toHaveLength(4);
+    const summary = Array.from(host.querySelectorAll("button")).find(button => button.textContent === "Summary")!;
+    await act(async () => summary.click()); expect(mode).toHaveBeenCalledWith("summary");
     const heatmap = Array.from(host.querySelectorAll("button")).find(button => button.textContent === "Heatmap")!;
     await act(async () => heatmap.click()); expect(mode).toHaveBeenCalledWith("heatmap");
     await render({ mode: "heatmap" });
@@ -121,14 +133,16 @@ describe("Sector Central discovery and breadth", () => {
 });
 
 describe("Discovery to detail URL continuity", () => {
-  it("uses discovery for a fresh Sector Central visit", () => {
-    expect(parseSectorState(new URLSearchParams("tab=sectors")).workspace).toBe("discover");
+  it("uses answer-first Summary for a fresh Sector Central visit", () => {
+    const state = parseSectorState(new URLSearchParams("tab=sectors"));
+    expect(state.workspace).toBe("discover");
+    expect(state.discoveryMode).toBe("summary");
   });
   it.each(["sectorView=companies", "sector=xlk&group=semiconductors", "sectorCompany=MU", "sectorView=dossier"])("keeps the old detail URL %s", value => {
     expect(parseSectorState(new URLSearchParams(value)).workspace).toBe("detail");
   });
-  it("admits Heatmap as a durable Discover representation", () => {
-    expect(parseSectorState(new URLSearchParams("sectorDiscoveryMode=heatmap")).discoveryMode).toBe("heatmap");
+  it.each(["summary", "table", "heatmap", "matrix"] as const)("admits %s as a durable Discover representation", discoveryMode => {
+    expect(parseSectorState(new URLSearchParams(`sectorDiscoveryMode=${discoveryMode}`)).discoveryMode).toBe(discoveryMode);
   });
   it.each(["rotation", "discover", "breadth", "detail"] as const)("retains %s, representations, matrix context and the selected object", workspace => {
     const state = { ...DEFAULT_SECTOR_STATE, workspace, discoveryQuery: "Tech", discoverySort: "participation" as const,
@@ -141,7 +155,7 @@ describe("Discovery to detail URL continuity", () => {
   it("bounds new state and refuses unknown representation, timeframe and band tokens", () => {
     const state = parseSectorState(new URLSearchParams(`sectorWorkspace=unknown&sectorDiscoverySort=score&sectorCompanyTableSort=rank&sectorCompanyTableQuery=${"q".repeat(90)}&sectorDiscoveryMode=bubbles&sectorMatrixTimeframe=2Y&sectorMatrixBand=giant&sectorMatrixIndustry=${"z".repeat(150)}&sectorDiscoveryQuery=${"x".repeat(90)}&sectorRotationMode=tiles&sectorRotationQuery=${"y".repeat(90)}`));
     expect(state.workspace).toBe("discover"); expect(state.discoverySort).toBe("source"); expect(state.companyTableSort).toBe("source"); expect(state.companyTableQuery).toHaveLength(60); expect(state.discoveryQuery).toHaveLength(60);
-    expect(state.discoveryMode).toBe("table"); expect(state.matrixTimeframe).toBe("1D"); expect(state.matrixBand).toBe(""); expect(state.matrixIndustry).toHaveLength(120);
+    expect(state.discoveryMode).toBe("summary"); expect(state.matrixTimeframe).toBe("1D"); expect(state.matrixBand).toBe(""); expect(state.matrixIndustry).toHaveLength(120);
     expect(state.rotationMode).toBe("map"); expect(state.rotationQuery).toHaveLength(60);
   });
 });

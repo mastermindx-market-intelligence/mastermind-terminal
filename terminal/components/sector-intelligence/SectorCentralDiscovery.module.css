@@ -1,5 +1,5 @@
 .root { min-width: 0; color: var(--text); }
-.representations { display: flex; width: fit-content; gap: 4px; margin-top: 18px; padding: 3px; border: 1px solid var(--line); border-radius: var(--r-ctl); background: var(--panel-2); }
+.representations { display: flex; flex-wrap: wrap; width: fit-content; max-width: 100%; gap: 4px; margin-top: 18px; padding: 3px; border: 1px solid var(--line); border-radius: var(--r-ctl); background: var(--panel-2); }
 .representations button { min-height: 38px; padding: 7px 14px; border: 1px solid transparent; border-radius: calc(var(--r-ctl) - 2px); background: transparent; color: var(--text-2); font: 600 12px var(--font-ui); cursor: pointer; }
 .representations button[aria-pressed="true"] { border-color: var(--line); background: var(--panel); color: var(--link); }
 .header { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; padding: 18px 0 10px; }
@@ -47,7 +47,8 @@
 .root :is(button,input,select):focus-visible { outline: 2px solid var(--brand-2); outline-offset: 3px; }
 @media (max-width: 950px) { .breadthGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 560px) {
-  .representations { margin-top: 14px; }
+  .representations { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); width: 100%; margin-top: 14px; }
+  .representations button { width: 100%; }
   .header { align-items: flex-start; gap: 16px; padding-top: 14px; }
   .receipt { max-width: 118px; text-align: right; line-height: 1.45; }
   .answer { padding: 12px 13px; }

@@ -23,7 +23,7 @@ export type MemberSort = "source" | "return" | "relative" | "ticker";
 export type SectorWorkspace = "rotation" | "discover" | "breadth" | "detail";
 export type SectorDiscoverySort = "source" | "return" | "participation";
 export type SectorCompanyTableSort = "source" | "performance" | "marketcap" | "ticker";
-export type SectorDiscoveryMode = "table" | "heatmap" | "matrix";
+export type SectorDiscoveryMode = "summary" | "table" | "heatmap" | "matrix";
 export type SectorMatrixTimeframe = "1D" | "1W" | "MTD" | "1M" | "3M" | "6M" | "YTD" | "1Y";
 export type SectorCapBand = "mega" | "large" | "mid" | "smaller";
 export type SectorRotationMode = "map" | "list";
@@ -35,7 +35,7 @@ export type SectorState = {
 };
 export const DEFAULT_SECTOR_STATE: SectorState = {
   view: "intelligence", sector: "xlk", group: "semiconductors", sort: "source", query: "", theme: "dark", company: "", expanded: false, sourcesOpen: false,
-  workspace: "discover", discoveryQuery: "", discoverySort: "source", companyTableQuery: "", companyTableSort: "source", discoveryMode: "table", matrixTimeframe: "1D", matrixIndustry: "", matrixBand: "",
+  workspace: "discover", discoveryQuery: "", discoverySort: "source", companyTableQuery: "", companyTableSort: "source", discoveryMode: "summary", matrixTimeframe: "1D", matrixIndustry: "", matrixBand: "",
   rotationMode: "map", rotationQuery: "",
 };
 export function object(value: unknown): Row {
@@ -165,7 +165,7 @@ export function parseSectorState(params: URLSearchParams): SectorState {
     discoverySort: discoverySort === "return" || discoverySort === "participation" ? discoverySort : "source",
     companyTableQuery: (params.get("sectorCompanyTableQuery") || "").slice(0, 60),
     companyTableSort: ["source", "performance", "marketcap", "ticker"].includes(companyTableSort || "") ? companyTableSort as SectorCompanyTableSort : "source",
-    discoveryMode: discoveryMode === "heatmap" || discoveryMode === "matrix" ? discoveryMode : "table",
+    discoveryMode: discoveryMode === "table" || discoveryMode === "heatmap" || discoveryMode === "matrix" ? discoveryMode : "summary",
     matrixTimeframe: ["1D", "1W", "MTD", "1M", "3M", "6M", "YTD", "1Y"].includes(matrixTimeframe || "") ? matrixTimeframe as SectorMatrixTimeframe : "1D",
     matrixIndustry: (params.get("sectorMatrixIndustry") || "").slice(0, 120),
     matrixBand: ["mega", "large", "mid", "smaller"].includes(matrixBand || "") ? matrixBand as SectorCapBand : "",

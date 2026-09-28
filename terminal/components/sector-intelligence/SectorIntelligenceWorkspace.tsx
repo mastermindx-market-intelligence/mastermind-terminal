@@ -293,6 +293,7 @@ export default function SectorIntelligenceWorkspace() {
         onIndustry={matrixIndustry => change({ matrixIndustry }, true)}
         onBand={matrixBand => change({ matrixBand }, true)}
         onMatrixCell={(matrixIndustry, matrixBand) => change({ matrixIndustry, matrixBand }, true)}
+        onInspectIndustry={matrixIndustry => change({ discoveryMode: "table", matrixIndustry, matrixBand: "", companyTableQuery: "", company: "" }, true)}
         onCompany={company => change({ company }, true)} onSources={() => openSources()}
         onSelect={sector => change({ sector, matrixIndustry: "", matrixBand: "", company: "" }, true)}
         onOpenResearch={openSectorResearch} /> : <>
