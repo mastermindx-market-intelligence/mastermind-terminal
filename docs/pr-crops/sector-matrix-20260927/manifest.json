@@ -1,0 +1,304 @@
+{
+  "operation": "sector-intelligence-terminal-20260926-sol-001",
+  "parent": "macro#7646 / sector-central-redesign-20260921-sol-001",
+  "predecessor": "48d296d84b99141b55dbf9d059abd3e34fcab27a",
+  "source": {
+    "ref": "f94256971e49b6372645af3d329080d6e3747ea9",
+    "repository": "mastermindx-market-intelligence/macro",
+    "files": {
+      "sector": {
+        "path": "site/sectordata/sector_central.json",
+        "sha256": "61a45950781430f66fe00a93f64325819d226f6f36b704f9f899dd106b0b2dc1",
+        "bytes": 167883,
+        "asOf": "2026-09-25"
+      },
+      "heatmap": {
+        "path": "site/marketdata/sp500_heatmap.json",
+        "sha256": "beeadcf92f52b363ebed2ae458acf658702a8d0822e84ef3cc3531b278129961",
+        "bytes": 118755,
+        "asOf": "2026-09-25"
+      }
+    },
+    "purpose": "R10 selected-sector Industry x market-cap exact-owner browser qualification input"
+  },
+  "implementation": {
+    "terminal/components/sector-intelligence/SectorIndustryMatrix.tsx": {
+      "sha256": "e3a3d6a1d66359e2a1e51cc1cbb977d5112b1f8865c6f73ea07c919e9f5fcabb",
+      "bytes": 15157
+    },
+    "terminal/components/sector-intelligence/SectorIndustryMatrix.module.css": {
+      "sha256": "4513e76bdd0ebdcdbb8a862ea550c46444390a3427827b8681e5bc47720e4580",
+      "bytes": 7760
+    },
+    "terminal/components/sector-intelligence/SectorCentralDiscovery.tsx": {
+      "sha256": "aa4102561cf0210edb0f5a0e33ca6392da5d1d982b1eecb8fe88de26dcf2e1a8",
+      "bytes": 12984
+    },
+    "terminal/components/sector-intelligence/SectorCentralDiscovery.module.css": {
+      "sha256": "65666f326be555899a426075d3ff2e1736e68549bee5914cac09b6434ad45450",
+      "bytes": 7025
+    },
+    "terminal/components/sector-intelligence/SectorIntelligenceWorkspace.tsx": {
+      "sha256": "5ff602d5e47c5e7f26845fd2fa943b701e66c233134332f7605ce239220cd59a",
+      "bytes": 30609
+    },
+    "terminal/components/sector-intelligence/SectorRotationMap.tsx": {
+      "sha256": "ceb66df09efcbae8f76aa460511811937038f814503a2f120e8df24ab4feeb83",
+      "bytes": 20461
+    },
+    "terminal/lib/sectorIntelligence.ts": {
+      "sha256": "4d1ad0fbfdb4c506d2033952b1a43c56f752fed5cb5c52967f6cc9203a68099a",
+      "bytes": 13580
+    },
+    "terminal/lib/__tests__/sectorIndustryMatrix.test.tsx": {
+      "sha256": "6024a1302c845cb6d4cf5c76d3878c44ff8036196c60030b07a5b8d8781925a6",
+      "bytes": 8131
+    },
+    "terminal/lib/__tests__/sectorCentralDiscovery.test.tsx": {
+      "sha256": "4f54f677fba2d9508ac1850bb9c3c40d902a365425d904606b901d34147e5df2",
+      "bytes": 9553
+    },
+    "terminal/e2e/tools/qualify_sector_matrix.cjs": {
+      "sha256": "966255974554e8ecc61e91f500c7e9a54e2b1c5267e56e9371a76bd820ec4d56",
+      "bytes": 12549
+    },
+    "terminal/e2e/tools/qualify_sector_discovery.cjs": {
+      "sha256": "777c5acf32e82976f74b3d238cfee66405110a013dca4a0708c2f6ead2c9e034",
+      "bytes": 10834
+    }
+  },
+  "implementationAggregateSha256": "7b3567def3c9648ee442eed6a5626d4c6838fea1d273324e8ff611aec13e7e64",
+  "matrixQualification": {
+    "path": "docs/pr-crops/sector-matrix-20260927/exact-owner-r7/qualification.json",
+    "passed": true,
+    "checks": 81,
+    "screenshots": 5,
+    "errors": 0
+  },
+  "discoveryRegression": {
+    "path": "docs/pr-crops/sector-discovery-20260926/journey-r10-regression-r2/qualification.json",
+    "passed": true,
+    "checks": 106,
+    "screenshots": 10,
+    "errors": 0
+  },
+  "evidence": {
+    "docs/pr-crops/sector-matrix-20260927/exact-owner-r1/qualification.json": {
+      "sha256": "e202311124348a9fd01e7c4e4165a92e5aa09829bad5c7adc05e662174798cb4",
+      "bytes": 1404
+    },
+    "docs/pr-crops/sector-matrix-20260927/exact-owner-r2/chromium-1440-en-light-matrix.png": {
+      "sha256": "b543ea03d06f971aef757f4f6692d5b4a943f003f29941864f47b70794c9505c",
+      "bytes": 157133
+    },
+    "docs/pr-crops/sector-matrix-20260927/exact-owner-r2/chromium-820-en-dark-matrix.png": {
+      "sha256": "c12e325192b4b1707cf54b6d81c8491870a9945d01107a8b567e43e0fbecee34",
+      "bytes": 183644
+    },
+    "docs/pr-crops/sector-matrix-20260927/exact-owner-r2/qualification.json": {
+      "sha256": "5740974a22d9c277f82253e00b10810cb2851b7bd055c1348c462ed1f71b2aa3",
+      "bytes": 5525
+    },
+    "docs/pr-crops/sector-matrix-20260927/exact-owner-r3/chromium-1440-en-light-matrix.png": {
+      "sha256": "b543ea03d06f971aef757f4f6692d5b4a943f003f29941864f47b70794c9505c",
+      "bytes": 157133
+    },
+    "docs/pr-crops/sector-matrix-20260927/exact-owner-r3/chromium-390-en-light-matrix.png": {
+      "sha256": "12386f51b3a8df41d72921d535ccd9f56a6b31ef4ef615ad6f2b2f155c141d60",
+      "bytes": 206237
+    },
+    "docs/pr-crops/sector-matrix-20260927/exact-owner-r3/chromium-820-en-dark-matrix.png": {
+      "sha256": "c12e325192b4b1707cf54b6d81c8491870a9945d01107a8b567e43e0fbecee34",
+      "bytes": 183644
+    },
+    "docs/pr-crops/sector-matrix-20260927/exact-owner-r3/qualification.json": {
+      "sha256": "8f0d9cdf6b49d31ddba26cdec2b9b804e5851b78e38421e7e07639ac424e573c",
+      "bytes": 17351
+    },
+    "docs/pr-crops/sector-matrix-20260927/exact-owner-r3/webkit-1440-en-dark-matrix.png": {
+      "sha256": "ad70a3a24b18025c1fbfada8824f0f57565268a50af38d48631a0facecf951a7",
+      "bytes": 225858
+    },
+    "docs/pr-crops/sector-matrix-20260927/exact-owner-r4/chromium-1440-en-light-matrix.png": {
+      "sha256": "b543ea03d06f971aef757f4f6692d5b4a943f003f29941864f47b70794c9505c",
+      "bytes": 157133
+    },
+    "docs/pr-crops/sector-matrix-20260927/exact-owner-r4/chromium-390-en-light-matrix.png": {
+      "sha256": "12386f51b3a8df41d72921d535ccd9f56a6b31ef4ef615ad6f2b2f155c141d60",
+      "bytes": 206237
+    },
+    "docs/pr-crops/sector-matrix-20260927/exact-owner-r4/chromium-820-en-dark-matrix.png": {
+      "sha256": "c12e325192b4b1707cf54b6d81c8491870a9945d01107a8b567e43e0fbecee34",
+      "bytes": 183644
+    },
+    "docs/pr-crops/sector-matrix-20260927/exact-owner-r4/qualification.json": {
+      "sha256": "e7b98b149aa60f7065aac8161718cad720aa65d8f90aea2d3d5a4d3b6b34f56d",
+      "bytes": 17691
+    },
+    "docs/pr-crops/sector-matrix-20260927/exact-owner-r4/webkit-1440-en-dark-matrix.png": {
+      "sha256": "ad70a3a24b18025c1fbfada8824f0f57565268a50af38d48631a0facecf951a7",
+      "bytes": 225858
+    },
+    "docs/pr-crops/sector-matrix-20260927/exact-owner-r5/chromium-1440-en-light-matrix.png": {
+      "sha256": "b543ea03d06f971aef757f4f6692d5b4a943f003f29941864f47b70794c9505c",
+      "bytes": 157133
+    },
+    "docs/pr-crops/sector-matrix-20260927/exact-owner-r5/chromium-390-en-light-matrix.png": {
+      "sha256": "12386f51b3a8df41d72921d535ccd9f56a6b31ef4ef615ad6f2b2f155c141d60",
+      "bytes": 206237
+    },
+    "docs/pr-crops/sector-matrix-20260927/exact-owner-r5/chromium-820-en-dark-matrix.png": {
+      "sha256": "c12e325192b4b1707cf54b6d81c8491870a9945d01107a8b567e43e0fbecee34",
+      "bytes": 183644
+    },
+    "docs/pr-crops/sector-matrix-20260927/exact-owner-r5/qualification.json": {
+      "sha256": "067253b68b0e6894da263f97a8c28110c6db683ca41c67581d693759bc67e8a5",
+      "bytes": 21289
+    },
+    "docs/pr-crops/sector-matrix-20260927/exact-owner-r5/webkit-1440-en-dark-matrix.png": {
+      "sha256": "ad70a3a24b18025c1fbfada8824f0f57565268a50af38d48631a0facecf951a7",
+      "bytes": 225858
+    },
+    "docs/pr-crops/sector-matrix-20260927/exact-owner-r5/webkit-390-zh-light-matrix.png": {
+      "sha256": "fb73e4499339ff5054466d122e03b11d68cb02f831522a742d0689cb64441643",
+      "bytes": 261778
+    },
+    "docs/pr-crops/sector-matrix-20260927/exact-owner-r6/chromium-1440-en-light-matrix.png": {
+      "sha256": "b543ea03d06f971aef757f4f6692d5b4a943f003f29941864f47b70794c9505c",
+      "bytes": 157133
+    },
+    "docs/pr-crops/sector-matrix-20260927/exact-owner-r6/chromium-390-en-light-matrix.png": {
+      "sha256": "e1234a28e281307d5bbb80e4aecf67ef53589f85bf788265cb6c26d926d1aa0b",
+      "bytes": 93599
+    },
+    "docs/pr-crops/sector-matrix-20260927/exact-owner-r6/chromium-820-en-dark-matrix.png": {
+      "sha256": "c12e325192b4b1707cf54b6d81c8491870a9945d01107a8b567e43e0fbecee34",
+      "bytes": 183644
+    },
+    "docs/pr-crops/sector-matrix-20260927/exact-owner-r6/qualification.json": {
+      "sha256": "2ef47bf29c0678c17bf4ef7105d00cf34e26870889378ea06a13cee0e639ef5e",
+      "bytes": 17947
+    },
+    "docs/pr-crops/sector-matrix-20260927/exact-owner-r6/webkit-1440-en-dark-matrix.png": {
+      "sha256": "ad70a3a24b18025c1fbfada8824f0f57565268a50af38d48631a0facecf951a7",
+      "bytes": 225858
+    },
+    "docs/pr-crops/sector-matrix-20260927/exact-owner-r6/webkit-390-zh-light-matrix.png": {
+      "sha256": "58491bfbb09ede0ca14cb248c9091537fed80cf45af70ea66ed4080f37a1aca0",
+      "bytes": 110872
+    },
+    "docs/pr-crops/sector-matrix-20260927/exact-owner-r7/chromium-1440-en-light-matrix.png": {
+      "sha256": "b543ea03d06f971aef757f4f6692d5b4a943f003f29941864f47b70794c9505c",
+      "bytes": 157133
+    },
+    "docs/pr-crops/sector-matrix-20260927/exact-owner-r7/chromium-390-en-light-matrix.png": {
+      "sha256": "e1234a28e281307d5bbb80e4aecf67ef53589f85bf788265cb6c26d926d1aa0b",
+      "bytes": 93599
+    },
+    "docs/pr-crops/sector-matrix-20260927/exact-owner-r7/chromium-820-en-dark-matrix.png": {
+      "sha256": "c12e325192b4b1707cf54b6d81c8491870a9945d01107a8b567e43e0fbecee34",
+      "bytes": 183644
+    },
+    "docs/pr-crops/sector-matrix-20260927/exact-owner-r7/qualification.json": {
+      "sha256": "ed660c42cad61acd644048d9fa306c12a5af62980fa1c3021a11501946e46b77",
+      "bytes": 18538
+    },
+    "docs/pr-crops/sector-matrix-20260927/exact-owner-r7/webkit-1440-en-dark-matrix.png": {
+      "sha256": "ad70a3a24b18025c1fbfada8824f0f57565268a50af38d48631a0facecf951a7",
+      "bytes": 225858
+    },
+    "docs/pr-crops/sector-matrix-20260927/exact-owner-r7/webkit-390-zh-light-matrix.png": {
+      "sha256": "58491bfbb09ede0ca14cb248c9091537fed80cf45af70ea66ed4080f37a1aca0",
+      "bytes": 110872
+    }
+  },
+  "boundaries": {
+    "productionProof": false,
+    "authenticatedSourceTransport": false,
+    "independentReviewRequired": false,
+    "themeBubbleRightsAdmitted": false,
+    "newFeedOrControlPlane": false
+  },
+  "discoveryEvidence": {
+    "journey-r10-regression": {
+      "docs/pr-crops/sector-discovery-20260926/journey-r10-regression/chromium-1440-en-light-breadth.png": {
+        "sha256": "ee4637f636e2de9fbf2a4fd8dc26d01580b6417cad1ecdf1306c723576f1df3f",
+        "bytes": 153136
+      },
+      "docs/pr-crops/sector-discovery-20260926/journey-r10-regression/chromium-1440-en-light-discover.png": {
+        "sha256": "df289f4d82f311a62e907943cba8c052ca6f7f8aa05bfe78acb0d875bbf81497",
+        "bytes": 143820
+      },
+      "docs/pr-crops/sector-discovery-20260926/journey-r10-regression/chromium-390-en-light-breadth.png": {
+        "sha256": "25237537d141353662a26233a98a0604660e9c459cd25cf27375031544a40a30",
+        "bytes": 73560
+      },
+      "docs/pr-crops/sector-discovery-20260926/journey-r10-regression/chromium-390-en-light-discover.png": {
+        "sha256": "274f8c03d9a0e09ac1971c1c851bfd8176f3dbb607d60e5652c11e2bcd3de365",
+        "bytes": 73529
+      },
+      "docs/pr-crops/sector-discovery-20260926/journey-r10-regression/chromium-820-en-dark-breadth.png": {
+        "sha256": "87dbc81489880c678389eebfd2534322c628b2bc7b1527d4f9fd116de6b36bf3",
+        "bytes": 114164
+      },
+      "docs/pr-crops/sector-discovery-20260926/journey-r10-regression/chromium-820-en-dark-discover.png": {
+        "sha256": "1d7b1ae2fcf513d9283582e2825b6d03709c834a3267b0b2a226dc811d77e862",
+        "bytes": 120278
+      },
+      "docs/pr-crops/sector-discovery-20260926/journey-r10-regression/qualification.json": {
+        "sha256": "968a9ee55916ceb09107a23def4b0fc6a6414405952bd55c5d1e06d3e1244e5a",
+        "bytes": 10949
+      },
+      "docs/pr-crops/sector-discovery-20260926/journey-r10-regression/webkit-1440-en-dark-discover.png": {
+        "sha256": "390144e3161b67c64789860c2f9ab34f9d62c235105134469e6961553796e304",
+        "bytes": 211053
+      }
+    },
+    "journey-r10-regression-r2": {
+      "docs/pr-crops/sector-discovery-20260926/journey-r10-regression-r2/chromium-1440-en-light-breadth.png": {
+        "sha256": "ee4637f636e2de9fbf2a4fd8dc26d01580b6417cad1ecdf1306c723576f1df3f",
+        "bytes": 153136
+      },
+      "docs/pr-crops/sector-discovery-20260926/journey-r10-regression-r2/chromium-1440-en-light-discover.png": {
+        "sha256": "842aea76ad35009c9ee5f289cfae0b8c71a94b99bb6e239319f00833036075f2",
+        "bytes": 143249
+      },
+      "docs/pr-crops/sector-discovery-20260926/journey-r10-regression-r2/chromium-390-en-light-breadth.png": {
+        "sha256": "25237537d141353662a26233a98a0604660e9c459cd25cf27375031544a40a30",
+        "bytes": 73560
+      },
+      "docs/pr-crops/sector-discovery-20260926/journey-r10-regression-r2/chromium-390-en-light-discover.png": {
+        "sha256": "274f8c03d9a0e09ac1971c1c851bfd8176f3dbb607d60e5652c11e2bcd3de365",
+        "bytes": 73529
+      },
+      "docs/pr-crops/sector-discovery-20260926/journey-r10-regression-r2/chromium-820-en-dark-breadth.png": {
+        "sha256": "87dbc81489880c678389eebfd2534322c628b2bc7b1527d4f9fd116de6b36bf3",
+        "bytes": 114164
+      },
+      "docs/pr-crops/sector-discovery-20260926/journey-r10-regression-r2/chromium-820-en-dark-discover.png": {
+        "sha256": "e648c4ca2e7e7992bd2ddf5a9937f1aed09d5eafb98ba8da788781c5cd8d55bf",
+        "bytes": 120197
+      },
+      "docs/pr-crops/sector-discovery-20260926/journey-r10-regression-r2/qualification.json": {
+        "sha256": "10e4b6e9af083a4de279d4260f0d43d2e0d159e9eb600a4d530126d55bf537d9",
+        "bytes": 13942
+      },
+      "docs/pr-crops/sector-discovery-20260926/journey-r10-regression-r2/webkit-1440-en-dark-breadth.png": {
+        "sha256": "98cc27cdfeaf97ce784ebcc91e8690b238b1d2e1ef651906bdf3bf9de010f4e2",
+        "bytes": 221699
+      },
+      "docs/pr-crops/sector-discovery-20260926/journey-r10-regression-r2/webkit-1440-en-dark-discover.png": {
+        "sha256": "390144e3161b67c64789860c2f9ab34f9d62c235105134469e6961553796e304",
+        "bytes": 211053
+      },
+      "docs/pr-crops/sector-discovery-20260926/journey-r10-regression-r2/webkit-390-zh-light-breadth.png": {
+        "sha256": "c8a467f67f20070f05d080853b26e0af3d8d71afaab0cd3fec391d4304c99b38",
+        "bytes": 87151
+      },
+      "docs/pr-crops/sector-discovery-20260926/journey-r10-regression-r2/webkit-390-zh-light-discover.png": {
+        "sha256": "70102cf8b146e8810ae0a985826e46febddc249e4877f631d76e6abd981075ef",
+        "bytes": 91040
+      }
+    }
+  }
+}
