@@ -17,6 +17,7 @@ import {
 import SectorCompanyHeatmap from "./SectorCompanyHeatmap";
 import SectorCompanyTable from "./SectorCompanyTable";
 import SectorIndustryMatrix from "./SectorIndustryMatrix";
+import SectorIndustrySummary from "./SectorIndustrySummary";
 import styles from "./SectorCentralDiscovery.module.css";
 
 export type DiscoverySort = "source" | "return" | "participation";
@@ -50,6 +51,7 @@ export interface SectorCentralDiscoveryProps {
   onIndustry: (industry: string) => void;
   onBand: (band: SectorCapBand | "") => void;
   onMatrixCell: (industry: string, band: SectorCapBand) => void;
+  onInspectIndustry: (industry: string) => void;
   onCompany: (ticker: string) => void;
   onSelect: (id: string) => void;
   onOpenResearch: (id: string) => void;
@@ -59,7 +61,7 @@ const COPY = {
   title: ["Sector discovery", "板块发现"],
   breadthTitle: ["Market breadth", "市场广度"],
   marketRead: ["Market read", "市场解读"],
-  table: ["Table", "表格"], heatmap: ["Heatmap", "热图"], matrix: ["Matrix", "矩阵"], representation: ["Discover representation", "发现视图"],
+  summary: ["Summary", "摘要"], table: ["Table", "表格"], heatmap: ["Heatmap", "热图"], matrix: ["Matrix", "矩阵"], representation: ["Discover representation", "发现视图"],
   query: ["Find a sector", "搜索板块"],
   sort: ["Display order", "显示顺序"],
   source: ["Source order", "来源顺序"],
@@ -141,8 +143,17 @@ export default function SectorCentralDiscovery(props: SectorCentralDiscoveryProp
   const read = props.breadth ? breadthRead(readyRows, language) : discoveryRead(readyRows, language);
   const name = (row: Row) => text(language === "zh" ? row.name_zh : row.name) || text(row.name);
   const representationNavigation = !props.breadth && <div className={styles.representations} role="group" aria-label={t("representation")}>
-    {(["table", "heatmap", "matrix"] as const).map(mode => <button type="button" key={mode} aria-pressed={props.mode === mode} onClick={() => props.onMode(mode)}>{t(mode)}</button>)}
+    {(["summary", "table", "heatmap", "matrix"] as const).map(mode => <button type="button" key={mode} aria-pressed={props.mode === mode} onClick={() => props.onMode(mode)}>{t(mode)}</button>)}
   </div>;
+
+  if (!props.breadth && props.mode === "summary") return <section className={styles.root} data-testid="sector-discovery">
+    {representationNavigation}
+    <SectorIndustrySummary data={props.heatmapData} status={props.heatmapStatus} asOf={props.heatmapAsOf}
+      sectors={readyRows} selectedSector={props.selected} selectedSectorName={selectedName}
+      selectedSectorSourceName={props.selectedSourceName} timeframe={props.matrixTimeframe}
+      onSector={props.onSelect} onTimeframe={props.onTimeframe}
+      onInspectIndustry={props.onInspectIndustry} onSources={props.onSources} />
+  </section>;
 
   if (!props.breadth && props.mode === "table") return <section className={styles.root} data-testid="sector-discovery">
     {representationNavigation}

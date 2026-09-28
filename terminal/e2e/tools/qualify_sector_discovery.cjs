@@ -1,4 +1,4 @@
-/* Actual-owner-body proof for Discover Table -> selected-sector detail -> Market breadth.
+/* Actual-owner-body proof for Discover Summary -> Table -> selected-sector detail -> Market breadth.
  * Does not migrate or waive the separately held historical-fixture suite.
  * From terminal: node e2e/tools/qualify_sector_discovery.cjs INPUT_DIR PORT RUN_NAME
  */
@@ -6,7 +6,7 @@ const fs = require("node:fs"), path = require("node:path"), crypto = require("no
 const { chromium, webkit, expect } = require("@playwright/test");
 const input = process.argv[2], port = process.argv[3] || "3157", run = process.argv[4] || "initial";
 assert(input && /^\d{4,5}$/.test(port) && /^[a-z0-9-]+$/.test(run));
-const origin = `http://127.0.0.1:${port}`, out = path.resolve(`../docs/pr-crops/sector-discovery-20260926/${run}`);
+const origin = `http://127.0.0.1:${port}`, out = path.resolve(`../docs/pr-crops/sector-industry-summary-20260928/${run}`);
 assert(!fs.existsSync(out), "Retain earlier proof runs"); fs.mkdirSync(out, { recursive: true });
 const provenance = JSON.parse(fs.readFileSync(path.join(input, "provenance.json"), "utf8")), data = {};
 for (const [key, entry] of Object.entries(provenance.files)) {
@@ -17,6 +17,15 @@ function check(name, ok, details) { report.checks.push({ name, passed: !!ok, det
 async function shot(page, name) { const file = path.join(out, name + ".png"); await page.screenshot({ path: file, fullPage: true }); report.screenshots.push({ name: name + ".png", sha256: crypto.createHash("sha256").update(fs.readFileSync(file)).digest("hex") }); }
 const technology = data.heatmap.tiles.filter(row => row.sector === "Technology"), targetCompany = technology[0];
 assert.equal(technology.length,79);
+const technologyCap = technology.reduce((sum, row) => sum + row.size, 0), industryGroups = new Map();
+for (const [sourceOrder, row] of technology.entries()) {
+ const current = industryGroups.get(row.industry) || { industry: row.industry, sourceOrder, names: 0, cap: 0, observed: 0, observedCap: 0, advancing: 0, weighted: 0 };
+ current.names++; current.cap += row.size;
+ const value = row.perf?.["1D"];
+ if (Number.isFinite(value)) { current.observed++; current.observedCap += row.size; current.weighted += row.size * value; if (value > 0) current.advancing++; }
+ industryGroups.set(row.industry, current);
+}
+const industrySummary = [...industryGroups.values()].sort((a,b) => b.cap - a.cap || a.sourceOrder - b.sourceOrder);
 let browser;
 (async () => {
  for (const [engine, width, height, lang, theme] of [["chromium",1440,900,"en","light"],["chromium",820,1180,"en","dark"],["chromium",390,844,"en","light"],["webkit",1440,900,"en","dark"],["webkit",390,844,"zh","light"]]) {
@@ -35,14 +44,32 @@ let browser;
    }
    if (url.pathname.startsWith("/api/")) return route.fulfill({ status: 200, json: {} }); return route.continue();
   });
-  await page.goto(`${origin}/discover?tab=sectors&sectorWorkspace=discover&sectorDiscoveryMode=table&sector=xlk&sectorMatrixTimeframe=1D&sectorTheme=${theme}`, { waitUntil: "domcontentloaded", timeout: 60000 });
-  const root = page.getByTestId("sector-intelligence"), discovery = page.getByTestId("sector-discovery"), table = page.getByTestId("sector-company-table");
+  await page.goto(`${origin}/discover?tab=sectors&sectorWorkspace=discover&sector=xlk&sectorMatrixTimeframe=1D&sectorTheme=${theme}`, { waitUntil: "domcontentloaded", timeout: 60000 });
+  const root = page.getByTestId("sector-intelligence"), discovery = page.getByTestId("sector-discovery"), summary = page.getByTestId("sector-industry-summary");
   await expect(root).toHaveAttribute("data-sector-workspace", "discover");
-  await expect(table.locator("[data-company-table-row]")).toHaveCount(79, { timeout:15000 });
+  await expect(summary.locator("[data-summary-industry-row]")).toHaveCount(industrySummary.length, { timeout:15000 });
+  const representationGroup = discovery.getByRole("group", { name:lang === "zh" ? "发现视图" : "Discover representation", exact:true });
+  check(label + ": Summary is the default Discover representation", await representationGroup.getByRole("button", { name:lang === "zh" ? "摘要" : "Summary", exact:true }).getAttribute("aria-pressed") === "true");
+  check(label + ": Summary uses the exact selected-sector population", (await summary.innerText()).includes(`79 ${lang === "zh" ? "家公司" : "names"}`));
+  check(label + ": Summary retains the heatmap source date", (await summary.innerText()).includes(provenance.files.heatmap.asOf));
+  check(label + ": four distinct representation controls remain subordinate to Discover", await representationGroup.getByRole("button").count() === 4);
+  const leadingIndustry = industrySummary[0], leadingRow = summary.locator("[data-summary-industry-row]").first();
+  const leadingText = await leadingRow.innerText(), leadingShare = Math.round(leadingIndustry.cap / technologyCap * 100);
+  check(label + ": industry company denominator is explicit", leadingText.includes(`${leadingIndustry.names} / 79`));
+  check(label + ": industry market-cap denominator is explicit", leadingText.includes(`${leadingShare}%`));
+  check(label + ": participation denominator is explicit", leadingText.includes(`${leadingIndustry.advancing} / ${leadingIndustry.observed}`));
+  check(label + ": performance observation denominator is explicit", leadingText.includes(`${leadingIndustry.observed} / ${leadingIndustry.names}`));
+  await shot(page, label + "-discover-summary");
+  const leadingIndustryName = await leadingRow.getAttribute("data-summary-industry-row");
+  await leadingRow.locator("[data-summary-industry-action]").click();
+  let table = page.getByTestId("sector-company-table");
+  await expect(table.locator("[data-company-table-row]")).toHaveCount(technology.filter(row => row.industry === leadingIndustryName).length);
+  check(label + ": Summary drills into the existing Table atomically", new URL(page.url()).searchParams.get("sectorDiscoveryMode") === "table" && new URL(page.url()).searchParams.get("sectorMatrixIndustry") === leadingIndustryName);
+  await table.getByRole("combobox").nth(2).selectOption("");
+  await expect(table.locator("[data-company-table-row]")).toHaveCount(79);
   check(label + ": Discover Table uses exact selected-sector population", technology.length === 79);
   check(label + ": source date retained", (await table.innerText()).includes(provenance.files.heatmap.asOf));
-  check(label + ": three representation controls remain subordinate to Discover", await discovery.getByRole("group", { name:lang === "zh" ? "发现视图" : "Discover representation", exact:true }).getByRole("button").count() === 3);
-  await shot(page, label + "-discover");
+  await shot(page, label + "-discover-table");
   const search = table.getByRole("searchbox"), controls = table.getByRole("combobox");
   check(label + ": Table search and sort meet 44px height", await search.evaluate(el=>el.getBoundingClientRect().height>=44) && await controls.nth(4).evaluate(el=>el.getBoundingClientRect().height>=44));
   await controls.nth(4).selectOption("marketcap"); await search.fill(targetCompany.t);
