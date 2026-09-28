@@ -163,6 +163,34 @@ export function matrixCellValue(c: MatrixHeatCell, m: MatrixDisplayMetric): numb
   }
 }
 
+export interface MatrixExactScopeStats { total: number | null; missing: boolean; known: number; expected: number }
+
+/** Exact-contract totals for a selected matrix scope, independent of rendering row caps/scroll. */
+export function matrixExactScopeStats(matrix: StrikeExpiryDoc, metric: MatrixDisplayMetric, windowPct: number, maxCols: number): MatrixExactScopeStats {
+  const cells = Array.isArray(matrix.cells) ? matrix.cells : [];
+  const sessionDate =
+    (typeof matrix._build_meta?.asof_date === "string" && matrix._build_meta.asof_date) ||
+    (typeof matrix.asof === "string" ? matrix.asof.slice(0, 10) : "");
+  const exps = [...new Set(cells.map((cell) => cell.expiry).filter(Boolean))].sort()
+    .filter((expiry) => !sessionDate || expiry.slice(0, 10) >= sessionDate).slice(0, maxCols);
+  const expSet = new Set(exps);
+  const spot = num(matrix.spot);
+  const strikes = [...new Set(cells.map((cell) => cell.strike).filter(Number.isFinite))]
+    .filter((strike) => spot == null || spot <= 0 || Math.abs(strike - spot) / spot <= windowPct / 100);
+  const strikeSet = new Set(strikes);
+  const byKey = new Map(cells.filter((cell) => expSet.has(cell.expiry) && strikeSet.has(cell.strike))
+    .map((cell) => [`${cell.strike}|${cell.expiry}`, cell] as const));
+  let total = 0, known = 0;
+  const expected = strikes.length * exps.length;
+  for (const strike of strikes) for (const expiry of exps) {
+    const cell = byKey.get(`${strike}|${expiry}`);
+    const value = cell ? matrixCellValue(cell, metric) : null;
+    if (value == null) continue;
+    total += value; known++;
+  }
+  return { total: known ? total : null, missing: known < expected, known, expected };
+}
+
 export function fmtMatrixCell(v: number, m: MatrixDisplayMetric): string {
   if (m === "gex") return formatExposureMn(v);
   const a = Math.abs(v);
@@ -265,7 +293,7 @@ export function buildMatrixGrid(opts: BuildMatrixGridOpts): MatrixGridModel | nu
 
   const spotRef = num(matrix?.spot) ?? num(spot);
   const allStrikes = [...new Set(cells.map((c) => c.strike).filter((k) => Number.isFinite(k)))];
-  if (allStrikes.length < 2) return null;
+  if (allStrikes.length === 0) return null;
 
   // Session date: prod's top-level asof is the BUILD timestamp (Fri 23:00Z over a
   // Thursday chain) and prod grids carry ALREADY-EXPIRED expiries — dead columns

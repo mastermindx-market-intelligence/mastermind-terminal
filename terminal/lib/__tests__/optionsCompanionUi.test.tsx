@@ -3,6 +3,8 @@ import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useOptionsSnapshot } from "@/components/options-companion/useOptionsSnapshot";
+import { MatrixCompanion, type MatrixPreferences } from "@/components/options-companion/MatrixCompanion";
+import { optionsT } from "@/components/options-companion/optionsStrings";
 import { StrikeExpiryMatrix, buildMatrixGrid } from "@/components/shared/StrikeExpiryMatrix";
 const { fetchSnapshot } = vi.hoisted(() => ({ fetchSnapshot: vi.fn() }));
 vi.mock("@/lib/flowClientCache", () => ({ flowGetFresh: fetchSnapshot }));
@@ -75,5 +77,59 @@ describe("shared rail matrix", () => {
   it("never renders rounded non-contract strikes", async () => {
     const grid = buildMatrixGrid({ matrix: { ...matrix, cells: matrix.cells.map(c => ({ ...c, strike: c.strike + .25 })) }, metric: "oi", exactStrikes: true })!;
     expect(grid.strikes).toEqual([194.25, 192.25]); expect(grid.bucket).toBe(0);
+  });
+});
+
+
+describe("transactional companion scope", () => {
+  const doc = { schema: "options_structure.matrix/v1", root: "NVDA", spot: 193, asof: "2026-09-25T20:21:00Z",
+    _build_meta: { asof_date: "2026-09-25" }, cells: [
+      { strike: 192, expiry: "2026-09-25", gex: 1_000_000, call_oi: 2, put_oi: 1 },
+      { strike: 194, expiry: "2026-09-25", gex: 2_000_000, call_oi: 3, put_oi: 2 },
+      { strike: 194, expiry: "2026-10-02", gex: -500_000, call_oi: 1, put_oi: 3 },
+      { strike: 196, expiry: "2026-10-02", gex: 250_000, call_oi: 2, put_oi: 2 },
+    ] };
+  function Harness() {
+    const [prefs, setPrefs] = React.useState<MatrixPreferences>({ expiries: "3", window: 25, norm: "global" });
+    const onPin = React.useCallback(() => {}, []);
+    return <MatrixCompanion root="NVDA" metric="gex" prefs={prefs} onPrefs={setPrefs} t={optionsT("en")}
+      pinned={null} onPin={onPin} replayActive={false} />;
+  }
+  it("keeps edits pending until Apply and retains a node hidden by the applied scope", async () => {
+    fetchSnapshot.mockResolvedValue(doc);
+    await act(async () => root.render(<Harness />));
+    await act(async () => { await Promise.resolve(); await Promise.resolve(); });
+    const oct = element.querySelector<HTMLButtonElement>('button[aria-label^="194, 2026-10-02:"]')!;
+    expect(oct).toBeTruthy(); await act(async () => oct.click()); expect(oct.getAttribute("aria-pressed")).toBe("true");
+    const open = element.querySelector<HTMLButtonElement>('[data-testid="options-scope-toggle"]')!;
+    await act(async () => open.click());
+    const expiries = element.querySelector<HTMLSelectElement>('[data-testid="options-scope-expiries"]')!;
+    await act(async () => { expiries.value = "0dte"; expiries.dispatchEvent(new Event("change", { bubbles: true })); });
+    expect(element.querySelector('button[aria-label^="194, 2026-10-02:"]')).toBeTruthy();
+    expect(element.querySelector('[data-testid="options-selection-outside"]')).toBeNull();
+    await act(async () => element.querySelector<HTMLButtonElement>('[data-testid="options-scope-apply"]')!.click());
+    expect(element.querySelector('button[aria-label^="194, 2026-10-02:"]')).toBeNull();
+    expect(element.querySelector('[data-testid="options-selection-outside"]')?.textContent).toContain("Selection outside this view");
+    expect(element.querySelector('[data-options-inspector]')?.textContent).toContain("194 · 2026-10-02");
+    await act(async () => open.click());
+    const restore = element.querySelector<HTMLSelectElement>('[data-testid="options-scope-expiries"]')!;
+    await act(async () => { restore.value = "3"; restore.dispatchEvent(new Event("change", { bubbles: true })); });
+    await act(async () => element.querySelector<HTMLButtonElement>('[data-testid="options-scope-apply"]')!.click());
+    const restored = element.querySelector<HTMLButtonElement>('button[aria-label^="194, 2026-10-02:"]')!;
+    expect(restored).toBeTruthy(); expect(restored.getAttribute("aria-pressed")).toBe("true");
+    expect(element.querySelector('[data-testid="options-selection-outside"]')).toBeNull();
+  });
+  it("Cancel discards a pending display change without clearing the selected cell", async () => {
+    fetchSnapshot.mockResolvedValue(doc);
+    await act(async () => root.render(<Harness />));
+    await act(async () => { await Promise.resolve(); await Promise.resolve(); });
+    const cell = element.querySelector<HTMLButtonElement>('button[aria-label^="194, 2026-10-02:"]')!;
+    await act(async () => cell.click());
+    await act(async () => element.querySelector<HTMLButtonElement>('[data-testid="options-scope-toggle"]')!.click());
+    const norm = element.querySelector<HTMLSelectElement>('[data-testid="options-scope-norm"]')!;
+    await act(async () => { norm.value = "column"; norm.dispatchEvent(new Event("change", { bubbles: true })); });
+    await act(async () => element.querySelector<HTMLButtonElement>('[data-testid="options-scope-cancel"]')!.click());
+    expect(element.textContent).not.toContain("Per-expiry scale: compare intensities");
+    expect(element.querySelector<HTMLButtonElement>('button[aria-label^="194, 2026-10-02:"]')?.getAttribute("aria-pressed")).toBe("true");
   });
 });

@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 import matrixFixture from "../public/data/matrix_fixture.json";
 type ChartDebugWindow = Window & {
@@ -30,6 +30,15 @@ async function openPanel(page: Page) {
   await expect(panel).toBeVisible(); return panel;
 }
 const chartPin = (page: Page) => page.evaluate(() => (window as ChartDebugWindow).__mmChartAxisOpts?.()?.optionsPin ?? null);
+async function editScope(panel: Locator, lang: "en" | "zh", change: { expiries?: string; norm?: "global" | "column"; window?: string }, apply = true) {
+  await panel.getByTestId("options-scope-toggle").click();
+  const editor = panel.getByTestId("options-scope-editor"); await expect(editor).toBeVisible();
+  if (change.expiries) await editor.getByLabel(lang === "zh" ? "到期日" : "Expiries", { exact: true }).selectOption(change.expiries);
+  if (change.norm) await editor.getByLabel(lang === "zh" ? "颜色尺度" : "Color scale").selectOption(change.norm);
+  if (change.window) await editor.getByLabel(lang === "zh" ? "行权价范围" : "Strike window").selectOption(change.window);
+  await editor.getByTestId(apply ? "options-scope-apply" : "options-scope-cancel").click();
+  await expect(editor).toHaveCount(0);
+}
 
 for (const lang of ["en", "zh"] as const) {
   test(`[${lang}] real chart + options companion, controls, native pins and restoration`, async ({ page }, info) => {
@@ -44,8 +53,8 @@ for (const lang of ["en", "zh"] as const) {
       expect(side!.x).toBeGreaterThanOrEqual(chart!.x + chart!.width - 2);
     }
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-    const cells = panel.locator('[data-options-grid] button[data-value]:not([data-value="missing"]):not([data-value="0"])');
-    await cells.first().click();
+    const laterExpiry = panel.locator('[data-options-grid] button[aria-label*="2026-07-13"][data-value]:not([data-value="missing"]):not([data-value="0"])').first();
+    await expect(laterExpiry).toBeVisible(); await laterExpiry.click();
     await expect(panel.locator("[data-options-inspector]")).toContainText("2026-07-10");
     await panel.getByRole("button", { name: lang === "zh" ? "在图表标记行权价" : "Pin strike on chart", exact: true }).click();
     await expect.poll(async () => !!(await chartPin(page))).toBe(true);
@@ -58,16 +67,20 @@ for (const lang of ["en", "zh"] as const) {
     await page.evaluate(() => document.documentElement.setAttribute("data-theme", "light"));
     await panel.screenshot({ path: `${crops}/${info.project.name}-${lang}-panel-light.png` });
     await page.evaluate(() => document.documentElement.setAttribute("data-theme", "dark"));
-    await panel.getByLabel(lang === "zh" ? "颜色尺度" : "Color scale").selectOption("column");
+    await editScope(panel, lang, { norm: "column" });
     await expect(panel).toContainText(lang === "zh" ? "各列独立归一化" : "Per-expiry scale");
-    await expect.poll(() => chartPin(page)).toBeNull();
-    await panel.getByLabel(lang === "zh" ? "颜色尺度" : "Color scale").selectOption("global");
-    await panel.getByLabel(lang === "zh" ? "到期日" : "Expiries", { exact: true }).selectOption("6");
+    await expect.poll(async () => !!(await chartPin(page))).toBe(true);
+    await editScope(panel, lang, { expiries: "0dte", norm: "global" });
+    await expect(panel.getByTestId("options-selection-outside")).toBeVisible();
+    await expect(panel.locator('[data-options-inspector]')).toContainText("2026-07-13");
+    await expect.poll(async () => !!(await chartPin(page))).toBe(true);
+    await editScope(panel, lang, { expiries: "6" });
     await expect(panel.locator("thead th")).toHaveCount(7);
+    await expect(panel.locator('[data-options-grid] button[aria-label*="2026-07-13"][aria-pressed="true"]')).toHaveCount(1);
     await panel.getByRole("tab", { name: lang === "zh" ? "持仓量" : "OI", exact: true }).click();
-    await expect(panel).toContainText(lang === "zh" ? "可见持仓量" : "Visible open interest");
+    await expect(panel).toContainText(lang === "zh" ? "所选范围持仓量" : "Selected-scope open interest");
     await panel.getByRole("button", { name: "ΔOI", exact: true }).click();
-    await expect(panel).toContainText(lang === "zh" ? "可见持仓变化" : "Visible OI change");
+    await expect(panel).toContainText(lang === "zh" ? "所选范围持仓变化" : "Selected-scope OI change");
     await panel.getByRole("tab", { name: "Vanna", exact: true }).click();
     await expect(panel).toContainText(lang === "zh" ? "全部到期日行权价分布" : "All-expiry strike profile", { timeout: 20_000 });
     await expect(panel).toContainText(lang === "zh" ? "不同符号约定" : "different sign convention");
@@ -75,7 +88,7 @@ for (const lang of ["en", "zh"] as const) {
     await panel.getByRole("tab", { name: lang === "zh" ? "资金流" : "Flow", exact: true }).click();
     await expect(panel.locator("[data-options-tape]")).toBeVisible({ timeout: 20_000 });
     await panel.getByRole("button", { name: lang === "zh" ? "时段成交量" : "Session volume", exact: true }).click();
-    await expect(panel).toContainText(lang === "zh" ? "可见时段成交量" : "Visible session volume");
+    await expect(panel).toContainText(lang === "zh" ? "所选范围时段成交量" : "Selected-scope session volume");
     await page.getByRole("button", { name: lang === "zh" ? "关闭期权面板" : "Close options panel", exact: true }).click();
     await expect(panel).toHaveCount(0);
     await expect.poll(() => chartPin(page)).toBeNull();
@@ -100,9 +113,38 @@ test("0DTE never silently becomes the nearest later expiry", async ({ page }) =>
   await page.route(/\/api\/flow\?f=matrix(?::|%3A)SPY(?:&|$)/, route => route.fulfill({ json: { ...spy, cells: spy.cells.filter(cell => cell.expiry !== spy._build_meta.asof_date) } }));
   await prepare(page); const panel = await openPanel(page);
   await expect(panel.locator("[data-options-grid] table")).toBeVisible();
-  await panel.getByLabel("Expiries", { exact: true }).selectOption("0dte");
+  await editScope(panel, "en", { expiries: "0dte" });
   await expect(panel).toContainText("The front expiry is not 0DTE");
   await expect(panel.locator("[data-options-grid]")).toHaveCount(0);
+});
+
+test("R7 scope edits stay pending until Apply and Cancel preserves the selected node", async ({ page }) => {
+  await prepare(page); const panel = await openPanel(page);
+  const later = panel.locator('[data-options-grid] button[aria-label*="2026-07-13"][data-value]:not([data-value="missing"])').first();
+  await expect(later).toBeVisible(); await later.click();
+  const initialHeaders = await panel.locator("thead th").count();
+  await panel.getByTestId("options-scope-toggle").click();
+  const editor = panel.getByTestId("options-scope-editor");
+  await editor.getByLabel("Expiries", { exact: true }).selectOption("6");
+  await expect(panel.locator("thead th")).toHaveCount(initialHeaders);
+  await editor.getByTestId("options-scope-cancel").click();
+  await expect(panel.locator("thead th")).toHaveCount(initialHeaders);
+  await expect(later).toHaveAttribute("aria-pressed", "true");
+  await editScope(panel, "en", { expiries: "0dte" });
+  await expect(panel.getByTestId("options-selection-outside")).toBeVisible();
+  await expect(panel.locator("[data-options-inspector]")).toContainText("2026-07-13");
+});
+
+test("R7 one-strike sparse matrix remains a real renderable scope", async ({ page }) => {
+  const spot = Number(spy.spot); const strikes = [...new Set(spy.cells.map(cell => cell.strike))];
+  const sparseStrike = strikes.sort((a, b) => Math.abs(a - spot) - Math.abs(b - spot))[0];
+  await page.route(/\/api\/flow\?f=matrix(?::|%3A)SPY(?:&|$)/, route =>
+    route.fulfill({ json: { ...spy, cells: spy.cells.filter(cell => cell.strike === sparseStrike) } }));
+  await prepare(page); const panel = await openPanel(page);
+  await expect(panel.locator("[data-options-grid] table")).toBeVisible();
+  await expect(panel.locator("[data-options-grid] tbody tr")).toHaveCount(1);
+  await expect(panel.locator("[data-options-grid] tbody th")).toContainText(String(sparseStrike));
+  await expect(panel.locator("[data-options-total]")).not.toHaveText("—");
 });
 
 test("uncovered symbol does not inherit an index heatmap", async ({ page }) => {

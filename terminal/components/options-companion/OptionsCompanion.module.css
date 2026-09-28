@@ -25,6 +25,15 @@
 .controls label{display:flex;flex-direction:column;min-width:0;gap:4px}
 .controls label>span{font-size:9px;color:var(--text-2)}
 .controls select{min-height:34px;width:100%;max-width:100%;min-width:0;padding:5px 4px;background:var(--panel-2);color:var(--text);border:1px solid var(--line-3);border-radius:5px;font:11px var(--font-ui);cursor:pointer}
+.scopeBar{display:flex;align-items:center;gap:8px;min-width:0;flex:none;padding:2px 0}
+.scopeButton{display:flex;align-items:center;gap:7px;min-height:32px;padding:5px 8px;border:1px solid var(--line-3);border-radius:5px;background:var(--panel-2);color:var(--text);font-size:10px;font-weight:600;white-space:nowrap}
+.scopeButton span{color:var(--brand-2);font-size:12px}
+.scopeMeta{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-2);font-size:9px;font-variant-numeric:tabular-nums}
+.scopeEditor{display:flex;flex-direction:column;gap:8px;padding:9px;background:var(--panel-2);border:1px solid var(--line-3);border-radius:6px;flex:none}
+.scopeHint{margin:0;color:var(--text-2);font-size:9px;line-height:1.5}
+.scopeActions{display:flex;align-items:center;justify-content:flex-end;gap:8px}
+.primaryAction{background:var(--brand-2);border-color:var(--brand-2);color:var(--bg)}
+.primaryAction:hover{filter:brightness(1.04)}
 .summary{display:flex;justify-content:space-between;gap:12px;padding:1px 0 10px;border-bottom:1px solid var(--line);flex:none}
 .summary>div{display:flex;flex-direction:column;gap:3px;min-width:0}
 .summary span{font-size:10px;color:var(--text-2)}
@@ -78,7 +87,7 @@
 :global(html[data-theme="light"]) .inspector{box-shadow:0 2px 8px rgb(30 45 70 / 7%)}
 :global(html[data-theme="light"]) .tabs button[aria-selected="true"]{background:var(--panel);box-shadow:0 1px 4px rgb(30 45 70 / 12%)}
 @media(max-width:860px){.overview{flex:none;overflow:visible}.railSwitch{display:none}.root{padding:8px 12px}.sheet .root{height:100%}.summary strong{font-size:22px}}
-@media(pointer:coarse),(max-width:860px){.railSwitch button,.tabs button,.lens button,.action,.link,.deskLink,.method summary,.controls select,.close,.receipt button{min-height:44px}.receipt button{width:44px}.profile>button{min-height:44px}.tabs button{font-size:12px}.notice,.warning,.inspector p,.method p{font-size:11px}.controls label>span,.viewCaption{font-size:10px}}
+@media(pointer:coarse),(max-width:860px){.railSwitch button,.tabs button,.lens button,.action,.link,.deskLink,.method summary,.controls select,.scopeButton,.close,.receipt button{min-height:44px}.receipt button{width:44px}.profile>button{min-height:44px}.tabs button{font-size:12px}.notice,.warning,.inspector p,.method p{font-size:11px}.controls label>span,.viewCaption{font-size:10px}}
 @media(prefers-reduced-motion:no-preference){.tabs button,.lens button,.action,.close{transition:background-color 120ms ease,border-color 120ms ease}}
 
 .railSwitch[hidden]{display:none}

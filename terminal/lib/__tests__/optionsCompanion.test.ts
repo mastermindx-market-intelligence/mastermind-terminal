@@ -3,7 +3,7 @@ import { optionsRoot, isoSession, readCompanionMatrix, readVannaProfile, matrixF
 import { optionsReadAccess } from "../optionsAccess";
 import { gateEntitlement, type EntitlementSnapshot } from "../entitlementStore";
 import { syncOptionsPricePin, removeOptionsPricePin } from "../optionsChartPin";
-import { buildMatrixGrid, matrixCellValue, matrixCellTone, fmtMatrixCell } from "@/components/shared/StrikeExpiryMatrix";
+import { buildMatrixGrid, matrixExactScopeStats, matrixCellValue, matrixCellTone, fmtMatrixCell } from "@/components/shared/StrikeExpiryMatrix";
 
 const now = Date.parse("2026-09-23T15:00:00Z");
 const cell = (strike = 192, expiry = "2026-09-25") => ({ strike, expiry, gex: 2_500_000, call_oi: 3, put_oi: 5 });
@@ -63,6 +63,20 @@ describe("companion source boundaries", () => {
   it("does not expand an exact-strike window merely because it has fewer than five rows", () => {
     const grid = buildMatrixGrid({ matrix: { ...matrix(), cells: [cell(170), cell(192), cell(210)] }, metric: "gex", exactStrikes: true, windowPct: 1 });
     expect(grid?.strikes).toEqual([192]);
+  });
+  it("keeps a one-strike exact scope renderable instead of calling it unavailable", () => {
+    const grid = buildMatrixGrid({ matrix: { ...matrix(), cells: [cell(192), { ...cell(192, "2026-10-02"), gex: -500_000 }] }, metric: "gex", exactStrikes: true });
+    expect(grid?.strikes).toEqual([192]); expect(grid?.exps).toEqual(["2026-09-25", "2026-10-02"]);
+    expect(grid?.byKey.get("192|2026-10-02")?.gex).toBe(-500_000);
+  });
+  it("computes selected-scope totals independently of the compact renderer row cap", () => {
+    const cells = Array.from({ length: 161 }, (_, i) => ({ ...cell(160 + i * .5), gex: 1_000_000 }));
+    const receipt = readCompanionMatrix({ ...matrix(), spot: 200, cells }, "NVDA", now);
+    if (!receipt.ok) throw Error(`fixture: ${receipt.reason}`);
+    const stats = matrixExactScopeStats(receipt.value.doc, "gex", 25, 3);
+    expect(stats).toEqual({ total: 161, missing: false, known: 161, expected: 161 });
+    const grid = buildMatrixGrid({ matrix: receipt.value.doc, metric: "gex", exactStrikes: true, windowPct: 25, maxRows: 101, maxCols: 3 })!;
+    expect(grid.strikes).toHaveLength(101);
   });
   it("validates canonical Vanna profiles, preserving nulls and the all-expiry basis", () => {
     const r = readVannaProfile({ NVDA: profile() }, "NVDA", now); expect(r.ok).toBe(true);
