@@ -191,6 +191,37 @@ export function matrixExactScopeStats(matrix: StrikeExpiryDoc, metric: MatrixDis
   return { total: known ? total : null, missing: known < expected, known, expected };
 }
 
+export interface MatrixScopeNode { strike: number; expiry: string; value: number; distancePct: number | null }
+export interface MatrixScopeStructure {
+  dominant: MatrixScopeNode | null;
+  opposing: MatrixScopeNode | null;
+  leadingExpiry: { expiry: string; sharePct: number; absNet: number } | null;
+  absNetTotal: number;
+  known: number;
+}
+
+/** First-glance structure over qualified net cells. Magnitude/order only; no price-level semantics. */
+export function matrixScopeStructure(grid: MatrixGridModel, metric: MatrixDisplayMetric): MatrixScopeStructure {
+  const nodes: MatrixScopeNode[] = [];
+  for (const cell of grid.byKey.values()) {
+    const value = matrixCellValue(cell, metric);
+    if (value == null) continue;
+    const distancePct = grid.spotRef != null && grid.spotRef > 0 ? (cell.strike - grid.spotRef) / grid.spotRef * 100 : null;
+    nodes.push({ strike: cell.strike, expiry: cell.expiry, value, distancePct });
+  }
+  nodes.sort((a, b) => Math.abs(b.value) - Math.abs(a.value) || a.expiry.localeCompare(b.expiry) || a.strike - b.strike);
+  const dominant = nodes[0] ?? null;
+  const opposing = dominant && dominant.value !== 0
+    ? nodes.find((node) => node.value !== 0 && Math.sign(node.value) !== Math.sign(dominant.value)) ?? null : null;
+  const absNetTotal = nodes.reduce((sum, node) => sum + Math.abs(node.value), 0);
+  const expiryAbs = new Map<string, number>();
+  for (const node of nodes) expiryAbs.set(node.expiry, (expiryAbs.get(node.expiry) ?? 0) + Math.abs(node.value));
+  const expiryRows = [...expiryAbs.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+  const leadingExpiry = expiryRows.length && absNetTotal > 0
+    ? { expiry: expiryRows[0][0], absNet: expiryRows[0][1], sharePct: expiryRows[0][1] / absNetTotal * 100 } : null;
+  return { dominant, opposing, leadingExpiry, absNetTotal, known: nodes.length };
+}
+
 export interface MatrixSelectedNodeContext {
   strikeTotal: number | null;
   ex0dteTotal: number | null;

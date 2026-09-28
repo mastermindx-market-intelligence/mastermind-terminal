@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { StrikeExpiryMatrix, buildMatrixGrid, matrixExactScopeStats, matrixSelectedNodeContext, matrixCellValue, fmtMatrixCell,
+import { StrikeExpiryMatrix, buildMatrixGrid, matrixExactScopeStats, matrixScopeStructure, matrixSelectedNodeContext, matrixCellValue, fmtMatrixCell,
   type MatrixCellSelection, type MatrixDisplayMetric, type MatrixNorm } from "@/components/shared/StrikeExpiryMatrix";
 import { readCompanionMatrix, matrixForExpiry, type CompanionIssue, type OptionsChartLevel } from "@/lib/optionsCompanion";
 import { useOptionsSnapshot } from "./useOptionsSnapshot";
@@ -73,8 +73,12 @@ export function MatrixCompanion({ root, metric, prefs, onPrefs, t, ...pin }: Pin
   const units = t(metric === "gex" ? "unitsGex" : "contracts");
   const selectedCell = selectionCurrent ? data?.doc.cells?.find((cell) => cell.strike === selectionCurrent.strike && cell.expiry === selectionCurrent.expiry) : null;
   const selectedValue = selectedCell ? matrixCellValue(selectedCell, metric) : null;
-  const nodeContext = useMemo(() => selectedVisible && scopeGrid ? matrixSelectedNodeContext(scopeGrid, metric, selectedVisible) : null,
-    [selectedVisible, scopeGrid, metric]);
+  const selectedInScope = scopeGrid && selectionCurrent && scopeGrid.strikes.includes(selectionCurrent.strike)
+    && scopeGrid.exps.includes(selectionCurrent.expiry) ? selectionCurrent : null;
+  const nodeContext = useMemo(() => selectedInScope && scopeGrid ? matrixSelectedNodeContext(scopeGrid, metric, selectedInScope) : null,
+    [selectedInScope, scopeGrid, metric]);
+  const structure = useMemo(() => scopeGrid ? matrixScopeStructure(scopeGrid, metric) : null, [scopeGrid, metric]);
+  const signedMetric = metric === "gex" || metric === "doi";
   const headline = metric === "gex" ? "scopeGex" : metric === "oi" ? "scopeOi" : metric === "doi" ? "scopeDoi" : "scopeVolume";
   const note = t(metric === "gex" ? "estimate" : metric === "vol" ? "volumeNote" : "oiNote");
   const scopeMeta = `${prefs.expiries === "0dte" ? "0DTE" : `${prefs.expiries} ${t("expiry")}`} · ±${prefs.window}% · ${t(prefs.norm === "global" ? "global" : "column")}`;
@@ -116,6 +120,30 @@ export function MatrixCompanion({ root, metric, prefs, onPrefs, t, ...pin }: Pin
           {stats.total == null ? "—" : fmtMatrixCell(stats.total, metric)}</strong><small title={stats.missing ? t("partial") : undefined}>{stats.expected ? `${stats.known}/${stats.expected} · ` : ""}{units}{stats.missing ? ` · ${t("publishedOnly")}` : ""}</small></div>
         <div className={styles.reference}><span>{t("reference")}</span><b>{grid.spotRef?.toLocaleString("en-US", { maximumFractionDigits: 2 }) ?? "—"}</b><small>{t("notIntraday")}</small></div>
       </div>
+      {structure?.dominant && <section className={styles.scopeBrief} aria-label={t("structureBrief")} data-testid="options-scope-structure">
+        <span className={styles.scopeBriefTitle}>{t("structureBrief")}</span>
+        <div className={styles.scopeBriefGrid}>
+          <button type="button" data-testid="options-dominant-node" data-strike={structure.dominant.strike} data-expiry={structure.dominant.expiry}
+            aria-pressed={selectionCurrent?.strike === structure.dominant.strike && selectionCurrent?.expiry === structure.dominant.expiry}
+            aria-label={`${t("inspectNode")} ${structure.dominant.strike} ${structure.dominant.expiry}`}
+            onClick={() => select({ strike: structure.dominant!.strike, expiry: structure.dominant!.expiry })}>
+            <span>{t("dominantNode")}</span><b>{structure.dominant.strike} · {structure.dominant.expiry.slice(5)}</b>
+            <small className={structure.dominant.value < 0 ? styles.negative : styles.positive}>{fmtMatrixCell(structure.dominant.value, metric)}</small>
+            {structure.dominant.distancePct != null && <em>{structure.dominant.distancePct >= 0 ? "+" : ""}{structure.dominant.distancePct.toFixed(1)}% {t("vsSpot")}</em>}
+          </button>
+          {signedMetric ? structure.opposing ? <button type="button" data-testid="options-opposing-node" data-strike={structure.opposing.strike} data-expiry={structure.opposing.expiry}
+            aria-pressed={selectionCurrent?.strike === structure.opposing.strike && selectionCurrent?.expiry === structure.opposing.expiry}
+            aria-label={`${t("inspectNode")} ${structure.opposing.strike} ${structure.opposing.expiry}`}
+            onClick={() => select({ strike: structure.opposing!.strike, expiry: structure.opposing!.expiry })}>
+            <span>{t("opposingNode")}</span><b>{structure.opposing.strike} · {structure.opposing.expiry.slice(5)}</b>
+            <small className={structure.opposing.value < 0 ? styles.negative : styles.positive}>{fmtMatrixCell(structure.opposing.value, metric)}</small>
+            {structure.opposing.distancePct != null && <em>{structure.opposing.distancePct >= 0 ? "+" : ""}{structure.opposing.distancePct.toFixed(1)}% {t("vsSpot")}</em>}
+          </button> : <div className={styles.scopeBriefCard}><span>{t("opposingNode")}</span><b>—</b></div>
+          : <div className={styles.scopeBriefCard}><span>{t("scopeCells")}</span><b>{stats.known} / {stats.expected}</b><small>{units}</small></div>}
+          <div className={styles.scopeBriefCard}><span>{t("expiryLead")}</span><b>{structure.leadingExpiry?.expiry.slice(5) ?? "—"}</b>
+            <small>{structure.leadingExpiry ? `${structure.leadingExpiry.sharePct.toFixed(1)}% ${t("cellShare")}` : "—"}</small></div>
+        </div>
+      </section>}
       <div className={styles.legend}>
         <span className={metric === "gex" ? styles.positive : styles.neutral}>● {t(metric === "gex" ? "positive" : metric === "doi" ? "build" : "more")}</span>
         {(metric === "gex" || metric === "doi") && <span className={metric === "gex" ? styles.negative : styles.unwind}>● {t(metric === "gex" ? "negative" : "unwind")}</span>}

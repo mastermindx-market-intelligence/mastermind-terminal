@@ -120,6 +120,17 @@ test("0DTE never silently becomes the nearest later expiry", async ({ page }) =>
   await expect(panel.locator("[data-options-grid]")).toHaveCount(0);
 });
 
+test("R9 structure brief opens its exact dominant contract for inspection", async ({ page }) => {
+  await prepare(page); const panel = await openPanel(page);
+  const brief = panel.getByTestId("options-scope-structure"); await expect(brief).toBeVisible();
+  const dominant = panel.getByTestId("options-dominant-node");
+  const strike = await dominant.getAttribute("data-strike"), expiry = await dominant.getAttribute("data-expiry");
+  expect(strike).toBeTruthy(); expect(expiry).toBeTruthy();
+  await dominant.click(); await expect(dominant).toHaveAttribute("aria-pressed", "true");
+  await expect(panel.locator("[data-options-inspector]")).toContainText(`${strike} · ${expiry}`);
+  await expect(panel.getByTestId("options-node-context")).toBeVisible();
+});
+
 test("R7 scope edits stay pending until Apply and Cancel preserves the selected node", async ({ page }) => {
   await prepare(page); const panel = await openPanel(page);
   const later = panel.locator('[data-options-grid] button[aria-label*="2026-07-13"][data-value]:not([data-value="missing"])').first();

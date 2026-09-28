@@ -3,7 +3,7 @@ import { optionsRoot, isoSession, readCompanionMatrix, readVannaProfile, matrixF
 import { optionsReadAccess } from "../optionsAccess";
 import { gateEntitlement, type EntitlementSnapshot } from "../entitlementStore";
 import { syncOptionsPricePin, removeOptionsPricePin } from "../optionsChartPin";
-import { buildMatrixGrid, matrixExactScopeStats, matrixSelectedNodeContext, matrixCellValue, matrixCellTone, fmtMatrixCell } from "@/components/shared/StrikeExpiryMatrix";
+import { buildMatrixGrid, matrixExactScopeStats, matrixScopeStructure, matrixSelectedNodeContext, matrixCellValue, matrixCellTone, fmtMatrixCell } from "@/components/shared/StrikeExpiryMatrix";
 
 const now = Date.parse("2026-09-23T15:00:00Z");
 const cell = (strike = 192, expiry = "2026-09-25") => ({ strike, expiry, gex: 2_500_000, call_oi: 3, put_oi: 5 });
@@ -89,6 +89,19 @@ describe("companion source boundaries", () => {
     expect(context.rank).toBe(2); expect(context.scopeKnown).toBe(4);
     expect(context.strikeSharePct).toBeCloseTo(83.333333, 5); expect(context.maxStrikeAbs).toBe(2.5);
     expect(context.expiryRows).toEqual([{ expiry: "2026-09-25", value: 2.5 }, { expiry: "2026-10-02", value: -.5 }]);
+  });
+  it("summarizes the dominant, opposite-sign node and leading expiry by absolute cell magnitude", () => {
+    const doc = { ...matrix(), spot: 193, _build_meta: { asof_date: "2026-09-25" }, cells: [
+      { ...cell(192, "2026-09-25"), gex: 2_500_000 }, { ...cell(192, "2026-10-02"), gex: -500_000 },
+      { ...cell(194, "2026-09-25"), gex: 5_000_000 }, { ...cell(194, "2026-10-02"), gex: 1_000_000 },
+    ] };
+    const grid = buildMatrixGrid({ matrix: doc, metric: "gex", exactStrikes: true, windowPct: 25, maxRows: 10_000, maxCols: 3 })!;
+    const brief = matrixScopeStructure(grid, "gex");
+    expect(brief.dominant).toMatchObject({ strike: 194, expiry: "2026-09-25", value: 5 });
+    expect(brief.dominant?.distancePct).toBeCloseTo(100 / 193, 8);
+    expect(brief.opposing).toMatchObject({ strike: 192, expiry: "2026-10-02", value: -.5 });
+    expect(brief.leadingExpiry).toMatchObject({ expiry: "2026-09-25", absNet: 7.5 });
+    expect(brief.leadingExpiry?.sharePct).toBeCloseTo(83.333333, 5); expect(brief.absNetTotal).toBe(9); expect(brief.known).toBe(4);
   });
   it("validates canonical Vanna profiles, preserving nulls and the all-expiry basis", () => {
     const r = readVannaProfile({ NVDA: profile() }, "NVDA", now); expect(r.ok).toBe(true);
