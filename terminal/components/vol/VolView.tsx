@@ -59,7 +59,11 @@ function sessionsOld(asofDate: string): number {
   return n;
 }
 
-export function VolView() {
+export interface VolViewProps {
+  rootChoices?: readonly string[];
+}
+
+export function VolView({ rootChoices = GEX_AUTOCOMPLETE_ROOTS }: VolViewProps = {}) {
   const { lang } = useLang();
   const t = makeVolT(lang);
 
@@ -193,7 +197,7 @@ export function VolView() {
             maxLength={12}
           />
           <datalist id="vol-roots">
-            {GEX_AUTOCOMPLETE_ROOTS.map((r) => <option key={r} value={r} />)}
+            {rootChoices.map((r) => <option key={r} value={r} />)}
           </datalist>
         </div>
         <div style={CONTROLS_RIGHT}>

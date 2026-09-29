@@ -180,7 +180,11 @@ async function safeFetch<T>(url: string): Promise<T | null> {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function GexDeskView() {
+export interface GexDeskViewProps {
+  rootChoices?: readonly string[];
+}
+
+export function GexDeskView({ rootChoices = GEX_AUTOCOMPLETE_ROOTS }: GexDeskViewProps = {}) {
   const { lang } = useLang();
   const t = makeGexT(lang);
 
@@ -533,7 +537,7 @@ export function GexDeskView() {
               maxLength={12}
             />
             <datalist id="gex-roots">
-              {GEX_AUTOCOMPLETE_ROOTS.map((r) => <option key={r} value={r} />)}
+              {rootChoices.map((r) => <option key={r} value={r} />)}
             </datalist>
           </div>
           {/* Quick picks — the "dropdown options" the desk was missing. Wraps so the tail

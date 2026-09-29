@@ -69,7 +69,11 @@ function pickRoot<T extends { root?: unknown }>(data: unknown, root: string): T 
   return inner;
 }
 
-export function PositioningView() {
+export interface PositioningViewProps {
+  rootChoices?: readonly string[];
+}
+
+export function PositioningView({ rootChoices = GEX_AUTOCOMPLETE_ROOTS }: PositioningViewProps = {}) {
   const { lang } = useLang();
   const t = makeMscT(lang);
 
@@ -210,7 +214,7 @@ export function PositioningView() {
             maxLength={12}
           />
           <datalist id="msc-roots">
-            {GEX_AUTOCOMPLETE_ROOTS.map((r) => (
+            {rootChoices.map((r) => (
               <option key={r} value={r} />
             ))}
           </datalist>
