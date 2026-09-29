@@ -75,6 +75,7 @@ function installFetch(theses: ThesisSummary[], details: Map<string, ThesisDetail
     const url = new URL(raw, "https://x.test");
     if (url.pathname === "/api/thesis-saved-views") return jsonResponse({ views: [] });
     if (url.pathname === "/api/thesis-fire-status") return jsonResponse({ states: {} });
+    if (/^\/api\/thesis\/[^/]+\/proposals/.test(url.pathname)) return jsonResponse({ proposals: [] });
     if (url.pathname !== "/api/theses") return jsonResponse({ error: "not_found" }, 404);
     const ids = url.searchParams.getAll("ids");
     if (ids.length > 0) {

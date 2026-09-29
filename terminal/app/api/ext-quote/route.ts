@@ -22,7 +22,19 @@ export const dynamic = "force-dynamic";
 // only when the hub supplies it; a symbol with no ext data stays `null` as before.
 
 const HUB_PORT = process.env.HUB_PORT ?? "3100";
+const HUB_TIMEOUT_MS = 3_000;
 const MAX_SYMS = 100;
+
+const unavailable = () => NextResponse.json(
+  { error: "quote_hub_unavailable" },
+  {
+    status: 503,
+    headers: {
+      "Cache-Control": "no-store",
+      "Retry-After": "1",
+    },
+  },
+);
 
 // Anything the hub sends outside this set is dropped rather than relayed — the UI maps the
 // value straight onto a label, so an unknown string would surface raw in the interface.
@@ -49,23 +61,34 @@ export async function GET(req: Request) {
   try {
     const r = await fetch(
       `http://127.0.0.1:${HUB_PORT}/quotes?syms=${encodeURIComponent(syms.join(","))}`,
-      { cache: "no-store", signal: AbortSignal.timeout(1500) },
+      { cache: "no-store", signal: AbortSignal.timeout(HUB_TIMEOUT_MS) },
     );
-    if (r.ok) {
-      const j: any = await r.json();
-      for (const s of syms) {
-        const q = j?.[s];
-        if (q && typeof q.extPrice === "number" && typeof q.extChg === "number") {
-          const session = asExtSession(q.extSession);
-          out[s] = {
-            extPrice: q.extPrice, extChg: q.extChg, extTs: q.extTs ?? q.ts ?? 0,
-            ...(session ? { extSession: session } : {}),
-          };
-        }
+    // A transport failure is not an authoritative "no ext print" answer. Returning the
+    // pre-filled all-null object here used to make every client erase its last-good values,
+    // then restore them on the next successful 30 s poll — the visible in/out flicker.
+    if (!r.ok) return unavailable();
+
+    const j: unknown = await r.json();
+    if (!j || typeof j !== "object" || Array.isArray(j)) return unavailable();
+    const hubQuotes = j as Record<string, unknown>;
+    for (const s of syms) {
+      const value = hubQuotes[s];
+      if (!value || typeof value !== "object" || Array.isArray(value)) continue;
+      const q = value as Record<string, unknown>;
+      if (typeof q.extPrice === "number" && typeof q.extChg === "number") {
+        const session = asExtSession(q.extSession);
+        const extTs = typeof q.extTs === "number"
+          ? q.extTs
+          : typeof q.ts === "number" ? q.ts : 0;
+        out[s] = {
+          extPrice: q.extPrice, extChg: q.extChg, extTs,
+          ...(session ? { extSession: session } : {}),
+        };
       }
     }
+    return NextResponse.json({ quotes: out }, { headers: { "Cache-Control": "no-store" } });
   } catch {
-    // hub down/timeout → all-null (UI shows dashes; never a fake value)
+    // The browser treats non-2xx as a failed refresh and keeps the last-good ext snapshot.
+    return unavailable();
   }
-  return NextResponse.json({ quotes: out });
 }

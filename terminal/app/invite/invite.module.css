@@ -1,0 +1,89 @@
+/* The public invitation-accept page. Terminal is dark-only
+   (DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06); tokens come from globals.css. */
+
+.page {
+  min-height: 100vh;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px calc(24px + env(safe-area-inset-bottom));
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-ui);
+}
+.card {
+  width: 100%;
+  max-width: 460px;
+  box-sizing: border-box;
+  padding: 22px 20px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--panel);
+}
+.brand { margin-bottom: 14px; }
+.title {
+  margin: 0;
+  font: 700 19px/1.25 var(--font-ui);
+  color: var(--text);
+}
+.intro {
+  margin: 8px 0 0;
+  font: 400 13.5px/1.5 var(--font-ui);
+  color: var(--text);
+}
+.note {
+  margin: 10px 0 0;
+  font: 400 12.5px/1.5 var(--font-ui);
+  color: var(--text-2);
+  overflow-wrap: anywhere;
+}
+.noteOk { color: var(--text); }
+.noteErr { color: var(--warn, #f0a35e); }
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--brand);
+  background: var(--brand);
+  color: #fff;
+  font: 700 13px/1 var(--font-ui);
+  text-decoration: none;
+  cursor: pointer;
+}
+.button:disabled { opacity: 0.55; cursor: default; }
+.button:focus-visible { outline: 2px solid var(--brand-2); outline-offset: 2px; }
+.buttonGhost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--text);
+  font: 700 13px/1 var(--font-ui);
+  text-decoration: none;
+  cursor: pointer;
+}
+.foot {
+  margin: 18px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font: 400 11.5px/1.5 var(--font-ui);
+  color: var(--text-2);
+}
+@media (max-width: 420px) {
+  .card { padding: 18px 14px; }
+  .actions .button, .actions .buttonGhost { width: 100%; }
+}

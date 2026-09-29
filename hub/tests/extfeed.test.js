@@ -112,6 +112,31 @@ describe("ExtFeed LRU subscription management", () => {
     }
   });
 
+  it("eviction stops refresh but keeps a still-valid last-good Yahoo print servable", () => {
+    const feed2 = new ExtFeed({ alpacaKey: "", alpacaSecret: "" });
+    try {
+      const nowMs = etMs("07:00");
+      feed2.demand("QCOM");
+      feed2._yahooCache.set("QCOM", {
+        price: 188.23,
+        ts: Math.floor((nowMs - 60_000) / 1000),
+        session: "pre",
+        source: "yahoo-relay",
+      });
+      for (let i = 1; i < ALPACA_LRU_CAP; i++) feed2.demand(`X${i}`);
+      feed2.demand("NEWCOMER");
+
+      assert.ok(!feed2._yahooSubs.has("QCOM"), "the 30-slot subscription cap still applies");
+      assert.ok(feed2._yahooCache.has("QCOM"),
+        "subscription eviction must not masquerade as an authoritative quote deletion");
+      const ext = feed2.getExt("QCOM", nowMs, 188.71);
+      assert.ok(ext, "the bounded last-good cache stays servable until session/age gates expire it");
+      assert.equal(ext.extPrice, 188.23);
+    } finally {
+      feed2.stop();
+    }
+  });
+
   it("re-touching an existing entry updates lastReq (idle-sweep regression)", () => {
     // Regression: before the fix, lruTouch re-inserted the same value object without
     // updating lastReq, so _sweepIdle would unsubscribe actively-demanded symbols after

@@ -21,6 +21,8 @@
 
 import type { Drawing, Pt } from "@/lib/drawings";
 import { uid } from "@/lib/drawings";
+import { isSuiteKey } from "./suites/meta";
+import { readNativeSuiteParams, type IndicatorParam } from "./chartIndicatorParams";
 
 // ── caps (contract law) ───────────────────────────────────────────────────────────────────────
 export const BATCH_OP_CAP = 24; // ops per batch
@@ -78,7 +80,7 @@ export type Applied =
       clear?: true; undo?: number; scene?: "begin" | "end"; sceneTitle?: string; }
   | { ok: false; op: string; id: string | null; error: string };
 
-export type IndicatorSpec = { name: string; params?: Record<string, number> };
+export type IndicatorSpec = { name: string; params?: Record<string, IndicatorParam> };
 
 // ── small typed guards ────────────────────────────────────────────────────────────────────────
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
@@ -212,6 +214,13 @@ export function translate(
       for (const raw of a.indicators) {
         if (!isObj(raw) || !isStr(raw.name)) return reject("bad_indicator_entry");
         if (!caps.indicators.includes(raw.name)) return reject("unknown_indicator");
+        if (isSuiteKey(raw.name)) {
+          const native = readNativeSuiteParams(raw.name, raw.params);
+          if (!native.ok) return reject(native.error);
+          specs.push({ name: raw.name, params: native.params });
+          continue;
+        }
+        // The legacy classic path remains numeric-only; native schemas are explicit above.
         const params: Record<string, number> = {};
         if (isObj(raw.params)) for (const [k, v] of Object.entries(raw.params)) if (isFiniteNum(v)) params[k] = v;
         specs.push({ name: raw.name, params: Object.keys(params).length ? params : undefined });

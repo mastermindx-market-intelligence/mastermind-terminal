@@ -8,9 +8,20 @@ in place on the VPS outside of a deploy.
 VPS path: `/opt/terminal/terminal-build.sh` — the git-gated deploy script itself
 (see `DEPLOY.md` for the full path-by-path deploy contract).
 
-Every deploy re-installs this file from master onto the box, so an edit to
-`ops/terminal-build.sh` takes effect on the **next** deploy after it merges.
-Never edit the box copy in place — it is overwritten on every run.
+Every successful deploy re-installs this file from the exact admitted commit.
+The first release that adopts a newer owner must execute that exact protected
+`ops/` artifact; the installed copy takes effect on subsequent runs. Never edit
+the box copy in place — it is overwritten by the existing owner.
+
+The required invocation is:
+
+```bash
+/opt/terminal/terminal-build.sh \
+  --target-sha <full-lowercase-40-hex-commit>
+```
+
+The SHA must resolve exactly and be contained by the freshly fetched protected
+`origin/master`. The owner never infers a target from a moving branch tip.
 
 The deploy writes the deployed commit to the gitignored
 `terminal/.deployment-id` marker before restarting Next. `next.config.ts` reads
@@ -26,9 +37,12 @@ production policy is `terminal_source_audit.production.json`.
 against the exact deployed SHA, and publishes an immutable sanitized receipt.
 
 These W2A tools are read-only except for receipt publication. They do not fetch,
-reset, clean, build, synchronize source, restart services, or deploy. The current
-`terminal-build.sh` does not invoke the preflight yet; that integration remains
-W2B work after W2A is independently reviewed, merged, and proven on production.
+reset, clean, build, synchronize source, restart services, or deploy. W2B-A now
+makes that preflight the incumbent deploy owner's first gate: it must return a
+bound immutable `CLEAN` receipt for the current generation before any source or
+build mutation. The owner then admits only the explicit full SHA contained by
+the freshly fetched protected ref. Reproducible dependencies/build receipts and
+whole-release deploy/rollback/drift proof remain later #483 work.
 
 Full contracts, usage, retained host-owned path classes, and non-claims:
 [`TERMINAL_RELEASE_PREFLIGHT.md`](TERMINAL_RELEASE_PREFLIGHT.md). The underlying

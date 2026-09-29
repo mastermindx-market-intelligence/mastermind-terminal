@@ -6,6 +6,7 @@
 import "../../app/company-intelligence.css";
 import { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import MegaPane, { FIN_PAGES as FIN_PAGE_LIST, type FinPage } from "@/components/fin/MegaPane";
 import { getFund, getBars, type Fund, type Bar } from "@/lib/fund";
 import { getJSON } from "@/lib/dataCache";
@@ -171,7 +172,7 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
     let alive = true;
     const load = async () => {
       try {
-        const r = await fetch(`/api/quote?syms=${encodeURIComponent(sym)}`, { cache: "no-store" });
+        const r = await fetch(`/api/quote?view=regular&syms=${encodeURIComponent(sym)}`, { cache: "no-store" });
         if (!r.ok) return;
         const j = await r.json();
         const px = j?.quotes?.[sym]?.last;
@@ -212,6 +213,12 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
     // nav underneath itself — see the scoped block in app/fin.css.
     <div className="main2 ws-shell analysis-shell">
       <div className="analysis-context-bar">
+        <button type="button" className="analysis-context-back" onClick={onClose}>
+          <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden>
+            <path d="M15 18l-6-6 6-6" />
+          </svg>
+          {t("backToChart")}
+        </button>
         {/* The identity block IS the switcher. Two controls that both name the current company —
             a read-only chip beside a "switch to" field — is one more than the bar needs, and the
             chart already established that tapping the ticker is how you change it. */}
@@ -230,6 +237,18 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
           <i />
           <span>{t("wsCompanyResearch")}</span>
         </div>
+        {!invalidSymbol && (
+          <Link
+            href={`/analysis?view=theses&symbol=${encodeURIComponent(sym)}`}
+            className="analysis-context-theses"
+            aria-label={t("wsOpenThesesFor", "Your theses on {sym}").replace("{sym}", sym)}
+          >
+            <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true">
+              <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2z" />
+            </svg>
+            {t("wsOpenTheses")}
+          </Link>
+        )}
       </div>
 
       {invalidSymbol ? (

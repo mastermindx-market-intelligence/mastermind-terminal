@@ -574,6 +574,8 @@ const GEX_LEX = {
     "The published pick expired within this snapshot's session — nothing current to show.",
     "已发布的精选在本快照交易日内已到期 — 暂无有效标的。",
   ],
+  // SVG aria-label for the expiry term-structure chart
+  exposureByExpiry: ["Exposure by expiry term structure", "按到期期限结构显示敞口"],
 } as const;
 
 type GexDeskKey = keyof typeof GEX_LEX;

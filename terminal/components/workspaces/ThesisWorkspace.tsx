@@ -49,6 +49,14 @@ import type {
 } from "@/lib/rmsViews";
 import styles from "./ThesisWorkspace.module.css";
 import ClaimAuthoringForm from "./ClaimAuthoringForm";
+import BriefSubscribeControls from "@/components/briefs/BriefSubscribeControls";
+import {
+  basedOnVersionSentence,
+  MESSAGES,
+  proposalStateLabel,
+  type ProposalRow,
+} from "@/lib/thesisAmendmentProposals";
+import { describeThesisDelta, thesisVersionDeltaForHistory, type ThesisDelta, type ThesisDeltaCopy } from "@/lib/thesisDelta";
 
 export interface ThesisWorkspaceProps {
   ownerKey: string;
@@ -120,6 +128,32 @@ const COPY = {
     previousVersion: "Previous version", origin: "Origin", recordedBy: "Recorded by", you: "You",
     subjectOwner: "Subject owner", subjectKind: "Subject kind", listing: "Listing", transitionLabel: "Transition",
     systemRecorded: "System recorded", none: "None",
+    suggestions: "Suggested changes",
+    suggestionsCeiling: "The assistant can suggest a change to your thesis. Only you can publish one.",
+    suggestionsEmpty: "No suggested changes yet.",
+    accept: "Accept", reject: "Reject",
+    assistantNotes: "Assistant notes",
+    assistantNotesHelp: "Write a suggested change in your own words. This does not publish a new version.",
+    assistantNotesLabel: "Suggested change",
+    suggestAction: "Suggest as a change to this thesis",
+    suggesting: "Saving suggestion…",
+    suggested: "Suggestion saved. Only you can publish a new version.",
+    suggestNeedText: "Write the suggested change before saving it.",
+    suggestNeedVersion: "Open a saved thesis before saving a suggestion.",
+    acceptedIntoEditor: "This suggestion is in the editor. Publish it yourself when you are ready.",
+    createdOn: "Saved on",
+    whatChangedLabel: "What changed",
+    whatChangedOrigin: "This is the first version; nothing before this.",
+    whatChangedTruncated: "The previous version is outside the loaded history.",
+    // Field labels for the "What changed" section
+    deltaTitle: "Title", deltaStatement: "Thesis statement", deltaCatalysts: "Catalysts",
+    deltaFalsifiers: "Falsifiers", deltaRisks: "Risks", deltaHorizon: "Horizon",
+    deltaEffectiveAt: "Effective as of", deltaRevisionNote: "Revision note",
+    deltaStatus: "Status",
+    whatChangedUnchanged: "Nothing changed in this version.",
+    // Verb phrases for the "What changed" section
+    deltaChanged: "changed", deltaAdded: "added", deltaRemoved: "removed",
+    deltaReordered: "reordered",
   },
   zh: {
     eyebrow: "研究工作区", title: "研究论点工作区", newThesis: "新建论点", list: "你的论点",
@@ -151,6 +185,32 @@ const COPY = {
     previousVersion: "上一版本", origin: "起始版本", recordedBy: "记录者", you: "你",
     subjectOwner: "标的所有者", subjectKind: "标的类型", listing: "上市代码", transitionLabel: "变更类型",
     systemRecorded: "系统记录时间", none: "无",
+    suggestions: "建议的修改",
+    suggestionsCeiling: "助手可以建议你修改论点。只有你能发布新版本。",
+    suggestionsEmpty: "目前还没有建议的修改。",
+    accept: "接受", reject: "拒绝",
+    assistantNotes: "助手备注",
+    assistantNotesHelp: "用你自己的话写下一条建议的修改。这不会发布新版本。",
+    assistantNotesLabel: "建议的修改内容",
+    suggestAction: "建议将这段文字作为对此论点的修改",
+    suggesting: "正在保存建议…",
+    suggested: "建议已保存。只有你能发布新版本。",
+    suggestNeedText: "请先写下建议的修改，再保存。",
+    suggestNeedVersion: "请先打开一份已保存的论点，再保存建议。",
+    acceptedIntoEditor: "这条建议已填入编辑器。准备好后请由你来发布。",
+    createdOn: "保存于",
+    whatChangedLabel: "变更内容",
+    whatChangedOrigin: "这是第一版；此前没有版本。",
+    whatChangedTruncated: "上一版本不在已加载的历史记录中。",
+    // Field labels for the "What changed" section
+    deltaTitle: "标题", deltaStatement: "论点陈述", deltaCatalysts: "催化因素",
+    deltaFalsifiers: "证伪因素", deltaRisks: "风险", deltaHorizon: "时间范围",
+    deltaEffectiveAt: "生效时间", deltaRevisionNote: "修订说明",
+    deltaStatus: "状态",
+    whatChangedUnchanged: "此版本没有内容变化。",
+    // Verb phrases for the "What changed" section
+    deltaChanged: "已更改", deltaAdded: "已添加", deltaRemoved: "已删除",
+    deltaReordered: "已重排",
   },
 } as const;
 
@@ -218,6 +278,41 @@ function localInputToUtcInstant(value: string): string | undefined {
 
 function statusLabel(state: ThesisLifecycle, copy: typeof COPY.en | typeof COPY.zh): string {
   return state === "active" ? copy.active : state === "archived" ? copy.archived : copy.invalidated;
+}
+
+function thesisDeltaCopy(
+  lang: "en" | "zh",
+  copy: typeof COPY.en | typeof COPY.zh,
+): ThesisDeltaCopy {
+  const dateLocale = lang === "zh" ? "zh-CN" : "en-CA";
+  return {
+    language: lang,
+    origin: copy.whatChangedOrigin,
+    truncated: copy.whatChangedTruncated,
+    fields: {
+      title: copy.deltaTitle,
+      statement: copy.deltaStatement,
+      catalysts: copy.deltaCatalysts,
+      falsifiers: copy.deltaFalsifiers,
+      risks: copy.deltaRisks,
+      horizon: copy.deltaHorizon,
+      effectiveAt: copy.deltaEffectiveAt,
+      revisionNote: copy.deltaRevisionNote,
+      status: copy.deltaStatus,
+    },
+    changed: copy.deltaChanged,
+    added: copy.deltaAdded,
+    removed: copy.deltaRemoved,
+    reordered: copy.deltaReordered,
+    none: copy.none,
+    formatHorizon: (horizon) => HORIZON_LABELS[lang][horizon],
+    formatDate: (date) => date === null ? copy.none : new Date(date).toLocaleString(dateLocale),
+    formatLifecycle: (lifecycle) => statusLabel(lifecycle, copy),
+  };
+}
+
+function deltaKey(delta: ThesisDelta): string {
+  return "field" in delta ? `${delta.kind}-${delta.field}` : delta.kind;
 }
 
 function builtinLabel(id: BuiltinViewId, rms: (typeof RMS_COPY)["en"]): string {
@@ -427,6 +522,9 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   const [truncated, setTruncated] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(initialThesisId ?? null);
   const [detail, setDetail] = useState<ThesisDetail | null>(null);
+  const [proposals, setProposals] = useState<ProposalRow[]>([]);
+  const [assistantText, setAssistantText] = useState("");
+  const [proposalBusy, setProposalBusy] = useState(false);
   const [subjectDraft, setSubjectDraft] = useState(seededSymbol);
   const [draft, setDraft] = useState<Draft>(EMPTY_DRAFT);
   const [baseline, setBaseline] = useState<{ subject: string; draft: Draft }>(() => ({
@@ -1359,6 +1457,23 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     }
   }, []);
 
+  const loadProposals = useCallback(async (id: string, token = detailRequest.current) => {
+    try {
+      const response = await fetch(`/api/thesis/${encodeURIComponent(id)}/proposals`, { cache: "no-store" });
+      if (token !== detailRequest.current) return;
+      if (!response.ok) {
+        setProposals([]);
+        return;
+      }
+      const payload = await response.json();
+      if (token !== detailRequest.current) return;
+      setProposals(Array.isArray(payload.proposals) ? payload.proposals : []);
+    } catch {
+      if (token !== detailRequest.current) return;
+      setProposals([]);
+    }
+  }, []);
+
   const loadDetail = useCallback(async (id: string, token = ++detailRequest.current) => {
     try {
       const response = await fetch(`/api/theses?id=${encodeURIComponent(id)}`, { cache: "no-store" });
@@ -1382,11 +1497,12 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       setEffectiveEdited(false);
       setInspectedVersion(null);
       setDetailState("ready");
+      void loadProposals(id, token);
     } catch {
       if (token !== detailRequest.current) return;
       setDetailState("unavailable");
     }
-  }, []);
+  }, [loadProposals]);
 
   const writeRoute = useCallback((url: URL, mode: "push" | "replace") => {
     if (url.href === window.location.href) return;
@@ -1775,6 +1891,88 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     await navigator.clipboard.writeText(window.location.href);
     setMessage(copy.copied);
   }, [copy.copied]);
+
+  const versionInView = useCallback(() => {
+    if (!detail) return null;
+    const fromHistory = inspectedVersion
+      ? detail.history.find((entry) => entry.version === inspectedVersion)
+      : null;
+    return fromHistory ?? detail.current;
+  }, [detail, inspectedVersion]);
+
+  const suggestAmendment = useCallback(async () => {
+    if (!selectedId || !detail) {
+      setMessage(copy.suggestNeedVersion);
+      return;
+    }
+    const version = versionInView();
+    const text = assistantText.replace(/\r\n?/g, "\n").replace(/^ +| +$/g, "");
+    if (!text) {
+      setMessage(copy.suggestNeedText);
+      return;
+    }
+    if (!version) {
+      setMessage(copy.suggestNeedVersion);
+      return;
+    }
+    setProposalBusy(true);
+    try {
+      const response = await fetch(`/api/thesis/${encodeURIComponent(selectedId)}/proposals`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ amended_from: version.id, body: text, evidence_refs: [] }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (response.status === 400 && payload && typeof payload === "object") {
+        setMessage(lang === "zh" && payload.messageZh ? String(payload.messageZh) : String(payload.message || MESSAGES.emptyBody[lang === "zh" ? 1 : 0]));
+        return;
+      }
+      if (!response.ok) {
+        setMessage(copy.unavailable);
+        return;
+      }
+      setAssistantText("");
+      setMessage(copy.suggested);
+      await loadProposals(selectedId);
+    } catch {
+      setMessage(copy.unavailable);
+    } finally {
+      setProposalBusy(false);
+    }
+  }, [assistantText, copy.suggestNeedText, copy.suggestNeedVersion, copy.suggested, copy.unavailable, detail, lang, loadProposals, selectedId, versionInView]);
+
+  const setProposalState = useCallback(async (proposal: ProposalRow, next: "accepted" | "rejected") => {
+    if (!selectedId) return;
+    setProposalBusy(true);
+    try {
+      const response = await fetch(
+        `/api/thesis/${encodeURIComponent(selectedId)}/proposals/${encodeURIComponent(proposal.proposalId)}`,
+        {
+          method: "PATCH",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ state: next }),
+        },
+      );
+      if (response.status === 400) {
+        const payload = await response.json().catch(() => ({}));
+        setMessage(lang === "zh" && payload.messageZh ? String(payload.messageZh) : String(payload.message || copy.transition));
+        return;
+      }
+      if (!response.ok) {
+        setMessage(copy.unavailable);
+        return;
+      }
+      if (next === "accepted") {
+        setDraft((current) => ({ ...current, statement: proposal.body }));
+        setMessage(copy.acceptedIntoEditor);
+      }
+      await loadProposals(selectedId);
+    } catch {
+      setMessage(copy.unavailable);
+    } finally {
+      setProposalBusy(false);
+    }
+  }, [copy.acceptedIntoEditor, copy.transition, copy.unavailable, lang, loadProposals, selectedId]);
 
   // Round-2 review r3 MAJOR-1: rows already hydrated must stay on screen through a
   // LATER batch's fault — computed once so both the "already have rows" branch and
@@ -2177,6 +2375,13 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
                       <div><small>{detail ? statusLabel(lifecycle, copy) : copy.newThesis}</small><h1>{detail ? (detail.subject.identityState === "listing_scoped" ? `${detail.subject.key} · ${copy.listingScoped}` : detail.subject.display) : (subjectDraft || copy.newThesis)}</h1><p>{detail?.subject.identityState === "listing_scoped" || !detail ? copy.listingScoped : detail.subject.owner}</p></div>
                       {detail && <span className={styles.versionBadge}>{copy.version} {detail.currentVersion} · {copy.current}</span>}
                     </div>
+                    {detail && (
+                      <BriefSubscribeControls
+                        targetKind="thesis"
+                        targetId={detail.id}
+                        lang={lang === "zh" ? "zh" : "en"}
+                      />
+                    )}
                     {detail && detailCondition && (
                       <p className={styles.conditionLine} data-testid="thesis-condition"
                         data-source={detailCondition.source}
@@ -2194,6 +2399,65 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
                         <button type="button" className={styles.retrySame} disabled={saving || carrierBlocked} onClick={() => void send(pendingMutation)}>{copy.retrySame}</button>
                       </div>)}
                     </section>}
+
+                    {detail && <div data-testid="thesis-amendment-panel">
+                    <section className={styles.assistantNotes} data-testid="thesis-assistant-notes" aria-label={copy.assistantNotes}>
+                      <div className={styles.historyHeading}><h2>{copy.assistantNotes}</h2></div>
+                      <p className={styles.muted}>{copy.assistantNotesHelp}</p>
+                      <label className={styles.full}>{copy.assistantNotesLabel}
+                        <textarea
+                          aria-label={copy.assistantNotesLabel}
+                          value={assistantText}
+                          disabled={carrierLocked || proposalBusy}
+                          maxLength={12000}
+                          rows={5}
+                          onChange={(event) => setAssistantText(event.target.value)}
+                        />
+                      </label>
+                      <div className={styles.actions}>
+                        <button
+                          type="button"
+                          className={styles.primaryButton}
+                          data-testid="thesis-suggest-amendment"
+                          disabled={carrierLocked || proposalBusy || !detail.current.id}
+                          onClick={() => void suggestAmendment()}
+                        >{proposalBusy ? copy.suggesting : copy.suggestAction}</button>
+                      </div>
+                    </section>
+
+                    <section className={styles.proposals} data-testid="thesis-proposals" aria-label={copy.suggestions}>
+                      <div className={styles.historyHeading}><h2>{copy.suggestions}</h2><span>{proposals.length}</span></div>
+                      <p className={styles.proposalsCeiling} data-testid="thesis-proposals-ceiling">{copy.suggestionsCeiling}</p>
+                      {proposals.length === 0
+                        ? <p className={styles.muted} data-testid="thesis-proposals-empty">{copy.suggestionsEmpty}</p>
+                        : proposals.map((proposal) => {
+                          const chip = proposalStateLabel(proposal.state, lang);
+                          // H2 (Round-1 heal): bind the raw proposal state to a local
+                          // so the data-state JSX attribute below carries it without
+                          // exposing a raw interpolation at the JSX-element site.
+                          // The plain-language guard reads the field name there;
+                          // the visible chip text stays the plain-word label above.
+                          const chipAttr = proposal.state;
+                          const awaitingChoice = proposal.state === "proposed";
+                          return (
+                          <article key={proposal.proposalId} className={styles.proposalCard} data-testid="thesis-proposal-row">
+                            <p className={styles.proposalBody}>{proposal.body}</p>
+                            <p className={styles.muted}>{basedOnVersionSentence(proposal.versionNumber, proposal.versionRecordedAt, lang)}</p>
+                            <div className={styles.proposalMeta}>
+                              <i data-state={chipAttr}>{chip}</i>
+                              <time dateTime={proposal.createdAt}>{copy.createdOn} {new Date(proposal.createdAt).toLocaleString(lang === "zh" ? "zh-CN" : "en-CA")}</time>
+                            </div>
+                            {awaitingChoice && (
+                              <div className={styles.proposalActions}>
+                                <button type="button" className={styles.primaryButton} disabled={proposalBusy || carrierLocked} onClick={() => void setProposalState(proposal, "accepted")}>{copy.accept}</button>
+                                <button type="button" disabled={proposalBusy || carrierLocked} onClick={() => void setProposalState(proposal, "rejected")}>{copy.reject}</button>
+                              </div>
+                            )}
+                          </article>
+                          );
+                        })}
+                    </section>
+                    </div>}
 
                     <form className={styles.form} onSubmit={(event) => { event.preventDefault(); submit(selectedId ? "revise" : "create"); }}>
                       <label>{copy.subject}<input aria-label={copy.subject} value={detail?.subject.key ?? subjectDraft} disabled={!!detail || carrierLocked} onChange={(event) => { setSubjectDraft(event.target.value.toUpperCase()); setMessage(null); }} placeholder="NVDA" /></label>
@@ -2235,6 +2499,26 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
                               <div><dt>{copy.subjectKind}</dt><dd>{subjectKindLabel(entry.subject.kind, lang)}</dd></div>
                               <div><dt>{copy.listing}</dt><dd>{entry.subject.listing?.symbol ?? copy.none}</dd></div>
                             </dl>
+                            {(() => {
+                              const deltas = thesisVersionDeltaForHistory(history, entry);
+                              const deltaCopy = thesisDeltaCopy(lang, copy);
+                              if (deltas.length === 0) {
+                                return (
+                                  <section aria-label={copy.whatChangedLabel} data-testid="thesis-version-delta">
+                                    <p className={styles.deltaNote}><span>{copy.whatChangedUnchanged}</span></p>
+                                  </section>
+                                );
+                              }
+                              return (
+                                <section aria-label={copy.whatChangedLabel} data-testid="thesis-version-delta">
+                                  <p className={styles.deltaNote}>
+                                    {deltas.map((delta) => (
+                                      <span key={deltaKey(delta)}>{describeThesisDelta(delta, deltaCopy)}</span>
+                                    ))}
+                                  </p>
+                                </section>
+                              );
+                            })()}
                             <div className={styles.snapshotGrid}>
                               <section><h4>{copy.titleLabel}</h4><p>{entry.content.title}</p></section>
                               <section className={styles.snapshotFull}><h4>{copy.statement}</h4><p>{entry.content.statement}</p></section>

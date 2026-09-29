@@ -2,11 +2,22 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Group, Msg, Row, SectionHead } from "./icons";
 import { acsDate, type DevTeamFixture, type DevTeamMember, type SectionProps } from "./types";
-import { TEAM_ROUTE_MESSAGES, type TeamRole } from "@/lib/teams";
+import {
+  INVITE_TTL_DAYS,
+  SETTING_MESSAGES,
+  TEAM_ROUTE_MESSAGES,
+  WORKSPACE_SETTING_COPY,
+  noEmailDeliveryLine,
+  workspaceSettingDefaults,
+  type TeamRole,
+  type WorkspaceSettingKey,
+} from "@/lib/teams";
 import s from "./SectionTeam.module.css";
 
 type RosterMember = DevTeamMember;
 type PendingInvite = DevTeamFixture["invites"][number];
+/** The link a created invitation answers with. Shown once: the server keeps only its hash. */
+type InviteLink = { email: string; role: "admin" | "member"; url: string };
 
 function isKnownRole(role: string | null | undefined): role is TeamRole {
   return role === "owner" || role === "admin" || role === "member";
@@ -128,6 +139,26 @@ export default function SectionTeam({
   const [loaded, setLoaded] = useState(Boolean(devTeam));
   const [newName, setNewName] = useState("");
   const [creating, setCreating] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteRole, setInviteRole] = useState<"member" | "admin">("member");
+  const [inviteBusy, setInviteBusy] = useState(false);
+  const [inviteLink, setInviteLink] = useState<InviteLink | null>(null);
+  const [inviteCopied, setInviteCopied] = useState(false);
+  const [inviteCopyFailed, setInviteCopyFailed] = useState(false);
+  // MO-PAID-083 workspace settings (MO-B F12-13): the section holds the closed defaults locally
+  // and reconciles with /api/teams/<id>/settings on load. Defaults are filled in for absent keys;
+  // unknown stored keys are dropped (the route never echoes them either).
+  const defaults = workspaceSettingDefaults();
+  const [chartTheme, setChartTheme] = useState<string>(
+    devTeam?.settings?.default_chart_theme ?? (defaults[0].value as string),
+  );
+  const [shareLayouts, setShareLayouts] = useState<boolean>(
+    devTeam?.settings?.share_layouts_by_default ?? (defaults[1].value as boolean),
+  );
+  const [settingsLoaded, setSettingsLoaded] = useState(Boolean(devTeam));
+  const [settingsError, setSettingsError] = useState<[string, string] | null>(null);
+  const [settingsBusyKey, setSettingsBusyKey] = useState<WorkspaceSettingKey | null>(null);
+  const [settingsMsg, setSettingsMsg] = useState<{ key: WorkspaceSettingKey; tone: "ok" | "err"; text: string } | null>(null);
 
   useEffect(() => {
     if (transfer) {
@@ -178,6 +209,8 @@ export default function SectionTeam({
         setInvites([]);
         setInvitesFail(false);
         setTruncated(false);
+        setSettingsError(null);
+        setSettingsLoaded(true);
         return;
       }
       const team = teams[0];
@@ -256,6 +289,95 @@ export default function SectionTeam({
       cancelled = true;
     };
   }, [devTeam, loadLive]);
+
+  // MO-PAID-083 — fetch the team's two workspace settings whenever the live roster identifies a
+  // team. The dev harness has no Supabase session, so the devTeam fixture already carries the
+  // values and this effect is skipped (R4).
+  const loadSettings = useCallback(async () => {
+    if (devTeam) return;
+    if (!teamId) return;
+    try {
+      const res = await fetch(`/api/teams/${encodeURIComponent(teamId)}/settings`);
+      const body = (await res.json().catch(() => ({}))) as {
+        settings?: Array<{ key: WorkspaceSettingKey; value: string | boolean; updatedAt?: string | null }>;
+        message?: unknown;
+        messageZh?: unknown;
+      };
+      if (!res.ok) {
+        // Surface the failure with a plain sentence so the block does not silently paint the
+        // closed defaults as "the team's saved values". Keep the route's EN/ZH pair and pick
+        // the sentence from `lang` at render so a live language change does not leave the old
+        // language on screen. Fall back to read_failed only if the body carries no sentence.
+        setSettingsError([
+          routeMessage(body, "en") || TEAM_ROUTE_MESSAGES.read_failed[0],
+          routeMessage(body, "zh") || TEAM_ROUTE_MESSAGES.read_failed[1],
+        ]);
+        setSettingsLoaded(true);
+        return;
+      }
+      const next = body.settings || [];
+      const theme = next.find((r) => r.key === "default_chart_theme");
+      const share = next.find((r) => r.key === "share_layouts_by_default");
+      if (theme && (theme.value === "green_up" || theme.value === "red_up")) setChartTheme(theme.value);
+      if (share && typeof share.value === "boolean") setShareLayouts(share.value);
+      setSettingsLoaded(true);
+    } catch {
+      // Network failure has no body; keep the catalogue pair and pick at render.
+      setSettingsError(TEAM_ROUTE_MESSAGES.read_failed);
+      setSettingsLoaded(true);
+    }
+  }, [devTeam, teamId]);
+
+  useEffect(() => {
+    if (devTeam) return;
+    if (!loaded) return;
+    if (!teamId) {
+      // Zero-team state hides the whole block; do not paint a half-state.
+      setSettingsLoaded(true);
+      setSettingsError(null);
+      return;
+    }
+    void loadSettings();
+  }, [devTeam, loaded, teamId, loadSettings]);
+
+  async function patchSetting(key: WorkspaceSettingKey, value: string | boolean) {
+    if (devTeam) {
+      // Dev harness never hits the network (R4). Reflect the change locally so the crops depict
+      // the persisted state, not the optimistic flip.
+      if (key === "default_chart_theme") setChartTheme(value as string);
+      if (key === "share_layouts_by_default") setShareLayouts(value as boolean);
+      const text = lang === "zh" ? SETTING_MESSAGES.saved[1] : SETTING_MESSAGES.saved[0];
+      setSettingsMsg({ key, tone: "ok", text });
+      return;
+    }
+    if (!teamId) return;
+    setSettingsBusyKey(key);
+    setSettingsMsg(null);
+    setSettingsError(null);
+    try {
+      const res = await fetch(`/api/teams/${encodeURIComponent(teamId)}/settings`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key, value }),
+      });
+      const body = (await res.json().catch(() => ({}))) as { message?: unknown; messageZh?: unknown };
+      if (!res.ok) {
+        const message =
+          routeMessage(body, lang) ||
+          (lang === "zh" ? SETTING_MESSAGES.unavailable[1] : SETTING_MESSAGES.unavailable[0]);
+        setSettingsMsg({ key, tone: "err", text: message });
+        return;
+      }
+      if (key === "default_chart_theme" && typeof value === "string") setChartTheme(value);
+      if (key === "share_layouts_by_default" && typeof value === "boolean") setShareLayouts(value);
+      setSettingsMsg({ key, tone: "ok", text: routeMessage(body, lang) || (lang === "zh" ? SETTING_MESSAGES.saved[1] : SETTING_MESSAGES.saved[0]) });
+    } catch {
+      const text = lang === "zh" ? SETTING_MESSAGES.unavailable[1] : SETTING_MESSAGES.unavailable[0];
+      setSettingsMsg({ key, tone: "err", text });
+    } finally {
+      setSettingsBusyKey(null);
+    }
+  }
 
   function rowError(target: RosterMember, message: string): string {
     const name = displayLabel(target, t);
@@ -426,6 +548,79 @@ export default function SectionTeam({
     await postTransfer(transfer.recipientId);
   }
 
+  /**
+   * MO-PAID-081 (seat ruling W9T_F12_17, link-only): no mail is sent, so the answer to "invite
+   * this person" is a link the owner copies and delivers themselves. The raw token exists only in
+   * this response — the server stores its hash — which is why the link replaces the form rather
+   * than sitting beside it, and why "Invite someone else" starts a new invitation instead of
+   * re-showing this one.
+   */
+  async function createInviteLink() {
+    if (!teamId || inviteBusy) return;
+    const email = inviteEmail.trim();
+    if (!email) return;
+    setInviteBusy(true);
+    setMsg(null);
+    setInviteCopied(false);
+    setInviteCopyFailed(false);
+    try {
+      const res = await fetch("/api/teams/invitations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "create", teamId, email, role: inviteRole }),
+      });
+      const body = (await res.json().catch(() => ({}))) as {
+        inviteUrl?: unknown;
+        invite?: { email?: unknown };
+        message?: unknown;
+        messageZh?: unknown;
+      };
+      const url = typeof body?.inviteUrl === "string" ? body.inviteUrl : "";
+      if (!res.ok || !url) {
+        setInviteLink(null);
+        setMsg({ kind: "err", text: routeMessage(body ?? {}, lang) || TEAM_ROUTE_MESSAGES.write_failed[lang === "zh" ? 1 : 0] });
+        return;
+      }
+      const invited = typeof body.invite?.email === "string" && body.invite.email ? body.invite.email : email;
+      setInviteLink({ email: invited, role: inviteRole, url });
+      setInviteEmail("");
+      setMsg({ kind: "ok", text: t("acsTeamInviteCreated") });
+      await loadLive();
+    } catch {
+      setInviteLink(null);
+      setMsg({ kind: "err", text: TEAM_ROUTE_MESSAGES.write_failed[lang === "zh" ? 1 : 0] });
+    } finally {
+      setInviteBusy(false);
+    }
+  }
+
+  async function copyInviteLink() {
+    if (!inviteLink) return;
+    const clipboard = typeof navigator === "undefined" ? undefined : navigator.clipboard;
+    if (!clipboard?.writeText) {
+      setInviteCopied(false);
+      setInviteCopyFailed(true);
+      return;
+    }
+    try {
+      await clipboard.writeText(inviteLink.url);
+      setInviteCopied(true);
+      setInviteCopyFailed(false);
+    } catch {
+      // A denied clipboard permission is not a lost link: the field stays selectable and the
+      // sentence says what to do instead of claiming a copy that did not happen.
+      setInviteCopied(false);
+      setInviteCopyFailed(true);
+    }
+  }
+
+  function resetInviteForm() {
+    setInviteLink(null);
+    setInviteCopied(false);
+    setInviteCopyFailed(false);
+    setMsg(null);
+  }
+
   async function createTeam() {
     if (devTeam) return;
     const name = newName.trim();
@@ -465,6 +660,11 @@ export default function SectionTeam({
   // sentence and a way out, never a titled box with nothing in it.
   const noTeam = loaded && !rosterFail && !teamId && members.length === 0;
   const showInvites = (callerRole === "owner" || callerRole === "admin") && (invites.length > 0 || invitesFail);
+  // The invitation form is the surface that would otherwise send the mail, so it is also where the
+  // dated "we do not send it" line belongs. It waits on `loaded` so it never offers an invitation
+  // for a team the first read has not confirmed, and it stays off the failure and zero-team states.
+  const canInvite =
+    loaded && !rosterFail && !noTeam && Boolean(teamId) && (callerRole === "owner" || callerRole === "admin");
 
   return (
     <>
@@ -495,6 +695,107 @@ export default function SectionTeam({
           <Row label={t("acsRoleAdmin")} desc={t("acsRoleAdminWhat")} />
           <Row label={t("acsRoleMember")} desc={t("acsRoleMemberWhat")} />
         </Group>
+
+        {canInvite || inviteLink ? (
+          <Group title={t("acsTeamInviteTitle")}>
+            {canInvite ? (
+              <p className="acs-note" data-testid="team-delivery">
+                {noEmailDeliveryLine(lang)}
+              </p>
+            ) : null}
+            {inviteLink ? (
+              <div className={s.inviteLink} data-testid="team-invite-link">
+                <label className={s.createLabel} htmlFor="acs-invite-link" data-testid="team-invite-link-label">
+                  {fill(t("acsTeamInviteFor"), { email: inviteLink.email })}
+                </label>
+                <div className={s.linkRow}>
+                  <input
+                    id="acs-invite-link"
+                    className="acs-in"
+                    type="text"
+                    readOnly
+                    value={inviteLink.url}
+                    onFocus={(event) => event.currentTarget.select()}
+                    data-testid="team-invite-url"
+                  />
+                  <button
+                    type="button"
+                    className="acs-btn"
+                    data-testid="team-invite-copy"
+                    onClick={() => void copyInviteLink()}
+                  >
+                    {inviteCopied ? t("acsTeamInviteCopied") : t("acsTeamInviteCopy")}
+                  </button>
+                </div>
+                <p className="acs-note" data-testid="team-invite-send">
+                  {fill(t("acsTeamInviteSend"), { days: String(INVITE_TTL_DAYS) })}
+                </p>
+                {inviteCopyFailed ? (
+                  <p className="acs-note" data-testid="team-invite-copy-fail">
+                    {t("acsTeamInviteCopyFail")}
+                  </p>
+                ) : null}
+                <div className={s.createBtns}>
+                  <button
+                    type="button"
+                    className="acs-btn ghost"
+                    data-testid="team-invite-another"
+                    disabled={inviteBusy}
+                    onClick={resetInviteForm}
+                  >
+                    {t("acsTeamInviteAnother")}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className={s.inviteForm} data-testid="team-invite-form">
+                <label className={s.createLabel} htmlFor="acs-invite-email">
+                  {t("acsTeamInviteEmail")}
+                </label>
+                <input
+                  id="acs-invite-email"
+                  className="acs-in"
+                  type="email"
+                  inputMode="email"
+                  autoComplete="off"
+                  maxLength={254}
+                  value={inviteEmail}
+                  disabled={inviteBusy}
+                  onChange={(event) => setInviteEmail(event.target.value)}
+                  data-testid="team-invite-email"
+                />
+                <p className="acs-note">{t("acsTeamInviteEmailHint")}</p>
+                <label className={s.createLabel} htmlFor="acs-invite-role">
+                  {t("acsTeamInviteRole")}
+                </label>
+                <select
+                  id="acs-invite-role"
+                  className={s.sel}
+                  value={inviteRole}
+                  disabled={inviteBusy}
+                  onChange={(event) => setInviteRole(event.target.value === "admin" ? "admin" : "member")}
+                  data-testid="team-invite-role"
+                >
+                  <option value="member">{t("acsRoleMember")}</option>
+                  {/* Only the owner grants administrator, so an administrator never sees the option
+                      the route would refuse (lib/teams.ts createInvite, owner_only_admin). */}
+                  {callerRole === "owner" ? <option value="admin">{t("acsRoleAdmin")}</option> : null}
+                </select>
+                <div className={s.createBtns}>
+                  <button
+                    type="button"
+                    className="acs-btn"
+                    data-testid="team-invite-create"
+                    disabled={inviteBusy || !inviteEmail.trim()}
+                    onClick={() => void createInviteLink()}
+                  >
+                    {inviteBusy ? t("acsTeamInviteCreating") : t("acsTeamInviteCreate")}
+                  </button>
+                </div>
+              </div>
+            )}
+          </Group>
+        ) : null}
 
         {showInvites ? (
           <Group title={t("acsTeamInvites")}>
@@ -688,6 +989,96 @@ export default function SectionTeam({
             </p>
           ) : null}
         </Group>
+
+        {/* MO-PAID-083 — Team settings block. Painted only when a team is loaded (R3), so the
+            zero-team state hides this block the same way it hides the roster. Members see the
+            values as plain sentences plus the owner-only sentence; owners/admins get the two
+            controls. The dev harness carries the values on the fixture and never calls fetch. */}
+        {!noTeam && teamId && loaded && settingsLoaded ? (
+          <Group title={WORKSPACE_SETTING_COPY.heading[lang === "zh" ? 1 : 0]}>
+            <div className={s.settings} data-testid="team-settings">
+              {settingsError ? (
+                <p className="acs-note" data-testid="team-settings-fail">
+                  {settingsError[lang === "zh" ? 1 : 0]}
+                </p>
+              ) : null}
+              {!settingsError ? (
+                <>
+                  <p className="acs-note" data-testid="team-settings-chart-caption">
+                    {WORKSPACE_SETTING_COPY.caption.default_chart_theme[lang === "zh" ? 1 : 0]}
+                  </p>
+                  {callerRole === "owner" || callerRole === "admin" ? (
+                <select
+                  className={s.settingsSelect}
+                  data-testid="team-settings-chart"
+                  disabled={settingsBusyKey === "default_chart_theme"}
+                  value={chartTheme}
+                  onChange={(event) => void patchSetting("default_chart_theme", event.target.value)}
+                >
+                  {WORKSPACE_SETTING_COPY.options.chart_theme.map(([en, zh]) => (
+                    <option key={en} value={en.startsWith("Green") ? "green_up" : "red_up"}>
+                      {lang === "zh" ? zh : en}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <p className={s.settingsValue} data-testid="team-settings-readonly">
+                  {chartTheme === "green_up"
+                    ? WORKSPACE_SETTING_COPY.options.chart_theme[0][lang === "zh" ? 1 : 0]
+                    : WORKSPACE_SETTING_COPY.options.chart_theme[1][lang === "zh" ? 1 : 0]}
+                </p>
+              )}
+
+              <p className="acs-note" data-testid="team-settings-share-caption">
+                {WORKSPACE_SETTING_COPY.caption.share_layouts_by_default[lang === "zh" ? 1 : 0]}
+              </p>
+              {callerRole === "owner" || callerRole === "admin" ? (
+                <label className={s.settingsSwitch} data-testid="team-settings-share">
+                  <input
+                    type="checkbox"
+                    disabled={settingsBusyKey === "share_layouts_by_default"}
+                    checked={shareLayouts}
+                    onChange={(event) => void patchSetting("share_layouts_by_default", event.target.checked)}
+                  />
+                  <span>
+                    {lang === "zh"
+                      ? WORKSPACE_SETTING_COPY.caption.share_layouts_by_default[1]
+                      : WORKSPACE_SETTING_COPY.caption.share_layouts_by_default[0]}
+                  </span>
+                </label>
+              ) : (
+                <p className={s.settingsValue} data-testid="team-settings-share-value">
+                  {(shareLayouts ? WORKSPACE_SETTING_COPY.shareValue.on : WORKSPACE_SETTING_COPY.shareValue.off)[lang === "zh" ? 1 : 0]}
+                </p>
+              )}
+              <p className="acs-note">
+                {WORKSPACE_SETTING_COPY.explainer.share_layouts_by_default[lang === "zh" ? 1 : 0]}
+              </p>
+
+              {/* Single shared message node — the most recently changed key. data-testid
+                  "team-settings-msg" is the spec's singular identifier; rendering one block
+                  keeps it unique regardless of which key was last touched. */}
+              {settingsMsg ? (
+                <p
+                  className={s.settingsMsg}
+                  data-testid="team-settings-msg"
+                  data-tone={settingsMsg.tone}
+                  data-setting-key={settingsMsg.key}
+                >
+                  {settingsMsg.text}
+                </p>
+              ) : null}
+
+              {callerRole === "member" ? (
+                <p className={s.settingsValue} data-testid="team-settings-readonly-note">
+                  {WORKSPACE_SETTING_COPY.memberReadOnly[lang === "zh" ? 1 : 0]}
+                </p>
+              ) : null}
+                </>
+              ) : null}
+            </div>
+          </Group>
+        ) : null}
 
         {transfer ? (
           <div
