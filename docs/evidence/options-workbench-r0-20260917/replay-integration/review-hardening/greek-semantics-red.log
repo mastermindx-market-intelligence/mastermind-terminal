@@ -1,0 +1,30 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r0-replay-20260917-sol-001/terminal
+
+ ❯ lib/__tests__/surfaceReplayMounted.test.tsx (22 tests | 1 failed | 21 skipped) 175ms
+   × labels Greek sign as modeled exposure, not premium flow 175ms
+     → expected 'Session2026-09-17Surface2 observed fr…' to contain 'positive exposure'
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/surfaceReplayMounted.test.tsx > labels Greek sign as modeled exposure, not premium flow
+AssertionError: expected 'Session2026-09-17Surface2 observed fr…' to contain 'positive exposure'
+
+Expected: "positive exposure"
+Received: "Session2026-09-17Surface2 observed frames· ~1m observedPrice5m candlesObserved only · no interpolationinflowoutflowOPRA per-strike flow"
+
+ ❯ lib/__tests__/surfaceReplayMounted.test.tsx:348:29
+    346|
+    347|   const strip = host.querySelector<HTMLElement>(".obs-surf-data-strip"…
+    348|   expect(strip.textContent).toContain("positive exposure");
+       |                             ^
+    349|   expect(strip.textContent).toContain("negative exposure");
+    350|   expect(strip.textContent).toContain("Modeled exposure");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 21 skipped (22)
+   Start at  19:46:36
+   Duration  2.45s (transform 444ms, setup 0ms, collect 589ms, tests 175ms, environment 966ms, prepare 236ms)

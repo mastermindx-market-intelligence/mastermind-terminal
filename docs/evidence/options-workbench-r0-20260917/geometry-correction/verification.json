@@ -1,0 +1,43 @@
+{
+  "base": "75c22083249e7a1529be3d6baf819b9ad5ea509f",
+  "reproduction_head": "2699f9e6b20fec922c779b2427156206c973de79",
+  "skillpack": "7a191cc11039199843d4734c7df8d5523280e09c",
+  "production_deployed": false,
+  "synthetic_evidence": true,
+  "full_vitest": {
+    "passed": 5525,
+    "failed": 5,
+    "todo": 4,
+    "test_files": 336,
+    "raw_log_sha256": "aba304ba6aec3a0d014b6ef5efb227d602c88592359b7f072677bde6e3631af3"
+  },
+  "browser": {
+    "actual_chart_pixels_passed": 6,
+    "original_chart_pixels_failed": 6,
+    "actual_options_route_alignment_passed": 6,
+    "retries": 0
+  },
+  "held": "replayContext/SurfaceView/SurfacePane integration tool call refused; readback has no changes",
+  "files": {
+    "desktop-en-surface-aligned.png": "a3aec16ab9dcece8e96408475cfbb77feec21deefeabfad760b8986e51ebf0c2",
+    "desktop-zh-surface-aligned.png": "dcb4982ddd04e77e27075e409fe50f1d6e3a9c67c49a5151d80fcf829f7c30c5",
+    "inverted-dpr1.png": "371a850eaa5e1f773cb983e8c552a5f3642b1ada2a7431ff1dd65e9e37a0d393",
+    "inverted-dpr2.png": "980aff918b3ae87a1ce51e59161e139e8fa7ccc0c34a450b5b3c412e16478a78",
+    "linear-dpr1.png": "6d73860c6f86f017805511c4cbf087a308318e2f85c3262f945e2b46d63d0b03",
+    "linear-dpr2.png": "19e06ec5a3b2e6c6eb169ecc6f4626ffaa6082ad67c425ede7c264c922dfe740",
+    "logarithmic-dpr1.png": "614ebdf9ec2894999bb493ae3302d3dd9f8fa4063816d1d449228fc1e2d82ff8",
+    "logarithmic-dpr2.png": "a9038f9f530d98427ec0f23f11e4ab54f7e3483138ff48c8cae8f9801ec92525",
+    "mobile-en-surface-aligned.png": "3582a42350b0a659611946dbb0d5c6c7e188ecea182cd83c0aa61827e61383ad",
+    "mobile-zh-surface-aligned.png": "fad6e88612f045b773a965edfaa4c1e02e101cda6a57549eadde8298bc40ddc3",
+    "r0-alignment-browser-green.log": "630303f54126f47254e53f0e9b23091318b6cd8da644f94596c5ca9e69c7d8ad",
+    "r0-geometry-browser-green.log": "39857dada8ef21b621b3734326fde465cc2400d346e17edd0fb43b30ae50925e",
+    "r0-geometry-browser-original.log": "119f21099f5ec53378853032053a8651e6e4ad74eed0ddcb58e4d6559bf56e51",
+    "r0-geometry-green.log": "15b7e02eba1faead4aca95f94c3ae79e41f562a90bac4c8514abddb1ffd06a4c",
+    "r0-replay-helpers-green.log": "efa3cbfc0f1d194f7c4d5a333e6227f074a944a23d0f6538cbf5594cfcd92504",
+    "tablet-en-surface-aligned.png": "6a9a002ff666761a9c0ffa3cb808f2e8a893cc09c9eeade665241516fd4f7a33",
+    "tablet-zh-surface-aligned.png": "bcaf41b089fcd7e72a2356941beafc8c1aba68d63b39f02566ff325490123a96",
+    "terminal/lib/heatSeries.ts": "7fb1172a258e0c38f7250c85b719b4b12ff3c1a71b4d96e5ff3bd31e684c8523",
+    "terminal/lib/flowClientCache.ts": "c00e83af6f158d202d918a2d784038d515b4349f836b0c76877f89510cea0b19",
+    "terminal/lib/replayEngine.ts": "5368c9f7494d68e099c50d19df9cf89a201de0c0c424e41c7b6adf08d5807c06"
+  }
+}
