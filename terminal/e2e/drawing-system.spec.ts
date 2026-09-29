@@ -1604,13 +1604,30 @@ async function rangePaneBoxes(page: Page) {
   });
 }
 
-/** Persisted anchors of the most recently saved drawing of one kind. */
+/**
+ * Persisted anchors of the NEWEST saved drawing of one kind. The newest wins in both
+ * directions — latest payload, last drawing within it — because the calibration below
+ * can leave an earlier drawing of the same kind on the chart, and reading that one's
+ * values instead would quietly compare a gesture against itself.
+ */
 function savedPoints(saves: DrawingSavePayload[], kind: string): Array<{ t?: string; p: number }> {
   for (let index = saves.length - 1; index >= 0; index -= 1) {
-    const found = saves[index].drawings?.find((drawing) => drawing.kind === kind);
-    if (found?.points?.length) return found.points as Array<{ t?: string; p: number }>;
+    const list = saves[index].drawings ?? [];
+    for (let inner = list.length - 1; inner >= 0; inner -= 1) {
+      const found = list[inner];
+      if (found.kind === kind && found.points?.length) return found.points as Array<{ t?: string; p: number }>;
+    }
   }
   return [];
+}
+
+/** How many drawings of one kind the newest save carries. */
+function countSaved(saves: DrawingSavePayload[], kind: string): number {
+  for (let index = saves.length - 1; index >= 0; index -= 1) {
+    const list = saves[index].drawings;
+    if (Array.isArray(list)) return list.filter((drawing) => drawing.kind === kind).length;
+  }
+  return 0;
 }
 
 async function pickTool(page: Page, group: string, tool: string) {
@@ -1624,36 +1641,129 @@ async function pickTool(page: Page, group: string, tool: string) {
   await expect(page.getByTestId(`drawing-group-${group}-main`)).toHaveAttribute("aria-pressed", "true");
 }
 
+type PaneBox = { top: number; bottom: number; height: number; left: number; width: number };
+type Point = { x: number; y: number };
+/** A gesture driver, so one contract can be proven with a mouse or with a finger. */
+type DragGesture = (from: Point, to: Point) => Promise<void>;
+
+/**
+ * A real coarse-pointer drag. Every sample is dispatched ON THE DRAWING LAYER, because
+ * the drawing surface binds pointermove/pointerup to its own SVG: a move sent to
+ * `window` never reaches it and the gesture silently never commits.
+ */
+function touchGesture(page: Page, layer: Locator, firstPointerId = 900): DragGesture {
+  let pointerId = firstPointerId;
+  return async (from, to) => {
+    const id = pointerId += 1;
+    const send = (type: string, at: Point, buttons: number) => layer.dispatchEvent(type, {
+      bubbles: true, pointerId: id, pointerType: "touch", isPrimary: true,
+      button: 0, buttons, clientX: at.x, clientY: at.y,
+    });
+    await send("pointerdown", from, 1);
+    // Travel, not a teleport: a finger that jumps in one sample is a different
+    // gesture, and the pane lock has to hold across every intermediate move.
+    for (const fraction of [0.35, 0.7, 1]) {
+      await send("pointermove", {
+        x: from.x + (to.x - from.x) * fraction,
+        y: from.y + (to.y - from.y) * fraction,
+      }, 1);
+    }
+    await send("pointerup", to, 0);
+  };
+}
+
+function mouseGesture(page: Page): DragGesture {
+  return async (from, to) => {
+    await page.mouse.move(from.x, from.y);
+    await page.mouse.down();
+    await page.mouse.move(to.x, to.y);
+    await page.mouse.up();
+  };
+}
+
+/**
+ * One calibration gesture down pane 0: from its top edge to `toY`, with the same tool
+ * the contract is about. Returns the price the product itself persisted at each end.
+ */
+async function calibrationDrag(
+  page: Page, saves: DrawingSavePayload[], price: PaneBox, toY: number,
+  expected: number, drag: DragGesture,
+) {
+  await pickTool(page, "forecasting", "pricerange");
+  await drag(
+    { x: price.left + price.width * .28, y: price.top + 1 },
+    { x: price.left + price.width * .44, y: toY },
+  );
+  // Poll the drawing COUNT, not the point count. An earlier calibration drawing
+  // already holds two points, so waiting on length alone would return before this
+  // gesture committed and read the previous one's values.
+  await expect.poll(() => countSaved(saves, "pricerange"), {
+    message: `calibration gesture ${expected} should commit`,
+  }).toBe(expected);
+  const points = savedPoints(saves, "pricerange");
+  expect(points).toHaveLength(2);
+  return [points[0].p, points[1].p] as const;
+}
+
 /**
  * The visible price band of pane 0, measured by the product itself: one price-range
  * drag from the pane's top edge to its bottom edge persists both extremes. Every
  * owner-scale assertion below calibrates against this instead of a hardcoded ticker
  * price, so the contract holds whatever the local data serves.
+ *
+ * Readings are kept as "at the top edge" and "at the bottom edge" rather than min/max,
+ * because an inverted scale legitimately reports the larger price at the bottom and a
+ * min/max band would silently mislabel which one the clamp target is.
  */
-async function calibratePriceBand(page: Page, saves: DrawingSavePayload[], price: { top: number; bottom: number; left: number; width: number }) {
-  // Anchor the calibration on the pane's own edges. Its LOWER anchor is therefore
+async function calibratePriceBand(
+  page: Page, saves: DrawingSavePayload[], price: PaneBox,
+  options: { gesture?: DragGesture; sequence?: number } = {},
+) {
+  // Anchor the calibration on the pane's own edges. Its lower anchor is therefore
   // the price at the pane floor, which is exactly where the pane lock clamps a
   // gesture that continues past the separator — so the expected value below is a
   // measured control gesture, not an estimate.
+  const drag = options.gesture ?? mouseGesture(page);
   const topY = price.top + 1, bottomY = price.bottom - 1;
-  await pickTool(page, "forecasting", "pricerange");
-  await page.mouse.move(price.left + price.width * .28, topY);
-  await page.mouse.down();
-  await page.mouse.move(price.left + price.width * .44, bottomY);
-  await page.mouse.up();
-  await expect.poll(() => savedPoints(saves, "pricerange").length).toBe(2);
-  const values = savedPoints(saves, "pricerange").map((point) => point.p);
-  const floor = Math.min(...values), ceiling = Math.max(...values);
-  expect(ceiling).toBeGreaterThan(floor);
+  const [atTop, atBottom] = await calibrationDrag(page, saves, price, bottomY, options.sequence ?? 1, drag);
+  expect(Math.abs(atBottom - atTop), "pane 0 should span a real price range").toBeGreaterThan(0);
   // Price per pixel of pane 0, so the tolerance below is a PIXEL budget. A
   // band-proportional tolerance is not discriminating: this chart's visible band is
   // ~7-260, and the lowest sub-pane is MACD at ~-0.8, so 6% of the band (15) is
   // wider than the corruption it has to catch (7.7).
-  const pricePerPixel = (ceiling - floor) / Math.max(1, bottomY - topY);
-  return { floor, ceiling, pricePerPixel };
+  const pricePerPixel = Math.abs(atBottom - atTop) / Math.max(1, bottomY - topY);
+  return {
+    atTop, atBottom, topY, bottomY, drag, pricePerPixel,
+    low: Math.min(atTop, atBottom), high: Math.max(atTop, atBottom),
+    // A normal scale falls as y grows. Recorded so a scale-mode test can prove the
+    // mode it asked for is actually live instead of trusting that a keystroke landed.
+    inverted: atTop < atBottom,
+  };
 }
 
 type PriceBand = Awaited<ReturnType<typeof calibratePriceBand>>;
+
+/**
+ * Prove the price scale really is logarithmic, from measurements only. A linear scale
+ * puts a pane's vertical midpoint at the ARITHMETIC mean of its edge readings; a
+ * logarithmic one puts it at the GEOMETRIC mean. Without this a scale-mode test would
+ * pass vacuously the day the keystroke that switches scales stops working.
+ */
+async function expectLogarithmicScale(
+  page: Page, saves: DrawingSavePayload[], price: PaneBox, band: PriceBand, sequence: number,
+) {
+  expect(band.atTop, "a logarithmic scale cannot show a non-positive price").toBeGreaterThan(0);
+  expect(band.atBottom, "a logarithmic scale cannot show a non-positive price").toBeGreaterThan(0);
+  const midY = Math.round((band.topY + band.bottomY) / 2);
+  const [, atMid] = await calibrationDrag(page, saves, price, midY, sequence, band.drag);
+  const arithmetic = (band.atTop + band.atBottom) / 2;
+  const geometric = Math.sqrt(band.atTop * band.atBottom);
+  expect(
+    Math.abs(atMid - geometric),
+    `pane midpoint read ${atMid.toFixed(2)}; a logarithmic scale puts it at the geometric `
+    + `mean ${geometric.toFixed(2)}, a linear one at ${arithmetic.toFixed(2)}`,
+  ).toBeLessThan(Math.abs(atMid - arithmetic));
+}
 
 /**
  * The assertion that actually discriminates. A gesture locked to pane 0 and dragged
@@ -1662,18 +1772,18 @@ type PriceBand = Awaited<ReturnType<typeof calibratePriceBand>>;
  * alone is not enough: it passes vacuously when the gesture never moved, and passes
  * outright whenever a neighbouring pane's values fall inside the price band.
  */
-function expectClampedToPriceFloor(value: number, band: PriceBand, what: string) {
+function expectClampedToPaneBottom(value: number, band: PriceBand, what: string) {
   const budget = band.pricePerPixel * 3;
   expect(
-    Math.abs(value - band.floor),
-    `${what} should clamp to the price pane floor (~${band.floor.toFixed(2)} +/- ${budget.toFixed(2)}), got ${value}`,
+    Math.abs(value - band.atBottom),
+    `${what} should clamp to the price pane's bottom edge (~${band.atBottom.toFixed(2)} +/- ${budget.toFixed(2)}), got ${value}`,
   ).toBeLessThanOrEqual(budget);
 }
 
 function expectInsidePriceBand(value: number, band: PriceBand, what: string) {
   const budget = band.pricePerPixel * 3;
-  expect(value, `${what} should stay on the price scale`).toBeGreaterThanOrEqual(band.floor - budget);
-  expect(value, `${what} should stay on the price scale`).toBeLessThanOrEqual(band.ceiling + budget);
+  expect(value, `${what} should stay on the price scale`).toBeGreaterThanOrEqual(band.low - budget);
+  expect(value, `${what} should stay on the price scale`).toBeLessThanOrEqual(band.high + budget);
 }
 
 /**
@@ -1715,7 +1825,7 @@ test("a price-range drag crossing a pane separator persists an owner-scale value
   await expect.poll(() => savedPoints(saves, "dateandpricerange").length).toBe(2);
   const created = savedPoints(saves, "dateandpricerange");
   expectInsidePriceBand(created[0].p, band, "the anchor placed inside pane 0");
-  expectClampedToPriceFloor(created[1].p, band, "the endpoint dragged into the indicator pane");
+  expectClampedToPaneBottom(created[1].p, band, "the endpoint dragged into the indicator pane");
 
   const box = await range.locator('rect[data-geometry="1"]').first().boundingBox();
   expect(box).not.toBeNull();
@@ -1760,7 +1870,7 @@ test("an endpoint handle dragged across a pane separator keeps the owner scale",
   const edited = savedPoints(saves, "dateandpricerange");
   expectInsidePriceBand(edited[0].p, band, "the untouched anchor");
   // Also proves the drag actually took: an unmoved grip would still be mid-pane.
-  expectClampedToPriceFloor(edited[1].p, band, "the grip dragged into the indicator pane");
+  expectClampedToPaneBottom(edited[1].p, band, "the grip dragged into the indicator pane");
 });
 
 test("dragging a whole range drawing across a pane separator keeps the owner scale", async ({ page }) => {
@@ -1815,7 +1925,7 @@ test("dragging a whole range drawing across a pane separator keeps the owner sca
   // 1. The grabbed point — the body centre, i.e. the anchors' midpoint on a linear
   //    scale — must land on the price pane floor, because that is where the lock
   //    clamps a continuation that left the pane.
-  expectClampedToPriceFloor((after[0] + after[1]) / 2, band, "the moved drawing's grabbed midpoint");
+  expectClampedToPaneBottom((after[0] + after[1]) / 2, band, "the moved drawing's grabbed midpoint");
   // 2. The span is untouched, so the translation was rigid rather than collapsing.
   expect(after[0] - after[1]).toBeCloseTo(before[0] - before[1], 2);
   // It really did travel downward rather than being rejected outright.
@@ -1849,7 +1959,7 @@ test("Shift+Measure crossing a pane separator keeps the owner scale", async ({ p
   await expect.poll(() => savedPoints(saves, "measure").length).toBe(2);
   const measured = savedPoints(saves, "measure");
   expectInsidePriceBand(measured[0].p, band, "the Shift+Measure origin");
-  expectClampedToPriceFloor(measured[1].p, band, "the Shift+Measure endpoint in the indicator pane");
+  expectClampedToPaneBottom(measured[1].p, band, "the Shift+Measure endpoint in the indicator pane");
 });
 
 /**
@@ -1938,6 +2048,164 @@ test("chart-spanning range and vertical tools are still not clipped to the price
   const box = await vline.locator('line:not([stroke="transparent"])').first().boundingBox();
   expect(box).not.toBeNull();
   expect(box!.y + box!.height).toBeGreaterThan(indicator.top);
+});
+
+/** Pane 0 alone, for layouts where the sub-panes are no longer separately measurable. */
+async function pricePaneBox(page: Page): Promise<PaneBox> {
+  const box = await page.evaluate(() => {
+    const rect = [...document.querySelectorAll(".pane.on .chart-wrap canvas")]
+      .map((canvas) => canvas.getBoundingClientRect())
+      .filter((candidate) => candidate.width > 100 && candidate.height > 40)
+      .sort((a, b) => a.top - b.top)[0];
+    return rect
+      ? { top: rect.top, bottom: rect.bottom, height: rect.height, left: rect.left, width: rect.width }
+      : null;
+  });
+  expect(box, "pane 0 should still be measurable").not.toBeNull();
+  return box!;
+}
+
+/** The cross-pane gesture every scale/input/layout variant below repeats. */
+async function crossPaneRange(
+  page: Page, layer: Locator, from: PaneBox, into: { top: number; height: number; left: number; width: number },
+  drag: DragGesture,
+) {
+  await pickTool(page, "forecasting", "dateandpricerange");
+  await drag(
+    { x: from.left + from.width * .30, y: from.top + from.height * .52 },
+    { x: into.left + into.width * .58, y: into.top + into.height * .55 },
+  );
+  const range = layer.locator('g[data-drawing-kind="dateandpricerange"]:not([data-id="_p"])');
+  await expect(range).toHaveCount(1);
+  await expect(range).toHaveAttribute("clip-path", /drawing-pane-clip/);
+  return range;
+}
+
+/**
+ * The clamp happens in PIXEL space and converts afterwards, so it must survive a price
+ * scale whose pixels are not linear in price. A repair that clamped the converted PRICE
+ * between the pane's two extremes instead would pass on a linear scale and land in the
+ * wrong place here, on the scale traders actually use for multi-year ranges.
+ */
+test("a cross-pane price gesture clamps on a logarithmic price scale", async ({ page }) => {
+  test.skip((page.viewportSize()?.width ?? 1440) <= 860, DESKTOP_ONLY);
+  const saves: DrawingSavePayload[] = [];
+  await openTerminal(page, { onPut: (payload) => saves.push(payload) });
+
+  const panes = await rangePaneBoxes(page);
+  test.skip(!panes, "This chart mounted no indicator sub-pane.");
+  const { price, indicator } = panes!;
+  const layer = page.locator(".pane.on .drawing-layer");
+  await selectMagnet(page, "off");
+
+  await page.keyboard.press("Alt+l");            // the shipped logarithmic toggle
+  const band = await calibratePriceBand(page, saves, price);
+  await expectLogarithmicScale(page, saves, price, band, 2);
+
+  await crossPaneRange(page, layer, price, indicator, band.drag);
+  await expect.poll(() => savedPoints(saves, "dateandpricerange").length).toBe(2);
+  const created = savedPoints(saves, "dateandpricerange");
+  expectInsidePriceBand(created[0].p, band, "the anchor placed inside pane 0");
+  expectClampedToPaneBottom(created[1].p, band, "the endpoint dragged into the indicator pane");
+});
+
+/**
+ * Inverted is the orientation trap. The clamp target is the pane's LARGER price here,
+ * so an implementation that reached for a minimum, or for `Math.min` of the band, fails
+ * while still looking correct on every normal chart.
+ */
+test("a cross-pane price gesture clamps on an inverted price scale", async ({ page }) => {
+  test.skip((page.viewportSize()?.width ?? 1440) <= 860, DESKTOP_ONLY);
+  const saves: DrawingSavePayload[] = [];
+  await openTerminal(page, { onPut: (payload) => saves.push(payload) });
+
+  const panes = await rangePaneBoxes(page);
+  test.skip(!panes, "This chart mounted no indicator sub-pane.");
+  const { price, indicator } = panes!;
+  const layer = page.locator(".pane.on .drawing-layer");
+  await selectMagnet(page, "off");
+
+  await page.keyboard.press("Alt+i");            // the shipped invert toggle
+  const band = await calibratePriceBand(page, saves, price);
+  expect(band.inverted, "the scale must really be inverted before this contract means anything").toBe(true);
+
+  await crossPaneRange(page, layer, price, indicator, band.drag);
+  await expect.poll(() => savedPoints(saves, "dateandpricerange").length).toBe(2);
+  const created = savedPoints(saves, "dateandpricerange");
+  expectInsidePriceBand(created[0].p, band, "the anchor placed inside pane 0");
+  expectClampedToPaneBottom(created[1].p, band, "the endpoint dragged into the indicator pane");
+  // Orientation-sensitive: dragging DOWN on an inverted scale must raise the price.
+  expect(created[1].p, "the clamped endpoint should be above the anchor on an inverted scale")
+    .toBeGreaterThan(created[0].p);
+});
+
+/**
+ * A finger, not a mouse. Coarse pointers reach the same snap through a different event
+ * path and a wider hit tolerance, and touch is how the reported giant rectangles were
+ * drawn in the first place.
+ */
+test("a coarse-pointer cross-pane drag keeps the owner scale", async ({ page }) => {
+  test.skip((page.viewportSize()?.width ?? 1440) > 860, "Fine-pointer paths are covered above; this is the touch proof.");
+  test.skip(isPhone(page), SKIP_PHONE);
+  const saves: DrawingSavePayload[] = [];
+  await openTerminal(page, { onPut: (payload) => saves.push(payload) });
+
+  const panes = await rangePaneBoxes(page);
+  test.skip(!panes, "This chart mounted no indicator sub-pane.");
+  const { price, indicator } = panes!;
+  const layer = page.locator(".pane.on .drawing-layer");
+  await selectMagnet(page, "off");
+
+  // The calibration travels the same touch path as the contract, so the control value
+  // cannot come from a pointer type the product treats differently.
+  const band = await calibratePriceBand(page, saves, price, { gesture: touchGesture(page, layer) });
+
+  await crossPaneRange(page, layer, price, indicator, band.drag);
+  await expect.poll(() => savedPoints(saves, "dateandpricerange").length).toBe(2);
+  const created = savedPoints(saves, "dateandpricerange");
+  expectInsidePriceBand(created[0].p, band, "the touch anchor placed inside pane 0");
+  expectClampedToPaneBottom(created[1].p, band, "the touch endpoint dragged into the indicator pane");
+});
+
+/**
+ * Pane layout is not fixed for the life of a chart. Collapsing a sub-pane hands pane 0
+ * the freed rows, so its floor moves. The lock therefore has to read LIVE pane layout:
+ * a snapshot taken at mount, or when the tool armed, would clamp at a y that is now
+ * mid-pane and persist a price well above the real floor.
+ */
+test("collapsing the indicator pane moves the clamp to pane 0's new floor", async ({ page }) => {
+  test.skip((page.viewportSize()?.width ?? 1440) <= 860, DESKTOP_ONLY);
+  const saves: DrawingSavePayload[] = [];
+  await openTerminal(page, { onPut: (payload) => saves.push(payload) });
+
+  const panes = await rangePaneBoxes(page);
+  test.skip(!panes, "This chart mounted no indicator sub-pane.");
+  const { price, indicator } = panes!;
+  const layer = page.locator(".pane.on .drawing-layer");
+  await selectMagnet(page, "off");
+
+  await page.mouse.move(indicator.left + indicator.width * .55, indicator.top + 8);
+  const paneOps = page.locator(".pane-ops:visible");
+  await expect(paneOps).toBeVisible();
+  await paneOps.getByRole("button", { name: "Collapse pane" }).click();
+  const mask = page.locator("[data-collapsed-pane-mask]");
+  await expect(mask).toHaveCount(1);
+  const collapsed = await mask.boundingBox();
+  expect(collapsed).not.toBeNull();
+
+  const grown = await pricePaneBox(page);
+  expect(grown.bottom, "collapsing should hand pane 0 real extra height").toBeGreaterThan(price.bottom + 8);
+  expect(collapsed!.y, "the collapsed strip should sit below pane 0").toBeGreaterThanOrEqual(grown.bottom - 2);
+
+  const band = await calibratePriceBand(page, saves, grown);
+  await crossPaneRange(page, layer, grown, {
+    top: collapsed!.y, height: collapsed!.height, left: collapsed!.x, width: collapsed!.width,
+  }, band.drag);
+
+  await expect.poll(() => savedPoints(saves, "dateandpricerange").length).toBe(2);
+  const created = savedPoints(saves, "dateandpricerange");
+  expectInsidePriceBand(created[0].p, band, "the anchor placed inside the grown pane 0");
+  expectClampedToPaneBottom(created[1].p, band, "the endpoint dragged into the collapsed pane");
 });
 
 test("an indicator-pane drawing holds its place when the price scale rescales", async ({ page }) => {
