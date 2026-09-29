@@ -157,6 +157,57 @@ def test_stamp_publishes_the_anchor_the_engine_would_use_for_these_exact_bars(mo
     assert doc["session_anchor"] == {"v": 1, "date": "2024-01-06", "index": 5, "basis": "ipo"}
 
 
+def test_the_anchor_survives_the_nightly_appending_and_backfilling_history(monkeypatch, tmp_path):
+    """The nightly mutates a document two ways, and the anchor must describe the grid after both.
+
+    This is the property that makes the contract an anchor POINT rather than a bare integer.
+    A bare integer reads as "phase at row 0", which stays true only until row 0 moves — and
+    every other test in this file would still pass after that simplification, while the next
+    backfill silently re-phased every bar on the chart.
+    """
+    monkeypatch.setattr(confluence, "DATA", tmp_path)
+    full = pd.date_range("2024-01-01", periods=60, freq="B")
+    pd.DataFrame({"close": range(len(full))}, index=full).to_parquet(tmp_path / "EXT.parquet")
+
+    def bars_from(start: int, count: int) -> list[list]:
+        return [[d.strftime("%Y-%m-%d"), 1.0, 2.0, 0.5, 1.0 + i, 10]
+                for i, d in enumerate(full[start:start + count])]
+
+    def opens(bars: list[list], index: int) -> list[str]:
+        return [str(t.date()) for t in confluence._3d_groups(_close(bars), index)[0]]
+
+    # a truncated feed starting at global session 20
+    doc = {"t": "EXT", "bars": bars_from(20, 25)}
+    assert anchor_mod.stamp(doc, "EXT") is True
+    before = dict(doc["session_anchor"])
+    assert before == {"v": 1, "date": full[20].strftime("%Y-%m-%d"), "index": 20, "basis": "ipo"}
+    opens_before = opens(doc["bars"], before["index"])
+
+    # APPEND — today's session arrives. Row 0 did not move, so the anchor does not move, the
+    # stamping pass rewrites nothing, and every bar that already existed keeps its opening date.
+    doc["bars"] = bars_from(20, 26)
+    assert anchor_mod.stamp(doc, "EXT") is False
+    assert doc["session_anchor"] == before
+    assert opens(doc["bars"], before["index"])[:len(opens_before)] == opens_before
+
+    # BACKWARDS EXTENSION — a backfill prepends 12 sessions. Row 0 moves EARLIER, so its global
+    # index gets SMALLER. That direction is easy to get backwards, so pin it explicitly.
+    doc["bars"] = bars_from(8, 38)
+    assert anchor_mod.stamp(doc, "EXT") is True
+    after = doc["session_anchor"]
+    assert after == {"v": 1, "date": full[8].strftime("%Y-%m-%d"), "index": 8, "basis": "ipo"}
+    assert after["index"] < before["index"]
+
+    # The decisive part. A row's phase is a property of its GLOBAL index, so extending history
+    # backwards must not re-phase a bar that already existed. The one and only opening date that
+    # legitimately disappears is the FORCED first bucket: global 20 is row 0 of the truncated
+    # feed and opens for that reason alone (20 % 3 == 2, so it never opens on its own), and once
+    # real history precedes it, it correctly stops being a bar boundary.
+    opens_after = opens(doc["bars"], after["index"])
+    assert set(opens_before) - set(opens_after) == {full[20].strftime("%Y-%m-%d")}
+    assert set(opens_before) - {full[20].strftime("%Y-%m-%d")} <= set(opens_after)
+
+
 def test_stamp_refuses_to_guess_when_there_are_no_bars(monkeypatch, tmp_path):
     monkeypatch.setattr(confluence, "DATA", tmp_path)
     doc: dict = {"t": "EMPTY", "bars": []}
