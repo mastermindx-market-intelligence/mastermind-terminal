@@ -1645,6 +1645,26 @@ type PaneBox = { top: number; bottom: number; height: number; left: number; widt
 type Point = { x: number; y: number };
 /** A gesture driver, so one contract can be proven with a mouse or with a finger. */
 type DragGesture = (from: Point, to: Point) => Promise<void>;
+/** An arming driver, likewise: the rail and the phone sheet reach the same tool. */
+type Arm = (tool: string) => Promise<void>;
+
+const railArm = (page: Page): Arm => (tool) => pickTool(page, "forecasting", tool);
+
+/**
+ * The phone's tool source. Since R2.1 there is no floating dock: Draw opens the Drawings
+ * sheet and a tile there arms the tool through the dock's own code path. Pane-scale
+ * ownership is chart geometry rather than phone chrome, so the contract is asserted
+ * beside its siblings here; the sheet's own anatomy stays in mobile-chart-chrome.spec.ts.
+ */
+const phoneArm = (page: Page): Arm => async (tool) => {
+  await page.getByTestId("roller-draw").click({ timeout: 20_000 });
+  const sheet = page.getByRole("dialog", { name: "Drawings" });
+  await expect(sheet).toBeVisible({ timeout: 20_000 });
+  // The range tools are filed under TV's "Tools" tab; the sheet opens on Trend Lines.
+  await sheet.getByTestId("drawings-cat-tools").click();
+  await sheet.getByTestId(`drawings-tile-${tool}`).click();
+  await expect(sheet).toBeHidden({ timeout: 20_000 });
+};
 
 /**
  * A real coarse-pointer drag. Every sample is dispatched ON THE DRAWING LAYER, because
@@ -1707,10 +1727,10 @@ function paneProbe(page: Page, layer: Locator): PaneProbe {
  * gesture and the price the product itself persisted at each end.
  */
 async function calibrationDrag(
-  page: Page, saves: DrawingSavePayload[], probe: PaneProbe, toFraction: number,
-  expected: number, drag: DragGesture,
+  saves: DrawingSavePayload[], probe: PaneProbe, toFraction: number,
+  expected: number, drag: DragGesture, arm: Arm,
 ) {
-  await pickTool(page, "forecasting", "pricerange");
+  await arm("pricerange");
   const { price } = await probe();
   const topY = price.top + 1;
   const toY = price.top + Math.min(price.height - 1, Math.max(1, price.height * toFraction));
@@ -1741,14 +1761,15 @@ async function calibrationDrag(
  */
 async function calibratePriceBand(
   page: Page, saves: DrawingSavePayload[], probe: PaneProbe,
-  options: { gesture?: DragGesture; sequence?: number } = {},
+  options: { gesture?: DragGesture; sequence?: number; arm?: Arm } = {},
 ) {
   // Anchor the calibration on the pane's own edges. Its lower anchor is therefore
   // the price at the pane floor, which is exactly where the pane lock clamps a
   // gesture that continues past the separator — so the expected value below is a
   // measured control gesture, not an estimate.
   const drag = options.gesture ?? mouseGesture(page);
-  const { atTop, atEnd: atBottom, topY, toY: bottomY } = await calibrationDrag(page, saves, probe, 1, options.sequence ?? 1, drag);
+  const arm = options.arm ?? railArm(page);
+  const { atTop, atEnd: atBottom, topY, toY: bottomY } = await calibrationDrag(saves, probe, 1, options.sequence ?? 1, drag, arm);
   expect(Math.abs(atBottom - atTop), "pane 0 should span a real price range").toBeGreaterThan(0);
   // Price per pixel of pane 0, so the tolerance below is a PIXEL budget. A
   // band-proportional tolerance is not discriminating: this chart's visible band is
@@ -1756,7 +1777,7 @@ async function calibratePriceBand(
   // wider than the corruption it has to catch (7.7).
   const pricePerPixel = Math.abs(atBottom - atTop) / Math.max(1, bottomY - topY);
   return {
-    atTop, atBottom, topY, bottomY, drag, probe, pricePerPixel,
+    atTop, atBottom, topY, bottomY, drag, probe, arm, pricePerPixel,
     low: Math.min(atTop, atBottom), high: Math.max(atTop, atBottom),
     // A normal scale falls as y grows. Recorded so a scale-mode test can prove the
     // mode it asked for is actually live instead of trusting that a keystroke landed.
@@ -1773,11 +1794,11 @@ type PriceBand = Awaited<ReturnType<typeof calibratePriceBand>>;
  * pass vacuously the day the keystroke that switches scales stops working.
  */
 async function expectLogarithmicScale(
-  page: Page, saves: DrawingSavePayload[], band: PriceBand, sequence: number,
+  saves: DrawingSavePayload[], band: PriceBand, sequence: number,
 ) {
   expect(band.atTop, "a logarithmic scale cannot show a non-positive price").toBeGreaterThan(0);
   expect(band.atBottom, "a logarithmic scale cannot show a non-positive price").toBeGreaterThan(0);
-  const { atEnd: atMid } = await calibrationDrag(page, saves, band.probe, 0.5, sequence, band.drag);
+  const { atEnd: atMid } = await calibrationDrag(saves, band.probe, 0.5, sequence, band.drag, band.arm);
   const arithmetic = (band.atTop + band.atBottom) / 2;
   const geometric = Math.sqrt(band.atTop * band.atBottom);
   expect(
@@ -2088,8 +2109,8 @@ async function pricePaneBox(page: Page): Promise<PaneBox> {
 }
 
 /** The cross-pane gesture every scale/input/layout variant below repeats. */
-async function crossPaneRange(page: Page, layer: Locator, probe: PaneProbe, drag: DragGesture) {
-  await pickTool(page, "forecasting", "dateandpricerange");
+async function crossPaneRange(layer: Locator, probe: PaneProbe, drag: DragGesture, arm: Arm) {
+  await arm("dateandpricerange");
   const { price: from, indicator: into } = await probe();
   await drag(
     { x: from.left + from.width * .30, y: from.top + from.height * .52 },
@@ -2120,9 +2141,9 @@ test("a cross-pane price gesture clamps on a logarithmic price scale", async ({ 
 
   await page.keyboard.press("Alt+l");            // the shipped logarithmic toggle
   const band = await calibratePriceBand(page, saves, paneProbe(page, layer));
-  await expectLogarithmicScale(page, saves, band, 2);
+  await expectLogarithmicScale(saves, band, 2);
 
-  await crossPaneRange(page, layer, band.probe, band.drag);
+  await crossPaneRange(layer, band.probe, band.drag, band.arm);
   await expect.poll(() => savedPoints(saves, "dateandpricerange").length).toBe(2);
   const created = savedPoints(saves, "dateandpricerange");
   expectInsidePriceBand(created[0].p, band, "the anchor placed inside pane 0");
@@ -2149,7 +2170,7 @@ test("a cross-pane price gesture clamps on an inverted price scale", async ({ pa
   const band = await calibratePriceBand(page, saves, paneProbe(page, layer));
   expect(band.inverted, "the scale must really be inverted before this contract means anything").toBe(true);
 
-  await crossPaneRange(page, layer, band.probe, band.drag);
+  await crossPaneRange(layer, band.probe, band.drag, band.arm);
   await expect.poll(() => savedPoints(saves, "dateandpricerange").length).toBe(2);
   const created = savedPoints(saves, "dateandpricerange");
   expectInsidePriceBand(created[0].p, band, "the anchor placed inside pane 0");
@@ -2180,11 +2201,46 @@ test("a coarse-pointer cross-pane drag keeps the owner scale", async ({ page }) 
   // cannot come from a pointer type the product treats differently.
   const band = await calibratePriceBand(page, saves, paneProbe(page, layer), { gesture: touchGesture(page, layer) });
 
-  await crossPaneRange(page, layer, band.probe, band.drag);
+  await crossPaneRange(layer, band.probe, band.drag, band.arm);
   await expect.poll(() => savedPoints(saves, "dateandpricerange").length).toBe(2);
   const created = savedPoints(saves, "dateandpricerange");
   expectInsidePriceBand(created[0].p, band, "the touch anchor placed inside pane 0");
   expectClampedToPaneBottom(created[1].p, band, "the touch endpoint dragged into the indicator pane");
+});
+
+/**
+ * The phone, at the viewport the reported rectangles were actually drawn on. It arms
+ * tools from the Drawings sheet rather than the desktop rail, so the same contract is
+ * reached through a different entry point, and its chart is short enough that pane 0's
+ * floor sits a few hundred pixels from the thumb — which is what makes a crossing
+ * gesture routine there rather than exotic.
+ */
+test("a phone cross-pane drag keeps the owner scale", async ({ page }) => {
+  test.skip(!isPhone(page), "The Drawings sheet is the phone's own tool source.");
+  // Exactly one sub-pane, deterministically: a 0-100 oscillator under a three-figure
+  // price is the reported corruption's own shape.
+  await page.addInitScript(() => {
+    localStorage.setItem("mm.inds", JSON.stringify(["stochrsi"]));
+    localStorage.setItem("mm.lang", "en");
+  });
+  const saves: DrawingSavePayload[] = [];
+  // openTerminal clears mm.drawing.preferences, so the magnet is already off. The phone
+  // has no rail control to turn it off with, which is why selectMagnet is absent here.
+  await openTerminal(page, { onPut: (payload) => saves.push(payload) });
+
+  const layer = page.locator(".pane.on .drawing-layer");
+  test.skip(!(await rangePaneBoxes(page)), "This chart mounted no indicator sub-pane.");
+
+  const band = await calibratePriceBand(page, saves, paneProbe(page, layer), {
+    gesture: touchGesture(page, layer),
+    arm: phoneArm(page),
+  });
+
+  await crossPaneRange(layer, band.probe, band.drag, band.arm);
+  await expect.poll(() => savedPoints(saves, "dateandpricerange").length).toBe(2);
+  const created = savedPoints(saves, "dateandpricerange");
+  expectInsidePriceBand(created[0].p, band, "the phone anchor placed inside pane 0");
+  expectClampedToPaneBottom(created[1].p, band, "the phone endpoint dragged into the indicator pane");
 });
 
 /**
@@ -2227,7 +2283,7 @@ test("collapsing the indicator pane moves the clamp to pane 0's new floor", asyn
     },
   });
   const band = await calibratePriceBand(page, saves, collapsedProbe);
-  await crossPaneRange(page, layer, collapsedProbe, band.drag);
+  await crossPaneRange(layer, collapsedProbe, band.drag, band.arm);
 
   await expect.poll(() => savedPoints(saves, "dateandpricerange").length).toBe(2);
   const created = savedPoints(saves, "dateandpricerange");
