@@ -2133,9 +2133,7 @@ test("a cross-pane price gesture clamps on a logarithmic price scale", async ({ 
   const saves: DrawingSavePayload[] = [];
   await openTerminal(page, { onPut: (payload) => saves.push(payload) });
 
-  const panes = await rangePaneBoxes(page);
-  test.skip(!panes, "This chart mounted no indicator sub-pane.");
-  const { price, indicator } = panes!;
+  test.skip(!(await rangePaneBoxes(page)), "This chart mounted no indicator sub-pane.");
   const layer = page.locator(".pane.on .drawing-layer");
   await selectMagnet(page, "off");
 
@@ -2160,9 +2158,7 @@ test("a cross-pane price gesture clamps on an inverted price scale", async ({ pa
   const saves: DrawingSavePayload[] = [];
   await openTerminal(page, { onPut: (payload) => saves.push(payload) });
 
-  const panes = await rangePaneBoxes(page);
-  test.skip(!panes, "This chart mounted no indicator sub-pane.");
-  const { price, indicator } = panes!;
+  test.skip(!(await rangePaneBoxes(page)), "This chart mounted no indicator sub-pane.");
   const layer = page.locator(".pane.on .drawing-layer");
   await selectMagnet(page, "off");
 
@@ -2191,9 +2187,7 @@ test("a coarse-pointer cross-pane drag keeps the owner scale", async ({ page }) 
   const saves: DrawingSavePayload[] = [];
   await openTerminal(page, { onPut: (payload) => saves.push(payload) });
 
-  const panes = await rangePaneBoxes(page);
-  test.skip(!panes, "This chart mounted no indicator sub-pane.");
-  const { price, indicator } = panes!;
+  test.skip(!(await rangePaneBoxes(page)), "This chart mounted no indicator sub-pane.");
   const layer = page.locator(".pane.on .drawing-layer");
   await selectMagnet(page, "off");
 
