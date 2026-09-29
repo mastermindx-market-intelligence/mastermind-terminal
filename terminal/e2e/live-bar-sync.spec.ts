@@ -14,9 +14,25 @@ import { expect, test, type Page } from "@playwright/test";
 // dev-only `__mmLiveBarGeneration` hook — a canvas screenshot cannot show an indicator's value.
 
 const SYMBOL = "NVDA";
-const BAR_COUNT = 261;                 // a multiple of 3, so the 3D tail bucket is complete
+const BAR_COUNT = 262;                 // see D3_BUCKETS below — completes the 3D tail bucket
 const LAST_SESSION = "2026-08-06";     // Thursday
 const NEXT_SESSION = "2026-08-07";     // Friday — the appended session
+
+/**
+ * 262 sessions, not 261, because of the canonical daily-multiple grid (`lib/sessionBars.ts`):
+ * a bar opens at row 0 and thereafter wherever `(i - 1) % mult === 0`, so the grid is
+ * [0], [1,2,3], [4,5,6]… — a forced partial FIRST bucket and then triples. Under that rule 261
+ * sessions leave a 2-of-3 TAIL bucket, and the live session the tests serve would be folded into
+ * it (measured: bucket count stays 88, key stays 2026-08-05) instead of opening a new one. 262
+ * completes the tail, so the next session opens bucket 89 keyed by NEXT_SESSION — which is the
+ * APPEND premise these tests exist to cover. `sessionDates` walks BACKWARD from LAST_SESSION, so
+ * raising the count extends the fixture at the FRONT and leaves LAST_SESSION/NEXT_SESSION alone.
+ *
+ * D3_BUCKETS is hardcoded rather than derived from `groupSessionBars`: deriving the expected
+ * count by calling the function under test would compare it to itself. The count was never the
+ * thing under test — the premise was.
+ */
+const D3_BUCKETS = 88;
 
 type SeriesTail = { time: unknown; value: number | null } | null;
 type Witness = {
@@ -209,20 +225,22 @@ test("a new session appends a resampled bucket every consumer can address", asyn
   test.slow();
   let phase: QuotePhase = PHASE_BASELINE;
   const INDS = ["ema", "rsi", "rvwap", "vprofile"];
-  // 261 daily bars → 87 complete 3D buckets, so the next session starts a NEW bucket rather than
-  // extending the tail one. That is the append case `foldFinalBucket` has to hand through.
+  // The fixture's tail 3D bucket is complete (see D3_BUCKETS), so the next session starts a NEW
+  // bucket rather than extending the tail one. That is the append case `foldFinalBucket` has to
+  // hand through — and at 261 sessions it would silently stop being covered, because the session
+  // would fold into a 2-of-3 tail instead.
   await serveDailyWorkspace(page, () => phase, "3D", INDS);
   await page.goto(`/terminal?symbol=${SYMBOL}`);
 
   const before = await settledBaseline(page, ["ema", "rsi", "rvwap"]);
-  expect(before.barCount).toBe(BAR_COUNT / 3);
+  expect(before.barCount).toBe(D3_BUCKETS);
   const axisBefore = await readAxis(page);
 
   phase = { basis: "REALTIME", last: LIVE_LAST, sessionDate: NEXT_SESSION, seconds: rthSeconds(NEXT_SESSION, 15, 30) };
   await expect.poll(async () => (await readWitness(page))?.barCount ?? 0, {
     message: "a fresh session should open a new 3D bucket on the chart",
     timeout: 45_000,
-  }).toBe(BAR_COUNT / 3 + 1);
+  }).toBe(D3_BUCKETS + 1);
 
   const after = await settledBaseline(page, ["ema", "rsi", "rvwap"]);
   expect(after.lastBar?.time).toBe(NEXT_SESSION);

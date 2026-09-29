@@ -28,10 +28,26 @@ import { expect, test, type Page } from "@playwright/test";
  */
 
 const SYMBOL = "NVDA";
-const BAR_COUNT = 261;
+const BAR_COUNT = 262;
 const LAST_SESSION = "2026-08-06";
 /** Enough accepted commits that a per-tick leak is unmistakable, bounded so the lane stays ~1/s. */
 const TICKS = 14;
+
+/**
+ * 262 sessions, not 261, because of the canonical daily-multiple grid (`lib/sessionBars.ts`):
+ * a bar opens at row 0 and thereafter wherever `(i - 1) % mult === 0`, so the grid is
+ * [0], [1,2,3], [4,5,6]… — a forced partial FIRST bucket and then triples. Under that rule 261
+ * sessions leave a 2-of-3 TAIL bucket, and the live session the tests serve would be folded into
+ * it (measured: bucket count stays 88, key stays 2026-08-05) instead of opening a new one. 262
+ * completes the tail, so the next session opens bucket 89 keyed by NEXT_SESSION — which is the
+ * APPEND premise these tests exist to cover. `sessionDates` walks BACKWARD from LAST_SESSION, so
+ * raising the count extends the fixture at the FRONT and leaves LAST_SESSION/NEXT_SESSION alone.
+ *
+ * D3_BUCKETS is hardcoded rather than derived from `groupSessionBars`: deriving the expected
+ * count by calling the function under test would compare it to itself. The count was never the
+ * thing under test — the premise was.
+ */
+const D3_BUCKETS = 88;
 
 type Census = {
   live: { panes: number; series: number; priceLines: number };
@@ -282,12 +298,12 @@ test("a burst on a partial 3D bucket rewrites it in place without re-keying or a
   const NEXT_SESSION = "2026-08-07";
   const opened = Number((LAST_CLOSE * 1.05).toFixed(2));
   const barsBefore = (await witness(page))!.barCount;
-  // 261 daily sessions divide EXACTLY into 87 three-session buckets, so the fixture's own tail is
-  // complete and session 262 opens bucket 88 holding 1 of 3. Asserting the division makes "the bar
-  // under the burst is partial" a checked property of the fixture rather than an assumption — if a
-  // grid change or a fixture edit ever made the tail bucket complete, this test would be burst-
-  // testing an ordinary full bar and quietly stop covering the case it exists for.
-  expect(barsBefore).toBe(BAR_COUNT / 3);
+  // The fixture's own tail bucket is complete (see D3_BUCKETS), so this fresh session opens a new
+  // bucket holding 1 of 3. Asserting the count makes "the bar under the burst is partial" a checked
+  // property of the fixture rather than an assumption — if a grid change or a fixture edit ever
+  // filled that bucket, this test would be burst-testing an ordinary full bar and quietly stop
+  // covering the case it exists for.
+  expect(barsBefore).toBe(D3_BUCKETS);
   phase = { basis: "REALTIME", last: opened, sessionDate: NEXT_SESSION, seconds: rthSeconds(NEXT_SESSION, 15, 0) };
   await expect.poll(async () => (await witness(page))?.barCount ?? 0, {
     message: "a fresh session should open a new 3D bucket",
