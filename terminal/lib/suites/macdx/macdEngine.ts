@@ -234,20 +234,20 @@ function build(
 
   // 3) ±100 normalization against the trailing window only.
   const macd = new Float64Array(n).fill(NaN);
-  const normFill = new Float64Array(n);
-  let firstNorm = NaN;
+  const normFill = new Float64Array(n).fill(NaN);
+  let hasNorm = false;
   for (let i = warm; i < n; i++) {
     const v = normalizeSigned(raw, i, MACDX_NORM_WINDOW);
     if (!Number.isFinite(v)) continue;
     const c = clamp(v, -MACDX_EXTREME, MACDX_EXTREME);
     normFill[i] = c;
-    if (!Number.isFinite(firstNorm)) firstNorm = c;
+    hasNorm = true;
     macd[i] = ok[i] ? c : NaN; // a missing print draws nothing, but still feeds the signal MA
   }
-  if (!Number.isFinite(firstNorm)) return emptyResult(n);
-  for (let i = 0; i < warm; i++) normFill[i] = firstNorm; // constant seed → no MA settling ramp
+  if (!hasNorm) return emptyResult(n);
 
-  // 4) signal line over the normalized macd.
+  // 4) signal line over the normalized MACD. Keep pre-MACD history as NaN so the
+  // smoother's SMA seed is built from exactly G real normalized observations.
   const sig = maSeries(normFill, G, sT);
   const signal = new Float64Array(n).fill(NaN);
   const hist = new Float64Array(n).fill(NaN);
