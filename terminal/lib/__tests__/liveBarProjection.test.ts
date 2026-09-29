@@ -89,6 +89,33 @@ describe("liveQuoteStamp", () => {
     expect(liveQuoteStamp({})).toBeNull();
     expect(liveQuoteStamp(null)).toBeNull();
   });
+
+  // ── an implausible stamp is a units bug, and adopting one freezes the lane forever ──
+  const NOW = 1_800_000_000_000;   // a fixed "now" so this never depends on the wall clock
+
+  it("accepts a stamp inside the skew window, ahead or behind", () => {
+    expect(liveQuoteStamp({ asOfMs: NOW - 86_400_000 }, NOW)).toBe(NOW - 86_400_000);
+    expect(liveQuoteStamp({ asOfMs: NOW + 60_000 }, NOW)).toBe(NOW + 60_000);
+    expect(liveQuoteStamp({ asOfMs: NOW + 5 * 60 * 60 * 1000 }, NOW)).toBe(NOW + 5 * 60 * 60 * 1000);
+  });
+
+  it("reports a stamp implausibly far ahead as UNSTAMPED rather than adopting it", () => {
+    // the realistic source: a lane ships `ts` already in ms and the fallback multiplies by 1000
+    expect(liveQuoteStamp({ ts: NOW }, NOW)).toBeNull();
+    expect(liveQuoteStamp({ asOfMs: NOW * 1000 }, NOW)).toBeNull();
+    expect(liveQuoteStamp({ asOfMs: NOW + 7 * 60 * 60 * 1000 }, NOW)).toBeNull();
+  });
+
+  it("does not let one bad stamp freeze the lane for the life of the bar set", () => {
+    // Adopting the bad stamp would make it the lane's floor, and `acceptsLiveTick` would then
+    // refuse every real packet that follows — a permanently frozen chart with no self-heal.
+    const bad = { basis: "REALTIME", stamp: liveQuoteStamp({ ts: NOW }, NOW) };
+    expect(bad.stamp).toBeNull();
+    const real = { basis: "REALTIME", stamp: liveQuoteStamp({ asOfMs: NOW + 1_000 }, NOW) };
+    expect(acceptsLiveTick(bad, real)).toBe(true);
+    // and the lane keeps ordering normally from there
+    expect(acceptsLiveTick(real, { basis: "REALTIME", stamp: NOW - 1_000 })).toBe(false);
+  });
 });
 
 // ── the reuse facade ─────────────────────────────────────────────────────────

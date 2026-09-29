@@ -157,15 +157,35 @@ export function seriesReuseChart<C extends object, S extends object>(chart: C, o
 }
 
 /**
+ * How far ahead of the reader's clock a quote may claim to be and still be treated as a clock.
+ *
+ * Nothing on any lane is legitimately stamped hours into the future — the delayed lanes run BEHIND
+ * — so this only has to clear ordinary client/hub skew. It is deliberately generous for that, and
+ * still ~11 orders of magnitude short of the failure it exists to catch (see below).
+ */
+const STAMP_FUTURE_LIMIT_MS = 6 * 60 * 60 * 1000;
+
+/**
  * The quote's own instant, in ms. `asOfMs` is the packet's measured time; `ts` is the coarser
  * seconds field every basis carries. Returns null when the quote declares neither.
+ *
+ * A stamp implausibly far in the future is reported as UNSTAMPED rather than adopted. This is not
+ * defensive decoration: `acceptsLiveTick` keeps the highest stamp it has seen as the lane's floor,
+ * so a single bad stamp would refuse every subsequent packet on that lane for the life of the bar
+ * set — a permanently frozen chart with no self-heal and no visible cause. The realistic source is
+ * a units bug upstream (a lane shipping `ts` already in ms, which the fallback below multiplies by
+ * 1000 again, landing around the year 55000), and the honest reading of such a value is that the
+ * packet has no usable clock. Degrading to null keeps the lane live, because an unstamped quote is
+ * accepted by design.
  */
 export function liveQuoteStamp(
   q: { asOfMs?: number | null; ts?: number | null } | null | undefined,
+  now: number = Date.now(),
 ): number | null {
   if (!q) return null;
-  if (typeof q.asOfMs === "number" && Number.isFinite(q.asOfMs)) return q.asOfMs;
-  if (typeof q.ts === "number" && Number.isFinite(q.ts)) return q.ts * 1000;
+  const plausible = (ms: number) => (ms <= now + STAMP_FUTURE_LIMIT_MS ? ms : null);
+  if (typeof q.asOfMs === "number" && Number.isFinite(q.asOfMs)) return plausible(q.asOfMs);
+  if (typeof q.ts === "number" && Number.isFinite(q.ts)) return plausible(q.ts * 1000);
   return null;
 }
 

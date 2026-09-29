@@ -2952,8 +2952,11 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     applySuitePaintRef.current?.();
     scheduleRenderRef.current?.();
     if (dayModeRef.current) setStripBars([...rows]);
-    // 5. off-thread work: epoch-guarded inside, and skipped outright if a newer tick already landed
-    if (liveGenRef.current === generation) schedulePineLiveRerun();
+    // 5. off-thread work. NOT guarded on `generation` here: nothing between the bump above and
+    //    this line can yield, so a re-entrancy check would be dead code claiming a protection it
+    //    cannot perform. Supersession is handled where it can actually happen — `schedulePineLiveRerun`
+    //    clears its own pending timer, and the async Pine batch is dropped by `pineEpochRef`.
+    schedulePineLiveRerun();
   };
 
   const applyIntradayLiveCandle = () => {
