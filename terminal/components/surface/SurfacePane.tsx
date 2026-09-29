@@ -321,7 +321,7 @@ export function SurfacePane({
   // setHover). A stable function identity across a lang-unchanged render fixes it.
   const t = useMemo(() => makeSurfaceT(lang), [lang]);
   const gexT = useMemo(() => makeGexT(lang), [lang]);
-  const { state: replayState, asOfStamp, live, sessionDate, archived, indexDate, frameRevision, sourceRevision } = useReplay();
+  const { state: replayState, asOfStamp, live, sessionDate, archived, indexDate, indexError, frameRevision, sourceRevision } = useReplay();
   const sync = useSurfaceSync();
   const isCell = chrome === "cell";
   // Nightly-derived overlays (Levels / regime / OI Δ) never truncate or interpolate to the
@@ -345,6 +345,11 @@ export function SurfacePane({
   const frame = frameResult?.root === root && frameResult?.stamp === asOfStamp && asOfStamp &&
     isSurfaceFrameForContext(frameResult.data, root, indexDate, asOfStamp)
       ? frameResult.data : null;
+  // A stamp index that never landed is a read failure one level above the frame read.
+  // It leaves no stamp to request, so `frameError` can never be set for it — without
+  // this the empty state falls through to the accrual copy and asserts, falsely, that
+  // the materializer has simply not painted yet and nothing is hidden.
+  const readFailed = frameError || (indexError && indexDate == null);
   const [candles, setCandles] = useState<Bar6[]>([]);
   /** Session whose candle request has completed (including an honest empty response). */
   const [candleSession, setCandleSession] = useState<string | null>(null);
@@ -1609,11 +1614,11 @@ export function SurfacePane({
         {!hasData && (
           <div style={EMPTY}>
             <span style={EMPTY_TITLE}>
-              {loading ? t("surfaceLoading") : frameError ? t("surfaceUnavailable") : cellAccruing ? t("metricAccruing") : t("surfaceEmpty")}
+              {loading ? t("surfaceLoading") : readFailed ? t("surfaceUnavailable") : cellAccruing ? t("metricAccruing") : t("surfaceEmpty")}
             </span>
             {!isCell && (
               <span style={EMPTY_WHY}>
-                {loading ? t("surfaceLoadingWhy") : frameError ? t("surfaceUnavailableWhy") : t("surfaceEmptyWhy")}
+                {loading ? t("surfaceLoadingWhy") : readFailed ? t("surfaceUnavailableWhy") : t("surfaceEmptyWhy")}
               </span>
             )}
           </div>

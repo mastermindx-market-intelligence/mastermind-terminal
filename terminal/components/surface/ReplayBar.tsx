@@ -230,16 +230,23 @@ export function ReplayBar({
             ) : null}
           </>
         ) : (
-          /* Honest empty: name the state AND why the scrubber has nothing to move over. */
+          /* Honest empty: name the state AND why the scrubber has nothing to move over.
+             An index that never loaded is a READ FAILURE, so it must not borrow the
+             "this root has none for the selected day" copy, which asserts absence. */
           <span style={NO_FRAMES}>
             <span style={{ ...FRAME_TXT, color: "var(--text-2)", fontWeight: 600 }}>
-              {archived ? t("sessionEmptyArchive") : t("replayNoFrames")}
+              {indexError ? t("replayIndexFailed") : archived ? t("sessionEmptyArchive") : t("replayNoFrames")}
             </span>
-            <span style={NO_FRAMES_WHY}>{t("replayNoFramesWhy")}</span>
+            <span style={NO_FRAMES_WHY}>
+              {indexError ? t("replayIndexFailedWhy") : t("replayNoFramesWhy")}
+            </span>
           </span>
         )}
       </div>
-      {indexError && <span role="status" className="obs-surf-replay-error">{t("replayRefreshFailed")}</span>}
+      {/* Retention is only claimable when something was actually admitted and kept. */}
+      {indexError && hasFrames && (
+        <span role="status" className="obs-surf-replay-error">{t("replayRefreshFailed")}</span>
+      )}
     </div>
   );
 }

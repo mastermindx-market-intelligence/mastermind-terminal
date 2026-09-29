@@ -122,6 +122,13 @@ const SURFACE_LEX = {
   replayScrubAria: ["Scrub to frame", "拖动到指定帧"],
   replayLive: ["LATEST STORED", "最新已存帧"],
   replayRefreshFailed: ["Refresh unavailable · retaining stored frames", "刷新暂不可用 · 保留已存帧"],
+  // Only for a stamp index that never landed. `replayRefreshFailed` claims retention,
+  // which is a lie when there is nothing stored to retain.
+  replayIndexFailed: ["Index unavailable · frame list not loaded", "索引暂不可用 · 未能加载时点列表"],
+  replayIndexFailedWhy: [
+    "The stamp index for this root could not be read. That is a read failure, not a finding that the session has no frames.",
+    "无法读取该标的的时点索引。这是读取失败，并不表示该交易日没有数据帧。",
+  ],
   replaySelectionUnavailable: ["Selected observation unavailable", "所选观测暂无数据"],
   replayFrameOf: ["frame", "帧"],
   replayNoFrames: ["No frames — accruing.", "暂无帧 — 累积中。"],

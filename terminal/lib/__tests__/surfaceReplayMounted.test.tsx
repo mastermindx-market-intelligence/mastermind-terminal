@@ -275,6 +275,48 @@ describe("shared replay read boundaries", () => {
     expect(host.querySelector(".obs-surf-chart-area")?.textContent ?? "").not.toContain("No surface data yet");
   });
 
+  it("re-runs the admission contract at the render boundary, not just the label pair", async () => {
+    // The window this closes: the session rolls over while the replacement frame request
+    // is still in flight. The retained tuple's root and stamp BOTH still match the new
+    // context, so a label-only check would paint the previous session's frame under the
+    // new session's date. Only re-running isSurfaceFrameForContext catches the stale
+    // session_date. Without the render-boundary call this renders the wrong session.
+    emitFrames = true;
+    await mount();
+    expect(host.querySelector(".obs-surf-data-strip")).not.toBeNull();
+    // New session, same stamps -> same selected stamp, so root+stamp keep matching.
+    sourceDate = "2026-09-18";
+    delayedFrame = new Promise<Response>(() => {});
+    await advance();
+    expect(host.querySelector(".obs-surf-data-strip")).toBeNull();
+  });
+
+  it("reports a cold index transport failure as unavailable, not absence or retention", async () => {
+    // The index read is the level ABOVE the frame read. When it fails on the very
+    // first poll there is no admitted stamp and nothing retained, so every affirmative
+    // statement is false: the data is not "accruing", the root is not known to have
+    // no frames for the day, and no stored frame is being "retained".
+    emitFrames = true;
+    failIndex = true;
+    await act(async () => { root.render(<SurfaceView />); });
+    const chart = host.querySelector(".obs-surf-chart-area")?.textContent ?? "";
+    const bar = host.querySelector(".obs-surf-replay")?.textContent ?? "";
+    expect(chart).toContain("Surface unavailable");
+    expect(chart).not.toContain("No surface data yet");
+    expect(chart).not.toContain("Nothing is hidden");
+    expect(bar).not.toContain("retaining stored frames");
+  });
+
+  it("still reports refresh failure as retention when frames were already admitted", async () => {
+    // The complementary case, so the repair above cannot be satisfied by simply
+    // deleting the retention wording: after a good index, a failed refresh IS retention.
+    await mount();
+    failIndex = true;
+    await advance();
+    expect(host.querySelector(".obs-surf-replay")?.textContent ?? "").toContain("retaining stored frames");
+    expect(rail().getAttribute("aria-valuemax")).toBe("2");
+  });
+
   it("does not use a LIVE badge as a synonym for the latest stored frame", async () => {
     await mount();
     expect(host.querySelector(".obs-surf-replay")!.textContent).toContain("LATEST STORED");

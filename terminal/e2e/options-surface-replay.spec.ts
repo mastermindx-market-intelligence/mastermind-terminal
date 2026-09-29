@@ -3,6 +3,35 @@ import { expect, test } from "@playwright/test";
 // Real-route replay regressions. All market inputs are explicitly synthetic;
 // browser evidence proves interaction and context handling, not production freshness.
 for (const lang of ["en", "zh"] as const) {
+  test(`a cold index read failure never renders as accrual or retention (${lang})`, async ({ page }, info) => {
+    test.setTimeout(60_000);
+    const pageErrors: string[] = [];
+    page.on("pageerror", error => pageErrors.push(error.message));
+    await page.addInitScript((value) => { localStorage.setItem("mm.lang", value); }, lang);
+    await page.route("**/api/intraday?**", (route) => route.fulfill({ json: { bars: [] } }));
+    await page.route("**/api/flow?**", async (route) => {
+      const f = new URL(route.request().url()).searchParams.get("f") ?? "";
+      // The stamp index never lands, so there is no stamp to request a frame for and
+      // nothing was ever admitted. Every affirmative statement about the data is false.
+      if (f === "surface_idx:SPY") return route.fulfill({ status: 503, body: "fixture unavailable" });
+      if (f === "surface_dates:SPY") return route.fulfill({ json: {
+        root: "SPY", dates: ["2026-09-17"], latest: "2026-09-17", cadenceSec: 60,
+      } });
+      return route.continue();
+    });
+    await page.goto("/options?tab=surface");
+    const replay = page.locator(".obs-surf-replay").first();
+    const chart = page.locator(".obs-surf-chart-area").first();
+    await expect(replay).toContainText(lang === "en" ? "Index unavailable" : "索引暂不可用", { timeout: 30_000 });
+    await expect(chart).toContainText(lang === "en" ? "Surface unavailable" : "曲面暂不可用");
+    // The three falsehoods this repair removes.
+    await expect(chart).not.toContainText(lang === "en" ? "No surface data yet" : "暂无曲面数据");
+    await expect(chart).not.toContainText(lang === "en" ? "Nothing is hidden" : "并非隐藏内容");
+    await expect(replay).not.toContainText(lang === "en" ? "retaining stored frames" : "保留已存帧");
+    await replay.screenshot({ path: info.outputPath(`${lang}-cold-index-failure.png`) });
+    expect(pageErrors, "A read failure must not trip the route error boundary").toEqual([]);
+  });
+
   test(`surface replay advances and preserves the cursor across layout changes (${lang})`, async ({ page }, info) => {
     test.setTimeout(90_000);
     const pageErrors: string[] = [];
