@@ -40,6 +40,7 @@ export interface OptionsAlphaMeasuredEvent {
 
 export interface OptionsAlphaMeasuredFeed {
   schema: typeof OPTIONS_ALPHA_MEASURED_FEED_SCHEMA;
+  stale: boolean;
   asof: string | null;
   source_asof: string | null;
   session_date: string | null;
@@ -240,6 +241,9 @@ export function normalizeOptionsAlphaMeasuredFeed(value: unknown): OptionsAlphaM
     return null;
   }
 
+  const stale = value.stale == null ? false : typeof value.stale === "boolean" ? value.stale : null;
+  if (stale == null) return null;
+
   const sessionDate = value.session_date == null ? null : dateText(value.session_date);
   if (value.session_date != null && sessionDate == null) return null;
 
@@ -259,6 +263,7 @@ export function normalizeOptionsAlphaMeasuredFeed(value: unknown): OptionsAlphaM
 
   return {
     schema: OPTIONS_ALPHA_MEASURED_FEED_SCHEMA,
+    stale,
     asof,
     source_asof: sourceAsof,
     session_date: sessionDate,

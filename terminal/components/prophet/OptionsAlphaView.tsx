@@ -468,6 +468,8 @@ function measuredCopy(lang: Lang) {
     contract: "精确合约",
     recent: "按可用时间显示最近事件，不按分数排序",
     loadFailed: "实测资金流来源暂不可用；研究影子数据仍可独立显示。",
+    producerStale: "来源已将此实测快照标记为陈旧；仅作为最后可用来源证据显示。",
+    refreshFailed: "刷新暂不可用 · 正在显示先前保存的实测快照。",
   } : {
     title: "Measured flow evidence",
     note: "Trade location and NBBO coverage are measured context only — not buyer identity, customer intent, directional probability, or a trading score.",
@@ -487,6 +489,8 @@ function measuredCopy(lang: Lang) {
     contract: "Exact contract",
     recent: "Latest by availability; not ranked or scored",
     loadFailed: "Measured-flow source is unavailable; the research shadow view remains independent.",
+    producerStale: "Producer marked this measured snapshot stale; showing last-source evidence only.",
+    refreshFailed: "Refresh unavailable · showing stored measured snapshot.",
   };
 }
 
@@ -561,6 +565,16 @@ function MeasuredEvidenceSection({
         <span>{visible.length}</span>
       </div>
       <p className="obs-options-alpha-footnote">{copy.note}</p>
+      {feed?.stale && (
+        <p className="obs-options-alpha-footnote" role="status" data-testid="options-alpha-measured-stale">
+          {copy.producerStale}
+        </p>
+      )}
+      {failed && feed && visible.length > 0 && (
+        <p className="obs-options-alpha-footnote" role="status" data-testid="options-alpha-measured-refresh-failed">
+          {copy.refreshFailed}
+        </p>
+      )}
       {feed && (
         <div className="obs-options-alpha-accrual-events">
           <Metric label={copy.sourceClock} value={feed.source_asof ?? "—"} />

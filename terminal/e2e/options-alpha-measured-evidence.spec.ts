@@ -99,3 +99,79 @@ test("measured-flow failure degrades independently from the Options Alpha shadow
   await expect(section).toContainText("Measured-flow source is unavailable");
   await expect(section).toContainText("research shadow view remains independent");
 });
+
+
+test("producer-stale measured evidence is visibly last-source evidence", async ({ page }) => {
+  await page.route("**/api/flow?f=feed", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ ...measuredFeed, stale: true }),
+    });
+  });
+  await page.goto("/options?tab=prophet");
+  await page.getByRole("tab", { name: /Options Alpha/ }).click();
+  const section = page.getByTestId("options-alpha-measured-evidence");
+  await expect(section).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByTestId("options-alpha-measured-event")).toHaveCount(1);
+  await expect(page.getByTestId("options-alpha-measured-stale"))
+    .toContainText("Producer marked this measured snapshot stale");
+  await expect(section).toContainText("last-source evidence only");
+  await page.evaluate(() => {
+    document.documentElement.setAttribute("data-lang", "zh");
+    window.dispatchEvent(new CustomEvent("mm:lang"));
+  });
+  await expect(page.getByTestId("options-alpha-measured-stale")).toContainText("来源已将此实测快照标记为陈旧");
+  await expect(section).not.toContainText("Producer marked");
+});
+
+test("refresh failure is labelled and a successful refresh restores measured evidence", async ({ page }) => {
+  await page.addInitScript(() => {
+    const originalSetInterval = window.setInterval.bind(window);
+    window.setInterval = ((handler: TimerHandler, timeout?: number, ...args: any[]) =>
+      originalSetInterval(handler, timeout === 30_000 ? 100 : timeout, ...args)) as typeof window.setInterval;
+    const realNow = Date.now.bind(Date);
+    let offset = 0;
+    (window as unknown as { __oaAdvanceMeasuredClock?: () => void }).__oaAdvanceMeasuredClock = () => { offset += 26_000; };
+    Date.now = () => realNow() + offset;
+  });
+  let fail = false;
+  let recovered = false;
+  await page.route("**/api/flow?f=feed", async (route) => {
+    if (fail) {
+      await route.fulfill({ status: 503, contentType: "application/json", body: "{}" });
+    } else {
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(recovered ? { ...measuredFeed, asof: "2026-09-19T14:01:05Z", source_asof: "2026-09-19T14:01:04Z", stale: false } : measuredFeed) });
+    }
+  });
+
+  await page.goto("/options?tab=prophet");
+  await page.getByRole("tab", { name: /Options Alpha/ }).click();
+  const section = page.getByTestId("options-alpha-measured-evidence");
+  await expect(page.getByTestId("options-alpha-measured-event")).toHaveCount(1);
+  fail = true;
+  await page.evaluate(() => {
+    (window as unknown as { __oaAdvanceMeasuredClock?: () => void }).__oaAdvanceMeasuredClock?.();
+  });
+  await expect(page.getByTestId("options-alpha-measured-refresh-failed"))
+    .toContainText("Refresh unavailable");
+  await expect(page.getByTestId("options-alpha-measured-event")).toHaveCount(1);
+  await expect(section).toContainText("2026-09-19T14:00:04Z");
+  await expect(page.getByTestId("options-alpha-fires-section")).toBeVisible();
+  await page.evaluate(() => {
+    document.documentElement.setAttribute("data-lang", "zh");
+    window.dispatchEvent(new CustomEvent("mm:lang"));
+  });
+  await expect(page.getByTestId("options-alpha-measured-refresh-failed")).toContainText("刷新暂不可用");
+  await expect(section).not.toContainText("Refresh unavailable");
+  fail = false;
+  recovered = true;
+  await page.evaluate(() => {
+    (window as unknown as { __oaAdvanceMeasuredClock?: () => void }).__oaAdvanceMeasuredClock?.();
+  });
+  await expect(page.getByTestId("options-alpha-measured-refresh-failed")).toHaveCount(0);
+  await expect(page.getByTestId("options-alpha-measured-stale")).toHaveCount(0);
+  await expect(section).toContainText("2026-09-19T14:01:04Z");
+  await expect(page.getByTestId("options-alpha-measured-event")).toHaveCount(1);
+  await expect(page.getByTestId("options-alpha-fires-section")).toBeVisible();
+});

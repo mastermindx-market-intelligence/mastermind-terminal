@@ -150,6 +150,14 @@ describe("Options Alpha measured-flow evidence", () => {
     expect(normalizeOptionsAlphaMeasuredFeed({ ...feed([]), session_date: "2026-02-31" })).toBeNull();
   });
 
+  it("preserves producer stale truth and fails closed on malformed stale values", () => {
+    expect(normalizeOptionsAlphaMeasuredFeed({ ...feed([measured()]), stale: true })?.stale).toBe(true);
+    expect(normalizeOptionsAlphaMeasuredFeed({ ...feed([measured()]), stale: false })?.stale).toBe(false);
+    expect(normalizeOptionsAlphaMeasuredFeed({ ...feed([measured()]), stale: null })?.stale).toBe(false);
+    expect(normalizeOptionsAlphaMeasuredFeed({ ...feed([measured()]), stale: "true" })).toBeNull();
+    expect(normalizeOptionsAlphaMeasuredFeed({ ...feed([measured()]), stale: 1 })).toBeNull();
+  });
+
   it("does not require every source event to carry measured evidence", () => {
     const parsed = normalizeOptionsAlphaMeasuredFeed(feed([
       { id: "legacy", root: "SPY" },
