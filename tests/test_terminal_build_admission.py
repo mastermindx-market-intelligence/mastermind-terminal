@@ -206,6 +206,12 @@ def _real_preflight_owner_fixture(tmp_path: Path) -> tuple[Path, Path, Path, str
     _git(repo, "config", "user.email", "test@example.com")
     _git(repo, "config", "user.name", "Test")
 
+    # The real canonical checkout gitignores bytecode caches, which is precisely
+    # why residue there is invisible to `git status`/`git clean -fd` and survives
+    # every deploy.  Without this the fixture would report residue as untracked
+    # dirt and stop W2A for a reason production never sees.
+    (repo / ".gitignore").write_text("__pycache__/\n", encoding="utf-8")
+
     terminal = repo / "terminal"
     terminal.mkdir()
     (terminal / "app.py").write_text("print('canonical')\n", encoding="utf-8")
@@ -704,8 +710,119 @@ def test_real_w2a_through_owner_never_writes_runtime_bytecode(tmp_path: Path) ->
 
 def test_python_trust_decisions_use_isolated_interpreters() -> None:
     library = SCRIPT.read_text(encoding="utf-8")
-    assert 'python3 -B -E -s "$script"' in library
+    assert "python3 -B -E -s \\\n      -X pycache_prefix=" in library
     assert 'python3 -I - "$stdout_file" "$receipt_dir"' in library
+
+
+def test_trusted_script_runs_with_bytecode_cache_redirected_off_source() -> None:
+    """`-B` stops writes only; a source-adjacent .pyc is still READ and executed.
+
+    The redirect is what lets bundle selection tolerate cache residue at all, so
+    pin it in the library text next to the flags it protects.
+    """
+    library = SCRIPT.read_text(encoding="utf-8")
+    assert '-X pycache_prefix="$temporary/pycache" "$script"' in library
+
+
+def _poison_module_bytecode(module: Path) -> Path:
+    """Write a .pyc that this interpreter accepts as fresh but cannot unmarshal.
+
+    Valid magic plus the source's own mtime/size clears `_classify_pyc` and
+    `_validate_timestamp_pyc`, so the import machinery commits to the cache and
+    `_compile_bytecode` raises instead of falling back to the .py source.  Any
+    import that consults the source-adjacent cache therefore fails loudly.
+    """
+    import importlib.util
+    import struct
+
+    metadata = module.stat()
+    cached = Path(importlib.util.cache_from_source(str(module)))
+    cached.parent.mkdir(parents=True, exist_ok=True)
+    cached.write_bytes(
+        importlib.util.MAGIC_NUMBER
+        + struct.pack("<I", 0)
+        + struct.pack("<I", int(metadata.st_mtime) & 0xFFFFFFFF)
+        + struct.pack("<I", metadata.st_size & 0xFFFFFFFF)
+        + b"\xff\xff\xff\xffNOT-MARSHAL-DATA"
+    )
+    return cached
+
+
+def test_real_w2a_ignores_poisoned_source_bytecode_cache(tmp_path: Path) -> None:
+    """The residue tolerance must not hand an unhashed .pyc the executed code path."""
+    repo, ops, receipts, _accepted = _real_preflight_owner_fixture(tmp_path)
+    poisoned = _poison_module_bytecode(ops / "terminal_audit" / "model.py")
+    assert poisoned.is_file()
+
+    result = run_gen(
+        f"""
+        select_preflight_artifacts "{os.getuid()}" "{ops}"
+        rc=$?
+        [ "$rc" -eq 0 ] || exit "$rc"
+        run_release_preflight "$PREFLIGHT_SCRIPT" "$PREFLIGHT_POLICY" "{repo}" "{receipts}"
+        """
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "bad marshal data" not in (result.stdout + result.stderr), (
+        "the preflight executed bytecode from the source tree instead of the "
+        "hashed .py sources"
+    )
+    assert poisoned.is_file(), "the owner mutated the canonical source bundle"
+
+
+def test_bundle_selection_tolerates_generated_python_cache(tmp_path: Path) -> None:
+    """Ignored cache residue must not refuse this owner its own canonical bundle.
+
+    `git clean -fd` cannot remove it, so a single stray import under canonical
+    `ops/` used to self-block every later release (#483).
+    """
+    clean = tmp_path / "clean-ops"
+    _write_pair(clean)
+    residue = tmp_path / "residue-ops"
+    _write_pair(residue)
+    cache = residue / "terminal_audit" / "__pycache__"
+    cache.mkdir()
+    (cache / "__init__.cpython-312.pyc").write_bytes(b"\x00cached\n")
+
+    digests = {}
+    for label, directory in (("clean", clean), ("residue", residue)):
+        result = run_gen(
+            f"""
+            select_preflight_artifacts "{os.getuid()}" "{directory}"
+            rc=$?
+            printf 'RUNTIME_SHA=%s\\n' "$PREFLIGHT_RUNTIME_SHA256"
+            exit "$rc"
+            """
+        )
+        assert result.returncode == 0, (
+            f"{label} bundle was refused: {result.stdout + result.stderr}"
+        )
+        match = re.search(r"^RUNTIME_SHA=([0-9a-f]{64})$", result.stdout, re.MULTILINE)
+        assert match, result.stdout
+        digests[label] = match.group(1)
+
+    assert digests["clean"] == digests["residue"], (
+        "bytecode cache residue changed the attested runtime digest"
+    )
+
+
+def test_bundle_selection_refuses_untrusted_bytecode_cache(tmp_path: Path) -> None:
+    owner = tmp_path / "owner-ops"
+    _write_pair(owner)
+    cache = owner / "terminal_audit" / "__pycache__"
+    cache.mkdir()
+    cache.chmod(0o777)
+    result = run_gen(f'select_preflight_artifacts "{os.getuid()}" "{owner}"')
+    assert result.returncode == 66, result.stdout + result.stderr
+
+
+def test_bundle_selection_refuses_loose_bytecode_beside_sources(tmp_path: Path) -> None:
+    """Tolerance covers the __pycache__ shape only, never the runtime tree itself."""
+    owner = tmp_path / "owner-ops"
+    _write_pair(owner)
+    (owner / "terminal_audit" / "model.cpython-312.pyc").write_bytes(b"\x00loose\n")
+    result = run_gen(f'select_preflight_artifacts "{os.getuid()}" "{owner}"')
+    assert result.returncode == 66, result.stdout + result.stderr
 
 
 @pytest.mark.parametrize("untrusted_part", ["directory", "policy", "runtime-file"])

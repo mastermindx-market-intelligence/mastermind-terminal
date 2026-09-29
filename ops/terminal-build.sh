@@ -197,10 +197,21 @@ for current, dirnames, filenames in os.walk(runtime, topdown=True, followlinks=F
     runtime_hash.update(
         f"D\0{relative_dir}\0{stat.S_IMODE(current_meta.st_mode):o}\n".encode()
     )
+    # Python bytecode caches are derived, gitignored state this owner provably
+    # cannot clean: `git clean -fd` keeps ignored paths, so one stray import under
+    # the canonical `ops/` refused this owner its own bundle for good and forced a
+    # temporary second bundle path onto every later release (#483). The production
+    # source-audit policy already classifies __pycache__ as generated_python_cache,
+    # so classify it the same way here: custody is still proven, the contents are
+    # never descended into, and nothing inside reaches the runtime digest.
+    #
+    # Tolerating it is only safe because run_release_preflight redirects
+    # sys.pycache_prefix off the source tree. `-B` alone stops WRITES; Python still
+    # READS a source-adjacent .pyc, so an unhashed cache entry would otherwise
+    # execute in place of the hashed .py this digest attests.
     for dirname in dirnames:
-        if dirname == "__pycache__":
-            raise ValueError("preflight runtime must not contain __pycache__")
         trusted_stat(current_path / dirname, "directory")
+    dirnames[:] = [name for name in dirnames if name != "__pycache__"]
     for filename in filenames:
         candidate = current_path / filename
         if candidate.suffix != ".py":
@@ -362,7 +373,8 @@ PY_RECEIPT_BEFORE
 
   if (
     umask 027
-    PYTHONDONTWRITEBYTECODE=1 python3 -B -E -s "$script" \
+    PYTHONDONTWRITEBYTECODE=1 python3 -B -E -s \
+      -X pycache_prefix="$temporary/pycache" "$script" \
       --canonical-repo "$canonical_repo" \
       --policy "$policy" \
       --receipt-dir "$receipt_dir"
