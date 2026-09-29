@@ -237,3 +237,39 @@ describe("session→bar membership replaces nearest-bar snapping", () => {
     expect(landedOnItsOwnKey).toBeLessThan(canonical.length / 2);
   });
 });
+
+describe("a comparison leg is phased by ITS OWN anchor before the date join", () => {
+  // ChartPanel overlays a compare symbol by bucketing that leg and joining it to the host chart
+  // BY BAR KEY (`cmap[hostBar.time]`). A date join is only meaningful when both grids sit on the
+  // real global session calendar, so each leg must carry its own published anchor — the host's
+  // would be the wrong phase, and phasing each leg at its own first row (what row-index
+  // bucketing did) puts two legs with different history starts on grids that mostly do not meet.
+  const host = toBars(golden.full.bars);                     // full history, global row 0
+  const leg = golden.truncated.find((t) => t.dropLeading % 3 === 1)!;   // a DIFFERENT phase
+
+  for (const tf of ["2D", "3D"] as const) {
+    it(`${tf}: with its own anchor, every leg bar joins a host bar of the same key`, () => {
+      const hostBars = resampleTf(host, tf, null);
+      const legBars = resampleTf(toBars(leg.bars), tf, parseSessionAnchor(leg.sessionAnchor));
+      const hostKeys = new Set(hostBars.map((b) => b.time));
+      // The leading leg bar lost sessions to the truncation, so it may open later than the
+      // host bar it completes in; every bar after it is a genuine host bar.
+      const tail = legBars.slice(1);
+      expect(tail.length).toBeGreaterThan(5);
+      for (const b of tail) {
+        expect(hostKeys.has(b.time), `${tf} leg bar ${b.time} does not join the host grid`).toBe(true);
+      }
+    });
+
+    it(`${tf}: phased at its own first row instead, the join degrades to a staircase of misses`, () => {
+      const hostBars = resampleTf(host, tf, null);
+      const hostKeys = new Set(hostBars.map((b) => b.time));
+      const misphased = resampleTf(toBars(leg.bars), tf, null);   // no anchor = feed-phased
+      const tail = misphased.slice(1);
+      const hits = tail.filter((b) => hostKeys.has(b.time)).length;
+      // Not merely "fewer": a wrong phase cannot line up at all except where the two grids
+      // coincide, so the overlay would silently read a neighbouring bar's close.
+      expect(hits).toBeLessThan(tail.length);
+    });
+  }
+});

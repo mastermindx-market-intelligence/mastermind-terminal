@@ -41,10 +41,14 @@ HOLIDAYS = {dt.date(2019, 11, 28), dt.date(2019, 12, 25), dt.date(2020, 1, 1),
 N_SESSIONS = 120
 START = dt.date(2019, 11, 1)
 
-# Truncation points, in GLOBAL session index. 41 % 3 == 2 and 53 % 3 == 2 — a feed that starts
-# mid-bar, which is the only case where the anchor changes the answer. 42 % 3 == 0 starts on a
-# CLOSE session, the third residue.
-TRUNCATIONS = [41, 42, 53]
+# Truncation points, in GLOBAL session index. 41/42/43 are CONSECUTIVE, so they cover all three
+# 3D residues (2, 0, 1) with the phase as the only difference between them — a feed-start
+# bucketer gets an identical-looking array wrong three different ways. 41 % 3 == 2 starts
+# mid-bar (the case where the anchor changes the answer at all), 42 % 3 == 0 starts on a CLOSE
+# session, 43 % 3 == 1 starts on an OPEN session. 53 keeps a further-out truncation so the
+# suffix-equality claim is not only tested against a short drop. For 2D these are residues
+# 1, 0, 1, 1 — both residues covered.
+TRUNCATIONS = [41, 42, 43, 53]
 
 
 def sessions() -> list[dt.date]:
