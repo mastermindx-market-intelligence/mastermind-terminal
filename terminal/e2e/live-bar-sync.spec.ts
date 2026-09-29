@@ -136,11 +136,21 @@ const readWitness = (page: Page) =>
 const readAxis = (page: Page) =>
   page.evaluate(() => (window as unknown as { __mmChartAxisOpts?: () => Record<string, unknown> }).__mmChartAxisOpts?.() ?? null);
 
+/**
+ * A study is BUILT when its first series holds a data point — not merely when the key exists.
+ * `w.series[k]` is `indSeriesRef.get(k).map(tail)`, so its LENGTH counts the series that key owns,
+ * which is set the moment the builder calls `addSeries()` and before any `setData`. Each element is
+ * `tail(series)`, which is `null` until data lands. So `length > 0` can be true while `[0]` is still
+ * `null`, and an assertion reading `[0]?.time` / `[0]?.value` then gets `undefined` — which is
+ * precisely how the CI mobile shard failed on 2026-09-29. Gate on the element, never the count.
+ */
+const built = (w: Witness | null, k: string) => (w?.series[k]?.[0] ?? null) !== null;
+
 /** Wait for the chart to hold its fixture history with every seeded study built. */
 async function settledBaseline(page: Page, wantSeries: string[]): Promise<Witness> {
   await expect.poll(async () => {
     const w = await readWitness(page);
-    return w && w.barCount > 50 && wantSeries.every((k) => (w.series[k]?.length ?? 0) > 0) ? "ready" : "waiting";
+    return w && w.barCount > 50 && wantSeries.every((k) => built(w, k)) ? "ready" : "waiting";
   }, { message: "the fixture history and its studies should reach the canvas", timeout: 60_000 }).toBe("ready");
   const w = await readWitness(page);
   expect(w).not.toBeNull();

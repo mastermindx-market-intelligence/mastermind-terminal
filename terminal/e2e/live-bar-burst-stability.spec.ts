@@ -129,6 +129,16 @@ async function serve(page: Page, phase: () => QuotePhase, inds: string[], served
   }, [inds, tf] as [string[], string]);
 }
 
+/**
+ * A study is BUILT when its first series holds a data point — not merely when the key exists.
+ * `w.series[k]` is `indSeriesRef.get(k).map(tail)`, so its LENGTH counts the series that key owns,
+ * which is set the moment the builder calls `addSeries()` and before any `setData`. Each element is
+ * `tail(series)`, which is `null` until data lands. So `length > 0` can be true while `[0]` is still
+ * `null`, and an assertion reading `[0]?.time` / `[0]?.value` then gets `undefined` — which is
+ * precisely how the CI mobile shard failed on 2026-09-29. Gate on the element, never the count.
+ */
+const built = (w: Witness | null, k: string) => (w?.series[k]?.[0] ?? null) !== null;
+
 const census = (page: Page) =>
   page.evaluate(() => (window as unknown as { __mmChartOwnership?: () => Census }).__mmChartOwnership?.() ?? null) as Promise<Census | null>;
 const witness = (page: Page) =>
@@ -159,7 +169,7 @@ test("a burst of accepted quotes advances the generation without accumulating an
 
   await expect.poll(async () => {
     const w = await witness(page);
-    return w && w.barCount > 50 && ["ema", "rsi", "rvwap"].every((k) => (w.series[k]?.length ?? 0) > 0) ? "ready" : "waiting";
+    return w && w.barCount > 50 && ["ema", "rsi", "rvwap"].every((k) => built(w, k)) ? "ready" : "waiting";
   }, { message: "the fixture history and its studies should reach the canvas", timeout: 60_000 }).toBe("ready");
 
   const before = await census(page);
@@ -302,7 +312,7 @@ test("a burst on a partial 3D bucket rewrites it in place without re-keying or a
   await expect.poll(async () => {
     const w = await witness(page);
     if (!w || w.barCount <= 10) return "waiting";
-    return ASSERTED_STUDIES.every((k) => (w.series[k]?.length ?? 0) > 0) ? "ready" : "waiting";
+    return ASSERTED_STUDIES.every((k) => built(w, k)) ? "ready" : "waiting";
   }, { message: "the 3D grid and every asserted study should reach the canvas", timeout: 60_000 }).toBe("ready");
 
   // open the partial bucket: a session the fixture does not contain, so the grid must start a new
