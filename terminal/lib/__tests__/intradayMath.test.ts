@@ -578,6 +578,27 @@ describe("ttmSqueeze", () => {
 // ─── adx ──────────────────────────────────────────────────────────────────────
 
 describe("adx", () => {
+  it("waits for len finite Wilder samples before seeding DI and ADX", () => {
+    const day0 = Math.floor(Date.UTC(2024, 0, 2) / 1000);
+    const bars: Bar[] = Array.from({ length: 8 }, (_, i) => {
+      const p = 100 + i;
+      return { time: day0 + 570 * 60 + i * 300, o: p, h: p + 2, l: p - 1, c: p + 1, v: 1000 };
+    });
+    const result = adx(bars, 3);
+
+    // DM starts at bar 1 because bar 0 has no predecessor. Wilder's 3-period seed therefore
+    // needs bars 1,2,3 — emitting DI on bar 2 would silently average only two finite samples.
+    expect(result.diPlus.slice(0, 3)).toEqual([null, null, null]);
+    expect(result.diMinus.slice(0, 3)).toEqual([null, null, null]);
+    expect(result.diPlus[3]).not.toBeNull();
+    expect(result.diMinus[3]).not.toBeNull();
+
+    // DX first becomes finite with DI on bar 3. ADX needs three finite DX observations
+    // (bars 3,4,5), so its first valid value is bar 5.
+    expect(result.adx.slice(0, 5)).toEqual([null, null, null, null, null]);
+    expect(result.adx[5]).not.toBeNull();
+  });
+
   it("ADX is always in [0, 100]", () => {
     const bars = buildEtSessions(3);
     const { adx: adxArr } = adx(bars, 10);
