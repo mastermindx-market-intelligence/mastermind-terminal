@@ -1763,6 +1763,65 @@ test("an endpoint handle dragged across a pane separator keeps the owner scale",
   expectClampedToPriceFloor(edited[1].p, band, "the grip dragged into the indicator pane");
 });
 
+test("dragging a whole range drawing across a pane separator keeps the owner scale", async ({ page }) => {
+  test.skip((page.viewportSize()?.width ?? 1440) <= 860, DESKTOP_ONLY);
+  const saves: DrawingSavePayload[] = [];
+  await openTerminal(page, { onPut: (payload) => saves.push(payload) });
+
+  const panes = await rangePaneBoxes(page);
+  test.skip(!panes, "This chart mounted no indicator sub-pane.");
+  const { price, indicator } = panes!;
+  const layer = page.locator(".pane.on .drawing-layer");
+
+  await selectMagnet(page, "off");
+  const band = await calibratePriceBand(page, saves, price);
+
+  await pickTool(page, "forecasting", "dateandpricerange");
+  await page.mouse.move(price.left + price.width * .30, price.top + price.height * .34);
+  await page.mouse.down();
+  await page.mouse.move(price.left + price.width * .52, price.top + price.height * .52);
+  await page.mouse.up();
+
+  const range = layer.locator('g[data-drawing-kind="dateandpricerange"]:not([data-id="_p"])');
+  await expect(range).toHaveCount(1);
+  await expect.poll(() => savedPoints(saves, "dateandpricerange").length).toBe(2);
+  const before = savedPoints(saves, "dateandpricerange").map((point) => point.p);
+
+  // Grab the body, clear of the corner grips, and translate it past the separator.
+  // A whole-drawing move applies ONE shared delta, so an unlocked continuation
+  // subtracts a price from an oscillator reading and drives both anchors off-scale.
+  const body = range.locator('rect[data-geometry="1"]').first();
+  const bodyBox = await body.boundingBox();
+  expect(bodyBox).not.toBeNull();
+  await page.mouse.move(bodyBox!.x + bodyBox!.width / 2, bodyBox!.y + bodyBox!.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(indicator.left + indicator.width * .55, indicator.top + indicator.height * .58);
+  await page.mouse.up();
+
+  await expect.poll(() => {
+    const now = savedPoints(saves, "dateandpricerange").map((point) => point.p);
+    return now.length === 2 && now[0] !== before[0];
+  }).toBe(true);
+  const after = savedPoints(saves, "dateandpricerange").map((point) => point.p);
+
+  // A move applies ONE shared delta to the original anchors, so the two assertions
+  // below pin both anchors exactly — a stronger claim than band membership.
+  //
+  // Band membership would in fact be WRONG here: the grab point was the body centre,
+  // so when it clamps to the pane floor the rigid lower edge is carried BELOW the
+  // visible window. That is a price-scale value the user can scroll back to, not the
+  // cross-scale corruption this packet is about.
+  //
+  // 1. The grabbed point — the body centre, i.e. the anchors' midpoint on a linear
+  //    scale — must land on the price pane floor, because that is where the lock
+  //    clamps a continuation that left the pane.
+  expectClampedToPriceFloor((after[0] + after[1]) / 2, band, "the moved drawing's grabbed midpoint");
+  // 2. The span is untouched, so the translation was rigid rather than collapsing.
+  expect(after[0] - after[1]).toBeCloseTo(before[0] - before[1], 2);
+  // It really did travel downward rather than being rejected outright.
+  expect(after[0]).toBeLessThan(before[0]);
+});
+
 test("Shift+Measure crossing a pane separator keeps the owner scale", async ({ page }) => {
   test.skip((page.viewportSize()?.width ?? 1440) <= 860, DESKTOP_ONLY);
   const saves: DrawingSavePayload[] = [];
