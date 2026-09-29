@@ -128,9 +128,16 @@ export function reuseSeries<S extends object>(s: S): S {
  * creating one. Every other chart call forwards to the real chart, bound to it.
  *
  * A builder's series COUNT is a function of its params, the timeframe and the intraday branch —
- * never of the bars — so a live tick can only ever ask for exactly what the key already owns. If
- * that stops holding, `addSeries` throws so the caller can abort rather than strand a half-updated
- * study or leak an untracked series onto the chart.
+ * never of the bars — so a live tick can only ever ask for exactly what the key already owns.
+ *
+ * If that stops holding, `addSeries` throws. The throw's job is to stop the builder BEFORE it can
+ * leak an untracked series onto the chart — it is not an abort of the tick, and the caller cannot
+ * make it one: the sibling studies in the same generation still have to be carried, and dropping
+ * them would re-create the split this boundary exists to close. So the throw does leave that ONE
+ * key holding a stale bar. `runStudyInPlace` (ChartPanel) therefore records the failing key rather
+ * than swallowing it, warns once in dev, and reports it through `__mmLiveBarGeneration().studyFailures`,
+ * which the burst spec asserts is empty. A non-empty map is the signal to fix the key's ownership —
+ * not something the live path can paper over.
  */
 export function seriesReuseChart<C extends object, S extends object>(chart: C, owned: S[], label: string): C {
   let taken = 0;

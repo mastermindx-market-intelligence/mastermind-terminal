@@ -757,6 +757,11 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   // everything derived from it, backwards; `acceptsLiveTick` refuses a strictly older one FROM THE
   // SAME LANE (a basis change is a different clock, so it restarts the ordering). Cleared with the bars.
   const liveTickRef = useRef<AcceptedLiveTick | null>(null);
+  // Live-study rebuild failures, per key. `runStudyInPlace` cannot abort the pass — the other
+  // studies still have to be carried — so a failure is recorded here instead of vanishing into a
+  // bare `catch`. A key that throws does so on EVERY subsequent tick, which is exactly the
+  // signature this counter makes visible (to the dev warning below, and to the live-bar witness).
+  const liveStudyFailRef = useRef<Map<string, number>>(new Map());
   // Monotonic live-bar generation. Bumped by the ONE derivation boundary below, so async work
   // launched under a tick can tell whether a newer tick has since superseded it.
   const liveGenRef = useRef(0);
@@ -2887,8 +2892,20 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       else if (key === "cvd") buildCvd(facade, rows, pane);
       else if (isSuiteKeyReg(key)) buildSuitePane(facade, rows, key, pane);
       else return false;
+      liveStudyFailRef.current.delete(key);
       return true;
-    } catch { return false; }
+    } catch (err) {
+      // Deliberately does NOT abort the pass: the sibling studies in this generation still have to
+      // be carried, and dropping them would re-create the very split this boundary exists to close.
+      // But it must not be silent either — a throw here means the study is now holding a bar older
+      // than the candle, on every tick, until something rebuilds it.
+      const n = (liveStudyFailRef.current.get(key) ?? 0) + 1;
+      liveStudyFailRef.current.set(key, n);
+      if (process.env.NODE_ENV !== "production" && n === 1) {
+        console.warn(`[live-bar] in-place rebuild failed for "${key}"; it will hold a stale bar until rebuilt`, err);
+      }
+      return false;
+    }
   };
   /** Carry every "inplace-rebuild" study that is currently drawn onto `rows`. */
   const refreshLiveStudies = (rows: Bar[], closes: number[]) => {
@@ -3668,6 +3685,9 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           indRow: last ? (indDataMapRef.current.get(String(last.time)) ?? null) : null,
           // cross-pane sync's own lookup, asked exactly the way a peer asks it
           syncValueAt: last ? g(() => peerValueAt(syncIdRef.current ?? -1, last.time as any)) : null,
+          // keys whose in-place rebuild threw — must be empty; a non-empty map means some study
+          // is holding a bar older than the candle on every tick (see runStudyInPlace).
+          studyFailures: Object.fromEntries(liveStudyFailRef.current),
           projection: LIVE_BAR_PROJECTION,
         };
       };

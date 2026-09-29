@@ -46,6 +46,8 @@ type Census = {
 };
 type Witness = {
   generation: number;
+  tick: { basis: string; stamp: number | null } | null;
+  studyFailures: Record<string, number>;
   barCount: number;
   lastBar: { time: string | number; c: number } | null;
   priceTail: { time: unknown; value: number | null } | null;
@@ -86,21 +88,27 @@ function quoteBody(phase: QuotePhase, syms: string[]) {
   return { quotes: Object.fromEntries(syms.map((sym) => [sym, sym === SYMBOL ? entry : null])) };
 }
 
-async function serve(page: Page, phase: () => QuotePhase, inds: string[]) {
+/** Counts the quote packets the route ACTUALLY served, so "nothing moved" can be told apart
+ *  from "nothing arrived" — the difference between a refusal and a dead lane. */
+type Served = { count: number; lastSeconds: number | null };
+
+async function serve(page: Page, phase: () => QuotePhase, inds: string[], served?: Served, tf = "D") {
   await page.route(`**/data/${SYMBOL}.json`, (route) =>
     route.fulfill({ json: { t: SYMBOL, o: SYMBOL, src: "live-bar-burst-e2e", bars: BARS } }));
   await page.route(`**/data/${SYMBOL}.slice.json`, (route) => route.fulfill({ status: 404, body: "" }));
   await page.route("**/api/quote?**", async (route) => {
     const syms = (new URL(route.request().url()).searchParams.get("syms") || SYMBOL).split(",").filter(Boolean);
-    await route.fulfill({ json: quoteBody(phase(), syms) });
+    const p = phase();
+    if (served) { served.count += 1; served.lastSeconds = p.seconds; }
+    await route.fulfill({ json: quoteBody(p, syms) });
   });
-  await page.addInitScript((indicators) => {
-    localStorage.setItem("mm.startTf", JSON.stringify("D"));
+  await page.addInitScript(([indicators, startTf]) => {
+    localStorage.setItem("mm.startTf", JSON.stringify(startTf));
     localStorage.setItem("mm.inds", JSON.stringify(indicators));
     localStorage.setItem("mm.indHidden", JSON.stringify([]));
     localStorage.setItem("mm.mastermindCandles.v1", "1");
     localStorage.removeItem("mm.ws");
-  }, inds);
+  }, [inds, tf] as [string[], string]);
 }
 
 const census = (page: Page) =>
@@ -111,17 +119,23 @@ const witness = (page: Page) =>
 test("a burst of accepted quotes advances the generation without accumulating any chart resource", async ({ page }) => {
   test.slow();
   let phase: QuotePhase = { basis: "EOD", last: LAST_CLOSE, sessionDate: LAST_SESSION, seconds: rthSeconds(LAST_SESSION) };
-  // One study per projection class, so each carrier path runs on every tick: ema = in-place
-  // classic, rsi = classic sub-pane (its own pane is the remove/re-add casualty), rvwap =
-  // a day-trade study rebuilt through the series-reuse facade, vprofile = render-pass only.
+  // Coverage is chosen against `LIVE_BAR_PROJECTION`, not by feel:
+  //   inplace-series  ema (price-pane overlay) + rsi (its own sub-pane — the pane that
+  //                   lightweight-charts auto-deletes if a tick ever empties it)
+  //   inplace-rebuild rvwap, vprofile, rsistack, accum — builders re-run through `seriesReuseChart`
+  //   render-pass     gaps — owns no series, must still re-derive from the new bar generation
+  //   not-bar-derived optlevels is deliberately ABSENT: the fixture serves no options artifact, so
+  //                   including it would add a key that builds nothing and assert nothing. Its
+  //                   class means a bar mutation cannot touch it, which is a unit-test property
+  //                   (lib/__tests__/liveBarProjection.test.ts), not a burst property.
   //
   // rsistack and accum are not decoration: they are the only studies here that are BOTH
   // `inplace-rebuild` (so their builder re-runs through `seriesReuseChart` on every tick) and
   // creators of static `createPriceLine` guides (buildRsiStack's OB/OS pair, buildAccum's "ref"
-  // band). They are what makes the priceLines assertion below discriminating — a mutation that
-  // stops `reuseSeries` swallowing `createPriceLine` survives an ema/rsi/rvwap/vprofile set
-  // because none of those re-issue a guide through the facade.
-  const INDS = ["ema", "rsi", "rvwap", "vprofile", "rsistack", "accum"];
+  // band). They are what makes the priceLines assertion below discriminating — this was MEASURED:
+  // with an ema/rsi/rvwap/vprofile set, a mutant that stops `reuseSeries` swallowing
+  // `createPriceLine` SURVIVED; adding these two killed it (live.priceLines 7 → 77 over 14 ticks).
+  const INDS = ["ema", "rsi", "rvwap", "vprofile", "rsistack", "accum", "gaps"];
   await serve(page, () => phase, INDS);
   await page.goto(`/terminal?symbol=${SYMBOL}`);
 
@@ -182,12 +196,20 @@ test("a burst of accepted quotes advances the generation without accumulating an
   // 4. ownership still reconciles on both sides
   expect(after!.orphanSeries).toBe(0);
   expect(after!.orphanPricePaneLines).toBe(0);
+
+  // 5. every in-place rebuild actually RAN. `seriesReuseChart` throws if a builder asks for more
+  //    series than its key owns, and that throw cannot abort the tick (the siblings still have to
+  //    be carried) — so the failing key would silently hold a bar older than the candle, on every
+  //    tick, forever. `runStudyInPlace` records it instead of swallowing it; this is the assertion
+  //    that makes "all seven studies are on the current generation" a checked claim and not a hope.
+  expect(settled.studyFailures).toEqual({});
 });
 
 test("a superseded packet arriving after a burst never rolls the candle backward", async ({ page }) => {
   test.slow();
   let phase: QuotePhase = { basis: "EOD", last: LAST_CLOSE, sessionDate: LAST_SESSION, seconds: rthSeconds(LAST_SESSION) };
-  await serve(page, () => phase, ["ema", "rsi"]);
+  const served: Served = { count: 0, lastSeconds: null };
+  await serve(page, () => phase, ["ema", "rsi"], served);
   await page.goto(`/terminal?symbol=${SYMBOL}`);
   await expect.poll(async () => ((await witness(page))?.barCount ?? 0) > 50 ? "ready" : "waiting",
     { timeout: 60_000 }).toBe("ready");
@@ -199,15 +221,115 @@ test("a superseded packet arriving after a burst never rolls the candle backward
 
   // An OLDER stamp on the same lane: refused, so neither the candle nor the generation moves.
   // (A generation that advanced here would mean the boundary ran on a rejected packet.)
-  phase = { basis: "REALTIME", last: Number((LAST_CLOSE * 0.7).toFixed(2)), sessionDate: LAST_SESSION, seconds: rthSeconds(LAST_SESSION, 15, 5) };
-  await page.waitForTimeout(6_000);
+  const staleSeconds = rthSeconds(LAST_SESSION, 15, 5);
+  const servedBefore = served.count;
+  phase = { basis: "REALTIME", last: Number((LAST_CLOSE * 0.7).toFixed(2)), sessionDate: LAST_SESSION, seconds: staleSeconds };
+
+  // "Nothing moved" is only evidence of a REFUSAL if something actually arrived to be refused.
+  // A chart that had quietly stopped polling — or a route that stopped matching — would satisfy
+  // every assertion below while proving nothing. So wait for DELIVERY first, positively.
+  await expect.poll(() => (served.count > servedBefore && served.lastSeconds === staleSeconds ? "delivered" : "waiting"), {
+    message: "the superseded packet must actually reach the page before we can call it refused",
+    timeout: 30_000,
+  }).toBe("delivered");
+  const servedStale = served.count;
+  // and let a few more land, so this is a sustained refusal rather than one lucky poll
+  await expect.poll(() => served.count - servedStale, { timeout: 30_000 }).toBeGreaterThanOrEqual(2);
+
   const stale = (await witness(page))!;
   expect(stale.lastBar?.c).toBe(high);
   expect(stale.priceTail?.value).toBe(high);
   expect(stale.generation).toBe(settled.generation);
+  // the lane's own cursor still reports the ACCEPTED (high) stamp — the refusal is recorded at the
+  // guard, not merely absent downstream
+  expect(stale.tick?.stamp).toBe(rthSeconds(LAST_SESSION, 15, 40) * 1000);
 
   // The studies must sit on the SAME generation as the candle — a refused packet must not
   // leave the candle held and a study advanced.
   expect(stale.series.ema?.[0]?.value).toBe(settled.series.ema?.[0]?.value);
   expect(stale.series.rsi?.[0]?.value).toBe(settled.series.rsi?.[0]?.value);
+});
+
+/**
+ * The 3D lane's developing bar is a PARTIAL bucket — fewer sessions than the grid's width — and it
+ * stays partial for as long as the remaining sessions take to arrive. Every live quote in that
+ * window rewrites the SAME bucket, so the burst property here is stronger than on the daily lane:
+ * not just "no bar was appended" but "the bucket the quotes are landing in never changed identity".
+ *
+ * That is the case the pre-repair code got wrong by rewriting the tail bucket per tick, and the one
+ * a resample-grid change can silently reintroduce. The bucket's KEY is deliberately not asserted to
+ * be any particular date — TERMINAL-01's canonical-3D-identity work re-keys a bucket from its
+ * closing session to its opening one, and this assertion must hold under either grouping. What is
+ * asserted is that the key does not MOVE while the quotes land, which is the invariant both
+ * groupings owe the live path.
+ */
+test("a burst on a partial 3D bucket rewrites it in place without re-keying or appending", async ({ page }) => {
+  test.slow();
+  let phase: QuotePhase = { basis: "EOD", last: LAST_CLOSE, sessionDate: LAST_SESSION, seconds: rthSeconds(LAST_SESSION) };
+  const INDS = ["ema", "rsi", "rvwap", "rsistack", "accum"];
+  await serve(page, () => phase, INDS, undefined, "3D");
+  await page.goto(`/terminal?symbol=${SYMBOL}`);
+
+  await expect.poll(async () => {
+    const w = await witness(page);
+    return w && w.barCount > 10 && (w.series.ema?.length ?? 0) > 0 ? "ready" : "waiting";
+  }, { message: "the 3D grid and its studies should reach the canvas", timeout: 60_000 }).toBe("ready");
+
+  // open the partial bucket: a session the fixture does not contain, so the grid must start a new
+  // one and then hold it while the rest of the bucket's sessions are still in the future.
+  const NEXT_SESSION = "2026-08-07";
+  const opened = Number((LAST_CLOSE * 1.05).toFixed(2));
+  const barsBefore = (await witness(page))!.barCount;
+  // 261 daily sessions divide EXACTLY into 87 three-session buckets, so the fixture's own tail is
+  // complete and session 262 opens bucket 88 holding 1 of 3. Asserting the division makes "the bar
+  // under the burst is partial" a checked property of the fixture rather than an assumption — if a
+  // grid change or a fixture edit ever made the tail bucket complete, this test would be burst-
+  // testing an ordinary full bar and quietly stop covering the case it exists for.
+  expect(barsBefore).toBe(BAR_COUNT / 3);
+  phase = { basis: "REALTIME", last: opened, sessionDate: NEXT_SESSION, seconds: rthSeconds(NEXT_SESSION, 15, 0) };
+  await expect.poll(async () => (await witness(page))?.barCount ?? 0, {
+    message: "a fresh session should open a new 3D bucket",
+    timeout: 45_000,
+  }).toBe(barsBefore + 1);
+
+  const partial = (await witness(page))!;
+  const bucketKey = partial.lastBar?.time ?? null;
+  expect(bucketKey).not.toBeNull();
+  const censusBefore = await census(page);
+  const genBefore = partial.generation;
+
+  // ── the burst lands entirely INSIDE that partial bucket ──
+  for (let i = 1; i <= TICKS; i++) {
+    phase = {
+      basis: "REALTIME",
+      last: Number((opened * (1 + i * 0.01)).toFixed(2)),
+      sessionDate: NEXT_SESSION,
+      seconds: rthSeconds(NEXT_SESSION, 15, i),
+    };
+    await expect.poll(async () => (await witness(page))?.lastBar?.c ?? null, {
+      message: `tick ${i} should land on the partial 3D bucket`,
+      timeout: 30_000,
+    }).toBe(phase.last);
+  }
+
+  const after = (await witness(page))!;
+  const censusAfter = await census(page);
+
+  // identity held: same bucket, rewritten — not a new one per quote
+  expect(after.lastBar?.time).toBe(bucketKey);
+  expect(after.priceTail?.time).toBe(bucketKey);
+  expect(after.barCount).toBe(barsBefore + 1);
+  expect(after.generation).toBeGreaterThanOrEqual(genBefore + TICKS);
+
+  // the studies are ON that bucket, not one behind it, and agree with the readout
+  expect(after.series.ema?.[0]?.time).toBe(bucketKey);
+  expect(after.series.rsi?.[0]?.time).toBe(bucketKey);
+  expect(after.studyFailures).toEqual({});
+
+  // and the resampled lane accumulates no more than the daily one does
+  expect(censusAfter!.live.series).toBe(censusBefore!.live.series);
+  expect(censusAfter!.live.panes).toBe(censusBefore!.live.panes);
+  expect(censusAfter!.live.priceLines).toBe(censusBefore!.live.priceLines);
+  expect(censusAfter!.orphanSeries).toBe(0);
+  expect(censusAfter!.syncRegistered).toBe(1);
 });
