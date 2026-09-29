@@ -17,6 +17,10 @@
 import type { Lang } from "@/lib/i18n";
 
 const GEX_LEX = {
+  sourceSessionLabel: ["source session", "源交易日"],
+  sumReportedGex: ["Reported GEX", "源报告 GEX"],
+  lensReportedBasis: ["Source-reported modeled values · session {date}. Source completeness is unknown.", "源报告的模型值 · 交易日 {date}。源数据完整性未知。"],
+  lensKnownPartial: ["Known subtotal {value} · {count} unresolved grid cells. Complete selected total unavailable.", "已知小计 {value} · {count} 个网格单元未确定。所选完整合计不可用。"],
   // ── Tab / surface header ───────────────────────────────────────────────────
   gexTitle:        ["Exposure Desk", "敞口台"],
   gexSubtitle:     ["Dealer greek exposure & levels", "做市商希腊值敞口与水平"],

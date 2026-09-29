@@ -1,4 +1,6 @@
 "use client";
+import { readCompanionMatrix } from "@/lib/optionsCompanion";
+import { isoSession } from "@/lib/dte";
 /**
  * GexDeskView — GEX desk surface (Wave 2, MomoEdge parity).
  *
@@ -12,7 +14,7 @@
  * State owned here:
  *   - ticker (default "SPY")
  *   - gexPayload (from /api/flow?f=gex:<ROOT>)
- *   - statePayload (from /api/flow?f=gexstate:<ROOT> — FUTURE endpoint, handled gracefully)
+ *   - statePayload (from /api/flow?f=gexstate:<ROOT> — selected-root guarded read)
  *   - selectedExpiry (expiry filter chip)
  *   - polling interval (~60s)
  *
@@ -52,14 +54,16 @@ import type { GexStatePayload } from "./MarketStateCard";
 import { GexGuide } from "./GexGuide";
 import { ExposureMatrix } from "./ExposureMatrix";
 import { HeatSeekerCard } from "./HeatSeekerCard";
-import { isMatrixDocForRoot, mergeMatrixLevels, type MatrixDoc } from "./matrixDoc";
+import { isMatrixDocForRoot, readGexStateForRoot, mergeMatrixLevels, type MatrixDoc } from "./matrixDoc";
 import { EodContextBelt } from "@/components/eodcontext/EodContextBelt";
 import { isGexDates, gexSessionOf } from "@/lib/gexSessions";
 import {
   LENS_ALL,
   matrixExpiryCoverage,
   matrixLensByStrike,
-  matrixSessionsAgree,
+  matrixDescribedSessionsMatch,
+  matrixSourceSession,
+  fmtMn,
   type ExpiryLens,
 } from "@/lib/gexLadder";
 
@@ -202,6 +206,9 @@ export function GexDeskView() {
     return q.get("tab") === "prism" || q.get("view") === "matrix" ? "matrix" : "strike";
   });
   const [statePayload, setStatePayload] = useState<GexStatePayload | null>(null);
+  // Selection changes render before passive effects clear state: do not let that
+  // interim render put another root's state, OI or levels under this ticker.
+  const visibleStatePayload = statePayload?.root === ticker ? statePayload : null;
   // Expiry lens — All / 0DTE / All−0DTE / one expiration. Owned here because BOTH the
   // ladder and the summary bar have to be scoped by it (it used to be ladder-local state
   // with no consumer at all: a dead control).
@@ -214,6 +221,7 @@ export function GexDeskView() {
   // validation stops substitution, but without request ordering an internally valid SPY
   // response can still arrive after a newer QQQ request and clobber QQQ's state.
   const matrixReqRef = useRef(0);
+  const stateReqRef = useRef(0);
   // ── Dated session replay (R0.10) ──────────────────────────────────────────
   // sessionDates = the gex_history dates.json index (null = absent/invalid → no dropdown;
   // the scrubber's explicit per-date probe still works — the index is an enumeration aid,
@@ -249,11 +257,11 @@ export function GexDeskView() {
   // ── Fetch functions ───────────────────────────────────────────────────────────
 
   const fetchGexState = useCallback(async (root: string) => {
-    // FUTURE endpoint — handle gracefully when absent (404 / null)
-    const data = await safeFetch<GexStatePayload>(
-      `/api/flow?f=gexstate:${root}`
-    );
-    setStatePayload(data);
+    const request = ++stateReqRef.current;
+    const data = await safeFetch<unknown>(`/api/flow?f=gexstate:${root}`);
+    // A later ticker/poll owns the result. An old completion, even an error,
+    // cannot overwrite newer state; absent or wrong-root current data is null.
+    if (request === stateReqRef.current) setStatePayload(readGexStateForRoot(data, root));
   }, []);
 
   // ── GEX-state feed (market-state card) ─────────────────────────────────────────
@@ -272,7 +280,13 @@ export function GexDeskView() {
     // A cells-less, wrong-schema, or wrong-root payload — the fixture's honest {} for
     // an unknown root, a malformed upstream doc, or a substituted cache object — resolves
     // to null. A matrix must never wear a different selected ticker's header.
-    return isMatrixDocForRoot(doc, root) ? doc : null;
+    if (!isMatrixDocForRoot(doc, root)) return null;
+    const admitted = readCompanionMatrix(doc, root);
+    if (!admitted.ok) return null;
+    // Companion admission sanitizes its consumed fields. Preserve the existing desk's
+    // other per-cell analytics; this reader also feeds the full ExposureMatrix.
+    return { ...doc, spot: admitted.value.doc.spot,
+      cells: doc.cells!.map((cell, index) => ({ ...cell, ...admitted.value.doc.cells![index] })) };
   }, []);
 
   const fetchMatrix = useCallback(async (root: string) => {
@@ -342,6 +356,7 @@ export function GexDeskView() {
     document.addEventListener("visibilitychange", onVis);
 
     return () => {
+      stateReqRef.current++;
       if (pollRef.current) clearInterval(pollRef.current);
       document.removeEventListener("visibilitychange", onVis);
     };
@@ -434,7 +449,7 @@ export function GexDeskView() {
   // lib/gexLadder.ts). Treat the matrix as covering nothing so every narrow-lens control
   // goes dark (existing honest-unavailable state) instead of letting the user select a
   // lens that would sum — or mislabel 0DTE — across two different sessions.
-  const matrixSessionOk = matrixSessionsAgree(visibleMatrix?.asof, asof);
+  const matrixSessionOk = matrixDescribedSessionsMatch(matrixSourceSession(visibleMatrix), asof);
 
   // Which expiries the matrix can actually answer for THIS ladder (see lib/gexLadder.ts —
   // it demands a real strike overlap, so two stores on different sessions read as "no
@@ -465,12 +480,12 @@ export function GexDeskView() {
       ? levels
       : { callWall: null, putWall: null, gammaFlip: null, hvl: null };
 
-  // ONE levels provenance for the matrix view (§5.3): gex_state wins the flip, because
-  // the matrix builder's own levels block still carries the retired cumulative-by-strike
-  // estimator. See matrixDoc.mergeMatrixLevels for the measurement and the RCA link.
+  // Preserve state-first flip precedence using only the selected root. Current
+  // Macro's matrix fallback also uses the raw-chain profile method; missing or
+  // invalid price levels remain unavailable (see matrixDoc.mergeMatrixLevels).
   const matrixLevels = useMemo(
-    () => mergeMatrixLevels(visibleMatrix, statePayload),
-    [visibleMatrix, statePayload]
+    () => mergeMatrixLevels(visibleMatrix, visibleStatePayload),
+    [visibleMatrix, visibleStatePayload]
   );
 
   // Format spot for display
@@ -488,7 +503,18 @@ export function GexDeskView() {
   let asofStr = "";
   let asofStale = false;
   let asofAgeStr = "";
-  if (asof) {
+  if (asof && isoSession(asof)) {
+    // A date-only source session is not UTC midnight converted to Eastern time.
+    asofStr = new Date(asof + "T00:00:00Z").toLocaleDateString(lang === "zh" ? "zh-CN" : "en-US", {
+      weekday: "short", month: "short", day: "numeric", timeZone: "UTC",
+    }) + " · " + t("sourceSessionLabel");
+    const today = new Date().toLocaleDateString("en-CA", { timeZone: "America/New_York" });
+    const ageDays = Math.round((Date.parse(today) - Date.parse(asof)) / 86_400_000);
+    if (ageDays > 0) {
+      asofStale = true;
+      asofAgeStr = ageDays <= 1 ? t("lastSession") : t("daysOld").replace("{n}", String(ageDays));
+    }
+  } else if (asof) {
     try {
       const d = new Date(asof);
       asofStr = d.toLocaleString("en-US", {
@@ -613,14 +639,27 @@ export function GexDeskView() {
       <GexSummaryBar
         payload={activePayload}
         /* gexstate OI describes the CURRENT session — never dress an archived bar in it. */
-        callOI={isArchived ? null : (statePayload as unknown as Record<string, number | null | undefined>)?.call_oi ?? null}
-        putOI={isArchived ? null : (statePayload as unknown as Record<string, number | null | undefined>)?.put_oi ?? null}
+        callOI={isArchived ? null : (visibleStatePayload as unknown as Record<string, number | null | undefined>)?.call_oi ?? null}
+        putOI={isArchived ? null : (visibleStatePayload as unknown as Record<string, number | null | undefined>)?.put_oi ?? null}
         lens={lens}
+        lensReportedOnly
         lensNetMn={lensValues.cellCount > 0 ? lensValues.totalMn : null}
         lensCoveredStrikes={lensCoveredStrikeCount}
         lensTotalStrikes={ladderStrikes.length}
         lang={lang}
       />
+      )}
+
+      {lens.kind !== "all" && lensValues.sourceSession && (
+        <div role="status" data-testid="gex-lens-source"
+          style={{ padding: "8px 12px", color: "var(--muted)", fontSize: 12 }}>
+          {t("lensReportedBasis").replace("{date}", lensValues.sourceSession)}
+          {!lensValues.complete && lensValues.knownTotalMn != null && (
+            <span data-testid="gex-lens-partial"> {t("lensKnownPartial")
+              .replace("{value}", fmtMn(lensValues.knownTotalMn))
+              .replace("{count}", String(lensValues.unresolvedPairCount))}</span>
+          )}
+        </div>
       )}
 
       {/* ── GEX history strip — the session scrubber, now also the date picker for the
@@ -647,7 +686,7 @@ export function GexDeskView() {
       {!isArchived && (
         <EodContextBelt
           root={ticker}
-          gexState={statePayload}
+          gexState={visibleStatePayload}
           gex={gexPayload}
           lang={lang}
         />
@@ -757,7 +796,7 @@ export function GexDeskView() {
                 lensValues={lensValues}
                 lensCoverage={lensCoverage}
                 asOf={asof}
-                matrixAsOf={visibleMatrix?.asof ?? null}
+                matrixAsOf={matrixSourceSession(visibleMatrix)}
                 lang={lang}
                 netGexBn={activePayload?.net_gex_bn ?? null}
                 matrixCells={matrixCells}
@@ -834,7 +873,7 @@ export function GexDeskView() {
               />
             </div>
             <MarketStateCard
-              statePayload={statePayload}
+              statePayload={visibleStatePayload}
               gexPayload={gexPayload}
               isIndexProduct={isIndex}
               lang={lang}
