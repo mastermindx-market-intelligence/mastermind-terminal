@@ -49,7 +49,7 @@ localGates:
   typecheck: PASS
   scopedLint: NOT_RERUN; evidence refresh does not claim a new lint receipt
   plainLanguage: Existing localized copy retained; separate copy guard not rerun
-  vitest: 406 files passed; 6625 tests passed; 4 todo
+  vitest: 406 files passed; 6625 tests passed; 4 todo (measured at capturedAtHead)
 files:
   - desktop-context.png
   - desktop-context-zh.png
