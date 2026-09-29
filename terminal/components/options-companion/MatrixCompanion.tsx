@@ -1,10 +1,11 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { StrikeExpiryMatrix, buildMatrixGrid, matrixExactScopeStats, matrixScopeStructure, matrixSelectedNodeContext, matrixCellValue, fmtMatrixCell,
   type MatrixCellSelection, type MatrixDisplayMetric, type MatrixNorm } from "@/components/shared/StrikeExpiryMatrix";
 import { readCompanionMatrix, matrixForExpiry, type CompanionIssue, type OptionsChartLevel } from "@/lib/optionsCompanion";
 import { useOptionsSnapshot } from "./useOptionsSnapshot";
 import { type OptionsT } from "./optionsStrings";
+import { GexMarketMemory } from "./GexMarketMemory";
 import styles from "./OptionsCompanion.module.css";
 
 export interface MatrixPreferences { expiries: "3" | "6" | "12" | "0dte"; window: 3 | 6 | 12 | 25; norm: MatrixNorm }
@@ -46,9 +47,11 @@ export function MatrixCompanion({ root, metric, prefs, onPrefs, t, ...pin }: Pin
   const scopedDoc = useMemo(() => data ? matrixForExpiry(data, prefs.expiries === "0dte" ? "0dte" : "all") : null,
     [data, prefs.expiries]);
   const maxCols = prefs.expiries === "0dte" ? 1 : Number(prefs.expiries);
+  const [reveal, setReveal] = useState<{ id: number; session: string; cell: MatrixCellSelection } | null>(null);
   const grid = useMemo(() => scopedDoc ? buildMatrixGrid({ matrix: scopedDoc, metric, maxCols, windowPct: prefs.window,
-    maxRows: 101, exactStrikes: true, normalization: prefs.norm, scope: "all", withSigma: true }) : null,
-  [scopedDoc, metric, maxCols, prefs.norm, prefs.window]);
+    maxRows: 101, exactStrikes: true, normalization: prefs.norm, scope: "all", withSigma: true,
+    displayCenterStrike: reveal?.session === data?.session ? reveal?.cell.strike : null }) : null,
+  [scopedDoc, metric, maxCols, prefs.norm, prefs.window, reveal, data?.session]);
   const scopeGrid = useMemo(() => scopedDoc ? buildMatrixGrid({ matrix: scopedDoc, metric, maxCols, windowPct: prefs.window,
     maxRows: 10_000, exactStrikes: true, normalization: prefs.norm, scope: "all" }) : null,
   [scopedDoc, metric, maxCols, prefs.norm, prefs.window]);
@@ -58,27 +61,37 @@ export function MatrixCompanion({ root, metric, prefs, onPrefs, t, ...pin }: Pin
   const selectionCurrent = selection && selection.session === data?.session ? selection : null;
   const selectedVisible = grid && selectionCurrent
     && grid.strikes.includes(selectionCurrent.strike) && grid.exps.includes(selectionCurrent.expiry) ? selectionCurrent : null;
-  const selectionOutside = !!selectionCurrent && !selectedVisible;
   const { onPin } = pin;
   useEffect(() => { onPin(null); return () => onPin(null); }, [root, data?.session, onPin]);
   function select(cell: MatrixCellSelection | null) {
     setSelection(cell && data ? { ...cell, session: data.session } : null);
     onPin(null);
   }
+  const scopeToggleRef = useRef<HTMLButtonElement>(null);
   function openScope() { setDraftPrefs(prefs); setScopeOpen(true); }
-  function cancelScope() { setDraftPrefs(prefs); setScopeOpen(false); }
-  function applyScope() { if (!samePrefs(draftPrefs, prefs)) onPrefs(draftPrefs); setScopeOpen(false); }
+  function cancelScope() {
+    setDraftPrefs(prefs); setScopeOpen(false);
+    scopeToggleRef.current?.focus({ preventScroll: true });
+  }
+  function applyScope() {
+    if (!samePrefs(draftPrefs, prefs)) onPrefs(draftPrefs);
+    setScopeOpen(false);
+    scopeToggleRef.current?.focus({ preventScroll: true });
+  }
   const stats = useMemo(() => scopedDoc ? matrixExactScopeStats(scopedDoc, metric, prefs.window, maxCols)
-    : { total: null, missing: false, known: 0, expected: 0 }, [scopedDoc, metric, prefs.window, maxCols]);
+    : { total: null, knownTotal: null, missing: false, known: 0, expected: 0, domainBasis: "derived-grid" as const }, [scopedDoc, metric, prefs.window, maxCols]);
   const units = t(metric === "gex" ? "unitsGex" : "contracts");
   const selectedCell = selectionCurrent ? data?.doc.cells?.find((cell) => cell.strike === selectionCurrent.strike && cell.expiry === selectionCurrent.expiry) : null;
   const selectedValue = selectedCell ? matrixCellValue(selectedCell, metric) : null;
   const selectedInScope = scopeGrid && selectionCurrent && scopeGrid.strikes.includes(selectionCurrent.strike)
     && scopeGrid.exps.includes(selectionCurrent.expiry) ? selectionCurrent : null;
+  const selectionOutside = !!selectionCurrent && !selectedInScope;
+  const selectionOffscreen = !!selectedInScope && !selectedVisible;
   const nodeContext = useMemo(() => selectedInScope && scopeGrid ? matrixSelectedNodeContext(scopeGrid, metric, selectedInScope) : null,
     [selectedInScope, scopeGrid, metric]);
   const structure = useMemo(() => scopeGrid ? matrixScopeStructure(scopeGrid, metric) : null, [scopeGrid, metric]);
   const signedMetric = metric === "gex" || metric === "doi";
+  const memoryStrike = selectedInScope?.strike ?? structure?.dominant?.strike ?? null;
   const headline = metric === "gex" ? "scopeGex" : metric === "oi" ? "scopeOi" : metric === "doi" ? "scopeDoi" : "scopeVolume";
   const note = t(metric === "gex" ? "estimate" : metric === "vol" ? "volumeNote" : "oiNote");
   const scopeMeta = `${prefs.expiries === "0dte" ? "0DTE" : `${prefs.expiries} ${t("expiry")}`} · ±${prefs.window}% · ${t(prefs.norm === "global" ? "global" : "column")}`;
@@ -89,7 +102,7 @@ export function MatrixCompanion({ root, metric, prefs, onPrefs, t, ...pin }: Pin
       : <SnapshotEmpty issue={receipt.ok ? "unavailable" : receipt.reason} t={t} loading={snapshot.loading} refresh={snapshot.refresh} />}
     {snapshot.failed && data && <p className={styles.warning} role="status">{t("failed")}</p>}
     <div className={styles.scopeBar} data-options-scope={scopeOpen ? "editing" : "applied"}>
-      <button type="button" className={styles.scopeButton} data-testid="options-scope-toggle" aria-expanded={scopeOpen} aria-controls="options-scope-editor"
+      <button ref={scopeToggleRef} type="button" className={styles.scopeButton} data-testid="options-scope-toggle" aria-expanded={scopeOpen} aria-controls="options-scope-editor"
         onClick={() => scopeOpen ? cancelScope() : openScope()}>{t("scope")}<span aria-hidden="true">{scopeOpen ? "×" : "⌄"}</span></button>
       <span className={styles.scopeMeta}>{scopeMeta}</span>
     </div>
@@ -116,10 +129,14 @@ export function MatrixCompanion({ root, metric, prefs, onPrefs, t, ...pin }: Pin
     </form>}
     {data && grid && grid.strikes.length > 0 && grid.exps.length > 0 ? <>
       <div className={styles.summary}>
-        <div><span>{t(headline)}</span><strong data-options-total className={metric === "gex" ? (Number(stats.total) < 0 ? styles.negative : styles.positive) : undefined}>
+        <div><span>{t(headline)}</span><strong data-options-total className={metric === "gex" && stats.total != null ? (stats.total < 0 ? styles.negative : stats.total > 0 ? styles.positive : undefined) : undefined}>
           {stats.total == null ? "—" : fmtMatrixCell(stats.total, metric)}</strong><small title={stats.missing ? t("partial") : undefined}>{stats.expected ? `${stats.known}/${stats.expected} · ` : ""}{units}{stats.missing ? ` · ${t("publishedOnly")}` : ""}</small></div>
         <div className={styles.reference}><span>{t("reference")}</span><b>{grid.spotRef?.toLocaleString("en-US", { maximumFractionDigits: 2 }) ?? "—"}</b><small>{t("notIntraday")}</small></div>
       </div>
+      {stats.missing && stats.knownTotal != null && <p className={styles.warning} data-testid="options-scope-partial" role="status">
+        {t("knownSubtotal")} {fmtMatrixCell(stats.knownTotal, metric)} · {stats.known}/{stats.expected} {t("gridPositions")}. {t("totalIncomplete")}
+      </p>}
+      <p className={styles.scopeHint} data-testid="options-domain-basis">{t(stats.domainBasis === "declared-grid" ? "declaredGrid" : "derivedGrid")} · {t("sourceCoverageUnknown")}</p>
       {structure?.dominant && <section className={styles.scopeBrief} aria-label={t("structureBrief")} data-testid="options-scope-structure">
         <span className={styles.scopeBriefTitle}>{t("structureBrief")}</span>
         <div className={styles.scopeBriefGrid}>
@@ -144,6 +161,7 @@ export function MatrixCompanion({ root, metric, prefs, onPrefs, t, ...pin }: Pin
             <small>{structure.leadingExpiry ? `${structure.leadingExpiry.sharePct.toFixed(1)}% ${t("cellShare")}` : "—"}</small></div>
         </div>
       </section>}
+      {metric === "gex" && <GexMarketMemory root={root} matrixSession={data.session} strike={memoryStrike} t={t} />}
       <div className={styles.legend}>
         <span className={metric === "gex" ? styles.positive : styles.neutral}>● {t(metric === "gex" ? "positive" : metric === "doi" ? "build" : "more")}</span>
         {(metric === "gex" || metric === "doi") && <span className={metric === "gex" ? styles.negative : styles.unwind}>● {t(metric === "gex" ? "negative" : "unwind")}</span>}
@@ -151,12 +169,17 @@ export function MatrixCompanion({ root, metric, prefs, onPrefs, t, ...pin }: Pin
       </div>
       {prefs.norm === "column" && <p className={styles.warning}>{t("columnNote")}</p>}
       <StrikeExpiryMatrix grid={grid} metric={metric} variant="rail" rail={{ selected: selectedVisible, onSelect: select,
+        reveal: reveal?.session === data.session ? reveal : null,
         name: `${root} ${t(headline)}`, strikeLabel: t("strike"), missingLabel: t("missing"), spotLabel: t("reference"), units }} />
       <div className={styles.inspector} data-options-inspector>
         {selectionCurrent ? <>
           <div className={styles.inspectorTitle}><strong>{selectionCurrent.strike} · {selectionCurrent.expiry}</strong><b>{selectedValue == null ? "—" : fmtMatrixCell(selectedValue, metric)}</b></div>
           <p>{units} · {data.session}</p><p>{selectedValue == null ? t("missing") : note}</p>
           {selectionOutside && <><p className={styles.warning} data-testid="options-selection-outside">{t("outsideView")}</p><p>{t("contextUnavailable")}</p></>}
+          {selectionOffscreen && selectedInScope && <div className={styles.warning} data-testid="options-selection-offscreen" role="status">
+            <p>{t("outsideDisplayedRows")}</p><button type="button" className={styles.action} data-testid="options-reveal-selection"
+              onClick={() => setReveal(previous => ({ id: (previous?.id ?? 0) + 1, session: data.session, cell: selectedInScope }))}>{t("revealSelection")}</button>
+          </div>}
           {nodeContext && <section className={styles.nodeContext} aria-label={t("nodeContext")} data-testid="options-node-context">
             <span className={styles.nodeContextTitle}>{t("nodeContext")}</span>
             <div className={styles.nodeStats}>
@@ -165,6 +188,12 @@ export function MatrixCompanion({ root, metric, prefs, onPrefs, t, ...pin }: Pin
               <div><span>{t("scopeRank")}</span><b>{nodeContext.rank == null ? "—" : `#${nodeContext.rank} / ${nodeContext.scopeKnown}`}</b></div>
               <div><span>{t("strikeShare")}</span><b>{nodeContext.strikeSharePct == null ? "—" : `${nodeContext.strikeSharePct.toFixed(1)}%`}</b></div>
             </div>
+            {nodeContext.strikeTotal == null && nodeContext.knownStrikeTotal != null && <p className={styles.warning} data-testid="options-node-partial">
+              {t("strikeTotal")}: {t("knownSubtotal")} {fmtMatrixCell(nodeContext.knownStrikeTotal, metric)} · {nodeContext.strikeKnown}/{nodeContext.strikeExpected} {t("gridPositions")}. {t("totalIncomplete")}
+            </p>}
+            {nodeContext.ex0dteTotal == null && nodeContext.knownEx0dteTotal != null && <p className={styles.warning} data-testid="options-node-ex0dte-partial">
+              {t("ex0dte")}: {t("knownSubtotal")} {fmtMatrixCell(nodeContext.knownEx0dteTotal, metric)} · {nodeContext.ex0dteKnown}/{nodeContext.ex0dteExpected} {t("gridPositions")}. {t("totalIncomplete")}
+            </p>}
             <div className={styles.expiryMix}><span>{t("expiryMix")}</span>
               {nodeContext.expiryRows.map((row) => {
                 const width = row.value == null || nodeContext.maxStrikeAbs <= 0 ? 0 : Math.abs(row.value) / nodeContext.maxStrikeAbs * 50;

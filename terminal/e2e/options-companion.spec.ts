@@ -5,7 +5,7 @@ type ChartDebugWindow = Window & {
   __mmChartAxisOpts?: () => { rowCount: number; optionsPin: { price: number; lineStyle: number } | null };
   __mmChartOwnership?: () => { orphanPricePaneLines: number };
 };
-const crops = "docs/pr-crops/options-companion-20260923";
+const crops = process.env.OPTIONS_COMPANION_CROPS || "docs/pr-crops/options-companion-20260923";
 const spy = matrixFixture.SPY;
 test.setTimeout(90_000);
 
@@ -38,6 +38,7 @@ async function editScope(panel: Locator, lang: "en" | "zh", change: { expiries?:
   if (change.window) await editor.getByLabel(lang === "zh" ? "行权价范围" : "Strike window").selectOption(change.window);
   await editor.getByTestId(apply ? "options-scope-apply" : "options-scope-cancel").click();
   await expect(editor).toHaveCount(0);
+  await expect(panel.getByTestId("options-scope-toggle")).toBeFocused();
 }
 
 for (const lang of ["en", "zh"] as const) {
@@ -112,7 +113,7 @@ test("wrong-root source is refused; explicit refresh recovers without a page rel
 });
 
 test("0DTE never silently becomes the nearest later expiry", async ({ page }) => {
-  await page.route(/\/api\/flow\?f=matrix(?::|%3A)SPY(?:&|$)/, route => route.fulfill({ json: { ...spy, cells: spy.cells.filter(cell => cell.expiry !== spy._build_meta.asof_date) } }));
+  await page.route(/\/api\/flow\?f=matrix(?::|%3A)SPY(?:&|$)/, route => route.fulfill({ json: { ...spy, expiries: spy.expiries.filter(expiry => expiry !== spy._build_meta.asof_date), cells: spy.cells.filter(cell => cell.expiry !== spy._build_meta.asof_date) } }));
   await prepare(page); const panel = await openPanel(page);
   await expect(panel.locator("[data-options-grid] table")).toBeVisible();
   await editScope(panel, "en", { expiries: "0dte" });
@@ -152,7 +153,7 @@ test("R7 one-strike sparse matrix remains a real renderable scope", async ({ pag
   const spot = Number(spy.spot); const strikes = [...new Set(spy.cells.map(cell => cell.strike))];
   const sparseStrike = strikes.sort((a, b) => Math.abs(a - spot) - Math.abs(b - spot))[0];
   await page.route(/\/api\/flow\?f=matrix(?::|%3A)SPY(?:&|$)/, route =>
-    route.fulfill({ json: { ...spy, cells: spy.cells.filter(cell => cell.strike === sparseStrike) } }));
+    route.fulfill({ json: { ...spy, strikes: [sparseStrike], cells: spy.cells.filter(cell => cell.strike === sparseStrike) } }));
   await prepare(page); const panel = await openPanel(page);
   await expect(panel.locator("[data-options-grid] table")).toBeVisible();
   await expect(panel.locator("[data-options-grid] tbody tr")).toHaveCount(1);
@@ -213,4 +214,90 @@ test("switching the real chart symbol resets the pin and binds the new heatmap",
   await expect(panel.locator("[data-options-grid] table")).toBeVisible();
   await expect.poll(() => chartPin(page)).toBeNull();
   expect(await canvas!.evaluate(el => el.isConnected)).toBe(true);
+});
+
+const reviewSession = "2026-07-10", reviewLater = "2026-07-13", reviewLast = "2026-07-14";
+const reviewCell = (strike: number, expiry: string, gex: number | null) => ({ strike, expiry, gex, call_oi: 0, put_oi: 0, call_vol: 0, put_vol: 0 });
+const reviewMatrix = (cells: ReturnType<typeof reviewCell>[], strikes: number[], expiries: string[], spot = 770) => ({
+  schema: "options_structure.matrix/v1", root: "SPY", spot, asof: "2026-07-11T00:05:00Z", _build_meta: { asof_date: reviewSession }, cells, strikes, expiries,
+});
+async function serveReviewMatrix(page: Page, matrix: ReturnType<typeof reviewMatrix>) {
+  await page.route(/\/api\/flow\?f=matrix(?::|%3A)SPY(?:&|$)/, route => route.fulfill({ json: matrix }));
+}
+
+for (const lang of ["en", "zh"] as const) {
+  test(`[${lang}] R6 partial totals retain known values on the Terminal route`, async ({ page }, info) => {
+    await serveReviewMatrix(page, reviewMatrix([reviewCell(770, reviewSession, 8e6), reviewCell(770, reviewLater, 2e6), reviewCell(770, reviewLast, null)], [770], [reviewSession, reviewLater, reviewLast]));
+    await prepare(page, lang); const panel = await openPanel(page);
+    await expect(panel.locator("[data-options-total]")).toHaveText("—");
+    await expect(panel.locator("[data-options-total]")).not.toHaveClass(/positive|negative/);
+    await expect(panel.getByTestId("options-scope-partial")).toContainText("+10M · 2/3");
+    await panel.getByTestId("options-dominant-node").click();
+    await expect(panel.getByTestId("options-node-partial")).toContainText("+10M · 2/3");
+    await expect(panel.getByTestId("options-node-ex0dte-partial")).toContainText("+2M · 1/2");
+    await expect(panel.getByTestId("options-domain-basis")).toContainText(lang === "en" ? "Source collection coverage unknown" : "源采集覆盖范围未知");
+    mkdirSync(crops, { recursive: true });
+    for (const theme of ["dark", "light"]) {
+      await page.evaluate(theme => document.documentElement.setAttribute("data-theme", theme), theme);
+      await panel.screenshot({ path: `${crops}/${info.project.name}-${lang}-r6-partial-${theme}.png` });
+    }
+  });
+
+  test(`[${lang}] R6 declared missing expiry and R7 scope focus preserve transaction semantics`, async ({ page }) => {
+    await serveReviewMatrix(page, reviewMatrix([reviewCell(770, reviewSession, 8e6), reviewCell(771, reviewSession, 2e6)], [770, 771], [reviewSession, reviewLater]));
+    await prepare(page, lang); const panel = await openPanel(page);
+    await expect(panel.getByTestId("options-scope-partial")).toContainText("+10M · 2/4");
+    await expect(panel.locator('[data-options-grid] button[data-value="missing"]')).toHaveCount(2);
+    const opener = panel.getByTestId("options-scope-toggle");
+    for (const action of ["cancel", "escape", "apply"]) {
+      await opener.click(); const editor = panel.getByTestId("options-scope-editor");
+      const select = editor.getByTestId("options-scope-expiries"); await select.selectOption("0dte");
+      await expect(panel.locator("[data-options-total]")).toHaveText("—");
+      if (action === "escape") { await select.focus(); await page.keyboard.press("Escape"); }
+      else await editor.getByTestId(`options-scope-${action}`).click();
+      await expect(editor).toHaveCount(0); await expect(opener).toBeFocused(); await expect(panel).toBeVisible();
+      await expect(panel.locator("[data-options-total]")).toHaveText(action === "apply" ? "+10M" : "—");
+    }
+    await expect(panel.locator('[data-options-grid] button[data-value="missing"]')).toHaveCount(0);
+  });
+
+  test(`[${lang}] R6 off-screen exact node reveal preserves scope and native chart`, async ({ page }, info) => {
+    const strikes = Array.from({ length: 161 }, (_, i) => 160 + i * .5);
+    await serveReviewMatrix(page, reviewMatrix(strikes.map((strike, i) => reviewCell(strike, reviewSession, i === 0 ? 1e9 : 1e6)), strikes, [reviewSession], 200));
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await prepare(page, lang); const canvas = await page.locator(".chart-wrap canvas").first().elementHandle();
+    const panel = await openPanel(page); await editScope(panel, lang, { window: "25" });
+    const total = await panel.locator("[data-options-total]").textContent(); const scope = await panel.locator("[data-options-scope]").textContent();
+    await expect(panel.locator("tbody tr")).toHaveCount(101); await panel.getByTestId("options-dominant-node").click();
+    await expect(panel.getByTestId("options-selection-outside")).toHaveCount(0);
+    await expect(panel.getByTestId("options-selection-offscreen")).toBeVisible();
+    await panel.getByTestId("options-reveal-selection").click();
+    const selected = panel.locator('[data-options-grid] button[aria-pressed="true"]');
+    await expect(selected).toHaveAttribute("aria-label", /^160, 2026-07-10:/); await expect(selected).toBeFocused();
+    await expect(selected).toBeInViewport();
+    await expect(panel.locator("[data-options-total]")).toHaveText(total!); await expect(panel.locator("[data-options-scope]")).toHaveText(scope!);
+    expect(await canvas!.evaluate(el => el.isConnected)).toBe(true);
+    mkdirSync(crops, { recursive: true }); await page.screenshot({ path: `${crops}/${info.project.name}-${lang}-r6-reveal.png` });
+  });
+}
+
+test("Market Memory on Terminal uses the dated archive and fails closed after a missing archive", async ({ page }) => {
+  const prior = "2026-07-08"; let missing = false;
+  await page.route(/\/api\/flow\?f=(?:gex|gex_dates|gex_at)(?::|%3A)SPY/, async route => {
+    const key = new URL(route.request().url()).searchParams.get("f")!;
+    if (key.startsWith("gex_dates:")) return route.fulfill({ json: { root: "SPY", latest: reviewSession, dates: [reviewSession, prior] } });
+    if (missing && key.startsWith("gex_at:")) return route.fulfill({ status: 404, json: {} });
+    return route.fulfill({ json: { schema: "options_hub.gex/v1", root: "SPY", asof: key.startsWith("gex_at:") ? prior : reviewSession, spot_ref: 751,
+      net_gex_bn: key.startsWith("gex_at:") ? 1 : 1.2, by_strike: [{ strike: 750, gamma_net: 8 }] } });
+  });
+  await prepare(page); let panel = await openPanel(page);
+  await expect(panel.getByTestId("options-market-memory")).toHaveAttribute("data-memory-status", "ready");
+  await expect(panel.getByTestId("options-market-memory")).toContainText("+1B → +1.2B");
+  await expect(panel.getByTestId("options-market-memory")).toContainText("ALL EXPIRIES");
+  missing = true;
+  await page.reload(); await expect(page.locator(".chart-wrap canvas").first()).toBeVisible();
+  // Panel openness may persist in route state; either way the same real route is exercised.
+  panel = page.locator("[data-options-companion]"); if (!(await panel.isVisible())) panel = await openPanel(page);
+  await expect(panel.getByTestId("options-market-memory")).toHaveAttribute("data-memory-status", "archive-missing");
+  await expect(panel.getByTestId("options-market-memory")).not.toContainText("+1B");
 });

@@ -5,6 +5,7 @@
 import { isMatrixDocForRoot, type MatrixDoc } from "@/components/gexdesk/matrixDoc";
 import type { GexPayload } from "@/components/gexdesk/GexDeskView";
 import type { MatrixHeatCell, StrikeExpiryDoc } from "@/components/shared/StrikeExpiryMatrix";
+import { isGexDates } from "@/lib/gexSessions";
 
 export type OptionsPerspective = "gamma" | "vanna" | "oi" | "flow";
 export interface OptionsChartLevel {
@@ -26,6 +27,23 @@ export interface VannaProfile {
   session: string;
   spot: number | null;
   rows: { strike: number; valueMn: number | null }[];
+}
+
+export interface CompanionGexSnapshot {
+  root: string;
+  session: string;
+  spot: number | null;
+  netGexBn: number | null;
+  rows: { strike: number; gammaMn: number | null }[];
+}
+
+export interface CompanionGexMemory {
+  current: CompanionGexSnapshot;
+  previous: CompanionGexSnapshot;
+  previousSession: string;
+  strike: number | null;
+  currentStrikeMn: number | null;
+  previousStrikeMn: number | null;
 }
 
 export const finite = (v: unknown): number | null =>
@@ -100,6 +118,71 @@ export function matrixForExpiry(receipt: CompanionMatrix, scope: "all" | "0dte")
   return scope === "all" ? receipt.doc : {
     ...receipt.doc,
     cells: receipt.doc.cells?.filter((cell) => cell.expiry === receipt.session),
+    // Selected display axes change with the deliberate expiry filter; no front-expiry fallback.
+    ...(Array.isArray(receipt.doc.expiries) ? { expiries: receipt.doc.expiries.filter(e => e === receipt.session) } : {}),
+  };
+}
+
+/** Validate the canonical all-expiry GEX ladder without borrowing UI component state. */
+export function readCompanionGexSnapshot(raw: unknown, root: string, nowMs = Date.now()): Receipt<CompanionGexSnapshot> {
+  if (raw == null || (object(raw) && Object.keys(raw).length === 0)) return { ok: false, reason: "unavailable" };
+  const candidate = object(raw) && object(raw[root]) ? raw[root] : raw;
+  if (!object(candidate) || candidate.root !== root || candidate.schema !== "options_hub.gex/v1") {
+    return { ok: false, reason: "identity" };
+  }
+  const session = validSession(typeof candidate.asof === "string" ? candidate.asof.slice(0, 10) : null, nowMs);
+  if (!session) return { ok: false, reason: "session" };
+  if (!Array.isArray(candidate.by_strike) || candidate.by_strike.length === 0 || candidate.by_strike.length > 10_000) {
+    return { ok: false, reason: "malformed" };
+  }
+  const rows: CompanionGexSnapshot["rows"] = [];
+  const seen = new Set<number>();
+  for (const item of candidate.by_strike) {
+    if (!object(item) || finite(item.strike) == null || Number(item.strike) <= 0 || seen.has(Number(item.strike))) {
+      return { ok: false, reason: "malformed" };
+    }
+    const strike = Number(item.strike);
+    seen.add(strike);
+    rows.push({ strike, gammaMn: finite(item.gamma_net) });
+  }
+  if (!rows.some((row) => row.gammaMn !== null)) return { ok: false, reason: "unavailable" };
+  const spot = finite(candidate.spot_ref);
+  return { ok: true, value: {
+    root,
+    session,
+    spot: spot !== null && spot > 0 ? spot : null,
+    netGexBn: finite(candidate.net_gex_bn),
+    rows: rows.sort((a, b) => b.strike - a.strike),
+  } };
+}
+
+/** Pick the closest listed snapshot strictly before the matrix session. */
+export function previousAvailableGexSession(raw: unknown, root: string, currentSession: string): Receipt<{ session: string | null }> {
+  if (raw == null || (object(raw) && Object.keys(raw).length === 0)) return { ok: false, reason: "unavailable" };
+  if (!isGexDates(raw)) return { ok: false, reason: "malformed" };
+  if (raw.root.trim().toUpperCase() !== root) return { ok: false, reason: "identity" };
+  const current = isoSession(currentSession);
+  if (!current || raw.dates.some((date) => !isoSession(date))) return { ok: false, reason: "session" };
+  return { ok: true, value: { session: raw.dates.find((date) => date < current) ?? null } };
+}
+
+/** Compare two qualified all-expiry snapshots; no cause/positioning attribution is implied. */
+export function buildCompanionGexMemory(
+  current: CompanionGexSnapshot,
+  previous: CompanionGexSnapshot,
+  strike: number | null,
+): CompanionGexMemory | null {
+  if (current.root !== previous.root || previous.session >= current.session) return null;
+  const exactStrike = strike != null && Number.isFinite(strike) && strike > 0 ? strike : null;
+  const currentStrike = exactStrike == null ? undefined : current.rows.find((row) => row.strike === exactStrike);
+  const previousStrike = exactStrike == null ? undefined : previous.rows.find((row) => row.strike === exactStrike);
+  return {
+    current,
+    previous,
+    previousSession: previous.session,
+    strike: exactStrike,
+    currentStrikeMn: currentStrike?.gammaMn ?? null,
+    previousStrikeMn: previousStrike?.gammaMn ?? null,
   };
 }
 

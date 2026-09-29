@@ -74,7 +74,7 @@ describe("companion source boundaries", () => {
     const receipt = readCompanionMatrix({ ...matrix(), spot: 200, cells }, "NVDA", now);
     if (!receipt.ok) throw Error(`fixture: ${receipt.reason}`);
     const stats = matrixExactScopeStats(receipt.value.doc, "gex", 25, 3);
-    expect(stats).toEqual({ total: 161, missing: false, known: 161, expected: 161 });
+    expect(stats).toEqual({ total: 161, knownTotal: 161, missing: false, known: 161, expected: 161, domainBasis: "derived-grid" });
     const grid = buildMatrixGrid({ matrix: receipt.value.doc, metric: "gex", exactStrikes: true, windowPct: 25, maxRows: 101, maxCols: 3 })!;
     expect(grid.strikes).toHaveLength(101);
   });

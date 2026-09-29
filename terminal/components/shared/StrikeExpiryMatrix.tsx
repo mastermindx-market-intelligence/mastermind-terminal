@@ -37,7 +37,7 @@
  */
 
 import React, { useEffect, useRef, useState } from "react";
-import { formatExposureMn } from "@/lib/optionsCompanion";
+import { formatExposureMn, isoSession } from "@/lib/optionsCompanion";
 import railStyles from "./StrikeExpiryMatrixRail.module.css";
 
 // ─── Payload types ────────────────────────────────────────────────────────────
@@ -163,32 +163,68 @@ export function matrixCellValue(c: MatrixHeatCell, m: MatrixDisplayMetric): numb
   }
 }
 
-export interface MatrixExactScopeStats { total: number | null; missing: boolean; known: number; expected: number }
-
-/** Exact-contract totals for a selected matrix scope, independent of rendering row caps/scroll. */
-export function matrixExactScopeStats(matrix: StrikeExpiryDoc, metric: MatrixDisplayMetric, windowPct: number, maxCols: number): MatrixExactScopeStats {
+/** Domain of displayed positions, NOT a certified options universe or provider coverage. */
+export interface MatrixAxisDomain {
+  strikes: number[];
+  expiries: string[];
+  sessionDate: string;
+  basis: "declared-grid" | "derived-grid" | "invalid";
+}
+export function matrixAxisDomain(matrix: StrikeExpiryDoc): MatrixAxisDomain {
   const cells = Array.isArray(matrix.cells) ? matrix.cells : [];
-  const sessionDate =
-    (typeof matrix._build_meta?.asof_date === "string" && matrix._build_meta.asof_date) ||
-    (typeof matrix.asof === "string" ? matrix.asof.slice(0, 10) : "");
-  const exps = [...new Set(cells.map((cell) => cell.expiry).filter(Boolean))].sort()
-    .filter((expiry) => !sessionDate || expiry.slice(0, 10) >= sessionDate).slice(0, maxCols);
-  const expSet = new Set(exps);
+  const sessionDate = isoSession(matrix._build_meta?.asof_date)
+    ?? isoSession(typeof matrix.asof === "string" ? matrix.asof.slice(0, 10) : null) ?? "";
+  const invalid = (): MatrixAxisDomain => ({ strikes: [], expiries: [], sessionDate, basis: "invalid" });
+  const declaredStrikes = matrix.strikes !== undefined;
+  const declaredExpiries = matrix.expiries !== undefined;
+  if ((declaredStrikes && !Array.isArray(matrix.strikes)) || (declaredExpiries && !Array.isArray(matrix.expiries))) return invalid();
+  const strikes = declaredStrikes ? matrix.strikes! : [...new Set(cells.map(c => c?.strike))];
+  const expiries = declaredExpiries ? matrix.expiries! : [...new Set(cells.map(c => c?.expiry))];
+  if (strikes.length > 100_000 || expiries.length > 100_000
+    || !strikes.every(k => Number.isFinite(k) && k > 0)
+    || !expiries.every(e => isoSession(e) !== null)) return invalid();
+  const strikeSet = new Set(strikes), expirySet = new Set(expiries);
+  if (strikeSet.size !== strikes.length || expirySet.size !== expiries.length) return invalid();
+  const identities = new Set<string>();
+  for (const cell of cells) {
+    if (!cell || !strikeSet.has(cell.strike) || !expirySet.has(cell.expiry)) return invalid();
+    const key = cell.strike + "|" + cell.expiry;
+    if (identities.has(key)) return invalid();
+    identities.add(key);
+  }
+  return { strikes: [...strikes], expiries: [...expiries].sort(), sessionDate,
+    basis: declaredStrikes && declaredExpiries ? "declared-grid" : "derived-grid" };
+}
+export interface MatrixExactScopeStats {
+  /** Complete selected-grid sum only; never a claim of complete source collection. */
+  total: number | null;
+  knownTotal: number | null;
+  missing: boolean;
+  known: number;
+  expected: number;
+  domainBasis: MatrixAxisDomain["basis"];
+}
+/** Exact selected-grid arithmetic independent of rendering row caps/scroll. */
+export function matrixExactScopeStats(matrix: StrikeExpiryDoc, metric: MatrixDisplayMetric, windowPct: number, maxCols: number): MatrixExactScopeStats {
+  const domain = matrixAxisDomain(matrix);
+  const empty: MatrixExactScopeStats = { total: null, knownTotal: null, missing: true, known: 0, expected: 0, domainBasis: domain.basis };
+  if (domain.basis === "invalid" || !Number.isFinite(windowPct) || windowPct < 0 || !Number.isInteger(maxCols) || maxCols <= 0) return empty;
+  const exps = domain.expiries.filter(e => !domain.sessionDate || e >= domain.sessionDate).slice(0, maxCols);
   const spot = num(matrix.spot);
-  const strikes = [...new Set(cells.map((cell) => cell.strike).filter(Number.isFinite))]
-    .filter((strike) => spot == null || spot <= 0 || Math.abs(strike - spot) / spot <= windowPct / 100);
-  const strikeSet = new Set(strikes);
-  const byKey = new Map(cells.filter((cell) => expSet.has(cell.expiry) && strikeSet.has(cell.strike))
-    .map((cell) => [`${cell.strike}|${cell.expiry}`, cell] as const));
-  let total = 0, known = 0;
+  const strikes = domain.strikes.filter(k => spot == null || spot <= 0 || Math.abs(k - spot) / spot <= windowPct / 100);
   const expected = strikes.length * exps.length;
+  if (expected > 1_000_000) return empty;
+  const byKey = new Map((matrix.cells ?? []).map(c => [c.strike + "|" + c.expiry, c] as const));
+  let total = 0, known = 0;
   for (const strike of strikes) for (const expiry of exps) {
-    const cell = byKey.get(`${strike}|${expiry}`);
+    const cell = byKey.get(strike + "|" + expiry);
     const value = cell ? matrixCellValue(cell, metric) : null;
     if (value == null) continue;
     total += value; known++;
   }
-  return { total: known ? total : null, missing: known < expected, known, expected };
+  const knownTotal = known > 0 && Number.isFinite(total) ? total : null;
+  const missing = known < expected || (known > 0 && knownTotal === null);
+  return { total: knownTotal !== null && !missing ? knownTotal : null, knownTotal, missing, known, expected, domainBasis: domain.basis };
 }
 
 export interface MatrixScopeNode { strike: number; expiry: string; value: number; distancePct: number | null }
@@ -224,7 +260,13 @@ export function matrixScopeStructure(grid: MatrixGridModel, metric: MatrixDispla
 
 export interface MatrixSelectedNodeContext {
   strikeTotal: number | null;
+  knownStrikeTotal: number | null;
+  strikeKnown: number;
+  strikeExpected: number;
   ex0dteTotal: number | null;
+  knownEx0dteTotal: number | null;
+  ex0dteKnown: number;
+  ex0dteExpected: number;
   rank: number | null;
   scopeKnown: number;
   strikeSharePct: number | null;
@@ -241,15 +283,25 @@ export function matrixSelectedNodeContext(
     return { expiry, value: cell ? matrixCellValue(cell, metric) : null };
   });
   const knownAtStrike = expiryRows.filter((row): row is { expiry: string; value: number } => row.value != null);
-  const strikeTotal = knownAtStrike.length ? knownAtStrike.reduce((sum, row) => sum + row.value, 0) : null;
-  const ex0dte = knownAtStrike.filter((row) => row.expiry.slice(0, 10) !== grid.sessionDate);
-  const ex0dteTotal = ex0dte.length ? ex0dte.reduce((sum, row) => sum + row.value, 0) : null;
+  const finiteSum = (rows: Array<{ value: number }>): number | null => {
+    if (!rows.length) return null;
+    const value = rows.reduce((sum, row) => sum + row.value, 0);
+    return Number.isFinite(value) ? value : null;
+  };
+  const knownStrikeTotal = finiteSum(knownAtStrike);
+  const strikeTotal = knownAtStrike.length === expiryRows.length ? knownStrikeTotal : null;
+  const ex0dteRows = grid.sessionDate ? expiryRows.filter(row => row.expiry !== grid.sessionDate) : [];
+  const ex0dte = ex0dteRows.filter((row): row is { expiry: string; value: number } => row.value != null);
+  const knownEx0dteTotal = finiteSum(ex0dte);
+  const ex0dteTotal = ex0dte.length === ex0dteRows.length ? knownEx0dteTotal : null;
   const selectedValue = expiryRows.find((row) => row.expiry === selected.expiry)?.value ?? null;
   const strikeAbs = knownAtStrike.reduce((sum, row) => sum + Math.abs(row.value), 0);
   const strikeSharePct = selectedValue != null && strikeAbs > 0 ? Math.abs(selectedValue) / strikeAbs * 100 : null;
   const scopeValues = [...grid.byKey.values()].map((cell) => matrixCellValue(cell, metric)).filter((value): value is number => value != null);
   const rank = selectedValue == null ? null : 1 + scopeValues.filter((value) => Math.abs(value) > Math.abs(selectedValue)).length;
-  return { strikeTotal, ex0dteTotal, rank, scopeKnown: scopeValues.length, strikeSharePct, expiryRows,
+  return { strikeTotal, knownStrikeTotal, strikeKnown: knownAtStrike.length, strikeExpected: expiryRows.length,
+    ex0dteTotal, knownEx0dteTotal, ex0dteKnown: ex0dte.length, ex0dteExpected: ex0dteRows.length,
+    rank, scopeKnown: scopeValues.length, strikeSharePct, expiryRows,
     maxStrikeAbs: knownAtStrike.reduce((max, row) => Math.max(max, Math.abs(row.value)), 0) };
 }
 
@@ -297,6 +349,8 @@ export interface BuildMatrixGridOpts {
   withSigma?: boolean;
   /** Companion cells can be pinned on a chart: never invent a rounded strike. */
   exactStrikes?: boolean;
+  /** Presentation-only recentering inside the already-selected analytical domain. */
+  displayCenterStrike?: number | null;
 }
 
 export interface MatrixScale {
@@ -347,6 +401,7 @@ export function buildMatrixGrid(opts: BuildMatrixGridOpts): MatrixGridModel | nu
     scope = "default",
     withSigma = false,
     exactStrikes = false,
+    displayCenterStrike = null,
   } = opts;
 
   const signed = isSignedMetric(metric);
@@ -354,17 +409,16 @@ export function buildMatrixGrid(opts: BuildMatrixGridOpts): MatrixGridModel | nu
   if (!Array.isArray(cells) || cells.length === 0) return null;
 
   const spotRef = num(matrix?.spot) ?? num(spot);
-  const allStrikes = [...new Set(cells.map((c) => c.strike).filter((k) => Number.isFinite(k)))];
+  const domain = matrixAxisDomain(matrix!);
+  if (domain.basis === "invalid") return null;
+  const allStrikes = domain.strikes;
   if (allStrikes.length === 0) return null;
 
   // Session date: prod's top-level asof is the BUILD timestamp (Fri 23:00Z over a
   // Thursday chain) and prod grids carry ALREADY-EXPIRED expiries — dead columns
   // unless filtered against the session the cells actually describe.
-  const sessionDate =
-    (typeof matrix?._build_meta?.asof_date === "string" && matrix._build_meta.asof_date) ||
-    (typeof matrix?.asof === "string" ? matrix.asof.slice(0, 10) : "");
-  let allExps = [...new Set(cells.map((c) => c.expiry).filter(Boolean))]
-    .sort()
+  const sessionDate = domain.sessionDate;
+  let allExps = domain.expiries
     .filter((e) => !sessionDate || e.slice(0, 10) >= sessionDate);
   // 0DTE is measured against the SNAPSHOT's session, never today: an EOD grid replayed
   // on a later day has no wall-clock 0DTE, but it does have one for its own session.
@@ -399,8 +453,9 @@ export function buildMatrixGrid(opts: BuildMatrixGridOpts): MatrixGridModel | nu
     : [...new Set(allStrikes.map(toBucket))];
   if (!exactStrikes && strikes.length < 5) strikes = [...new Set(allStrikes.map(toBucket))];
   if (strikes.length > maxRows) {
-    strikes = spotRef
-      ? strikes.sort((a, b) => Math.abs(a - spotRef) - Math.abs(b - spotRef)).slice(0, maxRows)
+    const center = displayCenterStrike != null && strikes.includes(displayCenterStrike) ? displayCenterStrike : spotRef;
+    strikes = center
+      ? strikes.sort((a, b) => Math.abs(a - center) - Math.abs(b - center)).slice(0, maxRows)
       : strikes.slice(0, maxRows);
   }
   strikes.sort((a, b) => b - a); // ladder order: high strikes on top
@@ -456,19 +511,20 @@ export function buildMatrixGrid(opts: BuildMatrixGridOpts): MatrixGridModel | nu
     const sigMags: number[] = [];
     for (const k of strikes) {
       let total = 0;
-      let hasAny = false;
+      let known = 0;
       for (const e of exps) {
         const c = byKey.get(`${k}|${e}`);
         const v = c ? matrixCellValue(c, metric) : null;
         if (v != null) {
           total += v;
-          hasAny = true;
+          known++;
         }
       }
       // null (never 0) when no expiry published this strike — an absent row must not
       // render as a confident "flat", the same reason heatSeekerConfPct returns null.
-      sigma.set(k, hasAny ? total : null);
-      if (hasAny && total !== 0) sigMags.push(Math.abs(total));
+      const complete = known === exps.length && known > 0 && Number.isFinite(total);
+      sigma.set(k, complete ? total : null);
+      if (complete && total !== 0) sigMags.push(Math.abs(total));
     }
     sigmaScale = scaleOf(sigMags, signed);
   }
@@ -1054,6 +1110,8 @@ export interface MatrixRailInteraction {
   missingLabel: string;
   spotLabel: string;
   units: string;
+  /** Explicit one-shot keyboard reveal; ordinary selection does not seize focus. */
+  reveal?: { id: number; cell: MatrixCellSelection } | null;
 }
 
 /** The compact presentation of the SAME model and color/value laws, not another heatmap engine. */
@@ -1061,6 +1119,7 @@ function RailMatrix({ grid, metric, interaction }: {
   grid: MatrixGridModel; metric: MatrixDisplayMetric; interaction: MatrixRailInteraction;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const lastReveal = useRef<number | null>(null);
   const [focused, setFocused] = useState<string | null>(null);
   const spot = grid.spotRef;
   const nearest = grid.strikes.reduce<number | null>((best, strike) =>
@@ -1074,6 +1133,23 @@ function RailMatrix({ grid, metric, interaction }: {
     const row = scroll?.querySelector<HTMLTableRowElement>('[data-reference-row="true"]');
     if (scroll && row) scroll.scrollTop = Math.max(0, row.offsetTop - scroll.clientHeight / 2);
   }, [identity]);
+
+  useEffect(() => {
+    const request = interaction.reveal;
+    if (!request || request.id === lastReveal.current) return;
+    const row = grid.strikes.indexOf(request.cell.strike), col = grid.exps.indexOf(request.cell.expiry);
+    if (row < 0 || col < 0) return;
+    const button = scrollRef.current?.querySelector<HTMLButtonElement>('[data-row="' + row + '"][data-col="' + col + '"]');
+    if (!button) return;
+    lastReveal.current = request.id;
+    button.focus({ preventScroll: true });
+    const tr = button.closest("tr");
+    const scroll = scrollRef.current;
+    if (tr && scroll) scroll.scrollTop = Math.max(0, tr.offsetTop - scroll.clientHeight / 2);
+    // The rail can itself sit below the fold in a mobile sheet. Reveal through
+    // every scroll ancestor, not only the matrix viewport. No analysis state changes.
+    button.scrollIntoView?.({ block: "center", inline: "nearest", behavior: "instant" });
+  }, [identity, interaction.reveal, grid.strikes, grid.exps]);
 
   function navigate(event: React.KeyboardEvent<HTMLButtonElement>, row: number, col: number) {
     if (event.key === "Escape") {
