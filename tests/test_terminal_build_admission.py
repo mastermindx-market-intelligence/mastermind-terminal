@@ -816,11 +816,24 @@ def test_bundle_selection_refuses_untrusted_bytecode_cache(tmp_path: Path) -> No
     assert result.returncode == 66, result.stdout + result.stderr
 
 
-def test_bundle_selection_refuses_loose_bytecode_beside_sources(tmp_path: Path) -> None:
+@pytest.mark.parametrize(
+    "artifact",
+    [
+        "model.cpython-312.pyc",
+        # SourcelessFileLoader and ExtensionFileLoader never consult
+        # cache_from_source, so sys.pycache_prefix cannot neutralise either one.
+        # The .py-only rule is the whole defence against them inside the runtime
+        # package; relaxing it would reopen execution of unhashed bytes.
+        "model.so",
+    ],
+)
+def test_bundle_selection_refuses_loose_bytecode_beside_sources(
+    tmp_path: Path, artifact: str
+) -> None:
     """Tolerance covers the __pycache__ shape only, never the runtime tree itself."""
     owner = tmp_path / "owner-ops"
     _write_pair(owner)
-    (owner / "terminal_audit" / "model.cpython-312.pyc").write_bytes(b"\x00loose\n")
+    (owner / "terminal_audit" / artifact).write_bytes(b"\x00loose\n")
     result = run_gen(f'select_preflight_artifacts "{os.getuid()}" "{owner}"')
     assert result.returncode == 66, result.stdout + result.stderr
 

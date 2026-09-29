@@ -206,9 +206,16 @@ for current, dirnames, filenames in os.walk(runtime, topdown=True, followlinks=F
     # never descended into, and nothing inside reaches the runtime digest.
     #
     # Tolerating it is only safe because run_release_preflight redirects
-    # sys.pycache_prefix off the source tree. `-B` alone stops WRITES; Python still
-    # READS a source-adjacent .pyc, so an unhashed cache entry would otherwise
-    # execute in place of the hashed .py this digest attests.
+    # sys.pycache_prefix off the source tree. -B alone stops WRITES; Python still
+    # READS a source-adjacent .pyc, so without that redirect a cache entry would
+    # execute in place of the .py beside it.
+    #
+    # What contains this is CUSTODY, not the digest: trusted_stat proves every
+    # directory on the way here is owned by the expected principal and is not
+    # group/other writable, so nothing else can place bytes in them.
+    # PREFLIGHT_RUNTIME_SHA256 is OBSERVATIONAL -- it is logged, never compared to a
+    # pinned value and never carried in the receipt -- so do not reason about it as
+    # though hashing were the control that stops execution.
     for dirname in dirnames:
         trusted_stat(current_path / dirname, "directory")
     dirnames[:] = [name for name in dirnames if name != "__pycache__"]
@@ -373,6 +380,11 @@ PY_RECEIPT_BEFORE
 
   if (
     umask 027
+    # `-E` makes this interpreter ignore PYTHON* entirely: -B is the live control
+    # for bytecode WRITES here, and the variable only covers a future child that
+    # does not pass -E. Never drop -B on the strength of the variable.
+    # -X pycache_prefix governs bytecode READS; it survives -E because it is a
+    # command-line option, and it is why the selector may tolerate residue at all.
     PYTHONDONTWRITEBYTECODE=1 python3 -B -E -s \
       -X pycache_prefix="$temporary/pycache" "$script" \
       --canonical-repo "$canonical_repo" \
