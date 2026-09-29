@@ -1,11 +1,11 @@
-# Terminal Visual Intelligence Layer — chart-settings candidate recapture
+# Terminal Visual Intelligence Layer — TERMINAL-04 drawing pane-scale ownership recapture
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: WORKTREE_MERGE_CANDIDATE (HEAD 37772d50750ede7292a3ea84d8a899b056aa4723 + MERGE_HEAD d5e95d0d5a7289eebb0100ac4ffeb43546299ccf)
-# capturedAt: 2026-09-24T11:55:54.169410+00:00
+# capturedAtHead: 8d3f0a270c99f8a1b08c9288ea6247b1b23e1b1d (claude/ssd-range-drawing-oscillator-scale-0685d5-84dd33a5bc5250dd)
+# capturedAt: 2026-09-29T17:34:35+00:00
 # Content-addressed layoutFiles + cropFiles, not ancestry, identify this capture.
 layoutFiles:
-  terminal/components/ChartPanel.tsx: "7a9364c28284b8b0e02c39a73069b8b02b9c092ca656298bf35cab90d15b0a58"
+  terminal/components/ChartPanel.tsx: "e900e092ed21e1bc491a054104e2afed122797f5e0df7ac91477f26e0fdd50c7"
   terminal/components/ChartSettingsModal.tsx: "f26bd7dcbb9bd23e96546e835dec4c62c593b9c4d7412c411511005e7418146e"
   terminal/components/ChartSettingsModal.module.css: "a1685d103511e11882f8d379b22570f018e47aed88266db5ca6fec8808100b0a"
   terminal/components/DrawingSidebar.tsx: "95910121c08efa2a41bcaac02ec626a48bc98021bbbf9e611ff0b61f7baaf6d9"
@@ -19,12 +19,12 @@ layoutFiles:
   terminal/lib/suites/trend/candlePainter.ts: "8384d2bce3af939a51e88584b1436ee2898a89f0fbf1aedc09ffee624a3e12e1"
   terminal/lib/indicator-canvas/host.ts: "4f2949efb22b8c378cab1ff9d176466c4857073c14a36ee4f0eeab4ec1015a25"
 cropFiles:
-  desktop-context.png: "2b22ab5d3310633c041495a1627ac8de3f6d9132a583b6211f4b3ddbfcce9d09"
-  desktop-context-zh.png: "4d8d4ed1b2d0d30884ca388bf1d30bd10452d8f3bbde1f0d1ce946f0071ea720"
-  tablet-context.png: "086b97fe882cfdefb17eb7a5ba52b7b1f96084718166d967a2b4d64ef157239e"
-  tablet-context-zh.png: "6ca66e6419ddec64cbee02b8c2ca48e0ad59fb8e7fd6cd71a7ab908cf4b34e6a"
-  mobile-context.png: "f9f99892b6c62480a871d8d042c919e075c37af60ac3dd5f1cabef7cd6cf5dcf"
-  mobile-context-zh.png: "b2a2af550b38d0c5c8602a1888e076030813efb0186fe47fc9d6ceffff2452ca"
+  desktop-context.png: "00f5a0a9d51d112cee26676af607fa12dc3aefc2d1724746579418758f20b08f"
+  desktop-context-zh.png: "9e010ca12d4afc29a9372ef94d04338b6baec09c8e7e44a103e50bd9a593f94e"
+  tablet-context.png: "285611567deb2f011c15a96dee5d2974d8c9d87566361ebb1b7e9f3555f0a398"
+  tablet-context-zh.png: "d96fc4f68541a1c9957774f9d6c661e45383b721284f0fd55ed97ef23fffc133"
+  mobile-context.png: "7f35b5dd624b5bafc3d08149e2ad9f9ab44b58b48516f697f17463ebaf8b417d"
+  mobile-context-zh.png: "5436820f0033faabaa31ce167a05911330f2d6f2f4864d1eb803a81ea1d5d249"
 
 theme: dark
 languages: [en, zh]
@@ -49,7 +49,7 @@ localGates:
   typecheck: PASS
   scopedLint: NOT_RERUN; evidence refresh does not claim a new lint receipt
   plainLanguage: Existing localized copy retained; separate copy guard not rerun
-  vitest: 379 files passed; 6093 tests passed; 4 todo
+  vitest: 406 files passed; 6625 tests passed; 4 todo
 files:
   - desktop-context.png
   - desktop-context-zh.png
