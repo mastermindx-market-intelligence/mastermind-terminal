@@ -1,0 +1,31 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/terminal-03-replay-geometry-ee6b38-5527303a67b04625/terminal
+
+ ❯ lib/__tests__/surfaceReplayMounted.test.tsx (27 tests | 1 failed) 1903ms
+   × shared replay read boundaries > reports a cold index transport failure as unavailable, not absence or retention 38ms
+     → expected 'YFit priceFit strikesNo surface data …' to contain 'Surface unavailable'
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/surfaceReplayMounted.test.tsx > shared replay read boundaries > reports a cold index transport failure as unavailable, not absence or retention
+AssertionError: expected 'YFit priceFit strikesNo surface data …' to contain 'Surface unavailable'
+
+Expected: "Surface unavailable"
+Received: "YFit priceFit strikesNo surface data yet — accruing.Stamps are written as the session runs — until the materializer has painted one there is nothing to shade. Nothing is hidden."
+
+ ❯ lib/__tests__/surfaceReplayMounted.test.tsx:288:19
+    286|     const chart = host.querySelector(".obs-surf-chart-area")?.textCont…
+    287|     const bar = host.querySelector(".obs-surf-replay")?.textContent ??…
+    288|     expect(chart).toContain("Surface unavailable");
+       |                   ^
+    289|     expect(chart).not.toContain("No surface data yet");
+    290|     expect(chart).not.toContain("Nothing is hidden");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 26 passed (27)
+   Start at  10:01:13
+   Duration  6.48s (transform 774ms, setup 0ms, collect 1.12s, tests 1.90s, environment 1.75s, prepare 238ms)
+
