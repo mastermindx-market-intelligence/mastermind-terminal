@@ -285,13 +285,25 @@ test("a burst on a partial 3D bucket rewrites it in place without re-keying or a
   test.slow();
   let phase: QuotePhase = { basis: "EOD", last: LAST_CLOSE, sessionDate: LAST_SESSION, seconds: rthSeconds(LAST_SESSION) };
   const INDS = ["ema", "rsi", "rvwap", "rsistack", "accum"];
+  /** The studies this test reads back after the burst — the readiness gate below waits for all of them. */
+  const ASSERTED_STUDIES = ["ema", "rsi"] as const;
   await serve(page, () => phase, INDS, undefined, "3D");
   await page.goto(`/terminal?symbol=${SYMBOL}`);
 
+  // Every study asserted after the burst must be ON THE CANVAS before it starts. Gating on `ema`
+  // alone opened the test while `rsi` was still unbuilt: sampling the witness every 25ms through a
+  // cold mobile load, `barCount > 10 && ema.length > 0` first held at 1110ms (bars 88, ema 3, rsi
+  // 0) and `rsi.length > 0` only at 1174ms. That 64ms gap on an idle machine is the whole defect —
+  // on a contended CI shard it outlasts the burst, so the post-burst read returns
+  // `series.rsi === undefined` and the failure reads as a MISSING study rather than a late one
+  // (CI mobile, 2026-09-29; it reproduced on neither a warm nor a cold local run, which is exactly
+  // how a gate/assertion mismatch hides). Deriving the gate from the same list the assertions
+  // iterate keeps the two from drifting apart again.
   await expect.poll(async () => {
     const w = await witness(page);
-    return w && w.barCount > 10 && (w.series.ema?.length ?? 0) > 0 ? "ready" : "waiting";
-  }, { message: "the 3D grid and its studies should reach the canvas", timeout: 60_000 }).toBe("ready");
+    if (!w || w.barCount <= 10) return "waiting";
+    return ASSERTED_STUDIES.every((k) => (w.series[k]?.length ?? 0) > 0) ? "ready" : "waiting";
+  }, { message: "the 3D grid and every asserted study should reach the canvas", timeout: 60_000 }).toBe("ready");
 
   // open the partial bucket: a session the fixture does not contain, so the grid must start a new
   // one and then hold it while the rest of the bucket's sessions are still in the future.
@@ -340,8 +352,7 @@ test("a burst on a partial 3D bucket rewrites it in place without re-keying or a
   expect(after.generation).toBeGreaterThanOrEqual(genBefore + TICKS);
 
   // the studies are ON that bucket, not one behind it, and agree with the readout
-  expect(after.series.ema?.[0]?.time).toBe(bucketKey);
-  expect(after.series.rsi?.[0]?.time).toBe(bucketKey);
+  for (const k of ASSERTED_STUDIES) expect(after.series[k]?.[0]?.time, k).toBe(bucketKey);
   expect(after.studyFailures).toEqual({});
 
   // and the resampled lane accumulates no more than the daily one does
