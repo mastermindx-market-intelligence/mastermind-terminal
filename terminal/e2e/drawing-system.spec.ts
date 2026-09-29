@@ -1631,19 +1631,49 @@ async function pickTool(page: Page, group: string, tool: string) {
  * price, so the contract holds whatever the local data serves.
  */
 async function calibratePriceBand(page: Page, saves: DrawingSavePayload[], price: { top: number; bottom: number; left: number; width: number }) {
+  // Anchor the calibration on the pane's own edges. Its LOWER anchor is therefore
+  // the price at the pane floor, which is exactly where the pane lock clamps a
+  // gesture that continues past the separator — so the expected value below is a
+  // measured control gesture, not an estimate.
+  const topY = price.top + 1, bottomY = price.bottom - 1;
   await pickTool(page, "forecasting", "pricerange");
-  await page.mouse.move(price.left + price.width * .28, price.top + 4);
+  await page.mouse.move(price.left + price.width * .28, topY);
   await page.mouse.down();
-  await page.mouse.move(price.left + price.width * .44, price.bottom - 4);
+  await page.mouse.move(price.left + price.width * .44, bottomY);
   await page.mouse.up();
   await expect.poll(() => savedPoints(saves, "pricerange").length).toBe(2);
   const values = savedPoints(saves, "pricerange").map((point) => point.p);
-  const low = Math.min(...values), high = Math.max(...values);
-  expect(high).toBeGreaterThan(low);
-  // 5% of the measured band absorbs the clamp landing on the pane edge rather than
-  // 4px inside it, while staying far tighter than any cross-scale corruption.
-  const slack = (high - low) * .05;
-  return { low: low - slack, high: high + slack };
+  const floor = Math.min(...values), ceiling = Math.max(...values);
+  expect(ceiling).toBeGreaterThan(floor);
+  // Price per pixel of pane 0, so the tolerance below is a PIXEL budget. A
+  // band-proportional tolerance is not discriminating: this chart's visible band is
+  // ~7-260, and the lowest sub-pane is MACD at ~-0.8, so 6% of the band (15) is
+  // wider than the corruption it has to catch (7.7).
+  const pricePerPixel = (ceiling - floor) / Math.max(1, bottomY - topY);
+  return { floor, ceiling, pricePerPixel };
+}
+
+type PriceBand = Awaited<ReturnType<typeof calibratePriceBand>>;
+
+/**
+ * The assertion that actually discriminates. A gesture locked to pane 0 and dragged
+ * past its floor must persist the price AT that floor — the same value the control
+ * gesture above persisted when it stopped 1px inside that floor. Band membership
+ * alone is not enough: it passes vacuously when the gesture never moved, and passes
+ * outright whenever a neighbouring pane's values fall inside the price band.
+ */
+function expectClampedToPriceFloor(value: number, band: PriceBand, what: string) {
+  const budget = band.pricePerPixel * 3;
+  expect(
+    Math.abs(value - band.floor),
+    `${what} should clamp to the price pane floor (~${band.floor.toFixed(2)} +/- ${budget.toFixed(2)}), got ${value}`,
+  ).toBeLessThanOrEqual(budget);
+}
+
+function expectInsidePriceBand(value: number, band: PriceBand, what: string) {
+  const budget = band.pricePerPixel * 3;
+  expect(value, `${what} should stay on the price scale`).toBeGreaterThanOrEqual(band.floor - budget);
+  expect(value, `${what} should stay on the price scale`).toBeLessThanOrEqual(band.ceiling + budget);
 }
 
 /**
@@ -1683,10 +1713,9 @@ test("a price-range drag crossing a pane separator persists an owner-scale value
   await expect(range).toHaveAttribute("clip-path", /drawing-pane-clip/);
 
   await expect.poll(() => savedPoints(saves, "dateandpricerange").length).toBe(2);
-  for (const point of savedPoints(saves, "dateandpricerange")) {
-    expect(point.p).toBeGreaterThanOrEqual(band.low);
-    expect(point.p).toBeLessThanOrEqual(band.high);
-  }
+  const created = savedPoints(saves, "dateandpricerange");
+  expectInsidePriceBand(created[0].p, band, "the anchor placed inside pane 0");
+  expectClampedToPriceFloor(created[1].p, band, "the endpoint dragged into the indicator pane");
 
   const box = await range.locator('rect[data-geometry="1"]').first().boundingBox();
   expect(box).not.toBeNull();
@@ -1728,10 +1757,10 @@ test("an endpoint handle dragged across a pane separator keeps the owner scale",
   await page.mouse.up();
 
   await expect.poll(() => savedPoints(saves, "dateandpricerange").length).toBe(2);
-  for (const point of savedPoints(saves, "dateandpricerange")) {
-    expect(point.p).toBeGreaterThanOrEqual(band.low);
-    expect(point.p).toBeLessThanOrEqual(band.high);
-  }
+  const edited = savedPoints(saves, "dateandpricerange");
+  expectInsidePriceBand(edited[0].p, band, "the untouched anchor");
+  // Also proves the drag actually took: an unmoved grip would still be mid-pane.
+  expectClampedToPriceFloor(edited[1].p, band, "the grip dragged into the indicator pane");
 });
 
 test("Shift+Measure crossing a pane separator keeps the owner scale", async ({ page }) => {
@@ -1759,10 +1788,9 @@ test("Shift+Measure crossing a pane separator keeps the owner scale", async ({ p
   await expect(measure).toHaveCount(1);
   await expect(measure).toHaveAttribute("clip-path", /drawing-pane-clip/);
   await expect.poll(() => savedPoints(saves, "measure").length).toBe(2);
-  for (const point of savedPoints(saves, "measure")) {
-    expect(point.p).toBeGreaterThanOrEqual(band.low);
-    expect(point.p).toBeLessThanOrEqual(band.high);
-  }
+  const measured = savedPoints(saves, "measure");
+  expectInsidePriceBand(measured[0].p, band, "the Shift+Measure origin");
+  expectClampedToPriceFloor(measured[1].p, band, "the Shift+Measure endpoint in the indicator pane");
 });
 
 /**
