@@ -1,11 +1,11 @@
 # Terminal Visual Intelligence Layer — chart-settings candidate recapture
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: WORKTREE_MERGE_CANDIDATE (HEAD 37772d50750ede7292a3ea84d8a899b056aa4723 + MERGE_HEAD d5e95d0d5a7289eebb0100ac4ffeb43546299ccf)
-# capturedAt: 2026-09-24T11:55:54.169410+00:00
+# capturedAtHead: 67442e893d9a5c77b022b7778125cf094144fd19 (TERMINAL-01 canonical 3D bar identity, integrated on master)
+# capturedAt: 2026-09-29T17:03:29.399170+00:00
 # Content-addressed layoutFiles + cropFiles, not ancestry, identify this capture.
 layoutFiles:
-  terminal/components/ChartPanel.tsx: "7a9364c28284b8b0e02c39a73069b8b02b9c092ca656298bf35cab90d15b0a58"
+  terminal/components/ChartPanel.tsx: "2e7a23458ca0feceff5c26ca93e13fa4ceb878828810255038b287ae34948bd4"
   terminal/components/ChartSettingsModal.tsx: "f26bd7dcbb9bd23e96546e835dec4c62c593b9c4d7412c411511005e7418146e"
   terminal/components/ChartSettingsModal.module.css: "a1685d103511e11882f8d379b22570f018e47aed88266db5ca6fec8808100b0a"
   terminal/components/DrawingSidebar.tsx: "95910121c08efa2a41bcaac02ec626a48bc98021bbbf9e611ff0b61f7baaf6d9"
@@ -19,12 +19,12 @@ layoutFiles:
   terminal/lib/suites/trend/candlePainter.ts: "8384d2bce3af939a51e88584b1436ee2898a89f0fbf1aedc09ffee624a3e12e1"
   terminal/lib/indicator-canvas/host.ts: "4f2949efb22b8c378cab1ff9d176466c4857073c14a36ee4f0eeab4ec1015a25"
 cropFiles:
-  desktop-context.png: "2b22ab5d3310633c041495a1627ac8de3f6d9132a583b6211f4b3ddbfcce9d09"
-  desktop-context-zh.png: "4d8d4ed1b2d0d30884ca388bf1d30bd10452d8f3bbde1f0d1ce946f0071ea720"
-  tablet-context.png: "086b97fe882cfdefb17eb7a5ba52b7b1f96084718166d967a2b4d64ef157239e"
-  tablet-context-zh.png: "6ca66e6419ddec64cbee02b8c2ca48e0ad59fb8e7fd6cd71a7ab908cf4b34e6a"
-  mobile-context.png: "f9f99892b6c62480a871d8d042c919e075c37af60ac3dd5f1cabef7cd6cf5dcf"
-  mobile-context-zh.png: "b2a2af550b38d0c5c8602a1888e076030813efb0186fe47fc9d6ceffff2452ca"
+  desktop-context.png: "a7e4666467346bb235954cffe85fba44a9ef35bb0ec3146a108ad1624a8cf7d8"
+  desktop-context-zh.png: "d11351dd72e88e94d61324c68fcaf5cffbcd70f545c8e9f6ee978f3c7a8745cc"
+  tablet-context.png: "64482c8cfccb3bfbd7cb62e31fbfb770d624b270aea045cef13899871c9666be"
+  tablet-context-zh.png: "b92ffea5bcd1301b9da94366017b202b3b42d3e4070ecf07cf73ee3995984de8"
+  mobile-context.png: "56b3cea12a0d3bdea2e81af04d1fe7df48afc9f8f1cc777951380e643a1455f9"
+  mobile-context-zh.png: "38879adeb3ec47455ac845c4b6cdfca46b5e91c545b9e7a6b98879223bd77dde"
 
 theme: dark
 languages: [en, zh]
