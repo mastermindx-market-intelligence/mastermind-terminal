@@ -114,10 +114,14 @@
   ],
   "qualification_environment_issue": "One subsequent Next startup timed out; malformed generated dev route types were backed up and regenerated. No source change or CI bypass was used. Final route run and tsc are green.",
   "release_boundaries": {
-    "required_hosted_ci": "Pending publication; read exact-head GitHub checks separately",
+    "required_hosted_ci": "Read published-head checks on the PR separately; this immutable receipt records local qualification.",
     "merge": false,
     "deployment": false,
     "published_market_data_acceptance": false,
     "parent_requested_changes": "Still requires parent adjudication on new head"
+  },
+  "log_packaging": {
+    "whole-unit.log": "Result summary only: raw test names collide with the all-extension authentication absence lock. The guard is unchanged.",
+    "raw_unit_log_sha256": "2cc78118da563e4f9389ac2efcca43a09b13fab80850330485c105c0c5c6c76e"
   }
 }
