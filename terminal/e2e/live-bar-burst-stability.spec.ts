@@ -21,8 +21,10 @@ import { expect, test, type Page } from "@playwright/test";
  * `__mmLiveBarGeneration`, which is how we know the ticks were genuinely ACCEPTED and we are
  * not measuring a chart that quietly rejected every packet and therefore never grew anything.
  *
- * Desktop only, for the same reason as e2e/chart-ownership-stress.spec.ts: this is renderer
- * bookkeeping, identical at every viewport.
+ * Runs at all three contract viewports. The earlier note here said "desktop only" — that was never
+ * true: the `tablet` and `mobile` projects do not ignore this file, and the assertions are exact
+ * integer bookkeeping that does not depend on layout. Verified green at 1440x900, 820x1180 and
+ * 390x844 rather than assumed.
  */
 
 const SYMBOL = "NVDA";
