@@ -12,8 +12,11 @@ WHERE IT RUNS
     (build_universe / backfill_ohlc / build_macro_symbols / fetch_fred_daily /
     refresh_crypto_ohlc) or mutates ``bars`` in place and preserves unknown keys
     (refresh_ohlc), so one pass at the end leaves the whole published universe stamped.
-    ``tests/test_nightly_wiring.py`` pins the seam — an unwired producer is invisible from
-    inside the app.
+    ``tests/test_session_anchor.py::test_the_nightly_runs_the_stamping_pass_after_the_last_ohlc_writer``
+    pins the seam — an unwired producer is invisible from inside the app. (It is NOT pinned by
+    ``tests/test_nightly_wiring.py``: that file is parameterised over the named washout /
+    opportunity / coverage bridges and never enumerates this pass, so a pointer at it reads as
+    covered while nothing checks the ordering.)
 
 WHAT IT TOUCHES
     Only ``<SYM>.json`` OHLC documents (a top-level ``bars`` list). Sidecars — ``.slice.json``,

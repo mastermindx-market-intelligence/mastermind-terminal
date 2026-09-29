@@ -250,8 +250,9 @@ def test_the_stamping_pass_walks_ohlc_documents_and_leaves_sidecars_alone(monkey
 
 
 def test_the_nightly_runs_the_stamping_pass_after_the_last_ohlc_writer(monkeypatch):
-    """An unwired producer is invisible from inside the app (tests/test_nightly_wiring.py's
-    lesson). This one has to run AFTER every OHLC writer — a document rebuilt from scratch after
+    """An unwired producer is invisible from inside the app. (That lesson comes FROM
+    tests/test_nightly_wiring.py; it does not cover this pass — THIS test is the pin.)
+    The stamper has to run AFTER every OHLC writer — a document rebuilt from scratch after
     it would ship unstamped, and the chart would fall back to a feed-phased grid for a full day.
     """
     body = (ROOT / "ops" / "terminal-data").read_text().splitlines()
@@ -267,6 +268,32 @@ def test_the_nightly_runs_the_stamping_pass_after_the_last_ohlc_writer(monkeypat
                    "ingest/build_macro_symbols.py", "ingest/fetch_fred_daily.py",
                    "ingest/refresh_crypto_ohlc.py"):
         assert line_of(writer) < stamper, f"{writer} rebuilds OHLC after the anchors are stamped"
+
+
+def test_the_seam_comments_point_at_a_test_that_actually_exists():
+    """The two artifacts that carry the stamping seam each name the test that pins it. A stale
+    node-id there is worse than no pointer: it reads as covered, and a path-existence check
+    passes because the FILE exists. Both shipped pointers named tests/test_nightly_wiring.py,
+    which is parameterised over the named washout / opportunity / coverage bridges and never
+    enumerates this pass — so nothing was checking the ordering the comments claimed was checked.
+    """
+    import re
+
+    for rel in ("ops/terminal-data", "ingest/stamp_session_anchors.py"):
+        text = (ROOT / rel).read_text()
+        # A node-id is long enough that it wraps; in a shell file the continuation line starts
+        # with "#". Rejoin lines, then heal a reference split across the wrap, so the check is
+        # about the pointer being TRUE rather than about how it happens to be formatted.
+        flat = re.sub(r"\n\s*#?\s*", " ", text)
+        flat = re.sub(r"\s*::\s*", "::", flat)
+        refs = re.findall(r"tests/([A-Za-z0-9_/]+\.py)::([A-Za-z0-9_]+)", flat)
+        assert refs, f"{rel} no longer names the test that pins the seam"
+        for fname, test in refs:
+            target = ROOT / "tests" / fname
+            assert target.exists(), f"{rel} points at tests/{fname}, which does not exist"
+            assert f"def {test}(" in target.read_text(), (
+                f"{rel} points at tests/{fname}::{test}, which that file does not define"
+            )
 
 
 def test_the_flagship_builder_stamps_its_own_rebuilt_documents():
