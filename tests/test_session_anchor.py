@@ -270,6 +270,71 @@ def test_the_nightly_runs_the_stamping_pass_after_the_last_ohlc_writer(monkeypat
         assert line_of(writer) < stamper, f"{writer} rebuilds OHLC after the anchors are stamped"
 
 
+def test_every_nightly_step_after_the_stamper_is_explicitly_classified():
+    """The ordering test above names five writers BY HAND, and a hand-written list goes stale.
+
+    ``ingest/refresh_ohlc_intl.py --days 10 --write`` already runs AFTER the stamper and is absent
+    from that list, so the enumeration would not have caught it. It happens to be safe — it does
+    ``d = json.load(open(p))`` … ``json.dump(d, …)``, a read-modify-write that round-trips the whole
+    document and therefore preserves ``session_anchor`` — but nothing was checking that, and nothing
+    stopped a NEW writer landing after line 126.
+
+    So invert the check. Instead of listing writers that must come before, classify every step that
+    comes after: adding one reds this test until somebody states whether it rebuilds per-symbol OHLC
+    documents. Fail-closed on additions rather than fail-open on omissions.
+
+    This already paid for itself on its first run: it caught ``ingest/gen_seasonal_outlook.py``, an
+    INDENTED (Mondays-only) invocation that a ``^run`` grep of the script does not match and that a
+    human reading the file top-to-bottom had missed. Hence ``ln.strip().startswith`` below rather
+    than a line-anchored match.
+    """
+    body = (ROOT / "ops" / "terminal-data").read_text().splitlines()
+    steps = [ln.strip()[len('run "$PY" '):].split()[0]
+             for ln in body if ln.strip().startswith('run "$PY" ')]
+    assert "ingest/stamp_session_anchors.py" in steps, "the stamping pass is not wired at all"
+    after = steps[steps.index("ingest/stamp_session_anchors.py") + 1:]
+
+    # Each entry states WHY it may run after the anchors are stamped. A step that rebuilds a
+    # per-symbol OHLC document from scratch does NOT belong here — move it before the stamper.
+    classified = {
+        "ingest/pull_macro_washout.py": "writes a macro washout artifact, not <SYM>.json",
+        "ingest/pull_macro_washout_history.py": "writes a macro washout artifact, not <SYM>.json",
+        "ingest/gen_slices_all.py": "writes <SYM>.slice.json, a separate file",
+        "ingest/pull_macro_opportunities.py": "writes a macro artifact, not <SYM>.json",
+        "-m": "ingest.artifact_conformance — validates artifacts, writes no OHLC",
+        "ingest/pull_macro_intel.py": "writes intel artifacts, not <SYM>.json",
+        "ingest/refresh_ohlc_intl.py": "read-modify-write on an EXISTING <SYM>.json; preserves unknown keys",
+        "ingest/hydrate_prices.py": "writes the MANIFEST only; reads bars, never writes <SYM>.json",
+        "scripts/build_data_coverage.py": "writes a coverage artifact, not <SYM>.json",
+        # Indented (Mondays-only) invocation — found by this test, missed by a `^run` grep.
+        "ingest/gen_seasonal_outlook.py": "writes <SYM>.seasonal.json; READS <SYM>.json as an offline fallback",
+    }
+    unclassified = [s for s in after if s not in classified]
+    assert not unclassified, (
+        "these nightly steps run AFTER ingest/stamp_session_anchors.py and are unclassified: "
+        f"{unclassified}. If one rebuilds a per-symbol OHLC document it must move BEFORE the "
+        "stamper, or every document it touches ships unstamped for a full day. If it is safe, "
+        "add it to `classified` with the reason."
+    )
+
+
+def test_the_one_ohlc_writer_after_the_stamper_still_round_trips_the_document():
+    """`refresh_ohlc_intl.py` is the only per-symbol OHLC writer that runs after the stamper, and it
+    is safe ONLY because it mutates a document it loaded rather than building a fresh one. Rewriting
+    it as a fresh-dict writer would silently strip `session_anchor` from every CN/HK document every
+    night, and the chart would fall back to a feed-phased grid for those symbols.
+    """
+    src = (ROOT / "ingest" / "refresh_ohlc_intl.py").read_text()
+    assert "json.load(open(p))" in src, (
+        "refresh_ohlc_intl.py no longer loads the existing document before writing it — "
+        "a fresh-dict write drops session_anchor (and every other key it does not know about)"
+    )
+    assert "json.dump(d," in src, (
+        "refresh_ohlc_intl.py no longer dumps the loaded document `d`; if it now builds its own "
+        "dict, unknown keys including session_anchor are lost"
+    )
+
+
 def test_the_seam_comments_point_at_a_test_that_actually_exists():
     """The two artifacts that carry the stamping seam each name the test that pins it. A stale
     node-id there is worse than no pointer: it reads as covered, and a path-existence check
