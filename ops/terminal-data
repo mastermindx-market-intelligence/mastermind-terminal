@@ -121,7 +121,8 @@ run "$PY" ingest/refresh_crypto_ohlc.py --write
 # in place preserving unknown keys), and it is what lets the BROWSER bucket daily sessions into
 # the same 3D bars the Golden Oracle computed on: the phase is counted from the symbol's IPO
 # session and is not derivable from the truncated feed the chart holds. Contract + rationale:
-# ingest/session_anchor.py. Seam pinned by tests/test_nightly_wiring.py.
+# ingest/session_anchor.py. Seam pinned by tests/test_session_anchor.py::
+# test_the_nightly_runs_the_stamping_pass_after_the_last_ohlc_writer.
 run "$PY" ingest/stamp_session_anchors.py
 # basket-washout state (display-tier): per-name thematic-basket peer drawdown from 252d highs,
 # the artifact gen_slices_all stamps the "washout override candidate" ⊘ class from. MUST run
