@@ -1,0 +1,470 @@
+[warmup] /terminal?symbol=NVDA → 200 in 99ms
+[warmup] /options → 200 in 199ms
+[warmup] /portfolio → 200 in 102ms
+[warmup] /alerts → 200 in 106ms
+[warmup] /analysis → 200 in 192ms
+[warmup] /discover → 200 in 103ms
+[warmup] /admin → 200 in 89ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 67ms
+[warmup] /login → 200 in 91ms
+[warmup] /api/me → 200 in 117ms
+[warmup] /api/watchlist → 200 in 42ms
+[warmup] /api/layouts → 200 in 24ms
+[warmup] 12 routes compiled in 1s
+
+Running 6 tests using 1 worker
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✘  1 [desktop] › e2e/options-surface-replay.spec.ts:7:7 › surface replay advances and preserves the cursor across layout changes (en) (9.2s)
+  ✘  2 [desktop] › e2e/options-surface-replay.spec.ts:7:7 › surface replay advances and preserves the cursor across layout changes (zh) (8.2s)
+  ✘  3 [tablet] › e2e/options-surface-replay.spec.ts:7:7 › surface replay advances and preserves the cursor across layout changes (en) (7.2s)
+  ✘  4 [tablet] › e2e/options-surface-replay.spec.ts:7:7 › surface replay advances and preserves the cursor across layout changes (zh) (8.6s)
+  ✘  5 [mobile] › e2e/options-surface-replay.spec.ts:7:7 › surface replay advances and preserves the cursor across layout changes (en) (7.1s)
+  ✘  6 [mobile] › e2e/options-surface-replay.spec.ts:7:7 › surface replay advances and preserves the cursor across layout changes (zh) (8.2s)
+
+
+  1) [desktop] › e2e/options-surface-replay.spec.ts:7:7 › surface replay advances and preserves the cursor across layout changes (en)
+
+    Error: Changing presentation must not change the selected market time
+
+    expect(received).toContain(expected) // indexOf
+
+    Expected substring: "09:30"
+    Received string:    "09:31, 2 of 2"
+
+      44 |     await page.screenshot({ path: info.outputPath(`${lang}-after-quad.png`), fullPage: false });
+      45 |     const afterLayout = await rail.getAttribute("aria-valuetext");
+    > 46 |     expect.soft(afterLayout, "Changing presentation must not change the selected market time").toContain("09:30");
+         |                                                                                                ^
+      47 |     // Install the virtual browser clock only after the real route has mounted.
+      48 |     // The production index refresh (when fixed) registers on mount, so advance via
+      49 |     // an installed clock established before the next route mount.
+        at <worktree>/terminal/e2e/options-surface-replay.spec.ts:46:96
+
+    Error: An open workspace must discover newly published frames
+
+    expect(locator).toHaveAttribute(expected) failed
+
+    Locator:  locator('.obs-surf-frame-rail')
+    Expected: "3"
+    Received: "2"
+    Timeout:  5000ms
+
+    Call log:
+      - An open workspace must discover newly published frames with timeout 5000ms
+      - waiting for locator('.obs-surf-frame-rail')
+        14 × locator resolved to <div tabindex="0" role="slider" aria-valuemin="1" aria-valuemax="2" aria-valuenow="2" class="obs-surf-frame-rail" aria-valuetext="09:31, 2 of 2" aria-label="Observed surface frames">…</div>
+           - unexpected value "2"
+
+
+      54 |     stamps.push("0932");
+      55 |     await page.clock.fastForward(61_000);
+    > 56 |     await expect.soft(rail, "An open workspace must discover newly published frames").toHaveAttribute("aria-valuemax", "3", { timeout: 5_000 });
+         |                                                                                       ^
+      57 |     const count = await rail.getAttribute("aria-valuemax");
+      58 |     await page.screenshot({ path: info.outputPath(`${lang}-after-index-growth.png`), fullPage: false });
+      59 |     await info.attach("replay-observations", { body: JSON.stringify({ lang, viewport: info.project.name, afterLayout, before, indexReads, frameCountAfterGrowth: count, synthetic: true }), contentType: "application/json" });
+        at <worktree>/terminal/e2e/options-surface-replay.spec.ts:56:87
+
+    Error: The existing shared replay owner must refresh its index
+
+    expect(received).toBeGreaterThan(expected)
+
+    Expected: > 2
+    Received:   2
+
+      58 |     await page.screenshot({ path: info.outputPath(`${lang}-after-index-growth.png`), fullPage: false });
+      59 |     await info.attach("replay-observations", { body: JSON.stringify({ lang, viewport: info.project.name, afterLayout, before, indexReads, frameCountAfterGrowth: count, synthetic: true }), contentType: "application/json" });
+    > 60 |     expect.soft(indexReads, "The existing shared replay owner must refresh its index").toBeGreaterThan(before);
+         |                                                                                        ^
+      61 |   });
+      62 | }
+      63 |
+        at <worktree>/terminal/e2e/options-surface-replay.spec.ts:60:88
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-surface-replay-sur-39758-r-across-layout-changes-en--desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-surface-replay-sur-39758-r-across-layout-changes-en--desktop/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-surface-replay-sur-39758-r-across-layout-changes-en--desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-surface-replay-sur-39758-r-across-layout-changes-en--desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [desktop] › e2e/options-surface-replay.spec.ts:7:7 › surface replay advances and preserves the cursor across layout changes (zh)
+
+    Error: Changing presentation must not change the selected market time
+
+    expect(received).toContain(expected) // indexOf
+
+    Expected substring: "09:30"
+    Received string:    "09:31, 2 of 2"
+
+      44 |     await page.screenshot({ path: info.outputPath(`${lang}-after-quad.png`), fullPage: false });
+      45 |     const afterLayout = await rail.getAttribute("aria-valuetext");
+    > 46 |     expect.soft(afterLayout, "Changing presentation must not change the selected market time").toContain("09:30");
+         |                                                                                                ^
+      47 |     // Install the virtual browser clock only after the real route has mounted.
+      48 |     // The production index refresh (when fixed) registers on mount, so advance via
+      49 |     // an installed clock established before the next route mount.
+        at <worktree>/terminal/e2e/options-surface-replay.spec.ts:46:96
+
+    Error: An open workspace must discover newly published frames
+
+    expect(locator).toHaveAttribute(expected) failed
+
+    Locator:  locator('.obs-surf-frame-rail')
+    Expected: "3"
+    Received: "2"
+    Timeout:  5000ms
+
+    Call log:
+      - An open workspace must discover newly published frames with timeout 5000ms
+      - waiting for locator('.obs-surf-frame-rail')
+        14 × locator resolved to <div tabindex="0" role="slider" aria-valuemin="1" aria-valuemax="2" aria-valuenow="2" aria-label="实测曲面帧" class="obs-surf-frame-rail" aria-valuetext="09:31, 2 of 2">…</div>
+           - unexpected value "2"
+
+
+      54 |     stamps.push("0932");
+      55 |     await page.clock.fastForward(61_000);
+    > 56 |     await expect.soft(rail, "An open workspace must discover newly published frames").toHaveAttribute("aria-valuemax", "3", { timeout: 5_000 });
+         |                                                                                       ^
+      57 |     const count = await rail.getAttribute("aria-valuemax");
+      58 |     await page.screenshot({ path: info.outputPath(`${lang}-after-index-growth.png`), fullPage: false });
+      59 |     await info.attach("replay-observations", { body: JSON.stringify({ lang, viewport: info.project.name, afterLayout, before, indexReads, frameCountAfterGrowth: count, synthetic: true }), contentType: "application/json" });
+        at <worktree>/terminal/e2e/options-surface-replay.spec.ts:56:87
+
+    Error: The existing shared replay owner must refresh its index
+
+    expect(received).toBeGreaterThan(expected)
+
+    Expected: > 2
+    Received:   2
+
+      58 |     await page.screenshot({ path: info.outputPath(`${lang}-after-index-growth.png`), fullPage: false });
+      59 |     await info.attach("replay-observations", { body: JSON.stringify({ lang, viewport: info.project.name, afterLayout, before, indexReads, frameCountAfterGrowth: count, synthetic: true }), contentType: "application/json" });
+    > 60 |     expect.soft(indexReads, "The existing shared replay owner must refresh its index").toBeGreaterThan(before);
+         |                                                                                        ^
+      61 |   });
+      62 | }
+      63 |
+        at <worktree>/terminal/e2e/options-surface-replay.spec.ts:60:88
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-surface-replay-sur-fd7af-r-across-layout-changes-zh--desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-surface-replay-sur-fd7af-r-across-layout-changes-zh--desktop/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-surface-replay-sur-fd7af-r-across-layout-changes-zh--desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-surface-replay-sur-fd7af-r-across-layout-changes-zh--desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) [tablet] › e2e/options-surface-replay.spec.ts:7:7 › surface replay advances and preserves the cursor across layout changes (en)
+
+    Error: Changing presentation must not change the selected market time
+
+    expect(received).toContain(expected) // indexOf
+
+    Expected substring: "09:30"
+    Received string:    "09:31, 2 of 2"
+
+      44 |     await page.screenshot({ path: info.outputPath(`${lang}-after-quad.png`), fullPage: false });
+      45 |     const afterLayout = await rail.getAttribute("aria-valuetext");
+    > 46 |     expect.soft(afterLayout, "Changing presentation must not change the selected market time").toContain("09:30");
+         |                                                                                                ^
+      47 |     // Install the virtual browser clock only after the real route has mounted.
+      48 |     // The production index refresh (when fixed) registers on mount, so advance via
+      49 |     // an installed clock established before the next route mount.
+        at <worktree>/terminal/e2e/options-surface-replay.spec.ts:46:96
+
+    Error: An open workspace must discover newly published frames
+
+    expect(locator).toHaveAttribute(expected) failed
+
+    Locator:  locator('.obs-surf-frame-rail')
+    Expected: "3"
+    Received: "2"
+    Timeout:  5000ms
+
+    Call log:
+      - An open workspace must discover newly published frames with timeout 5000ms
+      - waiting for locator('.obs-surf-frame-rail')
+        14 × locator resolved to <div tabindex="0" role="slider" aria-valuemin="1" aria-valuemax="2" aria-valuenow="2" class="obs-surf-frame-rail" aria-valuetext="09:31, 2 of 2" aria-label="Observed surface frames">…</div>
+           - unexpected value "2"
+
+
+      54 |     stamps.push("0932");
+      55 |     await page.clock.fastForward(61_000);
+    > 56 |     await expect.soft(rail, "An open workspace must discover newly published frames").toHaveAttribute("aria-valuemax", "3", { timeout: 5_000 });
+         |                                                                                       ^
+      57 |     const count = await rail.getAttribute("aria-valuemax");
+      58 |     await page.screenshot({ path: info.outputPath(`${lang}-after-index-growth.png`), fullPage: false });
+      59 |     await info.attach("replay-observations", { body: JSON.stringify({ lang, viewport: info.project.name, afterLayout, before, indexReads, frameCountAfterGrowth: count, synthetic: true }), contentType: "application/json" });
+        at <worktree>/terminal/e2e/options-surface-replay.spec.ts:56:87
+
+    Error: The existing shared replay owner must refresh its index
+
+    expect(received).toBeGreaterThan(expected)
+
+    Expected: > 2
+    Received:   2
+
+      58 |     await page.screenshot({ path: info.outputPath(`${lang}-after-index-growth.png`), fullPage: false });
+      59 |     await info.attach("replay-observations", { body: JSON.stringify({ lang, viewport: info.project.name, afterLayout, before, indexReads, frameCountAfterGrowth: count, synthetic: true }), contentType: "application/json" });
+    > 60 |     expect.soft(indexReads, "The existing shared replay owner must refresh its index").toBeGreaterThan(before);
+         |                                                                                        ^
+      61 |   });
+      62 | }
+      63 |
+        at <worktree>/terminal/e2e/options-surface-replay.spec.ts:60:88
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-surface-replay-sur-39758-r-across-layout-changes-en--tablet/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-surface-replay-sur-39758-r-across-layout-changes-en--tablet/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-surface-replay-sur-39758-r-across-layout-changes-en--tablet/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-surface-replay-sur-39758-r-across-layout-changes-en--tablet/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4) [tablet] › e2e/options-surface-replay.spec.ts:7:7 › surface replay advances and preserves the cursor across layout changes (zh)
+
+    Error: Changing presentation must not change the selected market time
+
+    expect(received).toContain(expected) // indexOf
+
+    Expected substring: "09:30"
+    Received string:    "09:31, 2 of 2"
+
+      44 |     await page.screenshot({ path: info.outputPath(`${lang}-after-quad.png`), fullPage: false });
+      45 |     const afterLayout = await rail.getAttribute("aria-valuetext");
+    > 46 |     expect.soft(afterLayout, "Changing presentation must not change the selected market time").toContain("09:30");
+         |                                                                                                ^
+      47 |     // Install the virtual browser clock only after the real route has mounted.
+      48 |     // The production index refresh (when fixed) registers on mount, so advance via
+      49 |     // an installed clock established before the next route mount.
+        at <worktree>/terminal/e2e/options-surface-replay.spec.ts:46:96
+
+    Error: An open workspace must discover newly published frames
+
+    expect(locator).toHaveAttribute(expected) failed
+
+    Locator:  locator('.obs-surf-frame-rail')
+    Expected: "3"
+    Received: "2"
+    Timeout:  5000ms
+
+    Call log:
+      - An open workspace must discover newly published frames with timeout 5000ms
+      - waiting for locator('.obs-surf-frame-rail')
+        14 × locator resolved to <div tabindex="0" role="slider" aria-valuemin="1" aria-valuemax="2" aria-valuenow="2" aria-label="实测曲面帧" class="obs-surf-frame-rail" aria-valuetext="09:31, 2 of 2">…</div>
+           - unexpected value "2"
+
+
+      54 |     stamps.push("0932");
+      55 |     await page.clock.fastForward(61_000);
+    > 56 |     await expect.soft(rail, "An open workspace must discover newly published frames").toHaveAttribute("aria-valuemax", "3", { timeout: 5_000 });
+         |                                                                                       ^
+      57 |     const count = await rail.getAttribute("aria-valuemax");
+      58 |     await page.screenshot({ path: info.outputPath(`${lang}-after-index-growth.png`), fullPage: false });
+      59 |     await info.attach("replay-observations", { body: JSON.stringify({ lang, viewport: info.project.name, afterLayout, before, indexReads, frameCountAfterGrowth: count, synthetic: true }), contentType: "application/json" });
+        at <worktree>/terminal/e2e/options-surface-replay.spec.ts:56:87
+
+    Error: The existing shared replay owner must refresh its index
+
+    expect(received).toBeGreaterThan(expected)
+
+    Expected: > 2
+    Received:   2
+
+      58 |     await page.screenshot({ path: info.outputPath(`${lang}-after-index-growth.png`), fullPage: false });
+      59 |     await info.attach("replay-observations", { body: JSON.stringify({ lang, viewport: info.project.name, afterLayout, before, indexReads, frameCountAfterGrowth: count, synthetic: true }), contentType: "application/json" });
+    > 60 |     expect.soft(indexReads, "The existing shared replay owner must refresh its index").toBeGreaterThan(before);
+         |                                                                                        ^
+      61 |   });
+      62 | }
+      63 |
+        at <worktree>/terminal/e2e/options-surface-replay.spec.ts:60:88
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-surface-replay-sur-fd7af-r-across-layout-changes-zh--tablet/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-surface-replay-sur-fd7af-r-across-layout-changes-zh--tablet/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-surface-replay-sur-fd7af-r-across-layout-changes-zh--tablet/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-surface-replay-sur-fd7af-r-across-layout-changes-zh--tablet/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  5) [mobile] › e2e/options-surface-replay.spec.ts:7:7 › surface replay advances and preserves the cursor across layout changes (en)
+
+    Error: Changing presentation must not change the selected market time
+
+    expect(received).toContain(expected) // indexOf
+
+    Expected substring: "09:30"
+    Received string:    "09:31, 2 of 2"
+
+      44 |     await page.screenshot({ path: info.outputPath(`${lang}-after-quad.png`), fullPage: false });
+      45 |     const afterLayout = await rail.getAttribute("aria-valuetext");
+    > 46 |     expect.soft(afterLayout, "Changing presentation must not change the selected market time").toContain("09:30");
+         |                                                                                                ^
+      47 |     // Install the virtual browser clock only after the real route has mounted.
+      48 |     // The production index refresh (when fixed) registers on mount, so advance via
+      49 |     // an installed clock established before the next route mount.
+        at <worktree>/terminal/e2e/options-surface-replay.spec.ts:46:96
+
+    Error: An open workspace must discover newly published frames
+
+    expect(locator).toHaveAttribute(expected) failed
+
+    Locator:  locator('.obs-surf-frame-rail')
+    Expected: "3"
+    Received: "2"
+    Timeout:  5000ms
+
+    Call log:
+      - An open workspace must discover newly published frames with timeout 5000ms
+      - waiting for locator('.obs-surf-frame-rail')
+        14 × locator resolved to <div tabindex="0" role="slider" aria-valuemin="1" aria-valuemax="2" aria-valuenow="2" class="obs-surf-frame-rail" aria-valuetext="09:31, 2 of 2" aria-label="Observed surface frames">…</div>
+           - unexpected value "2"
+
+
+      54 |     stamps.push("0932");
+      55 |     await page.clock.fastForward(61_000);
+    > 56 |     await expect.soft(rail, "An open workspace must discover newly published frames").toHaveAttribute("aria-valuemax", "3", { timeout: 5_000 });
+         |                                                                                       ^
+      57 |     const count = await rail.getAttribute("aria-valuemax");
+      58 |     await page.screenshot({ path: info.outputPath(`${lang}-after-index-growth.png`), fullPage: false });
+      59 |     await info.attach("replay-observations", { body: JSON.stringify({ lang, viewport: info.project.name, afterLayout, before, indexReads, frameCountAfterGrowth: count, synthetic: true }), contentType: "application/json" });
+        at <worktree>/terminal/e2e/options-surface-replay.spec.ts:56:87
+
+    Error: The existing shared replay owner must refresh its index
+
+    expect(received).toBeGreaterThan(expected)
+
+    Expected: > 2
+    Received:   2
+
+      58 |     await page.screenshot({ path: info.outputPath(`${lang}-after-index-growth.png`), fullPage: false });
+      59 |     await info.attach("replay-observations", { body: JSON.stringify({ lang, viewport: info.project.name, afterLayout, before, indexReads, frameCountAfterGrowth: count, synthetic: true }), contentType: "application/json" });
+    > 60 |     expect.soft(indexReads, "The existing shared replay owner must refresh its index").toBeGreaterThan(before);
+         |                                                                                        ^
+      61 |   });
+      62 | }
+      63 |
+        at <worktree>/terminal/e2e/options-surface-replay.spec.ts:60:88
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-surface-replay-sur-39758-r-across-layout-changes-en--mobile/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-surface-replay-sur-39758-r-across-layout-changes-en--mobile/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-surface-replay-sur-39758-r-across-layout-changes-en--mobile/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-surface-replay-sur-39758-r-across-layout-changes-en--mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  6) [mobile] › e2e/options-surface-replay.spec.ts:7:7 › surface replay advances and preserves the cursor across layout changes (zh)
+
+    Error: Changing presentation must not change the selected market time
+
+    expect(received).toContain(expected) // indexOf
+
+    Expected substring: "09:30"
+    Received string:    "09:31, 2 of 2"
+
+      44 |     await page.screenshot({ path: info.outputPath(`${lang}-after-quad.png`), fullPage: false });
+      45 |     const afterLayout = await rail.getAttribute("aria-valuetext");
+    > 46 |     expect.soft(afterLayout, "Changing presentation must not change the selected market time").toContain("09:30");
+         |                                                                                                ^
+      47 |     // Install the virtual browser clock only after the real route has mounted.
+      48 |     // The production index refresh (when fixed) registers on mount, so advance via
+      49 |     // an installed clock established before the next route mount.
+        at <worktree>/terminal/e2e/options-surface-replay.spec.ts:46:96
+
+    Error: An open workspace must discover newly published frames
+
+    expect(locator).toHaveAttribute(expected) failed
+
+    Locator:  locator('.obs-surf-frame-rail')
+    Expected: "3"
+    Received: "2"
+    Timeout:  5000ms
+
+    Call log:
+      - An open workspace must discover newly published frames with timeout 5000ms
+      - waiting for locator('.obs-surf-frame-rail')
+        14 × locator resolved to <div tabindex="0" role="slider" aria-valuemin="1" aria-valuemax="2" aria-valuenow="2" aria-label="实测曲面帧" class="obs-surf-frame-rail" aria-valuetext="09:31, 2 of 2">…</div>
+           - unexpected value "2"
+
+
+      54 |     stamps.push("0932");
+      55 |     await page.clock.fastForward(61_000);
+    > 56 |     await expect.soft(rail, "An open workspace must discover newly published frames").toHaveAttribute("aria-valuemax", "3", { timeout: 5_000 });
+         |                                                                                       ^
+      57 |     const count = await rail.getAttribute("aria-valuemax");
+      58 |     await page.screenshot({ path: info.outputPath(`${lang}-after-index-growth.png`), fullPage: false });
+      59 |     await info.attach("replay-observations", { body: JSON.stringify({ lang, viewport: info.project.name, afterLayout, before, indexReads, frameCountAfterGrowth: count, synthetic: true }), contentType: "application/json" });
+        at <worktree>/terminal/e2e/options-surface-replay.spec.ts:56:87
+
+    Error: The existing shared replay owner must refresh its index
+
+    expect(received).toBeGreaterThan(expected)
+
+    Expected: > 2
+    Received:   2
+
+      58 |     await page.screenshot({ path: info.outputPath(`${lang}-after-index-growth.png`), fullPage: false });
+      59 |     await info.attach("replay-observations", { body: JSON.stringify({ lang, viewport: info.project.name, afterLayout, before, indexReads, frameCountAfterGrowth: count, synthetic: true }), contentType: "application/json" });
+    > 60 |     expect.soft(indexReads, "The existing shared replay owner must refresh its index").toBeGreaterThan(before);
+         |                                                                                        ^
+      61 |   });
+      62 | }
+      63 |
+        at <worktree>/terminal/e2e/options-surface-replay.spec.ts:60:88
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-surface-replay-sur-fd7af-r-across-layout-changes-zh--mobile/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-surface-replay-sur-fd7af-r-across-layout-changes-zh--mobile/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-surface-replay-sur-fd7af-r-across-layout-changes-zh--mobile/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-surface-replay-sur-fd7af-r-across-layout-changes-zh--mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  6 failed
+    [desktop] › e2e/options-surface-replay.spec.ts:7:7 › surface replay advances and preserves the cursor across layout changes (en)
+    [desktop] › e2e/options-surface-replay.spec.ts:7:7 › surface replay advances and preserves the cursor across layout changes (zh)
+    [tablet] › e2e/options-surface-replay.spec.ts:7:7 › surface replay advances and preserves the cursor across layout changes (en)
+    [tablet] › e2e/options-surface-replay.spec.ts:7:7 › surface replay advances and preserves the cursor across layout changes (zh)
+    [mobile] › e2e/options-surface-replay.spec.ts:7:7 › surface replay advances and preserves the cursor across layout changes (en)
+    [mobile] › e2e/options-surface-replay.spec.ts:7:7 › surface replay advances and preserves the cursor across layout changes (zh)
