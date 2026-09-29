@@ -198,9 +198,17 @@ for current, dirnames, filenames in os.walk(runtime, topdown=True, followlinks=F
         f"D\0{relative_dir}\0{stat.S_IMODE(current_meta.st_mode):o}\n".encode()
     )
     # Python bytecode caches are derived, gitignored state this owner provably
-    # cannot clean: `git clean -fd` keeps ignored paths, so one stray import under
-    # the canonical `ops/` refused this owner its own bundle for good and forced a
-    # temporary second bundle path onto every later release (#483). The production
+    # cannot clean: `git clean -fd` keeps ignored paths, so one stray root import
+    # under the canonical `ops/` aborts the deploy at its FIRST gate, before any
+    # work, and only an out-of-band `rm -rf` clears it. Measured on the production
+    # host, not inferred: three releases died on this in five days --
+    # deploy-sol-ci-scroll-hotfix-20260924T1451Z, deploy-paper-research-20260925-
+    # 8bc5f946 and deploy-static-boundary-repair-20260928T0025Z -- each ending in
+    # `ValueError: preflight runtime must not contain __pycache__` and
+    # `FATAL: no complete trusted ... bundle is available`, and each rescued by a
+    # manual re-run minutes later that selected this same canonical bundle
+    # (runtime_sha256=accd6734...). So the cost is a hard, hands-on deploy abort
+    # with a healthy bundle sitting right there (#483). The production
     # source-audit policy already classifies __pycache__ as generated_python_cache,
     # so classify it the same way here: custody is still proven, the contents are
     # never descended into, and nothing inside reaches the runtime digest.
