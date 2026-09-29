@@ -58,6 +58,8 @@ export interface ModuleCtx {
 export type XRef = number | "right"; // bar index, or viewport right edge
 
 interface PrimBase {
+  /** Absent = owning suite y-space. Price annotations reuse the existing price-pane projection. */
+  coordinateSpace?: "price";
   id: string;          // stable within a compute pass (used for tooltip linkage / debugging)
   z?: number;          // draw order within the module output (default 0; higher = on top)
   minPxPerBar?: number; // optional density gate: hide when barWidth(px) < this (declutter zoom-out)
