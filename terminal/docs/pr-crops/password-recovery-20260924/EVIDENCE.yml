@@ -1,0 +1,27 @@
+# Password recovery — responsive browser evidence
+# Captured from the implementation commit below with the real Terminal UI and fixture Supabase transport.
+capturedAtHead: 023830936fa93fd93fa4fa90a25a0ba65d8ade5f
+capture_date: 2026-09-24
+surface: /terminal?signin=1
+recovery_surface: /reset-password
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900, language: en }
+  - { name: tablet, width: 820, height: 1180, language: zh }
+  - { name: mobile, width: 390, height: 844, language: en }
+command: "CI=1 TERMINAL_E2E_PORT=3119 npx playwright test e2e/password-recovery.spec.ts"
+result: "6 passed"
+assertions:
+  - canonical sign-in sheet exposes Forgot password / 忘记密码
+  - recovery request uses the typed email and same-origin /auth/callback?next=%2Freset-password
+  - success copy does not reveal whether an account exists
+  - direct or expired /reset-password fails closed without password inputs
+  - all three supported widths have no horizontal document overflow
+files:
+  - desktop-password-recovery.png
+  - tablet-password-recovery.png
+  - mobile-password-recovery.png
+  - desktop-password-reset-invalid.png
+  - tablet-password-reset-invalid.png
+  - mobile-password-reset-invalid.png

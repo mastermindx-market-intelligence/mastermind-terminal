@@ -1,0 +1,104 @@
+{
+  "sourceRevision": "79dbe3f2431b9e21cabf23071f02eab5add57eb4",
+  "sourceBodiesChanged": false,
+  "transport": "local interception",
+  "productionProof": false,
+  "independentReviewRequired": false,
+  "checks": [
+    {
+      "name": "chromium-1440-en-light: exact Technology population",
+      "passed": true,
+      "details": "Technology\n\nCompany table · Exact companies in the selected sector\n\n2026-09-25 · 79 names · 1D\n\nMARKET READ\n\nON leads 1D performance (+5.54%); 54 of 79 observed names are up. NVDA is the largest company in scope.\n\nSector\nTechnology · XLK\nCommunication Services · XLC\nHealth Care · XLV\nEnergy · XLE\nConsumer Discretionary · XLY\nUtilities · XLU\nFinancials · XLF\nConsumer Staples · XLP\nIndustrials · XLI\nReal Estate · XLRE\nMaterials · XLB\nPerformance window\n1D\n1W\nMTD\n1M\n3M\n6M\nYTD\n1Y\nIndustry\nAll industries\nInformation Technology Services\nSoftware - Infrastructure\nSemiconductors\nElectronic Components\nConsumer Electronics\nSemiconductor Equipment & Materials\nSoftware - Application\nCommunication Equipment\nComputer Hardware\nSolar\nScientific & Technical Instruments\nMarket-cap band\nAll market caps\n≥ $200B\n$50–200B\n$10–50B\n< $10B\nFind a company\nDisplay order\nSource order\nPerformance\nMarket cap\nTicker\n79 / 79 shown\nReview sources →\nSELECTED COMPANY\nACN · Accenture\nInformation Technology Services · $109B\nOpen company intelligence →\nOpen sector intelligence →\nCompany\tIndustry\tMarket-cap band\tMarket cap\t1D Performance\n\nACN\nAccenture\n\tInformation Technology Services\t$50–200B\t$109B\t-0.73%\n\nADBE\nAdobe Inc.\n\tSoftware - Infrastructure\t$50–200B\t$95.0B\t-1.45%\n\nAMD\nAdvanced Micro Devices\n\tSemiconductors\t≥ $200B\t$1.03T\t+0.22%\n\nAKAM\nAkamai Technologies\n\tSoftware - Infrastructure\t$10–50B\t$15.9B\t+3.20%\n\nAPH\nAmphenol\n\tElectronic Components\t≥ $200B\t$205B\t+1.22%\n\nADI\nAnalog Devices\n\tSemiconductors\t$50–200B\t$185B\t+2.87%\n\nAAPL\nApple Inc.\n\tConsumer Electronics\t≥ $200B\t$4.90T\t+1.53%\n\nAMAT\nApplied Materials\n\tSemiconductor Equipment & Materials\t≥ $200B\t$376B\t+2.27%\n\nAPP\nAppLovin\n\tSoftware - Application\t$50–200B\t$105B\t-0.55%\n\nANET\nArista Networks\n\tCommunication Equipment\t≥ $200B\t$259B\t+0.41%\n\nADSK\nAutodesk\n\tSoftware - Application\t$10–50B\t$44.2B\t-0.92%\n\nAVGO\nBroadcom\n\tSemiconductors\t≥ $200B\t$1.67T\t+0.70%\n\nBR\nBroadridge Financial Solutions\n\tInformation Technology Services\t$10–50B\t$18.5B\t+0.68%\n\nCDNS\nCadence Design Systems\n\tSoftware - Infrastructure\t$50–200B\t$88.7B\t+1.28%\n\nCDW\nCDW Corporation\n\tInformation Technology Services\t$10–50B\t$17.4B\t-2.89%\n\nCIEN\nCiena\n\tCommunication Equipment\t$50–200B\t$50.8B\t-0.42%\n\nCSCO\nCisco\n\tCommunication Equipment\t≥ $200B\t$422B\t-0.25%\n\nCTSH\nCognizant\n\tInformation Technology Services\t$10–50B\t$25.8B\t+0.28%\n\nCOHR\nCoherent Corp.\n\tElectronic Components\t$50–200B\t$56.9B\t+1.80%\n\nGLW\nCorning Inc.\n\tElectronic Components\t$50–200B\t$133B\t+1.68%\n\nCRWD\nCrowdStrike\n\tSoftware - Infrastructure\t≥ $200B\t$266B\t-2.90%\n\nDDOG\nDatadog\n\tSoftware - Infrastructure\t$50–200B\t$92.3B\t+4.36%\n\nDELL\nDell Technologies\n\tComputer Hardware\t≥ $200B\t$341B\t+5.01%\n\nDASH\nDoorDash\n\tSoftware - Application\t$50–200B\t$81.3B\t+3.11%\n\nFFIV\nF5, Inc.\n\tSoftware - Infrastructure\t$10–50B\t$25.3B\t-0.78%\n\nFICO\nFair Isaac\n\tSoftware - Application\t$10–50B\t$18.5B\t+0.77%\n\nFSLR\nFirst Solar\n\tSolar\t$10–50B\t$18.5B\t+3.22%\n\nFLEX\nFlex Ltd.\n\tElectronic Components\t$10–50B\t$41.5B\t+2.03%\n\nFTNT\nFortinet\n\tSoftware - Infrastructure\t$50–200B\t$131B\t-2.92%\n\nGRMN\nGarmin\n\tScientific & Technical Instruments\t$50–200B\t$56.9B\t-0.31%\n\nIT\nGartner\n\tInformation Technology Services\t$10–50B\t$11.3B\t+4.78%\n\nGEN\nGen Digital\n\tSoftware - Infrastructure\t$10–50B\t$13.8B\t-6.29%\n\nGDDY\nGoDaddy\n\tSoftware - Infrastructure\t$10–50B\t$12.8B\t-3.64%\n\nHPE\nHewlett Packard Enterprise\n\tCommunication Equipment\t$50–200B\t$84.3B\t-0.91%\n\nHPQ\nHP Inc.\n\tComputer Hardware\t$10–50B\t$28.1B\t+0.51%\n\nIBM\nIBM\n\tInformation Technology Services\t≥ $200B\t$214B\t-0.68%\n\nINTC\nIntel\n\tSemiconductors\t≥ $200B\t$673B\t-3.45%\n\nINTU\nIntuit\n\tSoftware - Application\t$50–200B\t$74.1B\t-0.48%\n\nJBL\nJabil\n\tElectronic Components\t$10–50B\t$32.6B\t+1.95%\n\nJKHY\nJack Henry & Associates\n\tInformation Technology Services\t$10–50B\t$10.4B\t+0.03%\n\nKEYS\nKeysight Technologies\n\tScientific & Technical Instruments\t$50–200B\t$60.9B\t+1.29%\n\nKLAC\nKLA Corporation\n\tSemiconductor Equipment & Materials\t≥ $200B\t$244B\t+0.43%\n\nLRCX\nLam Research\n\tSemiconductor Equipment & Materials\t≥ $200B\t$384B\t+2.62%\n\nLDOS\nLeidos\n\tInformation Technology Services\t$10–50B\t$15.5B\t+0.21%\n\nLITE\nLumentum\n\tCommunication Equipment\t$50–200B\t$83.3B\t+1.36%\n\nMRVL\nMarvell Technology\n\tSemiconductors\t≥ $200B\t$233B\t+1.15%\n\nMCHP\nMicrochip Technology\n\tSemiconductors\t$10–50B\t$40.6B\t+5.36%\n\nMU\nMicron Technology\n\tSemiconductors\t≥ $200B\t$1.22T\t+0.16%\n\nMSFT\nMicrosoft\n\tSoftware - Infrastructure\t≥ $200B\t$3.70T\t+3.66%\n\nMPWR\nMonolithic Power Systems\n\tSemiconductors\t$50–200B\t$65.6B\t+2.39%\n\nMSI\nMotorola Solutions\n\tCommunication Equipment\t$50–200B\t$75.3B\t+0.43%\n\nNTAP\nNetApp\n\tComputer Hardware\t$10–50B\t$38.7B\t+1.98%\n\nNVDA\nNvidia\n\tSemiconductors\t≥ $200B\t$5.42T\t+0.22%\n\nNXPI\nNXP Semiconductors\n\tSemiconductors\t$50–200B\t$58.0B\t+3.44%\n\nON\nON Semiconductor\n\tSemiconductors\t$10–50B\t$28.5B\t+5.54%\n\nORCL\nOracle Corporation\n\tSoftware - Infrastructure\t≥ $200B\t$422B\t-1.75%\n\nPLTR\nPalantir Technologies\n\tSoftware - Infrastructure\t≥ $200B\t$463B\t-1.52%\n\nPANW\nPalo Alto Networks\n\tSoftware - Infrastructure\t≥ $200B\t$319B\t-3.89%\n\nPTC\nPTC Inc.\n\tSoftware - Application\t$10–50B\t$14.9B\t+0.52%\n\nQCOM\nQualcomm\n\tSemiconductors\t≥ $200B\t$207B\t+3.97%\n\nQ\nQnity Electronics\n\tSemiconductor Equipment & Materials\t$10–50B\t$25.6B\t+1.95%\n\nCRM\nSalesforce\n\tSoftware - Application\t$50–200B\t$196B\t-1.76%\n\nSNDK\nSandisk\n\tComputer Hardware\t≥ $200B\t$257B\t+1.38%\n\nSTX\nSeagate Technology\n\tComputer Hardware\t≥ $200B\t$206B\t+1.20%\n\nNOW\nServiceNow\n\tSoftware - Application\t$50–200B\t$142B\t-1.57%\n\nSWKS\nSkyworks Solutions\n\tSemiconductors\t$10–50B\t$13.2B\t+1.74%\n\nSMCI\nSupermicro\n\tComputer Hardware\t$10–50B\t$27.3B\t+4.22%\n\nSNPS\nSynopsys\n\tSoftware - Infrastructure\t$50–200B\t$81.4B\t+0.20%\n\nTEL\nTE Connectivity\n\tElectronic Components\t$50–200B\t$61.9B\t+2.30%\n\nTDY\nTeledyne Technologies\n\tScientific & Technical Instruments\t$10–50B\t$28.4B\t+0.35%\n\nTER\nTeradyne\n\tSemiconductor Equipment & Materials\t$50–200B\t$60.6B\t+2.75%\n\nTXN\nTexas Instruments\n\tSemiconductors\t≥ $200B\t$247B\t+2.74%\n\nTRMB\nTrimble Inc.\n\tScientific & Technical Instruments\t$10–50B\t$13.5B\t+0.28%\n\nTYL\nTyler Technologies\n\tSoftware - Application\t$10–50B\t$13.4B\t-0.39%\n\nUBER\nUber\n\tSoftware - Application\t$50–200B\t$141B\t+0.58%\n\nVRSN\nVerisign\n\tSoftware - Infrastructure\t$10–50B\t$26.4B\t-1.59%\n\nWDC\nWestern Digital\n\tComputer Hardware\t$50–200B\t$162B\t+1.44%\n\nWDAY\nWorkday, Inc.\n\tSoftware - Application\t$10–50B\t$46.0B\t-0.81%\n\nZBRA\nZebra Technologies\n\tCommunication Equipment\t$10–50B\t$17.3B\t+1.35%\n\nThis table uses the same exact population, filters and performance window as Heatmap and Matrix."
+    },
+    {
+      "name": "chromium-1440-en-light: exact source date",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: distinct Information Technology row excluded",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: answer derived from exact visible company population",
+      "passed": true,
+      "details": "MARKET READ\n\nON leads 1D performance (+5.54%); 54 of 79 observed names are up. NVDA is the largest company in scope."
+    },
+    {
+      "name": "chromium-1440-en-light: exact source order begins with owner first row",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: table controls meet 44px height",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: performance sort is URL-bound",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: exact company search is URL-bound",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: selected company is URL-bound",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: exact industry filter is URL-bound",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: exact cap-band filter is URL-bound",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: timeframe is URL-bound",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: Heatmap preserves exact company and timeframe",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: Matrix preserves exact company state without consuming it",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: Table restores filters, sort and selected company",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: detail has explicit Discover return",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: explicit return restores Table action focus",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: Sources remains contextual to Discover",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: no horizontal overflow",
+      "passed": true,
+      "details": {
+        "inner": 0,
+        "document": 0
+      }
+    },
+    {
+      "name": "chromium-1440-en-light: access loss clears exact company rows",
+      "passed": true
+    }
+  ],
+  "screenshots": [
+    {
+      "name": "chromium-1440-en-light-table.png",
+      "sha256": "f3734653c5512b04ac91d79a68473d7ac4acd80a0e862d808dbfa95e234aad94"
+    }
+  ],
+  "errors": [],
+  "passed": false,
+  "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:3157/discover?tab=sectors&sectorWorkspace=discover&sectorDiscoveryMode=table&sector=xlk&sectorMatrixTimeframe=1D&sectorCompanyTableSort=source&sectorTheme=dark\nCall log:\n\u001b[2m  - navigating to \"http://127.0.0.1:3157/discover?tab=sectors&sectorWorkspace=discover&sectorDiscoveryMode=table&sector=xlk&sectorMatrixTimeframe=1D&sectorCompanyTableSort=source&sectorTheme=dark\", waiting until \"domcontentloaded\"\u001b[22m\n\n    at /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/sector-intelligence-terminal-20260926-sol-001/terminal/e2e/tools/qualify_sector_company_table.cjs:59:14"
+}

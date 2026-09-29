@@ -140,6 +140,8 @@ const FLOW_LEX = {
   chainHeatLeanAccum: ["accumulation", "积累"],
   chainHeatLeanDist:  ["distribution", "派发"],
   chainHeatContested: ["contested", "争议"],
+  chainHeatCall:     ["Call", "认购"],
+  chainHeatPut:      ["Put", "认沽"],
   chainHeatLeanNote:  ["ask-share derived — not NBBO", "基于卖价成交比 — 非NBBO"],
   chainHeatEmpty:     ["No campaigns today — accumulation threshold ≥$3M", "今日无集群 — 累计阈值≥300万美元"],
   chainHeatLoading:   ["Loading chain heat…", "加载链式热度中…"],

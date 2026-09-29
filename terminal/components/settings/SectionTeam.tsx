@@ -3,9 +3,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Group, Msg, Row, SectionHead } from "./icons";
 import { acsDate, type DevTeamFixture, type DevTeamMember, type SectionProps } from "./types";
 import {
+  INVITE_TTL_DAYS,
   SETTING_MESSAGES,
   TEAM_ROUTE_MESSAGES,
   WORKSPACE_SETTING_COPY,
+  noEmailDeliveryLine,
   workspaceSettingDefaults,
   type TeamRole,
   type WorkspaceSettingKey,
@@ -14,6 +16,8 @@ import s from "./SectionTeam.module.css";
 
 type RosterMember = DevTeamMember;
 type PendingInvite = DevTeamFixture["invites"][number];
+/** The link a created invitation answers with. Shown once: the server keeps only its hash. */
+type InviteLink = { email: string; role: "admin" | "member"; url: string };
 
 function isKnownRole(role: string | null | undefined): role is TeamRole {
   return role === "owner" || role === "admin" || role === "member";
@@ -135,6 +139,12 @@ export default function SectionTeam({
   const [loaded, setLoaded] = useState(Boolean(devTeam));
   const [newName, setNewName] = useState("");
   const [creating, setCreating] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteRole, setInviteRole] = useState<"member" | "admin">("member");
+  const [inviteBusy, setInviteBusy] = useState(false);
+  const [inviteLink, setInviteLink] = useState<InviteLink | null>(null);
+  const [inviteCopied, setInviteCopied] = useState(false);
+  const [inviteCopyFailed, setInviteCopyFailed] = useState(false);
   // MO-PAID-083 workspace settings (MO-B F12-13): the section holds the closed defaults locally
   // and reconciles with /api/teams/<id>/settings on load. Defaults are filled in for absent keys;
   // unknown stored keys are dropped (the route never echoes them either).
@@ -538,6 +548,79 @@ export default function SectionTeam({
     await postTransfer(transfer.recipientId);
   }
 
+  /**
+   * MO-PAID-081 (seat ruling W9T_F12_17, link-only): no mail is sent, so the answer to "invite
+   * this person" is a link the owner copies and delivers themselves. The raw token exists only in
+   * this response — the server stores its hash — which is why the link replaces the form rather
+   * than sitting beside it, and why "Invite someone else" starts a new invitation instead of
+   * re-showing this one.
+   */
+  async function createInviteLink() {
+    if (!teamId || inviteBusy) return;
+    const email = inviteEmail.trim();
+    if (!email) return;
+    setInviteBusy(true);
+    setMsg(null);
+    setInviteCopied(false);
+    setInviteCopyFailed(false);
+    try {
+      const res = await fetch("/api/teams/invitations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "create", teamId, email, role: inviteRole }),
+      });
+      const body = (await res.json().catch(() => ({}))) as {
+        inviteUrl?: unknown;
+        invite?: { email?: unknown };
+        message?: unknown;
+        messageZh?: unknown;
+      };
+      const url = typeof body?.inviteUrl === "string" ? body.inviteUrl : "";
+      if (!res.ok || !url) {
+        setInviteLink(null);
+        setMsg({ kind: "err", text: routeMessage(body ?? {}, lang) || TEAM_ROUTE_MESSAGES.write_failed[lang === "zh" ? 1 : 0] });
+        return;
+      }
+      const invited = typeof body.invite?.email === "string" && body.invite.email ? body.invite.email : email;
+      setInviteLink({ email: invited, role: inviteRole, url });
+      setInviteEmail("");
+      setMsg({ kind: "ok", text: t("acsTeamInviteCreated") });
+      await loadLive();
+    } catch {
+      setInviteLink(null);
+      setMsg({ kind: "err", text: TEAM_ROUTE_MESSAGES.write_failed[lang === "zh" ? 1 : 0] });
+    } finally {
+      setInviteBusy(false);
+    }
+  }
+
+  async function copyInviteLink() {
+    if (!inviteLink) return;
+    const clipboard = typeof navigator === "undefined" ? undefined : navigator.clipboard;
+    if (!clipboard?.writeText) {
+      setInviteCopied(false);
+      setInviteCopyFailed(true);
+      return;
+    }
+    try {
+      await clipboard.writeText(inviteLink.url);
+      setInviteCopied(true);
+      setInviteCopyFailed(false);
+    } catch {
+      // A denied clipboard permission is not a lost link: the field stays selectable and the
+      // sentence says what to do instead of claiming a copy that did not happen.
+      setInviteCopied(false);
+      setInviteCopyFailed(true);
+    }
+  }
+
+  function resetInviteForm() {
+    setInviteLink(null);
+    setInviteCopied(false);
+    setInviteCopyFailed(false);
+    setMsg(null);
+  }
+
   async function createTeam() {
     if (devTeam) return;
     const name = newName.trim();
@@ -577,6 +660,11 @@ export default function SectionTeam({
   // sentence and a way out, never a titled box with nothing in it.
   const noTeam = loaded && !rosterFail && !teamId && members.length === 0;
   const showInvites = (callerRole === "owner" || callerRole === "admin") && (invites.length > 0 || invitesFail);
+  // The invitation form is the surface that would otherwise send the mail, so it is also where the
+  // dated "we do not send it" line belongs. It waits on `loaded` so it never offers an invitation
+  // for a team the first read has not confirmed, and it stays off the failure and zero-team states.
+  const canInvite =
+    loaded && !rosterFail && !noTeam && Boolean(teamId) && (callerRole === "owner" || callerRole === "admin");
 
   return (
     <>
@@ -607,6 +695,107 @@ export default function SectionTeam({
           <Row label={t("acsRoleAdmin")} desc={t("acsRoleAdminWhat")} />
           <Row label={t("acsRoleMember")} desc={t("acsRoleMemberWhat")} />
         </Group>
+
+        {canInvite || inviteLink ? (
+          <Group title={t("acsTeamInviteTitle")}>
+            {canInvite ? (
+              <p className="acs-note" data-testid="team-delivery">
+                {noEmailDeliveryLine(lang)}
+              </p>
+            ) : null}
+            {inviteLink ? (
+              <div className={s.inviteLink} data-testid="team-invite-link">
+                <label className={s.createLabel} htmlFor="acs-invite-link" data-testid="team-invite-link-label">
+                  {fill(t("acsTeamInviteFor"), { email: inviteLink.email })}
+                </label>
+                <div className={s.linkRow}>
+                  <input
+                    id="acs-invite-link"
+                    className="acs-in"
+                    type="text"
+                    readOnly
+                    value={inviteLink.url}
+                    onFocus={(event) => event.currentTarget.select()}
+                    data-testid="team-invite-url"
+                  />
+                  <button
+                    type="button"
+                    className="acs-btn"
+                    data-testid="team-invite-copy"
+                    onClick={() => void copyInviteLink()}
+                  >
+                    {inviteCopied ? t("acsTeamInviteCopied") : t("acsTeamInviteCopy")}
+                  </button>
+                </div>
+                <p className="acs-note" data-testid="team-invite-send">
+                  {fill(t("acsTeamInviteSend"), { days: String(INVITE_TTL_DAYS) })}
+                </p>
+                {inviteCopyFailed ? (
+                  <p className="acs-note" data-testid="team-invite-copy-fail">
+                    {t("acsTeamInviteCopyFail")}
+                  </p>
+                ) : null}
+                <div className={s.createBtns}>
+                  <button
+                    type="button"
+                    className="acs-btn ghost"
+                    data-testid="team-invite-another"
+                    disabled={inviteBusy}
+                    onClick={resetInviteForm}
+                  >
+                    {t("acsTeamInviteAnother")}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className={s.inviteForm} data-testid="team-invite-form">
+                <label className={s.createLabel} htmlFor="acs-invite-email">
+                  {t("acsTeamInviteEmail")}
+                </label>
+                <input
+                  id="acs-invite-email"
+                  className="acs-in"
+                  type="email"
+                  inputMode="email"
+                  autoComplete="off"
+                  maxLength={254}
+                  value={inviteEmail}
+                  disabled={inviteBusy}
+                  onChange={(event) => setInviteEmail(event.target.value)}
+                  data-testid="team-invite-email"
+                />
+                <p className="acs-note">{t("acsTeamInviteEmailHint")}</p>
+                <label className={s.createLabel} htmlFor="acs-invite-role">
+                  {t("acsTeamInviteRole")}
+                </label>
+                <select
+                  id="acs-invite-role"
+                  className={s.sel}
+                  value={inviteRole}
+                  disabled={inviteBusy}
+                  onChange={(event) => setInviteRole(event.target.value === "admin" ? "admin" : "member")}
+                  data-testid="team-invite-role"
+                >
+                  <option value="member">{t("acsRoleMember")}</option>
+                  {/* Only the owner grants administrator, so an administrator never sees the option
+                      the route would refuse (lib/teams.ts createInvite, owner_only_admin). */}
+                  {callerRole === "owner" ? <option value="admin">{t("acsRoleAdmin")}</option> : null}
+                </select>
+                <div className={s.createBtns}>
+                  <button
+                    type="button"
+                    className="acs-btn"
+                    data-testid="team-invite-create"
+                    disabled={inviteBusy || !inviteEmail.trim()}
+                    onClick={() => void createInviteLink()}
+                  >
+                    {inviteBusy ? t("acsTeamInviteCreating") : t("acsTeamInviteCreate")}
+                  </button>
+                </div>
+              </div>
+            )}
+          </Group>
+        ) : null}
 
         {showInvites ? (
           <Group title={t("acsTeamInvites")}>

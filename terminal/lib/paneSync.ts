@@ -5,10 +5,10 @@
 // so a $192 NVDA crosshair lands on BTC's candle at the same date, not at $192, and a
 // window over June 2024 lands on June 2024 rather than on whatever bar happens to sit at
 // the same array position. See lib/timeWindow.ts for why logical indexes cannot be shared.
-import type { IChartApi, ISeriesApi, Time } from "lightweight-charts";
+import type { IChartApi, ISeriesApi, SeriesType, Time } from "lightweight-charts";
 import {
   clampLogicalRange, sameLogicalRange, sampleStep, timeToMs, toLogicalRange, toTimeWindow,
-  type AxisClock, type LogicalRange,
+  type AxisClock, type LogicalRange, type TimeWindow,
 } from "./timeWindow";
 
 // `onCrosshair` fires on a peer whenever THIS bus moves or clears its crosshair: setCrosshairPosition
@@ -16,7 +16,7 @@ import {
 // own crosshair (such as its foreground price label) would never hear about a mirrored one.
 export type PaneRegistration = {
   chart: IChartApi;
-  series: ISeriesApi<any>;
+  series: ISeriesApi<SeriesType>;
   valueAt: (t: Time) => number | null;
   tf: string;
   onCrosshair?: (price: number | null, time: Time | null) => void;
@@ -37,13 +37,51 @@ const NEAREST_LEFT = -1;
 const NEAREST_RIGHT = 1;
 
 const peers = new Map<number, Peer>();
+type VisibleWindowListener = (window: TimeWindow | null) => void;
+const visibleWindowListeners = new Map<number, Set<VisibleWindowListener>>();
 let enabled = false;
 let applying = false; // crosshair re-entrancy guard (range uses the operation token below)
+let crosshairFrame: number | null = null;
+let pendingCrosshair: { fromId: number; time: Time | null } | null = null;
 let opSeq = 0;        // monotonic range-operation token
+
+function cancelPendingCrosshair() {
+  pendingCrosshair = null;
+  if (crosshairFrame == null) return;
+  if (typeof cancelAnimationFrame === "function") {
+    try { cancelAnimationFrame(crosshairFrame); } catch {}
+  }
+  crosshairFrame = null;
+}
+
+function applyCrosshair(fromId: number, time: Time | null) {
+  if (!enabled || applying) return;
+  const self = peers.get(fromId);
+  if (!self) return;
+  applying = true;
+  try {
+    peers.forEach((p, id) => {
+      if (id === fromId || p.tf !== self.tf) return;
+      try {
+        const v = time == null ? null : p.valueAt(time);
+        if (time == null || v == null) { p.chart.clearCrosshairPosition(); p.onCrosshair?.(null, null); }
+        else { p.chart.setCrosshairPosition(v, time, p.series); p.onCrosshair?.(v, time); }
+      } catch {}
+    });
+  } finally { applying = false; }
+}
+
+function flushCrosshairFrame() {
+  crosshairFrame = null;
+  const next = pendingCrosshair;
+  pendingCrosshair = null;
+  if (next) applyCrosshair(next.fromId, next.time);
+}
 
 export function setPaneSync(on: boolean) {
   enabled = on;
   if (!on) {
+    cancelPendingCrosshair();
     peers.forEach((p) => {
       // Drop the echo bookkeeping too: a `lastTarget` left over from the previous session would
       // suppress the first mirror after sync is switched back on.
@@ -55,28 +93,71 @@ export function setPaneSync(on: boolean) {
 }
 export function paneSyncEnabled() { return enabled; }
 
+function visibleWindowFor(peer: Peer, range?: LogicalRange | null): TimeWindow | null {
+  try {
+    const logical = range ?? peer.chart.timeScale().getVisibleLogicalRange();
+    if (!logical) return null;
+    const clock = clockFor(peer);
+    return clock ? toTimeWindow(clock, logical) : null;
+  } catch {
+    return null;
+  }
+}
+
+function reportVisibleWindow(id: number, peer: Peer, range?: LogicalRange | null) {
+  const listeners = visibleWindowListeners.get(id);
+  if (!listeners?.size) return;
+  const window = visibleWindowFor(peer, range);
+  for (const fn of [...listeners]) {
+    try { fn(window); } catch { /* observation never breaks chart sync */ }
+  }
+}
+
+/** Observe one already-owned pane's exact calendar window without a second chart/range bus. */
+export function subscribePaneVisibleWindow(id: number, fn: VisibleWindowListener): () => void {
+  let listeners = visibleWindowListeners.get(id);
+  if (!listeners) {
+    listeners = new Set();
+    visibleWindowListeners.set(id, listeners);
+  }
+  listeners.add(fn);
+  const peer = peers.get(id);
+  if (peer) reportVisibleWindow(id, peer);
+  return () => {
+    const current = visibleWindowListeners.get(id);
+    current?.delete(fn);
+    if (current && current.size === 0) visibleWindowListeners.delete(id);
+  };
+}
+
 export function registerPane(id: number, registration: PaneRegistration) {
   const peer: Peer = { ...registration };
   peers.set(id, peer);
+  // Effect 2 registers only after the pane owns bars + series, so an existing active-pane
+  // subscriber receives viewport truth immediately instead of waiting for a pan/zoom.
+  reportVisibleWindow(id, peer);
   installProbe();
-  return () => { if (peers.get(id) === peer) peers.delete(id); };
+  return () => {
+    if (peers.get(id) === peer) {
+      peers.delete(id);
+      const listeners = visibleWindowListeners.get(id);
+      if (listeners) for (const fn of [...listeners]) { try { fn(null); } catch {} }
+    }
+  };
 }
 
-// time === null means the pointer left the source chart → clear peers' crosshairs
+// time === null means the pointer left the source chart → clear peers' crosshairs.
+// Input devices can emit many moves inside one display frame. Only the latest sample can become
+// visible, so peer crosshair + foreground-label work is bounded to one flush per paint.
 export function broadcastCrosshair(fromId: number, time: Time | null) {
   if (!enabled || applying) return;
-  const self = peers.get(fromId);
-  applying = true;
-  try {
-    peers.forEach((p, id) => {
-      if (id === fromId || (self && p.tf !== self.tf)) return;   // only mirror same-timeframe panes
-      try {
-        const v = time == null ? null : p.valueAt(time);
-        if (time == null || v == null) { p.chart.clearCrosshairPosition(); p.onCrosshair?.(null, null); }
-        else { p.chart.setCrosshairPosition(v, time, p.series); p.onCrosshair?.(v, time); }
-      } catch { /* peer may be mid-teardown */ }
-    });
-  } finally { applying = false; }
+  pendingCrosshair = { fromId, time };
+  if (crosshairFrame != null) return;
+  if (typeof requestAnimationFrame !== "function") {
+    flushCrosshairFrame();
+    return;
+  }
+  crosshairFrame = requestAnimationFrame(flushCrosshairFrame);
 }
 
 /**
@@ -100,18 +181,23 @@ export function broadcastCrosshair(fromId: number, time: Time | null) {
  * what makes the no-overlap case terminate instead of re-driving a pinned pane every frame.
  */
 export function broadcastRange(fromId: number, range: LogicalRange | null) {
-  if (!enabled || !range) return;
+  if (!range) return;
   const self = peers.get(fromId);
   if (!self) return;
+
+  // Viewport observation is independent of cross-pane synchronization: the Brain needs
+  // the pane the user is actually viewing even when sync is OFF. Mirrored echoes are
+  // also real visible states, so report before the echo-suppression gate.
+  const clock = clockFor(self);
+  const win = clock ? toTimeWindow(clock, range) : null;
+  reportVisibleWindow(fromId, self, range);
+
+  if (!enabled || !clock || !win) return;
   if (self.echoOf != null || sameLogicalRange(range, self.lastTarget ?? null)) {
     self.echoOf = undefined;          // our own write bouncing back — absorb it, never re-broadcast
     return;
   }
   self.lastTarget = undefined;        // a genuine move: this pane owns its viewport again
-  const clock = clockFor(self);
-  if (!clock) return;
-  const win = toTimeWindow(clock, range);
-  if (!win) return;
 
   const op = ++opSeq;
   peers.forEach((p, id) => {

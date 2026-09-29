@@ -1,18 +1,14 @@
 # B-F12-B5-1 Explicit grants — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: c926a0cb847680e69f10c5ac8cbee4f7763125f3
-# capturedAt: 2026-09-10T21:59:37.220Z
+# capturedAtHead: bfe98ed4f82f30506af69e9ada13811343e386fe
+# capturedAt: 2026-09-27T10:12:59.569Z
 # capturedAtHead is informational. The lock is layoutFiles.
-# 2026-09-10 merge-heal 2 on PR #548: origin/master eab65ff7 (includes #547 b7aa0981 Accuracy). SettingsPanel.tsx and i18n.tsx re-hashed; 12 crops recaptured at merge commit c926a0cb so the rail shows Accuracy and Sharing.
-# 2026-09-19 h_t587 r2 evidence stamp at heal 67c1c3b2784712b06f71f654d9472905e0c9155e: SettingsPanel.tsx / SectionAccuracy.tsx / SectionAccuracy.module.css (and teamAccuracyRollupRoute.test.ts where pinned) re-hashed to the heal-head digest. parseTeamsResponse live team-id, no-team sentence, 503 unavailable pair, weLabel tracking drop. No sibling crop recaptured — those surfaces do not render the accuracy rollup. F13-9 recapture NEEDED (see packet lock).
-# 2026-09-19 seat merge of master 1c46b277 into #584 (B-F12-13): hash-only restamp of terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit.
-# 2026-09-19 seat merge of origin/master dd7c6dec712a (#584 B-F12-13, merge commit) into #587 (W9T_F13_9 team rollup): hash-only restamp of terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
 layoutFiles:
   terminal/components/settings/SectionSharing.tsx: "29fd9b355d50ecb3d3284b6d117b6ed50a461c7b7d45ea3d8588575fe5eca56a"
-  terminal/components/settings/SettingsPanel.tsx: "b9b2459b886ca3ebbfb919f475f876afb2467e2480a61c61fbb79d9da1793473"
-  terminal/app/settings.css: "3189163136d943431cbf52e4b5d241c105b695ba5af94c4c2e29151d537b5ef5"
-  terminal/lib/i18n.tsx: "bd49cfd3cd13dcac8afccb1f443745622cd7ec557989d6b8ce23e8879b6bbfcb"
+  terminal/components/settings/SettingsPanel.tsx: "526725b37af04f1092359a8aca1e6d3d6d62815b5913b3a7eba754e4ca020329"
+  terminal/app/settings.css: "d17ceff6469db97d3d4bcfb800503ee3c22e89b0770a1c0a88c9d39eb5a72837"
+  terminal/lib/i18n.tsx: "51276ecc8db6956c6c4e5cc67c55eab029c0b468ccb61e34f8bb92f25e42b9f8"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -40,13 +36,13 @@ files:
 measurements:
   desktop-en-shared.png: { cardWidth: 1140, groupCount: 2, revokeVisible: true, badgeText: "Read only" }
   desktop-zh-shared.png: { cardWidth: 1140, groupCount: 2, revokeVisible: true, badgeText: "仅可查看" }
-  desktop-en-empty-list.png: { cardWidth: 1140, groupCount: 2, revokeVisible: true, badgeText: "Read only" }
+  desktop-en-empty-list.png: { cardWidth: 1138, groupCount: 2, revokeVisible: true, badgeText: "Read only" }
   desktop-zh-empty-list.png: { cardWidth: 1140, groupCount: 2, revokeVisible: true, badgeText: "仅可查看" }
-  desktop-en-empty.png: { cardWidth: 1132, groupCount: 2, revokeVisible: false, badgeText: "" }
+  desktop-en-empty.png: { cardWidth: 1123, groupCount: 2, revokeVisible: false, badgeText: "" }
   desktop-zh-empty.png: { cardWidth: 1123, groupCount: 2, revokeVisible: false, badgeText: "" }
   mobile-en-shared.png: { cardWidth: 390, groupCount: 2, revokeVisible: true, badgeText: "Read only" }
   mobile-zh-shared.png: { cardWidth: 390, groupCount: 2, revokeVisible: true, badgeText: "仅可查看" }
   mobile-en-empty-list.png: { cardWidth: 390, groupCount: 2, revokeVisible: true, badgeText: "Read only" }
   mobile-zh-empty-list.png: { cardWidth: 390, groupCount: 2, revokeVisible: true, badgeText: "仅可查看" }
   mobile-en-empty.png: { cardWidth: 387, groupCount: 2, revokeVisible: false, badgeText: "" }
-  mobile-zh-empty.png: { cardWidth: 386, groupCount: 2, revokeVisible: false, badgeText: "" }
+  mobile-zh-empty.png: { cardWidth: 387, groupCount: 2, revokeVisible: false, badgeText: "" }

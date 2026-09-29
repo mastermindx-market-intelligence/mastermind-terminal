@@ -1722,8 +1722,27 @@ export const LEX: Record<string, [string, string]> = {
   obSigninTitle: ["Welcome back", "欢迎回来"],
   obSigninSub: ["Sign in to pick up where you left off.", "登录以继续你上次的进度。"],
   obSignin: ["Sign in", "登录"],
+  obSigninInvalid: ["Email or password didn’t match. Try again or reset your password.", "邮箱或密码不匹配。请重试或重置密码。"],
+  obForgotPassword: ["Forgot password?", "忘记密码？"],
+  obResetNeedEmail: ["Enter your email first.", "请先输入邮箱。"],
+  obResetSent: ["If that email is registered, we sent a password-reset link.", "如果该邮箱已注册，我们已发送密码重置链接。"],
+  obResetError: ["We couldn’t send a reset link right now. Please try again.", "暂时无法发送重置链接，请稍后重试。"],
   obToSignup: ["New here? Create your account", "新用户？创建账户"],
   obToSignin: ["Already have an account? Sign in", "已有账户？登录"],
+  // password recovery
+  pwResetTitle: ["Reset your password", "重置密码"],
+  pwResetSub: ["Choose a new password for your Mastermind account.", "为你的 Mastermind 账户设置新密码。"],
+  pwResetNew: ["New password", "新密码"],
+  pwResetConfirm: ["Confirm new password", "确认新密码"],
+  pwResetShort: ["Use at least 8 characters.", "请至少使用 8 个字符。"],
+  pwResetMismatch: ["The two passwords don’t match.", "两次输入的密码不一致。"],
+  pwResetSubmit: ["Update password", "更新密码"],
+  pwResetChecking: ["Checking your reset link…", "正在验证重置链接…"],
+  pwResetInvalid: ["This reset link is invalid or expired. Request a new one from sign in.", "此重置链接无效或已过期。请从登录界面重新申请。"],
+  pwResetFailed: ["We couldn’t update your password. Request a fresh reset link and try again.", "暂时无法更新密码。请重新申请重置链接后再试。"],
+  pwResetSuccess: ["Password updated", "密码已更新"],
+  pwResetSuccessSub: ["Your new password is ready to use.", "新密码已可使用。"],
+  pwResetBack: ["Back to the Terminal", "返回终端"],
   // step 2 — preferences
   obPrefsTitle: ["Set up your desk", "布置你的工作台"],
   obPrefsSub: ["Tune the Terminal to what you follow. Everything here is optional.", "把终端调成你关注的样子。这里的一切都是可选的。"],
@@ -1983,6 +2002,24 @@ export const LEX: Record<string, [string, string]> = {
   ],
   acsTeamTransferSuccess: ["Ownership transferred to {name}.", "所有权已转移给 {name}。"],
   acsTeamTransferRetry: ["Try again", "重试"],
+  // MO-PAID-081 (packet W9T_F12_17, link-only): the Team section hands the owner a link to copy
+  // and says plainly, with a date, that no invitation mail is sent. The dated sentence itself is
+  // catalogued in lib/teams.ts beside the route answer it also serves, so the API body and the
+  // panel can never drift apart.
+  acsTeamInviteTitle: ["Invite someone", "邀请成员"],
+  acsTeamInviteEmail: ["Their email address", "对方的邮箱地址"],
+  acsTeamInviteEmailHint: ["They will need this address to sign in with.", "对方需要用这个地址登录。"],
+  acsTeamInviteRole: ["Their role", "对方的角色"],
+  acsTeamInviteCreate: ["Create invitation link", "创建邀请链接"],
+  acsTeamInviteCreating: ["Creating the link…", "正在创建链接…"],
+  acsTeamInviteCreated: ["The invitation link is ready.", "邀请链接已生成。"],
+  acsTeamInviteFor: ["Invitation link for {email}", "{email} 的邀请链接"],
+  acsTeamInviteCopy: ["Copy link", "复制链接"],
+  acsTeamInviteCopied: ["Link copied", "链接已复制"],
+  acsTeamInviteCopyFail: ["We could not copy it. Select the link and copy it yourself.", "我们无法自动复制。请选中链接后自行复制。"],
+  acsTeamInviteSend: ["Send this link to them yourself. It works for {days} days and can be used once.", "请自行把这个链接发送给对方。链接 {days} 天内有效，且只能使用一次。"],
+  acsTeamInviteAnother: ["Invite someone else", "邀请其他人"],
+  acsTeamInviteNeedEmail: ["Enter their email address first.", "请先填写对方的邮箱地址。"],
   acsWebhooks: ["Webhooks", "Webhook 回调"],
   acsWebhooksSub: ["Send signed events to an HTTPS address your team owns. Only test events are available today.", "把已签名的事件发送到团队拥有的 HTTPS 地址。目前仅支持测试事件。"],
   acsDeveloper: ["Developer access", "开发者访问"],
@@ -2511,6 +2548,16 @@ export const LEX: Record<string, [string, string]> = {
 
   xChartSnapshot: ["Chart snapshot", "图表快照"],
   xCreatedWith: ["Created with", "使用以下工具制作"],
+  // /invite — the public page an invitation link opens (MO-PAID-081, packet W9T_F12_17).
+  invTitle: ["Team invitation", "团队邀请"],
+  invIntro: ["You have been invited to join a team on Mastermind Terminal.", "有人邀请你加入 Mastermind Terminal 上的一个团队。"],
+  invChecking: ["Checking your invitation…", "正在核对你的邀请…"],
+  invAccept: ["Accept invitation", "接受邀请"],
+  invAccepting: ["Accepting…", "正在接受…"],
+  invSignIn: ["Sign in", "登录"],
+  invSignInReturn: ["After you sign in, open this invitation link again to join the team.", "登录之后，请再次打开这个邀请链接来加入团队。"],
+  invOpenTerminal: ["Open Mastermind Terminal", "打开 Mastermind Terminal"],
+  invLinkLife: ["An invitation link works for {days} days and can be used once.", "邀请链接 {days} 天内有效，且只能使用一次。"],
 
   ciQaStructure: ["Structure is verified. Topic labels are not available yet.", "结构已验证。主题标签暂不可用。"],
   ciOpenInTranscript: ["Open in the earnings call", "在电话会中查看"],
@@ -2621,6 +2668,8 @@ export const LEX: Record<string, [string, string]> = {
 
   // ---- B-PL-6 batch 1: shell, error, analysis, options hub ----
   errShellBody: ["An unexpected error occurred in the application.", "应用发生了意外错误。"],
+  wsOpenTheses: ["Your theses", "你的研究论点"],
+  wsOpenThesesFor: ["Your theses on {sym}", "你的研究论点：{sym}"],
   wsCompanyResearch: ["Company research", "公司研究"],
   wsUnresolvedSymbol: ["This symbol is not recognized", "无法识别该代码"],
   wsResearchNotOpened: ["This company research page was not opened", "无法打开该公司研究页"],
@@ -2825,6 +2874,26 @@ export const LEX: Record<string, [string, string]> = {
   wsTeamEmpty: ["Your team has not shared a workspace yet.", "你的团队还没有共享任何工作区。"],
   wsTeamReadOnly: ["Only an owner or an administrator can change a workspace the team shares.", "只有团队所有者或管理员才能修改团队共享的工作区。"],
   wsTakeCopy: ["Take your own copy", "复制一份到我的工作区"],
+  // Portfolio construction-targets settings section (MO-DELTA-003 / B-F08-13).
+  // Plain-language copy: no internal study names, no untranslated stats, no raw slugs.
+  // Settings mirrors the Holdings readout; it never trades, scores, or recommends.
+  acsPortfolioTargets: ["Portfolio targets", "组合目标权重"],
+  acsPortfolioTargetsSub: ["Your typed weight targets and drift, over the holdings you actually carry.", "针对你实际持有的仓位，查看你设定的目标权重与偏离度。"],
+  acsPortfolioTargetsLoading: ["Reading your targets…", "正在读取你的目标权重……"],
+  acsPortfolioTargetsUnreadable: ["Your targets could not be read just now. They will reappear when the read lands.", "目前无法读取你的目标权重。下次成功读取后会重新显示。"],
+  acsPortfolioTargetsEmptyTitle: ["No targets yet", "尚未设定目标权重"],
+  acsPortfolioTargetsEmptyBody: ["Targets are yours to set. Add one for any holding and the drift will appear here and on your holdings page.", "目标权重由你自行设定。任一持仓都可以添加，偏离度将同时显示在此处和持仓页。"],
+  acsPortfolioTargetsOpenHoldings: ["Open holdings page", "打开持仓页"],
+  // alerts cockpit
+  recentActivityCockpit: ["Recent activity", "近期活动"],
+  // could-not-watch
+  whatWeCouldNotWatch: ["What we could not watch today", "今天未能监控的内容"],
+  // watching list
+  whatWeAreWatching: ["What we're watching for you", "正在为你监控"],
+  // feed pane elite chip
+  eliteTop2: ["Elite — top 2% of tape", "精英 — 成交带前2%"],
+  // watchlist rail tutorial
+  openTutorial: ["Open tutorial", "打开教程"],
 };
 
 // Non-hook LEX lookup for imperative contexts (e.g. chart legend meta assembled outside React render).

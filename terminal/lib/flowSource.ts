@@ -3,8 +3,9 @@
  *
  * Extracted from app/api/flow/route.ts so BOTH the polling GET endpoint and the
  * SSE streaming endpoint (app/api/flow/stream) resolve a payload through one code
- * path: fixture in dev (FLOW_FIXTURE=1), else Python backend → R2 CDN fallback (the
- * Options Prophet published index is R2-first), with
+ * path: fixture in dev (FLOW_FIXTURE=1); in production Flow Leaders may read the
+ * co-located canonical Macro artifact first, then the normal Python backend → R2
+ * CDN fallback (the Options Prophet published index is R2-first), with
  * the proprietary server-side flowScore attached to the main feed.
  *
  * SERVER-ONLY. Imports fs + the server-only flowScore model — never import from a
@@ -59,6 +60,35 @@ const MOVES_FIXTURE_FILE = path.join(process.cwd(), "public", "data", "moves_fix
 const OI_TIME_FIXTURE_FILE = path.join(process.cwd(), "public", "data", "oi_time_fixture.json");
 const MAX_PAIN_FIXTURE_FILE = path.join(process.cwd(), "public", "data", "max_pain_fixture.json");
 const OI_CHANGE_FIXTURE_FILE = path.join(process.cwd(), "public", "data", "oi_change_fixture.json");
+
+/**
+ * Flow Leaders is produced on the same VPS by Macro and the Terminal server is already
+ * trusted to read that estate for other server-side data jobs.  Prefer the exact local
+ * published artifact when it exists: this removes an unnecessary dependency on the
+ * public R2 mirror without adding a writer or a second truth store.  Non-VPS/dev hosts
+ * simply miss this path and continue through the existing backend -> R2 chain.
+ *
+ * The env override is intentionally file-specific so tests and future topology changes
+ * do not need to mutate the broader MACRO_REPO contract.
+ */
+export function localFlowArtifactPath(f: string): string | null {
+  if (f !== "leaders") return null;
+  if (process.env.FLOW_LEADERS_LOCAL_PATH) return process.env.FLOW_LEADERS_LOCAL_PATH;
+  const macroRoot = process.env.MACRO_REPO || "/opt/macro";
+  return path.join(macroRoot, "site", "flowleaders", "leaders.json");
+}
+
+async function tryReadLocalFlowArtifact(f: string): Promise<Record<string, unknown> | null> {
+  const localPath = localFlowArtifactPath(f);
+  if (!localPath) return null;
+  try {
+    const raw = await fs.readFile(localPath, "utf8");
+    const data = JSON.parse(raw) as Record<string, unknown>;
+    return data && typeof data === "object" ? data : null;
+  } catch {
+    return null;
+  }
+}
 
 
 /**
@@ -950,6 +980,10 @@ export function upstreamSourceOrder(f: string): FlowUpstreamSource[] {
 }
 
 export async function tryFetchUpstream(f: string): Promise<Record<string, unknown> | null> {
+  if (f === "leaders") {
+    const local = await tryReadLocalFlowArtifact(f);
+    if (local) return local;
+  }
   if (f === "manifest") {
     try {
       const raw = await fs.readFile(MANIFEST_FIXTURE_FILE, "utf8");
