@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { flowGet, flowGetFresh } from "@/lib/flowClientCache";
 import { useLang, type Lang } from "@/lib/i18n";
 import { makeProphetT } from "./prophetStrings";
+import { OptionsAlphaInvestigation } from "./OptionsAlphaInvestigation";
 import {
   normalizeOptionsAlphaMeasuredFeed,
   type OptionsAlphaMeasuredFeed,
@@ -554,7 +555,7 @@ function MeasuredEvidenceSection({
   lang: Lang;
 }) {
   const copy = measuredCopy(lang);
-  const visible = feed?.events.slice(0, 6) ?? [];
+  const visible = feed?.events ?? [];
   return (
     <section className="obs-options-alpha-section" data-testid="options-alpha-measured-evidence">
       <div className="obs-options-alpha-section-head">
@@ -581,10 +582,11 @@ function MeasuredEvidenceSection({
           <Metric label={copy.buildClock} value={feed.asof ?? "—"} />
         </div>
       )}
-      {visible.length > 0 ? (
-        <div className="obs-options-alpha-candidate-grid">
-          {visible.map((event) => <MeasuredEvidenceCard key={event.id} event={event} lang={lang} />)}
-        </div>
+      {feed ? (
+        <OptionsAlphaInvestigation
+          feed={feed} failed={failed} lang={lang}
+          renderEvent={(event) => <MeasuredEvidenceCard event={event} lang={lang} />}
+        />
       ) : (
         <p className="obs-options-alpha-empty">{failed ? copy.loadFailed : copy.unavailable}</p>
       )}
@@ -635,16 +637,31 @@ export function OptionsAlphaView() {
     return () => window.clearInterval(timer);
   }, [fetchData, fetchMeasured]);
 
-  if (loading && !payload) return <div className="obs-options-alpha-state">{t("loading")}</div>;
-  if (error && !payload) {
+  // Each source owns its own availability. A missing shadow projection must not
+  // hide measured activity that was fetched successfully from the separate feed.
+  if (loading && !payload && !measuredFeed && !measuredError) {
+    return <div className="obs-options-alpha-state">{t("loading")}</div>;
+  }
+  if (!payload) {
     return (
-      <div className="obs-options-alpha-state">
-        <span>{t("optionsLoadError")}</span>
-        <button className="obs-chip" onClick={fetchData}>{t("retry")}</button>
-      </div>
+      <section className="obs-options-alpha" data-testid="options-alpha-desk">
+        <header className="obs-options-alpha-head">
+          <div className="obs-options-alpha-title">
+            <span>{t("optionsAlphaEyebrow")}</span>
+            <h2>{t("optionsAlphaTitle")}</h2>
+            <p>{t("optionsAlphaProvenance")}</p>
+          </div>
+        </header>
+        <div className="obs-options-alpha-scroll obs-scroll">
+          <MeasuredEvidenceSection key="measured" feed={measuredFeed} failed={measuredError} lang={lang} />
+          <div className="obs-options-alpha-state" data-testid="options-alpha-shadow-unavailable">
+            <span>{loading ? t("loading") : t("optionsLoadError")}</span>
+            {error && <button className="obs-chip" onClick={fetchData}>{t("retry")}</button>}
+          </div>
+        </div>
+      </section>
     );
   }
-  if (!payload) return null;
 
   // These are producer-owned lifecycle assessments. Do not synthesize readiness
   // by re-bucketing lower-level engines in the browser.
@@ -683,6 +700,7 @@ export function OptionsAlphaView() {
             <span>{t("optionsStaleBody")}</span>
           </div>
         )}
+        <MeasuredEvidenceSection key="measured" feed={measuredFeed} failed={measuredError} lang={lang} />
         <PortfolioBoundary payload={payload} t={t} />
 
         <section className="obs-options-alpha-section" data-testid="options-alpha-fires-section">
@@ -698,8 +716,6 @@ export function OptionsAlphaView() {
             </div>
           ) : <p className="obs-options-alpha-empty">{t("optionsNoFires")}</p>}
         </section>
-
-        <MeasuredEvidenceSection feed={measuredFeed} failed={measuredError} lang={lang} />
 
         <AccrualSection payload={payload} lang={lang} t={t} />
 
