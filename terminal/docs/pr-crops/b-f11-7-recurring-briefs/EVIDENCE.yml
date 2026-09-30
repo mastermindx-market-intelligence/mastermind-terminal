@@ -1,16 +1,14 @@
-# 2026-09-19 m_f119_detail: hash-only restamp of AlertsCockpit.tsx (adds kind:"thesis" to thesis detail return) — crops unchanged
 # B-F11-7 Recurring briefs — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: ec790e040d1f0fce5c6df7b64aa2692228a1df13
-# capturedAt: 2026-09-13T06:44:08.252Z
+# capturedAtHead: 365fb45d7aa4fbb00a1f5c0058db018487eebab1
+# capturedAt: 2026-09-20T04:13:30.167Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/briefs/BriefsInbox.tsx: "7ab9a0c9ffcad73e430593e7fd7eec72de56cab22d65344c0346875b4b66cde5"
-  terminal/components/briefs/BriefSubscribeControls.tsx: "ae6cd7b26f6ce48b2bc56e98ec7eedf72d163b1e04ae95d9b951d7c1b8ab9a56"
-  terminal/components/briefs/briefs.module.css: "bdec4855420f396e8ad30565741c70904d55090310298e396f75e3e44c41b573"
-  terminal/lib/briefs.ts: "45e085b000b79481d5a7ad0b73ab9f76300d21efde8e64bc0d9ef36f0a9159cb"
-  terminal/components/alerts/AlertsCockpit.tsx: "468a506890408b90a5621982a178fcef4ebf711e0d8bbb9428de78a4abd3f8a7"
+  terminal/components/briefs/BriefsInbox.tsx: "6c5632a294325c2b7f9464a84a4fc53c9312956378222136924089ff9194faac"
+  terminal/components/briefs/briefs.module.css: "659fda1d0b0eeef68545c47862a90b4357a49a34249515d18d6e502f6dd6d55a"
+  terminal/lib/briefs.ts: "cfa98488ea3d56aac20316c07de8bc045ffa712cb4d0db639e6ef0e570faf122"
+  terminal/components/alerts/AlertsCockpit.tsx: "8b2282a15601664de1204f1593002c53f1c6d0420a92e5b4f4eb2e850b050c79"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -25,10 +23,10 @@ harness:
   empty-1440-zh.png: { kind: empty, lang: zh, viewport: desktop }
   empty-390.png: { kind: empty, lang: en, viewport: mobile }
   empty-390-zh.png: { kind: empty, lang: zh, viewport: mobile }
-  subscribe-1440.png: { kind: subscribe, lang: en, viewport: desktop }
-  subscribe-1440-zh.png: { kind: subscribe, lang: zh, viewport: desktop }
-  subscribe-390.png: { kind: subscribe, lang: en, viewport: mobile }
-  subscribe-390-zh.png: { kind: subscribe, lang: zh, viewport: mobile }
+  schedule-1440.png: { kind: schedule, lang: en, viewport: desktop }
+  schedule-1440-zh.png: { kind: schedule, lang: zh, viewport: desktop }
+  schedule-390.png: { kind: schedule, lang: en, viewport: mobile }
+  schedule-390-zh.png: { kind: schedule, lang: zh, viewport: mobile }
 capture_flag: TERMINAL_E2E_FIXTURE
 capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.
 command: |
@@ -43,7 +41,7 @@ files:
   - empty-1440-zh.png
   - empty-390.png
   - empty-390-zh.png
-  - subscribe-1440.png
-  - subscribe-1440-zh.png
-  - subscribe-390.png
-  - subscribe-390-zh.png
+  - schedule-1440.png
+  - schedule-1440-zh.png
+  - schedule-390.png
+  - schedule-390-zh.png

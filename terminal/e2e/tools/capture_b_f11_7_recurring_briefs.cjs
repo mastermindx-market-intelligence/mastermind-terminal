@@ -2,7 +2,7 @@
 /**
  * B-F11-7 Recurring briefs — dark evidence crops.
  *
- * Playwright against /alerts (inbox) and /analysis?view=theses (subscribe).
+ * Playwright against /alerts only: central schedule composer + inbox states.
  * Dark only (DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06).
  * Capture flag TERMINAL_E2E_FIXTURE suppresses the Next.js N indicator.
  *
@@ -24,7 +24,6 @@ const REPO = join(ROOT, "..");
 const OUT = join(ROOT, "docs", "pr-crops", "b-f11-7-recurring-briefs");
 const LAYOUT_FILES = [
   "terminal/components/briefs/BriefsInbox.tsx",
-  "terminal/components/briefs/BriefSubscribeControls.tsx",
   "terminal/components/briefs/briefs.module.css",
   "terminal/lib/briefs.ts",
   "terminal/components/alerts/AlertsCockpit.tsx",
@@ -36,6 +35,7 @@ const VIEWPORTS = {
   mobile: { width: 390, height: 844 },
 };
 const THESIS = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+const WATCHLIST = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
 const READY_BODY = {
   target: { kind: "thesis", id: THESIS, name: "NVDA cycle", version_or_asof: "v3" },
   market_read: [
@@ -72,6 +72,31 @@ const LIST_DELIVERIES = [
     },
   },
 ];
+const LIST_SUBSCRIPTIONS = [
+  {
+    subscriptionId: "11111111-1111-4111-8111-111111111111",
+    userId: "fixture-user",
+    targetKind: "thesis",
+    targetId: THESIS,
+    targetName: "NVDA cycle",
+    cadence: "daily_after_us_close",
+    delivery: "in_product_inbox",
+    state: "active",
+    createdAt: "2026-09-11T20:00:00.000Z",
+  },
+  {
+    subscriptionId: "22222222-2222-4222-8222-222222222222",
+    userId: "fixture-user",
+    targetKind: "watchlist",
+    targetId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+    targetName: "Semis",
+    cadence: "weekly_saturday",
+    delivery: "in_product_inbox",
+    state: "paused",
+    createdAt: "2026-09-10T20:00:00.000Z",
+  },
+];
+
 const SHOTS = [
   { viewport: "desktop", lang: "en", kind: "list", file: "list-1440.png" },
   { viewport: "desktop", lang: "zh", kind: "list", file: "list-1440-zh.png" },
@@ -81,10 +106,10 @@ const SHOTS = [
   { viewport: "desktop", lang: "zh", kind: "empty", file: "empty-1440-zh.png" },
   { viewport: "mobile", lang: "en", kind: "empty", file: "empty-390.png" },
   { viewport: "mobile", lang: "zh", kind: "empty", file: "empty-390-zh.png" },
-  { viewport: "desktop", lang: "en", kind: "subscribe", file: "subscribe-1440.png" },
-  { viewport: "desktop", lang: "zh", kind: "subscribe", file: "subscribe-1440-zh.png" },
-  { viewport: "mobile", lang: "en", kind: "subscribe", file: "subscribe-390.png" },
-  { viewport: "mobile", lang: "zh", kind: "subscribe", file: "subscribe-390-zh.png" },
+  { viewport: "desktop", lang: "en", kind: "schedule", file: "schedule-1440.png" },
+  { viewport: "desktop", lang: "zh", kind: "schedule", file: "schedule-1440-zh.png" },
+  { viewport: "mobile", lang: "en", kind: "schedule", file: "schedule-390.png" },
+  { viewport: "mobile", lang: "zh", kind: "schedule", file: "schedule-390-zh.png" },
 ];
 
 mkdirSync(OUT, { recursive: true });
@@ -177,7 +202,7 @@ async function assertNoNextIndicator(page, file) {
   }
 }
 
-async function mockBriefs(page, deliveries) {
+async function mockBriefs(page, deliveries, subscriptions = []) {
   await page.route("**/api/briefs/deliveries**", async (route) => {
     await route.fulfill({
       status: 200,
@@ -190,97 +215,44 @@ async function mockBriefs(page, deliveries) {
       await route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify({ subscriptions: [] }),
+        body: JSON.stringify({ subscriptions }),
       });
       return;
     }
     await route.continue();
   });
-}
-
-async function openAlerts(page, lang, viewport, deliveries) {
-  await page.setViewportSize(viewport);
-  await mockBriefs(page, deliveries);
-  await page.addInitScript((l) => {
-    localStorage.setItem("mm.lang", l);
-    localStorage.setItem("theme", "dark");
-    localStorage.setItem("theme_auto", "0");
-    document.documentElement.setAttribute("data-theme", "dark");
-    document.documentElement.setAttribute("data-lang", l);
-    document.documentElement.setAttribute("lang", l === "zh" ? "zh-CN" : "en");
-  }, lang);
-  await page.goto(`${BASE}/alerts?lang=${lang}`, { waitUntil: "domcontentloaded", timeout: 90_000 });
-  await page.getByTestId("briefs-inbox").waitFor({ state: "visible", timeout: 45_000 });
-  await stripDevOverlay(page);
-}
-
-async function openSubscribe(page, lang, viewport) {
-  await page.setViewportSize(viewport);
-  await mockBriefs(page, []);
-  const thesis = {
-    id: THESIS,
-    currentVersion: 1,
-    lifecycleState: "active",
-    subject: {
-      schema: "mastermind.thesis-subject-ref/v1",
-      kind: "issuer",
-      owner: "terminal.analysis_symbol",
-      key: "NVDA",
-      identityState: "listing_scoped",
-      listing: { symbol: "NVDA", mic: null, securityId: null },
-      companyId: null,
-      display: "NVDA · listing scoped",
-    },
-    title: "NVDA cycle",
-    updatedAt: "2026-09-11T20:00:00.000Z",
-    createdAt: "2026-09-11T20:00:00.000Z",
-    current: {
-      id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
-      thesisId: THESIS,
-      version: 1,
-      previousVersion: null,
-      transition: "create",
-      lifecycleState: "active",
-      subject: {
-        schema: "mastermind.thesis-subject-ref/v1",
-        kind: "issuer",
-        owner: "terminal.analysis_symbol",
-        key: "NVDA",
-        identityState: "listing_scoped",
-        listing: { symbol: "NVDA", mic: null, securityId: null },
-        companyId: null,
-        display: "NVDA · listing scoped",
-      },
-      content: {
-        schema: "mastermind.thesis-content/v1",
-        title: "NVDA cycle",
-        statement: "Demand will outrun supply through the next platform cycle.",
-        catalysts: [],
-        falsifiers: [],
-        risks: [],
-        horizon: "unspecified",
-        effectiveAt: null,
-        revisionNote: null,
-      },
-      clientRequestId: "crop-subscribe",
-      systemRecordedAt: "2026-09-11T20:00:00.000Z",
-      effectiveAt: null,
-    },
-    history: [],
-    historyTruncated: false,
-  };
-  await page.route("**/api/theses**", async (route) => {
-    const url = new URL(route.request().url());
-    if (url.searchParams.get("id") === THESIS) {
-      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ thesis }) });
-      return;
-    }
+  await page.route("**/api/watchlist", async (route) => {
     await route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({ theses: [thesis], truncated: false }),
+      body: JSON.stringify({
+        lists: [{ id: WATCHLIST, name: "Semis", position: 0, symbols: [] }],
+        sharedWithMe: [],
+      }),
     });
   });
+  await page.route("**/api/theses", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        theses: [{
+          id: THESIS,
+          currentVersion: 3,
+          lifecycleState: "active",
+          subject: {},
+          title: "NVDA cycle",
+          updatedAt: "2026-09-11T20:00:00.000Z",
+        }],
+        truncated: false,
+      }),
+    });
+  });
+}
+
+async function openAlerts(page, lang, viewport, deliveries, subscriptions = []) {
+  await page.setViewportSize(viewport);
+  await mockBriefs(page, deliveries, subscriptions);
   await page.addInitScript((l) => {
     localStorage.setItem("mm.lang", l);
     localStorage.setItem("theme", "dark");
@@ -289,11 +261,8 @@ async function openSubscribe(page, lang, viewport) {
     document.documentElement.setAttribute("data-lang", l);
     document.documentElement.setAttribute("lang", l === "zh" ? "zh-CN" : "en");
   }, lang);
-  await page.goto(`${BASE}/analysis?view=theses&symbol=NVDA&thesis=${THESIS}&lang=${lang}`, {
-    waitUntil: "domcontentloaded",
-    timeout: 90_000,
-  });
-  await page.getByTestId("brief-subscribe").waitFor({ state: "visible", timeout: 45_000 });
+  await page.goto(`${BASE}/alerts?lang=${lang}#briefs`, { waitUntil: "domcontentloaded", timeout: 90_000 });
+  await page.getByTestId("briefs-inbox").waitFor({ state: "visible", timeout: 45_000 });
   await stripDevOverlay(page);
 }
 
@@ -301,8 +270,8 @@ async function shoot(page, file, kind) {
   await assertNoNextIndicator(page, file);
   await page.mouse.move(0, 0);
   await page.waitForTimeout(200);
-  const target = kind === "subscribe"
-    ? page.getByTestId("brief-subscribe")
+  const target = kind === "schedule"
+    ? page.getByTestId("briefs-new-schedule")
     : page.getByTestId("briefs-inbox");
   await target.screenshot({ path: join(OUT, file) });
 }
@@ -326,10 +295,15 @@ async function main() {
         const page = await context.newPage();
         page.setDefaultTimeout(45_000);
         try {
-          if (shot.kind === "subscribe") {
-            await openSubscribe(page, shot.lang, VIEWPORTS[shot.viewport]);
-          } else {
-            await openAlerts(page, shot.lang, VIEWPORTS[shot.viewport], shot.kind === "list" ? LIST_DELIVERIES : []);
+          await openAlerts(
+            page,
+            shot.lang,
+            VIEWPORTS[shot.viewport],
+            shot.kind === "list" ? LIST_DELIVERIES : [],
+            shot.kind === "list" ? LIST_SUBSCRIPTIONS : [],
+          );
+          if (shot.kind === "schedule") {
+            await page.getByTestId("briefs-new-schedule").waitFor({ state: "visible" });
           }
           await shoot(page, shot.file, shot.kind);
           files.push(shot.file);

@@ -5,8 +5,12 @@ import {
   isBriefCadence,
   isBriefTargetKind,
   isUuid,
+  targetNameKey,
+  type BriefSubscription,
   type BriefsRouteCode,
+  type BriefTargetKind,
 } from "@/lib/briefs";
+import { lookupBriefTargetNames } from "@/lib/briefTargetNamesServer";
 
 export const runtime = "nodejs";
 
@@ -21,7 +25,7 @@ function errorBody(code: BriefsRouteCode) {
   return { error: code.toUpperCase(), message, messageZh };
 }
 
-function mapRow(row: Record<string, unknown>) {
+function mapRow(row: Record<string, unknown>, targetName?: string): BriefSubscription {
   return {
     subscriptionId: row.subscription_id,
     userId: row.user_id,
@@ -30,8 +34,9 @@ function mapRow(row: Record<string, unknown>) {
     cadence: row.cadence,
     delivery: row.delivery,
     state: row.state,
-    createdAt: row.created_at,
-  };
+    createdAt: String(row.created_at),
+    ...(targetName ? { targetName } : {}),
+  } as BriefSubscription;
 }
 
 export async function GET(req: Request) {
@@ -61,7 +66,28 @@ export async function GET(req: Request) {
     console.error("briefs subscriptions GET failed:", error);
     return NextResponse.json(errorBody("unavailable"), { status: 503 });
   }
-  return NextResponse.json({ subscriptions: (data || []).map(mapRow) });
+  const rows = (data || []) as Record<string, unknown>[];
+  let names = new Map<string, string>();
+  if (rows.length) {
+    try {
+      names = await lookupBriefTargetNames(
+        supabase,
+        user.id,
+        rows.map((row) => ({
+          kind: row.target_kind as BriefTargetKind,
+          id: String(row.target_id),
+        })),
+      );
+    } catch (err) {
+      console.error("briefs subscriptions name lookup failed:", err);
+    }
+  }
+  return NextResponse.json({
+    subscriptions: rows.map((row) => mapRow(
+      row,
+      names.get(targetNameKey(row.target_kind as BriefTargetKind, String(row.target_id))),
+    )),
+  });
 }
 
 export async function POST(req: Request) {
