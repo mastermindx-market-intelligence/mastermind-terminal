@@ -84,41 +84,31 @@ def _calendar_groups(x: pd.DataFrame, tf: str):
         known.append(x.index[nxt[0]])
     return pd.DataFrame(rows,index=pd.DatetimeIndex(labels)),pd.DatetimeIndex(known)
 
-def _groups_2w(x: pd.DataFrame, week_parity: int):
-    # Build completed calendar weeks first. The final observed week may be
-    # incomplete, but a 2W pair is emitted only when a later daily session exists
-    # after its close label, so that tail can never become retrospectively visible.
-    wk=x.resample("W-FRI").agg({"high":"max","low":"min","close":"last"}).dropna(subset=["close"])
-    n=len(wk)
-    if not n:
-        return wk,pd.DatetimeIndex([])
-    gi=np.arange(n)+int(week_parity)
-    opens=np.empty(n,dtype=bool)
-    opens[0]=True
-    opens[1:]=(gi[:-1] % 2 == 0)
-    op=np.flatnonzero(opens)
-    cp=np.append(op[1:]-1,n-1)
+def _groups_2w(x: pd.DataFrame):
+    """Match ChartPanel.resampleTf's fixed absolute-calendar 2W grid."""
+    # ChartPanel: floor(days-since-epoch of ISO-week Monday / 14). The fixed
+    # epoch makes the pairing independent of feed start, symbol IPO and prefix.
+    monday=x.index.normalize()-pd.to_timedelta(x.index.weekday,unit="D")
+    key=(monday.astype("int64")//86_400_000_000_000//14).astype("int64")
+    unique=pd.Index(key).drop_duplicates()
     rows=[]; labels=[]; known=[]
-    daily_index=x.index.values
-    for a,b in zip(op,cp):
-        label=wk.index[b]
-        pos=np.searchsorted(daily_index,np.datetime64(label),side="right")
-        if pos>=len(x):
-            continue
-        w=wk.iloc[a:b+1]
+    for i,k in enumerate(unique[:-1]):
+        idx=np.flatnonzero(key==k)
+        nxt=np.flatnonzero(key==unique[i+1])
+        w=x.iloc[idx]
         rows.append({"high":w["high"].max(),"low":w["low"].min(),"close":w["close"].iloc[-1]})
-        labels.append(label)
-        known.append(x.index[pos])
+        labels.append(x.index[idx[-1]])
+        known.append(x.index[nxt[0]])
     return pd.DataFrame(rows,index=pd.DatetimeIndex(labels)),pd.DatetimeIndex(known)
 
-def _tf_ohlc(daily: pd.Series | pd.DataFrame, tf: str, bar_anchor: int=0, week_parity: int=0):
+def _tf_ohlc(daily: pd.Series | pd.DataFrame, tf: str, bar_anchor: int=0):
     x=_ohlc(daily)
     if tf=="D":
         return x,pd.DatetimeIndex(x.index)
     if tf=="3D":
         return _groups_3d(x,bar_anchor)
     if tf=="2W":
-        return _groups_2w(x,week_parity)
+        return _groups_2w(x)
     return _calendar_groups(x,tf)
 
 def _state(x: pd.DataFrame) -> pd.DataFrame:
@@ -131,12 +121,12 @@ def _state(x: pd.DataFrame) -> pd.DataFrame:
     score=(50+(k-50)*.28+np.where(up,12,-12)+np.where(mu,16,-16)+np.where(reclaim,10,0)-np.where(wash,8,0)).clip(0,100)
     return pd.DataFrame({"k":k,"d":d,"macd":m,"signal":s,"score":score,"reclaim":reclaim.astype(float),"washout":wash.astype(float)})
 
-def feature_frame(daily: pd.Series | pd.DataFrame, bar_anchor: int=0, week_parity: int=0) -> pd.DataFrame:
+def feature_frame(daily: pd.Series | pd.DataFrame, bar_anchor: int=0) -> pd.DataFrame:
     """Point-in-time product-parity features on the daily session index."""
     dx=_ohlc(daily)
     base=pd.DataFrame(index=dx.index)
     for tf in TFS:
-        x,known=_tf_ohlc(dx,tf,bar_anchor,week_parity)
+        x,known=_tf_ohlc(dx,tf,bar_anchor)
         z=_state(x).copy()
         z["known"]=known.values
         z=z.dropna(subset=["known"]).sort_values("known").set_index("known")
