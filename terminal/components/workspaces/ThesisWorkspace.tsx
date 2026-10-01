@@ -2133,7 +2133,8 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
                   </button>
                 </div>
               )}
-              {!savedViewsUnavailable && savedViews.length === 0 && (
+              {/* An unresolved save may already exist; never pair it with an empty-store claim. */}
+              {!savedViewOperationLocked && !savedViewsUnavailable && savedViews.length === 0 && (
                 <p className={styles.savedViewsNote} data-testid="rms-saved-views-empty">{rms["savedViews.empty"]}</p>
               )}
               {savedViewNameError && <p className={styles.savedViewsNote} role="status">{rms["savedViews.nameRequired"]}</p>}
