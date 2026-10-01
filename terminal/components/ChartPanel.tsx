@@ -3036,6 +3036,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       else if (key === "ttmsq") buildTtmsq(facade, rows, pane);
       else if (key === "adx") buildAdx(facade, rows, pane);
       else if (key === "cvd") buildCvd(facade, rows, pane);
+      else if (key === "mtfconfluence") buildMtfConfluencePane(facade, rows, pane);
       else if (isSuiteKeyReg(key)) buildSuitePane(facade, rows, key, pane);
       else return false;
       liveStudyFailRef.current.delete(key);
