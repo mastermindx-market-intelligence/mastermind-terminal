@@ -43,6 +43,7 @@ export const LIVE_BAR_PROJECTION: Record<IndKey, LiveBarProjection> = {
   rsi: "inplace-series",
   stochrsi: "inplace-series",
   macd: "inplace-series",
+  mtfconfluence: "inplace-rebuild",
 
   // ── day-trade / premium studies: their builder is the single owner of both the math and the
   //    row→point mapping, so it is re-run against the series the key already owns ──
