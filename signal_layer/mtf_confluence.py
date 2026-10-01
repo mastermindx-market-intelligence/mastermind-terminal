@@ -82,7 +82,7 @@ def _calendar_groups(x: pd.DataFrame, tf: str):
         labels.append(x.index[idx[-1]])
         # Conservative availability: first observed source session of next bucket.
         known.append(x.index[nxt[0]])
-    return pd.DataFrame(rows,index=pd.DatetimeIndex(labels)),pd.DatetimeIndex(known)
+    return pd.DataFrame(rows,columns=["high","low","close"],index=pd.DatetimeIndex(labels)),pd.DatetimeIndex(known)
 
 def _groups_2w(x: pd.DataFrame):
     """Match ChartPanel.resampleTf's fixed absolute-calendar 2W grid."""
@@ -102,7 +102,7 @@ def _groups_2w(x: pd.DataFrame):
         rows.append({"high":w["high"].max(),"low":w["low"].min(),"close":w["close"].iloc[-1]})
         labels.append(x.index[idx[-1]])
         known.append(x.index[nxt[0]])
-    return pd.DataFrame(rows,index=pd.DatetimeIndex(labels)),pd.DatetimeIndex(known)
+    return pd.DataFrame(rows,columns=["high","low","close"],index=pd.DatetimeIndex(labels)),pd.DatetimeIndex(known)
 
 def _tf_ohlc(daily: pd.Series | pd.DataFrame, tf: str, bar_anchor: int=0):
     x=_ohlc(daily)
