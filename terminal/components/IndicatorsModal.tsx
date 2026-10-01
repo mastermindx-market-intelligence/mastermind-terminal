@@ -53,7 +53,7 @@ const CATS: Record<string, ClassicIndicator[]> = {
   ],
   Momentum: [
     { key: "rsi", label: "RSI" },
-    { key: "stochrsi", label: "Stochastic RSI" },
+    { key: "stochrsi", label: "Stochastic RSI" },\n    { key: "mtfconfluence", label: "MTF Momentum Confluence" },
   ],
   "Price Action": [{ key: "gaps", label: "Gap Zones" }],
   Volume: [
