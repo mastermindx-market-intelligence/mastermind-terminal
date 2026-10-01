@@ -63,7 +63,7 @@ def _groups_3d(x: pd.DataFrame, bar_anchor: int):
         rows.append({"high":w["high"].max(),"low":w["low"].min(),"close":w["close"].iloc[-1]})
         labels.append(x.index[a])
         known.append(x.index[b])
-    return pd.DataFrame(rows,index=pd.DatetimeIndex(labels)),pd.DatetimeIndex(known)
+    return pd.DataFrame(rows,columns=["high","low","close"],index=pd.DatetimeIndex(labels)),pd.DatetimeIndex(known)
 
 def _calendar_groups(x: pd.DataFrame, tf: str):
     if tf=="W":
@@ -89,7 +89,10 @@ def _groups_2w(x: pd.DataFrame):
     # ChartPanel: floor(days-since-epoch of ISO-week Monday / 14). The fixed
     # epoch makes the pairing independent of feed start, symbol IPO and prefix.
     monday=x.index.normalize()-pd.to_timedelta(x.index.weekday,unit="D")
-    key=(monday.astype("int64")//86_400_000_000_000//14).astype("int64")
+    # Convert to explicit epoch DAYS. Never divide .astype("int64") by a hardcoded
+    # nanosecond constant: pandas 3 may store DatetimeIndex at microsecond resolution.
+    epoch_days=monday.to_numpy(dtype="datetime64[D]").astype(np.int64)
+    key=np.floor_divide(epoch_days,14)
     unique=pd.Index(key).drop_duplicates()
     rows=[]; labels=[]; known=[]
     for i,k in enumerate(unique[:-1]):
