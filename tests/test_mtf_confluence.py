@@ -11,18 +11,29 @@ def _ohlc_series(n=1800):
     low=close-1.1-0.35*np.cos(x/19)
     return pd.DataFrame({"high":high,"low":low,"close":close},index=idx)
 
-def _assert_prefix(full, prefix, *, bar_anchor=0, week_parity=0):
-    a=feature_frame(prefix,bar_anchor=bar_anchor,week_parity=week_parity)
-    b=feature_frame(full,bar_anchor=bar_anchor,week_parity=week_parity).reindex(a.index)
+def _assert_prefix(full, prefix, *, bar_anchor=0):
+    a=feature_frame(prefix,bar_anchor=bar_anchor)
+    b=feature_frame(full,bar_anchor=bar_anchor).reindex(a.index)
     pd.testing.assert_frame_equal(a[COLS],b[COLS],check_exact=False,rtol=1e-10,atol=1e-10)
 
 def test_features_are_prefix_stable_and_bounded_across_phases():
     x=_ohlc_series()
     for bar_anchor in (0,1,2):
-        for week_parity in (0,1):
-            _assert_prefix(x,x.iloc[:1200],bar_anchor=bar_anchor,week_parity=week_parity)
+        _assert_prefix(x,x.iloc[:1200],bar_anchor=bar_anchor)
     f=feature_frame(x)
     assert f["setup_score"].dropna().between(0,100).all()
+
+
+def test_2w_grid_is_absolute_calendar_not_feed_or_ipo_phased():
+    from signal_layer.mtf_confluence import _groups_2w
+    x=_ohlc_series(60)
+    full,_=_groups_2w(x)
+    # Drop an arbitrary leading window: overlapping completed 2W bars retain the
+    # same last-session labels because the grid is anchored to Unix-calendar fortnights.
+    trunc,_=_groups_2w(x.iloc[7:])
+    overlap=[t for t in trunc.index if t in set(full.index)]
+    assert overlap
+    assert overlap==[t for t in full.index if t in set(trunc.index)]
 
 def test_calendar_boundaries_do_not_backdate_new_information():
     x=_ohlc_series()
