@@ -640,27 +640,38 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       ["D", p.dCol], ["3D", p.d3Col], ["W", p.wCol], ["2W", p.w2Col], ["1M", p.mCol],
     ] as const;
     const targetKnowable = rows.map(r => String(r.closeTime ?? r.time));
+    const dailyTimes = daily.map(r => String(r.time));
+    const firstDailyAfter = (t: string): string | null => {
+      let lo = 0, hi = dailyTimes.length;
+      while (lo < hi) {
+        const mid = (lo + hi) >> 1;
+        if (dailyTimes[mid] <= t) lo = mid + 1; else hi = mid;
+      }
+      return lo < dailyTimes.length ? dailyTimes[lo] : null;
+    };
     const out: ISeriesApi<any>[] = [];
     for (const [tf, color] of specs) {
-      let src = tf === "D" ? daily : resampleTf(daily, tf, sessionAnchorRef.current);
-      // The canonical resampler intentionally exposes the forming tail bar for charting.
-      // MTF confluence is different: higher-timeframe evidence is closed-bar only.
-      if (tf !== "D" && src.length) {
-        if (tf === "3D") {
-          const anchor = sessionAnchorRef.current;
-          const lastGlobalSession = anchor ? anchor.index + daily.length - 1 : null;
-          if (lastGlobalSession == null || lastGlobalSession % 3 !== 0) src = src.slice(0, -1);
-        } else {
-          // W / 2W / 1M: without the next source bucket, the live tail is not
-          // provably closed. Historical completed buckets remain untouched.
-          src = src.slice(0, -1);
-        }
-      }
+      const src = tf === "D" ? daily : resampleTf(daily, tf, sessionAnchorRef.current);
       const pts = momentumPoints(src.map(r => r.c));
+      const knownAt = src.map((bar, idx): string | null => {
+        if (tf === "D") return String(bar.time);
+        if (tf === "3D") {
+          const isTail = idx === src.length - 1;
+          if (isTail) {
+            const anchor = sessionAnchorRef.current;
+            const lastGlobalSession = anchor ? anchor.index + daily.length - 1 : null;
+            if (lastGlobalSession == null || lastGlobalSession % 3 !== 0) return null;
+          }
+          return String(bar.closeTime ?? bar.time);
+        }
+        // Calendar HTFs are deliberately one-session conservative: first visible
+        // on the first daily session after the completed bucket, never backdated.
+        return firstDailyAfter(String(bar.time));
+      });
       const aligned: (number | null)[] = Array(rows.length).fill(null);
       let j = -1;
       for (let i = 0; i < rows.length; i++) {
-        while (j + 1 < src.length && String(src[j + 1].closeTime ?? src[j + 1].time) <= targetKnowable[i]) j++;
+        while (j + 1 < src.length && knownAt[j + 1] != null && knownAt[j + 1]! <= targetKnowable[i]) j++;
         if (j >= 0) aligned[i] = pts[j].score;
       }
       const line = chart.addSeries(LineSeries, {
