@@ -1,13 +1,39 @@
-// Multi-timeframe momentum primitives. Pure, deterministic, point-in-time safe.
-// Resampling is intentionally owned by ChartPanel/sessionBars so daily-multiple phase cannot drift.
+// Multi-timeframe momentum primitives for the native Terminal MTF pane.
+// Product semantics intentionally mirror the EXISTING visible indicators:
+//   - "Stochastic RSI" in Terminal = CM_Stochastic_MTF price stochastic (H/L/C, 14,3,3)
+//   - "MACD-RSI" = TH_RSIMACD+ (EMA14-EMA60 of RSI14, signal EMA5)
+// True stochastic-of-RSI remains available under an explicit research-only name.
+export type MomentumBar = { h:number; l:number; c:number };
 export type MomentumPoint = { stochK:number|null; stochD:number|null; rsiMacd:number|null; rsiSignal:number|null; score:number|null; phase:"washout"|"reclaim"|"bull"|"rollover"|"bear"|null };
 
 const finite=(v:number|null):v is number=>v!=null&&Number.isFinite(v);
 function sma(a:(number|null)[],n:number){const o:(number|null)[]=Array(a.length).fill(null);for(let i=n-1;i<a.length;i++){const w=a.slice(i-n+1,i+1);if(w.every(finite))o[i]=w.reduce((s,v)=>s+v!,0)/n;}return o}
 function ema(a:(number|null)[],n:number){const o:(number|null)[]=Array(a.length).fill(null),k=2/(n+1);let p:number|null=null,s=0,c=0;for(let i=0;i<a.length;i++){const v=a[i];if(!finite(v))continue;if(p==null){s+=v;c++;if(c===n){p=s/n;o[i]=p}}else{p=v*k+p*(1-k);o[i]=p}}return o}
 export function wilderRsi(c:number[],n=14){const o:(number|null)[]=Array(c.length).fill(null);let g=0,l=0;for(let i=1;i<c.length;i++){const d=c[i]-c[i-1],u=Math.max(d,0),dn=Math.max(-d,0);if(i<=n){g+=u;l+=dn;if(i===n){g/=n;l/=n;o[i]=l===0?100:100-100/(1+g/l)}}else{g=(g*(n-1)+u)/n;l=(l*(n-1)+dn)/n;o[i]=l===0?100:100-100/(1+g/l)}}return o}
-export function stochRsi(c:number[],rsiLen=14,stochLen=14,kLen=3,dLen=3){const r=wilderRsi(c,rsiLen),raw:(number|null)[]=Array(c.length).fill(null);for(let i=stochLen-1;i<c.length;i++){const w=r.slice(i-stochLen+1,i+1);if(!w.every(finite))continue;const lo=Math.min(...w as number[]),hi=Math.max(...w as number[]);raw[i]=hi===lo?50:100*(r[i]!-lo)/(hi-lo)}const k=sma(raw,kLen);return{k,d:sma(k,dLen)}}
+
+/** Exact math of ChartPanel.cmStoch / the existing visible Terminal "Stochastic RSI" pane. */
+export function terminalStochastic(bars:MomentumBar[],len=14,kLen=3,dLen=3){
+  const raw:(number|null)[]=Array(bars.length).fill(null);
+  for(let i=len-1;i<bars.length;i++){
+    let hi=-Infinity,lo=Infinity;
+    for(let j=i-len+1;j<=i;j++){hi=Math.max(hi,bars[j].h);lo=Math.min(lo,bars[j].l)}
+    raw[i]=hi===lo?50:100*(bars[i].c-lo)/(hi-lo);
+  }
+  const k=sma(raw,kLen); return {k,d:sma(k,dLen)};
+}
+
+/** Research-only alternative; deliberately NOT used by product MTF pane scoring. */
+export function trueStochRsi(c:number[],rsiLen=14,stochLen=14,kLen=3,dLen=3){
+  const r=wilderRsi(c,rsiLen),raw:(number|null)[]=Array(c.length).fill(null);
+  for(let i=stochLen-1;i<c.length;i++){
+    const w=r.slice(i-stochLen+1,i+1); if(!w.every(finite))continue;
+    const lo=Math.min(...w as number[]),hi=Math.max(...w as number[]);
+    raw[i]=hi===lo?50:100*(r[i]!-lo)/(hi-lo);
+  }
+  const k=sma(raw,kLen); return{k,d:sma(k,dLen)};
+}
+
 export function rsiMacd(c:number[],rsiLen=14,fast=14,slow=60,signal=5){const r=wilderRsi(c,rsiLen),a=ema(r,fast),b=ema(r,slow);const line=c.map((_,i)=>finite(a[i])&&finite(b[i])?a[i]!-b[i]!:null);return{line,signal:ema(line,signal)}}
-export function momentumPoints(c:number[]):MomentumPoint[]{const s=stochRsi(c),m=rsiMacd(c);return c.map((_,i)=>{const k=s.k[i],d=s.d[i],ml=m.line[i],ms=m.signal[i];if(!finite(k)||!finite(d)||!finite(ml)||!finite(ms))return{stochK:k,stochD:d,rsiMacd:ml,rsiSignal:ms,score:null,phase:null};const up=k>d,macdUp=ml>ms,prevK=i?s.k[i-1]:null,prevM=i?m.line[i-1]:null,prevS=i?m.signal[i-1]:null;const reclaim=up&&k<35&&(finite(prevK)?k>prevK:true);const macdReclaim=macdUp&&ml<0&&(finite(prevM)&&finite(prevS)?prevM<=prevS:true);const washout=k<20&&d<20;const rollover=!up&&k>70;let phase:MomentumPoint["phase"]=washout?"washout":(reclaim||macdReclaim)?"reclaim":(up&&macdUp)?"bull":rollover?"rollover":"bear";let score=50;score+=(k-50)*0.28;score+=up?12:-12;score+=macdUp?16:-16;if(reclaim)score+=10;if(macdReclaim)score+=12;if(washout&&!up)score-=8;score=Math.max(0,Math.min(100,score));return{stochK:k,stochD:d,rsiMacd:ml,rsiSignal:ms,score,phase}})}
+export function momentumPoints(bars:MomentumBar[]):MomentumPoint[]{const c=bars.map(b=>b.c),s=terminalStochastic(bars),m=rsiMacd(c);return c.map((_,i)=>{const k=s.k[i],d=s.d[i],ml=m.line[i],ms=m.signal[i];if(!finite(k)||!finite(d)||!finite(ml)||!finite(ms))return{stochK:k,stochD:d,rsiMacd:ml,rsiSignal:ms,score:null,phase:null};const up=k>d,macdUp=ml>ms,prevK=i?s.k[i-1]:null,prevM=i?m.line[i-1]:null,prevS=i?m.signal[i-1]:null;const reclaim=up&&k<35&&(finite(prevK)?k>prevK:true);const macdReclaim=macdUp&&ml<0&&(finite(prevM)&&finite(prevS)?prevM<=prevS:true);const washout=k<20&&d<20;const rollover=!up&&k>70;let phase:MomentumPoint["phase"]=washout?"washout":(reclaim||macdReclaim)?"reclaim":(up&&macdUp)?"bull":rollover?"rollover":"bear";let score=50;score+=(k-50)*0.28;score+=up?12:-12;score+=macdUp?16:-16;if(reclaim)score+=10;if(macdReclaim)score+=12;if(washout&&!up)score-=8;score=Math.max(0,Math.min(100,score));return{stochK:k,stochD:d,rsiMacd:ml,rsiSignal:ms,score,phase}})}
 export type TfSnapshot={tf:string;point:MomentumPoint;weight:number};
 export function confluenceScore(xs:TfSnapshot[],bottomProximity:number|null){const live=xs.filter(x=>x.point.score!=null);if(!live.length)return null;const w=live.reduce((s,x)=>s+x.weight,0);let score=live.reduce((s,x)=>s+x.point.score!*x.weight,0)/w;const reclaims=live.filter(x=>x.point.phase==="reclaim").length;const falling=live.filter(x=>x.point.phase==="washout"||x.point.phase==="bear").length;if(bottomProximity!=null){const p=Math.max(0,Math.min(1,bottomProximity));score+=10*(1-p)}score+=Math.min(10,reclaims*3);score-=Math.max(0,falling-2)*4;return Math.max(0,Math.min(100,score))}
