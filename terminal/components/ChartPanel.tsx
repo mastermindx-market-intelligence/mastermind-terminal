@@ -63,7 +63,7 @@ import { liveDisplayEpoch, mutateLiveCandle } from "@/lib/liveCandle";
 import { isMacroSymbol, macroOnEtAxis } from "@/lib/macroSymbols";
 import { sessionVwap, openingRange, sessionLevels, pivotLevels, rvolSeries, ttmSqueeze, adx as calcAdx, cvdApprox, type Bar as IMBar, type DailyBar } from "@/lib/intradayMath";
 import { attachSessionShading, detachSessionShading, type SessionShadingPrimitive } from "@/lib/sessionShading";
-import { IND_DEFS, withDefaults, isIndKey } from "@/lib/indicators";
+import { IND_DEFS, withDefaults, isIndKey } from "@/lib/indicators";\nimport { momentumPoints } from "@/lib/mtfMomentum";
 import { flowGet, flowGetFresh } from "@/lib/flowClientCache";
 import { deriveOptLevels, sessionsOldEt, type OptLevelKey, type OptLevelsResult } from "@/lib/optionsLevels";
 import { computeSuite, resolveSuiteColors } from "@/lib/indicator-canvas/host";
@@ -543,7 +543,7 @@ const withAlpha = (col: string, a: number): string => {
 // ── the canonical sub-pane order (parity with the base's sequential pane assignment) ──
 // overlays (ema/bb/vwap/vol + new DT overlays) always live in pane 0.
 // every sub-pane indicator gets its OWN pane (rsi and stochrsi were formerly a shared "osc" pane).
-const SUBPANE_ORDER = ["rsi", "stochrsi", "macd", "rsistack", "accum", "rvol", "ttmsq", "adx", "cvd"] as const;
+const SUBPANE_ORDER = ["rsi", "stochrsi", "macd", "mtfconfluence", "rsistack", "accum", "rvol", "ttmsq", "adx", "cvd"] as const;
 
 // Bases that carry a fresher-than-EOD price we can splice onto the last daily bar.
 const SPLICE_BASES = new Set(["REALTIME", "LIVE", "DELAYED_15M"]);
@@ -631,7 +631,41 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   const pineSeriesRef = useRef<Map<string, ISeriesApi<any>[]>>(new Map());   // scriptId → its series (all panes)
   const pineMarkersRef = useRef<Map<string, ISeriesMarkersPluginApi<any>>>(new Map()); // scriptId → its markers plugin
   const ttmsqMarkersRef = useRef<ISeriesMarkersPluginApi<any> | null>(null); // ttmsq squeeze-tier dots plugin
-  const macdMarkersRef = useRef<ISeriesMarkersPluginApi<any> | null>(null);  // TH_RSIMACD+ crossover dots plugin (on the MACD-RSI line series)
+  const macdMarkersRef = useRef<ISeriesMarkersPluginApi<any> | null>(null);  const buildMtfConfluencePane = (chart: IChartApi, rows: Bar[], pane: number): ISeriesApi<any>[] => {
+    const daily = dailyBarsRef.current;
+    if (!daily.length || isIntradayRef.current) return [];
+    const p = P("mtfconfluence");
+    const specs = [
+      ["D", p.dCol], ["3D", p.d3Col], ["W", p.wCol], ["2W", p.w2Col], ["1M", p.mCol],
+    ] as const;
+    const targetKnowable = rows.map(r => String(r.closeTime ?? r.time));
+    const out: ISeriesApi<any>[] = [];
+    for (const [tf, color] of specs) {
+      const src = tf === "D" ? daily : resampleTf(daily, tf, sessionAnchorRef.current);
+      const pts = momentumPoints(src.map(r => r.c));
+      const aligned: (number | null)[] = Array(rows.length).fill(null);
+      let j = -1;
+      for (let i = 0; i < rows.length; i++) {
+        while (j + 1 < src.length && String(src[j + 1].closeTime ?? src[j + 1].time) <= targetKnowable[i]) j++;
+        if (j >= 0) aligned[i] = pts[j].score;
+      }
+      const line = chart.addSeries(LineSeries, {
+        color, lineWidth: p.width as any, lastValueVisible: true, priceLineVisible: false,
+        title: axTitle(tf), autoscaleInfoProvider: () => ({ priceRange: { minValue: 0, maxValue: 100 } }),
+      } as any, pane);
+      line.setData(toLine(rows, aligned));
+      out.push(line);
+    }
+    if (out[0]) {
+      try {
+        out[0].createPriceLine({ price: 70, color: "rgba(38,194,129,.18)", lineWidth: 1, lineStyle: 2, axisLabelVisible: false } as any);
+        out[0].createPriceLine({ price: 50, color: "rgba(214,218,227,.16)", lineWidth: 1, lineStyle: 2, axisLabelVisible: false } as any);
+        out[0].createPriceLine({ price: 30, color: "rgba(240,86,107,.18)", lineWidth: 1, lineStyle: 2, axisLabelVisible: false } as any);
+      } catch {}
+    }
+    return out;
+  };
+  // TH_RSIMACD+ crossover dots plugin (on the MACD-RSI line series)
   const pinePaneMapRef = useRef<Map<string, number>>(new Map());             // sub-pane scriptId → pane index (overlay scripts absent)
   const pineErrRef = useRef<Map<string, string>>(new Map());                 // scriptId → error text (surfaced in the legend)
   const pineCacheRef = useRef<Map<string, { key: string; result: RunResult | null; error: string | null }>>(new Map()); // memo: scriptId → last run
@@ -2452,7 +2486,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       let series: ISeriesApi<any>[] = [];
       if (key === "rsi") series = buildRsiPane(chart, rows, closes, pane);
       else if (key === "stochrsi") series = buildStochRsiPane(chart, rows, closes, pane);
-      else if (key === "macd") series = buildMacd(chart, rows, closes, pane);
+      else if (key === "macd") series = buildMacd(chart, rows, closes, pane);\n      else if (key === "mtfconfluence") series = buildMtfConfluencePane(chart, rows, pane);
       else if (key === "rsistack") series = buildRsiStack(chart, rows, pane);
       else if (key === "accum") series = buildAccum(chart, rows, pane);
       else if (key === "rvol") series = buildRvol(chart, rows, pane);
