@@ -259,3 +259,44 @@ test("a late initial inventory cannot erase a verified watchlist save", async ({
   await lateResponse;
   await expect(detail.getByRole("button", { name: "Already on this watchlist" })).toBeDisabled();
 });
+
+// M2/M3/M4: exercise the repaired admission boundary through the real mounted app.
+test("duplicate and contradictory source identities cannot inflate investigation activity", async ({ page }) => {
+  const good = event("retained-aapl", "AAPL");
+  const conflict = event("conflicted-nvda");
+  await routeFeed(page, feed([good, { ...good }, conflict, { ...conflict, strike: 201 }, conflict]));
+  await openAlpha(page);
+  await expect(page.getByTestId("options-alpha-activity-row")).toHaveCount(1);
+  await expect(page.getByRole("button", { name: "Inspect NVDA event" })).toHaveCount(0);
+  await page.getByRole("button", { name: "Inspect AAPL event" }).click();
+  await expect(page.getByRole("dialog")).toContainText("retained-aapl");
+});
+
+test("fractional availability determines displayed order and retained exact source clocks", async ({ page }) => {
+  const older = { ...event("z-older", "AAPL"), available_at: "2026-09-30T14:00:02.000000001Z" };
+  const newer = { ...event("a-newer", "NVDA"), available_at: "2026-09-30T14:00:02.000000002Z" };
+  const inverted = { ...event("inverted", "SPY"), decision_at: "2026-09-30T14:00:02.000000003Z" };
+  await routeFeed(page, feed([older, newer, inverted]));
+  await openAlpha(page);
+  await expect(page.getByTestId("options-alpha-activity-row")).toHaveCount(2);
+  await expect(page.getByTestId("options-alpha-activity-row").first()).toContainText("NVDA");
+  await expect(page.getByRole("button", { name: "Inspect SPY event" })).toHaveCount(0);
+  await page.getByRole("button", { name: "Inspect NVDA event" }).click();
+  const detail = page.getByRole("dialog");
+  await detail.locator("summary").click();
+  await expect(detail).toContainText("2026-09-30T14:00:02.000000002Z");
+});
+
+test("impossible clocks and empty-set quote contradictions never become inspectable measurements", async ({ page }) => {
+  const badClock = { ...event("bad-date", "SPY"), observed_at: "2026-02-30T14:00:00Z" };
+  const badSet = event("bad-set", "QQQ");
+  badSet.microstructure.nbbo_valid_print_count = 0;
+  badSet.microstructure.nbbo_print_coverage = 0;
+  await routeFeed(page, feed([badClock, badSet, event("healthy", "AAPL")]));
+  await openAlpha(page);
+  await expect(page.getByTestId("options-alpha-activity-row")).toHaveCount(1);
+  await page.getByRole("searchbox", { name: "Filter measured activity" }).fill("bad-");
+  await expect(page.getByTestId("options-alpha-activity-row")).toHaveCount(0);
+  await expect(page.getByTestId("options-alpha-investigation")).toContainText("No measured events match");
+  await expect(page.getByTestId("options-alpha-fires-section")).toBeVisible();
+});

@@ -71,7 +71,7 @@ function positive(value: unknown): number | null {
 
 function nonnegativeInteger(value: unknown): number | null {
   const parsed = finite(value);
-  return parsed != null && Number.isInteger(parsed) && parsed >= 0 ? parsed : null;
+  return parsed != null && Number.isSafeInteger(parsed) && parsed >= 0 ? parsed : null;
 }
 
 function ratio(value: unknown): number | null {
@@ -88,13 +88,38 @@ function nullable<T>(value: unknown, parser: (raw: unknown) => T | null): T | nu
   return value == null ? null : parser(value);
 }
 
+interface MeasuredInstant { secondMs: number; fraction: string }
+
+/** Validate the wire clock without letting Date normalize a calendar error or erase sub-ms precision. */
+function measuredInstant(value: string): MeasuredInstant | null {
+  const match = /^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?(Z|[+-]\d{2}:\d{2})$/.exec(value);
+  if (!match || !dateText(match[1])) return null;
+  const [, day, hour, minute, second, fraction = "", zone] = match;
+  if (Number(hour) > 23 || Number(minute) > 59 || Number(second) > 59) return null;
+  const secondMs = Date.parse(day + "T" + hour + ":" + minute + ":" + second + zone);
+  if (!Number.isFinite(secondMs)) return null;
+  return { secondMs, fraction: fraction.replace(/0+$/, "") };
+}
+
 function timestamp(value: unknown): string | null {
   const candidate = text(value);
-  if (!candidate) return null;
-  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/.test(candidate)) {
-    return null;
-  }
-  return Number.isFinite(Date.parse(candidate)) ? candidate : null;
+  return candidate && measuredInstant(candidate) ? candidate : null;
+}
+
+/** Both operands were admitted by timestamp(). Retain all supplied fractional digits. */
+function compareMeasuredTime(left: string, right: string): number {
+  const a = measuredInstant(left), b = measuredInstant(right);
+  if (!a || !b) throw new Error("Unvalidated measured timestamp");
+  if (a.secondMs !== b.secondMs) return a.secondMs < b.secondMs ? -1 : 1;
+  const width = Math.max(a.fraction.length, b.fraction.length);
+  const af = a.fraction.padEnd(width, "0"), bf = b.fraction.padEnd(width, "0");
+  return af < bf ? -1 : af > bf ? 1 : 0;
+}
+
+function measuredTimeKey(value: string): string {
+  const instant = measuredInstant(value);
+  if (!instant) throw new Error("Unvalidated measured timestamp");
+  return instant.secondMs + ":" + instant.fraction;
 }
 
 function dateText(value: unknown): string | null {
@@ -160,6 +185,11 @@ function normalizeMicrostructure(value: unknown): OptionsAlphaMeasuredMicrostruc
   const bidSizeMedian = nullable(value.bid_size_median, nonnegative);
   const askSizeMedian = nullable(value.ask_size_median, nonnegative);
   if (quoteAgeMedian != null && quoteAgeMax != null && quoteAgeMedian > quoteAgeMax) return null;
+  // The producer computes these only over valid quotes. An empty measured set has
+  // neither covered premium nor spread/age/size statistics. Conversely a tiny
+  // positive covered amount can round to zero, so validPrintCount > 0 is not rejected.
+  if (validPrintCount === 0 && (coveredPremium !== 0
+    || [spreadUsd, spreadPct, quoteAgeMedian, quoteAgeMax, bidSizeMedian, askSizeMedian].some(v => v != null))) return null;
 
   return {
     schema: OPTIONS_ALPHA_MICROSTRUCTURE_SCHEMA,
@@ -210,10 +240,8 @@ function normalizeMeasuredEvent(value: unknown): OptionsAlphaMeasuredEvent | nul
     || !microstructure
   ) return null;
 
-  const observedMs = Date.parse(observedAt);
-  const decisionMs = Date.parse(decisionAt);
-  const availableMs = Date.parse(availableAt);
-  if (observedMs > decisionMs || decisionMs > availableMs) return null;
+  if (compareMeasuredTime(observedAt, decisionAt) > 0
+    || compareMeasuredTime(decisionAt, availableAt) > 0) return null;
 
   return {
     id,
@@ -253,13 +281,26 @@ export function normalizeOptionsAlphaMeasuredFeed(value: unknown): OptionsAlphaM
   const sourceAsof = value.source_asof == null ? null : timestamp(value.source_asof);
   if (value.source_asof != null && sourceAsof == null) return null;
 
-  const events = value.events
-    .map(normalizeMeasuredEvent)
-    .filter((event): event is OptionsAlphaMeasuredEvent => event != null)
-    .sort((left, right) => (
-      Date.parse(right.available_at) - Date.parse(left.available_at)
-      || right.id.localeCompare(left.id)
-    ));
+  // The source event ID stays canonical. Collapse equivalent repeated observations;
+  // withhold contradictory same-ID payloads rather than inventing a correction order.
+  // This is an in-snapshot display guard, not a new event store or revision authority.
+  const accepted = new Map<string, { event: OptionsAlphaMeasuredEvent; signature: string }>();
+  const conflicted = new Set<string>();
+  for (const raw of value.events) {
+    const event = normalizeMeasuredEvent(raw);
+    if (!event || conflicted.has(event.id)) continue;
+    const signature = JSON.stringify({ ...event,
+      observed_at: measuredTimeKey(event.observed_at), decision_at: measuredTimeKey(event.decision_at),
+      available_at: measuredTimeKey(event.available_at),
+    });
+    const prior = accepted.get(event.id);
+    if (prior && prior.signature !== signature) {
+      accepted.delete(event.id); conflicted.add(event.id);
+    } else if (!prior) accepted.set(event.id, { event, signature });
+  }
+  const events = [...accepted.values()].map(({ event }) => event).sort((left, right) => (
+    compareMeasuredTime(right.available_at, left.available_at) || right.id.localeCompare(left.id)
+  ));
 
   return {
     schema: OPTIONS_ALPHA_MEASURED_FEED_SCHEMA,
