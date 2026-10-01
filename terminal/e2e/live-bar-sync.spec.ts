@@ -231,6 +231,32 @@ test("a daily live quote carries the candle, its studies, the table row and the 
   expect(stale?.priceTail?.value).toBe(LIVE_LAST);
 });
 
+test("closed-bar MTF evidence does not move with an RTH daily splice", async ({ page }) => {
+  test.slow();
+  let phase: QuotePhase = PHASE_BASELINE;
+  await serveDailyWorkspace(page, () => phase, "D", ["mtfconfluence"]);
+  await page.goto(`/terminal?symbol=${SYMBOL}`);
+
+  const before = await settledBaseline(page, ["mtfconfluence"]);
+  const dBefore = before.series.mtfconfluence?.[0] ?? null;
+  const d3Before = before.series.mtfconfluence?.[1] ?? null;
+  expect(dBefore).not.toBeNull();
+  expect(d3Before).not.toBeNull();
+
+  // Mutate the SAME regular-session candle during RTH. The price candle must move,
+  // while both D and a canonically-closing 3D bucket stay on their last closed values.
+  phase = { basis: "REALTIME", last: LIVE_LAST, sessionDate: LAST_SESSION, seconds: rthSeconds(LAST_SESSION, 15, 30) };
+  await expect.poll(async () => (await readWitness(page))?.lastBar?.c ?? null, {
+    message: "the RTH quote should mutate the developing daily candle",
+    timeout: 45_000,
+  }).toBe(LIVE_LAST);
+
+  const after = await settledBaseline(page, ["mtfconfluence"]);
+  expect(after.priceTail?.value).toBe(LIVE_LAST);
+  expect(after.series.mtfconfluence?.[0]).toEqual(dBefore);
+  expect(after.series.mtfconfluence?.[1]).toEqual(d3Before);
+});
+
 test("a new session appends a resampled bucket every consumer can address", async ({ page }) => {
   test.slow();
   let phase: QuotePhase = PHASE_BASELINE;
