@@ -641,6 +641,11 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     ] as const;
     const targetKnowable = rows.map(r => String(r.closeTime ?? r.time));
     const dailyTimes = daily.map(r => String(r.time));
+    const market = classify(symbolRef.current);
+    const liveSessionDate = sessionDateOf(liveQuote?.ts, market);
+    const dailyTailIsForming = liveQuote?.marketSession === "rth"
+      && liveSessionDate != null
+      && dailyTimes[dailyTimes.length - 1] === liveSessionDate;
     const firstDailyAfter = (t: string): string | null => {
       let lo = 0, hi = dailyTimes.length;
       while (lo < hi) {
@@ -654,10 +659,14 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       const src = tf === "D" ? daily : resampleTf(daily, tf, sessionAnchorRef.current);
       const pts = momentumPoints(src.map(r => ({ h: r.h, l: r.l, c: r.c })));
       const knownAt = src.map((bar, idx): string | null => {
-        if (tf === "D") return String(bar.time);
+        const isTail = idx === src.length - 1;
+        if (tf === "D") {
+          if (isTail && dailyTailIsForming) return null;
+          return String(bar.time);
+        }
         if (tf === "3D") {
-          const isTail = idx === src.length - 1;
           if (isTail) {
+            if (dailyTailIsForming) return null;
             const anchor = sessionAnchorRef.current;
             const row0Anchor = resolveBarAnchor(dailyTimes, anchor);
             const lastGlobalSession = row0Anchor + daily.length - 1;
