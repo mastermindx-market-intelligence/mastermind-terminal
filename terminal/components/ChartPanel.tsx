@@ -659,8 +659,9 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           const isTail = idx === src.length - 1;
           if (isTail) {
             const anchor = sessionAnchorRef.current;
-            const lastGlobalSession = anchor ? anchor.index + daily.length - 1 : null;
-            if (lastGlobalSession == null || lastGlobalSession % 3 !== 0) return null;
+            const row0Anchor = resolveBarAnchor(dailyTimes, anchor);
+            const lastGlobalSession = row0Anchor + daily.length - 1;
+            if (lastGlobalSession % 3 !== 0) return null;
           }
           return String(bar.closeTime ?? bar.time);
         }
