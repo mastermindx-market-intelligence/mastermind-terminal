@@ -32,6 +32,27 @@ async function screen(page: Page, info: TestInfo, name: string) {
 }
 
 for (const lang of ["en", "zh"] as const) {
+  test(`saved view ${lang}: an unfinished initial read is not an empty store`, async ({ page, baseURL }, info) => {
+    await isolateWatchlistStore(page, info, baseURL);
+    await page.addInitScript(value => localStorage.setItem("mm.lang", value), lang);
+    let release!: () => void;
+    let began!: () => void;
+    const held = new Promise<void>(resolve => { release = resolve; });
+    const requested = new Promise<void>(resolve => { began = resolve; });
+    await page.route(`**${endpoint}*`, async route => {
+      if (route.request().method() === "GET") { began(); await held; }
+      await route.continue();
+    });
+    try {
+      await page.goto("/analysis?view=theses");
+      await requested;
+      await expect(page.getByTestId("rms-saved-views")).toBeVisible();
+      await expect(page.getByTestId("rms-saved-views-empty")).toBeHidden();
+    } finally {
+      release();
+    }
+    await expect(page.getByTestId("rms-saved-views-empty")).toBeVisible();
+  });
   test(`saved view ${lang}: native browser save, duplicate-click guard, reload`, async ({ page, baseURL }, info) => {
     const errors: string[] = [];
     page.on("pageerror", error => errors.push(error.message));

@@ -556,6 +556,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   const [subjectFilterLabel, setSubjectFilterLabel] = useState<string | null>(null);
   const [savedViews, setSavedViews] = useState<SavedView[]>([]);
   const [savedViewsUnavailable, setSavedViewsUnavailable] = useState(false);
+  const [savedViewsReady, setSavedViewsReady] = useState(false);
   const [savedViewPhase, setSavedViewPhase] = useState<SavedViewWritePhase>("idle");
   const [savedViewOperationError, setSavedViewOperationError] = useState<string | null>(null);
   const savedViewClientRef = useRef<SavedViewClient | null>(null);
@@ -644,6 +645,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     setSubjectFilterLabel(null);
     setSavedViews([]);
     setSavedViewsUnavailable(false);
+    setSavedViewsReady(false);
     setActivePreset(null);
     setNamingOpen(false);
     setNameDraft("");
@@ -1157,6 +1159,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       setSavedViews(state.views.map(asLegacySavedView).filter((view): view is SavedView => view !== null));
       // Do not place the legacy "nothing changed" read-fault sentence over an uncertain write.
       setSavedViewsUnavailable(state.listStatus === "unavailable" && !state.pending);
+      setSavedViewsReady(state.listStatus === "ready");
       setSavedViewsTruncated(state.truncated);
       setSavedViewsLimit(state.phase === "rejected" && state.error === "limit_reached"
         || state.listStatus === "ready" && !state.truncated && state.views.length >= MAX_SAVED_VIEWS);
@@ -2133,8 +2136,8 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
                   </button>
                 </div>
               )}
-              {/* An unresolved save may already exist; never pair it with an empty-store claim. */}
-              {!savedViewOperationLocked && !savedViewsUnavailable && savedViews.length === 0 && (
+              {/* Only a completed current read may establish emptiness; an unresolved save may already exist. */}
+              {savedViewsReady && !savedViewOperationLocked && !savedViewsUnavailable && savedViews.length === 0 && (
                 <p className={styles.savedViewsNote} data-testid="rms-saved-views-empty">{rms["savedViews.empty"]}</p>
               )}
               {savedViewNameError && <p className={styles.savedViewsNote} role="status">{rms["savedViews.nameRequired"]}</p>}
