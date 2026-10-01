@@ -652,7 +652,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     const out: ISeriesApi<any>[] = [];
     for (const [tf, color] of specs) {
       const src = tf === "D" ? daily : resampleTf(daily, tf, sessionAnchorRef.current);
-      const pts = momentumPoints(src.map(r => r.c));
+      const pts = momentumPoints(src.map(r => ({ h: r.h, l: r.l, c: r.c })));
       const knownAt = src.map((bar, idx): string | null => {
         if (tf === "D") return String(bar.time);
         if (tf === "3D") {
