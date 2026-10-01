@@ -642,7 +642,20 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     const targetKnowable = rows.map(r => String(r.closeTime ?? r.time));
     const out: ISeriesApi<any>[] = [];
     for (const [tf, color] of specs) {
-      const src = tf === "D" ? daily : resampleTf(daily, tf, sessionAnchorRef.current);
+      let src = tf === "D" ? daily : resampleTf(daily, tf, sessionAnchorRef.current);
+      // The canonical resampler intentionally exposes the forming tail bar for charting.
+      // MTF confluence is different: higher-timeframe evidence is closed-bar only.
+      if (tf !== "D" && src.length) {
+        if (tf === "3D") {
+          const anchor = sessionAnchorRef.current;
+          const lastGlobalSession = anchor ? anchor.index + daily.length - 1 : null;
+          if (lastGlobalSession == null || lastGlobalSession % 3 !== 0) src = src.slice(0, -1);
+        } else {
+          // W / 2W / 1M: without the next source bucket, the live tail is not
+          // provably closed. Historical completed buckets remain untouched.
+          src = src.slice(0, -1);
+        }
+      }
       const pts = momentumPoints(src.map(r => r.c));
       const aligned: (number | null)[] = Array(rows.length).fill(null);
       let j = -1;
