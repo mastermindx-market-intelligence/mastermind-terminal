@@ -9,7 +9,7 @@
 // Pine custom scripts are NOT in this registry — they carry their own source/params and are handled
 // directly in TerminalShell/ChartPanel.
 
-export type IndKey = "ema" | "bb" | "vwap" | "vol" | "rsi" | "stochrsi" | "macd" | "gaps"
+export type IndKey = "ema" | "bb" | "vwap" | "vol" | "rsi" | "stochrsi" | "macd" | "mtfconfluence" | "gaps"
   | "ichimoku" | "ribbon" | "supertrend" | "avwap" | "rvwap" | "wvwap" | "vprofile" | "volbox"
   | "rsistack" | "accum" | "_lab"
   // Day Trade suite
@@ -47,7 +47,7 @@ export const IND_ORDER: IndKey[] = [
   "svwap", "orb", "slevels", "pivots",
   // Options positioning levels (price pane, data-fed — nightly options build)
   "optlevels",
-  "rsi", "stochrsi", "macd", "rsistack", "accum",
+  "rsi", "stochrsi", "macd", "mtfconfluence", "rsistack", "accum",
   // Day Trade suite sub-panes
   "rvol", "ttmsq", "adx", "cvd",
   "_lab",
@@ -204,6 +204,21 @@ plot(d, "Stoch D", color=color.red, linewidth=3)
 hline(upLine, "Upper", color=color.red)
 hline(lowLine, "Lower", color=color.lime)
 hline(50, "Mid", color=color.gray)`,
+  },
+  mtfconfluence: {
+    key: "mtfconfluence", label: "MTF Momentum Confluence", tag: "MTF Confluence", kind: "pane",
+    defaults: { dCol: "#2962ff", d3Col: "#00bcd4", wCol: "#26c281", w2Col: "#e8b339", mCol: "#b06cff", width: 1.4 },
+    fields: [
+      { key: "dCol", label: "D color", type: "color", group: "style" },
+      { key: "d3Col", label: "3D color", type: "color", group: "style" },
+      { key: "wCol", label: "W color", type: "color", group: "style" },
+      { key: "w2Col", label: "2W color", type: "color", group: "style" },
+      { key: "mCol", label: "1M color", type: "color", group: "style" },
+      { key: "width", label: "Line width", type: "number", group: "style", min: 1, max: 4, step: 0.2 },
+    ],
+    source: `// Mastermind native MTF pane.
+// Closed-bar D / 3D / W / 2W / 1M StochRSI + RSI-MACD state.
+// Score is descriptive until OOS calibration; forming HTF bars are excluded.`,
   },
   macd: {
     // RSI-based MACD (TH_RSIMACD+): MACD of the RSI, not of price. This is the same math the
