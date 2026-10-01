@@ -45,7 +45,7 @@ For every signal timestamp t, features use only data with close_time <= t. Forwa
 No production ranking authority from an in-sample winner. Require directionally consistent holdouts, useful sample size, no catastrophic regime inversion, acceptable degradation from train→test, and no evidence that one ticker/era supplies most of the effect.
 
 ## Architecture boundaries
-- Canonical daily-multiple session phasing stays in `sessionBars.ts` / `ChartPanel.resampleTf`; this feature must not create another 3D grid.
+- Canonical daily-multiple session phasing stays in `sessionBars.ts` / `ChartPanel.resampleTf`; this feature must not create another 3D grid. The product 2W lane likewise mirrors `ChartPanel.resampleTf`'s fixed absolute-calendar fortnight buckets; it does **not** inherit the Golden Oracle's IPO/week-parity 2W research pairing.
 - Pure product indicator math lives in `terminal/lib/mtfMomentum.ts` and must remain parity-locked to the existing visible Terminal panes.
 - Historical research should reuse the existing Entry Intelligence / signal-layer replay data rather than invent a parallel truth store.
 - UI projections are descriptive until the validated screener producer exists.
