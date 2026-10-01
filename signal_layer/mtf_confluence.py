@@ -13,22 +13,47 @@ TFS=("D","3D","W","2W","1M")
 WEIGHTS={"D":1.0,"3D":1.25,"W":1.5,"2W":1.25,"1M":1.0}
 
 def _tf_close(daily: pd.Series, tf: str, bar_anchor: int=0, week_parity: int=0) -> tuple[pd.Series,pd.DatetimeIndex]:
+    """Return only CLOSED higher-timeframe bars and their first-knowable session."""
     c=daily.dropna().sort_index()
-    if tf=="D": return c,pd.DatetimeIndex(c.index)
+    if tf=="D":
+        return c,pd.DatetimeIndex(c.index)
     if tf=="3D":
         od,cd,px=_3d_groups(c,bar_anchor)
-        return pd.Series(px,index=pd.DatetimeIndex(od)),pd.DatetimeIndex(cd)
-    if tf=="W":
-        x=c.resample("W-FRI").last().dropna()
-    elif tf=="2W":
+        x=pd.Series(px,index=pd.DatetimeIndex(od))
+        known=pd.DatetimeIndex(cd)
+        # _3d_groups emits the final partial group too; admit it only when the
+        # anchored global session index proves this is a real 3D close.
+        if len(x) and ((len(c)-1+int(bar_anchor)) % 3 != 0):
+            x=x.iloc[:-1]
+            known=known[:-1]
+        return x,known
+    if tf=="2W":
         x=_resample_2w(c,week_parity)
+        # A prefix cannot prove its final 2W pair is closed until a later week exists.
+        if len(x):
+            x=x.iloc[:-1]
+        pos=np.searchsorted(c.index.values,x.index.values,side="right")-1
+        return x,pd.DatetimeIndex(c.index[np.maximum(pos,0)])
+
+    if tf=="W":
+        keys=c.index.to_period("W-FRI")
     elif tf=="1M":
-        x=c.resample("ME").last().dropna()
-    else: raise ValueError(tf)
-    # calendar labels may be non-session dates; information is available at the
-    # last real source session at or before the bucket label.
-    pos=np.searchsorted(c.index.values,x.index.values,side="right")-1
-    return x,pd.DatetimeIndex(c.index[np.maximum(pos,0)])
+        keys=c.index.to_period("M")
+    else:
+        raise ValueError(tf)
+
+    # A later source bucket proves the preceding calendar bucket closed. Omitting
+    # the current tail makes feature values prefix-stable and avoids lookahead.
+    unique=keys.drop_duplicates()
+    closed=unique[:-1]
+    vals=[]
+    known=[]
+    for k in closed:
+        idx=np.flatnonzero(keys==k)
+        vals.append(c.iloc[idx[-1]])
+        known.append(c.index[idx[-1]])
+    x=pd.Series(vals,index=pd.DatetimeIndex(known),dtype="float64")
+    return x,pd.DatetimeIndex(known)
 
 def _state(close: pd.Series) -> pd.DataFrame:
     k,d=stoch_rsi_kd(close); m,s=rsi_macd(close)
