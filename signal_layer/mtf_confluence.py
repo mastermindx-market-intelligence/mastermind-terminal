@@ -29,11 +29,12 @@ def _tf_close(daily: pd.Series, tf: str, bar_anchor: int=0, week_parity: int=0) 
         return x,known
     if tf=="2W":
         x=_resample_2w(c,week_parity)
-        # A prefix cannot prove its final 2W pair is closed until a later week exists.
-        if len(x):
-            x=x.iloc[:-1]
-        pos=np.searchsorted(c.index.values,x.index.values,side="right")-1
-        return x,pd.DatetimeIndex(c.index[np.maximum(pos,0)])
+        # Calendar-pair availability is conservative and deterministic: a 2W bar
+        # becomes research-visible on the first source session AFTER its close label.
+        pos=np.searchsorted(c.index.values,x.index.values,side="right")
+        keep=pos < len(c)
+        x=x.iloc[np.flatnonzero(keep)]
+        return x,pd.DatetimeIndex(c.index[pos[keep]])
 
     if tf=="W":
         keys=c.index.to_period("W-FRI")
@@ -42,17 +43,20 @@ def _tf_close(daily: pd.Series, tf: str, bar_anchor: int=0, week_parity: int=0) 
     else:
         raise ValueError(tf)
 
-    # A later source bucket proves the preceding calendar bucket closed. Omitting
-    # the current tail makes feature values prefix-stable and avoids lookahead.
+    # Use the first source session of the NEXT bucket as first-knowable time.
+    # This intentionally costs at most one session versus an exchange-calendar
+    # oracle, but it is prefix-stable across weekends and holiday-shortened weeks.
     unique=keys.drop_duplicates()
-    closed=unique[:-1]
     vals=[]
+    labels=[]
     known=[]
-    for k in closed:
+    for i,k in enumerate(unique[:-1]):
         idx=np.flatnonzero(keys==k)
+        nxt=np.flatnonzero(keys==unique[i+1])
         vals.append(c.iloc[idx[-1]])
-        known.append(c.index[idx[-1]])
-    x=pd.Series(vals,index=pd.DatetimeIndex(known),dtype="float64")
+        labels.append(c.index[idx[-1]])
+        known.append(c.index[nxt[0]])
+    x=pd.Series(vals,index=pd.DatetimeIndex(labels),dtype="float64")
     return x,pd.DatetimeIndex(known)
 
 def _state(close: pd.Series) -> pd.DataFrame:
