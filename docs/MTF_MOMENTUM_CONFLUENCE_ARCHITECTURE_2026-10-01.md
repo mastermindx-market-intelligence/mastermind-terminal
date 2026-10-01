@@ -14,7 +14,7 @@ Turn the chart's momentum panes into a point-in-time, multi-timeframe decision s
 ## V1 product
 ### Chart
 Two related panes are the first-class target:
-- **MTF Stoch RSI:** D / 3D / W / 2W / 1M %K-%D state, with oversold/reclaim/neutral/rollover phase.
+- **MTF Stoch RSI:** D / 3D / W / 2W / 1M %K-%D state, with oversold/reclaim/neutral/rollover phase. Product parity is explicit: this mirrors the Terminal's existing indicator labeled **Stochastic RSI**, whose current implementation is CM_Stochastic_MTF price stochastic on H/L/C (14,3,3). True stochastic-of-RSI remains a separately named research candidate and must never silently share this product label.
 - **MTF MACD-RSI:** same horizons, using the Terminal's TH_RSIMACD+ convention.
 - A compact **Confluence strip** summarizes each timeframe: washout → reclaim → bull → rollover → bear.
 - Current score is decomposable; hovering shows exact inputs, bar-close timestamp, and whether a value is closed or preview.
@@ -46,7 +46,7 @@ No production ranking authority from an in-sample winner. Require directionally 
 
 ## Architecture boundaries
 - Canonical daily-multiple session phasing stays in `sessionBars.ts` / `ChartPanel.resampleTf`; this feature must not create another 3D grid.
-- Pure indicator math lives in `terminal/lib/mtfMomentum.ts`.
+- Pure product indicator math lives in `terminal/lib/mtfMomentum.ts` and must remain parity-locked to the existing visible Terminal panes.
 - Historical research should reuse the existing Entry Intelligence / signal-layer replay data rather than invent a parallel truth store.
 - UI projections are descriptive until the validated screener producer exists.
 - Forming HTF bars are display-only.
