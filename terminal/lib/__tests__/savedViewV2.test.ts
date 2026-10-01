@@ -77,6 +77,15 @@ describe("existing saved-view owner v2", () => {
 });
 
 describe("save client and existing route together", () => {
+  it("invokes transport without binding the controller as native fetch's receiver", async () => {
+    const network: typeof fetch = function(this: unknown, input, init) {
+      expect(this).toBeUndefined();
+      return transport(input, init);
+    };
+    const client = new SavedViewClient(H.user!.id, handles(), network, () => ID);
+    expect((await client.load()).listStatus).toBe("ready");
+    expect((await client.save("Memory focus", definition)).phase).toBe("confirmed");
+  });
   it("confirms only the exact typed payload", async () => {
     const client = new SavedViewClient(H.user!.id,handles(),transport,()=>ID);
     const result = await client.save("Memory focus",definition);expect(result.phase).toBe("confirmed");expect(result.view?.definition).toEqual(definition);

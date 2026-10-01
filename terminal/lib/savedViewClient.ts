@@ -53,6 +53,12 @@ export class SavedViewClient {
       }
     } catch { this.current = { ...this.current, phase: "recovery_blocked", error: "recovery_storage_unavailable" }; }
   }
+  /** Browser-native fetch rejects a SavedViewClient receiver. Invoke injected and
+   * default transports as plain functions, never as a method on this controller. */
+  private request(input: Parameters<typeof fetch>[0], init?: RequestInit): Promise<Response> {
+    const transport = this.transport;
+    return transport(input, init);
+  }
   snapshot(): SavedViewClientState { return structuredClone(this.current); }
   subscribe(listener: (state: SavedViewClientState) => void): () => void {
     this.listeners.add(listener);
@@ -108,7 +114,7 @@ export class SavedViewClient {
       this.handles.setItem(this.key, JSON.stringify(handle)); // persist recovery identity BEFORE the first write
       this.publish({ pending: handle });
       dispatched = true;
-      const response = await this.transport(ENDPOINT, { method: "PUT", cache: "no-store", headers: { "Content-Type": "application/json" },
+      const response = await this.request(ENDPOINT, { method: "PUT", cache: "no-store", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "create", contract: SAVED_VIEW_CONTRACT, id, name, definition }) });
       await this.consume(response, handle, generation, "create");
     } catch {
@@ -123,7 +129,7 @@ export class SavedViewClient {
     const generation = ++this.mutationGeneration, handle = this.current.pending;
     this.publish({ phase: "checking", error: null });
     try {
-      const response = await this.transport(ENDPOINT + "?contract=" + encodeURIComponent(SAVED_VIEW_CONTRACT) + "&id=" + encodeURIComponent(handle.requestId), { cache: "no-store" });
+      const response = await this.request(ENDPOINT + "?contract=" + encodeURIComponent(SAVED_VIEW_CONTRACT) + "&id=" + encodeURIComponent(handle.requestId), { cache: "no-store" });
       await this.consume(response, handle, generation, "check");
     } catch {
       if (!this.disposed && generation === this.mutationGeneration) this.publish({ phase: "unknown", error: "save_outcome_unknown" });
@@ -173,7 +179,7 @@ export class SavedViewClient {
     const generation = ++this.listGeneration, mutation = this.mutationGeneration;
     this.publish({ listStatus: "loading" });
     try {
-      const response = await this.transport(ENDPOINT + "?contract=" + encodeURIComponent(SAVED_VIEW_CONTRACT)
+      const response = await this.request(ENDPOINT + "?contract=" + encodeURIComponent(SAVED_VIEW_CONTRACT)
         + (this.viewKind ? "&kind=" + encodeURIComponent(this.viewKind) : ""), { cache: "no-store" });
       if (this.disposed || generation !== this.listGeneration || mutation !== this.mutationGeneration) return this.snapshot();
       // An authentication gateway may return HTML or an empty body. The status alone
