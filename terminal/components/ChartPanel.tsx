@@ -643,7 +643,9 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     const dailyTimes = daily.map(r => String(r.time));
     const market = classify(symbolRef.current);
     const liveSessionDate = sessionDateOf(liveQuote?.ts, market);
-    const dailyTailIsForming = liveQuote?.marketSession === "rth"
+    const dailyTailIsForming = !!liveQuote?.basis
+      && SPLICE_BASES.has(liveQuote.basis.toUpperCase())
+      && liveQuote.marketSession === "rth"
       && liveSessionDate != null
       && dailyTimes[dailyTimes.length - 1] === liveSessionDate;
     const firstDailyAfter = (t: string): string | null => {
