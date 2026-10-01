@@ -219,6 +219,14 @@ class FixtureQuery implements WatchlistQuery {
 
   eq(column: string, value: unknown): WatchlistQuery {
     this.predicates.push((row) => {
+      if (column === "value->record->>revision") {
+        const raw = row.value;
+        const record = raw && typeof raw === "object" && !Array.isArray(raw)
+          ? (raw as Record<string, unknown>).record : null;
+        const revision = record && typeof record === "object" && !Array.isArray(record)
+          ? (record as Record<string, unknown>).revision : undefined;
+        return revision !== undefined && revision !== null && String(revision) === String(value);
+      }
       const jsonPath = column.match(/^subject_ref->>(owner|kind|key)$/);
       if (jsonPath) {
         const subject = row.subject_ref;

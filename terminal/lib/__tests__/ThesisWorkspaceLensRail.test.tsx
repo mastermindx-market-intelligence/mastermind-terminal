@@ -10,6 +10,8 @@
 // dependency footprint at zero net new runtime packages) with a stubbed `fetch`.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act } from "react";
+import { webcrypto } from "node:crypto";
+import { SAVED_VIEW_CONTRACT, savedRequestFingerprint } from "@/lib/savedViewContract";
 import { createRoot, type Root } from "react-dom/client";
 import ThesisWorkspace from "@/components/workspaces/ThesisWorkspace";
 import type { ThesisDetail, ThesisSubjectRef, ThesisSummary, ThesisVersion } from "@/lib/theses";
@@ -63,8 +65,20 @@ function detailFor(s: ThesisSummary, overrides: Partial<ThesisVersion["content"]
   return { ...s, createdAt: "2026-01-01T00:00:00.000Z", current, history: [], historyTruncated: false };
 }
 
+// The existing component now requests the typed saved-view API. Keep the seeded
+// legacy-record fixtures, but serialize their real v2 read projection at this
+// mock HTTP boundary. No client/service behavior is stubbed out by this helper.
+let fixtureSavedViewOwner = "";
 function jsonResponse(body: unknown, status = 200): Response {
-  return { ok: status >= 200 && status < 300, status, json: async () => body } as Response;
+  const raw = body as { views?: Array<Record<string, unknown>>; truncated?: boolean };
+  const payload = Array.isArray(raw?.views) ? {
+    contract: SAVED_VIEW_CONTRACT, ownerId: fixtureSavedViewOwner,
+    views: raw.views.map(view => ({ id: view.id, name: view.name,
+      definition: { version: 1, kind: "thesis_filter", filter: view.filter },
+      createdAt: view.createdAt, updatedAt: view.updatedAt, revision: 0 })),
+    truncated: raw.truncated === true,
+  } : body;
+  return { ok: status >= 200 && status < 300, status, json: async () => payload } as Response;
 }
 
 /** Fetch stub over the real `/api/theses` contract (list / ?id= / ?ids=). */
@@ -110,6 +124,7 @@ async function flush() {
 }
 
 async function mount(props: { ownerKey: string }) {
+  fixtureSavedViewOwner = props.ownerKey;
   container = document.createElement("div");
   document.body.appendChild(container);
   root = createRoot(container);
@@ -121,6 +136,8 @@ async function mount(props: { ownerKey: string }) {
 }
 
 beforeEach(() => {
+  // jsdom has randomUUID but not SubtleCrypto; the production client uses SHA-256.
+  Object.defineProperty(globalThis, "crypto", { value: webcrypto, configurable: true });
   // Node 26 registers its OWN experimental global `localStorage`/`sessionStorage`
   // getters (which throw/warn without --localstorage-file). Vitest's jsdom
   // environment only overwrites a global key that already exists on Node's
@@ -1635,7 +1652,15 @@ function installWorkspaceFetch(stub: WorkspaceStub) {
         }
         const status = stub.savedViewsPutStatus ?? 200;
         if (status >= 400) return jsonResponse({ error: status === 400 ? (stub.savedViewsPutError ?? "invalid_name") : "saved_views_unavailable" }, status);
-        return jsonResponse({ view: { ...(body.view ?? {}), id: body.id ?? "new", name: body.name, filter: body.filter ?? { lifecycle: "active" }, createdAt: "2026-09-01T00:00:00.000Z", updatedAt: "2026-09-02T00:00:00.000Z" } });
+        const name = String(body.name).trim();
+        const definition = body.definition;
+        const view = { id: body.id, name, definition, revision: 1,
+          createdAt: "2026-09-01T00:00:00.000Z", updatedAt: "2026-09-02T00:00:00.000Z" };
+        const fingerprint = await savedRequestFingerprint(fixtureSavedViewOwner, view.id, name, definition);
+        views = [{ id: view.id, name, filter: definition.filter, createdAt: view.createdAt,
+          updatedAt: view.updatedAt }, ...views];
+        return jsonResponse({ contract: SAVED_VIEW_CONTRACT, ownerId: fixtureSavedViewOwner,
+          state: "present", view, receipt: { requestId: view.id, fingerprint, originalName: name } });
       }
       const getStatuses = Array.isArray(stub.savedViewsGetStatus)
         ? stub.savedViewsGetStatus

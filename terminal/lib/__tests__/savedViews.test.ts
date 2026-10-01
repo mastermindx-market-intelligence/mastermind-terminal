@@ -30,7 +30,17 @@ class FakeQuery implements WatchlistQuery {
   select(): WatchlistQuery { return this; }
   eq(column: string, value: unknown): WatchlistQuery {
     this.eqs[column] = value;
-    this.predicates.push((row) => row[column] === value);
+    this.predicates.push((row) => {
+      if (column === "value->record->>revision") {
+        const raw = row.value;
+        const record = raw && typeof raw === "object" && !Array.isArray(raw)
+          ? (raw as Record<string, unknown>).record : null;
+        const revision = record && typeof record === "object" && !Array.isArray(record)
+          ? (record as Record<string, unknown>).revision : undefined;
+        return revision !== undefined && revision !== null && String(revision) === String(value);
+      }
+      return row[column] === value;
+    });
     return this;
   }
   in(): WatchlistQuery { return this; }

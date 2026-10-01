@@ -17,6 +17,17 @@ export type Lang = "en" | "zh";
 // Exported for tests that hold a feature's new strings to EN+ZH parity by key (see
 // lib/__tests__/feedFreshness.test.ts). Runtime call sites use `useT`/`tPlain`, never LEX directly.
 export const LEX: Record<string, [string, string]> = {
+  // Saved-view operation recovery; uncertainty is not a confirmed failure.
+  savedViewOpSaving: ["Saving this view. Please wait for confirmation.","正在保存此视图，请等待确认。"],
+  savedViewOpChecking: ["Checking the original save request. No new save is being submitted.","正在检查原保存请求，不会再次提交保存。"],
+  savedViewOpUnknown: ["The save has not been confirmed. It may already exist; check the original request before saving again.","尚未确认保存结果。视图可能已保存；再次保存前请检查原请求。"],
+  savedViewOpConflict: ["This request belongs to a different saved definition. This request did not overwrite it. Check the original save.","此请求对应另一项已保存定义，本次请求未覆盖该内容。请检查原保存请求。"],
+  savedViewOpAccess: ["Sign in to the original account to check this save. Previous private results are hidden.","请登录原账户以检查此次保存。之前的私有结果已隐藏。"],
+  savedViewOpRecovery: ["The save-recovery handle could not be read. No new save was sent.","无法读取保存恢复标识，未发送新的保存请求。"],
+  savedViewOpDeleted: ["The original saved view was deleted. Checking its request did not recreate it.","原保存视图已删除。检查请求不会重新创建该视图。"],
+  savedViewOpNotObserved: ["The original request is not visible yet. That does not prove it failed; check again without submitting another save.","暂未找到原请求的记录。这不代表保存未发生；请稍后再次检查，不要重复提交。"],
+  savedViewOpCheckAction: ["Check original save","检查原保存请求"],
+
   // settings
   settings: ["Settings", "设置"],
   updownColors: ["Up / Down colors", "涨跌颜色"],
