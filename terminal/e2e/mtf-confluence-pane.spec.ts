@@ -49,12 +49,12 @@ test("MTF pane survives insert-between and incremental remove/re-add without lif
   const mtfOnlyPanes = await paneCount(page);
   expect(mtfOnlyPanes).toBeGreaterThan(1);
 
-  // MACD is canonically before MTF, so adding it after load forces the insert-between rebuild path.
+  // MACD-RSI is before MTF, so adding it after load exercises insert-between rebuilding.
   await openIndicatorLibrary(page);
   const library = page.locator(".imodal-library");
   const search = library.getByRole("searchbox");
-  await search.fill("MACD");
-  const macd = library.getByRole("switch", { name: "MACD", exact: true });
+  await search.fill("MACD-RSI");
+  const macd = library.getByRole("switch", { name: "MACD-RSI", exact: true });
   await expect(macd).toBeVisible();
   await macd.click();
   await expect(macd).toHaveAttribute("aria-checked", "true");
