@@ -76,6 +76,10 @@ const VolView = dynamic(
   () => import("@/components/vol/VolView").then((m) => ({ default: m.VolView })),
   { ssr: false, loading: () => <TabSkeleton /> },
 );
+const PayoffLab = dynamic(
+  () => import("@/components/plan/PayoffLab").then((m) => ({ default: m.PayoffLab })),
+  { ssr: false, loading: () => <TabSkeleton /> },
+);
 const StructureView = dynamic(
   () => import("@/components/structure/StructureView").then((m) => ({ default: m.StructureView })),
   { ssr: false, loading: () => <TabSkeleton /> },
@@ -114,7 +118,7 @@ const TideChart = dynamic(
 
 // ─── Tab definition ─────────────────────────────────────────────────────────
 
-export type TabKey = "prophet" | "levels" | "desk" | "tape" | "tide" | "zero_dte" | "largest" | "tickers" | "screener" | "gex" | "surface" | "structure" | "volatility" | "positioning" | "leaders" | "radar";
+export type TabKey = "prophet" | "payoff" | "levels" | "desk" | "tape" | "tide" | "zero_dte" | "largest" | "tickers" | "screener" | "gex" | "surface" | "structure" | "volatility" | "positioning" | "leaders" | "radar";
 
 const TABS: { key: TabKey; enKey: string; zhKey: string }[] = [
   { key: "prophet",  enKey: "tabProphet",  zhKey: "tabProphet" },
@@ -135,6 +139,7 @@ const TABS: { key: TabKey; enKey: string; zhKey: string }[] = [
   // R3 Volatility tab (IV rank / term / skew). Distinct from the retired standalone
   // "vol" surface (folded into Tickers) and from the `vol → screener` URL alias.
   { key: "volatility", enKey: "tabVolatility", zhKey: "tabVolatility" },
+  { key: "payoff",   enKey: "tabPayoff",   zhKey: "tabPayoff" },
   // MSC wave R0 — dealer-positioning mechanics over the SAME gex/moves payloads the
   // Exposure desk reads (sign robustness, hedge-flow scenarios, levels in expected moves,
   // gamma topology, front-expiry preview). Its own tab because the desk's left column is
@@ -2251,9 +2256,9 @@ export default function OptionsHubView({
                   className={`obs-pillnav-tab${activeTab === tb.key ? " on" : ""}`}
                   onClick={() => switchTab(tb.key)}
                 >
-                  {lang === "zh"
-                    ? t(tb.zhKey, tb.key)
-                    : t(tb.enKey, tb.key)}
+                  {tb.key === "payoff"
+                    ? (lang === "zh" ? "到期收益" : "Payoff Lab")
+                    : lang === "zh" ? t(tb.zhKey, tb.key) : t(tb.enKey, tb.key)}
                 </button>
               ))}
             </nav>
@@ -3893,6 +3898,13 @@ export default function OptionsHubView({
           {(activeTab === "volatility" || visitedTabs.has("volatility")) && (
             <div style={{ flex: 1, overflow: "hidden", display: activeTab === "volatility" ? "flex" : "none", minHeight: 0 }}>
               <VolView />
+            </div>
+          )}
+
+          {/* ═══ PLAN / PAYOFF TAB — deterministic expiration structure ═══ */}
+          {(activeTab === "payoff" || visitedTabs.has("payoff")) && (
+            <div style={{ flex: 1, overflow: "hidden", display: activeTab === "payoff" ? "flex" : "none", minHeight: 0 }}>
+              <PayoffLab />
             </div>
           )}
 

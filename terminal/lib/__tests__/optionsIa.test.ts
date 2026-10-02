@@ -8,8 +8,8 @@ import {
   optionsCategoryForView,
 } from "@/lib/optionsIa";
 
-describe("Options seven-category IA", () => {
-  it("keeps the masterplan category order exact", () => {
+describe("Options categorized IA", () => {
+  it("keeps the declared category order exact", () => {
     expect(OPTIONS_IA_CATEGORIES.map((category) => category.key)).toEqual([
       "command",
       "flow",
@@ -17,19 +17,21 @@ describe("Options seven-category IA", () => {
       "structure",
       "volatility",
       "statistics",
+      "plan",
       "prophet",
     ]);
-    expect(OPTIONS_CATEGORY_KEYS).toHaveLength(7);
+    expect(OPTIONS_CATEGORY_KEYS).toHaveLength(8);
   });
 
   it("places every existing Options workspace pane exactly once", () => {
-    expect(OPTIONS_HUB_WORKSPACE_VIEWS).toHaveLength(14);
-    expect(new Set(OPTIONS_HUB_WORKSPACE_VIEWS).size).toBe(14);
+    expect(OPTIONS_HUB_WORKSPACE_VIEWS).toHaveLength(15);
+    expect(new Set(OPTIONS_HUB_WORKSPACE_VIEWS).size).toBe(15);
     expect([...OPTIONS_HUB_WORKSPACE_VIEWS].sort()).toEqual([
       "desk",
       "gex",
       "largest",
       "levels",
+      "payoff",
       "positioning",
       "prophet",
       "screener",
@@ -54,6 +56,7 @@ describe("Options seven-category IA", () => {
     }
 
     expect(OPTIONS_IA_BY_CATEGORY.flow.defaultView).toBe("tape");
+    expect(OPTIONS_IA_BY_CATEGORY.plan.defaultView).toBe("payoff");
     expect(OPTIONS_IA_VIEW_BY_KEY.zero_dte.pageKey).toBe("0dte");
     expect(OPTIONS_IA_VIEW_BY_KEY.largest.pageKey).toBe("largest");
     expect(OPTIONS_IA_VIEW_BY_KEY.screener.pageKey).toBe("vol");
@@ -62,5 +65,7 @@ describe("Options seven-category IA", () => {
     expect(optionsCategoryForView("surface")).toBe("flow");
     expect(optionsCategoryForView("positioning")).toBe("exposure");
     expect(optionsCategoryForView("statistics")).toBe("statistics");
+    expect(OPTIONS_IA_VIEW_BY_KEY.payoff.pageKey).toBe("payoff");
+    expect(optionsCategoryForView("payoff")).toBe("plan");
   });
 });
