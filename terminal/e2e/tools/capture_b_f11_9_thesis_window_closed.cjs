@@ -247,7 +247,12 @@ async function installCockpitRoutes(page, thesisId, firedAt) {
       deliver_after: null,
       delivered_at: null,
       created_at: now,
-      payload: { thesis_id: thesisId, kind: "thesis_condition", fired_at: now },
+      payload: {
+        thesis_id: thesisId,
+        category: "thesis_window",
+        source: "macro.thesis_condition_monitor",
+        fired_at: "2026-09-05",
+      },
     }],
     outbox_state: "READ_OK",
   };

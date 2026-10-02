@@ -61,8 +61,6 @@ export interface OutboxRow {
     engine_window_plain_zh?: string;
     requires_tier?: string | null;
     coverage?: string;
-    /** "thesis_condition" — kept for legacy fixtures that still use it. */
-    kind?: string;
   };
 }
 
@@ -376,19 +374,15 @@ export function buildAlertsView(input: {
 
   // MO-PAID-047 + F11-11b-pre: surface thesis-condition outbox rows written by macro's
   // thesis-condition monitor as delivery rows. A row is a thesis-condition row when
-  // payload.thesis_id is a well-formed UUID AND any of payload.kind, payload.source, or
-  // payload.category identifies it as a thesis condition. A row whose alert_id matches a real
-  // alerts entry stays on the alerts path only; null, empty, and unmatched synthetic ids take
-  // the thesis path.
+  // payload.thesis_id is a well-formed UUID AND the producer path identifies it by both payload
+  // source and category. A row whose alert_id matches a real alerts entry stays on the alerts
+  // path only; null, empty, and unmatched synthetic ids take the thesis path.
   const thesisFireRows = [...folded.values()].filter(({ row }) => {
     if (!isWellFormedThesisId(row.payload?.thesis_id)) return false;
     if (row.alert_id && alertIds.has(row.alert_id)) return false;
-    const kind = row.payload?.kind;
     const source = row.payload?.source;
     const category = row.payload?.category;
-    return kind === "thesis_condition"
-      || source === "macro.thesis_condition_monitor"
-      || category === "thesis_window";
+    return source === "macro.thesis_condition_monitor" && category === "thesis_window";
   });
   const thesisRows: AlertRowView[] = thesisFireRows.map(({ row, folded: duplicates }) => {
     const thesisId = row.payload.thesis_id as string;

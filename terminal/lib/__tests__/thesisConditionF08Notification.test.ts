@@ -29,6 +29,8 @@ function thesisConditionOutbox(over: Partial<OutboxRow> = {}): OutboxRow {
     payload: {
       thesis_id: THESIS_ID,
       kind: "thesis_condition",
+      category: "thesis_window",
+      source: "macro.thesis_condition_monitor",
     },
     ...over,
   };
@@ -47,10 +49,10 @@ function producerRealOutbox(over: Partial<OutboxRow> = {}): OutboxRow {
     deliver_after: null,
     delivered_at: null,
     created_at: "2026-09-05T11:59:30Z",
-    payload: {
-      thesis_id: THESIS_ID,
-      thesis_version: 1,
-      fired_at: "2026-09-05T11:58:00Z",
+      payload: {
+        thesis_id: THESIS_ID,
+        thesis_version: 1,
+        fired_at: "2026-09-05T11:58:00Z",
       tripwire_id: "11111111-1111-1111-a111-111111111111",
       tripwire_version: 1,
       category: "thesis_window",
@@ -197,20 +199,18 @@ describe("F11-11b-pre producer real shape (category+source, no kind, synthetic a
     expect(view.rows[0].delivery).toBe("pending");
   });
 
-  it("producer row with category only (no kind, no source) also surfaces", () => {
+  it("does not surface category-only producer payloads", () => {
     const view = viewOf([producerRealOutbox({
       payload: { ...producerRealOutbox().payload, source: undefined as unknown as string, category: "thesis_window" },
     })]);
-    expect(view.rows.length).toBe(1);
-    expect(view.rows[0].thesisId).toBe(THESIS_ID);
+    expect(view.rows.length).toBe(0);
   });
 
-  it("producer row with source only (no kind, no category) also surfaces", () => {
+  it("does not surface source-only producer payloads", () => {
     const view = viewOf([producerRealOutbox({
       payload: { ...producerRealOutbox().payload, category: undefined as unknown as string, source: "macro.thesis_condition_monitor" },
     })]);
-    expect(view.rows.length).toBe(1);
-    expect(view.rows[0].thesisId).toBe(THESIS_ID);
+    expect(view.rows.length).toBe(0);
   });
 
   it("producer row + ordinary fired alert → 2 rows", () => {

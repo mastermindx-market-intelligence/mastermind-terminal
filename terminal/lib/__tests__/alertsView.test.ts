@@ -822,18 +822,23 @@ describe("F11-11b-pre producer-shaped thesis-condition rows (category+source, no
     expect(view.rows[0].delivery).toBe("pending");
   });
 
-  it("producer-shaped row with source only (no kind, no category) also renders as thesis row", () => {
+  it("does not render source-only producer payloads", () => {
     const row = producerRow({ payload: { ...producerRow().payload, category: undefined as unknown as string } });
     const view = viewOf([row]);
-    expect(view.rows).toHaveLength(1);
-    expect(view.rows[0].thesisId).toBe(THESIS_ID);
+    expect(view.rows).toHaveLength(0);
   });
 
-  it("producer-shaped row with kind === 'thesis_condition' (legacy) still renders", () => {
-    const row = producerRow({ payload: { ...producerRow().payload, kind: "thesis_condition" } });
+  it("does not render legacy-kind payloads without producer source and category", () => {
+    const row = producerRow({
+      payload: {
+        ...producerRow().payload,
+        kind: "thesis_condition",
+        category: undefined as unknown as string,
+        source: undefined as unknown as string,
+      },
+    });
     const view = viewOf([row]);
-    expect(view.rows).toHaveLength(1);
-    expect(view.rows[0].thesisId).toBe(THESIS_ID);
+    expect(view.rows).toHaveLength(0);
   });
 
   it("a row with a malformed thesis_id is skipped even when category+source are present", () => {
