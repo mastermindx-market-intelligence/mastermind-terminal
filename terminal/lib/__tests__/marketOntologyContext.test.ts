@@ -8,6 +8,7 @@ import {
   marketOntologyReturnHref,
   parseMarketOntologyContext,
   serializeMarketOntologyContext,
+  stripMarketOntologyParams,
 } from "@/lib/marketOntologyContext";
 
 /**
@@ -705,6 +706,15 @@ describe("hasMarketOntologyContext", () => {
   it("counts an uppercase MO_ prefix case-insensitively", () => {
     expect(hasMarketOntologyContext(makeRawParams("MO_CHAIN=x"))).toBe(true);
     expect(hasMarketOntologyContext(makeRawParams("symbol=NVDA"))).toBe(false);
+  });
+});
+
+describe("stripMarketOntologyParams", () => {
+  it("drops every mo_* key and keeps every other key and value", () => {
+    const result = stripMarketOntologyParams(makeRawParams(
+      "symbol=NVDA&page=intelligence&mo_from=ontology&mo_chain=chain_1&mo_unknown=yes&keep=value",
+    ));
+    expect(result.toString()).toBe("symbol=NVDA&page=intelligence&keep=value");
   });
 });
 

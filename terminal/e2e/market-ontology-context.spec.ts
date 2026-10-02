@@ -144,6 +144,35 @@ test("symbol_switch_clears_every_mo_key_for_transmission_origin", async ({ page,
   expect(url.searchParams.get("symbol")).toBe("MSFT");
 });
 
+test("opening a thesis on another company clears the MarketOntology context", async ({ page, baseURL }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "The MarketOntology context contract is scoped to the desktop project.");
+  await prepare(page, testInfo, baseURL);
+  const createResponse = await page.request.post("/api/theses", { data: {
+    action: "create",
+    clientRequestId: "a1000000-0000-4000-8000-00000000b3b4",
+    subject: {
+      schema: "mastermind.thesis-subject-ref/v1", kind: "issuer", owner: "terminal.analysis_symbol",
+      key: "MSFT", identityState: "listing_scoped", listing: { symbol: "MSFT", mic: null, securityId: null },
+      companyId: null, display: "MSFT · listing scoped",
+    },
+    content: {
+      schema: "mastermind.thesis-content/v1", title: "A different company",
+      statement: "This thesis belongs to another company.", catalysts: [], falsifiers: [],
+      risks: [], horizon: "unspecified", effectiveAt: null, revisionNote: null,
+    },
+  } });
+  if (!createResponse.ok()) throw new Error(`The thesis could not be created (${createResponse.status()}): ${await createResponse.text()}.`);
+
+  await page.goto(`/analysis?view=theses&symbol=NVDA&${CONTEXT_QUERY}`);
+  await expect(page.getByTestId("thesis-workspace")).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByTestId("mo-context-strip")).toBeVisible();
+  await page.getByRole("button", { name: "A different company" }).click();
+  await expect(page.getByRole("heading", { name: "MSFT · Listing-scoped identity" })).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByTestId("thesis-workspace")).toContainText("MSFT");
+  await expect(page.getByTestId("mo-context-strip")).toHaveCount(0);
+  expect([...new URL(page.url()).searchParams.keys()].filter((key) => key.startsWith("mo_"))).toEqual([]);
+});
+
 test("the context strip remains usable across the responsive contract", async ({ page, baseURL }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "The contract proof cycles all three viewports in one desktop run.");
   await prepare(page, testInfo, baseURL, true);

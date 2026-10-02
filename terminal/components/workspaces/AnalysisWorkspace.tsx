@@ -12,10 +12,10 @@ import { getFund, getBars, type Fund, type Bar } from "@/lib/fund";
 import { getJSON } from "@/lib/dataCache";
 import { useLang, useT } from "@/lib/i18n";
 import {
-  clearMarketOntologyContext,
   hasMarketOntologyContext,
   parseMarketOntologyContext,
   serializeMarketOntologyContext,
+  stripMarketOntologyParams,
   type MarketOntologyContext,
 } from "@/lib/marketOntologyContext";
 import { ANALYSIS_DEFAULT_SYMBOL, normalizeAnalysisSymbol } from "@/lib/analysisSymbol";
@@ -119,6 +119,13 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
   const [symbolSettled, setSymbolSettled] = useState(() => !!normalizedInitialSymbol || !!requestedSymbol);
   useLayoutEffect(() => {
     if (symbolSettled) return;
+    const params = new URLSearchParams(window.location.search);
+    if (hasMarketOntologyContext(params) && !normalizedInitialSymbol) {
+      const url = new URL(window.location.href);
+      url.search = stripMarketOntologyParams(params).toString();
+      window.history.replaceState(null, "", url.toString());
+      setMarketOntologyContext(null);
+    }
     const cursor = normalizeAnalysisSymbol(readActiveSymbol() ?? undefined);
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (cursor && cursor !== sym) setSym(cursor);
@@ -219,7 +226,7 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
     const params = new URLSearchParams(window.location.search);
     if (hasMarketOntologyContext(params)) {
       const url = new URL(window.location.href);
-      url.search = clearMarketOntologyContext(params).toString();
+      url.search = stripMarketOntologyParams(params).toString();
       window.history.replaceState(null, "", url.toString());
     }
     setMarketOntologyContext(null);

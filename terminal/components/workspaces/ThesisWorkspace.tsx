@@ -5,7 +5,7 @@ import { useLang, useT } from "@/lib/i18n";
 import { subjectKindLabel } from "@/lib/plainLabels";
 import { parseAnalysisSearchParams } from "@/lib/analysisRoute";
 import { normalizeAnalysisSymbol } from "@/lib/analysisSymbol";
-import { parseMarketOntologyContext, type MarketOntologyContext } from "@/lib/marketOntologyContext";
+import { parseMarketOntologyContext, stripMarketOntologyParams, type MarketOntologyContext } from "@/lib/marketOntologyContext";
 import { isUuid, normalizeThesisContent, normalizeThesisSubject } from "@/lib/theses";
 import type {
   ThesisAction,
@@ -1543,6 +1543,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       url.searchParams.set("view", "theses");
       url.searchParams.set("thesis", id);
       url.searchParams.delete("symbol");
+      url.search = stripMarketOntologyParams(url.searchParams).toString();
       writeRoute(url, "push");
     }
     void loadDetail(id, token);

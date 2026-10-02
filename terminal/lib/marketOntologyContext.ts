@@ -273,6 +273,14 @@ export function clearMarketOntologyContext(params: URLSearchParams): URLSearchPa
 }
 
 /**
+ * Strip every mo_* query parameter, including unknown keys, without changing
+ * any other parameter or its position.
+ */
+export function stripMarketOntologyParams(params: URLSearchParams): URLSearchParams {
+  return clearMarketOntologyContext(params);
+}
+
+/**
  * Construct the return href for navigating back to the validated origin.
  *
  * Format: `${MARKET_ONTOLOGY_ORIGIN}/ontology.html` + (pathRev ? `?rev=${pathRev}` : "") + (focus ? `#ox-leg-${encodeURIComponent(focus)}` : "")
