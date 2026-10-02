@@ -67,7 +67,7 @@ describe("regularSessionBarIsFinal — completion must be explicit", () => {
   const tencentRecord = (o: Partial<Record<number, string>>) => {
     const f = new Array(41).fill("0");
     f[0] = "1"; f[1] = "TestCo"; f[2] = "000729";
-    for (const k of Object.keys(o)) f[+k] = o[+k as unknown as number]!;
+    for (const k of Object.keys(o)) { const i = Number(k); f[i] = o[i]!; }
     return f;
   };
 
