@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { IND_ORDER, type IndKey } from "@/lib/indicators";
+import { parseTencentFields } from "@/lib/intradaySources";
 import {
   LIVE_BAR_PROJECTION,
   LIVE_CLOSED_BAR_KEYS,
