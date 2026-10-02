@@ -253,6 +253,7 @@ test("closed-bar MTF evidence does not move with an RTH daily splice", async ({ 
 
   const after = await settledBaseline(page, ["mtfconfluence"]);
   expect(after.priceTail?.value).toBe(LIVE_LAST);
+  expect(after.projection.mtfconfluence).toBe("closed-bar-series");
   expect(after.series.mtfconfluence?.[0]).toEqual(dBefore);
   expect(after.series.mtfconfluence?.[1]).toEqual(d3Before);
 });

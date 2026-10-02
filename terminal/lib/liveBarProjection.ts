@@ -24,6 +24,8 @@ export type LiveBarProjection =
   | "inplace-series"
   /** The key's own builder is re-run against the series it already owns (`runStudyInPlace`). */
   | "inplace-rebuild"
+  /** Closed-bar evidence: rebuilt only at normal data/rebuild boundaries, never on a developing tick. */
+  | "closed-bar-series"
   /** Holds no precomputed state: recomputed from `barsRef` by the overlay render pass. */
   | "render-pass"
   /** Nothing in it derives from the bars, so a bar mutation cannot change it. */
@@ -43,7 +45,9 @@ export const LIVE_BAR_PROJECTION: Record<IndKey, LiveBarProjection> = {
   rsi: "inplace-series",
   stochrsi: "inplace-series",
   macd: "inplace-series",
-  mtfconfluence: "inplace-rebuild",
+  // MTF evidence is explicitly CLOSED-bar only. A developing RTH candle may move beside it,
+  // but a live mutation must never recompute or replace the last published closed state.
+  mtfconfluence: "closed-bar-series",
 
   // ── day-trade / premium studies: their builder is the single owner of both the math and the
   //    row→point mapping, so it is re-run against the series the key already owns ──

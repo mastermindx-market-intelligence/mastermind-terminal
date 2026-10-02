@@ -51,6 +51,11 @@ describe("LIVE_BAR_PROJECTION — every built-in study has a decided live behavi
     // Gap zones and lab markers cache nothing of their own — the render pass re-derives them.
     expect(LIVE_BAR_PROJECTION.gaps).toBe("render-pass");
     expect(LIVE_BAR_PROJECTION._lab).toBe("render-pass");
+    // MTF confluence is derived from bars, but only CLOSED bars. It therefore has an
+    // explicit non-live projection class rather than pretending to be data-fed.
+    expect(LIVE_BAR_PROJECTION.mtfconfluence).toBe("closed-bar-series");
+    expect(LIVE_REBUILD_KEYS).not.toContain("mtfconfluence");
+    expect(LIVE_INPLACE_SERIES_KEYS.has("mtfconfluence")).toBe(false);
   });
 });
 

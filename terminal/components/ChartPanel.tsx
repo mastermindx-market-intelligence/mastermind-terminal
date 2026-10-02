@@ -642,10 +642,14 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     const targetKnowable = rows.map(r => String(r.closeTime ?? r.time));
     const dailyTimes = daily.map(r => String(r.time));
     const market = classify(symbolRef.current);
-    const liveSessionDate = sessionDateOf(liveQuote?.ts, market);
-    const dailyTailIsForming = !!liveQuote?.basis
-      && SPLICE_BASES.has(liveQuote.basis.toUpperCase())
-      && liveQuote.marketSession === "rth"
+    // Live-study rebuilds run synchronously inside the accepted mutation boundary.
+    // Read the pane's latest quote REF here, not the render-time prop captured by
+    // this builder closure, or an RTH splice can briefly score the forming daily bar.
+    const quote = liveQuoteRef.current;
+    const liveSessionDate = sessionDateOf(quote?.ts, market);
+    const dailyTailIsForming = !!quote?.basis
+      && SPLICE_BASES.has(quote.basis.toUpperCase())
+      && quote.marketSession === "rth"
       && liveSessionDate != null
       && dailyTimes[dailyTimes.length - 1] === liveSessionDate;
     const firstDailyAfter = (t: string): string | null => {
@@ -2154,6 +2158,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     if (inds.has("rsi")) out.push("rsi");
     if (inds.has("stochrsi")) out.push("stochrsi");
     if (inds.has("macd")) out.push("macd");
+    if (inds.has("mtfconfluence")) out.push("mtfconfluence");
     if (inds.has("rsistack")) out.push("rsistack");
     if (inds.has("accum")) out.push("accum");
     // DT sub-panes (intraday-only gating at build time, not here)
