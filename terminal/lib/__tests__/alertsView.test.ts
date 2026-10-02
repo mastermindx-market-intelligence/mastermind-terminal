@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "fs";
 import path from "path";
 import {
-  buildAlertsView, monitorFor, foldOutbox, deliveryFor, ALERTS_COPY, copy, conditionText, conditionsWord, verdictText,
+  buildAlertsView, monitorFor, foldOutbox, deliveryFor, ALERTS_COPY, copy, conditionText, conditionsWord, verdictText, formatFiredAt,
   firedEventTextZh, lanesForArmedAlerts, noCoverageAcross, rowChipKey,
   type RunReceipt, type OutboxRow, type Alert,
 } from "../alertsView";
@@ -822,6 +822,13 @@ describe("F11-11b-pre producer-shaped thesis-condition rows (category+source, no
     expect(view.rows[0].delivery).toBe("pending");
   });
 
+  it("a producer row with both recognizer fields and a full payload renders one bare-UUID thesis row", () => {
+    const row = producerRow({ payload: { ...producerRow().payload, kind: "legacy" } });
+    const view = viewOf([row]);
+    expect(view.rows).toHaveLength(1);
+    expect(view.rows[0].thesisId).toBe(THESIS_ID);
+  });
+
   it("does not render source-only producer payloads", () => {
     const row = producerRow({ payload: { ...producerRow().payload, category: undefined as unknown as string } });
     const view = viewOf([row]);
@@ -977,6 +984,27 @@ describe("F11-11b-pre producer-shaped thesis-condition rows (category+source, no
     expect(view.rows.every((row) => row.foldedRows === 0)).toBe(true);
   });
 
+  it("ordinary alert rows with empty fire ids fold by alert id and creation time", () => {
+    const ordinaryRow = (alertId: string): OutboxRow => ({
+      alert_id: alertId,
+      fire_event_id: "",
+      status: "pending",
+      attempts: 0,
+      last_error: null,
+      deliver_after: null,
+      delivered_at: null,
+      created_at: "2026-09-05T12:00:00Z",
+      payload: { subject: "A price condition changed" },
+    });
+    const view = viewOf([ordinaryRow("alert-one"), ordinaryRow("alert-two")]);
+    expect(view.rows).toHaveLength(0);
+    const folded = foldOutbox([ordinaryRow("alert-one"), ordinaryRow("alert-two")]);
+    expect([...folded.keys()].sort()).toEqual([
+      "alert:alert-one:2026-09-05T12:00:00Z",
+      "alert:alert-two:2026-09-05T12:00:00Z",
+    ]);
+  });
+
   it("ties on created_at order by the newer payload fired_at", () => {
     const older = producerRow({ fire_event_id: "fe-thesis-old", payload: { ...producerRow().payload, fired_at: "2026-09-05T11:57:00Z" } });
     const newer = producerRow({ fire_event_id: "fe-thesis-new" });
@@ -1005,5 +1033,34 @@ describe("F11-11b-pre producer-shaped thesis-condition rows (category+source, no
       `thesis:${secondThesisId}:fe-thesis-b-old`,
     ]);
     expect(view.rows.every((row) => row.foldedRows === 0)).toBe(true);
+  });
+});
+
+describe("formatFiredAt", () => {
+  it("renders a date-only producer value as an English calendar date", () => {
+    const rendered = formatFiredAt("2026-09-05", "en");
+    expect(rendered).toBe("Sep 5, 2026");
+    expect(rendered).not.toMatch(/\d{1,2}:\d{2}/);
+  });
+
+  it("renders a date-only producer value as a Chinese calendar date", () => {
+    const rendered = formatFiredAt("2026-09-05", "zh");
+    expect(rendered).toBe("2026年9月5日");
+    expect(rendered).not.toMatch(/\d{1,2}:\d{2}/);
+  });
+
+  it("keeps a full timestamp as a date and time", () => {
+    expect(formatFiredAt("2026-09-05T11:58:00Z", "en")).toMatch(/9\/5\/2026/);
+    expect(formatFiredAt("2026-09-05T11:58:00Z", "en")).toMatch(/\d{1,2}:\d{2}/);
+  });
+
+  it("returns the existing dash for empty values", () => {
+    expect(formatFiredAt(null, "en")).toBe("—");
+    expect(formatFiredAt("", "zh")).toBe("—");
+  });
+
+  it("returns the existing dash for invalid values", () => {
+    expect(formatFiredAt("not-a-date", "en")).toBe("—");
+    expect(formatFiredAt("2026-09-05Tnot-a-time", "zh")).toBe("—");
   });
 });

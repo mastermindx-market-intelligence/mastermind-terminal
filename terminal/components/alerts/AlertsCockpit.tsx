@@ -135,7 +135,7 @@ export default function AlertsCockpit({ email, children }: { email: string; chil
 
   const timelineRows: TimelineRow[] = view.rows.map((r) => {
     const alert = alerts?.find((a) => a.id === r.alertId);
-    const t = r.outboxRow?.payload?.fired_at ? new Date(r.outboxRow.payload.fired_at).toLocaleTimeString(L === "zh" ? "zh-CN" : "en-US", { hour: "2-digit", minute: "2-digit" }) : "—";
+    const t = formatFiredAt(r.outboxRow?.payload?.fired_at, L);
     // MO-PAID-047: thesis_condition outbox rows have no matching alerts entry.
     // Use the window-closed copy for these rows; do not show "falsifier" language.
     const isThesisRow = r.thesisId != null;

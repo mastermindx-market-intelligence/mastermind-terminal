@@ -10,6 +10,9 @@ export type ResolutionState = "open" | "resolved" | "armed" | "paused";
 
 export const LANE = "alerts_engine";
 export const CALM_GRACE_S = 120; // budget (300) + grace = 420s
+const MONTHS_EN = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+];
 
 // Fired when this page's create/re-arm/delete actions succeed, so every AlertsView instance
 // mounted on the same page (the cockpit's inline create form and the separate existing-alerts
@@ -273,12 +276,36 @@ export function rowChipKey(alert: { identity_state?: string; active?: boolean; c
   return alert.identity_state === "unresolved" ? "identity.unresolved" : "resolution.armed";
 }
 
+export function formatFiredAt(firedAt: string | null | undefined, lang: "en" | "zh"): string {
+  if (!firedAt) return "—";
+  const dateOnly = /^(\d{4})-(\d{2})-(\d{2})$/.exec(firedAt);
+  if (dateOnly) {
+    const [, yearText, monthText, dayText] = dateOnly;
+    const year = Number(yearText);
+    const month = Number(monthText);
+    const day = Number(dayText);
+    if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+      return lang === "zh" ? `${year}年${month}月${day}日` : `${MONTHS_EN[month - 1]} ${day}, ${year}`;
+    }
+    return "—";
+  }
+  const parsed = new Date(firedAt);
+  if (Number.isNaN(parsed.getTime())) return "—";
+  return parsed.toLocaleString(lang === "zh" ? "zh-CN" : "en-US", {
+    year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "2-digit",
+  });
+}
+
 /** Fold outbox rows by fire_event_id, preserving distinct empty-id fires. */
 export function foldOutbox(outbox: OutboxRow[]): Map<string, { row: OutboxRow; folded: number }> {
   const byEvent = new Map<string, OutboxRow[]>();
   for (const row of outbox) {
+    const thesisId = row.payload?.thesis_id;
+    const thesisKey = isWellFormedThesisId(thesisId)
+      ? `thesis:${thesisId}:${row.created_at?.trim() || ""}`
+      : null;
     const fireKey = row.fire_event_id?.trim()
-      || `thesis:${row.payload?.thesis_id ?? "unknown"}:${row.created_at?.trim() || ""}`
+      || thesisKey
       || `alert:${row.alert_id ?? "unknown"}:${row.created_at?.trim() || ""}`;
     const list = byEvent.get(fireKey) ?? [];
     list.push(row);
