@@ -45,6 +45,20 @@ function proofShotPath(proofDir: string, testInfo: TestInfo, name: string, local
   return path.join(proofDir, `${testInfo.project.name}-${name}${suffix}.png`);
 }
 
+async function captureContextProof(
+  page: Page,
+  proofDir: string,
+  testInfo: TestInfo,
+  name: string,
+  locale: "en" | "zh",
+) {
+  const content = locale === "zh" && name.endsWith("mobile-analysis")
+    ? page.getByTestId("thesis-workspace")
+    : page.locator(".ci-page");
+  await expect(content).toBeVisible({ timeout: 30_000 });
+  await page.screenshot({ path: proofShotPath(proofDir, testInfo, name, locale), fullPage: true });
+}
+
 function expectContextParams(url: URL) {
   expect(url.searchParams.get("mo_from")).toBe("ontology");
   expect(url.searchParams.get("mo_chain")).toBe("context-chain");
@@ -185,19 +199,19 @@ test("the context strip remains usable across the responsive contract", async ({
   await expect(strip).toContainText("知识截止 2026年8月31日");
   const proofDir = path.join(process.cwd(), "e2e/proof/mo-context-strip");
   mkdirSync(proofDir, { recursive: true });
-  await page.screenshot({ path: proofShotPath(proofDir, testInfo, "desktop-analysis", "zh"), fullPage: true });
+  await captureContextProof(page, proofDir, testInfo, "desktop-analysis", "zh");
   await expect(page.locator("body")).toHaveCSS("overflow", "visible");
 
   await page.setViewportSize({ width: 820, height: 1180 });
   await expect(strip).toBeVisible();
   await expect(page.locator(".analysis-shell")).toHaveCSS("overflow", "hidden");
-  await page.screenshot({ path: proofShotPath(proofDir, testInfo, "tablet-analysis", "zh"), fullPage: true });
+  await captureContextProof(page, proofDir, testInfo, "tablet-analysis", "zh");
   await expect(page.locator(".analysis-shell")).toHaveCSS("overflow-x", "hidden");
 
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(strip).toBeVisible();
   await expect(page.locator(".analysis-shell")).toHaveCSS("overflow-x", "hidden");
-  await page.screenshot({ path: proofShotPath(proofDir, testInfo, "mobile-analysis", "zh"), fullPage: true });
+  await captureContextProof(page, proofDir, testInfo, "mobile-analysis", "zh");
 
   await page.goto(`/analysis?view=theses&symbol=NVDA&${CONTEXT_QUERY}`);
   await expect(page.getByTestId("thesis-workspace")).toBeVisible({ timeout: 45_000 });
@@ -205,7 +219,27 @@ test("the context strip remains usable across the responsive contract", async ({
   await expect(thesisStrip).toBeVisible();
   await expect(thesisStrip).toContainText("返回 WTI 实时路径");
   await expect(page.locator("html")).toHaveCSS("overflow-x", "hidden");
-  await page.screenshot({ path: proofShotPath(proofDir, testInfo, "mobile-thesis", "zh"), fullPage: true });
+  await captureContextProof(page, proofDir, testInfo, "mobile-thesis", "zh");
+});
+
+test("the transmission context strip has proof captures", async ({ page, baseURL }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "The MarketOntology context contract is scoped to the desktop project.");
+  await prepare(page, testInfo, baseURL);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await openAnalysis(page, `symbol=NVDA&page=intelligence&${TRANSMISSION_QUERY}`);
+  const desktopStrip = page.getByTestId("mo-context-strip");
+  await expect(desktopStrip).toBeVisible();
+  await expect(desktopStrip.getByRole("link")).toHaveAttribute("href", "https://www.mastermind-x.com/transmission.html");
+  await expect(desktopStrip).toContainText("Opened from Transmission");
+  const proofDir = path.join(process.cwd(), "e2e/proof/mo-context-strip");
+  mkdirSync(proofDir, { recursive: true });
+  await captureContextProof(page, proofDir, testInfo, "desktop-analysis-transmission", "en");
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(desktopStrip).toBeVisible();
+  await expect(desktopStrip.getByRole("link")).toHaveAttribute("href", "https://www.mastermind-x.com/transmission.html");
+  await expect(desktopStrip).toContainText("来自传导");
+  await captureContextProof(page, proofDir, testInfo, "mobile-analysis-transmission", "zh");
 });
 
 for (const [name, query] of [
