@@ -88,7 +88,7 @@ import ChartTables from "@/components/ChartTables";
 import { crossUps, crossDowns, crossUpsBelow, crossDownsAbove } from "@/lib/crossSignals";
 import { SOFT_Q, anchorSignal, isBlockedSignal, isOverrideCandidate, isReclaimOverrideTake, isRetroOverride, isStopSweepReclaim, isStructureStop, isWaivedEntry, markerTooltipCopy, opportunityMarkerGlyph, sliceSignalBasis } from "@/lib/signalVerdict";
 import { makeNearestBarIndex } from "@/lib/barSnap";
-import { LIVE_BAR_PROJECTION, LIVE_INPLACE_SERIES_KEYS, LIVE_REBUILD_KEYS, acceptsLiveTick, liveQuoteStamp, seriesReuseChart, type AcceptedLiveTick } from "@/lib/liveBarProjection";
+import { LIVE_BAR_PROJECTION, LIVE_INPLACE_SERIES_KEYS, LIVE_REBUILD_KEYS, acceptsLiveTick, liveQuoteStamp, regularSessionBarIsFinal, seriesReuseChart, type AcceptedLiveTick } from "@/lib/liveBarProjection";
 import { dailyMultipleOf, groupSessionBars, parseSessionAnchor, resolveBarAnchor,
   sessionToBarTime, type SessionAnchor } from "@/lib/sessionBars";
 import { ichimoku, supertrend, avwap as computeAvwap, rollingVwap, weekAnchoredVwap, vprofile, volbox, rsiStack, accumPct, trendRibbon, buyShare as mfBuyShare } from "@/lib/indicatorMath";
@@ -647,11 +647,12 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // this builder closure, or an RTH splice can briefly score the forming daily bar.
     const quote = liveQuoteRef.current;
     const liveSessionDate = sessionDateOf(quote?.ts, market);
+    const sameLiveSession = liveSessionDate != null
+      && dailyTimes[dailyTimes.length - 1] === liveSessionDate;
     const dailyTailIsForming = !!quote?.basis
       && SPLICE_BASES.has(quote.basis.toUpperCase())
-      && quote.marketSession === "rth"
-      && liveSessionDate != null
-      && dailyTimes[dailyTimes.length - 1] === liveSessionDate;
+      && sameLiveSession
+      && !regularSessionBarIsFinal(quote, market, liveSessionDate);
     const firstDailyAfter = (t: string): string | null => {
       let lo = 0, hi = dailyTimes.length;
       while (lo < hi) {
@@ -9066,6 +9067,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         else if (a === "ttmsq") series = buildTtmsq(chart, rows, pane);
         else if (a === "adx") series = buildAdx(chart, rows, pane);
         else if (a === "cvd") series = buildCvd(chart, rows, pane);
+        else if (a === "mtfconfluence") series = buildMtfConfluencePane(chart, rows, pane);
         else if (isSuiteKeyReg(a)) series = buildSuitePane(chart, rows, a, pane);
         series = keepIndicatorPaneAxisLabelsOnly(series);
         indSeriesRef.current.set(a, series);
