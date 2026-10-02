@@ -16,9 +16,8 @@ import React from "react";
 import { makeGexT } from "./gexStrings";
 import type { Lang } from "@/lib/i18n";
 import type { GexPayload, GreekLens } from "./GexDeskView";
-import { dteLabelFor, expLabel } from "@/lib/dte";
 import { fmtMn } from "@/lib/gexLadder";
-import { exposureSign, expiryNetFor, type ExpiryRow } from "@/lib/expiryTermStructure";
+import { byExpiryToTermStructure, EXPIRY_UNIT_KEYS, type ExpiryRow } from "@/lib/expiryTermStructure";
 
 interface ExpiryBarsProps {
   byExpiry: GexPayload["by_expiry"] | null;
@@ -43,26 +42,23 @@ export function ExpiryBars({ byExpiry, greek, asOf = null, lang }: ExpiryBarsPro
     return <div style={EMPTY}>{t("expiryNoData")}</div>;
   }
 
-  const rows = sourceRows
-    .filter((r) => expiryNetFor(r, greek) != null)
-    .slice()
-    .sort((a, b) => a.exp.localeCompare(b.exp)); // nearest expiration first (top)
-
-  if (rows.length < 1) {
-    return <div style={EMPTY}>{t("expiryLensNA")}</div>;
+  const ts = byExpiryToTermStructure(sourceRows, greek, asOf);
+  if (ts.nodes.length < 1) {
+    return <div style={EMPTY}>{t(ts.available ? "expiryNoData" : "expiryLensNA")}</div>;
   }
-
-  const maxAbs = rows.reduce((m, r) => {
-    const v = expiryNetFor(r, greek);
-    return v != null ? Math.max(m, Math.abs(v)) : m;
-  }, 0.001);
+  const maxAbs = Math.max(ts.maxAbs, 0.001);
+  const basis = t("expirySupportSummary").replace("{known}", String(ts.nodes.length))
+    .replace("{total}", String(ts.sourceCount)).replace("{partial}", String(ts.partialCount));
 
   return (
-    <div style={SCROLL} className="obs-scroll">
+    <div style={{ display: "flex", flexDirection: "column", minHeight: 0, flex: 1 }}>
+      {(ts.missingCount > 0 || ts.partialCount > 0) && <p role="status" data-testid="expiry-support" style={{ fontSize: 11, color: "var(--muted)", margin: "4px 6px" }}>{basis}</p>}
+      <div data-testid="expiry-unit" style={{ fontSize: 11, color: "var(--muted)", margin: "4px 6px" }}>{t(EXPIRY_UNIT_KEYS[greek])}</div>
+      <div style={SCROLL} className="obs-scroll">
       <div style={CENTER_LINE} />
-      {rows.map((r) => {
-        const net = expiryNetFor(r, greek) ?? 0;
-        const sign = exposureSign(net);
+      {ts.nodes.map((r) => {
+        const net = r.net;
+        const sign = r.sign;
         const isPos = sign > 0;
         const isNeg = sign < 0;
         const pct = Math.abs(net) / maxAbs;
@@ -70,10 +66,12 @@ export function ExpiryBars({ byExpiry, greek, asOf = null, lang }: ExpiryBarsPro
         const barW = Math.max(shaped * 46, pct > 0 ? 2 : 0);
         const isBig = pct > 0.35;
         return (
-          <div key={r.exp} style={ROW}>
+          <div key={r.exp} data-expiry={r.exp} data-partial={r.partial ? "true" : undefined}
+            title={r.partial ? `${t("expiryKnownSubtotal")} · ${r.knownContracts}/${r.admittedContracts} ${t("expiryAdmittedInputs")}` : undefined}
+            style={{ ...ROW, height: r.partial ? 32 : ROW.height }}>
             <div style={EXP_COL}>
-              <span style={EXP_LABEL}>{expLabel(r.exp)}</span>
-              <span style={DTE_LABEL}>{dteLabelFor(r.exp, asOf)}</span>
+              <span style={EXP_LABEL}>{r.label}</span>
+              <span style={DTE_LABEL}>{r.dteLabel}</span>
             </div>
             <div style={BAR_AREA}>
               {isNeg && barW > 0 && (
@@ -90,11 +88,14 @@ export function ExpiryBars({ byExpiry, greek, asOf = null, lang }: ExpiryBarsPro
                 color: sign > 0 ? "var(--up)" : sign < 0 ? "var(--down)" : "var(--muted)",
               }}
             >
+              {r.partial && <small style={{ display: "block", fontSize: 9 }}>{t("expiryKnownSubtotal")}</small>}
               {fmtMn(net)}
             </span>
           </div>
         );
       })}
+      </div>
+      <p data-testid="expiry-source-basis" style={{ fontSize: 10, color: "var(--muted)", margin: "4px 6px" }}>{t("expirySourceBasis")}</p>
     </div>
   );
 }

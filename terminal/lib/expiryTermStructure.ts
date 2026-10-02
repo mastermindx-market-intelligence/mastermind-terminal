@@ -28,21 +28,26 @@ export interface ExpiryRow {
   exp: string;
   gamma_net: number;
   delta_net?: number;
-  vanna_net?: number;
-  charm_net?: number;
+  vanna_net?: number | null;
+  charm_net?: number | null;
+  exposure_support?: { basis?: string; vanna?: unknown; charm?: unknown };
 }
 
 /** Which owner-native per-expiration net exposure lens the drawer plots. */
 export type ExpiryLens = "gamma" | "delta" | "vanna" | "charm";
 
 export type ExposureSign = -1 | 0 | 1;
+export const EXPIRY_UNIT_KEYS = { gamma: "expiryUnitGamma", delta: "expiryUnitDelta", vanna: "expiryUnitVanna", charm: "expiryUnitCharm" } as const;
 
 export interface ExpiryNode {
   exp: string; // raw expiry key (e.g. "2026-07-11")
   label: string; // MM-DD display label
   dte: number; // days-to-expiry from the snapshot's session date
   dteLabel: string; // "0DTE" | "3d" | …
-  net: number; // net exposure under the active lens
+  net: number; // reported complete-input value OR explicitly marked known subtotal
+  partial: boolean;
+  knownContracts: number | null;
+  admittedContracts: number | null;
   sign: ExposureSign; // exact zero is neutral — never painted as + or − exposure
   mag: number; // |net|
   frac: number; // |net| / maxAbs across nodes, 0..1 (bubble size / bar length driver)
@@ -54,6 +59,9 @@ export interface ExpiryTermStructure {
   splitAvailable: false; // by_expiry never carries a calls/puts split → always Net-only
   nodes: ExpiryNode[]; // sorted nearest-expiration first; empty when no data
   maxAbs: number; // max |net| across nodes (0 when empty)
+  sourceCount: number;
+  missingCount: number;
+  partialCount: number;
 }
 
 /** Signed exposure polarity. Exact zero is intentionally neutral. */
@@ -69,6 +77,32 @@ export function expiryNetFor(r: ExpiryRow, lens: ExpiryLens): number | null {
       : lens === "vanna" ? r.vanna_net
       : r.charm_net;
   return raw != null && Number.isFinite(raw) ? raw : null;
+}
+
+interface ExpiryObservation {
+  net: number | null;
+  partial: boolean;
+  knownContracts: number | null;
+  admittedContracts: number | null;
+}
+/** Support applies to the producer's admitted input frame, never a collected universe. */
+export function expiryObservationFor(r: ExpiryRow, lens: ExpiryLens): ExpiryObservation {
+  const net = expiryNetFor(r, lens);
+  const unknown: ExpiryObservation = { net: null, partial: false, knownContracts: null, admittedContracts: null };
+  if (lens !== "vanna" && lens !== "charm") return { ...unknown, net };
+  const support = r.exposure_support;
+  if (support == null) return { ...unknown, net }; // legacy display, completeness remains unknown
+  const raw = support[lens];
+  if (support.basis !== "admitted_input_contracts" || !raw || typeof raw !== "object" || Array.isArray(raw)) return unknown;
+  const row = raw as Record<string, unknown>;
+  const known = row.known_contracts, admitted = row.admitted_contracts, value = row.known_net;
+  if (typeof known !== "number" || !Number.isSafeInteger(known) || known < 0
+    || typeof admitted !== "number" || !Number.isSafeInteger(admitted) || admitted < 1 || known > admitted) return unknown;
+  if (known === 0) return net === null && value === null ? { ...unknown, knownContracts: known, admittedContracts: admitted } : unknown;
+  if (typeof value !== "number" || !Number.isFinite(value)) return unknown;
+  const partial = known < admitted;
+  if (partial ? net !== null : net !== value) return unknown;
+  return { net: value, partial, knownContracts: known, admittedContracts: admitted };
 }
 
 /**
@@ -93,36 +127,38 @@ export function byExpiryToTermStructure(
   const available =
     lens === "gamma" || lens === "delta"
       ? true
-      : rows.some((r) => expiryNetFor(r, lens) != null);
+      : rows.some((r) => expiryObservationFor(r, lens).net != null || r.exposure_support?.basis === "admitted_input_contracts");
   const base: ExpiryTermStructure = {
     lens,
     available,
     splitAvailable: false,
     nodes: [],
     maxAbs: 0,
+    sourceCount: rows.length, missingCount: rows.length, partialCount: 0,
   };
   if (!available || rows.length === 0) return base;
 
   const kept = rows
-    .map((r) => ({ r, net: expiryNetFor(r, lens) }))
-    .filter((x): x is { r: ExpiryRow; net: number } => x.net != null)
+    .map((r) => ({ r, ...expiryObservationFor(r, lens) }))
+    .filter((x): x is { r: ExpiryRow; net: number; partial: boolean; knownContracts: number | null; admittedContracts: number | null } => x.net != null)
     .sort((a, b) => a.r.exp.localeCompare(b.r.exp));
   if (kept.length === 0) return base;
 
   const maxAbs = kept.reduce((m, x) => Math.max(m, Math.abs(x.net)), 0);
   const denom = maxAbs > 0 ? maxAbs : 1;
-  const nodes: ExpiryNode[] = kept.map(({ r, net }) => {
+  const nodes: ExpiryNode[] = kept.map(({ r, net, partial, knownContracts, admittedContracts }) => {
     const dte = dteFrom(r.exp, asOf);
     return {
       exp: r.exp,
       label: expLabel(r.exp),
       dte,
       dteLabel: dteLabel(dte),
-      net,
+      net, partial, knownContracts, admittedContracts,
       sign: exposureSign(net),
       mag: Math.abs(net),
       frac: Math.abs(net) / denom,
     };
   });
-  return { lens, available, splitAvailable: false, nodes, maxAbs };
+  return { lens, available, splitAvailable: false, nodes, maxAbs, sourceCount: rows.length,
+    missingCount: rows.length - nodes.length, partialCount: nodes.filter(n => n.partial).length };
 }

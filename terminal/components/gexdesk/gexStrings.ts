@@ -17,6 +17,14 @@
 import type { Lang } from "@/lib/i18n";
 
 const GEX_LEX = {
+  expiryUnitGamma: ["Gamma · delta-notional sensitivity per +1% spot", "Gamma · 标的上涨 1% 时的 Delta 名义敞口敏感度"],
+  expiryUnitDelta: ["Delta · net delta-notional level", "Delta · 净 Delta 名义敞口水平"],
+  expiryUnitVanna: ["Vanna · delta-notional sensitivity per +1 IV point", "Vanna · 隐含波动率上升 1 个百分点时的 Delta 名义敞口敏感度"],
+  expiryUnitCharm: ["Charm · delta-notional drift per +1 calendar day", "Charm · 每经过 1 个日历日的 Delta 名义敞口变化"],
+  expiryKnownSubtotal: ["Known subtotal", "已知小计"],
+  expiryAdmittedInputs: ["admitted input contracts", "已纳入的输入合约"],
+  expirySupportSummary: ["{known}/{total} source expiry rows shown · {partial} known subtotals. Missing values remain unavailable.", "显示 {known}/{total} 个来源到期日行 · {partial} 项已知小计。缺失数值保持不可用。"],
+  expirySourceBasis: ["Modeled net exposure · assumed holdings · source collection coverage unknown", "模型净敞口 · 持仓方向为假设 · 源采集覆盖范围未知"],
   // ── Tab / surface header ───────────────────────────────────────────────────
   gexTitle:        ["Exposure Desk", "敞口台"],
   gexSubtitle:     ["Dealer greek exposure & levels", "做市商希腊值敞口与水平"],
