@@ -1,6 +1,6 @@
 # Options-level coverage and axis-label browser evidence
 
-Source head: `06c23bfb3b87ed475d1f242770fb7c2c980a4c59`
+Source head: `67442e893d9a5c77b022b7778125cf094144fd19`
 
 ## Outcome under proof
 
@@ -41,5 +41,11 @@ Every capture proves six visible option badges, exact native line prices, native
 Capture command:
 
 ```bash
-BASE_URL=http://127.0.0.1:35911 node docs/pr-crops/options-level-axis-labels/capture.mjs
+BASE_URL=http://localhost:35911 node docs/pr-crops/options-level-axis-labels/capture.mjs
 ```
+
+Use `localhost`, **not** `127.0.0.1`. Next 16 refuses cross-origin dev resources, so a page
+loaded from `http://127.0.0.1:<port>` gets its SSR HTML but never hydrates — the capture then
+dies on `waiting for locator('.chart-wrap canvas')` with nothing in the browser console, which
+reads as a product failure rather than an origin mismatch. (A dev server started with an
+explicit `--hostname 127.0.0.1`, as `playwright.config.ts` does, is the exception.)

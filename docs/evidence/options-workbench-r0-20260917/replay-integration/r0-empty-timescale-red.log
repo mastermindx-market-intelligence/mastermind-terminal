@@ -1,0 +1,35 @@
+The CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.
+
+ RUN  v2.1.9 /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r0-replay-20260917-sol-001/terminal
+
+ ❯ lib/__tests__/surfaceReplayMounted.test.tsx (21 tests | 1 failed) 799ms
+   × keeps an unavailable Greek mounted when neither field nor candle time points remain 39ms
+     → Value is null: empty chart time scale
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/surfaceReplayMounted.test.tsx > keeps an unavailable Greek mounted when neither field nor candle time points remain
+Error: Value is null: empty chart time scale
+ ❯ Object.setVisibleRange lib/__tests__/surfaceReplayMounted.test.tsx:48:35
+     48|
+     49| let root: Root;
+     50| let host: HTMLDivElement;
+       |                  ^
+     51| let stamps: string[];
+     52| let calls: string[];
+ ❯ components/surface/SurfacePane.tsx:1181:37
+ ❯ Object.react_stack_bottom_frame node_modules/react-dom/cjs/react-dom-client.development.js:25989:20
+ ❯ runWithFiberInDEV node_modules/react-dom/cjs/react-dom-client.development.js:874:13
+ ❯ commitHookEffectListMount node_modules/react-dom/cjs/react-dom-client.development.js:13249:29
+ ❯ commitHookPassiveMountEffects node_modules/react-dom/cjs/react-dom-client.development.js:13336:11
+ ❯ commitPassiveMountOnFiber node_modules/react-dom/cjs/react-dom-client.development.js:15484:13
+ ❯ recursivelyTraversePassiveMountEffects node_modules/react-dom/cjs/react-dom-client.development.js:15439:11
+ ❯ commitPassiveMountOnFiber node_modules/react-dom/cjs/react-dom-client.development.js:15718:11
+ ❯ recursivelyTraversePassiveMountEffects node_modules/react-dom/cjs/react-dom-client.development.js:15439:11
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 20 passed (21)
+   Start at  16:22:57
+   Duration  2.53s (transform 280ms, setup 0ms, collect 396ms, tests 799ms, environment 817ms, prepare 97ms)
