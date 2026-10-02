@@ -18,7 +18,7 @@ import type { Lang } from "@/lib/i18n";
 import { makeVolT } from "./volStrings";
 import type { VolHistoryRow } from "./volTypes";
 import {
-  finiteSegments, ProvenanceLine, PanelEmpty, PLOT_PAD, AXIS_TXT, REF_TXT,
+  finiteSegments, reportedVolNumber, volIsoDay, retainUniqueBy, ProvenanceLine, PanelEmpty, PLOT_PAD, AXIS_TXT, REF_TXT,
 } from "./volShared";
 
 // Local override, not MIN_CHART_H.axis (190) — this panel sits beside
@@ -51,13 +51,14 @@ export function VolHistoryPanel({
   const rows = useMemo<Pt[]>(() => {
     const out: Pt[] = [];
     for (const r of history ?? []) {
-      if (typeof r?.date !== "string") continue;
-      const e = Date.parse(`${r.date.slice(0, 10)}T00:00:00Z`);
-      if (!Number.isFinite(e)) continue;
-      out.push({ date: r.date.slice(0, 10), e, v: Number(r.atm_iv) });
+      const date = volIsoDay(r?.date);
+      if (!date) continue;
+      const e = Date.parse(`${date}T00:00:00Z`);
+      out.push({ date, e, v: reportedVolNumber(r.atm_iv) });
     }
-    out.sort((a, b) => a.e - b.e);
-    return out;
+    const unique = retainUniqueBy(out, (row) => row.date);
+    unique.sort((a, b) => a.e - b.e);
+    return unique;
   }, [history]);
 
   const finite = useMemo(() => rows.filter((p) => Number.isFinite(p.v)), [rows]);

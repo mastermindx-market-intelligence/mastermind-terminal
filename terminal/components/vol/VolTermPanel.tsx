@@ -17,7 +17,7 @@ import type { Lang } from "@/lib/i18n";
 import { makeVolT } from "./volStrings";
 import type { VolTermRow } from "./volTypes";
 import {
-  ProvenanceLine, PanelEmpty, PLOT_PAD, AXIS_TXT, REF_TXT, NEUTRAL_CHIP,
+  finiteSegments, reportedVolNumber, volIsoDay, retainUniqueBy, fmtPct, ProvenanceLine, PanelEmpty, PLOT_PAD, AXIS_TXT, REF_TXT, NEUTRAL_CHIP,
 } from "./volShared";
 
 // Local override, not MIN_CHART_H.axis (190) — see the matching comment in
@@ -32,9 +32,13 @@ interface Pt { dte: number; exp: string; v: number }
 export function VolTermPanel({
   term,
   lang,
+  selectedExp,
+  onSelectExp,
 }: {
   term: VolTermRow[] | undefined;
   lang: Lang;
+  selectedExp?: string | null;
+  onSelectExp?: (exp: string) => void;
 }) {
   const t = makeVolT(lang);
   const boxRef = useRef<HTMLDivElement | null>(null);
@@ -43,16 +47,20 @@ export function VolTermPanel({
   const pts = useMemo<Pt[]>(() => {
     const out: Pt[] = [];
     for (const r of term ?? []) {
-      const dte = Number(r?.dte);
-      const v = Number(r?.atm_iv);
-      if (!Number.isFinite(dte) || dte < 0 || !Number.isFinite(v)) continue;
-      out.push({ dte, exp: typeof r.exp === "string" ? r.exp : "", v });
+      const dte = reportedVolNumber(r?.dte);
+      const exp = volIsoDay(r?.exp);
+      const v = reportedVolNumber(r?.atm_iv);
+      if (!Number.isFinite(dte) || !exp) continue; // A valid coordinate with missing IV remains a gap.
+      out.push({ dte, exp, v });
     }
-    out.sort((a, b) => a.dte - b.dte);
-    return out;
+    const unique = retainUniqueBy(out, (row) => row.exp);
+    unique.sort((a, b) => a.dte - b.dte);
+    return unique;
   }, [term]);
 
-  const drawable = pts.length >= 2;
+  const finite = useMemo(() => pts.filter(p => Number.isFinite(p.v)), [pts]);
+  const segments = useMemo(() => finiteSegments(pts, p => p.v), [pts]);
+  const drawable = finite.length >= 1;
 
   // Structure chip: front vs nearest-to-90d. Suppressed unless both exist and differ.
   const structure = useMemo<{ key: "termContango" | "termInverted"; front: Pt; far: Pt } | null>(() => {
@@ -62,7 +70,7 @@ export function VolTermPanel({
     for (const p of pts) {
       if (Math.abs(p.dte - 90) < Math.abs(far.dte - 90)) far = p;
     }
-    if (far === front || far.v === front.v) return null;
+    if (far === front || !Number.isFinite(front.v) || !Number.isFinite(far.v) || far.v === front.v) return null;
     return { key: front.v < far.v ? "termContango" : "termInverted", front, far };
   }, [pts]);
 
@@ -74,9 +82,9 @@ export function VolTermPanel({
   const [y0, y1] = useMemo(() => {
     if (!drawable) return [0, 1] as [number, number];
     let lo = Infinity, hi = -Infinity;
-    for (const p of pts) { if (p.v < lo) lo = p.v; if (p.v > hi) hi = p.v; }
+    for (const p of finite) { if (p.v < lo) lo = p.v; if (p.v > hi) hi = p.v; }
     return padDomain(lo, hi, { clampMin: 0 });
-  }, [pts, drawable]);
+  }, [finite, drawable]);
 
   const plotW = Math.max(10, w - PLOT_PAD.l - PLOT_PAD.r);
   const plotH = H - PLOT_PAD.t - PLOT_PAD.b;
@@ -91,20 +99,21 @@ export function VolTermPanel({
     [xTickVals, w, x0, x1],
   );
 
-  const markers = pts.filter((p) => p.dte <= MARKER_MAX_DTE);
+  const singletonPoints = new Set(segments.filter((seg) => seg.length === 1).flat());
+  const markers = finite.filter((p) => p.dte <= MARKER_MAX_DTE || singletonPoints.has(p));
 
   // Slope chips (R2.3): the two segments a desk actually quotes — front→~30d and
   // ~30d→~90d, in vol points. Suppressed when the curve lacks the anchor tenors.
   const slopes = useMemo(() => {
-    if (pts.length < 2) return [] as { key: "termSlopeFront" | "termSlopeBack"; v: number }[];
+    if (pts.length < 2) return [] as { key: "termSlopeFront" | "termSlopeBack"; v: number; from: number; to: number }[];
     const nearest = (target: number) =>
       pts.reduce((a, b) => (Math.abs(b.dte - target) < Math.abs(a.dte - target) ? b : a));
     const front = pts[0];
     const d30 = nearest(30);
     const d90 = nearest(90);
-    const out: { key: "termSlopeFront" | "termSlopeBack"; v: number }[] = [];
-    if (d30 !== front && Math.abs(d30.dte - 30) <= 15) out.push({ key: "termSlopeFront", v: d30.v - front.v });
-    if (d90 !== d30 && Math.abs(d90.dte - 90) <= 45) out.push({ key: "termSlopeBack", v: d90.v - d30.v });
+    const out: { key: "termSlopeFront" | "termSlopeBack"; v: number; from: number; to: number }[] = [];
+    if (d30 !== front && Math.abs(d30.dte - 30) <= 15 && Number.isFinite(front.v) && Number.isFinite(d30.v)) out.push({ key: "termSlopeFront", v: d30.v - front.v, from: front.dte, to: d30.dte });
+    if (d90 !== d30 && Math.abs(d90.dte - 90) <= 45 && Number.isFinite(d30.v) && Number.isFinite(d90.v)) out.push({ key: "termSlopeBack", v: d90.v - d30.v, from: d30.dte, to: d90.dte });
     return out;
   }, [pts]);
 
@@ -119,17 +128,44 @@ export function VolTermPanel({
             style={NEUTRAL_CHIP}
             aria-label={t("termChipAria")
               .replace("{front}", structure.front.v.toFixed(1))
-              .replace("{far}", structure.far.v.toFixed(1))}
+              .replace("{far}", structure.far.v.toFixed(1))
+              .replace("{frontDte}", String(structure.front.dte)).replace("{farDte}", String(structure.far.dte))}
           >
             {t(structure.key)}
           </span>
         )}
         {slopes.map((s) => (
           <span key={s.key} style={{ ...NEUTRAL_CHIP, fontVariantNumeric: "tabular-nums" }}>
-            {t(s.key).replace("{v}", fmtSlope(s.v))}
+            {t("termSlopeActual").replace("{v}", fmtSlope(s.v)).replace("{from}", String(s.from)).replace("{to}", String(s.to))}
           </span>
         ))}
       </div>
+      {onSelectExp && pts.length > 0 && (
+        <div role="group" aria-label={t("termExpAria")} style={EXPIRY_ROW}>
+          {pts.map((p) => {
+            const selected = selectedExp === p.exp;
+            return (
+              <button
+                key={p.exp}
+                type="button"
+                className={`chip${selected ? " on" : ""}`}
+                data-expiry={p.exp}
+                aria-pressed={selected}
+                aria-label={t(Number.isFinite(p.v) ? "termExpSelectAria" : "termExpMissingAria")
+                  .replace("{exp}", p.exp)
+                  .replace("{dte}", String(p.dte))
+                  .replace("{iv}", Number.isFinite(p.v) ? p.v.toFixed(1) : "—")}
+                style={EXPIRY_CHIP}
+                onClick={() => onSelectExp(p.exp)}
+              >
+                <span>{p.exp}</span>
+                <span style={EXPIRY_META}>{p.dte}D</span>
+                <span style={Number.isFinite(p.v) ? EXPIRY_VALUE : EXPIRY_MISSING}>{fmtPct(p.v)}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
       <div ref={boxRef} style={{ width: "100%", minWidth: 0 }}>
         {!drawable ? (
           <PanelEmpty title={t("termEmptyTitle")} why={t("termEmptyWhy")} minHeight={H} />
@@ -153,17 +189,28 @@ export function VolTermPanel({
             <text x={w - PLOT_PAD.r} y={PLOT_PAD.t + 10} textAnchor="end" style={REF_TXT}>
               {t("termXAxis")}
             </text>
-            <path
-              d={pts.map((p, i) => `${i === 0 ? "M" : "L"}${xOf(p.dte).toFixed(1)},${yOf(p.v).toFixed(1)}`).join("")}
+            {segments.map((seg, index) => <path key={index}
+              d={seg.map((p, i) => `${i === 0 ? "M" : "L"}${xOf(p.dte).toFixed(1)},${yOf(p.v).toFixed(1)}`).join("")}
               fill="none"
               stroke="var(--brand-2)"
               strokeWidth={1.6}
               strokeLinejoin="round"
               strokeLinecap="round"
-            />
-            {markers.map((p) => (
-              <circle key={`${p.dte}:${p.exp}`} cx={xOf(p.dte)} cy={yOf(p.v)} r={3} fill="var(--brand-2)" />
-            ))}
+            />)}
+            {markers.map((p) => {
+              const selected = p.exp === selectedExp;
+              return (
+                <circle
+                  key={`${p.dte}:${p.exp}`}
+                  cx={xOf(p.dte)}
+                  cy={yOf(p.v)}
+                  r={selected ? 5 : 3}
+                  fill={selected ? "var(--panel)" : "var(--brand-2)"}
+                  stroke="var(--brand-2)"
+                  strokeWidth={selected ? 2 : 0}
+                />
+              );
+            })}
           </svg>
         )}
       </div>
@@ -171,3 +218,25 @@ export function VolTermPanel({
     </section>
   );
 }
+
+const EXPIRY_ROW: React.CSSProperties = {
+  display: "flex",
+  flexWrap: "wrap",
+  gap: 6,
+  margin: "0 0 8px",
+};
+
+const EXPIRY_CHIP: React.CSSProperties = {
+  minHeight: 28,
+  padding: "0 9px",
+  display: "inline-flex",
+  alignItems: "center",
+  gap: 6,
+  fontSize: 10.5,
+  fontWeight: 600,
+  fontVariantNumeric: "tabular-nums",
+};
+
+const EXPIRY_META: React.CSSProperties = { color: "var(--muted)", fontWeight: 500 };
+const EXPIRY_VALUE: React.CSSProperties = { color: "var(--text-2)", fontWeight: 700 };
+const EXPIRY_MISSING: React.CSSProperties = { color: "var(--warn)", fontWeight: 700 };

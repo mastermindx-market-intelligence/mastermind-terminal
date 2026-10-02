@@ -12,6 +12,28 @@ import React from "react";
 import type { Lang } from "@/lib/i18n";
 import { getVolStr } from "./volStrings";
 
+/** Preserve typed, finite source numbers without coercing null/strings/booleans to observations. */
+export function reportedVolNumber(value: unknown): number {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0 ? value : Number.NaN;
+}
+
+/** ISO date admission, not a trading calendar or expiry-time/settlement model. */
+export function volIsoDay(value: unknown): string | null {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+  const epoch = Date.parse(value + "T00:00:00Z");
+  return Number.isFinite(epoch) && new Date(epoch).toISOString().slice(0, 10) === value ? value : null;
+}
+
+/** Fail closed on duplicate source identities; never pick a winning revision client-side. */
+export function retainUniqueBy<T>(rows: T[], keyOf: (row: T) => string | number): T[] {
+  const counts = new Map<string | number, number>();
+  for (const row of rows) {
+    const key = keyOf(row);
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  return rows.filter((row) => counts.get(keyOf(row)) === 1);
+}
+
 /** Consecutive runs of rows whose mapped value is finite (R7: break, don't bridge). */
 export function finiteSegments<T>(rows: T[], valueOf: (r: T) => number): T[][] {
   const segs: T[][] = [];

@@ -1,0 +1,216 @@
+{
+  "schema": "options.volatility.investigation.evidence/v1",
+  "operation": "options-volatility-investigation-r1-20261001-sol-001",
+  "branch": "sol/options-volatility-investigation-r1-20261001",
+  "base": "c35b9a1d50ca4960c361645f0300fa9f95158a4e",
+  "protected_mastermind": {
+    "commit": "fb78a964748836c4c0e0a966369690b8fef33be1",
+    "index_blob": "4b0189a75d559d963365097485e8509a49c70e23",
+    "active_execution_blob": "9fed10f7cc7a2f4323d039b406f7c0715445e22e",
+    "bootstrap_major": 1,
+    "skillpack": "mastermind.sol_skillpack.v1",
+    "skillpack_version": "1.0.1",
+    "session_reliability": "not found at protected pin; optional continuity procedure unavailable, ACTIVE_EXECUTION loop applied directly"
+  },
+  "outcome": [
+    "strict source-number/date admission preserves true zero and keeps null/invalid values unavailable",
+    "duplicate expiry/strike/date identities fail closed rather than selecting a winner or inflating coverage",
+    "term/history/smile gaps are not bridged",
+    "one root-keyed selected expiry joins term and smile; exact missing smile never substitutes a nearby expiry",
+    "headline ATM IV discloses missing tenor; IV-minus-RV remains descriptive source-reported spread"
+  ],
+  "owner_boundaries": [
+    "no new market-data source, cache, pricing model, session calendar, signal ranker, alert, or trade authority",
+    "VolView/flowClientCache remain root-loading and race owners",
+    "volTypes remains payload contract; svgChart remains geometry owner",
+    "#686 root-universe and #723 chart-companion remain separate carriers"
+  ],
+  "paper_reference": {
+    "file_id": "01M3NSZGE8JWN2EZCSF0DT05RM",
+    "page_id": "p-D-0",
+    "page_name": "09 · Options · Volatility Lab",
+    "boards": {
+      "desktop": "UM6-0",
+      "mobile": "URH-0",
+      "states": "UT6-0"
+    },
+    "classification": "synthetic design reference only; not native route, source-host, or production acceptance",
+    "write_frontier": "frozen after repeated DOCUMENT_CHANGED while another file was active; no blind retry"
+  },
+  "verification": {
+    "focused_vitest": {
+      "files": 2,
+      "passed": 36,
+      "failed": 0,
+      "log": "/Volumes/Mastermind/evidence/options-release-a-consumer-qualification-20260928-sol-001/volatility-workbench/native-targeted-current.log"
+    },
+    "full_vitest": {
+      "files_passed": 415,
+      "tests_passed": 6755,
+      "todo": 4,
+      "failed": 0,
+      "log": "/Volumes/Mastermind/evidence/options-release-a-consumer-qualification-20260928-sol-001/volatility-workbench/full-vitest.log"
+    },
+    "typescript": {
+      "exit": 0,
+      "command": "tsc --noEmit --incremental false",
+      "log": "/Volumes/Mastermind/evidence/options-release-a-consumer-qualification-20260928-sol-001/volatility-workbench/full-tsc-final2.log"
+    },
+    "eslint": {
+      "exit": 0,
+      "errors": 0,
+      "warnings": 0,
+      "scope": "changed volatility components + focused tests",
+      "log": "/Volumes/Mastermind/evidence/options-release-a-consumer-qualification-20260928-sol-001/volatility-workbench/scoped-eslint-final2.log"
+    },
+    "plain_language": {
+      "exit": 0,
+      "new_findings": 0,
+      "legacy_unrelated_findings_only": true,
+      "log": "/Volumes/Mastermind/evidence/options-release-a-consumer-qualification-20260928-sol-001/volatility-workbench/plain-language-final2.log"
+    },
+    "browser": {
+      "cases": 6,
+      "assertions_passed": 84,
+      "failed": 0,
+      "matrix": "1440/820/390 × EN/ZH",
+      "scope": "actual VolView branch source in isolated browser host with synthetic nightly fixture; not Next route, entitlement, provider, production, or published-market-data acceptance",
+      "results": "/Volumes/Mastermind/evidence/options-release-a-consumer-qualification-20260928-sol-001/volatility-workbench/browser-current/results.json"
+    },
+    "production_build": {
+      "exit": 0,
+      "command": "next build",
+      "environment": "isolated rsync source + APFS copy-on-write in-root node_modules sandbox; sandbox deleted on exit",
+      "log": "/Volumes/Mastermind/evidence/options-release-a-consumer-qualification-20260928-sol-001/volatility-workbench/next-build-turbopack-sandbox.log"
+    },
+    "non_acceptance_diagnostics": [
+      {
+        "command": "next build with external node_modules symlink",
+        "result": "environmental fail before app compile: Turbopack rejects symlink outside filesystem root",
+        "log": "/Volumes/Mastermind/evidence/options-release-a-consumer-qualification-20260928-sol-001/volatility-workbench/next-build.log"
+      },
+      {
+        "command": "next build --webpack with external node_modules symlink",
+        "result": "unrelated existing webpack path fails node:crypto via untouched lib/workspaceLayout.ts",
+        "log": "/Volumes/Mastermind/evidence/options-release-a-consumer-qualification-20260928-sol-001/volatility-workbench/next-build-webpack.log"
+      }
+    ]
+  },
+  "claim_boundary": "synthetic fixture and isolated browser proof do not establish provider methodology, executable marks, whole-chain completeness, current market state, relative value, ranking, probability, sizing, live source deployment, or production acceptance",
+  "remaining_acceptance": [
+    "real entitled/published volatility-source proof on native route",
+    "stale/missing/root-switch native-route proof",
+    "independent review on final published head"
+  ],
+  "source_files": [
+    {
+      "path": "terminal/components/vol/VolHistoryPanel.tsx",
+      "sha256": "fc8f06df16b2f22e087b9035dc9829104c2becb6fe117afecb2db3d6426040fa"
+    },
+    {
+      "path": "terminal/components/vol/VolSkewPanel.tsx",
+      "sha256": "db4892c099d3219c5270c75c4a8ee7969342f438e06e2d2f0fca13950b35060d"
+    },
+    {
+      "path": "terminal/components/vol/VolTermPanel.tsx",
+      "sha256": "d00ffe77f1ab0a4527e46b9489c4ce16530f4e641efedc74b4e9c049807e4cc9"
+    },
+    {
+      "path": "terminal/components/vol/VolView.tsx",
+      "sha256": "0a7db8481b02248231a513305a9dcf0734f43c8b3a842a645759e12180f46eab"
+    },
+    {
+      "path": "terminal/components/vol/VolVrpPanel.tsx",
+      "sha256": "bd39009520f89e238730088936e990762de6cf3527a5999a91866918d1c1dc3c"
+    },
+    {
+      "path": "terminal/components/vol/volShared.tsx",
+      "sha256": "a9cceb58e97fa0c2e0216b8a5a0f0b8fd24e7ad3deee52e5a1da39d9b6fdeca4"
+    },
+    {
+      "path": "terminal/components/vol/volStrings.ts",
+      "sha256": "1ef16a92b4f6ea935302fecc0b450526e6f167a093304ba854b7761ceaf5a004"
+    },
+    {
+      "path": "terminal/docs/verification/options-volatility-investigation-r1-20261001/README.md",
+      "sha256": "3816867ddea7198ffd37d9241b5af4a12962308f25d55c2c6d796ab684a50b99"
+    },
+    {
+      "path": "terminal/docs/verification/options-volatility-investigation-r1-20261001/V1_SYNTHETIC_FIXTURE.json",
+      "sha256": "d514d159e8b80fbc30fc042ee514f2984dc3bc1d5ccd0c3c888f07113b96d5cc"
+    },
+    {
+      "path": "terminal/docs/verification/options-volatility-investigation-r1-20261001/current-1440-en.png",
+      "sha256": "78d09faeb5f09d7c2507118ac799286514659778d9c11deafd178cd059689fd5"
+    },
+    {
+      "path": "terminal/docs/verification/options-volatility-investigation-r1-20261001/current-1440-zh.png",
+      "sha256": "1ea2e3f9c80005b46e82628044481b3df640aa8b4701d0834ef247f4639ec443"
+    },
+    {
+      "path": "terminal/docs/verification/options-volatility-investigation-r1-20261001/current-390-en.png",
+      "sha256": "6ebd9f5458ec300ec8952273e4568b38a917d8b41bb54d99b334721f9547997c"
+    },
+    {
+      "path": "terminal/docs/verification/options-volatility-investigation-r1-20261001/current-390-zh.png",
+      "sha256": "960514303a58267a6e20031f70b5e1bace9e892b4967ffc4c8602001c5ce5b82"
+    },
+    {
+      "path": "terminal/docs/verification/options-volatility-investigation-r1-20261001/current-820-en.png",
+      "sha256": "cef93ba18f4e3312e24f5ff09b0a451faf5430bf3544431da6068c2fbbc36d83"
+    },
+    {
+      "path": "terminal/docs/verification/options-volatility-investigation-r1-20261001/current-820-zh.png",
+      "sha256": "00faa0bc5f7bf8b388be88321e974e10aea4ad9b94ceced6edd91d5a65ae3fab"
+    },
+    {
+      "path": "terminal/lib/__tests__/volatilityExpiryInvestigation.test.tsx",
+      "sha256": "7f5d067f5951eb83cbdf7a6100574efe31f9e049d4e3fc3c383c2b5004dc570f"
+    },
+    {
+      "path": "terminal/lib/__tests__/volatilityMissingness.test.tsx",
+      "sha256": "a79b4360e574b6cea72c69b3f2197c89d14c5e0ff25725c32d95173059f4d0bb"
+    }
+  ],
+  "screenshots": [
+    {
+      "file": "current-1440-en.png",
+      "sha256": "78d09faeb5f09d7c2507118ac799286514659778d9c11deafd178cd059689fd5"
+    },
+    {
+      "file": "current-1440-zh.png",
+      "sha256": "1ea2e3f9c80005b46e82628044481b3df640aa8b4701d0834ef247f4639ec443"
+    },
+    {
+      "file": "current-390-en.png",
+      "sha256": "6ebd9f5458ec300ec8952273e4568b38a917d8b41bb54d99b334721f9547997c"
+    },
+    {
+      "file": "current-390-zh.png",
+      "sha256": "960514303a58267a6e20031f70b5e1bace9e892b4967ffc4c8602001c5ce5b82"
+    },
+    {
+      "file": "current-820-en.png",
+      "sha256": "cef93ba18f4e3312e24f5ff09b0a451faf5430bf3544431da6068c2fbbc36d83"
+    },
+    {
+      "file": "current-820-zh.png",
+      "sha256": "00faa0bc5f7bf8b388be88321e974e10aea4ad9b94ceced6edd91d5a65ae3fab"
+    }
+  ],
+  "collision_reconciliation": {
+    "remote_master": "c35b9a1d50ca4960c361645f0300fa9f95158a4e",
+    "pr_686_head": "450850ec2933290d6a8e86db35e8c59cfc8843c1",
+    "pr_686_overlap": "terminal/components/vol/VolView.tsx only; #686 changes the rootChoices prop/datalist seam",
+    "three_way_result": "VolView auto-merges cleanly. Whole merge-tree exits 1 only because #686 already conflicts with current master in ops/terminal_source_audit.production.json.",
+    "synthetic_merge_tree": "0178602b5e7ce54f82cea6ac88e8d9d8d2c3aed6",
+    "merged_volview_proof": [
+      "VolViewProps/rootChoices retained",
+      "rootChoices datalist retained",
+      "expiryChoice retained",
+      "vol-expiry-context retained",
+      "shared selectedExp passed to term and smile"
+    ],
+    "pr_723_overlap": "no direct components/vol path overlap at the inspected #723 file list; #723 remains a separate chart/options-companion carrier"
+  }
+}

@@ -1,20 +1,17 @@
 "use client";
 /**
- * VolVrpPanel — the volatility-risk-premium REGIME (masterplan R2.3, MenthorQ
- * "Volatility Insight" parity).
+ * VolVrpPanel — descriptive history of the source-reported IV minus trailing
+ * realized-volatility spread. It preserves the existing R2.3 level/trend/velocity
+ * analysis without promoting the spread into a relative-value or trading verdict.
  *
- * The stat tile shows today's VRP as one bare number; this panel gives it the three
- * things the regime-dynamics law demands — LEVEL, TREND and VELOCITY — plus the band
- * that says whether today is compressed, normal or elevated FOR THIS TICKER.
- *
- * DATA HONESTY: the headline VRP is the PUBLISHED figure (options_hub.vol/v1 `vrp` =
+ * DATA HONESTY: the headline spread is the PUBLISHED figure (options_hub.vol/v1 `vrp` =
  * atm_iv − rv20, upstream). The series behind the band is DERIVED client-side from the
  * aggregate-trend store (`agg:{ROOT}` — per-session spot and ATM IV back to 2017):
  * rv20 recomputed from published closes with the standard annualisation, VRP(t) =
  * iv(t) − rv20(t). Derivation is disclosed in the ⓘ; when the agg store is absent the
- * panel declines the regime rather than asserting one from a single point.
+ * panel declines the historical-range classification rather than asserting one from a single point.
  *
- * Vol is NON-DIRECTIONAL: neutral accents; the elevated/compressed tones use
+ * Vol is NON-DIRECTIONAL: neutral accents; upper/lower-range tones use
  * --warn/--signal (severity/attention), never --up/--down (which flip in zh).
  *
  * SVG LAW: svgChart.ts primitives throughout.

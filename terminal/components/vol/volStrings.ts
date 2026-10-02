@@ -36,15 +36,16 @@ const VOL_LEX = {
 
   // ── Panel A — stat tiles ───────────────────────────────────────────────────
   statsTitle:        ["Volatility snapshot", "波动率概览"],
-  statAtmIv:         ["ATM IV", "平值IV"],
+  statAtmIv:         ["Headline ATM IV", "报告平值IV"],
+  statAtmIvCaption:  ["tenor not supplied", "未提供期限"],
   statIvRank252:     ["IV Rank 252d", "IV百分位 252日"],
   statIvRankAll:     ["IV Rank all-history", "IV百分位 全历史"],
   statSinceCaption:  ["since {date} · {n}d", "自 {date} · {n}日"],
   stat52wRange:      ["52-week IV range", "52周IV区间"],
   statRv20:          ["RV20", "RV20"],
   statRv20Caption:   ["20d realized vol", "20日已实现波动率"],
-  statVrp:           ["VRP", "波动率风险溢价"],
-  statVrpCaption:    ["IV − RV20", "IV − RV20"],
+  statVrp:           ["Reported IV − RV20", "报告IV − RV20"],
+  statVrpCaption:    ["source-reported spread", "来源报告差值"],
   statRangeAria:     ["Current ATM IV position inside the 52-week range", "当前平值IV在52周区间中的位置"],
 
   // ── Panel B — ATM IV history ───────────────────────────────────────────────
@@ -69,12 +70,15 @@ const VOL_LEX = {
     "夜间构建仅为已覆盖品种发布按到期日的平值IV。",
   ],
   termXAxis:         ["DTE", "到期天数"],
+  termExpAria:       ["Expiry investigation", "到期日调查"],
+  termExpSelectAria: ["Select {exp}, {dte} days, reported ATM IV {iv}%", "选择 {exp}，{dte} 天，报告平值IV {iv}%"],
+  termExpMissingAria:["Select {exp}, {dte} days, ATM IV unavailable", "选择 {exp}，{dte} 天，平值IV不可用"],
   termContango:      ["Contango", "正向期限结构"],
   termInverted:      ["Inverted", "期限结构倒挂"],
   // Chip disclosure — states WHAT is compared, so the label can't read as a signal.
   termChipAria: [
-    "Front expiration ATM IV {front}% vs nearest-to-90d ATM IV {far}% — a term-structure shape, not a forecast.",
-    "最近到期平值IV {front}% 对比最接近90日的平值IV {far}% — 仅为期限结构形态，并非预测。",
+    "Reported {frontDte}D ATM IV {front}% vs {farDte}D ATM IV {far}% — a source term-structure comparison, not a forecast.",
+    "报告的{frontDte}天平值IV {front}% 对比{farDte}天平值IV {far}% — 仅为来源期限结构对比，并非预测。",
   ],
 
   // ── Panel D — smile / skew ─────────────────────────────────────────────────
@@ -87,47 +91,61 @@ const VOL_LEX = {
   skewExpAria:       ["Smile expiration", "微笑曲线到期日"],
   skewCallLeg:       ["Call IV", "认购IV"],
   skewPutLeg:        ["Put IV", "认沽IV"],
-  skewFullChain:     ["Full chain", "完整链"],
-  skewTrimmedChip:   ["wings trimmed ±20%", "翼部已截取 ±20%"],
+  skewFullChain:     ["Full supplied range", "全部已提供范围"],
+  skewTrimmedChip:   ["display window ±20% proxy", "显示窗口 ±20% 代理中心"],
   // Disclosure for the trim chip — deep-ITM wings carry garbage IV prints.
   skewTrimTip: [
-    "Strikes beyond ±20% of the at-the-money strike are hidden by default — deep-ITM quotes carry unreliable implied vols. Toggle Full chain to see everything.",
-    "默认隐藏偏离平值行权价 ±20% 以外的行权价 — 深度实值报价的隐含波动率不可靠。切换到完整链可查看全部。",
+    "This display window is centered on the supplied strike with the smallest call/put IV difference, not an observed underlying price. Full supplied range shows all supplied strikes. Neither mode certifies quote quality or full-chain coverage.",
+    "显示窗口以已提供的认购/认沽IV差最小的行权价为中心，并非已观测标的价格。全部已提供范围展示已提供的行权价；两种模式均不证明报价质量或完整链覆盖。",
   ],
   skewStrikeAxis:    ["Strike", "行权价"],
+  skewSelectedMissingTitle: ["No smile for the selected expiry", "所选到期日暂无微笑曲线"],
+  skewSelectedMissingWhy: [
+    "{exp} has no supplied per-strike IV series. Choose another supplied expiry; nothing is substituted.",
+    "{exp} 未提供按行权价的IV序列。请选择另一个已提供的到期日；系统不会替换为邻近到期日。",
+  ],
+
+  // ── Shared expiry investigation context ───────────────────────────────────
+  expiryContextLabel: ["Investigating expiry", "正在调查到期日"],
+  expiryContextDte: ["{n} days", "{n} 天"],
+  expiryContextAtm: ["reported ATM IV {v}%", "报告平值IV {v}%"],
+  expiryContextAtmMissing: ["ATM IV unavailable", "平值IV不可用"],
+  expiryContextSmile: ["smile supplied", "已提供微笑曲线"],
+  expiryContextSmileMissing: ["smile unavailable for this expiry", "该到期日微笑曲线不可用"],
 
   // ── VRP regime panel (R2.3 — level + trend + velocity, regime-dynamics law) ──
-  vrpTitle:          ["Volatility risk premium — regime", "波动率风险溢价 — 状态"],
-  vrpDerived:        ["band derived from published closes + nightly IV", "区间由已发布收盘价与每晚IV推导"],
-  vrpNow:            ["VRP now", "当前VRP"],
-  vrpUnit:           ["IV − RV20, vol pts", "IV − RV20（波动点）"],
-  vrpRegime:         ["Regime", "状态"],
-  vrpCompressed:     ["Compressed", "压缩"],
-  vrpNormal:         ["Normal", "正常"],
-  vrpElevated:       ["Elevated", "偏高"],
+  vrpTitle:          ["IV − realized-vol spread · history", "IV − 已实现波动率差值 · 历史"],
+  vrpDerived:        ["historical band derived from published closes + nightly IV", "历史区间由已发布收盘价与每晚IV推导"],
+  vrpNow:            ["Reported spread now", "当前报告差值"],
+  vrpUnit:           ["source IV − trailing 20-return RV, vol pts", "来源IV − 过去20个收益率RV（波动点）"],
+  vrpRegime:         ["Historical range", "历史区间"],
+  vrpCompressed:     ["Lower range", "历史较低区间"],
+  vrpNormal:         ["Middle range", "历史中间区间"],
+  vrpElevated:       ["Upper range", "历史较高区间"],
   vrpUnknown:        ["Not enough history", "历史不足"],
-  vrpPctile:         ["{p}th pct of 1y", "1年第{p}百分位"],
+  vrpPctile:         ["{p}th pct of supplied 1y window", "已提供1年窗口第{p}百分位"],
   vrpTrend:          ["5-session trend", "5日趋势"],
   vrpTrendCaption:   ["vol pts", "波动点"],
   vrpVelocity:       ["1-session change", "1日变化"],
   vrpVelocityCaption:["vol pts", "波动点"],
-  vrpEmptyTitle:     ["No VRP history for this name", "该品种暂无VRP历史"],
+  vrpEmptyTitle:     ["No IV − realized-vol spread history for this name", "该品种暂无IV − 已实现波动率差值历史"],
   vrpEmptyWhy: [
-    "The regime band needs the aggregate-trend store (spot + IV per session); it has not been published for this root.",
-    "状态区间需要聚合趋势数据（每日现价与IV）；该标的尚未发布。",
+    "The historical band needs the aggregate-trend store (spot + IV per session); it has not been published for this root.",
+    "历史区间需要聚合趋势数据（每日现价与IV）；该标的尚未发布。",
   ],
 
   // ── Skew read (95–105% moneyness, from the drawn expiry) ───────────────────
-  skewRead:          ["Skew 95–105%", "偏斜 95–105%"],
+  skewRead:          ["Proxy skew 95–105%", "代理中心偏斜 95–105%"],
   skewReadTip: [
-    "Put IV interpolated at 95% of the ATM strike minus call IV at 105%, for the expiry drawn below. Positive = downside protection costs more — the equity-normal put bias.",
-    "以下方到期链计算：95% 平值行权价处的看跌IV减 105% 处的看涨IV。正值＝下行保护更贵——股票市场常见的看跌偏斜。",
+    "Approximate reported put-minus-call IV around the display proxy, not measured spot moneyness. Uses only adjacent supplied valid legs at 95%/105% of that proxy; unavailable legs break the calculation. It is not a quote-price or directional verdict.",
+    "围绕显示代理中心的报告认沽减认购IV近似差值，并非依据已观测标的价格的价内外程度。仅使用该代理中心95%/105%位置附近相邻且有效的已提供数据；缺失侧中断计算。这不是报价价格或方向判断。",
   ],
   skewPutBias:       ["put bias", "看跌偏斜"],
   skewCallBias:      ["call bias", "看涨偏斜"],
   skewFlat:          ["flat", "平坦"],
 
   // ── Term slope chips ────────────────────────────────────────────────────────
+  termSlopeActual:   ["{from}→{to}d {v} pts", "{from}→{to}天 {v} 点"],
   termSlopeFront:    ["0→30d {v} pts", "0→30天 {v} 点"],
   termSlopeBack:     ["30→90d {v} pts", "30→90天 {v} 点"],
 } as const;
