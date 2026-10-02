@@ -1,12 +1,11 @@
 # B-F11-9 thesis window-closed — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-capturedAtHead: 05de3537a18609909b453a2f254c51d02baf0376
-# capturedAt: 2026-09-19T21:31:09.300Z
-# 2026-09-27 B-F11-11b-pre (#759): restamped ONLY the lib/alertsView.ts layoutFiles hash. The change makes the cockpit accept the macro thesis-condition monitor's real outbox row shape (category/source, synthetic uuid5 alert_id; the producer never writes payload.kind). This packet's crops were captured from the fixture's window-closed row, which still renders identically; no crop recaptured.
-# capturedAtHead is informational. The lock is layoutFiles.
+capturedAtHead: 3de2b4c0869cde977ab7ab7419c3c5c5af6ac910
+# capturedAt: 2026-10-02T07:27:10.687Z
+# capturedAtHead is informational. The lock is layoutFiles. PNG hashes verify the producer-shaped recapture.
 layoutFiles:
-  terminal/lib/alertsView.ts: "a493e2bc23ebe20b2dfdd65011b9577814352b8ef5383d50a3cd88f0487a1175"
+  terminal/lib/alertsView.ts: "b7b592f6c5ee37fe3bb4833c1a6649920b6d6bfa6f2afb94e4703795ee6699be"
   terminal/components/alerts/AlertsCockpit.tsx: "468a506890408b90a5621982a178fcef4ebf711e0d8bbb9428de78a4abd3f8a7"
   terminal/components/alerts/AlertTimeline.tsx: "22395c8972c8fc88f80fae1f72a0c9d546a1fd6e8354e0ef6a8ae62211514d96"
   terminal/components/alerts/AlertDetail.tsx: "b628caa9aadcab4a9b161b69657cf9485fc4da7d345623b03079847e07e3bdcf"
@@ -30,3 +29,12 @@ files:
   - thesis-detail-1440.png
   - thesis-detail-390-zh.png
   - thesis-detail-390.png
+hashes:
+  recent-activity-1440-zh.png: "66429a377ea30756d83ef2d39b8916043030fc9d2b31482e9e30029fff77bb88"
+  recent-activity-1440.png: "4b709ce9d7ee0127656cfcc5bb295a122c3750be28baa5cbe09ac453b03fc025"
+  recent-activity-390-zh.png: "8f0e2ed921c4a14f97f4352f271d1f21bf26563759ff48f5d0e8985ec82892c9"
+  recent-activity-390.png: "4f9535c71fb048bcd0ba450de471bb2c30806426b660e09385fa8900749c9f0a"
+  thesis-detail-1440-zh.png: "b8a2334544c676ff6228589713fc6375cbccfe9fd0320e5865a5892a03255e69"
+  thesis-detail-1440.png: "1c9599b10d95a1b2449724caac6c535e92c247647676864cbc20df9a1e4872c0"
+  thesis-detail-390-zh.png: "20d6e8c193124f3cc7ae84b9a6b3dc64a95ea604ba6418e89e7914595ffc4e89"
+  thesis-detail-390.png: "11721162638a4a4f471bc1932909c9ea1b2f17ae0fab3822a3c01d4a6c4bf21f"

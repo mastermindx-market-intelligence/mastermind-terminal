@@ -5,14 +5,14 @@
 # capturedAtHead: 56ebbc0e5710ecbe98252f74170bf55bbe3f9eb5
 # capturedAt: 2026-09-10T17:19:31.994Z
 # 2026-09-13 B-F11-7: AlertsCockpit.tsx re-hashed for BriefsInbox mounted below the existing alerts children. Collision crops photograph the top of the cockpit (AnswerLine / watching / degraded); the new inbox sits under the legacy list; no crop recaptured.
-# 2026-09-27 B-F11-11b-pre (#759): restamped ONLY the lib/alertsView.ts layoutFiles hash. The change makes the cockpit accept the macro thesis-condition monitor's real outbox row shape (category/source, synthetic uuid5 alert_id; the producer never writes payload.kind). This packet's crops were captured from the fixture's window-closed row, which still renders identically; no crop recaptured.
+# 2026-09-27 B-F11-11b-pre (#759): restamped ONLY the lib/alertsView.ts layoutFiles hash. This packet's capture script renders alerts collision states (watching, suite degraded, suite never ran, unresolved) from the alerts fixture; it has no thesis outbox path and no thesis crops. No crop recaptured.
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/components/alerts/AlertsCockpit.tsx: "468a506890408b90a5621982a178fcef4ebf711e0d8bbb9428de78a4abd3f8a7"
   terminal/components/alerts/WatchingList.tsx: "642c8c76062fefb5ff06d8496bfea50f45de5af1aaf7a989e82e10f7b36d483b"
   terminal/components/alerts/AnswerLine.tsx: "f3bf1f587566c521b66d210b84ec316ed1e5809f2f5ce758c6c0c81f77e4dbdb"
   terminal/components/alerts/CouldNotWatch.tsx: "bedf3678d07a9c1f767df5b87a59648e69e8167df493d63412210a088d95d3a8"
-  terminal/lib/alertsView.ts: "a493e2bc23ebe20b2dfdd65011b9577814352b8ef5383d50a3cd88f0487a1175"
+  terminal/lib/alertsView.ts: "b7b592f6c5ee37fe3bb4833c1a6649920b6d6bfa6f2afb94e4703795ee6699be"
   terminal/app/api/alerts/receipts/route.ts: "e90838781925cd4035cf913a3f011ad0e79a2f2fb4528fa1518a392144f44d82"
   terminal/app/api/alerts/route.ts: "7b7ff8a30555230b344027385b24fcb488871bace93cf8b51e6a47c0433e66d3"
 theme: dark
