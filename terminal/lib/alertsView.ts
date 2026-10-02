@@ -273,13 +273,16 @@ export function rowChipKey(alert: { identity_state?: string; active?: boolean; c
   return alert.identity_state === "unresolved" ? "identity.unresolved" : "resolution.armed";
 }
 
-/** Fold outbox rows by fire_event_id, keeping the newest (by created_at) per id. */
+/** Fold outbox rows by fire_event_id, preserving distinct empty-id fires. */
 export function foldOutbox(outbox: OutboxRow[]): Map<string, { row: OutboxRow; folded: number }> {
   const byEvent = new Map<string, OutboxRow[]>();
   for (const row of outbox) {
-    const list = byEvent.get(row.fire_event_id) ?? [];
+    const fireKey = row.fire_event_id?.trim()
+      || `thesis:${row.payload?.thesis_id ?? "unknown"}:${row.created_at?.trim() || ""}`
+      || `alert:${row.alert_id ?? "unknown"}:${row.created_at?.trim() || ""}`;
+    const list = byEvent.get(fireKey) ?? [];
     list.push(row);
-    byEvent.set(row.fire_event_id, list);
+    byEvent.set(fireKey, list);
   }
   const out = new Map<string, { row: OutboxRow; folded: number }>();
   for (const [eventId, rows] of byEvent) {

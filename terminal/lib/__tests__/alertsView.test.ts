@@ -963,6 +963,23 @@ describe("F11-11b-pre producer-shaped thesis-condition rows (category+source, no
     expect(view.rows[0].foldedRows).toBe(0);
   });
 
+  it("distinct thesis rows with empty fire ids do not collapse", () => {
+    const firstThesis = producerRow({
+      fire_event_id: "",
+      created_at: "2026-09-05T12:00:00Z",
+    });
+    const secondThesisId = "22222222-2222-4222-8222-222222222222";
+    const secondThesis = producerRow({
+      fire_event_id: "",
+      created_at: "2026-09-05T12:01:00Z",
+      payload: { ...producerRow().payload, thesis_id: secondThesisId },
+    });
+    const view = viewOf([firstThesis, secondThesis]);
+    expect(view.rows).toHaveLength(2);
+    expect(view.rows.map((row) => row.thesisId)).toEqual([secondThesisId, THESIS_ID]);
+    expect(view.rows.every((row) => row.foldedRows === 0)).toBe(true);
+  });
+
   it("ties on created_at order by the newer payload fired_at", () => {
     const older = producerRow({ fire_event_id: "fe-thesis-old", payload: { ...producerRow().payload, fired_at: "2026-09-05T11:57:00Z" } });
     const newer = producerRow({ fire_event_id: "fe-thesis-new" });
