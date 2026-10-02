@@ -49,6 +49,7 @@ No production ranking authority from an in-sample winner. Require directionally 
 - Pure product indicator math lives in `terminal/lib/mtfMomentum.ts` and must remain parity-locked to the existing visible Terminal panes.
 - Historical research should reuse the existing Entry Intelligence / signal-layer replay data rather than invent a parallel truth store.
 - UI projections are descriptive until the validated screener producer exists.
+- Closed-only chart evidence is provenance-gated: a daily tail mutated by the live-splice path remains provisional until the quote lane explicitly proves regular-session finality or a fresh canonical daily document replaces it. Missing CN/HK session-state metadata is UNKNOWN, never completion evidence.
 - Forming HTF bars are display-only.
 
 ## V1 scoring semantics
