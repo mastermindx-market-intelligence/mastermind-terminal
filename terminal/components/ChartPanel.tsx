@@ -646,7 +646,6 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // Read the pane's latest quote REF here, not the render-time prop captured by
     // this builder closure, or an RTH splice can briefly score the forming daily bar.
     const quote = liveQuoteRef.current;
-    const liveSessionDate = sessionDateOf(quote?.ts, market);
     const provisionalDate = liveSplicedDailyDateRef.current;
     const dailyTailIsForming = provisionalDate != null
       && dailyTimes[dailyTimes.length - 1] === provisionalDate
