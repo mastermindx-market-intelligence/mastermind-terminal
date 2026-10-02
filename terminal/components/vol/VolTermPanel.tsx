@@ -17,7 +17,8 @@ import type { Lang } from "@/lib/i18n";
 import { makeVolT } from "./volStrings";
 import type { VolTermRow } from "./volTypes";
 import {
-  finiteSegments, reportedVolNumber, volIsoDay, retainUniqueBy, fmtPct, ProvenanceLine, PanelEmpty, PLOT_PAD, AXIS_TXT, REF_TXT, NEUTRAL_CHIP,
+  admitVolTermRows, finiteSegments, fmtPct, ProvenanceLine, PanelEmpty, PLOT_PAD, AXIS_TXT, REF_TXT, NEUTRAL_CHIP,
+  type AdmittedVolTermPoint,
 } from "./volShared";
 
 // Local override, not MIN_CHART_H.axis (190) — see the matching comment in
@@ -26,8 +27,6 @@ import {
 // own chrome (header/chip row, provenance line) is accounted for.
 const H = 244;
 const MARKER_MAX_DTE = 60;
-
-interface Pt { dte: number; exp: string; v: number }
 
 export function VolTermPanel({
   term,
@@ -44,27 +43,25 @@ export function VolTermPanel({
   const boxRef = useRef<HTMLDivElement | null>(null);
   const w = useChartWidth(boxRef);
 
-  const pts = useMemo<Pt[]>(() => {
-    const out: Pt[] = [];
-    for (const r of term ?? []) {
-      const dte = reportedVolNumber(r?.dte);
-      const exp = volIsoDay(r?.exp);
-      const v = reportedVolNumber(r?.atm_iv);
-      if (!Number.isFinite(dte) || !exp) continue; // A valid coordinate with missing IV remains a gap.
-      out.push({ dte, exp, v });
-    }
-    const unique = retainUniqueBy(out, (row) => row.exp);
-    unique.sort((a, b) => a.dte - b.dte);
-    return unique;
-  }, [term]);
-
-  const finite = useMemo(() => pts.filter(p => Number.isFinite(p.v)), [pts]);
-  const segments = useMemo(() => finiteSegments(pts, p => p.v), [pts]);
+  const admission = useMemo(() => admitVolTermRows(term), [term]);
+  const pts = admission.rows;
+  const finite = useMemo(() => pts.filter((p) => Number.isFinite(p.v)), [pts]);
+  const segments = useMemo(
+    () => admission.ambiguousCoordinateExpiries.size > 0
+      ? finite.map((point) => [point])
+      : finiteSegments(pts, (point) => point.v),
+    [admission.ambiguousCoordinateExpiries, finite, pts],
+  );
   const drawable = finite.length >= 1;
+  const conflictSummary = admission.ambiguousCoordinateExpiries.size > 0
+    ? t("termConflictAmbiguous").replace("{n}", String(admission.ambiguousCoordinateExpiries.size))
+    : admission.conflictExpiries.size > 0
+      ? t("termConflictCount").replace("{n}", String(admission.conflictExpiries.size))
+      : null;
 
   // Structure chip: front vs nearest-to-90d. Suppressed unless both exist and differ.
-  const structure = useMemo<{ key: "termContango" | "termInverted"; front: Pt; far: Pt } | null>(() => {
-    if (pts.length < 2) return null;
+  const structure = useMemo<{ key: "termContango" | "termInverted"; front: AdmittedVolTermPoint; far: AdmittedVolTermPoint } | null>(() => {
+    if (admission.conflictExpiries.size > 0 || pts.length < 2) return null;
     const front = pts[0];
     let far = pts[0];
     for (const p of pts) {
@@ -72,7 +69,7 @@ export function VolTermPanel({
     }
     if (far === front || !Number.isFinite(front.v) || !Number.isFinite(far.v) || far.v === front.v) return null;
     return { key: front.v < far.v ? "termContango" : "termInverted", front, far };
-  }, [pts]);
+  }, [admission.conflictExpiries, pts]);
 
   const [x0, x1] = useMemo(() => {
     if (!drawable) return [0, 1] as [number, number];
@@ -105,7 +102,7 @@ export function VolTermPanel({
   // Slope chips (R2.3): the two segments a desk actually quotes — front→~30d and
   // ~30d→~90d, in vol points. Suppressed when the curve lacks the anchor tenors.
   const slopes = useMemo(() => {
-    if (pts.length < 2) return [] as { key: "termSlopeFront" | "termSlopeBack"; v: number; from: number; to: number }[];
+    if (admission.conflictExpiries.size > 0 || pts.length < 2) return [] as { key: "termSlopeFront" | "termSlopeBack"; v: number; from: number; to: number }[];
     const nearest = (target: number) =>
       pts.reduce((a, b) => (Math.abs(b.dte - target) < Math.abs(a.dte - target) ? b : a));
     const front = pts[0];
@@ -115,7 +112,7 @@ export function VolTermPanel({
     if (d30 !== front && Math.abs(d30.dte - 30) <= 15 && Number.isFinite(front.v) && Number.isFinite(d30.v)) out.push({ key: "termSlopeFront", v: d30.v - front.v, from: front.dte, to: d30.dte });
     if (d90 !== d30 && Math.abs(d90.dte - 90) <= 45 && Number.isFinite(d30.v) && Number.isFinite(d90.v)) out.push({ key: "termSlopeBack", v: d90.v - d30.v, from: d30.dte, to: d90.dte });
     return out;
-  }, [pts]);
+  }, [admission.conflictExpiries, pts]);
 
   const fmtSlope = (v: number) => `${v > 0 ? "+" : v < 0 ? "−" : ""}${Math.abs(v).toFixed(1)}`;
 
@@ -140,6 +137,11 @@ export function VolTermPanel({
           </span>
         ))}
       </div>
+      {conflictSummary && (
+        <div data-testid="term-conflict-status" role="status" style={CONFLICT_NOTE}>
+          {conflictSummary}
+        </div>
+      )}
       {onSelectExp && pts.length > 0 && (
         <div role="group" aria-label={t("termExpAria")} style={EXPIRY_ROW}>
           <span style={EXPIRY_LABEL}>{t("termExpControl")}</span>
@@ -163,7 +165,7 @@ export function VolTermPanel({
         {!drawable ? (
           <PanelEmpty title={t("termEmptyTitle")} why={t("termEmptyWhy")} minHeight={H} />
         ) : (
-          <svg viewBox={`0 0 ${w} ${H}`} width={w} height={H} role="img" aria-label={t("termTitle")}>
+          <svg viewBox={`0 0 ${w} ${H}`} width={w} height={H} role="img" aria-label={conflictSummary ? `${t("termTitle")}. ${conflictSummary}` : t("termTitle")}>
             {yTicks.map((v) => (
               <g key={`y${v}`}>
                 <line x1={PLOT_PAD.l} x2={w - PLOT_PAD.r} y1={yOf(v)} y2={yOf(v)} stroke="var(--grid)" />
@@ -211,6 +213,13 @@ export function VolTermPanel({
     </section>
   );
 }
+
+const CONFLICT_NOTE: React.CSSProperties = {
+  margin: "0 0 8px",
+  fontSize: 10.5,
+  lineHeight: 1.45,
+  color: "var(--warn)",
+};
 
 const EXPIRY_ROW: React.CSSProperties = {
   display: "grid",

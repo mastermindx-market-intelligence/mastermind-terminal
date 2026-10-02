@@ -11,6 +11,7 @@
 import React from "react";
 import type { Lang } from "@/lib/i18n";
 import { getVolStr } from "./volStrings";
+import type { VolHistoryRow, VolSmileExp, VolTermRow } from "./volTypes";
 
 /** Preserve typed, finite source numbers without coercing null/strings/booleans to observations. */
 export function reportedVolNumber(value: unknown): number {
@@ -32,6 +33,152 @@ export function retainUniqueBy<T>(rows: T[], keyOf: (row: T) => string | number)
     counts.set(key, (counts.get(key) ?? 0) + 1);
   }
   return rows.filter((row) => counts.get(keyOf(row)) === 1);
+}
+
+export interface AdmittedVolTermPoint {
+  dte: number;
+  exp: string;
+  v: number;
+  /** True when the source identity was duplicated and this row exists only to preserve its known gap coordinate. */
+  conflict: boolean;
+}
+
+export interface VolTermAdmission {
+  rows: AdmittedVolTermPoint[];
+  conflictExpiries: Set<string>;
+  /** Duplicate expiry rows whose DTE coordinates disagree; no gap coordinate can be invented safely. */
+  ambiguousCoordinateExpiries: Set<string>;
+}
+
+/**
+ * Admit term rows once for BOTH the panel and the shared expiry context.
+ * Duplicate expiry identities never pick a client-side winner. When every duplicate
+ * agrees on DTE, keep one NaN placeholder so finiteSegments preserves that source
+ * position as a gap. If DTE itself conflicts, report the ambiguity and omit a fake
+ * coordinate; the panel then suppresses line continuity for the curve.
+ */
+export function admitVolTermRows(term: VolTermRow[] | undefined): VolTermAdmission {
+  const valid: AdmittedVolTermPoint[] = [];
+  for (const row of term ?? []) {
+    const dte = reportedVolNumber(row?.dte);
+    const exp = volIsoDay(row?.exp);
+    if (!Number.isFinite(dte) || !exp) continue;
+    valid.push({ dte, exp, v: reportedVolNumber(row?.atm_iv), conflict: false });
+  }
+  const groups = new Map<string, AdmittedVolTermPoint[]>();
+  for (const row of valid) groups.set(row.exp, [...(groups.get(row.exp) ?? []), row]);
+  const rows: AdmittedVolTermPoint[] = [];
+  const conflictExpiries = new Set<string>();
+  const ambiguousCoordinateExpiries = new Set<string>();
+  for (const [exp, group] of groups) {
+    if (group.length === 1) {
+      rows.push(group[0]);
+      continue;
+    }
+    conflictExpiries.add(exp);
+    const dtes = [...new Set(group.map((row) => row.dte))];
+    if (dtes.length === 1) rows.push({ dte: dtes[0], exp, v: Number.NaN, conflict: true });
+    else ambiguousCoordinateExpiries.add(exp);
+  }
+  rows.sort((a, b) => a.dte - b.dte || a.exp.localeCompare(b.exp));
+  return { rows, conflictExpiries, ambiguousCoordinateExpiries };
+}
+
+export interface AdmittedVolSmilePoint {
+  strike: number;
+  call_iv: number;
+  put_iv: number;
+  conflict: boolean;
+}
+
+export interface AdmittedVolSmileExpiry {
+  exp: string;
+  points: AdmittedVolSmilePoint[];
+  conflictStrikes: Set<number>;
+}
+
+export interface VolSmileAdmission {
+  expiries: AdmittedVolSmileExpiry[];
+  conflictExpiries: Set<string>;
+}
+
+/**
+ * Admit smile rows once for BOTH VolSkewPanel and VolView. A duplicated expiry is
+ * rejected as a whole. Within an otherwise unique expiry, duplicate strike identity
+ * becomes one NaN placeholder at that exact strike so neither line nor interpolation
+ * can bridge across the conflict.
+ */
+export function admitVolSmileExpiries(smile: VolSmileExp[] | undefined): VolSmileAdmission {
+  const valid = (smile ?? []).filter((row) => volIsoDay(row?.exp) != null && Array.isArray(row?.points));
+  const expiryGroups = new Map<string, VolSmileExp[]>();
+  for (const row of valid) expiryGroups.set(row.exp, [...(expiryGroups.get(row.exp) ?? []), row]);
+  const expiries: AdmittedVolSmileExpiry[] = [];
+  const conflictExpiries = new Set<string>();
+  for (const [exp, group] of expiryGroups) {
+    if (group.length !== 1) {
+      conflictExpiries.add(exp);
+      continue;
+    }
+    const pointGroups = new Map<number, AdmittedVolSmilePoint[]>();
+    for (const point of group[0].points ?? []) {
+      if (typeof point?.strike !== "number" || !Number.isFinite(point.strike) || point.strike <= 0) continue;
+      const normalized: AdmittedVolSmilePoint = {
+        strike: point.strike,
+        call_iv: reportedVolNumber(point.call_iv),
+        put_iv: reportedVolNumber(point.put_iv),
+        conflict: false,
+      };
+      pointGroups.set(point.strike, [...(pointGroups.get(point.strike) ?? []), normalized]);
+    }
+    const points: AdmittedVolSmilePoint[] = [];
+    const conflictStrikes = new Set<number>();
+    for (const [strike, pointGroup] of pointGroups) {
+      if (pointGroup.length === 1) points.push(pointGroup[0]);
+      else {
+        conflictStrikes.add(strike);
+        points.push({ strike, call_iv: Number.NaN, put_iv: Number.NaN, conflict: true });
+      }
+    }
+    points.sort((a, b) => a.strike - b.strike);
+    expiries.push({ exp, points, conflictStrikes });
+  }
+  expiries.sort((a, b) => a.exp.localeCompare(b.exp));
+  return { expiries, conflictExpiries };
+}
+
+export interface AdmittedVolHistoryPoint {
+  date: string;
+  e: number;
+  v: number;
+  conflict: boolean;
+}
+
+export interface VolHistoryAdmission {
+  rows: AdmittedVolHistoryPoint[];
+  conflictDates: Set<string>;
+}
+
+/** Duplicate dates keep one NaN placeholder at that date so the history line visibly breaks. */
+export function admitVolHistoryRows(history: VolHistoryRow[] | undefined): VolHistoryAdmission {
+  const valid: AdmittedVolHistoryPoint[] = [];
+  for (const row of history ?? []) {
+    const date = volIsoDay(row?.date);
+    if (!date) continue;
+    valid.push({ date, e: Date.parse(`${date}T00:00:00Z`), v: reportedVolNumber(row.atm_iv), conflict: false });
+  }
+  const groups = new Map<string, AdmittedVolHistoryPoint[]>();
+  for (const row of valid) groups.set(row.date, [...(groups.get(row.date) ?? []), row]);
+  const rows: AdmittedVolHistoryPoint[] = [];
+  const conflictDates = new Set<string>();
+  for (const [date, group] of groups) {
+    if (group.length === 1) rows.push(group[0]);
+    else {
+      conflictDates.add(date);
+      rows.push({ date, e: group[0].e, v: Number.NaN, conflict: true });
+    }
+  }
+  rows.sort((a, b) => a.e - b.e);
+  return { rows, conflictDates };
 }
 
 /** Consecutive runs of rows whose mapped value is finite (R7: break, don't bridge). */

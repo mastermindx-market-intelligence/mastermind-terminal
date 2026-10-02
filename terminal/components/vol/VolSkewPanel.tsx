@@ -21,7 +21,7 @@ import { Tip } from "@/components/ui/Tip";
 import { makeVolT } from "./volStrings";
 import type { VolSmileExp, VolSmilePoint } from "./volTypes";
 import {
-  finiteSegments, reportedVolNumber, volIsoDay, retainUniqueBy, ProvenanceLine, PanelEmpty, PLOT_PAD, AXIS_TXT, REF_TXT, NEUTRAL_CHIP,
+  admitVolSmileExpiries, finiteSegments, reportedVolNumber, ProvenanceLine, PanelEmpty, PLOT_PAD, AXIS_TXT, REF_TXT, NEUTRAL_CHIP,
 } from "./volShared";
 
 const H = 210; // two overlaid series + legend want a little more than the 190 floor
@@ -45,10 +45,8 @@ export function VolSkewPanel({
   const boxRef = useRef<HTMLDivElement | null>(null);
   const w = useChartWidth(boxRef);
 
-  const exps = useMemo(() => {
-    const valid = (smile ?? []).filter((s) => volIsoDay(s?.exp) !== null && Array.isArray(s.points));
-    return retainUniqueBy(valid, (row) => row.exp);
-  }, [smile]);
+  const admission = useMemo(() => admitVolSmileExpiries(smile), [smile]);
+  const exps = admission.expiries;
 
   // Selection is keyed to the expiration LIST it was made against: a root
   // switch swaps smile[] out from under it, and a selection made for another
@@ -67,16 +65,20 @@ export function VolSkewPanel({
     else setSel({ key: expsKey, exp });
   };
 
-  // Strike-valid, ascending points for the active expiration (IVs stay raw —
-  // per-series segmentation below handles missing legs).
-  const allPts = useMemo<VolSmilePoint[]>(() => {
-    const valid = (active?.points ?? [])
-      .filter((p) => typeof p?.strike === "number" && Number.isFinite(p.strike) && p.strike > 0)
-      .map((p) => ({ strike: p.strike, call_iv: reportedVolNumber(p.call_iv), put_iv: reportedVolNumber(p.put_iv) }));
-    const out = retainUniqueBy(valid, (point) => point.strike);
-    out.sort((a, b) => a.strike - b.strike);
-    return out;
-  }, [active]);
+  // Strike admission is already normalized by the shared source-truth owner.
+  // Duplicate strikes remain NaN placeholders so line/interpolation continuity breaks.
+  const allPts = active?.points ?? [];
+  const activeConflictCount = active?.conflictStrikes.size ?? 0;
+  const selectedExpiryConflict = selectedExp != null && admission.conflictExpiries.has(selectedExp);
+  const activeHasFinite = allPts.some((point) =>
+    Number.isFinite(reportedVolNumber(point.call_iv)) || Number.isFinite(reportedVolNumber(point.put_iv)),
+  );
+  const conflictEmpty = selectedExpiryConflict || (!!active && activeConflictCount > 0 && !activeHasFinite);
+  const conflictSummary = selectedExpiryConflict
+    ? t("skewExpiryConflict").replace("{exp}", selectedExp ?? "—")
+    : activeConflictCount > 0
+      ? t("skewConflictCount").replace("{n}", String(activeConflictCount))
+      : null;
 
   // ATM proxy: the strike minimizing |call_iv − put_iv| (both legs finite).
   const atmProxy = useMemo<number | null>(() => {
@@ -223,17 +225,26 @@ export function VolSkewPanel({
           )}
         </div>
       )}
+      {conflictSummary && (
+        <div data-testid="smile-conflict-status" role="status" style={CONFLICT_NOTE}>
+          {conflictSummary}
+        </div>
+      )}
       <div ref={boxRef} style={{ width: "100%", minWidth: 0 }}>
         {!drawable ? (
           <PanelEmpty
-            title={controlledSelection && selectedExp && !active ? t("skewSelectedMissingTitle") : t("skewEmptyTitle")}
-            why={controlledSelection && selectedExp && !active
-              ? t("skewSelectedMissingWhy").replace("{exp}", selectedExp)
-              : t("skewEmptyWhy")}
+            title={conflictEmpty
+              ? t("skewSelectedConflictTitle")
+              : controlledSelection && selectedExp && !active ? t("skewSelectedMissingTitle") : t("skewEmptyTitle")}
+            why={conflictEmpty
+              ? t("skewSelectedConflictWhy").replace("{exp}", selectedExp ?? active?.exp ?? "—")
+              : controlledSelection && selectedExp && !active
+                ? t("skewSelectedMissingWhy").replace("{exp}", selectedExp)
+                : t("skewEmptyWhy")}
             minHeight={H}
           />
         ) : (
-          <svg viewBox={`0 0 ${w} ${H}`} width={w} height={H} role="img" aria-label={t("skewTitle")}>
+          <svg viewBox={`0 0 ${w} ${H}`} width={w} height={H} role="img" aria-label={conflictSummary ? `${t("skewTitle")}. ${conflictSummary}` : t("skewTitle")}>
             {yTicks.map((v) => (
               <g key={`y${v}`}>
                 <line x1={PLOT_PAD.l} x2={w - PLOT_PAD.r} y1={yOf(v)} y2={yOf(v)} stroke="var(--grid)" />
@@ -275,6 +286,13 @@ export function VolSkewPanel({
     </section>
   );
 }
+
+const CONFLICT_NOTE: React.CSSProperties = {
+  margin: "0 0 8px",
+  fontSize: 10.5,
+  lineHeight: 1.45,
+  color: "var(--warn)",
+};
 
 const CONTROLS_ROW: React.CSSProperties = {
   display: "flex",

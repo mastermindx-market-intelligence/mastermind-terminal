@@ -53,6 +53,7 @@ const VOL_LEX = {
   // Coverage is disclosed from the data (the old title asserted "90-day" over
   // whatever history[] actually held).
   histCoverage:      ["{n} sessions · since {d}", "{n} 个交易日 · 自 {d}"],
+  histConflictCount: ["Partial IV history · {n} conflicting date unavailable", "IV历史不完整 · {n} 个冲突日期不可用"],
   histEmptyTitle:    ["Not enough IV history to draw yet", "IV历史数据不足，暂无法绘制"],
   histEmptyWhy: [
     "The history line needs at least 10 sessions of ATM IV.",
@@ -74,6 +75,8 @@ const VOL_LEX = {
   termExpControl:    ["Investigate expiry", "调查到期日"],
   termExpCount:      ["{n} supplied expiry rows", "已提供 {n} 个到期日行"],
   termExpUnavailable:["ATM IV unavailable", "平值IV不可用"],
+  termConflictCount: ["Partial IV data · {n} conflicting expiry unavailable", "IV数据不完整 · {n} 个冲突到期日不可用"],
+  termConflictAmbiguous: ["Term-curve lines withheld · {n} conflicting expiry has inconsistent DTE", "期限曲线连线暂不显示 · {n} 个冲突到期日的DTE不一致"],
   termExpSelectAria: ["Select {exp}, {dte} days, reported ATM IV {iv}%", "选择 {exp}，{dte} 天，报告平值IV {iv}%"],
   termExpMissingAria:["Select {exp}, {dte} days, ATM IV unavailable", "选择 {exp}，{dte} 天，平值IV不可用"],
   termContango:      ["Contango", "正向期限结构"],
@@ -107,14 +110,24 @@ const VOL_LEX = {
     "{exp} has no supplied per-strike IV series. Choose another supplied expiry; nothing is substituted.",
     "{exp} 未提供按行权价的IV序列。请选择另一个已提供的到期日；系统不会替换为邻近到期日。",
   ],
+  skewConflictCount: ["Partial IV data · {n} conflicting strike unavailable", "IV数据不完整 · {n} 个冲突行权价不可用"],
+  skewExpiryConflict: ["{exp} has conflicting expiry records", "{exp} 存在冲突的到期日记录"],
+  skewSelectedConflictTitle: ["Smile unavailable · conflicting source records", "微笑曲线不可用 · 来源记录冲突"],
+  skewSelectedConflictWhy: [
+    "{exp} has conflicting expiry or strike records. No client-side winner is selected and no neighboring value is substituted.",
+    "{exp} 存在冲突的到期日或行权价记录。客户端不会选择任一版本，也不会用邻近值替代。",
+  ],
 
   // ── Shared expiry investigation context ───────────────────────────────────
   expiryContextLabel: ["Investigating expiry", "正在调查到期日"],
   expiryContextDte: ["{n} days", "{n} 天"],
   expiryContextAtm: ["reported ATM IV {v}%", "报告平值IV {v}%"],
   expiryContextAtmMissing: ["ATM IV unavailable", "平值IV不可用"],
+  expiryContextAtmConflict: ["ATM IV unavailable · conflicting expiry records", "平值IV不可用 · 到期日记录冲突"],
   expiryContextSmile: ["smile supplied", "已提供微笑曲线"],
+  expiryContextSmilePartial: ["smile partial · {n} conflicting strike unavailable", "微笑曲线不完整 · {n} 个冲突行权价不可用"],
   expiryContextSmileMissing: ["smile unavailable for this expiry", "该到期日微笑曲线不可用"],
+  expiryContextSmileConflict: ["smile unavailable · conflicting records", "微笑曲线不可用 · 记录冲突"],
 
   // ── VRP regime panel (R2.3 — level + trend + velocity, regime-dynamics law) ──
   vrpTitle:          ["IV − realized-vol spread · history", "IV − 已实现波动率差值 · 历史"],
