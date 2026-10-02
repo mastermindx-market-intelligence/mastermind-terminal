@@ -6,13 +6,14 @@
 # capturedAt: 2026-09-10T17:19:31.994Z
 # 2026-09-13 B-F11-7: AlertsCockpit.tsx re-hashed for BriefsInbox mounted below the existing alerts children. Collision crops photograph the top of the cockpit (AnswerLine / watching / degraded); the new inbox sits under the legacy list; no crop recaptured.
 # 2026-09-27 B-F11-11b-pre (#759): restamped ONLY the lib/alertsView.ts layoutFiles hash. This packet's capture script renders alerts collision states (watching, suite degraded, suite never ran, unresolved) from the alerts fixture; it has no thesis outbox path and no thesis crops. No crop recaptured.
+# 2026-10-02 round 3 — restamped lib/alertsView.ts because N4 fixed ordinary-alert empty-id fold keys; the collision script has no thesis path and has no visual change.
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/components/alerts/AlertsCockpit.tsx: "468a506890408b90a5621982a178fcef4ebf711e0d8bbb9428de78a4abd3f8a7"
   terminal/components/alerts/WatchingList.tsx: "642c8c76062fefb5ff06d8496bfea50f45de5af1aaf7a989e82e10f7b36d483b"
   terminal/components/alerts/AnswerLine.tsx: "f3bf1f587566c521b66d210b84ec316ed1e5809f2f5ce758c6c0c81f77e4dbdb"
   terminal/components/alerts/CouldNotWatch.tsx: "bedf3678d07a9c1f767df5b87a59648e69e8167df493d63412210a088d95d3a8"
-  terminal/lib/alertsView.ts: "dac6803fe8dd67d19c466a7e42986aba2eccc98cee4fa1cac9e5be9a7930c1ad"
+  terminal/lib/alertsView.ts: "7885c00404c3b09eaf188eac79ea48ff3845c3a55de2596e31bb98d0490c783f"
   terminal/app/api/alerts/receipts/route.ts: "e90838781925cd4035cf913a3f011ad0e79a2f2fb4528fa1518a392144f44d82"
   terminal/app/api/alerts/route.ts: "7b7ff8a30555230b344027385b24fcb488871bace93cf8b51e6a47c0433e66d3"
 theme: dark
