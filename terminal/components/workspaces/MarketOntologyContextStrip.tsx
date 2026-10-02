@@ -6,13 +6,14 @@ import styles from "./MarketOntologyContextStrip.module.css";
 
 function copy(lang: "en" | "zh", from: MarketOntologyContext["from"]) {
   const openedFrom = from === "transmission" ? "Transmission" : "WTI Live Path";
+  const openedFromZh = from === "transmission" ? "传导" : " WTI 实时路径";
   if (lang === "zh") {
     return {
-      title: `来自 ${from === "transmission" ? "Transmission" : "WTI 实时路径"}`,
+      title: `来自${openedFromZh}`,
       body: "该公司是从 MarketOntology 研究路径打开的。此上下文不会保存到你的论点中。",
       asof: "截至 {date}",
       knowledgeCutoff: "知识截止 {date}",
-      action: `返回 ${from === "transmission" ? "Transmission" : "WTI 实时路径"}`,
+      action: `返回${openedFromZh}`,
     };
   }
   return {

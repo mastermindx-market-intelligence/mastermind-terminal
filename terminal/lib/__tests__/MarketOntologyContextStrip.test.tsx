@@ -104,7 +104,7 @@ describe("MarketOntologyContextStrip transmission copy", () => {
 
     applyLang("zh");
     dom = await mount(transmissionContext);
-    expect(dom.textContent).toContain("来自 Transmission");
-    expect(dom.querySelector("a")?.textContent).toBe("返回 Transmission");
+    expect(dom.textContent).toContain("来自传导");
+    expect(dom.querySelector("a")?.textContent).toBe("返回传导");
   });
 });
