@@ -9,7 +9,7 @@ import AlertDetail, { type AlertDetailData } from "./AlertDetail";
 import { NewAlertPanel } from "@/components/AlertsView";
 import {
   buildAlertsView, conditionText, conditionsWord, copy, verdictText, ALERTS_CHANGED_EVENT,
-  lanesForArmedAlerts, monitorFor, rowChipKey,
+  formatFiredAt, lanesForArmedAlerts, monitorFor, rowChipKey,
   type Alert, type ReadState, type RunReceipt, type OutboxRow,
 } from "@/lib/alertsView";
 import { useLang, useT } from "@/lib/i18n";
