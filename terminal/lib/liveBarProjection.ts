@@ -92,6 +92,29 @@ export const LIVE_REBUILD_KEYS: IndKey[] = IND_ORDER.filter(
   (k) => LIVE_BAR_PROJECTION[k] === "inplace-rebuild",
 );
 
+/** Closed-bar series are never eligible for the developing-tick rebuild lane. */
+export const LIVE_CLOSED_BAR_KEYS: IndKey[] = IND_ORDER.filter(
+  (k) => LIVE_BAR_PROJECTION[k] === "closed-bar-series",
+);
+
+/**
+ * Does this quote explicitly prove that the named regular session is finished?
+ *
+ * US hub quotes carry a regular-session date plus session state, so post/overnight
+ * can prove completion of the just-finished bar. Tencent CN/HK ordinary quotes do
+ * not carry an equivalent completion state; absence is UNKNOWN, never permission
+ * to publish a provisional daily/3D value as closed evidence.
+ */
+export function regularSessionBarIsFinal(
+  q: { marketSession?: string | null; regularSessionDate?: string | null } | null | undefined,
+  market: string,
+  sessionDate: string | null,
+): boolean {
+  if (!q || !sessionDate || market !== "us") return false;
+  if (q.regularSessionDate !== sessionDate) return false;
+  return q.marketSession === "post" || q.marketSession === "overnight";
+}
+
 // ── series reuse: run a builder as its own update owner ───────────────────────────────────────
 // A study's builder both computes its projection and creates the series it draws into. On a live
 // bar we want the first half and must NOT repeat the second: removing and re-adding a sub-pane's
