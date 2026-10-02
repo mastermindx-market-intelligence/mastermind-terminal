@@ -88,7 +88,7 @@ import ChartTables from "@/components/ChartTables";
 import { crossUps, crossDowns, crossUpsBelow, crossDownsAbove } from "@/lib/crossSignals";
 import { SOFT_Q, anchorSignal, isBlockedSignal, isOverrideCandidate, isReclaimOverrideTake, isRetroOverride, isStopSweepReclaim, isStructureStop, isWaivedEntry, markerTooltipCopy, opportunityMarkerGlyph, sliceSignalBasis } from "@/lib/signalVerdict";
 import { makeNearestBarIndex } from "@/lib/barSnap";
-import { LIVE_BAR_PROJECTION, LIVE_INPLACE_SERIES_KEYS, LIVE_REBUILD_KEYS, acceptsLiveTick, liveQuoteStamp, regularSessionBarIsFinal, seriesReuseChart, type AcceptedLiveTick } from "@/lib/liveBarProjection";
+import { LIVE_BAR_PROJECTION, LIVE_CLOSED_BAR_KEYS, LIVE_INPLACE_SERIES_KEYS, LIVE_REBUILD_KEYS, acceptsLiveTick, liveQuoteStamp, regularSessionBarIsFinal, seriesReuseChart, type AcceptedLiveTick } from "@/lib/liveBarProjection";
 import { dailyMultipleOf, groupSessionBars, parseSessionAnchor, resolveBarAnchor,
   sessionToBarTime, type SessionAnchor } from "@/lib/sessionBars";
 import { ichimoku, supertrend, avwap as computeAvwap, rollingVwap, weekAnchoredVwap, vprofile, volbox, rsiStack, accumPct, trendRibbon, buyShare as mfBuyShare } from "@/lib/indicatorMath";
@@ -3105,6 +3105,18 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     for (const key of paneSuiteKeys()) if (indSeriesRef.current.has(key)) runStudyInPlace(key, rows, closes);
   };
 
+  /** Advance closed-only studies only when the quote lane explicitly proves session finality. */
+  const refreshClosedBarStudies = (rows: Bar[], closes: number[]) => {
+    if (!indSeriesRef.current.size || !rows.length) return;
+    const q = liveQuoteRef.current;
+    const market = classify(symbolRef.current);
+    const sd = sessionDateOf(q?.ts, market);
+    if (!regularSessionBarIsFinal(q, market, sd)) return;
+    for (const key of LIVE_CLOSED_BAR_KEYS) {
+      if (indSeriesRef.current.has(key)) runStudyInPlace(key, rows, closes);
+    }
+  };
+
   // ── THE live-bar derivation boundary ──────────────────────────────────────────────────────────
   // One accepted bar mutation → one bar generation → every consumer that follows the developing bar,
   // in one settled pass. Both accept paths (daily/resampled splice, intraday candle) end here, so a
@@ -3129,6 +3141,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // 1. series that own a cached derivation of the bars
     updateAllIndicators(rows, closes);
     refreshLiveStudies(rows, closes);
+    refreshClosedBarStudies(rows, closes);
     // 2. the numeric projection behind Chart Table / visual intelligence (also republishes indRowsAt)
     buildIndDataMap(rows, closes);
     // 3. status line, verdict chip, price tag, signal marks
