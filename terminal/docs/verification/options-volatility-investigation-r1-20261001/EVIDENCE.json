@@ -215,9 +215,9 @@
   "collision_reconciliation": {
     "remote_master": "c35b9a1d50ca4960c361645f0300fa9f95158a4e",
     "pr_686_head": "450850ec2933290d6a8e86db35e8c59cfc8843c1",
-    "pr_686_overlap": "terminal/components/vol/VolView.tsx only; #686 changes the rootChoices prop/datalist seam",
-    "three_way_result": "VolView auto-merges cleanly. Whole merge-tree exits 1 only because #686 already conflicts with current master in ops/terminal_source_audit.production.json.",
-    "synthetic_merge_tree": "0178602b5e7ce54f82cea6ac88e8d9d8d2c3aed6",
+    "pr_686_overlap": "terminal/components/vol/VolView.tsx only; #686 changes the rootChoices prop/datalist seam; current #780 adds expiry/history behavior elsewhere in the same file",
+    "three_way_result": "Current #780 + #686 VolView auto-merges cleanly. Synthetic whole-tree merge exits 1 only on ops/terminal_source_audit.production.json, where both branches independently move the protected public-data tree pin.",
+    "synthetic_merge_tree": "e65050df289c80f389cdc64ed43265a38fba8af7",
     "merged_volview_proof": [
       "VolViewProps/rootChoices retained",
       "rootChoices datalist retained",
@@ -225,7 +225,8 @@
       "vol-expiry-context retained",
       "shared selectedExp passed to term and smile"
     ],
-    "pr_723_overlap": "no direct components/vol path overlap at the inspected #723 file list; #723 remains a separate chart/options-companion carrier"
+    "pr_723_overlap": "no direct components/vol path overlap at the inspected #723 file list; #723 remains a separate chart/options-companion carrier",
+    "pr_780_head": "f2f7463e30e864d091bd48f27fc4a4d16f1eea66"
   },
   "real_source_receipt": "terminal/docs/verification/options-volatility-investigation-r1-20261001/REAL_SOURCE_20261002.json"
 }
