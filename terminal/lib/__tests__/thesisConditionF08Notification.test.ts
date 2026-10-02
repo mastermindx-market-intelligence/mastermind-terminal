@@ -48,10 +48,10 @@ function producerRealOutbox(over: Partial<OutboxRow> = {}): OutboxRow {
     deliver_after: null,
     delivered_at: null,
     created_at: "2026-09-05T11:59:30Z",
-      payload: {
-        thesis_id: THESIS_ID,
-        thesis_version: 1,
-        fired_at: "2026-09-05T11:58:00Z",
+    payload: {
+      thesis_id: THESIS_ID,
+      thesis_version: 1,
+      fired_at: "2026-09-05T11:58:00Z",
       tripwire_id: "11111111-1111-1111-a111-111111111111",
       tripwire_version: 1,
       category: "thesis_window",
