@@ -823,7 +823,7 @@ describe("F11-11b-pre producer-shaped thesis-condition rows (category+source, no
   });
 
   it("a producer row with both recognizer fields and a full payload renders one bare-UUID thesis row", () => {
-    const row = producerRow({ payload: { ...producerRow().payload, kind: "legacy" } });
+    const row = producerRow({ payload: { ...producerRow().payload } });
     const view = viewOf([row]);
     expect(view.rows).toHaveLength(1);
     expect(view.rows[0].thesisId).toBe(THESIS_ID);

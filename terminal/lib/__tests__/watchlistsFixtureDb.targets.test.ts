@@ -113,7 +113,7 @@ describe("fixture thesis monitor subject fidelity", () => {
       p_client_request_id: "req-monitor-theme",
       p_effective_at: null,
     });
-    const row = fixtureStore(key).alertOutbox[0];
+    const row = fixtureStore(key).alertOutbox[0] as { payload: Record<string, unknown> };
     expect(row.payload).toEqual(producerPayload(
       String(row.payload.thesis_id),
       "A market condition we watch for your thesis has changed",
@@ -134,7 +134,7 @@ describe("fixture thesis monitor subject fidelity", () => {
       p_client_request_id: "req-monitor-theme-no-display",
       p_effective_at: null,
     });
-    const row = fixtureStore(key).alertOutbox[0];
+    const row = fixtureStore(key).alertOutbox[0] as { payload: Record<string, unknown> };
     expect(row.payload).toEqual(producerPayload(
       String(row.payload.thesis_id),
       "A market condition we watch for your thesis has changed",
