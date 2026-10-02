@@ -321,7 +321,7 @@ export function VolView() {
             />
 
             {/* ═══ Panel B2 — VRP regime (R2.3) ═══════════════════════════ */}
-            <VolVrpPanel vrp={payload.vrp} agg={agg} lang={lang} />
+            <VolVrpPanel vrp={payload.vrp} agg={agg} sourceAsOf={payload.asof} lang={lang} />
 
             {selectedExpiry && (
               <section className="fin-card" data-testid="vol-expiry-context" style={EXPIRY_CONTEXT}>

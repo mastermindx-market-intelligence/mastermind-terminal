@@ -20,7 +20,7 @@
 import React, { useMemo, useRef } from "react";
 import { fmtTick, niceTicks, padDomain, thinLabels, useChartWidth } from "@/components/charts/svgChart";
 import { makeVolT } from "./volStrings";
-import { ProvenanceLine, PanelEmpty } from "./volShared";
+import { ProvenanceLine, PanelEmpty, volIsoDay } from "./volShared";
 import type { AggTrendPayload } from "@/lib/aggTrend";
 import type { Lang } from "@/lib/i18n";
 
@@ -80,11 +80,14 @@ function pctileOf(sorted: number[], p: number): number {
 export function VolVrpPanel({
   vrp,
   agg,
+  sourceAsOf,
   lang,
 }: {
   /** The PUBLISHED headline (atm_iv − rv20 upstream) — never recomputed. */
   vrp: number | null | undefined;
   agg: AggTrendPayload | null;
+  /** Source session of the headline options_hub.vol snapshot. */
+  sourceAsOf: string | null | undefined;
   lang: Lang;
 }) {
   const t = makeVolT(lang);
@@ -93,6 +96,11 @@ export function VolVrpPanel({
 
   const pts = useMemo(() => deriveVrpSeries(agg), [agg]);
   const enough = pts.length >= MIN_SESSIONS;
+  const sourceDay = volIsoDay(typeof sourceAsOf === "string" ? sourceAsOf.slice(0, 10) : null);
+  const historyDay = pts.length ? volIsoDay(pts[pts.length - 1].d) : null;
+  // Historical context may remain useful when stale, but rank/trend/velocity are
+  // current-state claims only when the derived series reaches the same source session.
+  const sessionsAligned = enough && sourceDay != null && historyDay === sourceDay;
 
   const stats = useMemo(() => {
     if (!enough) return null;
@@ -149,10 +157,11 @@ export function VolVrpPanel({
     };
   }, [pts, enough, w]);
 
+  const currentStats = sessionsAligned ? stats : null;
   const regimeKey =
-    stats?.regime === "compressed" ? "vrpCompressed" : stats?.regime === "elevated" ? "vrpElevated" : "vrpNormal";
+    currentStats?.regime === "compressed" ? "vrpCompressed" : currentStats?.regime === "elevated" ? "vrpElevated" : "vrpNormal";
   const regimeTone =
-    stats?.regime === "elevated" ? "var(--warn)" : stats?.regime === "compressed" ? "var(--signal)" : "var(--text)";
+    currentStats?.regime === "elevated" ? "var(--warn)" : currentStats?.regime === "compressed" ? "var(--signal)" : "var(--text)";
 
   const fmtPts = (v: number | null | undefined, signed = false) =>
     v == null || !Number.isFinite(v)
@@ -168,28 +177,39 @@ export function VolVrpPanel({
         </span>
       </div>
 
+      {historyDay && (
+        <div data-testid="vrp-history-session" role={!sessionsAligned && sourceDay ? "status" : undefined}
+          style={{ fontSize: 10.5, lineHeight: 1.45, color: !sessionsAligned && sourceDay ? "var(--warn)" : "var(--text-dim)", margin: "-2px 0 8px" }}>
+          {sessionsAligned
+            ? t("vrpHistoryAligned").replace("{date}", historyDay)
+            : sourceDay
+              ? t("vrpHistoryMismatch").replace("{history}", historyDay).replace("{current}", sourceDay)
+              : t("vrpHistoryThrough").replace("{date}", historyDay)}
+        </div>
+      )}
+
       <div className="fin-kpis" style={{ marginBottom: 4 }}>
         <div className="fin-kpi">
           <span className="k">{t("vrpNow")}</span>
-          <span className="v">{fmtPts(vrp ?? stats?.last)}</span>
+          <span className="v">{fmtPts(vrp)}</span>
           <span className="s">{t("vrpUnit")}</span>
         </div>
         <div className="fin-kpi">
           <span className="k">{t("vrpRegime")}</span>
           <span className="v" style={{ color: regimeTone }}>
-            {stats ? t(regimeKey) : t("vrpUnknown")}
+            {currentStats ? t(regimeKey) : enough ? t("vrpUnaligned") : t("vrpUnknown")}
           </span>
-          {stats && <span className="s">{t("vrpPctile").replace("{p}", stats.pct.toFixed(0))}</span>}
+          {currentStats && <span className="s">{t("vrpPctile").replace("{p}", currentStats.pct.toFixed(0))}</span>}
         </div>
         <div className="fin-kpi">
           <span className="k">{t("vrpTrend")}</span>
-          <span className="v">{stats ? fmtPts(stats.trend5, true) : "—"}</span>
-          <span className="s">{t("vrpTrendCaption")}</span>
+          <span className="v">{currentStats ? fmtPts(currentStats.trend5, true) : "—"}</span>
+          <span className="s">{currentStats ? t("vrpTrendCaption") : enough ? t("vrpWithheldCaption") : t("vrpTrendCaption")}</span>
         </div>
         <div className="fin-kpi">
           <span className="k">{t("vrpVelocity")}</span>
-          <span className="v">{stats ? fmtPts(stats.velocity, true) : "—"}</span>
-          <span className="s">{t("vrpVelocityCaption")}</span>
+          <span className="v">{currentStats ? fmtPts(currentStats.velocity, true) : "—"}</span>
+          <span className="s">{currentStats ? t("vrpVelocityCaption") : enough ? t("vrpWithheldCaption") : t("vrpVelocityCaption")}</span>
         </div>
       </div>
 
@@ -230,7 +250,7 @@ export function VolVrpPanel({
               cx={geom.sx(pts.length - 1)}
               cy={geom.sy(stats.last)}
               r={2.5}
-              fill={regimeTone === "var(--text)" ? "var(--brand)" : regimeTone}
+              fill={!sessionsAligned || regimeTone === "var(--text)" ? "var(--brand)" : regimeTone}
             />
             {geom.labels.map((l) => (
               <text

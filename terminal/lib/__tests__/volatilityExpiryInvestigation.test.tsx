@@ -75,10 +75,14 @@ async function mount() {
   return context;
 }
 
-function termExpiry(exp: string) {
-  const button = host.querySelector<HTMLButtonElement>(`button[data-expiry="${exp}"]`);
-  if (!button) throw new Error(`term expiry ${exp} missing`);
-  return button;
+function termSelect() {
+  const select = host.querySelector<HTMLSelectElement>('[data-testid="term-expiry-select"]');
+  if (!select) throw new Error("term expiry selector missing");
+  return select;
+}
+async function selectTerm(exp: string) {
+  const select = termSelect();
+  await act(async () => { select.value = exp; select.dispatchEvent(new Event("change", { bubbles: true })); });
 }
 
 function smileExpiry(exp: string) {
@@ -100,20 +104,20 @@ describe("Volatility expiry-led investigation", () => {
     expect(host.textContent).toContain("Reported IV − RV20");
     expect(host.textContent).toContain("IV − realized-vol spread · history");
     expect(host.textContent).not.toContain("Volatility risk premium");
-    expect(termExpiry("2026-10-23").getAttribute("aria-pressed")).toBe("true");
+    expect(termSelect().value).toBe("2026-10-23");
     expect(smileExpiry("2026-10-23").getAttribute("aria-pressed")).toBe("true");
   });
 
   it("keeps a selected missing term observation and refuses nearest-expiry smile substitution", async () => {
     const context = await mount();
-    await act(async () => termExpiry("2026-10-16").click());
+    await selectTerm("2026-10-16");
     expect(context.textContent).toContain("2026-10-16");
     expect(context.textContent).toContain("21 days");
     expect(context.textContent).toContain("ATM IV unavailable");
     expect(context.textContent).toContain("smile unavailable for this expiry");
     expect(host.textContent).toContain("No smile for the selected expiry");
     expect(host.textContent).toContain("2026-10-16 has no supplied per-strike IV series");
-    expect(termExpiry("2026-10-16").getAttribute("aria-pressed")).toBe("true");
+    expect(termSelect().value).toBe("2026-10-16");
     expect(smileExpiry("2026-10-23").getAttribute("aria-pressed")).toBe("false");
   });
 
@@ -124,7 +128,7 @@ describe("Volatility expiry-led investigation", () => {
     expect(context.textContent).toContain("56 days");
     expect(context.textContent).toContain("reported ATM IV 16.1%");
     expect(context.textContent).toContain("smile supplied");
-    expect(termExpiry("2026-11-20").getAttribute("aria-pressed")).toBe("true");
+    expect(termSelect().value).toBe("2026-11-20");
     expect(smileExpiry("2026-11-20").getAttribute("aria-pressed")).toBe("true");
     expect(flowGetMock.mock.calls.filter(([key]) => key === "vol:SPY")).toHaveLength(1);
   });

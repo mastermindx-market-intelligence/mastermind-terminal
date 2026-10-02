@@ -17,7 +17,9 @@
     "duplicate expiry/strike/date identities fail closed rather than selecting a winner or inflating coverage",
     "term/history/smile gaps are not bridged",
     "one root-keyed selected expiry joins term and smile; exact missing smile never substitutes a nearby expiry",
-    "headline ATM IV discloses missing tenor; IV-minus-RV remains descriptive source-reported spread"
+    "all supplied term expiries remain selectable through one compact control instead of a chip wall",
+    "headline ATM IV discloses missing tenor; IV-minus-RV remains descriptive source-reported spread",
+    "derived spread history remains visible when stale, while current range/trend/change are withheld until its final session exactly aligns with the current source snapshot"
   ],
   "owner_boundaries": [
     "no new market-data source, cache, pricing model, session calendar, signal ranker, alert, or trade authority",
@@ -28,7 +30,7 @@
   "paper_reference": {
     "file_id": "01M3NSZGE8JWN2EZCSF0DT05RM",
     "page_id": "p-D-0",
-    "page_name": "09 · Options · Volatility Lab",
+    "page_name": "09 \u00b7 Options \u00b7 Volatility Lab",
     "boards": {
       "desktop": "UM6-0",
       "mobile": "URH-0",
@@ -39,49 +41,53 @@
   },
   "verification": {
     "focused_vitest": {
-      "files": 2,
-      "passed": 36,
+      "files": 4,
+      "passed": 43,
       "failed": 0,
-      "log": "/Volumes/Mastermind/evidence/options-release-a-consumer-qualification-20260928-sol-001/volatility-workbench/native-targeted-current.log"
+      "log": "/Volumes/Mastermind/evidence/options-release-a-consumer-qualification-20260928-sol-001/volatility-workbench/dense-selector-focused.log"
     },
     "full_vitest": {
-      "files_passed": 415,
-      "tests_passed": 6755,
+      "files_passed": 416,
+      "tests_passed": 6759,
       "todo": 4,
       "failed": 0,
-      "log": "/Volumes/Mastermind/evidence/options-release-a-consumer-qualification-20260928-sol-001/volatility-workbench/full-vitest.log"
+      "log": "/Volumes/Mastermind/evidence/options-release-a-consumer-qualification-20260928-sol-001/volatility-workbench/alignment-full-vitest.log"
     },
     "typescript": {
       "exit": 0,
-      "command": "tsc --noEmit --incremental false",
-      "log": "/Volumes/Mastermind/evidence/options-release-a-consumer-qualification-20260928-sol-001/volatility-workbench/full-tsc-final2.log"
+      "command": "tsc --noEmit --incremental false after deleting isolated generated .next residue",
+      "log": "/Volumes/Mastermind/evidence/options-release-a-consumer-qualification-20260928-sol-001/volatility-workbench/alignment-tsc-clean.log"
     },
     "eslint": {
       "exit": 0,
       "errors": 0,
       "warnings": 0,
       "scope": "changed volatility components + focused tests",
-      "log": "/Volumes/Mastermind/evidence/options-release-a-consumer-qualification-20260928-sol-001/volatility-workbench/scoped-eslint-final2.log"
+      "log": "/Volumes/Mastermind/evidence/options-release-a-consumer-qualification-20260928-sol-001/volatility-workbench/alignment-eslint-clean.log"
     },
     "plain_language": {
       "exit": 0,
       "new_findings": 0,
       "legacy_unrelated_findings_only": true,
-      "log": "/Volumes/Mastermind/evidence/options-release-a-consumer-qualification-20260928-sol-001/volatility-workbench/plain-language-final2.log"
+      "log": "/Volumes/Mastermind/evidence/options-release-a-consumer-qualification-20260928-sol-001/volatility-workbench/alignment-plain-clean.log"
     },
     "browser": {
       "cases": 6,
-      "assertions_passed": 84,
+      "assertions_passed": 78,
       "failed": 0,
-      "matrix": "1440/820/390 × EN/ZH",
-      "scope": "actual VolView branch source in isolated browser host with synthetic nightly fixture; not Next route, entitlement, provider, production, or published-market-data acceptance",
-      "results": "/Volumes/Mastermind/evidence/options-release-a-consumer-qualification-20260928-sol-001/volatility-workbench/browser-current/results.json"
+      "matrix": "1440/820/390 \u00d7 EN/ZH",
+      "scope": "actual VolView working-tree source with exact captured public SPY vol + agg payload bytes; transport/i18n/Tip substituted; not native route, entitlement, provider, or deployment proof",
+      "results": "/Volumes/Mastermind/evidence/options-release-a-consumer-qualification-20260928-sol-001/volatility-workbench/browser-real-source/results.json",
+      "expiry_selector_height_px": {
+        "390_en": 75,
+        "390_zh": 81
+      }
     },
     "production_build": {
       "exit": 0,
       "command": "next build",
-      "environment": "isolated rsync source + APFS copy-on-write in-root node_modules sandbox; sandbox deleted on exit",
-      "log": "/Volumes/Mastermind/evidence/options-release-a-consumer-qualification-20260928-sol-001/volatility-workbench/next-build-turbopack-sandbox.log"
+      "environment": "isolated worktree + APFS copy-on-write in-root node_modules sandbox; sandbox deleted on exit",
+      "log": "/Volumes/Mastermind/evidence/options-release-a-consumer-qualification-20260928-sol-001/volatility-workbench/alignment-next-build.log"
     },
     "non_acceptance_diagnostics": [
       {
@@ -98,7 +104,7 @@
   },
   "claim_boundary": "synthetic fixture and isolated browser proof do not establish provider methodology, executable marks, whole-chain completeness, current market state, relative value, ranking, probability, sizing, live source deployment, or production acceptance",
   "remaining_acceptance": [
-    "real entitled/published volatility-source proof on native route",
+    "native Next route / entitlement proof using published source",
     "stale/missing/root-switch native-route proof",
     "independent review on final published head"
   ],
@@ -113,15 +119,15 @@
     },
     {
       "path": "terminal/components/vol/VolTermPanel.tsx",
-      "sha256": "d00ffe77f1ab0a4527e46b9489c4ce16530f4e641efedc74b4e9c049807e4cc9"
+      "sha256": "6d72ffc86c5633541d7b3e08374130a3fabd743b5ed549a54cd921d32339e73c"
     },
     {
       "path": "terminal/components/vol/VolView.tsx",
-      "sha256": "0a7db8481b02248231a513305a9dcf0734f43c8b3a842a645759e12180f46eab"
+      "sha256": "458a6cd1cafdab18e3c9f9c908984cf80cde2e9e35e7560d592fc4a1c5280719"
     },
     {
       "path": "terminal/components/vol/VolVrpPanel.tsx",
-      "sha256": "bd39009520f89e238730088936e990762de6cf3527a5999a91866918d1c1dc3c"
+      "sha256": "53711f0c0a0874e074cd2bb8f3e8891ffe56aa6927e5322846a3007fc172db41"
     },
     {
       "path": "terminal/components/vol/volShared.tsx",
@@ -129,11 +135,11 @@
     },
     {
       "path": "terminal/components/vol/volStrings.ts",
-      "sha256": "1ef16a92b4f6ea935302fecc0b450526e6f167a093304ba854b7761ceaf5a004"
+      "sha256": "34116c92dc9d3aa17bf7f209aad2bfeb24f20a30e874f47bf9f4a802c158bb8e"
     },
     {
       "path": "terminal/docs/verification/options-volatility-investigation-r1-20261001/README.md",
-      "sha256": "3816867ddea7198ffd37d9241b5af4a12962308f25d55c2c6d796ab684a50b99"
+      "sha256": "7f84accc69a52d02d8855aa6d8760279f66d4e002ece4337c63ef92d137b8fe1"
     },
     {
       "path": "terminal/docs/verification/options-volatility-investigation-r1-20261001/V1_SYNTHETIC_FIXTURE.json",
@@ -141,61 +147,69 @@
     },
     {
       "path": "terminal/docs/verification/options-volatility-investigation-r1-20261001/current-1440-en.png",
-      "sha256": "78d09faeb5f09d7c2507118ac799286514659778d9c11deafd178cd059689fd5"
+      "sha256": "bfae7f0c295e607ac069f4d0649ab6f85ce95053ab02a15e642e51260f56c625"
     },
     {
       "path": "terminal/docs/verification/options-volatility-investigation-r1-20261001/current-1440-zh.png",
-      "sha256": "1ea2e3f9c80005b46e82628044481b3df640aa8b4701d0834ef247f4639ec443"
+      "sha256": "1d2c78bbea596d4aa20885a1d1d532690704df78fb119f8e39f5e17b1b643c81"
     },
     {
       "path": "terminal/docs/verification/options-volatility-investigation-r1-20261001/current-390-en.png",
-      "sha256": "6ebd9f5458ec300ec8952273e4568b38a917d8b41bb54d99b334721f9547997c"
+      "sha256": "675905ac9bdf0bb96a06a6b8a917de2bce2f9b0e951acd5225cf44bb3a1d7e1f"
     },
     {
       "path": "terminal/docs/verification/options-volatility-investigation-r1-20261001/current-390-zh.png",
-      "sha256": "960514303a58267a6e20031f70b5e1bace9e892b4967ffc4c8602001c5ce5b82"
+      "sha256": "b7d2bf3efab1c968d7e3167a608b6bd249ddf685065836744b38e902b97457e6"
     },
     {
       "path": "terminal/docs/verification/options-volatility-investigation-r1-20261001/current-820-en.png",
-      "sha256": "cef93ba18f4e3312e24f5ff09b0a451faf5430bf3544431da6068c2fbbc36d83"
+      "sha256": "b0b0db5f0c8c8fa3159c9739ea7317b7336ee6eff8829b9949286d43b1bf2750"
     },
     {
       "path": "terminal/docs/verification/options-volatility-investigation-r1-20261001/current-820-zh.png",
-      "sha256": "00faa0bc5f7bf8b388be88321e974e10aea4ad9b94ceced6edd91d5a65ae3fab"
+      "sha256": "cc2209e87aa47793ddf68e771d96574bec6588b45c3e6405e069b5ccbf227d8c"
     },
     {
       "path": "terminal/lib/__tests__/volatilityExpiryInvestigation.test.tsx",
-      "sha256": "7f5d067f5951eb83cbdf7a6100574efe31f9e049d4e3fc3c383c2b5004dc570f"
+      "sha256": "bae329ee4eb15c0ec02f8b65c764def9842ca7e147220bd220855f1839ed9086"
     },
     {
       "path": "terminal/lib/__tests__/volatilityMissingness.test.tsx",
-      "sha256": "a79b4360e574b6cea72c69b3f2197c89d14c5e0ff25725c32d95173059f4d0bb"
+      "sha256": "f3c9b7c76b3e51afcaaef1139f350dd2d8f28be67ac2e59286cc8dfe70f9e20d"
+    },
+    {
+      "path": "terminal/lib/__tests__/volatilitySpreadAlignment.test.tsx",
+      "sha256": "82f15ae8bc0ca94bea0636756bc1c55b99d51c6e187093ab9e390941db611245"
+    },
+    {
+      "path": "terminal/docs/verification/options-volatility-investigation-r1-20261001/REAL_SOURCE_20261002.json",
+      "sha256": "a88c168c5c2fb63f1e43fabaf8d00bc45769b0955b5cb620123a5c26139b5597"
     }
   ],
   "screenshots": [
     {
       "file": "current-1440-en.png",
-      "sha256": "78d09faeb5f09d7c2507118ac799286514659778d9c11deafd178cd059689fd5"
+      "sha256": "bfae7f0c295e607ac069f4d0649ab6f85ce95053ab02a15e642e51260f56c625"
     },
     {
       "file": "current-1440-zh.png",
-      "sha256": "1ea2e3f9c80005b46e82628044481b3df640aa8b4701d0834ef247f4639ec443"
-    },
-    {
-      "file": "current-390-en.png",
-      "sha256": "6ebd9f5458ec300ec8952273e4568b38a917d8b41bb54d99b334721f9547997c"
-    },
-    {
-      "file": "current-390-zh.png",
-      "sha256": "960514303a58267a6e20031f70b5e1bace9e892b4967ffc4c8602001c5ce5b82"
+      "sha256": "1d2c78bbea596d4aa20885a1d1d532690704df78fb119f8e39f5e17b1b643c81"
     },
     {
       "file": "current-820-en.png",
-      "sha256": "cef93ba18f4e3312e24f5ff09b0a451faf5430bf3544431da6068c2fbbc36d83"
+      "sha256": "b0b0db5f0c8c8fa3159c9739ea7317b7336ee6eff8829b9949286d43b1bf2750"
     },
     {
       "file": "current-820-zh.png",
-      "sha256": "00faa0bc5f7bf8b388be88321e974e10aea4ad9b94ceced6edd91d5a65ae3fab"
+      "sha256": "cc2209e87aa47793ddf68e771d96574bec6588b45c3e6405e069b5ccbf227d8c"
+    },
+    {
+      "file": "current-390-en.png",
+      "sha256": "675905ac9bdf0bb96a06a6b8a917de2bce2f9b0e951acd5225cf44bb3a1d7e1f"
+    },
+    {
+      "file": "current-390-zh.png",
+      "sha256": "b7d2bf3efab1c968d7e3167a608b6bd249ddf685065836744b38e902b97457e6"
     }
   ],
   "collision_reconciliation": {
@@ -212,5 +226,6 @@
       "shared selectedExp passed to term and smile"
     ],
     "pr_723_overlap": "no direct components/vol path overlap at the inspected #723 file list; #723 remains a separate chart/options-companion carrier"
-  }
+  },
+  "real_source_receipt": "terminal/docs/verification/options-volatility-investigation-r1-20261001/REAL_SOURCE_20261002.json"
 }

@@ -142,28 +142,21 @@ export function VolTermPanel({
       </div>
       {onSelectExp && pts.length > 0 && (
         <div role="group" aria-label={t("termExpAria")} style={EXPIRY_ROW}>
-          {pts.map((p) => {
-            const selected = selectedExp === p.exp;
-            return (
-              <button
-                key={p.exp}
-                type="button"
-                className={`chip${selected ? " on" : ""}`}
-                data-expiry={p.exp}
-                aria-pressed={selected}
-                aria-label={t(Number.isFinite(p.v) ? "termExpSelectAria" : "termExpMissingAria")
-                  .replace("{exp}", p.exp)
-                  .replace("{dte}", String(p.dte))
-                  .replace("{iv}", Number.isFinite(p.v) ? p.v.toFixed(1) : "—")}
-                style={EXPIRY_CHIP}
-                onClick={() => onSelectExp(p.exp)}
-              >
-                <span>{p.exp}</span>
-                <span style={EXPIRY_META}>{p.dte}D</span>
-                <span style={Number.isFinite(p.v) ? EXPIRY_VALUE : EXPIRY_MISSING}>{fmtPct(p.v)}</span>
-              </button>
-            );
-          })}
+          <span style={EXPIRY_LABEL}>{t("termExpControl")}</span>
+          <select
+            data-testid="term-expiry-select"
+            aria-label={t("termExpAria")}
+            value={selectedExp && pts.some((p) => p.exp === selectedExp) ? selectedExp : pts[0].exp}
+            onChange={(event) => onSelectExp(event.target.value)}
+            style={EXPIRY_SELECT}
+          >
+            {pts.map((p) => (
+              <option key={p.exp} value={p.exp}>
+                {p.exp} · {p.dte}D · {Number.isFinite(p.v) ? fmtPct(p.v) : t("termExpUnavailable")}
+              </option>
+            ))}
+          </select>
+          <span style={EXPIRY_COUNT}>{t("termExpCount").replace("{n}", String(pts.length))}</span>
         </div>
       )}
       <div ref={boxRef} style={{ width: "100%", minWidth: 0 }}>
@@ -220,23 +213,36 @@ export function VolTermPanel({
 }
 
 const EXPIRY_ROW: React.CSSProperties = {
-  display: "flex",
-  flexWrap: "wrap",
-  gap: 6,
+  display: "grid",
+  gridTemplateColumns: "minmax(0, 1fr) auto",
+  alignItems: "center",
+  gap: 8,
   margin: "0 0 8px",
 };
 
-const EXPIRY_CHIP: React.CSSProperties = {
-  minHeight: 28,
-  padding: "0 9px",
-  display: "inline-flex",
-  alignItems: "center",
-  gap: 6,
+const EXPIRY_LABEL: React.CSSProperties = {
   fontSize: 10.5,
+  fontWeight: 700,
+  color: "var(--text-2)",
+};
+
+const EXPIRY_SELECT: React.CSSProperties = {
+  minWidth: 0,
+  width: "100%",
+  gridColumn: "1 / -1",
+  height: 36,
+  padding: "0 30px 0 10px",
+  background: "var(--panel-2)",
+  color: "var(--text)",
+  border: "1px solid var(--line-3)",
+  borderRadius: "var(--r-md)",
+  fontSize: 11.5,
   fontWeight: 600,
   fontVariantNumeric: "tabular-nums",
 };
 
-const EXPIRY_META: React.CSSProperties = { color: "var(--muted)", fontWeight: 500 };
-const EXPIRY_VALUE: React.CSSProperties = { color: "var(--text-2)", fontWeight: 700 };
-const EXPIRY_MISSING: React.CSSProperties = { color: "var(--warn)", fontWeight: 700 };
+const EXPIRY_COUNT: React.CSSProperties = {
+  fontSize: 10,
+  color: "var(--muted)",
+  whiteSpace: "nowrap",
+};
