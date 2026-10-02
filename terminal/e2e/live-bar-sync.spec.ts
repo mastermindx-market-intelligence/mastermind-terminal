@@ -257,11 +257,14 @@ test("closed-bar MTF evidence freezes during RTH and advances on genuine US comp
   await serveDailyWorkspace(page, () => phase, "D", ["mtfconfluence"]);
   await page.goto(`/terminal?symbol=${SYMBOL}`);
 
-  // The baseline itself is already a consumed forming-session quote. This avoids the old
-  // EOD→RTH eligibility transition masquerading as a same-phase invariance test.
+  // The baseline itself must be an actually CONSUMED forming-session quote, not merely the
+  // preloaded fixture history. Wait on the live-generation witness before snapshotting MTF.
+  await expect.poll(async () => (await readWitness(page))?.tick?.basis ?? null, {
+    timeout: 45_000,
+    message: "the forming REALTIME baseline should be accepted before MTF is sampled",
+  }).toBe("REALTIME");
   const before = await settledBaseline(page, ["mtfconfluence"]);
   expect(before.generation).toBeGreaterThan(0);
-  expect(before.tick?.basis).toBe("REALTIME");
   const dBefore = before.series.mtfconfluence?.[0] ?? null;
   const d3Before = before.series.mtfconfluence?.[1] ?? null;
   expect(dBefore).not.toBeNull();
@@ -321,9 +324,12 @@ for (const lane of [
     await serveDailyWorkspace(page, () => phase, "D", ["mtfconfluence"], lane.symbol, lane.market);
     await page.goto(`/terminal?symbol=${lane.symbol}`);
 
+    await expect.poll(async () => (await readWitness(page))?.tick?.basis ?? null, {
+      timeout: 45_000,
+      message: `${lane.name} forming baseline should be accepted before MTF is sampled`,
+    }).toBe(lane.basis);
     const before = await settledBaseline(page, ["mtfconfluence"]);
     expect(before.generation).toBeGreaterThan(0);
-    expect(before.tick?.basis).toBe(lane.basis);
     const dBefore = before.series.mtfconfluence?.[0] ?? null;
     const d3Before = before.series.mtfconfluence?.[1] ?? null;
     expect(dBefore).not.toBeNull();
