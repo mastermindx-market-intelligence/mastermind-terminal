@@ -1,0 +1,25 @@
+[warmup] /terminal?symbol=NVDA → 200 in 160ms
+[warmup] /options → 200 in 271ms
+[warmup] /portfolio → 200 in 152ms
+[warmup] /alerts → 200 in 106ms
+[warmup] /analysis → 200 in 161ms
+[warmup] /discover → 200 in 131ms
+[warmup] /admin → 200 in 100ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 81ms
+[warmup] /login → 200 in 339ms
+[warmup] /api/me → 200 in 162ms
+[warmup] /api/watchlist → 200 in 57ms
+[warmup] /api/layouts → 200 in 45ms
+[warmup] 12 routes compiled in 2s
+
+Running 6 tests using 1 worker
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓  1 [desktop] › e2e/options-surface-replay.spec.ts:6:7 › surface replay advances and preserves the cursor across layout changes (en) (3.5s)
+  ✓  2 [desktop] › e2e/options-surface-replay.spec.ts:6:7 › surface replay advances and preserves the cursor across layout changes (zh) (4.3s)
+  ✓  3 [tablet] › e2e/options-surface-replay.spec.ts:6:7 › surface replay advances and preserves the cursor across layout changes (en) (2.8s)
+  ✓  4 [tablet] › e2e/options-surface-replay.spec.ts:6:7 › surface replay advances and preserves the cursor across layout changes (zh) (3.6s)
+  ✓  5 [mobile] › e2e/options-surface-replay.spec.ts:6:7 › surface replay advances and preserves the cursor across layout changes (en) (2.8s)
+  ✓  6 [mobile] › e2e/options-surface-replay.spec.ts:6:7 › surface replay advances and preserves the cursor across layout changes (zh) (3.9s)
+
+  6 passed (35.1s)

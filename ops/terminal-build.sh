@@ -197,10 +197,36 @@ for current, dirnames, filenames in os.walk(runtime, topdown=True, followlinks=F
     runtime_hash.update(
         f"D\0{relative_dir}\0{stat.S_IMODE(current_meta.st_mode):o}\n".encode()
     )
+    # Python bytecode caches are derived, gitignored state this owner provably
+    # cannot clean: `git clean -fd` keeps ignored paths, so one stray root import
+    # under the canonical `ops/` aborts the deploy at its FIRST gate, before any
+    # work, and only an out-of-band `rm -rf` clears it. Measured on the production
+    # host, not inferred: three releases died on this in five days --
+    # deploy-sol-ci-scroll-hotfix-20260924T1451Z, deploy-paper-research-20260925-
+    # 8bc5f946 and deploy-static-boundary-repair-20260928T0025Z -- each ending in
+    # `ValueError: preflight runtime must not contain __pycache__` and
+    # `FATAL: no complete trusted ... bundle is available`, and each rescued by a
+    # manual re-run minutes later that selected this same canonical bundle
+    # (runtime_sha256=accd6734...). So the cost is a hard, hands-on deploy abort
+    # with a healthy bundle sitting right there (#483). The production
+    # source-audit policy already classifies __pycache__ as generated_python_cache,
+    # so classify it the same way here: custody is still proven, the contents are
+    # never descended into, and nothing inside reaches the runtime digest.
+    #
+    # Tolerating it is only safe because run_release_preflight redirects
+    # sys.pycache_prefix off the source tree. -B alone stops WRITES; Python still
+    # READS a source-adjacent .pyc, so without that redirect a cache entry would
+    # execute in place of the .py beside it.
+    #
+    # What contains this is CUSTODY, not the digest: trusted_stat proves every
+    # directory on the way here is owned by the expected principal and is not
+    # group/other writable, so nothing else can place bytes in them.
+    # PREFLIGHT_RUNTIME_SHA256 is OBSERVATIONAL -- it is logged, never compared to a
+    # pinned value and never carried in the receipt -- so do not reason about it as
+    # though hashing were the control that stops execution.
     for dirname in dirnames:
-        if dirname == "__pycache__":
-            raise ValueError("preflight runtime must not contain __pycache__")
         trusted_stat(current_path / dirname, "directory")
+    dirnames[:] = [name for name in dirnames if name != "__pycache__"]
     for filename in filenames:
         candidate = current_path / filename
         if candidate.suffix != ".py":
@@ -362,7 +388,13 @@ PY_RECEIPT_BEFORE
 
   if (
     umask 027
-    PYTHONDONTWRITEBYTECODE=1 python3 -B -E -s "$script" \
+    # `-E` makes this interpreter ignore PYTHON* entirely: -B is the live control
+    # for bytecode WRITES here, and the variable only covers a future child that
+    # does not pass -E. Never drop -B on the strength of the variable.
+    # -X pycache_prefix governs bytecode READS; it survives -E because it is a
+    # command-line option, and it is why the selector may tolerate residue at all.
+    PYTHONDONTWRITEBYTECODE=1 python3 -B -E -s \
+      -X pycache_prefix="$temporary/pycache" "$script" \
       --canonical-repo "$canonical_repo" \
       --policy "$policy" \
       --receipt-dir "$receipt_dir"
