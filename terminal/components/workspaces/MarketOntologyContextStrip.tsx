@@ -4,22 +4,23 @@ import { useLang } from "@/lib/i18n";
 import { marketOntologyReturnHref, type MarketOntologyContext } from "@/lib/marketOntologyContext";
 import styles from "./MarketOntologyContextStrip.module.css";
 
-function copy(lang: "en" | "zh") {
+function copy(lang: "en" | "zh", from: MarketOntologyContext["from"]) {
+  const openedFrom = from === "transmission" ? "Transmission" : "WTI Live Path";
   if (lang === "zh") {
     return {
-      title: "来自 WTI 实时路径",
+      title: `来自 ${from === "transmission" ? "Transmission" : "WTI 实时路径"}`,
       body: "该公司是从 MarketOntology 研究路径打开的。此上下文不会保存到你的论点中。",
       asof: "截至 {date}",
       knowledgeCutoff: "知识截止 {date}",
-      action: "返回 WTI 实时路径",
+      action: `返回 ${from === "transmission" ? "Transmission" : "WTI 实时路径"}`,
     };
   }
   return {
-    title: "Opened from WTI Live Path",
+    title: `Opened from ${openedFrom}`,
     body: "This company was opened from a MarketOntology research path. The context is not saved into your theses.",
     asof: "As of {date}",
     knowledgeCutoff: "Knowledge cutoff {date}",
-    action: "Back to WTI Live Path",
+    action: `Back to ${openedFrom}`,
   };
 }
 
@@ -36,7 +37,7 @@ function formatDate(value: string, locale: string) {
 
 export default function MarketOntologyContextStrip({ context }: { context: MarketOntologyContext }) {
   const { lang } = useLang();
-  const labels = copy(lang);
+  const labels = copy(lang, context.from);
   const locale = lang === "zh" ? "zh-CN" : "en-CA";
 
   return (

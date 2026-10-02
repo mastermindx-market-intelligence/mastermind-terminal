@@ -7,6 +7,7 @@ test.setTimeout(120_000);
 
 const CONTEXT_QUERY = "mo_from=ontology&mo_chain=context-chain&mo_path_rev=3&mo_focus=context-node&mo_asof=2026-09-23&mo_kc=2026-08-31";
 const RETURN_HREF = "https://www.mastermind-x.com/ontology.html?rev=3#ox-leg-context-node";
+const TRANSMISSION_QUERY = "mo_from=transmission&mo_chain=context-chain&mo_focus=leg-3&mo_path_rev=12&mo_asof=2026-10-01&mo_security=SEC:US";
 
 async function prepare(page: Page, testInfo: TestInfo, baseURL: string | undefined, zh = false) {
   await isolateWatchlistStore(page, testInfo, baseURL);
@@ -127,11 +128,13 @@ test("same-route Analysis navigation reparses URL context", async ({ page, baseU
   await expect(page.getByTestId("mo-context-strip")).toHaveCount(0);
 });
 
-test("changing the symbol clears every MarketOntology key and removes the strip", async ({ page, baseURL }, testInfo) => {
+test("symbol_switch_clears_every_mo_key_for_transmission_origin", async ({ page, baseURL }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "The MarketOntology context contract is scoped to the desktop project.");
   await prepare(page, testInfo, baseURL);
-  await openAnalysis(page, `symbol=NVDA&page=intelligence&${CONTEXT_QUERY}&mo_channel=context-channel&mo_unknown=yes`);
+  await openAnalysis(page, `symbol=NVDA&page=intelligence&${TRANSMISSION_QUERY}&mo_channel=context-channel&mo_unknown=yes`);
   await expect(page.getByTestId("mo-context-strip")).toBeVisible();
+  await expect(page.getByTestId("mo-context-strip")).toContainText("Opened from Transmission");
+  await expect(page.getByTestId("mo-context-strip").getByRole("link", { name: "Back to Transmission" })).toHaveAttribute("href", "https://www.mastermind-x.com/transmission.html");
 
   await pickSymbol(page, "MSFT");
   await expect(page.locator(".analysis-shell")).toContainText("MSFT");
@@ -179,9 +182,9 @@ test("the context strip remains usable across the responsive contract", async ({
 for (const [name, query] of [
   ["duplicate", "symbol=NVDA&page=intelligence&mo_from=ontology&mo_chain=one&mo_chain=two"],
   ["impossible date", `symbol=NVDA&page=intelligence&mo_from=ontology&mo_chain=context-chain&mo_asof=2026-02-30`],
-  ["wrong source", "symbol=NVDA&page=intelligence&mo_from=transmission&mo_chain=context-chain"],
+  ["invalid from value", "symbol=NVDA&page=intelligence&mo_from=Transmission&mo_chain=context-chain"],
 ] as const) {
-  test(`malformed ${name} context opens company research without a strip`, async ({ page, baseURL }, testInfo) => {
+  test(`invalid_from_values_still_void: malformed ${name} context opens company research without a strip`, async ({ page, baseURL }, testInfo) => {
     test.skip(testInfo.project.name !== "desktop", "The MarketOntology context contract is scoped to the desktop project.");
     await prepare(page, testInfo, baseURL);
     await openAnalysis(page, query);

@@ -9,7 +9,7 @@
  * object, and NOT persisted anywhere.
  *
  * Closed vocabulary (frozen):
- *   mo_from      closed enum: exactly "ontology" (anything else → context invalid)
+ *   mo_from      closed enum: exactly "ontology" or "transmission" (anything else → context invalid)
  *   mo_chain    REQUIRED. id: ^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$
  *   mo_focus     optional path node id, same id grammar
  *   mo_path_rev  optional: ^[0-9]{1,9}$
@@ -25,7 +25,7 @@
  * - Encoded separators/controls/non-ASCII fail closed.
  * - A DUPLICATE of ANY known `mo_*` key invalidates the whole context.
  * - Unknown `mo_*` keys are ignored, never forwarded, never serialized.
- * - A valid context requires `mo_from=ontology` AND a valid `mo_chain`.
+ * - A valid context requires `mo_from` from the closed origin enum AND a valid `mo_chain`.
  * - Every other field is optional when absent; a present-but-invalid value
  *   invalidates the whole context.
  */
@@ -51,9 +51,15 @@ export const MO_CONTEXT_KEYS = [
 type MoKey = (typeof MO_CONTEXT_KEYS)[number];
 type Validator = (rawValue: string) => string | null;
 
+function validateFrom(rawValue: string): MarketOntologyContext["from"] | null {
+  return ORIGINS.has(rawValue as MarketOntologyOrigin)
+    ? (rawValue as MarketOntologyContext["from"])
+    : null;
+}
+
 /** The validated MarketOntology context shape. */
 export type MarketOntologyContext = {
-  from: "ontology";
+  from: "ontology" | "transmission";
   chain: string;
   focus?: string;
   pathRev?: string;
@@ -98,8 +104,11 @@ function validateDate(raw: string): boolean {
   return isValidDate(year, month, day);
 }
 
+type MarketOntologyOrigin = MarketOntologyContext["from"];
+const ORIGINS: ReadonlySet<MarketOntologyOrigin> = new Set(["ontology", "transmission"]);
+
 const FIELD_VALIDATORS = {
-  mo_from: (rawValue: string) => (rawValue === "ontology" ? rawValue : null),
+  mo_from: validateFrom,
   mo_chain: (rawValue: string) => (ID_GRAMMAR.test(rawValue) ? rawValue : null),
   mo_focus: (rawValue: string) => (ID_GRAMMAR.test(rawValue) ? rawValue : null),
   mo_path_rev: (rawValue: string) =>
@@ -114,7 +123,7 @@ const FIELD_VALIDATORS = {
 
 /** Validate a single known mo_* value against its grammar. */
 function validateField(key: MoKey, rawValue: string): string | null {
-  return FIELD_VALIDATORS[key](rawValue);
+  return key === "mo_from" ? validateFrom(rawValue) : FIELD_VALIDATORS[key](rawValue);
 }
 
 function hasValidQueryValue(key: MoKey, value: string | undefined): value is string {
@@ -145,8 +154,8 @@ export function parseMarketOntologyContext(
     }
   }
 
-  // mo_from must be exactly "ontology".
-  const fromValidated = validateField("mo_from", params.get("mo_from") ?? "");
+  // mo_from must come from the closed origin enum.
+  const fromValidated = validateFrom(params.get("mo_from") ?? "");
   if (fromValidated === null) {
     return null;
   }
@@ -159,7 +168,7 @@ export function parseMarketOntologyContext(
 
   // Build the validated context
   const ctx: MarketOntologyContext = {
-    from: "ontology",
+    from: fromValidated,
     chain: chainValidated,
   };
 
@@ -264,7 +273,7 @@ export function clearMarketOntologyContext(params: URLSearchParams): URLSearchPa
 }
 
 /**
- * Construct the return href for navigating back to MarketOntology.
+ * Construct the return href for navigating back to the validated origin.
  *
  * Format: `${MARKET_ONTOLOGY_ORIGIN}/ontology.html` + (pathRev ? `?rev=${pathRev}` : "") + (focus ? `#ox-leg-${encodeURIComponent(focus)}` : "")
  *
@@ -272,6 +281,11 @@ export function clearMarketOntologyContext(params: URLSearchParams): URLSearchPa
  * one opaque token. Illegal hand-built values are omitted.
  */
 export function marketOntologyReturnHref(ctx: MarketOntologyContext): string {
+  if (ctx.from === "transmission") {
+    // Transmission carries no query or fragment pending CEO A's anchor pin.
+    return `${MARKET_ONTOLOGY_ORIGIN}/transmission.html`;
+  }
+
   let href = `${MARKET_ONTOLOGY_ORIGIN}/ontology.html`;
 
   if (ctx.pathRev && hasValidQueryValue("mo_path_rev", ctx.pathRev)) {

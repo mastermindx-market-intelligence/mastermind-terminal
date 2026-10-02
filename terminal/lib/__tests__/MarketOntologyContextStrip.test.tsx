@@ -9,7 +9,7 @@ import type { MarketOntologyContext } from "@/lib/marketOntologyContext";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
-const context: MarketOntologyContext = {
+const ontologyContext: MarketOntologyContext = {
   from: "ontology",
   chain: "chain_1",
   focus: "node_1",
@@ -21,7 +21,7 @@ const context: MarketOntologyContext = {
 let root: Root | null = null;
 let container: HTMLDivElement | null = null;
 
-async function mount() {
+async function mount(context: MarketOntologyContext = ontologyContext) {
   container = document.createElement("div");
   document.body.appendChild(container);
   root = createRoot(container);
@@ -78,5 +78,33 @@ describe("MarketOntologyContextStrip", () => {
 
     expect(text).not.toContain("chain_1");
     expect(text).not.toContain("node_1");
+  });
+});
+
+describe("MarketOntologyContextStrip transmission copy", () => {
+  it("labels the return destination for both languages", async () => {
+    const transmissionContext: MarketOntologyContext = {
+      from: "transmission",
+      chain: "chain_1",
+      focus: "node_1",
+      pathRev: "3",
+    };
+
+    applyLang("en");
+    let dom = await mount(transmissionContext);
+    expect(dom.textContent).toContain("Opened from Transmission");
+    expect(dom.querySelector("a")?.textContent).toBe("Back to Transmission");
+    expect(dom.querySelector("a")?.getAttribute("href")).toBe("https://www.mastermind-x.com/transmission.html");
+    await act(async () => {
+      root?.unmount();
+    });
+    container?.remove();
+    root = null;
+    container = null;
+
+    applyLang("zh");
+    dom = await mount(transmissionContext);
+    expect(dom.textContent).toContain("来自 Transmission");
+    expect(dom.querySelector("a")?.textContent).toBe("返回 Transmission");
   });
 });
