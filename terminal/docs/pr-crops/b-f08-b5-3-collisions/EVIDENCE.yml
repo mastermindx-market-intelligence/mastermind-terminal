@@ -12,7 +12,7 @@ layoutFiles:
   terminal/components/alerts/WatchingList.tsx: "642c8c76062fefb5ff06d8496bfea50f45de5af1aaf7a989e82e10f7b36d483b"
   terminal/components/alerts/AnswerLine.tsx: "f3bf1f587566c521b66d210b84ec316ed1e5809f2f5ce758c6c0c81f77e4dbdb"
   terminal/components/alerts/CouldNotWatch.tsx: "bedf3678d07a9c1f767df5b87a59648e69e8167df493d63412210a088d95d3a8"
-  terminal/lib/alertsView.ts: "b7b592f6c5ee37fe3bb4833c1a6649920b6d6bfa6f2afb94e4703795ee6699be"
+  terminal/lib/alertsView.ts: "dac6803fe8dd67d19c466a7e42986aba2eccc98cee4fa1cac9e5be9a7930c1ad"
   terminal/app/api/alerts/receipts/route.ts: "e90838781925cd4035cf913a3f011ad0e79a2f2fb4528fa1518a392144f44d82"
   terminal/app/api/alerts/route.ts: "7b7ff8a30555230b344027385b24fcb488871bace93cf8b51e6a47c0433e66d3"
 theme: dark

@@ -28,7 +28,6 @@ function thesisConditionOutbox(over: Partial<OutboxRow> = {}): OutboxRow {
     created_at: "2026-09-05T11:59:30Z",
     payload: {
       thesis_id: THESIS_ID,
-      kind: "thesis_condition",
       category: "thesis_window",
       source: "macro.thesis_condition_monitor",
     },
@@ -136,7 +135,8 @@ describe("alert_id null thesis_condition row surfaces as one delivery notice", (
 
 describe("thesis_condition row without payload.thesis_id is dropped", () => {
   it("zero rows — never rendered as an ordinary alert", () => {
-    const view = viewOf([thesisConditionOutbox({ payload: { kind: "thesis_condition" } })]);
+    const legacyPayload: Record<string, unknown> = { kind: "thesis_condition" };
+    const view = viewOf([thesisConditionOutbox({ payload: legacyPayload as OutboxRow["payload"] })]);
     expect(view.rows.length).toBe(0);
   });
 });

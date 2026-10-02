@@ -5,7 +5,7 @@ capturedAtHead: 3de2b4c0869cde977ab7ab7419c3c5c5af6ac910
 # capturedAt: 2026-10-02T07:27:10.687Z
 # capturedAtHead is informational. The lock is layoutFiles. PNG hashes verify the producer-shaped recapture.
 layoutFiles:
-  terminal/lib/alertsView.ts: "b7b592f6c5ee37fe3bb4833c1a6649920b6d6bfa6f2afb94e4703795ee6699be"
+  terminal/lib/alertsView.ts: "dac6803fe8dd67d19c466a7e42986aba2eccc98cee4fa1cac9e5be9a7930c1ad"
   terminal/components/alerts/AlertsCockpit.tsx: "468a506890408b90a5621982a178fcef4ebf711e0d8bbb9428de78a4abd3f8a7"
   terminal/components/alerts/AlertTimeline.tsx: "22395c8972c8fc88f80fae1f72a0c9d546a1fd6e8354e0ef6a8ae62211514d96"
   terminal/components/alerts/AlertDetail.tsx: "b628caa9aadcab4a9b161b69657cf9485fc4da7d345623b03079847e07e3bdcf"

@@ -829,14 +829,11 @@ describe("F11-11b-pre producer-shaped thesis-condition rows (category+source, no
   });
 
   it("does not render legacy-kind payloads without producer source and category", () => {
-    const row = producerRow({
-      payload: {
-        ...producerRow().payload,
-        kind: "thesis_condition",
-        category: undefined as unknown as string,
-        source: undefined as unknown as string,
-      },
-    });
+    const payload: Record<string, unknown> = { ...producerRow().payload };
+    payload.kind = "thesis_condition";
+    payload.category = undefined;
+    payload.source = undefined;
+    const row = producerRow({ payload: payload as ReturnType<typeof producerRow>["payload"] });
     const view = viewOf([row]);
     expect(view.rows).toHaveLength(0);
   });

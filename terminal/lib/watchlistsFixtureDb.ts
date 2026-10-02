@@ -628,7 +628,6 @@ function applyThesisVersionFixture(store: Store, args: Record<string, unknown>):
       const tripwireId = "11111111-1111-4111-8111-111111111111";
       const tripwireVersion = 1;
       const firedOn = "2026-09-25";
-      const firedAt = `${firedOn}T00:00:00Z`;
       const subject = subjectDisplay
         ? `A window we watch for ${subjectDisplay} has closed`
         : "A market condition we watch for your thesis has changed";
