@@ -123,7 +123,7 @@ const FIELD_VALIDATORS = {
 
 /** Validate a single known mo_* value against its grammar. */
 function validateField(key: MoKey, rawValue: string): string | null {
-  return key === "mo_from" ? validateFrom(rawValue) : FIELD_VALIDATORS[key](rawValue);
+  return FIELD_VALIDATORS[key](rawValue);
 }
 
 function hasValidQueryValue(key: MoKey, value: string | undefined): value is string {
@@ -134,10 +134,10 @@ function hasValidQueryValue(key: MoKey, value: string | undefined): value is str
  * Parse MarketOntology context from URLSearchParams.
  *
  * Returns a validated MarketOntologyContext or null if the context is invalid
- * (missing required fields, grammar violations, duplicates, or non-ontology from).
+ * (missing required fields, grammar violations, duplicates, or an unknown origin).
  *
  * Rules that cause null:
- * - mo_from is not exactly "ontology"
+ * - mo_from is not exactly "ontology" or "transmission"
  * - mo_chain is missing or fails grammar
  * - Any known mo_* key appears more than once (case: multiple values for same key)
  * - Any known mo_* value fails its grammar (including malformed dates like 2026-02-30)
@@ -283,7 +283,9 @@ export function stripMarketOntologyParams(params: URLSearchParams): URLSearchPar
 /**
  * Construct the return href for navigating back to the validated origin.
  *
- * Format: `${MARKET_ONTOLOGY_ORIGIN}/ontology.html` + (pathRev ? `?rev=${pathRev}` : "") + (focus ? `#ox-leg-${encodeURIComponent(focus)}` : "")
+ * Format: ontology contexts return to `${MARKET_ONTOLOGY_ORIGIN}/ontology.html`
+ * + (pathRev ? `?rev=${pathRev}` : "") + (focus ? `#ox-leg-${encodeURIComponent(focus)}` : "").
+ * Transmission contexts return to `${MARKET_ONTOLOGY_ORIGIN}/transmission.html`.
  *
  * The grammar permits dots and colons; encodeURIComponent is what makes the fragment
  * one opaque token. Illegal hand-built values are omitted.
