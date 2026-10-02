@@ -609,7 +609,9 @@ function applyThesisVersionFixture(store: Store, args: Record<string, unknown>):
       };
       const isIssuer = subjectRefRecord.kind === "issuer"
         && (subjectRefRecord.owner === "terminal.analysis_symbol" || subjectRefRecord.owner === "data_os.security_master");
-      const isTheme = subjectRefRecord.kind === "theme" && subjectRefRecord.owner === "macro.theme_registry";
+      const isSupportedSubject = (subjectRefRecord.kind === "issuer"
+        && (subjectRefRecord.owner === "terminal.analysis_symbol" || subjectRefRecord.owner === "data_os.security_master"))
+        || (subjectRefRecord.kind === "theme" && subjectRefRecord.owner === "macro.theme_registry");
       const rawListing = subjectRefRecord.listing;
       const listingSymbol = rawListing && typeof rawListing === "object" && !Array.isArray(rawListing)
         ? (rawListing as { symbol?: unknown }).symbol
@@ -617,12 +619,10 @@ function applyThesisVersionFixture(store: Store, args: Record<string, unknown>):
       const rawTicker = typeof listingSymbol === "string" && listingSymbol.trim()
         ? listingSymbol
         : subjectRefRecord.key;
-      const subjectDisplay = isIssuer && typeof rawTicker === "string" && rawTicker.trim()
+      const subjectDisplay = isIssuer && isSupportedSubject && typeof rawTicker === "string" && rawTicker.trim()
         ? rawTicker.trim().toUpperCase()
-        : isTheme && typeof subjectRefRecord.display === "string" && subjectRefRecord.display.trim()
-          ? subjectRefRecord.display.trim()
-          : "";
-      if (!subjectDisplay) return thesisRpcResult({ status: "created", thesis_id: id, version: 1, current_version: 1, lifecycle_state: "active", replayed: false });
+        : "";
+      if (!isSupportedSubject) return thesisRpcResult({ status: "created", thesis_id: id, version: 1, current_version: 1, lifecycle_state: "active", replayed: false });
       const title = typeof contentRecord.title === "string" && contentRecord.title.trim() ? contentRecord.title.trim() : "your thesis";
       const condition = userConditionText(contentRecord.falsifiers);
       const tripwireId = "11111111-1111-4111-8111-111111111111";
@@ -667,6 +667,8 @@ function applyThesisVersionFixture(store: Store, args: Record<string, unknown>):
           summary_plain_zh: summaryPlainZh,
           condition_plain: condition,
           condition_plain_zh: condition ? `${condition}（翻译待补）` : "",
+          engine_window_plain: "",
+          engine_window_plain_zh: "",
           evidence_url: "https://www.mastermind-x.com/cycle.html",
           requires_tier: null,
           coverage: "full",

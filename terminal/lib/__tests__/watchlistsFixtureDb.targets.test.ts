@@ -15,6 +15,35 @@ import {
 const KEY = "targets-upsert-clash";
 const owner = fixtureUserId(KEY);
 const db = () => createFixtureDb(KEY);
+const producerPayload = (thesisId: string, subject: string, subjectZh: string, condition: string) => ({
+  thesis_id: thesisId,
+  thesis_version: 1,
+  category: "thesis_window",
+  source: "macro.thesis_condition_monitor",
+  subject,
+  subject_zh: subjectZh,
+  summary_plain: condition
+    ? subject === "A window we watch for NVDA has closed"
+      ? 'A window we watch for NVDA has closed. Your thesis "Closed window" lists: Gross margin falls below 65%.'
+      : 'A market condition we watch for your thesis has changed. Your thesis "Macro shift" lists: GDP growth turns negative.'
+    : "A market condition we watch for your thesis has changed. Your thesis lists no conditions yet.",
+  summary_plain_zh: condition
+    ? subject === "A window we watch for NVDA has closed"
+      ? '你关注的“NVDA”窗口已关闭。你的论点《Closed window》列出的条件：Gross margin falls below 65%（翻译待补）'
+      : "你关注的一项市场条件已发生变化。你的论点《Macro shift》列出的条件：GDP growth turns negative（翻译待补）"
+    : "你关注的一项市场条件已发生变化。你的论点尚未列出任何条件。",
+  condition_plain: condition,
+  condition_plain_zh: condition ? `${condition}（翻译待补）` : "",
+  engine_window_plain: "",
+  engine_window_plain_zh: "",
+  evidence_url: "https://www.mastermind-x.com/cycle.html",
+  requires_tier: null,
+  fired_at: "2026-09-25",
+  tripwire_id: "11111111-1111-4111-8111-111111111111",
+  tripwire_version: 1,
+  coverage: "full",
+  ticker: subject === "A window we watch for NVDA has closed" ? "NVDA" : null,
+});
 
 beforeEach(() => resetFixtureStores());
 
@@ -45,21 +74,12 @@ describe("fixture thesis monitor outbox", () => {
     expect(row.alert_id).toBe(uuid5ThesisAlertId(thesisId));
     expect(row.fire_event_id).toBe(producerThesisFireEventId(thesisId, "11111111-1111-4111-8111-111111111111", 1, "2026-09-25"));
     expect(row.fire_event_id).toMatch(/^thesis:[0-9a-f]{32}$/);
-    expect(row.payload).toMatchObject({
-      thesis_id: thesisId,
-      thesis_version: 1,
-      category: "thesis_window",
-      source: "macro.thesis_condition_monitor",
-      subject: "A window we watch for NVDA has closed",
-      subject_zh: '你关注的“NVDA”窗口已关闭',
-      summary_plain: 'A window we watch for NVDA has closed. Your thesis "Closed window" lists: Gross margin falls below 65%.',
-      summary_plain_zh: '你关注的“NVDA”窗口已关闭。你的论点《Closed window》列出的条件：Gross margin falls below 65%（翻译待补）',
-      condition_plain: 'Gross margin falls below 65%',
-      condition_plain_zh: 'Gross margin falls below 65%（翻译待补）',
-      evidence_url: 'https://www.mastermind-x.com/cycle.html',
-      coverage: "full",
-      ticker: "NVDA",
-    });
+    expect(row.payload).toEqual(producerPayload(
+      thesisId,
+      "A window we watch for NVDA has closed",
+      '你关注的“NVDA”窗口已关闭',
+      "Gross margin falls below 65%",
+    ));
     expect(row.channel).toBe("email");
     expect(row.payload).not.toHaveProperty("kind");
   });
@@ -81,7 +101,7 @@ describe("fixture thesis monitor subject fidelity", () => {
     expect(fixtureStore(key).alertOutbox).toHaveLength(0);
   });
 
-  it("emits ticker: null for a theme subject (no issuer mapping)", async () => {
+  it("emits the producer's generic theme subject even when a display name exists", async () => {
     const key = `${FIXTURE_MONITOR_FIRED_TOKEN}-theme`;
     const db = createFixtureDb(key);
     await db.rpc("apply_thesis_version_v1", {
@@ -94,11 +114,33 @@ describe("fixture thesis monitor subject fidelity", () => {
       p_effective_at: null,
     });
     const row = fixtureStore(key).alertOutbox[0];
-    expect(row.payload).toMatchObject({
-      subject: "A window we watch for Macro environment has closed",
-      subject_zh: '你关注的“Macro environment”窗口已关闭',
-      ticker: null,
+    expect(row.payload).toEqual(producerPayload(
+      String(row.payload.thesis_id),
+      "A market condition we watch for your thesis has changed",
+      "你关注的一项市场条件已发生变化",
+      "GDP growth turns negative",
+    ));
+  });
+
+  it("writes a generic producer row for a registry theme without a display name", async () => {
+    const key = `${FIXTURE_MONITOR_FIRED_TOKEN}-theme-no-display`;
+    const db = createFixtureDb(key);
+    await db.rpc("apply_thesis_version_v1", {
+      p_thesis_id: null,
+      p_expected_version: 0,
+      p_transition: "create",
+      p_subject_ref: { schema: "mastermind.thesis-subject-ref/v1", kind: "theme", owner: "macro.theme_registry", key: "macro-env" },
+      p_content: { schema: "mastermind.thesis-content/v1", title: "Macro shift", statement: "s", falsifiers: [] },
+      p_client_request_id: "req-monitor-theme-no-display",
+      p_effective_at: null,
     });
+    const row = fixtureStore(key).alertOutbox[0];
+    expect(row.payload).toEqual(producerPayload(
+      String(row.payload.thesis_id),
+      "A market condition we watch for your thesis has changed",
+      "你关注的一项市场条件已发生变化",
+      "",
+    ));
   });
 
   it("uses the uppercase ticker and emits it for issuer subjects", async () => {
