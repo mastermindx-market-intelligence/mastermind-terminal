@@ -647,12 +647,10 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // this builder closure, or an RTH splice can briefly score the forming daily bar.
     const quote = liveQuoteRef.current;
     const liveSessionDate = sessionDateOf(quote?.ts, market);
-    const sameLiveSession = liveSessionDate != null
-      && dailyTimes[dailyTimes.length - 1] === liveSessionDate;
-    const dailyTailIsForming = !!quote?.basis
-      && SPLICE_BASES.has(quote.basis.toUpperCase())
-      && sameLiveSession
-      && !regularSessionBarIsFinal(quote, market, liveSessionDate);
+    const provisionalDate = liveSplicedDailyDateRef.current;
+    const dailyTailIsForming = provisionalDate != null
+      && dailyTimes[dailyTimes.length - 1] === provisionalDate
+      && !regularSessionBarIsFinal(quote, market, provisionalDate);
     const firstDailyAfter = (t: string): string | null => {
       let lo = 0, hi = dailyTimes.length;
       while (lo < hi) {
@@ -732,6 +730,10 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   const barsRef = useRef<Bar[]>([]);        // the bars currently ON the chart (full OR replay-sliced)
   const fullBarsRef = useRef<Bar[]>([]);    // the full resampled history — NEVER mutated by replay
   const dailyBarsRef = useRef<Bar[]>([]);   // the raw DAILY source (pre-resample) — the R11 splice operates here
+  // Session whose tail in dailyBarsRef was synthesized/patched by the live splice rather than
+  // loaded from the canonical daily document. Null means the current daily tail is source data
+  // (or an explicitly finalized live session), so closed-only studies may consume it normally.
+  const liveSplicedDailyDateRef = useRef<string | null>(null);
   // The published 2D/3D session anchor for the symbol currently on the chart, and the identity of
   // the OHLC document it arrived on. The anchor phases the daily-multiple grid onto the SAME bars
   // the Golden Oracle computed its 3D signals on (lib/sessionBars.ts); the source token is what
@@ -3002,7 +3004,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
    * symbol-guarded consumer (splice, options levels, drawings) that this pane is unpainted.
    */
   const clearChartData = () => {
-    barsRef.current = []; fullBarsRef.current = []; dailyBarsRef.current = []; closesRef.current = [];
+    barsRef.current = []; fullBarsRef.current = []; dailyBarsRef.current = []; liveSplicedDailyDateRef.current = null; closesRef.current = [];
     barIdxRef.current = { src: null, map: new Map() };
     sliceRef.current = null; sigMarksRef.current = []; earlyDotsRef.current = []; warnMarksRef.current = [];
     chartDataSymRef.current = "";
@@ -3253,6 +3255,10 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // gap-zone memo (keyed on this array's identity) recomputes — else a gap formed by
     // today's developing bar stays invisible until the next full data reload.
     dailyBarsRef.current = spliced;
+    // Track whether this tail is still provisional. Explicit US post/overnight finality clears
+    // the marker immediately; CN/HK clear on the next canonical daily-data load because their
+    // ordinary Tencent quote shape carries no equivalent completion state.
+    liveSplicedDailyDateRef.current = regularSessionBarIsFinal(q, market, sd) ? null : sd;
     // R11: reuse the EXISTING final-bucket time key unless the spliced daily date GENUINELY starts a
     // new bucket (e.g. a fresh ISO week / month). A CALENDAR bucket is keyed by its last daily date,
     // so a mid-week splice re-stamps it forward past the on-chart key and update() would APPEND a
@@ -8659,7 +8665,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         sessionAnchorRef.current = null; ohlcSrcRef.current = null;   // daily-multiple grid does not apply here
         sigMarksRef.current = [];
         earlyDotsRef.current = []; warnMarksRef.current = [];   // GC v2 side channels: daily-only too
-        dailyBarsRef.current = [];               // splice is daily-only; disable it here
+        dailyBarsRef.current = []; liveSplicedDailyDateRef.current = null; // splice is daily-only; disable it here
         if (!bars.length) {
           clearChartData();   // never leave the previous symbol's series under this symbol's badge
           // Differentiate a feed/entitlement/config failure ("POLYGON_API_KEY not set", "polygon 403",
@@ -8801,7 +8807,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         // …and the document's own bars array is the aggregation memo's generation token.
         ohlcSrcRef.current = ohlc.bars;
       }
-      dailyBarsRef.current = daily;         // raw daily source — the R11 splice operates on THIS
+      dailyBarsRef.current = daily; liveSplicedDailyDateRef.current = null; // canonical daily source replaces any provisional live tail
       // ── PERF-FIX (b): use cached resample; same-symbol TF switches skip the O(N) bucketing pass ──
       let rows: Bar[] = resampleTfCached(daily, effectiveTimeframe, symbol,
         ohlcSrcRef.current, sessionAnchorRef.current);
