@@ -870,7 +870,7 @@ describe("F11-11b-pre producer-shaped thesis-condition rows (category+source, no
     expect(view.rows).toHaveLength(0);
   });
 
-  it("a row with well-formed thesis_id but none of (kind, source, category) is skipped", () => {
+  it("a row with well-formed thesis_id but without producer source and category is skipped", () => {
     const orphanRow: OutboxRow = {
       alert_id: "",
       fire_event_id: "fe-orphan",

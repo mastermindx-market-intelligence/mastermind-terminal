@@ -188,9 +188,9 @@ describe("price alert and thesis_condition outbox row both appear", () => {
   });
 });
 
-// F11-11b-pre: producer's real row shape (category+source, no kind, synthetic alert_id)
-// also surfaces as a thesis row — proving the cockpit recognises the real contract.
-describe("F11-11b-pre producer real shape (category+source, no kind, synthetic alert_id)", () => {
+// F11-11b-pre: producer's real row shape (category+source, synthetic alert_id)
+// surfaces as a thesis row — proving the cockpit recognises the real contract.
+describe("F11-11b-pre producer real shape (category+source, synthetic alert_id)", () => {
   it("producer-shaped row surfaces as a thesis row", () => {
     const view = viewOf([producerRealOutbox()]);
     expect(view.rows.length).toBe(1);

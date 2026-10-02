@@ -600,27 +600,49 @@ function applyThesisVersionFixture(store: Store, args: Record<string, unknown>):
     store.thesisVersions.push(version);
     if (store.monitorFires && store.alertOutbox.length === 0) {
       const contentRecord = content as { title?: unknown; falsifiers?: unknown };
-      const subjectRefRecord = subjectRef as { display?: unknown; key?: unknown; kind?: unknown };
-      const rawDisplay = subjectRefRecord.display;
-      const rawKey = subjectRefRecord.key;
-      const subjectDisplay = typeof rawDisplay === "string" && rawDisplay.trim() ? rawDisplay.trim()
-        : typeof rawKey === "string" && rawKey.trim() ? rawKey.trim() : "";
+      const subjectRefRecord = subjectRef as {
+        display?: unknown;
+        key?: unknown;
+        kind?: unknown;
+        owner?: unknown;
+        listing?: unknown;
+      };
+      const isIssuer = subjectRefRecord.kind === "issuer"
+        && (subjectRefRecord.owner === "terminal.analysis_symbol" || subjectRefRecord.owner === "data_os.security_master");
+      const isTheme = subjectRefRecord.kind === "theme" && subjectRefRecord.owner === "macro.theme_registry";
+      const rawListing = subjectRefRecord.listing;
+      const listingSymbol = rawListing && typeof rawListing === "object" && !Array.isArray(rawListing)
+        ? (rawListing as { symbol?: unknown }).symbol
+        : undefined;
+      const rawTicker = typeof listingSymbol === "string" && listingSymbol.trim()
+        ? listingSymbol
+        : subjectRefRecord.key;
+      const subjectDisplay = isIssuer && typeof rawTicker === "string" && rawTicker.trim()
+        ? rawTicker.trim().toUpperCase()
+        : isTheme && typeof subjectRefRecord.display === "string" && subjectRefRecord.display.trim()
+          ? subjectRefRecord.display.trim()
+          : "";
+      if (!subjectDisplay) return thesisRpcResult({ status: "created", thesis_id: id, version: 1, current_version: 1, lifecycle_state: "active", replayed: false });
       const title = typeof contentRecord.title === "string" && contentRecord.title.trim() ? contentRecord.title.trim() : "your thesis";
       const condition = userConditionText(contentRecord.falsifiers);
       const tripwireId = "11111111-1111-4111-8111-111111111111";
       const tripwireVersion = 1;
       const firedOn = "2026-09-25";
       const firedAt = `${firedOn}T00:00:00Z`;
-      const subject = `A window we watch for ${subjectDisplay} has closed`;
-      const subjectZh = `你关注的“${subjectDisplay}”窗口已关闭`;
+      const subject = subjectDisplay
+        ? `A window we watch for ${subjectDisplay} has closed`
+        : "A market condition we watch for your thesis has changed";
+      const subjectZh = subjectDisplay
+        ? `你关注的“${subjectDisplay}”窗口已关闭`
+        : "你关注的一项市场条件已发生变化";
       const closedPrefix = `${subject}.`;
       const closedPrefixZh = `${subjectZh}。`;
       const summaryPlain = condition
-        ? `${closedPrefix} Your thesis “${title}” lists: ${closeSentence(condition)}`
+        ? `${closedPrefix} Your thesis "${title}" lists: ${closeSentence(condition)}`
         : `${closedPrefix} Your thesis lists no conditions yet.`;
       const summaryPlainZh = condition
-        ? `${closedPrefixZh}你的论点《${title}》列出的条件：${closeSentence(condition)}（翻译待补）`
-        : `${closedPrefixZh}你的论点尚未列出任何条件。（翻译待补）`;
+        ? `${closedPrefixZh}你的论点《${title}》列出的条件：${condition}（翻译待补）`
+        : `${closedPrefixZh}你的论点尚未列出任何条件。`;
       store.alertOutbox.push({
         id: crypto.randomUUID(),
         user_id: userId,
@@ -635,7 +657,7 @@ function applyThesisVersionFixture(store: Store, args: Record<string, unknown>):
         payload: {
           thesis_id: id,
           thesis_version: 1,
-          fired_at: firedAt,
+          fired_at: firedOn,
           tripwire_id: tripwireId,
           tripwire_version: tripwireVersion,
           category: "thesis_window",
@@ -645,14 +667,11 @@ function applyThesisVersionFixture(store: Store, args: Record<string, unknown>):
           summary_plain: summaryPlain,
           summary_plain_zh: summaryPlainZh,
           condition_plain: condition,
-          condition_plain_zh: condition ? `${condition}.（翻译待补）` : "",
-          // Fixture-only (not a producer field — macro's engine copies the tripwire claim here).
-          engine_window_plain: "The watch window closed.",
-          engine_window_plain_zh: "观察窗口已关闭。",
+          condition_plain_zh: condition ? `${condition}（翻译待补）` : "",
           evidence_url: "https://www.mastermind-x.com/cycle.html",
           requires_tier: null,
           coverage: "full",
-          ticker: subjectRefRecord.kind === "issuer" ? String(subjectRefRecord.key) : null,
+          ticker: isIssuer ? String(subjectDisplay) : null,
         },
         created_at: now,
       });
