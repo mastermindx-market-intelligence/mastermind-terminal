@@ -52,10 +52,15 @@ async function captureContextProof(
   name: string,
   locale: "en" | "zh",
 ) {
-  const content = locale === "zh" && name.endsWith("mobile-analysis")
+  const content = name.endsWith("mobile-thesis")
     ? page.getByTestId("thesis-workspace")
     : page.locator(".ci-page");
   await expect(content).toBeVisible({ timeout: 30_000 });
+  if (name.endsWith("mobile-thesis")) {
+    const firstInput = page.getByTestId("thesis-workspace").locator("input").first();
+    await firstInput.focus();
+    await expect(firstInput).toBeFocused();
+  }
   await page.screenshot({ path: proofShotPath(proofDir, testInfo, name, locale), fullPage: true });
 }
 
@@ -180,6 +185,14 @@ test("opening a thesis on another company clears the MarketOntology context", as
   await page.goto(`/analysis?view=theses&symbol=NVDA&${CONTEXT_QUERY}`);
   await expect(page.getByTestId("thesis-workspace")).toBeVisible({ timeout: 30_000 });
   await expect(page.getByTestId("mo-context-strip")).toBeVisible();
+
+  await page.getByRole("button", { name: "New thesis" }).click();
+  await page.getByLabel("Subject").fill("MSFT");
+  await expect(page.getByTestId("mo-context-strip")).toHaveCount(0);
+  expect([...new URL(page.url()).searchParams.keys()].filter((key) => key.startsWith("mo_"))).toEqual([]);
+  await page.goto(`/analysis?view=theses&symbol=NVDA&${CONTEXT_QUERY}`);
+  await expect(page.getByTestId("mo-context-strip")).toBeVisible();
+
   await page.getByRole("button", { name: "A different company" }).click();
   await expect(page.getByRole("heading", { name: "MSFT · Listing-scoped identity" })).toBeVisible({ timeout: 30_000 });
   await expect(page.getByTestId("thesis-workspace")).toContainText("MSFT");
@@ -222,7 +235,7 @@ test("the context strip remains usable across the responsive contract", async ({
   await captureContextProof(page, proofDir, testInfo, "mobile-thesis", "zh");
 });
 
-test("the transmission context strip has proof captures", async ({ page, baseURL }, testInfo) => {
+test("the transmission context strip has proof captures", async ({ page, baseURL, browser }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "The MarketOntology context contract is scoped to the desktop project.");
   await prepare(page, testInfo, baseURL);
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -235,11 +248,19 @@ test("the transmission context strip has proof captures", async ({ page, baseURL
   mkdirSync(proofDir, { recursive: true });
   await captureContextProof(page, proofDir, testInfo, "desktop-analysis-transmission", "en");
 
-  await page.setViewportSize({ width: 390, height: 844 });
-  await expect(desktopStrip).toBeVisible();
-  await expect(desktopStrip.getByRole("link")).toHaveAttribute("href", "https://www.mastermind-x.com/transmission.html");
-  await expect(desktopStrip).toContainText("来自传导");
-  await captureContextProof(page, proofDir, testInfo, "mobile-analysis-transmission", "zh");
+  const mobilePage = await browser.newPage();
+  try {
+    await prepare(mobilePage, testInfo, baseURL, true);
+    await mobilePage.setViewportSize({ width: 390, height: 844 });
+    await openAnalysis(mobilePage, `symbol=NVDA&page=intelligence&${TRANSMISSION_QUERY}`);
+    const mobileStrip = mobilePage.getByTestId("mo-context-strip");
+    await expect(mobileStrip).toBeVisible();
+    await expect(mobileStrip.getByRole("link")).toHaveAttribute("href", "https://www.mastermind-x.com/transmission.html");
+    await expect(mobileStrip).toContainText("来自传导");
+    await captureContextProof(mobilePage, proofDir, testInfo, "mobile-analysis-transmission", "zh");
+  } finally {
+    await mobilePage.close();
+  }
 });
 
 for (const [name, query] of [

@@ -1733,6 +1733,17 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     setMessage(null);
   }, []);
 
+  const changeSubjectDraft = useCallback((value: string) => {
+    const nextSymbol = normalizeAnalysisSymbol(value) ?? "";
+    setSubjectDraft(value.toUpperCase());
+    if (!marketOntologyContext || !nextSymbol || nextSymbol === initialSymbol) return;
+
+    const url = new URL(window.location.href);
+    url.search = stripMarketOntologyParams(url.searchParams).toString();
+    window.history.replaceState(historyState(historyPositionRef.current), "", url.toString());
+    setMarketOntologyContext(null);
+  }, [initialSymbol, marketOntologyContext]);
+
   const mutationBody = useCallback((action: ThesisAction, requestId: string): Record<string, unknown> | null => {
     const symbol = detail?.subject.key ?? normalizeAnalysisSymbol(subjectDraft);
     const content = normalizeThesisContent(
@@ -2472,7 +2483,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
                     </div>}
 
                     <form className={styles.form} onSubmit={(event) => { event.preventDefault(); submit(selectedId ? "revise" : "create"); }}>
-                      <label>{copy.subject}<input aria-label={copy.subject} value={detail?.subject.key ?? subjectDraft} disabled={!!detail || carrierLocked} onChange={(event) => { setSubjectDraft(event.target.value.toUpperCase()); setMessage(null); }} placeholder="NVDA" /></label>
+                      <label>{copy.subject}<input aria-label={copy.subject} value={detail?.subject.key ?? subjectDraft} disabled={!!detail || carrierLocked} onChange={(event) => { changeSubjectDraft(event.target.value); setMessage(null); }} placeholder="NVDA" /></label>
                       <label>{copy.titleLabel}<input aria-label={copy.titleLabel} value={draft.title} disabled={!editable || carrierLocked} maxLength={160} onChange={(event) => changeDraft("title", event.target.value)} /></label>
                       <label className={styles.full}>{copy.statement}<textarea aria-label={copy.statement} value={draft.statement} disabled={!editable || carrierLocked} maxLength={12000} rows={8} onChange={(event) => changeDraft("statement", event.target.value)} /></label>
                       {(["catalysts", "falsifiers", "risks"] as const).map((field) => <label key={field}>{copy[field]}<small>{copy.onePerLine}</small><textarea aria-label={copy[field]} value={draft[field]} disabled={!editable || carrierLocked} rows={5} onChange={(event) => changeDraft(field, event.target.value)} /></label>)}
