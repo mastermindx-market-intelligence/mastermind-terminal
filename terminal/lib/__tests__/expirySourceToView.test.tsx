@@ -56,7 +56,7 @@ describe("actual source outputs become truthful expiry analysis", () => {
     await act(async () => (element.querySelector('button[aria-expanded]') as HTMLButtonElement).click());
     expect(element.querySelector('svg [data-partial="true"] title')?.textContent).toContain(t("expiryKnownSubtotal"));
     expect(element.querySelector('svg [data-partial="true"] circle')?.getAttribute("stroke-dasharray")).toBe("3 2");
-    expect(element.querySelector('svg')?.getAttribute("aria-label")).toBe(t("xdrawerTitle"));
+    expect(element.querySelector('svg')?.getAttribute("aria-label")).toBe(t("exposureByExpiry"));
   });
   it.each(["vanna", "charm"] as const)("empty drawer is no-data rather than unsupported for %s", async lens => {
     const t=makeGexT("en"); await render(<ExposureExpiryDrawer byExpiry={[]} greek={lens} asOf="2026-09-25" lang="en" />);

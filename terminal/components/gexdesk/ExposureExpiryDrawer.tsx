@@ -117,7 +117,7 @@ export function ExposureExpiryDrawer({ byExpiry, greek, asOf, lang }: Props) {
             <>
               {(ts.missingCount > 0 || ts.partialCount > 0) && <p role="status" data-testid="expiry-support" className="obs-note">{t("expirySupportSummary").replace("{known}", String(count)).replace("{total}", String(ts.sourceCount)).replace("{partial}", String(ts.partialCount))}</p>}
               <div data-testid="expiry-unit" className="obs-note">{t(EXPIRY_UNIT_KEYS[greek])}</div>
-              <BubbleField ts={ts} knownLabel={t("expiryKnownSubtotal")} label={t("xdrawerTitle")} />
+              <BubbleField ts={ts} knownLabel={t("expiryKnownSubtotal")} label={t("exposureByExpiry")} />
             </>
           ) : (
             // Bars view reuses the existing ExpiryBars component unchanged.

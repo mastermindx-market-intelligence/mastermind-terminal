@@ -395,10 +395,6 @@ describe("lifecycle step copy", () => {
 });
 
 describe("password path stays singular", () => {
-  const terminalRoot = join(process.cwd(), "app.tsconfig.json").includes("nonexistent")
-    ? process.cwd()
-    : process.cwd();
-
   function walk(dir: string, out: string[] = []): string[] {
     for (const entry of readdirSync(dir)) {
       if (entry === "node_modules" || entry === ".next" || entry === "__tests__") continue;
@@ -410,15 +406,19 @@ describe("password path stays singular", () => {
     return out;
   }
 
-  it("auth.updateUser({ password occurs exactly once, in SectionAccount.tsx", () => {
+  it("the password mutation boundary occurs exactly once, in passwordAuth.ts", () => {
     const root = join(process.cwd());
     const files = walk(root);
-    const hits = files.filter((f) => {
-      const text = readFileSync(f, "utf8");
-      return text.includes("auth.updateUser({ password");
-    });
-    expect(hits).toHaveLength(1);
-    expect(hits[0]).toContain("components/settings/SectionAccount.tsx");
+    const directLiteralWrites = files.filter((f) =>
+      readFileSync(f, "utf8").includes("auth.updateUser({ password"),
+    );
+    expect(directLiteralWrites).toHaveLength(0);
+
+    const boundaryWrites = files.filter((f) =>
+      readFileSync(f, "utf8").includes("auth.updateUser(attributes)"),
+    );
+    expect(boundaryWrites).toHaveLength(1);
+    expect(boundaryWrites[0]).toContain("lib/passwordAuth.ts");
   });
 
   it("no file under app/api/account/ references a service-role or admin credential", () => {
@@ -430,12 +430,12 @@ describe("password path stays singular", () => {
     }
   });
 
-  it("current_password appears in exactly the same one file as the password write", () => {
+  it("current_password appears only in the singular password boundary", () => {
     const root = join(process.cwd());
     const files = walk(root);
     const hits = files.filter((f) => readFileSync(f, "utf8").includes("current_password"));
     expect(hits).toHaveLength(1);
-    expect(hits[0]).toContain("components/settings/SectionAccount.tsx");
+    expect(hits[0]).toContain("lib/passwordAuth.ts");
   });
 
   // Absence lock: a separate walker (all extensions, __tests__ included) pins
@@ -461,8 +461,8 @@ describe("password path stays singular", () => {
     });
     const rel = hits.map((f) => f.slice(root.length + 1)).sort();
     expect(rel).toEqual([
-      "components/settings/SectionAccount.tsx",
       "lib/__tests__/accountLifecycleRoutes.test.ts",
+      "lib/passwordAuth.ts",
     ]);
   });
 

@@ -1722,8 +1722,27 @@ export const LEX: Record<string, [string, string]> = {
   obSigninTitle: ["Welcome back", "欢迎回来"],
   obSigninSub: ["Sign in to pick up where you left off.", "登录以继续你上次的进度。"],
   obSignin: ["Sign in", "登录"],
+  obSigninInvalid: ["Email or password didn’t match. Try again or reset your password.", "邮箱或密码不匹配。请重试或重置密码。"],
+  obForgotPassword: ["Forgot password?", "忘记密码？"],
+  obResetNeedEmail: ["Enter your email first.", "请先输入邮箱。"],
+  obResetSent: ["If that email is registered, we sent a password-reset link.", "如果该邮箱已注册，我们已发送密码重置链接。"],
+  obResetError: ["We couldn’t send a reset link right now. Please try again.", "暂时无法发送重置链接，请稍后重试。"],
   obToSignup: ["New here? Create your account", "新用户？创建账户"],
   obToSignin: ["Already have an account? Sign in", "已有账户？登录"],
+  // password recovery
+  pwResetTitle: ["Reset your password", "重置密码"],
+  pwResetSub: ["Choose a new password for your Mastermind account.", "为你的 Mastermind 账户设置新密码。"],
+  pwResetNew: ["New password", "新密码"],
+  pwResetConfirm: ["Confirm new password", "确认新密码"],
+  pwResetShort: ["Use at least 8 characters.", "请至少使用 8 个字符。"],
+  pwResetMismatch: ["The two passwords don’t match.", "两次输入的密码不一致。"],
+  pwResetSubmit: ["Update password", "更新密码"],
+  pwResetChecking: ["Checking your reset link…", "正在验证重置链接…"],
+  pwResetInvalid: ["This reset link is invalid or expired. Request a new one from sign in.", "此重置链接无效或已过期。请从登录界面重新申请。"],
+  pwResetFailed: ["We couldn’t update your password. Request a fresh reset link and try again.", "暂时无法更新密码。请重新申请重置链接后再试。"],
+  pwResetSuccess: ["Password updated", "密码已更新"],
+  pwResetSuccessSub: ["Your new password is ready to use.", "新密码已可使用。"],
+  pwResetBack: ["Back to the Terminal", "返回终端"],
   // step 2 — preferences
   obPrefsTitle: ["Set up your desk", "布置你的工作台"],
   obPrefsSub: ["Tune the Terminal to what you follow. Everything here is optional.", "把终端调成你关注的样子。这里的一切都是可选的。"],
@@ -2649,6 +2668,8 @@ export const LEX: Record<string, [string, string]> = {
 
   // ---- B-PL-6 batch 1: shell, error, analysis, options hub ----
   errShellBody: ["An unexpected error occurred in the application.", "应用发生了意外错误。"],
+  wsOpenTheses: ["Your theses", "你的研究论点"],
+  wsOpenThesesFor: ["Your theses on {sym}", "你的研究论点：{sym}"],
   wsCompanyResearch: ["Company research", "公司研究"],
   wsUnresolvedSymbol: ["This symbol is not recognized", "无法识别该代码"],
   wsResearchNotOpened: ["This company research page was not opened", "无法打开该公司研究页"],
@@ -2863,6 +2884,16 @@ export const LEX: Record<string, [string, string]> = {
   acsPortfolioTargetsEmptyTitle: ["No targets yet", "尚未设定目标权重"],
   acsPortfolioTargetsEmptyBody: ["Targets are yours to set. Add one for any holding and the drift will appear here and on your holdings page.", "目标权重由你自行设定。任一持仓都可以添加，偏离度将同时显示在此处和持仓页。"],
   acsPortfolioTargetsOpenHoldings: ["Open holdings page", "打开持仓页"],
+  // alerts cockpit
+  recentActivityCockpit: ["Recent activity", "近期活动"],
+  // could-not-watch
+  whatWeCouldNotWatch: ["What we could not watch today", "今天未能监控的内容"],
+  // watching list
+  whatWeAreWatching: ["What we're watching for you", "正在为你监控"],
+  // feed pane elite chip
+  eliteTop2: ["Elite — top 2% of tape", "精英 — 成交带前2%"],
+  // watchlist rail tutorial
+  openTutorial: ["Open tutorial", "打开教程"],
 };
 
 // Non-hook LEX lookup for imperative contexts (e.g. chart legend meta assembled outside React render).

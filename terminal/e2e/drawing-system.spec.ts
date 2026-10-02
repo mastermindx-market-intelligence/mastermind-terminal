@@ -1627,6 +1627,93 @@ test("an indicator-pane drawing holds its place when the price scale rescales", 
     .toBeCloseTo(before, 0);
 });
 
+test("an indicator-pane drawing stays in its pane when that pane y-axis rescales", async ({ page }) => {
+  test.skip((page.viewportSize()?.width ?? 1440) <= 860, DESKTOP_ONLY);
+  const saves: DrawingSavePayload[] = [];
+  await openTerminal(page, { onPut: (payload) => saves.push(payload) });
+
+  const chart = page.locator(".pane.on .chart-wrap");
+  const layer = chart.locator(".drawing-layer");
+  const strokes = layer.locator('g[data-drawing-kind="trendline"]:not([data-id="_p"])');
+
+  const subPane = await page.evaluate(() => {
+    const chart = document.querySelector(".pane.on .chart-wrap")?.getBoundingClientRect();
+    const boxes = [...document.querySelectorAll(".pane.on .chart-wrap canvas")]
+      .map((canvas) => canvas.getBoundingClientRect())
+      .filter((rect) => rect.width > 100 && rect.height > 40)
+      .sort((a, b) => a.top - b.top);
+    const last = boxes[boxes.length - 1];
+    return chart && boxes.length > 1
+      ? { chartTop: chart.top, top: last.top, height: last.height, left: last.left, width: last.width }
+      : null;
+  });
+  test.skip(!subPane, "This chart mounted no indicator sub-pane.");
+
+  const anchorY = subPane!.top + subPane!.height * 0.5;
+  await page.getByTestId("drawing-group-lines-main").click();
+  await page.mouse.move(subPane!.left + subPane!.width * 0.30, anchorY);
+  await page.mouse.down();
+  await page.mouse.move(subPane!.left + subPane!.width * 0.55, anchorY + 8);
+  await page.mouse.up();
+  await expect(strokes).toHaveCount(1);
+  await expect.poll(() =>
+    saves.flatMap((payload) => payload.drawings ?? [])
+      .find((drawing) => drawing.kind === "trendline")?.meta?.paneCoordSpace,
+  ).toBe("pane-value-v2");
+
+  const geometry = strokes.first().locator('line:not([stroke="transparent"])').first();
+  const before = await geometry.boundingBox();
+  expect(before).not.toBeNull();
+  expect(before!.y).toBeGreaterThanOrEqual(subPane!.top - 1);
+  expect(before!.y + before!.height).toBeLessThanOrEqual(subPane!.top + subPane!.height + 1);
+
+  // This is the reported gesture: change the INDICATOR pane's own y-axis range.
+  // The draw layer spans the whole chart, while LWC's priceToCoordinate values
+  // are pane-local. The drawing must remain translated + clipped to this pane.
+  const chartBox = await chart.boundingBox();
+  expect(chartBox).not.toBeNull();
+  await page.mouse.move(chartBox!.x + chartBox!.width - 6, anchorY);
+  for (let notch = 0; notch < 5; notch += 1) await page.mouse.wheel(0, -360);
+
+  await expect.poll(async () => {
+    const box = await geometry.boundingBox();
+    return box != null
+      && box.y >= subPane!.top - 1
+      && box.y + box.height <= subPane!.top + subPane!.height + 1;
+  }, { message: "the rescaled drawing should settle inside its owning pane" }).toBe(true);
+  await expect(strokes.first()).toHaveAttribute("clip-path", /drawing-pane-clip/);
+});
+
+test("legacy indicator-pane drawing coordinates migrate into pane value space", async ({ page }) => {
+  test.skip((page.viewportSize()?.width ?? 1440) <= 860, DESKTOP_ONLY);
+  const saves: DrawingSavePayload[] = [];
+  await openTerminal(page, {
+    drawings: [{
+      id: "legacy-macd-pane",
+      kind: "trendline",
+      points: [{ t: "2026-06-12", p: 0 }, { t: "2026-06-18", p: 1 }],
+      color: "#4d82ff",
+      width: 2,
+      dash: "solid",
+      meta: { pane: "macd" },
+    }],
+    onPut: (payload) => saves.push(payload),
+  });
+
+  await expect.poll(() =>
+    saves.flatMap((payload) => payload.drawings ?? [])
+      .find((drawing) => drawing.id === "legacy-macd-pane")?.meta?.paneCoordSpace,
+    { timeout: 5_000, message: "legacy pane drawings should be persisted in the corrected coordinate space" },
+  ).toBe("pane-value-v2");
+
+  const migrated = saves.flatMap((payload) => payload.drawings ?? [])
+    .find((drawing) => drawing.id === "legacy-macd-pane");
+  expect(migrated?.points).toHaveLength(2);
+  expect((migrated?.points?.[0] as { p?: number } | undefined)?.p).not.toBe(0);
+  await expect(page.locator('.pane.on .drawing-layer g[data-id="legacy-macd-pane"]'))
+    .toHaveAttribute("clip-path", /drawing-pane-clip/);
+});
+
 test("selecting a brush stroke shows its bounds, not a handle per sample", async ({ page }) => {
   test.skip((page.viewportSize()?.width ?? 1440) <= 860, DESKTOP_ONLY);
   await openTerminal(page);
@@ -1662,4 +1749,136 @@ test("selecting a brush stroke shows its bounds, not a handle per sample", async
   // Selected: the extent plus two endpoint grips, NOT a handle per sample.
   await expect(brush.first().locator("[data-selection-bounds]")).toHaveCount(1);
   await expect(brush.first().locator("circle[data-handle]")).toHaveCount(2);
+});
+
+test("collapsing an indicator pane hides its plot and drawings until restore", async ({ page }) => {
+  test.skip((page.viewportSize()?.width ?? 1440) <= 860, DESKTOP_ONLY);
+  await openTerminal(page);
+
+  const layer = page.locator(".pane.on .drawing-layer");
+  const strokes = layer.locator('g[data-drawing-kind="trendline"]:not([data-id="_p"])');
+  const subPane = await page.evaluate(() => {
+    const boxes = [...document.querySelectorAll(".pane.on .chart-wrap canvas")]
+      .map((canvas) => canvas.getBoundingClientRect())
+      .filter((rect) => rect.width > 100 && rect.height > 40)
+      .sort((a, b) => a.top - b.top);
+    const last = boxes[boxes.length - 1];
+    return boxes.length > 1 ? { top: last.top, height: last.height, left: last.left, width: last.width } : null;
+  });
+  test.skip(!subPane, "This chart mounted no indicator sub-pane.");
+
+  const y = subPane!.top + subPane!.height * 0.52;
+  await page.getByTestId("drawing-group-lines-main").click();
+  await page.mouse.move(subPane!.left + subPane!.width * 0.34, y);
+  await page.mouse.down();
+  await page.mouse.move(subPane!.left + subPane!.width * 0.58, y + 5);
+  await page.mouse.up();
+  await expect(strokes).toHaveCount(1);
+
+  await page.mouse.move(subPane!.left + subPane!.width * 0.55, subPane!.top + 8);
+  const paneOps = page.locator(".pane-ops:visible");
+  await expect(paneOps).toBeVisible();
+  await paneOps.getByRole("button", { name: "Collapse pane" }).click();
+
+  const mask = page.locator('[data-collapsed-pane-mask]');
+  await expect(mask).toHaveCount(1);
+  const collapsed = await mask.boundingBox();
+  expect(collapsed).not.toBeNull();
+  expect(collapsed!.height).toBeGreaterThan(2);
+  expect(collapsed!.height).toBeLessThan(subPane!.height * 0.5);
+
+  const topmostAtCenter = await page.evaluate(({ x, y }) => {
+    const el = document.elementFromPoint(x, y);
+    return {
+      mask: el?.getAttribute("data-collapsed-pane-mask") ?? null,
+      tag: el?.tagName ?? null,
+    };
+  }, {
+    x: collapsed!.x + collapsed!.width * 0.62,
+    y: collapsed!.y + collapsed!.height * 0.5,
+  });
+  expect(topmostAtCenter.mask).not.toBeNull();
+
+  const collapsedOps = page.locator(".pane-ops:visible");
+  await collapsedOps.getByRole("button", { name: "Restore pane" }).click();
+  await expect(mask).toHaveCount(0);
+  await expect(strokes).toHaveCount(1);
+  await expect.poll(async () => {
+    const canvases = await page.locator(".pane.on .chart-wrap canvas").evaluateAll((nodes) =>
+      nodes.map((node) => node.getBoundingClientRect().height).filter((height) => height > 40));
+    return Math.max(...canvases);
+  }).toBeGreaterThan(collapsed!.height * 2);
+});
+
+
+test("coarse pane collapse hides plot paint and remains restorable", async ({ page }) => {
+  test.skip((page.viewportSize()?.width ?? 1440) > 860, "Coarse legend path only.");
+  await page.addInitScript(() => {
+    localStorage.setItem("mm.inds", JSON.stringify(["stochrsi"]));
+    localStorage.setItem("mm.lang", "en");
+  });
+  await openTerminal(page);
+
+  const stoch = page.locator(".lg-row").filter({ hasText: /Stochastic RSI/i }).first();
+  const legendToggle = page.locator(".lg-collapse").first();
+  if (!(await stoch.isVisible().catch(() => false)) && await legendToggle.count()) {
+    await legendToggle.click();
+  }
+  await expect(stoch).toBeVisible({ timeout: 10_000 });
+
+  await stoch.locator(".lg-name").click();
+  await expect(stoch).toHaveClass(/is-armed/);
+  await stoch.getByRole("button", { name: "More" }).click();
+  const menu = page.locator(".lg-more:visible");
+  await expect(menu).toBeVisible();
+  const collapseRow = menu.getByText("Collapse pane", { exact: true });
+  const collapseBox = await collapseRow.boundingBox();
+  expect(collapseBox).not.toBeNull();
+  const collapseHit = await page.evaluate(({ x, y }) => {
+    const hit = document.elementFromPoint(x, y);
+    return {
+      insideMenu: !!hit?.closest(".lg-more"),
+      className: (hit as HTMLElement | null)?.className ?? "",
+    };
+  }, {
+    x: collapseBox!.x + collapseBox!.width * 0.5,
+    y: collapseBox!.y + collapseBox!.height * 0.5,
+  });
+  expect(collapseHit.insideMenu).toBe(true);
+  await collapseRow.click();
+
+  const mask = page.locator("[data-collapsed-pane-mask]");
+  await expect(mask).toHaveCount(1);
+  const collapsed = await mask.boundingBox();
+  expect(collapsed).not.toBeNull();
+  expect(collapsed!.height).toBeGreaterThan(2);
+  expect(collapsed!.height).toBeLessThan(40);
+
+  // LWC's pane separator deliberately owns the top paint slot while resizing. The opaque
+  // collapsed-pane mask must still paint above both pane canvases, which hides series and
+  // persisted drawing SVG output without disabling the separator.
+  const stack = await page.evaluate(({ x, y }) =>
+    document.elementsFromPoint(x, y).map((el) => ({
+      tag: el.tagName,
+      mask: el.getAttribute("data-collapsed-pane-mask"),
+    })),
+  {
+    x: collapsed!.x + collapsed!.width * 0.65,
+    y: collapsed!.y + collapsed!.height * 0.5,
+  });
+  const maskIndex = stack.findIndex((entry) => entry.mask != null);
+  const canvasIndex = stack.findIndex((entry) => entry.tag === "CANVAS");
+  expect(maskIndex).toBeGreaterThanOrEqual(0);
+  expect(canvasIndex).toBeGreaterThan(maskIndex);
+
+  const collapsedOps = page.locator(".pane-ops.is-collapsed:visible");
+  await expect(collapsedOps).toBeVisible();
+  const restore = collapsedOps.getByRole("button", { name: "Restore pane" });
+  await expect(restore).toBeVisible();
+  if (isPhone(page)) {
+    // Phone still retires ordinary pane ops; collapse exposes exactly one recovery affordance.
+    await expect(collapsedOps.locator("button:visible")).toHaveCount(1);
+  }
+  await restore.click();
+  await expect(mask).toHaveCount(0);
 });

@@ -6,7 +6,6 @@ import { ALL_MARKETS, MARKET_TKEY } from "@/lib/markets";
 import { TF_CANONICAL_ORDER } from "@/lib/startTf";
 import { DeliveryNote, Group, IconCheck, Row, SectionHead } from "./icons";
 import type { SectionProps } from "./types";
-import { briefCopy } from "@/lib/briefs";
 
 // ── Terminal ─────────────────────────────────────────────────────────────────
 // NEW section — no macro counterpart. This is where the old SettingsMenu's
@@ -117,9 +116,6 @@ export default function SectionTerminal({ t, lang, identity, onClose }: SectionP
             {note(touched.chart)}
           </Group>
         </div>
-        <Group title={briefCopy("title", lang === "zh" ? "zh" : "en")}>
-          <Row desc={briefCopy("emailNull", lang === "zh" ? "zh" : "en")} />
-        </Group>
       </div>
     </>
   );

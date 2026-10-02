@@ -86,6 +86,7 @@ export default function AppShell({
   const path = usePathname();
   const hit = TITLE_MAP.find(([p]) => path.startsWith(p));
   const title = hit ? t(hit[1], hit[2]) : t("flow", "Options");
+  const analysisRoute = path.startsWith("/analysis");
   const { fromMacro, macroHref } = useFromMacro();
   const onBack = useCallback(() => backToMacro(macroHref), [macroHref]);
   // Resolved on /analysis entry — never "" — so a cold load through the external floating
@@ -129,8 +130,10 @@ export default function AppShell({
         <MobileNav email={email} fromMacro={fromMacro} onBack={onBack} />
         <header className="topbar">
           {fromMacro ? <DashboardBackButton onClick={onBack} /> : <BrandLockup />}
-          <div className="tdiv" />
-          <span className="page-title">{title}</span>
+          {!analysisRoute && (<>
+            <div className="tdiv" />
+            <span className="page-title">{title}</span>
+          </>)}
           <div className="spacer" />
           {/* Desktop settings/sign-out — the old per-view topbars each carried an avatar
               sign-out form; MobileNav's settings button is display:none on desktop, so the
