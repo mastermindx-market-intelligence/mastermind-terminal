@@ -2,10 +2,12 @@ import { describe, expect, it, vi } from "vitest";
 import { IND_ORDER, type IndKey } from "@/lib/indicators";
 import {
   LIVE_BAR_PROJECTION,
+  LIVE_CLOSED_BAR_KEYS,
   LIVE_INPLACE_SERIES_KEYS,
   LIVE_REBUILD_KEYS,
   acceptsLiveTick,
   liveQuoteStamp,
+  regularSessionBarIsFinal,
   reuseSeries,
   seriesReuseChart,
 } from "@/lib/liveBarProjection";
@@ -54,8 +56,48 @@ describe("LIVE_BAR_PROJECTION — every built-in study has a decided live behavi
     // MTF confluence is derived from bars, but only CLOSED bars. It therefore has an
     // explicit non-live projection class rather than pretending to be data-fed.
     expect(LIVE_BAR_PROJECTION.mtfconfluence).toBe("closed-bar-series");
+    expect(LIVE_CLOSED_BAR_KEYS).toEqual(["mtfconfluence"]);
     expect(LIVE_REBUILD_KEYS).not.toContain("mtfconfluence");
     expect(LIVE_INPLACE_SERIES_KEYS.has("mtfconfluence")).toBe(false);
+  });
+});
+
+describe("regularSessionBarIsFinal — completion must be explicit", () => {
+  const tencentRecord = (o: Partial<Record<number, string>>) => {
+    const f = new Array(41).fill("0");
+    f[0] = "1"; f[1] = "TestCo"; f[2] = "000729";
+    for (const k of Object.keys(o)) f[+k] = o[+k as unknown as number]!;
+    return f;
+  };
+
+  it("accepts only an explicitly completed US regular session", () => {
+    expect(regularSessionBarIsFinal(
+      { marketSession: "rth", regularSessionDate: "2026-08-07" }, "us", "2026-08-07",
+    )).toBe(false);
+    expect(regularSessionBarIsFinal(
+      { marketSession: "post", regularSessionDate: "2026-08-07" }, "us", "2026-08-07",
+    )).toBe(true);
+    expect(regularSessionBarIsFinal(
+      { marketSession: "overnight", regularSessionDate: "2026-08-07" }, "us", "2026-08-07",
+    )).toBe(true);
+    expect(regularSessionBarIsFinal(
+      { marketSession: "post", regularSessionDate: "2026-08-06" }, "us", "2026-08-07",
+    )).toBe(false);
+  });
+
+  it("keeps parser-shaped ordinary CN/HK quotes unfinalized when session state is absent", () => {
+    const cn = parseTencentFields("000729.SZ", "cn", tencentRecord({
+      3: "12.20", 4: "11.74", 5: "11.90", 30: "20260807100000", 32: "3.92", 33: "12.35", 34: "11.85",
+    }))!;
+    const hk = parseTencentFields("0700.HK", "hk", tencentRecord({
+      3: "600.0", 4: "595.0", 5: "596.0", 30: "2026/08/07 10:00:00", 32: "0.84", 33: "602.0", 34: "594.0",
+    }))!;
+    expect(cn.marketSession).toBeUndefined();
+    expect(hk.marketSession).toBeUndefined();
+    expect(cn.basis).toBe("LIVE");
+    expect(hk.basis).toBe("DELAYED_15M");
+    expect(regularSessionBarIsFinal(cn, "cn", "2026-08-07")).toBe(false);
+    expect(regularSessionBarIsFinal(hk, "hk", "2026-08-07")).toBe(false);
   });
 });
 
