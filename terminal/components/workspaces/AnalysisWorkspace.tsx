@@ -124,10 +124,10 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
       const url = new URL(window.location.href);
       url.search = stripMarketOntologyParams(params).toString();
       window.history.replaceState(null, "", url.toString());
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- invalid context is dropped at the hydration boundary.
       setMarketOntologyContext(null);
     }
     const cursor = normalizeAnalysisSymbol(readActiveSymbol() ?? undefined);
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (cursor && cursor !== sym) setSym(cursor);
     setSymbolSettled(true);
     // Mount-only: once settled, the picker owns the symbol and re-running would undo a pick.
