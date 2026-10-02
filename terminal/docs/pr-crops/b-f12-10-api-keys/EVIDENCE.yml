@@ -1,13 +1,13 @@
 # B-F12-10 Public API v1 — developer access capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: b7d639f9b5d56cbd3dabd112ad2cec2c4acb83d5
-# capturedAt: 2026-09-27T03:31:33.567Z
+# capturedAtHead: bfe98ed4f82f30506af69e9ada13811343e386fe
+# capturedAt: 2026-09-27T10:11:23.597Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/components/settings/SectionDeveloper.tsx: "df606f2196301b32cabe74071559464b368b1c08e9b2ccd227509012f4101539"
   terminal/lib/apiKeyLabels.ts: "7f00e420fe2ec20bab481f19d077c7977df3877d4f71d3ed5da3de0b8d0b33be"
-  terminal/components/settings/SettingsPanel.tsx: "4b2d7345916eeb9c9b5d38fb2931471dacaace0a7af6fc64e947ceb36e7dfa20"
+  terminal/components/settings/SettingsPanel.tsx: "526725b37af04f1092359a8aca1e6d3d6d62815b5913b3a7eba754e4ca020329"
   terminal/components/settings/icons.tsx: "7f3e17e45cb92545437ade898fe47a92cf6a65d1682cec9b9cea7a5bb8bd4d83"
 informationalFiles:
   asserted: false

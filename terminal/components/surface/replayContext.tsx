@@ -31,6 +31,7 @@ import {
   useMemo,
   useReducer,
   useRef,
+  useState,
   type ReactNode,
 } from "react";
 import {
@@ -45,6 +46,8 @@ import {
   type ReplayAction,
 } from "@/lib/replayEngine";
 import { publishWorkspaceReplay, releaseWorkspaceReplay } from "./replayBus";
+import { flowGet } from "@/lib/flowClientCache";
+import { isSurfaceIndexForContext } from "@/lib/surfaceContract";
 
 interface ReplayCtx {
   state: ReplayState;
@@ -58,6 +61,14 @@ interface ReplayCtx {
   sessionDate: string | null;
   /** A past session is loaded. */
   archived: boolean;
+  /** Session actually advertised by the accepted source index. */
+  indexDate: string | null;
+  /** Failed refreshes retain stored observations, not a live-health claim. */
+  indexError: boolean;
+  /** Current-head revision, even when its HHMM filename is unchanged. */
+  frameRevision: number;
+  /** Successful index refresh counter, independent of the selected frame. */
+  sourceRevision: number;
   /** Attach to the pane-group root so keybinds only fire while it's engaged. */
   bindGroupRef: (el: HTMLElement | null) => void;
 }
@@ -66,9 +77,12 @@ const Ctx = createContext<ReplayCtx | null>(null);
 
 export function ReplayProvider({
   children,
+  root,
   sessionDate = null,
 }: {
   children: ReactNode;
+  /** Instrument whose index this existing shared replay owner admits. */
+  root?: string;
   /** A past session to replay ("YYYY-MM-DD"); null = today's live session. */
   sessionDate?: string | null;
 }) {
@@ -79,9 +93,45 @@ export function ReplayProvider({
   // Identity for the workspace bus, so a remounting provider can't clear a newer one.
   const busIdRef = useRef(Symbol("replay-provider"));
 
+  const [indexError, setIndexError] = useState(false);
+  const [indexDate, setIndexDate] = useState<string | null>(null);
+  const [indexRevision, setIndexRevision] = useState(0);
+
+  // Own the index once for the whole group, not once per chart. Await fresh
+  // bytes through the existing deduplicating cache; layout changes do not
+  // recreate this provider. A failed refresh retains usable observations.
+  useEffect(() => {
+    if (!root) return;
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let acceptedDate: string | null = null;
+    const read = async () => {
+      const data = await flowGet(
+        sessionDate ? `surface_idx_at:${root}:${sessionDate}` : `surface_idx:${root}`,
+        { refresh: true },
+      );
+      if (cancelled) return;
+      if (isSurfaceIndexForContext(data, root, sessionDate)) {
+        const changedSession = acceptedDate != null && acceptedDate !== data.date;
+        acceptedDate = data.date;
+        setIndexDate(data.date);
+        setIndexRevision(value => value + 1);
+        dispatch({ type: "setStamps", stamps: data.stamps, keepHead: changedSession });
+        setIndexError(false);
+      } else {
+        setIndexError(true);
+      }
+      if (!sessionDate) timer = setTimeout(() => { void read(); }, 60_000);
+    };
+    void read();
+    return () => { cancelled = true; if (timer) clearTimeout(timer); };
+  }, [root, sessionDate]);
+
   const archived = sessionDate != null;
   const atHead = isAtHead(state);
-  const live = atHead && !archived;
+  const followingHead = atHead && state.followHead !== false;
+  const live = followingHead && !archived && !indexError;
+  const frameRevision = followingHead && !archived ? indexRevision : 0;
   const asOfStamp = stampAt(state);
 
   // Play clock: one interval, retimed when speed or playing changes.
@@ -98,7 +148,7 @@ export function ReplayProvider({
       if (!tracker.engaged()) return;
       const tgt = e.target as HTMLElement | null;
       const tag = tgt?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA" || tgt?.isContentEditable) return;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || tgt?.isContentEditable) return;
       const action = keyToAction(e.key);
       if (!action) return;
       e.preventDefault();
@@ -129,8 +179,8 @@ export function ReplayProvider({
   }, []);
 
   const value = useMemo<ReplayCtx>(
-    () => ({ state, dispatch, asOfStamp, atHead, live, sessionDate, archived, bindGroupRef }),
-    [state, asOfStamp, atHead, live, sessionDate, archived, bindGroupRef],
+    () => ({ state, dispatch, asOfStamp, atHead, live, sessionDate, archived, indexDate, indexError, frameRevision, sourceRevision: indexRevision, bindGroupRef }),
+    [state, asOfStamp, atHead, live, sessionDate, archived, indexDate, indexError, frameRevision, indexRevision, bindGroupRef],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
