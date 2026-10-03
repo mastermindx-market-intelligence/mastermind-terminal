@@ -132,7 +132,7 @@ test("MarketOntology context carries through Analysis and Thesis workspaces with
 
   await page.getByRole("button", { name: "New thesis" }).click();
   await expect(page.getByLabel("Title")).toHaveValue("");
-  expect(new URL(page.url()).searchParams.get("mo_zzz")).toBeNull();
+  await expect.poll(() => new URL(page.url()).searchParams.get("mo_zzz")).toBeNull();
   expectContextParams(new URL(page.url()));
   await expect(page.getByTestId("mo-context-strip")).toBeVisible();
 
@@ -219,7 +219,7 @@ test("returning from a company thesis to the list clears the MarketOntology cont
   await page.getByRole("button", { name: "Back to list" }).click();
   await expect(page.getByTestId("thesis-workspace")).toHaveAttribute("data-mobile-pane", "list");
   await expect(page.getByTestId("mo-context-strip")).toHaveCount(0);
-  expect(moKeys(new URL(page.url()))).toEqual([]);
+  await expect.poll(() => moKeys(new URL(page.url()))).toEqual([]);
 });
 
 test("starting a new thesis on another company clears the MarketOntology context", async ({ page, baseURL }, testInfo) => {
@@ -237,7 +237,7 @@ test("starting a new thesis on another company clears the MarketOntology context
   await page.reload();
   await expect(page.getByLabel("Title")).toHaveValue("");
   await expect(page.getByTestId("mo-context-strip")).toHaveCount(0);
-  expect(moKeys(new URL(page.url()))).toEqual([]);
+  await expect.poll(() => moKeys(new URL(page.url()))).toEqual([]);
   expect(new URL(page.url()).searchParams.get("symbol")).toBe("MSFT");
 });
 
@@ -247,7 +247,7 @@ test("a Thesis deep link without a company drops every MarketOntology key", asyn
   await openAnalysis(page, `view=theses&${CONTEXT_QUERY}&mo_zzz=unknown`);
   await expect(page.getByTestId("thesis-workspace")).toBeVisible({ timeout: 45_000 });
   await expect(page.getByTestId("mo-context-strip")).toHaveCount(0);
-  expect(moKeys(new URL(page.url()))).toEqual([]);
+  await expect.poll(() => moKeys(new URL(page.url()))).toEqual([]);
 });
 
 test("a same-company new thesis keeps the MarketOntology context but clears unknown keys", async ({ page, baseURL }, testInfo) => {
