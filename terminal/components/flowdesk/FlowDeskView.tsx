@@ -111,34 +111,56 @@ type CategoryProxyState =
  *   valid   — schema + basis match and every share/mass is finite and bounded.
  */
 function resolveCategoryProxy(
-  p: ChainHeatCategoryProxy | undefined | null,
+  p: unknown,
 ): CategoryProxyState {
-  if (p === undefined || p === null) return { kind: "none" };
+  // Only an ABSENT field is legacy.  null / primitives / arrays are a claimed
+  // but malformed object → invalid, and must NEVER fall back to the legacy bar.
+  if (p === undefined) return { kind: "none" };
+  if (p === null || typeof p !== "object" || Array.isArray(p)) {
+    return { kind: "invalid" };
+  }
+  const o = p as Record<string, unknown>;
   const finiteNonNeg = (v: unknown): v is number =>
     typeof v === "number" && Number.isFinite(v) && v >= 0;
-  const shareOk =
-    p.share === null ||
-    (typeof p.share === "number" &&
-      Number.isFinite(p.share) &&
-      p.share >= 0 &&
-      p.share <= 1);
   if (
-    p.schema !== "options_flow.category_proxy/v1" ||
-    p.basis !== "side_category" ||
-    !shareOk ||
-    !finiteNonNeg(p.known_premium_usd) ||
-    !finiteNonNeg(p.unknown_premium_usd) ||
-    !finiteNonNeg(p.source_premium_usd) ||
-    p.source_certified_accepted === true
+    o.schema !== "options_flow.category_proxy/v1" ||
+    o.basis !== "side_category" ||
+    o.source_certified_accepted !== false ||
+    !finiteNonNeg(o.known_premium_usd) ||
+    !finiteNonNeg(o.unknown_premium_usd) ||
+    !finiteNonNeg(o.source_premium_usd) ||
+    !Number.isInteger(o.invalid_premium_count) ||
+    (o.invalid_premium_count as number) < 0
   ) {
     return { kind: "invalid" };
   }
-  return {
-    kind: "valid",
-    share: (p.share as number | null),
-    known: p.known_premium_usd,
-    source: p.source_premium_usd,
-  };
+  const known = o.known_premium_usd as number;
+  const unknown = o.unknown_premium_usd as number;
+  const source = o.source_premium_usd as number;
+  const invalidCount = o.invalid_premium_count as number;
+  // Mass must reconcile to the selected source within rounding: known+unknown
+  // ≈ source (0.02 USD + 1e-12 relative), and known ≤ source within rounding.
+  const tol = 0.02 + 1e-12 * source;
+  if (Math.abs(known + unknown - source) > tol) return { kind: "invalid" };
+  if (known > source + tol) return { kind: "invalid" };
+  // share: null is allowed; a numeric share requires real known mass and no
+  // invalid premium rows.
+  let share: number | null;
+  if (o.share === null) {
+    share = null;
+  } else if (
+    typeof o.share === "number" &&
+    Number.isFinite(o.share) &&
+    o.share >= 0 &&
+    o.share <= 1 &&
+    known > 0 &&
+    invalidCount === 0
+  ) {
+    share = o.share;
+  } else {
+    return { kind: "invalid" };
+  }
+  return { kind: "valid", share, known, source };
 }
 
 interface ChainHeatPayload {
@@ -284,9 +306,17 @@ function ChainCampaignRow({
       ? Math.round(Math.min(1, Math.max(0, proxyState.share)) * 100)
       : 0;
   // Legacy numeric bar — shown ONLY when no new object is present, and clearly
-  // labelled as legacy with coverage unavailable.  Never presented as "at ask"
-  // or as a measured neutral.
-  const legacyBarW = Math.round(Math.min(1, Math.max(0, campaign.ask_share ?? 0)) * 100);
+  // labelled as legacy with coverage unavailable.  A legacy ask_share that is
+  // not a finite 0..1 number renders as unavailable with NO fill (never NaN,
+  // never a 0 fallback).  Never presented as "at ask" or a measured neutral.
+  const legacyShareOk =
+    typeof campaign.ask_share === "number" &&
+    Number.isFinite(campaign.ask_share) &&
+    campaign.ask_share >= 0 &&
+    campaign.ask_share <= 1;
+  const legacyBarW = legacyShareOk
+    ? Math.round(Math.min(1, Math.max(0, campaign.ask_share)) * 100)
+    : null;
 
   // First-seen time (ET)
   let firstSeenStr = "";
@@ -378,10 +408,14 @@ function ChainCampaignRow({
         <div>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "var(--sp-1)" }}>
             <span className="obs-fd-chain-stat-key">{t("chainHeatProxyLegacy")}</span>
-            <span className="num" style={{ fontSize: "var(--fs-micro)", color: "var(--text-2)" }}>{legacyBarW}%</span>
+            <span className="num" style={{ fontSize: "var(--fs-micro)", color: "var(--text-2)" }}>
+              {legacyBarW === null ? t("chainHeatProxyUnavailable") : `${legacyBarW}%`}
+            </span>
           </div>
           <div className="obs-fd-chain-askbar-track">
-            <div className="obs-fd-chain-askbar-fill" style={{ width: `${legacyBarW}%` }} />
+            {legacyBarW !== null && (
+              <div className="obs-fd-chain-askbar-fill" style={{ width: `${legacyBarW}%` }} />
+            )}
           </div>
         </div>
       )}
