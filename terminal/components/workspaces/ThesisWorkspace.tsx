@@ -83,7 +83,8 @@ type Pending = {
   ownerKey: string;
   action: ThesisAction;
   clientRequestId: string;
-  savedSubjectKey: string;
+  // Compatibility only: retain the exact shape emitted by the earlier v2 writer.
+  savedSubjectKey?: string;
   serializedBody: string;
 };
 type LoadState = "loading" | "ready" | "unavailable" | "session_expired";
@@ -99,8 +100,6 @@ const PENDING_STORAGE_PREFIX = "mm.thesis.pending.v2:";
 const LEGACY_PENDING_STORAGE_PREFIX = "mm.thesis.pending.v1:";
 const HISTORY_POSITION_KEY = "__mmThesisHistoryPosition";
 const PENDING_ACTIONS = new Set<ThesisAction>(["create", "revise", "archive", "invalidate", "reopen"]);
-const PENDING_ENVELOPE_KEYS_MODERN = ["schema", "ownerKey", "action", "clientRequestId", "savedSubjectKey", "serializedBody"];
-const PENDING_ENVELOPE_KEYS_LEGACY = ["schema", "ownerKey", "action", "clientRequestId", "serializedBody"];
 
 const COPY = {
   en: {
@@ -436,25 +435,29 @@ function decodePending(value: string | null, expectedOwner: string, expectedKey:
     const candidate = JSON.parse(value);
     if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) return null;
     const envelope = candidate as Record<string, unknown>;
-    // Back-compat: accept the modern 6-key envelope AND a legacy 5-key v2 envelope
-    // persisted before savedSubjectKey existed. A legacy envelope decodes with
-    // savedSubjectKey defaulted to "" so a persisted pre-upgrade pending hydrates and
-    // retries instead of freezing the workspace. A genuinely malformed envelope
-    // (wrong schema, bad field types, unknown/extra keys) still returns null and is
-    // retained, preserving the fail-closed-and-retain contract.
-    if ((!exactObjectKeys(envelope, PENDING_ENVELOPE_KEYS_MODERN) && !exactObjectKeys(envelope, PENDING_ENVELOPE_KEYS_LEGACY))
+    const hasSavedSubjectKey = Object.prototype.hasOwnProperty.call(envelope, "savedSubjectKey");
+    const envelopeKeys = ["schema", "ownerKey", "action", "clientRequestId", "serializedBody"];
+    if (hasSavedSubjectKey) envelopeKeys.push("savedSubjectKey");
+    if (!exactObjectKeys(envelope, envelopeKeys)
       || envelope.schema !== PENDING_SCHEMA || envelope.ownerKey !== expectedOwner
       || typeof envelope.action !== "string" || !PENDING_ACTIONS.has(envelope.action as ThesisAction)
-      || typeof envelope.clientRequestId !== "string"
-      || (envelope.savedSubjectKey !== undefined && typeof envelope.savedSubjectKey !== "string")
-      || typeof envelope.serializedBody !== "string") return null;
-    const pending = {
-      ...envelope,
-      savedSubjectKey: typeof envelope.savedSubjectKey === "string" ? envelope.savedSubjectKey : "",
-    } as Pending;
+      || typeof envelope.clientRequestId !== "string" || typeof envelope.serializedBody !== "string") return null;
+    const pending = envelope as Pending;
     if (pendingKey(expectedOwner, pending.clientRequestId) !== expectedKey
       || !validSerializedMutation(pending.serializedBody, pending.action, pending.clientRequestId)) return null;
+    // Accept only the documented historical sixth field, bound to the validated body.
+    // Keep its original envelope shape so retry/storage fences compare the same bytes.
+    if (hasSavedSubjectKey && (typeof pending.savedSubjectKey !== "string"
+      || pending.savedSubjectKey !== pendingSubjectKey(pending))) return null;
     return pending;
+  } catch {
+    return null;
+  }
+}
+
+function pendingSubjectKey(pending: Pending): string | null {
+  try {
+    return normalizeThesisSubject(JSON.parse(pending.serializedBody).subject)?.key ?? null;
   } catch {
     return null;
   }
@@ -506,7 +509,6 @@ function legacyPending(value: string | null, ownerKey: string): Pending | null {
       ownerKey,
       action: candidate.action as ThesisAction,
       clientRequestId: body.clientRequestId,
-      savedSubjectKey: normalizeThesisSubject(body.subject)?.key ?? "",
       serializedBody,
     };
   } catch {
@@ -841,10 +843,16 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
         const legacyRaw = window.sessionStorage.getItem(legacyKey);
         if (legacyRaw !== null) {
           const migrated = legacyPending(legacyRaw, ownerKey);
-          if (!migrated || !storePending(migrated)) blocked = true;
+          // An interrupted earlier migration may already have the same request in either
+          // documented v2 shape. Fence its original bytes before removing the v1 copy.
+          const prior = migrated ? restored.find((candidate) =>
+            candidate.clientRequestId === migrated.clientRequestId && candidate.action === migrated.action
+            && candidate.serializedBody === migrated.serializedBody) : undefined;
+          const migrationTarget = prior ?? migrated;
+          if (!migrationTarget || !storePending(migrationTarget)) blocked = true;
           else {
             window.sessionStorage.removeItem(legacyKey);
-            if (!restored.some((candidate) => candidate.clientRequestId === migrated.clientRequestId)) restored.push(migrated);
+            if (!restored.some((candidate) => candidate.clientRequestId === migrationTarget.clientRequestId)) restored.push(migrationTarget);
           }
         }
       } catch {
@@ -1872,7 +1880,8 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     url.searchParams.set("view", "theses");
     url.searchParams.set("thesis", id);
     url.searchParams.delete("symbol");
-    if (!pendingMutation.savedSubjectKey || pendingMutation.savedSubjectKey !== initialSymbolKey) {
+    const savedSubjectKey = pendingSubjectKey(pendingMutation);
+    if (!savedSubjectKey || savedSubjectKey !== initialSymbolKey) {
       url.search = stripMarketOntologyParams(url.searchParams).toString();
     }
     writeRoute(url, "replace");
@@ -1913,13 +1922,11 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     const clientRequestId = crypto.randomUUID();
     const body = mutationBody(action, clientRequestId);
     if (!body) return setMessage(copy.invalid);
-    const savedSubjectKey = detail?.subject.key ?? normalizeAnalysisSymbol(subjectDraft) ?? "";
     const next: Pending = {
       schema: PENDING_SCHEMA,
       ownerKey,
       action,
       clientRequestId,
-      savedSubjectKey,
       serializedBody: JSON.stringify(body),
     };
     if (!storePending(next)) {
@@ -1930,7 +1937,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     setPendingQueue((current) => current.some((candidate) => candidate.clientRequestId === clientRequestId)
       ? current : [...current, next]);
     void send(next);
-  }, [copy.carrierUnavailable, copy.invalid, copy.saveBeforeTransition, detail?.subject.key, mutationBody, ownerKey, send, subjectDraft, substantiveDirty]);
+  }, [copy.carrierUnavailable, copy.invalid, copy.saveBeforeTransition, mutationBody, ownerKey, send, substantiveDirty]);
 
   const copyDraft = useCallback(async () => {
     await navigator.clipboard.writeText(JSON.stringify({ subject: detail?.subject ?? subjectDraft, ...draft }, null, 2));
