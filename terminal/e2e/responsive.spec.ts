@@ -1176,40 +1176,28 @@ test("Golden Oracle shows the session a 3D signal became knowable", async ({ pag
 
   await expect(signalButton.locator(".sig-btn-go .sig-btn-vd")).toHaveText(zh ? "买入" : "Buy");
   await expect(signalButton.locator(".sig-btn-go .sig-btn-sub")).toHaveText(expectedDate);
-  const gradientSkin = await signalButton.evaluate((button) => {
-    const read = (selector: string) => {
-      const half = button.querySelector<HTMLElement>(selector)!;
-      const halfStyle = getComputedStyle(half);
-      const railStyle = getComputedStyle(half, "::before");
-      return {
-        background: halfStyle.backgroundImage,
-        rail: railStyle.backgroundImage,
-        railShadow: railStyle.boxShadow,
-      };
-    };
-    return { oracle: read(".sig-btn-go"), research: read(".sig-btn-rd") };
-  });
-  for (const half of [gradientSkin.oracle, gradientSkin.research]) {
-    expect(half.background).toContain("radial-gradient");
-    expect(half.background).toContain("linear-gradient");
-    expect(half.rail).toContain("linear-gradient");
-    expect(half.railShadow).not.toBe("none");
+  // One calm launcher retains both source states; the old gradient and floating seam
+  // are deliberately gone. This checks the approved interaction, not obsolete chrome.
+  await expect(signalButton).toHaveAttribute("aria-haspopup", "dialog");
+  await expect(signalButton.locator(".sig-btn-half")).toHaveCount(2);
+  await expect(signalButton.locator("button")).toHaveCount(0);
+  for (const half of [".sig-btn-go", ".sig-btn-rd"]) {
+    await expect(signalButton.locator(half)).toHaveCSS("background-image", "none");
   }
   await signalButton.screenshot({
-    path: testInfo.outputPath(`${testInfo.project.name}-oracle-research-gradient-card.png`),
+    path: testInfo.outputPath(`${testInfo.project.name}-stock-intelligence-launcher.png`),
   });
   await signalButton.click();
 
-  const dialog = page.locator(".sd-scrim");
+  const dialog = page.getByRole("dialog", { name: zh ? "个股情报" : "Stock Intelligence" });
   await expect(dialog).toBeVisible();
-  await expect(dialog).toHaveAttribute("role", "dialog");
-  await expect(dialog).toHaveAttribute(
-    "aria-label",
-    zh ? "研究台与黄金神谕" : "Research Desk and Golden Oracle",
-  );
-  await expect(dialog.locator(".sd-go .od-vsub")).toHaveText(expectedDate);
+  await expect(page.getByRole("dialog")).toHaveCount(1);
+  expect(await dialog.evaluate(el => el instanceof HTMLDialogElement && el.open && el.matches(":modal"))).toBe(true);
+  await expect(dialog.getByRole("tab")).toHaveCount(4);
+  await expect(dialog.locator(".od-vsub")).toHaveText(expectedDate);
 
-  const latest = dialog.locator(".sd-go .sd-sigrow").first();
+  await dialog.getByRole("tab", { name: zh ? /^信号/ : /^Signals/ }).click();
+  const latest = dialog.locator(".sd-sigrow").first();
   await latest.scrollIntoViewIfNeeded();
   await expect(latest.locator(".sd-sig-date")).toHaveText(
     zh ? "2026年7月28日" : "Jul 28, 2026",
@@ -1220,7 +1208,7 @@ test("Golden Oracle shows the session a 3D signal became knowable", async ({ pag
       ? /确认于 2026年7月28日 · 3日K线始于 2026年7月24日/
       : /Confirmed Jul 28, 2026 · 3D bar opened Jul 24, 2026/,
   );
-  await dialog.locator(".sd-go").screenshot({
+  await dialog.getByRole("tabpanel").screenshot({
     path: testInfo.outputPath(`${testInfo.project.name}-oracle-known-date.png`),
   });
 
@@ -1320,17 +1308,18 @@ test("HK-O1: a structure stop and a refused entry are labelled for what they are
   });
 
   await signalButton.click();
-  const dialog = page.locator(".sd-scrim");
+  const dialog = page.getByRole("dialog", { name: zh ? "个股情报" : "Stock Intelligence" });
   await expect(dialog).toBeVisible();
 
   // ── the refused entry gets its own disclosure, never the entry scorecard ──
-  await expect(dialog.locator(".sd-go .sig-conflict").filter({ hasText: zh ? "非入场信号" : "not an entry" }))
+  await expect(dialog.locator(".sig-conflict").filter({ hasText: zh ? "非入场信号" : "not an entry" }))
     .toBeVisible();
   // no tier/score row for a marker the engine refused
-  await expect(dialog.locator(".sd-go .sig-dims")).toHaveCount(0);
+  await expect(dialog.locator(".sig-dims")).toHaveCount(0);
 
+  await dialog.getByRole("tab", { name: zh ? /^信号/ : /^Signals/ }).click();
   // ── signal history: BLOCKED (newest) above STOP, neither wearing a buy pill ──
-  const rows = dialog.locator(".sd-go .sd-sigrow");
+  const rows = dialog.locator(".sd-sigrow");
   const blockedRow = rows.first();
   await blockedRow.scrollIntoViewIfNeeded();
   await expect(blockedRow.locator(".sd-sig-badge")).toHaveText(zh ? "已拦截" : "BLOCKED");
@@ -1345,7 +1334,7 @@ test("HK-O1: a structure stop and a refused entry are labelled for what they are
   // PIT price: the confirm session's own daily close, as emitted
   await expect(stopRow.locator(".sd-sig-price")).toHaveText("440.60");
 
-  await dialog.locator(".sd-go").screenshot({
+  await dialog.getByRole("tabpanel").screenshot({
     path: testInfo.outputPath(`${testInfo.project.name}-hko1-signal-history.png`),
   });
 

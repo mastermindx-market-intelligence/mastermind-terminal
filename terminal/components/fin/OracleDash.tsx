@@ -1,15 +1,14 @@
 "use client"
 /**
- * OracleDash — TWO-CONTAINER DOCK overlay (REVISION-SPEC Lane B4).
+ * Stock Intelligence — one responsive workspace over the existing source systems.
  *
- * Renders as a fixed overlay (sd-scrim + sd-dock) with two side-by-side
- * containers on web (Research Desk LEFT, Golden Oracle RIGHT) and stacked
- * full-screen on mobile.
+ * Research and Oracle remain independent reads; historical performance is not a forecast.
  *
  * Props (FROZEN + new onOpenFull?):
  *   {sym, row, slice, intel, bars, zh?, onClose?, onJump?, onOpenFull?}
  */
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useId, useMemo, useRef, useState } from "react"
+import styles from "./StockIntelligence.module.css"
 import { pick, fmtPct, fmtDate } from "../../lib/finFormat"
 import { LineSeries } from "./FinCharts"
 import { getJSON } from "../../lib/dataCache"
@@ -310,30 +309,42 @@ const DeskGlyph = (
 
 /* ── BacktestCurve: lazy-fetch <SYM>.backtest.json and draw equity curve ── */
 function BacktestCurve({ sym, zh }: { sym: string; zh: boolean }) {
-  const [data, setData] = useState<{ labels: string[]; values: (number | null)[] } | null>(null)
+  const [data, setData] = useState<{ labels: string[]; values: (number | null)[]; asOf?: string; start?: string; end?: string; note?: string; missingValidation: boolean } | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     let cancelled = false
     setLoading(true)
+    setData(null)
     getJSON("/data/" + sym + ".backtest.json")
       .then((raw: any) => {
-        if (cancelled || !raw) return
-        const eq: any[] = raw?.equity ?? raw?.curve ?? []
-        if (!Array.isArray(eq) || eq.length === 0) return
+        if (cancelled || !raw || (raw.status && raw.status !== "ok")) return
+        const dateString = (value: unknown): string | undefined => typeof value === "string" && Number.isFinite(Date.parse(value)) ? value : undefined
+        const source = raw.equity ?? raw.curve ?? []
+        let eq: any[]
+        if (Array.isArray(source)) {
+          eq = source // Preserve the earlier row-oriented contract.
+        } else {
+          // backtest_result/v1 publishes paired date/value columns, not point objects.
+          // Preserve supplied values and gaps; never reconstruct equity from trades.
+          if (!Array.isArray(source.t) || !Array.isArray(source.v) || source.t.length !== source.v.length || !source.t.every((t: unknown) => dateString(t))) return
+          eq = source.t.map((date: string, i: number) => ({ date, value: source.v[i] }))
+        }
+        if (eq.length === 0) return
         const labels: string[] = []
         const values: (number | null)[] = []
         eq.forEach((pt: any) => {
           if (typeof pt === "object" && pt !== null) {
             labels.push(pt.date ? fmtDate(pt.date, { short: true }) : String(labels.length))
-            values.push(typeof pt.value === "number" ? pt.value : null)
-          } else if (typeof pt === "number") {
+            values.push(typeof pt.value === "number" && Number.isFinite(pt.value) ? pt.value : null)
+          } else if (typeof pt === "number" && Number.isFinite(pt)) {
             labels.push(String(labels.length))
             values.push(pt)
           }
         })
         if (values.some((v) => v != null)) {
-          setData({ labels, values })
+          setData({ labels, values, asOf: dateString(raw.as_of), start: dateString(raw.universe?.start), end: dateString(raw.universe?.end),
+            note: typeof raw.honest_read === "string" ? raw.honest_read : undefined, missingValidation: raw.validation == null })
         }
       })
       .catch(() => {})
@@ -348,15 +359,19 @@ function BacktestCurve({ sym, zh }: { sym: string; zh: boolean }) {
       </div>
     )
   }
-  if (!data) return null
+  if (!data) return <p className={styles.empty} role="status">{pick(zh, "Equity curve unavailable for this symbol.", "该标的的资金曲线暂不可用。")}</p>
 
   return (
     <div className="od-curve">
       <div className="od-sec-h">{pick(zh, "Equity Curve", "资金曲线")}</div>
+      <p className={styles.date}>{data.asOf ? `${pick(zh, "Curve as of", "曲线截至")} ${signalHistoryDate(data.asOf, zh)}` : pick(zh, "Curve date not supplied", "未提供曲线日期")}
+        {data.start && data.end && <><br />{pick(zh, "Backtest window", "回测区间")}: {signalHistoryDate(data.start, zh)} — {signalHistoryDate(data.end, zh)}</>}
+      </p>
+      {data.missingValidation && <p className={styles.meta}>{pick(zh, "Statistical validation not supplied", "未提供统计验证证据")}</p>}
       <LineSeries
         labels={data.labels}
         series={[{
-          name: pick(zh, "Portfolio", "组合"),
+          name: pick(zh, "Strategy equity", "策略权益"),
           values: data.values,
           color: "var(--brand)",
         }]}
@@ -364,8 +379,9 @@ function BacktestCurve({ sym, zh }: { sym: string; zh: boolean }) {
         refLine={data.values[0] ?? null}
         noLegend
         zh={zh}
-        height={140}
+        height={220}
       />
+      {data.note && <details className={styles.method}><summary>{pick(zh, "Source methodology", "数据源方法说明")}</summary><p>{data.note}</p></details>}
     </div>
   )
 }
@@ -467,59 +483,29 @@ function MarketRiskChip({ zh }: { zh: boolean }) {
 /* ── main component ───────────────────────────────────────────────────── */
 
 export default function OracleDash({ sym, row, slice, intel, bars, zh = false, onClose, onJump, onOpenFull }: OracleDashProps) {
-  const dockRef = useRef<HTMLDivElement>(null)
-
-  // Rail-left measurement for web positioning
-  const [railLeft, setRailLeft] = useState<number | null>(null)
-  const [mobile, setMobile] = useState(false)
-
+  const dialogRef = useRef<HTMLDialogElement>(null)
+  const titleRef = useRef<HTMLHeadingElement>(null)
+  const bodyRef = useRef<HTMLDivElement>(null)
+  const tabsRef = useRef<(HTMLButtonElement | null)[]>([])
+  const id = useId()
+  const [activeTab, setActiveTab] = useState(0)
+  const [visibleSignals, setVisibleSignals] = useState(25)
+  const tabs = [pick(zh, "Overview", "概览"), pick(zh, "Research", "研究"), pick(zh, "Signals", "信号"), pick(zh, "Performance", "历史表现")]
   useEffect(() => {
-    function measure() {
-      const r = document.querySelector(".rail")?.getBoundingClientRect()
-      setRailLeft(r?.left ?? null)
-      setMobile(window.innerWidth <= 860)
+    const dialog = dialogRef.current
+    const opener = document.activeElement
+    if (dialog && !dialog.open) dialog.showModal()
+    titleRef.current?.focus()
+    return () => {
+      if (dialog?.open) dialog.close()
+      if (opener instanceof HTMLElement && opener.isConnected) opener.focus()
     }
-    measure()
-    window.addEventListener("resize", measure)
-    return () => window.removeEventListener("resize", measure)
   }, [])
-
-  const dockStyle: React.CSSProperties | undefined =
-    !mobile && railLeft != null
-      ? { right: Math.max(12, window.innerWidth - railLeft + 12) }
-      : undefined
-
-  // Esc to close — capture phase so it wins over ChartPanel/SearchModal handlers
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.stopPropagation()
-        onClose?.()
-      }
-    }
-    window.addEventListener("keydown", handler, true)
-    return () => window.removeEventListener("keydown", handler, true)
-  }, [onClose])
-
-  // Click outside the dock to close
-  const handleScrimClick = (e: React.MouseEvent) => {
-    if (dockRef.current && !dockRef.current.contains(e.target as Node)) {
-      onClose?.()
-    }
-  }
-
-  // Mobile swipe-to-close state (per-container, shared refs)
-  const swipeStartY = useRef<number | null>(null)
-  const handleTouchStart = (e: React.TouchEvent) => {
-    swipeStartY.current = e.touches[0]?.clientY ?? null
-  }
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (swipeStartY.current == null) return
-    const dy = (e.touches[0]?.clientY ?? swipeStartY.current) - swipeStartY.current
-    if (dy > 70) {
-      swipeStartY.current = null
-      onClose?.()
-    }
+  useEffect(() => { setActiveTab(0); setVisibleSignals(25) }, [sym])
+  useEffect(() => { if (bodyRef.current) bodyRef.current.scrollTop = 0 }, [activeTab, sym])
+  const selectTab = (index: number, focus = false) => {
+    setActiveTab(index)
+    if (focus) tabsRef.current[index]?.focus()
   }
 
   // Derived verdicts using shared helpers (trend powers the stance ladder on stale events)
@@ -603,34 +589,11 @@ export default function OracleDash({ sym, row, slice, intel, bars, zh = false, o
     onClose?.()
   }
 
-  return (
-    <div
-      className="sd-scrim"
-      onClick={handleScrimClick}
-      role="dialog"
-      aria-modal="true"
-      aria-label={pick(zh, "Research Desk and Golden Oracle", "研究台与黄金神谕")}
-    >
-      <div className="sd-dock" ref={dockRef} style={dockStyle}>
-
-        {/* ── Research Desk container (LEFT on web, TOP on mobile) ── */}
-        <section
-          className="sd-cont sd-rd"
-          style={{ borderTopColor: dv.color, ["--vc" as any]: dv.color }}
-        >
-          <div className="sd-head">
-            <span className="sd-ic">{DeskGlyph}</span>
-            <span className="sd-lbl">{pick(zh, "Research Desk", "研究台")}</span>
-            <button className="sd-x" onClick={onClose} aria-label={pick(zh, "Close", "关闭")}>×</button>
-          </div>
-          <div
-            className="sd-grab"
-            aria-hidden="true"
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-          />
-          <div className="sd-body">
-
+  const hasResearch = Boolean(aj?.verdict || convScore != null || drivers.length || cautions.length || sectorPulse?.theme_name || tape?.ai_lean?.dir)
+  const researchDate = intel?.asof && Number.isFinite(Date.parse(intel.asof))
+    ? `${pick(zh, "Research as of", "研究截至")} ${signalHistoryDate(intel.asof, zh)}${staleDays > 2 ? pick(zh, ` · ${staleDays} days old`, ` · ${staleDays}天前`) : ""}`
+    : pick(zh, "Research date unavailable", "研究日期不可用")
+  const researchContent = (<>
             {/* Research desk read — decision + conviction ring from the live cards schema.
                 Deliberately terse: the verdict line carries the read; blend/staleness mechanics
                 stay silent (they still shape the ring score) instead of rendering meta-copy. */}
@@ -638,14 +601,14 @@ export default function OracleDash({ sym, row, slice, intel, bars, zh = false, o
               <div className="sig-card">
                 <div className="sig-desk">
                   {/* D1: ring shows blended score when desk data is stale */}
-                  <ConvictionRing score={finalScore} zh={zh} />
+                  <div className={styles.score}><ConvictionRing score={finalScore} zh={zh} /><span>{pick(zh, "Adjusted research score", "调整后研究评分")}</span></div>
                   <div className="sig-desk-body">
                     <div className="sig-desk-verb" style={{ color: dv.color }}>
                       {aj?.verdict || dv.label}
                       {convBand && <span className="sig-desk-band">{convBand}</span>}
                     </div>
                     {typeof aj?.size_pct === "number" && aj.size_pct > 0 && (
-                      <div className="sig-desk-rank">{pick(zh, "Suggested size", "建议仓位")}: {sizePctDisplay(aj.size_pct)}%</div>
+                      <div className="sig-desk-rank">{pick(zh, "Research size suggestion", "研究仓位建议")}: {sizePctDisplay(aj.size_pct)}%</div>
                     )}
                     {/* Technical rating line — reconciles desk read with live price action */}
                     {techVerdict != null && techOverall != null && (
@@ -716,31 +679,18 @@ export default function OracleDash({ sym, row, slice, intel, bars, zh = false, o
 
             {/* Open full analysis link */}
             {onOpenFull && (
-              <button className="sd-full" onClick={onOpenFull}>
+              <button className="sd-full" onClick={() => { onClose?.(); onOpenFull?.() }}>
                 {pick(zh, "Open full analysis", "打开完整分析")} ›
               </button>
             )}
-          </div>
-        </section>
 
-        {/* ── Golden Oracle container (RIGHT on web, BOTTOM on mobile) ── */}
-        <section
-          className="sd-cont sd-go"
-          style={{ borderTopColor: ov.color, ["--vc" as any]: ov.color }}
-        >
-          <div className="sd-head">
-            <span className="sd-ic">{OracleStar}</span>
-            <span className="sd-lbl">{pick(zh, "Golden Oracle", "黄金神谕")}</span>
-            <button className="sd-x" onClick={onClose} aria-label={pick(zh, "Close", "关闭")}>×</button>
-          </div>
-          <div
-            className="sd-grab"
-            aria-hidden="true"
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-          />
-          <div className="sd-body">
-
+    {!hasResearch && <p className={styles.empty}>{pick(zh, "Research unavailable", "研究暂不可用")}</p>}
+    <details className={styles.method}><summary>{pick(zh, "How to read this assessment", "如何理解研究判断")}</summary>
+      <p>{pick(zh, "Research context is not an Oracle signal or an instruction to trade. The existing research score can be reduced for age or disagreement with the technical tape; it is not a probability of profit.", "研究背景并非神谕信号或交易指令。现有研究评分会因数据时效或技术面分歧而下调；它不是盈利概率。")}</p>
+      {convScore != null && <p>{pick(zh, "Source conviction", "原始信念评分")}: {convScore} / 100 · {pick(zh, "Adjusted", "调整后")}: {finalScore ?? "—"} / 100</p>}
+    </details>
+  </>)
+  const oracleContent = (<>
             {/* Golden Oracle scorecard — the hero always carries its date; a stance renders
                 smaller (descriptive posture) and a dim/undated event loses full saturation */}
             <div className="sig-card">
@@ -759,24 +709,7 @@ export default function OracleDash({ sym, row, slice, intel, bars, zh = false, o
                 {ov.line2 && (
                   <div className="od-vline2" title={ov.note || undefined}>{ov.line2}</div>
                 )}
-                <div className="od-stats">
-                  <div className="od-stat">
-                    <span className="od-stat-k">{pick(zh, "Win rate", "胜率")}</span>
-                    <span className="od-stat-v">{fmtPctLocal(wr, true)}</span>
-                  </div>
-                  <div className="od-stat">
-                    <span className="od-stat-k">{pick(zh, "Profit factor", "盈亏比")}</span>
-                    <span className="od-stat-v">{fmt2(pf)}</span>
-                  </div>
-                  <div className="od-stat">
-                    <span className="od-stat-k">{pick(zh, "CAGR", "年化收益")}</span>
-                    <span className="od-stat-v">{fmtPctLocal(cagr, true)}</span>
-                  </div>
-                  <div className="od-stat">
-                    <span className="od-stat-k">{pick(zh, "Trades", "交易次数")}</span>
-                    <span className="od-stat-v">{nTrades ?? "—"}</span>
-                  </div>
-                </div>
+
               </div>
               {/* conviction/band/size intentionally NOT repeated here — they are the Research
                   Desk card's read (left/top); this card is the signal engine's scorecard */}
@@ -828,6 +761,60 @@ export default function OracleDash({ sym, row, slice, intel, bars, zh = false, o
               <MarketRiskChip zh={zh} />
             </div>
 
+
+  </>)
+  return (
+    <dialog ref={dialogRef} className={styles.panel} aria-labelledby={`${id}-title`} aria-describedby={`${id}-description`}
+      onCancel={(event) => { event.preventDefault(); onClose?.() }}
+      onClick={(event) => {
+        if (event.target !== event.currentTarget) return
+        const rect = event.currentTarget.getBoundingClientRect()
+        if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) onClose?.()
+      }}>
+      <header className={styles.header}>
+        <div><p className={styles.eyebrow}>{sym}</p><h2 ref={titleRef} tabIndex={-1} id={`${id}-title`}>{pick(zh, "Stock Intelligence", "个股情报")}</h2></div>
+        <button type="button" className={styles.close} onClick={onClose} aria-label={pick(zh, "Close Stock Intelligence", "关闭个股情报")}>×</button>
+      </header>
+      <p className={styles.description} id={`${id}-description`}>{pick(zh, "Research, dated signals, and their historical track record.", "研究判断、有日期的信号与历史表现。")}</p>
+      <div className={styles.tabs} role="tablist" aria-label={pick(zh, "Intelligence views", "情报视图")}>
+        {tabs.map((label, index) => <button key={index} type="button" role="tab" id={`${id}-tab-${index}`} aria-controls={`${id}-panel`}
+          aria-selected={activeTab === index} tabIndex={activeTab === index ? 0 : -1} ref={(el) => { tabsRef.current[index] = el }}
+          onClick={() => selectTab(index)} onKeyDown={(event) => {
+            const next = event.key === "ArrowRight" ? (index + 1) % 4 : event.key === "ArrowLeft" ? (index + 3) % 4 : event.key === "Home" ? 0 : event.key === "End" ? 3 : null
+            if (next != null) { event.preventDefault(); event.stopPropagation(); selectTab(next, true) }
+          }}>{label}{index === 2 && sigs.length > 0 && <span className={styles.count}>{sigs.length}</span>}</button>)}
+      </div>
+      <div className={styles.body} ref={bodyRef} role="tabpanel" id={`${id}-panel`} aria-labelledby={`${id}-tab-${activeTab}`} tabIndex={0}>
+        {activeTab === 0 && <>
+          <div className={styles.overview}>
+            <section className={styles.read}>
+              <h3>{DeskGlyph}{pick(zh, "Research Desk", "研究台")}</h3>
+              <p className={styles.date}>{researchDate}</p>
+              <p className={styles.verdict} style={{ color: hasResearch ? dv.color : "var(--muted)" }}>{hasResearch ? dv.label : pick(zh, "Research unavailable", "研究暂不可用")}</p>
+              {aj?.verdict && <p className={styles.headline}>{aj.verdict}</p> // plain-language-ok: ai_judgment.verdict is source-authored research prose, not a state enum; preserve the full original assessment.
+              }
+              {convBand && <p className={styles.meta}>{convBand}</p>}
+              <button type="button" className={styles.link} onClick={() => selectTab(1, true)}>{pick(zh, "Explore research", "查看研究")} →</button>
+            </section>
+            <section className={styles.read}>
+              <h3>{OracleStar}{pick(zh, "Golden Oracle", "黄金神谕")}</h3>
+              <p className={styles.date}>{pick(zh, ov.stance ? "Model posture" : "Latest dated signal", ov.stance ? "模型状态" : "最新有日期的信号")}</p>
+              {oracleContent}
+              <button type="button" className={styles.link} onClick={() => selectTab(2, true)}>{pick(zh, "Explore signals", "查看信号")} →</button>
+            </section>
+          </div>
+          <section className={styles.evidence}>
+            <h3>{pick(zh, "Key drivers & cautions", "关键驱动与注意事项")}</h3>
+            <div className={styles.evidenceGrid}>
+              <div><h4>{pick(zh, "Supporting factors", "支持因素")}</h4>{drivers.length ? <ul>{drivers.map((d, i) => <li key={i}>{d}</li>)}</ul> : <p className={styles.meta}>{pick(zh, "No supporting factors supplied.", "暂无已提供的支持因素。")}</p>}</div>
+              <div className={styles.cautions}><h4>{pick(zh, "Cautions", "注意事项")}</h4>{cautions.length ? <ul>{cautions.map((c, i) => <li key={i}>{c}</li>)}</ul> : <p className={styles.meta}>{pick(zh, "No cautions supplied; this does not establish low risk.", "未提供注意事项并不代表低风险。")}</p>}</div>
+            </div>
+          </section>
+          <p className={styles.boundary}>{pick(zh, "These systems answer different questions. No combined score or trade recommendation is inferred.", "两个系统回答不同的问题；此处不推导合并评分或交易建议。")}</p>
+        </>}
+        {activeTab === 1 && <><p className={styles.date}>{researchDate}</p>{researchContent}</>}
+        {activeTab === 2 && <>
+          <p className={styles.boundary}>{pick(zh, "Dates show when a signal became known. Select a row to return to its chart bar. Candidate receipts remain separate from Oracle calls.", "日期表示信号何时变得可知。点击记录可返回相应图表K线。候选入选记录与神谕信号保持区分。")}</p>
             {opportunities.length > 0 && (
               <div className="od-sig-section" data-opportunity-receipts="1">
                 <div className="od-sec-h">
@@ -901,7 +888,7 @@ export default function OracleDash({ sym, row, slice, intel, bars, zh = false, o
                 </div>
               ) : (
                 <div className="sd-siglist">
-                  {sigs.map((sig, i) => {
+                  {sigs.slice(0, visibleSignals).map((sig, i) => {
                     // HK-O1: `blocked` (not `type`) decides whether this row is an entry — a
                     // regime-vetoed setup still types BUY/REBUY for back-compat, and it must
                     // never wear the buy pill or count as one in the list.
@@ -1004,12 +991,35 @@ export default function OracleDash({ sym, row, slice, intel, bars, zh = false, o
               )}
             </div>
 
-            {/* Equity curve */}
-            <BacktestCurve sym={sym} zh={zh} />
-          </div>
-        </section>
 
+          {visibleSignals < sigs.length && <button type="button" className={styles.more} onClick={() => setVisibleSignals((n) => n + 25)}>{pick(zh, "Show more", "显示更多")} · {Math.min(visibleSignals, sigs.length)} / {sigs.length}</button>}
+        </>}
+        {activeTab === 3 && <section className={styles.performance}>
+          <h3>{pick(zh, "Historical backtest", "历史回测")}</h3>
+          <p className={styles.boundary}>{pick(zh, "Historical performance is not a forecast. Read the trade count alongside every percentage; these figures do not measure today's signal confidence.", "历史表现不代表预测。请结合交易样本数量阅读百分比；这些指标不代表当前信号的置信度。")}</p>
+                <div className="od-stats">
+                  <div className="od-stat">
+                    <span className="od-stat-k">{pick(zh, "Win rate", "胜率")}</span>
+                    <span className="od-stat-v">{fmtPctLocal(wr, true)}</span>
+                  </div>
+                  <div className="od-stat">
+                    <span className="od-stat-k">{pick(zh, "Profit factor", "盈亏比")}</span>
+                    <span className="od-stat-v">{fmt2(pf)}</span>
+                  </div>
+                  <div className="od-stat">
+                    <span className="od-stat-k">{pick(zh, "CAGR", "年化收益")}</span>
+                    <span className="od-stat-v">{fmtPctLocal(cagr, true)}</span>
+                  </div>
+                  <div className="od-stat">
+                    <span className="od-stat-k">{pick(zh, "Trades", "交易次数")}</span>
+                    <span className="od-stat-v">{nTrades ?? "—"}</span>
+                  </div>
+                </div>
+          {nTrades != null && nTrades < 30 && <p className={styles.smallSample}>{pick(zh, "Small sample — interpret these results with caution.", "样本较少，请谨慎解读这些结果。")}</p>}
+          <BacktestCurve key={sym} sym={sym} zh={zh} />
+        </section>}
       </div>
-    </div>
+      <footer className={styles.footer}><span>{sym} · {pick(zh, "Research Desk · Golden Oracle", "研究台 · 黄金神谕")}</span><span>{pick(zh, "Esc to close", "按 Esc 关闭")}</span></footer>
+    </dialog>
   )
 }

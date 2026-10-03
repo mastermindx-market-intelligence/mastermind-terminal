@@ -1,0 +1,11 @@
+The CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.
+
+ RUN  v2.1.9 /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/stock-intelligence-20260917/terminal
+
+ ✓ lib/__tests__/signalVerdict.test.ts (107 tests) 57ms
+ ✓ lib/__tests__/stockIntelligence.test.tsx (18 tests) 378ms
+
+ Test Files  2 passed (2)
+      Tests  125 passed (125)
+   Start at  17:32:56
+   Duration  2.89s (transform 501ms, setup 0ms, collect 680ms, tests 435ms, environment 1.18s, prepare 367ms)
