@@ -9,7 +9,7 @@ import AlertDetail, { type AlertDetailData } from "./AlertDetail";
 import { NewAlertPanel } from "@/components/AlertsView";
 import {
   buildAlertsView, conditionText, conditionsWord, copy, verdictText, ALERTS_CHANGED_EVENT,
-  lanesForArmedAlerts, monitorFor, rowChipKey,
+  formatFiredAt, lanesForArmedAlerts, monitorFor, rowChipKey,
   type Alert, type ReadState, type RunReceipt, type OutboxRow,
 } from "@/lib/alertsView";
 import { useLang, useT } from "@/lib/i18n";
@@ -135,7 +135,7 @@ export default function AlertsCockpit({ email, children }: { email: string; chil
 
   const timelineRows: TimelineRow[] = view.rows.map((r) => {
     const alert = alerts?.find((a) => a.id === r.alertId);
-    const t = r.outboxRow?.payload?.fired_at ? new Date(r.outboxRow.payload.fired_at).toLocaleTimeString(L === "zh" ? "zh-CN" : "en-US", { hour: "2-digit", minute: "2-digit" }) : "—";
+    const t = formatFiredAt(r.outboxRow?.payload?.fired_at, L);
     // MO-PAID-047: thesis_condition outbox rows have no matching alerts entry.
     // Use the window-closed copy for these rows; do not show "falsifier" language.
     const isThesisRow = r.thesisId != null;
