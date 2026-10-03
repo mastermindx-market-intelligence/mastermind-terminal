@@ -1,4 +1,5 @@
 "use client";
+import { mtfPaneText } from "@/lib/mtfPaneCopy";
 
 import {
   useDeferredValue,
@@ -54,6 +55,9 @@ const CATS: Record<string, ClassicIndicator[]> = {
   Momentum: [
     { key: "rsi", label: "RSI" },
     { key: "stochrsi", label: "Stochastic RSI" },
+    { key: "mtfstoch", label: "MTF Stochastic (HLC)", tkey: "indMtfStoch" },
+    { key: "mtfmacd", label: "MTF MACD-RSI", tkey: "indMtfMacd" },
+    { key: "mtfconfluence", label: "MTF Momentum Confluence", tkey: "indMtfConfluence" },
   ],
   "Price Action": [{ key: "gaps", label: "Gap Zones" }],
   Volume: [
@@ -259,7 +263,7 @@ export default function IndicatorsModal({
     }
 
     for (const { item, category } of classicEntries) {
-      const label = item.tkey ? t(item.tkey, item.label) : item.label;
+      const label = item.tkey ? mtfPaneText(item.tkey, lang, t(item.tkey, item.label)) : item.label;
       documents.push({
         id: `classic:${item.key}`,
         primary: label,
@@ -430,7 +434,7 @@ export default function IndicatorsModal({
 
   const renderClassic = (item: ClassicIndicator, category: string) => {
     const on = active.has(item.key);
-    const label = item.tkey ? t(item.tkey, item.label) : item.label;
+    const label = item.tkey ? mtfPaneText(item.tkey, lang, t(item.tkey, item.label)) : item.label;
     return (
       <button
         type="button"

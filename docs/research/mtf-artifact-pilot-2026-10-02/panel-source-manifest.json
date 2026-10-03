@@ -1,0 +1,15 @@
+{
+  "ref": "2f5005168a7ef73e1d86ea7f651bfcd25b501510",
+  "files": [
+    {
+      "path": "signal_layer/mtf_panel.py",
+      "sha256": "b7abdf81001f04da7792a9510f3d5063c877536c5c021275989ff677d4335e58",
+      "git_blob": "1b428f506cd63a2432fd2a1b171f095143a7f38b"
+    },
+    {
+      "path": "tests/test_mtf_panel.py",
+      "sha256": "6fb67db795da74e0950f8d02ee74200ac4e37d40d27f3f2a4297a264cb02623e",
+      "git_blob": "eb5b713f14af41d78dcab6fe24382c810c40d965"
+    }
+  ]
+}

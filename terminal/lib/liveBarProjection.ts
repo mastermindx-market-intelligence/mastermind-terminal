@@ -24,6 +24,8 @@ export type LiveBarProjection =
   | "inplace-series"
   /** The key's own builder is re-run against the series it already owns (`runStudyInPlace`). */
   | "inplace-rebuild"
+  /** Closed-bar evidence: rebuilt only at normal data/rebuild boundaries, never on a developing tick. */
+  | "closed-bar-series"
   /** Holds no precomputed state: recomputed from `barsRef` by the overlay render pass. */
   | "render-pass"
   /** Nothing in it derives from the bars, so a bar mutation cannot change it. */
@@ -43,6 +45,11 @@ export const LIVE_BAR_PROJECTION: Record<IndKey, LiveBarProjection> = {
   rsi: "inplace-series",
   stochrsi: "inplace-series",
   macd: "inplace-series",
+  // MTF evidence is explicitly CLOSED-bar only. A developing RTH candle may move beside it,
+  // but a live mutation must never recompute or replace the last published closed state.
+  mtfconfluence: "closed-bar-series",
+  mtfstoch: "closed-bar-series",
+  mtfmacd: "closed-bar-series",
 
   // ── day-trade / premium studies: their builder is the single owner of both the math and the
   //    row→point mapping, so it is re-run against the series the key already owns ──
@@ -86,6 +93,29 @@ export const LIVE_INPLACE_SERIES_KEYS: ReadonlySet<IndKey> = new Set(
 export const LIVE_REBUILD_KEYS: IndKey[] = IND_ORDER.filter(
   (k) => LIVE_BAR_PROJECTION[k] === "inplace-rebuild",
 );
+
+/** Closed-bar series are never eligible for the developing-tick rebuild lane. */
+export const LIVE_CLOSED_BAR_KEYS: IndKey[] = IND_ORDER.filter(
+  (k) => LIVE_BAR_PROJECTION[k] === "closed-bar-series",
+);
+
+/**
+ * Does this quote explicitly prove that the named regular session is finished?
+ *
+ * US hub quotes carry a regular-session date plus session state, so post/overnight
+ * can prove completion of the just-finished bar. Tencent CN/HK ordinary quotes do
+ * not carry an equivalent completion state; absence is UNKNOWN, never permission
+ * to publish a provisional daily/3D value as closed evidence.
+ */
+export function regularSessionBarIsFinal(
+  q: { marketSession?: string | null; regularSessionDate?: string | null } | null | undefined,
+  market: string,
+  sessionDate: string | null,
+): boolean {
+  if (!q || !sessionDate || market !== "us") return false;
+  if (q.regularSessionDate !== sessionDate) return false;
+  return q.marketSession === "post" || q.marketSession === "overnight";
+}
 
 // ── series reuse: run a builder as its own update owner ───────────────────────────────────────
 // A study's builder both computes its projection and creates the series it draws into. On a live

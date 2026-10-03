@@ -1,0 +1,52 @@
+{
+  "repository": "mastermindx-market-intelligence/mastermind-terminal",
+  "ref": "804ed6754591eef508f1a667000608a8ab9167f9",
+  "purpose": "immutable research input copy, not authoring checkout",
+  "files": [
+    {
+      "path": "signal_layer/mtf_confluence.py",
+      "git_blob": "3f76237c43851a7a04002f91b5d05260d074172c",
+      "sha256": "a746dad3a75f61c02cafa634c9981711d7f58ee17c961d950eb84f50982674a5"
+    },
+    {
+      "path": "signal_layer/mtf_evaluation.py",
+      "git_blob": "5315898c4eb7f1e912ae1eb43d2c987b51dec811",
+      "sha256": "9339f7cf3a86154f89ebab4026f6fddbdb76149719aa49634f42234bb65caa55"
+    },
+    {
+      "path": "signal_layer/mtf_experiments.py",
+      "git_blob": "3e72504559377c0a791f12093eff556ca77c1be9",
+      "sha256": "2e2e54c64e7f60de1209345447253cfd3752ae0dab28285cf1119f524727d9df"
+    },
+    {
+      "path": "signal_layer/mtf_screener.py",
+      "git_blob": "4c82ce35e3e441a20909f6acaff1422f124782af",
+      "sha256": "359b5c9bf37e51457842544ad96a5a14dacf4c0bd5ecb262ec1d22af119adcca"
+    },
+    {
+      "path": "tests/test_mtf_confluence.py",
+      "git_blob": "608c7fa777252301ab816d3c04fba8dea88113ee",
+      "sha256": "19f4dba88e80d93e43bddbdc2939c78859d823c005ed357926df1a2b966bbaeb"
+    },
+    {
+      "path": "tests/test_mtf_evaluation.py",
+      "git_blob": "a85356a9366e7b6e4531417d6d4f788664cb395e",
+      "sha256": "0bba7a551a3b470eb9478c976a77f0af5f318583946bae063a7a71878a29c348"
+    },
+    {
+      "path": "tests/test_mtf_experiments.py",
+      "git_blob": "ab3d4d24d82fddcf190aa6bdbfb20875f9b60be1",
+      "sha256": "1657daa4dd88b7c1f52c19aab37ccdc11522251287515699be871f530e9ee4ca"
+    },
+    {
+      "path": "tests/test_mtf_screener.py",
+      "git_blob": "f9574de4f401ff4afc268d3a312b88e2447ee5ff",
+      "sha256": "5f4c3b6be9ef11d42b4b8308145bf3de2a983ddc5746f9075e40d591564959b4"
+    },
+    {
+      "path": "tests/mtf_momentum_golden.json",
+      "git_blob": "f48226dcde5057bf248869ea198b04db59dd6e69",
+      "sha256": "09a1e0e44fc8482be7cae213323c7ccaa9d880aa33d54dca21b3ce3a1f6a168e"
+    }
+  ]
+}

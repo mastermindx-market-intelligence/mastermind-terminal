@@ -1,4 +1,5 @@
 "use client";
+import { mtfPaneText } from "@/lib/mtfPaneCopy";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 // ── Boot-trace helper — mirrors the one in TerminalShell (?boottrace=1) ──────
@@ -64,6 +65,8 @@ import { isMacroSymbol, macroOnEtAxis } from "@/lib/macroSymbols";
 import { sessionVwap, openingRange, sessionLevels, pivotLevels, rvolSeries, ttmSqueeze, adx as calcAdx, cvdApprox, type Bar as IMBar, type DailyBar } from "@/lib/intradayMath";
 import { attachSessionShading, detachSessionShading, type SessionShadingPrimitive } from "@/lib/sessionShading";
 import { IND_DEFS, withDefaults, isIndKey } from "@/lib/indicators";
+import { momentumPoints, type MomentumPoint } from "@/lib/mtfMomentum";
+import { isMtfPaneKey, mtfKnownAt, mtfMetrics, projectMtfMetric, selectedMtfLanes, type MtfPaneKey } from "@/lib/mtfPaneProjection";
 import { flowGet, flowGetFresh } from "@/lib/flowClientCache";
 import { deriveOptLevels, sessionsOldEt, type OptLevelKey, type OptLevelsResult } from "@/lib/optionsLevels";
 import { computeSuite, resolveSuiteColors } from "@/lib/indicator-canvas/host";
@@ -87,7 +90,7 @@ import ChartTables from "@/components/ChartTables";
 import { crossUps, crossDowns, crossUpsBelow, crossDownsAbove } from "@/lib/crossSignals";
 import { SOFT_Q, anchorSignal, isBlockedSignal, isOverrideCandidate, isReclaimOverrideTake, isRetroOverride, isStopSweepReclaim, isStructureStop, isWaivedEntry, markerTooltipCopy, opportunityMarkerGlyph, sliceSignalBasis } from "@/lib/signalVerdict";
 import { makeNearestBarIndex } from "@/lib/barSnap";
-import { LIVE_BAR_PROJECTION, LIVE_INPLACE_SERIES_KEYS, LIVE_REBUILD_KEYS, acceptsLiveTick, liveQuoteStamp, seriesReuseChart, type AcceptedLiveTick } from "@/lib/liveBarProjection";
+import { LIVE_BAR_PROJECTION, LIVE_CLOSED_BAR_KEYS, LIVE_INPLACE_SERIES_KEYS, LIVE_REBUILD_KEYS, acceptsLiveTick, liveQuoteStamp, regularSessionBarIsFinal, seriesReuseChart, type AcceptedLiveTick } from "@/lib/liveBarProjection";
 import { dailyMultipleOf, groupSessionBars, parseSessionAnchor, resolveBarAnchor,
   sessionToBarTime, type SessionAnchor } from "@/lib/sessionBars";
 import { ichimoku, supertrend, avwap as computeAvwap, rollingVwap, weekAnchoredVwap, vprofile, volbox, rsiStack, accumPct, trendRibbon, buyShare as mfBuyShare } from "@/lib/indicatorMath";
@@ -543,7 +546,7 @@ const withAlpha = (col: string, a: number): string => {
 // ── the canonical sub-pane order (parity with the base's sequential pane assignment) ──
 // overlays (ema/bb/vwap/vol + new DT overlays) always live in pane 0.
 // every sub-pane indicator gets its OWN pane (rsi and stochrsi were formerly a shared "osc" pane).
-const SUBPANE_ORDER = ["rsi", "stochrsi", "macd", "rsistack", "accum", "rvol", "ttmsq", "adx", "cvd"] as const;
+const SUBPANE_ORDER = ["rsi", "stochrsi", "macd", "mtfstoch", "mtfmacd", "mtfconfluence", "rsistack", "accum", "rvol", "ttmsq", "adx", "cvd"] as const;
 
 // Bases that carry a fresher-than-EOD price we can splice onto the last daily bar.
 const SPLICE_BASES = new Set(["REALTIME", "LIVE", "DELAYED_15M"]);
@@ -631,7 +634,70 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   const pineSeriesRef = useRef<Map<string, ISeriesApi<any>[]>>(new Map());   // scriptId → its series (all panes)
   const pineMarkersRef = useRef<Map<string, ISeriesMarkersPluginApi<any>>>(new Map()); // scriptId → its markers plugin
   const ttmsqMarkersRef = useRef<ISeriesMarkersPluginApi<any> | null>(null); // ttmsq squeeze-tier dots plugin
-  const macdMarkersRef = useRef<ISeriesMarkersPluginApi<any> | null>(null);  // TH_RSIMACD+ crossover dots plugin (on the MACD-RSI line series)
+  const macdMarkersRef = useRef<ISeriesMarkersPluginApi<any> | null>(null);
+  // Per-pane source cache: adding the second raw pane reuses indicator math rather
+  // than recalculating five full histories. Source corrections and anchor changes invalidate it.
+  const mtfSourceCacheRef = useRef<{
+    daily: Bar[]; anchor: string; provisional: boolean;
+    lanes: Map<string, { points: MomentumPoint[]; knownAt: (string | null)[] }>;
+  } | null>(null);
+  const buildMtfPane = (chart: IChartApi, rows: Bar[], pane: number, key: MtfPaneKey): ISeriesApi<any>[] => {
+    const daily = dailyBarsRef.current;
+    if (!daily.length || isIntradayRef.current) return [];
+    const p = P(key), times = daily.map((r) => String(r.time));
+    const targets = rows.map((r) => String(r.closeTime ?? r.time));
+    const provisionalDate = liveSplicedDailyDateRef.current;
+    const provisional = provisionalDate != null && times[times.length - 1] === provisionalDate
+      && !regularSessionBarIsFinal(liveQuoteRef.current, classify(symbolRef.current), provisionalDate);
+    const anchor = anchorKey(sessionAnchorRef.current);
+    let cache = mtfSourceCacheRef.current;
+    if (!cache || cache.daily !== daily || cache.anchor !== anchor || cache.provisional !== provisional) {
+      cache = { daily, anchor, provisional, lanes: new Map() };
+      mtfSourceCacheRef.current = cache;
+    }
+    const metrics = mtfMetrics(key, p.showSignal === true);
+    const out: ISeriesApi<any>[] = [];
+    for (const lane of selectedMtfLanes(p)) {
+      let source = cache.lanes.get(lane.tf);
+      if (!source) {
+        const src = lane.tf === "D" ? daily : resampleTf(daily, lane.tf, sessionAnchorRef.current);
+        source = { points: momentumPoints(src), knownAt: mtfKnownAt(src, lane.tf, times,
+          resolveBarAnchor(times, sessionAnchorRef.current), provisional) };
+        cache.lanes.set(lane.tf, source);
+      }
+      for (const metric of metrics) {
+        const signal = metric === "stochD" || metric === "rsiSignal";
+        const suffix = metric === "stochK" ? " %K" : metric === "stochD" ? " %D"
+          : metric === "rsiMacd" ? " MACD-RSI" : metric === "rsiSignal" ? " Signal" : "";
+        const line = chart.addSeries(LineSeries, {
+          color: p[lane.color], lineWidth: p.width as any,
+          lineStyle: signal ? LineStyle.Dashed : LineStyle.Solid,
+          lastValueVisible: true, priceLineVisible: false, title: axTitle(lane.tf + suffix),
+          priceFormat: { type: "price", precision: 2, minMove: 0.01 },
+          autoscaleInfoProvider: key === "mtfmacd" ? (original: () => any) => {
+            const info = original();
+            return info ? { ...info, priceRange: {
+              minValue: Math.min(0, info.priceRange.minValue), maxValue: Math.max(0, info.priceRange.maxValue),
+            } } : null;
+          } : () => ({ priceRange: { minValue: 0, maxValue: 100 } }),
+        } as any, pane);
+        line.setData(toLine(rows, projectMtfMetric(source.points, source.knownAt, targets, metric).map((v) => v.value)));
+        out.push(line);
+      }
+    }
+    // An explicitly empty selection retains a real empty pane, never a silent D fallback.
+    if (!out.length) {
+      const empty = chart.addSeries(LineSeries, { title: mtfPaneText("mtfSelectHorizon"),
+        lastValueVisible: false, priceLineVisible: false } as any, pane);
+      empty.setData([]); out.push(empty);
+    } else {
+      const guides = key === "mtfmacd" ? [0] : key === "mtfstoch" ? [20, 50, 80] : [30, 50, 70];
+      for (const price of guides) out[0].createPriceLine({ price, color: "rgba(214,218,227,.18)",
+        lineWidth: 1, lineStyle: LineStyle.Dashed, axisLabelVisible: false });
+    }
+    return out;
+  };
+  // TH_RSIMACD+ crossover dots plugin (on the MACD-RSI line series)
   const pinePaneMapRef = useRef<Map<string, number>>(new Map());             // sub-pane scriptId → pane index (overlay scripts absent)
   const pineErrRef = useRef<Map<string, string>>(new Map());                 // scriptId → error text (surfaced in the legend)
   const pineCacheRef = useRef<Map<string, { key: string; result: RunResult | null; error: string | null }>>(new Map()); // memo: scriptId → last run
@@ -656,6 +722,10 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   const barsRef = useRef<Bar[]>([]);        // the bars currently ON the chart (full OR replay-sliced)
   const fullBarsRef = useRef<Bar[]>([]);    // the full resampled history — NEVER mutated by replay
   const dailyBarsRef = useRef<Bar[]>([]);   // the raw DAILY source (pre-resample) — the R11 splice operates here
+  // Session whose tail in dailyBarsRef was synthesized/patched by the live splice rather than
+  // loaded from the canonical daily document. Null means the current daily tail is source data
+  // (or an explicitly finalized live session), so closed-only studies may consume it normally.
+  const liveSplicedDailyDateRef = useRef<string | null>(null);
   // The published 2D/3D session anchor for the symbol currently on the chart, and the identity of
   // the OHLC document it arrived on. The anchor phases the daily-multiple grid onto the SAME bars
   // the Golden Oracle computed its 3D signals on (lib/sessionBars.ts); the source token is what
@@ -1267,7 +1337,13 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   // and re-read on the Up/Down flip (Effect 5); the literals cover only the pre-mount window.
   const dirUp = () => tokensRef.current.up || "#26c281";
   const dirDown = () => tokensRef.current.down || "#f0566b";
-  const labelOf = (k: string) => (isIndKey(k) ? IND_DEFS[k].label : k);
+  const labelOf = (k: string) => {
+    if (!isIndKey(k)) return k;
+    const def = IND_DEFS[k], name = def.tkey ? mtfPaneText(def.tkey, undefined, tPlain(def.tkey, def.label)) : def.label;
+    if (!isMtfPaneKey(k)) return name;
+    return selectedMtfLanes(P(k)).length ? `${name} · ${mtfPaneText("mtfClosedBars")}`
+      : `${name} · ${mtfPaneText("mtfSelectHorizon")}`;
+  };
 
   // ── indicator builders (param-driven; params flow from the Settings dialog via indParams) ──
   // Each returns the list of ISeriesApi it created, tracked in indSeriesRef under its indKey.
@@ -2083,6 +2159,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     if (inds.has("rsi")) out.push("rsi");
     if (inds.has("stochrsi")) out.push("stochrsi");
     if (inds.has("macd")) out.push("macd");
+    for (const key of ["mtfstoch", "mtfmacd", "mtfconfluence"]) if (inds.has(key)) out.push(key);
     if (inds.has("rsistack")) out.push("rsistack");
     if (inds.has("accum")) out.push("accum");
     // DT sub-panes (intraday-only gating at build time, not here)
@@ -2453,6 +2530,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       if (key === "rsi") series = buildRsiPane(chart, rows, closes, pane);
       else if (key === "stochrsi") series = buildStochRsiPane(chart, rows, closes, pane);
       else if (key === "macd") series = buildMacd(chart, rows, closes, pane);
+      else if (isMtfPaneKey(key)) series = buildMtfPane(chart, rows, pane, key);
       else if (key === "rsistack") series = buildRsiStack(chart, rows, pane);
       else if (key === "accum") series = buildAccum(chart, rows, pane);
       else if (key === "rvol") series = buildRvol(chart, rows, pane);
@@ -2924,7 +3002,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
    * symbol-guarded consumer (splice, options levels, drawings) that this pane is unpainted.
    */
   const clearChartData = () => {
-    barsRef.current = []; fullBarsRef.current = []; dailyBarsRef.current = []; closesRef.current = [];
+    barsRef.current = []; fullBarsRef.current = []; dailyBarsRef.current = []; liveSplicedDailyDateRef.current = null; closesRef.current = [];
     barIdxRef.current = { src: null, map: new Map() };
     sliceRef.current = null; sigMarksRef.current = []; earlyDotsRef.current = []; warnMarksRef.current = [];
     chartDataSymRef.current = "";
@@ -3000,6 +3078,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       else if (key === "ttmsq") buildTtmsq(facade, rows, pane);
       else if (key === "adx") buildAdx(facade, rows, pane);
       else if (key === "cvd") buildCvd(facade, rows, pane);
+      else if (isMtfPaneKey(key)) buildMtfPane(facade, rows, pane, key);
       else if (isSuiteKeyReg(key)) buildSuitePane(facade, rows, key, pane);
       else return false;
       liveStudyFailRef.current.delete(key);
@@ -3026,6 +3105,18 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     for (const key of paneSuiteKeys()) if (indSeriesRef.current.has(key)) runStudyInPlace(key, rows, closes);
   };
 
+  /** Advance closed-only studies only when the quote lane explicitly proves session finality. */
+  const refreshClosedBarStudies = (rows: Bar[], closes: number[]) => {
+    if (!indSeriesRef.current.size || !rows.length) return;
+    const q = liveQuoteRef.current;
+    const market = classify(symbolRef.current);
+    const sd = sessionDateOf(q?.ts, market);
+    if (!regularSessionBarIsFinal(q, market, sd)) return;
+    for (const key of LIVE_CLOSED_BAR_KEYS) {
+      if (indSeriesRef.current.has(key)) runStudyInPlace(key, rows, closes);
+    }
+  };
+
   // ── THE live-bar derivation boundary ──────────────────────────────────────────────────────────
   // One accepted bar mutation → one bar generation → every consumer that follows the developing bar,
   // in one settled pass. Both accept paths (daily/resampled splice, intraday candle) end here, so a
@@ -3050,6 +3141,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // 1. series that own a cached derivation of the bars
     updateAllIndicators(rows, closes);
     refreshLiveStudies(rows, closes);
+    refreshClosedBarStudies(rows, closes);
     // 2. the numeric projection behind Chart Table / visual intelligence (also republishes indRowsAt)
     buildIndDataMap(rows, closes);
     // 3. status line, verdict chip, price tag, signal marks
@@ -3161,6 +3253,10 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // gap-zone memo (keyed on this array's identity) recomputes — else a gap formed by
     // today's developing bar stays invisible until the next full data reload.
     dailyBarsRef.current = spliced;
+    // Track whether this tail is still provisional. Explicit US post/overnight finality clears
+    // the marker immediately; CN/HK clear on the next canonical daily-data load because their
+    // ordinary Tencent quote shape carries no equivalent completion state.
+    liveSplicedDailyDateRef.current = regularSessionBarIsFinal(q, market, sd) ? null : sd;
     // R11: reuse the EXISTING final-bucket time key unless the spliced daily date GENUINELY starts a
     // new bucket (e.g. a fresh ISO week / month). A CALENDAR bucket is keyed by its last daily date,
     // so a mid-week splice re-stamps it forward past the on-chart key and update() would APPEND a
@@ -8567,7 +8663,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         sessionAnchorRef.current = null; ohlcSrcRef.current = null;   // daily-multiple grid does not apply here
         sigMarksRef.current = [];
         earlyDotsRef.current = []; warnMarksRef.current = [];   // GC v2 side channels: daily-only too
-        dailyBarsRef.current = [];               // splice is daily-only; disable it here
+        dailyBarsRef.current = []; liveSplicedDailyDateRef.current = null; // splice is daily-only; disable it here
         if (!bars.length) {
           clearChartData();   // never leave the previous symbol's series under this symbol's badge
           // Differentiate a feed/entitlement/config failure ("POLYGON_API_KEY not set", "polygon 403",
@@ -8709,7 +8805,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         // …and the document's own bars array is the aggregation memo's generation token.
         ohlcSrcRef.current = ohlc.bars;
       }
-      dailyBarsRef.current = daily;         // raw daily source — the R11 splice operates on THIS
+      dailyBarsRef.current = daily; liveSplicedDailyDateRef.current = null; // canonical daily source replaces any provisional live tail
       // ── PERF-FIX (b): use cached resample; same-symbol TF switches skip the O(N) bucketing pass ──
       let rows: Bar[] = resampleTfCached(daily, effectiveTimeframe, symbol,
         ohlcSrcRef.current, sessionAnchorRef.current);
@@ -8988,6 +9084,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         else if (a === "ttmsq") series = buildTtmsq(chart, rows, pane);
         else if (a === "adx") series = buildAdx(chart, rows, pane);
         else if (a === "cvd") series = buildCvd(chart, rows, pane);
+        else if (isMtfPaneKey(a)) series = buildMtfPane(chart, rows, pane, a);
         else if (isSuiteKeyReg(a)) series = buildSuitePane(chart, rows, a, pane);
         series = keepIndicatorPaneAxisLabelsOnly(series);
         indSeriesRef.current.set(a, series);

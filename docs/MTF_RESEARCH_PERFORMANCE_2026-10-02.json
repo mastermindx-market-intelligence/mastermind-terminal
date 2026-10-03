@@ -1,0 +1,46 @@
+{
+  "classification": "LOCAL_SYNTHETIC_MICROBENCHMARK_NOT_PRODUCTION_OR_MARKET_PERFORMANCE",
+  "baseline_commit": "05f25cd0bf0feb535464245e57ef1fb0546ddd40",
+  "sessions": 6000,
+  "measurements_per_case": 1,
+  "before_seconds": {
+    "features": 0.06604977500001041,
+    "outcomes21": 0.342557491999969,
+    "snapshot": 0.44978554199997234
+  },
+  "after_seconds": {
+    "features": 0.06325161499989918,
+    "outcomes21": 0.008027901999867026,
+    "snapshot": 0.10255518700000721
+  },
+  "randomized_exact_frame_comparisons": 18,
+  "comparison_dimensions": {
+    "history_lengths": [
+      1,
+      2,
+      5,
+      21,
+      100,
+      1000
+    ],
+    "cost_bps_per_side": [
+      0,
+      5,
+      25
+    ],
+    "horizons": [
+      1,
+      5,
+      21,
+      63
+    ]
+  },
+  "pytest": {
+    "passed": 85,
+    "skipped": 1,
+    "skip_reason": "Repository NVDA artifact is absent from the reduced sandbox checkout"
+  },
+  "cli_pre_post_byte_identity_sha256": "8c457a5fe29c4dff83ff4095836b330140ff3b50775d19f2e8151f9ef1d4119f",
+  "streaming_regression": "failed before repair; passed after repair",
+  "scope": "Four research modules and their tests only; no chart, Oracle, production publisher or execution changes."
+}
