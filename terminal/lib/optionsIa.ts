@@ -7,6 +7,7 @@ export const OPTIONS_CATEGORY_KEYS = [
   "structure",
   "volatility",
   "statistics",
+  "plan",
   "prophet",
 ] as const;
 
@@ -19,19 +20,23 @@ export interface OptionsIaView {
   /** Stable `?tab=` value. Legacy aliases remain read-compatible in OptionsWorkspace. */
   pageKey: string;
   labelKey: string;
+  enLabel?: string;
+  zhLabel?: string;
 }
 
 export interface OptionsIaCategory {
   key: OptionsCategoryKey;
   labelKey: string;
+  enLabel?: string;
+  zhLabel?: string;
   defaultView: OptionsWorkspaceViewKey;
   views: readonly OptionsIaView[];
 }
 
 /**
- * R5 Stage A is presentation-only: every existing Options pane keeps its component,
- * payload, and authority contract while the flat rail becomes the seven-category IA.
- * Statistics has no child view until its separately-gated R3 publisher exists.
+ * The categorized IA preserves every existing Options pane and adds one deterministic
+ * Plan surface. Statistics still has no child view until its separately-gated publisher
+ * exists; Payoff Lab owns no feed, pricing, probability, order, or signal authority.
  */
 export const OPTIONS_IA_CATEGORIES = [
   {
@@ -89,6 +94,16 @@ export const OPTIONS_IA_CATEGORIES = [
     views: [],
   },
   {
+    key: "plan",
+    labelKey: "optionsCategoryPlan",
+    enLabel: "Plan",
+    zhLabel: "计划",
+    defaultView: "payoff",
+    views: [
+      { key: "payoff", pageKey: "payoff", labelKey: "wtPayoff", enLabel: "Payoff Lab", zhLabel: "到期收益" },
+    ],
+  },
+  {
     key: "prophet",
     labelKey: "optionsCategoryProphet",
     defaultView: "prophet",
@@ -117,6 +132,7 @@ export const OPTIONS_CATEGORY_BY_VIEW: Record<OptionsWorkspaceViewKey, OptionsCa
   structure: "structure",
   volatility: "volatility",
   statistics: "statistics",
+  payoff: "plan",
   prophet: "prophet",
 };
 
@@ -127,7 +143,8 @@ export const OPTIONS_IA_BY_CATEGORY: Record<OptionsCategoryKey, OptionsIaCategor
   structure: OPTIONS_IA_CATEGORIES[3],
   volatility: OPTIONS_IA_CATEGORIES[4],
   statistics: OPTIONS_IA_CATEGORIES[5],
-  prophet: OPTIONS_IA_CATEGORIES[6],
+  plan: OPTIONS_IA_CATEGORIES[6],
+  prophet: OPTIONS_IA_CATEGORIES[7],
 };
 
 export const OPTIONS_IA_VIEW_BY_KEY = Object.fromEntries(
