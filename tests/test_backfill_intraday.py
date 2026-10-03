@@ -114,7 +114,14 @@ _SITECUSTOMIZE = textwrap.dedent(
                 {},
                 None,
             )
-        payload = json.dumps({"status": "OK", "results": []}).encode()
+        results = []
+        if _mode == "bars":
+            # The 30 bars make_child_store() seeds, plus one newer bar: what the vendor
+            # returns for a window that holds the store's own last bars.
+            results = [{"t": (1_700_000_040 + 18_000 + i * 3600) * 1000, "o": 100 + i,
+                        "h": 105 + i, "l": 99 + i, "c": 101 + i, "v": 1000}
+                       for i in range(31)]
+        payload = json.dumps({"status": "OK", "results": results}).encode()
         return _FakeResp(payload)
 
     urllib.request.urlopen = _fake_urlopen
@@ -167,6 +174,32 @@ def make_store(path: Path, sym: str, tf: str, n: int = 30) -> None:
     doc = {"t": sym, "tf": tf, "src": "polygon", "bar_quality": "real_ohlc",
            "asof": rows[-1][0], "bars": rows}
     path.write_text(json.dumps(doc, separators=(",", ":")))
+
+
+def make_child_store(path: Path, sym: str, tf: str, n: int = 30) -> None:
+    """A store whose bars are the first n bars the shim's "bars" mode returns."""
+    rows = [[1_700_000_040 + i * 3600, 100 + i, 105 + i, 99 + i, 101 + i, 1000]
+            for i in range(n)]
+    doc = {"t": sym, "tf": tf, "src": "polygon", "bar_quality": "real_ohlc",
+           "asof": rows[-1][0], "bars": rows}
+    path.write_text(json.dumps(doc, separators=(",", ":")))
+
+
+def _with_overlap(fake):
+    """Make a fetch fake answer a refresh the way the vendor does.
+
+    A refresh asks for a window that starts before the store's last bar, so a real
+    answer always re-reads the store's own last bars.  This prepends them to whatever
+    the fake returns for a refresh; a full fetch (frm is None) is passed through.
+    """
+    def wrapped(sym, tf, frm=None, **kwargs):
+        rows = fake(sym, tf, frm=frm, **kwargs)
+        if frm is None or not rows:
+            return rows
+        old, _asof = mod.load_store(sym, tf)
+        seen = {r[0] for r in rows}
+        return [r for r in old[-6:] if r[0] not in seen] + rows
+    return wrapped
 
 
 # -----------------------------------------------------------------------------------------------
@@ -549,14 +582,24 @@ def test_backfill_existing_only_before_coverage_index():
 
 
 def test_backfill_existing_only_weekday_gated():
-    import re
-    body = NIGHTLY.read_text()
-    # Should have a UTC weekday check around the invocation
-    assert re.search(r"\$\(date -u \+%u\)", body), (
-        "Missing UTC weekday check for backfill_intraday --existing-only"
-    )
-    # The check should gate it (u <= 5 is Mon-Fri)
-    assert re.search(r"if\s+.*\$\(date -u \+%u\).* -le.*5", body)
+    lines = NIGHTLY.read_text().splitlines()
+    # The weekday is read ONCE, when the run starts.  The refresh step is reached hours
+    # later, after midnight UTC, and a weekday read there skips every Friday session.
+    captures = [i for i, line in enumerate(lines) if line.strip() == 'RUN_DOW="$(date -u +%u)"']
+    assert len(captures) == 1
+    start = next(i for i, line in enumerate(lines) if "=== terminal refresh start" in line)
+    assert captures[0] < start
+    step = next(i for i, line in enumerate(lines) if INTRADAY_CMD in line)
+    opener = max(i for i in range(step) if lines[i].startswith("if "))
+    assert lines[opener] == 'if [ "$RUN_DOW" -le "5" ]; then'
+    assert captures[0] < opener
+
+
+def test_backfill_existing_only_step_has_a_time_limit():
+    """A stalled vendor must not hold the nightly lock: the step is killed after 90 minutes."""
+    lines = NIGHTLY.read_text().splitlines()
+    steps = [line.strip() for line in lines if INTRADAY_CMD in line]
+    assert steps == ["if timeout -k 60 90m " + INTRADAY_CMD + "; then"]
 
 
 def test_backfill_existing_only_not_in_manifest_dependency():
@@ -593,7 +636,7 @@ def test_update_reports_rows_dropped_by_retention(intraday_env, monkeypatch, cap
         base = rows[-1][0]
         return [[base + 3600 * (i + 1), 10.0, 11.0, 9.0, 10.5, 100] for i in range(3)]
 
-    with patch.object(mod, "fetch_polygon_intraday", fake_fetch):
+    with patch.object(mod, "fetch_polygon_intraday", _with_overlap(fake_fetch)):
         mod.main(["--existing-only", "--tf", "1h", "--workers", "1"])
     out = capsys.readouterr().out
     doc = json.loads((intraday_env / f"{sym}.{tf}.json").read_text())
@@ -609,7 +652,7 @@ def test_update_under_cap_reports_zero_dropped(intraday_env, monkeypatch, capsys
     def fake_fetch(s, t, frm=None, **kwargs):
         return [[1_800_000_000, 10.0, 11.0, 9.0, 10.5, 100]]
 
-    with patch.object(mod, "fetch_polygon_intraday", fake_fetch):
+    with patch.object(mod, "fetch_polygon_intraday", _with_overlap(fake_fetch)):
         mod.main(["--existing-only", "--tf", "1h", "--workers", "1"])
     out = capsys.readouterr().out
     assert "retention:" not in out
@@ -820,7 +863,7 @@ def test_main_dedupes_duplicate_jobs(intraday_env, monkeypatch):
         calls.append(sym)
         return [[1_800_000_000, 10.0, 11.0, 9.0, 10.5, 100]]
 
-    with patch.object(mod, "fetch_polygon_intraday", fake_fetch):
+    with patch.object(mod, "fetch_polygon_intraday", _with_overlap(fake_fetch)):
         mod.main(["--existing-only", "--tf", "5m,5m", "--workers", "1"])
     assert calls == ["DED"]
 
@@ -843,7 +886,7 @@ def test_summary_line_has_all_counters(intraday_env, monkeypatch, capsys):
     def fake_fetch(sym, tf, frm=None, **kwargs):
         return [[1_800_000_000, 10.0, 11.0, 9.0, 10.5, 100]]
 
-    with patch.object(mod, "fetch_polygon_intraday", fake_fetch):
+    with patch.object(mod, "fetch_polygon_intraday", _with_overlap(fake_fetch)):
         mod.main(["--existing-only", "--tf", "5m", "--workers", "1"])
     out = capsys.readouterr().out
     pat = (
@@ -952,7 +995,7 @@ def test_main_returns_exit_ok_when_no_store_fails(intraday_env, monkeypatch, cap
     def fake_fetch(sym, tf, frm=None, **kwargs):
         return [[1_800_000_000, 10.0, 11.0, 9.0, 10.5, 100]]
 
-    with patch.object(mod, "fetch_polygon_intraday", fake_fetch):
+    with patch.object(mod, "fetch_polygon_intraday", _with_overlap(fake_fetch)):
         rc = mod.main(["--existing-only", "--tf", "1h", "--workers", "1"])
     out = capsys.readouterr().out
     assert rc == 0
@@ -970,7 +1013,7 @@ def test_main_returns_1_when_any_store_fails_and_summary_carries_the_count(
             raise RuntimeError("boom")
         return [[1_800_000_000, 10.0, 11.0, 9.0, 10.5, 100]]
 
-    with patch.object(mod, "fetch_polygon_intraday", fake_fetch):
+    with patch.object(mod, "fetch_polygon_intraday", _with_overlap(fake_fetch)):
         rc = mod.main(["--existing-only", "--tf", "1h", "--workers", "2"])
     out = capsys.readouterr().out
     assert rc == 1
@@ -1004,13 +1047,13 @@ def test_exit_constants_are_the_documented_literals():
 
 
 def test_child_backfill_runs_as_python_module_main(intraday_env):
-    make_store(intraday_env / "ONE.1h.json", "ONE", "1h", n=30)
+    make_child_store(intraday_env / "ONE.1h.json", "ONE", "1h", n=30)
     proc = _run_child_backfill(
         intraday_env.parent,
         ["--existing-only", "--tf", "1h", "--workers", "1"],
-        net_mode="ok",
+        net_mode="bars",
     )
-    assert proc.returncode == 0
+    assert proc.returncode == 0, proc.stdout
     assert "intraday refresh --existing-only" in proc.stdout
 
 
@@ -1071,13 +1114,34 @@ def test_child_runner_fails_when_shim_is_absent(tmp_path):
 
 
 def test_child_process_exits_0_on_clean_run(intraday_env):
-    make_store(intraday_env / "OK.1h.json", "OK", "1h", n=30)
+    make_child_store(intraday_env / "OK.1h.json", "OK", "1h", n=30)
+    proc = _run_child_backfill(
+        intraday_env.parent,
+        ["--existing-only", "--tf", "1h", "--workers", "4"],
+        net_mode="bars",
+    )
+    assert proc.returncode == 0, proc.stdout
+    assert "1/1 stored" in proc.stdout
+    assert _summary_failed_count(proc.stdout) == 0
+    doc = json.loads((intraday_env / "OK.1h.json").read_text())
+    assert len(doc["bars"]) == 31
+    assert doc["asof"] == 1_700_000_040 + 30 * 3600
+
+
+def test_child_process_exits_1_when_every_refetch_is_empty(intraday_env):
+    """A refetch window always holds the store's last bar; an empty answer is a failure."""
+    path = intraday_env / "OK.1h.json"
+    make_child_store(path, "OK", "1h", n=30)
+    before = path.read_bytes()
     proc = _run_child_backfill(
         intraday_env.parent,
         ["--existing-only", "--tf", "1h", "--workers", "4"],
         net_mode="ok",
     )
-    assert proc.returncode == 0
+    assert proc.returncode == 1, proc.stdout
+    assert "EmptyOverlap" in proc.stdout
+    assert _summary_failed_count(proc.stdout) == 1
+    assert path.read_bytes() == before
 
 
 def test_child_process_exits_2_when_no_stores_exist(tmp_path):
@@ -1101,7 +1165,7 @@ def test_unreadable_existing_store_prints_a_named_failed_line(
     def fake_fetch(sym, tf, frm=None, **kwargs):
         return [[1_800_000_000, 10.0, 11.0, 9.0, 10.5, 100]]
 
-    with patch.object(mod, "fetch_polygon_intraday", fake_fetch):
+    with patch.object(mod, "fetch_polygon_intraday", _with_overlap(fake_fetch)):
         rc = mod.main(["--existing-only", "--tf", "1h", "--workers", "4"])
     out = capsys.readouterr().out
     assert rc == 1
