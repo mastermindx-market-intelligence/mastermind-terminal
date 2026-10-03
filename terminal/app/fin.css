@@ -1397,3 +1397,62 @@
    section-title step. Colour/uppercase stay on the base rules. */
 .fin-tx-crumb{font:700 var(--fs-micro)/1 var(--font-ui);letter-spacing:.14em}
 .fin-tx-title{font:650 var(--fs-title)/1.25 var(--font-ui);letter-spacing:-.01em}
+
+
+/* Research Workspace · Overview vNext (CEA-1) — first-frame hierarchy only. */
+.fin-overview-snapshot{display:grid;gap:12px;padding:14px 15px;border:1px solid color-mix(in srgb,var(--brand) 17%,var(--hairline));border-radius:var(--r-card);background:linear-gradient(105deg,color-mix(in srgb,var(--brand) 5%,var(--panel)),var(--panel));box-shadow:var(--shadow-card)}
+.fin-overview-snapshot-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px}
+.fin-overview-snapshot-head>div{display:grid;gap:5px;min-width:0}
+.fin-overview-snapshot-head h2{margin:0;color:var(--text);font:670 17px/1.2 var(--font-ui);letter-spacing:-.02em}
+.fin-overview-snapshot-clock{flex:none;color:var(--muted);font:520 8.5px/1.25 var(--font-ui);text-align:right}
+.fin-overview-kpis{grid-template-columns:repeat(7,minmax(0,1fr));gap:0;border:1px solid var(--line);border-radius:var(--r-tile);overflow:hidden}
+.fin-overview-kpis .fin-kpi{min-height:72px;border:0;border-right:1px solid var(--line);border-radius:0;background:var(--panel-2);box-shadow:none}
+.fin-overview-kpis .fin-kpi:last-child{border-right:0}
+.fin-overview-kpis .fin-kpi .v{font-size:17px}
+.fin-overview-kpis .fin-kpi .v.txt{font:620 10px/1.25 var(--font-ui)}
+.fin-overview-about{display:grid;grid-template-columns:100px minmax(0,1fr);gap:14px;padding-top:10px;border-top:1px solid var(--line-2)}
+.fin-overview-about-head{display:grid;align-content:start;gap:3px}
+.fin-overview-about-head strong{color:var(--text-2);font:650 10px/1.2 var(--font-ui)}
+.fin-overview-about-head span{color:var(--muted);font:500 8px/1.2 var(--font-ui)}
+.fin-overview-about .fin-about{margin:0}
+.fin-overview-mid>.fin-grid2{gap:10px}
+.fin-overview-card{min-height:214px}
+.fin-overview-card-h{justify-content:space-between}
+.fin-overview-card-h small{color:var(--muted);font:520 8px/1 var(--font-ui);font-weight:500}
+.fin-overview-valuation-grid{display:grid;grid-template-columns:190px minmax(0,1fr);gap:10px;margin-bottom:10px}
+.fin-overview-valuation-current{display:grid;align-content:start;gap:11px}
+.fin-overview-current-kicker{color:var(--brand-2);font:740 8.5px/1 var(--font-ui);letter-spacing:.1em}
+.fin-overview-current-pe{display:grid;gap:4px}
+.fin-overview-current-pe strong{color:var(--text);font:700 27px/1 var(--font-num);font-variant-numeric:tabular-nums}
+.fin-overview-current-pe span,.fin-overview-current-eps span{color:var(--muted);font:540 8.5px/1.2 var(--font-ui)}
+.fin-overview-current-eps{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:9px;border-top:1px solid var(--line-2)}
+.fin-overview-current-eps b{color:var(--text-2);font:630 11px/1 var(--font-num)}
+.fin-overview-detail-link{justify-self:start;margin-top:auto;min-height:34px;padding:0;color:var(--brand-2);font:630 9px/1 var(--font-ui)}
+.fin-overview-detail-link:hover{color:var(--text)}
+.fin-overview-pe-history .fin-card-h{justify-content:space-between}
+.fin-overview-pe-history .fin-card-h small{color:var(--muted);font:520 8px/1 var(--font-ui);font-weight:500}
+.fin-overview-ps-context{margin-top:0}
+.fin-overview-ps-context>.fin-card-h{justify-content:space-between}
+@media (max-width:1180px){
+  .fin-overview-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .fin-overview-kpis .fin-kpi:nth-child(4){border-right:0}
+  .fin-overview-kpis .fin-kpi:nth-child(-n+4){border-bottom:1px solid var(--line)}
+  .fin-overview-kpis .fin-kpi:nth-child(7){border-right:0}
+}
+@media (max-width:760px){
+  .fin-overview-snapshot{padding:12px;border-radius:var(--r-tile)}
+  .fin-overview-snapshot-head{display:grid}
+  .fin-overview-snapshot-clock{text-align:left}
+  .fin-overview-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .fin-overview-kpis .fin-kpi,.fin-overview-kpis .fin-kpi:nth-child(4),.fin-overview-kpis .fin-kpi:nth-child(7){border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .fin-overview-kpis .fin-kpi:nth-child(2n){border-right:0}
+  .fin-overview-kpis .fin-kpi:last-child{border-bottom:0}
+  .fin-overview-about{grid-template-columns:1fr;gap:7px}
+  .fin-overview-valuation-grid{grid-template-columns:1fr}
+  .fin-overview-valuation-current{min-height:0}
+}
+@media (max-width:520px){
+  .fin-overview-kpis .fin-kpi{min-height:68px;padding:9px}
+  .fin-overview-kpis .fin-kpi .v{font-size:15px}
+  .fin-overview-card{min-height:0}
+}
